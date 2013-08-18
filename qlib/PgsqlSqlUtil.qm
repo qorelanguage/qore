@@ -530,6 +530,9 @@ my any $v = $c.name;
 
     #! represents a PostgreSQL-specific primary key constraint
     public class PgsqlPrimaryKey inherits SqlUtil::AbstractPrimaryKey, PgsqlUniqueConstraintCommon {
+        constructor() {
+        }
+
         constructor(string n, *hash c, *string ts) : AbstractPrimaryKey(n, c), PgsqlUniqueConstraintCommon(ts) {
         }
 
@@ -1259,13 +1262,13 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             return new Columns(rv);
         }
 
-        private *PgsqlPrimaryKey getPrimaryKeyImpl() {
+        private PgsqlPrimaryKey getPrimaryKeyImpl() {
             hash rv;
 
             # get primary key description
             *hash qh = ds.select("select c1.relname index_name, a.attname, pg_catalog.pg_get_indexdef(a.attrelid, a.attnum, TRUE) AS column_name, pg_catalog.format_type(a.atttypid, a.atttypmod), tablespace from pg_class c, pg_index i, pg_attribute a, pg_class c1, pg_indexes ix where c.oid = %v::regclass and c.oid = i.indrelid and i.indisprimary and i.indexrelid = a.attrelid and c1.oid = i.indexrelid and c1.relname = ix.indexname and i.indisvalid and not a.attisdropped order by a.attnum", schema + "." + name);
             if (!qh.index_name)
-                return;
+                return new PgsqlPrimaryKey();
 
             #printf("PgsqlTable::getPrimaryKeyImpl(): %s: %N\n", getName(), qh);
             foreach string col in (qh.column_name)
@@ -1299,7 +1302,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
 
                 foreach hash i in (ih.pairIterator()) {
                     # check primary key index and add tablespace to primary key definition
-                    if (i.primary && primaryKey) {
+                    if (i.primary && !primaryKey.empty()) {
                         PgsqlPrimaryKey pk = cast<PgsqlPrimaryKey>(primaryKey);
                         if (i.value.tablespace && !pk.tablespace)
                             pk.tablespace = i.value.tablespace;

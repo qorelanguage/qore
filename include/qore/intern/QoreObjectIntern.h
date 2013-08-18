@@ -66,7 +66,7 @@ class LValueHelper;
   please note that this flag is called the "virtual" flag elsewhere in the code here,
   meaning that the data only "virtually" belongs to the class
  */
-typedef std::pair<AbstractPrivateData *, bool> private_pair_t;
+typedef std::pair<AbstractPrivateData*, bool> private_pair_t;
 
 // mapping from qore class ID to the object data
 typedef std::map<qore_classid_t, private_pair_t> keymap_t;
@@ -77,44 +77,44 @@ private:
    keymap_t keymap;
 
 public:
-   DLLLOCAL AbstractPrivateData *getReferencedPrivateData(qore_classid_t key) const {
+   DLLLOCAL AbstractPrivateData* getReferencedPrivateData(qore_classid_t key) const {
       keymap_t::const_iterator i = keymap.find(key);
       if (i == keymap.end())
 	 return 0;
 
-      AbstractPrivateData *apd = i->second.first;
+      AbstractPrivateData* apd = i->second.first;
       apd->ref();
       return apd;
    }
 
-   DLLLOCAL void addToString(QoreString *str) const {
+   DLLLOCAL void addToString(QoreString* str) const {
       for (keymap_t::const_iterator i = keymap.begin(), e = keymap.end(); i != e; ++i)
 	 str->sprintf("%d=<0x%p>, ", i->first, i->second.first);
    }
 
-   DLLLOCAL void derefAll(ExceptionSink *xsink) const {
+   DLLLOCAL void derefAll(ExceptionSink* xsink) const {
       for (keymap_t::const_iterator i = keymap.begin(), e = keymap.end(); i != e; ++i)
 	 if (!i->second.second)
 	    i->second.first->deref(xsink);
    }
 
-   DLLLOCAL AbstractPrivateData *getAndClearPtr(qore_classid_t key) {
+   DLLLOCAL AbstractPrivateData* getAndClearPtr(qore_classid_t key) {
       keymap_t::iterator i = keymap.find(key);
       if (i == keymap.end())
 	 return 0;
 
       assert(!i->second.second);
-      AbstractPrivateData *rv = i->second.first;
+      AbstractPrivateData* rv = i->second.first;
       keymap.erase(i);
       return rv;
    }
 
-   DLLLOCAL void insert(qore_classid_t key, AbstractPrivateData *pd) {
+   DLLLOCAL void insert(qore_classid_t key, AbstractPrivateData* pd) {
       assert(pd);
       keymap.insert(std::make_pair(key, std::make_pair(pd, false)));
    }
 
-   DLLLOCAL void insertVirtual(qore_classid_t key, AbstractPrivateData *pd) {
+   DLLLOCAL void insertVirtual(qore_classid_t key, AbstractPrivateData* pd) {
       assert(pd);
       if (keymap.find(key) == keymap.end())
 	 keymap.insert(std::make_pair(key, std::make_pair(pd, true)));
@@ -160,7 +160,7 @@ public:
    bool system_object, delete_blocker_run, in_destructor, pgm_ref, recursive_ref_found, is_recursive;
    QoreObject* obj;
 
-   DLLLOCAL qore_object_private(QoreObject *n_obj, const QoreClass *oc, QoreProgram *p, QoreHashNode *n_data) : 
+   DLLLOCAL qore_object_private(QoreObject* n_obj, const QoreClass *oc, QoreProgram* p, QoreHashNode* n_data) : 
       theclass(oc), status(OS_OK), 
       privateData(0), data(n_data), pgm(p), system_object(!p), 
       delete_blocker_run(false), in_destructor(false), pgm_ref(true), recursive_ref_found(false), is_recursive(false),
@@ -187,7 +187,7 @@ public:
       assert(!privateData);
    }
 
-   DLLLOCAL void plusEquals(const AbstractQoreNode* v, AutoVLock &vl, ExceptionSink* xsink) {
+   DLLLOCAL void plusEquals(const AbstractQoreNode* v, AutoVLock& vl, ExceptionSink* xsink) {
       if (!v)
          return;
 
@@ -198,16 +198,16 @@ public:
             merge(*h, vl, xsink);
       }
       else if (v->getType() == NT_HASH)
-         merge(reinterpret_cast<const QoreHashNode *>(v), vl, xsink);
+         merge(reinterpret_cast<const QoreHashNode* >(v), vl, xsink);
    }
 
-   DLLLOCAL void merge(const QoreHashNode *h, AutoVLock &vl, ExceptionSink *xsink);
+   DLLLOCAL void merge(const QoreHashNode* h, AutoVLock& vl, ExceptionSink* xsink);
 
    DLLLOCAL int getLValue(const char* key, LValueHelper& lvh, bool internal, bool for_remove, ExceptionSink* xsink) const;
 
-   DLLLOCAL AbstractQoreNode **getMemberValuePtr(const char *key, AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) const;
+   DLLLOCAL AbstractQoreNode* *getMemberValuePtr(const char* key, AutoVLock *vl, const QoreTypeInfo*& typeInfo, ExceptionSink* xsink) const;
 
-   DLLLOCAL QoreStringNode *firstKey(ExceptionSink *xsink) {
+   DLLLOCAL QoreStringNode* firstKey(ExceptionSink* xsink) {
       QoreAutoRWReadLocker al(rwl);
 
       if (status == OS_DELETED) {
@@ -216,7 +216,7 @@ public:
       }
 
       if (qore_class_private::runtimeCheckPrivateClassAccess(*theclass)) {
-         const char *str = data->getFirstKey();
+         const char* str = data->getFirstKey();
          printd(0, "qore_object_private::firstKey() got %p (%s)\n", str, str ? str : "<null>");
          return !str ? 0 : new QoreStringNode(str);
       }
@@ -233,7 +233,7 @@ public:
       return 0;
    }
 
-   DLLLOCAL QoreStringNode *lastKey(ExceptionSink *xsink) {
+   DLLLOCAL QoreStringNode* lastKey(ExceptionSink* xsink) {
       QoreAutoRWReadLocker al(rwl);
 
       if (status == OS_DELETED) {
@@ -242,7 +242,7 @@ public:
       }
 
       if (qore_class_private::runtimeCheckPrivateClassAccess(*theclass)) {
-         const char *str = data->getLastKey();
+         const char* str = data->getLastKey();
          return !str ? 0 : new QoreStringNode(str);
       }
 
@@ -256,7 +256,7 @@ public:
       return 0;
    }
 
-   DLLLOCAL QoreHashNode *getSlice(const QoreListNode *l, ExceptionSink *xsink) const {
+   DLLLOCAL QoreHashNode* getSlice(const QoreListNode* l, ExceptionSink* xsink) const {
       QoreSafeRWReadLocker sl(rwl);
 
       if (status == OS_DELETED) {
@@ -317,7 +317,7 @@ public:
       return data->getSlice(l, xsink);
    }
 
-   DLLLOCAL int checkMemberAccessIntern(const char *mem, bool has_public_members, bool private_access_ok) const {
+   DLLLOCAL int checkMemberAccessIntern(const char* mem, bool has_public_members, bool private_access_ok) const {
       // check public access
       if (has_public_members) {
 	 bool priv_member;
@@ -334,7 +334,7 @@ public:
       return (!private_access_ok && theclass->isPrivateMember(mem)) ? QOA_PRIV_ERROR : QOA_OK;
    }
 
-   DLLLOCAL int checkMemberAccess(const char *mem) const {
+   DLLLOCAL int checkMemberAccess(const char* mem) const {
       // check public access
       if (theclass->runtimeHasPublicMembersInHierarchy()) {
 	 bool priv_member;
@@ -352,7 +352,7 @@ public:
       return (!qore_class_private::runtimeCheckPrivateClassAccess(*theclass) && theclass->isPrivateMember(mem)) ? QOA_PRIV_ERROR : QOA_OK;
    }
 
-   DLLLOCAL int checkMemberAccess(const char *mem, ExceptionSink *xsink) const {
+   DLLLOCAL int checkMemberAccess(const char* mem, ExceptionSink* xsink) const {
       int rc = checkMemberAccess(mem);
       if (!rc)
 	 return 0;
@@ -386,7 +386,7 @@ public:
    DLLLOCAL AbstractQoreNode* takeMember(ExceptionSink* xsink, const char* mem, bool check_access = true);
 
    // lock not held on entry
-   DLLLOCAL void doDeleteIntern(ExceptionSink *xsink) {
+   DLLLOCAL void doDeleteIntern(ExceptionSink* xsink) {
       printd(5, "qore_object_private::doDeleteIntern() execing destructor() obj=%p\n", obj);
 
       // increment reference count temporarily for destructor
@@ -397,7 +397,7 @@ public:
 
       theclass->execDestructor(obj, xsink);
 
-      QoreHashNode *td;
+      QoreHashNode* td;
       {
          QoreAutoRWWriteLocker al(rwl);
 	 assert(status != OS_DELETED);
@@ -411,7 +411,7 @@ public:
       obj->deref(xsink);
    }
 
-   DLLLOCAL void cleanup(ExceptionSink *xsink, QoreHashNode *td) {
+   DLLLOCAL void cleanup(ExceptionSink* xsink, QoreHashNode* td) {
       if (privateData) {
 	 delete privateData;
 #ifdef DEBUG
@@ -435,7 +435,7 @@ public:
       td->deref(xsink);
    }
 
-   DLLLOCAL void derefProgramCycle(QoreProgram *p) {
+   DLLLOCAL void derefProgramCycle(QoreProgram* p) {
       QoreAutoRWWriteLocker al(rwl);
 
       if (pgm && pgm_ref) {
@@ -446,7 +446,7 @@ public:
    }
 
    // this method is called when there is an exception in a constructor and the object should be deleted
-   DLLLOCAL void obliterate(ExceptionSink *xsink) {
+   DLLLOCAL void obliterate(ExceptionSink* xsink) {
       printd(5, "qore_object_private::obliterate() obj=%p class=%s %d->%d\n", obj, theclass->getName(), obj->references, obj->references - 1);
 
 #ifdef QORE_DEBUG_OBJ_REFS
@@ -474,7 +474,7 @@ public:
 	 printd(5, "qore_object_private::obliterate() obj=%p class=%s\n", obj, theclass->getName());
 
 	 status = OS_DELETED;
-	 QoreHashNode *td = data;
+	 QoreHashNode* td = data;
 	 data = 0;
 	 //printd(0, "Object lock %p unlocked (safe)\n", &rwl);
 	 sl.unlock();
@@ -487,11 +487,11 @@ public:
       tDeref();
    }
 
-   DLLLOCAL void doPrivateException(const char *mem, ExceptionSink *xsink) const {
+   DLLLOCAL void doPrivateException(const char* mem, ExceptionSink* xsink) const {
       xsink->raiseException("PRIVATE-MEMBER", "'%s' is a private member of class '%s'", mem, theclass->getName());
    }
 
-   DLLLOCAL void doPublicException(const char *mem, ExceptionSink *xsink) const {
+   DLLLOCAL void doPublicException(const char* mem, ExceptionSink* xsink) const {
       xsink->raiseException("INVALID-MEMBER", "'%s' is not a registered member of class '%s'", mem, theclass->getName());
    }
 
@@ -511,7 +511,7 @@ public:
    }
 
    // add virtual IDs for private data to class list
-   DLLLOCAL void addVirtualPrivateData(qore_classid_t key, AbstractPrivateData *apd) {
+   DLLLOCAL void addVirtualPrivateData(qore_classid_t key, AbstractPrivateData* apd) {
       // first get parent class corresponding to "key"
       QoreClass *qc = theclass->getClass(key);
       //printd(5, "qore_object_private::addVirtualPrivateData() this: %p key: %d apd: %p qc: %p\n", this, key, apd, qc);
@@ -563,23 +563,23 @@ public:
       return obj.priv->getLValue(key, lvh, internal, for_remove, xsink);
    }
 
-   DLLLOCAL static AbstractQoreNode **getMemberValuePtr(const QoreObject *obj, const char *key, AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) {
+   DLLLOCAL static AbstractQoreNode* *getMemberValuePtr(const QoreObject* obj, const char* key, AutoVLock *vl, const QoreTypeInfo*& typeInfo, ExceptionSink* xsink) {
       return obj->priv->getMemberValuePtr(key, vl, typeInfo, xsink);
    }
 
-   DLLLOCAL static void plusEquals(QoreObject *obj, const AbstractQoreNode *v, AutoVLock &vl, ExceptionSink *xsink) {
+   DLLLOCAL static void plusEquals(QoreObject* obj, const AbstractQoreNode* v, AutoVLock& vl, ExceptionSink* xsink) {
       obj->priv->plusEquals(v, vl, xsink);
    }
 
-   DLLLOCAL static void derefProgramCycle(QoreObject *obj, QoreProgram *p) {
+   DLLLOCAL static void derefProgramCycle(QoreObject* obj, QoreProgram* p) {
       obj->priv->derefProgramCycle(p);
    }
 
-   DLLLOCAL static QoreStringNode *firstKey(QoreObject *obj, ExceptionSink *xsink) {
+   DLLLOCAL static QoreStringNode* firstKey(QoreObject* obj, ExceptionSink* xsink) {
       return obj->priv->firstKey(xsink);
    }
 
-   DLLLOCAL static QoreStringNode *lastKey(QoreObject *obj, ExceptionSink *xsink) {
+   DLLLOCAL static QoreStringNode* lastKey(QoreObject* obj, ExceptionSink* xsink) {
       return obj->priv->lastKey(xsink);
    }
 };
@@ -590,7 +590,7 @@ private:
    AutoVLock& vl;
 
 public:
-   DLLLOCAL qore_object_lock_handoff_helper(qore_object_private *n_pobj, AutoVLock &n_vl) : pobj(n_pobj), vl(n_vl) {
+   DLLLOCAL qore_object_lock_handoff_helper(qore_object_private* n_pobj, AutoVLock& n_vl) : pobj(n_pobj), vl(n_vl) {
       if (pobj->obj == vl.getObject()) {
 	 assert(vl.getRWL() == &pobj->rwl);
 	 vl.clear();
@@ -624,12 +624,11 @@ public:
 
 class qore_object_recursive_lock_handoff_helper {
 private:
-   qore_object_private *pobj;
-   //AutoVLock &vl;
+   qore_object_private* pobj;
    bool locked;
 
 public:
-   DLLLOCAL qore_object_recursive_lock_handoff_helper(qore_object_private *n_pobj, AutoVLock &n_vl) : pobj(n_pobj) /*, vl(n_vl)*/ {
+   DLLLOCAL qore_object_recursive_lock_handoff_helper(qore_object_private* n_pobj, AutoVLock& n_vl) : pobj(n_pobj) /*, vl(n_vl)*/ {
       // try to lock current object
       locked = !pobj->rwl.trywrlock();
    }

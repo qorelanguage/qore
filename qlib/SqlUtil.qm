@@ -4313,6 +4313,9 @@ $uk.addSourceConstraint($table_name, constraint_name);
 
     #! represents a primary key
     public class AbstractPrimaryKey inherits AbstractUniqueConstraint {
+        constructor() : AbstractUniqueConstraint("") {
+        }
+
         constructor(string n, *hash c) : AbstractUniqueConstraint(n, c) {
         }
     }
@@ -8967,7 +8970,7 @@ my AbstractPrimaryKey $cols = $table.getPrimaryKey();
 
             @return an object of class AbstractPrimaryKey describing the primary key of the table
         */
-        *AbstractPrimaryKey getPrimaryKey() {
+        AbstractPrimaryKey getPrimaryKey() {
             return t.getPrimaryKey();
         }
 
@@ -9312,7 +9315,7 @@ my Triggers $trig = $table.getTriggers();
             #! column description object
             Columns columns;
             #! primary key description
-            *AbstractPrimaryKey primaryKey;
+            AbstractPrimaryKey primaryKey;
             #! index descriptions
             Indexes indexes;
             #! foreign constraints description
@@ -9425,16 +9428,16 @@ map printf("unique constraint %s\n", $1.getName()), $table.getUniqueConstraintIt
                 getConstraintsUnlocked();
             }
 
-            list l = ();
-            if (primaryKey)
-                l += primaryKey;
+            list lst = ();
+            if (!primaryKey.empty())
+                lst += primaryKey;
 
             foreach AbstractConstraint c in (constraints.iterator()) {
                 if (c instanceof AbstractUniqueConstraint)
-                    l += c;
+                    lst += c;
             }
 
-            return l.iterator();
+            return lst.iterator();
         }
 
         #! drops the table from the database; releases the transaction lock after dropping the table
@@ -10109,7 +10112,7 @@ my string $sql = $table.getRenameColumnSql("name", "family_name");
 
             # now rename column in any constraints
             # check primary key
-            if (primaryKey && primaryKey.hasKey(old_name))
+            if (!primaryKey.empty() && primaryKey.hasKey(old_name))
                 primaryKey.renameKey(old_name, new_name);
 
             # check foreign constraints
@@ -11092,7 +11095,7 @@ my AbstractConstraint $con = $table.renameConstraint("pk_table_name", "pkey_tabl
             else {
                 if (inDb) {
                     getPrimaryKeyUnlocked();
-                    if (primaryKey && primaryKey.getName() == old_name) {
+                    if (!primaryKey.empty() && primaryKey.getName() == old_name) {
                         c = primaryKey;
                         # no need to update any container if the primary key is being updated
                         rename = sub () { };
@@ -11111,7 +11114,7 @@ my AbstractConstraint $con = $table.renameConstraint("pk_table_name", "pkey_tabl
                 list cl = ();
                 # get a list of all constraint names
                 cl += constraints.keys();
-                if (primaryKey)
+                if (!primaryKey.empty())
                     cl += primaryKey.getName();
                 if (foreignConstraints)
                     cl += foreignConstraints.keys();
@@ -11223,7 +11226,7 @@ my *string $sql = $table.getDropConstraintIfExistsSql("uk_mytable_name");
                         indexes.take(cname);
                 };
             }
-            else if (primaryKey && primaryKey.getName() == cname) {
+            else if (!primaryKey.empty() && primaryKey.getName() == cname) {
                 c = primaryKey;
                 rmv = sub () { 
                     remove self.primaryKey; 
@@ -11243,7 +11246,7 @@ my *string $sql = $table.getDropConstraintIfExistsSql("uk_mytable_name");
                 list cl = ();
                 # get a list of all constraint names
                 cl += constraints.keys();
-                if (primaryKey)
+                if (!primaryKey.empty())
                     cl += primaryKey.getName();
                 if (foreignConstraints)
                     cl += foreignConstraints.keys();
@@ -11480,8 +11483,8 @@ my string $sql = $table.getDropTriggerSql("trig_mytable");
             if (constraints.hasKey(cname))
                 throw err, printf("%y: already has a constraint named %y", name, cname);
 
-            if (primaryKey && primaryKey.getName() == cname)
-                throw err, printf("%y: already has a primary key constraint named %y with columns: %y", name, cname, primaryKey.columns.keys());
+            if (!primaryKey.empty() && primaryKey.getName() == cname)
+                throw err, printf("%y: already has a primary key constraint named %y with columns: %y", name, cname, primaryKey.keys());
         }
 
         private checkUniqueConstraintNameValidateOptions(string err, string cname, hash ropt, reference opt) {
@@ -13578,7 +13581,7 @@ my Columns $cols = $table.describe();
 
             @return an object of class AbstractPrimaryKey describing the primary key of the table
         */
-        *AbstractPrimaryKey getPrimaryKey() {
+        AbstractPrimaryKey getPrimaryKey() {
             l.lock();
             on_exit l.unlock();
             getPrimaryKeyUnlocked();
@@ -13605,7 +13608,7 @@ my *AbstractUniqueConstraint uk = $table.findUniqueConstraint("uk_table2");
         *AbstractUniqueConstraint findUniqueConstraintUnlocked(string name) {
             getPrimaryKeyUnlocked();
             getConstraintsUnlocked();
-            if (primaryKey && primaryKey.getName() == name)
+            if (!primaryKey.empty() && primaryKey.getName() == name)
                 return primaryKey;
 
             return constraints.hasKey(name) && constraints{name} instanceof AbstractUniqueConstraint ? constraints{name} : NOTHING;
@@ -13897,7 +13900,7 @@ my list $l = $table.getAlignSql($table2);
                     # make sure there is no unique constraint or primary key for the unique index if the "index" option is supported
                     # in which case update the constraint to be based on the index and do not drop the index
                     if (ix.unique) {
-                        if (t.primaryKey && t.primaryKey.matchKeys(ix.columns)) {
+                        if (!t.primaryKey.empty() && t.primaryKey.matchKeys(ix.columns)) {
                             if (t.primaryKey.setIndexBase(ix.name)) {
                                 ix.setSupportingConstraint(primaryKey);
                                 continue;
@@ -13940,7 +13943,7 @@ my list $l = $table.getAlignSql($table2);
                     c = constraints{rh.key};
                     constraints.renameKey(rh.key, rh.value);
                 }
-                else if (primaryKey && primaryKey.getName() == rh.key)
+                else if (!primaryKey.empty() && primaryKey.getName() == rh.key)
                     c = primaryKey;
 
                 if (c) {
@@ -14142,7 +14145,7 @@ my list $l = $table.getAlignSql($table2);
 
             # if constraints are linked to indexes, then rename any matching constraint as well
             if (constraintsLinkedToIndexesImpl()) {
-                if (primaryKey && primaryKey.getName() == old_name) {
+                if (!primaryKey.empty() && primaryKey.getName() == old_name) {
                     primaryKey.rename(new_name);
                 }
                 else {
@@ -14769,7 +14772,7 @@ my *list $rows = $table.findAll($h);
             getAllConstraintsUnlocked();
 
             # find unique constraint with the given columns
-            if (primaryKey && primaryKey.matchKeys(fk.target.columns)) {
+            if (!primaryKey.empty() && primaryKey.matchKeys(fk.target.columns)) {
                 primaryKey.addSourceConstraint(table_name, fk);
                 return;
             }
@@ -14866,7 +14869,7 @@ my *list $rows = $table.findAll($h);
         private abstract setupTableImpl(hash desc, *hash opt);
 
         private abstract Columns describeImpl();
-        private abstract *AbstractPrimaryKey getPrimaryKeyImpl();
+        private abstract AbstractPrimaryKey getPrimaryKeyImpl();
         private abstract Indexes getIndexesImpl();
         private abstract ForeignConstraints getForeignConstraintsImpl(*hash opt);
         private abstract Constraints getConstraintsImpl();

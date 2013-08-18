@@ -351,6 +351,9 @@ my any $v = $c.name;
 
     #! represents a MySQL-specific primary key constraint
     public class MysqlPrimaryKey inherits SqlUtil::AbstractPrimaryKey, MysqlUniqueConstraintCommon {
+        constructor() {
+        }
+
         constructor(*hash c) : AbstractPrimaryKey("PRIMARY", c) {
         }
 
@@ -945,14 +948,14 @@ end";
             }
             return AbstractDatabase::doCallback(opt, primaryKey.getCreateSql(name, opt), AbstractDatabase::AC_Add, "primary key", primaryKey.getName(), name);
         }
-
-        private *MysqlPrimaryKey getPrimaryKeyImpl() {
+        
+        private MysqlPrimaryKey getPrimaryKeyImpl() {
             hash rv;
 
             # get primary key description
             *hash qh = ds.select("select column_name from information_schema.key_column_usage k where constraint_name = 'PRIMARY' and table_name = %v and table_schema = %v order by ordinal_position", name, schema);
             if (!qh.column_name)
-                return;
+                return new MysqlPrimaryKey();
 
             #printf("MysqlTable::getPrimaryKeyImpl(): %s: %N\n", getName(), qh);
             foreach string col in (qh.column_name)

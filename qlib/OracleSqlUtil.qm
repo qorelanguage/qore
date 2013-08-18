@@ -554,6 +554,9 @@ my any $v = $c.name;
             *string tablespace;
         }
 
+        constructor() {
+        }
+
         constructor(string n, *hash c, *string ts) : AbstractPrimaryKey(n, c) {
             tablespace = ts;
         }
@@ -1019,8 +1022,8 @@ my any $v = $c.name;
                 return;
             string src = foldl $1 + $2, l;
 
-            if (!regex(src, "^" + type + "( |\n)", RE_Caseless))
-                throw "SOURCE-ERROR", sprintf("source to %s %y does not begin with the type name: %y", type, name, src.substr(0, 50));
+            if (!regex(src, "^" + type + "([[:blank:]]|$)", RE_Caseless))
+                throw "SOURCE-ERROR", sprintf("source to %s %y does not begin with the type name %y; source: %y", type, name, type, src.substr(0, 50));
 
             # remove the type name from the beginning of the string
             splice src, 0, type.size() + 1;
@@ -1034,8 +1037,8 @@ my any $v = $c.name;
             trim src;
 
             # ensure the name of the object is at the beginning of the string
-            if (!regex(src, "^" + name, RE_Caseless))
-                throw "SOURCE-ERROR", sprintf("source to %s %y does not begin with the %s name: %y", type, name, type, src.substr(0, 50));
+            if (!regex(src, "^(\")?" + name + "(\")?", RE_Caseless))
+                throw "SOURCE-ERROR", sprintf("source to %s %y does not begin with the %s name %y; source: %y", type, name, type, name, src.substr(0, 50));
         }
 
         #! returns a list of string synonym names in the database
@@ -1346,7 +1349,7 @@ my any $v = $c.name;
 		schema = ds.getUserName();
 
             # the oracle driver >= 3.0 supports selecting from LONG columns
-            has_long = compare_version("3.0", getModuleHash().oracle.version) >= 0;
+            has_long = compare_version("3.0", getModuleHash().oracle.version) <= 0;
         }
 
         private bool checkExistenceImpl() {
@@ -1574,7 +1577,7 @@ my any $v = $c.name;
             return new Columns(rv);
         }
 
-        private *OraclePrimaryKey getPrimaryKeyImpl() {
+        private OraclePrimaryKey getPrimaryKeyImpl() {
 	    if (!tablespace)
 		setTableInfoIntern();
 
@@ -1583,7 +1586,7 @@ my any $v = $c.name;
             # get primary key description
             *hash qh = ds.select("select cons.constraint_name, cols.column_name, cols.position, cons.status, cons.index_name from all_constraints cons, all_cons_columns cols where cols.owner = %v and cols.table_name = %v and cons.constraint_type = 'P' and cons.owner = cols.owner and cons.constraint_name = cols.constraint_name order by cols.position", schema.upr(), name.upr());
             if (!qh.constraint_name)
-                return;
+                return new OraclePrimaryKey();
 
             foreach string col in (qh.column_name) {
                 string cn = native_case ? col : col.lwr();
@@ -1761,7 +1764,7 @@ my any $v = $c.name;
                 trim row.description;
 
                 # remove trigger name from description line
-                splice row.description, 0, row.trigger_name.size() + 1;
+                row.description = regex_subst(row.description, "^.*" + row.trigger_name + ".", "", RE_Caseless);
                 rv{row.trigger_name} = new OracleTrigger(row.trigger_name, row.description + "\n" + row.trigger_body, row.status == "ENABLED");
             }
 
