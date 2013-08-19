@@ -1,4 +1,5 @@
 #!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
 %require-our
 %requires qore >= 0.8
@@ -63,4 +64,16 @@ class T {
     my T $obj11(11);
     $obj10.set($obj11);
     $obj11.set($obj10);
+}
+
+{
+    my T $obj12(12);
+    {
+	my T $obj13(13);
+
+	$obj12.a = $obj13;
+	$obj13.a = $obj12;
+    }    
+    printf("12: %y\n", $obj12);
+    printf("12.a: %y\n", $obj12.a);
 }

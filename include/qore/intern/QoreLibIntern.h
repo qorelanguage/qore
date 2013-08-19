@@ -122,9 +122,9 @@
 #define NT_SOMETHING    -101 // i.e. "not NOTHING"
 #define NT_DATA         -102 // either QoreStringNode or BinaryNode
 
-typedef std::set<const QoreObject*> obj_set_t;
+typedef std::set<QoreObject*> obj_set_t;
 
-DLLLOCAL int check_recursive(obj_set_t& oset, AbstractQoreNode* n);
+DLLLOCAL bool is_container(const AbstractQoreNode* n);
 
 struct ParseWarnOptions {
    int64 parse_options;

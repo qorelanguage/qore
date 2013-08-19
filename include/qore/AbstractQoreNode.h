@@ -144,7 +144,7 @@ private:
 protected:
    //! the type of the object
    /**
-      instead of using a virtual method to return a default type code for each implemented type, it's stored as an attribute of the base class.  This makes it possible to avoid making virtual function calls as a performance optimization in many cases, also it allows very fast type determination without makiing either a virtual function call or using dynamic_cast<> at the expense of more memory usage
+      instead of using a virtual method to return a default type code for each implemented type, it's stored as an attribute of the base class.  This makes it possible to avoid making virtual function calls as a performance optimization in many cases, also it allows very fast type determination without making either a virtual function call or using dynamic_cast<> at the expense of more memory usage
    */
    qore_type_t type : 11;
 

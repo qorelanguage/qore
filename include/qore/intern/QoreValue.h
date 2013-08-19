@@ -354,6 +354,13 @@ public:
       return 0;
    }
 
+   DLLLOCAL bool isContainer() const {
+      if (!assigned || type != QV_Node || !v.n)
+         return false;
+
+      return is_container(v.n);
+   }      
+
    DLLLOCAL AbstractQoreNode* getReferencedContainerValue() const {
       if (!assigned)
          return 0;

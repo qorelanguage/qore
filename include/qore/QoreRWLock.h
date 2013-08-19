@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreRWLock.cc
+  QoreRWLock.h
 
   simple pthreads-based read-write lock
 
@@ -282,6 +282,48 @@ public:
    DLLLOCAL void stay_locked() {
       assert(locked);
       locked = false;
+   }
+};
+
+class QoreOptionalRWWriteLocker {
+protected:
+   QoreRWLock* l;
+
+public:
+   DLLLOCAL QoreOptionalRWWriteLocker(QoreRWLock* n_l) : l(n_l->trywrlock() ? 0 : n_l) {
+   }
+
+   DLLLOCAL QoreOptionalRWWriteLocker(QoreRWLock& n_l) : l(n_l.trywrlock() ? 0 : &n_l) {
+   }
+
+   DLLLOCAL ~QoreOptionalRWWriteLocker() {
+      if (l)
+         l->unlock();
+   }
+
+   DLLLOCAL operator bool() const {
+      return (bool)l;
+   }
+};
+
+class QoreOptionalRWReadLocker {
+protected:
+   QoreRWLock* l;
+
+public:
+   DLLLOCAL QoreOptionalRWReadLocker(QoreRWLock* n_l) : l(n_l->tryrdlock() ? 0 : n_l) {
+   }
+
+   DLLLOCAL QoreOptionalRWReadLocker(QoreRWLock& n_l) : l(n_l.tryrdlock() ? 0 : &n_l) {
+   }
+
+   DLLLOCAL ~QoreOptionalRWReadLocker() {
+      if (l)
+         l->unlock();
+   }
+
+   DLLLOCAL operator bool() const {
+      return (bool)l;
    }
 };
 

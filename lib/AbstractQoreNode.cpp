@@ -509,3 +509,14 @@ double SimpleValueQoreNode::floatEvalImpl(ExceptionSink* xsink) const {
 AbstractQoreNode* UniqueValueQoreNode::realCopy() const {
    return const_cast<UniqueValueQoreNode*>(this);
 }
+
+bool is_container(const AbstractQoreNode* n) {
+   switch (get_node_type(n)) {
+      case NT_OBJECT:
+      case NT_LIST:
+      case NT_HASH:
+	 return true;
+   }
+   return false;
+}
+

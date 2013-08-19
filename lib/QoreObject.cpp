@@ -29,8 +29,7 @@
 
 void qore_object_private::merge(const QoreHashNode* h, AutoVLock& vl, ExceptionSink* xsink) {
 #ifdef DO_OBJ_RECURSIVE_CHECK
-   obj_set_t omap;
-   omap.insert(obj);
+   bool check_recursive = false;
 #endif
 
    // list for saving all overwritten values to be dereferenced outside the object lock
@@ -61,11 +60,13 @@ void qore_object_private::merge(const QoreHashNode* h, AutoVLock& vl, ExceptionS
 	 if (*xsink)
 	    return;
 
+	 AbstractQoreNode* nv = *val;
+	 AbstractQoreNode *n = data->swapKeyValue(hi.getKey(), val.release());
 #ifdef DO_OBJ_RECURSIVE_CHECK
-	 check_recursive(omap, *val);
+	 if (!check_recursive && (is_container(n) || is_container(nv)))
+	    check_recursive = true;
 #endif
 
-	 AbstractQoreNode *n = data->swapKeyValue(hi.getKey(), val.release());
 	 //printd(5, "QoreObject::merge() n=%p (rc=%d, type=%s)\n", n, n ? n->isReferenceCounted() : 0, get_type_name(n));
 	 // if we are overwriting a value, then save it in the list for dereferencing after the lock is released
 	 if (n && n->isReferenceCounted()) {
@@ -75,6 +76,15 @@ void qore_object_private::merge(const QoreHashNode* h, AutoVLock& vl, ExceptionS
 	 }
       }
    }
+
+#ifdef DO_OBJ_RECURSIVE_CHECK
+   if (check_recursive) {
+      std::auto_ptr<ObjectRSet> rset(new ObjectRSet);
+      
+      if (!rset->check(*obj))
+	 rset.release();
+   }
+#endif
 }
 
 AbstractQoreNode *qore_object_private::takeMember(ExceptionSink* xsink, const char* key, bool check_access) {
@@ -521,14 +531,11 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 	 QoreSafeRWReadLocker sl(priv->rwl);
 
 	 if (ref_copy) {
-	    if (!priv->is_recursive || priv->recursive_ref_found || !priv->data || priv->data->empty())
+	    if (priv->rcount != ref_copy || priv->recursive_ref_found || !priv->data || priv->data->empty())
 	       return;
-	    
-	    ObjectSet oset(this);
-	    if (oset.getCount() != ref_copy)
-	       return;
-	    
-	    printd(0, "QoreObject::customDeref() this: %p count/refs: %d deleting object (%s) with only recursive references\n", this, (int)ref_copy, getClassName());
+
+	    printd(0, "QoreObject::customDeref() this: %p rcount/refs: %d deleting object (%s) with only recursive references\n", this, (int)ref_copy, getClassName());
+
 	    priv->recursive_ref_found = true;
 	 }
       }
@@ -1049,44 +1056,122 @@ bool QoreObject::getAsBoolImpl() const {
    return priv->status != OS_DELETED;
 }
 
-int ObjectSet::processValue(const AbstractQoreNode* p) {
-   qore_type_t t = get_node_type(p);
-   if (t == NT_HASH) {
-      ConstHashIterator hi(reinterpret_cast<const QoreHashNode*>(p));
-      while (hi.next()) {
-	 processValue(hi.getValue());
-      }
-   }
-   else if (t == NT_LIST) {
-      ConstListIterator li(reinterpret_cast<const QoreListNode*>(p));
-      while (li.next()) {
-	 processValue(li.getValue());
-      }
-   }
-   else if (t == NT_OBJECT) {
-      const QoreObject* o = reinterpret_cast<const QoreObject*>(p);
-      if (p == root) {
-	 ++count;	 
-      }
-      else {
-	 obj_set_t::iterator i = oset.lower_bound(o);
-	 if (i == oset.end() || (*i) != o) {
-	    oset.insert(i, o);
-	    if (process(o))
+ObjectRSectionLockHelper::ObjectRSectionLockHelper(qore_object_private* po) : pobj(0) {   
+   if (po->enterRSection())
+      return;
+
+   pobj = po;
+}
+
+ObjectRSectionLockHelper::~ObjectRSectionLockHelper() {
+   if (!pobj)
+      return;
+
+   pobj->exitRSection();
+}
+
+int ObjectRSet::checkIntern(AbstractQoreNode* n) {
+   switch (get_node_type(n)) {
+      case NT_OBJECT:
+	 return checkIntern(*reinterpret_cast<QoreObject*>(n));
+
+      case NT_LIST: {
+	 QoreListNode* l = reinterpret_cast<QoreListNode*>(n);
+	 ListIterator li(l);
+	 while (li.next()) {
+	    if (checkIntern(li.getValue()))
 	       return -1;
 	 }
+	 return 0;
+      }
+
+      case NT_HASH: {
+	 QoreHashNode* h = reinterpret_cast<QoreHashNode*>(n);
+	 HashIterator hi(h);
+	 while (hi.next()) {
+	    if (checkIntern(hi.getValue()))
+	       return -1;
+	 }
+	 return 0;
       }
    }
+   return 0;
+}
+
+int ObjectRSet::checkIntern(QoreObject& obj) {
+   if (obj.priv->enterRSection())
+      return -1;
+
+   obj_set_t::iterator i = foset.find(&obj);
+   if (i != foset.end()) {
+      printd(0, "ObjectRSet::checkIntern() found recursive obj %p new rcount: %d\n", &obj, obj.priv->rcount + 1);
+      ++obj.priv->rcount;
+      return 0;
+   }
+
+   printd(0, "ObjectRSet::checkIntern() found obj %p setting rcount = 0\n", &obj);
+
+   // reset rcount
+   obj.priv->rcount = 0;
+
+   // insert into found object list
+   foset.insert(i, &obj);
+
+   // check data members
+   HashIterator hi(obj.priv->data);
+   while (hi.next()) {
+      if (checkIntern(hi.getValue()))
+	 return -1;
+   }
+
+   printd(0, "ObjectRSet::checkIntern() done search obj %p\n", &obj);
 
    return 0;
 }
 
-int ObjectSet::process(const QoreObject* r) {
-   ConstHashIterator hi(r->priv->data);
-   while (hi.next()) {
-      if (processValue(hi.getValue()))
-	 return -1;
+void ObjectRSet::reset() {
+   for (obj_set_t::iterator i = foset.begin(), e = foset.end(); i != e; ++i) {
+      (*i)->priv->exitRSection();
+   }
+   foset.clear();
+}
+
+int ObjectRSet::check(QoreObject& obj) {
+   while (true) {
+      if (checkIntern(obj)) {
+	 reset();
+	 continue;
+      }
+
+      // acquire rsection locks for all other nodes in all other cycles for objects in this graph
+      // and clear rsets
+      
+      // xxx
+
+      break;
    }
 
-   return 0;
+
+   // remove all nodes without cycles
+   for (obj_set_t::iterator i = foset.begin(), e = foset.end(); i != e;) {
+      if ((*i)->priv->rcount) {
+	 ++i;
+	 continue;
+      }
+
+      QoreObject* o = *i;
+      foset.erase(i++);
+
+      // clear rset
+      // xxx
+
+      o->priv->exitRSection();
+   }
+
+   // set rset for remaining nodes
+   // xxx
+
+   reset();   
+
+   return acnt ? 0 : -1;
 }

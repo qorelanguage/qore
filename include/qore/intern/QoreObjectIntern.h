@@ -121,28 +121,50 @@ public:
    }
 };
 
-class ObjectSet {
-private:
-   const QoreObject* root;
-   obj_set_t oset;
-   qore_size_t count;
+/* Qore object recursive reference handling works as follows: a set of objects is found that makes up a
+   directed cyclic graph, where each of the nodes is an object with cyclic references in the same graph.
+
+   A recursive dereference on any single node can only be performed if *all* of the members can be dereferenced.
+
+   If any one member still has valid references (meaning a reference count > # of recursive refs), then *none*
+   of the members of the graph can be dereferenced, even for nodes where reference count = the number of
+   recursive / cyclic references.
+ */
+class ObjectRSet {
+protected:
+   obj_set_t foset;
+   unsigned acnt;
+
+   DLLLOCAL void reset();
+   DLLLOCAL int checkIntern(QoreObject& obj);
+   DLLLOCAL int checkIntern(AbstractQoreNode* n);
 
 public:
-   DLLLOCAL ObjectSet(const QoreObject* r) : root(r), count(0) {
-      while (true) {
-         if (process(r) == -1) {
-            continue;
-         }
-         break;
-      }
+   DLLLOCAL ObjectRSet() : acnt(0) {
    }
 
-   DLLLOCAL int process(const QoreObject* r);
+   DLLLOCAL void deref() {
+      if (--acnt)
+         delete this;
+   }
 
-   DLLLOCAL int processValue(const AbstractQoreNode* p);
+   DLLLOCAL void ref() {
+      ++acnt;
+   }
 
-   DLLLOCAL qore_size_t getCount() const {
-      return count;
+   DLLLOCAL int check(QoreObject& obj);
+};
+
+// for locking object private implementation while looking for recursive refs
+class ObjectRSectionLockHelper {
+protected:
+   qore_object_private* pobj;
+
+public:
+   DLLLOCAL ObjectRSectionLockHelper(qore_object_private* po);
+   DLLLOCAL ~ObjectRSectionLockHelper();
+   DLLLOCAL operator bool() const {
+      return (bool)pobj;
    }
 };
 
@@ -153,17 +175,21 @@ public:
    mutable QoreRWLock rwl;
    // used for references, to ensure that assignments will not deadlock when the object is locked for update
    mutable QoreThreadLock ref_mutex;
+   QoreThreadLock rmutex;
    KeyList* privateData;
    QoreReferenceCounter tRefs;  // reference-references
    QoreHashNode* data;
    QoreProgram* pgm;
    bool system_object, delete_blocker_run, in_destructor, pgm_ref, recursive_ref_found, is_recursive;
+   int in_rsection, rcount;
+   // set of objects in a cyclic directed graph
+   ObjectRSet* rset;
    QoreObject* obj;
 
    DLLLOCAL qore_object_private(QoreObject* n_obj, const QoreClass *oc, QoreProgram* p, QoreHashNode* n_data) : 
       theclass(oc), status(OS_OK), 
       privateData(0), data(n_data), pgm(p), system_object(!p), 
-      delete_blocker_run(false), in_destructor(false), pgm_ref(true), recursive_ref_found(false), is_recursive(false),
+      delete_blocker_run(false), in_destructor(false), pgm_ref(true), recursive_ref_found(false), is_recursive(false), in_rsection(0), rcount(0), rset(0),
       obj(n_obj) {
 
 #ifdef QORE_DEBUG_OBJ_REFS
@@ -528,20 +554,49 @@ public:
       }
    }
 
-   DLLLOCAL int checkRecursive(obj_set_t& oset) {
-      QoreAutoRWReadLocker al(rwl);
+   DLLLOCAL int enterRSection() {
+      int tid = gettid();
+      
+      {
+         AutoLocker al(rmutex);
+         if (!in_rsection) {
+            if (rwl.tryrdlock())
+               return -1;
 
-      HashIterator hi(data);
-      while (hi.next()) {
-         if (check_recursive(oset, hi.getValue()))
+            in_rsection = tid;
+         }
+         else if (in_rsection != tid) {
+            rwl.unlock();
             return -1;
+         }
       }
 
       return 0;
    }
 
-   DLLLOCAL static int checkRecursive(QoreObject& obj, obj_set_t& oset) {
-      return obj.priv->checkRecursive(oset);
+   DLLLOCAL void exitRSection() {
+      // first unset the in_rsection flag
+      {
+         AutoLocker al(rmutex);
+         assert(in_rsection == gettid());
+         in_rsection = 0;
+      }
+      
+      // now release the read lock
+      rwl.unlock();
+   }
+
+   DLLLOCAL void setRSet(ObjectRSet* rs) {
+      assert(!rset);
+      rset = rs;
+      rset->ref();
+   }
+
+   DLLLOCAL void clearRSet() {
+      if (rset) {
+         rset->deref();
+         rset = 0;
+      }
    }
 
    DLLLOCAL static bool isRecursive(QoreObject& obj) {

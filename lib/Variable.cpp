@@ -28,14 +28,16 @@
 #include <errno.h>
 #include <assert.h>
 
-// global environment hash
-QoreHashNode* ENV;
-
 #include <qore/QoreType.h>
 #include <qore/intern/ParserSupport.h>
 #include <qore/intern/QoreObjectIntern.h>
 #include <qore/intern/QoreValue.h>
 #include <qore/intern/qore_number_private.h>
+
+#include <memory>
+
+// global environment hash
+QoreHashNode* ENV;
 
 int qore_gvar_ref_u::write(ExceptionSink* xsink) const {
    if (_refptr & 1) {
@@ -136,49 +138,19 @@ void Var::deref(ExceptionSink* xsink) {
    }
 }
 
-int check_recursive(obj_set_t& oset, AbstractQoreNode* n) {
-   qore_type_t t = get_node_type(n);
-   if (t == NT_OBJECT) {
-      QoreObject* o = reinterpret_cast<QoreObject*>(n);
-      obj_set_t::iterator i = oset.find(o);
-      if (i != oset.end()) {
-	 qore_object_private::setRecursive(*o);
-	 return 0;
-      }
-      
-      oset.insert(o);
-      return qore_object_private::checkRecursive(*o, oset);
-   }
+static void recalculate_recursive(QoreObject* robj) {
+   std::auto_ptr<ObjectRSet> rset(new ObjectRSet);
 
-   if (t == NT_LIST) {
-      QoreListNode* l = reinterpret_cast<QoreListNode*>(n);
-      ListIterator li(l);
-      while (li.next()) {
-	 if (check_recursive(oset, li.getValue()))
-	    return -1;
-      }
-      return 0;
-   }
-
-   if (t == NT_HASH) {
-      QoreHashNode* h = reinterpret_cast<QoreHashNode*>(n);
-      HashIterator hi(h);
-      while (hi.next()) {
-	 if (check_recursive(oset, hi.getValue()))
-	    return -1;
-      }
-      return 0;
-   }
-
-   return 0;
+   if (!rset->check(*robj))
+      rset.release();
 }
 
-LValueHelper::LValueHelper(const ReferenceNode& ref, ExceptionSink* xsink, bool for_remove) : vl(xsink), v(0), lvid_set(0), oset(0), val(0), typeInfo(0) {
+LValueHelper::LValueHelper(const ReferenceNode& ref, ExceptionSink* xsink, bool for_remove) : vl(xsink), v(0), container_change(false), lvid_set(0), robj(0), val(0), typeInfo(0) {
    RuntimeReferenceHelper rh(ref, xsink);
    doLValue(lvalue_ref::get(&ref)->vexp, for_remove);
 }
 
-LValueHelper::LValueHelper(const AbstractQoreNode* exp, ExceptionSink* xsink, bool for_remove) : vl(xsink), v(0), lvid_set(0), oset(0), val(0), typeInfo(0) {
+LValueHelper::LValueHelper(const AbstractQoreNode* exp, ExceptionSink* xsink, bool for_remove) : vl(xsink), v(0), container_change(false), lvid_set(0), robj(0), val(0), typeInfo(0) {
    // exp can be 0 when called from LValueRefHelper if the attach to the Program fails, for example
    //printd(5, "LValueHelper::LValueHelper() exp: %p (%s %d)\n", exp, get_type_name(exp), get_node_type(exp));
    if (exp)
@@ -186,7 +158,8 @@ LValueHelper::LValueHelper(const AbstractQoreNode* exp, ExceptionSink* xsink, bo
 }
 
 LValueHelper::~LValueHelper() {
-   ReferenceHolder<> n(oset && !*vl.xsink ? (val ? val->getReferencedContainerValue() : (*v ? (*v)->refSelf() : 0)) : 0, vl.xsink);
+   if (!container_change && !*vl.xsink && (val ? val->isContainer() : is_container(*v)))
+      container_change = true;
 
    // first free any locks
    vl.del();
@@ -197,14 +170,12 @@ LValueHelper::~LValueHelper() {
 
    delete lvid_set;
 
-   // check for recursive references
-   if (n) {
-      // if any read locks cannot be acquired, then restart search
-      while (check_recursive(*oset, *n)) {
-      }
-   }
+   // recalculate recusive references for objects if necessary
+   if (robj && container_change)
+      recalculate_recursive(robj);
 
-   delete oset;
+   if (robj)
+      robj->tDeref();
 }
 
 void LValueHelper::setValue(QoreLValueGeneric& nv) {
