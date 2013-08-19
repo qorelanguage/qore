@@ -29,6 +29,8 @@
 #include <assert.h>
 
 #include <map>
+#include <set>
+#include <vector>
 
 #include "intern/QoreClassIntern.h"
 
@@ -132,6 +134,7 @@ public:
  */
 class ObjectRSet {
 protected:
+   // currently valid object set for cycles
    obj_set_t foset;
    unsigned acnt;
 
@@ -153,6 +156,8 @@ public:
    }
 
    DLLLOCAL int check(QoreObject& obj);
+
+   DLLLOCAL bool canDelete() const;
 };
 
 // for locking object private implementation while looking for recursive refs
@@ -211,6 +216,7 @@ public:
       assert(!pgm);
       assert(!data);
       assert(!privateData);
+      assert(!rset);
    }
 
    DLLLOCAL void plusEquals(const AbstractQoreNode* v, AutoVLock& vl, ExceptionSink* xsink) {
@@ -434,6 +440,11 @@ public:
       }
       cleanup(xsink, td);
 
+      if (rset) {
+         rset->deref();
+         rset = 0;
+      }
+
       obj->deref(xsink);
    }
 
@@ -504,6 +515,11 @@ public:
 	 data = 0;
 	 //printd(0, "Object lock %p unlocked (safe)\n", &rwl);
 	 sl.unlock();
+
+         if (rset) {
+            rset->deref();
+            rset = 0;
+         }
 
 	 if (privateData)
 	    privateData->derefAll(xsink);
@@ -587,9 +603,10 @@ public:
    }
 
    DLLLOCAL void setRSet(ObjectRSet* rs) {
-      assert(!rset);
+      if (rset)
+         rset->deref();
       rset = rs;
-      rset->ref();
+      rs->ref();
    }
 
    DLLLOCAL void clearRSet() {

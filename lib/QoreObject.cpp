@@ -531,8 +531,12 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 	 QoreSafeRWReadLocker sl(priv->rwl);
 
 	 if (ref_copy) {
+	    if (!priv->rset || priv->recursive_ref_found || !priv->data || priv->data->empty() || !priv->rset->canDelete())
+	       return;
+	    /*
 	    if (priv->rcount != ref_copy || priv->recursive_ref_found || !priv->data || priv->data->empty())
 	       return;
+	    */
 
 	    printd(0, "QoreObject::customDeref() this: %p rcount/refs: %d deleting object (%s) with only recursive references\n", this, (int)ref_copy, getClassName());
 
@@ -1105,6 +1109,7 @@ int ObjectRSet::checkIntern(QoreObject& obj) {
    obj_set_t::iterator i = foset.find(&obj);
    if (i != foset.end()) {
       printd(0, "ObjectRSet::checkIntern() found recursive obj %p new rcount: %d\n", &obj, obj.priv->rcount + 1);
+
       ++obj.priv->rcount;
       return 0;
    }
@@ -1115,7 +1120,7 @@ int ObjectRSet::checkIntern(QoreObject& obj) {
    obj.priv->rcount = 0;
 
    // insert into found object list
-   foset.insert(i, &obj);
+   i = foset.insert(i, &obj);
 
    // check data members
    HashIterator hi(obj.priv->data);
@@ -1143,35 +1148,38 @@ int ObjectRSet::check(QoreObject& obj) {
 	 continue;
       }
 
-      // acquire rsection locks for all other nodes in all other cycles for objects in this graph
-      // and clear rsets
-      
-      // xxx
-
       break;
    }
 
+   // finalize graph - exit rsection
+   for (obj_set_t::iterator i = foset.begin(), e = foset.end(); i != e; ++i) {
+      if (!(*i)->priv->rcount)
+	 (*i)->priv->rcount = 1;
 
-   // remove all nodes without cycles
-   for (obj_set_t::iterator i = foset.begin(), e = foset.end(); i != e;) {
-      if ((*i)->priv->rcount) {
-	 ++i;
-	 continue;
-      }
-
-      QoreObject* o = *i;
-      foset.erase(i++);
-
-      // clear rset
-      // xxx
-
-      o->priv->exitRSection();
+      (*i)->priv->setRSet(this);
+      (*i)->priv->exitRSection();
    }
 
-   // set rset for remaining nodes
-   // xxx
-
-   reset();   
+   if (acnt) {
+      printd(0, "ObjectRSet::check() this: %p\n");
+      for (obj_set_t::iterator i = foset.begin(), e = foset.end(); i != e; ++i) {
+	 printd(0, " + obj: %p '%s' rcount: %d refs: %d\n", *i, (*i)->getClassName(), (*i)->priv->rcount, (*i)->references);
+      }
+   }
+   //reset();   
 
    return acnt ? 0 : -1;
 }
+
+bool ObjectRSet::canDelete() const {
+   for (obj_set_t::iterator i = foset.begin(), e = foset.end(); i != e; ++i) {
+      if ((*i)->priv->rcount != (*i)->references) {
+	 printd(0, "ObjectRSet::canDelete() this: %p cannot delete graph obj %p rcount: %d refs: %d\n", this, *i, (*i)->priv->rcount, (*i)->references);
+	 return false;
+      }
+      printd(0, "ObjectRSet::canDelete() this: %p can delete graph obj %p rcount: %d refs: %d\n", this, *i, (*i)->priv->rcount, (*i)->references);
+   }
+   printd(0, "ObjectRSet::canDelete() this: %p can delete all objects in graph\n", this);
+   return true;
+}
+
