@@ -55,6 +55,7 @@ class QoreProgram;
 */
 class QoreObject : public AbstractQoreNode {
    friend class qore_object_private;
+   friend class ObjectRSetHelper;
    friend class ObjectRSet;
 
 private:

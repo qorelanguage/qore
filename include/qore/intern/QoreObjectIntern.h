@@ -48,6 +48,8 @@
 #define QORE_DEBUG_OBJ_REFS 5
 #endif
 
+#define QRO_LVL 1
+
 class LValueHelper;
 
 /*
@@ -123,31 +125,37 @@ public:
    }
 };
 
-/* Qore object recursive reference handling works as follows: a set of objects is found that makes up a
-   directed cyclic graph, where each of the nodes is an object with cyclic references in the same graph.
+#define ORS_NO_MATCH   -1
+#define ORS_LOCK_ERROR -2
+#define ORS_IGNORE     -3
 
-   A recursive dereference on any single node can only be performed if *all* of the members can be dereferenced.
+/* Qore object recursive reference handling works as follows: objects are sorted into sets making up
+   directed cyclic graphs.
+
+   The objects go out of scope when all nodes have references = the number of recursive references.
 
    If any one member still has valid references (meaning a reference count > # of recursive refs), then *none*
-   of the members of the graph can be dereferenced, even for nodes where reference count = the number of
-   recursive / cyclic references.
+   of the members of the graph can be dereferenced.
  */
-class ObjectRSet {
-protected:
-   // currently valid object set for cycles
-   obj_set_t foset;
-   unsigned acnt;
 
-   DLLLOCAL void reset();
-   DLLLOCAL int checkIntern(QoreObject& obj);
-   DLLLOCAL int checkIntern(AbstractQoreNode* n);
+// set of objects in recursive directed graph
+class ObjectRSet : public obj_set_t {
+protected:
+   int acnt;
 
 public:
    DLLLOCAL ObjectRSet() : acnt(0) {
    }
 
+   DLLLOCAL ~ObjectRSet() {
+      //printd(5, "ObjectRSet::~ObjectRSet() this: %p (acnt: %d)\n", this, acnt);
+      assert(!acnt);
+   }
+
    DLLLOCAL void deref() {
-      if (--acnt)
+      //printd(5, "ObjectRSet::deref() this: %p %d -> %d\n", this, acnt, acnt - 1);
+      assert(acnt > 0);
+      if (!--acnt)
          delete this;
    }
 
@@ -155,21 +163,41 @@ public:
       ++acnt;
    }
 
-   DLLLOCAL int check(QoreObject& obj);
-
    DLLLOCAL bool canDelete() const;
+
+   DLLLOCAL bool assigned() const {
+      return (bool)acnt;
+   }
 };
 
-// for locking object private implementation while looking for recursive refs
-class ObjectRSectionLockHelper {
+typedef std::vector<QoreObject*> obj_vec_t;
+
+class ObjectRSetHelper {
 protected:
-   qore_object_private* pobj;
+   typedef std::map<QoreObject*, bool> omap_t;
+   // map of all objects scanned to status (true = finalized, false = not finalized, in current list)
+   omap_t fomap;
+
+   typedef std::vector<omap_t::iterator> ovec_t;
+   // current objects being scanned, used to establish a cycle
+   ovec_t ovec;
+
+   // list of fomap iterators to current recursive objects found
+   ovec_t frvec;
+   
+   // set of objects to be rescanned since they were removed from existing recursive graphs
+   obj_set_t rescan_set;
+
+   DLLLOCAL void reset();
+   DLLLOCAL int checkIntern(QoreObject& obj);
+   DLLLOCAL int checkIntern(AbstractQoreNode* n);
 
 public:
-   DLLLOCAL ObjectRSectionLockHelper(qore_object_private* po);
-   DLLLOCAL ~ObjectRSectionLockHelper();
-   DLLLOCAL operator bool() const {
-      return (bool)pobj;
+   DLLLOCAL ObjectRSetHelper(QoreObject& obj);
+
+   DLLLOCAL ~ObjectRSetHelper() {
+      assert(ovec.empty());
+      assert(frvec.empty());      
    }
 };
 
@@ -516,7 +544,7 @@ public:
 	 //printd(0, "Object lock %p unlocked (safe)\n", &rwl);
 	 sl.unlock();
 
-         if (rset) {
+         if (rset) {            
             rset->deref();
             rset = 0;
          }
@@ -603,8 +631,7 @@ public:
    }
 
    DLLLOCAL void setRSet(ObjectRSet* rs) {
-      if (rset)
-         rset->deref();
+      assert(!rset);
       rset = rs;
       rs->ref();
    }

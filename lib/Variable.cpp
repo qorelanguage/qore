@@ -138,13 +138,6 @@ void Var::deref(ExceptionSink* xsink) {
    }
 }
 
-static void recalculate_recursive(QoreObject* robj) {
-   std::auto_ptr<ObjectRSet> rset(new ObjectRSet);
-
-   if (!rset->check(*robj))
-      rset.release();
-}
-
 LValueHelper::LValueHelper(const ReferenceNode& ref, ExceptionSink* xsink, bool for_remove) : vl(xsink), v(0), container_change(false), lvid_set(0), robj(0), val(0), typeInfo(0) {
    RuntimeReferenceHelper rh(ref, xsink);
    doLValue(lvalue_ref::get(&ref)->vexp, for_remove);
@@ -161,6 +154,9 @@ LValueHelper::~LValueHelper() {
    if (!container_change && !*vl.xsink && (val ? val->isContainer() : is_container(*v)))
       container_change = true;
 
+   if (robj)
+      robj->tRef();
+
    // first free any locks
    vl.del();
 
@@ -171,8 +167,9 @@ LValueHelper::~LValueHelper() {
    delete lvid_set;
 
    // recalculate recusive references for objects if necessary
-   if (robj && container_change)
-      recalculate_recursive(robj);
+   if (robj && container_change) {
+      ObjectRSetHelper rsh(*robj);
+   }
 
    if (robj)
       robj->tDeref();

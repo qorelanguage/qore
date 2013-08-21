@@ -364,10 +364,7 @@ private:
 
    DLLLOCAL void addOSet(QoreObject* o) {
 #ifdef DO_OBJ_RECURSIVE_CHECK
-      if (!robj) {
-         robj = o;
-         robj->tRef();
-      }
+      robj = o;
 #endif
    }
 
