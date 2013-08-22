@@ -486,7 +486,7 @@ void QoreObject::customRefIntern() const {
    if (!references)
       tRef();
 #ifdef QORE_DEBUG_OBJ_REFS
-   printd(QORE_DEBUG_OBJ_REFS, "QoreObject::customRefIntern() this=%p class=%s references %d->%d\n", this, getClassName(), references, references + 1);
+   printd(QORE_DEBUG_OBJ_REFS, "QoreObject::customRefIntern() this: %p '%s' references %d->%d\n", this, getClassName(), references, references + 1);
 #endif
    ++references;
 }
@@ -498,7 +498,7 @@ void QoreObject::customRef() const {
 
 void QoreObject::deleteBlockerRef() const {
 #ifdef QORE_DEBUG_OBJ_REFS
-   printd(QORE_DEBUG_OBJ_REFS, "QoreObject::deleteBlockerRef() this=%p class=%s references %d->%d\n", this, getClassName(), references, references + 1);
+   printd(QORE_DEBUG_OBJ_REFS, "QoreObject::deleteBlockerRef() this: %p '%s' references %d->%d\n", this, getClassName(), references, references + 1);
 #endif
    AutoLocker al(priv->ref_mutex);
    ++references;
@@ -513,10 +513,10 @@ bool QoreObject::derefImpl(ExceptionSink* xsink) {
 // manages the custom dereference and executes the destructor if necessary
 void QoreObject::customDeref(ExceptionSink* xsink) {
    {
-      //printd(5, "QoreObject::customDeref() this=%p, class=%s references=%d->%d (trefs=%d) status=%d has_delete_blocker=%d delete_blocker_run=%d\n", this, getClassName(), references, references - 1, priv->tRefs.reference_count(), priv->status, priv->theclass->has_delete_blocker(), priv->delete_blocker_run);
+      //printd(5, "QoreObject::customDeref() this: %p '%s' references: %d->%d (trefs: %d) status: %d has_delete_blocker: %d delete_blocker_run: %d\n", this, getClassName(), references, references - 1, priv->tRefs.reference_count(), priv->status, priv->theclass->has_delete_blocker(), priv->delete_blocker_run);
 
 #ifdef QORE_DEBUG_OBJ_REFS
-      printd(QORE_DEBUG_OBJ_REFS, "QoreObject::customDeref(this: %p) class: %s: references %d->%d\n", this, priv->status == OS_OK ? getClassName() : "<deleted>", references, references - 1);
+      printd(QORE_DEBUG_OBJ_REFS, "QoreObject::customDeref() this: %p '%s': references %d->%d\n", this, priv->status == OS_OK ? getClassName() : "<deleted>", references, references - 1);
 #endif
 
 #ifdef DO_OBJ_RECURSIVE_CHECK
@@ -526,24 +526,54 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 	 ref_copy = --references;
       }
 
-      {
-	 QoreSafeRWReadLocker sl(priv->rwl);
+      bool rrf = false;
+      if (ref_copy) {
+	 while (true) {
+	    bool recalc = false;
+	    {
+	       QoreSafeRWReadLocker sl(priv->rwl);
 
-	 if (ref_copy) {
-	    if (priv->in_destructor || priv->status != OS_OK || !priv->rset || priv->recursive_ref_found || !priv->rset->canDelete())
-	       return;
-	    /*
-	    if (priv->rcount != ref_copy || priv->recursive_ref_found || !priv->data || priv->data->empty())
-	       return;
-	    */
+	       if (priv->in_destructor || priv->status != OS_OK || priv->recursive_ref_found) {
+		  return;
+	       }
+
+	       int rc;
+	       {
+		  AutoRMReadLocker al(priv->rml);
+		  if (!priv->rset)
+		     return;
+
+		  rc = priv->rset->canDelete();
+	       }
+
+	       if (!rc)
+		  return;
+	       
+	       if (rc == -1) {
+		  printd(0, "QoreObject::customDeref() this: %p '%s' invalid rset, recalculating\n", this, getClassName());
+		  recalc = true;
+		  AutoRMWriteLocker al(priv->rml);
+		  priv->rset->deref();
+		  priv->rset = 0;
+	       }
+	    }
+	    if (recalc) {
+	       // recalculate rset
+	       ObjectRSetHelper rsh(*this);
+	       continue;
+	    }
 
 	    printd(0, "QoreObject::customDeref() this: %p rcount/refs: %d deleting object (%s) with only recursive references\n", this, (int)ref_copy, getClassName());
 
-	    priv->recursive_ref_found = true;
+	    rrf = true;
+	    break;
 	 }
       }
 
       QoreSafeRWWriteLocker sl(priv->rwl);
+
+      if (rrf)
+	 priv->recursive_ref_found = true;
 
       // if the destructor has already been run, then just run tDeref() which should delete the QoreObject
       if (priv->in_destructor || priv->status != OS_OK) {
@@ -1099,14 +1129,14 @@ int ObjectRSetHelper::checkIntern(AbstractQoreNode* n) {
 }
 
 int ObjectRSetHelper::checkIntern(QoreObject& obj) {
-   if (obj.priv->enterRSection()) {
-      printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj %p '%s' cannot enter rsection: tid: %d\n", &obj, obj.getClassName(), obj.priv->in_rsection);
+   if (obj.priv->rml.tryWriteLock()) {
+      printd(0, "ObjectRSetHelper::checkIntern() obj %p '%s' cannot enter rsection: tid: %d\n", &obj, obj.getClassName(), obj.priv->rml.writeTID());
       return ORS_LOCK_ERROR;
    }
 
    // check object status; do not scan invalid objects or objects being deleted
    if (obj.priv->in_destructor || obj.priv->status != OS_OK) {
-      obj.priv->exitRSection();
+      obj.priv->rml.writeUnlock();
       return ORS_NO_MATCH;
    }
 
@@ -1210,54 +1240,60 @@ int ObjectRSetHelper::checkIntern(QoreObject& obj) {
 	    assert(rset->find(fi->first) == rset->end());
 	    // insert into new rset
 	    rset->insert(fi->first);
+
 	    // remove any old rset and add any nodes not scanned on rescan_set
 	    if (fi->first->priv->rset) {
-	       ObjectRSet* ors = fi->first->priv->rset;
+	       if (fi->first->priv->rset->active()) {
+		  ObjectRSet* ors = fi->first->priv->rset;
 
-	       // get a list of objects to be rescanned
-	       obj_vec_t rovec;
-	       // first grab all rsection locks
-	       for (obj_set_t::iterator ri = ors->begin(), re = ors->end(); ri != re; ++ri) {
-		  // if we already have the rsection lock, then ignore; already processed (either in fomap or rescan_set)
-		  if ((*ri)->priv->in_rsection == tid)
-		     continue;
-
-		  if ((*ri)->priv->enterRSection()) {
-		     printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj %p '%s' cannot enter rsection: tid: %d\n", *ri, (*ri)->getClassName(), (*ri)->priv->in_rsection);
-
-		     // release other rsection locks
-		     for (unsigned i = 0; i < rovec.size(); ++i)
-			rovec[i]->priv->exitRSection();
-
-		     return ORS_LOCK_ERROR;
+		  // get a list of objects to be rescanned
+		  obj_vec_t rovec;
+		  // first grab all rsection locks
+		  for (obj_set_t::iterator ri = ors->begin(), re = ors->end(); ri != re; ++ri) {
+		     
+		     // if we already have the rsection lock, then ignore; already processed (either in fomap or rescan_set)
+		     if ((*ri)->priv->rml.hasWriteLock(tid))
+			continue;
+		     
+		     if ((*ri)->priv->rml.tryWriteLock()) {
+			printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj %p '%s' cannot enter rsection: tid: %d\n", *ri, (*ri)->getClassName(), (*ri)->priv->rml.writeTID());
+			
+			// release other rsection locks
+			for (unsigned i = 0; i < rovec.size(); ++i)
+			   rovec[i]->priv->rml.writeUnlock();
+			
+			return ORS_LOCK_ERROR;
+		     }
+		     
+		     // check object status; do not scan invalid objects or objects being deleted
+		     if ((*ri)->priv->in_destructor || (*ri)->priv->status != OS_OK) {
+			(*ri)->priv->rml.writeUnlock();
+			continue;
+		     }
+		     
+		     rovec.push_back(*ri);
 		  }
 
-		  // check object status; do not scan invalid objects or objects being deleted
-		  if ((*ri)->priv->in_destructor || (*ri)->priv->status != OS_OK) {
-		     (*ri)->priv->exitRSection();
-		     continue;
-		  }
+		  // invalidate old rset
+		  ors->invalidate();
 
-		  rovec.push_back(*ri);
-	       }
-
-	       // now process old rset
-	       for (unsigned i = 0; i < rovec.size(); ++i) {
-		  assert(rovec[i]->priv->rset == ors);
-		  rovec[i]->priv->rset = 0;
-		  if (rovec[i] != fi->first)
+		  // now process old rset
+		  for (unsigned i = 0; i < rovec.size(); ++i) {
+		     assert(rovec[i]->priv->rset == ors);
+		     rovec[i]->priv->rset = 0;
 		     ors->deref();
-
-		  rescan_set.insert(rovec[i]);
+		     
+		     rescan_set.insert(rovec[i]);
+		  }
 	       }
 
-#ifdef DEBUG
+	       // remove old rset in current object
+	       fi->first->priv->rset->deref();
 	       fi->first->priv->rset = 0;
-#endif
 	    }
 
 	    // assign rset to object
-	    fi->first->priv->setRSet(rset);
+	    fi->first->priv->setRSetIntern(rset);
 	    printd(QRO_LVL, "ObjectRSetHelper::checkIntern() done search obj %p '%s': marking %p '%s' with rset: %p\n", &obj, obj.getClassName(), fi->first, fi->first->getClassName(), rset);
 	 }
 	 else {
@@ -1282,13 +1318,13 @@ int ObjectRSetHelper::checkIntern(QoreObject& obj) {
 
 void ObjectRSetHelper::reset() {
    for (omap_t::iterator i = fomap.begin(), e = fomap.end(); i != e; ++i) {
-      i->first->priv->exitRSection();
+      i->first->priv->rml.writeUnlock();
    }
 
    // exit rsection of objects in rescan_set
    for (obj_set_t::iterator i = rescan_set.begin(), e = rescan_set.end(); i != e; ++i) {
       assert(fomap.find(*i) == fomap.end());
-      (*i)->priv->exitRSection();
+      (*i)->priv->rml.writeUnlock();
    }
 
    fomap.clear();
@@ -1311,6 +1347,8 @@ ObjectRSetHelper::ObjectRSetHelper(QoreObject& obj) {
       bool restart = false;
       while (!rescan_set.empty()) {
 	 obj_set_t::iterator i = rescan_set.begin();
+	 printd(0, "ObjectRSetHelper::ObjectRSetHelper() this: %p RESCAN %p '%s'\n", this, *i, (*i)->getClassName());
+
 	 assert(fomap.find(*i) == fomap.end());
 	 if (checkIntern(**i) == ORS_LOCK_ERROR) {
 	    reset();
@@ -1327,7 +1365,7 @@ ObjectRSetHelper::ObjectRSetHelper(QoreObject& obj) {
 
    // finalize graph - exit rsection
    for (omap_t::iterator i = fomap.begin(), e = fomap.end(); i != e; ++i) {
-      i->first->priv->exitRSection();
+      i->first->priv->rml.writeUnlock();
    }
 
    assert(rescan_set.empty());
@@ -1335,14 +1373,30 @@ ObjectRSetHelper::ObjectRSetHelper(QoreObject& obj) {
    printd(QRO_LVL, "ObjectRSetHelper::ObjectRSetHelper() this: %p EXIT\n", this);
 }
 
-bool ObjectRSet::canDelete() const {
-   for (obj_set_t::iterator i = begin(), e = end(); i != e; ++i) {
-      if ((*i)->priv->rcount != (*i)->references) {
-	 printd(QRO_LVL, "ObjectRSet::canDelete() this: %p cannot delete graph obj %p '%s' rcount: %d refs: %d\n", this, *i, (*i)->getClassName(), (*i)->priv->rcount, (*i)->references);
-	 return false;
+int ObjectRSet::canDelete() {
+   if (!valid)
+      return -1;
+   if (in_del)
+      return 1;
+
+   {
+      QoreAutoRWReadLocker al(rwl);
+      if (!valid)
+	 return -1;
+      if (in_del)
+	 return 1;
+
+      for (obj_set_t::iterator i = begin(), e = end(); i != e; ++i) {
+	 if ((*i)->priv->rcount != (*i)->references) {
+	    printd(QRO_LVL, "ObjectRSet::canDelete() this: %p cannot delete graph obj %p '%s' rcount: %d refs: %d\n", this, *i, (*i)->getClassName(), (*i)->priv->rcount, (*i)->references);
+	    return 0;
+	 }
+	 printd(QRO_LVL, "ObjectRSet::canDelete() this: %p can delete graph obj %p '%s' rcount: %d refs: %d\n", this, *i, (*i)->getClassName(), (*i)->priv->rcount, (*i)->references);
       }
-      printd(QRO_LVL, "ObjectRSet::canDelete() this: %p can delete graph obj %p '%s' rcount: %d refs: %d\n", this, *i, (*i)->getClassName(), (*i)->priv->rcount, (*i)->references);
    }
    printd(QRO_LVL, "ObjectRSet::canDelete() this: %p can delete all objects in graph\n", this);
-   return true;
+
+   QoreAutoRWWriteLocker al(rwl);
+   in_del = true;
+   return 1;
 }

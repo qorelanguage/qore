@@ -141,10 +141,12 @@ public:
 // set of objects in recursive directed graph
 class ObjectRSet : public obj_set_t {
 protected:
+   QoreRWLock rwl;
    int acnt;
-
+   bool valid, in_del;
+   
 public:
-   DLLLOCAL ObjectRSet() : acnt(0) {
+   DLLLOCAL ObjectRSet() : acnt(0), valid(true), in_del(false) {
    }
 
    DLLLOCAL ~ObjectRSet() {
@@ -153,17 +155,34 @@ public:
    }
 
    DLLLOCAL void deref() {
-      //printd(5, "ObjectRSet::deref() this: %p %d -> %d\n", this, acnt, acnt - 1);
-      assert(acnt > 0);
-      if (!--acnt)
+      bool del = false;
+      {
+         QoreAutoRWWriteLocker al(rwl);
+         if (!in_del)
+            in_del = true;
+         //printd(5, "ObjectRSet::deref() this: %p %d -> %d\n", this, acnt, acnt - 1);
+         assert(acnt > 0);
+         del = !--acnt;
+      }
+      if (del)
          delete this;
+   }
+
+   DLLLOCAL void invalidate() {
+      QoreAutoRWWriteLocker al(rwl);
+      if (valid)
+         valid = false;
    }
 
    DLLLOCAL void ref() {
       ++acnt;
    }
 
-   DLLLOCAL bool canDelete() const;
+   DLLLOCAL bool active() const {
+      return valid && !in_del;
+   }
+
+   DLLLOCAL int canDelete();
 
    DLLLOCAL bool assigned() const {
       return (bool)acnt;
@@ -197,7 +216,137 @@ public:
 
    DLLLOCAL ~ObjectRSetHelper() {
       assert(ovec.empty());
-      assert(frvec.empty());      
+      assert(frvec.empty());
+   }
+};
+
+// rwlock that can be entered multiple times by the same thread for writing, only needs exiting once
+// read lock is normal
+class rmlock {
+protected:
+   QoreThreadLock l;
+   int write_tid,
+      read_wait,
+      write_wait,
+      readers;
+   QoreCondition read_cond;
+   QoreCondition write_cond;
+
+public:
+   DLLLOCAL rmlock() : write_tid(-1), read_wait(0), write_wait(0), readers(0) {
+   }
+
+   DLLLOCAL ~rmlock() {
+      assert(write_tid == -1);
+      assert(!read_wait);
+      assert(!write_wait);
+      assert(!readers);
+   }
+
+   DLLLOCAL void writeLock() {
+      int tid = gettid();
+      AutoLocker al(l);
+      while (true) {
+         if (!readers) {
+            if (write_tid == -1) {
+               write_tid = tid;
+               break;
+            }
+            if (write_tid == tid)
+               break;
+         }
+
+         ++write_wait;
+         write_cond.wait(l);
+         --write_wait;
+      }
+   }
+
+   DLLLOCAL int tryWriteLock() {
+      int tid = gettid();
+      AutoLocker al(l);
+      if (!readers) {
+         if (write_tid == -1) {
+            write_tid = tid;
+            return 0;
+         }
+         if (write_tid == tid)
+            return 0;
+      }
+      return -1;
+   }
+
+   DLLLOCAL void writeUnlock() {
+      AutoLocker al(l);
+      //printd(5, "rmlock::writeUnlock() this: %p tid: %d -> -1\n", this, write_tid);
+      assert(write_tid == gettid());
+      write_tid = -1;
+      if (read_wait)
+         read_cond.broadcast();
+      else if (write_wait)
+         write_cond.signal();
+   }
+
+   DLLLOCAL void readLock() {
+      AutoLocker al(l);
+      while (write_tid != -1) {
+         ++read_wait;
+         read_cond.wait(l);
+         --read_wait;
+      }
+      ++readers;
+   }
+
+   DLLLOCAL int tryReadLock() {
+      AutoLocker al(l);
+      if (write_tid != -1)
+         return -1;
+      ++readers;
+      return 0;
+   }
+
+   DLLLOCAL void readUnlock() {
+      AutoLocker al(l);
+      assert(readers);
+      --readers;
+      if (!readers && write_wait)
+         write_cond.signal();
+   }
+
+   DLLLOCAL bool hasWriteLock(int tid) {
+      return write_tid == tid;
+   }
+
+#ifdef DEBUG
+   DLLLOCAL int writeTID() const {
+      return write_tid;
+   }
+#endif
+};
+
+class AutoRMReadLocker {
+protected:
+   rmlock& rml;
+
+public:
+   DLLLOCAL AutoRMReadLocker(rmlock& l) : rml(l) {      
+      l.readLock();
+   }
+   DLLLOCAL ~AutoRMReadLocker() {
+      rml.readUnlock();
+   }
+};
+
+class AutoRMWriteLocker {
+protected:
+   rmlock& rml;
+
+public:
+   DLLLOCAL AutoRMWriteLocker(rmlock& l) : rml(l) {      
+      l.writeLock();
+   }
+   DLLLOCAL ~AutoRMWriteLocker() {
+      rml.writeUnlock();
    }
 };
 
@@ -206,15 +355,15 @@ public:
    const QoreClass* theclass;
    int status;
    mutable QoreRWLock rwl;
-   // used for references, to ensure that assignments will not deadlock when the object is locked for update
+   // used for weak references, to ensure that assignments will not deadlock when the object is locked for update
    mutable QoreThreadLock ref_mutex;
-   QoreThreadLock rmutex;
+   rmlock rml;
    KeyList* privateData;
-   QoreReferenceCounter tRefs;  // reference-references
+   QoreReferenceCounter tRefs;  // weak references
    QoreHashNode* data;
    QoreProgram* pgm;
    bool system_object, delete_blocker_run, in_destructor, pgm_ref, recursive_ref_found, is_recursive;
-   int in_rsection, rcount;
+   int /*in_rsection,*/ rcount;
    // set of objects in a cyclic directed graph
    ObjectRSet* rset;
    QoreObject* obj;
@@ -222,7 +371,7 @@ public:
    DLLLOCAL qore_object_private(QoreObject* n_obj, const QoreClass *oc, QoreProgram* p, QoreHashNode* n_data) : 
       theclass(oc), status(OS_OK), 
       privateData(0), data(n_data), pgm(p), system_object(!p), 
-      delete_blocker_run(false), in_destructor(false), pgm_ref(true), recursive_ref_found(false), is_recursive(false), in_rsection(0), rcount(0), rset(0),
+      delete_blocker_run(false), in_destructor(false), pgm_ref(true), recursive_ref_found(false), is_recursive(false), /*in_rsection(0),*/ rcount(0), rset(0),
       obj(n_obj) {
 
 #ifdef QORE_DEBUG_OBJ_REFS
@@ -466,12 +615,16 @@ public:
 	 td = data;
 	 data = 0;
       }
-      cleanup(xsink, td);
 
-      if (rset) {
-         rset->deref();
-         rset = 0;
+      {
+         AutoRMWriteLocker al(rml);
+         if (rset) {
+            rset->deref();
+            rset = 0;
+         }
       }
+
+      cleanup(xsink, td);
 
       obj->deref(xsink);
    }
@@ -541,12 +694,17 @@ public:
 	 status = OS_DELETED;
 	 QoreHashNode* td = data;
 	 data = 0;
+
 	 //printd(0, "Object lock %p unlocked (safe)\n", &rwl);
 	 sl.unlock();
 
-         if (rset) {            
-            rset->deref();
-            rset = 0;
+         {
+            AutoRMWriteLocker al(rml);
+
+            if (rset) {            
+               rset->deref();
+               rset = 0;
+            }
          }
 
 	 if (privateData)
@@ -598,6 +756,7 @@ public:
       }
    }
 
+/*
    DLLLOCAL int enterRSection() {
       int tid = gettid();
       
@@ -618,29 +777,47 @@ public:
       return 0;
    }
 
+   DLLLOCAL void enterRSectionUnconditional() {
+      int tid = gettid();
+      
+      AutoLocker al(rmutex);
+      while (true) {
+         if (!in_rsection) {
+            rwl.rdlock();
+            in_rsection = tid;
+            break;
+         }
+
+         if (in_rsection != tid) {
+            ++rsection_waiting;
+            rsection_cond.wait(rmutex);
+            --rsection_waiting;
+         }
+         
+         assert(in_rsection != tid);
+      }
+   }
+
    DLLLOCAL void exitRSection() {
       // first unset the in_rsection flag
       {
          AutoLocker al(rmutex);
          assert(in_rsection == gettid());
          in_rsection = 0;
+         if (rsection_waiting)
+            rsection_cond.signal();
       }
-      
+
       // now release the read lock
       rwl.unlock();
    }
+*/
 
-   DLLLOCAL void setRSet(ObjectRSet* rs) {
+   DLLLOCAL void setRSetIntern(ObjectRSet* rs) {
+      assert(rml.hasWriteLock(gettid()));
       assert(!rset);
       rset = rs;
       rs->ref();
-   }
-
-   DLLLOCAL void clearRSet() {
-      if (rset) {
-         rset->deref();
-         rset = 0;
-      }
    }
 
    DLLLOCAL static bool isRecursive(QoreObject& obj) {
