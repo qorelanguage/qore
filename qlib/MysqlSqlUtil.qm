@@ -51,6 +51,8 @@ module MysqlSqlUtil {
 
 /** @mainpage MysqlSqlUtil Module
 
+    @tableofcontents
+
     @section intro Introduction
 
     The %MysqlSqlUtil module provides a high level API for working with MySQL database objects.
@@ -59,6 +61,8 @@ module MysqlSqlUtil {
     directly, use \c "%requires MysqlSqlUtil" in your code.
     
     All the public symbols in the module are defined in the MysqlSqlUtil namespace
+
+    @note This module requires the <a href="http://qore.org/qore-modules/16-mysql-module">mysql</a> binary module for communication with MySQL databases
 
     @section mysql_schema_management Schema Management on MySQL
 
@@ -347,6 +351,9 @@ my any $v = $c.name;
 
     #! represents a MySQL-specific primary key constraint
     public class MysqlPrimaryKey inherits SqlUtil::AbstractPrimaryKey, MysqlUniqueConstraintCommon {
+        constructor() {
+        }
+
         constructor(*hash c) : AbstractPrimaryKey("PRIMARY", c) {
         }
 
@@ -941,14 +948,14 @@ end";
             }
             return AbstractDatabase::doCallback(opt, primaryKey.getCreateSql(name, opt), AbstractDatabase::AC_Add, "primary key", primaryKey.getName(), name);
         }
-
-        private *MysqlPrimaryKey getPrimaryKeyImpl() {
+        
+        private MysqlPrimaryKey getPrimaryKeyImpl() {
             hash rv;
 
             # get primary key description
             *hash qh = ds.select("select column_name from information_schema.key_column_usage k where constraint_name = 'PRIMARY' and table_name = %v and table_schema = %v order by ordinal_position", name, schema);
             if (!qh.column_name)
-                return;
+                return new MysqlPrimaryKey();
 
             #printf("MysqlTable::getPrimaryKeyImpl(): %s: %N\n", getName(), qh);
             foreach string col in (qh.column_name)

@@ -275,7 +275,8 @@ my hash $soh = (
     - @ref select_option_join "join": (@ref hash_type "hash") specifies any SQL join operations to return results from multiple tables
     - @ref select_option_groupby "groupby": (@ref list_type "list of strings") specifies grouping for aggregate column functions
     - @ref select_option_having "having": (@ref hash_type "hash") specifies filtering for results with aggregate column functions
- 
+    - @ref select_option_superquery "superquery": (@ref hash_type "hash") specifies that the rest of the argument belong to a subquery and the hash arguments under this key will select from the subquery
+
     @anchor select_option_columns
     @par Select Option "columns"
     <b>Columns Example:</b>
@@ -397,6 +398,19 @@ my *list $rows = $table.selectRows(("columns": (cop_as(cop_max("service_type"), 
     @endcode
     The \c "having" option allows for query results with aggregate SQL column operator functions to be filtered by user-defined criteria.
     The \c "having" hash key should be assigned to a hash where each key is a column specifier (optionally in dot notation) and the values are lists with two elements; the first element must be a @ref sql_cops "column operator code", and the second element is a column operator description normally provided by using a @ref sql_cop_funcs "column operator function" as in the above example.
+
+    @anchor select_option_superquery
+    @par Select Option "superquery"
+    <b>Superquery Example:</b>
+    @code
+my *list $rows = $table.selectRows("columns": ("serviceid", "service_methodid", cop_as(cop_over(cop_max("service_methodid"), "serviceid"), "max_methodid")), "superquery": ("columns": ("serviceid", "service_methodid"), "where": ("max_methodid": op_ceq("service_methodid"))));
+    @endcode
+    The \c "superquery" option allows for the rest of the query arguments to define a subquery where as the hash arguments assigned to the \c "superquery" key define the select made from the subquery.  In the example above, the \c "OVER" sql windowing function is used and then rows matching the \c "max_methodid)" result value are selected.\n\n
+    The above example results in an SQL command equivalent to the following:
+    @code
+my *list $rows = $table.vselectRows("select serviceid,service_methodid from (select serviceid,service_methodid,max(service_methodid) over (partition by serviceid) as max_methodid from schema.service_methods) subquery where max_methodid = service_methodid");
+    @endcode
+    @note that MySQL does not support SQL windowing functions so the above example would fail on MySQL.
 
     @subsection sql_paging Select With Paging
 
@@ -1671,12 +1685,17 @@ public namespace SqlUtil {
     */
     public const COP_COUNT = "count";
 
+    #! the SQL \c "over" clause
+    /** @see cop_over()
+    */
+    public const COP_OVER = "over";
+
     #! a hash of default column operator descriptions
     public const DefaultCopMap = (
         COP_AS: (
             "arg": Type::String,
             "code": string sub (string cve, string arg) {
-                return sprintf("%s as %y", cve, arg);
+                return sprintf("%s as %s", cve, arg);
             },
         ),
         COP_PREPEND: (
@@ -1730,7 +1749,7 @@ public namespace SqlUtil {
         COP_COUNT: (
             "nocolumn": True,
             "code": string sub (*string cve, any arg) {
-                return "count(1)";
+                return sprintf("count(%s)", cve ? cve : "1");
             },
         ),
         );
@@ -1906,8 +1925,26 @@ my *list $rows = $table.selectRows(("columns": ("account_type", cop_count()), "w
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_count() {
-        return make_cop(COP_COUNT, "");
+    public hash sub cop_count(string column = "") {
+        return make_cop(COP_COUNT, column);
+    }
+
+    /** @defgroup oracle_sql_cop_funcs Oracle SQL Column Operator Functions
+        These are Oracle-specific functions that can be used in the \c "columns" argument for select statements:
+        - @ref cop_over(): return values in an SQL window in the query results
+        @endcode
+     */
+    #@{
+    #! returns a hash for the \c "over" clause
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("columns": ("account_type", cop_count(), cop_as(cop_over(cop_max("qty"), "account_id"), "max_qty_per_account")), "where": ("type": "user"), "groupby": "account_type"));
+        @endcode
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    public hash sub cop_over(any column, string arg) {
+        return make_cop(COP_OVER, column, arg);
     }
     #@}
 
@@ -2386,6 +2423,41 @@ my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, (
     */
     public const OP_NE = "!=";
 
+    #! the SQL equals operator (=) for use in @ref where_clauses
+    /** @see op_eq()
+    */
+    public const OP_EQ = "=";
+
+    #! the SQL less than (<) operator for use in @ref where_clauses when comparing two columns
+    /** @see op_clt()
+    */
+    public const OP_CLT = "C<";
+
+    #! the SQL less than or equals (<=) operator for use in @ref where_clauses
+    /** @see op_cle()
+    */
+    public const OP_CLE = "C<=";
+
+    #! the SQL greater than operator (>) for use in @ref where_clauses
+    /** @see op_cgt()
+    */
+    public const OP_CGT = "C>";
+
+    #! the SQL greater than or equals operator (>=) for use in @ref where_clauses
+    /** @see op_cge()
+    */
+    public const OP_CGE = "C>=";
+
+    #! the SQL not equals operator (!= or <>) for use in @ref where_clauses
+    /** @see op_cne()
+    */
+    public const OP_CNE = "C!=";
+
+    #! the SQL equals operator (=) for use in @ref where_clauses
+    /** @see op_ceq()
+    */
+    public const OP_CEQ = "C=";
+
     #! the SQL \c "between" operator for use in @ref where_clauses
     /** @see op_between()
     */
@@ -2441,6 +2513,14 @@ my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, (
                 return sprintf("%s != %v", cn);
             },
         ),
+        OP_EQ: (
+            "code": string sub (object t, string cn, any arg, reference args) {
+                if (arg === NULL || !exists arg)
+                    return sprintf("%s is null", cn);
+                args += arg;
+                return sprintf("%s = %v", cn);
+            },
+        ),
         OP_BETWEEN: (
             "code": string sub (object t, string cn, any arg, reference args) {
                 args += arg[0];
@@ -2451,7 +2531,7 @@ my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, (
         OP_IN: (
             "code": string sub (object t, string cn, any arg, reference args) {
                 *string ins = (foldl $1 + "," + $2, (map t.getSqlValue($1), arg));
-                return sprintf("%s in (%s)", cn, ins ? ins : "1 != 1");
+                return ins ? sprintf("%s in (%s)", cn, ins) : "1 != 1";
             },
         ),
         OP_NOT: (
@@ -2460,20 +2540,63 @@ my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, (
                 return sprintf("not (%s)", cn); 
             },
         ),
+        OP_CLT: (
+            "argcolumn": True,
+            "code": string sub (object t, string cn, any arg, reference args) {
+                return sprintf("%s < %s", cn, arg);
+            },
+        ),
+        OP_CLE: (
+            "argcolumn": True,
+            "code": string sub (object t, string cn, any arg, reference args) {
+                return sprintf("%s <= %s", cn, arg);
+            },
+        ),
+        OP_CGT: (
+            "argcolumn": True,
+            "code": string sub (object t, string cn, any arg, reference args) {
+                return sprintf("%s > %s", cn, arg);
+            },
+        ),
+        OP_CGE: (
+            "argcolumn": True,
+            "code": string sub (object t, string cn, any arg, reference args) {
+                return sprintf("%s >= %s", cn, arg);
+            },
+        ),
+        OP_CNE: (
+            "argcolumn": True,
+            "code": string sub (object t, string cn, any arg, reference args) {
+                return sprintf("%s != %s", cn, arg);
+            },
+        ),
+        OP_CEQ: (
+            "argcolumn": True,
+            "code": string sub (object t, string cn, string arg, reference args) {
+                return sprintf("%s = %s", cn, arg);
+            },
+        ),
         );
     #@}
 
     /** @defgroup sql_op_funcs SQL Operator Functions
         These are the operators that can be used in where clauses; see @ref where_clauses for more information:
         - op_between(): for the \c "between" operator
-        - op_ge(): for the \c ">=" operator
-        - op_gt(): for the \c ">" operator
         - op_in(): for the \c "in" operator
         - op_like(): for the \c "like" operator
-        - op_le(): for the \c "<=" operator
-        - op_lt(): for the \c "<" operator
-        - op_ne(): for the \c "!=" or \c "<>" operator
+        - op_ge(): for the \c ">=" operator when comparing column values to immediate values
+        - op_gt(): for the \c ">" operator when comparing column values to immediate values
+        - op_le(): for the \c "<=" operator when comparing column values to immediate values
+        - op_lt(): for the \c "<" operator when comparing column values to immediate values
+        - op_ne(): for the \c "!=" or \c "<>" operator when comparing column values to immediate values
+        - op_eq(): for the \c "=" operator when comparing column values to immediate values
         - op_not(): for negating other operators
+        - op_cge(): for the \c ">=" operator when comparing the values of two columns
+        - op_cgt(): for the \c ">" operator when comparing the values of two columns
+        - op_cle(): for the \c "<=" operator when comparing the values of two columns
+        - op_clt(): for the \c "<" operator when comparingthe values of two columns
+        - op_cne(): for the \c "!=" or \c "<>" operator when comparing the values of two columns
+        - op_ceq(): for the \c "=" operator when comparing the values of two columns
      */
     #@{
     #! returns a hash with \c op and \c arg keys
@@ -2495,7 +2618,7 @@ my *list $rows = $table.selectRows(("where": ("name": op_like("%smith%"))));
         return make_op(OP_LIKE, str);
     }
 
-    #! returns a hash for the \c "<" operator with the given argument for use in @ref where_clauses "where clauses"
+    #! returns a hash for the \c "<" operator with the given argument for use in @ref where_clauses "where clauses" when comparing column values to immediate values
     /** @par Example:
         @code
 my *list $rows = $table.selectRows(("where": ("name": op_lt("Zebra"))));
@@ -2504,12 +2627,14 @@ my *list $rows = $table.selectRows(("where": ("name": op_lt("Zebra"))));
         @param arg the argument for the operator
         
         @return a where operation description hash for use in @ref where_clauses "where clauses"
+
+        @see op_clt() for a function to be used when comparing two column values
     */
     public hash sub op_lt(any arg) {
         return make_op(OP_LT, arg);
     }
 
-    #! returns a hash for the \c "<=" operator with the given argument for use in @ref where_clauses "where clauses"
+    #! returns a hash for the \c "<=" operator with the given argument for use in @ref where_clauses "where clauses" when comparing column values to immediate values
     /** @par Example:
         @code
 my *list $rows = $table.selectRows(("where": ("name": op_le("Zebra"))));
@@ -2518,12 +2643,14 @@ my *list $rows = $table.selectRows(("where": ("name": op_le("Zebra"))));
         @param arg the argument for the operator
         
         @return a where operation description hash for use in @ref where_clauses "where clauses"
+
+        @see op_cle() for a function to be used when comparing two column values
     */
     public hash sub op_le(any arg) {
         return make_op(OP_LE, arg);
     }
 
-    #! returns a hash for the \c ">" operator with the given argument for use in @ref where_clauses "where clauses"
+    #! returns a hash for the \c ">" operator with the given argument for use in @ref where_clauses "where clauses" when comparing column values to immediate values
     /** @par Example:
         @code
 my *list $rows = $table.selectRows(("where": ("name": op_gt("Apple"))));
@@ -2532,12 +2659,14 @@ my *list $rows = $table.selectRows(("where": ("name": op_gt("Apple"))));
         @param arg the argument for the operator
         
         @return a where operation description hash for use in @ref where_clauses "where clauses"
+
+        @see op_cgt() for a function to be used when comparing two column values
     */
     public hash sub op_gt(any arg) {
         return make_op(OP_GT, arg);
     }
 
-    #! returns a hash for the \c ">=" operator with the given argument for use in @ref where_clauses "where clauses"
+    #! returns a hash for the \c ">=" operator with the given argument for use in @ref where_clauses "where clauses" when comparing column values to immediate values
     /** @par Example:
         @code
 my *list $rows = $table.selectRows(("where": ("name": op_ge("Apple"))));
@@ -2546,12 +2675,14 @@ my *list $rows = $table.selectRows(("where": ("name": op_ge("Apple"))));
         @param arg the argument for the operator
         
         @return a where operation description hash for use in @ref where_clauses "where clauses"
+
+        @see op_cge() for a function to be used when comparing two column values
     */
     public hash sub op_ge(any arg) {
         return make_op(OP_GE, arg);
     }
 
-    #! returns a hash for the \c "!=" or \c "<>" operator with the given argument for use in @ref where_clauses "where clauses"
+    #! returns a hash for the \c "!=" or \c "<>" operator with the given argument for use in @ref where_clauses "where clauses" when comparing column values to immediate values
     /** @par Example:
         @code
 my *list $rows = $table.selectRows(("where": ("name": op_ne("Smith"))));
@@ -2560,9 +2691,27 @@ my *list $rows = $table.selectRows(("where": ("name": op_ne("Smith"))));
         @param arg the argument for the operator
         
         @return a where operation description hash for use in @ref where_clauses "where clauses"
+
+        @see op_cne() for a function to be used when comparing two column values
     */
     public hash sub op_ne(any arg) {
         return make_op(OP_NE, arg);
+    }
+
+    #! returns a hash for the \c "=" operator with the given argument for use in @ref where_clauses "where clauses" when comparing column values to immediate values
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("where": ("name": op_eq("Smith"))));
+        @endcode
+
+        @param arg the argument for the operator
+        
+        @return a where operation description hash for use in @ref where_clauses "where clauses"
+
+        @see op_ceq() for a function to be used when comparing two column values
+    */
+    public hash sub op_eq(any arg) {
+        return make_op(OP_EQ, arg);
     }
 
     #! returns a hash for the \c "between" operator with the given arguments, neither of which can be @ref null or @ref nothing; for use in @ref where_clauses "where clauses"
@@ -2623,6 +2772,102 @@ my *list $rows = $table.selectRows(("where": ("name": opt_not(op_in(200, 300, 50
     public hash sub op_not(hash arg) {
         return make_op(OP_NOT, arg);
     } 
+
+    #! returns a hash for the \c "<" operator with the given argument for use in @ref where_clauses "where clauses" when comparing the values of two columns
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("where": ("name": op_clt("other_name"))));
+        @endcode
+
+        @param arg the name of the column to compare against
+        
+        @return a where operation description hash for use in @ref where_clauses "where clauses"
+
+        @see op_lt() for a function to be used when comparing a column against an immediate value
+    */
+    public hash sub op_clt(string arg) {
+        return make_op(OP_CLT, arg);
+    }
+
+    #! returns a hash for the \c "<=" operator with the given argument for use in @ref where_clauses "where clauses" when comparing the values of two columns
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("where": ("name": op_cle("other_name"))));
+        @endcode
+
+        @param arg the name of the column to compare against
+        
+        @return a where operation description hash for use in @ref where_clauses "where clauses"
+
+        @see op_le() for a function to be used when comparing a column against an immediate value
+    */
+    public hash sub op_cle(string arg) {
+        return make_op(OP_CLE, arg);
+    }
+
+    #! returns a hash for the \c ">" operator with the given argument for use in @ref where_clauses "where clauses" when comparing the values of two columns
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("where": ("name": op_cgt("other_name"))));
+        @endcode
+
+        @param arg the name of the column to compare against
+        
+        @return a where operation description hash for use in @ref where_clauses "where clauses"
+
+        @see op_gt() for a function to be used when comparing a column against an immediate value
+    */
+    public hash sub op_cgt(string arg) {
+        return make_op(OP_CGT, arg);
+    }
+
+    #! returns a hash for the \c ">=" operator with the given argument for use in @ref where_clauses "where clauses" when comparing the values of two columns
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("where": ("name": op_cge("other_name"))));
+        @endcode
+
+        @param arg the name of the column to compare against
+        
+        @return a where operation description hash for use in @ref where_clauses "where clauses"
+
+        @see op_ge() for a function to be used when comparing a column against an immediate value
+    */
+    public hash sub op_cge(string arg) {
+        return make_op(OP_CGE, arg);
+    }
+
+    #! returns a hash for the \c "!=" or \c "<>" operator with the given argument for use in @ref where_clauses "where clauses" when comparing the values of two columns
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("where": ("name": op_cne("other_name"))));
+        @endcode
+
+        @param arg the name of the column to compare against
+
+        @return a where operation description hash for use in @ref where_clauses "where clauses"
+
+        @see op_ne() for a function to be used when comparing a column against an immediate value
+    */
+    public hash sub op_cne(string arg) {
+        return make_op(OP_CNE, arg);
+    }
+
+    #! returns a hash for the \c "=" operator with the given argument for use in @ref where_clauses "where clauses" when comparing the values of two columns
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("where": ("name": op_ceq("other_name"))));
+        @endcode
+
+        @param arg the name of the column to compare against
+        
+        @return a where operation description hash for use in @ref where_clauses "where clauses"
+
+        @see op_eq() for a function to be used when comparing a column against an immediate value
+    */
+    public hash sub op_ceq(string arg) {
+        return make_op(OP_CEQ, arg);
+    }
     #@}
 
     #! abstract container class that throws an exception if an unknown key is accessed
@@ -4068,6 +4313,9 @@ $uk.addSourceConstraint($table_name, constraint_name);
 
     #! represents a primary key
     public class AbstractPrimaryKey inherits AbstractUniqueConstraint {
+        constructor() : AbstractUniqueConstraint("") {
+        }
+
         constructor(string n, *hash c) : AbstractUniqueConstraint(n, c) {
         }
     }
@@ -8722,7 +8970,7 @@ my AbstractPrimaryKey $cols = $table.getPrimaryKey();
 
             @return an object of class AbstractPrimaryKey describing the primary key of the table
         */
-        *AbstractPrimaryKey getPrimaryKey() {
+        AbstractPrimaryKey getPrimaryKey() {
             return t.getPrimaryKey();
         }
 
@@ -8841,6 +9089,7 @@ my Triggers $trig = $table.getTriggers();
                 - @ref select_option_join "join": specifies any SQL join operations to return results from multiple tables
                 - @ref select_option_groupby "groupby": specifies grouping for aggregate column functions
                 - @ref select_option_having "having": specifies filtering for results with aggregate column functions
+                - @ref select_option_superquery "superquery": specifies that the rest of the argument belong to a subquery and the hash arguments under this key will select from the subquery
              */
             const SelectOptions = (
                 "columns": Type::NothingType,
@@ -8852,6 +9101,7 @@ my Triggers $trig = $table.getTriggers();
                 "join": Type::Hash,
                 "groupby": "softstringlist",
                 "having": Type::Hash,
+                "superquery": Type::Hash,
                 );
 
             #! table creation options
@@ -9065,7 +9315,7 @@ my Triggers $trig = $table.getTriggers();
             #! column description object
             Columns columns;
             #! primary key description
-            *AbstractPrimaryKey primaryKey;
+            AbstractPrimaryKey primaryKey;
             #! index descriptions
             Indexes indexes;
             #! foreign constraints description
@@ -9178,16 +9428,16 @@ map printf("unique constraint %s\n", $1.getName()), $table.getUniqueConstraintIt
                 getConstraintsUnlocked();
             }
 
-            list l = ();
-            if (primaryKey)
-                l += primaryKey;
+            list lst = ();
+            if (!primaryKey.empty())
+                lst += primaryKey;
 
             foreach AbstractConstraint c in (constraints.iterator()) {
                 if (c instanceof AbstractUniqueConstraint)
-                    l += c;
+                    lst += c;
             }
 
-            return l.iterator();
+            return lst.iterator();
         }
 
         #! drops the table from the database; releases the transaction lock after dropping the table
@@ -9862,7 +10112,7 @@ my string $sql = $table.getRenameColumnSql("name", "family_name");
 
             # now rename column in any constraints
             # check primary key
-            if (primaryKey && primaryKey.hasKey(old_name))
+            if (!primaryKey.empty() && primaryKey.hasKey(old_name))
                 primaryKey.renameKey(old_name, new_name);
 
             # check foreign constraints
@@ -10845,7 +11095,7 @@ my AbstractConstraint $con = $table.renameConstraint("pk_table_name", "pkey_tabl
             else {
                 if (inDb) {
                     getPrimaryKeyUnlocked();
-                    if (primaryKey && primaryKey.getName() == old_name) {
+                    if (!primaryKey.empty() && primaryKey.getName() == old_name) {
                         c = primaryKey;
                         # no need to update any container if the primary key is being updated
                         rename = sub () { };
@@ -10864,7 +11114,7 @@ my AbstractConstraint $con = $table.renameConstraint("pk_table_name", "pkey_tabl
                 list cl = ();
                 # get a list of all constraint names
                 cl += constraints.keys();
-                if (primaryKey)
+                if (!primaryKey.empty())
                     cl += primaryKey.getName();
                 if (foreignConstraints)
                     cl += foreignConstraints.keys();
@@ -10976,7 +11226,7 @@ my *string $sql = $table.getDropConstraintIfExistsSql("uk_mytable_name");
                         indexes.take(cname);
                 };
             }
-            else if (primaryKey && primaryKey.getName() == cname) {
+            else if (!primaryKey.empty() && primaryKey.getName() == cname) {
                 c = primaryKey;
                 rmv = sub () { 
                     remove self.primaryKey; 
@@ -10996,7 +11246,7 @@ my *string $sql = $table.getDropConstraintIfExistsSql("uk_mytable_name");
                 list cl = ();
                 # get a list of all constraint names
                 cl += constraints.keys();
-                if (primaryKey)
+                if (!primaryKey.empty())
                     cl += primaryKey.getName();
                 if (foreignConstraints)
                     cl += foreignConstraints.keys();
@@ -11233,8 +11483,8 @@ my string $sql = $table.getDropTriggerSql("trig_mytable");
             if (constraints.hasKey(cname))
                 throw err, printf("%y: already has a constraint named %y", name, cname);
 
-            if (primaryKey && primaryKey.getName() == cname)
-                throw err, printf("%y: already has a primary key constraint named %y with columns: %y", name, cname, primaryKey.columns.keys());
+            if (!primaryKey.empty() && primaryKey.getName() == cname)
+                throw err, printf("%y: already has a primary key constraint named %y with columns: %y", name, cname, primaryKey.keys());
         }
 
         private checkUniqueConstraintNameValidateOptions(string err, string cname, hash ropt, reference opt) {
@@ -12398,6 +12648,10 @@ my string $sql = $table.getSelectSql($sh, \$args);
         }
 
         string getSelectSqlUnlocked(*hash qh, reference args) {            
+            return getSelectSqlUnlockedIntern(qh, getSelectSqlName(qh), \args);
+        }
+
+        string getSelectSqlUnlockedIntern(*hash qh, string from, reference args, *hash ch) {
             if (qh.offset) {
                 if (!qh.orderby) {
                     # use primary key by default
@@ -12416,6 +12670,9 @@ my string $sql = $table.getSelectSql($sh, \$args);
             hash jch;
             map jch{$1.alias ? $1.alias : $1.table.getName()} = $1.table, qh.join.iterator();
 
+            # if we have a "superquery" argument, then we need to track which columns are in this subquery
+            hash mch;
+
             string cstr;
             # make query
             if (qh.columns) {
@@ -12426,12 +12683,17 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 foreach any cv in (qh.columns) {
                     switch (cv.typeCode()) {
                         case NT_STRING: {
-                            ce += getColumnNameIntern(cv, jch, boolean(qh.join));
+                            string cn = getColumnNameIntern(cv, jch, boolean(qh.join), ch);
+                            if (qh.superquery)
+                                mch{cn} = True;
+                            ce += cn;
                             break;
                         }
 
                         case NT_HASH: {
-                            ce += doColumnOperatorIntern(cv, jch, boolean(qh.join));
+                            ce += doColumnOperatorIntern(cv, jch, boolean(qh.join), ch);
+                            if (qh.superquery && cv.cop == COP_AS && cv.arg)
+                                mch{cv.arg} = True;
                             break;
                         }
 
@@ -12444,7 +12706,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
             else
                 cstr = "*";
 
-            string sql = sprintf("select %s from %s", cstr, getSelectSqlName(qh));
+            string sql = sprintf("select %s from %s", cstr, from);
 
             # process join specifications
             foreach any js in (qh.join.iterator()) {
@@ -12539,7 +12801,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 sql += sprintf(" %s join %s%s on (%s)", JopMap{jh.jop}, t.getSelectSqlName(jh.opt), jh.alias ? (" " + jh.alias) : "", (foldl $1 + " and " + $2, jel));
             }
 
-            getSelectWhereSqlUnlocked(\sql, \args, qh, jch, boolean(qh.join));
+            getSelectWhereSqlUnlocked(\sql, \args, qh, jch, boolean(qh.join), ch);
             if (qh.orderby) {
                 if (qh.offset || qh.limit) {
                     if (!matchAnyUnique(qh.orderby))
@@ -12554,7 +12816,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 doSelectLimitOnlyUnlockedImpl(\sql, \args, qh);
 
             if (qh.groupby) {
-                list gbe = map getColumnNameIntern($1, jch, boolean(qh.join)), qh.groupby;
+                list gbe = map getColumnNameIntern($1, jch, boolean(qh.join), ch), qh.groupby;
                 sql += " group by " + (foldl $1 + "," + $2, gbe.iterator());
             }
 
@@ -12570,13 +12832,20 @@ my string $sql = $table.getSelectSql($sh, \$args);
                     if (hh.value[0].typeCode() != NT_STRING)
                         throw "SELECT-ERROR", sprintf("expecting a string argument to the \"having\" condition in the first position giving the column operator code for column %y; got type %y instead (value: %y)", hh.key, hh.value[0].type(), hh.value[0]);
 
-                    string hstr = doColumnOperatorIntern(hh.value[0], NOTHING, getColumnExpressionIntern(hh.key, jch, boolean(qh.join)), cm);
-                    hl += doWhereExpressionIntern(hstr, hh.value[1], \args);
+                    string hstr = doColumnOperatorIntern(hh.value[0], NOTHING, getColumnExpressionIntern(hh.key, jch, boolean(qh.join), ch), cm, jch, boolean(qh.join), ch);
+                    hl += doWhereExpressionIntern(hstr, hh.value[1], \args, jch, boolean(qh.join), ch);
                 }
                 if (hl)
                     sql += " having " + (foldl $1 + " and " + $2, hl);
             }
             #printf("SQL: %s\nargs: %y\n", sql, args);
+
+            if (qh.superquery) {
+                validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \qh.superquery);
+
+                return getSelectSqlUnlockedIntern(qh.superquery, sprintf("(%s) subquery", sql), \args, mch);
+            }
+
             return sql;
         }
 
@@ -12584,21 +12853,21 @@ my string $sql = $table.getSelectSql($sh, \$args);
             return getSqlName();
         }
 
-        private string getColumnExpressionIntern(any cvc, *hash jch, bool join) {
+        private string getColumnExpressionIntern(any cvc, *hash jch, bool join, *hash ch) {
             switch (cvc.typeCode()) {
                 case NT_HASH:
-                    return doColumnOperatorIntern(cvc, jch, join);
+                    return doColumnOperatorIntern(cvc, jch, join, ch);
                 case NT_STRING:
-                    return getColumnNameIntern(cvc, jch, join);
+                    return getColumnNameIntern(cvc, jch, join, ch);
             }
             throw "SELECT-ERROR", sprintf("column operator hash %y has an invalid \"column\" key; expecting a string column specification or a column operator description hash", cvc);
         }
 
-        private string doColumnOperatorIntern(hash cvc, *hash jch, bool join) {
-            return doColumnOperatorIntern(cvc.cop, cvc.arg, (cvc.column ? getColumnExpressionIntern(cvc.column, jch, join) : NOTHING), getColumnOperatorMap());
+        private string doColumnOperatorIntern(hash cvc, *hash jch, bool join, *hash ch) {
+            return doColumnOperatorIntern(cvc.cop, cvc.arg, (cvc.column ? getColumnExpressionIntern(cvc.column, jch, join, ch) : NOTHING), getColumnOperatorMap(), jch, join, ch);
         }
 
-        private string doColumnOperatorIntern(any cop, any arg, *string cve, hash cm) {
+        private string doColumnOperatorIntern(any cop, any arg, *string cve, hash cm, *hash jch, bool join, *hash ch) {
             if (cop.typeCode() != NT_STRING)
                 throw "SELECT-ERROR", sprintf("invalid column operator code %y", cop);
 
@@ -12618,6 +12887,13 @@ my string $sql = $table.getSelectSql($sh, \$args);
 
             if (cmd.sqlvalue)
                 arg = getSqlValue(arg);
+            else if (cmd.argcolumn) {
+                if (!cmd.argoptional || arg) {
+                    if (arg.typeCode() != NT_STRING)
+                        throw "SELECT-ERROR", sprintf("expecting a string column designation for column operator %y; got type %y instead", cop, arg.type());
+                    arg = getColumnNameIntern(arg, jch, join, ch);
+                }
+            }
 
             if (!cve && !cmd.nocolumn)
                 throw "SELECT-ERROR", sprintf("column operator %y requires a column argument name but none was provided", cop);
@@ -12625,7 +12901,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
             return cmd.code(cve, arg);
         }
 
-        private string getColumnNameIntern(string cv, *hash jch, bool join) {
+        private string getColumnNameIntern(string cv, *hash jch, bool join, *hash ch) {
             Columns cols;
             # see if we have a table.column spec
             *string tp = (cv =~ x/(\w+)\.\w+/)[0];
@@ -12634,6 +12910,11 @@ my string $sql = $table.getSelectSql($sh, \$args);
                     throw "SELECT-ERROR", sprintf("query references unknown alias %y in %y; known aliases in this query: %y", tp, cv, jch.keys());
                 cols = jch{tp}.describe();
                 splice cv, 0, tp.size() + 1;
+            }
+            else if (ch) {
+                if (!ch{cv})
+                    throw "SELECT-ERROR", sprintf("query references unknown column %y; known columns from subquery: %y", cv, ch.keys());
+                return cv;
             }
             else {
                 cols = columns;
@@ -12645,9 +12926,9 @@ my string $sql = $table.getSelectSql($sh, \$args);
             return join ? sprintf("%s.%s", tp, cv) : cv;
         }
 
-        private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh, *hash jch, bool join = False) {
+        private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh, *hash jch, bool join = False, *hash ch) {
             if (qh."where")
-                sql += getWhereClauseUnlocked(qh."where", \args, NOTHING, jch, join);
+                sql += getWhereClauseUnlocked(qh."where", \args, NOTHING, jch, join, ch);
         }
 
         private *string getWhereClause(*hash cond, reference args, *string cprefix, *hash jch, bool join = False) {
@@ -12662,13 +12943,13 @@ my string $sql = $table.getSelectSql($sh, \$args);
             return getWhereClauseUnlocked(cond, \args, cprefix, jch, join);
         }
 
-        private *string getWhereClauseUnlocked(list cond, reference args, *string cprefix, *hash jch, bool join = False) {
+        private *string getWhereClauseUnlocked(list cond, reference args, *string cprefix, *hash jch, bool join = False, *hash pch) {
             getColumnsUnlocked();
             list al = ();
             if (!exists args)
                 args = ();
             foreach hash ch in (cond) {
-                *list wl = getWhereClauseIntern(ch, \args, cprefix, jch, join);
+                *list wl = getWhereClauseIntern(ch, \args, cprefix, jch, join, pch);
                 if (wl)
                     al += "(" + (foldl $1 + " and " + $2, wl) + ")";
             }
@@ -12676,29 +12957,29 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 return " where " + (foldl $1 + " or " + $2, al);
         }
 
-        private *string getWhereClauseUnlocked(*hash cond, reference args, *string cprefix, *hash jch, bool join = False) {
+        private *string getWhereClauseUnlocked(*hash cond, reference args, *string cprefix, *hash jch, bool join = False, *hash pch) {
             getColumnsUnlocked();
             if (!exists args)
                 args = ();
-            *list wl = getWhereClauseIntern(cond, \args, cprefix, jch, join);
+            *list wl = getWhereClauseIntern(cond, \args, cprefix, jch, join, pch);
             if (wl)
                 return " where " + (foldl $1 + " and " + $2, wl);
         }
 
-        private *list getWhereClauseIntern(*hash cond, reference args, *string cprefix, *hash jch, bool join = False) {
+        private *list getWhereClauseIntern(*hash cond, reference args, *string cprefix, *hash jch, bool join = False, *hash ch) {
             if (!cond)
                 return;
 
             list wl = ();
             foreach hash h in (cond.pairIterator()) {
-                string cn = cprefix ? sprintf("%s.%s", cprefix, h.key) : getColumnNameIntern(h.key, jch, join);
-                wl += doWhereExpressionIntern(cn, h.value, \args);
+                string cn = cprefix ? sprintf("%s.%s", cprefix, h.key) : getColumnNameIntern(h.key, jch, join, ch);
+                wl += doWhereExpressionIntern(cn, h.value, \args, jch, join, ch);
             }
 
             return wl;
         }
 
-        private string doWhereExpressionIntern(string cn, any we, reference args) {
+        private string doWhereExpressionIntern(string cn, any we, reference args, *hash jch, bool join = False, *hash ch) {
             int wt = we.typeCode();
             if (wt == NT_HASH) {
                 if (!we.op)
@@ -12708,11 +12989,16 @@ my string $sql = $table.getSelectSql($sh, \$args);
 
                 *hash cmd = wm{we.op};
                 if (!cmd)
-                    throw "WHERE-ERROR", sprintf("operator hash for key %y hash unknown operator %y: expecting one of: %y (operator hash: %y)", cn, we.op, wm.keys(), we);
+                    throw "WHERE-ERROR", sprintf("operator hash for key %y has unknown operator %y: expecting one of: %y (operator hash: %y)", cn, we.op, wm.keys(), we);
 
                 if (cmd.recursive) {
-                    cn = doWhereExpressionIntern(cn, we.arg, \args);
+                    cn = doWhereExpressionIntern(cn, we.arg, \args, jch, join, ch);
                     delete we.arg;
+                }
+                else if (cmd.argcolumn) {
+                    if (!we.arg || we.arg.typeCode() != NT_STRING)
+                        throw "WHERE-ERROR", sprintf("operator hash for key %y expects a string column name; got type %y instead", cn, we.arg.type());
+                    we.arg = getColumnNameIntern(we.arg, jch, join, ch);
                 }
 
                 return cmd.code(self, cn, we.arg, \args);
@@ -13274,7 +13560,7 @@ $table.clear();
         #! returns an object of class Columns describing the table
         /** @par Example:
             @code
-my hash $h = $table.describe();
+my Columns $cols = $table.describe();
             @endcode
 
             @return an object of class Columns describing the table
@@ -13295,7 +13581,7 @@ my hash $h = $table.describe();
 
             @return an object of class AbstractPrimaryKey describing the primary key of the table
         */
-        *AbstractPrimaryKey getPrimaryKey() {
+        AbstractPrimaryKey getPrimaryKey() {
             l.lock();
             on_exit l.unlock();
             getPrimaryKeyUnlocked();
@@ -13322,7 +13608,7 @@ my *AbstractUniqueConstraint uk = $table.findUniqueConstraint("uk_table2");
         *AbstractUniqueConstraint findUniqueConstraintUnlocked(string name) {
             getPrimaryKeyUnlocked();
             getConstraintsUnlocked();
-            if (primaryKey && primaryKey.getName() == name)
+            if (!primaryKey.empty() && primaryKey.getName() == name)
                 return primaryKey;
 
             return constraints.hasKey(name) && constraints{name} instanceof AbstractUniqueConstraint ? constraints{name} : NOTHING;
@@ -13614,7 +13900,7 @@ my list $l = $table.getAlignSql($table2);
                     # make sure there is no unique constraint or primary key for the unique index if the "index" option is supported
                     # in which case update the constraint to be based on the index and do not drop the index
                     if (ix.unique) {
-                        if (t.primaryKey && t.primaryKey.matchKeys(ix.columns)) {
+                        if (!t.primaryKey.empty() && t.primaryKey.matchKeys(ix.columns)) {
                             if (t.primaryKey.setIndexBase(ix.name)) {
                                 ix.setSupportingConstraint(primaryKey);
                                 continue;
@@ -13657,7 +13943,7 @@ my list $l = $table.getAlignSql($table2);
                     c = constraints{rh.key};
                     constraints.renameKey(rh.key, rh.value);
                 }
-                else if (primaryKey && primaryKey.getName() == rh.key)
+                else if (!primaryKey.empty() && primaryKey.getName() == rh.key)
                     c = primaryKey;
 
                 if (c) {
@@ -13715,15 +14001,13 @@ my list $l = $table.getAlignSql($table2);
             if (!t.primaryKey.empty()) {
                 if (!primaryKey.empty() && !primaryKey.equal(t.primaryKey)) {
                     # see if pk has the same definition but a different name; if so, it will be renamed later
-                    if (primaryKey.getName() != t.primaryKey.getName()
-                        && primaryKey.matchKeys(t.primaryKey))
-                        continue;
-
-                    #printf("pk1: %N\nXXXXXXX\npk2: %N\n", primaryKey, t.primaryKey);
-                    l += AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "primary key", t.primaryKey.getName(), name);
-                    if (constraintsLinkedToIndexesImpl() && indexes.hasKey(primaryKey.getName()))
-                        t.primaryKey.clearIndex();
-                    delete primaryKey;
+                    if (primaryKey.getName() == t.primaryKey.getName() || primaryKey.matchKeys(t.primaryKey)) {
+                        #printf("pk1: %N\nXXXXXXX\npk2: %N\n", primaryKey, t.primaryKey);
+                        l += AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "primary key", t.primaryKey.getName(), name);
+                        if (constraintsLinkedToIndexesImpl() && indexes.hasKey(primaryKey.getName()))
+                            t.primaryKey.clearIndex();
+                        delete primaryKey;
+                    }
                 }
             }
             else if (!primaryKey.empty()) {
@@ -13861,7 +14145,7 @@ my list $l = $table.getAlignSql($table2);
 
             # if constraints are linked to indexes, then rename any matching constraint as well
             if (constraintsLinkedToIndexesImpl()) {
-                if (primaryKey && primaryKey.getName() == old_name) {
+                if (!primaryKey.empty() && primaryKey.getName() == old_name) {
                     primaryKey.rename(new_name);
                 }
                 else {
@@ -14488,7 +14772,7 @@ my *list $rows = $table.findAll($h);
             getAllConstraintsUnlocked();
 
             # find unique constraint with the given columns
-            if (primaryKey && primaryKey.matchKeys(fk.target.columns)) {
+            if (!primaryKey.empty() && primaryKey.matchKeys(fk.target.columns)) {
                 primaryKey.addSourceConstraint(table_name, fk);
                 return;
             }
@@ -14585,7 +14869,7 @@ my *list $rows = $table.findAll($h);
         private abstract setupTableImpl(hash desc, *hash opt);
 
         private abstract Columns describeImpl();
-        private abstract *AbstractPrimaryKey getPrimaryKeyImpl();
+        private abstract AbstractPrimaryKey getPrimaryKeyImpl();
         private abstract Indexes getIndexesImpl();
         private abstract ForeignConstraints getForeignConstraintsImpl(*hash opt);
         private abstract Constraints getConstraintsImpl();

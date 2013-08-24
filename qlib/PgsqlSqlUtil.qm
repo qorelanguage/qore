@@ -51,6 +51,8 @@ module PgsqlSqlUtil {
 
 /** @mainpage PgsqlSqlUtil Module
 
+    @tableofcontents
+
     @section intro Introduction
 
     The %PgsqlSqlUtil module provides a high level API for working with PostgreSQL database objects.
@@ -60,6 +62,8 @@ module PgsqlSqlUtil {
     
     All the public symbols in the module are defined in the PgsqlSqlUtil namespace
 
+    @note This module requires the <a href="http://qore.org/qore-modules/15-pgsql-module">pgsql</a> binary module for communication with PostgreSQL databases
+
     @section pgsql_schema_management Schema Management on PostgreSQL
 
     @subsection pgsql_type_mapping Type Mapping
@@ -67,7 +71,7 @@ module PgsqlSqlUtil {
     Column types are mapped from %Qore types as follows:
 
     <b>PostgreSQL Column Type Mappings</b>
-    |!Generic Type Name|!Oracle Type Used
+    |!Generic Type Name|!PostgreSQL Type Used
     |\c float|\c double
     |\c integer|\c bigint
     |\c number|\c numeric
@@ -80,7 +84,6 @@ module PgsqlSqlUtil {
     |@ref SqlUtil::CLOB|\c text
     |@ref SqlUtil::NUMERIC|\c numeric
     |@ref SqlUtil::VARCHAR|\c varchar
-
 
     To use other types, use the \c "native_type" @ref SqlUtil::AbstractTable::ColumnDescOptions "column description option" with the 
     native PostgreSQL type name instead (under the \c "driver" and \c "pgsql" keys for schemas supporting multiple databases).
@@ -110,33 +113,27 @@ my hash $schema = (
 );
     @endcode
 
-    @section functions Functions
-    
-    @subsection function_names Function Names and Matching
+    @subsection pgsql_functions Function Handling
 
+    @par Function Names and Matching
     PostgreSQL functions are identified by their name and arguments; the algorithm implemented in this
     module is fairly simple; the argument names and types are used when trying to find functions, so they
-    must match almost exactly.
-
+    must match almost exactly.\n\n
     The only exception to the exact matching algorithm is that some simple substitutions are done on
     user-supplied arguments to try and use the verbose type names as retrieved by
     <a href="http://www.postgresql.org/docs/9.2/static/functions-info.html">pg_catalog.pg_get_function_identity_arguments()</a>,
-    which always returns verbose type names (ie \c "character varying" instead of \c "varchar").
-
-    Substitutions are made according to the inverse value of @ref PgsqlSqlUtil::PgsqlTable::PgsqlNameMap.
-
+    which always returns verbose type names (ie \c "character varying" instead of \c "varchar").\n\n
+    Substitutions are made according to the inverse value of @ref PgsqlSqlUtil::PgsqlTable::PgsqlNameMap.\n\n
     This is done so that a user-supplied function name like \c "update_queue(qkey varchar, qdata text)" will match the
     value returned by <a href="http://www.postgresql.org/docs/9.2/static/functions-info.html">pg_catalog.pg_get_function_identity_arguments()</a>, which would be \c "update_queue(character varying queue)"
 
-    @subsection function_management Schema Management with Functions
-
+    @par Schema Management with Functions
     There is some simple logic in the driver that attempts to reorder function definitions so that they match the format returned by 
     <a href="http://www.postgresql.org/docs/9.2/static/functions-info.html">pg_catalog.pg_get_functiondef()</a>
     which requires the following string to follow the function name and arguments:
-    - <tt><b>returns</b></tt> <i>type</i> <tt><b>language</b></tt> <i>lang</i> <tt><b>as $function$ </b></tt> 
-
-    The logic in the module attempts to move any language and volatility declarations from the end of the declaration to the beginning.  Additionally, dollar-quoting is detected automatically and substituted with \c "$function$" automatically.
-
+    - <tt><b>returns</b></tt> <i>type</i> <tt><b>language</b></tt> <i>lang</i> <tt><b>as $function$ </b></tt>
+    .
+    The logic in the module attempts to move any language and volatility declarations from the end of the declaration to the beginning.  Additionally, dollar-quoting is detected automatically and substituted with \c "$function$" automatically.\n\n
     If your function is reported as needing updating even though it's already in the database correctly, then the logic in this module
     needs to be update to provide more flexibility (please report to david@qore.org).  Until the module can be enhanced, try the format as
     in the following example:
@@ -151,14 +148,13 @@ begin
 end;
 $function$
     @endcode
-
     @note Future versions of the module may provide more intelligence to reformat user-supplied functions to match the
     format retrieved from the database, however currently functions should be provided in the format above in order
     to use functionality like @ref SqlUtil::Database::getAlignFunctionSql() for example.
 
     @section pgsql_relnotes Release Notes
 
-    @subsection v10 OgsqlSqlUtil v1.0
+    @subsection v10 PgsqlSqlUtil v1.0
     - initial release
 */
 
@@ -534,6 +530,9 @@ my any $v = $c.name;
 
     #! represents a PostgreSQL-specific primary key constraint
     public class PgsqlPrimaryKey inherits SqlUtil::AbstractPrimaryKey, PgsqlUniqueConstraintCommon {
+        constructor() {
+        }
+
         constructor(string n, *hash c, *string ts) : AbstractPrimaryKey(n, c), PgsqlUniqueConstraintCommon(ts) {
         }
 
@@ -1102,6 +1101,21 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 );
 
             const PgsqlAlignTableOptions = AbstractTable::AlignTableOptions + PgsqlTableCreationOptions;
+
+            #! column operator specializations for PostgreSQL
+            const PgsqlCopMap = DefaultCopMap + (
+                COP_OVER: (
+                    "argcolumn": True,
+                    "argoptional": True,
+                    "code": string sub (*string cve, *string arg) {
+                        string sql = cve + " over (";
+                        if (arg)
+                            sql += sprintf("partition by %s", arg);
+                        sql += ")";
+                        return sql;
+                    },
+                ),
+                );
         }
 
         private {
@@ -1196,6 +1210,11 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             return PgsqlAlignTableOptions;
         }
 
+        #! returns the column operator map for this object
+        private hash getColumnOperatorMap() {
+            return PgsqlCopMap;
+        }
+
         private bool checkExistenceImpl() {
             *hash qh = ds.selectRow("select * from pg_catalog.pg_statio_all_tables where schemaname = %v and relname = %v", schema, name);
             if (qh)
@@ -1243,13 +1262,13 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             return new Columns(rv);
         }
 
-        private *PgsqlPrimaryKey getPrimaryKeyImpl() {
+        private PgsqlPrimaryKey getPrimaryKeyImpl() {
             hash rv;
 
             # get primary key description
             *hash qh = ds.select("select c1.relname index_name, a.attname, pg_catalog.pg_get_indexdef(a.attrelid, a.attnum, TRUE) AS column_name, pg_catalog.format_type(a.atttypid, a.atttypmod), tablespace from pg_class c, pg_index i, pg_attribute a, pg_class c1, pg_indexes ix where c.oid = %v::regclass and c.oid = i.indrelid and i.indisprimary and i.indexrelid = a.attrelid and c1.oid = i.indexrelid and c1.relname = ix.indexname and i.indisvalid and not a.attisdropped order by a.attnum", schema + "." + name);
             if (!qh.index_name)
-                return;
+                return new PgsqlPrimaryKey();
 
             #printf("PgsqlTable::getPrimaryKeyImpl(): %s: %N\n", getName(), qh);
             foreach string col in (qh.column_name)
@@ -1283,7 +1302,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
 
                 foreach hash i in (ih.pairIterator()) {
                     # check primary key index and add tablespace to primary key definition
-                    if (i.primary && primaryKey) {
+                    if (i.primary && !primaryKey.empty()) {
                         PgsqlPrimaryKey pk = cast<PgsqlPrimaryKey>(primaryKey);
                         if (i.value.tablespace && !pk.tablespace)
                             pk.tablespace = i.value.tablespace;

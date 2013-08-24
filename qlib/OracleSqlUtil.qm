@@ -63,6 +63,8 @@ module OracleSqlUtil {
     
     All the public symbols in the module are defined in the OracleSqlUtil namespace
 
+    @note This module requires the <a href="http://qore.org/qore-modules/14-oracle-module">oracle</a> binary module for communication with Oracle databases
+
     @section ora_sql_operations SQL Operations on Oracle
 
     @subsection ora_paging Select With Paging on Oracle
@@ -552,6 +554,9 @@ my any $v = $c.name;
             *string tablespace;
         }
 
+        constructor() {
+        }
+
         constructor(string n, *hash c, *string ts) : AbstractPrimaryKey(n, c) {
             tablespace = ts;
         }
@@ -1017,8 +1022,8 @@ my any $v = $c.name;
                 return;
             string src = foldl $1 + $2, l;
 
-            if (!regex(src, "^" + type + "( |\n)", RE_Caseless))
-                throw "SOURCE-ERROR", sprintf("source to %s %y does not begin with the type name: %y", type, name, src.substr(0, 50));
+            if (!regex(src, "^" + type + "([[:blank:]]|$)", RE_Caseless))
+                throw "SOURCE-ERROR", sprintf("source to %s %y does not begin with the type name %y; source: %y", type, name, type, src.substr(0, 50));
 
             # remove the type name from the beginning of the string
             splice src, 0, type.size() + 1;
@@ -1032,8 +1037,8 @@ my any $v = $c.name;
             trim src;
 
             # ensure the name of the object is at the beginning of the string
-            if (!regex(src, "^" + name, RE_Caseless))
-                throw "SOURCE-ERROR", sprintf("source to %s %y does not begin with the %s name: %y", type, name, type, src.substr(0, 50));
+            if (!regex(src, "^(\")?" + name + "(\")?", RE_Caseless))
+                throw "SOURCE-ERROR", sprintf("source to %s %y does not begin with the %s name %y; source: %y", type, name, type, name, src.substr(0, 50));
         }
 
         #! returns a list of string synonym names in the database
@@ -1289,12 +1294,27 @@ my any $v = $c.name;
 
                         # in this case this part of the expression will fail
                         if (!argstr)
-                            return cn + "!=" + cn;
+                            return "1 != 1";
 
                         args += argstr;
                         args += argstr;
 
                         return cn + " in (select regexp_substr(%v,'[^,]+', 1, level) from dual connect by regexp_substr(%v, '[^,]+', 1, level) is not null)";
+                    },
+                ),
+                );
+
+            #! column operator specializations for Oracle
+            const OracleCopMap = DefaultCopMap + (
+                COP_OVER: (
+                    "argcolumn": True,
+                    "argoptional": True,
+                    "code": string sub (*string cve, *string arg) {
+                        string sql = cve + " over (";
+                        if (arg)
+                            sql += sprintf("partition by %s", arg);
+                        sql += ")";
+                        return sql;
                     },
                 ),
                 );
@@ -1453,8 +1473,8 @@ my any $v = $c.name;
             return OracleSelectOptions;
         }
 
-        private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh, *hash jch, bool join = False) {
-            AbstractTable::getSelectWhereSqlUnlocked(\sql, \args, qh, jch, join);
+        private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh, *hash jch, bool join = False, *hash ch) {
+            AbstractTable::getSelectWhereSqlUnlocked(\sql, \args, qh, jch, join, ch);
             if (qh.limit && !qh.orderby) {
                 if (!qh."where")
                     sql += " where ";
@@ -1557,7 +1577,7 @@ my any $v = $c.name;
             return new Columns(rv);
         }
 
-        private *OraclePrimaryKey getPrimaryKeyImpl() {
+        private OraclePrimaryKey getPrimaryKeyImpl() {
 	    if (!tablespace)
 		setTableInfoIntern();
 
@@ -1566,7 +1586,7 @@ my any $v = $c.name;
             # get primary key description
             *hash qh = ds.select("select cons.constraint_name, cols.column_name, cols.position, cons.status, cons.index_name from all_constraints cons, all_cons_columns cols where cols.owner = %v and cols.table_name = %v and cons.constraint_type = 'P' and cons.owner = cols.owner and cons.constraint_name = cols.constraint_name order by cols.position", schema.upr(), name.upr());
             if (!qh.constraint_name)
-                return;
+                return new OraclePrimaryKey();
 
             foreach string col in (qh.column_name) {
                 string cn = native_case ? col : col.lwr();
@@ -1744,7 +1764,7 @@ my any $v = $c.name;
                 trim row.description;
 
                 # remove trigger name from description line
-                splice row.description, 0, row.trigger_name.size() + 1;
+                row.description = regex_subst(row.description, "^.*" + row.trigger_name + ".", "", RE_Caseless);
                 rv{row.trigger_name} = new OracleTrigger(row.trigger_name, row.description + "\n" + row.trigger_body, row.status == "ENABLED");
             }
 
@@ -1851,6 +1871,11 @@ my any $v = $c.name;
         #! returns the "where" operator map for this object
         private hash getWhereOperatorMap() {
             return OracleOpMap;
+        }
+
+        #! returns the column operator map for this object
+        private hash getColumnOperatorMap() {
+            return OracleCopMap;
         }
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
