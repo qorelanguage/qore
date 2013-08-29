@@ -79,3 +79,19 @@ AbstractQoreNode *QoreNullNode::parseInit(LocalVar *oflag, int pflag, int &lvids
    return this;
 }
 
+bool QoreNullNode::getAsBoolImpl() const {
+   return false;
+}
+
+int QoreNullNode::getAsIntImpl() const {
+   return 0;
+}
+
+int64 QoreNullNode::getAsBigIntImpl() const {
+   return 0;
+}
+
+double QoreNullNode::getAsFloatImpl() const {
+   return 0.0;
+}
+

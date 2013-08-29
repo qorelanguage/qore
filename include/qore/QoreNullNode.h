@@ -40,66 +40,79 @@
     @see QoreNothingNode
  */
 class QoreNullNode : public UniqueValueQoreNode {
-   protected:
-      //! this function is never called for this type
-      /** @see AbstractQoreNode::evalImpl()
-       */
-      using SimpleValueQoreNode::evalImpl;
-      DLLLOCAL AbstractQoreNode *evalImpl(class ExceptionSink *xsink) const;
+private:
+   //! returns the value as a boolean
+   DLLLOCAL virtual bool getAsBoolImpl() const;
 
-   public:
-      DLLEXPORT QoreNullNode();
+   //! returns the value as an integer
+   DLLLOCAL virtual int getAsIntImpl() const;
 
-      DLLEXPORT virtual ~QoreNullNode();
+   //! returns the value as a 64-bit integer
+   DLLLOCAL virtual int64 getAsBigIntImpl() const;
 
-      //! concatenate "<NULL>" to an existing QoreString
-      /** used for %n and %N printf formatting
-	  @param str the string representation of the type will be concatenated to this QoreString reference
-	  @param foff for multi-line formatting offset, -1 = no line breaks
-	  @param xsink if an error occurs, the Qore-language exception information will be added here
-	  @return -1 for exception raised, 0 = OK
-      */
-      DLLEXPORT virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
+   //! returns the value as a float
+   DLLLOCAL virtual double getAsFloatImpl() const;
 
-      //! returns a QoreString with the text: "<NULL>"
-      /** used for %n and %N printf formatting
-	  @param del is always set to true for this implementation of the function, meaning that the returned QoreString pointer should be deleted
-	  @param foff for multi-line formatting offset, -1 = no line breaks (ignored by this version of the function)
-	  @param xsink ignored by this version of the function
-	  NOTE: Use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
-	  @see QoreNodeAsStringHelper
-      */
-      DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
+protected:
+   //! this function is never called for this type
+   /** @see AbstractQoreNode::evalImpl()
+    */
+   using SimpleValueQoreNode::evalImpl;
+   DLLLOCAL AbstractQoreNode *evalImpl(class ExceptionSink *xsink) const;
 
-      //! tests for equality with possible type conversion (soft compare)
-      /** since no type can be implicitly converted to a NULL, this comparison is the same as is_equal_hard() for QoreNullNode
-	  @param v the value to compare
-	  @param xsink ignored for this version of the function
-       */
-      DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const;
+public:
+   DLLEXPORT QoreNullNode();
 
-      //! tests for equality without type conversions (hard compare)
-      /**
-	 @param v the value to compare
-	  @param xsink ignored for this version of the function
-       */
-      DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
+   DLLEXPORT virtual ~QoreNullNode();
 
-      //! returns the type name as a c string
-      DLLEXPORT virtual const char *getTypeName() const;
+   //! concatenate "<NULL>" to an existing QoreString
+   /** used for %n and %N printf formatting
+       @param str the string representation of the type will be concatenated to this QoreString reference
+       @param foff for multi-line formatting offset, -1 = no line breaks
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+       @return -1 for exception raised, 0 = OK
+   */
+   DLLEXPORT virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
 
-      //! returns the type information
-      DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+   //! returns a QoreString with the text: "<NULL>"
+   /** used for %n and %N printf formatting
+       @param del is always set to true for this implementation of the function, meaning that the returned QoreString pointer should be deleted
+       @param foff for multi-line formatting offset, -1 = no line breaks (ignored by this version of the function)
+       @param xsink ignored by this version of the function
+       NOTE: Use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
+       @see QoreNodeAsStringHelper
+   */
+   DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
-      //! returns the type name (useful in templates)
-      DLLLOCAL static const char *getStaticTypeName() {
-	 return "NULL";
-      }
+   //! tests for equality with possible type conversion (soft compare)
+   /** since no type can be implicitly converted to a NULL, this comparison is the same as is_equal_hard() for QoreNullNode
+       @param v the value to compare
+       @param xsink ignored for this version of the function
+   */
+   DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const;
 
-      //! returns the type code (useful in templates)
-      DLLLOCAL static qore_type_t getStaticTypeCode() {
-         return NT_NULL;
-      }
+   //! tests for equality without type conversions (hard compare)
+   /**
+      @param v the value to compare
+      @param xsink ignored for this version of the function
+   */
+   DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
+
+   //! returns the type name as a c string
+   DLLEXPORT virtual const char *getTypeName() const;
+
+   //! returns the type information
+   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+
+   //! returns the type name (useful in templates)
+   DLLLOCAL static const char *getStaticTypeName() {
+      return "NULL";
+   }
+
+   //! returns the type code (useful in templates)
+   DLLLOCAL static qore_type_t getStaticTypeCode() {
+      return NT_NULL;
+   }
 };
 
 //! use this function to test for NULL

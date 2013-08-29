@@ -55,6 +55,7 @@ public:
       code = 0;
       cancelCode = 0;
 #endif
+      delete this;
    }
 
    DLLLOCAL AbstractQoreNode* run(ExceptionSink* xsink) {
@@ -77,10 +78,8 @@ public:
    }
 
    DLLLOCAL ~ThreadTaskHolder() {
-      if (task) {
+      if (task)
 	 task->del(xsink);
-	 delete task;
-      }
    }
 
    DLLLOCAL ThreadTask* release() {
