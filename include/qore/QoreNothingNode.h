@@ -31,7 +31,7 @@
     defines the QoreNothingNode class
 */
 
-//! Qore's SQL "NOTHING" parse tree/value type, not-referenced counted, not dynamically allocated
+//! Qore's "NOTHING" parse tree/value type, not-referenced counted, not dynamically allocated
 /** This class cannot be instantiated; there will only be one single QoreNothingNode object instantiated and used
     everywhere in the Qore library.  Use the nothing() function or simply &Nothing to acquire a pointer to an 
     object of this class.

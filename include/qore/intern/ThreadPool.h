@@ -55,6 +55,7 @@ public:
       code = 0;
       cancelCode = 0;
 #endif
+      delete this;
    }
 
    DLLLOCAL AbstractQoreNode* run(ExceptionSink* xsink) {
@@ -79,7 +80,6 @@ public:
    DLLLOCAL ~ThreadTaskHolder() {
       if (task) {
 	 task->del(xsink);
-	 delete task;
       }
    }
 
@@ -111,6 +111,7 @@ public:
 
    DLLLOCAL ~ThreadPoolThread() {
       delete stopCond;
+      assert(!task);
    }
 
    DLLLOCAL void setPos(tplist_t::iterator p) {
