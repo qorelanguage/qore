@@ -155,6 +155,7 @@
     - fixed a bug in the @ref instanceof "instanceof" operator when working with objects and classes created from different source @ref Qore::Program "Program" objects
     - fixed a bug in *printf() formatting with floating-point and number values where no digits were displayed right of the decimal point unless a specific number of digits was specified in the format string
     - fixed the return type of <bool>::typeCode(); was returning a boolean instead of @ref Qore::NT_BOOLEAN
+    - fixed a bug there @ref null was evaluated as @ref Qore::True "True" in a boolean context rather than @ref Qore::False "False"
 
     @section qore_087 Qore 0.8.7
 

@@ -9104,10 +9104,20 @@ my Triggers $trig = $table.getTriggers();
                 "superquery": Type::Hash,
                 );
 
+            #! alignment omission options
+            const TableOmissionOptions = (
+                "indexes": True,
+                "foreign_constraints": True,
+                "triggers": True,
+                );
+
             #! table creation options
-            /** currently this option is a combination of @ref SqlUtil::AbstractTable::IndexOptions and @ref AbstractDatabase::CreationOptions
+            /** currently this option is a combination of @ref SqlUtil::AbstractTable::IndexOptions and @ref AbstractDatabase::CreationOptions plus the following:
+                - \c omit: a list pf attributes to omit; possible values are: \c indexes, \c foreign_constraints, \c triggers (see @ref TableOmissionOptions)
             */
-            const TableCreationOptions = IndexOptions + AbstractDatabase::CreationOptions;
+            const TableCreationOptions = IndexOptions + AbstractDatabase::CreationOptions + (
+                "omit": "softstringlist",
+                );
 
             #! table alignment options
             /** currently this option is a combination of @ref SqlUtil::AbstractTable::TableCreationOptions and the following options:
@@ -13706,6 +13716,9 @@ printf("%s\n", $table.getCreateSql());
             @return an SQL string that could be used to create the table and all known properties of the table
         */
         string getCreateSqlString(*hash opt) {
+            # convert table alignment omission options to a hash and check
+            if (opt.omit) opt.omit = getCheckOmissionOptions(opt.omit, "CREATE-TABLE-ERROR");
+
             l.lock();
             on_exit l.unlock();
 
@@ -13726,6 +13739,9 @@ map printf("$1;\n", $1), $table.getCreateSql();
             @return a list of SQL strings that could be used to create the table and all known properties of the table
         */
         list getCreateSql(*hash opt) {
+            # convert table alignment omission options to a hash and check
+            if (opt.omit) opt.omit = getCheckOmissionOptions(opt.omit, "CREATE-TABLE-ERROR");
+
             l.lock();
             on_exit l.unlock();
             if (!manual)
@@ -13746,6 +13762,9 @@ my string $sql = $table.getCreateTableSql();
             @throw OPTION-ERROR invalid or unsupported option passed
         */
         string getCreateTableSql(*hash opt) {
+            # convert table alignment omission options to a hash and check
+            if (opt.omit) opt.omit = getCheckOmissionOptions(opt.omit, "CREATE-TABLE-ERROR");
+
             validateOptionsIntern("OPTION-ERROR", getTableCreationOptions(), \opt);
             l.lock();
             on_exit l.unlock();
@@ -13759,6 +13778,20 @@ my string $sql = $table.getCreateTableSql();
             if (inDb)
                 return True;
             return checkExistenceImpl();
+        }
+
+        private *hash getCheckOmissionOptions(*softlist ol, string err) {
+            # convert table alignment omission options to a hash and check
+            if (!ol)
+                return;
+
+            hash oh;
+            foreach string ostr in (ol) {
+                if (!TableOmissionOptions{ostr})
+                    throw err, sprintf("omission option %y is unknown; known omission options: %y", ostr, TableOmissionOptions.keys());
+                oh{ostr} = True;
+            }
+            return oh;
         }
 
         #! accepts an AbstractTable argument and returns a list of SQL strings required to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty list is returned
@@ -13784,6 +13817,9 @@ my list $l = $table.getAlignSql($table2);
             hash ato = getAlignTableOptions();
 
             validateOptionsIntern("OPTION-ERROR", ato, \opt);
+
+            # convert table alignment omission options to a hash and check
+            opt.omit = getCheckOmissionOptions(opt.omit, "ALIGN-TABLE-ERROR");
 
             l.lock();
             on_exit l.unlock();
@@ -13882,6 +13918,7 @@ my list $l = $table.getAlignSql($table2);
                 }
             }
 
+            if (!opt.omit.indexes) {
             # check for indexes with different names than in the template and rename them automatically
             foreach AbstractIndex ix in (indexes.iterator()) {
                 if (!t.indexes.hasKey(ix.name)
@@ -13930,6 +13967,7 @@ my list $l = $table.getAlignSql($table2);
                     indexes.take(ix.name);
                 }
             }
+            }
 
             # process constraint_map: rename constraints
             foreach hash rh in (opt.constraint_map.pairIterator()) {
@@ -13952,19 +13990,6 @@ my list $l = $table.getAlignSql($table2);
                 }
             }
 
-            # check for foreign constraints with different names than in the template and rename them automatically
-            foreach AbstractForeignConstraint fk in (foreignConstraints.iterator()) {
-                if (!t.foreignConstraints.hasKey(fk.getName())
-                    && t.foreignConstraints
-                    && (*AbstractForeignConstraint other = t.foreignConstraints.findEqual(fk))
-                    && !foreignConstraints.hasKey(other.getName())) {
-                    # rename constraint
-                    l += AbstractDatabase::doCallback(opt, fk.getRenameSql(getSqlName(), other.getName()), AbstractDatabase::AC_Rename, "constraint", fk.getName(), name, other.getName());
-                    foreignConstraints.renameKey(fk.getName(), other.getName());
-                    fk.rename(other.getName());
-                }
-            }
-
             # check for unique constraints with different names than in the template and rename them automatically
             foreach AbstractConstraint c in (constraints.iterator()) {
                 if (!(c instanceof AbstractUniqueConstraint))
@@ -13981,12 +14006,27 @@ my list $l = $table.getAlignSql($table2);
                 }
             }
 
+            if (!opt.omit.foreign_constraints) {
+            # check for foreign constraints with different names than in the template and rename them automatically
+            foreach AbstractForeignConstraint fk in (foreignConstraints.iterator()) {
+                if (!t.foreignConstraints.hasKey(fk.getName())
+                    && t.foreignConstraints
+                    && (*AbstractForeignConstraint other = t.foreignConstraints.findEqual(fk))
+                    && !foreignConstraints.hasKey(other.getName())) {
+                    # rename constraint
+                    l += AbstractDatabase::doCallback(opt, fk.getRenameSql(getSqlName(), other.getName()), AbstractDatabase::AC_Rename, "constraint", fk.getName(), name, other.getName());
+                    foreignConstraints.renameKey(fk.getName(), other.getName());
+                    fk.rename(other.getName());
+                }
+            }
+ 
             # check for foreign constraints not in the template and drop them
             foreach AbstractForeignConstraint c in (foreignConstraints.iterator()) {
                 if (!t.foreignConstraints.hasKey(c.getName())) {
                     l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "foreign constraint", c.getName(), name);
                     foreignConstraints.take(c.getName());
                 }
+            }
             }
 
             # check for other constraints not in the template and drop them
@@ -14041,6 +14081,7 @@ my list $l = $table.getAlignSql($table2);
                 }
             }
 
+            if (!opt.omit.indexes) {
             # check for indexes in the template that are not present or different in the current table
             foreach AbstractIndex ix in (t.indexes.iterator()) {
                 if (!indexes.hasKey(ix.name)) {
@@ -14052,6 +14093,7 @@ my list $l = $table.getAlignSql($table2);
                 }
                 else
                     AbstractDatabase::doOkCallback(opt, AbstractDatabase::AC_Unchanged, "index", ix.name, name);
+            }
             }
 
             # check for primary key differences
@@ -14069,6 +14111,7 @@ my list $l = $table.getAlignSql($table2);
                 }
             }
 
+            if (!opt.omit.foreign_constraints) {
             # check for foreign constraints in the template that are not present or different in the current table
             foreach AbstractForeignConstraint c in (t.foreignConstraints.iterator()) {
                 if (!foreignConstraints.hasKey(c.getName())) {
@@ -14083,6 +14126,7 @@ my list $l = $table.getAlignSql($table2);
                 }
                 else
                     AbstractDatabase::doOkCallback(opt, AbstractDatabase::AC_Unchanged, "foreign constraint", c.getName(), name);
+            }
             }
 
             # check for other constraints in the template that are not present or different in the current table
@@ -14111,6 +14155,7 @@ my list $l = $table.getAlignSql($table2);
                     l += fl;
             }
 
+            if (!opt.omit.triggers) {
             # check for triggers not in the template and drop them
             # do this before adding for dbs like mysql that cannot support multiple triggers with the same action on the same table
             foreach AbstractTrigger trig in (triggers.iterator()) {
@@ -14133,6 +14178,7 @@ my list $l = $table.getAlignSql($table2);
                 }
                 else
                     AbstractDatabase::doOkCallback(opt, AbstractDatabase::AC_Unchanged, "trigger", trig.name, name);
+            }
             }
 
             return l;
@@ -14628,12 +14674,16 @@ my *list $rows = $table.findAll($h);
             # mark in options that the entire table is being created
             opt.create_table_all = True;
             list l += getCreateTableSqlUnlocked(opt);
-            *list tl = getCreateIndexesSqlUnlocked(opt, cache); if (tl) l += tl;
+            *list tl;
+            if (!opt.omit.indexes)
+                tl = getCreateIndexesSqlUnlocked(opt, cache); if (tl) l += tl;
             *string sql = getCreatePrimaryKeySqlUnlocked(opt, cache); if (sql) l += sql;
-            tl = getCreateForeignConstraintsSqlUnlocked(opt, cache); if (tl) l += tl;
+            if (!opt.omit.foreign_constraints)
+                tl = getCreateForeignConstraintsSqlUnlocked(opt, cache); if (tl) l += tl;
             tl = getCreateConstraintsSqlUnlocked(opt, cache); if (tl) l += tl;
             tl = getCreateMiscSqlUnlocked(opt, cache); if (tl) l += tl;
-            tl = getCreateTriggersSqlUnlocked(opt, cache); if (tl) l += tl;
+            if (!opt.omit.triggers)
+                tl = getCreateTriggersSqlUnlocked(opt, cache); if (tl) l += tl;
 
             return l;
         }

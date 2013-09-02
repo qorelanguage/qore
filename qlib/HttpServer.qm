@@ -1256,7 +1256,7 @@ public class HttpServer::HttpServer {
 
         if ($sock !~ /:\w+/) {
             if ($sock =~ /^\//)
-                return $.addListenerIntern($sock, NOTHING, $sd.sert, $sd.key, NOTHING, NOTHING, NOTHING, NOTHING, $name);
+                return $.addListenerIntern($sock, NOTHING, $sd.sert, $sd.key, NOTHING, NOTHING, NOTHING, NOTHING, $name).getInfo();
 
             return $.addINETListenersIntern(NOTHING, $sock, $sd, NOTHING, NOTHING, NOTHING, NOTHING, $name, $family);
         }
@@ -2102,7 +2102,7 @@ public class HttpServer::HttpListener inherits Qore::Socket {
     }
 
     # params: server, id, session ID sequence object, socket, rbac obj, [cert, key]
-    constructor(HttpServer $server, int $id, Sequence $ss, *string $node, softstring $service, *SSLCertificate $cert, *SSLPrivateKey $key, *hash $hi, *code $logger, *code $errorlogger, *code $stopc, string $name, int $family = AF_UNSPEC) {
+    constructor(HttpServer $server, int $id, Sequence $ss, *string $node, *softstring $service, *SSLCertificate $cert, *SSLPrivateKey $key, *hash $hi, *code $logger, *code $errorlogger, *code $stopc, string $name, int $family = AF_UNSPEC) {
         $.name = $name;
         # we originally set for utf-8 and then per-connection the encoding is set according to the client's content-type header (with iso-8859-1 as the default)
         # according to RFC 2616 section 3.7.1 (http://tools.ietf.org/html/rfc2616#section-3.7.1)

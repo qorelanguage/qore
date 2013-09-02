@@ -172,6 +172,8 @@ $ws.connect(("url": "ws://example.com:8080/event-path/", "callback": \event()));
          hash connect(hash $opts, *reference $info) {
             if ($opts.url.typeCode() != NT_STRING)
                 throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::connect() missing 'url' key giving the connection target");
+            if (exists $opts.proxy && $opts.proxy.typeCode() != NT_STRING)
+                throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::connect() 'proxy' not assigned to a string; type received: %y", $opts.proxy.type());
             if (!$opts.callback.callp())
                 throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::connect() missing 'callback' key giving the message callback");
             if ($opts.hdr && $opts.hdr.typeCode() != NT_HASH)
@@ -188,7 +190,7 @@ $ws.connect(("url": "ws://example.com:8080/event-path/", "callback": \event()));
             # set timeout
             $.timeout_ms = $opts.timeout_ms ? $opts.timeout_ms : DefaultTimeout;
 
-            my hash $h = $.connectUnlocked($opts.url, $opts.hdr, \$info);
+            my hash $h = $.connectUnlocked($opts.url, $opts.proxy, $opts.hdr, \$info);
             $.c.inc();
             on_error $.c.dec();
             background $.eventLoop($opts.callback);
@@ -309,7 +311,7 @@ $ws.connect(("url": "ws://example.com:8080/event-path/", "callback": \event()));
             $.sock.send2(ws_encode_message($msg, WSOP_Close, True), $.timeout_ms);
         }
 
-        private hash connectUnlocked(string $url, *hash $hdr, *reference $info) {
+        private hash connectUnlocked(string $url, *string $proxy, *hash $hdr, *reference $info) {
             my hash $uh = parse_url($url);
             my bool $ssl;
             if ($uh.protocol) {
