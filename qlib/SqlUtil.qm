@@ -597,11 +597,13 @@ my *list $rows = $table.selectRows(("join": join_inner($table2, "t2", ("id": "al
 
     @note the above list also applies to the corresponding @ref SqlUtil::AbstractTable methods
 
-    The where clause or condition hash is made of keys signifying the column names, and either a direct value meaning that the column value has to match exactly, or SQL operators can be given by using the appropriate operator function as the key value.  Each member of the where hash translates to an expression that is combined with \c "AND" in the SQL query; to combine expressions with \c "OR", then use a list of @ref select_option_hash "select option hashes", which will combine each @ref select_option_hash "select option hash" with \c "OR" as in @ref where_list "this example".\n\n
+    The where clause or condition hash is made of keys signifying the column names, and either a direct value meaning that the column value has to match exactly, or SQL operators can be given by using the appropriate operator function as the key value.  Each member of the where hash translates to an expression that is combined with \c "AND" in the SQL query; to combine expressions with \c "OR", then use a list of @ref select_option_hash "select option hashes", which will combine each @ref select_option_hash "select option hash" with \c "OR" as in @ref where_list "this example".
 
     The where condition hash has the following format:
     - each key gives a column name or a table/alias with column name in dot notation
     - the values are either direct values, meaning that the equality operator (\c "=") is used, or a @ref sql_op_funcs "SQL operator function" for operators in the where clause
+
+    @note To reference a column more than once in a where clause, prefix the column specification with a unique number and a colon as in the following example: @code my hash $w = ("0:created": op_ge($mindate), "1:created": op_lt($maxdate)); @endcode
 
     See @ref sql_op_funcs for a list of operator functions.
 
@@ -12913,6 +12915,9 @@ my string $sql = $table.getSelectSql($sh, \$args);
 
         private string getColumnNameIntern(string cv, *hash jch, bool join, *hash ch) {
             Columns cols;
+            # remove any disposable unique prefix
+            cv =~ s/^[0-9]+://;
+
             # see if we have a table.column spec
             *string tp = (cv =~ x/(\w+)\.\w+/)[0];
             if (tp) {
