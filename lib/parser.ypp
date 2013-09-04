@@ -640,67 +640,71 @@ static QoreListNode* splice_expressions(AbstractQoreNode* a1, AbstractQoreNode* 
 typedef std::pair<char*, QoreMemberInfo*> member_pair_t;
 typedef std::pair<char*, QoreVarInfo*> var_pair_t;
 
+#define MI_Member 0
+#define MI_Constant 1
+#define MI_Var 2
+
 struct MemberInfo {
 protected:
    DLLLOCAL MemberInfo() {
    }
 
 public:
-   enum mi_e { Member, Constant, Var };
+   //enum mi_e { Member, Constant, Var };
 
    char* name;
-   mi_e type;
+   unsigned char type;
    union {
       QoreMemberInfo* memberInfo;
       QoreVarInfo* varInfo;
       AbstractQoreNode* exp;
    } u;
 
-   DLLLOCAL MemberInfo(char* n, QoreMemberInfo* mi) : name(n), type(Member)  {
+   DLLLOCAL MemberInfo(char* n, QoreMemberInfo* mi) : name(n), type(MI_Member)  {
       u.memberInfo = mi; 
       if (!mi->parseHasTypeInfo() && parse_check_parse_option(PO_REQUIRE_TYPES))
 	 parse_error("member '%s' declared without type information, but parse options require type information for all declarations", name);
    }
-   DLLLOCAL MemberInfo(char* n) : name(n), type(Member)  {
+   DLLLOCAL MemberInfo(char* n) : name(n), type(MI_Member)  {
       u.memberInfo = 0; 
       if (parse_check_parse_option(PO_REQUIRE_TYPES))
 	 parse_error("member '%s' declared without type information, but parse options require type information for all declarations", name);
    }
-   DLLLOCAL MemberInfo(char* n, AbstractQoreNode* exp) : name(n), type(Constant) {
+   DLLLOCAL MemberInfo(char* n, AbstractQoreNode* exp) : name(n), type(MI_Constant) {
       u.exp = exp;
    }
    DLLLOCAL ~MemberInfo() {
       if (name)
 	 free(name);
       switch (type) {
-	 case Member:
+	 case MI_Member:
 	    delete u.memberInfo;
 	    break;
-	 case Var:
+	 case MI_Var:
 	    delete u.varInfo;
 	    break;
-	 case Constant:
+	 case MI_Constant:
 	    if (u.exp)
 	       u.exp->deref(0);
 	    break;
       }
    }
    DLLLOCAL member_pair_t getPair() {
-      assert(type == Member);
+      assert(type == MI_Member);
       member_pair_t m = std::make_pair(name, u.memberInfo);
       name = 0;
       u.memberInfo = 0;
       return m;
    }
    DLLLOCAL var_pair_t getVarPair() {
-      assert(type == Var);
+      assert(type == MI_Var);
       var_pair_t m = std::make_pair(name, u.varInfo);
       name = 0;
       u.varInfo = 0;
       return m;
    }
    DLLLOCAL AbstractQoreNode* takeExp() {
-      assert(type == Constant);
+      assert(type == MI_Constant);
       AbstractQoreNode* rv = u.exp;
       u.exp = 0;
       return rv;
@@ -710,7 +714,7 @@ public:
 struct ClassVarInfo : public MemberInfo {
    DLLLOCAL ClassVarInfo(char* n, QoreVarInfo* vi) {
       name = n;
-      type = Var;
+      type = MI_Var;
       u.varInfo = vi; 
       if (!vi->parseHasTypeInfo() && parse_check_parse_option(PO_REQUIRE_TYPES))
 	 parse_error("class static variable '%s' declared without type information, but parse options require type information for all declarations", name);
@@ -745,9 +749,9 @@ public:
       if (!member)
 	 return;
 
-      if (member->type == MemberInfo::Member)
+      if (member->type == MI_Member)
 	 mmap.insert(member->getPair());
-      else if (member->type == MemberInfo::Constant)
+      else if (member->type == MI_Constant)
 	 cmap.parseAdd(member->name, member->takeExp());
       else
 	 vmap.insert(member->getVarPair());
@@ -763,20 +767,22 @@ public:
       if (!member)
 	 return -1;
 
-      std::auto_ptr<MemberInfo> mem(member);
+      //std::auto_ptr<MemberInfo> mem(member);
 
-      if (member->type == MemberInfo::Member) {
+      if (member->type == MI_Member) {
 	 if (mmap.find(member->name) != mmap.end()) {
 	    parse_error("duplicate member declaration '%s'", member->name);
+            delete member;
 	    return -1;
 	 }
 
 	 // add new member to list
 	 mmap.insert(member->getPair());
       }
-      else if (member->type == MemberInfo::Constant) {
+      else if (member->type == MI_Constant) {
 	 if (cmap.inList(member->name)) {
 	    parse_error("duplicate constant declaration '%s'", member->name);
+            delete member;
 	    return -1;
 	 }
 	 if (vmap.find(member->name)) {
@@ -786,9 +792,10 @@ public:
 
 	 // add new constant to list
 	 cmap.parseAdd(member->name, member->takeExp());
+         delete member;
       }
       else {
-	 assert(member->type == MemberInfo::Var);
+	 assert(member->type == MI_Var);
 	 if (vmap.find(member->name)) {
 	    parse_error("duplicate static class variable declaration '%s'", member->name);
 	    return -1;
