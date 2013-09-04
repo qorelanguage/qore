@@ -597,11 +597,13 @@ my *list $rows = $table.selectRows(("join": join_inner($table2, "t2", ("id": "al
 
     @note the above list also applies to the corresponding @ref SqlUtil::AbstractTable methods
 
-    The where clause or condition hash is made of keys signifying the column names, and either a direct value meaning that the column value has to match exactly, or SQL operators can be given by using the appropriate operator function as the key value.  Each member of the where hash translates to an expression that is combined with \c "AND" in the SQL query; to combine expressions with \c "OR", then use a list of @ref select_option_hash "select option hashes", which will combine each @ref select_option_hash "select option hash" with \c "OR" as in @ref where_list "this example".\n\n
+    The where clause or condition hash is made of keys signifying the column names, and either a direct value meaning that the column value has to match exactly, or SQL operators can be given by using the appropriate operator function as the key value.  Each member of the where hash translates to an expression that is combined with \c "AND" in the SQL query; to combine expressions with \c "OR", then use a list of @ref select_option_hash "select option hashes", which will combine each @ref select_option_hash "select option hash" with \c "OR" as in @ref where_list "this example".
 
     The where condition hash has the following format:
     - each key gives a column name or a table/alias with column name in dot notation
     - the values are either direct values, meaning that the equality operator (\c "=") is used, or a @ref sql_op_funcs "SQL operator function" for operators in the where clause
+
+    @note To reference a column more than once in a where clause, prefix the column specification with a unique number and a colon as in the following example: @code my hash $w = ("0:created": op_ge($mindate), "1:created": op_lt($maxdate)); @endcode
 
     See @ref sql_op_funcs for a list of operator functions.
 
@@ -874,7 +876,6 @@ else
 
     @note @ref SqlUtil::AbstractTable::UpsertSelectFirst "AbstractTable::UpsertSelectFirst" is the only upsert strategy that can return @ref SqlUtil::AbstractTable::UR_Unchanged and @ref SqlUtil::AbstractTable::UR_Updated; the @ref SqlUtil::AbstractTable::UpsertSelectFirst "AbstractTable::UpsertSelectFirst" strategy should be used when verbose reporting is required, particularly if it's necessary to report the actual number of changed rows.
 */
-
 /** @page schema_management Schema Management
 
     @tableofcontents
@@ -1111,62 +1112,22 @@ const T_Customers = (
     "driver": (
         "pgsql": (
             "functions": (
-                "trig_customers()": "returns trigger language plpgsql as $function$
-begin
-  if (tg_op = 'INSERT') then
-    if new.created is null then
-      select current_timestamp into new.created;
-    end if;
-  end if;
-  if new.modified is null  then
-    select current_timestamp into new.modified;
-  end if;
-  return new;
-end;
-$function$", #",
+                "trig_customers()": "returns trigger language plpgsql as $function$ begin if (tg_op = 'INSERT') then if new.created is null then select current_timestamp into new.created;
+    end if; end if; if new.modified is null then select current_timestamp into new.modified; end if; return new; end; $function$", #",
             ),
         ),
     ),
     "triggers": (
         "driver": (
             "oracle": (
-                "trig_customers": "BEFORE INSERT OR UPDATE ON customers
-REFERENCING NEW AS NEW OLD AS OLD
-FOR EACH ROW
-begin
-  if inserting then
-    if :new.id is null then
-      select seq_customers.nextval into :new.id from dual;
-    end if;
-    if :new.created is null then
-      :new.created := sysdate;
-    end if;
-  end if;
-  --
-  if :new.modified is null or :new.modified = :old.modified then
-    :new.modified := sysdate;
-  end if;
-end;",
+                "trig_customers": "BEFORE INSERT OR UPDATE ON customers REFERENCING NEW AS NEW OLD AS OLD FOR EACH ROW begin if inserting then if :new.id is null then select seq_customers.nextval into :new.id from dual; end if; if :new.created is null then :new.created := sysdate; end if; end if; if :new.modified is null or :new.modified = :old.modified then :new.modified := sysdate; end if; end;",
             ),
             "pgsql": (
                 "trig_customers": "before insert or update on customers for each row execute procedure trig_customers()",
             ),
             "mysql": (
-                "trig_customers_insert": "before insert on customers for each row
-begin
-  if new.created is null then
-    set new.created = now();
-  end if;
-  if new.modified is null then
-    set new.modified = now();
-  end if;
-end",
-                "trig_customers_update": "before update on customers for each row
-begin
-  if new.modified is null or new.modified = old.modified then
-    set new.modified = now();
-  end if;
-end",
+                "trig_customers_insert": "before insert on customers for each row begin if new.created is null then set new.created = now(); end if; if new.modified is null then set new.modified = now(); end if; end",
+                "trig_customers_update": "before update on customers for each row begin if new.modified is null or new.modified = old.modified then set new.modified = now(); end if; end",
             ),
         ),
     ),
@@ -1347,39 +1308,14 @@ my hash $table_desc = (
     "driver": (
         "pgsql": (
             "functions": (
-                "trig_system_properties()": "returns trigger language plpgsql as $function$
-begin
-  if (tg_op = 'INSERT') then
-    if new.created is null then
-      select current_timestamp into new.created;
-    end if;
-  end if;
-  if new.modified is null  then
-    select current_timestamp into new.modified;
-  end if;
-  return new;
-end;
-$function$",
+                "trig_system_properties()": "returns trigger language plpgsql as $function$ begin if (tg_op = 'INSERT') then if new.created is null then select current_timestamp into new.created; end if; end if; if new.modified is null then select current_timestamp into new.modified; end if; return new; end; $function$",
             ),
         ),
     ),
     "triggers": (
         "driver": (
             "oracle": (
-                "trig_system_properties": "BEFORE INSERT OR UPDATE ON SYSTEM_PROPERTIES
-REFERENCING NEW AS NEW OLD AS OLD
-FOR EACH ROW
-begin
-  if inserting then
-    if :new.created is null then
-      :new.created := sysdate;
-    end if;
-  end if;
-  --
-  if :new.modified is null or :new.modified = :old.modified then
-    :new.modified := sysdate;
-  end if;
-end;",
+                "trig_system_properties": "BEFORE INSERT OR UPDATE ON SYSTEM_PROPERTIES REFERENCING NEW AS NEW OLD AS OLD FOR EACH ROW begin if inserting then if :new.created is null then :new.created := sysdate; end if; end if; if :new.modified is null or :new.modified = :old.modified then :new.modified := sysdate; end if; end;",
             ),
             "pgsql": (
                     "trig_system_properties": "before insert or update on system_properties for each row execute procedure trig_system_properties()",
@@ -9104,10 +9040,20 @@ my Triggers $trig = $table.getTriggers();
                 "superquery": Type::Hash,
                 );
 
+            #! alignment omission options
+            const TableOmissionOptions = (
+                "indexes": True,
+                "foreign_constraints": True,
+                "triggers": True,
+                );
+
             #! table creation options
-            /** currently this option is a combination of @ref SqlUtil::AbstractTable::IndexOptions and @ref AbstractDatabase::CreationOptions
+            /** currently this option is a combination of @ref SqlUtil::AbstractTable::IndexOptions and @ref AbstractDatabase::CreationOptions plus the following:
+                - \c omit: a list pf attributes to omit; possible values are: \c indexes, \c foreign_constraints, \c triggers (see @ref TableOmissionOptions)
             */
-            const TableCreationOptions = IndexOptions + AbstractDatabase::CreationOptions;
+            const TableCreationOptions = IndexOptions + AbstractDatabase::CreationOptions + (
+                "omit": "softstringlist",
+                );
 
             #! table alignment options
             /** currently this option is a combination of @ref SqlUtil::AbstractTable::TableCreationOptions and the following options:
@@ -12903,6 +12849,9 @@ my string $sql = $table.getSelectSql($sh, \$args);
 
         private string getColumnNameIntern(string cv, *hash jch, bool join, *hash ch) {
             Columns cols;
+            # remove any disposable unique prefix
+            cv =~ s/^[0-9]+://;
+
             # see if we have a table.column spec
             *string tp = (cv =~ x/(\w+)\.\w+/)[0];
             if (tp) {
@@ -13706,6 +13655,9 @@ printf("%s\n", $table.getCreateSql());
             @return an SQL string that could be used to create the table and all known properties of the table
         */
         string getCreateSqlString(*hash opt) {
+            # convert table alignment omission options to a hash and check
+            if (opt.omit) opt.omit = getCheckOmissionOptions(opt.omit, "CREATE-TABLE-ERROR");
+
             l.lock();
             on_exit l.unlock();
 
@@ -13726,6 +13678,9 @@ map printf("$1;\n", $1), $table.getCreateSql();
             @return a list of SQL strings that could be used to create the table and all known properties of the table
         */
         list getCreateSql(*hash opt) {
+            # convert table alignment omission options to a hash and check
+            if (opt.omit) opt.omit = getCheckOmissionOptions(opt.omit, "CREATE-TABLE-ERROR");
+
             l.lock();
             on_exit l.unlock();
             if (!manual)
@@ -13746,6 +13701,9 @@ my string $sql = $table.getCreateTableSql();
             @throw OPTION-ERROR invalid or unsupported option passed
         */
         string getCreateTableSql(*hash opt) {
+            # convert table alignment omission options to a hash and check
+            if (opt.omit) opt.omit = getCheckOmissionOptions(opt.omit, "CREATE-TABLE-ERROR");
+
             validateOptionsIntern("OPTION-ERROR", getTableCreationOptions(), \opt);
             l.lock();
             on_exit l.unlock();
@@ -13759,6 +13717,20 @@ my string $sql = $table.getCreateTableSql();
             if (inDb)
                 return True;
             return checkExistenceImpl();
+        }
+
+        private *hash getCheckOmissionOptions(*softlist ol, string err) {
+            # convert table alignment omission options to a hash and check
+            if (!ol)
+                return;
+
+            hash oh;
+            foreach string ostr in (ol) {
+                if (!TableOmissionOptions{ostr})
+                    throw err, sprintf("omission option %y is unknown; known omission options: %y", ostr, TableOmissionOptions.keys());
+                oh{ostr} = True;
+            }
+            return oh;
         }
 
         #! accepts an AbstractTable argument and returns a list of SQL strings required to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty list is returned
@@ -13784,6 +13756,9 @@ my list $l = $table.getAlignSql($table2);
             hash ato = getAlignTableOptions();
 
             validateOptionsIntern("OPTION-ERROR", ato, \opt);
+
+            # convert table alignment omission options to a hash and check
+            opt.omit = getCheckOmissionOptions(opt.omit, "ALIGN-TABLE-ERROR");
 
             l.lock();
             on_exit l.unlock();
@@ -13882,52 +13857,54 @@ my list $l = $table.getAlignSql($table2);
                 }
             }
 
-            # check for indexes with different names than in the template and rename them automatically
-            foreach AbstractIndex ix in (indexes.iterator()) {
-                if (!t.indexes.hasKey(ix.name)
-                    && t.indexes
-                    && (*AbstractIndex other = t.indexes.findEqual(ix))
-                    && !indexes.hasKey(other.name)) {
-                    # rename index
-                    l += AbstractDatabase::doCallback(opt, ix.getRenameSql(getSqlName(), other.name), AbstractDatabase::AC_Rename, "index", ix.name, name, other.name);
-                    renameIndexUnlocked(ix, other.name);
+            if (!opt.omit.indexes) {
+                # check for indexes with different names than in the template and rename them automatically
+                foreach AbstractIndex ix in (indexes.iterator()) {
+                    if (!t.indexes.hasKey(ix.name)
+                        && t.indexes
+                        && (*AbstractIndex other = t.indexes.findEqual(ix))
+                        && !indexes.hasKey(other.name)) {
+                        # rename index
+                        l += AbstractDatabase::doCallback(opt, ix.getRenameSql(getSqlName(), other.name), AbstractDatabase::AC_Rename, "index", ix.name, name, other.name);
+                        renameIndexUnlocked(ix, other.name);
+                    }
                 }
-            }
 
-            # check for indexes not in the template and drop them
-            foreach AbstractIndex ix in (indexes.iterator()) {
-                if (!t.indexes.hasKey(ix.name)) {
-                    # make sure there is no unique constraint or primary key for the unique index if the "index" option is supported
-                    # in which case update the constraint to be based on the index and do not drop the index
-                    if (ix.unique) {
-                        if (!t.primaryKey.empty() && t.primaryKey.matchKeys(ix.columns)) {
-                            if (t.primaryKey.setIndexBase(ix.name)) {
-                                ix.setSupportingConstraint(primaryKey);
-                                continue;
-                            }
-                        }
-                        else {
-                            # see if a unique constraint with the same name and columns exists
-                            if (t.constraints.hasKey(ix.name) && t.constraints{ix.name} instanceof AbstractUniqueConstraint) {
-                                AbstractUniqueConstraint uk = cast<AbstractUniqueConstraint>(t.constraints{ix.name});
-                                if (uk.matchKeys(ix.columns) && uk.setIndexBase(ix.name)) {
-                                    ix.setSupportingConstraint(uk);
+                # check for indexes not in the template and drop them
+                foreach AbstractIndex ix in (indexes.iterator()) {
+                    if (!t.indexes.hasKey(ix.name)) {
+                        # make sure there is no unique constraint or primary key for the unique index if the "index" option is supported
+                        # in which case update the constraint to be based on the index and do not drop the index
+                        if (ix.unique) {
+                            if (!t.primaryKey.empty() && t.primaryKey.matchKeys(ix.columns)) {
+                                if (t.primaryKey.setIndexBase(ix.name)) {
+                                    ix.setSupportingConstraint(primaryKey);
                                     continue;
                                 }
                             }
+                            else {
+                                # see if a unique constraint with the same name and columns exists
+                                if (t.constraints.hasKey(ix.name) && t.constraints{ix.name} instanceof AbstractUniqueConstraint) {
+                                    AbstractUniqueConstraint uk = cast<AbstractUniqueConstraint>(t.constraints{ix.name});
+                                    if (uk.matchKeys(ix.columns) && uk.setIndexBase(ix.name)) {
+                                        ix.setSupportingConstraint(uk);
+                                        continue;
+                                    }
+                                }
+                            }
                         }
-                    }
-                    # see if the index is supporting a constraint that has to be dropped first
-                    *AbstractUniqueConstraint uk = ix.getSupportingConstraint();
-                    if (uk && !constraintsLinkedToIndexesImpl()) {
-                        code rmv;
-                        AbstractConstraint c = findDropConstraintUnlocked(uk.getName(), \rmv);
+                        # see if the index is supporting a constraint that has to be dropped first
+                        *AbstractUniqueConstraint uk = ix.getSupportingConstraint();
+                        if (uk && !constraintsLinkedToIndexesImpl()) {
+                            code rmv;
+                            AbstractConstraint c = findDropConstraintUnlocked(uk.getName(), \rmv);
 
-                        l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "constraint", c.getName(), name);
-                        rmv();
+                            l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "constraint", c.getName(), name);
+                            rmv();
+                        }
+                        l += AbstractDatabase::doCallback(opt, ix.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "index", ix.name, name);
+                        indexes.take(ix.name);
                     }
-                    l += AbstractDatabase::doCallback(opt, ix.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "index", ix.name, name);
-                    indexes.take(ix.name);
                 }
             }
 
@@ -13952,19 +13929,6 @@ my list $l = $table.getAlignSql($table2);
                 }
             }
 
-            # check for foreign constraints with different names than in the template and rename them automatically
-            foreach AbstractForeignConstraint fk in (foreignConstraints.iterator()) {
-                if (!t.foreignConstraints.hasKey(fk.getName())
-                    && t.foreignConstraints
-                    && (*AbstractForeignConstraint other = t.foreignConstraints.findEqual(fk))
-                    && !foreignConstraints.hasKey(other.getName())) {
-                    # rename constraint
-                    l += AbstractDatabase::doCallback(opt, fk.getRenameSql(getSqlName(), other.getName()), AbstractDatabase::AC_Rename, "constraint", fk.getName(), name, other.getName());
-                    foreignConstraints.renameKey(fk.getName(), other.getName());
-                    fk.rename(other.getName());
-                }
-            }
-
             # check for unique constraints with different names than in the template and rename them automatically
             foreach AbstractConstraint c in (constraints.iterator()) {
                 if (!(c instanceof AbstractUniqueConstraint))
@@ -13981,11 +13945,26 @@ my list $l = $table.getAlignSql($table2);
                 }
             }
 
-            # check for foreign constraints not in the template and drop them
-            foreach AbstractForeignConstraint c in (foreignConstraints.iterator()) {
-                if (!t.foreignConstraints.hasKey(c.getName())) {
-                    l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "foreign constraint", c.getName(), name);
-                    foreignConstraints.take(c.getName());
+            if (!opt.omit.foreign_constraints) {
+                # check for foreign constraints with different names than in the template and rename them automatically
+                foreach AbstractForeignConstraint fk in (foreignConstraints.iterator()) {
+                    if (!t.foreignConstraints.hasKey(fk.getName())
+                        && t.foreignConstraints
+                        && (*AbstractForeignConstraint other = t.foreignConstraints.findEqual(fk))
+                        && !foreignConstraints.hasKey(other.getName())) {
+                        # rename constraint
+                        l += AbstractDatabase::doCallback(opt, fk.getRenameSql(getSqlName(), other.getName()), AbstractDatabase::AC_Rename, "constraint", fk.getName(), name, other.getName());
+                        foreignConstraints.renameKey(fk.getName(), other.getName());
+                        fk.rename(other.getName());
+                    }
+                }
+ 
+                # check for foreign constraints not in the template and drop them
+                foreach AbstractForeignConstraint c in (foreignConstraints.iterator()) {
+                    if (!t.foreignConstraints.hasKey(c.getName())) {
+                        l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "foreign constraint", c.getName(), name);
+                        foreignConstraints.take(c.getName());
+                    }
                 }
             }
 
@@ -14041,17 +14020,19 @@ my list $l = $table.getAlignSql($table2);
                 }
             }
 
-            # check for indexes in the template that are not present or different in the current table
-            foreach AbstractIndex ix in (t.indexes.iterator()) {
-                if (!indexes.hasKey(ix.name)) {
-                    # add index to table
-                    l += AbstractDatabase::doCallback(opt, ix.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "index", ix.name, name);
+            if (!opt.omit.indexes) {
+                # check for indexes in the template that are not present or different in the current table
+                foreach AbstractIndex ix in (t.indexes.iterator()) {
+                    if (!indexes.hasKey(ix.name)) {
+                        # add index to table
+                        l += AbstractDatabase::doCallback(opt, ix.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "index", ix.name, name);
+                    }
+                    else if (!ix.equal(indexes{ix.name})) {
+                        l += AbstractDatabase::doCallback(opt, ix.getRecreateSql(ds, getSqlName(), opt), AbstractDatabase::AC_Recreate, "index", ix.name, name);
+                    }
+                    else
+                        AbstractDatabase::doOkCallback(opt, AbstractDatabase::AC_Unchanged, "index", ix.name, name);
                 }
-                else if (!ix.equal(indexes{ix.name})) {
-                    l += AbstractDatabase::doCallback(opt, ix.getRecreateSql(ds, getSqlName(), opt), AbstractDatabase::AC_Recreate, "index", ix.name, name);
-                }
-                else
-                    AbstractDatabase::doOkCallback(opt, AbstractDatabase::AC_Unchanged, "index", ix.name, name);
             }
 
             # check for primary key differences
@@ -14069,20 +14050,22 @@ my list $l = $table.getAlignSql($table2);
                 }
             }
 
-            # check for foreign constraints in the template that are not present or different in the current table
-            foreach AbstractForeignConstraint c in (t.foreignConstraints.iterator()) {
-                if (!foreignConstraints.hasKey(c.getName())) {
-                    # add constraint to table
-                    l += AbstractDatabase::doCallback(opt, c.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "foreign constraint", c.getName(), name);
+            if (!opt.omit.foreign_constraints) {
+                # check for foreign constraints in the template that are not present or different in the current table
+                foreach AbstractForeignConstraint c in (t.foreignConstraints.iterator()) {
+                    if (!foreignConstraints.hasKey(c.getName())) {
+                        # add constraint to table
+                        l += AbstractDatabase::doCallback(opt, c.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "foreign constraint", c.getName(), name);
+                    }
+                    else if (!c.equal(foreignConstraints{c.getName()})) {
+                        # drop current constraint
+                        l += AbstractDatabase::doCallback(opt, foreignConstraints{c.getName()}.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "foreign constraint", c.getName(), name);
+                        # add new constraint to table
+                        l += AbstractDatabase::doCallback(opt, c.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "foreign constraint", c.getName(), name);
+                    }
+                    else
+                        AbstractDatabase::doOkCallback(opt, AbstractDatabase::AC_Unchanged, "foreign constraint", c.getName(), name);
                 }
-                else if (!c.equal(foreignConstraints{c.getName()})) {
-                    # drop current constraint
-                    l += AbstractDatabase::doCallback(opt, foreignConstraints{c.getName()}.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "foreign constraint", c.getName(), name);
-                    # add new constraint to table
-                    l += AbstractDatabase::doCallback(opt, c.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "foreign constraint", c.getName(), name);
-                }
-                else
-                    AbstractDatabase::doOkCallback(opt, AbstractDatabase::AC_Unchanged, "foreign constraint", c.getName(), name);
             }
 
             # check for other constraints in the template that are not present or different in the current table
@@ -14111,28 +14094,30 @@ my list $l = $table.getAlignSql($table2);
                     l += fl;
             }
 
-            # check for triggers not in the template and drop them
-            # do this before adding for dbs like mysql that cannot support multiple triggers with the same action on the same table
-            foreach AbstractTrigger trig in (triggers.iterator()) {
-                if (!t.triggers.hasKey(trig.name)) {
-                    l += AbstractDatabase::doCallback(opt, trig.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "trigger", trig.name, name);
+            if (!opt.omit.triggers) {
+                # check for triggers not in the template and drop them
+                # do this before adding for dbs like mysql that cannot support multiple triggers with the same action on the same table
+                foreach AbstractTrigger trig in (triggers.iterator()) {
+                    if (!t.triggers.hasKey(trig.name)) {
+                        l += AbstractDatabase::doCallback(opt, trig.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "trigger", trig.name, name);
+                    }
                 }
-            }
 
-            # check for triggers in the template that are not present or different in the current table
-            foreach AbstractTrigger trig in (t.triggers.iterator()) {
-                if (!triggers.hasKey(trig.name)) {
-                    # add trigger to table
-                    l += AbstractDatabase::doCallback(opt, trig.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "trigger", trig.name, name);
+                # check for triggers in the template that are not present or different in the current table
+                foreach AbstractTrigger trig in (t.triggers.iterator()) {
+                    if (!triggers.hasKey(trig.name)) {
+                        # add trigger to table
+                        l += AbstractDatabase::doCallback(opt, trig.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "trigger", trig.name, name);
+                    }
+                    else if (!trig.equal(triggers{trig.name})) {
+                        # drop current trigger
+                        l += AbstractDatabase::doCallback(opt, triggers{trig.name}.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "trigger", trig.name, name);
+                        # add new trigger to table
+                        l += AbstractDatabase::doCallback(opt, trig.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "trigger", trig.name, name);
+                    }
+                    else
+                        AbstractDatabase::doOkCallback(opt, AbstractDatabase::AC_Unchanged, "trigger", trig.name, name);
                 }
-                else if (!trig.equal(triggers{trig.name})) {
-                    # drop current trigger
-                    l += AbstractDatabase::doCallback(opt, triggers{trig.name}.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "trigger", trig.name, name);
-                    # add new trigger to table
-                    l += AbstractDatabase::doCallback(opt, trig.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "trigger", trig.name, name);
-                }
-                else
-                    AbstractDatabase::doOkCallback(opt, AbstractDatabase::AC_Unchanged, "trigger", trig.name, name);
             }
 
             return l;
@@ -14628,12 +14613,16 @@ my *list $rows = $table.findAll($h);
             # mark in options that the entire table is being created
             opt.create_table_all = True;
             list l += getCreateTableSqlUnlocked(opt);
-            *list tl = getCreateIndexesSqlUnlocked(opt, cache); if (tl) l += tl;
+            *list tl;
+            if (!opt.omit.indexes)
+                tl = getCreateIndexesSqlUnlocked(opt, cache); if (tl) l += tl;
             *string sql = getCreatePrimaryKeySqlUnlocked(opt, cache); if (sql) l += sql;
-            tl = getCreateForeignConstraintsSqlUnlocked(opt, cache); if (tl) l += tl;
+            if (!opt.omit.foreign_constraints)
+                tl = getCreateForeignConstraintsSqlUnlocked(opt, cache); if (tl) l += tl;
             tl = getCreateConstraintsSqlUnlocked(opt, cache); if (tl) l += tl;
             tl = getCreateMiscSqlUnlocked(opt, cache); if (tl) l += tl;
-            tl = getCreateTriggersSqlUnlocked(opt, cache); if (tl) l += tl;
+            if (!opt.omit.triggers)
+                tl = getCreateTriggersSqlUnlocked(opt, cache); if (tl) l += tl;
 
             return l;
         }
