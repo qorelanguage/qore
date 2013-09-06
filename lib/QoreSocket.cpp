@@ -1465,7 +1465,6 @@ struct qore_socket_private {
       }
 
       struct sockaddr_storage addr;
-
       socklen_t len = sizeof addr;
       if (getpeername(sock, (struct sockaddr*)&addr, &len)) {
 	 qore_socket_error(xsink, "SOCKET-GETPEERINFO-ERROR", "error in getpeername()");
@@ -1533,8 +1532,8 @@ struct qore_socket_private {
       }
 #if (!defined _WIN32 && !defined __WIN32__) || defined __CYGWIN__
       else if (addr.ss_family == AF_UNIX) {
-	 struct sockaddr_un *addr_un = (struct sockaddr_un *)&addr;
-	 QoreStringNode *addrstr = new QoreStringNode(addr_un->sun_path);
+	 assert(!socketname.empty());
+	 QoreStringNode* addrstr = new QoreStringNode(socketname);
 	 h->setKeyValue("address", addrstr, 0); 
 	 h->setKeyValue("address_desc", QoreAddrInfo::getAddressDesc(addr.ss_family, addrstr->getBuffer()), 0);
       }
@@ -3626,7 +3625,10 @@ QoreSocket *QoreSocket::accept(SocketSource *source, ExceptionSink *xsink) {
    if (rc < 0)
       return 0;
 
-   return new QoreSocket(rc, priv->sfamily, priv->stype, priv->sprot, priv->enc);
+   QoreSocket* s = new QoreSocket(rc, priv->sfamily, priv->stype, priv->sprot, priv->enc);
+   if (!priv->socketname.empty())
+      s->priv->socketname = priv->socketname;
+   return s;
 }
 
 // QoreSocket::acceptSSL()
@@ -3662,7 +3664,10 @@ QoreSocket *QoreSocket::accept(int timeout_ms, ExceptionSink *xsink) {
    if (rc < 0)
       return 0;
 
-   return new QoreSocket(rc, priv->sfamily, priv->stype, priv->sprot, priv->enc);
+   QoreSocket* s = new QoreSocket(rc, priv->sfamily, priv->stype, priv->sprot, priv->enc);
+   if (!priv->socketname.empty())
+      s->priv->socketname = priv->socketname;
+   return s;
 }
 
 QoreSocket *QoreSocket::acceptSSL(int timeout_ms, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink) {

@@ -1903,23 +1903,7 @@ my string $decoded_url = decode_url($encoded_url);
 */
 string decode_url(string url) [flags=CONSTANT] {
    QoreStringNode *str = new QoreStringNode(url->getEncoding());
-   
-   if (!url->strlen())
-      return str;
-
-   const char *c = url->getBuffer();
-
-   while (*c) {
-      if (*c == '%' && isxdigit(*(c + 1)) && isxdigit(*(c + 2))) {
-         char x[3] = { *(c + 1), *(c + 2), '\0' };
-         char code = strtol(x, 0, 16);
-         str->concat(code);
-         c += 3;
-         continue;
-      }
-      str->concat(*c);
-      c++;
-   }
+   str->concatDecodeUrl(url->getBuffer());
    return str;
 }
 

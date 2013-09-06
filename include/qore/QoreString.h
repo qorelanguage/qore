@@ -143,6 +143,15 @@ public:
    //! concatenates HTML-decoded version of the c-string passed
    DLLEXPORT void concatAndHTMLDecode(const QoreString* str);
 
+   //! concatenates HTML-decoded version of the c-string passed with the given length
+   DLLEXPORT void concatAndHTMLDecode(const char* str, size_t slen);
+
+   //! concatenates HTML-decoded version of the c-string passed
+   DLLEXPORT void concatAndHTMLDecode(const char* str);
+
+   //! concatenates a URL-decoded version of the c-string passed
+   DLLEXPORT void concatDecodeUrl(const char* url);
+
    //! concatenates a string and escapes character c with esc_char (converts encodings if necessary)
    DLLEXPORT void concatEscape(const QoreString* str, char c, char esc_char, ExceptionSink* xsink);
 

@@ -105,7 +105,14 @@ private:
 	 else if (*pos) {
 	    // set hostname
 	    printd(5, "QoreURL::parse_intern host=%s\n", pos);	 
-	    host = new QoreStringNode(pos);
+
+	    // see if the hostname is in the form "socket=xxxx" in which case we interpret as a UNIX domain socket
+	    if (!strncasecmp(pos, "socket=", 7)) {
+	       host = new QoreStringNode();
+	       host->concatDecodeUrl(pos + 7);
+	    }
+	    else
+	       host = new QoreStringNode(pos);
 	 }
       }
 

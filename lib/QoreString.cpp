@@ -45,11 +45,12 @@ struct code_table {
       unsigned len;
 };
 
-static const struct code_table html_codes[] = 
-{ { '&', "&amp;", 5 },
-  { '<', "&lt;", 4 },
-  { '>', "&gt;", 4 },
-  { '"', "&quot;", 6 } }; 
+static const struct code_table html_codes[] = {
+   { '&', "&amp;", 5 },
+   { '<', "&lt;", 4 },
+   { '>', "&gt;", 4 },
+   { '"', "&quot;", 6 }
+}; 
 
 #define NUM_HTML_CODES (sizeof(html_codes) / sizeof (struct code_table))
 
@@ -980,61 +981,91 @@ void QoreString::concatAndHTMLEncode(const char *str) {
 
 // FIXME: this is slow, each concatenated character gets terminated as well
 void QoreString::concatAndHTMLDecode(const QoreString *str) {
-   // if it's not a null string
-   if (str && str->priv->len) {
-      allocate(priv->len + str->priv->len); // avoid reallocations within the loop
+   if (!str || !str->priv->len)
+      return;
 
-      qore_size_t i = 0;
-      while (str->priv->buf[i]) {
-         if (str->priv->buf[i] != '&') {
-           concat(str->priv->buf[i++]);
-           continue;
-         }
+   concatAndHTMLDecode(str->getBuffer(), str->priv->len);
+}
 
-	 // concatenate translated character
-         const char* s = str->getBuffer() + i;
-	 // check for unicode character references
-	 if (*(s + 1) == '#') {
-	    s += 2;
-	    // find end of character sequence
-	    const char *e = strchr(s, ';');
-	    // if not found or the number is too big, then don't try to decode it
-	    if (e && (e - s) < 8) {
-	       unsigned code;
-	       if (*s == 'x')
-		  code = strtoul(s + 1, 0, 16);
-	       else
-		  code = strtoul(s, 0, 10);
-	       
-	       if (!concatUnicode(code)) {
-		  i = e - str->priv->buf +1;
-		  continue;
-	       }
-	       // error occurred, so back out
-	       s -= 2;
+void QoreString::concatAndHTMLDecode(const char* str) {
+   if (str)
+      concatAndHTMLDecode(str, ::strlen(str));
+}
+
+void QoreString::concatAndHTMLDecode(const char* str, size_t slen) {
+   if (!slen)
+      return;
+
+   allocate(priv->len + slen); // avoid reallocations within the loop
+
+   qore_size_t i = 0;
+   while (str[i]) {
+      if (str[i] != '&') {
+	 concat(str[i++]);
+	 continue;
+      }
+
+      // concatenate translated character
+      const char* s = str + i;
+      // check for unicode character references
+      if (*(s + 1) == '#') {
+	 s += 2;
+	 // find end of character sequence
+	 const char *e = strchr(s, ';');
+	 // if not found or the number is too big, then don't try to decode it
+	 if (e && (e - s) < 8) {
+	    unsigned code;
+	    if (*s == 'x')
+	       code = strtoul(s + 1, 0, 16);
+	    else
+	       code = strtoul(s, 0, 10);
+	    
+	    if (!concatUnicode(code)) {
+	       i = e - str + 1;
+	       continue;
+	    }
+	    // error occurred, so back out
+	    s -= 2;
+	 }
+      }
+
+      bool matched = false;
+      for (qore_size_t j = 0; j < NUM_HTML_CODES; j++) {
+	 bool found = true;
+	 for (qore_size_t k = 1; k < html_codes[j].len; ++k) {
+	    if (s[k] != html_codes[j].code[k]) {
+	       found = false;
+	       break;
 	    }
 	 }
-         bool matched = false;
-	 for (qore_size_t j = 0; j < NUM_HTML_CODES; j++) {
-            bool found = true;
-            for (qore_size_t k = 1; k < html_codes[j].len; ++k) {
-               if (s[k] != html_codes[j].code[k]) {
-                 found = false;
-                 break;
-               }
-            }
-            if (found) {
-              concat(html_codes[j].symbol);
-              i += html_codes[j].len;
-              matched = true;
-              break;
-            }
-         }
-         if (!matched) {
-	    //assert(false); // we should not abort with invalid HTML
-	    concat(str->priv->buf[i++]);
-         }
+	 if (found) {
+	    concat(html_codes[j].symbol);
+	    i += html_codes[j].len;
+	    matched = true;
+	    break;
+	 }
       }
+      if (!matched) {
+	 //assert(false); // we should not abort with invalid HTML
+	 concat(str[i++]);
+      }
+   }
+}
+
+void QoreString::concatDecodeUrl(const char* url) {
+  if (!url)
+      return;
+
+   while (*url) {
+      if (*url == '%' && isxdigit(*(url + 1)) && isxdigit(*(url + 2))) {
+         char x[3] = { *(url + 1), *(url + 2), '\0' };
+         char code = strtol(x, 0, 16);
+         concat(code);
+         url += 3;
+         continue;
+      }
+      concat(*url);
+      ++url;
    }
 }
 

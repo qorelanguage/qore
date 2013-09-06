@@ -59,14 +59,19 @@ static method_map_t method_map;
 static strcase_set_t header_ignore;
 
 struct con_info {
-   bool ssl;
    int port;
    std::string host, path, username, password;
+   bool ssl, is_unix;
 
-   DLLLOCAL con_info(int n_port = 0) : ssl(false), port(n_port) {
+   DLLLOCAL con_info(int n_port = 0) : port(n_port), ssl(false), is_unix(false) {
+   }
+
+   DLLLOCAL bool has_url() const {
+      return !host.empty();
    }
 
    DLLLOCAL int set_url(QoreURL &url, bool &port_set, ExceptionSink *xsink) {
+      port = 0;
       if (url.getPort()) {
 	 port = url.getPort();
 	 port_set = true;
@@ -102,6 +107,9 @@ struct con_info {
 	 return -1;
       }
 
+      if (!port && !host.empty() && host.c_str()[0] == '/')
+	 is_unix = true;
+
       return 0;
    }
 
@@ -114,8 +122,21 @@ struct con_info {
       if (!username.empty())
 	 pstr->sprintf("%s:%s@", username.c_str(), password.c_str());
 
-      pstr->concat(host.c_str());
-      if (port != 80)
+      if (!port) {
+	 // concat and encode "host" when using a UNIX domain socket
+	 pstr->concat("socket=");
+	 for (unsigned i = 0; i < host.size(); ++i) {
+	    char c = host[i];
+	    switch (c) {
+	       case ' ': pstr->concat("%20"); break;
+	       case '/': pstr->concat("%2f"); break;
+	       default: pstr->concat(c); break;
+	    }
+	 }
+      }
+      else
+	 pstr->concat(host.c_str());
+      if (port && port != 80)
 	 pstr->sprintf(":%d", port);
       pstr->concat(path.c_str());
       return pstr;
@@ -139,6 +160,7 @@ struct con_info {
       host.clear();
       path.clear();
       ssl = false;
+      is_unix = false;
    }
 };
 
@@ -184,10 +206,12 @@ struct qore_qtc_private {
    DLLLOCAL void setSocketPathIntern(const con_info& con) {
       if (con.path.empty() || !con.host.empty()) {
 	 socketpath = con.host;
-	 socketpath += ":";
-	 char buff[20];
-	 sprintf(buff, "%d", con.port);
-	 socketpath += buff;
+	 if (!con.is_unix) {
+	    socketpath += ":";
+	    char buff[20];
+	    sprintf(buff, "%d", con.port);
+	    socketpath += buff;
+	 }
 	 return;
       }
 
@@ -195,7 +219,7 @@ struct qore_qtc_private {
    }
 
    DLLLOCAL void setSocketPath() {
-      setSocketPathIntern(proxy_connection.port ? proxy_connection : connection);
+      setSocketPathIntern(proxy_connection.has_url() ? proxy_connection : connection);
       //printd(5, "setSocketPath() '%s'\n", socketpath.c_str());
    }
 
@@ -204,7 +228,7 @@ struct qore_qtc_private {
 
    // returns -1 if an exception was thrown, 0 for OK
    DLLLOCAL int connect_unlocked(ExceptionSink *xsink) {
-      bool connect_ssl = proxy_connection.port ? proxy_connection.ssl : connection.ssl;
+      bool connect_ssl = proxy_connection.has_url() ? proxy_connection.ssl : connection.ssl;
       
       int rc;
       if (connect_ssl)
@@ -273,7 +297,7 @@ struct qore_qtc_private {
 	 }
 
 	 // set port only if it wasn't overridden in the URL
-	 if (!port_set)
+	 if (!port_set && !connection.is_unix)
 	    connection.port = get_port(i->second);
 	 
 	 // set SSL setting from protocol default
@@ -285,7 +309,7 @@ struct qore_qtc_private {
 	    connection.port = default_port;
       }
 
-      if (!proxy_connection.port)
+      if (!proxy_connection.has_url())
 	 setSocketPath();
 
       return 0;
@@ -314,7 +338,7 @@ struct qore_qtc_private {
 	 assert(i != prot_map.end());
 
 	 // set port only if it wasn't overridden in the URL
-	 if (!port_set)
+	 if (!port_set && !proxy_connection.is_unix)
 	    proxy_connection.port = get_port(i->second);
 
 	 // set SSL setting from protocol default
@@ -373,7 +397,9 @@ struct qore_qtc_private {
 	 return new QoreStringNode(connection.host.c_str());
 
       QoreStringNode *str = new QoreStringNode;
-      str->sprintf("%s:%d", connection.host.c_str(), connection.port);
+      str->concat(connection.host);
+      if (connection.port)
+	 str->sprintf(":%d", connection.port);
       return str;
    }
    
@@ -388,14 +414,14 @@ struct qore_qtc_private {
 	    ? (default_path.empty() ? "/" : (const char *)default_path.c_str()) 
 	    : (const char *)connection.path.c_str();
 
-      if (proxy_connection.port) {
+      if (proxy_connection.has_url()) {
          // create URL string for path for proxy
 	 pstr.concat("http");
 	 if (connection.ssl)
 	    pstr.concat('s');
 	 pstr.concat("://");
 	 pstr.concat(connection.host.c_str());
-	 if (connection.port != 80)
+	 if (connection.port && connection.port != 80)
 	    pstr.sprintf(":%d", connection.port);
 	 if (mpath[0] != '/')
 	    pstr.concat('/');
@@ -613,7 +639,7 @@ int QoreHTTPClient::getConnectTimeout() const {
 int QoreHTTPClient::setURL(const char *str, ExceptionSink* xsink) {
    SafeLocker sl(priv->m);
    // disconnect immediately if not using a proxy
-   if (!priv->proxy_connection.port)
+   if (!priv->proxy_connection.has_url())
       priv->disconnect_unlocked();
    return priv->set_url_unlocked(str, xsink);
 }
@@ -621,7 +647,7 @@ int QoreHTTPClient::setURL(const char *str, ExceptionSink* xsink) {
 QoreStringNode *QoreHTTPClient::getURL() {
    SafeLocker sl(priv->m);
 
-   if (!priv->connection.port)
+   if (!priv->connection.has_url())
       return 0;
 
    return priv->connection.get_url();
@@ -666,7 +692,7 @@ int QoreHTTPClient::setProxyURL(const char *proxy, ExceptionSink *xsink)  {
 QoreStringNode *QoreHTTPClient::getProxyURL()  {
    SafeLocker sl(priv->m);
 
-   if (!priv->proxy_connection.port)
+   if (!priv->proxy_connection.has_url())
       return 0;
 
    return priv->proxy_connection.get_url();
@@ -847,7 +873,7 @@ QoreHashNode *qore_qtc_private::send_internal(const char *meth, const char *mpat
    if (headers) {
       ConstHashIterator hi(headers);
       while (hi.next()) {
-	 if (!strcasecmp(hi.getKey(), "connection") || (proxy_connection.port && !strcasecmp(hi.getKey(), "proxy-connection"))) {
+	 if (!strcasecmp(hi.getKey(), "connection") || (proxy_connection.has_url() && !strcasecmp(hi.getKey(), "proxy-connection"))) {
 	    const AbstractQoreNode *v = hi.getValue();
 	    if (v && v->getType() == NT_STRING && !strcasecmp((reinterpret_cast<const QoreStringNode *>(v))->getBuffer(), "close"))
 	       keep_alive = false;
@@ -915,12 +941,14 @@ QoreHashNode *qore_qtc_private::send_internal(const char *meth, const char *mpat
    const char *proxy_path = 0;
    ReferenceHolder<QoreHashNode> proxy_headers(xsink);
    QoreString hostport;
-   if (!proxy_connected && proxy_connection.port) {
+   if (!proxy_connected && proxy_connection.has_url()) {
       // use CONNECT if we need to make an HTTPS connection from the proxy
       if (!proxy_connection.ssl && connection.ssl) {
 	 meth = "CONNECT";
 	 use_proxy_connect = true;
-	 hostport.sprintf("%s:%d", connection.host.c_str(), connection.port);
+	 hostport.concat(connection.host);
+	 if (connection.port)
+	    hostport.sprintf(":%d", connection.port);
 	 proxy_path = hostport.getBuffer();
 	 proxy_headers = new QoreHashNode;
 	 proxy_headers->setKeyValue("Host", new QoreStringNode(hostport), xsink);
