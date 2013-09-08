@@ -604,21 +604,6 @@ bool QoreHttpClientObject::isProxySecure() const {
    return http_priv->proxy_connection.ssl; 
 }
 
-long QoreHttpClientObject::verifyPeerCertificate() { 
-   SafeLocker sl(priv->m);
-   return priv->socket->verifyPeerCertificate(); 
-}
-
-const char* QoreHttpClientObject::getSSLCipherName() { 
-   SafeLocker sl(priv->m);
-   return priv->socket->getSSLCipherName(); 
-}
-
-const char* QoreHttpClientObject::getSSLCipherVersion() { 
-   SafeLocker sl(priv->m);
-   return priv->socket->getSSLCipherVersion(); 
-}
-
 int QoreHttpClientObject::connect(ExceptionSink *xsink) {
    SafeLocker sl(priv->m);
    return http_priv->connect_unlocked(xsink);

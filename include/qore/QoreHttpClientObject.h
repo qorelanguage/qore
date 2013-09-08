@@ -208,21 +208,6 @@ public:
    //! returns the value of the max_redirects option
    DLLEXPORT int getMaxRedirects() const;
 
-   //! returns the peer certificate verification code if an SSL connection is in progress
-   DLLEXPORT long verifyPeerCertificate();
-
-   //! returns the name of the SSL Cipher for the currently-connected control connection, or 0 if there is none
-   /**
-      @return the name of the SSL Cipher for the currently-connected control connection, or 0 if there is none
-   */
-   DLLEXPORT const char *getSSLCipherName();
-
-   //! returns the version string of the SSL Cipher for the currently-connected control connection, or 0 if there is none
-   /**
-      @return the version string of the SSL Cipher for the currently-connected control connection, or 0 if there is none
-   */
-   DLLEXPORT const char *getSSLCipherVersion();
-
    //! opens a connection and returns a code giving the result
    /** @return -1 if an exception was thrown, 0 for OK
     */

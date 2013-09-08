@@ -208,48 +208,6 @@ bool HTTPClient::isSecure() [flags=CONSTANT] {
    return client->isSecure();
 }
 
-//! Returns a string code giving the result of verifying the remote certificate or @ref nothing if an encrypted connection is not established
-/** @return A string code giving the result of verifying the peer's certificate or @ref nothing if a secure connection has not been established. The possible values are found in the keys of the @ref X509_VerificationReasons hash constant. This hash can also be used to generate a textual description of the verification result.
-
-    @par Example:
-    @code
-if ($httpclient.isSecure() && exists (my *string $str = $httpclient.verifyPeerCertificate())) {
-    printf("certificate: %s: %s\n", $str, X509_VerificationReasons.$str);
-    @endcode
- */
-*string HTTPClient::verifyPeerCertificate() [flags=CONSTANT] {
-   const char *c = getSSLCVCode(client->verifyPeerCertificate());
-   return c ? new QoreStringNode(c) : 0;
-}
-
-//! Returns the name of the cipher for an encrypted connection or @ref nothing if an encrypted connection is not established
-/** @return the name of the cipher for an encrypted connection or @ref nothing if an encrypted connection is not established
-
-    @par Example:
-    @code
-if ($httpclient.isSecure())
-    printf("secure connection: %s %s\n", $httpclient.getSSLCipherName(), $httpclient.getSSLCipherVersion());
-    @endcode
- */
-*string HTTPClient::getSSLCipherName() [flags=CONSTANT] {
-   const char *str = client->getSSLCipherName();
-   return str ? new QoreStringNode(str) : 0;
-}
-
-//! Returns the version of the cipher for an encrypted connection or @ref nothing if an encrypted connection is not established
-/** @return the version of the cipher for an encrypted connection or @ref nothing if an encrypted connection is not established
-
-    @par Example:
-    @code
-if ($httpclient.isSecure())
-    printf("secure connection: %s %s\n", $httpclient.getSSLCipherName(), $httpclient.getSSLCipherVersion());
-    @endcode
- */
-*string HTTPClient::getSSLCipherVersion() [flags=CONSTANT] {
-   const char *str = client->getSSLCipherVersion();
-   return str ? new QoreStringNode(str) : 0;
-}
-
 //! Connects to the remote socket; SSL/TLS negotiation is performed if required
 /** If the protocol indicates that a secure connection should be established (or HTTPClient::setSecure() was called previsouly), SSL/TLS negotiation will be attempted. 
 
