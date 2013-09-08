@@ -1626,8 +1626,15 @@ public class HttpServer::HttpServer {
 	    delete $h.host;
 	}
 
-	if (!$h.host)
-	    $h.host = (!$host || $host == gethostname()) ? "localhost" : $host;
+	if (!$h.host) {
+            if (!$h.port && $h.path) {
+                $h.host = "socket=" + remove $h.path;
+                $h.host =~ s/ /%20/g;
+                $h.host =~ s/\//%2f/g;
+            }
+            else
+                $h.host = (!$host || $host == gethostname()) ? "localhost" : $host;
+        }
 
 	my string $login = $h.password ? ($h.password + ":") : "";    
 	if ($h.username)
