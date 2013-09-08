@@ -2160,7 +2160,7 @@ public class HttpServer::HttpListener inherits Qore::Socket {
 
 	# set listening state on socket
 	if ($.listen(ListenQueue))
-	    throw "HTTP-LISTEN-ERROR", sprintf("listen error on socket %s: %s", $.socket, strerror(errno()));
+	    throw "HTTP-LISTEN-ERROR", sprintf("listen error %d on socket %s: %s", errno(), $.socket, strerror(errno()));
 
 	# start main listener thread
 	$.cThreads.inc();
