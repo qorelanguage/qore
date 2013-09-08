@@ -196,7 +196,7 @@ libqore_la_SOURCES = \
 	QoreSSLBase.cpp \
 	QoreSSLCertificate.cpp \
 	QoreSSLPrivateKey.cpp \
-	mySocket.cpp \
+	QoreSocketObject.cpp \
 	QoreCondition.cpp \
 	QoreQueue.cpp \
 	QoreQueueHelper.cpp \
@@ -250,6 +250,7 @@ libqore_la_SOURCES = \
 	QoreLogicalGreaterThanOperatorNode.cpp \
 	QorePseudoMethods.cpp \
 	QoreHTTPClient.cpp \
+	QoreHttpClientObject.cpp \
 	xxhash.cpp \
 	minitest.cpp
 

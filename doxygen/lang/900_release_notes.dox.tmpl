@@ -44,7 +44,8 @@
       - Qore::SQL::DatasourcePool::getConfigHash()
       - Qore::SQL::DatasourcePool::getConfigString()
       - Qore::SQL::DatasourcePool::copy()
-    - @ref Qore::HTTPClient "HTTPClient" method changes:
+    - @ref Qore::HTTPClient "HTTPClient" changes:
+      - the @ref Qore::HTTPClient "HTTPClient" class is now a subclass of @ref Qore::Socket "Socket", so all @ref Qore::Socket "Socket" methods can be called on  @ref Qore::HTTPClient "HTTPClient" objects, making it easier to implement protocols based on HTTP
       - Qore::HTTPClient::getDefaultPath(): added
       - Qore::HTTPClient::setDefaultPath(): added
       - Qore::HTTPClient::getURL(): changed: now returns @ref nothing if no URL is set instead of an invalid URL
@@ -156,6 +157,7 @@
     - fixed a bug in *printf() formatting with floating-point and number values where no digits were displayed right of the decimal point unless a specific number of digits was specified in the format string
     - fixed the return type of <bool>::typeCode(); was returning a boolean instead of @ref Qore::NT_BOOLEAN
     - fixed a bug there @ref null was evaluated as @ref Qore::True "True" in a boolean context rather than @ref Qore::False "False"
+    - fixed a bug where @ref Qore::Socket::recvBinary() would ignore the first data read
 
     @section qore_087 Qore 0.8.7
 

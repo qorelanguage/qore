@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreHTTPClient.h
+  QoreHttpClientObject.h
 
   Qore Programming Language
 
@@ -21,45 +21,45 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/* this file is deprecated; use QoreHttpClientObject instead
-   this class is only kept for ABI compatibility
-*/
-
-#ifndef QORE_HTTP_CLIENT_H_
-#define QORE_HTTP_CLIENT_H_
+#ifndef QORE_HTTP_CLIENT_OBJECT_H_
+#define QORE_HTTP_CLIENT_OBJECT_H_
 
 #include <qore/common.h>
-#include <qore/AbstractPrivateData.h>
-#include <qore/QoreThreadLock.h>
-#include <qore/QoreSocket.h>
-#include <qore/QoreHttpClientObject.h>
+#include <qore/QoreSocketObject.h>
+
+#define HTTPCLIENT_DEFAULT_PORT 80                 //!< the default port number to use
+#define HTTPCLIENT_DEFAULT_HOST "localhost"        //!< the default host name to use
+
+#define HTTPCLIENT_DEFAULT_TIMEOUT 300000          //!< the default connection and response packet timeout to use (300,000 ms = 5m)
+
+#define HTTPCLIENT_DEFAULT_MAX_REDIRECTS 5         //!< maximum number of HTTP redirects allowed
 
 class Queue;
 
 //! provides a way to communicate with HTTP servers using Qore data structures
 /** thread-safe, uses QoreSocket for socket communication
  */
-class QoreHTTPClient : public AbstractPrivateData {
+class QoreHttpClientObject : public QoreSocketObject {
 private:
    //! private implementation of the class
-   struct qore_qtc_private *priv;
+   struct qore_httpclient_priv *http_priv;
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL QoreHTTPClient(const QoreHTTPClient&);
+   DLLLOCAL QoreHttpClientObject(const QoreHttpClientObject&);
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL QoreHTTPClient& operator=(const QoreHTTPClient&);
+   DLLLOCAL QoreHttpClientObject& operator=(const QoreHttpClientObject&);
 
 protected:
    DLLEXPORT void lock();
    DLLEXPORT void unlock();
 
 public:
-   //! creates the QoreHTTPClient object
-   DLLEXPORT QoreHTTPClient();
+   //! creates the QoreHttpClientObject object
+   DLLEXPORT QoreHttpClientObject();
 
    //! destroys the object and frees all associated memory
-   DLLEXPORT virtual ~QoreHTTPClient();
+   DLLEXPORT virtual ~QoreHttpClientObject();
 
    //! set options with a hash, returns -1 if an exception was thrown, 0 for OK
    /** options are:
@@ -246,7 +246,7 @@ public:
    DLLEXPORT QoreHashNode *send(const char *meth, const char *path, const QoreHashNode *headers, const void *data, unsigned size, bool getbody, QoreHashNode *info, ExceptionSink *xsink);
 
    //! sends an HTTP "GET" method and returns the value of the message body returned, the caller owns the AbstractQoreNode reference returned
-   /** if you need to get all the headers received, then use QoreHTTPClient::send() instead
+   /** if you need to get all the headers received, then use QoreHttpClientObject::send() instead
        @param path the path string to send in the header
        @param headers a hash of headers to add to the message
        @param info if not 0 then additional information about the HTTP communication will be added to the hash (key-value pairs), keys "headers", and optionally "redirect-#", "redirect-message-#" (where # is substituted with the redirect sequence number), and "chunked" (boolean, present only if the response was chunked)

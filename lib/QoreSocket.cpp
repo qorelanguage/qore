@@ -1902,6 +1902,8 @@ struct qore_socket_private {
       if (rc <= 0)
 	 return 0;
 
+      b->append(buf, rc);
+	    
       // register event
       do_read_event(rc, rc);
 
@@ -1924,6 +1926,7 @@ struct qore_socket_private {
 	 return 0;
 
       rc = b->size();
+      //printd(5, "qore_socket_private() this: %p b: %p size: %lld\n", this, b->getPtr(), rc);
       return b.release();
    }
 

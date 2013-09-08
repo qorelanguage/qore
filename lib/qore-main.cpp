@@ -23,7 +23,7 @@
 #include <qore/Qore.h>
 
 #include <qore/DBI.h>
-#include <qore/QoreHTTPClient.h>
+#include <qore/QoreHttpClientObject.h>
 
 #include <qore/intern/QoreSignal.h>
 #include <qore/intern/ModuleInfo.h>
@@ -97,7 +97,7 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
       CRYPTO_set_locking_callback(q_openssl_locking_function);
    }
 
-   QoreHTTPClient::static_init();
+   QoreHttpClientObject::static_init();
 
    // init threading infrastructure
    init_qore_threads();

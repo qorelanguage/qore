@@ -22,7 +22,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QoreHTTPClient.h>
+#include <qore/QoreHttpClientObject.h>
 #include <qore/intern/QC_HTTPClient.h>
 #include <qore/intern/QC_Queue.h>
 #include <qore/intern/ssl_constants.h>
@@ -88,7 +88,7 @@
 
     @note This class is not available with the @ref PO_NO_NETWORK parse option.
  */
-qclass HTTPClient [dom=NETWORK; arg=QoreHTTPClient* client];
+qclass HTTPClient [dom=NETWORK; arg=QoreHttpClientObject* client; vparent=Socket];
 
 //! Creates the HTTPClient object based on the option parameter passed
 /** To connect, call any method that requires a connection and an implicit connection is established, or call HTTPClient::connect().
@@ -114,7 +114,7 @@ my HTTPClient $httpclient(("url":"http://hostname:8080/path"));
     @throw HTTP-CLIENT-UNKNOWN-PROTOCOL unknown protocol passed in URL
  */
 HTTPClient::constructor(hash opts) {
-   ReferenceHolder<QoreHTTPClient> client(new QoreHTTPClient, xsink);
+   ReferenceHolder<QoreHttpClientObject> client(new QoreHttpClientObject, xsink);
    if (client->setOptions(opts, xsink))
       return;
 
@@ -129,7 +129,7 @@ my HTTPClient $httpclient();
     @endcode
  */
 HTTPClient::constructor() {
-   self->setPrivate(CID_HTTPCLIENT, new QoreHTTPClient);
+   self->setPrivate(CID_HTTPCLIENT, new QoreHttpClientObject);
 }
 
 //! Copying objects of this class is not supported, an exception will be thrown
@@ -290,8 +290,7 @@ nothing HTTPClient::disconnect() {
     @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
     @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
 
-    @return The headers received from the HTTP server with all key names converted to lower-case. The message body (if any) will be assigned to the value of the \c "body" key and the HTTP status will be assigned to the 
-c "status_code" key.
+    @return The headers received from the HTTP server with all key names converted to lower-case. The message body (if any) will be assigned to the value of the \c "body" key and the HTTP status will be assigned to the \c "status_code" key.
 
     @par Example:
     @code
@@ -328,8 +327,7 @@ hash HTTPClient::send(string body, string method, *string path, *hash headers, s
     @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
     @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
 
-    @return The headers received from the HTTP server with all key names converted to lower-case. The message body (if any) will be assigned to the value of the \c "body" key and the HTTP status will be assigned to the 
-c "status_code" key.
+    @return The headers received from the HTTP server with all key names converted to lower-case. The message body (if any) will be assigned to the value of the \c "body" key and the HTTP status will be assigned to the \c "status_code" key.
 
     @par Example:
     @code
@@ -349,7 +347,7 @@ my hash $msg = $httpclient.send($body, "POST", "/path", ("Content-Type":"applica
 
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
  */
-hash HTTPClient::send(*binary body, string method, string path, *hash headers, softbool getbody = False, *reference info) {
+hash HTTPClient::send(*binary body, string method, *string path, *hash headers, softbool getbody = False, *reference info) {
    OptHashRefHelper ohrh(info, xsink);
    ReferenceHolder<QoreHashNode> rv(client->send(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, body ? body->getPtr() : 0, body ? body->size() : 0, getbody, *ohrh, xsink), xsink);
    return *xsink ? 0 : rv.release();
@@ -951,4 +949,3 @@ string HTTPClient::getConnectionPath() [flags=CONSTANT] {
    const char* p = client->getConnectionPath();
    return p ? new QoreStringNode(p) : 0;
 }
-
