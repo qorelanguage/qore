@@ -2139,7 +2139,7 @@ public class HttpServer::HttpListener inherits Qore::Socket {
             if ($node =~ /^\//) {
                 # try to unlink the file first if it's a UNIX domain socket
                 unlink($node);
-                $.bindUNIX($node, True);
+                $.bindUNIX($node);
             }
             else {
                 if ($.bind($node, True))
