@@ -49,7 +49,7 @@
 
     The default I/O timeout value is 300,000 milliseconds (5 minutes). Note that the timeout value applies to individual internal send() or recv() operations; for this reason for large transfers the overall I/O time could exceed the timeout value.
 
-    When an exception is thrown (for example, a response code of < \c 200 or >= \c 400 is received from the server), any message body returned will be in the \c "arg" key of the exception hash.
+    When an exception is thrown (for example, a response code of < \c 100 or >= \c 400 is received from the server), any message body returned will be in the \c "arg" key of the exception hash.
 
     This class understands the protocols in the following table.\n\n
     <b>%HTTPClient Class Protocols</b>
@@ -258,7 +258,7 @@ my hash $msg = $httpclient.send($body, "POST", "/path", ("Content-Type":"applica
     @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
     @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
-    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 200 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
     @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
@@ -295,7 +295,7 @@ my hash $msg = $httpclient.send($body, "POST", "/path", ("Content-Type":"applica
     @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
     @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
-    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 200 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
     @throw SOCKET-RECV-ERROR There was an error receiving the data
@@ -334,7 +334,7 @@ my *string $html = $httpclient.get("/path/file.html");
 
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
     @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
-    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 200 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the return value of the send() method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the return value of the send() method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
     @throw SOCKET-RECV-ERROR There was an error receiving the data
@@ -369,7 +369,7 @@ my hash $msg = $httpclient.head("/path");
 
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
     @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
-    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 200 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the return value of the send() method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the return value of the send() method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
     @throw SOCKET-RECV-ERROR There was an error receiving the data
@@ -407,7 +407,7 @@ $httpclient.post("/path", $body);
 
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
     @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
-    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 200 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the return value of the send() method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the return value of the send() method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
     @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
@@ -449,7 +449,7 @@ $httpclient.post("/path", $body);
 
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
     @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
-    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 200 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the return value of the send() method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the return value of the send() method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
     @throw SOCKET-RECV-ERROR There was an error receiving the data
