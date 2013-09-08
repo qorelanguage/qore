@@ -67,7 +67,7 @@
     |!Header|!Default Value
     |\c Accept|\c "text/html"
     |\c Content-Type|\c "text/html"
-    |\c User-Agent|\c "Qore-HTTP-Client/0.8.6"
+    |\c User-Agent|\c "Qore-HTTP-Client/0.8.8"
     |\c Connection|\c "Keep-Alive"
     |\c Accept-Encoding|\c "deflate,gzip,bzip2"
 
@@ -836,38 +836,6 @@ $httpclient.clearProxyUserPassword();
  */
 nothing HTTPClient::clearProxyUserPassword() {
    client->clearProxyUserPassword();
-}
-
-//! Returns a @ref socket_info_hash "hash of information" about the remote end for connected sockets
-/** If the socket is not connected, an exception is thrown
-
-    @par Example:
-    @code
-my hash $h = $httpclient.getPeerInfo();
-    @endcode
-
-    @return a @ref socket_info_hash "hash of information" about the local socket
-
-    @throw SOCKET-GETPEERINFO-ERROR the underlying socket is not open or error in getpeername()
- */
-hash HTTPClient::getPeerInfo() {
-   return client->getPeerInfo(xsink);
-}
-
-//! Returns information about the local socket as a hash
-/** If the socket is not open, an exception is thrown
-
-    @par Example:
-    @code
-my hash $h = $httpclient.getSocketInfo();
-    @endcode
-
-    @return a @ref socket_info_hash "hash of information" about the remote end for connected sockets
-
-    @throw SOCKET-GETSOCKETINFO-ERROR the underlying socket is not open or error in getsockname()
- */
-hash HTTPClient::getSocketInfo() {
-   return client->getSocketInfo(xsink);
 }
 
 //! Sets the default path used by the object if no path is set in the URL

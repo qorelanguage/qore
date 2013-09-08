@@ -234,18 +234,6 @@ struct qore_httpclient_priv {
       return 0;
    }
 
-   DLLLOCAL QoreHashNode* getPeerInfo(ExceptionSink* xsink) const {
-      AutoLocker al(msock->m);
-
-      return msock->socket->getPeerInfo(xsink);
-   }
-
-   DLLLOCAL QoreHashNode* getSocketInfo(ExceptionSink* xsink) const {
-      AutoLocker al(msock->m);
-
-      return msock->socket->getSocketInfo(xsink);
-   }
-
    DLLLOCAL void setUserPassword(const char *user, const char *pass) {
       assert(user && pass);
       AutoLocker al(msock->m);
@@ -1226,12 +1214,4 @@ void QoreHttpClientObject::setProxyUserPassword(const char *user, const char *pa
 
 void QoreHttpClientObject::clearProxyUserPassword() {
    http_priv->clearProxyUserPassword();
-}
-
-QoreHashNode* QoreHttpClientObject::getPeerInfo(ExceptionSink* xsink) const {
-   return http_priv->getPeerInfo(xsink);
-}
-
-QoreHashNode* QoreHttpClientObject::getSocketInfo(ExceptionSink* xsink) const {
-   return http_priv->getSocketInfo(xsink);
 }
