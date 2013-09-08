@@ -228,7 +228,7 @@ noinst_HEADERS = \
 	include/qore/minitest.hpp \
 	include/qore/macros-none.h \
 	include/qore/intern/QoreThreadList.h \
-	include/qore/internQoreHttpClientObjectIntern.h \
+	include/qore/intern/QoreHttpClientObjectIntern.h \
 	include/qore/intern/xxhash.h \
 	include/qore/intern/config.h \
 	include/qore/intern/unix-config.h \
