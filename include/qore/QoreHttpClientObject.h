@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreHTTPClient.h
+  QoreHttpClientObject.h
 
   Qore Programming Language
 
@@ -21,45 +21,45 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/* this file is deprecated; use QoreHttpClientObject instead
-   this class is only kept for ABI compatibility
-*/
-
-#ifndef QORE_HTTP_CLIENT_H_
-#define QORE_HTTP_CLIENT_H_
+#ifndef QORE_HTTP_CLIENT_OBJECT_H_
+#define QORE_HTTP_CLIENT_OBJECT_H_
 
 #include <qore/common.h>
-#include <qore/AbstractPrivateData.h>
-#include <qore/QoreThreadLock.h>
-#include <qore/QoreSocket.h>
-#include <qore/QoreHttpClientObject.h>
+#include <qore/QoreSocketObject.h>
+
+#define HTTPCLIENT_DEFAULT_PORT 80                 //!< the default port number to use
+#define HTTPCLIENT_DEFAULT_HOST "localhost"        //!< the default host name to use
+
+#define HTTPCLIENT_DEFAULT_TIMEOUT 300000          //!< the default connection and response packet timeout to use (300,000 ms = 5m)
+
+#define HTTPCLIENT_DEFAULT_MAX_REDIRECTS 5         //!< maximum number of HTTP redirects allowed
 
 class Queue;
 
 //! provides a way to communicate with HTTP servers using Qore data structures
 /** thread-safe, uses QoreSocket for socket communication
  */
-class QoreHTTPClient : public AbstractPrivateData {
+class QoreHttpClientObject : public QoreSocketObject {
 private:
    //! private implementation of the class
-   struct qore_qtc_private *priv;
+   struct qore_httpclient_priv *http_priv;
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL QoreHTTPClient(const QoreHTTPClient&);
+   DLLLOCAL QoreHttpClientObject(const QoreHttpClientObject&);
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL QoreHTTPClient& operator=(const QoreHTTPClient&);
+   DLLLOCAL QoreHttpClientObject& operator=(const QoreHttpClientObject&);
 
 protected:
    DLLEXPORT void lock();
    DLLEXPORT void unlock();
 
 public:
-   //! creates the QoreHTTPClient object
-   DLLEXPORT QoreHTTPClient();
+   //! creates the QoreHttpClientObject object
+   DLLEXPORT QoreHttpClientObject();
 
    //! destroys the object and frees all associated memory
-   DLLEXPORT virtual ~QoreHTTPClient();
+   DLLEXPORT virtual ~QoreHttpClientObject();
 
    //! set options with a hash, returns -1 if an exception was thrown, 0 for OK
    /** options are:
@@ -208,21 +208,6 @@ public:
    //! returns the value of the max_redirects option
    DLLEXPORT int getMaxRedirects() const;
 
-   //! returns the peer certificate verification code if an SSL connection is in progress
-   DLLEXPORT long verifyPeerCertificate();
-
-   //! returns the name of the SSL Cipher for the currently-connected control connection, or 0 if there is none
-   /**
-      @return the name of the SSL Cipher for the currently-connected control connection, or 0 if there is none
-   */
-   DLLEXPORT const char *getSSLCipherName();
-
-   //! returns the version string of the SSL Cipher for the currently-connected control connection, or 0 if there is none
-   /**
-      @return the version string of the SSL Cipher for the currently-connected control connection, or 0 if there is none
-   */
-   DLLEXPORT const char *getSSLCipherVersion();
-
    //! opens a connection and returns a code giving the result
    /** @return -1 if an exception was thrown, 0 for OK
     */
@@ -246,7 +231,7 @@ public:
    DLLEXPORT QoreHashNode *send(const char *meth, const char *path, const QoreHashNode *headers, const void *data, unsigned size, bool getbody, QoreHashNode *info, ExceptionSink *xsink);
 
    //! sends an HTTP "GET" method and returns the value of the message body returned, the caller owns the AbstractQoreNode reference returned
-   /** if you need to get all the headers received, then use QoreHTTPClient::send() instead
+   /** if you need to get all the headers received, then use QoreHttpClientObject::send() instead
        @param path the path string to send in the header
        @param headers a hash of headers to add to the message
        @param info if not 0 then additional information about the HTTP communication will be added to the hash (key-value pairs), keys "headers", and optionally "redirect-#", "redirect-message-#" (where # is substituted with the redirect sequence number), and "chunked" (boolean, present only if the response was chunked)
@@ -322,34 +307,6 @@ public:
 
    //! returns the connection status of the object
    DLLEXPORT bool isConnected() const;
-
-   //! returns peer information for a connected socket
-   /** if the socket is not connected, a Qore-language exception is thrown
-       @param xsink if an error occurs, the Qore-language exception information will be added here
-       @return a hash with the following keys:
-       - \c hostname: the hostname of the remote end (if known or appropriate for the socket type)
-       - \c hostname_desc: a descriptive string for the remote hostname (including the socket type - ie "ipv6[host]")
-       - \c address: the address of the remote end - for UNIX sockets this is the file path
-       - \c address_desc: a descriptive string for the remote address
-       - \c port: the port number if known
-       - \c family: the address family (ie AF_INET, AF_INET6, AF_UNIX, ...)
-       - \c familystr: a string description of the address family ("ipv4", "ipv6", etc)
-   */
-   DLLEXPORT QoreHashNode* getPeerInfo(ExceptionSink* xsink) const;
-
-   //! returns information for the current socket; the socket must be open
-   /** if the socket is not open, a Qore-language exception is thrown
-       @param xsink if an error occurs, the Qore-language exception information will be added here
-       @return a hash with the following keys:
-       - \c hostname: the hostname for the local interface (if known or appropriate for the socket type)
-       - \c hostname_desc: a descriptive string for the local hostname (including the socket type - ie "ipv6[host]")
-       - \c address: the address of the local interface - for UNIX sockets this is the file path
-       - \c address_desc: a descriptive string for the local interface
-       - \c port: the port number if known
-       - \c family: the address family (ie AF_INET, AF_INET6, AF_UNIX, ...)
-       - \c familystr: a string description of the address family ("ipv4", "ipv6", etc)
-   */
-   DLLEXPORT QoreHashNode* getSocketInfo(ExceptionSink* xsink) const;
 
    DLLLOCAL static void static_init();
 

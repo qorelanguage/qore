@@ -22,7 +22,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QoreHTTPClient.h>
+#include <qore/QoreHttpClientObject.h>
 #include <qore/intern/QC_HTTPClient.h>
 #include <qore/intern/QC_Queue.h>
 #include <qore/intern/ssl_constants.h>
@@ -49,7 +49,7 @@
 
     The default I/O timeout value is 300,000 milliseconds (5 minutes). Note that the timeout value applies to individual internal send() or recv() operations; for this reason for large transfers the overall I/O time could exceed the timeout value.
 
-    When an exception is thrown (for example, a response code of < \c 200 or >= \c 400 is received from the server), any message body returned will be in the \c "arg" key of the exception hash.
+    When an exception is thrown (for example, a response code of < \c 100 or >= \c 400 is received from the server), any message body returned will be in the \c "arg" key of the exception hash.
 
     This class understands the protocols in the following table.\n\n
     <b>%HTTPClient Class Protocols</b>
@@ -67,7 +67,7 @@
     |!Header|!Default Value
     |\c Accept|\c "text/html"
     |\c Content-Type|\c "text/html"
-    |\c User-Agent|\c "Qore-HTTP-Client/0.8.6"
+    |\c User-Agent|\c "Qore-HTTP-Client/0.8.8"
     |\c Connection|\c "Keep-Alive"
     |\c Accept-Encoding|\c "deflate,gzip,bzip2"
 
@@ -88,7 +88,7 @@
 
     @note This class is not available with the @ref PO_NO_NETWORK parse option.
  */
-qclass HTTPClient [dom=NETWORK; arg=QoreHTTPClient* client];
+qclass HTTPClient [dom=NETWORK; arg=QoreHttpClientObject* client; vparent=Socket];
 
 //! Creates the HTTPClient object based on the option parameter passed
 /** To connect, call any method that requires a connection and an implicit connection is established, or call HTTPClient::connect().
@@ -114,7 +114,7 @@ my HTTPClient $httpclient(("url":"http://hostname:8080/path"));
     @throw HTTP-CLIENT-UNKNOWN-PROTOCOL unknown protocol passed in URL
  */
 HTTPClient::constructor(hash opts) {
-   ReferenceHolder<QoreHTTPClient> client(new QoreHTTPClient, xsink);
+   ReferenceHolder<QoreHttpClientObject> client(new QoreHttpClientObject, xsink);
    if (client->setOptions(opts, xsink))
       return;
 
@@ -129,7 +129,7 @@ my HTTPClient $httpclient();
     @endcode
  */
 HTTPClient::constructor() {
-   self->setPrivate(CID_HTTPCLIENT, new QoreHTTPClient);
+   self->setPrivate(CID_HTTPCLIENT, new QoreHttpClientObject);
 }
 
 //! Copying objects of this class is not supported, an exception will be thrown
@@ -208,48 +208,6 @@ bool HTTPClient::isSecure() [flags=CONSTANT] {
    return client->isSecure();
 }
 
-//! Returns a string code giving the result of verifying the remote certificate or @ref nothing if an encrypted connection is not established
-/** @return A string code giving the result of verifying the peer's certificate or @ref nothing if a secure connection has not been established. The possible values are found in the keys of the @ref X509_VerificationReasons hash constant. This hash can also be used to generate a textual description of the verification result.
-
-    @par Example:
-    @code
-if ($httpclient.isSecure() && exists (my *string $str = $httpclient.verifyPeerCertificate())) {
-    printf("certificate: %s: %s\n", $str, X509_VerificationReasons.$str);
-    @endcode
- */
-*string HTTPClient::verifyPeerCertificate() [flags=CONSTANT] {
-   const char *c = getSSLCVCode(client->verifyPeerCertificate());
-   return c ? new QoreStringNode(c) : 0;
-}
-
-//! Returns the name of the cipher for an encrypted connection or @ref nothing if an encrypted connection is not established
-/** @return the name of the cipher for an encrypted connection or @ref nothing if an encrypted connection is not established
-
-    @par Example:
-    @code
-if ($httpclient.isSecure())
-    printf("secure connection: %s %s\n", $httpclient.getSSLCipherName(), $httpclient.getSSLCipherVersion());
-    @endcode
- */
-*string HTTPClient::getSSLCipherName() [flags=CONSTANT] {
-   const char *str = client->getSSLCipherName();
-   return str ? new QoreStringNode(str) : 0;
-}
-
-//! Returns the version of the cipher for an encrypted connection or @ref nothing if an encrypted connection is not established
-/** @return the version of the cipher for an encrypted connection or @ref nothing if an encrypted connection is not established
-
-    @par Example:
-    @code
-if ($httpclient.isSecure())
-    printf("secure connection: %s %s\n", $httpclient.getSSLCipherName(), $httpclient.getSSLCipherVersion());
-    @endcode
- */
-*string HTTPClient::getSSLCipherVersion() [flags=CONSTANT] {
-   const char *str = client->getSSLCipherVersion();
-   return str ? new QoreStringNode(str) : 0;
-}
-
 //! Connects to the remote socket; SSL/TLS negotiation is performed if required
 /** If the protocol indicates that a secure connection should be established (or HTTPClient::setSecure() was called previsouly), SSL/TLS negotiation will be attempted. 
 
@@ -290,8 +248,7 @@ nothing HTTPClient::disconnect() {
     @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
     @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
 
-    @return The headers received from the HTTP server with all key names converted to lower-case. The message body (if any) will be assigned to the value of the \c "body" key and the HTTP status will be assigned to the 
-c "status_code" key.
+    @return The headers received from the HTTP server with all key names converted to lower-case. The message body (if any) will be assigned to the value of the \c "body" key and the HTTP status will be assigned to the \c "status_code" key.
 
     @par Example:
     @code
@@ -301,7 +258,7 @@ my hash $msg = $httpclient.send($body, "POST", "/path", ("Content-Type":"applica
     @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
     @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
-    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 200 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
     @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
@@ -328,8 +285,7 @@ hash HTTPClient::send(string body, string method, *string path, *hash headers, s
     @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
     @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
 
-    @return The headers received from the HTTP server with all key names converted to lower-case. The message body (if any) will be assigned to the value of the \c "body" key and the HTTP status will be assigned to the 
-c "status_code" key.
+    @return The headers received from the HTTP server with all key names converted to lower-case. The message body (if any) will be assigned to the value of the \c "body" key and the HTTP status will be assigned to the \c "status_code" key.
 
     @par Example:
     @code
@@ -339,7 +295,7 @@ my hash $msg = $httpclient.send($body, "POST", "/path", ("Content-Type":"applica
     @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
     @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
-    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 200 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
     @throw SOCKET-RECV-ERROR There was an error receiving the data
@@ -349,7 +305,7 @@ my hash $msg = $httpclient.send($body, "POST", "/path", ("Content-Type":"applica
 
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
  */
-hash HTTPClient::send(*binary body, string method, string path, *hash headers, softbool getbody = False, *reference info) {
+hash HTTPClient::send(*binary body, string method, *string path, *hash headers, softbool getbody = False, *reference info) {
    OptHashRefHelper ohrh(info, xsink);
    ReferenceHolder<QoreHashNode> rv(client->send(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, body ? body->getPtr() : 0, body ? body->size() : 0, getbody, *ohrh, xsink), xsink);
    return *xsink ? 0 : rv.release();
@@ -378,7 +334,7 @@ my *string $html = $httpclient.get("/path/file.html");
 
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
     @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
-    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 200 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the return value of the send() method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the return value of the send() method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
     @throw SOCKET-RECV-ERROR There was an error receiving the data
@@ -413,7 +369,7 @@ my hash $msg = $httpclient.head("/path");
 
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
     @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
-    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 200 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the return value of the send() method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the return value of the send() method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
     @throw SOCKET-RECV-ERROR There was an error receiving the data
@@ -451,7 +407,7 @@ $httpclient.post("/path", $body);
 
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
     @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
-    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 200 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the return value of the send() method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the return value of the send() method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
     @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
@@ -493,7 +449,7 @@ $httpclient.post("/path", $body);
 
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
     @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
-    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 200 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the return value of the send() method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the return value of the send() method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
     @throw SOCKET-RECV-ERROR There was an error receiving the data
@@ -882,38 +838,6 @@ nothing HTTPClient::clearProxyUserPassword() {
    client->clearProxyUserPassword();
 }
 
-//! Returns a @ref socket_info_hash "hash of information" about the remote end for connected sockets
-/** If the socket is not connected, an exception is thrown
-
-    @par Example:
-    @code
-my hash $h = $httpclient.getPeerInfo();
-    @endcode
-
-    @return a @ref socket_info_hash "hash of information" about the local socket
-
-    @throw SOCKET-GETPEERINFO-ERROR the underlying socket is not open or error in getpeername()
- */
-hash HTTPClient::getPeerInfo() {
-   return client->getPeerInfo(xsink);
-}
-
-//! Returns information about the local socket as a hash
-/** If the socket is not open, an exception is thrown
-
-    @par Example:
-    @code
-my hash $h = $httpclient.getSocketInfo();
-    @endcode
-
-    @return a @ref socket_info_hash "hash of information" about the remote end for connected sockets
-
-    @throw SOCKET-GETSOCKETINFO-ERROR the underlying socket is not open or error in getsockname()
- */
-hash HTTPClient::getSocketInfo() {
-   return client->getSocketInfo(xsink);
-}
-
 //! Sets the default path used by the object if no path is set in the URL
 /** @param path the default path value to set or if @ref nothing then clears the path
 
@@ -951,4 +875,3 @@ string HTTPClient::getConnectionPath() [flags=CONSTANT] {
    const char* p = client->getConnectionPath();
    return p ? new QoreStringNode(p) : 0;
 }
-

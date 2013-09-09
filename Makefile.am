@@ -178,6 +178,7 @@ include_HEADERS = \
 	include/qore/macros-sparc.h \
 	include/qore/macros-ia64.h \
 	include/qore/QoreSocket.h \
+	include/qore/QoreSocketObject.h \
 	include/qore/QoreNet.h \
 	include/qore/QoreURL.h \
 	include/qore/Restrictions.h \
@@ -197,6 +198,7 @@ include_HEADERS = \
 	include/qore/SystemEnvironment.h \
 	include/qore/ParseOptionMap.h \
 	include/qore/QoreHTTPClient.h \
+	include/qore/QoreHttpClientObject.h \
 	include/qore/QoreRWLock.h \
 	include/qore/DBI.h \
 	include/qore/ScopeGuard.h \
@@ -212,6 +214,7 @@ noinst_HEADERS = \
 	include/qore/minitest.hpp \
 	include/qore/macros-none.h \
 	include/qore/intern/QoreThreadList.h \
+	include/qore/intern/QoreHttpClientObjectIntern.h \
 	include/qore/intern/xxhash.h \
 	include/qore/intern/config.h \
 	include/qore/intern/unix-config.h \

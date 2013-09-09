@@ -343,14 +343,14 @@ const SOCK_RAW = SOCK_RAW;
     |\c family|The network address family (see @ref network_address_family_constants)
     |\c familystr|A string describing the network address family (ex: \c "ipv4")
  */
-qclass Socket [public_members=*string source,*string source_host; flags=unsetPublicMemberFlag; arg=mySocket* s; dom=NETWORK];
+qclass Socket [public_members=*string source,*string source_host; flags=unsetPublicMemberFlag; arg=QoreSocketObject* s; dom=NETWORK];
 
 //! Creates the socket object
 /** @par Example:
     @code my Socket $sock(); @endcode
  */
 Socket::constructor() {
-   self->setPrivate(CID_SOCKET, new mySocket);
+   self->setPrivate(CID_SOCKET, new QoreSocketObject);
 }
 
 //! Creates a new Socket object, not based on the source being copied
@@ -358,7 +358,7 @@ Socket::constructor() {
     @code my Socket $newsock = $sock.copy(); @endcode
  */
 Socket::copy() {
-   self->setPrivate(CID_SOCKET, new mySocket);
+   self->setPrivate(CID_SOCKET, new QoreSocketObject);
 }
 
 //! Connects to a remote port (if the string has a format "host:port") or UNIX domain socket file with an optional timeout value with a millisecond resolution
@@ -653,7 +653,7 @@ nothing Socket::bindINET(*string iface, *softstring service, softbool reuseaddr 
     @see Socket::acceptSSL(), Socket::listen(), Socket::getPeerInfo()
  */
 Socket Socket::accept() {
-   mySocket *n = s->accept(-1, xsink);
+   QoreSocketObject *n = s->accept(-1, xsink);
    if (!n) {
       assert(*xsink);
       return 0;
@@ -665,7 +665,7 @@ Socket Socket::accept() {
    QoreObject *ns = new QoreObject(QC_SOCKET, getProgram(), n);
 
    // save backwards-compatible peer parameters as members in new object (deprecated: Socket::getPeerInfo() should be used in the future)
-   n->setAccept(ns);
+   my_socket_priv::setAccept(*n, ns);
 
    return ns;
 }
@@ -688,7 +688,7 @@ Socket Socket::accept() {
     @see Socket::acceptSSL(), Socket::listen(), Socket::getPeerInfo()
  */
 *Socket Socket::accept(timeout timeout_ms) {
-   mySocket *n = s->accept(timeout_ms, xsink);
+   QoreSocketObject *n = s->accept(timeout_ms, xsink);
    if (!n)
       return 0;
 
@@ -696,7 +696,7 @@ Socket Socket::accept() {
    QoreObject *ns = new QoreObject(QC_SOCKET, getProgram(), n);
 
    // save backwards-compatible peer parameters as members in new object (deprecated: Socket::getPeerInfo() should be used in the future)
-   n->setAccept(ns);
+   my_socket_priv::setAccept(*n, ns);
 
    return ns;
 }
@@ -717,7 +717,7 @@ Socket Socket::accept() {
     @see Socket::accept(), Socket::listen(), Socket::getPeerInfo()
  */
 Socket Socket::acceptSSL() {
-   mySocket *n = s->acceptSSL(-1, xsink);
+   QoreSocketObject *n = s->acceptSSL(-1, xsink);
    if (!n) {
       assert(*xsink);
       return 0;
@@ -727,7 +727,7 @@ Socket Socket::acceptSSL() {
    QoreObject *ns = new QoreObject(QC_SOCKET, getProgram(), n);
 
    // save backwards-compatible peer parameters as members in new object (deprecated: Socket::getPeerInfo() should be used in the future)
-   n->setAccept(ns);
+   my_socket_priv::setAccept(*n, ns);
    
    return ns;
 }
@@ -750,15 +750,15 @@ Socket Socket::acceptSSL() {
     @see Socket::acceptSSL(), Socket::listen(), Socket::getPeerInfo()
  */
 *Socket Socket::acceptSSL(timeout timeout_ms) {
-   mySocket *n = s->acceptSSL(timeout_ms, xsink);
+   QoreSocketObject* n = s->acceptSSL(timeout_ms, xsink);
    if (!n)
       return 0;
 
    // ensure that a socket object is returned (and not a subclass)
-   QoreObject *ns = new QoreObject(QC_SOCKET, getProgram(), n);
+   QoreObject* ns = new QoreObject(QC_SOCKET, getProgram(), n);
 
    // save backwards-compatible peer parameters as members in new object (deprecated: Socket::getPeerInfo() should be used in the future)
-   n->setAccept(ns);
+   my_socket_priv::setAccept(*n, ns);
    
    return ns;
 }
@@ -1784,6 +1784,7 @@ my hash $ans = $sock.readHTTPHeader(10s);
     - \c charset: if there is a charset declaration in the \c "Content-Type" header, the value is returned in this key
     - \c close: (only set when parsing a request header) set to @ref Qore::True "True" if the connection should be closed after responding, @ref Qore::False "False" if not; see notes below about how this value is calculated
     - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to the first requested character encoding in the list
+    - \c accept-encoding: this key will be set to a list of values from any \c "Accept-Encoding" header
 
     @return a hash of headers (where each header key is converted to lower-case) also including the following keys giving additional information about the HTTP header received:
     - \c http_version: a string giving the HTTP version set in the header
@@ -2165,7 +2166,7 @@ $sock.setCertificate($cert);
     @param cert This must be an SSLCertificate object
  */
 nothing Socket::setCertificate(SSLCertificate[QoreSSLCertificate] cert) {
-   // pass reference from QoreObject::getReferencedPrivateData() to mySocket::setCertificate()
+   // pass reference from QoreObject::getReferencedPrivateData() to QoreSocketObject::setCertificate()
    s->setCertificate(cert);
 }
 
@@ -2182,7 +2183,7 @@ nothing Socket::setCertificate(string cert_pem) {
    if (*xsink)
       return 0;
 
-   // mySocket::setCertificate() takes over ownership of certificate reference
+   // QoreSocketObject::setCertificate() takes over ownership of certificate reference
    s->setCertificate(cert.release());
 }
 
@@ -2199,7 +2200,7 @@ nothing Socket::setCertificate(binary cert_der) {
    if (*xsink)
       return 0;
 
-   // mySocket::setCertificate() takes over ownership of certificate reference
+   // QoreSocketObject::setCertificate() takes over ownership of certificate reference
    s->setCertificate(cert.release());
 }
 
@@ -2212,7 +2213,7 @@ $sock.setPrivateKey($key);
     @param key the private key for the X.509 certificate to use when establishing TLS/SSL encrypted connections
  */
 nothing Socket::setPrivateKey(SSLPrivateKey[QoreSSLPrivateKey] key) {
-   // pass reference from QoreObject::getReferencedPrivateData() to mySocket::setPrivateKey()
+   // pass reference from QoreObject::getReferencedPrivateData() to QoreSocketObject::setPrivateKey()
    s->setPrivateKey(key);
 }
 

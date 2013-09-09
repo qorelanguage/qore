@@ -165,6 +165,7 @@ libqore_la_SOURCES = \
 	QoreFile.cpp \
 	QoreDir.cpp \
 	QoreSocket.cpp \
+	QoreSocketObject.cpp \
 	DateTime.cpp \
 	QoreLib.cpp \
 	QoreTimeZoneManager.cpp \
@@ -195,7 +196,6 @@ libqore_la_SOURCES = \
 	QoreSSLBase.cpp \
 	QoreSSLCertificate.cpp \
 	QoreSSLPrivateKey.cpp \
-	mySocket.cpp \
 	QoreCondition.cpp \
 	QoreQueue.cpp \
 	QoreQueueHelper.cpp \
@@ -249,6 +249,7 @@ libqore_la_SOURCES = \
 	QoreLogicalGreaterThanOperatorNode.cpp \
 	QorePseudoMethods.cpp \
 	QoreHTTPClient.cpp \
+	QoreHttpClientObject.cpp \
 	xxhash.cpp \
 	minitest.cpp
 
