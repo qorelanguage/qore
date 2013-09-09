@@ -28,6 +28,8 @@
 #include <strings.h>
 #include <iconv.h>
 
+#include <map>
+
 const QoreEncoding *QCS_DEFAULT, *QCS_USASCII, *QCS_UTF8, *QCS_ISO_8859_1,
    *QCS_ISO_8859_2, *QCS_ISO_8859_3, *QCS_ISO_8859_4, *QCS_ISO_8859_5,
    *QCS_ISO_8859_6, *QCS_ISO_8859_7, *QCS_ISO_8859_8, *QCS_ISO_8859_9,
@@ -58,7 +60,7 @@ const QoreEncoding *QoreEncodingManager::add(const char *code, const char *desc,
    return qcs;
 }
 
-// have to handle HP-UX' non-standard names for character sets separately
+// have to handle HP-UX's non-standard names for character sets separately
 #ifdef HPUX
 #define ISO88591_STR "ISO8859-1"
 #define ISO88592_STR "ISO8859-2"
@@ -334,8 +336,7 @@ const QoreEncoding *QoreEncodingManager::findCreate(const char *name) {
    return rv;
 }
 
-const QoreEncoding *QoreEncodingManager::findCreate(const QoreString *str)
-{
+const QoreEncoding *QoreEncodingManager::findCreate(const QoreString *str) {
    return findCreate(str->getBuffer());
 }
 
@@ -440,8 +441,12 @@ qore_size_t QoreEncoding::getLength(const char *p, const char *end, ExceptionSin
 }
 
 qore_size_t QoreEncoding::getByteLen(const char *p, const char *end, qore_size_t c, ExceptionSink *xsink) const {
-   if (!fend)
+   if (!fend) {
+      qore_size_t len = (end - p);
+      if (c > len)
+	 c = len;
       return c;
+   }
 
    bool invalid;
    qore_size_t rc = fend(p, end, c, invalid);
@@ -464,3 +469,17 @@ qore_size_t QoreEncoding::getCharPos(const char *p, const char *end, ExceptionSi
    }
    return rc;
 }
+
+qore_size_t q_get_byte_len(const QoreEncoding* enc, const char *p, const char *end, qore_size_t c, ExceptionSink *xsink) {
+   return enc->getByteLen(p, end, c, xsink);
+}
+
+qore_size_t q_get_char_len(const QoreEncoding* enc, const char *p, qore_size_t valid_len, ExceptionSink* xsink) {
+   qore_size_t rc = enc->getCharLen(p, valid_len);
+   if (rc <= 0) {
+      xsink->raiseException("INVALID-ENCODING", "invalid %s encoding encountered in string", enc->getCode());
+      return -1;
+   }
+   return rc;
+}
+
