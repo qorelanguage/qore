@@ -680,6 +680,11 @@ my any $v = $c.name;
         constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
         }
 
+        private list featuresImpl() {
+            return list(DB_FUNCTIONS, DB_PROCEDURES,
+                        DB_SEQUENCES, DB_TABLES, DB_TYPES, DB_VIEWS);
+        }
+
         PgsqlType makeType(string name, string src, *hash opts) {
             return new PgsqlType(name, src);
         }
@@ -975,6 +980,16 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         #! returns @ref Qore::True "True" if the database supports sequences
         private bool supportsSequencesImpl() {
             return True;
+        }
+
+        #! returns @ref Qore::True "True" if the database supports named types
+        private bool supportsTypesImpl() {
+            return True;
+        }
+
+        #! returns @ref Qore::True "True" if the database supports packages
+        private bool supportsPackagesImpl() {
+            return False;
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost

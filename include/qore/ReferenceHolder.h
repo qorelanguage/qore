@@ -91,10 +91,13 @@ public:
 
 //! manages a reference count of a pointer to a class that takes a simple "deref()" call with no arguments
 /**
+
+   @code
    SimpleRefHolder<QoreStringNode> str(new QoreStringNode(QCS_UTF8));
    // QoreString::concatUnicode() can raise a Qore-language exception if the code is invalid
    str->concatUnicode(code, xsink);
    return *xsink ? str.release() : 0;
+   @endcode
 */
 template<typename T>
 class SimpleRefHolder {

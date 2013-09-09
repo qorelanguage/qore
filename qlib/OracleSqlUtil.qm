@@ -871,6 +871,11 @@ my any $v = $c.name;
         constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
         }
 
+        private list featuresImpl() {
+            return list(DB_FUNCTIONS, DB_MVIEWS, DB_PACKAGES, DB_PROCEDURES,
+                        DB_SEQUENCES, DB_TABLES, DB_TYPES, DB_VIEWS);
+        }
+
         private OracleSequence makeSequenceImpl(string name, number start = 1, number increment = 1, *softnumber end, *hash opts) {
             return new OracleSequence(name, start, increment, end);
         }
@@ -1051,6 +1056,7 @@ my any $v = $c.name;
             return listSynonyms().iterator();            
         }
 
+        #! returns a list of string type names in the database
         list listTypes() {
             return getListIntern("TYPE");
         }
@@ -1058,6 +1064,16 @@ my any $v = $c.name;
         #! returns an iterator listing the string type names in the database
         ListIterator typeIterator() {
             return listTypes().iterator();            
+        }
+        
+        #! returns a list of string package names in the database
+        list listPackages() {
+            return getListIntern("PACKAGE");
+        }
+        
+        #! returns an iterator listing the string package names in the database
+        ListIterator packageIterator() {
+            return listPackages().iterator();
         }
 
         private list listTablesImpl() {
@@ -1086,7 +1102,7 @@ my any $v = $c.name;
         private list listViewsImpl() {
             return getListIntern("VIEW");
         }
-
+        
         private list getListIntern(string type) {
             return getListIntern(ds.select("select object_name from user_objects where object_type = %v", type).object_name);
         }
@@ -1125,6 +1141,16 @@ my any $v = $c.name;
 
         #! returns @ref Qore::True "True" if the database supports sequences
         private bool supportsSequencesImpl() {
+            return True;
+        }
+        
+        #! returns @ref Qore::True "True" if the database supports named types
+        private bool supportsTypesImpl() {
+            return True;
+        }
+
+        #! returns @ref Qore::True "True" if the database supports packages
+        private bool supportsPackagesImpl() {
             return True;
         }
     }

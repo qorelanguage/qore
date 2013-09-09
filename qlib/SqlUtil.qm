@@ -1530,6 +1530,32 @@ my hash $sh = $table.upsertFromIterator($i, $upsert_strategy, False, ("info_call
 
 #! the SqlUtil namespace contains all the objects in the SqlUtil module
 public namespace SqlUtil {
+    
+    /* @defgroup DBFeaturesConstants DB Features Constants
+        These constants can be used as a lookup values in AbstractDatabase::features() method.
+    */
+    #@{
+    #! Features constants
+
+    #! Feature: functions
+    public const DB_FUNCTIONS = "functions";
+    #! Feature: materialized views/snapshots
+    public const DB_MVIEWS = "materialized views";
+    #! Feature: packages
+    public const DB_PACKAGES = "packages";
+    #! Feature: procedures
+    public const DB_PROCEDURES = "procedures";
+    #! Feature: sequences
+    public const DB_SEQUENCES = "sequences";
+    #! Feature: tables
+    public const DB_TABLES = "tables";
+    #! Feature: named types
+    public const DB_TYPES = "named types";
+    #! Feature: views
+    public const DB_VIEWS = "views";
+
+    #@}
+    
     /* @defgroup SqlTypeConstants SQL Type Constants
         These constants can be used for the \c "qore_type" values when creating columns to specify additional SQL column types
     */
@@ -5425,6 +5451,11 @@ my string $sql = $t.getSqlFromList($list);
                 native_case = True;
         }
 
+        #! See @ref DBFeaturesConstants
+        list features() {
+            return featuresImpl();
+        }
+
         static doOkCallback(*hash opt, int ac, string type, string name, *string table, *string info) {
             if (opt.info_callback) {
                 bool c = (type == "column");
@@ -6228,6 +6259,16 @@ my string $sql = $t.getSqlFromList($list);
         bool supportsSequences() {
             return supportsSequencesImpl();
         }
+        
+        #! returns @ref Qore::True "True" if the database supports named types
+        bool supportsTypes() {
+            return supportsTypesImpl();
+        }
+
+        #! returns @ref Qore::True "True" if the database supports packages
+        bool supportsPackages() {
+            return supportsPackagesImpl();
+        }
 
         #! returns a list of string table names in the database
         list listTables() {
@@ -6390,6 +6431,7 @@ my string $sql = $t.getSqlFromList($list);
         private abstract AbstractFunction makeFunctionImpl(string name, string src, *hash opts);
         private abstract AbstractFunction makeProcedureImpl(string name, string src, *hash opts);
 
+        private abstract list featuresImpl();
         private abstract list listTablesImpl();
         private abstract list listFunctionsImpl();
         private abstract list listProceduresImpl();
@@ -6401,6 +6443,8 @@ my string $sql = $t.getSqlFromList($list);
 
         #! returns @ref Qore::True "True" if the database supports sequences
         private abstract bool supportsSequencesImpl();
+        private abstract bool supportsPackagesImpl();
+        private abstract bool supportsTypesImpl();
     }
 
     #! represents a database table; this class embeds an AbstractTable object that is created automatically in the constructor based on the database driver for the AbstractDatasource object providing the database connection
