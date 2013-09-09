@@ -1333,20 +1333,33 @@ my any $v = $c.name;
 	    # table comment
             *string comment;
 
+            # dblink
+            *string dblink;
+
             #! does the current oracle driver support long values?
             bool has_long;
         }
 
         constructor(AbstractDatasource nds, string nname, *hash opts) : AbstractTable(nds, nname, opts) {
-            # see if there is a schema in the name
-            *string sstr = (nname =~ x/^(\w+)\.\w+/)[0];
-            if (sstr) {
-                schema = sstr;
-                splice nname, 0, schema.size() + 1;
+            # see if there is a dblink in the name
+            *string dbl = (nname =~ x/@(.*)/)[0];
+            if (dbl) {
+                dblink = dbl.upr();
+                splice nname, nname.size() - (dbl.size() + 1);
                 name = nname;
+                setDblinkSchema();
             }
-            else
-		schema = ds.getUserName();
+            else {
+                # see if there is a schema in the name
+                *string sstr = (nname =~ x/^(\w+)\.\w+/)[0];
+                if (sstr) {
+                    schema = sstr;
+                    splice nname, 0, schema.size() + 1;
+                    name = nname;
+                }
+                else
+                    schema = ds.getUserName();
+            }
 
             # the oracle driver >= 3.0 supports selecting from LONG columns
             has_long = compare_version("3.0", getModuleHash().oracle.version) <= 0;
@@ -1373,7 +1386,7 @@ my any $v = $c.name;
                 tablespace = tablespace.lwr();
 
             # get any comment
-            any cm = ds.selectRow("select * from all_tab_comments where owner = %v and table_name = %v", schema.upr(), name.upr()).comments;
+            any cm = ds.selectRow("select * from all_tab_comments" + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v", schema.upr(), name.upr()).comments;
             comment = cm ? cm : NOTHING;
 
 	    inDb = True;
@@ -1381,15 +1394,24 @@ my any $v = $c.name;
 
         #! returns the schema and table naem in dot notation
         string getSqlName() {
-            return sprintf("%s.%s", schema, name);
+            return sprintf("%s.%s" + (dblink ? "@" + dblink : ""), schema, name);
         }
 
         private hash setSchemaTable() {
             # get the table information if possible
-            *hash row = ds.selectRow("select * from all_tables where owner = %v and table_name = %v", schema.upr(), name.upr());
+            *hash row = ds.selectRow("select * from all_tables" + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v", schema.upr(), name.upr());
             if (!row)
                 throw "TABLE-ERROR", sprintf("table %y.%y does not exist or is not accessible to this user (%s)", schema, name, getDBString());
             return row;
+        }
+
+        private setDblinkSchema() {
+            *hash dblr = ds.selectRow("select * from all_db_links where owner in ('PUBLIC', %v) and db_link = %v and rownum = 1", ds.getUserName().upr(), dblink);
+            if (!dblr)
+                throw "TABLE-ERROR", sprintf("dblink %y is unknown", dblink);
+            schema = dblr.username;
+            if (!native_case)
+                schema = schema.lwr();
         }
 
         private hash setTable() {
@@ -1419,12 +1441,23 @@ my any $v = $c.name;
                     name = name.lwr();
             }
             
-            schema = row.table_owner;
-            if (!native_case)
-                schema = schema.lwr();
-            
+            if (row.db_link) {
+                dblink = row.db_link;
+
+                setDblinkSchema();
+
+                if (!native_case)
+                    dblink = dblink.lwr();
+            }
+
+            if (row.table_owner) {
+                schema = row.table_owner;
+                if (!native_case)
+                    schema = schema.lwr();
+            }
+
             # get the table information if possible
-            row = ds.selectRow("select * from all_tables where owner = %v and table_name = %v", schema.upr(), name.upr());
+            row = ds.selectRow("select * from all_tables" + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v", schema.upr(), name.upr());
             if (!row)
                 throw "TABLE-ERROR", sprintf("%y is a %ssynonym pointing to table %y.%y which does not exist or is not accessible to this user (%s)", orig_name, pub ? "public " : "", schema, name, getDBString());
             return row;
@@ -1511,13 +1544,13 @@ my any $v = $c.name;
 		setTableInfoIntern();
 
             # get column descriptions
-            *hash qh = ds.select("select col.column_name, data_type, data_length, data_precision, data_scale, nullable, data_default, char_length, char_used, comments from all_tab_columns col, all_col_comments com where col.owner = %v and col.table_name = %v and com.owner = col.owner and com.table_name = col.table_name and com.column_name = col.column_name order by column_id", schema.upr(), name.upr());
+            *hash qh = ds.select("select col.column_name, data_type, data_length, data_precision, data_scale, nullable, data_default, char_length, char_used, comments from all_tab_columns" + (dblink ? "@" + dblink : "") + " col, all_col_comments" + (dblink ? "@" + dblink : "") + " com where col.owner = %v and col.table_name = %v and com.owner = col.owner and com.table_name = col.table_name and com.column_name = col.column_name order by column_id", schema.upr(), name.upr());
             if (!qh.column_name)
                 throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y.%y in %y", schema, name, dsdesc);
 
             # now we have to find unvalidated but enabled not null constraints - because these cause the column to appear to be "nullable" when it really isn't
             # also we can't filter by search_condition, because it's a LONG, otherwise we could make a left join above :(
-            *hash nnq = ds.select("select * from all_constraints where owner = %v and table_name = %v and generated = 'GENERATED NAME' and constraint_type = 'C' and status = 'ENABLED' and validated != 'VALIDATED'", schema.upr(), name.upr());
+            *hash nnq = ds.select("select * from all_constraints" + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v and generated = 'GENERATED NAME' and constraint_type = 'C' and status = 'ENABLED' and validated != 'VALIDATED'", schema.upr(), name.upr());
             hash cnh;
             context (nnq) {
                 *string cn = (%search_condition =~ x/"([^"]+)" IS NOT NULL$/)[0];
@@ -1584,7 +1617,7 @@ my any $v = $c.name;
             hash rv;
 
             # get primary key description
-            *hash qh = ds.select("select cons.constraint_name, cols.column_name, cols.position, cons.status, cons.index_name from all_constraints cons, all_cons_columns cols where cols.owner = %v and cols.table_name = %v and cons.constraint_type = 'P' and cons.owner = cols.owner and cons.constraint_name = cols.constraint_name order by cols.position", schema.upr(), name.upr());
+            *hash qh = ds.select("select cons.constraint_name, cols.column_name, cols.position, cons.status, cons.index_name from all_constraints" + (dblink ? "@" + dblink : "") + " cons, all_cons_columns" + (dblink ? "@" + dblink : "") + " cols where cols.owner = %v and cols.table_name = %v and cons.constraint_type = 'P' and cons.owner = cols.owner and cons.constraint_name = cols.constraint_name order by cols.position", schema.upr(), name.upr());
             if (!qh.constraint_name)
                 return new OraclePrimaryKey();
 
@@ -1615,13 +1648,13 @@ my any $v = $c.name;
 
             # get index description
             *hash qh = ds.select("select i.index_name, index_type, uniqueness, tablespace_name, constraint_name
- from all_indexes i left join all_constraints c on (i.index_name = c.index_name and i.owner = c.owner and i.table_name = c.table_name)
+ from all_indexes" + (dblink ? "@" + dblink : "") + " i left join all_constraints" + (dblink ? "@" + dblink : "") + " c on (i.index_name = c.index_name and i.owner = c.owner and i.table_name = c.table_name)
  where i.owner = %v and i.table_name = %v", schema.upr(), name.upr());
             if (qh.index_name) {
                 hash ih;
 
                 # get column info for all indexes in 1 query
-                *hash iqh = ds.select("select c.index_name, c.column_name, e.column_expression from all_ind_columns c left join all_ind_expressions e on (c.table_owner = e.index_owner and c.index_name = e.index_name and c.table_name = e.table_name) where c.table_owner = %v and c.table_name = %v order by c.index_name, c.column_position", schema.upr(), name.upr());
+                *hash iqh = ds.select("select c.index_name, c.column_name, e.column_expression from all_ind_columns" + (dblink ? "@" + dblink : "") + " c left join all_ind_expressions" + (dblink ? "@" + dblink : "") + " e on (c.table_owner = e.index_owner and c.index_name = e.index_name and c.table_name = e.table_name) where c.table_owner = %v and c.table_name = %v order by c.index_name, c.column_position", schema.upr(), name.upr());
                 foreach hash row in (iqh.contextIterator()) {
                     if (!native_case)
                         map row.$1 = row.$1.lwr(), ("index_name", "column_name", "column_expression"), row.$1;
@@ -1663,7 +1696,7 @@ my any $v = $c.name;
             hash ch;
 
             # get foreign referential constraints
-            *hash qh = ds.select("select constraint_name, status from user_constraints where owner = %v and table_name = %v and constraint_type = 'R'", schema.upr(), name.upr());
+            *hash qh = ds.select("select constraint_name, status from user_constraints" + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v and constraint_type = 'R'", schema.upr(), name.upr());
             if (qh.status) {
                 hash rv;
                 foreach hash row in (qh.contextIterator()) {
@@ -1673,7 +1706,7 @@ my any $v = $c.name;
                         "enabled": row.status == "ENABLED",
                         );
                 }
-                qh = ds.select("select c.constraint_name, status, cols1.column_name source_column, cols1.position, cols2.table_name target_table, cols2.column_name target_column from all_constraints c, all_cons_columns cols1, all_cons_columns cols2 where c.owner = %v and c.table_name = %v and c.constraint_name = cols1.constraint_name and constraint_type = 'R' and c.r_constraint_name = cols2.constraint_name and cols1.position = cols2.position and cols1.owner = c.owner and cols2.owner = c.owner order by cols1.position", schema.upr(), name.upr());
+                qh = ds.select("select c.constraint_name, status, cols1.column_name source_column, cols1.position, cols2.table_name target_table, cols2.column_name target_column from all_constraints" + (dblink ? "@" + dblink : "") + " c, all_cons_columns" + (dblink ? "@" + dblink : "") + " cols1, all_cons_columns" + (dblink ? "@" + dblink : "") + " cols2 where c.owner = %v and c.table_name = %v and c.constraint_name = cols1.constraint_name and constraint_type = 'R' and c.r_constraint_name = cols2.constraint_name and cols1.position = cols2.position and cols1.owner = c.owner and cols2.owner = c.owner order by cols1.position", schema.upr(), name.upr());
                 foreach hash row in (qh.contextIterator()) {
                     if (!native_case) {
                         row.constraint_name = row.constraint_name.lwr();
@@ -1709,7 +1742,7 @@ my any $v = $c.name;
                 return new Constraints();
 
             # get only user check constraints
-            *hash qh = ds.select("select constraint_name, search_condition, status from all_constraints where owner = %v and table_name = %v and constraint_type = 'C' and generated != 'GENERATED NAME'", schema.upr(), name.upr());
+            *hash qh = ds.select("select constraint_name, search_condition, status from all_constraints" + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v and constraint_type = 'C' and generated != 'GENERATED NAME'", schema.upr(), name.upr());
             hash rv;
             foreach hash row in (qh.contextIterator()) {
                 if (!native_case)
@@ -1720,7 +1753,7 @@ my any $v = $c.name;
             Constraints c(rv);
 
             # now get unique constraints
-            qh = ds.select("select c.constraint_name, status, cols.column_name, cols.position, status, c.index_name from all_constraints c, all_cons_columns cols where c.owner = %v and c.table_name = %v and c.constraint_name = cols.constraint_name and constraint_type = 'U' and cols.owner = c.owner and generated != 'GENERATED NAME' order by cols.position", schema.upr(), name.upr());
+            qh = ds.select("select c.constraint_name, status, cols.column_name, cols.position, status, c.index_name from all_constraints" + (dblink ? "@" + dblink : "") + " c, all_cons_columns cols where c.owner = %v and c.table_name = %v and c.constraint_name = cols.constraint_name and constraint_type = 'U' and cols.owner = c.owner and generated != 'GENERATED NAME' order by cols.position", schema.upr(), name.upr());
             delete rv;
             foreach hash row in (qh.contextIterator()) {
                 if (!native_case)
@@ -1753,7 +1786,7 @@ my any $v = $c.name;
             hash rv;
 
             # get trigger description
-            *hash qh = ds.select("select * from all_triggers where owner = %v and table_name = %v", schema.upr(), name.upr());
+            *hash qh = ds.select("select * from all_triggers" + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v", schema.upr(), name.upr());
             foreach hash row in (qh.contextIterator()) {
                 if (!native_case)
                     map row.$1 = row.$1.lwr(), ("trigger_name", "trigger_type", "triggering_event", "referencing_names");
