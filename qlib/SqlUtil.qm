@@ -1657,6 +1657,26 @@ public namespace SqlUtil {
     */
     public const COP_OVER = "over";
 
+    #! the SQL \c "minus" operator
+    /** @see cop_minus()
+    */
+    public const COP_MINUS = "minus";
+
+    #! the SQL \c "minus" operator
+    /** @see cop_plus()
+    */
+    public const COP_PLUS = "plus";
+
+    #! the SQL \c "divide" operator
+    /** @see cop_divide()
+    */
+    public const COP_DIVIDE = "divide";
+
+    #! the SQL \c "multiply" operator
+    /** @see cop_multiply()
+    */
+    public const COP_MULTIPLY = "multiply";
+
     #! a hash of default column operator descriptions
     public const DefaultCopMap = (
         COP_AS: (
@@ -1723,6 +1743,30 @@ public namespace SqlUtil {
             "nocolumn": True,
             "code": string sub (*string cve, any arg) {
                 return sprintf("count(%s)", cve ? cve : "1");
+            },
+        ),
+        COP_MINUS: (
+            "argcolumn": True,
+            "code": string sub (string arg1, string arg2) {
+                return sprintf("%s - %s", arg1, arg2);
+            },
+        ),
+        COP_PLUS: (
+            "argcolumn": True,
+            "code": string sub (string arg1, string arg2) {
+                return sprintf("%s + %s", arg1, arg2);
+            },
+        ),
+        COP_DIVIDE: (
+            "argcolumn": True,
+            "code": string sub (string arg1, string arg2) {
+                return sprintf("%s / %s", arg1, arg2);
+            },
+        ),
+        COP_MULTIPLY: (
+            "argcolumn": True,
+            "code": string sub (string arg1, string arg2) {
+                return sprintf("%s * %s", arg1, arg2);
             },
         ),
         );
@@ -1916,12 +1960,6 @@ my *list $rows = $table.selectRows(("columns": ("account_type", cop_count()), "w
         return make_cop(COP_COUNT, column);
     }
 
-    /** @defgroup oracle_sql_cop_funcs Oracle SQL Column Operator Functions
-        These are Oracle-specific functions that can be used in the \c "columns" argument for select statements:
-        - @ref cop_over(): return values in an SQL window in the query results
-        @endcode
-     */
-    #@{
     #! returns a hash for the \c "over" clause
     /** @par Example:
         @code
@@ -1932,6 +1970,70 @@ my *list $rows = $table.selectRows(("columns": ("account_type", cop_count(), cop
     */
     public hash sub cop_over(any column, string arg) {
         return make_cop(COP_OVER, column, arg);
+    }
+
+    #! returns a hash for the \c "-" operator with the given arguments
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("columns": ("id", "name", cop_minus("complete_count", "error_count")), "where": ("type": "user")));
+        @endcode
+
+        @param column1 the column specification for the first argument (string name or dot notation for use in joins)
+        @param column2 the column specification for the second argument (string name or dot notation for use in joins)
+        @param arg the new name of the output column
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    public hash sub cop_minus(any column1, any column2) {
+        return make_cop(COP_MINUS, column1, column2);
+    }
+
+    #! returns a hash for the \c "+" operator with the given arguments
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("columns": ("id", "name", cop_plus("complete_count", "error_count")), "where": ("type": "user")));
+        @endcode
+
+        @param column1 the column specification for the first argument (string name or dot notation for use in joins)
+        @param column2 the column specification for the second argument (string name or dot notation for use in joins)
+        @param arg the new name of the output column
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    public hash sub cop_plus(any column1, any column2) {
+        return make_cop(COP_PLUS, column1, column2);
+    }
+
+    #! returns a hash for the \c "/" operator with the given arguments
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("columns": ("id", "name", cop_divide("complete_count", "error_count")), "where": ("type": "user")));
+        @endcode
+
+        @param column1 the column specification for the first argument (string name or dot notation for use in joins)
+        @param column2 the column specification for the second argument (string name or dot notation for use in joins)
+        @param arg the new name of the output column
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    public hash sub cop_divide(any column1, any column2) {
+        return make_cop(COP_DIVIDE, column1, column2);
+    }
+
+    #! returns a hash for the \c "*" operator with the given arguments
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("columns": ("id", "name", cop_multiply("complete_count", "error_count")), "where": ("type": "user")));
+        @endcode
+
+        @param column1 the column specification for the first argument (string name or dot notation for use in joins)
+        @param column2 the column specification for the second argument (string name or dot notation for use in joins)
+        @param arg the new name of the output column
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    public hash sub cop_multiply(any column1, any column2) {
+        return make_cop(COP_MULTIPLY, column1, column2);
     }
     #@}
 
