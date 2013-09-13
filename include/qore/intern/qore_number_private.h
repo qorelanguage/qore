@@ -124,7 +124,10 @@ struct qore_number_private : public qore_number_private_intern {
          if (np > getPrec())
             setPrec(np);
       }
-      mpfr_set_str(num, str, 10, QORE_MPFR_RND);
+      if (!str[0])
+         mpfr_set_sj(num, 0, QORE_MPFR_RND);
+      else
+         mpfr_set_str(num, str, 10, QORE_MPFR_RND);
    }
 
    DLLLOCAL qore_number_private(const char* str, unsigned prec) : qore_number_private_intern(QORE_MAX(QORE_DEFAULT_PREC, prec)) {
