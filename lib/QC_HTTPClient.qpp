@@ -871,7 +871,7 @@ string HTTPClient::getDefaultPath() [flags=CONSTANT] {
 my *string $path = $httpclient.getConnectionPath();
     @endcode
  */
-string HTTPClient::getConnectionPath() [flags=CONSTANT] {
+*string HTTPClient::getConnectionPath() [flags=CONSTANT] {
    const char* p = client->getConnectionPath();
    return p ? new QoreStringNode(p) : 0;
 }
