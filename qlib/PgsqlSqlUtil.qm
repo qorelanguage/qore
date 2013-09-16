@@ -1130,6 +1130,11 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                         return sql;
                     },
                 ),
+                COP_YEAR_HOUR: (
+                    "code": string sub (string arg1, any arg) {
+                        return sprintf("to_char(%s, 'YYYY-MM-DD HH24')", arg1);
+                    }
+                ),
                 );
         }
 

@@ -1677,6 +1677,11 @@ public namespace SqlUtil {
     */
     public const COP_MULTIPLY = "multiply";
 
+    #! to return a date value with year to hour information
+    /** @see cop_year_hour()
+    */           
+    public const COP_YEAR_HOUR = "year_hour";
+
     #! a hash of default column operator descriptions
     public const DefaultCopMap = (
         COP_AS: (
@@ -2034,6 +2039,20 @@ my *list $rows = $table.selectRows(("columns": ("id", "name", cop_multiply("comp
     */
     public hash sub cop_multiply(any column1, any column2) {
         return make_cop(COP_MULTIPLY, column1, column2);
+    }
+
+    #! returns a hash for the \c "year_hour" operator with the given argument
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("columns": ("id", "name", cop_year_hour("error_time")), "where": ("type": "user")));
+        @endcode
+
+        @param column the column specification for the column (string name or dot notation for use in joins)
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    public hash sub cop_year_hour(any column) {
+        return make_cop(COP_YEAR_HOUR, column);
     }
     #@}
 
@@ -5319,6 +5338,16 @@ my string $sql = $t.getSqlFromList($list);
                     foreach any v in (l) {
                         if (v.typeCode() != NT_STRING)
                             throw err, sprintf("%s: key %y element %d/%d (first is 0) has type %y, expecting \"string\" (value: %y)", tag, k, $#, l.size(), v.type(), opt);
+                    }
+
+                    opt = l;
+                    break;
+                }
+                case "softstringhashlist": {
+                    softlist l = opt;
+                    foreach any v in (l) {
+                        if (v.typeCode() != NT_STRING && v.typeCode() != NT_HASH)
+                            throw err, sprintf("%s: key %y element %d/%d (first is 0) has type %y, expecting \"string\" or \"hash\" (value: %y)", tag, k, $#, l.size(), v.type(), opt);
                     }
 
                     opt = l;
@@ -9206,7 +9235,7 @@ my Triggers $trig = $table.getTriggers();
                 "limit": Type::Int,
                 "offset": Type::Int,
                 "join": Type::Hash,
-                "groupby": "softstringlist",
+                "groupby": "softstringhashlist",
                 "having": Type::Hash,
                 "superquery": Type::Hash,
                 );
@@ -12933,8 +12962,25 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 doSelectLimitOnlyUnlockedImpl(\sql, \args, qh);
 
             if (qh.groupby) {
-                list gbe = map getColumnNameIntern($1, jch, boolean(qh.join), ch), qh.groupby;
-                sql += " group by " + (foldl $1 + "," + $2, gbe.iterator());
+                list ce = ();
+                foreach any cv in (qh.groupby) {
+                    switch (cv.typeCode()) {
+                        case NT_STRING: {
+                            ce += getColumnNameIntern(cv, jch, boolean(qh.join), ch);
+                            break;
+                        }
+
+                        case NT_HASH: {
+                            ce += doColumnOperatorIntern(cv, jch, boolean(qh.join), ch);
+                            break;
+                        }
+
+                        default:
+                            throw "SELECT-ERROR", sprintf("don't know how to parse argument type %y (value: %y) in group by list, expecting \"string\" or \"hash\"", cv.type(), cv);
+                    }
+                }
+
+                sql += " group by " + (foldl $1 + "," + $2, ce.iterator());
             }
 
             if (qh.having) {

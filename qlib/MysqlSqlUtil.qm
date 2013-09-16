@@ -817,6 +817,11 @@ end";
                         return sprintf("concat(%s,%s)", cve, arg);
                     },
                 ),
+                COP_YEAR_HOUR: (
+                    "code": string sub (string arg1, any arg) {
+                        return sprintf("date_format(%s, '%%Y-%%m-%%e %%k')", arg1);
+                    }
+                ),
                 );
         }
 
