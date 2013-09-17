@@ -3937,7 +3937,26 @@ my list $l = $col.getModifySql($t, $newcol);
 
             @return a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
          */
-        abstract list getModifySql(AbstractTable t, AbstractColumn c);
+        list getModifySql(AbstractTable t, AbstractColumn c, *hash opt) {
+            list l = getModifySqlImpl(t, c, opt);
+
+            # update existing rows with the new default column value if:
+            /* - a default value is being assigned and there was no default value before
+               - a not null constraint is being added whereas there was none before
+               - the table is not empty
+            */
+            if (def_val != c.def_val 
+                && (exists c.def_val && c.def_val != NULL) 
+                && (!exists def_val || def_val == NULL)
+                && !c.nullable && nullable && !t.emptyData()) {
+                string cn = sprintf("%s.%s", t.getSqlName(), name);
+                string sql = sprintf("update %s set %s = %s where %s is null", t.getSqlName(), cn, c.def_val, cn);
+                # insert in the front of the list
+                unshift l, sql;
+            }
+
+            return l;
+        }
 
         #! returns a string that can be used to rename the column
         /** @par Example:
@@ -3964,6 +3983,21 @@ my string $str = $col.getRenameSql($t, "new_name");
 
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
         private abstract bool equalImpl(AbstractColumn c);
+
+        #! returns a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
+        /** @par Example:
+            @code
+my list $l = $col.getModifySql($t, $newcol);
+            @endcode
+
+            The column names are assumed to be equal.
+
+            @param t the AbstractTable object to modify
+            @param c the new column definition
+
+            @return a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
+         */
+        private abstract list getModifySqlImpl(AbstractTable t, AbstractColumn c, *hash opt);
     }
 
     #! the base class to use to extend AbstractColumn to implement numeric columns

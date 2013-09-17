@@ -76,9 +76,13 @@ module OracleSqlUtil {
     @code
 my *list $rows = $table.selectRows(("where": ("type": "user"), "limit": 100, "offset": 200));
     @endcode
-    the following SQL is generated for Oracle:
+    the following SQL is generated for Oracle with a pre 12c server:
     @code
 $ds.vselectRows("select * from (select /*+ first_rows(100) *<!--%%-->/ a.*, rownum rnum from (select * from schema.table where type = %v order by type) a where rownum <= %v) where rnum > %v", ("user", 300, 200));
+    @endcode
+    note that the following simpler SQL is generated for Oracle 12c+ servers:
+    @code
+$ds.vselectRows("select * from schema.table where type = %v order by type offset %v rows fetch next %v rows only", (200, 100));
     @endcode
 
     @subsection ora_in_operator IN Operator on Oracle
@@ -300,7 +304,7 @@ my list $l = $col.getModifySql($t, $newcol);
             @param t the AbstractTable object to modify
             @param col the new column definition
          */
-        list getModifySql(AbstractTable t, AbstractColumn col) {
+        list getModifySqlImpl(AbstractTable t, AbstractColumn col, *hash opt) {
             list l = ();
             OracleColumn c = col;
 
