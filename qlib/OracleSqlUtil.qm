@@ -1554,8 +1554,9 @@ my any $v = $c.name;
             }
         }
 
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh) {
-            string sort = foldl $1 + ", " + $2, qh.orderby;
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch) {
+            list ce = getOrderByListUnlocked(qh, jch, ch);
+            string sort = foldl $1 + ", " + $2, ce;
             # http://www.oracle.com/technetwork/issue-archive/2006/06-sep/o56asktom-086197.html
             # /*+ first_rows(n) */ is an optimizer hint that we want the first rows as fast as possible
             sql = sprintf("select * from (select /*+ first_rows(%d) */ a.*, rownum rnum from (%s order by %s%s) a where rownum <= %v) where rnum > %v", qh.limit, sql, sort, qh.desc ? " desc" : "");

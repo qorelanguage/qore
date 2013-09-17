@@ -9230,7 +9230,7 @@ my Triggers $trig = $table.getTriggers();
             const SelectOptions = (
                 "columns": Type::NothingType,
                 "where": "hash/list",
-                "orderby": "softstringlist",
+                "orderby": "softstringhashlist",
                 "desc": Type::Boolean,
                 "limit": Type::Int,
                 "offset": Type::Int,
@@ -12948,18 +12948,6 @@ my string $sql = $table.getSelectSql($sh, \$args);
             }
 
             getSelectWhereSqlUnlocked(\sql, \args, qh, jch, boolean(qh.join), ch);
-            if (qh.orderby) {
-                if (qh.offset || qh.limit) {
-                    if (!matchAnyUnique(qh.orderby))
-                        throw "SELECT-ERROR", sprintf("%s: 'orderby': %y with 'offset' = %d does not match any unique constraint", getName(), qh.orderby, qh.offset);
-
-                    doSelectOrderByWithOffsetSqlUnlockedImpl(\sql, \args, qh);
-                }
-                else
-                    doSelectOrderBySqlUnlocked(\sql, \args, qh);
-            }
-            else if (qh.limit)
-                doSelectLimitOnlyUnlockedImpl(\sql, \args, qh);
 
             if (qh.groupby) {
                 list ce = ();
@@ -13002,6 +12990,19 @@ my string $sql = $table.getSelectSql($sh, \$args);
                     sql += " having " + (foldl $1 + " and " + $2, hl);
             }
             #printf("SQL: %s\nargs: %y\n", sql, args);
+
+            if (qh.orderby) {
+                if (qh.offset || qh.limit) {
+                    if (!matchAnyUnique(qh.orderby))
+                        throw "SELECT-ERROR", sprintf("%s: 'orderby': %y with 'offset' = %d does not match any unique constraint", getName(), qh.orderby, qh.offset);
+
+                    doSelectOrderByWithOffsetSqlUnlockedImpl(\sql, \args, qh, jch, ch);
+                }
+                else
+                    doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch);
+            }
+            else if (qh.limit)
+                doSelectLimitOnlyUnlockedImpl(\sql, \args, qh);
 
             if (qh.superquery) {
                 validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \qh.superquery);
@@ -13175,8 +13176,31 @@ my string $sql = $table.getSelectSql($sh, \$args);
             return sprintf("%s = %v", cn);
         }
 
-        private doSelectOrderBySqlUnlocked(reference sql, reference args, *hash qh) {
-            sql += " order by " + (foldl $1 + "," + $2, qh.orderby);
+        private list getOrderByListUnlocked(*hash qh, *hash jch, *hash ch) {
+            list ce = ();
+            foreach any cv in (qh.orderby) {
+                switch (cv.typeCode()) {
+                    case NT_STRING: {
+                        ce += getColumnNameIntern(cv, jch, boolean(qh.join), ch);
+                        break;
+                    }
+
+                    case NT_HASH: {
+                        ce += doColumnOperatorIntern(cv, jch, boolean(qh.join), ch);
+                        break;
+                    }
+
+                    default:
+                        throw "SELECT-ERROR", sprintf("don't know how to parse argument type %y (value: %y) in orderby list, expecting \"string\" or \"hash\"", cv.type(), cv);
+                }
+            }
+            return ce;
+        }
+
+        private doSelectOrderBySqlUnlocked(reference sql, reference args, *hash qh, *hash jch, *hash ch) {
+            list ce = getOrderByListUnlocked(qh, jch, ch);
+
+            sql += " order by " + (foldl $1 + "," + $2, ce);
             if (qh.desc)
                 sql += " desc";
         }
@@ -15106,7 +15130,7 @@ my *list $rows = $table.findAll($h);
         private abstract hash getTypeMapImpl();
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
-        private abstract doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh);
+        private abstract doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch);
 
         #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
         private abstract doSelectLimitOnlyUnlockedImpl(reference sql, reference args, *hash qh);

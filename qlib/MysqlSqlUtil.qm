@@ -1308,8 +1308,8 @@ my string $str = $table.getSqlValue($date);
         }
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh) {
-            doSelectOrderBySqlUnlocked(\sql, \args, qh);
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch) {
+            doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch);
             if (qh.limit) {
                 sql += " limit %v";
                 args += qh.limit;
