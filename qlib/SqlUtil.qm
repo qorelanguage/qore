@@ -266,6 +266,8 @@ my hash $soh = (
     @endcode
 
     The select option hash argument has the following keys; all of which are optional:
+    - @ref select_option_comment "comment": an optional string with with comment used in select statement
+    - @ref select_option_hint "hint": an optional string with with hint used in select statement (platform dependent)
     - @ref select_option_columns "columns": describes the output columns and any output column operations; if not present, then all columns are returned directly in the output
     - @ref select_option_where "where": (@ref hash_type "hash") describes how any \c "where" clause will be built; if not present, then there is no \c where clause
     - @ref select_option_orderby "orderby": (@ref list_type "list of strings") describes the ordering of the results; if not present (and no other output ordering is required, such as implied by the @ref select_option_offset "offset" option), then results are returned in the order returned by the database server
@@ -277,6 +279,36 @@ my hash $soh = (
     - @ref select_option_having "having": (@ref hash_type "hash") specifies filtering for results with aggregate column functions
     - @ref select_option_superquery "superquery": (@ref hash_type "hash") specifies that the rest of the argument belong to a subquery and the hash arguments under this key will select from the subquery
 
+    @anchor select_option_comment
+    @par Select Option "comment"
+    The comment does not have any impact to data returned from the statement but it can help with statement finding and optimizations.
+
+    <b>Comment Example:</b>
+    @code
+$table.selectRows( ("comment" : "foo bar") );
+    @endcode
+    will produce select statement like this:
+    @code
+select /* foo bar *<!--%%-->/ ...
+    @endcode
+    @warning Oracle: using different comments in the same SQL can lead to new optimizer statement hard parsing.
+    
+    @anchor select_option_hint
+    @par Select Option "hint"
+    In database query operations, various SQL implementations use hints as additions to the SQL standard that instruct the database engine on how to execute the query. For example, a hint may tell the engine to use as little memory as possible (even if the query will run slowly), or to use or not to use an index (even if the query optimizer would decide otherwise).
+
+    <b>Hint Example:</b>
+    @code
+$table.selectRows( ("hint" : "full(t1)") );
+    @endcode
+    will produce select statement like this:
+    @code
+select /*+ full(a) *<!--%%-->/ ...
+    @endcode
+    The string is taken as is and it's up to user to handle correct aliases in join functions etc.
+    @note Hints are platform dependent. Curently only Oracle and some versions of PostgreSQL hints are supported in Sqlutil module.
+    @warning Use hints only when you know what you are doing.
+    
     @anchor select_option_columns
     @par Select Option "columns"
     <b>Columns Example:</b>
@@ -9262,6 +9294,8 @@ my Triggers $trig = $table.getTriggers();
                 - @ref select_option_superquery "superquery": specifies that the rest of the argument belong to a subquery and the hash arguments under this key will select from the subquery
              */
             const SelectOptions = (
+                "comment": Type::String,
+                "hint": Type::String,
                 "columns": Type::NothingType,
                 "where": "hash/list",
                 "orderby": "softstringhashlist",
@@ -12886,7 +12920,16 @@ my string $sql = $table.getSelectSql($sh, \$args);
             else
                 cstr = "*";
 
-            string sql = sprintf("select %s from %s", cstr, from);
+            # comment handling
+            string comment = '';
+            if (qh.comment) {
+                comment += sprintf("/* %s */ ", qh.comment);
+            }
+            if (qh.hint) {
+                comment += sprintf("/*+ %s */ ", qh.hint);
+            }
+
+            string sql = sprintf("select %s%s from %s", comment, cstr, from);
 
             # process join specifications
             foreach any js in (qh.join.iterator()) {
