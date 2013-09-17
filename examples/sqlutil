@@ -35,7 +35,8 @@ const opts = (
     "align_data": "D,align-data=s",
     "align_data_strict": "s,align-data-strict",
     "align_table": "a,align-table=s",
-    "dump_table": "t,dump-table=s",
+    "dump_table": "t,dump-table=s@",
+    "dump_sequence": "S,dump-sequence=s@",
     "omit": "O,omit=s@",
 
     "data_tablespace": "d,data-tablespace=s",
@@ -67,7 +68,8 @@ sub usage() {
                               \"indexes\"
   -d,--data-tablespace=ARG    use the given data tablespace name for output
   -i,--index-tablespace=ARG   use the given index tablespace name for output
-  -t,--dump-table=ARG         dump the SQL for the given DB table
+  -t,--dump-table=ARG         dump the DDL for the given table
+  -t,--dump-sequence=ARG      dump the DDL for the given sequence
   -T,--target-ds=ARG          target datasource
   -v,--verbose=ARG            increase verbosity level (more v's = more info)
 ", get_script_name());
@@ -80,9 +82,8 @@ sub error(string fmt) {
 }
 
 class GlobTables inherits Tables {
-    constructor(AbstractDatasource source, string tspec) {
+    constructor(Database db, AbstractDatasource source, string tspec) {
         # add matching tables to table cache
-        Database db(source);
         foreach string t in (db.tableIterator()) {
             if (t.regex(tspec, RE_Caseless))
                 get(source, t);
@@ -207,11 +208,21 @@ sub main() {
     # alignment options
     hash aopt = copt + cbopt;
 
+    Database db(source);
+
     bool done = False;
-    if (opt.dump_table) {
+    foreach string name in (opt.dump_table) {
         done = True;
-        Table table(source, opt.dump_table);
+        Table table(source, name);
         printf("%s\n", table.getCreateSqlString(copt));
+    }
+
+    foreach string name in (opt.dump_sequence) {
+        done = True;
+        *AbstractSequence seq = db.getSequence(name);
+        if (!seq)
+            throw "SEQUENCE-ERROR", sprintf("sequence %s does not exist or is not accessible to this user", name);
+        printf("%s;\n", seq.getCreateSql(copt));
     }
 
     code align_table = sub (AbstractTable source_table) {
@@ -234,7 +245,7 @@ sub main() {
         if (opt.align_table =~ /[\*\?]/) {
             # transform into regex
             string tspec = get_regex(opt.align_table);
-            GlobTables tables(source, tspec);
+            GlobTables tables(db, source, tspec);
 
             foreach AbstractTable t in (tables.iterator()) {
                 if (dot_count)
@@ -254,7 +265,7 @@ sub main() {
         if (opt.align_table =~ /[\*\?]/) {
             # transform into regex
             string tspec = get_regex(opt.align_table);
-            GlobTables tables(source, tspec);
+            GlobTables tables(db, source, tspec);
 
             foreach AbstractTable t in (tables.iterator()) {
                 if (dot_count)

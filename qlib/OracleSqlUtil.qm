@@ -884,11 +884,25 @@ my any $v = $c.name;
             return new OracleSequence(name, start, increment, end);
         }
 
+        private getSchemaName(reference name, reference schema) {
+            # see if there is a schema in the name
+            *string sstr = (name =~ x/^(\w+)\.\w+/)[0];
+            if (sstr) {
+                schema = sstr;
+                splice name, 0, schema.size() + 1;
+            }
+            else
+                schema = ds.getUserName();
+        }
+
         private *AbstractSequence getSequenceImpl(string name) {
-            *hash row = ds.selectRow("select * from user_sequences where sequence_name = %v", name.upr());
+            string schema;
+            getSchemaName(\name, \schema);
+
+            *hash row = ds.selectRow("select * from all_sequences where sequence_owner = %v and sequence_name = %v", schema.upr(), name.upr());
             if (!row)
                 return;
-            return new OracleSequence(name, row.min_value, row.increment_by, row.max_value == 10000000000000000000000000000n ? NOTHING : row.max_value);
+            return new OracleSequence(name, row.min_value, row.increment_by, row.max_value > 9000000000000000000n ? NOTHING : row.max_value);
         }
 
         private OracleFunction makeFunctionImpl(string name, string src, *hash opts) {
