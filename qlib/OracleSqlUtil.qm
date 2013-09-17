@@ -70,7 +70,7 @@ module OracleSqlUtil {
     @subsection ora_paging Select With Paging on Oracle
 
     Select with paging on Oracle is more complicated than on some databases due to the lack of direct \c limit and \c offset
-    support.
+    support (applies to Oracle pre 12c).
 
     For example, for the following select:
     @code
@@ -1367,8 +1367,8 @@ my any $v = $c.name;
             # dblink
             *string dblink;
 
-            #! does the current oracle driver support long values?
-            bool has_long;
+            # Oracle server major version
+            int ora_major;
         }
 
         constructor(AbstractDatasource nds, string nname, *hash opts) : AbstractTable(nds, nname, opts) {
@@ -1393,7 +1393,10 @@ my any $v = $c.name;
             }
 
             # the oracle driver >= 3.0 supports selecting from LONG columns
-            has_long = compare_version("3.0", getModuleHash().oracle.version) <= 0;
+            if (compare_version("3.0", getModuleHash().oracle.version) > 0)
+                throw "ORACLE-DRIVER-ERROR", sprintf("OracleSqlUtil requires oracle module 3.0+ to query system catalogs since LONG support was added in oracle module version 3.0; current module version: %s; upgrade your oracle module to at least 3.0 to use OracleSqlUtil", getModuleHash().oracle.version);
+
+            ora_major = (nds.getServerVersion() =~ x/([0-9]+)/)[0].toInt();
         }
 
         private bool checkExistenceImpl() {
@@ -1539,6 +1542,10 @@ my any $v = $c.name;
 
         private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh, *hash jch, bool join = False, *hash ch) {
             AbstractTable::getSelectWhereSqlUnlocked(\sql, \args, qh, jch, join, ch);
+            # Oracle 12c+ supports limit (fetch) and offset
+            if (ora_major >= 12)
+                return;
+
             if (qh.limit && !qh.orderby) {
                 if (!qh."where")
                     sql += " where ";
@@ -1555,6 +1562,23 @@ my any $v = $c.name;
         }
 
         private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch) {
+            # Oracle 12c+ supports limit (fetch) and offset
+            if (ora_major >= 12) {
+                doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch);
+
+                if (qh.offset) {
+                    sql += " offset %v rows";
+                    args += qh.offset;
+                }
+
+                if (qh.limit) {
+                    sql += " fetch next %v rows only";
+                    args += qh.limit;
+                }
+
+                return;
+            }
+
             list ce = getOrderByListUnlocked(qh, jch, ch);
             string sort = foldl $1 + ", " + $2, ce;
             # http://www.oracle.com/technetwork/issue-archive/2006/06-sep/o56asktom-086197.html
@@ -1768,10 +1792,6 @@ my any $v = $c.name;
         private Constraints getConstraintsImpl() {
 	    if (!tablespace)
 		setTableInfoIntern();
-
-            # if we cannot select "long" values then skip this: all_constraints.search_condition is a LONG for example
-            if (!has_long)
-                return new Constraints();
 
             # get only user check constraints
             *hash qh = ds.select("select constraint_name, search_condition, status from all_constraints" + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v and constraint_type = 'C' and generated != 'GENERATED NAME'", schema.upr(), name.upr());

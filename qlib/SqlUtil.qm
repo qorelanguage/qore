@@ -12989,7 +12989,6 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 if (hl)
                     sql += " having " + (foldl $1 + " and " + $2, hl);
             }
-            #printf("SQL: %s\nargs: %y\n", sql, args);
 
             if (qh.orderby) {
                 if (qh.offset || qh.limit) {
@@ -13003,6 +13002,8 @@ my string $sql = $table.getSelectSql($sh, \$args);
             }
             else if (qh.limit)
                 doSelectLimitOnlyUnlockedImpl(\sql, \args, qh);
+
+            #printf("SQL: %s\nargs: %y\n", sql, args);
 
             if (qh.superquery) {
                 validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \qh.superquery);
