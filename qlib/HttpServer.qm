@@ -666,15 +666,14 @@ public class HttpServer::AbstractHttpRequestHandler {
                     $args += "<masked>, ";
                 else if ($arg.typeCode() == NT_HASH && $arg) {
                     $args += "{";
-                    foldl $1 + ", " + $2, (map $1 == $api.maskkey ? sprintf("%s: <masked>, ", $1) : sprintf("%s: %y, ", $1, $arg.$1), $arg.keyIterator());
+                    $args += foldl $1 + "," + $2, (map $1 == $api.maskkey ? sprintf("%s: <masked>", $1) : sprintf("%s: %y", $1, $arg.$1), $arg.keyIterator());
                     $args += "}, ";
                 }
                 else
                     $args += sprintf("%y, ", $arg);
             }
             # remove the last two characters from the string if any were added
-            if ($i)
-                splice $args, -2, 2;
+            $args =~ s/, $//;
             $args += ")";
         }
        
