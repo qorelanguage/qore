@@ -1361,6 +1361,21 @@ my any $v = $c.name;
                         return sql;
                     },
                 ),
+                COP_YEAR: (
+                    "code": string sub (string arg1, any arg) {
+                        return sprintf("to_char(%s, 'YYYY')", arg1);
+                    }
+                ),
+                COP_YEAR_MONTH: (
+                    "code": string sub (string arg1, any arg) {
+                        return sprintf("to_char(%s, 'YYYY-MM')", arg1);
+                    }
+                ),
+                COP_YEAR_DAY: (
+                    "code": string sub (string arg1, any arg) {
+                        return sprintf("to_char(%s, 'YYYY-MM-DD')", arg1);
+                    }
+                ),
                 COP_YEAR_HOUR: (
                     "code": string sub (string arg1, any arg) {
                         return sprintf("to_char(%s, 'YYYY-MM-DD HH24')", arg1);

@@ -1709,6 +1709,21 @@ public namespace SqlUtil {
     */
     public const COP_MULTIPLY = "multiply";
 
+    #! to return a date value with year information only
+    /** @see cop_year()
+    */           
+    public const COP_YEAR = "year";
+
+    #! to return a date value with year to month information
+    /** @see cop_year_month()
+    */           
+    public const COP_YEAR_MONTH = "year_month";
+
+    #! to return a date value with year to day information
+    /** @see cop_year_day()
+    */           
+    public const COP_YEAR_DAY = "year_day";
+
     #! to return a date value with year to hour information
     /** @see cop_year_hour()
     */           
@@ -2071,6 +2086,48 @@ my *list $rows = $table.selectRows(("columns": ("id", "name", cop_multiply("comp
     */
     public hash sub cop_multiply(any column1, any column2) {
         return make_cop(COP_MULTIPLY, column1, column2);
+    }
+
+    #! returns a hash for the \c "year" operator with the given argument
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("columns": ("id", "name", cop_year("error_time")), "where": ("type": "user")));
+        @endcode
+
+        @param column the column specification for the column (string name or dot notation for use in joins)
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    public hash sub cop_year(any column) {
+        return make_cop(COP_YEAR, column);
+    }
+
+    #! returns a hash for the \c "year_month" operator with the given argument
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("columns": ("id", "name", cop_year_month("error_time")), "where": ("type": "user")));
+        @endcode
+
+        @param column the column specification for the column (string name or dot notation for use in joins)
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    public hash sub cop_year_month(any column) {
+        return make_cop(COP_YEAR_MONTH, column);
+    }
+
+    #! returns a hash for the \c "year_day" operator with the given argument
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("columns": ("id", "name", cop_year_day("error_time")), "where": ("type": "user")));
+        @endcode
+
+        @param column the column specification for the column (string name or dot notation for use in joins)
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    public hash sub cop_year_day(any column) {
+        return make_cop(COP_YEAR_DAY, column);
     }
 
     #! returns a hash for the \c "year_hour" operator with the given argument
