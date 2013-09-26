@@ -312,8 +312,10 @@ public:
 	       continue;
 	    QoreHashNode* h = stat_to_hash(buf);
 	    h->setKeyValue("name", new QoreStringNode(de->d_name, enc), 0);
+#ifdef HAVE_LSTAT
 	    if (*lpath)
 	       h->setKeyValue("link", lpath.release(), 0);
+#endif
 	    lst->push(h);
 	    continue;
 	 }
