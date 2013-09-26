@@ -46,6 +46,35 @@ bool QoreLogicalGreaterThanOperatorNode::boolEvalImpl(ExceptionSink *xsink) cons
    if (!r)
       r = &Nothing;
 
+   if (lt == NT_NUMBER) {
+      switch (rt) {
+	 case NT_NUMBER:
+	    return reinterpret_cast<const QoreNumberNode*>(l)->compare(*reinterpret_cast<const QoreNumberNode*>(r)) > 0;
+	 case NT_FLOAT:
+	    return reinterpret_cast<const QoreNumberNode*>(l)->compare(reinterpret_cast<const QoreFloatNode*>(r)->f) > 0;
+	 case NT_INT:
+	    return reinterpret_cast<const QoreNumberNode*>(l)->compare(reinterpret_cast<const QoreBigIntNode*>(r)->val) > 0;
+	 default: {
+	    ReferenceHolder<QoreNumberNode> rn(new QoreNumberNode(r), xsink);
+	    return reinterpret_cast<const QoreNumberNode*>(l)->compare(**rn) > 0;
+	 }
+      }
+   }
+
+   if (rt == NT_NUMBER) {
+      assert(lt != NT_NUMBER);
+      switch (lt) {
+	 case NT_FLOAT:
+	    return reinterpret_cast<const QoreNumberNode*>(r)->compare(reinterpret_cast<const QoreFloatNode*>(l)->f) <= 0;
+	 case NT_INT:
+	    return reinterpret_cast<const QoreNumberNode*>(r)->compare(reinterpret_cast<const QoreBigIntNode*>(l)->val) <= 0;
+	 default: {
+	    ReferenceHolder<QoreNumberNode> ln(new QoreNumberNode(l), xsink);
+	    return reinterpret_cast<const QoreNumberNode*>(r)->compare(**ln) <= 0;
+	 }
+      }
+   }
+
    if (lt == NT_FLOAT || rt == NT_FLOAT)
       return l->getAsFloat() > r->getAsFloat();
 
