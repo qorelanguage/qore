@@ -95,7 +95,36 @@ bool QoreLogicalEqualsOperatorNode::softEqual(const AbstractQoreNode *left, cons
 	 return false;
       return l->equal(*r);
    }
- 
+
+   if (lt == NT_NUMBER) {
+      switch (rt) {
+	 case NT_NUMBER:
+	    return reinterpret_cast<const QoreNumberNode*>(left)->compare(*reinterpret_cast<const QoreNumberNode*>(right)) == 0;
+	 case NT_FLOAT:
+	    return reinterpret_cast<const QoreNumberNode*>(left)->compare(reinterpret_cast<const QoreFloatNode*>(right)->f) == 0;
+	 case NT_INT:
+	    return reinterpret_cast<const QoreNumberNode*>(left)->compare(reinterpret_cast<const QoreBigIntNode*>(right)->val) == 0;
+	 default: {
+	    ReferenceHolder<QoreNumberNode> rn(new QoreNumberNode(right), xsink);
+	    return reinterpret_cast<const QoreNumberNode*>(left)->compare(**rn) == 0;
+	 }
+      }
+   }
+
+   if (rt == NT_NUMBER) {
+      assert(lt != NT_NUMBER);
+      switch (lt) {
+	 case NT_FLOAT:
+	    return reinterpret_cast<const QoreNumberNode*>(right)->compare(reinterpret_cast<const QoreFloatNode*>(left)->f) == 0;
+	 case NT_INT:
+	    return reinterpret_cast<const QoreNumberNode*>(right)->compare(reinterpret_cast<const QoreBigIntNode*>(left)->val) == 0;
+	 default: {
+	    ReferenceHolder<QoreNumberNode> ln(new QoreNumberNode(left), xsink);
+	    return reinterpret_cast<const QoreNumberNode*>(right)->compare(**ln) == 0;
+	 }
+      }
+   } 
+
    if (lt == NT_FLOAT || rt == NT_FLOAT)
       return left->getAsFloat() == right->getAsFloat();
 
