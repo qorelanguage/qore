@@ -326,7 +326,8 @@ my bool $abs = absolute_path_windows($path);
     hash sub eval_text(string $arg, bool $err = False) {
         # try to evaluate as a Qore expression
         my string $str = sprintf("any sub get() { return %s; }", $arg);
-        my Program $prog();
+        # use a sandboxed Program object
+        my Program $prog(PO_LOCKDOWN);
         try {
             $prog.parse($str, "main");
             my any $rv = $prog.callFunction("get");
