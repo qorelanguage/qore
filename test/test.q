@@ -1344,8 +1344,10 @@ sub math_tests() {
 
 sub lib_tests() {
     my string $pn = get_script_path();
-    test_value(stat($pn)[1], hstat($pn).inode, "stat() and hstat()");
-    test_value(hstat($pn).type, "REGULAR", "hstat()");
+    if (PlatformOS != "Windows") {
+        test_value(stat($pn)[1], hstat($pn).inode, "stat() and hstat()");
+        test_value(hstat($pn).type, "REGULAR", "hstat()");
+    }
     #my string $h = gethostname();
     #test_value($h, gethostbyaddr(gethostbyname($h)), "host functions");
 }
