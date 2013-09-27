@@ -1861,10 +1861,14 @@ sub hmac_tests() {
     test_value(RIPEMD160_hmac($str, $key),  "4bca70bca1601aba57624eeb2606535cb12f2079", "RIPEMD-160 hmac");
     if (HAVE_MDC2)
         test_value(MDC2_hmac($str, $key),       "e0ef6a6803e58807c5db395e180a999c", "MDC2 hmac");
-    test_value(SHA224_hmac($str, $key),     "fad5667fa5aa412044555b7e077fced62372fe9c6ce20815609da12c", "SHA224 hmac");
-    test_value(SHA256_hmac($str, $key),     "1c90c21e227712b62019ff831f34cba22c2e70f1a902651ef69a70705ee0f754", "SHA256 hmac");
-    test_value(SHA384_hmac($str, $key),     "e2c253c6dcb050990b4da3cee95cd7b227f43388fa8116f476f59395af295d0d3bb7156ab2fcd0663b0500249a7a0865", "SHA384 hmac");
-    test_value(SHA512_hmac($str, $key),     "8dcefd7ea3f90ff1c822b5e9547fc36edf78c3e4ce13d47510a212a406bdda1a4094e7ea5ade90e1c736e204d331a814520eba49f3d074e2c261208de07264f6", "SHA512 hmac");
+    if (HAVE_SHA224)
+        test_value(SHA224_hmac($str, $key),     "fad5667fa5aa412044555b7e077fced62372fe9c6ce20815609da12c", "SHA224 hmac");
+    if (HAVE_SHA256)
+        test_value(SHA256_hmac($str, $key),     "1c90c21e227712b62019ff831f34cba22c2e70f1a902651ef69a70705ee0f754", "SHA256 hmac");
+    if (HAVE_SHA384)
+        test_value(SHA384_hmac($str, $key),     "e2c253c6dcb050990b4da3cee95cd7b227f43388fa8116f476f59395af295d0d3bb7156ab2fcd0663b0500249a7a0865", "SHA384 hmac");
+    if (HAVE_SHA512)
+       test_value(SHA512_hmac($str, $key),     "8dcefd7ea3f90ff1c822b5e9547fc36edf78c3e4ce13d47510a212a406bdda1a4094e7ea5ade90e1c736e204d331a814520eba49f3d074e2c261208de07264f6", "SHA512 hmac");
 }
 
 sub digest_tests() {
