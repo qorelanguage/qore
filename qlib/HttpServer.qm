@@ -40,9 +40,9 @@ module HttpServer {
       + updated parse_uri_query() to accept both "&" and ";" as argument separators
       + added support for the PUT and DELETE methods and for optional message bodies independent of the HTTP method
       + fixed handler matching to use a score for each handler and to check dynamic handlers also for a match if the fixed handlers don't provide a perfect match
-      + fixed response handling to not overwrite the Connection header if present from the handler
+      + fixed response handling to not overwrite the \c Connection header if present from the handler
       + fixed response handling to only return error reponses with codes >= 400
-      + implemented the AbstractHttpSocketHandler handler class to support dedicated socket connections when switching protocols in handlers
+      + implemented theAbstractHttpSocketHandler handler class to support dedicated socket connections when switching protocols in handlers
       + do not add HTML to the msg body from explicit error responses from handlers
       + improved HTTP server log messages
       + added "family" argument to HttpServer::add*Listener*() methods
@@ -130,6 +130,10 @@ module HttpServer {
 
 /** @mainpage HttpServer Module
 
+    @tableofcontents
+
+    @section httpintro HttpServer Introduction
+
     The %HttpServer module provides a multi-threaded HTTP server to Qore programs.
 
     The %HttpServer implemented here was initially designed primarily for serving RPC-style requests, however it has been extended to support REST-style services, and additionally it can also be used to serve files or other content with an appropriate handler.
@@ -151,6 +155,10 @@ module HttpServer {
     - <a href="../../RestHandler/html/index.html">RestHandler</a>: a module providing a handler framework for this module for implementing server-side REST services
     - <a href="../../WebSocketHandler/html/index.html">WebSocketHandler</a>: a module providing a handler framework for this module for implementing server-side WebSocket services
     - <a href="../../WebUtil/html/index.html">WebUtil</a>: a module providing higher-level HTTP services using this module as a base as well as providing support for dynamic template-based HTML rendering (ie rendering qhtml files which are a mix of HTML and Qore code)
+    - <a href="http://www.qore.org/manual/modules/json/current/JsonRpcHandler/html/index.html">JsonRpcHandler</a>: provides infrastructure for implementing JSON-RPC server-side services using the HttpServer module
+    - <a href="http://www.qore.org/manual/modules/yaml/current/YamlRpcHandler/html/index.html">YamlRpcHandler</a>: provides infrastructure for implementing YAML-RPC server-side services using the HttpServer module
+    - <a href="http://www.qore.org/manual/modules/xml/current/XmlRpcHandler/html/index.html">XmlRpcHandler</a>: provides infrastructure for implementing XML-RPC server-side services using the HttpServer module
+    - <a href="http://www.qore.org/manual/modules/xml/current/SoapHandler/html/index.html">SoapHandler</a>: provides infrastructure for implementing SOAP server-side services using the HttpServer module
 
     @par Example:
     @code
@@ -195,6 +203,97 @@ my hash $lh = $hs.addListener(MyHttpPort);
 # output a log message
 log("started listener on %s", $lh.desc);
     @endcode
+
+    @section http_relnotes HttpServer Module Release Notes
+
+    @subsection http037 HttpServer 0.3.7
+    - fixed a bug in parsing arguments in @ref HttpServer::parse_uri_query() "parse_uri_query()"
+    - updated @ref HttpServer::parse_uri_query() "parse_uri_query()" to accept both \c "&" and \c ";" as argument separators
+    - added support for the \c PUT and \c DELETE methods and for optional message bodies independent of the HTTP method
+    - fixed handler matching to use a score for each handler and to check dynamic handlers also for a match if the fixed handlers don't provide a perfect match
+    - fixed response handling to not overwrite the \c Connection header if present from the handler
+    - fixed response handling to only return error reponses with codes >= 400
+    - implemented the  @ref HttpServer::AbstractHttpSocketHandler "AbstractHttpSocketHandler" handler class to support dedicated socket connections when switching protocols in handlers
+    - do not add HTML to the msg body from explicit error responses from handlers
+    - improved HTTP server log messages
+    - added "family" argument to HttpServer::add*Listener*() methods
+    - turned of \c TCP_NODELAY by default and use socket shutdown when closing sockets instead
+    - set the listen backlog queue size to 100 by default (previously was hardcoded internally in %Qore to 5)
+    - use the new @ref Qore::Thread::ThreadPool "ThreadPool" class introduced in %Qore 0.8.8 to pre-allocate threads to reduce latency for new socket connections
+    - improved handler matching algorithm
+    - implemented many performance improvements
+    - implemented support for simple string path matching when finding a handler for a request
+    - added static @ref HttpServer::AbstractHttpRequestHandler::redirect() to help in generating 301 Moved Permanently messages
+
+    @subsection http036 HttpServer 0.3.6
+    - fixed a race condition in tracking active requests in dynamic HTTP handlers and removing dynamic HTTP handlers
+
+    @subsection http035 HttpServer 0.3.5
+    - fixed bugs in regexes in the @ref HttpServer::HttpServer::addListeners() "HttpServer::addListeners()" and @ref HttpServer::HttpServer::addListenersWithHandler() "HttpServer::addListenersWithHandler()" methods
+    - updated module example code in summary
+    - added \c "listener-id" to request context hash
+
+    @subsection http034 HttpServer 0.3.4
+    - added public @ref HttpServer::parse_uri_query() "parse_uri_query()" function
+
+    @subsection http033 HttpServer 0.3.3
+    - updated to a user module
+    - added support for custom redirects from user handlers
+    - use the <a href="../../Mime/html/index.html">Mime</a> module for mime definitions
+
+    @subsection http032 HttpServer 0.3.2
+    - added support for listeners with specific handler lists
+    - added the ability to manage dynamic content handlers
+    - implemented content-encoding handling flags in @ref HttpServer::AbstractHttpRequestHandler "AbstractHttpRequestHandler"
+    - implemented support for \c "identity" encoding (if anyone ever sends it)
+
+    @subsection http031 HttpServer 0.3.1
+    - added IPv6 support in qore 0.8.2
+
+    @subsection http030 HttpServer 0.3.0
+    - added the ability to start and stop listeners on demand
+
+    @subsection http029 HttpServer 0.2.9
+    - updates for new SSL and timeout behavior with with @ref Qore::Socket "Socket" class with qore 0.8.1+
+    - set socket encoding to UTF-8 by default
+    - add \c "charset=utf-8" to \c Content-Type header if not already present
+    - add \c "text/html" to \c Content-Type header if no content-type is given by the handler
+    - fixed setting X.509 certificate and private key for HTTPS listeners
+    - require qore >= 0.8.1 for new Socket features
+
+    @subsection http028 HttpServer 0.2.8
+    - converted to hard typing for use with %require-types
+    - require qore >= 0.8.0 for new @ref Qore::Socket "Socket" features
+
+    @subsection http027 HttpServer 0.2.7
+    - set \c TCP_NODELAY on all sockets to ensure that clients get all data before closing the socket, especially in case of errors
+    - require qore >= 0.7.4 for new @ref Qore::Socket "Socket" features
+
+    @subsection http026 HttpServer 0.2.6
+    - minor fixes for SOAP support
+    - improved handler matching
+
+    @subsection http025 HttpServer 0.2.5
+    - minor fixes for SOAP support
+
+    @subsection http024 HttpServer 0.2.4
+    - improved \c Content-Type handling
+    - improved URL/path support
+
+    @subsection http023 HttpServer 0.2.3
+    - bzip2 \c Content-Encoding support 
+
+    @subsection http022 HttpServer 0.2.2
+    - basic authentication
+
+    @subsection http021 HttpServer 0.2.1
+    - implementing logic to handle \c "deflate" and \c "gzip" content-encoding
+    - chunked content-encoding supported for POSTs
+    - Date: header always sent as per HTTP 1.1 spec
+
+    @subsection http020 HttpServer 0.2.0
+    - modular/multiple listener support added
+    - https support added
  */
 
 #! the main namespace for the HttpServer module
