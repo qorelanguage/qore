@@ -29,13 +29,16 @@
 %perl-bool-eval
 
 module CsvUtil {
-    version = "1.1";
+    version = "1.2";
     desc = "user module for working with CSV files";
     author = "Petr Vanek <petr@scribus.info>, David Nichols <david@qore.org>";
     url = "http://qore.org";
 }
 
 /*  Version History
+    * 2013-09-29 v1.2: David Nichols <david@qore.org>: 
+      + if "headers" are not given in the CsvUtil::CsvFileIterator::constructor() but "fields" are, then set the headers from the field descriptions automatically
+
     * 2013-06-28 v1.2: Petr Vanek <petr.vanek@qoretechnologies.com>
       + CsvFileWriter addon
 
@@ -166,7 +169,7 @@ class CsvHelper {
             $.fdesc += NOTHING;
         }
 
-        if (!$f.empty())
+        if ($f)
             throw "CSVFILEWRITER-FIELD-ERROR", sprintf("a field description was given for the following non-existent fields: %y (known header / field names: %y)", $f.keys(), $.headers);
     }
     
@@ -184,10 +187,10 @@ public namespace CsvUtil {
     public const EOL_UNIX = "\n";
     #! MS DOS/Windows end of line character sequence
     public const EOL_WIN = "\r\n";
-    #! Old Macintosh end of line character sequence
+    #! Old (pre-OSX) Macintosh end of line character sequence
     public const EOL_MACINTOSH = "\r";
 
-    # helper list if end of line values
+    # helper list of end of line values
     const EOLS = (EOL_UNIX, EOL_WIN, EOL_MACINTOSH, );
     
     #! the CsvFileIterator class allows CSV files to be iterated
@@ -206,9 +209,9 @@ public namespace CsvUtil {
 	|\c "ignore-whitespace"|@ref boolean|if @ref Qore::True "True" (the default) then leading and trailing whitespace will be stripped from non-quoted fields; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
 	|\c "header-names"|@ref boolean|if @ref Qore::True "True" then the object will parse the header names from the first header row, in this case \c "header-lines" must be &gt; 0
 	|\c "header-lines"|@ref integer|the number of headers lines in the file (must be &gt; 0 if \c "header-names" is @ref Qore::True "True")
-	|\c "headers"|@ref list of strings|list of header / column names for the data iterated, if this is present, then \c "header-names" must be @ref Qore::False "False"
+	|\c "headers"|@ref list of strings|list of header / column names for the data iterated; if this is present, then \c "header-names" must be @ref Qore::False "False"
 	|\c "verify-columns"|@ref boolean|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different column count than other lines, a \c CSVFILEITERATOR-DATA-ERROR exception is thrown
-	|\c "fields"|@ref hash|the keys are column names (or numbers in case column names are not used) and the values are either strings (one of @ref csvfileiterator_option_field_types giving the data type for the field) or a @ref csvfileiterator_option_field_hash describing the field
+	|\c "fields"|@ref hash|the keys are column names (or numbers in case column names are not used) and the values are either strings (one of @ref csvfileiterator_option_field_types giving the data type for the field) or a @ref csvfileiterator_option_field_hash describing the field; also sets \a headers; if this is present, then \c "header-names" must be @ref Qore::False "False"
 	|\c "timezone"|@ref string|the timezone to use when parsing dates (will be passed to @ref Qore::TimeZone::constructor())
 
 	@subsection csvfileiterator_option_field_types Option Field Types
@@ -249,7 +252,6 @@ public namespace CsvUtil {
 		"fields": True,
 		"timezone": True,
 		);
-
 	}
 
 	private {
@@ -361,6 +363,7 @@ public namespace CsvUtil {
 		    case "fields": {
 			if ($i.value.typeCode() != NT_HASH)
 			    throw "CSVFILEITERATOR-ERROR", sprintf("expecting a hash value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
+
 			# iterate hash to process field descriptions
 			foreach my hash $hi in ($i.value.pairIterator()) {
 			    switch ($hi.value.typeCode()) {
@@ -422,13 +425,18 @@ public namespace CsvUtil {
 			break;
 		    }
 		}
-		if ($.headers && $.fields)
-		    $.setFields();
 	    }
 	    if ($.headerNames && !$.headerLines)
 		throw "CSVFILEITERATOR-ERROR", sprintf("\"header-names\" is True but \"header-lines\" is 0; there must be at least 1 header line to get header names");
-	    if ($.headerNames && !$.headers.empty())
+	    if ($.headerNames && $.headers)
 		throw "CSVFILEITERATOR-ERROR", sprintf("\"header-names\" is True but \"headers\" has a value (%y)", $.headers);
+
+            # set headers automatically from field names if not set
+            if ($.fields && !$.headers && !$.headerNames)
+                $.headers = $.fields.keys();
+
+            if ($.headers && $.fields)
+                $.setFields();
 	}
 
 	#! Moves the current line / record position to the next line / record; returns @ref False if there are no more lines to iterate
@@ -477,7 +485,7 @@ foreach my hash $r in (new CsvFileIterator("my_file.csv")) {
 		}
 
 		# generate fake header names with index positions if no header data is already available
-		if ($b && $.headers.empty()) {
+		if ($b && !$.headers) {
 		    my list $l = $.parseLine();
 		    $.headers = ();
 		    map $.headers += string($#), $l;
@@ -700,7 +708,7 @@ while ($i.next()) {
     |\c "separator"|@ref string|the string separating the fields in the file (default: \c ",")
     |\c "quote"|@ref string|the field quote character (default: \c '\"')
     |\c "eol"|@ref string|the end of line character(s) (default: auto-detect); if the value of this key is not a string then it will be ignored
-    |\c "headers"|@ref list of strings|list of header / column names for the data iterated, if this is present, then \c "header-names" must be @ref Qore::False "False"
+    |\c "headers"|@ref list of strings|list of header / column names for the data iterated
     |\c "verify-columns"|@ref boolean|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different column count than other lines, a \c CSVFILEWRITER-DATA-ERROR exception is thrown
     |\c "date-format"|@ref string|the default mask for date values formatting
 
@@ -715,8 +723,8 @@ while ($i.next()) {
                 "eol": True,
                 "verify-columns": True,
                 "fields": True,
-                "headers" : True,
-                "date-format" : True,
+                "headers": True,
+                "date-format": True,
                 );
         }
 
