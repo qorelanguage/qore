@@ -104,13 +104,7 @@ void qore_absolute_time::getAsString(QoreString &str) const {
    qore_time_info i;
    get(i);
 
-   str.sprintf("%04d-%02d-%02d %02d:%02d:%02d", i.year, i.month, i.day, i.hour, i.minute, i.second);
-   if (us) {
-      if (us / 1000 * 1000 == us)
-	 str.sprintf(".%03d", us / 1000);
-      else
-	 str.sprintf(".%06d", us);
-   }
+   str.sprintf("%04d-%02d-%02d %02d:%02d:%02d.%06d", i.year, i.month, i.day, i.hour, i.minute, i.second, i.us);
    const char *wday = days[qore_date_info::getDayOfWeek(i.year, i.month, i.day)].abbr;
    str.sprintf(" %s ", wday);
    concatOffset(i.utcoffset, str);
