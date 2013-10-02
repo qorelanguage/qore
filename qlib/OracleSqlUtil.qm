@@ -780,8 +780,11 @@ my any $v = $c.name;
     #! represents an Oracle materialized view
     public class OracleMaterializedView inherits OracleCodeBase {
         public {
+            #! Flag if is loggign mode used
             bool logging;
+            #! Flag if is index used
             bool use_index;
+            #! Name of the potential tablespace
             *string tablespace;
         }
 
@@ -1092,6 +1095,16 @@ my any $v = $c.name;
         #! returns an iterator listing the string package names in the database
         ListIterator packageIterator() {
             return listPackages().iterator();
+        }
+
+        #! returns a list of string materialized view names in the database
+        list listMaterializedViews() {
+            return getListIntern("MATERIALIZED VIEW");
+        }
+
+        #! returns an iterator listing the string materialized view  names in the database
+        ListIterator materializedViewIterator() {
+            return listMaterializedViews().iterator();
         }
 
         private list listTablesImpl() {
