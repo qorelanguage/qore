@@ -1,7 +1,8 @@
 ************************
 Qore Library Source Code
 ************************
-The qore library is released under the GPL and LGPL.  
+The qore library is released under three open-source licenses: the GPL, LGPL, 
+and MIT license.  
 
 This has been done in order to continue to allow qore to be used in
 closed-source programs, but to allow use of third-party GPL libraries for
@@ -10,8 +11,8 @@ open-source programs using the qore library.
 The library must be initialized with a parameter indicating under which
 license the library will be used.
 
-When the library is initialized under the LGPL license, modules requiring the
-GPL license (ex: the mysql module) cannot be loaded.
+When the library is initialized under the LGPL or MIT licenses, modules
+requiring the GPL license (ex: the mysql module) cannot be loaded.
 
 Closed-source programs may not initialize the library using the GPL license,
 as this would be a violation of the GPL license which does not allow linking

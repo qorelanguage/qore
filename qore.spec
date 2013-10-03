@@ -37,7 +37,7 @@ Summary: Qore Programming Language
 Name: qore
 Version: %{qore_ver}
 Release: 1%{dist}
-License: LGPL or GPL
+License: LGPL, GPL or MIT
 Group: Development/Languages/Other
 URL: http://www.qoretechnologies.com/qore
 Source: http://prdownloads.sourceforge.net/qore/qore-%{version}.tar.bz2
@@ -103,7 +103,7 @@ functionality.
 %defattr(-,root,root,-)
 %{_libdir}/libqore.so.5.11.0
 %{_libdir}/libqore.so.5
-%doc COPYING.LGPL COPYING.GPL README README-LICENSE README-MODULES RELEASE-NOTES ChangeLog AUTHORS WHATISQORE
+%doc COPYING.LGPL COPYING.GPL COPYING.MIT README README-LICENSE README-MODULES RELEASE-NOTES ChangeLog AUTHORS WHATISQORE
 
 %post -n libqore5
 ldconfig %{_libdir}

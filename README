@@ -1,10 +1,13 @@
 Qore README
 
 author: David Nichols <david_nichols@users.sourceforge.net>
-updated: 2012-11-23
+updated: 2013-10-03
 
 This document contains some general information on the Qore language.  Please
 refer to the following files/locations for specific information:
+
+README-LICENSE:
+  read about Qore's open-source software licenses
 
 README-SVN: 
   learn how to build qore from svn sources

@@ -495,7 +495,7 @@ LANG_DOXYFILES_SRC = \
 EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
 	ChangeLog AUTHORS BUILD \
 	README README-LICENSE README-MODULES \
-	COPYING.LGPL COPYING.GPL \
+	COPYING.LGPL COPYING.GPL COPYING.MIT \
         test/thread-object-test.q \
         test/create-iso-8859-1-file.q \
         test/empty.q \

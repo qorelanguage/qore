@@ -871,13 +871,13 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
    }
 
    qore_license_t license = *module_license;
-   if (license != QL_GPL && license != QL_LGPL) {
+   if (license != QL_GPL && license != QL_LGPL && license != QL_MIT) {
       xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': invalid qore_module_license symbol (%d)", path, name, license);
       return 0;
    }
 
    if (qore_license != QL_GPL && license == QL_GPL) {
-      xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': qore library initialized with LGPL license, but module requires GPL", path, name);
+      xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': qore library initialized with non-GPL license, but module requires GPL", path, name);
       return 0;
    }
 

@@ -88,8 +88,8 @@ static const char helpstr[] =
    "  -h, --help                   shows this help text and exit\n"
    "  -i, --list-warnings          list all warnings and quit\n"
    "  -l, --load=arg               load module 'arg' immediately\n"
-   "      --lgpl                   sets the library's license flag to LGPL,\n"
-   "                               meaning that GPL modules cannot be loaded\n"
+   "      --lgpl,--mit             sets the library's license flag to LGPL or\n"
+   "                               MIT; GPL modules cannot be loaded\n"
    "  -m, --show-module-errors     shows error messages related to loading and\n"
    "                               initializing qore modules\n"
    "      --module-dir             show qore module directory and exit\n"
@@ -538,6 +538,10 @@ static void set_lgpl(const char *arg) {
    license = QL_LGPL;
 }
 
+static void set_mit(const char *arg) {
+   license = QL_MIT;
+}
+
 #define ARG_NONE 0
 #define ARG_MAND 1
 #define ARG_OPT  2
@@ -603,6 +607,7 @@ static struct opt_struct_s {
    { '\0', "no-gui",               ARG_NONE, do_no_gui },
    { '\0', "no-io",                ARG_NONE, do_no_io },
    { '\0', "lgpl",                 ARG_NONE, set_lgpl },
+   { '\0', "mit",                  ARG_NONE, set_mit },
    { '\0', "module-dir",           ARG_NONE, show_module_dir },
    { '\0', "short-version",        ARG_NONE, short_version },
    { '\0', "module-api",           ARG_NONE, show_module_api },

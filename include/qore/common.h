@@ -70,8 +70,10 @@ typedef unsigned qore_classid_t;
 typedef std::set<int> int_set_t;
 
 //! qore library and module license type identifiers
-enum qore_license_t { QL_GPL = 0,         //!< code to be used under the GPL license
-		      QL_LGPL = 1         //!< code to be used under the LGPL license
+enum qore_license_t {
+   QL_GPL = 0,         //!< code to be used under the GPL license
+   QL_LGPL = 1,        //!< code to be used under the LGPL license
+   QL_MIT = 2          //!< code to be used under the MIT license
 };
 
 #if defined _MSC_VER || ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__)
