@@ -157,13 +157,13 @@ DLLEXPORT extern const QoreStringMaker mpfrInfo;
 #define QLO_CLEANUP_MASK (QLO_DISABLE_OPENSSL_CLEANUP)
 
 //! initializes the Qore library
-/** @param license the license that the library will be used under; note that if the license type is QL_LGPL, then modules tagged with QL_GPL cannot be loaded 
+/** @param license the license that the library will be used under; note that if the license type is QL_LGPL or QL_MIT, then modules tagged with QL_GPL cannot be loaded 
     @param default_encoding the default character encoding for the library, if 0 then the environment variables QORE_CHARSET and LANG will be processed, in that order, to determine the default character encoding.  If no character encoding can be determined from either of these environment variables, UTF-8 will be used as the default.
     @param show_module_errors if true then any errors loading qore modules will be output to stdout
     @param init_options a binary "or" sum of the qore library options
     @note The openssl library is also initialized in this function.
     @note This function can only be called once and must be called before any other qore facilities are used.
-    @note The license value must be QL_LGPL unless the program using Qore is a GPL program, in which case QL_GPL may be used (the default)
+    @note The license value must be QL_LGPL or QL_MIT unless the program using Qore is a GPL program, in which case QL_GPL may be used (the default)
     @see qore_cleanup()
  */
 DLLEXPORT void qore_init(qore_license_t license = QL_GPL, const char* default_encoding = 0, bool show_module_errors = false, int init_options = QLO_NONE);
