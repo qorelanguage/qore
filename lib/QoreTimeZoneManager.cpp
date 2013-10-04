@@ -929,8 +929,9 @@ void QoreTimeZoneManager::setFromLocalTimeFile() {
         if (len > 0) {
            buf[len] = '\0';
            if (buf[0] == '.' && buf[1] == '.') {
-              std::auto_ptr<char> dn(q_dirname(LOCALTIME_LOCATION));
-              QoreString path(dn.get());
+              char* dn = q_dirname(LOCALTIME_LOCATION);
+              ON_BLOCK_EXIT(free, dn);
+              QoreString path(dn);
               path.concat('/');
               path.concat(buf);
               //printd(5, "QoreTimeZoneManager::QoreTimeZoneManager() path: '%s'\n", path.getBuffer());
