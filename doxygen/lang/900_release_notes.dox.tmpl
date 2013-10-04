@@ -162,6 +162,7 @@
     - fixed a bug where number("") was being converted to \@NaN\@n
     - fixed return type of @ref Qore::HTTPClient::getConnectionPath() "HTTPClient::getConnectionPath()"
     - fixed several bugs with logical comparison operators and arbitrary-precision numeric values where arbitrary-precision numeric values were not being prioritized as numeric values and also in some cases were being first converted to doubles and then operated on
+    - fixed a bug in the socket code where the socket close condition was not flagged with SSL connections when writes failed due to the remote end closing the connection; an error would only be raised on the following socket operation
 
     @section qore_087 Qore 0.8.7
 

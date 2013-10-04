@@ -205,7 +205,7 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
-* Sun Feb 24 2012 David Nichols <david@qore.org> 0.8.8
+* Sun Feb 24 2013 David Nichols <david@qore.org> 0.8.8
 - updated to 0.8.8
 
 * Wed Nov 21 2012 David Nichols <david@qore.org> 0.8.7
