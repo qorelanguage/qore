@@ -43,7 +43,7 @@ module WebUtil {
 %requires Util >= 1.0
 
 /*  Version History
-    * 2013-xx-xx v1.0: David Nichols <david@qore.org>
+    * 2013-10-04 v1.0: David Nichols <david@qore.org>
       + the initial version of the WebUtil module
 */
 
