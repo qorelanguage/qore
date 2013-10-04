@@ -1,3 +1,3361 @@
+2013-10-04 10:35  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  lib/QoreTimeZoneManager.cpp: fixed a mismatched delete/malloc
+	  error with time zone initialization and the localtime file
+
+2013-10-04 10:28  david_nichols
+
+	* Makefile.am: added missing qpp source file to src list
+
+2013-10-04 10:21  david_nichols
+
+	* qlib/MysqlSqlUtil.qm, qlib/OracleSqlUtil.qm,
+	  qlib/PgsqlSqlUtil.qm, qlib/RestClient.qm, qlib/RestHandler.qm,
+	  qlib/SqlUtil.qm, qlib/Util.qm, qlib/WebSocketClient.qm,
+	  qlib/WebSocketHandler.qm, qlib/WebSocketUtil.qm, qlib/WebUtil.qm:
+	  update initial release dates
+
+2013-10-04 10:16  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qore.spec: doc and
+	  release updates
+
+2013-10-04 08:29  david_nichols
+
+	* lib/QoreSocket.cpp: if the SSL connection is closed by the remote
+	  end while writing then flag the connection as closed and throw an
+	  appropriate exception so that errors can be caught when they
+	  happen instead of on the next read / write
+
+2013-10-03 17:40  david_nichols
+
+	* include/qore/Qore.h: doc updates
+
+2013-10-03 07:41  david_nichols
+
+	* COPYING.MIT, Makefile.am, README, README-LICENSE,
+	  command-line.cpp, include/qore/common.h, lib/ModuleManager.cpp,
+	  qore.spec: updated qore to reflect being released under an MIT
+	  open-source license in addition to GPL and LGPL
+
+2013-10-02 11:04  subik
+
+	* qlib/OracleSqlUtil.qm: sqlutils: standard methods for
+	  materialized views implemented; docs for OracleMaterializedView
+	  public members
+
+2013-09-30 16:01  david_nichols
+
+	* lib/qore_date_private.cpp: always output dates with the same
+	  string format for better parsing
+
+2013-09-29 16:27  david_nichols
+
+	* doxygen/lang/120_modules.dox.tmpl, qlib/HttpServer.qm: doc
+	  updates
+
+2013-09-29 10:55  david_nichols
+
+	* qlib/CsvUtil.qm: set headers automatically if fields are set and
+	  no headers option is given in the constructor (and headerLines is
+	  false)
+
+2013-09-27 09:06  david_nichols
+
+	* test/test.q: skip hstat test on windows
+
+2013-09-27 09:04  david_nichols
+
+	* test/test.q: fixed test script for openssl without SHA* hash
+	  algorithms
+
+2013-09-26 18:54  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl: updated release notes
+	  for numeric bugs fixed in last commit
+
+2013-09-26 18:53  david_nichols
+
+	* include/qore/QoreNumberNode.h,
+	  lib/QoreLogicalEqualsOperatorNode.cpp,
+	  lib/QoreLogicalGreaterThanOperatorNode.cpp,
+	  lib/QoreLogicalGreaterThanOrEqualsOperatorNode.cpp,
+	  lib/QoreLogicalLessThanOperatorNode.cpp, lib/QoreNumberNode.cpp:
+	  fixed comparisons with number values and strings (and other
+	  errors with logical numeric comparisons where they were being
+	  first converted to doubles, now native comparisons are used)
+
+2013-09-26 14:34  david_nichols
+
+	* qlib/Util.qm: do argument parsing in a sandboxed Program object
+	  with PO_LOCKDOWN set
+
+2013-09-26 04:57  david_nichols
+
+	* lib/QoreDir.cpp: fix for windows build
+
+2013-09-23 13:44  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/MysqlSqlUtil.qm,
+	  qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  added the possibility to get / group by year, year to month, year
+	  to day with SqlUtil
+
+2013-09-20 14:51  david_nichols
+
+	* qlib/HttpServer.qm: fixed HTTP argument logging in external
+	  handlers
+
+2013-09-17 15:57  subik
+
+	* qlib/SqlUtil.qm: sqlutil: comments and hints for Table class
+
+2013-09-17 14:20  david_nichols
+
+	* examples/sqlutil, qlib/OracleSqlUtil.qm: allow schema qualifiers
+	  when finding sequences, dump sequences from sqlutil
+
+2013-09-17 13:31  david_nichols
+
+	* qlib/MysqlSqlUtil.qm, qlib/OracleSqlUtil.qm,
+	  qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm: when aligning schemas and
+	  adding columns to a table with a new not null constraint and a
+	  default value and the table is not empty then update the table
+	  and set all existing rows where that column is null to the new
+	  default value
+
+2013-09-17 12:55  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/SqlUtil.qm: dropped support in
+	  OracleSqlUtil for oracle module versions < 3.0, added detection
+	  for Oracle 12c and added direct support for limit (fetch) and
+	  offset to create simpler paging queries
+
+2013-09-17 11:39  david_nichols
+
+	* qlib/MysqlSqlUtil.qm, qlib/OracleSqlUtil.qm,
+	  qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm: fixed SQL query generation
+	  order regarding order by, group by, and having, updated SqlUtil
+	  to allow orderby to accept column operators
+
+2013-09-16 13:42  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/QC_HTTPClient.qpp:
+	  fixed return type of HTTPClient::getConnectionPath()
+
+2013-09-16 13:28  david_nichols
+
+	* qlib/MysqlSqlUtil.qm, qlib/OracleSqlUtil.qm,
+	  qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm: implemented support for
+	  grouping by columns with column operators; implemented the
+	  "year_hour" operator for truncating dates to a certain hour for
+	  sorting / grouping
+
+2013-09-13 14:03  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/qore_number_private.h: fixed a bug where
+	  number("") was being converted to @NaN@n
+
+2013-09-11 16:33  david_nichols
+
+	* include/qore/QoreHTTPClient.h, lib/QoreHTTPClient.cpp: fixed
+	  QoreHTTPClient class to be ABI compatible with old xml and json
+	  modules
+
+2013-09-11 16:30  david_nichols
+
+	* qlib/SqlUtil.qm: added support for more column operators (+,-,/,
+	  and *)
+
+2013-09-11 09:53  david_nichols
+
+	* qlib/SqlUtil.qm: implemented the avg() column operator
+
+2013-09-09 13:06  subik
+
+	* include/qore/ReferenceHolder.h, qlib/MysqlSqlUtil.qm,
+	  qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  sqlutil: features() and constants for special DB features
+
+2013-09-09 06:04  david_nichols
+
+	* qlib/OracleSqlUtil.qm: added support for dblinks to OracleSqlUtil
+
+2013-09-08 20:28  david_nichols
+
+	* qlib/HttpServer.qm: updated HttpServer::getURLFromBind() to
+	  support UNIX domain sockets
+
+2013-09-08 20:14  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/HttpServer.qm:
+	  fixed starting listeners on UNIX domain sockets on Soalris in the
+	  HttpServer module
+
+2013-09-08 20:08  david_nichols
+
+	* qlib/HttpServer.qm: minor cosmetic update to exception info
+
+2013-09-08 19:26  david_nichols
+
+	* include/qore/QoreHttpClientObject.h, lib/QC_HTTPClient.qpp,
+	  lib/QoreHttpClientObject.cpp: removed more common methods from
+	  the HTTPClient class
+
+2013-09-08 19:03  david_nichols
+
+	* Makefile.am: fixed typo in new file name
+
+2013-09-08 18:58  david_nichols
+
+	* include/qore/QoreLib.h: added a define for the
+	  QoreHttpClientObject class
+
+2013-09-08 18:52  david_nichols
+
+	* lib/QC_HTTPClient.qpp: doc updates
+
+2013-09-08 18:45  david_nichols
+
+	* include/qore/QoreHttpClientObject.h, lib/QC_HTTPClient.qpp,
+	  lib/QoreHttpClientObject.cpp: removed some redundant methods from
+	  the HTTPClient class
+
+2013-09-08 15:48  david_nichols
+
+	* Makefile.am, doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/QoreHTTPClient.h,
+	  include/qore/QoreHttpClientObject.h,
+	  include/qore/QoreSocketObject.h, include/qore/intern/QC_Socket.h,
+	  include/qore/intern/QoreHttpClientObjectIntern.h,
+	  lib/Makefile.am, lib/QC_HTTPClient.qpp, lib/QC_Socket.qpp,
+	  lib/QoreHTTPClient.cpp, lib/QoreHttpClientObject.cpp,
+	  lib/QoreSocket.cpp, lib/QoreSocketObject.cpp, lib/mySocket.cpp,
+	  lib/qore-main.cpp, lib/single-compilation-unit.cpp,
+	  qlib/WebSocketClient.qm: made the HTTPClient class a subclass of
+	  the Socket class, making it easier to implement protocols based
+	  on HTTP
+	  updated the WebSocketClient class to use the HTTPClient class for
+	  connections, making it possible to connect to websocket servers
+	  over a proxy, etc
+
+2013-09-06 19:09  david_nichols
+
+	* include/qore/QoreString.h, lib/QoreHTTPClient.cpp,
+	  lib/QoreSocket.cpp, lib/QoreString.cpp, lib/QoreURL.cpp,
+	  lib/ql_misc.qpp, qlib/HttpServer.qm: added support for UNIX
+	  sockets in the HTTPClient and in parse_url() with a format like:
+	  http://socket=%2ftmp%2fsocket-file-name
+
+2013-09-04 14:08  david_nichols
+
+	* lib/parser.ypp: compile fix for Oracle Sun Studio CC
+
+2013-09-04 13:51  david_nichols
+
+	* qlib/SqlUtil.qm: aynchronized SqlUtil with trunk
+
+2013-09-03 14:04  david_nichols
+
+	* qlib/SqlUtil.qm: added support for referencing columns more than
+	  once in a where clause (ex: > col and <= col) by allowing column
+	  specifications to be prefixed by a number and a colon which is
+	  just allowed for uniqueness in the where hash and is ignored when
+	  building the where clause
+
+2013-09-03 13:47  david_nichols
+
+	* qlib/Util.qm: fixed a bug parsing text to qore values where a
+	  date anywhere in the argument would cause the argument to be
+	  parsed as a date
+
+2013-09-02 19:54  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, examples/sqlutil,
+	  qlib/HttpServer.qm, qlib/SqlUtil.qm, qlib/WebSocketClient.qm:
+	  added initial support to SqlUtil for supressing triggers, foreign
+	  constraints, and indexes when aligning and creating tables
+	  added initial (non-functional) support to the WebSocketClient
+	  module for connecting to a web socket server through a proxy
+
+2013-08-29 21:43  david_nichols
+
+	* include/qore/QoreNothingNode.h, include/qore/QoreNullNode.h,
+	  include/qore/intern/ThreadPool.h, lib/QoreNullNode.cpp: fixed a
+	  memory leak in the ThreadPool class, fixed boolean(NULL) to
+	  return False
+
+2013-08-28 17:58  david_nichols
+
+	* lib/Pseudo_QC_Int.qpp: fixed <int>::encode[ML]sb() with unsigned
+	  2 and 4 byte integers
+
+2013-08-23 07:17  david_nichols
+
+	* lib/QoreObject.cpp: minor update to currently disabled /
+	  prototyping recursive object reference functionality
+
+2013-08-22 18:18  david_nichols
+
+	* include/qore/intern/QoreObjectIntern.h, lib/QoreObject.cpp: more
+	  progress on recursive object reference handling, still disabled
+	  by default
+
+2013-08-21 20:25  david_nichols
+
+	* include/qore/QoreObject.h,
+	  include/qore/intern/QoreObjectIntern.h,
+	  include/qore/intern/Variable.h, lib/QoreObject.cpp,
+	  lib/Variable.cpp: major object circular reference progress;
+	  working algorithm for maintaining multiple recursive graphs but
+	  need to work on locking and graph lifecycle management issues,
+	  still disabled by default
+
+2013-08-19 16:21  david_nichols
+
+	* include/qore/intern/QoreObjectIntern.h, lib/QoreObject.cpp: more
+	  partial updates on object recursive reference work
+
+2013-08-19 14:56  david_nichols
+
+	* include/qore/AbstractQoreNode.h, include/qore/QoreObject.h,
+	  include/qore/QoreRWLock.h, include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/QoreObjectIntern.h,
+	  include/qore/intern/QoreValue.h, include/qore/intern/Variable.h,
+	  lib/AbstractQoreNode.cpp, lib/QoreObject.cpp, lib/Variable.cpp,
+	  scratch/memory-leak-1.q: much better and more formalized but only
+	  partially implemented recursive object reference check, still
+	  disabled by default, based on determining a cyclic directed graph
+	  of objects and handling each graph together, a node in such a
+	  graph can only be dereferenced due to recursive references if all
+	  members of the graph can be dereferenced
+
+2013-08-18 14:06  david_nichols
+
+	* include/qore/intern/QoreObjectIntern.h, qlib/MysqlSqlUtil.qm,
+	  qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  fixed an infinite recursion bug related to index retrieval in
+	  *SqlUtil, initial updates for OracleSqlUtil to work with 12c
+
+2013-08-17 11:05  david_nichols
+
+	* include/qore/intern/QoreValue.h, include/qore/intern/Variable.h,
+	  lib/Variable.cpp: better lock management for recursive object
+	  reference detection, runs with lvalue lock released with
+	  temporary referenced lvalue assignment; object iterations happen
+	  in object read locks
+
+2013-08-17 07:24  david_nichols
+
+	* test/test.q: added regression tests for floating-point formatting
+	  bugs
+
+2013-08-17 07:21  david_nichols
+
+	* include/qore/intern/QoreObjectIntern.h, lib/QoreObject.cpp,
+	  lib/Variable.cpp, scratch/memory-leak-1.q: more comprehensive
+	  recursive object reference coverage and better lock management,
+	  still not thread-safe - still disabled by default
+
+2013-08-17 06:17  david_nichols
+
+	* include/qore/AutoVLock.h, include/qore/intern/LocalVar.h,
+	  include/qore/intern/QoreClassIntern.h,
+	  include/qore/intern/Variable.h, lib/StaticClassVarRefNode.cpp,
+	  lib/VLock.cpp, lib/Variable.cpp: use read-write locks on all
+	  lvalues requiring locks for much better read scalability
+
+2013-08-16 18:29  david_nichols
+
+	* include/qore/AutoVLock.h, include/qore/QoreRWLock.h,
+	  include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/QoreObjectIntern.h,
+	  include/qore/intern/Variable.h, lib/QoreObject.cpp,
+	  lib/VLock.cpp, lib/Variable.cpp: much faster & working recursive
+	  object reference check but not totally thread safe yet (currently
+	  disabled by default), also use a read-write lock for object
+	  access giving much improved object read performance in
+	  multithreaded programs
+
+2013-08-16 13:39  subik
+
+	* Makefile.am, qlib/Qorize.qm, test/Qorize,
+	  test/Qorize/complex.xml, test/Qorize/test-qorize.q: module
+	  qorize: initial import
+
+2013-08-16 12:56  subik
+
+	* lib/ql_misc.qpp: docs: makeHexString/parseHexString cross
+	  reference
+
+2013-08-16 12:35  david_nichols
+
+	* qlib/WebUtil.qm: doc updates
+
+2013-08-16 11:19  david_nichols
+
+	* lib/QC_TimeZone.qpp, qlib/PgsqlSqlUtil.qm, qlib/WebSocketUtil.qm:
+	  doc updates
+
+2013-08-16 10:42  david_nichols
+
+	* doxygen/lang/120_modules.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl, include/qore/QoreLib.h,
+	  lib/Pseudo_QC_String.qpp, lib/QoreLib.cpp, lib/Variable.cpp: doc
+	  updates, added public/external q_mode_to_perm() c++ api
+
+2013-08-15 12:27  subik
+
+	* lib/Pseudo_QC_Bool.qpp, test/test.q: fixed #669
+	  <bool>::typeCode() returns boolean instead of NT_BOOLEAN constant
+
+2013-08-12 22:24  david_nichols
+
+	* qlib/OracleSqlUtil.qm: fixed a bug handling oracle indexes in
+	  schema upgrades
+
+2013-08-11 17:58  david_nichols
+
+	* doxygen/lang/145_basic_data_types.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl, lib/ql_crypto.qpp: doc
+	  updates
+
+2013-08-07 14:26  david_nichols
+
+	* lib/QoreLib.cpp: applied Petr's access()-based solution for
+	  is_writable() to 0.8.8-snapshot, use access() for is_readable()
+	  as well
+
+2013-08-07 13:48  subik
+
+	* configure.ac, lib/ql_file.qpp: is_writable: more complex
+	  implementation. It works fine in cases of multiple groups etc.
+
+2013-08-07 11:23  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/QoreLib.cpp: fixed a
+	  bug in *printf() formatting with floating-point and number values
+	  where no digits were displayed right of the decimal point unless
+	  a specific number of digits was specified in the format string
+
+2013-08-05 20:01  david_nichols
+
+	* include/qore/intern/QoreClassIntern.h,
+	  include/qore/intern/QoreObjectIntern.h, lib/QoreClass.cpp,
+	  lib/QoreObject.cpp, lib/Variable.cpp, scratch/memory-leak-1.q:
+	  improved recursive object reference detection algorithm; still
+	  disabled since it's still not thread safe and also makes object
+	  code > 6x slower :(
+
+2013-08-05 12:47  david_nichols
+
+	* include/qore/QoreObject.h, include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/QoreObjectIntern.h,
+	  include/qore/intern/qore_program_private.h, lib/QoreObject.cpp,
+	  lib/QoreProgram.cpp, scratch/memory-leak-1.q: removed old broken
+	  recursive object reference check code, implemented new,
+	  non-thread-safe but working recursive object reference detection
+	  code, disabled it temporarily
+
+2013-08-03 07:59  david_nichols
+
+	* qlib/WebSocketHandler.qm: fixed typo in last commit
+
+2013-08-02 16:41  david_nichols
+
+	* lib/Pseudo_QC_String.qpp, lib/unicode-charmaps.cpp: much more
+	  efficient unaccent implementation
+
+2013-08-02 10:47  david_nichols
+
+	* qlib/WebSocketHandler.qm: doc updates
+
+2013-08-02 06:34  david_nichols
+
+	* qlib/HttpServer.qm, qlib/RestHandler.qm: doc updates
+
+2013-08-01 14:03  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, examples/httpserver.q,
+	  include/qore/QoreObject.h, include/qore/intern/ClassRefNode.h,
+	  include/qore/intern/QoreClassIntern.h, lib/ClassRefNode.cpp,
+	  lib/Operator.cpp, lib/QoreObject.cpp, qlib/HttpServer.qm,
+	  qlib/WebUtil.qm: fixed a bug in the instanceof operator when
+	  working with objects and classes created from different source
+	  @ref Qore::Program "Program" objects
+	  doc updates to WebUtil and HttpServer modules
+	  added HttpServer::AbstractHttpRequestHandler::redirect()
+	  updated httpserver.q example program to use FileHandler
+
+2013-08-01 11:34  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/QoreDir.cpp: added
+	  path name to error messages in Dir class exception strings
+
+2013-08-01 11:09  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/QC_ReadOnlyFile.qpp,
+	  qlib/WebUtil.qm: added ReadOnlyFile::readTextFile() and
+	  ReadOnlyFile::readBinaryFile() static methods for easier reading
+	  of entire files with one command; major WebUtil updates to handle
+	  file-based templates and recompile automatically when the file's
+	  access time is updated
+
+2013-07-31 14:13  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl: updated release notes
+
+2013-07-31 14:12  david_nichols
+
+	* qlib/HttpServer.qm: implemented a workaround if "QorusServer" is
+	  defined to allow the default msg body encoding when no charset
+	  spec is included in the content-type to be set to an encoding
+	  other than iso-8859-1
+
+2013-07-31 11:44  david_nichols
+
+	* configure.ac: minor configure fix
+
+2013-07-31 11:32  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl: added release note for
+	  configure fix in last commit
+
+2013-07-31 11:31  david_nichols
+
+	* configure.ac: really fixed the configure error with bison >= 3
+
+2013-07-31 11:27  david_nichols
+
+	* configure.ac: compile fix for bison >= 3
+
+2013-07-29 18:07  david_nichols
+
+	* doxygen/lang/120_modules.dox.tmpl: dox updates
+
+2013-07-26 18:04  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/ReferenceNode.h,
+	  include/qore/intern/ParseReferenceNode.h,
+	  include/qore/intern/Variable.h,
+	  include/qore/intern/qore_thread_intern.h,
+	  lib/QoreUnaryMinusOperatorNode.cpp,
+	  lib/ReferenceArgumentHelper.cpp, lib/ReferenceNode.cpp,
+	  lib/Variable.cpp: fixed a bug where recursive references were
+	  allowed and memory leaks would occur due to recursive references;
+	  these are now caught at runtime and a \c REFERENCE-ERROR
+	  exception is thrown
+
+2013-07-26 12:30  david_nichols
+
+	* include/qore/intern/QoreValue.h,
+	  include/qore/intern/qore_number_private.h,
+	  lib/QoreUnaryMinusOperatorNode.cpp: fixed a static parse-time
+	  memory leak in the unary minus operator with number constants
+
+2013-07-26 11:39  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/QoreString.h, lib/Pseudo_QC_Int.qpp,
+	  lib/Pseudo_QC_String.qpp, lib/QoreString.cpp, lib/charset.cpp:
+	  added a memory check in QoreEncoding::getByteLen() for non
+	  multibyte encodings, added <string>::getUnicode() pseudo-method,
+	  made QoreString::getUnicodePoint() much more efficient
+
+2013-07-26 10:51  david_nichols
+
+	* lib/unicode-charmaps.cpp, test/test.q: simplified unicode upper
+	  mapping by generating form the reverse of the lower mapping,
+	  added regression tests for string pseudo-method enhancements:
+	  unaccent(), lwr(), and upr()
+
+2013-07-26 08:37  david_nichols
+
+	* lib/Pseudo_QC_String.qpp: fixed examples in new pseudo-methods
+
+2013-07-26 08:33  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/QoreEncoding.h, include/qore/QoreString.h,
+	  include/qore/intern/QoreLibIntern.h, lib/Makefile.am,
+	  lib/Pseudo_QC_Int.qpp, lib/Pseudo_QC_String.qpp,
+	  lib/QoreString.cpp, lib/charset.cpp, lib/ql_string.qpp,
+	  lib/qore-main.cpp, lib/single-compilation-unit.cpp,
+	  lib/unicode-charmaps.cpp: added support for <string>::unaccent()
+	  to return an equivalent string except with accented characters
+	  converted to unaccented characters; added support for a wide
+	  range of non-ASCII characters (Latin, Cyrillic, Greek, Armenian,
+	  Georgian, etc characters) with toupper(), tolower(),
+	  <string>::lwr(), and <string>::upr()
+
+2013-07-25 14:43  subik
+
+	* qlib/SqlUtil.qm: sqlutil: doc fix
+
+2013-07-25 14:33  david_nichols
+
+	* lib/QoreDir.cpp: fixed a regression in Dir::list() created in a
+	  recent commit
+
+2013-07-25 14:16  david_nichols
+
+	* qlib/WebUtil.qm: fixed inserting values into templates: NOTHING &
+	  NULL -> empty string
+
+2013-07-25 13:55  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/QC_Dir.qpp,
+	  lib/QoreDir.cpp: fixed a bug in the Dir class where it was not
+	  possible to chdir to the root directory
+
+2013-07-25 12:43  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/QoreDir.h, lib/QC_Dir.qpp, lib/QoreDir.cpp,
+	  qlib/HttpServer.qm: Qore::Dir: all list*() methods now take an
+	  optional parameter to return a list of @ref stat_hash "file
+	  status value hashes" instead of file names since in many cases
+	  the files need to be stat()ed anyway
+	  doc udpates in HttpServer module
+
+2013-07-25 10:58  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/QoreLibIntern.h, lib/Pseudo_QC_Date.qpp,
+	  lib/ql_time.qpp: added the following <date> pseudo-methods:
+	  info(), getEpochSeconds(), getEpochSecondsLocalTime()
+
+2013-07-25 09:50  david_nichols
+
+	* qlib/HttpServer.qm, qlib/RestHandler.qm: updated
+	  parse_uri_query() to return the documented value when all
+	  parameters are key/value pairs
+
+2013-07-25 08:49  david_nichols
+
+	* qlib/WebUtil.qm: render complex data structures with %y in
+	  template code
+
+2013-07-24 16:10  david_nichols
+
+	* Makefile.am, doxygen/lang/900_release_notes.dox.tmpl,
+	  qlib/HttpServer.qm, qlib/Util.qm: doc updates - moved
+	  get_exception_string() from HttpServer -> Util, reexported
+	  get_exception_string() from HttpServer for
+	  backwards-compatibility
+
+2013-07-24 15:16  david_nichols
+
+	* qlib/HttpServer.qm, qlib/WebUtil.qm: updated parse_uri_query()
+	  docs; include hdr and hdr.params in FileHandler to give header
+	  info and URI query parameters in hash format if possible in
+	  template code
+
+2013-07-24 14:06  david_nichols
+
+	* qlib/RestHandler.qm, qlib/WebUtil.qm: added docs in WebUtil,
+	  fixed error message with unimplemented methods in RestHandler
+
+2013-07-24 13:29  david_nichols
+
+	* qlib/HttpServer.qm, qlib/WebUtil.qm: added a simple directory
+	  template to the FileHandler for servigin directory contents;
+	  updated the error response in the HttpServer to wrap responses in
+	  <pre></pre> tags
+
+2013-07-24 09:59  david_nichols
+
+	* doxygen/lang/120_modules.dox.tmpl, qlib/WebUtil.qm: updated
+	  WebUtil to always use auto-rendering on templates
+
+2013-07-23 20:37  david_nichols
+
+	* Makefile.am: fixed module doc generation
+
+2013-07-23 19:47  david_nichols
+
+	* doxygen/qdx: fixed comment detection in qdx
+
+2013-07-23 17:55  david_nichols
+
+	* doxygen/lang/245_parse_directives.dox.tmpl: doc updates
+
+2013-07-23 17:22  david_nichols
+
+	* qlib/HttpServer.qm: fixed a bug in HttpServer::getURLFromBind()
+
+2013-07-23 17:12  david_nichols
+
+	* doxygen/lang/120_modules.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl, qlib/HttpServer.qm,
+	  qlib/WebUtil.qm: major updates to WebUtil; added a FileHandler
+	  class; added a AbstractUrlHandler class to HttpServer; updated
+	  docs
+
+2013-07-23 16:32  david_nichols
+
+	* include/qore/AbstractQoreNode.h, include/qore/QoreClass.h,
+	  include/qore/intern/QoreClassIntern.h: missing files for last
+	  commit
+
+2013-07-23 16:32  david_nichols
+
+	* lib/Operator.cpp, lib/QoreClass.cpp, lib/QoreHashNode.cpp,
+	  lib/VarRefNode.cpp: fixed bugs where parse exceptions could
+	  report the wrong source location:
+	  - in hash value expressions
+	  - with redeclaring local variable return types
+	  - in local variable class declaration instantiations
+
+2013-07-22 18:23  david_nichols
+
+	* qlib/WebUtil.qm: updated TemplateManager with support for
+	  returning the Content-Type as well as the rendered template
+
+2013-07-22 15:35  david_nichols
+
+	* Makefile.am, doxygen/lang/120_modules.dox.tmpl,
+	  qlib/OracleSqlUtil.qm, qlib/WebUtil.qm: Webutil fixes, doc &
+	  makefile updates
+
+2013-07-22 11:15  david_nichols
+
+	* test/test.q: added more number regression tests
+
+2013-07-22 10:01  david_nichols
+
+	* include/qore/intern/qore_number_private.h, lib/Operator.cpp,
+	  lib/Pseudo_QC_String.qpp, lib/QoreNumberNode.cpp,
+	  lib/QoreString.cpp, lib/QoreStringNode.cpp, lib/ql_string.qpp,
+	  test/test.q: fixed number rounding errors in trunk and
+	  0.8.8-snapshot, fixed regressions in trunk related to substr()
+
+2013-07-21 13:01  david_nichols
+
+	* Makefile.am, doxygen/qdx, qlib/WebSocketHandler.qm: doc updates;
+	  updated qdx to allow for multiple tag files per generated
+	  Doxyfile; more Makefile rule generators, reduced the number of
+	  manual rules further
+
+2013-07-21 08:07  david_nichols
+
+	* Makefile.am, qlib/WebUtil.qm: added initial WebUtil module;
+	  greatly simplified Makefile.am by implementing generic build
+	  rules for modules
+
+2013-07-20 12:36  david_nichols
+
+	* qlib/RestHandler.qm, qlib/WebSocketHandler.qm: doc updates;
+	  started enhancing RestHandler documentation
+
+2013-07-20 11:43  david_nichols
+
+	* Makefile.am, doxygen/qdx, qlib/HttpServer.qm,
+	  qlib/RestHandler.qm, qlib/WebSocketClient.qm,
+	  qlib/WebSocketHandler.qm: doc updates, qdx fixes: fixed abstract
+	  method handling, fixed parameter processing with literal hash
+	  default arguments (more of a workaround than a definitive fix)
+
+2013-07-20 10:15  david_nichols
+
+	* qlib/WebSocketClient.qm: set the User-Agent header automatically
+	  when making a web socket connection with the WebSocketClient
+
+2013-07-20 09:53  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/RestHandler.qm,
+	  qlib/WebSocketClient.qm, qlib/WebSocketUtil.qm: minor doc
+	  updates; fixed web socket message masking
+
+2013-07-20 05:43  david_nichols
+
+	* doxygen/lang/000_intro.dox.tmpl,
+	  doxygen/lang/120_modules.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl, lib/QC_Datasource.qpp,
+	  lib/QC_DatasourcePool.qpp, qlib/MysqlSqlUtil.qm,
+	  qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm: doc updates
+
+2013-07-19 12:21  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/BinaryNode.cpp,
+	  qlib/WebSocketClient.qm, qlib/WebSocketUtil.qm: major
+	  WebSocketClient updates, updated %y with binary arg to output
+	  yaml format
+
+2013-07-19 11:15  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/ModuleManager.cpp,
+	  lib/Pseudo_QC_Float.qpp, lib/Pseudo_QC_Int.qpp,
+	  lib/Pseudo_QC_Number.qpp, lib/ql_math.qpp, qlib/Util.qm: added
+	  ::abs() pseudo-method to <int>, <float>, and <number> type
+	  classes, slightly improved get_random_string() on Windows (ie w/o
+	  /dev/random), updated docs
+
+2013-07-19 09:44  david_nichols
+
+	* qlib/Util.qm: fixed get_random_string() to not require
+	  PO_PROCESS_CONTROL
+
+2013-07-18 21:16  david_nichols
+
+	* Makefile.am, doxygen/lang/120_modules.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl, doxygen/qdx,
+	  lib/ql_string.qpp, qlib/Util.qm, qlib/WebSocketClient.qm,
+	  qlib/WebSocketUtil.qm: added new optional arguments to replace(),
+	  added initial WebSocketClient module
+
+2013-07-17 11:19  david_nichols
+
+	* include/qore/intern/QoreValue.h: fixed a bug in the remove
+	  operator related to recent QoreValue changes
+
+2013-07-17 10:22  david_nichols
+
+	* lib/QoreStringNode.cpp: fixed the substr() issue with
+	  QoreStringNode also
+
+2013-07-17 10:18  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/QoreString.h, lib/Pseudo_QC_String.qpp,
+	  lib/QoreString.cpp, lib/ql_string.qpp: fixed a bug where substr()
+	  and <string>::substr() were returning @ref nothing if the
+	  arguments could not be satisifed contrary to the documentation
+	  and the declared return type, now an empty string is returned in
+	  those cases
+
+2013-07-16 12:34  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/QoreString.h, lib/Pseudo_QC_String.qpp,
+	  lib/QoreString.cpp, qlib/HttpServer.qm: added
+	  <string>::equalPartialPath() for more efficient path matching
+	  against a template
+
+2013-07-16 11:32  david_nichols
+
+	* doxygen/lang/145_basic_data_types.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/QoreString.h, lib/Pseudo_QC_String.qpp,
+	  lib/QC_Socket.qpp, lib/QoreString.cpp, qlib/HttpServer.qm: added
+	  <string>::comparePartial() and <string>::equalPartial()
+	  implemented support for direct path matches in the HttpServer as
+	  an alternative to regular expressions
+	  implemented several performance improvements in the HttpServer
+	  updated docs
+
+2013-07-16 08:11  david_nichols
+
+	* lib/QC_RangeIterator.qpp: fixed minor typos
+
+2013-07-15 16:52  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/MysqlSqlUtil.qm,
+	  qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  added support for over/partition by (sql window functions) for
+	  oracle and pgsql, added support for column operators for
+	  comparing two column values directly, added support for
+	  subqueries
+
+2013-07-15 16:50  david_nichols
+
+	* lib/QoreTimeZoneManager.cpp: fixed a bug where qore failed to set
+	  the time zone region correctly when set from /etc/localtime and
+	  this file is a relative symlink rather than absolute
+
+2013-07-15 13:15  david_nichols
+
+	* include/qore/intern/QoreException.h: only display the exception
+	  source line once if the starting and ending lines are the same
+
+2013-07-15 11:19  david_nichols
+
+	* include/qore/intern/QoreValue.h: fixed bugs in lvalue handling
+	  with debugging disabled
+
+2013-07-11 08:53  david_nichols
+
+	* qlib/OracleSqlUtil.qm: fixed a bug with the IN operator on Oracle
+	  with no argument
+
+2013-07-10 20:12  david_nichols
+
+	* qlib/SqlUtil.qm: doc updates
+
+2013-07-09 16:42  david_nichols
+
+	* include/qore/intern/LocalVar.h,
+	  include/qore/intern/QoreClassIntern.h,
+	  include/qore/intern/QoreValue.h, include/qore/intern/Variable.h,
+	  lib/Variable.cpp, qlib/MysqlSqlUtil.qm, qlib/OracleSqlUtil.qm,
+	  qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm: internal QoreValue
+	  optimizations, preparations for wider use of QoreValue
+	  (eventually to replace QoreBigIntNode, QoreFloatNode, and
+	  QoreBoolNode), many doc updates
+
+2013-07-08 09:14  david_nichols
+
+	* Makefile.am: fixed makefile for nwe websocketutil module
+
+2013-07-07 13:10  david_nichols
+
+	* doxygen/qdx, qlib/SqlUtil.qm: workaround in qdx for closures
+	  assigned to hash keys
+
+2013-07-06 12:44  david_nichols
+
+	* configure.ac, lib/thread.cpp: only call mpfr_free_cache if MPFR
+	  uses TLS
+
+2013-07-06 12:41  david_nichols
+
+	* qlib/SqlUtil.qm: fixed a bug in setting up/creating a table from
+	  a hash description
+
+2013-07-06 11:00  david_nichols
+
+	* doxygen/lang/120_modules.dox.tmpl, qlib/WebSocketHandler.qm,
+	  qlib/WebSocketUtil.qm: split out basic websocket protocol support
+	  from the WebSocketHandler module and put it in the new
+	  WebSocketUtil module to enable creating a websocket client module
+	  with shared code
+
+2013-07-05 11:40  david_nichols
+
+	* test/test.q: fixed test script for compiles without MDC2 in
+	  openssl
+
+2013-07-05 11:27  david_nichols
+
+	* configure.ac, doxygen/lang/220_threading.dox.tmpl,
+	  include/qore/intern/ql_crypto.h: compile fixes for openssl < 1.0
+	  (ex: with rhel5)
+
+2013-07-04 15:10  david_nichols
+
+	* lib/QoreStringNode.cpp: removed old commented-out code
+
+2013-07-04 15:02  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/QoreString.h, lib/QoreLogicalEqualsOperatorNode.cpp,
+	  lib/QoreString.cpp, lib/QoreStringNode.cpp,
+	  lib/SwitchStatement.cpp, qlib/OracleSqlUtil.qm, qlib/SqlUtil.qm:
+	  much more efficient string equality checks
+	  "hard" string comparisons now perform encoding conversions if
+	  necessary (however as usual different data types cause the
+	  comparison to fail)
+	  bug fix in oracle "in" operator implementation
+	  implement support for negating "where" operators in SqlUtil
+
+2013-07-02 17:54  david_nichols
+
+	* qlib/RestHandler.qm: minor logging update
+
+2013-07-02 10:38  david_nichols
+
+	* qlib/RestHandler.qm: don't return "OK" when REST methods return
+	  no body; just return no body
+
+2013-07-01 11:20  subik
+
+	* qlib/CsvUtil.qm, test/CsvUtil, test/CsvUtil/test.csv,
+	  test/CsvUtil/test.q: csvutil: file writer implemented
+
+2013-06-28 12:17  david_nichols
+
+	* qlib/HttpServer.qm: minor updates in getURLFromBind()
+
+2013-06-28 08:56  david_nichols
+
+	* doxygen/lang/195_statements.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl, lib/SwitchStatement.cpp:
+	  fixed the switch statement to use soft comparisons when both
+	  operands are strings in order to match strings with different
+	  encodings
+
+2013-06-28 08:39  david_nichols
+
+	* qlib/Mime.qm: added constants for css and js files + more
+	  extension -> mime type mappings
+
+2013-06-27 15:11  david_nichols
+
+	* qlib/SqlUtil.qm: removed debugging stmt
+
+2013-06-27 15:09  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, include/qore/QoreType.h,
+	  include/qore/intern/LocalVar.h,
+	  include/qore/intern/QoreTypeInfo.h,
+	  include/qore/intern/ReferenceHelper.h,
+	  include/qore/intern/Variable.h, lib/CallReferenceNode.cpp,
+	  lib/Function.cpp, lib/QoreAssignmentOperatorNode.cpp,
+	  lib/QoreTypeInfo.cpp, lib/StatementBlock.cpp, qlib/SqlUtil.qm,
+	  test/test.q: - fixed bugs handling arguments declared as type
+	  @ref reference_or_nothing_type "*reference" (reference or
+	  nothing)
+	  - fixed bugs in executing code accross @ref Qore::Program
+	  "Program" object barriers with reference arguments
+	  - implemented support for logging SQL data operations with a
+	  callback
+
+2013-06-27 12:08  david_nichols
+
+	* qlib/SqlUtil.qm: implemented support for the "having" option in
+	  SQL queries for filtering queries using aggregate functions
+
+2013-06-27 11:12  david_nichols
+
+	* qlib/SqlUtil.qm: commented out debugging line
+
+2013-06-27 11:12  david_nichols
+
+	* qlib/SqlUtil.qm: fixed argument-handling issues in SqlUtil
+
+2013-06-26 15:47  david_nichols
+
+	* qlib/PgsqlSqlUtil.qm: removed logic to update rows with the
+	  default value when changed - can implement this later with an
+	  option
+
+2013-06-26 12:48  subik
+
+	* include/qore/intern/ql_crypto.h, lib/ql_crypto.qpp, test/test.q:
+	  crypto: HMAC functions implemented
+
+2013-06-26 12:42  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/SqlUtil.qm: fixed the in operator
+	  with Oracle
+
+2013-06-25 16:30  david_nichols
+
+	* include/qore/intern/QoreClassIntern.h, lib/QoreNamespace.cpp,
+	  qlib/MysqlSqlUtil.qm, qlib/OracleSqlUtil.qm, qlib/SqlUtil.qm:
+	  updated "where" operators to use a flexible implementation that
+	  can be overridden and extended in subclasses
+
+2013-06-25 13:53  david_nichols
+
+	* qlib/SqlUtil.qm: fixed the count operator as the previous
+	  implementation allowed direct sql injections
+
+2013-06-25 13:52  david_nichols
+
+	* qlib/SqlUtil.qm: implemented "groupby" query option, fixed column
+	  operators with no column expression
+
+2013-06-25 13:20  david_nichols
+
+	* include/qore/intern/ConstantList.h, lib/ConstantList.cpp,
+	  lib/QoreClass.cpp, qlib/SqlUtil.qm: fixed flexible column
+	  operator implementation
+
+2013-06-25 12:41  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  lib/QoreDotEvalOperatorNode.cpp, qlib/MysqlSqlUtil.qm,
+	  qlib/SqlUtil.qm: fixed bugs where parse exceptions in methods
+	  calls could be reported at the wrong source location
+	  updated SqlUtil to use more flexible column operator
+	  implementation - column operator checks are now O(ln(n)) in the
+	  worst case, also driver-specific column operators can now be
+	  implemented generically
+
+2013-06-25 11:40  david_nichols
+
+	* qlib/MysqlSqlUtil.qm, qlib/SqlUtil.qm: fixed mysql sequence
+	  processing and column options
+
+2013-06-25 11:08  david_nichols
+
+	* qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm: implemented initial
+	  support for the "distinct" column operator
+	  make sure and manually update existing column values when setting
+	  a new default value for a pgsql column
+
+2013-06-21 17:42  david_nichols
+
+	* qlib/HttpServer.qm, qlib/WebSocketHandler.qm: fixed the dedicated
+	  socket handler API for the HttpServer, now when a listener is
+	  stopped, only those connections handled by the listener are
+	  stopped
+
+2013-06-21 15:29  david_nichols
+
+	* qlib/RestClient.qm: added the possibility to send customer
+	  headers with REST requests
+
+2013-06-21 12:59  david_nichols
+
+	* qlib/RestHandler.qm: correct subclass in makeResponse static
+	  method call
+
+2013-06-21 12:53  david_nichols
+
+	* lib/Pseudo_QC_Object.qpp, qlib/HttpServer.qm: minor updates from
+	  the last commit
+
+2013-06-21 12:48  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  lib/Pseudo_QC_Object.qpp, qlib/HttpServer.qm,
+	  qlib/RestHandler.qm: http improvements; include "X-Powered-By"
+	  header by default in responses, return a user-friendly 405
+	  response when an invalid HTTP method is used with a REST method
+	  that takes other methods, other minor fixes
+
+2013-06-21 11:34  david_nichols
+
+	* include/qore/intern/ThreadPool.h, lib/BinaryNode.cpp,
+	  lib/QC_ThreadPool.qpp, lib/QoreRegexNode.cpp, lib/QoreSocket.cpp,
+	  qlib/HttpServer.qm: updates for signed/unsigned comparison
+	  warnings, other minor updates
+
+2013-06-21 11:13  david_nichols
+
+	* include/qore/intern/QoreClassIntern.h, lib/Pseudo_QC_Object.qpp,
+	  lib/QoreClass.cpp, qlib/RestHandler.qm: added new object
+	  pseudo-methods to determine if methods are accessible
+
+2013-06-20 18:36  david_nichols
+
+	* qlib/HttpServer.qm: more flexible HTTP handling, allow dedicated
+	  listeners to have multiple handlers
+
+2013-06-20 15:50  david_nichols
+
+	* qlib/HttpServer.qm: non-functional changes in commented-out
+	  debugging lines
+
+2013-06-18 13:57  david_nichols
+
+	* lib/QoreSocket.cpp: set body-content-type even when no charset
+	  decl is present
+
+2013-06-17 19:58  david_nichols
+
+	* lib/QC_Socket.qpp, lib/QoreSocket.cpp, lib/QoreString.cpp,
+	  qlib/HttpServer.qm, testbed/httpd.cc: many optimizations for
+	  faster/more efficient HTTP processing, particularly server-side
+	  processing
+
+2013-06-15 17:24  david_nichols
+
+	* Makefile.am, include/qore/QoreHashNode.h,
+	  include/qore/intern/QoreHashIterator.h,
+	  include/qore/intern/QoreHashNodeIntern.h,
+	  include/qore/intern/ThreadPool.h, include/qore/qlist,
+	  lib/QoreHashNode.cpp, lib/QoreSocket.cpp, testbed/httpd.cc:
+	  completely rewritten hash node internals using std::list
+	  added qlist wrapper for std::list that maintains size, use in
+	  hash node internal implementation and in the thread pool
+	  buffered read fixes for the socket class
+
+2013-06-14 14:01  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/QoreSocket.cpp,
+	  testbed/Makefile, testbed/httpd.cc: massive socket read
+	  performance gains for HTTP methods by implementing global private
+	  read buffering - up to 10x faster read performance
+
+2013-06-14 13:09  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/SqlUtil.qm: fixed bugs in the "in"
+	  operator when the expression was empty
+
+2013-06-13 15:22  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/QoreSocket.h, include/qore/intern/QC_Socket.h,
+	  lib/QC_Socket.qpp, lib/QoreSocket.cpp, lib/mySocket.cpp,
+	  testbed/httpd.cc: Qore::Socket::getPeerInfo() and
+	  Qore::Socket::getSocketInfo() methods now take an optional
+	  argument to avoid name lookups
+	  Qore::Socket::readHTTPHeaderString(): new method
+	  http server testbed updates
+	  
+
+2013-06-13 13:19  david_nichols
+
+	* testbed/Makefile: added a makefile for the http server testbed
+
+2013-06-13 13:19  david_nichols
+
+	* qlib/WebSocketHandler.qm: commented out debugging msgs
+
+2013-06-13 11:21  david_nichols
+
+	* testbed, testbed/httpd.cc: added new c++ http testbed for
+	  performance testing
+
+2013-06-13 07:31  david_nichols
+
+	* qlib/WebSocketHandler.qm: web socket fixes - allow socket
+	  communication only in the dedicated connection thread for the web
+	  socket connection; implement better APIs to allow for more
+	  efficient sending of the same message to multiple receivers
+
+2013-06-12 14:33  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/Sequence.h, lib/QoreSocket.cpp,
+	  qlib/HttpServer.qm: minor HttpServer log improvements
+	  minor socket updates
+	  doc updates
+
+2013-06-12 08:34  subik
+
+	* lib/ql_string.qpp: regex_subst: an advanced example
+
+2013-06-10 17:19  david_nichols
+
+	* qlib/HttpServer.qm: made ThreadPool usage the default due to
+	  concrete performance benefits
+
+2013-06-10 16:48  david_nichols
+
+	* qlib/HttpServer.qm, qlib/MailMessage.qm: HttpServer: added cid to
+	  many log messages
+	  MailMessage: set message body from any explicitly-set
+	  Content-Type header when serializing with attachements as a Mime
+	  multipart msg
+
+2013-06-09 20:58  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, examples/email.q,
+	  qlib/MailMessage.qm, qlib/Mime.qm: fixed bugs in the SmtpClient
+	  and MailMessage modules where mail messages were being serialized
+	  incorrectly if there were no attachments (there was no
+	  possibility to set the content transfer encoding) and also where
+	  it was not possible to set the content-type for the message body
+	  when it was sent as a part of a multipart message
+
+2013-06-09 17:06  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/ThreadPool.h: doc udpates; added release_ms
+	  to ThreadPool::toString() output
+
+2013-06-09 16:54  david_nichols
+
+	* lib/QC_ThreadPool.qpp: thread pool doc updates
+
+2013-06-09 16:41  david_nichols
+
+	* include/qore/intern/ThreadPool.h, lib/QC_ThreadPool.qpp,
+	  lib/QoreHTTPClient.cpp: fixed release_ms handling in thread pools
+
+2013-06-09 16:14  david_nichols
+
+	* include/qore/intern/ThreadPool.h, lib/QC_ThreadPool.qpp: added a
+	  delay period to the thread pool to terminate a single idle thread
+	  for each delay period while the number of idle threads is >
+	  minindle and no tasks are added to the pool
+
+2013-06-07 11:33  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/QC_Condition.qpp:
+	  fixed a bug with Condition::wait() on Darwin with negative
+	  timeout values where a short timeout was used instead of an
+	  indefinite wait
+
+2013-06-07 11:14  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/QC_Counter.qpp,
+	  lib/QC_ThreadPool.qpp, lib/QoreCounter.cpp: added additional
+	  safety checks for the Counter class to catch common errors (bad
+	  initialization, unbalanced dec() calls)
+	  updated docs for ThreadPool
+
+2013-06-07 10:27  david_nichols
+
+	* include/qore/intern/ThreadPool.h, lib/QC_ThreadPool.qpp: added
+	  missing files; implemented task cancelation for ThreadPool tasks
+	  when the ThreadPool is shut down before the task can be executed
+
+2013-06-06 16:50  david_nichols
+
+	* Makefile.am, doxygen/lang/900_release_notes.dox.tmpl,
+	  examples/email.q, include/qore/qore_thread.h, lib/Makefile.am,
+	  lib/QoreSocket.cpp, lib/single-compilation-unit.cpp,
+	  lib/thread.cpp, qlib/HttpServer.qm, qlib/MailMessage.qm,
+	  qlib/SmtpClient.qm: added a ThreadPool class
+	  started making fixes to the MailMessage and SmtpClient modules
+	  for properly serializing mail message bodies (still more work to
+	  do)
+	  converted the HttpServer class to use the new builtin ThreadPool
+	  class for quickly allocating threads to incoming connections
+
+2013-06-05 11:43  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/QoreSocket.h, include/qore/intern/QC_Socket.h,
+	  lib/QC_Socket.qpp, lib/QoreSocket.cpp, lib/mySocket.cpp,
+	  lib/thread.cpp, qlib/HttpServer.qm: do not call mpfr_free_cache()
+	  id MPFR was not built with TLS support
+	  implemented a "backlog" argument for Socket::listen(); default
+	  changed from 5 -> 20
+
+2013-06-04 18:57  david_nichols
+
+	* qlib/HttpServer.qm: non-functional changes
+
+2013-06-04 18:11  david_nichols
+
+	* scratch/ThreadPool: added an experimental generic thread pool
+	  implementation
+
+2013-06-04 18:06  david_nichols
+
+	* qlib/HttpServer.qm: commented out debugging line
+
+2013-06-04 18:05  david_nichols
+
+	* lib/QoreSocket.cpp, qlib/HttpServer.qm: minor socket fixes,
+	  implemented a disabled simple thread pool for the HttpServer
+	  module for performance testing purposes, HttpServer performance
+	  optimizations and minor socket communication improvements
+
+2013-06-04 12:31  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/QoreQueue.h, lib/QC_Queue.qpp: added the
+	  Queue::empty() method
+
+2013-06-04 09:26  david_nichols
+
+	* qlib/HttpServer.qm: HTTP server efficiency improvements
+
+2013-06-03 18:48  david_nichols
+
+	* qlib/HttpServer.qm: updated loging with debugging enabled for
+	  dedicated socket listener errors
+
+2013-06-02 12:30  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  lib/QC_DatasourcePool.qpp, lib/inet_ntop.cpp, qlib/HttpServer.qm:
+	  implemented DatasourcePool::copy()
+	  updated logging in HttpServer, doc and warning updates
+
+2013-05-31 11:52  david_nichols
+
+	* configure.ac: do not use -O3 with mingw32 cross-compiling as it
+	  leads to segfaults, -O2 is OK
+
+2013-05-31 09:21  david_nichols
+
+	* BUILD, README-BINARIES, RELEASE-NOTES: updated docs for FreeBSD
+
+2013-05-31 09:11  david_nichols
+
+	* configure.ac: configure fixes to allow qore to compile without
+	  any flags or environment variables on FreeBSD assuming all
+	  prerequisites are installed
+
+2013-05-31 08:18  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/QoreHTTPClient.cpp,
+	  lib/QoreSocket.cpp: implemented more strict adherence to rfc 2616
+	  (HTTP 1.1) regarding message-body handling in requests and
+	  response message generation and parsing
+
+2013-05-31 07:24  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/qore_number_private.h: fixed a bug setting
+	  the precision for arbitrary-precision numbers with very large
+	  exponents (like "1e100n")
+
+2013-05-30 13:10  david_nichols
+
+	* qlib/HttpServer.qm: authentication fixes
+
+2013-05-30 12:53  david_nichols
+
+	* qlib/Util.qm: fixed a bug parsing strings to qore values
+
+2013-05-30 12:41  david_nichols
+
+	* qlib/RestClient.qm: minor error-handling fixes
+
+2013-05-30 12:03  david_nichols
+
+	* qlib/HttpServer.qm, qlib/RestHandler.qm: updated authentication
+	  infrastructure, turned off default debug header logging in rest
+	  handler
+
+2013-05-30 08:31  david_nichols
+
+	* lib/QC_Socket.qpp, lib/ql_lib.qpp, qlib/HttpServer.qm: doc
+	  updates, improved HttpServer::add*Listener*() methods
+
+2013-05-30 07:09  david_nichols
+
+	* qlib/RestHandler.qm: disabled debugging line
+
+2013-05-29 19:37  david_nichols
+
+	* configure.ac: set optimization level to -O1 on freebsd because
+	  otherwise qore segfaults when setting up signals before a fork
+	  (freebsd only)
+
+2013-05-29 16:37  david_nichols
+
+	* qlib/HttpServer.qm: cosmetic updates
+
+2013-05-29 12:15  david_nichols
+
+	* lib/QoreSocket.cpp, qlib/HttpServer.qm: added new "family"
+	  parameter to the HttpServer::addINETListeners() method to allow
+	  the address family to be specified to expicitly bind either IPv4
+	  or IPv6 addresses (useful for when ipv4-mapped address mapping is
+	  not available such as by default in FreeBSD)
+
+2013-05-29 11:15  david_nichols
+
+	* test/test.q: fixed test.q to work on all platforms (verified on
+	  freebsd)
+
+2013-05-28 15:53  david_nichols
+
+	* lib/RegexSubstNode.cpp, qlib/RestHandler.qm: minor fixes
+
+2013-05-28 15:43  david_nichols
+
+	* qlib/RestHandler.qm: fixed html serialization
+
+2013-05-28 15:07  david_nichols
+
+	* qlib/RestClient.qm, qlib/RestHandler.qm: rest handling updates
+
+2013-05-28 13:32  david_nichols
+
+	* lib/QC_HTTPClient.qpp, lib/QoreHTTPClient.cpp,
+	  qlib/HttpServer.qm, qlib/RestClient.qm, qlib/RestHandler.qm:
+	  fixed REST error handling; exceptions returned from the REST
+	  server can now be deserialized and rethrown on the client side
+
+2013-05-28 11:27  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/QoreLibIntern.h, lib/QoreHTTPClient.cpp:
+	  fixed a bug where references were not being written to the output
+	  variable if an exception was active when the code block exited
+
+2013-05-27 13:46  david_nichols
+
+	* include/qore/intern/QoreClassIntern.h, lib/QoreClass.cpp: fixed a
+	  memory leak with overridden abstract methods
+
+2013-05-27 12:59  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/QoreTypeInfo.h,
+	  include/qore/intern/QoreValue.h, lib/QoreTypeInfo.cpp,
+	  lib/Variable.cpp: fixed a bug where an invalid guard condition in
+	  critical lvalue storage code can cause unreferenced data to be
+	  returned while in a lock which can cause a crash in a
+	  multithreaded program
+
+2013-05-25 16:33  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/ModuleManager.h, include/qore/intern/ModuleInfo.h,
+	  include/qore/intern/qore_program_private.h,
+	  lib/ModuleManager.cpp, lib/QoreProgram.cpp, qlib/RestHandler.qm,
+	  qlib/SqlUtil.qm: fixed a bug managing feature/module lists in
+	  inherited Program objects; user modules were listed in the child
+	  Program object even though user module code is not imported in
+	  child Program objects
+	  SqlUtil join fixes and other cosmetic fixes
+
+2013-05-24 05:45  david_nichols
+
+	* qlib/Util.qm: fixed a bug in Util introduced in the last commit
+
+2013-05-24 05:29  david_nichols
+
+	* qlib/Util.qm: added link in docs to new function in the Util
+	  module
+
+2013-05-24 05:29  david_nichols
+
+	* qlib/Util.qm: added parse_to_qore_value() function to the Util
+	  module
+
+2013-05-23 15:43  david_nichols
+
+	* qlib/HttpServer.qm, qlib/WebSocketHandler.qm: updates to allow
+	  for more flexible handling of web socket connections
+
+2013-05-23 12:57  david_nichols
+
+	* qlib/HttpServer.qm: more loggging improvements; include handler
+	  name in log messages; log error responses consistently
+
+2013-05-23 12:15  david_nichols
+
+	* qlib/HttpServer.qm, qlib/Mime.qm: improved HTTP logging with
+	  error responses; implemented get_mime_type_from_ext() in the Mime
+	  module
+
+2013-05-23 11:31  david_nichols
+
+	* qlib/WebSocketHandler.qm: removed \n from error log msg
+
+2013-05-22 15:50  david_nichols
+
+	* qlib/HttpServer.qm: more logging updates
+
+2013-05-22 11:25  david_nichols
+
+	* qlib/HttpServer.qm: more logging improvements
+
+2013-05-22 11:05  david_nichols
+
+	* qlib/HttpServer.qm: more mimor http logging improvements
+
+2013-05-22 10:55  david_nichols
+
+	* qlib/HttpServer.qm: minor http logging improvement
+
+2013-05-22 09:05  david_nichols
+
+	* qlib/RestHandler.qm: commented out debugging line
+
+2013-05-22 08:35  david_nichols
+
+	* qlib/HttpServer.qm, qlib/Mime.qm, qlib/RestClient.qm,
+	  qlib/RestHandler.qm: minor REST, MIME, and HTTP updates
+
+2013-05-22 08:25  david_nichols
+
+	* qlib/Pop3Client.qm: Pop3Client module: uncommented the
+	  "connected" debug message; updated version to 1.2
+
+2013-05-21 16:37  david_nichols
+
+	* qlib/SqlUtil.qm: drop all unneeded indexes and constraints before
+	  aligning columns when executing table alignment
+
+2013-05-21 11:33  david_nichols
+
+	* qlib/HttpServer.qm, qlib/RestHandler.qm: HTTP logging
+	  improvements; rest fixes
+
+2013-05-21 07:15  david_nichols
+
+	* qlib/RestClient.qm, qlib/RestHandler.qm: minor rest fixes; for
+	  convenience, make sure that the msg body is reflected in the
+	  arguments if there are no uri args and the body is a hash
+
+2013-05-20 18:20  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/QoreHTTPClient.h, lib/QC_HTTPClient.qpp,
+	  lib/QoreHTTPClient.cpp, qlib/RestClient.qm: http and rest client
+	  fixes and improvements
+
+2013-05-20 14:47  david_nichols
+
+	* lib/ql_time.qpp, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm: doc
+	  updates
+
+2013-05-20 14:13  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/SqlUtil.qm: doc updates
+
+2013-05-17 15:55  david_nichols
+
+	* include/qore/intern/qore_program_private.h, lib/QoreProgram.cpp,
+	  lib/qore-main.cpp: address some race conditions with Program
+	  shutdown and clearing thread-local data
+
+2013-05-17 15:02  david_nichols
+
+	* qlib/SqlUtil.qm: fixed *Table::update() methods
+
+2013-05-17 13:02  david_nichols
+
+	* qlib/SqlUtil.qm: fixed join options for join on partition for
+	  oracle
+
+2013-05-17 12:02  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/SqlUtil.qm: implemented support for
+	  selecting from a partition and joining on a partition on oracle
+
+2013-05-17 10:54  david_nichols
+
+	* qlib/OracleSqlUtil.qm: fixed a bug handling partitioned tables in
+	  oracle
+
+2013-05-17 09:11  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/qore-main.cpp:
+	  initialize static openssl crypto locks for multi-threaded openssl
+	  library access; without this crashes can result (for example in
+	  error queue management)
+
+2013-05-16 13:17  david_nichols
+
+	* qlib/SqlUtil.qm: doc updates
+
+2013-05-16 13:13  david_nichols
+
+	* qlib/SqlUtil.qm: doc updates and minor parameter fixes
+
+2013-05-16 12:34  david_nichols
+
+	* examples/sqlutil, qlib/SqlUtil.qm: *Table::insertFrom*() and
+	  *Table::upsertFrom*() API updates; implemented commit windows;
+	  major doc updates
+
+2013-05-16 08:26  david_nichols
+
+	* examples/sqlutil, qlib/OracleSqlUtil.qm: sqlutil: allow table
+	  alignment to be performed from glob-like wildcards
+	  OracleSqlUtil: list tables available through synonyms
+
+2013-05-16 08:11  david_nichols
+
+	* qlib/OracleSqlUtil.qm: use "keep index" when dropping the primary
+	  key constraint to ensure that indexes are maintained for
+	  consistency's sake
+
+2013-05-16 04:36  david_nichols
+
+	* qlib/OracleSqlUtil.qm: fixed a bug creating column comments
+
+2013-05-15 15:01  david_nichols
+
+	* examples/sqlutil: callback updates
+
+2013-05-15 14:32  david_nichols
+
+	* examples/sqlutil, qlib/OracleSqlUtil.qm, qlib/SqlUtil.qm: fixed
+	  oracle number column handling with no precision given;
+	  implemented "UpsertAuto" as the default upsert method - if the
+	  target table is empty then UpsertInsertFirst is used, otherwise
+	  UpsertSelectFirst; added new options to sqlutil to allow for
+	  synchronizing table structures and data between databases
+
+2013-05-15 13:14  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  lib/QC_FileLineIterator.qpp, qlib/CsvUtil.qm: fixed many bugs in
+	  CsvUtil, doc updates
+
+2013-05-15 12:04  david_nichols
+
+	* include/qore/intern/QoreClassIntern.h,
+	  include/qore/intern/QoreObjectIntern.h, lib/QoreClass.cpp,
+	  lib/QoreObject.cpp: fixed a bug where private members of a common
+	  base class were not accessible by objects of subclasses sharing
+	  the common base class
+
+2013-05-15 07:02  david_nichols
+
+	* qlib/MysqlSqlUtil.qm, qlib/OracleSqlUtil.qm,
+	  qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm: made info callback
+	  programmatic / removed ok callback and merged functionality into
+	  info_callback
+
+2013-05-15 04:45  david_nichols
+
+	* qlib/SqlUtil.qm: implemented support for the "ok_callback" for
+	  feedback when nothing is changed (for long-running alignment
+	  actions)
+
+2013-05-14 17:35  david_nichols
+
+	* qlib/WebSocketHandler.qm: close the connection on socket errors
+	  in recvui instead of continuiing indefinitely
+
+2013-05-14 12:45  david_nichols
+
+	* doxygen/qdx, qlib/MysqlSqlUtil.qm, qlib/OracleSqlUtil.qm,
+	  qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm: doc updates
+
+2013-05-14 11:37  david_nichols
+
+	* qlib/MysqlSqlUtil.qm, qlib/SqlUtil.qm: doc updates; removed
+	  support for check constraints in mysql since they are not
+	  supported
+
+2013-05-14 04:45  david_nichols
+
+	* qlib/SqlUtil.qm: doc updates and minor corrections
+
+2013-05-13 19:35  david_nichols
+
+	* qlib/SqlUtil.qm: doc fixes and fixes for new insert from iterator
+	  methods
+
+2013-05-13 16:16  david_nichols
+
+	* qlib/SqlUtil.qm: implemented *Table::insertFromIterator*()
+	  methods
+
+2013-05-13 12:49  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm: doc
+	  updates, added the selectRow() method to the *Table classes
+
+2013-05-13 09:34  david_nichols
+
+	* doxygen/lang/155_data_type_declarations.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/QoreTypeInfo.h, qlib/OracleSqlUtil.qm,
+	  qlib/SqlUtil.qm: - updated "or nothing" types to map NULL ->
+	  NOTHING
+	  - SqlUtil doc updates and corrections
+
+2013-05-11 19:40  david_nichols
+
+	* qlib/MysqlSqlUtil.qm, qlib/SqlUtil.qm: mysql updates to handle
+	  auto_increment columns
+
+2013-05-11 14:34  david_nichols
+
+	* examples/schema, qlib/MysqlSqlUtil.qm, qlib/OracleSqlUtil.qm,
+	  qlib/SqlUtil.qm: minor bug fixes, doc updates, added a "pk" flag
+	  to MysqlNumericColumn as progress on supporting auto_increment
+	  columns, do not create the primary key constraint if there is an
+	  auto_increment column with the "primary key" tag (indexes and
+	  unique constraints not handled yet)
+
+2013-05-10 15:22  david_nichols
+
+	* qlib/SqlUtil.qm: commented-out debugging lines
+
+2013-05-10 14:44  david_nichols
+
+	* qlib/OracleSqlUtil.qm: fixed oracle package alignment / equality
+	  check
+
+2013-05-10 06:41  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  minor additional functionality, doc updates, and fixed 2 typos
+
+2013-05-09 15:23  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, examples/schema,
+	  lib/QC_AbstractDatasource.qpp, qlib/MysqlSqlUtil.qm: added
+	  "schema" example, implemented auto_increment handling for mysql,
+	  added getConfigString() and getConfigHash() abstract methods to
+	  AbstractDatasource
+
+2013-05-09 15:00  david_nichols
+
+	* qlib/MysqlSqlUtil.qm, qlib/OracleSqlUtil.qm,
+	  qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm: implemented sequence
+	  emulation for mysql; added a new *Datasource method:
+	  getNextSequenceValue()
+
+2013-05-08 19:36  david_nichols
+
+	* qlib/SqlUtil.qm: implemented joins on tables other than the main
+	  table
+
+2013-05-08 18:06  david_nichols
+
+	* qlib/SqlUtil.qm: implemented support for "OR" logic in where
+	  clauses
+
+2013-05-08 11:36  david_nichols
+
+	* lib/QC_Condition.qpp, qlib/SmtpClient.qm: doc updates
+
+2013-05-07 17:12  david_nichols
+
+	* qlib/SqlUtil.qm: doc updates; fixed Database::makeTable() method
+
+2013-05-07 15:36  david_nichols
+
+	* qlib/SqlUtil.qm: major doc updates; some minor new functionality
+	  in SqlUtil
+
+2013-05-07 12:41  david_nichols
+
+	* qlib/SqlUtil.qm: major doc updates; added new function for batch
+	  "upserting" + optionally deleting data that do not exist
+
+2013-05-07 06:24  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/BackquoteNode.h, lib/BackquoteNode.cpp,
+	  lib/ql_misc.qpp: added an optional reference to the backquote()
+	  function to return the return code of the program executed
+
+2013-05-06 15:56  david_nichols
+
+	* lib/ql_lib.qpp, lib/ql_misc.qpp: added cross-references to
+	  backquote() and system()
+
+2013-05-06 14:34  david_nichols
+
+	* doxygen/lang/120_modules.dox.tmpl, qlib/SqlUtil.qm: many doc
+	  updates
+
+2013-05-06 12:16  david_nichols
+
+	* include/qore/QoreSocket.h, include/qore/intern/QC_Socket.h,
+	  lib/QC_Socket.qpp, lib/QoreSocket.cpp, lib/mySocket.cpp:
+	  additional error-handling for select-based socket methods
+	  isDataAvailable() and isWriteFinished() to avoid inifinite loops
+
+2013-05-06 06:52  david_nichols
+
+	* lib/QoreSocket.cpp: check for EBADF in select response and mark
+	  the socket as closed if found
+
+2013-05-05 22:15  david_nichols
+
+	* qlib/SqlUtil.qm: more schema management and query bug fixes
+
+2013-05-05 21:45  david_nichols
+
+	* qlib/SqlUtil.qm: removed debugging stmts
+
+2013-05-05 21:44  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/SqlUtil.qm: updates to rename
+	  constraints and references when renaming tables
+
+2013-05-05 14:54  david_nichols
+
+	* qlib/SqlUtil.qm: implemented support for ensted functions with
+	  column functions; implemented support for update functions (also
+	  for nested update functions); many doc updates
+
+2013-05-05 12:41  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/QoreSocket.cpp,
+	  qlib/HttpServer.qm: fixed a bug where the wrong error was being
+	  returned after a connection reset (remote connection close) in
+	  sockets with integer recv*() methods which could in some cases
+	  lead to an infinite loop
+
+2013-05-02 20:24  david_nichols
+
+	* qlib/SqlUtil.qm: minor doc updates
+
+2013-05-02 20:06  david_nichols
+
+	* doxygen/qdx, qlib/SqlUtil.qm: more doc updates; ignore/strip html
+	  comments <!--.*--> in dox output files to allow for */ in @code
+	  blocks like *<!---->/ for example
+
+2013-05-02 12:58  david_nichols
+
+	* qlib/SqlUtil.qm: major doc updates for the SqlUtil module
+
+2013-05-01 20:15  david_nichols
+
+	* qlib/SqlUtil.qm: minor doc update
+
+2013-05-01 20:10  david_nichols
+
+	* doxygen/qdx, qlib/MysqlSqlUtil.qm, qlib/OracleSqlUtil.qm,
+	  qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm: fixed a problem parsing $#
+	  in qdx; doc updates in *SqlUtil modules
+
+2013-05-01 14:15  david_nichols
+
+	* qlib/MysqlSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  added schema support to PgsqlSqlUtil tables; fixed support for
+	  default character values in pgsql columns
+
+2013-05-01 12:29  david_nichols
+
+	* include/qore/intern/QoreClassIntern.h, lib/QoreClass.cpp: more
+	  reference fixes for abstract variant management
+
+2013-05-01 12:12  david_nichols
+
+	* lib/QoreClass.cpp: fixed a reference issue with abstract
+	  variants; abstract variants can no longer piggyback on the
+	  reference from the normal method list entry; each abstract
+	  variant must be referenced for the abstract method entry
+	  independently
+
+2013-04-30 17:32  david_nichols
+
+	* qlib/MysqlSqlUtil.qm, qlib/OracleSqlUtil.qm,
+	  qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm: updated to use better
+	  unique constraint <-> index matching to support the situation
+	  when aligning a db schema to a template and an unexpected index
+	  supports a unique constraint
+
+2013-04-30 13:43  david_nichols
+
+	* qlib/MysqlSqlUtil.qm: more mysql fixes
+
+2013-04-30 13:40  david_nichols
+
+	* qlib/MysqlSqlUtil.qm, qlib/OracleSqlUtil.qm,
+	  qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm: mysql fixes
+
+2013-04-30 12:37  david_nichols
+
+	* qlib/MysqlSqlUtil.qm, qlib/SqlUtil.qm: more mysql fixes
+
+2013-04-30 11:47  david_nichols
+
+	* qlib/MysqlSqlUtil.qm, qlib/SqlUtil.qm: mysql updates
+
+2013-04-30 05:34  david_nichols
+
+	* qlib/MysqlSqlUtil.qm: more mysql progress
+
+2013-04-29 15:24  david_nichols
+
+	* qlib/MysqlSqlUtil.qm, qlib/SqlUtil.qm: minor bug fixes
+
+2013-04-29 13:47  david_nichols
+
+	* qlib/MysqlSqlUtil.qm, qlib/OracleSqlUtil.qm,
+	  qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm: mysql updates; make sure
+	  and support explicit schemas for mysql
+
+2013-04-29 08:01  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/QoreNumberNode.h,
+	  include/qore/intern/RangeIterator.h, lib/Pseudo_QC_All.qpp,
+	  lib/Pseudo_QC_List.qpp, lib/Pseudo_QC_Nothing.qpp,
+	  lib/QoreNumberNode.cpp: added the following pseudo-methods:
+	  - <list>::rangeIterator()
+	  - <nothing>::rangeIterator()
+	  - <value>::toNumber()
+
+2013-04-29 05:11  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/RangeIterator.h, lib/QC_RangeIterator.qpp:
+	  fixed the RangeIterator class by adding a valid method
+
+2013-04-26 14:55  david_nichols
+
+	* qlib/MysqlSqlUtil.qm: type corrections
+
+2013-04-26 14:26  david_nichols
+
+	* qlib/MysqlSqlUtil.qm: more mysql progress
+
+2013-04-26 13:45  david_nichols
+
+	* qlib/MysqlSqlUtil.qm: more progress on pgsql -> mysql porting
+
+2013-04-26 09:42  david_nichols
+
+	* qlib/MysqlSqlUtil.qm: more porting from pgsql -> mysql
+
+2013-04-26 08:21  david_nichols
+
+	* Makefile.am, qlib/MysqlSqlUtil.qm: added initial prototype
+	  MysqlSqlUtil module
+
+2013-04-26 06:55  david_nichols
+
+	* qlib/SqlUtil.qm: initial partially-functional mysql SqlUtil
+	  module (only column descriptions ported so far)
+
+2013-04-26 05:50  david_nichols
+
+	* qlib/SqlUtil.qm: added select method, added optional output
+	  paramter to SQL methods to optionally return the SQL string
+	  generated
+
+2013-04-25 20:20  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm: try
+	  to automatically rename indexes and constraints when aligning
+	  schemas if identical objects are found with different names
+
+2013-04-25 15:15  david_nichols
+
+	* qlib/SqlUtil.qm: make sure and call getColumnsUnlocked() when
+	  processing the where clause for any query
+
+2013-04-25 15:08  david_nichols
+
+	* qlib/SqlUtil.qm: make sure and call describe() before trying to
+	  access a table's "column" attribute when processing join
+	  arguments
+
+2013-04-25 15:03  david_nichols
+
+	* qlib/OracleSqlUtil.qm: fixed descening orderby on Oracle
+
+2013-04-25 14:56  david_nichols
+
+	* qlib/SqlUtil.qm, qlib/WebSocketHandler.qm: commented-out debug
+	  msg
+
+2013-04-25 06:57  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm: fixed typos in
+	  pseudo-method calls
+
+2013-04-24 18:07  david_nichols
+
+	* qlib/SqlUtil.qm: added additional join verification logic; moved
+	  the order of the "alias" argument in join functions to the 2nd
+	  position
+
+2013-04-24 17:19  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/SqlUtil.qm: added working complex
+	  joins with automatic join criteria based on primary keys and
+	  foreign key constraints, supports aliases and all column and
+	  "where" functions also in the join clause (useful for left and
+	  right outer joins)
+
+2013-04-24 16:04  david_nichols
+
+	* include/qore/intern/BarewordNode.h, lib/BarewordNode.cpp,
+	  lib/parser.ypp: fixed issues where the source position was not
+	  being displayed when bare references could not be resolved
+
+2013-04-24 12:10  david_nichols
+
+	* qlib/SqlUtil.qm: fixed orderby processing in select queries
+
+2013-04-24 11:30  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/SqlUtil.qm: fixed issues with
+	  "offset" in oracle queries, implemented column operator for "as",
+	  fixed using "limit" with "orderby" in selects
+
+2013-04-23 15:13  david_nichols
+
+	* qlib/WebSocketHandler.qm: updated docs
+
+2013-04-23 10:56  david_nichols
+
+	* qlib/OracleSqlUtil.qm: make sure and set oracle columns with
+	  nullable = False if there is an enabled but not validated not
+	  null constraint on the column
+
+2013-04-23 05:09  david_nichols
+
+	* qlib/HttpServer.qm: fixed parsing uri query args when the
+	  argument exists but evaluates to false
+
+2013-04-22 16:06  david_nichols
+
+	* qlib/SqlUtil.qm: align dropPrimaryKey() functionality and docs
+	  with getDropPrimaryKeySql()
+
+2013-04-22 15:40  david_nichols
+
+	* include/qore/intern/QoreClassIntern.h, lib/Function.cpp,
+	  lib/QoreClass.cpp, qlib/OracleSqlUtil.qm, qlib/SqlUtil.qm: fixed
+	  additional out-of-order parse initialization issues
+
+2013-04-22 11:49  david_nichols
+
+	* include/qore/intern/QoreClassIntern.h, lib/QoreClass.cpp: fixed
+	  another issue with out-of-order parsing
+
+2013-04-22 09:08  david_nichols
+
+	* lib/QoreClass.cpp: fixed parse initialization order regarding
+	  finding new concrete variants in parent classes for abstract
+	  variants
+
+2013-04-22 08:19  david_nichols
+
+	* qlib/SqlUtil.qm: fixed call to drop trigger
+
+2013-04-21 18:49  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm: fixed base class
+	  method calls
+
+2013-04-21 18:02  david_nichols
+
+	* lib/QoreClass.cpp: fixed a bug related to out of order parseing
+	  when setting the parse class context when initializing class
+	  methods
+
+2013-04-21 16:10  david_nichols
+
+	* include/qore/intern/BarewordNode.h,
+	  include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/QoreNamespaceIntern.h, lib/BarewordNode.cpp,
+	  lib/QoreClass.cpp, lib/QoreException.cpp, lib/QoreLib.cpp,
+	  lib/QoreNamespace.cpp, lib/StatementBlock.cpp: resolved issues
+	  with out-of-order parse initialization of class members with
+	  closures
+
+2013-04-21 14:10  david_nichols
+
+	* qlib/HttpServer.qm: also include exception handling when calling
+	  the stop notification closure when an HTTP listener is shut down
+
+2013-04-21 13:46  david_nichols
+
+	* qlib/HttpServer.qm: handle exceptions when writting to user logs
+	  in the listener
+
+2013-04-21 10:14  david_nichols
+
+	* include/qore/intern/ForEachStatement.h,
+	  include/qore/intern/LocalVar.h,
+	  include/qore/intern/QoreObjectIntern.h,
+	  include/qore/intern/VarRefNode.h,
+	  include/qore/intern/qore_thread_intern.h, lib/Function.cpp,
+	  lib/QoreHashNode.cpp, lib/ReferenceNode.cpp, qlib/SqlUtil.qm:
+	  non-functional updates for compile warnings and debugging
+
+2013-04-20 17:28  david_nichols
+
+	* include/qore/intern/VarRefNode.h: additional assert()s for
+	  debugging
+
+2013-04-20 17:14  david_nichols
+
+	* include/qore/intern/QoreValue.h: additional assert()s to catch
+	  possible memory leaks
+
+2013-04-20 16:14  david_nichols
+
+	* include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/QoreValue.h, lib/QoreHashNode.cpp,
+	  lib/QoreSocket.cpp: minor non-functional changes, simplifying
+	  internal apis
+
+2013-04-20 14:47  david_nichols
+
+	* qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm: use common inherited code
+	  for pgsql unique constraints
+
+2013-04-20 14:05  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/QoreClass.h, include/qore/intern/Function.h,
+	  include/qore/intern/QoreClassIntern.h, lib/QoreClass.cpp: made it
+	  possible to inherit concrete versions of abstract method variants
+	  from a parent class, making it easier to share code in a complex
+	  multiple inheritance hierarchy
+
+2013-04-19 15:48  david_nichols
+
+	* include/qore/intern/Function.h, include/qore/intern/QC_File.h,
+	  include/qore/intern/QoreClassIntern.h,
+	  include/qore/intern/qore_program_private.h, lib/BinaryNode.cpp,
+	  lib/CallReferenceNode.cpp, lib/Function.cpp,
+	  lib/QC_FileLineIterator.qpp, lib/QC_Program.qpp,
+	  lib/QC_ReadOnlyFile.qpp, lib/QoreClosureNode.cpp,
+	  lib/QoreHashNode.cpp, lib/QoreListNode.cpp, lib/QoreObject.cpp,
+	  lib/QoreStringNode.cpp, lib/ReturnStatement.cpp, lib/parser.ypp:
+	  fixed most parse option issues with the last commit
+
+2013-04-19 14:26  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl: fixed typo
+
+2013-04-19 14:23  david_nichols
+
+	* include/qore/intern/Function.h,
+	  include/qore/intern/FunctionCallNode.h,
+	  include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/QoreQuestionMarkOperatorNode.h,
+	  include/qore/intern/qore_thread_intern.h,
+	  lib/AbstractStatement.cpp, lib/CallReferenceNode.cpp,
+	  lib/FunctionCallNode.cpp, lib/Operator.cpp, lib/QC_Program.qpp,
+	  lib/QoreNamespace.cpp, lib/QoreObject.cpp,
+	  lib/StatementBlock.cpp, lib/parser.ypp, lib/ql_misc.qpp,
+	  lib/thread.cpp, qlib/HttpServer.qm: fixed sandboxing / protection
+	  errors with inehrited code; subclasses inheriting code from a
+	  parent class with different parse options would cause the child
+	  parse options to be used when running the parent class code which
+	  caused errors; now parse options are enforced properly on the
+	  block level
+
+2013-04-19 12:02  david_nichols
+
+	* include/qore/intern/AbstractStatement.h, lib/Function.cpp,
+	  lib/QoreClass.cpp, lib/StatementBlock.cpp, lib/TryStatement.cpp,
+	  lib/VarRefNode.cpp: fixed more bugs where the incorrect source
+	  location could be displayed in parse errors when parsing
+	  function/method/closure arguments
+
+2013-04-19 10:39  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/parser.ypp: fixed a
+	  bug where a non-variable-reference member of an "our" variable
+	  declaration list would cause a crash due to passing the incorrect
+	  argument in sprintf()
+
+2013-04-19 10:30  subik
+
+	* qlib/RestClient.qm: rest: ereverted application/xml handling
+
+2013-04-19 10:02  subik
+
+	* qlib/RestClient.qm: rest: some servers returns XML as
+	  application/xml instead of text/xml
+
+2013-04-18 17:52  david_nichols
+
+	* qlib/SqlUtil.qm: doc updates, new methods, minor fixes, etc
+
+2013-04-18 11:09  david_nichols
+
+	* qlib/HttpServer.qm: stop dedicated socket connections in dynamic
+	  handlers when removing the dynamic handler
+
+2013-04-18 10:27  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/SqlUtil.qm: added new methods, docs,
+	  add oracle optimizer hint when selecting with a limited amount of
+	  rows
+
+2013-04-18 07:51  david_nichols
+
+	* Makefile.am, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm: implemented
+	  operators for where clauses; fixed doc building; fixed pgsql
+	  triggers
+
+2013-04-18 06:48  david_nichols
+
+	* qlib/SqlUtil.qm: starting adding support for operators in the
+	  where clause
+
+2013-04-17 17:54  david_nichols
+
+	* qlib/SqlUtil.qm: minor fixes and commented out debugging stmts
+
+2013-04-17 14:51  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  many fixes, some enhancements
+
+2013-04-17 14:43  subik
+
+	* doxygen/lang/Doxyfile.tmpl, lib/QC_FileLineIterator.qpp,
+	  lib/QC_HashIterator.qpp, lib/QC_HashKeyIterator.qpp,
+	  lib/QC_HashKeyReverseIterator.qpp, lib/QC_HashListIterator.qpp,
+	  lib/QC_HashListReverseIterator.qpp, lib/QC_HashPairIterator.qpp,
+	  lib/QC_HashPairReverseIterator.qpp,
+	  lib/QC_HashReverseIterator.qpp, lib/QC_ListHashIterator.qpp,
+	  lib/QC_ListHashReverseIterator.qpp, lib/QC_ListIterator.qpp,
+	  lib/QC_ListReverseIterator.qpp, lib/QC_ObjectIterator.qpp,
+	  lib/QC_ObjectKeyIterator.qpp,
+	  lib/QC_ObjectKeyReverseIterator.qpp,
+	  lib/QC_ObjectPairIterator.qpp,
+	  lib/QC_ObjectPairReverseIterator.qpp,
+	  lib/QC_ObjectReverseIterator.qpp, lib/QC_RangeIterator.qpp,
+	  lib/QC_SingleValueIterator.qpp: docs: doxyfile updated; basic
+	  examples for all iterators
+
+2013-04-16 17:23  david_nichols
+
+	* qlib/SqlUtil.qm: disabled debugging output
+
+2013-04-16 17:22  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  many new methods & fixes
+
+2013-04-15 14:47  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  started adding inter-table schema management infrastructure
+
+2013-04-15 11:23  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  oracle fixes and other minor fixes
+
+2013-04-15 11:22  david_nichols
+
+	* qlib/PgsqlSqlUtil.qm: really fixed foreign constraint column
+	  order - have to use original order in array value in pgsql column
+	  and not the attribute number
+
+2013-04-15 09:05  david_nichols
+
+	* qlib/PgsqlSqlUtil.qm: fixed column order when retrieving foreign
+	  constraints on pgsql
+
+2013-04-15 05:56  david_nichols
+
+	* qlib/SqlUtil.qm: fixed Table::getRowIterator() call + docs
+
+2013-04-15 05:52  david_nichols
+
+	* qlib/HttpServer.qm: commented out debugging statement
+
+2013-04-15 05:33  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  many new methods and fixes
+
+2013-04-12 20:04  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  more abstract table methods
+
+2013-04-11 19:40  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  allow setting a flag to indicate that sql_callbacks actually
+	  execute the SQL (so that changes are also effected internally),
+	  simplified abstract interface, pgsql foreign constraint fixes,
+	  fixed renaming indexes linked to constraints on dbs that forcibly
+	  link constraints and indexes (ex: pgsql)
+
+2013-04-10 17:51  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/Function.cpp,
+	  lib/ReturnStatement.cpp: fixed a bug related to out-of-order
+	  parse initialization for functions and methods which resulted in
+	  the wrong return type being returned for a method with more than
+	  1 variant where the variant could not be matched at parse time
+
+2013-04-10 13:39  david_nichols
+
+	* lib/FunctionCallNode.cpp, lib/ReturnStatement.cpp,
+	  qlib/SqlUtil.qm: misc debugging changes
+
+2013-04-10 12:38  david_nichols
+
+	* qlib/RestHandler.qm: fixed method name calculation when the
+	  action is in the msg body
+
+2013-04-10 11:16  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/qore_program_private.h,
+	  lib/ReturnStatement.cpp: fixed bugs where parse exceptions and
+	  warnings when validating types used with the return statement
+	  could be reported at the wrong source location
+
+2013-04-10 05:55  david_nichols
+
+	* qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm: drop triggers when
+	  dropping trigger functions on pgsql when aligning schemas
+
+2013-04-09 19:19  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  pgsql fixes - fixed constraint renaming, fixed upsert, etc
+
+2013-04-09 15:30  david_nichols
+
+	* qlib/OracleSqlUtil.qm: fixed callbacks for table column comments
+	  on oracle
+
+2013-04-09 15:21  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/SqlUtil.qm: implemented support for
+	  Oracle materialized views
+
+2013-04-09 13:29  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  support for dropping schemas according to a template
+
+2013-04-09 11:27  david_nichols
+
+	* qlib/SqlUtil.qm: make sure and use execRaw() instead of exec()
+	  when executing generated SQL
+
+2013-04-09 10:44  david_nichols
+
+	* qlib/SqlUtil.qm: added new *Table methods
+
+2013-04-09 07:23  david_nichols
+
+	* qlib/SqlUtil.qm: doc updates
+
+2013-04-08 19:27  david_nichols
+
+	* qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm: upsert fixes and other
+	  enhancements
+
+2013-04-08 15:30  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/Pseudo_QC_Hash.qpp,
+	  qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm, qlib/WebSocketHandler.qm:
+	  implemented <hash>::compareKeys(), implemented more generic
+	  upsert support minor doc changes
+
+2013-04-08 12:43  david_nichols
+
+	* qlib/WebSocketHandler.qm: fixed unmasking websocket messages
+	  received
+
+2013-04-08 12:14  david_nichols
+
+	* lib/QC_Socket.qpp, qlib/HttpServer.qm, qlib/WebSocketHandler.qm:
+	  WebSocket support enhancements, doc updates
+
+2013-04-07 20:55  david_nichols
+
+	* qlib/HttpServer.qm, qlib/WebSocketHandler.qm: allow the
+	  websockethandler to broadcast events to all connections
+
+2013-04-07 15:52  david_nichols
+
+	* doxygen/lang/180_operators.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/BinaryNode.h, lib/BinaryNode.cpp,
+	  lib/Pseudo_QC_Binary.qpp, lib/QoreExtractOperatorNode.cpp,
+	  lib/QoreSpliceOperatorNode.cpp, lib/ql_string.qpp,
+	  qlib/HttpServer.qm, qlib/WebSocketHandler.qm: implemented support
+	  for binary data in the splice and extract operators, implemented
+	  variants of substr() that work on binary data, implemented new
+	  <binary>::substr() pseudo-methods, fixed a deadlock in shutting
+	  down listeners with dedicated socket connections in the
+	  HttpServer module; added some support for processing close
+	  messages in the WebSocketHandler module
+
+2013-04-06 15:00  david_nichols
+
+	* Makefile.am, doxygen/lang/120_modules.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl,
+	  lib/Pseudo_QC_Binary.qpp, lib/Pseudo_QC_String.qpp,
+	  lib/QC_Socket.qpp, lib/QoreSocket.cpp, lib/ql_misc.qpp,
+	  qlib/HttpServer.qm, qlib/RestHandler.qm,
+	  qlib/WebSocketHandler.qm: - fixed bugs in the integer
+	  Socket::recv*() methods where a \c SOCKET-CLOSED exception was
+	  not thrown when the remote end closed the connection
+	  - added an initial WebSocketHandler module
+	  - updated the HttpServer module to allow for dedicated socket
+	  handlers (added the AbstractHttpSocketHandler class)
+	  - added the following pseudo-methods:
+	  - <binary>::toBase64()
+	  - <binary>::toHex()
+	  - <string>::toBase64()
+	  - <string>::toHex()
+
+2013-04-05 16:55  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/Pseudo_QC_Int.qpp:
+	  added new pseudo-methods to the <int> pseudo-class: encodeMsb()
+	  and encodeLsb()
+
+2013-04-05 15:59  david_nichols
+
+	* qlib/RestHandler.qm: fixed Accept handling (for good this time I
+	  hope!)
+
+2013-04-05 15:48  david_nichols
+
+	* qlib/Mime.qm, qlib/RestHandler.qm: fixed RestHandler Accept
+	  header handling; uses serialization preference in request order;
+	  minor update to the Mime module
+
+2013-04-05 15:01  david_nichols
+
+	* qlib/RestHandler.qm: serialize with json by default
+
+2013-04-05 08:51  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/QoreObjectIntern.h: - fixed a bug where
+	  slices could be made of objects from outside the class including
+	  private members
+	  - fixed a bug where @ref Qore::SQL::SQLStatement::memberGate()
+	  "memberGate() methods" were not being respected when taking a
+	  slice of an object
+
+2013-04-05 08:45  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  initial single-row "upsert" support
+
+2013-04-04 20:22  david_nichols
+
+	* lib/QoreRegexNode.cpp: fixed regex extract with global flag
+
+2013-04-04 14:40  david_nichols
+
+	* doxygen/lang/185_qore_regex.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/QoreRegexBase.h,
+	  include/qore/intern/QoreRegexNode.h, lib/Pseudo_QC_String.qpp,
+	  lib/QoreRegexNode.cpp, lib/RegexSubstNode.cpp, lib/ql_string.qpp,
+	  lib/scanner.lpp: implemented support for extracting all matches
+	  of a pattern in a string with the regex extraction operator,
+	  regex_extract(), and <string>::regexExtract() by setting the
+	  global flag (/g or by using RE_Global)
+
+2013-04-03 13:30  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  added new methods for dropping objects conditional on their
+	  existence, improved package support in oracle
+
+2013-04-03 12:11  david_nichols
+
+	* lib/QoreException.cpp: only output a maximum of 10 exception in
+	  the default exception handler
+
+2013-04-03 09:23  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  added support for oracle types + initial function support, doc
+	  updates
+
+2013-04-03 07:42  subik
+
+	* COPYING.GPL, COPYING.LGPL: COPYING.* files updated to the latest
+	  content (it fixes rpmlint warnings for outdated FSF address)
+
+2013-04-03 07:33  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/SqlUtil.qm: minor updates
+
+2013-04-02 15:55  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  implemented callbacks to allow for summary informtion to be
+	  logged while the schema is being updated and to allow for the sql
+	  to be executed as it is generated
+
+2013-04-02 14:50  david_nichols
+
+	* lib/Operator.cpp: implicit index operators now work with the map
+	  and select operators with lists and iterators
+
+2013-04-02 11:51  david_nichols
+
+	* qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm: implemented processing
+	  function definition when aligning schemas; implemented better
+	  heuristics for matching postgresql functions; the matching
+	  algorithm accepts a more flexible function definition syntax
+
+2013-04-02 08:50  david_nichols
+
+	* qlib/PgsqlSqlUtil.qm: added "cascade" option when generating
+	  delta SQL for pgsql types
+
+2013-04-02 08:47  david_nichols
+
+	* qlib/PgsqlSqlUtil.qm: removed debugging printf
+
+2013-04-02 08:43  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  implemented support for postgresql types including generating
+	  modification SQL for type changes
+
+2013-04-02 06:11  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/StatementBlock.cpp,
+	  lib/parser.ypp: fixed a bug where parse exceptions for empty
+	  blocks with a missing return statement would be reported at the
+	  wrong source location; now an empty StatementBlock structure is
+	  saved even with empty blocks just to store the parse location of
+	  the block
+
+2013-04-01 20:16  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  fixed makeSequence* arguments
+
+2013-04-01 20:13  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/OracleSqlUtil.qm,
+	  qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm: implement support for
+	  sequence management with oracle & pgsql
+
+2013-04-01 18:47  david_nichols
+
+	* qlib/RestHandler.qm: fixed Accept header parsing
+
+2013-04-01 18:38  david_nichols
+
+	* lib/QoreClass.cpp: fixed bugs where public members and static
+	  variables of privately-inherited classes were incorrectly treated
+	  as public attributes of the child class
+
+2013-04-01 15:34  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  fixed constraint <-> index matching when no indexes are present,
+	  added initial support for entire schema comparison from a schema
+	  description hash
+
+2013-04-01 14:21  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  implemented support for disabling constraints affected by
+	  recreating indexes and automatically re-enabling them after the
+	  index has been created
+
+2013-03-31 16:43  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  initial updated to support function indexes on oracle and pgsql
+
+2013-03-31 13:32  david_nichols
+
+	* qlib/SqlUtil.qm: when creating tables from table descriptions,
+	  set primary key and unique constraints to be based on any indexes
+	  with the same name and columns
+
+2013-03-31 12:48  david_nichols
+
+	* qlib/OracleSqlUtil.qm: fixed create + align table options for
+	  oracle
+
+2013-03-31 12:37  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm: do
+	  not drop unique indexes with the same names as primary key and
+	  unique constraints when aligning tables; instead set the index
+	  name as the base index for the constraint
+
+2013-03-31 12:29  david_nichols
+
+	* lib/FunctionCallNode.cpp: fixed a bug where parse exceptions in
+	  base class constructor arguments could be reported at the wrong
+	  source location
+
+2013-03-31 09:41  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/Function.h, lib/Function.cpp,
+	  lib/QoreClass.cpp, qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm,
+	  qlib/SqlUtil.qm: - fixed a bug where a parse-time crash would
+	  occur when calling the copy() method for a class that does not
+	  implement an explicit copy() method
+	  - fixed a bug where arguments passed to a copy method were
+	  ignored; now an exception is thrown
+
+2013-03-31 08:35  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  lib/QoreDotEvalOperatorNode.cpp: fixed a bug where a parse-time
+	  crash would occur when calling the copy() method for a class that
+	  does not implement an explicit copy() method
+
+2013-03-31 07:28  david_nichols
+
+	* qlib/PgsqlSqlUtil.qm: set tablespace names in unique and primary
+	  key constraints when matching indexes are found; do not register
+	  the indexes as they are created automatically on pgsql
+
+2013-03-30 20:38  david_nichols
+
+	* qlib/PgsqlSqlUtil.qm: retrieve unique constraints for pgsql; do
+	  not register unique indexes with the same names and columns as
+	  unique constraints since creating a unique constraint
+	  automatically creates the unique index as well
+
+2013-03-30 19:09  david_nichols
+
+	* qlib/OracleSqlUtil.qm: fixed unique constraint retrieval on
+	  oracle
+
+2013-03-30 19:02  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  implemented support for unique constraints - also in table
+	  creation from a table hash description
+
+2013-03-30 16:40  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  respect coumn option swhen creating tables based on a description
+	  hash, added support for foreign constraints in the description
+	  hash, fixed a bug in foreign constraint object creation when
+	  created based on db-analysis on oracle
+
+2013-03-30 10:53  david_nichols
+
+	* qlib/PgsqlSqlUtil.qm, scratch/schema: fixed pgsql null/not null
+	  column modifications
+
+2013-03-29 15:23  david_nichols
+
+	* qlib/SqlUtil.qm: minor doc update
+
+2013-03-29 15:16  david_nichols
+
+	* Makefile.am, doxygen/lang/120_modules.dox.tmpl,
+	  doxygen/lib/Doxyfile.tmpl, doxygen/qlib/Doxyfile.tmpl,
+	  qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm,
+	  scratch/schema: implemented support for creating tables based on
+	  a db-independent hash description, fixed SQL table alignment vs a
+	  template for pgsql regarding trigger functions, many doc updates
+
+2013-03-29 10:28  david_nichols
+
+	* Makefile.am, doxygen/lang/120_modules.dox.tmpl,
+	  qlib/PgsqlSqlUtil.qm, qlib/RestHandler.qm, scratch/schema: doc
+	  updates, added PgsqlUtil and OracleSqlUtil to doc framework
+
+2013-03-28 16:10  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  added "delta-function" support to the Database class
+
+2013-03-28 15:37  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  compare columns, indexes, all constraints, triggers, pgsql
+	  functions changed so that the name contains the arguments since
+	  pgsql functions are overloaded
+
+2013-03-28 06:20  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  when renaming columns, maintain the key order in in internal data
+	  structures, also rename columns in primary key and foreign table
+	  constraints, doc updates
+
+2013-03-27 19:01  david_nichols
+
+	* qlib/SqlUtil.qm: also lock template table when aligning tables
+
+2013-03-27 18:48  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  fixed oracle column null/not null modifications, added initial
+	  table alignment code (name & columns covered so far - missing
+	  constraints, indexes, and table comments, etc)
+
+2013-03-27 16:26  david_nichols
+
+	* qlib/PgsqlSqlUtil.qm: allow trigger functions to be created and
+	  stored against the table manually
+
+2013-03-27 15:16  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/SqlUtil.qm: fixed trigger and index
+	  creation on oracle; fixed adding indexes to a table when no
+	  indexes exist; fixed respecting SQL generation options when
+	  generating table SQL
+
+2013-03-27 14:10  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  removed disable-warning non-existent-method-call, fixed
+	  constraint renaming
+
+2013-03-27 13:56  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  updated AbstractFunction definition to allow for multiple create
+	  lines to be returned; implemented support for retrieving oracle
+	  packages
+
+2013-03-27 10:31  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  updated to allow for multiple functions/procedures to be returned
+	  with the same name (ex: pgsql overloaded functions)
+
+2013-03-27 08:45  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  started adding function and procedure retrieving (not working now
+	  for pgsql with overloaded functions)
+
+2013-03-26 18:08  david_nichols
+
+	* qlib/SqlUtil.qm: fixed adding default values
+
+2013-03-26 16:07  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  added support for Database methods to list objects
+
+2013-03-26 14:19  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  added support for renaming tables, columns, and constraints
+
+2013-03-26 13:12  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  simplified the AbstractColumn implementation, moved comments to
+	  the global definition, made subclasses for numeric types, use
+	  "size" for precision, "scale" now only in numeric subclasses
+
+2013-03-26 10:27  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  implemented support for modifying columns, fixed column comment
+	  support on oracle
+
+2013-03-25 17:50  david_nichols
+
+	* qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm: fixed locking errors in
+	  sql generation and pgsql trigger handling
+
+2013-03-25 17:36  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  greatly simplified the trigger classes; implemented add and drop
+	  trigger methods, starting adding Database infrastructure
+
+2013-03-25 15:29  david_nichols
+
+	* qlib/RestHandler.qm: a 409 Conflict error is returned if an
+	  exception occurs, also now it is possible for class handlers to
+	  encode the response message directly
+
+2013-03-25 10:56  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  added support for dynamically adding check constraints to a Table
+
+2013-03-24 21:29  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  major documentation and API updates, the SqlUtil module contains
+	  more common code to make driver-specific modules simpler and
+	  easier to write
+
+2013-03-24 16:50  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/SqlUtil.qm: added the
+	  dropConstraint() table method, made AbstractPrimaryKey a child of
+	  AbstractConstraint, added support for the "compute_statistics"
+	  index option on oracle
+
+2013-03-24 16:01  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm,
+	  qlib/Util.qm: added support for adding and dropping indexes and
+	  foreign key constraints, doc updates
+
+2013-03-24 13:32  david_nichols
+
+	* examples/rest, qlib/HttpServer.qm, qlib/RestHandler.qm: rest
+	  updates; minor update in HTTP server for more efficient
+	  accept-encoding matches
+
+2013-03-24 07:27  david_nichols
+
+	* examples/rest, examples/restserver.q, lib/QoreHTTPClient.cpp,
+	  qlib/HttpServer.qm, qlib/RestClient.qm, qlib/RestHandler.qm:
+	  fixed RestClient to not append a "/" to the path; updated
+	  RestHandler to add args and body to arg list when looking for
+	  subclasses, other minor updates
+
+2013-03-23 16:27  david_nichols
+
+	* qlib/Util.qm: doc updates
+
+2013-03-23 16:21  david_nichols
+
+	* qlib/RestClient.qm: updated RestClient docs
+
+2013-03-23 16:17  david_nichols
+
+	* qlib/RestClient.qm: made reference arguments optional in the
+	  RestClient module; added example code in the module's
+	  documentation main page
+
+2013-03-23 16:01  david_nichols
+
+	* examples/rest, qlib/RestClient.qm, qlib/RestHandler.qm:
+	  RestClient updates, added "rest" example program using the
+	  RestClient module
+
+2013-03-22 17:48  david_nichols
+
+	* Makefile.am, doxygen/lang/120_modules.dox.tmpl,
+	  qlib/RestClient.qm, qlib/RestHandler.qm, qlib/SqlUtil.qm: added
+	  RestClient module, added exception handling in RestHandler, fixed
+	  content-type in RestHandler responses
+
+2013-03-22 08:17  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  allow SQL to be retrieved when modifying tables; abstract
+	  hierarchy updates
+
+2013-03-21 17:12  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  more SqlUtil updates - added primary key functionality
+
+2013-03-21 13:48  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm: new
+	  SqlUtil functionality, more efficient interfaces (more code in
+	  SqlUtil, less in db-specific modules), Pgsql supports addColumn,
+	  insert method implemented
+
+2013-03-20 17:07  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  added additional support for more SQL operations including
+	  creating tables, adding and dropping columns, truncating tables,
+	  dropping tables, etc
+
+2013-03-20 12:42  david_nichols
+
+	* Makefile.am, lib/scanner.lpp, qlib/OracleSqlUtil.qm,
+	  qlib/SqlUtil.qm: allow find() to be used as a function/method
+	  name
+	  added find() methods to the Table and AbstractTable classes
+
+2013-03-20 10:41  david_nichols
+
+	* qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm:
+	  implemented pluggable API for SqlUtil so specific drivers can be
+	  loaded on demand
+
+2013-03-20 10:13  david_nichols
+
+	* qlib/Util.qm: converted the Util module to old style
+
+2013-03-20 09:59  david_nichols
+
+	* Makefile.am, doxygen/lang/120_modules.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl, qlib/SqlUtil.qm,
+	  qlib/Util.qm: added the Util module with some generally useful
+	  functions
+	  updated SqlUtil to use the Util module for compare_version
+	  updated docs
+
+2013-03-20 09:28  david_nichols
+
+	* lib/QoreRegexBase.cpp, lib/scanner.lpp: fixed a bug where it was
+	  impossible to output a single '\' character in regex substitution
+	  expressions; '\' was taken as an escape character, and '\\' was
+	  output literally, now '\\' is output as '\'
+
+2013-03-19 17:30  david_nichols
+
+	* examples/restserver.q, qlib/RestHandler.qm: implemented a working
+	  rest example program; fixed support for the DELETE method in the
+	  RestHandler; made it possible also to have programmatic top-level
+	  rest classes in the RestHandler
+
+2013-03-19 15:35  david_nichols
+
+	* doxygen/lang/120_modules.dox.tmpl, examples/httpserver.q,
+	  examples/restserver.q, lib/ql_misc.qpp, lib/ql_object.qpp,
+	  qlib/HttpServer.qm, qlib/RestHandler.qm, qlib/SqlUtil.qm: various
+	  documentation fixes, starting to add RestHandler docs, added
+	  initial non-functional restserver.q example
+
+2013-03-19 14:47  david_nichols
+
+	* examples/sqlutil, qlib/SqlUtil.qm: added support for pgsql
+	  trigger functions
+
+2013-03-19 10:49  david_nichols
+
+	* qlib/SqlUtil.qm: starting to add support for pgsql trigger
+	  functions
+
+2013-03-19 10:29  david_nichols
+
+	* examples/sqlutil, qlib/SqlUtil.qm: added support for postgresql
+	  triggers (currently without trigger functions)
+
+2013-03-19 09:56  david_nichols
+
+	* qlib/SqlUtil.qm: fixed oracle trigger sql generation
+
+2013-03-19 09:23  david_nichols
+
+	* qlib/SqlUtil.qm: implemented support for oracle table triggers
+
+2013-03-19 08:47  david_nichols
+
+	* qlib/SqlUtil.qm: do not retrieve system check constraints on
+	  oracle
+
+2013-03-18 14:22  david_nichols
+
+	* qlib/SqlUtil.qm: added check constraint support on oracle with
+	  oracle driver >= 3.0
+
+2013-03-17 18:22  david_nichols
+
+	* Makefile.am, qlib/SqlUtil.qm: really added the RestHandler and
+	  SqlUtil modules to Makefile, started adding support for oracle
+	  constraints
+
+2013-03-17 17:33  david_nichols
+
+	* examples/sqlutil, qlib/SqlUtil.qm: added the RestHandler and
+	  SqlUtil user modules to the Makefile for installation and
+	  documentation generation, added sqlutil example script
+
+2013-03-17 17:07  david_nichols
+
+	* qlib/SqlUtil.qm: major updates - better postgres support, support
+	  for check constraints & column comments, etc
+
+2013-03-16 18:01  david_nichols
+
+	* qlib/SqlUtil.qm: added infrastructure to generate sql for primary
+	  keys and indexes - other fixes
+
+2013-03-16 12:32  david_nichols
+
+	* qlib/SqlUtil.qm: added initial support for generate "create
+	  table" sql from Table objects
+
+2013-03-16 10:15  david_nichols
+
+	* qlib/SqlUtil.qm: retrieve comments on oracle tables and columns
+
+2013-03-16 10:03  david_nichols
+
+	* qlib/SqlUtil.qm: oracle tables work with an explicit schema name
+
+2013-03-16 07:31  david_nichols
+
+	* qlib/SqlUtil.qm: update to allow OracleTable to work with
+	  DatasourcePool objects (where there is no open() method) and to
+	  use the data_size for number columns without a precision
+
+2013-03-16 06:48  david_nichols
+
+	* qlib/SqlUtil.qm: added getSchemaName() method to OracleTable
+
+2013-03-16 06:47  david_nichols
+
+	* qlib/SqlUtil.qm: updated oracle tables to recognize and work with
+	  synonyms and store the schema owner of the table as well
+
+2013-03-14 13:40  david_nichols
+
+	* qlib/SqlUtil.qm: implemented the "native-case" option and by
+	  default all db object names are reported in lower-case to remain
+	  compatible with DB drivers (ex: column names are returned in
+	  lower case by all drivers)
+
+2013-03-14 12:53  david_nichols
+
+	* lib/QC_AbstractSmartLock.qpp: corrected example for
+	  AbstractSmartLock::lockOwner()
+
+2013-03-13 19:14  david_nichols
+
+	* Makefile.am, doxygen/lang/900_release_notes.dox.tmpl,
+	  lib/QoreSocket.cpp, qlib/RestHandler.qm: + really fixed the bug
+	  thought to be fixed in 0.8.7 "where SSL errors would cause the
+	  affected thread to go into a infinite loop using 100% CPU" - this
+	  turned out to be easily reproducible on all platforms; when the
+	  SSL connection was shut down cleanly by the remote end before a
+	  response message was returned, an infinite loop would result
+	  + fixed processing of requests without any Accept: header in the
+	  RestHandler module
+
+2013-03-13 14:55  david_nichols
+
+	* qlib/SqlUtil.qm: updated to allow for tables with no indexes or
+	  constraints
+
+2013-03-13 11:48  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/QoreNamespaceIntern.h,
+	  include/qore/intern/VarRefNode.h, lib/QoreNamespace.cpp,
+	  lib/VarRefNode.cpp: fixed a bug where parse exceptions resolving
+	  global variables could be reported at the wrong source location
+
+2013-03-12 18:07  david_nichols
+
+	* include/qore/intern/QoreClassIntern.h, lib/QoreClass.cpp,
+	  qlib/RestHandler.qm: fixed a regression with abstract method
+	  handling where it was possible under some circumstances to
+	  instantiate a class with unimplemented inherited abstract methods
+	  updated the AbstractRestClass class to have a concrete
+	  implementation of subClass() that returns NOTHING by default in
+	  the RestHandler module
+
+2013-03-11 15:11  david_nichols
+
+	* qlib/RestHandler.qm: if there is no message body then copy the
+	  URI args to the body
+
+2013-03-11 15:11  david_nichols
+
+	* qlib/HttpServer.qm: cosmetic/formatting changes
+
+2013-03-11 14:50  david_nichols
+
+	* qlib/RestHandler.qm: log headers and body received as debug
+	  messages
+
+2013-03-11 14:25  david_nichols
+
+	* qlib/RestHandler.qm: updated the RestHandler to use the action
+	  also given in any message body deserialized as a hash
+
+2013-03-11 14:22  david_nichols
+
+	* qlib/HttpServer.qm, qlib/RestHandler.qm: HttpServer: fixed
+	  handler matching to use a score for each handler and to check
+	  dynamic handlers also for a match if the fixed handlers don't
+	  provide a perfect match
+	  RestHandler: fixed deserialization of request bodies (was broken
+	  due to type errors)
+
+2013-03-11 13:10  david_nichols
+
+	* qlib/HttpServer.qm: oops- include message body when calling
+	  handlers
+
+2013-03-11 13:00  david_nichols
+
+	* qlib/HttpServer.qm: added "PUT" method
+
+2013-03-11 12:59  david_nichols
+
+	* qlib/HttpServer.qm: really implemented the PUT and DELETE methods
+	  and optional bodies for all methods
+
+2013-03-11 12:37  david_nichols
+
+	* qlib/HttpServer.qm: added support for the PUT and DELETE methods
+	  and for optional message bodies independent of the HTTP method
+
+2013-03-11 10:17  david_nichols
+
+	* qlib/RestHandler.qm: changed getSubClass() to subClass() to
+	  eliminate automatically calling that function with a URI like
+	  ...?action=subClass
+	  which would result in an error
+
+2013-03-11 09:56  david_nichols
+
+	* qlib/RestHandler.qm: updated to allow message bodies deserialized
+	  as hashes with non-GET requests to be merged with the URI
+	  parameters to support lazy clients that pass arguments in the URI
+	  with PUT & POST
+
+2013-03-11 09:38  david_nichols
+
+	* qlib/SqlUtil.qm: oracle & pgsql updates and fixes
+
+2013-03-09 21:02  david_nichols
+
+	* qlib/SqlUtil.qm: added char_size Column attribute to give the
+	  size in characters
+
+2013-03-09 20:48  david_nichols
+
+	* qlib/SqlUtil.qm: implemented the Table class wrapping the
+	  AbstractTable hierarchy
+
+2013-03-09 13:56  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/Function.h,
+	  include/qore/intern/FunctionCallNode.h,
+	  include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/VarRefNode.h, lib/Function.cpp,
+	  lib/FunctionCallNode.cpp, lib/QoreClass.cpp, lib/VarRefNode.cpp,
+	  lib/parser.ypp, lib/ql_object.qpp, lib/support.cpp: added the
+	  call_pseudo_args() function
+	  fixed a bug where the parse location was shown incorrectly for
+	  some type errors matching arguments to parameter types
+
+2013-03-09 13:55  david_nichols
+
+	* qlib/SqlUtil.qm: updated the SqlUtil class to use well-defined
+	  objects as return types; mysql and sqllite3 are commented out for
+	  now...
+
+2013-03-08 14:38  david_nichols
+
+	* qlib/RestHandler.qm: ensure that there is always a response body
+	  even if the REST method did not return one (return "OK" in case
+	  no response was returned by the REST method)
+
+2013-03-08 10:09  david_nichols
+
+	* qlib/RestHandler.qm: renamed the abstract getName() method to
+	  name() since getName() would also be called with a GET
+	  "...?action=name" request and would result in an HTTP error due
+	  to the incompatible return type
+
+2013-03-07 17:14  david_nichols
+
+	* qlib/RestHandler.qm: added a public block in the
+	  AbstractRestClass definition to catch typos in member names in
+	  derived classes
+
+2013-03-07 13:01  david_nichols
+
+	* qlib/HttpServer.qm, qlib/RestHandler.qm: fixed URI parameter
+	  parsing in RestHandler; fixed parse_uri_query() to accept both
+	  "&" and ";" as argument separators; recognize Accept: */* as
+	  meaning that all encodings in the response are accept for
+	  serializing the response body
+
+2013-03-07 11:17  david_nichols
+
+	* qlib/RestHandler.qm: updated RestHandler implementation to allow
+	  for generic class hierarchies, eliminated the AbstractRestObject
+	  class; everything is a class and now classes can be stacked in
+	  arbitrary hierarchies, corrected error handling, added message
+	  body deserialization support
+
+2013-03-07 10:27  david_nichols
+
+	* qlib/RestHandler.qm: removed code requiring an argument for a
+	  rest on a REST object
+
+2013-03-07 10:15  temnor
+
+	* qlib/RestHandler.qm: Action arg should be optional
+
+2013-03-06 18:35  david_nichols
+
+	* qlib/RestHandler.qm: fixed bug in rest call dispatching
+
+2013-03-06 16:07  david_nichols
+
+	* qlib/HttpServer.qm: minor update to argument parsing in
+	  parse_uri_query()
+
+2013-03-06 16:04  david_nichols
+
+	* qlib/RestHandler.qm: simplified argument handling for RestHandler
+
+2013-03-06 15:44  david_nichols
+
+	* qlib/RestHandler.qm: fixed dispatching with no arguments
+
+2013-03-06 15:43  david_nichols
+
+	* qlib/RestHandler.qm: updated RestHandler to support HTTP methods
+	  directly on rest class objects, no more "default action" for
+	  classes
+
+2013-03-06 13:16  david_nichols
+
+	* qlib/RestHandler.qm: implemented support default actions for REST
+	  classes
+
+2013-03-06 13:05  subik
+
+	* qlib/SqlUtil.qm: SqlUtils: table desc for sqlite3
+
+2013-03-06 13:02  david_nichols
+
+	* qlib/RestHandler.qm: made the RestHandler module easier to use to
+	  implement REST services
+
+2013-03-05 21:04  david_nichols
+
+	* qlib/RestHandler.qm: added initial RestHandler user module
+
+2013-03-05 17:11  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl: updated release notes
+
+2013-03-05 17:09  david_nichols
+
+	* qlib/HttpServer.qm: fixed a bug in parsing argument in
+	  parse_uri_query()
+
+2013-03-05 15:15  david_nichols
+
+	* qlib/CsvUtil.qm, qlib/HttpServer.qm, qlib/MailMessage.qm,
+	  qlib/Mime.qm, qlib/Pop3Client.qm, qlib/SmtpClient.qm,
+	  qlib/SqlUtil.qm, qlib/TelnetClient.qm: updated copyright
+	  statements
+
+2013-03-05 14:39  david_nichols
+
+	* qlib/SqlUtil.qm: added support for PostgreSQL table descriptions
+
+2013-03-04 16:45  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/Datasource.h, include/qore/ModuleManager.h,
+	  include/qore/intern/DatasourcePool.h, lib/Datasource.cpp,
+	  lib/DatasourcePool.cpp, lib/Makefile.am, lib/ModuleManager.cpp,
+	  lib/QC_Datasource.qpp, lib/QC_DatasourcePool.qpp, qore.spec: -
+	  new Datasource and DatasourcePool methods:
+	  - Qore::SQL::Datasource::getConfigHash()
+	  - Qore::SQL::Datasource::getConfigString()
+	  - Qore::SQL::DatasourcePool::getConfigHash()
+	  - Qore::SQL::DatasourcePool::getConfigString()
+	  - updated library API and module API
+
+2013-03-04 15:06  david_nichols
+
+	* qlib/SqlUtil.qm: added initial SqlUtil user module
+
+2013-03-04 12:35  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/QoreClass.cpp: Fixed
+	  method resolution order; it's now possible to call pseudo-methods
+	  directly on classes that implement methodGate() methods
+
+2013-03-04 12:14  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/QoreNamespaceIntern.h, lib/QoreNamespace.cpp,
+	  lib/parser.ypp: fixed a parser bug where out-of-line class method
+	  definitions could not be defined in a namespace block
+
+2013-03-04 09:50  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/QoreClassIntern.h, lib/QoreClass.cpp: fixed a
+	  bug where classes with unimplemented inherited abstract variants
+	  would sometimes cause runtime exceptions to be thrown when
+	  instantiated but should have instead been caught at parse time
+
+2013-03-02 06:25  david_nichols
+
+	* include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/QoreQuestionMarkOperatorNode.h,
+	  lib/Operator.cpp, lib/parser.ypp: fixed the new ?: operator
+	  implementation to report side effects properly at parse time
+
+2013-03-01 12:31  david_nichols
+
+	* Makefile.am, doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/QoreOperatorNode.h,
+	  include/qore/intern/QoreQuestionMarkOperatorNode.h,
+	  lib/Operator.cpp, lib/parser.ypp: fixed a bug where the ?:
+	  operator could thrown spurious exceptions when parsing because it
+	  would return the type of the initial boolean expression as the
+	  return type of the operator
+
+2013-02-27 09:32  david_nichols
+
+	* include/qore/intern/ThreadResourceList.h,
+	  include/qore/qore_thread.h, lib/ThreadResourceList.cpp,
+	  lib/thread.cpp: removed unimplemented thread resource IDs, added
+	  new check_thread_resource() API
+
+2013-02-24 21:19  david_nichols
+
+	* configure.ac, qore.spec: updated to 0.8.8
+
+2013-02-24 21:14  david_nichols
+
+	* ChangeLog, README-BINARIES: updated binary URL
+
+2013-02-24 20:40  david_nichols
+
+	* doxygen/pdox: added filters to work with tex output from older
+	  doxygen versions
+
 2013-02-24 15:29  david_nichols
 
 	* qlib/SmtpClient.qm: use get_ex_pos() to display exception info
