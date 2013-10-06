@@ -893,9 +893,9 @@ QoreHashNode *qore_httpclient_priv::send_internal(const char *meth, const char *
 	 const QoreStringNode* mess = reinterpret_cast<QoreStringNode*>(ans->getKeyValue("status_message"));
 
 	 const QoreStringNode* loc = get_string_header_node(xsink, **ans, "location");
-	 const char* location = loc && !loc->empty() ? loc->getBuffer() : 0;
 	 if (*xsink)
 	    return 0;
+	 const char* location = loc && !loc->empty() ? loc->getBuffer() : 0;
 	 if (!location) {
 	    sl.unlock();
 	    const char *msg = mess ? mess->getBuffer() : "<no message>";
