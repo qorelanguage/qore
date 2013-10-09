@@ -29,13 +29,17 @@
 %perl-bool-eval
 
 module CsvUtil {
-    version = "1.2";
+    version = "1.3";
     desc = "user module for working with CSV files";
-    author = "Petr Vanek <petr@scribus.info>, David Nichols <david@qore.org>";
+    author = "Petr Vanek <petr@yarpen.cz>, David Nichols <david@qore.org>";
     url = "http://qore.org";
 }
 
 /*  Version History
+    * 2013-10-09 v1.3: Petr Vanek <petr.vanek@qoretechnologies.com>
+      + CsvStringWriter addon
+      + AbstractCsvWriter addon
+
     * 2013-09-29 v1.2: David Nichols <david@qore.org>: 
       + if "headers" are not given in the CsvUtil::CsvFileIterator::constructor() but "fields" are, then set the headers from the field descriptions automatically
 
@@ -62,6 +66,8 @@ module CsvUtil {
     Currently the module provides the following classes:
     - @ref CsvUtil::CsvFileIterator "CsvFileIterator": iterator class allowing for CSV files to be processed line by line
     - @ref CsvUtil::CsvFileWriter "CsvFileWriter": CSV file writer
+    - @ref CsvUtil::CsvStringWriter "CsvStringWriter": CSV in memory writer
+    - @ref CsvUtil::AbstractCsvWriter "AbstractCsvWriter": a base class for new CSV writer implementations
 
     Note that the @ref CsvUtil::CsvFileIterator "CsvFileIterator" class can be used to parse arbitrary text files; the field separator character can be specified in the @ref CsvUtil::CsvFileIterator::constructor() "constructor", as well as the quote character and end of line sequence.  See the @ref CsvUtil::CsvFileIterator::constructor() "constructor documentation" for more information.
 
@@ -158,7 +164,6 @@ class CsvHelper {
 
         # make a copy of the field description hash
         my hash $f = $.fields;
-
         foreach my string $h in ($.headers) {
             if ($f.$h) {
                 # add to field description list (and remove from the field description hash)
@@ -696,13 +701,19 @@ while ($i.next()) {
     } # CsvFileIterator class
 
 
-    #! the CsvFileWriter class for easy and safe CSV file creation
+    #! the AbstractCsvWriter class provides a parent for all CSV writers
     /**
-    @section csvfilewriter_options CsvFileWriter Constructor Option Hash Overview
-    The CsvFileIterator class constructor takes an optional hash with possible keys given in the following table.
+
+    Any inherited class has to implement pure virtual (abstract) method, where should
+    be the real physical write action placed.
+
+    @code private writeRawLine(list $values) @endcode
+        
+    @section csvwiter_options AbstractCsvWriter Constructor Option Hash Overview
+    The AbstractCsvWriter class constructor takes an optional hash with possible keys given in the following table.
     Note that key names are case-sensitive, and data types are soft (conversions are made when possible).
     
-    <b>CsvFileWriter Options</b>
+    <b>AbstractCsvWriter Options</b>
     |!Option|!Data Type|!Description
     |\c "encoding"|@ref string|the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
     |\c "separator"|@ref string|the string separating the fields in the file (default: \c ",")
@@ -713,7 +724,7 @@ while ($i.next()) {
     |\c "date-format"|@ref string|the default mask for date values formatting
 
      */
-    public class CsvFileWriter inherits private CsvHelper {
+    public class AbstractCsvWriter inherits private CsvHelper {
         private {
             #! valid options for the object (a hash for quick lookups of valid keys)
             const Options = (
@@ -756,55 +767,55 @@ while ($i.next()) {
             # verify the column count for every row; if a row does not match, then throw a \c CSVFILEITERATOR-DATA-ERROR exception
             bool $.checkElementCounts = False;
 
-            # a file to write
-            File $.file;
-
             # the latest line number
             int $.lineNo = 0;
 
             # base template for value format
             string $.baseTemplate;
+            
+            string $.errname;
         }
 
-        #! creates the CsvFileWriter with the path of the file to read with an options
+        #! creates the AbstractCsvWriter
         /**
-            @param path a filename (with path)
-            @param opts @ref csvfilewriter_options
+            @param errname a string to construct child class error message. For example: value 'FOO' will result in exception names 'CSVFOOWRITER-ERROR'
+            @param opts @ref csvwiter_options
         
-            @throw CSVFILEWRITER-ERROR in the case of incorrect options
+            @throw CSV<errname>ITER-ERROR in the case of incorrect options
          */
-        constructor(string $path, *hash $opts) {
+        constructor(string $errname, *hash $opts) {
+            $.errname = sprintf("CSV%sWRITER-ERROR", $errname);
 
             # TODO/FIXME: shared with CsvFileIterator?
             foreach my hash $i in ($opts.pairIterator()) {
 
                 if (!exists Options.($i.key))
-                    throw "CSVFILEWRITER-ERROR", sprintf("unknown option %y passed to CsvFileIterator::constructor() (valid options: %y)", $i.key, Options.keys());
+                    throw $.errname, sprintf("unknown option %y passed to CsvFileIterator::constructor() (valid options: %y)", $i.key, Options.keys());
 
                 switch ($i.key) {
                     case "separator": {
                         if ($i.value.typeCode() != NT_STRING)
-                            throw "CSVFILEWRITER-ERROR", sprintf("expecting a string value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
+                            throw $.errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
                         $.separator = $i.value;
                         break;
                     }
                     case "quote": {
                         if ($i.value.typeCode() != NT_STRING)
-                            throw "CSVFILEWRITER-ERROR", sprintf("expecting a string value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
+                            throw $.errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
                         $.quote = $i.value;
                         break;
                     }
                     case "eol": {
                         if ($i.value.typeCode() != NT_STRING)
-                            throw "CSVFILEWRITER-ERROR", sprintf("expecting a string value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
+                            throw $.errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
                         if (!inlist($i.value, EOLS))
-                            throw "CSVFILEWRITER-ERROR", sprintf("expecting a known end of line value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
+                            throw $.errname, sprintf("expecting a known end of line value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
                         $.eol = $i.value;
                         break;
                     }
                     case "date-format": {
                         if ($i.value.typeCode() != NT_STRING)
-                            throw "CSVFILEWRITER-ERROR", sprintf("expecting a string value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
+                            throw $.errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
                         $.dateFormat = $i.value;
                         break;
                     }
@@ -820,36 +831,36 @@ while ($i.next()) {
                                 $.headers += $v;
                             }
                             catch (hash $ex) {
-                                throw "CSVFILEWRITER-ERROR", sprintf("expecting a string value or a value that can be converted to a string for option %y; got %y (type %s) in header list position %d instead (full arg: %y)", $i.key, $c, $c.type(), $#, $i.value);
+                                throw $.errname, sprintf("expecting a string value or a value that can be converted to a string for option %y; got %y (type %s) in header list position %d instead (full arg: %y)", $i.key, $c, $c.type(), $#, $i.value);
                             }
                         }
                         break;
                     }
                     case "fields": {
                         if ($i.value.typeCode() != NT_HASH)
-                            throw "CSVFILEWRITER-ERROR", sprintf("expecting a hash value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
+                            throw $.errname, sprintf("expecting a hash value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
                         # iterate hash to process field descriptions
                         foreach my hash $hi in ($i.value.pairIterator()) {
                             switch ($hi.value.typeCode()) {
                                 case NT_STRING: {
-                                    CsvFileWriter::checkType($hi.key, $hi.value);
+                                    AbstractCsvWriter::checkType($hi.key, $hi.value);
                                     $.fields.($hi.key) = ("type": $hi.value);
                                     break;
                                 }
                                 case NT_HASH: {
                                     if ($hi.value.empty())
-                                        throw "CSVFILEWRITER-ERROR", sprintf("while processing the hash value for option key \"fields\": empty hash passed as description for field %y", $hi.key);
+                                        throw $.errname, sprintf("while processing the hash value for option key \"fields\": empty hash passed as description for field %y", $hi.key);
                                     my hash $h;
                                     foreach my hash $fh in ($hi.value.pairIterator()) {
                                         switch ($fh.key) {
                                             case "type": {
-                                                CsvFileWriter::checkType($hi.key, $fh.value);
+                                                AbstractCsvWriter::checkType($hi.key, $fh.value);
                                                 $h.type = $fh.value;
                                                 break;
                                             }
                                             case "format": {
                                                 if ($fh.value.typeCode() != NT_STRING)
-                                                    throw "CSVFILEWRITER-ERROR", sprintf("while processing the hash value for option key \"fields\": field %y \"format\" attributes expects a string value; got %y instead", $hi.key, $fh.value.type());
+                                                    throw $.errname, sprintf("while processing the hash value for option key \"fields\": field %y \"format\" attributes expects a string value; got %y instead", $hi.key, $fh.value.type());
                                                 $h.format = $fh.value;
                                                 break;
                                             }
@@ -859,12 +870,12 @@ while ($i.next()) {
                                             }
                                             case "code": {
                                                 if (!$fh.value.callp())
-                                                    throw "CSVFILEWRITER-ERROR", sprintf("while processing the hash value for option key \"fields\": field %y \"code\" attributes expects a callable value to process the field value; got %y instead", $hi.key, $fh.value.type());
+                                                    throw $.errname, sprintf("while processing the hash value for option key \"fields\": field %y \"code\" attributes expects a callable value to process the field value; got %y instead", $hi.key, $fh.value.type());
                                                 $h.code = $fh.value;
                                                 break;
                                             }
                                             default: {
-                                                throw "CSVFILEWRITER-ERROR", sprintf("while processing the hash value for option key \"fields\": unknown field attribute value %y given for field %y (supported attribute values: %y)", $fh.key, $hi.key, FieldAttrs);
+                                                throw $.errname, sprintf("while processing the hash value for option key \"fields\": unknown field attribute value %y given for field %y (supported attribute values: %y)", $fh.key, $hi.key, FieldAttrs);
                                                 
                                             }
                                         }
@@ -874,14 +885,14 @@ while ($i.next()) {
                                     if ($h.type != "date") {
                                         foreach my string $f in ("timezone", "format") {
                                             if ($h.$f)
-                                                throw "CSVFILEWRITER-ERROR", sprintf("while processing the hash value for option key \"fields\": field %y is type %y, but the %y attribute was also given, which is only valid for \"date\" fields", $hi.key, $h.type, $f);
+                                                throw $.errname, sprintf("while processing the hash value for option key \"fields\": field %y is type %y, but the %y attribute was also given, which is only valid for \"date\" fields", $hi.key, $h.type, $f);
                                         }
                                     }
                                     $.fields.($hi.key) = $h;
                                     break;
                                 }
                                 default: {
-                                    throw "CSVFILEWRITER-ERROR", sprintf("while processing the hash value for option key \"fields\": invalid value passed as the field description for field %y; expecting \"string\" or \"hash\"; got %y instead", $i.key, $hi.value.type());
+                                    throw $.errname, sprintf("while processing the hash value for option key \"fields\": invalid value passed as the field description for field %y; expecting \"string\" or \"hash\"; got %y instead", $i.key, $hi.value.type());
                                 }
                             }
                         }
@@ -889,6 +900,7 @@ while ($i.next()) {
                         break;
                     }
                 }
+                
                 if ($.headers && $.fields) {
                     $.setFields();
                 }
@@ -896,12 +908,6 @@ while ($i.next()) {
 
             # make eg. '"%s",' template
             $.baseTemplate = sprintf("%s%%s%s%s", $.quote, $.quote, $.separator);
-
-            $.file = new File($.encoding);
-            $.file.open2($path, O_CREAT | O_TRUNC | O_WRONLY, 0644);
-            
-            if (exists $.headers)
-                $.writeRawLine($.headers);
         }
 
         #! write a line with list of values. Data are checked against column rules.
@@ -914,7 +920,7 @@ while ($i.next()) {
             $.lineNo++;
             
             if ($.checkElementCounts && $values.size() != $.headers.size())
-                throw "CSVFILEWRITER-DATA-ERROR", sprintf("Line (%d), Header size (%d) and line size (%d) is different. Enforced by 'verify-columns' option", $.lineNo, $.headers.size(), $values.size());
+                throw $.errname, sprintf("Line (%d), Header size (%d) and line size (%d) is different. Enforced by 'verify-columns' option", $.lineNo, $.headers.size(), $values.size());
 
             for(my int $i = 0; $i < $values.size(); $i++) {
 
@@ -923,22 +929,22 @@ while ($i.next()) {
                     switch ($.fdesc[$i].type) {
                         case "int": {
                             if (int($values[$i]) != $values[$i])
-                                throw "CSVFILEWRITER-DATA-ERROR", sprintf("Line (%d), Column (%d) does not contain integer value %n vs %n", $.lineNo, $i, int($values[$i]), $values[$i]);
+                                throw $.errname, sprintf("Line (%d), Column (%d) does not contain integer value %n vs %n", $.lineNo, $i, int($values[$i]), $values[$i]);
                             break;
                         }
                         case "float": {
                             if (float($values[$i]) != $values[$i])
-                                throw "CSVFILEWRITER-DATA-ERROR", sprintf("Line (%d), Column (%d) does not contain float value %n vs %n", $.lineNo, $i, float($values[$i]), $values[$i]);
+                                throw $.errname, sprintf("Line (%d), Column (%d) does not contain float value %n vs %n", $.lineNo, $i, float($values[$i]), $values[$i]);
                             break;
                         }
                         case "number": {
                             if (number($values[$i]) != $values[$i])
-                                throw "CSVFILEWRITER-DATA-ERROR", sprintf("Line (%d), Column (%d) does not contain number value %n vs %n", $.lineNo, $i, number($values[$i]), $values[$i]);
+                                throw $.errname, sprintf("Line (%d), Column (%d) does not contain number value %n vs %n", $.lineNo, $i, number($values[$i]), $values[$i]);
                             break;
                         }
                         case "date": {
                             if ($values[$i].typeCode() != NT_DATE)
-                                throw "CSVFILEWRITER-DATA-ERROR", sprintf("Line (%d), Column (%d) does not contain date value (%s)", $.lineNo, $i, $values[$i].type());
+                                throw $.errname, sprintf("Line (%d), Column (%d) does not contain date value (%s)", $.lineNo, $i, $values[$i].type());
                             break;
                         }
                     }
@@ -961,11 +967,11 @@ while ($i.next()) {
         writeLine(hash $values) {
             my list $line;
             if (!exists $.headers)
-                throw "CSVFILEWRITER-DATA-ERROR", "No header set in CsvFileWriter instance to bind the hash key";
+                throw $.errname, "No header set in AbstractCsvWriter instance to bind the hash key";
             
             foreach my string $i in ($.headers) {
                 if (!$values.hasKey($i))
-                    throw "CSVFILEWRITER-DATA-ERROR", sprintf("Line data does not contain key '%s'", $i);
+                    throw $.errname, sprintf("Line data does not contain key '%s'", $i);
                 else
                     push $line, $values.$i;
             }
@@ -992,22 +998,29 @@ while ($i.next()) {
                         $.writeLine($row);
                         break;
                     default:
-                        throw "CSVFILEWRITER-DATA-ERROR", sprintf("Iterator's getValue returned %s, expected list or hash", $row.type());
+                        throw $.errname, sprintf("Iterator's getValue returned %s, expected list or hash", $row.type());
                 }
             }
         }
 
-        # real write to file - a list to write. Without any checking.
-        private writeRawLine(list $values) {
+        #! real write implementation. Without any checking.
+        abstract private writeRawLine(list $values);
+        
+        #! Prepare a string (line with EOF) with formatting and escaping.
+        /**
+        @param $values a list with values
+        @return string a formatted and escaped line with EOF
+        */
+        private string perpareRawLine(list $values) {
             # make full line template
-            my string $template = strmul($.baseTemplate, elements $values, 1);
+            my string $template = strmul($.baseTemplate, elements $values, 1) + $.eol;
             # escape separators in strings
             my list $row = map replace(string($1), $.quote, "\\" + $.quote), $values;
 
-            $.file.f_vprintf($template + $.eol, $row);
+            return vsprintf($template, $row);
         }
 
-        # format date to string by options. Priority: 1) column definition 2) standard format
+        #! format date to string by options. Priority: 1) column definition 2) standard format
         private string dateFormat(int $ix) {
             if (exists $.fdesc[$ix] && $.fdesc[$ix].type == "date" && exists $.fdesc[$ix].format)
                 return $.fdesc[$ix].format;
@@ -1015,7 +1028,68 @@ while ($i.next()) {
             return $.dateFormat;
         }
 
-    } # CsvFileWriter class
+    } # AbstractCsvWriter class
+      
+    #! the CsvFileWriter class for easy and safe CSV file creation
+    public class CsvFileWriter inherits private AbstractCsvWriter {
+        
+        private {
+            # a file to write
+            File $.file;
+        }
+        
+        #! creates the CsvFileWriter with the path of the file to read with an options
+        /**
+        @param path a file name (with path optionally) to write
+        @param opts @ref csvwiter_options
+        
+        The file is created with O_CREAT, O_TRUNC, O_WRONLY and 0644 access.
+
+        @throw CSVFILEITER-ERROR in the case of incorrect options
+        */
+        constructor(string $path, *hash $opts) : AbstractCsvWriter("FILE", $opts) {
+            $.file = new File($.encoding);
+            $.file.open2($path, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+
+            if (exists $.headers)
+                $.writeRawLine($.headers);
+        }
+
+        private writeRawLine(list $values) {
+            $.file.print($.perpareRawLine($values));
+        }
+    
+    } # CsvFileWriter
+
+    #! the CsvStringWriter class for in-memory string CSV creation
+    public class CsvStringWriter inherits private AbstractCsvWriter {
+        
+        private {
+            # a csv content
+            string $.content;
+        }
+        
+        #! creates the CsvStringWriter with content in the memory
+        /**
+        @param opts @ref csvwiter_options
+
+        @throw CSVSTRINGITER-ERROR in the case of incorrect options
+        */
+        constructor(*hash $opts) : AbstractCsvWriter("STRING", $opts) {
+            if (exists $.headers)
+                $.writeRawLine($.headers);
+        }
+
+        private writeRawLine(list $values) {
+            $.content += $.perpareRawLine($values);
+        }
+        
+        #! Get the current in-memory content as a string
+        string getContent() {
+            return $.content;
+        }
+    
+    } # CsvStringWriter
 
 } # CsvUtil namespace
 
