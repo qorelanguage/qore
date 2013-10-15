@@ -10,6 +10,7 @@
     @subsection qore_088_bug_fixes Bug Fixes in Qore
     - fixed a crashing bug when HTTP messages with duplicate Connection, Content-Encoding, Transfer-Encoding, Location, or Content-Type headers is received
     - fixed a bug parsing octal character constants in the lexer when octal digits followed the octal constant (ex: \c "\0441" meaning \c "$1" would cause an error)
+    - allow escaping "$" character in regular expression substitution target strings, previously it was impossible to output a literal "$" + a digit, since this would be interpreted as a numbered input pattern expression
 
     @section qore_088 Qore 0.8.8
 
