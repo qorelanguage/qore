@@ -69,7 +69,7 @@ sub usage() {
   -d,--data-tablespace=ARG    use the given data tablespace name for output
   -i,--index-tablespace=ARG   use the given index tablespace name for output
   -t,--dump-table=ARG         dump the DDL for the given table
-  -t,--dump-sequence=ARG      dump the DDL for the given sequence
+  -S,--dump-sequence=ARG      dump the DDL for the given sequence
   -T,--target-ds=ARG          target datasource
   -v,--verbose=ARG            increase verbosity level (more v's = more info)
 ", get_script_name());
