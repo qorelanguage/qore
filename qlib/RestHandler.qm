@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! @file RestHandler.qm Qore @brief handler definition for the HttpServer module for exporting REST services
+#! @file RestHandler.qm Qore handler definition for the HttpServer module for exporting REST services
 
 /*  RestHandler.qm Copyright 2013 Qore Technologies, sro
 
@@ -95,14 +95,22 @@ module RestHandler {
     - <tt>httpmethod</tt>[<i>RequestRestAction</i>]
 
     For example:
-    - \c "GET /obj HTTP/1.1": matches method \c "get()"
-    - \c "POST /obj HTTP/1.1": matches method \c "post()"
-    - \c "GET /obj?action=status HTTP/1.1": matches method \c "getStatus()"
-    - \c "PUT /obj?action=status HTTP/1.1": matches method \c "putStatus()"
+    - \c "GET /obj HTTP/1.1": matches method \c AbstractRestClass::get()
+    - \c "POST /obj HTTP/1.1": matches method \c AbstractRestClass::post()
+    - \c "DELETE /obj/subobj": match method \c AbstractRestClass::del()
+    - \c "GET /obj?action=status HTTP/1.1": matches method \c AbstractRestClass::getStatus()
+    - \c "PUT /obj?action=status HTTP/1.1": matches method \c AbstractRestClass::putStatus()
 
-    In other words, if a REST action is given in the request (either as a URI parameter or in the message body), the first letter of the action name is capitalized and appended to a lower case version of the HTTP method name; if such a method exists in your @ref RestHandler::AbstractRestClass "AbstractRestClass" specialization, then it is called.  If not, then, if the REST action exists under a different HTTP method (ie a request comes with \c "HTTP GET /something?action=setData", and  \c "putSetData" exists, but \c "getSetData" was used for the search), then a 405 \c "Method Not Allowed" response is returned.  If no variation of the requested REST method exists, then a 501 \c "Not Implemented" response is returned.
+    In other words, if a REST action is given in the request (either as a URI parameter or in the message body), the first letter of the action name is capitalized and appended to a lower case version of the HTTP method name (except \c "DELETE" is mapped to \c "del" because \c "delete" is a keyword); if such a method exists in your @ref RestHandler::AbstractRestClass "AbstractRestClass" specialization, then it is called.  If not, then, if the REST action exists under a different HTTP method (ie a request comes with \c "HTTP GET /something?action=setData", and  \c "putSetData" exists, but \c "getSetData" was used for the search), then a 405 \c "Method Not Allowed" response is returned.  If no variation of the requested REST method exists, then a 501 \c "Not Implemented" response is returned.
 
-    If a REST request is made with no action name, then a method in your class is attempted to be called with just the HTTP method name in lower case.
+    If a REST request is made with no action name, then a method in your class is attempted to be called with just the HTTP method name in lower case (except \c "DELETE" is mapped to \c "del" because \c "delete" is a keyword).
+
+    <b>HTTP Method Name to %Qore Method Name</b>
+    |!HTTP Method|!%Qore Method
+    |\c GET|\c AbstractRestClass::get()
+    |\c PUT|\c AbstractRestClass::put()
+    |\c POST|\c AbstractRestClass::post()
+    |\c DELETE|\c AbstractRestClass::del()
 
     In all cases, the signature for these methods looks like:
     @code
@@ -112,7 +120,7 @@ module RestHandler {
     The arguments passed to the REST action methods are as follows:
     - \a cx: a call context hash; the same value as documented in the \a cx parameter of @ref HttpServer::AbstractHttpRequestHandler::handleRequest(); with the following additions:
       - \a body: the deserialized message body (if any); if no body was sent, then any parsed URI arguments are copied here
-      - \a hdr: a copy of the header hash as returned by @ref Qore::Socket::readHTTPHeader() "Socket::readHTTPHeader" as received by the @ref HttpServer::HttpServer "HttpServer" (for example cx.hdr.path gives the original URI request path)
+      - \a hdr: a copy of the header hash as returned by @ref Qore::Socket::readHTTPHeader() "Socket::readHTTPHeader()" as received by the @ref HttpServer::HttpServer "HttpServer" (for example cx.hdr.path gives the original URI request path)
       - \a orig_method: the string if any \c "action" argumnt was sent either in the message body or as a URI argument
       - \a rest_method: same as \a orig_method, only with the first letter capitalized (only present if an \c "action" argument was sent)
       - \a rest_action_method: the method name that will be called on the actual %Qore REST class (a subclass of @ref RestHandler::AbstractRestClass "AbstractRestClass")
@@ -286,7 +294,7 @@ Content-Length: 36
 
     %Qore exceptions are serialized in a consistent way by the @ref RestHandler::RestHandler "RestHandler" class so that they can be recognized and handled appropriately by clients.
 
-    %Qore exceptions are returned with a 409 Conflict HTTP return code with the message body as an @ref exception_hash "exception hash".
+    %Qore exceptions are returned with a 409 \c "Conflict" HTTP return code with the message body as an @ref exception_hash "exception hash".
 */
 
 #! the RestHandler namespace contains all the objects in the RestHandler module

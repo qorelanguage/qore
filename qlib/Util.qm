@@ -432,7 +432,7 @@ my string $pass = get_random_string();
         @param len the length fo the string returned
         @param level a value from 1 - 4 inclusive giving the range of printable ASCII characters included in the output (values out of the range result in the nearest value in the range being used):
         - 1: only upper case
-        - 2: +upper case
+        - 2: +lower case
         - 3: +numbers
         - 4: +symbols but not including any quote characters
 

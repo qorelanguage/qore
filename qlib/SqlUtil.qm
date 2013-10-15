@@ -7950,7 +7950,7 @@ $table.insert($row);
         #! inserts a row into the table without any transaction management; a transaction will be in progress after this method is successfully executed
         /** @par Example:
             @code
-$table.insert($row);
+$table.insertNoCommit($row);
             @endcode
 
             @param row a hash representing the row to insert
@@ -7980,7 +7980,7 @@ $table.insert($row);
         #! inserts a row into the table without any transaction management; a transaction will be in progress after this method is successfully executed
         /** @par Example:
             @code
-$table.insert($row);
+$table.insertNoCommit($row);
             @endcode
 
             @param row a hash representing the row to insert
@@ -11926,7 +11926,7 @@ $table.insert($row);
         #! inserts a row into the table without any transaction management; a transaction will be in progress after this method is successfully executed
         /** @par Example:
             @code
-$table.insert($row);
+$table.insertNoCommi($row);
             @endcode
 
             @param row a hash representing the row to insert
@@ -11980,7 +11980,7 @@ $table.insert($row);
         #! inserts a row into the table without any transaction management; a transaction will be in progress after this method is successfully executed
         /** @par Example:
             @code
-$table.insert($row);
+$table.insertNoCommit($row);
             @endcode
 
             @param row a hash representing the row to insert
