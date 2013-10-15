@@ -1016,7 +1016,6 @@ RTIME           PT(-?[0-9]+[HMSu])+
       \"				BEGIN(INITIAL); return QUOTED_WORD;
       \n				yylval->String->concat('\n');
       {OCTAL_CONST}			{
-	                                   size_t len = strlen(yytext);
                                            int val;
                                            if (isoctaldigit(*(yytext + 2))) {
 					      val = ascii_to_octal(*(yytext + 3)) 
