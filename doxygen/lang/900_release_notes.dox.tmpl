@@ -11,6 +11,7 @@
     - fixed a crashing bug when HTTP messages with duplicate Connection, Content-Encoding, Transfer-Encoding, Location, or Content-Type headers is received
     - fixed a bug parsing octal character constants in the lexer when octal digits followed the octal constant (ex: \c "\0441" meaning \c "$1" would cause an error)
     - allow escaping "$" character in regular expression substitution target strings, previously it was impossible to output a literal "$" + a digit, since this would be interpreted as a numbered input pattern expression
+    - fixed a bug in the @ref Qore::HTTPClient::getURL() "HTTPClient::getURL()" and @ref Qore::HTTPClient::getProxyURL() "HTTPClient::getProxyURL()" methods where the URL's path was not given with a leading "/" character
 
     @section qore_088 Qore 0.8.8
 

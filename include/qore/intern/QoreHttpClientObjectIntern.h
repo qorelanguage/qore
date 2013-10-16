@@ -118,7 +118,10 @@ struct con_info {
 	 pstr->concat(host.c_str());
       if (port && port != 80)
 	 pstr->sprintf(":%d", port);
-      pstr->concat(path.c_str());
+      if (!path.empty()) {
+         pstr->concat('/');
+         pstr->concat(path.c_str());
+      }
       return pstr;
    }
 
