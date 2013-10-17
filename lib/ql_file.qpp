@@ -58,7 +58,6 @@ bool check_lstat(unsigned code, const QoreStringNode* path) {
 #endif
 
 bool is_writable_intern(const QoreStringNode* path) {
-
 #ifdef HAVE_ACCESS
    // solution for situation like:
    // $ id
