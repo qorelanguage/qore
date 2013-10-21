@@ -29,13 +29,24 @@
 %perl-bool-eval
 
 module CsvUtil {
-    version = "1.1";
+    version = "1.2";
     desc = "user module for working with CSV files";
-    author = "Petr Vanek <petr@scribus.info>, David Nichols <david@qore.org>";
+    author = "Petr Vanek <petr@yarpen.cz>, David Nichols <david@qore.org>";
     url = "http://qore.org";
 }
 
 /*  Version History
+    * 2013-10-21 v1.2: Davod Nichols <david@qore.org>
+      + implemented support for the "*int", "*float", "*number", and "*date" types
+      + implemented support for allowing subclasses of CsvFileIterator to implement support for other custom types
+
+    * 2013-10-09 v1.2: Petr Vanek <petr.vanek@qoretechnologies.com>
+      + CsvStringWriter addon
+      + AbstractCsvWriter addon
+
+    * 2013-09-29 v1.2: David Nichols <david@qore.org>: 
+      + if "headers" are not given in the CsvUtil::CsvFileIterator::constructor() but "fields" are, then set the headers from the field descriptions automatically
+
     * 2013-06-28 v1.2: Petr Vanek <petr.vanek@qoretechnologies.com>
       + CsvFileWriter addon
 
@@ -59,6 +70,8 @@ module CsvUtil {
     Currently the module provides the following classes:
     - @ref CsvUtil::CsvFileIterator "CsvFileIterator": iterator class allowing for CSV files to be processed line by line
     - @ref CsvUtil::CsvFileWriter "CsvFileWriter": CSV file writer
+    - @ref CsvUtil::CsvStringWriter "CsvStringWriter": CSV in memory writer
+    - @ref CsvUtil::AbstractCsvWriter "AbstractCsvWriter": a base class for new CSV writer implementations
 
     Note that the @ref CsvUtil::CsvFileIterator "CsvFileIterator" class can be used to parse arbitrary text files; the field separator character can be specified in the @ref CsvUtil::CsvFileIterator::constructor() "constructor", as well as the quote character and end of line sequence.  See the @ref CsvUtil::CsvFileIterator::constructor() "constructor documentation" for more information.
 
@@ -125,10 +138,10 @@ class ListValueIterator inherits ListIterator {
     }
 
     bool next() {
-	my bool $b;
-	while (($b = ListIterator::$.next()) && !$.getValue()) {
-	}
-	return $b;
+        my bool $b;
+        while (($b = ListIterator::$.next()) && !$.getValue()) {
+        }
+        return $b;
     }
 }
 
@@ -138,10 +151,15 @@ class CsvHelper {
         #! supported type codes (hash for quick lookups)
         const Types = (
             "int": True,
+            "*int": True,
             "float": True, 
+            "*float": True,
             "number": True,
+            "*number": True,
             "string": True,
+            "*string": True,
             "date": True,
+            "*date": True,
         );
 
         #! supported field description attribute codes
@@ -155,7 +173,6 @@ class CsvHelper {
 
         # make a copy of the field description hash
         my hash $f = $.fields;
-
         foreach my string $h in ($.headers) {
             if ($f.$h) {
                 # add to field description list (and remove from the field description hash)
@@ -166,15 +183,14 @@ class CsvHelper {
             $.fdesc += NOTHING;
         }
 
-        if (!$f.empty())
+        if ($f)
             throw "CSVFILEWRITER-FIELD-ERROR", sprintf("a field description was given for the following non-existent fields: %y (known header / field names: %y)", $f.keys(), $.headers);
     }
     
-    static checkType(string $key, string $value) {
-	    if (!Types.$value)
-		throw "CSV-TYPE-ERROR", sprintf("while processing the hash value for option key \"fields\": unknown field type %y for field %y (supported types: %y)", $value, $key, Types.keys());
-	}
-
+    checkType(string $key, string $value) {
+        if (!Types.$value)
+            throw "CSV-TYPE-ERROR", sprintf("while processing the hash value for option key \"fields\": unknown field type %y for field %y (supported types: %y)", $value, $key, Types.keys());
+    }
 } # class CsvHelper
 
 #! the CsvUtil namespace contains all the objects in the CsvUtil module
@@ -184,270 +200,280 @@ public namespace CsvUtil {
     public const EOL_UNIX = "\n";
     #! MS DOS/Windows end of line character sequence
     public const EOL_WIN = "\r\n";
-    #! Old Macintosh end of line character sequence
+    #! Old (pre-OSX) Macintosh end of line character sequence
     public const EOL_MACINTOSH = "\r";
 
-    # helper list if end of line values
+    # helper list of end of line values
     const EOLS = (EOL_UNIX, EOL_WIN, EOL_MACINTOSH, );
     
     #! the CsvFileIterator class allows CSV files to be iterated
     /** 
-	@section csvfileiterator_options CsvFileIterator Constructor Option Hash Overview
-	The CsvFileIterator class constructor takes an optional hash with possible keys given in the following table.  Note that 
-	key names are case-sensitive, and data types are soft (conversions are made when possible).
-	
-	<b>CsvFileIterator Options</b>
-	|!Option|!Data Type|!Description
-	|\c "encoding"|@ref string|the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
-	|\c "separator"|@ref string|the string separating the fields in the file (default: \c ",")
-	|\c "quote"|@ref string|the field quote character (default: \c '\"')
-	|\c "eol"|@ref string|the end of line character(s) (default: auto-detect); if the value of this key is not a string then it will be ignored
-	|\c "ignore-empty"|@ref boolean|if @ref Qore::True "True" (the default) then empty lines will be ignored; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
-	|\c "ignore-whitespace"|@ref boolean|if @ref Qore::True "True" (the default) then leading and trailing whitespace will be stripped from non-quoted fields; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
-	|\c "header-names"|@ref boolean|if @ref Qore::True "True" then the object will parse the header names from the first header row, in this case \c "header-lines" must be &gt; 0
-	|\c "header-lines"|@ref integer|the number of headers lines in the file (must be &gt; 0 if \c "header-names" is @ref Qore::True "True")
-	|\c "headers"|@ref list of strings|list of header / column names for the data iterated, if this is present, then \c "header-names" must be @ref Qore::False "False"
-	|\c "verify-columns"|@ref boolean|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different column count than other lines, a \c CSVFILEITERATOR-DATA-ERROR exception is thrown
-	|\c "fields"|@ref hash|the keys are column names (or numbers in case column names are not used) and the values are either strings (one of @ref csvfileiterator_option_field_types giving the data type for the field) or a @ref csvfileiterator_option_field_hash describing the field
-	|\c "timezone"|@ref string|the timezone to use when parsing dates (will be passed to @ref Qore::TimeZone::constructor())
+        @section csvfileiterator_options CsvFileIterator Constructor Option Hash Overview
+        The CsvFileIterator class constructor takes an optional hash with possible keys given in the following table.  Note that 
+        key names are case-sensitive, and data types are soft (conversions are made when possible).
+        
+        <b>CsvFileIterator Options</b>
+        |!Option|!Data Type|!Description
+        |\c "encoding"|@ref string|the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
+        |\c "separator"|@ref string|the string separating the fields in the file (default: \c ",")
+        |\c "quote"|@ref string|the field quote character (default: \c '\"')
+        |\c "eol"|@ref string|the end of line character(s) (default: auto-detect); if the value of this key is not a string then it will be ignored
+        |\c "ignore-empty"|@ref boolean|if @ref Qore::True "True" (the default) then empty lines will be ignored; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
+        |\c "ignore-whitespace"|@ref boolean|if @ref Qore::True "True" (the default) then leading and trailing whitespace will be stripped from non-quoted fields; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
+        |\c "header-names"|@ref boolean|if @ref Qore::True "True" then the object will parse the header names from the first header row, in this case \c "header-lines" must be &gt; 0
+        |\c "header-lines"|@ref integer|the number of headers lines in the file (must be &gt; 0 if \c "header-names" is @ref Qore::True "True")
+        |\c "headers"|@ref list of strings|list of header / column names for the data iterated; if this is present, then \c "header-names" must be @ref Qore::False "False"
+        |\c "verify-columns"|@ref boolean|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different column count than other lines, a \c CSVFILEITERATOR-DATA-ERROR exception is thrown
+        |\c "fields"|@ref hash|the keys are column names (or numbers in case column names are not used) and the values are either strings (one of @ref csvfileiterator_option_field_types giving the data type for the field) or a @ref csvfileiterator_option_field_hash describing the field; also sets \a headers; if this is present, then \c "header-names" must be @ref Qore::False "False"
+        |\c "timezone"|@ref string|the timezone to use when parsing dates (will be passed to @ref Qore::TimeZone::constructor())
 
-	@subsection csvfileiterator_option_field_types Option Field Types
-	
-	<b>CsvFileIterator Option Field Types</b>
-	|!Name|!Description
-	|\c "int"|the value will be unconditionally converted to an @ref integer "integer" using the @ref Qore::int() function
-	|\c "float"|the value will be unconditionally converted to a @ref float "floating-point value" using the @ref Qore::float() function
-	|\c "number"|the value will be unconditionally converted to an @ref number "arbitrary-precision number value" using the @ref Qore::number() function
-	|\c "string"|(the default) the value remains a string; no transformation is done on the input data
-	|\c "date"|in this case dates are parsed directly with the @ref Qore::date() function (and therefore are tagged automatically with the current @ref time_zones "time zone"); to specify another date format, use the @ref csvfileiterator_option_field_hash "hash format" documented below
+        @subsection csvfileiterator_option_field_types Option Field Types
+        
+        <b>CsvFileIterator Option Field Types</b>
+        |!Name|!Description
+        |\c "int"|the value will be unconditionally converted to an @ref integer "integer" using the @ref Qore::int() function
+        |\c "*int"|the value will be converted to @ref nothing if empty, otherwise it will be converted to an @ref integer "integer" using the @ref Qore::int() function
+        |\c "float"|the value will be unconditionally converted to a @ref float "floating-point value" using the @ref Qore::float() function
+        |\c "*float"|the value will be converted to @ref nothing if empty, otherwise it will be converted to a @ref float "floating-point value" using the @ref Qore::float() function
+        |\c "number"|the value will be unconditionally converted to an @ref number "arbitrary-precision number value" using the @ref Qore::number() function
+        |\c "*number"|the value will be converted to @ref nothing if empty, otherwise it will be converted to an @ref number "arbitrary-precision number value" using the @ref Qore::number() function
+        |\c "string"|(the default) the value remains a string; no transformation is done on the input data
+        |\c "*string"|the value will be converted to @ref nothing if empty, it remains a string
+        |\c "date"|in this case dates are parsed directly with the @ref Qore::date() function (and therefore are tagged automatically with the current @ref time_zones "time zone"); to specify another date format, use the @ref csvfileiterator_option_field_hash "hash format" documented below
+        |\c "*date"|the value will be converted to @ref nothing if empty, otherwise dates are parsed directly with the @ref Qore::date() function (and therefore are tagged automatically with the current @ref time_zones "time zone"); to specify another date format, use the @ref csvfileiterator_option_field_hash "hash format" documented below
 
-	@subsection csvfileiterator_option_field_hash Option Field Hash
-	See @ref complex_example "here" for an example of using the hash field description in the @ref CsvUtil::CsvFileIterator::constructor() "constructor()".
+        @subsection csvfileiterator_option_field_hash Option Field Hash
+        See @ref complex_example "here" for an example of using the hash field description in the @ref CsvUtil::CsvFileIterator::constructor() "constructor()".
 
-	<b>CsvFileIterator Option Field Hash</b>
-	|!Key|!Value Description
-	|\c "type"|one of the @ref csvfileiterator_option_field_types "option type values" giving the field type
-	|\c "format"|used only with the \c "date" type; this is a @ref date_mask "date/time format mask" for parsing dates
-	|\c "timezone"|used only with the \c "date" type; this value is passed to @ref Qore::TimeZone::constructor() and the resulting timezone is used to parse the date (this value overrides any default time zone for the object; use only in the rare case that date/time values from different time zones are present in different columns of the same file)
-	|\c "code"|this is a @ref closure or @ref call_reference that takes a single argument of the value (after formatting with any optional \c "type" formats) and returns the value that will be output for the field
+        <b>CsvFileIterator Option Field Hash</b>
+        |!Key|!Value Description
+        |\c "type"|one of the @ref csvfileiterator_option_field_types "option type values" giving the field type
+        |\c "format"|used only with the \c "date" type; this is a @ref date_mask "date/time format mask" for parsing dates
+        |\c "timezone"|used only with the \c "date" type; this value is passed to @ref Qore::TimeZone::constructor() and the resulting timezone is used to parse the date (this value overrides any default time zone for the object; use only in the rare case that date/time values from different time zones are present in different columns of the same file)
+        |\c "code"|this is a @ref closure or @ref call_reference that takes a single argument of the value (after formatting with any optional \c "type" formats) and returns the value that will be output for the field
 
      */
     public class CsvFileIterator inherits Qore::FileLineIterator, private CsvHelper {
-	private {
-	    #! valid options for the object (a hash for quick lookups of valid keys)
-	    const Options = (
-		"encoding": True,
-		"separator": True,
-		"quote": True,
-		"eol": True,
-		"ignore-empty": True,
-		"ignore-whitespace": True,
-		"header-lines": True,
-		"header-names": True,
-		"headers": True,
-		"verify-columns": True,
-		"fields": True,
-		"timezone": True,
-		);
+        private {
+            #! valid options for the object (a hash for quick lookups of valid keys)
+            const Options = (
+                "encoding": True,
+                "separator": True,
+                "quote": True,
+                "eol": True,
+                "ignore-empty": True,
+                "ignore-whitespace": True,
+                "header-lines": True,
+                "header-names": True,
+                "headers": True,
+                "verify-columns": True,
+                "fields": True,
+                "timezone": True,
+                );
+        }
 
-	}
+        private {
+            # field separator
+            string $.separator = ",";
 
-	private {
-	    # field separator
-	    string $.separator = ",";
+            # field content delimiter
+            string $.quote = "\"";
 
-	    # field content delimiter
-	    string $.quote = "\"";
+            # number of header lines
+            softint $.headerLines = 0;
 
-	    # number of header lines
-	    softint $.headerLines = 0;
+            # flag to use string names from the first header row if possible
+            bool $.headerNames = False;
 
-	    # flag to use string names from the first header row if possible
-	    bool $.headerNames = False;
+            # True if empty lines should be ignored
+            bool $.ignoreEmptyLines = True;
 
-	    # True if empty lines should be ignored
-	    bool $.ignoreEmptyLines = True;
+            # Flag to trim the field content (trim leading and trailing whitespace) from unquoted fields
+            bool $.ignoreWhitespace = True;
 
-	    # Flag to trim the field content (trim leading and trailing whitespace) from unquoted fields
-	    bool $.ignoreWhitespace = True;
+            # headers / column names for lines iterated
+            *softlist $.headers;
 
-	    # headers / column names for lines iterated
-	    *softlist $.headers;
+            # hash of field information (types, formats, and possible code), hash key = column name or number (starting with 0)
+            *hash $.fields;
 
-	    # hash of field information (types, formats, and possible code), hash key = column name or number (starting with 0)
-	    *hash $.fields;
+            # list of field descriptions (from fields, ordered when headers are set)
+            *list $.fdesc;
 
-	    # list of field descriptions (from fields, ordered when headers are set)
-	    *list $.fdesc;
+            # the @ref Qore::TimeZone to use when parsing dates (default: current time zone)
+            *TimeZone $.tz;
 
-	    # the @ref Qore::TimeZone to use when parsing dates (default: current time zone)
-	    *TimeZone $.tz;
-
-	    # verify the column count for every row; if a row does not match, then throw a \c CSVFILEITERATOR-DATA-ERROR exception
-	    bool $.checkElementCounts = False;
+            # verify the column count for every row; if a row does not match, then throw a \c CSVFILEITERATOR-DATA-ERROR exception
+            bool $.checkElementCounts = False;
 
             # column count for verifying column counts
             int $.cc;
 
             # current record count for the index() method
             int $.rc = 0;
-	}
+        }
 
-	#! creates the CsvFileIterator with the path of the file to read and optionally an option hash
-	/** @param path the path to the CSV file to read
-	    @param opts a hash of optional options; see @ref csvfileiterator_options for more information
+        #! creates the CsvFileIterator with the path of the file to read and optionally an option hash
+        /** @param path the path to the CSV file to read
+            @param opts a hash of optional options; see @ref csvfileiterator_options for more information
 
-	    @throw CSVFILEITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header-names" is @ref Qore::True "True" and \c "header-lines" is 0 or \c "headers" is also present; unknown field type
-	 */
-	constructor(string $path, *hash $opts) : FileLineIterator($path, $opts.encoding.typeCode() == NT_STRING ? $opts.encoding : NOTHING, $opts.eol.typeCode == NT_STRING ? $opts.eol : NOTHING) {
+            @throw CSVFILEITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header-names" is @ref Qore::True "True" and \c "header-lines" is 0 or \c "headers" is also present; unknown field type
+         */
+        constructor(string $path, *hash $opts) : FileLineIterator($path, $opts.encoding.typeCode() == NT_STRING ? $opts.encoding : NOTHING, $opts.eol.typeCode == NT_STRING ? $opts.eol : NOTHING) {
             foreach my hash $i in ($opts.pairIterator()) {
-		if (!exists Options.($i.key))
-		    throw "CSVFILEITERATOR-ERROR", sprintf("unknown option %y passed to CsvFileIterator::constructor() (valid options: %y)", $i.key, Options.keys());
-		switch ($i.key) {
-		    case "separator": {
-			if ($i.value.typeCode() != NT_STRING)
-			    throw "CSVFILEITERATOR-ERROR", sprintf("expecting a string value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
-			$.separator = $i.value;
-			break;
-		    }
-		    case "quote": {
-			if ($i.value.typeCode() != NT_STRING)
-			    throw "CSVFILEITERATOR-ERROR", sprintf("expecting a string value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
-			$.quote = $i.value;
-			break;
-		    }
-		    case "ignore-empty": {
-			$.ignoreEmptyLines = parse_boolean($i.value);
-			break;
-		    }
-		    case "ignore-whitespace": {
-			$.ignoreWhitespace = parse_boolean($i.value);
-			break;
-		    }
-		    case "header-names": {
-			$.headerNames = parse_boolean($i.value);
-			break;
-		    }
-		    case "verify-columns": {
-			$.checkElementCounts = parse_boolean($i.value);
-			break;
-		    }
-		    case "header-lines": {
-			try {
-			    $.headerLines = $i.value;
-			}
-			catch (hash $ex) {
-			    throw "CSVFILEITERATOR-ERROR", sprintf("expecting integer value or a value that can be converted to an integer for option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
-			}
-			break;
-		    }
-		    case "headers": {
-			$.headers = ();
-			foreach my any $c in ($i.value.iterator()) {
-			    try {
-				my softstring $v = $c;
-				$.headers += $v;
-			    }
-			    catch (hash $ex) {
-				throw "CSVFILEITERATOR-ERROR", sprintf("expecting a string value or a value that can be converted to a string for option %y; got %y (type %s) in header list position %d instead (full arg: %y)", $i.key, $c, $c.type(), $#, $i.value);
-			    }
-			}
-			break;
-		    }
-		    case "timezone": {
-			$.tz = new TimeZone($i.value);
-			break;
-		    }
-		    case "fields": {
-			if ($i.value.typeCode() != NT_HASH)
-			    throw "CSVFILEITERATOR-ERROR", sprintf("expecting a hash value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
-			# iterate hash to process field descriptions
-			foreach my hash $hi in ($i.value.pairIterator()) {
-			    switch ($hi.value.typeCode()) {
-				case NT_STRING: {
-				    CsvFileIterator::checkType($hi.key, $hi.value);
-				    $.fields.($hi.key) = ("type": $hi.value);
-				    break;
-				}
-				case NT_HASH: {
-				    if ($hi.value.empty())
-					throw "CSVFILEITERATOR-ERROR", sprintf("while processing the hash value for option key \"fields\": empty hash passed as description for field %y", $hi.key);
-				    my hash $h;
-				    foreach my hash $fh in ($hi.value.pairIterator()) {
-					switch ($fh.key) {
-					    case "type": {
-						CsvFileIterator::checkType($hi.key, $fh.value);
-						$h.type = $fh.value;
-						break;
-					    }
-					    case "format": {
-						if ($fh.value.typeCode() != NT_STRING)
-						    throw "CSVFILEITERATOR-ERROR", sprintf("while processing the hash value for option key \"fields\": field %y \"format\" attributes expects a string value; got %y instead", $hi.key, $fh.value.type());
-						$h.format = $fh.value;
-						break;
-					    }
-					    case "timezone": {
-						$h.timezone = new TimeZone($fh.value);
-						break;
-					    }
-					    case "code": {
-						if (!$fh.value.callp())
-						    throw "CSVFILEITERATOR-ERROR", sprintf("while processing the hash value for option key \"fields\": field %y \"code\" attributes expects a callable value to process the field value; got %y instead", $hi.key, $fh.value.type());
-						$h.code = $fh.value;
-						break;
-					    }
-					    default: {
-						throw "CSVFILEITERATOR-ERROR", sprintf("while processing the hash value for option key \"fields\": unknown field attribute value %y given for field %y (supported attribute values: %y)", $fh.key, $hi.key, FieldAttrs);
-						
-					    }
-					}
-				    }
-				    if (!$h.type)
-					$h.type = "string";
-				    if ($h.type != "date") {
-					foreach my string $f in ("timezone", "format") {
-					    if ($h.$f)
-						throw "CSVFILEITERATOR-ERROR", sprintf("while processing the hash value for option key \"fields\": field %y is type %y, but the %y attribute was also given, which is only valid for \"date\" fields", $hi.key, $h.type, $f);
-					}
-				    }
-				    $.fields.($hi.key) = $h;
-				    break;
-				}
-			        default: {
-				    throw "CSVFILEITERATOR-ERROR", sprintf("while processing the hash value for option key \"fields\": invalid value passed as the field description for field %y; expecting \"string\" or \"hash\"; got %y instead", $i.key, $hi.value.type());
-				}
-			    }
-			}
+                if (!exists Options.($i.key))
+                    throw "CSVFILEITERATOR-ERROR", sprintf("unknown option %y passed to CsvFileIterator::constructor() (valid options: %y)", $i.key, Options.keys());
+                switch ($i.key) {
+                    case "separator": {
+                        if ($i.value.typeCode() != NT_STRING)
+                            throw "CSVFILEITERATOR-ERROR", sprintf("expecting a string value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
+                        $.separator = $i.value;
+                        break;
+                    }
+                    case "quote": {
+                        if ($i.value.typeCode() != NT_STRING)
+                            throw "CSVFILEITERATOR-ERROR", sprintf("expecting a string value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
+                        $.quote = $i.value;
+                        break;
+                    }
+                    case "ignore-empty": {
+                        $.ignoreEmptyLines = parse_boolean($i.value);
+                        break;
+                    }
+                    case "ignore-whitespace": {
+                        $.ignoreWhitespace = parse_boolean($i.value);
+                        break;
+                    }
+                    case "header-names": {
+                        $.headerNames = parse_boolean($i.value);
+                        break;
+                    }
+                    case "verify-columns": {
+                        $.checkElementCounts = parse_boolean($i.value);
+                        break;
+                    }
+                    case "header-lines": {
+                        try {
+                            $.headerLines = $i.value;
+                        }
+                        catch (hash $ex) {
+                            throw "CSVFILEITERATOR-ERROR", sprintf("expecting integer value or a value that can be converted to an integer for option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
+                        }
+                        break;
+                    }
+                    case "headers": {
+                        $.headers = ();
+                        foreach my any $c in ($i.value.iterator()) {
+                            try {
+                                my softstring $v = $c;
+                                $.headers += $v;
+                            }
+                            catch (hash $ex) {
+                                throw "CSVFILEITERATOR-ERROR", sprintf("expecting a string value or a value that can be converted to a string for option %y; got %y (type %s) in header list position %d instead (full arg: %y)", $i.key, $c, $c.type(), $#, $i.value);
+                            }
+                        }
+                        break;
+                    }
+                    case "timezone": {
+                        $.tz = new TimeZone($i.value);
+                        break;
+                    }
+                    case "fields": {
+                        if ($i.value.typeCode() != NT_HASH)
+                            throw "CSVFILEITERATOR-ERROR", sprintf("expecting a hash value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
 
-			break;
-		    }
-		}
-		if ($.headers && $.fields)
-		    $.setFields();
-	    }
-	    if ($.headerNames && !$.headerLines)
-		throw "CSVFILEITERATOR-ERROR", sprintf("\"header-names\" is True but \"header-lines\" is 0; there must be at least 1 header line to get header names");
-	    if ($.headerNames && !$.headers.empty())
-		throw "CSVFILEITERATOR-ERROR", sprintf("\"header-names\" is True but \"headers\" has a value (%y)", $.headers);
-	}
+                        # iterate hash to process field descriptions
+                        foreach my hash $hi in ($i.value.pairIterator()) {
+                            switch ($hi.value.typeCode()) {
+                                case NT_STRING: {
+                                    $.checkType($hi.key, $hi.value);
+                                    $.fields.($hi.key) = ("type": $hi.value);
+                                    break;
+                                }
+                                case NT_HASH: {
+                                    if ($hi.value.empty())
+                                        throw "CSVFILEITERATOR-ERROR", sprintf("while processing the hash value for option key \"fields\": empty hash passed as description for field %y", $hi.key);
+                                    my hash $h;
+                                    foreach my hash $fh in ($hi.value.pairIterator()) {
+                                        switch ($fh.key) {
+                                            case "type": {
+                                                $.checkType($hi.key, $fh.value);
+                                                $h.type = $fh.value;
+                                                break;
+                                            }
+                                            case "format": {
+                                                if ($fh.value.typeCode() != NT_STRING)
+                                                    throw "CSVFILEITERATOR-ERROR", sprintf("while processing the hash value for option key \"fields\": field %y \"format\" attributes expects a string value; got %y instead", $hi.key, $fh.value.type());
+                                                $h.format = $fh.value;
+                                                break;
+                                            }
+                                            case "timezone": {
+                                                $h.timezone = new TimeZone($fh.value);
+                                                break;
+                                            }
+                                            case "code": {
+                                                if (!$fh.value.callp())
+                                                    throw "CSVFILEITERATOR-ERROR", sprintf("while processing the hash value for option key \"fields\": field %y \"code\" attributes expects a callable value to process the field value; got %y instead", $hi.key, $fh.value.type());
+                                                $h.code = $fh.value;
+                                                break;
+                                            }
+                                            default: {
+                                                throw "CSVFILEITERATOR-ERROR", sprintf("while processing the hash value for option key \"fields\": unknown field attribute value %y given for field %y (supported attribute values: %y)", $fh.key, $hi.key, FieldAttrs);
+                                                
+                                            }
+                                        }
+                                    }
+                                    if (!$h.type)
+                                        $h.type = "string";
+                                    if ($h.type != "date") {
+                                        foreach my string $f in ("timezone", "format") {
+                                            if ($h.$f)
+                                                throw "CSVFILEITERATOR-ERROR", sprintf("while processing the hash value for option key \"fields\": field %y is type %y, but the %y attribute was also given, which is only valid for \"date\" fields", $hi.key, $h.type, $f);
+                                        }
+                                    }
+                                    $.fields.($hi.key) = $h;
+                                    break;
+                                }
+                                default: {
+                                    throw "CSVFILEITERATOR-ERROR", sprintf("while processing the hash value for option key \"fields\": invalid value passed as the field description for field %y; expecting \"string\" or \"hash\"; got %y instead", $i.key, $hi.value.type());
+                                }
+                            }
+                        }
 
-	#! Moves the current line / record position to the next line / record; returns @ref False if there are no more lines to iterate
-	/** This method will return @ref True again after it returns @ref False once if the file being iterated has data that can be iterated, otherwise it will always return @ref False. The iterator object should not be used to retrieve a value after this method returns @ref False.
+                        break;
+                    }
+                }
+            }
+            if ($.headerNames && !$.headerLines)
+                throw "CSVFILEITERATOR-ERROR", sprintf("\"header-names\" is True but \"header-lines\" is 0; there must be at least 1 header line to get header names");
+            if ($.headerNames && $.headers)
+                throw "CSVFILEITERATOR-ERROR", sprintf("\"header-names\" is True but \"headers\" has a value (%y)", $.headers);
 
-	    @par Example:
-	    @code
+            # set headers automatically from field names if not set
+            if ($.fields && !$.headers && !$.headerNames)
+                $.headers = $.fields.keys();
+
+            if ($.headers && $.fields)
+                $.setFields();
+        }
+
+        #! Moves the current line / record position to the next line / record; returns @ref False if there are no more lines to iterate
+        /** This method will return @ref True again after it returns @ref False once if the file being iterated has data that can be iterated, otherwise it will always return @ref False. The iterator object should not be used to retrieve a value after this method returns @ref False.
+
+            @par Example:
+            @code
 foreach my hash $r in (new CsvFileIterator("my_file.csv")) {
     printf(" + record: %y\n", $r);
 }
-	    @endcode
+            @endcode
 
-	    @return @ref False if there are no lines / records to iterate (in which case the iterator object is invalid and should not be used); @ref True if successful (meaning that the iterator object is valid)
+            @return @ref False if there are no lines / records to iterate (in which case the iterator object is invalid and should not be used); @ref True if successful (meaning that the iterator object is valid)
 
-	    @note that if headers are not given as an option to the constructor, then they are detected and set the first time CsvFileIterator::next() is run on a file (see @ref getHeaders())
-	 */
-	bool next() {
-	    # try to parse any header and skip to data if we haven't started iterating yet
-	    if (!$.valid()) {
+            @note that if headers are not given as an option to the constructor, then they are detected and set the first time CsvFileIterator::next() is run on a file (see @ref getHeaders())
+         */
+        bool next() {
+            # try to parse any header and skip to data if we haven't started iterating yet
+            if (!$.valid()) {
                 if ($.headerLines) {
                     if ($.headerNames) {
                         # return False if there is no data to iterate
@@ -467,138 +493,138 @@ foreach my hash $r in (new CsvFileIterator("my_file.csv")) {
                             return False;
                     }
                 }
-	    }
-	    my bool $b = FileLineIterator::$.next();
-	    if ($b) {
-		# skip empty lines
-		if ($.ignoreEmptyLines) {
-		    while ($b && FileLineIterator::$.getValue().empty())
-			$b = FileLineIterator::$.next();
-		}
+            }
+            my bool $b = FileLineIterator::$.next();
+            if ($b) {
+                # skip empty lines
+                if ($.ignoreEmptyLines) {
+                    while ($b && FileLineIterator::$.getValue().empty())
+                        $b = FileLineIterator::$.next();
+                }
 
-		# generate fake header names with index positions if no header data is already available
-		if ($b && $.headers.empty()) {
-		    my list $l = $.parseLine();
-		    $.headers = ();
-		    map $.headers += string($#), $l;
+                # generate fake header names with index positions if no header data is already available
+                if ($b && !$.headers) {
+                    my list $l = $.parseLine();
+                    $.headers = ();
+                    map $.headers += string($#), $l;
 
-		    # set field description list if necessary
-		    if ($.fields)
-			$.setFields();
-		}
-	    }
+                    # set field description list if necessary
+                    if ($.fields)
+                        $.setFields();
+                }
+            }
 
             if ($b)
                 ++$.rc;
             else
                 $.rc = 0;
 
-	    return $b;
-	}
+            return $b;
+        }
 
-	#! returns the given column value for the current row
-	/** @param name the name of the field (header name) in record
+        #! returns the given column value for the current row
+        /** @param name the name of the field (header name) in record
 
-	    @return the value of the given header for the current record
+            @return the value of the given header for the current record
 
-	    @throw INVALID-ITERATOR this error is thrown if the iterator is invalid; make sure that the next() method returns True before calling this method
-	    @throw CSVFILEITERATOR-FIELD-ERROR invalid or unknown field name given
-	 */
-	any memberGate(string $name) {
-	    my hash $h = $.getRecord();
-	    if (!$h.hasKey($name))
-		throw "CSVFILEITERATOR-FIELD-ERROR", sprintf("the requested header %y does not exist (known headers: %y)", $name, $.headers);
+            @throw INVALID-ITERATOR this error is thrown if the iterator is invalid; make sure that the next() method returns True before calling this method
+            @throw CSVFILEITERATOR-FIELD-ERROR invalid or unknown field name given
+         */
+        any memberGate(string $name) {
+            my hash $h = $.getRecord();
+            if (!$h.hasKey($name))
+                throw "CSVFILEITERATOR-FIELD-ERROR", sprintf("the requested header %y does not exist (known headers: %y)", $name, $.headers);
 
-	    return $h.$name;	    
-	}
+            return $h.$name;            
+        }
 
-	#! returns the current record as a hash
-	/** @par Example:
-	    @code
+        #! returns the current record as a hash
+        /** @par Example:
+            @code
 my hash $h = $i.getValue();
-	    @endcode
+            @endcode
 
-	    @return the current record as a hash
+            @return the current record as a hash
 
-	    @throw INVALID-ITERATOR this error is thrown if the iterator is invalid; make sure that the next() method returns True before calling this method
+            @throw INVALID-ITERATOR this error is thrown if the iterator is invalid; make sure that the next() method returns True before calling this method
 
-	    @note the return value is @ref any_type "any" to match Qore::AbstractIterator::getValue() however this method always returns a @ref hash
-	 */
-	any getValue() {
-	    return $.getRecord();
-	}
+            @note the return value is @ref any_type "any" to match Qore::AbstractIterator::getValue() however this method always returns a @ref hash
+         */
+        any getValue() {
+            return $.getRecord();
+        }
 
-	#! returns the current record as a hash
-	/** @par Example:
-	    @code
+        #! returns the current record as a hash
+        /** @par Example:
+            @code
 my hash $h = $i.getRecord();
-	    @endcode
+            @endcode
 
-	    @throw INVALID-ITERATOR this error is thrown if the iterator is invalid; make sure that the next() method returns True before calling this method
+            @throw INVALID-ITERATOR this error is thrown if the iterator is invalid; make sure that the next() method returns True before calling this method
 
-	    @return the current record as a hash
-	 */
-	hash getRecord() {
-	    my list $l = $.parseLine();
-	    my hash $h = hash();
-	    foreach my any $v in ($l) {
-		my string $col = $.headers[$#] ? $.headers[$#] : string($#);
-		$h.$col = $v;
-	    }
-	    
-	    return $h;
-	}
+            @return the current record as a hash
+         */
+        hash getRecord() {
+            my list $l = $.parseLine();
+            my hash $h = hash();
+            foreach my any $v in ($l) {
+                my string $col = $.headers[$#] ? $.headers[$#] : string($#);
+                $h.$col = $v;
+            }
+            
+            return $h;
+        }
 
-	#! returns the current record as a list
-	/** @par Example:
-	    @code
+        #! returns the current record as a list
+        /** @par Example:
+            @code
 my list $l = $i.getRecordList();
-	    @endcode
+            @endcode
 
-	    @throw INVALID-ITERATOR this error is thrown if the iterator is invalid; make sure that the next() method returns True before calling this method
+            @throw INVALID-ITERATOR this error is thrown if the iterator is invalid; make sure that the next() method returns True before calling this method
 
-	    @return the current record as a list
-	 */
-	list getRecordList() {
-	    my list $l = $.parseLine();
-	    
-	    return $l;
-	}
+            @return the current record as a list
+         */
+        list getRecordList() {
+            my list $l = $.parseLine();
+            
+            return $l;
+        }
 
-	#! returns the current separator string
-	/** @par Example:
-	    @code
+        #! returns the current separator string
+        /** @par Example:
+            @code
 my string $sep = $i.getSeparator();
-	    @endcode
+            @endcode
 
-	    @return the current separator string
-	 */
-	string getSeparator() {
-	    return $.separator;
-	}
+            @return the current separator string
+         */
+        string getSeparator() {
+            return $.separator;
+        }
 
-	#! returns the current quote string
-	/** @par Example:
-	    @code
+        #! returns the current quote string
+        /** @par Example:
+            @code
 my string $quote = $i.getQuote();
-	    @endcode
+            @endcode
 
-	    @return the current quote string
-	 */
-	string getQuote() {
-	    return $.quote;
-	}
+            @return the current quote string
+         */
+        string getQuote() {
+            return $.quote;
+        }
 
-	#! returns the current column headers or @ref nothing if no headers have been detected or saved yet
-	/** @par Example:
-	    @code
-	    @endcode
+        #! returns the current column headers or @ref nothing if no headers have been detected or saved yet
+        /** @par Example:
+            @code
+            @endcode
 
-	    @note if headers are not saved against the object in the @ref constructor(), then they are written to the object after the first call to @ref next()
-	 */
-	*list getHeaders() {
-	    return $.headers;
-	}
+            @note if headers are not saved against the object in the @ref constructor(), then they are written to the object after the first call to @ref next()
+         */
+        *list getHeaders() {
+            return $.headers;
+        }
 
         #! returns the row index being iterated, which does not necessarily correspond to the line number when there are header rows and blank lines are skipped
         /** @par Example:
@@ -636,76 +662,121 @@ while ($i.next()) {
             return FileLineIterator::$.index();
         }
 
-	#! parses a line in the file and returns a processed list of the fields
-	private list parseLine() {
-	    my list $l = FileLineIterator::$.getValue().split($.separator, $.quote, $.ignoreWhitespace);
+        private any handleType(hash $fh, any $val) {
+            switch ($fh.type) {
+                case "int": {
+                    $val = int($val);
+                    break;
+                }
+                case "*int": {
+                    if ($val.empty())
+                        delete $val;
+                    else
+                        $val = int($val);
+                    break;
+                }
+                case "float": {
+                    $val = float($val);
+                    break;
+                }
+                case "*float": {
+                    if ($val.empty())
+                        delete $val;
+                    else
+                        $val = float($val);
+                    break;
+                }
+                case "number": {
+                    $val = number($val);
+                    break;
+                }
+                case "*number": {
+                    if ($val.empty())
+                        delete $val;
+                    else
+                        $val = number($val);
+                    break;
+                }
+                case "date": {
+                    my *TimeZone $tz = $fh.timezone ? $fh.timezone : $.tz;
+                    if ($fh.format)
+                        $val = $tz ? $tz.date($val, $fh.format) : date($val, $fh.format);
+                    else
+                        $val = $tz ? $tz.date($val) : date($val);
+                    break;
+                }
+                case "*date": {
+                    if ($val.empty())
+                        delete $val;
+                    else {
+                        my *TimeZone $tz = $fh.timezone ? $fh.timezone : $.tz;
+                        if ($fh.format)
+                            $val = $tz ? $tz.date($val, $fh.format) : date($val, $fh.format);
+                        else
+                            $val = $tz ? $tz.date($val) : date($val);
+                    }
+                    break;
+                }
+            }
+            
+            return $val;
+        }
 
-	    # verify column count if requested
-	    if ($.checkElementCounts) {
+        #! parses a line in the file and returns a processed list of the fields
+        private list parseLine() {
+            my list $l = FileLineIterator::$.getValue().split($.separator, $.quote, $.ignoreWhitespace);
+
+            # verify column count if requested
+            if ($.checkElementCounts) {
                 if (!exists $.cc)
                     $.cc = $l.size();
                 else if ($l.size() != $.cc)
                     throw "CSVFILEITERATOR-DATA-ERROR", sprintf("%s:%d line contained %d field%s, however the template record has %d (and option \"verify-columns\" is set)", $.getFileName(), FileLineIterator::$.index(), $l.size(), $l.size() == 1 ? "" : "s", $.cc);
             }
 
-	    # appy transformations to data read if there are any transformations to apply
-	    my ListValueIterator $i($.fdesc);
-	    while ($i.next()) {
-		my hash $fh = $i.getValue();
-		my reference $val = \$l[$i.index()];
+            # appy transformations to data read if there are any transformations to apply
+            my ListValueIterator $i($.fdesc);
+            while ($i.next()) {
+                my hash $fh = $i.getValue();
+                my reference $val = \$l[$i.index()];
 
-		# first apply type transformations
-		switch ($fh.type) {
-		    case "int": {
-			$val = int($val);
-			break;
-		    }
-		    case "float": {
-			$val = float($val);
-			break;
-		    }
-		    case "number": {
-			$val = number($val);
-			break;
-		    }
-		    case "date": {
-			my *TimeZone $tz = $fh.timezone ? $fh.timezone : $.tz;
-			if ($fh.format)
-			    $val = $tz ? $tz.date($val, $fh.format) : date($val, $fh.format);
-			else
-			    $val = $tz ? $tz.date($val) : date($val);
-			break;
-		    }
-		}
+                # first apply type transformations
+                $val = $.handleType($fh, $val);
 
-		# execute any callable value on the processed value
-		if ($fh.code)
-		    $val = $fh.code($val);
-	    }
-	    return $l;
-	}
+                # execute any callable value on the processed value
+                if ($fh.code)
+                    $val = $fh.code($val);
+            }
+            return $l;
+        }
 
     } # CsvFileIterator class
 
 
-    #! the CsvFileWriter class for easy and safe CSV file creation
+    #! the AbstractCsvWriter class provides a parent for all CSV writers
     /**
-    @section csvfilewriter_options CsvFileWriter Constructor Option Hash Overview
-    The CsvFileIterator class constructor takes an optional hash with possible keys given in the following table.
+
+    Any inherited class has to implement pure virtual (abstract) method, where should
+    be the real physical write action placed.
+
+    @code private writeRawLine(list $values) @endcode
+        
+    @section csvwiter_options AbstractCsvWriter Constructor Option Hash Overview
+    The AbstractCsvWriter class constructor takes an optional hash with possible keys given in the following table.
     Note that key names are case-sensitive, and data types are soft (conversions are made when possible).
     
-    <b>CsvFileWriter Options</b>
+    <b>AbstractCsvWriter Options</b>
     |!Option|!Data Type|!Description
     |\c "encoding"|@ref string|the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
     |\c "separator"|@ref string|the string separating the fields in the file (default: \c ",")
     |\c "quote"|@ref string|the field quote character (default: \c '\"')
     |\c "eol"|@ref string|the end of line character(s) (default: auto-detect); if the value of this key is not a string then it will be ignored
-    |\c "headers"|@ref list of strings|list of header / column names for the data iterated, if this is present, then \c "header-names" must be @ref Qore::False "False"
+    |\c "headers"|@ref list of strings|list of header / column names for the data iterated
     |\c "verify-columns"|@ref boolean|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different column count than other lines, a \c CSVFILEWRITER-DATA-ERROR exception is thrown
     |\c "date-format"|@ref string|the default mask for date values formatting
 
      */
-    public class CsvFileWriter inherits private CsvHelper {
+    public class AbstractCsvWriter inherits private CsvHelper {
         private {
             #! valid options for the object (a hash for quick lookups of valid keys)
             const Options = (
@@ -715,8 +786,8 @@ while ($i.next()) {
                 "eol": True,
                 "verify-columns": True,
                 "fields": True,
-                "headers" : True,
-                "date-format" : True,
+                "headers": True,
+                "date-format": True,
                 );
         }
 
@@ -748,55 +819,55 @@ while ($i.next()) {
             # verify the column count for every row; if a row does not match, then throw a \c CSVFILEITERATOR-DATA-ERROR exception
             bool $.checkElementCounts = False;
 
-            # a file to write
-            File $.file;
-
             # the latest line number
             int $.lineNo = 0;
 
             # base template for value format
             string $.baseTemplate;
+            
+            string $.errname;
         }
 
-        #! creates the CsvFileWriter with the path of the file to read with an options
+        #! creates the AbstractCsvWriter
         /**
-            @param path a filename (with path)
-            @param opts @ref csvfilewriter_options
+            @param errname a string to construct child class error message. For example: value 'FOO' will result in exception names 'CSVFOOWRITER-ERROR'
+            @param opts @ref csvwiter_options
         
-            @throw CSVFILEWRITER-ERROR in the case of incorrect options
+            @throw CSV<errname>ITER-ERROR in the case of incorrect options
          */
-        constructor(string $path, *hash $opts) {
+        constructor(string $errname, *hash $opts) {
+            $.errname = sprintf("CSV%sWRITER-ERROR", $errname);
 
             # TODO/FIXME: shared with CsvFileIterator?
             foreach my hash $i in ($opts.pairIterator()) {
 
                 if (!exists Options.($i.key))
-                    throw "CSVFILEWRITER-ERROR", sprintf("unknown option %y passed to CsvFileIterator::constructor() (valid options: %y)", $i.key, Options.keys());
+                    throw $.errname, sprintf("unknown option %y passed to CsvFileIterator::constructor() (valid options: %y)", $i.key, Options.keys());
 
                 switch ($i.key) {
                     case "separator": {
                         if ($i.value.typeCode() != NT_STRING)
-                            throw "CSVFILEWRITER-ERROR", sprintf("expecting a string value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
+                            throw $.errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
                         $.separator = $i.value;
                         break;
                     }
                     case "quote": {
                         if ($i.value.typeCode() != NT_STRING)
-                            throw "CSVFILEWRITER-ERROR", sprintf("expecting a string value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
+                            throw $.errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
                         $.quote = $i.value;
                         break;
                     }
                     case "eol": {
                         if ($i.value.typeCode() != NT_STRING)
-                            throw "CSVFILEWRITER-ERROR", sprintf("expecting a string value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
+                            throw $.errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
                         if (!inlist($i.value, EOLS))
-                            throw "CSVFILEWRITER-ERROR", sprintf("expecting a known end of line value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
+                            throw $.errname, sprintf("expecting a known end of line value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
                         $.eol = $i.value;
                         break;
                     }
                     case "date-format": {
                         if ($i.value.typeCode() != NT_STRING)
-                            throw "CSVFILEWRITER-ERROR", sprintf("expecting a string value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
+                            throw $.errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
                         $.dateFormat = $i.value;
                         break;
                     }
@@ -812,36 +883,36 @@ while ($i.next()) {
                                 $.headers += $v;
                             }
                             catch (hash $ex) {
-                                throw "CSVFILEWRITER-ERROR", sprintf("expecting a string value or a value that can be converted to a string for option %y; got %y (type %s) in header list position %d instead (full arg: %y)", $i.key, $c, $c.type(), $#, $i.value);
+                                throw $.errname, sprintf("expecting a string value or a value that can be converted to a string for option %y; got %y (type %s) in header list position %d instead (full arg: %y)", $i.key, $c, $c.type(), $#, $i.value);
                             }
                         }
                         break;
                     }
                     case "fields": {
                         if ($i.value.typeCode() != NT_HASH)
-                            throw "CSVFILEWRITER-ERROR", sprintf("expecting a hash value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
+                            throw $.errname, sprintf("expecting a hash value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
                         # iterate hash to process field descriptions
                         foreach my hash $hi in ($i.value.pairIterator()) {
                             switch ($hi.value.typeCode()) {
                                 case NT_STRING: {
-                                    CsvFileWriter::checkType($hi.key, $hi.value);
+                                    $.checkType($hi.key, $hi.value);
                                     $.fields.($hi.key) = ("type": $hi.value);
                                     break;
                                 }
                                 case NT_HASH: {
                                     if ($hi.value.empty())
-                                        throw "CSVFILEWRITER-ERROR", sprintf("while processing the hash value for option key \"fields\": empty hash passed as description for field %y", $hi.key);
+                                        throw $.errname, sprintf("while processing the hash value for option key \"fields\": empty hash passed as description for field %y", $hi.key);
                                     my hash $h;
                                     foreach my hash $fh in ($hi.value.pairIterator()) {
                                         switch ($fh.key) {
                                             case "type": {
-                                                CsvFileWriter::checkType($hi.key, $fh.value);
+                                                $.checkType($hi.key, $fh.value);
                                                 $h.type = $fh.value;
                                                 break;
                                             }
                                             case "format": {
                                                 if ($fh.value.typeCode() != NT_STRING)
-                                                    throw "CSVFILEWRITER-ERROR", sprintf("while processing the hash value for option key \"fields\": field %y \"format\" attributes expects a string value; got %y instead", $hi.key, $fh.value.type());
+                                                    throw $.errname, sprintf("while processing the hash value for option key \"fields\": field %y \"format\" attributes expects a string value; got %y instead", $hi.key, $fh.value.type());
                                                 $h.format = $fh.value;
                                                 break;
                                             }
@@ -851,12 +922,12 @@ while ($i.next()) {
                                             }
                                             case "code": {
                                                 if (!$fh.value.callp())
-                                                    throw "CSVFILEWRITER-ERROR", sprintf("while processing the hash value for option key \"fields\": field %y \"code\" attributes expects a callable value to process the field value; got %y instead", $hi.key, $fh.value.type());
+                                                    throw $.errname, sprintf("while processing the hash value for option key \"fields\": field %y \"code\" attributes expects a callable value to process the field value; got %y instead", $hi.key, $fh.value.type());
                                                 $h.code = $fh.value;
                                                 break;
                                             }
                                             default: {
-                                                throw "CSVFILEWRITER-ERROR", sprintf("while processing the hash value for option key \"fields\": unknown field attribute value %y given for field %y (supported attribute values: %y)", $fh.key, $hi.key, FieldAttrs);
+                                                throw $.errname, sprintf("while processing the hash value for option key \"fields\": unknown field attribute value %y given for field %y (supported attribute values: %y)", $fh.key, $hi.key, FieldAttrs);
                                                 
                                             }
                                         }
@@ -866,14 +937,14 @@ while ($i.next()) {
                                     if ($h.type != "date") {
                                         foreach my string $f in ("timezone", "format") {
                                             if ($h.$f)
-                                                throw "CSVFILEWRITER-ERROR", sprintf("while processing the hash value for option key \"fields\": field %y is type %y, but the %y attribute was also given, which is only valid for \"date\" fields", $hi.key, $h.type, $f);
+                                                throw $.errname, sprintf("while processing the hash value for option key \"fields\": field %y is type %y, but the %y attribute was also given, which is only valid for \"date\" fields", $hi.key, $h.type, $f);
                                         }
                                     }
                                     $.fields.($hi.key) = $h;
                                     break;
                                 }
                                 default: {
-                                    throw "CSVFILEWRITER-ERROR", sprintf("while processing the hash value for option key \"fields\": invalid value passed as the field description for field %y; expecting \"string\" or \"hash\"; got %y instead", $i.key, $hi.value.type());
+                                    throw $.errname, sprintf("while processing the hash value for option key \"fields\": invalid value passed as the field description for field %y; expecting \"string\" or \"hash\"; got %y instead", $i.key, $hi.value.type());
                                 }
                             }
                         }
@@ -881,6 +952,7 @@ while ($i.next()) {
                         break;
                     }
                 }
+                
                 if ($.headers && $.fields) {
                     $.setFields();
                 }
@@ -888,12 +960,6 @@ while ($i.next()) {
 
             # make eg. '"%s",' template
             $.baseTemplate = sprintf("%s%%s%s%s", $.quote, $.quote, $.separator);
-
-            $.file = new File($.encoding);
-            $.file.open2($path, O_CREAT | O_TRUNC | O_WRONLY, 0644);
-            
-            if (exists $.headers)
-                $.writeRawLine($.headers);
         }
 
         #! write a line with list of values. Data are checked against column rules.
@@ -906,7 +972,7 @@ while ($i.next()) {
             $.lineNo++;
             
             if ($.checkElementCounts && $values.size() != $.headers.size())
-                throw "CSVFILEWRITER-DATA-ERROR", sprintf("Line (%d), Header size (%d) and line size (%d) is different. Enforced by 'verify-columns' option", $.lineNo, $.headers.size(), $values.size());
+                throw $.errname, sprintf("Line (%d), Header size (%d) and line size (%d) is different. Enforced by 'verify-columns' option", $.lineNo, $.headers.size(), $values.size());
 
             for(my int $i = 0; $i < $values.size(); $i++) {
 
@@ -915,22 +981,42 @@ while ($i.next()) {
                     switch ($.fdesc[$i].type) {
                         case "int": {
                             if (int($values[$i]) != $values[$i])
-                                throw "CSVFILEWRITER-DATA-ERROR", sprintf("Line (%d), Column (%d) does not contain integer value %n vs %n", $.lineNo, $i, int($values[$i]), $values[$i]);
+                                throw $.errname, sprintf("Line (%d), Column (%d) does not contain integer value %n vs %n", $.lineNo, $i, int($values[$i]), $values[$i]);
+                            break;
+                        }
+                        case "*int": {
+                            if (!$values[$i].empty() && int($values[$i]) != $values[$i])
+                                throw $.errname, sprintf("Line (%d), Column (%d) does not contain integer value %n vs %n", $.lineNo, $i, int($values[$i]), $values[$i]);
                             break;
                         }
                         case "float": {
                             if (float($values[$i]) != $values[$i])
-                                throw "CSVFILEWRITER-DATA-ERROR", sprintf("Line (%d), Column (%d) does not contain float value %n vs %n", $.lineNo, $i, float($values[$i]), $values[$i]);
+                                throw $.errname, sprintf("Line (%d), Column (%d) does not contain float value %n vs %n", $.lineNo, $i, float($values[$i]), $values[$i]);
+                            break;
+                        }
+                        case "*float": {
+                            if (!$values[$i].empty() && float($values[$i]) != $values[$i])
+                                throw $.errname, sprintf("Line (%d), Column (%d) does not contain float value %n vs %n", $.lineNo, $i, float($values[$i]), $values[$i]);
                             break;
                         }
                         case "number": {
                             if (number($values[$i]) != $values[$i])
-                                throw "CSVFILEWRITER-DATA-ERROR", sprintf("Line (%d), Column (%d) does not contain number value %n vs %n", $.lineNo, $i, number($values[$i]), $values[$i]);
+                                throw $.errname, sprintf("Line (%d), Column (%d) does not contain number value %n vs %n", $.lineNo, $i, number($values[$i]), $values[$i]);
+                            break;
+                        }
+                        case "*number": {
+                            if (!$values[$i].empty() && number($values[$i]) != $values[$i])
+                                throw $.errname, sprintf("Line (%d), Column (%d) does not contain number value %n vs %n", $.lineNo, $i, number($values[$i]), $values[$i]);
                             break;
                         }
                         case "date": {
                             if ($values[$i].typeCode() != NT_DATE)
-                                throw "CSVFILEWRITER-DATA-ERROR", sprintf("Line (%d), Column (%d) does not contain date value (%s)", $.lineNo, $i, $values[$i].type());
+                                throw $.errname, sprintf("Line (%d), Column (%d) does not contain date value (%s)", $.lineNo, $i, $values[$i].type());
+                            break;
+                        }
+                        case "*date": {
+                            if (!$values[$i].empty() && $values[$i].typeCode() != NT_DATE)
+                                throw $.errname, sprintf("Line (%d), Column (%d) does not contain date value (%s)", $.lineNo, $i, $values[$i].type());
                             break;
                         }
                     }
@@ -953,11 +1039,11 @@ while ($i.next()) {
         writeLine(hash $values) {
             my list $line;
             if (!exists $.headers)
-                throw "CSVFILEWRITER-DATA-ERROR", "No header set in CsvFileWriter instance to bind the hash key";
+                throw $.errname, "No header set in AbstractCsvWriter instance to bind the hash key";
             
             foreach my string $i in ($.headers) {
                 if (!$values.hasKey($i))
-                    throw "CSVFILEWRITER-DATA-ERROR", sprintf("Line data does not contain key '%s'", $i);
+                    throw $.errname, sprintf("Line data does not contain key '%s'", $i);
                 else
                     push $line, $values.$i;
             }
@@ -984,22 +1070,29 @@ while ($i.next()) {
                         $.writeLine($row);
                         break;
                     default:
-                        throw "CSVFILEWRITER-DATA-ERROR", sprintf("Iterator's getValue returned %s, expected list or hash", $row.type());
+                        throw $.errname, sprintf("Iterator's getValue returned %s, expected list or hash", $row.type());
                 }
             }
         }
 
-        # real write to file - a list to write. Without any checking.
-        private writeRawLine(list $values) {
+        #! real write implementation. Without any checking.
+        abstract private writeRawLine(list $values);
+        
+        #! Prepare a string (line with EOF) with formatting and escaping.
+        /**
+        @param $values a list with values
+        @return string a formatted and escaped line with EOF
+        */
+        private string perpareRawLine(list $values) {
             # make full line template
-            my string $template = strmul($.baseTemplate, elements $values, 1);
+            my string $template = strmul($.baseTemplate, elements $values, 1) + $.eol;
             # escape separators in strings
             my list $row = map replace(string($1), $.quote, "\\" + $.quote), $values;
 
-            $.file.f_vprintf($template + $.eol, $row);
+            return vsprintf($template, $row);
         }
 
-        # format date to string by options. Priority: 1) column definition 2) standard format
+        #! format date to string by options. Priority: 1) column definition 2) standard format
         private string dateFormat(int $ix) {
             if (exists $.fdesc[$ix] && $.fdesc[$ix].type == "date" && exists $.fdesc[$ix].format)
                 return $.fdesc[$ix].format;
@@ -1007,7 +1100,68 @@ while ($i.next()) {
             return $.dateFormat;
         }
 
-    } # CsvFileWriter class
+    } # AbstractCsvWriter class
+      
+    #! the CsvFileWriter class for easy and safe CSV file creation
+    public class CsvFileWriter inherits private AbstractCsvWriter {
+        
+        private {
+            # a file to write
+            File $.file;
+        }
+        
+        #! creates the CsvFileWriter with the path of the file to read with an options
+        /**
+        @param path a file name (with path optionally) to write
+        @param opts @ref csvwiter_options
+        
+        The file is created with O_CREAT, O_TRUNC, O_WRONLY and 0644 access.
+
+        @throw CSVFILEITER-ERROR in the case of incorrect options
+        */
+        constructor(string $path, *hash $opts) : AbstractCsvWriter("FILE", $opts) {
+            $.file = new File($.encoding);
+            $.file.open2($path, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+
+            if (exists $.headers)
+                $.writeRawLine($.headers);
+        }
+
+        private writeRawLine(list $values) {
+            $.file.print($.perpareRawLine($values));
+        }
+    
+    } # CsvFileWriter
+
+    #! the CsvStringWriter class for in-memory string CSV creation
+    public class CsvStringWriter inherits private AbstractCsvWriter {
+        
+        private {
+            # a csv content
+            string $.content;
+        }
+        
+        #! creates the CsvStringWriter with content in the memory
+        /**
+        @param opts @ref csvwiter_options
+
+        @throw CSVSTRINGITER-ERROR in the case of incorrect options
+        */
+        constructor(*hash $opts) : AbstractCsvWriter("STRING", $opts) {
+            if (exists $.headers)
+                $.writeRawLine($.headers);
+        }
+
+        private writeRawLine(list $values) {
+            $.content += $.perpareRawLine($values);
+        }
+        
+        #! Get the current in-memory content as a string
+        string getContent() {
+            return $.content;
+        }
+    
+    } # CsvStringWriter
 
 } # CsvUtil namespace
 
