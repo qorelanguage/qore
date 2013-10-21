@@ -29,14 +29,18 @@
 %perl-bool-eval
 
 module CsvUtil {
-    version = "1.3";
+    version = "1.2";
     desc = "user module for working with CSV files";
     author = "Petr Vanek <petr@yarpen.cz>, David Nichols <david@qore.org>";
     url = "http://qore.org";
 }
 
 /*  Version History
-    * 2013-10-09 v1.3: Petr Vanek <petr.vanek@qoretechnologies.com>
+    * 2013-10-21 v1.2: Davod Nichols <david@qore.org>
+      + implemented support for the "*int", "*float", "*number", and "*date" types
+      + implemented support for allowing subclasses of CsvFileIterator to implement support for other custom types
+
+    * 2013-10-09 v1.2: Petr Vanek <petr.vanek@qoretechnologies.com>
       + CsvStringWriter addon
       + AbstractCsvWriter addon
 
@@ -147,10 +151,15 @@ class CsvHelper {
         #! supported type codes (hash for quick lookups)
         const Types = (
             "int": True,
+            "*int": True,
             "float": True, 
+            "*float": True,
             "number": True,
+            "*number": True,
             "string": True,
+            "*string": True,
             "date": True,
+            "*date": True,
         );
 
         #! supported field description attribute codes
@@ -178,11 +187,10 @@ class CsvHelper {
             throw "CSVFILEWRITER-FIELD-ERROR", sprintf("a field description was given for the following non-existent fields: %y (known header / field names: %y)", $f.keys(), $.headers);
     }
     
-    static checkType(string $key, string $value) {
-            if (!Types.$value)
-                throw "CSV-TYPE-ERROR", sprintf("while processing the hash value for option key \"fields\": unknown field type %y for field %y (supported types: %y)", $value, $key, Types.keys());
-        }
-
+    checkType(string $key, string $value) {
+        if (!Types.$value)
+            throw "CSV-TYPE-ERROR", sprintf("while processing the hash value for option key \"fields\": unknown field type %y for field %y (supported types: %y)", $value, $key, Types.keys());
+    }
 } # class CsvHelper
 
 #! the CsvUtil namespace contains all the objects in the CsvUtil module
@@ -224,10 +232,15 @@ public namespace CsvUtil {
         <b>CsvFileIterator Option Field Types</b>
         |!Name|!Description
         |\c "int"|the value will be unconditionally converted to an @ref integer "integer" using the @ref Qore::int() function
+        |\c "*int"|the value will be converted to @ref nothing if empty, otherwise it will be converted to an @ref integer "integer" using the @ref Qore::int() function
         |\c "float"|the value will be unconditionally converted to a @ref float "floating-point value" using the @ref Qore::float() function
+        |\c "*float"|the value will be converted to @ref nothing if empty, otherwise it will be converted to a @ref float "floating-point value" using the @ref Qore::float() function
         |\c "number"|the value will be unconditionally converted to an @ref number "arbitrary-precision number value" using the @ref Qore::number() function
+        |\c "*number"|the value will be converted to @ref nothing if empty, otherwise it will be converted to an @ref number "arbitrary-precision number value" using the @ref Qore::number() function
         |\c "string"|(the default) the value remains a string; no transformation is done on the input data
+        |\c "*string"|the value will be converted to @ref nothing if empty, it remains a string
         |\c "date"|in this case dates are parsed directly with the @ref Qore::date() function (and therefore are tagged automatically with the current @ref time_zones "time zone"); to specify another date format, use the @ref csvfileiterator_option_field_hash "hash format" documented below
+        |\c "*date"|the value will be converted to @ref nothing if empty, otherwise dates are parsed directly with the @ref Qore::date() function (and therefore are tagged automatically with the current @ref time_zones "time zone"); to specify another date format, use the @ref csvfileiterator_option_field_hash "hash format" documented below
 
         @subsection csvfileiterator_option_field_hash Option Field Hash
         See @ref complex_example "here" for an example of using the hash field description in the @ref CsvUtil::CsvFileIterator::constructor() "constructor()".
@@ -373,7 +386,7 @@ public namespace CsvUtil {
                         foreach my hash $hi in ($i.value.pairIterator()) {
                             switch ($hi.value.typeCode()) {
                                 case NT_STRING: {
-                                    CsvFileIterator::checkType($hi.key, $hi.value);
+                                    $.checkType($hi.key, $hi.value);
                                     $.fields.($hi.key) = ("type": $hi.value);
                                     break;
                                 }
@@ -384,7 +397,7 @@ public namespace CsvUtil {
                                     foreach my hash $fh in ($hi.value.pairIterator()) {
                                         switch ($fh.key) {
                                             case "type": {
-                                                CsvFileIterator::checkType($hi.key, $fh.value);
+                                                $.checkType($hi.key, $fh.value);
                                                 $h.type = $fh.value;
                                                 break;
                                             }
@@ -649,6 +662,66 @@ while ($i.next()) {
             return FileLineIterator::$.index();
         }
 
+        private any handleType(hash $fh, any $val) {
+            switch ($fh.type) {
+                case "int": {
+                    $val = int($val);
+                    break;
+                }
+                case "*int": {
+                    if ($val.empty())
+                        delete $val;
+                    else
+                        $val = int($val);
+                    break;
+                }
+                case "float": {
+                    $val = float($val);
+                    break;
+                }
+                case "*float": {
+                    if ($val.empty())
+                        delete $val;
+                    else
+                        $val = float($val);
+                    break;
+                }
+                case "number": {
+                    $val = number($val);
+                    break;
+                }
+                case "*number": {
+                    if ($val.empty())
+                        delete $val;
+                    else
+                        $val = number($val);
+                    break;
+                }
+                case "date": {
+                    my *TimeZone $tz = $fh.timezone ? $fh.timezone : $.tz;
+                    if ($fh.format)
+                        $val = $tz ? $tz.date($val, $fh.format) : date($val, $fh.format);
+                    else
+                        $val = $tz ? $tz.date($val) : date($val);
+                    break;
+                }
+                case "*date": {
+                    if ($val.empty())
+                        delete $val;
+                    else {
+                        my *TimeZone $tz = $fh.timezone ? $fh.timezone : $.tz;
+                        if ($fh.format)
+                            $val = $tz ? $tz.date($val, $fh.format) : date($val, $fh.format);
+                        else
+                            $val = $tz ? $tz.date($val) : date($val);
+                    }
+                    break;
+                }
+            }
+            
+            return $val;
+        }
+
         #! parses a line in the file and returns a processed list of the fields
         private list parseLine() {
             my list $l = FileLineIterator::$.getValue().split($.separator, $.quote, $.ignoreWhitespace);
@@ -668,28 +741,7 @@ while ($i.next()) {
                 my reference $val = \$l[$i.index()];
 
                 # first apply type transformations
-                switch ($fh.type) {
-                    case "int": {
-                        $val = int($val);
-                        break;
-                    }
-                    case "float": {
-                        $val = float($val);
-                        break;
-                    }
-                    case "number": {
-                        $val = number($val);
-                        break;
-                    }
-                    case "date": {
-                        my *TimeZone $tz = $fh.timezone ? $fh.timezone : $.tz;
-                        if ($fh.format)
-                            $val = $tz ? $tz.date($val, $fh.format) : date($val, $fh.format);
-                        else
-                            $val = $tz ? $tz.date($val) : date($val);
-                        break;
-                    }
-                }
+                $val = $.handleType($fh, $val);
 
                 # execute any callable value on the processed value
                 if ($fh.code)
@@ -843,7 +895,7 @@ while ($i.next()) {
                         foreach my hash $hi in ($i.value.pairIterator()) {
                             switch ($hi.value.typeCode()) {
                                 case NT_STRING: {
-                                    AbstractCsvWriter::checkType($hi.key, $hi.value);
+                                    $.checkType($hi.key, $hi.value);
                                     $.fields.($hi.key) = ("type": $hi.value);
                                     break;
                                 }
@@ -854,7 +906,7 @@ while ($i.next()) {
                                     foreach my hash $fh in ($hi.value.pairIterator()) {
                                         switch ($fh.key) {
                                             case "type": {
-                                                AbstractCsvWriter::checkType($hi.key, $fh.value);
+                                                $.checkType($hi.key, $fh.value);
                                                 $h.type = $fh.value;
                                                 break;
                                             }
@@ -932,8 +984,18 @@ while ($i.next()) {
                                 throw $.errname, sprintf("Line (%d), Column (%d) does not contain integer value %n vs %n", $.lineNo, $i, int($values[$i]), $values[$i]);
                             break;
                         }
+                        case "*int": {
+                            if (!$values[$i].empty() && int($values[$i]) != $values[$i])
+                                throw $.errname, sprintf("Line (%d), Column (%d) does not contain integer value %n vs %n", $.lineNo, $i, int($values[$i]), $values[$i]);
+                            break;
+                        }
                         case "float": {
                             if (float($values[$i]) != $values[$i])
+                                throw $.errname, sprintf("Line (%d), Column (%d) does not contain float value %n vs %n", $.lineNo, $i, float($values[$i]), $values[$i]);
+                            break;
+                        }
+                        case "*float": {
+                            if (!$values[$i].empty() && float($values[$i]) != $values[$i])
                                 throw $.errname, sprintf("Line (%d), Column (%d) does not contain float value %n vs %n", $.lineNo, $i, float($values[$i]), $values[$i]);
                             break;
                         }
@@ -942,8 +1004,18 @@ while ($i.next()) {
                                 throw $.errname, sprintf("Line (%d), Column (%d) does not contain number value %n vs %n", $.lineNo, $i, number($values[$i]), $values[$i]);
                             break;
                         }
+                        case "*number": {
+                            if (!$values[$i].empty() && number($values[$i]) != $values[$i])
+                                throw $.errname, sprintf("Line (%d), Column (%d) does not contain number value %n vs %n", $.lineNo, $i, number($values[$i]), $values[$i]);
+                            break;
+                        }
                         case "date": {
                             if ($values[$i].typeCode() != NT_DATE)
+                                throw $.errname, sprintf("Line (%d), Column (%d) does not contain date value (%s)", $.lineNo, $i, $values[$i].type());
+                            break;
+                        }
+                        case "*date": {
+                            if (!$values[$i].empty() && $values[$i].typeCode() != NT_DATE)
                                 throw $.errname, sprintf("Line (%d), Column (%d) does not contain date value (%s)", $.lineNo, $i, $values[$i].type());
                             break;
                         }
