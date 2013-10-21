@@ -1912,8 +1912,10 @@ struct qore_socket_private {
 	 do {
 	    rc = brecv(xsink, "recvBinary", buf, DEFAULT_SOCKET_BUFSIZE, 0, 0, false);
 	    // if the remote end has closed the connection, return what we have
-	    if (rc <= 0)
+	    if (!rc)
 	       break;
+	    if (rc < 0)
+	       return 0;
 
 	    b->append(buf, rc);
 
