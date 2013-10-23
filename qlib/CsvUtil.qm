@@ -36,9 +36,10 @@ module CsvUtil {
 }
 
 /*  Version History
-    * 2013-10-21 v1.2: Davod Nichols <david@qore.org>
+    * 2013-10-21 v1.2: David Nichols <david@qore.org>
       + implemented support for the "*int", "*float", "*number", and "*date" types
       + implemented support for allowing subclasses of CsvFileIterator to implement support for other custom types
+      + fixed "date" type handling with empty input; now returns 1970-01-01 (use "*date" to map empty input to NOTHING)
 
     * 2013-10-09 v1.2: Petr Vanek <petr.vanek@qoretechnologies.com>
       + CsvStringWriter addon
@@ -698,11 +699,15 @@ while ($i.next()) {
                     break;
                 }
                 case "date": {
-                    my *TimeZone $tz = $fh.timezone ? $fh.timezone : $.tz;
-                    if ($fh.format)
-                        $val = $tz ? $tz.date($val, $fh.format) : date($val, $fh.format);
-                    else
-                        $val = $tz ? $tz.date($val) : date($val);
+                    if ($val.empty())
+                        $val = 1970-01-01;
+                    else {
+                        my *TimeZone $tz = $fh.timezone ? $fh.timezone : $.tz;
+                        if ($fh.format)
+                            $val = $tz ? $tz.date($val, $fh.format) : date($val, $fh.format);
+                        else
+                            $val = $tz ? $tz.date($val) : date($val);
+                    }
                     break;
                 }
                 case "*date": {
