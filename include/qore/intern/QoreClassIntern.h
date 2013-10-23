@@ -1,4 +1,4 @@
-//* -*- mode: c++; indent-tabs-mode: nil -*- */
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QoreClassIntern.h
 
@@ -2656,7 +2656,7 @@ public:
       if (qc.classID == classID || (qc.name == name && qc.hash == hash))
          return cls;
 
-#ifdef DEBUG
+#ifdef DEBUG_1
       if (qc.name == name) {
          QoreString lh, rh;
          hash.toString(lh);
