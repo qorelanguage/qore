@@ -25,7 +25,7 @@
 */
 
 # minimum qore version
-%requires qore >= 0.8.4
+%requires qore >= 0.8.9
 
 # need mime definitions
 %requires Mime >= 1.0
@@ -34,13 +34,16 @@
 %requires MailMessage >= 1.0
 
 module SmtpClient {
-    version = "1.2";
+    version = "1.3";
     desc = "SMTP client support module";
     author = "Wolfgang Ritzinger <aargon@rat.at>, Marian Bonda <marian_bonda@users.sourceforge.net>, Pavol Potoncok <ppotancok@gmail.com>";
     url = "http://qore.org";
 }
 
 /*  Version History
+    * 2013-11-25 v1.3: David Nichols <david@qore.org>:
+      + optimized connection and login code; HELO/EHLO and authorization are performed when connecting only; not before each email
+
     * 2012-11-24 v1.2: David Nichols <david@qore.org>: 
       + added support for parsing a full URL in the SmtpClient::constructor(); added protocol support and setting the username / password from the URL
       + use Message::checkSendPossible() to throw a more descriptive exception if the message is incomplete and not ready to be sent
@@ -186,6 +189,9 @@ public namespace SmtpClient {
 
             # connect timeout in milliseconds
             timeout $.connectTimeout = DefaultConnectTimeout;
+
+            # HELO/EHLO reply
+            hash $.hello_reply;
 
             const MaxDebugLine = 2048;
 	}
@@ -488,10 +494,53 @@ my SmtpClient $smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), 
 	}
 
         private connectIntern() {            
-	    $.sock.connect($.connect, $.connectTimeout);
-            if ($.ssl)
-                $.sock.upgradeClientToSSL();
-  	}
+            try {
+                $.sock.connect($.connect, $.connectTimeout);
+                if ($.ssl)
+                    $.sock.upgradeClientToSSL();
+
+                my string $rep = $.readLine($.readTimeout);
+                $.logDbg("connect reply: %y", trim($rep));
+                $.esmtp = ($rep =~ /ESMTP/);
+
+                # send HELO/EHLO string
+                my string $hello = $.esmtp ? "EHLO" : "HELO";
+                my hash $rh = $.sendCommand($hello + "  %s", gethostname());
+                if ($rh.code >= 500)
+                    throw "SMTP-DATA-EXCEPTION", sprintf("error sending %s command: %y", $hello, $rh);
+                
+                $.hello_reply.$hello = $rh;
+
+                # try to automatically set the tls flag if it's not already set and we are talking to an ESMTP server and we are not already in a secure connection
+                if (!$.tls && $.esmtp && !$.ssl && $rh.desc =~ /STARTTLS/) {
+                    $.logDbg("server supports STARTTLS; automatically setting STARTTLS flag");
+                    $.tls = True;
+                }
+
+                # issue STARTTLS and upgrade to a TLS connection if the tls flag is set and we are not already secure
+                if ($.tls && !$.sock.isSecure()) {
+                    $rh = $.sendCommand("STARTTLS");
+                    if ($rh.code >= 500)
+                        throw "SMTP-DATA-EXCEPTION", sprintf("error sending STARTTLS command: %y", $rh);
+
+                    $.sock.upgradeClientToSSL();
+                    $.logDbg("upgrade to TLS/SSL connection %s %s", $.sock.getSSLCipherName(), $.sock.getSSLCipherVersion());
+                }
+                
+                # issue login if credentials supplied and we have not already logged in
+                if (!$.logged_in && $.user) {
+                    $rh = $.sendCommand("AUTH PLAIN %s", makeBase64String(binary($.user) + <00> + binary($.user) + <00> + binary($.pass)));
+                    if ($rh.code != 235)
+                        throw "SMTP-DATA-EXCEPTION", sprintf("login failed: %y", $rh);
+                    $.logged_in = True;
+                }
+            }
+            catch (hash $ex) {
+                $.sock.close();
+                $.sock.shutdown();
+                rethrow;
+            }
+        }
   	
 	# send data over the socket
 	private sendDataIntern(data $str) {
@@ -599,43 +648,11 @@ my SmtpClient $smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), 
         # don't reimplement this method; fix/enhance it in the module
         final private hash sendMessageInfoIntern(MailMessage::Message $message) {
 	    # open connection to server
-	    if (!$.isConnected()) {
+	    if (!$.isConnected())
 		$.connectIntern();
-		my string $rep = $.readLine($.readTimeout);
-		$.logDbg("connect reply: %y", trim($rep));
-		$.esmtp = ($rep =~ /ESMTP/);
-	    }
 
-	    # send HELO/EHLO string
-	    my string $hello = $.esmtp ? "EHLO" : "HELO";
-	    my hash $rh = $.sendCommand($hello + "  %s", gethostname());
-	    if ($rh.code >= 500)
-		throw "SMTP-DATA-EXCEPTION", sprintf("error sending %s command: %y", $hello, $rh);
-
-	    my hash $reply.$hello = $rh;
-
-            # try to automatically set the tls flag if it's not already set and we are talking to an ESMTP server and we are not already in a secure connection
-            if (!$.tls && $.esmtp && !$.ssl && $rh.desc =~ /STARTTLS/) {
-                $.logDbg("server supports STARTTLS; automatically setting STARTTLS flag");
-                $.tls = True;
-            }
-
-	    # issue STARTTLS and upgrade to a TLS connection if the tls flag is set and we are not already secure
-	    if ($.tls && !$.sock.isSecure()) {
-		$rh = $.sendCommand("STARTTLS");
-		if ($rh.code >= 500)
-		    throw "SMTP-DATA-EXCEPTION", sprintf("error sending STARTTLS command: %y", $rh);
-
-		$.sock.upgradeClientToSSL();
-		$.logDbg("upgrade to TLS/SSL connection %s %s", $.sock.getSSLCipherName(), $.sock.getSSLCipherVersion());
-	    }
-	    
-	    # issue login if credentials supplied and we have not already logged in
-	    if (!$.logged_in && !$.user.empty()) {
-		$rh = $.sendCommand("AUTH PLAIN %s", makeBase64String(binary($.user) + <00> + binary($.user) + <00> + binary($.pass)));
-		if ($rh.code != 235)
-		    throw "SMTP-DATA-EXCEPTION", sprintf("login failed: %y", $rh);
-	    }
+            my hash $rh;
+            my hash $reply = $.hello_reply;
 
 	    $rh = $.sendCommand("MAIL FROM: <%s>", $message.getFrom());
 	    if ($rh.code >= 500)

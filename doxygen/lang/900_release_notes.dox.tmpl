@@ -13,6 +13,8 @@
       - added support for new "or nothing" datatypes to map empty input to @ref nothing
       - implemented support for allowing subclasses of CsvFileIterator to implement support for other custom types
       - no need to set \c "headers" in the constructor if \c "fields" are set; headers are assumed to be the field labels in the same order
+    - <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> module updates:
+      - optimized connection and login code; HELO/EHLO and authorization are performed when connecting only, not before each email
 
     @subsection qore_089_bug_fixes Bug Fixes in Qore
     - fixed a crashing bug when HTTP messages with duplicate Connection, Content-Encoding, Transfer-Encoding, Location, or Content-Type headers is received
