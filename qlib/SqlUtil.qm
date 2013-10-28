@@ -8378,7 +8378,7 @@ my int $dcnt = $table.del(("name": $name));
             @see delNoCommit(*hash)
          */
         int del(*hash cond, *reference sql) {
-            return del(cond, \sql);
+            return t.del(cond, \sql);
         }
 
         #! deletes rows in the table matching the condition and returns the count of rows deleted; no transaction management is performed with this method
