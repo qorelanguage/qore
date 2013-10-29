@@ -822,8 +822,15 @@ my date $rd = milliseconds(100);
     - seconds(softint)
     - microseconds(softint)
 */
-date milliseconds(softint ms) [flags=CONSTANT] {
-   return new DateTimeNode(0, 0, 0, 0, 0, 0, (int)ms, true);
+date milliseconds(softint ms) [flags=CONSTANT] {   
+   int64 secs = ms / 1000;
+   ms -= (secs * 1000);
+   int64 minutes = secs / 60;
+   secs -= (minutes * 60);
+   int64 hours = minutes / 60;
+   minutes -= (hours * 60);
+
+   return new DateTimeNode(0, 0, 0, (int)hours, (int)minutes, (int)secs, (int)ms, true);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -853,7 +860,14 @@ my date $rd = microseconds(100);
     - milliseconds(softint)
 */
 date microseconds(softint us) [flags=CONSTANT] {
-   return DateTimeNode::makeRelative(0, 0, 0, 0, 0, 0, (int)us);
+   int64 secs = us / 10000000;
+   us -= (secs * 10000000);
+   int64 minutes = secs / 60;
+   secs -= (minutes * 60);
+   int64 hours = minutes / 60;
+   minutes -= (hours * 60);
+
+   return DateTimeNode::makeRelative(0, 0, 0, hours, minutes, secs, (int)us);
 }
 
 //! Returns an integer corresponding to the literal year value in the date (does not calculate a duration)
