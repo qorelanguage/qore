@@ -613,23 +613,24 @@ QoreStringNode* q_sprintf(const QoreListNode* params, int field, int offset, Exc
 
 QoreStringNode* q_vsprintf(const QoreListNode* params, int field, int offset, ExceptionSink *xsink) {
    const QoreStringNode* fmt;
-   const AbstractQoreNode* args;
 
    if (!(fmt = test_string_param(params, offset)))
-      return new QoreStringNode();
+      return new QoreStringNode;
 
-   args = get_param(params, offset + 1);
-   const QoreListNode* arg_list = dynamic_cast<const QoreListNode* >(args);
+   const AbstractQoreNode* args = get_param(params, offset + 1);
+   const QoreListNode* arg_list = get_node_type(args) == NT_LIST ? reinterpret_cast<const QoreListNode*>(args) : 0;
 
    SimpleRefHolder<QoreStringNode> buf(new QoreStringNode(fmt->getEncoding()));
    unsigned j = 0;
-   unsigned l = fmt->strlen();
+
+   const char* pstr = fmt->getBuffer();
+   size_t l = fmt->strlen();
    for (unsigned i = 0; i < l; i++) {
       int taken = 1;
       bool havearg = false;
       const AbstractQoreNode* arg = 0;
 
-      if ((fmt->getBuffer()[i] == '%')) {
+      if ((pstr[i] == '%')) {
 	 if (args) {
 	    if (arg_list && j < arg_list->size()) {
 	       havearg = true;
@@ -639,18 +640,21 @@ QoreStringNode* q_vsprintf(const QoreListNode* params, int field, int offset, Ex
 	       arg = args;
 	       havearg = true;
 	    }
-	    j++;
 	 }
       }
       if (havearg) {
-	 i += process_opt(*buf, (char* )&fmt->getBuffer()[i], arg, field, &taken, xsink);
+	 ++j;
+	 i += process_opt(*buf, (char*)&pstr[i], arg, field, &taken, xsink);
 	 if (*xsink)
 	    return 0;
 	 if (!taken)
-	    j--;
+	    --j;
       }
-      else
-	 buf->concat(fmt->getBuffer()[i]);
+      else {
+	 buf->concat(pstr[i]);
+	 if (pstr[i] == '%' && pstr[i+1] == '%')
+	    ++i;
+      }
    }
    return buf.release();
 }
