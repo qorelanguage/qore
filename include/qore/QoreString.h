@@ -644,10 +644,10 @@ public:
    //! assigns the value of one string to another
    DLLEXPORT QoreString& operator=(const QoreString& other);
 
-   //! assigns the value of one string to another; note that in this case the string is assigned the default envcoding (QCS_DEFAULT)
+   //! assigns the value of one string to another; note that in this case the string is assigned the default encoding (QCS_DEFAULT)
    DLLEXPORT QoreString& operator=(const char* other);
 
-   //! assigns the value of one string to another; note that in this case the string is assigned the default envcoding (QCS_DEFAULT)
+   //! assigns the value of one string to another; note that in this case the string is assigned the default encoding (QCS_DEFAULT)
    DLLEXPORT QoreString& operator=(const std::string& other);
 
    //! returns true if the other string is equal to this string (encodings also must be equal)

@@ -1221,7 +1221,7 @@ int ObjectRSetHelper::checkIntern(QoreObject& obj) {
       fi->second = true;
       printd(QRO_LVL, "ObjectRSetHelper::checkIntern() done search obj %p '%s': no match, removing from current set\n", &obj, obj.getClassName());
    }
-   else if (mrc == ovec.size()) {
+   else if (mrc == (int)ovec.size()) {
       assert(frvec.size() > fpos);
 
       // we have found a complete independent recursive cycle at this level, so apply it and mark nodes as finalized
