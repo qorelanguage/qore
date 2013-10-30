@@ -453,6 +453,7 @@ my SmtpClient $smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), 
 
 		# quit
 		$rh = $.sendCommand("QUIT");
+                $.logged_in = False;
 		$reply.QUIT = $rh;
 	    }
 	    catch($ex) {
@@ -528,18 +529,21 @@ my SmtpClient $smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), 
                 }
                 
                 # issue login if credentials supplied and we have not already logged in
-                if (!$.logged_in && $.user) {
-                    $rh = $.sendCommand("AUTH PLAIN %s", makeBase64String(binary($.user) + <00> + binary($.user) + <00> + binary($.pass)));
-                    if ($rh.code != 235)
-                        throw "SMTP-DATA-EXCEPTION", sprintf("login failed: %y", $rh);
-                    $.logged_in = True;
-                }
+                if (!$.logged_in && $.user)
+                    $.loginIntern();
             }
             catch (hash $ex) {
                 $.sock.close();
                 $.sock.shutdown();
                 rethrow;
             }
+        }
+
+        private loginIntern() {
+            my hash $rh = $.sendCommand("AUTH PLAIN %s", makeBase64String(binary($.user) + <00> + binary($.user) + <00> + binary($.pass)));
+            if ($rh.code != 235)
+                throw "SMTP-DATA-EXCEPTION", sprintf("login failed: %y", $rh);
+            $.logged_in = True;
         }
   	
 	# send data over the socket
@@ -650,6 +654,10 @@ my SmtpClient $smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), 
 	    # open connection to server
 	    if (!$.isConnected())
 		$.connectIntern();
+
+            # issue login if credentials supplied and we have not already logged in
+            if (!$.logged_in && $.user)
+                $.loginIntern();
 
             my hash $rh;
             my hash $reply = $.hello_reply;
