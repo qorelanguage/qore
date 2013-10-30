@@ -32,13 +32,17 @@
 %enable-all-warnings
 
 module Util {
-    version = "1.0";
+    version = "1.1";
     desc = "user module for generally useful routines";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
+    init = sub () { init(); };
 }
 
 /*  Version History
+    * 2013-10-30 v1.1: David Nichols <david@qore.org>
+      + added the get_byte_size() function
+
     * 2013-10-04 v1.0: David Nichols <david@qore.org>
       + the initial version of the Util module
 */
@@ -64,6 +68,16 @@ module Util {
     - @ref Util::get_exception_string()
     - @ref Util::get_random_string()
 */
+
+namespace Init {
+    sub init() {
+        our hash $storage_sizes;
+        map $storage_sizes.$1 = pow(1024, $# + 1), StorageNames;
+
+        our hash $marketing_storage_sizes;
+        map $marketing_storage_sizes.$1 = pow(1000, $# + 1), StorageNames;
+    }
+}
 
 #! the Util namespace contains all the objects in the Util module
 public namespace Util {
@@ -504,5 +518,57 @@ my string $pass = get_random_string();
             $str += "\nchained exception:\n";
         }
         return $str;
+    }
+
+    #! storage names (Geop, which would normally follow Bronto, is excluded as the abbreviation would be GB)
+    public const StorageNames = ("Kilo", "Mega", "Giga", "Tera", "Peta", "Exa", "Zetta", "Yotta", "Bronto");
+
+    #! returns a string giving a user-friendly real storage size (ie based on 1KB = 1024 bytes) in KB, MB, GB, TB, etc for the given byte size
+    public string sub get_byte_size(softnumber $n, int $decimals = 2) {
+        my string $k;
+
+        my HashPairIterator $i($storage_sizes);
+        while ($i.next()) {
+            if ($n >= $i.getValue().value)
+                $k = $i.getValue().key;
+            else
+                break;
+        }
+
+
+        if (!$k)
+            return $n + " byte" + ($n == 1 ? "" : "s");
+
+        my string $fmt = sprintf("%%.%df ", $decimals);
+        $n /= $storage_sizes.$k;
+        my string $v = sprintf($fmt, $n);
+        $v =~ s/(\.)?0*$//;
+
+        return $v + $k[0] + "B";
+    }
+
+    #! returns a string giving a user-friendly "marketing storage" size (ie based on 1KB = 1000 bytes) in KB, MB, GB, TB, etc for the given byte size
+    public string sub get_marketing_byte_size(softnumber $n, int $decimals = 2) {
+        my string $k;
+
+        my HashPairIterator $i($marketing_storage_sizes);
+        while ($i.next()) {
+            if ($n >= $i.getValue().value)
+                $k = $i.getValue().key;
+            else
+                break;
+        }
+
+
+        if (!$k)
+            return $n + " byte" + ($n == 1 ? "" : "s");
+
+        my string $fmt = sprintf("%%.%df ", $decimals);
+        $n /= $marketing_storage_sizes.$k;
+        my string $v = sprintf($fmt, $n);
+        # remove trailing zeros
+        $v =~ s/(\.)?0*$//;
+
+        return $v + $k[0] + "B";
     }
 }
