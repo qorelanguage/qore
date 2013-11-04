@@ -657,6 +657,57 @@ my any $v = $c.name;
             return sprintf("rename %s to %s", name, new_name);
         }
     }
+    
+    #! represents an Oracle view
+    public class OracleView inherits SqlUtil::AbstractView {
+    
+        public {
+            #! Type clause of the typed view
+            *string type_text;
+            #! WITH OID clause of the typed view
+            *string oid_text;
+            #! Owner of the type of the view if the view is a typed view
+            *string view_type_owner;
+            #! Type of the view if the view is a typed view
+            *string view_type;
+            #! Name of the superview
+            *string superview_name;
+            #! Indicates whether the view contains container-specific data
+            bool container_data;
+        }
+
+        #! creates the object from the arguments
+        constructor(string n_name, string n_src, *string n_schema, *string n_type_text,
+                    *string n_oid_text, *string n_view_type_owner,
+                    *string n_view_type, *string n_superview_name,
+                    bool n_updatable, bool n_container_data)
+                : AbstractView(n_name, n_src) {
+            updatable = n_updatable;
+            schema = n_schema;
+            type_text = n_type_text;
+            oid_text = n_oid_text;
+            view_type_owner = n_view_type_owner;
+            view_type = n_view_type;
+            superview_name = n_superview_name;
+            container_data = n_container_data;
+        }
+
+        #! returns a string that can be used to create the view in the database
+        string getCreateSql(*hash opt) {
+            # TODO/FIXME: more oracle options
+            return sprintf("create %s%sview %s as %s",
+                           opt.replace ? "or replace " : "",
+                           opt.force ? "force " : "noforce ",
+                           name,
+                           src
+                          );
+        }
+
+        #! returns a string that can be used to rename the view in the database
+        softlist getRenameSql(string new_name) {
+            return sprintf("rename %s to %s", name, new_name);
+        }
+    }
 
     #! represents an Oracle trigger
     public class OracleTrigger inherits SqlUtil::AbstractTrigger {
@@ -906,6 +957,26 @@ my any $v = $c.name;
             if (!row)
                 return;
             return new OracleSequence(name, row.min_value, row.increment_by, row.max_value > 9000000000000000000n ? NOTHING : row.max_value);
+        }
+        
+        private *AbstractView getViewImpl(string name) {
+            string schema;
+            getSchemaName(\name, \schema);
+
+            *hash row = ds.selectRow("select * from all_views where owner = %v and view_name = %v", schema.upr(), name.upr());
+            if (!row)
+                return;
+
+            HashIterator it(row);
+            while (it.next()) {
+                if (it.getValue() == NULL)
+                    row{it.getKey()} = NOTHING;
+            }
+
+            return new OracleView(name, row.text, schema, row.type_text,
+                                  row.oid_text, row.view_type_owner,
+                                  row.view_type, row.superview_name,
+                                  row.read_only == 'N', row.container_data == 'Y');
         }
 
         private OracleFunction makeFunctionImpl(string name, string src, *hash opts) {

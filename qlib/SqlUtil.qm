@@ -4711,6 +4711,41 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
         #! returns a string that can be used to rename the sequence in the database
         abstract string getRenameSql(string new_name);
     }
+    
+    #! base class for views
+    public class AbstractView {
+        public {
+            # ! potential object schema
+            *string schema;
+
+            #! the name of the sequence
+            string name;
+
+            #! the source code
+            string src;
+            
+            #! Flag showing if is the view updatable with DML commands.
+            bool updatable;
+        }
+
+        #! creates the object from the arguments
+        constructor(string n_name, string n_src) {
+            name = n_name;
+            src = n_src;
+        }
+
+        #! returns a string that can be used to create the view in the database
+        abstract string getCreateSql(*hash opt);        
+
+        #! returns a string that can be used to drop the view from the database
+        string getDropSql() {
+            return sprintf("drop view %s", name);
+        }
+
+        #! returns a list with command(s) that can be used to rename the view in the database
+        abstract softlist getRenameSql(string new_name);
+
+    }
 
     #! base class for function or objects with code
     public class AbstractFunctionBase {
@@ -5283,6 +5318,20 @@ my *AbstractFunction $f = $db.getProcedure("update_queue");
          */
         *AbstractFunction getProcedure(string name) {
             return db.getProcedure(name);
+        }
+        
+        #! returns an AbstractView argument for the given view name or @ref nothing if the view
+        /** @par Example:
+            @code
+my *AbstractView $f = $db.getView("my_view");
+            @endcode
+
+            @param name the uniquely-identifying name of the view to retrieve
+
+            @return an AbstractView argument for the given stored procedure name or @ref nothing if the stored procedure cannot be found
+         */
+        *AbstractView getView(string name) {
+            return db.getView(name);
         }
 
         #! returns the next value in the given sequence
@@ -6490,7 +6539,7 @@ my *AbstractFunction $f = $db.getFunction("update_queue");
             return getFunctionImpl(name);
         }
 
-        #! returns an AbstractFunction argument for the given stored procedure name or @ref nothing if the stored procedur  cannot be found
+        #! returns an AbstractFunction argument for the given stored procedure name or @ref nothing if the stored procedure cannot be found
         /** @par Example:
             @code
 my *AbstractFunction $f = $db.getProcedure("update_queue");
@@ -6504,6 +6553,20 @@ my *AbstractFunction $f = $db.getProcedure("update_queue");
          */
         *AbstractFunction getProcedure(string name) {
             return getProcedureImpl(name);
+        }
+        
+        #! returns an AbstractView argument for the given view name or @ref nothing if the view cannot be found
+        /** @par Example:
+            @code
+my *AbstractFunction $f = $db.getView("my_view");
+            @endcode
+
+            @param name the uniquely-identifying name of the view to retrieve
+
+            @return an AbstractView argument for the given view name or @ref nothing if the sview cannot be found
+         */
+        *AbstractView getView(string name) {
+            return getViewImpl(name);
         }
 
         #! returns the next value in the given sequence
@@ -6705,6 +6768,7 @@ my string $sql = $t.getSqlFromList($list);
         private abstract *AbstractSequence getSequenceImpl(string name);
         private abstract *AbstractFunction getFunctionImpl(string name);
         private abstract *AbstractFunction getProcedureImpl(string name);
+        private abstract *AbstractView getViewImpl(string name);
 
         private abstract AbstractSequence makeSequenceImpl(string name, number start = 1, number increment = 1, *softnumber end, *hash opts);
         private abstract AbstractFunction makeFunctionImpl(string name, string src, *hash opts);

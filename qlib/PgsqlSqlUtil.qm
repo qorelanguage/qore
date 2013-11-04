@@ -169,6 +169,19 @@ public namespace PgsqlSqlUtil {
     public PgsqlDatabase sub get_database(AbstractDatasource nds, *hash opts) {
 	return new PgsqlDatabase(nds, opts);
     }
+    
+    sub parse_schema_name(string nname, reference schema, reference name) {
+        *string sstr = (nname =~ x/^(\w+)\.\w+/)[0];
+        if (sstr) {
+            schema = sstr;
+            splice nname, 0, schema.size() + 1;
+            name = nname;
+        }
+        else {
+            schema = "public";
+            name = nname;
+        }
+    }
 
     #! represents a PostgreSQL type
     public class PgsqlType {
@@ -589,6 +602,40 @@ my any $v = $c.name;
             return sprintf("alter sequence %s rename to %s", name, new_name);
         }
     }
+    
+    #! represents a PostgreSQL view
+    public class PgsqlView inherits SqlUtil::AbstractView {
+    
+        public {
+            #! Owner of the view
+            *string viewowner;
+        }
+
+        #! creates the object from the arguments
+        constructor(string n_name, string n_src, *string n_schemaname,
+                    *string n_viewowner)
+                : AbstractView(n_name, n_src) {
+            schema = n_schemaname;
+            viewowner = n_viewowner;
+            updatable = False;
+        }
+
+        #! returns a string that can be used to create the view in the database
+        string getCreateSql(*hash opt) {
+            # TODO/FIXME: more pgsql options - what's allows in "opt"?
+            return sprintf("create %s%sview %s as %s",
+                           opt.replace ? "or replace " : "",
+                           opt.temp ? "temp " : "",
+                           name,
+                           src
+                          );
+        }
+
+        #! returns a string that can be used to rename the view in the database
+        softlist getRenameSql(string new_name) {
+            return sprintf("alter view %s rename to %s", name, new_name);
+        }
+    }
 
     #! represents a PostgreSQL-specific trigger
     public class PgsqlTrigger inherits SqlUtil::AbstractTrigger {
@@ -717,6 +764,17 @@ my any $v = $c.name;
 
             row = ds.selectRow("select * from %s", name);
             return new PgsqlSequence(name, row.start, row.increment, row.max == 9223372036854775807 ? NOTHING : row.max);
+        }
+        
+        private *AbstractView getViewImpl(string name) {
+            string schema;
+            parse_schema_name(name, \schema, \name);
+
+            *hash row = ds.selectRow("select * from pg_views where schemaname = %v and viewname = %v", schema, name);
+            if (!row)
+                return;
+
+            return new PgsqlView(name, row.definition, row.schemaname, row.viewowner);
         }
 
         private PgsqlFunction makeFunctionImpl(string name, string src, *hash opts) {
@@ -1166,14 +1224,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
 
         constructor(AbstractDatasource nds, string nname, *hash opts) : AbstractTable(nds, nname, opts) {
             # see if there is a schema in the name
-            *string sstr = (nname =~ x/^(\w+)\.\w+/)[0];
-            if (sstr) {
-                schema = sstr;
-                splice nname, 0, schema.size() + 1;
-                name = nname;
-            }
-            else
-                schema = "public";
+            parse_schema_name(nname, \schema, \name);
 
             # get table info
             *hash row = ds.selectRow("select * from pg_tables where schemaname = %v and tablename = %v", schema, name);

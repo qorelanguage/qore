@@ -105,6 +105,19 @@ public namespace MysqlSqlUtil {
     public MysqlDatabase sub get_database(AbstractDatasource nds, *hash opts) {
 	return new MysqlDatabase(nds, opts);
     }
+    
+    sub parse_schema_name(string nname, reference schema, reference name) {
+        *string sstr = (nname =~ x/^(\w+)\.\w+/)[0];
+        if (sstr) {
+            schema = sstr;
+            splice nname, 0, schema.size() + 1;
+            name = nname;
+        }
+        else {
+            schema = NOTHING;
+            name = nname;
+        }
+    }
 
     #! represents a MySQL-specific index
     public class MysqlIndex inherits SqlUtil::AbstractIndex {
@@ -482,6 +495,56 @@ my any $v = $c.name;
             return sprintf("delete from %s where name = '%s'", table_name, name);
         }
     }
+    
+    #! represents a MySQL view
+    public class MysqlView inherits SqlUtil::AbstractView {
+    
+        public {
+            #! table catalog value
+            *string tablecatalog;
+            #! checkoption clause
+            *string checkoption;
+            #! dafiner clause
+            *string definer;
+            #! security type value
+            *string securitytype;
+        }
+
+        #! creates the object from the arguments
+        constructor(string n_name, string n_src, *string n_tablecatalog,
+                    *string n_schema,
+                    *string n_checkoption, *string n_definer,
+                    *string n_securitytype, bool n_updatable)
+                : AbstractView(n_name, n_src) {
+            tablecatalog = n_tablecatalog;
+            schema = n_schema;
+            checkoption = n_checkoption;
+            definer = n_definer;
+            securitytype = n_securitytype;
+            updatable = n_updatable;
+        }
+
+        #! returns a string that can be used to create the view in the database
+        string getCreateSql(*hash opt) {
+            # TODO/FIXME: more mysql options - what's allows in "opt"?
+            return sprintf("create %sview %s as %s",
+                           opt.replace ? "or replace " : "",
+                           name,
+                           src
+                          );
+        }
+
+        #! returns a string that can be used to rename the view in the database
+        softlist getRenameSql(string new_name) {
+            list ret;
+            push ret, getDropSql();
+            string origName = name;
+            name = new_name;
+            push ret, getCreateSql(); # TODO/FIXME: opts
+            name = origName;
+            return ret;
+        }
+    }
 
     #! provides the MySQL-specific implementation of the AbstractDatabase interface
     public class MysqlDatabase inherits SqlUtil::AbstractDatabase {
@@ -560,6 +623,19 @@ end";
             if (!str)
                 return;
             return new MysqlSequence(sequence_table, name);
+        }
+        
+        private *AbstractView getViewImpl(string name) {
+            *string schema;
+            parse_schema_name(name, \schema, \name);
+
+            *hash row = ds.selectRow("select * from information_schema.views where table_schema = %v and table_name = %v", schema, name);
+            if (!row)
+                return;
+
+            return new MysqlView(name, row.view_definition, row.table_catalog,
+                                 row.table_schema, row.check_option, row.definer,
+                                 row.security_type, row.is_updatable);
         }
 
         private MysqlFunction makeFunctionImpl(string name, string src, *hash opts) {
