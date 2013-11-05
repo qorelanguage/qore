@@ -6311,6 +6311,27 @@ $db.dropSequenceIfExists($name);
             return AbstractDatabase::doDrop(seq.getDropSql(), "sequence", name, opt);
         }
 
+        #! drops the given view if it exists; returns @ref Qore::True "True" if the view was dropped, @ref Qore::False "False" if not
+        /** @par Example:
+            @code
+$db.dropViewIfExists($name);
+            @endcode
+
+            @param name the name of the view
+            @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
+
+            @return @ref Qore::True "True" if the view was dropped, @ref Qore::False "False" if not
+
+            @throw OPTION-ERROR invalid or unknown callback option
+        */
+        bool dropViewIfExists(string name, *hash opt) {            
+            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            *AbstractView obj = getView(name);
+            if (!obj)
+                return False;
+            return AbstractDatabase::doDrop(obj.getDropSql(), "view", name, opt);
+        }
+        
         #! drops the given table if it exists; returns @ref Qore::True "True" if the table was dropped, @ref Qore::False "False" if not
         /** @par Example:
             @code
