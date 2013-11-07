@@ -531,7 +531,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
          */
 	checkSendPossible() {
 	    if (!$.to && !$.cc && !$.bcc)
-		throw "MESSAGE-ERROR", "the Message cannot be sent because there is no target address (To, Cc, and Bcc are all wempty)";
+		throw "MESSAGE-ERROR", "the Message cannot be sent because there is no target address (To, Cc, and Bcc are all empty)";
 	    
 	    if (!$.body)
 		throw "MESSAGE-ERROR", "the Message cannot be sent because there is no message body set";

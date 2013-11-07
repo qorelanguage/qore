@@ -371,7 +371,7 @@ my bool $abs = absolute_path_windows($path);
             return;
 
         # see if there is aprocessing cmd
-        if (my *list $pc = ($arg =~ x/^\%(STR|EVAL)=(.*)$/)) {
+        if (my *list $pc = ($arg =~ x/^\%(STR|EVAL)=(.*)$/s)) {
             if ($pc[0] == "STR")
                 return $pc[1];
             else # must be EVAL
@@ -404,12 +404,12 @@ my bool $abs = absolute_path_windows($path);
             return $h.value;
 	    
         # see if it's a string like "key=val,key=val[,...]", if so, return a hash
-        if ($arg =~ /^([^ ]+)[ \t]*=([^,]*)(,([^ ]+)[ \t]*=([^,]*))?/) {
+        if ($arg =~ /^([^ ]+)[ \t]*=([^,]*)(,([^ ]+)[ \t]*=([^,]*))?/s) {
             my list $l = split(",", $arg);
 		
             # coalesce each element without a "=" into the previous element
             for (my int $i = 1; $i < $l.size(); ++$i) {
-                if ($l[$i] !~ /=/) {
+                if ($l[$i] !~ /.+=.+/) {
                     # copy element
                     my string $x = "," + $l[$i];
                     # remove from list
@@ -423,7 +423,7 @@ my bool $abs = absolute_path_windows($path);
             my hash $rh;
             foreach my string $a in ($l) {
                 trim $a;
-                my (string $key, any $val) = ($a =~ x/^([^ =]+)[ \t]*=(.*)/);
+                my (string $key, any $val) = ($a =~ x/^([^ =]+)[ \t]*=(.*)/gm);
                 $rh.$key = parse_to_qore_value($val);
             }
 	
