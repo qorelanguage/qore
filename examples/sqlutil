@@ -38,6 +38,7 @@ const opts = (
     "dump_table": "t,dump-table=s@",
     "dump_sequence": "S,dump-sequence=s@",
     "omit": "O,omit=s@",
+    "list_tables": "L,list-tables",
 
     "data_tablespace": "d,data-tablespace=s",
     "index_tablespace": "i,index-tablespace=s",
@@ -64,6 +65,7 @@ sub usage() {
                               requires -D
   -a,--align-table=ARG        ARG=table to align structure in a target
                               database; requires -T
+  -L,--list-tables            list tables in source
   -O,--omit=ARG               omit options: \"triggers\", \"foreign_constraints\",
                               \"indexes\"
   -d,--data-tablespace=ARG    use the given data tablespace name for output
@@ -211,6 +213,12 @@ sub main() {
     Database db(source);
 
     bool done = False;
+
+    if (opt.list_tables) {
+        done = True;
+        map printf("%s\n", $1), db.tableIterator();
+    }
+
     foreach string name in (opt.dump_table) {
         done = True;
         Table table(source, name);
