@@ -408,7 +408,7 @@ RunTimeResolvedMethodReferenceNode::~RunTimeResolvedMethodReferenceNode() {
 }
 
 AbstractQoreNode *RunTimeResolvedMethodReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
-   return method->eval(obj, args, xsink);
+   return qore_method_private::eval(*method, obj, args, xsink);
 }
 
 QoreProgram *RunTimeResolvedMethodReferenceNode::getProgram() const {
@@ -485,7 +485,7 @@ AbstractQoreNode *LocalStaticMethodCallReferenceNode::evalImpl(bool &needs_deref
 }
 
 AbstractQoreNode *LocalStaticMethodCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
-   return method->eval(0, args, xsink);
+   return qore_method_private::eval(*method, 0, args, xsink);
 }
 
 bool LocalStaticMethodCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {   
@@ -505,7 +505,7 @@ AbstractQoreNode *LocalMethodCallReferenceNode::evalImpl(bool &needs_deref, Exce
 }
 
 AbstractQoreNode *LocalMethodCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
-   return method->eval(runtime_get_stack_object(), args, xsink);
+   return qore_method_private::eval(*method, runtime_get_stack_object(), args, xsink);
 }
 
 bool LocalMethodCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {   
@@ -527,10 +527,8 @@ bool StaticMethodCallReferenceNode::derefImpl(ExceptionSink *xsink) {
 }
 
 AbstractQoreNode *StaticMethodCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
-   ProgramThreadCountContextHelper tch(xsink, pgm, true);
-   if (*xsink)
-      return 0;
-   return method->eval(0, args, xsink);
+   // do not set pgm context here before evaluating args
+   return qore_method_private::eval(*method, 0, args, xsink);
 }
 
 MethodCallReferenceNode::MethodCallReferenceNode(const QoreMethod *n_method, QoreProgram *n_pgm) : LocalMethodCallReferenceNode(n_method, false), pgm(n_pgm) {
@@ -549,7 +547,7 @@ AbstractQoreNode *MethodCallReferenceNode::exec(const QoreListNode *args, Except
    ProgramThreadCountContextHelper tch(xsink, pgm, true);
    if (*xsink)
       return 0;
-   return method->eval(runtime_get_stack_object(), args, xsink);
+   return qore_method_private::eval(*method, runtime_get_stack_object(), args, xsink);
 }
 
 UnresolvedStaticMethodCallReferenceNode::UnresolvedStaticMethodCallReferenceNode(NamedScope *n_scope) : AbstractUnresolvedCallReferenceNode(false), scope(n_scope) {

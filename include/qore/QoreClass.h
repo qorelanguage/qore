@@ -171,19 +171,6 @@ public:
     */
    DLLLOCAL bool parseIsPrivate() const;
 
-   //! evaluates the method and returns the result
-   /** should only be called by QoreObject; use QoreObject::evalMethod(const QoreMethod &meth, const QoreListNode *args, ExceptionSink *xsink) instead
-       @param self a pointer to the object the method will be executed on
-       @param args the list of arguments to the method
-       @param xsink if an error occurs, the Qore-language exception information will be added here
-       @return the result of the evaluation (can be 0)
-   */
-   DLLLOCAL AbstractQoreNode *eval(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const;
-   DLLLOCAL int64 bigIntEval(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const;
-   DLLLOCAL int intEval(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const;
-   DLLLOCAL bool boolEval(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const;
-   DLLLOCAL double floatEval(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const;
-
    DLLLOCAL AbstractQoreNode *evalNormalVariant(QoreObject *self, const QoreExternalMethodVariant *ev, const QoreListNode *args, ExceptionSink *xsink) const;
    DLLLOCAL int64 bigIntEvalNormalVariant(QoreObject *self, const QoreExternalMethodVariant *ev, const QoreListNode *args, ExceptionSink *xsink) const;
    DLLLOCAL int intEvalNormalVariant(QoreObject *self, const QoreExternalMethodVariant *ev, const QoreListNode *args, ExceptionSink *xsink) const;

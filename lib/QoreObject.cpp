@@ -350,23 +350,23 @@ double QoreObject::floatEvalMethod(const char *name, const QoreListNode *args, E
 }
 
 AbstractQoreNode *QoreObject::evalMethod(const QoreMethod &method, const QoreListNode *args, ExceptionSink* xsink) {
-   return method.eval(this, args, xsink);
+   return qore_method_private::eval(method, this, args, xsink);
 }
 
 int64 QoreObject::bigIntEvalMethod(const QoreMethod &method, const QoreListNode *args, ExceptionSink* xsink) {
-   return method.bigIntEval(this, args, xsink);
+   return qore_method_private::bigIntEval(method, this, args, xsink);
 }
 
 int QoreObject::intEvalMethod(const QoreMethod &method, const QoreListNode *args, ExceptionSink* xsink) {
-   return method.intEval(this, args, xsink);
+   return qore_method_private::intEval(method, this, args, xsink);
 }
 
 bool QoreObject::boolEvalMethod(const QoreMethod &method, const QoreListNode *args, ExceptionSink* xsink) {
-   return method.boolEval(this, args, xsink);
+   return qore_method_private::boolEval(method, this, args, xsink);
 }
 
 double QoreObject::floatEvalMethod(const QoreMethod &method, const QoreListNode *args, ExceptionSink* xsink) {
-   return method.floatEval(this, args, xsink);
+   return qore_method_private::floatEval(method, this, args, xsink);
 }
 
 AbstractQoreNode *QoreObject::evalMethodVariant(const QoreMethod &method, const QoreExternalMethodVariant *variant, const QoreListNode *args, ExceptionSink* xsink) {

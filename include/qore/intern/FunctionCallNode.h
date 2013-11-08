@@ -421,9 +421,7 @@ protected:
    const QoreMethod *method;
 
    using AbstractFunctionCallNode::evalImpl;
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const {
-      return method->eval(0, args, xsink);
-   }
+   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
 
    DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
    DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {

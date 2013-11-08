@@ -35,6 +35,42 @@
 // global class ID sequence
 DLLLOCAL Sequence classIDSeq(1);
 
+void qore_method_private::parseInit() {
+   assert(!static_flag);
+
+   //printd(5, "qore_method_private::parseInit() this: %p %s::%s() func: %p\n", this, parent_class->getName(), func->getName(), func);
+   func->parseInit();
+
+   const char* name = func->getName();
+   if (strcmp(name, "constructor")
+       && strcmp(name, "destructor")
+       && strcmp(name, "copy")) {
+
+      if ((!strcmp(name, "methodGate")
+	   || !strcmp(name, "memberGate")
+	   || !strcmp(name, "memberNotification"))) {
+
+	 if (!func->pendingEmpty()) {
+	    // ensure that there is no more than one parameter declared, and if it
+	    // has a type, it must be a string
+	    UserSignature *sig = UMV(func->pending_first())->getUserSignature();
+	    const QoreTypeInfo *t = sig->getParamTypeInfo(0);
+	    if (!stringTypeInfo->parseAccepts(t)) {
+	       QoreStringNode* desc = new QoreStringNode;
+	       desc->sprintf("%s::%s(%s) has an invalid signature; the first argument declared as ", parent_class->getName(), func->getName(), sig->getSignatureText());
+	       t->getThisType(*desc);
+	       desc->concat(" is not compatible with 'string'");
+	       qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+	    }
+	 }
+      }
+      else {
+	 // make sure the method doesn't override a "final" method in a base class
+	 func->checkFinal();
+      }
+   }
+}
+
 void SignatureHash::set(const QoreString& str) {
    DigestHelper dh(str.getBuffer(), str.size());
    dh.doDigest(0, EVP_sha1());
@@ -386,193 +422,6 @@ struct SelfLocalVarParseHelper {
 void raiseNonExistentMethodCallWarning(const QoreClass* qc, const char* method) {
    qore_program_private::makeParseWarning(getProgram(), QP_WARN_NONEXISTENT_METHOD_CALL, "NON-EXISTENT-METHOD-CALL", "call to non-existent method '%s::%s()'; this call will be evaluated at run-time, so if the method is called on an object of a subclass that implements this method, then it could be a valid call, however in any other case it will result in a run-time exception.  To avoid seeing this warning, use the cast<> operator (note that if the cast is invalid at run-time, a run-time exception will be raised) or turn off the warning by using '%%disable-warning non-existent-method-call' in your code", qc->getName(), method);
 }
-
-class qore_method_private {
-public:
-   const QoreClass* parent_class;
-   MethodFunctionBase *func;
-   bool static_flag, all_user;
-
-   DLLLOCAL qore_method_private(const QoreClass* n_parent_class, MethodFunctionBase *n_func, bool n_static) : parent_class(n_parent_class), func(n_func), static_flag(n_static), all_user(true) {
-   }
-
-   DLLLOCAL ~qore_method_private() {
-      func->deref();
-   }
-   
-   DLLLOCAL void setBuiltin() {
-      if (all_user)
-         all_user = false;
-   }
-
-   DLLLOCAL bool isUniquelyUser() const {
-      return all_user;
-   }
-
-   DLLLOCAL int addUserVariant(MethodVariantBase *variant) {
-      return func->parseAddUserMethodVariant(variant);
-   }
-
-   DLLLOCAL void addBuiltinVariant(MethodVariantBase *variant) {
-      setBuiltin();
-      func->addBuiltinMethodVariant(variant);
-   }
-
-   DLLLOCAL MethodFunctionBase *getFunction() const {
-      return const_cast<MethodFunctionBase *>(func);
-   }
-
-   DLLLOCAL const char* getName() const {
-      return func->getName();
-   }
-
-   DLLLOCAL const std::string& getNameStr() const {
-      return func->getNameStr();
-   }
-
-   DLLLOCAL void parseInit() {
-      assert(!static_flag);
-
-      //printd(5, "qore_method_private::parseInit() this: %p %s::%s() func: %p\n", this, parent_class->getName(), func->getName(), func);
-      func->parseInit();
-
-      const char* name = func->getName();
-      if (strcmp(name, "constructor")
-	  && strcmp(name, "destructor")
-	  && strcmp(name, "copy")) {
-
-	 if ((!strcmp(name, "methodGate")
-	      || !strcmp(name, "memberGate")
-	      || !strcmp(name, "memberNotification"))) {
-
-	    if (!func->pendingEmpty()) {
-	       // ensure that there is no more than one parameter declared, and if it
-	       // has a type, it must be a string
-	       UserSignature *sig = UMV(func->pending_first())->getUserSignature();
-	       const QoreTypeInfo *t = sig->getParamTypeInfo(0);
-	       if (!stringTypeInfo->parseAccepts(t)) {
-	          QoreStringNode* desc = new QoreStringNode;
-	          desc->sprintf("%s::%s(%s) has an invalid signature; the first argument declared as ", parent_class->getName(), func->getName(), sig->getSignatureText());
-	          t->getThisType(*desc);
-	          desc->concat(" is not compatible with 'string'");
-	          qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
-	       }
-	    }
-	 }
-	 else {
-	    // make sure the method doesn't override a "final" method in a base class
-	    func->checkFinal();
-	 }
-      }
-   }
-
-   DLLLOCAL void parseInitStatic() {
-      assert(static_flag);
-      func->parseInit();
-      // make sure the method doesn't override a "final" method in a base class
-      func->checkFinal();
-   }
-
-   DLLLOCAL const QoreTypeInfo *getUniqueReturnTypeInfo() const {
-      return func->getUniqueReturnTypeInfo();
-   }
-
-   DLLLOCAL void evalConstructor(const AbstractQoreFunctionVariant *variant, QoreObject* self, const QoreListNode* args, BCEAList *bceal, ExceptionSink* xsink) {
-      CONMF(func)->evalConstructor(variant, *parent_class, self, args, parent_class->priv->scl, bceal, xsink);
-   }
-
-   DLLLOCAL void evalCopy(QoreObject* self, QoreObject* old, ExceptionSink* xsink) const {
-      COPYMF(func)->evalCopy(*parent_class, self, old, parent_class->priv->scl, xsink);
-   }
-
-   DLLLOCAL bool evalDeleteBlocker(QoreObject* self) const {
-      // can only be builtin
-      return self->evalDeleteBlocker(parent_class->priv->methodID, reinterpret_cast<BuiltinDeleteBlocker *>(func));
-   }
-
-   DLLLOCAL void evalDestructor(QoreObject* self, ExceptionSink* xsink) const {
-      DESMF(func)->evalDestructor(*parent_class, self, xsink);
-   }
-
-   DLLLOCAL void evalSystemDestructor(QoreObject* self, ExceptionSink* xsink) const {
-      // execute function directly
-      DESMF(func)->evalDestructor(*parent_class, self, xsink);
-   }
-
-   DLLLOCAL void evalSystemConstructor(QoreObject* self, int code, va_list args) const {
-      BSYSCONB(func)->eval(*parent_class, self, code, args);
-   }
-
-   DLLLOCAL AbstractQoreNode* evalPseudoMethod(const AbstractQoreFunctionVariant *variant, const AbstractQoreNode* n, const QoreListNode* args, ExceptionSink* xsink) const {
-      QORE_TRACE("qore_method_private::evalPseudoMethod()");
-
-      assert(!static_flag);
-
-      AbstractQoreNode* rv = NMETHF(func)->evalPseudoMethod(variant, n, args, xsink);
-      printd(5, "qore_method_private::evalPseudoMethod() %s::%s() returning %p (type=%s, refs=%d)\n", parent_class->getName(), getName(), rv, rv ? rv->getTypeName() : "(null)", rv ? rv->reference_count() : 0);
-      return rv;
-   }
-
-   DLLLOCAL int64 bigIntEvalPseudoMethod(const AbstractQoreFunctionVariant *variant, const AbstractQoreNode* n, const QoreListNode* args, ExceptionSink* xsink) const {
-      QORE_TRACE("qore_method_private::bigIntEvalPseudoMethod()");
-
-      assert(!static_flag);
-
-      int64 rv = NMETHF(func)->bigIntEvalPseudoMethod(variant, n, args, xsink);
-      printd(5, "qore_method_private::bigIntEvalPseudoMethod() %s::%s() returning " QLLD "\n", parent_class->getName(), getName(), rv);
-      return rv;
-   }
-
-   DLLLOCAL int intEvalPseudoMethod(const AbstractQoreFunctionVariant *variant, const AbstractQoreNode* n, const QoreListNode* args, ExceptionSink* xsink) const {
-      QORE_TRACE("qore_method_private::intEvalPseudoMethod()");
-
-      assert(!static_flag);
-
-      int rv = NMETHF(func)->intEvalPseudoMethod(variant, n, args, xsink);
-      printd(5, "qore_method_private::intEvalPseudoMethod() %s::%s() returning %d\n", parent_class->getName(), getName(), rv);
-      return rv;
-   }
-
-   DLLLOCAL bool boolEvalPseudoMethod(const AbstractQoreFunctionVariant *variant, const AbstractQoreNode* n, const QoreListNode* args, ExceptionSink* xsink) const {
-      QORE_TRACE("qore_method_private::boolEvalPseudoMethod()");
-
-      assert(!static_flag);
-
-      bool rv = NMETHF(func)->boolEvalPseudoMethod(variant, n, args, xsink);
-      printd(5, "qore_method_private::boolEvalPseudoMethod() %s::%s() returning %d\n", parent_class->getName(), getName(), rv);
-      return rv;
-   }
-
-   DLLLOCAL double floatEvalPseudoMethod(const AbstractQoreFunctionVariant *variant, const AbstractQoreNode* n, const QoreListNode* args, ExceptionSink* xsink) const {
-      QORE_TRACE("qore_method_private::doubleEvalPseudoMethod()");
-
-      assert(!static_flag);
-
-      double rv = NMETHF(func)->floatEvalPseudoMethod(variant, n, args, xsink);
-      printd(5, "qore_method_private::doubleEvalPseudoMethod() %s::%s() returning %d\n", parent_class->getName(), getName(), rv);
-      return rv;
-   }
-
-   DLLLOCAL static AbstractQoreNode* evalPseudoMethod(const QoreMethod* m, const AbstractQoreFunctionVariant *variant, const AbstractQoreNode* n, const QoreListNode* args, ExceptionSink* xsink) {
-      return m->priv->evalPseudoMethod(variant, n, args, xsink);
-   }
-
-   DLLLOCAL static int64 bigIntEvalPseudoMethod(const QoreMethod* m, const AbstractQoreFunctionVariant *variant, const AbstractQoreNode* n, const QoreListNode* args, ExceptionSink* xsink) {
-      return m->priv->bigIntEvalPseudoMethod(variant, n, args, xsink);
-   }
-
-   DLLLOCAL static int intEvalPseudoMethod(const QoreMethod* m, const AbstractQoreFunctionVariant *variant, const AbstractQoreNode* n, const QoreListNode* args, ExceptionSink* xsink) {
-      return m->priv->intEvalPseudoMethod(variant, n, args, xsink);
-   }
-
-   DLLLOCAL static bool boolEvalPseudoMethod(const QoreMethod* m, const AbstractQoreFunctionVariant *variant, const AbstractQoreNode* n, const QoreListNode* args, ExceptionSink* xsink) {
-      return m->priv->boolEvalPseudoMethod(variant, n, args, xsink);
-   }
-
-   DLLLOCAL static double floatEvalPseudoMethod(const QoreMethod* m, const AbstractQoreFunctionVariant *variant, const AbstractQoreNode* n, const QoreListNode* args, ExceptionSink* xsink) {
-      return m->priv->floatEvalPseudoMethod(variant, n, args, xsink);
-   }
-};
 
 class VRMutexHelper {
 private:
@@ -2371,81 +2220,6 @@ double QoreMethod::floatEvalNormalVariant(QoreObject* self, const QoreExternalMe
    return METHV_const(variant)->floatEvalMethod(self, ceh, xsink);      
 }
 
-AbstractQoreNode* QoreMethod::eval(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const {
-   QORE_TRACE("QoreMethod::eval()");
-#ifdef DEBUG
-   const char* oname = self ? self->getClass()->getName() : "<n/a: static>";
-   printd(5, "QoreMethod::eval() %s::%s() (object=%p, pgm=%p, static=%s)\n", oname, getName(), self, self ? self->getProgram() : 0, isStatic() ? "true" : "false");
-#endif
-
-   if (isStatic())
-      return SMETHF(priv->func)->evalMethod(0, args, xsink);
-
-   AbstractQoreNode* rv = NMETHF(priv->func)->evalMethod(0, self, args, xsink);
-   printd(5, "QoreMethod::eval() %s::%s() returning %p (type=%s, refs=%d)\n", oname, getName(), rv, rv ? rv->getTypeName() : "(null)", rv ? rv->reference_count() : 0);
-   return rv;
-}
-
-int64 QoreMethod::bigIntEval(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const {
-   QORE_TRACE("QoreMethod::eval()");
-#ifdef DEBUG
-   const char* oname = self ? self->getClass()->getName() : "<n/a: static>";
-   printd(5, "QoreMethod::eval() %s::%s() (object=%p, pgm=%p, static=%s)\n", oname, getName(), self, self ? self->getProgram() : 0, isStatic() ? "true" : "false");
-#endif
-
-   if (isStatic())
-      return SMETHF(priv->func)->bigIntEvalMethod(0, args, xsink);
-
-   int64 rv = NMETHF(priv->func)->bigIntEvalMethod(0, self, args, xsink);
-   printd(5, "QoreMethod::eval() %s::%s() returning " QLLD "\n", oname, getName(), rv);
-   return rv;
-}
-
-int QoreMethod::intEval(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const {
-   QORE_TRACE("QoreMethod::intEval()");
-#ifdef DEBUG
-   const char* oname = self ? self->getClass()->getName() : "<n/a: static>";
-   printd(5, "QoreMethod::eval() %s::%s() (object=%p, pgm=%p, static=%s)\n", oname, getName(), self, self ? self->getProgram() : 0, isStatic() ? "true" : "false");
-#endif
-
-   if (isStatic())
-      return SMETHF(priv->func)->intEvalMethod(0, args, xsink);
-
-   int rv = NMETHF(priv->func)->intEvalMethod(0, self, args, xsink);
-   printd(5, "QoreMethod::eval() %s::%s() returning %d\n", oname, getName(), rv);
-   return rv;
-}
-
-bool QoreMethod::boolEval(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const {
-   QORE_TRACE("QoreMethod::eval()");
-#ifdef DEBUG
-   const char* oname = self ? self->getClass()->getName() : "<n/a: static>";
-   printd(5, "QoreMethod::eval() %s::%s() (object=%p, pgm=%p, static=%s)\n", oname, getName(), self, self ? self->getProgram() : 0, isStatic() ? "true" : "false");
-#endif
-
-   if (isStatic())
-      return SMETHF(priv->func)->boolEvalMethod(0, args, xsink);
-
-   bool rv = NMETHF(priv->func)->boolEvalMethod(0, self, args, xsink);
-   printd(5, "QoreMethod::eval() %s::%s() returning %d\n", oname, getName(), rv);
-   return rv;
-}
-
-double QoreMethod::floatEval(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const {
-   QORE_TRACE("QoreMethod::eval()");
-#ifdef DEBUG
-   const char* oname = self ? self->getClass()->getName() : "<n/a: static>";
-   printd(5, "QoreMethod::eval() %s::%s() (object=%p, pgm=%p, static=%s)\n", oname, getName(), self, self ? self->getProgram() : 0, isStatic() ? "true" : "false");
-#endif
-
-   if (isStatic())
-      return SMETHF(priv->func)->floatEvalMethod(0, args, xsink);
-
-   double rv = NMETHF(priv->func)->floatEvalMethod(0, self, args, xsink);
-   printd(5, "QoreMethod::eval() %s::%s() returning %g\n", oname, getName(), rv);
-   return rv;
-}
-
 bool QoreMethod::existsVariant(const type_vec_t &paramTypeInfo) const {
    return priv->func->existsVariant(paramTypeInfo);
 }
@@ -2532,7 +2306,7 @@ AbstractQoreNode* QoreClass::evalMethod(QoreObject* self, const char* nme, const
       return 0;
 
    if (w)
-      return w->eval(self, args, xsink);
+      return qore_method_private::eval(*w, self, args, xsink);
 
    // first see if there is a pseudo-method for this
    QoreClass* qc = 0;
@@ -2575,7 +2349,7 @@ int64 QoreClass::bigIntEvalMethod(QoreObject* self, const char* nme, const QoreL
       return pseudo_classes_int64_eval(self, nme, args, xsink);
    }
    
-   return w->bigIntEval(self, args, xsink);
+   return qore_method_private::bigIntEval(*w, self, args, xsink);
 }
 
 int QoreClass::intEvalMethod(QoreObject* self, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {
@@ -2599,7 +2373,7 @@ int QoreClass::intEvalMethod(QoreObject* self, const char* nme, const QoreListNo
       return pseudo_classes_int_eval(self, nme, args, xsink);
    }
    
-   return w->intEval(self, args, xsink);
+   return qore_method_private::intEval(*w, self, args, xsink);
 }
 
 bool QoreClass::boolEvalMethod(QoreObject* self, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {
@@ -2623,7 +2397,7 @@ bool QoreClass::boolEvalMethod(QoreObject* self, const char* nme, const QoreList
       return pseudo_classes_bool_eval(self, nme, args, xsink);
    }
    
-   return w->boolEval(self, args, xsink);
+   return qore_method_private::boolEval(*w, self, args, xsink);
 }
 
 double QoreClass::floatEvalMethod(QoreObject* self, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {
@@ -2647,7 +2421,7 @@ double QoreClass::floatEvalMethod(QoreObject* self, const char* nme, const QoreL
       return pseudo_classes_double_eval(self, nme, args, xsink);
    }
    
-   return w->floatEval(self, args, xsink);
+   return qore_method_private::floatEval(*w, self, args, xsink);
 }
 
 AbstractQoreNode* QoreClass::evalMethodGate(QoreObject* self, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {

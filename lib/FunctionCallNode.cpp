@@ -42,7 +42,7 @@ AbstractQoreNode *AbstractMethodCallNode::exec(QoreObject *o, const char *c_str,
       assert(method);
       return variant 
 	 ? method->evalNormalVariant(o, reinterpret_cast<const QoreExternalMethodVariant*>(variant), args, xsink)
-	 : method->eval(o, args, xsink);
+	 : qore_method_private::eval(*method, 0, args, xsink);
    }
    //printd(5, "AbstractMethodCallNode::exec() calling QoreObject::evalMethod() for %s::%s()\n", o->getClassName(), c_str);
    return o->evalMethod(c_str, args, xsink);
@@ -55,7 +55,7 @@ int64 AbstractMethodCallNode::bigIntExec(QoreObject *o, const char *c_str, Excep
       assert(method);
       return variant 
 	 ? method->bigIntEvalNormalVariant(o, reinterpret_cast<const QoreExternalMethodVariant*>(variant), args, xsink)
-	 : method->bigIntEval(o, args, xsink);
+	 : qore_method_private::bigIntEval(*method, o, args, xsink);
    }
    //printd(5, "AbstractMethodCallNode::exec() calling QoreObject::evalMethod() for %s::%s()\n", o->getClassName(), c_str);
    return o->bigIntEvalMethod(c_str, args, xsink);
@@ -68,7 +68,7 @@ int AbstractMethodCallNode::intExec(QoreObject *o, const char *c_str, ExceptionS
       assert(method);
       return variant 
 	 ? method->intEvalNormalVariant(o, reinterpret_cast<const QoreExternalMethodVariant*>(variant), args, xsink)
-	 : method->intEval(o, args, xsink);
+	 : qore_method_private::intEval(*method, o, args, xsink);
    }
    //printd(5, "AbstractMethodCallNode::intExec() calling QoreObject::evalMethod() for %s::%s()\n", o->getClassName(), c_str);
    return o->intEvalMethod(c_str, args, xsink);
@@ -81,7 +81,7 @@ bool AbstractMethodCallNode::boolExec(QoreObject *o, const char *c_str, Exceptio
       assert(method);
       return variant 
 	 ? method->boolEvalNormalVariant(o, reinterpret_cast<const QoreExternalMethodVariant*>(variant), args, xsink)
-	 : method->boolEval(o, args, xsink);
+	 : qore_method_private::boolEval(*method, o, args, xsink);
    }
    //printd(5, "AbstractMethodCallNode::boolExec() calling QoreObject::evalMethod() for %s::%s()\n", o->getClassName(), c_str);
    return o->boolEvalMethod(c_str, args, xsink);
@@ -94,7 +94,7 @@ double AbstractMethodCallNode::floatExec(QoreObject *o, const char *c_str, Excep
       assert(method);
       return variant 
 	 ? method->floatEvalNormalVariant(o, reinterpret_cast<const QoreExternalMethodVariant*>(variant), args, xsink)
-	 : method->floatEval(o, args, xsink);
+	 : qore_method_private::floatEval(*method, o, args, xsink);
    }
    //printd(5, "AbstractMethodCallNode::floatExec() calling QoreObject::evalMethod() for %s::%s()\n", o->getClassName(), c_str);
    return o->floatEvalMethod(c_str, args, xsink);
@@ -686,3 +686,8 @@ AbstractQoreNode *StaticMethodCallNode::parseInitImpl(LocalVar *oflag, int pflag
    lvids += parseArgs(oflag, pflag, method->getFunction(), typeInfo);
    return this;
 }
+
+DLLLOCAL AbstractQoreNode* StaticMethodCallNode::evalImpl(ExceptionSink *xsink) const {
+   return qore_method_private::eval(*method, 0, args, xsink);
+}
+
