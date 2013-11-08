@@ -42,7 +42,7 @@ AbstractQoreNode *AbstractMethodCallNode::exec(QoreObject *o, const char *c_str,
       assert(method);
       return variant 
 	 ? method->evalNormalVariant(o, reinterpret_cast<const QoreExternalMethodVariant*>(variant), args, xsink)
-	 : qore_method_private::eval(*method, 0, args, xsink);
+	 : qore_method_private::eval(*method, o, args, xsink);
    }
    //printd(5, "AbstractMethodCallNode::exec() calling QoreObject::evalMethod() for %s::%s()\n", o->getClassName(), c_str);
    return o->evalMethod(c_str, args, xsink);
