@@ -164,6 +164,18 @@ public:
    DLLLOCAL strdeque_t::const_iterator end() const {
       return dlist.end();
    }
+
+   DLLLOCAL void appendPath(QoreString& str) const {
+      if (dlist.empty()) {
+         str.concat("<empty>");
+         return;
+      }
+      for (strdeque_t::const_iterator i = dlist.begin(), e = dlist.end(); i != e; ++i) {
+         str.concat((*i).c_str());
+         str.concat(':');
+      }
+      str.terminate(str.size() - 1);
+   }
 };
 
 class QoreModuleContextHelper : public QoreModuleContext {

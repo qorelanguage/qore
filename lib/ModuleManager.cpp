@@ -591,8 +591,10 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
 
       ++w;
    }
-   
-   xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "feature '%s' is not builtin and no module with this name could be found in the module path", name);
+
+   QoreStringNode* desc = new QoreStringNodeMaker("feature '%s' is not builtin and no module with this name could be found in the module path: ", name);
+   moduleDirList.appendPath(*desc);
+   xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), desc);
 }
 
 void ModuleManager::registerUserModuleFromSource(const char* name, const char* src, QoreProgram *pgm, ExceptionSink* xsink) {
