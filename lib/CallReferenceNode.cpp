@@ -527,9 +527,7 @@ bool StaticMethodCallReferenceNode::derefImpl(ExceptionSink *xsink) {
 }
 
 AbstractQoreNode *StaticMethodCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
-   ProgramThreadCountContextHelper tch(xsink, pgm, true);
-   if (*xsink)
-      return 0;
+   // do not set pgm context here before evaluating args
    return method->eval(0, args, xsink);
 }
 
