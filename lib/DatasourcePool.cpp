@@ -38,7 +38,8 @@ DatasourcePool::DatasourcePool(ExceptionSink *xsink, DBIDriver *ndsl, const char
 
    // create minimum datasources if possible
    printd(5, "DatasourcePool::DatasourcePool(driver: %p user: %s pass: %s db: %s charset: %s host: %s min: %d max: %d port: %d) pool: %p\n",
-          ndsl, user ? user : "(null)", pass ? pass : "(null)", db ? db : "(null)", charset ? charset : "(null)", hostname ? hostname : "(null)", min, max, port, pool);
+          ndsl, user ? user : "(null)", pass ? pass : "(null)", db ? db : "(null)", charset ? charset : "(null)", 
+	  hostname ? hostname : "(null)", min, max, port, pool);
 
    // open initial datasource manually
    pool[0] = new Datasource(ndsl);

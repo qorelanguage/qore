@@ -421,7 +421,7 @@ AbstractQoreNode *Datasource::getClientVersion(ExceptionSink *xsink) const {
 }
 
 QoreHashNode* Datasource::getOptionHash() const {
-   return priv->private_data ? qore_dbi_private::get(*priv->dsl)->getOptionHash(this) : priv->opt->hashRefSelf();
+   return priv->getOptionHash();
 }
 
 int Datasource::setOption(const char* opt, const AbstractQoreNode* val, ExceptionSink* xsink) {
@@ -456,25 +456,15 @@ QoreHashNode* Datasource::getConfigHash() const {
    if (priv->port)
       h->setKeyValue("port", new QoreBigIntNode(priv->port), 0);
 
-   QoreHashNode* options = 0;
-
-   ReferenceHolder<QoreHashNode> opts(qore_dbi_private::get(*priv->dsl)->getOptionHash(this), 0);
-   ConstHashIterator hi(*opts);
-   while (hi.next()) {
-      const QoreHashNode* ov = reinterpret_cast<const QoreHashNode*>(hi.getValue());
-      const AbstractQoreNode* v = ov->getKeyValue("value");
-      if (!v || v == &False)
-	 continue;
-
-      if (!options)
-	 options = new QoreHashNode;
-
-      options->setKeyValue(hi.getKey(), v->refSelf(), 0);
-   }
+   QoreHashNode* options = priv->getCurrentOptionHash();
    if (options)
       h->setKeyValue("options", options, 0);
 
    return h;
+}
+
+QoreHashNode* Datasource::getCurrentOptionHash() const {
+   return priv->getCurrentOptionHash();
 }
 
 QoreStringNode* Datasource::getConfigString() const {

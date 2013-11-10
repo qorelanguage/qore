@@ -453,6 +453,15 @@ public:
     */
    DLLEXPORT QoreHashNode* getOptionHash() const;
 
+   //! returns the options currently set for this object
+   /** @return a hash where the keys and values are option names and option values
+
+       The caller owns the reference count for the hash returned; returns 0 if no options are set on the current object or if the driver does not support options
+
+       @since 0.8.9
+    */
+   DLLEXPORT QoreHashNode* getCurrentOptionHash() const;
+
    //! sets an option for the datasource
    /** @param opt the option to set
        @param val the value to set

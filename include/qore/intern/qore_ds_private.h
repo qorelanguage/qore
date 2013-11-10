@@ -67,13 +67,16 @@ struct qore_ds_private {
                p_username(old.p_username), p_password(old.p_password),
                p_dbname(old.p_dbname), p_db_encoding(old.p_db_encoding),
                p_hostname(old.p_hostname), p_port(old.p_port),
-               port(0), opt(old.opt->copy()) {
+               port(0), 
+               //opt(old.opt->copy()) {
+               opt(old.getCurrentOptionHash(true)) {
    }
 
    DLLLOCAL ~qore_ds_private() {
       assert(!private_data);
       ExceptionSink xsink;
-      opt->deref(&xsink);
+      if (opt)
+         opt->deref(&xsink);
    }
 
    DLLLOCAL void setPendingConnectionValues(const qore_ds_private *other) {
@@ -102,6 +105,33 @@ struct qore_ds_private {
 
    DLLLOCAL void setOption(const char* name, const AbstractQoreNode* v, ExceptionSink* xsink) {
       opt->setKeyValue(name, v ? v->refSelf() : 0, xsink);
+   }
+
+   DLLLOCAL QoreHashNode* getOptionHash() const {
+      return private_data ? qore_dbi_private::get(*dsl)->getOptionHash(ds) : opt->hashRefSelf();
+   }
+
+   DLLLOCAL QoreHashNode* getCurrentOptionHash(bool ensure_hash = false) const {
+      QoreHashNode* options = 0;
+      
+      ReferenceHolder<QoreHashNode> opts(getOptionHash(), 0);
+      ConstHashIterator hi(*opts);
+      while (hi.next()) {
+         const QoreHashNode* ov = reinterpret_cast<const QoreHashNode*>(hi.getValue());
+         const AbstractQoreNode* v = ov->getKeyValue("value");
+         if (!v || v == &False)
+            continue;
+
+         if (!options)
+            options = new QoreHashNode;
+
+         options->setKeyValue(hi.getKey(), v->refSelf(), 0);
+      }
+
+      if (ensure_hash && !options)
+         options = new QoreHashNode;
+
+      return options;
    }
 };
 

@@ -29,6 +29,8 @@
     - fixed a bug in v*printf() where \c '%%' was not handled correctly in all cases
     - fixed bugs in @ref Qore::microseconds() "microseconds" and @ref Qore::milliseconds() "milliseconds()" with large arguments
     - fixed a bug where a call to a call reference to a static method across a program boundary with local variables as arguments would cause a crash due to improper setting of the program context before the arguments are evaluated
+    - fixed a bug in the Datasource copy constructor where implicitly-set options were not carried over into the new object
+    - fixed a bug in the DatasourcePool class where implicitly-opened connections would not be guaranteed to have the same server time zone setting as the initial connections (for example, could cause problems with server timezone settings if running in a program context with a different local time zone attribute)
 
     @section qore_088 Qore 0.8.8
 

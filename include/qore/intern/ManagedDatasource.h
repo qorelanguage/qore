@@ -76,6 +76,9 @@ public:
    DLLLOCAL ManagedDatasource(DBIDriver *ndsl) : Datasource(ndsl), tid(-1), waiting(0), tl_timeout_ms(DEFAULT_TL_TIMEOUT) {
    }
 
+   DLLLOCAL ManagedDatasource(const ManagedDatasource& old) : Datasource(old), tid(-1), waiting(0), tl_timeout_ms(old.tl_timeout_ms) {
+   }
+
    DLLLOCAL virtual void cleanup(ExceptionSink *xsink);
    DLLLOCAL virtual void destructor(ExceptionSink *xsink);
    DLLLOCAL virtual void deref(ExceptionSink *xsink);
