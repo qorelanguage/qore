@@ -62,7 +62,6 @@ protected:
    }
    
 public:
-    
    DLLLOCAL unsigned int size() const {
       return md_len;
    }
@@ -83,11 +82,10 @@ public:
       BinaryNode *b = new BinaryNode();
       b->append(md_value, md_len);
       return b;
-   }  
+   }
 };
 
 class DigestHelper : public BaseHelper {
-
 public:
    DLLLOCAL DigestHelper(const QoreListNode *params) {
       setInput(get_param(params, 0));

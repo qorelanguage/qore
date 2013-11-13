@@ -3011,7 +3011,6 @@ public:
          assert(self);
          return NMETHF(func)->evalMethod(0, self, args, xsink);
       }
-      assert(!self);
       return SMETHF(func)->evalMethod(0, args, xsink);
    }
 
@@ -3020,7 +3019,6 @@ public:
          assert(self);
          return NMETHF(func)->bigIntEvalMethod(0, self, args, xsink);
       }
-      assert(!self);
       return SMETHF(func)->bigIntEvalMethod(0, args, xsink);
    }
 
@@ -3029,7 +3027,6 @@ public:
          assert(self);
          return NMETHF(func)->intEvalMethod(0, self, args, xsink);
       }
-      assert(!self);
       return SMETHF(func)->intEvalMethod(0, args, xsink);
    }
 
@@ -3038,7 +3035,6 @@ public:
          assert(self);
          return NMETHF(func)->boolEvalMethod(0, self, args, xsink);
       }
-      assert(!self);
       return SMETHF(func)->boolEvalMethod(0, args, xsink);
    }
 
@@ -3047,7 +3043,6 @@ public:
          assert(self);
          return NMETHF(func)->floatEvalMethod(0, self, args, xsink);
       }
-      assert(!self);
       return SMETHF(func)->floatEvalMethod(0, args, xsink);
    }
 
