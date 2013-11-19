@@ -841,12 +841,13 @@ $ds.setWarningCallback(5s, $cb);
     @endcode
 
     @param ms the period of time with a resolution of milliseconds after which the callback will be called if a connection cannot be allocated in the given time period
-    @param callback a @ref closure "closure" or @ref call_reference "call reference" taking three arguments: (@ref string_type "string" \a desc, @ref int_type "int" \a time, @ref int_type "int" \a warning_timeout) which will be passed a datasource description string for the pool, an integer giving the amount of time it took to acquire the connection in milliseconds, and an integer giving the warning timeout threshold in milliseconds
+    @param callback a @ref closure "closure" or @ref call_reference "call reference" taking three or four arguments: (@ref string_type "string" \a desc, @ref int_type "int" \a time, @ref int_type "int" \a warning_timeout[, @ref any_type "any" \a arg]) which will be passed a datasource description string for the pool, an integer giving the amount of time it took to acquire the connection in milliseconds, an integer giving the warning timeout threshold in milliseconds, and optionally the \a arg value passed to this method
+    @param arg an optional argument that will be passed to the warning callback
 
     @since %Qore 0.8.9
 */
-DatasourcePool::setWarningCallback(timeout ms, code callback) {
-   ds->setWarningCallback(ms, callback->refRefSelf(), xsink);
+DatasourcePool::setWarningCallback(timeout ms, code callback, any arg) {
+   ds->setWarningCallback(ms, callback->refRefSelf(), arg ? arg->refSelf() : 0, xsink);
 }
 
 //! Returns a hash with callback and warning timeout information or @ref nothing if none is set

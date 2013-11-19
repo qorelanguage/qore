@@ -34,6 +34,7 @@ DatasourcePool::DatasourcePool(ExceptionSink* xsink, DBIDriver* ndsl, const char
       tl_warning_ms(0),
       tl_timeout_ms(120000),
       warning_callback(0),
+      callback_arg(0),
       valid(false) {
    //assert(mn > 0);
    //assert(mx > min);   
@@ -98,6 +99,7 @@ DatasourcePool::~DatasourcePool() {
    delete [] tid_list;
    delete [] pool;
    assert(!warning_callback);
+   assert(!callback_arg);
 }
 
 void DatasourcePool::cleanup(ExceptionSink* xsink) {
@@ -158,8 +160,10 @@ void DatasourcePool::destructor(ExceptionSink* xsink) {
 
    if (warning_callback) {
       warning_callback->deref(xsink);
+      discard(callback_arg, xsink);
 #ifdef DEBUG
       warning_callback = 0;
+      callback_arg = 0;
 #endif
    }
 }
@@ -244,6 +248,7 @@ void DatasourcePool::checkWait(int64 warn_total, ExceptionSink* xsink) {
    args->push(getConfigString());
    args->push(new QoreBigIntNode(warn_total));
    args->push(new QoreBigIntNode(tl_warning_ms));
+   args->push(callback_arg ? callback_arg->refSelf() : 0);
    discard(warning_callback->exec(*args, xsink), xsink);
 }
 
@@ -503,22 +508,27 @@ QoreStringNode* DatasourcePool::getConfigString() const {
 void DatasourcePool::clearWarningCallback(ExceptionSink* xsink) {
    AutoLocker al((QoreThreadLock*)this);
    if (warning_callback) {
+      discard(callback_arg, xsink);
       warning_callback->deref(xsink);
       warning_callback = 0;
       tl_warning_ms = 0;
    }
 }
 
-void DatasourcePool::setWarningCallback(int64 warning_ms, ResolvedCallReferenceNode* cb, ExceptionSink* xsink) {
+void DatasourcePool::setWarningCallback(int64 warning_ms, ResolvedCallReferenceNode* cb, AbstractQoreNode* arg, ExceptionSink* xsink) {
    if (warning_ms <= 0) {
-      xsink->raiseException("DATASOURCEPOOL-SETWARNINGCALLBACK-ERROR", "DatasourcePool::setWarningCallback() warning ms argument: "QLLD" must be greater than zero", warning_ms);
+      xsink->raiseException("DATASOURCEPOOL-SETWARNINGCALLBACK-ERROR", "DatasourcePool::setWarningCallback() warning ms argument: "QLLD" must be greater than zero; to clear, call DatasourcePool::clearWarningCallback() with no arguments", warning_ms);
       return;
    }
    AutoLocker al((QoreThreadLock*)this);
-   if (warning_callback)
+   if (warning_callback) {
       warning_callback->deref(xsink);
+      if (callback_arg)
+	 callback_arg->deref(xsink);
+   }
    warning_callback = cb;
    tl_warning_ms = warning_ms;
+   callback_arg = arg;
 }
 
 QoreHashNode* DatasourcePool::getWarningCallbackInfo() const {
@@ -528,6 +538,7 @@ QoreHashNode* DatasourcePool::getWarningCallbackInfo() const {
 
    QoreHashNode* h = new QoreHashNode;
    h->setKeyValue("callback", warning_callback->refRefSelf(), 0);
+   h->setKeyValue("arg", callback_arg ? callback_arg->refSelf() : 0, 0);
    h->setKeyValue("timeout", new QoreBigIntNode(tl_warning_ms), 0);
    return h;
 }

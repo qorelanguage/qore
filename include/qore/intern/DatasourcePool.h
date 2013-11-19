@@ -55,6 +55,7 @@ protected:
       tl_timeout_ms
       ;
    ResolvedCallReferenceNode* warning_callback;
+   AbstractQoreNode* callback_arg;
    bool valid;
 
 #ifdef DEBUG
@@ -155,7 +156,7 @@ public:
    DLLLOCAL QoreStringNode* getConfigString() const;
 
    DLLLOCAL void clearWarningCallback(ExceptionSink* xsink);
-   DLLLOCAL void setWarningCallback(int64 warning_ms, ResolvedCallReferenceNode* cb, ExceptionSink* xsink);
+   DLLLOCAL void setWarningCallback(int64 warning_ms, ResolvedCallReferenceNode* cb, AbstractQoreNode* arg, ExceptionSink* xsink);
    DLLLOCAL QoreHashNode* getWarningCallbackInfo() const;
 
    DLLLOCAL void setErrorTimeout(unsigned t_ms) {
