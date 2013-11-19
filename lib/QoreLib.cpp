@@ -1714,3 +1714,9 @@ const char* q_mode_to_perm(mode_t mode, QoreString& perm) {
 
    return type;
 }
+
+int64 q_clock_getmillis() {
+   int us;
+   int64 seconds = q_epoch_us(us);
+   return seconds * 1000 + us / 1000;
+}

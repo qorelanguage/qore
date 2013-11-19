@@ -818,3 +818,77 @@ my string $str = $ds.getConfigString();
 string DatasourcePool::getConfigString() [flags=CONSTANT] {
    return ds->getConfigString();
 }
+
+//! clears any connection delay warning callback from the object
+/** @par Example:
+    @code
+$ds.clearWarningCallback();
+    @endcode
+
+    @since %Qore 0.8.9
+*/
+DatasourcePool::clearWarningCallback() {
+   ds->clearWarningCallback(xsink);
+}
+
+//! sets a connection delay warning callback to be called any time the delay assigning a connection from the pool exceeds the given timeout in milliseconds
+/** @par Example:
+    @code
+my code $cb = sub (string $dsstr, int $ms, int $to) {
+    printf("WARNING: datasource pool %y took %d ms (threshold %d ms) to assign a new connection\n", $dsstr, $ms, $to);
+};
+$ds.setWarningCallback(5s, $cb);
+    @endcode
+
+    @param ms the period of time with a resolution of milliseconds after which the callback will be called if a connection cannot be allocated in the given time period
+    @param callback a @ref closure "closure" or @ref call_reference "call reference" taking three arguments: (@ref string_type "string" \a desc, @ref int_type "int" \a time, @ref int_type "int" \a warning_timeout) which will be passed a datasource description string for the pool, an integer giving the amount of time it took to acquire the connection in milliseconds, and an integer giving the warning timeout threshold in milliseconds
+
+    @since %Qore 0.8.9
+*/
+DatasourcePool::setWarningCallback(timeout ms, code callback) {
+   ds->setWarningCallback(ms, callback->refRefSelf(), xsink);
+}
+
+//! Returns a hash with callback and warning timeout information or @ref nothing if none is set
+/** @par Example:
+    @code
+my *hash $h = $ds.getWarningCallbackInfo();
+    @endcode
+
+    @return @ref nothing if no warning callback is set, otherwise a hash with the following keys:
+    - \c callback: the @ref closure "closure" or @ref call_reference "call reference" set as the warning callback
+    - \c timeout: an integer giving the timeout threshold in milliseconds before the warning callback is executed
+
+    @since %Qore 0.8.9
+*/
+*hash DatasourcePool::getWarningCallbackInfo() [flags=CONSTANT] {
+   return ds->getWarningCallbackInfo();
+}
+
+//! Sets the timeout period for waiting for a connection to come free; note that timeout values less than or equal to zero mean that requests for a connection will wait indefinitely
+/** @par Example:
+    @code
+$ds.setErrorTimeout(30s);
+    @endcode
+
+    @since %Qore 0.8.9
+*/
+DatasourcePool::setErrorTimeout(timeout ts) {
+   if (ts < 0)
+      ts = 0;
+   ds->setErrorTimeout(ts);
+}
+
+//! Returns the error timeout period for waiting for a connection to come free as an integer giving milliseconds; note that timeout values less than or equal to zero mean that requests for a connection will wait indefinitely
+/** @par Example:
+    @code
+my int $ms = $ds.getErrorTimeout();
+    @endcode
+
+    @return the error timeout period for waiting for a connection to come free as an integer giving milliseconds; note that timeout values less than or equal to zero mean that requests for a connection will wait indefinitely
+
+    @since %Qore 0.8.9
+*/
+int DatasourcePool::getErrorTimeout() [flags=CONSTANT] {
+   return ds->getErrorTimeout();
+}

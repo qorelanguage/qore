@@ -50,7 +50,11 @@ protected:
    unsigned min, 
       max,
       cmax,			 // current max
-      wait_count;
+      wait_count,
+      tl_warning_ms,
+      tl_timeout_ms
+      ;
+   ResolvedCallReferenceNode* warning_callback;
    bool valid;
 
 #ifdef DEBUG
@@ -65,7 +69,8 @@ protected:
    DLLLOCAL void freeDS();
    // share the code for exec() and execRaw()
    DLLLOCAL AbstractQoreNode *exec_internal(bool doBind, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink);
-      
+   DLLLOCAL void checkWait(int64 warn_total, ExceptionSink* xsink);
+     
 public:
 #ifdef DEBUG
    QoreString *getAndResetSQL();
@@ -148,6 +153,18 @@ public:
 
    DLLLOCAL QoreHashNode* getConfigHash() const;
    DLLLOCAL QoreStringNode* getConfigString() const;
+
+   DLLLOCAL void clearWarningCallback(ExceptionSink* xsink);
+   DLLLOCAL void setWarningCallback(int64 warning_ms, ResolvedCallReferenceNode* cb, ExceptionSink* xsink);
+   DLLLOCAL QoreHashNode* getWarningCallbackInfo() const;
+
+   DLLLOCAL void setErrorTimeout(unsigned t_ms) {
+      tl_timeout_ms = t_ms;
+   }
+
+   DLLLOCAL unsigned getErrorTimeout() const {
+      return tl_timeout_ms;
+   }
 };
 
 class DatasourcePoolActionHelper {

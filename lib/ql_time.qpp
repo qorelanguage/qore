@@ -1240,9 +1240,7 @@ my int $ms = clock_getmillis();
     - clock_getmicros()
 */
 int clock_getmillis() [flags=CONSTANT] {
-   int us;
-   int64 seconds = q_epoch_us(us);
-   return seconds * 1000 + us / 1000;
+   return q_clock_getmillis();
 }
 
 //! Returns an integer representing the system time in nanoseconds (1/1000000000 second intervals) since Jan 1, 1970 00:00:00Z

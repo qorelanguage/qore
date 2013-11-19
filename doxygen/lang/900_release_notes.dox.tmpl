@@ -17,6 +17,13 @@
       - optimized connection and login code; HELO/EHLO and authorization are performed when connecting only, not before each email
     - added get_byte_size() and get_marketing_byte_size() to the <a href="../../modules/Util/html/index.html">Util</a> module
     - the error message now includes the module path used for the search when a module cannot be found in the module path
+    - @ref Qore::SQL::DatasourcePool "DatasourcePool" enhancements:
+      - new method: @ref Qore::SQL::DatasourcePool::clearWarningCallback() "DatasourcePool::clearWarningCallback()" 
+      - new method: @ref Qore::SQL::DatasourcePool::setWarningCallback() "DatasourcePool::setWarningCallback()" 
+      - new method: @ref Qore::SQL::DatasourcePool::getWarningCallbackInfo() "DatasourcePool::getWarningCallbackInfo()" 
+      - new method: @ref Qore::SQL::DatasourcePool::setErrorTimeout() "DatasourcePool::setErrorTimeout()" 
+      - new method: @ref Qore::SQL::DatasourcePool::getErrorTimeout() "DatasourcePool::getErrorTimeout()" 
+      - the new methods allow for monitoring @ref Qore::SQL::DatasourcePool "DatasourcePool" objects for pool contention issues (in case the pool needs to be resized) and for throwing an exception if a connection is not acquired within the error timeout period (new default: 2 minutes)
 
     @subsection qore_089_bug_fixes Bug Fixes in Qore
     - fixed a crashing bug when HTTP messages with duplicate Connection, Content-Encoding, Transfer-Encoding, Location, or Content-Type headers is received
@@ -29,8 +36,8 @@
     - fixed a bug in v*printf() where \c '%%' was not handled correctly in all cases
     - fixed bugs in @ref Qore::microseconds() "microseconds" and @ref Qore::milliseconds() "milliseconds()" with large arguments
     - fixed a bug where a call to a call reference to a static method across a program boundary with local variables as arguments would cause a crash due to improper setting of the program context before the arguments are evaluated
-    - fixed a bug in the Datasource copy constructor where implicitly-set options were not carried over into the new object
-    - fixed a bug in the DatasourcePool class where implicitly-opened connections would not be guaranteed to have the same server time zone setting as the initial connections (for example, could cause problems with server timezone settings if running in a program context with a different local time zone attribute)
+    - fixed a bug in @ref Qore::SQL::Datasource::copy() "Datasource::copy()" method where implicitly-set options were not carried over into the new object
+    - fixed a bug in the @ref Qore::SQL::DatasourcePool "DatasourcePool" class where implicitly-opened connections would not be guaranteed to have the same server time zone setting as the initial connections (for example, could cause problems with server timezone settings if running in a program context with a different local time zone attribute)
 
     @section qore_088 Qore 0.8.8
 
