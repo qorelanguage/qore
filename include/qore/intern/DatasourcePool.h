@@ -51,8 +51,12 @@ protected:
       max,
       cmax,			 // current max
       wait_count,
+      wait_max,
       tl_warning_ms,
       tl_timeout_ms
+      ;
+   int64 stats_reqs,
+      stats_hits
       ;
    ResolvedCallReferenceNode* warning_callback;
    AbstractQoreNode* callback_arg;
@@ -157,7 +161,7 @@ public:
 
    DLLLOCAL void clearWarningCallback(ExceptionSink* xsink);
    DLLLOCAL void setWarningCallback(int64 warning_ms, ResolvedCallReferenceNode* cb, AbstractQoreNode* arg, ExceptionSink* xsink);
-   DLLLOCAL QoreHashNode* getWarningCallbackInfo() const;
+   DLLLOCAL QoreHashNode* getUsageInfo() const;
 
    DLLLOCAL void setErrorTimeout(unsigned t_ms) {
       tl_timeout_ms = t_ms;

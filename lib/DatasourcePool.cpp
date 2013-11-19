@@ -31,8 +31,11 @@ DatasourcePool::DatasourcePool(ExceptionSink* xsink, DBIDriver* ndsl, const char
       max(mx),
       cmax(0),
       wait_count(0),
+      wait_max(0),
       tl_warning_ms(0),
       tl_timeout_ms(120000),
+      stats_hits(0),
+      stats_reqs(0),
       warning_callback(0),
       callback_arg(0),
       valid(false) {
@@ -237,16 +240,16 @@ Datasource* DatasourcePool::getAllocatedDS() {
    return pool[i->second];
 }
 
-void DatasourcePool::checkWait(int64 warn_total, ExceptionSink* xsink) {
-   assert(warn_total);
-   if (warn_total < tl_warning_ms)
+void DatasourcePool::checkWait(int64 wait_total, ExceptionSink* xsink) {
+   assert(wait_total);
+   if (wait_total < tl_warning_ms)
       return;
 
    assert(warning_callback);
    // build argument list
    ReferenceHolder<QoreListNode> args(new QoreListNode, xsink);
    args->push(getConfigString());
-   args->push(new QoreBigIntNode(warn_total));
+   args->push(new QoreBigIntNode(wait_total));
    args->push(new QoreBigIntNode(tl_warning_ms));
    args->push(callback_arg ? callback_arg->refSelf() : 0);
    discard(warning_callback->exec(*args, xsink), xsink);
@@ -259,6 +262,9 @@ Datasource* DatasourcePool::getDSIntern(bool& new_ds, ExceptionSink* xsink) {
    
    SafeLocker sl((QoreThreadLock *)this);
 
+   // increase request counter
+   ++stats_reqs;
+
    // see if thread already has a datasource allocated
    thread_use_t::iterator i = tmap.find(tid);
    if (i != tmap.end())
@@ -269,7 +275,10 @@ Datasource* DatasourcePool::getDSIntern(bool& new_ds, ExceptionSink* xsink) {
    // will be a new allocation, not already in a transaction
    new_ds = true;
    
-   int64 warn_total = 0;
+   int64 wait_total = 0;
+
+   // iteration flag
+   bool iter = false;
 
    // see if there is a datasource free
    while (true) {
@@ -282,53 +291,65 @@ Datasource* DatasourcePool::getDSIntern(bool& new_ds, ExceptionSink* xsink) {
 	 tmap[tid] = fi;
 	 ds = pool[fi];
 	 tid_list[fi] = tid;
+
+	 // increase hit counter
+	 if (!iter)
+	    ++stats_hits;
+	 break;
       }
-      else {
-	 // see if we can open a new connection
-	 if (cmax < max) {
-	    ds = pool[cmax] = pool[0]->copy();
-	    
-	    tmap[tid] = cmax;
-	    tid_list[cmax++] = tid;
-	 }
-	 else {
-	    //printd(5, "DatasourcePool::getDSIntern() this: %p tl_timeout_ms: %d max: %d\n", this, tl_timeout_ms, max);
-	    // otherwise we sleep until a connection becomes available
-	    ++wait_count;
-	    int64 warn_start = tl_warning_ms ? q_clock_getmillis() : 0;
-	    int rc = tl_timeout_ms ? wait((QoreThreadLock*)this, tl_timeout_ms) : wait((QoreThreadLock*)this);
-	    wait_count--;
 
-	    // add waiting time to total time
-	    if (warn_start)
-	       warn_total += (q_clock_getmillis() - warn_start);
+      // see if we can open a new connection
+      if (cmax < max) {
+	 ds = pool[cmax] = pool[0]->copy();
+	 
+	 tmap[tid] = cmax;
+	 tid_list[cmax++] = tid;
+	 
+	 // increase hit counter
+	 if (!iter)
+	       ++stats_hits;
 
-	    if (!valid) {
-	       xsink->raiseException("DATASOURCEPOOL-ERROR", "%s:%s@%s: DatasourcePool deleted while TID %d waiting on a connection to become free", getDriverName(), pool[0]->getUsernameStr().c_str(), pool[0]->getDBNameStr().c_str(), tid);
-	       if (warn_total)
-		  checkWait(warn_total, xsink);
-	       return 0;
-	    }
-
-	    if (rc && tl_timeout_ms) {
-	       xsink->raiseException("DATASOURCEPOOL-TIMEOUT", "%s:%s@%s: TID %d timed out on datasource pool after waiting %d millisecond%s for a free connection (max %d connections in use)",
-				     getDriverName(), pool[0]->getUsernameStr().c_str(), pool[0]->getDBNameStr().c_str(), tid, 
-				     tl_timeout_ms, tl_timeout_ms == 1 ? "" : "s", max);
-	       if (warn_total)
-		  checkWait(warn_total, xsink);
-	       return 0;
-	    }
-
-	    continue;
-	 }
+	 break;
       }
-      break;
+
+      //printd(5, "DatasourcePool::getDSIntern() this: %p tl_timeout_ms: %d max: %d\n", this, tl_timeout_ms, max);
+      // otherwise we sleep until a connection becomes available
+      ++wait_count;
+      int64 warn_start = q_clock_getmillis();
+      int rc = tl_timeout_ms ? wait((QoreThreadLock*)this, tl_timeout_ms) : wait((QoreThreadLock*)this);
+      wait_count--;
+
+      // add waiting time to total time
+      wait_total += (q_clock_getmillis() - warn_start);
+
+      if (!valid) {
+	 xsink->raiseException("DATASOURCEPOOL-ERROR", "%s:%s@%s: DatasourcePool deleted while TID %d waiting on a connection to become free", getDriverName(), pool[0]->getUsernameStr().c_str(), pool[0]->getDBNameStr().c_str(), tid);
+	 if (wait_total)
+	    checkWait(wait_total, xsink);
+	 return 0;
+      }
+
+      if (rc && tl_timeout_ms) {
+	 xsink->raiseException("DATASOURCEPOOL-TIMEOUT", "%s:%s@%s: TID %d timed out on datasource pool after waiting %d millisecond%s for a free connection (max %d connections in use)",
+			       getDriverName(), pool[0]->getUsernameStr().c_str(), pool[0]->getDBNameStr().c_str(), tid, 
+			       tl_timeout_ms, tl_timeout_ms == 1 ? "" : "s", max);
+	 if (wait_total)
+	    checkWait(wait_total, xsink);
+	 return 0;
+      }
+
+      if (!iter)
+	 iter = true;
+      continue;
    }
+
+   if (wait_total > wait_max)
+      wait_max = wait_total;
    sl.unlock();
 
-   if (warn_total) {
-      checkWait(warn_total, xsink);
-      //printd(5, "DatasourcePool::getDSIntern() set_thread_resource(this: %p), tid: %d warn_total: "QLLD" tl_warning_ms: %d\n", this, gettid(), warn_total, tl_warning_ms);
+   if (wait_total) {
+      checkWait(wait_total, xsink);
+      //printd(5, "DatasourcePool::getDSIntern() set_thread_resource(this: %p), tid: %d wait_total: "QLLD" tl_warning_ms: %d\n", this, gettid(), wait_total, tl_warning_ms);
    }
 
    // add to thread resource list
@@ -531,14 +552,16 @@ void DatasourcePool::setWarningCallback(int64 warning_ms, ResolvedCallReferenceN
    callback_arg = arg;
 }
 
-QoreHashNode* DatasourcePool::getWarningCallbackInfo() const {
+QoreHashNode* DatasourcePool::getUsageInfo() const {
    AutoLocker al((QoreThreadLock*)this);
-   if (!warning_callback)
-      return 0;
-
    QoreHashNode* h = new QoreHashNode;
-   h->setKeyValue("callback", warning_callback->refRefSelf(), 0);
-   h->setKeyValue("arg", callback_arg ? callback_arg->refSelf() : 0, 0);
-   h->setKeyValue("timeout", new QoreBigIntNode(tl_warning_ms), 0);
+   if (warning_callback) {
+      h->setKeyValue("callback", warning_callback->refRefSelf(), 0);
+      h->setKeyValue("arg", callback_arg ? callback_arg->refSelf() : 0, 0);
+      h->setKeyValue("timeout", new QoreBigIntNode(tl_warning_ms), 0);
+   }
+   h->setKeyValue("wait_max", new QoreBigIntNode(wait_max), 0);
+   h->setKeyValue("stats_reqs", new QoreBigIntNode(stats_reqs), 0);
+   h->setKeyValue("stats_hits", new QoreBigIntNode(stats_hits), 0);
    return h;
 }

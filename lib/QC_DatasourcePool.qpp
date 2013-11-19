@@ -90,7 +90,7 @@ static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, Exc
       }
 
       max = (int)h->getKeyAsBigInt("max", found);
-      if (found ) {
+      if (found) {
          if (max < min) {
             xsink->raiseException(DSPC_ERR, "maximum connections must be >= min(%d) (value given: %d)", min, max);
             return;
@@ -850,20 +850,24 @@ DatasourcePool::setWarningCallback(timeout ms, code callback, any arg) {
    ds->setWarningCallback(ms, callback->refRefSelf(), arg ? arg->refSelf() : 0, xsink);
 }
 
-//! Returns a hash with callback and warning timeout information or @ref nothing if none is set
+//! Returns a hash with usage information about the DatasourcePool object
 /** @par Example:
     @code
-my *hash $h = $ds.getWarningCallbackInfo();
+my hash $h = $ds.getUsageInfo();
     @endcode
 
-    @return @ref nothing if no warning callback is set, otherwise a hash with the following keys:
+    @return a hash with the following keys (note that the \c callback, \c timeout, and optionally \c arg keys are only set if a warning callback is set):
     - \c callback: the @ref closure "closure" or @ref call_reference "call reference" set as the warning callback
     - \c timeout: an integer giving the timeout threshold in milliseconds before the warning callback is executed
+    - \c arg: an optional argument passed to the warning callback
+    - \c wait_max: the maximum number of milliseconds that threads have had to wait for a free connection
+    - \c stats_reqs: the total number of requests for connections / transactions on this DatasourcePool
+    - \c stats_hits: the total number of requests for connections / transactions on this DatasourcePool that did not have to wait for a connection
 
     @since %Qore 0.8.9
 */
-*hash DatasourcePool::getWarningCallbackInfo() [flags=CONSTANT] {
-   return ds->getWarningCallbackInfo();
+*hash DatasourcePool::getUsageInfo() [flags=CONSTANT] {
+   return ds->getUsageInfo();
 }
 
 //! Sets the timeout period for waiting for a connection to come free; note that timeout values less than or equal to zero mean that requests for a connection will wait indefinitely

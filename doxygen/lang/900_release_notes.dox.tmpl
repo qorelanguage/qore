@@ -20,10 +20,11 @@
     - @ref Qore::SQL::DatasourcePool "DatasourcePool" enhancements:
       - new method: @ref Qore::SQL::DatasourcePool::clearWarningCallback() "DatasourcePool::clearWarningCallback()" 
       - new method: @ref Qore::SQL::DatasourcePool::setWarningCallback() "DatasourcePool::setWarningCallback()" 
-      - new method: @ref Qore::SQL::DatasourcePool::getWarningCallbackInfo() "DatasourcePool::getWarningCallbackInfo()" 
+      - new method: @ref Qore::SQL::DatasourcePool::getUsageInfo() "DatasourcePool::getUsageInfo()" 
       - new method: @ref Qore::SQL::DatasourcePool::setErrorTimeout() "DatasourcePool::setErrorTimeout()" 
       - new method: @ref Qore::SQL::DatasourcePool::getErrorTimeout() "DatasourcePool::getErrorTimeout()" 
       - the new methods allow for monitoring @ref Qore::SQL::DatasourcePool "DatasourcePool" objects for pool contention issues (in case the pool needs to be resized) and for throwing an exception if a connection is not acquired within the error timeout period (new default: 2 minutes)
+      - additionally connection acquisition statistics are tracked and returned in @ref Qore::SQL::DatasourcePool::getUsageInfo() "DatasourcePool::getUsageInfo()" (total requests, hits, maximum wait time)
 
     @subsection qore_089_bug_fixes Bug Fixes in Qore
     - fixed a crashing bug when HTTP messages with duplicate Connection, Content-Encoding, Transfer-Encoding, Location, or Content-Type headers is received
