@@ -34,8 +34,8 @@ DatasourcePool::DatasourcePool(ExceptionSink* xsink, DBIDriver* ndsl, const char
       wait_max(0),
       tl_warning_ms(0),
       tl_timeout_ms(120000),
-      stats_hits(0),
       stats_reqs(0),
+      stats_hits(0),
       warning_callback(0),
       callback_arg(0),
       valid(false) {
