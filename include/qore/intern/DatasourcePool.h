@@ -74,7 +74,7 @@ protected:
    DLLLOCAL void freeDS();
    // share the code for exec() and execRaw()
    DLLLOCAL AbstractQoreNode *exec_internal(bool doBind, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink);
-   DLLLOCAL void checkWait(int64 warn_total, ExceptionSink* xsink);
+   DLLLOCAL void checkWait(SafeLocker& sl, int64 warn_total, ExceptionSink* xsink);
      
 public:
 #ifdef DEBUG

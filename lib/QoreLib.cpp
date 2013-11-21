@@ -1720,3 +1720,15 @@ int64 q_clock_getmillis() {
    int64 seconds = q_epoch_us(us);
    return seconds * 1000 + us / 1000;
 }
+
+int64 q_clock_getmicros() {
+   int us;
+   int64 seconds = q_epoch_us(us);
+   return seconds * 1000000ll + us;
+}
+
+int64 q_clock_getnanos() {
+   int ns;
+   int64 seconds = q_epoch_ns(ns);
+   return seconds * 1000000000ll + ns;
+}

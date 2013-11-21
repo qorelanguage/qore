@@ -1257,9 +1257,7 @@ my int $ns = clock_getnanos();
     - clock_getmicros()
 */
 int clock_getnanos() [flags=CONSTANT] {
-   int ns;
-   int64 seconds = q_epoch_ns(ns);
-   return seconds * 1000000000ll + ns;
+   return q_clock_getnanos();
 }
 
 //! Returns an integer representing the system time in microseconds (1/1000000 second intervals) since Jan 1, 1970 00:00:00Z
@@ -1276,9 +1274,7 @@ my int $us = clock_getmicros();
     - clock_getmicros()
 */
 int clock_getmicros() [flags=CONSTANT] {
-   int us;
-   int64 seconds = q_epoch_us(us);
-   return seconds * 1000000ll + us;
+   return q_clock_getmicros();
 }
 
 //! Converts an integer argument representing the offset in milliseconds from January 1, 1970 in the local time zone to a date in the local time zone

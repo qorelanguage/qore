@@ -925,5 +925,7 @@ DLLLOCAL int do_tolower(QoreString& str, const QoreString& src, ExceptionSink* x
 DLLLOCAL int do_toupper(QoreString& str, const QoreString& src, ExceptionSink* xsink);
 
 DLLLOCAL int64 q_clock_getmillis();
+DLLLOCAL int64 q_clock_getmicros();
+DLLLOCAL int64 q_clock_getnanos();
 
 #endif
