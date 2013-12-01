@@ -6014,7 +6014,6 @@ my list $l = $db.getAlignSql($schema_hash);
                     l += tl;
             }
 
-
             tl = alignCodeUnlocked("function", schema_hash, \getFunction(), \makeFunction(), opt, Type::String);
             if (tl) l += tl;
 
@@ -15075,15 +15074,22 @@ my *list $rows = $table.findAll($h);
             opt.create_table_all = True;
             list l += getCreateTableSqlUnlocked(opt);
             *list tl;
-            if (!opt.omit.indexes)
-                tl = getCreateIndexesSqlUnlocked(opt, cache); if (tl) l += tl;
+            if (!opt.omit.indexes) {
+                tl = getCreateIndexesSqlUnlocked(opt, cache);
+                if (tl) l += tl;
+            }
             *string sql = getCreatePrimaryKeySqlUnlocked(opt, cache); if (sql) l += sql;
-            if (!opt.omit.foreign_constraints)
-                tl = getCreateForeignConstraintsSqlUnlocked(opt, cache); if (tl) l += tl;
+
+            if (!opt.omit.foreign_constraints) {
+                tl = getCreateForeignConstraintsSqlUnlocked(opt, cache);
+                if (tl) l += tl;
+            }
             tl = getCreateConstraintsSqlUnlocked(opt, cache); if (tl) l += tl;
             tl = getCreateMiscSqlUnlocked(opt, cache); if (tl) l += tl;
-            if (!opt.omit.triggers)
-                tl = getCreateTriggersSqlUnlocked(opt, cache); if (tl) l += tl;
+            if (!opt.omit.triggers) {
+                tl = getCreateTriggersSqlUnlocked(opt, cache);
+                if (tl) l += tl;
+            }
 
             return l;
         }

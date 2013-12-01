@@ -850,7 +850,7 @@ end";
                 SqlUtil::BLOB: "mediumblob",
                 );
 
-            #! extends @ref SqlUtil::AbstractTable::TableDescriptionHashOptions with \c "engine" for the DB engine behind the table (default: \c innodb")
+            #! extends @ref SqlUtil::AbstractTable::TableDescriptionHashOptions with \c "engine" for the DB engine behind the table (default: \c innodb)
             const MysqlTableDescriptionHashOptions = AbstractTable::TableDescriptionHashOptions + (
                 "engine": Type::String,
                 );
@@ -1052,10 +1052,10 @@ end";
             # if we are creating the entire table and there is a column marked "primary key", then skip this
             if (opt.create_table_all) {
                 foreach MysqlColumn c in (columns.iterator()) {
-                    if (c instanceof MysqlNumericColumn && cast<MysqlNumericColumn>(c).pk)
+                    if (c instanceof MysqlNumericColumn && cast<MysqlNumericColumn>(c).pk) {
                         return;
+                    }
                 }
-                return;
             }
             return AbstractDatabase::doCallback(opt, primaryKey.getCreateSql(name, opt), AbstractDatabase::AC_Add, "primary key", primaryKey.getName(), name);
         }
