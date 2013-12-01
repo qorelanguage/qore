@@ -4540,6 +4540,11 @@ $uk.addSourceConstraint($table_name, constraint_name);
         bool hasColumn(string cname) {
             return h.hasKey(cname);
         }
+
+        #! returns the name of the associated index, if any
+        *string getIndex() {
+            return index;
+        }
     }
 
     #! represents a primary key
@@ -15035,7 +15040,8 @@ my *list $rows = $table.findAll($h);
                 getConstraintsUnlocked();
             if (constraints.empty())
                 return;
-            return map AbstractDatabase::doCallback(opt, $1.getCreateSql(name, opt), AbstractDatabase::AC_Add, "constraint", $1.getName(), name), constraints.iterator();
+            bool ix = uniqueIndexCreatesConstraintImpl();
+            return map AbstractDatabase::doCallback(opt, $1.getCreateSql(name, opt), AbstractDatabase::AC_Add, "constraint", $1.getName(), name), constraints.iterator(), !ix || !$1.getIndex();
         }
 
         private *list getCreateForeignConstraintsSqlUnlocked(*hash opt, bool cache = True) {

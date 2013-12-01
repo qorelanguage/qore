@@ -2,7 +2,7 @@
 Qore Library Source Code
 ************************
 The qore library is released under three open-source licenses: the GPL, LGPL, 
-and MIT license.  
+and MIT licenses. 
 
 This has been done in order to continue to allow qore to be used in
 closed-source programs, but to allow use of third-party GPL libraries for

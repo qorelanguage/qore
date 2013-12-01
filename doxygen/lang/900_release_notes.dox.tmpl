@@ -39,6 +39,7 @@
     - fixed a bug where a call to a call reference to a static method across a program boundary with local variables as arguments would cause a crash due to improper setting of the program context before the arguments are evaluated
     - fixed a bug in @ref Qore::SQL::Datasource::copy() "Datasource::copy()" method where implicitly-set options were not carried over into the new object
     - fixed a bug in the @ref Qore::SQL::DatasourcePool "DatasourcePool" class where implicitly-opened connections would not be guaranteed to have the same server time zone setting as the initial connections (for example, could cause problems with server timezone settings if running in a program context with a different local time zone attribute)
+    - fixed a bug in <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> generating "create table" SQL with DBs where unique indexes automatically create unique constraints (ex: MySQL)
 
     @section qore_088 Qore 0.8.8
 
