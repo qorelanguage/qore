@@ -14266,6 +14266,8 @@ my list $l = $table.getAlignSql($table2);
                 name = t.name;
             }
 
+            bool uixc = uniqueIndexCreatesConstraintImpl();
+
             # process column_map: rename columns
             foreach hash rh in (opt.column_map.pairIterator()) {
                 if (columns.hasKey(rh.key)) {
@@ -14368,6 +14370,11 @@ my list $l = $table.getAlignSql($table2);
                             rmv();
                         }
                         l += AbstractDatabase::doCallback(opt, ix.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "index", ix.name, name);
+                        if (uixc) {
+                            *AbstractUniqueConstraint c = ix.getSupportingConstraint();
+                            if (c && constraints.hasKey(c.getName()))
+                                constraints.take(c.getName());
+                        }
                         indexes.take(ix.name);
                     }
                 }
@@ -14536,6 +14543,12 @@ my list $l = $table.getAlignSql($table2);
             # check for other constraints in the template that are not present or different in the current table
             foreach AbstractConstraint c in (t.constraints.iterator()) {
                 if (!constraints.hasKey(c.getName())) {
+                    # make sure the constraint wasn't implicitly added with a unique index
+                    if (uixc && (c instanceof AbstractUniqueConstraint)) {
+                        AbstractUniqueConstraint uk = c;
+                        if (t.indexes.hasKey(uk.getName()) && uk.matchKeys(t.indexes{uk.getName()}.columns.getHash()))
+                            continue;
+                    }
                     # add constraint to table
                     l += AbstractDatabase::doCallback(opt, c.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "constraint", c.getName(), name);
                 }
