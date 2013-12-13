@@ -204,7 +204,7 @@ void DatasourcePool::freeDS() {
 
    int tid = gettid();
 
-   AutoLocker al((QoreThreadLock *)this);
+   AutoLocker al((QoreThreadLock*)this);
 
    thread_use_t::iterator i = tmap.find(tid);
    free_list.push_back(i->second);
@@ -214,21 +214,38 @@ void DatasourcePool::freeDS() {
 }      
 
 Datasource* DatasourcePool::getDS(bool &new_ds, ExceptionSink* xsink) {
-   Datasource* ds = getDSIntern(new_ds, xsink);
+   assert(!*xsink);
+
+   // total # of microseconds waiting for a new connection
+   int64 wait_total = 0;
+   Datasource* ds = getDSIntern(new_ds, wait_total, xsink);
    if (!ds) {
       assert(*xsink);
       return 0;
    }
+   assert(ds);
+   assert(!*xsink);
 
-   // try to open Datasource if it's not open already
-   if (ds && !ds->isOpen() && (ds->open(xsink) || *xsink)) {
+   // only run the wait callback if we have a wait time and if no exception was raised acquiring a datasource
+   if (wait_total && checkWait(wait_total, xsink)) {
+      assert(new_ds);
       freeDS();
       return 0;
    }
 
-   assert(!(new_ds && ds->isInTransaction()));
+   // try to open Datasource if it's not open already
+   if (!ds->isOpen()) {
+      assert(new_ds);
+      if (ds->open(xsink)) {
+	 freeDS();
+	 return 0;
+      }
+   }
 
+   assert(!(new_ds && ds->isInTransaction()));
    assert(ds->isOpen());
+   assert(!*xsink);
+
    return ds;
 }
 
@@ -241,13 +258,19 @@ Datasource* DatasourcePool::getAllocatedDS() {
 }
 
 // must be called in the lock
-void DatasourcePool::checkWait(SafeLocker& sl, int64 wait_total, ExceptionSink* xsink) {
+int DatasourcePool::checkWait(int64 wait_total, ExceptionSink* xsink) {
    assert(wait_total);
-   if (!warning_callback || (wait_total / 1000) < tl_warning_ms)
-      return;
 
-   ReferenceHolder<ResolvedCallReferenceNode> wc(warning_callback->refRefSelf(), xsink);
-   sl.unlock();
+   ReferenceHolder<ResolvedCallReferenceNode> wc(xsink);
+
+   {
+      // get reference to callback and check wait threshold only while holding lock
+      AutoLocker al((QoreThreadLock*)this);
+      if (!warning_callback || (wait_total / 1000) < tl_warning_ms)
+	 return 0;
+
+      wc = warning_callback->refRefSelf();
+   }
 
    // build argument list
    ReferenceHolder<QoreListNode> args(new QoreListNode, xsink);
@@ -256,108 +279,97 @@ void DatasourcePool::checkWait(SafeLocker& sl, int64 wait_total, ExceptionSink* 
    args->push(new QoreBigIntNode(tl_warning_ms));
    args->push(callback_arg ? callback_arg->refSelf() : 0);
    discard(wc->exec(*args, xsink), xsink);
+   return *xsink ? -1 : 0;
 }
 
-Datasource* DatasourcePool::getDSIntern(bool& new_ds, ExceptionSink* xsink) {
+Datasource* DatasourcePool::getDSIntern(bool& new_ds, int64& wait_total, ExceptionSink* xsink) {
    assert(!new_ds);
 
    int tid = gettid();
 
    Datasource* ds;
 
-   {
-      SafeLocker sl((QoreThreadLock *)this);
+   SafeLocker sl((QoreThreadLock*)this);
 
-      // increase request counter
-      ++stats_reqs;
+   // increase request counter
+   ++stats_reqs;
 
-      // see if thread already has a datasource allocated
-      thread_use_t::iterator i = tmap.find(tid);
-      if (i != tmap.end()) {
-	 ++stats_hits;
-	 return pool[i->second]; 
-      }
-
-      // will be a new allocation, not already in a transaction
-      new_ds = true;
-  
-      // total # of microseconds waiting for a new connection
-      int64 wait_total = 0;
-
-      // iteration flag
-      bool iter = false;
-
-      // see if there is a datasource free
-      while (true) {
-	 if (!free_list.empty()) {
-	    int fi = free_list.front();
-	    free_list.pop_front();
-	    // DEBUG
-	    //printf("DSP::getDS() assigning tid %d index %d from free list (%N)\n", $tid, $i, $.p[$i]);
-	 
-	    tmap[tid] = fi;
-	    ds = pool[fi];
-	    tid_list[fi] = tid;
-
-	    // increase hit counter
-	    if (!iter)
-	       ++stats_hits;
-	    break;
-	 }
-
-	 // see if we can open a new connection
-	 if (cmax < max) {
-	    ds = pool[cmax] = pool[0]->copy();
-	 
-	    tmap[tid] = cmax;
-	    tid_list[cmax++] = tid;
-	 
-	    // increase hit counter
-	    if (!iter)
-	       ++stats_hits;
-
-	    break;
-	 }
-
-	 //printd(5, "DatasourcePool::getDSIntern() this: %p tl_timeout_ms: %d max: %d\n", this, tl_timeout_ms, max);
-	 // otherwise we sleep until a connection becomes available
-	 ++wait_count;
-	 int64 warn_start = q_clock_getmicros();
-	 int rc = tl_timeout_ms ? wait((QoreThreadLock*)this, tl_timeout_ms) : wait((QoreThreadLock*)this);
-	 wait_count--;
-
-	 // add waiting time to total time
-	 wait_total += (q_clock_getmicros() - warn_start);
-
-	 if (!valid) {
-	    xsink->raiseException("DATASOURCEPOOL-ERROR", "%s:%s@%s: DatasourcePool deleted while TID %d waiting on a connection to become free", getDriverName(), pool[0]->getUsernameStr().c_str(), pool[0]->getDBNameStr().c_str(), tid);
-	    if (wait_total)
-	       checkWait(sl, wait_total, xsink);
-	    return 0;
-	 }
-
-	 if (rc && tl_timeout_ms) {
-	    xsink->raiseException("DATASOURCEPOOL-TIMEOUT", "%s:%s@%s: TID %d timed out on datasource pool after waiting %d millisecond%s for a free connection (max %d connections in use)",
-				  getDriverName(), pool[0]->getUsernameStr().c_str(), pool[0]->getDBNameStr().c_str(), tid, 
-				  tl_timeout_ms, tl_timeout_ms == 1 ? "" : "s", max);
-	    if (wait_total)
-	       checkWait(sl, wait_total, xsink);
-	    return 0;
-	 }
-
-	 if (!iter)
-	    iter = true;
-	 continue;
-      }
-
-      if (wait_total > wait_max)
-	 wait_max = wait_total;
-
-      if (wait_total) {
-	 checkWait(sl, wait_total, xsink);
-	 //printd(5, "DatasourcePool::getDSIntern() set_thread_resource(this: %p), tid: %d wait_total: "QLLD" tl_warning_ms: %d\n", this, gettid(), wait_total, tl_warning_ms);
-      }
+   // see if thread already has a datasource allocated
+   thread_use_t::iterator i = tmap.find(tid);
+   if (i != tmap.end()) {
+      ++stats_hits;
+      return pool[i->second]; 
    }
+
+   // will be a new allocation, not already in a transaction
+   new_ds = true;
+
+   // iteration flag
+   bool iter = false;
+
+   // see if there is a datasource free
+   while (true) {
+      if (!free_list.empty()) {
+	 int fi = free_list.front();
+	 free_list.pop_front();
+	 // DEBUG
+	 //printf("DSP::getDS() assigning tid %d index %d from free list (%N)\n", $tid, $i, $.p[$i]);
+	 
+	 tmap[tid] = fi;
+	 ds = pool[fi];
+	 tid_list[fi] = tid;
+
+	 // increase hit counter
+	 if (!iter)
+	    ++stats_hits;
+	 break;
+      }
+
+      // see if we can open a new connection
+      if (cmax < max) {
+	 ds = pool[cmax] = pool[0]->copy();
+	 
+	 tmap[tid] = cmax;
+	 tid_list[cmax++] = tid;
+	 
+	 // increase hit counter
+	 if (!iter)
+	    ++stats_hits;
+
+	 break;
+      }
+
+      //printd(5, "DatasourcePool::getDSIntern() this: %p tl_timeout_ms: %d max: %d\n", this, tl_timeout_ms, max);
+      // otherwise we sleep until a connection becomes available
+      ++wait_count;
+      int64 warn_start = q_clock_getmicros();
+      int rc = tl_timeout_ms ? wait((QoreThreadLock*)this, tl_timeout_ms) : wait((QoreThreadLock*)this);
+      wait_count--;
+
+      // add waiting time to total time
+      wait_total += (q_clock_getmicros() - warn_start);
+
+      if (!valid) {
+	 xsink->raiseException("DATASOURCEPOOL-ERROR", "%s:%s@%s: DatasourcePool deleted while TID %d waiting on a connection to become free", getDriverName(), pool[0]->getUsernameStr().c_str(), pool[0]->getDBNameStr().c_str(), tid);
+	 return 0;
+      }
+
+      if (rc && tl_timeout_ms) {
+	 xsink->raiseException("DATASOURCEPOOL-TIMEOUT", "%s:%s@%s: TID %d timed out on datasource pool after waiting %d millisecond%s for a free connection (max %d connections in use)",
+			       getDriverName(), pool[0]->getUsernameStr().c_str(), pool[0]->getDBNameStr().c_str(), tid, 
+			       tl_timeout_ms, tl_timeout_ms == 1 ? "" : "s", max);
+	 return 0;
+      }
+
+      if (!iter)
+	 iter = true;
+      continue;
+   }
+
+   if (wait_total > wait_max)
+      wait_max = wait_total;
+
+   sl.unlock();
 
    // add to thread resource list
    //printd(5, "DatasourcePool::getDS() set_thread_resource(this: %p), tid: %d\n", this, gettid());

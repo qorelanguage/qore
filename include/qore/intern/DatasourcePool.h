@@ -69,12 +69,12 @@ protected:
 #endif
 
    DLLLOCAL Datasource *getAllocatedDS();
-   DLLLOCAL Datasource *getDSIntern(bool &new_ds, ExceptionSink *xsink);
+   DLLLOCAL Datasource *getDSIntern(bool &new_ds, int64& wait_total, ExceptionSink *xsink);
    DLLLOCAL Datasource *getDS(bool &new_ds, ExceptionSink *xsink);
    DLLLOCAL void freeDS();
    // share the code for exec() and execRaw()
    DLLLOCAL AbstractQoreNode *exec_internal(bool doBind, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink);
-   DLLLOCAL void checkWait(SafeLocker& sl, int64 warn_total, ExceptionSink* xsink);
+   DLLLOCAL int checkWait(int64 warn_total, ExceptionSink* xsink);
      
 public:
 #ifdef DEBUG
