@@ -207,6 +207,7 @@ void DatasourcePool::freeDS() {
    AutoLocker al((QoreThreadLock*)this);
 
    thread_use_t::iterator i = tmap.find(tid);
+   assert(!pool[i->second]->isInTransaction());
    free_list.push_back(i->second);
    tmap.erase(i);
    if (wait_count)
@@ -226,9 +227,12 @@ Datasource* DatasourcePool::getDS(bool &new_ds, ExceptionSink* xsink) {
    assert(ds);
    assert(!*xsink);
 
+   assert(!(new_ds && ds->isInTransaction()));
+
    // only run the wait callback if we have a wait time and if no exception was raised acquiring a datasource
    if (wait_total && checkWait(wait_total, xsink)) {
       assert(new_ds);
+      assert(!ds->isInTransaction());
       freeDS();
       return 0;
    }
@@ -237,12 +241,12 @@ Datasource* DatasourcePool::getDS(bool &new_ds, ExceptionSink* xsink) {
    if (!ds->isOpen()) {
       assert(new_ds);
       if (ds->open(xsink)) {
+	 assert(!ds->isInTransaction());
 	 freeDS();
 	 return 0;
       }
    }
 
-   assert(!(new_ds && ds->isInTransaction()));
    assert(ds->isOpen());
    assert(!*xsink);
 
