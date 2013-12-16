@@ -125,7 +125,7 @@ int Condition::wait(AbstractSmartLock[AbstractSmartLock] lock, timeout timeout_m
 
 //! Returns the number of threads currently blocked on this object using the AbstractSmartLock passed
 /** 
-    @param lock the AbstractSmartLock object to check foir blocked threads on this Condition object; the AbstractSmartLock can be in any state (locked or unlocked) for this call (does not necessarily have to be locked).
+    @param lock the AbstractSmartLock object to check for blocked threads on this Condition object; the AbstractSmartLock can be in any state (locked or unlocked) for this call (does not necessarily have to be locked).
 
     @return The number of threads currently blocked on this object using the AbstractSmartLock object passed
 

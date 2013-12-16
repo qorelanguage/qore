@@ -813,7 +813,7 @@ int chown(string path, softint owner = -1, softint group = -1) [dom=FILESYSTEM] 
 #endif
 }
 
-//! Changes the user and group owners of a file, if the current user has permission to do so (normally only the superuser can change the user owner), does not follow symbolic links but rather operated on the symbolic link itself
+//! Changes the user and group owners of a file, if the current user has permission to do so (normally only the superuser can change the user owner), does not follow symbolic links but rather operates on the symbolic link itself
 /** @par Platform Availability:
     Qore::Option::HAVE_UNIX_FILEMGT
 
@@ -833,7 +833,7 @@ if (lchown("/tmp/socket", 0, 0))
  */
 int lchown(string path, softint uid = -1, softint gid = -1) [dom=FILESYSTEM] {
 #ifdef HAVE_LCHOWN
-   return chown(path->getBuffer(), (uid_t)uid, (uid_t)gid);
+   return lchown(path->getBuffer(), (uid_t)uid, (uid_t)gid);
 #else
    missing_function_error("lchown", "UNIX_FILEMGT", xsink);
    return 0;
