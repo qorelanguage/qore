@@ -369,9 +369,7 @@ public:
    DLLLOCAL void del(ExceptionSink* xsink) {
       tpd->del(xsink);
       tpd->deref();
-#ifdef DEBUG
       tpd = 0;
-#endif
    }
 
    DLLLOCAL void pushName(const char* name) {
@@ -965,7 +963,7 @@ const char* get_parse_code() {
    return (thread_data.get())->parse_code;
 }
 
-void parseSetCodeInfo(const char* parse_code, const QoreTypeInfo *returnTypeInfo, const char*& old_code, const QoreTypeInfo*& old_returnTypeInfo) {
+void parseSetCodeInfo(const char* parse_code, const QoreTypeInfo* returnTypeInfo, const char*& old_code, const QoreTypeInfo*& old_returnTypeInfo) {
    ThreadData *td = thread_data.get();
    old_code = td->parse_code;
    old_returnTypeInfo = td->returnTypeInfo;
@@ -973,28 +971,32 @@ void parseSetCodeInfo(const char* parse_code, const QoreTypeInfo *returnTypeInfo
    td->returnTypeInfo = returnTypeInfo;
 }
 
-void parseRestoreCodeInfo(const char* parse_code, const QoreTypeInfo *returnTypeInfo) {
+void parseRestoreCodeInfo(const char* parse_code, const QoreTypeInfo* returnTypeInfo) {
    ThreadData *td = thread_data.get();
    td->parse_code = parse_code;
    td->returnTypeInfo = returnTypeInfo;
 }
 
-const QoreTypeInfo *getReturnTypeInfo() {
+const QoreTypeInfo* getReturnTypeInfo() {
    return (thread_data.get())->returnTypeInfo;
 }
 
-const QoreTypeInfo *saveReturnTypeInfo(const QoreTypeInfo *returnTypeInfo) {
+const QoreTypeInfo* saveReturnTypeInfo(const QoreTypeInfo* returnTypeInfo) {
    ThreadData *td = thread_data.get();
-   const QoreTypeInfo *rv = td->returnTypeInfo;
+   const QoreTypeInfo* rv = td->returnTypeInfo;
    td->returnTypeInfo = returnTypeInfo;
    return rv;
 }
 
 const AbstractQoreZoneInfo* currentTZ() {
    ThreadData* td = thread_data.get();
-   if (td->tlpd && td->tlpd->tz_set)
-      return td->tlpd->tz;
-   return td->current_pgm ? qore_program_private::currentTZIntern(*(td->current_pgm)) : QTZM.getLocalZoneInfo();
+   if (td->tpd) {
+      if (td->tlpd && td->tlpd->tz_set)
+         return td->tlpd->tz;
+      if (td->current_pgm)
+         return qore_program_private::currentTZIntern(*(td->current_pgm));
+   }
+   return QTZM.getLocalZoneInfo();
 }
 
 void set_thread_tz(const AbstractQoreZoneInfo* tz) {
