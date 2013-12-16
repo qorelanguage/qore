@@ -992,9 +992,13 @@ const QoreTypeInfo *saveReturnTypeInfo(const QoreTypeInfo *returnTypeInfo) {
 
 const AbstractQoreZoneInfo* currentTZ() {
    ThreadData* td = thread_data.get();
-   if (td->tlpd && td->tlpd->tz_set)
-      return td->tlpd->tz;
-   return td->current_pgm ? qore_program_private::currentTZIntern(*(td->current_pgm)) : QTZM.getLocalZoneInfo();
+   if (td->tpd) {
+      if (td->tlpd && td->tlpd->tz_set)
+         return td->tlpd->tz;
+      if (td->current_pgm)
+         return qore_program_private::currentTZIntern(*(td->current_pgm));
+   }
+   return QTZM.getLocalZoneInfo();
 }
 
 void set_thread_tz(const AbstractQoreZoneInfo* tz) {
