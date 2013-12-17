@@ -13,9 +13,8 @@
       - added support for new "or nothing" datatypes to map empty input to @ref nothing
       - implemented support for allowing subclasses of CsvFileIterator to implement support for other custom types
       - no need to set \c "headers" in the constructor if \c "fields" are set; headers are assumed to be the field labels in the same order
-    - <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> module updates:
-      - optimized connection and login code; HELO/EHLO and authorization are performed when connecting only, not before each email
-    - added get_byte_size() and get_marketing_byte_size() to the <a href="../../modules/Util/html/index.html">Util</a> module
+    - added the @ref Qore::encode_url() function
+    - added get_byte_size() and get_marketing_byte_size() to the <a href="../../modules/Util/html/index.html">Util</a> module    
     - the error message now includes the module path used for the search when a module cannot be found in the module path
     - @ref Qore::SQL::DatasourcePool "DatasourcePool" enhancements:
       - new method: @ref Qore::SQL::DatasourcePool::clearWarningCallback() "DatasourcePool::clearWarningCallback()" 
@@ -25,6 +24,10 @@
       - new method: @ref Qore::SQL::DatasourcePool::getErrorTimeout() "DatasourcePool::getErrorTimeout()" 
       - the new methods allow for monitoring @ref Qore::SQL::DatasourcePool "DatasourcePool" objects for pool contention issues (in case the pool needs to be resized) and for throwing an exception if a connection is not acquired within the error timeout period (new default: 2 minutes)
       - additionally connection acquisition statistics are tracked and returned in @ref Qore::SQL::DatasourcePool::getUsageInfo() "DatasourcePool::getUsageInfo()" (total requests, hits, maximum wait time)
+    - <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> module updates:
+      - optimized connection and login code; HELO/EHLO and authorization are performed when connecting only, not before each email
+    - <a href="../../modules/RestClient/html/index.html">RestClient</a> module updates:
+      - use the new @ref Qore::encode_url() function to encode URL paths to ensure that valid requests are sent when spaces, percent characters, and non-ascii characters are used in the URL path
 
     @subsection qore_089_bug_fixes Bug Fixes in Qore
     - fixed a crashing bug when HTTP messages with duplicate Connection, Content-Encoding, Transfer-Encoding, Location, or Content-Type headers is received

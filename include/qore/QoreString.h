@@ -152,6 +152,9 @@ public:
    //! concatenates a URL-decoded version of the c-string passed
    DLLEXPORT void concatDecodeUrl(const char* url);
 
+   //! concatenates a URL-encoded version of the c-string passed
+   DLLEXPORT int concatEncodeUrl(const QoreString& url, ExceptionSink* xsink);
+
    //! concatenates a string and escapes character c with esc_char (converts encodings if necessary)
    DLLEXPORT void concatEscape(const QoreString* str, char c, char esc_char, ExceptionSink* xsink);
 

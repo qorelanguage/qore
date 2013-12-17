@@ -46,7 +46,7 @@
 %endtry
 
 module RestClient {
-    version = "1.0";
+    version = "1.1";
     desc = "user module for calling REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -59,6 +59,8 @@ module RestClient {
 }
 
 /*  Version History
+    * 2013-12-17 v1.1: David Nichols <david@qore.org>
+      + updated to use encode_url() before sending HTTP messages
     * 2013-10-04 v1.0: David Nichols <david@qore.org>
       + the initial version of the RestClient module
 */
@@ -405,6 +407,8 @@ my hash $ans = $rest.doRequest("DELETE", "/orders/1");
             my *string $p = $.getConnectionPath();
             if ($p && $path)
                 $path = $p + "/" + $path;
+
+            $path = encode_url($path);
 
             my hash $h;
             try {

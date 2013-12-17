@@ -1069,6 +1069,38 @@ void QoreString::concatDecodeUrl(const char* url) {
    }
 }
 
+int QoreString::concatEncodeUrl(const QoreString& url, ExceptionSink* xsink) {
+   if (!url.size())
+      return 0;
+
+   TempEncodingHelper str(url, priv->charset, xsink);
+   if (*xsink)
+      return -1;
+
+   const char* p = str->getBuffer();
+   while (*p) {
+      if ((*p) == '%')
+	 concat("%25");
+      else if ((*p) == ' ')
+	 concat("%20");
+      else if (*p > 127) {
+	 unsigned len;
+	 unsigned up = str->getUnicodePointFromBytePos(p - str->getBuffer(), len, xsink);
+	 if (*xsink)
+	    return -1;
+	 concat('%');
+	 sprintf("%X", up);
+	 p += len;
+	 continue;
+      }
+      else
+	 concat(*p);
+      ++p;
+   }
+
+   return 0;
+}
+
 // return 0 for success
 int QoreString::vsprintf(const char *fmt, va_list args) {
    size_t fmtlen = ::strlen(fmt);

@@ -1900,6 +1900,8 @@ nothing load_module() [flags=RUNTIME_NOOP;dom=MODULES] {
     @code
 my string $decoded_url = decode_url($encoded_url);
     @endcode
+
+    @see encode_url()
 */
 string decode_url(string url) [flags=CONSTANT] {
    QoreStringNode *str = new QoreStringNode(url->getEncoding());
@@ -1911,6 +1913,26 @@ string decode_url(string url) [flags=CONSTANT] {
 /** 
  */
 nothing decode_url() [flags=RUNTIME_NOOP] {
+}
+
+//! Encodes URLs by substituting \c '%' characters with \c '%25', spaces (\c ' ') with \c '%20', and non-ascii characters by percent-encoded representations
+/** @param url a URL string to encode
+
+    @return the URL string with encoded \c '%', spaces (\c ' '), and non-ascii characters
+
+    @par Example:
+    @code
+my string $encoded_url = encode_url($url);
+    @endcode
+
+    @see decode_url()
+
+    @since %Qore 0.8.9
+*/
+string encode_url(string url) [flags=CONSTANT] {
+   QoreStringNodeHolder str(new QoreStringNode(url->getEncoding()));
+   str->concatEncodeUrl(url, xsink);
+   return *xsink ? 0 : str.release();
 }
 
 //! Returns the path (directory and filename) of the current script or @ref nothing if unknown (i.e. no parent script, script read from stdin, etc)
