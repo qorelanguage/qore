@@ -1058,11 +1058,35 @@ void QoreString::concatDecodeUrl(const char* url) {
 
    while (*url) {
       if (*url == '%' && isxdigit(*(url + 1)) && isxdigit(*(url + 2))) {
-         char x[3] = { *(url + 1), *(url + 2), '\0' };
-         char code = strtol(x, 0, 16);
-         concat(code);
-         url += 3;
-         continue;
+	 if (priv->charset == QCS_UTF8) {
+	    unsigned code;
+	    if (isxdigit(*(url + 3)) && isxdigit(*(url + 4))) {
+	       if (isxdigit(*(url + 5)) && isxdigit(*(url + 6))) {
+		  char x[7] = { *(url + 1), *(url + 2), *(url + 3), *(url + 4), *(url + 5), *(url + 6), '\0' };
+		  code = strtol(x, 0, 16);
+		  url += 7;
+	       }
+	       else {
+		  char x[5] = { *(url + 1), *(url + 2), *(url + 3), *(url + 4), '\0' };
+		  code = strtol(x, 0, 16);
+		  url += 5;
+	       }
+	    }
+	    else {
+	       char x[3] = { *(url + 1), *(url + 2), '\0' };
+	       code = strtol(x, 0, 16);
+	       url += 3;
+	    }
+	    concatUTF8FromUnicode(code);
+	    continue;
+	 }
+	 else {
+	    char x[3] = { *(url + 1), *(url + 2), '\0' };
+	    char code = strtol(x, 0, 16);
+	    concat(code);
+	    url += 3;
+	    continue;
+	 }
       }
       concat(*url);
       ++url;
