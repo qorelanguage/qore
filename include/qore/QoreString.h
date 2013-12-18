@@ -153,7 +153,11 @@ public:
    DLLEXPORT void concatDecodeUrl(const char* url);
 
    //! concatenates a URL-encoded version of the c-string passed
-   DLLEXPORT int concatEncodeUrl(const QoreString& url, ExceptionSink* xsink);
+   /** @param xsink Qore-language exceptions (in this case character encoding conversion errors) are raised here
+       @param url the url to encode and concatentate to the current string
+       @param encode_all if true then all reserved characters are percent encoded (!*'();:@&=+$,/?#[]), otherwise only non-ascii characters, '%' and ' ' are percent-encoded
+    */
+   DLLEXPORT int concatEncodeUrl(ExceptionSink* xsink, const QoreString& url, bool encode_all = false);
 
    //! concatenates a string and escapes character c with esc_char (converts encodings if necessary)
    DLLEXPORT void concatEscape(const QoreString* str, char c, char esc_char, ExceptionSink* xsink);

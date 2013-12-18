@@ -32,6 +32,8 @@
 #include <iconv.h>
 #include <ctype.h>
 
+#include <set>
+
 #ifdef DEBUG_TESTS
 #  include "tests/QoreString_tests.cpp"
 #endif
@@ -45,6 +47,9 @@ struct code_table {
       unsigned len;
 };
 
+// complete set of characters to percent-encode (RFC 3986 http://tools.ietf.org/html/rfc3986)
+static int_set_t url_reserved;
+
 static const struct code_table html_codes[] = {
    { '&', "&amp;", 5 },
    { '<', "&lt;", 4 },
@@ -53,6 +58,14 @@ static const struct code_table html_codes[] = {
 }; 
 
 #define NUM_HTML_CODES (sizeof(html_codes) / sizeof (struct code_table))
+
+void qore_string_init() {
+   static int url_reserved_list[] = { '!', '*', '\'', '(', ')', ';', ':', '@', '&', '=', '+', '$', ',', '/', '?', '#', '[', ']' };
+#define URLIST_SIZE sizeof(url_reserved_list)
+
+   for (unsigned i = 0; i < URLIST_SIZE; ++i)
+      url_reserved.insert(url_reserved_list[i]);
+}
 
 QoreStringMaker::QoreStringMaker(const char* fmt, ...) {
    va_list args;
@@ -1093,7 +1106,7 @@ void QoreString::concatDecodeUrl(const char* url) {
    }
 }
 
-int QoreString::concatEncodeUrl(const QoreString& url, ExceptionSink* xsink) {
+int QoreString::concatEncodeUrl(ExceptionSink* xsink, const QoreString& url, bool encode_all) {
    if (!url.size())
       return 0;
 
@@ -1117,8 +1130,15 @@ int QoreString::concatEncodeUrl(const QoreString& url, ExceptionSink* xsink) {
 	 p += len;
 	 continue;
       }
+      else if (encode_all && url_reserved.find(*p) != url_reserved.end()) {
+	 char buf[3];
+	 concat('%');
+	 ::sprintf(buf, "%X", (int)*p);
+	 concat(buf);
+      }
       else
 	 concat(*p);
+
       ++p;
    }
 

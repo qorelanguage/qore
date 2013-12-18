@@ -97,6 +97,7 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
       CRYPTO_set_locking_callback(q_openssl_locking_function);
    }
 
+   qore_string_init();
    QoreHttpClientObject::static_init();
 
    // init threading infrastructure

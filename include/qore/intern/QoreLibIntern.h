@@ -912,6 +912,8 @@ DLLLOCAL void check_self_assignment(AbstractQoreNode* n, LocalVar *selfid);
 
 DLLLOCAL void ignore_return_value(AbstractQoreNode* n);
 
+DLLLOCAL void qore_string_init();
+
 DLLLOCAL QoreListNode* split_intern(const char* pattern, qore_size_t pl, const char* str, qore_size_t sl, const QoreEncoding* enc, bool with_separator = false);
 DLLLOCAL QoreStringNode* join_intern(const QoreString* p0, const QoreListNode* l, int offset, ExceptionSink* xsink);
 DLLLOCAL QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, const QoreString* quote, bool trim_unquoted, ExceptionSink* xsink);
@@ -929,3 +931,4 @@ DLLLOCAL int64 q_clock_getmicros();
 DLLLOCAL int64 q_clock_getnanos();
 
 #endif
+
