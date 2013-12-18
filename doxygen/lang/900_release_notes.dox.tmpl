@@ -29,6 +29,8 @@
       - optimized connection and login code; HELO/EHLO and authorization are performed when connecting only, not before each email
     - <a href="../../modules/RestClient/html/index.html">RestClient</a> module updates:
       - use the new @ref Qore::encode_url() function to encode URL paths to ensure that valid requests are sent when spaces, percent characters, and non-ascii characters are used in the URL path
+      - set the character encoding in the \c Content-Type request header when sending strings
+      - set the \c Accept header correctly in requests (previously only indicated yaml as an acceptible response encoding)
 
     @subsection qore_089_bug_fixes Bug Fixes in Qore
     - fixed a crashing bug when HTTP messages with duplicate Connection, Content-Encoding, Transfer-Encoding, Location, or Content-Type headers is received

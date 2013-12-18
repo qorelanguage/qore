@@ -61,6 +61,8 @@ module RestClient {
 /*  Version History
     * 2013-12-17 v1.1: David Nichols <david@qore.org>
       + updated to use encode_url() before sending HTTP messages
+      + add charset=xxx to Content-Type in requests
+      + fixed Accept header in requests
     * 2013-10-04 v1.0: David Nichols <david@qore.org>
       + the initial version of the RestClient module
 */
@@ -177,7 +179,7 @@ public namespace RestClient {
 
             #! default HTTP headers (Content-Type is added before sending)
             const DefaultHeaders = (
-                "Accept": MimeTypeYamlRpc,
+                "Accept": Accept,
                 "User-Agent": RestClient::VersionString,
                 );
 
@@ -394,6 +396,8 @@ my hash $ans = $rest.doRequest("DELETE", "/orders/1");
             if (exists $body) {
                 $rb = $body = $.sih.out($body);
                 $hdr."Content-Type" = $.sih.ct;
+                if ($body.typeCode() == NT_STRING)
+                    $hdr."Content-Type" += ";charset=" + $body.encoding();
             }
 
             on_exit if ($rb) {
