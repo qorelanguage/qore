@@ -61,7 +61,7 @@
 
     <b>%HTTPClient Mandatory Headers</b>
     |!Header|!Description
-    |\c Content-Length|This header is only sent if a message body is send, and, if so, the length is calculated automatically.
+    |\c Content-Length|This header is only sent if a message body is sent, and, if so, the length is calculated automatically.
 
     <b>%HTTPClient Default, but Overridable Headers</b>
     |!Header|!Default Value
