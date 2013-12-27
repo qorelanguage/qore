@@ -1248,10 +1248,8 @@ struct qore_socket_private {
       // perform connect with timeout if a non-negative timeout was passed
       if (timeout_ms >= 0) {
 	 // set non-blocking
-	 if (set_non_blocking(true, xsink)) {
-	    close_and_exit();
-	    return -1;
-	 }
+	 if (set_non_blocking(true, xsink))
+	    return close_and_exit();
 
 	 do_connect_event(ai_family, ai_addr, host, service, prt);
 
@@ -1259,16 +1257,15 @@ struct qore_socket_private {
 	 //printd(5, "qore_socket_private::connectINETIntern() errno=%d rc=%d, xsink=%d\n", errno, rc, xsink && *xsink);
 
 	 // set blocking
-	 if (set_non_blocking(false, xsink)) {
-	    close_and_exit();
-	    return -1;
-	 }
+	 if (set_non_blocking(false, xsink))
+	    return close_and_exit();
       }
       else {
 	 do_connect_event(ai_family, ai_addr, host, service, prt);
 
 	 while (true) {
 	    rc = ::connect(sock, ai_addr, ai_addrlen);
+
 	    // try again if rc == -1 and errno == EINTR
 	    if (!rc || sock_get_error() != EINTR)
 	       break;

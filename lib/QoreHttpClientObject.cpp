@@ -602,9 +602,9 @@ void QoreHttpClientObject::disconnect() {
    http_priv->disconnect_unlocked();
 }
 
-QoreHashNode *qore_httpclient_priv::getResponseHeader(const char *meth, const char *mpath, const QoreHashNode &nh, const void *data, unsigned size, int &code, bool suppress_content_length, QoreHashNode *info, bool with_connect, ExceptionSink *xsink) {
+QoreHashNode *qore_httpclient_priv::getResponseHeader(const char* meth, const char* mpath, const QoreHashNode& nh, const void* data, unsigned size, int& code, bool suppress_content_length, QoreHashNode* info, bool with_connect, ExceptionSink* xsink) {
    QoreString pathstr(msock->socket->getEncoding());
-   const char *msgpath = with_connect ? mpath : getMsgPath(mpath, pathstr);
+   const char* msgpath = with_connect ? mpath : getMsgPath(mpath, pathstr);
 
    if (!connected && connect_unlocked(xsink)) {
       // if we have an info hash then write the request-uri key anyway even though the request was not made for reporting/logging purposes
