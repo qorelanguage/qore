@@ -49,6 +49,8 @@ module Util {
 
 /** @mainpage Util Module
 
+    @section utilintro Util Module Introduction
+
     The %Util module provides some generally-useful routines that are more suitable for
     writing in Qore than in C++.
 

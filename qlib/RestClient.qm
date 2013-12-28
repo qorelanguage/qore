@@ -69,6 +69,8 @@ module RestClient {
 
 /** @mainpage RestClient Module
 
+    @section restclientintro RestClient Introduction
+
     The %RestClient module provides an API for calling REST services.
 
     To use this module, use \c "%requires RestClient" in your code.

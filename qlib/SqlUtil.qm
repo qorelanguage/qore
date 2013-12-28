@@ -53,7 +53,7 @@ module SqlUtil {
 
     @tableofcontents
 
-    @section sqlutil_intro Introduction
+    @section sqlutilintro Introduction
 
     The %SqlUtil module provides a high level database-independent API for working with database objects and SQL.
 
