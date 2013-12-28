@@ -44,13 +44,13 @@ class Queue;
    - then PORT 
 
    references: 
-   - RFC-959: FTP
-   - RFC-2428: EPSV mode only (no IPv6 support yet)
-   - RFC-4217 (supercedes RFC-2228):
+   - RFC 959: FTP
+   - RFC 2428: EPSV mode only (no IPv6 support yet)
+   - RFC 4217 (supercedes RFC 2228):
    - AUTH TLS: secure authentication
    - PBSZ 0 and PROT P: secure data connections
 
-   @note RFC-1639: LPSV mode not implemented yet
+   @note RFC 1639: LPSV mode not implemented yet
 
    tested with:
    - tnftpd 20040810 (Darwin/OS X 10.3.8) EPSV, PASV, PORT

@@ -1891,22 +1891,24 @@ nothing load_module(string name) [dom=MODULES] {
 nothing load_module() [flags=RUNTIME_NOOP;dom=MODULES] {
 }
 
-//! Decodes percent numeric codes in a URL string and returns the decoded string
+//! Decodes percent numeric codes in a URL string and returns the decoded string in UTF-8 encoding
 /** @param url a URL string with percent-encodings to decode
 
-    @return the URL string with all percent-encodings decoded
+    @return the URL string in UTF-8 encoding with all percent-encodings decoded
 
     @par Example:
     @code
 my string $decoded_url = decode_url($encoded_url);
     @endcode
 
+    @note percent decoding is made according to <a href="http://tools.ietf.org/html/rfc3986#section-2.1">RFC 3986</a>
+
     @see encode_url()
 */
 string decode_url(string url) [flags=CONSTANT] {
-   QoreStringNode *str = new QoreStringNode(url->getEncoding());
-   str->concatDecodeUrl(url->getBuffer());
-   return str;
+   QoreStringNodeHolder str(new QoreStringNode(QCS_UTF8));
+   str->concatDecodeUrl(*url, xsink);
+   return *xsink ? 0 : str.release();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -1928,9 +1930,11 @@ my string $encoded_url = encode_url($url);
 
     @see decode_url()
 
+    @note percent decoding is made according to <a href="http://tools.ietf.org/html/rfc3986#section-2.1">RFC 3986</a>
+
     @since %Qore 0.8.9
 */
-string encode_url(string url, bool encode_all = False) [flags=CONSTANT] {
+string encode_url(string url, softbool encode_all = False) [flags=CONSTANT] {
    QoreStringNodeHolder str(new QoreStringNode(url->getEncoding()));
    str->concatEncodeUrl(xsink, url, encode_all);
    return *xsink ? 0 : str.release();

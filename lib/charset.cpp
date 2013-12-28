@@ -39,7 +39,6 @@ const QoreEncoding *QCS_DEFAULT, *QCS_USASCII, *QCS_UTF8, *QCS_ISO_8859_1,
 static qore_size_t UTF8_getLength(const char *p, const char *end, bool &invalid);
 static qore_size_t UTF8_getByteLen(const char *p, const char *end, qore_size_t l, bool &invalid);
 static qore_size_t UTF8_getCharPos(const char *p, const char *e, bool &invalid);
-static qore_size_t UTF8_getCharLen(const char *p, qore_size_t valid_len);
 
 encoding_map_t QoreEncodingManager::emap;
 const_encoding_map_t QoreEncodingManager::amap;
@@ -103,7 +102,7 @@ QoreEncodingManager::QoreEncodingManager() {
    addAlias(QCS_USASCII, "USASCII");
    addAlias(QCS_USASCII, "US-ASCII");
 
-   QCS_UTF8        = addUnlocked("UTF-8",       "variable-width universal character set", 4, UTF8_getLength, UTF8_getByteLen, UTF8_getCharPos, UTF8_getCharLen);
+   QCS_UTF8        = addUnlocked("UTF-8",       "variable-width universal character set", 4, UTF8_getLength, UTF8_getByteLen, UTF8_getCharPos, q_UTF8_get_char_len);
    addAlias(QCS_UTF8, "UTF8");
 
    QCS_ISO_8859_1  = addUnlocked(ISO88591_STR,  "latin-1, Western European character set");
@@ -340,7 +339,7 @@ const QoreEncoding *QoreEncodingManager::findCreate(const QoreString *str) {
    return findCreate(str->getBuffer());
 }
 
-static qore_size_t UTF8_getCharLen(const char *p, qore_size_t len) {
+qore_size_t q_UTF8_get_char_len(const char* p, qore_size_t len) {
    // see if a multi-byte char is starting
    if ((*p & 0xc0) == 0xc0) {
       //printd(5, "MULTIBYTE *p = %hhx\n", *p);
@@ -382,7 +381,7 @@ static qore_size_t UTF8_getCharLen(const char *p, qore_size_t len) {
 static qore_size_t UTF8_getLength(const char *p, const char *end, bool &invalid) {
    qore_size_t i = 0;
    while (*p) {
-      qore_size_t l = UTF8_getCharLen(p, end - p);
+      qore_size_t l = q_UTF8_get_char_len(p, end - p);
       if (l <= 0) {
 	 invalid = true;
 	 return i;
@@ -398,7 +397,7 @@ static qore_size_t UTF8_getLength(const char *p, const char *end, bool &invalid)
 static qore_size_t UTF8_getByteLen(const char *p, const char *end, qore_size_t l, bool &invalid) {
    qore_size_t b = 0;
    while (*p && l) {
-      qore_size_t bl = UTF8_getCharLen(p, end - p);
+      qore_size_t bl = q_UTF8_get_char_len(p, end - p);
       if (bl <= 0) {
 	 invalid = true;
 	 return b;
@@ -414,7 +413,7 @@ static qore_size_t UTF8_getByteLen(const char *p, const char *end, qore_size_t l
 static qore_size_t UTF8_getCharPos(const char *p, const char *end, bool &invalid) {
    qore_size_t i = 0;
    while (p < end) {
-      qore_size_t l = UTF8_getCharLen(p, end - p);
+      qore_size_t l = q_UTF8_get_char_len(p, end - p);
       if (l <= 0) {
 	 invalid = true;
 	 return i;

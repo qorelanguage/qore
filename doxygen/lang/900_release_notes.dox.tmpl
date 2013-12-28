@@ -13,8 +13,8 @@
       - added support for new "or nothing" datatypes to map empty input to @ref nothing
       - implemented support for allowing subclasses of CsvFileIterator to implement support for other custom types
       - no need to set \c "headers" in the constructor if \c "fields" are set; headers are assumed to be the field labels in the same order
-    - added the @ref Qore::encode_url() function
-    - @ref Qore::decode_url() function updated to decode UTF-8 characters if the target string is in UTF-8 encoding
+    - added the @ref Qore::encode_url() function with <a href="http://tools.ietf.org/html/rfc3986#section-2.1">RFC 3986 section 2.1</a> compliance
+    - @ref Qore::decode_url() function updated to decode UTF-8 encoded characters according to <a href="http://tools.ietf.org/html/rfc3986#section-2.1">RFC 3986 section 2.1</a
     - added get_byte_size() and get_marketing_byte_size() to the <a href="../../modules/Util/html/index.html">Util</a> module    
     - the error message now includes the module path used for the search when a module cannot be found in the module path
     - @ref Qore::SQL::DatasourcePool "DatasourcePool" enhancements:

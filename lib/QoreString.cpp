@@ -1065,76 +1065,166 @@ void QoreString::concatAndHTMLDecode(const char* str, size_t slen) {
    }
 }
 
+// deprecated, does not support RFC-3986
 void QoreString::concatDecodeUrl(const char* url) {
   if (!url)
       return;
 
    while (*url) {
       if (*url == '%' && isxdigit(*(url + 1)) && isxdigit(*(url + 2))) {
-	 if (priv->charset == QCS_UTF8) {
-	    unsigned code;
-	    if (isxdigit(*(url + 3)) && isxdigit(*(url + 4))) {
-	       if (isxdigit(*(url + 5)) && isxdigit(*(url + 6))) {
-		  char x[7] = { *(url + 1), *(url + 2), *(url + 3), *(url + 4), *(url + 5), *(url + 6), '\0' };
-		  code = strtol(x, 0, 16);
-		  url += 7;
-	       }
-	       else {
-		  char x[5] = { *(url + 1), *(url + 2), *(url + 3), *(url + 4), '\0' };
-		  code = strtol(x, 0, 16);
-		  url += 5;
-	       }
-	    }
-	    else {
-	       char x[3] = { *(url + 1), *(url + 2), '\0' };
-	       code = strtol(x, 0, 16);
-	       url += 3;
-	    }
-	    concatUTF8FromUnicode(code);
-	    continue;
-	 }
-	 else {
-	    char x[3] = { *(url + 1), *(url + 2), '\0' };
-	    char code = strtol(x, 0, 16);
-	    concat(code);
-	    url += 3;
-	    continue;
-	 }
+	 char x[3] = { *(url + 1), *(url + 2), '\0' };
+	 char code = strtol(x, 0, 16);
+	 concat(code);
+	 url += 3;
+	 continue;
       }
       concat(*url);
       ++url;
    }
 }
 
+static int get_hex(const char*& p) {
+   if (*p == '%' && isxdigit(*(p + 1)) && isxdigit(*(p + 2))) {
+      char x[3] = { *(p + 1), *(p + 2), '\0' };
+      p += 3;
+      return strtol(x, 0, 16);
+   }
+   return -1;
+}
+
+// assume encoding according to http://tools.ietf.org/html/rfc3986#section-2.1
+int QoreString::concatDecodeUrl(const QoreString& url_str, ExceptionSink* xsink) {
+   TempEncodingHelper str(url_str, priv->charset, xsink);
+   if (*xsink)
+      return -1;
+   
+   const char* url = str->getBuffer();
+   while (*url) {
+      int x1 = get_hex(url);
+      if (x1 >= 0) {
+	 // see if a multi-byte char is starting
+	 if ((x1 & 0xc0) == 0xc0) {
+	    int x2 = get_hex(url);
+	    if (x2 == -1) {
+	       xsink->raiseException("URL-ENCODING-ERROR", "percent encoding indicated a multi-byte UTF-8 character but only one byte was provided");
+	       return -1;
+	    }
+	    // check for a 3-byte sequence
+	    if (x1 & 0x20) { 
+	       int x3 = get_hex(url);
+	       if (x3 == -1) {
+		  xsink->raiseException("URL-ENCODING-ERROR", "percent encoding indicated a %s-byte UTF-8 character but only two bytes were provided", (x1 & 0x10) ? "four" : "three");
+		  return -1;
+	       }
+	       
+	       // check for a 4-byte sequence
+	       if (x1 & 0x10) {
+		  int x4 = get_hex(url);
+		  if (x4 == -1) {
+		     xsink->raiseException("URL-ENCODING-ERROR", "percent encoding indicated a four-byte UTF-8 character but only three bytes were provided");
+		     return -1;
+		  }
+		  if (!(x2 & 0x80 && x3 & 0x80 && x4 & 0x80)) {
+		     xsink->raiseException("URL-ENCODING-ERROR", "percent encoding gave an invalid four-byte UTF-8 character");
+		     return -1;
+		  }
+
+		  // if utf8 then concat directly
+		  if (priv->charset == QCS_UTF8) {
+		     concat((char)x1);
+		     concat((char)x2);
+		     concat((char)x3);
+		     concat((char)x4);
+		  }
+		  else {
+		     unsigned cp = (((unsigned)(x1 & 0x07)) << 18) 
+			| (((unsigned)(x2 & 0x3f)) << 12) 
+			| ((((unsigned)x3 & 0x3f)) << 6) 
+			| (((unsigned)x4 & 0x3f));
+		     if (concatUnicode(cp, xsink))
+			return -1;
+		  }
+		  continue;
+	       }
+	       // 3-byte sequence
+	       if (!(x2 & 0x80 && x3 & 0x80)) {
+		  xsink->raiseException("URL-ENCODING-ERROR", "percent encoding gave an invalid three-byte UTF-8 character");
+		  return -1;
+	       }
+
+	       // if utf8 then concat directly
+	       if (priv->charset == QCS_UTF8) {
+		  concat((char)x1);
+		  concat((char)x2);
+		  concat((char)x3);
+	       }
+	       else {
+		  unsigned cp = (((unsigned)(x1 & 0x0f)) << 12) 
+		     | (((unsigned)(x2 & 0x3f)) << 6)
+		     | (((unsigned)x3 & 0x3f));
+		  
+		  if (concatUnicode(cp, xsink))
+		     return -1;
+	       }
+	       continue;
+	    }
+	    // 2-byte sequence
+	    if (!(x2 & 0x80)) {
+	       xsink->raiseException("URL-ENCODING-ERROR", "percent encoding gave an invalid two-byte UTF-8 character");
+	       return -1;
+	    }
+
+	    // if utf8 then concat directly
+	    if (priv->charset == QCS_UTF8) {
+	       concat((char)x1);
+	       concat((char)x2);
+	    }
+	    else {
+	       unsigned cp = (((unsigned)(x1 & 0x1f)) << 6)
+		  | ((unsigned)(x2 & 0x3f));
+	       if (concatUnicode(cp, xsink))
+		  return -1;
+	    }
+	    continue;
+	 }
+	 // single byte
+	 concat(x1);
+	 continue;
+      }
+      concat(*(url++));
+   }
+   return 0;
+}
+
+// assume encoding according to http://tools.ietf.org/html/rfc3986#section-2.1
 int QoreString::concatEncodeUrl(ExceptionSink* xsink, const QoreString& url, bool encode_all) {
    if (!url.size())
       return 0;
 
-   TempEncodingHelper str(url, priv->charset, xsink);
+   TempEncodingHelper str(url, QCS_UTF8, xsink);
    if (*xsink)
       return -1;
 
-   const char* p = str->getBuffer();
+   const unsigned char* p = (const unsigned char*)str->getBuffer();
    while (*p) {
       if ((*p) == '%')
 	 concat("%25");
       else if ((*p) == ' ')
 	 concat("%20");
       else if (*p > 127) {
-	 unsigned len;
-	 unsigned up = str->getUnicodePointFromBytePos(p - str->getBuffer(), len, xsink);
-	 if (*xsink)
+	 qore_size_t len = q_UTF8_get_char_len((const char*)p, str->size() - ((const char*)p - str->getBuffer()));
+	 if (len <= 0) {
+	    xsink->raiseException("INVALID-ENCODING", "invalid UTF-8 encoding found in string");
 	    return -1;
-	 concat('%');
-	 sprintf("%X", up);
+	 }
+	 // add UTF-8 percent-encoded characters
+	 for (qore_size_t i = 0; i < len; ++i)
+	    sprintf("%%%X", (unsigned)p[i]);
 	 p += len;
 	 continue;
       }
       else if (encode_all && url_reserved.find(*p) != url_reserved.end()) {
-	 char buf[3];
-	 concat('%');
-	 ::sprintf(buf, "%X", (int)*p);
-	 concat(buf);
+	 sprintf("%%%X", (unsigned)*p);
       }
       else
 	 concat(*p);

@@ -150,7 +150,12 @@ public:
    DLLEXPORT void concatAndHTMLDecode(const char* str);
 
    //! concatenates a URL-decoded version of the c-string passed
+   /** @deprecated does not support RFC 3986, use concatEncodeUrl(ExceptionSink*, const QoreString&, bool) instead
+    */
    DLLEXPORT void concatDecodeUrl(const char* url);
+
+   //! concatenates a URL-decoded version of the c-string passed (RFC 3986 compliant: http://tools.ietf.org/html/rfc3986)
+   DLLEXPORT int concatDecodeUrl(const QoreString& url, ExceptionSink* xsink);
 
    //! concatenates a URL-encoded version of the c-string passed
    /** @param xsink Qore-language exceptions (in this case character encoding conversion errors) are raised here
