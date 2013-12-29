@@ -59,6 +59,8 @@ module CsvUtil {
 
 /** @mainpage CsvUtil Module
 
+    @section csvutilintro Introduction to the CsvUtil Module
+
     The %CsvUtil module provides functionality for parsing CSV-like files.
 
     To use this module, use \c "%requires CsvUtil" in your code.
