@@ -331,7 +331,10 @@ class qdx {
 
 	    line =~ s/\$\.//g;
 	    #line =~ s/\$//g;
-	    line =~ s/our /extern /g;
+            if (line =~ /our /) {
+                line =~ s/our /extern /g;
+                line =~ s/\$//g;
+            }
 	    line =~ s/my //g;
 	    line =~ s/sub //;
 
