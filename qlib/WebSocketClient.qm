@@ -48,6 +48,8 @@ module WebSocketClient {
 
 /** @mainpage WebSocketClient Module
 
+    @section websocketclientintro Introduction to the WebSocketClient Module
+
     The %WebSocketClient module provides client support for <a href="http://tools.ietf.org/html/rfc6455">RFC-6455 based WebSocket protocol</a> implementations in %Qore.
 
     To use this module, use \c "%requires WebSocketClient" in your code.

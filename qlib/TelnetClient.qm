@@ -25,10 +25,10 @@
 */
 
 module TelnetClient {
-       version = "1.0";
-       desc = "allows connections to a Telnet server, to remotely execute commands and read their output";
-       author = "Pavol Potancok <ppotancok@gmail.com>";
-       url = "http://qore.org";
+   version = "1.0";
+   desc = "allows connections to a Telnet server, to remotely execute commands and read their output";
+   author = "Pavol Potancok <ppotancok@gmail.com>";
+   url = "http://qore.org";
 }
 
 /*  Version History
@@ -37,6 +37,8 @@ module TelnetClient {
 */
 
 /** @mainpage TelnetClient Module
+
+    @section telnetclientintro Introduction to the TelnetClient Module
 
     The %TelnetClient module provides a telnet client class for communicating with a server using the telnet protocol
 
