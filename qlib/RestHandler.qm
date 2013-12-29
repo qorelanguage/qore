@@ -62,6 +62,8 @@ module RestHandler {
 
     @tableofcontents
 
+    @section resthandlerintro Introduction to the RestHandler Module
+
     The %RestHandler module provides functionality for implementing REST services with the %Qore HTTP server.
 
     To use this module, use \c "%requires RestHandler" and \c "%requires HttpServer" in your code.

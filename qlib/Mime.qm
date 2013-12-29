@@ -61,6 +61,8 @@ module Mime {
 
 /** @mainpage Mime Module
 
+    @section mimeintro Introduction to the Mime Module
+
     The %Mime module provides definitions and functions related to MIME processing.  MIME concepts are used in HTTP and SMTP communications, among others.
 
     To use this module, use \c "%requires Mime" in your code.  See the SmtpClient and the HttpServer modules for examples of %Qore code using this module.

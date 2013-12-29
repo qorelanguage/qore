@@ -132,7 +132,7 @@ module HttpServer {
 
     @tableofcontents
 
-    @section httpintro HttpServer Introduction
+    @section httpserverintro HttpServer Introduction
 
     The %HttpServer module provides a multi-threaded HTTP server to Qore programs.
 
