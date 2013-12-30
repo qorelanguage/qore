@@ -13788,7 +13788,6 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
 
         private code getUpsertInsertOnly(Columns cols, hash example_row) {
             string insert_sql = getUpsertInsertSql(example_row);
-            list updc = ();
 
             return int sub (hash row) {
                 return tryInsertImpl(insert_sql, row) ? UR_Inserted : UR_Unchanged;
