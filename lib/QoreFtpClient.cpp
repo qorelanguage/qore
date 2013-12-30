@@ -967,11 +967,11 @@ static void doFtpSocketException(int rc, ExceptionSink *xsink) {
    assert(rc != -2);
 
    if (!rc)
-      xsink->raiseException("DATA-SOCKET-CLOSED", "remote end closed the data connection");
+      xsink->raiseException("FTP-DATA-SOCKET-CLOSED", "remote end closed the data connection");
    else if (rc == -1)   // recv() error
-      xsink->raiseException("DATA-SOCKET-RECV-ERROR", q_strerror(errno));
+      xsink->raiseException("FTP-DATA-SOCKET-RECV-ERROR", q_strerror(errno));
    else if (rc == -3)
-      xsink->raiseException("TIMEOUT", "the transfer exceeded the timeout period");
+      xsink->raiseException("FTP-TIMEOUT-ERROR", "the transfer exceeded the timeout period");
 }
 
 // public locked
