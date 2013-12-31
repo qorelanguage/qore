@@ -190,6 +190,7 @@ nothing RWLock::writeUnlock() {
     @code
 if (!$rwl.tryReadLock()) {
     on_exit $rwl.readUnlock();
+    do_something_in_read_lock();
 }
     @endcode
  */
@@ -203,6 +204,7 @@ int RWLock::tryReadLock() {
     @code
 if (!$rwl.tryWriteLock()) {
     on_exit $rwl.writeUnlock();
+    do_something_in_write_lock();
 }
     @endcode
  */

@@ -253,12 +253,12 @@ my hash $h = $qft.render($ctx);
             @param mtime the modified date/time of the file, used to determine if the template should be recomiled or not
             @param ctx the context argument for the template
             @param code the HTTP response code for the response, if not present then 200 \c "OK" is assumed
-            @param hdr any optional headers for the response (the \c "Content-Type" header is set from the templates \c "Content-Type" value automatically)
+            @param hdr any optional headers for the response (the \c "Content-Type" header is set from the template's \c "Content-Type" value automatically)
 
             @return a hash with the following keys:
             - \c code: the HTTP response code corresponding to the \a code argument
             - \c body: the rendered template
-            - \c hdr: a hash of headers corresponding to the \a hdr argument plus the \c "Content-Type" key set from the template's "Content-Type" value)
+            - \c hdr: a hash of headers corresponding to the \a hdr argument plus the \c "Content-Type" key set from the template's \c "Content-Type" value)
         */
         hash render(date $mtime, hash $ctx, int $code = 200, *hash $hdr) {
             $.rwl.readLock();
@@ -536,7 +536,8 @@ my *hash $h = $tm.tryRender("html/index.qhtml", $ctx);
             *string $.default_target;
 
             #! set for error info level
-            /** - 0: no details
+            /** The following are valid error levels:
+                - 0: no details
                 - 1: error summary info
                 - 2: complete error details including stack trace (can expose internal implementation details)
              */
@@ -644,7 +645,7 @@ my *hash $h = $tm.tryRender("html/index.qhtml", $ctx);
             - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
             - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
             - \c id: the unique HTTP connection ID
-            - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
+            - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
             - \c user: the current RBAC username (if any)
             @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
             - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
@@ -653,7 +654,7 @@ my *hash $h = $tm.tryRender("html/index.qhtml", $ctx);
             @param body message body, if any
 
             @return a hash with the following keys:
-            - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
+            - \c "code": the HTTP return code (see @ref HttpServer::HttpServer::HttpCodes)
             - \c "body": the message body to return in the response
             - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
             - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
@@ -814,7 +815,7 @@ my *hash $h = $tm.tryRender("html/index.qhtml", $ctx);
             - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
             - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
             - \c id: the unique HTTP connection ID
-            - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
+            - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
             - \c user: the current RBAC username (if any)
             - \c resource_path: the relative path without any query arguments and with the URL root stripped off (if the request was matched by the URL root, otherwise this will be the request path with any URI query arguments removed)
             - \c url_root: the root URL
@@ -829,7 +830,7 @@ my *hash $h = $tm.tryRender("html/index.qhtml", $ctx);
             @param body message body, if any
             
             @return a hash with the following keys:
-            - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
+            - \c "code": the HTTP return code (see @ref HttpServer::HttpServer::HttpCodes)
             - \c "body": the message body to return in the response
             - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
             - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
