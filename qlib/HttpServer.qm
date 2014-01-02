@@ -1256,8 +1256,8 @@ public class HttpServer::HttpServer {
         @param lp a hash with the following keys:
         - \c cert_path: (optional) a path to an X509 certificate for HTTPS listeners
         - \c key_path: (optional) a path to a private key file for an X509 certificate for HTTPS listeners
-        - \c cert: (optional) an SSLCertificate object for HTTPS listeners
-        - \c key: (optional) an SSLPrivateKey object for HTTPS listeners
+        - \c cert: (optional) a Qore::SSLCertificate object for HTTPS listeners
+        - \c key: (optional) a Qore::SSLPrivateKey object for HTTPS listeners
         - \c url: (required) the path for matching incoming requests (use "/" for dedicated listeners); this is more important for handlers on the global listeners; this is a regular expression unless \a isregex is @ref Qore::False "False"
         - \c isregex: (optional) a boolean value determining if the \a url (= path value) is a regular expression or a simple string; if this key is not present, then \a url is assumed to the a regular expression
         - \c bind: (required) the bind address for the dedicated listener; this can be a port number or an address (or hostname) and a port number separated by a colon (ex: \c "192.168.20.4:8021")
@@ -1760,7 +1760,7 @@ public class HttpServer::HttpServer {
 
     #! @cond nodoc
     # don't reimplement this method; fix/enhance it in the module
-    final private HttpListener addListenerIntern(*string $node, *softstring $service, *SSLCertificate $cert, *SSLPrivateKey $key, *hash $hi, *code $logger, *code $errorlogger, *code $stopc, *string $name, int $family = AF_UNSPEC) {
+    final private HttpListener addListenerIntern(*string $node, *softstring $service, *Qore::SSLCertificate $cert, *Qore::SSLPrivateKey $key, *hash $hi, *code $logger, *code $errorlogger, *code $stopc, *string $name, int $family = AF_UNSPEC) {
         if (!$logger && $.logfunc)
             $logger = $.logfunc;
         if (!$errorlogger && $.errlogfunc)
@@ -2207,7 +2207,7 @@ public class HttpServer::HttpListener inherits Qore::Socket {
     }
 
     # params: server, id, session ID sequence object, socket, rbac obj, [cert, key]
-    constructor(HttpServer $server, int $id, Sequence $ss, *string $node, *softstring $service, *SSLCertificate $cert, *SSLPrivateKey $key, *hash $hi, *code $logger, *code $errorlogger, *code $stopc, string $name, int $family = AF_UNSPEC) {
+    constructor(HttpServer $server, int $id, Sequence $ss, *string $node, *softstring $service, *Qore::SSLCertificate $cert, *Qore::SSLPrivateKey $key, *hash $hi, *code $logger, *code $errorlogger, *code $stopc, string $name, int $family = AF_UNSPEC) {
         $.name = $name;
         # we originally set for utf-8 and then per-connection the encoding is set according to the client's content-type header (with iso-8859-1 as the default)
         # according to RFC 2616 section 3.7.1 (http://tools.ietf.org/html/rfc2616#section-3.7.1)

@@ -226,8 +226,6 @@ TextTemplateBase::add($p, "/html/index.qhtml", $qhtml, "t0");
         }
 
         public {
-            #! Condition variable for waiting for a template to be 
-            Condition $.c();
         }
 
         #! creates the object based on the pathname and @ref Qore::Program "Program" options
