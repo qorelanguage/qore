@@ -1,0 +1,45 @@
+
+if (CMAKE_VERSION VERSION_LESS 2.8.3)
+    message(FATAL_ERROR "Qore requires at least CMake version 2.8.3")
+endif()
+
+
+
+# QORE_FOUND - system has qore installed
+# QORE_INCLUDE_DIR - includes
+# QORE_INCLUDE_DIRS - cmake standar alias for QORE_INCLUDE_DIR
+# QORE_LIBRARY - library location
+# QORE_LIBRARIES - cmake standard alias for QORE_LIBRARY
+#
+# QORE_MODULES_DIR - location of qore modules
+# QORE_API_VERSION - API version
+#
+# QORE_EXECUTABLE - qore interpret executable
+# QORE_QPP_EXECUTABLE - qore qpp executable
+
+
+# get Qore version form 'qore --short-version' command etc
+FIND_PROGRAM(QORE_EXECUTABLE NAMES qore DOC "Searching for qore executable")
+IF (NOT QORE_EXECUTABLE)
+    MESSAGE( FATAL_ERROR "Cannot find 'qore' executable. Check if it's in your PATH" )
+ENDIF (NOT QORE_EXECUTABLE)
+
+FIND_PROGRAM(QORE_QPP_EXECUTABLE NAMES qpp DOC "Searching for qore qpp preprocessor")
+IF (NOT QORE_QPP_EXECUTABLE)
+    MESSAGE( FATAL_ERROR "Cannot find 'qpp' executable. Check if it's in your PATH" )
+ENDIF (NOT QORE_QPP_EXECUTABLE)
+
+include("${CMAKE_CURRENT_LIST_DIR}/QoreMacros.cmake")
+
+
+set(QORE_FOUND 1)
+
+set(QORE_INCLUDE_DIR @myprefix@/include)
+set(QORE_INCLUDE_DIRS ${QORE_INCLUDE_DIR})
+
+find_library(QORE_LIBRARY NAMES qore libqore HINTS "@myprefix@/lib@LIBSUFFIX@/")
+set(QORE_LIBRARIES ${QORE_LIBRARY})
+
+set(QORE_MODULES_DIR @MODULE_DIR@)
+set(QORE_API_VERSION @MODULE_API_MAJOR@.@MODULE_API_MINOR@)
+

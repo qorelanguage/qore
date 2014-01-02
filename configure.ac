@@ -1690,6 +1690,7 @@ elif test -n "${prefix}" -a "${prefix}" != NONE; then
 else
    myprefix=${ac_default_prefix}
 fi
+AC_SUBST([myprefix])
 
 # set module path
 if test "$windows" = yes; then
@@ -1753,6 +1754,7 @@ AC_DEFINE_UNQUOTED([QORE_BUILD_HOST],   "`uname -a`", [Qore build host info])
 
 AC_CONFIG_FILES([Makefile lib/Makefile])
 AC_CONFIG_FILES([qore.pc])
+AC_CONFIG_FILES([cmake/QoreConfig.cmake cmake/QoreConfigVersion.cmake])
 AC_OUTPUT
 
 echo "*** BUILTIN FEATURES ***"
