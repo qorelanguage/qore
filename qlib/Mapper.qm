@@ -1,0 +1,400 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! @file Mapper.qm Mapper common client/server code
+
+/*  Mapper.qm Copyright 2014 Qore Technologies, sro
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# this module requires Qore 0.8.9 or better
+%requires qore >= 0.8.9
+
+# require type definitions everywhere
+%require-types
+
+# enable all warnings
+%enable-all-warnings
+
+module Mapper {
+    version = "1.0";
+    desc = "user module providing basic data mapping infrastructure";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+}
+
+/*  Version History
+    * 2014-01-03 v1.0: David Nichols <david@qore.org>
+      + the initial version of the Mapper module
+*/
+
+/** @mainpage Mapper Module
+
+    @tableofcontents
+
+    @section mapperintro Mapper Module Introduction
+
+    Classes provided by this module:
+    - @ref Mapper::MapperBase
+    - @ref Mapper::MapperIterator
+
+    @section mapperrelnotes Release Notes
+
+    @subsection mapperv1_0 Mapper v1.0
+
+    Initial release.
+*/
+
+#! the Mapper namespace contains all the definitions in the Mapper module
+public namespace Mapper {
+    #! this class is a base class for mapping data
+    public class MapperBase {
+        # no public members
+        public {
+        }
+
+        private {
+            #! the hash providing output field names and mappings
+            hash $.map;
+
+            #! the output character encoding; if not given then the output encoding is assumed to be UTF-8
+            string $.enc = "utf-8";
+
+            #! the optional name for the object (for example a table name); will be prepended to field names in error messages
+            *string $.name;
+
+            #! an optional field truncation callback
+            *code $.trunc;
+
+            #! an optional input data logging callback; must accept a hash giving the input data hash
+            *code $.input_log;
+
+            #! an optional output data logging callback; must accept a hash giving the output data hash
+            *code $.output_log;
+
+            #! constructor option keys
+            const ConKeys = (
+                "enc": True,
+                "name": True,
+                "trunc": True,
+                "input_log": True,
+                "output_log": True,
+                );
+
+            #! default known mapper hash keys (can be extended with validKeys())
+            const ValidKeys = (
+                "name": True,
+                "struct": True,
+                "code": True,
+                "maxlen": True,
+                "trunc": True, 
+                "mand": True,
+                "number": True,
+                "type": True,
+                "sequence": True,
+                );
+
+            #! default known field types (can be extended by subclassing and reimplementing validTypes() and handleType()) 
+            const ValidTypes = (
+                "number": True,
+                "date": True,
+                );
+        }
+
+        #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
+        /** @param map a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash with the following fields providing information about how the input records should be translated (all fields are optional):
+            - \c name: the value of this key gives the name of the input field; only use this if the input record name is different than the output field name
+            - \c struct: the value of this key gives the location of the input field in an input hash in dot notation, ex: \c "element.name" would ook for the field's value in the \c "name" key of the \c "element" hash in the input record
+            - \c code: a closure or call reference to process the field data
+            - \c maxlen: an integer giving the maximum field length in bytes
+            - \c trunc: assign to boolean @ref Qore::True "True" if the field should be truncated if over the maximum field length; this key can only be set to @ref Qore::True "True" if the \c "maxlen" key is also given
+            - \c mand: assign to boolean @ref Qore::True "True" if the field is mandatory and an exception should be thrown if no input data is supplied
+            - \c type: this gives the field type, can be:
+              - \c "number": field accepts only numeric values (any non-numeric values on input will cause an exception to be thrown when mapping) 
+              - \c "date": date field
+            @param opts an optional hash of options for the mapped; accepted options are:
+              - \c "enc": the output character encoding; if not present then \c "UTF-8" is assumed
+              - \c "name": the name of the mapper for use in logging and error strings
+              - \c "trunc": an optional @ref closure "closure" or @ref call_reference "call reference" for a callback for field truncation warnings; must accept a single string giving the warning text
+              - \c "input_log": an optional input data logging callback; must accept a hash giving the input data hash
+              - \c "output_log": an optional output data logging callback; must accept a hash giving the output data hash
+
+            @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
+         */
+        constructor(hash $map, *hash $opts) {
+            $.name = $opts.name;
+            $.input_log = $opts.input_log;
+            $.output_log = $opts.output_log;
+
+            if (!$map)
+                $.error("empty map passed to MapperBase::constructor()");
+
+            $.map = $map;
+            foreach my string $k in ($opts.keyIterator()) {
+                if (!ConKeys.$k)
+                    $.error("unknown option key %y passed to MapperBase::constructor(); recognized option keys: %y", $k, ConKeys.keys());
+            }
+
+            $.enc = $opts.enc;
+            $.trunc = $opts.trunc;
+
+            my hash $vk = $.validKeys();
+            my hash $vt = $.validTypes();
+
+            # check map for logical errors
+            map $.checkMapField($1, \$.map.$1), $map.keyIterator();
+        }
+
+        #! perform per-field pre-processing on the passed map in the constructor
+        /** @param k the field name
+            @param fh a reference to the field's value in the map
+        */
+        private checkMapField(string $k, reference $fh) {
+            # check field description
+            my int $t = $fh.typeCode();
+            if ($t != NT_HASH) {
+                switch ($t) {
+                    # convert to a hash if the value of the column is a string (giving the source key name)
+                    case NT_STRING: $fh = ($fh =~ /\./ ? ("struct": $fh.split(".")) : ("name": $fh)); break;
+                    case NT_CALLREF:
+                    case NT_CLOSURE: $fh = ("code": $fh); break;
+                    case NT_BOOLEAN: if ($map.$k) {
+                        $fh = hash();
+                        break;
+                    }
+                  default: $.error("unknown type %y assigned to map key %y", $fh.type(), $k);
+                }
+                return;
+            }
+
+            if ($fh.name && $fh.struct)
+                $.error("field '%s' has both 'name' (%y) and 'struct' (%y) values; only one can be given to identify the input field", $.getFieldName($k), $fh.name, $fh.struct);
+
+            switch ($fh.struct.typeCode()) {
+                case NT_STRING: $fh.struct = $fh.struct.split("."); 
+                case NT_LIST: {
+                    if (!$fh.struct)
+                        $.error("field '%s' has an empty 'struct' key", $.getFieldName($k));
+                    if ($fh.struct.size() == 1)
+                        $fh.name = (remove $fh.struct)[0];
+                    break;
+                }
+                default: $.error("field '%s' has an invalid struct key assigned to type %y (%y)", $k, $fh.type(), $fh);
+            }
+            
+            if ($fh.trunc && !$fh.maxlen)
+                $.error("field '%s' has the 'trunc' key set to True but has no 'maxlen' key", $.getFieldName($k));
+            
+            foreach my string $hk in ($fh.keyIterator())
+                if (!$vk.$hk)
+                    $.error("field '%s' in map hash contains unknown key '%s' (valid keys: %y)", $.getFieldName($k), $hk, $vk.keys());
+            
+            # convert old "number" tag to new "type" tag
+            if ($fh.number) {
+                if (exists $fh.type)
+                    $.error("field '%s' has both 'type' and deprecated 'number' tags", $.getFieldName($k));
+                $fh.type = "number";
+                delete $fh.number;
+            }
+            else if (exists $fh.type && !$vt.($fh.type))
+                $.error("field '%s' in map hash contains an invalid type value '%s' (valid types: %y)", $.getFieldName($k), $fh.type, $vt.keys());
+            
+            if (exists $fh.code && !$fh.code.callp())
+                $.error("field '%s' in map hash has a code argument assigned to type '%s'", $.getFieldName($k), $fh.code.type());
+        }
+        
+        string getFieldName(string $name) {
+            return $.name.val() ? sprintf("%s.%s", $.name, $name) : $name;
+        }
+
+        #! returns a list of valid keys for this class (can be overridden in subclasses)
+        /** @return a list of valid keys for this class (can be overridden in subclasses)
+        */
+        hash validKeys() {
+            return ValidKeys;
+        }
+
+        #! returns a list of valid field types for this class (can be overridden in subclasses)
+        /** @return a list of valid types for this class (can be overridden in subclasses)
+        */
+        hash validTypes() {
+            return ValidTypes;
+        }
+
+        #! processes the input record and returns a hash of the mapped values where the keys in the hash returned are the target field names; the order of the fields in the hash returned is the same order as the keys in the map hash.
+        /** @param rec the record to translate
+            @return a hash of field values in the target format based on the input data and processed according to the logic in the map hash
+            @throw MISSING-INPUT a field marked mandatory is missing
+            @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
+            @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
+        */
+        hash mapData(hash $rec) {
+            if ($.input_log)
+                call_function($.input_log, $rec);
+
+            # we know the map has at least 1 element so no need to initialize $h as a hash to guarantee the return type
+            my hash $h;
+
+            # iterate through target fields
+            foreach my string $key in ($.map.keyIterator()) {
+                my any $m = $.map.$key;
+
+                # get source field name
+                my string $name = exists $m.name ? $m.name : $key;
+
+                # get source record value
+                my any $v;
+                if ($m.struct) {
+                    # get the value
+                    $v = $rec;
+                    map $v = $v{$m.struct[$1]}, xrange(0, $m.struct.size() - 1);
+                }
+                else
+                    $v = $rec.$name !== NULL ? $rec.$name : NOTHING;
+
+                # move any XML CDATA into the field value
+                if ($v."^cdata^")
+                    $v = $v."^cdata^";
+
+                # if the internal field was marked as needing processing by a subclass, then call the mapSubclass method
+                if ($m.subclass)
+                    $v = $.mapSubclass($m, $v);
+
+                # execute any field filter if necessary
+                if (exists $m.code) {
+                    try {
+                        $v = $m.code($v, $rec);
+                    }
+                    catch (hash $ex) {
+                        $ex.desc = sprintf("field %y closure: %s", $key, $ex.desc);
+                        throw $ex.err, $ex.desc, $ex.arg;
+                    }
+                }
+
+                # check maximum length
+                if ($m.maxlen && $v.size() > $m.maxlen) {
+                    # truncate the string if necessary
+                    if ($m.trunc) {
+                        if ($.trunc) {
+                            my string $msg = sprintf("field %y = %y input length %d truncating to %d bytes", $.getFieldName($key), $v, $v.size(), $m.maxlen);
+                            call_function($.trunc, $msg);
+                        }
+                        $v = trunc_str($v, $m.maxlen, $.enc);
+                    }
+                    else
+                        $.error2("STRING-TOO-LONG", "field %y = %y, input length %d exceeds maximum byte length %d for input row: %y", $.getFieldName($key), $v, strlen($v), $m.maxlen, $rec);
+                }
+
+                if ($v.typeCode() == NT_STRING && $v.empty())
+                    delete $v;
+
+                if ($m.mand && !exists $v)
+                    $.error2("MISSING-INPUT", "field %y is marked as mandatory but is missing in the input row: %y", $.getFieldName($key), $rec);
+                
+                if ($m.type)
+                    $.handleType($key, $m, \$v, $rec);
+
+                # add value to row list
+                $h.$key = $v;
+            }
+
+            if ($.output_log)
+                call_function($.output_log, $h);
+
+            # return list of values for row
+            return $h;
+        }
+
+        #! performs type handling
+        private handleType(string $key, hash $m, any $v, hash $rec) {
+            switch ($m.type) {
+                case "number": {
+                    # check for valid numeric values
+                    if (exists $v && $v !~ /^([-+])?[0-9\.]+$/)
+                        $.error2("INVALID-NUMER", "field %y = %y is marked as a numeric field, but the input data contains non-numeric text in input row: %y", $.getFieldName($key), $v, $rec);
+                    $v = number($v);
+                    break;
+                }
+                case "date": {
+                    if ($v.val() && $v.typeCode() != NT_DATE)
+                        $v = date($v);
+                    break;
+                }
+            }
+        }
+
+        #! throws a \c MAP-ERROR exception; prepends the map name to the description if known
+        private error(string $fmt) {
+            my string $err = vsprintf($fmt, $argv);
+            if ($.name)
+                $err = sprintf("%y mapper: %s", $.name, $err);
+            throw "MAP-ERROR", $err;
+        }
+
+        #! throws the given exception; prepends the map name to the description if known
+        private error2(string $ex, string $fmt) {
+            my string $err = vsprintf($fmt, $argv);
+            if ($.name)
+                $err = sprintf("%y mapper: %s", $.name, $err);
+            throw $ex, $err;
+        }
+
+        #! to be overridden as necessary in subclasses
+        private any mapSubclass(hash $m, any $v) {
+            return $v;
+        }
+    }
+
+    #! provides a hash iterator based on a mapper object and an iterator input source
+    public class MapperIterator inherits Qore::AbstractIterator {
+        public {
+        }
+
+        private {
+            #! input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
+            Qore::AbstractIterator $.i;
+
+            #! data mapper
+            Mapper::MapperBase $.map;
+        }
+
+        #! creates the iterator from the arguments passed
+        /** @param i input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
+            @param map the mapper to transform the data
+        */
+        constructor(Qore::AbstractIterator $i, Mapper::MapperBase $map) {
+            $.i = $i;
+            $.map = $map;
+        }
+
+        #! returns the current row transformed with the mapper
+        hash getValue() {
+            return $.map.mapData($.i.getValue());
+        }
+        
+        #! Moves the current position of the input iterator to the next element; returns @ref Qore::False "False" if there are no more elements
+        bool next() {
+            return $.i.next();
+        }
+
+        #! returns @ref Qore::True "True" if the input iterator is currently pointing at a valid element, @ref Qore::False "False" if not
+        bool valid() {
+            return $.i.valid();
+        }
+    }
+}

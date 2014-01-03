@@ -17,7 +17,8 @@ DOX_SRC_MODULES = qlib/Mime.qm \
 	qlib/Util.qm \
 	qlib/HttpServer.qm \
 	qlib/WebSocketUtil.qm \
-	qlib/SqlUtil.qm
+	qlib/SqlUtil.qm \
+	qlib/Mapper.qm
 
 DOX_MODULES = qlib/SmtpClient.qm \
 	qlib/TelnetClient.qm \
@@ -598,6 +599,9 @@ doxygen/qlib/Doxyfile.SqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
 
 doxygen/qlib/Doxyfile.WebSocketUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
 	$(QDX) -M=qlib/WebSocketUtil.qm:doxygen/qlib/WebSocketUtil.qm.dox.h $< $@
+
+doxygen/qlib/Doxyfile.Mapper: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
+	$(QDX) -M=qlib/Mapper.qm:doxygen/qlib/Mapper.qm.dox.h $< $@
 
 DOXYFILE_TARG = $(addprefix doxygen/qlib/Doxyfile.,$(DOX_USER_MODS))
 $(DOXYFILE_TARG): doxygen/qlib/Doxyfile.%: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
