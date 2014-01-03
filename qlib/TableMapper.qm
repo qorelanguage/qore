@@ -1,0 +1,217 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! @file TableMapper.qm provides mapping functionality to a Table target 
+
+/*  TableMapper.qm Copyright 2014 Qore Technologies, sro
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# this module requires Qore 0.8.9 or better
+%requires qore >= 0.8.9
+
+# require type definitions everywhere
+%require-types
+
+# enable all warnings
+%enable-all-warnings
+
+# requires the Mapper module
+%requires Mapper
+# requires the SqlUtil module
+%requires SqlUtil
+
+module TableMapper {
+    version = "1.0";
+    desc = "user module providing data mapping infrastructure to an SQL Table target";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+}
+
+/*  Version History
+    * 2014-01-03 v1.0: David Nichols <david@qore.org>
+      + the initial version of the TableMapper module
+*/
+
+/** @mainpage TableMapper Module
+
+    @tableofcontents
+
+    @section tablemapperintro TableMapper Module Introduction
+
+    Classes provided by this module:
+    - @ref TableMapper::TableMapper
+
+    @section mapperrelnotes Release Notes
+
+    @subsection tablemapperv1_0 TableMapper v1.0
+
+    Initial release.
+*/
+
+#! the TableMapper namespace contains all the definitions in the TableMapper module
+public namespace TableMapper {
+    #! provides a mapper to a Table target
+    public class TableMapper inherits Mapper::Mapper {
+        # no public members
+        public {
+        }
+
+        private {
+            #! the target table object
+            SqlUtil::AbstractTable $.table;
+
+            #! the target Database object in case sequence value need to be acquired
+            SqlUtil::AbstractDatabase $.db;
+        }
+
+        #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
+        /** @param map a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash with the following fields providing information about how the input records should be translated (all fields are optional):
+            - \c name: the value of this key gives the name of the input field; only use this if the input record name is different than the output field name
+            - \c struct: the value of this key gives the location of the input field in an input hash in dot notation, ex: \c "element.name" would ook for the field's value in the \c "name" key of the \c "element" hash in the input record
+            - \c code: a closure or call reference to process the field data
+            - \c maxlen: an integer giving the maximum field length in bytes
+            - \c trunc: assign to boolean @ref Qore::True "True" if the field should be truncated if over the maximum field length; this key can only be set to @ref Qore::True "True" if the \c "maxlen" key is also given
+            - \c mand: assign to boolean @ref Qore::True "True" if the field is mandatory and an exception should be thrown if no input data is supplied
+            - \c type: this gives the field type, can be:
+              - \c "number": field accepts only numeric values (any non-numeric values on input will cause an exception to be thrown when mapping) 
+              - \c "date": date field
+            - \c sequence: the name of a sequence to populate the field value from
+            @param opts an optional hash of options for the mapper; accepted options are:
+              - \c "enc": the output character encoding; if not present then \c "UTF-8" is assumed
+              - \c "name": the name of the mapper for use in logging and error strings
+              - \c "trunc": an optional @ref closure "closure" or @ref call_reference "call reference" for a callback for field truncation warnings; must accept a single string giving the warning text
+              - \c "input_log": an optional input data logging callback; must accept a hash giving the input data hash
+              - \c "output_log": an optional output data logging callback; must accept a hash giving the output data hash
+
+            @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
+        */
+        constructor(SqlUtil::Table $table, hash $map, *hash $opts) : Mapper($map, $opts, ("table": $table.getTable())) {
+        }
+
+        #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
+        /** @param map a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash with the following fields providing information about how the input records should be translated (all fields are optional):
+            - \c name: the value of this key gives the name of the input field; only use this if the input record name is different than the output field name
+            - \c struct: the value of this key gives the location of the input field in an input hash in dot notation, ex: \c "element.name" would ook for the field's value in the \c "name" key of the \c "element" hash in the input record
+            - \c code: a closure or call reference to process the field data
+            - \c maxlen: an integer giving the maximum field length in bytes
+            - \c trunc: assign to boolean @ref Qore::True "True" if the field should be truncated if over the maximum field length; this key can only be set to @ref Qore::True "True" if the \c "maxlen" key is also given
+            - \c mand: assign to boolean @ref Qore::True "True" if the field is mandatory and an exception should be thrown if no input data is supplied
+            - \c type: this gives the field type, can be:
+              - \c "number": field accepts only numeric values (any non-numeric values on input will cause an exception to be thrown when mapping) 
+              - \c "date": date field
+            - \c sequence: the name of a sequence to populate the field value from
+            @param opts an optional hash of options for the mapper; accepted options are:
+              - \c "enc": the output character encoding; if not present then \c "UTF-8" is assumed
+              - \c "name": the name of the mapper for use in logging and error strings
+              - \c "trunc": an optional @ref closure "closure" or @ref call_reference "call reference" for a callback for field truncation warnings; must accept a single string giving the warning text
+              - \c "input_log": an optional input data logging callback; must accept a hash giving the input data hash
+              - \c "output_log": an optional output data logging callback; must accept a hash giving the output data hash
+
+            @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
+        */
+        constructor(SqlUtil::AbstractTable $table, hash $map, *hash $opts) : Mapper($map, $opts, ("table": $table)) {
+        }
+
+        #! sets up the mapper object before checking the mapper hash
+        private setup(hash $map, *hash $opts, *hash $scopts) {
+            $.table = $scopts.table;
+
+            Mapper::$.setup($map, $opts);
+        }
+
+        #! verifies the input map in the constructor
+        private checkMap() {
+            my Columns $cols = $.table.describe();
+
+            # ensure there are no unknown mappings
+            foreach my string $k in ($.map.keyIterator()) {
+                if (!$cols.hasKey($k))
+                    $.error("mapper specifies field '%s' that does not exist in the target table '%s'", $.getFieldName($k), $.table.getSqlName());                
+            }
+
+            # update output field definitions from real table description
+            foreach my AbstractColumn $col in ($cols.iterator()) {
+                my string $cn = $col.name.lwr();
+                my reference $ch = \$.map.$cn;
+                switch ($col.qore_type) {
+                    case "string": $ch += ("maxlen": $col.size, "trunc": $.trunc_all); break;
+                    case "number": $ch.type = "number"; break;
+                    case "date": $ch.type = "date"; break;
+                    default: throw "TABLE-ERROR", sprintf("column %s.%s has unknown native type %y", $.table.getSqlName(), $cn, $col.native_type);
+                }
+                if (!$col.nullable && !exists $col.def_val)
+                    $ch.mand = True;
+            }
+
+            map $.checkMapField($1, \$.map.$1, ("cols": $cols)), $.map.keyIterator();
+        }
+
+        #! performs type handling
+        private mapFieldType(string $key, hash $m, reference $v, hash $rec) {
+            if ($m.sequence)
+                $v = $.db.getNextSequenceValue($m.sequence);
+            Mapper::$.mapFieldType($key, $m, \$v, $rec);
+        }
+
+        #! returns @ref Qore::True "True" if the field has a mapping, @ref Qore::False "False" if not
+        private bool hasMapping(hash $fh) {
+            return $fh.name || $fh.struct || $fh.code || $fh.sequence;
+        }
+
+        #! perform per-field pre-processing on the passed map in the constructor
+        /** @param k the field name
+            @param fh a reference to the field's value in the map
+        */
+        private checkMapField(string $k, reference $fh, hash $th) {
+            if ($fh.sequence) {
+                if ($fh.sequence.typeCode() != NT_STRING)
+                    $.error("field '%s' has a sequence key assigned to type '%s' (%y)", $.getFieldName($k), $fh.sequence.type(), $fh.sequence);
+                if (!$.db)
+                    $.db = AbstractDatabase::getDatabase($.table.getDatasource());
+
+                if ($fh.type) {
+                    if ($fh.type != "number")
+                        $.error("field '%s' has a 'sequence' key, but the type is '%s'", $.getFieldName($k), $fh.type);
+                }
+                else
+                    $fh.type = "number";
+            }
+
+            Mapper::$.checkMapField($k, \$fh);
+        }
+
+        #! returns a list of valid field keys for this class (can be overridden in subclasses)
+        /** @return a list of valid field keys for this class (can be overridden in subclasses)
+        */
+        hash validKeys() {
+            return Mapper::ValidKeys + (
+                "sequence": True,
+                );
+        }
+
+        #! returns a list of valid constructor options for this class (can be overridden in subclasses)
+        /** @return a list of valid constructor options for this class (can be overridden in subclasses)
+        */
+        hash optionKeys() {
+            return OptionKeys + (
+                "table": True,
+                );
+        }
+    }
+}

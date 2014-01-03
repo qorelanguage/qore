@@ -32,7 +32,8 @@ DOX_MODULES = qlib/SmtpClient.qm \
 	qlib/RestClient.qm \
 	qlib/WebSocketHandler.qm \
 	qlib/WebSocketClient.qm \
-	qlib/WebUtil.qm
+	qlib/WebUtil.qm \
+	qlib/TableMapper.qm
 
 USER_MODULES = $(DOX_SRC_MODULES) \
 	$(DOX_MODULES)
