@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -34,30 +34,30 @@
     against the class ID using QoreObject::setPrivate()
  */
 class AbstractPrivateData : public QoreReferenceCounter {
-   protected:
-      //! as these objects are reference counted, the destructor should be called only when the reference count = 0 and not manually
-      DLLLOCAL virtual ~AbstractPrivateData() {}
+protected:
+   //! as these objects are reference counted, the destructor should be called only when the reference count = 0 and not manually
+   DLLLOCAL virtual ~AbstractPrivateData() {}
 
-   public:
-      //! increments the reference count of the object
-      DLLLOCAL void ref() {
-	 ROreference();
-      }
+public:
+   //! increments the reference count of the object
+   DLLLOCAL void ref() {
+      ROreference();
+   }
 
-      //! decrements the reference count of the object
-      /**
-	 @param xsink any Qore-language exception information is stored here
-       */
-      DLLLOCAL virtual void deref(class ExceptionSink *xsink) {
-	 if (ROdereference())
-	    delete this;
-      }
+   //! decrements the reference count of the object
+   /**
+      @param xsink any Qore-language exception information is stored here
+   */
+   DLLLOCAL virtual void deref(class ExceptionSink *xsink) {
+      if (ROdereference())
+         delete this;
+   }
 
-      //! decrements the reference count of the object without the possibility of throwing a Qore-language exception
-      DLLLOCAL virtual void deref() {
-	 if (ROdereference())
-	    delete this;
-      }
+   //! decrements the reference count of the object without the possibility of throwing a Qore-language exception
+   DLLLOCAL virtual void deref() {
+      if (ROdereference())
+         delete this;
+   }
 };
 
 #endif // _QORE_ABSTRACTPRIVATEDATA_H

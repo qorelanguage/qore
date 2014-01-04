@@ -52,7 +52,7 @@ public:
    DLLLOCAL QoreHashIterator(const QoreHashIterator& old) : ConstHashIterator(*this) {
    }
 
-   using QoreIteratorBase::deref;
+   using AbstractPrivateData::deref;
    DLLLOCAL virtual void deref(ExceptionSink* xsink) {
       if (ROdereference()) {
          if (h)

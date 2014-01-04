@@ -46,7 +46,7 @@ public:
    DLLLOCAL QoreListIterator(const QoreListIterator& old) : ConstListIterator(old.l->listRefSelf(), old.pos) {
    }
 
-   using QoreIteratorBase::deref;
+   using AbstractPrivateData::deref;
    DLLLOCAL virtual void deref(ExceptionSink* xsink) {
       if (ROdereference()) {
          const_cast<QoreListNode*>(l)->deref(xsink);

@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -390,6 +390,23 @@ bool qore_has_debug() {
 #else
    return false;
 #endif
+}
+
+QoreIteratorBase::QoreIteratorBase() : tid(gettid()) {
+}
+
+#ifdef DEBUG
+void QoreIteratorBase::deref() {
+   assert(false);
+}
+#endif
+
+int QoreIteratorBase::check(ExceptionSink* xsink) {
+   if (tid != gettid()) {
+      xsink->raiseException("ITERATOR-THREAD-ERROR", "this %s object was created in TID %d; it is an error to access it from any other thread (accessed from TID %d)", getName(), tid, gettid());
+      return -1;
+   }
+   return 0;
 }
 
 FeatureList::FeatureList() {

@@ -83,7 +83,7 @@ public:
          i = -1;
    }
 
-   using QoreIteratorBase::deref;
+   using AbstractPrivateData::deref;
    DLLLOCAL virtual void deref(ExceptionSink* xsink) {
       if (ROdereference()) {
          if (h)
