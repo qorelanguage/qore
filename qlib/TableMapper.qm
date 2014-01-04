@@ -153,6 +153,7 @@ public namespace TableMapper {
                 switch ($col.qore_type) {
                     case "string": $ch += ("maxlen": $col.size, "trunc": $.trunc_all); break;
                     case "number": $ch.type = "number"; break;
+                    case "integer": $ch.type = "integer"; break;
                     case "date": $ch.type = "date"; break;
                     default: throw "TABLE-ERROR", sprintf("column %s.%s has unknown native type %y", $.table.getSqlName(), $cn, $col.native_type);
                 }
@@ -187,7 +188,7 @@ public namespace TableMapper {
                     $.db = AbstractDatabase::getDatabase($.table.getDatasource());
 
                 if ($fh.type) {
-                    if ($fh.type != "number")
+                    if ($fh.type != "number" && $fh.type != "integer")
                         $.error("field '%s' has a 'sequence' key, but the type is '%s'", $.getFieldName($k), $fh.type);
                 }
                 else
