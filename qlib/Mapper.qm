@@ -229,6 +229,7 @@ public namespace Mapper {
                 $.error("field '%s' has both 'name' (%y) and 'struct' (%y) values; only one can be given to identify the input field", $.getFieldName($k), $fh.name, $fh.struct);
 
             switch ($fh.struct.typeCode()) {
+                case NT_NOTHING: break;
                 case NT_STRING: $fh.struct = $fh.struct.split("."); 
                 case NT_LIST: {
                     if (!$fh.struct)
@@ -237,7 +238,7 @@ public namespace Mapper {
                         $fh.name = (remove $fh.struct)[0];
                     break;
                 }
-                default: $.error("field '%s' has an invalid struct key assigned to type %y (%y)", $.getFieldName($k), $fh.type(), $fh);
+                default: $.error("field '%s' has an invalid struct key assigned to type %y (%y)", $.getFieldName($k), $fh.struct.type(), $fh);
             }
             
             if ($fh.trunc && !$fh.maxlen)
