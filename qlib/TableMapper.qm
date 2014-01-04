@@ -66,8 +66,8 @@ module TableMapper {
 
 #! the TableMapper namespace contains all the definitions in the TableMapper module
 public namespace TableMapper {
-    #! provides a mapper to a Table target
-    public class TableMapper inherits Mapper::Mapper {
+    #! provides an inbound data mapper to a Table target
+    public class InboundTableMapper inherits Mapper::Mapper {
         # no public members
         public {
         }
@@ -94,14 +94,14 @@ public namespace TableMapper {
             - \c sequence: the name of a sequence to populate the field value from
             @param opts an optional hash of options for the mapper; accepted options are:
               - \c "enc": the output character encoding; if not present then \c "UTF-8" is assumed
-              - \c "name": the name of the mapper for use in logging and error strings
+              - \c "name": the name of the mapper for use in logging and error strings; note that if not given the table's name will be used automatically
               - \c "trunc": an optional @ref closure "closure" or @ref call_reference "call reference" for a callback for field truncation warnings; must accept a single string giving the warning text
               - \c "input_log": an optional input data logging callback; must accept a hash giving the input data hash
               - \c "output_log": an optional output data logging callback; must accept a hash giving the output data hash
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
         */
-        constructor(SqlUtil::Table $table, hash $map, *hash $opts) : Mapper($map, $opts, ("table": $table.getTable())) {
+        constructor(SqlUtil::Table $table, hash $map, *hash $opts) : Mapper($map, ("name": $table.getName()) + $opts, ("table": $table.getTable())) {
         }
 
         #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
@@ -118,14 +118,14 @@ public namespace TableMapper {
             - \c sequence: the name of a sequence to populate the field value from
             @param opts an optional hash of options for the mapper; accepted options are:
               - \c "enc": the output character encoding; if not present then \c "UTF-8" is assumed
-              - \c "name": the name of the mapper for use in logging and error strings
+              - \c "name": the name of the mapper for use in logging and error strings; note that if not given the table's name will be used automatically
               - \c "trunc": an optional @ref closure "closure" or @ref call_reference "call reference" for a callback for field truncation warnings; must accept a single string giving the warning text
               - \c "input_log": an optional input data logging callback; must accept a hash giving the input data hash
               - \c "output_log": an optional output data logging callback; must accept a hash giving the output data hash
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
         */
-        constructor(SqlUtil::AbstractTable $table, hash $map, *hash $opts) : Mapper($map, $opts, ("table": $table)) {
+        constructor(SqlUtil::AbstractTable $table, hash $map, *hash $opts) : Mapper($map, ("name": $table.getName()) + $opts, ("table": $table)) {
         }
 
         #! sets up the mapper object before checking the mapper hash
@@ -212,6 +212,105 @@ public namespace TableMapper {
             return OptionKeys + (
                 "table": True,
                 );
+        }
+
+        #! inserts a row into the target table based on a mapped input record; does not commit the transaction
+        /** @param $rec the input record
+
+            @return a hash of the row values inserted (row name: value)
+
+            @throw MISSING-INPUT a field marked mandatory is missing
+            @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
+            @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data        
+        */
+        hash insertRowNoCommit(hash $rec) {
+            my hash $h = $.mapData($rec + $.crec);
+            my list $args = hash_values($h) + $extra_values;
+
+            $.table.insert($h);
+            return $h;
+        }
+
+        #! inserts a row into the target table based on a mapped input record; commits the transaction
+        /** @param $rec the input record
+
+            @return a hash of the row values inserted (column: value), not including the extra values
+
+            @throw MISSING-INPUT a field marked mandatory is missing
+            @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
+            @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data        
+        */
+        hash insertRow(hash $rec) {
+            on_success $.table.commit();
+            on_error $.table.rollback();
+
+            return $.insertRowNoCommit($rec);
+        }
+
+        #! commits the transaction
+        nothing commit() {
+            $.table.commit();
+        }
+
+        #! rolls back the transaction
+        nothing rollback() {
+            $.table.rollback();
+        }
+
+        #! returns the table name
+        string getTableName() {
+            return $.table.getSqlName();
+        }
+    }
+
+    #! provides a hash iterator based on a @ref TableMapper::InboundTableMapper "InboundTableMapper" object and an iterator input source; for each iteration the iterted row is inserted into the @ref SqlUtil::Table "Table" target
+    public class InboundTableMapperIterator inherits Mapper::AbstractMapperIterator {
+        public {
+        }
+
+        private {
+            #! data mapper
+            TableMapper::InboundTableMapper $.map;
+
+            #! row commit limit (<= 0 for no commits)
+            int $.commit_limit;
+
+            #! row count for commit
+            int $.cnt = 0;
+        }
+
+        #! creates the iterator from the arguments passed
+        /** @param i input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
+            @param map the mapper to transform the data
+            @param commit_limit row count before a commit is made; if <= 0 then no commits are made by this object, otherwise a commit is made for each \a commit_limit rows processed by this object, commits are made in calls to @ref next()
+        */
+        constructor(Qore::AbstractIterator $i, TableMapper::InboundTableMapper $map, int $commit_limit = 0) : Mapper::AbstractMapperIterator($i) {
+            $.map = $map;
+            $.commit_limit = $commit_limit > 0 ? $.commit_limit : 0;
+        }
+
+        #! returns the current row transformed with the mapper
+        hash getValue() {
+            my hash $h = $.map.mapData($.i.getValue());
+
+            return $h;
+        }
+
+        #! Moves the current position of the input iterator to the next element; returns @ref Qore::False "False" if there are no more elements
+        /** if \a commit_limit is > 0 then @ref TableMapper::InboundTableMapper::commit() is called for every \a commit_limit rows according to the internal row count
+
+            @return @ref Qore::False "False" if there are no more elements, in this case if there is an uncommitted transaction according to the internal row count, then @ref TableMapper::InboundTableMapper::commit() is called as well
+        */
+        bool next() {
+            my bool $rv = $.i.next();
+
+            # commit transaction if necessary
+            if ($.commit_limit && (($rv && (++$.cnt == $.commit_limit)) || (!$rv && $.cnt))) {
+                $.table.commit();
+                $.cnt = 0;
+            }
+
+            return $rv;
         }
     }
 }

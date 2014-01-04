@@ -450,33 +450,24 @@ public namespace Mapper {
         }
     }
 
-    #! provides a hash iterator based on a mapper object and an iterator input source
-    public class MapperIterator inherits Qore::AbstractIterator {
+    #! abstract base class for hash iterator mappping classes based on a mapper object and an iterator input source
+    public class AbstractMapperIterator inherits Qore::AbstractIterator {
         public {
         }
 
         private {
             #! input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
             Qore::AbstractIterator $.i;
-
-            #! data mapper
-            Mapper::Mapper $.map;
         }
 
         #! creates the iterator from the arguments passed
         /** @param i input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
             @param map the mapper to transform the data
         */
-        constructor(Qore::AbstractIterator $i, Mapper::Mapper $map) {
+        constructor(Qore::AbstractIterator $i) {
             $.i = $i;
-            $.map = $map;
         }
 
-        #! returns the current row transformed with the mapper
-        hash getValue() {
-            return $.map.mapData($.i.getValue());
-        }
-        
         #! Moves the current position of the input iterator to the next element; returns @ref Qore::False "False" if there are no more elements
         bool next() {
             return $.i.next();
@@ -485,6 +476,30 @@ public namespace Mapper {
         #! returns @ref Qore::True "True" if the input iterator is currently pointing at a valid element, @ref Qore::False "False" if not
         bool valid() {
             return $.i.valid();
+        }
+    }
+
+    #! provides a hash iterator based on a mapper object and an iterator input source
+    public class MapperIterator inherits Mapper::AbstractMapperIterator {
+        public {
+        }
+
+        private {
+            #! data mapper
+            Mapper::Mapper $.map;
+        }
+
+        #! creates the iterator from the arguments passed
+        /** @param i input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
+            @param map the mapper to transform the data
+        */
+        constructor(Qore::AbstractIterator $i, Mapper::Mapper $map) : Mapper::AbstractMapperIterator($i) {
+            $.map = $map;
+        }
+
+        #! returns the current row transformed with the mapper
+        hash getValue() {
+            return $.map.mapData($.i.getValue());
         }
     }
 }
