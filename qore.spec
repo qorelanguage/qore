@@ -77,6 +77,7 @@ development but is also useful as a general purpose language.
 %package -n libqore5
 Summary: The libraries for the qore runtime and qore clients
 Group: Development/Languages/Other
+Provides: qore-module-api-0.18
 Provides: qore-module-api-0.17
 Provides: qore-module-api-0.16
 Provides: qore-module-api-0.15
@@ -101,7 +102,7 @@ functionality.
 
 %files -n libqore5
 %defattr(-,root,root,-)
-%{_libdir}/libqore.so.5.11.1
+%{_libdir}/libqore.so.5.12.0
 %{_libdir}/libqore.so.5
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README README-LICENSE README-MODULES RELEASE-NOTES ChangeLog AUTHORS WHATISQORE
 

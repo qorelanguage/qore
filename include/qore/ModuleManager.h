@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -35,10 +35,10 @@
  */
 
 #define QORE_MODULE_API_MAJOR 0  //!< the major number of the Qore module API implemented
-#define QORE_MODULE_API_MINOR 17 //!< the minor number of the Qore module API implemented
+#define QORE_MODULE_API_MINOR 18 //!< the minor number of the Qore module API implemented
 
 #define QORE_MODULE_COMPAT_API_MAJOR 0  //!< the major number of the earliest recommended Qore module API
-#define QORE_MODULE_COMPAT_API_MINOR 14 //!< the minor number of the earliest recommended Qore module API 
+#define QORE_MODULE_COMPAT_API_MINOR 18 //!< the minor number of the earliest recommended Qore module API 
 
 //! element of qore_mod_api_list;
 struct qore_mod_api_compat_s {
