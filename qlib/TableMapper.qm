@@ -226,8 +226,6 @@ public namespace TableMapper {
         */
         hash insertRowNoCommit(hash $rec) {
             my hash $h = $.mapData($rec + $.crec);
-            my list $args = hash_values($h) + $extra_values;
-
             $.table.insert($h);
             return $h;
         }
@@ -361,7 +359,7 @@ public namespace TableMapper {
 
             # commit transaction if necessary
             if ($.commit_limit && (($rv && (++$.cnt == $.commit_limit)) || (!$rv && $.cnt))) {
-                $.table.commit();
+                $.map.commit();
                 $.cnt = 0;
             }
 
