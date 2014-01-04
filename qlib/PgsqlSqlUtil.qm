@@ -1032,7 +1032,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
 
         #! returns the next value in the given sequence
         private softint getNextSequenceValueImpl(string name) {
-            return ds.selectRow("select nextval(%s)", name).nextval;
+            return ds.selectRow("select nextval(%v)", name).nextval;
         }
 
         #! returns @ref Qore::True "True" if the database supports sequences

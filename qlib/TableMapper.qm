@@ -233,7 +233,7 @@ public namespace TableMapper {
         */
         hash insertRowNoCommit(hash $rec) {
             my hash $h = $.mapData($rec + $.crec);
-            $.table.insert($h);
+            $.table.insertNoCommit($h);
             return $h;
         }
 
@@ -267,6 +267,11 @@ public namespace TableMapper {
         string getTableName() {
             return $.table.getSqlName();
         }
+
+        #! returns the underlying SqlUtil::AbstractTable object
+        SqlUtil::AbstractTable getTable() {
+            return $.table;
+        }
     }
 
     #! provides a hash iterator based on a @ref TableMapper::InboundTableMapper "InboundTableMapper" object and an iterator input source; for each iteration the iterted row is inserted into the @ref SqlUtil::Table "Table" target
@@ -283,6 +288,9 @@ public namespace TableMapper {
 
             #! row count for commit
             int $.cnt = 0;
+
+            #! a copy of the last hash value mapped
+            hash $.val;
         }
 
         #! creates the iterator from the arguments passed
@@ -351,9 +359,9 @@ public namespace TableMapper {
 
         #! returns the current row transformed with the mapper
         hash getValue() {
-            my hash $h = $.map.mapData($.i.getValue());
-
-            return $h;
+            if ($.val)
+                return $.val;
+            return $.val = $.map.mapData($.i.getValue());
         }
 
         #! Moves the current position of the input iterator to the next element; returns @ref Qore::False "False" if there are no more elements otherwise inserts the row in the target table and returns @ref Qore::True "True"
@@ -362,10 +370,11 @@ public namespace TableMapper {
             @return @ref Qore::False "False" if there are no more elements, in this case if there is an uncommitted transaction according to the internal row count, then @ref TableMapper::InboundTableMapper::commit() is called as well
         */
         bool next() {
+            delete $.val;
             my bool $rv = $.i.next();
 
             if ($rv)
-                $.map.insertRowNoCommit($.i.getValue());
+                $.map.getTable().insertNoCommit($.getValue());
 
             # commit transaction if necessary
             if ($.commit_limit && (($rv && (++$.cnt == $.commit_limit)) || (!$rv && $.cnt))) {
@@ -374,6 +383,11 @@ public namespace TableMapper {
             }
 
             return $rv;
+        }
+
+        #! returns the \a commit_limit value set in the constructor()
+        int commitLimit() {
+            return $.commit_limit;
         }
 
         #! commits the transaction

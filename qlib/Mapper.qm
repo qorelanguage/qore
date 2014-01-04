@@ -416,16 +416,20 @@ public namespace Mapper {
             switch ($m.type) {
                 case "number": {
                     # check for valid numeric values
-                    if (exists $v && $v !~ /^([-+])?[0-9\.]+$/)
-                        $.error2("INVALID-NUMBER", "field %y = %y is marked as a numeric field, but the input data contains non-numeric text in input row: %y", $.getFieldName($key), $v, $rec);
-                    $v = number($v);
+                    if (exists $v) {
+                        if ($v !~ /^([-+])?[0-9\.]+$/)
+                            $.error2("INVALID-NUMBER", "field %y = %y is marked as a numeric field, but the input data contains non-numeric text in input row: %y", $.getFieldName($key), $v, $rec);
+                        $v = number($v);
+                    }
                     break;
                 }
                 case "integer": {
                     # check for valid integer values
-                    if (exists $v && $v !~ /^([-+])?[0-9]+$/)
-                        $.error2("INVALID-INTEGER", "field %y = %y is marked as an integer field, but the input data contains non-integer text in input row: %y", $.getFieldName($key), $v, $rec);
-                    $v = int($v);
+                    if (exists $v) {
+                        if ($v !~ /^([-+])?[0-9]+$/)
+                            $.error2("INVALID-INTEGER", "field %y = %y is marked as an integer field, but the input data contains non-integer text in input row: %y", $.getFieldName($key), $v, $rec);
+                        $v = int($v);
+                    }
                     break;
                 }
                 case "date": {
