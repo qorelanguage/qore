@@ -102,7 +102,12 @@ public namespace TableMapper {
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
         */
-        constructor(SqlUtil::Table $table, hash $map, *hash $opts) : Mapper($map, ("name": $table.getName()) + $opts, ("table": $table.getTable())) {
+        constructor(SqlUtil::Table $table, hash $map, *hash $opts) {
+            $.table = $table.getTable();
+            $.setup($map, $opts);
+
+            # check map for logical errors
+            $.checkMap();            
         }
 
         #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
@@ -126,14 +131,12 @@ public namespace TableMapper {
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
         */
-        constructor(SqlUtil::AbstractTable $table, hash $map, *hash $opts) : Mapper($map, ("name": $table.getName()) + $opts, ("table": $table)) {
-        }
+        constructor(SqlUtil::AbstractTable $table, hash $map, *hash $opts) {
+            $.table = $table;
+            $.setup($map, $opts);
 
-        #! sets up the mapper object before checking the mapper hash
-        private setup(hash $map, *hash $opts, *hash $scopts) {
-            $.table = $scopts.table;
-
-            Mapper::$.setup($map, $opts);
+            # check map for logical errors
+            $.checkMap();            
         }
 
         #! verifies the input map in the constructor
@@ -150,6 +153,9 @@ public namespace TableMapper {
             foreach my AbstractColumn $col in ($cols.iterator()) {
                 my string $cn = $col.name.lwr();
                 my reference $ch = \$.map.$cn;
+                my int $t = $ch.typeCode();
+                if ($t != NT_HASH)
+                    $.convertToHash($t, $cn, \$ch);
                 switch ($col.qore_type) {
                     case "string": $ch += ("maxlen": $col.size, "trunc": $.trunc_all); break;
                     case "number": $ch.type = "number"; break;
@@ -350,13 +356,16 @@ public namespace TableMapper {
             return $h;
         }
 
-        #! Moves the current position of the input iterator to the next element; returns @ref Qore::False "False" if there are no more elements
+        #! Moves the current position of the input iterator to the next element; returns @ref Qore::False "False" if there are no more elements otherwise inserts the row in the target table and returns @ref Qore::True "True"
         /** if \a commit_limit is > 0 then @ref TableMapper::InboundTableMapper::commit() is called for every \a commit_limit rows according to the internal row count
 
             @return @ref Qore::False "False" if there are no more elements, in this case if there is an uncommitted transaction according to the internal row count, then @ref TableMapper::InboundTableMapper::commit() is called as well
         */
         bool next() {
             my bool $rv = $.i.next();
+
+            if ($rv)
+                $.map.insertRowNoCommit($.i.getValue());
 
             # commit transaction if necessary
             if ($.commit_limit && (($rv && (++$.cnt == $.commit_limit)) || (!$rv && $.cnt))) {
@@ -365,6 +374,21 @@ public namespace TableMapper {
             }
 
             return $rv;
+        }
+
+        #! commits the transaction
+        nothing commit() {
+            $.map.commit();
+        }
+
+        #! rolls back the transaction
+        nothing rollback() {
+            $.map.rollback();
+        }
+
+        #! returns the table name
+        string getTableName() {
+            return $.map.getTableName();
         }
     }
 }

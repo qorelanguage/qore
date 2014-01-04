@@ -162,11 +162,7 @@ public namespace Mapper {
         }
 
         #! private constructor for subclasses
-        private constructor(hash $map, *hash $opts, *hash $scopts) {
-            $.setup($map, $opts, $scopts);
-
-            # check map for logical errors
-            $.checkMap();
+        private constructor() {
         }
 
         #! sets up the mapper object before checking the mapper hash
@@ -203,6 +199,25 @@ public namespace Mapper {
             map $.checkMapField($1, \$.map.$1), $.map.keyIterator();
         }
 
+        #! convert a field definition to a hash if possible
+        private convertToHash(int $t, string $k, reference $fh) {
+            switch ($t) {
+                # convert to a hash if the value of the column is a string (giving the source key name)
+                case NT_STRING: $fh = ($fh =~ /\./ ? ("struct": $fh.split(".")) : ("name": $fh)); break;
+                case NT_CALLREF:
+                case NT_CLOSURE: $fh = ("code": $fh); break;
+                case NT_BOOLEAN: if ($fh) {
+                    $fh = hash();
+                    break;
+                }
+                case NT_NOTHING: {
+                    $fh = hash();
+                    break;
+                }
+                default: $.error("unsupported type %y assigned to map key %y", $fh.type(), $k);
+            }
+        }
+
         #! perform per-field pre-processing on the passed map in the constructor
         /** @param k the field name
             @param fh a reference to the field's value in the map
@@ -210,22 +225,9 @@ public namespace Mapper {
         private checkMapField(string $k, reference $fh, *hash $th) {
             # check field description
             my int $t = $fh.typeCode();
-            if ($t != NT_HASH) {
-                switch ($t) {
-                    # convert to a hash if the value of the column is a string (giving the source key name)
-                    case NT_STRING: $fh = ($fh =~ /\./ ? ("struct": $fh.split(".")) : ("name": $fh)); break;
-                    case NT_CALLREF:
-                    case NT_CLOSURE: $fh = ("code": $fh); break;
-                    case NT_BOOLEAN: if ($.map.$k) {
-                        $fh = hash();
-                        break;
-                    }
-                    default: $.error("unknown type %y assigned to map key %y", $fh.type(), $k);
-                }
-                return;
-            }
-
-            if ($fh.name && $fh.struct)
+            if ($t != NT_HASH)
+                $.convertToHash($t, $k, \$fh);
+            else if ($fh.name && $fh.struct)
                 $.error("field '%s' has both 'name' (%y) and 'struct' (%y) values; only one can be given to identify the input field", $.getFieldName($k), $fh.name, $fh.struct);
 
             switch ($fh.struct.typeCode()) {
