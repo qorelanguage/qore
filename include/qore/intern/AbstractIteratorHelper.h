@@ -27,9 +27,6 @@
 
 #include <qore/intern/QoreClassIntern.h>
 
-extern QoreClass* QC_ABSTRACTITERATOR;
-extern QoreClass* QC_ABSTRACTBIDIRECTIONALITERATOR;
-
 class AbstractIteratorHelper {
 protected:
    DLLLOCAL static const QoreExternalMethodVariant* getCheckVariant(const char* op, const QoreMethod* m, ExceptionSink* xsink) {
