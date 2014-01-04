@@ -188,7 +188,8 @@ public namespace Mapper {
                     $.error("unknown option key %y passed to Mapper::constructor(); recognized option keys: %y", $.getFieldName($k), $ck.keys());
             }
 
-            $.enc = $opts.enc;
+            if ($opts.enc)
+                $.enc = $opts.enc;
             $.trunc = $opts.trunc;
             
             $.checkTimezoneOption($opts, "timezone");
