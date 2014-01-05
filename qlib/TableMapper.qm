@@ -55,7 +55,8 @@ module TableMapper {
     @section tablemapperintro TableMapper Module Introduction
 
     Classes provided by this module:
-    - @ref TableMapper::TableMapper
+    - @ref TableMapper::InboundTableMapper: extends the @ref Mapper::Mapper class; assumes an SQL table target
+    - @ref TableMapper::InboundTableMapperIterator: provides a specialization of the @ref Mapper::AbstractMapperIterator class; assumes an SQL table target; automatically inserts mapped data into the target table based on the mapper provided
 
     @section mapperrelnotes Release Notes
 
@@ -81,24 +82,27 @@ public namespace TableMapper {
         }
 
         #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
-        /** @param table the target table object
-            @param map a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash with the following fields providing information about how the input records should be translated (all fields are optional):
-            - \c name: the value of this key gives the name of the input field; only use this if the input record name is different than the output field name
-            - \c struct: the value of this key gives the location of the input field in an input hash in dot notation, ex: \c "element.name" would ook for the field's value in the \c "name" key of the \c "element" hash in the input record
-            - \c code: a closure or call reference to process the field data
-            - \c maxlen: an integer giving the maximum field length in bytes
-            - \c trunc: assign to boolean @ref Qore::True "True" if the field should be truncated if over the maximum field length; this key can only be set to @ref Qore::True "True" if the \c "maxlen" key is also given
-            - \c mand: assign to boolean @ref Qore::True "True" if the field is mandatory and an exception should be thrown if no input data is supplied
-            - \c type: this gives the field type, can be:
-              - \c "number": field accepts only numeric values (any non-numeric values on input will cause an exception to be thrown when mapping) 
-              - \c "date": date field
-            - \c sequence: the name of a sequence to populate the field value from
-            @param opts an optional hash of options for the mapper; accepted options are:
-              - \c "enc": the output character encoding; if not present then \c "UTF-8" is assumed
-              - \c "name": the name of the mapper for use in logging and error strings; note that if not given the table's name will be used automatically
-              - \c "trunc": an optional @ref closure "closure" or @ref call_reference "call reference" for a callback for field truncation warnings; must accept a single string giving the warning text
-              - \c "input_log": an optional input data logging callback; must accept a hash giving the input data hash
-              - \c "output_log": an optional output data logging callback; must accept a hash giving the output data hash
+        /** The target table is also scanned using @ref sqlutilintro "SqlUtil" and column definitions are used to update the target record specification, also if there are any columns with NOT NULL constraints and no default value, mapping, or constant value, then a MAP-ERROR exception is thrown
+
+            @par Example:
+            @code
+const DbMapper = (
+    "id": ("sequence": "seq_inventory_example"),
+    "store_code": "StoreCode",
+    "product_code": "ProductCode",
+    "product_desc": "ProductDescription",
+    "ordered": "Ordered",
+    "available": "Available",
+    "in_transit": "InTransit",
+    "total": int sub (any $x, hash $rec) { return $rec.Available.toInt() + $rec.Ordered.toInt() + $rec.InTransit.toInt(); },
+    );
+
+my InboundTableMapper $map($table, DbMapper);
+            @endcode
+
+            @param table the target table object
+            @param map a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
         */
@@ -111,23 +115,27 @@ public namespace TableMapper {
         }
 
         #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
-        /** @param map a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash with the following fields providing information about how the input records should be translated (all fields are optional):
-            - \c name: the value of this key gives the name of the input field; only use this if the input record name is different than the output field name
-            - \c struct: the value of this key gives the location of the input field in an input hash in dot notation, ex: \c "element.name" would ook for the field's value in the \c "name" key of the \c "element" hash in the input record
-            - \c code: a closure or call reference to process the field data
-            - \c maxlen: an integer giving the maximum field length in bytes
-            - \c trunc: assign to boolean @ref Qore::True "True" if the field should be truncated if over the maximum field length; this key can only be set to @ref Qore::True "True" if the \c "maxlen" key is also given
-            - \c mand: assign to boolean @ref Qore::True "True" if the field is mandatory and an exception should be thrown if no input data is supplied
-            - \c type: this gives the field type, can be:
-              - \c "number": field accepts only numeric values (any non-numeric values on input will cause an exception to be thrown when mapping) 
-              - \c "date": date field
-            - \c sequence: the name of a sequence to populate the field value from
-            @param opts an optional hash of options for the mapper; accepted options are:
-              - \c "enc": the output character encoding; if not present then \c "UTF-8" is assumed
-              - \c "name": the name of the mapper for use in logging and error strings; note that if not given the table's name will be used automatically
-              - \c "trunc": an optional @ref closure "closure" or @ref call_reference "call reference" for a callback for field truncation warnings; must accept a single string giving the warning text
-              - \c "input_log": an optional input data logging callback; must accept a hash giving the input data hash
-              - \c "output_log": an optional output data logging callback; must accept a hash giving the output data hash
+        /** The target table is also scanned using @ref sqlutilintro "SqlUtil" and column definitions are used to update the target record specification, also if there are any columns with NOT NULL constraints and no default value, mapping, or constant value, then a MAP-ERROR exception is thrown
+
+            @par Example:
+            @code
+const DbMapper = (
+    "id": ("sequence": "seq_inventory_example"),
+    "store_code": "StoreCode",
+    "product_code": "ProductCode",
+    "product_desc": "ProductDescription",
+    "ordered": "Ordered",
+    "available": "Available",
+    "in_transit": "InTransit",
+    "total": int sub (any $x, hash $rec) { return $rec.Available.toInt() + $rec.Ordered.toInt() + $rec.InTransit.toInt(); },
+    );
+
+my InboundTableMapper $map($table, DbMapper);
+            @endcode
+
+            @param table the target table object
+            @param map a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
         */
@@ -154,8 +162,17 @@ public namespace TableMapper {
                 my string $cn = $col.name.lwr();
                 my reference $ch = \$.map.$cn;
                 my int $t = $ch.typeCode();
-                if ($t != NT_HASH)
+
+                my bool $mand;
+                if (!$col.nullable && !exists $col.def_val)
+                    $mand = True;
+
+                if ($t != NT_HASH) {
+                    if ($t == NT_NOTHING && $mand && !exists $.crec.$cn)
+                        $.error("output column '%s' has a NOT NULL constraint and no default value, and the mapper object has no mapping or constant value; please provide a mapping or constant value for this column", $.getFieldName($cn));
                     $.convertToHash($t, $cn, \$ch);
+                }
+
                 switch ($col.qore_type) {
                     case "string": $ch += ("maxlen": $col.size, "trunc": $.trunc_all); break;
                     case "number": $ch.type = "number"; break;
@@ -163,7 +180,7 @@ public namespace TableMapper {
                     case "date": $ch.type = "date"; break;
                     default: throw "TABLE-ERROR", sprintf("column %s.%s has unknown native type %y", $.table.getSqlName(), $cn, $col.native_type);
                 }
-                if (!$col.nullable && !exists $col.def_val)
+                if ($mand)
                     $ch.mand = True;
             }
 
@@ -294,26 +311,32 @@ public namespace TableMapper {
         }
 
         #! creates the iterator from the arguments passed
-        /** @param i input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
+        /** The target table is also scanned using @ref sqlutilintro "SqlUtil" and column definitions are used to update the target record specification, also if there are any columns with NOT NULL constraints and no default value, mapping, or constant value, then a MAP-ERROR exception is thrown
+
+            @par Example:
+            @code
+const DbMapper = (
+    "id": ("sequence": "seq_inventory_example"),
+    "store_code": "StoreCode",
+    "product_code": "ProductCode",
+    "product_desc": "ProductDescription",
+    "ordered": "Ordered",
+    "available": "Available",
+    "in_transit": "InTransit",
+    "total": int sub (any $x, hash $rec) { return $rec.Available.toInt() + $rec.Ordered.toInt() + $rec.InTransit.toInt(); },
+    );
+
+my InboundTableMapperIterator $i($input, $table, DbMapper);
+            @endcode
+
+            @param i input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
             @param table the target table object
-            @param map a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash with the following fields providing information about how the input records should be translated (all fields are optional):
-            - \c name: the value of this key gives the name of the input field; only use this if the input record name is different than the output field name
-            - \c struct: the value of this key gives the location of the input field in an input hash in dot notation, ex: \c "element.name" would ook for the field's value in the \c "name" key of the \c "element" hash in the input record
-            - \c code: a closure or call reference to process the field data
-            - \c maxlen: an integer giving the maximum field length in bytes
-            - \c trunc: assign to boolean @ref Qore::True "True" if the field should be truncated if over the maximum field length; this key can only be set to @ref Qore::True "True" if the \c "maxlen" key is also given
-            - \c mand: assign to boolean @ref Qore::True "True" if the field is mandatory and an exception should be thrown if no input data is supplied
-            - \c type: this gives the field type, can be:
-              - \c "number": field accepts only numeric values (any non-numeric values on input will cause an exception to be thrown when mapping) 
-              - \c "date": date field
-            - \c sequence: the name of a sequence to populate the field value from
-            @param opts an optional hash of options for the mapper; accepted options are:
-              - \c "enc": the output character encoding; if not present then \c "UTF-8" is assumed
-              - \c "name": the name of the mapper for use in logging and error strings; note that if not given the table's name will be used automatically
-              - \c "trunc": an optional @ref closure "closure" or @ref call_reference "call reference" for a callback for field truncation warnings; must accept a single string giving the warning text
-              - \c "input_log": an optional input data logging callback; must accept a hash giving the input data hash
-              - \c "output_log": an optional output data logging callback; must accept a hash giving the output data hash
+            @param map a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
             @param commit_limit row count before a commit is made; if <= 0 then no commits are made by this object, otherwise a commit is made for each \a commit_limit rows processed by this object, commits are made in calls to @ref next()
+
+            @note by default \a commit_limit is 0 meaning that this object will make no commits; in this case the transaction will
+            have to be commited explicitly externally
         */
         constructor(Qore::AbstractIterator $i, SqlUtil::Table $table, hash $map, *hash $opts, int $commit_limit = 0) : Mapper::AbstractMapperIterator($i) {
             $.map = new TableMapper::InboundTableMapper($table, $map, $opts);
@@ -321,26 +344,32 @@ public namespace TableMapper {
         }
 
         #! creates the iterator from the arguments passed
-        /** @param i input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
+        /** The target table is also scanned using @ref sqlutilintro "SqlUtil" and column definitions are used to update the target record specification, also if there are any columns with NOT NULL constraints and no default value, mapping, or constant value, then a MAP-ERROR exception is thrown
+
+            @par Example:
+            @code
+const DbMapper = (
+    "id": ("sequence": "seq_inventory_example"),
+    "store_code": "StoreCode",
+    "product_code": "ProductCode",
+    "product_desc": "ProductDescription",
+    "ordered": "Ordered",
+    "available": "Available",
+    "in_transit": "InTransit",
+    "total": int sub (any $x, hash $rec) { return $rec.Available.toInt() + $rec.Ordered.toInt() + $rec.InTransit.toInt(); },
+    );
+
+my InboundTableMapperIterator $i($input, $table, DbMapper);
+            @endcode
+
+            @param i input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
             @param table the target table object
-            @param map a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash with the following fields providing information about how the input records should be translated (all fields are optional):
-            - \c name: the value of this key gives the name of the input field; only use this if the input record name is different than the output field name
-            - \c struct: the value of this key gives the location of the input field in an input hash in dot notation, ex: \c "element.name" would ook for the field's value in the \c "name" key of the \c "element" hash in the input record
-            - \c code: a closure or call reference to process the field data
-            - \c maxlen: an integer giving the maximum field length in bytes
-            - \c trunc: assign to boolean @ref Qore::True "True" if the field should be truncated if over the maximum field length; this key can only be set to @ref Qore::True "True" if the \c "maxlen" key is also given
-            - \c mand: assign to boolean @ref Qore::True "True" if the field is mandatory and an exception should be thrown if no input data is supplied
-            - \c type: this gives the field type, can be:
-              - \c "number": field accepts only numeric values (any non-numeric values on input will cause an exception to be thrown when mapping) 
-              - \c "date": date field
-            - \c sequence: the name of a sequence to populate the field value from
-            @param opts an optional hash of options for the mapper; accepted options are:
-              - \c "enc": the output character encoding; if not present then \c "UTF-8" is assumed
-              - \c "name": the name of the mapper for use in logging and error strings; note that if not given the table's name will be used automatically
-              - \c "trunc": an optional @ref closure "closure" or @ref call_reference "call reference" for a callback for field truncation warnings; must accept a single string giving the warning text
-              - \c "input_log": an optional input data logging callback; must accept a hash giving the input data hash
-              - \c "output_log": an optional output data logging callback; must accept a hash giving the output data hash
+            @param map a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
             @param commit_limit row count before a commit is made; if <= 0 then no commits are made by this object, otherwise a commit is made for each \a commit_limit rows processed by this object, commits are made in calls to @ref next()
+
+            @note by default \a commit_limit is 0 meaning that this object will make no commits; in this case the transaction will
+            have to be commited explicitly externally
         */
         constructor(Qore::AbstractIterator $i, SqlUtil::AbstractTable $table, hash $map, *hash $opts, int $commit_limit = 0) : Mapper::AbstractMapperIterator($i) {
             $.map = new TableMapper::InboundTableMapper($table, $map, $opts);
@@ -348,7 +377,26 @@ public namespace TableMapper {
         }
 
         #! creates the iterator from the arguments passed
-        /** @param i input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
+        /** The target table is also scanned using @ref sqlutilintro "SqlUtil" and column definitions are used to update the target record specification, also if there are any columns with NOT NULL constraints and no default value, mapping, or constant value, then a MAP-ERROR exception is thrown
+
+            @par Example:
+            @code
+const DbMapper = (
+    "id": ("sequence": "seq_inventory_example"),
+    "store_code": "StoreCode",
+    "product_code": "ProductCode",
+    "product_desc": "ProductDescription",
+    "ordered": "Ordered",
+    "available": "Available",
+    "in_transit": "InTransit",
+    "total": int sub (any $x, hash $rec) { return $rec.Available.toInt() + $rec.Ordered.toInt() + $rec.InTransit.toInt(); },
+    );
+
+my InboundTableMapper $map($table, DbMapper);
+my InboundTableMapperIterator $i($input, $map);
+            @endcode
+
+            @param i input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
             @param map the mapper to transform the data
             @param commit_limit row count before a commit is made; if <= 0 then no commits are made by this object, otherwise a commit is made for each \a commit_limit rows processed by this object, commits are made in calls to @ref next()
         */

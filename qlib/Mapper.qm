@@ -49,9 +49,40 @@ module Mapper {
 
     @section mapperintro Mapper Module Introduction
 
+    This module provides classes that help with structured data mapping, meaning the transformation of data in one or more input
+    formats to a different output format.
+
     Classes provided by this module:
     - @ref Mapper::Mapper
     - @ref Mapper::MapperIterator
+
+    @section mapperkeys Mapper Hash Values
+
+    The mapper hash is made up of target field names (as the key values) and one of the following:
+    - @ref Qore::True "True": meaning map from an input field with the same name
+    - a @ref closure "closure" or @ref call_reference "call reference": meaning map from a field of the same name an apply the given code to give the value for the mapping; the @ref closure "closure" or @ref call_reference "call reference" must accept the following arguments:
+      - type: @ref any_type "any", value: the input field value (with the same name as the output field; to use a different name, see the \a code hash option below)
+      - type: @ref hash_type "hash", value: the current input record
+    - a @ref hash_type "hash" describing the mapping; the following keys are all optional (an empty hash means map from an input field with the same name with no translations):
+      - \c "name": the value of this key gives the name of the input field; only use this if the input record name is different than the output field name
+      - \c "struct": the value of this key gives the location of the input field in an input hash in dot notation, ex: \c "element.name" would ook for the field's value in the \c "name" key of the \c "element" hash in the input record
+      - \c "code": a closure or call reference to process the field data
+      - \c "maxlen": an integer giving the maximum field length in bytes
+      - \c "trunc": assign to boolean @ref Qore::True "True" if the field should be truncated if over the maximum field length; this key can only be set to @ref Qore::True "True" if the \c "maxlen" key is also given
+      - \c "mand": assign to boolean @ref Qore::True "True" if the field is mandatory and an exception should be thrown if no input data is supplied
+      - \c "type": this gives the field type, can be:
+        - \c "number": field accepts only numeric values (any non-numeric values on input will cause an exception to be thrown when mapping) 
+        - \c "integer": fields accepts only integer values (any non-integer values on input will cause an exception to be thrown when mapping; note: also \"C int" is accepted as an alias for \c "integer") 
+        - \c "date": date field
+
+    @section mapperoptions Mapper Options
+
+    Mapper objects accept the following options in the option hash:
+    - \c "enc": the output character encoding; if not present then \c "UTF-8" is assumed
+    - \c "name": the name of the mapper for use in logging and error strings
+    - \c "trunc": an optional @ref closure "closure" or @ref call_reference "call reference" for a callback for field truncation warnings; must accept a single string giving the warning text
+    - \c "input_log": an optional input data logging callback; must accept a hash giving the input data hash
+    - \c "output_log": an optional output data logging callback; must accept a hash giving the output data hash
 
     @section mapperrelnotes Release Notes
 
@@ -129,28 +160,14 @@ public namespace Mapper {
             const ValidTypes = (
                 "number": True,
                 "integer": True,
+                "int": True, # is an alias for "integer"
                 "date": True,
                 );
         }
 
         #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
-        /** @param map a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash with the following fields providing information about how the input records should be translated (all fields are optional):
-            - \c name: the value of this key gives the name of the input field; only use this if the input record name is different than the output field name
-            - \c struct: the value of this key gives the location of the input field in an input hash in dot notation, ex: \c "element.name" would ook for the field's value in the \c "name" key of the \c "element" hash in the input record
-            - \c code: a closure or call reference to process the field data
-            - \c maxlen: an integer giving the maximum field length in bytes
-            - \c trunc: assign to boolean @ref Qore::True "True" if the field should be truncated if over the maximum field length; this key can only be set to @ref Qore::True "True" if the \c "maxlen" key is also given
-            - \c mand: assign to boolean @ref Qore::True "True" if the field is mandatory and an exception should be thrown if no input data is supplied
-            - \c type: this gives the field type, can be:
-              - \c "number": field accepts only numeric values (any non-numeric values on input will cause an exception to be thrown when mapping) 
-              - \c "integer": fields accepts only integer values (any non-integer values on input will cause an exception to be thrown when mapping) 
-              - \c "date": date field
-            @param opts an optional hash of options for the mapper; accepted options are:
-              - \c "enc": the output character encoding; if not present then \c "UTF-8" is assumed
-              - \c "name": the name of the mapper for use in logging and error strings
-              - \c "trunc": an optional @ref closure "closure" or @ref call_reference "call reference" for a callback for field truncation warnings; must accept a single string giving the warning text
-              - \c "input_log": an optional input data logging callback; must accept a hash giving the input data hash
-              - \c "output_log": an optional output data logging callback; must accept a hash giving the output data hash
+        /** @param map a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
          */
@@ -190,8 +207,10 @@ public namespace Mapper {
                 $.enc = $opts.enc;
             $.trunc = $opts.trunc;
             
-            $.checkTimezoneOption($opts, "timezone");
-            $.checkTimezoneOption($opts, "input_timezone");
+            if ($opts) {
+                $.checkTimezoneOption($opts, "timezone");
+                $.checkTimezoneOption($opts, "input_timezone");
+            }
         }
 
         #! verifies the input map in the constructor
@@ -273,8 +292,6 @@ public namespace Mapper {
                 if (exists $.crec.$k)
                     $.error("field '%s' is has a mapping and also a constant value", $.getFieldName($k));
             }
-            else if ($fh.mand && !exists $.crec.$k)
-                $.error("output field '%s' is mandatory but has no mapping or constant value", $.getFieldName($k));
         }
 
         #! returns @ref Qore::True "True" if the field has a mapping, @ref Qore::False "False" if not
@@ -423,6 +440,7 @@ public namespace Mapper {
                     }
                     break;
                 }
+                case "int":
                 case "integer": {
                     # check for valid integer values
                     if (exists $v) {
@@ -508,23 +526,8 @@ public namespace Mapper {
 
         #! creates the iterator from the arguments passed
         /** @param i input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
-            @param map a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash with the following fields providing information about how the input records should be translated (all fields are optional):
-            - \c name: the value of this key gives the name of the input field; only use this if the input record name is different than the output field name
-            - \c struct: the value of this key gives the location of the input field in an input hash in dot notation, ex: \c "element.name" would ook for the field's value in the \c "name" key of the \c "element" hash in the input record
-            - \c code: a closure or call reference to process the field data
-            - \c maxlen: an integer giving the maximum field length in bytes
-            - \c trunc: assign to boolean @ref Qore::True "True" if the field should be truncated if over the maximum field length; this key can only be set to @ref Qore::True "True" if the \c "maxlen" key is also given
-            - \c mand: assign to boolean @ref Qore::True "True" if the field is mandatory and an exception should be thrown if no input data is supplied
-            - \c type: this gives the field type, can be:
-              - \c "number": field accepts only numeric values (any non-numeric values on input will cause an exception to be thrown when mapping) 
-              - \c "integer": fields accepts only integer values (any non-integer values on input will cause an exception to be thrown when mapping) 
-              - \c "date": date field
-            @param opts an optional hash of options for the mapper; accepted options are:
-              - \c "enc": the output character encoding; if not present then \c "UTF-8" is assumed
-              - \c "name": the name of the mapper for use in logging and error strings
-              - \c "trunc": an optional @ref closure "closure" or @ref call_reference "call reference" for a callback for field truncation warnings; must accept a single string giving the warning text
-              - \c "input_log": an optional input data logging callback; must accept a hash giving the input data hash
-              - \c "output_log": an optional output data logging callback; must accept a hash giving the output data hash
+            @param map a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
          */

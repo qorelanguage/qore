@@ -458,7 +458,7 @@ class HttpServer::HttpHandlerList {
 
         foreach my HandlerInfo $hi in ($.handlers.iterator()) {
             my int $scr = $hi.matchRequest($hdr, $score);
-            #printf("findHandler() path: %s %y score: %d\n", $hdr.path, $hi.name, $scr);
+            #printf("findHandler() path: %s %y score: %d (regex: %y)\n", $hdr.path, $hi.name, $scr, $hi.isregex);
             if ($scr > $score) {
                 $rv = $hi;
                 $score = $scr;
