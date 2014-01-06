@@ -201,6 +201,10 @@ my InboundTableMapper $map($table, DbMapper);
                 if (!$col.nullable && !exists $col.def_val)
                     $mand = True;
 
+                # only add column descriptions where mappings are missing if there is a NOT NULL constraint and no default value
+                if (!exists $ch && !$mand)
+                    continue;
+
                 if ($t != NT_HASH) {
                     if ($t == NT_NOTHING && $mand && !exists $.crec.$cn)
                         $.error("output column '%s' has a NOT NULL constraint and no default value, and the mapper object has no mapping or constant value; please provide a mapping or constant value for this column", $.getFieldName($cn));
