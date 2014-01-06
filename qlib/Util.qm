@@ -41,7 +41,7 @@ module Util {
 
 /*  Version History
     * 2013-10-30 v1.1: David Nichols <david@qore.org>
-      + added the get_byte_size() function
+      + added the get_byte_size() and get_marketing_byte_size() functions
 
     * 2013-10-04 v1.0: David Nichols <david@qore.org>
       + the initial version of the Util module
@@ -59,16 +59,18 @@ module Util {
     All the public symbols in the module are defined in the Util namespace
 
     Functions:
-    - @ref Util::compare_version()
-    - @ref Util::normalize_dir()
-      - @ref Util::normalize_dir_unix()
-      - @ref Util::normalize_dir_windows()
     - @ref Util::absolute_path()
       - @ref Util::absolute_path_unix()
       - @ref Util::absolute_path_windows()
-    - @ref Util::parse_to_qore_value()
+    - @ref Util::compare_version()
+    - @ref Util::get_byte_size()
     - @ref Util::get_exception_string()
+    - @ref Util::get_marketing_byte_size()
     - @ref Util::get_random_string()
+    - @ref Util::normalize_dir()
+      - @ref Util::normalize_dir_unix()
+      - @ref Util::normalize_dir_windows()
+    - @ref Util::parse_to_qore_value()
 */
 
 namespace Init {

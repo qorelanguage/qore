@@ -339,15 +339,15 @@ public namespace RestHandler {
                 my string $cname = shift $cl;
                 my *AbstractRestClass $cls = $.subClass($cname, $cx, $args);
                 if (!$cls) {
-                    $rh.logDebug("class %y: unknown subclass %y: method %y args: %y", $.name(), $cname, $mn, $args);
+                    $rh.logDebug("REST DBG: class %y: unknown subclass %y: method %y args: %y", $.name(), $cname, $mn, $args);
                     return $.unknownSubClassError($cname);
                 }
 
-                $rh.logDebug("class %y: dispatching to subclass %y: method %y args: %y", $.name(), $cname, $mn, $args);
+                $rh.logDebug("REST DBG: class %y: dispatching to subclass %y: method %y args: %y", $.name(), $cname, $mn, $args);
                 return $cls.handleRequest($rh, $cl, $mn, $cx, $args);
             }
             
-            $rh.logDebug("class %y: dispatching method %y args: %y", $.name(), $mn, $args);
+            $rh.logDebug("REST DBG: class %y: dispatching method %y args: %y", $.name(), $mn, $args);
             return $.dispatch($rh, NOTHING, $mn, $args, $cx);
         }
 
@@ -358,7 +358,7 @@ public namespace RestHandler {
             }
             catch (hash $ex) {
                 if ($ex.err == "METHOD-DOES-NOT-EXIST") {
-                    $rh.logDebug("DISPATCH-ERROR: cannot dispatch to unimplemented method %y: class %y, args: %y", $mn, $.name(), $ah);
+                    $rh.logError("DISPATCH-ERROR: cannot dispatch to unimplemented method %y: class %y, args: %y", $mn, $.name(), $ah);
                     # see if alternate methods would work
                     my list $hl = ();
                     foreach my hash $mh in (RestHandler::Methods.pairIterator()) {
@@ -376,7 +376,7 @@ public namespace RestHandler {
                     $desc += sprintf(", available methods: %s", $ml);
                     return AbstractHttpRequestHandler::makeResponse(("Allow": $ml), 405, $desc);
                 }
-                $rh.logDebug("class %y: method %y: %s: %s: %s", $.name(), $mn, get_ex_pos($ex), $ex.err, $ex.desc);
+                $rh.logDebug("REST DBG: class %y: method %y: %s: %s: %s", $.name(), $mn, get_ex_pos($ex), $ex.err, $ex.desc);
                 rethrow;
             }
         }
@@ -488,10 +488,10 @@ public namespace RestHandler {
             - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
          */
         hash handleRequest(hash $cx, hash $hdr, *data $b) {
-            #$.logDebug("cx: %N", $cx);
-            #$.logDebug("hdr: %N", $hdr);
+            #$.logDebug("REST DBG: cx: %N", $cx);
+            #$.logDebug("REST DBG: hdr: %N", $hdr);
             if ($b)
-                $.logDebug("body: %s", $b.typeCode() == NT_STRING ? trim($b) : sprintf("%y", $b));
+                $.logDebug("REST DBG: body: %s", $b.typeCode() == NT_STRING ? trim($b) : sprintf("%y", $b));
 
             my any $body = $b;
             
@@ -578,7 +578,7 @@ public namespace RestHandler {
                 $aih."*/*" = True;
             }
 
-            #$.logDebug("aih: %y", $aih);
+            #$.logDebug("REST DBG: aih: %y", $aih);
 
             # set up context hash
             $cx += ("hdr": $hdr, "body": $body, "aih": $aih);
@@ -610,7 +610,7 @@ public namespace RestHandler {
             }
             catch (hash $ex) {
                 # if there is an exception, return a 409 Conflict error to the client with the exception information
-                $.logDebug("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc);
+                $.logError("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc);
                 $rv = (
                     "code": 409,
                     "body": $ex,
@@ -652,9 +652,9 @@ public namespace RestHandler {
                 }
             }
 
-            $.logDebug("response serialization: %d %s (%d bytes)", $rv.code, $rv.hdr."Content-Type", $rv.body.size());
+            $.logDebug("REST DBG: response serialization: %d %s (%d bytes)", $rv.code, $rv.hdr."Content-Type", $rv.body.size());
 
-            #$.logDebug("rv: %N", $rv);
+            #$.logDebug("REST DBG: rv: %N", $rv);
 
             return $rv;
         }
