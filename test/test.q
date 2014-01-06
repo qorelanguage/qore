@@ -16,6 +16,9 @@
 # for Mime tests
 %requires Mime
 
+# for Mapper tests
+%requires Mapper
+
 # global variables needed for tests
 our Test $to("program-test.q");
 our Test $ro("readonly");
@@ -2064,8 +2067,71 @@ sub mime_tests() {
     test_value($str, mime_decode_header(mime_encode_header_word_b($str)), "MIME: header word b");
 }
 
+const DataMap = (
+    # this will take the "Id" element of any "^attributes^" hash in the input record
+    "id": "^attributes^.Id",
+    # this maps input "name" -> output "name"
+    "name": True,
+    # this marks "explicit_count" as an integer field mapped from the input "Count" field
+    "explicit_count": ("type": "int", "name": "Count"),
+    # runs the given code on the input record and retuns the result - the number of "Products" sub-records
+    "implicit_count": int sub (any $ignored, hash $rec) { return $rec.Products.size(); },
+    # converts the given field to a date in the specified format
+    "order_date": ("name": "OrderDate", "date_format": "DD.MM.YYYY HH:mm:SS.us"),
+);
+
+const MapInput = ((
+    "^attributes^": ("Id": 1),
+    "name": "John Smith",
+    "Count": 1,
+    "OrderDate": "02.01.2014 10:37:45.103948",
+    "Products": ((
+        "ProductName": "Widget 1",
+        "Quantity": 1,
+        ),
+    )), (
+    "^attributes^": ("Id": 2),
+    "name": "Steve Austin",
+    "Count": 2,
+    "OrderDate": "04.01.2014 19:21:08.882634",
+    "Products": ((
+        "ProductName": "Widget X",
+        "Quantity": 4,
+        ), (
+        "ProductName": "Widget 2",
+        "Quantity": 2,
+        ),
+    )),
+);
+
+const MapOutput = ((
+    "id": 1,
+    "name": "John Smith",
+    "explicit_count": 1,
+    "implicit_count": 1,
+    "order_date": 2014-01-02T10:37:45.103948,
+    ), (
+    "id": 2,
+    "name": "Steve Austin",
+    "explicit_count": 2,
+    "implicit_count": 2,
+    "order_date": 2014-01-04T19:21:08.882634,
+    ),
+);
+
+sub mapper_tests() {
+    my Mapper $map(DataMap);
+    my list $l = $map.mapAll(MapInput);
+    test_value($l, MapOutput, "Mapper::mapAll()");
+    test_value($map.getCount(), 2, "1:Mapper::getCount()");
+    $l = map $map.mapData($1), MapInput;
+    test_value($l, MapOutput, "map Mapper::mapData()");
+    test_value($map.getCount(), 4, "1:Mapper::getCount()");
+}
+
 sub module_tests() {
     mime_tests();
+    mapper_tests();
 }
 
 sub do_tests() {

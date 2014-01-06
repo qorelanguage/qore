@@ -55,9 +55,43 @@ module TableMapper {
     @section tablemapperintro TableMapper Module Introduction
 
     Classes provided by this module:
-    - @ref TableMapper::InboundTableMapper: extends the @ref Mapper::Mapper class; assumes an SQL table target
-    - @ref TableMapper::InboundTableMapperIterator: provides a specialization of the @ref Mapper::AbstractMapperIterator class; assumes an SQL table target; automatically inserts mapped data into the target table based on the mapper provided
+    - @ref TableMapper::InboundTableMapper "InboundTableMapper": extends the @ref Mapper::Mapper class; assumes an SQL table target
+    - @ref TableMapper::InboundTableMapperIterator "InboundTableMapperIterator": provides a specialization of the @ref Mapper::AbstractMapperIterator class; assumes an SQL table target; automatically inserts mapped data into the target table based on the mapper provided
 
+    @section tablemapperexamples TableMapper Examples
+
+    The following is an example map hash with comments:
+    @code
+const DataMap = (
+    # output column: "id" mapper from the "Id" element of any "^attributes^" hash in the input record
+    "id": "^attributes^.Id",
+    # output column: "name": maps from an input field with the same name (no translations are made)
+    "name": True,
+    # output column: "explicit_count": maps from the input "Count" field, if any value is present then it is converted to an integer
+    "explicit_count": ("type": "int", "name": "Count"),
+    # output column: "implicit_count": runs the given code on the input record and retuns the result, the code returns the number of "Products" sub-records
+    "implicit_count": int sub (any $ignored, hash $rec) { return $rec.Products.size(); },
+    # output column: "order_date": converts the "OrderDate" string input field to a date in the specified format
+    "order_date": ("name": "OrderDate", "date_format": "DD.MM.YYYY HH:mm:SS.us"),
+);
+    @endcode
+
+    If this map is applied in the following way:
+    @code
+my Table $table($ds, "order_table");
+my TableMapper $map($table, DataMap);
+{
+    on_success $map.commit();
+    on_error $map.rollback();
+    # apply the map and insert the mapped for for each input record
+    map $map.insertRowNoCommit($1), $input;
+}
+printf("%d record%s inserted\n", $map.getCount(), $map.getCount() == 1 ? "" : "s");
+    @endcode
+
+    This will insert all the mapped input data into data into the \c ORDER_TABLE
+    table and then print out the number of rows inserted.
+    
     @section mapperrelnotes Release Notes
 
     @subsection tablemapperv1_0 TableMapper v1.0
@@ -451,6 +485,20 @@ my InboundTableMapperIterator $i($input, $map);
         #! returns the table name
         string getTableName() {
             return $.map.getTableName();
+        }
+
+        #! returns the internal record count
+        /** @see resetCount()
+        */
+        int getCount() {
+            return $.map.getCount();
+        }
+
+        #! resets the internal record count
+        /** @see getCount()
+        */
+        resetCount() {
+            $.map.resetCount();
         }
     }
 }
