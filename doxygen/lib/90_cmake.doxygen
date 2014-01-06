@@ -1,0 +1,208 @@
+/** @page qore_cmake Using Qore with CMake Build System
+
+    \tableofcontents
+
+    @section qore_cmake_about Using Qore and CMake
+    
+    Qore comes with its own CMake support files.
+   
+    The basic step for Qore inclusion in the CMake project is to put following
+    line into \c CMakeLists.txt project configuration.
+    
+    @code
+    find_package(Qore)
+    @endcode
+    
+    @section qore_cmake_build_type Build Type Handling
+    
+    CMake allows to set various \c CMAKE_BUILD_TYPE build types.
+    Qore package sets \c CMAKE_BUILD_TYPE to \c debug if it's not defined
+    on input.
+    
+    Qore files are located in \c CMAKE_PREFIX/lib[LIB_SUFFIX]/cmake/Qore directory.
+
+    
+    @section qore_cmake_find_package FIND_PACKAGE Arguments
+    
+    @code
+    find_package(<package> [version] [EXACT] [QUIET] [MODULE]
+               [REQUIRED] [[COMPONENTS] [components...]]
+               [OPTIONAL_COMPONENTS components...])
+    @endcode
+    
+    <table>
+    <tr><th>Argument</th><th>Description</th></tr>
+    <tr><td>\c package</td><td>\c Qore</td></tr>
+    <tr><td>\c version</td><td>A required version of Qore</td></tr>
+    <tr><td>\c EXACT</td><td>The \c EXACT option requests that the version be matched exactly.</td></tr>
+    <tr><td>\c QUIET</td><td>The \c QUIET option disables messages if the package cannot be found</td></tr>
+    <tr><td>\c REQUIRED</td><td>The \c REQUIRED option stops processing with an error message if the package cannot be found.</td></tr>
+    <tr><td>\c COMPONENTS</td><td>Unused for Qore</td></tr>
+    <tr><td>\c OPTIONAL_COMPONENTS</td><td>Unused for Qore</td></tr>
+    </table>
+
+    
+    @subsection qore_cmake_variables CMake Qore Variables
+    
+    <table>
+    <tr><th>Variable</th><th>Description</th></tr>
+    <tr><td>\c QORE_FOUND</td><td>Set if the system has Qore installed</td></tr>
+    <tr><td>\c QORE_INCLUDE_DIR</td><td>Path to Qore include files</td></tr>
+    <tr><td>\c QORE_INCLUDE_DIRS</td><td>CMake standard alias for QORE_INCLUDE_DIR</td></tr>
+    <tr><td>\c QORE_LIBRARY</td><td>Qore library location and name used for linking</td></tr>
+    <tr><td>\c QORE_LIBRARIES</td><td>CMake standard alias for QORE_LIBRARY</td></tr>
+    <tr><td>\c QORE_MODULES_DIR</td><td>Location of Qore binary modules</td></tr>
+    <tr><td>\c QORE_API_VERSION</td><td>Qore binary module API version</td></tr>
+    <tr><td>\c QORE_EXECUTABLE</td><td>Qore language interpret binary location, including executable name</td></tr>
+    <tr><td>\c QORE_QPP_EXECUTABLE</td><td>Qore QPP binary location, including executable name</td></tr>
+    <tr><td>\c QORE_BUILD_TYPE_LWR</td><td>A lower-cased \c CMAKE_BUILD_TYPE value</td></tr>
+    </table>
+    
+
+    @subsection qore_cmake_defines Compiler Defines
+    
+    \c find_package(Qore) sets some compiler defines automatically.
+    
+    <table>
+    <tr><th>Variable</th><th>Description</th></tr>
+    <tr><td>\c DEBUG</td><td>Set if is the \c CMAKE_BUILD_TYPE set as debug</td></tr>
+    <tr><td>\c NDEBUG</td><td>Set if is the \c CMAKE_BUILD_TYPE set as anything alse as debug</td></tr>
+    </table>
+    
+    There are more variables set when is the @ref qore_cmake_binary_modules functionality in use
+    
+    
+    @section qore_cmake_binary_modules Qore Binary Modules Support for CMake
+
+    There are some helper macros for @ref qore_modules located in \c QoreMacros.cmake file.
+    Macros expect the module source code in following structure:
+    
+     - docs    (directory)
+       - Doxyfile.in (template for real Doxyfile).
+     - cmake   (directory)
+       - cmake_uninstall.cmake.in  (template for make uninstall)
+     - CMakeLists.txt  (core cmake configuration)
+     
+    Location of rest of files including source code is irrelevant.
+    If there are no \c Doxyfile.in or \c cmake_uninstall.cmake.in present
+    the appropriate make target will not be created (make docs/make uninstall).
+    
+    See @ref qore_cmake_binary_modules_example for real use.
+    
+     - @ref QORE_WRAP_QPP
+     - @ref QORE_BINARY_MODULE
+     - @ref QORE_DIST
+     - @ref QORE_CONFIG_INFO
+     
+    @subsection QORE_WRAP_QPP QORE_WRAP_QPP
+    
+    @code
+    qore_wrap_qpp(out_files_list in_files_list)
+    @endcode
+    
+    This macro generated C++ files and documentation headers from Qore Preprocessor (QPP).
+    It takes files from \c in_files_list for processing and it sets \c out_files_list
+    with values of new C++ files stored in \c CMAKE_BINARY_DIR.
+
+    
+    @subsection QORE_BINARY_MODULE QORE_BINARY_MODULE
+
+    @code
+    qore_binary_module(target_name module_version [library1 [library2 [...]]])
+    @endcode
+    
+    This macro sets environment for building binary modules.
+    
+    Arguments:
+    
+     - \c target_name = a base name of the module, the same as specified in \c add_libary
+     - \c module_version = a string with version used in compiler defines later
+     - optional libraries = none, one, or many libraries to link with the module
+     
+    Macro results:
+    
+     - \c PACKAGE_VERSION define is set to \module_version value
+     - \c QORE_INCLUDE_DIR and \c CMAKE_BINARY_DIR are appended to \c include_directories
+     - module \c target_name is set to use proper API and filename mask
+     - module is ready to be installed to \c QORE_MODULES_DIR
+     - \c make \c uninstall target is created when possible
+     - \c make \c docs target is created when posiible
+     
+    <b>make docs notes</b>
+    
+    Macro calls \c find_package(Doxygen) in this case. If there is Doxygen
+    tool found and if is the 
+
+
+    @subsection QORE_DIST QORE_DIST
+    
+    @code
+    qore_dist(version)
+    @endcode
+    
+    This macro creates \c make \c dist target to create distributable tarballs in TBZ2 format
+
+
+    @subsection QORE_CONFIG_INFO QORE_CONFIG_INFO
+    
+    @code
+    qore_config_info()
+    @endcode
+    
+    This macro prints configuration label, text lines with information about
+    architecture, build type, compiler flags, etc.
+
+
+    @subsection qore_cmake_binary_modules_example Qore Binary Module Example
+    
+    @code
+    cmake_minimum_required(VERSION 2.8.3)
+
+    project(qore-magic-module)
+
+    set (VERSION_MAJOR 0)
+    set (VERSION_MINOR 0)
+    set (VERSION_PATCH 1)
+
+    # storage of custom FindLibMagic.cmake
+    set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake )
+
+    # find Qore library and build environment
+    find_package (Qore REQUIRED)
+
+    # find mandatory library
+    find_package(LibMagic REQUIRED)
+
+    # additional includes
+    include_directories( ${CMAKE_SOURCE_DIR}/src )
+    include_directories( ${LIBMAGIC_INCLUDE_DIR} )
+
+    # module source code - C and C++
+    set(CPP_SRC
+        src/qoremagic.cpp
+        src/magic-module.cpp
+    )
+
+    # module source code - QPP files
+    set(QPP_SRC 
+        src/magic.qpp
+    )
+
+    # create C++ from QPP
+    qore_wrap_qpp(QPP_SOURCES ${QPP_SRC})
+
+    # setup the module
+    SET (module_name "magic")
+    add_library(${module_name} SHARED ${CPP_SRC} ${QPP_SOURCES})
+
+    # module will use name 'magic', version '0.0.1', and it will be linked with content of LIBMAGIC_LIBRARY by FindLibMagic.cmake
+    qore_binary_module(${module_name} "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" ${LIBMAGIC_LIBRARY})
+
+    # create 'make dist'
+    qore_dist("${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
+
+    # print final information
+    qore_config_info()
+    @endcode
+
+*/

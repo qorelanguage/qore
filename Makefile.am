@@ -439,7 +439,8 @@ LIB_DOXYFILES_FIXED = \
 	doxygen/lib/30_qore_builtin_functions.doxygen \
 	doxygen/lib/40_class_implementation.doxygen \
 	doxygen/lib/70_qore_modules.doxygen \
-	doxygen/lib/75_dbi_drivers.doxygen
+	doxygen/lib/75_dbi_drivers.doxygen \
+	doxygen/lib/90_cmake.doxygen
 
 LIB_DOXYFILES_SRC = \
 	$(LIB_DOXYFILES_FIXED) \

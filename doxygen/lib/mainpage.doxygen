@@ -28,5 +28,6 @@
     - @subpage class_implementation
     - @subpage qore_modules
     - @subpage dbi_drivers
+    - @subpage qore_cmake
 
 */
