@@ -132,7 +132,7 @@ public:
     ...
 
     my FileLineIterator $it("/export/home/pvanek/ren.list");
-    while($it.next()) {
+    while ($it.next()) {
         printf("%s:%d = %n\n", $it.getFileName(), $it.index(), $it.getValue());
     }
 

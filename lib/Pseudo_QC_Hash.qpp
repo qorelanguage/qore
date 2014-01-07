@@ -237,6 +237,8 @@ my int $num = $h.size();
     @endcode
 
     @note this pseudo-method is also implemented in Qore::zzz8valuezzz9, so it's safe to use on all data types
+
+    @see <hash>::sizep()
  */
 int <hash>::size() [flags=CONSTANT] {
    return h->size();
@@ -357,5 +359,16 @@ bool <hash>::compareKeys(hash oh) [flags=CONSTANT] {
          return false;
    }
 
+   return true;
+}
+
+//! Returns @ref True since hashes can return a non-zero size
+/** @return @ref True since hashes can return a non-zero size
+
+    @see <hash>::size()
+
+    @since %Qore 0.8.9
+*/
+bool <hash>::sizep() [flags=CONSTANT] {
    return true;
 }

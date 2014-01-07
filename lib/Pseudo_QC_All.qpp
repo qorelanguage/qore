@@ -102,13 +102,15 @@ if (!$i.size())
     printf("%y: has size 0 (probably because it's a value of type %y)\n", $i, $i.type());
     @endcode
 
-    @see <value>::val()
+    @see
+    - <value>::size()
+    - <value>::val()
 */
 int <value>::size() [flags=CONSTANT] {
    return 0;
 }
 
-//! Returns @ref False; this method is reimplemented in other types and will return @ref True if the given expression has a value
+//! Returns @ref False; this method is reimplemented in other types and will return @ref True if the given expression has a value that would be converted to @ref True according to the rules described in @ref perl-bool-eval "%perl-bool-eval"
 /** This pseudo-method can be used to mimic perl's boolean evaluation when @ref strict-bool-eval "%strict-bool-eval" is enabled;
     the return value of this method is the same as that of any value when evaluated in a boolean context when
     @ref perl-bool-eval "%perl-bool-eval" is enabled (the default).
@@ -126,6 +128,8 @@ int <value>::size() [flags=CONSTANT] {
 if ($n.val())
     printf("%y: has a value\n", $n);
     @endcode
+
+    @note use @ref exists to tell if an expression has a value or not
 
     @see
     - @ref perl-bool-eval "%perl-bool-eval"
@@ -266,3 +270,15 @@ map printf("+ %y\n", $1), $v.iterator();
 AbstractIterator <value>::iterator() [flags=CONSTANT] {
    return new QoreObject(QC_SINGLEVALUEITERATOR, 0, new SingleValueIterator(n));
 }
+
+//! Returns @ref True if the type can return a non-zero size (@ref True for containers including @ref binary "binary objects" and @ref string "strings", @ref False for everything else)
+/** @return @ref True if the type can return a non-zero size (@ref True for containers including @ref binary "binary objects" and @ref string "strings", @ref False for everything else)
+
+    @see <value>::size()
+
+    @since %Qore 0.8.9
+*/
+bool <value>::sizep() [flags=CONSTANT] {
+   return false;
+}
+

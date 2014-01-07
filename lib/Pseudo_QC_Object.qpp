@@ -113,6 +113,8 @@ bool <object>::empty() [flags=RET_VALUE_ONLY] {
     @code
 my int $num = $o.size();
     @endcode
+
+    @see <object>::sizep()
  */
 int <object>::size() [flags=RET_VALUE_ONLY] {
    return obj->size(xsink);
@@ -273,4 +275,15 @@ my bool $b = $obj.hasCallableStaticMethod("getStatus");
  */
 bool <object>::hasCallableStaticMethod(string name) [flags=CONSTANT] {
    return qore_class_private::hasCallableStaticMethod(*(obj->getClass()), name->getBuffer());
+}
+
+//! Returns @ref True since objects can return a non-zero size
+/** @return @ref True since objects can return a non-zero size
+
+    @see <object>::size()
+
+    @since %Qore 0.8.9
+*/
+bool <object>::sizep() [flags=CONSTANT] {
+   return true;
 }

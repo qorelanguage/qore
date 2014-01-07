@@ -56,6 +56,8 @@ int <list>::typeCode() [flags=CONSTANT] {
     @code
 my int $len = $l.size();
     @endcode
+
+    @see <list>::sizep()
 */
 int <list>::size() [flags=CONSTANT] {
    return l->size();
@@ -212,3 +214,13 @@ AbstractIterator <list>::rangeIterator() [flags=CONSTANT] {
       : new QoreObject(QC_RANGEITERATOR, 0, new RangeIterator(0, l->size() - 1, 1, xsink));
 }
 
+//! Returns @ref True since lists can return a non-zero size
+/** @return @ref True since lists can return a non-zero size
+
+    @see <list>::size()
+
+    @since %Qore 0.8.9
+*/
+bool <list>::sizep() [flags=CONSTANT] {
+   return true;
+}

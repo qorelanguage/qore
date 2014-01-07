@@ -80,7 +80,9 @@ my int $len = $str.size();
     - this operation is always executed in constant time (ie <i>O(1)</i>) because the string's byte length is always stored with the string
     - equivalent to <string>::strlen() and @ref Qore::strlen(softstring)
 
-    @see <string>::length()
+    @see 
+    - <string>::sizep()
+    - <string>::length()
 */
 int <string>::size() [flags=CONSTANT] {
    return str->size();
@@ -254,17 +256,13 @@ int <string>::rfind(softstring substr, softint pos = -1) [flags=RET_VALUE_ONLY] 
    return str->rindex(*substr, (qore_offset_t)pos, xsink);
 }
 
-//! Returns @ref False if the string is empty or has the exact value \c "0", @ref True if not (note that if @ref strict-bool-eval "%strict-bool-eval" is set, this method returns a boolean value corresponding to the string value after conversion to a numeric value)
-/** @return @ref False if the string is empty or has the exact value \c "0", @ref True if not (note that if @ref strict-bool-eval "%strict-bool-eval" is set, this method returns a boolean value corresponding to the string value after conversion to a numeric value)
+//! Returns @ref False if the string is empty, @ref True if not
+/** @return @ref False if the string is empty, @ref True if not
 
     @par Example:
     @code
 my bool $b = $str.val();
     @endcode
-
-    @see
-    - @ref perl-bool-eval "%perl-bool-eval"
-    - @ref strict-bool-eval "%strict-bool-eval"
 */
 bool <string>::val() [flags=CONSTANT] {
    return !str->empty();
@@ -841,4 +839,110 @@ my int $uc = $str.getUnicode(0);
 */
 int <string>::getUnicode(int offset = 0) [flags=RET_VALUE_ONLY] {
    return str->getUnicodePoint(offset, xsink);
+}
+
+//! Returns @ref True since strings can return a non-zero size
+/** @return @ref True since strings can return a non-zero size
+
+    @see <string>::size()
+
+    @since %Qore 0.8.9
+*/
+bool <string>::sizep() [flags=CONSTANT] {
+   return true;
+}
+
+//! returns a string for the next line in the string buffer starting at the given offset (or at the beginning if no offset is given)
+/** @par Example:
+    @code
+my *string $line = $string.getLine($pos);
+    @endcode
+
+    @param offset the offset in bytes from the beginning of the string; negative numbers give an offset from the end of the string
+    @param eol the optional end of line character(s) to use to detect lines in the buffer; if this string is not passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n"; if this string is passed and has a different @ref character_encoding "character encoding" from this object's (as determined by the \c encoding parameter), then it will be converted to the string's @ref character_encoding "character encoding"
+    @param trim if @ref True the string return values for the lines iterated will be trimmed of the eol bytes
+    @param size an optional reference to an integer that returns the number of bytes in the line including the end of line characters
+
+    @return the line found or @ref nothing if no end of line character(s) were found or no data was found after the offset
+
+    @since %Qore 0.8.9
+ */
+*string <string>::getLine(*int offset = 0, *string eol, bool trim = True, *reference size) [flags=CONSTANT] {
+   if (str->empty())
+      return 0;
+
+   if (offset < 0) {
+      offset = str->size() + offset;
+      if (offset < 0)
+         offset = 0;
+   }
+   else if (offset >= str->size())
+      return 0;
+
+   TempEncodingHelper eolstr;
+   if (eol) {
+      eolstr.set(eol, str->getEncoding(), xsink);
+      if (*xsink)
+         return 0;
+
+      if (eolstr->size() > str->size())
+         return 0;
+   }
+
+   int64 strsize = 0;
+
+   const char* start = str->getBuffer() + offset;
+   SimpleRefHolder<QoreStringNode> rv(new QoreStringNode(str->getEncoding()));
+   if (eolstr) {
+      const char* p = strstr(start, eolstr->getBuffer());
+      if (p) {
+         strsize = p - start + eolstr->size();
+         if (trim) {
+            if (p != start)
+               rv->concat(start, p - start);
+         }
+         else
+            rv->concat(start, strsize);
+      }
+      else {
+         strsize = rv->size();
+         rv->concat(start);
+         strsize = rv->size() - strsize;
+      }
+   }
+   else {
+      while (*start) {
+         if (*start == '\r') {
+            ++strsize;
+            if (!trim)
+               rv->concat(*start);
+            if (*(start + 1) == '\n') {
+               ++strsize;
+               if (!trim)
+                  rv->concat(*start);
+            }
+            break;
+         }
+         if (*start == '\n') {
+            ++strsize;
+            if (!trim)
+               rv->concat(*start);
+            break;
+         }
+         rv->concat(*start);
+         ++strsize;
+         ++start;
+      }
+   }
+
+   if (size) {
+      QoreTypeSafeReferenceHelper r(size, xsink);
+      if (!r)
+         return 0;
+
+      if (r.assign(new QoreBigIntNode(strsize), xsink))
+         return 0;
+   }
+
+   return rv.release();
 }

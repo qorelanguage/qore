@@ -19,6 +19,9 @@
 # for Mapper tests
 %requires Mapper
 
+# for CsvUtil tests
+%requires CsvUtil
+
 # global variables needed for tests
 our Test $to("program-test.q");
 our Test $ro("readonly");
@@ -2129,9 +2132,32 @@ sub mapper_tests() {
     test_value($map.getCount(), 4, "1:Mapper::getCount()");
 }
 
+const CsvInput = "UK,1234567890,\"Sony, Xperia S\",31052012
+UK,1234567891,\"Sony, Xperia S\",31052012
+UK,1234567892,\"Sony, Xperia S\",31052012
+UK,1234567893,\"Sony, Xperia S\",31052012";
+
+const CsvRecords = (
+    ("cc": "UK", "serno": 1234567890, "desc": "Sony, Xperia S", "received": 2012-05-31),
+    ("cc": "UK", "serno": 1234567891, "desc": "Sony, Xperia S", "received": 2012-05-31),
+    ("cc": "UK", "serno": 1234567892, "desc": "Sony, Xperia S", "received": 2012-05-31),
+    ("cc": "UK", "serno": 1234567893, "desc": "Sony, Xperia S", "received": 2012-05-31),
+);
+
+sub csvutil_tests() {
+    my hash $opts = (
+        "fields": ("cc": "string", "serno": "int", "desc": "string", "received": ("type": "date", "format": "DDMMYYYY")),
+        );
+
+    my CsvDataIterator $i(CsvInput, $opts);
+    my list $l = map $1, $i;
+    test_value($l, CsvRecords, "CsvDataIterator");
+}
+
 sub module_tests() {
     mime_tests();
     mapper_tests();
+    csvutil_tests();
 }
 
 sub do_tests() {

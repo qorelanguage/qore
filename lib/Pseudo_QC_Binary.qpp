@@ -53,6 +53,8 @@ int <binary>::typeCode() [flags=CONSTANT] {
     @code
 my int $len = $b.size();
     @endcode
+
+    @see <binary>::sizep()
 */
 int <binary>::size() [flags=CONSTANT] {
    return b->size();
@@ -419,4 +421,15 @@ string <binary>::toString(*string encoding) [flags=CONSTANT] {
    if (!b->size())
       return new QoreStringNode(qe);
    return new QoreStringNode((const char *)b->getPtr(), b->size(), qe);
+}
+
+//! Returns @ref True since binary objects can return a non-zero size
+/** @return @ref True since binary objects can return a non-zero size
+
+    @see <binary>::size()
+
+    @since %Qore 0.8.9
+*/
+bool <binary>::sizep() [flags=CONSTANT] {
+   return true;
 }
