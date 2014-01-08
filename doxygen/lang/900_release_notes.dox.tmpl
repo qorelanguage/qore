@@ -59,6 +59,9 @@
     - fixed bugs in <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> generating "create table" and "align table" SQL with DBs where unique indexes automatically create unique constraints (ex: MySQL)
     - fixed a bug in lchown() where chown() was used interally instead of lchown()
     - fixed a bug in <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> retrieving sequence values with Database::getNextSequenceValue()
+    - fixed an off-by-one memory bug in @ref Qore::date(string, string) parsing a 4-digit date mask
+    - fixed memory leaks in class member and class static variable management
+    - fixed memory leaks when an entire class has to be rolled back due to parse errors and the class has pending static variables    
 
     @section qore_088 Qore 0.8.8
 

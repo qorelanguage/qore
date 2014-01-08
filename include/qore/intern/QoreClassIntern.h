@@ -1168,11 +1168,14 @@ public:
    }
 
    DLLLOCAL void del() {
-      if (exp)
+      if (exp) {
 	 exp->deref(0);
-      delete parseTypeInfo;
-      exp = 0;
-      parseTypeInfo = 0;
+         exp = 0;
+      }
+      if (parseTypeInfo) {
+         delete parseTypeInfo;
+         parseTypeInfo = 0;
+      }
    }
 
    DLLLOCAL const QoreTypeInfo* getTypeInfo() const {
@@ -1344,6 +1347,15 @@ public:
    DLLLOCAL void del(ExceptionSink* xsink) {
       for (var_map_t::iterator i = begin(), e = end(); i != e; ++i) {
          i->second->delVar(xsink);
+         free(i->first);
+         delete i->second;
+      }
+      var_map_t::clear();
+   }
+
+   DLLLOCAL void del() {
+      for (var_map_t::iterator i = begin(), e = end(); i != e; ++i) {
+         assert(!i->second->val.hasValue());
          free(i->first);
          delete i->second;
       }

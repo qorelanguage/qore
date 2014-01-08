@@ -941,7 +941,7 @@ protected:
       qore_ns_private::parseCommit();
    }
 
-   DLLLOCAL void parseRollback() {      
+   DLLLOCAL void parseRollback() {
       // roll back pending lookup entries
       pend_fmap.clear();
       pend_cnmap.clear();
