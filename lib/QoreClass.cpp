@@ -750,14 +750,10 @@ qore_class_private::~qore_class_private() {
    assert(public_vars.empty());
    assert(private_vars.empty());
 
-   /*
-   if (!private_vars.empty() || !public_vars.empty()) {
-      ExceptionSink xsink;
-   
-      private_vars.del(&xsink);
-      public_vars.del(&xsink);
-   }
-   */
+   if (!pending_public_vars.empty())
+      pending_public_vars.del();
+   if (!pending_private_vars.empty())
+      pending_private_vars.del();
 
    // delete normal methods
    for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
@@ -2049,6 +2045,9 @@ void qore_class_private::parseRollback() {
    // rollback pending constants
    pend_priv_const.parseDeleteAll();
    pend_pub_const.parseDeleteAll();
+
+   assert(pending_private_vars.empty());
+   assert(pending_public_vars.empty());
 
    // set flags
    if (pending_has_public_memdecl)
