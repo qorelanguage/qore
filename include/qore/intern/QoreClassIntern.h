@@ -1346,6 +1346,15 @@ public:
       var_map_t::clear();
    }
 
+   DLLLOCAL void del() {
+      for (var_map_t::iterator i = begin(), e = end(); i != e; ++i) {
+         assert(!i->second->val.hasValue());
+         free(i->first);
+         delete i->second;
+      }
+      var_map_t::clear();
+   }
+
    DLLLOCAL bool inList(const char* name) const {
       return var_map_t::find((char* )name) != end();
    }
