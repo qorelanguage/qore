@@ -140,21 +140,18 @@ DateTimeNode* make_date_with_mask(const AbstractQoreZoneInfo* tz, const QoreStri
                return 0;
                break;
             }
-            ++s;
             if (s[2] == 'Y' && s[3] == 'Y') {
-               dt.year = parse_int_4(d) - 1900;
-               s += 2;
+               dt.year = parse_int_4(d);
+               s += 3;
                d += 3;
             }
             else {
+               ++s;
                // obtain the current century
-               int century;
                {
                   DateTime tmpdt(q_epoch());
-                  century = tmpdt.getYear() / 100 * 100;
+                  dt.year = parse_int_2(d) + (tmpdt.getYear() / 100 * 100);
                }
-
-               dt.year = parse_int_2(d) + century;
                ++d;
             }
             break;
