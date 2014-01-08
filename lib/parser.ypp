@@ -760,6 +760,9 @@ public:
    }
 
    DLLLOCAL ~MemberList() {
+      assert(mmap.empty());
+      assert(cmap.empty());
+      assert(vmap.empty());
    }
 
    // takes over ownership of name and typeInfo
@@ -778,6 +781,7 @@ public:
 
 	 // add new member to list
 	 mmap.insert(member->getPair());
+         delete member;
       }
       else if (member->type == MI_Constant) {
 	 if (cmap.inList(member->name)) {
@@ -787,6 +791,7 @@ public:
 	 }
 	 if (vmap.find(member->name)) {
 	    parse_error("constant declaration collides with static class variable declaration '%s'", member->name);
+            delete member;
 	    return -1;
 	 }	 
 
@@ -798,15 +803,18 @@ public:
 	 assert(member->type == MI_Var);
 	 if (vmap.find(member->name)) {
 	    parse_error("duplicate static class variable declaration '%s'", member->name);
+            delete member;
 	    return -1;
 	 }
 	 if (cmap.inList(member->name)) {
 	    parse_error("static class variable declaration collides with constant declaration '%s'", member->name);
+            delete member;
 	    return -1;
 	 }
 
 	 // add new member to list
 	 vmap.insert(member->getVarPair());
+         delete member;
       }
 
       return 0;
