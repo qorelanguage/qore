@@ -231,15 +231,14 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
          if (twaiting)
             tcond.broadcast();
       }
-
-   #ifdef HAVE_SIGNAL_HANDLING
+#ifdef HAVE_SIGNAL_HANDLING
       {
          int_set_t ns = sigset;
          // clear all signal handlers managed by this program
          for (int_set_t::iterator i = ns.begin(), e = ns.end(); i != e; ++i)
             QSM.removeHandler(*i, xsink);
       }
-   #endif
+#endif
 
       // merge pending parse exceptions into the passed exception sink, if any
       if (pendingParseSink) {
@@ -435,7 +434,6 @@ void qore_program_private::del(ExceptionSink* xsink) {
 
    // method call can be repeated
    sb.del();
-
    //printd(5, "QoreProgram::~QoreProgram() this=%p deleting root ns %p\n", this, RootNS);
 
    delete RootNS;

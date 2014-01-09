@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -365,7 +365,7 @@ public:
 
    // public object that owns this private implementation
    QoreProgram* pgm;
-
+   
    DLLLOCAL qore_program_private_base(QoreProgram *n_pgm, int64 n_parse_options, QoreProgram *p_pgm = 0) 
       : thread_count(0), thread_waiting(0), plock(&ma_recursive), parseSink(0), warnSink(0), pendingParseSink(0), RootNS(0), QoreNS(0),
         only_first_except(false), po_locked(false), po_allow_restrict(true), exec_class(false), base_object(false),

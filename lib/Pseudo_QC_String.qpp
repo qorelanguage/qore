@@ -867,7 +867,7 @@ my *string $line = $string.getLine($pos);
 
     @since %Qore 0.8.9
  */
-*string <string>::getLine(*int offset = 0, *string eol, bool trim = True, *reference size) [flags=CONSTANT] {
+*string <string>::getLine(int offset = 0, *string eol, bool trim = True, *reference size) [flags=CONSTANT] {
    if (str->empty())
       return 0;
 
@@ -876,7 +876,7 @@ my *string $line = $string.getLine($pos);
       if (offset < 0)
          offset = 0;
    }
-   else if (offset >= str->size())
+   else if (offset >= (int64)str->size())
       return 0;
 
    TempEncodingHelper eolstr;

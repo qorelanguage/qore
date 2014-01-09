@@ -760,9 +760,6 @@ public:
    }
 
    DLLLOCAL ~MemberList() {
-      assert(mmap.empty());
-      assert(cmap.empty());
-      assert(vmap.empty());
    }
 
    // takes over ownership of name and typeInfo
