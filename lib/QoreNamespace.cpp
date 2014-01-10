@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2013 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -1245,6 +1245,8 @@ void qore_ns_private::clearConstants(QoreListNode& l) {
    constant.clear(l);
    // clear/finalize class constants
    classList.clearConstants(l);
+
+   nsl.clearConstants(l);
 }
 
 void qore_ns_private::clearData(ExceptionSink *xsink) {
