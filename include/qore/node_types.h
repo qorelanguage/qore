@@ -74,6 +74,7 @@ const qore_type_t NT_CLASS_VARREF       = 39; //!< type value for StaticClassVar
 const qore_type_t NT_PROGRAM_FUNC_CALL  = 40; //!< type value for ProgramFunctionCallNode (private class)
 const qore_type_t NT_PARSEREFERENCE     = 41; //!< type value for ParseReferenceNode (private class)
 const qore_type_t NT_BACKQUOTE          = 42; //!< type value for BackquoteNode
+const qore_type_t NT_RTCONSTREF         = 43; //!< type value for RuntimeConstantRefNode
 
 //! number of types implemented in the Qore library
 #define QORE_NUM_TYPES 42

@@ -1214,7 +1214,7 @@ const QoreFunction* qore_root_ns_private::parseResolveFunctionIntern(const Named
       }
    }
 
-   return 0;   
+   return 0;
 }
 
 AbstractCallReferenceNode* qore_root_ns_private::parseResolveCallReferenceIntern(UnresolvedProgramCallReferenceNode* fr) {

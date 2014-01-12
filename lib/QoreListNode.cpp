@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright 2003 - 2014 David Nichols
   
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,6 +21,7 @@
 */
 
 #include <qore/Qore.h>
+#include <qore/intern/qore_list_private.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -67,32 +68,6 @@ class StackList : public QoreListNode {
 	 derefImpl(xsink);
       }
       DLLLOCAL AbstractQoreNode *getAndClear(qore_size_t i);
-};
-
-struct qore_list_private {
-      AbstractQoreNode **entry;
-      qore_size_t length;
-      qore_size_t allocated;
-      bool finalized : 1;
-      bool vlist : 1;
-
-      DLLLOCAL qore_list_private() {
-	 entry = 0;
-	 length = 0;
-	 allocated = 0;
-	 finalized = false;
-	 vlist = false;
-      }
-      DLLLOCAL ~qore_list_private() {
-	 assert(!length);
-
-	 if (entry)
-	    free(entry);
-      }
-      DLLLOCAL void clear() {
-	 entry = 0;
-	 length = 0;
-      }
 };
 
 qore_size_t QoreListNode::check_offset(qore_offset_t offset) {

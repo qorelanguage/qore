@@ -462,10 +462,10 @@ AbstractQoreNode *UnresolvedCallReferenceNode::parseInit(LocalVar *oflag, int pf
    // try to resolve a method call if bare references are allowed
    // and we are parsing in an object context
    if (parse_check_parse_option(PO_ALLOW_BARE_REFS) && oflag) {
-      const QoreClass *qc = oflag->getTypeInfo()->getUniqueReturnClass();
-      const QoreMethod *m = qore_class_private::parseFindSelfMethod(const_cast<QoreClass *>(qc), str);
+      const QoreClass* qc = oflag->getTypeInfo()->getUniqueReturnClass();
+      const QoreMethod* m = qore_class_private::parseFindSelfMethod(const_cast<QoreClass *>(qc), str);
       if (m) {
-	 ParseSelfMethodReferenceNode *rv = new ParseSelfMethodReferenceNode(m);
+	 ParseSelfMethodReferenceNode* rv = new ParseSelfMethodReferenceNode(m);
 	 delete this;
 	 return rv;
       }
