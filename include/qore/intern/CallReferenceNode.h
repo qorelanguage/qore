@@ -98,8 +98,11 @@ protected:
    DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink);
 
 public:
-   DLLLOCAL StaticMethodCallReferenceNode(const QoreMethod* n_method, QoreProgram* n_pgm);
-   DLLLOCAL virtual AbstractQoreNode* exec(const QoreListNode* args, ExceptionSink* xsink) const;
+   DLLLOCAL StaticMethodCallReferenceNode(const QoreMethod *n_method, QoreProgram *n_pgm);
+   DLLLOCAL ~StaticMethodCallReferenceNode() {
+      assert(!pgm);
+   }
+   DLLLOCAL virtual AbstractQoreNode *exec(const QoreListNode *args, ExceptionSink *xsink) const;
 };
 
 //! a call reference to a static user method

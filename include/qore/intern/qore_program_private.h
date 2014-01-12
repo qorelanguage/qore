@@ -454,7 +454,7 @@ public:
    }
 
    DLLLOCAL void depDeref(ExceptionSink* xsink) {
-      printd(5, "qore_program_private::depDeref() this=%p pgm=%p %d->%d\n", this, pgm, dc.reference_count(), dc.reference_count() - 1);
+      //printd(5, "qore_program_private::depDeref() this=%p pgm=%p %d->%d\n", this, pgm, dc.reference_count(), dc.reference_count() - 1);
       if (dc.ROdereference()) {
          del(xsink);
          delete pgm;

@@ -112,16 +112,14 @@ void ConstantEntry::del(QoreListNode& l) {
       node = 0;
       saved_node = 0;
 #endif
-      return;
+   }
+   else if (node) {
+      l.push(node);
+#ifdef DEBUG
+      node = 0;
+#endif
    }
 
-   if (!node)
-      return;
-
-   l.push(node);
-#ifdef DEBUG
-   node = 0;
-#endif
    delete this;
 }
 
@@ -133,18 +131,15 @@ void ConstantEntry::del(ExceptionSink* xsink) {
       node = 0;
       saved_node = 0;
 #endif
-      return;
    }
-
-   if (!node)
-      return;
-
-   // abort if an object is present and we are calling deref without an ExceptionSink object
-   assert(get_node_type(node) != NT_OBJECT || xsink);
-   node->deref(xsink);
+   else if (node) {
+      // abort if an object is present and we are calling deref without an ExceptionSink object
+      assert(get_node_type(node) != NT_OBJECT || xsink);
+      node->deref(xsink);
 #ifdef DEBUG
-   node = 0;
+      node = 0;
 #endif
+   }
    delete this;
 }
 

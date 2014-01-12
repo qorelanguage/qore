@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -210,4 +210,5 @@ void qore_cleanup() {
       for (mutex_vec_t::iterator i = q_openssl_mutex_list.begin(), e = q_openssl_mutex_list.end(); i != e; ++i)
 	 delete *i;
    }
+   printd(5, "qore_cleanup() exiting cleanly\n");
 }

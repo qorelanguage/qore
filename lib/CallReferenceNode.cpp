@@ -518,11 +518,16 @@ StaticMethodCallReferenceNode::StaticMethodCallReferenceNode(const QoreMethod *n
    assert(pgm);
    //printd(5, "StaticMethodCallReferenceNode::StaticMethodCallReferenceNode() this=%p calling QoreProgram::depRef() pgm=%p\n", this, pgm);
    pgm->depRef();
+   //xxx pgm->ref();
 }
 
 bool StaticMethodCallReferenceNode::derefImpl(ExceptionSink *xsink) {
    //printd(5, "StaticMethodCallReferenceNode::deref() this=%p pgm=%p refs: %d -> %d\n", this, pgm, reference_count(), reference_count() - 1);
    pgm->depDeref(xsink);
+   //xxx pgm->deref(xsink);
+#ifdef DEBUG
+   pgm = 0;
+#endif
    return true;
 }
 
@@ -535,10 +540,12 @@ MethodCallReferenceNode::MethodCallReferenceNode(const QoreMethod *n_method, Qor
    assert(pgm);
    //printd(5, "MethodCallReferenceNode::MethodCallReferenceNode() this=%p calling QoreProgram::depRef() pgm=%p\n", this, pgm);
    pgm->depRef();
+   //xxx pgm->ref();
 }
 
 bool MethodCallReferenceNode::derefImpl(ExceptionSink *xsink) {
    //printd(5, "MethodCallReferenceNode::deref() this=%p pgm=%p refs: %d -> %d\n", this, pgm, reference_count(), reference_count() - 1);
+   //xxx pgm->deref(xsink);
    pgm->depDeref(xsink);
    return true;
 }
