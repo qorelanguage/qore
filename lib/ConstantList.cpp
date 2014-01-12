@@ -63,28 +63,83 @@ static void check_constant_cycle(QoreProgram *pgm, AbstractQoreNode *n) {
 }
 
 ConstantEntry::ConstantEntry(const char* n, AbstractQoreNode* v, const QoreTypeInfo* ti, bool n_pub, bool n_init, bool n_builtin)
-   : loc(ParseLocation), name(n), typeInfo(ti), node(v), in_init(false), pub(n_pub), init(n_init), builtin(n_builtin) {
+   : saved_node(0), loc(ParseLocation), name(n), typeInfo(ti), node(v), in_init(false), pub(n_pub), init(n_init), builtin(n_builtin)  {
    QoreProgram* pgm = getProgram();
    if (pgm)
       pwo = qore_program_private::getParseWarnOptions(pgm);
 }
 
-ConstantEntry::ConstantEntry(const ConstantEntry& old) : loc(old.loc), pwo(old.pwo), name(old.name), typeInfo(old.typeInfo), node(old.node ? old.node->refSelf() : 0),
-							 in_init(false), pub(old.builtin), init(true), builtin(old.builtin) {
+ConstantEntry::ConstantEntry(const ConstantEntry& old) : 
+   saved_node(old.saved_node ? old.saved_node->refSelf() : 0), loc(old.loc), pwo(old.pwo), name(old.name),
+   typeInfo(old.typeInfo), node(old.node ? old.node->refSelf() : 0),
+   in_init(false), pub(old.builtin), init(true), builtin(old.builtin) {
    assert(!old.in_init);
    assert(old.init);
 }
 
-void ConstantEntry::del(ExceptionSink* xsink) {
-   if (!node)
-      return;
+int ConstantEntry::scanValue(const AbstractQoreNode* n) const {
+   switch (get_node_type(n)) {
+      case NT_LIST: {
+	 ConstListIterator i(reinterpret_cast<const QoreListNode*>(n));
+	 while (i.next())
+	    if (scanValue(i.getValue()))
+	       return -1;
+	 return 0;
+      }
 
-   // abort if an object is present and we are calling deref without an ExceptionSink object
-   assert(get_node_type(node) != NT_OBJECT || xsink);
-   node->deref(xsink);
+      case NT_HASH: {
+	 ConstHashIterator i(reinterpret_cast<const QoreHashNode*>(n));
+	 while (i.next())
+	    if (scanValue(i.getValue()))
+		return -1;
+	 return 0;
+      }
+	 
+      // could have any value and could change at runtime
+      case NT_OBJECT:
+      case NT_FUNCREF:
+	 return -1;
+   }
+
+   return 0;
+}
+
+void ConstantEntry::del(QoreListNode& l) {
+   if (saved_node) {
+      node->deref(0);
+      l.push(saved_node);
 #ifdef DEBUG
-   node = 0;
+      node = 0;
+      saved_node = 0;
 #endif
+   }
+   else if (node) {
+      l.push(node);
+#ifdef DEBUG
+      node = 0;
+#endif
+   }
+
+   delete this;
+}
+
+void ConstantEntry::del(ExceptionSink* xsink) {
+   if (saved_node) {
+      node->deref(xsink);
+      saved_node->deref(xsink);
+#ifdef DEBUG
+      node = 0;
+      saved_node = 0;
+#endif
+   }
+   else if (node) {
+      // abort if an object is present and we are calling deref without an ExceptionSink object
+      assert(get_node_type(node) != NT_OBJECT || xsink);
+      node->deref(xsink);
+#ifdef DEBUG
+      node = 0;
+#endif
+   }
    delete this;
 }
 
@@ -123,7 +178,7 @@ int ConstantEntry::parseInit(ClassNs ptr) {
       //printd(5, "ConstantEntry::parseInit() this: %p '%s' about to init node: %p '%s' class: %p '%s'\n", this, name.c_str(), node, get_type_name(node), p, p ? p->name.c_str() : "n/a");
       if (typeInfo)
          typeInfo = 0;
-      node = node->parseInit((LocalVar *)0, PF_CONST_EXPRESSION, lvids, typeInfo);
+      node = node->parseInit((LocalVar*)0, PF_CONST_EXPRESSION, lvids, typeInfo);
    }
 
    //printd(5, "ConstantEntry::parseInit() this=%p %s initialized to node=%p (%s)\n", this, name.c_str(), node, get_type_name(node));
@@ -132,7 +187,7 @@ int ConstantEntry::parseInit(ClassNs ptr) {
       return 0;
 
    // do not evaluate expression if any parse exceptions have been thrown
-   QoreProgram *pgm = getProgram();
+   QoreProgram* pgm = getProgram();
    if (pgm->parseExceptionRaised())
       return -1;
 
@@ -157,6 +212,12 @@ int ConstantEntry::parseInit(ClassNs ptr) {
 
    if (xsink.isEvent())
       qore_program_private::addParseException(pgm, xsink, &loc);
+
+   // scan for call references
+   if (scanValue(node)) {
+      saved_node = node;
+      node = new RuntimeConstantRefNode(this);
+   }
 
    return 0;
 }
