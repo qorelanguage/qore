@@ -77,7 +77,7 @@ const qore_type_t NT_BACKQUOTE          = 42; //!< type value for BackquoteNode
 const qore_type_t NT_RTCONSTREF         = 43; //!< type value for RuntimeConstantRefNode
 
 //! number of types implemented in the Qore library
-#define QORE_NUM_TYPES 42
+#define QORE_NUM_TYPES 43
 
 //! number of simple value types (not containers)
 #define NUM_SIMPLE_TYPES 8
