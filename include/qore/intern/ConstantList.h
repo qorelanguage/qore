@@ -70,7 +70,7 @@ struct ClassNs {
 
 class RuntimeConstantRefNode;
 
-class ConstantEntry {
+class ConstantEntry : public QoreReferenceCounter {
    friend class ConstantEntryInitHelper;
    friend class RuntimeConstantRefNode;
 
@@ -78,6 +78,11 @@ protected:
    AbstractQoreNode* saved_node;
 
    int scanValue(const AbstractQoreNode* n) const;
+
+   DLLLOCAL ~ConstantEntry() {
+      assert(!saved_node);
+      assert(!node);
+   }
 
 public:
    QoreProgramLocation loc;
@@ -94,9 +99,18 @@ public:
    DLLLOCAL ConstantEntry(const char* n, AbstractQoreNode* v, const QoreTypeInfo* ti = 0, bool n_pub = false, bool n_init = false, bool n_builtin = false);
    DLLLOCAL ConstantEntry(const ConstantEntry& old);
 
-   DLLLOCAL ~ConstantEntry() {
-      assert(!saved_node);
-      assert(!node);
+   DLLLOCAL void deref() {
+      if (ROdereference())
+         delete this;
+   }
+
+   DLLLOCAL void ref() {
+      ROreference();
+   }
+
+   DLLLOCAL ConstantEntry* refSelf() {
+      ref();
+      return this;
    }
 
    DLLLOCAL void del(ExceptionSink* xsink);
@@ -351,6 +365,10 @@ protected:
       return ce->saved_node->eval(needs_deref, xsink);
    }
 
+   DLLLOCAL ~RuntimeConstantRefNode() {
+      ce->deref();
+   }
+
 public:
    DLLLOCAL RuntimeConstantRefNode(ConstantEntry* n_ce) : ParseNode(NT_RTCONSTREF, true, false), ce(n_ce) {
       assert(ce->saved_node);
@@ -367,8 +385,7 @@ public:
    }
 
    DLLLOCAL virtual const char *getTypeName() const {
-      assert(ce->saved_node);
-      return ce->saved_node->getTypeName();
+      return ce->saved_node ? ce->saved_node->getTypeName() : "nothing";
    }
 };
 

@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright 2003 - 2013 David Nichols
+ Copyright 2003 - 2014 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -120,7 +120,7 @@ void ConstantEntry::del(QoreListNode& l) {
 #endif
    }
 
-   delete this;
+   deref();
 }
 
 void ConstantEntry::del(ExceptionSink* xsink) {
@@ -140,7 +140,8 @@ void ConstantEntry::del(ExceptionSink* xsink) {
       node = 0;
 #endif
    }
-   delete this;
+
+   deref();
 }
 
 int ConstantEntry::parseInit(ClassNs ptr) {
@@ -216,7 +217,7 @@ int ConstantEntry::parseInit(ClassNs ptr) {
    // scan for call references
    if (scanValue(node)) {
       saved_node = node;
-      node = new RuntimeConstantRefNode(this);
+      node = new RuntimeConstantRefNode(refSelf());
    }
 
    return 0;
