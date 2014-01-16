@@ -25,13 +25,17 @@
 %requires qore >= 0.8.4
 
 module Mime {
-    version = "1.3.1";
+    version = "1.3.2";
     desc = "Mime module providing MIME-related definitions";
     author = "David Nichols";
     url = "http://qore.org";
 }
 
 /*  Version History
+    * 2014-01-15 v1.3.2: David Nichols <david@qore.org>
+      + added mime type for WSDL files (application/wsdl+xml)
+      + added mappings for xls and xlst extensions to MimeTypeXml
+
     * 2013-04-05 v1.3.1: David Nichols <david@qore.org>
       + added get_mime_type_from_ext()
       + minor corrections
@@ -364,12 +368,14 @@ public namespace Mime {
 	"wmls": "text/vnd.wap.wmlscript",
 	"wmlsc": "application/vnd.wap.wmlscriptc",
 	"wrl": "model/vrml",
+        "wsdl": "application/wsdl+xml",
 	"xbm": "image/x-xbitmap",
 	"xht": "application/xhtml+xml",
 	"xhtml": "application/xhtml+xml",
 	"xls": "application/vnd.ms-excel",
 	"xml": MimeTypeXml,
 	"xpm": "image/x-xpixmap",
+        "xsd": MimeTypeXml,
 	"xsl": "application/xml",
 	"xslt": "application/xslt+xml",
 	"xul": "application/vnd.mozilla.xul+xml",

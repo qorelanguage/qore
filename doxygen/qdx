@@ -37,13 +37,7 @@ class qdx {
 
     constructor() {
 	GetOpt g(opts);
-	try {
-	    o = g.parse2(\ARGV);
-	}
-	catch (ex) {
-	    printf("%s\n", ex.desc);
-	    exit(1);
-	}
+        o = g.parse3(\ARGV);
 
 	if (o.help || ARGV.empty())
 	    usage();

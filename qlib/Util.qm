@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file Util.qm Qore user module for generally useful routines
 
-/*  Util.qm Copyright 2013 Qore Technologies, sro
+/*  Util.qm Copyright 2014 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -524,11 +524,20 @@ my string $pass = get_random_string();
         return $str;
     }
 
-    #! storage names (Geop, which would normally follow Bronto, is excluded as the abbreviation would be GB)
+    #! storage names (Geop, which would normally follow Bronto, is excluded as the abbreviation would be GB/GiB)
     public const StorageNames = ("Kilo", "Mega", "Giga", "Tera", "Peta", "Exa", "Zetta", "Yotta", "Bronto");
 
-    #! returns a string giving a user-friendly real storage size (ie based on 1KB = 1024 bytes) in KB, MB, GB, TB, etc for the given byte size
-    public string sub get_byte_size(softnumber $n, int $decimals = 2) {
+    #! returns a string giving a user-friendly real storage size (ie based on 1KiB = 1024 bytes) in KiB, MiB, GiB, TiB, etc for the given byte size
+    /** @par Example:
+        @code
+my string $str = get_byte_size($n);
+        @endcode
+
+        @param n the number to display
+        @param decimals the number of digits after the decimal point
+        @param use_iec use <a href="http://en.wikipedia.org/wiki/Mebibyte">IEC</a> abbreviations (ie \c "MiB", \c "GiB", \c "TiB")
+    */
+    public string sub get_byte_size(softnumber $n, int $decimals = 2, *softbool $use_iec) {
         my string $k;
 
         my HashPairIterator $i($storage_sizes);
@@ -548,10 +557,18 @@ my string $pass = get_random_string();
         my string $v = sprintf($fmt, $n);
         $v =~ s/(\.)?0*$//;
 
-        return $v + $k[0] + "B";
+        return $v + $k[0] + ($use_iec ? "i" : NOTHING) + "B";
     }
 
     #! returns a string giving a user-friendly "marketing storage" size (ie based on 1KB = 1000 bytes) in KB, MB, GB, TB, etc for the given byte size
+    /** @par Example:
+        @code
+my string $str = get_marketing_byte_size($n);
+        @endcode
+
+        @param n the number to display
+        @param decimals the number of digits after the decimal point
+    */
     public string sub get_marketing_byte_size(softnumber $n, int $decimals = 2) {
         my string $k;
 
