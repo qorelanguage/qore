@@ -1974,7 +1974,7 @@ struct qore_socket_private {
       char* t1;
       if (!(t1 = (char*)strstr(buf, "HTTP/"))) {
 	 if (xsink) {
-	    xsink->raiseException("SOCKET-HTTP-ERROR", "missing HTTP version string in first header line in Socket::readHTTPHeader()");
+	    xsink->raiseExceptionArg("SOCKET-HTTP-ERROR", hdr.release(), "missing HTTP version string in first header line in Socket::readHTTPHeader()");
 	    return 0;
 	 }
 	 return hdr.release();

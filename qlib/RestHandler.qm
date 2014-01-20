@@ -47,13 +47,17 @@
 %endtry
 
 module RestHandler {
-    version = "0.1";
+    version = "1.1";
     desc = "user module for implementing REST services with the Qore HTTP server";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
 }
 
 /*  Version History
+    * 2014-01-20 v1.1: David Nichols <david@qore.org>
+      + added support for the OPTIONS method
+      + return an error if an unsupported HTTP method is used in a REST Call
+
     * 2013-10-04 v1.0: David Nichols <david@qore.org>
       + the initial version of the RestHandler module
 */
@@ -113,6 +117,7 @@ module RestHandler {
     |\c PUT|\c AbstractRestClass::put()
     |\c POST|\c AbstractRestClass::post()
     |\c DELETE|\c AbstractRestClass::del()
+    |\c OPTIONS|\c AbstractRestClass::options()
 
     In all cases, the signature for these methods looks like:
     @code
@@ -412,6 +417,7 @@ public namespace RestHandler {
                 "POST": "post",
                 "PUT": "put",
                 "DELETE": "del",
+                "OPTIONS": "options",
                 );
 
             #! supported mime types for de/serializing responses
@@ -526,6 +532,9 @@ public namespace RestHandler {
             # reflect body in arguments if body is a hash and there are no args
             if (!$args && $body && $body.typeCode() == NT_HASH)
                 $args = $body;
+
+            if (!Methods.($hdr.method))
+                return RestHandler::make400("unsupported HTTP method %y given in REST call %y", $hdr.method, $path);
 
             # make method name
             my string $mn;

@@ -1040,6 +1040,7 @@ public class HttpServer::HttpServer {
             "PUT": True,
             "DELETE": True,
             "GET": True,
+            "OPTIONS": True,
             #"TRACE": True,
             #"CONNECT": True,
             );

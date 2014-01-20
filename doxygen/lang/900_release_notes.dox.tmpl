@@ -35,6 +35,9 @@
       - use the new @ref Qore::encode_url() function to encode URL paths to ensure that valid requests are sent when spaces, percent characters, and non-ascii characters are used in the URL path
       - set the character encoding in the \c Content-Type request header when sending strings
       - set the \c Accept header correctly in requests (previously only indicated yaml (\c "text/x-yaml") as an acceptible response encoding)
+    - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module updates:
+      - added support for the \c OPTIONS method
+      - return a 400 \c "Bad Request" error if an unsupported HTTP method is used in a REST Call
     - added new \c UpsertInsertOnly upsert strategy to <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a>
     - new pseudo-methods:
       - @ref <value>::sizep(): returns @ref True if the type can return a non-zero size (@ref True for containers including @ref binary "binary objects" and @ref string "strings", @ref False for everything else)

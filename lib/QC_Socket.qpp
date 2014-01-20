@@ -1765,7 +1765,7 @@ nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string
    s->sendHTTPResponse(xsink, status_code, status_desc->getBuffer(), http_version->getBuffer(), headers, body ? body->getPtr() : 0, body ? body->size() : 0, QORE_SOURCE_SOCKET, timeout_ms);
 }
 
-//! Retuns a hash representing the data in the HTTP header read, or, if the data cannot be parsed as an HTTP header, the data read is returned as a string
+//! Retuns a hash representing the data in the HTTP header read, or, if the data cannot be parsed as an HTTP header, then an exception is thrown, and the data read is returned as a string in the \c arg key of the exception hash
 /** If any errors occur reading from the socket or if invalid HTTP data is received, an exception is raised. Accepts an optional timeout value in milliseconds.
 
     @par Example:
