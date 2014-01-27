@@ -386,7 +386,7 @@ class qdx {
 		xl = (line =~ x/(.*) inherits ([^{]+)(.*)/);
 		xl[1] = split(",", xl[1]);		
 		foreach string e in (\xl[1]) {
-		    if (e !~ /(private|public)/)
+		    if (e !~ /(private|public)[^A-Za-z0-9_]/)
 			e = "public " + e;
 		}
 		trim(xl[0]);
@@ -497,7 +497,7 @@ class qdx {
 	    if (!ppc && line !~ /^[ \t]*\/\//) {
 		list mods = ();
 		if (line !~ /"/) {
-		    while (exists (*list l = (line =~ x/(.*)(deprecated|synchronized|private[^-:]|public[^-:]|static)(.*)/))) {
+		    while (exists (*list l = (line =~ x/(.*)(deprecated|synchronized|private[^-:]|public[^-:]|static)([^A-Za-z0-9_].*)/))) {
 			mods += l[1];
 			line = l[0] + l[2];
 		    }
