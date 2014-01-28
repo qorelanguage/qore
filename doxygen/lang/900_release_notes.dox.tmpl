@@ -70,6 +70,7 @@
     - fixed memory leaks when an entire class has to be rolled back due to parse errors and the class has pending static variables
     - fixed memory leaks in constant handling with values containing call references
     - fixed a memory leak in constant destruction with parse rollbacks when the constant value was NULL
+    - fixed an error in the rounding heuristic for arbitrary-precision numeric values that could produce invalid results (ex: 34.9n * 100 = 34902n)
 
     @section qore_088 Qore 0.8.8
 
