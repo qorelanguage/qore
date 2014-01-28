@@ -1987,6 +1987,7 @@ sub number_tests() {
     test_value(0.8n.toString(NF_Scientific), "8e-01", "number rounding 2");
     test_value((-0.8n).toString(), "-0.8", "number rounding 3");
     test_value((-0.8n).toString(NF_Scientific), "-8e-01", "number rounding 4");
+    test_value((34.9n * 100).toString(), "3490", "number rounding 5");
     test_value(1e50n.toString(), "100000000000000000000000000000000000000000000000000", "number rounding 5");
     test_value((-1e50n).toString(), "-100000000000000000000000000000000000000000000000000", "number rounding 6");
 }

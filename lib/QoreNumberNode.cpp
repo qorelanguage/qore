@@ -1,9 +1,10 @@
+/* -*- indent-tabs-mode: nil -*- */
 /*
   QoreNumberNode.cpp
   
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -95,7 +96,7 @@ void qore_number_private::applyRoundingHeuristic(QoreString& str, qore_size_t dp
    char lc = 0;
    // 0 or 9 count
    unsigned cnt = 0;
-   bool has_e = str[last == 'e'];
+   bool has_e = (str[last] == 'e');
    // don't check the last character
    --last;
    // check all except the last digit
@@ -141,14 +142,17 @@ void qore_number_private::applyRoundingHeuristic(QoreString& str, qore_size_t dp
 
    // round the number for display
    if (signal && cnt > QORE_MPFR_ROUND_THRESHOLD) {
-      //printd(5, "ROUND BEFORE: (cnt: %d has_e: %d e: %c) %s\n", cnt, has_e, str[pos + cnt + 4], str.getBuffer());
+      //printd(5, "ROUND BEFORE: (pos: %d dp: %d cnt: %d has_e: %d e: %c) %s\n", pos, dp, cnt, has_e, has_e ? str[pos + cnt + 4] : 'x', str.getBuffer());
       // if rounding right after the decimal point, then remove the decimal point
       if (pos == (qore_offset_t)dp)
          --pos;
       if (has_e && str[pos + cnt + 3] == 'e')
 	 --cnt;
       // remove the excess digits
-      str.replace(pos + 1, cnt + 3, (const char*)0);
+      if (!has_e)
+         str.terminate(pos + 1);
+      else
+         str.replace(pos + 1, cnt + 3, (const char*)0);
 
       // rounding down is easy; the truncation is enough
       if (lc == '9') // round up
