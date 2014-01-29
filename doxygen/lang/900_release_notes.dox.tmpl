@@ -48,6 +48,7 @@
     - added new modules:
       - <a href="../../modules/Mapper/html/index.html">Mapper</a>: data mapping module
       - <a href="../../modules/TableMapper/html/index.html">TableMapper</a>: data mapping module using <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> and <a href="../../modules/Mapper/html/index.html">Mapper</a> to map to an SQL table target
+    - the @ref include "%include" parse directive now supports environment variable substitution at the beginning of the file path
 
     @subsection qore_089_bug_fixes Bug Fixes in Qore
     - fixed a crashing bug when HTTP messages with duplicate \c Connection, \c Content-Encoding, \c Transfer-Encoding, \c Location, or \c Content-Type headers is received
@@ -71,6 +72,7 @@
     - fixed memory leaks in constant handling with values containing call references
     - fixed a memory leak in constant destruction with parse rollbacks when the constant value was NULL
     - fixed an error in the rounding heuristic for arbitrary-precision numeric values that could produce invalid results (ex: 34.9n * 100 = 34902n)
+    - enforce @ref Qore::PO_NO_FILESYSTEM "PO_NO_FILESYSTEM" with the @ref include "%include" directive
 
     @section qore_088 Qore 0.8.8
 

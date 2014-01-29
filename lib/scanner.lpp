@@ -136,41 +136,6 @@ static const char* get_last_word(const char* str) {
 }
 #endif
 
-static QoreString *getIncludeFileName(char *file) {
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
-   // convert UNIX-style '/' character to '\'
-   for (char *p = file; *p; ++p)
-      if (*p == '/')
-	 *p = '\\';
-#endif
-
-   //printd(5, "getIncludeFileName(%s)\n", file);
-   // FIXME: UNIX-specific - need to check for drive name on windows
-   if (file[0] == QORE_DIR_SEP)
-      return new QoreString(file);
-
-   QoreString *rv;
-
-   // check in current directory of script first
-   const char *sp = getProgram()->parseGetScriptDir();
-   if (sp) {
-      rv = findFileInPath(file, sp);
-      if (rv)
-	 return rv;
-   }
-
-   rv = findFileInEnvPath(file, "QORE_INCLUDE_DIR");
-   if (!rv) {
-       const char *pp = getProgram()->parseGetIncludePath();
-       if (pp) 
-	   rv = findFileInPath(file, pp);
-       if (!rv)
-	   rv = new QoreString(file);
-   }
-
-   return rv;
-}
-
 // sets the time zone at parse time - this function is exported in the library
 void parse_set_time_zone(const char *zone) {
    zone = trim_inplace(zone);
@@ -265,6 +230,63 @@ static void scanner_process_path(QoreString& npath, char* ip) {
 
        ++p;
     }
+}
+
+static QoreString* getIncludeFileName(char* file) {
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+   // convert UNIX-style '/' character to '\'
+   for (char *p = file; *p; ++p)
+      if (*p == '/')
+	 *p = '\\';
+#endif
+
+   // if the filename begins with an environment variable, then try to do environment variable substitution
+   if (file[0] == '$') {
+      QoreString* rv = new QoreString;
+
+      QoreString var;
+      char* p = file + 1;
+      while (*p && (*p == '_' || isalnum(*p))) {
+	 var.concat(*p);
+	 ++p;
+      }
+
+      QoreString val;
+      if (SystemEnvironment::get(var.getBuffer(), val))
+	 rv->concat(file);
+      else {
+	 rv->concat(&val);
+	 rv->concat(file + var.size() + 1);
+      }
+
+      return rv;
+   }
+
+   //printd(5, "getIncludeFileName(%s)\n", file);
+   // FIXME: UNIX-specific - need to check for drive name on windows
+   if (file[0] == QORE_DIR_SEP)
+      return new QoreString(file);
+
+   QoreString *rv;
+
+   // check in current directory of script first
+   const char *sp = getProgram()->parseGetScriptDir();
+   if (sp) {
+      rv = findFileInPath(file, sp);
+      if (rv)
+	 return rv;
+   }
+
+   rv = findFileInEnvPath(file, "QORE_INCLUDE_DIR");
+   if (!rv) {
+       const char *pp = getProgram()->parseGetIncludePath();
+       if (pp) 
+	   rv = findFileInPath(file, pp);
+       if (!rv)
+	   rv = new QoreString(file);
+   }
+
+   return rv;
 }
 
 static void append_module_path(const char* path) {
@@ -964,7 +986,11 @@ RTIME           PT(-?[0-9]+[HMSu])+
 					      fname->trim(fn[0]);
 					   }
 
-					   if (!fname->strlen()) {
+					   if (getProgram()->getParseOptions64() & PO_NO_FILESYSTEM) {
+					      parse_error("cannot use the %%include parse directive when PO_NO_FILESYSTEM is in force");
+					      BEGIN(INITIAL);
+                                           }
+					   else if (fname->empty()) {
 					      parse_error("missing argument to %%include", yytext);
 					      BEGIN(INITIAL);
 					   }
