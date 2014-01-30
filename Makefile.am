@@ -141,6 +141,7 @@ include_HEADERS = \
 	include/qore/QoreProgram.h \
 	include/qore/QoreReferenceCounter.h \
 	include/qore/AbstractPrivateData.h \
+	include/qore/QoreIteratorBase.h \
 	include/qore/QoreType.h \
 	include/qore/QoreListNode.h \
 	include/qore/QoreBigIntNode.h \

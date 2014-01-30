@@ -379,31 +379,6 @@ DLLLOCAL int check_lvalue_number(const QoreTypeInfo *&typeInfo, const char* name
 DLLLOCAL extern QoreClass* QC_PSEUDOVALUE;
 DLLLOCAL extern QoreClass* QC_PSEUDONOTHING;
 
-class QoreIteratorBase : public AbstractPrivateData {
-protected:
-   int tid;
-
-public:
-   DLLLOCAL QoreIteratorBase() : tid(gettid()) {
-   }
-
-   DLLLOCAL int check(ExceptionSink* xsink) {
-      if (tid != gettid()) {
-         xsink->raiseException("ITERATOR-THREAD-ERROR", "this %s object was created in TID %d; it is an error to access it from any other thread (accessed from TID %d)", getName(), tid, gettid());
-         return -1;
-      }
-      return 0;
-   }
-
-#ifdef DEBUG
-   DLLLOCAL virtual void deref() {
-      assert(false);
-   }
-#endif
-
-   DLLLOCAL virtual const char* getName() const = 0;
-};
-
 DLLLOCAL bool node_has_effect(const AbstractQoreNode* n);
 
 #include <qore/intern/NamedScope.h>
