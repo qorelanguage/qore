@@ -870,6 +870,14 @@ public:
       return temp;
    }
 
+   //! ensures that the object is holding a temporary value
+   DLLLOCAL void makeTemp() {
+      if (!temp && str) {
+         str = new QoreString(*str);
+         temp = true;
+      }
+   }
+
    //! returns the string being managed
    DLLLOCAL const QoreString* operator->(){ return str; };
 
