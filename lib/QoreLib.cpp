@@ -395,6 +395,9 @@ bool qore_has_debug() {
 QoreAbstractIteratorBase::QoreAbstractIteratorBase() : tid(gettid()) {
 }
 
+QoreAbstractIteratorBase::~QoreAbstractIteratorBase() {
+}
+
 FeatureList::FeatureList() {
    // register default features
    push_back("sql");

@@ -42,6 +42,8 @@ public:
    //! creates the object and marks it as owned by the current thread
    DLLEXPORT QoreAbstractIteratorBase();
 
+   DLLEXPORT virtual ~QoreAbstractIteratorBase();
+
    //! checks for a valid operation, returns 0 if OK, -1 if not (exception thrown)
    DLLEXPORT int check(ExceptionSink* xsink) const;
 
