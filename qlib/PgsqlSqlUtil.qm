@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file PgsqlSqlUtil.qm Qore user module for working with PostgreSQL SQL data
 
-/*  PgsqlSqlUtil.qm Copyright 2013 Qore Technologies, sro
+/*  PgsqlSqlUtil.qm Copyright 2013 - 2014 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -53,7 +53,7 @@ module PgsqlSqlUtil {
 
     @tableofcontents
 
-    @section intro Introduction
+    @section pgsqlsqlutilintro PgsqlSqlUtil Module Introduction
 
     The %PgsqlSqlUtil module provides a high level API for working with PostgreSQL database objects.
 
@@ -154,7 +154,7 @@ $function$
 
     @section pgsql_relnotes Release Notes
 
-    @subsection v10 PgsqlSqlUtil v1.0
+    @subsection pgsqlsqlutilv10 PgsqlSqlUtil v1.0
     - initial release
 */
 
