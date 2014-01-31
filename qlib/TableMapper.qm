@@ -92,7 +92,7 @@ printf("%d record%s inserted\n", $map.getCount(), $map.getCount() == 1 ? "" : "s
     This will insert all the mapped input data into data into the \c ORDER_TABLE
     table and then print out the number of rows inserted.
     
-    @section mapperrelnotes Release Notes
+    @section tablemapperrelnotes Release Notes
 
     @subsection tablemapperv1_0 TableMapper v1.0
 
