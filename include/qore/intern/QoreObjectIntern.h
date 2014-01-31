@@ -104,17 +104,15 @@ public:
 
    DLLLOCAL AbstractPrivateData* getAndClearPtr(qore_classid_t key) {
       keymap_t::iterator i = keymap.find(key);
-      if (i == keymap.end())
+      if (i == keymap.end() || i->second.second)
 	 return 0;
 
-      assert(!i->second.second);
-      AbstractPrivateData* rv = i->second.first;
-      keymap.erase(i);
-      return rv;
+      return i->second.first;
    }
 
    DLLLOCAL void insert(qore_classid_t key, AbstractPrivateData* pd) {
       assert(pd);
+      assert(keymap.find(key) == keymap.end());
       keymap.insert(std::make_pair(key, std::make_pair(pd, false)));
    }
 
@@ -373,7 +371,7 @@ public:
       privateData(0), data(n_data), pgm(p), system_object(!p), 
       delete_blocker_run(false), in_destructor(false), pgm_ref(true), recursive_ref_found(false), is_recursive(false), /*in_rsection(0),*/ rcount(0), rset(0),
       obj(n_obj) {
-
+      //printd(5, "qore_object_private::qore_object_private() this: %p obj: %p '%s'\n", this, obj, oc->getName());
 #ifdef QORE_DEBUG_OBJ_REFS
       printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::qore_object_private() obj=%p, pgm=%p, class=%s, references 0->1\n", obj, p, oc->getName());
 #endif
@@ -631,6 +629,7 @@ public:
 
    DLLLOCAL void cleanup(ExceptionSink* xsink, QoreHashNode* td) {
       if (privateData) {
+         printd(5, "qore_object_private::cleanup() this: %p privateData: %p\n", this, privateData);
 	 delete privateData;
 #ifdef DEBUG
 	 privateData = 0;
@@ -738,21 +737,29 @@ public:
 	 delete obj;
    }
 
+   DLLLOCAL void setPrivate(qore_classid_t key, AbstractPrivateData* pd) {
+      if (!privateData)
+         privateData = new KeyList();
+      //printd(5, "qore_object_private::setPrivate() this: %p 2:privateData: %p (%s) key: %d pd: %p\n", this, privateData, theclass->getName(), key, pd);
+      privateData->insert(key, pd);
+      addVirtualPrivateData(key, pd);
+   }
+
    // add virtual IDs for private data to class list
    DLLLOCAL void addVirtualPrivateData(qore_classid_t key, AbstractPrivateData* apd) {
       // first get parent class corresponding to "key"
-      QoreClass *qc = theclass->getClass(key);
-      //printd(5, "qore_object_private::addVirtualPrivateData() this: %p key: %d apd: %p qc: %p\n", this, key, apd, qc);
+      QoreClass* qc = theclass->getClass(key);
+      //printd(5, "qore_object_private::addVirtualPrivateData() this: %p privateData: %p key: %d apd: %p qc: %p '%s'\n", this, privateData, key, apd, qc, qc->getName());
       assert(qc);
-      BCSMList *sml = qc->getBCSMList();
+      BCSMList* sml = qc->getBCSMList();
       //printd(5, "qore_object_private::addVirtualPrivateData() this: %p qc: %p '%s' sml: %p\n", this, qc, qc->getName(), sml);
       if (!sml)
 	 return;
 
       for (class_list_t::const_iterator i = sml->begin(), e = sml->end(); i != e; ++i) {
-         //printd(5, "qore_object_private::addVirtualPrivateData() this: %p i: %p '%s' %s\n", this, i->first, i->first->getName(), i->second ? "true" : "false");
-	 if ((*i).second)
-	    privateData->insertVirtual((*i).first->getID(), apd);
+         //printd(5, "qore_object_private::addVirtualPrivateData() this: %p i: %p '%s' key: %d virt: %s\n", this, i->first, i->first->getName(), i->first->getID(), i->second ? "true" : "false");
+	 if (i->second)
+	    privateData->insertVirtual(i->first->getID(), apd);
       }
    }
 

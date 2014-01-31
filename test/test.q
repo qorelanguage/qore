@@ -2152,7 +2152,11 @@ sub csvutil_tests() {
 
     my CsvDataIterator $i(CsvInput, $opts);
     my list $l = map $1, $i;
-    test_value($l, CsvRecords, "CsvDataIterator");
+    test_value($l, CsvRecords, "CsvDataIterator 1");
+
+    # test with empty data and header lines
+    $i = new CsvDataIterator("", ("header-lines": 1));
+    test_value($i.next(), False, "CsvDataIterator 2");
 }
 
 sub module_tests() {

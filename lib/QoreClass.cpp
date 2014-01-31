@@ -2057,9 +2057,9 @@ int BCSMList::add(QoreClass* thisclass, QoreClass* qc, bool is_virtual) {
    // see if class already exists in list
    class_list_t::const_iterator i = begin();
    while (i != end()) {
-      if ((*i).first->getID() == qc->getID())
+      if (i->first->getID() == qc->getID())
          return 0;
-      if ((*i).first->getID() == thisclass->getID()) {
+      if (i->first->getID() == thisclass->getID()) {
          thisclass->priv->scl->valid = false;
       	 parse_error("circular reference in class hierarchy, '%s' is an ancestor of itself", thisclass->getName());
       	 return -1;
@@ -2074,24 +2074,24 @@ int BCSMList::add(QoreClass* thisclass, QoreClass* qc, bool is_virtual) {
 
 void BCSMList::execDestructors(QoreObject* o, ExceptionSink* xsink) const {
    for (class_list_t::const_reverse_iterator i = rbegin(), e = rend(); i != e; ++i) {
-      printd(5, "BCSMList::execDestructors() %s::destructor() o=%p virt=%s (subclass %s)\n", (*i).first->getName(), o, (*i).second ? "true" : "false", o->getClass()->getName());
-      if (!(*i).second)
-	 (*i).first->priv->execBaseClassDestructor(o, xsink);
+      //printd(5, "BCSMList::execDestructors() %s::destructor() o: %p virt: %s (subclass %s)\n", i->first->getName(), o, i->second ? "true" : "false", o->getClass()->getName());
+      if (!i->second)
+	 i->first->priv->execBaseClassDestructor(o, xsink);
    }
 }
 
 void BCSMList::execSystemDestructors(QoreObject* o, ExceptionSink* xsink) const {
    for (class_list_t::const_reverse_iterator i = rbegin(), e = rend(); i != e; ++i) {
-      printd(5, "BCSMList::execSystemDestructors() %s::destructor() o=%p virt=%s (subclass %s)\n", (*i).first->getName(), o, (*i).second ? "true" : "false", o->getClass()->getName());
-      if (!(*i).second)
-	 (*i).first->priv->execBaseClassSystemDestructor(o, xsink);
+      printd(5, "BCSMList::execSystemDestructors() %s::destructor() o=%p virt=%s (subclass %s)\n", i->first->getName(), o, i->second ? "true" : "false", o->getClass()->getName());
+      if (!i->second)
+	 i->first->priv->execBaseClassSystemDestructor(o, xsink);
    }
 }
 
 void BCSMList::execCopyMethods(QoreObject* self, QoreObject* old, ExceptionSink* xsink) const {
    for (class_list_t::const_iterator i = begin(), e = end(); i != e; ++i) {
-      if (!(*i).second) {
-	 (*i).first->priv->execBaseClassCopy(self, old, xsink);
+      if (!i->second) {
+	 i->first->priv->execBaseClassCopy(self, old, xsink);
 	 if (xsink->isEvent())
 	    break;
       }
@@ -2100,16 +2100,16 @@ void BCSMList::execCopyMethods(QoreObject* self, QoreObject* old, ExceptionSink*
 
 QoreClass* BCSMList::getClass(qore_classid_t cid) const {
    for (class_list_t::const_iterator i = begin(), e = end(); i != e; ++i) {
-      if ((*i).first->getID() == cid)
-	 return (*i).first;
+      if (i->first->getID() == cid)
+	 return i->first;
    }
    return 0;
 }
 
 void BCSMList::resolveCopy() {
    for (class_list_t::iterator i = begin(), e = end(); i != e; ++i) {
-      assert((*i).first->priv->new_copy);
-      (*i).first = (*i).first->priv->new_copy;
+      assert(i->first->priv->new_copy);
+      i->first = i->first->priv->new_copy;
    }
 }
 
@@ -2536,7 +2536,7 @@ void QoreClass::execDestructor(QoreObject* self, ExceptionSink* xsink) const {
 }
 
 void qore_class_private::execDestructor(QoreObject* self, ExceptionSink* xsink) const {
-   printd(5, "qore_class_private::execDestructor() %s::destructor() o=%p\n", name.c_str(), self);
+   //printd(5, "qore_class_private::execDestructor() %s::destructor() o: %p scl: %p sml: %p\n", name.c_str(), self, scl, scl ? &scl->sml : 0);
 
    // we use a new, blank exception sink to ensure all destructor code gets executed 
    // in case there were already exceptions in the current exceptionsink

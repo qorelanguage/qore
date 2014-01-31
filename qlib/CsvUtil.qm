@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file CsvUtil.qm Qore user module for working with CSV files
 
-/*  CsvUtil.qm Copyright 2012 - 2013 Qore Technologies, sro
+/*  CsvUtil.qm Copyright 2012 - 2014 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -33,6 +33,9 @@ module CsvUtil {
 }
 
 /*  Version History
+    * 2014-01-31 v1.2: David Nichols <david@qore.org>
+      + fixed CsvDataIterator::next() when header_lines > 0 and working with empty input data
+
     * 2013-10-21 v1.2: David Nichols <david@qore.org>
       + implemented support for the "*int", "*float", "*number", and "*date" types
       + implemented support for allowing subclasses of CsvFileIterator to implement support for other custom types
@@ -814,10 +817,8 @@ while ($i.next()) {
             return $.valid;
         }
 
-        #! Returns the current line number
+        #! Returns the current line number; returns 0 if not pointing at any data
         private int lineNumberImpl() {
-            if (!$.valid)
-                throw "INVALID-ITERATOR", "the iterator is not pointing at a valid element";
             return $.lineno;
         }
 

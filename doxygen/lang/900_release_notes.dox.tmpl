@@ -55,7 +55,9 @@
     - fixed a bug parsing octal character constants in the lexer when octal digits followed the octal constant (ex: \c "\0441" where the \c "1" would cause an error)
     - allow escaping "$" character in regular expression substitution target strings, previously it was impossible to output a literal "$" + a digit, since this would be interpreted as a numbered input pattern expression
     - fixed a bug in the @ref Qore::HTTPClient::getURL() "HTTPClient::getURL()" and @ref Qore::HTTPClient::getProxyURL() "HTTPClient::getProxyURL()" methods where the URL's path was not given with a leading "/" character
-    - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module fixes: fixed \c "date" field handling with empty input (now maps to 1970-01-01)
+    - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module fixes:
+      - fixed \c "date" field handling with empty input (now maps to 1970-01-01)
+      - fixed CsvDataIterator::next() when header_lines > 0 and working with empty input data
     - added support for compiling on OSX Mavericks
     - fixed an infinitely recursive call in Table::del() in <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a>
     - fixed a bug in v*printf() where \c '%%' was not handled correctly in all cases
@@ -73,6 +75,7 @@
     - fixed a memory leak in constant destruction with parse rollbacks when the constant value was NULL
     - fixed an error in the rounding heuristic for arbitrary-precision numeric values that could produce invalid results (ex: 34.9n * 100 = 34902n)
     - enforce @ref Qore::PO_NO_FILESYSTEM "PO_NO_FILESYSTEM" with the @ref include "%include" directive
+    - fixed a bug managing object private data in complex inheritance cases where the same class may be inherited with virtual private data and also real private data
 
     @section qore_088 Qore 0.8.8
 

@@ -158,15 +158,15 @@ void QoreObject::externalDelete(qore_classid_t key, ExceptionSink* xsink) {
    priv->doDeleteIntern(xsink);
 }
 
-QoreObject::QoreObject(const QoreClass *oc, QoreProgram *p) : AbstractQoreNode(NT_OBJECT, false, false, false, true), priv(new qore_object_private(this, oc, p, new QoreHashNode)) {
+QoreObject::QoreObject(const QoreClass* oc, QoreProgram* p) : AbstractQoreNode(NT_OBJECT, false, false, false, true), priv(new qore_object_private(this, oc, p, new QoreHashNode)) {
 }
 
-QoreObject::QoreObject(const QoreClass *oc, QoreProgram *p, AbstractPrivateData *data) : AbstractQoreNode(NT_OBJECT, false, false, false, true), priv(new qore_object_private(this, oc, p, new QoreHashNode)) {
+QoreObject::QoreObject(const QoreClass* oc, QoreProgram* p, AbstractPrivateData* data) : AbstractQoreNode(NT_OBJECT, false, false, false, true), priv(new qore_object_private(this, oc, p, new QoreHashNode)) {
    assert(data);
    setPrivate(oc->getID(), data);
 }
 
-QoreObject::QoreObject(const QoreClass *oc, QoreProgram *p, QoreHashNode *h) : AbstractQoreNode(NT_OBJECT, false, false, false, true), priv(new qore_object_private(this, oc, p, h)) {
+QoreObject::QoreObject(const QoreClass* oc, QoreProgram* p, QoreHashNode* h) : AbstractQoreNode(NT_OBJECT, false, false, false, true), priv(new qore_object_private(this, oc, p, h)) {
 }
 
 QoreObject::~QoreObject() {
@@ -176,11 +176,11 @@ QoreObject::~QoreObject() {
    delete priv;
 }
 
-const QoreClass *QoreObject::getClass() const {
+const QoreClass* QoreObject::getClass() const {
    return priv->theclass; 
 }
 
-const char *QoreObject::getClassName() const {
+const char*QoreObject::getClassName() const {
    return priv->theclass->getName(); 
 }
 
@@ -192,7 +192,7 @@ bool QoreObject::isValid() const {
    return priv->status == OS_OK; 
 }
 
-QoreProgram *QoreObject::getProgram() const {
+QoreProgram* QoreObject::getProgram() const {
    return priv->pgm;
 }
 
@@ -893,14 +893,11 @@ AbstractPrivateData *QoreObject::getAndClearPrivateData(qore_classid_t key, Exce
 }
 
 // called only during constructor execution, therefore no need for locking
-void QoreObject::setPrivate(qore_classid_t key, AbstractPrivateData *pd) { 
-   if (!priv->privateData)
-      priv->privateData = new KeyList();
-   priv->privateData->insert(key, pd);
-   priv->addVirtualPrivateData(key, pd);
+void QoreObject::setPrivate(qore_classid_t key, AbstractPrivateData* pd) { 
+   priv->setPrivate(key, pd);
 }
 
-void QoreObject::addPrivateDataToString(QoreString *str, ExceptionSink* xsink) const {
+void QoreObject::addPrivateDataToString(QoreString* str, ExceptionSink* xsink) const {
    str->concat('(');
    QoreSafeRWReadLocker sl(priv->rwl);
 
@@ -921,7 +918,7 @@ void QoreObject::defaultSystemDestructor(qore_classid_t classID, ExceptionSink* 
       pd->deref(xsink);
 }
 
-QoreString *QoreObject::getAsString(bool &del, int foff, ExceptionSink* xsink) const {
+QoreString *QoreObject::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
    del = false;
 
    TempString rv(new QoreString());
@@ -932,7 +929,7 @@ QoreString *QoreObject::getAsString(bool &del, int foff, ExceptionSink* xsink) c
    return rv.release();
 }
 
-int QoreObject::getAsString(QoreString &str, int foff, ExceptionSink* xsink) const {
+int QoreObject::getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
    QoreContainerHelper cch(this);
    if (!cch) {
       str.sprintf("{ERROR: recursive reference to object %p (class %s)}", this, getClassName());
