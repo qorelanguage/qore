@@ -1934,8 +1934,6 @@ my string $encoded_url = encode_url($url);
 
     @see decode_url()
 
-    @note percent decoding is made according to <a href="http://tools.ietf.org/html/rfc3986#section-2.1">RFC 3986</a>
-
     @since %Qore 0.8.9
 */
 string encode_url(string url, softbool encode_all = False) [flags=CONSTANT] {
