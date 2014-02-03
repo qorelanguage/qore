@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2006 - 2013 QoreTechnologies
+  Copyright (C) 2006 - 2014 QoreTechnologies
   
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -307,6 +307,11 @@ public:
 
    //! returns the connection status of the object
    DLLEXPORT bool isConnected() const;
+
+   DLLEXPORT void clearWarningQueue(ExceptionSink* xsink);
+   DLLEXPORT void setWarningQueue(int64 warning_ms, int64 warning_bs, class Queue* wq, AbstractQoreNode* arg, ExceptionSink* xsink);
+   DLLEXPORT QoreHashNode* getUsageInfo() const;
+   DLLEXPORT void clearStats();
 
    DLLLOCAL static void static_init();
 

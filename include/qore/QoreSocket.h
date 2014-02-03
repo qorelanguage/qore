@@ -6,7 +6,7 @@
   
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright 2003 - 2014 David Nichols
 
   will unlink (delete) UNIX domain socket files when closed
 
@@ -1564,6 +1564,11 @@ public:
        - \c familystr: a string description of the address family ("ipv4", "ipv6", etc)
    */
    DLLEXPORT QoreHashNode* getSocketInfo(ExceptionSink* xsink, bool host_lookup) const;
+
+   DLLEXPORT void clearWarningQueue(ExceptionSink* xsink);
+   DLLEXPORT void setWarningQueue(int64 warning_ms, int64 warning_bs, class Queue* wq, AbstractQoreNode* arg, ExceptionSink* xsink);
+   DLLEXPORT QoreHashNode* getUsageInfo() const;
+   DLLEXPORT void clearStats();
 
    DLLLOCAL static void doException(int rc, const char *meth, int timeout_ms, ExceptionSink *xsink);
 

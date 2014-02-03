@@ -1289,3 +1289,23 @@ void QoreHttpClientObject::setProxyUserPassword(const char *user, const char *pa
 void QoreHttpClientObject::clearProxyUserPassword() {
    http_priv->clearProxyUserPassword();
 }
+
+void QoreHttpClientObject::clearWarningQueue(ExceptionSink* xsink) {
+   AutoLocker al(priv->m);
+   priv->socket->clearWarningQueue(xsink);
+}
+
+void QoreHttpClientObject::setWarningQueue(int64 warning_ms, int64 warning_bs, Queue* wq, AbstractQoreNode* arg, ExceptionSink* xsink) {
+   AutoLocker al(priv->m);
+   priv->socket->setWarningQueue(warning_ms, warning_bs, wq, arg, xsink);
+}
+   
+QoreHashNode* QoreHttpClientObject::getUsageInfo() const {
+   AutoLocker al(priv->m);
+   return priv->socket->getUsageInfo();
+}
+
+void QoreHttpClientObject::clearStats() {
+   AutoLocker al(priv->m);
+   priv->socket->clearStats();
+}

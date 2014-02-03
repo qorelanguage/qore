@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright 2003 - 2013 David Nichols
+ Copyright 2003 - 2014 David Nichols
  
  provides a thread-safe interface to the QoreSocket object
  
@@ -507,4 +507,24 @@ QoreHashNode* QoreSocketObject::getPeerInfo(ExceptionSink *xsink, bool host_look
 QoreHashNode* QoreSocketObject::getSocketInfo(ExceptionSink *xsink, bool host_lookup) const {
    AutoLocker al(priv->m);
    return priv->socket->getSocketInfo(xsink, host_lookup);
+}
+
+void QoreSocketObject::clearWarningQueue(ExceptionSink* xsink) {
+   AutoLocker al(priv->m);
+   priv->socket->clearWarningQueue(xsink);
+}
+
+void QoreSocketObject::setWarningQueue(int64 warning_ms, int64 warning_bs, Queue* wq, AbstractQoreNode* arg, ExceptionSink* xsink) {
+   AutoLocker al(priv->m);
+   priv->socket->setWarningQueue(warning_ms, warning_bs, wq, arg, xsink);
+}
+   
+QoreHashNode* QoreSocketObject::getUsageInfo() const {
+   AutoLocker al(priv->m);
+   return priv->socket->getUsageInfo();
+}
+
+void QoreSocketObject::clearStats() {
+   AutoLocker al(priv->m);
+   priv->socket->clearStats();
 }
