@@ -2387,6 +2387,8 @@ nothing Socket::upgradeServerToSSL() {
 $sock.clearWarningQueue();
     @endcode
 
+    @see Socket::setWarningQueue()
+
     @since Qore 0.8.9
  */
 nothing Socket::clearWarningQueue() {
@@ -2418,6 +2420,8 @@ $sock.setWarningQueue(5000, 5000, $queue, "socket-1");
 
     @throw QUEUE-ERROR the Queue passed has a maximum size set
     @throw SOCKET-SETWARNINGQUEUE-ERROR at least one of \a warning_ms and \a warning_bs must be > 0
+
+    @see Socket::clearWarningQueue()
 
     @since Qore 0.8.9
  */

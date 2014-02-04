@@ -6,7 +6,7 @@
   
   Qore Programming Language
   
-  Copyright 2003 - 2013 David Nichols
+  Copyright 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -294,6 +294,11 @@ public:
 
    //! sets the connection mode for the next connection to "PORT"
    DLLEXPORT void setModePORT();
+
+   DLLEXPORT void clearWarningQueue(ExceptionSink* xsink);
+   DLLEXPORT void setWarningQueue(int64 warning_ms, int64 warning_bs, class Queue* wq, AbstractQoreNode* arg, ExceptionSink* xsink);
+   DLLEXPORT QoreHashNode* getUsageInfo() const;
+   DLLEXPORT void clearStats();
 
    //! sets the same event queue for data and control sockets
    DLLLOCAL void setEventQueue(Queue *cbq, ExceptionSink *xsink);

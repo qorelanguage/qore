@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file SmtpClient.qm SmtpClient module definition
 
-/*  SmtpClient.qm Copyright 2012 - 2013 Qore Technologies, sro
+/*  SmtpClient.qm Copyright 2012 - 2014 Qore Technologies, sro
 
     Original Authors: Wolfgang Ritzinger, Marian Bonda, Pavol Potoncok
 
@@ -41,6 +41,9 @@ module SmtpClient {
 }
 
 /*  Version History
+    * 2014-02-04 v1.3: David Nichols <david@qore.org>:
+      + added socket instrumention support from Qore 0.8.9
+
     * 2013-11-25 v1.3: David Nichols <david@qore.org>:
       + optimized connection and login code; HELO/EHLO and authorization are performed when connecting only; not before each email
 
@@ -474,6 +477,92 @@ my SmtpClient $smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), 
 	    my AutoLock $am($.mutex);
             $.forceDisconnectIntern();
 	}
+
+        #! Removes any warning @ref Qore::Thread::Queue "Queue" object from the Socket
+        /** @par Example:
+            @code
+$smtp.clearWarningQueue();
+            @endcode
+
+            @see SmtpClient::setWarningQueue()
+
+            @since %SmtpClient 1.3
+        */
+        nothing clearWarningQueue() {
+            $.sock.clearWarningQueue();
+        }
+
+        #! Sets a @ref Qore::Thread::Queue "Queue" object to receive socket warnings
+        /** @par Example:
+            @code
+$smtp.setWarningQueue(5000, 5000, $queue, "socket-1");
+            @endcode
+
+            @param warning_ms the threshold in milliseconds for individual socket actions (send, receive, connect), if exceeded, a socket warning is placed on the warning queue with the following keys:
+            - \c "type": a string with the constant value \c "SOCKET-OPERATION-WARNING"
+            - \c "operation": a string giving the operation that caused the warning (ex: \c "connect")
+            - \c "us": an integer giving the number of microseconds for the operation
+            - \c "timeout": an integer giving the warning threshold in microseconds 
+            - \c "arg": if any \c "arg" argument is passed to the @ref Qore::SmtpClient::setWarningQueue() "SmtpClient::setWarningQueue()" method, it will be included in the warning hash here 
+            @param warning_bs value in bytes per second; if any call has performance below this threshold, a socket warning is placed on the warning queue with the following keys:
+            - \c "type": a string with the constant value \c "SOCKET-THROUGHPUT-WARNING"
+            - \c "dir": either \c "send" or \c "recv" depending on the direction of the data flow
+            - \c "bytes": the amount of bytes sent
+            - \c "us": an integer giving the number of microseconds for the operation
+            - \c "bytes_sec": a float giving the transfer speed in bytes per second
+            - \c "threshold": an integer giving the warning threshold in bytes per second
+            - \c "arg": if any \c "arg" argument is passed to the @ref Qore::SmtpClient::setWarningQueue() "SmtpClient::setWarningQueue()" method, it will be included in the warning hash here 
+            @param queue the @ref Qore::Thread::Queue "Queue" object to receive warning events
+            @param arg an optional argument to be placed in the \c "arg" key in each warning hash (could be used to identify the socket for example)
+            
+            @throw QUEUE-ERROR the Queue passed has a maximum size set
+            @throw SOCKET-SETWARNINGQUEUE-ERROR at least one of \a warning_ms and \a warning_bs must be > 0
+
+            @see SmtpClient::clearWarningQueue()
+
+            @since %SmtpClient 1.3
+        */
+        nothing setWarningQueue(int $warning_ms, int $warning_bs, Queue $queue, any $arg) {
+            $.sock.setWarningQueue($warning_ms, $warning_bs, $queue, $arg);
+        }
+
+        #! Returns performance statistics for the socket
+        /** @par Example:
+            @code
+my hash $h = $smtp.getUsageInfo();
+            @endcode
+
+            @return a hash with the following keys:
+            - \c "bytes_sent": an integer giving the total amount of bytes sent
+            - \c "bytes_recv": an integer giving the total amount of bytes received
+            - \c "us_sent": an integer giving the total number of microseconds spent sending data
+            - \c "us_recv": an integer giving the total number of microseconds spent receiving data
+            - \c "arg": (only if warning values have been set with @ref Qore::SmtpClient::setWarningQueue() "SmtpClient::setWarningQueue()") the optional argument for warning hashes
+            - \c "timeout": (only if warning values have been set with @ref Qore::SmtpClient::setWarningQueue() "SmtpClient::setWarningQueue()") the warning timeout in microseconds
+            - \c "min_throughput": (only if warning values have been set with @ref Qore::SmtpClient::setWarningQueue() "SmtpClient::setWarningQueue()") the minimum warning throughput in bytes/sec
+
+            @since %SmtpClient 1.3
+
+            @see SmtpClient::clearStats()
+        */
+        hash getUsageInfo() {
+            return $.sock.getUsageInfo();
+        }
+
+        #! Clears performance statistics
+        /** @par Example:
+            @code
+$smtp.clearStats();
+            @endcode
+
+            @since %SmtpClient 1.3
+
+            @see SmtpClient::getUsageInfo()
+        */
+        clearStats() {
+	    my AutoLock $am($.mutex);
+            $.sock.clearStats();
+        }
 
         #! @cond nodoc
         # don't reimplement this method; fix/enhance it in the module

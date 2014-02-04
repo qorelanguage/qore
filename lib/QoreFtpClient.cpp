@@ -5,7 +5,7 @@
   
   Qore Programming Language
   
-  Copyright 2003 - 2013 David Nichols
+  Copyright 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -26,7 +26,9 @@
 #include <qore/QoreFtpClient.h>
 #include <qore/QoreURL.h>
 #include <qore/QoreSocket.h>
+
 #include <qore/intern/QC_Queue.h>
+#include <qore/intern/qore_socket_private.h>
 
 #include <errno.h>
 #include <string.h>
@@ -676,6 +678,30 @@ public:
       disconnectInternal();
       m.unlock();
    }
+
+   DLLLOCAL void clearWarningQueue(ExceptionSink* xsink) {
+      AutoLocker al(m);
+      control.clearWarningQueue(xsink);
+      data.clearWarningQueue(xsink);
+   }
+
+   DLLLOCAL void setWarningQueue(int64 warning_ms, int64 warning_bs, Queue* wq, AbstractQoreNode* arg, ExceptionSink* xsink) {
+      AutoLocker al(m);
+      control.setWarningQueue(warning_ms, warning_bs, wq, arg, xsink);
+      if (!*xsink)
+	 data.setWarningQueue(warning_ms, warning_bs, wq, arg, xsink);
+   }
+
+   DLLLOCAL QoreHashNode* getUsageInfo() const {
+      AutoLocker al(m);
+      QoreHashNode* h = new QoreHashNode;
+      qore_socket_private::getUsageInfo(control, *h, data);
+      return h;
+   }
+
+   DLLLOCAL void clearStats() {
+      AutoLocker al(m);
+   }
 };
 
 QoreFtpClient::QoreFtpClient(const QoreString *url, ExceptionSink *xsink) : priv(new qore_ftp_private(url, xsink)) {
@@ -1324,4 +1350,20 @@ void QoreFtpClient::setDataEventQueue(Queue *cbq, ExceptionSink *xsink) {
 
 void QoreFtpClient::cleanup(ExceptionSink *xsink) {
    priv->cleanup(xsink);
+}
+
+void QoreFtpClient::clearWarningQueue(ExceptionSink* xsink) {
+   priv->clearWarningQueue(xsink);
+}
+
+void QoreFtpClient::setWarningQueue(int64 warning_ms, int64 warning_bs, Queue* wq, AbstractQoreNode* arg, ExceptionSink* xsink) {
+   priv->setWarningQueue(warning_ms, warning_bs, wq, arg, xsink);
+}
+   
+QoreHashNode* QoreFtpClient::getUsageInfo() const {
+   return priv->getUsageInfo();
+}
+
+void QoreFtpClient::clearStats() {
+   priv->clearStats();
 }

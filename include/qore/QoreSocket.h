@@ -111,6 +111,7 @@ public:
     @see QoreEncoding
 */
 class QoreSocket {
+   friend struct qore_socket_private;
 private:
    //! private implementation of the class
    struct qore_socket_private *priv; 

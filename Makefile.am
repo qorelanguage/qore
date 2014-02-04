@@ -337,6 +337,7 @@ noinst_HEADERS = \
 	include/qore/intern/qore_date_private.h \
 	include/qore/intern/sql_statement_private.h \
 	include/qore/intern/qore_program_private.h \
+	include/qore/intern/qore_socket_private.h \
 	include/qore/intern/QoreDir.h \
 	include/qore/intern/QoreTypeInfo.h \
 	include/qore/intern/QoreSSLIntern.h \
