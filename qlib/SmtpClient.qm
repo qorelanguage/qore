@@ -560,7 +560,6 @@ $smtp.clearStats();
             @see SmtpClient::getUsageInfo()
         */
         clearStats() {
-	    my AutoLock $am($.mutex);
             $.sock.clearStats();
         }
 
