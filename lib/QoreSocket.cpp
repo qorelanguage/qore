@@ -2516,7 +2516,7 @@ struct qore_socket_private {
 	 warn_queue->deref(xsink);
 	 warn_queue = 0;
 	 tl_warning_us = 0;
-	 tp_warning_bs = 0;
+	 tp_warning_bs = 0.0;
       }
    }
 
@@ -2539,6 +2539,7 @@ struct qore_socket_private {
 
       warn_queue = wq;
       tl_warning_us = (int64)warning_ms * 1000;
+      tp_warning_bs = warning_bs;
       callback_arg = holder.release();
    }
    
@@ -2590,7 +2591,7 @@ struct qore_socket_private {
       h->setKeyValue("bytes", new QoreBigIntNode(bytes), 0);
       h->setKeyValue("us", new QoreBigIntNode(dt), 0);
       h->setKeyValue("bytes_sec", new QoreFloatNode(bs), 0);
-      h->setKeyValue("threshold", new QoreBigIntNode(tp_warning_bs), 0);
+      h->setKeyValue("threshold", new QoreBigIntNode((int64)tp_warning_bs), 0);
       if (callback_arg)
 	 h->setKeyValue("arg", callback_arg->refSelf(), 0);
 
@@ -2767,6 +2768,8 @@ QoreSocketThroughputHelper::~QoreSocketThroughputHelper() {
 }
 
 void QoreSocketThroughputHelper::finalize(int64 bytes) {
+   //printd(5, "QoreSocketThroughputHelper::finalize() bytes: "QLLD" us: "QLLD" bs: %.6f threshold: %.6f\n", bytes, (q_clock_getmicros() - start), ((double)bytes / ((double)(q_clock_getmicros() - start) / (double)1000000.0)), sock->tp_warning_bs);
+
    if (bytes <= 0)
       return;
 
@@ -2780,7 +2783,13 @@ void QoreSocketThroughputHelper::finalize(int64 bytes) {
 
    int64 dt = q_clock_getmicros() - start;
 
+   // ignore if less than 1 second
+   if (dt < 1000000)
+      return;
+
    double bs = (double)bytes / ((double)dt / (double)1000000.0);
+
+   //printd(5, "QoreSocketThroughputHelper::finalize() bytes: "QLLD" us: "QLLD" bs: %.6f threshold: %.6f\n", bytes, dt, bs, sock->tp_warning_bs);
 
    if (bs <= (double)sock->tp_warning_bs)
       sock->doThroughputWarning(send, bytes, dt, bs);
