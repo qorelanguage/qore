@@ -617,7 +617,7 @@ $pop3.forceDisconnect();
         #! Removes any warning @ref Qore::Thread::Queue "Queue" object from the Socket
         /** @par Example:
             @code
-$smtp.clearWarningQueue();
+$pop3.clearWarningQueue();
             @endcode
 
             @see Pop3Client::setWarningQueue()
@@ -631,7 +631,7 @@ $smtp.clearWarningQueue();
         #! Sets a @ref Qore::Thread::Queue "Queue" object to receive socket warnings
         /** @par Example:
             @code
-$smtp.setWarningQueue(5000, 5000, $queue, "socket-1");
+$pop3.setWarningQueue(5000, 5000, $queue, "socket-1");
             @endcode
 
             @param warning_ms the threshold in milliseconds for individual socket actions (send, receive, connect), if exceeded, a socket warning is placed on the warning queue with the following keys:
@@ -665,7 +665,7 @@ $smtp.setWarningQueue(5000, 5000, $queue, "socket-1");
         #! Returns performance statistics for the socket
         /** @par Example:
             @code
-my hash $h = $smtp.getUsageInfo();
+my hash $h = $pop3.getUsageInfo();
             @endcode
 
             @return a hash with the following keys:
@@ -688,7 +688,7 @@ my hash $h = $smtp.getUsageInfo();
         #! Clears performance statistics
         /** @par Example:
             @code
-$smtp.clearStats();
+$pop3.clearStats();
             @endcode
 
             @since %Pop3Client 1.3

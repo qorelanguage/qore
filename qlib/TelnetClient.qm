@@ -24,7 +24,7 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%requires Qore 0.8.9
+%requires qore >= 0.8.9
 
 module TelnetClient {
    version = "1.1";
@@ -469,7 +469,7 @@ public namespace TelnetClient {
         #! Removes any warning @ref Qore::Thread::Queue "Queue" object from the Socket
         /** @par Example:
             @code
-$smtp.clearWarningQueue();
+$telnet.clearWarningQueue();
             @endcode
 
             @see TelnetClient::setWarningQueue()
@@ -483,7 +483,7 @@ $smtp.clearWarningQueue();
         #! Sets a @ref Qore::Thread::Queue "Queue" object to receive socket warnings
         /** @par Example:
             @code
-$smtp.setWarningQueue(5000, 5000, $queue, "socket-1");
+$telnet.setWarningQueue(5000, 5000, $queue, "socket-1");
             @endcode
 
             @param warning_ms the threshold in milliseconds for individual socket actions (send, receive, connect), if exceeded, a socket warning is placed on the warning queue with the following keys:
@@ -517,7 +517,7 @@ $smtp.setWarningQueue(5000, 5000, $queue, "socket-1");
         #! Returns performance statistics for the socket
         /** @par Example:
             @code
-my hash $h = $smtp.getUsageInfo();
+my hash $h = $telnet.getUsageInfo();
             @endcode
 
             @return a hash with the following keys:
@@ -535,6 +535,20 @@ my hash $h = $smtp.getUsageInfo();
         */
         hash getUsageInfo() {
             return $.conn.getUsageInfo();
+        }
+
+        #! Clears performance statistics
+        /** @par Example:
+            @code
+$telnet.clearStats();
+            @endcode
+
+            @since %TelnetClient 1.1
+
+            @see TelnetClient::getUsageInfo()
+        */
+        clearStats() {
+            $.conn.clearStats();
         }
 
         #! @cond nodoc

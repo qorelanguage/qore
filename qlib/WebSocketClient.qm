@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file WebSocketClient.qm WebSocket client implementation
 
-/*  WebSocketClient.qm Copyright 2013 Qore Technologies, sro
+/*  WebSocketClient.qm Copyright 2013 - 2014 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,8 +22,8 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.8 or better
-%requires qore >= 0.8.8
+# this module requires Qore 0.8.9 or better
+%requires qore >= 0.8.9
 
 # require type definitions everywhere
 %require-types
@@ -35,13 +35,16 @@
 %requires Util >= 1.0
 
 module WebSocketClient {
-    version = "1.0";
+    version = "1.1";
     desc = "user module for providing client support for the WebSocket protocol";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
 }
 
 /*  Version History
+    * 2014-02-04 v1.1: David Nichols <david@qore.org>
+      + added socket instrumention support from Qore 0.8.9
+
     * 2013-10-04 v1.0: David Nichols <david@qore.org>
       + the initial version of the WebSocketClient module
 */
@@ -232,6 +235,91 @@ $ws.connect();
 
             if ($.hc.isOpen())
                 $.disconnectUnlocked($cmd);
+        }
+
+        #! Removes any warning @ref Qore::Thread::Queue "Queue" object from the Socket
+        /** @par Example:
+            @code
+$ws.clearWarningQueue();
+            @endcode
+
+            @see WebSocketClient::setWarningQueue()
+
+            @since %WebSocketClient 1.1
+        */
+        nothing clearWarningQueue() {
+            $.hc.clearWarningQueue();
+        }
+
+        #! Sets a @ref Qore::Thread::Queue "Queue" object to receive socket warnings
+        /** @par Example:
+            @code
+$ws.setWarningQueue(5000, 5000, $queue, "socket-1");
+            @endcode
+
+            @param warning_ms the threshold in milliseconds for individual socket actions (send, receive, connect), if exceeded, a socket warning is placed on the warning queue with the following keys:
+            - \c "type": a string with the constant value \c "SOCKET-OPERATION-WARNING"
+            - \c "operation": a string giving the operation that caused the warning (ex: \c "connect")
+            - \c "us": an integer giving the number of microseconds for the operation
+            - \c "timeout": an integer giving the warning threshold in microseconds 
+            - \c "arg": if any \c "arg" argument is passed to the @ref Qore::WebSocketClient::setWarningQueue() "WebSocketClient::setWarningQueue()" method, it will be included in the warning hash here 
+            @param warning_bs value in bytes per second; if any call has performance below this threshold, a socket warning is placed on the warning queue with the following keys:
+            - \c "type": a string with the constant value \c "SOCKET-THROUGHPUT-WARNING"
+            - \c "dir": either \c "send" or \c "recv" depending on the direction of the data flow
+            - \c "bytes": the amount of bytes sent
+            - \c "us": an integer giving the number of microseconds for the operation
+            - \c "bytes_sec": a float giving the transfer speed in bytes per second
+            - \c "threshold": an integer giving the warning threshold in bytes per second
+            - \c "arg": if any \c "arg" argument is passed to the @ref Qore::WebSocketClient::setWarningQueue() "WebSocketClient::setWarningQueue()" method, it will be included in the warning hash here 
+            @param queue the @ref Qore::Thread::Queue "Queue" object to receive warning events
+            @param arg an optional argument to be placed in the \c "arg" key in each warning hash (could be used to identify the socket for example)
+            
+            @throw QUEUE-ERROR the Queue passed has a maximum size set
+            @throw SOCKET-SETWARNINGQUEUE-ERROR at least one of \a warning_ms and \a warning_bs must be > 0
+
+            @see WebSocketClient::clearWarningQueue()
+
+            @since %WebSocketClient 1.1
+        */
+        nothing setWarningQueue(int $warning_ms, int $warning_bs, Queue $queue, any $arg) {
+            $.hc.setWarningQueue($warning_ms, $warning_bs, $queue, $arg);
+        }
+
+        #! Returns performance statistics for the socket
+        /** @par Example:
+            @code
+my hash $h = $ws.getUsageInfo();
+            @endcode
+
+            @return a hash with the following keys:
+            - \c "bytes_sent": an integer giving the total amount of bytes sent
+            - \c "bytes_recv": an integer giving the total amount of bytes received
+            - \c "us_sent": an integer giving the total number of microseconds spent sending data
+            - \c "us_recv": an integer giving the total number of microseconds spent receiving data
+            - \c "arg": (only if warning values have been set with @ref Qore::WebSocketClient::setWarningQueue() "WebSocketClient::setWarningQueue()") the optional argument for warning hashes
+            - \c "timeout": (only if warning values have been set with @ref Qore::WebSocketClient::setWarningQueue() "WebSocketClient::setWarningQueue()") the warning timeout in microseconds
+            - \c "min_throughput": (only if warning values have been set with @ref Qore::WebSocketClient::setWarningQueue() "WebSocketClient::setWarningQueue()") the minimum warning throughput in bytes/sec
+
+            @since %WebSocketClient 1.1
+
+            @see WebSocketClient::clearStats()
+        */
+        hash getUsageInfo() {
+            return $.hc.getUsageInfo();
+        }
+
+        #! Clears performance statistics
+        /** @par Example:
+            @code
+$ws.clearStats();
+            @endcode
+
+            @since %WebSocketClient 1.1
+
+            @see WebSocketClient::getUsageInfo()
+        */
+        clearStats() {
+            $.hc.clearStats();
         }
 
         private disconnectUnlocked(int $cmd = WSCC_GoingAway) {
