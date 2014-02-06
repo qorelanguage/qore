@@ -942,6 +942,7 @@ $ftp.setWarningQueue(5000, 5000, $queue, "socket-1");
     - \c "arg": if any \c "arg" argument is passed to the @ref Qore::FtpClient::setWarningQueue() "FtpClient::setWarningQueue()" method, it will be included in the warning hash here 
     @param queue the @ref Qore::Thread::Queue "Queue" object to receive warning events
     @param arg an optional argument to be placed in the \c "arg" key in each warning hash (could be used to identify the socket for example)
+    @param min_ms the minimum transfer time with a resolution of milliseconds for a transfer to be eligible for triggering a warning; transfers that take less than this period of time are not eligible for raising a warning
 
     @throw QUEUE-ERROR the Queue passed has a maximum size set
     @throw SOCKET-SETWARNINGQUEUE-ERROR at least one of \a warning_ms and \a warning_bs must be > 0
@@ -950,14 +951,14 @@ $ftp.setWarningQueue(5000, 5000, $queue, "socket-1");
 
     @since Qore 0.8.9
  */
-nothing FtpClient::setWarningQueue(int warning_ms, int warning_bs, Queue[Queue] queue, any arg) {
+nothing FtpClient::setWarningQueue(int warning_ms, int warning_bs, Queue[Queue] queue, any arg, timeout min_ms = 1s) {
    ReferenceHolder<Queue> q(queue, xsink);
    if (queue->getMax() != -1) {
       xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Socket object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
       return 0;
    }
    // pass reference from QoreObject::getReferencedPrivateData() to function
-   f->setWarningQueue(warning_ms, warning_bs, q.release(), arg ? arg->refSelf() : 0, xsink);
+   f->setWarningQueue(xsink, warning_ms, warning_bs, q.release(), arg ? arg->refSelf() : 0, min_ms);
 }
 
 //! Returns performance statistics for the socket

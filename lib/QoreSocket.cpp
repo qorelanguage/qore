@@ -583,8 +583,8 @@ void QoreSocketThroughputHelper::finalize(int64 bytes) {
 
    int64 dt = q_clock_getmicros() - start;
 
-   // ignore if less than 1 second
-   if (dt < 1000000)
+   // ignore if less than event time threshold
+   if (dt < sock->tp_us_min)
       return;
 
    double bs = (double)bytes / ((double)dt / (double)1000000.0);
@@ -1842,8 +1842,8 @@ void QoreSocket::clearWarningQueue(ExceptionSink* xsink) {
    priv->clearWarningQueue(xsink);
 }
 
-void QoreSocket::setWarningQueue(int64 warning_ms, int64 warning_bs, Queue* wq, AbstractQoreNode* arg, ExceptionSink* xsink) {
-   priv->setWarningQueue(warning_ms, warning_bs, wq, arg, xsink);
+void QoreSocket::setWarningQueue(ExceptionSink* xsink, int64 warning_ms, int64 warning_bs, Queue* wq, AbstractQoreNode* arg, int64 min_ms) {
+   priv->setWarningQueue(xsink, warning_ms, warning_bs, wq, arg, min_ms);
 }
    
 QoreHashNode* QoreSocket::getUsageInfo() const {

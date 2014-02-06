@@ -1295,9 +1295,9 @@ void QoreHttpClientObject::clearWarningQueue(ExceptionSink* xsink) {
    priv->socket->clearWarningQueue(xsink);
 }
 
-void QoreHttpClientObject::setWarningQueue(int64 warning_ms, int64 warning_bs, Queue* wq, AbstractQoreNode* arg, ExceptionSink* xsink) {
+void QoreHttpClientObject::setWarningQueue(ExceptionSink* xsink, int64 warning_ms, int64 warning_bs, Queue* wq, AbstractQoreNode* arg, int64 min_ms) {
    AutoLocker al(priv->m);
-   priv->socket->setWarningQueue(warning_ms, warning_bs, wq, arg, xsink);
+   priv->socket->setWarningQueue(xsink, warning_ms, warning_bs, wq, arg, min_ms);
 }
    
 QoreHashNode* QoreHttpClientObject::getUsageInfo() const {

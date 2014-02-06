@@ -177,14 +177,15 @@ struct qore_socket_private {
    int64 tp_bytes_sent,     // throughput: bytes sent
       tp_bytes_recv,        // throughput: bytes received
       tp_us_sent,           // throughput: time sending
-      tp_us_recv            // throughput: time receiving
+      tp_us_recv,           // throughput: time receiving
+      tp_us_min             // throughput: minimum time for transfer to be considered
       ;
    AbstractQoreNode* callback_arg;
 
    DLLLOCAL qore_socket_private(int n_sock = QORE_INVALID_SOCKET, int n_sfamily = AF_UNSPEC, int n_stype = SOCK_STREAM, int n_prot = 0, const QoreEncoding *n_enc = QCS_DEFAULT) : 
       sock(n_sock), sfamily(n_sfamily), port(-1), stype(n_stype), sprot(n_prot), enc(n_enc), del(false), 
       ssl(0), cb_queue(0), warn_queue(0), buflen(0), bufoffset(0), tl_warning_us(0), tp_warning_bs(0), 
-      tp_bytes_sent(0), tp_bytes_recv(0), tp_us_sent(0), tp_us_recv(0),
+      tp_bytes_sent(0), tp_bytes_recv(0), tp_us_sent(0), tp_us_recv(0), tp_us_min(0),
       callback_arg(0) {
       //sendTimeout = recvTimeout = -1
    }
@@ -2158,10 +2159,11 @@ struct qore_socket_private {
 	 warn_queue = 0;
 	 tl_warning_us = 0;
 	 tp_warning_bs = 0.0;
+         tp_us_min = 0;
       }
    }
 
-   DLLLOCAL void setWarningQueue(int64 warning_ms, int64 warning_bs, Queue* wq, AbstractQoreNode* arg, ExceptionSink* xsink) {
+   DLLLOCAL void setWarningQueue(ExceptionSink* xsink, int64 warning_ms, int64 warning_bs, Queue* wq, AbstractQoreNode* arg, int64 min_ms = 1000) {
       ReferenceHolder<> holder(arg, xsink);
       if (warning_ms <=0 && warning_bs <= 0) {
 	 xsink->raiseException("SOCKET-SETWARNINGQUEUE-ERROR", "Socket::setWarningQueue() at least one of warning ms argument: "QLLD" and warning B/s argument: "QLLD" must be greater than zero; to clear, call Socket::clearWarningQueue() with no arguments", warning_ms, warning_bs);
@@ -2181,6 +2183,7 @@ struct qore_socket_private {
       warn_queue = wq;
       tl_warning_us = (int64)warning_ms * 1000;
       tp_warning_bs = warning_bs;
+      tp_us_min = min_ms * 1000;
       callback_arg = holder.release();
    }
    
@@ -2189,6 +2192,7 @@ struct qore_socket_private {
 	 h.setKeyValue("arg", callback_arg ? callback_arg->refSelf() : 0, 0);
 	 h.setKeyValue("timeout", new QoreBigIntNode(tl_warning_us), 0);
 	 h.setKeyValue("min_throughput", new QoreBigIntNode((int64)tp_warning_bs), 0);
+         h.setKeyValue("min_throughput_us", new QoreBigIntNode((int64)tp_us_min), 0);
       }
 
       h.setKeyValue("bytes_sent", new QoreBigIntNode(tp_bytes_sent + s.tp_bytes_sent), 0);
@@ -2202,6 +2206,7 @@ struct qore_socket_private {
 	 h.setKeyValue("arg", callback_arg ? callback_arg->refSelf() : 0, 0);
 	 h.setKeyValue("timeout", new QoreBigIntNode(tl_warning_us), 0);
 	 h.setKeyValue("min_throughput", new QoreBigIntNode((int64)tp_warning_bs), 0);
+         h.setKeyValue("min_throughput_us", new QoreBigIntNode((int64)tp_us_min), 0);
       }
 
       h.setKeyValue("bytes_sent", new QoreBigIntNode(tp_bytes_sent), 0);

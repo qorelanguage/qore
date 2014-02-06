@@ -309,7 +309,7 @@ public:
    DLLEXPORT bool isConnected() const;
 
    DLLEXPORT void clearWarningQueue(ExceptionSink* xsink);
-   DLLEXPORT void setWarningQueue(int64 warning_ms, int64 warning_bs, class Queue* wq, AbstractQoreNode* arg, ExceptionSink* xsink);
+   DLLEXPORT void setWarningQueue(ExceptionSink* xsink, int64 warning_ms, int64 warning_bs, class Queue* wq, AbstractQoreNode* arg, int64 min_ms = 1000);
    DLLEXPORT QoreHashNode* getUsageInfo() const;
    DLLEXPORT void clearStats();
 
