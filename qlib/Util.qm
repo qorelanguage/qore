@@ -547,11 +547,11 @@ my string $str = get_byte_size($n);
                 break;
         }
 
+        my string $fmt = sprintf("%%.%df ", $decimals);
 
         if (!$k)
-            return $n + " byte" + ($n == 1 ? "" : "s");
+            return sprintf($fmt + "byte" + ($n == 1 ? "" : "s"), $n);
 
-        my string $fmt = sprintf("%%.%df ", $decimals);
         $n /= $storage_sizes.$k;
         my string $v = sprintf($fmt, $n);
         $v =~ s/(\.)?0*$//;
@@ -579,11 +579,11 @@ my string $str = get_marketing_byte_size($n);
                 break;
         }
 
+        my string $fmt = sprintf("%%.%df ", $decimals);
 
         if (!$k)
-            return $n + " byte" + ($n == 1 ? "" : "s");
+            return sprintf($fmt + "byte" + ($n == 1 ? "" : "s"), $n);
 
-        my string $fmt = sprintf("%%.%df ", $decimals);
         $n /= $marketing_storage_sizes.$k;
         my string $v = sprintf($fmt, $n);
         # remove trailing zeros
