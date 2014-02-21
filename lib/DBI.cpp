@@ -162,7 +162,7 @@ void qore_dbi_method_list::add(int code, q_dbi_stmt_exec_t method) {
 
 // covers stmt fetch_row, get_output and get_output_rows
 void qore_dbi_method_list::add(int code, q_dbi_stmt_fetch_row_t method) {
-   assert(code == QDBI_METHOD_STMT_FETCH_ROW || code == QDBI_METHOD_STMT_GET_OUTPUT_ROWS || code == QDBI_METHOD_STMT_GET_OUTPUT);
+   assert(code == QDBI_METHOD_STMT_FETCH_ROW || code == QDBI_METHOD_STMT_GET_OUTPUT_ROWS || code == QDBI_METHOD_STMT_GET_OUTPUT || code == QDBI_METHOD_STMT_DESCRIBE);
    assert(priv->l.find(code) == priv->l.end());
    priv->l[code] = (void*)method;
 }
@@ -339,6 +339,10 @@ qore_dbi_private::qore_dbi_private(const char* nme, const qore_dbi_mlist_private
          case QDBI_METHOD_STMT_FETCH_COLUMNS:
             assert(!f.stmt.fetch_columns);
             f.stmt.fetch_columns = (q_dbi_stmt_fetch_columns_t)(*i).second;
+            break;
+         case QDBI_METHOD_STMT_DESCRIBE:
+            assert(!f.stmt.describe);
+            f.stmt.describe = (q_dbi_stmt_fetch_row_t)(*i).second;
             break;
          case QDBI_METHOD_STMT_NEXT:
             assert(!f.stmt.next);

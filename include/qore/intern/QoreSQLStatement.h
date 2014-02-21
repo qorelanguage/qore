@@ -99,6 +99,8 @@ public:
    DLLLOCAL QoreListNode *fetchRows(int rows, ExceptionSink *xsink);
    DLLLOCAL QoreHashNode *fetchColumns(int rows, ExceptionSink *xsink);
 
+   DLLLOCAL QoreHashNode *describe(ExceptionSink *xsink);
+
    DLLLOCAL int close(ExceptionSink *xsink);
    DLLLOCAL int commit(ExceptionSink *xsink);
    DLLLOCAL int rollback(ExceptionSink *xsink);

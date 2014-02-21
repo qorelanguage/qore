@@ -359,6 +359,17 @@ QoreHashNode *QoreSQLStatement::fetchColumns(int rows, ExceptionSink *xsink) {
    return qore_dbi_private::get(*priv->ds->getDriver())->stmt_fetch_columns(this, rows, xsink);
 }
 
+QoreHashNode *QoreSQLStatement::describe(ExceptionSink *xsink) {
+    DBActionHelper dba(*this, xsink, DAH_NOCHANGE);
+    if (!dba)
+       return 0;
+
+    if (checkStatus(dba, STMT_DEFINED, "describe", xsink))
+       return 0;
+
+    return qore_dbi_private::get(*priv->ds->getDriver())->stmt_describe(this, xsink);
+}
+
 bool QoreSQLStatement::active() const {
    return status != STMT_IDLE;
 }

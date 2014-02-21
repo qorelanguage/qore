@@ -48,6 +48,7 @@ struct dbi_driver_stmt {
    q_dbi_stmt_fetch_row_t fetch_row;
    q_dbi_stmt_fetch_rows_t fetch_rows;
    q_dbi_stmt_fetch_columns_t fetch_columns;
+   q_dbi_stmt_fetch_row_t describe;
    q_dbi_stmt_next_t next;
    q_dbi_stmt_define_t define;
    q_dbi_stmt_close_t close;
@@ -57,7 +58,7 @@ struct dbi_driver_stmt {
 
    DLLLOCAL dbi_driver_stmt() : prepare(0), prepare_raw(0), bind(0), bind_placeholders(0),
                                 bind_values(0), exec(0), fetch_row(0), fetch_rows(0),
-                                fetch_columns(0), next(0), define(0),
+                                fetch_columns(0), describe(0), next(0), define(0),
                                 close(0), affected_rows(0), get_output(0), get_output_rows(0) {
    }
 };
@@ -318,6 +319,10 @@ struct qore_dbi_private {
 
    DLLLOCAL QoreHashNode* stmt_fetch_columns(SQLStatement* stmt, int rows, ExceptionSink* xsink) const {
       return f.stmt.fetch_columns(stmt, rows, xsink);
+   }
+
+   DLLLOCAL QoreHashNode* stmt_describe(SQLStatement* stmt, ExceptionSink* xsink) const {
+      return f.stmt.describe(stmt, xsink);
    }
 
    DLLLOCAL bool stmt_next(SQLStatement* stmt, ExceptionSink* xsink) const {

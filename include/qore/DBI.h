@@ -79,8 +79,9 @@
 #define QDBI_METHOD_SELECT_ROW               28
 #define QDBI_METHOD_OPT_SET                  29
 #define QDBI_METHOD_OPT_GET                  30
+#define QDBI_METHOD_STMT_DESCRIBE            31
 
-#define QDBI_VALID_CODES 30
+#define QDBI_VALID_CODES 31
 
 class Datasource;
 class ExceptionSink;
