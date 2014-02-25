@@ -754,8 +754,8 @@ if ($ftp.isSecure())
 
     @par Example:
     @code
-if ($ftp.isSecure() && exists (my *string $str = $ftp.verifyPeerCertificate())) {
-    printf("vertificate: %s: %s\n", $str, X509_VerificationReasons.$str);
+if ($ftp.isSecure() && (my *string $str = $ftp.verifyPeerCertificate())) {
+    printf("certificate: %s: %s\n", $str, X509_VerificationReasons.$str);
     @endcode
  */
 *string FtpClient::verifyPeerCertificate() [flags=CONSTANT] {

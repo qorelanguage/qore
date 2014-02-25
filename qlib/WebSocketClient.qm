@@ -139,10 +139,10 @@ sub event(*data $msg) {
     else
         printf("%s msg: %y\n", now_us().format("YYYY-MM-DD HH:mm:SS.xx"), $msg);
 }
-my WebSocketClient $ws(("url": "ws://example.com:8080/path", "callback": \event()));
+my WebSocketClient $ws(\event(), ("url": "ws://example.com:8080/path"));
             @endcode
 
-            @param callback the callhack  @ref closure "closure" or @ref call_reference "call reference" for received messages
+            @param callback the callback @ref closure "closure" or @ref call_reference "call reference" for received messages
             @param opts an option hash for the @ref Qore::HTTPClient class plus the following keys:
             - \c log: an optional @ref closure "closure" or @ref call_reference "call reference" for informational logging
             - \c errlog: an optional @ref closure "closure" or @ref call_reference "call reference" for error logging

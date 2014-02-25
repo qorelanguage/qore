@@ -96,6 +96,9 @@
 //! defined becaus this version of Qore has the QoreHttpClientObject class
 #define _QORE_HAS_QOREHTTPCLIENTOBJECT 1
 
+//! defined because this version of Qore supports the DBI describe API
+#define _QORE_HAS_DBI_DESCRIBE 1
+
 // qore code flags
 #define QC_NO_FLAGS                 0   //! no flag
 #define QC_NOOP               (1 << 0)  //! this variant is a noop, meaning it returns a constant value with the given argument types
