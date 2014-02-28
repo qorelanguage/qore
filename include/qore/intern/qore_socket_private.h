@@ -769,7 +769,7 @@ struct qore_socket_private {
                break;
 #endif
             default:
-               qore_socket_error(xsink, "SOCKET-SELECT-ERROR", "call to select() returned an error");
+               qore_socket_error(xsink, "SOCKET-SELECT-ERROR", "select() returned an error");
                break;
          }
       }
