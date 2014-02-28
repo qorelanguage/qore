@@ -5,7 +5,7 @@
   
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -1066,14 +1066,22 @@ struct qore_socket_private {
 	 if (rc != QORE_SOCKET_ERROR || sock_get_error() != EINTR)
 	    break;
       }
+      if (rc == QORE_SOCKET_ERROR) {
+         rc = 0;
+         switch (sock_get_error()) {
 #ifdef EBADF
-      // mark the socket as closed if the select call fails due to a bad file descriptor error
-      if (rc && sock_get_error() == EBADF) {
-	 close();
-	 if (xsink)
-	    se_closed(mname, xsink);
-      }
+            // mark the socket as closed if the select call fails due to a bad file descriptor error
+            case EBADF:
+               close();
+               if (xsink)
+                  se_closed(mname, xsink);
+               break;
 #endif
+            default:
+               qore_socket_error(xsink, "SOCKET-SELECT-ERROR", "select() returned an error");
+               break;
+         }
+      }
 
       return rc;
    }
