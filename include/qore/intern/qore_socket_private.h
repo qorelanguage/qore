@@ -757,19 +757,20 @@ struct qore_socket_private {
 	 if (rc != QORE_SOCKET_ERROR || sock_get_error() != EINTR)
 	    break;
       }
-      if (rc == -1) {
+      if (rc == QORE_SOCKET_ERROR) {
+         rc = 0;
          switch (sock_get_error()) {
 #ifdef EBADF
-         // mark the socket as closed if the select call fails due to a bad file descriptor error
-            case EBADF: {
+            // mark the socket as closed if the select call fails due to a bad file descriptor error
+            case EBADF:
                close();
                if (xsink)
                   se_closed(mname, xsink);
-            }
+               break;
 #endif
             default:
                qore_socket_error(xsink, "SOCKET-SELECT-ERROR", "call to select() returned an error");
-               return 0;
+               break;
          }
       }
 
