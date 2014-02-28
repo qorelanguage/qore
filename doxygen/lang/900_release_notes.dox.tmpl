@@ -93,6 +93,7 @@
     - fixed an error in the rounding heuristic for arbitrary-precision numeric values that could produce invalid results (ex: 34.9n * 100 = 34902n)
     - enforce @ref Qore::PO_NO_FILESYSTEM "PO_NO_FILESYSTEM" with the @ref include "%include" directive
     - fixed a bug managing object private data in complex inheritance cases where the same class may be inherited with virtual private data and also real private data
+    - fixed a bug in socket timeout handling with select() errors
 
     @section qore_088 Qore 0.8.8
 
