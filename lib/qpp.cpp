@@ -542,6 +542,8 @@ static void get_type_name(std::string &t, const std::string &type) {
       t = type;
    else
       t.assign(type, cp + 2, -1);
+   if (t[0] == '*')
+      t.erase(0, 1);
 }
 
 // takes into account quotes and @code @endcode
