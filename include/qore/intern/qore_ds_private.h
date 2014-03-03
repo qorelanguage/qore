@@ -4,7 +4,7 @@
 
   Qore Programming Language
  
-  Copyright 2003 - 2013 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
  
   The Datasource class provides the low-level interface to Qore DBI drivers.
   
@@ -56,20 +56,26 @@ struct qore_ds_private {
 
    // options per connection
    QoreHashNode* opt;
+   // DBI event queue
+   Queue* event_queue;
+   // DBI Event queue argument
+   AbstractQoreNode* event_arg;
 
-   DLLLOCAL qore_ds_private(Datasource* n_ds, DBIDriver* ndsl) : ds(n_ds), in_transaction(false), active_transaction(false), isopen(false), autocommit(false), connection_aborted(false), dsl(ndsl), qorecharset(QCS_DEFAULT), private_data(0), p_port(0), port(0), opt(new QoreHashNode) {
+   DLLLOCAL qore_ds_private(Datasource* n_ds, DBIDriver* ndsl) : ds(n_ds), in_transaction(false), active_transaction(false), isopen(false), autocommit(false), connection_aborted(false), dsl(ndsl), qorecharset(QCS_DEFAULT), private_data(0), p_port(0), port(0), opt(new QoreHashNode), event_queue(0), event_arg(0) {
    }
 
    DLLLOCAL qore_ds_private(const qore_ds_private& old, Datasource* n_ds) :
-               ds(n_ds), in_transaction(false), active_transaction(false), isopen(false),
-               autocommit(old.autocommit), connection_aborted(false), dsl(old.dsl),
-               qorecharset(QCS_DEFAULT), private_data(0),
-               p_username(old.p_username), p_password(old.p_password),
-               p_dbname(old.p_dbname), p_db_encoding(old.p_db_encoding),
-               p_hostname(old.p_hostname), p_port(old.p_port),
-               port(0), 
-               //opt(old.opt->copy()) {
-               opt(old.getCurrentOptionHash(true)) {
+      ds(n_ds), in_transaction(false), active_transaction(false), isopen(false),
+      autocommit(old.autocommit), connection_aborted(false), dsl(old.dsl),
+      qorecharset(QCS_DEFAULT), private_data(0),
+      p_username(old.p_username), p_password(old.p_password),
+      p_dbname(old.p_dbname), p_db_encoding(old.p_db_encoding),
+      p_hostname(old.p_hostname), p_port(old.p_port),
+      port(0), 
+      //opt(old.opt->copy()) {
+      opt(old.getCurrentOptionHash(true)), 
+      event_queue(old.event_queue ? old.event_queue->eventRefSelf() : 0),
+      event_arg(old.event_arg ? old.event_arg->refSelf() : 0) {
    }
 
    DLLLOCAL ~qore_ds_private() {
@@ -77,6 +83,10 @@ struct qore_ds_private {
       ExceptionSink xsink;
       if (opt)
          opt->deref(&xsink);
+      if (event_arg)
+         event_arg->deref(&xsink);
+      if (event_queue)
+         event_queue->deref(&xsink);
    }
 
    DLLLOCAL void setPendingConnectionValues(const qore_ds_private *other) {
@@ -132,6 +142,30 @@ struct qore_ds_private {
          options = new QoreHashNode;
 
       return options;
+   }
+
+   DLLLOCAL void setEventQueue(Queue* q, AbstractQoreNode* arg, ExceptionSink* xsink) {
+      if (event_queue)
+         event_queue->deref(xsink);
+      if (event_arg)
+         event_arg->deref(xsink);
+      event_queue = q;
+      event_arg = arg;
+   }
+
+   DLLLOCAL QoreHashNode* getEventQueueHash(Queue*& q, int event_code) const {
+      q = event_queue;
+      if (!q)
+         return 0;
+      QoreHashNode* h = new QoreHashNode;
+      if (!username.empty())
+         h->setKeyValue("user", new QoreStringNode(username), 0);
+      if (!dbname.empty())
+         h->setKeyValue("db", new QoreStringNode(dbname), 0);
+      h->setKeyValue("eventtype", new QoreBigIntNode(event_code), 0);
+      if (event_arg)
+         h->setKeyValue("arg", event_arg->refSelf(), 0);
+      return h;
    }
 };
 

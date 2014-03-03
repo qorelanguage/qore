@@ -167,6 +167,7 @@ include_HEADERS = \
 	include/qore/QoreNumberNode.h \
 	include/qore/QoreNothingNode.h \
 	include/qore/QoreNullNode.h \
+	include/qore/QoreQueue.h \
 	include/qore/QoreQueueHelper.h \
 	include/qore/params.h \
 	include/qore/node_types.h \
@@ -251,6 +252,7 @@ noinst_HEADERS = \
 	include/qore/intern/Variable.h \
 	include/qore/intern/QoreValue.h \
 	include/qore/intern/LocalVar.h \
+	include/qore/intern/QoreQueueIntern.h \
 	include/qore/intern/ModuleInfo.h \
 	include/qore/intern/QoreTimeZoneManager.h \
 	include/qore/intern/QoreTreeNode.h \
@@ -274,7 +276,6 @@ noinst_HEADERS = \
 	include/qore/intern/RegexTransNode.h \
 	include/qore/intern/QoreRegexNode.h \
 	include/qore/intern/QoreRegexBase.h \
-	include/qore/intern/QoreQueue.h \
 	include/qore/intern/QoreLibIntern.h \
 	include/qore/intern/QoreGetOpt.h \
 	include/qore/intern/QoreClassList.h \

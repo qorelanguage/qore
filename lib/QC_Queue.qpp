@@ -22,6 +22,7 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/QC_Queue.h>
+#include <qore/intern/QoreQueueIntern.h>
 
 //! %Queue objects provide a blocking, thread-safe message-passing object to %Qore programs
 /** %Queue objects can also be used as a stack or as a blocking message channel, if a maximum size is given to Queue::constructor() when the object is created.
@@ -57,7 +58,7 @@ Queue::constructor(int max = -1) {
     @throw QUEUE-ERROR The queue was deleted while at least one thread was blocked on it
  */
 Queue::destructor() {
-   q->destructor(xsink);
+   qore_queue_private::destructor(*q, xsink);
    q->deref(xsink);
 }
 

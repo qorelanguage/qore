@@ -4,7 +4,7 @@
 
   Qore Programming Language
  
-  Copyright 2003 - 2013 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
  
   The Datasource class provides the low-level interface to Qore DBI drivers.
   
@@ -28,6 +28,7 @@
 #define _QORE_DATASOURCE_H
 
 #include <qore/QoreThreadLock.h>
+#include <qore/QoreQueue.h>
 
 #include <string>
 
@@ -249,7 +250,7 @@ public:
 
    //! executes SQL throught the "select" function of the DBI driver and returns the result, makes an implicit connection if necessary
    /** this function is not "const" to allow for implicit connections (and reconnections)
-       @param query_str the qurey to execute
+       @param query_str the query to execute
        @param args query arguments for %s, %n, %d placeholders
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
@@ -257,7 +258,7 @@ public:
 
    //! executes SQL throught the "selectRows" function of the DBI driver and returns the result, makes an implicit connection if necessary
    /** this function is not "const" to allow for implicit connections (and reconnections)
-       @param query_str the qurey to execute
+       @param query_str the query to execute
        @param args query arguments for %s, %n, %d placeholders
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
@@ -266,7 +267,7 @@ public:
    //! executes SQL throught the "selectRow" function of the DBI driver and returns the result, makes an implicit connection if necessary
    /** This function is not "const" to allow for implicit connections (and reconnections).
        An exception will be thrown by the DBI driver if the query returns more than 1 row of data.
-       @param query_str the qurey to execute
+       @param query_str the query to execute
        @param args query arguments for %s, %n, %d placeholders
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @return the row data returned or 0
@@ -277,7 +278,7 @@ public:
    /** The "in_transaction" flag will be set to true if this method executes without
        throwing an exception and the object was not already in a transaction.
        this function is not "const" to allow for implicit connections (and reconnections)
-       @param query_str the qurey to execute
+       @param query_str the query to execute
        @param args query arguments for %s, %n, %d placeholders
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
@@ -288,7 +289,7 @@ public:
        throwing an exception and the object was not already in a transaction.
        this function is not "const" to allow for implicit connections (and reconnections)
 
-       @param query_str the qurey to execute
+       @param query_str the query to execute
        @param args this argument is ignored
        @param xsink if an error occurs, the Qore-language exception information will be added here
 
@@ -301,10 +302,20 @@ public:
        throwing an exception and the object was not already in a transaction.
        this function is not "const" to allow for implicit connections (and reconnections)
 
-       @param query_str the qurey to execute
+       @param query_str the query to execute
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
    DLLEXPORT AbstractQoreNode* execRaw(const QoreString* query_str, ExceptionSink* xsink);
+
+   //! executes SQL that returns a result set and then returns a hash description of the result set
+   /** 
+       @param query_str the query to execute
+       @param args this argument is ignored
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+
+       @since %Qore 0.8.9
+    */
+   DLLEXPORT QoreHashNode* describe(const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink);   
 
    //! commits the current transaction to the database
    /** Calls the DBI driver's "commit" method.
@@ -503,6 +514,17 @@ public:
       @since %Qore 0.8.8
    */
    DLLEXPORT QoreStringNode* getConfigString() const;
+
+   //! sets an event queue for datasource events
+   /** 
+       @since %Qore 0.8.9
+   */
+   DLLEXPORT void setEventQueue(Queue* q, AbstractQoreNode* arg, ExceptionSink* xsink);
+
+   //! returns an event hash with only default information in it or 0 if no event queue is set
+   /** meant to be called from drivers while a transaction or action lock is held
+    */
+   DLLEXPORT QoreHashNode* getEventQueueHash(Queue*& q, int event_code) const;
 };
 
 #endif // _QORE_DATASOURCE_H

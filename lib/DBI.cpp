@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -57,6 +57,8 @@ struct dbi_cap_hash dbi_cap_list[] =
   { DBI_CAP_HAS_OPTION_SUPPORT,     "HasOptionSupport" },
   { DBI_CAP_SERVER_TIME_ZONE,       "ServerTimeZone" },
   { DBI_CAP_AUTORECONNECT,          "AutoReconnect" },
+  { DBI_CAP_EVENTS,                 "Events" },
+  { DBI_CAP_HAS_DESCRIBE,           "HasDescribe" },
 };
 
 #define NUM_DBI_CAPS (sizeof(dbi_cap_list) / sizeof(dbi_cap_hash))
@@ -97,9 +99,9 @@ void qore_dbi_method_list::add(int code, q_dbi_close_t method) {
    priv->l[code] = (void*)method;
 }
 
-// covers select, select_rows. and exec
+// covers select, select_rows, and exec
 void qore_dbi_method_list::add(int code, q_dbi_select_t method) {
-   assert(code == QDBI_METHOD_SELECT || code == QDBI_METHOD_SELECT_ROWS || code == QDBI_METHOD_EXEC);
+   assert(code == QDBI_METHOD_SELECT || code == QDBI_METHOD_SELECT_ROWS || code == QDBI_METHOD_EXEC || code == QDBI_METHOD_DESCRIBE);
    assert(priv->l.find(code) == priv->l.end());
    priv->l[code] = (void*)method;
 }
@@ -278,6 +280,11 @@ qore_dbi_private::qore_dbi_private(const char* nme, const qore_dbi_mlist_private
             assert(!f.execRawSQL);
             f.execRawSQL = (q_dbi_execraw_t)(*i).second;
             cps |= DBI_CAP_HAS_EXECRAW;
+            break;
+	 case QDBI_METHOD_DESCRIBE:
+            assert(!f.describe);
+            f.describe = (q_dbi_describe_t)(*i).second;
+            cps |= DBI_CAP_HAS_DESCRIBE;
             break;
          case QDBI_METHOD_COMMIT:
             assert(!f.commit);

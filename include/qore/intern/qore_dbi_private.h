@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -79,6 +79,7 @@ struct DBIDriverFunctions {
    q_dbi_select_row_t selectRow;
    q_dbi_exec_t execSQL;
    q_dbi_execraw_t execRawSQL;
+   q_dbi_describe_t describe;
    q_dbi_commit_t commit;
    q_dbi_rollback_t rollback;
    q_dbi_begin_transaction_t begin_transaction; // for DBI drivers that require explicit transaction starts
@@ -92,7 +93,7 @@ struct DBIDriverFunctions {
    dbi_driver_opt opt;
 
    DLLLOCAL DBIDriverFunctions() : open(0), close(0), select(0), selectRows(0), selectRow(0),
-                                   execSQL(0), execRawSQL(0), commit(0), rollback(0),
+                                   execSQL(0), execRawSQL(0), describe(0), commit(0), rollback(0),
                                    begin_transaction(0), abort_transaction_start(0),
                                    get_server_version(0), get_client_version(0) {
    }
@@ -214,6 +215,15 @@ struct qore_dbi_private {
          return 0;
       }
       return f.execRawSQL(ds, sql, xsink);
+   }
+
+   DLLLOCAL QoreHashNode* describe(Datasource* ds, const QoreString* sql, const QoreListNode* args, ExceptionSink* xsink) {
+      if (!f.describe) {
+         xsink->raiseException("DBI-DESCRIBE-ERROR", "this driver does not implement the Datasource::describe() method");
+         return 0;
+      }
+      DbiArgHelper dargs(args, (caps & DBI_CAP_HAS_NUMBER_SUPPORT), xsink);
+      return f.describe(ds, sql, *dargs, xsink);
    }
 
    DLLLOCAL int commit(Datasource* ds, ExceptionSink* xsink) const {

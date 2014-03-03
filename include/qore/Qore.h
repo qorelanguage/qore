@@ -76,6 +76,7 @@ DLLEXPORT extern QoreCounter thread_counter;
 #include <qore/QoreThreadLock.h>
 #include <qore/QoreThreadLocalStorage.h>
 #include <qore/QoreCondition.h>
+#include <qore/QoreQueue.h>
 #include <qore/DBI.h>
 #include <qore/Datasource.h>
 #include <qore/SQLStatement.h>

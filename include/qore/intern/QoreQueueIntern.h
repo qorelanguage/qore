@@ -1,10 +1,10 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /* 
-   QoreQueue.h
+   QoreQueueIntern.h
 
    Qore Programming Language
 
-   Copyright 2003 - 2013 David Nichols
+   Copyright (C) 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,9 +21,9 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _QORE_QOREQUEUE_H
+#ifndef _QORE_QOREQUEUEINTERN_H
 
-#define _QORE_QOREQUEUE_H
+#define _QORE_QOREQUEUEINTERN_H
 
 #include <qore/QoreThreadLock.h>
 #include <qore/QoreCondition.h>
@@ -65,7 +65,7 @@ public:
 #define QW_DEL     -1
 #define QW_TIMEOUT -2
 
-class QoreQueue {
+class qore_queue_private {
 private:
    enum queue_status_e { Queue_Deleted = -1 };
 
@@ -79,98 +79,40 @@ private:
    unsigned read_waiting,   // number of threads waiting on reads
             write_waiting;  // number of threads waiting on writes
 
-   DLLLOCAL int waitReadIntern(ExceptionSink *xsink, int timeout_ms) {
-      // if there is no data, then wait for condition variable
-      while (!head) {
-         ++read_waiting;
-         int rc = timeout_ms ? read_cond.wait(l, timeout_ms) : read_cond.wait(l);
-         --read_waiting;
-
-         if (rc) {
-   #ifdef DEBUG
-            // if an error has occurred, then it must be due to a timeout
-            if (!timeout_ms)
-               printd(0, "QoreQueue::waitReadIntern(timeout_ms=0) this: %p pthread_cond_wait() returned rc=%d\n", this, rc);
-   #endif
-            assert(timeout_ms);
-            assert(rc == ETIMEDOUT);
-            return QW_TIMEOUT;
-         }
-         if (len == Queue_Deleted) {
-            xsink->raiseException("QUEUE-ERROR", "Queue has been deleted in another thread");
-            return QW_DEL;
-         }
-      }
-
-      return 0;
-   }
-
-   DLLLOCAL int waitWriteIntern(ExceptionSink *xsink, int timeout_ms) {
-      // if the queue is full, then wait for condition variable
-      while (max > 0 && len >= max) {
-         ++write_waiting;
-         int rc = timeout_ms ? write_cond.wait(l, timeout_ms) : write_cond.wait(l);
-         --write_waiting;
-
-         if (rc) {
-   #ifdef DEBUG
-            // if an error has occurred, then it must be due to a timeout
-            if (!timeout_ms)
-               printd(0, "QoreQueue::waitWriteIntern(timeout_ms=0) this: %p pthread_cond_wait() returned rc=%d\n", this, rc);
-   #endif
-            assert(timeout_ms);
-            assert(rc == ETIMEDOUT);
-            return QW_TIMEOUT;
-         }
-         if (len == Queue_Deleted) {
-            xsink->raiseException("QUEUE-ERROR", "Queue has been deleted in another thread");
-            return QW_DEL;
-         }
-      }
-
-      return 0;
-   }
+   DLLLOCAL int waitReadIntern(ExceptionSink *xsink, int timeout_ms);
+   DLLLOCAL int waitWriteIntern(ExceptionSink *xsink, int timeout_ms);
 
    DLLLOCAL void pushNode(AbstractQoreNode* v);
    DLLLOCAL void pushIntern(AbstractQoreNode* v);
    DLLLOCAL void insertIntern(AbstractQoreNode* v);
 
-   DLLLOCAL void clearIntern(ExceptionSink* xsink) {
-      while (head) {
-         printd(5, "QoreQueue::clearIntern() this: %p deleting %p (node %p type %s)\n", this, head, head->node, get_node_type(head->node));
-         QoreQueueNode* w = head->next;
-         head->del(xsink);
-         head = w;
-      }
-      head = 0;
-      tail = 0;
-   }
+   DLLLOCAL void clearIntern(ExceptionSink* xsink);
 
 public:
-   DLLLOCAL QoreQueue(int n_max = -1) : head(0), tail(0), len(0), max(n_max), read_waiting(0), write_waiting(0) {
+   DLLLOCAL qore_queue_private(int n_max = -1) : head(0), tail(0), len(0), max(n_max), read_waiting(0), write_waiting(0) {
       assert(max);
-      //printd(5, "QoreQueue::QoreQueue() this: %p max: %d\n", this, max);
+      //printd(5, "qore_queue_private::qore_queue_private() this: %p max: %d\n", this, max);
    }
 
-   DLLLOCAL QoreQueue(const QoreQueue &orig) : head(0), tail(0), len(0), max(orig.max), read_waiting(0), write_waiting(0) {
+   DLLLOCAL qore_queue_private(const qore_queue_private &orig) : head(0), tail(0), len(0), max(orig.max), read_waiting(0), write_waiting(0) {
       AutoLocker al(orig.l);
       if (orig.len == Queue_Deleted)
          return;
-
+      
       QoreQueueNode* w = orig.head;
       while (w) {
          pushIntern(w->node ? w->node->refSelf() : 0);
          w = w->next;
       }
 
-      //printd(5, "QoreQueue::QoreQueue() this=%p head=%p tail=%p waiting=%d len=%d\n", this, head, tail, waiting, len);
+      //printd(5, "qore_queue_private::qore_queue_private() this=%p head=%p tail=%p waiting=%d len=%d\n", this, head, tail, waiting, len);
    }
 
    // queues should not be deleted when other threads might
    // be accessing them
-   DLLLOCAL ~QoreQueue() {
-      //QORE_TRACE("QoreQueue::~QoreQueue()");
-      //printd(5, "QoreQueue::~QoreQueue() this=%p head=%p tail=%p len=%d\n", this, head, tail, len);
+   DLLLOCAL ~qore_queue_private() {
+      //QORE_TRACE("qore_queue_private::~qore_queue_private()");
+      //printd(5, "qore_queue_private::~qore_queue_private() this=%p head=%p tail=%p len=%d\n", this, head, tail, len);
       assert(!head);
       assert(!tail);
       assert(len == Queue_Deleted);
@@ -210,6 +152,10 @@ public:
 
    DLLLOCAL void clear(ExceptionSink* xsink);
    DLLLOCAL void destructor(ExceptionSink* xsink);
+
+   DLLLOCAL static void destructor(QoreQueue& q, ExceptionSink* xsink) {
+      q.priv->destructor(xsink);
+   }
 };
 
-#endif // _QORE_QOREQUEUE_H
+#endif // _QORE_QOREQUEUEINTERN_H

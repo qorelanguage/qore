@@ -26,9 +26,15 @@
       - new method: @ref Qore::SQL::DatasourcePool::setWarningCallback() "DatasourcePool::setWarningCallback()" 
       - new method: @ref Qore::SQL::DatasourcePool::getUsageInfo() "DatasourcePool::getUsageInfo()" 
       - new method: @ref Qore::SQL::DatasourcePool::setErrorTimeout() "DatasourcePool::setErrorTimeout()" 
-      - new method: @ref Qore::SQL::DatasourcePool::getErrorTimeout() "DatasourcePool::getErrorTimeout()" 
-      - the new methods allow for monitoring @ref Qore::SQL::DatasourcePool "DatasourcePool" objects for pool contention issues (in case the pool needs to be resized) and for throwing an exception if a connection is not acquired within the error timeout period (new default: 2 minutes)
+      - new method: @ref Qore::SQL::DatasourcePool::getErrorTimeout() "DatasourcePool::getErrorTimeout()"
+      - new method: @ref Qore::SQL::DatasourcePool::setEventQueue() "DatasourcePool::setEventQueue()"
+      - new method: @ref Qore::SQL::DatasourcePool::clearEventQueue() "DatasourcePool::clearEventQueue()"
+      - the new methods allow for monitoring @ref Qore::SQL::DatasourcePool "DatasourcePool" objects for pool contention issues (in case the pool needs to be resized), for throwing an exception if a connection is not acquired within the error timeout period (new default: 2 minutes), and for DBI drivers to raise warnings on an event queue that can be monitored in a separate thread
       - additionally connection acquisition statistics are tracked and returned in @ref Qore::SQL::DatasourcePool::getUsageInfo() "DatasourcePool::getUsageInfo()" (total requests, hits, maximum wait time)
+    - @ref Qore::SQL::Datasource "Datasource" enhancements:
+      - new method: @ref Qore::SQL::Datasource::setEventQueue() "Datasource::setEventQueue()"
+      - new method: @ref Qore::SQL::Datasource::clearEventQueue() "Datasource::clearEventQueue()"
+      - the new methods allow for DBI drivers to raise warnings on an event queue that can be monitored in a separate thread
     - @ref Qore::Socket "Socket" enhancements:
       - new method: @ref Qore::Socket::setWarningQueue() "Socket::setWarningQueue()"
       - new method: @ref Qore::Socket::clearWarningQueue() "Socket::clearWarningQueue()"

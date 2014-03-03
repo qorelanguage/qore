@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright 2003 - 2013 Qore Technologies, sro
+ Copyright 2003 - 2014 Qore Technologies, sro
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -230,6 +230,13 @@ AbstractQoreNode *ManagedDatasource::execRaw(const QoreString *query_str, Except
    return Datasource::execRaw(query_str, xsink);
 }
 
+QoreHashNode* ManagedDatasource::describe(const QoreString* sql, const QoreListNode* args, ExceptionSink* xsink) {
+   DatasourceActionHelper dbah(*this, xsink);
+   if (!dbah)
+      return 0;
+
+   return Datasource::describe(sql, args, xsink);
+}
 
 bool ManagedDatasource::beginTransaction(ExceptionSink *xsink) {
    DatasourceActionHelper dbah(*this, xsink, getAutoCommit() ? DAH_NOCHANGE : DAH_ACQUIRE);
@@ -399,3 +406,9 @@ AbstractQoreNode* ManagedDatasource::getOption(const char* opt, ExceptionSink* x
       return 0;
    return Datasource::getOption(opt, xsink);
 }
+
+void ManagedDatasource::setEventQueue(Queue* q, AbstractQoreNode* arg, ExceptionSink* xsink) {
+   AutoLocker al(&ds_lock);
+   Datasource::setEventQueue(q, arg, xsink);
+}
+

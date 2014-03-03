@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright 2003 - 2013 David Nichols
+ Copyright 2003 - 2014 David Nichols
  
  NOTE that 2 copies of connection values are kept in case
  the values are changed while a connection is in use
@@ -183,6 +183,18 @@ AbstractQoreNode *Datasource::execRaw(const QoreString *query_str, const QoreLis
 
 AbstractQoreNode *Datasource::execRaw(const QoreString *query_str, ExceptionSink *xsink) {
    return exec_internal(false, query_str, 0, xsink);
+}
+
+QoreHashNode* Datasource::describe(const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink) {
+   QoreHashNode* rv = qore_dbi_private::get(*priv->dsl)->describe(this, query_str, args, xsink);
+   autoCommit(xsink);
+
+   // set active_transaction flag if in a transaction and the active_transaction flag
+   // has not yet been set and no exception was raised
+   if (priv->in_transaction && !priv->active_transaction && !*xsink)
+      priv->active_transaction = true;
+
+   return rv;
 }
 
 int Datasource::beginImplicitTransaction(ExceptionSink *xsink) {
@@ -510,4 +522,12 @@ QoreStringNode* Datasource::getConfigString() const {
       str->concat('}');
 
    return str;
+}
+
+void Datasource::setEventQueue(Queue* q, AbstractQoreNode* arg, ExceptionSink* xsink) {
+   priv->setEventQueue(q, arg, xsink);
+}
+
+QoreHashNode* Datasource::getEventQueueHash(Queue*& q, int event_code) const {
+   return priv->getEventQueueHash(q, event_code);
 }

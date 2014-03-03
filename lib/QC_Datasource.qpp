@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -38,7 +38,12 @@ static int ds_set_options(ManagedDatasource* ds, const QoreHashNode* opts, Excep
    return 0;
 }
 
-static void ds_constructor_hash(const QoreHashNode* opts, QoreObject* self, ExceptionSink* xsink) {
+static void ds_constructor_hash(const QoreHashNode* opts, QoreObject* self, Queue* queue, const AbstractQoreNode* arg, ExceptionSink* xsink) {
+   if (arg && !queue)
+      arg = 0;
+
+   ReferenceHolder<Queue> q(queue, xsink);
+
    const char *str = check_hash_key(opts, "type", DSC_ERR, xsink);
    if (*xsink) return;
 
@@ -100,6 +105,9 @@ static void ds_constructor_hash(const QoreHashNode* opts, QoreObject* self, Exce
             return;
       }
    }
+
+   if (queue)
+      ds->setEventQueue(q.release(), arg ? arg->refSelf() : 0, xsink);
 
    self->setPrivate(CID_DATASOURCE, ds.release());
 }
@@ -179,6 +187,15 @@ const DBI_CAP_HAS_OPTION_SUPPORT = DBI_CAP_HAS_OPTION_SUPPORT;
 
 //! Indicates that the DBI driver supports automatically converting date/time values to the server's presumed time zone (also implies that the driver supports the \c "timezone" option) and tagging date/time values with the same; this is independent from the client's current time zone setting
 const DBI_CAP_SERVER_TIME_ZONE = DBI_CAP_SERVER_TIME_ZONE;
+
+//! Indicates that the DBI driver supports automatically/transparently reconnecting to the server if the connection is lost while not in a transaction
+const DBI_CAP_AUTORECONNECT = DBI_CAP_AUTORECONNECT;
+
+//! Indicates that the DBI driver supports the event API
+const DBI_CAP_EVENTS = DBI_CAP_EVENTS;
+
+//! Indicates that the DBI driver supports the describe method
+const DBI_CAP_HAS_DESCRIBE = DBI_CAP_HAS_DESCRIBE;
 //@}
 
 //! This class provides the %Qore interface to databases
@@ -246,6 +263,8 @@ qclass Datasource [dom=DATABASE; arg=ManagedDatasource* ds; ns=Qore::SQL; vparen
     @param host The host name for the new connection. Also see Datasource::setHostName() for a method that allows this parameter to be set after the constructor.
     @param port The port number for the new connection. Also see Datasource::setPort() for a method that allows this parameter to be set after the constructor.
     @param options Any options for the database driver for the new connection
+    @param queue An optional @ref Qore::Thread::Queue "Queue" object to receive datasource events; note that the @ref Qore::Thread::Queue "Queue" passed cannot have any maximum size set or a \c QUEUE-ERROR will be thrown; passing @ref nothing will clear any event queue
+    @param arg an optional argument to be included in the \c arg key of datasource events
 
     @par Example:
     @code
@@ -256,16 +275,21 @@ my Datasource $db(DSPGSQL, "user", "pass", "database", "utf8", "localhost", 5432
     @throw DATASOURCE-CONSTRUCTOR-ERROR port value is \<= 0
     @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
  */
-Datasource::constructor(string driver, *string user, *string pass, *string db, *string encoding, *string host, *softint port, *hash options) {
+Datasource::constructor(string driver, *string user, *string pass, *string db, *string encoding, *string host, *softint port, *hash options, *Qore::Thread::Queue[Queue] queue, any arg) {
+   ReferenceHolder<Queue> q(queue, xsink);
+
    if (!port && driver->find(':') != -1) {
       ReferenceHolder<QoreHashNode> h(parseDatasource(driver->getBuffer(), xsink), xsink);
       if (!h) {
          assert(*xsink);
          return;
       }
-      ds_constructor_hash(*h, self, xsink);
+      ds_constructor_hash(*h, self, q.release(), arg, xsink);
       return;
    }
+
+   if (arg && !queue)
+      arg = 0;
 
    DBIDriver *db_driver = DBI.find(driver->getBuffer(), xsink);
    if (!db_driver) {
@@ -302,11 +326,16 @@ Datasource::constructor(string driver, *string user, *string pass, *string db, *
    if (options)
       ds_set_options(*ds, options, xsink);
 
+   if (queue)
+      ds->setEventQueue(q.release(), arg ? arg->refSelf() : 0, xsink);
+
    self->setPrivate(CID_DATASOURCE, ds.release());
 }
 
 //! Creates a Datasource object from a single string giving all parameters that can be parsed by parse_datasource()
 /** @param desc a datasource description string in the format that can be parsed by parse_datasource()
+    @param queue An optional @ref Qore::Thread::Queue "Queue" object to receive datasource events; note that the @ref Qore::Thread::Queue "Queue" passed cannot have any maximum size set or a \c QUEUE-ERROR will be thrown; passing @ref nothing will clear any event queue
+    @param arg an optional argument to be included in the \c arg key of datasource events
 
     @par Example:
     @code
@@ -319,9 +348,15 @@ my Datasource ds("pgsql:user/pass@db01(utf8)%localhost:5432");
 
     @since %Qore 0.8.6
  */
-Datasource::constructor(string desc) [doconly=true] {
-   // this code should never be output - this function is only here for documentation
-   assert(false);
+Datasource::constructor(string desc, *Qore::Thread::Queue[Queue] queue, any arg) {
+   ReferenceHolder<Queue> q(queue, xsink);
+   ReferenceHolder<QoreHashNode> h(parseDatasource(desc->getBuffer(), xsink), xsink);
+   if (!h) {
+      assert(*xsink);
+      return;
+   }
+   ds_constructor_hash(*h, self, q.release(), arg, xsink);
+   return;
 }
 
 //! Creates a Datasource object from a hash argument giving parameters for the constructor
@@ -334,6 +369,8 @@ Datasource::constructor(string desc) [doconly=true] {
     - \c host: (@ref string_or_nothing_type "*string") The host name for the new connection. Also see Datasource::setHostName() for a method that allows this parameter to be set after the constructor.
     - \c port: (@ref softint_type "softint") The port number for the new connection. Also see Datasource::setPort() for a method that allows this parameter to be set after the constructor. If this key is present and is 0 then an exception will be raised.
     - \c options: (@ref hash_or_nothing_type "*hash") Any options for the new connection
+    @param queue An optional @ref Qore::Thread::Queue "Queue" object to receive datasource events; note that the @ref Qore::Thread::Queue "Queue" passed cannot have any maximum size set or a \c QUEUE-ERROR will be thrown; passing @ref nothing will clear any event queue
+    @param arg an optional argument to be included in the \c arg key of datasource events
 
     @par Example:
     @code
@@ -344,8 +381,8 @@ my Datasource $db(("type": DSPGSQL, "user": "username", "pass": "password", "db"
     @throw DATASOURCE-CONSTRUCTOR-ERROR missing or invalid \c "driver" key, other key name not assigned to a string; port value is \<= 0
     @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
  */
-Datasource::constructor(hash opts) {   
-   ds_constructor_hash(opts, self, xsink);
+Datasource::constructor(hash opts, *Qore::Thread::Queue[Queue] queue, any arg) {   
+   ds_constructor_hash(opts, self, queue, arg, xsink);
 }
 
 //! Closes the datasource if it's open (if any operations are in progress, will block until the operations complete) and destroys the object
@@ -572,7 +609,7 @@ any Datasource::select(string sql, ...) {
     @param sql The %SQL command to execute on the server
     @param ... Include any values to be bound (using <tt>%%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
 
-    @return This method normally returns a hash (the keys are the column names) of row data or @ref nothing if no row is found for the query when executed with an %SQL select statement, however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
+    @return This method returns a hash (the keys are the column names) of row data or @ref nothing if no row is found for the query when executed with an %SQL select statement
 
     @par Example:
     @code
@@ -584,7 +621,7 @@ my *hash $h = $db.selectRow("select * from example_table where id = 1");
 
     @note see the documentation for the DBI driver being used for additional possible exceptions    
  */
-any Datasource::selectRow(string sql, ...) {
+*hash Datasource::selectRow(string sql, ...) {
    ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
    return ds->selectRow(sql, *argl, xsink);
 }
@@ -664,7 +701,7 @@ any Datasource::vselect(string sql, *softlist vargs) {
     @param sql The %SQL command to execute on the server
     @param vargs Include any values to be bound (using <tt>%%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
 
-    @return This method normally returns a hash (the keys are the column names) of row data or @ref nothing if no row is found for the query when executed with an %SQL select statement, however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
+    @return This method returns a hash (the keys are the column names) of row data or @ref nothing if no row is found for the query when executed with an %SQL select statement
 
     @par Example:
     @code
@@ -677,7 +714,7 @@ my *hash $h = $db.vselectRow("select * from example_table where id = %v and type
 
     @see Datasource::selectRow()
  */
-any Datasource::vselectRow(string sql, *softlist vargs) {
+*hash Datasource::vselectRow(string sql, *softlist vargs) {
    return ds->selectRow(sql, vargs, xsink);
 }
 
@@ -712,6 +749,37 @@ my *list $list = $db.vselectRows("select * from example_table where id = %v and 
  */
 any Datasource::vselectRows(string sql, *softlist vargs) {
    return ds->selectRows(sql, vargs, xsink);
+}
+
+//! Executes an %SQL select statement on the server and returns a description of the result set as a hash
+/** This method also accepts all bind parameters (<tt>%%d</tt>, <tt>%%v</tt>, <tt>%%s</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+
+    This method does not retain the transaction lock if it was not already acquired before this method is called, so to execute select statements that begin a transaction (such as \c "select for update"), execute Datasource::beginTransaction() first to ensure that the transaction lock is dedicated to the calling thread.
+
+    @param sql The %SQL command to execute on the server
+    @param ... Include any values to be bound (using <tt>%%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+
+    @return a hash describing the result set with the following keys:
+    - \c name: the name of the column
+    - \c type: a string giving the type of the column
+    - \c maxsize: an integer giving the column size
+    - \c native_type: a string giving the native column type
+    - \c internal_id: an integer giving the native column type code
+
+    @par Example:
+    @code
+my *hash $h = $db.describe("select * from example_table where id = 1");
+    @endcode
+
+    @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
+
+    @note see the documentation for the DBI driver being used for additional possible exceptions    
+
+    @since %Qore 0.8.9
+ */
+*hash Datasource::describe(string sql, ...) {
+   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
+   return ds->describe(sql, *argl, xsink);
 }
 
 //! Manually grabs the transaction lock
@@ -1178,3 +1246,32 @@ my string $str = $ds.getConfigString();
 string Datasource::getConfigString() [flags=CONSTANT] {
    return ds->getConfigString();
 }
+
+//! Sets a queue object for DBI events on the datasource
+/** 
+    @param queue the @ref Qore::Thread::Queue "Queue" object to receive datasource events; note that the @ref Qore::Thread::Queue "Queue" passed cannot have any maximum size set or a \c QUEUE-ERROR will be thrown; passing @ref nothing will clear any event queue
+    @param arg an argument to be included in the \c arg key of datasource events
+
+    @throw QUEUE-ERROR the Queue passed has a maximum size set
+
+    @since %Qore 0.8.9
+ */
+nothing Datasource::setEventQueue(Qore::Thread::Queue[Queue] queue, any arg) {
+   ReferenceHolder<Queue> q(queue, xsink);
+
+   if (queue->getMax() != -1) {
+      xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Datasource object if used; use a Queue object with no maximum size for datasource event monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
+      return 0;
+   }
+
+   ds->setEventQueue(q.release(), arg ? arg->refSelf() : 0, xsink);
+}
+
+//! Clears the queue object for DBI events on the datasource
+/** 
+    @since %Qore 0.8.9
+ */
+nothing Datasource::clearEventQueue() {
+   ds->setEventQueue(0, 0, xsink);
+}
+

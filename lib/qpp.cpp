@@ -6,7 +6,7 @@
 
   Qore Programming Language
   
-  Copyright 2003 - 2013 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
   
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -609,8 +609,6 @@ static int get_qore_type(const std::string &qt, std::string &cppt) {
       std::string qc;
       get_type_name(qc, qt);
       bool on = qt[0] == '*';
-      if (on)
-         qc.erase(0, 1);
       toupper(qc);
       qc = "QC_" + qc;
       qc += on ? "->getOrNothingTypeInfo()" : "->getTypeInfo()";
@@ -1326,9 +1324,15 @@ protected:
             //HARD_QORE_OBJ_DATA(cert, QoreSSLCertificate, args, 0, CID_SSLCERTIFICATE, "Socket::setCertificate()", "SSLCertificate", xsink);
             std::string cid;
             get_type_name(cid, p.type);
-            toupper(cid);            
-            fprintf(fp, "   HARD_QORE_OBJ_DATA(%s, %s, args, %d, CID_%s, \"%s%s%s()\", \"%s\", xsink);\n   if (*xsink)\n      return%s;\n",
-                    p.name.c_str(), p.qore.c_str(), i, cid.c_str(), cname ? cname : "", cname ? "::" : "", name.c_str(), p.type.c_str(), rv ? " 0" : "");
+            toupper(cid);
+
+            if (p.type[0] != '*')
+               fprintf(fp, "   HARD_QORE_OBJ_DATA(%s, %s, args, %d, CID_%s, \"%s%s%s()\", \"%s\", xsink);\n   if (*xsink)\n      return%s;\n",
+                       p.name.c_str(), p.qore.c_str(), i, cid.c_str(), cname ? cname : "", cname ? "::" : "", name.c_str(), p.type.c_str(), rv ? " 0" : "");
+            else
+               fprintf(fp, "   HARD_QORE_OBJ_OR_NOTHING_DATA(%s, %s, args, %d, CID_%s, xsink);\n   if (*xsink)\n      return%s;\n",
+                       p.name.c_str(), p.qore.c_str(), i, cid.c_str(), rv ? " 0" : "");
+
             continue;
          }
 

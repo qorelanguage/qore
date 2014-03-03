@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -247,10 +247,17 @@ static inline const QoreEncoding *get_encoding_param(const QoreListNode *n, qore
 
 //! returns the given type for hard typed parameters
 template <typename T>
+static inline T *get_hard_or_nothing_param(const QoreListNode *n, qore_size_t i) {
+   assert(n);
+   return reinterpret_cast<T*>(n->retrieve_entry(i));
+}
+
+//! returns the given type for hard typed parameters
+template <typename T>
 static inline T *get_hard_param(const QoreListNode *n, qore_size_t i) {
    assert(n);
-   assert(dynamic_cast<T *>(n->retrieve_entry(i)));
-   return reinterpret_cast<T *>(n->retrieve_entry(i));
+   assert(dynamic_cast<T*>(n->retrieve_entry(i)));
+   return reinterpret_cast<T*>(n->retrieve_entry(i));
 }
 
 static inline void HARD_QORE_DATA(const QoreListNode *n, qore_size_t i, const void *&ptr, qore_size_t &len) {
@@ -265,6 +272,9 @@ static inline void HARD_QORE_DATA(const QoreListNode *n, qore_size_t i, const vo
    ptr = b->getPtr();
    len = b->size();
 }
+
+//! returns a hard typed parameter
+#define HARD_QORE_OR_NOTHING_PARAM(name, Type, list, i) Type *name = get_hard_or_nothing_param<Type>(list, i)
 
 //! returns a hard typed parameter
 #define HARD_QORE_PARAM(name, Type, list, i) Type *name = get_hard_param<Type>(list, i)
@@ -304,6 +314,9 @@ static inline void HARD_QORE_DATA(const QoreListNode *n, qore_size_t i, const vo
 
 // sets up an object pointer
 #define HARD_QORE_OBJ_DATA(vname, Type, list, i, cid, dname, cname, xsink) HARD_QORE_PARAM(obj_##vname, const QoreObject, list, i); Type *vname = reinterpret_cast<Type *>(obj_##vname->getReferencedPrivateData(cid, xsink)); if (!vname && !*xsink) xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot complete call setup to %s() because parameter %d (<class %s>) has already been deleted", cname, i + 1, dname)
+
+// sets up an object pointer
+#define HARD_QORE_OBJ_OR_NOTHING_DATA(vname, Type, list, i, cid, xsink) HARD_QORE_OR_NOTHING_PARAM(obj_##vname, const QoreObject, list, i); Type* vname = obj_##vname ? reinterpret_cast<Type*>(obj_##vname->getReferencedPrivateData(cid, xsink)) : 0;
 
 //! returns the QoreEncoding corresponding to the string passed or a default encoding
 static inline const QoreEncoding *get_hard_qore_encoding_param(const QoreListNode *n, qore_size_t i) {

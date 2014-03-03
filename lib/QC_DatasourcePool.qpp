@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -31,7 +31,12 @@
 
 static const char *DSPC_ERR = "DATASOURCEPOOL-CONSTRUCTOR-ERROR";
 
-static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, ExceptionSink* xsink) {
+static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, Queue* queue, const AbstractQoreNode* arg, ExceptionSink* xsink) {
+   if (arg && !queue)
+      arg = 0;
+
+   ReferenceHolder<Queue> q(queue, xsink);
+
    const char *str = check_hash_key(opts, "type", DSPC_ERR, xsink);
    if (*xsink) return;
 
@@ -106,7 +111,7 @@ static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, Exc
    if (!max)
       max = DP_MAX;
 
-   SimpleRefHolder<DatasourcePool> ds(new DatasourcePool(xsink, db_driver, user, pass, db, charset, host, min, max, port, oh));
+   SimpleRefHolder<DatasourcePool> ds(new DatasourcePool(xsink, db_driver, user, pass, db, charset, host, min, max, port, oh, q.release(), arg ? arg->refSelf() : 0));
    if (!*xsink)
       self->setPrivate(CID_DATASOURCEPOOL, ds.release());
 }
@@ -151,6 +156,8 @@ qclass DatasourcePool [dom=DATABASE; arg=DatasourcePool* ds; ns=Qore::SQL; vpare
     @param min The minimum number of connections in the pool (this number of connections is opened in the constructor)
     @param max The maximum number of connections in the pool (not more than this number of connections will be opened)
     @param port The port number for the new connection. Also see Datasource::setPort() for a method that allows this parameter to be set after the constructor.
+    @param queue An optional @ref Qore::Thread::Queue "Queue" object to receive datasource events; note that the @ref Qore::Thread::Queue "Queue" passed cannot have any maximum size set or a \c QUEUE-ERROR will be thrown; passing @ref nothing will clear any event queue
+    @param arg an optional argument to be included in the \c arg key of datasource events
 
     @par Example:
     @code
@@ -161,16 +168,18 @@ my DatasourcePool $db(DSPGSQL, "user", "pass", "database", "utf8", "localhost", 
     @throw DATASOURCEPOOL-CONSTRUCTOR-ERROR invalid min, max, or port argument
     @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
  */
-DatasourcePool::constructor(string driver, *string user, *string pass, *string db, *string encoding, *string host, softint min = 3, softint max = 10, softint port = 0) {
+DatasourcePool::constructor(string driver, *string user, *string pass, *string db, *string encoding, *string host, softint min = 3, softint max = 10, softint port = 0, *Qore::Thread::Queue[Queue] queue, any arg) {
    if (!port && min == 3 && max == 10 && driver->find(':') != -1) {
       ReferenceHolder<QoreHashNode> h(parseDatasource(driver->getBuffer(), xsink), xsink);
       if (!h) {
          assert(*xsink);
          return;
       }
-      dsp_constructor_hash(*h, self, xsink);
+      dsp_constructor_hash(*h, self, queue, arg, xsink);
       return;
    }
+
+   ReferenceHolder<Queue> q(queue, xsink);
 
    DBIDriver *db_driver = DBI.find(driver->getBuffer());
    if (!db_driver) {
@@ -195,7 +204,7 @@ DatasourcePool::constructor(string driver, *string user, *string pass, *string d
 
    SimpleRefHolder<DatasourcePool> ds(new DatasourcePool(xsink, db_driver, user ? user->getBuffer() : 0, pass ? pass->getBuffer() : 0,
 							 db ? db->getBuffer() : 0, encoding ? encoding->getBuffer() : 0, host ? host->getBuffer() : 0, 
-							 min, max, port));
+							 min, max, port, 0, q.release(), arg ? arg->refSelf() : 0));
    if (!*xsink)
       self->setPrivate(CID_DATASOURCEPOOL, ds.release());
 }
@@ -214,9 +223,14 @@ my DatasourcePool ds("pgsql:user/pass@db01(utf8)%localhost:5432");
 
     @since %Qore 0.8.6
  */
-DatasourcePool::constructor(string desc) [doconly=true] {
-   // this code should never be output - this function is only here for documentation
-   assert(false);
+DatasourcePool::constructor(string desc, *Qore::Thread::Queue[Queue] queue, any arg) {
+   ReferenceHolder<Queue> q(queue, xsink);
+   ReferenceHolder<QoreHashNode> h(parseDatasource(desc->getBuffer(), xsink), xsink);
+   if (!h) {
+      assert(*xsink);
+      return;
+   }
+   dsp_constructor_hash(*h, self, q.release(), arg, xsink);
 }
 
 //! Creates a Datasource object from a hash argument giving parameters for the constructor
@@ -239,8 +253,8 @@ my Datasource $db(("type": DSPGSQL, "user": "username", "pass": "password", "db"
     @throw DATASOURCEPOOL-CONSTRUCTOR-ERROR missing or invalid \c "driver" key, other key name not assigned to a string; \c "port" value is \<= 0; invalid \c "min" or \c "max" keys
     @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
  */
-DatasourcePool::constructor(hash opts) {
-   dsp_constructor_hash(opts, self, xsink);
+DatasourcePool::constructor(hash opts, *Qore::Thread::Queue[Queue] queue, any arg) {
+   dsp_constructor_hash(opts, self, queue, arg, xsink);
 }
 
 //! Throws an exception if any transactions are in progress and returns immediately; the object is destroyed after any in-progress requests are completed
@@ -265,8 +279,7 @@ my DatasourcePool $new_dsp = $dsp.copy();
     @endcode
  */
 DatasourcePool::copy() {
-   ReferenceHolder<QoreHashNode> opt(ds->getConfigHash(), xsink);
-   dsp_constructor_hash(*opt, self, xsink);
+   self->setPrivate(CID_DATASOURCEPOOL, new DatasourcePool(*ds, xsink));
 }
 
 //! Commits the current transaction and releases the connection to the pool
@@ -900,4 +913,32 @@ my int $ms = $ds.getErrorTimeout();
 */
 int DatasourcePool::getErrorTimeout() [flags=CONSTANT] {
    return ds->getErrorTimeout();
+}
+
+//! Sets a queue object for DBI events on the pool
+/** 
+    @param queue the @ref Qore::Thread::Queue "Queue" object to receive datasource events; note that the @ref Qore::Thread::Queue "Queue" passed cannot have any maximum size set or a \c QUEUE-ERROR will be thrown; passing @ref nothing will clear any event queue
+    @param arg an argument to be included in the \c arg key of datasource events
+
+    @throw QUEUE-ERROR the Queue passed has a maximum size set
+
+    @since %Qore 0.8.9
+ */
+nothing DatasourcePool::setEventQueue(Qore::Thread::Queue[Queue] queue, any arg) {
+   ReferenceHolder<Queue> q(queue, xsink);
+
+   if (queue->getMax() != -1) {
+      xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Datasource object if used; use a Queue object with no maximum size for datasource event monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
+      return 0;
+   }
+
+   ds->setEventQueue(q.release(), arg ? arg->refSelf() : 0, xsink);
+}
+
+//! Clears the queue object for DBI events on the pool
+/** 
+    @since %Qore 0.8.9
+ */
+nothing DatasourcePool::clearEventQueue() {
+   ds->setEventQueue(0, 0, xsink);
 }

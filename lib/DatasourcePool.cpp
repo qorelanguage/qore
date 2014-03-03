@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -24,7 +24,8 @@
 #include <qore/intern/DatasourcePool.h>
 
 DatasourcePool::DatasourcePool(ExceptionSink* xsink, DBIDriver* ndsl, const char* user, const char* pass,
-      const char* db, const char* charset, const char* hostname, unsigned mn, unsigned mx, int port, const QoreHashNode* opts) :
+			       const char* db, const char* charset, const char* hostname, unsigned mn, unsigned mx, int port, const QoreHashNode* opts,
+			       Queue* q, AbstractQoreNode* a) :
       pool(new Datasource*[mx]),
       tid_list(new int[mx]),
       min(mn),
@@ -43,6 +44,8 @@ DatasourcePool::DatasourcePool(ExceptionSink* xsink, DBIDriver* ndsl, const char
    //assert(mx > min);   
    //assert(db != 0 && db[0]);
 
+   assert(!(a && !q));
+
    // create minimum datasources if possible
    printd(5, "DatasourcePool::DatasourcePool(driver: %p user: %s pass: %s db: %s charset: %s host: %s min: %d max: %d port: %d) pool: %p\n",
           ndsl, user ? user : "(null)", pass ? pass : "(null)", db ? db : "(null)", charset ? charset : "(null)", 
@@ -57,6 +60,9 @@ DatasourcePool::DatasourcePool(ExceptionSink* xsink, DBIDriver* ndsl, const char
    if (hostname) pool[0]->setPendingHostName(hostname);
    if (port)     pool[0]->setPendingPort(port);
 
+   if (q)
+      pool[0]->setEventQueue(q, a, xsink);
+
    // set initial options
    ConstHashIterator hi(opts);
    while (hi.next()) {
@@ -70,6 +76,48 @@ DatasourcePool::DatasourcePool(ExceptionSink* xsink, DBIDriver* ndsl, const char
 
    // turn off autocommit
    pool[0]->setAutoCommit(false);
+   // open connection to server
+   pool[0]->open(xsink);
+   if (*xsink)
+      return;
+   //printd(5, "DP::DP() open %s: %p (%d)\n", ndsl->getName(), pool[0], xsink->isEvent());
+
+   // add to free list
+   free_list.push_back(0);
+
+   while (++cmax < min) {
+      pool[cmax] = pool[0]->copy();
+      // turn off autocommit
+      pool[cmax]->setAutoCommit(false);
+      // open connection to server
+      pool[cmax]->open(xsink);
+      if (*xsink)
+         return;
+
+      //printd(5, "DP::DP() open %s: %p (%d)\n", ndsl->getName(), pool[cmax], xsink->isEvent());
+      // add to free list
+      free_list.push_back(cmax);
+   }
+   valid = true;
+}
+
+DatasourcePool::DatasourcePool(const DatasourcePool& old, ExceptionSink* xsink) :
+   pool(new Datasource*[old.max]),
+   tid_list(new int[old.max]),
+   min(old.min),
+   max(old.max),
+   cmax(0),
+   wait_count(0),
+   wait_max(0),
+   tl_warning_ms(old.tl_warning_ms),
+   tl_timeout_ms(old.tl_timeout_ms),
+   stats_reqs(0),
+   stats_hits(0),
+   warning_callback(old.warning_callback ? old.warning_callback->refRefSelf() : 0),
+   callback_arg(old.callback_arg ? old.callback_arg->refSelf() : 0),
+   valid(false) {
+   pool[0] = old.pool[0]->copy();
+
    // open connection to server
    pool[0]->open(xsink);
    if (*xsink)
@@ -407,6 +455,14 @@ AbstractQoreNode* DatasourcePool::selectRows(const QoreString* sql, const QoreLi
    return dpah->selectRows(sql, args, xsink);
 }
 
+QoreHashNode* DatasourcePool::describe(const QoreString* sql, const QoreListNode* args, ExceptionSink* xsink) {
+   DatasourcePoolActionHelper dpah(*this, xsink);
+   if (!dpah)
+      return 0;
+
+   return dpah->describe(sql, args, xsink);
+}
+
 int DatasourcePool::beginTransaction(ExceptionSink* xsink) {
    DatasourcePoolActionHelper dpah(*this, xsink, DAH_ACQUIRE);
    if (!dpah)
@@ -587,4 +643,19 @@ QoreHashNode* DatasourcePool::getUsageInfo() const {
    h->setKeyValue("stats_reqs", new QoreBigIntNode(stats_reqs), 0);
    h->setKeyValue("stats_hits", new QoreBigIntNode(stats_hits), 0);
    return h;
+}
+
+void DatasourcePool::setEventQueue(Queue* q, AbstractQoreNode* arg, ExceptionSink* xsink) {
+   AutoLocker al((QoreThreadLock*)this);
+
+   // assign to all datasources
+   bool first = true;
+   for (unsigned i = 0; i < cmax; ++i) {
+      if (first) {
+	 pool[i]->setEventQueue(q, arg, xsink);
+	 first = false;
+      }
+      else
+	 pool[i]->setEventQueue(q ? q->eventRefSelf() : 0, arg ? arg->refSelf() : 0, xsink);
+   }
 }

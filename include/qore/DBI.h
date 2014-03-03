@@ -42,6 +42,8 @@
 #define DBI_CAP_HAS_OPTION_SUPPORT       (1 << 11) //!< supports the new driver option API (set automatically by the Qore library)
 #define DBI_CAP_SERVER_TIME_ZONE         (1 << 12) //!< supports automatically converting date/time values to the server's presumed time zone (can be set with options) and tagging date/time values with the same; this is independent from the client's current time zone setting
 #define DBI_CAP_AUTORECONNECT            (1 << 13) //!< supports automatically/transparently reconnecting to the server if the connection is lost while not in a transaction
+#define DBI_CAP_EVENTS                   (1 << 14) //!< supports DBI events
+#define DBI_CAP_HAS_DESCRIBE             (1 << 15) //!< supports the describe API
 
 #define BN_PLACEHOLDER  0
 #define BN_VALUE        1
@@ -80,8 +82,18 @@
 #define QDBI_METHOD_OPT_SET                  29
 #define QDBI_METHOD_OPT_GET                  30
 #define QDBI_METHOD_STMT_DESCRIBE            31
+#define QDBI_METHOD_DESCRIBE                 32
 
-#define QDBI_VALID_CODES 31
+#define QDBI_VALID_CODES 32
+
+/* DBI EVENT Types
+   all DBI events must have the following keys:
+   - user: db username (if available)
+   - db: db name (if available)
+   - eventtype: integer event code
+*/
+// warning events have the following additional keys: warning, desc, [info]
+#define QDBI_EVENT_WARNING      1
 
 class Datasource;
 class ExceptionSink;
@@ -254,6 +266,16 @@ typedef int (*q_dbi_stmt_close_t)(SQLStatement* stmt, ExceptionSink* xsink);
 typedef int (*q_dbi_option_set_t)(Datasource* ds, const char* opt, const AbstractQoreNode* val, ExceptionSink* xsink);
 typedef AbstractQoreNode* (*q_dbi_option_get_t)(const Datasource* ds, const char* opt);
 
+//! signature for the DBI "describe" method
+/** 
+    @param ds the Datasource for the connection
+    @param str the SQL string to execute, may not be in the encoding of the Datasource, must return a result set to be described
+    @param args arguments for placeholders or DBI formatting codes in the SQL string
+    @param xsink if any errors occur, error information should be added to this object
+    @return the data returned by executing the SQL or 0
+*/
+typedef QoreHashNode* (*q_dbi_describe_t)(Datasource* ds, const QoreString* str, const QoreListNode* args, ExceptionSink* xsink);
+
 #define DBI_OPT_NUMBER_OPT "optimal-numbers"      //!< numeric/decimal/number values converted to optimal Qore type (either int or number)
 #define DBI_OPT_NUMBER_STRING "string-numbers"    //!< numeric/decimal/number values converted to Qore strings (original solution)
 #define DBI_OPT_NUMBER_NUMERIC "numeric-numbers"  //!< numeric/decimal/number values converted to arbitrary-precision number values
@@ -280,7 +302,7 @@ public:
    DLLEXPORT void add(int code, q_dbi_open_t method);
    // for close
    DLLEXPORT void add(int code, q_dbi_close_t method);
-   // covers select, select_rows, and exec
+   // covers select, select_rows, select, and exec
    DLLEXPORT void add(int code, q_dbi_select_t method);
    // covers select_row
    DLLEXPORT void add(int code, q_dbi_select_row_t method);

@@ -25,18 +25,8 @@
 
 #define _QORE_CLASS_QUEUE
 
-#include <qore/intern/QoreQueue.h>
+#include <qore/QoreQueue.h>
 
-DLLEXPORT extern qore_classid_t CID_QUEUE;
-DLLEXPORT extern QoreClass *QC_QUEUE;
 DLLLOCAL QoreClass *initQueueClass(QoreNamespace &qorens);
-
-class Queue : public AbstractPrivateData, public QoreQueue {
-protected:
-   DLLLOCAL virtual ~Queue() {}
-
-public:
-   DLLLOCAL Queue(int max = -1) : QoreQueue(max) {}
-};
 
 #endif // _QORE_CLASS_QUEUE
