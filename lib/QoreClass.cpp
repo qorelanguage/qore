@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -247,6 +247,9 @@ void AbstractMethod::parseAdd(MethodVariantBase* v) {
    const char* sig = v->getAbstractSignature();
    if (vlist.find(sig) != vlist.end())
       return;
+   //printd(5, "AbstractMethod::parseAdd(v: %p) this: %p (%s) new\n", v, this, sig);
+
+   // already referenced for "normal" insertion, ref again for abstract method insertion
    v->ref();
    pending_vlist.insert(vmap_t::value_type(sig, v));
 }
@@ -271,6 +274,7 @@ void AbstractMethod::add(MethodVariantBase* v) {
    const char* sig = v->getAbstractSignature();
    if (vlist.find(sig) != vlist.end())
       return;
+   // already referenced for "normal" insertion, ref again for abstract method insertion
    v->ref();
    vlist.insert(vmap_t::value_type(sig, v));
    //printd(5, "AbstractMethod::add() adding xxx::xxx(%s)\n", sig);
@@ -353,12 +357,15 @@ void AbstractMethodMap::parseAddAbstractVariant(const char* name, MethodVariantB
    amap_t::iterator i = amap_t::find(name);
    if (i == end()) {
       AbstractMethod* m = new AbstractMethod;
+      // already referenced for "normal" insertion, ref again for abstract method insertion
       f->ref();
-      m->pending_vlist.insert(vmap_t::value_type(f->getAbstractSignature(), f));
-      //printd(5, "AbstractMethodMap::parseAddAbstractVariant(name: '%s', v: %p) this: %p\n", name, f, this);
+      const char* sig = f->getAbstractSignature();
+      m->pending_vlist.insert(vmap_t::value_type(sig, f));
+      //printd(5, "AbstractMethodMap::parseAddAbstractVariant(name: '%s', v: %p) this: %p first (%s)\n", name, f, this, sig);
       insert(amap_t::value_type(name, m));
       return;
    }
+   //printd(5, "AbstractMethodMap::parseAddAbstractVariant(name: '%s', v: %p) this: %p additional\n", name, f, this);
    i->second->parseAdd(f);
 }
 
@@ -373,6 +380,7 @@ void AbstractMethodMap::addAbstractVariant(const char* name, MethodVariantBase* 
    amap_t::iterator i = amap_t::find(name);
    if (i == end()) {
       AbstractMethod* m = new AbstractMethod;
+      // already referenced for "normal" insertion, ref again for abstract method insertion
       f->ref();
       m->vlist.insert(vmap_t::value_type(f->getAbstractSignature(), f));
       //printd(5, "AbstractMethodMap::addAbstractVariant(name: xxx::%s asig: %s, v: %p) this: %p (new)\n", name, f->getAbstractSignature(), f, this);
@@ -2720,11 +2728,11 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase *f, b
    // if the method does not exist, then create it
    if (!m) {
       is_new = true;
-      MethodFunctionBase *mfb;
+      MethodFunctionBase* mfb;
       if (con) {
 	 mfb = new ConstructorMethodFunction(cls);
 	 // set selfid immediately if adding a constructor variant
-	 reinterpret_cast<UserConstructorVariant *>(f)->getUserSignature()->setSelfId(&selfid);
+	 reinterpret_cast<UserConstructorVariant*>(f)->getUserSignature()->setSelfId(&selfid);
       }
       else if (dst)
 	 mfb = new DestructorMethodFunction(cls);
@@ -2744,6 +2752,8 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase *f, b
 	 delete m;
       return -1;
    }
+
+   //printd(5, "qore_class_private::addUserMethod() %s::%s() f: %p (%d)\n", tname, mname, f, ((QoreReferenceCounter*)f)->reference_count());
 
    // set the pointer from the variant back to the owning method
    f->setMethod(m);

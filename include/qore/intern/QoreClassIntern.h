@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -227,6 +227,17 @@ public:
    DLLLOCAL const char* getAbstractSignature();
 
    DLLLOCAL const qore_class_private* getClassPriv() const;
+
+   DLLLOCAL MethodVariantBase* ref() {
+      ROreference();
+      return this;
+   }
+
+   DLLLOCAL void deref() {
+      if (ROdereference()) {
+         delete this;
+      }
+   }
 };
 
 #define METHVB(f) (reinterpret_cast<MethodVariantBase*>(f))
@@ -320,6 +331,9 @@ public:
 class UserMethodVariant : public MethodVariant, public UserVariantBase {
 public:
    DLLLOCAL UserMethodVariant(bool n_priv_flag, bool n_final, StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced, int64 n_flags, bool is_abstract) : MethodVariant(n_priv_flag, n_final, n_flags, true, is_abstract), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced) {
+   }
+
+   DLLLOCAL ~UserMethodVariant() {
    }
 
    // the following defines the pure virtual functions that are common to all user variants

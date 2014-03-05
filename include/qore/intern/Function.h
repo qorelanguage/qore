@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -209,7 +209,10 @@ public:
       }
 
       for (unsigned i = 0; i < parseTypeList.size(); ++i) {
-         str.append(parseTypeList[i]->getName());
+         if (!parseTypeList[i] && typeList.size() > i && typeList[i])
+            str.append(typeList[i]->getName());
+         else
+            str.append(parseTypeList[i]->getName());
          if (i != parseTypeList.size() - 1)
             str.append(",");
       }
@@ -376,8 +379,16 @@ public:
       return *(getSignature()) == sig;
    }
 
-   DLLLOCAL AbstractQoreFunctionVariant* ref() { ROreference(); return this; }
-   DLLLOCAL void deref() { if (ROdereference()) { delete this; } }
+   DLLLOCAL AbstractQoreFunctionVariant* ref() {
+      ROreference();
+      return this;
+   }
+
+   DLLLOCAL void deref() {
+      if (ROdereference()) {
+         delete this;
+      }
+   }
 
    DLLLOCAL bool isUser() const {
       return is_user;
