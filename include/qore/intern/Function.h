@@ -209,7 +209,10 @@ public:
       }
 
       for (unsigned i = 0; i < parseTypeList.size(); ++i) {
-         str.append(parseTypeList[i]->getName());
+         if (!parseTypeList[i] && typeList.size() > i && typeList[i])
+            str.append(typeList[i]->getName());
+         else
+            str.append(parseTypeList[i]->getName());
          if (i != parseTypeList.size() - 1)
             str.append(",");
       }
