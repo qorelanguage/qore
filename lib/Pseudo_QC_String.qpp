@@ -740,7 +740,7 @@ my string $base64 = $str.toBase64(64);
 
     @see
     - <binary>::toBase64()
-    - makeBase64String(string)
+    - makeBase64String(string, softint)
 */
 string <string>::toBase64(softint maxlinelen = -1) [flags=CONSTANT] {
    QoreStringNode *rv = new QoreStringNode;
