@@ -1334,7 +1334,6 @@ module{WS}*\(                           yylval->string = strdup("module"); retur
 \.do[^A-Za-z_0-9]                       DO_DOT_KW_IDENTIFIER("do")
 \.else[^A-Za-z_0-9]                     DO_DOT_KW_IDENTIFIER("else")
 \.final[^A-Za-z_0-9]                    DO_DOT_KW_IDENTIFIER("final")
-\.find[^A-Za-z_0-9]                     DO_DOT_KW_IDENTIFIER("find")
 \.for[^A-Za-z_0-9]                      DO_DOT_KW_IDENTIFIER("for")
 \.foreach[^A-Za-z_0-9]                  DO_DOT_KW_IDENTIFIER("foreach")
 \.if[^A-Za-z_0-9]                       DO_DOT_KW_IDENTIFIER("if")
