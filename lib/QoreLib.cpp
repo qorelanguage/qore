@@ -395,6 +395,9 @@ bool qore_has_debug() {
 QoreAbstractIteratorBase::QoreAbstractIteratorBase() : tid(gettid()) {
 }
 
+QoreAbstractIteratorBase::~QoreAbstractIteratorBase() {
+}
+
 int QoreAbstractIteratorBase::check(ExceptionSink* xsink) const {
    if (tid != gettid()) {
       xsink->raiseException("ITERATOR-THREAD-ERROR", "this %s object was created in TID %d; it is an error to access it from any other thread (accessed from TID %d)", getName(), tid, gettid());
@@ -404,6 +407,9 @@ int QoreAbstractIteratorBase::check(ExceptionSink* xsink) const {
 }
 
 QoreIteratorBase::QoreIteratorBase() {
+}
+
+QoreIteratorBase::~QoreIteratorBase() {
 }
 
 FeatureList::FeatureList() {

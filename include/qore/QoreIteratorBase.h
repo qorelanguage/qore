@@ -43,7 +43,7 @@ public:
    DLLEXPORT QoreAbstractIteratorBase();
 
    //! destroys the object
-   DLLEXPORT virtual ~QoreAbstractIteratorBase() {}
+   DLLEXPORT virtual ~QoreAbstractIteratorBase();
 
    //! checks for a valid operation, returns 0 if OK, -1 if not (exception thrown)
    DLLEXPORT int check(ExceptionSink* xsink) const;
@@ -56,7 +56,7 @@ public:
 class QoreIteratorBase : public AbstractPrivateData, public QoreAbstractIteratorBase {
 protected:
    //! destroys the object
-   DLLEXPORT virtual ~QoreIteratorBase() {}
+   DLLEXPORT virtual ~QoreIteratorBase();
 
 public:
    //! creates the object and marks it as owned by the current thread
