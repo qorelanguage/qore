@@ -1,3 +1,835 @@
+2014-03-07 18:57  david_nichols
+
+	* lib/scanner.lpp: removed duplicate rulex
+
+2014-03-07 11:10  david_nichols
+
+	* lib/Pseudo_QC_String.qpp: doc update
+
+2014-03-05 22:02  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/Function.h,
+	  include/qore/intern/QoreClassIntern.h, lib/QoreClass.cpp: fixed a
+	  memory leak in handling abstract methods when multiple abstract
+	  methods with the same name but different signatures were declared
+	  in a class
+
+2014-03-04 16:23  david_nichols
+
+	* qlib/HttpServer.qm: non-functional updates
+
+2014-03-03 21:40  david_nichols
+
+	* lib/qpp.cpp: fixed bug in qpp regarding "or nothing" class
+	  restrictions
+
+2014-03-03 16:08  david_nichols
+
+	* Makefile.am, doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/DBI.h, include/qore/Datasource.h,
+	  include/qore/Qore.h, include/qore/QoreLib.h,
+	  include/qore/QoreQueue.h, include/qore/intern/DatasourcePool.h,
+	  include/qore/intern/ManagedDatasource.h,
+	  include/qore/intern/QC_Queue.h, include/qore/intern/QoreQueue.h,
+	  include/qore/intern/QoreQueueIntern.h,
+	  include/qore/intern/qore_dbi_private.h,
+	  include/qore/intern/qore_ds_private.h, include/qore/params.h,
+	  lib/DBI.cpp, lib/Datasource.cpp, lib/DatasourcePool.cpp,
+	  lib/ManagedDatasource.cpp, lib/QC_Datasource.qpp,
+	  lib/QC_DatasourcePool.qpp, lib/QC_Queue.qpp, lib/QoreQueue.cpp,
+	  lib/qpp.cpp: added support for a DBI warning API to allow DBI
+	  drivers to raise warnings that are posted on an event queue
+	  added initial internal and external API support for describe
+	  methods in DB drivers
+	  fixed some issues supporting "or nothing" class parameters in qpp
+
+2014-02-28 20:08  david_nichols
+
+	* include/qore/intern/qore_socket_private.h: applied select()
+	  error-handling fix to 0.8.8 branch, updated error msg in trunk
+
+2014-02-28 17:01  david_nichols
+
+	* include/qore/intern/qore_socket_private.h: non-functional changes
+
+2014-02-28 13:28  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/QoreHttpClientObjectIntern.h,
+	  include/qore/intern/qore_socket_private.h: fixed a bug in socket
+	  timeout handling with select() errors
+
+2014-02-25 17:43  david_nichols
+
+	* include/qore/DBI.h, include/qore/QoreLib.h, lib/QC_FtpClient.qpp,
+	  lib/QoreSocket.cpp, qlib/WebSocketClient.qm: added the
+	  _QORE_HAS_DBI_DESCRIBE define
+	  doc fixes
+
+2014-02-21 13:08  subik
+
+	* include/qore/DBI.h, include/qore/intern/QoreSQLStatement.h,
+	  include/qore/intern/qore_dbi_private.h, lib/DBI.cpp,
+	  lib/QC_SQLStatement.qpp, lib/QoreSQLStatement.cpp: Implementation
+	  of SQLStatement::describe() method
+
+2014-02-18 20:11  david_nichols
+
+	* qlib/Util.qm: fixed output formatting of get_*byte_size()
+	  functions with values < 1K
+
+2014-02-06 10:34  david_nichols
+
+	* include/qore/QoreFtpClient.h,
+	  include/qore/QoreHttpClientObject.h, include/qore/QoreSocket.h,
+	  include/qore/QoreSocketObject.h,
+	  include/qore/intern/qore_socket_private.h, lib/QC_FtpClient.qpp,
+	  lib/QC_HTTPClient.qpp, lib/QC_Socket.qpp, lib/QoreFtpClient.cpp,
+	  lib/QoreHttpClientObject.cpp, lib/QoreSocket.cpp,
+	  lib/QoreSocketObject.cpp, qlib/Pop3Client.qm, qlib/SmtpClient.qm,
+	  qlib/TelnetClient.qm, qlib/WebSocketClient.qm: added an
+	  additional argument to set the minimum time period for socket
+	  performance warnings (default: 1 second)
+
+2014-02-04 16:28  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/Pop3Client.qm,
+	  qlib/TelnetClient.qm, qlib/WebSocketClient.qm: minor corrections
+	  to recent updates in user modules re socket performance
+	  instrumentation, added support for socket performance
+	  instrumentation and warning events to the WebSocketClient module
+
+2014-02-04 16:22  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/Pop3Client.qm,
+	  qlib/SmtpClient.qm, qlib/TelnetClient.qm: added support for
+	  socket performance instrumentation and warning events to the
+	  Pop3Client, SmtpClient, and TelnetClient modules
+
+2014-02-04 16:12  david_nichols
+
+	* Makefile.am, doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/QoreFtpClient.h, include/qore/QoreSocket.h,
+	  include/qore/intern/qore_socket_private.h, lib/QC_FtpClient.qpp,
+	  lib/QC_HTTPClient.qpp, lib/QC_Socket.qpp, lib/QoreFtpClient.cpp,
+	  lib/QoreSocket.cpp, qlib/SmtpClient.qm: added supoprt for socket
+	  performance instrumentation and warning events to the FtpClient
+	  class and the SmtpClient module/class
+
+2014-02-04 07:27  david_nichols
+
+	* lib/QoreSocket.cpp: socket performance monitoring fixes / updates
+
+2014-02-03 16:26  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/QoreHttpClientObject.h, include/qore/QoreSocket.h,
+	  include/qore/QoreSocketObject.h, include/qore/intern/QC_Socket.h,
+	  lib/QC_HTTPClient.qpp, lib/QC_Socket.qpp,
+	  lib/QoreHttpClientObject.cpp, lib/QoreSocket.cpp,
+	  lib/QoreSocketObject.cpp: added performance instrumentation for
+	  Socket and HTTPClient classes plus warning infrastructure if
+	  performance does not meet pre-defined limits
+
+2014-01-31 15:35  david_nichols
+
+	* lib/ql_misc.qpp: doc updates
+
+2014-01-31 14:45  david_nichols
+
+	* include/qore/intern/QoreHttpClientObjectIntern.h,
+	  lib/QoreHttpClientObject.cpp: fixed double // reported in HTTP
+	  URLs
+
+2014-01-31 14:09  david_nichols
+
+	* qlib/MysqlSqlUtil.qm, qlib/OracleSqlUtil.qm,
+	  qlib/PgsqlSqlUtil.qm: minor doc updates
+
+2014-01-31 14:01  david_nichols
+
+	* command-line.cpp, qlib/TableMapper.qm: minor doc updates
+
+2014-01-31 13:15  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/QoreObjectIntern.h, lib/QoreClass.cpp,
+	  lib/QoreObject.cpp, qlib/CsvUtil.qm, test/test.q: fixed a bug
+	  managing object private data in complex inheritance cases where
+	  the same class may be inherited with virtual private data and
+	  also real private data
+	  fixed CsvDataIterator::next() when header_lines > 0 and working
+	  with empty input data
+	  added a regression test for the CsvDataIterator case fixed above
+
+2014-01-30 16:53  david_nichols
+
+	* include/qore/QoreIteratorBase.h: added virtual destructors to new
+	  abstract iterator classes with virtual methods
+
+2014-01-29 15:09  david_nichols
+
+	* doxygen/lang/245_parse_directives.dox.tmpl,
+	  lib/QC_HTTPClient.qpp, lib/ql_misc.qpp: doc updates related to
+	  environment variable substitution in the %include directive
+	  added docs about the URL syntax when using UNIX socket paths
+
+2014-01-29 14:58  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/scanner.lpp:
+	  implemented support for environment variable substitution in the
+	  %include parse directive; enforce PO_NO_FILESYSTEM in %include
+
+2014-01-28 10:31  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/qore_number_private.h,
+	  lib/QoreNumberNode.cpp, test/test.q: fixed a bug in the
+	  arbitrary-precision rounding heuristic that could cause invalid
+	  results
+
+2014-01-27 11:47  david_nichols
+
+	* doxygen/qdx: improved qdx regex for qore class -> c++ class
+	  generation for doxygen documentation
+
+2014-01-24 16:35  david_nichols
+
+	* lib/QoreSocket.cpp: updated copyright to 2014
+
+2014-01-20 16:08  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/QC_Socket.qpp,
+	  lib/QoreSocket.cpp, qlib/HttpServer.qm, qlib/RestHandler.qm:
+	  HttpServer update:
+	  - added support for the OPTIONS method
+	  RestHandler updates:
+	  - added support for the OPTIONS method
+	  - return a 400 "Bad Request" error if an unsupported HTTP method
+	  is used in a REST Call
+	  other minor updates
+
+2014-01-16 13:42  david_nichols
+
+	* qlib/Util.qm: made iec abbreviations the default (and only
+	  option) for get_byte_size()
+
+2014-01-16 13:40  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, doxygen/qdx,
+	  qlib/Mime.qm, qlib/Util.qm: doc updates
+	  added new Mime file mappings
+	  added use_iec argument to get_bute_size() function in the Util
+	  module
+
+2014-01-14 09:53  david_nichols
+
+	* include/qore/AbstractQoreNode.h,
+	  include/qore/intern/ConstantList.h,
+	  include/qore/intern/ParseNode.h, lib/ConstantList.cpp: fixed a
+	  constant entry lifetime mgmt bug introduced in a recent patch
+	  related to memory leaks in constant mgmt
+
+2014-01-12 15:39  david_nichols
+
+	* include/qore/node_types.h: updated nax node type value
+
+2014-01-12 15:35  david_nichols
+
+	* include/qore/intern/CallReferenceNode.h,
+	  include/qore/intern/qore_program_private.h,
+	  lib/CallReferenceNode.cpp, lib/ConstantList.cpp,
+	  lib/QoreObject.cpp, lib/QoreProgram.cpp,
+	  lib/QoreReferenceCounter.cpp, lib/qore-main.cpp: fixed memory
+	  issues with the last commit re ConstantEntry destruction, fixed a
+	  memory leak in ConstantEntry destruction with parse rollbacks and
+	  constant value of NULL
+
+2014-01-12 15:15  david_nichols
+
+	* Makefile.am, include/qore/intern/CallReferenceNode.h,
+	  include/qore/intern/ConstantList.h,
+	  include/qore/intern/qore_list_private.h,
+	  include/qore/node_types.h, lib/CallReferenceNode.cpp,
+	  lib/ConstantList.cpp, lib/QoreListNode.cpp,
+	  lib/QoreNamespace.cpp: patches to avoid circular references in
+	  constants with values that include call references
+
+2014-01-10 15:22  david_nichols
+
+	* lib/QoreNamespace.cpp: fixed a memory leak in clearing namespace
+	  and class constant values when destroying Program objects if a
+	  constant is assigned to a code reference
+
+2014-01-09 13:42  david_nichols
+
+	* include/qore/QoreReferenceCounter.h,
+	  include/qore/intern/QoreObjectIntern.h,
+	  include/qore/intern/qore_program_private.h,
+	  lib/Pseudo_QC_String.qpp, lib/QoreProgram.cpp, lib/parser.ypp:
+	  minor updates
+
+2014-01-08 19:11  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/QoreClassIntern.h,
+	  include/qore/intern/QoreNamespaceIntern.h: missed files from last
+	  commit
+
+2014-01-08 16:32  david_nichols
+
+	* lib/QoreClass.cpp: fixed memory leaks when an entire class has to
+	  be rolled back due to parse errors and the class has pending
+	  static variables
+
+2014-01-08 16:23  david_nichols
+
+	* lib/parser.ypp: fixed memory leaks in class member management
+	  when adding static variables and members, and more memory leaks
+	  when conflicts are detected in the parser and parse exceptions
+	  are thrown
+
+2014-01-08 16:18  david_nichols
+
+	* lib/ql_time.qpp: fixed an off-by-one memory bug in date(string,
+	  string) parsing a 4-digit date mask
+
+2014-01-07 10:48  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl: removed invalid line in
+	  relnotes
+
+2014-01-07 10:45  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/Pseudo_QC_All.qpp,
+	  lib/Pseudo_QC_Binary.qpp, lib/Pseudo_QC_Hash.qpp,
+	  lib/Pseudo_QC_List.qpp, lib/Pseudo_QC_Object.qpp,
+	  lib/Pseudo_QC_String.qpp, lib/QC_FileLineIterator.qpp,
+	  qlib/CsvUtil.qm, test/test.q: added new pseudo-methods:
+	  <*>::sizep(): if the value type can return a non-zero size
+	  <string>::getLine(): for parsing line data in string buffers
+	  CsvUtil module updates:
+	  new CsvAbstractIterator and CsvDataIterator classes
+	  added tests for CsvDataIterator class
+
+2014-01-06 19:48  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl: minor doc update
+
+2014-01-06 19:43  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/RestHandler.qm,
+	  qlib/Util.qm: doc updates
+
+2014-01-06 14:18  subik
+
+	* Makefile.am, cmake/QoreConfig.cmake.in, cmake/QoreMacros.cmake,
+	  doxygen/lib/90_cmake.doxygen, doxygen/lib/mainpage.doxygen: cmake
+	  builds: documented; more macros introduced; compiler warning fix
+
+2014-01-06 12:43  david_nichols
+
+	* qlib/TableMapper.qm: do not add mappings for columns where there
+	  is no input mapping and there is no not null constraint or no
+	  default value
+
+2014-01-06 12:21  david_nichols
+
+	* qlib/Mapper.qm, qlib/TableMapper.qm, test/test.q: mapper API and
+	  doc updates, added tests for the Mapper class
+
+2014-01-06 09:06  david_nichols
+
+	* include/qore/QoreIteratorBase.h: added missing file
+
+2014-01-05 20:19  david_nichols
+
+	* qlib/Mapper.qm: doc update
+
+2014-01-05 17:47  david_nichols
+
+	* qlib/HttpServer.qm, qlib/Mapper.qm, qlib/TableMapper.qm: mapper
+	  updates
+
+2014-01-04 16:31  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/Mapper.qm,
+	  qlib/PgsqlSqlUtil.qm, qlib/TableMapper.qm: fixed a bug in
+	  PgsqlSqlUtil retrieving sequence values with
+	  Database::getNextSequenceValue()
+	  mapper fixes
+	  updated release notes
+
+2014-01-04 15:50  david_nichols
+
+	* include/qore/QoreString.h, qlib/Mapper.qm, qlib/TableMapper.qm:
+	  mapper updates and minor C++ api updates
+
+2014-01-04 14:15  david_nichols
+
+	* qlib/Mapper.qm: mapper fix
+
+2014-01-04 14:08  david_nichols
+
+	* qlib/Mapper.qm, qlib/TableMapper.qm: mapper fixes
+
+2014-01-04 14:03  david_nichols
+
+	* qlib/Mapper.qm: fixed Mapper constructor
+
+2014-01-04 13:59  david_nichols
+
+	* qlib/TableMapper.qm: implementation fixes
+
+2014-01-04 13:46  david_nichols
+
+	* include/qore/intern/AbstractIteratorHelper.h, lib/QoreLib.cpp,
+	  qlib/Mapper.qm, qlib/TableMapper.qm: added new mapper
+	  constructors and new infrastructure for binary modules to provide
+	  iterator support
+
+2014-01-04 11:32  david_nichols
+
+	* include/qore/ModuleManager.h, lib/Makefile.am,
+	  lib/ModuleManager.cpp, qore.spec: updated library and module api
+	  version info to reflect new APIs
+
+2014-01-04 11:28  david_nichols
+
+	* Makefile.am, include/qore/AbstractPrivateData.h,
+	  include/qore/Qore.h, include/qore/intern/QoreHashIterator.h,
+	  include/qore/intern/QoreHashListIterator.h,
+	  include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/QoreListIterator.h,
+	  include/qore/intern/SingleValueIterator.h, lib/QoreLib.cpp,
+	  qlib/OracleSqlUtil.qm: made QoreIteratorBase class public to make
+	  it easier to implement iterators in binary modules
+
+2014-01-04 10:57  david_nichols
+
+	* doxygen/lang/120_modules.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl, qlib/Mapper.qm,
+	  qlib/TableMapper.qm: mapping updates
+
+2014-01-03 18:00  david_nichols
+
+	* Makefile.am, qlib/Mapper.qm, qlib/TableMapper.qm: added
+	  TableMapper module based on Mapper and SqlUtil
+
+2014-01-03 15:45  david_nichols
+
+	* Makefile.am, doxygen/lang/120_modules.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl, qlib/Mapper.qm: started
+	  adding initial data mapping module
+
+2014-01-02 18:46  david_nichols
+
+	* qlib/HttpServer.qm, qlib/WebUtil.qm: minor doc updates
+
+2014-01-02 15:22  subik
+
+	* Makefile.am, cmake, cmake/QoreConfig.cmake.in,
+	  cmake/QoreConfigVersion.cmake.in, cmake/QoreMacros.cmake,
+	  configure.ac: cmake build reworked: qore creates cmake support
+	  files during configuration; modules using cmake just do not use
+	  FindQore.cmake in internal trees but use system-wide
+	  QoreConfig.cmake
+
+2013-12-31 08:18  david_nichols
+
+	* lib/QC_RWLock.qpp, qlib/WebUtil.qm: minor doc updates
+
+2013-12-30 16:55  david_nichols
+
+	* qlib/SqlUtil.qm: removed unused variable declaration in SqlUtil
+
+2013-12-30 16:51  david_nichols
+
+	* lib/QoreFtpClient.cpp: updated exceptions to be consistent with
+	  other FtpClient exceptions
+
+2013-12-30 15:42  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/SqlUtil.qm: added
+	  new UpsertInsertOnly upsert strategy to SqlUtil, updated relnotes
+
+2013-12-29 13:27  david_nichols
+
+	* qlib/CsvUtil.qm: updated module doxygen docs for easier
+	  integration in external docs
+
+2013-12-29 13:19  david_nichols
+
+	* qlib/TelnetClient.qm, qlib/WebSocketClient.qm,
+	  qlib/WebSocketHandler.qm: updated module doxygen docs for easier
+	  integration in external docs
+
+2013-12-29 09:32  david_nichols
+
+	* qlib/HttpServer.qm, qlib/Mime.qm, qlib/RestHandler.qm: renamed
+	  module intro sections for easier incorporation in external docs
+
+2013-12-29 09:20  david_nichols
+
+	* doxygen/qdx: remove $ signs in "our" global variable declarations
+	  for doxygen processing
+
+2013-12-28 19:11  david_nichols
+
+	* qlib/RestClient.qm, qlib/SqlUtil.qm, qlib/Util.qm: renamed intro
+	  sections for incorporation in external docs
+
+2013-12-28 07:29  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/QoreEncoding.h, include/qore/QoreFtpClient.h,
+	  include/qore/QoreString.h, lib/QoreString.cpp, lib/charset.cpp,
+	  lib/ql_misc.qpp: fixed url encoding and decoding in encode_url()
+	  and decode_url() to really be RFC 3986 compliant
+
+2013-12-27 16:40  david_nichols
+
+	* lib/QoreHttpClientObject.cpp, lib/QoreSocket.cpp:
+	  cosmetic/non-functional changes
+
+2013-12-24 11:53  david_nichols
+
+	* TODO, doxygen/lang/120_modules.dox.tmpl, lib/QC_HTTPClient.qpp:
+	  minor doc updates
+
+2013-12-18 13:35  david_nichols
+
+	* lib/ql_misc.qpp: doc update for encode_url()
+
+2013-12-18 13:34  david_nichols
+
+	* include/qore/QoreString.h, include/qore/intern/QoreLibIntern.h,
+	  lib/QoreString.cpp, lib/ql_misc.qpp, lib/qore-main.cpp: added new
+	  option to encode_url() to encode all reserved characters listed
+	  by RFC 3986
+
+2013-12-18 11:25  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/RestClient.qm:
+	  RestClient fixes:
+	  - set the character encoding in the Content-Type request header
+	  when sending strings
+	  - set the Accept header correctly in requests (previously only
+	  indicated yaml as an acceptible response encoding
+
+2013-12-17 14:28  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/QoreString.cpp:
+	  decode_url() function updated to decode UTF-8 characters if the
+	  target string is in UTF-8 encoding
+
+2013-12-17 14:19  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/QoreString.h, lib/QoreString.cpp, lib/ql_misc.qpp,
+	  qlib/RestClient.qm: + implemented the encode_url() function to
+	  correspond to decode_url()
+	  + updated the RestClient module to use the new encode_url()
+	  function to encode URL paths to ensure that valid requests are
+	  sent when spaces, percent characters, and non-ascii characters
+	  are used in the URL path
+
+2013-12-16 14:57  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/QC_Condition.qpp,
+	  lib/ql_file.qpp: fixed a bug in lchown() where chown() was used
+	  interally instead of lchown()
+	  fixed typos in the Condition class docs
+
+2013-12-16 10:28  david_nichols
+
+	* qlib/SqlUtil.qm: fixed another recursive call in Table::del()
+
+2013-12-16 09:31  david_nichols
+
+	* lib/thread.cpp: fixed a memory bug with exception handling when
+	  shutting down threads when exceptions occur after thread-local
+	  data has been deleted and the current timezone is queried for the
+	  current program context
+
+2013-12-13 13:27  david_nichols
+
+	* lib/DatasourcePool.cpp: minor fixes to datasourcepool acquisition
+	  related to instrumentation changes
+
+2013-12-13 13:04  david_nichols
+
+	* include/qore/intern/DatasourcePool.h, lib/DatasourcePool.cpp:
+	  attempts to fix DatasourcePool instrumentation issues - to be
+	  verified
+
+2013-12-02 07:59  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/SqlUtil.qm: fixed
+	  additional bugs in MySQL create/align table SQL generation with
+	  unique indexes that automatically create unique contraints
+
+2013-12-01 15:24  david_nichols
+
+	* README-LICENSE, doxygen/lang/900_release_notes.dox.tmpl,
+	  qlib/SqlUtil.qm: fixed a bug in SqlUtil generating "create table"
+	  SQL with DBs where unique indexes automatically create unique
+	  constraints (ex: MySQL)
+	  minor doc updates
+
+2013-12-01 14:26  david_nichols
+
+	* qlib/MysqlSqlUtil.qm, qlib/SqlUtil.qm: fixed bugs related to
+	  MySQL and some minor table creation SQL construction bugs
+
+2013-11-21 10:22  david_nichols
+
+	* include/qore/intern/DatasourcePool.h,
+	  include/qore/intern/QoreLibIntern.h, lib/DatasourcePool.cpp,
+	  lib/QC_DatasourcePool.qpp, lib/QoreLib.cpp, lib/ql_time.qpp:
+	  updated DatasourcePool max wait time to use microseconds, fixed
+	  threading issues with the DatasourcePool callback (callback is no
+	  longer called while holding the internal DatasourcePool lock but
+	  the check for the callback is always made while the lock is held
+	  to ensure a consistent view of the data)
+
+2013-11-19 18:05  david_nichols
+
+	* lib/DatasourcePool.cpp: fixed initialization order
+
+2013-11-19 14:06  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/DatasourcePool.h, lib/DatasourcePool.cpp,
+	  lib/QC_DatasourcePool.qpp:
+	  DatasourcePool::getWarningCallbackInfo() renamed to
+	  getUsageInfo(); connection acquisition statistics are tracked and
+	  returned in DatasourcePool::getUsageInfo() (which returns, total
+	  requests, hits, maximum wait time, etc)
+
+2013-11-19 10:59  david_nichols
+
+	* include/qore/intern/DatasourcePool.h, lib/DatasourcePool.cpp,
+	  lib/QC_DatasourcePool.qpp: added an optional argument to the
+	  datasourcepool warning callback
+
+2013-11-19 10:44  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/DatasourcePool.h,
+	  include/qore/intern/DatasourceStatementHelper.h,
+	  include/qore/intern/QoreLibIntern.h, lib/DatasourcePool.cpp,
+	  lib/QC_DatasourcePool.qpp, lib/QoreLib.cpp, lib/ql_time.qpp: new
+	  DatasourcePool methods:
+	  - DatasourcePool::clearWarningCallback()
+	  - DatasourcePool::setWarningCallback()
+	  - DatasourcePool::getWarningCallbackInfo()
+	  - DatasourcePool::setErrorTimeout()
+	  - DatasourcePool::getErrorTimeout()
+	  the new methods allow for monitoring DatasourcePool objects for
+	  pool contention issues (in case the pool needs to be resized) and
+	  for throwing an exception if a connection is not acquired within
+	  the error timeout period (new default: 2 minutes)
+
+2013-11-13 21:43  david_nichols
+
+	* include/qore/intern/QoreClassIntern.h,
+	  include/qore/intern/ql_crypto.h: removed invalid assert()s,
+	  cosmetic changes
+
+2013-11-10 12:34  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/Datasource.h,
+	  include/qore/intern/ManagedDatasource.h,
+	  include/qore/intern/qore_ds_private.h, lib/Datasource.cpp,
+	  lib/DatasourcePool.cpp, lib/ManagedDatasource.cpp: - fixed a bug
+	  in the Datasource copy constructor where implicitly-set options
+	  were not carried over into the new object
+	  - fixed a bug in the DatasourcePool class where implicitly-opened
+	  connections would not be guaranteed to have the same server time
+	  zone setting as the initial connections (for example, could cause
+	  problems with server timezone settings if running in a program
+	  context with a different local time zone attribute)
+
+2013-11-08 15:46  david_nichols
+
+	* lib/FunctionCallNode.cpp: fixed a typo in the last commit
+
+2013-11-08 15:34  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/QoreClass.h, include/qore/intern/FunctionCallNode.h,
+	  include/qore/intern/QoreClassIntern.h, lib/CallReferenceNode.cpp,
+	  lib/FunctionCallNode.cpp, lib/QoreClass.cpp, lib/QoreObject.cpp:
+	  fixed a bug where a call to a call reference to a static method
+	  across a program boundary with local variables as arguments would
+	  cause a crash due to improper setting of the program context
+	  before the arguments are evaluated
+
+2013-11-08 09:29  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/ModuleInfo.h, lib/ModuleManager.cpp: the
+	  error message now includes the module path used for the search
+	  when a module cannot be found in the module path
+
+2013-11-07 17:45  david_nichols
+
+	* qlib/MailMessage.qm, qlib/Util.qm: fixed corner cases when
+	  processing multi-line input and some regex issues with hash
+	  processing
+	  fixed a typo in MailMessage
+
+2013-11-07 16:26  david_nichols
+
+	* examples/sqlutil: added -L,--list-tables to sqlutil
+
+2013-11-05 08:57  subik
+
+	* qlib/SqlUtil.qm: sqlutil: dropViewIfExists implemented
+
+2013-11-04 15:24  subik
+
+	* qlib/MysqlSqlUtil.qm, qlib/OracleSqlUtil.qm,
+	  qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm: sqlutil: view info
+	  implemented
+
+2013-10-30 18:01  david_nichols
+
+	* qlib/SmtpClient.qm: fixed a regression caused by a recent patch -
+	  make sure that we authenticate before sending messages after a
+	  QUIT
+
+2013-10-30 11:35  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/Util.qm: added
+	  get_byte_size() and get_marketing_byte_size() to Util
+
+2013-10-29 17:20  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/ql_time.qpp:
+	  milliseconds() and mcroseconds() are both subject to overflow
+	  errors with large arguments
+
+2013-10-29 13:34  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/QoreString.h, lib/QoreLib.cpp, lib/QoreObject.cpp:
+	  fixed a bug in v*printf() where '%%' was not handled correctly in
+	  all cases
+
+2013-10-28 18:49  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/SqlUtil.qm: fixed
+	  an infinitely recursive call in Table::del() in SqlUtil
+
+2013-10-25 15:26  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/SmtpClient.qm:
+	  SmtpClient updates: optimized connection and login code;
+	  HELO/EHLO and authorization are performed when connecting only,
+	  not before each email
+
+2013-10-23 16:14  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, include/qore/common.h:
+	  added support to compile on OSX Mavericks
+
+2013-10-23 14:15  david_nichols
+
+	* include/qore/intern/QoreClassIntern.h: disabled unnecessary
+	  debugging output
+
+2013-10-23 12:21  david_nichols
+
+	* qlib/CsvUtil.qm: removed %perl-bool-eval from CsvUtil since it's
+	  the default anyway
+
+2013-10-23 11:53  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/CsvUtil.qm: fixed a
+	  bug where CsvUtil returned an invalid date when used with the
+	  "date" type and blank input
+	  updated release notes
+
+2013-10-21 15:00  david_nichols
+
+	* lib/QoreSocket.cpp: minor non-functional socket fix
+
+2013-10-21 13:39  david_nichols
+
+	* qlib/CsvUtil.qm: implemented support for the "*int", "*float",
+	  "*number", and "*date" types; implemented support for allowing
+	  subclasses of CsvFileIterator to implement support for other
+	  custom types
+
+2013-10-17 15:42  david_nichols
+
+	* lib/ql_file.qpp: cosmetic non-functional change
+
+2013-10-16 16:51  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/QoreHttpClientObjectIntern.h: fixed a bug in
+	  the @ref Qore::HTTPClient::getURL() "HTTPClient::getURL()" and
+	  @ref Qore::HTTPClient::getProxyURL() "HTTPClient::getProxyURL()"
+	  methods where the URL's path was not given with a leading "/"
+	  character
+
+2013-10-15 11:24  david_nichols
+
+	* examples/sqlutil: fixed help for sequence dump
+
+2013-10-15 04:45  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/RegexSubstNode.cpp,
+	  lib/scanner.lpp: allow escaping "$" character in regular
+	  expression substitution target strings, previously it was
+	  impossible to output a literal "$" + a digit, since this would be
+	  interpreted as a numbered input pattern expression
+
+2013-10-15 04:24  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/scanner.lpp: fixed a
+	  bug parsing octal character constants in the lexer when octal
+	  digits followed the octal constant (ex: \c "\0441" meaning \c
+	  "$1" would cause an error)
+
+2013-10-15 03:55  david_nichols
+
+	* doxygen/qdx, qlib/RestHandler.qm, qlib/SqlUtil.qm, qlib/Util.qm:
+	  doc updates and fixes
+
+2013-10-09 09:10  subik
+
+	* qlib/CsvUtil.qm, test/CsvUtil/test.q: csvutil: in-memory string
+	  writer implemented; writers are refactored to use
+	  AbstractCsvWriter
+
+2013-10-08 14:28  subik
+
+	* qlib/CsvUtil.qm: CsvUtil: reformatted <tabs> to spaces
+
+2013-10-06 07:17  david_nichols
+
+	* lib/QoreHttpClientObject.cpp: ported duplicate HTTP header
+	  handling from trunk to 0.8.8-snapshot, minor non-functional
+	  update to trunk regarding duplicate header handling
+
+2013-10-06 07:01  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/Makefile.am,
+	  lib/QoreHttpClientObject.cpp, qore.spec: fixed a crashing bug
+	  when HTTP messages with duplicate Connection, Content-Encoding,
+	  Transfer-Encoding, Location, or Content-Type headers is received
+
+2013-10-04 13:55  david_nichols
+
+	* ChangeLog, configure.ac, qore.spec: updated to v0.8.9 for future
+	  release
+
 2013-10-04 10:35  david_nichols
 
 	* doxygen/lang/900_release_notes.dox.tmpl,

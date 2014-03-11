@@ -500,8 +500,6 @@ LANG_DOXYFILES_SRC = \
 	doxygen/lang/Doxyfile.tmpl \
 	$(LANG_TMP_DOXYFILES_TMPL)
 
-EXTRA_CMAKE = cmake/QoreConfig.cmake cmake/QoreConfigVersion.cmake cmake/QoreMacros.cmake
-
 EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
 	ChangeLog AUTHORS BUILD \
 	README README-LICENSE README-MODULES \
@@ -537,8 +535,7 @@ EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
 	qore.spec \
 	$(LIB_DOXYFILES_SRC) \
 	$(LANG_DOXYFILES_SRC) \
-	$(LANG_QPP_SRC) \
-	$(EXTRA_CMAKE)
+	$(LANG_QPP_SRC)
 
 dist_modver_DATA = $(USER_MODULES)
 
@@ -701,9 +698,8 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = qore.pc
 
 # cmake support
-cmakedir = $(prefix)/lib${LIBSUFFIX}/cmake/Qore
-cmake_DATA = $(EXTRA_CMAKE)
-#cmake/QoreConfig.cmake cmake/QoreConfigVersion.cmake cmake/QoreMacros.cmake
+#cmakedir = $(prefix)/lib${LIBSUFFIX}/cmake/Qore
+#cmake_DATA = cmake/QoreConfig.cmake cmake/QoreConfigVersion.cmake cmake/QoreMacros.cmake
 
 BUILD=$(shell $(top_srcdir)/next_build.sh -b)
 PACKAGE_VERSION=$(shell grep PACKAGE_VERSION include/qore/intern/unix-config.h | cut -f3 -d\  | sed s/\"//g)
