@@ -323,3 +323,14 @@ unsigned QoreQueue::getWriteWaiting() const {
 void QoreQueue::clear(ExceptionSink* xsink) {
    priv->clear(xsink);
 }
+
+Queue::Queue(int max) : QoreQueue(max) {
+}
+
+Queue::~Queue() {
+}
+
+Queue* Queue::eventRefSelf() const {
+   ((Queue*)this)->ref();
+   return (Queue*)this;
+}

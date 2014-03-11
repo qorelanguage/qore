@@ -88,15 +88,12 @@ public:
 
 class Queue : public AbstractPrivateData, public QoreQueue {
 protected:
-   DLLEXPORT virtual ~Queue() {}
+   DLLEXPORT virtual ~Queue();
 
 public:
-   DLLEXPORT Queue(int max = -1) : QoreQueue(max) {}
+   DLLEXPORT Queue(int max = -1);
 
-   DLLEXPORT Queue* eventRefSelf() const {
-      ((Queue*)this)->ref();
-      return (Queue*)this;
-   }
+   DLLEXPORT Queue* eventRefSelf() const;
 };
 
 #endif // _QORE_QOREQUEUE_H
