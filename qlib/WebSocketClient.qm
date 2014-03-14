@@ -42,7 +42,7 @@ module WebSocketClient {
 }
 
 /*  Version History
-    * 2014-03-14 v1.1: David Nichols <david@qore.org>
+    * 2014-03-14 v1.2: David Nichols <david@qore.org>
       + prepend "WebSocketClient: " to log messages
 
     * 2014-02-04 v1.1: David Nichols <david@qore.org>
