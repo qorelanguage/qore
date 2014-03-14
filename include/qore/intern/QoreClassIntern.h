@@ -2206,6 +2206,8 @@ public:
    }
 
    DLLLOCAL AbstractQoreNode* parseFindLocalConstantValue(const char* cname, const QoreTypeInfo*& cTypeInfo) {
+      parseInitPartial();
+
       // first check public constants
       AbstractQoreNode* rv = pub_const.find(cname, cTypeInfo);
       if (!rv) {
@@ -2229,6 +2231,8 @@ public:
    }
 
    DLLLOCAL AbstractQoreNode* parseFindConstantValue(const char* cname, const QoreTypeInfo*& cTypeInfo, bool check = false) {
+      parseInitPartial();
+
       bool priv = false;
 
       // first check public constants

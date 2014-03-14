@@ -145,7 +145,7 @@ void ConstantEntry::del(ExceptionSink* xsink) {
 }
 
 int ConstantEntry::parseInit(ClassNs ptr) {
-   //printd(5, "ConstantEntry::parseInit() this: %p '%s' pub: %d init: %d node: %p '%s' class context: %p '%s' ns: %p ('%s') pub: %d\n", this, name.c_str(), pub, init, node, get_type_name(node), ptr.getClass(), ptr.getClass() ? ptr.getClass()->name.c_str() : "<none>", ptr.getNs(), ptr.getNs() ? ptr.getNs()->name.c_str() : "<none>", ptr.getNs() ? ptr.getNs()->pub : 0);
+   //printd(5, "ConstantEntry::parseInit() this: %p '%s' pub: %d init: %d in_init: %d node: %p '%s' class context: %p '%s' ns: %p ('%s') pub: %d\n", this, name.c_str(), pub, init, in_init, node, get_type_name(node), ptr.getClass(), ptr.getClass() ? ptr.getClass()->name.c_str() : "<none>", ptr.getNs(), ptr.getNs() ? ptr.getNs()->name.c_str() : "<none>", ptr.getNs() ? ptr.getNs()->pub : 0);
 
    if (init)
       return 0;
@@ -179,10 +179,11 @@ int ConstantEntry::parseInit(ClassNs ptr) {
       //printd(5, "ConstantEntry::parseInit() this: %p '%s' about to init node: %p '%s' class: %p '%s'\n", this, name.c_str(), node, get_type_name(node), p, p ? p->name.c_str() : "n/a");
       if (typeInfo)
          typeInfo = 0;
+
       node = node->parseInit((LocalVar*)0, PF_CONST_EXPRESSION, lvids, typeInfo);
    }
 
-   //printd(5, "ConstantEntry::parseInit() this=%p %s initialized to node=%p (%s)\n", this, name.c_str(), node, get_type_name(node));
+   //printd(5, "ConstantEntry::parseInit() this: %p %s initialized to node: %p (%s)\n", this, name.c_str(), node, get_type_name(node));
 
    if (node->is_value())
       return 0;
@@ -206,8 +207,15 @@ int ConstantEntry::parseInit(ClassNs ptr) {
 	    node = nothing();
 	    typeInfo = nothingTypeInfo;
 	 }
-	 else
+	 else {
+	    typeInfo = getTypeInfoForValue(node);
 	    check_constant_cycle(pgm, node); // address circular refs: pgm->const->pgm
+	 }
+      }
+      else {
+	 node->deref(&xsink);
+	 node = 0;
+	 typeInfo = nothingTypeInfo;
       }
    }
 

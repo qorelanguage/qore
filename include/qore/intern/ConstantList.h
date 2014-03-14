@@ -159,11 +159,13 @@ public:
       assert(!ce.in_init);
       assert(!ce.init);
       ce.in_init = true;
+      //printd(5, "ConstantEntryInitHelper::ConstantEntryInitHelper() '%s'\n", ce.getName());
    }
 
    DLLLOCAL ~ConstantEntryInitHelper() {
       ce.in_init = false;
       ce.init = true;
+      //printd(5, "ConstantEntryInitHelper::~ConstantEntryInitHelper() '%s'\n", ce.getName());
    }
 };
 
