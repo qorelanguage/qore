@@ -206,8 +206,15 @@ int ConstantEntry::parseInit(ClassNs ptr) {
 	    node = nothing();
 	    typeInfo = nothingTypeInfo;
 	 }
-	 else
+	 else {
+	    typeInfo = getTypeInfoForValue(node);
 	    check_constant_cycle(pgm, node); // address circular refs: pgm->const->pgm
+	 }
+      }
+      else {
+	 node->deref(&xsink);
+	 node = 0;
+	 typeInfo = nothingTypeInfo;
       }
    }
 
