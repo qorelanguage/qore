@@ -35,13 +35,16 @@
 %requires Util >= 1.0
 
 module WebSocketClient {
-    version = "1.1";
+    version = "1.2";
     desc = "user module for providing client support for the WebSocket protocol";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
 }
 
 /*  Version History
+    * 2014-03-14 v1.1: David Nichols <david@qore.org>
+      + prepend "WebSocketClient: " to log messages
+
     * 2014-02-04 v1.1: David Nichols <david@qore.org>
       + added socket instrumention support from Qore 0.8.9
 
@@ -391,17 +394,17 @@ $ws.clearStats();
 
         private logInfo(string $fmt) {
             if ($.log)
-                call_function($.log, vsprintf($fmt, $argv));
+                call_function($.log, vsprintf("WebSocketClient: " + $fmt, $argv));
         }
 
         private logError(string $fmt) {
             if ($.errlog)
-                call_function($.errlog, vsprintf($fmt, $argv));
+                call_function($.errlog, vsprintf("WebSocketClient: " + $fmt, $argv));
         }
 
         private logDebug(string $fmt) {
             if ($.debuglog)
-                call_function($.debuglog, vsprintf($fmt, $argv));
+                call_function($.debuglog, vsprintf("WebSocketClient: " + $fmt, $argv));
         }
 
         private sendClose(int $code, *string $txtmsg) {
