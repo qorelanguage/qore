@@ -343,7 +343,10 @@ if test "$enable_64bit" = "yes"; then
 else
    case "${host_os}" in
      *linux*)	if test "$GXX" = "yes"; then
-		   CXXFLAGS="$CXXFLAGS -m32"
+     		   case "${host_cpu}" in
+   		      arm*) ;;
+		      *) CXXFLAGS="$CXXFLAGS -m32" ;;
+ 		   esac
 		fi
 		# multiarch
 		if test -a "$host_cpu" = "x86_64" -a -d /usr/lib32; then
