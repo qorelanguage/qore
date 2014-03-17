@@ -34,13 +34,16 @@
 %requires MailMessage >= 1.0
 
 module SmtpClient {
-    version = "1.3";
+    version = "1.4";
     desc = "SMTP client support module";
     author = "Wolfgang Ritzinger <aargon@rat.at>, Marian Bonda <marian_bonda@users.sourceforge.net>, Pavol Potoncok <ppotancok@gmail.com>";
     url = "http://qore.org";
 }
 
 /*  Version History
+    * 2014-03-17 v1.4: David Nichols <david@qore.org>:
+      + fixed missing username and missing password errors
+
     * 2014-02-04 v1.3: David Nichols <david@qore.org>:
       + added socket instrumention support from Qore 0.8.9
 
@@ -292,14 +295,14 @@ my SmtpClient $smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), 
             
             if ($uh.username) {
                 if (!$uh.password)
-                    throw "SMTPCLIENT-INVALID-AUTHENTICATION", sprintf("password is set but username is missing in URL %y", $url);
+                    throw "SMTPCLIENT-INVALID-AUTHENTICATION", sprintf("username is set but password is missing in URL %y", $url);
                 $.user = $uh.username;
                 $.pass = $uh.password;
 
                 $.logDbg("set authentication credentials to %s/xxx", $.user);
             }
             else if ($uh.password)
-                throw "SMTPCLIENT-INVALID-AUTHENTICATION", sprintf("username is set but password is missing in URL %y", $url);
+                throw "SMTPCLIENT-INVALID-AUTHENTICATION", sprintf("password is set but username is missing in URL %y", $url);
 	}
 
 	#! disconnects if connected and destroys the object
