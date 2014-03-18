@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2013 Qore Technologies
+  Copyright (C) 2003 - 2014 Qore Technologies
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -58,7 +58,7 @@ bool CaseNode::isCaseNode() const {
 }
 
 // start and end line are set later
-SwitchStatement::SwitchStatement(class CaseNode *f) : AbstractStatement(-1, -1), head(f), tail(f), sexp(0), deflt(0), lvars(0) {
+SwitchStatement::SwitchStatement(CaseNode *f) : AbstractStatement(-1, -1), head(f), tail(f), sexp(0), deflt(f->isDefault() ? f : 0), lvars(0) {
 }
 
 SwitchStatement::~SwitchStatement() {
@@ -76,14 +76,13 @@ void SwitchStatement::setSwitch(AbstractQoreNode *s) {
    sexp = s;
 }
 
-void SwitchStatement::addCase(class CaseNode *c) {
+void SwitchStatement::addCase(CaseNode *c) {
    if (tail)
       tail->next = c;
    else
       head = c;
    tail = c;
-   if (c->isDefault())
-   {
+   if (c->isDefault()) {
       if (deflt)
 	 parse_error("multiple defaults in switch statement");
       deflt = c;
