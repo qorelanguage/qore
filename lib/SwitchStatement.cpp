@@ -58,7 +58,7 @@ bool CaseNode::isCaseNode() const {
 }
 
 // start and end line are set later
-SwitchStatement::SwitchStatement(class CaseNode *f) : AbstractStatement(-1, -1), head(f), tail(f), sexp(0), deflt(0), lvars(0) {
+SwitchStatement::SwitchStatement(class CaseNode *f) : AbstractStatement(-1, -1), head(f), tail(f), sexp(0), deflt(f->isDefault() ? f : 0), lvars(0) {
 }
 
 SwitchStatement::~SwitchStatement() {
