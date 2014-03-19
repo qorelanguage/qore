@@ -129,37 +129,37 @@ public:
    DLLLOCAL ~OptionalNonBlockingHelper();
 };
 
-class QoreSocketTimeoutBase {
+class PrivateQoreSocketTimeoutBase {
 protected:
    struct qore_socket_private* sock;
    int64 start;
 
 public:
-   DLLLOCAL QoreSocketTimeoutBase(qore_socket_private* s) : sock(s), start(sock ? q_clock_getmicros() : 0) {
+   DLLLOCAL PrivateQoreSocketTimeoutBase(qore_socket_private* s) : sock(s), start(sock ? q_clock_getmicros() : 0) {
    }
 };
 
-class QoreSocketTimeoutHelper : public QoreSocketTimeoutBase {
+class PrivateQoreSocketTimeoutHelper : public PrivateQoreSocketTimeoutBase {
 protected:
    const char* op;
 public:
-   DLLLOCAL QoreSocketTimeoutHelper(qore_socket_private* s, const char* op);
-   DLLLOCAL ~QoreSocketTimeoutHelper();
+   DLLLOCAL PrivateQoreSocketTimeoutHelper(qore_socket_private* s, const char* op);
+   DLLLOCAL ~PrivateQoreSocketTimeoutHelper();
 };
 
-class QoreSocketThroughputHelper : public QoreSocketTimeoutBase {
+class PrivateQoreSocketThroughputHelper : public PrivateQoreSocketTimeoutBase {
 protected:
    bool send;
 public:
-   DLLLOCAL QoreSocketThroughputHelper(qore_socket_private* s, bool snd);
-   DLLLOCAL ~QoreSocketThroughputHelper();
+   DLLLOCAL PrivateQoreSocketThroughputHelper(qore_socket_private* s, bool snd);
+   DLLLOCAL ~PrivateQoreSocketThroughputHelper();
 
    DLLLOCAL void finalize(int64 bytes);
 };
 
 struct qore_socket_private {
-   friend class QoreSocketTimeoutHelper;
-   friend class QoreSocketThroughputHelper;
+   friend class PrivateQoreSocketTimeoutHelper;
+   friend class PrivateQoreSocketThroughputHelper;
 
    int sock, sfamily, port, stype, sprot; //, sendTimeout, recvTimeout;
    const QoreEncoding* enc;
@@ -793,7 +793,7 @@ struct qore_socket_private {
    }
 
    DLLLOCAL int connectINETTimeout(int timeout_ms, const struct sockaddr *ai_addr, qore_size_t ai_addrlen, ExceptionSink* xsink, bool only_timeout) {
-      QoreSocketTimeoutHelper toh(this, "connect");
+      PrivateQoreSocketTimeoutHelper toh(this, "connect");
 
       while (true) {
 	 if (!::connect(sock, ai_addr, ai_addrlen))
@@ -1378,7 +1378,7 @@ struct qore_socket_private {
 	 return 0;
       }
 
-      QoreSocketThroughputHelper th(this, false);
+      PrivateQoreSocketThroughputHelper th(this, false);
 
       // state:
       //   0 = '\r' received
@@ -1468,7 +1468,7 @@ struct qore_socket_private {
 	 return 0;
       }
 
-      QoreSocketThroughputHelper th(this, false);
+      PrivateQoreSocketThroughputHelper th(this, false);
 
       qore_size_t bs = bufsize > 0 && bufsize < DEFAULT_SOCKET_BUFSIZE ? bufsize : DEFAULT_SOCKET_BUFSIZE;
 
@@ -1516,7 +1516,7 @@ struct qore_socket_private {
 	 return 0;
       }
 
-      QoreSocketThroughputHelper th(this, false);
+      PrivateQoreSocketThroughputHelper th(this, false);
 
       QoreStringNodeHolder str(new QoreStringNode(enc));
       
@@ -1567,7 +1567,7 @@ struct qore_socket_private {
 	 return 0;
       }
 
-      QoreSocketThroughputHelper th(this, false);
+      PrivateQoreSocketThroughputHelper th(this, false);
 
       qore_size_t bs = bufsize > 0 && bufsize < DEFAULT_SOCKET_BUFSIZE ? bufsize : DEFAULT_SOCKET_BUFSIZE;
 
@@ -1610,7 +1610,7 @@ struct qore_socket_private {
 	 return 0;
       }
 
-      QoreSocketThroughputHelper th(this, false);
+      PrivateQoreSocketThroughputHelper th(this, false);
 
       SimpleRefHolder<BinaryNode> b(new BinaryNode);
 
@@ -1775,7 +1775,7 @@ struct qore_socket_private {
 	 return QSE_NOT_OPEN;
       }
 
-      QoreSocketThroughputHelper th(this, true);
+      PrivateQoreSocketThroughputHelper th(this, true);
 
       // set the non-blocking flag (for use with non-ssl connections)
       bool nb = (timeout_ms >= 0);
@@ -2137,7 +2137,7 @@ struct qore_socket_private {
 	 return QSE_NOT_OPEN;
       }
 
-      QoreSocketThroughputHelper th(this, false);
+      PrivateQoreSocketThroughputHelper th(this, false);
 
       char* buf;
       qore_offset_t br = 0;
@@ -2172,6 +2172,7 @@ struct qore_socket_private {
    }
 
    DLLLOCAL void setWarningQueue(ExceptionSink* xsink, int64 warning_ms, int64 warning_bs, Queue* wq, AbstractQoreNode* arg, int64 min_ms = 1000) {
+      ReferenceHolder<Queue> qholder(wq, xsink);
       ReferenceHolder<> holder(arg, xsink);
       if (warning_ms <=0 && warning_bs <= 0) {
 	 xsink->raiseException("SOCKET-SETWARNINGQUEUE-ERROR", "Socket::setWarningQueue() at least one of warning ms argument: "QLLD" and warning B/s argument: "QLLD" must be greater than zero; to clear, call Socket::clearWarningQueue() with no arguments", warning_ms, warning_bs);
@@ -2188,11 +2189,11 @@ struct qore_socket_private {
 	 discard(callback_arg, xsink);
       }
 
-      warn_queue = wq;
+      warn_queue = qholder.release();
+      callback_arg = holder.release();
       tl_warning_us = (int64)warning_ms * 1000;
       tp_warning_bs = warning_bs;
       tp_us_min = min_ms * 1000;
-      callback_arg = holder.release();
    }
    
    DLLLOCAL void getUsageInfo(QoreHashNode& h, qore_socket_private& s) const {
@@ -2272,6 +2273,14 @@ struct qore_socket_private {
 
    DLLLOCAL static void getUsageInfo(const QoreSocket& sock, QoreHashNode& h, const QoreSocket& s) {
       sock.priv->getUsageInfo(h, *s.priv);
+   }
+
+   DLLLOCAL static qore_socket_private* get(QoreSocket& sock) {
+      return sock.priv;
+   }
+
+   DLLLOCAL static const qore_socket_private* get(const QoreSocket& sock) {
+      return sock.priv;
    }
 };
 

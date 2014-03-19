@@ -549,10 +549,10 @@ bool SSLSocketHelper::sslError(ExceptionSink* xsink, const char* mname, const ch
    return *xsink || closed;
 }
 
-QoreSocketTimeoutHelper::QoreSocketTimeoutHelper(qore_socket_private* s, const char* o) : QoreSocketTimeoutBase(s->tl_warning_us ? s : 0), op(o) {
+PrivateQoreSocketTimeoutHelper::PrivateQoreSocketTimeoutHelper(qore_socket_private* s, const char* o) : PrivateQoreSocketTimeoutBase(s->tl_warning_us ? s : 0), op(o) {
 }
 
-QoreSocketTimeoutHelper::~QoreSocketTimeoutHelper() {
+PrivateQoreSocketTimeoutHelper::~PrivateQoreSocketTimeoutHelper() {
    if (!sock)
       return;
 
@@ -561,14 +561,14 @@ QoreSocketTimeoutHelper::~QoreSocketTimeoutHelper() {
       sock->doTimeoutWarning(op, dt);
 }
 
-QoreSocketThroughputHelper::QoreSocketThroughputHelper(qore_socket_private* s, bool snd) : QoreSocketTimeoutBase(s), send(snd) {
+PrivateQoreSocketThroughputHelper::PrivateQoreSocketThroughputHelper(qore_socket_private* s, bool snd) : PrivateQoreSocketTimeoutBase(s), send(snd) {
 }
 
-QoreSocketThroughputHelper::~QoreSocketThroughputHelper() {
+PrivateQoreSocketThroughputHelper::~PrivateQoreSocketThroughputHelper() {
 }
 
-void QoreSocketThroughputHelper::finalize(int64 bytes) {
-   //printd(5, "QoreSocketThroughputHelper::finalize() bytes: "QLLD" us: "QLLD" (min: "QLLD") bs: %.6f threshold: %.6f\n", bytes, (q_clock_getmicros() - start), sock->tp_us_min, ((double)bytes / ((double)(q_clock_getmicros() - start) / (double)1000000.0)), sock->tp_warning_bs);
+void PrivateQoreSocketThroughputHelper::finalize(int64 bytes) {
+   //printd(5, "PrivateQoreSocketThroughputHelper::finalize() bytes: "QLLD" us: "QLLD" (min: "QLLD") bs: %.6f threshold: %.6f\n", bytes, (q_clock_getmicros() - start), sock->tp_us_min, ((double)bytes / ((double)(q_clock_getmicros() - start) / (double)1000000.0)), sock->tp_warning_bs);
 
    if (bytes <= 0)
       return;
@@ -589,7 +589,7 @@ void QoreSocketThroughputHelper::finalize(int64 bytes) {
 
    double bs = (double)bytes / ((double)dt / (double)1000000.0);
 
-   //printd(5, "QoreSocketThroughputHelper::finalize() bytes: "QLLD" us: "QLLD" bs: %.6f threshold: %.6f\n", bytes, dt, bs, sock->tp_warning_bs);
+   //printd(5, "PrivateQoreSocketThroughputHelper::finalize() bytes: "QLLD" us: "QLLD" bs: %.6f threshold: %.6f\n", bytes, dt, bs, sock->tp_warning_bs);
 
    if (bs <= (double)sock->tp_warning_bs)
       sock->doThroughputWarning(send, bytes, dt, bs);
@@ -1852,4 +1852,22 @@ QoreHashNode* QoreSocket::getUsageInfo() const {
 
 void QoreSocket::clearStats() {
    priv->clearStats();
+}
+
+QoreSocketTimeoutHelper::QoreSocketTimeoutHelper(QoreSocket& s, const char* op) : priv(new PrivateQoreSocketTimeoutHelper(qore_socket_private::get(s), op)) {
+}
+
+QoreSocketTimeoutHelper::~QoreSocketTimeoutHelper() {
+   delete priv;
+}
+
+QoreSocketThroughputHelper::QoreSocketThroughputHelper(QoreSocket& s, bool snd) : priv(new PrivateQoreSocketThroughputHelper(qore_socket_private::get(s), snd)) {
+}
+
+QoreSocketThroughputHelper::~QoreSocketThroughputHelper() {
+   delete priv;
+}
+
+void QoreSocketThroughputHelper::finalize(int64 bytes) {
+   priv->finalize(bytes);
 }

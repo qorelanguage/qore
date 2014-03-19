@@ -102,6 +102,12 @@
 //! defined because this version of Qore supports the DBI event API
 #define _QORE_HAS_DBI_EVENTS 1
 
+//! defined because this version of Qore has a Queue class definition in public headers
+#define _QORE_HAS_QUEUE_OBJECT 1
+
+//! defined because this version of Qore has a public Socket performance API
+#define _QORE_HAS_SOCKET_PERF_API 1
+
 // qore code flags
 #define QC_NO_FLAGS                 0   //! no flag
 #define QC_NOOP               (1 << 0)  //! this variant is a noop, meaning it returns a constant value with the given argument types
