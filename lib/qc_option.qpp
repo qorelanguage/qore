@@ -175,6 +175,12 @@
 #define QORE_CONST_HAVE_SYMLINK 0
 #endif
 
+#if defined(HAVE_UNISTD_H) && defined(_SC_OPEN_MAX)
+#define QORE_CONST_HAVE_CLOSE_ALL_FD 1
+#else
+#define QORE_CONST_HAVE_CLOSE_ALL_FD 0
+#endif
+
 /** @defgroup option_constants Option Constants
     Option constants
 */
@@ -296,6 +302,9 @@ const HAVE_MD2 = bool(QORE_CONST_HAVE_MD2);
 
 //! Indicates if the openssl library used to build the qore library supported the RC5 encryption algorithm and therefore if the rc5_encrypt_cbc(), rc5_decrypt_cbc() and rc5_encrypt_cbc_to_string() functions are available
 const HAVE_RC5 = bool(QORE_CONST_HAVE_RC5);
+
+//! Indicates if the close_all_fd() function is available
+const HAVE_CLOSE_ALL_FD = bool(QORE_CONST_HAVE_CLOSE_ALL_FD);
 //@}
 
 

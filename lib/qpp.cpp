@@ -1351,12 +1351,22 @@ protected:
             fprintf(fp, "   double %s = HARD_QORE_FLOAT(args, %d);\n", p.name.c_str(), i);
             continue;
          }
+         if (p.type == "*float" || p.type == "*softfloat") {
+            fprintf(fp, "   const QoreFloatNode* tmp_%s = reinterpret_cast<const QoreFloatNode*>(get_param(args, %d));\n", p.name.c_str(), i);
+            fprintf(fp, "   double %s = tmp_%s ? tmp_%s->f : 0.0;\n", p.name.c_str(), p.name.c_str(), p.name.c_str());
+            continue;
+         }
          if (p.type == "number" || p.type == "softnumber") {
             fprintf(fp, "   const QoreNumberNode* %s = HARD_QORE_NUMBER(args, %d);\n", p.name.c_str(), i);
             continue;
          }
          if (p.type == "bool" || p.type == "softbool") {
             fprintf(fp, "   bool %s = HARD_QORE_BOOL(args, %d);\n", p.name.c_str(), i);
+            continue;
+         }
+         if (p.type == "*bool" || p.type == "*softbool") {
+            fprintf(fp, "   const QoreBoolNode* tmp_%s = reinterpret_cast<const QoreBoolNode*>(get_param(args, %d));\n", p.name.c_str(), i);
+            fprintf(fp, "   bool %s = tmp_%s ? tmp_%s->getValue() : false;\n", p.name.c_str(), p.name.c_str(), p.name.c_str());
             continue;
          }
          if (p.type == "string" || p.type == "softstring") {

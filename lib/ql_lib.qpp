@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -43,6 +43,10 @@
 #include <glob.h>
 #else
 #include <qore/intern/glob.h>
+#endif
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
 #endif
 
 #ifndef SIGHUP
@@ -939,5 +943,33 @@ my list $l = getaddrinfo("localhost");
  */
 list getaddrinfo(*string node, *softstring service, softint family = AF_UNSPEC, softint flags = 0) [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
    return q_getaddrinfo_to_list(xsink, node ? node->getBuffer() : 0, service ? service->getBuffer() : 0, (int)family, (int)flags);
+}
+
+//! closes all possible file descriptors; useful in "daemon" processes that may have inherited open file descriptors
+/** @par Platform Availability:
+    @ref Qore::Option::HAVE_CLOSE_ALL_FD
+
+    @param std if @ref Qore::True "True" then also stdin, stdout, and stderr are closed, otherwise fds > 2 are closed
+
+    @par Example:
+    @code
+close_all_fd();
+    @endcode
+
+    @note if there are file descriptors open by Qore when this function is called, this function will also close those file descriptors; normally this function should only be used when starting a new process after a fork() and exec() to close any inherited descriptors, for example
+ */
+nothing close_all_fd(*softbool strd) [dom=PROCESS] {
+#if defined(HAVE_UNISTD_H) && defined(_SC_OPEN_MAX)
+   int start = strd ? 0 : 2;
+   // get max file descriptor
+   int max = (int)sysconf(_SC_OPEN_MAX);
+   printd(0, "close_all_fd() start: %d max: %d\n", start, max);
+
+   for (;start < max; ++start)
+      close(start);
+#else
+   missing_function_error("close_all_fd", xsink);
+#endif // HAVE_UNISTD
+   return 0;
 }
 //@}
