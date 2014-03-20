@@ -1359,10 +1359,10 @@ fi
 AC_SEARCH_LIBS(iconv, iconv)
 
 # see if the socket library is required
-AC_SEARCH_LIBS(socket, setsockopt)
+AC_SEARCH_LIBS(setsockopt, socket)
 
 # look for librt (needed by clock_gettime() on some platforms)
-AC_SEARCH_LIBS(rt, clock_gettime)
+AC_SEARCH_LIBS(clock_gettime, rt)
 
 # Checks for header files.
 AC_HEADER_STDC
