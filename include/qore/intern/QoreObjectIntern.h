@@ -123,6 +123,8 @@ public:
    }
 };
 
+#ifdef DO_OBJ_RECURSIVE_CHECK
+
 #define ORS_NO_MATCH   -1
 #define ORS_LOCK_ERROR -2
 #define ORS_IGNORE     -3
@@ -217,6 +219,7 @@ public:
       assert(frvec.empty());
    }
 };
+#endif
 
 // rwlock that can be entered multiple times by the same thread for writing, only needs exiting once
 // read lock is normal
@@ -360,16 +363,23 @@ public:
    QoreReferenceCounter tRefs;  // weak references
    QoreHashNode* data;
    QoreProgram* pgm;
-   bool system_object, delete_blocker_run, in_destructor, pgm_ref, recursive_ref_found, is_recursive;
+   bool system_object, delete_blocker_run, in_destructor, pgm_ref;
+#ifdef DO_OBJ_RECURSIVE_CHECK
+   bool recursive_ref_found, is_recursive;
    int /*in_rsection,*/ rcount;
    // set of objects in a cyclic directed graph
    ObjectRSet* rset;
+#endif
    QoreObject* obj;
 
    DLLLOCAL qore_object_private(QoreObject* n_obj, const QoreClass *oc, QoreProgram* p, QoreHashNode* n_data) : 
       theclass(oc), status(OS_OK), 
       privateData(0), data(n_data), pgm(p), system_object(!p), 
-      delete_blocker_run(false), in_destructor(false), pgm_ref(true), recursive_ref_found(false), is_recursive(false), /*in_rsection(0),*/ rcount(0), rset(0),
+      delete_blocker_run(false), in_destructor(false), pgm_ref(true), 
+#ifdef DO_OBJ_RECURSIVE_CHECK
+      recursive_ref_found(false), is_recursive(false), 
+      /*in_rsection(0),*/ rcount(0), rset(0),
+#endif
       obj(n_obj) {
       //printd(5, "qore_object_private::qore_object_private() this: %p obj: %p '%s'\n", this, obj, oc->getName());
 #ifdef QORE_DEBUG_OBJ_REFS
@@ -391,7 +401,9 @@ public:
       assert(!pgm);
       assert(!data);
       assert(!privateData);
+#ifdef DO_OBJ_RECURSIVE_CHECK
       assert(!rset);
+#endif
    }
 
    DLLLOCAL void plusEquals(const AbstractQoreNode* v, AutoVLock& vl, ExceptionSink* xsink) {
@@ -614,6 +626,7 @@ public:
 	 data = 0;
       }
 
+#ifdef DO_OBJ_RECURSIVE_CHECK
       {
          AutoRMWriteLocker al(rml);
          if (rset) {
@@ -621,6 +634,7 @@ public:
             rset = 0;
          }
       }
+#endif
 
       cleanup(xsink, td);
 
@@ -697,6 +711,7 @@ public:
 	 //printd(0, "Object lock %p unlocked (safe)\n", &rwl);
 	 sl.unlock();
 
+#ifdef DO_OBJ_RECURSIVE_CHECK
          {
             AutoRMWriteLocker al(rml);
 
@@ -705,6 +720,7 @@ public:
                rset = 0;
             }
          }
+#endif
 
 	 if (privateData)
 	    privateData->derefAll(xsink);
@@ -820,6 +836,7 @@ public:
    }
 */
 
+#ifdef DO_OBJ_RECURSIVE_CHECK
    DLLLOCAL void setRSetIntern(ObjectRSet* rs) {
       assert(rml.hasWriteLock(gettid()));
       assert(!rset);
@@ -837,6 +854,7 @@ public:
          printd(0, "qore_object_private::setRecursive() obj: %p '%s'\n", &obj, obj.priv->theclass->getName());
       }
    }
+#endif
 
    DLLLOCAL static AbstractQoreNode* takeMember(QoreObject& obj, ExceptionSink* xsink, const char* mem, bool check_access = true) {
       return obj.priv->takeMember(xsink, mem, check_access);

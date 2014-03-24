@@ -1086,6 +1086,7 @@ bool QoreObject::getAsBoolImpl() const {
    return priv->status != OS_DELETED;
 }
 
+#ifdef DO_OBJ_RECURSIVE_CHECK
 int ObjectRSetHelper::checkIntern(AbstractQoreNode* n) {
    switch (get_node_type(n)) {
       case NT_OBJECT:
@@ -1388,7 +1389,7 @@ int ObjectRSet::canDelete() {
 	    printd(QRO_LVL, "ObjectRSet::canDelete() this: %p cannot delete graph obj %p '%s' rcount: %d refs: %d\n", this, *i, (*i)->getClassName(), (*i)->priv->rcount, (*i)->references);
 	    return 0;
 	 }
-	 if (!(*i)->priv->status == OS_OK || (*i)->priv->in_destructor) {
+	 if ((*i)->priv->status != OS_OK || (*i)->priv->in_destructor) {
 	    printd(QRO_LVL, "ObjectRSet::canDelete() this: %p cannot delete graph obj %p '%s' status: %d in_destructor: %d\n", this, *i, (*i)->getClassName(), (*i)->priv->status, (*i)->priv->in_destructor);
 	    return 0;
 	 }
@@ -1401,3 +1402,4 @@ int ObjectRSet::canDelete() {
    in_del = true;
    return 1;
 }
+#endif

@@ -360,13 +360,14 @@ private:
    // to find recursive references
    bool container_change;
    lvid_set_t* lvid_set;
+
+#ifdef DO_OBJ_RECURSIVE_CHECK
    QoreObject* robj;
 
    DLLLOCAL void addOSet(QoreObject* o) {
-#ifdef DO_OBJ_RECURSIVE_CHECK
       robj = o;
-#endif
    }
+#endif
 
 public:
    QoreLValueGeneric* val;

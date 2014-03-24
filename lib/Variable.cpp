@@ -138,12 +138,20 @@ void Var::deref(ExceptionSink* xsink) {
    }
 }
 
-LValueHelper::LValueHelper(const ReferenceNode& ref, ExceptionSink* xsink, bool for_remove) : vl(xsink), v(0), container_change(false), lvid_set(0), robj(0), val(0), typeInfo(0) {
+LValueHelper::LValueHelper(const ReferenceNode& ref, ExceptionSink* xsink, bool for_remove) : vl(xsink), v(0), container_change(false), lvid_set(0), 
+#ifdef DO_OBJ_RECURSIVE_CHECK
+											      robj(0), 
+#endif
+											      val(0), typeInfo(0) {
    RuntimeReferenceHelper rh(ref, xsink);
    doLValue(lvalue_ref::get(&ref)->vexp, for_remove);
 }
 
-LValueHelper::LValueHelper(const AbstractQoreNode* exp, ExceptionSink* xsink, bool for_remove) : vl(xsink), v(0), container_change(false), lvid_set(0), robj(0), val(0), typeInfo(0) {
+LValueHelper::LValueHelper(const AbstractQoreNode* exp, ExceptionSink* xsink, bool for_remove) : vl(xsink), v(0), container_change(false), lvid_set(0), 
+#ifdef DO_OBJ_RECURSIVE_CHECK
+												 robj(0),
+#endif
+												 val(0), typeInfo(0) {
    // exp can be 0 when called from LValueRefHelper if the attach to the Program fails, for example
    //printd(5, "LValueHelper::LValueHelper() exp: %p (%s %d)\n", exp, get_type_name(exp), get_node_type(exp));
    if (exp)
@@ -154,8 +162,10 @@ LValueHelper::~LValueHelper() {
    if (!container_change && !*vl.xsink && (val ? val->isContainer() : is_container(*v)))
       container_change = true;
 
+#ifdef DO_OBJ_RECURSIVE_CHECK
    if (robj)
       robj->tRef();
+#endif
 
    // first free any locks
    vl.del();
@@ -166,6 +176,7 @@ LValueHelper::~LValueHelper() {
 
    delete lvid_set;
 
+#ifdef DO_OBJ_RECURSIVE_CHECK
    // recalculate recusive references for objects if necessary
    if (robj && container_change) {
       ObjectRSetHelper rsh(*robj);
@@ -173,6 +184,7 @@ LValueHelper::~LValueHelper() {
 
    if (robj)
       robj->tDeref();
+#endif
 }
 
 void LValueHelper::setValue(QoreLValueGeneric& nv) {
@@ -288,8 +300,10 @@ int LValueHelper::doHashObjLValue(const QoreTreeNode* tree, bool for_remove) {
    if (*vl.xsink)
       return -1;
 
+#ifdef DO_OBJ_RECURSIVE_CHECK
    if (!qore_object_private::isRecursive(*o))
       addOSet(o);
+#endif
 
    return 0;
 }
@@ -330,8 +344,10 @@ int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
       if (qore_object_private::getLValue(*obj, v->str, *this, true, for_remove, vl.xsink))
          return -1;
 
+#ifdef DO_OBJ_RECURSIVE_CHECK
       if (!qore_object_private::isRecursive(*obj))
 	 addOSet(obj);
+#endif
    }
    else if (ntype == NT_CLASS_VARREF)
       reinterpret_cast<const StaticClassVarRefNode*>(n)->getLValue(*this);
