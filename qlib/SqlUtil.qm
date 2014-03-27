@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file SqlUtil.qm Qore user module for working with SQL data
 
-/*  SqlUtil.qm Copyright 2013 Qore Technologies, sro
+/*  SqlUtil.qm Copyright 2013 - 2014 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -38,13 +38,16 @@
 %enable-all-warnings
 
 module SqlUtil {
-    version = "1.1";
+    version = "1.2";
     desc = "user module for working with SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
 }
 
 /*  Version History
+    * 2014-03-27 v1.2: David Nichols <david@qore.org>
+      + see release notes below or in doxygen docs
+
     * 2013-12-30 v1.1: David Nichols <david@qore.org>
       + see release notes below or in doxygen docs
 
@@ -98,7 +101,10 @@ module SqlUtil {
       - @ref table_management
 
     @section relnotes Release Notes
-    
+
+    @subsection sqlutilv1_2 SqlUtil v1.2
+    - added static AbstractSqlUtilBase::getDatasourceDesc() method
+
     @subsection sqlutilv1_1 SqlUtil v1.1
     - implemented new upsert strategy @ref SqlUtil::AbstractTable::UpsertInsertOnly
     - adding a default value to a column with a not null constraint and existing data populates existing null columns with the new default value automatically in schema alignment
@@ -1095,7 +1101,7 @@ $db.getAlignSql($schema_template, $callback_opts, $table_cache);
     - \c tables: a hash of @ref table_desc_hash "table description hashes" keyed by table name; each entry describes a table
     - \c sequences: a hash of sequence description hashes keyed by sequence name; each entry describes a sequence
     - \c functions: a hash of function description hashes keyed by function name; each entry describes a function
-    - \c procedure: a hash of procedure description hashes keyed by procedure name; each entry describes a procedure    
+    - \c procedures: a hash of procedure description hashes keyed by procedure name; each entry describes a procedure    
     - \c driver: this key can optionally contain a hash keyed by driver name which contains a hash of values that will be added to the schema description hash before processing; this way a schema description hash can contain all the information required for the schema including driver-specific options; any driver-specific options will overwrite values in the top level of the hash if there are duplicate hash keys
 
     Each database driver may provide additional objects (such as types or materialized views, packages, etc); see 
@@ -1595,7 +1601,6 @@ public namespace SqlUtil {
     public const DB_TYPES = "named types";
     #! Feature: views
     public const DB_VIEWS = "views";
-
     #@}
     
     /* @defgroup SqlTypeConstants SQL Type Constants
@@ -5063,13 +5068,13 @@ $t.tryExecRaw("drop table tmp_table");
 my list $l = $db.getAlignSql($schema_hash);
             @endcode
 
-            @param schema_hash the schema template hash that decribes the target state of the schema
+            @param schema_hash the @ref schema_desc_hash "schema description hash" that decribes the target state of the schema
             @param opt a hash of options for the SQL creation strings; see @ref AbstractDatabase::AlignSchemaOptions for common options; each driver can support additional driver-specific options
             @param table_cache an optional object of class Tables to return the cache of AbstractTable objects keyed by table name for the schema template (ie target table definitions)
 
             @return a list of SQL strings that can be used to align the structure and configuration of the current schema with that of the argument; if the objects described are identical then an empty list is returned
 
-            @throw SCHEMA-DESCRIPTION-ERROR the schema description hash has an error or a required object does not exist
+            @throw SCHEMA-DESCRIPTION-ERROR the @ref schema_desc_hash "schema description hash" has an error or a required object does not exist
             @throw OPTION-ERROR invalid or unsupported option passed
         */
         list getAlignSql(hash schema_hash, *hash opt, *Tables table_cache) {
@@ -5082,12 +5087,12 @@ my list $l = $db.getAlignSql($schema_hash);
 my list $l = $db.getDropSchemaSql($schema_hash);
             @endcode
 
-            @param schema_hash the schema template hash that decribes the state of the schema
+            @param schema_hash the @ref schema_desc_hash "schema description hash" that decribes the state of the schema
             @param opt a hash of options for the SQL strings; see @ref AbstractDatabase::DropSchemaOptions for common options; each driver can support additional driver-specific options
 
             @return a list of SQL strings that can be used to drop any existing objects in the database; if none of the described objects exist, then an empty list is returned
 
-            @throw SCHEMA-DESCRIPTION-ERROR the schema description hash has an error
+            @throw SCHEMA-DESCRIPTION-ERROR the @ref schema_desc_hash "schema description hash" has an error
             @throw OPTION-ERROR invalid or unsupported option passed
         */
         list getDropSchemaSql(hash schema_hash, *hash opt) {
@@ -5458,11 +5463,16 @@ my string $sql = $t.getSqlFromList($list);
 
             # ensure datasource is open
             ds.getServerVersion();
-            dsdesc = sprintf("%s:%s@%s", ds.getDriverName(), ds.getUserName(), ds.getDBName());
+            dsdesc = AbstractSqlUtilBase::makeDatasourceDesc(ds);
+        }
+
+        static string makeDatasourceDesc(AbstractDatasource ds) {
+            string dsdesc = sprintf("%s:%s@%s", ds.getDriverName(), ds.getUserName(), ds.getDBName());
             if (ds.getHostName())
                 dsdesc += "%" + ds.getHostName();
             if (ds.getPort())
                 dsdesc += sprintf(":%d", ds.getPort());
+            return dsdesc;
         }
 
         private validateOptionsIntern(string err, hash ropt, reference opt, string tag) {
@@ -5735,7 +5745,7 @@ my string $sql = $t.getSqlFromList($list);
             const DropSchemaOptions = CallbackOptions;
 
             #! default generic schema description keys
-            /** The following keys can be set in schema description hashes:
+            /** The following keys can be set in @ref schema_desc_hash "schema description hashes":
                 - \c tables: a hash keyed by table name set to @ref table_desc_hash "table description hash" values
                 - \c table_map: a hash for automatically renaming tables; if the source name (key) exists and the target name (value) does not exist, then the source table is automatically renamed
                 - \c sequences: a hash keyed by sequence name set to @ref AbstractDatabase::SequenceDescriptionOptions "sequence hash description" values
@@ -5938,13 +5948,13 @@ $t.tryExecRaw("drop table tmp_table");
 my list $l = $db.getAlignSql($schema_hash);
             @endcode
 
-            @param schema_hash the schema template hash that decribes the target state of the schema
+            @param schema_hash the @ref schema_desc_hash "schema description hash" that decribes the target state of the schema
             @param opt a hash of options for the SQL creation strings; see @ref AbstractDatabase::AlignSchemaOptions for common options; each driver can support additional driver-specific options
             @param table_cache an optional object of class Tables to return the cache of AbstractTable objects keyed by table name for the schema template (ie target table definitions)
 
             @return a list of SQL strings that can be used to align the structure and configuration of the current schema with that of the argument; if the objects described are identical then an empty list is returned
 
-            @throw SCHEMA-DESCRIPTION-ERROR the schema description hash has an error or a required object does not exist
+            @throw SCHEMA-DESCRIPTION-ERROR the @ref schema_desc_hash "schema description hash" has an error or a required object does not exist
             @throw OPTION-ERROR invalid or unsupported option passed
         */
         list getAlignSql(hash schema_hash, *hash opt, *Tables table_cache) {
@@ -6048,12 +6058,12 @@ my list $l = $db.getAlignSql($schema_hash);
 my list $l = $db.getDropSchemaSql($schema_hash);
             @endcode
 
-            @param schema_hash the schema template hash that decribes the state of the schema
+            @param schema_hash the @ref schema_desc_hash "schema description hash" that decribes the state of the schema
             @param opt a hash of options for the SQL creation strings; see @ref AbstractDatabase::DropSchemaOptions for common options; each driver can support additional driver-specific options
 
             @return a list of SQL strings that can be used to drop any existing objects in the database; if none of the described objects exist, then an empty list is returned
 
-            @throw SCHEMA-DESCRIPTION-ERROR the schema description hash has an error
+            @throw SCHEMA-DESCRIPTION-ERROR the @ref schema_desc_hash "schema description hash" has an error
             @throw OPTION-ERROR invalid or unsupported option passed
         */
         list getDropSchemaSql(hash schema_hash, *hash opt) {
