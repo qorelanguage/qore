@@ -5579,6 +5579,29 @@ my string $sql = $t.getSqlFromList($list);
                         throw err, sprintf("key %y requires type %y but type %y was passed (%y)", k, type, opt.type(), opt);
             }
         }
+        
+        #! Check input node for all hash keys - if it contains a key with whitespace in the beginning or at the end -> error
+        private validateHashKeysForWhitespaces(any node) {
+            switch (node.typeCode()) {
+                case NT_HASH: {
+                        HashIterator it(node);
+                        while (it.next()) {
+                            if (trim(it.getKey()) != it.getKey()) {
+                                throw "VALIDATE-HASH-ERROR", sprintf("Key '%s' contains whitespaces at the end or in the beginning.", it.getKey());
+                            }
+                            validateHashKeysForWhitespaces(it.getValue());
+                        }
+                    }
+                    break;
+                case NT_LIST:{
+                        ListIterator it(node);
+                        while (it.next()) {
+                            validateHashKeysForWhitespaces(it.getValue());
+                        }
+                    }
+                    break;
+            } # switch
+        }
 
         #! gets the underlying AbstractDatasource
         Qore::SQL::AbstractDatasource getDatasource() {
@@ -5960,6 +5983,7 @@ my list $l = $db.getAlignSql($schema_hash);
         list getAlignSql(hash schema_hash, *hash opt, *Tables table_cache) {
             validateOptionsIntern("SCHEMA-DESCRIPTION-ERROR", getSchemaDescriptionOptions(), \schema_hash);
             validateOptionsIntern("OPTION-ERROR", getAlignSchemaOptions(), \opt);
+            validateHashKeysForWhitespaces(schema_hash);
 
             if (!table_cache)
                 table_cache = new Tables();
