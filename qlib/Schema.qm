@@ -135,7 +135,11 @@ public namespace Schema {
                 ds.execRaw(str);
             };
 
-            callback_opts = ("info_callback": info_callback, "sql_callback": sql_callback, "sql_callback_executed": True);
+            callback_opts = all_options + (
+                "info_callback": info_callback,
+                "sql_callback": sql_callback,
+                "sql_callback_executed": True,
+                );
 	}
 
         string getName() {
@@ -166,13 +170,11 @@ public namespace Schema {
 
 	    bool first_time_install = checkFirstTimeInstall(db);
 
-            hash copt = all_options + callback_opts;
-
             *hash initial_schema_info;
 
             if (first_time_install)
                 log("creating %s schema %s\n", name, version);
-            else if (!checkUpdateSchema(force, allow_downgrade, \initial_schema_info))
+            else if (!checkUpdateSchema(db, force, allow_downgrade, \initial_schema_info))
                 return 0;
 
             on_success ds.commit();
@@ -191,9 +193,9 @@ public namespace Schema {
                 );
 
 %ifndef QoreDebug
-            db.getAlignSql(schema, copt, table_cache);
+            db.getAlignSql(schema, callback_opts, table_cache);
 %else
-            list al = db.getAlignSql(schema, copt, table_cache);
+            list al = db.getAlignSql(schema, callback_opts, table_cache);
 
             if (al.size() != sql_cache.size()) {
                 printf("callback had %d lines, getAlignSql() had %d lines\n", sql_cache.size(), al.size());
@@ -280,7 +282,7 @@ public namespace Schema {
             return first_time_install ? AbstractTable::UpsertInsertFirst : AbstractTable::UpsertUpdateFirst;
         }
 
-        private bool checkUpdateSchema(bool force, bool allow_downgrade, reference initial_schema_info) {
+        private bool checkUpdateSchema(Database db, bool force, bool allow_downgrade, reference initial_schema_info) {
             log("verifying/aligning schema version %s", version);
             return True;
         }
@@ -441,7 +443,7 @@ public namespace Schema {
             return vt.selectRow(("columns": version_column, "where": version_where)){version_column};
         }
 
-        private bool checkUpdateSchema(bool force, bool allow_downgrade, reference initial_schema_info) {
+        private bool checkUpdateSchema(Database db, bool force, bool allow_downgrade, reference initial_schema_info) {
             *string current_version = getVersion();
             if (!current_version) {
                 log("schema is corrupt; aligning to schema template");
@@ -453,7 +455,7 @@ public namespace Schema {
             switch (compare_version(current_version, version)) {
                 case < 0: {
                     log("schema is at version %y targeting %y: running schema alignment", current_version, version);
-                    checkUpgrade(current_version);
+                    checkUpgrade(db, current_version);
                     return True;
                 }
                 case 0: {
@@ -467,7 +469,7 @@ public namespace Schema {
                 case > 0: {
                     if (allow_downgrade) {
                         log("schema is at later version %y targeting %y: forcing check", current_version, version);
-                        checkDowngrade(current_version);
+                        checkDowngrade(db, current_version);
                         return True;
                     }
                     log("schema is at later version %y targeting %y: downgrade option not set; not executing schema alignment to earlier schema version", current_version, version);
@@ -476,10 +478,10 @@ public namespace Schema {
             }
         }
 
-        private checkUpgrade(string current_version) {
+        private checkUpgrade(Database db, string current_version) {
         }
 
-        private checkDowngrade(string current_version) {
+        private checkDowngrade(Database db, string current_version) {
         }
     }
 }
