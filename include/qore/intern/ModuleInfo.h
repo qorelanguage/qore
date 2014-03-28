@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -76,10 +76,11 @@ protected:
    //typedef std::map<std::string, std::string> strmap_t;
    //strmap_t strmap;
 
-   DLLLOCAL QoreHashNode* getHashIntern() const {
+   DLLLOCAL QoreHashNode* getHashIntern(bool with_filename = true) const {
       QoreHashNode* h = new QoreHashNode;
 
-      h->setKeyValue("filename", new QoreStringNode(filename), 0);
+      if (with_filename)
+         h->setKeyValue("filename", new QoreStringNode(filename), 0);
       h->setKeyValue("name", new QoreStringNode(name), 0);
       h->setKeyValue("desc", new QoreStringNode(desc), 0);
       h->setKeyValue("version", new QoreStringNode(*version_list), 0);
@@ -122,7 +123,7 @@ public:
 
    DLLLOCAL virtual bool isBuiltin() const = 0;
    DLLLOCAL virtual bool isUser() const = 0;
-   DLLLOCAL virtual QoreHashNode* getHash() const = 0;
+   DLLLOCAL virtual QoreHashNode* getHash(bool with_filename = true) const = 0;
    DLLLOCAL virtual void addToProgram(QoreProgram* pgm, ExceptionSink& xsink) const = 0;
    DLLLOCAL virtual void issueParseCmd(QoreString &cmd) = 0;
 };
@@ -323,8 +324,8 @@ public:
       return false;
    }
 
-   DLLLOCAL QoreHashNode* getHash() const {
-      QoreHashNode* h = getHashIntern();
+   DLLLOCAL QoreHashNode* getHash(bool with_filename = true) const {
+      QoreHashNode* h = getHashIntern(with_filename);
    
       h->setKeyValue("user", &False, 0);
       h->setKeyValue("api_major", new QoreBigIntNode(api_major), 0);
@@ -360,8 +361,8 @@ public:
       return true;
    }
 
-   DLLLOCAL virtual QoreHashNode* getHash() const {
-      return getHashIntern();
+   DLLLOCAL virtual QoreHashNode* getHash(bool with_filename = true) const {
+      return getHashIntern(with_filename);
    }
 
    DLLLOCAL virtual void addToProgram(QoreProgram* pgm, ExceptionSink& xsink) const;

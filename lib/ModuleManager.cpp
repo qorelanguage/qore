@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -1019,10 +1019,11 @@ QoreHashNode *ModuleManager::getModuleHash() {
 }
 
 QoreHashNode *QoreModuleManager::getModuleHash() {
+   bool with_filename = !(runtime_get_parse_options() & PO_NO_EXTERNAL_INFO);
    QoreHashNode *h = new QoreHashNode;
    AutoLocker al(mutex);
    for (module_map_t::const_iterator i = map.begin(); i != map.end(); ++i)
-      h->setKeyValue(i->second->getName(), i->second->getHash(), 0);
+      h->setKeyValue(i->second->getName(), i->second->getHash(with_filename), 0);
    return h;   
 }
 
@@ -1031,10 +1032,11 @@ QoreListNode *ModuleManager::getModuleList() {
 }
 
 QoreListNode *QoreModuleManager::getModuleList() {
+   bool with_filename = !(runtime_get_parse_options() & PO_NO_EXTERNAL_INFO);
    QoreListNode *l = new QoreListNode;
    AutoLocker al(mutex);
    for (module_map_t::const_iterator i = map.begin(); i != map.end(); ++i)
-      l->push(i->second->getHash());
+      l->push(i->second->getHash(with_filename));
    return l;
 }
 

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file SqlUtil.qm Qore user module for working with SQL data
+# @file Schema.qm Qore user module for working with SQL data
 
-/*  SqlUtil.qm Copyright 2014 Qore Technologies, sro
+/*  Schema.qm Copyright 2014 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -97,6 +97,14 @@ public namespace Schema {
 
 	    all_options = Schema::combineOptions(creation_options, column_options);
 	}
+
+        string getName() {
+            return name;
+        }
+
+        string getVersion() {
+            return version;
+        }
 
         log(string fmt) {
             printf("%s: %s\n", dsdesc, vprintf(fmt, argv));
@@ -397,5 +405,28 @@ public namespace Schema {
 	    }
 	    return h;
 	}
+    }
+
+    public class VersionedSchema inherits Schema {
+        private {
+            string version_table;
+            string version_column;
+            hash version_where;
+        }
+
+        constructor(AbstractDatasource ds, string n, string v, string vt, string vc, hash vw) : Schema(ds, n, v) {
+            version_table = vt;
+            version_column = vc;
+            version_where = vw;
+        }
+
+        private *string getVersion() {
+            #*string version = 
+        }
+
+        private bool checkUpdateSchema(bool force, reference initial_schema_info) {
+            log("verifying/aligning schema version %s", version);
+            return True;
+        }
     }
 }

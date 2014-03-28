@@ -1,5 +1,4 @@
 * add docs about thread resources and special character support in the character encoding section
-* do not show module paths (with getModuleHash() for example) and do not allow access to ENV and QORE_ENV with NO_EXTERNAL_INFO
 * add domain to constant definitions
 * implement new calling convention for functions & methods with ignore rv param
 * fix class member initialization order to be same as declaration order
@@ -44,6 +43,9 @@
 * add error code to exceptions for XML-RPC fault reporting
 * allow customizable QORE_INCLUDE_DIR searches
 * implement GZFile and BZFile classes
+
+done 0.8.10:
+* do not show module paths (with getModuleHash() for example) and do not allow access to ENV and QORE_ENV with NO_EXTERNAL_INFO
 
 done 0.8.6.1:
 * add invalid operation warnings for keys and elements operators with invalid

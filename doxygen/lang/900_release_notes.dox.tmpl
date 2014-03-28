@@ -15,6 +15,7 @@
       - @ref Qore::close_all_fd()
     - new constants:
       - @ref Qore::ESRCH "ESRCH": search error
+    - getModuleHash() and getModuleList() no longer return the \c "filename" key when run in a @ref Qore::Program "Program" context with @ref Qore::PO_NO_EXTERNAL_INFO set
 
     @subsection qore_0810_bug_fixes Bug Fixes in Qore
     - fixed an issue with class constant parse initialization where invalid recursive class constant definition parse exceptions could be raised and in some cases also crashes could result
