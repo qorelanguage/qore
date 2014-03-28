@@ -115,7 +115,7 @@ public namespace Schema {
             flush();
         }
 
-	int check(bool force = False, int verbose = 0) {
+	int check(bool force = False, bool allow_downgrade = False, int verbose = 0) {
 	    Database db(ds);
 
 	    bool first_time_install = checkFirstTimeInstall(db);
@@ -159,7 +159,7 @@ public namespace Schema {
 
             if (first_time_install)
                 log("creating %s schema %s\n", name, version);
-            else if (!checkUpdateSchema(force, \initial_schema_info))
+            else if (!checkUpdateSchema(force, allow_downgrade, \initial_schema_info))
                 return 0;
 
             on_success ds.commit();
@@ -267,7 +267,7 @@ public namespace Schema {
             return first_time_install ? AbstractTable::UpsertInsertFirst : AbstractTable::UpsertUpdateFirst;
         }
 
-        private bool checkUpdateSchema(bool force, reference initial_schema_info) {
+        private bool checkUpdateSchema(bool force, bool allow_downgrade, reference initial_schema_info) {
             log("verifying/aligning schema version %s", version);
             return True;
         }
@@ -420,13 +420,53 @@ public namespace Schema {
             version_where = vw;
         }
 
-        private *string getVersion() {
-            #*string version = 
+        private *softstring getVersion() {
+            Table vt(ds, version_table);
+            if (!vt.checkExistence())
+                return;
+
+            return vt.selectRow(("columns": version_column, "where": version_where)){version_column};
         }
 
-        private bool checkUpdateSchema(bool force, reference initial_schema_info) {
-            log("verifying/aligning schema version %s", version);
-            return True;
+        private bool checkUpdateSchema(bool force, bool allow_downgrade, reference initial_schema_info) {
+            *string current_version = getVersion();
+            if (!current_version) {
+                log("schema is corrupt; aligning to schema template");
+                return True;
+            }
+
+            initial_schema_info.current_version = current_version;
+
+            switch (compare_version(current_version, version)) {
+                case < 0: {
+                    log("schema is at version %y targeting %y: running schema alignment", current_version, version);
+                    checkUpgrade(current_version);
+                    return True;
+                }
+                case 0: {
+                    if (force) {
+                        log("schema is already at target version %y: forcing check", version);
+                        return True;
+                    }
+                    log("schema is already at target version %y: no alignment necessary", version);
+                    return False;
+                }
+                case > 0: {
+                    if (allow_downgrade) {
+                        log("schema is at later version %y targeting %y: forcing check", current_version, version);
+                        checkDowngrade(current_version);
+                        return True;
+                    }
+                    log("schema is at later version %y targeting %y: downgrade option not set; not executing schema alignment to earlier schema version", current_version, version);
+                    return False;
+                }
+            }
+        }
+
+        private checkUpgrade(string current_version) {
+        }
+
+        private checkDowngrade(string current_version) {
         }
     }
 }
