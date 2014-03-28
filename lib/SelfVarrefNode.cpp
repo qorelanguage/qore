@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright 2003 - 2013 David Nichols
+ Copyright (C) 2003 - 2014 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -86,9 +86,9 @@ char *SelfVarrefNode::takeString() {
 AbstractQoreNode *SelfVarrefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    printd(5, "SelfVarrefNode::parseInit() SELF_REF '%s' oflag=%p\n", str, oflag);
    if (!oflag)
-      parse_error("cannot reference member \"%s\" out of an object member function definition", str);
+      parse_error(loc, "cannot reference member \"%s\" out of an object member function definition", str);
    else {
-      qore_class_private::parseCheckInternalMemberAccess(getParseClass(), str, typeInfo);
+      qore_class_private::parseCheckInternalMemberAccess(getParseClass(), str, typeInfo, loc);
       returnTypeInfo = typeInfo;
    }
 

@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -401,7 +401,7 @@ AbstractQoreNode *FunctionCallNode::parseInitImpl(LocalVar *oflag, int pflag, in
 
       AbstractQoreNode *n = 0;
       if (abr && !qore_class_private::parseResolveInternalMemberAccess(qc, c_str, returnTypeInfo)) {
-	 n = new SelfVarrefNode(takeName());
+	 n = new SelfVarrefNode(takeName(), loc);
       }
       else if ((n = qore_class_private::parseFindConstantValue(const_cast<QoreClass *>(qc), c_str, returnTypeInfo))) {
 	 //printd(5, "FunctionCallNode::parseInitImpl() this=%p n=%p (%d -> %d)\n", this, n, n->reference_count(), n->reference_count() + 1);

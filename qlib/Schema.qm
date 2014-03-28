@@ -82,6 +82,17 @@ public namespace Schema {
 	    AbstractDatasource ds;
 	    string drv;
             string dsdesc;
+
+            int change_count = 0;
+            int dot_count = 0;
+            code info_callback;
+
+            list sql_cache = ();
+            code sql_callback;  
+
+            hash callback_opts;
+
+            int verbose = 0;
 	}
 
 	constructor(AbstractDatasource n_ds, string n, string v) {
@@ -96,6 +107,35 @@ public namespace Schema {
 	    column_options = getColumnOptions();
 
 	    all_options = Schema::combineOptions(creation_options, column_options);
+
+            info_callback = sub (string str, int ac, *string type, *string name, *string table, *string new_name, *string info) {
+                # verbosity threadhold
+                int t = 0;
+                if (ac != AbstractDatabase::AC_Unchanged)
+                    ++change_count;
+                else
+                    t = 1;
+                if (verbose > t) {
+                    if (dot_count) {
+                        logProgress("\n");
+                        dot_count = 0;
+                    }
+                    log("%s %s", t ? "+++" : "***", str);
+                }
+                else {
+                    ++dot_count;
+                    logProgress(AbstractDatabase::ActionLetterMap{ac});
+                }
+            };
+
+            sql_callback = sub (string str) {
+                sql_cache += str;
+                if (verbose > 1)
+                    log("%s", str);
+                ds.execRaw(str);
+            };
+
+            callback_opts = ("info_callback": info_callback, "sql_callback": sql_callback, "sql_callback_executed": True);
 	}
 
         string getName() {
@@ -115,43 +155,16 @@ public namespace Schema {
             flush();
         }
 
-	int check(bool force = False, bool allow_downgrade = False, int verbose = 0) {
+	int check(bool force = False, bool allow_downgrade = False, int v = 0) {
+            verbose = v;
+
+            change_count = 0;
+            dot_count = 0;
+            sql_cache = ();
+
 	    Database db(ds);
 
 	    bool first_time_install = checkFirstTimeInstall(db);
-
-            int change_count = 0;
-            int dot_count = 0;
-            code info_callback = sub (string str, int ac, *string type, *string name, *string table, *string new_name, *string info) {
-                # verbosity threadhold
-                int t = 0;
-                if (ac != AbstractDatabase::AC_Unchanged)
-                    ++change_count;
-                else
-                    t = 1;
-                if (verbose > t) {
-                    if (dot_count) {
-                        logProgress("\n");
-                        dot_count = 0;
-                    }
-                    log("%s %s", t ? "+++" : "***", str);
-                }
-                else {
-                    ++dot_count;
-                    logProgress(AbstractDatabase::ActionLetterMap{ac});
-                    flush();
-                }
-            };
-
-            list sql_cache = ();
-            code sql_callback = sub (string str) {
-                sql_cache += str;
-                if (verbose > 1)
-                    log("%s", str);
-                ds.execRaw(str);
-            };
-
-            hash callback_opts = ("info_callback": info_callback, "sql_callback": sql_callback, "sql_callback_executed": True);
 
             hash copt = all_options + callback_opts;
 

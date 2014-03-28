@@ -774,7 +774,7 @@ AbstractQoreNode* qore_root_ns_private::parseResolveBarewordIntern(const QorePro
    if (pc) {
       // if bare refs are enabled, check for member reference first
       if (abr && !qore_class_private::parseResolveInternalMemberAccess(pc, bword, typeInfo))
-         return new SelfVarrefNode(strdup(bword));
+         return new SelfVarrefNode(strdup(bword), loc);
 
       // now try to find a class constant with this name
       AbstractQoreNode* rv = qore_class_private::parseFindConstantValue(pc, bword, typeInfo);

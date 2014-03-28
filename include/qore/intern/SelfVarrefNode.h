@@ -4,7 +4,7 @@
  
  Qore Programming Language
  
- Copyright 2003 - 2013 David Nichols
+ Copyright (C) 2003 - 2014 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -27,6 +27,7 @@
 
 class SelfVarrefNode : public ParseNode  {
 protected:
+   QoreProgramLocation loc;
    const QoreTypeInfo *returnTypeInfo;
 
    DLLLOCAL virtual AbstractQoreNode *evalImpl(class ExceptionSink *xsink) const;
@@ -47,7 +48,10 @@ protected:
 public:
    char* str;
 
-   DLLLOCAL SelfVarrefNode(char *c_str) : ParseNode(NT_SELF_VARREF), returnTypeInfo(0), str(c_str) {
+   DLLLOCAL SelfVarrefNode(char *c_str, int sline, int eline) : ParseNode(NT_SELF_VARREF), loc(sline, eline), returnTypeInfo(0), str(c_str) {
+   }
+
+   DLLLOCAL SelfVarrefNode(char *c_str, const QoreProgramLocation& l) : ParseNode(NT_SELF_VARREF), loc(l), returnTypeInfo(0), str(c_str) {
    }
 
    DLLLOCAL virtual ~SelfVarrefNode() {

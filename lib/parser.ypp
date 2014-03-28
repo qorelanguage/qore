@@ -3033,7 +3033,7 @@ exp:    scalar
         }
         | SELF_REF
 	{
-	   $$ = new SelfVarrefNode($1); 
+	   $$ = new SelfVarrefNode($1, @1.first_line, @1.last_line); 
 	   if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
 	      parse_error("reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $1);
 	}

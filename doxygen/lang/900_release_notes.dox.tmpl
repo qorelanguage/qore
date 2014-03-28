@@ -22,6 +22,7 @@
     - <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> module: fixed missing username and missing password errors
     - fixed a bug where a qore switch statement with no case conditions and only a default label would erroneously never have it's default code executed
     - fixed a reference leak related to exception handling with invalid arguments with @ref Qore::Socket::setWarningQueue() and @ref Qore::HTTPClient::setWarningQueue()
+    - fixed several bugs where the parse location could be reported incorrectly for type errors regarding in-object variable references
 
     @section qore_089 Qore 0.8.9
 

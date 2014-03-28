@@ -1939,21 +1939,21 @@ public:
       return sclass ? 0 : -1;
    }
 
-   DLLLOCAL int parseCheckInternalMemberAccess(const char* mem, const QoreTypeInfo*& memberTypeInfo) const {
+   DLLLOCAL int parseCheckInternalMemberAccess(const char* mem, const QoreTypeInfo*& memberTypeInfo, const QoreProgramLocation& loc) const {
       const_cast<qore_class_private *>(this)->parseInitPartial();
 
       // throws a parse exception if there are public members and the name is not valid
       bool priv, has_type_info;
-      const QoreProgramLocation* loc = 0;
-      const QoreClass* sclass = parseFindPublicPrivateMember(loc, mem, memberTypeInfo, has_type_info, priv);
+      const QoreProgramLocation* l = 0;
+      const QoreClass* sclass = parseFindPublicPrivateMember(l, mem, memberTypeInfo, has_type_info, priv);
       int rc = 0;
       if (!sclass) {
 	 if (parse_check_parse_option(PO_REQUIRE_TYPES)) {
-	    parse_error("member '%s' of class '%s' referenced has no type information because it was not declared in a public or private member list, but parse options require type information for all declarations", mem, name.c_str());
+	    parse_error(loc, "member '%s' of class '%s' referenced has no type information because it was not declared in a public or private member list, but parse options require type information for all declarations", mem, name.c_str());
 	    rc = -1;
 	 }
 	 if (parseHasPublicMembersInHierarchy()) {
-            parse_error("illegal access to unknown member '%s' in class '%s' which hash a public member list (or inherited public member list)", mem, name.c_str());
+            parse_error(loc, "illegal access to unknown member '%s' in class '%s' which hash a public member list (or inherited public member list)", mem, name.c_str());
 	    rc = -1;
 	 }
       }
@@ -2833,8 +2833,8 @@ public:
       return qc.priv->parseResolveSelfMethod(nme);
    }
 
-   DLLLOCAL static int parseCheckInternalMemberAccess(const QoreClass* qc, const char* mem, const QoreTypeInfo*& memberTypeInfo) {
-      return qc->priv->parseCheckInternalMemberAccess(mem, memberTypeInfo);
+   DLLLOCAL static int parseCheckInternalMemberAccess(const QoreClass* qc, const char* mem, const QoreTypeInfo*& memberTypeInfo, const QoreProgramLocation& loc) {
+      return qc->priv->parseCheckInternalMemberAccess(mem, memberTypeInfo, loc);
    }
 
    DLLLOCAL static int parseResolveInternalMemberAccess(const QoreClass* qc, const char* mem, const QoreTypeInfo*& memberTypeInfo) {
