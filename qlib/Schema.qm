@@ -176,7 +176,7 @@ public namespace Schema {
             *hash initial_schema_info;
 
             if (first_time_install)
-                logpf("creating %s schema %s\n", name, version);
+                logpf("creating %s schema %s", name, version);
             else {
                 if (!checkUpdateSchema(force, \initial_schema_info))
                     return 0;
@@ -288,7 +288,7 @@ public namespace Schema {
                         logProgress("\n");
                         dot_count = 0;
                     }
-                    log("%s %s\n", t ? "+++" : "***", str);
+                    log("%s %s", t ? "+++" : "***", str);
                 }
                 else {
                     ++dot_count;
