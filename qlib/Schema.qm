@@ -66,13 +66,8 @@ public namespace Schema {
 	private {
             string name;
             string version;
-
-	    *hash tables;
-	    *hash sequences;
-	    *hash types;
-	    *hash functions;
-	    *hash packages;
-	    *hash materialized_views;
+            
+            hash schema;
 
 	    *hash index_options;
 	    *hash creation_options;
@@ -90,6 +85,7 @@ public namespace Schema {
             list sql_cache = ();
             code sql_callback;  
 
+            hash pure_callback_opts;
             hash callback_opts;
 
             int verbose = 0;
@@ -135,10 +131,22 @@ public namespace Schema {
                 ds.execRaw(str);
             };
 
-            callback_opts = all_options + (
+            pure_callback_opts = (
                 "info_callback": info_callback,
                 "sql_callback": sql_callback,
                 "sql_callback_executed": True,
+                );
+
+            callback_opts = all_options + pure_callback_opts;
+
+            schema = (
+                "tables": getTables(),
+                "sequences": getSequences(),
+                "types": getTypes(),
+                "functions": getFunctions(),
+                "procedures": getProcedures(),
+                "packages": getPackages(),
+                "materialized_views": getMaterializedViews(),
                 );
 	}
 
@@ -150,8 +158,12 @@ public namespace Schema {
             return version;
         }
 
+        logpf(string fmt) {
+            printf("%s: %s\n", dsdesc, vsprintf(fmt, argv));
+        }
+
         log(string fmt) {
-            printf("%s: %s\n", dsdesc, vprintf(fmt, argv));
+            vprintf(fmt + "\n", argv);
         }
 
         logProgress(string str) {
@@ -159,7 +171,7 @@ public namespace Schema {
             flush();
         }
 
-	int check(bool force = False, bool allow_downgrade = False, int v = 0) {
+	int align(bool force = False, int v = 0) {
             verbose = v;
 
             change_count = 0;
@@ -173,24 +185,14 @@ public namespace Schema {
             *hash initial_schema_info;
 
             if (first_time_install)
-                log("creating %s schema %s\n", name, version);
-            else if (!checkUpdateSchema(db, force, allow_downgrade, \initial_schema_info))
+                logpf("creating %s schema %s\n", name, version);
+            else if (!checkUpdateSchema(db, force, \initial_schema_info))
                 return 0;
 
             on_success ds.commit();
             on_error ds.rollback();
 
             Tables table_cache();
-
-            hash schema = (
-                "tables": getTables(),
-                "sequences": getSequences(),
-                "types": getTypes(),
-                "functions": getFunctions(),
-                "procedures": getProcedures(),
-                "packages": getPackages(),
-                "materialized_views": getMaterializedViews(),
-                );
 
 %ifndef QoreDebug
             db.getAlignSql(schema, callback_opts, table_cache);
@@ -231,7 +233,7 @@ public namespace Schema {
             else
                 log("no changes made to schema version %s", version);
 
-            doPostAlignment(first_time_install, initial_schema_info);
+            doPostAlignment(db, table_cache, first_time_install, initial_schema_info);
 
             *hash strict_data = getStrictReferenceDataHash();
             *hash ref_data = getReferenceDataHash();
@@ -282,12 +284,12 @@ public namespace Schema {
             return first_time_install ? AbstractTable::UpsertInsertFirst : AbstractTable::UpsertUpdateFirst;
         }
 
-        private bool checkUpdateSchema(Database db, bool force, bool allow_downgrade, reference initial_schema_info) {
-            log("verifying/aligning schema version %s", version);
+        private bool checkUpdateSchema(Database db, bool force, reference initial_schema_info) {
+            logpf("verifying/aligning schema version %s", version);
             return True;
         }
 
-        private doPostAlignment(bool first_time_install, *hash initial_schema_info) {
+        private doPostAlignment(Database db, Tables table_cache, bool first_time_install, *hash initial_schema_info) {
         }
 
         private doTable(AbstractTable table, list rows, int upsert_strategy, bool delete_others, int verbose, reference sh) {
@@ -324,7 +326,7 @@ public namespace Schema {
                     log("checking table %s", table_name); 
                 }
             };
-
+            
             table.upsertFromIteratorNoCommit(Schema::getRows(rows).iterator(), upsert_strategy, ("delete_others": delete_others, "info_callback": cb));
 
             # show table summary if verbose = 1
@@ -392,8 +394,8 @@ public namespace Schema {
 	}
 
 	private bool checkFirstTimeInstall(Database db) {
-	    if (tables) {
-		string name = tables.firstKey();
+	    if (schema.tables) {
+		string name = schema.tables.firstKey();
 		*AbstractTable t = db.getTable(name);
 		return !t ? True : False;
 	    }
@@ -402,7 +404,7 @@ public namespace Schema {
 
 	static list getRows(*softlist l) {
 	    list ql = ();
-	    *list hdr = shift l;
+	    *softlist hdr = shift l;
 
 	    foreach softlist data in (l) {
 		hash h;
@@ -435,7 +437,7 @@ public namespace Schema {
             version_where = vw;
         }
 
-        private *softstring getVersion() {
+        private *softstring getSchemaVersion() {
             Table vt(ds, version_table);
             if (!vt.checkExistence())
                 return;
@@ -443,10 +445,10 @@ public namespace Schema {
             return vt.selectRow(("columns": version_column, "where": version_where)){version_column};
         }
 
-        private bool checkUpdateSchema(Database db, bool force, bool allow_downgrade, reference initial_schema_info) {
-            *string current_version = getVersion();
+        private bool checkUpdateSchema(Database db, bool force, reference initial_schema_info) {
+            *string current_version = getSchemaVersion();
             if (!current_version) {
-                log("schema is corrupt; aligning to schema template");
+                logpf("schema is corrupt; aligning to schema template");
                 return True;
             }
 
@@ -454,25 +456,25 @@ public namespace Schema {
 
             switch (compare_version(current_version, version)) {
                 case < 0: {
-                    log("schema is at version %y targeting %y: running schema alignment", current_version, version);
+                    logpf("schema is at version %y targeting %y: running schema alignment", current_version, version);
                     checkUpgrade(db, current_version);
                     return True;
                 }
                 case 0: {
                     if (force) {
-                        log("schema is already at target version %y: forcing check", version);
+                        logpf("schema is already at target version %y: forcing check", version);
                         return True;
                     }
-                    log("schema is already at target version %y: no alignment necessary", version);
+                    logpf("schema is already at target version %y: no alignment necessary", version);
                     return False;
                 }
                 case > 0: {
-                    if (allow_downgrade) {
-                        log("schema is at later version %y targeting %y: forcing check", current_version, version);
+                    if (force) {
+                        logpf("schema is at later version %y targeting %y: forcing check", current_version, version);
                         checkDowngrade(db, current_version);
                         return True;
                     }
-                    log("schema is at later version %y targeting %y: downgrade option not set; not executing schema alignment to earlier schema version", current_version, version);
+                    logpf("schema is at later version %y targeting %y: force option not set; not executing schema alignment to earlier schema version", current_version, version);
                     return False;
                 }
             }
