@@ -76,19 +76,13 @@ public namespace Schema {
 
 	    AbstractDatasource ds;
 	    string drv;
-            string dsdesc;
 
-            int change_count = 0;
-            int dot_count = 0;
-            code info_callback;
-
-            list sql_cache = ();
-            code sql_callback;  
+            Database db;
 
             hash pure_callback_opts;
             hash callback_opts;
 
-            int verbose = 0;
+            code info_callback;
 	}
 
 	constructor(AbstractDatasource n_ds, string n, string v) {
@@ -96,48 +90,14 @@ public namespace Schema {
             name = n;
             version = v;
 	    drv = ds.getDriverName();
-            dsdesc = AbstractSqlUtilBase::makeDatasourceDesc(ds);
+
+	    db = new Database(ds);
 
 	    index_options = getIndexOptions();
 	    creation_options = getCreationOptions();
 	    column_options = getColumnOptions();
 
 	    all_options = Schema::combineOptions(creation_options, column_options);
-
-            info_callback = sub (string str, int ac, *string type, *string name, *string table, *string new_name, *string info) {
-                # verbosity threadhold
-                int t = 0;
-                if (ac != AbstractDatabase::AC_Unchanged)
-                    ++change_count;
-                else
-                    t = 1;
-                if (verbose > t) {
-                    if (dot_count) {
-                        logProgress("\n");
-                        dot_count = 0;
-                    }
-                    log("%s %s", t ? "+++" : "***", str);
-                }
-                else {
-                    ++dot_count;
-                    logProgress(AbstractDatabase::ActionLetterMap{ac});
-                }
-            };
-
-            sql_callback = sub (string str) {
-                sql_cache += str;
-                if (verbose > 1)
-                    log("%s", str);
-                ds.execRaw(str);
-            };
-
-            pure_callback_opts = (
-                "info_callback": info_callback,
-                "sql_callback": sql_callback,
-                "sql_callback_executed": True,
-                );
-
-            callback_opts = all_options + pure_callback_opts;
 
             schema = (
                 "tables": getTables(),
@@ -159,7 +119,7 @@ public namespace Schema {
         }
 
         logpf(string fmt) {
-            printf("%s: %s\n", dsdesc, vsprintf(fmt, argv));
+            printf("%s: %s\n", db.getDatasourceDesc(), vsprintf(fmt, argv));
         }
 
         log(string fmt) {
@@ -171,23 +131,57 @@ public namespace Schema {
             flush();
         }
 
-	int align(bool force = False, int v = 0) {
-            verbose = v;
+	int align(bool force = False, int verbose = 0) {
+            int change_count = 0;
+            int dot_count = 0;
+            list sql_cache = ();
 
-            change_count = 0;
-            dot_count = 0;
-            sql_cache = ();
+            info_callback = sub (string str, int ac, *string type, *string name, *string table, *string new_name, *string info) {
+                # verbosity threadhold
+                int t = 0;
+                if (ac != AbstractDatabase::AC_Unchanged)
+                    ++change_count;
+                else
+                    t = 1;
+                if (verbose > t) {
+                    if (dot_count) {
+                        logProgress("\n");
+                        dot_count = 0;
+                    }
+                    log("%s %s", t ? "+++" : "***", str);
+                }
+                else {
+                    ++dot_count;
+                    logProgress(AbstractDatabase::ActionLetterMap{ac});
+                }
+            };
 
-	    Database db(ds);
+            code sql_callback = sub (string str) {
+                sql_cache += str;
+                if (verbose > 1)
+                    log("%s", str);
+                ds.execRaw(str);
+            };
 
-	    bool first_time_install = checkFirstTimeInstall(db);
+            pure_callback_opts = (
+                "info_callback": info_callback,
+                "sql_callback": sql_callback,
+                "sql_callback_executed": True,
+                );
+
+            callback_opts = all_options + pure_callback_opts;
+
+	    bool first_time_install = checkFirstTimeInstall();
 
             *hash initial_schema_info;
 
             if (first_time_install)
                 logpf("creating %s schema %s\n", name, version);
-            else if (!checkUpdateSchema(db, force, \initial_schema_info))
-                return 0;
+            else {
+                if (!checkUpdateSchema(force, \initial_schema_info))
+                    return 0;
+                sql_cache = ();
+            }
 
             on_success ds.commit();
             on_error ds.rollback();
@@ -233,7 +227,7 @@ public namespace Schema {
             else
                 log("no changes made to schema version %s", version);
 
-            doPostAlignment(db, table_cache, first_time_install, initial_schema_info);
+            doPostAlignment(table_cache, first_time_install, initial_schema_info);
 
             *hash strict_data = getStrictReferenceDataHash();
             *hash ref_data = getReferenceDataHash();
@@ -277,6 +271,109 @@ public namespace Schema {
             return change_count + sh.size();
 	}
 
+        drop(bool force = False, int verbose = 0) {
+            int drop_count = 0;
+            int dot_count = 0;
+            list sql_cache = ();
+
+            info_callback = sub (string str, int ac, *string type, *string name, *string table, *string new_name, *string info) {
+                # verbosity threadhold
+                int t = 0;
+                if (ac != AbstractDatabase::AC_NotFound)
+                    ++drop_count;
+                else
+                    t = 1;
+                if (verbose > t) {
+                    if (dot_count) {
+                        logProgress("\n");
+                        dot_count = 0;
+                    }
+                    log("%s %s\n", t ? "+++" : "***", str);
+                }
+                else {
+                    ++dot_count;
+                    logProgress(AbstractDatabase::ActionLetterMap{ac});
+                }
+            };
+
+            code sql_callback = sub (string str) {
+                sql_cache += str;
+                if (verbose > 1)
+                    log("%s", str);
+                ds.execRaw(str);
+            };
+
+            int error_count = 0;
+            code sql_force_callback = sub (string str) {
+                sql_cache += str;
+                if (verbose > 1)
+                    log("%s", str);
+                try {
+                    db.tryExecRaw(str);
+                }
+                catch (hash ex) {
+                    log("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc);
+                    ++error_count;
+                }
+            };
+
+            callback_opts = (
+                "info_callback": info_callback,
+                "sql_callback": force ? sql_force_callback : sql_callback,
+                "sql_callback_executed": True,
+                );
+
+            if (!checkExistence()) {
+                if (!force) {
+                    logpf("schema appears to be empty: use -f to force the drop");
+                    return;
+                }
+                logpf("schema appears to be empty: drop forced");
+            }
+            else {
+                if (!checkDropSchema(force))
+                    return;
+                sql_cache = ();
+            }
+
+            on_success ds.commit();
+            on_error ds.rollback();
+
+%ifndef QoreDebug
+            db.getDropSchemaSql(schema, callback_opts);
+%else
+            list al = db.getDropSchemaSql(schema, callback_opts);
+
+            if (al.size() != sql_cache.size()) {
+                printf("callback had %d lines, getDropSchemaSql() had %d lines\n", sql_cache.size(), al.size());
+
+                # make a hash of each
+                hash sch;
+                map sch.$1 = True, sql_cache;
+
+                foreach string sql in (al) {
+                    if (!sch{sql})
+                        printf("MISSING IN CALLBACK %d: %s\n", $#, sql);
+                }
+                exit(1);
+            }
+%endif
+
+            if (dot_count)
+                logProgress("\n");
+            log("%d object%s dropped (%d error%s); schema has been dropped", drop_count, drop_count == 1 ? "" : "s", error_count, error_count == 1 ? "" : "s");
+        }
+
+        private bool checkDropSchema(bool force) {
+            logpf("dropping schema version %s", version);
+            return True;
+        }
+
+        private bool checkUpdateSchema(bool force, reference initial_schema_info) {
+            logpf("verifying/aligning schema version %s", version);
+            return True;
+        }
+
         private postDataActions(bool first_time_install) {
         }
 
@@ -284,12 +381,7 @@ public namespace Schema {
             return first_time_install ? AbstractTable::UpsertInsertFirst : AbstractTable::UpsertUpdateFirst;
         }
 
-        private bool checkUpdateSchema(Database db, bool force, reference initial_schema_info) {
-            logpf("verifying/aligning schema version %s", version);
-            return True;
-        }
-
-        private doPostAlignment(Database db, Tables table_cache, bool first_time_install, *hash initial_schema_info) {
+        private doPostAlignment(Tables table_cache, bool first_time_install, *hash initial_schema_info) {
         }
 
         private doTable(AbstractTable table, list rows, int upsert_strategy, bool delete_others, int verbose, reference sh) {
@@ -393,13 +485,28 @@ public namespace Schema {
 	*hash getInsertOnlyReferenceData() {
 	}
 
-	private bool checkFirstTimeInstall(Database db) {
+        private bool checkExistence() {
 	    if (schema.tables) {
 		string name = schema.tables.firstKey();
-		*AbstractTable t = db.getTable(name);
-		return !t ? True : False;
+		return db.getTable(name) ? True : False;
 	    }
-	    throw "SCHEMA-ERROR", sprintf("can't determine a first time install or not");
+            if (schema.sequences) {
+		string name = schema.sequences.firstKey();
+		return db.getSequence(name) ? True : False;
+            }
+            if (schema.functions) {
+		string name = schema.functions.firstKey();
+		return db.getFunction(name) ? True : False;
+            }
+            if (schema.procedures) {
+		string name = schema.procedures.firstKey();
+		return db.getProcedure(name) ? True : False;
+            }
+            return False;
+        }
+
+	private bool checkFirstTimeInstall() {
+            return !checkExistence();
 	}
 
 	static list getRows(*softlist l) {
@@ -445,7 +552,31 @@ public namespace Schema {
             return vt.selectRow(("columns": version_column, "where": version_where)){version_column};
         }
 
-        private bool checkUpdateSchema(Database db, bool force, reference initial_schema_info) {
+        private bool checkDropSchema(bool force) {
+            *string current_version = getSchemaVersion();
+            if (!current_version) {
+                if (!force) {
+                    logpf("schema is corrupt: force option not set; not executing schema drop");
+                    return False;
+                }
+                logpf("schema is corrupt: forcing schema drop");
+                return True;
+            }
+
+            if (!compare_version(current_version, version)) {
+                logpf("dropping schema %y", version);
+                return True;
+            }
+
+            if (force) {
+                logpf("schema is at unexpected version %y (executing with %y): forcing drop", current_version, version);
+                return True;
+            }
+            logpf("schema is at unexpected version %y (executing with %y): force option not set; not executing schema drop", current_version, version);
+            return False;
+        }
+
+        private bool checkUpdateSchema(bool force, reference initial_schema_info) {
             *string current_version = getSchemaVersion();
             if (!current_version) {
                 logpf("schema is corrupt; aligning to schema template");
@@ -457,7 +588,7 @@ public namespace Schema {
             switch (compare_version(current_version, version)) {
                 case < 0: {
                     logpf("schema is at version %y targeting %y: running schema alignment", current_version, version);
-                    checkUpgrade(db, current_version);
+                    checkUpgrade(current_version);
                     return True;
                 }
                 case 0: {
@@ -471,7 +602,7 @@ public namespace Schema {
                 case > 0: {
                     if (force) {
                         logpf("schema is at later version %y targeting %y: forcing check", current_version, version);
-                        checkDowngrade(db, current_version);
+                        checkDowngrade(current_version);
                         return True;
                     }
                     logpf("schema is at later version %y targeting %y: force option not set; not executing schema alignment to earlier schema version", current_version, version);
@@ -480,10 +611,10 @@ public namespace Schema {
             }
         }
 
-        private checkUpgrade(Database db, string current_version) {
+        private checkUpgrade(string current_version) {
         }
 
-        private checkDowngrade(Database db, string current_version) {
+        private checkDowngrade(string current_version) {
         }
     }
 }
