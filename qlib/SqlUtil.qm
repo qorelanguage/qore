@@ -44,16 +44,7 @@ module SqlUtil {
     url = "http://qore.org";
 }
 
-/*  Version History
-    * 2014-03-27 v1.2: David Nichols <david@qore.org>
-      + see release notes below or in doxygen docs
-
-    * 2013-12-30 v1.1: David Nichols <david@qore.org>
-      + see release notes below or in doxygen docs
-
-    * 2013-10-04 v1.0: David Nichols <david@qore.org>
-      + the initial version of the SqlUtil module
-*/
+# version history is included below in the docs
 
 /** @mainpage SqlUtil Module
 

@@ -26,7 +26,7 @@
 %requires qore >= 0.8.8
 
 # requires the SqlUtil module
-%requires SqlUtil >= 1.0
+%requires SqlUtil >= 1.2
 
 # don't use "$" signs for variables and class members, assume local variable scope
 %new-style
@@ -38,16 +38,13 @@
 %enable-all-warnings
 
 module PgsqlSqlUtil {
-    version = "1.0";
+    version = "1.1";
     desc = "user module for working with PostgreSQL SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
 }
 
-/*  Version History
-    * 2013-10-04 v1.0: David Nichols <david@qore.org>
-      + the initial version of the PgsqlSqlUtil module
-*/
+# version history is included below in the docs
 
 /** @mainpage PgsqlSqlUtil Module
 
@@ -153,6 +150,9 @@ $function$
     to use functionality like @ref SqlUtil::Database::getAlignFunctionSql() for example.
 
     @section pgsql_relnotes Release Notes
+
+    @subsection pgsqlsqlutilv11 PgsqlSqlUtil v1.1
+    - fixed bugs handling "bigint" and "double precision" column types with schema alignments
 
     @subsection pgsqlsqlutilv10 PgsqlSqlUtil v1.0
     - initial release
@@ -355,7 +355,6 @@ public namespace PgsqlSqlUtil {
             }
             if (size)
                 sql += sprintf("(%d)", size);
-            #printf("%y: %s\n", self, sql);
             return sql;
         }
 
@@ -394,6 +393,7 @@ my list $l = $col.getModifySql($t, $newcol);
             # get new native type declaration string
             string nts = c.getNativeTypeString();
             if (getNativeTypeString() != nts) {
+                #printf("ME: %s\nDB: %s\n", nts, getNativeTypeString());
                 # first drop any default value if it's changing 
                 if (def_val !== c.def_val)
                     l += sprintf("alter table %s alter %s drop default", t.getSqlName(), name);
@@ -446,6 +446,12 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
 
         string getNativeTypeString() {
+            switch (native_type) {
+                # do not return with numeric precision
+                case "bigint": 
+                case "double precision":
+                    return native_type;
+            }
             return NumericColumnInfo::getNativeTypeString(native_type, size);
         }
     }
@@ -1325,8 +1331,8 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 if (an)
                     row.data_type = an;
                 switch (th.qore) {
-                    case "int":
-                    case "float": {
+                    case Type::Int:
+                    case Type::Float: {
                         size = 0;
                         break;
                     }
