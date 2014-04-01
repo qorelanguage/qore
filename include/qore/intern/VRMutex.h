@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -31,28 +31,27 @@
 #include <qore/intern/VLock.h>
 
 // reentrant thread lock using tiered locking and deadlock detection infrastructure
-class VRMutex : public AbstractSmartLock
-{
-   private:
-      int count;
+class VRMutex : public AbstractSmartLock {
+private:
+   int count;
 
-      DLLLOCAL virtual int releaseImpl();
-      DLLLOCAL virtual int releaseImpl(ExceptionSink *xsink);
-      DLLLOCAL virtual int grabImpl(int mtid, class VLock *nvl, ExceptionSink *xsink, int timeout_ms = 0);
-      DLLLOCAL virtual int tryGrabImpl(int mtid, class VLock *nvl);
-      DLLLOCAL virtual void cleanupImpl();
+   DLLLOCAL virtual int releaseImpl();
+   DLLLOCAL virtual int releaseImpl(ExceptionSink *xsink);
+   DLLLOCAL virtual int grabImpl(int mtid, VLock *nvl, ExceptionSink *xsink, int64 timeout_ms = 0);
+   DLLLOCAL virtual int tryGrabImpl(int mtid, VLock *nvl);
+   DLLLOCAL virtual void cleanupImpl();
 
-   public:
-      DLLLOCAL VRMutex();
+public:
+   DLLLOCAL VRMutex();
 
-      // grabs the lock recursively, returns 0 for OK, non-zero for error
-      DLLLOCAL int enter(ExceptionSink *xsink);
+   // grabs the lock recursively, returns 0 for OK, non-zero for error
+   DLLLOCAL int enter(ExceptionSink *xsink);
 
-      // releases the lock, returns 0 if the lock is unlocked, -1 if there are still more calls to exit
-      DLLLOCAL int exit();
+   // releases the lock, returns 0 if the lock is unlocked, -1 if there are still more calls to exit
+   DLLLOCAL int exit();
 
-      DLLLOCAL virtual const char *getName() const { return "VRMutex"; }
-      DLLLOCAL int get_count() const { return count; }
+   DLLLOCAL virtual const char *getName() const { return "VRMutex"; }
+   DLLLOCAL int get_count() const { return count; }
 };
 
 #endif

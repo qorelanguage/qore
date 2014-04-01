@@ -1613,6 +1613,16 @@ sub class_test_SSLPrivateKey() {
     test_value($key.getInfo().type, "RSA", "SSLPrivateKey::getInfo()");
 }
 
+sub class_test_Condition() {
+    my Mutex $m(); 
+    $m.lock(); 
+    on_exit $m.unlock();
+    my Condition $c();
+    my code $dc = sub() { while (True) { if (!$c.wait_count($m)) continue; $c.signal(); break; } };
+    background $dc();
+    $c.wait($m, 2191769000);
+}
+
 sub err(string $test) {
     test_value(True, False, $test);
 }
@@ -1669,6 +1679,7 @@ sub class_library_tests() {
     class_test_Program();
     class_test_SSLCertificate();
     class_test_SSLPrivateKey();
+    class_test_Condition();
 }
 
 # find and context tests

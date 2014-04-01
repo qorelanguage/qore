@@ -43,10 +43,10 @@ protected:
    DLLLOCAL virtual ~Condition() {}
 
 public:
-   DLLLOCAL int wait(AbstractSmartLock *m, int timeout, class ExceptionSink *xsink) {
+   DLLLOCAL int wait(AbstractSmartLock *m, int64 timeout, ExceptionSink *xsink) {
       return m->extern_wait(&cond, xsink, timeout);
    }
-   DLLLOCAL int wait(AbstractSmartLock *m, class ExceptionSink *xsink) {
+   DLLLOCAL int wait(AbstractSmartLock *m, ExceptionSink *xsink) {
       return m->extern_wait(&cond, xsink);
    }
    DLLLOCAL int signal() {

@@ -52,10 +52,10 @@ protected:
       cmax,			 // current max
       wait_count,
       wait_max,
-      tl_warning_ms,
-      tl_timeout_ms
-      ;
-   int64 stats_reqs,
+      tl_warning_ms;
+
+   int64 tl_timeout_ms,
+      stats_reqs,
       stats_hits
       ;
    ResolvedCallReferenceNode* warning_callback;

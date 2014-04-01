@@ -4,7 +4,7 @@
  
  Qore Programming Language
  
- Copyright 2003 - 2013 David Nichols
+ Copyright (C) 2003 - 2014 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -44,10 +44,10 @@ protected:
 
    virtual int releaseImpl() = 0;
    virtual int releaseImpl(ExceptionSink *xsink) = 0;
-   virtual int grabImpl(int mtid, VLock *nvl, ExceptionSink *xsink, int timeout_ms = 0) = 0;
+   virtual int grabImpl(int mtid, VLock *nvl, ExceptionSink *xsink, int64 timeout_ms = 0) = 0;
    virtual int tryGrabImpl(int mtid, VLock *nvl) = 0;
 
-   DLLLOCAL virtual int externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, int timeout_ms = 0);
+   DLLLOCAL virtual int externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, int64 timeout_ms = 0);
    DLLLOCAL virtual void destructorImpl(ExceptionSink *xsink);
    DLLLOCAL virtual void signalAllImpl();
    DLLLOCAL virtual void signalImpl();
@@ -68,20 +68,20 @@ public:
    DLLLOCAL void destructor(ExceptionSink *xsink);
    DLLLOCAL virtual void cleanup(ExceptionSink *xsink);
 
-   DLLLOCAL int grab(ExceptionSink *xsink, int timeout_ms = 0);
+   DLLLOCAL int grab(ExceptionSink *xsink, int64 timeout_ms = 0);
    DLLLOCAL int tryGrab();
    DLLLOCAL int release();
    DLLLOCAL int release(ExceptionSink *xsink);
 
-   DLLLOCAL int self_wait(int timeout_ms) { 
+   DLLLOCAL int self_wait(int64 timeout_ms) { 
       return timeout_ms ? asl_cond.wait(&asl_lock, timeout_ms) : asl_cond.wait(&asl_lock); 
    }
 
-   DLLLOCAL int self_wait(QoreCondition *cond, int timeout_ms = 0) { 
+   DLLLOCAL int self_wait(QoreCondition *cond, int64 timeout_ms = 0) { 
       return timeout_ms ? cond->wait(&asl_lock, timeout_ms) : cond->wait(&asl_lock); 
    }
 
-   DLLLOCAL int extern_wait(QoreCondition *cond, ExceptionSink *xsink, int timeout_ms = 0);
+   DLLLOCAL int extern_wait(QoreCondition *cond, ExceptionSink *xsink, int64 timeout_ms = 0);
 
    DLLLOCAL int get_tid() const { return tid; }
    DLLLOCAL int get_waiting() const { return waiting; }

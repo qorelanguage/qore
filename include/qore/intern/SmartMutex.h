@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -37,10 +37,10 @@
 class SmartMutex : public AbstractSmartLock {
 private:
    DLLLOCAL virtual int releaseImpl();
-   DLLLOCAL virtual int grabImpl(int mtid, VLock *nvl, ExceptionSink *xsink, int timeout_ms = 0);
+   DLLLOCAL virtual int grabImpl(int mtid, VLock *nvl, ExceptionSink *xsink, int64 timeout_ms = 0);
    DLLLOCAL virtual int releaseImpl(ExceptionSink *xsink);
    DLLLOCAL virtual int tryGrabImpl(int mtid, VLock *nvl);
-   DLLLOCAL virtual int externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, int timeout = 0);
+   DLLLOCAL virtual int externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, int64 timeout = 0);
    DLLLOCAL virtual void destructorImpl(ExceptionSink *xsink);
    
 public:

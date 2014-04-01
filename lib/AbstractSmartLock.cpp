@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright 2003 - 2013 David Nichols
+ Copyright (C) 2003 - 2014 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -105,7 +105,7 @@ return grabInternImpl(mtid);
 }
 */
 
-int AbstractSmartLock::grab(ExceptionSink *xsink, int timeout_ms) {
+int AbstractSmartLock::grab(ExceptionSink *xsink, int64 timeout_ms) {
    int mtid = gettid();
    
    VLock *nvl = getVLock();
@@ -142,12 +142,12 @@ int AbstractSmartLock::release(ExceptionSink *xsink) {
    return rc;
 }
 
-int AbstractSmartLock::externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, int timeout_ms) {
+int AbstractSmartLock::externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, int64 timeout_ms) {
    xsink->raiseException("WAIT-ERROR", "cannot wait on %s objects", getName());
    return -1;
 }
 
-int AbstractSmartLock::extern_wait(QoreCondition *cond, ExceptionSink *xsink, int timeout_ms) {
+int AbstractSmartLock::extern_wait(QoreCondition *cond, ExceptionSink *xsink, int64 timeout_ms) {
    AutoLocker al(&asl_lock);
    return externWaitImpl(gettid(), cond, xsink, timeout_ms);
 }
