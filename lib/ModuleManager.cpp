@@ -523,10 +523,10 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
    if (strchr(name, QORE_DIR_SEP)) {
       // see if it's a user or binary module
       size_t len = strlen(name);
-      if (len > 3 && !strcasecmp(".qm", name + len - 3))
-	 mi = loadUserModuleFromPath(xsink, name, 0, pgm);
-      else
+      if (len > 5 && !strcasecmp(".qmod", name + len - 5))
 	 mi = loadBinaryModuleFromPath(xsink, name, 0, pgm);
+      else
+	 mi = loadUserModuleFromPath(xsink, name, 0, pgm);
 
       if (xsink) {
 	 assert(!mi);

@@ -83,12 +83,21 @@ public namespace Schema {
             hash callback_opts;
 
             code info_callback;
+
+            #! explicit data tablespace name
+            *string data_ts;
+
+            #! explicit index tablespace name
+            *string index_ts;
 	}
 
-	constructor(AbstractDatasource n_ds, string n, string v) {
+	constructor(AbstractDatasource n_ds, string n, string v, *string dts, *string its) {
 	    ds = n_ds;
             name = n;
             version = v;
+            data_ts = dts;
+            index_ts = its;
+
 	    drv = ds.getDriverName();
 
 	    db = new Database(ds);
@@ -439,6 +448,15 @@ public namespace Schema {
             }
         }
 
+	*hash getIndexOptionsImpl() {
+        }
+
+	*hash getColumnOptionsImpl() {
+	}
+
+        *hash getGenericOptionsImpl() {
+        }
+
 	*hash getTables() {
 	}
 
@@ -461,12 +479,23 @@ public namespace Schema {
 	}
 
 	*hash getIndexOptions() {
+            *hash h = getIndexOptionsImpl();
+            if (index_ts && !h.index_tablespace)
+                h.index_tablespace = index_ts;
+            return h;
 	}
 
 	*hash getCreationOptions() {
+            *hash h = combineOptions(getGenericOptionsImpl(), getIndexOptionsImpl());
+            if (data_ts && !h.data_tablespace)
+                h.data_tablespace = data_ts;
+            if (index_ts && !h.index_tablespace)
+                h.index_tablespace = index_ts;
+            return h;
 	}
 
 	*hash getColumnOptions() {
+            return getColumnOptionsImpl();
 	}
 
 	#! returns a hash of "strict reference data", describing the only data that can appear in the target table
@@ -538,7 +567,7 @@ public namespace Schema {
             hash version_where;
         }
 
-        constructor(AbstractDatasource ds, string n, string v, string vt, string vc, hash vw) : Schema(ds, n, v) {
+        constructor(AbstractDatasource ds, string n, string v, string vt, string vc, hash vw, *string dts, *string its) : Schema(ds, n, v, dts, its) {
             version_table = vt;
             version_column = vc;
             version_where = vw;

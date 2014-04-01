@@ -5484,14 +5484,14 @@ my string $sql = $t.getSqlFromList($list);
 
             # check valid options and option value types
             foreach string k in (opt.keyIterator()) {
-                if (!ropt.hasKey(k))
-                    throw err, sprintf("%s: unknown key %y; valid keys for %y: %y", tag, k, self.className(), ropt.keys());
-                
                 if (!exists opt{k}) {
                     delete opt{k};
                     continue;
                 }
 
+                if (!ropt.hasKey(k))
+                    throw err, sprintf("%s: unknown key %y; valid keys for %y: %y", tag, k, self.className(), ropt.keys());
+                
                 AbstractSqlUtilBase::validateOptionIntern(err, ropt{k}, \opt{k}, k, tag);
             }
         }
