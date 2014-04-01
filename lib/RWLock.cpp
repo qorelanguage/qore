@@ -7,7 +7,7 @@
  
  Qore Programming Language
  
- Copyright 2003 - 2013 David Nichols
+ Copyright (C) 2003 - 2014 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -44,7 +44,7 @@ int RWLock::numReaders() {
    return num_readers;
 }
 
-int RWLock::externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, int timeout_ms) {
+int RWLock::externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, int64 timeout_ms) {
    // make sure this TID owns the lock
    if (mtid == tid) { // in write lock
       // insert into cond map
@@ -61,7 +61,7 @@ int RWLock::externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, 
       release_intern();
       
       // wait for condition
-      int rc = timeout_ms ? cond->wait(&asl_lock, timeout_ms) : cond->wait(&asl_lock);
+      int rc = timeout_ms ? cond->wait2(&asl_lock, timeout_ms) : cond->wait(&asl_lock);
 
       // decrement cond count and delete from map if 0
       if (!--(i->second))
@@ -115,7 +115,7 @@ int RWLock::externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, 
    return rc;
 }
 
-int RWLock::grabImpl(int mtid, class VLock *nvl, ExceptionSink *xsink, int timeout_ms) {
+int RWLock::grabImpl(int mtid, VLock *nvl, ExceptionSink *xsink, int64 timeout_ms) {
    // check for errors
    if (tid == mtid) {
       xsink->raiseException("LOCK-ERROR", "TID %d tried to grab the write lock twice", tid);
@@ -314,7 +314,7 @@ void RWLock::mark_read_lock_intern(int mtid, VLock *nvl) {
       ++(i->second);
 }
 
-int RWLock::readLock(ExceptionSink *xsink, int timeout_ms) {
+int RWLock::readLock(ExceptionSink *xsink, int64 timeout_ms) {
    int mtid = gettid();
    VLock *nvl = getVLock();
    SafeLocker sl(&asl_lock);
@@ -328,7 +328,7 @@ int RWLock::readLock(ExceptionSink *xsink, int timeout_ms) {
 }
 
 // assumes the write lock is not grabbed by this thread
-int RWLock::grab_read_lock_intern(int mtid, VLock *nvl, int timeout_ms, ExceptionSink *xsink) {
+int RWLock::grab_read_lock_intern(int mtid, VLock *nvl, int64 timeout_ms, ExceptionSink *xsink) {
    if (tid >= 0) {
       do {
 	 ++readRequests;
@@ -371,7 +371,7 @@ void RWLock::release_read_lock_intern(tid_map_t::iterator i) {
       remove_thread_resource((AbstractThreadResource *)this);
 }
 
-int RWLock::readUnlock(ExceptionSink *xsink) {
+int RWLock::readUnlock(ExceptionSink* xsink) {
    int mtid = gettid();
    AutoLocker al(&asl_lock);
    if (tid == mtid) {

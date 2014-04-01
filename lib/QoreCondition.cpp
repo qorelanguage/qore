@@ -113,3 +113,60 @@ int QoreCondition::wait(pthread_mutex_t *m, int timeout_ms) {
 #endif // DEBUG
 #endif // DARWIN
 }
+
+// timeout is in milliseconds
+int QoreCondition::wait2(pthread_mutex_t *m, int64 timeout_ms) {
+#ifdef DARWIN
+   // use more efficient pthread_cond_timedwait_relative_np() on Darwin
+   struct timespec tmout;
+   tmout.tv_sec = timeout_ms / 1000;
+   tmout.tv_nsec = (timeout_ms - tmout.tv_sec * 1000) * 1000000;
+
+#ifndef DEBUG
+   return pthread_cond_timedwait_relative_np(&c, m, &tmout);
+#else // !DEBUG
+   //printd(5, "QoreCondition::wait(%p, %lld) this=%p +trigger=%d.%09d\n", m, timeout_ms, this, tmout.tv_sec, tmout.tv_nsec);
+   int rc = pthread_cond_timedwait_relative_np(&c, m, &tmout);
+   if (rc && rc != ETIMEDOUT) {
+      printd(0, "QoreCondition::wait(m=%p, timeout_ms=%lld) this=%p pthread_cond_timedwait_relative_np() returned %d %s (errno=%d %s)\n", m, timeout_ms, this, rc, strerror(rc), errno, strerror(errno));
+      // print out a backtrace if possible
+      qore_machine_backtrace();
+   }
+   assert(!rc || rc == ETIMEDOUT);
+   return rc;
+#endif // DEBUG
+#else // !DARWIN
+   struct timeval now;
+   struct timespec tmout;
+
+#ifdef DEBUG
+   int64 timeout_ms_orig = timeout_ms;
+#endif // DEBUG
+   
+   gettimeofday(&now, 0);
+   int64 secs = timeout_ms / 1000;
+   timeout_ms -= secs * 1000;
+   int64 nsecs = now.tv_usec * 1000 + timeout_ms * 1000000;
+   int64 dsecs = nsecs / 1000000000;
+   nsecs -= dsecs * 1000000000;
+   tmout.tv_sec = now.tv_sec + secs + dsecs;
+   tmout.tv_nsec = nsecs;
+
+   // make sure mutex is locked
+   assert(pthread_mutex_trylock(m) == EBUSY);
+
+#ifndef DEBUG
+   return pthread_cond_timedwait(&c, m, &tmout);
+#else // !DEBUG
+   //printd(5, "QoreCondition::wait(%p, "QLLD") this=%p now=%d.%09d trigger=%d.%09d\n", m, timeout_ms, this, now.tv_sec, now.tv_usec * 1000, tmout.tv_sec, tmout.tv_nsec);
+   int rc = pthread_cond_timedwait(&c, m, &tmout);
+   if (rc && rc != ETIMEDOUT) {
+      printd(0, "QoreCondition::wait(m=%p, timeout_ms=%d) pthread_cond_timedwait() returned %d %s\n", m, timeout_ms_orig, rc, strerror(rc));
+      // print out a backtrace if possible
+      qore_machine_backtrace();
+   }
+   assert(!rc || rc == ETIMEDOUT);
+   return rc;
+#endif // DEBUG
+#endif // DARWIN
+}

@@ -3,7 +3,7 @@
  
   Qore Programming Language
  
-  Copyright 2003 - 2013 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
  
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -257,7 +257,7 @@ Datasource *DatasourcePool::getDSIntern(bool &new_ds, ExceptionSink *xsink) {
 	 else {
 	    // otherwise we sleep until a connection becomes available
 	    ++wait_count;
-	    wait((QoreThreadLock *)this);
+	    wait((QoreThreadLock*)this);
 	    wait_count--;
 	    
 	    if (!valid) {

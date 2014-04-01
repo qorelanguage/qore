@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -25,12 +25,10 @@
 
 #include <assert.h>
 
-VRMutex::VRMutex() : count(0)
-{
+VRMutex::VRMutex() : count(0) {
 }
 
-int VRMutex::enter(ExceptionSink *xsink)
-{
+int VRMutex::enter(ExceptionSink *xsink) {
    int mtid = gettid();
    VLock *nvl = getVLock();
    AutoLocker al(&asl_lock);
@@ -40,8 +38,7 @@ int VRMutex::enter(ExceptionSink *xsink)
    return rc;
 }
 
-int VRMutex::exit()
-{
+int VRMutex::exit() {
    AutoLocker al(&asl_lock);
    int rc = VRMutex::releaseImpl();
    if (!rc)
@@ -49,16 +46,14 @@ int VRMutex::exit()
    return rc;
 }
 
-void VRMutex::cleanupImpl()
-{
+void VRMutex::cleanupImpl() {
    if (tid == gettid()) {
       release_and_signal();
       count = 0;
    }
 }
 
-int VRMutex::grabImpl(int mtid, class VLock *nvl, ExceptionSink *xsink, int timeout_ms)
-{
+int VRMutex::grabImpl(int mtid, VLock *nvl, ExceptionSink *xsink, int64 timeout_ms) {
    if (tid != mtid) {
       while (tid != Lock_Unlocked) {
 	 if (tid == Lock_Deleted) {
@@ -81,8 +76,7 @@ int VRMutex::grabImpl(int mtid, class VLock *nvl, ExceptionSink *xsink, int time
    return count++;
 }
 
-int VRMutex::tryGrabImpl(int mtid, class VLock *nvl)
-{
+int VRMutex::tryGrabImpl(int mtid, VLock *nvl) {
    if (tid != mtid) {
       if (tid != Lock_Unlocked)
 	 return -1;
@@ -97,8 +91,7 @@ int VRMutex::tryGrabImpl(int mtid, class VLock *nvl)
 }
 
 // internal use only
-int VRMutex::releaseImpl()
-{
+int VRMutex::releaseImpl() {
    assert(tid == gettid());
    printd(5, "VRMutex::exit() this=%p count: %d->%d\n", this, count, count - 1);
 
@@ -107,8 +100,7 @@ int VRMutex::releaseImpl()
    return count ? -1 : 0;
 }
 
-int VRMutex::releaseImpl(ExceptionSink *xsink)
-{
+int VRMutex::releaseImpl(ExceptionSink *xsink) {
    int mtid = gettid();
    if (tid == Lock_Unlocked) {
       // use getName() here so it can be safely inherited

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2005 - 2013 David Nichols
+  Copyright (C) 2005 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -70,8 +70,18 @@ public:
       @param m the mutext to wait on
       @param timeout_ms the timeout value is milliseconds
       @return a non-zero return value indicates a timeout occured
+
+      @deprecated use wait2(pthread_mutex_t*, int64) instead
    */
    DLLEXPORT int wait(pthread_mutex_t *m, int timeout_ms);
+
+   //! blocks a thread on a mutex for a certain number of milliseconds until the condition is signaled
+   /**
+      @param m the mutext to wait on
+      @param timeout_ms the timeout value is milliseconds
+      @return a non-zero return value indicates a timeout occured
+   */
+   DLLEXPORT int wait2(pthread_mutex_t *m, int64 timeout_ms);
 
    //! blocks a thread on a lock until the condition is signaled
    /**
@@ -87,9 +97,21 @@ public:
       @param l the QoreThreadLock to wait on
       @param timeout_ms the timeout value is milliseconds
       @return a non-zero return value indicates a timeout occured
+
+      @deprecated use wait2(QoreThreadLock*, int64) instead
    */
    DLLLOCAL int wait(QoreThreadLock *l, int timeout_ms) {
       return wait(&l->ptm_lock, timeout_ms); 
+   }
+   
+   //! blocks a thread on a lock for a certain number of milliseconds until the condition is signaled
+   /**
+      @param l the QoreThreadLock to wait on
+      @param timeout_ms the timeout value is milliseconds
+      @return a non-zero return value indicates a timeout occured
+   */
+   DLLLOCAL int wait2(QoreThreadLock *l, int64 timeout_ms) {
+      return wait2(&l->ptm_lock, timeout_ms); 
    }
    
    //! blocks a thread on a lock until the condition is signaled
@@ -106,9 +128,21 @@ public:
       @param l the QoreThreadLock to wait on
       @param timeout_ms the timeout value is milliseconds
       @return a non-zero return value indicates a timeout occured
+
+      @deprecated use wait2(QoreThreadLock&, int64) instead
    */
    DLLLOCAL int wait(QoreThreadLock &l, int timeout_ms) { 
       return wait(&l, timeout_ms);
+   }
+
+   //! blocks a thread on a lock for a certain number of milliseconds until the condition is signaled
+   /**
+      @param l the QoreThreadLock to wait on
+      @param timeout_ms the timeout value is milliseconds
+      @return a non-zero return value indicates a timeout occured
+   */
+   DLLLOCAL int wait2(QoreThreadLock &l, int64 timeout_ms) { 
+      return wait2(&l, timeout_ms);
    }
 };
 

@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -53,7 +53,7 @@ private:
    DLLLOCAL int cleanup_read_lock_intern(tid_map_t::iterator i);
    DLLLOCAL void mark_read_lock_intern(int mtid, VLock *nvl);
    DLLLOCAL void release_read_lock_intern(tid_map_t::iterator i);
-   DLLLOCAL int grab_read_lock_intern(int mtid, VLock *nvl, int timeout_ms, ExceptionSink *xsink);
+   DLLLOCAL int grab_read_lock_intern(int mtid, VLock *nvl, int64 timeout_ms, ExceptionSink *xsink);
    DLLLOCAL void set_initial_read_lock_intern(int mtid, VLock *nvl);
 
    DLLLOCAL virtual void cleanupImpl();
@@ -61,9 +61,9 @@ private:
    DLLLOCAL virtual void signalImpl();
    DLLLOCAL virtual int releaseImpl();
    DLLLOCAL virtual int releaseImpl(ExceptionSink *xsink);
-   DLLLOCAL virtual int grabImpl(int mtid, VLock *nvl, ExceptionSink *xsink, int timeout_ms = 0);
+   DLLLOCAL virtual int grabImpl(int mtid, VLock *nvl, ExceptionSink *xsink, int64 timeout_ms = 0);
    DLLLOCAL virtual int tryGrabImpl(int mtid, VLock *nvl);
-   DLLLOCAL virtual int externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, int timeout_ms = 0);
+   DLLLOCAL virtual int externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, int64 timeout_ms = 0);
    DLLLOCAL virtual void destructorImpl(ExceptionSink *xsink);
 
 protected:
@@ -75,7 +75,7 @@ public:
    DLLLOCAL virtual ~RWLock();
 #endif
 
-   DLLLOCAL int readLock(ExceptionSink *xsink, int timeout_ms = 0);
+   DLLLOCAL int readLock(ExceptionSink *xsink, int64 timeout_ms = 0);
    DLLLOCAL int readUnlock(ExceptionSink *xsink);
    DLLLOCAL int tryReadLock();
    //DLLLOCAL void writeToRead(ExceptionSink *xsink);

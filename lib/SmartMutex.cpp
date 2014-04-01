@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -37,7 +37,7 @@ int SmartMutex::releaseImpl() {
    return 0;
 }
 
-int SmartMutex::grabImpl(int mtid, VLock *nvl, ExceptionSink *xsink, int timeout_ms) {
+int SmartMutex::grabImpl(int mtid, VLock *nvl, ExceptionSink *xsink, int64 timeout_ms) {
    if (tid == mtid) {
       // getName() for possible inheritance
       xsink->raiseException("LOCK-ERROR", "TID %d called %s::lock() twice without an intervening %s::unlock()", tid, getName(), getName());
@@ -79,7 +79,7 @@ int SmartMutex::tryGrabImpl(int mtid, VLock *nvl) {
    return 0;
 }
 
-int SmartMutex::externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, int timeout_ms) {
+int SmartMutex::externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, int64 timeout_ms) {
    // make sure this TID owns the lock
    if (verify_wait_unlocked(mtid, xsink))
       return -1;
@@ -98,7 +98,7 @@ int SmartMutex::externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsi
    release_intern();
 
    // wait for condition
-   int rc = timeout_ms ? cond->wait(&asl_lock, timeout_ms) : cond->wait(&asl_lock);
+   int rc = timeout_ms ? cond->wait2(&asl_lock, timeout_ms) : cond->wait(&asl_lock);
 
    // decrement cond count and delete from map if 0
    if (!--(i->second))
