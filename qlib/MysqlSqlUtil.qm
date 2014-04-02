@@ -193,13 +193,21 @@ public namespace MysqlSqlUtil {
         #! returns a list of sql strings that can be used to add the column to an existing table
         /** @par Example:
             @code
-my list $l = $col.getCreateSql($t);
+my list $l = $col.getAddColumnSql($t);
             @endcode
 
             @param t the AbstractTable object to modify
          */
-        softlist getCreateSql(AbstractTable t) {
-            string sql = sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql());
+        softlist getAddColumnSql(AbstractTable t) {
+            string sql = sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql(t));
+	    if (comment)
+		sql += " comment " + t.getSqlValue(comment);
+            return sql;
+        }
+
+        #! returns an sql string that can be used to add the column to a table
+        string getCreateSql(AbstractTable t) {
+            string sql = AbstractColumn::getCreateSql(t);
 	    if (comment)
 		sql += " comment " + t.getSqlValue(comment);
             return sql;
@@ -221,11 +229,11 @@ my list $l = $col.getModifySql($t, $newcol);
         softlist getModifySqlImpl(AbstractTable t, AbstractColumn col, *hash opt) {
             MysqlColumn c = col;
 
-            string ntd = c.getCreateSql();
-            if (ntd == getCreateSql() && c.comment == comment)
+            string ntd = c.getCreateSql(t);
+            if (ntd == getCreateSql(t))
                 return;
 
-            #printf("L: %s\nL: comment: %y\nXXXXXXXXXX\nR: %s\nR: comment: %y\n", getCreateSql(), comment, ntd, c.comment);
+            #printf("L: %s\nL: comment: %y\nXXXXXXXXXX\nR: %s\nR: comment: %y\n", getCreateSql(t), comment, ntd, c.comment);
 
             string sql = sprintf("alter table %s modify %s", t.getSqlName(), ntd);
             if (c.comment)
@@ -245,7 +253,7 @@ my string $str = $col.getRenameSql($t, "new_name");
             @return a string that can be used to rename the column
         */
         string getRenameSql(AbstractTable t, string new_name) {
-            string sql = getCreateSql();
+            string sql = getCreateSql(t);
             int i = sql.find(" ");
             splice sql, 0, i + 1;
             return sprintf("alter table %s change %s %s %s", t.getSqlName(), name, new_name, sql);
@@ -572,6 +580,9 @@ my any $v = $c.name;
                 ),
                 );
 
+            #! MySQL creation options
+            const MyusqlCreationOptions = AbstractDatabase::CreationOptions;
+
             #! MySQL sequence function
             const MysqlSequenceFunction = "%s(seq_name varchar(40)) returns decimal(14)
 begin
@@ -717,7 +728,7 @@ end";
 
                     # create / align function
                     string fstr = sprintf(MysqlSequenceFunction, sequence_function, sequence_table);
-                    tl = getAlignFunctionSql(new MysqlFunction(sequence_function, fstr));
+                    tl = getAlignFunctionSql(new MysqlFunction(sequence_function, fstr), opt{MysqlDatabase::CreationOptions.keys()});
                     if (tl)
                         l += tl;
                 }
@@ -1169,13 +1180,13 @@ end";
         string getCreateTableSqlImpl(*hash opt) {
             string sql = sprintf("create table %s (\n", name);
 
-            sql += foldl $1 + ",\n" + $2, (map "  " + $1.getCreateSql(), columns.iterator());
+            sql += foldl $1 + ",\n" + $2, (map "  " + $1.getCreateSql(self), columns.iterator());
             sql += sprintf("\n) engine %s", engine);            
 
             return sql;
         }
 
-        *list getCreateMiscSqlImpl(*hash opt, bool cache) {
+        private *list getCreateMiscSqlImpl(*hash opt, bool cache) {
         }
 
         private *list getAlignSqlImpl(AbstractTable table, *hash opt) {

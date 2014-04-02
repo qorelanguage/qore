@@ -3993,7 +3993,7 @@ my AbstractColumn $c = $cols.id;
         }
 
         #! returns an sql string that can be used to add the column to a table
-        string getCreateSql() {
+        string getCreateSql(AbstractTable t) {
             string sql = sprintf("%s %s", name, getNativeTypeString());
             if (exists def_val)
                 sql += " default " + def_val + "";
@@ -4005,14 +4005,14 @@ my AbstractColumn $c = $cols.id;
         #! returns a list of sql strings that can be used to add the column to an existing table
         /** @par Example:
             @code
-my list $l = $col.getCreateSql($t);
+my list $l = $col.getAddColumnSql($t);
             @endcode
 
             @param t the AbstractTable object to modify
 
             @return a list of sql strings that can be used to add the column to an existing table
          */
-        abstract list getCreateSql(AbstractTable t);
+        abstract list getAddColumnSql(AbstractTable t);
 
         #! returns a string that can be used to drop the column from the table
         string getDropSql(string table_name) {
@@ -14523,7 +14523,7 @@ my list $l = $table.getAlignSql($table2);
             foreach AbstractColumn c in (t.columns.iterator()) {
                 if (!columns.hasKey(c.name)) {
                     # add column to table
-                    l += AbstractDatabase::doCallback(opt, c.getCreateSql(self), AbstractDatabase::AC_Add, "column", c.name, name);
+                    l += AbstractDatabase::doCallback(opt, c.getAddColumnSql(self), AbstractDatabase::AC_Add, "column", c.name, name);
                 }
                 else {
                     # get any delta SQL

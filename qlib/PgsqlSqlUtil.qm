@@ -361,13 +361,13 @@ public namespace PgsqlSqlUtil {
         #! returns a list of sql strings that can be used to add the column to an existing table
         /** @par Example:
             @code
-my list $l = $col.getCreateSql($t);
+my list $l = $col.getAddColumnSql($t);
             @endcode
 
             @param t the SqlUtil::AbstractTable object to modify
          */
-        list getCreateSql(AbstractTable t) {
-	    list l += sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql());	    
+        list getAddColumnSql(AbstractTable t) {
+	    list l += sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql(t));	    
 	    if (comment)
 		l += sprintf("comment on column %s.%s is %s", t.getSqlName(), name, t.getSqlValue(comment));
             return l;
@@ -485,9 +485,9 @@ my string $str = $col.getRenameSql($t, "new_name");
         getIndexSql(reference sql, string name, *hash opts) {
             *string ix = opts.index ? opts.index : index;
             if (ix)
-                sql += sprintf("using index %s", ix);
+                sql += sprintf(" using index %s", ix);
             else {
-                sql += sprintf("(%s)", (foldl $1 + ", " + $2, keyIterator()));
+                sql += sprintf(" (%s)", (foldl $1 + ", " + $2, keyIterator()));
 
                 *string ts = opts.index_tablespace ? opts.index_tablespace : tablespace;
                 if (ts)
@@ -1517,7 +1517,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         private string getCreateTableSqlImpl(*hash opt) {
             string sql = sprintf("create table %s (\n", name);
 
-            sql += foldl $1 + ",\n" + $2, (map "  " + $1.getCreateSql(), columns.iterator());
+            sql += foldl $1 + ",\n" + $2, (map "  " + $1.getCreateSql(self), columns.iterator());
             sql += "\n)";
 
             *string ts = opt.tablespace ? opt.tablespace : tablespace;

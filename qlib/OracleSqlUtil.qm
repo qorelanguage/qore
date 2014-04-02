@@ -283,13 +283,13 @@ public namespace OracleSqlUtil {
         #! returns a list of sql strings that can be used to add the column to an existing table
         /** @par Example:
             @code
-my list $l = $col.getCreateSql($t);
+my list $l = $col.getAddColumnSql($t);
             @endcode
 
             @param t the AbstractTable object to modify
          */
-        list getCreateSql(AbstractTable t) {
-	    list l += sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql());	    
+        list getAddColumnSql(AbstractTable t) {
+	    list l += sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql(t));	    
 	    if (comment)
 		l += sprintf("comment on column %s.%s is %s", t.getSqlName(), name, t.getSqlValue(comment));
             return l;
@@ -1978,7 +1978,7 @@ my any $v = $c.name;
         string getCreateTableSqlImpl(*hash opt) {
             string sql = sprintf("create table %s (\n", name);
 
-            sql += foldl $1 + ",\n" + $2, (map sprintf("  %s", $1.getCreateSql()), columns.iterator());
+            sql += foldl $1 + ",\n" + $2, (map sprintf("  %s", $1.getCreateSql(self)), columns.iterator());
             sql += "\n)";
 
             *string ts = opt.data_tablespace ? opt.data_tablespace : tablespace;
