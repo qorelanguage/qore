@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -82,7 +82,7 @@ DLLLOCAL int check_windows_rc(int rc);
 struct qore_socketsource_private {
    QoreStringNode* address;
    QoreStringNode* hostname;
-   
+
    DLLLOCAL qore_socketsource_private() : address(0), hostname(0) {
    }
 
@@ -1767,6 +1767,11 @@ struct qore_socket_private {
       return h;
    }
 
+   DLLLOCAL int sendHttpChunkedWithCallback(ExceptionSink* xsink, const char* mname, const ResolvedCallReferenceNode& send_callback, int source, int timeout_ms = -1) {
+      //xxx
+      return 0;
+   }
+
    DLLLOCAL int send(ExceptionSink* xsink, const char* mname, const char* buf, qore_size_t size, int timeout_ms = -1) {
       if (sock == QORE_INVALID_SOCKET) {
 	 if (xsink)
@@ -1859,7 +1864,8 @@ struct qore_socket_private {
       return 0;
    }
 
-   DLLLOCAL int sendHTTPMessage(ExceptionSink* xsink, QoreHashNode* info, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, int source, int timeout_ms = -1) {
+   DLLLOCAL int sendHttpMessage(ExceptionSink* xsink, QoreHashNode* info, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, const ResolvedCallReferenceNode* send_callback, int source, int timeout_ms = -1) {
+      assert(!(data && send_callback));
       // prepare header string
       QoreString hdr(enc);
 
@@ -1875,16 +1881,22 @@ struct qore_socket_private {
       // insert headers
       do_headers(hdr, headers, size && data ? size : 0);
 
-      //printd(5, "qore_socket_private::sendHTTPMessage() hdr: %s\n", hdr.getBuffer());
+      //printd(5, "qore_socket_private::sendHttpMessage() hdr: %s\n", hdr.getBuffer());
 
       int rc;
       if ((rc = send(xsink, "sendHTTPMessage", hdr.getBuffer(), hdr.strlen(), timeout_ms)))
 	 return rc;
       
-      return size && data ? send(xsink, "sendHTTPMessage", (char*)data, size, timeout_ms) : 0;
+      if (size && data)
+         return send(xsink, "sendHTTPMessage", (char*)data, size, timeout_ms);
+      else if (send_callback)
+         return sendHttpChunkedWithCallback(xsink, "sendHTTPMessage", *send_callback, source, timeout_ms);
+
+      return 0;
    }
 
-   DLLLOCAL int sendHTTPResponse(ExceptionSink* xsink, int code, const char* desc, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, int source, int timeout_ms = -1) {
+   DLLLOCAL int sendHttpResponse(ExceptionSink* xsink, int code, const char* desc, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, const ResolvedCallReferenceNode* send_callback, int source, int timeout_ms = -1) {
+      assert(!(data && send_callback));
       // prepare header string
       QoreString hdr(enc);
 
@@ -1903,8 +1915,10 @@ struct qore_socket_private {
 	 return rc;
 
       if (size && data)
-	 return send(xsink, "sendHTTPResponse", (char*)data, size, timeout_ms);
-      
+         return send(xsink, "sendHTTPResponse", (char*)data, size, timeout_ms);
+      else if (send_callback)
+         return sendHttpChunkedWithCallback(xsink, "sendHTTPResponse", *send_callback, source, timeout_ms);
+
       return 0;
    }
 

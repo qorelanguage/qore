@@ -5,7 +5,7 @@
   
   Qore Programming Language
 
-  Copyright 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -1190,33 +1190,33 @@ int QoreSocket::recv(int fd, qore_offset_t size, int timeout) {
 
 // returns 0 for success
 int QoreSocket::sendHTTPMessage(const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, int source) {
-   return priv->sendHTTPMessage(0, 0, method, path, http_version, headers, data, size, source);
+   return priv->sendHttpMessage(0, 0, method, path, http_version, headers, data, size, 0, source);
 }
 
 // returns 0 for success
 int QoreSocket::sendHTTPMessage(QoreHashNode* info, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, int source) {
-   return priv->sendHTTPMessage(0, info, method, path, http_version, headers, data, size, source);
+   return priv->sendHttpMessage(0, info, method, path, http_version, headers, data, size, 0, source);
 }
 
 int QoreSocket::sendHTTPMessage(ExceptionSink* xsink, QoreHashNode* info, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, int source) {
-   return priv->sendHTTPMessage(xsink, info, method, path, http_version, headers, data, size, source);
+   return priv->sendHttpMessage(xsink, info, method, path, http_version, headers, data, size, 0, source);
 }
 
 int QoreSocket::sendHTTPMessage(ExceptionSink* xsink, QoreHashNode* info, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, int source, int timeout_ms) {
-   return priv->sendHTTPMessage(xsink, info, method, path, http_version, headers, data, size, source, timeout_ms);
+   return priv->sendHttpMessage(xsink, info, method, path, http_version, headers, data, size, 0, source, timeout_ms);
 }
 
 // returns 0 for success
 int QoreSocket::sendHTTPResponse(int code, const char* desc, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, int source) {
-   return priv->sendHTTPResponse(0, code, desc, http_version, headers, data, size, source);
+   return priv->sendHttpResponse(0, code, desc, http_version, headers, data, size, 0, source);
 }
 
 int QoreSocket::sendHTTPResponse(ExceptionSink* xsink, int code, const char* desc, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, int source) {
-   return priv->sendHTTPResponse(xsink, code, desc, http_version, headers, data, size, source);
+   return priv->sendHttpResponse(xsink, code, desc, http_version, headers, data, size, 0, source);
 }
 
 int QoreSocket::sendHTTPResponse(ExceptionSink* xsink, int code, const char* desc, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, int source, int timeout_ms) {
-   return priv->sendHTTPResponse(xsink, code, desc, http_version, headers, data, size, source, timeout_ms);
+   return priv->sendHttpResponse(xsink, code, desc, http_version, headers, data, size, 0, source, timeout_ms);
 }
 
 AbstractQoreNode* QoreSocket::readHTTPHeader(int timeout, int *rc, int source) {

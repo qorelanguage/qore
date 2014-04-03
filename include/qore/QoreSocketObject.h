@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
 
   provides a thread-safe interface to the QoreSocket object
 
@@ -39,6 +39,7 @@ class my_socket_priv;
 class QoreSocketObject : public AbstractPrivateData {
 private:
    friend class my_socket_priv;
+   friend struct qore_httpclient_priv;
 
    DLLLOCAL QoreSocketObject(QoreSocket* s);
 
