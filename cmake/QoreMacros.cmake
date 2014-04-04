@@ -45,7 +45,8 @@ MACRO (QORE_BINARY_MODULE _module_name _version)
 
     set_target_properties(${_module_name} PROPERTIES PREFIX "" SUFFIX "-api-${QORE_API_VERSION}.qmod")
     target_link_libraries(${_module_name} ${QORE_LIBRARY} ${_libs})
-    install( TARGETS ${_module_name} DESTINATION ${QORE_MODULES_DIR})
+    # this line breaks jhbuild "chroot": install( TARGETS ${_module_name} DESTINATION ${QORE_MODULES_DIR})
+    install( TARGETS ${_module_name} DESTINATION lib${LIB_SUFFIX}/qore-modules)
 
 
     # uninstall
