@@ -1767,6 +1767,47 @@ struct qore_socket_private {
       return h;
    }
 
+   DLLLOCAL int runHeaderCallback(ExceptionSink* xsink, const char* mname, const ResolvedCallReferenceNode& callback, QoreThreadLock& l, const QoreHashNode* hdr) {
+      ReferenceHolder<QoreListNode> args(new QoreListNode, xsink);
+      QoreHashNode* arg = new QoreHashNode;
+      arg->setKeyValue("hdr", hdr->refSelf(), xsink);
+      args->push(arg);
+
+      ReferenceHolder<> rv(xsink);
+      return runCallback(xsink, mname, rv, callback, l, *args);
+   }
+
+   DLLLOCAL int runDataCallback(ExceptionSink* xsink, const char* mname, const ResolvedCallReferenceNode& callback, QoreThreadLock& l, const AbstractQoreNode* data) {
+      ReferenceHolder<QoreListNode> args(new QoreListNode, xsink);
+      QoreHashNode* arg = new QoreHashNode;
+      arg->setKeyValue("data", data->refSelf(), xsink);
+      args->push(arg);
+
+      ReferenceHolder<> rv(xsink);
+      return runCallback(xsink, mname, rv, callback, l, *args);
+   }
+
+   DLLLOCAL int runCallback(ExceptionSink* xsink, const char* mname, ReferenceHolder<>& res, const ResolvedCallReferenceNode& callback, QoreThreadLock& l, const QoreListNode* args = 0) {
+      // FIXME: subtract callback execution time from socket performance measurement
+
+      // unlock and execute callback
+      {
+         AutoUnlocker al(l);
+         res = callback.exec(args, xsink);
+      }
+
+      // check exception and socket status
+      if (*xsink)
+         return -1;
+
+      if (sock == QORE_INVALID_SOCKET) {
+         se_not_open(mname, xsink);
+         return QSE_NOT_OPEN;
+      }
+      
+      return 0;
+   }
+
    DLLLOCAL int sendHttpChunkedWithCallback(ExceptionSink* xsink, const char* mname, const ResolvedCallReferenceNode& send_callback, QoreThreadLock& l, int source, int timeout_ms = -1) {
       assert(xsink);
 
@@ -1791,24 +1832,11 @@ struct qore_socket_private {
       bool done = false;
 
       while (!done) {
-         ReferenceHolder<AbstractQoreNode> res(xsink);
-
          // FIXME: subtract callback execution time from socket performance measurement
-
-         // unlock and execute callback
-         {
-            AutoUnlocker al(l);
-            res = send_callback.exec(0, xsink);
-         }
-
-         // check exception and socket status
-         if (*xsink)
-            return -1;
-
-         if (sock == QORE_INVALID_SOCKET) {
-            se_not_open(mname, xsink);
-            return QSE_NOT_OPEN;
-         }
+         ReferenceHolder<AbstractQoreNode> res(xsink);
+         rc = runCallback(xsink, mname, res, send_callback, l);
+         if (rc)
+            return rc;
 
          // check callback return val
          QoreString buf;
@@ -2033,6 +2061,295 @@ struct qore_socket_private {
       }
 
       return 0;
+   }
+
+   DLLLOCAL QoreHashNode* readHttpChunkedBodyBinary(int timeout, ExceptionSink* xsink, int source, const ResolvedCallReferenceNode* recv_callback = 0, qore_uncompress_to_string_t dec = 0, QoreThreadLock* l = 0) {
+      assert(xsink);
+
+      if (sock == QORE_INVALID_SOCKET) {
+         se_not_open("readHTTPChunkedBodyBinary", xsink);
+         return 0;
+      }
+
+      SimpleRefHolder<BinaryNode> b(new BinaryNode);
+      QoreString str; // for reading the size of each chunk
+   
+      qore_offset_t rc;
+      // read the size then read the data and append to buffer
+      while (true) {
+         // state = 0, nothing
+         // state = 1, \r received
+         int state = 0;
+         while (true) {
+            char* buf;
+            rc = brecv(xsink, "readHTTPChunkedBodyBinary", buf, 1, 0, timeout, false);
+            if (rc <= 0) {
+               if (!*xsink) {
+                  assert(!rc);
+                  se_closed("readHTTPChunkedBodyBinary", xsink);
+               }
+               return 0;
+            }
+
+            char c = buf[0];
+            
+            if (!state && c == '\r')
+               state = 1;
+            else if (state && c == '\n')
+               break;
+            else {
+               if (state) {
+                  state = 0;
+                  str.concat('\r');
+               }
+               str.concat(c);
+            }
+         }
+         // DEBUG
+         //printd(5, "QoreSocket::readHTTPChunkedBodyBinary(): got chunk size ("QSD" bytes) string: %s\n", str.strlen(), str.getBuffer());
+
+         // terminate string at ';' char if present
+         char* p = (char*)strchr(str.getBuffer(), ';');
+         if (p)
+            *p = '\0';
+         long size = strtol(str.getBuffer(), 0, 16);
+         do_chunked_read(QORE_EVENT_HTTP_CHUNK_SIZE, size, str.strlen(), source);
+         if (size == 0)
+            break;
+         if (size < 0) {
+            xsink->raiseException("READ-HTTP-CHUNK-ERROR", "negative value given for chunk size (%ld)", size);
+            return 0;
+         }
+
+         // prepare string for chunk
+         //str.allocate(size + 1);
+
+         qore_offset_t bs = size < DEFAULT_SOCKET_BUFSIZE ? size : DEFAULT_SOCKET_BUFSIZE;
+         qore_offset_t br = 0; // bytes received
+         while (true) {
+            char* buf;
+            rc = brecv(xsink, "readHTTPChunkedBodyBinary", buf, bs, 0, timeout, false);
+            if (rc <= 0) {
+               if (!*xsink) {
+                  assert(!rc);
+                  se_closed("readHTTPChunkedBodyBinary", xsink);
+               }
+               return 0;
+            }
+
+            b->append(buf, rc);
+            br += rc;
+	 
+            if (br >= size)
+               break;
+            if (size - br < bs)
+               bs = size - br;
+         }
+
+         // DEBUG
+         //printd(5, "QoreSocket::readHTTPChunkedBodyBinary(): received binary chunk: size=%d br="QSD" total="QSD"\n", size, br, b->size());
+      
+         // read crlf after chunk
+         // FIXME: bytes read are not checked if they equal CRLF
+         br = 0;
+         while (br < 2) {
+            char* buf;
+            rc = brecv(xsink, "readHTTPChunkedBodyBinary", buf, 2 - br, 0, timeout, false);
+            if (rc <= 0) {
+               if (!*xsink) {
+                  assert(!rc);
+                  se_closed("readHTTPChunkedBodyBinary", xsink);
+               }
+               return 0;
+            }
+            br += rc;
+         }      
+         do_chunked_read(QORE_EVENT_HTTP_CHUNKED_DATA_RECEIVED, size, size + 2, source);
+
+         if (recv_callback) {
+            if (dec) {
+               SimpleRefHolder<QoreStringNode> str(dec(*b, enc, xsink));
+               if (*xsink)
+                  return 0;
+               if (runDataCallback(xsink, "readHTTPChunkedBodyBinary", *recv_callback, *l, *str))
+                  return 0;
+            }
+            else if (runDataCallback(xsink, "readHTTPChunkedBodyBinary", *recv_callback, *l, *b))
+               return 0;
+            b->clear();
+         }
+
+         // ensure string is blanked for next read
+         str.clear();
+      }
+
+      // read footers or nothing
+      QoreStringNodeHolder hdr(readHTTPData(xsink, "readHTTPChunkedBodyBinary", timeout, rc, 1));
+      if (!hdr) {
+         assert(*xsink);
+         return 0;
+      }
+
+      ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
+      if (!recv_callback) {
+         //printd(5, "QoreSocket::readHTTPChunkedBodyBinary(): saving binary body: %p size=%ld\n", b->getPtr(), b->size());
+         h->setKeyValue("body", b.release(), xsink);
+      }
+   
+      if (hdr->strlen() >= 2 && hdr->strlen() <= 4)
+         return recv_callback ? 0 : h.release();
+
+      convertHeaderToHash(*h, (char*)hdr->getBuffer());
+      do_read_http_header(QORE_EVENT_HTTP_FOOTERS_RECEIVED, *h, source);
+
+      if (recv_callback) {
+         runHeaderCallback(xsink, "readHTTPChunkedBodyBinary", *recv_callback, *l, *h);
+         return 0;
+      }
+
+      return h.release(); 
+   }
+
+   // receive a message in HTTP chunked format
+   DLLLOCAL QoreHashNode* readHttpChunkedBody(int timeout, ExceptionSink* xsink, int source, const ResolvedCallReferenceNode* recv_callback = 0, QoreThreadLock* l = 0) {
+      assert(xsink);
+
+      if (sock == QORE_INVALID_SOCKET) {
+         se_not_open("readHTTPChunkedBody", xsink);
+         return 0;
+      }
+
+      QoreStringNodeHolder buf(new QoreStringNode(enc));
+      QoreString str; // for reading the size of each chunk
+   
+      qore_offset_t rc;
+      // read the size then read the data and append to buf
+      while (true) {
+         // state = 0, nothing
+         // state = 1, \r received
+         int state = 0;
+         while (true) {
+            char* tbuf;
+            rc = brecv(xsink, "readHTTPChunkedBody", tbuf, 1, 0, timeout, false);
+            if (rc <= 0) {
+               if (!*xsink) {
+                  assert(!rc);
+                  se_closed("readHTTPChunkedBody", xsink);
+               }
+               return 0;
+            }
+
+            char c = tbuf[0];
+      
+            if (!state && c == '\r')
+               state = 1;
+            else if (state && c == '\n')
+               break;
+            else {
+               if (state) {
+                  state = 0;
+                  str.concat('\r');
+               }
+               str.concat(c);
+            }
+         }
+         // DEBUG
+         //printd(5, "got chunk size ("QSD" bytes) string: %s\n", str.strlen(), str.getBuffer());
+
+         // terminate string at ';' char if present
+         char* p = (char*)strchr(str.getBuffer(), ';');
+         if (p)
+            *p = '\0';
+         qore_offset_t size = strtol(str.getBuffer(), 0, 16);
+         do_chunked_read(QORE_EVENT_HTTP_CHUNK_SIZE, size, str.strlen(), source);
+         if (size == 0)
+            break;
+         if (size < 0) {
+            xsink->raiseException("READ-HTTP-CHUNK-ERROR", "negative value given for chunk size (%ld)", size);
+            return 0;
+         }
+         // ensure string is blanked for next read
+         str.clear();
+
+         // prepare string for chunk
+         //buf->allocate((unsigned)(buf->strlen() + size + 1));
+      
+         // read chunk directly into string buffer    
+         qore_offset_t bs = size < DEFAULT_SOCKET_BUFSIZE ? size : DEFAULT_SOCKET_BUFSIZE;
+         qore_offset_t br = 0; // bytes received
+         str.clear();
+         while (true) {
+            char* tbuf;
+            rc = brecv(xsink, "readHTTPChunkedBody", tbuf, bs, 0, timeout, false);
+            if (rc <= 0) {
+               if (!*xsink) {
+                  assert(!rc);
+                  se_closed("readHTTPChunkedBody", xsink);
+               }
+               return 0;
+            }
+            br += rc;
+            buf->concat(tbuf, rc);
+	 
+            if (br >= size)
+               break;
+            if (size - br < bs)
+               bs = size - br;
+         }
+
+         // DEBUG
+         //printd(5, "got chunk ("QSD" bytes): %s\n", br, buf->getBuffer() + buf->strlen() -  size);
+
+         // read crlf after chunk
+         // FIXME: bytes read are not checked if they equal CRLF
+         br = 0;
+         while (br < 2) {
+            char* tbuf;
+            rc = brecv(xsink, "readHTTPChunkedBody", tbuf, 2 - br, 0, timeout, false);
+            if (rc <= 0) {
+               if (!*xsink) {
+                  assert(!rc);
+                  se_closed("readHTTPChunkedBody", xsink);
+               }
+               return 0;
+            }
+            br += rc;
+         }
+         do_chunked_read(QORE_EVENT_HTTP_CHUNKED_DATA_RECEIVED, size, size + 2, source);
+
+         if (recv_callback) {
+            int rc = runDataCallback(xsink, "readHTTPChunkedBody", *recv_callback, *l, *buf);
+            if (rc)
+               return 0;
+            buf->clear();
+         }
+      }
+
+      // read footers or nothing
+      QoreStringNodeHolder hdr(readHTTPData(xsink, "readHTTPChunkedBody", timeout, rc, 1));
+      if (!hdr) {
+         assert(*xsink);
+         return 0;
+      }
+
+      //printd(5, "chunked body encoding=%s\n", buf->getEncoding()->getCode());
+
+      ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
+      if (!recv_callback)
+         h->setKeyValue("body", buf.release(), xsink);
+   
+      if (hdr->strlen() >= 2 && hdr->strlen() <= 4)
+         return recv_callback ? 0 : h.release();
+
+      convertHeaderToHash(*h, (char*)hdr->getBuffer());
+      do_read_http_header(QORE_EVENT_HTTP_FOOTERS_RECEIVED, *h, source);
+
+      if (recv_callback) {
+         runHeaderCallback(xsink, "readHTTPChunkedBody", *recv_callback, *l, *h);
+         return 0;
+      }
+
+      return h.release();
    }
 
    DLLLOCAL static void do_accept_encoding(char* t, QoreHashNode& info) {

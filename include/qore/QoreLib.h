@@ -312,6 +312,8 @@ class BinaryNode;
 class QoreStringNode;
 class ExceptionSink;
 
+typedef QoreStringNode* (*qore_uncompress_to_string_t)(const BinaryNode* b, const QoreEncoding* enc, ExceptionSink* xsink);
+
 //! compresses data with the DEFLATE algorithm
 DLLEXPORT BinaryNode     *qore_deflate(void *ptr, unsigned long len, int level, ExceptionSink *xsink);
 //! decompresses data compressed with the DEFLATE algorithm to a string
