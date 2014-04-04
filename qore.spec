@@ -147,6 +147,8 @@ Qore library.
 /usr/bin/qdx
 %{_libdir}/libqore.so
 %{_libdir}/pkgconfig/qore.pc
+%dir %{_libdir}/cmake
+%{_libdir}/cmake/Qore
 %{_prefix}/include/*
 
 %package devel-doc
