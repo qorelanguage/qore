@@ -60,6 +60,7 @@ class Queue;
  */
 class SocketSource {
    friend struct qore_socket_private;
+
 private:
    struct qore_socketsource_private *priv; // private implementation
 
@@ -112,6 +113,8 @@ public:
 */
 class QoreSocket {
    friend struct qore_socket_private;
+   friend struct qore_httpclient_priv;
+
 private:
    //! private implementation of the class
    struct qore_socket_private *priv; 

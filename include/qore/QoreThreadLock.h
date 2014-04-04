@@ -115,6 +115,8 @@ public:
     object is created and releasing it when the object is destroyed.
     For a similar object that allows for unlocking the lock earlier 
     than the object's destruction, see SafeLocker.
+
+    @see AutoUnlocker
     @see SafeLocker
     @see OptLocker
 */
@@ -144,17 +146,60 @@ public:
       lck->lock();
    }
 
-   //! destroys the object and grabs the lock
+   //! destroys the object and releases the lock
    DLLLOCAL ~AutoLocker() {
       lck->unlock();
    }
 };
+
+//! provides a safe and exception-safe way to release and re-acquire locks in Qore, only to be used on the stack, cannot be dynamically allocated
+/** Ensures that locks are released when the object is created and re-acquired when the object is destroyed.
+
+    @see AutoLocker
+    @see SafeLocker
+    @see OptLocker
+
+    @since Qore 0.8.10
+*/
+class AutoUnlocker {
+private:
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL AutoUnlocker(const AutoUnlocker&);
+
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL AutoUnlocker& operator=(const AutoUnlocker&);
+
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL void *operator new(size_t);
+
+protected:
+   //! the pointer to the lock that will be managed
+   QoreThreadLock *lck;
+
+public:
+   //! creates the object and releases the lock
+   DLLLOCAL AutoUnlocker(QoreThreadLock *l) : lck(l) {
+      lck->unlock();
+   }
+
+   //! creates the object and releases the lock
+   DLLLOCAL AutoUnlocker(QoreThreadLock &l) : lck(&l) {
+      lck->unlock();
+   }
+
+   //! grabs the lock and destroys the object
+   DLLLOCAL ~AutoUnlocker() {
+      lck->lock();
+   }
+};
+
 
 //! provides an exception-safe way to manage locks in Qore, only to be used on the stack, cannot be dynamically allocated
 /** Ensures that locks are released by locking the lock when the
     object is created and releasing it when the object is destroyed.
     Also allows the lock to be released before the object's destruction
     at the expense of one extra byte on the stack compared to the AutoLocker class.
+
     @see AutoLocker
     @see OptLocker
 */

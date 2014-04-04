@@ -1767,18 +1767,15 @@ struct qore_socket_private {
       return h;
    }
 
-   DLLLOCAL int sendHttpChunkedWithCallback(ExceptionSink* xsink, const char* mname, const ResolvedCallReferenceNode& send_callback, int source, int timeout_ms = -1) {
-      //xxx
-      return 0;
-   }
+   DLLLOCAL int sendHttpChunkedWithCallback(ExceptionSink* xsink, const char* mname, const ResolvedCallReferenceNode& send_callback, QoreThreadLock& l, int source, int timeout_ms = -1) {
+      assert(xsink);
 
-   DLLLOCAL int send(ExceptionSink* xsink, const char* mname, const char* buf, qore_size_t size, int timeout_ms = -1) {
       if (sock == QORE_INVALID_SOCKET) {
-	 if (xsink)
-	    se_not_open(mname, xsink);
-
+         se_not_open(mname, xsink);
 	 return QSE_NOT_OPEN;
       }
+
+      // XXX FIXME: set callback operation in progress flag; add checks
 
       PrivateQoreSocketThroughputHelper th(this, true);
 
@@ -1790,14 +1787,108 @@ struct qore_socket_private {
          return -1;
 
       qore_offset_t rc;
-      qore_size_t bs = 0;
       int64 total = 0;
+      bool done = false;
+
+      while (!done) {
+         ReferenceHolder<AbstractQoreNode> res(xsink);
+
+         // FIXME: subtract callback execution time from socket performance measurement
+
+         // unlock and execute callback
+         {
+            AutoUnlocker al(l);
+            res = send_callback.exec(0, xsink);
+         }
+
+         // check exception and socket status
+         if (*xsink)
+            return -1;
+
+         if (sock == QORE_INVALID_SOCKET) {
+            se_not_open(mname, xsink);
+            return QSE_NOT_OPEN;
+         }
+
+         // check callback return val
+         QoreString buf;
+
+         switch (get_node_type(*res)) {
+            case NT_STRING: {
+               const QoreStringNode* str = reinterpret_cast<const QoreStringNode*>(*res);
+               buf.sprintf("%x\r\n", (int)str->size());
+               buf.concat(str->getBuffer(), str->size());
+               break;
+            }
+
+            case NT_BINARY: {
+               const BinaryNode* b = reinterpret_cast<const BinaryNode*>(*res);
+               buf.sprintf("%x\r\n", (int)b->size());
+               buf.concat((const char*)b->getPtr(), b->size());
+               break;
+            }
+
+            case NT_HASH: {
+               buf.concat("0\r\n");
+
+               ConstHashIterator hi(reinterpret_cast<const QoreHashNode*>(*res));
+
+               while (hi.next()) {
+                  const AbstractQoreNode* v = hi.getValue();
+                  const char* key = hi.getKey();
+                  if (v && v->getType() == NT_LIST) {
+                     ConstListIterator li(reinterpret_cast<const QoreListNode* >(v));
+                     while (li.next())
+                        do_header(key, buf, li.getValue());
+                  }
+                  else
+                     do_header(key, buf, hi.getValue());
+               }
+
+               // fall through to next case
+            }
+
+            case NT_NOTHING:
+            case NT_NULL:
+               done = true;
+               break;
+
+            default:
+               xsink->raiseException("SOCKET-CALLBACK-ERROR", "HTTP chunked data callback returned type '%s'; expecting one of: 'string', 'binary', 'hash', 'nothing' (or 'NULL')", get_type_name(*res));
+               return -1;
+         }
+
+         if (buf.empty())
+            buf.concat("0\r\n");
+
+         // add trailing \r\n
+         buf.concat("\r\n");
+
+         // send chunk buffer data
+         rc = sendIntern(xsink, mname, buf.getBuffer(), buf.size(), timeout_ms, total);
+
+         if (rc < 0 || sock == QORE_INVALID_SOCKET)
+            break;
+      }
+
+      th.finalize(total);
+
+      return rc < 0 || sock == QORE_INVALID_SOCKET ? -1 : 0;
+   }
+
+   DLLLOCAL int sendIntern(ExceptionSink* xsink, const char* mname, const char* buf, qore_size_t size, int timeout_ms, int64& total) {
+      qore_offset_t rc;
+      qore_size_t bs = 0;
+
+      // set the non-blocking flag (for use with non-ssl connections)
+      bool nb = (timeout_ms >= 0);
+
       while (true) {
          if (ssl) {
             // SSL_MODE_ENABLE_PARTIAL_WRITE is enabled so we can get finer-grained socket events for do_send_event() below
             rc = ssl->write(mname, buf + bs, size - bs, timeout_ms, xsink);
          }
-         else
+         else {
             while (true) {
                rc = ::send(sock, buf + bs, size - bs, 0);
                //printd(5, "qore_socket_private::send() this: %p Socket::%s() buf: %p size: "QLLD" timeout_ms: %d ssl: %p nb: %d bs: "QLLD" rc: "QLLD"\n", this, mname, buf, size, timeout_ms, ssl, nb, bs, rc);
@@ -1813,10 +1904,8 @@ struct qore_socket_private {
 		      )) {
                   if (!isWriteFinished(timeout_ms, mname, xsink)) {
                      if (xsink) {
-			if (*xsink) {
-			   th.finalize(total);
+			if (*xsink)
 			   return -1;
-			}
                         se_timeout(mname, timeout_ms, xsink);
 		     }
                      rc = QSE_TIMEOUT;
@@ -1841,14 +1930,13 @@ struct qore_socket_private {
                   break;
                }
             }
+         }
 
 	 total += rc;
 
 	 //printd(5, "qore_socket_private::send() bs: %ld rc: "QSD" len: "QSD" (total: "QSD") errno: %d\n", bs, rc, size - bs, size, errno);
-	 if (rc < 0 || sock == QORE_INVALID_SOCKET) {
-	    th.finalize(total);
-	    return rc;
-	 }
+	 if (rc < 0 || sock == QORE_INVALID_SOCKET)
+            break;
 
 	 bs += rc;
 
@@ -1858,13 +1946,34 @@ struct qore_socket_private {
 	    break;
       }
 
+      return rc;
+   }
+   
+   DLLLOCAL int send(ExceptionSink* xsink, const char* mname, const char* buf, qore_size_t size, int timeout_ms = -1) {
+      if (sock == QORE_INVALID_SOCKET) {
+	 if (xsink)
+	    se_not_open(mname, xsink);
+
+	 return QSE_NOT_OPEN;
+      }
+
+      PrivateQoreSocketThroughputHelper th(this, true);
+
+      // set the non-blocking flag (for use with non-ssl connections)
+      bool nb = (timeout_ms >= 0);
+      // set non-blocking I/O (and restore on exit) if we have a timeout and a non-ssl connection
+      OptionalNonBlockingHelper onbh(*this, !ssl && nb, xsink);
+      if (*xsink)
+         return -1;
+
+      int64 total = 0;
+      qore_offset_t rc = sendIntern(xsink, mname, buf, size, timeout_ms, total);
       th.finalize(total);
 
-      //printd(5, "qore_socket_private::send() sent "QSD" bytes (size="QSD")\n", bs, size);
-      return 0;
+      return rc < 0 || sock == QORE_INVALID_SOCKET ? rc : 0;
    }
 
-   DLLLOCAL int sendHttpMessage(ExceptionSink* xsink, QoreHashNode* info, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, const ResolvedCallReferenceNode* send_callback, int source, int timeout_ms = -1) {
+   DLLLOCAL int sendHttpMessage(ExceptionSink* xsink, QoreHashNode* info, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, const ResolvedCallReferenceNode* send_callback, int source, int timeout_ms = -1, QoreThreadLock* l = 0) {
       assert(!(data && send_callback));
       // prepare header string
       QoreString hdr(enc);
@@ -1889,13 +1998,15 @@ struct qore_socket_private {
       
       if (size && data)
          return send(xsink, "sendHTTPMessage", (char*)data, size, timeout_ms);
-      else if (send_callback)
-         return sendHttpChunkedWithCallback(xsink, "sendHTTPMessage", *send_callback, source, timeout_ms);
+      else if (send_callback) {
+         assert(l);
+         return sendHttpChunkedWithCallback(xsink, "sendHTTPMessage", *send_callback, *l, source, timeout_ms);
+      }
 
       return 0;
    }
 
-   DLLLOCAL int sendHttpResponse(ExceptionSink* xsink, int code, const char* desc, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, const ResolvedCallReferenceNode* send_callback, int source, int timeout_ms = -1) {
+   DLLLOCAL int sendHttpResponse(ExceptionSink* xsink, int code, const char* desc, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, const ResolvedCallReferenceNode* send_callback, int source, int timeout_ms = -1, QoreThreadLock* l = 0) {
       assert(!(data && send_callback));
       // prepare header string
       QoreString hdr(enc);
@@ -1916,8 +2027,10 @@ struct qore_socket_private {
 
       if (size && data)
          return send(xsink, "sendHTTPResponse", (char*)data, size, timeout_ms);
-      else if (send_callback)
-         return sendHttpChunkedWithCallback(xsink, "sendHTTPResponse", *send_callback, source, timeout_ms);
+      else if (send_callback) {
+         assert(l);
+         return sendHttpChunkedWithCallback(xsink, "sendHTTPResponse", *send_callback, *l, source, timeout_ms);
+      }
 
       return 0;
    }

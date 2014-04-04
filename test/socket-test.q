@@ -4,31 +4,33 @@
 %enable-all-warnings
 %exec-class socket_test
 
-const opts = 
-    ( "help"       : "h,help",
-      "server"     : "S,server=s",
-      "servonly"   : "O,server-only",
-      "ipv4"       : "4,ipv4",
-      "ipv6"       : "6,ipv6",
-      "ssl"        : "s,ssl",
-      "key"        : "k,private-key=s",
-      "cert"       : "c,cert=s",
-      "pass"       : "p,private-key-password=s",
-      "clientkey"  : "K,client-private-key=s",
-      "clientcert" : "C,client-cert=s",
-      "events"     : "e,show-events",
-      "verbose"    : "v,verbose" );
+const opts = (
+    "help"       : "h,help",
+    "server"     : "S,server=s",
+    "servonly"   : "O,server-only",
+    "ipv4"       : "4,ipv4",
+    "ipv6"       : "6,ipv6",
+    "ssl"        : "s,ssl",
+    "key"        : "k,private-key=s",
+    "cert"       : "c,cert=s",
+    "pass"       : "p,private-key-password=s",
+    "clientkey"  : "K,client-private-key=s",
+    "clientcert" : "C,client-cert=s",
+    "events"     : "e,show-events",
+    "verbose"    : "v,verbose",
+    );
 
 const i1 = 10;
 const i2 = 5121;
 const i4 = 2393921;
 const i8 = 12309309203932;
 
-const http_headers =  
-    ( "Accept"       : "text",
-      "Content-Type" : "text",
-      "User-Agent"   : "Qore HTTP Test Agent",
-      "Connection"   : "Keep-Alive" );
+const http_headers =  (
+    "Accept"       : "text",
+    "Content-Type" : "text",
+    "User-Agent"   : "Qore HTTP Test Agent",
+    "Connection"   : "Keep-Alive",
+    );
 
 class socket_test {
     constructor() {
@@ -101,12 +103,12 @@ class socket_test {
 
 	try {
 	    if ($.o.ssl) {
-		if (strlen($.o.cert)) {
+		if ($.o.cert) {
 		    my File $f();
 		    $f.open2($.o.cert);
 		    my SSLCertificate $cert($f.read(-1));
 		    $s.setCertificate($cert);
-		    if (strlen($.o.key)) {
+		    if ($.o.key) {
 			$f.open2($.o.key);
 			$s.setPrivateKey(new SSLPrivateKey($f.read(-1), $.o.pass));
 		    }
@@ -115,7 +117,7 @@ class socket_test {
 		#socket_test::printf("returned from Socket::acceptSSL() s=%N\n", $s);
 		socket_test::printf("server: secure connection (%s %s) from %s\n", $s.getSSLCipherName(), $s.getSSLCipherVersion(), $s.getPeerInfo().address_desc);
 		my *string $str = $s.verifyPeerCertificate();
-		if (!exists $str)
+		if (!$str)
 		    socket_test::printf("server: no client certificate\n");
 		else
 		    socket_test::printf("server: client certificate: %n %s: %s\n", $str, X509_VerificationReasons.$str);
