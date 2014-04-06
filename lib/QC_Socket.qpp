@@ -1722,7 +1722,7 @@ $sock.sendHTTPMessageWithCallback($send_callback, "POST", "/RPC2", "1.1", ("Cont
 
     @see Socket::sendHTTPResponse(), Socket::readHTTPHeader()
 
-    @since Qore 0.8.10
+    @since %Qore 0.8.10
  */
 nothing Socket::sendHTTPMessageWithCallback(code scb, string method, string path, string http_version, hash headers, *reference info, timeout timeout_ms = -1) {
    OptHashRefHelper ohrh(info, xsink);
@@ -1822,7 +1822,7 @@ $sock.sendHTTPResponseWithCallback($send_callback, 200, "OK", "1.1", ("Connectio
     @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
     @throw SOCKET-SEND-ERROR send failed
 
-    @since Qore 0.8.10
+    @since %Qore 0.8.10
  */
 nothing Socket::sendHTTPResponseWithCallback(code scb, softint status_code, string status_desc, string http_version, hash headers, timeout timeout_ms = -1) {
    if (status_code < 100 || status_code >= 600) {
@@ -1964,6 +1964,70 @@ my hash $ans = $sock.readHTTPChunkedBodyBinary(20s);
 hash Socket::readHTTPChunkedBodyBinary(timeout timeout_ms = -1) {
    // when rc = -3 it's a timeout, but rv will be NULL anyway, so we do nothing
    return s->readHTTPChunkedBodyBinary(timeout_ms, xsink);
+}
+
+//! Reads in an HTTP message body sent in chunked transfer encoding and returns it with any footers received as a string in the \c "body" key of a hash (including footers received)
+/** If any errors are encountered, an exception is raised
+
+    @par Example:
+    @code
+my hash $ans = $sock.readHTTPChunkedBodyWithCallback($recv_callback, 20s);
+    @endcode
+
+    @par Events:
+    @ref EVENT_HTTP_CHUNK_SIZE, @ref EVENT_HTTP_FOOTERS_RECEIVED
+
+    @param rcb The receive callback for the data received; first this method is called with a hash of the message headers, and then with any message body; if a chunked HTTP message is received, then the callback is called once for each chunk; when the message has been received, then the receive callback is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
+    - \c "data": the string or binary data
+    - \c "chunked": True if the data was received with chunked transfer encoding, False if not
+    .
+    Header or trailer data is placed in a hash with the following key:
+    - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
+    @param timeout_ms The timeout in milliseconds (1/1000 second). If no timeout or if a negative timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  If a timeout occurs, a \c "SOCKET-TIMEOUT" exception is raised. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
+
+    @throw SOCKET-NOT-OPEN The socket is not connected
+    @throw SOCKET-CLOSED The remote end has closed the connection
+    @throw SOCKET-RECV-ERROR There was an error receiving the data
+    @throw SOCKET-TIMEOUT The data requested was not received in the timeout period
+    @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
+    @throw READ-HTTP-CHUNK-ERROR negative value given for chunk size by server
+
+    @since %Qore 0.8.10
+ */
+Socket::readHTTPChunkedBodyWithCallback(code rcb, timeout timeout_ms = -1) {
+   s->readHTTPChunkedBodyWithCallback(*rcb, timeout_ms, xsink);
+}
+
+//! Reads in an HTTP message body sent in chunked transfer encoding and returns it with any footers received as a string in the \c "body" key of a hash (including footers received)
+/** If any errors are encountered, an exception is raised
+
+    @par Example:
+    @code
+my hash $ans = $sock.readHTTPChunkedBodyBinaryWithCallback($recv_callback, 20s);
+    @endcode
+
+    @par Events:
+    @ref EVENT_HTTP_CHUNK_SIZE, @ref EVENT_HTTP_FOOTERS_RECEIVED
+
+    @param rcb The receive callback for the data received; first this method is called with a hash of the message headers, and then with any message body; if a chunked HTTP message is received, then the callback is called once for each chunk; when the message has been received, then the receive callback is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
+    - \c "data": the string or binary data
+    - \c "chunked": True if the data was received with chunked transfer encoding, False if not
+    .
+    Header or trailer data is placed in a hash with the following key:
+    - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
+    @param timeout_ms The timeout in milliseconds (1/1000 second). If no timeout or if a negative timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  If a timeout occurs, a \c "SOCKET-TIMEOUT" exception is raised. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
+
+    @throw SOCKET-NOT-OPEN The socket is not connected
+    @throw SOCKET-CLOSED The remote end has closed the connection
+    @throw SOCKET-RECV-ERROR There was an error receiving the data
+    @throw SOCKET-TIMEOUT The data requested was not received in the timeout period
+    @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
+    @throw READ-HTTP-CHUNK-ERROR negative value given for chunk size by server
+
+    @since %Qore 0.8.10
+ */
+Socket::readHTTPChunkedBodyBinaryWithCallback(code rcb, timeout timeout_ms = -1) {
+   s->readHTTPChunkedBodyBinaryWithCallback(*rcb, timeout_ms, xsink);
 }
 
 //! Closes an open socket
@@ -2457,7 +2521,7 @@ $sock.clearWarningQueue();
 
     @see Socket::setWarningQueue()
 
-    @since Qore 0.8.9
+    @since %Qore 0.8.9
  */
 nothing Socket::clearWarningQueue() {
    s->clearWarningQueue(xsink);
@@ -2492,7 +2556,7 @@ $sock.setWarningQueue(5000, 5000, $queue, "socket-1");
 
     @see Socket::clearWarningQueue()
 
-    @since Qore 0.8.9
+    @since %Qore 0.8.9
  */
 nothing Socket::setWarningQueue(int warning_ms, int warning_bs, Queue[Queue] queue, any arg, timeout min_ms = 1s) {
    ReferenceHolder<Queue> q(queue, xsink);
@@ -2519,7 +2583,7 @@ my hash $h = $sock.getUsageInfo();
     - \c "timeout": (only if warning values have been set with @ref Qore::Socket::setWarningQueue() "Socket::setWarningQueue()") the warning timeout in microseconds
     - \c "min_throughput": (only if warning values have been set with @ref Qore::Socket::setWarningQueue() "Socket::setWarningQueue()") the minimum warning throughput in bytes/sec
 
-    @since Qore 0.8.9
+    @since %Qore 0.8.9
 
     @see Socket::clearStats()
  */
@@ -2533,7 +2597,7 @@ hash Socket::getUsageInfo() [flags=CONSTANT] {
 $sock.clearStats();
     @endcode
 
-    @since Qore 0.8.9
+    @since %Qore 0.8.9
 
     @see Socket::getUsageInfo()
 */

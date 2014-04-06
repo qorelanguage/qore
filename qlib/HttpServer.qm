@@ -688,6 +688,9 @@ public class HttpServer::AbstractHttpRequestHandler {
 
         #! if automatically decompressed POSTed data should be converted to a string (if @ref Qore::False "False", then it will be decompressed to a binary)
         bool $.decompress_to_string = True;
+
+        #! if the handler supports streaming requests/responses with chunked data
+        bool $.stream = False;
     }
 
     #! create the object optionally with the given AbstractAuthenticator
@@ -727,6 +730,48 @@ public class HttpServer::AbstractHttpRequestHandler {
             "body": sprintf("default handler (%s) has no implementation", $self.className()),
             "close": True,
             );
+    }
+
+    hash handleStreamRequestImpl(Socket $s, hash $cx, hash $hdr, *data $body) {
+        return (
+            "code": 501,
+            "body": sprintf("default handler (%s) has no implementation", $self.className()),
+            "close": True,
+            );
+    }
+
+    private data handleBody(Socket $s, hash $hdr, binary $body) {
+        switch ($hdr."content-encoding") {
+            case "deflate":
+            case "x-deflate":
+                return $.decompress_to_string ? uncompress_to_string(binary($body), $s.getEncoding()) : uncompress_to_binary($body);
+            case "gzip":
+            case "x-gzip":
+                return $.decompress_to_string ? gunzip_to_string(binary($body), $s.getEncoding()) : gunzip_to_binary($body);
+            case "bzip2":
+            case "x-bzip2":
+                return $.decompress_to_string ? bunzip2_to_string(binary($body), $s.getEncoding()) : bunzip2_to_binary($body);
+            case "identity":
+                return $.decompress_to_string ? binary_to_string($body, $s.getEncoding()) : $body;
+        }
+        throw "UNSUPPORTED-CONTENT-ENCODING", sprintf("don't know how to handle content-encoding %y", $hdr."content-encoding");
+    }
+
+    hash handleRequest(Socket $s, hash $cx, hash $hdr, *data $body) {
+        # classic, non-streaming interface
+        if (!$.stream) {
+            if (!$body && $hdr."transfer-encoding" == "chunked") {
+                $hdr += ($hdr."content-encoding" ? $s.readHTTPChunkedBodyBinary(HttpServer::ReadTimeout) : $s.readHTTPChunkedBody(HttpServer::ReadTimeout));
+                $body = remove $hdr.body;
+            }
+
+            if ($body && $hdr."content-encoding" && $.decompress)
+                $body = $.handleBody($s, $hdr, $body);
+            
+            return $.handleRequest($cx, $hdr, $body);
+        }
+
+        return $.handleStreamRequestImpl($s, $cx, $hdr, $body);
     }
 
     #! helper method for handling log messages
@@ -1918,33 +1963,34 @@ public class HttpServer::HttpServer {
 	}
 
         my AbstractHttpRequestHandler $handler;
-	my string $handlerName;
 
         if ($hi) {
             $handler = $hi.obj;
-            $handlerName = $hi.name;
+            $cx.handler_name = $hi.name;
         }
 
 	try {
 	    my any $rv;
 
-	    #printf("HTTP DEBUG: B: handler: %y strict-bool-eval: %y\n", $handlerName, get_parse_options() & PO_STRICT_BOOLEAN_EVAL);	   
-	    #printf("HTTP DEBUG: B: handler: %y: context: %y, hdr: %y, body: %y\n", $handlerName, $cx, $hdr, $body);
-	    #printf("HTTP DEBUG: BEFORE handler=%s", dbg_node_info($.handlers.$handlerName));
+	    #printf("HTTP DEBUG: B: handler: %y strict-bool-eval: %y\n", $cx.handler_name, get_parse_options() & PO_STRICT_BOOLEAN_EVAL);	   
+	    #printf("HTTP DEBUG: B: handler: %y: context: %y, hdr: %y, body: %y\n", $cx.handler_name, $cx, $hdr, $body);
+	    #printf("HTTP DEBUG: BEFORE handler=%s", dbg_node_info($.handlers.($cx.handler_name)));
 
             if (!$handler && $.defaultHandler) {
                 $handler = $.defaultHandler.obj;
-                $handlerName = $.defaultHandler.name;
+                $cx.handler_name = $.defaultHandler.name;
             }
 
-            $cx.handlerName = $handlerName;
+	    #printf("HTTP DEBUG: A: cid: %d handler: %y auth: %y\n", $cx.id, $cx.handler_name, boolean($handler.auth));
 
-	    #printf("HTTP DEBUG: A: cid: %d handler: %y auth: %y\n", $cx.id, $handlerName, boolean($handler.auth));
-
-            if ($handler) {
+            if (!$handler) {
+                $cx.handler_name = "error";
+                $rv = $.noHandlerError($cx, $hdr, $body);
+            }
+            else {
 		# check for authentication info
-                #printf("HTTP DEBUG: handler: %y (auth: %y) hdr: %y\n", $handlerName, exists $handler.auth && $handler.auth.requiresAuthentication(), $hdr);
-                
+                #printf("HTTP DEBUG: handler: %y (auth: %y) hdr: %y\n", $cx.handler_name, exists $handler.auth && $handler.auth.requiresAuthentication(), $hdr);
+
 		if ($handler.auth) {
                     try {
                         my *hash $ah = $handler.auth.authenticateRequest($listener, $hdr, \$cx);
@@ -1970,192 +2016,164 @@ public class HttpServer::HttpServer {
                     #$listener.log("authenticated with user %y", $cx.user);
                 }
 
-                # handle content-encoding according to handler settings
-                if ($hdr."content-encoding" && $handler.decompress) {
-                    #printf("HTTP DEBUG: context=%n\nhdr=%n\nSHA1(body)=%n, body=%N\n", $cx, $hdr, SHA1($body), $body);
-                    try {
-                        switch ($hdr."content-encoding") {
-                            case "deflate":
-                            case "x-deflate":
-                                $body = $handler.decompress_to_string ? uncompress_to_string(binary($body), $body.encoding()) : uncompress_to_binary($body);
-                                #printf("AFTER body=%N\n", $body);
-				break;
-                            case "gzip":
-			    case "x-gzip":
-                                $body = $handler.decompress_to_string ? gunzip_to_string(binary($body), $body.encoding()) : gunzip_to_binary($body);
-                                #printf("AFTER body=%N\n", $body);
-				break;
-                            case "bzip2":
-			    case "x-bzip2":
-				$body = $handler.decompress_to_string ? bunzip2_to_string(binary($body), $body.encoding()) : bunzip2_to_binary($body);
-				break;
-                            case "identity":
-                                break;
-                            default:
-                                throw "UNSUPPORTED-CONTENT-ENCODING", sprintf("don't know how to handle content-encoding %y", $hdr."content-encoding");
-                        }
-                    }
-                    catch (hash $ex) {
-                        my string $etxt = sprintf("error processing content encoding %s: %s: %s", $hdr."content-encoding", $ex.err, $ex.desc);
-                        my string $str = sprintf("%s: received from %s (header=%y)", $etxt, $cx."peer-info".address_desc, $hdr);
-                        $listener.logError($str);
-                        $cx.close = True;
-                        $.sendHttpError($listener, $cx, $s, 501, $etxt, NOTHING, $cx."response-encoding");
-                        break;
-                    }
-                }
-
                 my *hash $tld_save = $handler.saveThreadLocalData();
                 on_exit $handler.restoreThreadLocalData($tld_save);
-                $rv = $handler.handleRequest($cx, $hdr, $body);
+                $rv = $handler.handleRequest($s, $cx, $hdr, $body);
+                if ($rv.reply_sent)
+                    continue;
             }
-            else {
-                $cx.handlerName = $handlerName = "error";
-                $rv = $.noHandlerError($cx, $hdr, $body);
-	    }
 
-            if (exists $rv.close)
-                $cx.close = boolean($rv.close);
-
-            if ($rv.typeCode() == NT_STRING)
-                $rv = (
-                    "code": 200,
-                    "body": $rv,
-                );
-            else if ($rv.typeCode() != NT_HASH)
-                $rv = (
-                    "code": 500,
-                    "body": sprintf("handler %y returned an invalid response: %y", $rv),
-                    );
-
-            $rv.close = $cx.close;
-
-	    if (!HttpCodes.($rv.code)) { # if the handler returns an invalid hash
-		my string $str = sprintf("%s handler returned an invalid response rv: %y", $handlerName, $rv);
-                
-		$.sendHttpError($listener, $cx, $s, 500, $str, NOTHING, $cx."response-encoding");
-		return;
-	    }
-
-	    #printf("HTTP DEBUG: handler %s returned: %n\n", $handlerName, $rv);
-
-            # currently enforced by the handlers:
-            # RFC 2616 section 4.3: http://tools.ietf.org/html/rfc2616#section-4.3
-            # All 1xx (informational), 204 (no content), and 304 (not modified) responses
-            # MUST NOT include a message-body. All other responses do include a
-            # message-body, although it MAY be of zero length.
-
-	    $rv.hdr = $.hdr + $rv.hdr;
-            if ($rv.code >= 300 && $rv.code < 400) {
-                # handle redirect msgs (RFC 2616 section 10.3 http://tools.ietf.org/html/rfc2616#section-10.3)
-                $s.sendHTTPResponse($rv.code, HttpServer::HttpCodes.($rv.code), "1.1", $rv.hdr, $rv.body);
-                $listener.logResponse($cx, $rv);
-            }
-            else if ($rv.code >= 400) {
-		if (!$rv.body)
-		    $rv.body = sprintf("unknown error in %s handler", $handlerName);
-		
-		$.sendHttpError($listener, $cx, $s, $rv.code, $rv.body, $rv.hdr, $cx."response-encoding");
-	    }
-	    else {
-		#printf("\n**** REQUEST: %N\n", $body);
-		#printf("\n**** RESPONSE: %N\n", $rv.body);
-                if (!$rv.hdr.Connection) {
-                    if ($rv.close) # RFC 2616 section 14.10 is "close" in all lower-case
-                        $rv.hdr.Connection = "close";
-                    else
-                        $rv.hdr.Connection = "Keep-Alive";
-                }
-
-		if (!$rv.hdr.Date) # RFC 2616 sec 14.18 date format
-		    $rv.hdr.Date = gmtime().format("Dy, DD Mon YYYY HH:mm:SS") + " GMT";
-
-		if (!$rv.hdr.Server)
-		    $rv.hdr.Server = $.httpserverstring;
-
-                my string $old_encoding = $s.getEncoding();
-                on_exit if ($s.getEncoding() != $old_encoding)
-                    $s.setEncoding($old_encoding);
-                if (!$cx."response-encoding")
-                    $cx."response-encoding" = $old_encoding.lwr();
-                else if ($cx."response-encoding" != $old_encoding.lwr())
-                    $s.setEncoding($cx."response-encoding");
-
-                if ($rv.body) {
-                    if (!$rv.hdr."Content-Type")
-                        $rv.hdr."Content-Type" = MimeTypeHtml + ";charset=" + $cx."response-encoding";
-                    else if ($rv.hdr."Content-Type" !~ /charset=/ && ($rv.body.typeCode() == NT_STRING))
-                        $rv.hdr."Content-Type" += ";charset=" + $cx."response-encoding";
-                }
-
-		if ($head)
-		    $s.sendHTTPResponse($rv.code, HttpServer::HttpCodes.($rv.code), "1.1", $rv.hdr);
-		else {
-		    if ($cx.encoding == "deflate") {
-			$rv.hdr."Content-Encoding" = "deflate";
-			$rv.body = compress($rv.body);
-		    }
-		    else if ($cx.encoding == "gzip") {
-			$rv.hdr."Content-Encoding" = "gzip";
-			$rv.body = gzip($rv.body);
-		    }
-		    else if ($cx.encoding == "bzip2") {
-			$rv.hdr."Content-Encoding" = "bzip2";
-			$rv.body = bzip2($rv.body);
-		    }
-
-		    $s.sendHTTPResponse($rv.code, HttpServer::HttpCodes.($rv.code), "1.1", $rv.hdr, $rv.body);
-		}
-
-                $listener.logResponse($cx, $rv);
-	    }
-	    
-	    if ($rv.log)
-		$listener.log("cid %d: %s (from %s): %s", $cx.id, $handlerName, $cx."peer-info".address_desc, $rv.log);
-	    if ($rv.errlog)
-		$listener.logError("cid %d: %s (from %s): %s", $cx.id, $handlerName, $cx."peer-info".address_desc, $rv.errlog);
-
-            if ($rv.code == 101) {
-                if ($rv.close)
-                    $listener.logError("cid %d: 101 Switching Protocols returned from handler %y, but the connection close flag set", $cx.id, $handlerName);
-                else if (!($handler instanceof AbstractHttpSocketHandler)) {
-                    $listener.logError("cid %d: 101 Switching Protocols returned from handler %y, but the handler is not derived from AbstractHttpSocketHandler (class: %y)", $cx.id, $handlerName, $handler.className());
-                }
-                else {
-                    if ($listener.registerDedicatedSocket($cx.id, $handler)) {
-                        on_exit $cx.close = True;
-                        try {
-                            cast<AbstractHttpSocketHandler>($handler).start($listener.getID(), $cx, $hdr, $s);
-                        }
-                        catch (hash $ex) {
-                            my string $desc = !$.debug
-                                ? sprintf("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc)
-                                : get_exception_string($ex);
-                            $listener.logError("cid %d: error in dedicated socket handler %y: %s", $cx.id, $handlerName, $desc);
-                        }
-                        $listener.removeDedicatedSocket($cx.id, $handler);
-                        $listener.log("cid %d: stopped dedicated socket handler: %y", $cx.id, $handlerName);
-                    }
-                    else
-                        $listener.logError("cid %d: cannot start dedicated socket handler %y because the listener is shutting down", $cx.id, $handlerName);
-                }
-            }
+            $.sendReply($listener, $s, $handler, $rv, $cx, $hdr, $head);
 	}
 	catch (hash $ex) {
             my string $desc = !$.debug
                 ? sprintf("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc)
                 : get_exception_string($ex);
 
-	    my string $str = sprintf("handler: %s: %s", $handlerName, $desc);
+	    my string $str = sprintf("handler: %s: %s", $cx.handler_name, $desc);
 
             if ($ex.err == "ENCODING-CONVERSION-ERROR") {
                 $s.setEncoding("utf8");
                 $cx."response-encoding" = "utf8";
             }
 
+            $cx.close = True;
+
 	    $.sendHttpError($listener, $cx, $s, 500, $str, NOTHING, $cx."response-encoding");
 	    $.logError($str);
 	}
+    } 
+
+    # sends a reply to a request
+    # don't reimplement this method; fix/enhance it in the module
+    final sendReply(HttpListener $listener, Socket $s, AbstractHttpRequestHandler $handler, hash $rv, hash $cx, hash $hdr, bool $head) {
+        if (exists $rv.close)
+            $cx.close = boolean($rv.close);
+
+        if ($rv.typeCode() == NT_STRING)
+            $rv = (
+                "code": 200,
+                "body": $rv,
+            );
+        else if ($rv.typeCode() != NT_HASH)
+            $rv = (
+                "code": 500,
+                "body": sprintf("handler %y returned an invalid response: %y", $rv),
+            );
+
+        $rv.close = $cx.close;
+
+        if (!HttpCodes.($rv.code)) { # if the handler returns an invalid hash
+            my string $str = sprintf("%s handler returned an invalid response rv: %y", $cx.handler_name, $rv);
+            $cx.close = True;
+            
+            $.sendHttpError($listener, $cx, $s, 500, $str, NOTHING, $cx."response-encoding");
+            return;
+        }
+
+        #printf("HTTP DEBUG: handler %s returned: %n\n", $cx.handler_name, $rv);
+
+        # currently enforced by the handlers:
+        # RFC 2616 section 4.3: http://tools.ietf.org/html/rfc2616#section-4.3
+        # All 1xx (informational), 204 (no content), and 304 (not modified) responses
+        # MUST NOT include a message-body. All other responses do include a
+        # message-body, although it MAY be of zero length.
+
+        $rv.hdr = $.hdr + $rv.hdr;
+        if ($rv.code >= 300 && $rv.code < 400) {
+            # handle redirect msgs (RFC 2616 section 10.3 http://tools.ietf.org/html/rfc2616#section-10.3)
+            $s.sendHTTPResponse($rv.code, HttpServer::HttpCodes.($rv.code), "1.1", $rv.hdr, $rv.body);
+            $listener.logResponse($cx, $rv);
+        }
+        else if ($rv.code >= 400) {
+            if (!$rv.body)
+                $rv.body = sprintf("unknown error in %s handler", $cx.handler_name);
+            
+            $.sendHttpError($listener, $cx, $s, $rv.code, $rv.body, $rv.hdr, $cx."response-encoding");
+        }
+        else {
+            #printf("\n**** REQUEST: %N\n", $body);
+            #printf("\n**** RESPONSE: %N\n", $rv.body);
+            if (!$rv.hdr.Connection) {
+                if ($rv.close) # RFC 2616 section 14.10 is "close" in all lower-case
+                    $rv.hdr.Connection = "close";
+                else
+                    $rv.hdr.Connection = "Keep-Alive";
+            }
+
+            if (!$rv.hdr.Date) # RFC 2616 sec 14.18 date format
+                $rv.hdr.Date = gmtime().format("Dy, DD Mon YYYY HH:mm:SS") + " GMT";
+
+            if (!$rv.hdr.Server)
+                $rv.hdr.Server = $.httpserverstring;
+
+            my string $old_encoding = $s.getEncoding();
+            on_exit if ($s.getEncoding() != $old_encoding)
+                $s.setEncoding($old_encoding);
+            if (!$cx."response-encoding")
+                $cx."response-encoding" = $old_encoding.lwr();
+            else if ($cx."response-encoding" != $old_encoding.lwr())
+                $s.setEncoding($cx."response-encoding");
+
+            if ($rv.body) {
+                if (!$rv.hdr."Content-Type")
+                    $rv.hdr."Content-Type" = MimeTypeHtml + ";charset=" + $cx."response-encoding";
+                else if ($rv.hdr."Content-Type" !~ /charset=/ && ($rv.body.typeCode() == NT_STRING))
+                    $rv.hdr."Content-Type" += ";charset=" + $cx."response-encoding";
+            }
+
+            if ($head)
+                $s.sendHTTPResponse($rv.code, HttpServer::HttpCodes.($rv.code), "1.1", $rv.hdr);
+            else {
+                if ($cx.encoding == "deflate") {
+                    $rv.hdr."Content-Encoding" = "deflate";
+                    $rv.body = compress($rv.body);
+                }
+                else if ($cx.encoding == "gzip") {
+                    $rv.hdr."Content-Encoding" = "gzip";
+                    $rv.body = gzip($rv.body);
+                }
+                else if ($cx.encoding == "bzip2") {
+                    $rv.hdr."Content-Encoding" = "bzip2";
+                    $rv.body = bzip2($rv.body);
+                }
+
+                $s.sendHTTPResponse($rv.code, HttpServer::HttpCodes.($rv.code), "1.1", $rv.hdr, $rv.body);
+            }
+
+            $listener.logResponse($cx, $rv);
+        }
+        
+        if ($rv.log)
+            $listener.log("cid %d: %s (from %s): %s", $cx.id, $cx.handler_name, $cx."peer-info".address_desc, $rv.log);
+        if ($rv.errlog)
+            $listener.logError("cid %d: %s (from %s): %s", $cx.id, $cx.handler_name, $cx."peer-info".address_desc, $rv.errlog);
+
+        if ($rv.code == 101) {
+            if ($rv.close)
+                $listener.logError("cid %d: 101 Switching Protocols returned from handler %y, but the connection close flag set", $cx.id, $cx.handler_name);
+            else if (!($handler instanceof AbstractHttpSocketHandler)) {
+                $listener.logError("cid %d: 101 Switching Protocols returned from handler %y, but the handler is not derived from AbstractHttpSocketHandler (class: %y)", $cx.id, $cx.handler_name, $handler.className());
+            }
+            else {
+                if ($listener.registerDedicatedSocket($cx.id, $handler)) {
+                    on_exit $cx.close = True;
+                    try {
+                        cast<AbstractHttpSocketHandler>($handler).start($listener.getID(), $cx, $hdr, $s);
+                    }
+                    catch (hash $ex) {
+                        my string $desc = !$.debug
+                            ? sprintf("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc)
+                            : get_exception_string($ex);
+                        $listener.logError("cid %d: error in dedicated socket handler %y: %s", $cx.id, $cx.handler_name, $desc);
+                    }
+                    $listener.removeDedicatedSocket($cx.id, $handler);
+                    $listener.log("cid %d: stopped dedicated socket handler: %y", $cx.id, $cx.handler_name);
+                }
+                else
+                    $listener.logError("cid %d: cannot start dedicated socket handler %y because the listener is shutting down", $cx.id, $cx.handler_name);
+            }
+        }
     }
     #! @endcond
 }
@@ -2364,8 +2382,8 @@ public class HttpServer::HttpListener inherits Qore::Socket {
     logResponse(hash $cx, int $code, *data $body, *hash $hdr) {
         # do log msg
         my string $lstr = sprintf("cid %d: HTTP/1.1 %d %s", $cx.id, $code, HttpServer::HttpCodes.$code);
-        if ($cx.handlerName)
-            $lstr += sprintf(" handler: %y", $cx.handlerName);
+        if ($cx.handler_name)
+            $lstr += sprintf(" handler: %y", $cx.handler_name);
         if ($cx.user)
             $lstr += sprintf(" user: %y", $cx.user);
         if ($body)
@@ -2559,25 +2577,7 @@ public class HttpServer::HttpListener inherits Qore::Socket {
                 $cx.close = $hi.close;
 
 		# if we need to get a body
-                if ($hdr."transfer-encoding" == "chunked") {
-                    try {
-                        if ($hdr."content-encoding")
-                            $hdr += $s.readHTTPChunkedBodyBinary(HttpServer::ReadTimeout);
-                        else
-                            $hdr += $s.readHTTPChunkedBody(HttpServer::ReadTimeout);
-                        $body = $hdr.body;
-                        $hdr -= "body";
-                    }
-                    catch (hash $ex) {
-                        my string $etxt = sprintf("error reading chunked body in %s: %s: %s", $hdr.method, $ex.err, $ex.desc);
-                        my string $str = sprintf("%s: received from %s via %s (header=%n)", $etxt, $info.address_desc, $.socket_info.address_desc, $hdr);
-                        $.logError($str);
-                        $cx.close = True;
-                        $.serv.sendHttpError($self, $cx, $s, 400, $etxt, NOTHING, $cx."response-encoding");
-                        break;
-                    }
-                }
-                else if ($hdr."content-length") {
+                if ($hdr."content-length") {
                     try {
                         if ($hdr."content-encoding")
                             $body = $s.recvBinary($hdr."content-length", HttpServer::ReadTimeout);
@@ -2599,6 +2599,8 @@ public class HttpServer::HttpListener inherits Qore::Socket {
                     my string $lstr = sprintf("cid %d src %y: %s %s HTTP/%s (agent: %y", $cx.id, $cx."peer-info".address_desc, $hdr.method, $orig_path, $hdr.http_version, $hdr."user-agent");
                     if ($body)
                         $lstr += sprintf(" body: %db", $body.size());
+                    else if ($hdr."transfer-encoding" == "chunked") 
+                        $lstr += " body: chunked";
                     if ($hdr."_qore_orig_content_type")
                         $lstr += sprintf(" Content-Type: %y", $hdr."_qore_orig_content_type");
                     if ($.ssl)
