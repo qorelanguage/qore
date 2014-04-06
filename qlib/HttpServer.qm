@@ -28,13 +28,16 @@
 %requires Util >= 1.0
 
 module HttpServer {
-    version = "0.3.7";
+    version = "0.3.8";
     desc = "HttpServer class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
 }
 
 /*  Version History
+    * 2014-04-05 v0.3.8: David Nichols <david@qore.org>
+      + moved more message handling code to AbstractHttpRequestHandler so that chunked transfers can be efficiently supported by handlers
+
     * 2013-03-05 v0.3.7: David Nichols <david@qore.org>
       + fixed a bug in parsing arguments in parse_uri_query()
       + updated parse_uri_query() to accept both "&" and ";" as argument separators
@@ -675,6 +678,144 @@ public class HttpServer::AbstractAuthenticator {
     }
 }
 
+#! abstract class for streaming HTTP chunked requests/responses
+class HttpServer::AbstractStreamRequest {
+    public {
+    }
+
+    private {
+        # the listener servicing the request for logging purposes
+        HttpListener $.listener;
+        # the request handler for the request
+        AbstractHttpRequestHandler $.handler;
+        # the Socket object for the response
+        Socket $.s;
+        # the call context variable
+        hash $.cx;
+        # a hash of request headers
+        hash $.hdr;
+        # any message body given in a non-chunked request
+        *data $.body;
+    }
+
+    #! creates the object with the given attributes
+    constructor(HttpListener $listener, AbstractHttpRequestHandler $handler, Socket $s, hash $cx, hash $hdr, *data $body) {
+        $.listener = $listener;
+        $.handler = $handler;
+        $.s = $s;
+        $.cx = $cx;
+        $.hdr = $hdr;
+        $.body = $body;
+    }
+
+    hash handleRequest() {
+        # first call callback with header
+        $.recvImpl(("hdr": $.hdr));
+
+        # now handle message body
+        if ($.body) {
+            $.recv(("data": $.body, "chunked": False));
+            # signal end of data
+            $.recvImpl(("hdr": NOTHING));
+        }
+        else if ($.hdr."transfer-encoding" == "chunked") {
+            if ($.hdr."content-encoding")
+                $.s.readHTTPChunkedBodyBinaryWithCallback(\$.recv(), HttpServer::ReadTimeout);
+            else
+                $.s.readHTTPChunkedBodyWithCallback(\$.recv(), HttpServer::ReadTimeout);
+        }
+
+        return $.sendResponse();
+    }
+
+    private hash sendResponse() {
+        my hash $rv = $.getResponseHeaderImpl();
+        HttpServer::setReplyHeaders($.s, $.cx, \$rv);
+
+        if ($.cx.encoding) {
+            switch ($.cx.encoding) {
+                case "deflate": {
+                    $rv.hdr."Content-Encoding" = "deflate";
+                    if ($rv.body)
+                        $rv.body = compress($rv.body);
+                }
+                case "gzip": {
+                    $rv.hdr."Content-Encoding" = "gzip";
+                    if ($rv.body)
+                        $rv.body = gzip($rv.body);
+                }
+                case "bzip2": {
+                    $rv.hdr."Content-Encoding" = "bzip2";
+                    if ($rv.body)
+                        $rv.body = bzip2($rv.body);
+                }
+            }
+        }
+
+        if ($rv."Transfer-Encoding" != "chunked")
+            return $rv;
+
+        # send chunked response
+        $.s.sendHTTPResponseWithCallback(\$.send(), $rv.code, HttpServer::HttpCodes.($rv.code), "1.1", $rv.hdr, HttpServer::ReadTimeout);
+
+        $rv.reply_sent = True;
+        return $rv;
+    }
+
+    private hash getResponseHeaderImpl() {
+        return (
+            "code": 501,
+            "body": sprintf("default handler (%s) has no implementation", $self.className()),
+            "close": True,
+            );
+    }
+
+    private nothing recv(hash $v) {
+        if ($v.data && $.hdr."content-encoding")
+            $v.data = $.handler.decodeBody($.s, $.hdr, $v.data);
+
+        $.recvImpl($v);
+    }
+
+    private any send() {
+        my any $v = $.sendImpl();
+        if ($.cx.encoding) {
+            switch ($v.typeCode()) {
+                case NT_STRING:
+                case NT_BINARY: {
+                    if ($.cx.encoding == "deflate")
+                        $v = compress($v);
+                    else if ($.cx.encoding == "gzip")
+                        $v = gzip($v);
+                    else if ($.cx.encoding == "bzip2")
+                        $v = bzip2($v);
+                    break;
+                }
+            }
+        }
+        return $v;
+    }
+
+    #! abstract callback method for receiving chunked data
+    /**
+        @param v the first time this method is called with a hash of the message headers in the \c "hdr" key, and then with any message body in the \c "data"; if a chunked HTTP message is received, then this method is called once for each chunk; when the message has been received, then this method is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
+    - \c "data": the string or binary data
+    - \c "chunked": True if the data was received with chunked transfer encoding, False if not
+    .
+    Header or trailer data is placed in a hash with the following key:
+    - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
+    */
+    private nothing recvImpl(hash $v) {
+    }
+
+    #! abstract callback method for sending chunked data
+    /** 
+        @return The chunked HTTP data to send; this method must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be returned ot simply @ref nothing which will close the chunked message
+    */
+    private any sendImpl() {
+    }
+}
+
 #! abstract class that all HTTP request handler objects must inherit from
 /** reimplement handleRequest() in subclasses
   */
@@ -732,15 +873,7 @@ public class HttpServer::AbstractHttpRequestHandler {
             );
     }
 
-    hash handleStreamRequestImpl(Socket $s, hash $cx, hash $hdr, *data $body) {
-        return (
-            "code": 501,
-            "body": sprintf("default handler (%s) has no implementation", $self.className()),
-            "close": True,
-            );
-    }
-
-    private data handleBody(Socket $s, hash $hdr, binary $body) {
+    data decodeBody(Socket $s, hash $hdr, binary $body) {
         switch ($hdr."content-encoding") {
             case "deflate":
             case "x-deflate":
@@ -757,7 +890,8 @@ public class HttpServer::AbstractHttpRequestHandler {
         throw "UNSUPPORTED-CONTENT-ENCODING", sprintf("don't know how to handle content-encoding %y", $hdr."content-encoding");
     }
 
-    hash handleRequest(Socket $s, hash $cx, hash $hdr, *data $body) {
+    #! top-level request handling method
+    final hash handleRequest(HttpListener $listener, Socket $s, hash $cx, hash $hdr, *data $body) {
         # classic, non-streaming interface
         if (!$.stream) {
             if (!$body && $hdr."transfer-encoding" == "chunked") {
@@ -766,12 +900,17 @@ public class HttpServer::AbstractHttpRequestHandler {
             }
 
             if ($body && $hdr."content-encoding" && $.decompress)
-                $body = $.handleBody($s, $hdr, $body);
+                $body = $.decodeBody($s, $hdr, $body);
             
             return $.handleRequest($cx, $hdr, $body);
         }
 
-        return $.handleStreamRequestImpl($s, $cx, $hdr, $body);
+        my AbstractStreamRequest $req = $.getStreamRequestImpl($listener, $s, $cx, $hdr, $body);
+        return $req.handleRequest();
+    }
+
+    private AbstractStreamRequest getStreamRequestImpl(HttpListener $listener, Socket $s, hash $cx, hash $hdr, *data $body) {
+        return new AbstractStreamRequest($listener, $self, $s, $cx, $hdr, $body);
     }
 
     #! helper method for handling log messages
@@ -1221,8 +1360,6 @@ public class HttpServer::HttpServer {
 	Sequence $.seqSessions();
 	Sequence $.seqListeners();
 
-	string $.httpserverstring;
-
 	bool $.stopped = False;
 
         # permanent handlers; these handlers are never removed
@@ -1259,6 +1396,8 @@ public class HttpServer::HttpServer {
         # override message body encoding if none is received from the sender; http://tools.ietf.org/html/rfc2616#section-3.7.1 states that it must be iso-8850-1
         *string $.override_encoding;
 %endif
+
+	static string HttpServerString;
     }
     #! @endcond
 
@@ -1275,7 +1414,7 @@ public class HttpServer::HttpServer {
 	$.logfunc = $logfunc;
 	$.errlogfunc = $errlogfunc;
         $.debug = $dbg;
-        $.httpserverstring = $name;
+        HttpServerString = $name;
         $.hdr = (
             "Server": $name,
             ) + $hdr;
@@ -1284,6 +1423,11 @@ public class HttpServer::HttpServer {
     #! calls stop() and destroys the object
     destructor() {
 	$.stop();
+    }
+
+    #! returns the HTTP server version string
+    static string getHttpServerVersionString() {
+        return HttpServerString;
     }
 
 %ifdef QorusServer
@@ -1718,7 +1862,7 @@ public class HttpServer::HttpServer {
         
         my string $str = !$extra_hdrs."Content-Type"
             ? sprintf("<html><head><title>%s %s</title></head><body><h1>%s</h1><pre>%s</pre><p><hr><address>%s on %s</address></body></html>",
-                      $code, HttpServer::HttpCodes.$code, HttpServer::HttpCodes.$code, html_encode($msg), $.httpserverstring, gethostname())
+                      $code, HttpServer::HttpCodes.$code, HttpServer::HttpCodes.$code, html_encode($msg), HttpServerString, gethostname())
             : $msg;
 
         # restore encoding on exit
@@ -1802,6 +1946,37 @@ public class HttpServer::HttpServer {
 
     startConnection(code $c) {
         $.threadPool.submit($c);
+    }
+
+    #! helper method to set HTTP response headers
+    static nothing setReplyHeaders(Socket $s, hash $cx, reference $rv) {
+        if (!$rv.hdr.Connection) {
+            if ($rv.close) # RFC 2616 section 14.10 is "close" in all lower-case
+                $rv.hdr.Connection = "close";
+            else
+                $rv.hdr.Connection = "Keep-Alive";
+        }
+
+        if (!$rv.hdr.Date) # RFC 2616 sec 14.18 date format
+            $rv.hdr.Date = gmtime().format("Dy, DD Mon YYYY HH:mm:SS") + " GMT";
+
+        if (!$rv.hdr.Server)
+            $rv.hdr.Server = HttpServerString;
+
+        my string $old_encoding = $s.getEncoding();
+        on_exit if ($s.getEncoding() != $old_encoding)
+            $s.setEncoding($old_encoding);
+        if (!$cx."response-encoding")
+            $cx."response-encoding" = $old_encoding.lwr();
+        else if ($cx."response-encoding" != $old_encoding.lwr())
+            $s.setEncoding($cx."response-encoding");
+
+        if ($rv.body || $rv.hdr."Transfer-Encoding" == "chunked") {
+            if (!$rv.hdr."Content-Type")
+                $rv.hdr."Content-Type" = MimeTypeHtml + ";charset=" + $cx."response-encoding";
+            else if ($rv.hdr."Content-Type" !~ /charset=/ && ($rv.body.typeCode() == NT_STRING))
+                $rv.hdr."Content-Type" += ";charset=" + $cx."response-encoding";
+        }
     }
 
     #! @cond nodoc
@@ -2018,7 +2193,7 @@ public class HttpServer::HttpServer {
 
                 my *hash $tld_save = $handler.saveThreadLocalData();
                 on_exit $handler.restoreThreadLocalData($tld_save);
-                $rv = $handler.handleRequest($s, $cx, $hdr, $body);
+                $rv = $handler.handleRequest($listener, $s, $cx, $hdr, $body);
                 if ($rv.reply_sent)
                     continue;
             }
@@ -2094,37 +2269,11 @@ public class HttpServer::HttpServer {
         else {
             #printf("\n**** REQUEST: %N\n", $body);
             #printf("\n**** RESPONSE: %N\n", $rv.body);
-            if (!$rv.hdr.Connection) {
-                if ($rv.close) # RFC 2616 section 14.10 is "close" in all lower-case
-                    $rv.hdr.Connection = "close";
-                else
-                    $rv.hdr.Connection = "Keep-Alive";
-            }
-
-            if (!$rv.hdr.Date) # RFC 2616 sec 14.18 date format
-                $rv.hdr.Date = gmtime().format("Dy, DD Mon YYYY HH:mm:SS") + " GMT";
-
-            if (!$rv.hdr.Server)
-                $rv.hdr.Server = $.httpserverstring;
-
-            my string $old_encoding = $s.getEncoding();
-            on_exit if ($s.getEncoding() != $old_encoding)
-                $s.setEncoding($old_encoding);
-            if (!$cx."response-encoding")
-                $cx."response-encoding" = $old_encoding.lwr();
-            else if ($cx."response-encoding" != $old_encoding.lwr())
-                $s.setEncoding($cx."response-encoding");
-
-            if ($rv.body) {
-                if (!$rv.hdr."Content-Type")
-                    $rv.hdr."Content-Type" = MimeTypeHtml + ";charset=" + $cx."response-encoding";
-                else if ($rv.hdr."Content-Type" !~ /charset=/ && ($rv.body.typeCode() == NT_STRING))
-                    $rv.hdr."Content-Type" += ";charset=" + $cx."response-encoding";
-            }
+            $.setReplyHeaders($s, $cx, \$rv);
 
             if ($head)
                 $s.sendHTTPResponse($rv.code, HttpServer::HttpCodes.($rv.code), "1.1", $rv.hdr);
-            else {
+            else if ($rv.body) {
                 if ($cx.encoding == "deflate") {
                     $rv.hdr."Content-Encoding" = "deflate";
                     $rv.body = compress($rv.body);

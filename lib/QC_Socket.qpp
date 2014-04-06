@@ -1706,7 +1706,7 @@ $sock.sendHTTPMessageWithCallback($send_callback, "POST", "/RPC2", "1.1", ("Cont
     @par Events:
     @ref EVENT_PACKET_SENT, @ref EVENT_HTTP_SEND_MESSAGE
 
-    @param scb The callback giving the chunked HTTP data to send; this callback must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be sent ot simply @ref nothing which will close the chunked message
+    @param scb The callback giving the chunked HTTP data to send; this callback must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be sent or simply @ref nothing which will close the chunked message
     @param method the HTTP method name to send (i.e. POST, HEAD, etc)
     @param path the path component of the URL
     @param http_version the HTTP protocol version (\c "1.0" or \c "1.1")
@@ -1810,7 +1810,7 @@ $sock.sendHTTPResponseWithCallback($send_callback, 200, "OK", "1.1", ("Connectio
     @par Events:
     @ref EVENT_PACKET_SENT, @ref EVENT_HTTP_SEND_MESSAGE
 
-    @param scb The callback giving the chunked HTTP data to send; this callback must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be sent ot simply @ref nothing which will close the chunked message
+    @param scb The callback giving the chunked HTTP data to send; this callback must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be sent or simply @ref nothing which will close the chunked message
     @param status_code the HTTP status code to send (i.e. \c 200, \c 404, etc)
     @param status_desc the descriptive text for the status code.
     @param http_version the HTTP protocol version (normally \c "1.0" or \c "1.1", however this method allows any string to be sent)

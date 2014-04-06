@@ -323,7 +323,7 @@ hash HTTPClient::send(*binary body, string method, *string path, *hash headers, 
 my hash $msg = $httpclient.sendWithSendCallback($callback, "POST", "/path", ("Content-Type":"application/x-yaml"));
     @endcode
 
-    @param scb The callback giving the chunked HTTP data to send; this callback must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be sent ot simply @ref nothing which will close the chunked message
+    @param scb The callback giving the chunked HTTP data to send; this callback must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be sent or simply @ref nothing which will close the chunked message
     @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT").
     @param path The path for the message (i.e. \c "/path/resource?method&param=value")
     @param headers An optional hash of headers to include in the message.
@@ -454,7 +454,7 @@ nothing HTTPClient::sendWithRecvCallback(code rcb, *binary body, string method, 
 my hash $msg = $httpclient.sendWithCallbacks($send_callback, $rcv_callback, "POST", "/path", ("Content-Type":"application/x-yaml"));
     @endcode
 
-    @param scb The callback giving the chunked HTTP data to send; this callback must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be sent ot simply @ref nothing which will close the chunked message
+    @param scb The callback giving the chunked HTTP data to send; this callback must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be sent or simply @ref nothing which will close the chunked message
     @param rcb The receive callback for the data received; first this method is called with a hash of the message headers, and then with any message body; if a chunked HTTP message is received, then the callback is called once for each chunk; when the message has been received, then the receive callback is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
     - \c "data": the string or binary data
     - \c "chunked": True if the data was received with chunked transfer encoding, False if not

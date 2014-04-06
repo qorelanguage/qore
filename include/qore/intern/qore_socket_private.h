@@ -759,11 +759,6 @@ struct qore_socket_private {
 	    se_not_open(mname, xsink);
 	 return -1;
       }
-      if (in_op) {
-         if (xsink)
-            se_in_op(mname, xsink);
-         return -1;
-      }
 
       fd_set sfs;
       
@@ -1399,12 +1394,6 @@ struct qore_socket_private {
 	    se_not_open(meth, xsink);
 	 rc = QSE_NOT_OPEN;
 	 return 0;
-      }
-      if (in_op) {
-         if (xsink)
-            se_in_op(meth, xsink);
-         rc = QSE_IN_OP;
-         return 0;
       }
 
       PrivateQoreSocketThroughputHelper th(this, false);
