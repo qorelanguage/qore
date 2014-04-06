@@ -59,6 +59,7 @@ DLLLOCAL int sock_get_raw_error();
 DLLLOCAL int sock_get_error();
 DLLLOCAL void qore_socket_error(ExceptionSink* xsink, const char* err, const char* cdesc, const char* mname = 0, const char* host = 0, const char* svc = 0, const struct sockaddr *addr = 0);
 DLLLOCAL void qore_socket_error_intern(int rc, ExceptionSink* xsink, const char* err, const char* cdesc, const char* mname = 0, const char* host = 0, const char* svc = 0, const struct sockaddr *addr = 0);
+DLLLOCAL void se_in_op(const char* meth, ExceptionSink* xsink);
 DLLLOCAL void se_not_open(const char* meth, ExceptionSink* xsink);
 DLLLOCAL void se_timeout(const char* meth, int timeout_ms, ExceptionSink* xsink);
 DLLLOCAL void se_closed(const char* mname, ExceptionSink* xsink);
@@ -106,7 +107,7 @@ struct qore_socketsource_private {
       hostname = new QoreStringNode(host);
    }
 
-   DLLLOCAL void setAll(QoreObject *o, ExceptionSink* xsink) {
+   DLLLOCAL void setAll(QoreObject* o, ExceptionSink* xsink) {
       if (address) {
 	 o->setValue("source", address, xsink);
 	 address = 0;
@@ -157,13 +158,23 @@ public:
    DLLLOCAL void finalize(int64 bytes);
 };
 
+struct qore_socket_private;
+
+struct qore_socket_op_helper {
+protected:
+   qore_socket_private* s;
+
+public:
+   DLLLOCAL qore_socket_op_helper(qore_socket_private* sock);
+   DLLLOCAL ~qore_socket_op_helper();
+};
+
 struct qore_socket_private {
    friend class PrivateQoreSocketTimeoutHelper;
    friend class PrivateQoreSocketThroughputHelper;
 
    int sock, sfamily, port, stype, sprot; //, sendTimeout, recvTimeout;
    const QoreEncoding* enc;
-   bool del;
    std::string socketname;
    SSLSocketHelper* ssl;
    Queue* cb_queue,
@@ -181,12 +192,13 @@ struct qore_socket_private {
       tp_us_min             // throughput: minimum time for transfer to be considered
       ;
    AbstractQoreNode* callback_arg;
-
-   DLLLOCAL qore_socket_private(int n_sock = QORE_INVALID_SOCKET, int n_sfamily = AF_UNSPEC, int n_stype = SOCK_STREAM, int n_prot = 0, const QoreEncoding *n_enc = QCS_DEFAULT) : 
-      sock(n_sock), sfamily(n_sfamily), port(-1), stype(n_stype), sprot(n_prot), enc(n_enc), del(false), 
+   bool del, in_op;
+   
+   DLLLOCAL qore_socket_private(int n_sock = QORE_INVALID_SOCKET, int n_sfamily = AF_UNSPEC, int n_stype = SOCK_STREAM, int n_prot = 0, const QoreEncoding* n_enc = QCS_DEFAULT) : 
+      sock(n_sock), sfamily(n_sfamily), port(-1), stype(n_stype), sprot(n_prot), enc(n_enc), 
       ssl(0), cb_queue(0), warn_queue(0), buflen(0), bufoffset(0), tl_warning_us(0), tp_warning_bs(0), 
       tp_bytes_sent(0), tp_bytes_recv(0), tp_us_sent(0), tp_us_recv(0), tp_us_min(0),
-      callback_arg(0) {
+      callback_arg(0), del(false), in_op(false) {
       //sendTimeout = recvTimeout = -1
    }
 
@@ -200,6 +212,7 @@ struct qore_socket_private {
 
    DLLLOCAL int close() {
       int rc = close_internal();
+      in_op = 0;
       sfamily = AF_UNSPEC;
       stype = SOCK_STREAM;
       sprot = 0;
@@ -310,7 +323,7 @@ struct qore_socket_private {
       return port;
    }
 
-   DLLLOCAL static void do_header(const char* key, QoreString &hdr, const AbstractQoreNode* v) {
+   DLLLOCAL static void do_header(const char* key, QoreString& hdr, const AbstractQoreNode* v) {
       switch (v->getType()) {
 	 case NT_STRING:
 	    hdr.sprintf("%s: %s\r\n", key, reinterpret_cast<const QoreStringNode*>(v)->getBuffer());
@@ -332,7 +345,7 @@ struct qore_socket_private {
       }
    }
 
-   DLLLOCAL static void do_headers(QoreString &hdr, const QoreHashNode* headers, qore_size_t size, bool addsize = false) {
+   DLLLOCAL static void do_headers(QoreString& hdr, const QoreHashNode* headers, qore_size_t size, bool addsize = false) {
       // RFC-2616 4.4 (http://tools.ietf.org/html/rfc2616#section-4.4)
       // add Content-Length: 0 to headers for responses without a body where there is no transfer-encoding
       if (headers) {
@@ -374,6 +387,8 @@ struct qore_socket_private {
    DLLLOCAL int listen(int backlog = 20) {
       if (sock == QORE_INVALID_SOCKET)
 	 return QSE_NOT_OPEN;
+      if (in_op)
+         return QSE_IN_OP;
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
       if (::listen(sock, backlog)) {
 	 // set errno
@@ -414,6 +429,11 @@ struct qore_socket_private {
 	 if (xsink)
 	    xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened, bound, and in a listening state before new connections can be accepted");
 	 return QSE_NOT_OPEN;
+      }
+      if (in_op) {
+         if (xsink)
+            se_in_op("accept", xsink);
+         return QSE_IN_OP;
       }
 
       int rc;
@@ -588,7 +608,7 @@ struct qore_socket_private {
       }
    }
 
-   DLLLOCAL void do_send_http_message(const QoreString &str, const QoreHashNode* headers, int source) {
+   DLLLOCAL void do_send_http_message(const QoreString& str, const QoreHashNode* headers, int source) {
       if (cb_queue) {
 	 QoreHashNode* h = new QoreHashNode;
 	 h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_HTTP_SEND_MESSAGE), 0);
@@ -656,7 +676,7 @@ struct qore_socket_private {
       }
    }
 
-   DLLLOCAL void do_resolved_event(const struct sockaddr *addr) {
+   DLLLOCAL void do_resolved_event(const struct sockaddr* addr) {
       // post bytes sent on event queue, if any
       if (cb_queue) {
 	 QoreHashNode* h = new QoreHashNode;
@@ -739,8 +759,11 @@ struct qore_socket_private {
 	    se_not_open(mname, xsink);
 	 return -1;
       }
-
-      assert(sock != QORE_INVALID_SOCKET);
+      if (in_op) {
+         if (xsink)
+            se_in_op(mname, xsink);
+         return -1;
+      }
 
       fd_set sfs;
       
@@ -792,7 +815,7 @@ struct qore_socket_private {
       return -1;
    }
 
-   DLLLOCAL int connectINETTimeout(int timeout_ms, const struct sockaddr *ai_addr, qore_size_t ai_addrlen, ExceptionSink* xsink, bool only_timeout) {
+   DLLLOCAL int connectINETTimeout(int timeout_ms, const struct sockaddr* ai_addr, qore_size_t ai_addrlen, ExceptionSink* xsink, bool only_timeout) {
       PrivateQoreSocketTimeoutHelper toh(this, "connect");
 
       while (true) {
@@ -933,7 +956,7 @@ struct qore_socket_private {
       return -1;
    }
 
-   DLLLOCAL int connectINETIntern(const char* host, const char* service, int ai_family, struct sockaddr *ai_addr, size_t ai_addrlen, int ai_socktype, int ai_protocol, int prt, int timeout_ms, ExceptionSink* xsink, bool only_timeout = false) {
+   DLLLOCAL int connectINETIntern(const char* host, const char* service, int ai_family, struct sockaddr* ai_addr, size_t ai_addrlen, int ai_socktype, int ai_protocol, int prt, int timeout_ms, ExceptionSink* xsink, bool only_timeout = false) {
       //printd(5, "qore_socket_private::connectINETIntern() host=%s service=%s family=%d\n", host, service, ai_family);
       if ((sock = socket(ai_family, ai_socktype, ai_protocol)) == QORE_INVALID_SOCKET) {
 	 if (xsink)
@@ -990,7 +1013,7 @@ struct qore_socket_private {
       return 0;
    }
 
-   DLLLOCAL int upgradeClientToSSLIntern(const char* mname, X509 *cert, EVP_PKEY *pkey, ExceptionSink* xsink) {
+   DLLLOCAL int upgradeClientToSSLIntern(const char* mname, X509* cert, EVP_PKEY* pkey, ExceptionSink* xsink) {
       assert(!ssl);
       ssl = new SSLSocketHelper(*this);
       int rc;
@@ -1004,7 +1027,7 @@ struct qore_socket_private {
       return 0;
    }
 
-   DLLLOCAL int upgradeServerToSSLIntern(const char* mname, X509 *cert, EVP_PKEY *pkey, ExceptionSink* xsink) {
+   DLLLOCAL int upgradeServerToSSLIntern(const char* mname, X509* cert, EVP_PKEY* pkey, ExceptionSink* xsink) {
       assert(!ssl);
       ssl = new SSLSocketHelper(*this);
       do_start_ssl_event();
@@ -1053,7 +1076,7 @@ struct qore_socket_private {
       return setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (SETSOCKOPT_ARG_4)&opt, sizeof(int));
    }
 
-   DLLLOCAL int bindIntern(struct sockaddr *ai_addr, size_t ai_addrlen, int prt, bool reuseaddr, ExceptionSink* xsink = 0) {
+   DLLLOCAL int bindIntern(struct sockaddr* ai_addr, size_t ai_addrlen, int prt, bool reuseaddr, ExceptionSink* xsink = 0) {
       reuse(reuseaddr);
 
       if ((::bind(sock, ai_addr, ai_addrlen)) == QORE_SOCKET_ERROR) {
@@ -1103,7 +1126,7 @@ struct qore_socket_private {
       strncpy(addr.sun_path, name, sizeof(addr.sun_path) - 1);
       addr.sun_path[sizeof(addr.sun_path) - 1] = '\0';
 
-      if (bindIntern((sockaddr *)&addr, sizeof(struct sockaddr_un), -1, false, xsink))
+      if (bindIntern((sockaddr*)&addr, sizeof(struct sockaddr_un), -1, false, xsink))
 	 return -1;
 
       // save socket file name for deleting on close
@@ -1194,14 +1217,14 @@ struct qore_socket_private {
       return getAddrInfo(addr, len, host_lookup);
    }
 
-   DLLLOCAL QoreHashNode* getAddrInfo(const struct sockaddr_storage &addr, socklen_t len, bool host_lookup = true) const {
+   DLLLOCAL QoreHashNode* getAddrInfo(const struct sockaddr_storage& addr, socklen_t len, bool host_lookup = true) const {
       QoreHashNode* h = new QoreHashNode;
 
       if (addr.ss_family == AF_INET || addr.ss_family == AF_INET6) {
 	 if (host_lookup) {
 	    char host[NI_MAXHOST + 1];
 
-	    if (!getnameinfo((struct sockaddr *)&addr, get_in_len((struct sockaddr *)&addr), host, sizeof(host), 0, 0, 0)) {
+	    if (!getnameinfo((struct sockaddr*)&addr, get_in_len((struct sockaddr*)&addr), host, sizeof(host), 0, 0, 0)) {
 	       QoreStringNode* hoststr = new QoreStringNode(host);
 	       h->setKeyValue("hostname", hoststr, 0);
 	       h->setKeyValue("hostname_desc", QoreAddrInfo::getAddressDesc(addr.ss_family, hoststr->getBuffer()), 0);
@@ -1210,7 +1233,7 @@ struct qore_socket_private {
 
 	 // get ipv4 or ipv6 address
 	 char ifname[INET6_ADDRSTRLEN];
-	 if (inet_ntop(addr.ss_family, get_in_addr((struct sockaddr *)&addr), ifname, sizeof(ifname))) {
+	 if (inet_ntop(addr.ss_family, get_in_addr((struct sockaddr*)&addr), ifname, sizeof(ifname))) {
 	    QoreStringNode* addrstr = new QoreStringNode(ifname);
 	    h->setKeyValue("address", addrstr, 0);
 	    h->setKeyValue("address_desc", QoreAddrInfo::getAddressDesc(addr.ss_family, addrstr->getBuffer()), 0);
@@ -1218,11 +1241,11 @@ struct qore_socket_private {
 
 	 int tport;
 	 if (addr.ss_family == AF_INET) {
-	    struct sockaddr_in *s = (struct sockaddr_in *)&addr;
+	    struct sockaddr_in* s = (struct sockaddr_in*)&addr;
 	    tport = ntohs(s->sin_port);
 	 }
 	 else {
-	    struct sockaddr_in6 *s = (struct sockaddr_in6 *)&addr;
+	    struct sockaddr_in6* s = (struct sockaddr_in6*)&addr;
 	    tport = ntohs(s->sin6_port);
 	 }
 
@@ -1245,7 +1268,7 @@ struct qore_socket_private {
 
    // set backwards-compatible object members on accept
    // to be (hopefully) deleted in a future version of qore
-   void setAccept(QoreObject *o) {
+   void setAccept(QoreObject* o) {
       struct sockaddr_storage addr;
 
       socklen_t len = sizeof addr;
@@ -1377,6 +1400,12 @@ struct qore_socket_private {
 	 rc = QSE_NOT_OPEN;
 	 return 0;
       }
+      if (in_op) {
+         if (xsink)
+            se_in_op(meth, xsink);
+         rc = QSE_IN_OP;
+         return 0;
+      }
 
       PrivateQoreSocketThroughputHelper th(this, false);
 
@@ -1467,6 +1496,12 @@ struct qore_socket_private {
 	 rc = QSE_NOT_OPEN;
 	 return 0;
       }
+      if (in_op) {
+         if (xsink)
+            se_in_op("recv", xsink);
+         rc = QSE_IN_OP;
+         return 0;
+      }
 
       PrivateQoreSocketThroughputHelper th(this, false);
 
@@ -1514,6 +1549,12 @@ struct qore_socket_private {
 	    se_not_open("recv", xsink);
 	 rc = QSE_NOT_OPEN;
 	 return 0;
+      }
+      if (in_op) {
+         if (xsink)
+            se_in_op("recv", xsink);
+         rc = QSE_IN_OP;
+         return 0;
       }
 
       PrivateQoreSocketThroughputHelper th(this, false);
@@ -1566,6 +1607,12 @@ struct qore_socket_private {
 	 rc = QSE_NOT_OPEN;
 	 return 0;
       }
+      if (in_op) {
+         if (xsink)
+            se_in_op("recvBinary", xsink);
+         rc = QSE_IN_OP;
+         return 0;
+      }
 
       PrivateQoreSocketThroughputHelper th(this, false);
 
@@ -1608,6 +1655,12 @@ struct qore_socket_private {
 	    se_not_open("recvBinary", xsink);
 	 rc = QSE_NOT_OPEN;
 	 return 0;
+      }
+      if (in_op) {
+         if (xsink)
+            se_in_op("recvBinary", xsink);
+         rc = QSE_IN_OP;
+         return 0;
       }
 
       PrivateQoreSocketThroughputHelper th(this, false);
@@ -1767,27 +1820,28 @@ struct qore_socket_private {
       return h;
    }
 
-   DLLLOCAL int runHeaderCallback(ExceptionSink* xsink, const char* mname, const ResolvedCallReferenceNode& callback, QoreThreadLock& l, const QoreHashNode* hdr) {
+   DLLLOCAL int runHeaderCallback(ExceptionSink* xsink, const char* mname, const ResolvedCallReferenceNode& callback, QoreThreadLock* l, const QoreHashNode* hdr) {
       ReferenceHolder<QoreListNode> args(new QoreListNode, xsink);
       QoreHashNode* arg = new QoreHashNode;
-      arg->setKeyValue("hdr", hdr->refSelf(), xsink);
+      arg->setKeyValue("hdr", hdr ? hdr->refSelf() : 0, xsink);
       args->push(arg);
 
       ReferenceHolder<> rv(xsink);
       return runCallback(xsink, mname, rv, callback, l, *args);
    }
 
-   DLLLOCAL int runDataCallback(ExceptionSink* xsink, const char* mname, const ResolvedCallReferenceNode& callback, QoreThreadLock& l, const AbstractQoreNode* data) {
+   DLLLOCAL int runDataCallback(ExceptionSink* xsink, const char* mname, const ResolvedCallReferenceNode& callback, QoreThreadLock* l, const AbstractQoreNode* data, bool chunked) {
       ReferenceHolder<QoreListNode> args(new QoreListNode, xsink);
       QoreHashNode* arg = new QoreHashNode;
       arg->setKeyValue("data", data->refSelf(), xsink);
+      arg->setKeyValue("chunked", get_bool_node(chunked), xsink);
       args->push(arg);
 
       ReferenceHolder<> rv(xsink);
       return runCallback(xsink, mname, rv, callback, l, *args);
    }
 
-   DLLLOCAL int runCallback(ExceptionSink* xsink, const char* mname, ReferenceHolder<>& res, const ResolvedCallReferenceNode& callback, QoreThreadLock& l, const QoreListNode* args = 0) {
+   DLLLOCAL int runCallback(ExceptionSink* xsink, const char* mname, ReferenceHolder<>& res, const ResolvedCallReferenceNode& callback, QoreThreadLock* l, const QoreListNode* args = 0) {
       // FIXME: subtract callback execution time from socket performance measurement
 
       // unlock and execute callback
@@ -1815,8 +1869,11 @@ struct qore_socket_private {
          se_not_open(mname, xsink);
 	 return QSE_NOT_OPEN;
       }
-
-      // XXX FIXME: set callback operation in progress flag; add checks
+      if (in_op) {
+         if (xsink)
+            se_in_op(mname, xsink);
+         return QSE_IN_OP;
+      }
 
       PrivateQoreSocketThroughputHelper th(this, true);
 
@@ -1827,6 +1884,8 @@ struct qore_socket_private {
       if (*xsink)
          return -1;
 
+      qore_socket_op_helper oh(this);
+
       qore_offset_t rc;
       int64 total = 0;
       bool done = false;
@@ -1834,7 +1893,7 @@ struct qore_socket_private {
       while (!done) {
          // FIXME: subtract callback execution time from socket performance measurement
          ReferenceHolder<AbstractQoreNode> res(xsink);
-         rc = runCallback(xsink, mname, res, send_callback, l);
+         rc = runCallback(xsink, mname, res, send_callback, &l);
          if (rc)
             return rc;
 
@@ -1984,6 +2043,11 @@ struct qore_socket_private {
 
 	 return QSE_NOT_OPEN;
       }
+      if (in_op) {
+         if (xsink)
+            se_in_op(mname, xsink);
+         return QSE_IN_OP;
+      }
 
       PrivateQoreSocketThroughputHelper th(this, true);
 
@@ -2070,6 +2134,12 @@ struct qore_socket_private {
          se_not_open("readHTTPChunkedBodyBinary", xsink);
          return 0;
       }
+      if (in_op) {
+         se_in_op("readHTTPChunkedBodyBinary", xsink);
+         return 0;
+      }
+
+      qore_socket_op_helper oh(this);
 
       SimpleRefHolder<BinaryNode> b(new BinaryNode);
       QoreString str; // for reading the size of each chunk
@@ -2171,10 +2241,10 @@ struct qore_socket_private {
                SimpleRefHolder<QoreStringNode> str(dec(*b, enc, xsink));
                if (*xsink)
                   return 0;
-               if (runDataCallback(xsink, "readHTTPChunkedBodyBinary", *recv_callback, *l, *str))
+               if (runDataCallback(xsink, "readHTTPChunkedBodyBinary", *recv_callback, l, *str, true))
                   return 0;
             }
-            else if (runDataCallback(xsink, "readHTTPChunkedBodyBinary", *recv_callback, *l, *b))
+            else if (runDataCallback(xsink, "readHTTPChunkedBodyBinary", *recv_callback, l, *b, true))
                return 0;
             b->clear();
          }
@@ -2203,7 +2273,7 @@ struct qore_socket_private {
       do_read_http_header(QORE_EVENT_HTTP_FOOTERS_RECEIVED, *h, source);
 
       if (recv_callback) {
-         runHeaderCallback(xsink, "readHTTPChunkedBodyBinary", *recv_callback, *l, *h);
+         runHeaderCallback(xsink, "readHTTPChunkedBodyBinary", *recv_callback, l, *h);
          return 0;
       }
 
@@ -2218,6 +2288,12 @@ struct qore_socket_private {
          se_not_open("readHTTPChunkedBody", xsink);
          return 0;
       }
+      if (in_op) {
+         se_in_op("readHTTPChunkedBody", xsink);
+         return 0;
+      }
+
+      qore_socket_op_helper oh(this);
 
       QoreStringNodeHolder buf(new QoreStringNode(enc));
       QoreString str; // for reading the size of each chunk
@@ -2318,7 +2394,7 @@ struct qore_socket_private {
          do_chunked_read(QORE_EVENT_HTTP_CHUNKED_DATA_RECEIVED, size, size + 2, source);
 
          if (recv_callback) {
-            int rc = runDataCallback(xsink, "readHTTPChunkedBody", *recv_callback, *l, *buf);
+            int rc = runDataCallback(xsink, "readHTTPChunkedBody", *recv_callback, l, *buf, true);
             if (rc)
                return 0;
             buf->clear();
@@ -2345,7 +2421,7 @@ struct qore_socket_private {
       do_read_http_header(QORE_EVENT_HTTP_FOOTERS_RECEIVED, *h, source);
 
       if (recv_callback) {
-         runHeaderCallback(xsink, "readHTTPChunkedBody", *recv_callback, *l, *h);
+         runHeaderCallback(xsink, "readHTTPChunkedBody", *recv_callback, l, h->empty() ? 0 : *h);
          return 0;
       }
 
@@ -2579,6 +2655,11 @@ struct qore_socket_private {
 	 if (xsink)
 	    se_not_open(meth, xsink);
 	 return QSE_NOT_OPEN;
+      }
+      if (in_op) {
+         if (xsink)
+            se_in_op(meth, xsink);
+         return QSE_IN_OP;
       }
 
       PrivateQoreSocketThroughputHelper th(this, false);

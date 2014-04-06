@@ -179,7 +179,8 @@ protected:
 public:
    //! creates the object and releases the lock
    DLLLOCAL AutoUnlocker(QoreThreadLock *l) : lck(l) {
-      lck->unlock();
+      if (lck)
+         lck->unlock();
    }
 
    //! creates the object and releases the lock
@@ -189,7 +190,8 @@ public:
 
    //! grabs the lock and destroys the object
    DLLLOCAL ~AutoUnlocker() {
-      lck->lock();
+      if (lck)
+         lck->lock();
    }
 };
 

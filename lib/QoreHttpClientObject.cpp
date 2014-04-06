@@ -764,6 +764,8 @@ QoreHashNode* qore_httpclient_priv::send_internal(const char* mname, const char*
    ReferenceHolder<QoreHashNode> nh(new QoreHashNode, xsink);
    bool keep_alive = true;
 
+   bool transfer_encoding = false;
+
    if (headers) {
       ConstHashIterator hi(headers);
       while (hi.next()) {
@@ -775,6 +777,9 @@ QoreHashNode* qore_httpclient_priv::send_internal(const char* mname, const char*
 	 // otherwise set the value in the hash
 	 const AbstractQoreNode* n = hi.getValue();
 	 if (!is_nothing(n)) {
+	    if (!strcasecmp(hi.getKey(), "transfer-encoding"))
+	       transfer_encoding = true;
+
 	    nh->setKeyValue(hi.getKey(), n->refSelf(), xsink);
 
 	    if (!strcasecmp(hi.getKey(), "connection") || (proxy_connection.has_url() && !strcasecmp(hi.getKey(), "proxy-connection"))) {
@@ -810,6 +815,10 @@ QoreHashNode* qore_httpclient_priv::send_internal(const char* mname, const char*
 	 continue;
       nh->setKeyValue(hdri->first.c_str(), new QoreStringNode(hdri->second.c_str()), xsink);
    }
+
+   // set Transfer-Encoding: chunked if used with a send callback
+   if (send_callback && !transfer_encoding)
+      nh->setKeyValue("Transfer-Encoding", new QoreStringNode("chunked"), xsink);
 
    if (!connection.username.empty()) {
       // check for "Authorization" header
@@ -1044,7 +1053,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(const char* mname, const char*
    }
 
    // send headers to recv_callback
-   if (recv_callback && msock->socket->priv->runHeaderCallback(xsink, mname, *recv_callback, msock->m, *ans))
+   if (recv_callback && msock->socket->priv->runHeaderCallback(xsink, mname, *recv_callback, &msock->m, *ans))
       return 0;
 
    AbstractQoreNode* body = 0;
@@ -1188,10 +1197,11 @@ QoreHashNode* qore_httpclient_priv::send_internal(const char* mname, const char*
       }
 
       if (body) {
-	 // send data to recv_callback
+	 // send data to recv_callback (already unlocked)
 	 if (recv_callback) {
 	    ReferenceHolder<> bh(body, xsink);
-	    if (msock->socket->priv->runDataCallback(xsink, mname, *recv_callback, msock->m, body))
+	    if (msock->socket->priv->runDataCallback(xsink, mname, *recv_callback, 0, body, false)
+		|| msock->socket->priv->runHeaderCallback(xsink, mname, *recv_callback, 0, 0))
 	       return 0;
 	 }
 	 else

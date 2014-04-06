@@ -47,6 +47,7 @@
 #define QSE_NOT_OPEN -2 //!< socket is not open
 #define QSE_TIMEOUT  -3 //!< timeout occured
 #define QSE_SSL_ERR  -4 //!< SSL error occured
+#define QSE_IN_OP    -5 //!< in another operation (socket call made in socket callback)
 
 class Queue;
 
@@ -114,6 +115,7 @@ public:
 class QoreSocket {
    friend struct qore_socket_private;
    friend struct qore_httpclient_priv;
+   friend class QoreSocketObject;
 
 private:
    //! private implementation of the class
@@ -1252,6 +1254,23 @@ public:
    */
    DLLEXPORT int sendHTTPMessage(ExceptionSink* xsink, QoreHashNode *info, const char *method, const char *path, const char *http_version, const QoreHashNode *headers, const void *data, qore_size_t size, int source, int timeout_ms);
 
+   //! send an HTTP request message on the socket with a timeout value with a chunked message body using a calback
+   /** The socket must be connected before this call is made.
+
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+       @param info if not null, the request-uri and response-uri will be written to this hash, neither of these keys should be set before this call
+       @param method the method string to use in the header - no validity checking is made on this string
+       @param path the path string to use in the header, if the path is empty then '/' is sent
+       @param http_version should be either "1.0" or "1.1"
+       @param headers a hash of headers to send (key: value)
+       @param send_callback the callback for the chunked message body
+       @param source the event source code for socket events
+       @param timeout_ms the maximum amount of time the socket can block on a single send as an integer in milliseconds
+
+       @return 0 for OK, not 0 for error
+   */
+   DLLEXPORT int sendHTTPMessageWithCallback(ExceptionSink* xsink, QoreHashNode *info, const char *method, const char *path, const char *http_version, const QoreHashNode *headers, const ResolvedCallReferenceNode& send_callback, int source, int timeout_ms);
+
    //! send an HTTP response message on the socket
    /** The socket must be connected before this call is made.
 
@@ -1299,6 +1318,22 @@ public:
        @return 0 for OK, not 0 for error
    */
    DLLEXPORT int sendHTTPResponse(ExceptionSink* xsink, int code, const char *desc, const char *http_version, const QoreHashNode *headers, const void *data, qore_size_t size, int source, int timeout_ms);
+
+   //! send an HTTP response message on the socket with a chunked message body using a calback
+   /** The socket must be connected before this call is made.
+
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+       @param code the HTTP response code
+       @param desc the text description for the response code
+       @param http_version should be either "1.0" or "1.1"
+       @param headers a hash of headers to send (key: value)
+       @param send_callback the callback for the chunked message body
+       @param source the event source code for socket events
+       @param timeout_ms the maximum amount of time the socket can block on a single send as an integer in milliseconds
+
+       @return 0 for OK, not 0 for error
+   */
+   DLLEXPORT int sendHTTPResponseWithCallback(ExceptionSink* xsink, int code, const char *desc, const char *http_version, const QoreHashNode *headers, const ResolvedCallReferenceNode& send_callback, int source, int timeout_ms);
 
    //! read and parse HTTP header, caller owns AbstractQoreNode reference count returned
    /** The socket must be connected before this call is made.

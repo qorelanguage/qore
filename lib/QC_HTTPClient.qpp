@@ -95,6 +95,11 @@ qclass HTTPClient [dom=NETWORK; arg=QoreHttpClientObject* client; vparent=Socket
 //! Creates the HTTPClient object based on the option parameter passed
 /** To connect, call any method that requires a connection and an implicit connection is established, or call HTTPClient::connect().
 
+    @par Example:
+    @code
+my HTTPClient $httpclient(("url":"http://hostname:8080/path"));
+    @endcode
+
     @param opts sets options and changes default behaviour for the object, etc; key names are case-sensitive and therefore must all be in lower-case:
     - \c url: A string giving the URL to connect to
     - \c default_port: The default port number to connect to if none is given in the URL
@@ -105,11 +110,6 @@ qclass HTTPClient [dom=NETWORK; arg=QoreHttpClientObject* client; vparent=Socket
     - \c proxy: The proxy URL for connecting through a proxy
     - \c timeout: The timeout value in milliseconds (also can be a @ref relative_dates "relative date-time value" for clarity, ex: \c 5m)
     - \c connect_timeout: The timeout value in milliseconds for establishing a new socket connection (also can be a @ref relative_dates "relative date-time value" for clarity, ex: \c 30s)
-
-    @par Example:
-    @code
-my HTTPClient $httpclient(("url":"http://hostname:8080/path"));
-    @endcode
 
     @throw HTTP-CLIENT-OPTION-ERROR invalid or unknown option passed in option hash
     @throw HTTP-CLIENT-URL-ERROR invalid URL string
@@ -188,12 +188,12 @@ string HTTPClient::getHTTPVersion() [flags=CONSTANT] {
 
     Note that the behavior of this method when called with no argument changed in version 0.8.0; prior to version 0.8.0 calling this method with no argument would turn off secure mode; the behavior was changed to the current functionality in order to make the usage of this method consistent with other methods of the same name and to make it more logical.
 
-    @param secure if @ref True, a SSL/TLS connection will be attempted on the next connection. If @ref False, an unencrypted cleartext connection will be established
-
     @par Example:
     @code
 $httpclient.setSecure(True);
     @endcode
+
+    @param secure if @ref True, a SSL/TLS connection will be attempted on the next connection. If @ref False, an unencrypted cleartext connection will be established
  */
 nothing HTTPClient::setSecure(softbool secure = True) {
    client->setSecure(secure);
@@ -217,13 +217,13 @@ bool HTTPClient::isSecure() [flags=CONSTANT] {
 
     If the \c TCP_NODELAY flag has been set (see HTTPClient::setNoDelay()), then after a successful connection to the remote socket, this option will be set on the socket. If an error occurs setting the \c TCP_NODELAY option, the internal flag is set to false (use HTTPClient::getNoDelay() to check the flag's state) and the error code can be retrieved with errno().
 
-    @par Events:
-    @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED
-
     @par Example:
     @code
 $httpclient.connect();
     @endcode
+
+    @par Events:
+    @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED
 
     @note For possible exceptions, see the Socket::connect() method (or Socket::connectSSL() for secure connections).
  */
@@ -245,6 +245,11 @@ nothing HTTPClient::disconnect() {
 //! Sends an HTTP request with the specified method and optional message body and returns headers and any body received as a response in a hash format
 /** If a connection has not already been established, an internal call to HTTPClient::connect() will be made before sending the message
 
+    @par Example:
+    @code
+my hash $msg = $httpclient.send($body, "POST", "/path", ("Content-Type":"application/x-yaml"));
+    @endcode
+
     @param body The message body to send
     @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT").
     @param path The path for the message (i.e. \c "/path/resource?method&param=value")
@@ -253,11 +258,6 @@ nothing HTTPClient::disconnect() {
     @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
 
     @return The headers received from the HTTP server with all key names converted to lower-case. The message body (if any) will be assigned to the value of the \c "body" key and the HTTP status will be assigned to the \c "status_code" key.
-
-    @par Example:
-    @code
-my hash $msg = $httpclient.send($body, "POST", "/path", ("Content-Type":"application/x-yaml"));
-    @endcode
 
     @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
@@ -282,45 +282,10 @@ hash HTTPClient::send(string body, string method, *string path, *hash headers, s
 //! Sends an HTTP request with the specified method and optional message body and returns headers and any body received as a response in a hash format
 /** If a connection has not already been established, an internal call to HTTPClient::connect() will be made before sending the message
 
-    @param scb The callback giving the chunked HTTP data to send; this callback must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be sent ot simply @ref nothing which will close the chunked message
-    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT").
-    @param path The path for the message (i.e. \c "/path/resource?method&param=value")
-    @param headers An optional hash of headers to include in the message.
-    @param timeout_ms the timeout in milliseconds for the socket I/O operations; 0 means use the default timeout value
-    @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
-    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
-
-    @return The headers received from the HTTP server with all key names converted to lower-case. The message body (if any) will be assigned to the value of the \c "body" key and the HTTP status will be assigned to the \c "status_code" key.
-
     @par Example:
     @code
-my hash $msg = $httpclient.sendWithSendCallback($callback, "POST", "/path", ("Content-Type":"application/x-yaml"));
+my hash $msg = $httpclient.send($body, "POST", "/path", ("Content-Type":"application/x-yaml"));
     @endcode
-
-    @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
-    @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
-    @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
-    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
-    @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
-    @throw SOCKET-SEND-ERROR There was an error sending the data
-    @throw SOCKET-CLOSED The remote end closed the connection
-    @throw SOCKET-RECV-ERROR There was an error receiving the data
-    @throw SOCKET-TIMEOUT Data transmission or reception for a single send() or recv() action exceeded the timeout period
-    @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
-    @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
-
-    @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
-
-    @since Qore 0.8.10
- */
-hash HTTPClient::sendWithSendCallback(code scb, string method, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference info) {
-   OptHashRefHelper ohrh(info, xsink);
-   ReferenceHolder<QoreHashNode> rv(client->sendWithSendCallback(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, scb, getbody, *ohrh, timeout_ms, xsink), xsink);
-   return *xsink ? 0 : rv.release();
-}
-
-//! Sends an HTTP request with the specified method and optional message body and returns headers and any body received as a response in a hash format
-/** If a connection has not already been established, an internal call to HTTPClient::connect() will be made before sending the message
 
     @param body The message body to send; pass @ref nothing (no value) to send no body
     @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT").
@@ -330,11 +295,6 @@ hash HTTPClient::sendWithSendCallback(code scb, string method, *string path, *ha
     @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
 
     @return The headers received from the HTTP server with all key names converted to lower-case. The message body (if any) will be assigned to the value of the \c "body" key and the HTTP status will be assigned to the \c "status_code" key.
-
-    @par Example:
-    @code
-my hash $msg = $httpclient.send($body, "POST", "/path", ("Content-Type":"application/x-yaml"));
-    @endcode
 
     @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
@@ -355,12 +315,193 @@ hash HTTPClient::send(*binary body, string method, *string path, *hash headers, 
    return *xsink ? 0 : rv.release();
 }
 
+//! Sends an HTTP request with the specified method and chunked message body as given by a send callback and returns headers and any body received as a response in a hash format
+/** If a connection has not already been established, an internal call to HTTPClient::connect() will be made before sending the message
+
+    @par Example:
+    @code
+my hash $msg = $httpclient.sendWithSendCallback($callback, "POST", "/path", ("Content-Type":"application/x-yaml"));
+    @endcode
+
+    @param scb The callback giving the chunked HTTP data to send; this callback must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be sent ot simply @ref nothing which will close the chunked message
+    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT").
+    @param path The path for the message (i.e. \c "/path/resource?method&param=value")
+    @param headers An optional hash of headers to include in the message.
+    @param timeout_ms the timeout in milliseconds for the socket I/O operations; 0 means use the default timeout value
+    @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
+    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
+
+    @return The headers received from the HTTP server with all key names converted to lower-case. The message body (if any) will be assigned to the value of the \c "body" key and the HTTP status will be assigned to the \c "status_code" key.
+
+    @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
+    @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
+    @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
+    @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
+    @throw SOCKET-SEND-ERROR There was an error sending the data
+    @throw SOCKET-CLOSED The remote end closed the connection
+    @throw SOCKET-RECV-ERROR There was an error receiving the data
+    @throw SOCKET-TIMEOUT Data transmission or reception for a single send() or recv() action exceeded the timeout period
+    @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
+    @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
+
+    @note
+    - The \c "Transfer-Encoding: chunked" header is automatically set with this method if no \c "Transfer-Encoding" header is already present
+    - For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
+
+    @since Qore 0.8.10
+ */
+hash HTTPClient::sendWithSendCallback(code scb, string method, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference info) {
+   OptHashRefHelper ohrh(info, xsink);
+   ReferenceHolder<QoreHashNode> rv(client->sendWithSendCallback(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, scb, getbody, *ohrh, timeout_ms, xsink), xsink);
+   return *xsink ? 0 : rv.release();
+}
+
+//! Sends an HTTP request with the specified method and optional message body; headers and any body received are returned through a receive callback
+/** This method is useful for receiving chunked message data in real time; chunks are sent to the receive callback as soon as they are received.
+    If a connection has not already been established, an internal call to HTTPClient::connect() will be made before sending the message
+
+    @par Example:
+    @code
+my hash $msg = $httpclient.sendWithRecvCallback($rcv_callback, $data, "POST", "/path", ("Content-Type":"application/x-yaml"));
+    @endcode
+
+    @param rcb The receive callback for the data received; first this method is called with a hash of the message headers, and then with any message body; if a chunked HTTP message is received, then the callback is called once for each chunk; when the message has been received, then the receive callback is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
+    - \c "data": the string or binary data
+    - \c "chunked": True if the data was received with chunked transfer encoding, False if not
+    .
+    Header or trailer data is placed in a hash with the following key:
+    - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
+    @param body The message body to send
+    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT").
+    @param path The path for the message (i.e. \c "/path/resource?method&param=value")
+    @param headers An optional hash of headers to include in the message.
+    @param timeout_ms the timeout in milliseconds for the socket I/O operations; 0 means use the default timeout value
+    @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
+    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
+
+    @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
+    @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
+    @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
+    @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
+    @throw SOCKET-SEND-ERROR There was an error sending the data
+    @throw SOCKET-CLOSED The remote end closed the connection
+    @throw SOCKET-RECV-ERROR There was an error receiving the data
+    @throw SOCKET-TIMEOUT Data transmission or reception for a single send() or recv() action exceeded the timeout period
+    @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
+    @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
+
+    @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
+
+    @since Qore 0.8.10
+ */
+nothing HTTPClient::sendWithRecvCallback(code rcb, string body, string method, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference info) {
+   OptHashRefHelper ohrh(info, xsink);
+   client->sendWithRecvCallback(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, body->getBuffer(), body->size(), getbody, *ohrh, timeout_ms, rcb, xsink);
+}
+
+//! Sends an HTTP request with the specified method and optional message body; headers and any body received are returned through a receive callback
+/** This method is useful for receiving chunked message data in real time; chunks are sent to the receive callback as soon as they are received.
+    If a connection has not already been established, an internal call to HTTPClient::connect() will be made before sending the message
+
+    @par Example:
+    @code
+my hash $msg = $httpclient.sendWithRecvCallback($rcv_callback, $data, "POST", "/path", ("Content-Type":"application/x-yaml"));
+    @endcode
+
+    @param rcb The receive callback for the data received; first this method is called with a hash of the message headers, and then with any message body; if a chunked HTTP message is received, then the callback is called once for each chunk; when the message has been received, then the receive callback is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
+    - \c "data": the string or binary data
+    - \c "chunked": True if the data was received with chunked transfer encoding, False if not
+    .
+    Header or trailer data is placed in a hash with the following key:
+    - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
+    @param body The message body to send; pass @ref nothing (no value) to send no body
+    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT").
+    @param path The path for the message (i.e. \c "/path/resource?method&param=value")
+    @param headers An optional hash of headers to include in the message.
+    @param timeout_ms the timeout in milliseconds for the socket I/O operations; 0 means use the default timeout value
+    @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
+    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
+
+    @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
+    @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
+    @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
+    @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
+    @throw SOCKET-SEND-ERROR There was an error sending the data
+    @throw SOCKET-CLOSED The remote end closed the connection
+    @throw SOCKET-RECV-ERROR There was an error receiving the data
+    @throw SOCKET-TIMEOUT Data transmission or reception for a single send() or recv() action exceeded the timeout period
+    @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
+    @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
+
+    @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
+
+    @since Qore 0.8.10
+ */
+nothing HTTPClient::sendWithRecvCallback(code rcb, *binary body, string method, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference info) {
+   OptHashRefHelper ohrh(info, xsink);
+   client->sendWithRecvCallback(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, body ? body->getPtr() : 0, body ? body->size() : 0, getbody, *ohrh, timeout_ms, rcb, xsink);
+}
+
+//! Sends an HTTP request with the specified method and chunked message body as given by a send callback; headers and any body received are returned through a receive callback
+/** This method is useful for sending chunked message data where the response is also a sent with chunked transfer encoding; chunks are sent to the receive callback as soon as they are received.
+    If a connection has not already been established, an internal call to HTTPClient::connect() will be made before sending the message
+
+    @par Example:
+    @code
+my hash $msg = $httpclient.sendWithCallbacks($send_callback, $rcv_callback, "POST", "/path", ("Content-Type":"application/x-yaml"));
+    @endcode
+
+    @param scb The callback giving the chunked HTTP data to send; this callback must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be sent ot simply @ref nothing which will close the chunked message
+    @param rcb The receive callback for the data received; first this method is called with a hash of the message headers, and then with any message body; if a chunked HTTP message is received, then the callback is called once for each chunk; when the message has been received, then the receive callback is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
+    - \c "data": the string or binary data
+    - \c "chunked": True if the data was received with chunked transfer encoding, False if not
+    .
+    Header or trailer data is placed in a hash with the following key:
+    - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
+    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT").
+    @param path The path for the message (i.e. \c "/path/resource?method&param=value")
+    @param headers An optional hash of headers to include in the message.
+    @param timeout_ms the timeout in milliseconds for the socket I/O operations; 0 means use the default timeout value
+    @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
+    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
+
+    @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
+    @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
+    @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
+    @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
+    @throw SOCKET-SEND-ERROR There was an error sending the data
+    @throw SOCKET-CLOSED The remote end closed the connection
+    @throw SOCKET-RECV-ERROR There was an error receiving the data
+    @throw SOCKET-TIMEOUT Data transmission or reception for a single send() or recv() action exceeded the timeout period
+    @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
+    @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
+
+    @note
+    - The \c "Transfer-Encoding: chunked" header is automatically set with this method if no \c "Transfer-Encoding" header is already present
+    - For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
+
+    @since Qore 0.8.10
+ */
+nothing HTTPClient::sendWithCallbacks(code scb, code rcb, string method, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference info) {
+   OptHashRefHelper ohrh(info, xsink);
+   client->sendWithCallbacks(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, scb, getbody, *ohrh, timeout_ms, rcb, xsink);
+}
+
 //! Sends an HTTP \c GET request and returns the message body received as a string or @ref nothing if no message body is received
 /** In order to get the headers and the body, use the HTTPClient::send() method instead. 
 
     If no connection has already been established, an internal call to HTTPClient::connect() will be made before sending the request.
 
     If any content encoding is used for the message body in the reply, the content is decoded and returned as a string; if the content encoding uses an unknown method, then an exception is thrown.
+
+    @par Example:
+    @code
+my *string $html = $httpclient.get("/path/file.html");
+    @endcode
 
     @param path the path for the message (i.e. \c "/path/resource?method&param=value")
     @param headers an optional hash of headers to include in the message
@@ -370,11 +511,6 @@ hash HTTPClient::send(*binary body, string method, *string path, *hash headers, 
 
     @par Events:
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED, @ref EVENT_HTTP_SEND_MESSAGE, @ref EVENT_PACKET_SENT, @ref EVENT_HTTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_HTTP_CONTENT_LENGTH, @ref EVENT_HTTP_CHUNKED_START, @ref EVENT_HTTP_CHUNKED_END, @ref EVENT_HTTP_CHUNKED_DATA_RECEIVED, @ref EVENT_HTTP_CHUNK_SIZE, @ref EVENT_HTTP_FOOTERS_RECEIVED, @ref EVENT_HTTP_REDIRECT
-
-    @par Example:
-    @code
-my *string $html = $httpclient.get("/path/file.html");
-    @endcode
 
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
     @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
@@ -397,6 +533,11 @@ my *string $html = $httpclient.get("/path/file.html");
 //! Sends an HTTP \c HEAD request and returns as hash of the headers received
 /** If no connection is established, an internal call to HTTPClient::connect() will be made before sending the message.
 
+    @par Example:
+    @code
+my hash $msg = $httpclient.head("/path");
+    @endcode
+
     @param path the path for the message (i.e. \c "/path/resource?method&param=value")
     @param headers an optional hash of headers to include in the message
     @param info an optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request
@@ -405,11 +546,6 @@ my *string $html = $httpclient.get("/path/file.html");
 
     @par Events:
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED, @ref EVENT_HTTP_SEND_MESSAGE, @ref EVENT_PACKET_SENT, @ref EVENT_HTTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_HTTP_REDIRECT
-
-    @par Example:
-    @code
-my hash $msg = $httpclient.head("/path");
-    @endcode
 
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
     @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
@@ -434,6 +570,11 @@ hash HTTPClient::head(string path, *hash headers, *reference info) {
 
     If no connection is established, an internal call to HTTPClient::connect() will be made before sending the message.
 
+    @par Example:
+    @code
+$httpclient.post("/path", $body);
+    @endcode
+
     @param path the path for the message (i.e. \c "/path/resource?method&param=value")
     @param body the string to use as the message body
     @param headers an optional hash of headers to include in the message
@@ -443,11 +584,6 @@ hash HTTPClient::head(string path, *hash headers, *reference info) {
 
     @par Events:
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED, @ref EVENT_HTTP_SEND_MESSAGE, @ref EVENT_PACKET_SENT, @ref EVENT_HTTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_HTTP_CONTENT_LENGTH, @ref EVENT_HTTP_CHUNKED_START, @ref EVENT_HTTP_CHUNKED_END, @ref EVENT_HTTP_CHUNKED_DATA_RECEIVED, @ref EVENT_HTTP_CHUNK_SIZE, @ref EVENT_HTTP_FOOTERS_RECEIVED, @ref EVENT_HTTP_REDIRECT
-
-    @par Example:
-    @code
-$httpclient.post("/path", $body);
-    @endcode
 
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
     @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
@@ -476,6 +612,11 @@ $httpclient.post("/path", $body);
 
     If no connection is established, an internal call to HTTPClient::connect() will be made before sending the message.
 
+    @par Example:
+    @code
+$httpclient.post("/path", $body);
+    @endcode
+
     @param path the path for the message (i.e. \c "/path/resource?method&param=value")
     @param body the optional data to use as the message body
     @param headers an optional hash of headers to include in the message
@@ -485,11 +626,6 @@ $httpclient.post("/path", $body);
 
     @par Events:
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED, @ref EVENT_HTTP_SEND_MESSAGE, @ref EVENT_PACKET_SENT, @ref EVENT_HTTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_HTTP_CONTENT_LENGTH, @ref EVENT_HTTP_CHUNKED_START, @ref EVENT_HTTP_CHUNKED_END, @ref EVENT_HTTP_CHUNKED_DATA_RECEIVED, @ref EVENT_HTTP_CHUNK_SIZE, @ref EVENT_HTTP_FOOTERS_RECEIVED, @ref EVENT_HTTP_REDIRECT
-
-    @par Example:
-    @code
-$httpclient.post("/path", $body);
-    @endcode
 
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
     @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
@@ -563,12 +699,12 @@ string HTTPClient::getEncoding() [flags=CONSTANT] {
 //! Sets a new URL value for the next connection
 /** To retrieve the current URL value, use the HTTPClient::getURL() method
 
-    @param url the new URL for the object
-
     @par Example:
     @code
 $httpclient.setURL("https://user:password@hostname:8080/path");
     @endcode
+
+    @param url the new URL for the object
 
     @throw HTTP-CLIENT-URL-ERROR invalid URL string; invalid authorization credentials in  URL (username without password or vice-versa)
     @throw HTTP-CLIENT-UNKNOWN-PROTOCOL unknown protocol (scheme) passed in URL
@@ -762,12 +898,12 @@ int HTTPClient::getConnectTimeout() [flags=CONSTANT] {
 
     If the socket is not connected when this call is made, then an internal flag is set and the \c TCP_NODELAY option is enabled when the next connection is established. If the socket is connected, then if an error occurs setting the \c TCP_NODELAY option on the socket, this method will return a non-zero error code; the actual error can be checked with the errno() function.
 
-    @param b the \c TCP_NODELAY setting for the object
-
     @par Example:
     @code
 $httpclient.setNoDelay(True);
     @endcode
+
+    @param b the \c TCP_NODELAY setting for the object
 
     @see HTTPClient::getNoDelay()
  */
@@ -846,13 +982,13 @@ nothing HTTPClient::clearUserPassword() {
 //! Sets the username and password for the connection to the proxy; call after HTTPClient::setProxyURL()
 /** Call this method after calling HTTPClient::setProxyURL() to set proxy authentication information when not present in the URL used in HTTPClient::setProxyURL()
 
-    @param user the username to use for proxy authentication in the next HTTP connection
-    @param pass the password to use for proxy authentication in the next HTTP connection
-
     @par Example:
     @code
 $httpclient.setProxyUserPassword($user, $pass);
     @endcode
+
+    @param user the username to use for proxy authentication in the next HTTP connection
+    @param pass the password to use for proxy authentication in the next HTTP connection
  */
 nothing HTTPClient::setProxyUserPassword(string user, string pass) {
    client->setProxyUserPassword(user->getBuffer(), pass->getBuffer());

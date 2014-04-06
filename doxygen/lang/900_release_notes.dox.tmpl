@@ -9,9 +9,14 @@
 
     @subsection qore_0810_new_features New Features in Qore
     - better HTTP support; support for chunked sends and receives for streaming data over HTTP:
-      - @ref Qore::Socket::sendWithSendCallback() "Socket::sendWithSendCallback()"
-      - @ref Qore::Socket::sendWithRecvCallback() "Socket::sendWithRecvCallback()"
-      - @ref Qore::Socket::sendWithCallbacks() "Socket::sendWithCallbacks()"      
+      - @ref Qore::HTTPClient::sendWithSendCallback() "HTTPClient::sendWithSendCallback()"
+      - @ref Qore::HTTPClient::sendWithRecvCallback() "HTTPClient::sendWithRecvCallback()"
+      - @ref Qore::HTTPClient::sendWithCallbacks() "HTTPClient::sendWithCallbacks()"
+      - @ref Qore::Socket::readHTTPChunkedBodyBinaryWithCallback() "Socket::readHTTPChunkedBodyBinaryWithCallback()"
+      - @ref Qore::Socket::readHTTPChunkedBodyWithCallback() "Socket::readHTTPChunkedBodyWithCallback()"
+      - @ref Qore::Socket::sendHTTPMessageWithCallback() "Socket::sendHTTPMessageWithCallback()"
+      - @ref Qore::Socket::sendHTTPResponseWithCallback() "Socket::sendHTTPResponseWithCallback()"
+
     - new user modules:
       - <a href="../../modules/Schema/html/index.html">Schema</a>: for DB-independent schema management
     - new public C++ socket performance instrumentation API

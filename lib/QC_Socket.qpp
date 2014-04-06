@@ -1695,6 +1695,40 @@ nothing Socket::sendHTTPMessage(string method, string path, string http_version,
    s->sendHTTPMessage(xsink, *ohrh, method->getBuffer(), path->getBuffer(), http_version->getBuffer(), headers, body->getPtr(), body->size(), QORE_SOURCE_SOCKET, timeout_ms);
 }
 
+//! Sends an HTTP message with a method and user-defined headers given as a hash and an optional message body
+/** Creates a properly-formatted HTTP message and sends it over the Socket
+
+    @par Example:
+    @code
+$sock.sendHTTPMessageWithCallback($send_callback, "POST", "/RPC2", "1.1", ("Content-Type" : "text/xml"));
+    @endcode
+
+    @par Events:
+    @ref EVENT_PACKET_SENT, @ref EVENT_HTTP_SEND_MESSAGE
+
+    @param scb The callback giving the chunked HTTP data to send; this callback must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be sent ot simply @ref nothing which will close the chunked message
+    @param method the HTTP method name to send (i.e. POST, HEAD, etc)
+    @param path the path component of the URL
+    @param http_version the HTTP protocol version (\c "1.0" or \c "1.1")
+    @param headers a hash of additional headers to send (key-value pairs)
+    @param info An optional reference to an lvalue that can accept a hash that will be used as an output variable with the following hash key:
+    - \c request-uri: The request URI as sent in the output message
+    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been sent or the remote end closes the connection. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
+
+    @throw SOCKET-NOT-OPEN the socket is not connected
+    @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
+    @throw SOCKET-SEND-ERROR Send failed
+    @throw SOCKET-SSL-ERROR there was an error sending SSL data
+
+    @see Socket::sendHTTPResponse(), Socket::readHTTPHeader()
+
+    @since Qore 0.8.10
+ */
+nothing Socket::sendHTTPMessageWithCallback(code scb, string method, string path, string http_version, hash headers, *reference info, timeout timeout_ms = -1) {
+   OptHashRefHelper ohrh(info, xsink);
+   s->sendHTTPMessageWithCallback(xsink, *ohrh, method->getBuffer(), path->getBuffer(), http_version->getBuffer(), headers, *scb, QORE_SOURCE_SOCKET, timeout_ms);
+}
+
 //! Sends an HTTP response with user-defined headers given as a hash and an optional message body
 /** Creates a properly-formatted HTTP response message and sends it over the Socket (must already be connected).  If any errors occur, an exception is raised.
     To send a string without converting the encoding to the Socket's encoding, convert the string to a binary object using the binary() function and use the variant of this method that takes a binary object for the data argument.
@@ -1763,6 +1797,40 @@ nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string
    }
 
    s->sendHTTPResponse(xsink, status_code, status_desc->getBuffer(), http_version->getBuffer(), headers, body ? body->getPtr() : 0, body ? body->size() : 0, QORE_SOURCE_SOCKET, timeout_ms);
+}
+
+//! Sends an HTTP response with user-defined headers given as a hash and a message body as literal binary data
+/** Creates a properly-formatted HTTP response message and sends it over the Socket (must already be connected).  If any errors occur, an exception is raised.
+
+    @par Example:
+    @code
+$sock.sendHTTPResponseWithCallback($send_callback, 200, "OK", "1.1", ("Connection":"Keep-Alive"));
+    @endcode
+
+    @par Events:
+    @ref EVENT_PACKET_SENT, @ref EVENT_HTTP_SEND_MESSAGE
+
+    @param scb The callback giving the chunked HTTP data to send; this callback must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be sent ot simply @ref nothing which will close the chunked message
+    @param status_code the HTTP status code to send (i.e. \c 200, \c 404, etc)
+    @param status_desc the descriptive text for the status code.
+    @param http_version the HTTP protocol version (normally \c "1.0" or \c "1.1", however this method allows any string to be sent)
+    @param headers a hash of additional headers to send (key-value pairs)
+    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been sent or the remote end closes the connection. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
+
+    @throw SOCKET-SENDHTTPRESPONSE-STATUS-ERROR raised if the status_code (first argument) is < 100 or > 599
+    @throw SOCKET-NOT-OPEN the socket is not connected
+    @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
+    @throw SOCKET-SEND-ERROR send failed
+
+    @since Qore 0.8.10
+ */
+nothing Socket::sendHTTPResponseWithCallback(code scb, softint status_code, string status_desc, string http_version, hash headers, timeout timeout_ms = -1) {
+   if (status_code < 100 || status_code >= 600) {
+      xsink->raiseException("SOCKET-SENDHTTPRESPONSE-STATUS-ERROR", "expecting valid HTTP status code between 100 and 599 as second parameter of Socket::sendHTTPResponseWithCallback() call, got value %d instead", status_code);
+      return 0;
+   }
+
+   s->sendHTTPResponseWithCallback(xsink, status_code, status_desc->getBuffer(), http_version->getBuffer(), headers, *scb, QORE_SOURCE_SOCKET, timeout_ms);
 }
 
 //! Retuns a hash representing the data in the HTTP header read, or, if the data cannot be parsed as an HTTP header, then an exception is thrown, and the data read is returned as a string in the \c arg key of the exception hash

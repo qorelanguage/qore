@@ -29,6 +29,11 @@
 
 #include <qore/intern/qore_socket_private.h>
 
+void se_in_op(const char* meth, ExceptionSink* xsink) {
+   assert(xsink);
+   xsink->raiseException("SOCKET-IN-CALLBACK", "calls to Socket::%s() cannot be made from a callback on an operation on the same socket", meth);
+}
+
 void se_not_open(const char* meth, ExceptionSink* xsink) {
    assert(xsink);
    xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::%s() call", meth);
@@ -234,6 +239,14 @@ void concat_target(QoreString& str, const struct sockaddr *addr, const char* typ
       str.sprintf(" (%s: %s:%d)", type, host.getBuffer(), q_get_port_from_addr(addr));
 }
 
+qore_socket_op_helper::qore_socket_op_helper(qore_socket_private* sock) : s(sock) {
+   s->in_op = true;
+}
+
+qore_socket_op_helper::~qore_socket_op_helper() {
+   s->in_op = false;
+}
+
 int SSLSocketHelper::setIntern(const char* mname, int sd, X509* cert, EVP_PKEY *pk, ExceptionSink* xsink) {
    assert(!ssl);
    assert(!ctx);
@@ -392,6 +405,9 @@ void QoreSocket::doException(int rc, const char* meth, int timeout_ms, Exception
 	 break;
       case QSE_SSL_ERR:
 	 xsink->raiseException("SOCKET-SSL-ERROR", "SSL error in Socket::%s() call", meth);
+	 break;
+      case QSE_IN_OP:
+	 se_in_op(meth, xsink);
 	 break;
       default:
 	 xsink->raiseException("SOCKET-ERROR", "unknown internal error code %d in Socket::%s() call", rc, meth);
@@ -1206,6 +1222,10 @@ int QoreSocket::sendHTTPMessage(ExceptionSink* xsink, QoreHashNode* info, const 
    return priv->sendHttpMessage(xsink, info, method, path, http_version, headers, data, size, 0, source, timeout_ms);
 }
 
+int QoreSocket::sendHTTPMessageWithCallback(ExceptionSink* xsink, QoreHashNode *info, const char *method, const char *path, const char *http_version, const QoreHashNode *headers, const ResolvedCallReferenceNode& send_callback, int source, int timeout_ms) {
+   return priv->sendHttpMessage(xsink, info, method, path, http_version, headers, 0, 0, &send_callback, source, timeout_ms);
+}
+
 // returns 0 for success
 int QoreSocket::sendHTTPResponse(int code, const char* desc, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, int source) {
    return priv->sendHttpResponse(0, code, desc, http_version, headers, data, size, 0, source);
@@ -1217,6 +1237,10 @@ int QoreSocket::sendHTTPResponse(ExceptionSink* xsink, int code, const char* des
 
 int QoreSocket::sendHTTPResponse(ExceptionSink* xsink, int code, const char* desc, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, int source, int timeout_ms) {
    return priv->sendHttpResponse(xsink, code, desc, http_version, headers, data, size, 0, source, timeout_ms);
+}
+
+int QoreSocket::sendHTTPResponseWithCallback(ExceptionSink* xsink, int code, const char *desc, const char *http_version, const QoreHashNode *headers, const ResolvedCallReferenceNode& send_callback, int source, int timeout_ms) {
+   return priv->sendHttpResponse(xsink, code, desc, http_version, headers, 0, 0, &send_callback, source, timeout_ms);
 }
 
 AbstractQoreNode* QoreSocket::readHTTPHeader(int timeout, int *rc, int source) {

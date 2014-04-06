@@ -123,14 +123,22 @@ public:
    DLLEXPORT int64 recvu4LSB(int timeout, unsigned int *b, ExceptionSink* xsink);
    // send HTTP message
    DLLEXPORT int sendHTTPMessage(ExceptionSink* xsink, QoreHashNode* info, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void* ptr, int size, int source, int timeout_ms);
+   DLLEXPORT int sendHTTPMessageWithCallback(ExceptionSink* xsink, QoreHashNode *info, const char *method, const char *path, const char *http_version, const QoreHashNode *headers, const ResolvedCallReferenceNode& send_callback, int source, int timeout_ms);
+
    // send HTTP response
    DLLEXPORT int sendHTTPResponse(ExceptionSink* xsink, int code, const char* desc, const char* http_version, const QoreHashNode* headers, const void* ptr, int size, int source, int timeout_ms);
+   DLLEXPORT int sendHTTPResponseWithCallback(ExceptionSink* xsink, int code, const char *desc, const char *http_version, const QoreHashNode *headers, const ResolvedCallReferenceNode& send_callback, int source, int timeout_ms);
    // read and parse HTTP header
    DLLEXPORT AbstractQoreNode* readHTTPHeader(ExceptionSink* xsink, QoreHashNode* info, int timeout);
    // receive a binary message in HTTP chunked format
    DLLEXPORT QoreHashNode* readHTTPChunkedBodyBinary(int timeout, ExceptionSink* xsink);
    // receive a string message in HTTP chunked format
    DLLEXPORT QoreHashNode* readHTTPChunkedBody(int timeout, ExceptionSink* xsink);
+
+   // receive a binary message in HTTP chunked format
+   DLLEXPORT void readHTTPChunkedBodyBinaryWithCallback(const ResolvedCallReferenceNode* recv_callback, int timeout_ms, ExceptionSink* xsink);
+   // receive a string message in HTTP chunked format
+   DLLEXPORT void readHTTPChunkedBodyWithCallback(const ResolvedCallReferenceNode* recv_callback, int timeout_ms, ExceptionSink* xsink);
 
    DLLEXPORT QoreStringNode* readHTTPHeaderString(ExceptionSink* xsink, int timeout_ms);
 
