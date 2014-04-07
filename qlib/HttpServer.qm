@@ -679,22 +679,22 @@ public class HttpServer::AbstractAuthenticator {
 }
 
 #! abstract class for streaming HTTP chunked requests/responses
-class HttpServer::AbstractStreamRequest {
+public class HttpServer::AbstractStreamRequest {
     public {
     }
 
     private {
-        # the listener servicing the request for logging purposes
+        #! the listener servicing the request for logging purposes
         HttpListener $.listener;
-        # the request handler for the request
+        #! the request handler for the request
         AbstractHttpRequestHandler $.handler;
-        # the Socket object for the response
+        #! the Socket object for the response
         Socket $.s;
-        # the call context variable
+        #! the call context variable
         hash $.cx;
-        # a hash of request headers
+        #! a hash of request headers
         hash $.hdr;
-        # any message body given in a non-chunked request
+        #! any message body given in a non-chunked request
         *data $.body;
     }
 
@@ -728,6 +728,12 @@ class HttpServer::AbstractStreamRequest {
         return $.sendResponse();
     }
 
+    #! called to either create the response hash or send a chunked response directly
+    /** This method calls getResponseHeaderImpl() to get the response code, headers and optionally a response message body.
+        If a \c "Content-Encoding: chunked" header is included, then the response is sent chunked using the send() callback; 
+        in this case the \c "reply_sent" key in the response is set to @ref Qore::True "True".
+        Otherwise, any message body is immediately encoded (if accepted by the requestor).
+    */
     private hash sendResponse() {
         my hash $rv = $.getResponseHeaderImpl();
         HttpServer::setReplyHeaders($.s, $.cx, \$rv);
@@ -762,6 +768,7 @@ class HttpServer::AbstractStreamRequest {
         return $rv;
     }
 
+    #! this method should return the response message description hash
     private hash getResponseHeaderImpl() {
         return (
             "code": 501,
@@ -770,40 +777,48 @@ class HttpServer::AbstractStreamRequest {
             );
     }
 
+    #! this is the primary callback for receiving chunked data; data will be decoded here if necessary, and then recvImpl() is called
     private nothing recv(hash $v) {
-        if ($v.data && $.hdr."content-encoding")
-            $v.data = $.handler.decodeBody($.s, $.hdr, $v.data);
+        if ($v.data) {
+            $.logChunk(False, $v.data.size());
+            if ($.hdr."content-encoding")
+                $v.data = $.handler.decodeBody($.s, $.hdr, $v.data);
+        }
 
         $.recvImpl($v);
     }
 
+    #! this is the primary callback for sending chunked responses; first sendImpl() is called to get the raw data, and then any chunked data is encoded by this method if required
     private any send() {
         my any $v = $.sendImpl();
-        if ($.cx.encoding) {
-            switch ($v.typeCode()) {
-                case NT_STRING:
-                case NT_BINARY: {
-                    if ($.cx.encoding == "deflate")
-                        $v = compress($v);
-                    else if ($.cx.encoding == "gzip")
-                        $v = gzip($v);
-                    else if ($.cx.encoding == "bzip2")
-                        $v = bzip2($v);
-                    break;
-                }
+        switch ($v.typeCode()) {
+            case NT_STRING:
+            case NT_BINARY: {
+                if ($.cx.encoding == "deflate")
+                    $v = compress($v);
+                else if ($.cx.encoding == "gzip")
+                    $v = gzip($v);
+                else if ($.cx.encoding == "bzip2")
+                    $v = bzip2($v);
+                $.logChunk(True, $v.size());
+                break;
             }
         }
         return $v;
     }
 
+    private logChunk(bool $send, int $size) {
+        $.listener.log("cid %d %s CHUNK %d bytes", $.cx.id, $send ? "send" : "recv", $size);
+    }
+
     #! abstract callback method for receiving chunked data
     /**
         @param v the first time this method is called with a hash of the message headers in the \c "hdr" key, and then with any message body in the \c "data"; if a chunked HTTP message is received, then this method is called once for each chunk; when the message has been received, then this method is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
-    - \c "data": the string or binary data
-    - \c "chunked": True if the data was received with chunked transfer encoding, False if not
-    .
-    Header or trailer data is placed in a hash with the following key:
-    - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
+        - \c "data": the string or binary data
+        - \c "chunked": True if the data was received with chunked transfer encoding, False if not
+        .
+        Header or trailer data is placed in a hash with the following key:
+        - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
     */
     private nothing recvImpl(hash $v) {
     }
@@ -873,6 +888,7 @@ public class HttpServer::AbstractHttpRequestHandler {
             );
     }
 
+    #! decodes a message body with content-encoding
     data decodeBody(Socket $s, hash $hdr, binary $body) {
         switch ($hdr."content-encoding") {
             case "deflate":
@@ -890,25 +906,30 @@ public class HttpServer::AbstractHttpRequestHandler {
         throw "UNSUPPORTED-CONTENT-ENCODING", sprintf("don't know how to handle content-encoding %y", $hdr."content-encoding");
     }
 
+    #! optionally retrieves and post-processes any message body
+    *data getMessageBody(Socket $s, hash $hdr, data $body) {
+        if (!$body && $hdr."transfer-encoding" == "chunked") {
+            $hdr += ($hdr."content-encoding" ? $s.readHTTPChunkedBodyBinary(HttpServer::ReadTimeout) : $s.readHTTPChunkedBody(HttpServer::ReadTimeout));
+            $body = remove $hdr.body;
+        }
+
+        if ($body && $hdr."content-encoding" && $.decompress)
+            $body = $.decodeBody($s, $hdr, $body);
+
+        return $body;
+    }
+
     #! top-level request handling method
     final hash handleRequest(HttpListener $listener, Socket $s, hash $cx, hash $hdr, *data $body) {
         # classic, non-streaming interface
-        if (!$.stream) {
-            if (!$body && $hdr."transfer-encoding" == "chunked") {
-                $hdr += ($hdr."content-encoding" ? $s.readHTTPChunkedBodyBinary(HttpServer::ReadTimeout) : $s.readHTTPChunkedBody(HttpServer::ReadTimeout));
-                $body = remove $hdr.body;
-            }
-
-            if ($body && $hdr."content-encoding" && $.decompress)
-                $body = $.decodeBody($s, $hdr, $body);
-            
-            return $.handleRequest($cx, $hdr, $body);
-        }
+        if (!$.stream)
+            return $.handleRequest($cx, $hdr, $body ? $.getMessageBody($s, $hdr, $body) : NOTHING);
 
         my AbstractStreamRequest $req = $.getStreamRequestImpl($listener, $s, $cx, $hdr, $body);
         return $req.handleRequest();
     }
 
+    #! returns the AbstractStreamRequest object for handling chunked requests
     private AbstractStreamRequest getStreamRequestImpl(HttpListener $listener, Socket $s, hash $cx, hash $hdr, *data $body) {
         return new AbstractStreamRequest($listener, $self, $s, $cx, $hdr, $body);
     }
