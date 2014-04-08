@@ -306,6 +306,73 @@ Content-Length: 36
 
 #! the RestHandler namespace contains all the objects in the RestHandler module
 public namespace RestHandler {
+    #! the base abstract class for REST stream request handlers
+    public class AbstractRestStreamRequestHandler {
+        public {}
+
+        private {
+            #! call context hash
+            hash $.cx;
+
+            #! call argument hash
+            hash $.ah;
+        }
+
+        #! creates the object with the given arguments
+        /** @param cx call context hash; this hash will have the following keys:
+            - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
+            - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
+            - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
+            - \c url: a hash of broken-down URL information (as returned from parseURL())
+            - \c id: the unique HTTP connection ID
+            - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
+            - \c user: the current RBAC username (if any)
+            - \c hdr: a hash of header information as returned by @ref Qore::Socket::readHTTPHeader()
+            - \c body: the deserialized message body
+            - \c aih: a hash of \c "Accept" values
+            @param ah any URI arguments in the request
+        */
+        constructor(hash $cx, *hash $ah) {
+            $.cx = $cx;
+            $.ah = $ah;
+        }
+
+        #! abstract callback method for receiving chunked data
+        /**
+            @param v the first time this method is called with a hash of the message headers in the \c "hdr" key, and then with any message body in the \c "data"; if a chunked HTTP message is received, then this method is called once for each chunk; when the message has been received, then this method is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
+            - \c "data": the string or binary data
+            - \c "chunked": True if the data was received with chunked transfer encoding, False if not
+            .
+            Header or trailer data is placed in a hash with the following key:
+            - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
+            */
+        abstract nothing recvImpl(hash $v);
+
+        #! abstract callback method for sending chunked data
+        /** 
+            @return The chunked HTTP data to send; this method must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be returned or simply @ref nothing which will close the chunked message
+            */
+        abstract any sendImpl();
+    }
+
+    public class RestStreamRequest inherits HttpServer::AbstractStreamRequest {
+        private {
+            RestHandler::AbstractRestStreamRequestHandler $.rsh;
+        }
+
+        constructor(RestHandler::AbstractRestStreamRequestHandler $rsh, HttpListener $listener, AbstractHttpRequestHandler $handler, Socket $s, hash $cx, hash $hdr, *data $body) : AbstractStreamRequest($listener, $handler, $s, $cx, $hdr, $body) {
+            $.rsh = $rsh;
+        }
+
+        private nothing recvImpl(hash $v) {
+            $.rsh.recvImpl($v);
+        }
+
+        private any sendImpl() {
+            return $.rsh.sendImpl();
+        }
+    }
+
     #! the base abstract class for REST handler classes
     public class AbstractRestClass {
         public {}
@@ -337,7 +404,7 @@ public namespace RestHandler {
         }
 
         #! this method is called by the RestHandler class to match the right object with incoming requests
-        hash handleRequest(RestHandler $rh, *list $cl, string $mn, hash $cx, *hash $args) {            
+        hash handleRequest(HttpListener $listener, RestHandler $rh, Socket $s, *list $cl, string $mn, hash $cx, *hash $args) {            
             if (!$args && $cx.body.typeCode() == NT_HASH)
                 $args = $cx.body;
             if ($cl) {
@@ -349,15 +416,32 @@ public namespace RestHandler {
                 }
 
                 $rh.logDebug("REST DBG: class %y: dispatching to subclass %y: method %y args: %y", $.name(), $cname, $mn, $args);
-                return $cls.handleRequest($rh, $cl, $mn, $cx, $args);
+                return $cls.handleRequest($listener, $rh, $s, $cl, $mn, $cx, $args);
             }
             
             $rh.logDebug("REST DBG: class %y: dispatching method %y args: %y", $.name(), $mn, $args);
-            return $.dispatch($rh, NOTHING, $mn, $args, $cx);
+            return $.dispatchStream($listener, $rh, $s, $mn, $args, $cx);
+        }
+
+        #! this method is called to dispatch streamed requests on the given object
+        private hash dispatchStream(HttpListener $listener, RestHandler $rh, Socket $s, string $mn, *hash $ah, hash $cx) {
+            my string $sn = "stream" + $mn[0].upr() + $mn.substr(1);
+            try {
+                my AbstractRestStreamRequestHandler $rsh = callObjectMethodArgs($self, $sn, ($cx, $ah));
+
+                my RestStreamRequest $req($rsh, $listener, $rh, $s, $cx, $cx.hdr, $cx.hdr."content-length" ? $cx.body : NOTHING);
+                return $req.handleRequest();
+            }
+            catch (hash $ex) {
+                if ($ex.err == "METHOD-DOES-NOT-EXIST")
+                    return $.dispatch($rh, $mn, $ah, $cx);
+                $rh.logDebug("REST DBG: class %y: stream method %y: %s: %s: %s", $.name(), $sn, get_ex_pos($ex), $ex.err, $ex.desc);
+                rethrow;
+            }
         }
 
         #! this method is called to dispatch requests on the given object
-        private hash dispatch(RestHandler $rh, *string $oname, string $mn, *hash $ah, hash $cx) {
+        private hash dispatch(RestHandler $rh, string $mn, *hash $ah, hash $cx) {
             try {
                 return callObjectMethodArgs($self, $mn, ($cx, $ah));
             }
@@ -462,7 +546,7 @@ public namespace RestHandler {
         #! create the object optionally with the given AbstractAuthenticator
         /** @param auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
          */
-        constructor(*AbstractAuthenticator $auth) : AbstractHttpRequestHandler($auth) {
+        constructor(*AbstractAuthenticator $auth) : AbstractHttpRequestHandler($auth, True) {
         }
 
         #! returns the name of the root REST class
@@ -493,7 +577,7 @@ public namespace RestHandler {
             - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
             - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
          */
-        hash handleRequest(hash $cx, hash $hdr, *data $b) {
+        hash handleRequest(HttpListener $listener, Socket $s, hash $cx, hash $hdr, *data $b) {
             #$.logDebug("REST DBG: cx: %N", $cx);
             #$.logDebug("REST DBG: hdr: %N", $hdr);
             if ($b)
@@ -511,8 +595,11 @@ public namespace RestHandler {
 
             my *hash $args;
             if ($ah.params) {
-                if ($ah.params.typeCode() != NT_HASH)
+                if ($ah.params.typeCode() != NT_HASH) {
+                    # read any chunked msg body if necessary
+                    $.getMessageBody($s, $hdr, $b, False);
                     return RestHandler::make400("cannot parse arguments in REST call %y, URI arguments must be key/value pairs with an 'action' key; got type %y instead (value: %y)", $path, $ah.params.type(), $ah.params);
+                }
                 $args = $ah.params;
             }
 
@@ -533,14 +620,20 @@ public namespace RestHandler {
             if (!$args && $body && $body.typeCode() == NT_HASH)
                 $args = $body;
 
-            if (!Methods.($hdr.method))
+            if (!Methods.($hdr.method)) {
+                # read any chunked msg body if necessary
+                $.getMessageBody($s, $hdr, $b, False);
                 return RestHandler::make400("unsupported HTTP method %y given in REST call %y", $hdr.method, $path);
+            }
 
             # make method name
             my string $mn;
             if ($args.action) {
-                if ($args.action.typeCode() != NT_STRING)
+                if ($args.action.typeCode() != NT_STRING) {
+                    # read any chunked msg body if necessary
+                    $.getMessageBody($s, $hdr, $b, False);
                     return RestHandler::make400("cannot parse arguments in REST call %y, the 'action' key is not assigned to a string; got %y instead", $path, $args.action.type());
+                }
                 $mn = $args.action;
                 $args -= "action";
                 # ensure first letter of the action is in upper case
@@ -550,8 +643,11 @@ public namespace RestHandler {
                 $mn = Methods.($hdr.method) + $mn;
             }
             else if ($body.action) {
-                if ($body.action.typeCode() != NT_STRING)
+                if ($body.action.typeCode() != NT_STRING) {
+                    # read any chunked msg body if necessary
+                    $.getMessageBody($s, $hdr, $b, False);
                     return RestHandler::make400("cannot parse arguments in REST call %y, the 'action' key is not assigned to a string; got %y instead", $path, $args.action.type());
+                }
                 $mn = $body.action;
                 $cx.orig_method = $mn;
                 # ensure first letter of the action is in upper case
@@ -599,8 +695,11 @@ public namespace RestHandler {
             else {
                 if (!$.ch{$cls}) {
                     my *AbstractRestClass $c = $.subClass($cls, $cx, $args);
-                    if (!$c)
+                    if (!$c) {
+                        # read any chunked msg body if necessary
+                        $.getMessageBody($s, $hdr, $b, False);
                         return RestHandler::make400("unknown REST class %y in path %y (valid classes: %y)", $cls, $cx.url.path, $.ch.keys());
+                    }
                     $rcls = $c;
                 }
                 else
@@ -608,14 +707,17 @@ public namespace RestHandler {
             }
 
             # check method
-            if (!Methods.($hdr.method))
+            if (!Methods.($hdr.method)) {
+                # read any chunked msg body if necessary
+                $.getMessageBody($s, $hdr, $b, False);
                 return RestHandler::make501("cannot handle HTTP method %y; valid methods: %y", $hdr.method, Methods.keys());
+            }
             
             # handle call with class
             my hash $rv;
             
             try {
-                $rv = $rcls.handleRequest($self, $cl, $mn, $cx, $args);
+                $rv = $rcls.handleRequest($listener, $self, $s, $cl, $mn, $cx, $args);
             }
             catch (hash $ex) {
                 # if there is an exception, return a 409 Conflict error to the client with the exception information
@@ -632,7 +734,7 @@ public namespace RestHandler {
                 $encoded = True;
 
             # process Accept values in the order sent by the sender
-            if (!$encoded) {
+            if (!$encoded && !$rv.reply_sent) {
                 my *code $ds;
                 foreach my string $a in ($aih.keyIterator()) {
                     $ds = MimeDataTypes.$a.serialize;

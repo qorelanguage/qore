@@ -709,10 +709,7 @@ public class HttpServer::AbstractStreamRequest {
     }
 
     hash handleRequest() {
-        # first call callback with header
-        $.recvImpl(("hdr": $.hdr));
-
-        # now handle message body
+        # handle message body
         if ($.body) {
             $.recv(("data": $.body, "chunked": False));
             # signal end of data
@@ -825,7 +822,7 @@ public class HttpServer::AbstractStreamRequest {
 
     #! abstract callback method for sending chunked data
     /** 
-        @return The chunked HTTP data to send; this method must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be returned ot simply @ref nothing which will close the chunked message
+        @return The chunked HTTP data to send; this method must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be returned or simply @ref nothing which will close the chunked message
     */
     private any sendImpl() {
     }
@@ -846,14 +843,15 @@ public class HttpServer::AbstractHttpRequestHandler {
         bool $.decompress_to_string = True;
 
         #! if the handler supports streaming requests/responses with chunked data
-        bool $.stream = False;
+        bool $.stream;
     }
 
     #! create the object optionally with the given AbstractAuthenticator
     /** @param auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
       */
-    constructor(*AbstractAuthenticator $auth) {
+    constructor(*AbstractAuthenticator $auth, softbool $stream = False) {
         $.auth = $auth;
+        $.stream = $stream;
     }
 
     #! will be called when a request is received that should be directed to the handler
@@ -907,20 +905,20 @@ public class HttpServer::AbstractHttpRequestHandler {
     }
 
     #! optionally retrieves and post-processes any message body
-    *data getMessageBody(Socket $s, hash $hdr, data $body) {
+    *data getMessageBody(Socket $s, hash $hdr, *data $body, bool $decode = True) {
         if (!$body && $hdr."transfer-encoding" == "chunked") {
             $hdr += ($hdr."content-encoding" ? $s.readHTTPChunkedBodyBinary(HttpServer::ReadTimeout) : $s.readHTTPChunkedBody(HttpServer::ReadTimeout));
             $body = remove $hdr.body;
         }
 
-        if ($body && $hdr."content-encoding" && $.decompress)
+        if ($decode && $body && $hdr."content-encoding" && $.decompress)
             $body = $.decodeBody($s, $hdr, $body);
 
         return $body;
     }
 
     #! top-level request handling method
-    final hash handleRequest(HttpListener $listener, Socket $s, hash $cx, hash $hdr, *data $body) {
+    hash handleRequest(HttpListener $listener, Socket $s, hash $cx, hash $hdr, *data $body) {
         # classic, non-streaming interface
         if (!$.stream)
             return $.handleRequest($cx, $hdr, $body ? $.getMessageBody($s, $hdr, $body) : NOTHING);

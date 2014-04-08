@@ -2,7 +2,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file restserver.q example program using the RestHandler and HttpServer modules
 
-/*  restserver.q Copyright 2013 David Nichols
+/*  restserver.q Copyright 2013 - 2014 David Nichols
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -237,6 +237,10 @@ class ExampleRestHandler inherits RestHandler {
         verbose = verb;
         addClass(new ExampleFilesClass());
         addClass(new ExampleDirsClass());
+    }
+
+    hash get(*hash cx, *hash ah) {
+        return RestHandler::makeResponse(200, ("files", "dirs"));
     }
 
     logInfo(string fmt) {
