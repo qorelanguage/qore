@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file Mime.qm Mime module definition
 
-/*  Mime.qm Copyright 2012 - 2013 David Nichols
+/*  Mime.qm Copyright (C) 2012 - 2014 David Nichols
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -25,13 +25,16 @@
 %requires qore >= 0.8.4
 
 module Mime {
-    version = "1.3.2";
+    version = "1.3.3";
     desc = "Mime module providing MIME-related definitions";
     author = "David Nichols";
     url = "http://qore.org";
 }
 
 /*  Version History
+    * 2014-04-08 v1.3.3: David Nichols <david@qore.org>
+      + added MimeTypeOctetStream constant
+
     * 2014-01-15 v1.3.2: David Nichols <david@qore.org>
       + added mime type for WSDL files (application/wsdl+xml)
       + added mappings for xls and xlst extensions to MimeTypeXml
@@ -110,8 +113,10 @@ public namespace Mime {
 	These are constants for common MIME types
      */
     #@{
+    public const MimeTypeUnknown = MimeTypeOctetStream;
+
     #! MIME type for unknown file types
-    public const MimeTypeUnknown = "application/octet-stream";
+    public const MimeTypeOctetStream = "application/octet-stream";
 
     #! MIME type for text
     public const MimeTypeText = "text/plain";

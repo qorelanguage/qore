@@ -763,7 +763,7 @@ public class HttpServer::AbstractStreamRequest {
         if ($v.data) {
             $.logChunk(False, $v.data.size());
             if ($.hdr."content-encoding")
-                $v.data = $.handler.decodeBody($.s, $.hdr, $v.data);
+                $v.data = AbstractHttpRequestHandler::decodeBody($.hdr."content-encoding", $v.data, $.handler.decompress_to_string ? $.s.getEncoding() : NOTHING);
         }
 
         $.recvImpl($v);
@@ -880,21 +880,36 @@ public class HttpServer::AbstractHttpRequestHandler {
     }
 
     #! decodes a message body with content-encoding
-    data decodeBody(Socket $s, hash $hdr, binary $body) {
-        switch ($hdr."content-encoding") {
+    static data decodeBody(string $ce, binary $body, *string $enc) {
+        switch ($ce) {
             case "deflate":
             case "x-deflate":
-                return $.decompress_to_string ? uncompress_to_string(binary($body), $s.getEncoding()) : uncompress_to_binary($body);
+                return $enc ? uncompress_to_string(binary($body), $enc) : uncompress_to_binary($body);
             case "gzip":
             case "x-gzip":
-                return $.decompress_to_string ? gunzip_to_string(binary($body), $s.getEncoding()) : gunzip_to_binary($body);
+                return $enc ? gunzip_to_string(binary($body), $enc) : gunzip_to_binary($body);
             case "bzip2":
             case "x-bzip2":
-                return $.decompress_to_string ? bunzip2_to_string(binary($body), $s.getEncoding()) : bunzip2_to_binary($body);
+                return $enc ? bunzip2_to_string(binary($body), $enc) : bunzip2_to_binary($body);
             case "identity":
-                return $.decompress_to_string ? binary_to_string($body, $s.getEncoding()) : $body;
+                return $enc ? binary_to_string($body, $enc) : $body;
         }
-        throw "UNSUPPORTED-CONTENT-ENCODING", sprintf("don't know how to handle content-encoding %y", $hdr."content-encoding");
+        throw "UNSUPPORTED-CONTENT-ENCODING", sprintf("don't know how to handle content-encoding %y", $ce);
+    }
+
+    #! encodes a message body with content-encoding
+    static binary encodeBody(string $ce, data $body) {
+        switch ($ce) {
+            case "deflate":
+                return compress($body);
+            case "gzip":
+                return gzip($body);
+            case "bzip2":
+                return bzip2($body);
+            case "identity":
+                return $body;
+        }
+        throw "UNSUPPORTED-CONTENT-ENCODING", sprintf("don't know how to handle content-encoding %y", $ce);
     }
 
     #! optionally retrieves and post-processes any message body
@@ -905,7 +920,7 @@ public class HttpServer::AbstractHttpRequestHandler {
         }
 
         if ($decode && $body && $hdr."content-encoding" && $.decompress)
-            $body = $.decodeBody($s, $hdr, $body);
+            $body = AbstractHttpRequestHandler::decodeBody($hdr."content-encoding", $body, $.decompress_to_string ? $s.getEncoding() : NOTHING);
 
         return $body;
     }
@@ -2713,7 +2728,7 @@ public class HttpServer::HttpListener inherits Qore::Socket {
                 $hdr."content-type" = $hi."body-content-type";
 
                 # the Socket's encoding is set in Socket::readHTTPHeader() according to any charset declaration in the Content-Type
-                $cx.encoding = $s.getEncoding();
+                $cx.char_encoding = $s.getEncoding();
                 $cx."response-encoding" = $hi."accept-charset";
 
 		# check if we need to close the connection
