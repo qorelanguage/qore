@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright 2003 - 2014 David Nichols
+ Copyright (C) 2003 - 2014 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -189,8 +189,12 @@ int ConstantEntry::parseInit(ClassNs ptr) {
 
    // do not evaluate expression if any parse exceptions have been thrown
    QoreProgram* pgm = getProgram();
-   if (pgm->parseExceptionRaised())
+   if (pgm->parseExceptionRaised()) {
+      discard(node, 0);
+      node = 0;
+      typeInfo = nothingTypeInfo;      
       return -1;
+   }
 
    // evaluate expression
    ExceptionSink xsink;
