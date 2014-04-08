@@ -2307,9 +2307,9 @@ public class HttpServer::HttpServer {
                     $rv.hdr."Content-Encoding" = "bzip2";
                     $rv.body = bzip2($rv.body);
                 }
-
-                $s.sendHTTPResponse($rv.code, HttpServer::HttpCodes.($rv.code), "1.1", $rv.hdr, $rv.body);
             }
+
+            $s.sendHTTPResponse($rv.code, HttpServer::HttpCodes.($rv.code), "1.1", $rv.hdr, $rv.body);
 
             $listener.logResponse($cx, $rv);
         }

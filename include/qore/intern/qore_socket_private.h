@@ -1411,7 +1411,7 @@ struct qore_socket_private {
       while (true) {
 	 char* buf;
 	 rc = brecv(xsink, meth, buf, 1, 0, timeout, false);
-	 //printd(5, "qore_socket_private::readHTTPData('%s') rc: "QLLD" read char: %c (%03d) (old state: %d)\n", meth, rc, rc > 0 && buf[0] > 31 ? buf[0] : '?', rc > 0 ? buf[0] : 0, state);
+	 //printd(5, "qore_socket_private::readHTTPData() this: %p Socket::%s(): rc: "QLLD" read char: %c (%03d) (old state: %d)\n", this, meth, rc, rc > 0 && buf[0] > 31 ? buf[0] : '?', rc > 0 ? buf[0] : 0, state);
 	 if (rc <= 0) {
 	    //printd(5, "qore_socket_private::readHTTPData(timeout=%d) hdr='%s' (len: %d), rc="QSD", errno=%d: '%s'\n", timeout, hdr->getBuffer(), hdr->strlen(), rc, errno, strerror(errno));
 
