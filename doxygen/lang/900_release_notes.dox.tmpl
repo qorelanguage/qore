@@ -34,6 +34,7 @@
     - fixed several bugs where the parse location could be reported incorrectly for type errors regarding in-object variable references
     - fixed a bug where an error could result with @ref Qore::Thread::Condition::wait() "Condition::wait()" with timeouts > 2147483648ms
     - fixed bugs handling "bigint" and "double precision" column types with schema alignments with the <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> module
+    - fixed a bug handling parse initialization of constant values requiring run-time evaluation after other parse exceptions have been raised that could cause a parse-time crash
 
     @section qore_089 Qore 0.8.9
 

@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright 2003 - 2014 David Nichols
+ Copyright (C) 2003 - 2014 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -183,22 +183,26 @@ int ConstantEntry::parseInit(ClassNs ptr) {
       node = node->parseInit((LocalVar*)0, PF_CONST_EXPRESSION, lvids, typeInfo);
    }
 
-   //printd(5, "ConstantEntry::parseInit() this: %p %s initialized to node: %p (%s)\n", this, name.c_str(), node, get_type_name(node));
+   //printd(5, "ConstantEntry::parseInit() this: %p %s initialized to node: %p (%s) value: %d\n", this, name.c_str(), node, get_type_name(node), node->is_value());
 
    if (node->is_value())
       return 0;
 
    // do not evaluate expression if any parse exceptions have been thrown
    QoreProgram* pgm = getProgram();
-   if (pgm->parseExceptionRaised())
+   if (pgm->parseExceptionRaised()) {
+      discard(node, 0);
+      node = 0;
+      typeInfo = nothingTypeInfo;
       return -1;
+   }
 
    // evaluate expression
    ExceptionSink xsink;
    {
       ReferenceHolder<AbstractQoreNode> v(node->eval(&xsink), &xsink);
 
-      //printd(5, "ConstantEntry::parseInit() this=%p %s evaluated to node=%p (%s)\n", this, name.c_str(), *v, get_type_name(*v));
+      //printd(5, "ConstantEntry::parseInit() this: %p %s evaluated to node: %p (%s)\n", this, name.c_str(), *v, get_type_name(*v));
 
       if (!xsink) {
 	 node->deref(&xsink);
