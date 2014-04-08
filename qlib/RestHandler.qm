@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file RestHandler.qm Qore handler definition for the HttpServer module for exporting REST services
 
-/*  RestHandler.qm Copyright 2013 Qore Technologies, sro
+/*  RestHandler.qm Copyright (C) 2013 - 2014 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -337,6 +337,9 @@ public namespace RestHandler {
             $.ah = $ah;
         }
 
+        #! this method should return the response message description hash
+        abstract hash getResponseHeaderMessageImpl();
+
         #! abstract callback method for receiving chunked data
         /**
             @param v the first time this method is called with a hash of the message headers in the \c "hdr" key, and then with any message body in the \c "data"; if a chunked HTTP message is received, then this method is called once for each chunk; when the message has been received, then this method is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
@@ -362,6 +365,10 @@ public namespace RestHandler {
 
         constructor(RestHandler::AbstractRestStreamRequestHandler $rsh, HttpListener $listener, AbstractHttpRequestHandler $handler, Socket $s, hash $cx, hash $hdr, *data $body) : AbstractStreamRequest($listener, $handler, $s, $cx, $hdr, $body) {
             $.rsh = $rsh;
+        }
+
+        private hash getResponseHeaderMessageImpl() {
+            return $.rsh.getResponseHeaderMessageImpl();
         }
 
         private nothing recvImpl(hash $v) {
@@ -728,42 +735,44 @@ public namespace RestHandler {
                     );
             }
 
-            # serialize response according to client's capabilities if necessary
-            my bool $encoded;
-            if ($rv.already_encoded)
-                $encoded = True;
+            if (!$rv.reply_sent) {
+                # serialize response according to client's capabilities if necessary
+                my bool $encoded;
+                if ($rv.already_encoded)
+                    $encoded = True;
 
-            # process Accept values in the order sent by the sender
-            if (!$encoded && !$rv.reply_sent) {
-                my *code $ds;
-                foreach my string $a in ($aih.keyIterator()) {
-                    $ds = MimeDataTypes.$a.serialize;
-                    if ($ds) {
-                        $rv.body = $ds($rv.body);
-                        $rv.hdr += ("Content-Type": $a);
-                        break;
-                    }
-                }
-
-                # if still not encoded and the client accepts anything, encode with the first possible serialization method
-                if (!$ds && $aih."*/*") {
-                    foreach my string $k in (MimeDataTypes.keyIterator()) {
-                        $ds = MimeDataTypes.$k.serialize;
+                # process Accept values in the order sent by the sender
+                if (!$encoded && !$rv.reply_sent) {
+                    my *code $ds;
+                    foreach my string $a in ($aih.keyIterator()) {
+                        $ds = MimeDataTypes.$a.serialize;
                         if ($ds) {
                             $rv.body = $ds($rv.body);
-                            $rv.hdr += ("Content-Type": $k);
+                            $rv.hdr += ("Content-Type": $a);
                             break;
                         }
                     }
-                    if (!$ds) {
-                        $.responseSerializationError($cx, $aih, $rv);
-                        # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html: If an Accept header field is present, and if the server cannot send a response which is acceptable according to the combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.
-                        return RestHandler::makeResponse(406, "cannot serialize response; you claim to accept only: %y; types supported: %y; discarding response: %y", $aih.keys(), MimeDataTypes.keys(), $rv.body);
+
+                    # if still not encoded and the client accepts anything, encode with the first possible serialization method
+                    if (!$ds && $aih."*/*") {
+                        foreach my string $k in (MimeDataTypes.keyIterator()) {
+                            $ds = MimeDataTypes.$k.serialize;
+                            if ($ds) {
+                                $rv.body = $ds($rv.body);
+                                $rv.hdr += ("Content-Type": $k);
+                                break;
+                            }
+                        }
+                        if (!$ds) {
+                            $.responseSerializationError($cx, $aih, $rv);
+                            # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html: If an Accept header field is present, and if the server cannot send a response which is acceptable according to the combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.
+                            return RestHandler::makeResponse(406, "cannot serialize response; you claim to accept only: %y; types supported: %y; discarding response: %y", $aih.keys(), MimeDataTypes.keys(), $rv.body);
+                        }
                     }
                 }
-            }
 
-            $.logDebug("REST DBG: response serialization: %d %s (%d bytes)", $rv.code, $rv.hdr."Content-Type", $rv.body.size());
+                $.logDebug("REST DBG: response serialization: %d %s (%d bytes)", $rv.code, $rv.hdr."Content-Type", $rv.body.size());
+            }
 
             #$.logDebug("REST DBG: rv: %N", $rv);
 

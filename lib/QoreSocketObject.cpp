@@ -310,7 +310,7 @@ QoreHashNode* QoreSocketObject::readHTTPChunkedBody(int timeout_ms, ExceptionSin
 
 void QoreSocketObject::readHTTPChunkedBodyBinaryWithCallback(const ResolvedCallReferenceNode& recv_callback, int timeout_ms, ExceptionSink *xsink) {
    AutoLocker al(priv->m);
-   priv->socket->priv->readHttpChunkedBodyBinary(timeout_ms, xsink, QORE_SOURCE_SOCKET, &recv_callback, 0, &priv->m);
+   priv->socket->priv->readHttpChunkedBodyBinary(timeout_ms, xsink, QORE_SOURCE_SOCKET, &recv_callback, &priv->m);
 }
 
 // receive a string message in HTTP chunked format

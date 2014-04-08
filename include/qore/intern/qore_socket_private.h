@@ -2100,7 +2100,7 @@ struct qore_socket_private {
 
       do_headers(hdr, headers, size && data ? size : 0, true);
    
-      //printd(5, "QoreSocket::sendHTTPResponse() data: %p size: %ld hdr: %s", data, size, hdr.getBuffer());
+      //printd(5, "QoreSocket::sendHTTPResponse() this: %p data: %p size: %ld send_callback: %p hdr: %s", this, data, size, send_callback, hdr.getBuffer());
    
       int rc;
       if ((rc = send(xsink, "sendHTTPResponse", hdr.getBuffer(), hdr.strlen(), timeout_ms)))
@@ -2116,7 +2116,7 @@ struct qore_socket_private {
       return 0;
    }
 
-   DLLLOCAL QoreHashNode* readHttpChunkedBodyBinary(int timeout, ExceptionSink* xsink, int source, const ResolvedCallReferenceNode* recv_callback = 0, qore_uncompress_to_string_t dec = 0, QoreThreadLock* l = 0) {
+   DLLLOCAL QoreHashNode* readHttpChunkedBodyBinary(int timeout, ExceptionSink* xsink, int source, const ResolvedCallReferenceNode* recv_callback = 0, QoreThreadLock* l = 0) {
       assert(xsink);
 
       if (sock == QORE_INVALID_SOCKET) {
@@ -2226,14 +2226,7 @@ struct qore_socket_private {
          do_chunked_read(QORE_EVENT_HTTP_CHUNKED_DATA_RECEIVED, size, size + 2, source);
 
          if (recv_callback) {
-            if (dec) {
-               SimpleRefHolder<QoreStringNode> str(dec(*b, enc, xsink));
-               if (*xsink)
-                  return 0;
-               if (runDataCallback(xsink, "readHTTPChunkedBodyBinary", *recv_callback, l, *str, true))
-                  return 0;
-            }
-            else if (runDataCallback(xsink, "readHTTPChunkedBodyBinary", *recv_callback, l, *b, true))
+            if (runDataCallback(xsink, "readHTTPChunkedBodyBinary", *recv_callback, l, *b, true))
                return 0;
             b->clear();
          }

@@ -1118,7 +1118,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(const char* mname, const char*
 	 ReferenceHolder<QoreHashNode> nah(xsink);
 	 if (recv_callback) {
 	    if (content_encoding)
-	       msock->socket->priv->readHttpChunkedBodyBinary(timeout_ms, xsink, QORE_SOURCE_HTTPCLIENT, recv_callback, dec, &msock->m);
+	       msock->socket->priv->readHttpChunkedBodyBinary(timeout_ms, xsink, QORE_SOURCE_HTTPCLIENT, recv_callback, &msock->m);
 	    else
 	       msock->socket->priv->readHttpChunkedBody(timeout_ms, xsink, QORE_SOURCE_HTTPCLIENT, recv_callback, &msock->m);
 	 }
@@ -1209,7 +1209,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(const char* mname, const char*
       }
    }
 
-   if (code < 100 || code >= 300) {
+   if (!*xsink && (code < 100 || code >= 300)) {
       const char* mess = get_string_header(xsink, **ans, "status_message");
       if (!mess)
 	 mess = "<no message>";
@@ -1219,7 +1219,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(const char* mname, const char*
       return 0;
    }
 
-   return recv_callback ? 0 : ans.release();
+   return *xsink || recv_callback ? 0 : ans.release();
 }
 
 QoreHashNode* QoreHttpClientObject::send(const char* meth, const char* new_path, const QoreHashNode* headers, const void* data, unsigned size, bool getbody, QoreHashNode* info, ExceptionSink* xsink) {
