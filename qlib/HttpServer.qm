@@ -2256,7 +2256,7 @@ public class HttpServer::HttpServer {
 
         # if there was a pending chunked body that has not yet been read, then read it and discard before sending any response
         if ($s.pendingHttpChunkedBody())
-            $s.readHTTPChunkedBodyBinary(HttpServer::ReadTimeout);\
+            $s.readHTTPChunkedBodyBinary(HttpServer::ReadTimeout);
 
         if (!HttpCodes.($rv.code)) { # if the handler returns an invalid hash
             my string $str = sprintf("%s handler returned an invalid response rv: %y", $cx.handler_name, $rv);
