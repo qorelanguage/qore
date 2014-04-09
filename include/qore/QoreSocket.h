@@ -1612,6 +1612,9 @@ public:
    //! posts deleted message and removes any event queue
    DLLEXPORT void cleanup(ExceptionSink* xsink);
 
+   //! returns true if a HTTP header was read indicating chunked transfer encoding, but no chunked body has been read
+   DLLEXPORT bool pendingHttpChunkedBody() const;
+
    DLLLOCAL static void doException(int rc, const char *meth, int timeout_ms, ExceptionSink* xsink);
 
    //! sets the event queue (not part of the library's pubilc API), must be already referenced before call

@@ -1634,6 +1634,10 @@ void QoreSocket::clearStats() {
    priv->clearStats();
 }
 
+bool QoreSocket::pendingHttpChunkedBody() const {
+   return priv->pendingHttpChunkedBody();
+}
+
 QoreSocketTimeoutHelper::QoreSocketTimeoutHelper(QoreSocket& s, const char* op) : priv(new PrivateQoreSocketTimeoutHelper(qore_socket_private::get(s), op)) {
 }
 

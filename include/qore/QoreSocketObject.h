@@ -176,6 +176,7 @@ public:
    DLLEXPORT void setWarningQueue(ExceptionSink* xsink, int64 warning_ms, int64 warning_bs, class Queue* wq, AbstractQoreNode* arg, int64 min_ms = 1000);
    DLLEXPORT QoreHashNode* getUsageInfo() const;
    DLLEXPORT void clearStats();
+   DLLEXPORT bool pendingHttpChunkedBody() const;
 };
 
 #endif // _QORE_QORE_SOCKET_OBJECT_H

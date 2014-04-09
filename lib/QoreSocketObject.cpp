@@ -549,3 +549,9 @@ void QoreSocketObject::clearStats() {
    AutoLocker al(priv->m);
    priv->socket->clearStats();
 }
+
+bool QoreSocketObject::pendingHttpChunkedBody() const {
+   AutoLocker al(priv->m);
+   return priv->socket->pendingHttpChunkedBody();
+}
+

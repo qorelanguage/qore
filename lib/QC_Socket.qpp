@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -2603,4 +2603,16 @@ $sock.clearStats();
 */
 Socket::clearStats() {
    s->clearStats();
+}
+
+//! returns True if the socket is still connected, and a HTTP header was read indicating chunked transfer encoding, but no chunked body has been read yet
+/** @par Example:
+    @code
+my bool $b = $sock.pendingHttpChunkedBody();
+    @endcode
+
+    @since %Qore 0.8.10
+*/
+bool Socket::pendingHttpChunkedBody() {
+   return s->pendingHttpChunkedBody();
 }

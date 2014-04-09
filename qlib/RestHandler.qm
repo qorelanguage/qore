@@ -609,11 +609,8 @@ public namespace RestHandler {
 
             my *hash $args;
             if ($ah.params) {
-                if ($ah.params.typeCode() != NT_HASH) {
-                    # read any chunked msg body if necessary
-                    $.getMessageBody($s, $hdr, $b, False);
+                if ($ah.params.typeCode() != NT_HASH)
                     return RestHandler::make400("cannot parse arguments in REST call %y, URI arguments must be key/value pairs with an 'action' key; got type %y instead (value: %y)", $path, $ah.params.type(), $ah.params);
-                }
                 $args = $ah.params;
             }
 
@@ -634,20 +631,14 @@ public namespace RestHandler {
             if (!$args && $body && $body.typeCode() == NT_HASH)
                 $args = $body;
 
-            if (!Methods.($hdr.method)) {
-                # read any chunked msg body if necessary
-                $.getMessageBody($s, $hdr, $b, False);
+            if (!Methods.($hdr.method))
                 return RestHandler::make400("unsupported HTTP method %y given in REST call %y", $hdr.method, $path);
-            }
 
             # make method name
             my string $mn;
             if ($args.action) {
-                if ($args.action.typeCode() != NT_STRING) {
-                    # read any chunked msg body if necessary
-                    $.getMessageBody($s, $hdr, $b, False);
+                if ($args.action.typeCode() != NT_STRING)
                     return RestHandler::make400("cannot parse arguments in REST call %y, the 'action' key is not assigned to a string; got %y instead", $path, $args.action.type());
-                }
                 $mn = $args.action;
                 $args -= "action";
                 # ensure first letter of the action is in upper case
@@ -657,11 +648,8 @@ public namespace RestHandler {
                 $mn = Methods.($hdr.method) + $mn;
             }
             else if ($body.action) {
-                if ($body.action.typeCode() != NT_STRING) {
-                    # read any chunked msg body if necessary
-                    $.getMessageBody($s, $hdr, $b, False);
+                if ($body.action.typeCode() != NT_STRING)
                     return RestHandler::make400("cannot parse arguments in REST call %y, the 'action' key is not assigned to a string; got %y instead", $path, $args.action.type());
-                }
                 $mn = $body.action;
                 $cx.orig_method = $mn;
                 # ensure first letter of the action is in upper case
@@ -709,11 +697,8 @@ public namespace RestHandler {
             else {
                 if (!$.ch{$cls}) {
                     my *AbstractRestClass $c = $.subClass($cls, $cx, $args);
-                    if (!$c) {
-                        # read any chunked msg body if necessary
-                        $.getMessageBody($s, $hdr, $b, False);
+                    if (!$c)
                         return RestHandler::make400("unknown REST class %y in path %y (valid classes: %y)", $cls, $cx.url.path, $.ch.keys());
-                    }
                     $rcls = $c;
                 }
                 else
@@ -721,11 +706,8 @@ public namespace RestHandler {
             }
 
             # check method
-            if (!Methods.($hdr.method)) {
-                # read any chunked msg body if necessary
-                $.getMessageBody($s, $hdr, $b, False);
+            if (!Methods.($hdr.method))
                 return RestHandler::make501("cannot handle HTTP method %y; valid methods: %y", $hdr.method, Methods.keys());
-            }
             
             # handle call with class
             my hash $rv;

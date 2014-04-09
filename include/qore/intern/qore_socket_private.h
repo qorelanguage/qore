@@ -192,13 +192,13 @@ struct qore_socket_private {
       tp_us_min             // throughput: minimum time for transfer to be considered
       ;
    AbstractQoreNode* callback_arg;
-   bool del, in_op;
+   bool del, in_op, http_exp_chunked_body;
    
    DLLLOCAL qore_socket_private(int n_sock = QORE_INVALID_SOCKET, int n_sfamily = AF_UNSPEC, int n_stype = SOCK_STREAM, int n_prot = 0, const QoreEncoding* n_enc = QCS_DEFAULT) : 
       sock(n_sock), sfamily(n_sfamily), port(-1), stype(n_stype), sprot(n_prot), enc(n_enc), 
       ssl(0), cb_queue(0), warn_queue(0), buflen(0), bufoffset(0), tl_warning_us(0), tp_warning_bs(0), 
       tp_bytes_sent(0), tp_bytes_recv(0), tp_us_sent(0), tp_us_recv(0), tp_us_min(0),
-      callback_arg(0), del(false), in_op(false) {
+      callback_arg(0), del(false), in_op(false), http_exp_chunked_body(false) {
       //sendTimeout = recvTimeout = -1
    }
 
@@ -212,7 +212,10 @@ struct qore_socket_private {
 
    DLLLOCAL int close() {
       int rc = close_internal();
-      in_op = 0;
+      if (in_op)
+         in_op = false;
+      if (http_exp_chunked_body)
+         http_exp_chunked_body = false;
       sfamily = AF_UNSPEC;
       stype = SOCK_STREAM;
       sprot = 0;
@@ -1799,7 +1802,7 @@ struct qore_socket_private {
 	 flags |= CHF_REQUEST;
       }
    
-      bool close = convertHeaderToHash(h, p, flags, info);
+      bool close = convertHeaderToHash(h, p, flags, info, &http_exp_chunked_body);
       do_read_http_header(QORE_EVENT_HTTP_MESSAGE_RECEIVED, h, source);
 
       // process header info
@@ -2128,6 +2131,10 @@ struct qore_socket_private {
          return 0;
       }
 
+      // reset "expecting HTTP chunked body" flag
+      if (http_exp_chunked_body)
+         http_exp_chunked_body = false;
+
       qore_socket_op_helper oh(this);
 
       SimpleRefHolder<BinaryNode> b(new BinaryNode);
@@ -2274,6 +2281,10 @@ struct qore_socket_private {
          se_in_op("readHTTPChunkedBody", xsink);
          return 0;
       }
+
+      // reset "expecting HTTP chunked body" flag
+      if (http_exp_chunked_body)
+         http_exp_chunked_body = false;
 
       qore_socket_op_helper oh(this);
 
@@ -2502,7 +2513,7 @@ struct qore_socket_private {
    }
    
    // static method; returns true if the connection should be closed, false if not
-   bool convertHeaderToHash(QoreHashNode* h, char* p, int flags = 0, QoreHashNode* info = 0) {
+   bool convertHeaderToHash(QoreHashNode* h, char* p, int flags = 0, QoreHashNode* info = 0, bool* chunked = 0) {
       bool close = !(flags & CHF_HTTP11);
       // socket encoding
       const char* senc = 0;
@@ -2597,6 +2608,9 @@ struct qore_socket_private {
 		  info->setKeyValue("body-content-type", val->refSelf(), 0);
 	       }
 	    }
+            else if (chunked && !strcmp(buf, "transfer-encoding") && !strcmp(t, "chunked")) {
+               *chunked = true;
+            }
 	    else if (info) {
 	       if (!strcmp(buf, "accept-charset"))
 		  acceptcharset = do_accept_charset(t, *info);
@@ -2776,6 +2790,10 @@ struct qore_socket_private {
 	 h->setKeyValue("arg", callback_arg->refSelf(), 0);
 
       warn_queue->pushAndTakeRef(h);
+   }
+
+   DLLLOCAL bool pendingHttpChunkedBody() const {
+      return http_exp_chunked_body && sock != QORE_INVALID_SOCKET;
    }
 
    DLLLOCAL static void getUsageInfo(const QoreSocket& sock, QoreHashNode& h, const QoreSocket& s) {
