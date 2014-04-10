@@ -434,7 +434,7 @@ public namespace RestHandler {
         private hash dispatchStream(HttpListener $listener, RestHandler $rh, Socket $s, string $mn, *hash $ah, hash $cx) {
             my string $sn = "stream" + $mn[0].upr() + $mn.substr(1);
             try {
-                $cx.socket = $s;
+                $cx.socketobject = $s;
                 my AbstractRestStreamRequestHandler $rsh = callObjectMethodArgs($self, $sn, ($cx, $ah));
 
                 my RestStreamRequest $req($rsh, $listener, $rh, $s, $cx, $cx.hdr, $cx.hdr."content-length" ? $cx.body : NOTHING);
