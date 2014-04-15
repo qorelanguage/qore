@@ -1892,7 +1892,11 @@ void delete_qore_threads() {
 #endif
 #endif
 
-   qore_thread_cleanup();
+#ifdef HAVE_MPFR_BUILDOPT_TLS_T
+   // only call mpfr_free_cache if MPFR uses TLS
+   if (mpfr_buildopt_tls_p())
+      mpfr_free_cache();
+#endif
 }
 
 QoreListNode* get_thread_list() {
