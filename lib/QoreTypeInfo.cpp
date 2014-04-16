@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright 2003 - 2013 David Nichols
+ Copyright (C) 2003 - 2014 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -243,7 +243,7 @@ void init_qore_types() {
    do_maps(NT_LIST,        "list", listTypeInfo, listOrNothingTypeInfo);
    do_maps(NT_HASH,        "hash", hashTypeInfo, hashOrNothingTypeInfo);
    do_maps(NT_OBJECT,      "object", objectTypeInfo, objectOrNothingTypeInfo);
-   do_maps(NT_ALL,         "any", anyTypeInfo);
+   do_maps(NT_ALL,         "any", anyTypeInfo, anyTypeInfo);
    do_maps(NT_DATE,        "date", dateTypeInfo, dateOrNothingTypeInfo);
    do_maps(NT_CODE,        "code", codeTypeInfo, codeOrNothingTypeInfo);
    do_maps(NT_DATA,        "data", dataTypeInfo, dataOrNothingTypeInfo);

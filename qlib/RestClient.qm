@@ -22,8 +22,8 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.8 or better
-%requires qore >= 0.8.8
+# this module requires Qore 0.8.10 or better
+%requires qore >= 0.8.10
 
 # require type definitions everywhere
 %require-types
@@ -46,7 +46,7 @@
 %endtry
 
 module RestClient {
-    version = "1.1";
+    version = "1.2";
     desc = "user module for calling REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -58,16 +58,12 @@ module RestClient {
     };
 }
 
-/*  Version History
-    * 2013-12-17 v1.1: David Nichols <david@qore.org>
-      + updated to use encode_url() before sending HTTP messages
-      + add charset=xxx to Content-Type in requests
-      + fixed Accept header in requests
-    * 2013-10-04 v1.0: David Nichols <david@qore.org>
-      + the initial version of the RestClient module
+/*  Version History - see below in docs
 */
 
 /** @mainpage RestClient Module
+
+    @tableofcontents
 
     @section restclientintro RestClient Introduction
 
@@ -102,6 +98,20 @@ printf("%N\n", ans.body);
     @endcode
 
     See example file \c "rest" in the examples directory for a more detailed example using this module
+
+    @section restclientrelnotes Release Notes
+
+    @subsection restclientv1_2 RestClient v1.2
+    - allow the Content-Type header to be overriden in REST requests
+    - added \a hdr args to REST methods
+
+    @subsection restclientv1_1 RestClient v1.1
+    - updated to use encode_url() before sending HTTP messages
+    - add charset=xxx to \c "Content-Type" header in requests
+    - fixed \c "Accept" header in requests
+
+    @subsection restclientv1_0 RestClient v1.0
+    - the initial version of the %RestClient module
 */
 
 #! the RestClient namespace contains all the objects in the RestClient module
@@ -174,7 +184,7 @@ public namespace RestClient {
             const Accept = AcceptList.join(",");
 
             #! RestClient Version
-            const Version = "1.0";
+            const Version = "1.2";
 
             #! RestClient Version String
             const VersionString = sprintf("Qore-RestClient/%s", RestClient::Version);
@@ -289,6 +299,7 @@ my hash $ans = $rest.get("/orders/1?info=verbose");
             @param path the URI path to add (will be appended to any root path given in the constructor)
             @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in @ref RestClient::RestClient::constructor() "RestClient::constructor()"
             @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request
+            @param hdr any headers to be sent with the request; headers here will override default headers for the object as well
 
             @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be assigned to the value of the \c "body" key
 
@@ -298,8 +309,8 @@ my hash $ans = $rest.get("/orders/1?info=verbose");
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
-        hash get(string $path, any $body, *reference $info) {
-            return $.doRequest("GET", $path, $body, \$info);
+        hash get(string $path, any $body, *reference $info, *hash $hdr) {
+            return $.doRequest("GET", $path, $body, \$info, NOTHING, $hdr);
         }
 
         #! sends an HTTP PUT request to the REST server and returns the response
@@ -311,6 +322,7 @@ my hash $ans = $rest.put("/orders/1", ("action": "cancel"));
             @param path the URI path to add (will be appended to any root path given in the constructor)
             @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in @ref RestClient::RestClient::constructor() "RestClient::constructor()"
             @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request
+            @param hdr any headers to be sent with the request; headers here will override default headers for the object as well
 
             @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be assigned to the value of the \c "body" key
 
@@ -320,8 +332,8 @@ my hash $ans = $rest.put("/orders/1", ("action": "cancel"));
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
-        hash put(string $path, any $body, *reference $info) {
-            return $.doRequest("PUT", $path, $body, \$info);
+        hash put(string $path, any $body, *reference $info, *hash $hdr) {
+            return $.doRequest("PUT", $path, $body, \$info, NOTHING, $hdr);
         }
 
         #! sends an HTTP POST request to the REST server and returns the response
@@ -333,6 +345,7 @@ my hash $ans = $rest.post("/orders", ("product": "xyz123", "options": 500));
             @param path the URI path to add (will be appended to any root path given in the constructor)
             @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in @ref RestClient::RestClient::constructor() "RestClient::constructor()"
             @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request
+            @param hdr any headers to be sent with the request; headers here will override default headers for the object as well
 
             @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be assigned to the value of the \c "body" key
 
@@ -342,8 +355,8 @@ my hash $ans = $rest.post("/orders", ("product": "xyz123", "options": 500));
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
-        hash post(string $path, any $body, *reference $info) {
-            return $.doRequest("POST", $path, $body, \$info);
+        hash post(string $path, any $body, *reference $info, *hash $hdr) {
+            return $.doRequest("POST", $path, $body, \$info, NOTHING, $hdr);
         }
 
         #! sends an HTTP DELETE request to the REST server and returns the response
@@ -355,6 +368,7 @@ my hash $ans = $rest.post("/orders/1");
             @param path the URI path to add (will be appended to any root path given in the constructor)
             @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in @ref RestClient::RestClient::constructor() "RestClient::constructor()"
             @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request
+            @param hdr any headers to be sent with the request; headers here will override default headers for the object as well
 
             @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be assigned to the value of the \c "body" key
 
@@ -364,9 +378,31 @@ my hash $ans = $rest.post("/orders/1");
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
-        hash del(string $path, any $body, *reference $info) {
-            return $.doRequest("DELETE", $path, $body, \$info);
+        hash del(string $path, any $body, *reference $info, *hash $hdr) {
+            return $.doRequest("DELETE", $path, $body, \$info, NOTHING, $hdr);
         }
+
+        private nothing prepareMsg(reference $body, reference $hdr, string $ct = "Content-Type") {
+            $hdr = $.headers + $hdr;
+
+            # serialize body if necessary
+            if (exists $body) {
+                $body = $.sih.out($body);
+                if (!$hdr.$ct)
+                    $hdr.$ct = $.sih.ct;
+                if ($body.typeCode() == NT_STRING)
+                    $hdr.$ct += ";charset=" + $body.encoding();
+            }
+        }
+
+        private nothing preparePath(reference $path) {
+            # prepare path
+            my *string $p = $.getConnectionPath();
+            if ($p && $path)
+                $path = $p + "/" + $path;
+
+            $path = encode_url($path);
+        }        
 
         #! sends an HTTP request to the REST server and returns the response
         /** @par Example:
@@ -379,7 +415,7 @@ my hash $ans = $rest.doRequest("DELETE", "/orders/1");
             @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in @ref RestClient::RestClient::constructor() "RestClient::constructor()"
             @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request
             @param decode_errors decode the message body with HTTP error responses and throw an exception based on the message body
-            @param hdr any headers to be sent with the request
+            @param hdr any headers to be sent with the request; headers here will override default headers for the object as well
 
             @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be assigned to the value of the \c "body" key
 
@@ -391,30 +427,17 @@ my hash $ans = $rest.doRequest("DELETE", "/orders/1");
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
         hash doRequest(string $m, string $path, any $body, *reference $info, *softbool $decode_errors, *hash $hdr) {
-            $hdr = $.headers + $hdr;
+            $.prepareMsg(\$body, \$hdr);
 
-            # serialize body if necessary
-            my *string $rb;
-            if (exists $body) {
-                $rb = $body = $.sih.out($body);
-                $hdr."Content-Type" = $.sih.ct;
-                if ($body.typeCode() == NT_STRING)
-                    $hdr."Content-Type" += ";charset=" + $body.encoding();
-            }
-
-            on_exit if ($rb) {
+            on_exit if (exists $body) {
                 $info += (
-                    "request-body": $rb,
+                    "request-body": $body,
                     "request-serialization": $.ds,
                     );
             }
 
             # prepare path
-            my *string $p = $.getConnectionPath();
-            if ($p && $path)
-                $path = $p + "/" + $path;
-
-            $path = encode_url($path);
+            $.preparePath(\$path);
 
             my hash $h;
             try {
