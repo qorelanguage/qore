@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file RestClient.qm Qore user module for calling REST services
 
-/*  RestClient.qm Copyright 2013 Qore Technologies, sro
+/*  RestClient.qm Copyright (C) 2013 - 2014 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -173,7 +173,7 @@ public namespace RestClient {
                 MimeTypeYaml, MimeTypeYamlRpc,
 %endif
 %ifndef NoXml
-                MimeTypeXml,
+                MimeTypeXml, MimeTypeXmlApp,
 %endif
 %ifndef NoJson
                 MimeTypeJsonRpc,
@@ -195,7 +195,7 @@ public namespace RestClient {
                 "User-Agent": RestClient::VersionString,
                 );
 
-            #! Data serialization options; this is a hash to similulate a set of strings
+            #! Data serialization options; this is a hash to simulate a set of strings
             /** Data serialization options are as follows:
                 - \c "auto": prefers in this order: json, yaml, xml-rpc
                 - \c "xml": use only XML-RPC serialization
@@ -208,6 +208,27 @@ public namespace RestClient {
                 "json": True,
                 "yaml": True,
                 );
+
+            #! Send content encoding options
+            /** Send content encoding options are as follows:
+                - \c "bzip": use bzip2 compression
+                - \c "gzip": use gzip compression
+                - \c "deflate": use deflate compression
+             */
+            const EncodingSupport = (
+                "deflate": (
+                    "ce": "deflate",
+                    "func": \compress(),
+                    ),
+                "bzip2": (
+                    "ce": "bzip2",
+                    "func": \bzip2(),
+                    ),
+                "gzip": (
+                    "ce": "gzip",
+                    "func": \gzip(),
+                    ),
+                );            
         }
         
         private {
@@ -217,6 +238,8 @@ public namespace RestClient {
             string $.ds;
             # serialization info hash
             hash $.sih;
+            # send content encoding hash
+            *hash $.seh;
         }
 
         #! calls the base class HTTPClient constructor and optionally connects to the REST server
@@ -228,6 +251,7 @@ my RestClient $rest(("url": "http://localhost:8001/rest"));
             @param opts valid options are:
             - \c url: A string giving the URL to connect to
             - \c data: a @ref DataSerializationOptions "data serialization option"; if not present defaults to \c "auto"
+            - \c send_encoding: a @ref EncodingSupport "send data encoding option"; if not present defaults to no content-encoding on sent message bodies
             - \c default_port: The default port number to connect to if none is given in the URL
             - \c http_version: Either '1.0' or '1.1' for the claimed HTTP protocol version compliancy in outgoing message headers
             - \c default_path: The default path to use for new connections if a path is not otherwise specified in the connection URL
@@ -238,9 +262,13 @@ my RestClient $rest(("url": "http://localhost:8001/rest"));
             @param do_not_connect if \c False (the default), then a connection will be immediately established to the remote server
 
             @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
+
+            @since %RestClient 1.2 the \a send_encoding option was added
         */
         constructor(*hash $opts, *softbool $do_not_connect) : HTTPClient($opts) {
             $.setSerialization($opts.data);
+            if ($opts.send_encoding)
+                $.setSendEncoding($opts.send_encoding);
             
             # unconditionally set the encoding to utf-8
             $.setEncoding("utf-8");
@@ -274,6 +302,28 @@ $rest.setSerialization("yaml");
         
             $.ds = $data;
             $.sih = DataSerializationSupport.$data;
+        }
+
+        #! change the serialization option for the object; see @ref DataSerializationOptions for valid options
+        /** @par Example:
+            @code
+$rest.setSerialization("yaml");
+            @endcode
+
+            @param data the serialization option for the object; see @ref DataSerializationOptions for valid options
+
+            @throw RESTCLIENT-ERROR invalid or unsupported serialization option
+
+            @see @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
+        */
+        setSendEncoding(string $enc = "auto") {
+            if ($enc == "auto")
+                $.seh = EncodingSupport.firstValue();
+            else {
+                if (!EncodingSupport.$enc)
+                    throw "RESTCLIENT-ERROR", sprintf("send content encoding option %y is unknown; valid options: %y", $enc, EncodingSupport.keys());
+                $.seh = EncodingSupport.$enc;
+            }
         }
 
         #! returns the current data serialization format currently in effect for the object (see @ref DataSerializationOptions for possible values)
@@ -382,6 +432,7 @@ my hash $ans = $rest.post("/orders/1");
             return $.doRequest("DELETE", $path, $body, \$info, NOTHING, $hdr);
         }
 
+        #! sets up the Content-Type header and encodes any body for sending
         private nothing prepareMsg(reference $body, reference $hdr, string $ct = "Content-Type") {
             $hdr = $.headers + $hdr;
 
@@ -392,9 +443,15 @@ my hash $ans = $rest.post("/orders/1");
                     $hdr.$ct = $.sih.ct;
                 if ($body.typeCode() == NT_STRING)
                     $hdr.$ct += ";charset=" + $body.encoding();
+
+                if ($.seh) {
+                    $hdr."Content-Encoding" = $.seh.ce;
+                    $body = $.seh.func($body);
+                }
             }
         }
 
+        #! sets up the path for the HTTP request URI
         private nothing preparePath(reference $path) {
             # prepare path
             my *string $p = $.getConnectionPath();
@@ -475,6 +532,7 @@ my hash $ans = $rest.doRequest("DELETE", "/orders/1");
             return $h;
         }
 
+        #! decodes the response
         decodeResponse(reference $h, *reference $info) {
             $info."response-body" = $h.body;
 

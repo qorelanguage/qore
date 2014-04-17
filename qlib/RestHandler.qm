@@ -605,8 +605,6 @@ public namespace RestHandler {
             # get object and args
             my hash $ah = $path ? parse_uri_query($path) : hash();
 
-            # FIXME: update the Socket class to track HTTP requests with chunked transfer encoding
-
             my *hash $args;
             if ($ah.params) {
                 if ($ah.params.typeCode() != NT_HASH)

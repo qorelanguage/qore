@@ -2205,6 +2205,11 @@ public class HttpServer::HttpServer {
 
                 my *hash $tld_save = $handler.saveThreadLocalData();
                 on_exit $handler.restoreThreadLocalData($tld_save);
+
+                # decode body if applicable
+                if ($body && $hdr."content-encoding" && $handler.decompress)
+                    $body = AbstractHttpRequestHandler::decodeBody($hdr."content-encoding", $body, $handler.decompress_to_string ? $s.getEncoding() : NOTHING);
+
                 $rv = $handler.handleRequest($listener, $s, $cx, $hdr, $body);
                 if ($rv.reply_sent)
                     continue;
