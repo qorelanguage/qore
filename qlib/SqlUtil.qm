@@ -10021,7 +10021,7 @@ $table.createNoCommit();
                 throw "CREATE-TABLE-ERROR", sprintf("table %s has already been read from or created in the database", getSqlName());
 
             # get and execute all the creation strings
-            map ds.execRaw($1), getCreateSql(opt, False);
+            map ds.execRaw($1), getCreateSql(opt);
             inDb = True;
             manual = False;
         }
