@@ -1121,6 +1121,10 @@ const char* set_user_module_context_name(const char* n) {
    return rv;   
 }
 
+const char* get_user_module_context_name() {
+   return thread_data.get()->user_module_context_name;
+}
+
 void ModuleContextNamespaceList::clear() {
    for (mcnl_t::iterator i = begin(), e = end(); i != e; ++i)
       delete (*i).nns;

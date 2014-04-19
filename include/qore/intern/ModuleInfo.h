@@ -308,12 +308,24 @@ public:
 
    DLLLOCAL void registerUserModuleFromSource(const char* name, const char* src, QoreProgram *pgm, ExceptionSink& xsink);
 
+   DLLLOCAL void trySetUserModuleDependency(QoreAbstractModule* mi) {
+      if (!mi->isUser())
+         return;
+
+      const char* old_name = get_user_module_context_name();
+      if (old_name)
+         setUserModuleDependency(old_name, mi->getName());
+      trySetUserModule(mi->getName());
+   }
+
    DLLLOCAL void setUserModuleDependency(const char* name, const char* dep) {
       md_map_t::iterator i = md_map.find(name);
       if (i == md_map.end())
          i = md_map.insert(md_map_t::value_type(name, strset_t()));
+#ifdef DEBUG
       else
          assert(i->second.find(dep) == i->second.end());
+#endif
       i->second.insert(dep);
 
       strset_t::iterator ui = umset.find(name);
@@ -447,9 +459,6 @@ protected:
 
 public:
    DLLLOCAL QoreUserModuleDefContextHelper(const char* name, ExceptionSink& xs) : old_name(set_user_module_context_name(name)), xsink(xs) {
-      if (old_name)
-         QMM.setUserModuleDependency(name, old_name);
-      QMM.trySetUserModule(name);
    }
 
    DLLLOCAL ~QoreUserModuleDefContextHelper() {
@@ -457,6 +466,11 @@ public:
 
       if (xsink)
          QMM.rollbackUserModuleDependency(name);
+      else if (old_name) {
+         if (old_name)
+            QMM.setUserModuleDependency(name, old_name);
+         QMM.trySetUserModule(name);
+      }         
    }
 };
 

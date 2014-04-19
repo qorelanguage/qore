@@ -479,15 +479,18 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
 
    // if the feature already exists in this program, then return
    if (pgm && pgm->checkFeature(name)) {
+      QoreAbstractModule* mi = findModuleUnlocked(name);
+
       // check version if necessary
       if (version) {
-	 QoreAbstractModule* mi = findModuleUnlocked(name);
 	 // if no module is found, then this is a builtin feature
 	 if (!mi)
 	    check_qore_version(name, op, *version, xsink);
 	 else
 	    check_module_version(mi, op, *version, xsink);
       }
+
+      trySetUserModuleDependency(mi);
       return;
    }
 
@@ -987,7 +990,7 @@ void QoreModuleManager::delUser() {
    // first delete user modules in dependency order
    while (!umset.empty()) {
       strset_t::iterator ui = umset.begin();
-      //printd(5, "QoreModuleManager::delUser() deleting '%s'\n", (*ui).c_str());
+      printd(0, "QoreModuleManager::delUser() deleting '%s'\n", (*ui).c_str());
       module_map_t::iterator i = map.find((*ui).c_str());
       assert(i != map.end());
 
