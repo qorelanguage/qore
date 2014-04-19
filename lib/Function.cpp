@@ -556,7 +556,6 @@ const AbstractQoreFunctionVariant* QoreFunction::findVariant(const QoreListNode*
    for (ilist_t::const_iterator aqfi = ilist.begin(), aqfe = ilist.end(); aqfi != aqfe; ++aqfi) {
       aqf = *aqfi;
 
-      //if (!strcmp(getName(), "getCreateSql") && aqf && !strcmp(aqf->className(), "OracleColumn"))
       //printd(5, "QoreFunction::findVariant() this: %p %s::%s(...) size: %d\n", this, aqf->className(), getName(), ilist.size());
 
       for (vlist_t::const_iterator i = aqf->vlist.begin(), e = aqf->vlist.end(); i != e; ++i) {

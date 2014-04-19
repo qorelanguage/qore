@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright 2003 - 2013 David Nichols
+ Copyright (C) 2003 - 2014 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -243,7 +243,7 @@ AbstractQoreNode *ParseObjectMethodReferenceNode::evalImpl(ExceptionSink *xsink)
    if (*xsink)
       return 0;
 
-   QoreObject *o = dynamic_cast<QoreObject *>(*lv);
+   QoreObject* o = (*lv) && (*lv)->getType() == NT_OBJECT ? reinterpret_cast<QoreObject*>(*lv) : 0;
    if (!o) {
       xsink->raiseException("OBJECT-METHOD-REFERENCE-ERROR", "expression does not evaluate to an object");
       return 0;
@@ -312,7 +312,14 @@ AbstractQoreNode *ParseObjectMethodReferenceNode::parseInitImpl(LocalVar *oflag,
 
 // returns a RunTimeObjectMethodReferenceNode or NULL if there's an exception
 AbstractQoreNode *ParseSelfMethodReferenceNode::evalImpl(ExceptionSink *xsink) const {
-   return new RunTimeResolvedMethodReferenceNode(runtime_get_stack_object(), meth);
+   QoreObject* o = runtime_get_stack_object();
+
+   // return class with method already found at parse time if known
+   if (o->getClass() == meth->getClass())
+      return new RunTimeResolvedMethodReferenceNode(o, meth);
+
+   return new RunTimeObjectMethodReferenceNode(o, strdup(meth->getName()));
+   //return new RunTimeResolvedMethodReferenceNode(o, meth);
 }
 
 // evalImpl(): return value requires a deref(xsink) if not 0

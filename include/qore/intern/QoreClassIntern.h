@@ -190,8 +190,12 @@ protected:
 
 public:
    // add QC_USES_EXTRA_ARGS to abstract methods by default as derived methods could use extra arguments
-   DLLLOCAL MethodVariantBase(bool n_priv_flag, bool n_final, int64 n_flags, bool n_is_user = false, bool is_abstract = false) :
-      AbstractQoreFunctionVariant(n_flags | (is_abstract ? QC_USES_EXTRA_ARGS : 0), n_is_user), qmethod(0), priv_flag(n_priv_flag), final(n_final), abstract(is_abstract) {
+   DLLLOCAL MethodVariantBase(bool n_priv_flag, bool n_final, int64 n_flags, bool n_is_user = false, bool n_is_abstract = false) :
+      AbstractQoreFunctionVariant(n_flags | (n_is_abstract ? QC_USES_EXTRA_ARGS : 0), n_is_user), qmethod(0), priv_flag(n_priv_flag), final(n_final), abstract(n_is_abstract) {
+   }
+
+   DLLLOCAL bool isAbstract() const {
+      return abstract;
    }
 
    DLLLOCAL bool isPrivate() const {
@@ -200,10 +204,6 @@ public:
 
    DLLLOCAL bool isFinal() const {
       return final;
-   }
-
-   DLLLOCAL bool isAbstract() const {
-      return abstract;
    }
 
    DLLLOCAL void clearAbstract() {
