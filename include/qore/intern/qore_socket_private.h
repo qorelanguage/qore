@@ -2262,6 +2262,9 @@ struct qore_socket_private {
       do_read_http_header(QORE_EVENT_HTTP_FOOTERS_RECEIVED, *h, source);
 
       if (recv_callback) {
+         QoreHashNode* hdr = new QoreHashNode;
+         hdr->setKeyValue("hdr", h.release(), xsink);
+         h = hdr;
          runHeaderCallback(xsink, "readHTTPChunkedBodyBinary", *recv_callback, l, *h);
          return 0;
       }

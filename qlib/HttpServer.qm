@@ -758,13 +758,12 @@ public class HttpServer::AbstractStreamRequest {
             );
     }
 
-    #! this is the primary callback for receiving chunked data; data will be decoded here if necessary, and then recvImpl() is called
+    #! this is the primary callback for receiving chunked data; data will be logged, and then recvImpl() is called
+    /** content decoding is not possible with chunked data because only the entire message can be decoded
+    */
     private nothing recv(hash $v) {
-        if ($v.data) {
+        if ($v.data)
             $.logChunk(False, $v.data.size());
-            if ($.hdr."content-encoding")
-                $v.data = AbstractHttpRequestHandler::decodeBody($.hdr."content-encoding", $v.data, $.handler.decompress_to_string ? $.s.getEncoding() : NOTHING);
-        }
 
         $.recvImpl($v);
     }
