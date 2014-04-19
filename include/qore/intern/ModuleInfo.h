@@ -200,6 +200,54 @@ public:
 
 class QoreUserModuleDefContextHelper;
 
+typedef std::set<std::string> strset_t;   
+typedef std::multimap<std::string, strset_t> md_map_t;
+
+class ModMap {
+protected:
+   md_map_t map;
+
+public:
+   DLLLOCAL void addDep(const char* l, const char* r) {
+      md_map_t::iterator i = map.find(l);
+      if (i == map.end())
+         i = map.insert(md_map_t::value_type(l, strset_t()));
+#ifdef DEBUG
+      else
+         assert(i->second.find(r) == i->second.end());
+#endif
+      i->second.insert(r);
+   }
+
+   DLLLOCAL md_map_t::iterator begin() {
+      return map.begin();
+   }
+
+   DLLLOCAL md_map_t::iterator end() {
+      return map.end();
+   }
+
+   DLLLOCAL md_map_t::iterator find(const char* n) {
+      return map.find(n);
+   }
+
+   DLLLOCAL md_map_t::iterator find(const std::string& n) {
+      return map.find(n);
+   }
+
+   DLLLOCAL void erase(md_map_t::iterator i) {
+      map.erase(i);
+   }
+
+   DLLLOCAL void clear() {
+      map.clear();
+   }
+
+   DLLLOCAL bool empty() const {
+      return map.empty();
+   }
+};
+
 class QoreModuleManager {
 private:
    // not implemented
@@ -211,11 +259,10 @@ protected:
    // recursive mutex; initialized in init()
    QoreThreadLock* mutex;
 
-
-   typedef std::set<std::string> strset_t;   
    // user module dependency map: module -> dependents
-   typedef std::multimap<std::string, strset_t> md_map_t;
-   md_map_t md_map;
+   ModMap md_map;
+   // user module dependent map: dependent -> module
+   ModMap rmd_map;
 
    // module blacklist
    typedef std::map<const char*, const char*, ltstr> bl_map_t;
@@ -248,23 +295,6 @@ protected:
    DLLLOCAL QoreAbstractModule* loadUserModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* pgm = 0);
    DLLLOCAL QoreAbstractModule* loadUserModuleFromSource(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm, const char* src);
    DLLLOCAL QoreAbstractModule* setupUserModule(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm, ReferenceHolder<QoreProgram>& pgm, QoreUserModuleDefContextHelper& qmd);
-
-   DLLLOCAL void removeUserDependencyAdvanceIterator(md_map_t::iterator& i, const char* name) {
-      strset_t::iterator ui = i->second.find(name);
-      if (ui != i->second.end()) {
-         i->second.erase(ui);
-         // if erasing the last dependent, erase entry and readd to independent set
-         if (i->second.empty()) {
-            md_map_t::iterator t = i;
-            ++i;
-            assert(umset.find(t->first) == umset.end());
-            umset.insert(t->first);
-            md_map.erase(t);
-            return;
-         }
-      }
-      ++i;
-   }
 
 public:
    DLLLOCAL QoreModuleManager() : mutex(0) {
@@ -319,45 +349,59 @@ public:
    }
 
    DLLLOCAL void setUserModuleDependency(const char* name, const char* dep) {
-      md_map_t::iterator i = md_map.find(name);
-      if (i == md_map.end())
-         i = md_map.insert(md_map_t::value_type(name, strset_t()));
-#ifdef DEBUG
-      else
-         assert(i->second.find(dep) == i->second.end());
-#endif
-      i->second.insert(dep);
+      //printd(5, "QoreModuleManager::setUserModuleDependency('%s' -> '%s')\n", name, dep);
+      md_map.addDep(name, dep);
+      rmd_map.addDep(dep, name);
 
       strset_t::iterator ui = umset.find(name);
-      if (ui != umset.end())
+      if (ui != umset.end()) {
          umset.erase(ui);
-   }
-
-   DLLLOCAL void rollbackUserModuleDependency(const char* name) {
-      md_map_t::iterator i = md_map.begin(), e = md_map.end();
-      while (i != e) {
-         if (i->first == name) {
-            md_map_t::iterator t = i;
-            ++i;
-            md_map.erase(t);
-            continue;
-         }
-         
-         removeUserDependencyAdvanceIterator(i, name);
+         //printd(5, "QoreModuleManager::setUserModuleDependency('%s' -> '%s') REMOVED '%s' FROM UMMSET\n", name, dep, name);
       }
    }
 
    DLLLOCAL void removeUserModuleDependency(const char* name) {
-      md_map_t::iterator i = md_map.begin(), e = md_map.end();
-      while (i != e) {
-         assert(i->first != name);
-         removeUserDependencyAdvanceIterator(i, name);
+      //printd(5, "QoreModuleManager::removeUserModuleDependency('%s')\n", name);
+      md_map_t::iterator i = rmd_map.find(name);
+      if (i == rmd_map.end()) {
+         //printd(5, "QoreModuleManager::removeUserModuleDependency('%s') no deps\n", name);
+         return;
       }
+
+      // remove dependents
+      for (strset_t::iterator si = i->second.begin(), se = i->second.end(); si != se; ++si) {
+         md_map_t::iterator di = md_map.find(*si);
+         assert(di != md_map.end());
+
+         strset_t::iterator dsi = di->second.find(i->first);
+         assert(dsi != di->second.end());
+         di->second.erase(dsi);
+         if (di->second.empty()) {
+            //printd(5, "QoreModuleManager::removeUserModuleDependency('%s') '%s' now empty, ADDING TO UMMSET: '%s'\n", name, i->first.c_str(), (*si).c_str());
+            md_map.erase(di);
+            assert(umset.find(*si) == umset.end());
+            umset.insert(*si);
+         }
+      }
+      // remove from dep map
+      rmd_map.erase(i);
    }
 
    DLLLOCAL void trySetUserModule(const char* name) {
-      if (md_map.find(name) == md_map.end())
+      md_map_t::iterator i = md_map.find(name);
+      if (i == md_map.end()) {
          umset.insert(name);
+         //printd(5, "QoreModuleManager::trySetUserModule('%s') UMSET SET: rmd_map: empty\n", name);
+      }
+#ifdef DEBUG
+      else {
+	 QoreString str("[");
+	 for (strset_t::iterator si = i->second.begin(), se = i->second.end(); si != se; ++si)
+	    str.sprintf("'%s',", (*si).c_str());
+	 str.concat("]");
+         //printd(5, "QoreModuleManager::trySetUserModule('%s') UMSET NOT SET: md_map: %s\n", name, str.getBuffer());
+      }
+#endif
    }
 };
 
@@ -464,9 +508,7 @@ public:
    DLLLOCAL ~QoreUserModuleDefContextHelper() {
       const char* name = set_user_module_context_name(old_name);
 
-      if (xsink)
-         QMM.rollbackUserModuleDependency(name);
-      else if (old_name) {
+      if (!xsink) {
          if (old_name)
             QMM.setUserModuleDependency(name, old_name);
          QMM.trySetUserModule(name);

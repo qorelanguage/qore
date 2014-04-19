@@ -990,28 +990,39 @@ void QoreModuleManager::delUser() {
    // first delete user modules in dependency order
    while (!umset.empty()) {
       strset_t::iterator ui = umset.begin();
-      printd(0, "QoreModuleManager::delUser() deleting '%s'\n", (*ui).c_str());
       module_map_t::iterator i = map.find((*ui).c_str());
       assert(i != map.end());
-
+      umset.erase(ui);
       QoreAbstractModule* m = i->second;
       assert(m->isUser());
+      //printd(5, "QoreModuleManager::delUser() deleting '%s' (%s) %p\n", (*ui).c_str(), i->first, m);
       removeUserModuleDependency(i->first);
       map.erase(i);
-      umset.erase(ui);
       delete m;
    }
 
-   // remove builtin modules
-   for (module_map_t::iterator i = map.begin(), e = map.end(); i != e;) {
-      QoreAbstractModule* m = i->second;
-      if (m->isUser()) {
-	 map.erase(i++);
-	 delete m;
+#ifdef DEBUG
+   // ensure only builtin modules are left
+   bool abrt = false;
+   for (module_map_t::iterator i = map.begin(), e = map.end(); i != e; ++i) {
+      if (i->second->isUser()) {
+	 printd(0, "QoreModuleManager::delUser() '%s' %p not removed\n", i->second->getName(), i->second);
+	 abrt = true;
       }
-      else
-	 ++i;
    }
+   if (abrt) {
+      for (md_map_t::iterator i = md_map.begin(), e = md_map.end(); i != e; ++i) {
+	 QoreString str("[");
+	 for (strset_t::iterator si = i->second.begin(), se = i->second.end(); si != se; ++si)
+	    str.sprintf("'%s',", (*si).c_str());
+	 str.concat("]");
+
+	 printd(0, " + md_map '%s' -> %s\n", i->first.c_str(), str.getBuffer());
+      }
+   }
+#endif
+   assert(md_map.empty());
+   assert(rmd_map.empty());
 }
 
 void QoreModuleManager::cleanup() {
