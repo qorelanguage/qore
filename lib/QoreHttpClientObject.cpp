@@ -309,7 +309,7 @@ struct qore_httpclient_priv {
       return (const char* )pstr.getBuffer();
    }   
 
-   DLLLOCAL QoreHashNode* send_internal(const char* mname, const char* meth, const char* mpath, const QoreHashNode* headers, const void* data, unsigned size, const ResolvedCallReferenceNode* send_callback, bool getbody, QoreHashNode* info, int timeout_ms, const ResolvedCallReferenceNode* recv_callback, ExceptionSink* xsink);
+   DLLLOCAL QoreHashNode* send_internal(ExceptionSink* xsink, const char* mname, const char* meth, const char* mpath, const QoreHashNode* headers, const void* data, unsigned size, const ResolvedCallReferenceNode* send_callback, bool getbody, QoreHashNode* info, int timeout_ms, const ResolvedCallReferenceNode* recv_callback = 0, QoreObject* obj = 0);
 
    DLLLOCAL void addProxyAuthorization(const QoreHashNode* headers, QoreHashNode& h, ExceptionSink* xsink) {
       if (proxy_connection.username.empty())
@@ -741,7 +741,7 @@ static const char* get_string_header(ExceptionSink* xsink, QoreHashNode& h, cons
    return str && !str->empty() ? str->getBuffer() : 0;
 }
 
-QoreHashNode* qore_httpclient_priv::send_internal(const char* mname, const char* meth, const char* mpath, const QoreHashNode* headers, const void* data, unsigned size, const ResolvedCallReferenceNode* send_callback, bool getbody, QoreHashNode* info, int timeout_ms, const ResolvedCallReferenceNode* recv_callback, ExceptionSink* xsink) {
+QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const char* mname, const char* meth, const char* mpath, const QoreHashNode* headers, const void* data, unsigned size, const ResolvedCallReferenceNode* send_callback, bool getbody, QoreHashNode* info, int timeout_ms, const ResolvedCallReferenceNode* recv_callback, QoreObject* obj) {
    assert(!(data && send_callback));
 
    // check if method is valid
@@ -1118,9 +1118,9 @@ QoreHashNode* qore_httpclient_priv::send_internal(const char* mname, const char*
 	 ReferenceHolder<QoreHashNode> nah(xsink);
 	 if (recv_callback) {
 	    if (content_encoding)
-	       msock->socket->priv->readHttpChunkedBodyBinary(timeout_ms, xsink, QORE_SOURCE_HTTPCLIENT, recv_callback, &msock->m);
+	       msock->socket->priv->readHttpChunkedBodyBinary(timeout_ms, xsink, QORE_SOURCE_HTTPCLIENT, recv_callback, &msock->m, obj);
 	    else
-	       msock->socket->priv->readHttpChunkedBody(timeout_ms, xsink, QORE_SOURCE_HTTPCLIENT, recv_callback, &msock->m);
+	       msock->socket->priv->readHttpChunkedBody(timeout_ms, xsink, QORE_SOURCE_HTTPCLIENT, recv_callback, &msock->m, obj);
 	 }
 	 else {
 	    if (content_encoding)
@@ -1223,24 +1223,24 @@ QoreHashNode* qore_httpclient_priv::send_internal(const char* mname, const char*
 }
 
 QoreHashNode* QoreHttpClientObject::send(const char* meth, const char* new_path, const QoreHashNode* headers, const void* data, unsigned size, bool getbody, QoreHashNode* info, ExceptionSink* xsink) {
-   return http_priv->send_internal("send", meth, new_path, headers, data, size, 0, getbody, info, http_priv->timeout, 0, xsink);
+   return http_priv->send_internal(xsink, "send", meth, new_path, headers, data, size, 0, getbody, info, http_priv->timeout, 0);
 }
 
 QoreHashNode* QoreHttpClientObject::sendWithSendCallback(const char* meth, const char* mpath, const QoreHashNode* headers, const ResolvedCallReferenceNode* send_callback, bool getbody, QoreHashNode* info, int timeout_ms, ExceptionSink* xsink) {
-   return http_priv->send_internal("sendWithSendCallback", meth, mpath, headers, 0, 0, send_callback, getbody, info, timeout_ms, 0, xsink);
+   return http_priv->send_internal(xsink, "sendWithSendCallback", meth, mpath, headers, 0, 0, send_callback, getbody, info, timeout_ms, 0);
 }
 
-void QoreHttpClientObject::sendWithRecvCallback(const char* meth, const char* mpath, const QoreHashNode* headers, const void* data, unsigned size, bool getbody, QoreHashNode* info, int timeout_ms, const ResolvedCallReferenceNode* recv_callback, ExceptionSink* xsink) {
-   http_priv->send_internal("sendWithRecvCallback", meth, mpath, headers, data, size, 0, getbody, info, timeout_ms, recv_callback, xsink);
+void QoreHttpClientObject::sendWithRecvCallback(const char* meth, const char* mpath, const QoreHashNode* headers, const void* data, unsigned size, bool getbody, QoreHashNode* info, int timeout_ms, const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, ExceptionSink* xsink) {
+   http_priv->send_internal(xsink, "sendWithRecvCallback", meth, mpath, headers, data, size, 0, getbody, info, timeout_ms, recv_callback, obj);
 }
 
-void QoreHttpClientObject::sendWithCallbacks(const char* meth, const char* mpath, const QoreHashNode* headers, const ResolvedCallReferenceNode* send_callback, bool getbody, QoreHashNode* info, int timeout_ms, const ResolvedCallReferenceNode* recv_callback, ExceptionSink* xsink) {
-   http_priv->send_internal("sendWithCallbacks", meth, mpath, headers, 0, 0, send_callback, getbody, info, timeout_ms, recv_callback, xsink);
+void QoreHttpClientObject::sendWithCallbacks(const char* meth, const char* mpath, const QoreHashNode* headers, const ResolvedCallReferenceNode* send_callback, bool getbody, QoreHashNode* info, int timeout_ms, const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, ExceptionSink* xsink) {
+   http_priv->send_internal(xsink, "sendWithCallbacks", meth, mpath, headers, 0, 0, send_callback, getbody, info, timeout_ms, recv_callback, obj);
 }
 
 // returns *string
 AbstractQoreNode* QoreHttpClientObject::get(const char* new_path, const QoreHashNode* headers, QoreHashNode* info, ExceptionSink* xsink) {
-   ReferenceHolder<QoreHashNode> ans(http_priv->send_internal("get", "GET", new_path, headers, 0, 0, 0, true, info, http_priv->timeout, 0,  xsink), xsink);
+   ReferenceHolder<QoreHashNode> ans(http_priv->send_internal(xsink, "get", "GET", new_path, headers, 0, 0, 0, true, info, http_priv->timeout), xsink);
    if (!ans)
       return 0;
 
@@ -1248,12 +1248,12 @@ AbstractQoreNode* QoreHttpClientObject::get(const char* new_path, const QoreHash
 }
 
 QoreHashNode* QoreHttpClientObject::head(const char* new_path, const QoreHashNode* headers, QoreHashNode* info, ExceptionSink* xsink) {
-   return http_priv->send_internal("head", "HEAD", new_path, headers, 0, 0, 0, false, info, http_priv->timeout, 0, xsink);
+   return http_priv->send_internal(xsink, "head", "HEAD", new_path, headers, 0, 0, 0, false, info, http_priv->timeout);
 }
 
 // returns *string
 AbstractQoreNode* QoreHttpClientObject::post(const char* new_path, const QoreHashNode* headers, const void* data, unsigned size, QoreHashNode* info, ExceptionSink* xsink) {
-   ReferenceHolder<QoreHashNode> ans(http_priv->send_internal("post", "POST", new_path, headers, data, size, 0, true, info, http_priv->timeout, 0, xsink), xsink);
+   ReferenceHolder<QoreHashNode> ans(http_priv->send_internal(xsink, "post", "POST", new_path, headers, data, size, 0, true, info, http_priv->timeout), xsink);
    if (!ans)
       return 0;
 

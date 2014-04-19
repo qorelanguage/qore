@@ -370,8 +370,9 @@ my hash $msg = $httpclient.sendWithRecvCallback($rcv_callback, $data, "POST", "/
     - \c "data": the string or binary data
     - \c "chunked": True if the data was received with chunked transfer encoding, False if not
     .
-    Header or trailer data is placed in a hash with the following key:
+    Header or trailer data is placed in a hash with the following keys:
     - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
+    - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
     @param body The message body to send
     @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT").
     @param path The path for the message (i.e. \c "/path/resource?method&param=value")
@@ -398,7 +399,7 @@ my hash $msg = $httpclient.sendWithRecvCallback($rcv_callback, $data, "POST", "/
  */
 nothing HTTPClient::sendWithRecvCallback(code rcb, string body, string method, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference info) {
    OptHashRefHelper ohrh(info, xsink);
-   client->sendWithRecvCallback(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, body->getBuffer(), body->size(), getbody, *ohrh, timeout_ms, rcb, xsink);
+   client->sendWithRecvCallback(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, body->getBuffer(), body->size(), getbody, *ohrh, timeout_ms, rcb, self, xsink);
 }
 
 //! Sends an HTTP request with the specified method and optional message body; headers and any body received are returned through a receive callback
@@ -414,8 +415,9 @@ my hash $msg = $httpclient.sendWithRecvCallback($rcv_callback, $data, "POST", "/
     - \c "data": the string or binary data
     - \c "chunked": True if the data was received with chunked transfer encoding, False if not
     .
-    Header or trailer data is placed in a hash with the following key:
+    Header or trailer data is placed in a hash with the following keys:
     - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
+    - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
     @param body The message body to send; pass @ref nothing (no value) to send no body
     @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT").
     @param path The path for the message (i.e. \c "/path/resource?method&param=value")
@@ -442,7 +444,7 @@ my hash $msg = $httpclient.sendWithRecvCallback($rcv_callback, $data, "POST", "/
  */
 nothing HTTPClient::sendWithRecvCallback(code rcb, *binary body, string method, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference info) {
    OptHashRefHelper ohrh(info, xsink);
-   client->sendWithRecvCallback(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, body ? body->getPtr() : 0, body ? body->size() : 0, getbody, *ohrh, timeout_ms, rcb, xsink);
+   client->sendWithRecvCallback(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, body ? body->getPtr() : 0, body ? body->size() : 0, getbody, *ohrh, timeout_ms, rcb, self, xsink);
 }
 
 //! Sends an HTTP request with the specified method and chunked message body as given by a send callback; headers and any body received are returned through a receive callback
@@ -459,8 +461,9 @@ my hash $msg = $httpclient.sendWithCallbacks($send_callback, $rcv_callback, "POS
     - \c "data": the string or binary data
     - \c "chunked": True if the data was received with chunked transfer encoding, False if not
     .
-    Header or trailer data is placed in a hash with the following key:
+    Header or trailer data is placed in a hash with the following keys:
     - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
+    - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
     @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT").
     @param path The path for the message (i.e. \c "/path/resource?method&param=value")
     @param headers An optional hash of headers to include in the message.
@@ -488,7 +491,7 @@ my hash $msg = $httpclient.sendWithCallbacks($send_callback, $rcv_callback, "POS
  */
 nothing HTTPClient::sendWithCallbacks(code scb, code rcb, string method, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference info) {
    OptHashRefHelper ohrh(info, xsink);
-   client->sendWithCallbacks(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, scb, getbody, *ohrh, timeout_ms, rcb, xsink);
+   client->sendWithCallbacks(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, scb, getbody, *ohrh, timeout_ms, rcb, self, xsink);
 }
 
 //! Sends an HTTP \c GET request and returns the message body received as a string or @ref nothing if no message body is received

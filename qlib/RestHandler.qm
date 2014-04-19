@@ -346,15 +346,16 @@ public namespace RestHandler {
             - \c "data": the string or binary data
             - \c "chunked": True if the data was received with chunked transfer encoding, False if not
             .
-            Header or trailer data is placed in a hash with the following key:
+            Header or trailer data is placed in a hash with the following keys:
             - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
-            */
+            - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
+        */
         abstract nothing recvImpl(hash $v);
 
         #! abstract callback method for sending chunked data
         /** 
             @return The chunked HTTP data to send; this method must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be returned or simply @ref nothing which will close the chunked message
-            */
+        */
         abstract any sendImpl();
     }
 

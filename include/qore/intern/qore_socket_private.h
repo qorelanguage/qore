@@ -1812,11 +1812,13 @@ struct qore_socket_private {
       return h;
    }
 
-   DLLLOCAL int runHeaderCallback(ExceptionSink* xsink, const char* mname, const ResolvedCallReferenceNode& callback, QoreThreadLock* l, const QoreHashNode* hdr) {
+   DLLLOCAL int runHeaderCallback(ExceptionSink* xsink, const char* mname, const ResolvedCallReferenceNode& callback, QoreThreadLock* l, const QoreHashNode* hdr, QoreObject* obj = 0) {
       ReferenceHolder<QoreListNode> args(new QoreListNode, xsink);
       QoreHashNode* arg = new QoreHashNode;
       arg->setKeyValue("hdr", hdr ? hdr->refSelf() : 0, xsink);
       args->push(arg);
+      if (obj)
+         arg->setKeyValue("obj", obj->refSelf(), xsink);
 
       ReferenceHolder<> rv(xsink);
       return runCallback(xsink, mname, rv, callback, l, *args);
@@ -2119,7 +2121,7 @@ struct qore_socket_private {
       return 0;
    }
 
-   DLLLOCAL QoreHashNode* readHttpChunkedBodyBinary(int timeout, ExceptionSink* xsink, int source, const ResolvedCallReferenceNode* recv_callback = 0, QoreThreadLock* l = 0) {
+   DLLLOCAL QoreHashNode* readHttpChunkedBodyBinary(int timeout, ExceptionSink* xsink, int source, const ResolvedCallReferenceNode* recv_callback = 0, QoreThreadLock* l = 0, QoreObject* obj = 0) {
       assert(xsink);
 
       if (sock == QORE_INVALID_SOCKET) {
@@ -2265,7 +2267,7 @@ struct qore_socket_private {
          QoreHashNode* hdr = new QoreHashNode;
          hdr->setKeyValue("hdr", h.release(), xsink);
          h = hdr;
-         runHeaderCallback(xsink, "readHTTPChunkedBodyBinary", *recv_callback, l, *h);
+         runHeaderCallback(xsink, "readHTTPChunkedBodyBinary", *recv_callback, l, *h, obj);
          return 0;
       }
 
@@ -2273,7 +2275,7 @@ struct qore_socket_private {
    }
 
    // receive a message in HTTP chunked format
-   DLLLOCAL QoreHashNode* readHttpChunkedBody(int timeout, ExceptionSink* xsink, int source, const ResolvedCallReferenceNode* recv_callback = 0, QoreThreadLock* l = 0) {
+   DLLLOCAL QoreHashNode* readHttpChunkedBody(int timeout, ExceptionSink* xsink, int source, const ResolvedCallReferenceNode* recv_callback = 0, QoreThreadLock* l = 0, QoreObject* obj = 0) {
       assert(xsink);
 
       if (sock == QORE_INVALID_SOCKET) {
@@ -2417,7 +2419,7 @@ struct qore_socket_private {
       do_read_http_header(QORE_EVENT_HTTP_FOOTERS_RECEIVED, *h, source);
 
       if (recv_callback) {
-         runHeaderCallback(xsink, "readHTTPChunkedBody", *recv_callback, l, h->empty() ? 0 : *h);
+         runHeaderCallback(xsink, "readHTTPChunkedBody", *recv_callback, l, h->empty() ? 0 : *h, obj);
          return 0;
       }
 

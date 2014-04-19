@@ -791,8 +791,9 @@ public class HttpServer::AbstractStreamRequest {
         - \c "data": the string or binary data
         - \c "chunked": True if the data was received with chunked transfer encoding, False if not
         .
-        Header or trailer data is placed in a hash with the following key:
+        Header or trailer data is placed in a hash with the following keys:
         - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
+        - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
     */
     private nothing recvImpl(hash $v) {
     }
