@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file SqlUtil.qm Qore user module for working with SQL data
 
-/*  SqlUtil.qm Copyright 2013 - 2014 Qore Technologies, sro
+/*  SqlUtil.qm Copyright (C) 2013 - 2014 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -4044,8 +4044,7 @@ my list $l = $col.getModifySql($t, $newcol);
                 && (exists c.def_val && c.def_val != NULL) 
                 && (!exists def_val || def_val == NULL)
                 && !c.nullable && nullable && !t.emptyData()) {
-                string cn = sprintf("%s.%s", t.getSqlName(), name);
-                string sql = sprintf("update %s set %s = %s where %s is null", t.getSqlName(), cn, c.def_val, cn);
+                string sql = sprintf("update %s set %s = %s where %s is null", t.getSqlName(), name, c.def_val, name);
                 # insert in the front of the list
                 unshift l, sql;
             }
