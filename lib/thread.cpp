@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -321,6 +321,9 @@ public:
    // used to capture the module defnition in user modules
    QoreModuleDefContext* qmd;
 
+   // user to track the current user module context
+   const char* user_module_context_name;
+
    bool
    foreign : 1; // true if the thread is a foreign thread
 
@@ -331,7 +334,7 @@ public:
       current_pgm(p), current_ns(0), current_implicit_arg(0), tlpd(0), tpd(new ThreadProgramData(this)),
       closure_parse_env(0), closure_rt_env(0), 
       returnTypeInfo(0), element(0), global_vnode(0),
-      qmc(0), qmd(0), foreign(n_foreign) {
+      qmc(0), qmd(0), user_module_context_name(0), foreign(n_foreign) {
  
 #ifdef QORE_MANAGE_STACK
 
@@ -1109,6 +1112,13 @@ QoreModuleDefContext* get_module_def_context() {
    if (qmd)
       qmd->checkName();
    return qmd;
+}
+
+const char* set_user_module_context_name(const char* n) {
+   ThreadData* td = thread_data.get();
+   const char* rv = td->user_module_context_name;
+   td->user_module_context_name = n;
+   return rv;   
 }
 
 void ModuleContextNamespaceList::clear() {

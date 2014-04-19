@@ -198,6 +198,8 @@ public:
    }
 };
 
+class QoreUserModuleDefContextHelper;
+
 class QoreModuleManager {
 private:
    // not implemented
@@ -209,6 +211,12 @@ protected:
    // recursive mutex; initialized in init()
    QoreThreadLock* mutex;
 
+
+   typedef std::set<std::string> strset_t;   
+   // user module dependency map: module -> dependents
+   typedef std::multimap<std::string, strset_t> md_map_t;
+   md_map_t md_map;
+
    // module blacklist
    typedef std::map<const char*, const char*, ltstr> bl_map_t;
    bl_map_t mod_blacklist;
@@ -216,6 +224,9 @@ protected:
    // module hash
    typedef std::map<const char*, QoreAbstractModule*, ltstr> module_map_t;
    module_map_t map;   
+
+   // set of user modules with no dependencies
+   strset_t umset;
 
    // list of module directories
    UniqueDirectoryList moduleDirList;
@@ -236,7 +247,24 @@ protected:
    DLLLOCAL QoreAbstractModule* loadBinaryModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* pgm = 0);
    DLLLOCAL QoreAbstractModule* loadUserModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* pgm = 0);
    DLLLOCAL QoreAbstractModule* loadUserModuleFromSource(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm, const char* src);
-   DLLLOCAL QoreAbstractModule* setupUserModule(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm, ReferenceHolder<QoreProgram>& pgm, QoreModuleDefContextHelper& qmd);
+   DLLLOCAL QoreAbstractModule* setupUserModule(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm, ReferenceHolder<QoreProgram>& pgm, QoreUserModuleDefContextHelper& qmd);
+
+   DLLLOCAL void removeUserDependencyAdvanceIterator(md_map_t::iterator& i, const char* name) {
+      strset_t::iterator ui = i->second.find(name);
+      if (ui != i->second.end()) {
+         i->second.erase(ui);
+         // if erasing the last dependent, erase entry and readd to independent set
+         if (i->second.empty()) {
+            md_map_t::iterator t = i;
+            ++i;
+            assert(umset.find(t->first) == umset.end());
+            umset.insert(t->first);
+            md_map.erase(t);
+            return;
+         }
+      }
+      ++i;
+   }
 
 public:
    DLLLOCAL QoreModuleManager() : mutex(0) {
@@ -279,6 +307,46 @@ public:
    DLLLOCAL void addStandardModulePaths();
 
    DLLLOCAL void registerUserModuleFromSource(const char* name, const char* src, QoreProgram *pgm, ExceptionSink& xsink);
+
+   DLLLOCAL void setUserModuleDependency(const char* name, const char* dep) {
+      md_map_t::iterator i = md_map.find(name);
+      if (i == md_map.end())
+         i = md_map.insert(md_map_t::value_type(name, strset_t()));
+      else
+         assert(i->second.find(dep) == i->second.end());
+      i->second.insert(dep);
+
+      strset_t::iterator ui = umset.find(name);
+      if (ui != umset.end())
+         umset.erase(ui);
+   }
+
+   DLLLOCAL void rollbackUserModuleDependency(const char* name) {
+      md_map_t::iterator i = md_map.begin(), e = md_map.end();
+      while (i != e) {
+         if (i->first == name) {
+            md_map_t::iterator t = i;
+            ++i;
+            md_map.erase(t);
+            continue;
+         }
+         
+         removeUserDependencyAdvanceIterator(i, name);
+      }
+   }
+
+   DLLLOCAL void removeUserModuleDependency(const char* name) {
+      md_map_t::iterator i = md_map.begin(), e = md_map.end();
+      while (i != e) {
+         assert(i->first != name);
+         removeUserDependencyAdvanceIterator(i, name);
+      }
+   }
+
+   DLLLOCAL void trySetUserModule(const char* name) {
+      if (md_map.find(name) == md_map.end())
+         umset.insert(name);
+   }
 };
 
 DLLLOCAL extern QoreModuleManager QMM;
@@ -297,10 +365,10 @@ public:
    }
 
    DLLLOCAL virtual ~QoreBuiltinModule() {
-      printd(5, "ModuleInfo::~ModuleInfo() '%s': %s calling module_delete=%08p\n", name.getBuffer(), filename.getBuffer(), module_delete);
+      printd(5, "ModuleInfo::~ModuleInfo() '%s': %s calling module_delete: %p\n", name.getBuffer(), filename.getBuffer(), module_delete);
       module_delete();
       if (dlptr) {
-         printd(5, "calling dlclose(%08p)\n", dlptr);
+         printd(5, "calling dlclose(%p)\n", dlptr);
 #ifndef DEBUG
          // do not close modules when debugging
          dlclose((void* )dlptr);
@@ -369,6 +437,26 @@ public:
 
    DLLLOCAL virtual void issueParseCmd(QoreString &cmd) {
       parseException("PARSE-COMMAND-ERROR", "module '%s' loaded from '%s' is a user module; only builtin modules can support parse commands", name.getBuffer(), filename.getBuffer());
+   }
+};
+
+class QoreUserModuleDefContextHelper : public QoreModuleDefContextHelper {
+protected:
+   const char* old_name;
+   ExceptionSink& xsink;
+
+public:
+   DLLLOCAL QoreUserModuleDefContextHelper(const char* name, ExceptionSink& xs) : old_name(set_user_module_context_name(name)), xsink(xs) {
+      if (old_name)
+         QMM.setUserModuleDependency(name, old_name);
+      QMM.trySetUserModule(name);
+   }
+
+   DLLLOCAL ~QoreUserModuleDefContextHelper() {
+      const char* name = set_user_module_context_name(old_name);
+
+      if (xsink)
+         QMM.rollbackUserModuleDependency(name);
    }
 };
 

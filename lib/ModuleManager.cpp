@@ -509,7 +509,7 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
 
    // see if we are loading a user module from explicit source
    if (src) {
-      mi = loadUserModuleFromSource(xsink, name, 0, pgm, src);
+      mi = loadUserModuleFromSource(xsink, name, name, pgm, src);
       if (xsink) {
 	 assert(!mi);
 	 return;
@@ -525,8 +525,13 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
       size_t len = strlen(name);
       if (len > 5 && !strcasecmp(".qmod", name + len - 5))
 	 mi = loadBinaryModuleFromPath(xsink, name, 0, pgm);
-      else
-	 mi = loadUserModuleFromPath(xsink, name, 0, pgm);
+      else {
+	 QoreString n(name);
+	 qore_offset_t i = n.rfind('.');
+	 if (i > 0)
+	    n.terminate(i);
+	 mi = loadUserModuleFromPath(xsink, name, n.getBuffer(), pgm);
+      }
 
       if (xsink) {
 	 assert(!mi);
@@ -671,7 +676,7 @@ void QoreModuleManager::registerUserModuleFromSource(const char* name, const cha
    loadModuleIntern(xsink, name, pgm, MOD_OP_NONE, 0, src);
 }
 
-QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm, ReferenceHolder<QoreProgram>& pgm, QoreModuleDefContextHelper& qmd) {
+QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm, ReferenceHolder<QoreProgram>& pgm, QoreUserModuleDefContextHelper& qmd) {
    if (xsink)
       return 0;
 
@@ -734,6 +739,8 @@ QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, con
 }
 
 QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm) {
+   assert(feature);
+
    // parse options for the module
    int64 po = USER_MOD_PO;
    // add in parse options from the current program, if any, disabling style and types options already set with USER_MOD_PO
@@ -742,13 +749,15 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
 
    ReferenceHolder<QoreProgram> pgm(new QoreProgram(po), &xsink);
 
-   QoreModuleDefContextHelper qmd;
+   QoreUserModuleDefContextHelper qmd(feature, xsink);
    pgm->parseFile(path, &xsink, &xsink, QP_WARN_MODULES);
 
    return setupUserModule(xsink, path, feature, tpgm, pgm, qmd);
 }
 
 QoreAbstractModule* QoreModuleManager::loadUserModuleFromSource(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm, const char* src) {
+   assert(feature);
+
    // parse options for the module
    int64 po = USER_MOD_PO;
    // add in parse options from the current program, if any, disabling style and types options already set with USER_MOD_PO
@@ -757,7 +766,7 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromSource(ExceptionSink& x
 
    ReferenceHolder<QoreProgram> pgm(new QoreProgram(po), &xsink);
 
-   QoreModuleDefContextHelper qmd;
+   QoreUserModuleDefContextHelper qmd(feature, xsink);
    pgm->parse(src, path, &xsink, &xsink, QP_WARN_MODULES);
 
    return setupUserModule(xsink, path, feature, tpgm, pgm, qmd);
@@ -975,6 +984,22 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
 
 // deletes only user modules
 void QoreModuleManager::delUser() {
+   // first delete user modules in dependency order
+   while (!umset.empty()) {
+      strset_t::iterator ui = umset.begin();
+      //printd(5, "QoreModuleManager::delUser() deleting '%s'\n", (*ui).c_str());
+      module_map_t::iterator i = map.find((*ui).c_str());
+      assert(i != map.end());
+
+      QoreAbstractModule* m = i->second;
+      assert(m->isUser());
+      removeUserModuleDependency(i->first);
+      map.erase(i);
+      umset.erase(ui);
+      delete m;
+   }
+
+   // remove builtin modules
    for (module_map_t::iterator i = map.begin(), e = map.end(); i != e;) {
       QoreAbstractModule* m = i->second;
       if (m->isUser()) {

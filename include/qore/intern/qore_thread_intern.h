@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -271,6 +271,7 @@ DLLLOCAL void set_module_context(QoreModuleContext* qmc);
 DLLLOCAL QoreModuleContext* get_module_context();
 DLLLOCAL QoreModuleDefContext* set_module_def_context(QoreModuleDefContext* qmd);
 DLLLOCAL QoreModuleDefContext* get_module_def_context();
+DLLLOCAL const char* set_user_module_context_name(const char* n);
 
 DLLLOCAL void set_thread_tz(const AbstractQoreZoneInfo* tz);
 DLLLOCAL const AbstractQoreZoneInfo* get_thread_tz(bool& set);
