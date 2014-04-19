@@ -286,6 +286,8 @@ void QoreUserModule::addToProgram(QoreProgram* tpgm, ExceptionSink& xsink) const
 
    // add domain to current Program's domain
    qore_program_private::runtimeAddDomain(*tpgm, dom);
+
+   QMM.trySetUserModuleDependency(this);
 }
 
 void QoreBuiltinModule::issueParseCmd(QoreString &cmd) {
@@ -582,7 +584,7 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
 	 str.clear();
 	 str.sprintf("%s" QORE_DIR_SEP_STR "%s.qm", (*w).c_str(), name);
 	    
-	 //printd(0, "ModuleManager::loadModule(%s) trying user module: %s\n", name, str.getBuffer());
+	 //printd(5, "ModuleManager::loadModule(%s) trying user module: %s\n", name, str.getBuffer());
 	 if (!stat(str.getBuffer(), &sb)) {
 	    printd(5, "ModuleManager::loadModule(%s) found user module: %s\n", name, str.getBuffer());
 	    mi = loadUserModuleFromPath(xsink, str.getBuffer(), name, pgm);
@@ -1092,7 +1094,7 @@ char version_list_t::set(const char* v) {
 	 char save = *p;
 	 *p = '\0';
 	 push_back(atoi(a));
-	 //printd(0, "this=%p a=%s\n", this, a);
+	 //printd(5, "this=%p a=%s\n", this, a);
 	 *p = save;
 	 a = p + 1;
       }
@@ -1100,7 +1102,7 @@ char version_list_t::set(const char* v) {
 	 return *p;
       ++p;
    }
-   //printd(0, "this=%p a=%s FINAL\n", this, a);
+   //printd(5, "this=%p a=%s FINAL\n", this, a);
    push_back(atoi(a));
    return 0;
 }

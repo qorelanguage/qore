@@ -208,15 +208,14 @@ protected:
    md_map_t map;
 
 public:
-   DLLLOCAL void addDep(const char* l, const char* r) {
-      md_map_t::iterator i = map.find(l);
+   DLLLOCAL bool addDep(const char* l, const char* r) {
+      md_map_t::iterator i = map.find(l);      
       if (i == map.end())
          i = map.insert(md_map_t::value_type(l, strset_t()));
-#ifdef DEBUG
-      else
-         assert(i->second.find(r) == i->second.end());
-#endif
+      else if (i->second.find(r) != i->second.end())
+         return true;
       i->second.insert(r);
+      return false;
    }
 
    DLLLOCAL md_map_t::iterator begin() {
@@ -338,19 +337,39 @@ public:
 
    DLLLOCAL void registerUserModuleFromSource(const char* name, const char* src, QoreProgram *pgm, ExceptionSink& xsink);
 
-   DLLLOCAL void trySetUserModuleDependency(QoreAbstractModule* mi) {
+   DLLLOCAL void trySetUserModuleDependency(const QoreAbstractModule* mi) {
       if (!mi->isUser())
          return;
 
       const char* old_name = get_user_module_context_name();
       if (old_name)
-         setUserModuleDependency(old_name, mi->getName());
+         setUserModuleDependency(mi->getName(), old_name);
       trySetUserModule(mi->getName());
+   }
+
+   DLLLOCAL void trySetUserModule(const char* name) {
+      md_map_t::iterator i = md_map.find(name);
+      if (i == md_map.end()) {
+         umset.insert(name);
+         //printd(5, "QoreModuleManager::trySetUserModule('%s') UMSET SET: rmd_map: empty\n", name);
+      }
+#ifdef DEBUG
+      else {
+	 QoreString str("[");
+	 for (strset_t::iterator si = i->second.begin(), se = i->second.end(); si != se; ++si)
+	    str.sprintf("'%s',", (*si).c_str());
+	 str.concat("]");
+         //printd(5, "QoreModuleManager::trySetUserModule('%s') UMSET NOT SET: md_map: %s\n", name, str.getBuffer());
+      }
+#endif
    }
 
    DLLLOCAL void setUserModuleDependency(const char* name, const char* dep) {
       //printd(5, "QoreModuleManager::setUserModuleDependency('%s' -> '%s')\n", name, dep);
-      md_map.addDep(name, dep);
+      assert(strcmp(name, "HttpServer") || strcmp(dep, "Mime"));
+      
+      if (md_map.addDep(name, dep))
+         return;
       rmd_map.addDep(dep, name);
 
       strset_t::iterator ui = umset.find(name);
@@ -385,23 +404,6 @@ public:
       }
       // remove from dep map
       rmd_map.erase(i);
-   }
-
-   DLLLOCAL void trySetUserModule(const char* name) {
-      md_map_t::iterator i = md_map.find(name);
-      if (i == md_map.end()) {
-         umset.insert(name);
-         //printd(5, "QoreModuleManager::trySetUserModule('%s') UMSET SET: rmd_map: empty\n", name);
-      }
-#ifdef DEBUG
-      else {
-	 QoreString str("[");
-	 for (strset_t::iterator si = i->second.begin(), se = i->second.end(); si != se; ++si)
-	    str.sprintf("'%s',", (*si).c_str());
-	 str.concat("]");
-         //printd(5, "QoreModuleManager::trySetUserModule('%s') UMSET NOT SET: md_map: %s\n", name, str.getBuffer());
-      }
-#endif
    }
 };
 
