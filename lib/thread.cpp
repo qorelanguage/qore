@@ -1148,6 +1148,21 @@ ObjectSubstitutionHelper::~ObjectSubstitutionHelper() {
    td->current_classobj = old;
 }
 
+OptionalObjectSubstitutionHelper::OptionalObjectSubstitutionHelper(QoreObject* obj) : subst(obj ? true : false) {
+   if (obj) {
+      ThreadData *td  = thread_data.get();
+      old = td->current_classobj;
+      td->current_classobj = obj;
+   }
+}
+
+OptionalObjectSubstitutionHelper::~OptionalObjectSubstitutionHelper() {
+   if (subst) {
+      ThreadData *td  = thread_data.get();
+      td->current_classobj = old;
+   }
+}
+
 CodeContextHelper::CodeContextHelper(const char* code, ClassObj obj, ExceptionSink* xs) {
    ThreadData *td  = thread_data.get();
    old_code = td->current_code;

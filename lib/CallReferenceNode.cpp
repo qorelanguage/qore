@@ -318,7 +318,7 @@ AbstractQoreNode *ParseSelfMethodReferenceNode::evalImpl(ExceptionSink *xsink) c
    if (o->getClass() == meth->getClass())
       return new RunTimeResolvedMethodReferenceNode(o, meth);
 
-   return new RunTimeObjectMethodReferenceNode(o, strdup(meth->getName()));
+   return new RunTimeObjectMethodReferenceNode(o, meth->getName(), true);
    //return new RunTimeResolvedMethodReferenceNode(o, meth);
 }
 
@@ -427,7 +427,7 @@ bool RunTimeResolvedMethodReferenceNode::is_equal_hard(const AbstractQoreNode *v
    return vc && vc->obj == obj && vc->method == method;
 }
 
-RunTimeObjectMethodReferenceNode::RunTimeObjectMethodReferenceNode(QoreObject *n_obj, char *n_method) : obj(n_obj), method(strdup(n_method)) {
+RunTimeObjectMethodReferenceNode::RunTimeObjectMethodReferenceNode(QoreObject *n_obj, const char *n_method, bool n_in_object) : obj(n_obj), method(strdup(n_method)), in_object(n_in_object) {
    printd(5, "RunTimeObjectMethodReferenceNode::RunTimeObjectMethodReferenceNode() this=%p obj=%p (method=%s)\n", this, obj, method);
    obj->tRef();
 }
@@ -439,6 +439,7 @@ RunTimeObjectMethodReferenceNode::~RunTimeObjectMethodReferenceNode() {
 }
 
 AbstractQoreNode *RunTimeObjectMethodReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
+   OptionalObjectSubstitutionHelper osh(in_object ? obj : 0);
    return obj->evalMethod(method, args, xsink);
 }
 

@@ -213,11 +213,12 @@ class RunTimeObjectMethodReferenceNode : public ResolvedCallReferenceNode {
 private:
    QoreObject* obj;
    char* method;
+   bool in_object;
 
    DLLLOCAL virtual ~RunTimeObjectMethodReferenceNode();
    
 public:
-   DLLLOCAL RunTimeObjectMethodReferenceNode(QoreObject* n_obj, char* n_method);
+   DLLLOCAL RunTimeObjectMethodReferenceNode(QoreObject* n_obj, const char* n_method, bool n_in_object = false);
    DLLLOCAL virtual AbstractQoreNode* exec(const QoreListNode* args, ExceptionSink* xsink) const;
    DLLLOCAL virtual QoreProgram* getProgram() const;
    DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode* v, ExceptionSink* xsink) const {

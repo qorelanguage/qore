@@ -576,6 +576,16 @@ public:
    DLLLOCAL ~ObjectSubstitutionHelper();
 };
 
+class OptionalObjectSubstitutionHelper {
+private:
+   ClassObj old;
+   bool subst;
+
+public:
+   DLLLOCAL OptionalObjectSubstitutionHelper(QoreObject* obj);
+   DLLLOCAL ~OptionalObjectSubstitutionHelper();
+};
+
 typedef std::map<const LocalVar*, ClosureVarValue*> cvar_map_t;
 
 class ThreadSafeLocalVarRuntimeEnvironment {
