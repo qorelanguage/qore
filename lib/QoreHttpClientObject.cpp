@@ -1053,7 +1053,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
    }
 
    // send headers to recv_callback
-   if (recv_callback && msock->socket->priv->runHeaderCallback(xsink, mname, *recv_callback, &msock->m, *ans))
+   if (recv_callback && msock->socket->priv->runHeaderCallback(xsink, mname, *recv_callback, &msock->m, *ans, obj))
       return 0;
 
    AbstractQoreNode* body = 0;
@@ -1201,7 +1201,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
 	 if (recv_callback) {
 	    ReferenceHolder<> bh(body, xsink);
 	    if (msock->socket->priv->runDataCallback(xsink, mname, *recv_callback, 0, body, false)
-		|| msock->socket->priv->runHeaderCallback(xsink, mname, *recv_callback, 0, 0))
+		|| msock->socket->priv->runHeaderCallback(xsink, mname, *recv_callback, 0, 0, obj))
 	       return 0;
 	 }
 	 else

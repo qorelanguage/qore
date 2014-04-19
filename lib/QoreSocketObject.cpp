@@ -308,15 +308,15 @@ QoreHashNode* QoreSocketObject::readHTTPChunkedBody(int timeout_ms, ExceptionSin
    return priv->socket->readHTTPChunkedBody(timeout_ms, xsink);
 }
 
-void QoreSocketObject::readHTTPChunkedBodyBinaryWithCallback(const ResolvedCallReferenceNode& recv_callback, int timeout_ms, ExceptionSink *xsink) {
+void QoreSocketObject::readHTTPChunkedBodyBinaryWithCallback(const ResolvedCallReferenceNode& recv_callback, QoreObject* obj, int timeout_ms, ExceptionSink *xsink) {
    AutoLocker al(priv->m);
-   priv->socket->priv->readHttpChunkedBodyBinary(timeout_ms, xsink, QORE_SOURCE_SOCKET, &recv_callback, &priv->m);
+   priv->socket->priv->readHttpChunkedBodyBinary(timeout_ms, xsink, QORE_SOURCE_SOCKET, &recv_callback, &priv->m, obj);
 }
 
 // receive a string message in HTTP chunked format
-void QoreSocketObject::readHTTPChunkedBodyWithCallback(const ResolvedCallReferenceNode& recv_callback, int timeout_ms, ExceptionSink *xsink) {
+void QoreSocketObject::readHTTPChunkedBodyWithCallback(const ResolvedCallReferenceNode& recv_callback, QoreObject* obj, int timeout_ms, ExceptionSink *xsink) {
    AutoLocker al(priv->m);
-   priv->socket->priv->readHttpChunkedBody(timeout_ms, xsink, QORE_SOURCE_SOCKET, &recv_callback, &priv->m);
+   priv->socket->priv->readHttpChunkedBody(timeout_ms, xsink, QORE_SOURCE_SOCKET, &recv_callback, &priv->m, obj);
 }
 
 // read and parse HTTP header

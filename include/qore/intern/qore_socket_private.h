@@ -1813,12 +1813,13 @@ struct qore_socket_private {
    }
 
    DLLLOCAL int runHeaderCallback(ExceptionSink* xsink, const char* mname, const ResolvedCallReferenceNode& callback, QoreThreadLock* l, const QoreHashNode* hdr, QoreObject* obj = 0) {
+      assert(obj);
       ReferenceHolder<QoreListNode> args(new QoreListNode, xsink);
       QoreHashNode* arg = new QoreHashNode;
       arg->setKeyValue("hdr", hdr ? hdr->refSelf() : 0, xsink);
-      args->push(arg);
       if (obj)
          arg->setKeyValue("obj", obj->refSelf(), xsink);
+      args->push(arg);
 
       ReferenceHolder<> rv(xsink);
       return runCallback(xsink, mname, rv, callback, l, *args);

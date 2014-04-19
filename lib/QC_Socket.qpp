@@ -1995,7 +1995,7 @@ my hash $ans = $sock.readHTTPChunkedBodyWithCallback($recv_callback, 20s);
     @since %Qore 0.8.10
  */
 Socket::readHTTPChunkedBodyWithCallback(code rcb, timeout timeout_ms = -1) {
-   s->readHTTPChunkedBodyWithCallback(*rcb, timeout_ms, xsink);
+   s->readHTTPChunkedBodyWithCallback(*rcb, self, timeout_ms, xsink);
 }
 
 //! Reads in an HTTP message body sent in chunked transfer encoding and returns it with any footers received as a string in the \c "body" key of a hash (including footers received)
@@ -2027,7 +2027,7 @@ my hash $ans = $sock.readHTTPChunkedBodyBinaryWithCallback($recv_callback, 20s);
     @since %Qore 0.8.10
  */
 Socket::readHTTPChunkedBodyBinaryWithCallback(code rcb, timeout timeout_ms = -1) {
-   s->readHTTPChunkedBodyBinaryWithCallback(*rcb, timeout_ms, xsink);
+   s->readHTTPChunkedBodyBinaryWithCallback(*rcb, self, timeout_ms, xsink);
 }
 
 //! Closes an open socket
