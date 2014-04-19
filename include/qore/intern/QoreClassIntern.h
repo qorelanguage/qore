@@ -1212,7 +1212,7 @@ public:
 
 class QoreVarInfo : public QoreMemberInfo {
 protected:
-   DLLLOCAL QoreVarInfo(const QoreVarInfo& old) : QoreMemberInfo(old), val(old.val) {
+   DLLLOCAL QoreVarInfo(const QoreVarInfo& old) : QoreMemberInfo(old), val(old.val), finalized(old.finalized) {
    }
 
    DLLLOCAL int checkFinalized(ExceptionSink* xsink) const {
