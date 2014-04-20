@@ -141,11 +141,18 @@ public namespace RestClient {
 %endif
                 );
 
-
+%ifndef NoYaml
             const DeserializeYaml = (
                     "code": "yaml",
                     "in": \parseYAML(),
                 );
+%endif
+%ifndef NoXml
+            const DeserializeXmlRpc = (
+                    "code": "xml",
+                    "in": \parseXMLRPCValue(),
+                );
+%endif
 
             #! Data deserialization support MIME types to codes and de/serialization functions
             const DataDeserializationSupport = (
@@ -160,10 +167,8 @@ public namespace RestClient {
                 MimeTypeYaml: DeserializeYaml,
 %endif
 %ifndef NoXml
-                MimeTypeXml: (
-                    "code": "xml",
-                    "in": \parseXMLRPCValue(),
-                ),
+                MimeTypeXml: DeserializeXmlRpc,
+                MimeTypeXmlApp: DeserializeXmlRpc,
 %endif
                 );
 
@@ -173,7 +178,7 @@ public namespace RestClient {
                 MimeTypeYaml, MimeTypeYamlRpc,
 %endif
 %ifndef NoXml
-                MimeTypeXml,
+                MimeTypeXml, MimeTypeXmlApp,
 %endif
 %ifndef NoJson
                 MimeTypeJsonRpc,
@@ -195,7 +200,7 @@ public namespace RestClient {
                 "User-Agent": RestClient::VersionString,
                 );
 
-            #! Data serialization options; this is a hash to similulate a set of strings
+            #! Data serialization options; this is a hash to simulate a set of strings
             /** Data serialization options are as follows:
                 - \c "auto": prefers in this order: json, yaml, xml-rpc
                 - \c "xml": use only XML-RPC serialization
@@ -391,7 +396,7 @@ my hash $ans = $rest.post("/orders/1");
                 $body = $.sih.out($body);
                 if (!$hdr.$ct)
                     $hdr.$ct = $.sih.ct;
-                if ($body.typeCode() == NT_STRING)
+                if ($body.typeCode() == NT_STRING && $hdr.$ct !~ /;charset=/)
                     $hdr.$ct += ";charset=" + $body.encoding();
             }
         }
