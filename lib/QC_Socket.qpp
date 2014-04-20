@@ -1981,8 +1981,9 @@ my hash $ans = $sock.readHTTPChunkedBodyWithCallback($recv_callback, 20s);
     - \c "data": the string or binary data
     - \c "chunked": True if the data was received with chunked transfer encoding, False if not
     .
-    Header or trailer data is placed in a hash with the following key:
+    Header or trailer data is placed in a hash with the following keys:
     - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
+    - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
     @param timeout_ms The timeout in milliseconds (1/1000 second). If no timeout or if a negative timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  If a timeout occurs, a \c "SOCKET-TIMEOUT" exception is raised. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @throw SOCKET-NOT-OPEN The socket is not connected
@@ -2013,8 +2014,9 @@ my hash $ans = $sock.readHTTPChunkedBodyBinaryWithCallback($recv_callback, 20s);
     - \c "data": the string or binary data
     - \c "chunked": True if the data was received with chunked transfer encoding, False if not
     .
-    Header or trailer data is placed in a hash with the following key:
+    Header or trailer data is placed in a hash with the following keys:
     - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
+    - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
     @param timeout_ms The timeout in milliseconds (1/1000 second). If no timeout or if a negative timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  If a timeout occurs, a \c "SOCKET-TIMEOUT" exception is raised. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @throw SOCKET-NOT-OPEN The socket is not connected

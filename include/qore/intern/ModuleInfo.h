@@ -365,9 +365,7 @@ public:
    }
 
    DLLLOCAL void setUserModuleDependency(const char* name, const char* dep) {
-      //printd(5, "QoreModuleManager::setUserModuleDependency('%s' -> '%s')\n", name, dep);
-      assert(strcmp(name, "HttpServer") || strcmp(dep, "Mime"));
-      
+      //printd(5, "QoreModuleManager::setUserModuleDependency('%s' -> '%s')\n", name, dep);      
       if (md_map.addDep(name, dep))
          return;
       rmd_map.addDep(dep, name);
@@ -501,20 +499,13 @@ public:
 class QoreUserModuleDefContextHelper : public QoreModuleDefContextHelper {
 protected:
    const char* old_name;
-   ExceptionSink& xsink;
 
 public:
-   DLLLOCAL QoreUserModuleDefContextHelper(const char* name, ExceptionSink& xs) : old_name(set_user_module_context_name(name)), xsink(xs) {
+   DLLLOCAL QoreUserModuleDefContextHelper(const char* name) : old_name(set_user_module_context_name(name)) {
    }
 
    DLLLOCAL ~QoreUserModuleDefContextHelper() {
-      const char* name = set_user_module_context_name(old_name);
-
-      if (!xsink) {
-         if (old_name)
-            QMM.setUserModuleDependency(name, old_name);
-         QMM.trySetUserModule(name);
-      }         
+      set_user_module_context_name(old_name);
    }
 };
 

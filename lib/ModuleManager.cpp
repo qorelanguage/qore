@@ -535,6 +535,10 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
 	 qore_offset_t i = n.rfind('.');
 	 if (i > 0)
 	    n.terminate(i);
+	 i = n.rfind(QORE_DIR_SEP);
+	 if (i >= 0)
+	    n.replace(0, i + 1, (const char*)0);
+	 
 	 mi = loadUserModuleFromPath(xsink, name, n.getBuffer(), pgm);
       }
 
@@ -692,7 +696,7 @@ QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, con
       return 0;
    }
 
-   //printd(5, "QoreModuleManager::loadUserModuleFromPath() path: %s name: %s feature: %s\n", path, name, feature);
+   //printd(5, "QoreModuleManager::setupUserModule() path: %s name: %s feature: %s\n", path, name, feature);
 
    if (feature && strcmp(feature, name)) {
       xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': provides feature '%s', expecting feature '%s', skipping, rename module to %s.qm to load", path, name, feature, name);
@@ -754,7 +758,7 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
 
    ReferenceHolder<QoreProgram> pgm(new QoreProgram(po), &xsink);
 
-   QoreUserModuleDefContextHelper qmd(feature, xsink);
+   QoreUserModuleDefContextHelper qmd(feature);
    pgm->parseFile(path, &xsink, &xsink, QP_WARN_MODULES);
 
    return setupUserModule(xsink, path, feature, tpgm, pgm, qmd);
@@ -771,7 +775,7 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromSource(ExceptionSink& x
 
    ReferenceHolder<QoreProgram> pgm(new QoreProgram(po), &xsink);
 
-   QoreUserModuleDefContextHelper qmd(feature, xsink);
+   QoreUserModuleDefContextHelper qmd(feature);
    pgm->parse(src, path, &xsink, &xsink, QP_WARN_MODULES);
 
    return setupUserModule(xsink, path, feature, tpgm, pgm, qmd);
