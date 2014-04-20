@@ -42,6 +42,7 @@
     - fixed a bug in schema management in SqlUtil where SqlUtil used excessively verbose column aliases that caused errors when automatically updating columns with existing rows and new default values and non-null contraints with PostgreSQL databases
     - fixed a bug where a call reference to an abstract object method returned from an abstract class could be executed even though it must have been instantiated by a concrete subclass
     - fixed a bug where a valid call reference to a private object method was created within the class, then in some cases an object protection exception was raised when the call reference was called outside the class
+    - fixed a bug in the <a href="../../modules/RestClient/html/index.html">RestClient</a> module when the yaml binary module is not available
 
     @section qore_089 Qore 0.8.9
 

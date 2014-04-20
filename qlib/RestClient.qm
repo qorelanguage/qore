@@ -104,6 +104,7 @@ printf("%N\n", ans.body);
     @subsection restclientv1_2 RestClient v1.2
     - allow the Content-Type header to be overriden in REST requests
     - added \a hdr args to REST methods
+    - fixed a bug using the module when the yaml module is not available
 
     @subsection restclientv1_1 RestClient v1.1
     - updated to use encode_url() before sending HTTP messages
@@ -142,10 +143,18 @@ public namespace RestClient {
                 );
 
 
+%ifndef NoYaml
             const DeserializeYaml = (
                     "code": "yaml",
                     "in": \parseYAML(),
                 );
+%endif
+%ifndef NoXml
+            const DeserializeXmlRpc = (
+                    "code": "xml",
+                    "in": \parseXMLRPCValue(),
+                );
+%endif
 
             #! Data deserialization support MIME types to codes and de/serialization functions
             const DataDeserializationSupport = (
@@ -160,10 +169,8 @@ public namespace RestClient {
                 MimeTypeYaml: DeserializeYaml,
 %endif
 %ifndef NoXml
-                MimeTypeXml: (
-                    "code": "xml",
-                    "in": \parseXMLRPCValue(),
-                ),
+                MimeTypeXml: DeserializeXmlRpc,
+                MimeTypeXmlApp: DeserializeXmlRpc,
 %endif
                 );
 
@@ -441,7 +448,7 @@ my hash $ans = $rest.post("/orders/1");
                 $body = $.sih.out($body);
                 if (!$hdr.$ct)
                     $hdr.$ct = $.sih.ct;
-                if ($body.typeCode() == NT_STRING)
+                if ($body.typeCode() == NT_STRING && $hdr.$ct !~ /;charset=/)
                     $hdr.$ct += ";charset=" + $body.encoding();
 
                 if ($.seh) {
@@ -541,7 +548,7 @@ my hash $ans = $rest.doRequest("DELETE", "/orders/1");
                 throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y; types supported: %y; response body: %y", $h."content-type", DataDeserializationSupport.keys(), $h.body);
 
             if ($h.body.typeCode() != NT_STRING)
-                throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y but body type is %y", $h."content-type", $h.body.typeCode());
+                throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y but body type is %y", $h."content-type", $h.body.type());
 
             $h.body = $dh.in($h.body);
 
