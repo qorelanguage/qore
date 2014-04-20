@@ -694,12 +694,12 @@ public class HttpServer::AbstractStreamRequest {
         hash $.cx;
         #! a hash of request headers
         hash $.hdr;
-        #! any message body given in a non-chunked request
-        *data $.body;
+        #! any message body given in a non-chunked request; could already be deserialized
+        any $.body;
     }
 
     #! creates the object with the given attributes
-    constructor(HttpListener $listener, AbstractHttpRequestHandler $handler, Socket $s, hash $cx, hash $hdr, *data $body) {
+    constructor(HttpListener $listener, AbstractHttpRequestHandler $handler, Socket $s, hash $cx, hash $hdr, any $body) {
         $.listener = $listener;
         $.handler = $handler;
         $.s = $s;
@@ -710,8 +710,11 @@ public class HttpServer::AbstractStreamRequest {
 
     hash handleRequest() {
         # handle message body
-        if ($.body) {
-            $.recv(("data": $.body, "chunked": False));
+        if (exists $.body) {
+            my hash $dh = ("data": $.body, "chunked": False);
+            if ($.cx.deserialized)
+                $dh.deserialized = True;
+            $.recv($dh);
             # signal end of data
             $.recvImpl(("hdr": NOTHING));
         }
@@ -765,6 +768,8 @@ public class HttpServer::AbstractStreamRequest {
         if ($v.data)
             $.logChunk(False, $v.data.size());
 
+        if (exists $v.data && $.cx.deserialized)
+            $v.deserialized = True;
         $.recvImpl($v);
     }
 

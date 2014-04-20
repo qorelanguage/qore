@@ -499,13 +499,17 @@ public:
 class QoreUserModuleDefContextHelper : public QoreModuleDefContextHelper {
 protected:
    const char* old_name;
+   ExceptionSink& xsink;
 
 public:
-   DLLLOCAL QoreUserModuleDefContextHelper(const char* name) : old_name(set_user_module_context_name(name)) {
+   DLLLOCAL QoreUserModuleDefContextHelper(const char* name, ExceptionSink& xs) : old_name(set_user_module_context_name(name)), xsink(xs) {
    }
 
    DLLLOCAL ~QoreUserModuleDefContextHelper() {
-      set_user_module_context_name(old_name);
+      const char* name = set_user_module_context_name(old_name);
+
+      if (xsink)
+         QMM.removeUserModuleDependency(name);
    }
 };
 
