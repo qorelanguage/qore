@@ -758,7 +758,7 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
 
    ReferenceHolder<QoreProgram> pgm(new QoreProgram(po), &xsink);
 
-   QoreUserModuleDefContextHelper qmd(feature);
+   QoreUserModuleDefContextHelper qmd(feature, xsink);
    pgm->parseFile(path, &xsink, &xsink, QP_WARN_MODULES);
 
    return setupUserModule(xsink, path, feature, tpgm, pgm, qmd);
@@ -775,7 +775,7 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromSource(ExceptionSink& x
 
    ReferenceHolder<QoreProgram> pgm(new QoreProgram(po), &xsink);
 
-   QoreUserModuleDefContextHelper qmd(feature);
+   QoreUserModuleDefContextHelper qmd(feature, xsink);
    pgm->parse(src, path, &xsink, &xsink, QP_WARN_MODULES);
 
    return setupUserModule(xsink, path, feature, tpgm, pgm, qmd);
