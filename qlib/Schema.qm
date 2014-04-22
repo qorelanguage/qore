@@ -133,6 +133,7 @@ public namespace Schema {
 
         log(string fmt) {
             vprintf(fmt + "\n", argv);
+            flush();
         }
 
         logProgress(string str) {
