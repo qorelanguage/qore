@@ -407,8 +407,8 @@ my hash $ans = $rest.post("/orders/1");
             my *string $p = $.getConnectionPath();
             if ($p && $path)
                 $path = $p + "/" + $path;
-
-            $path = encode_url($path);
+            # we don't have encode_url yet, so we just encode spaces
+            $path =~ s/ /%20/g;
         }        
 
         #! sends an HTTP request to the REST server and returns the response
