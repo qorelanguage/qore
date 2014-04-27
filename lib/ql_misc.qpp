@@ -1921,9 +1921,9 @@ string decode_url(string url) [flags=CONSTANT] {
 nothing decode_url() [flags=RUNTIME_NOOP] {
 }
 
-//! Encodes URLs by substituting \c '%' characters with \c '%25', spaces (\c ' ') with \c '%20', and non-ascii characters by percent-encoded representations
+//! Encodes URLs by substituting \c '%%' characters with \c '%25', spaces (\c ' ') with \c '%20', and non-ascii characters by percent-encoded representations
 /** @param url a URL string to encode
-    @param encode_all if @ref Qore::True "True", then in addition to \c '%', spaces (\c ' '), and non-ascii characters the following reserved characters (according to <a href="http://tools.ietf.org/html/rfc3986">RFC 3986</a> are also encoded: \c '!', \c '*', \c '\'', \c '(', \c ')', \c ';', \c ':', \c '@', \c '&', \c '=', \c '+', \c '$', \c ',', \c '/', \c '?', \c '#', \c '[', \c ']' 
+    @param encode_all if @ref Qore::True "True", then in addition to \c '%%', spaces (\c ' '), and non-ascii characters the following reserved characters (according to <a href="http://tools.ietf.org/html/rfc3986">RFC 3986</a> are also encoded: \c '!', \c '*', \c '\'', \c '(', \c ')', \c ';', \c ':', \c '@', \c '&', \c '=', \c '+', \c '$', \c ',', \c '/', \c '?', \c '#', \c '[', \c ']' 
 
     @return the URL string with encoded according to the arguments
 

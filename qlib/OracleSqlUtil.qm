@@ -1467,6 +1467,22 @@ my any $v = $c.name;
                         return sprintf("to_char(%s, 'YYYY-MM-DD HH24')", arg1);
                     }
                 ),
+                COP_SEQ: (
+                    "code": string sub (string arg1, any arg) {
+                        return sprintf("%s.nextval", arg);
+                    }
+                ),
+                );
+
+            #! a hash of default value operator descriptions for Oracle
+            const OracleIopMap = DefaultIopMap + (
+                IOP_SEQ: (
+                    "arg": Type::String,
+                    "immediate": True,
+                    "code": string sub (string cve, string arg) {
+                        return sprintf("%s.nextval", arg);
+                    },
+                ),
                 );
         }
 
@@ -2080,6 +2096,11 @@ my any $v = $c.name;
         #! returns the column operator map for this object
         private hash getColumnOperatorMap() {
             return OracleCopMap;
+        }
+
+        #! returns the insert operator map for this object
+        private hash getInsertOperatorMap() {
+            return OracleIopMap;
         }
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string

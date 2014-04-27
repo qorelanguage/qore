@@ -1735,6 +1735,11 @@ public namespace SqlUtil {
     */           
     public const COP_YEAR_HOUR = "year_hour";
 
+    #! to return the value of a sequence
+    /** @see cop_seq()
+    */           
+    public const COP_SEQ = "seq";
+
     #! a hash of default column operator descriptions
     public const DefaultCopMap = (
         COP_AS: (
@@ -2149,6 +2154,20 @@ my *list $rows = $table.selectRows(("columns": ("id", "name", cop_year_hour("err
     public hash sub cop_year_hour(any column) {
         return make_cop(COP_YEAR_HOUR, column);
     }
+
+    #! returns a hash for the \c "seq" operator with the given argument giving the sequence name whose value should be returned
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("columns": ("id", "name", cop_seq("xid")), "where": ("type": "user")));
+        @endcode
+
+        @param seq the name of the sequence whose value should be returned
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    public hash sub cop_seq(string seq) {
+        return make_cop(COP_SEQ, seq);
+    }
     #@}
 
     /** @defgroup sql_uops SQL Update Operators
@@ -2160,6 +2179,7 @@ my *list $rows = $table.selectRows(("columns": ("id", "name", cop_year_hour("err
         COP_APPEND: True,
         COP_UPPER: True,
         COP_LOWER: True,
+        COP_SEQ: True,
         );
     #@}
 
@@ -2169,6 +2189,7 @@ my *list $rows = $table.selectRows(("columns": ("id", "name", cop_year_hour("err
         - @ref uop_append(): append a string to the output of a column
         - @ref uop_upper(): return a column in upper case
         - @ref uop_lower(): return a column in lower case
+        - @ref uop_seq(): returns the value of the given sequence
 
         Update operator functions can be nested as in the following example:
         @par Example:
@@ -2247,6 +2268,20 @@ my int $rows_updated = t.update(("permission_type": uop_lower()));
     public hash sub uop_lower(*hash nest) {
         return make_uop(COP_LOWER, nest);
     }
+
+    #! returns a hash for the \c "seq" operator with the given argument giving the sequence name whose value should be returned
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("columns": ("id", "name", cop_seq("xid")), "where": ("type": "user")));
+        @endcode
+
+        @param seq the name of the sequence whose value should be returned
+
+        @return an update operator description hash corresponding to the arguments for use in update statements
+    */
+    public hash sub uop_seq(string seq) {
+        return make_uop(COP_SEQ, seq);
+    }
     #@}
 
     /** @defgroup sql_jops SQL Join Operators
@@ -2270,7 +2305,7 @@ my int $rows_updated = t.update(("permission_type": uop_lower()));
     */
     public const JOP_RIGHT = "right";
 
-    #! a hash of valid column operators
+    #! a hash of valid join operators
     public const JopMap = (
         JOP_INNER: "inner",
         JOP_LEFT: "left outer",
@@ -3070,6 +3105,53 @@ my *list $rows = $table.selectRows(("where": ("name": op_ceq("other_name"))));
     */
     public hash sub op_ceq(string arg) {
         return make_op(OP_CEQ, arg);
+    }
+    #@}
+
+    /** @defgroup sql_iops SQL Insert Operators
+        These are operators that can be used for special value functions as the values of inserted columns.
+        
+        @note these operators are normally not used directly, but rather are used by the @ref sql_iop_funcs
+    */
+    #@{
+    #! for using the value of a sequence
+    /** @see iop_seq()
+    */
+    public const IOP_SEQ = "seq";
+    
+    #! a hash of default insert operator descriptions
+    public const DefaultIopMap = hash();
+    #@}
+
+    /** @defgroup sql_iop_funcs SQL Insert Operator Functions
+        These are functions that can be used to give special values in insert queries
+        - @ref iop_seq(): insert the value of a sequence into the column
+    */
+    #@{
+    #! returns a hash with \c _iop and \c arg keys
+    /** @param iop the value operator (one of @ref sql_iops)
+        @param arg the argument to the operator
+
+        @return an insert operator description hash corresponding to the arguments for use as values in insert queries
+
+        @note Normally this function is not called directly, but rather by the other insert operator functions
+    */
+    public hash sub make_iop(string iop, any arg) {
+        return ("_iop": iop, "arg": arg);
+    }
+
+    #! returns a hash for retrieving the value of the given sequence in insert queries
+    /** @par Example:
+        @code
+$table.insert(("id": $id, "ref": iop_seq("xid")));
+        @endcode
+
+        @param arg the name of the sequence whose value should be inserted into the column
+
+        @return a value operator description hash corresponding to the arguments for use in insert queries
+    */
+    public hash sub iop_seq(string arg) {
+        return make_iop(IOP_SEQ, arg);
     }
     #@}
 
@@ -12081,12 +12163,61 @@ $table.insertNoCommi($row);
                 if (!columns{k})
                     throw "COLUMN-ERROR", sprintf("%s.%s is not a valid column (valid columns: %y)", name, k, columns.keys());
             }
+            hash vh = getPlaceholdersAndValues(row);
+
             sql += (foldl $1 + "," + $2, row.keyIterator());
             sql += ") values (";
-            sql += (foldl $1 + "," + $2, (map "%v", row.keyIterator()));
+            sql += (foldl $1 + "," + $2, vh.placeholders);
             sql += ")";
 
-            execData(opt, sql, row.values());
+            execData(opt, sql, vh.values);
+        }
+
+        private hash getPlaceholdersAndValues(hash row) {
+            hash im;
+            # placeholder list
+            list phl = ();
+            # value list
+            list vl = ();
+
+            foreach hash rh in (row.pairIterator()) {
+                string ph = "%v";
+                any v = rh.value;
+                if (v."_iop".typeCode() == NT_STRING) {
+                    string iop = v."_iop";
+                    if (!exists im)
+                        im = getInsertOperatorMap();
+                    *hash cmd = im{iop};
+                    if (!cmd)
+                        throw "INSERT-OPERATOR-ERROR", sprintf("unknown insert operator %y: expecting one of: %y", iop, im.keys());
+                    v = v.arg;
+                    if (cmd.arg) {
+                        string at = v.type();
+                        switch (cmd.arg) {
+                            default: {
+                                if (at != cmd.arg)
+                                    throw "INSERT-OPERATOR-ERROR", sprintf("invalid argument to insert operator %y; got type %y, expecting %y", iop, at, cmd.arg);
+                            }
+                        }
+                    }
+
+                    if (cmd.code)
+                        v = cmd.code(rh.key, v);
+                    if (cmd.immediate) {
+                        phl += v;
+                        continue;
+                    }
+                    if (cmd.placeholder)
+                        ph = cmd.placeholder;
+                }
+                phl += ph;
+                vl += v;
+            }
+
+            return (
+                "placeholders": phl,
+                "values": vl,
+            );
         }
 
         #! inserts a row into the table; the transaction is committed if successful, if an error occurs, it is rolled back
@@ -15069,6 +15200,13 @@ my *list $rows = $table.findAll($h);
         */
         private hash getColumnOperatorMap() {
             return DefaultCopMap;
+        }
+
+        #! returns the insert operator map for this object
+        /** override in subclasses to return driver-specific options    
+        */
+        private hash getInsertOperatorMap() {
+            return DefaultIopMap;
         }
 
         #! returns the update operator map for this object

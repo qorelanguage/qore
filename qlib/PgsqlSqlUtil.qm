@@ -1214,6 +1214,19 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                         return sprintf("to_char(%s, 'YYYY-MM-DD HH24')", arg1);
                     }
                 ),
+                COP_SEQ: (
+                    "code": string sub (string arg1, string arg) {
+                        return sprintf("nextval('%s')", arg);
+                    }
+                ),
+                );
+
+            #! a hash of default value operator descriptions for PostgreSQL
+            const PgsqlIopMap = DefaultIopMap + (
+                IOP_SEQ: (
+                    "arg": Type::String,
+                    "placeholder": "nextval(%v)",
+                ),
                 );
         }
 
@@ -1305,6 +1318,11 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         #! returns the column operator map for this object
         private hash getColumnOperatorMap() {
             return PgsqlCopMap;
+        }
+
+        #! returns the insert operator map for this object
+        private hash getInsertOperatorMap() {
+            return PgsqlIopMap;
         }
 
         private bool checkExistenceImpl() {
