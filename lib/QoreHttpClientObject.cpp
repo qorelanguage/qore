@@ -1209,7 +1209,8 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
       }
    }
 
-   if (!*xsink && (code < 100 || code >= 300)) {
+   // do not throw an exception if a receive callback is used
+   if (!*xsink && (code < 100 || code >= 300) && !recv_callback) {
       const char* mess = get_string_header(xsink, **ans, "status_message");
       if (!mess)
 	 mess = "<no message>";

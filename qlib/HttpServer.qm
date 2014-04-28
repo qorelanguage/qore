@@ -37,6 +37,7 @@ module HttpServer {
 /*  Version History
     * 2014-04-05 v0.3.8: David Nichols <david@qore.org>
       + moved more message handling code to AbstractHttpRequestHandler so that chunked transfers can be efficiently supported by handlers
+      + added a minimum body size threshold for Content-Encoding compression to HttpServer
 
     * 2013-03-05 v0.3.7: David Nichols <david@qore.org>
       + fixed a bug in parsing arguments in parse_uri_query()
@@ -740,10 +741,10 @@ public class HttpServer::AbstractStreamRequest {
     */
     private hash sendResponse() {
         my hash $rv = $.getResponseHeaderMessageImpl();
-        HttpServer::setReplyHeaders($.s, $.cx, \$rv);
-
         if ($rv.hdr."Transfer-Encoding" != "chunked")
             return $rv;
+
+        HttpServer::setReplyHeaders($.s, $.cx, \$rv);
 
         # send chunked response
         $.s.sendHTTPResponseWithCallback(\$.send(), $rv.code, HttpServer::HttpCodes.($rv.code), "1.1", $rv.hdr, HttpServer::ReadTimeout);
@@ -1361,6 +1362,9 @@ public class HttpServer::HttpServer {
 
         #! default number of idle threads to have waiting for new connections (accross all listeners)
         const DefaultIdleThreads = 10;
+
+        #! default threadhold for data compressions; transfers smaller than this size will not be compressed
+        const CompressionThreshold = 1024;
     }
 
     #! @cond nodoc
@@ -2127,6 +2131,7 @@ public class HttpServer::HttpServer {
             "logfunc"     : $.logfunc,
             "errlogfunc"  : $.errlogfunc,
             "url"         : $url,
+            "debug"       : $.debug,
 	    );
 
 	# find a handler for the request
@@ -2297,13 +2302,12 @@ public class HttpServer::HttpServer {
             $.sendHttpError($listener, $cx, $s, $rv.code, $rv.body, $rv.hdr, $cx."response-encoding");
         }
         else {
-            #printf("\n**** REQUEST: %N\n", $body);
-            #printf("\n**** RESPONSE: %N\n", $rv.body);
             $.setReplyHeaders($s, $cx, \$rv);
+            #printf("\n**** RESPONSE: %d ct: %s encoding: %y: %N\n", $rv.code, $rv.hdr."Content-Type", $cx.encoding, $rv.body);
 
             if ($head)
                 $s.sendHTTPResponse($rv.code, HttpServer::HttpCodes.($rv.code), "1.1", $rv.hdr);
-            else if ($rv.body) {
+            else if ($rv.body && $rv.body.size() > CompressionThreshold) {
                 if ($cx.encoding == "deflate") {
                     $rv.hdr."Content-Encoding" = "deflate";
                     $rv.body = compress($rv.body);

@@ -9738,6 +9738,28 @@ my Triggers $trig = $table.getTriggers();
                 - @ref UR_Unchanged
              */
             const UpsertInsertOnly = 5;
+
+            #! hash mapping upsert strategy codes to a text description
+            /** @see @ref UpsertStrategyDescriptionMap for a reverse mapping
+            */
+            const UpsertStrategyMap = (
+                UpsertInsertFirst: "UpsertInsertFirst",
+                UpsertUpdateFirst: "UpsertUpdateFirst",
+                UpsertSelectFirst: "UpsertSelectFirst",
+                UpsertAuto: "UpsertAuto",
+                UpsertInsertOnly: "UpsertInsertOnly",
+            );
+
+            #! hash mapping upsert strategy descriptions to upsert strategy codes
+            /** @see @ref UpsertStrategyMap for a reverse mapping
+            */
+            const UpsertStrategyDescriptionMap = (
+                "UpsertInsertFirst": UpsertInsertFirst,
+                "UpsertUpdateFirst": UpsertUpdateFirst,
+                "UpsertSelectFirst": UpsertSelectFirst,
+                "UpsertAuto": UpsertAuto,
+                "UpsertInsertOnly": UpsertInsertOnly,
+            );
             #@}
 
             /** @defgroup upsert_results Upsert Result Codes
@@ -12204,6 +12226,9 @@ $table.insertNoCommi($row);
                     if (cmd.code)
                         v = cmd.code(rh.key, v);
                     if (cmd.immediate) {
+                        # make sure only identifiers are included here since the string is inserted directly into the query
+                        if (v =~ /[^a-z\._0-9]/i)
+                            throw "INSERT-OPERATOR-ERROR", sprintf("immediate value to insert operator %y is %y which contains illegal characters", iop, v);
                         phl += v;
                         continue;
                     }

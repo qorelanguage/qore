@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file RestHandler.qm Qore handler definition for the HttpServer module for exporting REST services
 
-/*å RestHandler.qm Copyright (C) 2013 - 2014 Qore Technologies, sro
+/** RestHandler.qm Copyright (C) 2013 - 2014 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -468,7 +468,10 @@ public namespace RestHandler {
 
                     return $.dispatch($rh, $mn, $ah, $cx);
                 }
-                $rh.logDebug("REST DBG: class %y: stream method %y: %s: %s: %s", $.name(), $sn, get_ex_pos($ex), $ex.err, $ex.desc);
+                my string $desc = !$cx.debug
+                    ? sprintf("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc)
+                    : get_exception_string($ex);
+                $rh.logDebug("REST DBG: class %y: stream method %y: %s", $.name(), $sn, $desc);
                 rethrow;
             }
         }
@@ -498,7 +501,10 @@ public namespace RestHandler {
                     $desc += sprintf(", available methods: %s", $ml);
                     return AbstractHttpRequestHandler::makeResponse(("Allow": $ml), 405, $desc);
                 }
-                $rh.logDebug("REST DBG: class %y: method %y: %s: %s: %s", $.name(), $mn, get_ex_pos($ex), $ex.err, $ex.desc);
+                my string $desc = !$cx.debug
+                    ? sprintf("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc)
+                    : get_exception_string($ex);
+                $rh.logDebug("REST DBG: class %y: method %y: %s", $.name(), $mn, $desc);
                 rethrow;
             }
         }
@@ -735,13 +741,19 @@ public namespace RestHandler {
                 $rv = $rcls.handleRequest($listener, $self, $s, $cl, $mn, $cx, $args);
             }
             catch (hash $ex) {
+                my string $desc = !$cx.debug
+                    ? sprintf("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc)
+                    : get_exception_string($ex);
+
                 # if there is an exception, return a 409 Conflict error to the client with the exception information
-                $.logError("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc);
+                $.logError($desc);
                 $rv = (
                     "code": 409,
                     "body": $ex,
                     );
             }
+
+            #printf("DBG: rv: %y\n", $rv);
 
             if (!$rv.reply_sent) {
                 # serialize response according to client's capabilities if necessary
