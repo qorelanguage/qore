@@ -516,22 +516,14 @@ public namespace Schema {
 	}
 
         private bool checkExistence() {
-	    if (schema.tables) {
-		string name = schema.tables.firstKey();
-		return db.getTable(name) ? True : False;
-	    }
-            if (schema.sequences) {
-		string name = schema.sequences.firstKey();
-		return db.getSequence(name) ? True : False;
-            }
-            if (schema.functions) {
-		string name = schema.functions.firstKey();
-		return db.getFunction(name) ? True : False;
-            }
-            if (schema.procedures) {
-		string name = schema.procedures.firstKey();
-		return db.getProcedure(name) ? True : False;
-            }
+	    if (schema.tables)
+		return db.getTable(schema.tables.firstKey()) ? True : False;
+            if (schema.sequences)
+		return db.getSequence(schema.sequences.firstKey()) ? True : False;
+            if (schema.functions)
+		return db.getFunction(schema.functions.firstKey()) ? True : False;
+            if (schema.procedures)
+		return db.getProcedure(schema.procedures.firstKey()) ? True : False;
             return False;
         }
 
