@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
 
   constants can only be defined when parsing
   constants values will be substituted during the 2nd parse phase
@@ -66,6 +66,14 @@ struct ClassNs {
    DLLLOCAL bool isNs() const {
       return (bool)(ptr & (size_t)1);
    }
+
+#ifdef DEBUG
+   DLLLOCAL const char* getType() const {
+      return isNs() ? "namespace" : "class";
+   }
+
+   DLLLOCAL const char* getName() const;
+#endif
 };
 
 class RuntimeConstantRefNode;

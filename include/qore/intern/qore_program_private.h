@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -372,7 +372,7 @@ public:
         requires_exception(false), tclear(0),
         exceptions_raised(0), ptid(0), pwo(n_parse_options), dom(0), pend_dom(0), thread_local_storage(0), twaiting(0),
         thr_init(0), pgm(n_pgm) {
-      //printd(5, "qore_program_private_base::qore_program_private_base() this: %p pgm: %p\n", this, pgm);
+      //printd(5, "qore_program_private_base::qore_program_private_base() this: %p pgm: %p po: "QLLD"\n", this, pgm, n_parse_options);
 
       if (p_pgm)
 	 setParent(p_pgm, n_parse_options);

@@ -404,7 +404,7 @@ QoreNamespace* QoreNamespace::copy(int64 po) const {
 }
 
 QoreNamespaceList::QoreNamespaceList(const QoreNamespaceList& old, int64 po, const qore_ns_private& parent) {
-   //printd(5, "QoreNamespaceList::QoreNamespaceList(old=%p) this=%p po=%lld size=%d\n", &old, this, po, nsmap.size());
+   //printd(5, "QoreNamespaceList::QoreNamespaceList(old=%p) this=%p po=%lld size=%ld\n", &old, this, po, nsmap.size());
    nsmap_t::iterator last = nsmap.begin();
    for (nsmap_t::const_iterator i = old.nsmap.begin(), e = old.nsmap.end(); i != e; ++i) {
       if (!qore_ns_private::isPublic(*i->second))

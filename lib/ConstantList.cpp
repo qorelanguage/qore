@@ -29,6 +29,12 @@
 #include <string.h>
 #include <stdlib.h>
 
+#ifdef DEBUG
+const char* ClassNs::getName() const {
+   return isNs() ? getNs()->name.c_str() : getClass()->name.c_str();
+}
+#endif
+
 /* the following functions find all objects that are directly reachable by a resolved
    constant value and dereference the QoreProgram object that the object has 
    referenced (as long as its the same QoreProgram object that owns the constant)
@@ -236,7 +242,7 @@ int ConstantEntry::parseInit(ClassNs ptr) {
 }
 
 ConstantList::ConstantList(const ConstantList &old, ClassNs p) : ptr(p) {
-   //printd(5, "ConstantList::ConstantList(old) this: %p cls: %p ns: %p\n", this, ptr.getClass(), ptr.getNs());
+   //printd(5, "ConstantList::ConstantList(old: %p, p: %s %s) this: %p cls: %p ns: %p\n", &old, p.getType(), p.getName(), this, ptr.getClass(), ptr.getNs());
 
    // DEBUG
    //fprintf(stderr, "XXX ConstantList::ConstantList() this=%p copy constructor from %p called\n", this, &old);
