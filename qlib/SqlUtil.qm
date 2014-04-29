@@ -94,7 +94,9 @@ module SqlUtil {
     @section relnotes Release Notes
 
     @subsection sqlutilv1_2 SqlUtil v1.2
-    - added static AbstractSqlUtilBase::getDatasourceDesc() method
+    - added insert operator support; for example, for inserting with values from sequences
+    - added new upsert constant maps: @ref SqlUtil::AbstractTable::UpsertStrategyMap "UpsertStrategyMap" and @ref SqlUtil::AbstractTable::UpsertStrategyDescriptionMap "UpsertStrategyDescriptionMap"
+    - added static SqlUtil::AbstractSqlUtilBase::getDatasourceDesc() method
     - added new Table::insertFromSelect*() variants taking Table arguments
 
     @subsection sqlutilv1_1 SqlUtil v1.1
