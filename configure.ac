@@ -1355,8 +1355,14 @@ if test "$mingw" != yes; then
    TYPE_SOCKLEN_T
 fi
 
-# see if the iconv library is required
-AC_SEARCH_LIBS(iconv, iconv)
+# check how to include and link iconv
+LIBICONV_AC_FUNC_ICONV
+if test "$func_iconv" = "yes"; then
+   QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS $INCICONV"
+   QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $LIBICONV"
+else
+   AC_MSG_ERROR([iconv not found])
+fi
 
 # see if the socket library is required
 AC_SEARCH_LIBS(setsockopt, socket)
