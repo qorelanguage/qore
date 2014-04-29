@@ -95,7 +95,7 @@ AC_DEFUN([LIBICONV_AC_HEADER_INCICONV],
   if test -n "$ac_cv_iconv_include" && test "$ac_cv_header_iconv_h" = yes \
   && test "$iconv_include_default" = yes
   then
-    AC_COMPILE_IFELSE([#include <iconv.h>],[ac_cv_iconv_include=""])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <iconv.h>]],[[]])], [ac_cv_iconv_include=""])
   fi
   if test -z "$ac_cv_iconv_include"
   then
