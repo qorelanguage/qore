@@ -307,13 +307,10 @@ Content-Length: 36
 #! the RestHandler namespace contains all the objects in the RestHandler module
 public namespace RestHandler {
     #! the base abstract class for REST stream request handlers
-    public class AbstractRestStreamRequestHandler {
+    public class AbstractRestStreamRequestHandler inherits HttpServer::AbstractStreamRequestHandler {
         public {}
 
         private {
-            #! call context hash
-            hash $.cx;
-
             #! call argument hash
             hash $.ah;
         }
@@ -332,32 +329,9 @@ public namespace RestHandler {
             - \c aih: a hash of \c "Accept" values
             @param ah any URI arguments in the request
         */
-        constructor(hash $cx, *hash $ah) {
-            $.cx = $cx;
+        constructor(hash $cx, *hash $ah) : AbstractStreamRequestHandler($cx) {
             $.ah = $ah;
         }
-
-        #! this method should return the response message description hash
-        abstract hash getResponseHeaderMessageImpl();
-
-        #! abstract callback method for receiving chunked data
-        /**
-            @param v the first time this method is called with a hash of the message headers in the \c "hdr" key, and then with any message body in the \c "data"; if a chunked HTTP message is received, then this method is called once for each chunk; when the message has been received, then this method is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
-            - \c "data": the string or binary data, or, in the case of a non-chunked request, the already decoded and deserialized request body, in which case the \c "deserialized" key will be @ref Qore::True "True"
-            - \c "chunked": True if the data was received with chunked transfer encoding, False if not
-            - \c "deserialized": present and set to @ref Qore::True "True" if a non-chunked request was received, and the body has already been deserialized
-            .
-            Header or trailer data is placed in a hash with the following keys:
-            - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
-            - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
-        */
-        abstract nothing recvImpl(hash $v);
-
-        #! abstract callback method for sending chunked data
-        /** 
-            @return The chunked HTTP data to send; this method must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be returned or simply @ref nothing which will close the chunked message
-        */
-        abstract any sendImpl();
     }
 
     public class RestStreamRequest inherits HttpServer::AbstractStreamRequest {

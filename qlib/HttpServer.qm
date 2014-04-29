@@ -34,100 +34,7 @@ module HttpServer {
     url = "http://qore.org";
 }
 
-/*  Version History
-    * 2014-04-05 v0.3.8: David Nichols <david@qore.org>
-      + moved more message handling code to AbstractHttpRequestHandler so that chunked transfers can be efficiently supported by handlers
-      + added a minimum body size threshold for Content-Encoding compression to HttpServer
-
-    * 2013-03-05 v0.3.7: David Nichols <david@qore.org>
-      + fixed a bug in parsing arguments in parse_uri_query()
-      + updated parse_uri_query() to accept both "&" and ";" as argument separators
-      + added support for the PUT and DELETE methods and for optional message bodies independent of the HTTP method
-      + fixed handler matching to use a score for each handler and to check dynamic handlers also for a match if the fixed handlers don't provide a perfect match
-      + fixed response handling to not overwrite the \c Connection header if present from the handler
-      + fixed response handling to only return error reponses with codes >= 400
-      + implemented theAbstractHttpSocketHandler handler class to support dedicated socket connections when switching protocols in handlers
-      + do not add HTML to the msg body from explicit error responses from handlers
-      + improved HTTP server log messages
-      + added "family" argument to HttpServer::add*Listener*() methods
-      + turned of TCP_NODELAY by default and use socket shutdown when closing sockets instead
-      + set the listen backlog queue size to 100 by default (previously was hardcoded internally in Qore to 5)
-      + use the new ThreadPool class introduced in Qore 0.8.8 to pre-allocate threads to reduce latency for new socket connections
-      + improved handler matching algorithm
-      + implemented many performance improvements
-      + implemented support for simple string path matching when finding a handler for a request
-      + added static AbstractHttpRequestHandler::redirect() to help in generating 301 Moved Permanently messages
-
-    * 2012-12-18 v0.3.6: David Nichols <david@qore.org>
-      + fixed a race condition in tracking active requests in dynamic HTTP handlers and removing dynamic HTTP handlers
-
-    * 2012-09-20 v0.3.5: David Nichols <david@qore.org>
-      + fixed bugs in regexes in the HttpServer::addListeners() and HttpServer::addListenersWithHandler() methods
-      + updated module example code in summary
-      + added "listener-id" to request context hash
-
-    * 2012-06-01 v0.3.4: David Nichols <david@qore.org>
-      + added public parse_uri_query() function
-
-    * 2012-05-24 v0.3.3: David Nichols <david@qore.org>
-      + updated to a user module
-      + added support for custom redirects from user handlers
-      + use the Mime module for mime definitions
-
-    * v0.3.2: David Nichols <david@qore.org>
-      + added support for listeners with specific handler lists
-      + added the ability to manage dynamic content handlers
-      + implemented content-encoding handling flags in AbstractHttpRequestHandler
-      + implemented support for "identity" encoding (if anyone ever sends it)
-
-    * v0.3.1: David Nichols <david@qore.org>
-      + added ipv6 support in qore 0.8.2
-
-    * v0.3.0: David Nichols <david@qore.org>
-      + added the ability to start and stop listeners on demand
-
-    * v0.2.9: David Nichols <david@qore.org>
-      + updates for new SSL and timeout behavior with with Socket class with qore 0.8.1+
-      + set socket encoding to UTF-8 by default
-      + add "charset=utf-8" to Content-Type header if not already present
-      + add "text/html" to Content-Type header if no content-type is given by the handler
-      + fixed setting X.509 certificate and private key for HTTPS listeners
-      + require qore >= 0.8.1 for new Socket features
-
-    * v0.2.8: David Nichols <david@qore.org>
-      + converted to hard typing for use with %require-types
-      + require qore >= 0.8.0 for new Socket features
-
-    * v0.2.7: David Nichols <david@qore.org>
-       + set TCP_NODELAY on all sockets to ensure that clients get all data before closing the socket, especially in case of errors
-       + require qore >= 0.7.4 for new Socket features
-
-    * v0.2.6: David Nichols <david@qore.org>
-      + minor fixes for SOAP support
-      + improved handler matching
-
-    * v0.2.5: David Nichols <david@qore.org>
-      + minor fixes for SOAP support
-
-    * v0.2.4: David Nichols <david@qore.org>
-      + improved Content-Type handling
-      + improved URL/path support
-
-    * v0.2.3: David Nichols <david@qore.org>
-      + bzip2 content-encoding support 
-
-    * v0.2.2: David Nichols <david@qore.org>
-      + basic authentication
-
-    * v0.2.1: David Nichols <david@qore.org>
-      + implementing logic to handle "deflate" and "gzip" content-encoding
-      + chunked content-encoding supported for POSTs
-      + Date: header always sent as per HTTP 1.1 spec
-
-    * v0.2.0: David Nichols <david@qore.org>
-      + modular/multiple listener support added
-      + https support added
-
+/*  Version History: see docs below
    note that this server suffers from the following limitations, among many others:
    + not totally HTTP 1.1 compliant although claims to be
 */
@@ -209,6 +116,13 @@ log("started listener on %s", $lh.desc);
     @endcode
 
     @section http_relnotes HttpServer Module Release Notes
+
+    @subsection http038 HttpServer 0.3.8
+    - moved more message handling code to HttpServer::AbstractHttpRequestHandler so that chunked transfers can be efficiently supported by handlers
+    - added a minimum body size threshold for \c Content-Encoding compression to HttpServer
+    - added the following classes to facilitate handling chunked requests and responses:
+      - HttpServer::AbstractStreamRequestHandler
+      - HttpServer::AbstractStreamRequest
 
     @subsection http037 HttpServer 0.3.7
     - fixed a bug in parsing arguments in @ref HttpServer::parse_uri_query() "parse_uri_query()"
@@ -677,6 +591,55 @@ public class HttpServer::AbstractAuthenticator {
         }
         return $.do401();
     }
+}
+
+#! abstract class for embedded objects serving streaming requests
+public class HttpServer::AbstractStreamRequestHandler {
+    public {}
+
+    private {
+        #! call context hash
+        hash $.cx;
+    }
+
+    #! creates the object with the given arguments
+    /** @param cx call context hash; this hash will have the following keys:
+        - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
+        - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
+        - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
+        - \c url: a hash of broken-down URL information (as returned from parseURL())
+        - \c id: the unique HTTP connection ID
+        - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
+        - \c user: the current RBAC username (if any)
+        - \c hdr: a hash of header information as returned by @ref Qore::Socket::readHTTPHeader()
+        - \c body: the deserialized message body
+        - \c aih: a hash of \c "Accept" values
+    */
+    constructor(hash $cx) {
+        $.cx = $cx;
+    }
+
+    #! this method should return the response message description hash
+    abstract hash getResponseHeaderMessageImpl();
+
+    #! abstract callback method for receiving chunked data
+    /**
+        @param v the first time this method is called with a hash of the message headers in the \c "hdr" key, and then with any message body in the \c "data"; if a chunked HTTP message is received, then this method is called once for each chunk; when the message has been received, then this method is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
+        - \c "data": the string or binary data, or, in the case of a non-chunked request, the already decoded and deserialized request body, in which case the \c "deserialized" key will be @ref Qore::True "True"
+        - \c "chunked": True if the data was received with chunked transfer encoding, False if not
+        - \c "deserialized": present and set to @ref Qore::True "True" if a non-chunked request was received, and the body has already been deserialized
+        .
+        Header or trailer data is placed in a hash with the following keys:
+        - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
+        - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
+    */
+    abstract nothing recvImpl(hash $v);
+
+    #! abstract callback method for sending chunked data
+    /** 
+        @return The chunked HTTP data to send; this method must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be returned or simply @ref nothing which will close the chunked message
+    */
+    abstract any sendImpl();
 }
 
 #! abstract class for streaming HTTP chunked requests/responses
