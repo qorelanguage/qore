@@ -95,6 +95,7 @@ module SqlUtil {
 
     @subsection sqlutilv1_2 SqlUtil v1.2
     - added static AbstractSqlUtilBase::getDatasourceDesc() method
+    - added new Table::insertFromSelect*() variants taking Table arguments
 
     @subsection sqlutilv1_1 SqlUtil v1.1
     - implemented new upsert strategy @ref SqlUtil::AbstractTable::UpsertInsertOnly
@@ -8220,6 +8221,29 @@ my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table,
             return t.insertFromSelect(cols, source, sh, \sql);
         }
 
+        #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); the transaction is committed if successful, if an error occurs, it is rolled back
+        /** @par Example:
+            @code
+my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER")))); 
+            @endcode
+
+            @param cols the list of column names to use to insert in the current table
+            @param source the source table for the select statement
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
+            @param sql an optional reference to a string to return the SQL generated for the select statement
+
+            @return the number of rows inserted
+
+            @throw OPTION-ERROR invalid or unsupported option
+            @throw COLUMN-ERROR unknown or invalid column in insert list
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note this method does not take insert options because it is executed entirely in the database server; use insertFromIterator() or insertFromIteratorNoCommit() to insert arbitrary data with insert options
+        */
+        int insertFromSelect(list cols, Table source, *hash sh, *reference sql) {
+            return t.insertFromSelect(cols, source.getTable(), sh, \sql);
+        }
+
         #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); a transaction will be in progress after this method is successfully executed
         /** @par Example:
             @code
@@ -8241,6 +8265,29 @@ my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $sourc
         */
         int insertFromSelectNoCommit(list cols, AbstractTable source, *hash sh, *reference sql) {
             return t.insertFromSelectNoCommit(cols, source, sh, \sql);
+        }
+
+        #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); a transaction will be in progress after this method is successfully executed
+        /** @par Example:
+            @code
+my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER")))); 
+            @endcode
+
+            @param cols the list of column names to use to insert in the current table
+            @param source the source table for the select statement
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
+            @param sql an optional reference to a string to return the SQL generated for the select statement
+
+            @return the number of rows inserted
+
+            @throw OPTION-ERROR invalid or unsupported option
+            @throw COLUMN-ERROR unknown or invalid column in insert list
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note this method does not take insert options because it is executed entirely in the database server; use insertFromIterator() or insertFromIteratorNoCommit() to insert arbitrary data with insert options
+        */
+        int insertFromSelectNoCommit(list cols, Table source, *hash sh, *reference sql) {
+            return t.insertFromSelectNoCommit(cols, source.getTable(), sh, \sql);
         }
 
         #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); the transaction is committed if successful, if an error occurs, it is rolled back
@@ -8266,6 +8313,29 @@ my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table,
             return t.insertFromSelect(cols, source, sh, opt);
         }
 
+        #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); the transaction is committed if successful, if an error occurs, it is rolled back
+        /** @par Example:
+            @code
+my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER")))); 
+            @endcode
+
+            @param cols the list of column names to use to insert in the current table
+            @param source the source table for the select statement
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @return the number of rows inserted
+
+            @throw OPTION-ERROR invalid or unsupported option
+            @throw COLUMN-ERROR unknown or invalid column in insert list
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note this method does not take insert options because it is executed entirely in the database server; use insertFromIterator() or insertFromIteratorNoCommit() to insert arbitrary data with insert options
+        */
+        int insertFromSelect(list cols, Table source, *hash sh, *hash opt) {
+            return t.insertFromSelect(cols, source.getTable(), sh, opt);
+        }
+
         #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); a transaction will be in progress after this method is successfully executed
         /** @par Example:
             @code
@@ -8287,6 +8357,29 @@ my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $sourc
         */
         int insertFromSelectNoCommit(list cols, AbstractTable source, *hash sh, *hash opt) {
             return t.insertFromSelectNoCommit(cols, source, sh, opt);
+        }
+
+        #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); a transaction will be in progress after this method is successfully executed
+        /** @par Example:
+            @code
+my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER")))); 
+            @endcode
+
+            @param cols the list of column names to use to insert in the current table
+            @param source the source table for the select statement
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @return the number of rows inserted
+
+            @throw OPTION-ERROR invalid or unsupported option
+            @throw COLUMN-ERROR unknown or invalid column in insert list
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note this method does not take insert options because it is executed entirely in the database server; use insertFromIterator() or insertFromIteratorNoCommit() to insert arbitrary data with insert options
+        */
+        int insertFromSelectNoCommit(list cols, Table source, *hash sh, *hash opt) {
+            return t.insertFromSelectNoCommit(cols, source.getTable(), sh, opt);
         }
 
         #! this method inserts data from the given iterator argument (whose @ref Qore::AbstractIterator::getValue() "getValue()" method must return a hash giving row values) into the current table; the transaction is committed if successful, if an error occurs then it is rolled back
