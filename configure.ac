@@ -183,6 +183,10 @@ case "${host_os}" in
      		if test -d /usr/local/lib -a -z "`echo $LDFLAGS|grep /usr/local/lib`"; then
      		   LDFLAGS="$LDFLAGS -L/usr/local/lib"
                 fi
+		# add /usr/local/include to CPPFLAGS if not already there
+     		if test -d /usr/local/include -a -z "`echo $CPPFLAGS|grep /usr/local/include`" -a -z "`echo $CFLAGS|grep /usr/local/include`" -a -z "`echo $CXXFLAGS|grep /usr/local/include`"; then
+     		   CPPFLAGS="$CPPFLAGS -I/usr/local/include"
+                fi
 		# set LEX=/usr/local/bin/flex if not already set and the target exists
 		if test -z "$LEX" -a -f /usr/bin/flex -a -z "`/usr/bin/flex --version | grep -e ' 2\.5\.3[[1-9]]' -e ' 2\.5\.[[4-9]][[0-9]]' -e ' 2\.\[[6-9]]' -e ' [[3-9]]'`" -a -f /usr/local/bin/flex; then
 		   LEX=/usr/local/bin/flex
