@@ -334,23 +334,34 @@ public namespace RestHandler {
         }
     }
 
+    #! the base class for handling HTTP chunked requests and responses within the RestHandler infrastructure
     public class RestStreamRequest inherits HttpServer::AbstractStreamRequest {
         private {
             RestHandler::AbstractRestStreamRequestHandler $.rsh;
             bool $.deserialized;
         }
 
+        #! creates the object with the given attributes
         constructor(RestHandler::AbstractRestStreamRequestHandler $rsh, HttpListener $listener, AbstractHttpRequestHandler $handler, Socket $s, hash $cx, hash $hdr, any $body) : AbstractStreamRequest($listener, $handler, $s, $cx + (exists $body ? ("deserialized": True) : NOTHING), $hdr, $body) {
             $.rsh = $rsh;
             $.deserialized = exists $body;
         }
 
-        # callback method for the response header; this calls @ref RestHandler::AbstractRestStreamRequestHandler::getResponseHeaderMessageImpl() and returns the result
+        # callback method for the response header; this calls @ref RestHandler::AbstractRestStreamRequestHandler::getResponseHeaderMessage() and returns the result
+        /**
+            @return a hash with the following keys:
+            - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
+            - \c "body": the message body to return in the response; if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and sendImpl() are not called
+            - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
+            - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
+
+            @note this method is called after the message body has been received
+        */
         private hash getResponseHeaderMessageImpl() {
-            return $.rsh.getResponseHeaderMessageImpl();
+            return $.rsh.getResponseHeaderMessage();
         }
 
-        #! callback method for receiving chunked data; this calls @ref RestHandler::AbstractRestStreamRequestHandler::recvImpl() with the argument
+        #! callback method for receiving chunked data; this calls @ref RestHandler::AbstractRestStreamRequestHandler::recv() with the argument
         /**
             @param v the first time this method is called with a hash of the message headers in the \c "hdr" key, and then with any message body in the \c "data"; if a chunked HTTP message is received, then this method is called once for each chunk; when the message has been received, then this method is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
             - \c "data": the string or binary data, or, in the case of a non-chunked request, the already decoded and deserialized request body, in which case the \c "deserialized" key will be @ref Qore::True "True"
@@ -361,17 +372,16 @@ public namespace RestHandler {
             - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
             - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
         */
-
         private nothing recvImpl(hash $v) {
-            $.rsh.recvImpl($v);
+            $.rsh.recv($v);
         }
 
-        #! callback method for sending chunked data; this calls @ref RestHandler::AbstractRestStreamRequestHandler::sendImpl() and returns the result
+        #! callback method for sending chunked data; this calls @ref RestHandler::AbstractRestStreamRequestHandler::send() and returns the result
         /** 
             @return The chunked HTTP data to send; this method must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be returned or simply @ref nothing which will close the chunked message
         */
         private any sendImpl() {
-            return $.rsh.sendImpl();
+            return $.rsh.send();
         }
     }
 

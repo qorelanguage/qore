@@ -58,8 +58,10 @@ module HttpServer {
     The main classes are:
     - @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator": can be implemented to provide authentication and authorization info to the server
     - @ref HttpServer::AbstractHttpRequestHandler "AbstractHttpRequestHandler": this class must be subclassed to provide the real work of the HttpServer handling connections
-    - @ref HttpServer::AbstractUrlHandler "AbstractUrlHandler": this class serves as a base class for handler classes that serve requests anchored at a particular URL
     - @ref HttpServer::AbstractHttpSocketHandler "AbstractHttpSocketHandler": this class must be subclassed to implement a dedicated socket handler for protcol changes (for an example, see the <a href="../../WebSocketHandler/html/index.html">WebSocketHandler</a> module)
+    - @ref HttpServer::AbstractStreamRequestHandler "AbstractStreamRequestHandler": this class is used as a base class for embedded HTTP chunked request/response handlers
+    - @ref HttpServer::AbstractStreamRequest "AbstractStreamRequest": this class is used to directly handle HTTP chunked requests and responses
+    - @ref HttpServer::AbstractUrlHandler "AbstractUrlHandler": this class serves as a base class for handler classes that serve requests anchored at a particular URL
     - @ref HttpServer::HttpServer "HttpServer": this class implements the main interface to the HTTP server provided by this module
 
     See also:
@@ -594,12 +596,21 @@ public class HttpServer::AbstractAuthenticator {
 }
 
 #! abstract class for embedded objects serving streaming requests
+/**
+    The calling order is as follows:
+    - constructor(): this is called when the request is received; then context argument contains the request header along with other information
+    - recv(): this is called once for each HTTP chunk (if data is sent chunked), and then once with any message trailer.  If data is sent non-chunked, then this method is called with the monolithic message body and then again with @ref nothing to signify the end of the transfer and to simulate a chunked transfer.  Subclasses should re-implement recvImpl() which is called by this method
+    - getResponseHeaderMessage(): this is called after the message body has been received to get the response headers and optionally a message body.  Subclasses should reimplement getResponseHeaderMessageImpl() which is called by this method
+    - send(): this is called if no message body is returned by getResponseHeaderMessage(); each time this method returns data, the data is sent in a response chunk; when this method returns @ref nothing, then no more data is sent.  Subclasses should re-implement sendImpl() which is called by this method
+*/
 public class HttpServer::AbstractStreamRequestHandler {
     public {}
 
     private {
         #! call context hash
         hash $.cx;
+        #! if an exception is raised in a callback then the exception hash is saved here
+        *hash $.ex;
     }
 
     #! creates the object with the given arguments
@@ -619,7 +630,71 @@ public class HttpServer::AbstractStreamRequestHandler {
         $.cx = $cx;
     }
 
+    #! this method returns the response message description hash by calling getResponseHeaderMessageImpl()
+    /**
+        @return a hash with the following keys:
+        - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
+        - \c "body": the message body to return in the response; if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and sendImpl() are not called
+        - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
+        - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
+
+        @note this method is called after the message body has been received
+    */
+    hash getResponseHeaderMessage() {
+        try {
+            return $.getResponseHeaderMessageImpl();
+        }
+        catch (hash $ex) {
+            $.ex = $ex;
+            rethrow;
+        }
+    }
+
+    #! this method provides the callback method for receiving chunked data by calling recvImpl()
+    /**
+        @param v the first time this method is called with a hash of the message headers in the \c "hdr" key, and then with any message body in the \c "data"; if a chunked HTTP message is received, then this method is called once for each chunk; when the message has been received, then this method is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
+        - \c "data": the string or binary data, or, in the case of a non-chunked request, the already decoded and deserialized request body, in which case the \c "deserialized" key will be @ref Qore::True "True"
+        - \c "chunked": True if the data was received with chunked transfer encoding, False if not
+        - \c "deserialized": present and set to @ref Qore::True "True" if a non-chunked request was received, and the body has already been deserialized
+        .
+        Header or trailer data is placed in a hash with the following keys:
+        - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
+        - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
+    */
+    nothing recv(hash $v) {
+        try {
+            $.recvImpl($v);
+        }
+        catch (hash $ex) {
+            $.ex = $ex;
+            rethrow;
+        }
+    }
+
+    #! this method provides the callback method for sending chunked data by calling sendImpl()
+    /** 
+        @return The chunked HTTP data to send; this method must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be returned or simply @ref nothing which will close the chunked message
+    */
+    any send() {
+        try {
+            return $.sendImpl();
+        }
+        catch (hash $ex) {
+            $.ex = $ex;
+            rethrow;
+        }
+    }
+
     #! this method should return the response message description hash
+    /**
+        @return a hash with the following keys:
+        - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
+        - \c "body": the message body to return in the response; if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and sendImpl() are not called
+        - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
+        - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
+
+        @note this method is called after the message body has been received
+    */
     abstract hash getResponseHeaderMessageImpl();
 
     #! abstract callback method for receiving chunked data
@@ -643,9 +718,16 @@ public class HttpServer::AbstractStreamRequestHandler {
 }
 
 #! abstract class for streaming HTTP chunked requests/responses
+/** This class is the base class for handling HTTP stream requests; i.e. with chunked data
+
+    The calling order is as follows:
+    - constructor(): this is called when the request is received
+    - recv(): this is called once for each HTTP chunk (if data is sent chunked), and then once with any message trailer.  If data is sent non-chunked, then this method is called with the monolithic message body and then again with @ref nothing to signify the end of the transfer and to simulate a chunked transfer.  The simulation of a chunked transfer or the actual chunked receive with the callbacks is made by the handleRequest() method.  Subclasses should re-implement recvImpl() which is called by this method
+    - getResponseHeaderMessage(): this is called after the message body has been received to get the response headers and optionally a message body.  Subclasses should reimplement getResponseHeaderMessageImpl() which is called by this method
+    - send(): this is called if no message body is returned by getResponseHeaderMessage(); each time this method returns data, the data is sent in a response chunk; when this method returns @ref nothing, then no more data is sent.  Subclasses should re-implement sendImpl() which is called by this method
+*/
 public class HttpServer::AbstractStreamRequest {
-    public {
-    }
+    public {}
 
     private {
         #! the listener servicing the request for logging purposes
@@ -703,7 +785,7 @@ public class HttpServer::AbstractStreamRequest {
         Otherwise, any message body is immediately encoded (if accepted by the requestor).
     */
     private hash sendResponse() {
-        my hash $rv = $.getResponseHeaderMessageImpl();
+        my hash $rv = $.getResponseHeaderMessage();
         if ($rv.hdr."Transfer-Encoding" != "chunked")
             return $rv;
 
@@ -716,24 +798,30 @@ public class HttpServer::AbstractStreamRequest {
         return $rv;
     }
 
-    #! this method should return the response message description hash
-    private hash getResponseHeaderMessageImpl() {
-        return (
-            "code": 501,
-            "body": sprintf("default handler (%s) has no implementation", $self.className()),
-            "close": True,
-            );
+    #! this method returns the response message description hash by calling getResponseHeaderMessageImpl()
+    /**
+        @return a hash with the following keys:
+        - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
+        - \c "body": the message body to return in the response; if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and sendImpl() are not called
+        - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
+        - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
+
+        @note this method is called after the message body has been received
+    */
+    private hash getResponseHeaderMessage() {
+        return $.getResponseHeaderMessageImpl();
     }
 
     #! this is the primary callback for receiving chunked data; data will be logged, and then recvImpl() is called
     /** content decoding is not possible with chunked data because only the entire message can be decoded
     */
     private nothing recv(hash $v) {
-        if ($v.data)
+        if (exists $v.data) {
             $.logChunk(False, $v.data.size());
 
-        if (exists $v.data && $.cx.deserialized)
-            $v.deserialized = True;
+            if ($.cx.deserialized)
+                $v.deserialized = True;
+        }
         $.recvImpl($v);
     }
 
@@ -752,6 +840,26 @@ public class HttpServer::AbstractStreamRequest {
 
     private logChunk(bool $send, int $size) {
         $.listener.log("cid %d %s CHUNK %d bytes", $.cx.id, $send ? "send" : "recv", $size);
+    }
+
+    #! this method should return the response message description hash
+    /** The default implementation in this class is to return a 501 Not Implemented response; override in subclasses to return a custom response.
+        Omit the \c "body" key to ensure that a chunked response is sent and the send() and sendImpl() callbacks are called.
+
+        @return a hash with the following keys:
+        - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
+        - \c "body": the message body to return in the response; if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and sendImpl() are not called
+        - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
+        - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
+
+        @note this method is called after the message body has been received
+    */
+    private hash getResponseHeaderMessageImpl() {
+        return (
+            "code": 501,
+            "body": sprintf("default handler (%s) has no implementation", $self.className()),
+            "close": True,
+            );
     }
 
     #! abstract callback method for receiving chunked data
@@ -776,7 +884,12 @@ public class HttpServer::AbstractStreamRequest {
 }
 
 #! abstract class that all HTTP request handler objects must inherit from
-/** reimplement handleRequest() in subclasses
+/** Reimplement handleRequest() in subclasses
+
+    For handlers supporting chunked data (both for receiving and sending), set \a stream to True in the constructor() method
+    and implement getStreamRequestImpl() to return the HTTP stream request handler.
+
+    @see AbstractStreamRequest for information about HTTP stream request handlers
   */
 public class HttpServer::AbstractHttpRequestHandler {
     public {
@@ -795,6 +908,7 @@ public class HttpServer::AbstractHttpRequestHandler {
 
     #! create the object optionally with the given AbstractAuthenticator
     /** @param auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
+        @param stream if @ref Qore::True "True" then stream (i.e. HTTP chunked) requests and responses are handled and getStreamRequestImpl() will be used to return a valid AbstractStreamRequest object to handle requests
       */
     constructor(*AbstractAuthenticator $auth, softbool $stream = False) {
         $.auth = $auth;
