@@ -98,6 +98,7 @@ module SqlUtil {
     - added new upsert constant maps: @ref SqlUtil::AbstractTable::UpsertStrategyMap "UpsertStrategyMap" and @ref SqlUtil::AbstractTable::UpsertStrategyDescriptionMap "UpsertStrategyDescriptionMap"
     - added static SqlUtil::AbstractSqlUtilBase::getDatasourceDesc() method
     - added new Table::insertFromSelect*() variants taking Table arguments
+    - added SqlUtil::Table::checkExistence() method
 
     @subsection sqlutilv1_1 SqlUtil v1.1
     - implemented new upsert strategy @ref SqlUtil::AbstractTable::UpsertInsertOnly
@@ -7070,6 +7071,15 @@ $table.create();
             return callObjectMethodArgs(t, meth, argv);
         }
 
+        #! returns @ref Qore::True "True" if the table exists in the database, @ref Qore::False "False" if not
+        /** this method will actively check the database if the table is defined there in case no configuration from the database has already been cached for the object
+
+            @see Table::inDb()
+        */
+        bool checkExistence() {
+            return t.checkExistence();
+        }
+
         #! returns @ref Qore::True "True" if the table has been read from or created in the database, @ref Qore::False "False" if not
         /** @par Example:
             @code
@@ -7077,6 +7087,8 @@ my bool $b = $table.inDb();
             @endcode
 
             @return @ref Qore::True "True" if the table has been read from or created in the database, @ref Qore::False "False" if not
+
+            @note this method only returns a flag if the object contains configuration already retrieved from the database, @see Table::checkExistence() for a method that will check the database if the table exists in case the table is not already known to exist in the database
          */
         bool inDb() {
             return t.inDb();
@@ -10006,7 +10018,9 @@ my bool $b = $table.inDb();
             @endcode
 
             @return @ref Qore::True "True" if the table has been read from or created in the database, @ref Qore::False "False" if not
-         */
+
+            @note this method only returns a flag if the object contains configuration already retrieved from the database, @see Table::checkExistence() for a method that will check the database if the table exists in case the table is not already known to exist in the database
+        */
         bool inDb() {
             return inDb;
         }
@@ -14479,6 +14493,10 @@ my string $sql = $table.getCreateTableSql();
         }
 
         #! returns @ref Qore::True "True" if the table exists in the database, @ref Qore::False "False" if not
+        /** this method will actively check the database if the table is defined there in case no configuration from the database has already been cached for the object
+
+            @see Table::inDb()
+        */
         bool checkExistence() {
             l.lock();
             on_exit l.unlock();
