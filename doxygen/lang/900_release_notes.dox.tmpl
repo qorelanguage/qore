@@ -34,6 +34,9 @@
       - added static SqlUtil::AbstractSqlUtilBase::getDatasourceDesc() method
       - added new Table::insertFromSelect*() variants taking Table arguments
       - added SqlUtil::Table::checkExistence() method
+    - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> updates:
+      - fixed selects with "limit" but no "offset"
+      - convert date/time values to timestamps with microseconds resolution instead of dates with second resolution when dynamically inserting values as strings in SQL (binding by value not affected)
 
     @subsection qore_0810_bug_fixes Bug Fixes in Qore
     - fixed an issue with class constant parse initialization where invalid recursive class constant definition parse exceptions could be raised and in some cases also crashes could result
