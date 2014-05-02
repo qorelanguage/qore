@@ -799,6 +799,10 @@ public namespace Schema {
         - getVersionTableImpl()
         - getVersionColumnImpl()
         - getVersionWhereImpl()
+
+        @note the schema version string (as designated by the return values of the methods listed above)
+        must be included in reference data as returned by either getStrictReferenceDataHashImpl() or
+        getReferenceDataHashImpl().
     */
     public class AbstractVersionedSchema inherits AbstractSchema {
         private {
