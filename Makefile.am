@@ -9,7 +9,7 @@ AUTOMAKE_OPTIONS = foreign
 
 SUBDIRS = lib
 
-INCLUDES = -I$(top_srcdir)/include
+AM_CPPFLAGS = -I$(top_srcdir)/include
 
 # user modules that have dox referenced from other user modules (docs for these must be built first)
 DOX_SRC_MODULES = qlib/Mime.qm \
@@ -603,9 +603,6 @@ doxygen/qlib/Doxyfile.MailMessage: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
 
 doxygen/qlib/Doxyfile.SqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
 	$(QDX) -M=qlib/SqlUtil.qm:doxygen/qlib/SqlUtil.qm.dox.h -tUtil.tag=../../Util/html $< $@
-
-doxygen/qlib/Doxyfile.Schema: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
-	$(QDX) -M=qlib/Schema.qm:doxygen/qlib/Schema.qm.dox.h -tSqlUtil.tag=../../SqlUtil/html $< $@
 
 doxygen/qlib/Doxyfile.WebSocketUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
 	$(QDX) -M=qlib/WebSocketUtil.qm:doxygen/qlib/WebSocketUtil.qm.dox.h $< $@

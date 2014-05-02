@@ -211,6 +211,8 @@ DatasourcePool::constructor(string driver, *string user, *string pass, *string d
 
 //! Creates a DatasourcePool object from a single string giving all parameters that can be parsed by parse_datasource()
 /** @param desc a datasource description string in the format that can be parsed by parse_datasource()
+    @param queue An optional @ref Qore::Thread::Queue "Queue" object to receive datasource events; note that the @ref Qore::Thread::Queue "Queue" passed cannot have any maximum size set or a \c QUEUE-ERROR will be thrown; passing @ref nothing will clear any event queue
+    @param arg an optional argument to be included in the \c arg key of datasource events
 
     @par Example:
     @code
@@ -243,6 +245,8 @@ DatasourcePool::constructor(string desc, *Qore::Thread::Queue[Queue] queue, any 
     - \c host: (@ref string_or_nothing_type "*string") The host name for the new connection
     - \c port: (@ref softint_type "softint") The port number for the new connection
     - \c options: (@ref hash_type "hash") An optional hash having \c "min" and \c "max" keys giving the minimum and maximum number of connections in the pool, respectively; all other options will be passed to the database driver
+    @param queue An optional @ref Qore::Thread::Queue "Queue" object to receive datasource events; note that the @ref Qore::Thread::Queue "Queue" passed cannot have any maximum size set or a \c QUEUE-ERROR will be thrown; passing @ref nothing will clear any event queue
+    @param arg an optional argument to be included in the \c arg key of datasource events
 
     @par Example:
     @code

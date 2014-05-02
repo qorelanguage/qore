@@ -949,7 +949,7 @@ list getaddrinfo(*string node, *softstring service, softint family = AF_UNSPEC, 
 /** @par Platform Availability:
     @ref Qore::Option::HAVE_CLOSE_ALL_FD
 
-    @param std if @ref Qore::True "True" then also stdin, stdout, and stderr are closed, otherwise fds > 2 are closed
+    @param strd if @ref Qore::True "True" then also stdin, stdout, and stderr are closed, otherwise fds > 2 are closed
 
     @par Example:
     @code
