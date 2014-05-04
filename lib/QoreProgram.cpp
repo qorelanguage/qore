@@ -330,16 +330,9 @@ void qore_program_private::importClass(qore_program_private& from_pgm, const cha
 
    if (strstr(path, "::")) {
       NamedScope nscope(path);
-      const QoreClass* ec = 0;
-      QoreNamespace* tns = qore_root_ns_private::runtimeFindNamespaceForClass(*RootNS, nscope, ec);
-      if (ec) {
-         xsink->raiseException("CLASS-IMPORT-ERROR", "class \"%s\" already exists in target Program", path);
+      QoreNamespace* tns = qore_root_ns_private::runtimeFindNamespaceForAddClass(*RootNS, nscope, xsink);
+      if (!tns)
          return;
-      }
-      if (!tns) {
-         xsink->raiseException("CLASS-IMPORT-ERROR", "target namespace in '%s' does not exist", path);
-         return;
-      }
 
       qore_root_ns_private::importClass(*RootNS, xsink, *tns, c);
       return;
@@ -359,11 +352,9 @@ void qore_program_private::importFunction(ExceptionSink* xsink, QoreFunction *u,
 
    if (new_name && strstr(new_name, "::")) {
       NamedScope nscope(new_name);
-      QoreNamespace* tns = qore_root_ns_private::runtimeFindNamespaceForFunction(*RootNS, nscope);
-      if (!tns) {
-	 xsink->raiseException("FUNCTION-IMPORT-ERROR", "target namespace in '%s' does not exist", new_name);
+      QoreNamespace* tns = qore_root_ns_private::runtimeFindNamespaceForAddFunction(*RootNS, nscope, xsink);
+      if (!tns)
 	 return;
-      }
 
       qore_root_ns_private::importFunction(*RootNS, xsink, *tns, u, nscope.getIdentifier());
       return;

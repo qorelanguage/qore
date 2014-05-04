@@ -54,6 +54,9 @@
     - fixed a bug where a valid call reference to a private object method was created within the class, then in some cases an object protection exception was raised when the call reference was called outside the class
     - fixed a bug in the <a href="../../modules/RestClient/html/index.html">RestClient</a> module when the yaml binary module is not available
     - fixed programmatic select queries with "limit" but no "offset" in <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a>
+    - fixed a bug in @ref Qore::Program::importFunction() where only the committed function list was checked when importing functions with a specific target namespace path
+    - fixed a bug in @ref Qore::Program::importClass() where only the committed class list was checked when importing functions with a specific target namespace path
+    - fixed a bug when parsing subnamespaces into a parent namespace where the subnamespace already exists (either in the committed list or in the pending list)
 
     @section qore_089 Qore 0.8.9
 

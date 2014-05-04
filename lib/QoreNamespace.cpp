@@ -333,13 +333,24 @@ void qore_ns_private::addBuiltinVariantIntern(const char* fname, AbstractQoreFun
 }
 
 void QoreNamespaceList::parseAssimilate(QoreNamespaceList& n, qore_ns_private* parent) {
-   for (nsmap_t::iterator i = n.nsmap.begin(), e = n.nsmap.end(); i != e; ++i) {
-      assert(nsmap.find(i->first) == nsmap.end());
+   for (nsmap_t::iterator i = n.nsmap.begin(), e = n.nsmap.end(); i != e;) {
+      nsmap_t::iterator ni = nsmap.find(i->first);
+      if (ni != nsmap.end()) {
+         nsmap_t::iterator si = i;
+         ++si;
+         QoreNamespace* ns = i->second->priv->ns;
+         n.nsmap.erase(i);
+         ni->second->priv->parseAssimilate(ns);
+         i = si;
+         continue;
+      }
+
       nsmap[i->first] = i->second;
       if (parent) {
          i->second->priv->parent = parent;
          i->second->priv->updateDepthRecursive(parent->depth + 1);
       }
+      ++i;
    }
    n.nsmap.clear();
 }
@@ -1731,18 +1742,29 @@ void qore_ns_private::parseAssimilate(QoreNamespace* ans) {
    pns->pend_gvblist.zero();
 
    // assimilate sub namespaces
-   for (nsmap_t::iterator i = pns->pendNSL.nsmap.begin(), e = pns->pendNSL.nsmap.end(); i != e; ++i) {
+   for (nsmap_t::iterator i = pns->pendNSL.nsmap.begin(), e = pns->pendNSL.nsmap.end(); i != e;) {
       // throw parse exception if name is already defined as a namespace or class
-      if (nsl.find(i->second->priv->name.c_str()))
-	 parse_error("subnamespace '%s' has already been defined in namespace '%s'", i->second->priv->name.c_str(), name.c_str());
-      else if (pendNSL.find(i->second->priv->name.c_str()))
-	 parse_error("subnamespace '%s' is already pending in namespace '%s'", i->second->priv->name.c_str(), name.c_str());
+      QoreNamespace* ns = nsl.find(i->second->priv->name.c_str());
+      if (!ns)
+         ns = pendNSL.find(i->second->priv->name.c_str());
+
+      if (ns) {
+         nsmap_t::iterator ni = i;
+         ++i;
+         QoreNamespace* nns = ni->second;
+         pns->pendNSL.nsmap.erase(ni);
+         ns->priv->parseAssimilate(nns);
+         continue;
+	 //parse_error("subnamespace '%s' has already been defined in namespace '%s'", i->second->priv->name.c_str(), name.c_str());
+         //parse_error("subnamespace '%s' is already pending in namespace '%s'", i->second->priv->name.c_str(), name.c_str());
+      }
       else if (classList.find(i->second->priv->name.c_str()))
-	 parse_error("cannot add namespace '%s' to existing namespace '%s' because a class has already been defined with this name",
-		     i->second->priv->name.c_str(), name.c_str());
+         parse_error("cannot add namespace '%s' to existing namespace '%s' because a class has already been defined with this name",
+                     i->second->priv->name.c_str(), name.c_str());
       else if (pendClassList.find(i->second->priv->name.c_str()))
-	 parse_error("cannot add namespace '%s' to existing namespace '%s' because a class is already pending with this name",
-		     i->second->priv->name.c_str(), name.c_str());
+         parse_error("cannot add namespace '%s' to existing namespace '%s' because a class is already pending with this name",
+                     i->second->priv->name.c_str(), name.c_str());
+      ++i;
    }
 
    // assimilate target namespace list
@@ -1834,7 +1856,7 @@ const QoreClass* qore_ns_private::runtimeMatchClass(const NamedScope& nscope, co
 
    const QoreNamespace* fns = ns;
    // check for a match of the structure in this namespace
-   for (unsigned i = 1; i < (nscope.size() - 1); i++) {
+   for (unsigned i = 1; i < (nscope.size() - 1); ++i) {
       fns = fns->priv->nsl.find(nscope[i]);
       if (!fns)
          return 0;
@@ -1843,18 +1865,46 @@ const QoreClass* qore_ns_private::runtimeMatchClass(const NamedScope& nscope, co
    return rns->classList.find(nscope.getIdentifier());
 }
 
+const qore_ns_private* qore_ns_private::runtimeMatchAddClass(const NamedScope& nscope, bool& fnd) const {
+   assert(name == nscope[0]);
+
+   const QoreNamespace* fns = ns;
+   // check for a match of the structure in this namespace
+   for (unsigned i = 1; i < (nscope.size() - 1); ++i) {
+      fns = fns->priv->nsl.find(nscope[i]);
+      if (!fns)
+         return 0;
+   }
+   fnd = true;
+   return fns->priv->classList.find(nscope.getIdentifier()) || fns->priv->pendClassList.find(nscope.getIdentifier()) ? 0 : fns->priv;
+}
+
 const QoreFunction* qore_ns_private::runtimeMatchFunction(const NamedScope& nscope, const qore_ns_private*& rns) const {
    assert(name == nscope[0]);
 
    const QoreNamespace* fns = ns;
    // check for a match of the structure in this namespace
-   for (unsigned i = 1; i < (nscope.size() - 1); i++) {
+   for (unsigned i = 1; i < (nscope.size() - 1); ++i) {
       fns = fns->priv->nsl.find(nscope[i]);
       if (!fns)
          return 0;
    }
    rns = fns->priv;
    return rns->func_list.find(nscope.getIdentifier(), true);
+}
+
+const qore_ns_private* qore_ns_private::runtimeMatchAddFunction(const NamedScope& nscope, bool& fnd) const {
+   assert(name == nscope[0]);
+
+   const QoreNamespace* fns = ns;
+   // check for a match of the structure in this namespace
+   for (unsigned i = 1; i < (nscope.size() - 1); ++i) {
+      fns = fns->priv->nsl.find(nscope[i]);
+      if (!fns)
+         return 0;      
+   }
+   fnd = true;
+   return fns->priv->func_list.find(nscope.getIdentifier(), false) ? 0 : fns->priv;
 }
 
 // qore_ns_private::parseMatchNamespace()

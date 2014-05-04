@@ -287,9 +287,13 @@ public:
    DLLLOCAL void parseCommit();
 
    DLLLOCAL const QoreClass* runtimeMatchClass(const NamedScope& nscope, const qore_ns_private*& rns) const;
+   DLLLOCAL const qore_ns_private* runtimeMatchAddClass(const NamedScope& nscope, bool& fnd) const;
+
+   DLLLOCAL const QoreFunction* runtimeMatchFunction(const NamedScope& nscope, const qore_ns_private*& rns) const;
+   DLLLOCAL const qore_ns_private* runtimeMatchAddFunction(const NamedScope& nscope, bool& fnd) const;
 
    DLLLOCAL const QoreFunction* parseMatchFunction(const NamedScope& nscope, unsigned& match) const;
-   DLLLOCAL const QoreFunction* runtimeMatchFunction(const NamedScope& nscope, const qore_ns_private*& rns) const;
+
    DLLLOCAL QoreNamespace *resolveNameScope(const NamedScope& name) const;
    DLLLOCAL QoreNamespace *parseMatchNamespace(const NamedScope& nscope, unsigned& matched) const;
    DLLLOCAL QoreClass *parseMatchScopedClass(const NamedScope& name, unsigned& matched);
@@ -1079,31 +1083,41 @@ protected:
       return i != clmap.end() ? i->second.obj : 0;
    }
 
-   DLLLOCAL QoreNamespace *runtimeFindNamespaceForFunction(const NamedScope& name) {
-      const qore_ns_private* rv = 0;
+   DLLLOCAL QoreNamespace* runtimeFindNamespaceForAddFunction(const NamedScope& name, ExceptionSink* xsink) {
+      //printd(5, "QoreNamespaceIntern::runtimeFindNamespaceForAddFunction() this: %p name: %s (%s)\n", this, name.ostr, name[0]);
+      bool fnd = false;
 
       // iterate all namespaces with the initial name and look for the match
-      NamespaceMapIterator nmi(nsmap, name.strlist[0].c_str());
+      NamespaceMapIterator nmi(nsmap, name[0]);
       while (nmi.next()) {
-         nmi.get()->runtimeMatchFunction(name, rv);
+         const qore_ns_private* rv = nmi.get()->runtimeMatchAddFunction(name, fnd);
+         //printd(5, "QoreNamespaceIntern::runtimeFindNamespaceForAddFunction() this: %p name: %s ns: %p '%s' rv: %p fnd: %d\n", this, name.ostr, nmi.get(), nmi.get()->name.c_str(), rv, fnd);
          if (rv)
-            return const_cast<qore_ns_private*>(rv)->ns;
+            return const_cast<QoreNamespace*>(rv->ns);
       }
-
+      
+      if (fnd)
+         xsink->raiseException("FUNCTION-IMPORT-ERROR", "target function '%s' already exists in the given namespace", name.ostr);
+      else
+         xsink->raiseException("FUNCTION-IMPORT-ERROR", "target namespace in '%s' does not exist", name.ostr);
       return 0;      
    }
 
-   DLLLOCAL QoreNamespace *runtimeFindNamespaceForClass(const NamedScope& name, const QoreClass*& ocls) {
-      const qore_ns_private* rv = 0;
+   DLLLOCAL QoreNamespace *runtimeFindNamespaceForAddClass(const NamedScope& name, ExceptionSink* xsink) {
+      bool fnd = false;
 
       // iterate all namespaces with the initial name and look for the match
       NamespaceMapIterator nmi(nsmap, name.strlist[0].c_str());
       while (nmi.next()) {
-         ocls = nmi.get()->runtimeMatchClass(name, rv);
+         const qore_ns_private* rv = nmi.get()->runtimeMatchAddClass(name, fnd);
          if (rv)
-            return const_cast<qore_ns_private*>(rv)->ns;
+            return const_cast<QoreNamespace*>(rv->ns);
       }
 
+      if (fnd)
+         xsink->raiseException("CLASS-IMPORT-ERROR", "target class '%s' already exists in the given namespace", name.ostr);
+      else
+         xsink->raiseException("CLASS-IMPORT-ERROR", "target namespace in '%s' does not exist", name.ostr);
       return 0;
    }
 
@@ -1578,12 +1592,12 @@ public:
       return rns.rpriv->runtimeFindClass(name);
    }
 
-   DLLLOCAL static QoreNamespace* runtimeFindNamespaceForFunction(RootQoreNamespace& rns, const NamedScope& name) {
-      return rns.rpriv->runtimeFindNamespaceForFunction(name);
+   DLLLOCAL static QoreNamespace* runtimeFindNamespaceForAddFunction(RootQoreNamespace& rns, const NamedScope& name, ExceptionSink* xsink) {
+      return rns.rpriv->runtimeFindNamespaceForAddFunction(name, xsink);
    }
 
-   DLLLOCAL static QoreNamespace* runtimeFindNamespaceForClass(RootQoreNamespace& rns, const NamedScope& name, const QoreClass*& ocls) {
-      return rns.rpriv->runtimeFindNamespaceForClass(name, ocls);
+   DLLLOCAL static QoreNamespace* runtimeFindNamespaceForAddClass(RootQoreNamespace& rns, const NamedScope& name, ExceptionSink* xsink) {
+      return rns.rpriv->runtimeFindNamespaceForAddClass(name, xsink);
    }
 
    DLLLOCAL static qore_root_ns_private* get(RootQoreNamespace& rns) {
