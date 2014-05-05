@@ -305,6 +305,7 @@ public namespace Schema {
             SchemaCallbackHelper sch(self, verbose);
 
             pure_callback_opts = sch.getCallbacks();
+            info_callback = pure_callback_opts.info_callback;
             callback_opts = all_options + pure_callback_opts;
 
 	    bool first_time_install = checkFirstTimeInstall();
@@ -412,6 +413,7 @@ public namespace Schema {
             SchemaCallbackHelper sch(self, verbose);
 
             callback_opts = sch.getCallbacks(force);
+            info_callback = callback_opts.info_callback;
 
             if (!checkExistence()) {
                 if (!force) {
