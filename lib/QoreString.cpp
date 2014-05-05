@@ -61,7 +61,7 @@ static const struct code_table html_codes[] = {
 
 void qore_string_init() {
    static int url_reserved_list[] = { '!', '*', '\'', '(', ')', ';', ':', '@', '&', '=', '+', '$', ',', '/', '?', '#', '[', ']' };
-#define URLIST_SIZE sizeof(url_reserved_list)
+#define URLIST_SIZE (sizeof(url_reserved_list) / sizeof(int))
 
    for (unsigned i = 0; i < URLIST_SIZE; ++i)
       url_reserved.insert(url_reserved_list[i]);
