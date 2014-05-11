@@ -2587,7 +2587,7 @@ struct qore_socket_private {
 		  }
 		  
 		  if (info) {
-		     QoreStringNode* ct = new QoreStringNode;
+                     SimpleRefHolder<QoreStringNode> ct(new QoreStringNode);
 		     // remove any whitespace and ';' before charset=
 		     if (a != t) {
 			do {
@@ -2606,7 +2606,7 @@ struct qore_socket_private {
 		     }
 		     ct->trim();
 		     if (!ct->empty())
-			info->setKeyValue("body-content-type", ct, 0);
+			info->setKeyValue("body-content-type", ct.release(), 0);
 		  }
 	       }
 	       else if (info) {
