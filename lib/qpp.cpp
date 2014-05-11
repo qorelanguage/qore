@@ -3166,15 +3166,21 @@ public:
       for (source_t::const_iterator i = source.begin(), e = source.end(); i != e; ++i) {
 	 if ((*i)->serializeCpp(fp)) {
             valid = false;
+            fclose(fp);
             return -1;
          }
       }
       
-      if (groups.serializeFunctionCpp(fp, rootName.c_str()))
+      if (groups.serializeFunctionCpp(fp, rootName.c_str())) {
+         fclose(fp);
          return -1;
-      if (groups.serializeConstantCpp(fp, rootName.c_str()))
+      }
+      if (groups.serializeConstantCpp(fp, rootName.c_str())) {
+         fclose(fp);
          return -1;
+      }
 
+      fclose(fp);
       return 0;
    }
 
@@ -3189,12 +3195,14 @@ public:
       for (source_t::const_iterator i = source.begin(), e = source.end(); i != e; ++i) {
          if ((*i)->serializeDox(fp)) {
             valid = false;
+            fclose(fp);
             return -1;
          }
       }
 
       groups.serializeFunctionDox(fp);
       groups.serializeConstantDox(fp, true);
+      fclose(fp);
 
       return 0;
    }
@@ -3214,6 +3222,7 @@ int do_table_file() {
    FILE *ofp = fopen(opts.output_fn.c_str(), "w");
    if (!ofp) {
       error("%s: %s\n", opts.output_fn.c_str(), strerror(errno));
+      fclose(ifp);
       return -1;
    }
 
