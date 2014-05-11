@@ -950,8 +950,16 @@ public class HttpServer::AbstractHttpRequestHandler {
     #! top-level request handling method
     hash handleRequest(HttpListener $listener, Socket $s, hash $cx, hash $hdr, *data $body) {
         # classic, non-streaming interface
-        if (!$.stream)
-            return $.handleRequest($cx, $hdr, $body ? $.getMessageBody($s, $hdr, $body) : NOTHING);
+        if (!$.stream) {
+            my any $rv = $.handleRequest($cx, $hdr, $body ? $.getMessageBody($s, $hdr, $body) : NOTHING);
+            switch ($rv.typeCode()) {
+                case NT_HASH: return $rv;
+                case NT_STRING:
+                case NT_BINARY: return ("code": 200, "body": $rv);
+                default:
+                throw "HANDLER-ERROR", sprintf("handler returned type %s; expecting \"hash\"; value: %y", $rv.type(), $rv);
+            }
+        }
 
         my AbstractStreamRequest $req = $.getStreamRequestImpl($listener, $s, $cx, $hdr, $body);
         return $req.handleRequest();
