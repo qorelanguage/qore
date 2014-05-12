@@ -2,7 +2,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file restserver.q example program using the RestHandler and HttpServer modules
 
-/*  restserver.q Copyright 2013 - 2014 David Nichols
+/*  restserver.q Copyright (C) 2013 - 2014 David Nichols
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -30,8 +30,9 @@
     This is a very simple REST server program using the RestHandler and
     HttpServer user modules.
     To exit the program, send it an appropriate signal (SIGTERM, SIGINT, SIGHUP,
-    SIGUSR1, SIGUSR2) or interrupt it on the console (which sends the process a
-    SIGINT which is handled like other signals)
+    SIGUSR1, SIGUSR2), interrupt it on the console (which sends the process a
+    SIGINT which is handled like other signals), or send a shutdown request
+    (PUT /system?action=shutdown)
 
     it accepts bind and path argument and serves simple functionality on the
     files and directories in the path given on the command line.
@@ -88,6 +89,8 @@
 
 # use the RestHandler module
 %requires RestHandler >= 0.1
+
+our restServer app;
 
 class AbstractExampleInstanceBaseClass inherits AbstractRestClass {
     private {
@@ -225,6 +228,17 @@ class ExampleDirsClass inherits AbstractRestClass {
     }
 }
 
+class ExampleSystemClass inherits AbstractRestClass {
+    string name() {
+        return "system";
+    }
+
+    hash putShutdown(hash cx, *hash ah) {
+        app.shutdown();
+        return RestHandler::makeResponse(200, "OK");
+    }
+}
+
 class ExampleRestHandler inherits RestHandler {
     public {
         static Dir Dir();
@@ -235,6 +249,7 @@ class ExampleRestHandler inherits RestHandler {
         if (!Dir.chdir(dir))
             throw "DIRECTORY-ERROR", sprintf("%y: does not exist or is not readable", dir);
         verbose = verb;
+        addClass(new ExampleSystemClass());
         addClass(new ExampleFilesClass());
         addClass(new ExampleDirsClass());
     }
@@ -312,6 +327,9 @@ class restServer {
 
 	# use default authenticator (all connections are allowed)
 	AbstractAuthenticator auth();
+
+        # setup app variable
+        app = self;
 	
 	# create our example rest handler object
 	ExampleRestHandler rh(auth, opt.dir, opt.verbose);
@@ -365,12 +383,12 @@ class restServer {
     }
 
     private shutdownSignalHandler(int sig) {
-        removeShutdownHandlers();
         log("%s received, starting system shutdown", SignalToName{sig});
         shutdown();
     }
 
     synchronized shutdown() {
+        removeShutdownHandlers();
         log("HTTP server pid %d shutting down now", getpid());
         hs.stopNoWait();
     }
