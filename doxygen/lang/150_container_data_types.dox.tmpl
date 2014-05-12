@@ -310,12 +310,11 @@ sub test() {
 
     The following affect objects' scope:
     - variable assignments: an object's automatic scope is prolonged as long as the object is assigned to a local variable
-    - existence of a closure created Within the object: any closures created from within the object encapsulate the object's state (along with any local variables referenced within the closure) and also prolong the object's automatic scope as long as the closure exists.
     - object method thread launched within the object: if a member function thread was launched from within the object using the @ref background "background operator", the object's automatic scope is prolonged to the life of the new thread. Object threads started externally to the object (i.e. not directly from an expression with the @ref background "background operator" within a method) will not prolong the scope of the object.
 
-    @note If an object with running threads is explicitly deleted, and this case is not handled in the object's destructor() method (by ensuring that all other running threads terminate gracefully), exceptions will be thrown in other threads at any attempt to access the already-deleted object.\n\n
-    The fact that object threads and closures can prolong object scope means, for example, that objects assigned to local variables can exist for longer than the scope of their host variable if they have one or more methods running in other threads or if closures created from within the object still exist at the time the local variable goes out of scope.\n\n
-    For more information about threading, please see @ref threading
+    @note If an object with running threads is explicitly deleted, and this case is not handled in the object's destructor() method (by ensuring that all other running threads terminate gracefully), exceptions will be thrown in other threads at any attempt to access the already-deleted object.\n\n The fact that object threads and closures can prolong object scope means, for example, that objects assigned to local variables can exist for longer than the scope of their host variable if they have one or more methods running in other threads or if closures created from within the object still exist at the time the local variable goes out of scope.\n\n For more information about threading, please see @ref threading
+
+    @since As of %Qore 0.8.10 the existence of a closure created within the object no longer prolongs the scope of the object; the closure encapsulate the object's state (along with any local variables referenced within the closure), but if the object goes out of scope while the closure still exists, then any references to the object after the object has been destroyed will cause \c OBJECT-ALREADY-DELETED exceptions to be thrown.  This addresses memory and reference leaks caused by recursive references when closures encapsulating an object's scope are assigned to or accessible from members of the object.
 
     @subsection copying_objects Copying Objects
 

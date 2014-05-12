@@ -3,7 +3,7 @@
 
    Qore Programming Language
 
-   Copyright 2003 - 2013 David Nichols
+   Copyright (C) 2003 - 2014 David Nichols
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -72,7 +72,7 @@ bool QoreClosureNode::getAsBoolImpl() const {
 }
 
 QoreObjectClosureNode::QoreObjectClosureNode(QoreObject *n_obj, const QoreClosureParseNode *n_closure) : QoreClosureBase(n_closure), closure_env(n_closure->getVList()), obj(n_obj) {
-   obj->ref();
+   obj->tRef();
 }
 
 QoreObjectClosureNode::~QoreObjectClosureNode() {
@@ -80,7 +80,7 @@ QoreObjectClosureNode::~QoreObjectClosureNode() {
 
 bool QoreObjectClosureNode::derefImpl(ExceptionSink *xsink) {
    closure_env.del(xsink);
-   obj->deref(xsink);
+   obj->tDeref();
    return true;
 }
 
