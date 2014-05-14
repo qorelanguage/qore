@@ -1892,6 +1892,8 @@ struct qore_socket_private {
          if (rc)
             return rc;
 
+         //printd(5, "qore_socket_private::sendHttpChunkedWithCallback() this: %p res: %s\n", this, get_type_name(*res));
+
          // check callback return val
          QoreString buf;
 
@@ -1918,6 +1920,9 @@ struct qore_socket_private {
                while (hi.next()) {
                   const AbstractQoreNode* v = hi.getValue();
                   const char* key = hi.getKey();
+
+                  //printd(5, "qore_socket_private::sendHttpChunkedWithCallback() this: %p trailer %s\n", this, key);
+
                   if (v && v->getType() == NT_LIST) {
                      ConstListIterator li(reinterpret_cast<const QoreListNode* >(v));
                      while (li.next())
@@ -1948,6 +1953,8 @@ struct qore_socket_private {
 
          // send chunk buffer data
          rc = sendIntern(xsink, mname, buf.getBuffer(), buf.size(), timeout_ms, total);
+
+         //printd(5, "qore_socket_private::sendHttpChunkedWithCallback() this: %p sent: %s\n", this, buf.getBuffer());
 
          if (rc < 0 || sock == QORE_INVALID_SOCKET)
             break;
@@ -2183,8 +2190,10 @@ struct qore_socket_private {
             *p = '\0';
          long size = strtol(str.getBuffer(), 0, 16);
          do_chunked_read(QORE_EVENT_HTTP_CHUNK_SIZE, size, str.strlen(), source);
-         if (size == 0)
+
+         if (!size)
             break;
+
          if (size < 0) {
             xsink->raiseException("READ-HTTP-CHUNK-ERROR", "negative value given for chunk size (%ld)", size);
             return 0;
@@ -2205,19 +2214,19 @@ struct qore_socket_private {
                }
                return 0;
             }
-
+            
             b->append(buf, rc);
             br += rc;
-	 
+            
             if (br >= size)
                break;
             if (size - br < bs)
                bs = size - br;
          }
-
+         
          // DEBUG
          //printd(5, "QoreSocket::readHTTPChunkedBodyBinary(): received binary chunk: size=%d br="QSD" total="QSD"\n", size, br, b->size());
-      
+
          // read crlf after chunk
          // FIXME: bytes read are not checked if they equal CRLF
          br = 0;
@@ -2232,7 +2241,8 @@ struct qore_socket_private {
                return 0;
             }
             br += rc;
-         }      
+         }
+
          do_chunked_read(QORE_EVENT_HTTP_CHUNKED_DATA_RECEIVED, size, size + 2, source);
 
          if (recv_callback) {
@@ -2246,7 +2256,7 @@ struct qore_socket_private {
       }
 
       // read footers or nothing
-      QoreStringNodeHolder hdr(readHTTPData(xsink, "readHTTPChunkedBodyBinary", timeout, rc, 1));
+      QoreStringNodeHolder hdr(readHTTPData(xsink, "readHTTPChunkedBodyBinary", timeout, rc));
       if (!hdr) {
          assert(*xsink);
          return 0;
@@ -2265,10 +2275,7 @@ struct qore_socket_private {
       do_read_http_header(QORE_EVENT_HTTP_FOOTERS_RECEIVED, *h, source);
 
       if (recv_callback) {
-         QoreHashNode* hdr = new QoreHashNode;
-         hdr->setKeyValue("hdr", h.release(), xsink);
-         h = hdr;
-         runHeaderCallback(xsink, "readHTTPChunkedBodyBinary", *recv_callback, l, *h, obj);
+         runHeaderCallback(xsink, "readHTTPChunkedBodyBinary", *recv_callback, l, h->empty() ? 0 : *h, obj);
          return 0;
       }
 
@@ -2337,8 +2344,10 @@ struct qore_socket_private {
             *p = '\0';
          qore_offset_t size = strtol(str.getBuffer(), 0, 16);
          do_chunked_read(QORE_EVENT_HTTP_CHUNK_SIZE, size, str.strlen(), source);
-         if (size == 0)
+
+         if (!size)
             break;
+
          if (size < 0) {
             xsink->raiseException("READ-HTTP-CHUNK-ERROR", "negative value given for chunk size (%ld)", size);
             return 0;
@@ -2349,7 +2358,7 @@ struct qore_socket_private {
          // prepare string for chunk
          //buf->allocate((unsigned)(buf->strlen() + size + 1));
       
-         // read chunk directly into string buffer    
+         // read chunk directly into string buffer
          qore_offset_t bs = size < DEFAULT_SOCKET_BUFSIZE ? size : DEFAULT_SOCKET_BUFSIZE;
          qore_offset_t br = 0; // bytes received
          str.clear();
@@ -2365,13 +2374,13 @@ struct qore_socket_private {
             }
             br += rc;
             buf->concat(tbuf, rc);
-	 
+            
             if (br >= size)
                break;
             if (size - br < bs)
                bs = size - br;
          }
-
+      
          // DEBUG
          //printd(5, "got chunk ("QSD" bytes): %s\n", br, buf->getBuffer() + buf->strlen() -  size);
 
@@ -2390,6 +2399,7 @@ struct qore_socket_private {
             }
             br += rc;
          }
+
          do_chunked_read(QORE_EVENT_HTTP_CHUNKED_DATA_RECEIVED, size, size + 2, source);
 
          if (recv_callback) {
@@ -2401,7 +2411,7 @@ struct qore_socket_private {
       }
 
       // read footers or nothing
-      QoreStringNodeHolder hdr(readHTTPData(xsink, "readHTTPChunkedBody", timeout, rc, 1));
+      QoreStringNodeHolder hdr(readHTTPData(xsink, "readHTTPChunkedBody", timeout, rc));
       if (!hdr) {
          assert(*xsink);
          return 0;
