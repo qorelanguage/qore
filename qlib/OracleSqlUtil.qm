@@ -243,6 +243,7 @@ my hash $schema = (
     @subsection v11 OracleSqlUtil v1.1
     - fixed selects with "limit" but no "offset"
     - convert date/time values to timestamps with microseconds resolution instead of dates with second resolution when dynamically inserting values as strings in SQL (binding by value not affected)
+    - fixed schema information classes when the "string-numbers" driver option is enabled
 
     @subsection v10 OracleSqlUtil v1.0
     - initial release
@@ -269,7 +270,7 @@ public namespace OracleSqlUtil {
             int byte_size;
         }
 
-        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, bool is_char = False, bool cu = False, int bs) : AbstractColumn(n, nt, qt, sz, nul, dv, cm) {
+        constructor(string n, string nt, *string qt, softint sz, bool nul, *string dv, *string cm, bool is_char = False, bool cu = False, softint bs) : AbstractColumn(n, nt, qt, sz, nul, dv, cm) {
             # only set "char_used" if we are dealing with a char column
             char_used = is_char && cu;
             byte_size = bs;
@@ -364,7 +365,7 @@ my string $str = $col.getRenameSql($t, "new_name");
 
     #! represents an Oracle number column
     public class OracleNumberColumn inherits OracleColumn, SqlUtil::NumericColumnInfo {
-        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, int bs, int n_scale = 0) : OracleColumn(n, nt, qt, sz, nul, dv, cm, False, False, bs), NumericColumnInfo(n_scale) {
+        constructor(string n, string nt, *string qt, softint sz, bool nul, *string dv, *string cm, softint bs, softint n_scale = 0) : OracleColumn(n, nt, qt, sz, nul, dv, cm, False, False, bs), NumericColumnInfo(n_scale) {
         }
 
         string getNativeTypeString() {

@@ -58,6 +58,7 @@
     - fixed a bug in @ref Qore::Program::importClass() where only the committed class list was checked when importing functions with a specific target namespace path
     - fixed a bug when parsing subnamespaces into a parent namespace where the subnamespace already exists (either in the committed list or in the pending list)
     - fixed a memory and reference leak caused by recursive references when closures encapsulating an object's scope are assigned to or accessible from members of the object by making references to the object from within a closure encapsulating the object's state weak references instead of strong references
+    - fixed schema information classes when the "string-numbers" driver option is enabled
 
     @section qore_089 Qore 0.8.9
 
