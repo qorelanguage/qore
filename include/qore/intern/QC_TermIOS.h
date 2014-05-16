@@ -143,8 +143,17 @@ public:
        }
 
        if (ioctl(fd, TIOCGWINSZ, &ws)) {
-	  xsink->raiseErrnoException("TERMIOS-GET-WINDOW-SIZE-ERROR", errno, "error reading window size");
+          xsink->raiseErrnoException("TERMIOS-GET-WINDOW-SIZE-ERROR", errno, "error reading window size");
+
+          if (close(fd))
+             xsink->raiseErrnoException("TERMIOS-GET-WINDOW-SIZE-ERROR", errno, "error closing controlling terminal");
+
 	  return -1;
+       }
+
+       if (close(fd)) {
+          xsink->raiseErrnoException("TERMIOS-GET-WINDOW-SIZE-ERROR", errno, "error closing controlling terminal");
+          return -1;
        }
 
        rows = ws.ws_row;
