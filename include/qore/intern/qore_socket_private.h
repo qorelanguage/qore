@@ -1266,7 +1266,7 @@ struct qore_socket_private {
 
    // set backwards-compatible object members on accept
    // to be (hopefully) deleted in a future version of qore
-   void setAccept(QoreObject* o) {
+   DLLLOCAL void setAccept(QoreObject* o) {
       struct sockaddr_storage addr;
 
       socklen_t len = sizeof addr;
@@ -2528,8 +2528,8 @@ struct qore_socket_private {
       return acceptcharset;
    }
    
-   // static method; returns true if the connection should be closed, false if not
-   bool convertHeaderToHash(QoreHashNode* h, char* p, int flags = 0, QoreHashNode* info = 0, bool* chunked = 0) {
+   // returns true if the connection should be closed, false if not
+   DLLLOCAL bool convertHeaderToHash(QoreHashNode* h, char* p, int flags = 0, QoreHashNode* info = 0, bool* chunked = 0) {
       bool close = !(flags & CHF_HTTP11);
       // socket encoding
       const char* senc = 0;
@@ -2774,7 +2774,7 @@ struct qore_socket_private {
       tp_us_recv = 0;
    }
 
-   void doTimeoutWarning(const char* op, int64 dt) {
+   DLLLOCAL void doTimeoutWarning(const char* op, int64 dt) {
       assert(warn_queue);
       assert(dt > tl_warning_us);
 
@@ -2790,7 +2790,7 @@ struct qore_socket_private {
       warn_queue->pushAndTakeRef(h);
    }
 
-   void doThroughputWarning(bool send, int64 bytes, int64 dt, double bs) {
+   DLLLOCAL void doThroughputWarning(bool send, int64 bytes, int64 dt, double bs) {
       assert(warn_queue);
       assert(bs < tp_warning_bs);
 

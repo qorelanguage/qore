@@ -1606,13 +1606,9 @@ else
     fi
 fi
 
-# turn on some build flags for non-debugging, non-profiling builds
-if test "$enable_debug" = "no" -a "$enable_profile" = "no" -a "$enable_optimization" = "yes" ; then
-    # strip binaries and libraries on darwin with -x
-    if test "`echo $host_os|cut -b-6`" = "darwin"; then
-       LDFLAGS="$LDFLAGS -Wl,-x"
-    fi	
-fi
+#if test "$enable_debug" = "no" -a "$enable_profile" = "no" -a "$enable_optimization" = "yes" ; then
+    # we can no longer strip binaries and libraries with non-debugging, non-profiling builds on Darwin with -Wl,-x because it breaks linking :(
+#fi
 
 # check compiler settings
 # 1: turn on all warnings if we know how

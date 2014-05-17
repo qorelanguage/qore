@@ -959,7 +959,7 @@ protected:
       qore_ns_private::parseRollback();
    }
 
-   ConstantEntry* parseFindOnlyConstantEntryIntern(const char* cname, qore_ns_private*& ns) {
+   DLLLOCAL ConstantEntry* parseFindOnlyConstantEntryIntern(const char* cname, qore_ns_private*& ns) {
       {
          // first try to look in current namespace context
          qore_ns_private* nscx = parse_get_ns();
@@ -1001,7 +1001,7 @@ protected:
       return 0;
    }
 
-   AbstractQoreNode* parseFindOnlyConstantValueIntern(const char* cname, const QoreTypeInfo*& typeInfo) {
+   DLLLOCAL AbstractQoreNode* parseFindOnlyConstantValueIntern(const char* cname, const QoreTypeInfo*& typeInfo) {
       qore_ns_private* ns;
       ConstantEntry *ce = parseFindOnlyConstantEntryIntern(cname, ns);
       if (!ce)
@@ -1013,7 +1013,7 @@ protected:
       return ce->get(typeInfo, this);
    }
 
-   AbstractQoreNode* parseFindConstantValueIntern(const char* cname, const QoreTypeInfo*& typeInfo, bool error) {
+   DLLLOCAL AbstractQoreNode* parseFindConstantValueIntern(const char* cname, const QoreTypeInfo*& typeInfo, bool error) {
       // look up class constants first
       QoreClass* pc = getParseClass();
       if (pc) {
