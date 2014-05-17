@@ -1606,6 +1606,7 @@ else
     fi
 fi
 
+# turn on some build flags for non-debugging, non-profiling builds
 #if test "$enable_debug" = "no" -a "$enable_profile" = "no" -a "$enable_optimization" = "yes" ; then
     # we can no longer strip binaries and libraries with non-debugging, non-profiling builds on Darwin with -Wl,-x because it breaks linking :(
 #fi
