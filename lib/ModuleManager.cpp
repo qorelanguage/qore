@@ -899,6 +899,8 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
    if (module_license_str)
       license_str = module_license_str;
 
+   //printd(5, "module_license_str: '%s' license_str: '%s'\n", module_license_str ? module_license_str : "n/a", license_str.getBuffer());
+
    switch (license) {
       case QL_GPL: if (!module_license_str) license_str = "GPL"; break;
       case QL_LGPL: if (!module_license_str) license_str = "LGPL"; break;

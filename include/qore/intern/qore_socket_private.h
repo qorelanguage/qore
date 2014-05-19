@@ -1390,7 +1390,7 @@ struct qore_socket_private {
    }
 
    //! read until \\r\\n\\r\\n and return the string
-   DLLLOCAL QoreStringNode* readHTTPData(ExceptionSink* xsink, const char* meth, int timeout, qore_offset_t& rc, int state = -1) {
+   DLLLOCAL QoreStringNode* readHTTPData(ExceptionSink* xsink, const char* meth, int timeout, qore_offset_t& rc, bool exit_early = false) {
       assert(meth);
       if (sock == QORE_INVALID_SOCKET) {
 	 if (xsink)
@@ -1407,6 +1407,7 @@ struct qore_socket_private {
       //   2 = '\r\n\r' received
       //   3 = '\n' received
       // read in HHTP header until \r\n\r\n or \n\n from socket
+      int state = -1;
       QoreStringNodeHolder hdr(new QoreStringNode(enc));
 
       qore_size_t count = 0;
@@ -1442,6 +1443,8 @@ struct qore_socket_private {
 	       continue;
 	    }
 	    if (!state) {
+               if (exit_early && hdr->empty())
+                  return 0;
 	       state = 1;
 	       continue;
 	    }
@@ -2256,11 +2259,9 @@ struct qore_socket_private {
       }
 
       // read footers or nothing
-      QoreStringNodeHolder hdr(readHTTPData(xsink, "readHTTPChunkedBodyBinary", timeout, rc));
-      if (!hdr) {
-         assert(*xsink);
+      QoreStringNodeHolder hdr(readHTTPData(xsink, "readHTTPChunkedBodyBinary", timeout, rc, true));
+      if (*xsink)
          return 0;
-      }
 
       ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
       if (!recv_callback) {
@@ -2268,11 +2269,13 @@ struct qore_socket_private {
          h->setKeyValue("body", b.release(), xsink);
       }
    
-      if (hdr->strlen() >= 2 && hdr->strlen() <= 4)
-         return recv_callback ? 0 : h.release();
+      if (hdr) {
+         if (hdr->strlen() >= 2 && hdr->strlen() <= 4)
+            return recv_callback ? 0 : h.release();
 
-      convertHeaderToHash(*h, (char*)hdr->getBuffer());
-      do_read_http_header(QORE_EVENT_HTTP_FOOTERS_RECEIVED, *h, source);
+         convertHeaderToHash(*h, (char*)hdr->getBuffer());
+         do_read_http_header(QORE_EVENT_HTTP_FOOTERS_RECEIVED, *h, source);
+      }
 
       if (recv_callback) {
          runHeaderCallback(xsink, "readHTTPChunkedBodyBinary", *recv_callback, l, h->empty() ? 0 : *h, obj);
@@ -2411,11 +2414,9 @@ struct qore_socket_private {
       }
 
       // read footers or nothing
-      QoreStringNodeHolder hdr(readHTTPData(xsink, "readHTTPChunkedBody", timeout, rc));
-      if (!hdr) {
-         assert(*xsink);
+      QoreStringNodeHolder hdr(readHTTPData(xsink, "readHTTPChunkedBody", timeout, rc, true));
+      if (*xsink)
          return 0;
-      }
 
       //printd(5, "chunked body encoding=%s\n", buf->getEncoding()->getCode());
 
@@ -2423,11 +2424,13 @@ struct qore_socket_private {
       if (!recv_callback)
          h->setKeyValue("body", buf.release(), xsink);
    
-      if (hdr->strlen() >= 2 && hdr->strlen() <= 4)
-         return recv_callback ? 0 : h.release();
+      if (hdr) {
+         if (hdr->strlen() >= 2 && hdr->strlen() <= 4)
+            return recv_callback ? 0 : h.release();
 
-      convertHeaderToHash(*h, (char*)hdr->getBuffer());
-      do_read_http_header(QORE_EVENT_HTTP_FOOTERS_RECEIVED, *h, source);
+         convertHeaderToHash(*h, (char*)hdr->getBuffer());
+         do_read_http_header(QORE_EVENT_HTTP_FOOTERS_RECEIVED, *h, source);
+      }
 
       if (recv_callback) {
          runHeaderCallback(xsink, "readHTTPChunkedBody", *recv_callback, l, h->empty() ? 0 : *h, obj);
