@@ -29,6 +29,7 @@ module Mime {
     desc = "Mime module providing MIME-related definitions";
     author = "David Nichols";
     url = "http://qore.org";
+    license = "MIT";
 }
 
 /*  Version History

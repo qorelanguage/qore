@@ -29,6 +29,7 @@ module Qorize {
     desc = "Create Qore source code from data structures";
     author = "Petr Vanek";
     url = "http://qore.org";
+    license = "MIT";
 }
 
 /*  Version History

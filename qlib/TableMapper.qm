@@ -41,6 +41,7 @@ module TableMapper {
     desc = "user module providing data mapping infrastructure to an SQL Table target";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
+    license = "MIT";
 }
 
 /*  Version History

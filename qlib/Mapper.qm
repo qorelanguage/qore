@@ -36,6 +36,7 @@ module Mapper {
     desc = "user module providing basic data mapping infrastructure";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
+    license = "MIT";
 }
 
 /*  Version History

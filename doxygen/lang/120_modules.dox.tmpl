@@ -107,6 +107,7 @@
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<tt><b>desc</b> = &quot;</tt><i>description string</i><tt>&quot;;</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<tt><b>author</b> = &quot;</tt><i>author string</i><tt>&quot;;</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<tt>[<b>url</b> = &quot;</tt><i>URL string</i><tt>&quot;;]</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<tt>[<b>license</b> = &quot;</tt><i>license string</i><tt>&quot;;]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<tt>[<b>init</b> = </tt><i>@ref closure "initialization closure"</i><tt>;]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<tt>[<b>del</b> = </tt><i>@ref closure "deletion closure"</i><tt>;]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>}</tt>
@@ -116,6 +117,7 @@
     - \c desc: (required) must be assigned to a string giving a text description of the module
     - \c author: (required) must be assigned to a string giving the module's author's name
     - \c url: (optional) if present, must be a string giving the URL of the module
+    - \c license: (optional) if present, must be a string giving the license of the module
     - \c init: (optional) if present, must be a closure that will be executed when the module is loaded; this can be used to initialize the module, for example
     - \c del: (optional) if present, must be a closure that will be executed when the module is unloaded; this can be used to stop running services or free resources managed and still allocated by the module, for example
 
@@ -162,6 +164,7 @@ module foo {
     desc = "test module";
     author = "Foobar Industries, inc";
     url = "http://example.com";
+    license = "MIT";
 
     init = sub () {
         Foo::initialized = True;

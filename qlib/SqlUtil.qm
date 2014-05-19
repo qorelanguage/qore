@@ -42,6 +42,7 @@ module SqlUtil {
     desc = "user module for working with SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
+    license = "MIT";
 }
 
 # version history is included below in the docs

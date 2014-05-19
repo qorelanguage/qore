@@ -1006,6 +1006,7 @@ nothing parseBase64StringToString() [flags=RUNTIME_NOOP] {
     - \c api_major: the major number of the %Qore module API version the module support
     - \c api_minor: the minor number of the %Qore module API version the module support
     - \c url: the module's URL
+    - \c license: the module's license
 
     @par Example:
     @code
@@ -1028,6 +1029,7 @@ list getModuleList() [flags=CONSTANT] {
     - \c api_major: the major number of the %Qore module API version the module support
     - \c api_minor: the minor number of the %Qore module API version the module support
     - \c url: the module's URL
+    - \c license: the module's license
 
     @par Example:
     @code

@@ -71,10 +71,8 @@ protected:
       name, 
       desc,
       author,
-      url;
-
-   //typedef std::map<std::string, std::string> strmap_t;
-   //strmap_t strmap;
+      url,
+      license;
 
    DLLLOCAL QoreHashNode* getHashIntern(bool with_filename = true) const {
       QoreHashNode* h = new QoreHashNode;
@@ -87,6 +85,8 @@ protected:
       h->setKeyValue("author", new QoreStringNode(author), 0);
       if (!url.empty())
          h->setKeyValue("url", new QoreStringNode(url), 0);
+      if (!license.empty())
+         h->setKeyValue("license", new QoreStringNode(license), 0);
 
       return h;
    }
@@ -94,7 +94,7 @@ protected:
 public:
    version_list_t version_list;
 
-   DLLLOCAL QoreAbstractModule(const char* fn, const char* n, const char* d, const char* v, const char* a, const char* u) : filename(fn), name(n), desc(d), author(a), url(u), version_list(v) {
+   DLLLOCAL QoreAbstractModule(const char* fn, const char* n, const char* d, const char* v, const char* a, const char* u, const QoreString& l) : filename(fn), name(n), desc(d), author(a), url(u), license(l), version_list(v) {
    }
 
    // for "builtin" modules
@@ -417,7 +417,7 @@ protected:
    const void* dlptr;
 
 public:
-   DLLLOCAL QoreBuiltinModule(const char* fn, const char* n, const char* d, const char* v, const char* a, const char* u, unsigned major, unsigned minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, qore_module_parse_cmd_t pcmd, const void* p) : QoreAbstractModule(fn, n, d, v, a, u), api_major(major), api_minor(minor), module_init(init), module_ns_init(ns_init), module_delete(del), module_parse_cmd(pcmd), dlptr(p) {
+   DLLLOCAL QoreBuiltinModule(const char* fn, const char* n, const char* d, const char* v, const char* a, const char* u, const QoreString& l, unsigned major, unsigned minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, qore_module_parse_cmd_t pcmd, const void* p) : QoreAbstractModule(fn, n, d, v, a, u, l), api_major(major), api_minor(minor), module_init(init), module_ns_init(ns_init), module_delete(del), module_parse_cmd(pcmd), dlptr(p) {
    }
 
    DLLLOCAL virtual ~QoreBuiltinModule() {
@@ -472,7 +472,7 @@ protected:
    QoreClosureParseNode* del; // deletion closure
 
 public:
-   DLLLOCAL QoreUserModule(const char* fn, const char* n, const char* d, const char* v, const char* a, const char* u, QoreProgram* p, QoreClosureParseNode* dl) : QoreAbstractModule(fn, n, d, v, a, u), pgm(p), del(dl) {
+   DLLLOCAL QoreUserModule(const char* fn, const char* n, const char* d, const char* v, const char* a, const char* u, const QoreString& l, QoreProgram* p, QoreClosureParseNode* dl) : QoreAbstractModule(fn, n, d, v, a, u, l), pgm(p), del(dl) {
    }
 
    DLLLOCAL virtual ~QoreUserModule();

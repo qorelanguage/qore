@@ -32,6 +32,7 @@ module HttpServer {
     desc = "HttpServer class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
+    license = "MIT";
 }
 
 /*  Version History: see docs below

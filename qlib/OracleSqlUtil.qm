@@ -45,6 +45,7 @@ module OracleSqlUtil {
     desc = "user module for working with Oracle SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
+    license = "MIT";
 }
 
 /*  Version History: see docs below

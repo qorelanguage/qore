@@ -45,6 +45,7 @@ module Schema {
     desc = "user module for working with SQL schemas";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
+    license = "MIT";
 }
 
 /** @mainpage Schema Module

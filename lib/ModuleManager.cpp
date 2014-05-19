@@ -337,6 +337,7 @@ void QoreModuleManager::init(bool se) {
    QoreModuleDefContext::vset.insert("version");
    QoreModuleDefContext::vset.insert("author");
    QoreModuleDefContext::vset.insert("url");
+   QoreModuleDefContext::vset.insert("license");
 
    mutex = new QoreThreadLock(&ma_recursive);
 
@@ -734,14 +735,14 @@ QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, con
  
    const char* url = qmd.get("url");
 
+   const char* license = qmd.get("license");
+   QoreString license_str(license ? license : "unknown");
+
    // init & run module initialization code if any
    if (qmd.init(**pgm, xsink))
       return 0;
 
-   // xxx add to auto namespace list
-   //ANSL.add(*pgm);
-
-   mi = new QoreUserModule(path, name, desc, version, author, url, pgm.release(), qmd.takeDel());
+   mi = new QoreUserModule(path, name, desc, version, author, url, license_str, pgm.release(), qmd.takeDel());
    QMM.addModule(mi);
 
    return mi;
@@ -884,16 +885,29 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
    }
 
    // get license type
-   qore_license_t *module_license = (qore_license_t *)dlsym(ptr, "qore_module_license");
+   qore_license_t* module_license = (qore_license_t *)dlsym(ptr, "qore_module_license");
    if (!module_license) {
       xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': missing qore_module_license symbol", path, name);
       return 0;
    }
 
+   // get optional license string
+   const char* module_license_str = (const char*)dlsym(ptr, "qore_module_license_str");
+
    qore_license_t license = *module_license;
-   if (license != QL_GPL && license != QL_LGPL && license != QL_MIT) {
-      xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': invalid qore_module_license symbol (%d)", path, name, license);
-      return 0;
+   QoreString license_str;
+   if (module_license_str)
+      license_str = module_license_str;
+
+   printd(0, "module_license_str: '%s' license_str: '%s'\n", module_license_str ? module_license_str : "n/a", license_str.getBuffer());
+
+   switch (license) {
+      case QL_GPL: if (!module_license_str) license_str = "GPL"; break;
+      case QL_LGPL: if (!module_license_str) license_str = "LGPL"; break;
+      case QL_MIT: if (!module_license_str) license_str = "MIT"; break;
+      default:
+	 xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': invalid qore_module_license symbol (%d)", path, name, license);
+	 return 0;
    }
 
    if (qore_license != QL_GPL && license == QL_GPL) {
@@ -902,56 +916,56 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
    }
 
    // get initialization function
-   qore_module_init_t *module_init = (qore_module_init_t *)dlsym(ptr, "qore_module_init");
+   qore_module_init_t* module_init = (qore_module_init_t*)dlsym(ptr, "qore_module_init");
    if (!module_init) {
       xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': missing module init method", path, name);
       return 0;
    }
 
    // get namespace initialization function
-   qore_module_ns_init_t *module_ns_init = (qore_module_ns_init_t *)dlsym(ptr, "qore_module_ns_init");
+   qore_module_ns_init_t* module_ns_init = (qore_module_ns_init_t*)dlsym(ptr, "qore_module_ns_init");
    if (!module_ns_init) {
       xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': missing namespace init method", path, name);
       return 0;
    }
 
    // get deletion function
-   qore_module_delete_t *module_delete = (qore_module_delete_t *)dlsym(ptr, "qore_module_delete");
+   qore_module_delete_t* module_delete = (qore_module_delete_t*)dlsym(ptr, "qore_module_delete");
    if (!module_delete) {
       xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': missing delete method", path, name);
       return 0;
    }
 
    // get parse command function
-   qore_module_parse_cmd_t *pcmd = (qore_module_parse_cmd_t *)dlsym(ptr, "qore_module_parse_cmd");
+   qore_module_parse_cmd_t* pcmd = (qore_module_parse_cmd_t*)dlsym(ptr, "qore_module_parse_cmd");
 
    // get qore module description
-   char* desc = (char*)dlsym(ptr, "qore_module_description");
+   const char* desc = (const char*)dlsym(ptr, "qore_module_description");
    if (!desc) {
       xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': missing description", path, name);
       return 0;
    }
 
    // get qore module version
-   char* version = (char*)dlsym(ptr, "qore_module_version");
+   const char* version = (const char*)dlsym(ptr, "qore_module_version");
    if (!version) {
       xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': missing version", path, name);
       return 0;
    }
 
    // get qore module author
-   char* author = (char*)dlsym(ptr, "qore_module_author");
+   const char* author = (const char*)dlsym(ptr, "qore_module_author");
    if (!author) {
       xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': missing author", path, name);
       return 0;
    }
 
    // get qore module URL (optional)
-   char* url = (char*)dlsym(ptr, "qore_module_url");
+   const char* url = (const char*)dlsym(ptr, "qore_module_url");
 
-   char** dep_list = (char**)dlsym(ptr, "qore_module_dependencies");
+   const char** dep_list = (const char**)dlsym(ptr, "qore_module_dependencies");
    if (dep_list) {
-      char* dep = dep_list[0];
+      const char* dep = dep_list[0];
       //printd(5, "dep_list=%08p (0=%s)\n", dep_list, dep);
       for (int j = 0; dep; dep = dep_list[++j]) {
 	 //printd(5, "loading module dependency=%s\n", dep);
@@ -984,7 +998,7 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
    // commit all module changes - to the current program or to the static namespace
    qmc.commit();
 
-   mi = new QoreBuiltinModule(path, name, desc, version, author, url, *api_major, *api_minor, *module_init, *module_ns_init, *module_delete, pcmd ? *pcmd : 0, dlh.release());
+   mi = new QoreBuiltinModule(path, name, desc, version, author, url, license_str, *api_major, *api_minor, *module_init, *module_ns_init, *module_delete, pcmd ? *pcmd : 0, dlh.release());
    QMM.addModule(mi);
 
    printd(5, "QoreModuleManager::loadBinaryModuleFromPath(%s) registered '%s'\n", path, name);

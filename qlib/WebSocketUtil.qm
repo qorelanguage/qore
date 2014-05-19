@@ -36,6 +36,7 @@ module WebSocketUtil {
     desc = "user module for providing common client and server support for the WebSocket protocol";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
+    license = "MIT";
 }
 
 /*  Version History

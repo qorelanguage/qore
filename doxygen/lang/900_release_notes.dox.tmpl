@@ -37,6 +37,9 @@
     - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> updates:
       - fixed selects with "limit" but no "offset"
       - convert date/time values to timestamps with microseconds resolution instead of dates with second resolution when dynamically inserting values as strings in SQL (binding by value not affected)
+    - enhanced module license support
+      - module license strings may now be specified in binary and user modules
+      - @ref Qore::getModuleHash() and @ref Qore::getModuleList() now report license information for each module
 
     @subsection qore_0810_bug_fixes Bug Fixes in Qore
     - fixed an issue with class constant parse initialization where invalid recursive class constant definition parse exceptions could be raised and in some cases also crashes could result

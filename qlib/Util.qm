@@ -36,6 +36,7 @@ module Util {
     desc = "user module for generally useful routines";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
+    license = "MIT";
     init = sub () { init(); };
 }
 

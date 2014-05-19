@@ -36,6 +36,7 @@ module WebUtil {
     desc = "user module supporting web server operations";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
+    license = "MIT";
 }
 
 %requires HttpServer >= 0.3.7

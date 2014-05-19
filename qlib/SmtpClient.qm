@@ -38,6 +38,7 @@ module SmtpClient {
     desc = "SMTP client support module";
     author = "Wolfgang Ritzinger <aargon@rat.at>, Marian Bonda <marian_bonda@users.sourceforge.net>, Pavol Potoncok <ppotancok@gmail.com>";
     url = "http://qore.org";
+    license = "MIT";
 }
 
 /*  Version History

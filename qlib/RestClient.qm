@@ -50,6 +50,7 @@ module RestClient {
     desc = "user module for calling REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
+    license = "MIT";
 
     init = sub () { 
         # if no modules for data de/serialization can be loaded, then throw an exception

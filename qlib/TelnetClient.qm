@@ -27,10 +27,11 @@
 %requires qore >= 0.8.9
 
 module TelnetClient {
-   version = "1.1";
-   desc = "allows connections to a Telnet server, to remotely execute commands and read their output";
-   author = "Pavol Potancok <ppotancok@gmail.com>";
-   url = "http://qore.org";
+    version = "1.1";
+    desc = "allows connections to a Telnet server, to remotely execute commands and read their output";
+    author = "Pavol Potancok <ppotancok@gmail.com>";
+    url = "http://qore.org";
+    license = "MIT";
 }
 
 /*  Version History
