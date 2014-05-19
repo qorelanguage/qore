@@ -20,13 +20,13 @@ const opts = (
 
 class qdx {
     private {
-	bool post;
-	bool links;
-	bool svc;
-	bool help;
-	hash o;
-	*string sname;
-	*string psname;
+        bool post;
+        bool links;
+        bool svc;
+        bool help;
+        hash o;
+        *string sname;
+        *string psname;
         string build;
         string qorever;
     }
@@ -36,11 +36,11 @@ class qdx {
     }
 
     constructor() {
-	GetOpt g(opts);
+        GetOpt g(opts);
         o = g.parse3(\ARGV);
 
-	if (o.help || ARGV.empty())
-	    usage();
+        if (o.help || ARGV.empty())
+            usage();
 
         if (o.post) {
             map (map postProcess($1), glob($1)), ARGV;
@@ -112,8 +112,8 @@ class qdx {
 
         printf("processing %y -> %y (module %s %s src: %y trg: %y)\n", fn, ofn, name, h.version, src, trg);
 
-	File inf();
-	inf.open2(fn);
+        File inf();
+        inf.open2(fn);
 
         File of();
         of.open2(ofn, O_CREAT | O_TRUNC | O_WRONLY);
@@ -140,8 +140,8 @@ class qdx {
     doDox(string fn, string ofn) {
         printf("processing %y -> %y\n", fn, ofn);
 
-	File inf();
-	inf.open2(fn);
+        File inf();
+        inf.open2(fn);
 
         File of();
         of.open2(ofn, O_CREAT | O_TRUNC | O_WRONLY);
@@ -159,21 +159,21 @@ class qdx {
     }
 
     postProcess(string ifn, bool tex = False) {
-	File inf();
-	inf.open2(ifn);
+        File inf();
+        inf.open2(ifn);
 
-	string ofn = ifn + ".new";
+        string ofn = ifn + ".new";
 
-	printf("processing API file %s\n", ifn);
+        printf("processing API file %s\n", ifn);
 
-	File of();
-	of.open2(ofn, O_CREAT | O_WRONLY | O_TRUNC);
+        File of();
+        of.open2(ofn, O_CREAT | O_WRONLY | O_TRUNC);
 
-	on_success rename(ofn, ifn);
+        on_success rename(ofn, ifn);
 
         DocumentTableHelper dth();
 
-	while (exists (*string line = inf.readLine())) {
+        while (exists (*string line = inf.readLine())) {
             line = dth.process(line);
 
             if (tex) {
@@ -185,123 +185,123 @@ class qdx {
                 line =~ s/\\_\\-\\_\\-7\\_\\-/*/g; #//;
             } 
 
-	    line =~ s/__1_/[/g;
+            line =~ s/__1_/[/g;
             line =~ s/__2_/]/g;
             line =~ s/__3_/*/g;
-	    line =~ s/__4_/./g;
-	    line =~ s/__5_/-/g;
+            line =~ s/__4_/./g;
+            line =~ s/__5_/-/g;
             if (o.keepdollar)
                 line =~ s/__6_/$/g;
             else
                 line =~ s/__6_//g;
-	    line =~ s/__7_ /*/g; #//;
+            line =~ s/__7_ /*/g; #//;
 
-	    # remove "inline" tags
-	    line =~ s/\[inline\]//g;
-	    line =~ s/, inline\]/]/g;
-	    line =~ s/\[inline, /[/g;
+            # remove "inline" tags
+            line =~ s/\[inline\]//g;
+            line =~ s/, inline\]/]/g;
+            line =~ s/\[inline, /[/g;
 
-	    of.print(line);
-	}
+            of.print(line);
+        }
     }
 
     fixParam(reference line) {
-	if (line =~ /@param/) {
-	    line =~ s/([^\/\*])\*/1__7_ /g;
-	    line =~ s/\$/__6_/g;
-	}
-	if (exists (*string str = regex_extract(line, "(" + sname + "\\.[a-z0-9_]+)", RE_Caseless)[0])) {
-	    string nstr = str;
-	    #printf("str=%n nstr=%n\n", str, nstr);
-	    nstr =~ s/\./__4_/g;
-	    line = replace(line, str, nstr);
-	}
+        if (line =~ /@param/) {
+            line =~ s/([^\/\*])\*/1__7_ /g;
+            line =~ s/\$/__6_/g;
+        }
+        if (exists (*string str = regex_extract(line, "(" + sname + "\\.[a-z0-9_]+)", RE_Caseless)[0])) {
+            string nstr = str;
+            #printf("str=%n nstr=%n\n", str, nstr);
+            nstr =~ s/\./__4_/g;
+            line = replace(line, str, nstr);
+        }
     }
 
     string getComment(string comment, File inf, bool fix_param = False) {
-	comment =~ s/^[ \t]+//g;
-	if (fix_param)
-	    fixParam(\comment);
+        comment =~ s/^[ \t]+//g;
+        if (fix_param)
+            fixParam(\comment);
 
-	DocumentTableHelper dth();
+        DocumentTableHelper dth();
 
-	while (exists (*string line = inf.readLine())) {
-	    #line =~ s/\$/__6_/g; #/;
+        while (exists (*string line = inf.readLine())) {
+            #line =~ s/\$/__6_/g; #/;
 
-	    if (fix_param)
-		fixParam(\line);
+            if (fix_param)
+                fixParam(\line);
 
-	    line = dth.process(line);
+            line = dth.process(line);
 
-	    if (line =~ /\*\//) {
-		comment += line;
-		break;
-	    }
+            if (line =~ /\*\//) {
+                comment += line;
+                break;
+            }
 
             # remove <!--% ... %--> comments to allow for invisible spacing, to allow for "*/" to be outout in particular places, for example
             line =~ s/<!--%.*%-->//g;
 
             comment += line;
-	}
-	#printf("comment: %s", comment);
-	return comment;
+        }
+        #printf("comment: %s", comment);
+        return comment;
     }
 
     processQore(string fn, string nn) {
         checkNames(fn, nn);
 
-	File inf();
-	inf.open2(fn);
+        File inf();
+        inf.open2(fn);
 
-	File of();
-	of.open2(nn, O_CREAT|O_WRONLY|O_TRUNC);
+        File of();
+        of.open2(nn, O_CREAT|O_WRONLY|O_TRUNC);
 
         printf("processing %y -> %y\n", fn, nn);
 
-	*string class_name;
-	*string ns_name;
+        *string class_name;
+        *string ns_name;
 
         # class member public/private bracket count
         int ppc = 0;
 
-	# method private flag
-	bool mpp;
+        # method private flag
+        bool mpp;
 
-	# method private count
-	int mpc = 0;
+        # method private count
+        int mpc = 0;
 
-	# class bracket count
-	int cbc = 0;
+        # class bracket count
+        int cbc = 0;
 
-	# namespace bracket count
-	int nbc = 0;
+        # namespace bracket count
+        int nbc = 0;
 
-	bool in_doc = False;
+        bool in_doc = False;
 
         # namespace stack
         list nss = ();
 
-	while (exists (*string line = inf.readLine())) {
+        while (exists (*string line = inf.readLine())) {
             #printf("line: %s", line);
 
             line =~ s/\$\.//g;
-	    line =~ s/([^\/\*])\*([a-zA-Z])/$1__7_ $2/g;
+            line =~ s/([^\/\*])\*([a-zA-Z])/$1__7_ $2/g;
             #line =~ s/\$/__6_/g;
             #line =~ s/\$//g;
 
             if (o.nmp)
                 line =~ s/@mainpage ([\w]+)/@page $1 $1/;
 
-	    if (in_doc) {
-		if (line =~ /\*\//)
-		    in_doc = False;
-		of.print(line);
-		continue;
-	    }
+            if (in_doc) {
+                if (line =~ /\*\//)
+                    in_doc = False;
+                of.print(line);
+                continue;
+            }
 
-	    # skip parse commands
-	    if (line =~ /^%/)
-		continue;
+            # skip parse commands
+            if (line =~ /^%/)
+                continue;
 
             # see if the line is the start of a doxygen block comment
             if (line =~ /^[[:blank:]]*\/\*\*/) {
@@ -310,8 +310,8 @@ class qdx {
                 continue;
             }
             
-	    if (line =~ /^[[:blank:]]*\/\*/){ #/){
-		if (line !~ /\*\//)
+            if (line =~ /^[[:blank:]]*\/\*/){ #/){
+                if (line !~ /\*\//)
                     in_doc = True;
                 of.print(line);
                 continue;
@@ -323,14 +323,14 @@ class qdx {
             # switch mode: qore to mode: c++
             line =~ s/mode: qore/mode: c++/g;
 
-	    line =~ s/\$\.//g;
-	    #line =~ s/\$//g;
+            line =~ s/\$\.//g;
+            #line =~ s/\$//g;
             if (line =~ /our /) {
                 line =~ s/our /extern /g;
                 line =~ s/\$//g;
             }
-	    line =~ s/my //g;
-	    line =~ s/sub //;
+            line =~ s/my //g;
+            line =~ s/sub //;
 
             # take public off namespace, class, constant and global variable declarations
             line =~ s/public[[:space:]]+(const|our|namespace|class)/$1/g;
@@ -369,7 +369,7 @@ class qdx {
             }
 
             # convert Qore line comments to C++ line comments
-	    line =~ s/\#/\/\//;
+            line =~ s/\#/\/\//;
 
             # skip lines that are only comments
             if (line =~ /^[[:blank:]]*\/\//) {
@@ -380,59 +380,59 @@ class qdx {
             # temporary list variable
             *list xl;
 
-	    # convert class inheritance lists to c++-style declarations
-	    if (line =~ /inherits / && line !~ /\/(\/|\*)/) {
-		trim line;
-		xl = (line =~ x/(.*) inherits ([^{]+)(.*)/);
-		xl[1] = split(",", xl[1]);		
-		foreach string e in (\xl[1]) {
-		    if (e !~ /(private|public)[^A-Za-z0-9_]/)
-			e = "public " + e;
-		}
-		trim(xl[0]);
-		line = xl[0] + " : " + join(",", xl[1]) + xl[2] + "\n";
+            # convert class inheritance lists to c++-style declarations
+            if (line =~ /inherits / && line !~ /\/(\/|\*)/) {
+                trim line;
+                xl = (line =~ x/(.*) inherits ([^{]+)(.*)/);
+                xl[1] = split(",", xl[1]);                
+                foreach string e in (\xl[1]) {
+                    if (e !~ /(private|public)[^A-Za-z0-9_]/)
+                        e = "public " + e;
+                }
+                trim(xl[0]);
+                line = xl[0] + " : " + join(",", xl[1]) + xl[2] + "\n";
 
                 # add {} to any inline empty class declaration
                 if (line =~ /;[ \t]*/) #/)
                     line =~ s/;[ \t]*/ {};/; #/;# this comment is only needed for emacs' broken qore-mode :(
 
-		#printf("x: %y line: %y\n", xl, line);
-		#of.print(line);
-		#continue;
-	    }
+                #printf("x: %y line: %y\n", xl, line);
+                #of.print(line);
+                #continue;
+            }
 
             # temporary string variable
-	    *string xs = (line =~ x/^[[:space:]]*namespace[[:space:]]+(\w+(::\w+)?)/)[0];
-	    if (xs.val()) {
+            *string xs = (line =~ x/^[[:space:]]*namespace[[:space:]]+(\w+(::\w+)?)/)[0];
+            if (xs.val()) {
                 if (!ns_name.empty()) {
                     nss += ns_name;
                     #throw "NS-ERROR", sprintf("current ns: %s; found nested ns: %s", ns_name, line);
                 }
 
-		#printf("namespace %n\n", xs);
-		ns_name = xs;
+                #printf("namespace %n\n", xs);
+                ns_name = xs;
 
-		#if (nbc != 0) throw "ERROR", sprintf("namespace found but nbc: %d\nline: %n\n", nbc, line);
+                #if (nbc != 0) throw "ERROR", sprintf("namespace found but nbc: %d\nline: %n\n", nbc, line);
 
-		if (line =~ /{/ && line !~ /}/)
-		    ++nbc;
-		    
-		of.print(line);
-		continue;
-	    }
-	    else {
-		xs = (line =~ x/^[[:space:]]*class[[:space:]]+(\w+(::\w+)?)/)[0];
+                if (line =~ /{/ && line !~ /}/)
+                    ++nbc;
+                    
+                of.print(line);
+                continue;
+            }
+            else {
+                xs = (line =~ x/^[[:space:]]*class[[:space:]]+(\w+(::\w+)?)/)[0];
 
-		if (xs.val()) {
+                if (xs.val()) {
                     if (class_name)
                         throw "CLASS-ERROR", sprintf("current class: %s; found nested class: %s", class_name, line);
-		    #printf("class %n\n", xs);
-		    class_name = xs;
+                    #printf("class %n\n", xs);
+                    class_name = xs;
 
-		    if (cbc)
-			throw "ERROR", sprintf("class found but cbc=%d\nline=%n\n", cbc, line);
+                    if (cbc)
+                        throw "ERROR", sprintf("class found but cbc=%d\nline=%n\n", cbc, line);
 
-		    if (line =~ /{/) {
+                    if (line =~ /{/) {
                         if (line !~ /}/) {
                             line += "\npublic:\n";
                             ++cbc;
@@ -440,28 +440,28 @@ class qdx {
                         else
                             delete class_name;                            
                     }
-		    
-		    of.print(line);
-		    continue;
-		}
-		else if (class_name) {
-		    if (line =~ /{/) {
-			if (line !~ /}/)
-			    ++cbc;
-		    }
-		    else if (line =~ /}/) {
-			--cbc;
-			if (!cbc) {
-			    line =~ s/}/};/;
-			    delete class_name;
-			}
-		    }
+                    
+                    of.print(line);
+                    continue;
+                }
+                else if (class_name) {
+                    if (line =~ /{/) {
+                        if (line !~ /}/)
+                            ++cbc;
+                    }
+                    else if (line =~ /}/) {
+                        --cbc;
+                        if (!cbc) {
+                            line =~ s/}/};/;
+                            delete class_name;
+                        }
+                    }
 
-		    if (exists (xs = (line =~ x/(public|private)[ \t]+{(.*)}/)[1])) {
-			of.printf("private:\n%s\npublic:\n", xs);
-			continue;
-		    }
-		    else if (!ppc) {
+                    if (exists (xs = (line =~ x/(public|private)[ \t]+{(.*)}/)[1])) {
+                        of.printf("private:\n%s\npublic:\n", xs);
+                        continue;
+                    }
+                    else if (!ppc) {
                         if (line =~ /(public|private)[[:space:]]*{/) {
                             ++ppc;
                             line =~ s/{/:/;
@@ -478,64 +478,64 @@ class qdx {
                                 line = "\npublic:\n";
                         }
                     }
-		}
-		else if (exists ns_name) {
-		    if (line =~ /{/) {
-			if (line !~ /}/)
-			    ++nbc;
-		    }
-		    else if (line =~ /}/) {
-			--nbc;
-			if (!nbc) {
-			    line =~ s/}/};/;                            
-			}
+                }
+                else if (exists ns_name) {
+                    if (line =~ /{/) {
+                        if (line !~ /}/)
+                            ++nbc;
+                    }
+                    else if (line =~ /}/) {
+                        --nbc;
+                        if (!nbc) {
+                            line =~ s/}/};/;                            
+                        }
                         ns_name = pop nss;
-		    }
-		}
-	    }
+                    }
+                }
+            }
 
-	    if (!ppc && line !~ /^[ \t]*\/\//) {
-		list mods = ();
-		if (line !~ /"/) {
-		    while (exists (*list l = (line =~ x/(.*)(deprecated|synchronized|private[^-:]|public[^-:]|static)([^A-Za-z0-9_].*)/))) {
-			mods += l[1];
-			line = l[0] + l[2];
-		    }
+            if (!ppc && line !~ /^[ \t]*\/\//) {
+                list mods = ();
+                if (line !~ /"/) {
+                    while (exists (*list l = (line =~ x/(.*)(deprecated|synchronized|private[^-:]|public[^-:]|static)([^A-Za-z0-9_].*)/))) {
+                        mods += l[1];
+                        line = l[0] + l[2];
+                    }
                 }
 
-		if (!mods.empty()) {
-		    trim mods;
-		    #printf("mods=%n line=%n\n",mods, line);
-		    foreach string mod in (mods) {
-			if (mod == "private") {
+                if (!mods.empty()) {
+                    trim mods;
+                    #printf("mods=%n line=%n\n",mods, line);
+                    foreach string mod in (mods) {
+                        if (mod == "private") {
                             if (!mpp) {
                                 mpp = True;
                                 of.printf("\nprivate:\n");
                             }
-			}
-			#line = regex_subst(line, mod, "");
-		    }
-		    mods = select mods, $1 != "private" && $1 != "public";
+                        }
+                        #line = regex_subst(line, mod, "");
+                    }
+                    mods = select mods, $1 != "private" && $1 != "public";
                     if (!mods.empty()) {
                         line = regex_subst(line, "^([[:blank:]]+)(.*)", "$1 " + join(" ", mods) + " $2");
                     }
-		}
-	    }
+                }
+            }
 
-	    of.print(line);
+            of.print(line);
 
-	    if (mpp) {
-		if (line =~ /{/)
-		    ++mpc;
-		else if (line =~ /}/)
-		    --mpc;
+            if (mpp) {
+                if (line =~ /{/)
+                    ++mpc;
+                else if (line =~ /}/)
+                    --mpc;
 
-		if (!mpc) {
-		    of.print("\npublic:\n");
-		    mpp = False;
-		}
-	    }
-	}
+                if (!mpc) {
+                    of.print("\npublic:\n");
+                    mpp = False;
+                }
+            }
+        }
     }
     
     private readUntilCloseBracket(File inf) {
@@ -661,21 +661,21 @@ class DocumentTableHelper {
             str += "    <table>\n";
         }
 
-	inTable = True;
+        inTable = True;
 
-	str += "      <tr>\n";
+        str += "      <tr>\n";
 
-	trim line;
-	splice line, 0, 1;
-	foreach *string cell in (split("|", line)) {
-	    trim cell;
-	    *string cs;
-	    if (cell =~ /^!/)
-		str += sprintf("        <td class=\"qore\"><b>%s</b></td>\n", substr(cell, 1));
-	    else
-		str += sprintf("        <td>%s</td>\n", cell);
-	}	
-	str += "      </tr>\n";
-	return str;
+        trim line;
+        splice line, 0, 1;
+        foreach *string cell in (split("|", line)) {
+            trim cell;
+            *string cs;
+            if (cell =~ /^!/)
+                str += sprintf("        <td class=\"qore\"><b>%s</b></td>\n", substr(cell, 1));
+            else
+                str += sprintf("        <td>%s</td>\n", cell);
+        }        
+        str += "      </tr>\n";
+        return str;
     }
 }
