@@ -108,6 +108,9 @@
 //! defined because this version of Qore has a public Socket performance API
 #define _QORE_HAS_SOCKET_PERF_API 1
 
+//! defined because this version of Qore has the QL_MIT license enum value
+#define _QORE_HAS_QL_MIT 1
+
 // qore code flags
 #define QC_NO_FLAGS                 0   //! no flag
 #define QC_NOOP               (1 << 0)  //! this variant is a noop, meaning it returns a constant value with the given argument types
