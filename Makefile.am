@@ -534,6 +534,7 @@ EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
 	examples/getopt.q \
 	examples/getch.q \
 	qore.spec \
+	cmake/QoreMacros.cmake \
 	$(LIB_DOXYFILES_SRC) \
 	$(LANG_DOXYFILES_SRC) \
 	$(LANG_QPP_SRC)
