@@ -314,6 +314,9 @@ public:
    //! returns the connection status of the object
    DLLEXPORT bool isConnected() const;
 
+   //! temporarily disables implicit reconnections; must be called when the server is already connected
+   DLLEXPORT void setPersistent(ExceptionSink* xsink);
+
    DLLEXPORT void clearWarningQueue(ExceptionSink* xsink);
    DLLEXPORT void setWarningQueue(ExceptionSink* xsink, int64 warning_ms, int64 warning_bs, Queue* wq, AbstractQoreNode* arg, int64 min_ms = 1000);
    DLLEXPORT QoreHashNode* getUsageInfo() const;

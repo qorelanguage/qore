@@ -53,7 +53,8 @@ struct qore_httpclient_priv {
 
    bool connected, 
       nodelay, 
-      proxy_connected; // means that a CONNECT message has been processed and the connection is now made as if it were directly with the client
+      proxy_connected, // means that a CONNECT message has been processed and the connection is now made as if it were directly with the client
+      persistent;      // turns off implicit connections for the current connection only
    int default_port, max_redirects;
    std::string default_path;
    int timeout;
@@ -64,6 +65,7 @@ struct qore_httpclient_priv {
    DLLLOCAL qore_httpclient_priv(my_socket_priv* ms) :
       msock(ms), http11(true), connection(HTTPCLIENT_DEFAULT_PORT),
       connected(false), nodelay(false), proxy_connected(false),
+      persistent(false),
       default_port(HTTPCLIENT_DEFAULT_PORT), 
       max_redirects(HTTPCLIENT_DEFAULT_MAX_REDIRECTS),
       timeout(HTTPCLIENT_DEFAULT_TIMEOUT),
@@ -132,6 +134,7 @@ struct qore_httpclient_priv {
 	 msock->socket->close();
 	 connected = false;
 	 proxy_connected = false;
+	 persistent = false;
       }
    }
 
@@ -155,6 +158,18 @@ struct qore_httpclient_priv {
 
    DLLLOCAL bool getNoDelay() const {
       return nodelay;
+   }
+
+   DLLLOCAL void setPersistent(ExceptionSink* xsink) {
+      AutoLocker al(msock->m);
+      
+      if (!connected) {
+	 xsink->raiseException("PERSISTENCE-ERROR", "HTTPClient::setPersistent() can only be called once an initial connection has been established; currently there is no connection to the server");
+	 return;
+      }
+
+      if (!persistent)
+	 persistent = true;
    }
 
    DLLLOCAL int set_url_unlocked(const char* str, ExceptionSink* xsink) {
@@ -607,11 +622,18 @@ QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* meth, 
    QoreString pathstr(msock->socket->getEncoding());
    const char* msgpath = with_connect ? mpath : getMsgPath(mpath, pathstr);
 
-   if (!connected && connect_unlocked(xsink)) {
-      // if we have an info hash then write the request-uri key for reporting/logging purposes
-      if (info)
-	 info->setKeyValue("request-uri", new QoreStringNodeMaker("%s %s HTTP/%s", meth, msgpath && msgpath[0] ? msgpath : "/", http11 ? "1.1" : "1.0"), 0);
-      return 0;
+   if (!connected) {
+      if (persistent) {
+	 xsink->raiseException("PERSISTENCE-ERROR", "the current connection has been temporarily marked as persistent, but has been disconnected");
+	 return 0;
+      }
+
+      if (connect_unlocked(xsink)) {
+	 // if we have an info hash then write the request-uri key for reporting/logging purposes
+	 if (info)
+	    info->setKeyValue("request-uri", new QoreStringNodeMaker("%s %s HTTP/%s", meth, msgpath && msgpath[0] ? msgpath : "/", http11 ? "1.1" : "1.0"), 0);
+	 return 0;
+      }
    }
 
    // send the message
@@ -1323,6 +1345,10 @@ void QoreHttpClientObject::clearProxyUserPassword() {
    http_priv->clearProxyUserPassword();
 }
 
+void QoreHttpClientObject::setPersistent(ExceptionSink* xsink) {
+   return http_priv->setPersistent(xsink);
+}
+
 void QoreHttpClientObject::clearWarningQueue(ExceptionSink* xsink) {
    AutoLocker al(priv->m);
    priv->socket->clearWarningQueue(xsink);
@@ -1342,4 +1368,3 @@ void QoreHttpClientObject::clearStats() {
    AutoLocker al(priv->m);
    priv->socket->clearStats();
 }
-

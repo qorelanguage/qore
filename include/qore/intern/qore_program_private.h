@@ -342,7 +342,7 @@ public:
    std::string exec_class_name, script_dir, script_path, script_name, include_path;
 
    // thread-local data (could be inherited from another program)
-   qpgm_thread_local_storage_t *thread_local_storage;
+   qpgm_thread_local_storage_t* thread_local_storage;
 
    mutable QoreThreadLock tlock;  // thread variable data lock, for accessing the thread variable data map and the thr_init variable
    mutable QoreCondition tcond;   // cond variable for tclear to become false, used only with tlock
@@ -872,6 +872,16 @@ public:
 
    DLLLOCAL void del(ExceptionSink* xsink);
 
+   DLLLOCAL QoreHashNode* getThreadData() {
+      QoreHashNode* h = thread_local_storage->get();
+      if (!h) {
+         h = new QoreHashNode;
+         thread_local_storage->set(h);
+      }
+
+      return h;
+   }
+
    DLLLOCAL QoreHashNode* clearThreadData(ExceptionSink* xsink) {
       QoreHashNode* h = thread_local_storage->get();
       printd(5, "QoreProgram::clearThreadData() this=%p h=%p (size=%d)\n", this, h, h ? h->size() : 0);
@@ -1345,6 +1355,10 @@ public:
 
    DLLLOCAL void addUserFeature(const char* f) {
       userFeatureList.push_back(f);
+   }
+
+   DLLLOCAL static void clearThreadData(QoreProgram& pgm, ExceptionSink* xsink) {
+      pgm.priv->clearThreadData(xsink);
    }
 
    DLLLOCAL static void addUserFeature(QoreProgram& pgm, const char* f) {

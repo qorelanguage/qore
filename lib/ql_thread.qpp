@@ -25,6 +25,7 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/ql_thread.h>
+#include <qore/intern/qore_program_private.h>
 
 #include <pthread.h>
 
@@ -124,7 +125,7 @@ save_thread_data($h);
     @note This function does not throw any exceptions, however if a value is removed from the thread-local data hash by being overwritten with a new value, and the value is an object that goes out of scope, then such an object could throw an exception in its destructor
 */
 nothing save_thread_data(hash h) [dom=THREAD_CONTROL] {
-   QoreHashNode *data = getProgram()->getThreadData();
+   QoreHashNode* data = getProgram()->getThreadData();
    data->merge(h, xsink);
 }
 
@@ -140,7 +141,7 @@ save_thread_data("key1", $value);
     @note This function does not throw any exceptions, however if a value is removed from the thread-local data hash by being overwritten with a new value, and the value is an object that goes out of scope, then such an object could throw an exception in its destructor
 */
 nothing save_thread_data(string key, any value) [dom=THREAD_CONTROL] {
-   QoreHashNode *data = getProgram()->getThreadData();
+   QoreHashNode* data = getProgram()->getThreadData();
    data->setKeyValue(key, value ? value->refSelf() : 0, xsink);
 }
 
@@ -230,7 +231,7 @@ delete_all_thread_data();
     @note This function does not throw any exceptions, however if an object is deleted from the thread-local data hash, then it could throw an exception in its destructor
 */
 nothing delete_all_thread_data() [dom=THREAD_CONTROL] {
-   getProgram()->clearThreadData(xsink);
+   qore_program_private::clearThreadData(*getProgram(), xsink);
 }
 
 //! Returns the value of the thread-local data attached to the key passed
@@ -244,7 +245,10 @@ my any $data = get_thread_data("key1");
 */
 any get_thread_data(string key) [flags=CONSTANT;dom=THREAD_CONTROL,THREAD_INFO] {
    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
-   return tmp ? getProgram()->getThreadData()->getReferencedKeyValue(tmp->getBuffer()) : 0;
+   if (!tmp)
+      return 0;
+   const QoreHashNode* h = getProgram()->getThreadData();
+   return h->getReferencedKeyValue(tmp->getBuffer());
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -263,7 +267,8 @@ my hash $th = get_all_thread_data();
     @endcode
 */
 hash get_all_thread_data() [flags=CONSTANT;dom=THREAD_CONTROL,THREAD_INFO] {
-   return getProgram()->getThreadData()->copy();
+   const QoreHashNode* h = getProgram()->getThreadData();
+   return h->copy();
 }
 
 //! Returns a hash of call stacks keyed by each TID (thread ID)

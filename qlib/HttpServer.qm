@@ -126,6 +126,7 @@ log("started listener on %s", $lh.desc);
     - added the following classes to facilitate handling chunked requests and responses:
       - HttpServer::AbstractStreamRequestHandler
       - HttpServer::AbstractStreamRequest
+    - added support for persistent connections to a given handler to the HTTP server
 
     @subsection http037 HttpServer 0.3.7
     - fixed a bug in parsing arguments in @ref HttpServer::parse_uri_query() "parse_uri_query()"
@@ -2235,14 +2236,14 @@ public class HttpServer::HttpServer {
 	    );
 
         my AbstractHttpRequestHandler $handler;
+        # the dynamic handler helper maintains the request count for dynamic handlers so any call to remove the handler will only return after all in-progress requests are completed; the object is only allocated if needed
+        my DynamicHandlerHelper $dhh;
 
         if ($phi.handler) {
             $handler = $phi.handler;
         }
         else {
             # find a handler for the request
-            # the dynamic handler helper maintains the request count for dynamic handlers so any call to remove the handler will only return after all in-progress requests are completed; the object is only allocated if needed
-            my DynamicHandlerHelper $dhh;
             my *HandlerInfo $hi;
             my int $score;
             if (!$listener.handlers.empty()) {
@@ -2326,11 +2327,20 @@ public class HttpServer::HttpServer {
                     $body = AbstractHttpRequestHandler::decodeBody($hdr."content-encoding", $body, $handler.decompress_to_string ? $s.getEncoding() : NOTHING);
 
                 $rv = $handler.handleRequest($listener, $s, $cx, $hdr, $body);
+
+                # manage persistent handler info, if applicable
+                if (!$phi) {
+                    if ($handler.persistent)
+                        $phi.assign($dhh, $handler);
+                }
+                else if (!$handler.persistent)
+                    $phi.clear();
+
                 if ($rv.reply_sent)
                     continue;
             }
 
-            $.sendReply($listener, $s, $handler, $rv, $cx, $hdr, $head, $phi);
+            $.sendReply($listener, $s, $handler, $rv, $cx, $hdr, $head);
 	}
 	catch (hash $ex) {
             my string $desc = !$.debug
@@ -2357,7 +2367,7 @@ public class HttpServer::HttpServer {
 
     # sends a reply to a request
     # don't reimplement this method; fix/enhance it in the module
-    final sendReply(HttpListener $listener, Socket $s, AbstractHttpRequestHandler $handler, hash $rv, hash $cx, hash $hdr, bool $head, HttpPersistentHandlerInfo $phi) {
+    final sendReply(HttpListener $listener, Socket $s, AbstractHttpRequestHandler $handler, hash $rv, hash $cx, hash $hdr, bool $head) {
         if (exists $rv.close)
             $cx.close = boolean($rv.close);
 
@@ -2474,6 +2484,11 @@ class HttpServer::HttpPersistentHandlerInfo {
 
     destructor() {
         $.clear();
+    }
+
+    assign(DynamicHandlerHelper $dhh, AbstractHttpRequestHandler $handler) {
+        $.dhh = $dhh;
+        $.handler = $handler;
     }
 
     clear() {
@@ -2647,6 +2662,10 @@ public class HttpServer::HttpListener inherits Qore::Socket {
             "id": $.id,
             "bind": $.socket,
             );
+    }
+
+    addUserContext(hash $uctx) {
+        save_thread_data("uctx", get_thread_data("uctx") + $uctx);
     }
 
     stopNoWait() {
@@ -2926,8 +2945,10 @@ public class HttpServer::HttpListener inherits Qore::Socket {
                     $cx.close = True;
                     $.serv.sendHttpError($self, $cx, $s, 501, $err, NOTHING, $cx."response-encoding");
                 }
-                else
+                else {
+                    $cx.uctx = get_thread_data("uctx");
                     $.serv.handleRequest($self, $s, \$cx, $hdr, $hi, $body, $hdr.method == "HEAD", $phi);
+                }
 
                 if ($cx.close)
                     break;

@@ -604,7 +604,7 @@ void QoreProgram::replaceParseOptions(int64 po, ExceptionSink* xsink) {
 }
 
 QoreHashNode* QoreProgram::getThreadData() {
-   return priv->thread_local_storage->get();
+   return priv->getThreadData();
 }
 
 AbstractQoreNode* QoreProgram::run(ExceptionSink* xsink) {
@@ -613,10 +613,6 @@ AbstractQoreNode* QoreProgram::run(ExceptionSink* xsink) {
       return 0;
    }
    return runTopLevel(xsink);
-}
-
-QoreHashNode* QoreProgram::clearThreadData(ExceptionSink* xsink) {
-   return priv->clearThreadData(xsink);
 }
 
 void QoreProgram::parse(FILE *fp, const char* name, ExceptionSink* xsink, ExceptionSink* wS, int wm) {

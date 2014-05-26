@@ -586,7 +586,6 @@ public:
       to an AutoLock or SafeLocker object!
    */
    DLLLOCAL QoreThreadLock *getParseLock();
-   DLLLOCAL QoreHashNode* clearThreadData(ExceptionSink* xsink);
    DLLLOCAL const LVList* getTopLevelLVList() const;
 
    //! returns the script directory, if known (0 if not), does not grab the parse lock, only to be called while parsing

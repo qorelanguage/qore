@@ -1066,7 +1066,7 @@ my *string $path = $httpclient.getConnectionPath();
 //! Removes any warning @ref Qore::Thread::Queue "Queue" object from the Socket
 /** @par Example:
     @code
-$sock.clearWarningQueue();
+$httpclient.clearWarningQueue();
     @endcode
 
     @see HTTPClient::setWarningQueue()
@@ -1080,7 +1080,7 @@ nothing HTTPClient::clearWarningQueue() {
 //! Sets a @ref Qore::Thread::Queue "Queue" object to receive socket warnings
 /** @par Example:
     @code
-$sock.setWarningQueue(5000, 5000, $queue, "socket-1");
+$httpclient.setWarningQueue(5000, 5000, $queue, "socket-1");
     @endcode
 
     @param warning_ms the threshold in milliseconds for individual socket actions (send, receive, connect), if exceeded, a socket warning is placed on the warning queue with the following keys:
@@ -1121,7 +1121,7 @@ nothing HTTPClient::setWarningQueue(int warning_ms, int warning_bs, Queue[Queue]
 //! Returns performance statistics for the socket
 /** @par Example:
     @code
-my hash $h = $sock.getUsageInfo();
+my hash $h = $httpclient.getUsageInfo();
     @endcode
 
     @return a hash with the following keys:
@@ -1144,7 +1144,7 @@ hash HTTPClient::getUsageInfo() [flags=CONSTANT] {
 //! Clears performance statistics
 /** @par Example:
     @code
-$sock.clearStats();
+$httpclient.clearStats();
     @endcode
 
     @since Qore 0.8.9
@@ -1154,3 +1154,21 @@ $sock.clearStats();
 HTTPClient::clearStats() {
    client->clearStats();
 }
+
+//! temporarily disables implicit reconnections; must be called when the server is already connected                                              
+/** @par Example:
+    @code
+$httpclient.connect();
+$httpclient.setPersistent();
+    @endcode
+
+    The persistent flag is automatically reset to @ref Qore::False "False" whenever the connection is closed; it must be called manually for every connection to turn off implicit reconnections.
+
+    To turn off the persistent flag manually, call @ref HTTPClient::disconnect()
+
+    @since Qore 0.8.10
+ */
+HTTPClient::setPersistent() {
+   client->setPersistent(xsink);
+}
+
