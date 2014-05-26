@@ -100,6 +100,7 @@ module SqlUtil {
     - added static SqlUtil::AbstractSqlUtilBase::getDatasourceDesc() method
     - added new Table::insertFromSelect*() variants taking Table arguments
     - added SqlUtil::Table::checkExistence() method
+    - added support for the \c forupdate @ref select_option_hash "select option"
 
     @subsection sqlutilv1_1 SqlUtil v1.1
     - implemented new upsert strategy @ref SqlUtil::AbstractTable::UpsertInsertOnly
@@ -289,6 +290,7 @@ my hash $soh = (
     - @ref select_option_groupby "groupby": (@ref list_type "list of strings") specifies grouping for aggregate column functions
     - @ref select_option_having "having": (@ref hash_type "hash") specifies filtering for results with aggregate column functions
     - @ref select_option_superquery "superquery": (@ref hash_type "hash") specifies that the rest of the argument belong to a subquery and the hash arguments under this key will select from the subquery
+    - @ref select_option_forupdate "forupdate": (@ref bool_type "bool") adds a \c "for update" clause to a select query
 
     @anchor select_option_comment
     @par Select Option "comment"
@@ -455,6 +457,21 @@ my *list $rows = $table.vselectRows("select serviceid,service_methodid from (sel
     @endcode
     @note that MySQL does not support SQL windowing functions so the above example would fail on MySQL.
 
+    @anchor select_option_forupdate
+    @par Select Option "forupdate"
+    <b>For Update Example:</b>
+    @code
+on_success $ds.commit();
+on_error $ds.rollback();
+
+my *list $rows = $table.selectRows("columns": ("serviceid", "service_methodid"), "forupdate": True);
+    @endcode 
+    \n The \c "forupdate" option allows for the rows selected to be locked for updating; the release the locks, call commit() or rollback() on the underlying datasource object.
+  The above example results in an SQL commit equivalent to the following:
+    @code
+my *list $rows = $table.vselectRows("select serviceid,service_methodid from schema.service_methods for update");
+    @endcode
+    
     @subsection sql_paging Select With Paging
 
     There is support for paging query results in the following methods:
@@ -8868,7 +8885,9 @@ my *hash $h = $table.selectRow($sh);
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
             @throw DBI-SELECT-ROW-ERROR more than 1 row retrieved from the server
 
-            @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            @note
+            - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
          */
         *hash selectRow(*hash sh, *reference sql) {
             return t.selectRow(sh, \sql);
@@ -8888,7 +8907,9 @@ my *list $l = $table.selectRows($sh);
             @throw OPTION-ERROR invalid or unsupported select option
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
 
-            @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            @note
+            - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
          */
         *list selectRows(*hash sh, *reference sql) {
             return t.selectRows(sh, \sql);
@@ -8908,7 +8929,9 @@ my *hash $h = $table.select($sh);
             @throw OPTION-ERROR invalid or unsupported select option
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
 
-            @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            @note
+            - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
          */
         *hash select(*hash sh, *reference sql) {
             return t.select(sh, \sql);
@@ -8929,7 +8952,9 @@ my *hash $h = $table.selectRow($sh);
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
             @throw DBI-SELECT-ROW-ERROR more than 1 row retrieved from the server
 
-            @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            @note
+            - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
          */
         *hash selectRow(*hash sh, *hash opt) {
             return t.selectRow(sh, opt);
@@ -8949,7 +8974,9 @@ my *list $l = $table.selectRows($sh);
             @throw OPTION-ERROR invalid or unsupported select option
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
 
-            @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            @note
+            - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
          */
         *list selectRows(*hash sh, *hash opt) {
             return t.selectRows(sh, opt);
@@ -8969,7 +8996,9 @@ my *hash $h = $table.select($sh);
             @throw OPTION-ERROR invalid or unsupported select option
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
 
-            @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            @note
+            - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
          */
         *hash select(*hash sh, *hash opt) {
             return t.select(sh, opt);
@@ -9662,6 +9691,7 @@ my Triggers $trig = $table.getTriggers();
                 - @ref select_option_groupby "groupby": specifies grouping for aggregate column functions
                 - @ref select_option_having "having": specifies filtering for results with aggregate column functions
                 - @ref select_option_superquery "superquery": specifies that the rest of the argument belong to a subquery and the hash arguments under this key will select from the subquery
+                - @ref select_option_forupdate "forupdate": allows for the rows selected to be locked for updating
              */
             const SelectOptions = (
                 "comment": Type::String,
@@ -9676,6 +9706,7 @@ my Triggers $trig = $table.getTriggers();
                 "groupby": "softstringhashlist",
                 "having": Type::Hash,
                 "superquery": Type::Hash,
+                "forupdate": Type::Boolean,
                 );
 
             #! alignment omission options
@@ -13114,14 +13145,25 @@ my *hash $h = $table.selectRow($sh);
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
             @throw DBI-SELECT-ROW-ERROR more than 1 row retrieved from the server
 
-            @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            @note
+            - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
          */
         *hash selectRow(*hash sh, *reference sql) {
-            validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
+            validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);       
 
             list args;
             sql = getSelectSqlUnlocked(sh, \args);
             
+            bool rollback_on_error = False;
+            if (sh.forupdate) {
+                rollback_on_error = !ds.currentThreadInTransaction();
+                if (rollback_on_error)
+                    ds.beginTransaction();
+            }
+            on_error if (rollback_on_error)
+                ds.rollback();
+
             return ds.vselectRow(sql, args);
         }
 
@@ -13139,13 +13181,25 @@ my *list $l = $table.selectRows($sh);
             @throw OPTION-ERROR invalid or unsupported select option
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
 
-            @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            @note
+            - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
          */
         *list selectRows(*hash sh, *reference sql) {
             validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
 
             list args;
             sql = getSelectSqlUnlocked(sh, \args);
+
+            bool rollback_on_error = False;
+            if (sh.forupdate) {
+                rollback_on_error = !ds.currentThreadInTransaction();
+                if (rollback_on_error)
+                    ds.beginTransaction();
+            }
+            on_error if (rollback_on_error)
+                ds.rollback();
+
             return ds.vselectRows(sql, args);
         }
 
@@ -13163,13 +13217,24 @@ my *hash $h = $table.select($sh);
             @throw OPTION-ERROR invalid or unsupported select option
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
 
-            @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            @note
+            - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
          */
         *hash select(*hash sh, *reference sql) {
             validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
 
             list args;
             sql = getSelectSqlUnlocked(sh, \args);
+
+            bool rollback_on_error = False;
+            if (sh.forupdate) {
+                rollback_on_error = !ds.currentThreadInTransaction();
+                if (rollback_on_error)
+                    ds.beginTransaction();
+            }
+            on_error if (rollback_on_error)
+                ds.rollback();
 
             return ds.vselect(sql, args);
         }
@@ -13189,7 +13254,9 @@ my *hash $h = $table.selectRow($sh);
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
             @throw DBI-SELECT-ROW-ERROR more than 1 row retrieved from the server
 
-            @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            @note
+            - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
          */
         *hash selectRow(*hash sh, *hash opt) {
             validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
@@ -13198,10 +13265,19 @@ my *hash $h = $table.selectRow($sh);
 
             list args;
             string sql = getSelectSqlUnlocked(sh, \args);
-            
+
             if (opt.sqlarg_callback)
                 opt.sqlarg_callback(sql, args);
 
+            bool rollback_on_error = False;
+            if (sh.forupdate) {
+                rollback_on_error = !ds.currentThreadInTransaction();
+                if (rollback_on_error)
+                    ds.beginTransaction();
+            }
+            on_error if (rollback_on_error)
+                ds.rollback();
+            
             return ds.vselectRow(sql, args);
         }
 
@@ -13219,7 +13295,9 @@ my *list $l = $table.selectRows($sh);
             @throw OPTION-ERROR invalid or unsupported select option
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
 
-            @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            @note
+            - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
          */
         *list selectRows(*hash sh, *hash opt) {
             validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
@@ -13231,6 +13309,15 @@ my *list $l = $table.selectRows($sh);
 
             if (opt.sqlarg_callback)
                 opt.sqlarg_callback(sql, args);
+
+            bool rollback_on_error = False;
+            if (sh.forupdate) {
+                rollback_on_error = !ds.currentThreadInTransaction();
+                if (rollback_on_error)
+                    ds.beginTransaction();
+            }
+            on_error if (rollback_on_error)
+                ds.rollback();
 
             return ds.vselectRows(sql, args);
         }
@@ -13249,7 +13336,9 @@ my *hash $h = $table.select($sh);
             @throw OPTION-ERROR invalid or unsupported select option
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
 
-            @note if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            @note
+            - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
          */
         *hash select(*hash sh, *hash opt) {
             validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
@@ -13262,6 +13351,15 @@ my *hash $h = $table.select($sh);
             if (opt.sqlarg_callback)
                 opt.sqlarg_callback(sql, args);
 
+            bool rollback_on_error = False;
+            if (sh.forupdate) {
+                rollback_on_error = !ds.currentThreadInTransaction();
+                if (rollback_on_error)
+                    ds.beginTransaction();
+            }
+            on_error if (rollback_on_error)
+                ds.rollback();
+            
             return ds.vselect(sql, args);
         }
 
@@ -13535,6 +13633,9 @@ my string $sql = $table.getSelectSql($sh, \$args);
 
             #printf("SQL: %s\nargs: %y\n", sql, args);
 
+            if (qh.forupdate && !qh.superquery)
+                doForUpdate(\sql);
+
             if (qh.superquery) {
                 validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \qh.superquery);
 
@@ -13542,6 +13643,10 @@ my string $sql = $table.getSelectSql($sh, \$args);
             }
 
             return sql;
+        }
+
+        private doForUpdate(reference sql) {
+            sql += " for update";
         }
 
         private string getSelectSqlName(*hash qh) {

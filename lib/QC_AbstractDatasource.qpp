@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,6 +21,8 @@
 */
 
 #include <qore/Qore.h>
+
+class AbstractDatasource {};
 
 //! This class defines an abstract interface for database access, inherited by both the Datasource and DatasourcePool classes
 /**
@@ -387,3 +389,15 @@ my string $str = $ds.getConfigString();
     @since %Qore 0.8.8
  */
 abstract string AbstractDatasource::getConfigString();
+
+//! Should return @ref Qore::True "True" if the current thread is in a transaction with this object, must be re-implemented in subclasses to provide the desired functionality
+/** @note 
+    - this is reimplemented as @ref Qore::SQL::Datasource::currentThreadInTransaction() "Datasource::currentThreadInTransaction()" and @ref Qore::SQL::DatasourcePool::currentThreadInTransaction() "DatasourcePool::currentThreadInTransaction()"
+    - this method was added as a non-abstract method in Qore 0.8.10 to avoid breaking existing subclasses of AbstractDatasource
+
+    @since Qore 0.8.10
+ */
+bool AbstractDatasource::currentThreadInTransaction() {
+   xsink->raiseException("ABSTRACT-DATASOURCE-ERROR", "This method must be re-implemented in subclasses to provide the desired functionality; it is implemented in Datasource and DatasourcePool for example");
+   return false;
+}
