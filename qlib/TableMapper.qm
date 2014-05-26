@@ -22,8 +22,8 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.9 or better
-%requires qore >= 0.8.9
+# this module requires Qore 0.8.10 or better
+%requires qore >= 0.8.10
 
 # require type definitions everywhere
 %require-types

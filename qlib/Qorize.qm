@@ -22,7 +22,8 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%requires qore >= 0.8.8
+# minimum qore version
+%requires qore >= 0.8.10
 
 module Qorize {
     version = "0.0.9";

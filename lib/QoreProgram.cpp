@@ -115,6 +115,9 @@ void qore_program_private_base::newProgram() {
    dmap["Unix"] = &True;
 #endif
 
+   if (pwo.parse_options & PO_IN_MODULE)
+      dmap["QoreHasUserModuleLicense"] = &True;
+
    QoreNamespace *ns = QoreNS->findLocalNamespace("Option");
    assert(ns);
    ConstantListIterator cli(qore_ns_private::getConstantList(ns));

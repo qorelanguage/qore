@@ -281,7 +281,7 @@ public:
 typedef std::map<ThreadProgramData*, ThreadLocalProgramData*> pgm_data_map_t;
 
 // map for "defines" in programs
-typedef std::map<std::string, AbstractQoreNode* > dmap_t;
+typedef std::map<std::string, AbstractQoreNode*> dmap_t;
 
 // map for pushed parse options
 typedef std::map<const char*, int64, ltstr> ppo_t;
