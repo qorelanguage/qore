@@ -466,7 +466,7 @@ on_error $ds.rollback();
 
 my *list $rows = $table.selectRows("columns": ("serviceid", "service_methodid"), "forupdate": True);
     @endcode 
-    \n The \c "forupdate" option allows for the rows selected to be locked for updating; the release the locks, call commit() or rollback() on the underlying datasource object.
+    \n The \c "forupdate" option allows for the rows selected to be locked for updating; to release the locks, call commit() or rollback() on the underlying datasource object.
   The above example results in an SQL commit equivalent to the following:
     @code
 my *list $rows = $table.vselectRows("select serviceid,service_methodid from schema.service_methods for update");
