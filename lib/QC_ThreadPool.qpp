@@ -173,7 +173,7 @@ void ThreadPool::worker(ExceptionSink* xsink) {
    // cancel tasks if any
    for (taskq_t::iterator i = q.begin(), e = q.end(); i != e; ++i) {
       (*i)->cancel(xsink);
-      delete *i;
+      (*i)->del(xsink);
    }
 
 #ifdef DEBUG
