@@ -2570,16 +2570,16 @@ struct qore_socket_private {
 	 if (flags & CHF_PROCESS) {
 	    if (!strcmp(buf, "connection")) {
 	       if (flags & CHF_HTTP11) {
-		  if (strstr(t, "close"))
+		  if (strcasestr(t, "close"))
 		     close = true;
 	       }
 	       else {
-		  if (strstr(t, "Keep-Alive"))
+		  if (strcasestr(t, "keep-alive"))
 		     close = false;
 	       }
 	    }
 	    else if (!strcmp(buf, "content-type")) {
-	       char* a = strstr(t, "charset=");
+	       char* a = strcasestr(t, "charset=");
 	       if (a) {
 		  // find end
 		  char* e = strchr(a + 8, ';');
@@ -2627,7 +2627,7 @@ struct qore_socket_private {
 		  info->setKeyValue("body-content-type", val->refSelf(), 0);
 	       }
 	    }
-            else if (chunked && !strcmp(buf, "transfer-encoding") && !strcmp(t, "chunked")) {
+            else if (chunked && !strcmp(buf, "transfer-encoding") && !strcasecmp(t, "chunked")) {
                *chunked = true;
             }
 	    else if (info) {

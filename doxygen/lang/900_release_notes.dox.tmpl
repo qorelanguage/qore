@@ -67,6 +67,7 @@
     - fixed schema information classes when the "string-numbers" driver option is enabled
     - fixed crashing bugs in @ref Qore::get_thread_data() in certain use cases
     - fixed a bug in <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> where select and row iterator operations could fail with certain select hash arguments without a \c "columns" entry but where column names were otherwise required
+    - fixed a bug in HTTP response parsing where case-signficant comparisons where being made with certain critical header values
 
     @section qore_089 Qore 0.8.9
 
