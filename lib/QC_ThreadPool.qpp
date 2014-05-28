@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -36,7 +36,7 @@ ThreadPoolThread::ThreadPoolThread(ThreadPool& n_tp, ExceptionSink* xsink) : tp(
 void ThreadPoolThread::worker(ExceptionSink* xsink) {
    SafeLocker sl(m);
       
-   while (!stopflag) {
+   while (!stopflag || task) {
       if (!task) {
          //printd(5, "ThreadPoolThread::worker() id %d about to wait stopflag: %d task: %p\n", id, stopflag, task);
          c.wait(m);
