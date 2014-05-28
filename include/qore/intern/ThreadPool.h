@@ -347,19 +347,21 @@ public:
    DLLLOCAL int done(ThreadPoolThread* tpt) {
       {
 	 AutoLocker al(m);
-	 if (!stopped && !confirm) {
+         // allow the thread to be removed from the active list by ThreadPool::worker() to avoid race conditions
+         if (stopflag)
+            return 0;
+
+	 if (!confirm) {
 	    tplist_t::iterator i = tpt->getPos();
 	    ah.erase(i);
 	    
-	    if (!stopflag) {
-	       // requeue thread if possible
-	       if ((!maxidle && release_ms) || ((int)fh.size() < maxidle) || q.size() > fh.size()) {
-		  fh.push_back(tpt);
-		  if (waiting || (release_ms && (int)fh.size() > minidle))
-		     cond.signal();
-		  return 0;
-	       }
-	    }
+            // requeue thread if possible
+            if ((!maxidle && release_ms) || ((int)fh.size() < maxidle) || q.size() > fh.size()) {
+               fh.push_back(tpt);
+               if (waiting || (release_ms && (int)fh.size() > minidle))
+                  cond.signal();
+               return 0;
+            }
 	 }
       }
 

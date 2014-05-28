@@ -94,13 +94,12 @@ ThreadPool::ThreadPool(ExceptionSink* xsink, int n_max, int n_minidle, int n_max
 void ThreadPool::worker(ExceptionSink* xsink) {
    SafeLocker sl(m);
 
-   if (minidle)
-      for (int i = 0; i < minidle; ++i) {
-         if (addIdleWorker(xsink)) {
-            xsink->handleExceptions();
-            break;
-         }
+   for (int i = 0; i < minidle; ++i) {
+      if (addIdleWorker(xsink)) {
+         xsink->handleExceptions();
+         break;
       }
+   }
 
    while (!stopflag) {
       if (q.empty()) {
@@ -143,22 +142,24 @@ void ThreadPool::worker(ExceptionSink* xsink) {
    for (tplist_t::iterator i = fh.begin(), e = fh.end(); i != e; ++i)
       (*i)->stop();
 
+
+   sl.unlock();
+
    // terminate all worker threads
    if (confirm) {
       for (tplist_t::iterator i = ah.begin(), e = ah.end(); i != e; ++i)
          (*i)->stopWait();
 
-      sl.unlock();
-
       for (tplist_t::iterator i = ah.begin(), e = ah.end(); i != e; ++i)
          (*i)->stopConfirm(xsink);
 
-      sl.lock();
    }
    else {
       for (tplist_t::iterator i = ah.begin(), e = ah.end(); i != e; ++i)
          (*i)->stop();
    }
+
+   sl.lock();
 
 #ifdef DEBUG
    ah.clear();

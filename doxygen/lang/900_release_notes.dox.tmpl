@@ -69,6 +69,7 @@
     - fixed a bug in <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> where select and row iterator operations could fail with certain select hash arguments without a \c "columns" entry but where column names were otherwise required
     - fixed a bug in HTTP response parsing where case-signficant comparisons where being made with certain critical header values
     - fixed a bug handling thread cancellation with the @ref Qore::Thread::ThreadPool "ThreadPool" class
+    - fixed several race conditions and potential deadlocks in @ref Qore::Thread::ThreadPool "ThreadPool" destruction with active threads in the pool
 
     @section qore_089 Qore 0.8.9
 
