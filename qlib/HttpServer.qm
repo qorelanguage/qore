@@ -2664,7 +2664,14 @@ public class HttpServer::HttpListener inherits Qore::Socket {
             );
     }
 
-    addUserContext(hash $uctx) {
+    any removeUserThreadContext(string $k) {
+        my *hash $h = get_thread_data("uctx");
+        my any $rv = remove $h.$k;
+        save_thread_data("uctx", $h);
+        return $rv;
+    }
+
+    addUserThreadContext(hash $uctx) {
         save_thread_data("uctx", get_thread_data("uctx") + $uctx);
     }
 

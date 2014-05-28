@@ -66,6 +66,7 @@
     - fixed a memory and reference leak caused by recursive references when closures encapsulating an object's scope are assigned to or accessible from members of the object by making references to the object from within a closure encapsulating the object's state weak references instead of strong references
     - fixed schema information classes when the "string-numbers" driver option is enabled
     - fixed crashing bugs in @ref Qore::get_thread_data() in certain use cases
+    - fixed a bug in <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> where select and row iterator operations could fail with certain select hash arguments without a \c "columns" entry but where column names were otherwise required
 
     @section qore_089 Qore 0.8.9
 

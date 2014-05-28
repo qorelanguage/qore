@@ -314,6 +314,9 @@ public namespace RestHandler {
         private {
             #! call argument hash
             hash $.ah;
+
+            #! headers to add in the response
+            hash $.rhdr;
         }
 
         #! creates the object with the given arguments
@@ -332,6 +335,23 @@ public namespace RestHandler {
         */
         constructor(hash $cx, *hash $ah) : AbstractStreamRequestHandler($cx) {
             $.ah = $ah;
+        }
+
+        #! this method returns the response message description hash by calling getResponseHeaderMessageImpl()
+        /**
+            @return a hash with the following keys:
+            - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
+            - \c "body": the message body to return in the response; if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and sendImpl() are not called
+            - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
+            - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
+
+            @note this method is called after the message body has been received
+        */
+        hash getResponseHeaderMessage() {
+            my hash $h = AbstractStreamRequestHandler::$.getResponseHeaderMessage();
+            if ($h.code >= 200 && $h.code <= 300 && $.rhdr)
+                $h.hdr += $.rhdr;
+            return $h;
         }
     }
 

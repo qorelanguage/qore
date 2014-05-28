@@ -101,6 +101,8 @@ module SqlUtil {
     - added new Table::insertFromSelect*() variants taking Table arguments
     - added SqlUtil::Table::checkExistence() method
     - added support for the \c forupdate @ref select_option_hash "select option"
+    - fixed a bug in schema management where excessively verbose column aliases were used that caused errors when automatically updating columns with existing rows and new default values and non-null contraints with PostgreSQL databases
+    - fixed a bug where select and row iterator operations could fail with certain select hash arguments without a \c "columns" entry but where column names were otherwise required
 
     @subsection sqlutilv1_1 SqlUtil v1.1
     - implemented new upsert strategy @ref SqlUtil::AbstractTable::UpsertInsertOnly
@@ -13438,11 +13440,11 @@ my string $sql = $table.getSelectSql($sh, \$args);
             # if we have a "superquery" argument, then we need to track which columns are in this subquery
             hash mch;
 
+            getColumnsUnlocked();
+
             string cstr;
             # make query
             if (qh.columns) {
-                getColumnsUnlocked();
-
                 # column expressions
                 list ce = ();
                 foreach any cv in (qh.columns) {
