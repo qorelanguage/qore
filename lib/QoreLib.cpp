@@ -1752,3 +1752,23 @@ int64 q_clock_getnanos() {
    int64 seconds = q_epoch_ns(ns);
    return seconds * 1000000000ll + ns;
 }
+
+#ifndef HAVE_STRCASESTR
+#ifdef HAVE_STRNCASECMP
+char* strcasestr(const char* s1, const char* s2) {
+   if (!s2 || !s1) return 0;
+
+   size_t len1 = strlen(s1);
+   size_t len2 = strlen(s2);
+ 
+   for (size_t i = 0; i <= (len1 - len2); ++i) {
+      if (!strncasecmp(s2, s1 + i, len2)) {
+	 return ((char*)s1 + i);
+      }
+   }
+
+   return 0;
+}
+#else
+#error no strcasestr implementation
+#endif
