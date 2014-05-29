@@ -1772,3 +1772,4 @@ char* strcasestr(const char* s1, const char* s2) {
 #else
 #error no strcasestr implementation
 #endif
+#endif
