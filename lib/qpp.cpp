@@ -719,6 +719,7 @@ static void add_init_code(FILE* fp) {
 #define T_RELDATE    7
 #define T_QORE       8
 #define T_OTHER      9
+#define T_CSTRING   10
 static int get_val_type(const std::string &str) {
    if (!str.empty()) {
       size_t lc = str.size() - 1;
@@ -735,6 +736,8 @@ static int get_val_type(const std::string &str) {
          std::string ns(str, i + 1);
          return get_val_type(ns);
       }
+      if (!str.compare(0, 4, "str(") && str[lc] == ')')
+         return T_CSTRING;
       if (!str.compare(0, 5, "bool(") && str[lc] == ')')
          return T_BOOL;
       if (!str.compare(0, 5, "qore(") && str[lc] == ')')
@@ -867,6 +870,12 @@ static int get_qore_value(const std::string &qv, std::string &v, const char *cna
       case T_STRING: {
          v = "new QoreStringNode(";
          v += qv;
+         v += ")";
+         return 0;
+      }
+      case T_CSTRING: {
+         v = "new QoreStringNode(";
+         v.append(qv, 4, qv.size() - 5);
          v += ")";
          return 0;
       }

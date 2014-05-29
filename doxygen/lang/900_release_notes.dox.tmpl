@@ -39,6 +39,10 @@
     - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> updates:
       - fixed selects with "limit" but no "offset"
       - convert date/time values to timestamps with microseconds resolution instead of dates with second resolution when dynamically inserting values as strings in SQL (binding by value not affected)
+    - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module updates:
+      - added the \c "write-headers" option to @ref CsvUtil::AbstractCsvWriter and subclasses to enable headers to be suppressed
+      - added the \c "optimal-quotes" option to @ref CsvUtil::AbstractCsvWriter and subclasses to enable more efficient csv output
+    
     - added @ref Qore::SQL::AbstractDatasource::currentThreadInTransaction() "AbstractDatasource::currentThreadInTransaction()" which is reimplemented as @ref Qore::SQL::Datasource::currentThreadInTransaction() "Datasource::currentThreadInTransaction()" and @ref Qore::SQL::DatasourcePool::currentThreadInTransaction() "DatasourcePool::currentThreadInTransaction()"; the base class method throws an exception when called; it was not added as an abstract method in order to not break existing subclasses of AbstractDatasource
     - enhanced module license support
       - module license strings may now be specified in binary and user modules

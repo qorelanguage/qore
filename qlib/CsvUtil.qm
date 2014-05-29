@@ -26,42 +26,19 @@
 %requires qore >= 0.8.10
 
 module CsvUtil {
-    version = "1.2";
+    version = "1.3";
     desc = "user module for working with CSV files";
     author = "Petr Vanek <petr@yarpen.cz>, David Nichols <david@qore.org>";
     url = "http://qore.org";
     license = "MIT";
 }
 
-/*  Version History
-    * 2014-01-31 v1.2: David Nichols <david@qore.org>
-      + fixed CsvDataIterator::next() when header_lines > 0 and working with empty input data
-
-    * 2013-10-21 v1.2: David Nichols <david@qore.org>
-      + implemented support for the "*int", "*float", "*number", and "*date" types
-      + implemented support for allowing subclasses of CsvFileIterator to implement support for other custom types
-      + fixed "date" type handling with empty input; now returns 1970-01-01 (use "*date" to map empty input to NOTHING)
-
-    * 2013-10-09 v1.2: Petr Vanek <petr.vanek@qoretechnologies.com>
-      + CsvStringWriter addon
-      + AbstractCsvWriter addon
-
-    * 2013-09-29 v1.2: David Nichols <david@qore.org>: 
-      + if "headers" are not given in the CsvUtil::CsvFileIterator::constructor() but "fields" are, then set the headers from the field descriptions automatically
-
-    * 2013-06-28 v1.2: Petr Vanek <petr.vanek@qoretechnologies.com>
-      + CsvFileWriter addon
-
-    * 2013-05-15 v1.1: David Nichols <david@qore.org>: 
-      + bug fixes to header and fields option processing
-      + fixed CsvUtil::CsvFileIterator::index() to return the line index
-      + added CsvUtil::CsvFileIterator::lineNumber() to return the current line number in the file
-
-    * 2012-10-13 v1.0: David Nichols <david@qore.org>: 
-      + initial version of module
+/* see release notes below for version history
 */
 
 /** @mainpage CsvUtil Module
+
+    @tableofcontents
 
     @section csvutilintro Introduction to the CsvUtil Module
 
@@ -136,6 +113,28 @@ while (i.next())
     @endverbatim
 
     Use the \c "header-lines" and \c "header-names" @ref csvabstractiterator_options "options" to automatically read the header names from the file if present.  Use the \c "fields" @ref csvabstractiterator_options "option" to describe the fields and perform transformations on the data read.  For more information, see the @ref CsvUtil::CsvFileIterator "CsvFileIterator" class.
+
+    @section csvutil_relnotes Release Notes
+
+    @subsection csvutil_v1_3 Version 1.3
+    - added the \c "write-headers" option to @ref CsvUtil::AbstractCsvWriter and subclasses to enable headers to be suppressed
+    - added the \c "optimal-quotes" option to @ref CsvUtil::AbstractCsvWriter and subclasses to enable more efficient csv output
+
+    @subsection csvutil_v1_2 Version 1.2
+    - fixed @ref CsvUtil::CsvDataIterator::next() when header_lines > 0 and working with empty input data
+    - implemented support for the \c "*int", \c "*float", \c "*number", and \c "*date" types
+    - implemented support for allowing subclasses of @ref CsvUtil::CsvFileIterator to implement support for other custom types
+    - fixed \c "date" type handling with empty input; now returns 1970-01-01 (use "*date" to map empty input to NOTHING)
+    - added the @ref CsvUtil::CsvStringWriter, @ref CsvUtil::AbstractCsvWriter, and @ref CsvUtil::CsvFileWriter classes
+    - if "headers" are not given in the @ref CsvUtil::CsvFileIterator::constructor() but "fields" are, then set the headers from the field descriptions automatically
+
+    @subsection csvutil_v1_1 Version 1.1
+    - bug fixes to header and fields option processing
+    - fixed @ref CsvUtil::CsvFileIterator::index() to return the line index
+    - added @ref CsvUtil::CsvFileIterator::lineNumber() to return the current line number in the file
+
+    @subsection csvutil_v1_0 Version 1.0
+    - initial version of module
 */
 
 # private class used to iterate a list and skip elements without any value
@@ -868,7 +867,8 @@ while ($i.next()) {
     |\c "headers"|@ref list of strings|list of header / column names for the data iterated
     |\c "verify-columns"|@ref boolean|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different column count than other lines, a \c CSVFILEWRITER-DATA-ERROR exception is thrown
     |\c "date-format"|@ref string|the default mask for date values formatting
-
+    |\c "write-headers"|@ref bool|set to @ref Qore::False "False" to suppress the output of headers; the default is @ref Qore::True "True", meaning to output headers if they are present
+    |\c "optimal-quotes"|@ref bool|set to @ref Qore::True "True" to enable optimal quoting, where fields are quoted only if necessary; the default is @ref Qore::False "False" where all fields are quoted regardless of type or content
      */
     public class AbstractCsvWriter inherits private CsvHelper {
         private {
@@ -882,6 +882,8 @@ while ($i.next()) {
                 "fields": True,
                 "headers": True,
                 "date-format": True,
+                "write-headers": True,
+                "optimal-quotes": True,
                 );
         }
 
@@ -920,6 +922,12 @@ while ($i.next()) {
             string $.baseTemplate;
             
             string $.errname;
+
+            # this flag determines if any stored headers are output
+            bool $.write_headers = True;
+
+            # stores the optimal quotes option
+            bool $.optimal_quotes = False;
         }
 
         #! creates the AbstractCsvWriter
@@ -980,6 +988,14 @@ while ($i.next()) {
                                 throw $.errname, sprintf("expecting a string value or a value that can be converted to a string for option %y; got %y (type %s) in header list position %d instead (full arg: %y)", $i.key, $c, $c.type(), $#, $i.value);
                             }
                         }
+                        break;
+                    }
+                    case "write-headers": {
+                        $.write_headers = parse_boolean($i.value);
+                        break;
+                    }
+                    case "optimal-quotes": {
+                        $.optimal_quotes = parse_boolean($i.value);
                         break;
                     }
                     case "fields": {
@@ -1132,7 +1148,7 @@ while ($i.next()) {
          */
         writeLine(hash $values) {
             my list $line;
-            if (!exists $.headers)
+            if (!$.headers)
                 throw $.errname, "No header set in AbstractCsvWriter instance to bind the hash key";
             
             foreach my string $i in ($.headers) {
@@ -1178,12 +1194,28 @@ while ($i.next()) {
             @return string a formatted and escaped line with EOF
         */
         private string prepareRawLine(list $values) {
-            # make full line template
-            my string $template = strmul($.baseTemplate, elements $values, 1) + $.eol;
-            # escape separators in strings
-            my list $row = map replace(string($1), $.quote, "\\" + $.quote), $values;
+            if (!$.optimal_quotes) {
+                # make full line template
+                my string $template = strmul($.baseTemplate, elements $values, 1) + $.eol;
+                # escape separators in strings
+                my list $row = map replace(string($1), $.quote, "\\" + $.quote), $values;
 
-            return vsprintf($template, $row);
+                return vsprintf($template, $row);
+            }
+
+            my list $l = ();
+            foreach my any $v in ($values) {
+                if ($v.typeCode() == NT_STRING) {
+                    if ($v.find($.quote) >= 0) {
+                        $v = replace($v, $.quote, "\\" + $.quote);
+                        $v = sprintf("\"%s\"", $v);
+                    }
+                    else if ($v.find($.separator) >= 0)
+                        $v = sprintf("\"%s\"", $v);
+                }
+                $l += $v;
+            }
+            return (foldl $1 + $.separator + $2, $l) + $.eol;
         }
 
         #! format date to string by options. Priority: 1) column definition 2) standard format
@@ -1217,7 +1249,7 @@ while ($i.next()) {
             $.file = new File($.encoding);
             $.file.open2($path, O_CREAT | O_TRUNC | O_WRONLY, 0644);
 
-            if (exists $.headers)
+            if ($.headers && $.write_headers)
                 $.writeRawLine($.headers);
         }
 
@@ -1242,7 +1274,7 @@ while ($i.next()) {
         @throw CSVSTRINGITER-ERROR in the case of incorrect options
         */
         constructor(*hash $opts) : AbstractCsvWriter("STRING", $opts) {
-            if (exists $.headers)
+            if ($.headers && $.write_headers)
                 $.writeRawLine($.headers);
         }
 
