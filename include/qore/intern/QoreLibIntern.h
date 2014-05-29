@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -80,6 +80,10 @@
 #endif
 #ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
+#endif
+
+#ifndef HAVE_STRCASESTR
+extern char* strcasestr(const char* s1, const char* s2);
 #endif
 
 // make sure that intmax support is available from mpfr
