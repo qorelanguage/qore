@@ -30,6 +30,13 @@ set(QORE_EXECUTABLE @myprefix@/bin/qore)
 set(QORE_QPP_EXECUTABLE @myprefix@/bin/qpp)
 
 
+# warning: the same prefix for current qore is ised if there is no
+# CMAKE_INSTALL_PREFIX given
+if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set(CMAKE_INSTALL_PREFIX @myprefix@)
+    message(STATUS "Using detected CMAKE_INSTALL_PREFIX: @myprefix@")
+endif (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+
 
 # some system (rpm builds) setup LIB_SUFFIX for cmake. If there is no set, try to get it from system
 IF (NOT DEFINED LIB_SUFFIX AND NOT DEFINED LIB_SUFFIX_ALREADY_SET)
