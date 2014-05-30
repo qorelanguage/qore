@@ -1,3 +1,851 @@
+2014-05-30 09:35  subik
+
+	* cmake/QoreConfig.cmake.in: cmake modules: use
+	  CMAKE_INSTALL_PREFIX based on qore location if there is no
+	  CMAKE_INSTALL_PREFIX set by user
+
+2014-05-29 16:08  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/CsvUtil.qm: set the
+	  "optimal-quotes" option by default when outputting csv data
+
+2014-05-29 15:00  david_nichols
+
+	* lib/QoreLib.cpp: more efficient implementation of local
+	  strcasestr()
+
+2014-05-29 14:57  david_nichols
+
+	* include/qore/intern/QoreLibIntern.h: added a prototype in an
+	  internal header for strcasestr() when the local implementation is
+	  needed
+
+2014-05-29 14:53  david_nichols
+
+	* configure.ac, include/qore/intern/qore_socket_private.h,
+	  lib/QoreLib.cpp: added strcasestr tests and fixed typo in last
+	  commit
+
+2014-05-29 14:52  david_nichols
+
+	* lib/QoreLib.cpp: added strcasestr for platforms without it (ex:
+	  windows)
+
+2014-05-29 14:36  david_nichols
+
+	* doxygen/lang/120_modules.dox.tmpl: doc updates
+
+2014-05-29 13:59  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/qpp.cpp,
+	  qlib/CsvUtil.qm: CsvUtil updates:
+	  - added the "write-headers" option to AbstractCsvWriter and
+	  subclasses to enable headers to be suppressed
+	  - added the "optimal-quotes" option to AbstractCsvWriter and
+	  subclasses to enable more efficient csv output
+	  qpp update:
+	  - allow preprocessor defines to be used as string constant values
+
+2014-05-28 14:19  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/ThreadPool.h, lib/QC_ThreadPool.qpp: fixed
+	  several race conditions and potential deadlocks in ThreadPool
+	  destruction with active threads in the pool
+
+2014-05-28 13:43  david_nichols
+
+	* include/qore/intern/ThreadPool.h, lib/QC_ThreadPool.qpp: fixed a
+	  race condition in the ThreadPool class where a worker thread is
+	  canceled before it starts while a task has already been queued
+
+2014-05-28 13:18  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/QC_ThreadPool.qpp:
+	  fixed a bug handling thread cancellation with the ThreadPool
+	  class
+
+2014-05-28 12:21  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/qore_socket_private.h: fixed a bug where
+	  case-sensitive comparisons were being made with critical header
+	  values when parsing HTTP responses
+
+2014-05-28 11:38  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/HttpServer.qm,
+	  qlib/RestHandler.qm, qlib/SqlUtil.qm: added additional thread
+	  context handling to HttpServer
+	  fixed a bug where select and row iterator operations could fail
+	  with certain select hash arguments without a \c "columns" entry
+	  but where column names were otherwise required
+	  minor RestHandler changes
+
+2014-05-27 18:38  david_nichols
+
+	* lib/qore-main.cpp: removed debugging lines
+
+2014-05-26 17:55  david_nichols
+
+	* qlib/SqlUtil.qm: fixed typo
+
+2014-05-26 17:08  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  lib/QC_AbstractDatasource.qpp, qlib/SqlUtil.qm: added the
+	  AbstractDatasource::currentThreadInTransaction() method
+	  added support for the "forupdate" select option
+
+2014-05-26 16:13  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/QoreHttpClientObject.h, include/qore/QoreProgram.h,
+	  include/qore/intern/qore_program_private.h,
+	  lib/QC_HTTPClient.qpp, lib/QoreHttpClientObject.cpp,
+	  lib/QoreProgram.cpp, lib/ql_thread.qpp, qlib/HttpServer.qm: fixed
+	  crashing bugs in get_thread_data() and friends in certain use
+	  cases
+	  added HTTPClient::setPersistent() to disable implicit connections
+	  for a single HTTP session
+	  added support for persistent connections to a given handler to
+	  the HTTP server
+
+2014-05-26 11:34  david_nichols
+
+	* qlib/HttpServer.qm: started work on supporting persistent
+	  connections - where a connection is dedicated to a certain
+	  handler
+
+2014-05-26 08:06  david_nichols
+
+	* include/qore/intern/qore_program_private.h, lib/QoreProgram.cpp,
+	  qlib/CsvUtil.qm, qlib/MailMessage.qm, qlib/Mapper.qm,
+	  qlib/Mime.qm, qlib/MysqlSqlUtil.qm, qlib/PgsqlSqlUtil.qm,
+	  qlib/Pop3Client.qm, qlib/Qorize.qm, qlib/RestHandler.qm,
+	  qlib/SmtpClient.qm, qlib/TableMapper.qm, qlib/TelnetClient.qm,
+	  qlib/Util.qm, qlib/WebSocketClient.qm, qlib/WebSocketHandler.qm,
+	  qlib/WebSocketUtil.qm, qlib/WebUtil.qm: add
+	  QoreHasUserModuleLicense = True define when parsing user modules
+	  update user modules to require at least qore 0.8.10 since the
+	  license user module key is not accepted by previous versions
+
+2014-05-22 14:44  david_nichols
+
+	* Makefile.am: fixed builds from dist source
+
+2014-05-19 15:45  david_nichols
+
+	* include/qore/intern/qore_socket_private.h, lib/ModuleManager.cpp:
+	  fixed error in last commit regarding chunked trailer processing;
+	  chunked trailers are now sent and parsed correctly
+
+2014-05-19 11:08  david_nichols
+
+	* lib/ModuleManager.cpp: removed debugging output
+
+2014-05-19 10:59  david_nichols
+
+	* include/qore/QoreLib.h: updated module sources to reflect MIT
+	  licenses; added license string to binary module's exported
+	  symbols for use with Qore >= 0.8.10
+
+2014-05-19 10:24  david_nichols
+
+	* doxygen/lang/120_modules.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/ModuleInfo.h, lib/ModuleManager.cpp,
+	  lib/ql_misc.qpp, qlib/CsvUtil.qm, qlib/HttpServer.qm,
+	  qlib/MailMessage.qm, qlib/Mapper.qm, qlib/Mime.qm,
+	  qlib/MysqlSqlUtil.qm, qlib/OracleSqlUtil.qm,
+	  qlib/PgsqlSqlUtil.qm, qlib/Pop3Client.qm, qlib/Qorize.qm,
+	  qlib/RestClient.qm, qlib/RestHandler.qm, qlib/Schema.qm,
+	  qlib/SmtpClient.qm, qlib/SqlUtil.qm, qlib/TableMapper.qm,
+	  qlib/TelnetClient.qm, qlib/Util.qm, qlib/WebSocketClient.qm,
+	  qlib/WebSocketHandler.qm, qlib/WebSocketUtil.qm, qlib/WebUtil.qm:
+	  added support for reporting module license strings for all
+	  modules
+	  added support for the new "qore_module_license_str" symbol for
+	  binary modules
+	  added a 'license = "MIT";' line to all user modules shipped with
+	  Qore
+	  updated docs
+
+2014-05-19 08:01  subik
+
+	* doxygen/qdx: qdx: fixed tab vs. spaces mixing
+
+2014-05-17 15:55  david_nichols
+
+	* configure.ac: changes for compiling on Mavericks with XCode 5.1,
+	  cannot use -Wl,-x in link anymore since Apple LLVM 5.1 will fail
+	  with optimizations enabled
+
+2014-05-17 15:37  david_nichols
+
+	* configure.ac, include/qore/intern/QoreNamespaceIntern.h,
+	  include/qore/intern/qore_socket_private.h: included patches for
+	  compiling on Mavericks with XCode 5.1, cannot use -Wl,-x in link
+	  anymore since Apple LLVM 5.1 will fail with optimizations enabled
+	  prevented export of additional internal symbols
+
+2014-05-16 22:09  nros
+
+	* include/qore/intern/QC_TermIOS.h: Close the local file descriptor
+	  in getWindowSize.
+
+2014-05-15 11:36  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/OracleSqlUtil.qm:
+	  fixed schema information classes when the "string-numbers" driver
+	  option is enabled
+
+2014-05-14 12:27  david_nichols
+
+	* include/qore/intern/qore_socket_private.h: fixed problems parsing
+	  HTTP chunked trailers and setting up callback arguments for
+	  trailers
+
+2014-05-12 12:30  david_nichols
+
+	* doxygen/lang/150_container_data_types.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/QoreClosureNode.h,
+	  include/qore/intern/QoreHashNodeIntern.h,
+	  lib/QoreClosureNode.cpp, lib/QoreObject.cpp: fixed a memory and
+	  reference leak caused by recursive references when closures
+	  encapsulating an object\'s scope are assigned to or accessible
+	  from members of the object by making references to the object
+	  from within a closure encapsulating the object\'s state weak
+	  references instead of strong references
+
+2014-05-12 10:52  david_nichols
+
+	* examples/restserver.q: added a shutdown api call to the
+	  restserver.q example
+
+2014-05-11 18:43  david_nichols
+
+	* lib/qore_date_private.cpp, qlib/HttpServer.qm: handle return
+	  value errors with the handleRequest() method in a more
+	  user-friendly way
+
+2014-05-11 13:17  david_nichols
+
+	* include/qore/intern/qore_socket_private.h: fixed a memory leak
+	  that happens when an HTTP message is received with an empty
+	  Content-Type header
+
+2014-05-11 11:46  nros
+
+	* lib/qpp.cpp: Close file pointers properly when not needed
+	  anymore.
+
+2014-05-06 18:27  nros
+
+	* configure.ac: Fix building on NetBSD 7.
+
+2014-05-05 19:43  nros
+
+	* lib/QoreString.cpp: Fixed out-of-bounds read of
+	  url_reserved_list[] in qore_string_init().
+	  -This line, and those below, will be ignored--
+	  
+	  M lib/QoreString.cpp
+
+2014-05-05 11:37  david_nichols
+
+	* qlib/Schema.qm: fixed bugs setting info_callback in schema
+	  alignment and drop operations
+
+2014-05-04 15:41  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/QoreNamespaceIntern.h, lib/QoreNamespace.cpp,
+	  lib/QoreProgram.cpp: fixed the following bugs:
+	  - fixed a bug in Program::importFunction() where only the
+	  committed function list was checked when importing functions with
+	  a specific target namespace path
+	  - fixed a bug in Program::importClass() where only the committed
+	  class list was checked when importing functions with a specific
+	  target namespace path
+	  - fixed a bug when parsing subnamespaces into a parent namespace
+	  where the subnamespace already exists (either in the committed
+	  list or in the pending list)
+
+2014-05-02 15:07  david_nichols
+
+	* qlib/Schema.qm: doc updates
+
+2014-05-02 13:41  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/Schema.qm: doc
+	  updates
+
+2014-05-02 11:57  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl: minor release note doc
+	  updates
+
+2014-05-02 11:50  david_nichols
+
+	* Makefile.am, doxygen/lang/120_modules.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl,
+	  lib/QC_DatasourcePool.qpp, lib/ql_lib.qpp, qlib/Schema.qm:
+	  sanitized Schema module API, renamed, reorganized, and documented
+	  classes
+
+2014-04-30 13:00  david_nichols
+
+	* qlib/HttpServer.qm, qlib/RestHandler.qm: HTTP chunked/stream
+	  handling infrastructure updates:
+	  + added more documentation
+	  + sanitized callback architecture
+
+2014-04-30 08:47  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/OracleSqlUtil.qm:
+	  OracleSqlUtil updates:
+	  + convert date/time values to timestamps with microseconds
+	  resolution instead of dates with second resolution when
+	  dynamically inserting values as strings in SQL (binding by value
+	  not affected)
+	  + make some private methods private in OracleDatabase
+	  + doc updates
+
+2014-04-30 08:18  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/SqlUtil.qm: added
+	  SqlUtil::Table::checkExistence() method to SqlUtil
+
+2014-04-29 14:34  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/HttpServer.qm,
+	  qlib/RestHandler.qm, qlib/SqlUtil.qm: added the
+	  HttpServer::AbstractStreamRequestHandler class
+	  updated docs
+
+2014-04-29 12:27  david_nichols
+
+	* configure.ac: fixed configure.ac with new iconv.m4 on freebsd
+	  with libiconv installed under /usr/local
+
+2014-04-29 12:04  david_nichols
+
+	* m4/iconv.m4: added AC_LANG_PROGRAM to AC_COMPILE_IFELSE
+	  invokation to avoid excess warnings
+
+2014-04-29 11:53  nros
+
+	* configure.ac, m4/iconv.m4: Use Keith Marshalls iconv.m4 to find
+	  iconv instead of AC_SEARCH_LIBS.
+
+2014-04-29 10:45  david_nichols
+
+	* qlib/SqlUtil.qm: doc updates
+
+2014-04-29 10:36  david_nichols
+
+	* qlib/SqlUtil.qm: added new Table::insertFromSelect*() variants
+	  taking Table arguments
+
+2014-04-29 09:49  david_nichols
+
+	* include/qore/intern/ConstantList.h,
+	  include/qore/intern/QoreNamespaceIntern.h,
+	  include/qore/intern/qore_program_private.h, lib/ConstantList.cpp,
+	  lib/QoreNamespace.cpp: non-functional and debugging updates
+
+2014-04-28 17:53  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  lib/QoreHttpClientObject.cpp, qlib/HttpServer.qm,
+	  qlib/OracleSqlUtil.qm, qlib/RestHandler.qm, qlib/SqlUtil.qm: -
+	  fixed programmatic select queries with "limit" but no "offset" in
+	  OracleSqlUtil
+	  - many DataStream and HTTP chunked support fixes
+	  - added a minimum body size threshold for Content-Encoding
+	  compression to HttpServer
+	  - added new upsert constant maps to SqlUtil
+	  - added logic to verify that literal placeholder arguments
+	  inserted directly into sql strings from insert operators are only
+	  made up of legal identifiers
+	  - do not throw exceptions with new HTTPClient methods with
+	  receive callbacks if the status code is < 100 or >= 300
+
+2014-04-28 09:04  david_nichols
+
+	* examples/sqlutil, qlib/Schema.qm: cosmetic updates
+
+2014-04-27 20:43  david_nichols
+
+	* lib/ql_misc.qpp, qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm,
+	  qlib/SqlUtil.qm: added the ability to use sequence values in
+	  select statements, in insert statements, and in update statements
+	  in OracleSqlUtil and PgsqlSqlUtil
+
+2014-04-22 11:29  david_nichols
+
+	* qlib/Schema.qm: make sure to flush output after each info log msg
+
+2014-04-20 15:41  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/RestClient.qm: add
+	  support for application/xml to RestClient to indicate XML-RPC
+	  value encoding
+	  release notes updates
+
+2014-04-20 11:34  david_nichols
+
+	* include/qore/intern/ModuleInfo.h, qlib/HttpServer.qm,
+	  qlib/RestHandler.qm: user module dependency fixes; finally
+	  working I hope :)
+	  additional module docs + datastream compatibility fixes
+
+2014-04-20 07:49  david_nichols
+
+	* lib/ModuleManager.cpp: fixed user module dependency management
+	  again when a module cannot be loaded due to errors but
+	  dependencies were already in place - remove dependencies when the
+	  user module name context is removed if any errors occurred
+
+2014-04-20 06:23  david_nichols
+
+	* include/qore/intern/ModuleInfo.h, lib/ModuleManager.cpp,
+	  lib/QC_Socket.qpp: fixed module dependency bugs: fixed dependency
+	  management with module errors, fixed feature name generation from
+	  user module file names
+	  updated docs
+
+2014-04-19 20:41  david_nichols
+
+	* include/qore/QoreSocketObject.h,
+	  include/qore/intern/qore_socket_private.h, lib/QC_Socket.qpp,
+	  lib/QoreHttpClientObject.cpp, lib/QoreSocketObject.cpp: chunked
+	  transfer fixes; ensure socket object is set in header callback
+
+2014-04-19 20:19  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/QoreHttpClientObject.h,
+	  include/qore/intern/QoreHttpClientObjectIntern.h,
+	  include/qore/intern/qore_socket_private.h, lib/QC_HTTPClient.qpp,
+	  lib/QoreHttpClientObject.cpp, qlib/HttpServer.qm,
+	  qlib/RestHandler.qm: data stream fixes; pass a reference to the
+	  owning Socket object to allow the receive callback to change
+	  socket params (such as the character encoding) when headers are
+	  received
+
+2014-04-19 19:52  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/CallReferenceNode.h,
+	  include/qore/intern/qore_thread_intern.h,
+	  lib/CallReferenceNode.cpp, lib/thread.cpp: fixed a bug where a
+	  valid call reference to a private object method was created
+	  within the class, then in some cases an object protection
+	  exception was raised when the call reference was called outside
+	  the class
+
+2014-04-19 18:18  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/CallReferenceNode.h,
+	  include/qore/intern/FunctionCallNode.h,
+	  include/qore/intern/ObjectMethodReferenceNode.h,
+	  include/qore/intern/QoreClassIntern.h, lib/CallReferenceNode.cpp,
+	  lib/Function.cpp: fixed a bug where a call reference to an
+	  abstract object method returned from an abstract class could be
+	  executed even though it must have been instantiated by a concrete
+	  subclass
+
+2014-04-19 17:25  david_nichols
+
+	* include/qore/intern/ModuleInfo.h, lib/ModuleManager.cpp: really
+	  fixed user module dependency management
+
+2014-04-19 16:45  david_nichols
+
+	* include/qore/intern/ModuleInfo.h, lib/ModuleManager.cpp: really
+	  fixed the user module dependency bug by implementing
+	  bidirectional dependency maps and processing them correctly when
+	  unloading user modules
+
+2014-04-19 15:38  david_nichols
+
+	* include/qore/intern/ModuleInfo.h,
+	  include/qore/intern/qore_thread_intern.h, lib/ModuleManager.cpp,
+	  lib/thread.cpp: user module dependency tracking fixes
+
+2014-04-19 15:14  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl: added info to relnotes
+	  for last fix
+
+2014-04-19 15:12  david_nichols
+
+	* qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm: fixed a bug in SqlUtil
+	  where SqlUtil used excessively verbose column aliases that caused
+	  errors when automatically updating columns with existing rows and
+	  new default values and non-null contraints with PostgreSQL
+	  databases
+
+2014-04-19 14:56  david_nichols
+
+	* include/qore/intern/QoreClassIntern.h: fixed a minor memory error
+	  in class variable copy handling
+
+2014-04-19 14:28  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/ModuleInfo.h,
+	  include/qore/intern/qore_thread_intern.h, lib/ModuleManager.cpp,
+	  lib/thread.cpp: fixed a bug where qore could crash on exit due to
+	  user module destruction not taking into consideration user module
+	  dependencies
+
+2014-04-19 12:44  david_nichols
+
+	* lib/QoreClassList.cpp, lib/QoreProgram.cpp: make sure class
+	  variables 'finalized' values are copied when classes are
+	  inherited; other cosmetic updates
+
+2014-04-19 07:00  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/qore_socket_private.h, qlib/HttpServer.qm,
+	  qlib/WebUtil.qm: fixed HTTP chunked trailer receive with
+	  callback; trailew now set correctly under the "hdr" hash key
+	  do not try to decode message chunks separately; chunked
+	  transfer-encoding applies to the entire message and not to
+	  individual chunks
+
+2014-04-18 11:56  subik
+
+	* qlib/SqlUtil.qm: sqlutil: fixed arguments for getCreateSql()
+
+2014-04-17 13:58  david_nichols
+
+	* qlib/HttpServer.qm, qlib/RestClient.qm, qlib/RestHandler.qm:
+	  added configurable content encoding for send request message
+	  bodies (ie optional compression to the RestClient module
+	  decode message bodies with content-encoding before calling the
+	  handler (regression in this release)
+
+2014-04-16 16:42  david_nichols
+
+	* lib/QoreTypeInfo.cpp, qlib/RestClient.qm: fixed a bug where *any
+	  was not handled correctly; now is handled just like "any"
+	  minor RestClient updates
+
+2014-04-15 09:27  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl: updated docs for last
+	  commit
+
+2014-04-15 09:26  david_nichols
+
+	* lib/thread.cpp: fixed a bug where qore could crash on exit with
+	  certain openssl versions by calling ERR_remove_state(0) in the
+	  main thread's cleanup function
+
+2014-04-10 04:48  david_nichols
+
+	* qlib/RestHandler.qm: renamed socket object context attribute
+
+2014-04-09 17:34  david_nichols
+
+	* qlib/HttpServer.qm: fixed typo in last commit
+
+2014-04-09 17:33  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/QoreSocket.h, include/qore/QoreSocketObject.h,
+	  include/qore/intern/qore_socket_private.h, lib/QC_Socket.qpp,
+	  lib/QoreSocket.cpp, lib/QoreSocketObject.cpp, qlib/HttpServer.qm,
+	  qlib/RestHandler.qm: http streaming transfer updates and
+	  improvements
+
+2014-04-08 18:15  david_nichols
+
+	* qlib/HttpServer.qm, qlib/Mime.qm, qlib/RestHandler.qm: more HTTP
+	  streaming send/recv support
+
+2014-04-08 14:40  david_nichols
+
+	* include/qore/intern/qore_socket_private.h,
+	  lib/QoreHttpClientObject.cpp, lib/QoreSocketObject.cpp,
+	  qlib/HttpServer.qm, qlib/RestHandler.qm: HTTP chunked fixes and
+	  HttpServer and RestHandler streaming API fixes
+	  HTTP chunked data recv fix: content encoding cannot be applied to
+	  each chunk individually but rather only to the whole message
+	  (rendering compression much less useful for chunked messaging)
+
+2014-04-08 13:18  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/ConstantList.cpp:
+	  fixed a bug handling parse initialization of constant values
+	  requiring run-time evaluation after other parse exceptions have
+	  been raised that could cause a parse-time crash
+
+2014-04-08 12:43  david_nichols
+
+	* examples/restserver.q, qlib/HttpServer.qm, qlib/RestHandler.qm:
+	  progress on HTTP streaming support with REST
+
+2014-04-08 06:42  david_nichols
+
+	* include/qore/intern/qore_socket_private.h, qlib/HttpServer.qm:
+	  fixed a regression introduced in the HttpServer module yesterday
+
+2014-04-07 17:23  david_nichols
+
+	* qlib/HttpServer.qm: more streaming HTTP messaging support
+
+2014-04-06 21:07  david_nichols
+
+	* include/qore/intern/qore_socket_private.h, lib/QC_HTTPClient.qpp,
+	  lib/QC_Socket.qpp, qlib/HttpServer.qm: streaming socket support
+	  fixes, started adding infrastructural support to the HttpServer
+	  module for handling streaming requests and responses
+
+2014-04-06 15:56  david_nichols
+
+	* include/qore/QoreSocketObject.h, lib/QC_Socket.qpp,
+	  lib/QoreSocketObject.cpp, qlib/HttpServer.qm: more progress on
+	  streaming HTTP messaging support with chunked transfer encoding
+
+2014-04-06 14:05  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/QoreHttpClientObject.h, include/qore/QoreSocket.h,
+	  include/qore/QoreSocketObject.h, include/qore/QoreThreadLock.h,
+	  include/qore/intern/qore_socket_private.h, lib/QC_HTTPClient.qpp,
+	  lib/QC_Socket.qpp, lib/QoreHttpClientObject.cpp,
+	  lib/QoreSocket.cpp, lib/QoreSocketObject.cpp: more HTTP streaming
+	  chunked send/recv support
+
+2014-04-04 17:16  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, include/qore/QoreLib.h,
+	  include/qore/intern/qore_socket_private.h,
+	  lib/QoreHttpClientObject.cpp, lib/QoreSocket.cpp: implemented
+	  internal support for receive callbacks with HTTP chunked receives
+	  - not yet tested or bound to user code
+
+2014-04-04 14:44  david_nichols
+
+	* include/qore/QoreHttpClientObject.h, include/qore/QoreSocket.h,
+	  include/qore/QoreThreadLock.h,
+	  include/qore/intern/qore_socket_private.h, lib/QC_HTTPClient.qpp,
+	  lib/QoreHttpClientObject.cpp, test/socket-test.q: initial support
+	  for chunk HTTP sends; chunk HTTP recv callbacks not yet
+	  implemented (currently will abort in debugging mode if called)
+	  new HTTPClient methods:
+	  * sendWithSendCallback() (initial tests passed)
+	  * sendWithRecvCallback() (not yet working)
+	  * sendWithCallbacks() (not yet working)
+
+2014-04-04 13:27  subik
+
+	* qore.spec: spec file: add cmake support files to spec
+
+2014-04-04 11:56  subik
+
+	* Makefile.am, cmake/QoreConfig.cmake.in, cmake/QoreMacros.cmake:
+	  qore: reintrodiced cmake support; cmake fixes for jhbuild/jenkins
+
+2014-04-03 16:08  david_nichols
+
+	* include/qore/QoreHTTPClient.h,
+	  include/qore/QoreHttpClientObject.h,
+	  include/qore/QoreSocketObject.h,
+	  include/qore/intern/qore_socket_private.h,
+	  lib/QoreHTTPClient.cpp, lib/QoreHttpClientObject.cpp,
+	  lib/QoreSocket.cpp, lib/QoreSocketObject.cpp: initial changes to
+	  add support for HTTP chunked sends and receives with callbacks
+	  for better streaming data support in Qore
+
+2014-04-02 11:18  david_nichols
+
+	* qlib/MysqlSqlUtil.qm, qlib/OracleSqlUtil.qm,
+	  qlib/PgsqlSqlUtil.qm, qlib/SqlUtil.qm: various SqlUtil fixes,
+	  mostly for Mysql and Pgsql + some common SqlUtil API changes
+
+2014-04-01 16:51  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/PgsqlSqlUtil.qm,
+	  qlib/SqlUtil.qm: fixed bugs handling "bigint" and "double
+	  precision" column types with schema alignments with the
+	  PgsqlSqlUtil module
+
+2014-04-01 16:16  david_nichols
+
+	* lib/ModuleManager.cpp, qlib/Schema.qm, qlib/SqlUtil.qm: reversed
+	  module logic - qmod extension means binary module, everything
+	  else is assumed to be a user module
+	  minor Schema and SqlUtil API updates
+
+2014-04-01 14:10  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/QoreCondition.h,
+	  include/qore/intern/AbstractSmartLock.h,
+	  include/qore/intern/DatasourcePool.h,
+	  include/qore/intern/QC_Condition.h, include/qore/intern/RWLock.h,
+	  include/qore/intern/SmartMutex.h, include/qore/intern/VRMutex.h,
+	  lib/AbstractSmartLock.cpp, lib/QC_Condition.qpp,
+	  lib/QoreCondition.cpp, lib/RWLock.cpp, lib/SmartMutex.cpp,
+	  lib/VRMutex.cpp, test/test.q: fixed a bug where an error could
+	  result with Condition::wait() with timeouts > 2147483648 ms
+
+2014-03-31 15:11  david_nichols
+
+	* qlib/Schema.qm: minor formatting updates in log msgs
+
+2014-03-31 15:10  david_nichols
+
+	* qlib/Schema.qm: added support for dropping schemas; reworked the
+	  API
+
+2014-03-31 12:09  david_nichols
+
+	* qlib/Schema.qm: Schema module updates
+
+2014-03-28 17:00  david_nichols
+
+	* qlib/Schema.qm: more Schema API updates
+
+2014-03-28 16:45  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/QoreClassIntern.h,
+	  include/qore/intern/SelfVarrefNode.h, lib/FunctionCallNode.cpp,
+	  lib/QoreNamespace.cpp, lib/SelfVarrefNode.cpp, lib/parser.ypp,
+	  qlib/Schema.qm: fixed several bugs where the parse location could
+	  be reported incorrectly for type errors regarding in-object
+	  variable references
+	  Schema module updates
+
+2014-03-28 13:41  david_nichols
+
+	* qlib/Schema.qm: implemented intial public VersionedSchema class
+
+2014-03-28 12:16  subik
+
+	* qlib/SqlUtil.qm: check schema hash for whitespaces (begin/end) in
+	  keys
+
+2014-03-28 09:36  david_nichols
+
+	* TODO, doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/ModuleInfo.h, lib/ModuleManager.cpp,
+	  qlib/Schema.qm: started work on VersionedSchema class
+
+2014-03-27 15:23  david_nichols
+
+	* Makefile.am, doxygen/lang/900_release_notes.dox.tmpl,
+	  qlib/Schema.qm, qlib/SqlUtil.qm: initial addition of the Schema
+	  module, minor SqlUtil updates
+
+2014-03-24 17:11  david_nichols
+
+	* include/qore/intern/QoreObjectIntern.h,
+	  include/qore/intern/Variable.h, lib/QoreObject.cpp,
+	  lib/Variable.cpp: defined out temporary / non-functional object
+	  recursive code
+
+2014-03-20 17:26  nros
+
+	* configure.ac: Fix AC_SEARCH_LIBS.
+	  http://www.gnu.org/software/autoconf/manual/autoconf-2.69/html_node/Libraries.html
+
+2014-03-20 14:05  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/qc_option.qpp,
+	  lib/ql_lib.qpp, lib/qpp.cpp: implemented the close_all_fd()
+	  function and the HAVE_CLOSE_ALL_FD constant; this function will
+	  close all open file descriptors; it's useful for executing when a
+	  new daemon process starts that may have inherited open file
+	  descriptors from the parent
+
+2014-03-19 11:53  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, include/qore/QoreLib.h,
+	  include/qore/QoreSocket.h,
+	  include/qore/intern/qore_socket_private.h, lib/QoreSocket.cpp: -
+	  new public C++ socket performance instrumentation API
+	  fixed a reference leak related to exception handling with invalid
+	  arguments with @ref Qore::Socket::setWarningQueue() and @ref
+	  Qore::HTTPClient::setWarningQueue()
+
+2014-03-18 14:55  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/qc_errno.qpp: added
+	  the ESRCH error constant
+
+2014-03-18 13:01  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/SwitchStatement.cpp,
+	  lib/parser.ypp: fixed a bug where a qore switch statement with no
+	  case conditions and only a default label would erroneously never
+	  have it's default code executed
+
+2014-03-17 12:43  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/SmtpClient.qm:
+	  fixed missing username and missing password errors in the
+	  SmtpClient module
+
+2014-03-15 15:19  david_nichols
+
+	* configure.ac: fix for compiling on 32-bit ARM (removed -m32 flag)
+
+2014-03-14 10:02  david_nichols
+
+	* qlib/WebSocketClient.qm: minor doc update
+
+2014-03-14 10:01  david_nichols
+
+	* qlib/WebSocketClient.qm: prepend "WebSocketClient: " to log
+	  messages
+
+2014-03-14 08:27  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/ConstantList.h,
+	  include/qore/intern/QoreClassIntern.h, lib/ConstantList.cpp,
+	  lib/Makefile.am, qore.spec: fixed an issue with class constant
+	  parse initialization where invalid recursive class constant
+	  definition parse exceptions could be raised and in some cases
+	  also crashes could result
+	  updated library version info
+
+2014-03-12 10:55  david_nichols
+
+	* configure.ac, qore.spec: updated to v 0.8.10 for future release
+
+2014-03-11 16:53  david_nichols
+
+	* include/qore/QoreQueue.h, lib/QoreQueue.cpp: more MXE build fixes
+
+2014-03-11 16:45  david_nichols
+
+	* include/qore/QoreIteratorBase.h, lib/QoreLib.cpp: build/compile
+	  fixes for MXE
+
+2014-03-11 16:11  david_nichols
+
+	* ChangeLog, Makefile.am: commented out cmake info in Makefile so
+	  the opensuse build service builds would succeed (for real this
+	  time! :))
+	  updated ChangeLog for 0.8.9 release
+
+2014-03-11 15:50  david_nichols
+
+	* Makefile.am: added cmake files to distribution so that builds
+	  with the opensuse build service succeed
+
 2014-03-07 18:57  david_nichols
 
 	* lib/scanner.lpp: removed duplicate rulex
