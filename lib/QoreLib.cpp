@@ -1553,7 +1553,18 @@ int qore_usleep(int64 usecs) {
 #ifdef HAVE_NANOSLEEP
    return qore_nanosleep(usecs * 1000);
 #else
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+   LARGE_INTEGER ft; 
+   ft.QuadPart = -(10 * usecs); // Convert to 100 nanosecond interval, negative value indicates relative time
+
+   HANDLE timer = CreateWaitableTimer(0, TRUE, 0); 
+   SetWaitableTimer(timer, &ft, 0, 0, 0, 0); 
+   WaitForSingleObject(timer, INFINITE); 
+   CloseHandle(timer);
+   return 0;
+#else
    return ::usleep(usecs);
+#endif
 #endif
 }
 
