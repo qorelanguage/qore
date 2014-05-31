@@ -25,50 +25,19 @@
 # minimum required Qore version
 %requires qore >= 0.8.10
 
+%requires Util
+
 module Mime {
-    version = "1.3.3";
+    version = "1.3.4";
     desc = "Mime module providing MIME-related definitions";
     author = "David Nichols";
     url = "http://qore.org";
     license = "MIT";
 }
 
-/*  Version History
-    * 2014-04-08 v1.3.3: David Nichols <david@qore.org>
-      + added MimeTypeOctetStream constant
-
-    * 2014-01-15 v1.3.2: David Nichols <david@qore.org>
-      + added mime type for WSDL files (application/wsdl+xml)
-      + added mappings for xls and xlst extensions to MimeTypeXml
-
-    * 2013-04-05 v1.3.1: David Nichols <david@qore.org>
-      + added get_mime_type_from_ext()
-      + minor corrections
-      + added constants for css and js files + more extension -> mime type mappings
-
-    * 2012-11-02 v1.3: David Nichols <david@qore.org>
-      + made get MultiPartMessage::getMsgAndHeaders() abstract as originally intended
-      + added MultiPartMessage::parseBody() static method
-
-    * 2012-09-17 v1.2.1: David Nichols <david@qore.org>
-      + fixed q-encoding mail headers (always encode '_' chars otherwise they will be decoded as spaces)
-
-    * 2012-06-14 v1.2: David Nichols <david@qore.org>
-      + added MIME decoding functions
-
-    * 2012-05-31 v1.1: David Nichols <david@qore.org>
-      + added initial MultiPartMessage classes
-
-    * 2012-05-24 v1.0: David Nichols <david@qore.org>
-      + pulled MIME implementation out of other code and made a user module to aggregate MIME definitions and functions
-
-    based on:
-    - http://tools.ietf.org/html/rfc1521: quoted printable & base 64 transfer encodings
-    - http://tools.ietf.org/html/rfc2045: mime headers, content types, etc
-    - http://tools.ietf.org/html/rfc2047: "Q" and "B" encoded words (implemented by the Mime module)
-*/
-
 /** @mainpage Mime Module
+
+    @tableofcontents
 
     @section mimeintro Introduction to the Mime Module
 
@@ -87,6 +56,11 @@ module Mime {
     - @ref Mime::MultiPartMessage "MultiPartMessage": the base class for MultiPartMessage classes
       - @ref Mime::MultiPartMessage::parseBody() "MultiPartMessage::parseBody()": use this static function to parse multipart message bodies (including parts that themselves have parts if the \a decode argument is @ref Qore::True "True"); this static method can be used for both HTTP multipart messages or text multipart messages (for example as sent in an email/SMTP message)
     - @ref Mime::MultiPartRelatedMessage "MultiPartRelatedMessage": a class for handling multipart/related messages
+
+    based on:
+    - http://tools.ietf.org/html/rfc1521: quoted printable & base 64 transfer encodings
+    - http://tools.ietf.org/html/rfc2045: mime headers, content types, etc
+    - http://tools.ietf.org/html/rfc2047: "Q" and "B" encoded words (implemented by the Mime module)
 
     @par Example:
     @code
@@ -107,7 +81,41 @@ printf("%y: header word b: %y\n", mime_decode_header(mime_encode_header_word_b($
 "This is a test: æéìœü": header word q: "=?UTF-8?Q?This_is_a_test:_=C3=A6=C3=A9=C3=AC=C5=93=C3=BC?="
 "This is a test: æéìœü": header word b: "=?UTF-8?B?VGhpcyBpcyBhIHRlc3Q6IMOmw6nDrMWTw7w=?="
     @endverbatim
- */
+
+    @section mimereleasenotes Release Notes
+
+    @subsection mime_1_3_4 v1.3.4
+    - added dependency on the Util module
+    - replaced Mime::MultiPartMessage::getRandomString() with Util::get_random_string()
+
+    @subsection mime_1_3_3 v1.3.3
+    - added Mime::MimeTypeOctetStream constant
+
+    @subsection mime_1_3_2 v1.3.2
+    - added mime type for WSDL files (\c "application/wsdl+xml")
+    - added mappings for xls and xlst extensions to Mime::MimeTypes
+
+    @subsection mime_1_3_1 v1.3.1
+    - added Mime::get_mime_type_from_ext()
+    - minor corrections
+    - added constants for css and js files + more extension -> mime type mappings
+    
+    @subsection mime_1_3 v1.3
+    - made get Mime::MultiPartMessage::getMsgAndHeaders() abstract as originally intended
+    - added Mime::MultiPartMessage::parseBody() static method
+
+    @subsection mime_1_2_1 v1.2.1
+    - fixed q-encoding mail headers (always encode '_' chars otherwise they will be decoded as spaces)
+
+    @subsection mime_1_2 v1.2
+    - added MIME decoding functions
+
+    @subsection mime_1_1 v1.1
+    - added initial Mime::MultiPartMessage classes
+
+    @subsection mime_1_0 v1.0
+    - pulled MIME implementation out of other code and made a user module to aggregate MIME definitions and functions
+*/
 
 #! public Mime namespace defines constants and functions relevant to MIME
 public namespace Mime {
@@ -726,27 +734,10 @@ public namespace Mime {
         #! returns a string of random characters
         /** @param len the length of the string to return
 
-            @throw GET-RANDOM-STRING-ERROR error opending /dev/random;
+            @since Mime 1.3.4 implemented by Util::get_random_string()
          */
         static string getRandomString(int $len) {
-            my File $f();
-            # throw an exception if /dev/random cannot be opened for reading
-            if ($f.open("/dev/random"))
-                throw "GET-RANDOM-STRING-ERROR", "error opening /dev/random: ", strerror(errno());
-
-            my binary $bin = $f.readBinary($len);
-            my string $str;
-            while ($len--) {
-                my int $b = $bin[$len] % 62;
-                my string $c;
-                switch ($b) {
-                    case < 10: { $c = chr(48 + $b); break; }
-                    case < 36: { $c = chr(55 + $b); break; }
-                    default:   { $c = chr(61 + $b); break; }
-                }
-                $str += $c;
-            }
-            return $str;
+            return get_random_string($len, 3);
         }
 
         #! returns a hash representing a parsed multipart message body from a boundary string and body arguments
@@ -939,8 +930,14 @@ hash: (2 members)
             return $b;
         }
 
-        #! @cond nodoc
+        #! returns a hash of the message
+        /** @return a hash of the message with the following keys:
+            - \c hdr: a hash of header information
+            - \c msg: a binary object of serialized message parts
+         */
         abstract hash getMsgAndHeaders();
+
+        #! @cond nodoc
 
         # don't reimplement this method; fix/enhance it in the module
         final private hash getMsgAndHeadersIntern(*string $content_type, bool $conlen = True) {

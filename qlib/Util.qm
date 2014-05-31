@@ -32,7 +32,7 @@
 %enable-all-warnings
 
 module Util {
-    version = "1.1";
+    version = "1.2";
     desc = "user module for generally useful routines";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -40,15 +40,9 @@ module Util {
     init = sub () { init(); };
 }
 
-/*  Version History
-    * 2013-10-30 v1.1: David Nichols <david@qore.org>
-      + added the get_byte_size() and get_marketing_byte_size() functions
-
-    * 2013-10-04 v1.0: David Nichols <david@qore.org>
-      + the initial version of the Util module
-*/
-
 /** @mainpage Util Module
+
+    @tableofcontents
 
     @section utilintro Util Module Introduction
 
@@ -72,6 +66,18 @@ module Util {
       - @ref Util::normalize_dir_unix()
       - @ref Util::normalize_dir_windows()
     - @ref Util::parse_to_qore_value()
+
+    @section utilrelnotes Release Notes
+
+    @subsection util_1_2
+    - fixed Util::get_random_string() on Windows
+    - fixed Util::absolute_path_windows()
+
+    @subsection util_1_1
+    - added the Util::get_byte_size() and Util::get_marketing_byte_size() functions
+
+    @subsection util_1_0
+    - the initial version of the Util module
 */
 
 namespace Init {
@@ -294,7 +300,7 @@ my bool $abs = absolute_path_windows($path);
         @return @ref Qore::True "True" if the argument is a Windows absolute path, @ref Qore::False "False" if not
      */
     public bool sub absolute_path_windows(string $path) {        
-        return $path =~ /^\\\\/ || $path =~ /^[a-z]:\\/;
+        return $path =~ /^\\/ || $path =~ /^[a-z]:\\/i;
     }
 
     # private, non-exported function: tries to split a string into a list, respects parentheses and quotes
@@ -468,8 +474,12 @@ my string $pass = get_random_string();
         # do not seed the random number generator and use rand() as this requires PO_PROCESS_CONTROL permissions
         if (PlatformOS == "Windows") {
             # on windows, just use clock_getmicros() to generate a pseudo-random number
+            my int $start = (clock_getmicros() * 7621 + 1);
             for (my int $i = 0; $i < $len; ++$i) {
-                my int $v = (clock_getmicros() * 7621 + 1).abs() % $level;
+                my int $v = $start;
+                if ($i)
+                    $v += rand();
+                $v = $v.abs() % $level;
                 $str += ($v < 26 ? chr($v + ord("A")) : 
                          ($v < 52 ? chr($v - 26 + ord("a")) : 
                           ($v < 62 ? chr($v - 4) :

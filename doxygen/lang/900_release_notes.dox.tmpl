@@ -2,7 +2,20 @@
 
     @tableofcontents
 
-    @section qore_0810 Qore 0.8.10
+    @section qore_0811 Qore 0.8.11
+
+    @par Release Summary
+    in progress - see svn changelog for more info    
+
+    @subsection qore_0811_bug_fixes Bug Fixes in Qore
+    - Windows fixes:
+      - fixed TimeZone copyying to use the standard name instead of the display name so that the info can be found in the registry
+      - <a href="../../modules/Util/html/index.html">Util</a> module fixes:
+        - fixed get_random_string() on Windows
+	- fixed absolute_path_windows()
+      - replaced Mime::MultiPartMessage::getRandomString() with Util::get_random_string() to make it work on Windows
+
+    @section qore_0810 Qore 0.8.10 
 
     @par Release Summary
     Major release with many many bugfixes and new features such as much improved HTTP and REST support (ex: chunked transfer support + new
@@ -45,7 +58,6 @@
     - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module updates:
       - added the \c "write-headers" option to @ref CsvUtil::AbstractCsvWriter and subclasses to enable headers to be suppressed
       - added the \c "optimal-quotes" option to @ref CsvUtil::AbstractCsvWriter and subclasses to enable more efficient csv output (now the default)
-    
     - added @ref Qore::SQL::AbstractDatasource::currentThreadInTransaction() "AbstractDatasource::currentThreadInTransaction()" which is reimplemented as @ref Qore::SQL::Datasource::currentThreadInTransaction() "Datasource::currentThreadInTransaction()" and @ref Qore::SQL::DatasourcePool::currentThreadInTransaction() "DatasourcePool::currentThreadInTransaction()"; the base class method throws an exception when called; it was not added as an abstract method in order to not break existing subclasses of AbstractDatasource
     - enhanced module license support
       - module license strings may now be specified in binary and user modules
