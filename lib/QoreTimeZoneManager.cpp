@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -728,7 +728,7 @@ QoreWindowsZoneInfo::QoreWindowsZoneInfo(const char *n_name, ExceptionSink *xsin
       return;
 
    // set name from display name
-   name = display.getBuffer();
+   name = standard.getBuffer();
    
    // get TZI value
    REG_TZI_FORMAT tzi;
@@ -889,10 +889,21 @@ void QoreTimeZoneManager::init() {
       printd(0, "QoreTimeZoneManager::init() Windows GetTimeZoneInformation returned TIME_ZONE_ID_UNKNOWN, assuming UTC\n");
    }
    else {
+      ExceptionSink xsink;
+
+      if (!SysEnv.get("TZ", TZ)) {
+         std::auto_ptr<QoreWindowsZoneInfo> twzi(new QoreWindowsZoneInfo(TZ.getBuffer(), &xsink));
+         if (!*(twzi.get())) {
+            xsink.clear();
+            printd(1, "error reading windows registry while setting local time zone: %s\n", TZ.getBuffer());
+         }
+         else
+            setLocalTZ(TZ.getBuffer(), twzi.release());
+         return;
+      }
+
       QoreString sn;
       wchar2utf8(tzi.StandardName, sn);
-
-      ExceptionSink xsink;
 
       // try to set the local time zone from the standard zone name
       std::auto_ptr<QoreWindowsZoneInfo> twzi(new QoreWindowsZoneInfo(sn.getBuffer(), &xsink));
