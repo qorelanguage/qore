@@ -32,7 +32,7 @@
 %enable-all-warnings
 
 module WebUtil {
-    version = "1.0";
+    version = "1.1";
     desc = "user module supporting web server operations";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -43,12 +43,11 @@ module WebUtil {
 %requires Mime >= 1.0
 %requires Util >= 1.0
 
-/*  Version History
-    * 2013-10-04 v1.0: David Nichols <david@qore.org>
-      + the initial version of the WebUtil module
-*/
-
 /** @mainpage WebUtil Module
+
+    @tableofcontents
+
+    @section webutilintro Introduction to the WebUtil Module
 
     The %WebUtil module provides code that support higher-level web server operations.
 
@@ -62,6 +61,14 @@ module WebUtil {
     - @ref WebUtil::TemplateFileManager "TemplateFileManager": manages templates based on real files on the filesystem, uses @ref WebUtil::FileTemplate "FileTemplate" to store the templates and render output; uses efficient locking to safely handle multiple concurrent requests
     - @ref WebUtil::StaticTemplateManager "StaticTemplateManager": manages mixed %Qore and text templates that are rendered to generate a final file; useful for HTML rendering for example
     - @ref WebUtil::FileHandler "FileHandler": a class for serving files from the file system anchored at a particular URL; also uses @ref WebUtil::TemplateFileManager "TemplateFileManager" to automatically manage any template files found; supports automatic compilation of and rendering from template files
+
+    @section webutil_relnotes Release Notes
+
+    @subsection webutil_v1_1
+    - added logic to the default file serving code to determine if the file is a binary or text file from the MIME type
+
+    @subsection webutil_v1_0
+    - the initial version of the WebUtil module
 */
 
 #! the WebUtil namespace contains all the objects in the WebUtil module
@@ -784,14 +791,17 @@ my *hash $h = $tm.tryRender("html/index.qhtml", $ctx);
             if ($f.open($path))
                 return;
 
-            my *string $data = $f.read(-1);
+            if (!$sh.size)
+                return $.makeResponse(204, "");
 
-            return !$data
-                ? $.makeResponse(204, "")
-                : (
+            my string $ct = get_mime_type_from_ext($path);
+            my bool $txt = ($ext =~ /^text\//) || ($ext =~ /^application\/.*(json|xml|yaml|tex|tcl|troff)/);
+            my *data $data = $txt ? $f.read(-1) : $f.readBinary(-1);
+
+            return (
                 "code": 200,
                 "body": $data,
-                "hdr": ("Content-Type": get_mime_type_from_ext($path)),
+                "hdr": ("Content-Type": $ct),
                 );
         }
 
