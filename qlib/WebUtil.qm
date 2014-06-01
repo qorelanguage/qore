@@ -795,7 +795,7 @@ my *hash $h = $tm.tryRender("html/index.qhtml", $ctx);
                 return $.makeResponse(204, "");
 
             my string $ct = get_mime_type_from_ext($path);
-            my bool $txt = ($ext =~ /^text\//) || ($ext =~ /^application\/.*(json|xml|yaml|tex|tcl|troff)/);
+            my bool $txt = ($ext =~ /^text\//) || ($ext =~ /^application\/.*(json|xml|yaml|javascript|tex|tcl|troff|postscript)/);
             my *data $data = $txt ? $f.read(-1) : $f.readBinary(-1);
 
             return (
