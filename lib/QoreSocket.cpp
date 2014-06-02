@@ -98,12 +98,10 @@ int sock_get_error() {
 	 errno = EBADF;
 	 break;
 
-#ifdef ECONNRESET
       case WSAECONNRESET:
       case WSAECONNABORTED:
 	 errno = ECONNRESET;
 	 break;
-#endif
 
 #ifdef DEBUG
       case WSAEALREADY:

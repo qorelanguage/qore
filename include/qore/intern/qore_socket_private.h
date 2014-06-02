@@ -72,6 +72,11 @@ DLLLOCAL void se_closed(const char* mname, ExceptionSink* xsink);
 #define QORE_INVALID_SOCKET ((int)INVALID_SOCKET)
 #define QORE_SOCKET_ERROR SOCKET_ERROR
 DLLLOCAL int check_windows_rc(int rc);
+
+#ifndef ECONNRESET
+#define ECONNRESET WSAECONNRESET
+#endif
+
 #else
 // UNIX/Cygwin
 #define GETSOCKOPT_ARG_4 void*
