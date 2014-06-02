@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright (C) 2003 - 2014 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -92,6 +92,12 @@ struct qore_qf_private {
 
       if (!flags)
 	 flags = O_RDONLY;
+
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+      // open files in binary mode by default on Windows
+      if (!(flags & O_TEXT))
+	 flags |= O_BINARY;
+#endif
 
       do_open_event_unlocked(fn, flags, mode, cs);
 
@@ -260,7 +266,7 @@ struct qore_qf_private {
 	    if (rc >= 0 || errno != EINTR)
 	       break;
 	 }
-	 //printd(0, "read(%d, %p, %d) rc=%d\n", fd, buf, bs, rc);
+	 //printd(5, "readBlock(fd: %d, buf: %p, bs: %d) rc: %d\n", fd, buf, bs, rc);
 	 if (rc <= 0)
 	    break;
 
@@ -1044,6 +1050,7 @@ int QoreFile::readBinary(BinaryNode &b, qore_offset_t size, ExceptionSink *xsink
       return -1;
 
    b.append(buf, size);
+   free(buf);
    return 0;
 }
 

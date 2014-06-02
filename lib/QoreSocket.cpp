@@ -100,6 +100,7 @@ int sock_get_error() {
 
 #ifdef ECONNRESET
       case WSAECONNRESET:
+      case WSAECONNABORTED:
 	 errno = ECONNRESET;
 	 break;
 #endif

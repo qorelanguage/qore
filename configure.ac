@@ -165,6 +165,8 @@ case "${host_os}" in
 		      AC_MSG_RESULT([not found])
 		   fi
 		fi
+		#LDFLAGS="${LDFLAGS} -L${LIB_PREFIX}/lib"
+		#CPPFLAGS="-I${LIB_PREFIX}/include"
 		# need a native g++ compiler for native targets (ie qpp)
 		if test -z "$NATIVE_CXX"; then
 		   NATIVE_CXX=`which g++|head -1 2>/dev/null`
@@ -1325,12 +1327,14 @@ else
 fi
 
 # checks for how to build threads
-ACX_PTHREAD
-if test "$acx_pthread_ok" = "no"; then
-   AC_MSG_ERROR(POSIX threads do not seem to be supported on this platform, aborting)
+if test "$mingw" != yes; then 
+   ACX_PTHREAD
+   if test "$acx_pthread_ok" = "no"; then
+      AC_MSG_ERROR(POSIX threads do not seem to be supported on this platform, aborting)
+   fi
+   CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS"
+   QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $PTHREAD_LIBS"
 fi
-CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS"
-QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $PTHREAD_LIBS"
 
 AC_ARG_WITH([doxygen],
     [AS_HELP_STRING([--with-doxygen@<:@=PATH@:>@],

@@ -932,8 +932,8 @@ void QoreTimeZoneManager::setFromLocalTimeFile() {
    if (!stat(LOCALTIME_LOCATION, &sbuf)) {
 #endif
       // normally this file is a symlink - we need the target file name for the name of the time zone region
-      printd(1, "QoreTimeZoneManager::QoreTimeZoneManager() %s: %d (%d)\n", LOCALTIME_LOCATION, sbuf.st_mode & S_IFMT, S_IFLNK);
 #ifdef S_IFLNK
+      printd(1, "QoreTimeZoneManager::QoreTimeZoneManager() %s: %d (%d)\n", LOCALTIME_LOCATION, sbuf.st_mode & S_IFMT, S_IFLNK);
       if ((sbuf.st_mode & S_IFMT) == S_IFLNK) {
         char buf[QORE_PATH_MAX + 1];
         qore_offset_t len = readlink(LOCALTIME_LOCATION, buf, QORE_PATH_MAX);

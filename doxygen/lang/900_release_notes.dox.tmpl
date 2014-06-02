@@ -17,6 +17,8 @@
       - <a href="../../modules/Util/html/index.html">Util</a> module fixes:
         - fixed get_random_string() on Windows
 	- fixed absolute_path_windows()
+      - filed file reading by always opening in binary mode
+      - added support for the WSAECONNABORTED socket error
       - replaced Mime::MultiPartMessage::getRandomString() with Util::get_random_string() to make it work on Windows
 
     @section qore_0810 Qore 0.8.10 
