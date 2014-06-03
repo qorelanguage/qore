@@ -18,7 +18,7 @@
         - fixed get_random_string() on Windows
 	- fixed absolute_path_windows()
       - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module fixes:
-        - when binding a wildcard address with @ref Qore::AF_UNSPEC "AF_UNSPEC" on Windows with @ref HttpServer::HttpServer::addListeners()
+        - when binding a wildcard address with @ref Qore::AF_UNSPEC "AF_UNSPEC" on Windows with HttpServer::addListeners()
           and both IPv6 and IPv4 addresses are returned, bind both addresses since Windows doesn't direct the IPv4 requests to the wildcard-bound IPv6 listener
       - filed file reading by always opening in binary mode
       - added support for the WSAECONNABORTED socket error
