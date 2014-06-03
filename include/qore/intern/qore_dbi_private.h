@@ -332,6 +332,10 @@ struct qore_dbi_private {
    }
 
    DLLLOCAL QoreHashNode* stmt_describe(SQLStatement* stmt, ExceptionSink* xsink) const {
+      if (!f.stmt.describe) {
+         xsink->raiseException("DBI-DESCRIBE-ERROR", "this driver does not implement the SQLStatement::describe() method");
+         return 0;
+      }
       return f.stmt.describe(stmt, xsink);
    }
 
