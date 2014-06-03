@@ -498,7 +498,7 @@ int QoreAddrInfo::getInfo(ExceptionSink *xsink, const char *node, const char *se
    int status = getaddrinfo(node, service, &hints, &ai);
    if (status) {
       if (xsink)
-	 xsink->raiseException("QOREADDRINFO-GETINFO-ERROR", "getaddrinfo(node='%s', service='%s', address_family='%s', flags=%d) error: %s", node ? node : "", service ? service : "", q_af_to_str(family), flags, gai_strerror(status));
+	 xsink->raiseException("QOREADDRINFO-GETINFO-ERROR", "getaddrinfo(node: '%s', service: '%s', address_family: %d='%s', flags: %d) error: %s", node ? node : "", service ? service : "", family, q_af_to_str(family), flags, gai_strerror(status));
       return -1;
    }
 

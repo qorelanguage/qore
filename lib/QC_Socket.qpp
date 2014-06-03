@@ -31,6 +31,23 @@
 #include <errno.h>
 #include <string.h>
 
+static void hash_set_int_key(QoreHashNode& h, int k, const char* str) {
+   char buf[15];
+   sprintf(buf, "%d", k);
+   h.setKeyValue(buf, new QoreStringNode(str), 0);
+}
+
+static QoreHashNode* get_network_address_family_map() {
+   QoreHashNode* rv = new QoreHashNode;
+
+   hash_set_int_key(*rv, AF_INET, "AF_INET");
+   hash_set_int_key(*rv, AF_INET6, "AF_INET6");
+   hash_set_int_key(*rv, AF_UNIX, "AF_UNIX");
+   hash_set_int_key(*rv, AF_UNSPEC, "AF_UNSPEC");
+
+   return rv;
+}
+
 static int64 checkOpenResult(int rc, const char *method_name, ExceptionSink *xsink) {
    if (*xsink)
       return 0;
@@ -207,6 +224,18 @@ const AF_LOCAL = AF_LOCAL;
 
 //! unspecified address family
 const AF_UNSPEC = AF_UNSPEC;
+
+//! mapping from @ref network_address_family_constants to string codes
+const AFMap = qore(get_network_address_family_map());
+
+//! mapping from network address family string codes to @ref network_address_family_constants
+const AFStrMap = (
+   "AF_INET": AF_INET,
+   "AF_INET6": AF_INET6,
+   "AF_UNIX": AF_UNIX,
+   "AF_LOCAL": AF_UNIX,
+   "AF_UNSPEC": AF_UNSPEC,
+   );
 
 //@}
 
