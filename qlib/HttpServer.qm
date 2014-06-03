@@ -28,7 +28,7 @@
 %requires Util >= 1.0
 
 module HttpServer {
-    version = "0.3.8";
+    version = "0.3.9";
     desc = "HttpServer class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -119,6 +119,10 @@ log("started listener on %s", $lh.desc);
     @endcode
 
     @section http_relnotes HttpServer Module Release Notes
+
+    @subsection http039 HttpServer 0.3.9
+    - when binding a wildcard address with @ref Qore::AF_UNSPEC "AF_UNSPEC" on Windows with @ref HttpServer::HttpServer::addListeners()
+      and both IPv6 and IPv4 addresses are returned, bind both addresses since Windows doesn't direct the IPv4 requests to the wildcard-bound IPv6 listener
 
     @subsection http038 HttpServer 0.3.8
     - moved more message handling code to HttpServer::AbstractHttpRequestHandler so that chunked transfers can be efficiently supported by handlers
@@ -1323,7 +1327,7 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
 public class HttpServer::HttpServer {
     public {
         #! version of the HttpServer's implementation
-        const Version = "0.3.7";
+        const Version = "0.3.9";
         #! default read timeout in ms
         const ReadTimeout = 30000;  # recvs timeout after 30 seconds
         #! default poll timeout in ms
@@ -2172,9 +2176,14 @@ public class HttpServer::HttpServer {
         foreach my hash $h in ($al) {
             try {
                 $l += $.addListenerIntern($h.address, $h.port, $sd.cert, $sd.key, $lp, $logger, $errorlogger, $stopc, $name, $h.family).getInfo();
+%ifdef Windows
+                if (!$node && ($family != AF_UNSPEC))
+                    break;
+%else
 		# exit after the first listener is bound if the node address is missing (= bind on all addresses)
                 if (!$node)
 		    break;
+%endif
             }
             catch ($ex) {
                 $.log("cannot add listener on %s:%d: %s: %s", $h.address_desc, $h.port, $ex.err, $ex.desc);
