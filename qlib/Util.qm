@@ -72,6 +72,7 @@ module Util {
     @subsection util_1_2
     - fixed Util::get_random_string() on Windows
     - fixed Util::absolute_path_windows()
+    - fixed Util::parse_to_qore_value() with hashes with a comma in the first key name
 
     @subsection util_1_1
     - added the Util::get_byte_size() and Util::get_marketing_byte_size() functions
@@ -429,6 +430,16 @@ my bool $abs = absolute_path_windows($path);
                     $l[$i - 1] += $x;
                     --$i;
                 }
+            }
+
+            # coalesce the first element into the second if there is no "="
+            if ($l[0] !~ /=/) {
+                # copy element
+                my string $x = $l[0] + ",";
+                # remove from list
+                splice $l, 0, 1;
+                # append to new initial element
+                $l[0] = $x + $l[0];
             }
             
             my hash $rh;
