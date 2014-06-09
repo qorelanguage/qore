@@ -54,15 +54,6 @@ module RestHandler {
     license = "MIT";
 }
 
-/*  Version History
-    * 2014-01-20 v1.1: David Nichols <david@qore.org>
-      + added support for the OPTIONS method
-      + return an error if an unsupported HTTP method is used in a REST Call
-
-    * 2013-10-04 v1.0: David Nichols <david@qore.org>
-      + the initial version of the RestHandler module
-*/
-
 /** @mainpage RestHandler Module
 
     @tableofcontents
@@ -303,6 +294,15 @@ Content-Length: 36
     %Qore exceptions are serialized in a consistent way by the @ref RestHandler::RestHandler "RestHandler" class so that they can be recognized and handled appropriately by clients.
 
     %Qore exceptions are returned with a 409 \c "Conflict" HTTP return code with the message body as an @ref exception_hash "exception hash".
+
+    @section resthandler_relnotes RestHandler Release Notes
+
+    @subsection rh_v_1_1 RestHandler v1.1
+    - added support for the HTTP \c OPTIONS method
+    - return an error if an unsupported HTTP method is used in a REST call
+
+    @subsection rh_v_1_0 RestHandler v1.0
+    - the initial version of the RestHandler module
 */
 
 #! the RestHandler namespace contains all the objects in the RestHandler module
@@ -758,7 +758,7 @@ public namespace RestHandler {
                     );
             }
 
-            #printf("DBG: rv: %y\n", $rv);
+            #$.logDebug("DBG: rv: %y", $rv);
 
             if (!$rv.reply_sent) {
                 # serialize response according to client's capabilities if necessary

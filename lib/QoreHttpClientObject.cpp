@@ -287,7 +287,7 @@ struct qore_httpclient_priv {
       return str;
    }
    
-   DLLLOCAL QoreHashNode* sendMessageAndGetResponse(const char* meth, const char* mpath, const QoreHashNode& nh, const void* data, unsigned size, const ResolvedCallReferenceNode* send_callback, QoreHashNode* info, bool with_connect, int timeout_ms, int& code, ExceptionSink* xsink);
+   DLLLOCAL QoreHashNode* sendMessageAndGetResponse(const char* meth, const char* mpath, const QoreHashNode& nh, const void* data, unsigned size, const ResolvedCallReferenceNode* send_callback, QoreHashNode* info, bool with_connect, int timeout_ms, int& code, bool& aborted, ExceptionSink* xsink);
 
    DLLLOCAL const char* getMsgPath(const char* mpath, QoreString &pstr) {
       pstr.clear();
@@ -618,7 +618,7 @@ void QoreHttpClientObject::disconnect() {
    http_priv->disconnect_unlocked();
 }
 
-QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* meth, const char* mpath, const QoreHashNode& nh, const void* data, unsigned size, const ResolvedCallReferenceNode* send_callback, QoreHashNode* info, bool with_connect, int timeout_ms, int& code, ExceptionSink* xsink) {
+QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* meth, const char* mpath, const QoreHashNode& nh, const void* data, unsigned size, const ResolvedCallReferenceNode* send_callback, QoreHashNode* info, bool with_connect, int timeout_ms, int& code, bool& aborted, ExceptionSink* xsink) {
    QoreString pathstr(msock->socket->getEncoding());
    const char* msgpath = with_connect ? mpath : getMsgPath(mpath, pathstr);
 
@@ -637,7 +637,7 @@ QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* meth, 
    }
 
    // send the message
-   int rc = msock->socket->priv->sendHttpMessage(xsink, info, meth, msgpath, http11 ? "1.1" : "1.0", &nh, data, size, send_callback, QORE_SOURCE_HTTPCLIENT, timeout_ms, &msock->m);
+   int rc = msock->socket->priv->sendHttpMessage(xsink, info, meth, msgpath, http11 ? "1.1" : "1.0", &nh, data, size, send_callback, QORE_SOURCE_HTTPCLIENT, timeout_ms, &msock->m, &aborted);
    //sendHTTPMessage(xsink, info, meth, msgpath, http11 ? "1.1" : "1.0", &nh, data, size, QORE_SOURCE_HTTPCLIENT, timeout_ms);
 
    if (rc) {
@@ -896,6 +896,9 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
    int redirect_count = 0;
    const char* location = 0;
 
+   // flag for aborted chunked sends
+   bool send_aborted = false;
+
    while (true) {
       // set host field automatically if not overridden
       if (!host_override)
@@ -910,9 +913,9 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
       //printd(5, "qore_httpclient_priv::send_internal() meth=%s proxy_path=%s mpath=%s upc=%d\n", meth, proxy_path ? proxy_path : "n/a", mpath, use_proxy_connect);
       // send HTTP message and get response header
       if (use_proxy_connect)
-	 ans = sendMessageAndGetResponse(meth, proxy_path, *(*proxy_headers), 0, 0, 0, info, true, timeout_ms, code, xsink);
+	 ans = sendMessageAndGetResponse(meth, proxy_path, *(*proxy_headers), 0, 0, 0, info, true, timeout_ms, code, send_aborted, xsink);
       else
-	 ans = sendMessageAndGetResponse(meth, mpath, *(*nh), data, size, send_callback, info, false, timeout_ms, code, xsink);
+	 ans = sendMessageAndGetResponse(meth, mpath, *(*nh), data, size, send_callback, info, false, timeout_ms, code, send_aborted, xsink);
       if (!ans)
 	 return 0;
 
@@ -964,6 +967,8 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
 	    tmp.sprintf("redirect-message-%d", redirect_count);
 	    info->setKeyValue(tmp.getBuffer(), mess ? mess->refSelf() : 0, xsink);
 	 }
+
+	 // FIXME: reset send callback and send_aborted here
 
 	 // set mpath to NULL so that the new path will be taken
 	 mpath = 0;
@@ -1075,7 +1080,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
    }
 
    // send headers to recv_callback
-   if (recv_callback && msock->socket->priv->runHeaderCallback(xsink, mname, *recv_callback, &msock->m, *ans, obj))
+   if (recv_callback && msock->socket->priv->runHeaderCallback(xsink, mname, *recv_callback, &msock->m, *ans, send_aborted, obj))
       return 0;
 
    AbstractQoreNode* body = 0;
@@ -1223,7 +1228,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
 	 if (recv_callback) {
 	    ReferenceHolder<> bh(body, xsink);
 	    if (msock->socket->priv->runDataCallback(xsink, mname, *recv_callback, 0, body, false)
-		|| msock->socket->priv->runHeaderCallback(xsink, mname, *recv_callback, 0, 0, obj))
+		|| msock->socket->priv->runHeaderCallback(xsink, mname, *recv_callback, 0, 0, send_aborted, obj))
 	       return 0;
 	 }
 	 else
@@ -1232,13 +1237,13 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
    }
 
    // do not throw an exception if a receive callback is used
-   if (!*xsink && (code < 100 || code >= 300) && !recv_callback) {
+   if (!recv_callback && !*xsink && (code < 100 || code >= 300)) {
       const char* mess = get_string_header(xsink, **ans, "status_message");
       if (!mess)
 	 mess = "<no message>";
       assert(!*xsink);
-      xsink->raiseExceptionArg("HTTP-CLIENT-RECEIVE-ERROR", ans.release(), "HTTP status code %d received: message: %s", code, mess);
 
+      xsink->raiseExceptionArg("HTTP-CLIENT-RECEIVE-ERROR", ans.release(), "HTTP status code %d received: message: %s", code, mess);
       return 0;
    }
 

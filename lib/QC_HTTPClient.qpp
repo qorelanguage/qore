@@ -464,6 +464,7 @@ my hash $msg = $httpclient.sendWithCallbacks($send_callback, $rcv_callback, "POS
     Header or trailer data is placed in a hash with the following keys:
     - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
     - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
+    - \c "send_aborted": this is set to @ref Qore::True "True" if a response header was set while sending an outgoing chunked message
     @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT").
     @param path The path for the message (i.e. \c "/path/resource?method&param=value")
     @param headers An optional hash of headers to include in the message.
@@ -485,6 +486,7 @@ my hash $msg = $httpclient.sendWithCallbacks($send_callback, $rcv_callback, "POS
 
     @note
     - The \c "Transfer-Encoding: chunked" header is automatically set with this method if no \c "Transfer-Encoding" header is already present
+    - if a response is received while the chunked send operation is still in progress, an error is assumed, the send operation is aborted, and the response header is read immediately and the \c send_aborted flag is set in the argument to \a rcb
     - For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
 
     @since Qore 0.8.10

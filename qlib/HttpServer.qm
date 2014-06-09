@@ -28,7 +28,7 @@
 %requires Util >= 1.0
 
 module HttpServer {
-    version = "0.3.9";
+    version = "0.3.10";
     desc = "HttpServer class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -119,6 +119,9 @@ log("started listener on %s", $lh.desc);
     @endcode
 
     @section http_relnotes HttpServer Module Release Notes
+
+    @subsection http039 HttpServer 0.3.10
+    - if an error occurs receiving a message with chunked transfer encoding, send the response immediately before reading the rest of the chunked transfer
 
     @subsection http039 HttpServer 0.3.9
     - when binding a wildcard address with @ref Qore::AF_UNSPEC "AF_UNSPEC" on Windows with @ref HttpServer::HttpServer::addListeners()
@@ -1327,7 +1330,7 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
 public class HttpServer::HttpServer {
     public {
         #! version of the HttpServer's implementation
-        const Version = "0.3.9";
+        const Version = "0.3.10";
         #! default read timeout in ms
         const ReadTimeout = 30000;  # recvs timeout after 30 seconds
         #! default poll timeout in ms
@@ -2349,7 +2352,7 @@ public class HttpServer::HttpServer {
                     continue;
             }
 
-            $.sendReply($listener, $s, $handler, $rv, $cx, $hdr, $head);
+            $.sendReply($listener, $s, $handler, $rv, \$cx, $hdr, $head);
 	}
 	catch (hash $ex) {
             my string $desc = !$.debug
@@ -2365,8 +2368,8 @@ public class HttpServer::HttpServer {
 
             $cx.close = True;
 
-            # if there was a pending chunked body that has not yet been read, then read it and discard before sending any response
-            if ($s.pendingHttpChunkedBody())
+            # if there is a pending chunked body that has not yet been read on exit, then read it and discard before sending any response
+            on_exit if ($s.pendingHttpChunkedBody())
                 $s.readHTTPChunkedBodyBinary(HttpServer::ReadTimeout);
 
 	    $.sendHttpError($listener, $cx, $s, 500, $str, NOTHING, $cx."response-encoding");
@@ -2376,7 +2379,7 @@ public class HttpServer::HttpServer {
 
     # sends a reply to a request
     # don't reimplement this method; fix/enhance it in the module
-    final sendReply(HttpListener $listener, Socket $s, AbstractHttpRequestHandler $handler, hash $rv, hash $cx, hash $hdr, bool $head) {
+    final sendReply(HttpListener $listener, Socket $s, AbstractHttpRequestHandler $handler, hash $rv, reference $cx, hash $hdr, bool $head) {
         if (exists $rv.close)
             $cx.close = boolean($rv.close);
 
@@ -2393,8 +2396,8 @@ public class HttpServer::HttpServer {
 
         $rv.close = $cx.close;
 
-        # if there was a pending chunked body that has not yet been read, then read it and discard before sending any response
-        if ($s.pendingHttpChunkedBody())
+        # if there is a pending chunked body that has not yet been read on exit, then read it and discard before sending any response
+        on_exit if ($s.pendingHttpChunkedBody())
             $s.readHTTPChunkedBodyBinary(HttpServer::ReadTimeout);
 
         if (!HttpCodes.($rv.code)) { # if the handler returns an invalid hash
@@ -2447,7 +2450,6 @@ public class HttpServer::HttpServer {
             }
 
             $s.sendHTTPResponse($rv.code, HttpServer::HttpCodes.($rv.code), "1.1", $rv.hdr, $rv.body);
-
             $listener.logResponse($cx, $rv);
         }
         
@@ -2965,6 +2967,8 @@ public class HttpServer::HttpListener inherits Qore::Socket {
                     $cx.uctx = get_thread_data("uctx");
                     $.serv.handleRequest($self, $s, \$cx, $hdr, $hi, $body, $hdr.method == "HEAD", $phi);
                 }
+
+                #$.log("DBG cid %d: cx.close: %y", $cx.id, $cx.close);
 
                 if ($cx.close)
                     break;

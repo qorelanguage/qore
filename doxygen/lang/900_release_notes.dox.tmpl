@@ -11,6 +11,7 @@
     - added the @ref Qore::AFMap and @ref Qore::AFStrMap constants
     - <a href="../../modules/WebUtil/html/index.html">WebUtil</a> updates:
       - added logic to the default file serving code to determine if the file is a binary or text file from the MIME type
+    - @ref Qore::HTTPClient::sendWithSendCallback() "HTTPClient::sendWithSendCallback()" and @ref Qore::HTTPClient::sendWithSendCallback() "HTTPClient::sendWithSendCallback()" updated such that if a response is received while the chunked send operation is still in progress, an error is assumed, the send operation is aborted, and the response header is read immediately
 
     @subsection qore_0811_bug_fixes Bug Fixes in Qore
     - Windows fixes:
