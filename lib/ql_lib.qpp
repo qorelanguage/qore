@@ -470,12 +470,13 @@ if ($pid = fork())
 
     @throw ILLEGAL-FORK Cannot fork if more than one thread is running
 
-    @note fork() is not implemented on Darwin like on other Unixes; fork() on Darwin is only usable for making an exec() afterwards
-    (see <a href="https://developer.apple.com/library/mac/#documentation/Darwin/Reference/Manpages/man2/fork.2.html">Darwin's fork() man page</a>
-    for more info, particularly the section at the end which indicates that only async-signal-safe APIs are safe be used after a fork and that
-    global objects are also unsafe to access after a fork()). The main problem is that Darwin does not ensure that threading objects' state
-    is intact in the child process after a fork(). Unfortunately this means that %Qore scripts/programs are unstable after a fork() on Darwin
-    as well, because the internal threading objects used by %Qore's runtime system are not reliable in this case.
+    @note 
+    - after a fork(), the only safe call is @ref exec(), many system calls are not async-signal safe, including pthread_create() which is
+      used to start new threads.
+    - the %Qore process will crash if unsafe operations are called after a fork()
+    - the signal-handling thread cannot be reliably started on many platforms (ex: FreeBSD) after a fork(), therefore signal handling
+      is disabled in the child process after a fork()
+    - on Darwin (OS/X) threading primitives are unusable in the child process after a fork()
  */
 int fork() [dom=PROCESS] {
 #ifdef HAVE_FORK

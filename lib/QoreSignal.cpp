@@ -213,11 +213,14 @@ void QoreSignalManager::post_fork_unblock_and_start(bool new_process, ExceptionS
    assert(!waiting);
 
    // set new default signal mask for new process
-   if (new_process) {      
+   if (new_process) {
+      // do not start signal thread after a fork(), pthread_create() is not async-signal safe
+      is_enabled = false;
       // block all signals
       sigset_t new_mask;
       setMask(new_mask);
       pthread_sigmask(SIG_SETMASK, &new_mask, 0);
+      return;
    }
 
    printd(5, "QoreSignalManager::post_fork_unblock_and_start() pid=%d, new_process=%d, starting signal thread\n", getpid(), new_process);
