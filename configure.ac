@@ -592,9 +592,11 @@ find_gmp() {
     fi
     # try to find include files
     if test -f "$inc/gmp.h"; then
-        set_gmp_cppflags $inc
+        set_gmp_cppflags "$inc"
     elif test -f "$inc/gmp/gmp.h"; then
-        set_gmp_cppflags $inc/gmp
+        set_gmp_cppflags "$inc/gmp"
+    elif test -f "$inc${LIBSUFFIX}/gmp.h"; then
+        set_gmp_cppflags "$inc${LIBSUFFIX}"
     else
         unset GMP_LDFLAGS
 	unset with_gmp_libs
