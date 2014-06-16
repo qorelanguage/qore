@@ -102,7 +102,7 @@ functionality.
 
 %files -n libqore5
 %defattr(-,root,root,-)
-%{_libdir}/libqore.so.5.12.1
+%{_libdir}/libqore.so.5.12.2
 %{_libdir}/libqore.so.5
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README README-LICENSE README-MODULES RELEASE-NOTES ChangeLog AUTHORS WHATISQORE
 
@@ -194,7 +194,6 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 /usr/bin/qore
 %{module_dir}
-%{module_dir}/%{qore_ver}
 %if 0%{?rh_dist}
 %if %{?rh_dist} <= 5
 /usr/man/man1/qore.1.*
@@ -291,7 +290,7 @@ rm -rf $RPM_BUILD_ROOT
 * Thu Jun 12 2008 David Nichols <david_nichols@users.sourceforge.net>
 - added new modules
 
-* Tue Oct 22 2007 David Nichols <david_nichols@users.sourceforge.net>
+* Mon Oct 22 2007 David Nichols <david_nichols@users.sourceforge.net>
 - updated spec file with corrections from suse open build service
 
 * Tue Jul 17 2007 David Nichols <david_nichols@users.sourceforge.net>
@@ -311,7 +310,7 @@ rm -rf $RPM_BUILD_ROOT
 * Tue Feb 20 2007 David Nichols <david_nichols@users.sourceforge.net>
 - updated to libqore.so.3.0.0
 
-* Tue Feb 11 2007 David Nichols <david_nichols@users.sourceforge.net>
+* Sun Feb 11 2007 David Nichols <david_nichols@users.sourceforge.net>
 - updated to 0.6.2 and libqore 1.1
 
 * Tue Jan 30 2007 David Nichols <david_nichols@users.sourceforge.net>
@@ -324,6 +323,6 @@ rm -rf $RPM_BUILD_ROOT
 - updated descriptions
 - changes to make spec file more release-agnostic (use of the dist tag in release)
 
-* Thu Dec 7 2005 David Nichols <david_nichols@users.sourceforge.net>
+* Wed Dec 7 2005 David Nichols <david_nichols@users.sourceforge.net>
 - Initial rpm build
 
