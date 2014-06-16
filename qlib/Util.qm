@@ -500,7 +500,7 @@ my string $pass = get_random_string();
             }
         }
         else {
-            my ReadOnlyFile $f("/dev/random");
+            my ReadOnlyFile $f("/dev/urandom");
             for (my int $i = 0; $i < $len; ++$i) {
                 my int $v = $f.readi2().abs() % $level;
                 $str += ($v < 26 ? chr($v + ord("A")) : 
