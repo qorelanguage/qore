@@ -33,15 +33,14 @@
 %endif
 %endif
 
-Summary: Qore Programming Language
+Summary: Multithreaded Programming Language
 Name: qore
 Version: %{qore_ver}
 Release: 1%{dist}
-License: LGPL, GPL or MIT
-Group: Development/Languages/Other
-URL: http://www.qoretechnologies.com/qore
+License: LGPLv2+ or GPLv2+ or MIT
+Group: Development/Languages
+URL: http://qore.org
 Source: http://prdownloads.sourceforge.net/qore/qore-%{version}.tar.bz2
-#Source0: %{name}-%{version}.tar.bz2
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 Requires: /usr/bin/env
 BuildRequires: gcc-c++
@@ -175,7 +174,7 @@ mv $RPM_BUILD_DIR/%{name}-%{version}/test $RPM_BUILD_DIR/%{name}-%{version}/exam
 c64=--enable-64bit
 %endif
 # need to configure with /usr as prefix as this will be used to derive the module directory
-./configure RPM_OPT_FLAGS="$RPM_OPT_FLAGS" --prefix=/usr --disable-debug --disable-static $c64
+./configure RPM_OPT_FLAGS="$RPM_OPT_FLAGS" --prefix=/usr --disable-debug --disable-static $c64 --libdir=%{_libdir}
 
 %build
 %{__make}

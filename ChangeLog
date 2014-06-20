@@ -1,3 +1,124 @@
+2014-06-16 12:11  david_nichols
+
+	* qore.spec: minor spec file fixes
+
+2014-06-16 06:44  david_nichols
+
+	* qlib/Util.qm: read from /dev/urandom instead of /dev/random since
+	  /dev/random may block for long periods to fill the entropy pool
+
+2014-06-15 16:28  david_nichols
+
+	* configure.ac: configure fixes for ubuntu
+
+2014-06-14 16:40  david_nichols
+
+	* lib/QoreSignal.cpp: updated copyright stmt
+
+2014-06-14 16:39  david_nichols
+
+	* doxygen/lang/230_signal_handling.dox.tmpl,
+	  doxygen/lang/900_release_notes.dox.tmpl, lib/QoreSignal.cpp,
+	  lib/ql_lib.qpp: do not start the signal handling thread in the
+	  child process, since pthread_create() is not async-signal safe
+	  updated fork() and signal-handling docs
+
+2014-06-09 14:43  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/QoreSocketObject.h,
+	  include/qore/intern/qore_socket_private.h, lib/QC_HTTPClient.qpp,
+	  lib/QoreHttpClientObject.cpp, lib/QoreSocketObject.cpp,
+	  qlib/HttpServer.qm, qlib/RestHandler.qm: - qore:
+	  HTTPClient::sendWithSendCallback() and
+	  HTTPClient::sendWithSendCallback() updated such that if a
+	  response is received while the chunked send operation is still in
+	  progress, an error is assumed, the send operation is aborted, and
+	  the response header is read immediately
+	  - HttpServer.qm: if an error occurs receiving a message with
+	  chunked transfer encoding, send the response immediately before
+	  reading the rest of the chunked transfer
+	  - RestHandler: added module release notes section to module docs
+
+2014-06-04 09:41  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/Util.qm: fixed
+	  parse_to_qore_value() with hashes with a comma in the first key
+	  name
+
+2014-06-03 19:04  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/intern/qore_dbi_private.h: fixed a bug in the DBI
+	  layer where calling SQLStatement::describe() would crash when
+	  called with an older module that did not implement this method
+
+2014-06-03 12:00  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, lib/QC_Socket.qpp,
+	  lib/QoreNet.cpp: added AFMap and AFStrMap constants to map
+	  address constant integer codes to and from descriptive string
+	  codes
+
+2014-06-03 09:56  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl: removed non-functional
+	  link in relnotes
+
+2014-06-03 09:50  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/HttpServer.qm: when
+	  binding a wildcard address with AF_UNSPEC on Windows with
+	  HttpServer::addListeners() and both IPv6 and IPv4 addresses are
+	  returned, bind both addresses since Windows doesn't direct the
+	  IPv4 requests to the wildcard-bound IPv6 listener
+
+2014-06-02 13:34  david_nichols
+
+	* include/qore/intern/qore_socket_private.h, lib/QoreSocket.cpp:
+	  support ECONNRESET actions on Windows
+
+2014-06-02 13:27  david_nichols
+
+	* configure.ac, doxygen/lang/900_release_notes.dox.tmpl,
+	  lib/QoreFile.cpp, lib/QoreSocket.cpp,
+	  lib/QoreTimeZoneManager.cpp: more windows fixes:
+	  + filed file reading by always opening in binary mode
+	  + added support for the WSAECONNABORTED socket error
+
+2014-06-01 16:38  david_nichols
+
+	* qlib/WebUtil.qm: added additional MIME text types
+
+2014-06-01 13:28  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/WebUtil.qm: updated
+	  WebUtil.qm: added logic to the default file serving code to
+	  determine if the file is a binary or text file from the MIME type
+
+2014-05-31 16:20  david_nichols
+
+	* lib/QoreLib.cpp: fixed usleep() on Windows
+
+2014-05-31 15:25  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl, qlib/Mime.qm,
+	  qlib/Util.qm: Mime and Util module fixes for windows
+
+2014-05-31 05:50  david_nichols
+
+	* configure.ac, lib/Makefile.am, lib/QoreTimeZoneManager.cpp,
+	  qore.spec: updated to 0.8.11
+	  updated library version info
+	  fixed Windows TimeZone info copy constructor to use the standard
+	  name rather than the display name so that it can be found in the
+	  registry
+
+2014-05-30 13:52  david_nichols
+
+	* ChangeLog, doxygen/lang/900_release_notes.dox.tmpl: updated
+	  relnotes & ChangeLog for release
+
 2014-05-30 09:35  subik
 
 	* cmake/QoreConfig.cmake.in: cmake modules: use
