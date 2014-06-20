@@ -28,6 +28,7 @@
     - fixed a bug in the DBI layer where calling @ref Qore::SQL::SQLStatement::describe() "SQLStatement::describe()" would crash when called with an older module that did not implement this method
     - other fixes in the <a href="../../modules/Util/html/index.html">Util</a> module (in addition to the Windows-specific fixes above):
       - fixed parse_to_qore_value() with hashes with a comma in the first key name
+      - read from /dev/urandom instead of /dev/random since reads from the latter can block for long periods to fill the entropy pool
     - do not start signal thread after a fork() if signal handling is enabled, pthread_create() is not async-signal safe (on FreeBSD at least this reliably causes segfaults)
 
     @section qore_0810 Qore 0.8.10 
