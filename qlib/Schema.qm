@@ -22,8 +22,8 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.10 or better
-%requires qore >= 0.8.10
+# this module requires Qore 0.8.11 or better
+%requires qore >= 0.8.11
 
 # requires the SqlUtil module
 %requires SqlUtil >= 1.2

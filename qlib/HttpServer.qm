@@ -22,7 +22,7 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%requires qore >= 0.8.10
+%requires qore >= 0.8.11
 # need mime definitions
 %requires Mime >= 1.0
 %requires Util >= 1.0
