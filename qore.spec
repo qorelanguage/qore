@@ -37,7 +37,11 @@ Summary: Multithreaded Programming Language
 Name: qore
 Version: %{qore_ver}
 Release: 1%{dist}
+%if 0%{?suse_version}
+License: LGPL-2.0+ or GPL-2.0+ or MIT
+%else
 License: LGPLv2+ or GPLv2+ or MIT
+%endif
 Group: Development/Languages
 URL: http://qore.org
 Source: http://prdownloads.sourceforge.net/qore/qore-%{version}.tar.bz2
@@ -54,6 +58,7 @@ BuildRequires: mpfr-devel
 BuildRequires: doxygen
 %if 0%{?suse_version}
 BuildRequires: pkg-config
+BuildRequires: fdupes
 %if 0%{?sles_version} && %{?sles_version} <= 10
 BuildRequires: bzip2
 %else
@@ -168,6 +173,11 @@ This package provides HTML documentation for the C++ API for the Qore library.
 
 %prep
 %setup -q
+%if 0%{?suse_version}
+# silence the executable warning for examples
+find examples -type f|xargs chmod 644
+find test -type f|xargs chmod 644
+%endif
 mv $RPM_BUILD_DIR/%{name}-%{version}/test $RPM_BUILD_DIR/%{name}-%{version}/examples
 
 %ifarch x86_64 ppc64 x390x
@@ -185,6 +195,10 @@ mkdir -p $RPM_BUILD_ROOT/%{module_dir}/%{qore_ver}
 mkdir -p $RPM_BUILD_ROOT/usr/man/man1
 make install prefix=%{_prefix} DESTDIR=$RPM_BUILD_ROOT
 rm $RPM_BUILD_ROOT/%{_libdir}/libqore.la
+%if 0%{?suse_version}
+%fdupes -s docs/library/html
+%endif
+
 
 %clean
 rm -rf $RPM_BUILD_ROOT
