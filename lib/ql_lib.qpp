@@ -45,6 +45,10 @@
 #include <qore/intern/glob.h>
 #endif
 
+#ifdef HAVE_SYS_TYPES
+#include <sys/types.h>
+#endif
+
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -52,6 +56,8 @@
 #ifndef SIGHUP
 #define SIGHUP 0
 #endif
+
+#define MAX_GIDS 100
 
 extern bool threads_initialized;
 
@@ -348,6 +354,48 @@ int getegid() [dom=EXTERNAL_INFO] {
 #else
    missing_function_error("getegid", "UNIX_USERMGT", xsink);
    return 0;
+#endif
+}
+
+//! returns a list of group IDs that the user is a member of
+/** @since %Qore 0.8.11
+ */
+list getgroups() [dom=EXTERNAL_INFO] {
+#ifdef HAVE_GETGROUPS
+   gid_t l[MAX_GIDS];
+
+   int n = getgroups(MAX_GIDS, l);
+   if (n == -1) {
+      xsink->raiseErrnoException("GETGROUPS-ERROR", errno, "error calling getgroups()");
+      return 0;
+   }
+
+   QoreListNode* rv = new QoreListNode;
+   for (int i = 0; i < n; ++i)
+      rv->push(new QoreBigIntNode(l[i]));
+   return rv;
+#else
+   missing_function_error("getgroups", "UNIX_USERMGT", xsink);
+#endif
+}
+
+//! sets the list of supplementarygroup IDs for the current process
+/** @since %Qore 0.8.11
+ */
+setgroups(softlist gids) [dom=PROCESS] {
+#ifdef HAVE_SETGROUPS
+   if (gids->empty())
+      return 0;
+
+   gid_t l[gids->size()];
+   for (qore_size_t i = 0, e = gids->size(); i < e; ++i) {
+      const AbstractQoreNode* n = gids->retrieve_entry(i);
+      l[i] = n ? n->getAsInt() : 0;
+   }
+   if (setgroups(gids->size(), l))
+      xsink->raiseErrnoException("SETGROUPS-ERROR", errno, "error calling setgroups()");
+#else
+   missing_function_error("setgroups", "UNIX_USERMGT", xsink);
 #endif
 }
 

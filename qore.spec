@@ -80,7 +80,7 @@ development but is also useful as a general purpose language.
 
 %package -n libqore5
 Summary: The libraries for the qore runtime and qore clients
-Group: Development/Languages/Other
+Group: Development/Languages
 Provides: qore-module-api-0.18
 Provides: qore-module-api-0.17
 Provides: qore-module-api-0.16
@@ -118,7 +118,7 @@ ldconfig %{_libdir}
 
 %package doc
 Summary: API documentation, programming language reference, and Qore example programs
-Group: Development/Languages/Other
+Group: Development/Languages
 
 %description doc
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -134,7 +134,7 @@ and also for user modules delivered with Qore and also example programs.
 
 %package devel
 Summary: The header files needed to compile programs using the qore library
-Group: Development/Languages/Other
+Group: Development/Languages
 Requires: libqore5 = %{version}-%{release}
 
 %description devel
@@ -157,7 +157,7 @@ Qore library.
 
 %package devel-doc
 Summary: C++ API documentation for the qore library
-Group: Development/Languages/Other
+Group: Development/Languages
 Requires: libqore5 = %{version}-%{release}
 
 %description devel-doc
@@ -173,11 +173,9 @@ This package provides HTML documentation for the C++ API for the Qore library.
 
 %prep
 %setup -q
-%if 0%{?suse_version}
 # silence the executable warning for examples
 find examples -type f|xargs chmod 644
 find test -type f|xargs chmod 644
-%endif
 mv $RPM_BUILD_DIR/%{name}-%{version}/test $RPM_BUILD_DIR/%{name}-%{version}/examples
 
 %ifarch x86_64 ppc64 x390x
