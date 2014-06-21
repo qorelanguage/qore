@@ -1111,9 +1111,10 @@ public:
    DLLLOCAL void makeParseException(QoreStringNode* desc) {
       QoreStringNodeHolder d(desc);
       if (!requires_exception) {
-         QoreException *ne = new ParseException("PARSE-EXCEPTION", d.release());
-         if ((only_first_except && !exceptions_raised) || !only_first_except)
+         if ((only_first_except && !exceptions_raised) || !only_first_except) {
+            QoreException *ne = new ParseException("PARSE-EXCEPTION", d.release());
             parseSink->raiseException(ne);
+         }
          exceptions_raised++;
       }
    }
@@ -1123,9 +1124,10 @@ public:
 
       QoreStringNodeHolder d(desc);
       if (!requires_exception) {
-         QoreException *ne = new ParseException(loc, err, d.release());
-         if ((only_first_except && !exceptions_raised) || !only_first_except)
+         if ((only_first_except && !exceptions_raised) || !only_first_except) {
+            QoreException *ne = new ParseException(loc, err, d.release());
             parseSink->raiseException(ne);
+         }
          exceptions_raised++;
       }
    }
