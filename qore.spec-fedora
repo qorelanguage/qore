@@ -1,42 +1,13 @@
-# this spec file can be used for multiple RPM-based distributions including Fedora, RHEL, *SUSE, and others
 %global module_dir %{_libdir}/qore-modules
-
-%if 0%{?sles_version}
-%global dist .sles%{?sles_version}
-%else
-%if 0%{?suse_version}
-# get *suse release major version
-%global os_maj %(echo %suse_version|rev|cut -b3-|rev)
-# get *suse release minor version without trailing zeros
-%global os_min %(echo %suse_version|rev|cut -b-2|rev|sed s/0*$//)
-%if %suse_version > 1010
-%global dist .opensuse%{os_maj}_%{os_min}
-%else
-%global dist .suse%{os_maj}_%{os_min}
-%endif
-%endif
-%endif
-
-# see if we can determine the distribution type
-%if 0%{!?dist:1}
-%if 0%{?rhel}
-%global dist .el%{rhel}
-%endif
-%endif
 
 Summary: Multithreaded Programming Language
 Name: qore
 Version: 0.8.11
 Release: 1%{dist}
-%if 0%{?suse_version}
-License: LGPL-2.0+ or GPL-2.0+ or MIT
-%else
 License: LGPLv2+ or GPLv2+ or MIT
-%endif
 Group: Development/Languages
 URL: http://qore.org
 Source0: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.bz2
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 Requires: /usr/bin/env
 BuildRequires: flex >= 2.5.31
 BuildRequires: bison
@@ -46,39 +17,15 @@ BuildRequires: zlib-devel
 BuildRequires: gmp-devel
 BuildRequires: mpfr-devel
 BuildRequires: doxygen
-%if 0%{?suse_version}
-BuildRequires: pkg-config
-BuildRequires: fdupes
-%if 0%{?sles_version} && %{?sles_version} <= 10
-BuildRequires: bzip2
-%else
-BuildRequires: libbz2-devel
-%endif
-%else
 BuildRequires: pkgconfig
 BuildRequires: bzip2-devel
-%endif
 
 %description
 Qore is a scripting language supporting threading and embedded logic, designed
 for applying a flexible scripting-based approach to enterprise interface
 development but is also useful as a general purpose language.
 
-%if 0%{?suse_version}
-%debug_package
-%endif
-
-%if 0%{?fedora}
-%global libname libqore
-%else
-%if 0%{?rhel}
-%global libname libqore
-%else
-%global libname libqore5
-%endif
-%endif
-
-%package -n %{libname}
+%package -n libqore
 Summary: The libraries for the qore runtime and qore clients
 Group: Development/Languages
 Provides: qore-module-api-0.18
@@ -95,11 +42,9 @@ Provides: qore-module-api-0.8
 Provides: qore-module-api-0.7
 Provides: qore-module-api-0.6
 Provides: qore-module-api-0.5
-%if %{libname} == "libqore"
 Obsoletes: libqore5 < 0.8.12
-%endif
 
-%description -n %{libname}
+%description -n libqore
 Qore is a scripting language supporting threading and embedded logic, designed
 for applying a flexible scripting-based approach to enterprise interface
 development but is also useful as a general purpose language.
@@ -107,22 +52,19 @@ development but is also useful as a general purpose language.
 This package provides the qore library required for all clients using qore
 functionality.
 
-%files -n %{libname}
-%defattr(-,root,root,-)
+%files -n libqore
 %{_libdir}/libqore.so.5.12.2
 %{_libdir}/libqore.so.5
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README README-LICENSE README-MODULES RELEASE-NOTES ChangeLog AUTHORS WHATISQORE
 
-%post -n %{libname}
-ldconfig %{_libdir}
+%post -n libqore -p /sbin/ldconfig
 
-%postun -n %{libname}
-ldconfig %{_libdir}
+%postun -n libqore -p /sbin/ldconfig
 
 %package doc
 Summary: API documentation, programming language reference, and Qore example programs
 Group: Development/Languages
-Requires: %{libname}%{?_isa} = %{version}-%{release}
+Requires: libqore%{?_isa} = %{version}-%{release}
 
 %description doc
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -133,13 +75,12 @@ This package provides the HTML documentation for the Qore programming language
 and also for user modules delivered with Qore and also example programs.
 
 %files doc
-%defattr(-,root,root,-)
 %doc docs/lang/html docs/modules/*/html examples/
 
 %package devel
 Summary: The header files needed to compile programs using the qore library
 Group: Development/Languages
-Requires: %{libname}%{?_isa} = %{version}-%{release}
+Requires: libqore%{?_isa} = %{version}-%{release}
 
 %description devel
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -150,19 +91,18 @@ This package provides header files needed to compile client programs using the
 Qore library.
 
 %files devel
-%defattr(-,root,root,-)
-/usr/bin/qpp
-/usr/bin/qdx
+%{_bindir}/qpp
+%{_bindir}/qdx
 %{_libdir}/libqore.so
 %{_libdir}/pkgconfig/qore.pc
 %dir %{_libdir}/cmake
 %{_libdir}/cmake/Qore
-%{_prefix}/include/*
+%{_includedir}/*
 
 %package devel-doc
 Summary: C++ API documentation for the qore library
 Group: Development/Languages
-Requires: %{libname}%{?_isa} = %{version}-%{release}
+Requires: libqore%{?_isa} = %{version}-%{release}
 
 %description devel-doc
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -172,7 +112,6 @@ development but is also useful as a general purpose language.
 This package provides HTML documentation for the C++ API for the Qore library.
 
 %files devel-doc
-%defattr(-,root,root,-)
 %doc docs/library/html
 
 %prep
@@ -190,28 +129,11 @@ mv $RPM_BUILD_DIR/%{name}-%{version}/test $RPM_BUILD_DIR/%{name}-%{version}/exam
 %install
 make install prefix=%{_prefix} DESTDIR=$RPM_BUILD_ROOT
 rm $RPM_BUILD_ROOT/%{_libdir}/libqore.la
-%if 0%{?suse_version}
-%fdupes -s docs/library/html
-%endif
-
-%clean
-rm -rf $RPM_BUILD_ROOT
 
 %files
-%defattr(-,root,root,-)
-/usr/bin/qore
+%{_bindir}/qore
 %{module_dir}
-%if 0%{?rh_dist}
-%if %{?rh_dist} <= 5
-/usr/man/man1/qore.1.*
-%endif
-%else
-/usr/share/man/man1/qore.1.*
-%else
-%if 0%{?mdkversion}
-/usr/share/man/man1/qore.1.*
-%endif
-%endif
+%{_mandir}/man1/qore.1.*
 
 %changelog
 * Sat May 31 2014 David Nichols <david@qore.org> 0.8.11
