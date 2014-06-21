@@ -358,7 +358,17 @@ int getegid() [dom=EXTERNAL_INFO] {
 }
 
 //! returns a list of group IDs that the user is a member of
-/** @since %Qore 0.8.11
+/** @par Platform Availability:
+    @ref Qore::Option::HAVE_UNIX_USERMGT
+
+    @par Example:
+    @code
+my list $l = getgroups();
+    @endcode
+
+    @return a list of group IDs that the user is a member of
+
+    @since %Qore 0.8.11
  */
 list getgroups() [dom=EXTERNAL_INFO] {
 #ifdef HAVE_GETGROUPS
@@ -379,8 +389,18 @@ list getgroups() [dom=EXTERNAL_INFO] {
 #endif
 }
 
-//! sets the list of supplementarygroup IDs for the current process
-/** @since %Qore 0.8.11
+//! sets the list of supplementary group IDs for the current process
+/** @par Platform Availability:
+    @ref Qore::Option::HAVE_UNIX_USERMGT
+
+    @par Example:
+    @code
+setgroups($l);
+    @endcode
+
+    @param gids a list of supplementary group IDs for the current process
+
+    @since %Qore 0.8.11
  */
 setgroups(softlist gids) [dom=PROCESS] {
 #ifdef HAVE_SETGROUPS

@@ -1664,6 +1664,13 @@ if test "$need_assembly" = yes; then
    CCASFLAGS="$CCASFLAGS $CXXFLAGS"
 fi
 
+# do a symlink for the correct spec file
+if test -f /etc/redhat-release -o -f /etc/fedora-release; then
+   ln -s qore.spec-fedora qore.spec
+else
+   ln -s qore.spec-multi qore.spec
+fi
+
 # get module API version to set pkglibdir
 MODULE_API_MAJOR=`grep QORE_MODULE_API_MAJOR include/qore/ModuleManager.h|cut -f3 -d\ `
 MODULE_API_MINOR=`grep QORE_MODULE_API_MINOR include/qore/ModuleManager.h|cut -f3 -d\ `
