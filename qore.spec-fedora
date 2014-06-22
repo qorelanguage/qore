@@ -3,7 +3,7 @@
 Summary: Multithreaded Programming Language
 Name: qore
 Version: 0.8.11
-Release: 1%{dist}
+Release: 3%{dist}
 License: LGPLv2+ or GPLv2+ or MIT
 Group: Development/Languages
 URL: http://qore.org
@@ -27,22 +27,23 @@ development but is also useful as a general purpose language.
 
 %package -n libqore
 Summary: The libraries for the qore runtime and qore clients
-Group: Development/Languages
-Provides: qore-module-api-0.18
-Provides: qore-module-api-0.17
-Provides: qore-module-api-0.16
-Provides: qore-module-api-0.15
-Provides: qore-module-api-0.14
-Provides: qore-module-api-0.13
-Provides: qore-module-api-0.12
-Provides: qore-module-api-0.11
-Provides: qore-module-api-0.10
-Provides: qore-module-api-0.9
-Provides: qore-module-api-0.8
-Provides: qore-module-api-0.7
-Provides: qore-module-api-0.6
-Provides: qore-module-api-0.5
+Group: System Environment/Libraries
+Provides: qore-module(abi) = 0.18
 Obsoletes: libqore5 < 0.8.12
+Obsoletes: qore-module-api-0.18
+Obsoletes: qore-module-api-0.17
+Obsoletes: qore-module-api-0.16
+Obsoletes: qore-module-api-0.15
+Obsoletes: qore-module-api-0.14
+Obsoletes: qore-module-api-0.13
+Obsoletes: qore-module-api-0.12
+Obsoletes: qore-module-api-0.11
+Obsoletes: qore-module-api-0.10
+Obsoletes: qore-module-api-0.9
+Obsoletes: qore-module-api-0.8
+Obsoletes: qore-module-api-0.7
+Obsoletes: qore-module-api-0.6
+Obsoletes: qore-module-api-0.5
 
 %description -n libqore
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -63,8 +64,8 @@ functionality.
 
 %package doc
 Summary: API documentation, programming language reference, and Qore example programs
-Group: Development/Languages
-Requires: libqore%{?_isa} = %{version}-%{release}
+Group: Documentation
+BuildArch: noarch
 
 %description doc
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -79,7 +80,7 @@ and also for user modules delivered with Qore and also example programs.
 
 %package devel
 Summary: The header files needed to compile programs using the qore library
-Group: Development/Languages
+Group: Development/Libraries
 Requires: libqore%{?_isa} = %{version}-%{release}
 
 %description devel
@@ -101,8 +102,8 @@ Qore library.
 
 %package devel-doc
 Summary: C++ API documentation for the qore library
-Group: Development/Languages
-Requires: libqore%{?_isa} = %{version}-%{release}
+Group: Documentation
+BuildArch: noarch
 
 %description devel-doc
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -119,12 +120,12 @@ This package provides HTML documentation for the C++ API for the Qore library.
 # silence the executable warning for examples
 find examples -type f -exec chmod -x {} \;
 find test -type f -exec chmod -x {} \;
-mv $RPM_BUILD_DIR/%{name}-%{version}/test $RPM_BUILD_DIR/%{name}-%{version}/examples
-
-%configure --disable-debug --disable-static
+mv test examples
 
 %build
-%{__make}
+export CXXFLAGS="%{optflags}"
+%configure --disable-debug --disable-static
+make %{?_smp_mflags}
 
 %install
 make install prefix=%{_prefix} DESTDIR=$RPM_BUILD_ROOT
@@ -136,6 +137,26 @@ rm $RPM_BUILD_ROOT/%{_libdir}/libqore.la
 %{_mandir}/man1/qore.1.*
 
 %changelog
+* Sun Jun 22 2014 David Nichols <david@qore.org> 0.8.11-3
+- added explicit versioned capabilities for library ABI compatibility for module RPMs
+- obsoleted the old unversioned explicit capabilitiesle
+- added %%{optflags} to configure
+
+* Sat Jun 21 2014 David Nichols <david@qore.org> 0.8.11-2
+- fixed Source0 URL, optimized conditionals
+- removed items related to other distributions such as *suse, removed old %%defines
+- replaced %%define with %%global, removed obsolete RPM macros
+- dropped obsolete BuildRequires, renamed libary from libqore5 -> libqore
+- added %%configure macro, moved 64-bit handling to configure
+- replaced hardcoded paths with standard macros
+- aligned %%post and %%postun for libqore to Fedora standards
+- simplified example directory move syntax since we are already in the primary builddir in %%setup
+- moved %%configure call to %%build, added %%{?_smp_mflags} to make invokation
+- fixed Group: Documentation for doc and devel-doc, removed dependencies on libqore
+- fixed Group: System Environment/Libraries for libqore
+- fixed Group: Develpment/Libraries for qore-devel
+- added BuildArch: noarch to doc and devel-doc packages
+
 * Sat May 31 2014 David Nichols <david@qore.org> 0.8.11
 - updated to 0.8.11
 
