@@ -27,6 +27,7 @@
 // when not linking with libqore as link errors result
 //#include <qore/intern/config.h>
 #include "../include/qore/common.h"
+#include "../include/qore/intern/config.h"
 
 #include <stdio.h>
 #include <errno.h>
