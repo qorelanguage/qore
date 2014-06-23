@@ -26,7 +26,7 @@
 
 Summary: Multithreaded Programming Language
 Name: qore
-Version: 0.8.11
+Version: 0.8.11.1
 Release: 1%{dist}
 %if 0%{?suse_version}
 License: LGPL-2.0+ or GPL-2.0+ or MIT
@@ -98,8 +98,8 @@ Provides: qore-module-api-0.7
 Provides: qore-module-api-0.6
 Provides: qore-module-api-0.5
 %if %{libname} == "libqore"
-Provides: libqore5 = 0.8.11
-Obsoletes: libqore5 < 0.8.12
+Provides: libqore5 = %{version}
+Obsoletes: libqore5 < %{version}
 %endif
 
 %description -n %{libname}
