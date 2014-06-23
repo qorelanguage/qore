@@ -28,7 +28,7 @@ if COND_MINGWCC
 BUILT_SOURCES += qpp_native
 QPP=./qpp_native
 qpp_native: $(qpp_SOURCES)
-	$(NATIVE_CXX) $(EXTRA_INCLUDES) $(NATIVE_CPPFLAGS) $(NATIVE_LDFLAGS) -o $@ $(qpp_SOURCES)
+	$(NATIVE_CXX) $(EXTRA_INCLUDES) $(NATIVE_CPPFLAGS) $(QPP_CPPFLAGS) $(NATIVE_LDFLAGS) -o $@ $(qpp_SOURCES)
 else
 QPP=./qpp$(EXEEXT)
 endif
