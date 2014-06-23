@@ -602,8 +602,8 @@ find_gmp() {
 	unset with_gmp_libs
 	return
     fi
-    QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $GMP_LDFLAGS"
-    QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS $GMP_CPPFLAGS"
+    #QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $GMP_LDFLAGS"
+    #QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS $GMP_CPPFLAGS"
 }
 
 set_mpfr_cppflags() {
@@ -783,27 +783,27 @@ else
 fi
 
 # see if we can figure out where the gmp library is
-AC_ARG_WITH([gmp-dir],
-  [AS_HELP_STRING([--with-gmp-dir@<:@=DIR@:>@],
-                  [GMP directory])],
-  [if test ! -d "${with_gmp_dir}"; then AC_MSG_ERROR([bad value ${with_gmp_dir} for --with-gmp-dir]); unset with_gmp_dir; fi],
-  [with_gmp_dir="$GMP_DIR"])
+#AC_ARG_WITH([gmp-dir],
+#  [AS_HELP_STRING([--with-gmp-dir@<:@=DIR@:>@],
+#                  [GMP directory])],
+#  [if test ! -d "${with_gmp_dir}"; then AC_MSG_ERROR([bad value ${with_gmp_dir} for --with-gmp-dir]); unset with_gmp_dir; fi],
+#  [with_gmp_dir="$GMP_DIR"])
 
-AC_MSG_CHECKING([for gmp libraries and header files])
-for dir in "${with_gmp_dir}" "${with_lib_prefix}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/gmp /usr/local/gmp /opt/local /sw /usr/sfw /opt/sfw; do
-    find_gmp $dir
-    if test -n "$GMP_LDFLAGS"; then
-        break
-    fi
-done
-if test -z "$GMP_LDFLAGS"; then
-    AC_MSG_ERROR([no gmp library found])
-fi
-if test -n "$gmp_static"; then
-   AC_MSG_RESULT([includes $with_gmp_includes libs $with_gmp_libs (static)])
-else
-   AC_MSG_RESULT([includes $with_gmp_includes libs $with_gmp_libs (shared)])
-fi
+#AC_MSG_CHECKING([for gmp libraries and header files])
+#for dir in "${with_gmp_dir}" "${with_lib_prefix}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/gmp /usr/local/gmp /opt/local /sw /usr/sfw /opt/sfw; do
+#    find_gmp $dir
+#    if test -n "$GMP_LDFLAGS"; then
+#        break
+#    fi
+#done
+#if test -z "$GMP_LDFLAGS"; then
+#    AC_MSG_ERROR([no gmp library found])
+#fi
+#if test -n "$gmp_static"; then
+#   AC_MSG_RESULT([includes $with_gmp_includes libs $with_gmp_libs (static)])
+#else
+#   AC_MSG_RESULT([includes $with_gmp_includes libs $with_gmp_libs (shared)])
+#fi
 
 set_pcre_cppflags() {
     if test "$1" != "/usr/include"; then
@@ -1593,18 +1593,27 @@ AC_MSG_CHECKING([c++ compiler supports local variadic arrays])
 # turn on optimizations if we know how
 if test "$enable_optimization" = "yes"; then
     if test "$GXX" = "yes"; then
-        if test "$host_os" = "mingw32"; then
-	   # for some reason mingw32 segfaults with -O3, -O2 is OK
-           CXXFLAGS="$CXXFLAGS -O2"  # gcc
-	else
-           CXXFLAGS="$CXXFLAGS -O3"  # gcc
-	fi
+        # only add optimizations if not there already
+	if test -z "`echo $CXXFLAGS|grep -e -O`"; then
+	   if test "$host_os" = "mingw32"; then
+	      # for some reason mingw32 segfaults with -O3, -O2 is OK
+              CXXFLAGS="$CXXFLAGS -O2"  # gcc
+   	   else
+              CXXFLAGS="$CXXFLAGS -O3"  # gcc
+	   fi
+        fi
     elif test "$CXX" = "CC" -a "`echo $host_os|cut -b-7`" = "solaris"; then
-        # remove -g with Solaris CC as it reduces optimization levels
-	CXXFLAGS="`echo $CXXFLAGS| sed s/-g//` -xO5" # Solaris CC
+        # only add optimizations if not there already
+	if test -z "`echo $CXXFLAGS|grep -e -xO`"; then
+	   # remove -g with Solaris CC as it reduces optimization levels
+	   CXXFLAGS="`echo $CXXFLAGS| sed s/-g//` -xO5" # Solaris CC
+	fi
     elif test -n "`echo $CXX|grep aCC`"; then 
-        # remove -g with HP-UX aCC as it reduces optimization levels
-	CXXFLAGS="`echo $CXXFLAGS| sed s/-g//` +O4" # HP-UX aCC
+        # only add optimizations if not there already
+	if test -z "`echo $CXXFLAGS|grep -e +O`"; then
+	   # remove -g with HP-UX aCC as it reduces optimization levels
+	   CXXFLAGS="`echo $CXXFLAGS| sed s/-g//` +O4" # HP-UX aCC
+        fi
     fi
 else
     if test "$GXX" = "yes"; then
