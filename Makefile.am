@@ -1,6 +1,7 @@
 libdir = ${exec_prefix}/lib${LIBSUFFIX}
 pkglibdir = $(libdir)/$(mypkglibdir)
-modverdir = $(libdir)/$(mymodverdir)
+#modverdir = $(libdir)/$(mymodverdir)
+modverdir = $(datarootdir)/$(mymodverdir)
 includedir = $(prefix)/include/qore
 
 ## use automake to create the Makefile.in for configure

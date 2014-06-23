@@ -126,6 +126,15 @@ DLLEXPORT extern const char* qore_target_arch;
 //! the qore module directory
 DLLEXPORT extern const char* qore_module_dir;
 
+//! the qore user module directory
+DLLEXPORT extern const char* qore_user_module_dir;
+
+//! the qore version-specific module directory
+DLLEXPORT extern const char* qore_module_ver_dir;
+
+//! the qore version-specific user module directory
+DLLEXPORT extern const char* qore_user_module_ver_dir;
+
 //! the c++ compiler used to build qore
 DLLEXPORT extern const char* qore_cplusplus_compiler;
 

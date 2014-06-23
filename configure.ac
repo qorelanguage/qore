@@ -539,75 +539,6 @@ find_zlib() {
     QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS $ZLIB_CPPFLAGS"
 }
 
-set_gmp_cppflags() {
-    if test "$1" != "/usr/include"; then
-        GMP_CPPFLAGS=-I$1
-    fi
-    with_gmp_includes="$1"
-}
-
-find_gmp() {
-    dir="$1"
-    if test -z "$dir" -o "$dir" = "/"; then
-        if test -h /lib${LIBSUFFIX}; then
-            dir=/usr
-            lib=/usr/lib${LIBSUFFIX}
-            inc=/usr/include
-        else
-	    dir=/
-	    lib=/lib${LIBSUFFIX}
-	    inc=/usr/include
-        fi
-    else
-        lib="$dir/lib${LIBSUFFIX}"
-        inc="$dir/include"
-    fi
-    # if we only want the static gmp libraries
-    if test -n "$gmp_static"; then
-    	if test -f "$lib/libgmp.a"; then
-	    GMP_LDFLAGS="$lib/libgmp.a"
-	    with_gmp_libs="$lib"
-	    gmp_static=1
-    	fi
-    else
-        if test -f "$lib/libgmp.${SHLIB_SUFFIX}"; then
-	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
-       	        GMP_LDFLAGS="-L$lib"
-    	    fi
-	    GMP_LDFLAGS="$GMP_LDFLAGS -lgmp"
-	    with_gmp_libs="$lib"
-    	elif test -f "$lib/libgmp.a"; then	
-	    if test "$mingw" = yes -a "$make_dll" = yes; then
-	    	GMP_LDFLAGS="-Wl,$lib/libgmp.a"
-	    else
-		if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
-       	            GMP_LDFLAGS="-L$lib"
-    	        fi
-	        GMP_LDFLAGS="$GMP_LDFLAGS -lgmp"
-            fi
-	    with_gmp_libs="$lib"
-	    gmp_static=1
-    	fi
-    fi
-    if test -z "$GMP_LDFLAGS"; then
-        return
-    fi
-    # try to find include files
-    if test -f "$inc/gmp.h"; then
-        set_gmp_cppflags "$inc"
-    elif test -f "$inc/gmp/gmp.h"; then
-        set_gmp_cppflags "$inc/gmp"
-    elif test -f "$inc${LIBSUFFIX}/gmp.h"; then
-        set_gmp_cppflags "$inc${LIBSUFFIX}"
-    else
-        unset GMP_LDFLAGS
-	unset with_gmp_libs
-	return
-    fi
-    #QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $GMP_LDFLAGS"
-    #QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS $GMP_CPPFLAGS"
-}
-
 set_mpfr_cppflags() {
     if test "$1" != "/usr/include"; then
         MPFR_CPPFLAGS=-I$1
@@ -783,29 +714,6 @@ if test -n "$mpfr_buildopt_tls_p"; then
 else
    AC_MSG_RESULT([not found])
 fi
-
-# see if we can figure out where the gmp library is
-#AC_ARG_WITH([gmp-dir],
-#  [AS_HELP_STRING([--with-gmp-dir@<:@=DIR@:>@],
-#                  [GMP directory])],
-#  [if test ! -d "${with_gmp_dir}"; then AC_MSG_ERROR([bad value ${with_gmp_dir} for --with-gmp-dir]); unset with_gmp_dir; fi],
-#  [with_gmp_dir="$GMP_DIR"])
-
-#AC_MSG_CHECKING([for gmp libraries and header files])
-#for dir in "${with_gmp_dir}" "${with_lib_prefix}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/gmp /usr/local/gmp /opt/local /sw /usr/sfw /opt/sfw; do
-#    find_gmp $dir
-#    if test -n "$GMP_LDFLAGS"; then
-#        break
-#    fi
-#done
-#if test -z "$GMP_LDFLAGS"; then
-#    AC_MSG_ERROR([no gmp library found])
-#fi
-#if test -n "$gmp_static"; then
-#   AC_MSG_RESULT([includes $with_gmp_includes libs $with_gmp_libs (static)])
-#else
-#   AC_MSG_RESULT([includes $with_gmp_includes libs $with_gmp_libs (shared)])
-#fi
 
 set_pcre_cppflags() {
     if test "$1" != "/usr/include"; then
@@ -1676,11 +1584,13 @@ if test "$need_assembly" = yes; then
 fi
 
 # do a symlink for the correct spec file
-if test -f /etc/redhat-release -o -f /etc/fedora-release; then
-   ln -s qore.spec-fedora qore.spec
-else
-   ln -s qore.spec-multi qore.spec
-fi
+if test ! -f qore.spec; then
+   if test -f /etc/redhat-release -o -f /etc/fedora-release; then
+       ln -s qore.spec-fedora qore.spec
+   else
+       ln -s qore.spec-multi qore.spec
+   fi
+fi  
 
 # get module API version to set pkglibdir
 MODULE_API_MAJOR=`grep QORE_MODULE_API_MAJOR include/qore/ModuleManager.h|cut -f3 -d\ `
@@ -1742,10 +1652,13 @@ if test "$windows" = yes; then
   winlibdir=`echo ${mypkglibdir}|sed 's/\/$//'|sed 's/\//\\\\\\\\\\\\\\\\/g'`
   # we don't know the real final install location, but at least we can set a valid windows path
   MODULE_DIR="${winprefix}\\\\\\\\\lib${LIBSUFFIX}\\\\\\\\${winlibdir}"
+  USER_MODULE_DIR="${MODULE_DIR}"
 else
   MODULE_DIR="${myprefix}/lib${LIBSUFFIX}/${mypkglibdir}"
+  USER_MODULE_DIR="${datarootdir}/${mypkglibdir}"
 fi
 AC_SUBST([MODULE_DIR])
+AC_SUBST([USER_MODULE_DIR])
 
 mymodverdir=qore-modules/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}
 AC_SUBST([mymodverdir])
@@ -1754,10 +1667,13 @@ AC_SUBST([mymodverdir])
 if test "$windows" = yes; then
   # we don't know the real final install location, but at least we can set a valid windows path
   MODULE_VER_DIR="${MODULE_DIR}\\\\\\\\${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}"
+  USER_MODULE_VER_DIR="${MODULE_DIR}"
 else
   MODULE_VER_DIR="${myprefix}/lib${LIBSUFFIX}/${mymodverdir}"
+  USER_MODULE_VER_DIR="${datarootdir}/${mymodverdir}"
 fi
 AC_SUBST([MODULE_VER_DIR])
+AC_SUBST([USER_MODULE_VER_DIR])
 
 if test "$enable_profile" = yes; then
    QORE_LIB_CXXFLAGS="$QORE_LIB_CXXFLAGS -g -pg"
@@ -1780,7 +1696,7 @@ QORE_LIB_LDFLAGS="`echo $QORE_LIB_LDFLAGS $LDFLAGS $LIBS -lm|sed 's/ +/ /g'`"
 AC_SUBST([QORE_LIB_LDFLAGS])
 
 QORE_LIB_CPPFLAGS="`echo $QORE_LIB_CPPFLAGS $CPPFLAGS -D_QORE_LIB_INTERN|sed 's/ +/ /g'`"
-QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS -DMODULE_DIR=\\\"${MODULE_DIR}\\\" -DMODULE_VER_DIR=\\\"${MODULE_VER_DIR}\\\""
+QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS -DMODULE_DIR=\\\"${MODULE_DIR}\\\" -DMODULE_VER_DIR=\\\"${MODULE_VER_DIR}\\\" -DUSER_MODULE_DIR=\\\"${USER_MODULE_DIR}\\\" -DUSER_MODULE_VER_DIR=\\\"${USER_MODULE_VER_DIR}\\\""
 AC_SUBST([QORE_LIB_CPPFLAGS])
 if test -n "$QORE_LIB_CXXFLAGS"; then
    QORE_LIB_CFLAGS="$QORE_LIB_CPPFLAGS $QORE_LIB_CXXFLAGS"
@@ -1809,7 +1725,8 @@ else
    printf " (32-bit)\n"
 fi
 
-printf "%-35s: %s %s\n" "module directory" "${myprefix}/lib${LIBSUFFIX}/${mypkglibdir}"
+printf "%-35s: %s %s\n" "module directories" "${MODULE_DIR}" "${MODULE_VER_DIR}"
+printf "%-35s: %s %s\n" "user module directory" "${USER_MODULE_DIR}" "${USER_MODULE_VER_DIR}"
 
 show_library_feature() {
    printf "%-35s: " "$1"

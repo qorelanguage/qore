@@ -56,7 +56,7 @@
 #include <vector>
 #include <set>
 
-static const qore_mod_api_compat_s qore_mod_api_list_l[] = { {0, 18}, {0, 17}, {0, 16}, {0, 15}, {0, 14}, {0, 13}, {0, 12}, {0, 11}, {0, 10}, {0, 9}, {0, 8}, {0, 7}, {0, 6}, {0, 5} };
+static const qore_mod_api_compat_s qore_mod_api_list_l[] = { {0, 19}, {0, 18}, {0, 17}, {0, 16}, {0, 15}, {0, 14}, {0, 13}, {0, 12}, {0, 11}, {0, 10}, {0, 9}, {0, 8}, {0, 7}, {0, 6}, {0, 5} };
 #define QORE_MOD_API_LEN (sizeof(qore_mod_api_list_l)/sizeof(struct qore_mod_api_compat_s))
 
 // public symbols
@@ -366,11 +366,19 @@ void QoreModuleManager::init(bool se) {
 void QoreModuleManager::addStandardModulePaths() {
    moduleDirList.addDirList(getenv("QORE_MODULE_DIR"));
 
-   // append qore module directory
-   moduleDirList.push_back(MODULE_DIR);
+   // append version-specifc user module directory
+   moduleDirList.push_back(USER_MODULE_VER_DIR);
 
    // append version-specifc module directory
-   moduleDirList.push_back(MODULE_VER_DIR);
+   if (strcmp(MODULE_VER_DIR, USER_MODULE_VER_DIR))
+      moduleDirList.push_back(MODULE_VER_DIR);
+
+   // append user-module directory
+   moduleDirList.push_back(USER_MODULE_DIR);
+
+   // append qore module directory
+   if (strcmp(MODULE_DIR, USER_MODULE_DIR))
+      moduleDirList.push_back(MODULE_DIR);
 }
 
 void ModuleManager::addStandardModulePaths() {

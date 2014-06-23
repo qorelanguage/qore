@@ -1,4 +1,5 @@
 %global module_dir %{_libdir}/qore-modules
+%global user_module_dir %{_datarootdir}/qore-modules/
 
 Summary: Multithreaded Programming Language
 Name: qore
@@ -28,6 +29,7 @@ development but is also useful as a general purpose language.
 %package -n libqore
 Summary: The libraries for the qore runtime and qore clients
 Group: System Environment/Libraries
+Provides: qore-module(abi) = 0.19
 Provides: qore-module(abi) = 0.18
 Provides: libqore5 = %{version}
 Obsoletes: libqore5 < %{version}
@@ -56,7 +58,7 @@ This package provides the qore library required for all clients using qore
 functionality.
 
 %files -n libqore
-%{_libdir}/libqore.so.5.12.2
+%{_libdir}/libqore.so.5.13.0
 %{_libdir}/libqore.so.5
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README README-LICENSE README-MODULES RELEASE-NOTES ChangeLog AUTHORS WHATISQORE
 
@@ -136,6 +138,7 @@ rm $RPM_BUILD_ROOT/%{_libdir}/libqore.la
 %files
 %{_bindir}/qore
 %{module_dir}
+%{user_module_dir}
 %{_mandir}/man1/qore.1.*
 
 %changelog
@@ -146,6 +149,8 @@ rm $RPM_BUILD_ROOT/%{_libdir}/libqore.la
 - added %%{optflags} to configure
 - updated license text in library source to reflect most liberal license option (MIT) with reference to LGPL and GPL options
 - replaced GPL getopt_long.* files with BSD variants (not used on Linux builds)
+- updated module and library ABI info
+- moved user module directory to ${_datarootdir}
 
 * Sat Jun 21 2014 David Nichols <david@qore.org> 0.8.11-2
 - fixed Source0 URL, optimized conditionals

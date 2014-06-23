@@ -1,5 +1,6 @@
 # this spec file can be used for multiple RPM-based distributions including Fedora, RHEL, *SUSE, and others
 %global module_dir %{_libdir}/qore-modules
+%global user_module_dir %{_datarootdir}/qore-modules/
 
 %if 0%{?sles_version}
 %global dist .sles%{?sles_version}
@@ -203,6 +204,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 /usr/bin/qore
 %{module_dir}
+%{user_module_dir}
 %if 0%{?rh_dist}
 %if %{?rh_dist} <= 5
 /usr/man/man1/qore.1.*
@@ -216,6 +218,9 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Mon Jun 23 2014 David Nichols <david@qore.org> 0.8.11.1
+- updated to 0.8.11.1
+
 * Sat May 31 2014 David Nichols <david@qore.org> 0.8.11
 - updated to 0.8.11
 
