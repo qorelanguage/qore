@@ -29,21 +29,23 @@ development but is also useful as a general purpose language.
 Summary: The libraries for the qore runtime and qore clients
 Group: System Environment/Libraries
 Provides: qore-module(abi) = 0.18
+Provides: libqore5 = 0.8.11
 Obsoletes: libqore5 < 0.8.12
-Obsoletes: qore-module-api-0.18
-Obsoletes: qore-module-api-0.17
-Obsoletes: qore-module-api-0.16
-Obsoletes: qore-module-api-0.15
-Obsoletes: qore-module-api-0.14
-Obsoletes: qore-module-api-0.13
-Obsoletes: qore-module-api-0.12
-Obsoletes: qore-module-api-0.11
-Obsoletes: qore-module-api-0.10
-Obsoletes: qore-module-api-0.9
-Obsoletes: qore-module-api-0.8
-Obsoletes: qore-module-api-0.7
-Obsoletes: qore-module-api-0.6
-Obsoletes: qore-module-api-0.5
+# provided for backwards-compatibility with unversioned capabilities and will be removed when the ABI drops backwards-compatibility
+Provides: qore-module-api-0.18
+Provides: qore-module-api-0.17
+Provides: qore-module-api-0.16
+Provides: qore-module-api-0.15
+Provides: qore-module-api-0.14
+Provides: qore-module-api-0.13
+Provides: qore-module-api-0.12
+Provides: qore-module-api-0.11
+Provides: qore-module-api-0.10
+Provides: qore-module-api-0.9
+Provides: qore-module-api-0.8
+Provides: qore-module-api-0.7
+Provides: qore-module-api-0.6
+Provides: qore-module-api-0.5
 
 %description -n libqore
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -138,8 +140,8 @@ rm $RPM_BUILD_ROOT/%{_libdir}/libqore.la
 
 %changelog
 * Sun Jun 22 2014 David Nichols <david@qore.org> 0.8.11-3
-- added explicit versioned capabilities for library ABI compatibility for module RPMs
-- obsoleted the old unversioned explicit capabilitiesle
+- added explicit versioned capability for library ABI compatibility for module RPMs
+- added explicit versioned capability for libqore5 due to name change on fedora/rhel
 - added %%{optflags} to configure
 
 * Sat Jun 21 2014 David Nichols <david@qore.org> 0.8.11-2
