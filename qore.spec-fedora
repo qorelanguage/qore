@@ -32,7 +32,7 @@ Group: System Environment/Libraries
 Provides: qore-module(abi) = 0.19
 Provides: qore-module(abi) = 0.18
 Provides: libqore5 = %{version}
-Obsoletes: libqore5 < %{version}
+Obsoletes: libqore5 < 0.8.11.1
 # provided for backwards-compatibility with unversioned capabilities and will be removed when the ABI drops backwards-compatibility
 Provides: qore-module-api-0.18
 Provides: qore-module-api-0.17

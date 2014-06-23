@@ -100,7 +100,7 @@ Provides: qore-module-api-0.6
 Provides: qore-module-api-0.5
 %if %{libname} == "libqore"
 Provides: libqore5 = %{version}
-Obsoletes: libqore5 < %{version}
+Obsoletes: libqore5 < 0.8.11.1
 %endif
 
 %description -n %{libname}
