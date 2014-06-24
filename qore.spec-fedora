@@ -4,7 +4,7 @@
 Summary: Multithreaded Programming Language
 Name: qore
 Version: 0.8.11.1
-Release: 1%{dist}
+Release: 1%{?dist}
 License: LGPLv2+ or GPLv2+ or MIT
 Group: Development/Languages
 URL: http://qore.org
@@ -29,8 +29,10 @@ development but is also useful as a general purpose language.
 %package -n libqore
 Summary: The libraries for the qore runtime and qore clients
 Group: System Environment/Libraries
-Provides: qore-module(abi) = 0.19
-Provides: qore-module(abi) = 0.18
+Provides: qore-module(abi)%{?_isa} = 0.19
+%{?_isa:Provides: qore-module(abi) = 0.19}
+Provides: qore-module(abi)%{?_isa} = 0.18
+%{?_isa:Provides: qore-module(abi) = 0.18}
 Provides: libqore5 = %{version}
 Obsoletes: libqore5 < 0.8.11.1
 # provided for backwards-compatibility with unversioned capabilities and will be removed when the ABI drops backwards-compatibility
@@ -60,6 +62,8 @@ functionality.
 %files -n libqore
 %{_libdir}/libqore.so.5.13.0
 %{_libdir}/libqore.so.5
+%{module_dir}
+%{user_module_dir}
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README README-LICENSE README-MODULES RELEASE-NOTES ChangeLog AUTHORS WHATISQORE
 
 %post -n libqore -p /sbin/ldconfig
@@ -128,17 +132,16 @@ mv test examples
 
 %build
 export CXXFLAGS="%{optflags}"
-%configure --disable-debug --disable-static
+%configure --disable-debug --disable-static --disable-dependency-tracking
 make %{?_smp_mflags}
 
 %install
 make install prefix=%{_prefix} DESTDIR=$RPM_BUILD_ROOT
+mkdir -p $RPM_BUILD_ROOT/%{module_dir}
 rm $RPM_BUILD_ROOT/%{_libdir}/libqore.la
 
 %files
 %{_bindir}/qore
-%{module_dir}
-%{user_module_dir}
 %{_mandir}/man1/qore.1.*
 
 %changelog
@@ -151,6 +154,8 @@ rm $RPM_BUILD_ROOT/%{_libdir}/libqore.la
 - replaced GPL getopt_long.* files with BSD variants (not used on Linux builds)
 - updated module and library ABI info
 - moved user module directory to ${_datarootdir}
+- moved module and user module directories to libqore package where they should be
+- disabled dependency tracking in configure
 
 * Sat Jun 21 2014 David Nichols <david@qore.org> 0.8.11-2
 - fixed Source0 URL, optimized conditionals

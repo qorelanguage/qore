@@ -82,7 +82,10 @@ development but is also useful as a general purpose language.
 %package -n %{libname}
 Summary: The libraries for the qore runtime and qore clients
 Group: System Environment/Libraries
-Provides: qore-module(abi) = 0.18
+Provides: qore-module(abi)%{?_isa} = 0.19
+%{?_isa:Provides: qore-module(abi) = 0.19}
+Provides: qore-module(abi)%{?_isa} = 0.18
+%{?_isa:Provides: qore-module(abi) = 0.18}
 # provided for backwards-compatibility with unversioned capabilities and will be removed when the ABI drops backwards-compatibility
 Provides: qore-module-api-0.18
 Provides: qore-module-api-0.17
@@ -115,6 +118,8 @@ functionality.
 %defattr(-,root,root,-)
 %{_libdir}/libqore.so.5.12.2
 %{_libdir}/libqore.so.5
+%{module_dir}
+%{user_module_dir}
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README README-LICENSE README-MODULES RELEASE-NOTES ChangeLog AUTHORS WHATISQORE
 
 %post -n %{libname}
@@ -187,12 +192,13 @@ find test -type f -exec chmod -x {} \;
 mv test examples
 
 %build
-%configure --disable-debug --disable-static
+%configure --disable-debug --disable-static --disable-dependency-tracking
 %{__make}
 
 %install
 make install prefix=%{_prefix} DESTDIR=$RPM_BUILD_ROOT
 rm $RPM_BUILD_ROOT/%{_libdir}/libqore.la
+mkdir -p $RPM_BUILD_ROOT/%{module_dir}
 %if 0%{?suse_version}
 %fdupes -s docs/library/html
 %endif
@@ -203,8 +209,6 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 /usr/bin/qore
-%{module_dir}
-%{user_module_dir}
 %if 0%{?rh_dist}
 %if %{?rh_dist} <= 5
 /usr/man/man1/qore.1.*
