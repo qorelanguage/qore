@@ -190,7 +190,7 @@ find test -type f -exec chmod -x {} \;
 mv test examples
 
 %build
-%configure --disable-debug --disable-static --disable-dependency-tracking
+%configure --disable-debug --disable-dependency-tracking
 %{__make}
 
 %install

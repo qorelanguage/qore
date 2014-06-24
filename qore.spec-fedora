@@ -130,7 +130,7 @@ mv test examples
 
 %build
 export CXXFLAGS="%{optflags}"
-%configure --disable-debug --disable-static --disable-dependency-tracking
+%configure --disable-debug --disable-dependency-tracking
 make %{?_smp_mflags}
 
 %install
@@ -143,6 +143,9 @@ rm $RPM_BUILD_ROOT/%{_libdir}/libqore.la
 %{_mandir}/man1/qore.1.*
 
 %changelog
+* Tue Jun 24 2014 David Nichols <david@qore.org> 0.8.11.1-3
+- removed --disable-static from the configure call since it's the default
+
 * Tue Jun 24 2014 David Nichols <david@qore.org> 0.8.11.1-2
 - removed non-arch-specific library ABI Provides
 
