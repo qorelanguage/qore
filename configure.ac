@@ -1215,10 +1215,10 @@ AC_ARG_ENABLE([runtime-thread-stack-trace],
        yes|no) ;;
        *)      AC_MSG_ERROR(bad value ${enable_runtime_thread_stack_trace} for --enable-runtime-thread-stack-trace) ;;
       esac],
-  [enable_runtime_thread_stack_trace=no])
+  [enable_runtime_thread_stack_trace=yes])
 
 if test "${enable_runtime_thread_stack_trace}" = "yes" -o "${enable_debug}" = yes; then
-   AC_DEFINE(QORE_RUNTIME_THREAD_STACK_TRACE, 1, [to enable runtime thread stack tracing; note this has a performance penalty and is not generally necessary])
+   AC_DEFINE(QORE_RUNTIME_THREAD_STACK_TRACE, 1, [to enable runtime thread stack tracing, needed for getAllThreadCallStacks()])
    enable_runtime_thread_stack_trace=yes
 fi
 
@@ -1655,7 +1655,11 @@ if test "$windows" = yes; then
   USER_MODULE_DIR="${MODULE_DIR}"
 else
   MODULE_DIR="${myprefix}/lib${LIBSUFFIX}/${mypkglibdir}"
-  USER_MODULE_DIR="${datarootdir}/${mypkglibdir}"
+  if test -n "echo ${datarootdir}|grep \$"; then
+     USER_MODULE_DIR="`eval echo ${datarootdir}`/${mypkglibdir}"
+  else
+     USER_MODULE_DIR="${datarootdir}/${mypkglibdir}"
+  fi
 fi
 AC_SUBST([MODULE_DIR])
 AC_SUBST([USER_MODULE_DIR])
@@ -1670,7 +1674,11 @@ if test "$windows" = yes; then
   USER_MODULE_VER_DIR="${MODULE_DIR}"
 else
   MODULE_VER_DIR="${myprefix}/lib${LIBSUFFIX}/${mymodverdir}"
-  USER_MODULE_VER_DIR="${datarootdir}/${mymodverdir}"
+  if test -n "echo ${datarootdir}|grep \$"; then
+     USER_MODULE_VER_DIR="`eval echo ${datarootdir}`/${mymodverdir}"
+  else
+     USER_MODULE_VER_DIR="${datarootdir}/${mymodverdir}"
+  fi
 fi
 AC_SUBST([MODULE_VER_DIR])
 AC_SUBST([USER_MODULE_VER_DIR])
@@ -1725,7 +1733,7 @@ else
    printf " (32-bit)\n"
 fi
 
-printf "%-35s: %s %s\n" "module directories" "${MODULE_DIR}" "${MODULE_VER_DIR}"
+printf "%-35s: %s %s\n" "binary module directories" "${MODULE_DIR}" "${MODULE_VER_DIR}"
 printf "%-35s: %s %s\n" "user module directory" "${USER_MODULE_DIR}" "${USER_MODULE_VER_DIR}"
 
 show_library_feature() {
@@ -1746,7 +1754,6 @@ show_library_feature "single compilation unit" $enable_single_compilation_unit
 echo "*** DEBUG OPTIONS (i.e. performance penalty) ***"
 show_library_feature profiling $enable_profile
 show_library_feature debug $enable_debug
-show_library_feature "runtime thread stack tracing" $enable_runtime_thread_stack_trace
 
 echo
 echo "*** MODULES DELIVERED SEPARATELY - SEE 'README-MODULES' FOR MORE INFO ***"

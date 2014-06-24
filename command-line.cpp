@@ -92,7 +92,7 @@ static const char helpstr[] =
    "                               MIT; GPL modules cannot be loaded\n"
    "  -m, --show-module-errors     shows error messages related to loading and\n"
    "                               initializing qore modules\n"
-   "      --module-dir             show qore module directory and exit\n"
+   "      --module-dir             show qore module directories and exit\n"
    "      --module-api             show compatible qore module API version and\n"
    "                               exit\n"
    "      --module-apis            show all qore module API versions\n"
@@ -190,7 +190,7 @@ static void do_trace(const char *arg) {
 }
 
 static void show_module_dir(const char *arg) {
-   printf("%s\n", qore_module_dir);
+   printf("%s:%s:%s:%s\n", qore_user_module_ver_dir, qore_user_module_dir, qore_module_ver_dir, qore_module_dir);
    exit(0);
 }
 
