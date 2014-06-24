@@ -4,7 +4,7 @@
 Summary: Multithreaded Programming Language
 Name: qore
 Version: 0.8.11.1
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: LGPLv2+ or GPLv2+ or MIT
 Group: Development/Languages
 URL: http://qore.org
@@ -30,9 +30,7 @@ development but is also useful as a general purpose language.
 Summary: The libraries for the qore runtime and qore clients
 Group: System Environment/Libraries
 Provides: qore-module(abi)%{?_isa} = 0.19
-%{?_isa:Provides: qore-module(abi) = 0.19}
 Provides: qore-module(abi)%{?_isa} = 0.18
-%{?_isa:Provides: qore-module(abi) = 0.18}
 Provides: libqore5 = %{version}
 Obsoletes: libqore5 < 0.8.11.1
 # provided for backwards-compatibility with unversioned capabilities and will be removed when the ABI drops backwards-compatibility
@@ -145,6 +143,9 @@ rm $RPM_BUILD_ROOT/%{_libdir}/libqore.la
 %{_mandir}/man1/qore.1.*
 
 %changelog
+* Tue Jun 24 2014 David Nichols <david@qore.org> 0.8.11.1-2
+- removed non-arch-specific library ABI Provides
+
 * Mon Jun 23 2014 David Nichols <david@qore.org> 0.8.11.1-1
 - added explicit versioned capability for library ABI compatibility for module RPMs
 - added explicit versioned capability for libqore5 due to name change on fedora/rhel

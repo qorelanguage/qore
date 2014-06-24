@@ -83,9 +83,7 @@ development but is also useful as a general purpose language.
 Summary: The libraries for the qore runtime and qore clients
 Group: System Environment/Libraries
 Provides: qore-module(abi)%{?_isa} = 0.19
-%{?_isa:Provides: qore-module(abi) = 0.19}
 Provides: qore-module(abi)%{?_isa} = 0.18
-%{?_isa:Provides: qore-module(abi) = 0.18}
 # provided for backwards-compatibility with unversioned capabilities and will be removed when the ABI drops backwards-compatibility
 Provides: qore-module-api-0.18
 Provides: qore-module-api-0.17
