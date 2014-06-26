@@ -1,4 +1,19 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
+
+/* The Loki Library
+   Copyright (c) 2000 Andrei Alexandrescu
+   Copyright (c) 2000 Petru Marginean
+   Copyright (c) 2005 Joshua Lehrer
+  
+   Permission to use, copy, modify, distribute and sell this software for any 
+       purpose is hereby granted without fee, provided that the above copyright 
+       notice appear in all copies and that both that copyright notice and this 
+       permission notice appear in supporting documentation.
+   The author makes no representations about the 
+       suitability of this software for any purpose. It is provided "as is" 
+       without express or implied warranty.
+*/
+
 #ifndef SCOPEGUARD_H_
 #define SCOPEGUARD_H_
 
