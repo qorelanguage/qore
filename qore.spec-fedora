@@ -61,7 +61,7 @@ functionality.
 %{_libdir}/libqore.so.5.13.0
 %{_libdir}/libqore.so.5
 %{module_dir}
-%doc COPYING.LGPL COPYING.GPL COPYING.MIT README README-LICENSE README-MODULES RELEASE-NOTES ChangeLog AUTHORS WHATISQORE
+%doc COPYING.LGPL COPYING.GPL COPYING.MIT README README-LICENSE README-MODULES RELEASE-NOTES AUTHORS WHATISQORE
 
 %post -n libqore -p /sbin/ldconfig
 
@@ -163,6 +163,7 @@ rm $RPM_BUILD_ROOT/%{_libdir}/libqore.la
 - added license files and license READMEs to packages that can potentially be installed independently (doc and devel-doc)
 - removed --disable-static from the configure call since it's the default
 - created a new qore-stdlib package for noarch user module files in /usr/share, split from libqore
+- removed ChangeLog from distribution sources
 
 * Tue Jun 24 2014 David Nichols <david@qore.org> 0.8.11.1-2
 - removed non-arch-specific library ABI Provides
