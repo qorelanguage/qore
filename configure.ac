@@ -1734,7 +1734,7 @@ else
 fi
 
 printf "%-35s: %s %s\n" "binary module directories" "${MODULE_DIR}" "${MODULE_VER_DIR}"
-printf "%-35s: %s %s\n" "user module directory" "${USER_MODULE_DIR}" "${USER_MODULE_VER_DIR}"
+printf "%-35s: %s %s\n" "user module directories" "${USER_MODULE_DIR}" "${USER_MODULE_VER_DIR}"
 
 show_library_feature() {
    printf "%-35s: " "$1"

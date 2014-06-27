@@ -4,7 +4,7 @@
 Summary: Multithreaded Programming Language
 Name: qore
 Version: 0.8.11.1
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: LGPLv2+ or GPLv2+ or MIT
 Group: Development/Languages
 URL: http://qore.org
@@ -61,12 +61,28 @@ functionality.
 %{_libdir}/libqore.so.5.13.0
 %{_libdir}/libqore.so.5
 %{module_dir}
-%{user_module_dir}
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README README-LICENSE README-MODULES RELEASE-NOTES ChangeLog AUTHORS WHATISQORE
 
 %post -n libqore -p /sbin/ldconfig
 
 %postun -n libqore -p /sbin/ldconfig
+
+%package stdlib
+Summary: Standard library modules
+Group: System Environment/Libraries
+BuildArch: noarch
+Requires: libqore = %{version}-%{release}
+
+%description stdlib
+Qore is a scripting language supporting threading and embedded logic, designed
+for applying a flexible scripting-based approach to enterprise interface
+development but is also useful as a general purpose language.
+
+This package provides the Qore language standard library user modules.
+
+%files stdlib
+%{user_module_dir}
+%doc COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
 
 %package doc
 Summary: API documentation, programming language reference, and Qore example programs
@@ -82,7 +98,7 @@ This package provides the HTML documentation for the Qore programming language
 and also for user modules delivered with Qore and also example programs.
 
 %files doc
-%doc docs/lang/html docs/modules/*/html examples/
+%doc docs/lang/html docs/modules/*/html examples/ COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
 
 %package devel
 Summary: The header files needed to compile programs using the qore library
@@ -119,7 +135,7 @@ development but is also useful as a general purpose language.
 This package provides HTML documentation for the C++ API for the Qore library.
 
 %files devel-doc
-%doc docs/library/html
+%doc docs/library/html COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
 
 %prep
 %setup -q
@@ -143,8 +159,10 @@ rm $RPM_BUILD_ROOT/%{_libdir}/libqore.la
 %{_mandir}/man1/qore.1.*
 
 %changelog
-* Tue Jun 24 2014 David Nichols <david@qore.org> 0.8.11.1-3
+* Fri Jun 27 2014 David Nichols <david@qore.org> 0.8.11.1-3
+- added license files and license READMEs to packages that can potentially be installed independently (doc and devel-doc)
 - removed --disable-static from the configure call since it's the default
+- created a new qore-stdlib package for noarch user module files in /usr/share, split from libqore
 
 * Tue Jun 24 2014 David Nichols <david@qore.org> 0.8.11.1-2
 - removed non-arch-specific library ABI Provides
@@ -176,122 +194,122 @@ rm $RPM_BUILD_ROOT/%{_libdir}/libqore.la
 - fixed Group: Develpment/Libraries for qore-devel
 - added BuildArch: noarch to doc and devel-doc packages
 
-* Sat May 31 2014 David Nichols <david@qore.org> 0.8.11
+* Sat May 31 2014 David Nichols <david@qore.org> 0.8.11-1
 - updated to 0.8.11
 
-* Wed Mar 12 2014 David Nichols <david@qore.org> 0.8.10
+* Wed Mar 12 2014 David Nichols <david@qore.org> 0.8.10-1
 - updated to 0.8.10
 
-* Fri Oct 04 2013 David Nichols <david@qore.org> 0.8.9
+* Fri Oct 04 2013 David Nichols <david@qore.org> 0.8.9-1
 - updated to 0.8.9
 
-* Sun Feb 24 2013 David Nichols <david@qore.org> 0.8.8
+* Sun Feb 24 2013 David Nichols <david@qore.org> 0.8.8-1
 - updated to 0.8.8
 
-* Wed Nov 21 2012 David Nichols <david@qore.org> 0.8.7
+* Wed Nov 21 2012 David Nichols <david@qore.org> 0.8.7-1
 - updated to 0.8.7
 
-* Fri Nov 9 2012 David Nichols <david@qore.org> 0.8.6.2
+* Fri Nov 9 2012 David Nichols <david@qore.org> 0.8.6.2-1
 - updated to 0.8.6.2
 
-* Sat Oct 27 2012 David Nichols <david@qore.org> 0.8.6.1
+* Sat Oct 27 2012 David Nichols <david@qore.org> 0.8.6.1-1
 - updated to 0.8.6.1
 
-* Sun Sep 2 2012 David Nichols <david@qore.org> 0.8.6
+* Sun Sep 2 2012 David Nichols <david@qore.org> 0.8.6-1
 - updated to 0.8.6
 
-* Wed May 23 2012 David Nichols <david@qore.org> 0.8.5
+* Wed May 23 2012 David Nichols <david@qore.org> 0.8.5-1
 - updated to 0.8.5
 
-* Tue May 22 2012 David Nichols <david@qore.org> 0.8.4
+* Tue May 22 2012 David Nichols <david@qore.org> 0.8.4-1
 - updated for new doxygen-based documentation, added devel-doc pkg for API docs
 - updated package descriptions
 
-* Thu Oct 20 2011 David Nichols <david@qore.org> 0.8.4
+* Thu Oct 20 2011 David Nichols <david@qore.org> 0.8.4-1
 - updated to 0.8.4
 
-* Fri Oct 07 2011 Petr Vanek <petr.vanek@qoretechnologies.com> 0.8.3
+* Fri Oct 07 2011 Petr Vanek <petr.vanek@qoretechnologie-1s.com> 0.8.3-2
 - pkg-config
 
-* Sun Mar 6 2011 David Nichols <david@qore.org>
+* Sun Mar 6 2011 David Nichols <david@qore.org> 0.8.3-1
 - updated to 0.8.3
 
-* Sun Dec 26 2010 David Nichols <david@qore.org>
+* Sun Dec 26 2010 David Nichols <david@qore.org> 0.8.2-1
 - updated to 0.8.2
 
-* Tue Jun 15 2010 David Nichols <david@qore.org>
+* Tue Jun 15 2010 David Nichols <david@qore.org> 0.8.1-1
 - updated to 0.8.1
 
-* Wed Nov 18 2009 David Nichols <david_nichols@users.sourceforge.net>
+* Wed Nov 18 2009 David Nichols <david_nichols@users.sourceforge.net> 0.8.0-1
 - updated to 0.8.0
 
-* Fri Nov 6 2009 David Nichols <david_nichols@users.sourceforge.net>
+* Fri Nov 6 2009 David Nichols <david_nichols@users.sourceforge.net> 0.7.7-1
 - updated to 0.7.7
 
-* Mon Jul 13 2009 David Nichols <david_nichols@users.sourceforge.net>
+* Mon Jul 13 2009 David Nichols <david_nichols@users.sourceforge.net> 0.7.6-1
 - updated to 0.7.6
 
-* Mon Jun 22 2009 David Nichols <david_nichols@users.sourceforge.net>
+* Mon Jun 22 2009 David Nichols <david_nichols@users.sourceforge.net> 0.7.5-1
 - updated to 0.7.5
 
-* Wed Mar 4 2009 David Nichols <david_nichols@users.sourceforge.net>
+* Wed Mar 4 2009 David Nichols <david_nichols@users.sourceforge.net> 0.7.4-1
 - updated to 0.7.4
 
-* Wed Dec 3 2008 David Nichols <david_nichols@users.sourceforge.net>
+* Wed Dec 3 2008 David Nichols <david_nichols@users.sourceforge.net> 0.7.3-1
 - updated to 0.7.3
 
-* Wed Nov 26 2008 David Nichols <david_nichols@users.sourceforge.net>
+* Wed Nov 26 2008 David Nichols <david_nichols@users.sourceforge.net> 0.7.2-2
 - made libqore* the default name for lib package, removed la file
 
-* Sun Nov 23 2008 David Nichols <david_nichols@users.sourceforge.net>
+* Sun Nov 23 2008 David Nichols <david_nichols@users.sourceforge.net> 0.7.2-1
 - updated to 0.7.2
 
-* Tue Oct 7 2008 David Nichols <david_nichols@users.sourceforge.net>
+* Tue Oct 7 2008 David Nichols <david_nichols@users.sourceforge.net> 0.7.0-7
 - released 0.7.0
 
-* Thu Sep 4 2008 David Nichols <david_nichols@users.sourceforge.net>
+* Thu Sep 4 2008 David Nichols <david_nichols@users.sourceforge.net> 0.7.0-6
 - removed all modules as they are now independent projects
 
-* Tue Sep 2 2008 David Nichols <david_nichols@users.sourceforge.net>
+* Tue Sep 2 2008 David Nichols <david_nichols@users.sourceforge.net> 0.7.0-5
 - fixed dist tag for suse distributions
 - updated for new module directory, added qore-module-api-* capability
 
-* Thu Jun 12 2008 David Nichols <david_nichols@users.sourceforge.net>
+* Thu Jun 12 2008 David Nichols <david_nichols@users.sourceforge.net> 0.7.0-4
 - added new modules
 
-* Mon Oct 22 2007 David Nichols <david_nichols@users.sourceforge.net>
+* Mon Oct 22 2007 David Nichols <david_nichols@users.sourceforge.net> 0.7.0-3
 - updated spec file with corrections from suse open build service
 
-* Tue Jul 17 2007 David Nichols <david_nichols@users.sourceforge.net>
+* Tue Jul 17 2007 David Nichols <david_nichols@users.sourceforge.net> 0.7.0-2
 - updated library version to 3.1.0
 
-* Sat Jul 14 2007 David Nichols <david_nichols@users.sourceforge.net>
+* Sat Jul 14 2007 David Nichols <david_nichols@users.sourceforge.net> 0.7.0-1
 - copied improvements from opensuse rpm and updated based on rpmlint output
 - updated version to 0.7.0
 
-* Thu Jun 14 2007 David Nichols <david_nichols@users.sourceforge.net>
+* Thu Jun 14 2007 David Nichols <david_nichols@users.sourceforge.net> 0.6.2-4
 - fixed spec file to support more architectures
 
-* Wed Jun 13 2007 David Nichols <david_nichols@users.sourceforge.net>
+* Wed Jun 13 2007 David Nichols <david_nichols@users.sourceforge.net> 0.6.2-3
 - removed tibae module from spec file due to compiler requiremenets (g++-32)
 - added pgsql module
 
-* Tue Feb 20 2007 David Nichols <david_nichols@users.sourceforge.net>
+* Tue Feb 20 2007 David Nichols <david_nichols@users.sourceforge.net> 0.6.2-2
 - updated to libqore.so.3.0.0
 
-* Sun Feb 11 2007 David Nichols <david_nichols@users.sourceforge.net>
+* Sun Feb 11 2007 David Nichols <david_nichols@users.sourceforge.net> 0.6.2-1
 - updated to 0.6.2 and libqore 1.1
 
-* Tue Jan 30 2007 David Nichols <david_nichols@users.sourceforge.net>
+* Tue Jan 30 2007 David Nichols <david_nichols@users.sourceforge.net> 0.6.1-1
 - added tuxedo module
 
-* Fri Jan 5 2007 David Nichols <david_nichols@users.sourceforge.net>
+* Fri Jan 5 2007 David Nichols <david_nichols@users.sourceforge.net> 0.6.0-1
 - updated libqore so version to 1.0.0
 
-* Sat Nov 18 2006 David Nichols <david_nichols@users.sourceforge.net>
+* Sat Nov 18 2006 David Nichols <david_nichols@users.sourceforge.net> 0.5.9-1
 - updated descriptions
 - changes to make spec file more release-agnostic (use of the dist tag in release)
 
-* Wed Dec 7 2005 David Nichols <david_nichols@users.sourceforge.net>
+* Wed Dec 7 2005 David Nichols <david_nichols@users.sourceforge.net> 0.5.8-1
 - Initial rpm build
 
