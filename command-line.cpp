@@ -114,7 +114,8 @@ static const char helpstr[] =
    "                               MIT; GPL modules cannot be loaded\n"
    "  -m, --show-module-errors     shows error messages related to loading and\n"
    "                               initializing qore modules\n"
-   "      --module-dir             show primary qore module directory and exit\n"
+   "      --module-dir             show qore binary module directory and exit\n"
+   "      --user-module-dir        show qore user module directory and exit\n"
    "      --module-path            show qore module search path and exit\n"
    "      --module-api             show compatible qore module API version and\n"
    "                               exit\n"
@@ -217,8 +218,13 @@ static void show_module_path(const char *arg) {
    exit(0);
 }
 
-static void show_module_dir(const char *arg) {
+static void show_binary_module_dir(const char *arg) {
    printf("%s\n", qore_module_dir);
+   exit(0);
+}
+
+static void show_user_module_dir(const char *arg) {
+   printf("%s\n", qore_user_module_dir);
    exit(0);
 }
 
@@ -636,7 +642,8 @@ static struct opt_struct_s {
    { '\0', "no-io",                ARG_NONE, do_no_io },
    { '\0', "lgpl",                 ARG_NONE, set_lgpl },
    { '\0', "mit",                  ARG_NONE, set_mit },
-   { '\0', "module-dir",           ARG_NONE, show_module_dir },
+   { '\0', "module-dir",           ARG_NONE, show_binary_module_dir },
+   { '\0', "user-module-dir",      ARG_NONE, show_user_module_dir },
    { '\0', "module-path",          ARG_NONE, show_module_path },
    { '\0', "short-version",        ARG_NONE, short_version },
    { '\0', "module-api",           ARG_NONE, show_module_api },
