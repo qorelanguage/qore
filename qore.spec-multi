@@ -47,6 +47,7 @@ BuildRequires: zlib-devel
 BuildRequires: gmp-devel
 BuildRequires: mpfr-devel
 BuildRequires: doxygen
+BuildRequires: gcc-c++
 %if 0%{?suse_version}
 BuildRequires: pkg-config
 BuildRequires: fdupes
@@ -114,7 +115,7 @@ functionality.
 
 %files -n %{libname}
 %defattr(-,root,root,-)
-%{_libdir}/libqore.so.5.12.2
+%{_libdir}/libqore.so.5.13.0
 %{_libdir}/libqore.so.5
 %{module_dir}
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README README-LICENSE README-MODULES RELEASE-NOTES ChangeLog AUTHORS WHATISQORE
@@ -216,8 +217,10 @@ mkdir -p $RPM_BUILD_ROOT/%{module_dir}
 %fdupes -s docs/library/html
 %endif
 
+%if 0%{!?sles_version}
 %check
 make check
+%endif
 
 %clean
 rm -rf $RPM_BUILD_ROOT
