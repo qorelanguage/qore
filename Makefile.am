@@ -542,6 +542,10 @@ EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
 
 dist_modver_DATA = $(USER_MODULES)
 
+TESTS = test/test.q
+AM_TESTS_ENVIRONMENT = QORE_MODULE_DIR='$(srcdir)/qlib'; export QORE_MODULE_DIR;
+LOG_COMPILER = ./runtest.sh
+
 BUILT_SOURCES = dummy
 
 dummy:

@@ -2196,7 +2196,7 @@ sub do_tests() {
 	    constant_tests();	
 	    crypto_tests();
 	    digest_tests();
-        hmac_tests();
+            hmac_tests();
 	    closure_tests();
 	    format_date_tests();
             module_tests();
@@ -2231,6 +2231,9 @@ sub main() {
     printf("%d error%s encountered in %d test%s.\n",
 	   $errors, $errors == 1 ? "" : "s", 
 	   $ntests, $ntests == 1 ? "" : "s");
+
+    # add exit status as # of errors
+    exit($errors);
 }
 
 main();
