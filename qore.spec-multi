@@ -117,7 +117,6 @@ functionality.
 %{_libdir}/libqore.so.5.12.2
 %{_libdir}/libqore.so.5
 %{module_dir}
-%{user_module_dir}
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README README-LICENSE README-MODULES RELEASE-NOTES ChangeLog AUTHORS WHATISQORE
 
 %post -n %{libname}
@@ -125,6 +124,23 @@ ldconfig %{_libdir}
 
 %postun -n %{libname}
 ldconfig %{_libdir}
+
+%package stdlib
+Summary: Standard library modules
+Group: System Environment/Libraries
+BuildArch: noarch
+Requires: libqore = %{version}-%{release}
+
+%description stdlib
+Qore is a scripting language supporting threading and embedded logic, designed
+for applying a flexible scripting-based approach to enterprise interface
+development but is also useful as a general purpose language.
+
+This package provides the Qore language standard library user modules.
+
+%files stdlib
+%{user_module_dir}
+%doc COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
 
 %package doc
 Summary: API documentation, programming language reference, and Qore example programs
@@ -190,8 +206,9 @@ find test -type f -exec chmod -x {} \;
 mv test examples
 
 %build
+export CXXFLAGS="%{?optflags}"
 %configure --disable-debug --disable-dependency-tracking
-%{__make}
+%{__make} %{?_smp_mflags}
 
 %install
 make install prefix=%{_prefix} DESTDIR=$RPM_BUILD_ROOT
@@ -200,6 +217,9 @@ mkdir -p $RPM_BUILD_ROOT/%{module_dir}
 %if 0%{?suse_version}
 %fdupes -s docs/library/html
 %endif
+
+%check
+make check
 
 %clean
 rm -rf $RPM_BUILD_ROOT

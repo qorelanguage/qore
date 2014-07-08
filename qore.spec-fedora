@@ -4,7 +4,7 @@
 Summary: Multithreaded Programming Language
 Name: qore
 Version: 0.8.11.1
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: LGPLv2+ or GPLv2+ or MIT
 Group: Development/Languages
 URL: http://qore.org
@@ -154,11 +154,17 @@ make install prefix=%{_prefix} DESTDIR=$RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/%{module_dir}
 rm $RPM_BUILD_ROOT/%{_libdir}/libqore.la
 
+%check
+make check
+
 %files
 %{_bindir}/qore
 %{_mandir}/man1/qore.1.*
 
 %changelog
+* Tue Jul 8 2014 David Nichols <david@qore.org> 0.8.11.1-4
+- added a %%check section using the new "make check" target
+
 * Fri Jun 27 2014 David Nichols <david@qore.org> 0.8.11.1-3
 - added license files and license READMEs to packages that can potentially be installed independently (doc and devel-doc)
 - removed --disable-static from the configure call since it's the default
