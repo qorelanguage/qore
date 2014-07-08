@@ -506,25 +506,25 @@ EXTRA_DIST = next_build.sh runtest.sh WHATISQORE RELEASE-NOTES \
 	AUTHORS BUILD \
 	README README-LICENSE README-MODULES \
 	COPYING.LGPL COPYING.GPL COPYING.MIT \
-        test/thread-object-test.q \
-        test/create-iso-8859-1-file.q \
-        test/empty.q \
-        test/file-test.q \
-        test/ftp-test.q \
-        test/max-threads-test.q \
-        test/stack-test.q \
-        test/object-test.q \
-        test/rwlock-test.q \
-        test/socket-test.q \
-        test/subprogram-thread-test.q \
-        test/system-test.q \
-        test/test-exception.q \
-        test/test.q \
-        test/Test.qc \
-        test/unlocked-thread-test.q \
-	test/regex.q \
-	test/deadlock.q \
-	test/optest.q \
+        examples/test/thread-object-test.q \
+        examples/test/create-iso-8859-1-file.q \
+        examples/test/empty.q \
+        examples/test/file-test.q \
+        examples/test/ftp-test.q \
+        examples/test/max-threads-test.q \
+        examples/test/stack-test.q \
+        examples/test/object-test.q \
+        examples/test/rwlock-test.q \
+        examples/test/socket-test.q \
+        examples/test/subprogram-thread-test.q \
+        examples/test/system-test.q \
+        examples/test/test-exception.q \
+        examples/test/test.q \
+        examples/test/Test.qc \
+        examples/test/unlocked-thread-test.q \
+	examples/test/regex.q \
+	examples/test/deadlock.q \
+	examples/test/optest.q \
 	examples/stmt.q \
 	examples/exp.q \
 	examples/obj2.q \
@@ -542,7 +542,7 @@ EXTRA_DIST = next_build.sh runtest.sh WHATISQORE RELEASE-NOTES \
 
 dist_modver_DATA = $(USER_MODULES)
 
-TESTS = test/test.q
+TESTS = examples/test/test.q
 AM_TESTS_ENVIRONMENT = QORE_MODULE_DIR='$(srcdir)/qlib'; export QORE_MODULE_DIR;
 LOG_COMPILER = ./runtest.sh
 

@@ -202,8 +202,6 @@ This package provides HTML documentation for the C++ API for the Qore library.
 %setup -q
 # silence the executable warning for examples
 find examples -type f -exec chmod -x {} \;
-find test -type f -exec chmod -x {} \;
-mv test examples
 
 %build
 export CXXFLAGS="%{?optflags}"
