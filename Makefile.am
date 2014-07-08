@@ -535,6 +535,8 @@ EXTRA_DIST = next_build.sh runtest.sh WHATISQORE RELEASE-NOTES \
 	examples/getopt.q \
 	examples/getch.q \
 	qore.spec \
+	qore.spec-fedora \
+	qore.spec-multi \
 	cmake/QoreMacros.cmake \
 	$(LIB_DOXYFILES_SRC) \
 	$(LANG_DOXYFILES_SRC) \

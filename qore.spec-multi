@@ -1,6 +1,10 @@
 # this spec file can be used for multiple RPM-based distributions including Fedora, RHEL, *SUSE, and others
+
+%{?_datarootdir: %global mydatarootdir %_datarootdir}
+%{!?_datarootdir: %global mydatarootdir /usr/share}
+
 %global module_dir %{_libdir}/qore-modules
-%global user_module_dir %{_datarootdir}/qore-modules/
+%global user_module_dir %{mydatarootdir}/qore-modules/
 
 %if 0%{?sles_version}
 %global dist .sles%{?sles_version}
@@ -60,6 +64,9 @@ BuildRequires: libbz2-devel
 BuildRequires: pkgconfig
 BuildRequires: bzip2-devel
 %endif
+%if 0%{?sles_version}
+BuildArch: %{_target_cpu}
+%endif
 
 %description
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -104,6 +111,9 @@ Provides: qore-module-api-0.5
 Provides: libqore5 = %{version}
 Obsoletes: libqore5 < 0.8.11.1
 %endif
+%if 0%{?sles_version}
+BuildArch: %{_target_cpu}
+%endif
 
 %description -n %{libname}
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -140,6 +150,7 @@ development but is also useful as a general purpose language.
 This package provides the Qore language standard library user modules.
 
 %files stdlib
+%defattr(-,root,root,-)
 %{user_module_dir}
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
 
@@ -164,6 +175,9 @@ and also for user modules delivered with Qore and also example programs.
 Summary: The header files needed to compile programs using the qore library
 Group: Development/Libraries
 Requires: %{libname}%{?_isa} = %{version}-%{release}
+%if 0%{?sles_version}
+BuildArch: %{_target_cpu}
+%endif
 
 %description devel
 Qore is a scripting language supporting threading and embedded logic, designed
