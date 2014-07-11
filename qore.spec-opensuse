@@ -1,0 +1,179 @@
+#
+# spec file for package qore
+#
+# Copyright (c) 2014 SUSE LINUX Products GmbH, Nuernberg, Germany.
+# Copyright (c) 2014 David Nichols <david@qore.org>
+# Copyright (c) 2014 Petr Vanek <petr@yarpen.cz>
+#
+# All modifications and additions to the file contributed by third parties
+# remain the property of their copyright owners, unless otherwise agreed
+# upon. The license for this file, and modifications and additions to the
+# file, is the same license as for the pristine package itself (unless the
+# license for the pristine package is not an Open Source License, in which
+# case the license is the MIT License). An "Open Source License" is a
+# license that conforms to the Open Source Definition (Version 1.9)
+# published by the Open Source Initiative.
+
+# Please submit bugfixes or comments via http://bugs.opensuse.org/
+#
+
+
+%define module_dir %{_libdir}/qore-modules
+Name:           qore
+Version:        0.8.11
+Release:        0
+Summary:        Multithreaded Programming Language
+License:        LGPL-2.1+ or GPL-2.0+ or MIT
+Group:          Development/Languages
+Url:            http://qore.org
+Source:         http://prdownloads.sourceforge.net/qore/qore-%{version}.tar.bz2
+BuildRequires:  bison
+BuildRequires:  bzip2
+BuildRequires:  doxygen
+BuildRequires:  fdupes
+BuildRequires:  flex >= 2.5.31
+BuildRequires:  gcc-c++
+BuildRequires:  gmp-devel
+BuildRequires:  libbz2-devel
+BuildRequires:  mpfr-devel
+BuildRequires:  openssl-devel
+BuildRequires:  pcre-devel
+BuildRequires:  pkg-config
+BuildRequires:  zlib-devel
+Requires:       %{_bindir}/env
+BuildRoot:      %{_tmppath}/%{name}-%{version}-build
+
+%description
+Qore is a scripting language supporting threading and embedded logic, designed
+for applying a flexible scripting-based approach to enterprise interface
+development but is also useful as a general purpose language.
+
+%package -n libqore5
+Summary:        The libraries for the qore runtime and qore clients
+License:        LGPL-2.0+ or GPL-2.0+ or MIT
+Group:          Development/Languages
+Provides:       qore-module-api-0.10
+Provides:       qore-module-api-0.11
+Provides:       qore-module-api-0.12
+Provides:       qore-module-api-0.13
+Provides:       qore-module-api-0.14
+Provides:       qore-module-api-0.15
+Provides:       qore-module-api-0.16
+Provides:       qore-module-api-0.17
+Provides:       qore-module-api-0.18
+Provides:       qore-module-api-0.5
+Provides:       qore-module-api-0.6
+Provides:       qore-module-api-0.7
+Provides:       qore-module-api-0.8
+Provides:       qore-module-api-0.9
+
+%description -n libqore5
+Qore is a scripting language supporting threading and embedded logic, designed
+for applying a flexible scripting-based approach to enterprise interface
+development but is also useful as a general purpose language.
+
+This package provides the qore library required for all clients using qore
+functionality.
+
+%files -n libqore5
+%defattr(-,root,root,-)
+%{_libdir}/libqore.so.5.12.2
+%{_libdir}/libqore.so.5
+%doc COPYING.LGPL COPYING.GPL COPYING.MIT README README-LICENSE README-MODULES RELEASE-NOTES ChangeLog AUTHORS WHATISQORE
+
+%post -n libqore5
+ldconfig %{_libdir}
+
+%postun -n libqore5
+ldconfig %{_libdir}
+
+%package doc
+Summary:        API documentation, programming language reference, and Qore example programs
+License:        LGPL-2.0+ or GPL-2.0+ or MIT
+Group:          Development/Languages
+
+%description doc
+Qore is a scripting language supporting threading and embedded logic, designed
+for applying a flexible scripting-based approach to enterprise interface
+development but is also useful as a general purpose language.
+
+This package provides the HTML documentation for the Qore programming language
+and also for user modules delivered with Qore and also example programs.
+
+%files doc
+%defattr(-,root,root,-)
+%doc docs/lang docs/modules/* examples/ COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
+
+
+%package devel
+Summary:        The header files needed to compile programs using the qore library
+License:        LGPL-2.0+ or GPL-2.0+ or MIT
+Group:          Development/Languages
+Requires:       libqore5 = %{version}-%{release}
+
+%description devel
+Qore is a scripting language supporting threading and embedded logic, designed
+for applying a flexible scripting-based approach to enterprise interface
+development but is also useful as a general purpose language.
+
+This package provides header files needed to compile client programs using the
+Qore library.
+
+%files devel
+%defattr(-,root,root,-)
+%{_bindir}/qpp
+%{_bindir}/qdx
+%{_libdir}/libqore.so
+%{_libdir}/pkgconfig/qore.pc
+%dir %{_libdir}/cmake
+%{_libdir}/cmake/Qore
+%{_includedir}/*
+
+%package devel-doc
+Summary:        C++ API documentation for the qore library
+License:        LGPL-2.0+ or GPL-2.0+ or MIT
+Group:          Development/Languages
+Requires:       libqore5 = %{version}-%{release}
+
+%description devel-doc
+Qore is a scripting language supporting threading and embedded logic, designed
+for applying a flexible scripting-based approach to enterprise interface
+development but is also useful as a general purpose language.
+
+This package provides HTML documentation for the C++ API for the Qore library.
+
+%files devel-doc
+%defattr(-,root,root,-)
+%doc docs/library/html/*
+
+%prep
+%setup -q
+# silence the executable warning for examples
+find examples -type f|xargs chmod 644
+find test -type f|xargs chmod 644
+mv $RPM_BUILD_DIR/%{name}-%{version}/test $RPM_BUILD_DIR/%{name}-%{version}/examples
+
+%ifarch x86_64 ppc64 s390x
+c64=--enable-64bit
+%endif
+# need to configure with /usr as prefix as this will be used to derive the module directory
+CFLAGS="$RPM_OPT_FLAGS" CXXFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=/usr --disable-debug --disable-static $c64 --libdir=%{_libdir}
+
+%build
+make %{?_smp_mflags}
+
+%install
+mkdir -p %{buildroot}%{_prefix}/bin
+mkdir -p %{buildroot}/%{module_dir}/%{version}
+mkdir -p %{buildroot}%{_prefix}/man/man1
+make install prefix=%{_prefix} DESTDIR=%{buildroot}
+rm %{buildroot}/%{_libdir}/libqore.la
+%fdupes -s docs
+
+%files
+%defattr(-,root,root,-)
+%{_bindir}/qore
+%{module_dir}
+%{_mandir}/man1/qore.1.*
+
+%changelog

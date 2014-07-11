@@ -1,0 +1,151 @@
+-------------------------------------------------------------------
+Fri Jun 20 21:59:22 CEST 2014 - petr@yarpen.cz
+
+- updated to 0.8.11
+
+-------------------------------------------------------------------
+Fri Dec 14 11:22:22 CEST 2012 - petr@yarpen.cz
+
+- spec file reformatted to fit OBS rules
+
+-------------------------------------------------------------------
+Fri Nov 09 00:00:00 CEST 2012 - david@qore.org
+
+- updated to 0.8.6.2
+
+-------------------------------------------------------------------
+Sat Oct 27 00:00:00 CEST 2012 - david@qore.org
+
+- updated to 0.8.6.1
+
+-------------------------------------------------------------------
+Sun Sep 02 00:00:00 CEST 2012 - david@qore.org
+
+- updated to 0.8.6
+
+-------------------------------------------------------------------
+Wed May 23 00:00:00 CEST 2012 - david@qore.org
+
+- updated to 0.8.5
+
+-------------------------------------------------------------------
+Tue May 22 00:00:00 CEST 2012 - david@qore.org
+
+- updated for new doxygen-based documentation, added devel-doc pkg
+  for API docs
+- updated package descriptions
+
+-------------------------------------------------------------------
+Thu Oct 20 00:00:00 CEST 2011 - david@qore.org
+
+- updated to 0.8.4
+
+-------------------------------------------------------------------
+Fri Oct 07 00:00:00 CEST 2011 - petr.vanek@qoretechnologies.com
+
+- pkg-config
+
+-------------------------------------------------------------------
+Sun Mar 06 00:00:00 CEST 2011 - david@qore.org
+
+- updated to 0.8.3
+
+-------------------------------------------------------------------
+Sun Dec 26 00:00:00 CEST 2010 - david@qore.org
+
+- updated to 0.8.2
+
+-------------------------------------------------------------------
+Tue Jun 15 00:00:00 CEST 2010 - david@qore.org
+
+- updated to 0.8.1
+
+-------------------------------------------------------------------
+Wed Nov 18 00:00:00 CEST 2009 - david_nichols@users.sourceforge.net
+
+- updated to 0.8.0
+
+-------------------------------------------------------------------
+Fri Nov 06 00:00:00 CEST 2009 - david_nichols@users.sourceforge.net
+
+- updated to 0.7.7
+
+-------------------------------------------------------------------
+Mon Jul 13 00:00:00 CEST 2009 - david_nichols@users.sourceforge.net
+
+- updated to 0.7.6
+
+-------------------------------------------------------------------
+Mon Jun 22 00:00:00 CEST 2009 - david_nichols@users.sourceforge.net
+
+- updated to 0.7.5
+
+-------------------------------------------------------------------
+Wed Mar 04 00:00:00 CEST 2009 - david_nichols@users.sourceforge.net
+
+- updated to 0.7.4
+
+-------------------------------------------------------------------
+Wed Dec 03 00:00:00 CEST 2008 - david_nichols@users.sourceforge.net
+
+- updated to 0.7.3
+
+-------------------------------------------------------------------
+Wed Nov 26 00:00:00 CEST 2008 - david_nichols@users.sourceforge.net
+
+- made libqore* the default name for lib package, removed la file
+
+-------------------------------------------------------------------
+Sun Nov 23 00:00:00 CEST 2008 - david_nichols@users.sourceforge.net
+
+- updated to 0.7.2
+
+-------------------------------------------------------------------
+Mon Oct 13 00:00:00 CEST 2008 - david_nichols@users.sourceforge.net
+
+- fixed devel pacakges for suse
+
+-------------------------------------------------------------------
+Tue Oct 07 00:00:00 CEST 2008 - david_nichols@users.sourceforge.net
+
+- released 0.7.0
+
+-------------------------------------------------------------------
+Thu Sep 04 00:00:00 CEST 2008 - david_nichols@users.sourceforge.net
+
+- removed all modules as they are now independent projects
+
+-------------------------------------------------------------------
+Tue Sep 02 00:00:00 CEST 2008 - david_nichols@users.sourceforge.net
+
+- fixed dist tag for suse distributions
+- updated for new module directory, added qore-module-api-*
+  capability
+
+-------------------------------------------------------------------
+Sat Jul 14 00:00:00 CEST 2008 - david_nichols@users.sourceforge.net
+
+- copied improvements from opensuse rpm and updated based
+  on rpmlint output
+- updated version to 0.7.0
+
+-------------------------------------------------------------------
+Thu Jun 14 00:00:00 CEST 2008 - david_nichols@users.sourceforge.net
+
+- fixed spec file to support more architectures
+
+-------------------------------------------------------------------
+Thu Apr 10 10:02:32 CEST 2008 - david_nichols@users.sourceforge.net
+
+- updated package to 0.6.2.4 and disabled mssql module build due
+- to lack of freetds packages in the build service :-(
+
+-------------------------------------------------------------------
+Mon Oct 16 00:20:32 CEST 2006 - mrueckert@suse.de
+
+- added --enable-64bit to build properly on 64bit biarch
+
+-------------------------------------------------------------------
+Mon Oct 16 00:10:13 CEST 2006 - mrueckert@suse.de
+
+- initial package of 0.5.3

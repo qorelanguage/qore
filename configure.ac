@@ -1587,6 +1587,9 @@ fi
 if test ! -f qore.spec; then
    if test -f /etc/redhat-release -o -f /etc/fedora-release; then
        ln -s qore.spec-fedora qore.spec
+   elif test -f /etc/SuSE-release; then
+       ln -s qore.spec-opensuse qore.spec
+       ln -s qore.changes-opensuse qore.changes
    else
        ln -s qore.spec-multi qore.spec
    fi
