@@ -169,7 +169,7 @@ and also for user modules delivered with Qore and also example programs.
 
 %files doc
 %defattr(-,root,root,-)
-%doc docs/lang/html docs/modules/*/html examples/
+%doc docs/lang docs/modules/* examples/ COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
 
 %package devel
 Summary: The header files needed to compile programs using the qore library
@@ -211,7 +211,7 @@ This package provides HTML documentation for the C++ API for the Qore library.
 
 %files devel-doc
 %defattr(-,root,root,-)
-%doc docs/library/html
+%doc docs/library/html/*
 
 %prep
 %setup -q

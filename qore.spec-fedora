@@ -4,7 +4,7 @@
 Summary: Multithreaded Programming Language
 Name: qore
 Version: 0.8.11.1
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: LGPLv2+ or GPLv2+ or MIT
 Group: Development/Languages
 URL: http://qore.org
@@ -98,7 +98,7 @@ This package provides the HTML documentation for the Qore programming language
 and also for user modules delivered with Qore and also example programs.
 
 %files doc
-%doc docs/lang/html docs/modules/*/html examples/ COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
+%doc docs/lang docs/modules/* examples/ COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
 
 %package devel
 Summary: The header files needed to compile programs using the qore library
@@ -135,7 +135,7 @@ development but is also useful as a general purpose language.
 This package provides HTML documentation for the C++ API for the Qore library.
 
 %files devel-doc
-%doc docs/library/html COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
+%doc docs/library/html/* COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
 
 %prep
 %setup -q
@@ -160,6 +160,9 @@ make check
 %{_mandir}/man1/qore.1.*
 
 %changelog
+* Fri Jul 11 2014 David Nichols <david@qore.org> 0.8.11.1-5
+- fixed doc and devel-doc file specs to fix packaging bugs for documentation
+
 * Tue Jul 8 2014 David Nichols <david@qore.org> 0.8.11.1-4
 - added a %%check section using the new "make check" target
 - simplified spec due to upstream changes (moved test/ subdir to examples/ in upstream)
