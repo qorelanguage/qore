@@ -4,7 +4,7 @@
 Summary: Multithreaded Programming Language
 Name: qore
 Version: 0.8.11.1
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: LGPLv2+ or GPLv2+ or MIT
 Group: Development/Languages
 URL: http://qore.org
@@ -160,8 +160,11 @@ make check
 %{_mandir}/man1/qore.1.*
 
 %changelog
-* Fri Jul 11 2014 David Nichols <david@qore.org> 0.8.11.1-5
+* Fri Jul 11 2014 David Nichols <david@qore.org> 0.8.11.1-6
 - fixed doc and devel-doc file specs to fix packaging bugs for documentation
+
+* Tue Jul 8 2014 David Nichols <david@qore.org> 0.8.11.1-4
+- synced with upstream fixes for 64 bit ppc compilation and command-line enhancements for module directory handling
 
 * Tue Jul 8 2014 David Nichols <david@qore.org> 0.8.11.1-4
 - added a %%check section using the new "make check" target
