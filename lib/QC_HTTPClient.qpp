@@ -118,6 +118,11 @@ my HTTPClient $httpclient(("url":"http://hostname:8080/path"));
     - \c proxy: The proxy URL for connecting through a proxy
     - \c timeout: The timeout value in milliseconds (also can be a @ref relative_dates "relative date-time value" for clarity, ex: \c 5m)
     - \c connect_timeout: The timeout value in milliseconds for establishing a new socket connection (also can be a @ref relative_dates "relative date-time value" for clarity, ex: \c 30s)
+    - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to create various HTTP extensions like e.g. WebDAV. The hash uses method name as a key and value is a boolean \c True or \c False indicating if the HTTPClient should post the message body as well. Example:
+    @code
+    # add new HTTP methods for WebDAV. Both of them require body posting to the server
+    ("additional_methods" : ( "PROPFIND" : True, "MKCOL": True ) );
+    @endcode
 
     @throw HTTP-CLIENT-OPTION-ERROR invalid or unknown option passed in option hash
     @throw HTTP-CLIENT-URL-ERROR invalid URL string
@@ -259,7 +264,7 @@ my hash $msg = $httpclient.send($body, "POST", "/path", ("Content-Type":"applica
     @endcode
 
     @param body The message body to send
-    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT").
+    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT"). Additional methods can be added in the constructor as a \c additional_methods option.
     @param path The path for the message (i.e. \c "/path/resource?method&param=value")
     @param headers An optional hash of headers to include in the message.
     @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
@@ -296,7 +301,8 @@ my hash $msg = $httpclient.send($body, "POST", "/path", ("Content-Type":"applica
     @endcode
 
     @param body The message body to send; pass @ref nothing (no value) to send no body
-    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT").
+    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT"). Additional
+     methods can be added in the constructor as a \c additional_methods option.
     @param path The path for the message (i.e. \c "/path/resource?method&param=value")
     @param headers An optional hash of headers to include in the message.
     @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
@@ -332,7 +338,8 @@ my hash $msg = $httpclient.sendWithSendCallback($callback, "POST", "/path", ("Co
     @endcode
 
     @param scb The callback giving the chunked HTTP data to send; this callback must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be sent or simply @ref nothing which will close the chunked message
-    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT").
+    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT"). Additional
+     methods can be added in the constructor as a \c additional_methods option.
     @param path The path for the message (i.e. \c "/path/resource?method&param=value")
     @param headers An optional hash of headers to include in the message.
     @param timeout_ms the timeout in milliseconds for the socket I/O operations; 0 means use the default timeout value
@@ -382,7 +389,8 @@ my hash $msg = $httpclient.sendWithRecvCallback($rcv_callback, $data, "POST", "/
     - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
     - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
     @param body The message body to send
-    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT").
+    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT"). Additional
+     methods can be added in the constructor as a \c additional_methods option.
     @param path The path for the message (i.e. \c "/path/resource?method&param=value")
     @param headers An optional hash of headers to include in the message.
     @param timeout_ms the timeout in milliseconds for the socket I/O operations; 0 means use the default timeout value
@@ -427,7 +435,8 @@ my hash $msg = $httpclient.sendWithRecvCallback($rcv_callback, $data, "POST", "/
     - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
     - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
     @param body The message body to send; pass @ref nothing (no value) to send no body
-    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT").
+    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT"). Additional
+     methods can be added in the constructor as a \c additional_methods option.
     @param path The path for the message (i.e. \c "/path/resource?method&param=value")
     @param headers An optional hash of headers to include in the message.
     @param timeout_ms the timeout in milliseconds for the socket I/O operations; 0 means use the default timeout value
@@ -473,7 +482,8 @@ my hash $msg = $httpclient.sendWithCallbacks($send_callback, $rcv_callback, "POS
     - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
     - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
     - \c "send_aborted": this is set to @ref Qore::True "True" if a response header was set while sending an outgoing chunked message
-    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT").
+    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT"). Additional
+     methods can be added in the constructor as a \c additional_methods option.
     @param path The path for the message (i.e. \c "/path/resource?method&param=value")
     @param headers An optional hash of headers to include in the message.
     @param timeout_ms the timeout in milliseconds for the socket I/O operations; 0 means use the default timeout value

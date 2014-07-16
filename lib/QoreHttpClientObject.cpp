@@ -69,6 +69,8 @@ struct qore_httpclient_priv {
    std::string socketpath;
    header_map_t default_headers;
    int connect_timeout_ms;   
+
+   method_map_t additional_methods_map;
   
    DLLLOCAL qore_httpclient_priv(my_socket_priv* ms) :
       msock(ms), http11(true), connection(HTTPCLIENT_DEFAULT_PORT),
@@ -282,6 +284,11 @@ struct qore_httpclient_priv {
       proxy_connection.clearUserPassword();
    }
 
+   DLLLOCAL void addHttpMethod(const char* method, bool enable) {
+       additional_methods_map.insert(method_map_t::value_type(method, enable));
+   }
+
+
    // always generate a Host header pointing to the host hosting the resource, not the proxy
    // (RFC 2616 is not totally clear on this, but other clients do it this way)
    DLLLOCAL AbstractQoreNode* getHostHeaderValue() {
@@ -377,6 +384,8 @@ void QoreHttpClientObject::static_init() {
    
    header_ignore.insert("Content-Length");
 }
+
+
 
 QoreHttpClientObject::QoreHttpClientObject() : http_priv(new qore_httpclient_priv(priv)) {
    http_priv->setSocketPath();
@@ -517,6 +526,20 @@ int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xs
 
    if (http_priv->connection.path.empty())
       http_priv->connection.path = http_priv->default_path.empty() ? "/" : http_priv->default_path;
+
+   // additional HTTP methods for customized extensions like WebDAV
+   n = opts->getKeyValue("additional_methods");
+   if (n) {
+       const QoreHashNode *h = n->getType() == NT_HASH ? reinterpret_cast<const QoreHashNode*>(n) : 0;
+       if (!h) {
+           xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "Option additional_methods requires a hash as a value; got: %s", n->getTypeName());
+           return -1;
+       }
+       ConstHashIterator hi(h);
+       while (hi.next()) {
+           http_priv->addHttpMethod(hi.getKey(), hi.getValue()->getAsBool());
+       }
+   }
 
    return 0;
 }
@@ -777,9 +800,13 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
    // check if method is valid
    method_map_t::const_iterator i = method_map.find(meth);
    if (i == method_map.end()) {
-      xsink->raiseException("HTTP-CLIENT-METHOD-ERROR", "HTTP method (%s) not recognized.", meth);
-      return 0;
+       i = additional_methods_map.find(meth);
+       if (i == additional_methods_map.end()) {
+          xsink->raiseException("HTTP-CLIENT-METHOD-ERROR", "HTTP method (%s) not recognized.", meth);
+          return 0;
+       }
    }
+
    // make sure the capitalized version is used
    meth = i->first.c_str();
    bool bodyp = i->second;
