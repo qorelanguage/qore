@@ -1,3 +1,574 @@
+2014-07-16 12:12  subik
+
+	* lib/QC_HTTPClient.qpp, lib/QoreHttpClientObject.cpp: HTTPClient:
+	  allow to enable additional http methods for clients
+
+2014-07-12 12:55  david_nichols
+
+	* qore.spec-fedora: minor fedora/rh spec file updates
+
+2014-07-11 15:03  subik
+
+	* configure.ac, qore.changes-opensuse, qore.spec-opensuse: suse
+	  spec files
+
+2014-07-11 13:07  david_nichols
+
+	* qore.spec-fedora, qore.spec-multi: fixed doc and devel-doc file
+	  specs to fix packaging bugs for documentation
+
+2014-07-08 22:15  david_nichols
+
+	* command-line.cpp: added --user-module-dir command-line argument
+
+2014-07-08 22:10  david_nichols
+
+	* command-line.cpp: fixed --module-dir output since showing the
+	  path breaks module builds from source, added --module-path
+
+2014-07-08 20:55  david_nichols
+
+	* Makefile.am, qore.spec-multi: build updates for SLES, include
+	  both spec files in distribution sources
+
+2014-07-08 19:20  david_nichols
+
+	* configure.ac, qore.spec-multi: build fixes for powerpc64 and for
+	  configure without any --prefix argument
+
+2014-07-08 17:53  david_nichols
+
+	* Makefile.am, examples/test, qore.spec-fedora, qore.spec-multi,
+	  runtest.sh, test: moved test/ subdir to examples/, fixed rpm
+	  build with "make check", updated spec files
+
+2014-07-08 17:28  david_nichols
+
+	* Makefile.am, runtest.sh: fixed rpm builds with "make check"
+
+2014-07-08 17:01  david_nichols
+
+	* qore.spec-fedora, qore.spec-multi: added %check target to spec
+	  files and aligned multi spec with fedora
+
+2014-07-08 16:53  david_nichols
+
+	* Makefile.am, reconf.sh, test/test.q: added a "make check" target
+
+2014-06-27 12:16  david_nichols
+
+	* Makefile.am, qore.spec-fedora: removed ChangeLog from
+	  distribution sources
+
+2014-06-27 06:58  david_nichols
+
+	* include/qore/intern/QoreLogicalLessThanOrEqualsOperatorNode.h,
+	  next_build.sh: license updates
+
+2014-06-27 06:49  david_nichols
+
+	* configure.ac, qore.spec-fedora: made a separate qore-stdlib rpm
+	  package for noarch user modules delivered with qore
+
+2014-06-26 11:39  david_nichols
+
+	* command-line.cpp, command-line.h, include/qore/ScopeGuard.h,
+	  include/qore/intern/QoreLogicalGreaterThanOperatorNode.h,
+	  include/qore/macros-sparc.h, include/qore/macros.h,
+	  lib/QoreLogicalGreaterThanOperatorNode.cpp,
+	  lib/single-compilation-unit.cpp, main.cpp,
+	  single-compilation-unit.cpp: added missing license header info
+
+2014-06-24 14:13  david_nichols
+
+	* qore.spec-fedora, qore.spec-multi: removed --disable-static from
+	  the configure call since it's the default
+
+2014-06-24 13:56  david_nichols
+
+	* command-line.cpp, configure.ac: enable thread call stacks by
+	  default
+	  improved configure summary output
+	  added all language module directies to output of --module-dir in
+	  command-line.cpp
+
+2014-06-24 09:18  david_nichols
+
+	* qore.spec-fedora, qore.spec-multi: removed non-arch-specific ABI
+	  provides
+
+2014-06-24 08:44  david_nichols
+
+	* qore.spec-fedora, qore.spec-multi: fixed abi provides and moved
+	  runtime module lib to libqore package
+
+2014-06-23 16:25  david_nichols
+
+	* qore.spec-fedora, qore.spec-multi: uses hardcoded version for
+	  obsoletes for libqore5
+
+2014-06-23 15:46  david_nichols
+
+	* Makefile.am, configure.ac,
+	  doxygen/lang/900_release_notes.dox.tmpl,
+	  include/qore/ModuleManager.h, include/qore/Qore.h,
+	  lib/Makefile.am, lib/ModuleManager.cpp, lib/QoreLib.cpp,
+	  qore.spec-fedora, qore.spec-multi: added new exported global
+	  symbols for new module directories
+	  updated ABI to 5.13.0, module ABI to 0.19
+	  install user modules in ${datarootdir}/qore-modules/...
+	  updated spec files accordingly
+
+2014-06-23 14:29  david_nichols
+
+	* configure.ac, lib/Makefile.am: fixed building qpp when
+	  cross-compiling
+
+2014-06-23 14:17  david_nichols
+
+	* configure.ac, doxygen/lang/900_release_notes.dox.tmpl,
+	  lib/ql_lib.qpp: updated relnotes for 0.8.11.1 release
+	  removed explicit gmp linking due to fedora-review feedback
+
+2014-06-23 14:02  david_nichols
+
+	* configure.ac, qore.spec-fedora, qore.spec-multi: updated release
+	  to 0.8.1.11 with spec file fixes for fedora submission
+
+2014-06-23 10:13  david_nichols
+
+	* include/qore/AbstractPrivateData.h,
+	  include/qore/AbstractQoreNode.h,
+	  include/qore/AbstractThreadResource.h, include/qore/AutoVLock.h,
+	  include/qore/BinaryNode.h, include/qore/BuiltinFunctionList.h,
+	  include/qore/CallReferenceNode.h, include/qore/DBI.h,
+	  include/qore/Datasource.h, include/qore/DateTime.h,
+	  include/qore/DateTimeNode.h, include/qore/ExceptionSink.h,
+	  include/qore/ModuleManager.h, include/qore/ParseOptionMap.h,
+	  include/qore/Qore.h, include/qore/QoreBigIntNode.h,
+	  include/qore/QoreBoolNode.h, include/qore/QoreClass.h,
+	  include/qore/QoreCondition.h, include/qore/QoreCounter.h,
+	  include/qore/QoreEncoding.h, include/qore/QoreEvents.h,
+	  include/qore/QoreFile.h, include/qore/QoreFloatNode.h,
+	  include/qore/QoreFtpClient.h, include/qore/QoreHTTPClient.h,
+	  include/qore/QoreHashNode.h, include/qore/QoreHttpClientObject.h,
+	  include/qore/QoreIteratorBase.h, include/qore/QoreLib.h,
+	  include/qore/QoreListNode.h, include/qore/QoreNamespace.h,
+	  include/qore/QoreNet.h,
+	  include/qore/QoreNodeEvalOptionalRefHolder.h,
+	  include/qore/QoreNothingNode.h, include/qore/QoreNullNode.h,
+	  include/qore/QoreNumberNode.h, include/qore/QoreObject.h,
+	  include/qore/QoreProgram.h, include/qore/QoreQueue.h,
+	  include/qore/QoreQueueHelper.h, include/qore/QoreRWLock.h,
+	  include/qore/QoreReferenceCounter.h, include/qore/QoreSSLBase.h,
+	  include/qore/QoreSSLCertificate.h,
+	  include/qore/QoreSSLPrivateKey.h, include/qore/QoreSocket.h,
+	  include/qore/QoreSocketObject.h, include/qore/QoreString.h,
+	  include/qore/QoreStringNode.h,
+	  include/qore/QoreThreadLocalStorage.h,
+	  include/qore/QoreThreadLock.h, include/qore/QoreType.h,
+	  include/qore/QoreTypeSafeReferenceHelper.h,
+	  include/qore/QoreURL.h, include/qore/ReferenceArgumentHelper.h,
+	  include/qore/ReferenceHolder.h, include/qore/ReferenceNode.h,
+	  include/qore/Restrictions.h, include/qore/SQLStatement.h,
+	  include/qore/SystemEnvironment.h, include/qore/common.h,
+	  include/qore/intern/AbstractIteratorHelper.h,
+	  include/qore/intern/AbstractSmartLock.h,
+	  include/qore/intern/AbstractStatement.h,
+	  include/qore/intern/BackquoteNode.h,
+	  include/qore/intern/BarewordNode.h,
+	  include/qore/intern/BreakStatement.h,
+	  include/qore/intern/BuiltinFunction.h,
+	  include/qore/intern/CallReferenceCallNode.h,
+	  include/qore/intern/CallReferenceNode.h,
+	  include/qore/intern/CaseNodeRegex.h,
+	  include/qore/intern/CaseNodeWithOperator.h,
+	  include/qore/intern/ClassRefNode.h,
+	  include/qore/intern/ComplexContextrefNode.h,
+	  include/qore/intern/ConstantList.h,
+	  include/qore/intern/Context.h,
+	  include/qore/intern/ContextRowNode.h,
+	  include/qore/intern/ContextStatement.h,
+	  include/qore/intern/ContextrefNode.h,
+	  include/qore/intern/ContinueStatement.h,
+	  include/qore/intern/DatasourcePool.h,
+	  include/qore/intern/DatasourceStatementHelper.h,
+	  include/qore/intern/DoWhileStatement.h,
+	  include/qore/intern/ExecArgList.h,
+	  include/qore/intern/ExpressionStatement.h,
+	  include/qore/intern/FindNode.h,
+	  include/qore/intern/ForEachStatement.h,
+	  include/qore/intern/ForStatement.h,
+	  include/qore/intern/Function.h,
+	  include/qore/intern/FunctionCallNode.h,
+	  include/qore/intern/FunctionList.h,
+	  include/qore/intern/GlobalVariableList.h,
+	  include/qore/intern/IfStatement.h,
+	  include/qore/intern/LocalVar.h,
+	  include/qore/intern/ManagedDatasource.h,
+	  include/qore/intern/ModuleInfo.h,
+	  include/qore/intern/NamedScope.h,
+	  include/qore/intern/ObjectMethodReferenceNode.h,
+	  include/qore/intern/OnBlockExitStatement.h,
+	  include/qore/intern/Operator.h, include/qore/intern/ParseNode.h,
+	  include/qore/intern/ParseReferenceNode.h,
+	  include/qore/intern/ParserSupport.h,
+	  include/qore/intern/QC_AbstractSmartLock.h,
+	  include/qore/intern/QC_AutoGate.h,
+	  include/qore/intern/QC_AutoLock.h,
+	  include/qore/intern/QC_AutoReadLock.h,
+	  include/qore/intern/QC_AutoWriteLock.h,
+	  include/qore/intern/QC_Condition.h,
+	  include/qore/intern/QC_Counter.h,
+	  include/qore/intern/QC_Datasource.h,
+	  include/qore/intern/QC_DatasourcePool.h,
+	  include/qore/intern/QC_Dir.h, include/qore/intern/QC_File.h,
+	  include/qore/intern/QC_FtpClient.h,
+	  include/qore/intern/QC_Gate.h, include/qore/intern/QC_GetOpt.h,
+	  include/qore/intern/QC_HTTPClient.h,
+	  include/qore/intern/QC_Mutex.h, include/qore/intern/QC_Program.h,
+	  include/qore/intern/QC_Queue.h, include/qore/intern/QC_RWLock.h,
+	  include/qore/intern/QC_SQLStatement.h,
+	  include/qore/intern/QC_SSLCertificate.h,
+	  include/qore/intern/QC_SSLPrivateKey.h,
+	  include/qore/intern/QC_Sequence.h,
+	  include/qore/intern/QC_Socket.h,
+	  include/qore/intern/QC_TermIOS.h,
+	  include/qore/intern/QC_TimeZone.h,
+	  include/qore/intern/QException.h,
+	  include/qore/intern/QoreAndEqualsOperatorNode.h,
+	  include/qore/intern/QoreAssignmentOperatorNode.h,
+	  include/qore/intern/QoreBinaryLValueOperatorNode.h,
+	  include/qore/intern/QoreCastOperatorNode.h,
+	  include/qore/intern/QoreClassIntern.h,
+	  include/qore/intern/QoreClassList.h,
+	  include/qore/intern/QoreClosureNode.h,
+	  include/qore/intern/QoreClosureParseNode.h,
+	  include/qore/intern/QoreDeleteOperatorNode.h,
+	  include/qore/intern/QoreDir.h,
+	  include/qore/intern/QoreDivideEqualsOperatorNode.h,
+	  include/qore/intern/QoreDotEvalOperatorNode.h,
+	  include/qore/intern/QoreException.h,
+	  include/qore/intern/QoreExtractOperatorNode.h,
+	  include/qore/intern/QoreGetOpt.h,
+	  include/qore/intern/QoreHashIterator.h,
+	  include/qore/intern/QoreHashListIterator.h,
+	  include/qore/intern/QoreHashNodeIntern.h,
+	  include/qore/intern/QoreHttpClientObjectIntern.h,
+	  include/qore/intern/QoreImplicitArgumentNode.h,
+	  include/qore/intern/QoreImplicitElementNode.h,
+	  include/qore/intern/QoreIntAssignmentOperatorNode.h,
+	  include/qore/intern/QoreIntMinusEqualsOperatorNode.h,
+	  include/qore/intern/QoreIntPlusEqualsOperatorNode.h,
+	  include/qore/intern/QoreIntPostDecrementOperatorNode.h,
+	  include/qore/intern/QoreIntPostIncrementOperatorNode.h,
+	  include/qore/intern/QoreIntPreDecrementOperatorNode.h,
+	  include/qore/intern/QoreIntPreIncrementOperatorNode.h,
+	  include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/QoreListHashIterator.h,
+	  include/qore/intern/QoreListIterator.h,
+	  include/qore/intern/QoreLogicalEqualsOperatorNode.h,
+	  include/qore/intern/QoreLogicalGreaterThanOrEqualsOperatorNode.h,
+	  include/qore/intern/QoreLogicalLessThanOperatorNode.h,
+	  include/qore/intern/QoreLogicalNotEqualsOperatorNode.h,
+	  include/qore/intern/QoreMinusEqualsOperatorNode.h,
+	  include/qore/intern/QoreModulaEqualsOperatorNode.h,
+	  include/qore/intern/QoreMultiplyEqualsOperatorNode.h,
+	  include/qore/intern/QoreNamespaceIntern.h,
+	  include/qore/intern/QoreNamespaceList.h,
+	  include/qore/intern/QoreObjectIntern.h,
+	  include/qore/intern/QoreObjectIterator.h,
+	  include/qore/intern/QoreOperatorNode.h,
+	  include/qore/intern/QoreOrEqualsOperatorNode.h,
+	  include/qore/intern/QorePlusEqualsOperatorNode.h,
+	  include/qore/intern/QorePostDecrementOperatorNode.h,
+	  include/qore/intern/QorePostIncrementOperatorNode.h,
+	  include/qore/intern/QorePreDecrementOperatorNode.h,
+	  include/qore/intern/QorePreIncrementOperatorNode.h,
+	  include/qore/intern/QorePseudoMethods.h,
+	  include/qore/intern/QoreQuestionMarkOperatorNode.h,
+	  include/qore/intern/QoreQueueIntern.h,
+	  include/qore/intern/QoreRegexBase.h,
+	  include/qore/intern/QoreRegexNode.h,
+	  include/qore/intern/QoreRemoveOperatorNode.h,
+	  include/qore/intern/QoreSQLStatement.h,
+	  include/qore/intern/QoreSSLIntern.h,
+	  include/qore/intern/QoreShiftLeftEqualsOperatorNode.h,
+	  include/qore/intern/QoreShiftRightEqualsOperatorNode.h,
+	  include/qore/intern/QoreSignal.h,
+	  include/qore/intern/QoreSpliceOperatorNode.h,
+	  include/qore/intern/QoreThreadList.h,
+	  include/qore/intern/QoreTimeZoneManager.h,
+	  include/qore/intern/QoreTreeNode.h,
+	  include/qore/intern/QoreTypeInfo.h,
+	  include/qore/intern/QoreUnaryMinusOperatorNode.h,
+	  include/qore/intern/QoreValue.h,
+	  include/qore/intern/QoreXorEqualsOperatorNode.h,
+	  include/qore/intern/RWLock.h,
+	  include/qore/intern/RangeIterator.h,
+	  include/qore/intern/ReferenceHelper.h,
+	  include/qore/intern/RegexSubstNode.h,
+	  include/qore/intern/RegexTransNode.h,
+	  include/qore/intern/RethrowStatement.h,
+	  include/qore/intern/ReturnStatement.h,
+	  include/qore/intern/SSLSocketHelper.h,
+	  include/qore/intern/ScopedObjectCallNode.h,
+	  include/qore/intern/ScopedRefNode.h,
+	  include/qore/intern/SelfVarrefNode.h,
+	  include/qore/intern/Sequence.h,
+	  include/qore/intern/SingleValueIterator.h,
+	  include/qore/intern/SmartMutex.h,
+	  include/qore/intern/StatementBlock.h,
+	  include/qore/intern/StaticClassVarRefNode.h,
+	  include/qore/intern/SummarizeStatement.h,
+	  include/qore/intern/SwitchStatement.h,
+	  include/qore/intern/ThreadExitStatement.h,
+	  include/qore/intern/ThreadPool.h,
+	  include/qore/intern/ThreadResourceList.h,
+	  include/qore/intern/ThrowStatement.h,
+	  include/qore/intern/TryStatement.h, include/qore/intern/VLock.h,
+	  include/qore/intern/VRMutex.h, include/qore/intern/VarRefNode.h,
+	  include/qore/intern/Variable.h,
+	  include/qore/intern/WhileStatement.h,
+	  include/qore/intern/config.h, include/qore/intern/glob.h,
+	  include/qore/intern/inline_printf.h,
+	  include/qore/intern/ql_compression.h,
+	  include/qore/intern/ql_crypto.h, include/qore/intern/ql_debug.h,
+	  include/qore/intern/ql_env.h, include/qore/intern/ql_file.h,
+	  include/qore/intern/ql_lib.h, include/qore/intern/ql_list.h,
+	  include/qore/intern/ql_math.h, include/qore/intern/ql_misc.h,
+	  include/qore/intern/ql_object.h, include/qore/intern/ql_pwd.h,
+	  include/qore/intern/ql_string.h, include/qore/intern/ql_thread.h,
+	  include/qore/intern/ql_time.h, include/qore/intern/ql_type.h,
+	  include/qore/intern/qore_date_private.h,
+	  include/qore/intern/qore_dbi_private.h,
+	  include/qore/intern/qore_ds_private.h,
+	  include/qore/intern/qore_list_private.h,
+	  include/qore/intern/qore_number_private.h,
+	  include/qore/intern/qore_program_private.h,
+	  include/qore/intern/qore_socket_private.h,
+	  include/qore/intern/qore_string_private.h,
+	  include/qore/intern/qore_thread_intern.h,
+	  include/qore/intern/sql_statement_private.h,
+	  include/qore/intern/ssl_constants.h,
+	  include/qore/intern/win32-config.h, include/qore/macros-i386.h,
+	  include/qore/macros-ia64.h, include/qore/macros-none.h,
+	  include/qore/macros-powerpc.h, include/qore/macros-x86_64.h,
+	  include/qore/node_types.h, include/qore/params.h,
+	  include/qore/qlist, include/qore/qore_bitopts.h,
+	  include/qore/qore_thread.h, include/qore/safe_dslist,
+	  include/qore/support.h, lib/AbstractQoreNode.cpp,
+	  lib/AbstractSmartLock.cpp, lib/AbstractStatement.cpp,
+	  lib/BackquoteNode.cpp, lib/BarewordNode.cpp, lib/BinaryNode.cpp,
+	  lib/BuiltinFunctionList.cpp, lib/CallReferenceNode.cpp,
+	  lib/CallStack.cpp, lib/ClassRefNode.cpp,
+	  lib/ComplexContextrefNode.cpp, lib/ConstantList.cpp,
+	  lib/Context.cpp, lib/ContextRowNode.cpp,
+	  lib/ContextStatement.cpp, lib/ContextrefNode.cpp, lib/DBI.cpp,
+	  lib/Datasource.cpp, lib/DatasourcePool.cpp, lib/DateTime.cpp,
+	  lib/DateTimeNode.cpp, lib/DoWhileStatement.cpp,
+	  lib/ExceptionSink.cpp, lib/ExecArgList.cpp,
+	  lib/ExpressionStatement.cpp, lib/FindNode.cpp,
+	  lib/ForEachStatement.cpp, lib/ForStatement.cpp, lib/Function.cpp,
+	  lib/FunctionCallNode.cpp, lib/FunctionList.cpp,
+	  lib/GlobalVariableList.cpp, lib/IfStatement.cpp,
+	  lib/ManagedDatasource.cpp, lib/ModuleManager.cpp,
+	  lib/NamedScope.cpp, lib/OnBlockExitStatement.cpp,
+	  lib/Operator.cpp, lib/ParseOptionMap.cpp, lib/Pseudo_QC_All.qpp,
+	  lib/Pseudo_QC_Binary.qpp, lib/Pseudo_QC_Bool.qpp,
+	  lib/Pseudo_QC_Callref.qpp, lib/Pseudo_QC_Closure.qpp,
+	  lib/Pseudo_QC_Date.qpp, lib/Pseudo_QC_Float.qpp,
+	  lib/Pseudo_QC_Hash.qpp, lib/Pseudo_QC_Int.qpp,
+	  lib/Pseudo_QC_List.qpp, lib/Pseudo_QC_Nothing.qpp,
+	  lib/Pseudo_QC_Number.qpp, lib/Pseudo_QC_Object.qpp,
+	  lib/Pseudo_QC_String.qpp,
+	  lib/QC_AbstractBidirectionalIterator.qpp,
+	  lib/QC_AbstractDatasource.qpp, lib/QC_AbstractIterator.qpp,
+	  lib/QC_AbstractQuantifiedBidirectionalIterator.qpp,
+	  lib/QC_AbstractQuantifiedIterator.qpp,
+	  lib/QC_AbstractSmartLock.qpp, lib/QC_AutoGate.qpp,
+	  lib/QC_AutoLock.qpp, lib/QC_AutoReadLock.qpp,
+	  lib/QC_AutoWriteLock.qpp, lib/QC_Condition.qpp,
+	  lib/QC_Counter.qpp, lib/QC_Datasource.qpp,
+	  lib/QC_DatasourcePool.qpp, lib/QC_Dir.qpp, lib/QC_File.qpp,
+	  lib/QC_FileLineIterator.qpp, lib/QC_FtpClient.qpp,
+	  lib/QC_Gate.qpp, lib/QC_GetOpt.qpp, lib/QC_HTTPClient.qpp,
+	  lib/QC_HashIterator.qpp, lib/QC_HashKeyIterator.qpp,
+	  lib/QC_HashKeyReverseIterator.qpp, lib/QC_HashListIterator.qpp,
+	  lib/QC_HashListReverseIterator.qpp, lib/QC_HashPairIterator.qpp,
+	  lib/QC_HashPairReverseIterator.qpp,
+	  lib/QC_HashReverseIterator.qpp, lib/QC_ListHashIterator.qpp,
+	  lib/QC_ListHashReverseIterator.qpp, lib/QC_ListIterator.qpp,
+	  lib/QC_ListReverseIterator.qpp, lib/QC_Mutex.qpp,
+	  lib/QC_ObjectIterator.qpp, lib/QC_ObjectKeyIterator.qpp,
+	  lib/QC_ObjectKeyReverseIterator.qpp,
+	  lib/QC_ObjectPairIterator.qpp,
+	  lib/QC_ObjectPairReverseIterator.qpp,
+	  lib/QC_ObjectReverseIterator.qpp, lib/QC_Program.qpp,
+	  lib/QC_Queue.qpp, lib/QC_RWLock.qpp, lib/QC_RangeIterator.qpp,
+	  lib/QC_ReadOnlyFile.qpp, lib/QC_SQLStatement.qpp,
+	  lib/QC_SSLCertificate.qpp, lib/QC_SSLPrivateKey.qpp,
+	  lib/QC_Sequence.qpp, lib/QC_SingleValueIterator.qpp,
+	  lib/QC_Socket.qpp, lib/QC_TermIOS.qpp, lib/QC_ThreadPool.qpp,
+	  lib/QC_TimeZone.qpp, lib/QException.cpp,
+	  lib/QoreAndEqualsOperatorNode.cpp,
+	  lib/QoreAssignmentOperatorNode.cpp, lib/QoreBigIntNode.cpp,
+	  lib/QoreBoolNode.cpp, lib/QoreCastOperatorNode.cpp,
+	  lib/QoreClass.cpp, lib/QoreClassList.cpp,
+	  lib/QoreClosureNode.cpp, lib/QoreClosureParseNode.cpp,
+	  lib/QoreCondition.cpp, lib/QoreCounter.cpp,
+	  lib/QoreDeleteOperatorNode.cpp, lib/QoreDir.cpp,
+	  lib/QoreDivideEqualsOperatorNode.cpp,
+	  lib/QoreDotEvalOperatorNode.cpp, lib/QoreException.cpp,
+	  lib/QoreExtractOperatorNode.cpp, lib/QoreFile.cpp,
+	  lib/QoreFloatNode.cpp, lib/QoreFtpClient.cpp, lib/QoreGetOpt.cpp,
+	  lib/QoreHTTPClient.cpp, lib/QoreHashNode.cpp,
+	  lib/QoreHttpClientObject.cpp, lib/QoreImplicitArgumentNode.cpp,
+	  lib/QoreImplicitElementNode.cpp,
+	  lib/QoreIntAssignmentOperatorNode.cpp,
+	  lib/QoreIntMinusEqualsOperatorNode.cpp,
+	  lib/QoreIntPlusEqualsOperatorNode.cpp,
+	  lib/QoreIntPostDecrementOperatorNode.cpp,
+	  lib/QoreIntPostIncrementOperatorNode.cpp,
+	  lib/QoreIntPreDecrementOperatorNode.cpp,
+	  lib/QoreIntPreIncrementOperatorNode.cpp, lib/QoreLib.cpp,
+	  lib/QoreListNode.cpp, lib/QoreLogicalEqualsOperatorNode.cpp,
+	  lib/QoreLogicalGreaterThanOperatorNode.cpp,
+	  lib/QoreLogicalLessThanOperatorNode.cpp,
+	  lib/QoreMinusEqualsOperatorNode.cpp,
+	  lib/QoreModulaEqualsOperatorNode.cpp,
+	  lib/QoreMultiplyEqualsOperatorNode.cpp, lib/QoreNamespace.cpp,
+	  lib/QoreNet.cpp, lib/QoreNothingNode.cpp, lib/QoreNullNode.cpp,
+	  lib/QoreNumberNode.cpp, lib/QoreObject.cpp,
+	  lib/QoreOrEqualsOperatorNode.cpp,
+	  lib/QorePlusEqualsOperatorNode.cpp,
+	  lib/QorePostDecrementOperatorNode.cpp,
+	  lib/QorePostIncrementOperatorNode.cpp,
+	  lib/QorePreDecrementOperatorNode.cpp,
+	  lib/QorePreIncrementOperatorNode.cpp, lib/QoreProgram.cpp,
+	  lib/QorePseudoMethods.cpp, lib/QoreQueue.cpp,
+	  lib/QoreQueueHelper.cpp, lib/QoreReferenceCounter.cpp,
+	  lib/QoreRegexBase.cpp, lib/QoreRegexNode.cpp,
+	  lib/QoreRemoveOperatorNode.cpp, lib/QoreSQLStatement.cpp,
+	  lib/QoreSSLBase.cpp, lib/QoreSSLCertificate.cpp,
+	  lib/QoreSSLPrivateKey.cpp,
+	  lib/QoreShiftLeftEqualsOperatorNode.cpp,
+	  lib/QoreShiftRightEqualsOperatorNode.cpp, lib/QoreSignal.cpp,
+	  lib/QoreSocket.cpp, lib/QoreSocketObject.cpp,
+	  lib/QoreSpliceOperatorNode.cpp, lib/QoreString.cpp,
+	  lib/QoreStringNode.cpp, lib/QoreTimeZoneManager.cpp,
+	  lib/QoreTreeNode.cpp, lib/QoreType.cpp, lib/QoreTypeInfo.cpp,
+	  lib/QoreURL.cpp, lib/QoreUnaryMinusOperatorNode.cpp,
+	  lib/QoreXorEqualsOperatorNode.cpp, lib/RWLock.cpp,
+	  lib/ReferenceArgumentHelper.cpp, lib/ReferenceHelper.cpp,
+	  lib/ReferenceNode.cpp, lib/RegexSubstNode.cpp,
+	  lib/RegexTransNode.cpp, lib/ReturnStatement.cpp,
+	  lib/SQLStatement.cpp, lib/ScopedRefNode.cpp,
+	  lib/SelfVarrefNode.cpp, lib/Sequence.cpp, lib/SmartMutex.cpp,
+	  lib/StatementBlock.cpp, lib/StaticClassVarRefNode.cpp,
+	  lib/SummarizeStatement.cpp, lib/SwitchStatement.cpp,
+	  lib/SystemEnvironment.cpp, lib/ThreadResourceList.cpp,
+	  lib/ThrowStatement.cpp, lib/TryStatement.cpp, lib/VLock.cpp,
+	  lib/VRMutex.cpp, lib/VarRefNode.cpp, lib/Variable.cpp,
+	  lib/WhileStatement.cpp, lib/charset.cpp, lib/glob.cpp,
+	  lib/inline_printf.cpp, lib/minitest.cpp, lib/parser.ypp,
+	  lib/qc_errno.qpp, lib/qc_option.qpp, lib/qc_qore.qpp,
+	  lib/ql_compression.qpp, lib/ql_context.qpp, lib/ql_crypto.qpp,
+	  lib/ql_dbi.qpp, lib/ql_debug.cpp, lib/ql_env.qpp,
+	  lib/ql_file.qpp, lib/ql_lib.qpp, lib/ql_list.qpp,
+	  lib/ql_math.qpp, lib/ql_misc.qpp, lib/ql_object.qpp,
+	  lib/ql_pwd.qpp, lib/ql_string.qpp, lib/ql_thread.qpp,
+	  lib/ql_time.qpp, lib/ql_type.qpp, lib/qore-main.cpp,
+	  lib/qore_date_private.cpp, lib/qpp.cpp, lib/scanner.lpp,
+	  lib/support.cpp, lib/thread.cpp, lib/unicode-charmaps.cpp,
+	  main.cpp: per Fedora submission/review:
+	  - updated all LGPL license statements in source files to reflect
+	  the most permissive license, MIT and refer to the possibility of
+	  using the LGPL 2+ or GPL 2+
+	  - updated copyright statements
+
+2014-06-23 08:26  david_nichols
+
+	* qore.spec-fedora, qore.spec-multi: further spec updates from
+	  fedora submission review process
+
+2014-06-22 14:13  david_nichols
+
+	* qore.1, qore.spec-fedora, qore.spec-multi: more spec file and
+	  other updates for fedora package acceptance
+
+2014-06-22 13:36  david_nichols
+
+	* lib/getopt_long.cpp, lib/getopt_long.h, lib/qpp.cpp: replaced
+	  getopt_long with BSD version
+
+2014-06-21 15:58  nros
+
+	* include/qore/intern/qore_program_private.h: Fix memory in
+	  makeParseException that occurs when only_first_except is set
+	  and exceptions has been raised before (exceptions_raised > 0).
+
+2014-06-21 13:08  david_nichols
+
+	* configure.ac, doxygen/lang/900_release_notes.dox.tmpl,
+	  lib/ql_lib.qpp, qore.spec, qore.spec-multi: make spec file for
+	  dist dependent on host OS - on fedora & rhel use the fedora spec
+	  file, otherwise use the generic one
+	  added docs for new functions (getgroups(), setgroups())
+
+2014-06-21 07:35  david_nichols
+
+	* configure.ac, qore.spec, qore.spec-fedora: updated spec file with
+	  feedback from fedora submission
+	  added new spec file specifically for fedora, the old generic spec
+	  file now generates equal binaries for fedora and rhel
+	  added checks to configure for more 64-bit architectures, removed
+	  configuration in spec file
+
+2014-06-20 17:56  david_nichols
+
+	* configure.ac, doxygen/lang/245_parse_directives.dox.tmpl,
+	  lib/getopt_long.h, lib/ql_lib.qpp, qore.spec: last-minute rpm
+	  fixes:
+	  - added getgroups() and setgroups() functions to ql_lib.qpp
+	  - disable execute bit on examples in the doc package for all
+	  platforms
+	  - corrected FSF address in getopt_long.h
+
+2014-06-20 14:16  subik
+
+	* qore.spec: spec file for opensuse
+
+2014-06-20 13:37  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl: fixed typo
+
+2014-06-20 13:20  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl: minor relnotes updates
+
+2014-06-20 13:17  david_nichols
+
+	* doxygen/lang/900_release_notes.dox.tmpl: updated relnotes for
+	  0.8.11 release
+
+2014-06-20 13:14  david_nichols
+
+	* qlib/CsvUtil.qm, qlib/HttpServer.qm, qlib/MailMessage.qm,
+	  qlib/Mapper.qm, qlib/Mime.qm, qlib/MysqlSqlUtil.qm,
+	  qlib/OracleSqlUtil.qm, qlib/PgsqlSqlUtil.qm, qlib/Pop3Client.qm,
+	  qlib/Qorize.qm, qlib/RestClient.qm, qlib/RestHandler.qm,
+	  qlib/Schema.qm, qlib/SmtpClient.qm, qlib/SqlUtil.qm,
+	  qlib/TableMapper.qm, qlib/TelnetClient.qm, qlib/Util.qm,
+	  qlib/WebSocketClient.qm, qlib/WebSocketHandler.qm,
+	  qlib/WebSocketUtil.qm, qlib/WebUtil.qm: updated to require 0.8.11
+	  for new release
+
+2014-06-20 13:11  david_nichols
+
+	* ChangeLog, doxygen/lang/900_release_notes.dox.tmpl, qore.spec:
+	  updated ChangeLog and relnotes for minor 0.8.11 release
+
 2014-06-16 12:11  david_nichols
 
 	* qore.spec: minor spec file fixes
