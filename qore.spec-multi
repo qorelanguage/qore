@@ -152,7 +152,7 @@ This package provides the Qore language standard library user modules.
 %files stdlib
 %defattr(-,root,root,-)
 %{user_module_dir}
-%doc COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
+%doc COPYING.MIT README-LICENSE
 
 %package doc
 Summary: API documentation, programming language reference, and Qore example programs

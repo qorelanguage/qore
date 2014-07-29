@@ -4,7 +4,7 @@
 Summary: Multithreaded Programming Language
 Name: qore
 Version: 0.8.11.1
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: LGPLv2+ or GPLv2+ or MIT
 Group: Development/Languages
 URL: http://qore.org
@@ -82,7 +82,7 @@ This package provides the Qore language standard library user modules.
 
 %files stdlib
 %{user_module_dir}
-%doc COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
+%doc COPYING.MIT README-LICENSE
 
 %package doc
 Summary: API documentation, programming language reference, and Qore example programs
@@ -160,6 +160,9 @@ make check
 %{_mandir}/man1/qore.1.*
 
 %changelog
+* Tue Jul 29 2014 David Nichols <david@qore.org> 0.8.11.1-7
+- removed irrelevant license files from stdlib package, only the MIT license applies there
+
 * Fri Jul 11 2014 David Nichols <david@qore.org> 0.8.11.1-6
 - fixed doc and devel-doc file specs to fix packaging bugs for documentation
 
