@@ -7,7 +7,7 @@
     @par Release Summary
     Minor release to meet packaging standards of Fedora and OpenSUSE.
 
-    @subsection qore_0811_new_features New Features in Qore
+    @subsection qore_08111_new_features New Features in Qore
     - new functions:
       - @ref Qore::getgroups()
       - @ref Qore::setgroups()
@@ -15,6 +15,10 @@
       - user modules are now stored in $prefix/share/qore-modules/$version
       - $prefix/share/qore-modules is also added to the module path
       - version-specific module directories are added first, then the "generic" directories
+
+    @subsection qore_08111_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module fixes:
+      - fixed a bug setting the response encoding in HttpServer::setReplyHeaders() where the Socket encoding was not set properly and therefore the encoding in the Content-Type in the response header did not necessarily match the encoding of the response
 
     @section qore_0811 Qore 0.8.11
 
