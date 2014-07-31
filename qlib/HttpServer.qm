@@ -28,7 +28,7 @@
 %requires Util >= 1.0
 
 module HttpServer {
-    version = "0.3.10";
+    version = "0.3.11";
     desc = "HttpServer class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -119,6 +119,9 @@ log("started listener on %s", $lh.desc);
     @endcode
 
     @section http_relnotes HttpServer Module Release Notes
+
+    @subsection http039 HttpServer 0.3.11
+    - fixed a bug setting the response encoding in HttpServer::setReplyHeaders() where the Socket encoding was not set properly and therefore the encoding in the Content-Type in the response header did not necessarily match the encoding of the response
 
     @subsection http039 HttpServer 0.3.10
     - if an error occurs receiving a message with chunked transfer encoding, send the response immediately before reading the rest of the chunked transfer
@@ -1330,7 +1333,7 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
 public class HttpServer::HttpServer {
     public {
         #! version of the HttpServer's implementation
-        const Version = "0.3.10";
+        const Version = "0.3.11";
         #! default read timeout in ms
         const ReadTimeout = 30000;  # recvs timeout after 30 seconds
         #! default poll timeout in ms
@@ -2093,18 +2096,22 @@ public class HttpServer::HttpServer {
             $rv.hdr.Server = HttpServerString;
 
         my string $old_encoding = $s.getEncoding();
-        on_exit if ($s.getEncoding() != $old_encoding)
-            $s.setEncoding($old_encoding);
+
+        on_exit if ($s.getEncoding() != $cx."response-encoding")
+            $s.setEncoding($cx."response-encoding");
+
         if (!$cx."response-encoding")
             $cx."response-encoding" = $old_encoding.lwr();
-        else if ($cx."response-encoding" != $old_encoding.lwr())
+        else if ($cx."response-encoding".lwr() != $old_encoding.lwr())
             $s.setEncoding($cx."response-encoding");
 
         if ($rv.body || $rv.hdr."Transfer-Encoding" == "chunked") {
-            if (!$rv.hdr."Content-Type")
+            if (!$rv.hdr."Content-Type") {
                 $rv.hdr."Content-Type" = MimeTypeHtml + ";charset=" + $cx."response-encoding";
-            else if ($rv.hdr."Content-Type" !~ /charset=/ && ($rv.body.typeCode() == NT_STRING))
+            }
+            else if ($rv.hdr."Content-Type" !~ /charset=/ && ($rv.body.typeCode() == NT_STRING)) {
                 $rv.hdr."Content-Type" += ";charset=" + $cx."response-encoding";
+            }
         }
     }
 
