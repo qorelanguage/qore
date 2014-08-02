@@ -267,27 +267,32 @@ AC_ARG_ENABLE([64bit],
 
 if test "$enable_64bit" = "auto"; then
    # turn on 64-bit by default if compiling on itanium or x86_64
-   if test "$host_cpu" = "ia64" -o "$host_cpu" = "x86_64" -o "$host_cpu" = "amd64" -o "$host_cpu" = "powerpc64" -o "$host_cpu" = "x390x" -o "$host_cpu" = "aarch64"; then
-      enable_64bit=yes
-   else
-      case "${host_os}" in
-          darwin*)   mv=`uname -r|cut -f1 -d.`
-     	   	     if test $mv -ge 10 -a "${host_cpu}" = "i386"; then
-		         enable_64bit=yes
-		     fi
+   case "${host_cpu}" in
+       *64*)
+                 enable_64bit=yes 
+                 ;;
+       s390x)
+                 enable_64bit=yes 
+                 ;;
+       *)        case "${host_os}" in
+                     darwin*)   mv=`uname -r|cut -f1 -d.`
+ 		                if test $mv -ge 10 -a "${host_cpu}" = "i386"; then
+		         	    enable_64bit=yes
+		      		fi
 		     ;;
-	  solaris*)  if test "${host_cpu}" = "i386"; then
-			 # if we are running on a 64-bit machine, then enable a 64-bit build
-			 if test -n "`isainfo -v 2>/dev/null| grep 64-bit`"; then
-			     enable_64bit=yes
-			 fi
-		     fi
+		     solaris*)  if test "${host_cpu}" = "i386"; then
+		     	            # if we are running on a 64-bit machine, then enable a 64-bit build
+				    if test -n "`isainfo -v 2>/dev/null| grep 64-bit`"; then
+		         	        enable_64bit=yes
+		     		    fi
+		     	        fi
 		     ;;
-      esac
-      if test "$enable_64bit" = "auto"; then
-	  enable_64bit=no
-      fi
-   fi
+       		 esac
+		 if test "$enable_64bit" = "auto"; then
+		     enable_64bit=no
+		 fi
+                 ;;
+    esac
 fi
 
 # see if we know how to set flags properly for different hosts and architectures

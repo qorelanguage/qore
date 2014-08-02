@@ -13623,7 +13623,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
             if (qh.orderby) {
                 if (qh.offset || qh.limit) {
                     if (!matchAnyUnique(qh.orderby))
-                        throw "SELECT-ERROR", sprintf("%s: 'orderby': %y with 'offset' = %d does not match any unique constraint", getName(), qh.orderby, qh.offset);
+                        throw "SELECT-ERROR", sprintf("%s: 'orderby': %y with 'offset' = %d, 'limit' = %d does not match any unique constraint", getName(), qh.orderby, qh.offset, qh.limit);
 
                     doSelectOrderByWithOffsetSqlUnlockedImpl(\sql, \args, qh, jch, ch);
                 }
