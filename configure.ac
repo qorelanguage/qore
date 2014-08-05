@@ -266,7 +266,7 @@ AC_ARG_ENABLE([64bit],
   [enable_64bit=auto])
 
 if test "$enable_64bit" = "auto"; then
-   # turn on 64-bit by default if compiling on itanium or x86_64
+   # turn on 64-bit by default if compiling on a 64-bit platform
    case "${host_cpu}" in
        *64*)
                  enable_64bit=yes 
