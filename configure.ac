@@ -347,7 +347,7 @@ if test "$enable_64bit" = "yes"; then
 		   xCXXFLAGS="$CXXFLAGS -m64" # TODO/FIXME: temp fix for universal builds. Needs to be solved correctly
 		fi
 		# set ARCH to x86_64 to be consistent with other intel 64-bit builds
-		if test "$host_cpu" = "i386"; then
+		if test "$host_cpu" = i386 -o "$host_cpu" = x86_64; then
 		   ARCH=x86_64
 		fi
 		;;
