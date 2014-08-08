@@ -339,7 +339,7 @@ hash hash(list l) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code
-my hash $h = list($keys, $values);
+my hash $h = hash($keys, $values);
     @endcode
 */
 hash hash(list keys, list values) [flags=RET_VALUE_ONLY] {
