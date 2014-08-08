@@ -392,6 +392,7 @@ public namespace Schema {
                 if (insert_only_data)
                     map AbstractSchema::doTable(table_cache{$1.key}, $1.value, AbstractTable::UpsertInsertOnly, False, verbose, \sh), insert_only_data.pairIterator();
 
+                # do "create only" data
                 if (co_data && first_time_install)
                     map AbstractSchema::doTable(table_cache{$1.key}, $1.value, upsert_strategy, False, verbose, \sh), co_data.pairIterator();
 
