@@ -41,7 +41,7 @@
 %enable-all-warnings
 
 module Schema {
-    version = "1.0";
+    version = "1.1";
     desc = "user module for working with SQL schemas";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -65,6 +65,14 @@ module Schema {
     Classes provided by this module:
     - @ref Schema::AbstractSchema "AbstractSchema": base class for schema representation and management
     - @ref Schema::AbstractVersionedSchema "AbstractVersionedSchema": base class for versioned schema representation and management where the schema contains its current version
+
+    @section schema_relnotes Schema Module Release History
+
+    @subsection schema_v1.1 Schema Module v1.1
+    - fixed @ref Schema::AbstractSchema::combineOptions() "AbstractSchema::combineOptions()" to accept NOTHING as well as a valid option hash
+
+    @subsection schema_v1.0 Schema Module v1.0
+    - initial release
 */
 
 #! this namespace contains all public definitions in the %Schema module
@@ -790,7 +798,7 @@ public namespace Schema {
 
         #! combines option hashes into a single target option hash
 	static hash combineOptions(*hash h) {
-	    foreach hash h1 in (argv) {
+	    foreach *hash h1 in (argv) {
 		map h{$1} = AbstractSchema::combineOptions(h{$1}, remove h1{$1}), h.keyIterator(), h1.hasKey($1);
 		h += h1;
 	    }
