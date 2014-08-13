@@ -426,7 +426,7 @@ public namespace CsvUtil {
                                     }
                                     if (!$h.type)
                                         $h.type = "string";
-                                    if ($h.type != "date") {
+                                    if ($h.type != "date" && $h.type != "*date") {
                                         foreach my string $f in ("timezone", "format") {
                                             if ($h.$f)
                                                 throw "CSVFILEITERATOR-ERROR", sprintf("while processing the hash value for option key \"fields\": field %y is type %y, but the %y attribute was also given, which is only valid for \"date\" fields", $hi.key, $h.type, $f);
@@ -939,7 +939,7 @@ while ($i.next()) {
                                     }
                                     if (!$h.type)
                                         $h.type = "string";
-                                    if ($h.type != "date") {
+                                    if ($h.type != "date" && $h.type != "*date") {
                                         foreach my string $f in ("timezone", "format") {
                                             if ($h.$f)
                                                 throw $.errname, sprintf("while processing the hash value for option key \"fields\": field %y is type %y, but the %y attribute was also given, which is only valid for \"date\" fields", $hi.key, $h.type, $f);
@@ -1099,7 +1099,7 @@ while ($i.next()) {
 
         #! format date to string by options. Priority: 1) column definition 2) standard format
         private string dateFormat(int $ix) {
-            if (exists $.fdesc[$ix] && $.fdesc[$ix].type == "date" && exists $.fdesc[$ix].format)
+            if (exists $.fdesc[$ix] && ($.fdesc[$ix].type == "date" || $.fdesc[$ix].type == "*date") && exists $.fdesc[$ix].format)
                 return $.fdesc[$ix].format;
 
             return $.dateFormat;
