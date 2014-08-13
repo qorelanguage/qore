@@ -789,7 +789,7 @@ public namespace Schema {
 
         #! combines option hashes into a single target option hash
 	static hash combineOptions(*hash h) {
-	    foreach hash h1 in (argv) {
+	    foreach *hash h1 in (argv) {
 		map h{$1} = AbstractSchema::combineOptions(h{$1}, remove h1{$1}), h.keyIterator(), h1.hasKey($1);
 		h += h1;
 	    }

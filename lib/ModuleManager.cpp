@@ -113,7 +113,7 @@ void QoreModuleDefContext::set(const char* key, const AbstractQoreNode* val) {
    else if (vmap.find(key) != vmap.end())
       parse_error("module key '%s' was given multiple times", key);
    else if (t != NT_STRING)
-      parse_error("module key '%s' assigned type '%s' (expecting 'string')", get_type_name(val));
+      parse_error("module key '%s' assigned type '%s' (expecting 'string')", key, get_type_name(val));
    else
       vmap[key] = reinterpret_cast<const QoreStringNode*>(val)->getBuffer();
 }
