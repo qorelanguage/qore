@@ -23,6 +23,7 @@
       - fixed a bug setting the response encoding in HttpServer::setReplyHeaders() where the Socket encoding was not set properly and therefore the encoding in the Content-Type in the response header did not necessarily match the encoding of the response
     - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module fixes:
       - fixed a bug where the \c "format" field option was not usable with fields assigned type \c "*date"
+      - fixed the default field type as "*string" (from "string") to avoid parsing and outputting empty strings for missing input data
     - <a href="../../modules/Schema/html/index.html">Schema</a> module fixes:
       - AbstractSchema::combineOptions() fails when an option variable contains @ref nothing instead of a valid hash
     - fixed a memory error in error-handling with type errors when parsing user module headers that could cause a crash
