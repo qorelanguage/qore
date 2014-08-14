@@ -26,7 +26,7 @@
 %requires qore >= 0.8.11
 
 module CsvUtil {
-    version = "1.3";
+    version = "1.4";
     desc = "user module for working with CSV files";
     author = "Petr Vanek <petr@yarpen.cz>, David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -116,6 +116,11 @@ while (i.next())
 
     @section csvutil_relnotes Release Notes
 
+    @subsection csvutil_v1_4 Version 1.4
+    - fixed the \c "format" field option when used with \c "*date" field types
+    - implemented the \c "tolwr" parser option
+    - changed the default field type when parsing and generating CSV files from \c "string" to \c "*string"
+
     @subsection csvutil_v1_3 Version 1.3
     - added the \c "write-headers" option to @ref CsvUtil::AbstractCsvWriter and subclasses to enable headers to be suppressed
     - added the \c "optimal-quotes" option to @ref CsvUtil::AbstractCsvWriter and subclasses to enable more efficient csv output (now the default output option); to revert back to the previous behavior (where all fields are quoted regardless of data type or content), set to @ref Qore::False "False" in the constructor
@@ -169,25 +174,30 @@ class CsvHelper {
         #! supported field description attribute codes
         const FieldAttrs = ("type", "format", "timezone", "code");
     }
-    
-    #! sets field description list
+
+    # sets field description list
     private setFields() {            
-        $.fdesc = ();
+        if (!$.fdesc) {
+            if ($.headers && $.tolwr)
+                $.headers = (map $1.lwr(), $.headers);
 
-        # make a copy of the field description hash
-        my hash $f = $.fields;
-        foreach my string $h in ($.headers) {
-            if ($f.$h) {
-                # add to field description list (and remove from the field description hash)
-                $.fdesc += remove $f.$h;
-                continue;
+            $.fdesc = ();
+
+            # make a copy of the field description hash
+            my hash $f = $.fields;
+            foreach my string $h in ($.headers) {
+                if ($f.$h) {
+                    # add to field description list (and remove from the field description hash)
+                    $.fdesc += remove $f.$h;
+                    continue;
+                }
+                # add an entry with type "*string" to the list
+                $.fdesc += ("type": "*string");
             }
-            # add a blank entry in the list
-            $.fdesc += NOTHING;
-        }
 
-        if ($f)
-            throw "CSVFILEWRITER-FIELD-ERROR", sprintf("a field description was given for the following non-existent fields: %y (known header / field names: %y)", $f.keys(), $.headers);
+            if ($f)
+                throw "CSVFILEWRITER-FIELD-ERROR", sprintf("field descriptions were given for the following non-existent fields: %y (known header / field names: %y)", $f.keys(), $.headers);
+        }
     }
     
     checkType(string $key, string $value) {
@@ -226,8 +236,9 @@ public namespace CsvUtil {
         |\c "header-lines"|@ref integer|the number of headers lines in the file (must be &gt; 0 if \c "header-names" is @ref Qore::True "True")
         |\c "headers"|@ref list of strings|list of header / column names for the data iterated; if this is present, then \c "header-names" must be @ref Qore::False "False"
         |\c "verify-columns"|@ref boolean|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different column count than other lines, a \c CSVFILEITERATOR-DATA-ERROR exception is thrown
-        |\c "fields"|@ref hash|the keys are column names (or numbers in case column names are not used) and the values are either strings (one of @ref csvabstractiterator_option_field_types giving the data type for the field) or a @ref csvabstractiterator_option_field_hash describing the field; also sets \a headers; if this is present, then \c "header-names" must be @ref Qore::False "False"
+        |\c "fields"|@ref hash|the keys are column names (or numbers in case column names are not used) and the values are either strings (one of @ref csvabstractiterator_option_field_types giving the data type for the field) or a @ref csvabstractiterator_option_field_hash describing the field; also sets \a headers if not set automatically with \c "header-names"; if no field type is given, the default is \c "*string"
         |\c "timezone"|@ref string|the timezone to use when parsing dates (will be passed to @ref Qore::TimeZone::constructor())
+        |\c "tolwr"|@ref boolean|if @ref Qore::True "True" then all header names will be converted to lower case letters
 
         @subsection csvabstractiterator_option_field_types Option Field Types
         
@@ -270,10 +281,9 @@ public namespace CsvUtil {
                 "verify-columns": True,
                 "fields": True,
                 "timezone": True,
+                "tolwr": True,
                 );
-        }
 
-        private {
             # field separator
             string $.separator = ",";
 
@@ -291,6 +301,9 @@ public namespace CsvUtil {
 
             # Flag to trim the field content (trim leading and trailing whitespace) from unquoted fields
             bool $.ignoreWhitespace = True;
+
+            # flag to convert all header names to lower case
+            bool $.tolwr = False;
 
             # headers / column names for lines iterated
             *softlist $.headers;
@@ -378,6 +391,10 @@ public namespace CsvUtil {
                         $.tz = new TimeZone($i.value);
                         break;
                     }
+                    case "tolwr": {
+                        $.tolwr = parse_boolean($i.value);
+                        break;
+                    }
                     case "fields": {
                         if ($i.value.typeCode() != NT_HASH)
                             throw "CSVABSTRACTITERATOR-ERROR", sprintf("expecting a hash value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
@@ -424,7 +441,7 @@ public namespace CsvUtil {
                                         }
                                     }
                                     if (!$h.type)
-                                        $h.type = "string";
+                                        $h.type = "*string";
                                     if ($h.type != "date" && $h.type != "*date") {
                                         foreach my string $f in ("timezone", "format") {
                                             if ($h.$f)
@@ -493,7 +510,7 @@ public namespace CsvUtil {
                         if ($.fields)
                             $.setFields();
                     }
-                    # skip the rest of the header rows xxx
+                    # skip the rest of the header rows
                     while ($.lineNumberImpl() < $.headerLines) {
                         if (!$.nextLineImpl())
                             return False;
@@ -740,7 +757,7 @@ while ($i.next()) {
         - @ref csvabstractiterator_option_field_types
         - @ref csvabstractiterator_option_field_hash
      */
-    public class CsvFileIterator inherits CsvUtil::CsvAbstractIterator, Qore::FileLineIterator, private CsvHelper {
+    public class CsvFileIterator inherits CsvUtil::CsvAbstractIterator, Qore::FileLineIterator {
         #! creates the CsvFileIterator with the path of the file to read and optionally an option hash
         /** @param path the path to the CSV file to read
             @param opts a hash of optional options; see @ref csvabstractiterator_options for more information
@@ -777,7 +794,7 @@ while ($i.next()) {
         - @ref csvabstractiterator_option_field_types
         - @ref csvabstractiterator_option_field_hash
      */
-    public class CsvDataIterator inherits CsvUtil::CsvAbstractIterator, private CsvHelper {
+    public class CsvDataIterator inherits CsvUtil::CsvAbstractIterator {
         private {
             #! input data
             string $.data;
@@ -864,6 +881,7 @@ while ($i.next()) {
     |\c "separator"|@ref string|the string separating the fields in the file (default: \c ",")
     |\c "quote"|@ref string|the field quote character (default: \c '\"')
     |\c "eol"|@ref string|the end of line character(s) (default: auto-detect); if the value of this key is not a string then it will be ignored
+    |\c "fields"|@ref hash|describes the data to be output; see @ref csvabstractiterator_option_field_hash "option field hash" and @ref csvabstractiterator_option_field_types "option field types" for more information on the possible values of this option; if no field type is given, the default is \c "*string"
     |\c "headers"|@ref list of strings|list of header / column names for the data iterated
     |\c "verify-columns"|@ref boolean|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different column count than other lines, a \c CSVFILEWRITER-DATA-ERROR exception is thrown
     |\c "date-format"|@ref string|the default mask for date values formatting
@@ -885,9 +903,7 @@ while ($i.next()) {
                 "write-headers": True,
                 "optimal-quotes": True,
                 );
-        }
 
-        private {
             # TODO/FIXME
             string $.encoding = get_default_encoding();
 
@@ -1043,7 +1059,7 @@ while ($i.next()) {
                                         }
                                     }
                                     if (!$h.type)
-                                        $h.type = "string";
+                                        $h.type = "*string";
                                     if ($h.type != "date" && $h.type != "*date") {
                                         foreach my string $f in ("timezone", "format") {
                                             if ($h.$f)
@@ -1063,9 +1079,8 @@ while ($i.next()) {
                     }
                 }
                 
-                if ($.headers && $.fields) {
+                if ($.headers && $.fields)
                     $.setFields();
-                }
             }
 
             # make eg. '"%s",' template
