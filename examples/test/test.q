@@ -2093,6 +2093,8 @@ const DataMap = (
     "implicit_count": int sub (any $ignored, hash $rec) { return $rec.Products.size(); },
     # converts the given field to a date in the specified format
     "order_date": ("name": "OrderDate", "date_format": "DD.MM.YYYY HH:mm:SS.us"),
+    # returns a constant value
+    "target_sys": ("constant": "Orders"),
 );
 
 const MapInput = ((
@@ -2125,12 +2127,14 @@ const MapOutput = ((
     "explicit_count": 1,
     "implicit_count": 1,
     "order_date": 2014-01-02T10:37:45.103948,
+    "target_sys": "Orders",
     ), (
     "id": 2,
     "name": "Steve Austin",
     "explicit_count": 2,
     "implicit_count": 2,
     "order_date": 2014-01-04T19:21:08.882634,
+    "target_sys": "Orders",
     ),
 );
 

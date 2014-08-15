@@ -32,7 +32,7 @@
 %enable-all-warnings
 
 module Mapper {
-    version = "1.0";
+    version = "1.1";
     desc = "user module providing basic data mapping infrastructure";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -40,8 +40,6 @@ module Mapper {
 }
 
 /*  Version History
-    * 2014-01-03 v1.0: David Nichols <david@qore.org>
-      + the initial version of the Mapper module
 */
 
 /** @mainpage Mapper Module
@@ -132,9 +130,10 @@ list: (2 elements)
       - @ref any_type "any" <i>$value</i>: the input field value (with the same name as the output field; to use a different name, see the \a code hash option below)
       - @ref @ref hash_type "hash" <i>$rec</i>: the current input record
     - a @ref hash_type "hash" describing the mapping; the following keys are all optional (an empty hash means map from an input field with the same name with no translations):
-      - \c "name": the value of this key gives the name of the input field; only use this if the input record name is different than the output field name; note that if this value contains \c "." characters and the \a allow_dot option is not set (see @ref mapperoptions), then the value will be treated like \c "struct"
-      - \c "struct": the value of this key gives the location of the input field in an input hash in dot notation, ex: \c "element.name" would ook for the field's value in the \c "name" key of the \c "element" hash in the input record
-      - \c "code": a closure or call reference to process the field data
+      - \c "name": the value of this key gives the name of the input field; only use this if the input record name is different than the output field name; note that if this value contains \c "." characters and the \a allow_dot option is not set (see @ref mapperoptions), then the value will be treated like \c "struct" (the \c "struct" key value will be created automatically); cannot be used with the \c "constant" key
+      - \c "struct": the value of this key gives the location of the input field in an input hash in dot notation, ex: \c "element.name" would look for the field's value in the \c "name" key of the \c "element" hash in the input record; cannot be used with the \c "constant" key
+      - \c "constant": the value of this key will be returned as a constant value; this key cannot be used with the \c "name", \c "struct", or \c "code" keys
+      - \c "code": a closure or call reference to process the field data; cannot be used with the \c "constant" key
       - \c "date_format": gives the format for converting a string to a date; see @ref date_formatting for the format of this string; note that this also implies \c "type" = \c "date"
       - \c "maxlen": an integer giving the maximum output string field length in bytes
       - \c "trunc": assign to boolean @ref Qore::True "True" if the field should be truncated if over the maximum field length; this key can only be set to @ref Qore::True "True" if the \c "maxlen" key is also given
@@ -157,17 +156,20 @@ list: (2 elements)
 
     @section mapperrelnotes Release Notes
 
-    @subsection mapperv1_0 Mapper v1.0
+    @subsection mapperv1_1 Mapper v1.1
+    - implemented "constant" field tag giving a constant value for the output of a field
 
-    Initial release.
+    @subsection mapperv1_0 Mapper v1.0
+    - Initial release
 */
 
 #! the Mapper namespace contains all the definitions in the Mapper module
 public namespace Mapper {
     #! this class is a base class for mapping data; see @ref mapperexamples for usage examples
     public class Mapper {
-        # no public members
         public {
+            #! field keys that conflict with "constant"
+            const ConstantConflictList = ("name", "struct", "code");
         }
 
         private {
@@ -201,7 +203,7 @@ public namespace Mapper {
             #! do not assume \a struct when field names have a \c "." in them; instead allow input field names to have a \c "." in them
             bool $.allow_dot = False;
 
-            #! constant hash value for output mappings
+            #! (deprecated) constant hash value for output mappings
             *hash $.crec;
 
             #! count of records mapped
@@ -225,6 +227,7 @@ public namespace Mapper {
             const ValidKeys = (
                 "name": True,
                 "struct": True,
+                "constant": True,
                 "code": True,
                 "maxlen": True,
                 "trunc": True, 
@@ -342,11 +345,18 @@ my Mapper $map(DataMap);
             my int $t = $fh.typeCode();
             if ($t != NT_HASH)
                 $.convertToHash($t, $k, \$fh);
-            else if ($fh.name) {
-                if ($fh.struct)
-                    $.error("field '%s' has both 'name' (%y) and 'struct' (%y) values; only one can be given to identify the input field", $.getFieldName($k), $fh.name, $fh.struct);
-                if (!$.allow_dot && $fh.name =~ /\./)
-                    $fh.struct = (remove $fh.name).split(".");
+            else {
+                if ($fh.name) {
+                    if ($fh.struct)
+                        $.error("field %y has both 'name' (%y) and 'struct' (%y) values; only one can be given to identify the input field", $.getFieldName($k), $fh.name, $fh.struct);
+                    if (!$.allow_dot && $fh.name =~ /\./)
+                        $fh.struct = (remove $fh.name).split(".");
+                }
+                if ($fh.constant) {
+                    my *list $cl = map $1, $fh.keys(){ConstantConflictList};
+                    if ($cl)
+                        $.error("field %y has a \"constant\" key giving a constant output value and also the following conflicting keys: %y", $.getFieldName($k), $cl);
+                }
             }
 
             switch ($fh.struct.typeCode()) {
@@ -354,27 +364,27 @@ my Mapper $map(DataMap);
                 case NT_STRING: $fh.struct = $fh.struct.split("."); # then fall down to next case
                 case NT_LIST: {
                     if (!$fh.struct)
-                        $.error("field '%s' has an empty 'struct' key", $.getFieldName($k));
+                        $.error("field %y has an empty 'struct' key", $.getFieldName($k));
                     if ($fh.struct.size() == 1)
                         $fh.name = (remove $fh.struct)[0];
                     break;
                 }
-                default: $.error("field '%s' has an invalid struct key assigned to type %y (%y)", $.getFieldName($k), $fh.struct.type(), $fh);
+                default: $.error("field %y has an invalid struct key assigned to type %y (%y)", $.getFieldName($k), $fh.struct.type(), $fh);
             }
 
             if ($fh.date_format) {
                 if ($fh.date_format.typeCode() != NT_STRING)
-                    $.error("field '%s' has a 'date_format' key assigned to type '%s'; expecting 'string'", $.getFieldName($k), $fh.date_format.type());
+                    $.error("field %y has a 'date_format' key assigned to type '%s'; expecting 'string'", $.getFieldName($k), $fh.date_format.type());
                 if (exists $fh.type) {
                     if ($fh.type != "date")
-                        $.error("field '%s' has a 'date_format' key but the field's type is '%s'", $.getFieldName($k), $fh.type);
+                        $.error("field %y has a 'date_format' key but the field's type is '%s'", $.getFieldName($k), $fh.type);
                 }
                 else
                     $fh.type = "date";
             }
             
             if ($fh.trunc && !$fh.maxlen)
-                $.error("field '%s' has the 'trunc' key set to True but has no 'maxlen' key", $.getFieldName($k));
+                $.error("field %y has the 'trunc' key set to True but has no 'maxlen' key", $.getFieldName($k));
             
             if ($fh.maxlen && !exists $fh.trunc && $.trunc_all)
                 $fh.trunc = True;
@@ -384,24 +394,24 @@ my Mapper $map(DataMap);
 
             foreach my string $hk in ($fh.keyIterator())
                 if (!$vk.$hk)
-                    $.error("field '%s' in map hash contains unknown key '%s' (valid keys: %y)", $.getFieldName($k), $hk, $vk.keys());
+                    $.error("field %y in map hash contains unknown key '%s' (valid keys: %y)", $.getFieldName($k), $hk, $vk.keys());
             
             # convert old "number" tag to new "type" tag
             if ($fh.number) {
                 if (exists $fh.type)
-                    $.error("field '%s' has both 'type' and deprecated 'number' tags", $.getFieldName($k));
+                    $.error("field %y has both 'type' and deprecated 'number' tags", $.getFieldName($k));
                 $fh.type = "number";
                 delete $fh.number;
             }
             else if (exists $fh.type && !$vt.($fh.type))
-                $.error("field '%s' contains an invalid type value '%s' (valid types: %y)", $.getFieldName($k), $fh.type, $vt.keys());
+                $.error("field %y contains an invalid type value '%s' (valid types: %y)", $.getFieldName($k), $fh.type, $vt.keys());
             
             if (exists $fh.code && !$fh.code.callp())
-                $.error("field '%s' has a code argument assigned to type '%s'", $.getFieldName($k), $fh.code.type());
+                $.error("field %y has a code argument assigned to type '%s'", $.getFieldName($k), $fh.code.type());
 
             if ($.hasMapping($fh)) {
                 if (exists $.crec.$k)
-                    $.error("field '%s' is has a mapping and also a constant value", $.getFieldName($k));
+                    $.error("field %y is has a mapping and also a constant value with the deprecated \"crec\" mapper option", $.getFieldName($k));
             }
         }
 
@@ -496,7 +506,9 @@ my Mapper $map(DataMap);
 
                 # get source record value
                 my any $v;
-                if ($m.struct) {
+                if ($m.constant)
+                    $v = $m.constant;
+                else if ($m.struct) {
                     # get the value
                     $v = $rec;
                     map $v = $v{$m.struct[$1]}, xrange(0, $m.struct.size() - 1);
