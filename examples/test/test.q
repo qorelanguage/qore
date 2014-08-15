@@ -2095,6 +2095,12 @@ const DataMap = (
     "order_date": ("name": "OrderDate", "date_format": "DD.MM.YYYY HH:mm:SS.us"),
     # returns a constant value
     "target_sys": ("constant": "Orders"),
+    # returns structured output
+    "sr0.sr1.key0": ("constant": "key0"),
+    "sr0.sr1.^attributes^.key0": ("constant": "key0"),
+    "sr0.sr1.^attributes^.key1": ("constant": "key1"),
+    "sr0.sr1.key1": ("constant": "key1"),
+    "sr0.store_name": "StoreInfo.StoreName",
 );
 
 const MapInput = ((
@@ -2102,15 +2108,17 @@ const MapInput = ((
     "name": "John Smith",
     "Count": 1,
     "OrderDate": "02.01.2014 10:37:45.103948",
+    "StoreInfo": ("StoreName": "Store1"),
     "Products": ((
         "ProductName": "Widget 1",
         "Quantity": 1,
-        ),
+         ),                 
     )), (
     "^attributes^": ("Id": 2),
     "name": "Steve Austin",
     "Count": 2,
     "OrderDate": "04.01.2014 19:21:08.882634",
+    "StoreInfo": ("StoreName": "Store2"),
     "Products": ((
         "ProductName": "Widget X",
         "Quantity": 4,
@@ -2128,6 +2136,17 @@ const MapOutput = ((
     "implicit_count": 1,
     "order_date": 2014-01-02T10:37:45.103948,
     "target_sys": "Orders",
+    "sr0": (
+        "sr1": (
+            "key0": "key0",
+            "^attributes^": (
+                "key0": "key0",
+                "key1": "key1",
+            ),
+            "key1": "key1",
+        ),
+        "store_name": "Store1",
+    ),
     ), (
     "id": 2,
     "name": "Steve Austin",
@@ -2135,6 +2154,17 @@ const MapOutput = ((
     "implicit_count": 2,
     "order_date": 2014-01-04T19:21:08.882634,
     "target_sys": "Orders",
+    "sr0": (
+        "sr1": (
+            "key0": "key0",
+            "^attributes^": (
+                "key0": "key0",
+                "key1": "key1",
+            ),
+            "key1": "key1",
+        ),
+        "store_name": "Store2",
+    ),
     ),
 );
 

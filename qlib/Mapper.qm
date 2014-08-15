@@ -124,7 +124,7 @@ list: (2 elements)
 
     @section mapperkeys Mapper Specification Format
 
-    The mapper hash is made up of target (ie output) field names as the key values assigned to field specifications as follows:
+    The mapper hash is made up of target (ie output) field names (note that dotted output field names result in a nested hash output unless the \a allow_output_dot option is set) as the key values assigned to field specifications as follows:
     - @ref Qore::True "True": this is a shortcut meaning map from an input field with the same name
     - a @ref closure "closure" or @ref call_reference "call reference": meaning map from a field of the same name an apply the given code to give the value for the mapping; the @ref closure "closure" or @ref call_reference "call reference" must accept the following arguments:
       - @ref any_type "any" <i>$value</i>: the input field value (with the same name as the output field; to use a different name, see the \a code hash option below)
@@ -151,6 +151,7 @@ list: (2 elements)
     - \c "trunc": an optional @ref closure "closure" or @ref call_reference "call reference" for a callback for field truncation warnings; must accept a single string giving the warning text
     - \c "trunc_all": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then any field without a \c "trunc" key (see @ref mapperkeys \c "trunc" description) will automatically be truncated if a \c "maxlen" attribute is set for the field
     - \c "allow_dot": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then field names with \c "." characters do not imply a structured internal element lookup; in this case input field names may have \c "." characters in them, use the \c "struct" key to use structured internal element loopups (see @ref mapperkeys \c "struct" docs for more info)
+    - \c "allow_output_dot": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then output field names with \c "." characters do not imply a structured/hash output element; in this case output field names may have \c "." characters in them
     - \c "input_log": an optional input data logging callback; must accept a hash giving the input data hash
     - \c "output_log": an optional output data logging callback; must accept a hash giving the output data hash
 
@@ -158,6 +159,7 @@ list: (2 elements)
 
     @subsection mapperv1_1 Mapper v1.1
     - implemented "constant" field tag giving a constant value for the output of a field
+    - implemented structured output for dotted output field names and the \a allow_output_dot option to suppress this behavior
 
     @subsection mapperv1_0 Mapper v1.0
     - Initial release
@@ -202,6 +204,9 @@ public namespace Mapper {
 
             #! do not assume \a struct when field names have a \c "." in them; instead allow input field names to have a \c "." in them
             bool $.allow_dot = False;
+
+            #! do not assume structured/hash output when output field names have a \c "." in them; instead allow output field names to have a \c "." in them
+            bool $.allow_output_dot = False;
 
             #! (deprecated) constant hash value for output mappings
             *hash $.crec;
@@ -306,6 +311,12 @@ my Mapper $map(DataMap);
                 $.enc = $opts.enc;
             $.trunc = $opts.trunc;
             
+            if ($opts.allow_dot)
+                $.allow_dot = parse_boolean($opts.allow_dot);
+
+            if ($opts.allow_output_dot)
+                $.allow_output_dot = parse_boolean($opts.allow_output_dot);
+
             if ($opts) {
                 $.checkTimezoneOption($opts, "timezone");
                 $.checkTimezoneOption($opts, "input_timezone");
@@ -413,11 +424,15 @@ my Mapper $map(DataMap);
                 if (exists $.crec.$k)
                     $.error("field %y is has a mapping and also a constant value with the deprecated \"crec\" mapper option", $.getFieldName($k));
             }
+
+            # check if the output field should be a hash
+            if (!$.allow_output_dot && $k =~ /\./)
+                $fh.ostruct = $k.split(".");            
         }
 
         #! returns @ref Qore::True "True" if the field has a mapping, @ref Qore::False "False" if not
         private bool hasMapping(hash $fh) {
-            return $fh.name || $fh.struct || $fh.code;
+            return $fh.name || $fh.struct || $fh.code || $fh.constant;
         }
 
         #! verifies a timezone constructor option
@@ -559,7 +574,30 @@ my Mapper $map(DataMap);
                     $.error2("MISSING-INPUT", "field %y is marked as mandatory but is missing in the input row: %y", $.getFieldName($key), $rec);
                 
                 # add value to row list
-                $h.$key = $v;
+                if ($m.ostruct) {
+                    # recursive closure for generating structured data
+                    my code $ah = any sub (any $ch, int $off = 0) {
+                        if ($off == $m.ostruct.size())
+                            return $v;
+                        my string $k = $m.ostruct[$off];
+                        my any $oh = $ch.$k;
+                        if (exists $oh && $oh.typeCode() != NT_HASH)
+                            throw "INVALID-OUTPUT", sprintf("field %y cannot overwrite element %s with type %y", $.getFieldName($key), $k, $oh.type());
+                        $ch.$k = $ah($oh, $off + 1);
+                        return $ch;
+                    };
+                    try {
+                        $h = $ah($h);
+                    }
+                    catch (hash $ex) {
+                        if ($ex.err == "INVALID-OUTPUT")
+                            $.error2($ex.err, $ex.desc);
+                        else
+                            rethrow;
+                    }
+                }
+                else
+                    $h.$key = $v;
             }
 
             if ($.output_log)
