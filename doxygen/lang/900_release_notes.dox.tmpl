@@ -30,6 +30,7 @@
     - <a href="../../modules/Schema/html/index.html">Schema</a> module fixes:
       - AbstractSchema::combineOptions() fails when an option variable contains @ref nothing instead of a valid hash
     - fixed a memory error in error-handling with type errors when parsing user module headers that could cause a crash
+    - fixed a memory leak in @ref Qore::Socket::setWarningQueue() "Socket::setWarningQueue()": when a callback argument is used, the argument can be leaked when the @ref Qore::Socket "Socket" is destroyed
 
     @section qore_0811 Qore 0.8.11
 
