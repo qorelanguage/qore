@@ -537,6 +537,10 @@ struct qore_socket_private {
       if (warn_queue) {
 	 warn_queue->deref(xsink);
 	 warn_queue = 0;
+         if (callback_arg) {
+            callback_arg->deref(xsink);
+            callback_arg = 0;            
+         }
       }
    }
 
@@ -2723,7 +2727,10 @@ struct qore_socket_private {
 
    DLLLOCAL void clearWarningQueue(ExceptionSink* xsink) {
       if (warn_queue) {
-	 discard(callback_arg, xsink);
+         if (callback_arg) {
+            callback_arg->deref(xsink);
+            callback_arg = 0;
+         }
 	 warn_queue->deref(xsink);
 	 warn_queue = 0;
 	 tl_warning_us = 0;
