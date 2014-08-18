@@ -11,7 +11,7 @@
 %require-types
 
 # make sure we have the right version of qore
-%requires qore >= 0.8.4
+%requires qore >= 0.8.11
 
 # for Mime tests
 %requires Mime
@@ -2099,6 +2099,7 @@ const DataMap = (
     "sr0.sr1.key0": ("constant": "key0"),
     "sr0.sr1.^attributes^.key0": ("constant": "key0"),
     "sr0.sr1.^attributes^.key1": ("constant": "key1"),
+    "sr0.sr1.^attributes^.type": ("name": "Type", "code": *string sub (*string $v, hash $rec) { return $v ? $v.lwr() : NOTHING;}, "default": "unknown"),
     "sr0.sr1.key1": ("constant": "key1"),
     "sr0.store_name": "StoreInfo.StoreName",
 );
@@ -2116,6 +2117,7 @@ const MapInput = ((
     )), (
     "^attributes^": ("Id": 2),
     "name": "Steve Austin",
+    "Type": "Retail",
     "Count": 2,
     "OrderDate": "04.01.2014 19:21:08.882634",
     "StoreInfo": ("StoreName": "Store2"),
@@ -2142,6 +2144,7 @@ const MapOutput = ((
             "^attributes^": (
                 "key0": "key0",
                 "key1": "key1",
+                "type": "unknown",
             ),
             "key1": "key1",
         ),
@@ -2160,6 +2163,7 @@ const MapOutput = ((
             "^attributes^": (
                 "key0": "key0",
                 "key1": "key1",
+                "type": "retail",
             ),
             "key1": "key1",
         ),
@@ -2171,6 +2175,7 @@ const MapOutput = ((
 sub mapper_tests() {
     my Mapper $map(DataMap);
     my list $l = $map.mapAll(MapInput);
+    #printf("%N\n", $l);
     test_value($l, MapOutput, "Mapper::mapAll()");
     test_value($map.getCount(), 2, "1:Mapper::getCount()");
     $l = map $map.mapData($1), MapInput;

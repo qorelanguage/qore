@@ -19,7 +19,8 @@
       - new \c "tolwr" option in structured text parsing classes
     - <a href="../../modules/Mapper/html/index.html">Mapper</a> module updates:
       - the \c "constant" field option was implemented, allowing a contant value for an output field to be specified directly in the mapper hash
-      - implemented support for structures output fields with dot notation in the output field name
+      - implemented support for structured output fields with dot notation in the output field name
+      - implemented "default" field tag giving a default value if no input value is specified
 
     @subsection qore_08111_bug_fixes Bug Fixes in Qore
     - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module fixes:
@@ -29,6 +30,8 @@
       - fixed the default field type as "*string" (from "string") to avoid parsing and outputting empty strings for missing input data
     - <a href="../../modules/Schema/html/index.html">Schema</a> module fixes:
       - AbstractSchema::combineOptions() fails when an option variable contains @ref nothing instead of a valid hash
+    - <a href="../../modules/Mapper/html/index.html">Mapper</a> module fixes:
+      - moved field length checks after all transformations have been applied
     - fixed a memory error in error-handling with type errors when parsing user module headers that could cause a crash
     - fixed a memory leak in @ref Qore::Socket::setWarningQueue() "Socket::setWarningQueue()": when a callback argument is used, the argument can be leaked when the @ref Qore::Socket "Socket" is destroyed
 
