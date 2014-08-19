@@ -141,12 +141,13 @@ list: (2 elements)
       - \c "mand": assign to boolean @ref Qore::True "True" if the field is mandatory and an exception should be thrown if no input data is supplied
       - \c "type": this gives the output field type, can be:
         - \c "number": field accepts only numeric values (any non-numeric values on input will cause an exception to be thrown when mapping) 
-        - \c "integer": fields accepts only integer values (any non-integer values on input will cause an exception to be thrown when mapping; note: also \c "int" is accepted as an alias for \c "integer") 
+        - \c "int": fields accepts only integer values (any non-integer values on input will cause an exception to be thrown when mapping; note: also \c "integer" is accepted as an alias for \c "int") 
         - \c "date": date field
 
     @section mapperoptions Mapper Options
 
     Mapper objects accept the following options in the option hash:
+    - \c "date_format": gives the global format for converting a string to a date; see @ref date_formatting for the format of this string; this is applied to all fields of type \c "date" unless the field has a \c "date_format" value that overrides this global setting
     - \c "enc": the output character encoding; if not present then \c "UTF-8" is assumed
     - \c "name": the name of the mapper for use in logging and error strings
     - \c "trunc": an optional @ref closure "closure" or @ref call_reference "call reference" for a callback for field truncation warnings; must accept a single string giving the warning text
@@ -163,6 +164,7 @@ list: (2 elements)
     - implemented structured output for dotted output field names and the \a allow_output_dot option to suppress this behavior
     - implemented "default" field tag giving a default value if no input value is specified
     - moved field length checks after all transformations have been applied
+    - implemented a global "date_format" mapper option
 
     @subsection mapperv1_0 Mapper v1.0
     - Initial release
@@ -210,6 +212,9 @@ public namespace Mapper {
 
             #! do not assume structured/hash output when output field names have a \c "." in them; instead allow output field names to have a \c "." in them
             bool $.allow_output_dot = False;
+
+            #! the global date format for parsing dates
+            *string $.date_format;
 
             #! (deprecated) constant hash value for output mappings
             *hash $.crec;
@@ -325,6 +330,9 @@ my Mapper $map(DataMap);
                 $.checkTimezoneOption($opts, "timezone");
                 $.checkTimezoneOption($opts, "input_timezone");
             }
+
+            if ($opts.date_format)
+                $.date_format = $opts.date_format;
         }
 
         #! verifies the input map in the constructor
@@ -429,7 +437,7 @@ my Mapper $map(DataMap);
                     $.error("field %y has a mapping and also a constant value with the deprecated \"crec\" mapper option", $.getFieldName($k));
             }
 
-            if (exists $fh."default") {
+            if (exists $fh."default" && $fh.type) {
                 my hash $rec.$k = $fh."default";
                 try {
                     $.mapFieldType($k, $fh, \$rec.$k, $rec);
@@ -643,35 +651,35 @@ my Mapper $map(DataMap);
 
         #! performs type handling
         private mapFieldType(string $key, hash $m, reference $v, hash $rec) {
+            if ($v === NULL) {
+                delete $v;
+                return;
+            }
+            if (!exists $v)
+                return;
             switch ($m.type) {
                 case "number": {
                     # check for valid numeric values
-                    if (exists $v) {
-                        if ($v !~ /^([-+])?[0-9\.]+$/)
-                            $.error2("INVALID-NUMBER", "field %y = %y is marked as a numeric field, but the input data contains non-numeric text in input row: %y", $.getFieldName($key), $v, $rec);
-                        $v = number($v);
-                    }
+                    if ($v !~ /^([-+])?[0-9]+(\.[0-9]+)?+$/)
+                        $.error2("INVALID-NUMBER", "field %y = %y is marked as a numeric field, but the input data contains non-numeric text in input row: %y", $.getFieldName($key), $v, $rec);
+                    $v = number($v);
                     break;
                 }
                 case "int":
                 case "integer": {
                     # check for valid integer values
-                    if (exists $v) {
-                        if ($v !~ /^([-+])?[0-9]+$/)
-                            $.error2("INVALID-INTEGER", "field %y = %y is marked as an integer field, but the input data contains non-integer text in input row: %y", $.getFieldName($key), $v, $rec);
-                        $v = int($v);
-                    }
+                    if ($v !~ /^([-+])?[0-9]+$/)
+                        $.error2("INVALID-INTEGER", "field %y = %y is marked as an integer field, but the input data contains non-integer text in input row: %y", $.getFieldName($key), $v, $rec);
+                    $v = int($v);
                     break;
                 }
                 case "date": {
-                    if ($v.val()) {
-                        if ($v.typeCode() != NT_DATE) {
-                            $v = $.input_timezone.date($v, $m.date_format);
-                        }
-                        # convert to the output TimeZone if necessary
-                        if ($.timezone)
-                            $v = $.timezone.date($v);
-                    }
+                    # if there is no date_format below, then the default conversion is made
+                    if ($v.typeCode() != NT_DATE)
+                        $v = $.input_timezone.date($v, $m.date_format ? $m.date_format : $.date_format);
+                    # convert to the output TimeZone if necessary
+                    if ($.timezone)
+                        $v = $.timezone.date($v);
                     break;
                 }
             }
