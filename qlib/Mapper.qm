@@ -124,7 +124,7 @@ list: (2 elements)
 
     @section mapperkeys Mapper Specification Format
 
-    The mapper hash is made up of target (ie output) field names as the key values assigned to field specifications as follows:
+    The mapper hash is made up of target (ie output) field names (note that dotted output field names result in a nested hash output unless the \a allow_output_dot option is set) as the key values assigned to field specifications as follows:
     - @ref Qore::True "True": this is a shortcut meaning map from an input field with the same name
     - a @ref closure "closure" or @ref call_reference "call reference": meaning map from a field of the same name an apply the given code to give the value for the mapping; the @ref closure "closure" or @ref call_reference "call reference" must accept the following arguments:
       - @ref any_type "any" <i>$value</i>: the input field value (with the same name as the output field; to use a different name, see the \a code hash option below)
@@ -132,25 +132,28 @@ list: (2 elements)
     - a @ref hash_type "hash" describing the mapping; the following keys are all optional (an empty hash means map from an input field with the same name with no translations):
       - \c "name": the value of this key gives the name of the input field; only use this if the input record name is different than the output field name; note that if this value contains \c "." characters and the \a allow_dot option is not set (see @ref mapperoptions), then the value will be treated like \c "struct" (the \c "struct" key value will be created automatically); cannot be used with the \c "constant" key
       - \c "struct": the value of this key gives the location of the input field in an input hash in dot notation, ex: \c "element.name" would look for the field's value in the \c "name" key of the \c "element" hash in the input record; cannot be used with the \c "constant" key
-      - \c "constant": the value of this key will be returned as a constant value; this key cannot be used with the \c "name", \c "struct", or \c "code" keys
+      - \c "constant": the value of this key will be returned as a constant value; this key cannot be used with the \c "name", \c "struct", \c "code", or \c "default" keys
       - \c "code": a closure or call reference to process the field data; cannot be used with the \c "constant" key
       - \c "date_format": gives the format for converting a string to a date; see @ref date_formatting for the format of this string; note that this also implies \c "type" = \c "date"
+      - \c "default": gives a default value for the field in case no input or translated value is provided
       - \c "maxlen": an integer giving the maximum output string field length in bytes
       - \c "trunc": assign to boolean @ref Qore::True "True" if the field should be truncated if over the maximum field length; this key can only be set to @ref Qore::True "True" if the \c "maxlen" key is also given
       - \c "mand": assign to boolean @ref Qore::True "True" if the field is mandatory and an exception should be thrown if no input data is supplied
       - \c "type": this gives the output field type, can be:
         - \c "number": field accepts only numeric values (any non-numeric values on input will cause an exception to be thrown when mapping) 
-        - \c "integer": fields accepts only integer values (any non-integer values on input will cause an exception to be thrown when mapping; note: also \c "int" is accepted as an alias for \c "integer") 
+        - \c "int": fields accepts only integer values (any non-integer values on input will cause an exception to be thrown when mapping; note: also \c "integer" is accepted as an alias for \c "int") 
         - \c "date": date field
 
     @section mapperoptions Mapper Options
 
     Mapper objects accept the following options in the option hash:
+    - \c "date_format": gives the global format for converting a string to a date; see @ref date_formatting for the format of this string; this is applied to all fields of type \c "date" unless the field has a \c "date_format" value that overrides this global setting
     - \c "enc": the output character encoding; if not present then \c "UTF-8" is assumed
     - \c "name": the name of the mapper for use in logging and error strings
     - \c "trunc": an optional @ref closure "closure" or @ref call_reference "call reference" for a callback for field truncation warnings; must accept a single string giving the warning text
     - \c "trunc_all": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then any field without a \c "trunc" key (see @ref mapperkeys \c "trunc" description) will automatically be truncated if a \c "maxlen" attribute is set for the field
     - \c "allow_dot": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then field names with \c "." characters do not imply a structured internal element lookup; in this case input field names may have \c "." characters in them, use the \c "struct" key to use structured internal element loopups (see @ref mapperkeys \c "struct" docs for more info)
+    - \c "allow_output_dot": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then output field names with \c "." characters do not imply a structured/hash output element; in this case output field names may have \c "." characters in them
     - \c "input_log": an optional input data logging callback; must accept a hash giving the input data hash
     - \c "output_log": an optional output data logging callback; must accept a hash giving the output data hash
 
@@ -158,6 +161,10 @@ list: (2 elements)
 
     @subsection mapperv1_1 Mapper v1.1
     - implemented "constant" field tag giving a constant value for the output of a field
+    - implemented structured output for dotted output field names and the \a allow_output_dot option to suppress this behavior
+    - implemented "default" field tag giving a default value if no input value is specified
+    - moved field length checks after all transformations have been applied
+    - implemented a global "date_format" mapper option
 
     @subsection mapperv1_0 Mapper v1.0
     - Initial release
@@ -169,7 +176,7 @@ public namespace Mapper {
     public class Mapper {
         public {
             #! field keys that conflict with "constant"
-            const ConstantConflictList = ("name", "struct", "code");
+            const ConstantConflictList = ("name", "struct", "code", "default");
         }
 
         private {
@@ -203,6 +210,12 @@ public namespace Mapper {
             #! do not assume \a struct when field names have a \c "." in them; instead allow input field names to have a \c "." in them
             bool $.allow_dot = False;
 
+            #! do not assume structured/hash output when output field names have a \c "." in them; instead allow output field names to have a \c "." in them
+            bool $.allow_output_dot = False;
+
+            #! the global date format for parsing dates
+            *string $.date_format;
+
             #! (deprecated) constant hash value for output mappings
             *hash $.crec;
 
@@ -229,6 +242,7 @@ public namespace Mapper {
                 "struct": True,
                 "constant": True,
                 "code": True,
+                "default": True,
                 "maxlen": True,
                 "trunc": True, 
                 "mand": True,
@@ -306,10 +320,19 @@ my Mapper $map(DataMap);
                 $.enc = $opts.enc;
             $.trunc = $opts.trunc;
             
+            if ($opts.allow_dot)
+                $.allow_dot = parse_boolean($opts.allow_dot);
+
+            if ($opts.allow_output_dot)
+                $.allow_output_dot = parse_boolean($opts.allow_output_dot);
+
             if ($opts) {
                 $.checkTimezoneOption($opts, "timezone");
                 $.checkTimezoneOption($opts, "input_timezone");
             }
+
+            if ($opts.date_format)
+                $.date_format = $opts.date_format;
         }
 
         #! verifies the input map in the constructor
@@ -411,13 +434,27 @@ my Mapper $map(DataMap);
 
             if ($.hasMapping($fh)) {
                 if (exists $.crec.$k)
-                    $.error("field %y is has a mapping and also a constant value with the deprecated \"crec\" mapper option", $.getFieldName($k));
+                    $.error("field %y has a mapping and also a constant value with the deprecated \"crec\" mapper option", $.getFieldName($k));
             }
+
+            if (exists $fh."default" && $fh.type) {
+                my hash $rec.$k = $fh."default";
+                try {
+                    $.mapFieldType($k, $fh, \$rec.$k, $rec);
+                }
+                catch (hash $ex) {
+                    $.error("field %y has default value %y that is not acceptable for the field's type (%y): %s: %s", $k, $fh."default", $fh.type, $ex.err, $ex.desc);
+                }
+            }
+
+            # check if the output field should be a hash
+            if (!$.allow_output_dot && $k =~ /\./)
+                $fh.ostruct = $k.split(".");            
         }
 
         #! returns @ref Qore::True "True" if the field has a mapping, @ref Qore::False "False" if not
         private bool hasMapping(hash $fh) {
-            return $fh.name || $fh.struct || $fh.code;
+            return $fh.name || $fh.struct || $fh.code || $fh.constant;
         }
 
         #! verifies a timezone constructor option
@@ -535,6 +572,15 @@ my Mapper $map(DataMap);
                     }
                 }
 
+                if ($v.typeCode() == NT_STRING && $v.empty())
+                    delete $v;
+
+                if ($m.type)
+                    $.mapFieldType($key, $m, \$v, $rec);
+
+                if (exists $m."default" && (!exists $v || $v === NULL))
+                    $v = $m."default";                    
+
                 # check maximum length
                 if ($m.maxlen && $v.size() > $m.maxlen) {
                     # truncate the string if necessary
@@ -549,17 +595,34 @@ my Mapper $map(DataMap);
                         $.error2("STRING-TOO-LONG", "field %y = %y, input length %d exceeds maximum byte length %d for input row: %y", $.getFieldName($key), $v, strlen($v), $m.maxlen, $rec);
                 }
 
-                if ($v.typeCode() == NT_STRING && $v.empty())
-                    delete $v;
-
-                if ($m.type)
-                    $.mapFieldType($key, $m, \$v, $rec);
-
                 if ($m.mand && !exists $v)
                     $.error2("MISSING-INPUT", "field %y is marked as mandatory but is missing in the input row: %y", $.getFieldName($key), $rec);
                 
                 # add value to row list
-                $h.$key = $v;
+                if ($m.ostruct) {
+                    # recursive closure for generating structured data
+                    my code $ah = any sub (any $ch, int $off = 0) {
+                        if ($off == $m.ostruct.size())
+                            return $v;
+                        my string $k = $m.ostruct[$off];
+                        my any $oh = $ch.$k;
+                        if (exists $oh && $oh.typeCode() != NT_HASH)
+                            throw "INVALID-OUTPUT", sprintf("field %y cannot overwrite element %s with type %y", $.getFieldName($key), $k, $oh.type());
+                        $ch.$k = $ah($oh, $off + 1);
+                        return $ch;
+                    };
+                    try {
+                        $h = $ah($h);
+                    }
+                    catch (hash $ex) {
+                        if ($ex.err == "INVALID-OUTPUT")
+                            $.error2($ex.err, $ex.desc);
+                        else
+                            rethrow;
+                    }
+                }
+                else
+                    $h.$key = $v;
             }
 
             if ($.output_log)
@@ -588,35 +651,35 @@ my Mapper $map(DataMap);
 
         #! performs type handling
         private mapFieldType(string $key, hash $m, reference $v, hash $rec) {
+            if ($v === NULL) {
+                delete $v;
+                return;
+            }
+            if (!exists $v)
+                return;
             switch ($m.type) {
                 case "number": {
                     # check for valid numeric values
-                    if (exists $v) {
-                        if ($v !~ /^([-+])?[0-9\.]+$/)
-                            $.error2("INVALID-NUMBER", "field %y = %y is marked as a numeric field, but the input data contains non-numeric text in input row: %y", $.getFieldName($key), $v, $rec);
-                        $v = number($v);
-                    }
+                    if ($v !~ /^([-+])?[0-9]+(\.[0-9]+)?+$/)
+                        $.error2("INVALID-NUMBER", "field %y = %y is marked as a numeric field, but the input data contains non-numeric text in input row: %y", $.getFieldName($key), $v, $rec);
+                    $v = number($v);
                     break;
                 }
                 case "int":
                 case "integer": {
                     # check for valid integer values
-                    if (exists $v) {
-                        if ($v !~ /^([-+])?[0-9]+$/)
-                            $.error2("INVALID-INTEGER", "field %y = %y is marked as an integer field, but the input data contains non-integer text in input row: %y", $.getFieldName($key), $v, $rec);
-                        $v = int($v);
-                    }
+                    if ($v !~ /^([-+])?[0-9]+$/)
+                        $.error2("INVALID-INTEGER", "field %y = %y is marked as an integer field, but the input data contains non-integer text in input row: %y", $.getFieldName($key), $v, $rec);
+                    $v = int($v);
                     break;
                 }
                 case "date": {
-                    if ($v.val()) {
-                        if ($v.typeCode() != NT_DATE) {
-                            $v = $.input_timezone.date($v, $m.date_format);
-                        }
-                        # convert to the output TimeZone if necessary
-                        if ($.timezone)
-                            $v = $.timezone.date($v);
-                    }
+                    # if there is no date_format below, then the default conversion is made
+                    if ($v.typeCode() != NT_DATE)
+                        $v = $.input_timezone.date($v, $m.date_format ? $m.date_format : $.date_format);
+                    # convert to the output TimeZone if necessary
+                    if ($.timezone)
+                        $v = $.timezone.date($v);
                     break;
                 }
             }
