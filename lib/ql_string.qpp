@@ -40,9 +40,39 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+static int fix_num(QoreString& tmp, const QoreString& fmt, ExceptionSink* xsink) {
+   qore_offset_t off = fmt.getByteOffset(1, xsink);
+   //printd(5, "fix_num tmp: '%s' fmt: '%s' off: %lld\n", tmp.getBuffer(), fmt.getBuffer(), off);
+   if (*xsink)
+      return -1;
+   if (off < 0)
+      return 0;
+
+   // replace all thousands separators with nothing
+   QoreString t(fmt.getBuffer(), off, fmt.getEncoding());
+   tmp.replaceAll(t.getBuffer(), "");
+
+   if (fmt.size() <= (qore_size_t)off)
+      return 0;
+
+   t.clear();
+   if (t.concat(fmt, 1, 1, xsink))
+      return -1;
+
+   if (t.size() == 1 && t[0] == '.')
+      return 0;
+
+   off = tmp.bindex(t.getBuffer(), 0);
+   if (off < 0)
+      return 0;
+
+   tmp.replace(off, t.size(), ".");
+   return 0;
+}
+
 // finds the last occurrence of needle in haystack at or before position pos
 // pos must be a non-negative valid byte offset in haystack
-static inline int rindex_simple_intern(const char *haystack, int hlen, const char *needle, int nlen, int pos) {
+static int rindex_simple_intern(const char *haystack, int hlen, const char *needle, int nlen, int pos) {
    // if the offset does not allow for the needle string to be present, then adjust
    if ((pos + nlen) > hlen) {
       pos = hlen - nlen;
@@ -1811,5 +1841,55 @@ my bool $b = parse_boolean($i);
 bool parse_boolean(...) [flags=CONSTANT] {
    const AbstractQoreNode* p = get_param(args, 0);
    return p ? p->getAsBool() : false;
+}
+
+//! returns a number corresponding to the string and the argument, giving the format
+/** @par Example:
+    @code
+my number $n = parse_number("1.150.200,55", ".,");
+    @endcode
+
+    @param str the string to parse
+    @param the format of the number in the string, consisting of two characters, the first for the thousands separator, the second for the decimal point (ex: \c ".," for amny European locales)
+
+    @return the number value represented by the string
+
+    @since %Qore 0.8.11.1
+*/
+number parse_number(string str, string fmt) [flags=RET_VALUE_ONLY] {
+   TempEncodingHelper tfmt(fmt, str->getEncoding(), xsink);
+   if (*xsink)
+      return 0;
+
+   QoreString tmp(*str);
+   if (fix_num(tmp, **tfmt, xsink))
+      return 0;
+
+   return new QoreNumberNode(tmp.getBuffer());
+}
+
+//! returns a number corresponding to the string and the argument, giving the format
+/** @par Example:
+    @code
+my number $n = parse_number("1.150.200,55", ".,");
+    @endcode
+
+    @param str the string to parse
+    @param the format of the number in the string, consisting of two characters, the first for the thousands separator, the second for the decimal point (ex: \c ".," for amny European locales)
+
+    @return the number value represented by the string
+
+    @since %Qore 0.8.11.1
+*/
+float parse_float(string str, string fmt) [flags=RET_VALUE_ONLY] {
+   TempEncodingHelper tfmt(fmt, str->getEncoding(), xsink);
+   if (*xsink)
+      return 0;
+
+   QoreString tmp(*str);
+   if (fix_num(tmp, **tfmt, xsink))
+      return 0;
+
+   return strtod(tmp.getBuffer(), 0);
 }
 //@}
