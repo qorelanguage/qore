@@ -128,7 +128,7 @@ list: (2 elements)
     - @ref Qore::True "True": this is a shortcut meaning map from an input field with the same name
     - a @ref closure "closure" or @ref call_reference "call reference": meaning map from a field of the same name an apply the given code to give the value for the mapping; the @ref closure "closure" or @ref call_reference "call reference" must accept the following arguments:
       - @ref any_type "any" <i>$value</i>: the input field value (with the same name as the output field; to use a different name, see the \a code hash option below)
-      - @ref @ref hash_type "hash" <i>$rec</i>: the current input record
+      - @ref hash_type "hash" <i>$rec</i>: the current input record
     - a @ref hash_type "hash" describing the mapping; the following keys are all optional (an empty hash means map from an input field with the same name with no translations):
       - \c "name": the value of this key gives the name of the input field; only use this if the input record name is different than the output field name; note that if this value contains \c "." characters and the \a allow_dot option is not set (see @ref mapperoptions), then the value will be treated like \c "struct" (the \c "struct" key value will be created automatically); cannot be used with the \c "constant" key
       - \c "struct": the value of this key gives the location of the input field in an input hash in dot notation, ex: \c "element.name" would look for the field's value in the \c "name" key of the \c "element" hash in the input record; cannot be used with the \c "constant" key
