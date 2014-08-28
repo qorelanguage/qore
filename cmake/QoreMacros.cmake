@@ -2,15 +2,25 @@
 # Qore Programming Languages cmake macros
 #
 
+include(CMakeParseArguments)
+
 #
 # Create C++ code from qthe QPP files
 #
-#  _ccp_files : output list of filenames created in CMAKE_CURRENT_BINARY_DIR.
-#  _inputs : input list of *.qpp files
+#  _cpp_files : output list of filenames created in CMAKE_CURRENT_BINARY_DIR.
 #
-MACRO (QORE_WRAP_QPP _cpp_files _inputs )
+# usage:
+# set(MY_QPP foo.qpp bar.qpp)
+# qore_wrap_qpp(MY_CPP ${MY_QPP})
+#
+MACRO (QORE_WRAP_QPP _cpp_files)
+    set(options)
+    set(oneValueArgs)
+    set(multiValueArgs OPTIONS)
 
-    FOREACH (it ${_inputs})
+    cmake_parse_arguments(_WRAP_QPP "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    FOREACH (it ${_WRAP_QPP_UNPARSED_ARGUMENTS})
 
         GET_FILENAME_COMPONENT(_outfile ${it} NAME_WE)
         GET_FILENAME_COMPONENT(_infile ${it} ABSOLUTE)
