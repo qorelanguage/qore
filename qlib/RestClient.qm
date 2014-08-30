@@ -107,6 +107,10 @@ printf("%N\n", ans.body);
       - @ref RestClient::RestClient::addDefaultHeaders() "RestClient::addDefaultHeaders()"
       - @ref RestClient::RestClient::getDefaultHeaders() "RestClient::getDefaultHeaders()"
       - @ref RestClient::RestClient::getSendEncoding() "RestClient::getSendEncoding()"
+      - @ref RestClient::RestClient::setContentEncoding() "RestClient::setContentEncoding()"
+    - implemented the \c "content_encoding" option for the RestClient constructor
+    - made \c "gzip" the default content encoding
+    - added a compression threshold giving a minimum size for for applying content encoding on message bodies; small messages will be sent uncompressed
     - doc updates
 
     @subsection restclientv1_2 RestClient v1.2
@@ -229,21 +233,28 @@ public namespace RestClient {
                 - \c "bzip": use bzip2 compression
                 - \c "gzip": use gzip compression
                 - \c "deflate": use deflate compression
+                - \c "identity": use no content encoding
              */
             const EncodingSupport = (
-                "deflate": (
-                    "ce": "deflate",
-                    "func": \compress(),
+                "gzip": (
+                    "ce": "gzip",
+                    "func": \gzip(),
                     ),
                 "bzip2": (
                     "ce": "bzip2",
                     "func": \bzip2(),
                     ),
-                "gzip": (
-                    "ce": "gzip",
-                    "func": \gzip(),
+                "deflate": (
+                    "ce": "deflate",
+                    "func": \compress(),
                     ),
-                );            
+                "identity": (
+                    "ce": NOTHING,
+                    ),
+                );
+
+            #! default threadhold for data compressions; transfers smaller than this size will not be compressed
+            const CompressionThreshold = 1024;
         }
         
         private {
@@ -264,16 +275,18 @@ my RestClient $rest(("url": "http://localhost:8001/rest"));
             @endcode
 
             @param opts valid options are:
-            - \c url: A string giving the URL to connect to
+            - \c connect_timeout: The timeout value in milliseconds for establishing a new socket connection (also can be a relative date-time value for clarity, ex: \c 20s)
             - \c data: a @ref DataSerializationOptions "data serialization option"; if not present defaults to \c "auto"
-            - \c send_encoding: a @ref EncodingSupport "send data encoding option"; if not present defaults to no content-encoding on sent message bodies
-            - \c default_port: The default port number to connect to if none is given in the URL
-            - \c http_version: Either '1.0' or '1.1' for the claimed HTTP protocol version compliancy in outgoing message headers
             - \c default_path: The default path to use for new connections if a path is not otherwise specified in the connection URL
+            - \c default_port: The default port number to connect to if none is given in the URL
+            - \c headers: an optional hash of headers to send with every request, these can also be overridden in request method calls
+            - \c http_version: Either '1.0' or '1.1' for the claimed HTTP protocol version compliancy in outgoing message headers
             - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
             - \c proxy: The proxy URL for connecting through a proxy
+            - \c send_encoding: a @ref EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
+            - \c content_encoding: for possible values, see @ref EncodingSupport; this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding
             - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex: \c 30s)
-            - \c connect_timeout: The timeout value in milliseconds for establishing a new socket connection (also can be a relative date-time value for clarity, ex: \c 20s)
+            - \c url: A string giving the URL to connect to
             @param do_not_connect if \c False (the default), then a connection will be immediately established to the remote server
 
             @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
@@ -284,6 +297,14 @@ my RestClient $rest(("url": "http://localhost:8001/rest"));
             $.setSerialization($opts.data);
             if ($opts.send_encoding)
                 $.setSendEncoding($opts.send_encoding);
+
+            if ($opts.content_encoding) {
+                if (!$opts.send_encoding)
+                    $.setSendEncoding($opts.content_encoding);
+                else if (!EncodingSupport.($opts.content_encoding))
+                    throw "RESTCLIENT-ERROR", sprintf("content encoding option %y is unknown; valid options: %y", $opts.content_encoding, EncodingSupport.keys());
+                $opts.headers."Accept-Encoding" = $opts.content_encoding;
+            }
             
             # unconditionally set the encoding to utf-8
             $.setEncoding("utf-8");
@@ -327,11 +348,13 @@ $rest.setSendEncoding("gzip");
 
             The default is to send requests unencoded/uncompressed.
 
-            @param enc the data content encoding (compression) option for the object; see @ref EncodingSupport for valid options
+            @param enc the data content encoding (compression) option for the object; see @ref EncodingSupport for valid options; if the value \c "auto" is passed then \c "gzip" encoding is used
 
             @throw RESTCLIENT-ERROR invalid or unsupported data content encoding / compression option
 
-            @see @ref RestClient::RestClient::getSendEncoding() "RestClient::getSendEncoding()"
+            @see
+            - @ref RestClient::RestClient::setContentEncoding() "RestClient::setContentEncoding()"
+            - @ref RestClient::RestClient::getSendEncoding() "RestClient::getSendEncoding()"
         */
         setSendEncoding(string $enc = "auto") {
             if ($enc == "auto")
@@ -341,6 +364,31 @@ $rest.setSendEncoding("gzip");
                     throw "RESTCLIENT-ERROR", sprintf("send content encoding option %y is unknown; valid options: %y", $enc, EncodingSupport.keys());
                 $.seh = EncodingSupport.$enc;
             }
+        }
+
+        #! sets the request and desired response encoding for the object; see @ref EncodingSupport for valid options
+        /** @par Example:
+            @code
+$rest.setContentEncoding("gzip");
+            @endcode
+
+            @param enc the data content encoding (compression) option for requests and the desired response content encoding for the object; see @ref EncodingSupport for valid options; if the value \c "auto" is passed then \c "gzip" encoding is used for outgoing requests and requested for responses
+
+            @throw RESTCLIENT-ERROR invalid or unsupported data content encoding / compression option
+
+            @see
+            - @ref RestClient::RestClient::getSendEncoding() "RestClient::getSendEncoding()"
+            - @ref RestClient::RestClient::setSendEncoding() "RestClient::setSendEncoding()"
+
+            @since %restClient 1.3
+        */
+        setContentEncoding(string $enc = "auto") {
+            if ($enc == "auto")
+                $.seh = EncodingSupport.firstValue();
+            else
+                $.setSendEncoding($enc);
+
+            $.headers."Accept-Encoding" = $.seh.ce ? $.seh.ce : "identity";
         }
 
         #! adds default headers to each request; these headers will be sent in all requests but can be overridden in requests as well
@@ -388,7 +436,9 @@ my *string $ce = $.rest.getSendEncoding();
 
             @return the current data content encoding (compression) object or @ref nothing if no encoding option is set; see @ref EncodingSupport for valid options
 
-            @see @ref RestClient::RestClient::setSendEncoding() "RestClient::setSendEncoding()"
+            @see
+            - @ref RestClient::RestClient::setContentEncoding() "RestClient::setContentEncoding()"
+            - @ref RestClient::RestClient::setSendEncoding() "RestClient::setSendEncoding()"
 
             @since %RestClient 1.3
         */
@@ -514,7 +564,7 @@ my hash $ans = $rest.post("/orders/1");
                 if ($body.typeCode() == NT_STRING && $hdr.$ct !~ /;charset=/)
                     $hdr.$ct += ";charset=" + $body.encoding();
 
-                if ($.seh) {
+                if ($.seh.ce && $body.size() > CompressionThreshold) {
                     $hdr."Content-Encoding" = $.seh.ce;
                     $body = $.seh.func($body);
                 }

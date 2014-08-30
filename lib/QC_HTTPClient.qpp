@@ -77,7 +77,7 @@
     |\c Content-Type|\c "text/html"
     |\c User-Agent|\c "Qore-HTTP-Client/0.8.8"
     |\c Connection|\c "Keep-Alive"
-    |\c Accept-Encoding|\c "deflate,gzip,bzip2"
+    |\c Accept-Encoding|\c "gzip,deflate,bzip2"
 
     This class supports posting network events to a @ref Qore::Thread::Queue "Queue". See @ref event_handling for more information.
 
