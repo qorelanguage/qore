@@ -46,7 +46,7 @@
 %endtry
 
 module RestClient {
-    version = "1.2";
+    version = "1.3";
     desc = "user module for calling REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -101,6 +101,13 @@ printf("%N\n", ans.body);
     See example file \c "rest" in the examples directory for a more detailed example using this module
 
     @section restclientrelnotes Release Notes
+
+    @subsection restclientv1_3 RestClient v1.3
+    - added:
+      - @ref RestClient::RestClient::addDefaultHeaders() "RestClient::addDefaultHeaders()"
+      - @ref RestClient::RestClient::getDefaultHeaders() "RestClient::getDefaultHeaders()"
+      - @ref RestClient::RestClient::getSendEncoding() "RestClient::getSendEncoding()"
+    - doc updates
 
     @subsection restclientv1_2 RestClient v1.2
     - allow the Content-Type header to be overriden in REST requests
@@ -192,7 +199,7 @@ public namespace RestClient {
             const Accept = AcceptList.join(",");
 
             #! RestClient Version
-            const Version = "1.2";
+            const Version = "1.3";
 
             #! RestClient Version String
             const VersionString = sprintf("Qore-RestClient/%s", RestClient::Version);
@@ -257,16 +264,17 @@ my RestClient $rest(("url": "http://localhost:8001/rest"));
             @endcode
 
             @param opts valid options are:
-            - \c url: A string giving the URL to connect to
+            - \c connect_timeout: The timeout value in milliseconds for establishing a new socket connection (also can be a relative date-time value for clarity, ex: \c 20s)
             - \c data: a @ref DataSerializationOptions "data serialization option"; if not present defaults to \c "auto"
-            - \c send_encoding: a @ref EncodingSupport "send data encoding option"; if not present defaults to no content-encoding on sent message bodies
-            - \c default_port: The default port number to connect to if none is given in the URL
-            - \c http_version: Either '1.0' or '1.1' for the claimed HTTP protocol version compliancy in outgoing message headers
             - \c default_path: The default path to use for new connections if a path is not otherwise specified in the connection URL
+            - \c default_port: The default port number to connect to if none is given in the URL
+            - \c headers: an optional hash of headers to send with every request, these can also be overridden in request method calls
+            - \c http_version: Either '1.0' or '1.1' for the claimed HTTP protocol version compliancy in outgoing message headers
             - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
             - \c proxy: The proxy URL for connecting through a proxy
+            - \c send_encoding: a @ref EncodingSupport "send data encoding option"; if not present defaults to no content-encoding on sent message bodies
             - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex: \c 30s)
-            - \c connect_timeout: The timeout value in milliseconds for establishing a new socket connection (also can be a relative date-time value for clarity, ex: \c 20s)
+            - \c url: A string giving the URL to connect to
             @param do_not_connect if \c False (the default), then a connection will be immediately established to the remote server
 
             @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
@@ -312,17 +320,19 @@ $rest.setSerialization("yaml");
             $.sih = DataSerializationSupport.$data;
         }
 
-        #! change the serialization option for the object; see @ref DataSerializationOptions for valid options
+        #! change the data content encoding (compression) option for the object; see @ref EncodingSupport for valid options
         /** @par Example:
             @code
-$rest.setSerialization("yaml");
+$rest.setSendEncoding("gzip");
             @endcode
 
-            @param data the serialization option for the object; see @ref DataSerializationOptions for valid options
+            The default is to send requests unencoded/uncompressed.
 
-            @throw RESTCLIENT-ERROR invalid or unsupported serialization option
+            @param enc the data content encoding (compression) option for the object; see @ref EncodingSupport for valid options
 
-            @see @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
+            @throw RESTCLIENT-ERROR invalid or unsupported data content encoding / compression option
+
+            @see @ref RestClient::RestClient::getSendEncoding() "RestClient::getSendEncoding()"
         */
         setSendEncoding(string $enc = "auto") {
             if ($enc == "auto")
@@ -332,6 +342,59 @@ $rest.setSerialization("yaml");
                     throw "RESTCLIENT-ERROR", sprintf("send content encoding option %y is unknown; valid options: %y", $enc, EncodingSupport.keys());
                 $.seh = EncodingSupport.$enc;
             }
+        }
+
+        #! adds default headers to each request; these headers will be sent in all requests but can be overridden in requests as well
+        /** @par Example:
+            @code
+# disable gzip and bzip encoding in responses
+$rest.addDefaultHeaders(("Accept-Encoding": "compress"));
+            @endcode
+
+            @param h a hash of headers to add to the default headers to send on each request
+            
+            @note default headers can also be set in the constructor
+
+            @see @ref RestClient::RestClient::getDefaultHeaders() "RestClient::getDefaultHeaders()"
+
+            @since %RestClient 1.3
+        */
+        addDefaultHeaders(hash $h) {
+            $.headers += $h;
+        }
+
+        #! returns the hash of default headers to sent in all requests
+        /** @par Example:
+            @code
+my hash $h = $rest.getDefaultHeaders();
+            @endcode
+
+            @return the hash of default headers to sent in all requests
+
+            @note default headers can be set in the constructor and in addDefaultHeaders()
+
+            @see @ref RestClient::RestClient::addDefaultHeaders() "RestClient::addDefaultHeaders()"
+            
+            @since %RestClient 1.3
+        */
+        hash getDefaultHeaders() {
+            return $.headers;
+        }
+
+        #! returns the current data content encoding (compression) object or @ref nothing if no encoding option is set; see @ref EncodingSupport for valid options
+        /** @par Example:
+            @code
+my *string $ce = $.rest.getSendEncoding();
+            @endcode
+
+            @return the current data content encoding (compression) object or @ref nothing if no encoding option is set; see @ref EncodingSupport for valid options
+
+            @see @ref RestClient::RestClient::setSendEncoding() "RestClient::setSendEncoding()"
+
+            @since %RestClient 1.3
+        */
+        *string getSendEncoding() {
+            return $.seh.ce;
         }
 
         #! returns the current data serialization format currently in effect for the object (see @ref DataSerializationOptions for possible values)
