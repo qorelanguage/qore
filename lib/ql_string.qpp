@@ -72,7 +72,8 @@ static int fix_num(QoreString& tmp, const QoreString& fmt, ExceptionSink* xsink)
 
 // finds the last occurrence of needle in haystack at or before position pos
 // pos must be a non-negative valid byte offset in haystack
-static int rindex_simple_intern(const char *haystack, int hlen, const char *needle, int nlen, int pos) {
+/*
+static int rindex_simple_intern(const char* haystack, int hlen, const char* needle, int nlen, int pos) {
    // if the offset does not allow for the needle string to be present, then adjust
    if ((pos + nlen) > hlen) {
       pos = hlen - nlen;
@@ -87,10 +88,11 @@ static int rindex_simple_intern(const char *haystack, int hlen, const char *need
    }
    return -1;
 }
+*/
 
-static const char *memstr(const char *str, const char *pattern, qore_size_t pl, qore_size_t len) {
+static const char* memstr(const char* str, const char* pattern, qore_size_t pl, qore_size_t len) {
    while (true) {
-      const char *p = (const char *)memchr(str, pattern[0], len);
+      const char* p = (const char* )memchr(str, pattern[0], len);
       if (!p)
 	 return 0;
 
@@ -119,7 +121,7 @@ static const char *memstr(const char *str, const char *pattern, qore_size_t pl, 
    return 0;
 }
 
-static void split_add_element(QoreListNode *l, const char *str, unsigned len, const QoreEncoding *enc) {
+static void split_add_element(QoreListNode *l, const char* str, unsigned len, const QoreEncoding *enc) {
    if (enc)
       l->push(new QoreStringNode(str, len, enc));
    else {
@@ -129,10 +131,10 @@ static void split_add_element(QoreListNode *l, const char *str, unsigned len, co
    }
 }
 
-QoreListNode *split_intern(const char *pattern, qore_size_t pl, const char *str, qore_size_t sl, const QoreEncoding *enc, bool with_separator) {
+QoreListNode *split_intern(const char* pattern, qore_size_t pl, const char* str, qore_size_t sl, const QoreEncoding *enc, bool with_separator) {
    QoreListNode *l = new QoreListNode();
-   const char *ostr = str;
-   while (const char *p = memstr(str, pattern, pl, sl - (str - ostr))) {
+   const char* ostr = str;
+   while (const char* p = memstr(str, pattern, pl, sl - (str - ostr))) {
       split_add_element(l, str, p - str + (with_separator ? pl : 0), enc);
       str = p + pl;
    }
@@ -160,12 +162,12 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
       return split_intern(pat->getBuffer(), pat->strlen(), str->getBuffer(), str->strlen(), str->getEncoding());
 
    ReferenceHolder<QoreListNode> l(new QoreListNode, xsink);
-   const char *ostr = str->getBuffer();
+   const char* ostr = str->getBuffer();
    qore_size_t sl = str->strlen();
-   const char *tpattern = pat->getBuffer();
+   const char* tpattern = pat->getBuffer();
    qore_size_t pl = pat->strlen();
 
-   const char *ststr = ostr;
+   const char* ststr = ostr;
 
    // remaining byte length
    qore_size_t len = sl;
@@ -178,8 +180,8 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
          // advance pointer past quote
          ststr += tquote->strlen();
          // find next quote character, ignore escaped quotes
-         const char *tstr = ststr;
-         const char *p;
+         const char* tstr = ststr;
+         const char* p;
          while (true) {
             p = memstr(tstr, tquote->getBuffer(), tquote->strlen(), len);
             if (!p) {
@@ -212,7 +214,7 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
          continue;
       }
 
-      const char *p = memstr(ststr, tpattern, pl, sl - (ststr - ostr));
+      const char* p = memstr(ststr, tpattern, pl, sl - (ststr - ostr));
       if (!p) {
          QoreStringNode* se = new QoreStringNode(ststr, sl - (ststr - ostr), sep->getEncoding());
          if (trim_unquoted)
@@ -1222,7 +1224,7 @@ string replace(string str, string source, string target, int start = 0, int end 
 
    QoreStringNode *nstr = new QoreStringNode(ccs);   
 
-   const char *cstr, *pattern;
+   const char* cstr, *pattern;
    cstr = str->getBuffer();
    pattern = t1->getBuffer();
    int plen = strlen(pattern);
@@ -1382,7 +1384,7 @@ my string $tstr = trim($str);
     @bug it is not possible to trim multi-byte characters from strings using this function; each byte is treated as a character.  No encoding conversions are done even if the \a chars argument has a different @ref character_encoding "character encoding" than the \a str argument.
  */
 string trim(string str, *string chars) [flags=CONSTANT] {
-   const char *tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
+   const char* tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
    QoreStringNode *rv = str->copy();
    rv->trim(tchars);
    return rv;
@@ -1414,7 +1416,7 @@ trim(\$str);
    if (*xsink)
       return 0;
 
-   const char *tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
+   const char* tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
    rv->trim(tchars);
    return rv->refSelf();
 }
@@ -1458,7 +1460,7 @@ string trunc_str(softstring str, softint len, *string encoding) [flags=RET_VALUE
       return new QoreStringNode(tmp->getBuffer(), len, enc);
 
    // find position of last character fitting in len bytes
-   const char *p = tmp->getBuffer();
+   const char* p = tmp->getBuffer();
    int64 sl = 0;
    while (true) {
       qore_size_t size = enc->getCharLen(p, len - sl);

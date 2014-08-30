@@ -36,7 +36,7 @@
     numerical rows (sequences) with ascending and descending ordering.
 
     The RangeIterator class provides an iterator for loop statements with functionality
-    similar to @ref range(). Unlike range() RangeIterator objects
+    similar to @ref range(). Unlike range(), RangeIterator objects
     do not generate real @ref list "lists" but calculate iteration values on demand.
 
     This results in memory-friendly handling for large numerical sequences compared to
@@ -44,8 +44,8 @@
 
    @par Example: RangeIterator basic usage
    @code
-my RangeIterator $r(2);
-for my int $i in ($r)
+my RangeIterator $r(0, 2);
+foreach my int $i in ($r)
     printf("i=%d\n", $i);
 # i=0
 # i=1
@@ -130,7 +130,7 @@ any RangeIterator::getValue() [flags=RET_VALUE_ONLY] {
    @par Example
    @code
 # raw RangeIterator object usage
-my RangeIterator $r(2);
+my RangeIterator $r(0, 2);
 foreach my int $i in ($r) {
     printf("i=%d\n", $i);
     if ($i == 1)
