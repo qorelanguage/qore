@@ -13476,10 +13476,10 @@ my string $sql = $table.getSelectSql($sh, \$args);
             # comment handling
             string comment = '';
             if (qh.comment) {
-                comment += sprintf("/* %s */ ", qh.comment);
+                comment += sprintf("/* %s */ ", replace(qh.comment, "*/", ""));
             }
             if (qh.hint) {
-                comment += sprintf("/*+ %s */ ", qh.hint);
+                comment += sprintf("/*+ %s */ ", replace(qh.hint, "*/", ""));
             }
 
             string sql = sprintf("select %s%s from %s", comment, cstr, from);
@@ -13623,7 +13623,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
             if (qh.orderby) {
                 if (qh.offset || qh.limit) {
                     if (!matchAnyUnique(qh.orderby))
-                        throw "SELECT-ERROR", sprintf("%s: 'orderby': %y with 'offset' = %d does not match any unique constraint", getName(), qh.orderby, qh.offset);
+                        throw "SELECT-ERROR", sprintf("%s: 'orderby': %y with 'offset' = %d, 'limit' = %d does not match any unique constraint", getName(), qh.orderby, qh.offset, qh.limit);
 
                     doSelectOrderByWithOffsetSqlUnlockedImpl(\sql, \args, qh, jch, ch);
                 }
