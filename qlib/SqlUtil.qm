@@ -13476,10 +13476,10 @@ my string $sql = $table.getSelectSql($sh, \$args);
             # comment handling
             string comment = '';
             if (qh.comment) {
-                comment += sprintf("/* %s */ ", qh.comment);
+                comment += sprintf("/* %s */ ", replace(qh.comment, "*/", ""));
             }
             if (qh.hint) {
-                comment += sprintf("/*+ %s */ ", qh.hint);
+                comment += sprintf("/*+ %s */ ", replace(qh.hint, "*/", ""));
             }
 
             string sql = sprintf("select %s%s from %s", comment, cstr, from);
