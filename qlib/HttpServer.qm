@@ -1621,6 +1621,7 @@ public class HttpServer::HttpServer {
         @param lp a hash with the following keys:
         - \c cert_path: (optional) a path to an X509 certificate for HTTPS listeners
         - \c key_path: (optional) a path to a private key file for an X509 certificate for HTTPS listeners
+        - \c key_password: (optional) an optional string giving the password for the private key (PEM format only)
         - \c cert: (optional) an SSLCertificate object for HTTPS listeners
         - \c key: (optional) an SSLPrivateKey object for HTTPS listeners
         - \c url: (required) the path for matching incoming requests (use "/" for dedicated listeners); this is more important for handlers on the global listeners
@@ -1655,7 +1656,7 @@ public class HttpServer::HttpServer {
             throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("missing or invalid 'url' entry in listener description giving the path; expecting type 'string', got type '%s'", $lp.url.type());
 
 	if ($lp.cert_path && !$lp.cert)
-	    $lp += HttpServer::getSSLObjects($lp.cert_path, $lp.key_path);
+	    $lp += HttpServer::getSSLObjects($lp.cert_path, $lp.key_path, $lp.key_password);
 
 	my hash $h.$hname = ("url": $lp.url, "content": $lp.content_type, "handler": $handler, "headers": $lp.special_headers);
 
@@ -1678,6 +1679,7 @@ public class HttpServer::HttpServer {
 	- @ref Qore::AF_INET "AF_INET": for binding an IPv4 socket
 	- @ref Qore::AF_INET6 "AF_INET6": for binding an IPv6 socket
 	- @ref Qore::AF_UNSPEC "AF_UNSPEC": for binding a socket with any available address family
+        @param pwd an optional password for the private key file (PEM format only)
 
         @return a listener info hash; see the return value of HttpServer::getListenerInfo() for the description of the hash returned by this method
 
@@ -1685,10 +1687,10 @@ public class HttpServer::HttpServer {
 
         @note if \a sock begins with a "/" character then it is assumed to be a UNIX socket path and the \a family argument is ignored
      */
-    hash addListener(softstring $sock, *string $cert_path, *string $key_path, *string $name, int $family = AF_UNSPEC) {
+    hash addListener(softstring $sock, *string $cert_path, *string $key_path, *string $name, int $family = AF_UNSPEC, *string $pwd) {
 	my hash $sd;
         if ($cert_path)
-            $sd = HttpServer::getSSLObjects($cert_path, $key_path);
+            $sd = HttpServer::getSSLObjects($cert_path, $key_path, $pwd);
 
         my (*string $node, *string $service);
         if ($sock =~ /:\w+/)
@@ -1708,6 +1710,7 @@ public class HttpServer::HttpServer {
 	- @ref Qore::AF_INET "AF_INET": for binding an IPv4 socket
 	- @ref Qore::AF_INET6 "AF_INET6": for binding an IPv6 socket
 	- @ref Qore::AF_UNSPEC "AF_UNSPEC": for binding a socket with any available address family
+        @param pwd an optional password for the private key file (PEM format only)
 
         @return a list of listener info hashes; see the return value of HttpServer::getListenerInfo() for the description of each hash element in the list returned by this method
 
@@ -1715,10 +1718,10 @@ public class HttpServer::HttpServer {
 
         @note if \a sock begins with a \c "/" character then it is assumed to be a UNIX socket path and the \a family argument is ignored
      */
-    softlist addListeners(softstring $sock, *string $cert_path, *string $key_path, *string $name, int $family = AF_UNSPEC) {
+    softlist addListeners(softstring $sock, *string $cert_path, *string $key_path, *string $name, int $family = AF_UNSPEC, *string $pwd) {
 	my hash $sd;
         if ($cert_path)
-            $sd = HttpServer::getSSLObjects($cert_path, $key_path);
+            $sd = HttpServer::getSSLObjects($cert_path, $key_path, $pwd);
 
         if ($sock !~ /:\w+/) {
             if ($sock =~ /^\//)
@@ -1741,13 +1744,14 @@ public class HttpServer::HttpServer {
 	- @ref Qore::AF_INET "AF_INET": for binding an IPv4 socket
 	- @ref Qore::AF_INET6 "AF_INET6": for binding an IPv6 socket
 	- @ref Qore::AF_UNSPEC "AF_UNSPEC": for binding a socket with any available address family
+        @param pwd an optional password for the private key file (PEM format only)
 
         @return a list of listener info hashes; see the return value of HttpServer::getListenerInfo() for the description of each hash element in the list returned by this method
 
         @throw HTTPSERVER-ADDLISTENER-ERROR duplicate bind address
      */
-    list addINETListeners(*string $node, softstring $service, *string $cert_path, *string $key_path, *string $name, int $family = AF_UNSPEC) {
-	return $.addINETListenersIntern($node, $service, ("cert_path": $cert_path, "key_path": $key_path), NOTHING, NOTHING, NOTHING, NOTHING, $name, $family);
+    list addINETListeners(*string $node, softstring $service, *string $cert_path, *string $key_path, *string $name, int $family = AF_UNSPEC, *string $pwd) {
+	return $.addINETListenersIntern($node, $service, ("cert_path": $cert_path, "key_path": $key_path, "key_password": $pwd), NOTHING, NOTHING, NOTHING, NOTHING, $name, $family);
     }
 
     #! throws an exception; these objects do not support copying
@@ -2115,7 +2119,7 @@ public class HttpServer::HttpServer {
     }
 
     # don't reimplement this method; fix/enhance it in the module
-    final static private hash getSSLObjects(string $cert_path, *string $key_path) {
+    final static private hash getSSLObjects(string $cert_path, *string $key_path, *string $pwd) {
         my File $f();
         # read in X.509 certificate file
         $f.open2($cert_path);
@@ -2128,10 +2132,10 @@ public class HttpServer::HttpServer {
         # read in private key file
         if (strlen($key_path)) {
             $f.open2($key_path);
-            $key = $key_path =~ /\.der$/ ? new SSLPrivateKey($f.readBinary(-1)) : new SSLPrivateKey($f.read(-1));
+            $key = $key_path =~ /\.der$/ ? new SSLPrivateKey($f.readBinary(-1)) : new SSLPrivateKey($f.read(-1), $pwd);
         }
         else
-            $key = new SSLPrivateKey($cert_data);
+            $key = new SSLPrivateKey($cert_data, $pwd);
 
 	return ("cert": $cert, "key": $key);
     }
@@ -2139,7 +2143,7 @@ public class HttpServer::HttpServer {
     # don't reimplement this method; fix/enhance it in the module
     final private list addINETListenersIntern(*string $node, softstring $service, *hash $sd, *hash $lp, *code $logger, *code $errorlogger, *code $stopc, *string $name, int $family = AF_UNSPEC) {
 	if ($sd.cert_path && !$sd.cert)
-	    $sd += HttpServer::getSSLObjects($sd.cert_path, $sd.key_path);
+	    $sd += HttpServer::getSSLObjects($sd.cert_path, $sd.key_path, $sd.key_password);
 
         my list $al = getaddrinfo($node, $service, $family, AIFlags);
 
