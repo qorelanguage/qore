@@ -170,7 +170,7 @@ SQLStatement::copy() {
 //! Saves an SQL statement that will be prepared and executed later, along with optional arguments
 /** The statement is actually only prepared when used for the first time, this is so that SQLStatement objects created with DatasourcePool objects use the DatasourcePool more efficiently, as many drivers require the actual DB API prepare call to be made on the same connection as the connection the statement will be executed on as well.
 
-    @note This method parses the SQL string for placeholders and bind by value tokens (<tt>%v</tt>); for a version of this method that does not parse the SQL string for placeholders and bind by value tokens, see SQLStatement::prepareRaw().
+    @note This method parses the SQL string for placeholders and bind by value tokens (<tt>%%v</tt>); for a version of this method that does not parse the SQL string for placeholders and bind by value tokens, see SQLStatement::prepareRaw().
 
     @param sql The SQL string to prepare for execution on the DB server
 
@@ -191,7 +191,7 @@ nothing SQLStatement::prepare(string sql, ...) {
 //! Saves an SQL statement that will be prepared and executed later
 /** The statement is actually only prepared when used for the first time, this is so that SQLStatement objects created with DatasourcePool objects use the DatasourcePool more efficiently, as many drivers require the actual DB API prepare call to be made on the same connection as the connection the statement will be executed on as well.
 
-    @note This method does not parse the SQL string for placeholders and bind by value tokens (<tt>%v</tt>); for a version of this method that does parse the SQL string for placeholders and bind by value tokens, see SQLStatement::prepare().
+    @note This method does not parse the SQL string for placeholders and bind by value tokens (<tt>%%v</tt>); for a version of this method that does parse the SQL string for placeholders and bind by value tokens, see SQLStatement::prepare().
     
     @param sql The SQL string to prepare for execution on the DB server
 
