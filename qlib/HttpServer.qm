@@ -64,6 +64,7 @@ module HttpServer {
     - @ref HttpServer::AbstractStreamRequest "AbstractStreamRequest": this class is used to directly handle HTTP chunked requests and responses
     - @ref HttpServer::AbstractUrlHandler "AbstractUrlHandler": this class serves as a base class for handler classes that serve requests anchored at a particular URL
     - @ref HttpServer::HttpServer "HttpServer": this class implements the main interface to the HTTP server provided by this module
+    - @ref HttpServer::PermissiveAuthenticator "PermissiveAuthenticator": this class implements a dummy authenticator that accepts all requests
 
     See also:
     - <a href="../../RestHandler/html/index.html">RestHandler</a>: a module providing a handler framework for this module for implementing server-side REST services
@@ -123,6 +124,8 @@ log("started listener on %s", $lh.desc);
     @subsection http0311 HttpServer 0.3.11
     - fixed a bug setting the response encoding in HttpServer::setReplyHeaders() where the Socket encoding was not set properly and therefore the encoding in the Content-Type in the response header did not necessarily match the encoding of the response
     - added support for private keys with passwords
+    - added the @ref HttpServer::PermissiveAuthenticator "PermissiveAuthenticator" class
+    - translate \c "+" (plus) for \c " " (space) in the query part of URIs in @ref HttpServer::parse_uri_query() "parse_uri_query()"
 
     @subsection http0310 HttpServer 0.3.10
     - if an error occurs receiving a message with chunked transfer encoding, send the response immediately before reading the rest of the chunked transfer
@@ -257,6 +260,9 @@ public namespace HttpServer {
 
         # remove method and "?" char; leave only args in path
         splice $path, 0, $i + 1;
+
+        # substitute "+" (plus) for " " (space)
+        $path =~ s/+/ /g;
 
         # iterate through args
         # w3c recommends ";" instead of "&" to separate arguments
@@ -605,6 +611,20 @@ public class HttpServer::AbstractAuthenticator {
             $listener.logError($str);
         }
         return $.do401();
+    }
+}
+
+#! class providing automatic authentication for all requests
+public class HttpServer::PermissiveAuthenticator inherits HttpServer::AbstractAuthenticator {
+    #! primary method called to authenticate each request
+    /** @param listener the HttpListener object for logging purposes
+        @param hdr a hash of request headers
+        @param cx a reference to the call context hash; set the \c "user" key to the user name if a user was identified and authorized
+
+        @return returns @ref nothing indicating that the request is authenticated
+    */
+    *hash authenticateRequest(HttpListener $listener, hash $hdr, reference $cx) {
+        return;
     }
 }
 
