@@ -331,7 +331,7 @@ struct qore_httpclient_priv {
 	 // encode spaces only
 	 if (*p == ' ')
 	    pstr.concat("%20");
-	 // according to RFC 3896 it's not necessary to encode non-ascii characters
+	 // according to RFC 3986 it's not necessary to encode non-ascii characters
 	 else
 	    pstr.concat(*p);
 	 ++p;
