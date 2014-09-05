@@ -262,7 +262,7 @@ public namespace HttpServer {
         splice $path, 0, $i + 1;
 
         # substitute "+" (plus) for " " (space)
-        $path =~ s/+/ /g;
+        $path =~ s/\+/ /g;
 
         # iterate through args
         # w3c recommends ";" instead of "&" to separate arguments
