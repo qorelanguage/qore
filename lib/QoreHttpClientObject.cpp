@@ -125,7 +125,7 @@ struct qore_httpclient_priv {
       
       int rc;
       if (connect_ssl)
-	 rc = msock->socket->connectSSL(socketpath.c_str(), connect_timeout_ms, 0, 0, xsink);
+	 rc = msock->socket->connectSSL(socketpath.c_str(), connect_timeout_ms, msock->cert ? msock->cert->getData() : 0, msock->pk ? msock->pk->getData() : 0, xsink);
       else
 	 rc = msock->socket->connect(socketpath.c_str(), connect_timeout_ms, xsink);
 
