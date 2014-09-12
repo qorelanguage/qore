@@ -798,63 +798,6 @@ public:
       }
    }
 
-/*
-   DLLLOCAL int enterRSection() {
-      int tid = gettid();
-      
-      {
-         AutoLocker al(rmutex);
-         if (!in_rsection) {
-            if (rwl.tryrdlock())
-               return -1;
-
-            in_rsection = tid;
-         }
-         else if (in_rsection != tid) {
-            rwl.unlock();
-            return -1;
-         }
-      }
-
-      return 0;
-   }
-
-   DLLLOCAL void enterRSectionUnconditional() {
-      int tid = gettid();
-      
-      AutoLocker al(rmutex);
-      while (true) {
-         if (!in_rsection) {
-            rwl.rdlock();
-            in_rsection = tid;
-            break;
-         }
-
-         if (in_rsection != tid) {
-            ++rsection_waiting;
-            rsection_cond.wait(rmutex);
-            --rsection_waiting;
-         }
-         
-         assert(in_rsection != tid);
-      }
-   }
-
-   DLLLOCAL void exitRSection() {
-      // first unset the in_rsection flag
-      {
-         AutoLocker al(rmutex);
-         assert(in_rsection == gettid());
-         in_rsection = 0;
-         if (rsection_waiting)
-            rsection_cond.signal();
-      }
-
-      // now release the read lock
-      rwl.unlock();
-   }
-*/
-
 #ifdef DO_OBJ_RECURSIVE_CHECK
    DLLLOCAL void setRSetIntern(ObjectRSet* rs) {
       assert(rml.hasWriteLock(gettid()));
@@ -862,26 +805,6 @@ public:
       rset = rs;
       rs->ref();
    }
-
-   static DLLLOCAL void invalidateRSet(QoreObject& obj) {
-      AutoRMWriteLocker al(obj.priv->rml);
-      if (obj.priv->rset)
-         obj.priv->rset->invalidate();
-   }
-
-/*
-   DLLLOCAL static bool isRecursive(QoreObject& obj) {
-      assert(!obj.priv->is_recursive);
-      return obj.priv->is_recursive;
-   }
-
-   DLLLOCAL static void setRecursive(QoreObject& obj) {
-      if (!obj.priv->is_recursive) {
-         obj.priv->is_recursive = true;
-         printd(0, "qore_object_private::setRecursive() obj: %p '%s'\n", &obj, obj.priv->theclass->getName());
-      }
-   }
-*/
 #endif
 
    DLLLOCAL static AbstractQoreNode* takeMember(QoreObject& obj, ExceptionSink* xsink, const char* mem, bool check_access = true) {

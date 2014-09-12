@@ -182,13 +182,6 @@ LValueHelper::~LValueHelper() {
    // first free any locks
    vl.del();
 
-#if 0 //def DO_OBJ_RECURSIVE_CHECK
-   // invalid rset for object if any before dereferencing targets
-   if (robj && container_change) {
-      qore_object_private::invalidateRSet(*robj);
-   }
-#endif
-
    // now delete temporary values (if any)
    for (nvec_t::iterator i = tvec.begin(), e = tvec.end(); i != e; ++i)
       discard(*i, vl.xsink);
