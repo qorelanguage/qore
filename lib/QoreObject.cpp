@@ -561,8 +561,8 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 		  printd(0, "QoreObject::customDeref() this: %p '%s' invalid rset, recalculating\n", this, getClassName());
 		  recalc = true;
 		  AutoRMWriteLocker al(priv->rml);
-		  priv->rset->deref();
-		  priv->rset = 0;
+		  if (priv->rset)
+		     priv->removeRSet();
 	       }
 	    }
 	    if (recalc) {
@@ -1144,10 +1144,10 @@ int ObjectRSetHelper::removeRescan(ObjectRSet* ors, int tid) {
       // if we already have the rsection lock, then ignore; already processed (either in fomap or rescan_set)
       if ((*ri)->priv->rml.hasWriteLock(tid))
 	 continue;
-		     
-      if ((*ri)->priv->rml.tryWriteLock()) {
-	 printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj %p '%s' cannot enter rsection: tid: %d\n", *ri, (*ri)->getClassName(), (*ri)->priv->rml.writeTID());
-			
+
+      if ((*ri)->priv->rml.tryWriteLockNotifyWaitRead(notifier)) {
+	 printd(QRO_LVL, "ObjectRSetHelper::removeRescan() obj %p '%s' cannot enter rsection: tid: %d\n", *ri, (*ri)->getClassName(), (*ri)->priv->rml.writeTID());
+
 	 // release other rsection locks
 	 for (unsigned i = 0; i < rovec.size(); ++i)
 	    rovec[i]->priv->rml.writeUnlock();
@@ -1169,18 +1169,21 @@ int ObjectRSetHelper::removeRescan(ObjectRSet* ors, int tid) {
    // now process old rset
    for (unsigned i = 0; i < rovec.size(); ++i) {
       assert(rovec[i]->priv->rset == ors);
-      rovec[i]->priv->rset = 0;
-      ors->deref();
+      assert(rovec[i]->priv->rml.hasWriteLock());
+      rovec[i]->priv->removeRSet();
       
-      rescan_set.insert(rovec[i]);
+      //QoreSafeRWReadLocker sl(rovec[i]->priv->rwl);
+      //if (rovec[i]->priv->status == OS_OK && rovec[i]->priv->data->size())
+	 rescan_set.insert(rovec[i]);
    }
 
    return 0;
 }
 
 int ObjectRSetHelper::checkIntern(QoreObject& obj) {
-   if (obj.priv->rml.tryWriteLock()) {
-      printd(0, "ObjectRSetHelper::checkIntern() obj %p '%s' cannot enter rsection: tid: %d\n", &obj, obj.getClassName(), obj.priv->rml.writeTID());
+   if (obj.priv->rml.tryWriteLockNotifyWaitRead(notifier)) {
+      printd(0, "ObjectRSetHelper::checkIntern() obj %p '%s' cannot enter rsection: write tid: %d, readers: %d\n", &obj, obj.getClassName(), obj.priv->rml.writeTID(), obj.priv->rml.numReaders());
+      //assert(strcmp(obj.getClassName(), "HttpListener"));
       return ORS_LOCK_ERROR;
    }
 
@@ -1224,7 +1227,7 @@ int ObjectRSetHelper::checkIntern(QoreObject& obj) {
       return i >= 0 ? i : ORS_IGNORE;
    }
 
-   printd(QRO_LVL, "ObjectRSetHelper::checkIntern() found new obj %p '%s' setting rcount = 0\n", &obj, obj.getClassName());
+   printd(QRO_LVL, "ObjectRSetHelper::checkIntern() found new obj %p '%s' setting rcount = 0 (current: %d rset: %p)\n", &obj, obj.getClassName(), obj.priv->rcount, obj.priv->rset);
 
    // save high water mark in rset
    size_t fpos = frvec.size();
@@ -1269,42 +1272,25 @@ int ObjectRSetHelper::checkIntern(QoreObject& obj) {
    if (mrc == ORS_NO_MATCH) {
       // mark object as finalized
       fi->second = true;
-      printd(QRO_LVL, "ObjectRSetHelper::checkIntern() done search obj %p '%s': no match, removing from current set, adding to rescan set\n", &obj, obj.getClassName());
+      printd(QRO_LVL, "ObjectRSetHelper::checkIntern() done search obj %p '%s': no match, removing from current set, invaliding rset\n", &obj, obj.getClassName());
 
-      // save object to be rescanned
       QoreObject* o = fi->first;
 
-      bool to_rescan = false;
-      if (o->priv->rset) {
-	 if (o->priv->rset->active()) {
-	    int rc = removeRescan(o->priv->rset);
-	    if (rc)
-	       return rc;
-	 }
-
-	 to_rescan = true;
-	 
-	 // add to rescan set
-	 rescan_set.insert(o);
-
-	 // remove old rset in current object
-	 o->priv->rset->deref();
-	 o->priv->rset = 0;
-      }
+      // invalidate rset
+      o->priv->invalidateAndRemoveRSet();
+      // release lock
+      o->priv->rml.writeUnlock();
       
       // erase from scan set
       fomap.erase(fi);
-
-      if (!to_rescan)
-	 o->priv->rml.writeUnlock();
    }
    else if (mrc == (int)ovec.size()) {
       assert(frvec.size() > fpos);
 
       // we have found a complete independent recursive cycle at this level, so apply it and mark nodes as finalized
-      ObjectRSet* rset = new ObjectRSet;
+      ObjectRSet* rset = 0;
 
-      printd(QRO_LVL, "ObjectRSetHelper::checkIntern() done search obj %p '%s': matches found: %d, marking with rset: %p\n", &obj, obj.getClassName(), frvec.size() - fpos, rset);
+      printd(QRO_LVL, "ObjectRSetHelper::checkIntern() done search obj %p '%s': matches found: %d, marking with new rset\n", &obj, obj.getClassName(), frvec.size() - fpos);
 
       int tid = gettid();
 
@@ -1314,21 +1300,24 @@ int ObjectRSetHelper::checkIntern(QoreObject& obj) {
 	 if (!fi->second) {
 	    // mark object as finalized
 	    fi->second = true;
-	    assert(rset->find(fi->first) == rset->end());
+	    if (!rset) {
+	       rset = new ObjectRSet;
+	       printd(0, "ObjectRSetHelper::checkIntern() obj: %p (%s rcycle: %d) new ObjectRSet: %p\n", &obj, obj.getClassName(), obj.priv->rcycle, rset);
+	    }
+	    else
+	       assert(rset->find(fi->first) == rset->end());
+
 	    // insert into new rset
 	    rset->insert(fi->first);
 
 	    // remove any old rset and add any nodes not scanned on rescan_set
 	    if (fi->first->priv->rset) {
-	       if (fi->first->priv->rset->active()) {
-		  int rc = removeRescan(fi->first->priv->rset, tid);
-		  if (rc)
-		     return rc;
-	       }
+	       assert(rset != fi->first->priv->rset);
+	       if (fi->first->priv->rset->active() && removeRescan(fi->first->priv->rset, tid))
+		  return ORS_LOCK_ERROR;
 
 	       // remove old rset in current object
-	       fi->first->priv->rset->deref();
-	       fi->first->priv->rset = 0;
+	       fi->first->priv->removeRSet();
 	    }
 
 	    // assign rset to object
@@ -1341,8 +1330,6 @@ int ObjectRSetHelper::checkIntern(QoreObject& obj) {
 
 	 frvec.pop_back();
       }
-
-      assert(rset->assigned());
 
       mrc = ORS_NO_MATCH;
    }
@@ -1376,13 +1363,49 @@ void ObjectRSetHelper::reset() {
 #endif
 }
 
+class ObjectRScanHelper {
+public:
+   qore_object_private& obj;
+   int rcycle;
+
+   DLLLOCAL ObjectRScanHelper(qore_object_private& o) : obj(o), rcycle(o.rcycle) {
+      AutoLocker al(obj.rlck);
+      while (obj.rscan) {
+	 ++obj.rwaiting;
+	 obj.rdone.wait(obj.rlck);
+	 --obj.rwaiting;
+      }
+      obj.rscan = gettid();
+   }
+
+   DLLLOCAL ~ObjectRScanHelper() {
+      AutoLocker al(obj.rlck);
+      assert(obj.rscan == gettid());
+      obj.rscan = 0;
+   }
+
+   DLLLOCAL bool needScan() const {
+      return rcycle == obj.rcycle;
+   }
+};
+
 ObjectRSetHelper::ObjectRSetHelper(QoreObject& obj) {
-   printd(QRO_LVL, "ObjectRSetHelper::ObjectRSetHelper() this: %p ENTER\n", this);
+   printd(QRO_LVL, "ObjectRSetHelper::ObjectRSetHelper() this: %p (%p) ENTER\n", this, &obj);
+
+   ObjectRScanHelper rsh(*obj.priv);
+
    while (true) {
       int rc = checkIntern(obj);
       if (rc == ORS_LOCK_ERROR) {
 	 reset();
-	 printd(0, "ObjectRSetHelper::ObjectRSetHelper() this: %p RESTARTING TRANSACTION\n", this);
+	 // wait for foreign transaction to finish if necessary
+	 notifier.wait();
+
+	 if (!rsh.needScan()) {
+	    printd(0, "ObjectRSetHelper::ObjectRSetHelper() this: %p (%p) TRANSACTION COMPLETE IN ANOTHER THREAD\n", this, &obj);
+	    return;
+	 }
+	 printd(0, "ObjectRSetHelper::ObjectRSetHelper() this: %p (%p) RESTARTING TRANSACTION: %d\n", this, &obj, obj.priv->rcycle);
 	 continue;
       }
 
@@ -1390,12 +1413,16 @@ ObjectRSetHelper::ObjectRSetHelper(QoreObject& obj) {
       bool restart = false;
       while (!rescan_set.empty()) {
 	 obj_set_t::iterator i = rescan_set.begin();
-	 printd(0, "ObjectRSetHelper::ObjectRSetHelper() this: %p RESCAN %p '%s'\n", this, *i, (*i)->getClassName());
+	 printd(0, "ObjectRSetHelper::ObjectRSetHelper() this: %p (%p) RESCAN %p '%s'\n", this, &obj, *i, (*i)->getClassName());
 
 	 assert(fomap.find(*i) == fomap.end());
 	 if (checkIntern(**i) == ORS_LOCK_ERROR) {
 	    reset();
-	    printd(0, "ObjectRSetHelper::ObjectRSetHelper() this: %p RESTARTING TRANSACTION (rescan)\n", this);
+	    if (!rsh.needScan()) {
+	       printd(0, "ObjectRSetHelper::ObjectRSetHelper() this: %p (%p) TRANSACTION COMPLETE IN ANOTHER THREAD\n", this, &obj);
+	       return;
+	    }
+	    printd(0, "ObjectRSetHelper::ObjectRSetHelper() this: %p (%p) RESTARTING TRANSACTION (rescan)\n", this, &obj);
 	    restart = true;
 	    break;
 	 }
@@ -1406,14 +1433,19 @@ ObjectRSetHelper::ObjectRSetHelper(QoreObject& obj) {
       break;
    }
 
+   // increment rcycle
+   ++obj.priv->rcycle;
+
    // finalize graph - exit rsection
    for (omap_t::iterator i = fomap.begin(), e = fomap.end(); i != e; ++i) {
+      // increment rcycle
+      ++i->first->priv->rcycle;
       i->first->priv->rml.writeUnlock();
    }
 
    assert(rescan_set.empty());
 
-   printd(QRO_LVL, "ObjectRSetHelper::ObjectRSetHelper() this: %p EXIT\n", this);
+   printd(QRO_LVL, "ObjectRSetHelper::ObjectRSetHelper() this: %p (%p) EXIT\n", this, &obj);
 }
 
 int ObjectRSet::canDelete() {

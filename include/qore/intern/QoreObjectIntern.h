@@ -178,8 +178,11 @@ public:
 
    DLLLOCAL void invalidate() {
       QoreAutoRWWriteLocker al(rwl);
-      if (valid)
+      if (valid) {
          valid = false;
+         clear();
+         printd(0, "ObjectRSet::invalidate() this: %p\n", this);
+      }
    }
 
    DLLLOCAL void ref() {
@@ -199,7 +202,42 @@ public:
 
 typedef std::vector<QoreObject*> obj_vec_t;
 
+class RNotifier {
+public:
+   bool setp;
+   QoreCounter notify;
+
+   DLLLOCAL RNotifier() : setp(false) {
+   }
+
+   DLLLOCAL void done() {
+      assert(setp);
+      notify.dec();
+   }
+
+   DLLLOCAL void set() {
+      assert(!setp);
+      setp = true;
+      assert(!notify.getCount());
+      notify.inc();
+   }
+
+   DLLLOCAL void wait() {
+      if (setp) {
+         printd(0, "RNotifier::wait() waiting for notification\n");
+         notify.waitForZero();
+         setp = 0;
+      }
+   }
+};
+
+class ObjectRSetHelper;
+typedef std::list<RNotifier*> n_list_t;
+
 class ObjectRSetHelper {
+private:
+   DLLLOCAL ObjectRSetHelper(const ObjectRSetHelper&);
+   
 protected:
    typedef std::map<QoreObject*, bool> omap_t;
    // map of all objects scanned to status (true = finalized, false = not finalized, in current list)
@@ -215,7 +253,11 @@ protected:
    // set of objects to be rescanned since they were removed from existing recursive graphs
    obj_set_t rescan_set;
 
+   // rmlock notification helper when waiting on locks
+   RNotifier notifier;
+
    DLLLOCAL void reset();
+
    DLLLOCAL int checkIntern(QoreObject& obj);
    DLLLOCAL int checkIntern(AbstractQoreNode* n);
 
@@ -230,7 +272,6 @@ public:
       assert(frvec.empty());
    }
 };
-#endif
 
 // rwlock that can be entered multiple times by the same thread for writing, only needs exiting once
 // read lock is normal
@@ -243,6 +284,14 @@ protected:
       readers;
    QoreCondition read_cond;
    QoreCondition write_cond;
+   // list of ObjectRSetHelper objects for notifications for lock management
+   n_list_t list;
+
+   DLLLOCAL void notifyIntern() {
+      for (n_list_t::iterator i = list.begin(), e = list.end(); i != e; ++i)
+         (*i)->done();
+      list.clear();
+   }
 
 public:
    DLLLOCAL rmlock() : write_tid(-1), read_wait(0), write_wait(0), readers(0) {
@@ -274,9 +323,16 @@ public:
       }
    }
 
-   DLLLOCAL int tryWriteLock() {
+   // waits for readers but returns -1 if the write lock has already been acquired and sets a notification
+   DLLLOCAL int tryWriteLockNotifyWaitRead(RNotifier& rn) {
       int tid = gettid();
       AutoLocker al(l);
+      while (readers) {
+         ++write_wait;
+         write_cond.wait(l);
+         --write_wait;
+      }
+      
       if (!readers) {
          if (write_tid == -1) {
             write_tid = tid;
@@ -285,6 +341,11 @@ public:
          if (write_tid == tid)
             return 0;
       }
+
+      // insert in list for notification when done
+      list.push_back(&rn);
+      rn.set();
+      
       return -1;
    }
 
@@ -297,6 +358,7 @@ public:
          read_cond.broadcast();
       else if (write_wait)
          write_cond.signal();
+      notifyIntern();
    }
 
    DLLLOCAL void readLock() {
@@ -323,15 +385,20 @@ public:
       --readers;
       if (!readers && write_wait)
          write_cond.signal();
+      notifyIntern();
    }
 
-   DLLLOCAL bool hasWriteLock(int tid) {
+   DLLLOCAL bool hasWriteLock(int tid = gettid()) {
       return write_tid == tid;
    }
 
 #ifdef DEBUG
    DLLLOCAL int writeTID() const {
       return write_tid;
+   }
+
+   DLLLOCAL int numReaders() const {
+      return readers;
    }
 #endif
 };
@@ -361,6 +428,7 @@ public:
       rml.writeUnlock();
    }
 };
+#endif
 
 class qore_object_private {
 public:
@@ -369,20 +437,24 @@ public:
    mutable QoreRWLock rwl;
    // used for weak references, to ensure that assignments will not deadlock when the object is locked for update
    mutable QoreThreadLock ref_mutex;
-   rmlock rml;
    KeyList* privateData;
    QoreReferenceCounter tRefs;  // weak references
    QoreHashNode* data;
    QoreProgram* pgm;
-#ifdef QORE_GC
-   // count of containers contained by this object: if zero then it cannot be part of a recursive graph
-   unsigned cont_cnt;
-#endif
 
    bool system_object, delete_blocker_run, in_destructor, pgm_ref;
 #ifdef DO_OBJ_RECURSIVE_CHECK
-   bool recursive_ref_found /*, is_recursive*/;
-   int /*in_rsection,*/ rcount;
+   rmlock rml;
+   bool recursive_ref_found;
+
+   QoreThreadLock rlck;
+   QoreCondition rdone; // recursive scan done flag
+   
+   int rscan,   // TID flag for starting a recursive scan
+      rcount,   // the number of unique recursive references to this object
+      rwaiting, // the number of threads waiting for a scan of this object
+      rcycle;   // the recursive cycle number to see if the object has been scanned since a transaction restart
+
    // set of objects in a cyclic directed graph
    ObjectRSet* rset;
 #endif
@@ -391,13 +463,11 @@ public:
    DLLLOCAL qore_object_private(QoreObject* n_obj, const QoreClass *oc, QoreProgram* p, QoreHashNode* n_data) : 
       theclass(oc), status(OS_OK), 
       privateData(0), data(n_data), pgm(p), system_object(!p), 
-#ifdef QORE_GC
-      cont_cnt(0),
-#endif
       delete_blocker_run(false), in_destructor(false), pgm_ref(true), 
 #ifdef DO_OBJ_RECURSIVE_CHECK
-      recursive_ref_found(false), //is_recursive(false), 
-      /*in_rsection(0),*/ rcount(0), rset(0),
+      recursive_ref_found(false),
+      rscan(0),
+      rcount(0), rwaiting(0), rcycle(0), rset(0),
 #endif
       obj(n_obj) {
       //printd(5, "qore_object_private::qore_object_private() this: %p obj: %p '%s'\n", this, obj, oc->getName());
@@ -648,10 +718,8 @@ public:
 #ifdef DO_OBJ_RECURSIVE_CHECK
       {
          AutoRMWriteLocker al(rml);
-         if (rset) {
-            rset->deref();
-            rset = 0;
-         }
+         if (rset)
+            removeRSet();
       }
 #endif
 
@@ -734,10 +802,8 @@ public:
          {
             AutoRMWriteLocker al(rml);
 
-            if (rset) {            
-               rset->deref();
-               rset = 0;
-            }
+            if (rset)
+               removeRSet();
          }
 #endif
 
@@ -804,6 +870,19 @@ public:
       assert(!rset);
       rset = rs;
       rs->ref();
+   }
+
+   DLLLOCAL void removeRSet() {
+      assert(rset);
+      rset->deref();
+      rset = 0;
+   }
+
+   DLLLOCAL void invalidateAndRemoveRSet() {
+      if (rset) {
+         rset->invalidate();
+         removeRSet();
+      }
    }
 #endif
 
