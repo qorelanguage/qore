@@ -1297,8 +1297,6 @@ int ObjectRSetHelper::checkIntern(QoreObject& obj) {
 
       if (!to_rescan)
 	 o->priv->rml.writeUnlock();
-	 
-      //assert(false);
    }
    else if (mrc == (int)ovec.size()) {
       assert(frvec.size() > fpos);
