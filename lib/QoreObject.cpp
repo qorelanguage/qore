@@ -572,6 +572,8 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 	    }
 
 	    printd(0, "QoreObject::customDeref() this: %p rcount/refs: %d deleting object (%s) with only recursive references\n", this, (int)ref_copy, getClassName());
+	    if (!strcmp(getClassName(), "FtpServer"))
+	       assert(false);
 
 	    rrf = true;
 	    break;
@@ -1134,6 +1136,48 @@ int ObjectRSetHelper::checkIntern(AbstractQoreNode* n) {
    return ORS_NO_MATCH;
 }
 
+int ObjectRSetHelper::removeRescan(ObjectRSet* ors, int tid) {
+   // get a list of objects to be rescanned
+   obj_vec_t rovec;
+   // first grab all rsection locks
+   for (obj_set_t::iterator ri = ors->begin(), re = ors->end(); ri != re; ++ri) {		     
+      // if we already have the rsection lock, then ignore; already processed (either in fomap or rescan_set)
+      if ((*ri)->priv->rml.hasWriteLock(tid))
+	 continue;
+		     
+      if ((*ri)->priv->rml.tryWriteLock()) {
+	 printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj %p '%s' cannot enter rsection: tid: %d\n", *ri, (*ri)->getClassName(), (*ri)->priv->rml.writeTID());
+			
+	 // release other rsection locks
+	 for (unsigned i = 0; i < rovec.size(); ++i)
+	    rovec[i]->priv->rml.writeUnlock();
+	 return ORS_LOCK_ERROR;
+      }
+		     
+      // check object status; do not scan invalid objects or objects being deleted
+      if ((*ri)->priv->in_destructor || (*ri)->priv->status != OS_OK) {
+	 (*ri)->priv->rml.writeUnlock();
+	 continue;
+      }
+      
+      rovec.push_back(*ri);
+   }
+
+   // invalidate old rset
+   ors->invalidate();
+
+   // now process old rset
+   for (unsigned i = 0; i < rovec.size(); ++i) {
+      assert(rovec[i]->priv->rset == ors);
+      rovec[i]->priv->rset = 0;
+      ors->deref();
+      
+      rescan_set.insert(rovec[i]);
+   }
+
+   return 0;
+}
+
 int ObjectRSetHelper::checkIntern(QoreObject& obj) {
    if (obj.priv->rml.tryWriteLock()) {
       printd(0, "ObjectRSetHelper::checkIntern() obj %p '%s' cannot enter rsection: tid: %d\n", &obj, obj.getClassName(), obj.priv->rml.writeTID());
@@ -1225,7 +1269,36 @@ int ObjectRSetHelper::checkIntern(QoreObject& obj) {
    if (mrc == ORS_NO_MATCH) {
       // mark object as finalized
       fi->second = true;
-      printd(QRO_LVL, "ObjectRSetHelper::checkIntern() done search obj %p '%s': no match, removing from current set\n", &obj, obj.getClassName());
+      printd(QRO_LVL, "ObjectRSetHelper::checkIntern() done search obj %p '%s': no match, removing from current set, adding to rescan set\n", &obj, obj.getClassName());
+
+      // save object to be rescanned
+      QoreObject* o = fi->first;
+
+      bool to_rescan = false;
+      if (o->priv->rset) {
+	 if (o->priv->rset->active()) {
+	    int rc = removeRescan(o->priv->rset);
+	    if (rc)
+	       return rc;
+	 }
+
+	 to_rescan = true;
+	 
+	 // add to rescan set
+	 rescan_set.insert(o);
+
+	 // remove old rset in current object
+	 o->priv->rset->deref();
+	 o->priv->rset = 0;
+      }
+      
+      // erase from scan set
+      fomap.erase(fi);
+
+      if (!to_rescan)
+	 o->priv->rml.writeUnlock();
+	 
+      //assert(false);
    }
    else if (mrc == (int)ovec.size()) {
       assert(frvec.size() > fpos);
@@ -1250,47 +1323,9 @@ int ObjectRSetHelper::checkIntern(QoreObject& obj) {
 	    // remove any old rset and add any nodes not scanned on rescan_set
 	    if (fi->first->priv->rset) {
 	       if (fi->first->priv->rset->active()) {
-		  ObjectRSet* ors = fi->first->priv->rset;
-
-		  // get a list of objects to be rescanned
-		  obj_vec_t rovec;
-		  // first grab all rsection locks
-		  for (obj_set_t::iterator ri = ors->begin(), re = ors->end(); ri != re; ++ri) {
-		     
-		     // if we already have the rsection lock, then ignore; already processed (either in fomap or rescan_set)
-		     if ((*ri)->priv->rml.hasWriteLock(tid))
-			continue;
-		     
-		     if ((*ri)->priv->rml.tryWriteLock()) {
-			printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj %p '%s' cannot enter rsection: tid: %d\n", *ri, (*ri)->getClassName(), (*ri)->priv->rml.writeTID());
-			
-			// release other rsection locks
-			for (unsigned i = 0; i < rovec.size(); ++i)
-			   rovec[i]->priv->rml.writeUnlock();
-			
-			return ORS_LOCK_ERROR;
-		     }
-		     
-		     // check object status; do not scan invalid objects or objects being deleted
-		     if ((*ri)->priv->in_destructor || (*ri)->priv->status != OS_OK) {
-			(*ri)->priv->rml.writeUnlock();
-			continue;
-		     }
-		     
-		     rovec.push_back(*ri);
-		  }
-
-		  // invalidate old rset
-		  ors->invalidate();
-
-		  // now process old rset
-		  for (unsigned i = 0; i < rovec.size(); ++i) {
-		     assert(rovec[i]->priv->rset == ors);
-		     rovec[i]->priv->rset = 0;
-		     ors->deref();
-		     
-		     rescan_set.insert(rovec[i]);
-		  }
+		  int rc = removeRescan(fi->first->priv->rset, tid);
+		  if (rc)
+		     return rc;
 	       }
 
 	       // remove old rset in current object
@@ -1300,10 +1335,10 @@ int ObjectRSetHelper::checkIntern(QoreObject& obj) {
 
 	    // assign rset to object
 	    fi->first->priv->setRSetIntern(rset);
-	    printd(QRO_LVL, "ObjectRSetHelper::checkIntern() done search obj %p '%s': marking %p '%s' with rset: %p\n", &obj, obj.getClassName(), fi->first, fi->first->getClassName(), rset);
+	    printd(QRO_LVL, "ObjectRSetHelper::checkIntern() done search obj %p '%s': marking %p '%s' with rset: %p (rcount: %d)\n", &obj, obj.getClassName(), fi->first, fi->first->getClassName(), rset, obj.priv->rcount);
 	 }
 	 else {
-	    printd(QRO_LVL, "ObjectRSetHelper::checkIntern() done search obj %p '%s': already marked %p '%s' with rset: %p\n", &obj, obj.getClassName(), fi->first, fi->first->getClassName(), fi->first->priv->rset);
+	    printd(QRO_LVL, "ObjectRSetHelper::checkIntern() done search obj %p '%s': already marked %p '%s' with rset: %p (rcount: %d)\n", &obj, obj.getClassName(), fi->first, fi->first->getClassName(), fi->first->priv->rset, obj.priv->rcount);
 	 }
 
 	 frvec.pop_back();
@@ -1337,6 +1372,10 @@ void ObjectRSetHelper::reset() {
    frvec.clear();
    ovec.clear();
    rescan_set.clear();
+
+#ifdef _POSIX_PRIORITY_SCHEDULING
+   sched_yield();
+#endif
 }
 
 ObjectRSetHelper::ObjectRSetHelper(QoreObject& obj) {

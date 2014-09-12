@@ -219,6 +219,9 @@ protected:
    DLLLOCAL int checkIntern(QoreObject& obj);
    DLLLOCAL int checkIntern(AbstractQoreNode* n);
 
+   // removed old rset and adds nodes not scanned to rescan_set
+   DLLLOCAL int removeRescan(ObjectRSet* ors, int tid = gettid());
+
 public:
    DLLLOCAL ObjectRSetHelper(QoreObject& obj);
 
@@ -371,9 +374,14 @@ public:
    QoreReferenceCounter tRefs;  // weak references
    QoreHashNode* data;
    QoreProgram* pgm;
+#ifdef QORE_GC
+   // count of containers contained by this object: if zero then it cannot be part of a recursive graph
+   unsigned cont_cnt;
+#endif
+
    bool system_object, delete_blocker_run, in_destructor, pgm_ref;
 #ifdef DO_OBJ_RECURSIVE_CHECK
-   bool recursive_ref_found, is_recursive;
+   bool recursive_ref_found /*, is_recursive*/;
    int /*in_rsection,*/ rcount;
    // set of objects in a cyclic directed graph
    ObjectRSet* rset;
@@ -383,9 +391,12 @@ public:
    DLLLOCAL qore_object_private(QoreObject* n_obj, const QoreClass *oc, QoreProgram* p, QoreHashNode* n_data) : 
       theclass(oc), status(OS_OK), 
       privateData(0), data(n_data), pgm(p), system_object(!p), 
+#ifdef QORE_GC
+      cont_cnt(0),
+#endif
       delete_blocker_run(false), in_destructor(false), pgm_ref(true), 
 #ifdef DO_OBJ_RECURSIVE_CHECK
-      recursive_ref_found(false), is_recursive(false), 
+      recursive_ref_found(false), //is_recursive(false), 
       /*in_rsection(0),*/ rcount(0), rset(0),
 #endif
       obj(n_obj) {
@@ -852,7 +863,15 @@ public:
       rs->ref();
    }
 
+   static DLLLOCAL void invalidateRSet(QoreObject& obj) {
+      AutoRMWriteLocker al(obj.priv->rml);
+      if (obj.priv->rset)
+         obj.priv->rset->invalidate();
+   }
+
+/*
    DLLLOCAL static bool isRecursive(QoreObject& obj) {
+      assert(!obj.priv->is_recursive);
       return obj.priv->is_recursive;
    }
 
@@ -862,6 +881,7 @@ public:
          printd(0, "qore_object_private::setRecursive() obj: %p '%s'\n", &obj, obj.priv->theclass->getName());
       }
    }
+*/
 #endif
 
    DLLLOCAL static AbstractQoreNode* takeMember(QoreObject& obj, ExceptionSink* xsink, const char* mem, bool check_access = true) {

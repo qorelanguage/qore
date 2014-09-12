@@ -365,12 +365,12 @@ public:
 private:
    typedef std::vector<AbstractQoreNode*> nvec_t;
    nvec_t tvec;
-   // to find recursive references
-   bool container_change;
    lvid_set_t* lvid_set;
 
 #ifdef DO_OBJ_RECURSIVE_CHECK
    QoreObject* robj;
+   // to find recursive references
+   bool container_change;
 
    DLLLOCAL void addOSet(QoreObject* o) {
       robj = o;
@@ -386,13 +386,15 @@ public:
 
    DLLLOCAL ~LValueHelper();
 
-   DLLLOCAL void saveTemp(AbstractQoreNode* n, bool check_container = false) {
+   DLLLOCAL void saveTemp(AbstractQoreNode* n) {
       if (!n || !n->isReferenceCounted())
          return;
       // save for dereferencing later
       tvec.push_back(n);
-      if (check_container && !container_change && is_container(n))
+#ifdef DO_OBJ_RECURSIVE_CHECK
+      if (!container_change && is_container(n))
          container_change = true;
+#endif
    }
 
    DLLLOCAL AbstractQoreNode*& getTempRef() {
