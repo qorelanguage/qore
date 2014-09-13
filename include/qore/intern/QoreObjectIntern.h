@@ -255,7 +255,7 @@ public:
 
    DLLLOCAL void wait() {
       if (setp) {
-         printd(0, "RNotifier::wait() waiting for notification\n");
+         //printd(5, "RNotifier::wait() waiting for notification\n");
          notify.waitForZero();
          setp = 0;
       }
@@ -581,7 +581,7 @@ public:
 
       if (qore_class_private::runtimeCheckPrivateClassAccess(*theclass)) {
          const char* str = data->getFirstKey();
-         printd(0, "qore_object_private::firstKey() got %p (%s)\n", str, str ? str : "<null>");
+         //printd(5, "qore_object_private::firstKey() got %p (%s)\n", str, str ? str : "<null>");
          return !str ? 0 : new QoreStringNode(str);
       }
 
@@ -837,7 +837,7 @@ public:
 
 	 if (in_destructor || status != OS_OK) {
 	    printd(5, "qore_object_private::obliterate() obj=%p data=%p in_destructor=%d status=%d\n", obj, data, in_destructor, status);
-	    //printd(0, "Object lock %p unlocked (safe)\n", &rwl);
+	    //printd(5, "Object lock %p unlocked (safe)\n", &rwl);
 	    sl.unlock();
 	    tDeref();
 	    return;
@@ -850,7 +850,7 @@ public:
 	 QoreHashNode* td = data;
 	 data = 0;
 
-	 //printd(0, "Object lock %p unlocked (safe)\n", &rwl);
+	 //printd(5, "Object lock %p unlocked (safe)\n", &rwl);
 	 sl.unlock();
 
 #ifdef DO_OBJ_RECURSIVE_CHECK
@@ -1011,7 +1011,7 @@ public:
    DLLLOCAL ~qore_object_lock_handoff_helper() {
       // unlock if lock not saved in AutoVLock structure
       if (pobj) {
-	 //printd(0, "Object lock %p unlocked (handoff)\n", &pobj->rwl);
+	 //printd(5, "Object lock %p unlocked (handoff)\n", &pobj->rwl);
 	 pobj->rwl.unlock();
 	 pobj->obj->tDeref();
       }

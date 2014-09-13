@@ -560,7 +560,7 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 		  return;
 	       
 	       if (rc == -1) {
-		  printd(0, "QoreObject::customDeref() this: %p '%s' invalid rset, recalculating\n", this, getClassName());
+		  printd(QRO_LVL, "QoreObject::customDeref() this: %p '%s' invalid rset, recalculating\n", this, getClassName());
 		  recalc = true;
 		  AutoRMWriteLocker al(priv->rml);
 		  if (rs != priv->rset)
@@ -574,7 +574,8 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 	       continue;
 	    }
 
-	    printd(0, "QoreObject::customDeref() this: %p rcount/refs: %d deleting object (%s) with only recursive references\n", this, (int)ref_copy, getClassName());
+	    // output in any case even when debugging is disabled
+	    print_debug(0, "QoreObject::customDeref() this: %p rcount/refs: %d deleting object (%s) with only recursive references\n", this, (int)ref_copy, getClassName());
 	    if (!strcmp(getClassName(), "FtpServer"))
 	       assert(false);
 
@@ -1196,7 +1197,7 @@ int ObjectRSetHelper::removeInvalidate(ObjectRSet* ors, int tid) {
 
 int ObjectRSetHelper::checkIntern(QoreObject& obj) {
    if (obj.priv->rml.tryWriteLockNotifyWaitRead(notifier)) {
-      printd(0, "ObjectRSetHelper::checkIntern() obj %p '%s' cannot enter rsection: write tid: %d, readers: %d\n", &obj, obj.getClassName(), obj.priv->rml.writeTID(), obj.priv->rml.numReaders());
+      printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj %p '%s' cannot enter rsection: write tid: %d, readers: %d\n", &obj, obj.getClassName(), obj.priv->rml.writeTID(), obj.priv->rml.numReaders());
       //assert(strcmp(obj.getClassName(), "HttpListener"));
       return ORS_LOCK_ERROR;
    }
@@ -1315,7 +1316,7 @@ int ObjectRSetHelper::checkIntern(QoreObject& obj) {
 	 if (!fi->second) {
 	    if (!rset) {
 	       rset = new ObjectRSet;
-	       printd(0, "ObjectRSetHelper::checkIntern() obj: %p (%s rcycle: %d) new ObjectRSet: %p\n", &obj, obj.getClassName(), obj.priv->rcycle, rset);
+	       printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj: %p (%s rcycle: %d) new ObjectRSet: %p\n", &obj, obj.getClassName(), obj.priv->rcycle, rset);
 	    }
 	    else
 	       assert(rset->find(fi->first) == rset->end());
@@ -1379,6 +1380,8 @@ public:
    DLLLOCAL ~ObjectRScanHelper() {
       AutoLocker al(obj.rlck);
       assert(obj.rscan == gettid());
+      if (obj.rwaiting)
+	 obj.rdone.signal();
       obj.rscan = 0;
    }
 
@@ -1400,35 +1403,12 @@ ObjectRSetHelper::ObjectRSetHelper(QoreObject& obj) {
 	 notifier.wait();
 
 	 if (!rsh.needScan()) {
-	    printd(0, "ObjectRSetHelper::ObjectRSetHelper() this: %p (%p) TRANSACTION COMPLETE IN ANOTHER THREAD\n", this, &obj);
+	    printd(QRO_LVL, "ObjectRSetHelper::ObjectRSetHelper() this: %p (%p) TRANSACTION COMPLETE IN ANOTHER THREAD\n", this, &obj);
 	    return;
 	 }
-	 printd(0, "ObjectRSetHelper::ObjectRSetHelper() this: %p (%p) RESTARTING TRANSACTION: %d\n", this, &obj, obj.priv->rcycle);
+	 printd(QRO_LVL, "ObjectRSetHelper::ObjectRSetHelper() this: %p (%p) RESTARTING TRANSACTION: %d\n", this, &obj, obj.priv->rcycle);
 	 continue;
       }
-
-      // now do rescan of other objects
-      /*
-      bool restart = false;
-      while (!rescan_set.empty()) {
-	 obj_set_t::iterator i = rescan_set.begin();
-	 printd(0, "ObjectRSetHelper::ObjectRSetHelper() this: %p (%p) RESCAN %p '%s'\n", this, &obj, *i, (*i)->getClassName());
-
-	 assert(fomap.find(*i) == fomap.end());
-	 if (checkIntern(**i) == ORS_LOCK_ERROR) {
-	    reset();
-	    if (!rsh.needScan()) {
-	       printd(0, "ObjectRSetHelper::ObjectRSetHelper() this: %p (%p) TRANSACTION COMPLETE IN ANOTHER THREAD\n", this, &obj);
-	       return;
-	    }
-	    printd(0, "ObjectRSetHelper::ObjectRSetHelper() this: %p (%p) RESTARTING TRANSACTION (rescan)\n", this, &obj);
-	    restart = true;
-	    break;
-	 }
-      }
-      if (restart)
-	 continue;
-      */
 
       break;
    }
@@ -1439,12 +1419,6 @@ ObjectRSetHelper::ObjectRSetHelper(QoreObject& obj) {
 }
 
 void ObjectRSetHelper::commit(QoreObject& obj) {
-   // invalidate rsets
-   for (obj_set_t::iterator i = tr_invalidate.begin(), e = tr_invalidate.end(); i != e; ++i) {
-      (*i)->priv->invalidateRSet();
-      (*i)->priv->rml.writeUnlock();
-   }
-
    bool has_obj = false;
 
    // apply rcmds
@@ -1471,6 +1445,12 @@ void ObjectRSetHelper::commit(QoreObject& obj) {
 	 }
 	 default: assert(false);
       }
+   }
+
+   // invalidate rsets
+   for (obj_set_t::iterator i = tr_invalidate.begin(), e = tr_invalidate.end(); i != e; ++i) {
+      (*i)->priv->invalidateRSet();
+      (*i)->priv->rml.writeUnlock();
    }
 
    // increment rcycle
