@@ -147,14 +147,19 @@ public:
  */
 
 // set of objects in recursive directed graph
-class ObjectRSet : public obj_set_t {
+class ObjectRSet {
 protected:
+   obj_set_t set;
    QoreRWLock rwl;
    int acnt;
    bool valid, in_del;
    
 public:
    DLLLOCAL ObjectRSet() : acnt(0), valid(true), in_del(false) {
+   }
+
+   DLLLOCAL ObjectRSet(QoreObject* o) : acnt(0), valid(true), in_del(false) {
+      set.insert(o);
    }
 
    DLLLOCAL ~ObjectRSet() {
@@ -181,7 +186,7 @@ public:
       if (valid) {
          valid = false;
          clear();
-         printd(0, "ObjectRSet::invalidate() this: %p\n", this);
+         //printd(6, "ObjectRSet::invalidate() this: %p\n", this);
       }
    }
 
@@ -197,6 +202,32 @@ public:
 
    DLLLOCAL bool assigned() const {
       return (bool)acnt;
+   }
+
+   DLLLOCAL void insert(QoreObject* o) {
+      set.insert(o);
+   }
+
+   DLLLOCAL void clear() {
+      set.clear();
+   }
+
+   DLLLOCAL obj_set_t::iterator begin() {
+      return set.begin();
+   }
+
+   DLLLOCAL obj_set_t::iterator end() {
+      return set.end();
+   }
+
+   DLLLOCAL obj_set_t::iterator find(QoreObject* o) {
+      return set.find(o);
+   }
+
+   DLLLOCAL bool pop() {
+      assert(!set.empty());
+      set.erase(set.begin());
+      return set.empty();
    }
 };
 
@@ -234,13 +265,29 @@ public:
 class ObjectRSetHelper;
 typedef std::list<RNotifier*> n_list_t;
 
+class qore_object_private;
+typedef unsigned char rcmd_t;
+
+#define RC_ZERO       0
+#define RC_INC        1
+#define RC_CONDSETONE 2
+
+struct RCmd {
+   qore_object_private* obj;
+   rcmd_t cmd;
+
+   DLLLOCAL RCmd(qore_object_private* o, rcmd_t c) : obj(o), cmd(c) {
+   }
+};
+typedef std::vector<RCmd> rcmd_vec_t;
+
 class ObjectRSetHelper {
 private:
    DLLLOCAL ObjectRSetHelper(const ObjectRSetHelper&);
    
 protected:
-   typedef std::map<QoreObject*, bool> omap_t;
-   // map of all objects scanned to status (true = finalized, false = not finalized, in current list)
+   typedef std::map<QoreObject*, ObjectRSet*> omap_t;
+   // map of all objects scanned to rset (rset = finalized, 0 = not finalized, in current list)
    omap_t fomap;
 
    typedef std::vector<omap_t::iterator> ovec_t;
@@ -250,19 +297,29 @@ protected:
    // list of fomap iterators to current recursive objects found
    ovec_t frvec;
    
-   // set of objects to be rescanned since they were removed from existing recursive graphs
-   obj_set_t rescan_set;
+   // set of ObjecrRSet objects to be invalidated when the transaction is committed
+   obj_set_t tr_invalidate;
+
+   // list of rcount commands to execute sequentially when committing the transaction
+   rcmd_vec_t rcmds;
+
+   // list of objects found to have no links
+   obj_set_t okobj;
 
    // rmlock notification helper when waiting on locks
    RNotifier notifier;
 
-   DLLLOCAL void reset();
+   // rollback transaction due to lock error
+   DLLLOCAL void rollback();
+
+   // commit transaction
+   DLLLOCAL void commit(QoreObject& obj);
 
    DLLLOCAL int checkIntern(QoreObject& obj);
    DLLLOCAL int checkIntern(AbstractQoreNode* n);
 
-   // removed old rset and adds nodes not scanned to rescan_set
-   DLLLOCAL int removeRescan(ObjectRSet* ors, int tid = gettid());
+   // queues nodes not scanned to tr_invalidate
+   DLLLOCAL int removeInvalidate(ObjectRSet* ors, int tid = gettid());
 
 public:
    DLLLOCAL ObjectRSetHelper(QoreObject& obj);
@@ -332,15 +389,13 @@ public:
          write_cond.wait(l);
          --write_wait;
       }
-      
-      if (!readers) {
-         if (write_tid == -1) {
-            write_tid = tid;
-            return 0;
-         }
-         if (write_tid == tid)
-            return 0;
+
+      if (write_tid == -1) {
+         write_tid = tid;
+         return 0;
       }
+      if (write_tid == tid)
+         return 0;
 
       // insert in list for notification when done
       list.push_back(&rn);
@@ -363,6 +418,7 @@ public:
 
    DLLLOCAL void readLock() {
       AutoLocker al(l);
+      assert(write_tid != gettid());
       while (write_tid != -1) {
          ++read_wait;
          read_cond.wait(l);
@@ -718,8 +774,7 @@ public:
 #ifdef DO_OBJ_RECURSIVE_CHECK
       {
          AutoRMWriteLocker al(rml);
-         if (rset)
-            removeRSet();
+         removeInvalidateRSet();
       }
 #endif
 
@@ -801,9 +856,7 @@ public:
 #ifdef DO_OBJ_RECURSIVE_CHECK
          {
             AutoRMWriteLocker al(rml);
-
-            if (rset)
-               removeRSet();
+            removeInvalidateRSet();
          }
 #endif
 
@@ -865,25 +918,42 @@ public:
    }
 
 #ifdef DO_OBJ_RECURSIVE_CHECK
+   /*
    DLLLOCAL void setRSetIntern(ObjectRSet* rs) {
       assert(rml.hasWriteLock(gettid()));
       assert(!rset);
       rset = rs;
       rs->ref();
    }
+   */
 
-   DLLLOCAL void removeRSet() {
-      assert(rset);
-      rset->deref();
-      rset = 0;
-   }
-
-   DLLLOCAL void invalidateAndRemoveRSet() {
+   DLLLOCAL void setRSet(ObjectRSet* rs) {
+      assert(rml.hasWriteLock(gettid()));
       if (rset) {
          rset->invalidate();
-         removeRSet();
+         rset->deref();
       }
+      rset = rs;
+      rs->ref();
+      // increment transaction count
+      ++rcycle;
    }
+
+   DLLLOCAL void invalidateRSet() {
+      assert(rml.hasWriteLock(gettid()));
+      if (rset)
+         rset->invalidate();
+    }
+
+   DLLLOCAL void removeInvalidateRSet() {
+      assert(rml.hasWriteLock(gettid()));
+      if (rset) {
+         rset->invalidate();
+         rset->deref();
+         rset = 0;
+         rcount = 0;
+      }
+    }
 #endif
 
    DLLLOCAL static AbstractQoreNode* takeMember(QoreObject& obj, ExceptionSink* xsink, const char* mem, bool check_access = true) {
