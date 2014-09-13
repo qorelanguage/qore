@@ -205,7 +205,7 @@ protected:
 
    DLLLOCAL int checkStopUnlocked(const char* m, ExceptionSink* xsink) {
       if (stopflag) {
-	 xsink->raiseException("THREADPOOL-ERROR", "ThreadPool::%s() cannot be executed because the ThreadPool is being destroyed");
+	 xsink->raiseException("THREADPOOL-ERROR", "ThreadPool::%s() cannot be executed because the ThreadPool is being destroyed", m);
 	 return -1;
       }
       return 0;
