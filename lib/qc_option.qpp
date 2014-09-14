@@ -141,6 +141,12 @@
 #define QORE_CONST_HAVE_CHOWN 0
 #endif
 
+#ifdef DO_OBJ_RECURSIVE_CHECK
+#define QORE_CONST_DETERMINISTIC_GC 1
+#else
+#define QORE_CONST_DETERMINISTIC_GC 0
+#endif
+
 #ifdef HAVE_STRUCT_FLOCK
 #define QORE_CONST_HAVE_STRUCT_FLOCK 1
 #else
@@ -289,6 +295,9 @@ const HAVE_UNIX_FILEMGT = bool(QORE_CONST_HAVE_CHOWN);
 /** @note Currently this function is only available when running on UNIX or UNIX-like platforms
  */
 const HAVE_FILE_LOCKING = bool(QORE_CONST_HAVE_STRUCT_FLOCK);
+
+//! Indicates if the %Qore library supports deterministic garbage collection for managing circular references between objects
+const HAVE_DETERMINISTIC_GC = bool(QORE_CONST_DETERMINISTIC_GC);
 
 //! Indicates if the openssl library used to build the qore library supported the SHA224 algorithm and therefore if the SHA224() and SHA224_bin() functions are available
 const HAVE_SHA224 = bool(QORE_CONST_HAVE_SHA256);

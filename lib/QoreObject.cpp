@@ -1202,17 +1202,23 @@ int ObjectRSetHelper::checkIntern(QoreObject& obj) {
       return ORS_LOCK_ERROR;
    }
 
-   // check object status; do not scan invalid objects or objects being deleted
-   if (obj.priv->in_destructor || obj.priv->status != OS_OK) {
-      obj.priv->rml.writeUnlock();
-      return ORS_NO_MATCH;
-   }
-
    // see if the object has been scanned
    {
       obj_set_t::iterator i = okobj.find(&obj);
       if (i != okobj.end()) {
 	 printd(QRO_LVL, "ObjectRSetHelper::checkIntern() found obj %p '%s' already scanned in OK set (rcount: %d)\n", &obj, obj.getClassName(), obj.priv->rcount);
+	 return ORS_NO_MATCH;
+      }
+   }
+   
+   //ReferenceHolder<QoreHashNode> data(0);
+   {
+      //QoreSafeRWReadLocker al(priv->rwl);
+
+      // check object status; do not scan invalid objects or objects being deleted
+      if (obj.priv->in_destructor || obj.priv->status != OS_OK) {
+	 //al.unlock();
+	 obj.priv->rml.writeUnlock();
 	 return ORS_NO_MATCH;
       }
    }
@@ -1265,7 +1271,7 @@ int ObjectRSetHelper::checkIntern(QoreObject& obj) {
    // push on current vector chain
    ovec.push_back(fi);
 
-   // remove from invalidation set if possible
+   // remove from invalidation set if present
    tr_invalidate.erase(&obj);
 
    // recursively check data members

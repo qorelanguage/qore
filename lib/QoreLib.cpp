@@ -196,6 +196,15 @@ const qore_option_s qore_option_list_l[] = {
      false
 #endif
    },
+   { QORE_OPT_DETERMINISTIC_GC,
+     "HAVE_DETEMINISTIC_GC",
+     QO_OPTION,
+#ifdef DO_OBJ_RECURSIVE_CHECK
+     true
+#else
+     false
+#endif
+   },
    { QORE_OPT_SHA224,
      "HAVE_SSH224",
      QO_ALGORITHM,

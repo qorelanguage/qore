@@ -402,6 +402,8 @@ DLLEXPORT const char* tz_get_region_name(const AbstractQoreZoneInfo* tz);
 #define QORE_OPT_UNIX_USERMGT            "unix user management"
 //! option: unix file management functions available
 #define QORE_OPT_UNIX_FILEMGT            "unix file management"
+//! options: deterministic garbage collection
+#define QORE_OPT_DETERMINISTIC_GC        "deterministic garbage collection"
 //! option: round() function available
 #define QORE_OPT_FUNC_ROUND              "round()"
 //! option: timegm() function available

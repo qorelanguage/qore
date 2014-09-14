@@ -185,11 +185,11 @@ static const char parseopts[] =    "qore options controlling parse options:\n"
    "  -S, --no-subroutine-defs     make subroutine definitions illegal\n"
    "  -T, --no-threads             disallow thread access and control\n"
    "      --no-thread-classes      disallow access to thread classes\n" 
-   "  -Y, --no-network             disallow access to the network\n";
+   "  -Y, --no-network             disallow access to the network";
 ////12345678901234567890123456789012345678901234567890123456789012345678901234567890
 static const char debugstr[] = "\n DEBUGGING OPTIONS:\n"
    "  -d, --debug=arg              sets debugging level (higher number = more output)\n"
-   "  -t, --trace                  turns on function tracing\n" 
+   "  -t, --trace                  turns on function tracing" 
    ;
 
 static inline void show_usage() {
