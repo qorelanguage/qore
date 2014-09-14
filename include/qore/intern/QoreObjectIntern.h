@@ -184,6 +184,11 @@ protected:
          (*i)->done();
       list.clear();
    }
+
+   DLLLOCAL void setNotificationIntern(RNotifier& rn) {
+      list.push_back(&rn);
+      rn.set();
+   }
 #endif
 
 public:
@@ -202,42 +207,18 @@ public:
    }
 
 #ifdef DO_OBJ_RECURSIVE_CHECK
-   DLLLOCAL void rSectionLock() {
-      int tid = gettid();
-
-      QoreSafeRWReadLocker sl(*this);
-
-      {
-         AutoLocker al(l);
-   
-         while (true) {
-            // if we already have the rsection, then return
-            if (rs_tid == gettid())            
-               return;
-
-            // if nobody has the rsection, grab it
-            if (rs_tid == -1) {
-               rs_tid = tid;
-               sl.stay_locked();
-               return;
-            }
-
-            ++rs_waiting;
-            rcond.wait(l);
-            --rs_waiting;
-         }
-      }
-   }
-
-   // waits for readers and writers but returns -1 if the rsection lock has already been acquired and sets a notification
+   // does not block under any circumstances, returns -1 if the lock cannot be acquired and sets a notification
    DLLLOCAL int tryRSectionLockNotifyWaitRead(RNotifier& rn) {
       int tid = gettid();
 
-      if (!tryrdlock()) {
-         AutoLocker al(l);
+      int rc = tryrdlock();
 
+      AutoLocker al(l);
+
+      if (!rc) {
          // if we already have the rsection, then return
          if (rs_tid == gettid()) {
+            // release the "extra" read lock acquired here (we already have it from before)
             unlock();
             return 0;
          }
@@ -245,16 +226,16 @@ public:
          // if nobody has the rsection, grab it
          if (rs_tid == -1) {
             rs_tid = tid;
-            // do not release the read lock
+            // do not release the read lock only in this case
             return 0;
          }
 
-         // insert in list for notification when done
-         list.push_back(&rn);
-         rn.set();
-
+         // release the read lock
          unlock();
       }
+
+      // insert in list for notification when done
+      setNotificationIntern(rn);
 
       return -1;
    }
@@ -286,38 +267,6 @@ public:
 };
 
 #ifdef DO_OBJ_RECURSIVE_CHECK
-
-class QoreAutoRSectionLocker {
-private:
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL QoreAutoRSectionLocker(const QoreAutoRSectionLocker&);
-   
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL QoreAutoRSectionLocker& operator=(const QoreAutoRSectionLocker&);
-   
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL void *operator new(size_t);
-
-protected:
-   //! the pointer to the lock that will be managed
-   RSectionLock *l;
-
-public:
-   //! creates the object and grabs the write lock
-   DLLLOCAL QoreAutoRSectionLocker(RSectionLock &n_l) : l(&n_l) {
-      l->rSectionLock();
-   }
-
-   //! creates the object and grabs the write lock
-   DLLLOCAL QoreAutoRSectionLocker(RSectionLock *n_l) : l(n_l) {
-      l->rSectionLock();
-   }
-
-   //! destroys the object and releases the lock
-   DLLLOCAL ~QoreAutoRSectionLocker() {
-      l->rSectionUnlock();
-   }
-};
 
 #define ORS_NO_MATCH   -1
 #define ORS_LOCK_ERROR -2
