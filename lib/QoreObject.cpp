@@ -46,7 +46,7 @@ void qore_object_private::merge(const QoreHashNode* h, AutoVLock& vl, ExceptionS
    bool inclass = qore_class_private::runtimeCheckPrivateClassAccess(*theclass);
 
    {
-      QoreAutoRWWriteLocker al(rwl);
+      QoreAutoRWWriteLocker al(rml);
 
       if (status == OS_DELETED) {
 	 makeAccessDeletedObjectException(xsink, theclass->getName());
@@ -99,7 +99,7 @@ AbstractQoreNode *qore_object_private::takeMember(ExceptionSink* xsink, const ch
    if (checkMemberAccessGetTypeInfo(xsink, key, mti, check_access))
       return 0;
 
-   QoreAutoRWWriteLocker al(rwl);
+   QoreAutoRWWriteLocker al(rml);
 
    if (status == OS_DELETED) {
       makeAccessDeletedObjectException(xsink, key, theclass->getName());
@@ -147,7 +147,7 @@ int qore_object_private::getLValue(const char* key, LValueHelper& lvh, bool inte
 
 void QoreObject::externalDelete(qore_classid_t key, ExceptionSink* xsink) {
    {
-      QoreAutoRWWriteLocker al(priv->rwl);
+      QoreAutoRWWriteLocker al(priv->rml);
 
       if (priv->in_destructor || priv->status == OS_DELETED || !priv->privateData)
 	 return;
@@ -444,7 +444,7 @@ AbstractQoreNode *QoreObject::evalMember(const QoreString *member, ExceptionSink
    AbstractQoreNode *rv;
    bool exists;
    {
-      QoreAutoRWReadLocker al(priv->rwl);
+      QoreAutoRWReadLocker al(priv->rml);
 
       if (priv->status == OS_DELETED)
 	 return 0;
@@ -474,7 +474,7 @@ bool QoreObject::compareHard(const QoreObject *obj, ExceptionSink* xsink) const 
 
 void QoreObject::doDelete(ExceptionSink* xsink) {
    {
-      QoreAutoRWWriteLocker al(priv->rwl);
+      QoreAutoRWWriteLocker al(priv->rml);
 
       if (priv->status == OS_DELETED)
 	 return;
@@ -539,7 +539,7 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 	 while (true) {
 	    bool recalc = false;
 	    {
-	       QoreSafeRWReadLocker sl(priv->rwl);
+	       QoreSafeRWReadLocker sl(priv->rml);
 
 	       if (priv->in_destructor || priv->status != OS_OK || priv->recursive_ref_found) {
 		  return;
@@ -547,14 +547,11 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 
 	       int rc;
 	       ObjectRSet* rs;
-	       {
-		  AutoRMReadLocker al(priv->rml);
-		  rs = priv->rset;
-		  if (!rs)
-		     return;
+	       rs = priv->rset;
+	       if (!rs)
+		  return;
 
-		  rc = rs->canDelete();
-	       }
+	       rc = rs->canDelete();
 
 	       if (!rc)
 		  return;
@@ -562,10 +559,6 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 	       if (rc == -1) {
 		  printd(QRO_LVL, "QoreObject::customDeref() this: %p '%s' invalid rset, recalculating\n", this, getClassName());
 		  recalc = true;
-		  AutoRMWriteLocker al(priv->rml);
-		  if (rs != priv->rset)
-		     continue;
-		  priv->removeInvalidateRSet();
 	       }
 	    }
 	    if (recalc) {
@@ -584,7 +577,7 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 	 }
       }
 
-      QoreSafeRWWriteLocker sl(priv->rwl);
+      QoreSafeRWWriteLocker sl(priv->rml);
 
       if (rrf)
 	 priv->recursive_ref_found = true;
@@ -603,7 +596,7 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 	    return;
       }
 
-      QoreSafeRWWriteLocker sl(priv->rwl);
+      QoreSafeRWWriteLocker sl(priv->rml);
 
       // if the destructor has already been run, then just run tDeref() which should delete the QoreObject
       if (priv->in_destructor || priv->status != OS_OK) {
@@ -618,7 +611,7 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 	 if (priv->theclass->execDeleteBlocker(this, xsink)) {
 	    //printd(5, "QoreObject::customDeref() this: %p class: %s blocking delete\n", this, getClassName());
 	    priv->delete_blocker_run = true;
-	    //printd(5, "Object lock %p unlocked (safe)\n", &priv->rwl);
+	    //printd(5, "Object lock %p unlocked (safe)\n", &priv->rml);
 	    return;
 	 }
       }
@@ -630,7 +623,7 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
       // mark status as in destructor
       priv->status = gettid();
 
-      //printd(5, "Object lock %p unlocked (safe)\n", &priv->rwl);
+      //printd(5, "Object lock %p unlocked (safe)\n", &priv->rml);
    }
 
    priv->doDeleteIntern(xsink);
@@ -693,7 +686,7 @@ void QoreObject::deleteMemberValue(const char *key, ExceptionSink* xsink) {
 
    AbstractQoreNode *v;
    {
-      QoreSafeRWWriteLocker sl(priv->rwl);
+      QoreSafeRWWriteLocker sl(priv->rml);
 
       if (priv->status == OS_DELETED) {
 	 makeAccessDeletedObjectException(xsink, key, priv->theclass->getName());
@@ -736,7 +729,7 @@ void QoreObject::removeMember(const char *key, ExceptionSink* xsink) {
 }
 
 QoreListNode *QoreObject::getMemberList(ExceptionSink* xsink) const {
-   QoreSafeRWReadLocker sl(priv->rwl);
+   QoreSafeRWReadLocker sl(priv->rml);
 
    if (priv->status == OS_DELETED) {
       makeAccessDeletedObjectException(xsink, priv->theclass->getName());
@@ -754,7 +747,7 @@ void QoreObject::setValue(const char *key, AbstractQoreNode *val, ExceptionSink*
    AbstractQoreNode *old_value;
 
    {
-      QoreSafeRWWriteLocker sl(priv->rwl);
+      QoreSafeRWWriteLocker sl(priv->rml);
 
       if (priv->status == OS_DELETED) {
 	 makeAccessDeletedObjectException(xsink, key, priv->theclass->getName());
@@ -771,7 +764,7 @@ void QoreObject::setValue(const char *key, AbstractQoreNode *val, ExceptionSink*
 }
 
 int QoreObject::size(ExceptionSink* xsink) const {
-   QoreSafeRWReadLocker sl(priv->rwl);
+   QoreSafeRWReadLocker sl(priv->rml);
 
    if (priv->status == OS_DELETED)
       return 0;
@@ -780,7 +773,7 @@ int QoreObject::size(ExceptionSink* xsink) const {
 }
 
 int64 QoreObject::getMemberAsBigInt(const char *mem, bool &found, ExceptionSink* xsink) const {
-   QoreSafeRWReadLocker sl(priv->rwl);
+   QoreSafeRWReadLocker sl(priv->rml);
 
    if (priv->status == OS_DELETED) {
       makeAccessDeletedObjectException(xsink, mem, priv->theclass->getName());
@@ -791,7 +784,7 @@ int64 QoreObject::getMemberAsBigInt(const char *mem, bool &found, ExceptionSink*
 }
 
 AbstractQoreNode *QoreObject::getReferencedMemberNoMethod(const char *mem, ExceptionSink* xsink) const {
-   QoreSafeRWReadLocker sl(priv->rwl);
+   QoreSafeRWReadLocker sl(priv->rml);
 
    printd(5, "QoreObject::getReferencedMemberNoMethod(this=%p, mem=%p (%s), xsink=%p, data->size()=%d)\n",
 	  this, mem, mem, xsink, priv->data ? priv->data->size() : -1);
@@ -805,7 +798,7 @@ AbstractQoreNode *QoreObject::getReferencedMemberNoMethod(const char *mem, Excep
 }
 
 QoreHashNode *QoreObject::copyData(ExceptionSink* xsink) const {
-   QoreSafeRWReadLocker sl(priv->rwl);
+   QoreSafeRWReadLocker sl(priv->rml);
 
    if (priv->status == OS_DELETED) {
       makeAccessDeletedObjectException(xsink, priv->theclass->getName());
@@ -818,7 +811,7 @@ QoreHashNode *QoreObject::copyData(ExceptionSink* xsink) const {
 QoreHashNode *QoreObject::getRuntimeMemberHash(ExceptionSink* xsink) const {
    bool inclass = qore_class_private::runtimeCheckPrivateClassAccess(*(priv->theclass));
 
-   QoreSafeRWReadLocker sl(priv->rwl);
+   QoreSafeRWReadLocker sl(priv->rml);
 
    if (priv->status == OS_DELETED)
       return 0;
@@ -842,7 +835,7 @@ QoreHashNode *QoreObject::getRuntimeMemberHash(ExceptionSink* xsink) const {
 }
 
 void QoreObject::mergeDataToHash(QoreHashNode *hash, ExceptionSink* xsink) {
-   QoreSafeRWReadLocker sl(priv->rwl);
+   QoreSafeRWReadLocker sl(priv->rml);
 
    if (priv->status == OS_DELETED) {
       makeAccessDeletedObjectException(xsink, priv->theclass->getName());
@@ -887,7 +880,7 @@ AbstractQoreNode **QoreObject::getExistingValuePtr(const char *mem, AutoVLock *v
 }
 
 AbstractPrivateData *QoreObject::getReferencedPrivateData(qore_classid_t key, ExceptionSink* xsink) const { 
-   QoreSafeRWReadLocker sl(priv->rwl);
+   QoreSafeRWReadLocker sl(priv->rml);
 
    if (priv->status == OS_DELETED || !priv->privateData) {
       makeAccessDeletedObjectException(xsink, getClassName());
@@ -898,7 +891,7 @@ AbstractPrivateData *QoreObject::getReferencedPrivateData(qore_classid_t key, Ex
 }
 
 AbstractPrivateData *QoreObject::getAndClearPrivateData(qore_classid_t key, ExceptionSink* xsink) {
-   QoreSafeRWWriteLocker sl(priv->rwl);
+   QoreSafeRWWriteLocker sl(priv->rml);
 
    if (priv->privateData)
       return priv->privateData->getAndClearPtr(key);
@@ -913,7 +906,7 @@ void QoreObject::setPrivate(qore_classid_t key, AbstractPrivateData* pd) {
 
 void QoreObject::addPrivateDataToString(QoreString* str, ExceptionSink* xsink) const {
    str->concat('(');
-   QoreSafeRWReadLocker sl(priv->rwl);
+   QoreSafeRWReadLocker sl(priv->rml);
 
    if (priv->status == OS_OK && priv->privateData) {
       priv->privateData->addToString(str);
@@ -1096,7 +1089,7 @@ bool QoreObject::getAsBoolImpl() const {
    if (runtime_check_parse_option(PO_STRICT_BOOLEAN_EVAL))
       return false;
 
-   QoreSafeRWReadLocker sl(priv->rwl);
+   QoreSafeRWReadLocker sl(priv->rml);
    return priv->status != OS_DELETED;
 }
 
@@ -1146,21 +1139,21 @@ int ObjectRSetHelper::removeInvalidate(ObjectRSet* ors, int tid) {
    // first grab all rsection locks
    for (obj_set_t::iterator ri = ors->begin(), re = ors->end(); ri != re; ++ri) {		     
       // if we already have the rsection lock, then ignore; already processed (either in fomap or tr_invalidate)
-      if ((*ri)->priv->rml.hasWriteLock(tid))
+      if ((*ri)->priv->rml.hasRSectionLock(tid))
 	 continue;
 
-      if ((*ri)->priv->rml.tryWriteLockNotifyWaitRead(notifier)) {
-	 printd(QRO_LVL, "ObjectRSetHelper::removeInvalidate() obj %p '%s' cannot enter rsection: tid: %d\n", *ri, (*ri)->getClassName(), (*ri)->priv->rml.writeTID());
+      if ((*ri)->priv->rml.tryRSectionLockNotifyWaitRead(notifier)) {
+	 printd(QRO_LVL, "ObjectRSetHelper::removeInvalidate() obj %p '%s' cannot enter rsection: tid: %d\n", *ri, (*ri)->getClassName(), (*ri)->priv->rml.rSectionTid());
 
 	 // release other rsection locks
 	 for (unsigned i = 0; i < rovec.size(); ++i)
-	    rovec[i]->priv->rml.writeUnlock();
+	    rovec[i]->priv->rml.rSectionUnlock();
 	 return ORS_LOCK_ERROR;
       }
-		     
+
       // check object status; do not scan invalid objects or objects being deleted
       if ((*ri)->priv->in_destructor || (*ri)->priv->status != OS_OK) {
-	 (*ri)->priv->rml.writeUnlock();
+	 (*ri)->priv->rml.rSectionUnlock();
 	 continue;
       }
       
@@ -1171,7 +1164,7 @@ int ObjectRSetHelper::removeInvalidate(ObjectRSet* ors, int tid) {
    if (!ors->active()) {
       // release other rsection locks and take no action
       for (unsigned i = 0; i < rovec.size(); ++i)
-	 rovec[i]->priv->rml.writeUnlock();
+	 rovec[i]->priv->rml.rSectionUnlock();
       return 0;
    }
 
@@ -1180,15 +1173,14 @@ int ObjectRSetHelper::removeInvalidate(ObjectRSet* ors, int tid) {
 
    // now process old rset
    for (unsigned i = 0; i < rovec.size(); ++i) {
-      assert(rovec[i]->priv->rml.hasWriteLock());
+      assert(rovec[i]->priv->rml.hasRSectionLock());
       assert(rovec[i]->priv->rset == ors);
       //rovec[i]->priv->removeRSet();
       
       // DEBUG
       assert(okobj.find(rovec[i]) == okobj.end());
 
-      //QoreSafeRWReadLocker sl(rovec[i]->priv->rwl);
-      //if (rovec[i]->priv->status == OS_OK && rovec[i]->priv->data->size())
+      if (rovec[i]->priv->status == OS_OK)
 	 tr_invalidate.insert(rovec[i]);
    }
 
@@ -1196,10 +1188,16 @@ int ObjectRSetHelper::removeInvalidate(ObjectRSet* ors, int tid) {
 }
 
 int ObjectRSetHelper::checkIntern(QoreObject& obj) {
-   if (obj.priv->rml.tryWriteLockNotifyWaitRead(notifier)) {
-      printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj %p '%s' cannot enter rsection: write tid: %d, readers: %d\n", &obj, obj.getClassName(), obj.priv->rml.writeTID(), obj.priv->rml.numReaders());
+   if (obj.priv->rml.tryRSectionLockNotifyWaitRead(notifier)) {
+      printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj %p '%s' cannot enter rsection: rsection tid: %d\n", &obj, obj.getClassName(), obj.priv->rml.rSectionTid());
       //assert(strcmp(obj.getClassName(), "HttpListener"));
       return ORS_LOCK_ERROR;
+   }
+
+   // check object status; do not scan invalid objects or objects being deleted
+   if (obj.priv->in_destructor || obj.priv->status != OS_OK) {
+      obj.priv->rml.rSectionUnlock();
+      return ORS_NO_MATCH;
    }
 
    // see if the object has been scanned
@@ -1211,18 +1209,6 @@ int ObjectRSetHelper::checkIntern(QoreObject& obj) {
       }
    }
    
-   //ReferenceHolder<QoreHashNode> data(0);
-   {
-      //QoreSafeRWReadLocker al(priv->rwl);
-
-      // check object status; do not scan invalid objects or objects being deleted
-      if (obj.priv->in_destructor || obj.priv->status != OS_OK) {
-	 //al.unlock();
-	 obj.priv->rml.writeUnlock();
-	 return ORS_NO_MATCH;
-      }
-   }
-
    omap_t::iterator fi = fomap.find(&obj);
    if (fi != fomap.end()) {
       if (fi->second) {
@@ -1456,7 +1442,7 @@ void ObjectRSetHelper::commit(QoreObject& obj) {
    // invalidate rsets
    for (obj_set_t::iterator i = tr_invalidate.begin(), e = tr_invalidate.end(); i != e; ++i) {
       (*i)->priv->invalidateRSet();
-      (*i)->priv->rml.writeUnlock();
+      (*i)->priv->rml.rSectionUnlock();
    }
 
    // increment rcycle
@@ -1468,13 +1454,6 @@ void ObjectRSetHelper::commit(QoreObject& obj) {
 	 // assign new rset
 	 i->first->priv->setRSet(i->second);
       }
-      else {
-	 // invalidate rset
-	 //i->first->priv->removeInvalidateRSet();
-      }
-
-      // release lock
-      //i->first->priv->rml.writeUnlock();
 
       if (i->first == &obj)
 	 has_obj = true;
@@ -1490,11 +1469,11 @@ void ObjectRSetHelper::commit(QoreObject& obj) {
    }
 
    for (omap_t::iterator i = fomap.begin(), e = fomap.end(); i != e; ++i) {
-      i->first->priv->rml.writeUnlock();
+      i->first->priv->rml.rSectionUnlock();
    }
 
    for (obj_set_t::iterator i = okobj.begin(), e = okobj.end(); i != e; ++i) {
-      (*i)->priv->rml.writeUnlock();
+      (*i)->priv->rml.rSectionUnlock();
    }
 
    assert(fomap.empty() || has_obj);
@@ -1507,17 +1486,17 @@ void ObjectRSetHelper::rollback() {
 	 if (r->pop())
 	    delete r;
       }
-      i->first->priv->rml.writeUnlock();
+      i->first->priv->rml.rSectionUnlock();
    }
 
    // exit rsection of objects in tr_invalidate
    for (obj_set_t::iterator i = tr_invalidate.begin(), e = tr_invalidate.end(); i != e; ++i) {
       assert(fomap.find(*i) == fomap.end());
-      (*i)->priv->rml.writeUnlock();
+      (*i)->priv->rml.rSectionUnlock();
    }
 
    for (obj_set_t::iterator i = okobj.begin(), e = okobj.end(); i != e; ++i) {
-      (*i)->priv->rml.writeUnlock();
+      (*i)->priv->rml.rSectionUnlock();
    }
 
    fomap.clear();

@@ -132,6 +132,190 @@ public:
 };
 
 #ifdef DO_OBJ_RECURSIVE_CHECK
+class RNotifier {
+public:
+   bool setp;
+   QoreCounter notify;
+
+   DLLLOCAL RNotifier() : setp(false) {
+   }
+
+   DLLLOCAL void done() {
+      assert(setp);
+      notify.dec();
+   }
+
+   DLLLOCAL void set() {
+      assert(!setp);
+      setp = true;
+      assert(!notify.getCount());
+      notify.inc();
+   }
+
+   DLLLOCAL void wait() {
+      if (setp) {
+         //printd(5, "RNotifier::wait() waiting for notification\n");
+         notify.waitForZero();
+         setp = 0;
+      }
+   }
+};
+
+typedef std::list<RNotifier*> n_list_t;
+#endif
+
+// rwlock with stardard read and write lock handling, and special "rsection" handling
+// the rsection is grabbed with the read lock but only one thread can have the rsection lock at once
+// leaving other threads to read the object normally
+class RSectionLock : public QoreRWLock {
+protected:
+#ifdef DO_OBJ_RECURSIVE_CHECK
+   QoreThreadLock l;    // mutex for thread-safety for the rsection lock
+   int rs_tid,          // tid of thread holding the rsection lock
+      rs_waiting;       // threads waiting directly on the rsection lock
+   QoreCondition rcond; // rsection lock condition
+
+   // list of ObjectRSetHelper objects for notifications for rsection management
+   n_list_t list;
+
+   // notify rsection threads that the rsection lock has been released
+   DLLLOCAL void notifyIntern() {
+      for (n_list_t::iterator i = list.begin(), e = list.end(); i != e; ++i)
+         (*i)->done();
+      list.clear();
+   }
+#endif
+
+public:
+#ifdef DO_OBJ_RECURSIVE_CHECK
+   DLLLOCAL RSectionLock() : rs_tid(-1), rs_waiting(0) {
+   }
+#else
+   DLLLOCAL RSectionLock() {
+   }
+#endif
+
+   DLLLOCAL ~RSectionLock() {
+#ifdef DO_OBJ_RECURSIVE_CHECK
+      assert(rs_tid == -1);
+#endif
+   }
+
+#ifdef DO_OBJ_RECURSIVE_CHECK
+   DLLLOCAL void rSectionLock() {
+      int tid = gettid();
+
+      QoreSafeRWReadLocker sl(*this);
+
+      {
+         AutoLocker al(l);
+   
+         while (true) {
+            // if we already have the rsection, then return
+            if (rs_tid == gettid())            
+               return;
+
+            // if nobody has the rsection, grab it
+            if (rs_tid == -1) {
+               rs_tid = tid;
+               sl.stay_locked();
+               return;
+            }
+
+            ++rs_waiting;
+            rcond.wait(l);
+            --rs_waiting;
+         }
+      }
+   }
+
+   // waits for readers and writers but returns -1 if the rsection lock has already been acquired and sets a notification
+   DLLLOCAL int tryRSectionLockNotifyWaitRead(RNotifier& rn) {
+      int tid = gettid();
+
+      QoreSafeRWReadLocker sl(*this);
+
+      {
+         AutoLocker al(l);
+
+         // if we already have the rsection, then return
+         if (rs_tid == gettid())            
+            return 0;
+
+         // if nobody has the rsection, grab it
+         if (rs_tid == -1) {
+            rs_tid = tid;
+            sl.stay_locked();
+            return 0;
+         }
+
+         // insert in list for notification when done
+         list.push_back(&rn);
+         rn.set();
+      }
+
+      return -1;
+   }
+
+   DLLLOCAL void rSectionUnlock() {
+      {
+         AutoLocker al(l);
+         assert(rs_tid == gettid());
+         rs_tid = -1;
+
+         notifyIntern();
+         if (rs_waiting)
+            rcond.signal();
+      }
+
+      unlock();
+   }
+
+   DLLLOCAL bool hasRSectionLock(int tid = gettid()) {
+      return rs_tid == tid;
+   }
+#endif
+
+#if defined(DO_OBJ_RECURSIVE_CHECK) && defined(DEBUG)
+   DLLLOCAL int rSectionTid() const {
+      return rs_tid;
+   }
+#endif
+};
+
+#ifdef DO_OBJ_RECURSIVE_CHECK
+
+class QoreAutoRSectionLocker {
+private:
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL QoreAutoRSectionLocker(const QoreAutoRSectionLocker&);
+   
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL QoreAutoRSectionLocker& operator=(const QoreAutoRSectionLocker&);
+   
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL void *operator new(size_t);
+
+protected:
+   //! the pointer to the lock that will be managed
+   RSectionLock *l;
+
+public:
+   //! creates the object and grabs the write lock
+   DLLLOCAL QoreAutoRSectionLocker(RSectionLock &n_l) : l(&n_l) {
+      l->rSectionLock();
+   }
+
+   //! creates the object and grabs the write lock
+   DLLLOCAL QoreAutoRSectionLocker(RSectionLock *n_l) : l(n_l) {
+      l->rSectionLock();
+   }
+
+   //! destroys the object and releases the lock
+   DLLLOCAL ~QoreAutoRSectionLocker() {
+      l->rSectionUnlock();
+   }
+};
 
 #define ORS_NO_MATCH   -1
 #define ORS_LOCK_ERROR -2
@@ -233,37 +417,7 @@ public:
 
 typedef std::vector<QoreObject*> obj_vec_t;
 
-class RNotifier {
-public:
-   bool setp;
-   QoreCounter notify;
-
-   DLLLOCAL RNotifier() : setp(false) {
-   }
-
-   DLLLOCAL void done() {
-      assert(setp);
-      notify.dec();
-   }
-
-   DLLLOCAL void set() {
-      assert(!setp);
-      setp = true;
-      assert(!notify.getCount());
-      notify.inc();
-   }
-
-   DLLLOCAL void wait() {
-      if (setp) {
-         //printd(5, "RNotifier::wait() waiting for notification\n");
-         notify.waitForZero();
-         setp = 0;
-      }
-   }
-};
-
 class ObjectRSetHelper;
-typedef std::list<RNotifier*> n_list_t;
 
 class qore_object_private;
 typedef unsigned char rcmd_t;
@@ -306,7 +460,7 @@ protected:
    // list of objects found to have no links
    obj_set_t okobj;
 
-   // rmlock notification helper when waiting on locks
+   // RSectionLock notification helper when waiting on locks
    RNotifier notifier;
 
    // rollback transaction due to lock error
@@ -329,168 +483,17 @@ public:
       assert(frvec.empty());
    }
 };
-
-// rwlock that can be entered multiple times by the same thread for writing, only needs exiting once
-// read lock is normal
-class rmlock {
-protected:
-   QoreThreadLock l;
-   int write_tid,
-      read_wait,
-      write_wait,
-      readers;
-   QoreCondition read_cond;
-   QoreCondition write_cond;
-   // list of ObjectRSetHelper objects for notifications for lock management
-   n_list_t list;
-
-   DLLLOCAL void notifyIntern() {
-      for (n_list_t::iterator i = list.begin(), e = list.end(); i != e; ++i)
-         (*i)->done();
-      list.clear();
-   }
-
-public:
-   DLLLOCAL rmlock() : write_tid(-1), read_wait(0), write_wait(0), readers(0) {
-   }
-
-   DLLLOCAL ~rmlock() {
-      assert(write_tid == -1);
-      assert(!read_wait);
-      assert(!write_wait);
-      assert(!readers);
-   }
-
-   DLLLOCAL void writeLock() {
-      int tid = gettid();
-      AutoLocker al(l);
-      while (true) {
-         if (!readers) {
-            if (write_tid == -1) {
-               write_tid = tid;
-               break;
-            }
-            if (write_tid == tid)
-               break;
-         }
-
-         ++write_wait;
-         write_cond.wait(l);
-         --write_wait;
-      }
-   }
-
-   // waits for readers but returns -1 if the write lock has already been acquired and sets a notification
-   DLLLOCAL int tryWriteLockNotifyWaitRead(RNotifier& rn) {
-      int tid = gettid();
-      AutoLocker al(l);
-      while (readers) {
-         ++write_wait;
-         write_cond.wait(l);
-         --write_wait;
-      }
-
-      if (write_tid == -1) {
-         write_tid = tid;
-         return 0;
-      }
-      if (write_tid == tid)
-         return 0;
-
-      // insert in list for notification when done
-      list.push_back(&rn);
-      rn.set();
-      
-      return -1;
-   }
-
-   DLLLOCAL void writeUnlock() {
-      AutoLocker al(l);
-      //printd(5, "rmlock::writeUnlock() this: %p tid: %d -> -1\n", this, write_tid);
-      assert(write_tid == gettid());
-      write_tid = -1;
-      if (read_wait)
-         read_cond.broadcast();
-      else if (write_wait)
-         write_cond.signal();
-      notifyIntern();
-   }
-
-   DLLLOCAL void readLock() {
-      AutoLocker al(l);
-      assert(write_tid != gettid());
-      while (write_tid != -1) {
-         ++read_wait;
-         read_cond.wait(l);
-         --read_wait;
-      }
-      ++readers;
-   }
-
-   DLLLOCAL int tryReadLock() {
-      AutoLocker al(l);
-      if (write_tid != -1)
-         return -1;
-      ++readers;
-      return 0;
-   }
-
-   DLLLOCAL void readUnlock() {
-      AutoLocker al(l);
-      assert(readers);
-      --readers;
-      if (!readers && write_wait)
-         write_cond.signal();
-      notifyIntern();
-   }
-
-   DLLLOCAL bool hasWriteLock(int tid = gettid()) {
-      return write_tid == tid;
-   }
-
-#ifdef DEBUG
-   DLLLOCAL int writeTID() const {
-      return write_tid;
-   }
-
-   DLLLOCAL int numReaders() const {
-      return readers;
-   }
-#endif
-};
-
-class AutoRMReadLocker {
-protected:
-   rmlock& rml;
-
-public:
-   DLLLOCAL AutoRMReadLocker(rmlock& l) : rml(l) {      
-      l.readLock();
-   }
-   DLLLOCAL ~AutoRMReadLocker() {
-      rml.readUnlock();
-   }
-};
-
-class AutoRMWriteLocker {
-protected:
-   rmlock& rml;
-
-public:
-   DLLLOCAL AutoRMWriteLocker(rmlock& l) : rml(l) {      
-      l.writeLock();
-   }
-   DLLLOCAL ~AutoRMWriteLocker() {
-      rml.writeUnlock();
-   }
-};
 #endif
 
 class qore_object_private {
 public:
    const QoreClass* theclass;
    int status;
-   mutable QoreRWLock rwl;
+   //mutable QoreRWLock rwl;
+
+   // read-write lock with special rsection handling
+   mutable RSectionLock rml;
+
    // used for weak references, to ensure that assignments will not deadlock when the object is locked for update
    mutable QoreThreadLock ref_mutex;
    KeyList* privateData;
@@ -500,7 +503,6 @@ public:
 
    bool system_object, delete_blocker_run, in_destructor, pgm_ref;
 #ifdef DO_OBJ_RECURSIVE_CHECK
-   rmlock rml;
    bool recursive_ref_found;
 
    QoreThreadLock rlck;
@@ -572,7 +574,7 @@ public:
    DLLLOCAL AbstractQoreNode* *getMemberValuePtr(const char* key, AutoVLock *vl, const QoreTypeInfo*& typeInfo, ExceptionSink* xsink) const;
 
    DLLLOCAL QoreStringNode* firstKey(ExceptionSink* xsink) {
-      QoreAutoRWReadLocker al(rwl);
+      QoreAutoRWReadLocker al(rml);
 
       if (status == OS_DELETED) {
          makeAccessDeletedObjectException(xsink, theclass->getName());
@@ -598,7 +600,7 @@ public:
    }
 
    DLLLOCAL QoreStringNode* lastKey(ExceptionSink* xsink) {
-      QoreAutoRWReadLocker al(rwl);
+      QoreAutoRWReadLocker al(rml);
 
       if (status == OS_DELETED) {
          makeAccessDeletedObjectException(xsink, theclass->getName());
@@ -621,7 +623,7 @@ public:
    }
 
    DLLLOCAL QoreHashNode* getSlice(const QoreListNode* l, ExceptionSink* xsink) const {
-      QoreSafeRWReadLocker sl(rwl);
+      QoreSafeRWReadLocker sl(rml);
 
       if (status == OS_DELETED) {
 	 makeAccessDeletedObjectException(xsink, theclass->getName());
@@ -763,20 +765,17 @@ public:
 
       QoreHashNode* td;
       {
-         QoreAutoRWWriteLocker al(rwl);
+         QoreAutoRWWriteLocker al(rml);
 	 assert(status != OS_DELETED);
 	 assert(data);
 	 status = OS_DELETED;
 	 td = data;
 	 data = 0;
-      }
 
 #ifdef DO_OBJ_RECURSIVE_CHECK
-      {
-         AutoRMWriteLocker al(rml);
          removeInvalidateRSet();
-      }
 #endif
+      }
 
       cleanup(xsink, td);
 
@@ -793,7 +792,7 @@ public:
       }
 
       {
-         QoreAutoRWWriteLocker al(rwl);
+         QoreAutoRWWriteLocker al(rml);
 
          if (pgm) {
             if (pgm_ref) {
@@ -809,7 +808,7 @@ public:
    }
 
    DLLLOCAL void derefProgramCycle(QoreProgram* p) {
-      QoreAutoRWWriteLocker al(rwl);
+      QoreAutoRWWriteLocker al(rml);
 
       if (pgm && pgm_ref) {
          //pgm->depDeref(0);
@@ -833,32 +832,29 @@ public:
       }
 
       {
-         QoreSafeRWWriteLocker sl(rwl);
+         QoreSafeRWWriteLocker sl(rml);
 
 	 if (in_destructor || status != OS_OK) {
 	    printd(5, "qore_object_private::obliterate() obj=%p data=%p in_destructor=%d status=%d\n", obj, data, in_destructor, status);
-	    //printd(5, "Object lock %p unlocked (safe)\n", &rwl);
+	    //printd(5, "Object lock %p unlocked (safe)\n", &rml);
 	    sl.unlock();
 	    tDeref();
 	    return;
 	 }
 
-	 //printd(5, "Object lock %p locked   (safe)\n", &rwl);
+	 //printd(5, "Object lock %p locked   (safe)\n", &rml);
 	 printd(5, "qore_object_private::obliterate() obj=%p class=%s\n", obj, theclass->getName());
 
 	 status = OS_DELETED;
 	 QoreHashNode* td = data;
 	 data = 0;
 
-	 //printd(5, "Object lock %p unlocked (safe)\n", &rwl);
-	 sl.unlock();
-
 #ifdef DO_OBJ_RECURSIVE_CHECK
-         {
-            AutoRMWriteLocker al(rml);
-            removeInvalidateRSet();
-         }
+         removeInvalidateRSet();
 #endif
+
+	 //printd(5, "Object lock %p unlocked (safe)\n", &rml);
+	 sl.unlock();
 
 	 if (privateData)
 	    privateData->derefAll(xsink);
@@ -918,17 +914,8 @@ public:
    }
 
 #ifdef DO_OBJ_RECURSIVE_CHECK
-   /*
-   DLLLOCAL void setRSetIntern(ObjectRSet* rs) {
-      assert(rml.hasWriteLock(gettid()));
-      assert(!rset);
-      rset = rs;
-      rs->ref();
-   }
-   */
-
    DLLLOCAL void setRSet(ObjectRSet* rs) {
-      assert(rml.hasWriteLock(gettid()));
+      //assert(rml.checkRSectionExclusive(gettid()));
       if (rset) {
          rset->invalidate();
          rset->deref();
@@ -940,19 +927,21 @@ public:
    }
 
    DLLLOCAL void invalidateRSet() {
-      assert(rml.hasWriteLock(gettid()));
+      //assert(rml.checkRSectionExclusive(gettid()));
       if (rset)
          rset->invalidate();
     }
 
    DLLLOCAL void removeInvalidateRSet() {
-      assert(rml.hasWriteLock(gettid()));
+      //assert(rml.checkRSectionExclusive(gettid()));
       if (rset) {
          rset->invalidate();
          rset->deref();
          rset = 0;
          rcount = 0;
       }
+      else
+         assert(!rcount);
     }
 #endif
 
@@ -993,7 +982,7 @@ private:
 public:
    DLLLOCAL qore_object_lock_handoff_helper(qore_object_private* n_pobj, AutoVLock& n_vl) : pobj(n_pobj), vl(n_vl) {
       if (pobj->obj == vl.getObject()) {
-	 assert(vl.getRWL() == &pobj->rwl);
+	 assert(vl.getRWL() == &pobj->rml);
 	 vl.clear();
 	 return;
       }
@@ -1005,20 +994,20 @@ public:
       vl.del();
 
       // lock current object
-      pobj->rwl.wrlock();
+      pobj->rml.wrlock();
    }
 
    DLLLOCAL ~qore_object_lock_handoff_helper() {
       // unlock if lock not saved in AutoVLock structure
       if (pobj) {
-	 //printd(5, "Object lock %p unlocked (handoff)\n", &pobj->rwl);
-	 pobj->rwl.unlock();
+	 //printd(5, "Object lock %p unlocked (handoff)\n", &pobj->rml);
+	 pobj->rml.unlock();
 	 pobj->obj->tDeref();
       }
    }
 
    DLLLOCAL void stay_locked() {
-      vl.set(pobj->obj, &pobj->rwl);
+      vl.set(pobj->obj, &pobj->rml);
       pobj = 0;
    }
 };
@@ -1031,13 +1020,13 @@ private:
 public:
    DLLLOCAL qore_object_recursive_lock_handoff_helper(qore_object_private* n_pobj, AutoVLock& n_vl) : pobj(n_pobj) /*, vl(n_vl)*/ {
       // try to lock current object
-      locked = !pobj->rwl.trywrlock();
+      locked = !pobj->rml.trywrlock();
    }
 
    DLLLOCAL ~qore_object_recursive_lock_handoff_helper() {
       // unlock current object
       if (locked)
-         pobj->rwl.unlock();
+         pobj->rml.unlock();
    }
 
    DLLLOCAL operator bool() const {
