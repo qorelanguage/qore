@@ -233,25 +233,27 @@ public:
    DLLLOCAL int tryRSectionLockNotifyWaitRead(RNotifier& rn) {
       int tid = gettid();
 
-      QoreSafeRWReadLocker sl(*this);
-
-      {
+      if (!tryrdlock()) {
          AutoLocker al(l);
 
          // if we already have the rsection, then return
-         if (rs_tid == gettid())            
+         if (rs_tid == gettid()) {
+            unlock();
             return 0;
+         }
 
          // if nobody has the rsection, grab it
          if (rs_tid == -1) {
             rs_tid = tid;
-            sl.stay_locked();
+            // do not release the read lock
             return 0;
          }
 
          // insert in list for notification when done
          list.push_back(&rn);
          rn.set();
+
+         unlock();
       }
 
       return -1;

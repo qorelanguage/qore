@@ -391,33 +391,6 @@ const QoreClass *QoreObject::getClass(qore_classid_t cid, bool &cpriv) const {
    return priv->theclass->getClass(cid, cpriv);
 }
 
-/*
-class tAutoLocker : public AutoLocker {
-   public:
-      tAutoLocker(QoreThreadLock &m) : AutoLocker(m) {
-	 printd(0, "got lock %p\n", lck);
-      }
-      ~tAutoLocker() {
-	 printd(0, "released lock %p\n", lck);
-      }
-};
-
-class tSafeLocker : public SafeLocker {
-   public:
-      tSafeLocker(QoreThreadLock &m) : SafeLocker(m) {
-	 printd(0, "got lock %p\n", lck);
-      }
-      ~tSafeLocker() {
-	 if (lck)
-	    printd(0, "released lock %p\n", lck);
-      }
-      void unlock() {
-	 printd(0, "released lock %p\n", lck);
-	 SafeLocker::unlock();
-      }
-};
-*/
-
 AbstractQoreNode *QoreObject::evalMember(const QoreString *member, ExceptionSink* xsink) {
    // make sure to convert string encoding if necessary to default character set
    TempEncodingHelper tstr(member, QCS_DEFAULT, xsink);
@@ -1134,7 +1107,7 @@ int ObjectRSetHelper::checkIntern(AbstractQoreNode* n) {
 }
 
 int ObjectRSetHelper::removeInvalidate(ObjectRSet* ors, int tid) {
-   // get a list of objects to be rescanned
+   // get a list of objects to be invalidated
    obj_vec_t rovec;
    // first grab all rsection locks
    for (obj_set_t::iterator ri = ors->begin(), re = ors->end(); ri != re; ++ri) {		     
@@ -1217,7 +1190,6 @@ int ObjectRSetHelper::checkIntern(QoreObject& obj) {
       }
 
       rcmds.push_back(RCmd(obj.priv, RC_INC));
-      //++obj.priv->rcount;
 
       // increase recursive count for all objects in current chain
       int i = (int)ovec.size() - 1;
@@ -1395,10 +1367,10 @@ ObjectRSetHelper::ObjectRSetHelper(QoreObject& obj) {
 	 notifier.wait();
 
 	 if (!rsh.needScan()) {
-	    printd(QRO_LVL, "ObjectRSetHelper::ObjectRSetHelper() this: %p (%p) TRANSACTION COMPLETE IN ANOTHER THREAD\n", this, &obj);
+	    printd(QRO_LVL, "ObjectRSetHelper::ObjectRSetHelper() this: %p (%p: %s) TRANSACTION COMPLETE IN ANOTHER THREAD\n", this, &obj, obj.getClassName());
 	    return;
 	 }
-	 printd(QRO_LVL, "ObjectRSetHelper::ObjectRSetHelper() this: %p (%p) RESTARTING TRANSACTION: %d\n", this, &obj, obj.priv->rcycle);
+	 printd(QRO_LVL, "ObjectRSetHelper::ObjectRSetHelper() this: %p (%p: %s) RESTARTING TRANSACTION: %d\n", this, &obj, obj.getClassName(), obj.priv->rcycle);
 	 continue;
       }
 
@@ -1441,6 +1413,7 @@ void ObjectRSetHelper::commit(QoreObject& obj) {
 
    // invalidate rsets
    for (obj_set_t::iterator i = tr_invalidate.begin(), e = tr_invalidate.end(); i != e; ++i) {
+      assert(fomap.find(*i) == fomap.end());
       (*i)->priv->invalidateRSet();
       (*i)->priv->rml.rSectionUnlock();
    }

@@ -48,6 +48,7 @@
     - fixed a memory leak in @ref Qore::Socket::setWarningQueue() "Socket::setWarningQueue()": when a callback argument is used, the argument can be leaked when the @ref Qore::Socket "Socket" is destroyed
     - fixed a bug where the @ref Qore::HTTPClient "HTTPClient" class did not send the X.509 certificate and private key when making a client SSL connection
     - fixed a bug in the @ref Qore::Thread::ThreadPool "ThreadPool" class where an error in shutdown handling could cause a crash in rare conditions when @ref Qore::Thread::ThreadPool "ThreadPool" methods are called while the pool is shtting down
+    - fixed a crashing bug initializing some lvalues with type restrictions; affected static class variables at least
 
     @section qore_0811 Qore 0.8.11
 

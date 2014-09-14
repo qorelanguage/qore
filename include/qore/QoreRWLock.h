@@ -77,12 +77,12 @@ public:
       return pthread_rwlock_wrlock(&m);
    }
 
-   //! tries to grab the read lock; does not block if unsuccessful
+   //! tries to grab the read lock; does not block if unsuccessful; returns 0 if successful
    DLLLOCAL int tryrdlock() {
       return pthread_rwlock_tryrdlock(&m);
    }
 
-   //! tries to grab the write lock; does not block if unsuccessful
+   //! tries to grab the write lock; does not block if unsuccessful; returns 0 if successful
    DLLLOCAL int trywrlock() {
       return pthread_rwlock_trywrlock(&m);
    }

@@ -100,8 +100,12 @@ extern char* strcasestr(const char* s1, const char* s2);
 // for arbitrary-precision numeric support
 #include <mpfr.h>
 
+#ifndef DARWIN
+#define DO_OBJ_RECURSIVE_CHECK 1
+#else
 #define DO_OBJ_RECURSIVE_CHECK 1
 //#undef DO_OBJ_RECURSIVE_CHECK
+#endif
 
 // printf format for size_t or qore_size_t integers
 #if TARGET_BITS == 64

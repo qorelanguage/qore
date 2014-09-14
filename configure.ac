@@ -1536,6 +1536,29 @@ else
     fi
 fi
 
+
+# try to find libtbbmalloc on Darwin and link with it if present
+if test "$darwin" = "yes"; then
+    SAVE_LIBS="$LIBS"
+    LIBS="$LIBS $QORE_LIB_LDFLAGS $OPENSSL_LDFLAGS -ltbbmalloc"
+
+    # check for libtbbmalloc
+    AC_MSG_CHECKING([for libtbbmalloc])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM(
+    [[#include <stdlib.h>]],
+    [[void* p = malloc(2);]])],
+       [LIBTBB_FOUND=1
+        AC_MSG_RESULT([found])
+        AC_DEFINE([HAVE_TBBMALLOC], 1, [define if libtbbmalloc])],
+       [AC_MSG_RESULT([not found])])
+       
+    if test "$LIBTBB_FOUND" = "1"; then
+      QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -ltbbmalloc"
+    fi
+
+    LIBS="$SAVE_LIBS"
+fi
+
 # turn on some build flags for non-debugging, non-profiling builds
 #if test "$enable_debug" = "no" -a "$enable_profile" = "no" -a "$enable_optimization" = "yes" ; then
     # we can no longer strip binaries and libraries with non-debugging, non-profiling builds on Darwin with -Wl,-x because it breaks linking :(
