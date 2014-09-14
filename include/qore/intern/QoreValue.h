@@ -626,6 +626,15 @@ public:
    DLLLOCAL void assignInitial(bool n) {
       assert(!assigned);
       assigned = true;
+      if (fixed_type) {
+         switch (type) {
+            case QV_Bool: v.b = n; return;
+            case QV_Int: v.i = (int64)n; return;
+            case QV_Float: v.f = (double)n; return;
+            default: assert(false);
+               // no break
+         }
+      }
       type = QV_Bool;
       v.b = n;
    }
@@ -633,6 +642,15 @@ public:
    DLLLOCAL void assignInitial(int64 n) {
       assert(!assigned);
       assigned = true;
+      if (fixed_type) {
+         switch (type) {
+            case QV_Bool: v.b = (bool)n; return;
+            case QV_Int: v.i = n; return;
+            case QV_Float: v.f = (double)n; return;
+            default: assert(false);
+               // no break
+         }
+      }
       type = QV_Int;
       v.i = n;
    }
@@ -640,6 +658,15 @@ public:
    DLLLOCAL void assignInitial(double n) {
       assert(!assigned);
       assigned = true;
+      if (fixed_type) {
+         switch (type) {
+            case QV_Bool: v.b = (bool)n; return;
+            case QV_Int: v.i = (int64)n; return;
+            case QV_Float: v.f = n; return;
+            default: assert(false);
+               // no break
+         }
+      }
       type = QV_Float;
       v.f = n;
    }
@@ -647,6 +674,15 @@ public:
    DLLLOCAL void assignInitial(AbstractQoreNode* n) {
       assert(!assigned);
       assigned = true;
+      if (fixed_type) {
+         switch (type) {
+            case QV_Bool: v.b = n ? n->getAsBool() : false; return;
+            case QV_Int: v.i = n ? n->getAsBigInt() : 0; return;
+            case QV_Float: v.f = n ? n->getAsFloat() : 0; return;
+            default: assert(false);
+               // no break
+         }
+      }
       type = QV_Node;
       v.n = n;
    }
