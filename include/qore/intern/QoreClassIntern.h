@@ -1285,9 +1285,9 @@ public:
    }
 
    DLLLOCAL void init() {
+      val.set(getTypeInfo());
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
       // try to set an optimized value type for the value holder if possible
-      val.set(getTypeInfo());
       val.assignInitial(typeInfo->getDefaultQoreValue());
 #endif
    }
