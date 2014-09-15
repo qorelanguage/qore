@@ -215,7 +215,7 @@ public:
    }
 #endif
 
-   DLLLOCAL ~RSectionLock() {
+   DLLLOCAL virtual ~RSectionLock() {
 #ifdef DO_OBJ_RECURSIVE_CHECK
       assert(rs_tid == -1);
 #endif
