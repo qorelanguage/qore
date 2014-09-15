@@ -437,6 +437,9 @@ protected:
    int lcnt;
    DLLLOCAL void inccnt() { ++lcnt; }
    DLLLOCAL void deccnt() { --lcnt; }
+#else
+   DLLLOCAL void inccnt() {}
+   DLLLOCAL void deccnt() {}
 #endif
 
    // rollback transaction due to lock error

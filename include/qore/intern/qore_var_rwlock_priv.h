@@ -67,8 +67,10 @@ public:
    //! tries to grab the write lock; does not block if unsuccessful; returns 0 if successful
    DLLLOCAL int trywrlock() {
       int rc = pthread_rwlock_trywrlock(&m);
-      if (!rc)
+      if (!rc) {
+	 assert(!write_tid);
          write_tid = gettid();
+      }
       return rc;
    }
 

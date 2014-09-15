@@ -1128,8 +1128,10 @@ int ObjectRSetHelper::removeInvalidate(ObjectRSet* ors, int tid) {
 	 }
 	 return ORS_LOCK_ERROR;
       }
+#ifdef DEBUG
       if (!hl)
 	 inccnt();
+#endif
 
       // check object status; do not scan invalid objects or objects being deleted
       if ((*ri)->priv->in_destructor || (*ri)->priv->status != OS_OK) {
@@ -1175,8 +1177,10 @@ int ObjectRSetHelper::checkIntern(QoreObject& obj) {
       //assert(strcmp(obj.getClassName(), "HttpListener"));
       return ORS_LOCK_ERROR;
    }
+#ifdef DEBUG
    if (!hl)
       inccnt();
+#endif
 
    // check object status; do not scan invalid objects or objects being deleted
    if (obj.priv->in_destructor || obj.priv->status != OS_OK) {
@@ -1397,7 +1401,9 @@ ObjectRSetHelper::ObjectRSetHelper(QoreObject& obj) {
 }
 
 void ObjectRSetHelper::commit(QoreObject& obj) {
+#ifdef DEBUG
    bool has_obj = false;
+#endif
 
    // invalidate rsets
    for (rs_set_t::iterator i = tr_invalidate.begin(), e = tr_invalidate.end(); i != e; ++i) {      
@@ -1441,7 +1447,7 @@ void ObjectRSetHelper::commit(QoreObject& obj) {
    }
 #else
    for (omap_t::iterator i = fomap.begin(), e = fomap.end(); i != e; ++i) {
-      obj->priv->setRSet(i->second.rset, i->second.rcount);
+      obj.priv->setRSet(i->second.rset, i->second.rcount);
       i->first->priv->rml.rSectionUnlock();
    }
 #endif
