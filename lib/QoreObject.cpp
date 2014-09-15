@@ -1447,7 +1447,9 @@ void ObjectRSetHelper::commit(QoreObject& obj) {
    }
 #else
    for (omap_t::iterator i = fomap.begin(), e = fomap.end(); i != e; ++i) {
-      obj.priv->setRSet(i->second.rset, i->second.rcount);
+      i->first->priv->setRSet(i->second.rset, i->second.rcount);
+   }
+   for (omap_t::iterator i = fomap.begin(), e = fomap.end(); i != e; ++i) {
       i->first->priv->rml.rSectionUnlock();
    }
 #endif
