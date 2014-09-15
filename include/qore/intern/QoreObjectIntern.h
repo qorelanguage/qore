@@ -133,12 +133,19 @@ public:
 };
 
 #ifdef DO_OBJ_RECURSIVE_CHECK
+class RSectionLock;
 class RNotifier {
 public:
    bool setp;
    QoreCounter notify;
-
+#ifdef DEBUG
+   RSectionLock* rs;
+#endif
+      
    DLLLOCAL RNotifier() : setp(false) {
+#ifdef DEBUG
+      rs = 0;
+#endif
    }
 
    DLLLOCAL void done() {
@@ -146,7 +153,12 @@ public:
       notify.dec();
    }
 
+#ifdef DEBUG
+   DLLLOCAL void set(RSectionLock* r) {
+      rs = r;
+#else
    DLLLOCAL void set() {
+#endif
       assert(!setp);
       setp = true;
       assert(!notify.getCount());
@@ -171,10 +183,7 @@ typedef std::list<RNotifier*> n_list_t;
 class RSectionLock : public QoreVarRWLock {
 protected:
 #ifdef DO_OBJ_RECURSIVE_CHECK
-   QoreThreadLock l;    // mutex for thread-safety for the rsection lock
-   int rs_tid,          // tid of thread holding the rsection lock
-      rs_waiting;       // threads waiting directly on the rsection lock
-   QoreCondition rcond; // rsection lock condition
+   int rs_tid;          // tid of thread holding the rsection lock
 
    // list of ObjectRSetHelper objects for notifications for rsection management
    n_list_t list;
@@ -188,13 +197,17 @@ protected:
 
    DLLLOCAL void setNotificationIntern(RNotifier& rn) {
       list.push_back(&rn);
+#ifdef DEBUG
+      rn.set(this);
+#else
       rn.set();
+#endif
    }
 #endif
 
 public:
 #ifdef DO_OBJ_RECURSIVE_CHECK
-   DLLLOCAL RSectionLock() : rs_tid(-1), rs_waiting(0) {
+   DLLLOCAL RSectionLock() : rs_tid(-1) {
       priv->setNotify();
    }
 #else
@@ -214,52 +227,38 @@ public:
    DLLLOCAL int tryRSectionLockNotifyWaitRead(RNotifier& rn) {
       int tid = gettid();
 
-      int rc = tryrdlock();
+      AutoLocker al(priv->l);
+      assert(priv->write_tid != tid);
 
-      SafeLocker sl(l);
-
-      if (!rc) {
+      if (priv->write_tid == -1) {
          // if we already have the rsection, then return
-         if (rs_tid == gettid()) {
-            // release the "extra" read lock acquired here (we already have it from before)
-            sl.unlock();
-            unlock();
+         if (rs_tid == tid)
             return 0;
-         }
 
-         // if nobody has the rsection, grab it
          if (rs_tid == -1) {
+            // grab the read lock
+            ++priv->readers;
+
+            // grab the rsection
             rs_tid = tid;
-            // do not release the read lock only in this case
             return 0;
          }
-
-         setNotificationIntern(rn);
-
-         // release the read lock
-         sl.unlock();
-         unlock();
-         return -1;
       }
 
-      // insert in list for notification when done
       setNotificationIntern(rn);
 
       return -1;
    }
 
    DLLLOCAL void rSectionUnlock() {
-      {
-         AutoLocker al(l);
-         assert(rs_tid == gettid());
-         rs_tid = -1;
+      AutoLocker al(priv->l);
+      assert(rs_tid == gettid());
+      rs_tid = -1;
 
-         notifyIntern();
-         if (rs_waiting)
-            rcond.signal();
-      }
+      notifyIntern();
 
-      unlock();
+      if (!--priv->readers)
+         priv->unlock_signal();
    }
 
    DLLLOCAL bool hasRSectionLock(int tid = gettid()) {

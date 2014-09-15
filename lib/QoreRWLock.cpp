@@ -44,8 +44,8 @@ QoreVarRWLock::~QoreVarRWLock() {
 }
 
 //! grabs the write lock
-int QoreVarRWLock::wrlock() {
-   return priv->wrlock();
+void QoreVarRWLock::wrlock() {
+   priv->wrlock();
 }
 
 //! tries to grab the write lock; does not block if unsuccessful; returns 0 if successful
@@ -54,13 +54,13 @@ int QoreVarRWLock::trywrlock() {
 }
 
 //! unlocks the lock (assumes the lock is locked)
-int QoreVarRWLock::unlock() {
-   return priv->unlock();
+void QoreVarRWLock::unlock() {
+   priv->unlock();
 }
 
 //! grabs the read lock
-int QoreVarRWLock::rdlock() {
-   return priv->rdlock();
+void QoreVarRWLock::rdlock() {
+   priv->rdlock();
 }
 
 //! tries to grab the read lock; does not block if unsuccessful; returns 0 if successful

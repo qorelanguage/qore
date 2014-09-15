@@ -357,16 +357,16 @@ public:
    DLLLOCAL ~QoreVarRWLock();
 
    //! grabs the write lock
-   DLLLOCAL int wrlock();
+   DLLLOCAL void wrlock();
 
    //! tries to grab the write lock; does not block if unsuccessful; returns 0 if successful
    DLLLOCAL int trywrlock();
 
    //! unlocks the lock (assumes the lock is locked)
-   DLLLOCAL int unlock();
+   DLLLOCAL void unlock();
 
    //! grabs the read lock
-   DLLLOCAL int rdlock();
+   DLLLOCAL void rdlock();
 
    //! tries to grab the read lock; does not block if unsuccessful; returns 0 if successful
    DLLLOCAL int tryrdlock();

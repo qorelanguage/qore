@@ -1453,6 +1453,7 @@ void ObjectRSetHelper::commit(QoreObject& obj) {
 #endif
 
    assert(fomap.empty() || has_obj);
+   assert(!lcnt);
 }
 
 void ObjectRSetHelper::rollback() {
@@ -1478,6 +1479,8 @@ void ObjectRSetHelper::rollback() {
    ovec.clear();
    tr_out.clear();
    tr_invalidate.clear();
+
+   assert(!lcnt);
 
 #ifdef _POSIX_PRIORITY_SCHEDULING
    sched_yield();

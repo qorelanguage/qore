@@ -34,7 +34,7 @@
 #ifndef _QORE_VAR_RWLOCK_PRIV_H
 #define _QORE_VAR_RWLOCK_PRIV_H
 
-class qore_var_rwlock_priv : public QoreRWLock {
+class qore_var_rwlock_priv {
 protected:
    DLLLOCAL virtual void notifyIntern() {
    }
@@ -45,11 +45,17 @@ protected:
    DLLLOCAL qore_var_rwlock_priv& operator=(const qore_var_rwlock_priv&);
 
 public:
-   int write_tid;
+   QoreThreadLock l;
+   int write_tid,
+      readers,
+      read_waiting,
+      write_waiting;
+   QoreCondition write_cond,
+      read_cond;
    bool has_notify;
 
    //! creates and initializes the lock
-   DLLLOCAL qore_var_rwlock_priv() : write_tid(-1), has_notify(false) {
+   DLLLOCAL qore_var_rwlock_priv() : write_tid(-1), readers(0), read_waiting(0), write_waiting(0), has_notify(false) {
    }
 
    //! destroys the lock
@@ -57,46 +63,83 @@ public:
    }
 
    //! grabs the write lock
-   DLLLOCAL int wrlock() {
-      int rc = pthread_rwlock_wrlock(&m);
-      if (!rc)
-         write_tid = gettid();
-      return rc;
+   DLLLOCAL void wrlock() {
+      int tid = gettid();
+      AutoLocker al(l);
+      assert(tid != write_tid);
+      while (readers || write_tid != -1) {
+	 ++write_waiting;
+	 write_cond.wait(l);
+	 --write_waiting;
+      }
+
+      write_tid = tid;
    }
 
    //! tries to grab the write lock; does not block if unsuccessful; returns 0 if successful
    DLLLOCAL int trywrlock() {
-      int rc = pthread_rwlock_trywrlock(&m);
-      if (!rc) {
-	 assert(!write_tid);
-         write_tid = gettid();
-      }
-      return rc;
+      int tid = gettid();
+      AutoLocker al(l);
+      assert(tid != write_tid);
+      if (readers || write_tid != -1)
+	 return -1;
+
+      write_tid = tid;
+      return 0;
    }
 
    //! unlocks the lock (assumes the lock is locked)
-   DLLLOCAL int unlock() {
-      if (write_tid == gettid()) {
+   DLLLOCAL void unlock() {
+      int tid = gettid();
+      AutoLocker al(l);
+      if (write_tid == tid) {
          write_tid = -1;
 	 if (has_notify)
 	    notifyIntern();
+
+	 unlock_signal();
       }
-      return pthread_rwlock_unlock(&m);
+      else {
+	 assert(readers);
+	 if (!--readers)
+	    unlock_signal();
+      }
    }
 
    //! grabs the read lock
-   DLLLOCAL int rdlock() {
-      return pthread_rwlock_rdlock(&m);
+   DLLLOCAL void rdlock() {
+      AutoLocker al(l);
+      assert(write_tid != gettid());
+      while (write_tid != -1) {
+	 ++read_waiting;
+	 read_cond.wait(l);
+	 --read_waiting;
+      }
+
+      ++readers;
    }
 
    //! tries to grab the read lock; does not block if unsuccessful; returns 0 if successful
    DLLLOCAL int tryrdlock() {
-      return pthread_rwlock_tryrdlock(&m);
+      AutoLocker al(l);
+      assert(write_tid != gettid());
+      if (write_tid != -1)
+	 return -1;
+
+      ++readers;
+      return 0;
    }
 
    DLLLOCAL void setNotify() {
       assert(!has_notify);
       has_notify = true;
+   }
+
+   DLLLOCAL void unlock_signal() {
+      if (write_waiting)
+	 write_cond.signal();
+      else if (read_waiting)
+	 read_cond.broadcast();
    }
 };
 
