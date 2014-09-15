@@ -239,7 +239,7 @@ public:
    }
 };
 
-struct ClosureVarValue : public VarValueBase, public QoreReferenceCounter, public QoreRWLock {
+struct ClosureVarValue : public VarValueBase, public QoreReferenceCounter, public QoreVarRWLock {
 public:
    const QoreTypeInfo* typeInfo; // type restriction for lvalue
 
@@ -275,7 +275,7 @@ public:
    DLLLOCAL void remove(LValueRemoveHelper& lvrh);
 
    DLLLOCAL void finalize(ExceptionSink* xsink) {
-      QoreSafeRWWriteLocker sl(this);
+      QoreSafeVarRWWriteLocker sl(this);
       if (!finalized) {
          AbstractQoreNode* dr = val.remove(true);
          finalized = true;
@@ -285,7 +285,7 @@ public:
    }
 
    DLLLOCAL AbstractQoreNode* eval(ExceptionSink* xsink) {
-      QoreSafeRWReadLocker sl(this);
+      QoreSafeVarRWReadLocker sl(this);
       if (val.getType() == NT_REFERENCE) {
          ReferenceHolder<ReferenceNode> ref(reinterpret_cast<ReferenceNode*>(val.v.n->refSelf()), xsink);
          sl.unlock();
@@ -297,7 +297,7 @@ public:
    }
 
    DLLLOCAL AbstractQoreNode* eval(bool& needs_deref, ExceptionSink* xsink) {
-      QoreSafeRWReadLocker sl(this);
+      QoreSafeVarRWReadLocker sl(this);
       if (val.getType() == NT_REFERENCE) {
          ReferenceHolder<ReferenceNode> ref(reinterpret_cast<ReferenceNode*>(val.v.n->refSelf()), xsink);
          sl.unlock();
@@ -309,7 +309,7 @@ public:
    }
 
    DLLLOCAL int64 bigIntEval(ExceptionSink* xsink) {
-      QoreSafeRWReadLocker sl(this);
+      QoreSafeVarRWReadLocker sl(this);
       if (val.getType() == NT_REFERENCE) {
          ReferenceHolder<ReferenceNode> ref(reinterpret_cast<ReferenceNode*>(val.v.n->refSelf()), xsink);
          sl.unlock();
@@ -321,7 +321,7 @@ public:
    }
 
    DLLLOCAL int intEval(ExceptionSink* xsink) {
-      QoreSafeRWReadLocker sl(this);
+      QoreSafeVarRWReadLocker sl(this);
       if (val.getType() == NT_REFERENCE) {
          ReferenceHolder<ReferenceNode> ref(reinterpret_cast<ReferenceNode*>(val.v.n->refSelf()), xsink);
          sl.unlock();
@@ -333,7 +333,7 @@ public:
    }
 
    DLLLOCAL bool boolEval(ExceptionSink* xsink) {
-      QoreSafeRWReadLocker sl(this);
+      QoreSafeVarRWReadLocker sl(this);
       if (val.getType() == NT_REFERENCE) {
          ReferenceHolder<ReferenceNode> ref(reinterpret_cast<ReferenceNode*>(val.v.n->refSelf()), xsink);
          sl.unlock();
@@ -345,7 +345,7 @@ public:
    }
 
    DLLLOCAL double floatEval(ExceptionSink* xsink) {
-      QoreSafeRWReadLocker sl(this);
+      QoreSafeVarRWReadLocker sl(this);
       if (val.getType() == NT_REFERENCE) {
          ReferenceHolder<ReferenceNode> ref(reinterpret_cast<ReferenceNode*>(val.v.n->refSelf()), xsink);
          sl.unlock();

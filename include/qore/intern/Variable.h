@@ -45,6 +45,7 @@ enum qore_var_t {
 
 #include <qore/intern/VRMutex.h>
 #include <qore/intern/QoreValue.h>
+#include <qore/intern/qore_var_rwlock_priv.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -95,7 +96,7 @@ private:
    unsigned char type;              
    QoreLValue<qore_gvar_ref_u> val;
    std::string name;
-   mutable QoreRWLock rwl;
+   mutable QoreVarRWLock rwl;
    QoreParseTypeInfo *parseTypeInfo;
    const QoreTypeInfo *typeInfo;
    bool pub,                          // is this global var public (valid and set for modules only)
@@ -140,7 +141,7 @@ public:
    DLLLOCAL void clearLocal(ExceptionSink* xsink) {
       if (val.type != QV_Ref) {
          ReferenceHolder<> h(xsink);
-         QoreAutoRWWriteLocker al(rwl);
+         QoreAutoVarRWWriteLocker al(rwl);
          if (!finalized)
             finalized = true;
          printd(5, "Var::clearLocal() clearing '%s' %p\n", name.c_str(), this);
@@ -406,8 +407,8 @@ public:
 
    DLLLOCAL int doLValue(const ReferenceNode* ref, bool for_remove);
 
-   DLLLOCAL void setAndLock(QoreRWLock& rwl);
-   DLLLOCAL void set(QoreRWLock& rwl);
+   DLLLOCAL void setAndLock(QoreVarRWLock& rwl);
+   DLLLOCAL void set(QoreVarRWLock& rwl);
 
    DLLLOCAL AutoVLock& getAutoVLock() {
       return vl;

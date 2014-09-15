@@ -93,7 +93,7 @@ void StaticClassVarRefNode::getLValue(LValueHelper& lvh) const {
 }
 
 void StaticClassVarRefNode::remove(LValueRemoveHelper& lvrh) {
-   QoreAutoRWWriteLocker sl(vi.rwl);
+   QoreAutoVarRWWriteLocker sl(vi.rwl);
    lvrh.doRemove((QoreLValueGeneric&)vi.val, vi.getTypeInfo());
 }
 

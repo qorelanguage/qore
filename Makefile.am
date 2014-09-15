@@ -393,6 +393,7 @@ noinst_HEADERS = \
 	include/qore/intern/SingleValueIterator.h \
 	include/qore/intern/RangeIterator.h \
 	include/qore/intern/ThreadPool.h \
+	include/qore/intern/qore_var_rwlock_priv.h \
 	include/qore/intern/ql_string.h \
 	include/qore/intern/ql_list.h \
 	include/qore/intern/ql_misc.h \

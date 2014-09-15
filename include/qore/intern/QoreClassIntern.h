@@ -36,6 +36,7 @@
 #include <qore/safe_dslist>
 #include <qore/intern/ConstantList.h>
 #include <qore/intern/QoreValue.h>
+#include <qore/intern/qore_var_rwlock_priv.h>
 
 #include <string.h>
 
@@ -1232,7 +1233,7 @@ protected:
       }
 
 public:
-   mutable QoreRWLock rwl;
+   mutable QoreVarRWLock rwl;
    QoreLValueGeneric val;
    bool finalized;
 
@@ -1252,7 +1253,7 @@ public:
 
    DLLLOCAL void clear(ExceptionSink* xsink) {
       ReferenceHolder<> tmp(xsink);
-      QoreAutoRWWriteLocker al(rwl);
+      QoreAutoVarRWWriteLocker al(rwl);
       if (!finalized)
          finalized = true;
       tmp = val.remove(true);
@@ -1293,22 +1294,22 @@ public:
    }
 
    DLLLOCAL AbstractQoreNode* getReferencedValue() const {
-      QoreAutoRWReadLocker al(rwl);
+      QoreAutoVarRWReadLocker al(rwl);
       return val.getReferencedValue();
    }
 
    DLLLOCAL int64 getAsBigInt() const {
-      QoreAutoRWReadLocker al(rwl);
+      QoreAutoVarRWReadLocker al(rwl);
       return val.getAsBigInt();
    }
 
    DLLLOCAL double getAsFloat() const {
-      QoreAutoRWReadLocker al(rwl);
+      QoreAutoVarRWReadLocker al(rwl);
       return val.getAsFloat();
    }
 
    DLLLOCAL bool getAsBool() const {
-      QoreAutoRWReadLocker al(rwl);
+      QoreAutoVarRWReadLocker al(rwl);
       return val.getAsBool();
    }
 

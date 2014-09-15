@@ -115,6 +115,7 @@
 #include "ThreadResourceList.cpp"
 #include "VRMutex.cpp"
 #include "VLock.cpp"
+#include "QoreRWLock.cpp"
 #include "AbstractSmartLock.cpp"
 #include "SmartMutex.cpp"
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE

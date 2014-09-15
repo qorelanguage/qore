@@ -189,6 +189,7 @@ libqore_la_SOURCES = \
 	thread.cpp \
 	VRMutex.cpp \
 	VLock.cpp \
+	QoreRWLock.cpp \
 	AbstractSmartLock.cpp \
 	ExecArgList.cpp \
 	NamedScope.cpp \

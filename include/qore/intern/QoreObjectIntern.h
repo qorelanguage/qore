@@ -41,6 +41,7 @@
 #include <vector>
 
 #include "intern/QoreClassIntern.h"
+#include <qore/intern/qore_var_rwlock_priv.h>
 
 #define OS_OK            0
 #define OS_DELETED      -1
@@ -167,7 +168,7 @@ typedef std::list<RNotifier*> n_list_t;
 // rwlock with stardard read and write lock handling, and special "rsection" handling
 // the rsection is grabbed with the read lock but only one thread can have the rsection lock at once
 // leaving other threads to read the object normally
-class RSectionLock : public QoreRWLock {
+class RSectionLock : public QoreVarRWLock {
 protected:
 #ifdef DO_OBJ_RECURSIVE_CHECK
    QoreThreadLock l;    // mutex for thread-safety for the rsection lock
@@ -179,7 +180,7 @@ protected:
    n_list_t list;
 
    // notify rsection threads that the rsection lock has been released
-   DLLLOCAL void notifyIntern() {
+   DLLLOCAL virtual void notifyIntern() {
       for (n_list_t::iterator i = list.begin(), e = list.end(); i != e; ++i)
          (*i)->done();
       list.clear();
@@ -194,6 +195,7 @@ protected:
 public:
 #ifdef DO_OBJ_RECURSIVE_CHECK
    DLLLOCAL RSectionLock() : rs_tid(-1), rs_waiting(0) {
+      priv->setNotify();
    }
 #else
    DLLLOCAL RSectionLock() {
@@ -204,6 +206,7 @@ public:
 #ifdef DO_OBJ_RECURSIVE_CHECK
       assert(rs_tid == -1);
 #endif
+      assert(list.empty());
    }
 
 #ifdef DO_OBJ_RECURSIVE_CHECK
@@ -213,12 +216,13 @@ public:
 
       int rc = tryrdlock();
 
-      AutoLocker al(l);
+      SafeLocker sl(l);
 
       if (!rc) {
          // if we already have the rsection, then return
          if (rs_tid == gettid()) {
             // release the "extra" read lock acquired here (we already have it from before)
+            sl.unlock();
             unlock();
             return 0;
          }
@@ -230,8 +234,12 @@ public:
             return 0;
          }
 
+         setNotificationIntern(rn);
+
          // release the read lock
+         sl.unlock();
          unlock();
+         return -1;
       }
 
       // insert in list for notification when done
@@ -257,9 +265,11 @@ public:
    DLLLOCAL bool hasRSectionLock(int tid = gettid()) {
       return rs_tid == tid;
    }
-#endif
 
-#if defined(DO_OBJ_RECURSIVE_CHECK) && defined(DEBUG)
+   DLLLOCAL bool checkRSectionExclusive(int tid = gettid()) {
+      return (rs_tid == tid || priv->write_tid == tid);
+   }
+
    DLLLOCAL int rSectionTid() const {
       return rs_tid;
    }
@@ -268,9 +278,10 @@ public:
 
 #ifdef DO_OBJ_RECURSIVE_CHECK
 
-#define ORS_NO_MATCH   -1
-#define ORS_LOCK_ERROR -2
-#define ORS_IGNORE     -3
+#define ORS_LOOP       -1
+#define ORS_NO_MATCH   -2
+#define ORS_LOCK_ERROR -3
+#define ORS_IGNORE     -4
 
 /* Qore object recursive reference handling works as follows: objects are sorted into sets making up
    directed cyclic graphs.
@@ -359,6 +370,10 @@ public:
       return set.find(o);
    }
 
+   DLLLOCAL size_t size() const {
+      return set.size();
+   }
+
    DLLLOCAL bool pop() {
       assert(!set.empty());
       set.erase(set.begin());
@@ -371,27 +386,34 @@ typedef std::vector<QoreObject*> obj_vec_t;
 class ObjectRSetHelper;
 
 class qore_object_private;
-typedef unsigned char rcmd_t;
 
-#define RC_ZERO       0
-#define RC_INC        1
-#define RC_CONDSETONE 2
+typedef std::set<ObjectRSet*> rs_set_t;
 
-struct RCmd {
-   qore_object_private* obj;
-   rcmd_t cmd;
+struct RSetStat {
+   ObjectRSet* rset;
+   int rcount;
+   bool final;
 
-   DLLLOCAL RCmd(qore_object_private* o, rcmd_t c) : obj(o), cmd(c) {
+   DLLLOCAL RSetStat() : rset(0), rcount(0), final(false) {
+   }
+
+   DLLLOCAL RSetStat(const RSetStat& old) : rset(old.rset), rcount(old.rcount), final(old.final) {
+   }
+
+   DLLLOCAL void finalize(ObjectRSet* rs = 0) {
+      assert(!final);
+      assert(!rset);
+      rset = rs;
+      final = true;
    }
 };
-typedef std::vector<RCmd> rcmd_vec_t;
 
 class ObjectRSetHelper {
 private:
    DLLLOCAL ObjectRSetHelper(const ObjectRSetHelper&);
    
 protected:
-   typedef std::map<QoreObject*, ObjectRSet*> omap_t;
+   typedef std::map<QoreObject*, RSetStat> omap_t;
    // map of all objects scanned to rset (rset = finalized, 0 = not finalized, in current list)
    omap_t fomap;
 
@@ -401,18 +423,21 @@ protected:
 
    // list of fomap iterators to current recursive objects found
    ovec_t frvec;
+
+   // list of ObjectRSet objects to be invalidated when the transaction is committed
+   rs_set_t tr_invalidate;
    
-   // set of ObjecrRSet objects to be invalidated when the transaction is committed
-   obj_set_t tr_invalidate;
-
-   // list of rcount commands to execute sequentially when committing the transaction
-   rcmd_vec_t rcmds;
-
-   // list of objects found to have no links
-   obj_set_t okobj;
+   // set of QoreObjects not participating in any recursive set
+   obj_set_t tr_out;
 
    // RSectionLock notification helper when waiting on locks
    RNotifier notifier;
+
+#ifdef DEBUG
+   int lcnt;
+   DLLLOCAL void inccnt() { ++lcnt; }
+   DLLLOCAL void deccnt() { --lcnt; }
+#endif
 
    // rollback transaction due to lock error
    DLLLOCAL void rollback();
@@ -423,7 +448,7 @@ protected:
    DLLLOCAL int checkIntern(QoreObject& obj);
    DLLLOCAL int checkIntern(AbstractQoreNode* n);
 
-   // queues nodes not scanned to tr_invalidate
+   // queues nodes not scanned to tr_invalidate and tr_out
    DLLLOCAL int removeInvalidate(ObjectRSet* ors, int tid = gettid());
 
 public:
@@ -432,6 +457,7 @@ public:
    DLLLOCAL ~ObjectRSetHelper() {
       assert(ovec.empty());
       assert(frvec.empty());
+      assert(!lcnt);
    }
 };
 #endif
@@ -525,7 +551,7 @@ public:
    DLLLOCAL AbstractQoreNode* *getMemberValuePtr(const char* key, AutoVLock *vl, const QoreTypeInfo*& typeInfo, ExceptionSink* xsink) const;
 
    DLLLOCAL QoreStringNode* firstKey(ExceptionSink* xsink) {
-      QoreAutoRWReadLocker al(rml);
+      QoreAutoVarRWReadLocker al(rml);
 
       if (status == OS_DELETED) {
          makeAccessDeletedObjectException(xsink, theclass->getName());
@@ -551,7 +577,7 @@ public:
    }
 
    DLLLOCAL QoreStringNode* lastKey(ExceptionSink* xsink) {
-      QoreAutoRWReadLocker al(rml);
+      QoreAutoVarRWReadLocker al(rml);
 
       if (status == OS_DELETED) {
          makeAccessDeletedObjectException(xsink, theclass->getName());
@@ -574,7 +600,7 @@ public:
    }
 
    DLLLOCAL QoreHashNode* getSlice(const QoreListNode* l, ExceptionSink* xsink) const {
-      QoreSafeRWReadLocker sl(rml);
+      QoreSafeVarRWReadLocker sl(rml);
 
       if (status == OS_DELETED) {
 	 makeAccessDeletedObjectException(xsink, theclass->getName());
@@ -716,7 +742,7 @@ public:
 
       QoreHashNode* td;
       {
-         QoreAutoRWWriteLocker al(rml);
+         QoreAutoVarRWWriteLocker al(rml);
 	 assert(status != OS_DELETED);
 	 assert(data);
 	 status = OS_DELETED;
@@ -743,7 +769,7 @@ public:
       }
 
       {
-         QoreAutoRWWriteLocker al(rml);
+         QoreAutoVarRWWriteLocker al(rml);
 
          if (pgm) {
             if (pgm_ref) {
@@ -759,7 +785,7 @@ public:
    }
 
    DLLLOCAL void derefProgramCycle(QoreProgram* p) {
-      QoreAutoRWWriteLocker al(rml);
+      QoreAutoVarRWWriteLocker al(rml);
 
       if (pgm && pgm_ref) {
          //pgm->depDeref(0);
@@ -783,7 +809,7 @@ public:
       }
 
       {
-         QoreSafeRWWriteLocker sl(rml);
+         QoreSafeVarRWWriteLocker sl(rml);
 
 	 if (in_destructor || status != OS_OK) {
 	    printd(5, "qore_object_private::obliterate() obj=%p data=%p in_destructor=%d status=%d\n", obj, data, in_destructor, status);
@@ -865,35 +891,36 @@ public:
    }
 
 #ifdef DO_OBJ_RECURSIVE_CHECK
-   DLLLOCAL void setRSet(ObjectRSet* rs) {
-      //assert(rml.checkRSectionExclusive(gettid()));
+   DLLLOCAL void setRSet(ObjectRSet* rs, int rcnt) {
+      assert(rml.checkRSectionExclusive());
+      printd(QRO_LVL, "qore_object_private::setRSet() this: %p obj: %p (%s) rs: %p rcnt: %d\n", this, obj, obj->getClassName(), rs, rcnt);
       if (rset) {
          rset->invalidate();
          rset->deref();
       }
       rset = rs;
-      rs->ref();
+      rcount = rcnt;
+      if (rs)
+         rs->ref();
       // increment transaction count
       ++rcycle;
    }
 
    DLLLOCAL void invalidateRSet() {
-      //assert(rml.checkRSectionExclusive(gettid()));
+      assert(rml.checkRSectionExclusive());
       if (rset)
          rset->invalidate();
     }
 
    DLLLOCAL void removeInvalidateRSet() {
-      //assert(rml.checkRSectionExclusive(gettid()));
+      assert(rml.checkRSectionExclusive());
       if (rset) {
          rset->invalidate();
          rset->deref();
          rset = 0;
          rcount = 0;
       }
-      else
-         assert(!rcount);
-    }
+   }
 #endif
 
    DLLLOCAL static AbstractQoreNode* takeMember(QoreObject& obj, ExceptionSink* xsink, const char* mem, bool check_access = true) {
