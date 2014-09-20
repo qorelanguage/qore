@@ -1118,7 +1118,7 @@ int ObjectRSetHelper::removeInvalidate(ObjectRSet* ors, int tid) {
 #ifdef DEBUG
       bool hl = (*ri)->priv->rml.hasRSectionLock();
 #endif
-      if ((*ri)->priv->rml.tryRSectionLockNotifyWaitRead(notifier)) {
+      if ((*ri)->priv->rml.tryRSectionLockNotifyWaitRead(&notifier)) {
 	 printd(QRO_LVL, "ObjectRSetHelper::removeInvalidate() obj %p '%s' cannot enter rsection: tid: %d\n", *ri, (*ri)->getClassName(), (*ri)->priv->rml.rSectionTid());
 
 	 // release other rsection locks
@@ -1172,7 +1172,7 @@ int ObjectRSetHelper::checkIntern(QoreObject& obj) {
 #ifdef DEBUG
    bool hl = obj.priv->rml.hasRSectionLock();
 #endif
-   if (obj.priv->rml.tryRSectionLockNotifyWaitRead(notifier)) {
+   if (obj.priv->rml.tryRSectionLockNotifyWaitRead(&notifier)) {
       printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj %p '%s' cannot enter rsection: rsection tid: %d\n", &obj, obj.getClassName(), obj.priv->rml.rSectionTid());
       //assert(strcmp(obj.getClassName(), "HttpListener"));
       return ORS_LOCK_ERROR;

@@ -342,13 +342,16 @@ public:
 class qore_var_rwlock_priv;
 
 class QoreVarRWLock {
-protected:
-   qore_var_rwlock_priv* priv;
-
+private:
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreVarRWLock(const QoreVarRWLock&);
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreVarRWLock& operator=(const QoreVarRWLock&);
+
+protected:
+   qore_var_rwlock_priv* priv;
+
+   DLLLOCAL QoreVarRWLock(qore_var_rwlock_priv* p);
 
 public:
    DLLLOCAL QoreVarRWLock();

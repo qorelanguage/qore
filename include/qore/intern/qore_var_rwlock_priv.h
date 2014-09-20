@@ -67,6 +67,7 @@ public:
       int tid = gettid();
       AutoLocker al(l);
       assert(tid != write_tid);
+
       while (readers || write_tid != -1) {
 	 ++write_waiting;
 	 write_cond.wait(l);
@@ -102,7 +103,7 @@ public:
       else {
 	 assert(readers);
 	 if (!--readers)
-	    unlock_signal();
+	    unlock_read_signal();
       }
    }
 
@@ -130,16 +131,17 @@ public:
       return 0;
    }
 
-   DLLLOCAL void setNotify() {
-      assert(!has_notify);
-      has_notify = true;
-   }
-
    DLLLOCAL void unlock_signal() {
       if (write_waiting)
 	 write_cond.signal();
       else if (read_waiting)
 	 read_cond.broadcast();
+   }
+
+   DLLLOCAL void unlock_read_signal() {
+      //assert(!read_waiting);
+      if (write_waiting)
+	 write_cond.signal();
    }
 };
 

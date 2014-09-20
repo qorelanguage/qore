@@ -133,19 +133,17 @@ public:
 };
 
 #ifdef DO_OBJ_RECURSIVE_CHECK
-class RSectionLock;
+class qore_rsection_priv;
 class RNotifier {
+private:
+   DLLLOCAL RNotifier(const RNotifier&);
+   DLLLOCAL RNotifier& operator=(const RNotifier&);
+
 public:
    bool setp;
    QoreCounter notify;
-#ifdef DEBUG
-   RSectionLock* rs;
-#endif
       
    DLLLOCAL RNotifier() : setp(false) {
-#ifdef DEBUG
-      rs = 0;
-#endif
    }
 
    DLLLOCAL void done() {
@@ -153,12 +151,7 @@ public:
       notify.dec();
    }
 
-#ifdef DEBUG
-   DLLLOCAL void set(RSectionLock* r) {
-      rs = r;
-#else
    DLLLOCAL void set() {
-#endif
       assert(!setp);
       setp = true;
       assert(!notify.getCount());
@@ -180,7 +173,7 @@ typedef std::list<RNotifier*> n_list_t;
 // rwlock with stardard read and write lock handling, and special "rsection" handling
 // the rsection is grabbed with the read lock but only one thread can have the rsection lock at once
 // leaving other threads to read the object normally
-class RSectionLock : public QoreVarRWLock {
+class qore_rsection_priv : public qore_var_rwlock_priv {
 protected:
 #ifdef DO_OBJ_RECURSIVE_CHECK
    int rs_tid;          // tid of thread holding the rsection lock
@@ -195,27 +188,24 @@ protected:
       list.clear();
    }
 
-   DLLLOCAL void setNotificationIntern(RNotifier& rn) {
-      list.push_back(&rn);
-#ifdef DEBUG
-      rn.set(this);
-#else
-      rn.set();
-#endif
+   DLLLOCAL void setNotificationIntern(RNotifier* rn) {
+      assert(write_tid != -1 || rs_tid != -1);
+      list.push_back(rn);
+      rn->set();
    }
 #endif
 
 public:
 #ifdef DO_OBJ_RECURSIVE_CHECK
-   DLLLOCAL RSectionLock() : rs_tid(-1) {
-      priv->setNotify();
+   DLLLOCAL qore_rsection_priv() : rs_tid(-1) {
+      has_notify = true;
    }
 #else
-   DLLLOCAL RSectionLock() {
+   DLLLOCAL qore_rsection_priv() {
    }
 #endif
 
-   DLLLOCAL virtual ~RSectionLock() {
+   DLLLOCAL virtual ~qore_rsection_priv() {
 #ifdef DO_OBJ_RECURSIVE_CHECK
       assert(rs_tid == -1);
 #endif
@@ -224,20 +214,22 @@ public:
 
 #ifdef DO_OBJ_RECURSIVE_CHECK
    // does not block under any circumstances, returns -1 if the lock cannot be acquired and sets a notification
-   DLLLOCAL int tryRSectionLockNotifyWaitRead(RNotifier& rn) {
+   DLLLOCAL int tryRSectionLockNotifyWaitRead(RNotifier* rn) {
+      assert(has_notify);
+
       int tid = gettid();
 
-      AutoLocker al(priv->l);
-      assert(priv->write_tid != tid);
+      AutoLocker al(l);
+      assert(write_tid != tid);
 
-      if (priv->write_tid == -1) {
+      if (write_tid == -1) {
          // if we already have the rsection, then return
          if (rs_tid == tid)
             return 0;
 
          if (rs_tid == -1) {
             // grab the read lock
-            ++priv->readers;
+            ++readers;
 
             // grab the rsection
             rs_tid = tid;
@@ -251,14 +243,18 @@ public:
    }
 
    DLLLOCAL void rSectionUnlock() {
-      AutoLocker al(priv->l);
+      AutoLocker al(l);
+      assert(write_tid == -1);
       assert(rs_tid == gettid());
+      assert(readers);
+
+      // unlock rsection
       rs_tid = -1;
 
-      notifyIntern();
+      qore_rsection_priv::notifyIntern();
 
-      if (!--priv->readers)
-         priv->unlock_signal();
+      if (!--readers)
+         unlock_read_signal();
    }
 
    DLLLOCAL bool hasRSectionLock(int tid = gettid()) {
@@ -266,11 +262,43 @@ public:
    }
 
    DLLLOCAL bool checkRSectionExclusive(int tid = gettid()) {
-      return (rs_tid == tid || priv->write_tid == tid);
+      return (rs_tid == tid || write_tid == tid);
    }
 
    DLLLOCAL int rSectionTid() const {
       return rs_tid;
+   }
+#endif
+};
+
+class RSectionLock : public QoreVarRWLock {
+public:
+   DLLLOCAL RSectionLock() : QoreVarRWLock(new qore_rsection_priv) {
+   }
+
+   DLLLOCAL ~RSectionLock() {
+   }
+
+#ifdef DO_OBJ_RECURSIVE_CHECK
+   // does not block under any circumstances, returns -1 if the lock cannot be acquired and sets a notification
+   DLLLOCAL int tryRSectionLockNotifyWaitRead(RNotifier* rn) {
+      return static_cast<qore_rsection_priv*>(priv)->tryRSectionLockNotifyWaitRead(rn);
+   }
+
+   DLLLOCAL void rSectionUnlock() {
+      static_cast<qore_rsection_priv*>(priv)->rSectionUnlock();
+   }
+
+   DLLLOCAL bool hasRSectionLock(int tid = gettid()) {
+      return static_cast<qore_rsection_priv*>(priv)->hasRSectionLock(tid);
+   }
+
+   DLLLOCAL bool checkRSectionExclusive(int tid = gettid()) {
+      return static_cast<qore_rsection_priv*>(priv)->checkRSectionExclusive(tid);
+   }
+
+   DLLLOCAL int rSectionTid() const {
+      return static_cast<qore_rsection_priv*>(priv)->rSectionTid();
    }
 #endif
 };
@@ -924,6 +952,10 @@ public:
       }
    }
 #endif
+
+   DLLLOCAL static qore_object_private* get(QoreObject& obj) {
+      return obj.priv;
+   }
 
    DLLLOCAL static AbstractQoreNode* takeMember(QoreObject& obj, ExceptionSink* xsink, const char* mem, bool check_access = true) {
       return obj.priv->takeMember(xsink, mem, check_access);

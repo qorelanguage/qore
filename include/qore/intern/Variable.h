@@ -387,16 +387,7 @@ public:
 
    DLLLOCAL ~LValueHelper();
 
-   DLLLOCAL void saveTemp(AbstractQoreNode* n) {
-      if (!n || !n->isReferenceCounted())
-         return;
-      // save for dereferencing later
-      tvec.push_back(n);
-#ifdef DO_OBJ_RECURSIVE_CHECK
-      if (!container_change && is_container(n))
-         container_change = true;
-#endif
-   }
+   DLLLOCAL void saveTemp(AbstractQoreNode* n);
 
    DLLLOCAL AbstractQoreNode*& getTempRef() {
       tvec.push_back(0);

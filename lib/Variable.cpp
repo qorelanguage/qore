@@ -199,6 +199,18 @@ LValueHelper::~LValueHelper() {
 #endif
 }
 
+void LValueHelper::saveTemp(AbstractQoreNode* n) {
+   if (!n || !n->isReferenceCounted())
+      return;
+   // save for dereferencing later
+   tvec.push_back(n);
+#ifdef DO_OBJ_RECURSIVE_CHECK
+   // only check if we have an object and there are known recursive links and a container is being removed
+   if (robj && qore_object_private::get(*robj)->rcount && !container_change && is_container(n))
+      container_change = true;
+#endif
+}
+
 void LValueHelper::setValue(QoreLValueGeneric& nv) {
    assert(!v);
    assert(!val);
