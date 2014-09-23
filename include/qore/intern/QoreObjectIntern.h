@@ -208,8 +208,8 @@ public:
    DLLLOCAL virtual ~qore_rsection_priv() {
 #ifdef DO_OBJ_RECURSIVE_CHECK
       assert(rs_tid == -1);
-#endif
       assert(list.empty());
+#endif
    }
 
 #ifdef DO_OBJ_RECURSIVE_CHECK
