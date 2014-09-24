@@ -105,7 +105,7 @@
 #define PO_FREE_OPTIONS              (PO_ALLOW_BARE_REFS|PO_ASSUME_LOCAL|PO_STRICT_BOOLEAN_EVAL)
 
 //! mask of options that only affect the way a child Program inherits code from the parent
-#define PO_INHERITANCE_OPTIONS       (PO_NO_SYSTEM_CLASSES|PO_NO_USER_CLASSES|PO_INHERIT_USER_FUNC_VARIANTS|PO_NO_SYSTEM_FUNC_VARIANTS|PO_INHERIT_GLOBAL_VARS)
+#define PO_INHERITANCE_OPTIONS       (PO_NO_SYSTEM_CLASSES|PO_NO_USER_CLASSES|PO_NO_INHERIT_USER_FUNC_VARIANTS|PO_NO_SYSTEM_FUNC_VARIANTS|PO_NO_INHERIT_GLOBAL_VARS)
 
 #define QDOM_DEFAULT            0                         //!< the default domain (no domain)
 #define QDOM_PROCESS            PO_NO_PROCESS_CONTROL     //!< provides process control functionality (can affect or stop the current process)

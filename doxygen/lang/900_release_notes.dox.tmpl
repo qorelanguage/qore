@@ -33,6 +33,7 @@
       - added the PermissiveAuthenticator class
       - translate \c "+" (plus) to \c " " (space) in the query portion of URIs in parse_uri_query()
     - added option @ref Qore::Option::HAVE_DETERMINISTIC_GC "HAVE_DETERMINISTIC_GC" for Qore builds where deterministic garbage collection is enabled
+    - the @ref Qore::Program "Program" class now creates @ref conditional_parsing "parse defines" for parse options so that conditional code can be implemented depending on the sandboxing configuration of the program container
 
     @subsection qore_08111_bug_fixes Bug Fixes in Qore
     - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module fixes:

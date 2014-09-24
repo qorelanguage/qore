@@ -299,6 +299,8 @@ class AbstractQoreZoneInfo;
 class qore_program_private_base {
    friend class QoreProgramAccessHelper;
 
+   DLLLOCAL void setDefines();
+
 public:
    LocalVariableList local_var_list;
 
@@ -401,6 +403,7 @@ public:
       var = qore_root_ns_private::runtimeCreateVar(*RootNS, *QoreNS, "ENV", hashTypeInfo);
       if (var)
          var->setInitial(ENV->copy());
+      setDefines();
    }
 
 #ifdef DEBUG

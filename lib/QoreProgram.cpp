@@ -45,6 +45,7 @@
 #include <algorithm>
 #include <functional>
 #include <memory>
+#include <map>
 
 // note the number and order of the warnings has to correspond to those in QoreProgram.h
 static const char* qore_warnings_l[] = {
@@ -67,9 +68,73 @@ static const char* qore_warnings_l[] = {
 };
 #define NUM_WARNINGS (sizeof(qore_warnings_l)/sizeof(const char* ))
 
+typedef std::map<int64, const char*> pomap_t;
+
+class PoMap : public pomap_t {
+public:
+   DLLLOCAL PoMap() {
+      // to generate this list:
+      // grep define.PO_ ../Restrictions.h|grep -v PO_POSITIVE_OPTIONS|grep -v PO_FREE_OPTIONS|grep -v PO_INHERITANCE_OPTIONS|cut -f2 -d\ | while read a; do printf "      pomap[%s] = \"%s\";\n" $a $a; done
+      (*this)[PO_NO_GLOBAL_VARS] = "PO_NO_GLOBAL_VARS";
+      (*this)[PO_NO_SUBROUTINE_DEFS] = "PO_NO_SUBROUTINE_DEFS";
+      (*this)[PO_NO_THREAD_CONTROL] = "PO_NO_THREAD_CONTROL";
+      (*this)[PO_NO_THREAD_CLASSES] = "PO_NO_THREAD_CLASSES";
+      (*this)[PO_NO_TOP_LEVEL_STATEMENTS] = "PO_NO_TOP_LEVEL_STATEMENTS";
+      (*this)[PO_NO_CLASS_DEFS] = "PO_NO_CLASS_DEFS";
+      (*this)[PO_NO_NAMESPACE_DEFS] = "PO_NO_NAMESPACE_DEFS";
+      (*this)[PO_NO_CONSTANT_DEFS] = "PO_NO_CONSTANT_DEFS";
+      (*this)[PO_NO_NEW] = "PO_NO_NEW";
+      (*this)[PO_NO_SYSTEM_CLASSES] = "PO_NO_SYSTEM_CLASSES";
+      (*this)[PO_NO_USER_CLASSES] = "PO_NO_USER_CLASSES";
+      (*this)[PO_NO_CHILD_PO_RESTRICTIONS] = "PO_NO_CHILD_PO_RESTRICTIONS";
+      (*this)[PO_NO_EXTERNAL_PROCESS] = "PO_NO_EXTERNAL_PROCESS";
+      (*this)[PO_REQUIRE_OUR] = "PO_REQUIRE_OUR";
+      (*this)[PO_NO_PROCESS_CONTROL] = "PO_NO_PROCESS_CONTROL";
+      (*this)[PO_NO_NETWORK] = "PO_NO_NETWORK";
+      (*this)[PO_NO_FILESYSTEM] = "PO_NO_FILESYSTEM";
+      (*this)[PO_LOCK_WARNINGS] = "PO_LOCK_WARNINGS";
+      (*this)[PO_NO_DATABASE] = "PO_NO_DATABASE";
+      (*this)[PO_NO_GUI] = "PO_NO_GUI";
+      (*this)[PO_NO_TERMINAL_IO] = "PO_NO_TERMINAL_IO";
+      (*this)[PO_REQUIRE_TYPES] = "PO_REQUIRE_TYPES";
+      (*this)[PO_NO_EXTERNAL_INFO] = "PO_NO_EXTERNAL_INFO";
+      (*this)[PO_NO_THREAD_INFO] = "PO_NO_THREAD_INFO";
+      (*this)[PO_NO_LOCALE_CONTROL] = "PO_NO_LOCALE_CONTROL";
+      (*this)[PO_REQUIRE_PROTOTYPES] = "PO_REQUIRE_PROTOTYPES";
+      (*this)[PO_STRICT_ARGS] = "PO_STRICT_ARGS";
+      (*this)[PO_REQUIRE_BARE_REFS] = "PO_REQUIRE_BARE_REFS";
+      (*this)[PO_ASSUME_LOCAL] = "PO_ASSUME_LOCAL";
+      (*this)[PO_NO_MODULES] = "PO_NO_MODULES";
+      (*this)[PO_NO_INHERIT_USER_FUNC_VARIANTS] = "PO_NO_INHERIT_USER_FUNC_VARIANTS";
+      (*this)[PO_NO_SYSTEM_FUNC_VARIANTS] = "PO_NO_SYSTEM_FUNC_VARIANTS";
+      (*this)[PO_NO_INHERIT_GLOBAL_VARS] = "PO_NO_INHERIT_GLOBAL_VARS";
+      (*this)[PO_IN_MODULE] = "PO_IN_MODULE";
+      (*this)[PO_NO_EMBEDDED_LOGIC] = "PO_NO_EMBEDDED_LOGIC";
+      (*this)[PO_STRICT_BOOLEAN_EVAL] = "PO_STRICT_BOOLEAN_EVAL";
+      (*this)[PO_DEFAULT] = "PO_DEFAULT";
+      (*this)[PO_SYSTEM_OPS] = "PO_SYSTEM_OPS";
+      (*this)[PO_ALLOW_BARE_REFS] = "PO_ALLOW_BARE_REFS";
+      (*this)[PO_NO_THREADS] = "PO_NO_THREADS";
+      (*this)[PO_NO_EXTERNAL_ACCESS] = "PO_NO_EXTERNAL_ACCESS";
+      (*this)[PO_NO_IO] = "PO_NO_IO";
+      (*this)[PO_LOCKDOWN] = "PO_LOCKDOWN";
+      (*this)[PO_NEW_STYLE] = "PO_NEW_STYLE";
+   }
+};
+
+static PoMap pomap;
+
 //public symbols
 const char** qore_warnings = qore_warnings_l;
 unsigned qore_num_warnings = NUM_WARNINGS;
+
+void qore_program_private_base::setDefines() {
+   for (pomap_t::iterator i = pomap.begin(), e = pomap.end(); i != e; ++i) {
+      if ((pwo.parse_options & i->first) == i->first) {
+	 dmap[i->second] = &True;
+      }
+   }
+}
 
 void qore_program_private_base::startThread(ExceptionSink& xsink) {
    assert(!thread_local_storage->get());
