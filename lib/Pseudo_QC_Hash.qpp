@@ -277,7 +277,7 @@ bool <hash>::val() [flags=CONSTANT] {
 
     @par Example:
     @code
-map printf("+ %s: %y\n", $1.key, $1.value), $h.iterator();
+map printf("value: %y\n", $1), $h.iterator();
     @endcode
 
     @note this pseudo-method is also implemented in Qore::zzz8valuezzz9, so it's safe to use on all data types
@@ -293,7 +293,7 @@ AbstractIterator <hash>::iterator() [flags=CONSTANT] {
 
     @par Example:
     @code
-map printf("+ %s\n", $1), $h.keyIterator();
+map printf("key: %s\n", $1), $h.keyIterator();
     @endcode
 
     @note
@@ -311,7 +311,7 @@ HashKeyIterator <hash>::keyIterator() [flags=CONSTANT] {
 
     @par Example:
     @code
-map printf("+ %s\n", $1), $h.pairIterator();
+map printf("%s: %y\n", $1.key, $1.value), $h.pairIterator());
     @endcode
 
     @note this pseudo-method is also implemented in Qore::zzz8nothingzzz9, so it's safe to use where the value could be a hash or @ref nothing (ex: @ref hash_or_nothing_type "*hash")
