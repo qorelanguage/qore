@@ -115,6 +115,7 @@ bool QoreHashNode::getKeyAsBool(const char* key, bool &found) const {
 }
 
 void QoreHashNode::deleteKey(const QoreString* key, ExceptionSink* xsink) {
+   assert(reference_count() == 1);
    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
    if (*xsink)
       return;
@@ -123,6 +124,7 @@ void QoreHashNode::deleteKey(const QoreString* key, ExceptionSink* xsink) {
 }
 
 void QoreHashNode::removeKey(const QoreString* key, ExceptionSink* xsink) {
+   assert(reference_count() == 1);
    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
    if (*xsink)
       return;
@@ -131,6 +133,7 @@ void QoreHashNode::removeKey(const QoreString* key, ExceptionSink* xsink) {
 }
 
 AbstractQoreNode* QoreHashNode::takeKeyValue(const QoreString* key, ExceptionSink* xsink) {
+   assert(reference_count() == 1);
    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
    if (*xsink)
       return 0;
@@ -190,6 +193,7 @@ AbstractQoreNode* QoreHashNode::swapKeyValue(const char* key, AbstractQoreNode* 
 }
 
 AbstractQoreNode* QoreHashNode::swapKeyValue(const char* key, AbstractQoreNode* val, ExceptionSink* xsink) {
+   assert(reference_count() == 1);
    hash_assignment_priv ha(*priv, key);
    return ha.swap(val);
 }
@@ -406,14 +410,17 @@ void QoreHashNode::clear(ExceptionSink* xsink) {
 }
 
 void QoreHashNode::deleteKey(const char* key, ExceptionSink* xsink) {
+   assert(reference_count() == 1);
    priv->deleteKey(key, xsink);
 }
 
 void QoreHashNode::removeKey(const char* key, ExceptionSink* xsink) {
+   assert(reference_count() == 1);
    return priv->removeKey(key, xsink);
 }
 
 AbstractQoreNode* QoreHashNode::takeKeyValue(const char* key) {
+   assert(reference_count() == 1);
    return priv->takeKeyValue(key);
 }
 
@@ -926,7 +933,26 @@ AbstractQoreNode* hash_assignment_priv::swapImpl(AbstractQoreNode* v) {
       v = 0;
    AbstractQoreNode* old = om->node;
    om->node = v;
+
+   bool before = get_container_obj(old);
+   bool after = get_container_obj(v);
+   if (before) {
+      if (!after)
+	 h.incObjectCount(-1);
+   }
+   else if (after)
+      h.incObjectCount(1);
+
    return old;
+}
+
+void hash_assignment_priv::assign(AbstractQoreNode* v, ExceptionSink* xsink) {
+   AbstractQoreNode* old = swapImpl(v);
+   //qoreCheckContainer(v);
+   if (old) {
+      // "remove" logic here
+      old->deref(xsink);
+   }
 }
 
 AbstractQoreNode* hash_assignment_priv::getValueImpl() const {

@@ -317,6 +317,20 @@ class QoreTreeNode;
 
 typedef std::set<const void*> lvid_set_t;
 
+// track obj count changes
+struct ObjCountRec {
+   // container
+   const AbstractQoreNode* con;
+   // initial count (true = objects, false = none)
+   bool before;
+
+   DLLLOCAL ObjCountRec(const QoreListNode* c);
+   DLLLOCAL ObjCountRec(const QoreHashNode* c);
+   DLLLOCAL int getDifference();
+};
+
+typedef std::vector<ObjCountRec> ocvec_t;
+
 // this class grabs global variable or object locks for the duration of the scope of the object
 // no evaluations can be done while this object is in scope or a deadlock may result
 class LValueHelper {
@@ -360,6 +374,11 @@ protected:
    DLLLOCAL int doListLValue(const QoreTreeNode* tree, bool for_remove);
    DLLLOCAL int doHashObjLValue(const QoreTreeNode* tree, bool for_remove);
 
+   DLLLOCAL void setDelta(int dt) {
+      assert(!rdt);
+      rdt = dt;
+   }
+
 public:
    AutoVLock vl;
    AbstractQoreNode** v;     // ptr to ptr for lvalue expression
@@ -367,11 +386,12 @@ private:
    typedef std::vector<AbstractQoreNode*> nvec_t;
    nvec_t tvec;
    lvid_set_t* lvid_set;
+   ocvec_t ocvec;
+   bool before;
+   int rdt;
 
 #ifdef DO_OBJ_RECURSIVE_CHECK
    QoreObject* robj;
-   // to find recursive references
-   bool container_change;
 
    DLLLOCAL void addOSet(QoreObject* o) {
       robj = o;
@@ -413,6 +433,7 @@ public:
       assert(!v);
       assert(!val);
       v = &ptr;
+      before = get_container_obj(ptr);
    }
 
    DLLLOCAL void setValue(QoreLValueGeneric& nv);
@@ -426,12 +447,14 @@ public:
       assert(!val);
       v = ptr;
       typeInfo = ti;
+      before = get_container_obj(*ptr);
    }
 
    DLLLOCAL void clearPtr() {
       assert(v);
       v = 0;
       typeInfo = 0;
+      before = 0;
    }
 
    DLLLOCAL operator bool() const {
@@ -442,12 +465,12 @@ public:
       return (bool)val;
    }
 
-   const QoreTypeInfo* getTypeInfo() const {
+   DLLLOCAL const QoreTypeInfo* getTypeInfo() const {
       return typeInfo;
    }
 
-   const qore_type_t getType() const;
-   const char* getTypeName() const;
+   DLLLOCAL const qore_type_t getType() const;
+   DLLLOCAL const char* getTypeName() const;
 
    DLLLOCAL bool checkType(const qore_type_t t) const {
       return getType() == t;

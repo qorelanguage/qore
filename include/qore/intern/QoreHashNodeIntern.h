@@ -64,8 +64,16 @@ class qore_hash_private {
 public:
    qhlist_t member_list;
    hm_hm_t hm;
+   unsigned obj_count;
+#ifdef DEBUG
+   bool is_obj;
+#endif
 
-   DLLLOCAL qore_hash_private() {
+   DLLLOCAL qore_hash_private() : obj_count(0)
+#ifdef DEBUG
+                                , is_obj(0)
+#endif                                  
+   {
    }
       
    // hashes should always be empty by the time they are deleted 
@@ -165,6 +173,9 @@ public:
       
       // dereference node if present
       if ((*li)->node) {
+         if (get_container_obj((*li)->node))
+            incObjectCount(-1);
+
          if ((*li)->node->getType() == NT_OBJECT)
             reinterpret_cast<QoreObject*>((*li)->node)->doDelete(xsink);
          (*li)->node->deref(xsink);
@@ -186,8 +197,11 @@ public:
       hm.erase(i);
       
       // dereference node if present
-      if ((*li)->node)
+      if ((*li)->node) {
+         if (get_container_obj((*li)->node))
+            incObjectCount(-1);
          (*li)->node->deref(xsink);
+      }
       
       internDeleteKey(li);
    }
@@ -205,6 +219,10 @@ public:
       
       AbstractQoreNode *rv = (*li)->node;
       internDeleteKey(li);
+
+      if (get_container_obj(rv))
+         incObjectCount(-1);
+
       return rv;
    }
 
@@ -268,6 +286,7 @@ public:
 
       member_list.clear();
       hm.clear();
+      obj_count = 0;
       return true;
    }
 
@@ -283,12 +302,27 @@ public:
       return member_list.empty();
    }
 
+   DLLLOCAL void incObjectCount(int dt) {
+      assert(dt);
+      assert(obj_count || (dt > 0) || is_obj);
+      //printd(5, "qore_hash_private::incObjectCount() this: %p dt: %d: %d -> %d\n", this, dt, obj_count, obj_count + dt);
+      obj_count += dt;
+   }
+
    DLLLOCAL static AbstractQoreNode* getFirstKeyValue(const QoreHashNode* h) { 
       return h->priv->member_list.empty() ? 0 : h->priv->member_list.front()->node;
    }  
    
    DLLLOCAL static AbstractQoreNode* getLastKeyValue(const QoreHashNode* h) {
       return h->priv->member_list.empty() ? 0 : h->priv->member_list.back()->node;
+   }
+
+   DLLLOCAL static unsigned getObjectCount(const QoreHashNode& h) {
+      return h.priv->obj_count;
+   }
+
+   DLLLOCAL static void incObjectCount(const QoreHashNode& h, int dt) {
+      h.priv->incObjectCount(dt);
    }
 };
 

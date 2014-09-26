@@ -29,6 +29,8 @@
 */
 
 #include <qore/Qore.h>
+#include <qore/intern/qore_list_private.h>
+#include <qore/intern/QoreHashNodeIntern.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -528,3 +530,24 @@ bool is_container(const AbstractQoreNode* n) {
    return false;
 }
 
+bool get_container_obj(const AbstractQoreNode* n) {
+   if (!n)
+      return false;
+
+   switch (n->getType()) {
+      case NT_LIST: return qore_list_private::getObjectCount(*static_cast<const QoreListNode*>(n)) ? true : false;
+      case NT_HASH: return qore_hash_private::getObjectCount(*static_cast<const QoreHashNode*>(n)) ? true : false;
+      case NT_OBJECT: return true;
+   }
+
+   return false;
+}
+
+void inc_container_obj(const AbstractQoreNode* n, int dt) {
+   assert(n);
+   switch (n->getType()) {
+      case NT_LIST: qore_list_private::incObjectCount(*static_cast<const QoreListNode*>(n), dt); break;
+      case NT_HASH: qore_hash_private::incObjectCount(*static_cast<const QoreHashNode*>(n), dt); break;
+      default: assert(false);
+   }
+}

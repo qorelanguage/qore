@@ -525,31 +525,7 @@ public:
 #endif
    QoreObject* obj;
 
-   DLLLOCAL qore_object_private(QoreObject* n_obj, const QoreClass *oc, QoreProgram* p, QoreHashNode* n_data) : 
-      theclass(oc), status(OS_OK), 
-      privateData(0), data(n_data), pgm(p), system_object(!p), 
-      delete_blocker_run(false), in_destructor(false), pgm_ref(true), 
-#ifdef DO_OBJ_RECURSIVE_CHECK
-      recursive_ref_found(false),
-      rscan(0),
-      rcount(0), rwaiting(0), rcycle(0), rset(0),
-#endif
-      obj(n_obj) {
-      //printd(5, "qore_object_private::qore_object_private() this: %p obj: %p '%s'\n", this, obj, oc->getName());
-#ifdef QORE_DEBUG_OBJ_REFS
-      printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::qore_object_private() obj=%p, pgm=%p, class=%s, references 0->1\n", obj, p, oc->getName());
-#endif
-      /* instead of referencing the class, we reference the program, because the
-	 program contains the namespace that contains the class, and the class'
-	 methods may call functions in the program as well that could otherwise
-	 disappear when the program is deleted
-      */
-      if (p) {
-	 printd(5, "qore_object_private::qore_object_private() obj=%p (%s) calling QoreProgram::ref() (%p)\n", obj, theclass->getName(), p);
-	 //p->depRef();
-         p->ref();
-      }
-   }
+   DLLLOCAL qore_object_private(QoreObject* n_obj, const QoreClass *oc, QoreProgram* p, QoreHashNode* n_data);
 
    DLLLOCAL ~qore_object_private() {
       assert(!pgm);

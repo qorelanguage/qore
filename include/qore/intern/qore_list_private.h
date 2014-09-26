@@ -33,28 +33,36 @@
 #define _QORE_QORELISTPRIVATE_H
 
 struct qore_list_private {
-   AbstractQoreNode **entry;
+   AbstractQoreNode** entry;
    qore_size_t length;
    qore_size_t allocated;
+   unsigned obj_count;
    bool finalized : 1;
    bool vlist : 1;
 
-   DLLLOCAL qore_list_private() {
-      entry = 0;
-      length = 0;
-      allocated = 0;
-      finalized = false;
-      vlist = false;
+   DLLLOCAL qore_list_private() : entry(0), length(0), allocated(0), obj_count(0), finalized(false), vlist(false) {
    }
+
    DLLLOCAL ~qore_list_private() {
       assert(!length);
 
       if (entry)
 	 free(entry);
    }
-   DLLLOCAL void clear() {
-      entry = 0;
-      length = 0;
+
+   DLLLOCAL void incObjectCount(int dt) {
+      assert(dt);
+      assert(obj_count || (dt > 0));
+      //printd(5, "qore_list_private::incObjectCount() this: %p dt: %d: %d -> %d\n", this, dt, obj_count, obj_count + dt);
+      obj_count += dt;
+   }
+
+   DLLLOCAL static unsigned getObjectCount(const QoreListNode& l) {
+      return l.priv->obj_count;
+   }
+
+   DLLLOCAL static void incObjectCount(const QoreListNode& l, int dt) {
+      l.priv->incObjectCount(dt);
    }
 };
 

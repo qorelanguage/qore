@@ -35,6 +35,35 @@
 #include <qore/intern/QoreObjectIntern.h>
 #include <qore/intern/QoreHashNodeIntern.h>
 
+qore_object_private::qore_object_private(QoreObject* n_obj, const QoreClass *oc, QoreProgram* p, QoreHashNode* n_data) : 
+   theclass(oc), status(OS_OK), 
+   privateData(0), data(n_data), pgm(p), system_object(!p), 
+   delete_blocker_run(false), in_destructor(false), pgm_ref(true), 
+#ifdef DO_OBJ_RECURSIVE_CHECK
+   recursive_ref_found(false),
+   rscan(0),
+   rcount(0), rwaiting(0), rcycle(0), rset(0),
+#endif
+   obj(n_obj) {
+   //printd(5, "qore_object_private::qore_object_private() this: %p obj: %p '%s'\n", this, obj, oc->getName());
+#ifdef QORE_DEBUG_OBJ_REFS
+   printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::qore_object_private() obj=%p, pgm=%p, class=%s, references 0->1\n", obj, p, oc->getName());
+#endif
+   /* instead of referencing the class, we reference the program, because the
+      program contains the namespace that contains the class, and the class'
+      methods may call functions in the program as well that could otherwise
+      disappear when the program is deleted
+   */
+   if (p) {
+      printd(5, "qore_object_private::qore_object_private() obj=%p (%s) calling QoreProgram::ref() (%p)\n", obj, theclass->getName(), p);
+      //p->depRef();
+      p->ref();
+   }
+#ifdef DEBUG
+   n_data->priv->is_obj = true;
+#endif
+}
+
 void qore_object_private::merge(const QoreHashNode* h, AutoVLock& vl, ExceptionSink* xsink) {
 #ifdef DO_OBJ_RECURSIVE_CHECK
    bool check_recursive = false;
@@ -542,8 +571,6 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 
 	    // output in any case even when debugging is disabled
 	    print_debug(0, "QoreObject::customDeref() this: %p rcount/refs: %d deleting object (%s) with only recursive references\n", this, (int)ref_copy, getClassName());
-	    if (!strcmp(getClassName(), "FtpServer"))
-	       assert(false);
 
 	    rrf = true;
 	    break;
@@ -1068,6 +1095,9 @@ bool QoreObject::getAsBoolImpl() const {
 
 #ifdef DO_OBJ_RECURSIVE_CHECK
 int ObjectRSetHelper::checkIntern(AbstractQoreNode* n) {
+   if (!get_container_obj(n))
+      return ORS_NO_MATCH;
+
    switch (get_node_type(n)) {
       case NT_OBJECT:
 	 return checkIntern(*reinterpret_cast<QoreObject*>(n));
@@ -1293,19 +1323,20 @@ int ObjectRSetHelper::checkIntern(QoreObject& obj) {
 	 omap_t::iterator oi = frvec.back();
 
 	 // increment rcount of every member of the chain
-	 printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj: %p (%s rcycle: %d final: %d) rcount: %d -> %d\n", &obj, obj.getClassName(), obj.priv->rcycle, oi->second.final, oi->second.rcount, oi->second.rcount + 1);
+	 printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj: %p (%s rcycle: %d first: %p '%s' second: %p final: %d) rcount: %d -> %d\n", &obj, obj.getClassName(), obj.priv->rcycle, oi->first, oi->first->getClassName(), &oi->second, oi->second.final, oi->second.rcount, oi->second.rcount + 1);
 	 ++oi->second.rcount;
 
 	 if (!oi->second.final) {
 	    if (!rset) {
 	       rset = new ObjectRSet;
-	       printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj: %p (%s rcycle: %d) new ObjectRSet: %p (inserting %p)\n", &obj, obj.getClassName(), obj.priv->rcycle, rset, oi->first);
+	       printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj: %p (%s rcycle: %d first: %p '%s' second: %p) new ObjectRSet: %p\n", &obj, obj.getClassName(), obj.priv->rcycle, oi->first, oi->first->getClassName(), &oi->second, rset);
 	    }
 	    else
 	       assert(rset->find(oi->first) == rset->end());
 
 	    // queue mark object as finalized
 	    oi->second.finalize(rset);
+	    assert(oi->second.rset);
 
 	    // insert into new rset
 	    rset->insert(oi->first);
@@ -1320,7 +1351,8 @@ int ObjectRSetHelper::checkIntern(QoreObject& obj) {
 	    printd(QRO_LVL, "ObjectRSetHelper::checkIntern() done search obj %p '%s': finalized mark %p '%s' with rset: %p (rcount: %d)\n", &obj, obj.getClassName(), oi->first, oi->first->getClassName(), rset, oi->second.rcount);
 	 }
 	 else {
-	    printd(QRO_LVL, "ObjectRSetHelper::checkIntern() done search obj %p '%s': already finalized mark %p '%s' with rset: %p (rcount: %d)\n", &obj, obj.getClassName(), oi->first, oi->first->getClassName(), rset, oi->second.rcount);
+	    printd(QRO_LVL, "ObjectRSetHelper::checkIntern() done search obj %p '%s': already finalized mark %p '%s' with rset: %p (rcount: %d) current rset: %p\n", &obj, obj.getClassName(), oi->first, oi->first->getClassName(), oi->second.rset, oi->second.rcount, rset);
+	    assert(!rset || rset == oi->second.rset);
 	 }
 
 	 frvec.pop_back();

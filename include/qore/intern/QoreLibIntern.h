@@ -137,6 +137,10 @@ extern char* strcasestr(const char* s1, const char* s2);
 typedef std::set<QoreObject*> obj_set_t;
 
 DLLLOCAL bool is_container(const AbstractQoreNode* n);
+// returns true if the container has objects or false if not
+DLLLOCAL bool get_container_obj(const AbstractQoreNode* n);
+// increments or decrements the object count depending on the sign of the argument (cannot be 0)
+DLLLOCAL void inc_container_obj(const AbstractQoreNode* n, int dt);
 
 struct ParseWarnOptions {
    int64 parse_options;
@@ -672,14 +676,7 @@ public:
       return getValueImpl();
    }
 
-   DLLLOCAL void assign(AbstractQoreNode* v, ExceptionSink* xsink) {
-      AbstractQoreNode* old = swapImpl(v);
-      //qoreCheckContainer(v);
-      if (old) {
-         // "remove" logic here
-         old->deref(xsink);
-      }
-   }
+   DLLLOCAL void assign(AbstractQoreNode* v, ExceptionSink* xsink);
 
    DLLLOCAL AbstractQoreNode* swap(AbstractQoreNode* v) {
       return swapImpl(v);
