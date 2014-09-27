@@ -1323,13 +1323,19 @@ int ObjectRSetHelper::checkIntern(QoreObject& obj) {
 	 omap_t::iterator oi = frvec.back();
 
 	 // increment rcount of every member of the chain
-	 printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj: %p (%s rcycle: %d first: %p '%s' second: %p final: %d) rcount: %d -> %d\n", &obj, obj.getClassName(), obj.priv->rcycle, oi->first, oi->first->getClassName(), &oi->second, oi->second.final, oi->second.rcount, oi->second.rcount + 1);
+	 printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj: %p (%s rcycle: %d first: %p '%s' second.rset: %p final: %d) rcount: %d -> %d\n", &obj, obj.getClassName(), obj.priv->rcycle, oi->first, oi->first->getClassName(), oi->second.rset, oi->second.final, oi->second.rcount, oi->second.rcount + 1);
 	 ++oi->second.rcount;
 
 	 if (!oi->second.final) {
 	    if (!rset) {
-	       rset = new ObjectRSet;
-	       printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj: %p (%s rcycle: %d first: %p '%s' second: %p) new ObjectRSet: %p\n", &obj, obj.getClassName(), obj.priv->rcycle, oi->first, oi->first->getClassName(), &oi->second, rset);
+	       if (fi->second.rset) {
+		  rset = fi->second.rset;
+		  printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj: %p (%s rcycle: %d first: %p '%s' second.rset: %p) reusing ObjectRSet: %p\n", &obj, obj.getClassName(), obj.priv->rcycle, oi->first, oi->first->getClassName(), oi->second.rset, rset);
+	       }
+	       else {
+		  rset = new ObjectRSet;
+		  printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj: %p (%s rcycle: %d first: %p '%s' second.rset: %p) new ObjectRSet: %p\n", &obj, obj.getClassName(), obj.priv->rcycle, oi->first, oi->first->getClassName(), oi->second.rset, rset);
+	       }
 	    }
 	    else
 	       assert(rset->find(oi->first) == rset->end());
@@ -1348,10 +1354,10 @@ int ObjectRSetHelper::checkIntern(QoreObject& obj) {
 		  return ORS_LOCK_ERROR;
 	    }
 
-	    printd(QRO_LVL, "ObjectRSetHelper::checkIntern() done search obj %p '%s': finalized mark %p '%s' with rset: %p (rcount: %d)\n", &obj, obj.getClassName(), oi->first, oi->first->getClassName(), rset, oi->second.rcount);
+	    printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj %p '%s': finalized %p '%s' with rset: %p (rcount: %d)\n", &obj, obj.getClassName(), oi->first, oi->first->getClassName(), rset, oi->second.rcount);
 	 }
 	 else {
-	    printd(QRO_LVL, "ObjectRSetHelper::checkIntern() done search obj %p '%s': already finalized mark %p '%s' with rset: %p (rcount: %d) current rset: %p\n", &obj, obj.getClassName(), oi->first, oi->first->getClassName(), oi->second.rset, oi->second.rcount, rset);
+	    printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj %p '%s': already finalized %p '%s' with rset: %p (rcount: %d) current rset: %p\n", &obj, obj.getClassName(), oi->first, oi->first->getClassName(), oi->second.rset, oi->second.rcount, rset);
 	    assert(!rset || rset == oi->second.rset);
 	 }
 
