@@ -323,15 +323,17 @@ public:
 class ObjectRSet {
 protected:
    obj_set_t set;
+   // for O(1) size comparisons; std::set::size() can be slow
+   size_t ssize;
    QoreRWLock rwl;
    int acnt;
    bool valid, in_del;
    
 public:
-   DLLLOCAL ObjectRSet() : acnt(0), valid(true), in_del(false) {
+   DLLLOCAL ObjectRSet() : ssize(0), acnt(0), valid(true), in_del(false) {
    }
 
-   DLLLOCAL ObjectRSet(QoreObject* o) : acnt(0), valid(true), in_del(false) {
+   DLLLOCAL ObjectRSet(QoreObject* o) : ssize(1), acnt(0), valid(true), in_del(false) {
       set.insert(o);
    }
 
@@ -379,10 +381,12 @@ public:
 
    DLLLOCAL void insert(QoreObject* o) {
       set.insert(o);
+      ++ssize;
    }
 
    DLLLOCAL void clear() {
       set.clear();
+      ssize = 0;
    }
 
    DLLLOCAL obj_set_t::iterator begin() {
@@ -398,13 +402,15 @@ public:
    }
 
    DLLLOCAL size_t size() const {
-      return set.size();
+      return ssize;
    }
 
    DLLLOCAL bool pop() {
       assert(!set.empty());
+      assert(ssize);
       set.erase(set.begin());
-      return set.empty();
+      --ssize;
+      return !ssize;
    }
 };
 
@@ -419,19 +425,20 @@ typedef std::set<ObjectRSet*> rs_set_t;
 struct RSetStat {
    ObjectRSet* rset;
    int rcount;
-   bool final;
+   bool in_cycle : 1,
+      ok : 1;
 
-   DLLLOCAL RSetStat() : rset(0), rcount(0), final(false) {
+   DLLLOCAL RSetStat() : rset(0), rcount(0), in_cycle(false), ok(false) {
    }
 
-   DLLLOCAL RSetStat(const RSetStat& old) : rset(old.rset), rcount(old.rcount), final(old.final) {
+   DLLLOCAL RSetStat(const RSetStat& old) : rset(old.rset), rcount(old.rcount), in_cycle(old.in_cycle), ok(old.ok) {
    }
 
    DLLLOCAL void finalize(ObjectRSet* rs = 0) {
-      assert(!final);
+      assert(in_cycle);
+      assert(!ok);
       assert(!rset);
       rset = rs;
-      final = true;
    }
 };
 
