@@ -123,6 +123,14 @@ void qore_object_private::merge(const QoreHashNode* h, AutoVLock& vl, ExceptionS
 #endif
 }
 
+unsigned qore_object_private::getObjectCount() {
+   return data->priv->obj_count;
+}
+
+void qore_object_private::incObjectCount(int dt) {
+   data->priv->incObjectCount(dt);
+}
+
 AbstractQoreNode *qore_object_private::takeMember(ExceptionSink* xsink, const char* key, bool check_access) {
    const QoreTypeInfo* mti = 0;
    if (checkMemberAccessGetTypeInfo(xsink, key, mti, check_access))
@@ -140,6 +148,78 @@ AbstractQoreNode *qore_object_private::takeMember(ExceptionSink* xsink, const ch
 #else
    return data->swapKeyValue(key, 0);
 #endif
+}
+
+AbstractQoreNode* qore_object_private::takeMember(LValueHelper& lvh, const char* key) {
+   bool check_access = !qore_class_private::runtimeCheckPrivateClassAccess(*theclass);
+
+   const QoreTypeInfo* mti = 0;
+   if (checkMemberAccessGetTypeInfo(lvh.vl.xsink, key, mti, check_access))
+      return 0;
+
+   QoreAutoVarRWWriteLocker al(rml);
+
+   if (status == OS_DELETED) {
+      makeAccessDeletedObjectException(lvh.vl.xsink, key, theclass->getName());
+      return 0;
+   }
+
+   AbstractQoreNode* rv;
+#ifdef QORE_ENFORCE_DEFAULT_LVALUE
+   rv = data->swapKeyValue(key, mti->getDefaultValue());
+#else
+   rv = data->swapKeyValue(key, 0);
+#endif
+
+   if (get_container_obj(rv)) {
+      if (!getObjectCount())
+	 lvh.setDelta(-1);
+   }
+
+   return rv;
+}
+
+void qore_object_private::takeMembers(QoreLValueGeneric& rv, LValueHelper& lvh, const QoreListNode* l) {
+   bool check_access = !qore_class_private::runtimeCheckPrivateClassAccess(*theclass);
+
+   QoreHashNode* rvh = new QoreHashNode;
+   rv.assignInitial(rvh);
+
+   unsigned old_count;
+
+   QoreAutoVarRWWriteLocker al(rml);
+
+   if (status == OS_DELETED) {
+      makeAccessDeletedObjectException(lvh.vl.xsink, theclass->getName());
+      return;
+   }
+
+   old_count = getObjectCount();
+   
+   ConstListIterator li(l);
+   while (li.next()) {
+      QoreStringValueHelper mem(li.getValue(), QCS_DEFAULT, lvh.vl.xsink);
+      if (*lvh.vl.xsink)
+	 return;
+      const char* key = mem->getBuffer();
+	 
+      const QoreTypeInfo* mti = 0;
+      if (checkMemberAccessGetTypeInfo(lvh.vl.xsink, key, mti, check_access))
+	 return;
+      
+#ifdef QORE_ENFORCE_DEFAULT_LVALUE
+      AbstractQoreNode* n = data->swapKeyValue(key, mti->getDefaultValue());
+#else
+      AbstractQoreNode* n = data->swapKeyValue(key, 0);
+#endif
+	    
+      // note that no exception can occur here
+      rvh->setKeyValue(key, n, lvh.vl.xsink);
+      assert(!*lvh.vl.xsink);
+   }
+
+   if (old_count && !getObjectCount())
+      lvh.setDelta(-1);   
 }
 
 int qore_object_private::getLValue(const char* key, LValueHelper& lvh, bool internal, bool for_remove, ExceptionSink* xsink) const {
@@ -1268,13 +1348,22 @@ int ObjectRSetHelper::checkIntern(QoreObject& obj) {
 
    printd(QRO_LVL, "ObjectRSetHelper::checkIntern() found new obj %p '%s' setting rcount = 0 (current: %d rset: %p)\n", &obj, obj.getClassName(), obj.priv->rcount, obj.priv->rset);
 
-   // save high water mark in rset
-   size_t fpos = frvec.size();
-
    // insert into total scanned object set
    fi = fomap.insert(fi, omap_t::value_type(&obj, RSetStat()));
+
+   // check if the object should be iterated
+   if (!qore_object_private::getObjectCount(obj)) {
+      printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj %p '%s' will not be iterated since object count is 0\n", &obj, obj.getClassName());
+      fi->second.ok = true;
+      assert(!fi->second.rset);
+      return ORS_NO_MATCH;
+   }
+
    // push on current vector chain
    ovec.push_back(fi);
+
+   // save high water mark in rset
+   size_t fpos = frvec.size();
 
    // remove from invalidation set if present
    tr_out.erase(&obj);
@@ -1312,7 +1401,6 @@ int ObjectRSetHelper::checkIntern(QoreObject& obj) {
 	 assert(!fi->second.rset);
 	 //assert(frvec.size() == fpos);
 	 frvec.clear();
-	 //fomap.erase(fi);
 	 assert(tr_out.find(&obj) == tr_out.end());
       }
       else

@@ -326,6 +326,7 @@ struct ObjCountRec {
 
    DLLLOCAL ObjCountRec(const QoreListNode* c);
    DLLLOCAL ObjCountRec(const QoreHashNode* c);
+   DLLLOCAL ObjCountRec(const QoreObject* c);
    DLLLOCAL int getDifference();
 };
 
@@ -374,11 +375,6 @@ protected:
    DLLLOCAL int doListLValue(const QoreTreeNode* tree, bool for_remove);
    DLLLOCAL int doHashObjLValue(const QoreTreeNode* tree, bool for_remove);
 
-   DLLLOCAL void setDelta(int dt) {
-      assert(!rdt);
-      rdt = dt;
-   }
-
 public:
    AutoVLock vl;
    AbstractQoreNode** v;     // ptr to ptr for lvalue expression
@@ -392,10 +388,6 @@ private:
 
 #ifdef DO_OBJ_RECURSIVE_CHECK
    QoreObject* robj;
-
-   DLLLOCAL void addOSet(QoreObject* o) {
-      robj = o;
-   }
 #endif
 
 public:
@@ -581,6 +573,11 @@ public:
    DLLLOCAL int64 removeBigInt();
    DLLLOCAL double removeFloat();
    DLLLOCAL AbstractQoreNode* remove(bool for_del);
+
+   DLLLOCAL void setDelta(int dt) {
+      assert(!rdt);
+      rdt = dt;
+   }
 };
 
 class LValueRemoveHelper {

@@ -741,6 +741,10 @@ public:
 
    DLLLOCAL AbstractQoreNode* takeMember(ExceptionSink* xsink, const char* mem, bool check_access = true);
 
+   DLLLOCAL AbstractQoreNode* takeMember(LValueHelper& lvh, const char* mem);
+
+   DLLLOCAL void takeMembers(QoreLValueGeneric& rv, LValueHelper& lvh, const QoreListNode* l);
+
    // lock not held on entry
    DLLLOCAL void doDeleteIntern(ExceptionSink* xsink) {
       printd(5, "qore_object_private::doDeleteIntern() execing destructor() obj=%p\n", obj);
@@ -936,12 +940,24 @@ public:
    }
 #endif
 
+   DLLLOCAL unsigned getObjectCount();
+
+   DLLLOCAL void incObjectCount(int dt);
+
    DLLLOCAL static qore_object_private* get(QoreObject& obj) {
       return obj.priv;
    }
 
    DLLLOCAL static AbstractQoreNode* takeMember(QoreObject& obj, ExceptionSink* xsink, const char* mem, bool check_access = true) {
       return obj.priv->takeMember(xsink, mem, check_access);
+   }
+
+   DLLLOCAL static AbstractQoreNode* takeMember(QoreObject& obj, LValueHelper& lvh, const char* mem) {
+      return obj.priv->takeMember(lvh, mem);
+   }
+
+   DLLLOCAL static void takeMembers(QoreObject& o, QoreLValueGeneric& rv, LValueHelper& lvh, const QoreListNode* l) {
+      o.priv->takeMembers(rv, lvh, l);
    }
 
    DLLLOCAL static int getLValue(const QoreObject& obj, const char* key, LValueHelper& lvh, bool internal, bool for_remove, ExceptionSink* xsink) {
@@ -966,6 +982,14 @@ public:
 
    DLLLOCAL static QoreStringNode* lastKey(QoreObject* obj, ExceptionSink* xsink) {
       return obj->priv->lastKey(xsink);
+   }
+
+   DLLLOCAL static unsigned getObjectCount(const QoreObject& o) {
+      return o.priv->getObjectCount();
+   }
+
+   DLLLOCAL static void incObjectCount(const QoreObject& o, int dt) {
+      o.priv->incObjectCount(dt);
    }
 };
 

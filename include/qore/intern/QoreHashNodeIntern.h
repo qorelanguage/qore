@@ -304,7 +304,7 @@ public:
 
    DLLLOCAL void incObjectCount(int dt) {
       assert(dt);
-      assert(obj_count || (dt > 0) || is_obj);
+      assert(obj_count || dt > 0);
       //printd(5, "qore_hash_private::incObjectCount() this: %p dt: %d: %d -> %d\n", this, dt, obj_count, obj_count + dt);
       obj_count += dt;
    }

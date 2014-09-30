@@ -548,6 +548,7 @@ void inc_container_obj(const AbstractQoreNode* n, int dt) {
    switch (n->getType()) {
       case NT_LIST: qore_list_private::incObjectCount(*static_cast<const QoreListNode*>(n), dt); break;
       case NT_HASH: qore_hash_private::incObjectCount(*static_cast<const QoreHashNode*>(n), dt); break;
+      case NT_OBJECT: qore_object_private::incObjectCount(*static_cast<const QoreObject*>(n), dt); break;
       default: assert(false);
    }
 }

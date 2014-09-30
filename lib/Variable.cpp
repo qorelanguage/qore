@@ -156,6 +156,10 @@ ObjCountRec::ObjCountRec(const QoreHashNode* c) : con(c), before((bool)qore_hash
    //printd(5, "ObjCountRec::ObjCountRec() hash %p count: %d\n", c, qore_hash_private::getObjectCount(*c));
 }
 
+ObjCountRec::ObjCountRec(const QoreObject* c) : con(c), before((bool)qore_object_private::getObjectCount(*c)) {
+   //printd(5, "ObjCountRec::ObjCountRec() object %p count: %d\n", c, qore_object_private::getObjectCount(*c));
+}
+
 int ObjCountRec::getDifference() {
    bool after = get_container_obj(con);
    if (after)
@@ -371,7 +375,6 @@ int LValueHelper::doHashObjLValue(const QoreTreeNode* tree, bool for_remove) {
 
    // clear ocvec when we get to an object
    ocvec.clear();
-
    clearPtr();
 
    bool intern = qore_class_private::runtimeCheckPrivateClassAccess(*o->getClass());
@@ -383,8 +386,8 @@ int LValueHelper::doHashObjLValue(const QoreTreeNode* tree, bool for_remove) {
       return -1;
 
 #ifdef DO_OBJ_RECURSIVE_CHECK
-   //if (!qore_object_private::isRecursive(*o))
-      addOSet(o);
+   robj = o;
+   ocvec.push_back(ObjCountRec(o));
 #endif
 
    return 0;
@@ -427,8 +430,8 @@ int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
          return -1;
 
 #ifdef DO_OBJ_RECURSIVE_CHECK
-      //if (!qore_object_private::isRecursive(*obj))
-	 addOSet(obj);
+      robj = obj;
+      ocvec.push_back(ObjCountRec(obj));
 #endif
    }
    else if (ntype == NT_CLASS_VARREF)
@@ -1092,29 +1095,34 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
 
    // remove a slice of the hash or object
    if (get_node_type(*member) == NT_LIST) {
-      unsigned old_count = h ? qore_hash_private::getObjectCount(*h) : 0;
+      const QoreListNode* l = reinterpret_cast<const QoreListNode*>(*member);
 
-      QoreHashNode* rvh = new QoreHashNode;
-      rv.assignInitial(rvh);
+      if (o)
+	 qore_object_private::takeMembers(*o, rv, lvh, l);
+      else {
+	 unsigned old_count = qore_hash_private::getObjectCount(*h);
 
-      bool intern = o ? qore_class_private::runtimeCheckPrivateClassAccess(*o->getClass()) : false;
+	 QoreHashNode* rvh = new QoreHashNode;
+	 rv.assignInitial(rvh);
 
-      ConstListIterator li(reinterpret_cast<const QoreListNode*>(*member));
-      while (li.next()) {
-         QoreStringValueHelper mem(li.getValue(), QCS_DEFAULT, xsink);
-         if (*xsink)
-            return;
+	 ConstListIterator li(l);
+	 while (li.next()) {
+	    QoreStringValueHelper mem(li.getValue(), QCS_DEFAULT, xsink);
+	    if (*xsink)
+	       return;
+	    
+	    AbstractQoreNode* n = h->takeKeyValue(mem->getBuffer());
+	    if (*xsink)
+	       return;
+	    
+	    // note that no exception can occur here
+	    rvh->setKeyValue(mem->getBuffer(), n, xsink);
+	    assert(!*xsink);
+	 }
 
-         AbstractQoreNode* n = o ? qore_object_private::takeMember(*o, xsink, mem->getBuffer(), !intern) : h->takeKeyValue(mem->getBuffer());
-         if (*xsink)
-            return;
-
-         // note that no exception can occur here
-         rvh->setKeyValue(mem->getBuffer(), n, xsink);
-         assert(!*xsink);
+	 if (old_count && !qore_hash_private::getObjectCount(*h))
+	    lvh.setDelta(-1);
       }
-      if (h && old_count && !qore_hash_private::getObjectCount(*h))
-	 lvh.setDelta(-1);
 
       return;
    }
@@ -1123,10 +1131,15 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
    if (*xsink)
       return;
 
-   AbstractQoreNode* v = o ? o->takeMember(mem->getBuffer(), xsink) : h->takeKeyValue(mem->getBuffer());
-   if (h && get_container_obj(v)) {
-      if (!qore_hash_private::getObjectCount(*h))
-	 lvh.setDelta(-1);
+   AbstractQoreNode* v;
+   if (o)
+      v = qore_object_private::takeMember(*o, lvh, mem->getBuffer());
+   else {
+      v = h->takeKeyValue(mem->getBuffer());
+      if (get_container_obj(v)) {
+	 if (!qore_hash_private::getObjectCount(*h))
+	    lvh.setDelta(-1);
+      }
    }
 
    rv.assignInitial(v);
