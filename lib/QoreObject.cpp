@@ -1505,8 +1505,10 @@ int ObjectRSetHelper::checkIntern(QoreObject& obj) {
    }
    else {
       printd(QRO_LVL, "ObjectRSetHelper::checkIntern() done search obj %p '%s': internal cycle node; queueing cmd RC_COND_SETONE (%d)\n", &obj, obj.getClassName(), fi->second.rcount);
-      fi->second.in_cycle = true;
-      fi->second.finalize(0);
+      if (!fi->second.in_cycle) {
+	 fi->second.in_cycle = true;
+	 fi->second.finalize(0);
+      }
       assert(!fi->second.rcount || fi->second.rcount == 1);
       
       if (!fi->second.rcount)
