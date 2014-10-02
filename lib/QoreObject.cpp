@@ -189,8 +189,6 @@ void qore_object_private::takeMembers(QoreLValueGeneric& rv, LValueHelper& lvh, 
    QoreHashNode* rvh = new QoreHashNode;
    rv.assignInitial(rvh);
 
-   unsigned old_count;
-
    QoreAutoVarRWWriteLocker al(rml);
 
    if (status == OS_DELETED) {
@@ -198,7 +196,9 @@ void qore_object_private::takeMembers(QoreLValueGeneric& rv, LValueHelper& lvh, 
       return;
    }
 
-   old_count = getObjectCount();
+#ifdef DO_OBJ_RECURSIVE_CHECK
+   unsigned old_count = getObjectCount();
+#endif
    
    ConstListIterator li(l);
    while (li.next()) {
@@ -222,8 +222,10 @@ void qore_object_private::takeMembers(QoreLValueGeneric& rv, LValueHelper& lvh, 
       assert(!*lvh.vl.xsink);
    }
 
+#ifdef DO_OBJ_RECURSIVE_CHECK
    if (old_count && !getObjectCount())
       lvh.setDelta(-1);   
+#endif
 }
 
 int qore_object_private::getLValue(const char* key, LValueHelper& lvh, bool internal, bool for_remove, ExceptionSink* xsink) const {

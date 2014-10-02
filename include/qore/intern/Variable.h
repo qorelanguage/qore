@@ -317,6 +317,7 @@ class QoreTreeNode;
 
 typedef std::set<const void*> lvid_set_t;
 
+#ifdef DO_OBJ_RECURSIVE_CHECK
 // track obj count changes
 struct ObjCountRec {
    // container
@@ -331,6 +332,7 @@ struct ObjCountRec {
 };
 
 typedef std::vector<ObjCountRec> ocvec_t;
+#endif
 
 // this class grabs global variable or object locks for the duration of the scope of the object
 // no evaluations can be done while this object is in scope or a deadlock may result
@@ -382,7 +384,9 @@ private:
    typedef std::vector<AbstractQoreNode*> nvec_t;
    nvec_t tvec;
    lvid_set_t* lvid_set;
+#ifdef DO_OBJ_RECURSIVE_CHECK
    ocvec_t ocvec;
+#endif
    bool before;
    int rdt;
 

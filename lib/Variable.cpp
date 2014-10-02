@@ -301,7 +301,9 @@ int LValueHelper::doListLValue(const QoreTreeNode* tree, bool for_remove) {
       ensureUnique();
       l = reinterpret_cast<QoreListNode*>(*v);
 
+#ifdef DO_OBJ_RECURSIVE_CHECK
       ocvec.push_back(ObjCountRec(l));
+#endif
    }
    else {
       if (for_remove)
@@ -316,7 +318,9 @@ int LValueHelper::doListLValue(const QoreTreeNode* tree, bool for_remove) {
       //printd(5, "LValueHelper::doListLValue() this: %p saving old value: %p '%s'\n", this, vp, get_type_name(vp));
       saveTemp(*v);
       *v = l = new QoreListNode;
+#ifdef DO_OBJ_RECURSIVE_CHECK
       ocvec.push_back(ObjCountRec(l));
+#endif
    }
 
    resetPtr(l->get_entry_ptr(ind));
@@ -350,7 +354,9 @@ int LValueHelper::doHashObjLValue(const QoreTreeNode* tree, bool for_remove) {
          ensureUnique();
          h = reinterpret_cast<QoreHashNode*>(*v);
 
+#ifdef DO_OBJ_RECURSIVE_CHECK
 	 ocvec.push_back(ObjCountRec(h));
+#endif
       }
       else {
          if (for_remove)
@@ -365,7 +371,9 @@ int LValueHelper::doHashObjLValue(const QoreTreeNode* tree, bool for_remove) {
          saveTemp(*v);
          *v = h = new QoreHashNode;
 
+#ifdef DO_OBJ_RECURSIVE_CHECK
 	 ocvec.push_back(ObjCountRec(h));
+#endif
       }
 
       //printd(5, "LValueHelper::doHashObjLValue() def=%s member %s \"%s\"\n", QCS_DEFAULT->getCode(), mem->getEncoding()->getCode(), mem->getBuffer());
@@ -375,8 +383,10 @@ int LValueHelper::doHashObjLValue(const QoreTreeNode* tree, bool for_remove) {
 
    //printd(5, "LValueHelper::doHashObjLValue() obj: %p member: %s\n", o, mem->getBuffer());
 
+#ifdef DO_OBJ_RECURSIVE_CHECK
    // clear ocvec when we get to an object
    ocvec.clear();
+#endif
    clearPtr();
 
    bool intern = qore_class_private::runtimeCheckPrivateClassAccess(*o->getClass());

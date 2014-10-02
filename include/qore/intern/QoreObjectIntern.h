@@ -940,9 +940,11 @@ public:
    }
 #endif
 
+#ifdef DO_OBJ_RECURSIVE_CHECK
    DLLLOCAL unsigned getObjectCount();
 
    DLLLOCAL void incObjectCount(int dt);
+#endif
 
    DLLLOCAL static qore_object_private* get(QoreObject& obj) {
       return obj.priv;
@@ -984,6 +986,7 @@ public:
       return obj->priv->lastKey(xsink);
    }
 
+#ifdef DO_OBJ_RECURSIVE_CHECK
    DLLLOCAL static unsigned getObjectCount(const QoreObject& o) {
       return o.priv->getObjectCount();
    }
@@ -991,6 +994,7 @@ public:
    DLLLOCAL static void incObjectCount(const QoreObject& o, int dt) {
       o.priv->incObjectCount(dt);
    }
+#endif
 };
 
 class qore_object_lock_handoff_helper {
