@@ -148,6 +148,7 @@ void Var::deref(ExceptionSink* xsink) {
    }
 }
 
+#ifdef DO_OBJ_RECURSIVE_CHECK
 ObjCountRec::ObjCountRec(const QoreListNode* c) : con(c), before((bool)qore_list_private::getObjectCount(*c)) {
    //printd(5, "ObjCountRec::ObjCountRec() list %p count: %d\n", c, qore_list_private::getObjectCount(*c));
 }
@@ -166,6 +167,7 @@ int ObjCountRec::getDifference() {
       return !before ? 1 : 0;
    return before ? -1 : 0;
 }
+#endif
 
 LValueHelper::LValueHelper(const ReferenceNode& ref, ExceptionSink* xsink, bool for_remove) : vl(xsink), v(0), lvid_set(0), before(false), rdt(0),
 #ifdef DO_OBJ_RECURSIVE_CHECK
@@ -188,6 +190,7 @@ LValueHelper::LValueHelper(const AbstractQoreNode* exp, ExceptionSink* xsink, bo
 }
 
 LValueHelper::~LValueHelper() {
+#ifdef DO_OBJ_RECURSIVE_CHECK
    bool obj_chg = before;
    if (!(*vl.xsink)) {
       // see if we have any object count changes
@@ -226,15 +229,14 @@ LValueHelper::~LValueHelper() {
 	 }
       }
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
       if (!obj_chg && (val ? val->isObjectContainer() : get_container_obj(*v)))
 	 obj_chg = true;
       if (robj)
 	 robj->tRef();
 
       //printd(5, "LValueHelper::~LValueHelper() robj: %p before: %d obj_chg: %d (val: %s v: %s)\n", robj, before, obj_chg, val ? val->getTypeName() : "null", v ? get_type_name(*v) : "null");
-#endif
    }
+#endif
 
    // first free any locks
    vl.del();
@@ -1100,7 +1102,9 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
       if (o)
 	 qore_object_private::takeMembers(*o, rv, lvh, l);
       else {
+#ifdef DO_OBJ_RECURSIVE_CHECK
 	 unsigned old_count = qore_hash_private::getObjectCount(*h);
+#endif
 
 	 QoreHashNode* rvh = new QoreHashNode;
 	 rv.assignInitial(rvh);
@@ -1120,8 +1124,10 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
 	    assert(!*xsink);
 	 }
 
+#ifdef DO_OBJ_RECURSIVE_CHECK
 	 if (old_count && !qore_hash_private::getObjectCount(*h))
 	    lvh.setDelta(-1);
+#endif
       }
 
       return;
@@ -1136,10 +1142,12 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
       v = qore_object_private::takeMember(*o, lvh, mem->getBuffer());
    else {
       v = h->takeKeyValue(mem->getBuffer());
+#ifdef DO_OBJ_RECURSIVE_CHECK
       if (get_container_obj(v)) {
 	 if (!qore_hash_private::getObjectCount(*h))
 	    lvh.setDelta(-1);
       }
+#endif
    }
 
    rv.assignInitial(v);

@@ -123,6 +123,7 @@ void qore_object_private::merge(const QoreHashNode* h, AutoVLock& vl, ExceptionS
 #endif
 }
 
+#ifdef DO_OBJ_RECURSIVE_CHECK
 unsigned qore_object_private::getObjectCount() {
    return data->priv->obj_count;
 }
@@ -130,6 +131,7 @@ unsigned qore_object_private::getObjectCount() {
 void qore_object_private::incObjectCount(int dt) {
    data->priv->incObjectCount(dt);
 }
+#endif
 
 AbstractQoreNode *qore_object_private::takeMember(ExceptionSink* xsink, const char* key, bool check_access) {
    const QoreTypeInfo* mti = 0;
@@ -171,10 +173,12 @@ AbstractQoreNode* qore_object_private::takeMember(LValueHelper& lvh, const char*
    rv = data->swapKeyValue(key, 0);
 #endif
 
+#ifdef DO_OBJ_RECURSIVE_CHECK
    if (get_container_obj(rv)) {
       if (!getObjectCount())
 	 lvh.setDelta(-1);
    }
+#endif
 
    return rv;
 }

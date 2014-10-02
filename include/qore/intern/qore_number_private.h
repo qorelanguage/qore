@@ -187,6 +187,8 @@ struct qore_number_private : public qore_number_private_intern {
 
    DLLLOCAL void sprintf(QoreString& str, const char* fmt) const {
 #ifdef HAVE_MPFR_SPRINTF
+      //mpfr_nan_p(num);
+
       //printd(5, "qore_number_private::sprintf() fmt: '%s'\n", fmt);
       int len = mpfr_snprintf(0, 0, fmt, num);
       if (!len)

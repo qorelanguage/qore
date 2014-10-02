@@ -425,7 +425,9 @@ public:
       assert(!v);
       assert(!val);
       v = &ptr;
+#ifdef DO_OBJ_RECURSIVE_CHECK
       before = get_container_obj(ptr);
+#endif
    }
 
    DLLLOCAL void setValue(QoreLValueGeneric& nv);
@@ -439,7 +441,9 @@ public:
       assert(!val);
       v = ptr;
       typeInfo = ti;
+#ifdef DO_OBJ_RECURSIVE_CHECK
       before = get_container_obj(*ptr);
+#endif
    }
 
    DLLLOCAL void clearPtr() {

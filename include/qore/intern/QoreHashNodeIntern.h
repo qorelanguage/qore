@@ -173,8 +173,10 @@ public:
       
       // dereference node if present
       if ((*li)->node) {
+#ifdef DO_OBJ_RECURSIVE_CHECK
          if (get_container_obj((*li)->node))
             incObjectCount(-1);
+#endif
 
          if ((*li)->node->getType() == NT_OBJECT)
             reinterpret_cast<QoreObject*>((*li)->node)->doDelete(xsink);
@@ -198,8 +200,10 @@ public:
       
       // dereference node if present
       if ((*li)->node) {
+#ifdef DO_OBJ_RECURSIVE_CHECK
          if (get_container_obj((*li)->node))
             incObjectCount(-1);
+#endif
          (*li)->node->deref(xsink);
       }
       
@@ -220,8 +224,10 @@ public:
       AbstractQoreNode *rv = (*li)->node;
       internDeleteKey(li);
 
+#ifdef DO_OBJ_RECURSIVE_CHECK
       if (get_container_obj(rv))
          incObjectCount(-1);
+#endif
 
       return rv;
    }
@@ -302,19 +308,12 @@ public:
       return member_list.empty();
    }
 
+#ifdef DO_OBJ_RECURSIVE_CHECK
    DLLLOCAL void incObjectCount(int dt) {
       assert(dt);
       assert(obj_count || dt > 0);
       //printd(5, "qore_hash_private::incObjectCount() this: %p dt: %d: %d -> %d\n", this, dt, obj_count, obj_count + dt);
       obj_count += dt;
-   }
-
-   DLLLOCAL static AbstractQoreNode* getFirstKeyValue(const QoreHashNode* h) { 
-      return h->priv->member_list.empty() ? 0 : h->priv->member_list.front()->node;
-   }  
-   
-   DLLLOCAL static AbstractQoreNode* getLastKeyValue(const QoreHashNode* h) {
-      return h->priv->member_list.empty() ? 0 : h->priv->member_list.back()->node;
    }
 
    DLLLOCAL static unsigned getObjectCount(const QoreHashNode& h) {
@@ -323,6 +322,15 @@ public:
 
    DLLLOCAL static void incObjectCount(const QoreHashNode& h, int dt) {
       h.priv->incObjectCount(dt);
+   }
+#endif
+
+   DLLLOCAL static AbstractQoreNode* getFirstKeyValue(const QoreHashNode* h) { 
+      return h->priv->member_list.empty() ? 0 : h->priv->member_list.front()->node;
+   }  
+   
+   DLLLOCAL static AbstractQoreNode* getLastKeyValue(const QoreHashNode* h) {
+      return h->priv->member_list.empty() ? 0 : h->priv->member_list.back()->node;
    }
 };
 

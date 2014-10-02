@@ -934,6 +934,7 @@ AbstractQoreNode* hash_assignment_priv::swapImpl(AbstractQoreNode* v) {
    AbstractQoreNode* old = om->node;
    om->node = v;
 
+#ifdef DO_OBJ_RECURSIVE_CHECK
    bool before = get_container_obj(old);
    bool after = get_container_obj(v);
    if (before) {
@@ -942,6 +943,7 @@ AbstractQoreNode* hash_assignment_priv::swapImpl(AbstractQoreNode* v) {
    }
    else if (after)
       h.incObjectCount(1);
+#endif
 
    return old;
 }

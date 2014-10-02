@@ -137,10 +137,12 @@ extern char* strcasestr(const char* s1, const char* s2);
 typedef std::set<QoreObject*> obj_set_t;
 
 DLLLOCAL bool is_container(const AbstractQoreNode* n);
+#ifdef DO_OBJ_RECURSIVE_CHECK
 // returns true if the container has objects or false if not
 DLLLOCAL bool get_container_obj(const AbstractQoreNode* n);
 // increments or decrements the object count depending on the sign of the argument (cannot be 0)
 DLLLOCAL void inc_container_obj(const AbstractQoreNode* n, int dt);
+#endif
 
 struct ParseWarnOptions {
    int64 parse_options;
