@@ -662,7 +662,7 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 	    }
 
 	    // output in any case even when debugging is disabled
-	    print_debug(0, "QoreObject::customDeref() this: %p rcount/refs: %d deleting object (%s) with only recursive references\n", this, (int)ref_copy, getClassName());
+	    print_debug(0, "QoreObject::customDeref() this: %p rcount/refs: %d collecting object (%s) with only recursive references\n", this, (int)ref_copy, getClassName());
 
 	    rrf = true;
 	    break;
@@ -1186,9 +1186,9 @@ bool QoreObject::getAsBoolImpl() const {
 }
 
 #ifdef DO_OBJ_RECURSIVE_CHECK
-int ObjectRSetHelper::checkIntern(AbstractQoreNode* n) {
+bool ObjectRSetHelper::checkIntern(AbstractQoreNode* n) {
    if (!get_container_obj(n))
-      return ORS_NO_MATCH;
+      return false;
 
    switch (get_node_type(n)) {
       case NT_OBJECT:
@@ -1197,35 +1197,27 @@ int ObjectRSetHelper::checkIntern(AbstractQoreNode* n) {
       case NT_LIST: {
 	 QoreListNode* l = reinterpret_cast<QoreListNode*>(n);
 	 ListIterator li(l);
-	 int mrc = ORS_NO_MATCH;
 	 while (li.next()) {
-	    int rc = checkIntern(li.getValue());
-	    if (rc == ORS_LOCK_ERROR)
-	       return ORS_LOCK_ERROR;
-	    if (rc >= 0 && (mrc < 0 || rc < mrc))
-	       mrc = rc;
+	    if (checkIntern(li.getValue()))
+	       return true;
 	 }
 
-	 return mrc;
+	 return false;
       }
 
       case NT_HASH: {
 	 QoreHashNode* h = reinterpret_cast<QoreHashNode*>(n);
 	 HashIterator hi(h);
-	 int mrc = ORS_NO_MATCH;
 	 while (hi.next()) {
-	    int rc = checkIntern(hi.getValue());
-	    if (rc == ORS_LOCK_ERROR)
-	       return ORS_LOCK_ERROR;
-	    if (rc >= 0 && (mrc < 0 || rc < mrc))
-	       mrc = rc;
+	    if (checkIntern(hi.getValue()))
+	       return true;
 	 }
 
-	 return mrc;
+	 return false;
       }
    }
 
-   return ORS_NO_MATCH;
+   return false;
 }
 
 int ObjectRSetHelper::removeInvalidate(ObjectRSet* ors, int tid) {
@@ -1290,14 +1282,14 @@ int ObjectRSetHelper::removeInvalidate(ObjectRSet* ors, int tid) {
    return 0;
 }
 
-int ObjectRSetHelper::checkIntern(QoreObject& obj) {
+bool ObjectRSetHelper::checkIntern(QoreObject& obj) {
 #ifdef DEBUG
    bool hl = obj.priv->rml.hasRSectionLock();
 #endif
    if (obj.priv->rml.tryRSectionLockNotifyWaitRead(&notifier)) {
-      printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj %p '%s' cannot enter rsection: rsection tid: %d\n", &obj, obj.getClassName(), obj.priv->rml.rSectionTid());
+      printd(QRO_LVL, "ObjectRSetHelper::checkIntern() + obj %p '%s' cannot enter rsection: rsection tid: %d\n", &obj, obj.getClassName(), obj.priv->rml.rSectionTid());
       //assert(strcmp(obj.getClassName(), "HttpListener"));
-      return ORS_LOCK_ERROR;
+      return true;
    }
 #ifdef DEBUG
    if (!hl)
@@ -1308,147 +1300,69 @@ int ObjectRSetHelper::checkIntern(QoreObject& obj) {
    if (obj.priv->in_destructor || obj.priv->status != OS_OK) {
       obj.priv->rml.rSectionUnlock();
       deccnt();
-      return ORS_NO_MATCH;
+      return false;
    }
 
    // see if the object has been scanned
    omap_t::iterator fi = fomap.find(&obj);
    if (fi != fomap.end()) {
-      printd(QRO_LVL, "ObjectRSetHelper::checkIntern() found obj %p '%s' rcount: %d\n", &obj, obj.getClassName(), fi->second.rcount);
+      printd(QRO_LVL, "ObjectRSetHelper::checkIntern() + found obj %p '%s' rcount: %d in_cycle: %d ok: %d\n", &obj, obj.getClassName(), fi->second.rcount, fi->second.in_cycle, fi->second.ok);
       //printd(QRO_LVL, "ObjectRSetHelper::checkIntern() found obj %p '%s' incrementing rcount: %d -> %d\n", &obj, obj.getClassName(), fi->second.rcount, fi->second.rcount + 1);
 
-      if (fi->second.in_cycle) {
-	 printd(QRO_LVL, "ObjectRSetHelper::checkIntern() found obj %p '%s' already finalized (rcount: %d -> %d)\n", &obj, obj.getClassName(), fi->second.rcount, fi->second.rcount + 1);
-	 assert(!fi->second.ok);
-	 ++fi->second.rcount;
-	 return 0;
-      }
       if (fi->second.ok) {
-	 printd(QRO_LVL, "ObjectRSetHelper::checkIntern() found obj %p '%s' already ok\n", &obj, obj.getClassName());
-	 return ORS_NO_MATCH;
+	 assert(!fi->second.in_cycle);
+	 printd(QRO_LVL, " + %p '%s' already scanned and ok\n", &obj, obj.getClassName());
+	 return false;
       }
 
-      // put objects in current chain on frvec
+      if (fi->second.in_cycle) {
+	 assert(fi->second.rset);
+	 // check if this object is part of the current cycle already - if
+	 // 1) it's already in the current scan vector, or
+	 // 2) the parent object of the current object is already a part of the recursive set
+	 if (inCurrentSet(fi) || (ovec.size() && fi->second.rset->find(ovec.back()->first) != fi->second.rset->end())) {
+	    printd(QRO_LVL, " + recursive obj %p '%s' already finalized and in current cycle (rcount: %d -> %d)\n", &obj, obj.getClassName(), fi->second.rcount, fi->second.rcount + 1);
+	    assert(!fi->second.ok);
+	    ++fi->second.rcount;
+	 }
+	 else
+	    printd(QRO_LVL, " + recursive obj %p '%s' already finalized but not in current cycle\n", &obj, obj.getClassName());
+	 return false;
+      }
+
+      if (!inCurrentSet(fi)) {
+	 printd(QRO_LVL, " + recursive obj %p '%s' not in current cycle\n", &obj, obj.getClassName());
+	 return false;
+      }
+
+      // finalize current objects immediately
+      ObjectRSet* rset = fi->second.rset;
+#ifdef DEBUG
+      if (rset)
+	 printd(QRO_LVL, " + %p '%s': reusing ObjectRSet: %p\n", &obj, obj.getClassName(), rset);
+#endif
+      int tid = gettid();
+
       int i = (int)ovec.size() - 1;
       while (i >= 0) {
 	 assert(i >= 0);
-	 printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj %p '%s': checking %d(/%d): %p '%s' rcount: %d\n", &obj, obj.getClassName(), i, (int)ovec.size(), ovec[i]->first, ovec[i]->first->getClassName(), ovec[i]->second.rcount);
 
-	 // add to found vector (for possible splitting)
-	 frvec.push_back(ovec[i]);
-
-	 ovec[i]->second.in_cycle = true;
-
-	 if (ovec[i]->first == &obj)
-	    break;
-	 --i;
-      }
-
-      printd(QRO_LVL, "ObjectRSetHelper::checkIntern() found recursive obj %p '%s' new rcount: %d; rc: %d (/%d)\n", &obj, obj.getClassName(), fi->second.rcount, i, ovec.size());
-
-      // return last position found
-      // ORS_IGNORE is returned when a duplicate object is found in the active set but not on the current chain;
-      // in this case we've already incremented the rcount above and it's already been handled elsewhere
-      return i >= 0 ? i : ORS_IGNORE;
-   }
-
-   printd(QRO_LVL, "ObjectRSetHelper::checkIntern() found new obj %p '%s' setting rcount = 0 (current: %d rset: %p)\n", &obj, obj.getClassName(), obj.priv->rcount, obj.priv->rset);
-
-   // insert into total scanned object set
-   fi = fomap.insert(fi, omap_t::value_type(&obj, RSetStat()));
-
-   // check if the object should be iterated
-   if (!qore_object_private::getObjectCount(obj)) {
-      printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj %p '%s' will not be iterated since object count is 0\n", &obj, obj.getClassName());
-      fi->second.ok = true;
-      assert(!fi->second.rset);
-      return ORS_NO_MATCH;
-   }
-
-   // push on current vector chain
-   ovec.push_back(fi);
-
-   // save high water mark in rset
-   size_t fpos = frvec.size();
-
-   // remove from invalidation set if present
-   tr_out.erase(&obj);
-
-   // recursively check data members
-   HashIterator hi(obj.priv->data);
-   int mrc = ORS_NO_MATCH;
-   while (hi.next()) {
-#ifdef DEBUG
-      if (get_node_type(hi.getValue()) == NT_OBJECT)
-	 printd(QRO_LVL, "ObjectRSetHelper::checkIntern() search %p '%s' key '%s' %p (%s)\n", &obj, obj.getClassName(), hi.getKey(), hi.getValue(), get_type_name(hi.getValue()));
-#endif
-      int rc = checkIntern(hi.getValue());
-      printd(QRO_LVL, "ObjectRSetHelper::checkIntern() result %p '%s' key '%s' %p (%s) rc: %d mrc: %d\n", &obj, obj.getClassName(), hi.getKey(), hi.getValue(), get_type_name(hi.getValue()), rc, mrc);
-      if (rc == ORS_LOCK_ERROR)
-	 return rc;
-      if (rc >= 0 && (mrc < 0 || rc < mrc))
-	 mrc = rc;
-   }
-
-   // remove from current vector chain
-   ovec.pop_back();
-
-   printd(QRO_LVL, "ObjectRSetHelper::checkIntern() done search obj %p '%s' mrc: %d ovec.size(): %d\n", &obj, obj.getClassName(), mrc, (int)ovec.size());
-
-   assert(mrc <= (int)ovec.size());
-
-   // remove from current object set if no matches found
-   if (mrc == ORS_NO_MATCH) {
-      printd(QRO_LVL, "ObjectRSetHelper::checkIntern() done search obj %p '%s': no match, ignoring\n", &obj, obj.getClassName());
-
-      // erase from scan set if no match really found
-      if (!fi->second.in_cycle) {
-	 fi->second.ok = true;
-	 assert(!fi->second.rset);
-	 //assert(frvec.size() == fpos);
-	 frvec.clear();
-	 assert(tr_out.find(&obj) == tr_out.end());
-      }
-      else
-	 mrc = ORS_IGNORE;
-   }
-   else if (frvec.size() >= fpos) {
-      //mrc <= (int)ovec.size()) {
-      //assert(frvec.size() >= fpos);
-
-      // we have found a complete independent recursive cycle at this level, so apply it and mark nodes as finalized
-      ObjectRSet* rset = 0;
-
-      printd(QRO_LVL, "ObjectRSetHelper::checkIntern() done search obj %p '%s': matches found: %d, marking with new rset\n", &obj, obj.getClassName(), frvec.size() - fpos);
-#ifdef DEBUG
-      for (size_t fp = fpos; fp < frvec.size(); ++fp) {
-	 QoreObject* o = frvec[fp]->first;
-	 printd(QRO_LVL, "  + %p %s rcount: %d in_cycle: %d ok: %d (rset: %p) %s\n", o, o->getClassName(), frvec[fp]->second.rcount, frvec[fp]->second.in_cycle, frvec[fp]->second.ok, frvec[fp]->second.rset, (fp == frvec.size() - 1) ? "" : "->");
-      }
-#endif
-
-      int tid = gettid();
-
-      while (frvec.size() > fpos) {
 	 // get iterator to object record
-	 omap_t::iterator oi = frvec.back();
+	 omap_t::iterator oi = ovec[i];
 
-	 // increment rcount of every member of the chain
-	 printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj: %p (%s rcycle: %d first: %p '%s' second.rset: %p final: %d ok: %d) rcount: %d -> %d\n", &obj, obj.getClassName(), obj.priv->rcycle, oi->first, oi->first->getClassName(), oi->second.rset, oi->second.in_cycle, oi->second.ok, oi->second.rcount, oi->second.rcount + 1);
-	 ++oi->second.rcount;
+	 //printd(QRO_LVL, "  + %p %s rcount: %d in_cycle: %d ok: %d (rset: %p) %s\n", o, o->getClassName(), oi->second.rcount, oi->second.in_cycle, oi->second.ok, oi->second.rset, oi->first == &obj ? "" : "->");
 
+	 //printd(QRO_LVL, " + obj %p '%s': marking %d(/%d): %p '%s' current rcount: %d\n", &obj, obj.getClassName(), i, (int)ovec.size(), ovec[i]->first, ovec[i]->first->getClassName(), ovec[i]->second.rcount);
+
+	 //printd(QRO_LVL, "ObjectRSetHelper::checkIntern() done search obj %p '%s': matches found: %d, marking with new rset\n", &obj, obj.getClassName(), frvec.size() - fpos);
+
+	 // merge rsets
 	 if (!oi->second.rset) {
 	    if (!rset) {
-	       if (fi->second.rset) {
-		  rset = fi->second.rset;
-		  printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj: %p (%s rcycle: %d first: %p '%s' second.rset: %p) reusing ObjectRSet: %p\n", &obj, obj.getClassName(), obj.priv->rcycle, oi->first, oi->first->getClassName(), oi->second.rset, rset);
-	       }
-	       else {
-		  rset = new ObjectRSet;
-		  printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj: %p (%s rcycle: %d first: %p '%s' second.rset: %p) new ObjectRSet: %p\n", &obj, obj.getClassName(), obj.priv->rcycle, oi->first, oi->first->getClassName(), oi->second.rset, rset);
-	       }
+	       rset = new ObjectRSet;
+	       printd(QRO_LVL, " + %p '%s': rcycle: %d second.rset: %p new ObjectRSet: %p\n", oi->first, oi->first->getClassName(), obj.priv->rcycle, oi->second.rset, rset);
 	    }
-	    else
+	    else // ensure that the current object is not in the rset
 	       assert(rset->find(oi->first) == rset->end());
 
 	    // queue mark object as finalized
@@ -1462,66 +1376,136 @@ int ObjectRSetHelper::checkIntern(QoreObject& obj) {
 	    if (oi->first->priv->rset) {
 	       assert(rset != oi->first->priv->rset);
 	       if (oi->first->priv->rset->active() && removeInvalidate(oi->first->priv->rset, tid))
-		  return ORS_LOCK_ERROR;
+		  return true;
 	    }
 
-	    printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj %p '%s': finalized %p '%s' with rset: %p (rcount: %d)\n", &obj, obj.getClassName(), oi->first, oi->first->getClassName(), rset, oi->second.rcount);
+	    printd(QRO_LVL, " + %p '%s': finalized with rset: %p (rcount: %d)\n", oi->first, oi->first->getClassName(), rset, oi->second.rcount);
+
+	    assert(!oi->second.in_cycle);
+	    oi->second.in_cycle = true;
+	    assert(oi->second.rset);
+	    // increment rcount
+	    printd(QRO_LVL, " + %p '%s': rcycle: %d second.rset: %p final: %d ok: %d rcount: %d -> %d\n", oi->first, oi->first->getClassName(), obj.priv->rcycle, oi->second.rset, oi->second.in_cycle, oi->second.ok, oi->second.rcount, oi->second.rcount + 1);
+	    ++oi->second.rcount;
 	 }
 	 else {
-	    printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj %p '%s': already finalized %p '%s' with rset: %p (size: %d, rcount: %d) current rset: %p (size: %d)\n", &obj, obj.getClassName(), oi->first, oi->first->getClassName(), oi->second.rset, (int)oi->second.rset->size(), oi->second.rcount, rset ? rset : 0, rset ? (int)rset->size() : 0);
-	    if (!rset)
-	       rset = oi->second.rset;
-	    else if (rset != oi->second.rset) {
-	       // here we have to merge rsets
-	       if (rset->size() > oi->second.rset->size()) {
-		  printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj %p '%s': rset: %p (%d) assimilating %p (%d)\n", &obj, obj.getClassName(), rset, (int)rset->size(), oi->second.rset, (int)oi->second.rset->size());
-		  // merge oi->second.rset into rset and retag objects
-		  ObjectRSet *old_rset = oi->second.rset;
-		  for (obj_set_t::iterator i = old_rset->begin(), e = old_rset->end(); i != e; ++i) {
-		     rset->insert(*i);
-		     omap_t::iterator noi = fomap.find(*i);
-		     assert(noi != fomap.end());
-		     noi->second.rset = rset;
-		  }
-		  delete old_rset;
-	       }
-	       else {
-		  printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj %p '%s': oi->second.rset: %p (%d) assimilating %p (%d)\n", &obj, obj.getClassName(), oi->second.rset, (int)oi->second.rset->size(), rset, (int)rset->size());
-		  // merge rset into oi->second.rset and retag objects
-		  ObjectRSet *old_rset = rset;
-		  rset = oi->second.rset;
-		  for (obj_set_t::iterator i = old_rset->begin(), e = old_rset->end(); i != e; ++i) {
-		     rset->insert(*i);
-		     omap_t::iterator noi = fomap.find(*i);
-		     assert(noi != fomap.end());
-		     noi->second.rset = rset;
-		  }
-		  delete old_rset;
-	       }
+	    printd(QRO_LVL, " + %p '%s': already finalized with rset: %p (size: %d, rcount: %d) current rset: %p (size: %d)\n", oi->first, oi->first->getClassName(), oi->second.rset, (int)oi->second.rset->size(), oi->second.rcount, rset ? rset : 0, rset ? (int)rset->size() : 0);
+
+	    if (i > 0 && oi->first != &obj && !ovec[i-1]->second.in_cycle) {
+	       printd(QRO_LVL, " + %p '%s': parent not yet in cycle (rcount: %d -> %d)\n", &obj, obj.getClassName(), fi->second.rcount, fi->second.rcount + 1);
+	       ++oi->second.rcount;
+	    }
+
+	    if (rset == oi->second.rset) {
+	       printd(QRO_LVL, " + %p '%s': rset: %p (%d) already in set\n", oi->first, oi->first->getClassName(), rset, (int)rset->size());
 	    }
 	    else {
-	       printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj %p '%s': rset: %p (%d) already in set\n", &obj, obj.getClassName(), rset, (int)rset->size());
+	       if (!rset)
+		  rset = oi->second.rset;
+	       else {
+		  assert(rset != oi->second.rset);
+		  // here we have to merge rsets
+		  if (rset->size() > oi->second.rset->size()) {
+		     printd(QRO_LVL, " + %p '%s': rset: %p (%d) assimilating %p (%d)\n", oi->first, oi->first->getClassName(), rset, (int)rset->size(), oi->second.rset, (int)oi->second.rset->size());
+		     // merge oi->second.rset into rset and retag objects
+		     ObjectRSet *old_rset = oi->second.rset;
+		     for (obj_set_t::iterator i = old_rset->begin(), e = old_rset->end(); i != e; ++i) {
+			rset->insert(*i);
+			omap_t::iterator noi = fomap.find(*i);
+			assert(noi != fomap.end());
+			noi->second.rset = rset;
+		     }
+		     delete old_rset;
+		  }
+		  else {
+		     printd(QRO_LVL, " + %p '%s': oi->second.rset: %p (%d) assimilating %p (%d)\n", oi->first, oi->first->getClassName(), oi->second.rset, (int)oi->second.rset->size(), rset, (int)rset->size());
+		     // merge rset into oi->second.rset and retag objects
+		     ObjectRSet *old_rset = rset;
+		     rset = oi->second.rset;
+		     for (obj_set_t::iterator i = old_rset->begin(), e = old_rset->end(); i != e; ++i) {
+			rset->insert(*i);
+			omap_t::iterator noi = fomap.find(*i);
+			assert(noi != fomap.end());
+			noi->second.rset = rset;
+		     }
+		     delete old_rset;
+		  }
+	       }
 	    }
 	 }
 
-	 frvec.pop_back();
+	 /*
+	 if (oi->second.in_cycle) {
+	    printd(QRO_LVL, " + %p '%s': rcycle: %d second.rset: %p final: %d ok: %d already in cycle \n", oi->first, oi->first->getClassName(), obj.priv->rcycle, oi->second.rset, oi->second.in_cycle, oi->second.ok);
+
+	    // check if parent is not in an rcycle and increment the rcount of this object if not
+	    if (oi->first != &obj) {
+	       assert(i > 0);
+	       omap_t::iterator pi = ovec[i - 1];
+	       if (!pi->second.in_cycle) {
+		  printd(QRO_LVL, " + %p '%s': rcount: %d -> %d\n", oi->first, oi->first->getClassName(), oi->second.rcount, oi->second.rcount + 1);
+		  ++oi->second.rcount;
+	       }
+	    }
+	 }
+	 else {
+	    oi->second.in_cycle = true;
+	    assert(oi->second.rset);
+	    // increment rcount
+	    printd(QRO_LVL, " + %p '%s': rcycle: %d second.rset: %p final: %d ok: %d rcount: %d -> %d\n", oi->first, oi->first->getClassName(), obj.priv->rcycle, oi->second.rset, oi->second.in_cycle, oi->second.ok, oi->second.rcount, oi->second.rcount + 1);
+	    ++oi->second.rcount;
+	 }
+	 */
+
+	 if (oi->first == &obj)
+	    break;
+
+	 --i;
+	 //frvec.pop_back();
       }
 
-      mrc = ORS_NO_MATCH;
+      return false;
    }
    else {
-      printd(QRO_LVL, "ObjectRSetHelper::checkIntern() done search obj %p '%s': internal cycle node; queueing cmd RC_COND_SETONE (%d)\n", &obj, obj.getClassName(), fi->second.rcount);
-      if (!fi->second.in_cycle) {
-	 fi->second.in_cycle = true;
-	 fi->second.finalize(0);
+      printd(QRO_LVL, "ObjectRSetHelper::checkIntern() + adding new obj %p '%s' setting rcount = 0 (current: %d rset: %p)\n", &obj, obj.getClassName(), obj.priv->rcount, obj.priv->rset);
+
+      // insert into total scanned object set
+      fi = fomap.insert(fi, omap_t::value_type(&obj, RSetStat()));
+
+      // check if the object should be iterated
+      if (!qore_object_private::getObjectCount(obj)) {
+	 printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj %p '%s' will not be iterated since object count is 0\n", &obj, obj.getClassName());
+	 fi->second.ok = true;
+	 assert(!fi->second.rset);
+	 return false;
       }
-      assert(!fi->second.rcount || fi->second.rcount == 1);
-      
-      if (!fi->second.rcount)
-	 fi->second.rcount = 1;
    }
- 
-   return mrc;
+
+   // push on current vector chain
+   ovec.push_back(fi);
+
+   // save high water mark in rset
+   //size_t fpos = frvec.size();
+
+   // remove from invalidation set if present
+   tr_out.erase(&obj);
+
+   // recursively check data members
+   HashIterator hi(obj.priv->data);
+   while (hi.next()) {
+#ifdef DEBUG
+      if (get_node_type(hi.getValue()) == NT_OBJECT)
+	 printd(QRO_LVL, "ObjectRSetHelper::checkIntern() search %p '%s' key '%s' %p (%s)\n", &obj, obj.getClassName(), hi.getKey(), hi.getValue(), get_type_name(hi.getValue()));
+#endif
+      if (checkIntern(hi.getValue()))
+	 return true;
+      printd(QRO_LVL, "ObjectRSetHelper::checkIntern() result %p '%s' key '%s' %p (%s)\n", &obj, obj.getClassName(), hi.getKey(), hi.getValue(), get_type_name(hi.getValue()));
+   }
+
+   // remove from current vector chain
+   ovec.pop_back();
+
+   return false;
 }
 
 class ObjectRScanHelper {
@@ -1561,8 +1545,7 @@ ObjectRSetHelper::ObjectRSetHelper(QoreObject& obj) {
    ObjectRScanHelper rsh(*obj.priv);
 
    while (true) {
-      int rc = checkIntern(obj);
-      if (rc == ORS_LOCK_ERROR) {
+      if (checkIntern(obj)) {
 	 rollback();
 	 // wait for foreign transaction to finish if necessary
 	 notifier.wait();
@@ -1660,7 +1643,7 @@ void ObjectRSetHelper::rollback() {
    }
 
    fomap.clear();
-   frvec.clear();
+   //frvec.clear();
    ovec.clear();
    tr_out.clear();
    tr_invalidate.clear();

@@ -18,21 +18,19 @@ class T2 inherits T1 {
 class T3 inherits T2 {
     constructor(int i) : T2(i) {} 
 }
-
 class T4 inherits T3 {
     constructor(int i) : T3(i) {} 
 }
-#  t2.a -> t1, t1.a -> t2, t2.b -> t1  ---> [ t1(2), t2(1) ]
+#  t1.a = t2, t2.a = t3, t1.a = t2, t2.b = t1, t3.a = t4, t3.b = t2, t4.a = t1, t4.b = t3
+#   --> [ t1(2), t2(3), t3(2), t4(1) ]
 T1 t1(1);
 {
     T2 t2(2);
     t1.set(t2);
-    t2.set(t1);
     t2.b = t1;
     {
         T3 t3(3);
         t2.set(t3);
-        t2.b = t1;
         {
             T4 t4(4);
             t3.set(t4);

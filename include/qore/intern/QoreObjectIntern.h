@@ -46,6 +46,8 @@
 #define OS_OK            0
 #define OS_DELETED      -1
 
+#define QRO_LVL 1
+
 // object access constants
 #define QOA_OK           0
 #define QOA_PRIV_ERROR   1
@@ -56,8 +58,6 @@
 #else
 #define QORE_DEBUG_OBJ_REFS 5
 #endif
-
-#define QRO_LVL 1
 
 class LValueHelper;
 
@@ -305,10 +305,9 @@ public:
 
 #ifdef DO_OBJ_RECURSIVE_CHECK
 
-#define ORS_LOOP       -1
-#define ORS_NO_MATCH   -2
-#define ORS_LOCK_ERROR -3
-#define ORS_IGNORE     -4
+#define ORS_LOCK_ERROR  -1
+#define ORS_NO_MATCH     0
+#define ORS_MATCH        1
 
 /* Qore object recursive reference handling works as follows: objects are sorted into sets making up
    directed cyclic graphs.
@@ -435,7 +434,6 @@ struct RSetStat {
    }
 
    DLLLOCAL void finalize(ObjectRSet* rs = 0) {
-      assert(in_cycle);
       assert(!ok);
       assert(!rset);
       rset = rs;
@@ -456,7 +454,7 @@ protected:
    ovec_t ovec;
 
    // list of fomap iterators to current recursive objects found
-   ovec_t frvec;
+   //ovec_t frvec;
 
    // list of ObjectRSet objects to be invalidated when the transaction is committed
    rs_set_t tr_invalidate;
@@ -482,18 +480,27 @@ protected:
    // commit transaction
    DLLLOCAL void commit(QoreObject& obj);
 
-   DLLLOCAL int checkIntern(QoreObject& obj);
-   DLLLOCAL int checkIntern(AbstractQoreNode* n);
+   // returns true if a lock error has occurred, false if otherwise
+   DLLLOCAL bool checkIntern(QoreObject& obj);
+   // returns true if a lock error has occurred, false if otherwise
+   DLLLOCAL bool checkIntern(AbstractQoreNode* n);
 
    // queues nodes not scanned to tr_invalidate and tr_out
    DLLLOCAL int removeInvalidate(ObjectRSet* ors, int tid = gettid());
+
+   DLLLOCAL bool inCurrentSet(omap_t::iterator fi) {
+      for (size_t i = 0; i < ovec.size(); ++i)
+         if (ovec[i] == fi)
+            return true;
+      return false;
+   }
 
 public:
    DLLLOCAL ObjectRSetHelper(QoreObject& obj);
 
    DLLLOCAL ~ObjectRSetHelper() {
       assert(ovec.empty());
-      assert(frvec.empty());
+      //assert(frvec.empty());
       assert(!lcnt);
    }
 };
