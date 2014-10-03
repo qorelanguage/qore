@@ -1656,17 +1656,17 @@ void ObjectRSetHelper::rollback() {
 }
 
 int ObjectRSet::canDelete() {
-   if (!valid)
-      return -1;
    if (in_del)
       return 1;
+   if (!valid)
+      return -1;
 
    {
       QoreAutoRWReadLocker al(rwl);
-      if (!valid)
-	 return -1;
       if (in_del)
 	 return 1;
+      if (!valid)
+	 return -1;
 
       for (obj_set_t::iterator i = begin(), e = end(); i != e; ++i) {
 	 if ((*i)->priv->rcount != (*i)->references) {
@@ -1679,11 +1679,10 @@ int ObjectRSet::canDelete() {
 	 }
 	 printd(QRO_LVL, "ObjectRSet::canDelete() this: %p can delete graph obj %p '%s' rcount: %d refs: %d\n", this, *i, (*i)->getClassName(), (*i)->priv->rcount, (*i)->references);
       }
+      in_del = true;
+      invalidateIntern();
    }
    printd(QRO_LVL, "ObjectRSet::canDelete() this: %p can delete all objects in graph\n", this);
-
-   QoreAutoRWWriteLocker al(rwl);
-   in_del = true;
    return 1;
 }
 #endif

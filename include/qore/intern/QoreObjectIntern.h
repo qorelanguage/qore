@@ -327,6 +327,17 @@ protected:
    QoreRWLock rwl;
    int acnt;
    bool valid, in_del;
+
+   DLLLOCAL void invalidateIntern() {
+      assert(valid);
+      valid = false;
+      // remove the weak references to all contained objects
+      for (obj_set_t::iterator i = begin(), e = end(); i != e; ++i)
+         (*i)->tDeref();
+      clear();
+      //printd(6, "ObjectRSet::invalidateIntern() this: %p\n", this);
+   }
+
    
 public:
    DLLLOCAL ObjectRSet() : ssize(0), acnt(0), valid(true), in_del(false) {
@@ -353,15 +364,12 @@ public:
       }
       if (del)
          delete this;
-   }
+   }   
 
    DLLLOCAL void invalidate() {
       QoreAutoRWWriteLocker al(rwl);
-      if (valid) {
-         valid = false;
-         clear();
-         //printd(6, "ObjectRSet::invalidate() this: %p\n", this);
-      }
+      if (valid)
+         invalidateIntern();
    }
 
    DLLLOCAL void ref() {
@@ -919,19 +927,24 @@ public:
       assert(rml.checkRSectionExclusive());
       printd(QRO_LVL, "qore_object_private::setRSet() this: %p obj: %p (%s) rs: %p rcnt: %d\n", this, obj, obj->getClassName(), rs, rcnt);
       if (rset) {
+         // invalidating the rset removes the weak references to all contained objects
          rset->invalidate();
          rset->deref();
       }
       rset = rs;
       rcount = rcnt;
-      if (rs)
+      if (rs) {
          rs->ref();
+         // we make a weak reference from the rset to the object to ensure that it does not disappear while the rset is valid
+         tRef();
+      }
       // increment transaction count
       ++rcycle;
    }
 
    DLLLOCAL void invalidateRSet() {
       assert(rml.checkRSectionExclusive());
+      // invalidating the rset removes the weak references to all contained objects
       if (rset)
          rset->invalidate();
     }
@@ -939,6 +952,7 @@ public:
    DLLLOCAL void removeInvalidateRSet() {
       assert(rml.checkRSectionExclusive());
       if (rset) {
+         // invalidating the rset removes the weak references to all contained objects
          rset->invalidate();
          rset->deref();
          rset = 0;
