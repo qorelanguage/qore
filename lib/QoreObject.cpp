@@ -633,7 +633,7 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 		  return;
 	       }
 
-	       printd(QRO_LVL, "QoreObject::customDeref() this: %p '%s' rset: %p rcount: %d references: %d\n", this, getClassName(), priv->rset, priv->rcount, references);
+	       printd(QRO_LVL, "QoreObject::customDeref() this: %p '%s' rset: %p (valid: %d in_del: %d) rcount: %d references: %d\n", this, getClassName(), priv->rset, priv->rset->isValid(), priv->rset->isInDel(), priv->rcount, references);
 
 	       int rc;
 	       ObjectRSet* rs;
@@ -662,7 +662,14 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 	    }
 
 	    // output in any case even when debugging is disabled
-	    print_debug(0, "QoreObject::customDeref() this: %p rcount/refs: %d collecting object (%s) with only recursive references\n", this, (int)ref_copy, getClassName());
+	    print_debug(0, "QoreObject::customDeref() this: %p rcount/refs: %d/%d collecting object (%s) with only recursive references\n", this, (int)priv->rcount, (int)ref_copy, getClassName());
+	    /*
+	    if (priv->rcount != ref_copy)
+	       priv->rset->dbg();
+	    assert(priv->rcount == ref_copy);
+	    */
+	    //assert(strcmp(getClassName(), "WebAppConnection"));
+	    //priv->rset->invalidate();
 
 	    rrf = true;
 	    break;
@@ -1282,6 +1289,93 @@ int ObjectRSetHelper::removeInvalidate(ObjectRSet* ors, int tid) {
    return 0;
 }
 
+bool ObjectRSetHelper::addToRSet(omap_t::iterator oi, ObjectRSet* rset, int tid) {
+   // ensure that the current object is not in the rset
+   assert(rset->find(oi->first) == rset->end());
+
+   // queue mark object as finalized
+   oi->second.finalize(rset);
+   assert(oi->second.rset);
+
+   // insert into new rset
+   rset->insert(oi->first);
+
+   // queue any nodes not scanned for rset invalidation
+   if (oi->first->priv->rset) {
+      assert(rset != oi->first->priv->rset);
+      if (oi->first->priv->rset->active() && removeInvalidate(oi->first->priv->rset, tid))
+	 return true;
+   }
+
+   printd(QRO_LVL, " + %p '%s': finalized with rset: %p (rcount: %d)\n", oi->first, oi->first->getClassName(), rset, oi->second.rcount);
+
+   assert(!oi->second.in_cycle);
+   oi->second.in_cycle = true;
+   assert(oi->second.rset);
+   // increment rcount
+   printd(QRO_LVL, " + %p '%s': second.rset: %p final: %d ok: %d rcount: %d -> %d\n", oi->first, oi->first->getClassName(), oi->second.rset, oi->second.in_cycle, oi->second.ok, oi->second.rcount, oi->second.rcount + 1);
+   ++oi->second.rcount;
+   return false;
+}
+
+void ObjectRSetHelper::mergeRSet(int i, ObjectRSet*& rset) {
+   omap_t::iterator oi = ovec[i];
+   assert(oi->second.rset);
+
+   printd(QRO_LVL, " + %p '%s': already finalized with rset: %p (size: %d, rcount: %d) current rset: %p (size: %d)\n", oi->first, oi->first->getClassName(), oi->second.rset, (int)oi->second.rset->size(), oi->second.rcount, rset ? rset : 0, rset ? (int)rset->size() : 0);
+
+   if (rset == oi->second.rset) {
+      printd(QRO_LVL, " + %p '%s': rset: %p (%d) already in set\n", oi->first, oi->first->getClassName(), rset, (int)rset->size());
+   }
+   else {
+      // here we have to merge rsets
+      if (!rset)
+	 rset = oi->second.rset;
+      else if (rset->size() > oi->second.rset->size()) {
+	 printd(QRO_LVL, " + %p '%s': rset: %p (%d) assimilating %p (%d)\n", oi->first, oi->first->getClassName(), rset, (int)rset->size(), oi->second.rset, (int)oi->second.rset->size());
+	 // merge oi->second.rset into rset and retag objects
+	 ObjectRSet *old_rset = oi->second.rset;
+	 for (obj_set_t::iterator i = old_rset->begin(), e = old_rset->end(); i != e; ++i) {
+	    rset->insert(*i);
+	    omap_t::iterator noi = fomap.find(*i);
+	    assert(noi != fomap.end());
+	    noi->second.rset = rset;
+	 }
+	    delete old_rset;
+      }
+      else {
+	 printd(QRO_LVL, " + %p '%s': oi->second.rset: %p (%d) assimilating %p (%d)\n", oi->first, oi->first->getClassName(), oi->second.rset, (int)oi->second.rset->size(), rset, (int)rset->size());
+	 // merge rset into oi->second.rset and retag objects
+	 ObjectRSet*old_rset = rset;
+	 rset = oi->second.rset;
+	 for (obj_set_t::iterator i = old_rset->begin(), e = old_rset->end(); i != e; ++i) {
+	    rset->insert(*i);
+	    omap_t::iterator noi = fomap.find(*i);
+	    assert(noi != fomap.end());
+	    noi->second.rset = rset;
+	 }
+	 delete old_rset;
+      }
+   }
+}
+
+bool ObjectRSetHelper::makeChain(int i, omap_t::iterator fi, int tid) {
+   for (++i; i < ovec.size(); ++i) {
+      if (!ovec[i]->second.rset) {
+	 printd(QRO_LVL, " + %p '%s': adding parent to rset\n", ovec[i]->first, ovec[i]->first->getClassName());
+	 if (addToRSet(ovec[i], fi->second.rset, tid))
+	    return true;
+	 if (i == (ovec.size() - 1)) {
+	    printd(QRO_LVL, " + %p '%s': parent object %p '%s' was not in cycle (rcount: %d -> %d)\n", fi->first, fi->first->getClassName(), ovec[i]->first, ovec[i]->first->getClassName(), fi->second.rcount, fi->second.rcount + 1);
+	    ++fi->second.rcount;
+	 }
+      }
+      else
+	 mergeRSet(i, fi->second.rset);
+   }
+   return false;
+}
+
 bool ObjectRSetHelper::checkIntern(QoreObject& obj) {
 #ifdef DEBUG
    bool hl = obj.priv->rml.hasRSectionLock();
@@ -1303,6 +1397,8 @@ bool ObjectRSetHelper::checkIntern(QoreObject& obj) {
       return false;
    }
 
+   int tid = gettid();
+
    // see if the object has been scanned
    omap_t::iterator fi = fomap.find(&obj);
    if (fi != fomap.end()) {
@@ -1320,19 +1416,45 @@ bool ObjectRSetHelper::checkIntern(QoreObject& obj) {
 	 // check if this object is part of the current cycle already - if
 	 // 1) it's already in the current scan vector, or
 	 // 2) the parent object of the current object is already a part of the recursive set
-	 if (inCurrentSet(fi) || (ovec.size() && fi->second.rset->find(ovec.back()->first) != fi->second.rset->end())) {
+	 if (inCurrentSet(fi)) {
 	    printd(QRO_LVL, " + recursive obj %p '%s' already finalized and in current cycle (rcount: %d -> %d)\n", &obj, obj.getClassName(), fi->second.rcount, fi->second.rcount + 1);
-	    assert(!fi->second.ok);
 	    ++fi->second.rcount;
 	 }
-	 else
-	    printd(QRO_LVL, " + recursive obj %p '%s' already finalized but not in current cycle\n", &obj, obj.getClassName());
-	 return false;
-      }
+	 else if (!ovec.empty()) {
+	    // FIXME: use this optimization in the loop below
+	    if (ovec.back()->second.rset == fi->second.rset) {
+	       printd(QRO_LVL, " + %p '%s': parent object %p '%s' in same cycle (rcount: %d -> %d)\n", &obj, obj.getClassName(), ovec.back()->first, ovec.back()->first->getClassName(), fi->second.rcount, fi->second.rcount + 1);
+	       ++fi->second.rcount;
+	       return false;
+	    }
 
-      if (!inCurrentSet(fi)) {
-	 printd(QRO_LVL, " + recursive obj %p '%s' not in current cycle\n", &obj, obj.getClassName());
-	 return false;
+	    // see if any parent of the current object is already in the same recursive cycle, if so, we have a new chain (quick comparison first)
+	    for (int i = ovec.size() - 1; i >= 0; --i) {	       
+	       if (fi->second.rset == ovec[i]->second.rset) {
+		  printd(QRO_LVL, " + recursive obj %p '%s' already finalized, cyclic ancestor %p '%s' in current cycle\n", &obj, obj.getClassName(), ovec[i]->first, ovec[i]->first->getClassName());
+
+		  return makeChain(i, fi, tid);
+	       }
+	    }
+
+	    // see if any parent of the current object is already in a recursive cycle to be joined, if so, we have a new chain	(slower comparison second)
+	    for (int i = ovec.size() - 1; i >= 0; --i) {	       
+	       if (fi->second.rset->find((ovec[i])->first) != fi->second.rset->end()) {
+		  printd(QRO_LVL, " + recursive obj %p '%s' already finalized, cyclic ancestor %p '%s' in current cycle\n", &obj, obj.getClassName(), ovec[i]->first, ovec[i]->first->getClassName());
+
+		  return makeChain(i, fi, tid);
+	       }
+	    }
+
+	    printd(QRO_LVL, " + recursive obj %p '%s' already finalized but not in current cycle\n", &obj, obj.getClassName());
+	    return false;
+	 }
+      }
+      else {
+	 if (!inCurrentSet(fi)) {
+	    printd(QRO_LVL, " + recursive obj %p '%s' not in current cycle\n", &obj, obj.getClassName());
+	    return false;
+	 }
       }
 
       // finalize current objects immediately
@@ -1341,7 +1463,6 @@ bool ObjectRSetHelper::checkIntern(QoreObject& obj) {
       if (rset)
 	 printd(QRO_LVL, " + %p '%s': reusing ObjectRSet: %p\n", &obj, obj.getClassName(), rset);
 #endif
-      int tid = gettid();
 
       int i = (int)ovec.size() - 1;
       while (i >= 0) {
@@ -1362,100 +1483,17 @@ bool ObjectRSetHelper::checkIntern(QoreObject& obj) {
 	       rset = new ObjectRSet;
 	       printd(QRO_LVL, " + %p '%s': rcycle: %d second.rset: %p new ObjectRSet: %p\n", oi->first, oi->first->getClassName(), obj.priv->rcycle, oi->second.rset, rset);
 	    }
-	    else // ensure that the current object is not in the rset
-	       assert(rset->find(oi->first) == rset->end());
 
-	    // queue mark object as finalized
-	    oi->second.finalize(rset);
-	    assert(oi->second.rset);
-
-	    // insert into new rset
-	    rset->insert(oi->first);
-
-	    // queue any nodes not scanned for rset invalidation
-	    if (oi->first->priv->rset) {
-	       assert(rset != oi->first->priv->rset);
-	       if (oi->first->priv->rset->active() && removeInvalidate(oi->first->priv->rset, tid))
-		  return true;
-	    }
-
-	    printd(QRO_LVL, " + %p '%s': finalized with rset: %p (rcount: %d)\n", oi->first, oi->first->getClassName(), rset, oi->second.rcount);
-
-	    assert(!oi->second.in_cycle);
-	    oi->second.in_cycle = true;
-	    assert(oi->second.rset);
-	    // increment rcount
-	    printd(QRO_LVL, " + %p '%s': rcycle: %d second.rset: %p final: %d ok: %d rcount: %d -> %d\n", oi->first, oi->first->getClassName(), obj.priv->rcycle, oi->second.rset, oi->second.in_cycle, oi->second.ok, oi->second.rcount, oi->second.rcount + 1);
-	    ++oi->second.rcount;
+	    addToRSet(oi, rset, tid);
 	 }
 	 else {
-	    printd(QRO_LVL, " + %p '%s': already finalized with rset: %p (size: %d, rcount: %d) current rset: %p (size: %d)\n", oi->first, oi->first->getClassName(), oi->second.rset, (int)oi->second.rset->size(), oi->second.rcount, rset ? rset : 0, rset ? (int)rset->size() : 0);
-
 	    if (i > 0 && oi->first != &obj && !ovec[i-1]->second.in_cycle) {
-	       printd(QRO_LVL, " + %p '%s': parent not yet in cycle (rcount: %d -> %d)\n", &obj, obj.getClassName(), fi->second.rcount, fi->second.rcount + 1);
+	       printd(QRO_LVL, " + %p '%s': parent not yet in cycle (rcount: %d -> %d)\n", &obj, obj.getClassName(), oi->second.rcount, oi->second.rcount + 1);
 	       ++oi->second.rcount;
 	    }
 
-	    if (rset == oi->second.rset) {
-	       printd(QRO_LVL, " + %p '%s': rset: %p (%d) already in set\n", oi->first, oi->first->getClassName(), rset, (int)rset->size());
-	    }
-	    else {
-	       if (!rset)
-		  rset = oi->second.rset;
-	       else {
-		  assert(rset != oi->second.rset);
-		  // here we have to merge rsets
-		  if (rset->size() > oi->second.rset->size()) {
-		     printd(QRO_LVL, " + %p '%s': rset: %p (%d) assimilating %p (%d)\n", oi->first, oi->first->getClassName(), rset, (int)rset->size(), oi->second.rset, (int)oi->second.rset->size());
-		     // merge oi->second.rset into rset and retag objects
-		     ObjectRSet *old_rset = oi->second.rset;
-		     for (obj_set_t::iterator i = old_rset->begin(), e = old_rset->end(); i != e; ++i) {
-			rset->insert(*i);
-			omap_t::iterator noi = fomap.find(*i);
-			assert(noi != fomap.end());
-			noi->second.rset = rset;
-		     }
-		     delete old_rset;
-		  }
-		  else {
-		     printd(QRO_LVL, " + %p '%s': oi->second.rset: %p (%d) assimilating %p (%d)\n", oi->first, oi->first->getClassName(), oi->second.rset, (int)oi->second.rset->size(), rset, (int)rset->size());
-		     // merge rset into oi->second.rset and retag objects
-		     ObjectRSet *old_rset = rset;
-		     rset = oi->second.rset;
-		     for (obj_set_t::iterator i = old_rset->begin(), e = old_rset->end(); i != e; ++i) {
-			rset->insert(*i);
-			omap_t::iterator noi = fomap.find(*i);
-			assert(noi != fomap.end());
-			noi->second.rset = rset;
-		     }
-		     delete old_rset;
-		  }
-	       }
-	    }
+	    mergeRSet(i, rset);
 	 }
-
-	 /*
-	 if (oi->second.in_cycle) {
-	    printd(QRO_LVL, " + %p '%s': rcycle: %d second.rset: %p final: %d ok: %d already in cycle \n", oi->first, oi->first->getClassName(), obj.priv->rcycle, oi->second.rset, oi->second.in_cycle, oi->second.ok);
-
-	    // check if parent is not in an rcycle and increment the rcount of this object if not
-	    if (oi->first != &obj) {
-	       assert(i > 0);
-	       omap_t::iterator pi = ovec[i - 1];
-	       if (!pi->second.in_cycle) {
-		  printd(QRO_LVL, " + %p '%s': rcount: %d -> %d\n", oi->first, oi->first->getClassName(), oi->second.rcount, oi->second.rcount + 1);
-		  ++oi->second.rcount;
-	       }
-	    }
-	 }
-	 else {
-	    oi->second.in_cycle = true;
-	    assert(oi->second.rset);
-	    // increment rcount
-	    printd(QRO_LVL, " + %p '%s': rcycle: %d second.rset: %p final: %d ok: %d rcount: %d -> %d\n", oi->first, oi->first->getClassName(), obj.priv->rcycle, oi->second.rset, oi->second.in_cycle, oi->second.ok, oi->second.rcount, oi->second.rcount + 1);
-	    ++oi->second.rcount;
-	 }
-	 */
 
 	 if (oi->first == &obj)
 	    break;
@@ -1655,32 +1693,44 @@ void ObjectRSetHelper::rollback() {
 #endif
 }
 
+#ifdef DEBUG
+void ObjectRSet::dbg() {
+   QoreAutoRWReadLocker al(rwl);
+
+   printd(0, "ObjectRSet::dbg() this: %p in_del: %d valid: %d ssize: %d size: %d\n", this, (int)in_del, (int)valid, (int)ssize, (int)size());
+   for (obj_set_t::iterator i = begin(), e = end(); i != e; ++i) {
+      printd(0, " + %p '%s' rcount: %d refs: %d\n", *i, (*i)->getClassName(), (int)(*i)->priv->rcount, (int)(*i)->references);
+   }
+}
+#endif
+
 int ObjectRSet::canDelete() {
-   if (in_del)
-      return 1;
+   printd(QRO_LVL, "ObjectRSet::canDelete() this: %p valid: %d in_del: %d\n", this, valid, in_del);
+
    if (!valid)
       return -1;
+   if (in_del)
+      return 1;
 
    {
       QoreAutoRWReadLocker al(rwl);
-      if (in_del)
-	 return 1;
       if (!valid)
 	 return -1;
+      if (in_del)
+	 return 1;
 
       for (obj_set_t::iterator i = begin(), e = end(); i != e; ++i) {
-	 if ((*i)->priv->rcount != (*i)->references) {
-	    printd(QRO_LVL, "ObjectRSet::canDelete() this: %p cannot delete graph obj %p '%s' rcount: %d refs: %d\n", this, *i, (*i)->getClassName(), (*i)->priv->rcount, (*i)->references);
-	    return 0;
-	 }
 	 if ((*i)->priv->status != OS_OK || (*i)->priv->in_destructor) {
 	    printd(QRO_LVL, "ObjectRSet::canDelete() this: %p cannot delete graph obj %p '%s' status: %d in_destructor: %d\n", this, *i, (*i)->getClassName(), (*i)->priv->status, (*i)->priv->in_destructor);
+	    return 0;
+	 }
+	 if ((*i)->priv->rcount != (*i)->references) {
+	    printd(QRO_LVL, "ObjectRSet::canDelete() this: %p cannot delete graph obj %p '%s' rcount: %d refs: %d\n", this, *i, (*i)->getClassName(), (*i)->priv->rcount, (*i)->references);
 	    return 0;
 	 }
 	 printd(QRO_LVL, "ObjectRSet::canDelete() this: %p can delete graph obj %p '%s' rcount: %d refs: %d\n", this, *i, (*i)->getClassName(), (*i)->priv->rcount, (*i)->references);
       }
       in_del = true;
-      invalidateIntern();
    }
    printd(QRO_LVL, "ObjectRSet::canDelete() this: %p can delete all objects in graph\n", this);
    return 1;

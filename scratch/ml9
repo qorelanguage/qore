@@ -11,7 +11,6 @@ class T1 {
     destructor() { printf("deleting %d\n", id); } 
     set(*T1 aa) { a = aa; }
 }
-
 class T2 inherits T1 {
     constructor(int i) : T1(i) {} 
 }
@@ -21,7 +20,7 @@ class T3 inherits T2 {
 class T4 inherits T3 {
     constructor(int i) : T3(i) {} 
 }
-#  t1.a = t2, t2.a = t3, t1.a = t2, t2.b = t1, t3.a = t4, t3.b = t2, t4.a = t1, t4.b = t3
+#  t1.a =t2, t2.a =t3, t1.a =t2, t2.b =t1, t3.a =t4, t3.b =t2, t4.a =t1, t4.b =t3
 #   --> [ t1(2), t2(3), t3(2), t4(1) ]
 T1 t1(1);
 {
@@ -40,7 +39,7 @@ T1 t1(1);
         }
     }
 }
-printf("t1.a: %y\n", t1.a);
+#printf("t1.a: %y\n", t1.a);
 #printf("before clear\n");
 #t1.set();
 #printf("clear\n");

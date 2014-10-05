@@ -337,7 +337,6 @@ protected:
       clear();
       //printd(6, "ObjectRSet::invalidateIntern() this: %p\n", this);
    }
-
    
 public:
    DLLLOCAL ObjectRSet() : ssize(0), acnt(0), valid(true), in_del(false) {
@@ -382,6 +381,18 @@ public:
 
    DLLLOCAL int canDelete();
 
+#ifdef DEBUG
+   DLLLOCAL void dbg();
+
+   DLLLOCAL bool isValid() const {
+      return this ? valid : false;
+   }
+
+   DLLLOCAL bool isInDel() const {
+      return this ? in_del : false;
+   }
+#endif
+
    DLLLOCAL bool assigned() const {
       return (bool)acnt;
    }
@@ -403,6 +414,16 @@ public:
    DLLLOCAL obj_set_t::iterator end() {
       return set.end();
    }
+
+   /*
+   DLLLOCAL obj_set_t::reverse_iterator rbegin() {
+      return set.rbegin();
+   }
+
+   DLLLOCAL obj_set_t::reverse_iterator rend() {
+      return set.rend();
+   }
+   */
 
    DLLLOCAL obj_set_t::iterator find(QoreObject* o) {
       return set.find(o);
@@ -502,6 +523,12 @@ protected:
             return true;
       return false;
    }
+
+   DLLLOCAL bool addToRSet(omap_t::iterator oi, ObjectRSet* rset, int tid);
+
+   DLLLOCAL void mergeRSet(int i, ObjectRSet*& rset);
+
+   DLLLOCAL bool makeChain(int i, omap_t::iterator fi, int tid);
 
 public:
    DLLLOCAL ObjectRSetHelper(QoreObject& obj);
