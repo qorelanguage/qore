@@ -663,13 +663,6 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 
 	    // output in any case even when debugging is disabled
 	    print_debug(0, "QoreObject::customDeref() this: %p rcount/refs: %d/%d collecting object (%s) with only recursive references\n", this, (int)priv->rcount, (int)ref_copy, getClassName());
-	    /*
-	    if (priv->rcount != ref_copy)
-	       priv->rset->dbg();
-	    assert(priv->rcount == ref_copy);
-	    */
-	    //assert(strcmp(getClassName(), "WebAppConnection"));
-	    //priv->rset->invalidate();
 
 	    rrf = true;
 	    break;

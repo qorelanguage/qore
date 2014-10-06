@@ -1491,7 +1491,7 @@ public:
    QoreClass* sclass;
    bool priv : 1;
    bool is_virtual : 1;
-   
+
    DLLLOCAL BCNode(NamedScope *c, bool p) : loc(ParseLocation), cname(c), cstr(0), sclass(0), priv(p), is_virtual(false) {
    }
 
@@ -1584,7 +1584,8 @@ public:
    DLLLOCAL const QoreMethod* findCommittedStaticMethod(const char* name, bool &priv_flag) const;
 
    DLLLOCAL bool match(const QoreClass* cls);
-   DLLLOCAL void execConstructors(QoreObject *o, BCEAList *bceal, ExceptionSink* xsink) const;
+   DLLLOCAL int initMembers(QoreObject& o, BCEAList* bceal, ExceptionSink* xsink) const;
+   DLLLOCAL void execConstructors(QoreObject *o, BCEAList* bceal, ExceptionSink* xsink) const;
    DLLLOCAL bool execDeleteBlockers(QoreObject *o, ExceptionSink* xsink) const;
    DLLLOCAL bool parseCheckHierarchy(const QoreClass* cls) const;
    DLLLOCAL bool isPrivateMember(const char* str) const;
@@ -1627,9 +1628,10 @@ public:
    QoreListNode* args;
    const AbstractQoreFunctionVariant* variant;
    bool execed;
+   bool member_init_done;
       
-   DLLLOCAL BCEANode(QoreListNode* n_args, const AbstractQoreFunctionVariant* n_variant) : args(n_args), variant(n_variant), execed(false) {}
-   DLLLOCAL BCEANode() : args(0), variant(0), execed(true) {}
+   DLLLOCAL BCEANode(QoreListNode* n_args, const AbstractQoreFunctionVariant* n_variant) : args(n_args), variant(n_variant), execed(false), member_init_done(false) {}
+   DLLLOCAL BCEANode(bool n_execed = true, bool mid = true) : args(0), variant(0), execed(n_execed), member_init_done(mid) {}
 };
 
 /*
@@ -1648,13 +1650,27 @@ typedef std::map<qore_classid_t, BCEANode*> bceamap_t;
 */
 class BCEAList : public bceamap_t {
 protected:
-   DLLLOCAL ~BCEAList() { }
+   DLLLOCAL ~BCEAList() { 
+      assert(empty());
+   }
    
 public:
    DLLLOCAL void deref(ExceptionSink* xsink);
    // evaluates arguments, returns -1 if an exception was thrown
    DLLLOCAL int add(qore_classid_t classid, const QoreListNode* arg, const AbstractQoreFunctionVariant* variant, ExceptionSink* xsink);
    DLLLOCAL QoreListNode* findArgs(qore_classid_t classid, bool *aexeced, const AbstractQoreFunctionVariant*& variant);
+   DLLLOCAL bool initMembers(qore_classid_t classid) {
+      bceamap_t::iterator i = lower_bound(classid);
+      if (i == end() || i->first != classid) {
+         insert(i, std::make_pair(classid, new BCEANode(false, true)));
+         return false;
+      }
+      if (!i->second->member_init_done) {
+         i->second->member_init_done = true;
+         return false;
+      }
+      return true;
+   }
 };
 
 struct SelfInstantiatorHelper {
@@ -2432,7 +2448,7 @@ public:
       return scl ? scl->isPublicOrPrivateMember(mem, priv) : 0;
    }
 
-   DLLLOCAL int initMembers(QoreObject *o, member_map_t::const_iterator i, member_map_t::const_iterator e, ExceptionSink* xsink) const;
+   DLLLOCAL int initMembers(QoreObject& o, member_map_t::const_iterator i, member_map_t::const_iterator e, ExceptionSink* xsink) const;
 
    DLLLOCAL int initVar(const char* vname, QoreVarInfo& vi, ExceptionSink* xsink) const {
       if (vi.exp) {
@@ -2470,11 +2486,18 @@ public:
       pub_const.deleteAll(xsink);
    }
 
-   DLLLOCAL int initMembers(QoreObject *o, ExceptionSink* xsink) const {
+   DLLLOCAL int initMembers(QoreObject& o, BCEAList* bceal, ExceptionSink* xsink) const {
+      if (scl && scl->initMembers(o, bceal, xsink))
+         return -1;
+
       if (public_members.empty() && private_members.empty())
 	 return 0;
 
-      SelfInstantiatorHelper sih(&selfid, o, xsink);
+      // ensure class is only initialized once
+      if (bceal && bceal->initMembers(cls->getID()))
+         return 0;
+
+      SelfInstantiatorHelper sih(&selfid, &o, xsink);
 
       if (initMembers(o, private_members.begin(), private_members.end(), xsink)
 	  || initMembers(o, public_members.begin(), public_members.end(), xsink))

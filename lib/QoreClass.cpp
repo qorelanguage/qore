@@ -755,10 +755,11 @@ const QoreMethod* qore_class_private::findLocalCommittedStaticMethod(const char*
    return m && !m->priv->func->committedEmpty() ? m : 0;
 }
 
-int qore_class_private::initMembers(QoreObject *o, member_map_t::const_iterator i, member_map_t::const_iterator e, ExceptionSink* xsink) const {
+int qore_class_private::initMembers(QoreObject& o, member_map_t::const_iterator i, member_map_t::const_iterator e, ExceptionSink* xsink) const {
    for (; i != e; ++i) {
       if (i->second) {
-	 AbstractQoreNode** v = o->getMemberValuePtrForInitialization(i->first);
+	 AbstractQoreNode** v = o.getMemberValuePtrForInitialization(i->first);
+	 assert(!*v);
 	 if (i->second->exp) {
 	    ReferenceHolder<AbstractQoreNode> val(i->second->exp->eval(xsink), xsink);
 	    if (*xsink)
@@ -788,8 +789,6 @@ void qore_class_private::execBaseClassConstructor(QoreObject* self, BCEAList *bc
       if (scl) // execute base class constructors if any
 	 scl->execConstructors(self, bceal, xsink);
 
-      // instantiate members after base constructors have been executed
-      initMembers(self, xsink);
       return;
    }
    // no lock is sent with constructor, because no variable has been assigned yet
@@ -829,28 +828,29 @@ QoreObject* qore_class_private::execConstructor(const AbstractQoreFunctionVarian
 
    printd(5, "qore_class_private::execConstructor() class=%p %s::constructor() o=%p variant=%p\n", cls, name.c_str(), self, variant);
 
-   // it's possible for constructor = 0 and variant != 0, when a class is instantiated to initialize a constant
-   // and the matched variant is pending
-   if (!constructor && !variant) {
-      if (scl) { // execute superconstructors if any
-	 CODE_CONTEXT_HELPER(CT_BUILTIN, "constructor", self, xsink);
+   // instantiate members first
+   initMembers(*self, *bceal, xsink);
 
-	 scl->execConstructors(self, *bceal, xsink);
-      }
+   if (!*xsink) {
+      // it's possible for constructor = 0 and variant != 0, when a class is instantiated to initialize a constant
+      // and the matched variant is pending
+      if (!constructor && !variant) {
+	 if (scl) { // execute superconstructors if any
+	    CODE_CONTEXT_HELPER(CT_BUILTIN, "constructor", self, xsink);
 
-      // instantiate members after base constructors have been executed
-      if (!*xsink)
-	 initMembers(self, xsink);
-   }
-   else {
-      if (!constructor) {
-	 hm_method_t::const_iterator i = hm.find("constructor");
-	 assert(i != hm.end());
-	 i->second->priv->evalConstructor(variant, self, args, *bceal, xsink);
+	    scl->execConstructors(self, *bceal, xsink);
+	 }
       }
-      else
-	 constructor->priv->evalConstructor(variant, self, args, *bceal, xsink);
-      printd(5, "qore_class_private::execConstructor() class=%p %s done\n", cls, name.c_str());
+      else {
+	 if (!constructor) {
+	    hm_method_t::const_iterator i = hm.find("constructor");
+	    assert(i != hm.end());
+	    i->second->priv->evalConstructor(variant, self, args, *bceal, xsink);
+	 }
+	 else
+	    constructor->priv->evalConstructor(variant, self, args, *bceal, xsink);
+	 printd(5, "qore_class_private::execConstructor() class=%p %s done\n", cls, name.c_str());
+      }
    }
 
    if (*xsink) {
@@ -1152,29 +1152,31 @@ void qore_class_private::setPublic() {
 }
 
 QoreListNode* BCEAList::findArgs(qore_classid_t classid, bool *aexeced, const AbstractQoreFunctionVariant *&variant) {
-   bceamap_t::iterator i = find(classid);
-   if (i != end()) {
-      if (i->second->execed) {
-	 *aexeced = true;
-	 variant = 0;
-	 return 0;
-      }
+   bceamap_t::iterator i = lower_bound(classid);
+   if (i == end() || i->first != classid) {
+      insert(i, std::make_pair(classid, new BCEANode));
       *aexeced = false;
-      i->second->execed = true;
-      variant = i->second->variant;
-      return i->second->args;
+      variant = 0;
+      return 0;
    }
 
-   insert(std::make_pair(classid, new BCEANode));
+   if (i->second->execed) {
+      *aexeced = true;
+      variant = 0;
+      return 0;
+   }
+
    *aexeced = false;
-   variant = 0;
-   return 0;
+   i->second->execed = true;
+   variant = i->second->variant;
+   return i->second->args;
 }
 
 int BCEAList::add(qore_classid_t classid, const QoreListNode* arg, const AbstractQoreFunctionVariant *variant, ExceptionSink* xsink) {
    // see if class already exists in the list
-   bceamap_t::iterator i = find(classid);
-   if (i != end())
+   bceamap_t::iterator i = lower_bound(classid);
+   bool n = ((i == end() || i->first != classid));
+   if (!n && i->second->execed)
       return 0;
 
    // evaluate arguments
@@ -1183,7 +1185,15 @@ int BCEAList::add(qore_classid_t classid, const QoreListNode* arg, const Abstrac
       return -1;
 
    // save arguments
-   insert(std::make_pair(classid, new BCEANode(nargs.release(), variant)));
+   if (n)
+      insert(i, std::make_pair(classid, new BCEANode(nargs.release(), variant)));
+   else {
+      assert(!i->second->args);
+      assert(!i->second->variant);
+      assert(!i->second->execed);
+      i->second->args = nargs.release();
+      i->second->variant = variant;
+   }
    return 0;
 }
 
@@ -1532,6 +1542,16 @@ bool BCList::execDeleteBlockers(QoreObject* o, ExceptionSink* xsink) const {
 	 return true;
    }
    return false;
+}
+
+int BCList::initMembers(QoreObject& o, BCEAList* bceal, ExceptionSink* xsink) const {
+   for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
+      printd(5, "BCList::initMembers() %s::constructor() o=%p (for subclass %s) virtual=%d\n", (*i)->sclass->getName(), &o, o.getClass()->getName(), (*i)->is_virtual); 
+
+      if ((*i)->sclass->priv->initMembers(o, bceal, xsink))
+	 return -1;
+   }
+   return 0;
 }
 
 void BCList::execConstructors(QoreObject* o, BCEAList *bceal, ExceptionSink* xsink) const {
@@ -3590,10 +3610,6 @@ bool QoreClass::isPublicOrPrivateMember(const char* str, bool &priv_member) cons
    return (bool)priv->isPublicOrPrivateMember(str, priv_member);
 }
 
-int QoreClass::initMembers(QoreObject* o, ExceptionSink* xsink) const {
-   return priv->initMembers(o, xsink);
-}
-
 bool QoreClass::hasPrivateCopyMethod() const {
    return priv->copyMethod && priv->copyMethod->isPrivate() ? true : false;
 }
@@ -3822,10 +3838,6 @@ int ConstructorMethodVariant::constructorPrelude(const QoreClass &thisclass, Cod
       if (*xsink)
 	 return -1;
    }
-
-   // initialize members
-   if (thisclass.initMembers(self, xsink))
-      return -1;
 
    ceh.restorePosition();
    return 0;

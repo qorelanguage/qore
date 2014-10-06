@@ -38,8 +38,8 @@
 #include <stdarg.h>
 #include <sys/types.h>
 
-//#define DO_OBJ_RECURSIVE_CHECK 1
-#undef DO_OBJ_RECURSIVE_CHECK
+#define DO_OBJ_RECURSIVE_CHECK 1
+//#undef DO_OBJ_RECURSIVE_CHECK
 
 #ifdef HAVE_SYS_STATVFS_H
 #include <sys/statvfs.h>

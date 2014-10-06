@@ -844,7 +844,6 @@ public:
    DLLLOCAL bool parseHasPublicMembersInHierarchy() const;
    DLLLOCAL bool runtimeGetMemberInfo(const char *mem, const QoreTypeInfo *&memberTypeInfo, bool &priv) const;
    DLLLOCAL bool runtimeHasPublicMembersInHierarchy() const;
-   DLLLOCAL int initMembers(QoreObject *o, ExceptionSink *xsink) const;
    // returns true if the class has one or more parent classes
    DLLLOCAL bool hasParentClass() const;
    DLLLOCAL QoreObject *execConstructor(const AbstractQoreFunctionVariant *variant, const QoreListNode *args, ExceptionSink *xsink) const;
