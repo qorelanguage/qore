@@ -51,7 +51,7 @@
     - fixed a bug where the @ref Qore::HTTPClient "HTTPClient" class did not send the X.509 certificate and private key when making a client SSL connection
     - fixed a bug in the @ref Qore::Thread::ThreadPool "ThreadPool" class where an error in shutdown handling could cause a crash in rare conditions when @ref Qore::Thread::ThreadPool "ThreadPool" methods are called while the pool is shtting down
     - fixed a crashing bug initializing some lvalues with type restrictions; affected static class variables at least
-    - fixed a bug where a class calling an overridden method in a base class constructor that referred to a member that should have been initialized in the subclass would not be initialized
+    - fixed a bug where a class calling an overridden method in a base class constructor that referred to a member that should have been initialized in the subclass would be executed before the subclass's members were initialized causing the method call to fail
     - fixed a memory leak in classes with multiple inheritance and base classes that are inherited multiple times with member initialization
 
     @section qore_0811 Qore 0.8.11
