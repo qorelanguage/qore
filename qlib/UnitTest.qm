@@ -34,6 +34,10 @@ public class UnitTest::UnitTest {
     }
 
     constructor(any verbose) {
+        setVerbose(verbose);
+    }
+
+    setVerbose(any verbose) {
         m_verbose = boolean(verbose);
     }
 
