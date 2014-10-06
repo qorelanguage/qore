@@ -1,0 +1,64 @@
+# minimum required Qore version
+%requires qore >= 0.8.11
+%new-style
+
+module UnitTest {
+    version = "0.1";
+    desc = "user module for unit testing";
+    author = "Petr Vanek <petr@yarpen.cz>";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+/* see release notes below for version history
+*/
+
+/** @mainpage UnitTest Module
+
+    @tableofcontents
+
+TODO/FIXME
+*/
+
+
+#! TODO/FIXME
+public namespace UnitTest {
+}
+
+#! TODO/FIXME
+public class UnitTest::UnitTest {
+    private {
+        int m_testCount = 0;
+        int m_errors = 0;
+        bool m_verbose = False;
+    }
+
+    constructor(any verbose) {
+        m_verbose = boolean(verbose);
+    }
+
+    int errors() {
+        return m_errors;
+    }
+
+    int testCount() {
+        return m_testCount;
+    }
+
+    errorInc() {
+        m_errors++;
+    }
+
+    testValue(any v1, any v2, string msg) {
+        m_testCount++;
+        if (v1 === v2) {
+            if (m_verbose)
+                printf("OK: %s test\n", msg);
+        }
+        else {
+            printf("ERROR: %s test failed! (%N != %N)\n", msg, v1, v2);
+            m_errors++;
+        }
+    }
+}
+

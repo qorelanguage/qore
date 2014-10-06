@@ -13,6 +13,8 @@
 # make sure we have the right version of qore
 %requires qore >= 0.8.11
 
+%requires UnitTest
+
 # for Mime tests
 %requires Mime
 
@@ -25,8 +27,7 @@
 # global variables needed for tests
 our Test $to("program-test.q");
 our Test $ro("readonly");
-our (hash $o, int $errors);
-our hash $thash;
+our hash $o;
 
 sub usage() {
     printf(
@@ -66,19 +67,8 @@ sub parse_command_line() {
 	$o.iters = 1;
     if (!$o.threads)
 	$o.threads = 1;
-}
 
-sub test_value(any $v1, any $v2, string $msg) {
-    if ($v1 === $v2) {
-	if ($o.verbose)
-	    printf("OK: %s test\n", $msg);
-    }
-    else {
-	printf("ERROR: %s test failed! (%N != %N)\n", $msg, $v1, $v2);
-	#printf("%s%s", dbg_node_info($v1), dbg_node_info($v2));
-	$errors++;
-    }
-    $thash.$msg = True;
+    our UnitTest $unit($o.verbose);
 }
 
 sub test_xrange(list $correct, RangeIterator $testing, string $message) {
@@ -86,15 +76,7 @@ sub test_xrange(list $correct, RangeIterator $testing, string $message) {
     foreach my int $i in ($testing)
         push $l, $i;
 
-    if ($correct === $l) {
-        if ($o.verbose)
-            printf("OK: %s test\n", $message);
-    }
-    else {
-        printf("ERROR: $s test failed! (%N != %N)\n", $message, $correct, $l);
-        $errors++;
-    }
-    $thash.$message= True;
+    $unit.testValue($correct, $l, $message);
 }
 
 int sub test1() { return 1;} int sub test2() { return 2; } 
@@ -102,7 +84,7 @@ list sub test3() { return (1, 2, 3); }
 
 sub array_helper(list $a) {
     $a[1][1] = 2;
-    test_value($a[1][1], 2, "passed local array variable assignment");    
+    $unit.testValue($a[1][1], 2, "passed local array variable assignment");    
 }
 
 list sub list_return(any $var) {
@@ -136,48 +118,48 @@ sub array_tests() {
     if ($o.verbose)
 	print("%%%% array tests\n");
     $a = 1, 2, 3, 4, 5;
-    test_value(elements $a, 5, "elements operator");
-    test_value($a[1], 2, "single-dimensional list dereference");
+    $unit.testValue(elements $a, 5, "elements operator");
+    $unit.testValue($a[1], 2, "single-dimensional list dereference");
     $b = 1, 2, (3, 4, 5), 6, 7;
-    test_value($b[2][1], 4, "multi-dimensional list dereference");
+    $unit.testValue($b[2][1], 4, "multi-dimensional list dereference");
     delete $b;
-    test_value($b[2][1], NOTHING, "multi-dimensional list dereference after delete operator");
+    $unit.testValue($b[2][1], NOTHING, "multi-dimensional list dereference after delete operator");
     $b = $a;
     $a[1] = "hello";
-    test_value($a[1], "hello", "list dereference after list assignment and element reassignment");
-    test_value($b[1], 2, "list dereference of source list");
+    $unit.testValue($a[1], "hello", "list dereference after list assignment and element reassignment");
+    $unit.testValue($b[1], 2, "list dereference of source list");
     $a[0][1] = "hello";
     $c[10]{"testing"} = "well then";
-    test_value($a[0][1], "hello", "second multi-dimensional list dereference");
-    test_value($a[1][500], NOTHING, "non-existent element deference");
-    test_value(int($c[10].testing), 0, "hash list element dereference");
-    test_value($c[10]{"testing"}, "well then", "hash element in list dereference");
+    $unit.testValue($a[0][1], "hello", "second multi-dimensional list dereference");
+    $unit.testValue($a[1][500], NOTHING, "non-existent element deference");
+    $unit.testValue(int($c[10].testing), 0, "hash list element dereference");
+    $unit.testValue($c[10]{"testing"}, "well then", "hash element in list dereference");
     $d = test1(), test2();
-    test_value($d[1], 2, "list element dereference with evaluation");
+    $unit.testValue($d[1], 2, "list element dereference with evaluation");
     $b = $a = 1, 2, 3;
     delete $a[2];
-    test_value($a[2] != $b[2], True, "shared list element comparison after delete");
+    $unit.testValue($a[2] != $b[2], True, "shared list element comparison after delete");
     $a[1][1] = 3;
-    test_value($a[1][1], 3, "array variable assignment before copy");
+    $unit.testValue($a[1][1], 3, "array variable assignment before copy");
     array_helper($a);
-    test_value($a[1][1], 3, "array variable assignment after copy");
+    $unit.testValue($a[1][1], 3, "array variable assignment after copy");
     array_helper($a);
-    test_value(list_return()[0], 1, "simple list return and deref(e)");
-    test_value(list_return()[1], 2, "list return with function element result and deref(e)");
-    test_value(list_return("gee")[2], "gee", "list return with local variable result and deref(e)");
+    $unit.testValue(list_return()[0], 1, "simple list return and deref(e)");
+    $unit.testValue(list_return()[1], 2, "list return with function element result and deref(e)");
+    $unit.testValue(list_return("gee")[2], "gee", "list return with local variable result and deref(e)");
     $a = 1, 2, 3;
     $a += 4, 5, 6;
-    test_value($a[3], 4, "first list list plus-equals concatenation");
+    $unit.testValue($a[3], 4, "first list list plus-equals concatenation");
     $a += 7;
-    test_value($a[6], 7, "list element plus-equals concatenation");
+    $unit.testValue($a[6], 7, "list element plus-equals concatenation");
     $a += list(8);
-    test_value($a[7], 8, "second list list plus-equals concatenation");
+    $unit.testValue($a[7], 8, "second list list plus-equals concatenation");
     $a = (1, 2, 3) + (4, 5, 6);
-    test_value($a[3], 4, "first list list plus operator concatenation");
+    $unit.testValue($a[3], 4, "first list list plus operator concatenation");
     $a = 1, 2, 3;
     $b = 4, 5, 6;
     $c = $a + $b;
-    test_value($c[4], 5, "second list list plus operator concatenation");
+    $unit.testValue($c[4], 5, "second list list plus operator concatenation");
     my list $l1 = ( 3, 2, 4, 1, 6, 5 );
     my list $l2 = ( "one", "two", "three", "four", "five", "six" );
     my list $hl = 
@@ -215,96 +197,96 @@ sub array_tests() {
 
     my code $hash_compare = int sub (hash $l, hash $r) { return $l.key1 <=> $r.key1; };
 
-    test_value(sort($l1), (1,2,3,4,5,6), "first sort()");
-    test_value(sort($l2), ("five", "four", "one", "six", "three", "two"), "second sort()");
-    test_value(sort($hl, \hash_sort_callback()), $sorted_hl, "sort() with function call reference callback");
-    test_value(sort($hl, \$s.hash()), $sorted_hl, "sort() with object method callback");
-    test_value(sort($hl, "hash_sort_callback"), $sorted_hl, "sort() with string function name callback");
-    test_value(sort($hl, $hash_compare), $sorted_hl, "sort() with closure callback");
+    $unit.testValue(sort($l1), (1,2,3,4,5,6), "first sort()");
+    $unit.testValue(sort($l2), ("five", "four", "one", "six", "three", "two"), "second sort()");
+    $unit.testValue(sort($hl, \hash_sort_callback()), $sorted_hl, "sort() with function call reference callback");
+    $unit.testValue(sort($hl, \$s.hash()), $sorted_hl, "sort() with object method callback");
+    $unit.testValue(sort($hl, "hash_sort_callback"), $sorted_hl, "sort() with string function name callback");
+    $unit.testValue(sort($hl, $hash_compare), $sorted_hl, "sort() with closure callback");
 
     my list $r_sorted_hl = reverse($sorted_hl);
-    test_value(sortDescending($l1), (6,5,4,3,2,1), "first sortDescending()");
-    test_value(sortDescending($l2), ("two", "three", "six", "one", "four", "five"), "second sortDescending()");
-    test_value(sortDescending($hl, \SC::hash_sort_callback()), $r_sorted_hl, "first sortDescending() with callback");
-    test_value(sortDescending($hl, \$s.hash()), $r_sorted_hl, "second sortDescending() with callback");
-    test_value(sortDescending($hl, "hash_sort_callback"), $r_sorted_hl, "third sortDescending() with callback");
-    test_value(sortDescending($hl, $hash_compare), $r_sorted_hl, "sortDescending() with closure callback");
+    $unit.testValue(sortDescending($l1), (6,5,4,3,2,1), "first sortDescending()");
+    $unit.testValue(sortDescending($l2), ("two", "three", "six", "one", "four", "five"), "second sortDescending()");
+    $unit.testValue(sortDescending($hl, \SC::hash_sort_callback()), $r_sorted_hl, "first sortDescending() with callback");
+    $unit.testValue(sortDescending($hl, \$s.hash()), $r_sorted_hl, "second sortDescending() with callback");
+    $unit.testValue(sortDescending($hl, "hash_sort_callback"), $r_sorted_hl, "third sortDescending() with callback");
+    $unit.testValue(sortDescending($hl, $hash_compare), $r_sorted_hl, "sortDescending() with closure callback");
 
     $hl += ( "key1" : 3, "key2" : "five-o" );
-    test_value(sortStable($hl, \hash_sort_callback()), $stable_sorted_hl, "first sortStable() with callback");
-    test_value(sortStable($hl, \$s.hash()), $stable_sorted_hl, "second sortStable() with callback");
-    test_value(sortStable($hl, "hash_sort_callback"), $stable_sorted_hl, "third sortStable() with callback");
-    test_value(sortStable($hl, $hash_compare), $stable_sorted_hl, "sortStable() with closure callback");
+    $unit.testValue(sortStable($hl, \hash_sort_callback()), $stable_sorted_hl, "first sortStable() with callback");
+    $unit.testValue(sortStable($hl, \$s.hash()), $stable_sorted_hl, "second sortStable() with callback");
+    $unit.testValue(sortStable($hl, "hash_sort_callback"), $stable_sorted_hl, "third sortStable() with callback");
+    $unit.testValue(sortStable($hl, $hash_compare), $stable_sorted_hl, "sortStable() with closure callback");
 
     my list $r_stable_sorted_hl = reverse($stable_sorted_hl);
-    test_value(sortDescendingStable($hl, \SC::hash_sort_callback()), $r_stable_sorted_hl, "first sortDescendingStable() with callback");
-    test_value(sortDescendingStable($hl, \$s.hash()), $r_stable_sorted_hl, "second sortDescendingStable() with callback");
-    test_value(sortDescendingStable($hl, "hash_sort_callback"), $r_stable_sorted_hl, "third sortDescendingStable() with callback");
-    test_value(sortDescendingStable($hl, $hash_compare), $r_stable_sorted_hl, "sortDescendingStable() with closure callback");
+    $unit.testValue(sortDescendingStable($hl, \SC::hash_sort_callback()), $r_stable_sorted_hl, "first sortDescendingStable() with callback");
+    $unit.testValue(sortDescendingStable($hl, \$s.hash()), $r_stable_sorted_hl, "second sortDescendingStable() with callback");
+    $unit.testValue(sortDescendingStable($hl, "hash_sort_callback"), $r_stable_sorted_hl, "third sortDescendingStable() with callback");
+    $unit.testValue(sortDescendingStable($hl, $hash_compare), $r_stable_sorted_hl, "sortDescendingStable() with closure callback");
 
-    test_value(min($l1), 1, "simple min()");
-    test_value(max($l1), 6, "simple max()");
-    test_value(min($hl, \hash_sort_callback()), ( "key1" : 1, "key2" : "eight" ), "first min() with callback");
-    test_value(min($hl, \$s.hash()), ( "key1" : 1, "key2" : "eight" ), "second min() with callback");
-    test_value(min($hl, "hash_sort_callback"), ( "key1" : 1, "key2" : "eight" ), "third min() with callback");
-    test_value(max($hl, \SC::hash_sort_callback()), ( "key1" : 9, "key2" : "three" ), "first max() with callback");
-    test_value(max($hl, \$s.hash()), ( "key1" : 9, "key2" : "three" ), "second max() with callback");
-    test_value(max($hl, "hash_sort_callback"), ( "key1" : 9, "key2" : "three" ), "third max() with callback");
+    $unit.testValue(min($l1), 1, "simple min()");
+    $unit.testValue(max($l1), 6, "simple max()");
+    $unit.testValue(min($hl, \hash_sort_callback()), ( "key1" : 1, "key2" : "eight" ), "first min() with callback");
+    $unit.testValue(min($hl, \$s.hash()), ( "key1" : 1, "key2" : "eight" ), "second min() with callback");
+    $unit.testValue(min($hl, "hash_sort_callback"), ( "key1" : 1, "key2" : "eight" ), "third min() with callback");
+    $unit.testValue(max($hl, \SC::hash_sort_callback()), ( "key1" : 9, "key2" : "three" ), "first max() with callback");
+    $unit.testValue(max($hl, \$s.hash()), ( "key1" : 9, "key2" : "three" ), "second max() with callback");
+    $unit.testValue(max($hl, "hash_sort_callback"), ( "key1" : 9, "key2" : "three" ), "third max() with callback");
     my string $v = shift $l2;
-    test_value($l2, ("two","three","four","five","six"), "array shift");
+    $unit.testValue($l2, ("two","three","four","five","six"), "array shift");
     unshift $l2, $v;
-    test_value($l2, ("one","two","three","four","five","six"), "array unshift");
+    $unit.testValue($l2, ("one","two","three","four","five","six"), "array unshift");
     # list assignment tests
     my list $l[1] = "boo";
     ($l[0], $l[1]) = "hi1";
-    test_value($l, ("hi1", NOTHING), "first list assigment");
+    $unit.testValue($l, ("hi1", NOTHING), "first list assigment");
     ($l[0], $l[1]) = ("hi2", "shoo1");
-    test_value($l, ("hi2", "shoo1"), "second list assigment");
+    $unit.testValue($l, ("hi2", "shoo1"), "second list assigment");
     ($l[0], $l[1]) = ("hi3", "shoo2", "bean1");
-    test_value($l, ("hi3", "shoo2"), "third list assigment");
+    $unit.testValue($l, ("hi3", "shoo2"), "third list assigment");
     my int $v2 = pop $l1;
-    test_value($v2, 5, "first pop");
-    test_value($l1, (3,2,4,1,6), "second pop");
+    $unit.testValue($v2, 5, "first pop");
+    $unit.testValue($l1, (3,2,4,1,6), "second pop");
     push $l1, "hi";
 
     # splice tests
-    test_value($l1, (3,2,4,1,6,"hi"), "push");
+    $unit.testValue($l1, (3,2,4,1,6,"hi"), "push");
     splice $l1, 5;
-    test_value($l1, (3,2,4,1,6), "first list splice");
+    $unit.testValue($l1, (3,2,4,1,6), "first list splice");
     splice $l1, 3, 1;
-    test_value($l1, (3,2,4,6), "second list splice");
+    $unit.testValue($l1, (3,2,4,6), "second list splice");
     splice $l1, 1, 2, (4, 5, 5.5);
-    test_value($l1, (3,4,5,5.5,6), "third list splice");
+    $unit.testValue($l1, (3,4,5,5.5,6), "third list splice");
     splice $l1, 0, 4, (10, 11, 12);
-    test_value($l1, (10, 11, 12, 6), "third list splice");
+    $unit.testValue($l1, (10, 11, 12, 6), "third list splice");
     splice $l1, 0, 1;
-    test_value($l1, (11, 12, 6), "fourth list splice");
+    $unit.testValue($l1, (11, 12, 6), "fourth list splice");
     splice $l1, 5, 2, (1, 2, 3);
-    test_value($l1, (11, 12, 6, 1, 2, 3), "fifth list splice");
+    $unit.testValue($l1, (11, 12, 6, 1, 2, 3), "fifth list splice");
     splice $l1, -4, 2, 9;
-    test_value($l1, (11, 12, 9, 2, 3), "sixth list splice");
+    $unit.testValue($l1, (11, 12, 9, 2, 3), "sixth list splice");
     splice $l1, -4, -2, (21, 22, 23);
-    test_value($l1, (11, 21, 22, 23, 2, 3), "seventh list splice");
+    $unit.testValue($l1, (11, 21, 22, 23, 2, 3), "seventh list splice");
 
     # extract tests
-    test_value((extract $l1, 5), list(3), "first list extract");
-    test_value((extract $l1, 2, 2), (22, 23), "second list extract");
-    test_value((extract $l1, 1, 2, 4), (21, 2), "second list extract");
-    test_value($l1, (11, 4), "final list extract");
+    $unit.testValue((extract $l1, 5), list(3), "first list extract");
+    $unit.testValue((extract $l1, 2, 2), (22, 23), "second list extract");
+    $unit.testValue((extract $l1, 1, 2, 4), (21, 2), "second list extract");
+    $unit.testValue($l1, (11, 4), "final list extract");
 
     my string $astr = "hello";
-    test_value($astr[2], "l", "string element dereference");
+    $unit.testValue($astr[2], "l", "string element dereference");
     my binary $bin = binary($astr);
-    test_value($bin[4], ord("o"), "binary byte dereference");
+    $unit.testValue($bin[4], ord("o"), "binary byte dereference");
     
     # range tests
-    test_value(range(1), (0, 1,), "range - basic test");
-    test_value(range(2, 5), (2, 3, 4, 5), "range - boundaries test");
-    test_value(range(2, -2), (2, 1, 0, -1, -2), "range - descending test");
-    test_value(range(1, 10, 5), (1, 6), "range - step test");
-    test_value(range(0, 10, 5), (0, 5, 10), "range - step from 0");
-    test_value(range(-10, 10, 5), (-10, -5, 0, 5, 10), "range - asc test");
-    test_value(range(10, -10, 5), (10, 5, 0, -5, -10), "range - descending step test");
+    $unit.testValue(range(1), (0, 1,), "range - basic test");
+    $unit.testValue(range(2, 5), (2, 3, 4, 5), "range - boundaries test");
+    $unit.testValue(range(2, -2), (2, 1, 0, -1, -2), "range - descending test");
+    $unit.testValue(range(1, 10, 5), (1, 6), "range - step test");
+    $unit.testValue(range(0, 10, 5), (0, 5, 10), "range - step from 0");
+    $unit.testValue(range(-10, 10, 5), (-10, -5, 0, 5, 10), "range - asc test");
+    $unit.testValue(range(10, -10, 5), (10, 5, 0, -5, -10), "range - descending step test");
     # xrange tests
     test_xrange(range(1), xrange(1), "xrange - basic test");
     test_xrange(range(2, 5), xrange(2, 5), "xrange - boundaries test");
@@ -316,17 +298,17 @@ sub array_tests() {
 
     # pseudomethods
     my list $pseudoList = (1, 2, 3, 4, 'a');
-    test_value($pseudoList.typeCode(), NT_LIST, "<list>::typeCode");
-    test_value($pseudoList.size(), 5, "<list>::size");
-    test_value($pseudoList.empty(), False, "<list>::empty");
-    test_value($pseudoList.val(), True, "<list>::val");
-    test_value($pseudoList.first(), 1, "<list>::first");
-    test_value($pseudoList.last(), 'a', "<list>::last");
-    test_value($pseudoList.join('-'), '1-2-3-4-a', "<list>::join");
-    test_value($pseudoList.lsize(), 5, "<list>::lsize");
-    test_value($pseudoList.contains(2), True, "<list>::contains");
+    $unit.testValue($pseudoList.typeCode(), NT_LIST, "<list>::typeCode");
+    $unit.testValue($pseudoList.size(), 5, "<list>::size");
+    $unit.testValue($pseudoList.empty(), False, "<list>::empty");
+    $unit.testValue($pseudoList.val(), True, "<list>::val");
+    $unit.testValue($pseudoList.first(), 1, "<list>::first");
+    $unit.testValue($pseudoList.last(), 'a', "<list>::last");
+    $unit.testValue($pseudoList.join('-'), '1-2-3-4-a', "<list>::join");
+    $unit.testValue($pseudoList.lsize(), 5, "<list>::lsize");
+    $unit.testValue($pseudoList.contains(2), True, "<list>::contains");
     #$pseudoList.append(6);
-    #test_value($pseudoList, (1, 2, 3, 4, 'a', 6), "<list>::append");
+    #$unit.testValue($pseudoList, (1, 2, 3, 4, 'a', 6), "<list>::append");
 }
 
 sub hash_tests() {
@@ -334,46 +316,46 @@ sub hash_tests() {
 	print("%%%% hash tests\n");
     # hash tests
     my hash $b = ( "test" : 1, "gee" : 2, "well" : "string" );
-    test_value($b.gee, 2, "object dereference");
-    test_value(elements $b, 3, "elements operator on hash before delete");
+    $unit.testValue($b.gee, 2, "object dereference");
+    $unit.testValue(elements $b, 3, "elements operator on hash before delete");
     delete $b{"gee"};
-    test_value(elements $b, 2, "elements operator on hash after delete");
+    $unit.testValue(elements $b, 2, "elements operator on hash after delete");
     $b{"test"} = "there";
     my hash $d{"gee"}[25] = "I hope it works";
-    test_value($b.test, "there", "hash dereference after assignment");
-    test_value($b.test, "there", "object dereference after assignment");
-    test_value($b{"geez"}, NOTHING, "non-existent object dereference");
-    test_value(int($d.gee[25]), 0, "hash dereference of list element");
-    test_value($d{"gee"}[25], "I hope it works", "dereference of list member of hash");
+    $unit.testValue($b.test, "there", "hash dereference after assignment");
+    $unit.testValue($b.test, "there", "object dereference after assignment");
+    $unit.testValue($b{"geez"}, NOTHING, "non-existent object dereference");
+    $unit.testValue(int($d.gee[25]), 0, "hash dereference of list element");
+    $unit.testValue($d{"gee"}[25], "I hope it works", "dereference of list member of hash");
     my hash $c = ( "hi" : "there", "gee" : "whillakers" );
     $d = $c;
-    test_value($d == $c, True, "hash comparison");
-    test_value($d.gee, "whillakers", "hash dereference after entire hash assignment");
+    $unit.testValue($d == $c, True, "hash comparison");
+    $unit.testValue($d.gee, "whillakers", "hash dereference after entire hash assignment");
     $c{"gee"} = "roo";
-    test_value($c{"gee"}, "roo", "original hash dereference after assignment to member of copied hash");
-    test_value($d.gee, "whillakers", "hash dereference of member of copied hash");
+    $unit.testValue($c{"gee"}, "roo", "original hash dereference after assignment to member of copied hash");
+    $unit.testValue($d.gee, "whillakers", "hash dereference of member of copied hash");
     $d = ( "gee" : test1(), "howdy" : test2());
-    test_value($d.gee, 1, "hash dereference with evaluation");
-    test_value(hash_return(){"gee"}, "whiz", "simple hash return and dereference");
-    test_value(hash_return(){"num"}, 1, "hash return with function element result and dereference");
-    test_value(hash_return("hi there"){"var"}, "hi there", "hash return with local variable result and dereference");
+    $unit.testValue($d.gee, 1, "hash dereference with evaluation");
+    $unit.testValue(hash_return(){"gee"}, "whiz", "simple hash return and dereference");
+    $unit.testValue(hash_return(){"num"}, 1, "hash return with function element result and dereference");
+    $unit.testValue(hash_return("hi there"){"var"}, "hi there", "hash return with local variable result and dereference");
     my hash $a = ( "key" : 1, "unique" : 100, "asd" : "dasd" );
     $b = ( "key" : 3, "new" : 45, "barn" : "door" );
     $c = $a + $b;
-    test_value($c.key, 3, "hash plus operator element override");
-    test_value($c."new", 45, "hash plus operator new element");
-    test_value($c.unique, 100, "hash plus operator unchanged element");
+    $unit.testValue($c.key, 3, "hash plus operator element override");
+    $unit.testValue($c."new", 45, "hash plus operator new element");
+    $unit.testValue($c.unique, 100, "hash plus operator unchanged element");
     $a += $b;
-    test_value($a.key, 3, "hash plus equals operator element override");
-    test_value($a."new", 45, "hash plus equals operator new element");
-    test_value($a.unique, 100, "hash plus equals operator unchanged element");
+    $unit.testValue($a.key, 3, "hash plus equals operator element override");
+    $unit.testValue($a."new", 45, "hash plus equals operator new element");
+    $unit.testValue($a.unique, 100, "hash plus equals operator unchanged element");
 
     # test hash slice creation
-    test_value($a.("unique", "new"), ("unique" : 100, "new" : 45), "hash slice creation");
+    $unit.testValue($a.("unique", "new"), ("unique" : 100, "new" : 45), "hash slice creation");
 
     my Test $ot(1, "two", 3.0);
     $ot += $a;
-    test_value($ot.("unique", "new"), ("unique" : 100, "new" : 45), "hash slice creation from object");
+    $unit.testValue($ot.("unique", "new"), ("unique" : 100, "new" : 45), "hash slice creation from object");
 
     # use the foreach ... in (keys <hash>) specialization
     my int $cnt = 0;
@@ -382,45 +364,45 @@ sub hash_tests() {
         delete $k;
         ++$cnt;
     }
-    test_value($cnt, 5, "foreach hash keys specialization");
+    $unit.testValue($cnt, 5, "foreach hash keys specialization");
     # do pseudo-method tests
-    test_value($c.firstKey(), "key", "<hash>.firstKey()");
-    test_value($c.lastKey(), "barn", "<hash>.lastKey()");
-    test_value($c.size(), 5, "<hash>.size()");
+    $unit.testValue($c.firstKey(), "key", "<hash>.firstKey()");
+    $unit.testValue($c.lastKey(), "barn", "<hash>.lastKey()");
+    $unit.testValue($c.size(), 5, "<hash>.size()");
 
     my hash $nch = $c.("key", "barn");
     foreach my hash $hi in ($nch.pairIterator()) {
         if (!$#)
-            test_value($hi.key, "key", "HashIterator::first()");
+            $unit.testValue($hi.key, "key", "HashIterator::first()");
         else if ($# == 4)
-            test_value($hi.key, "barn", "HashIterator::last()");
+            $unit.testValue($hi.key, "barn", "HashIterator::last()");
     }
 
     my HashPairReverseIterator $hi($nch);
     foreach my hash $hiv in ($hi) {
         if ($# == 4)
-            test_value($hiv.key, "key", "HashReverseIterator::last()");
+            $unit.testValue($hiv.key, "key", "HashReverseIterator::last()");
         else if (!$#)
-            test_value($hiv.key, "barn", "HashReverseIterator::first()");
+            $unit.testValue($hiv.key, "barn", "HashReverseIterator::first()");
     }
-    test_value($hi.valid(), False, "HashReverseIterator::valid()");
+    $unit.testValue($hi.valid(), False, "HashReverseIterator::valid()");
     # restart iterator
-    test_value($hi.next(), True, "HashReverseIterator::next()");
-    test_value($hi.getKey(), "barn", "HashReverseIterator::getKey()");
+    $unit.testValue($hi.next(), True, "HashReverseIterator::next()");
+    $unit.testValue($hi.getKey(), "barn", "HashReverseIterator::getKey()");
     $hi.reset();
-    test_value($hi.valid(), False, "HashReverseIterator::valid() after reset");
+    $unit.testValue($hi.valid(), False, "HashReverseIterator::valid() after reset");
 
     # delete 3 keys from the $c hash
     $b = $c - "new" - "barn" - "asd";
-    test_value($b, ( "key" : 3, "unique" : 100 ), "hash minus operator"); 
+    $unit.testValue($b, ( "key" : 3, "unique" : 100 ), "hash minus operator"); 
     $b = $c - ("new", "barn", "asd");
-    test_value($b, ( "key" : 3, "unique" : 100 ), "hash minus operator with list argument"); 
+    $unit.testValue($b, ( "key" : 3, "unique" : 100 ), "hash minus operator with list argument"); 
     $b -= "unique";
-    test_value($b, ( "key" : 3 ), "hash minus-equals operator"); 
+    $unit.testValue($b, ( "key" : 3 ), "hash minus-equals operator"); 
     $c -= ( "new", "barn" );
-    test_value($c, ( "key": 3, "unique" : 100, "asd" : "dasd" ), "hash minus-equals operator with list argument");
+    $unit.testValue($c, ( "key": 3, "unique" : 100, "asd" : "dasd" ), "hash minus-equals operator with list argument");
     my hash $nh += ( "new-hash" : 1 );
-    test_value($nh, ( "new-hash" : 1 ), "hash plus-equals, lhs NOTHING");
+    $unit.testValue($nh, ( "new-hash" : 1 ), "hash plus-equals, lhs NOTHING");
 }
 
 sub global_variable_testa() {
@@ -434,133 +416,133 @@ sub operator_test() {
     if ($o.verbose)
 	print("%%%% operator tests\n");
     my int $a = 1;
-    test_value($a, 1, "variable assignment");
+    $unit.testValue($a, 1, "variable assignment");
     $a += 3;
-    test_value($a, 4, "integer += operator");
+    $unit.testValue($a, 4, "integer += operator");
     $a -= 2;
-    test_value($a, 2, "integer -= operator");
+    $unit.testValue($a, 2, "integer -= operator");
     $a |= 1;
-    test_value($a, 3, "|= operator");
+    $unit.testValue($a, 3, "|= operator");
     $a &= 1;
-    test_value($a, 1, "&= operator");
+    $unit.testValue($a, 1, "&= operator");
     $a *= 10;
-    test_value($a, 10, "integer *= operator");
+    $unit.testValue($a, 10, "integer *= operator");
     my float $f = $a;
     $f *= 2.2;
-    test_value($f, 22.0, "first float *= operator");
+    $unit.testValue($f, 22.0, "first float *= operator");
     $f *= 2;
-    test_value($f, 44.0, "second float *= operator");
+    $unit.testValue($f, 44.0, "second float *= operator");
     $f /= 4.4;
-    test_value($f, 10.0, "float /= operator");
+    $unit.testValue($f, 10.0, "float /= operator");
     $a = 10;
     $a /= 2;
-    test_value($a, 5, "integer /= operator");
-    test_value(4 / 2, 2, "first / operator");
+    $unit.testValue($a, 5, "integer /= operator");
+    $unit.testValue(4 / 2, 2, "first / operator");
     $a = 0xfdb4902a;
     $a ^= 0xbf40e848;
-    test_value($a, 0x42f47862, "^= xor equals operator");
+    $unit.testValue($a, 0x42f47862, "^= xor equals operator");
     $a <<= 2;
-    test_value($a, 0x10bd1e188, "<<= shift-left-equals operator");
+    $unit.testValue($a, 0x10bd1e188, "<<= shift-left-equals operator");
     $a >>= 3;
-    test_value($a, 0x217a3c31, ">>= shift-right-equals operator");
+    $unit.testValue($a, 0x217a3c31, ">>= shift-right-equals operator");
     $a = 1;
-    test_value($a++, 1, "pre post-increment (++) operator");
-    test_value($a, 2, "post post-increment (++) operator");
-    test_value($a--, 2, "pre post-decrement (--) operator");
-    test_value($a, 1, "post post-decrement (--) operator");
-    test_value(++$a, 2, "pre-increment (++) operator");
-    test_value(--$a, 1, "pre-decrement (--) operator");
+    $unit.testValue($a++, 1, "pre post-increment (++) operator");
+    $unit.testValue($a, 2, "post post-increment (++) operator");
+    $unit.testValue($a--, 2, "pre post-decrement (--) operator");
+    $unit.testValue($a, 1, "post post-decrement (--) operator");
+    $unit.testValue(++$a, 2, "pre-increment (++) operator");
+    $unit.testValue(--$a, 1, "pre-decrement (--) operator");
 
     my string $astr = "hello" + " there";
-    test_value($astr, "hello there", "string concatenation");
+    $unit.testValue($astr, "hello there", "string concatenation");
     $astr += " gee";
-    test_value($astr, "hello there gee", "string plus equals");
+    $unit.testValue($astr, "hello there gee", "string plus equals");
 
     $f = 1.0;
     $f += 1.2;
-    test_value($f, 2.2, "float += operator");
+    $unit.testValue($f, 2.2, "float += operator");
     $f -= 1.1;
-    test_value($f, 1.1, "float -= operator");
+    $unit.testValue($f, 1.1, "float -= operator");
     $f = 5.5 * 2.0;
-    test_value($f, 11.0, "float * operator");
+    $unit.testValue($f, 11.0, "float * operator");
 
-    test_value(now() > (now() - 1D), True, "date > operator");
-    test_value(now() >= (now() - 1h), True, "date >= operator");
-    test_value((now() - 1m) < now(), True, "date < operator");
-    test_value((now() - 1M) <= now(), True, "date <= operator");
+    $unit.testValue(now() > (now() - 1D), True, "date > operator");
+    $unit.testValue(now() >= (now() - 1h), True, "date >= operator");
+    $unit.testValue((now() - 1m) < now(), True, "date < operator");
+    $unit.testValue((now() - 1M) <= now(), True, "date <= operator");
 
     my date $bt = my date $at = now();
-    test_value($at, $bt, "date == operator");
+    $unit.testValue($at, $bt, "date == operator");
     $at = 2004-02-28-12:00:00;
     $at += 1D;
-    test_value($at, 2004-02-29-12:00:00, "first date += operator");
+    $unit.testValue($at, 2004-02-29-12:00:00, "first date += operator");
     $at -= (3h + 5m);
-    test_value($at, 2004-02-29-08:55:00, "second date += operator");
+    $unit.testValue($at, 2004-02-29-08:55:00, "second date += operator");
 
     my any $ni += 3.2;
-    test_value($ni, 3.2, "float +=, lhs NOTHING");
+    $unit.testValue($ni, 3.2, "float +=, lhs NOTHING");
     delete $ni;
     $ni += "hello";
-    test_value($ni, "hello", "string +=, lhs NOTHING");
+    $unit.testValue($ni, "hello", "string +=, lhs NOTHING");
     delete $ni;
     $ni -= 4.5;
-    test_value($ni, -4.5, "float -=, lhs NOTHING");
+    $unit.testValue($ni, -4.5, "float -=, lhs NOTHING");
     delete $ni;
     $ni -= 4;
-    test_value($ni, -4, "integer -=, lhs NOTHING");
+    $unit.testValue($ni, -4, "integer -=, lhs NOTHING");
     # some array and hash tests in separate functions
 
     # get function closure with bound local variable (multiply by 2)
     my code $c = map_closure(2);
 
     # map function to list
-    test_value((map $c($1), (1, 2, 3)), (2, 4, 6), "map operator using closure");
+    $unit.testValue((map $c($1), (1, 2, 3)), (2, 4, 6), "map operator using closure");
 
     # map immediate expression to list
-    test_value((map $1 * 2, (1, 2, 3)), (2, 4, 6), "map operator using expression");
+    $unit.testValue((map $1 * 2, (1, 2, 3)), (2, 4, 6), "map operator using expression");
 
     # map function to list with optional select code as expression
-    test_value((map $c($1), (1, 2, 3), $1 > 1), (4, 6), "map operator using closure with optional select expression");
+    $unit.testValue((map $c($1), (1, 2, 3), $1 > 1), (4, 6), "map operator using closure with optional select expression");
 
     # select all elements from list greater than 1 with expression
-    test_value((select (1, 2, 3), $1 > 1), (2, 3), "select operator with expression");
+    $unit.testValue((select (1, 2, 3), $1 > 1), (2, 3), "select operator with expression");
 
     # create a sinple closure to subtract the second argument from the first
     $c = any sub(any $x, any $y) { return $x - $y; };
 
     # left fold function on list using closure
-    test_value((foldl $c($1, $2), (2, 3, 4)), -5, "foldl operator with closure");
+    $unit.testValue((foldl $c($1, $2), (2, 3, 4)), -5, "foldl operator with closure");
 
     # left fold function on list using expression
-    test_value((foldl $1 - $2, (2, 3, 4)), -5, "foldl operator with expression");
+    $unit.testValue((foldl $1 - $2, (2, 3, 4)), -5, "foldl operator with expression");
 
     # right fold function on list using immediate closure
-    test_value((foldr $c($1, $2), (2, 3, 4)), -1, "foldr operator with closure");
+    $unit.testValue((foldr $c($1, $2), (2, 3, 4)), -1, "foldr operator with closure");
 
     # right fold function on list using expression and implicit arguments
-    test_value((foldr $1 - $2, (2, 3, 4)), -1, "foldr operator with expression");
+    $unit.testValue((foldr $1 - $2, (2, 3, 4)), -1, "foldr operator with expression");
 
     my hash $h = ("test" : 1, "two" : 2.0, "three" : "three", "four" : False );
-    test_value(remove $h.two, 2.0, "first remove operator");
+    $unit.testValue(remove $h.two, 2.0, "first remove operator");
 }
 
 sub no_parameter_test(any $p) {
-    test_value($p, NOTHING, "non-existent parameter");
+    $unit.testValue($p, NOTHING, "non-existent parameter");
 }
 
 sub parameter_and_shift_test(int $p) {
-    test_value($p, 1, "parameter before shift");
-    test_value(shift $argv, 2, "shift on second parameter");
+    $unit.testValue($p, 1, "parameter before shift");
+    $unit.testValue(shift $argv, 2, "shift on second parameter");
 }
 
 sub one_parameter_shift_test() {
-    test_value(shift $argv, 1, "one parameter shift");
+    $unit.testValue(shift $argv, 1, "one parameter shift");
 }
 
 sub shift_test() {
     my list $var = (1, 2, 3, 4, "hello");
     foreach my any $v in ($var)
-	test_value($v, shift $argv, ("shift " + string($v) + " parameter"));
+	$unit.testValue($v, shift $argv, ("shift " + string($v) + " parameter"));
 }
 
 sub parameter_tests() {
@@ -572,7 +554,7 @@ sub parameter_tests() {
 
 bool sub short_circuit_test(string $op) {
     print("ERROR: %n logic short-circuiting is not working!\n", $op);
-    $errors++;
+    $unit.errorInc();
     return False;
 }
 
@@ -599,25 +581,25 @@ sub logic_tests() {
 	logic_message("and");
     if ($b || 1)
 	logic_message("or");
-    test_value($b ? 0 : 1, 1, "first question-colon");
-    test_value($a ? 1 : 0, 1, "second question-colon");
+    $unit.testValue($b ? 0 : 1, 1, "first question-colon");
+    $unit.testValue($a ? 1 : 0, 1, "second question-colon");
     $a = 1;
     $b = "1";
-    test_value($a == $b, True, "comparison with type conversion");
-    test_value($a === $b, False, "absolute comparison");
+    $unit.testValue($a == $b, True, "comparison with type conversion");
+    $unit.testValue($a === $b, False, "absolute comparison");
     $a = 1, 2, 3, 4;
     $b = 1, 2, 3, 4;
-    test_value($a == $b, True, "list comparison");
+    $unit.testValue($a == $b, True, "list comparison");
     delete $b[3];
-    test_value($a == $b, False, "list comparison after delete");
+    $unit.testValue($a == $b, False, "list comparison after delete");
     $a[3] = ("gee" : 1, "whillakers" : 2, "list" : ( 1, 2, "three" ));
     $b[3] = $a[3];
-    test_value($a == $b, True, "complex list comparison");
-    test_value($a[3] == $b[3], True, "hash comparison");
-    test_value($a[3] != $b[3], False, "negative hash unequal comparison");
+    $unit.testValue($a == $b, True, "complex list comparison");
+    $unit.testValue($a[3] == $b[3], True, "hash comparison");
+    $unit.testValue($a[3] != $b[3], False, "negative hash unequal comparison");
     $a[3].chello = "hi";
-    test_value($a[3] == $b[3], False, "negative hash comparison");
-    test_value($a[3] != $b[3], True, "hash unequal comparison");
+    $unit.testValue($a[3] == $b[3], False, "negative hash comparison");
+    $unit.testValue($a[3] != $b[3], True, "hash unequal comparison");
 }
 
 sub printf_tests() {
@@ -698,60 +680,60 @@ sub statement_tests() {
     my int $a = 0;
     while ($a < 3)
 	$a++;
-    test_value($a, 3, "while");
+    $unit.testValue($a, 3, "while");
     # do while test
     $a = 0;
     do {
 	$a++;
     } while ($a < 3);
-    test_value($a, 3, "do while");
+    $unit.testValue($a, 3, "do while");
     # for test
     my int $b = 0;
     for (my int $i = 0; $i < 3; $i++)
 	$b++;
-    test_value($a, 3, "for");
-    test_value($b, 3, "for exec");    
+    $unit.testValue($a, 3, "for");
+    $unit.testValue($b, 3, "for exec");    
     # foreach tests
     $b = 0;
     my int $v;
     foreach $v in (1, 2, 3)
 	$b++;
-    test_value($v, 3, "foreach");
-    test_value($b, 3, "foreach exec");
+    $unit.testValue($v, 3, "foreach");
+    $unit.testValue($b, 3, "foreach exec");
 
     my any $list = my list $x;
-    test_value($x, NOTHING, "unassigned typed variable");
+    $unit.testValue($x, NOTHING, "unassigned typed variable");
     foreach my string $y in (\$list) $y = "test";
-    test_value($list, NOTHING, "first foreach reference");
+    $unit.testValue($list, NOTHING, "first foreach reference");
     
     $list = (1, 2, 3);
     foreach my any $y in (\$list) $y = "test";
-    test_value($list, ("test", "test", "test"), "second foreach reference");
+    $unit.testValue($list, ("test", "test", "test"), "second foreach reference");
     
     $list = 1;
     foreach my any $y in (\$list) $y = "test";
-    test_value($list, "test", "third foreach reference");
+    $unit.testValue($list, "test", "third foreach reference");
 
     # switch tests
-    test_value(switch_test(1), "case 1", "first switch");
-    test_value(switch_test(2), "default", "second switch");
-    test_value(switch_test(3), "default", "third switch");
-    test_value(switch_test(0), "case 1", "fourth switch");
-    test_value(switch_test("hello"), "case 1", "fifth switch");
-    test_value(switch_test("testing"), "default", "sixth switch");
+    $unit.testValue(switch_test(1), "case 1", "first switch");
+    $unit.testValue(switch_test(2), "default", "second switch");
+    $unit.testValue(switch_test(3), "default", "third switch");
+    $unit.testValue(switch_test(0), "case 1", "fourth switch");
+    $unit.testValue(switch_test("hello"), "case 1", "fifth switch");
+    $unit.testValue(switch_test("testing"), "default", "sixth switch");
     # switch with operators
-    test_value(switch_with_relation_test(-2), "first switch", "first operator switch");
-    test_value(switch_with_relation_test(2), "second switch", "second operator switch");
-    test_value(switch_with_relation_test(-1.0), "third switch", "third operator switch");
-    test_value(switch_with_relation_test(1.0), "fourth switch", "fourth operator switch");
-    test_value(switch_with_relation_test(0), "fifth switch", "fifth operator switch");
+    $unit.testValue(switch_with_relation_test(-2), "first switch", "first operator switch");
+    $unit.testValue(switch_with_relation_test(2), "second switch", "second operator switch");
+    $unit.testValue(switch_with_relation_test(-1.0), "third switch", "third operator switch");
+    $unit.testValue(switch_with_relation_test(1.0), "fourth switch", "fourth operator switch");
+    $unit.testValue(switch_with_relation_test(0), "fifth switch", "fifth operator switch");
     # regex switch
-    test_value(regex_switch_test("abc"), "case 1", "first regex switch");
-    test_value(regex_switch_test(), "case 3", "second regex switch");
-    test_value(regex_switch_test("BOOM"), "case 3", "third regex switch");
-    test_value(regex_switch_test("dinosaur"), "case 2", "fourth regex switch");
-    test_value(regex_switch_test("barney"), "case 1", "fifth regex switch");
-    test_value(regex_switch_test("canada"), "default", "sixth regex switch");
+    $unit.testValue(regex_switch_test("abc"), "case 1", "first regex switch");
+    $unit.testValue(regex_switch_test(), "case 3", "second regex switch");
+    $unit.testValue(regex_switch_test("BOOM"), "case 3", "third regex switch");
+    $unit.testValue(regex_switch_test("dinosaur"), "case 2", "fourth regex switch");
+    $unit.testValue(regex_switch_test("barney"), "case 1", "fifth regex switch");
+    $unit.testValue(regex_switch_test("canada"), "default", "sixth regex switch");
 
     # on_exit tests
     try {
@@ -792,11 +774,11 @@ sub statement_tests() {
     }
     catch() {
     }
-    test_value($a, 2, "first on_exit");
-    test_value($b, 5, "second on_exit");
-    test_value($v, 99, "third on_exit");
-    test_value($err, True, "on_error");
-    test_value($success, False, "on_success");
+    $unit.testValue($a, 2, "first on_exit");
+    $unit.testValue($b, 5, "second on_exit");
+    $unit.testValue($v, 99, "third on_exit");
+    $unit.testValue($err, True, "on_error");
+    $unit.testValue($success, False, "on_success");
 }
 
 int sub fibonacci(int $num) {
@@ -807,11 +789,11 @@ int sub fibonacci(int $num) {
 
 # recursive function test
 sub recursive_function_test() {
-    test_value(fibonacci(10), 3628800, "recursive function");
+    $unit.testValue(fibonacci(10), 3628800, "recursive function");
 }
 
 sub backquote_tests() {
-    test_value(`echo -n 1`, "1", "backquote");
+    $unit.testValue(`echo -n 1`, "1", "backquote");
 }
 
 string sub sd(date $d) {
@@ -828,15 +810,15 @@ sub test_date(date $d, int $y, int $w, int $day, int $n, reference $i) {
     else
 	$d1 = $d;
 
-    test_value($d1,                              date(int($d)),    "date conversion " + $i);
-    test_value(getISOWeekString($d),             $str,             "getISOWeekString() " + $i);
-    test_value(getISOWeekHash($d),               $h,               "getISOWeekHash() " + $i);
-    test_value(getISODayOfWeek($d),              $day,             "getDayOfWeek() " + $i);
-    test_value(getDayNumber($d),                 $n,               "getDayNumber() " + $i);
-    test_value(getDateFromISOWeek($y, $w, $day), get_midnight($d), "getDateFromISOWeek() " + $i);
+    $unit.testValue($d1,                              date(int($d)),    "date conversion " + $i);
+    $unit.testValue(getISOWeekString($d),             $str,             "getISOWeekString() " + $i);
+    $unit.testValue(getISOWeekHash($d),               $h,               "getISOWeekHash() " + $i);
+    $unit.testValue(getISODayOfWeek($d),              $day,             "getDayOfWeek() " + $i);
+    $unit.testValue(getDayNumber($d),                 $n,               "getDayNumber() " + $i);
+    $unit.testValue(getDateFromISOWeek($y, $w, $day), get_midnight($d), "getDateFromISOWeek() " + $i);
     # not all architectures support the timegm() system call
     #if ($d >= 1970-01-01 && $d < 2038-01-19)
-	#test_value(timegm($d), int($d), "qore epoch conversion " + $i);
+	#$unit.testValue(timegm($d), int($d), "qore epoch conversion " + $i);
     $i++;
 }
 
@@ -846,74 +828,74 @@ sub date_time_tests() {
     my date $date  = 2004-02-01T12:30:00;
     # qore-specific date/time specification format ('-' instead of 'T' - more readable but non-standard)
     my date $ndate = 2004-03-02-12:30:00;
-    test_value(format_date("YYYY-MM-DD HH:mm:SS", $date), "2004-02-01 12:30:00", "format_date()");
-    test_value($date - 5Y,                1999-02-01T12:30:00, "first date year subtraction");
-    test_value($date - 5M,                2003-09-01T12:30:00, "first date month subtraction");
-    test_value($date - 10D,               2004-01-22T12:30:00, "first date day subtraction");
-    test_value($date - 2h,                2004-02-01T10:30:00, "first date hour subtraction");
-    test_value($date - 25m,               2004-02-01T12:05:00, "first date minute subtraction");
-    test_value($date - 11s,               2004-02-01T12:29:49, "first date second subtraction");
-    test_value($date - 251ms,             2004-02-01T12:29:59.749, "first date millisecond subtraction");
+    $unit.testValue(format_date("YYYY-MM-DD HH:mm:SS", $date), "2004-02-01 12:30:00", "format_date()");
+    $unit.testValue($date - 5Y,                1999-02-01T12:30:00, "first date year subtraction");
+    $unit.testValue($date - 5M,                2003-09-01T12:30:00, "first date month subtraction");
+    $unit.testValue($date - 10D,               2004-01-22T12:30:00, "first date day subtraction");
+    $unit.testValue($date - 2h,                2004-02-01T10:30:00, "first date hour subtraction");
+    $unit.testValue($date - 25m,               2004-02-01T12:05:00, "first date minute subtraction");
+    $unit.testValue($date - 11s,               2004-02-01T12:29:49, "first date second subtraction");
+    $unit.testValue($date - 251ms,             2004-02-01T12:29:59.749, "first date millisecond subtraction");
 
-    test_value($date + 2Y,                2006-02-01T12:30:00, "first date year addition");
-    test_value($date + 5M,                2004-07-01T12:30:00, "first date month addition");
-    test_value($date + 10D,               2004-02-11T12:30:00, "first date day addition");
-    test_value($date + 2h,                2004-02-01T14:30:00, "first date hour addition");
-    test_value($date + 25m,               2004-02-01T12:55:00, "first date minute addition");
-    test_value($date + 11s,               2004-02-01T12:30:11, "first date second addition");
-    test_value($date + 251ms,             2004-02-01T12:30:00.251, "first date millisecond addition");
+    $unit.testValue($date + 2Y,                2006-02-01T12:30:00, "first date year addition");
+    $unit.testValue($date + 5M,                2004-07-01T12:30:00, "first date month addition");
+    $unit.testValue($date + 10D,               2004-02-11T12:30:00, "first date day addition");
+    $unit.testValue($date + 2h,                2004-02-01T14:30:00, "first date hour addition");
+    $unit.testValue($date + 25m,               2004-02-01T12:55:00, "first date minute addition");
+    $unit.testValue($date + 11s,               2004-02-01T12:30:11, "first date second addition");
+    $unit.testValue($date + 251ms,             2004-02-01T12:30:00.251, "first date millisecond addition");
 
-    test_value($date - years(5),          1999-02-01-12:30:00, "second date year subtraction");
-    test_value($date - months(5),         2003-09-01-12:30:00, "second date month subtraction");
-    test_value($date - days(10),          2004-01-22-12:30:00, "second date day subtraction");
-    test_value($date - hours(2),          2004-02-01-10:30:00, "second date hour subtraction");
-    test_value($date - minutes(25),       2004-02-01-12:05:00, "second date minute subtraction");
-    test_value($date - seconds(11),       2004-02-01-12:29:49, "second date second subtraction");
-    test_value($date - milliseconds(500), 2004-02-01-12:29:59.5, "second date millisecond subtraction");
+    $unit.testValue($date - years(5),          1999-02-01-12:30:00, "second date year subtraction");
+    $unit.testValue($date - months(5),         2003-09-01-12:30:00, "second date month subtraction");
+    $unit.testValue($date - days(10),          2004-01-22-12:30:00, "second date day subtraction");
+    $unit.testValue($date - hours(2),          2004-02-01-10:30:00, "second date hour subtraction");
+    $unit.testValue($date - minutes(25),       2004-02-01-12:05:00, "second date minute subtraction");
+    $unit.testValue($date - seconds(11),       2004-02-01-12:29:49, "second date second subtraction");
+    $unit.testValue($date - milliseconds(500), 2004-02-01-12:29:59.5, "second date millisecond subtraction");
 
-    test_value($date + years(2),          2006-02-01-12:30:00, "second date year addition");
-    test_value($date + months(5),         2004-07-01-12:30:00, "second date month addition");
-    test_value($date + days(10),          2004-02-11-12:30:00, "second date day addition");
-    test_value($date + hours(2),          2004-02-01-14:30:00, "second date hour addition");
-    test_value($date + minutes(25),       2004-02-01-12:55:00, "second date minute addition");
-    test_value($date + seconds(11),       2004-02-01-12:30:11, "second date second addition");
-    test_value($date + milliseconds(578), 2004-02-01-12:30:00.578, "second date millisecond addition");
+    $unit.testValue($date + years(2),          2006-02-01-12:30:00, "second date year addition");
+    $unit.testValue($date + months(5),         2004-07-01-12:30:00, "second date month addition");
+    $unit.testValue($date + days(10),          2004-02-11-12:30:00, "second date day addition");
+    $unit.testValue($date + hours(2),          2004-02-01-14:30:00, "second date hour addition");
+    $unit.testValue($date + minutes(25),       2004-02-01-12:55:00, "second date minute addition");
+    $unit.testValue($date + seconds(11),       2004-02-01-12:30:11, "second date second addition");
+    $unit.testValue($date + milliseconds(578), 2004-02-01-12:30:00.578, "second date millisecond addition");
 
     # testing ISO-8601 alternate period syntax (which is not very readable... :-( )
     # date periods
-    test_value($date - P0001-00-00T00:00:00, 2003-02-01T12:30:00, "third date year subtraction");
-    test_value($date - P1M,          2004-01-01T12:30:00, "third date month subtraction");
-    test_value($date - P0000-00-01,          2004-01-31T12:30:00, "third date day subtraction");
-    test_value($date + P1Y,          2005-02-01T12:30:00, "third date year addition");
-    test_value($date + P0000-01-00,          2004-03-01T12:30:00, "third date month addition");
-    test_value($date + P0000-00-01,          2004-02-02T12:30:00, "third date day addition");
+    $unit.testValue($date - P0001-00-00T00:00:00, 2003-02-01T12:30:00, "third date year subtraction");
+    $unit.testValue($date - P1M,          2004-01-01T12:30:00, "third date month subtraction");
+    $unit.testValue($date - P0000-00-01,          2004-01-31T12:30:00, "third date day subtraction");
+    $unit.testValue($date + P1Y,          2005-02-01T12:30:00, "third date year addition");
+    $unit.testValue($date + P0000-01-00,          2004-03-01T12:30:00, "third date month addition");
+    $unit.testValue($date + P0000-00-01,          2004-02-02T12:30:00, "third date day addition");
 
     # time periods
-    test_value($date - P0000-00-00T01:00:00, 2004-02-01T11:30:00, "third date hour subtraction");
-    test_value($date - P00:01:00,            2004-02-01T12:29:00, "third date minute subtraction");
-    test_value($date - PT00:00:01,           2004-02-01T12:29:59, "third date second subtraction");
-    test_value($date + P01:00:00,            2004-02-01T13:30:00, "third date hour addition");
-    test_value($date + PT00:01:00,           2004-02-01T12:31:00, "third date minute addition");
-    test_value($date + P00:00:01,            2004-02-01T12:30:01, "third date second addition");
+    $unit.testValue($date - P0000-00-00T01:00:00, 2004-02-01T11:30:00, "third date hour subtraction");
+    $unit.testValue($date - P00:01:00,            2004-02-01T12:29:00, "third date minute subtraction");
+    $unit.testValue($date - PT00:00:01,           2004-02-01T12:29:59, "third date second subtraction");
+    $unit.testValue($date + P01:00:00,            2004-02-01T13:30:00, "third date hour addition");
+    $unit.testValue($date + PT00:01:00,           2004-02-01T12:31:00, "third date minute addition");
+    $unit.testValue($date + P00:00:01,            2004-02-01T12:30:01, "third date second addition");
 
     # arithmetic on dates with ms overflow
-    test_value(2006-01-02T00:00:00.112, 2006-01-01T23:59:59.800 + 312ms, "third millisecond addition");
-    test_value(2006-01-01T23:59:59.800, 2006-01-02T00:00:00.112 - 312ms, "third millisecond subtraction");
+    $unit.testValue(2006-01-02T00:00:00.112, 2006-01-01T23:59:59.800 + 312ms, "third millisecond addition");
+    $unit.testValue(2006-01-01T23:59:59.800, 2006-01-02T00:00:00.112 - 312ms, "third millisecond subtraction");
 
-    test_value($date,        localtime(mktime($date)), "localtime() and mktime()");
-    test_value($date - PT1H, 2004-02-01T11:30:00, "fourth date hour subtraction");
-    test_value($date + 30D,  $ndate,                   "fourth date day addition");
-    test_value($ndate - 30D, $date,                    "fourth date day subtraction");
-    test_value($date + 23M,  2006-01-01T12:30:00,      "fourth date month addition");
-    test_value($date - 4M,   2003-10-01T12:30:00,      "fourth date month subtraction");
-    test_value($date,        date("20040201123000"),   "date function");
+    $unit.testValue($date,        localtime(mktime($date)), "localtime() and mktime()");
+    $unit.testValue($date - PT1H, 2004-02-01T11:30:00, "fourth date hour subtraction");
+    $unit.testValue($date + 30D,  $ndate,                   "fourth date day addition");
+    $unit.testValue($ndate - 30D, $date,                    "fourth date day subtraction");
+    $unit.testValue($date + 23M,  2006-01-01T12:30:00,      "fourth date month addition");
+    $unit.testValue($date - 4M,   2003-10-01T12:30:00,      "fourth date month subtraction");
+    $unit.testValue($date,        date("20040201123000"),   "date function");
 
-    test_value(2001-01-01,   date("2001-01", "YYYY-MM-DD"), "first date mask function");
-    test_value(2001-01-01,   date("2001 Jan xx", "YYYY Mon DD"), "second date mask function");
-    test_value(2001-01-01T13:01,   date("2001 JAN 01 13:01", "YYYY MON DD HH:mm"), "second date mask function");
+    $unit.testValue(2001-01-01,   date("2001-01", "YYYY-MM-DD"), "first date mask function");
+    $unit.testValue(2001-01-01,   date("2001 Jan xx", "YYYY Mon DD"), "second date mask function");
+    $unit.testValue(2001-01-01T13:01,   date("2001 JAN 01 13:01", "YYYY MON DD HH:mm"), "second date mask function");
 
     # times without a date are assumed to be on Jan 1, 1970
-    test_value(11:25:27, 1970-01-01T11:25:27.000, "direct hour");
+    $unit.testValue(11:25:27, 1970-01-01T11:25:27.000, "direct hour");
 
     # test date conversion/calculation functions against known values
     my int $i = 1;
@@ -968,325 +950,325 @@ sub date_time_tests() {
     test_date(9999-12-31,              9999, 52, 5, 365, \$i);
     test_date(9999-12-31T23:59:59.999, 9999, 52, 5, 365, \$i);
 
-    test_value(date("2012-03-02", "YYYY-MM-DD"), 2012-03-02, "date() format parsing test");
+    $unit.testValue(date("2012-03-02", "YYYY-MM-DD"), 2012-03-02, "date() format parsing test");
 
     # absolute date difference tests
-    test_value(2006-01-02T11:34:28.344 - 2006-01-01,              35h + 34m + 28s +344ms,       "date difference 1");
+    $unit.testValue(2006-01-02T11:34:28.344 - 2006-01-01,              35h + 34m + 28s +344ms,       "date difference 1");
 %ifndef Windows
     # this test fails on Windows due to different DST application for dates outside the UNIX epoch
-    test_value(2099-04-21T19:20:02.106 - 1804-03-04T20:45:19.956, 2587078h + 34m + 42s + 150ms, "date difference 2");
+    $unit.testValue(2099-04-21T19:20:02.106 - 1804-03-04T20:45:19.956, 2587078h + 34m + 42s + 150ms, "date difference 2");
 %endif
 
     my SingleValueIterator $svi(2012-01-01);
-    test_value($svi.next(), True, "1st SingleValueIterator::next()");
-    test_value($svi.next(), False, "2nd SingleValueIterator::next()");
-    test_value($svi.next(), True, "3rd SingleValueIterator::next()");
-    test_value($svi.getValue(), 2012-01-01, "SingleValueIterator::getValue()");
-    test_value($svi.valid(), True, "SingleValueIterator::valid()");
+    $unit.testValue($svi.next(), True, "1st SingleValueIterator::next()");
+    $unit.testValue($svi.next(), False, "2nd SingleValueIterator::next()");
+    $unit.testValue($svi.next(), True, "3rd SingleValueIterator::next()");
+    $unit.testValue($svi.getValue(), 2012-01-01, "SingleValueIterator::getValue()");
+    $unit.testValue($svi.valid(), True, "SingleValueIterator::valid()");
     my SingleValueIterator $ni = $svi.copy();
-    test_value($ni.getValue(), 2012-01-01, "SingleValueIterator::getValue() (copy)");
-    test_value($ni.next(), False, "SingleValueIterator::next() (copy)");
-    test_value($ni.valid(), False, "SingleValueIterator::valid() (copy)");
+    $unit.testValue($ni.getValue(), 2012-01-01, "SingleValueIterator::getValue() (copy)");
+    $unit.testValue($ni.next(), False, "SingleValueIterator::next() (copy)");
+    $unit.testValue($ni.valid(), False, "SingleValueIterator::valid() (copy)");
 }
 
 sub binary_tests() {
     my binary $b = binary("this is a test");
-    test_value(get_byte($b, 3), ord("s"), "get_byte()");
-    test_value($b, binary("this is a test"), "binary comparison");
-    test_value($b != binary("this is a test"), False, "binary negative comparison");
+    $unit.testValue(get_byte($b, 3), ord("s"), "get_byte()");
+    $unit.testValue($b, binary("this is a test"), "binary comparison");
+    $unit.testValue($b != binary("this is a test"), False, "binary negative comparison");
 }
 
 sub string_tests() {
     my string $str = "Hi there, you there, pal";
     my string $big = "GEE WHIZ";
-    test_value(strlen($str), 24, "strlen()");
-    test_value($str.strlen(), 24, "<string>::strlen()");
-    test_value($str.size(), 24, "<string::size()");
-    test_value(toupper($str), "HI THERE, YOU THERE, PAL", "toupper()");
-    test_value($str.upr(), "HI THERE, YOU THERE, PAL", "<string>::upr()");
-    test_value($big.lwr(), "gee whiz", "<string>::lwr()");
-    test_value(reverse($big), "ZIHW EEG", "reverse()");
+    $unit.testValue(strlen($str), 24, "strlen()");
+    $unit.testValue($str.strlen(), 24, "<string>::strlen()");
+    $unit.testValue($str.size(), 24, "<string::size()");
+    $unit.testValue(toupper($str), "HI THERE, YOU THERE, PAL", "toupper()");
+    $unit.testValue($str.upr(), "HI THERE, YOU THERE, PAL", "<string>::upr()");
+    $unit.testValue($big.lwr(), "gee whiz", "<string>::lwr()");
+    $unit.testValue(reverse($big), "ZIHW EEG", "reverse()");
     # strmul
-    test_value(strmul($big, 2), "GEE WHIZGEE WHIZ", "strmul() basic");
-    test_value(strmul("%v, ", 3, 2), "%v, %v, %v", "strmul() extended");
-    test_value(strmul(123, 2), "123123", "strmul() type conversion");
+    $unit.testValue(strmul($big, 2), "GEE WHIZGEE WHIZ", "strmul() basic");
+    $unit.testValue(strmul("%v, ", 3, 2), "%v, %v, %v", "strmul() extended");
+    $unit.testValue(strmul(123, 2), "123123", "strmul() type conversion");
     
     # set up a string with UTF-8 multi-byte characters
     $str = "Über die Wolken läßt sich die Höhe begrüßen";
-    test_value(strlen($str), 49, "UTF-8 strlen()");
-    test_value($str.strlen(), 49, "UTF-8 <string>::strlen()");
-    test_value(length($str), 43, "UTF-8 length()");
-    test_value($str.length(), 43, "UTF-8 <string>::length()");
-    test_value(substr($str, 30), "Höhe begrüßen", "first UTF-8 substr()");
-    test_value(substr($str, -8), "begrüßen", "second UTF-8 substr()");
-    test_value(substr($str, 0, -39), "Über", "third UTF-8 substr()");
-    test_value(index($str, "läßt"), 16, "first UTF-8 index()");
-    test_value(index($str, "läßt", 1), 16, "second UTF-8 index()");
-    test_value(rindex($str, "ß"), 40, "first UTF-8 rindex()");
-    test_value(rindex($str, "ß", 25), 18, "second UTF-8 rindex()"); 
-    test_value(bindex($str, "läßt"), 17, "first UTF-8 bindex()");
-    test_value(bindex($str, "läßt", 1), 17, "second UTF-8 bindex()");
-    test_value(brindex($str, "ß"), 45, "first UTF-8 brindex()");
-    test_value(brindex($str, "ß", 25), 20, "second UTF-8 brindex()"); 
-    test_value(reverse($str), "neßürgeb ehöH eid hcis tßäl nekloW eid rebÜ", "UTF-8 reverse()");
-    test_value(index($str, "==="), -1, "negative index()");
-    test_value(rindex($str, "==="), -1, "negative rindex()");
-    test_value(bindex($str, "==="), -1, "negative bindex()");
+    $unit.testValue(strlen($str), 49, "UTF-8 strlen()");
+    $unit.testValue($str.strlen(), 49, "UTF-8 <string>::strlen()");
+    $unit.testValue(length($str), 43, "UTF-8 length()");
+    $unit.testValue($str.length(), 43, "UTF-8 <string>::length()");
+    $unit.testValue(substr($str, 30), "Höhe begrüßen", "first UTF-8 substr()");
+    $unit.testValue(substr($str, -8), "begrüßen", "second UTF-8 substr()");
+    $unit.testValue(substr($str, 0, -39), "Über", "third UTF-8 substr()");
+    $unit.testValue(index($str, "läßt"), 16, "first UTF-8 index()");
+    $unit.testValue(index($str, "läßt", 1), 16, "second UTF-8 index()");
+    $unit.testValue(rindex($str, "ß"), 40, "first UTF-8 rindex()");
+    $unit.testValue(rindex($str, "ß", 25), 18, "second UTF-8 rindex()"); 
+    $unit.testValue(bindex($str, "läßt"), 17, "first UTF-8 bindex()");
+    $unit.testValue(bindex($str, "läßt", 1), 17, "second UTF-8 bindex()");
+    $unit.testValue(brindex($str, "ß"), 45, "first UTF-8 brindex()");
+    $unit.testValue(brindex($str, "ß", 25), 20, "second UTF-8 brindex()"); 
+    $unit.testValue(reverse($str), "neßürgeb ehöH eid hcis tßäl nekloW eid rebÜ", "UTF-8 reverse()");
+    $unit.testValue(index($str, "==="), -1, "negative index()");
+    $unit.testValue(rindex($str, "==="), -1, "negative rindex()");
+    $unit.testValue(bindex($str, "==="), -1, "negative bindex()");
 
-    test_value($str[31], "ö", "first UTF-8 string index dereference");
-    test_value($str[39], "ü", "second UTF-8 string index dereference");
+    $unit.testValue($str[31], "ö", "first UTF-8 string index dereference");
+    $unit.testValue($str[39], "ü", "second UTF-8 string index dereference");
 
     # save string
     my string $ostr = $str;
     # convert the string to single-byte ISO-8859-1 characters and retest
     $str = convert_encoding($str, "ISO-8859-1");
-    test_value($str != $ostr, False, "string != operator with same text with different encodings");
-    test_value(strlen($str), 43, "ISO-8859-1 strlen()");
-    test_value($str.strlen(), 43, "ISO-8859-1 <string>::strlen()");
-    test_value(length($str), 43, "ISO-8859-1 length()");
-    test_value($str.length(), 43, "ISO-8859-1 <string>::length()");
-    test_value(substr($str, 30), convert_encoding("Höhe begrüßen", "ISO-8859-1"), "first ISO-8859-1 substr()");
-    test_value(substr($str, -8), convert_encoding("begrüßen", "ISO-8859-1"), "second ISO-8859-1 substr()");
-    test_value(substr($str, 0, -39), convert_encoding("Über", "ISO-8859-1"), "third ISO-8859-1 substr()");
-    test_value(index($str, convert_encoding("läßt", "ISO-8859-1")), 16, "first ISO-8859-1 index()");
-    test_value(index($str, convert_encoding("läßt", "ISO-8859-1"), 1), 16, "second ISO-8859-1 index()");
-    test_value(rindex($str, convert_encoding("ß", "ISO-8859-1")), 40, "first ISO-8859-1 rindex()");
-    test_value(rindex($str, convert_encoding("ß", "ISO-8859-1"), 25), 18, "second ISO-8859-1 rindex()"); 
-    test_value(ord($str, 1), 98, "ord()");
+    $unit.testValue($str != $ostr, False, "string != operator with same text with different encodings");
+    $unit.testValue(strlen($str), 43, "ISO-8859-1 strlen()");
+    $unit.testValue($str.strlen(), 43, "ISO-8859-1 <string>::strlen()");
+    $unit.testValue(length($str), 43, "ISO-8859-1 length()");
+    $unit.testValue($str.length(), 43, "ISO-8859-1 <string>::length()");
+    $unit.testValue(substr($str, 30), convert_encoding("Höhe begrüßen", "ISO-8859-1"), "first ISO-8859-1 substr()");
+    $unit.testValue(substr($str, -8), convert_encoding("begrüßen", "ISO-8859-1"), "second ISO-8859-1 substr()");
+    $unit.testValue(substr($str, 0, -39), convert_encoding("Über", "ISO-8859-1"), "third ISO-8859-1 substr()");
+    $unit.testValue(index($str, convert_encoding("läßt", "ISO-8859-1")), 16, "first ISO-8859-1 index()");
+    $unit.testValue(index($str, convert_encoding("läßt", "ISO-8859-1"), 1), 16, "second ISO-8859-1 index()");
+    $unit.testValue(rindex($str, convert_encoding("ß", "ISO-8859-1")), 40, "first ISO-8859-1 rindex()");
+    $unit.testValue(rindex($str, convert_encoding("ß", "ISO-8859-1"), 25), 18, "second ISO-8859-1 rindex()"); 
+    $unit.testValue(ord($str, 1), 98, "ord()");
 
-    test_value(chr(104), "h", "chr()");
+    $unit.testValue(chr(104), "h", "chr()");
 
     $str = "gee this is a long string";
     my list $a = split(" ", $str);
-    test_value($a[2], "is", "first string split()");
-    test_value($a[5], "string", "second string split()");
+    $unit.testValue($a[2], "is", "first string split()");
+    $unit.testValue($a[5], "string", "second string split()");
 
     $a = split(binary(" "), binary($str));
-    test_value($a[2], binary("is"), "first binary split()");
-    test_value($a[5], binary("string"), "second binary split()");
+    $unit.testValue($a[2], binary("is"), "first binary split()");
+    $unit.testValue($a[5], binary("string"), "second binary split()");
 
     $str = "äüößÄÖÜ";
     # test length() with UTF-8 multi-byte characters
-    test_value(length($str), 7, "length() with UTF-8 multi-byte characters");
-    test_value(strlen($str), 14, "strlen() with UTF-8 multi-byte characters");
+    $unit.testValue(length($str), 7, "length() with UTF-8 multi-byte characters");
+    $unit.testValue(strlen($str), 14, "strlen() with UTF-8 multi-byte characters");
     # test charset encoding conversions
     my string $nstr = convert_encoding($str, "ISO-8859-1");
-    test_value(length($nstr), 7, "length() with ISO-8859-1 special characters");
-    test_value(strlen($nstr), 7, "strlen() with ISO-8859-1 special characters");
-    test_value($str, convert_encoding($nstr, "UTF-8"), "convert_encoding()");
+    $unit.testValue(length($nstr), 7, "length() with ISO-8859-1 special characters");
+    $unit.testValue(strlen($nstr), 7, "strlen() with ISO-8859-1 special characters");
+    $unit.testValue($str, convert_encoding($nstr, "UTF-8"), "convert_encoding()");
     # assign binary object
     my binary $x = <0abf83e8ca72d32c>;
     my string $b64 = makeBase64String($x);
-    test_value($x, parseBase64String($b64), "first base64");
-    test_value("aGVsbG8=", makeBase64String("hello"), "makeBase64String()");
+    $unit.testValue($x, parseBase64String($b64), "first base64");
+    $unit.testValue("aGVsbG8=", makeBase64String("hello"), "makeBase64String()");
     my string $hex = makeHexString($x);
-    test_value($x, parseHexString($hex), "first hex");
+    $unit.testValue($x, parseHexString($hex), "first hex");
 
     # UTF-8 string splice tests
     $str = "äbcdéf";
     splice $str, 5;
-    test_value($str, "äbcdé", "first UTF-8 string splice");
+    $unit.testValue($str, "äbcdé", "first UTF-8 string splice");
     splice $str, 3, 1;
-    test_value($str, "äbcé", "second UTF-8 string splice");
+    $unit.testValue($str, "äbcé", "second UTF-8 string splice");
     splice $str, 1, 2, "GHI";
-    test_value($str, "äGHIé", "third UTF-8 string splice");
+    $unit.testValue($str, "äGHIé", "third UTF-8 string splice");
     splice $str, 0, 4, "jkl";
-    test_value($str, "jklé", "fourth UTF-8 string splice");
+    $unit.testValue($str, "jklé", "fourth UTF-8 string splice");
     splice $str, 0, 1;
-    test_value($str, "klé", "fifth UTF-8 string splice");
+    $unit.testValue($str, "klé", "fifth UTF-8 string splice");
     splice $str, 5, 2, "MNO";
-    test_value($str, "kléMNO", "sixth UTF-8 string splice");
+    $unit.testValue($str, "kléMNO", "sixth UTF-8 string splice");
     splice $str, -4, 2, "p";
-    test_value($str, "klpNO", "seventh UTF-8 string splice");
+    $unit.testValue($str, "klpNO", "seventh UTF-8 string splice");
     splice $str, -4, -2, "QRS";
-    test_value($str, "kQRSNO", "eighth UTF-8 string splice");
+    $unit.testValue($str, "kQRSNO", "eighth UTF-8 string splice");
 
     # UTF-8 string extract tests
     $str = "äbcdéf";
-    test_value((extract $str, 4), "éf", "first UTF-8 string extract");
-    test_value((extract $str, 1, 2), "bc", "second UTF-8 string extract");
-    test_value((extract $str, 1, 1, "bcdef"), "d", "third UTF-8 string extract");
-    test_value($str, "äbcdef", "final UTF-8 string extract");
+    $unit.testValue((extract $str, 4), "éf", "first UTF-8 string extract");
+    $unit.testValue((extract $str, 1, 2), "bc", "second UTF-8 string extract");
+    $unit.testValue((extract $str, 1, 1, "bcdef"), "d", "third UTF-8 string extract");
+    $unit.testValue($str, "äbcdef", "final UTF-8 string extract");
 
     # single-byte string splice tests
     $str = convert_encoding("äbcdéf", "ISO-8859-1");
     splice $str, 5;
-    test_value($str == "äbcdé", True, "first ISO-8859-1 string splice");
+    $unit.testValue($str == "äbcdé", True, "first ISO-8859-1 string splice");
     splice $str, 3, 1;
-    test_value($str == "äbcé", True, "second ISO-8859-1 string splice");
+    $unit.testValue($str == "äbcé", True, "second ISO-8859-1 string splice");
     splice $str, 1, 2, "GHI";
-    test_value($str == "äGHIé", True, "third ISO-8859-1 string splice");
+    $unit.testValue($str == "äGHIé", True, "third ISO-8859-1 string splice");
     splice $str, 0, 4, "jkl";
-    test_value($str == "jklé", True, "fouth ISO-8859-1 string splice");
+    $unit.testValue($str == "jklé", True, "fouth ISO-8859-1 string splice");
     splice $str, 0, 1;
-    test_value($str == "klé", True, "fifth ISO-8859-1 string splice");
+    $unit.testValue($str == "klé", True, "fifth ISO-8859-1 string splice");
     splice $str, 5, 2, "MNO";
-    test_value($str == "kléMNO", True, "sixth ISO-8859-1 string splice");
+    $unit.testValue($str == "kléMNO", True, "sixth ISO-8859-1 string splice");
     splice $str, -4, 2, "p";
-    test_value($str == "klpNO", True, "seventh ISO-8859-1 string splice");
+    $unit.testValue($str == "klpNO", True, "seventh ISO-8859-1 string splice");
     splice $str, -4, -2, "QRS";
-    test_value($str == "kQRSNO", True, "eighth ISO-8859-1 string splice");
+    $unit.testValue($str == "kQRSNO", True, "eighth ISO-8859-1 string splice");
 
     # UTF-8 string extract tests
     $str = convert_encoding("äbcdéf", "ISO-8859-1");
     my string $val = extract $str, 4;
-    test_value($val == "éf", True, "first UTF-8 string extract");
+    $unit.testValue($val == "éf", True, "first UTF-8 string extract");
     $val = extract $str, 1, 2;
-    test_value($val == "bc", True, "second UTF-8 string extract");
+    $unit.testValue($val == "bc", True, "second UTF-8 string extract");
     $val = extract $str, 1, 1, "bcdef";
-    test_value($val == "d", True, "third UTF-8 string extract");
-    test_value($str == "äbcdef", True, "final UTF-8 string extract");
+    $unit.testValue($val == "d", True, "third UTF-8 string extract");
+    $unit.testValue($str == "äbcdef", True, "final UTF-8 string extract");
 
     # join tests
     $str = join(":", "login","passwd",1,"gid","gcos","home","shell");
-    test_value($str, "login:passwd:1:gid:gcos:home:shell", "first join");
+    $unit.testValue($str, "login:passwd:1:gid:gcos:home:shell", "first join");
     my list $l = ("login","passwd","uid","gid","gcos","home","shell");
     $str = join(":", $l);
-    test_value($str, "login:passwd:uid:gid:gcos:home:shell", "second join");
+    $unit.testValue($str, "login:passwd:uid:gid:gcos:home:shell", "second join");
 
     # transliteration tests
     $str = "Hello There";
-    test_value($str =~ tr/def/123/, "H2llo Th2r2", "first transliteration");
-    test_value($str =~ tr/a-z/0-9/, "H2999 T7292", "first range transliteration");
+    $unit.testValue($str =~ tr/def/123/, "H2llo Th2r2", "first transliteration");
+    $unit.testValue($str =~ tr/a-z/0-9/, "H2999 T7292", "first range transliteration");
     $str = "Hello There";
-    test_value($str =~ tr/a-z/A-Z/, "HELLO THERE", "second range transliteration");
-    test_value($str =~ tr/A-Z/a-z/, "hello there", "third range transliteration");
+    $unit.testValue($str =~ tr/a-z/A-Z/, "HELLO THERE", "second range transliteration");
+    $unit.testValue($str =~ tr/A-Z/a-z/, "hello there", "third range transliteration");
 
     # regex subpattern extraction operator tests
-    test_value("xmlns:wsdl" =~ x/(\w+):(\w+)/, ("xmlns", "wsdl"), "regex subpattern extraction");
-    test_value("xmlns-wsdl" =~ x/(\w+):(\w+)/, NOTHING, "negative regex subpattern extraction");
-    test_value(regex_extract("xmlns:wsdl", "(\\w+):(\\w+)"), ("xmlns", "wsdl"), "regex_extract()");
+    $unit.testValue("xmlns:wsdl" =~ x/(\w+):(\w+)/, ("xmlns", "wsdl"), "regex subpattern extraction");
+    $unit.testValue("xmlns-wsdl" =~ x/(\w+):(\w+)/, NOTHING, "negative regex subpattern extraction");
+    $unit.testValue(regex_extract("xmlns:wsdl", "(\\w+):(\\w+)"), ("xmlns", "wsdl"), "regex_extract()");
 
     # regex operator tests
-    test_value("hello" =~ /^hel*/, True, "regular expression positive match");
-    test_value("hello" =~ m/123*/, False, "regular expression negative match");
-    test_value("hello" =~ m/^HEL*/i, True, "regular expression case-insensitive positive match");
-    test_value("hello" =~ /^HEL*/, False, "regular expression case-insensitive negative match");
-    test_value("test\nx" =~ /test.x/s, True, "regular expression newline positive match");
-    test_value("test\nx" =~ /test.x/, False, "regular expression newline negative match");
-    test_value("hello" =~ /^  hel* #comment/x, True, "extended regular expression positive match");
-    test_value("hello" =~ /^  hel* #comment/, False, "extended regular expression negative match");
-    test_value("test\nx123" =~ /^x123/m, True, "multiline regular expression positive match");
-    test_value("test\nx123" =~ /^x123/, False, "multiline regular expression negative match");
+    $unit.testValue("hello" =~ /^hel*/, True, "regular expression positive match");
+    $unit.testValue("hello" =~ m/123*/, False, "regular expression negative match");
+    $unit.testValue("hello" =~ m/^HEL*/i, True, "regular expression case-insensitive positive match");
+    $unit.testValue("hello" =~ /^HEL*/, False, "regular expression case-insensitive negative match");
+    $unit.testValue("test\nx" =~ /test.x/s, True, "regular expression newline positive match");
+    $unit.testValue("test\nx" =~ /test.x/, False, "regular expression newline negative match");
+    $unit.testValue("hello" =~ /^  hel* #comment/x, True, "extended regular expression positive match");
+    $unit.testValue("hello" =~ /^  hel* #comment/, False, "extended regular expression negative match");
+    $unit.testValue("test\nx123" =~ /^x123/m, True, "multiline regular expression positive match");
+    $unit.testValue("test\nx123" =~ /^x123/, False, "multiline regular expression negative match");
     # NOTE that escaping UTF-8 characters (\ä) doesn't work on PPC for some reason
-    test_value("testäöüß" =~ /äöüß/, True, "regular expression UTF-8 match");
-    test_value("testäöüß" =~ /aouB/, False, "regular expression UTF-8 negative match");
-    test_value("hello" !~ /hel*/, False, "negative regular expression negative match");
-    test_value("hello" !~ /123*/, True, "negative regular expression positive match");
+    $unit.testValue("testäöüß" =~ /äöüß/, True, "regular expression UTF-8 match");
+    $unit.testValue("testäöüß" =~ /aouB/, False, "regular expression UTF-8 negative match");
+    $unit.testValue("hello" !~ /hel*/, False, "negative regular expression negative match");
+    $unit.testValue("hello" !~ /123*/, True, "negative regular expression positive match");
 
     # regex substitution operator tests
     $l = ( "hello bar hi bar", "bar hello bar hi bar", "hello bar hi" );
-    test_value($l[0] =~ s/bar/foo/, "hello foo hi bar", "first non-global regular expression substitution");
-    test_value($l[1] =~ s/bar/foo/, "foo hello bar hi bar", "second non-global regular expression substitution");
-    test_value($l[2] =~ s/BAR/foo/i, "hello foo hi", "case-insensitive non-global regular expression substitution");
+    $unit.testValue($l[0] =~ s/bar/foo/, "hello foo hi bar", "first non-global regular expression substitution");
+    $unit.testValue($l[1] =~ s/bar/foo/, "foo hello bar hi bar", "second non-global regular expression substitution");
+    $unit.testValue($l[2] =~ s/BAR/foo/i, "hello foo hi", "case-insensitive non-global regular expression substitution");
     $l = ( "hello bar hi bar", "bar hello bar hi bar", "hello bar hi" );
-    test_value($l[0] =~ s/bar/foo/g, "hello foo hi foo", "first global regular expression substitution");
-    test_value($l[1] =~ s/bar/foo/g, "foo hello foo hi foo", "second global regular expression substitution");
-    test_value($l[2] =~ s/BAR/foo/ig, "hello foo hi", "case-insensitive global regular expression substitution");
+    $unit.testValue($l[0] =~ s/bar/foo/g, "hello foo hi foo", "first global regular expression substitution");
+    $unit.testValue($l[1] =~ s/bar/foo/g, "foo hello foo hi foo", "second global regular expression substitution");
+    $unit.testValue($l[2] =~ s/BAR/foo/ig, "hello foo hi", "case-insensitive global regular expression substitution");
 
     my string $astr= "abc def";
     $astr =~ s/(\w+) +(\w+)/$2, $1/; 
-    test_value($astr, "def, abc", "regular expression subpattern substitution");
+    $unit.testValue($astr, "def, abc", "regular expression subpattern substitution");
 
     # regex() tests
-    test_value(regex("hello", "^hel*"), True, "regex() positive match");
-    test_value(regex("hello", "123*"), False, "regex() negative match");
-    test_value(regex("hello", "^HEL*", RE_Caseless), True, "regex() case-insensitive positive match");
-    test_value(regex("hello", "^HEL*"), False, "regex() case-insensitive negative match");
-    test_value(regex("test\nx", "test.x", RE_DotAll), True, "regex() newline positive match");
-    test_value(regex("test\nx", "test.x/"), False, "regex() newline negative match");
-    test_value(regex("hello", "^  hel* #comment", RE_Extended), True, "regex() extended positive match");
-    test_value(regex("hello", "^  hel* #comment"), False, "regex() extended negative match");
-    test_value(regex("test\nx123", "^x123", RE_MultiLine), True, "regex() multiline positive match");
-    test_value(regex("test\nx123", "^x123/"), False, "regex() multiline negative match");
-    test_value(regex("testäöüß", "\äöüß"), True, "regex() UTF-8 match");
-    test_value(regex("testäöüß", "aouB"), False, "regex() UTF-8 negative match");
+    $unit.testValue(regex("hello", "^hel*"), True, "regex() positive match");
+    $unit.testValue(regex("hello", "123*"), False, "regex() negative match");
+    $unit.testValue(regex("hello", "^HEL*", RE_Caseless), True, "regex() case-insensitive positive match");
+    $unit.testValue(regex("hello", "^HEL*"), False, "regex() case-insensitive negative match");
+    $unit.testValue(regex("test\nx", "test.x", RE_DotAll), True, "regex() newline positive match");
+    $unit.testValue(regex("test\nx", "test.x/"), False, "regex() newline negative match");
+    $unit.testValue(regex("hello", "^  hel* #comment", RE_Extended), True, "regex() extended positive match");
+    $unit.testValue(regex("hello", "^  hel* #comment"), False, "regex() extended negative match");
+    $unit.testValue(regex("test\nx123", "^x123", RE_MultiLine), True, "regex() multiline positive match");
+    $unit.testValue(regex("test\nx123", "^x123/"), False, "regex() multiline negative match");
+    $unit.testValue(regex("testäöüß", "\äöüß"), True, "regex() UTF-8 match");
+    $unit.testValue(regex("testäöüß", "aouB"), False, "regex() UTF-8 negative match");
 
     # regex_subst() tests
     $l = ( "hello bar hi bar", "bar hello bar hi bar", "hello bar hi" );
-    test_value(regex_subst($l[0], "bar", "foo"), "hello foo hi bar", "first non-global regex_subst()");
-    test_value(regex_subst($l[1], "bar", "foo"), "foo hello bar hi bar", "second non-global regex_subst()");
-    test_value(regex_subst($l[2], "BAR", "foo", RE_Caseless), "hello foo hi", "case-insensitive non-global regex_subst()");
+    $unit.testValue(regex_subst($l[0], "bar", "foo"), "hello foo hi bar", "first non-global regex_subst()");
+    $unit.testValue(regex_subst($l[1], "bar", "foo"), "foo hello bar hi bar", "second non-global regex_subst()");
+    $unit.testValue(regex_subst($l[2], "BAR", "foo", RE_Caseless), "hello foo hi", "case-insensitive non-global regex_subst()");
     $l = ( "hello bar hi bar", "bar hello bar hi bar", "hello bar hi" );
-    test_value(regex_subst($l[0], "bar", "foo", RE_Global), "hello foo hi foo", "first global regex_subst()");
-    test_value(regex_subst($l[1], "bar", "foo", RE_Global), "foo hello foo hi foo", "second global regex_subst()");
-    test_value(regex_subst($l[2], "BAR", "foo", RE_Global|RE_Caseless), "hello foo hi", "case-insensitive global regex_subst()");
+    $unit.testValue(regex_subst($l[0], "bar", "foo", RE_Global), "hello foo hi foo", "first global regex_subst()");
+    $unit.testValue(regex_subst($l[1], "bar", "foo", RE_Global), "foo hello foo hi foo", "second global regex_subst()");
+    $unit.testValue(regex_subst($l[2], "BAR", "foo", RE_Global|RE_Caseless), "hello foo hi", "case-insensitive global regex_subst()");
 
     $astr = "abc def";
     # note that the escape characters have to be escaped in the following pattern string
-    test_value(regex_subst($astr, "(\\w+) +(\\w+)", "$2, $1"), "def, abc", "first subpattern regex_subst()");
+    $unit.testValue(regex_subst($astr, "(\\w+) +(\\w+)", "$2, $1"), "def, abc", "first subpattern regex_subst()");
     # here we use single-quotes, so the escape characters do not have to be escaped
-    test_value(regex_subst($astr, '(\w+) +(\w+)', "$2, $1"), "def, abc", "second subpattern regex_subst()");
+    $unit.testValue(regex_subst($astr, '(\w+) +(\w+)', "$2, $1"), "def, abc", "second subpattern regex_subst()");
 
     # chomp tests
     $str = "hello\n";
     chomp $str;
-    test_value($str, "hello", "first string chomp");
+    $unit.testValue($str, "hello", "first string chomp");
     $str += "\r\n";
     chomp $str;
-    test_value($str, "hello", "second string chomp");
+    $unit.testValue($str, "hello", "second string chomp");
     $l = ( 1, "hello\n", 3.0, True, "test\r\n" );
     chomp $l;
-    test_value($l, ( 1, "hello", 3.0, True, "test" ), "list chomp");
+    $unit.testValue($l, ( 1, "hello", 3.0, True, "test" ), "list chomp");
     my hash $h = ( "key1" : "hello\n", "key2" : 2045, "key3": "test\r\n", "key4" : 302.223 );
     chomp $h;
-    test_value($h, ( "key1" : "hello", "key2" : 2045, "key3": "test", "key4" : 302.223 ), "hash chomp");
+    $unit.testValue($h, ( "key1" : "hello", "key2" : 2045, "key3": "test", "key4" : 302.223 ), "hash chomp");
     $str = "hello\n";
     chomp(\$str);
-    test_value($str, "hello", "string reference chomp()");
+    $unit.testValue($str, "hello", "string reference chomp()");
     $str = "  \t\n  hello  \n   \r \t \0 ";
     trim $str;
-    test_value($str, "hello", "trim string operator test");
+    $unit.testValue($str, "hello", "trim string operator test");
     $str = "  \t\n  hello  \n   \r \t \0 ";
     trim(\$str);
-    test_value($str, "hello", "trim string reference test");
+    $unit.testValue($str, "hello", "trim string reference test");
 
     $l = ( 1, "   \r \t hello  \n  \r \v \t", 3.0, True, "    test\r\n  " );
     trim $l;
-    test_value($l, ( 1, "hello", 3.0, True, "test" ), "list trim");
+    $unit.testValue($l, ( 1, "hello", 3.0, True, "test" ), "list trim");
 
     $h = ( "key1" : "    hello\n \r  ", "key2" : 2045, "key3": "     test\r   \n \t\v   ", "key4" : 302.223 );
     trim $h;
-    test_value($h, ( "key1" : "hello", "key2" : 2045, "key3": "test", "key4" : 302.223 ), "hash trim");    
+    $unit.testValue($h, ( "key1" : "hello", "key2" : 2045, "key3": "test", "key4" : 302.223 ), "hash trim");    
 
     # make sure strings containing floating-point numbers between -1.0 and 1.0 exclusive return True when evaluated in a boolean context
-    test_value(True, boolean("0.1"), "first string fp boolean");
-    test_value(True, boolean("-0.1"), "second string fp boolean");
+    $unit.testValue(True, boolean("0.1"), "first string fp boolean");
+    $unit.testValue(True, boolean("-0.1"), "second string fp boolean");
 
     $str = "příliš žluťoučký kůň úpěl ďábelské ódy";
-    test_value($str.unaccent(), "prilis zlutoucky kun upel dabelske ody", "<string>::unaccent()");
+    $unit.testValue($str.unaccent(), "prilis zlutoucky kun upel dabelske ody", "<string>::unaccent()");
     my string $ustr = $str.upr();
-    test_value($ustr, "PŘÍLIŠ ŽLUŤOUČKÝ KŮŇ ÚPĚL ĎÁBELSKÉ ÓDY", "<string>::upr()");
-    test_value($ustr.lwr(), "příliš žluťoučký kůň úpěl ďábelské ódy", "<string>::lwr()");
+    $unit.testValue($ustr, "PŘÍLIŠ ŽLUŤOUČKÝ KŮŇ ÚPĚL ĎÁBELSKÉ ÓDY", "<string>::upr()");
+    $unit.testValue($ustr.lwr(), "příliš žluťoučký kůň úpěl ďábelské ódy", "<string>::lwr()");
 
     # regression tests for floating-point formatting bugs
-    test_value(sprintf("%f", 1.5), "1.500000", "%f float");    
-    test_value(sprintf("%f", 1.5n), "1.500000", "%f number");
-    test_value(sprintf("%g", 1.5), "1.5", "%f float");    
-    test_value(sprintf("%g", 1.5n), "1.5", "%f number");
+    $unit.testValue(sprintf("%f", 1.5), "1.500000", "%f float");    
+    $unit.testValue(sprintf("%f", 1.5n), "1.500000", "%f number");
+    $unit.testValue(sprintf("%g", 1.5), "1.5", "%f float");    
+    $unit.testValue(sprintf("%g", 1.5n), "1.5", "%f number");
 }
 
 sub pwd_tests() {
     # getpwuid(0).pw_name may not always be "root"
     # skip the test on windows
     if (Option::HAVE_UNIX_USERMGT) {
-        test_value(getpwuid(0).pw_uid, 0, "getpwuid()");
+        $unit.testValue(getpwuid(0).pw_uid, 0, "getpwuid()");
         my hash $h;
         # try to get passwd entry for uid 0, ignore exceptions
         try $h = getpwuid2(0); catch () {}
-        test_value($h.pw_uid, 0, "getpwuid2()");
-        test_value(getpwnam("root").pw_uid, 0, "getpwnam()");
+        $unit.testValue($h.pw_uid, 0, "getpwuid2()");
+        $unit.testValue(getpwnam("root").pw_uid, 0, "getpwnam()");
         # try to get passwd entry for root, ignore exceptions
         try $h = getpwnam2("root"); catch () {}
-        test_value($h.pw_uid, 0, "getpwnam2()");
-        test_value(getgrgid(0).gr_gid, 0, "getgrgid()");
+        $unit.testValue($h.pw_uid, 0, "getpwnam2()");
+        $unit.testValue(getgrgid(0).gr_gid, 0, "getgrgid()");
         # try to get group entry for gid 0, ignore exceptions
         try $h = getgrgid2(0); catch () {}
-        test_value($h.gr_gid, 0, "getgrgid2()");
-        test_value(getgrnam($h.gr_name).gr_gid, 0, "getgrnam()");
+        $unit.testValue($h.gr_gid, 0, "getgrgid2()");
+        $unit.testValue(getgrnam($h.gr_name).gr_gid, 0, "getgrnam()");
         # try to get group entry for root, ignore exceptions
         try $h = getgrnam2($h.gr_name); catch () {}
-        test_value($h.gr_gid, 0, "getgrnam2()");
+        $unit.testValue($h.gr_gid, 0, "getgrnam2()");
     }
 }
 
@@ -1301,19 +1283,19 @@ sub misc_tests() {
 		    "charset" : "utf8",
 		    "host"    : "hostname" );
     my string $ds = "user/123pass@word@dbname(utf8)%hostname";
-    test_value($dh, parseDatasource($ds), "first parseDatasource()"); 
-    test_value((1, 2), simple_shift((1, 2)), "list arg function call");
+    $unit.testValue($dh, parseDatasource($ds), "first parseDatasource()"); 
+    $unit.testValue((1, 2), simple_shift((1, 2)), "list arg function call");
 
-    test_value(call_function("simple_shift", 1), 1, "call_function()");
-    test_value(call_builtin_function("type", 1), Type::Int, "call_builtin_function()");
-    test_value(existsFunction("simple_shift"), True, "existsFunction()");
-    test_value(functionType("simple_shift"), "user", "functionType() user");
-    test_value(functionType("printf"), "builtin", "functionType() builtin");
-    test_value(type(1), "integer", "type()");
+    $unit.testValue(call_function("simple_shift", 1), 1, "call_function()");
+    $unit.testValue(call_builtin_function("type", 1), Type::Int, "call_builtin_function()");
+    $unit.testValue(existsFunction("simple_shift"), True, "existsFunction()");
+    $unit.testValue(functionType("simple_shift"), "user", "functionType() user");
+    $unit.testValue(functionType("printf"), "builtin", "functionType() builtin");
+    $unit.testValue(type(1), "integer", "type()");
     my string $str1 = "&<>\"";
     my string $str2 = "&amp;&lt;&gt;&quot;";
-    test_value(html_encode($str1), $str2, "html_encode()");
-    test_value(html_decode($str2), $str1, "html_decode()");
+    $unit.testValue(html_encode($str1), $str2, "html_encode()");
+    $unit.testValue(html_decode($str2), $str1, "html_decode()");
 
     # note that '@' signs are legal in the password field as with datasources
     my string $url = "https://username:passw@rd@hostname:1044/path/is/here";
@@ -1324,59 +1306,59 @@ sub misc_tests() {
 		    "port" : 1044,
 		    "path" : "/path/is/here" );
 
-    test_value(parseURL($url), $uh, "parseURL()");
+    $unit.testValue(parseURL($url), $uh, "parseURL()");
 
     # test gzip
     my string $str = "This is a long string xxxxxxxxxxxxxxxxxxxxxxxxxxxx";
     my binary $bstr = binary($str);
     my binary $c = compress($str);
-    test_value($str, uncompress_to_string($c), "compress() and uncompress_to_string()");
-    test_value($bstr, uncompress_to_binary($c), "compress() and uncompress_to_binary()");
+    $unit.testValue($str, uncompress_to_string($c), "compress() and uncompress_to_string()");
+    $unit.testValue($bstr, uncompress_to_binary($c), "compress() and uncompress_to_binary()");
     my binary $gz = gzip($str);
-    test_value($str, gunzip_to_string($gz), "gzip() and gunzip_to_string()");
-    test_value($bstr, gunzip_to_binary($gz), "gzip() and gunzip_to_binary()");
+    $unit.testValue($str, gunzip_to_string($gz), "gzip() and gunzip_to_string()");
+    $unit.testValue($bstr, gunzip_to_binary($gz), "gzip() and gunzip_to_binary()");
     
     # test bzip2
     my binary $bz = bzip2($str);
-    test_value($str, bunzip2_to_string($bz), "bzip2 and bunzip2_to_string");
-    test_value($bstr, bunzip2_to_binary($bz), "bzip2 and bunzip2_to_binary");
+    $unit.testValue($str, bunzip2_to_string($bz), "bzip2 and bunzip2_to_string");
+    $unit.testValue($bstr, bunzip2_to_binary($bz), "bzip2 and bunzip2_to_binary");
 }
 
 sub math_tests() {
-    test_value(ceil(2.7), 3.0, "ceil()");
-    test_value(floor(3.7), 3.0, "fllor()");
-    test_value(format_number(".,3", -48392093894.2349), "-48.392.093.894,235", "format_number()");
+    $unit.testValue(ceil(2.7), 3.0, "ceil()");
+    $unit.testValue(floor(3.7), 3.0, "fllor()");
+    $unit.testValue(format_number(".,3", -48392093894.2349), "-48.392.093.894,235", "format_number()");
 }
 
 sub lib_tests() {
     my string $pn = get_script_path();
     if (PlatformOS != "Windows") {
-        test_value(stat($pn)[1], hstat($pn).inode, "stat() and hstat()");
-        test_value(hstat($pn).type, "REGULAR", "hstat()");
+        $unit.testValue(stat($pn)[1], hstat($pn).inode, "stat() and hstat()");
+        $unit.testValue(hstat($pn).type, "REGULAR", "hstat()");
     }
     #my string $h = gethostname();
-    #test_value($h, gethostbyaddr(gethostbyname($h)), "host functions");
+    #$unit.testValue($h, gethostbyaddr(gethostbyname($h)), "host functions");
 }
 
 sub file_tests() {
-    test_value(is_file($ENV."_"), True, "is_file()");
-    test_value(is_executable($ENV."_"), True, "is_executable()");
-    test_value(is_dir("/"), True, "is_dir()");
-    test_value(is_writeable($ENV.HOME), True, "is_writable()");
-    test_value(is_readable($ENV.HOME), False, "is_readable()");
-    test_value(is_dev("/dev/null"), True, "is_dev()");
-    test_value(is_cdev("/dev/null"), True, "is_cdev()");
-    test_value(is_bdev("/dev/null"), False, "is_bdev()");
-    test_value(is_link("/"), False, "is_link()");
-    test_value(is_socket("/"), False, "is_socket()");
-    test_value(is_pipe("/"), False, "is_pipe()");
+    $unit.testValue(is_file($ENV."_"), True, "is_file()");
+    $unit.testValue(is_executable($ENV."_"), True, "is_executable()");
+    $unit.testValue(is_dir("/"), True, "is_dir()");
+    $unit.testValue(is_writeable($ENV.HOME), True, "is_writable()");
+    $unit.testValue(is_readable($ENV.HOME), False, "is_readable()");
+    $unit.testValue(is_dev("/dev/null"), True, "is_dev()");
+    $unit.testValue(is_cdev("/dev/null"), True, "is_cdev()");
+    $unit.testValue(is_bdev("/dev/null"), False, "is_bdev()");
+    $unit.testValue(is_link("/"), False, "is_link()");
+    $unit.testValue(is_socket("/"), False, "is_socket()");
+    $unit.testValue(is_pipe("/"), False, "is_pipe()");
 }
 
 sub io_tests() {
-    test_value(sprintf("%04d-%.2f", 25, 101.239), "0025-101.24", "sprintf()");
-    test_value(vsprintf("%04d-%.2f", (25, 101.239)), "0025-101.24", "vsprintf()");
+    $unit.testValue(sprintf("%04d-%.2f", 25, 101.239), "0025-101.24", "sprintf()");
+    $unit.testValue(vsprintf("%04d-%.2f", (25, 101.239)), "0025-101.24", "vsprintf()");
     # check multi-byte character set support for f_*printf()
-    test_value(f_sprintf("%3s", "niña"), "niñ", "UTF-8 f_sprintf()");
+    $unit.testValue(f_sprintf("%3s", "niña"), "niñ", "UTF-8 f_sprintf()");
 }
 
 string sub f1_test(string $x) {
@@ -1396,17 +1378,17 @@ string sub f_test(float $x) {
 }
 
 sub overload_tests() {
-    test_value(f_test(1), "integer", "first overload partial match");
-    test_value(f_test(1.1), "float", "second overload partial match");
-    test_value(f1_test(1), "float", "third overload partial match");
-    test_value(f1_test(1.1), "float", "fourth overload partial match");
-    test_value(f1_test("str"), "string", "fifth overload partial match");
+    $unit.testValue(f_test(1), "integer", "first overload partial match");
+    $unit.testValue(f_test(1.1), "float", "second overload partial match");
+    $unit.testValue(f1_test(1), "float", "third overload partial match");
+    $unit.testValue(f1_test(1.1), "float", "fourth overload partial match");
+    $unit.testValue(f1_test("str"), "string", "fifth overload partial match");
     my int $i = 1;
-    test_value(f_test($i), "integer", "first runtime overload partial match");
-    test_value(f1_test($i), "float", "second runtime overload partial match");
+    $unit.testValue(f_test($i), "integer", "first runtime overload partial match");
+    $unit.testValue(f1_test($i), "float", "second runtime overload partial match");
     my float $fi = 1.1;
-    test_value(f_test($fi), "float", "third runtime overload partial match");
-    test_value(f1_test($fi), "float", "fourth runtime overload partial match");
+    $unit.testValue(f_test($fi), "float", "third runtime overload partial match");
+    $unit.testValue(f1_test($fi), "float", "fourth runtime overload partial match");
 }
 
 sub function_tests() {
@@ -1487,38 +1469,38 @@ sub class_test_Program() {
     $a.importGlobalVariable("ro", True);
     $a.parse($func, "test");
 
-    test_value($a.callFunction("newfunc"), True, "Program::parsePending()");
-    test_value($a.callFunction("t2", 1), 3, "Program::parse()");
-    test_value($a.callFunctionArgs("t2", list(int(2))), 4, "program imported function");
-    test_value($a.callFunction("et", 1), 2, "program imported function");
-    test_value($a.callFunction("tot"), "Test", "program imported object variable");
-    test_value($to.member, "memberGate-member", "program imported object member gate");
-    test_value($to.method(), "method", "program imported object method gate");
+    $unit.testValue($a.callFunction("newfunc"), True, "Program::parsePending()");
+    $unit.testValue($a.callFunction("t2", 1), 3, "Program::parse()");
+    $unit.testValue($a.callFunctionArgs("t2", list(int(2))), 4, "program imported function");
+    $unit.testValue($a.callFunction("et", 1), 2, "program imported function");
+    $unit.testValue($a.callFunction("tot"), "Test", "program imported object variable");
+    $unit.testValue($to.member, "memberGate-member", "program imported object member gate");
+    $unit.testValue($to.method(), "method", "program imported object method gate");
     try
 	$a.callFunction("deleteException");
     catch ($ex)
-	test_value($ex.err, "ACCESS-ERROR", "Program::importGlobalVariable() readonly");
+	$unit.testValue($ex.err, "ACCESS-ERROR", "Program::importGlobalVariable() readonly");
 
-    test_value($a.callFunction("check_ro"), True, "delete read-only");
+    $unit.testValue($a.callFunction("check_ro"), True, "delete read-only");
     
     my Queue $o = $a.callFunction("getObject");
     my object $ox = $a.callFunction("get_x");
     delete $a;
-    test_value(getClassName($o), "Queue", "builtin class returned from deleted subprogram object");
-    test_value(getClassName($ox), "X", "user class returned from deleted subprogram object");
+    $unit.testValue(getClassName($o), "Queue", "builtin class returned from deleted subprogram object");
+    $unit.testValue(getClassName($ox), "X", "user class returned from deleted subprogram object");
 
     # test for incorrect parse location when processing constants after a commit
     $a = new Program();
     $a.parse("sub x() {}", "lib");
     my *hash $h = $a.parse("const X1 = 'a'; const X2 = 'a'; const h = (X1: 1, X2: 2);", "warn", WARN_ALL);
-    test_value($h.file, "<run-time-loaded: warn>", "constant parse location");
+    $unit.testValue($h.file, "<run-time-loaded: warn>", "constant parse location");
 
     # make sure recursive constant definitions are handled
     try {
         $a.parse("const A = B; const B = A; any a = A;", "rec");
     }
     catch (hash $ex) {
-        test_value($ex.err, "PARSE-EXCEPTION", "recursive constant ref");
+        $unit.testValue($ex.err, "PARSE-EXCEPTION", "recursive constant ref");
     }
 
     my string $pstr = "class T { private { int i = 1; static *int j = 4; const X = 2; } int get() { return i; } static other (int x) {} } T sub getT() { return new T(); } int sub checkT(T t) { return t.get(); }";
@@ -1530,8 +1512,8 @@ sub class_test_Program() {
     $p2.parse($pstr, "p");
 
     my object $o2 = $p1.callFunction("getT");
-    test_value(1, $p1.callFunction("checkT", $o2), "first cross-Program class");
-    test_value(1, $p2.callFunction("checkT", $o2), "second cross-Program class");
+    $unit.testValue(1, $p1.callFunction("checkT", $o2), "first cross-Program class");
+    $unit.testValue(1, $p2.callFunction("checkT", $o2), "second cross-Program class");
 
     my Program $p3();
     $p3.parse("class X { private $.a; }", "p");
@@ -1539,11 +1521,11 @@ sub class_test_Program() {
     my Program $p4();
     try {
         $p4.parse("error", "error", 0, "source", 10);
-        test_value(True, False, "exception source & offset");
+        $unit.testValue(True, False, "exception source & offset");
     }
     catch (hash $ex) {
-        test_value($ex.source, "source", "exception source");
-        test_value($ex.offset, 10, "exception offset");
+        $unit.testValue($ex.source, "source", "exception source");
+        $unit.testValue($ex.offset, 10, "exception offset");
     }
 }
 
@@ -1551,13 +1533,13 @@ sub class_test_File() {
     # File test
     my File $f("iso-8859-1");
     $f.open(get_script_path());
-    test_value($f.getEncoding(), "ISO-8859-1", "file encoding");
+    $unit.testValue($f.getEncoding(), "ISO-8859-1", "file encoding");
 /*
     my string $l = $f.readLine();
     my int $p = $f.getPos();
     $f.setPos(0);
-    test_value($l, $f.readLine(), "File::readLine() and File::setPos()");
-    test_value($p, $f.getPos(), "File::getPos()");
+    $unit.testValue($l, $f.readLine(), "File::readLine() and File::setPos()");
+    $unit.testValue($p, $f.getPos(), "File::getPos()");
 */
 }
 
@@ -1601,16 +1583,16 @@ const key_pass = "qore";
 
 sub class_test_SSLCertificate() {
     my SSLCertificate $cert(cert_pem);
-    test_value($cert.getSignature(), cert_sig, "SSLCertificate::getSignature()");
-    test_value($cert.getInfo().subject.emailAddress, "david@qore.org", "SSLCertificate::getInfo()");
+    $unit.testValue($cert.getSignature(), cert_sig, "SSLCertificate::getSignature()");
+    $unit.testValue($cert.getInfo().subject.emailAddress, "david@qore.org", "SSLCertificate::getInfo()");
 }
 
 sub class_test_SSLPrivateKey() {
     my SSLPrivateKey $key(key_pem, key_pass);
-    test_value($key.getVersion(), 1, "SSLPrivateKey::getVersion()");
-    test_value($key.getBitLength(), 512, "SSLPrivateKey::getBitLength()");
-    test_value($key.getType(), "RSA", "SSLPrivateKey::getType()");
-    test_value($key.getInfo().type, "RSA", "SSLPrivateKey::getInfo()");
+    $unit.testValue($key.getVersion(), 1, "SSLPrivateKey::getVersion()");
+    $unit.testValue($key.getBitLength(), 512, "SSLPrivateKey::getBitLength()");
+    $unit.testValue($key.getType(), "RSA", "SSLPrivateKey::getType()");
+    $unit.testValue($key.getInfo().type, "RSA", "SSLPrivateKey::getInfo()");
 }
 
 sub class_test_Condition() {
@@ -1624,23 +1606,23 @@ sub class_test_Condition() {
 }
 
 sub err(string $test) {
-    test_value(True, False, $test);
+    $unit.testValue(True, False, $test);
 }
 
 sub check(string $err, string $test) {
-    test_value($err, "PRIVATE-MEMBER", $test);
+    $unit.testValue($err, "PRIVATE-MEMBER", $test);
 }
 
 class Test2 { private { any $.a; } }
 
 sub class_library_tests() {
     my Test $t(1, "gee", 2);
-    test_value($t.getData(1), "gee", "first object");
-    test_value(exists $t.testing, True, "memberGate() existence");
-    test_value($t.testing, "memberGate-testing", "memberGate() value");
-    test_value($t.test(), "test", "methodGate() value");
-    test_value($t instanceof Test, True, "first instanceof");
-    test_value($t instanceof Qore::Socket, True, "second instanceof");
+    $unit.testValue($t.getData(1), "gee", "first object");
+    $unit.testValue(exists $t.testing, True, "memberGate() existence");
+    $unit.testValue($t.testing, "memberGate-testing", "memberGate() value");
+    $unit.testValue($t.test(), "test", "methodGate() value");
+    $unit.testValue($t instanceof Test, True, "first instanceof");
+    $unit.testValue($t instanceof Qore::Socket, True, "second instanceof");
 
     # verify private member access protection
     my string $test = "object -= private member";
@@ -1659,21 +1641,21 @@ sub class_library_tests() {
     try { my any $x = $t2.a + $x; err($test); } catch($ex) { check($ex.err, $test); }
 
     # test memberGate
-    test_value($t.a, "memberGate-a", "object memberGate() methods");
+    $unit.testValue($t.a, "memberGate-a", "object memberGate() methods");
 
     # test memberNotification()
     $t.x = 1;
     # test object closure
     my code $c = $t.closure(1);
-    test_value($c(2), "gee-1-2-2", "first object closure");
-    test_value($c(2), "gee-1-2-3", "second object closure");
-    test_value($t.t.x, 1, "memberNotification() method");
+    $unit.testValue($c(2), "gee-1-2-2", "first object closure");
+    $unit.testValue($c(2), "gee-1-2-3", "second object closure");
+    $unit.testValue($t.t.x, 1, "memberNotification() method");
 
     # test callObjectMethod*()
-    test_value(callObjectMethod($t1, "argTest", 1, 2), (1, 2), "callObjectMethod()");
-    test_value(callObjectMethodArgs($t1, "argTest"), NOTHING, "first callObjectMethodArgs()");
-    test_value(callObjectMethodArgs($t1, "argTest", 1), list(1), "second callObjectMethodArgs()");
-    test_value(callObjectMethodArgs($t1, "argTest", (1, 2)), (1, 2), "third callObjectMethodArgs()");
+    $unit.testValue(callObjectMethod($t1, "argTest", 1, 2), (1, 2), "callObjectMethod()");
+    $unit.testValue(callObjectMethodArgs($t1, "argTest"), NOTHING, "first callObjectMethodArgs()");
+    $unit.testValue(callObjectMethodArgs($t1, "argTest", 1), list(1), "second callObjectMethodArgs()");
+    $unit.testValue(callObjectMethodArgs($t1, "argTest", (1, 2)), (1, 2), "third callObjectMethodArgs()");
 
     class_test_File();
     class_test_Program();
@@ -1707,42 +1689,42 @@ sub context_tests() {
 	context t ($t) where (%q:name == %name) sortBy (%key2)
 	    $h.%q:name = (%key1, %t:key2, %key3, %key4, %key5);
 
-    test_value($h, $i, "context");
+    $unit.testValue($h, $i, "context");
 
     my int $age = find %age in $q where (%name == "david");
-    test_value($age, 37, "find");
+    $unit.testValue($age, 37, "find");
 
     my list $ages = find %age in $q where (%name == "david" || %name == "isabella");
-    test_value($ages, (37, 1), "list find"); 
+    $unit.testValue($ages, (37, 1), "list find"); 
     context ($q) {
-	test_value(%%, ("name" : "david", "age" : 37), "context row");
-        test_value(cx_first(), True, "cx_first()");
-        test_value(cx_last(), False, "cx_last()");
-        test_value(cx_pos(), 0, "cx_pos()");
-        test_value(cx_total(), 5, "cx_total()");
-        test_value(cx_value("name"), "david", "cx_value()");
+	$unit.testValue(%%, ("name" : "david", "age" : 37), "context row");
+        $unit.testValue(cx_first(), True, "cx_first()");
+        $unit.testValue(cx_last(), False, "cx_last()");
+        $unit.testValue(cx_pos(), 0, "cx_pos()");
+        $unit.testValue(cx_total(), 5, "cx_total()");
+        $unit.testValue(cx_value("name"), "david", "cx_value()");
 	break;
     }
 
     my HashListIterator $qi($q);
     while ($qi.next()) {
-	test_value($qi.getRow(), ("name" : "david", "age" : 37), "HashListIterator::getRow()");
-        test_value($qi.first(), True, "HashListIterator::first()");
-        test_value($qi.last(), False, "HashListIterator::last()");
-        test_value($qi.index(), 0, "HashListIterator::index()");
-        test_value($qi.max(), 5, "HashListIterator::max()");
-        test_value($qi.name, "david", "HashListIterator::memberGate()");
+	$unit.testValue($qi.getRow(), ("name" : "david", "age" : 37), "HashListIterator::getRow()");
+        $unit.testValue($qi.first(), True, "HashListIterator::first()");
+        $unit.testValue($qi.last(), False, "HashListIterator::last()");
+        $unit.testValue($qi.index(), 0, "HashListIterator::index()");
+        $unit.testValue($qi.max(), 5, "HashListIterator::max()");
+        $unit.testValue($qi.name, "david", "HashListIterator::memberGate()");
 	break;
     }
 
     my HashListReverseIterator $rqi($q);
     while ($rqi.next()) {
-	test_value($rqi.getRow(), ("name" : "isabella", "age" : 1), "HashListReverseIterator::getRow()");
-        test_value($rqi.first(), True, "HashListReverseIterator::first()");
-        test_value($rqi.last(), False, "HashListReverseIterator::last()");
-        test_value($rqi.index(), 4, "HashListReverseIterator::index()");
-        test_value($rqi.max(), 5, "HashListReverseIterator::max()");
-        test_value($rqi.name, "isabella", "HashListReverseIterator::memberGate()");
+	$unit.testValue($rqi.getRow(), ("name" : "isabella", "age" : 1), "HashListReverseIterator::getRow()");
+        $unit.testValue($rqi.first(), True, "HashListReverseIterator::first()");
+        $unit.testValue($rqi.last(), False, "HashListReverseIterator::last()");
+        $unit.testValue($rqi.index(), 4, "HashListReverseIterator::index()");
+        $unit.testValue($rqi.max(), 5, "HashListReverseIterator::max()");
+        $unit.testValue($rqi.name, "isabella", "HashListReverseIterator::memberGate()");
 	break;
     }
 
@@ -1752,33 +1734,33 @@ sub context_tests() {
 
     my ListHashIterator $lqi($l);
     while ($lqi.next()) {
-	test_value($lqi.getRow(), ("name" : "david", "age" : 37), "ListHashIterator::getRow()");
-        test_value($lqi.first(), True, "ListHashIterator::first()");
-        test_value($lqi.last(), False, "ListHashIterator::last()");
-        test_value($lqi.index(), 0, "ListHashIterator::index()");
-        test_value($lqi.max(), 5, "ListHashIterator::max()");
-        test_value($lqi.name, "david", "ListHashIterator::memberGate()");
+	$unit.testValue($lqi.getRow(), ("name" : "david", "age" : 37), "ListHashIterator::getRow()");
+        $unit.testValue($lqi.first(), True, "ListHashIterator::first()");
+        $unit.testValue($lqi.last(), False, "ListHashIterator::last()");
+        $unit.testValue($lqi.index(), 0, "ListHashIterator::index()");
+        $unit.testValue($lqi.max(), 5, "ListHashIterator::max()");
+        $unit.testValue($lqi.name, "david", "ListHashIterator::memberGate()");
 
         my ListHashIterator $ni = $lqi.copy();
-	test_value($ni.getRow(), ("name" : "david", "age" : 37), "ListHashIterator::getRow() (copy)");
-        test_value($ni.first(), True, "ListHashIterator::first() (copy)");
-        test_value($ni.index(), 0, "ListHashIterator::index() (copy)");
+	$unit.testValue($ni.getRow(), ("name" : "david", "age" : 37), "ListHashIterator::getRow() (copy)");
+        $unit.testValue($ni.first(), True, "ListHashIterator::first() (copy)");
+        $unit.testValue($ni.index(), 0, "ListHashIterator::index() (copy)");
 	break;
     }
 
     my ListHashReverseIterator $lrqi($l);
     while ($lrqi.next()) {
-	test_value($lrqi.getRow(), ("name" : "isabella", "age" : 1), "ListHashReverseIterator::getRow()");
-        test_value($lrqi.first(), True, "ListHashReverseIterator::first()");
-        test_value($lrqi.last(), False, "ListHashReverseIterator::last()");
-        test_value($lrqi.index(), 4, "ListHashReverseIterator::index()");
-        test_value($lrqi.max(), 5, "ListHashReverseIterator::max()");
-        test_value($lrqi.name, "isabella", "ListHashReverseIterator::memberGate()");
+	$unit.testValue($lrqi.getRow(), ("name" : "isabella", "age" : 1), "ListHashReverseIterator::getRow()");
+        $unit.testValue($lrqi.first(), True, "ListHashReverseIterator::first()");
+        $unit.testValue($lrqi.last(), False, "ListHashReverseIterator::last()");
+        $unit.testValue($lrqi.index(), 4, "ListHashReverseIterator::index()");
+        $unit.testValue($lrqi.max(), 5, "ListHashReverseIterator::max()");
+        $unit.testValue($lrqi.name, "isabella", "ListHashReverseIterator::memberGate()");
 
         my ListHashReverseIterator $ni = $lrqi.copy();
-	test_value($ni.getRow(), ("name" : "isabella", "age" : 1), "ListHashReverseIterator::getRow() (copy)");
-        test_value($ni.first(), True, "ListHashReverseIterator::first() (copy)");
-        test_value($ni.index(), 4, "ListHashReverseIterator::index() (copy)");
+	$unit.testValue($ni.getRow(), ("name" : "isabella", "age" : 1), "ListHashReverseIterator::getRow() (copy)");
+        $unit.testValue($ni.first(), True, "ListHashReverseIterator::first() (copy)");
+        $unit.testValue($ni.index(), 4, "ListHashReverseIterator::index() (copy)");
 	break;
     }
 }
@@ -1834,15 +1816,15 @@ namespace NTest {
     class T1;
 
     sub test() {
-        test_value(t1, "hello", "1st namespace constant resolution");
-        test_value(Type::i, 1, "2nd namespace constant resolution");
-        test_value(Type::hithere, 1, "3rd namespace constant resolution");
-        test_value(C::a, 1, "class constant resolution in namespace context");
-        test_value(C::t1(), 1, "static method resolution in namespace context");
-        test_value(C::t2(), 1, "constant resolution in namespace context in class code");
-        test_value(d1(), 1, "first function resolution in namespace context");
-        test_value(d2(), 1, "second function resolution in namespace context");
-        test_value(H.a, 1, "hash key constant resolution in namespace context");
+        $unit.testValue(t1, "hello", "1st namespace constant resolution");
+        $unit.testValue(Type::i, 1, "2nd namespace constant resolution");
+        $unit.testValue(Type::hithere, 1, "3rd namespace constant resolution");
+        $unit.testValue(C::a, 1, "class constant resolution in namespace context");
+        $unit.testValue(C::t1(), 1, "static method resolution in namespace context");
+        $unit.testValue(C::t2(), 1, "constant resolution in namespace context in class code");
+        $unit.testValue(d1(), 1, "first function resolution in namespace context");
+        $unit.testValue(d2(), 1, "second function resolution in namespace context");
+        $unit.testValue(H.a, 1, "hash key constant resolution in namespace context");
     }
 }
 
@@ -1855,13 +1837,13 @@ const NTest::Type::val1 = 1;
 const Qore::myconst = 1;
 
 sub constant_tests() {
-    test_value(i, 1, "simple constant");
-    test_value(type(Type::val1), "integer", "first namespace constant");
-    test_value(Qore::myconst, NTest::Type::val1, "second namespace constant");
-    test_value(NTest::Type::i, 1, "third namespace constant"); 
-    test_value(chash{b}, (1, 2, 3), "indirect constant");
-    test_value(exp, 3, "evaluated constant");
-    test_value(hexp2, (1, 2, 3), "evaluated constant hash");
+    $unit.testValue(i, 1, "simple constant");
+    $unit.testValue(type(Type::val1), "integer", "first namespace constant");
+    $unit.testValue(Qore::myconst, NTest::Type::val1, "second namespace constant");
+    $unit.testValue(NTest::Type::i, 1, "third namespace constant"); 
+    $unit.testValue(chash{b}, (1, 2, 3), "indirect constant");
+    $unit.testValue(exp, 3, "evaluated constant");
+    $unit.testValue(hexp2, (1, 2, 3), "evaluated constant hash");
     NTest::test();
 }
 
@@ -1870,38 +1852,38 @@ sub hmac_tests() {
     my string $key = "a key";
 
     if (HAVE_MD2)
-        test_value(MD2_hmac($str, $key),    "27f5f17500b408e97643403ea8ef1413", "MD2 hmac");
-    test_value(MD4_hmac($str, $key),        "053d084f321a3886e60166ebd9609ce1", "MD4 hmac");
-    test_value(MD5_hmac($str, $key),        "87505c6164aaf6ca6315233902a01ef4", "MD5 hmac");
-    test_value(DSS_hmac($str, $key),        "37a3cc73159aa129b0eb22bbdf4b9309d389f629", "DSS hmac");
-    test_value(DSS1_hmac($str, $key),       "37a3cc73159aa129b0eb22bbdf4b9309d389f629", "DSS1 hmac");
-    test_value(SHA_hmac($str, $key),        "0ad47c8d36dc4606d52f7e4cbd144ef2fda492a0", "SHA hmac");
-    test_value(SHA1_hmac($str, $key),       "37a3cc73159aa129b0eb22bbdf4b9309d389f629", "SHA1 hmac");
-    test_value(RIPEMD160_hmac($str, $key),  "4bca70bca1601aba57624eeb2606535cb12f2079", "RIPEMD-160 hmac");
+        $unit.testValue(MD2_hmac($str, $key),    "27f5f17500b408e97643403ea8ef1413", "MD2 hmac");
+    $unit.testValue(MD4_hmac($str, $key),        "053d084f321a3886e60166ebd9609ce1", "MD4 hmac");
+    $unit.testValue(MD5_hmac($str, $key),        "87505c6164aaf6ca6315233902a01ef4", "MD5 hmac");
+    $unit.testValue(DSS_hmac($str, $key),        "37a3cc73159aa129b0eb22bbdf4b9309d389f629", "DSS hmac");
+    $unit.testValue(DSS1_hmac($str, $key),       "37a3cc73159aa129b0eb22bbdf4b9309d389f629", "DSS1 hmac");
+    $unit.testValue(SHA_hmac($str, $key),        "0ad47c8d36dc4606d52f7e4cbd144ef2fda492a0", "SHA hmac");
+    $unit.testValue(SHA1_hmac($str, $key),       "37a3cc73159aa129b0eb22bbdf4b9309d389f629", "SHA1 hmac");
+    $unit.testValue(RIPEMD160_hmac($str, $key),  "4bca70bca1601aba57624eeb2606535cb12f2079", "RIPEMD-160 hmac");
     if (HAVE_MDC2)
-        test_value(MDC2_hmac($str, $key),       "e0ef6a6803e58807c5db395e180a999c", "MDC2 hmac");
+        $unit.testValue(MDC2_hmac($str, $key),       "e0ef6a6803e58807c5db395e180a999c", "MDC2 hmac");
     if (HAVE_SHA224)
-        test_value(SHA224_hmac($str, $key),     "fad5667fa5aa412044555b7e077fced62372fe9c6ce20815609da12c", "SHA224 hmac");
+        $unit.testValue(SHA224_hmac($str, $key),     "fad5667fa5aa412044555b7e077fced62372fe9c6ce20815609da12c", "SHA224 hmac");
     if (HAVE_SHA256)
-        test_value(SHA256_hmac($str, $key),     "1c90c21e227712b62019ff831f34cba22c2e70f1a902651ef69a70705ee0f754", "SHA256 hmac");
+        $unit.testValue(SHA256_hmac($str, $key),     "1c90c21e227712b62019ff831f34cba22c2e70f1a902651ef69a70705ee0f754", "SHA256 hmac");
     if (HAVE_SHA384)
-        test_value(SHA384_hmac($str, $key),     "e2c253c6dcb050990b4da3cee95cd7b227f43388fa8116f476f59395af295d0d3bb7156ab2fcd0663b0500249a7a0865", "SHA384 hmac");
+        $unit.testValue(SHA384_hmac($str, $key),     "e2c253c6dcb050990b4da3cee95cd7b227f43388fa8116f476f59395af295d0d3bb7156ab2fcd0663b0500249a7a0865", "SHA384 hmac");
     if (HAVE_SHA512)
-       test_value(SHA512_hmac($str, $key),     "8dcefd7ea3f90ff1c822b5e9547fc36edf78c3e4ce13d47510a212a406bdda1a4094e7ea5ade90e1c736e204d331a814520eba49f3d074e2c261208de07264f6", "SHA512 hmac");
+       $unit.testValue(SHA512_hmac($str, $key),     "8dcefd7ea3f90ff1c822b5e9547fc36edf78c3e4ce13d47510a212a406bdda1a4094e7ea5ade90e1c736e204d331a814520eba49f3d074e2c261208de07264f6", "SHA512 hmac");
 }
 
 sub digest_tests() {
     my string $str = "Hello There This is a Test - 1234567890";
 
     if (HAVE_MD2)
-        test_value(MD2($str), "349ea9f6c9681278cf86955dabd72d31", "MD2 digest");
-    test_value(MD4($str), "675d84fbf5d63e0d68c04577c3298fdc", "MD4 digest");
-    test_value(MD5($str), "bcbece19c1fe41d8c9e2e6134665ba5b", "MD5 digest");
-    test_value(DSS($str), "f4bc2c85698aae8961d626e2c590852b2d081199", "DSS digest");
-    test_value(DSS1($str), "f4bc2c85698aae8961d626e2c590852b2d081199", "DSS1 digest");
-    test_value(SHA($str), "99910d63f10286e8dda3c4a57801996f48f25b4b", "SHA digest");
-    test_value(SHA1($str), "f4bc2c85698aae8961d626e2c590852b2d081199", "SHA1 digest");
-    test_value(RIPEMD160($str), "8f32702e0146d5db6145f36271a4ddf249c087ae", "RIPEMD-160 digest");
+        $unit.testValue(MD2($str), "349ea9f6c9681278cf86955dabd72d31", "MD2 digest");
+    $unit.testValue(MD4($str), "675d84fbf5d63e0d68c04577c3298fdc", "MD4 digest");
+    $unit.testValue(MD5($str), "bcbece19c1fe41d8c9e2e6134665ba5b", "MD5 digest");
+    $unit.testValue(DSS($str), "f4bc2c85698aae8961d626e2c590852b2d081199", "DSS digest");
+    $unit.testValue(DSS1($str), "f4bc2c85698aae8961d626e2c590852b2d081199", "DSS1 digest");
+    $unit.testValue(SHA($str), "99910d63f10286e8dda3c4a57801996f48f25b4b", "SHA digest");
+    $unit.testValue(SHA1($str), "f4bc2c85698aae8961d626e2c590852b2d081199", "SHA1 digest");
+    $unit.testValue(RIPEMD160($str), "8f32702e0146d5db6145f36271a4ddf249c087ae", "RIPEMD-160 digest");
 }
 
 sub crypto_tests() {
@@ -1910,36 +1892,36 @@ sub crypto_tests() {
     my string $key = "1234567812345abcabcdefgh";
     my binary $x = des_ede_encrypt_cbc($str, $key);
     my string $xstr = des_ede_decrypt_cbc_to_string($x, $key);
-    test_value($str, $xstr, "triple DES 2 key encrypt-decrypt");
+    $unit.testValue($str, $xstr, "triple DES 2 key encrypt-decrypt");
 
     $x = des_ede3_encrypt_cbc($str, $key);
     $xstr = des_ede3_decrypt_cbc_to_string($x, $key);
-    test_value($str, $xstr, "triple DES 3 key encrypt-decrypt");
+    $unit.testValue($str, $xstr, "triple DES 3 key encrypt-decrypt");
 
     $x = desx_encrypt_cbc($str, $key);
     $xstr = desx_decrypt_cbc_to_string($x, $key);
-    test_value($str, $xstr, "DESX encrypt-decrypt");
+    $unit.testValue($str, $xstr, "DESX encrypt-decrypt");
 
     $x = blowfish_encrypt_cbc($str, $key);
     $xstr = blowfish_decrypt_cbc_to_string($x, $key);
-    test_value($str, $xstr, "blowfish encrypt-decrypt");
+    $unit.testValue($str, $xstr, "blowfish encrypt-decrypt");
 
     $x = rc4_encrypt($str, $key);
     $xstr = rc4_decrypt_to_string($x, $key);
-    test_value($str, $xstr, "rc4 encrypt-decrypt");
+    $unit.testValue($str, $xstr, "rc4 encrypt-decrypt");
 
     $x = rc2_encrypt_cbc($str, $key);
     $xstr = rc2_decrypt_cbc_to_string($x, $key);
-    test_value($str, $xstr, "rc2 encrypt-decrypt");
+    $unit.testValue($str, $xstr, "rc2 encrypt-decrypt");
 
     $x = cast5_encrypt_cbc($str, $key);
     $xstr = cast5_decrypt_cbc_to_string($x, $key);
-    test_value($str, $xstr, "CAST5 encrypt-decrypt");
+    $unit.testValue($str, $xstr, "CAST5 encrypt-decrypt");
 
     my binary $bkey = des_random_key();
     $x = des_encrypt_cbc($str, $bkey);
     $xstr = des_decrypt_cbc_to_string($x, $bkey);
-    test_value($str, $xstr, "DES random single key encrypt-decrypt");
+    $unit.testValue($str, $xstr, "DES random single key encrypt-decrypt");
 }
 
 list sub closures(string $x) {
@@ -1958,86 +1940,86 @@ list sub closures(string $x) {
 
 sub closure_tests() {
     my (code $inc, code $dec) = closures("test");
-    test_value($inc(5), "test-5-2", "first closure");
-    test_value($inc(7), "test-7-3", "second closure");
-    test_value($dec(3), "test-3-2", "third closure");
+    $unit.testValue($inc(5), "test-5-2", "first closure");
+    $unit.testValue($inc(7), "test-7-3", "second closure");
+    $unit.testValue($dec(3), "test-3-2", "third closure");
 
     my code $c = sub (*reference $r) {
         $r = "hi";
     };
     my string $str;
     $c(\$str);
-    test_value($str, "hi", "closure with reference arg");
+    $unit.testValue($str, "hi", "closure with reference arg");
 }
 
 sub format_date_tests() {
     my date $d = 2005-04-01T08:02:05.001;
 
-    test_value(format_date("YY", $d), "05", "last two digits of year");
-    test_value(format_date("YYYY", $d), "2005", "four-digit year");
-    test_value(format_date("M", $d), "4", "non zero-padded month number (1-12)");
-    test_value(format_date("MM", $d), "04", "zero-padded month number (01-12)");
-    test_value(format_date("Month", $d), "April", "long month string (ex: \"January\")");
-    test_value(format_date("MONTH", $d), "APRIL", "long month string capitalized (ex: \"JANUARY\")");
-    test_value(format_date("Mon", $d), "Apr", "abbreviated month (ex: \"Jan\")");
-    test_value(format_date("MON", $d), "APR", "abbreviated month, capitalized (ex: \"JAN\")");
-    test_value(format_date("D", $d), "1", "non zero-padded day number (1 - 31)");
-    test_value(format_date("DD", $d), "01", "zero-padded day number (01 - 31)");
-    test_value(format_date("Day", $d), "Friday", "long day of week string (ex: \"Monday\")");
-    test_value(format_date("DAY", $d), "FRIDAY", "long day of week string, capitalized (ex: \"MONDAY\")");
-    test_value(format_date("Dy", $d), "Fri", "abbreviated day of week string (ex: \"Mon\")");
-    test_value(format_date("DY", $d), "FRI", "abbreviated day of week string capitalized (ex: \"MON\")");
-    test_value(format_date("H", $d), "8", "non zero-padded hour number (0 - 23)");
-    test_value(format_date("HH", $d), "08", "zero-padded hour number (00 - 23)");
-    test_value(format_date("h", $d), "8", "non zero-padded hour number, 12-hour clock (1 - 12)");
-    test_value(format_date("hh", $d), "08", "zero-padded hour number, 12-hour clock (01 - 12)");
-    test_value(format_date("m", $d), "2", "non zero-padded minute number (0 - 59)");
-    test_value(format_date("mm", $d), "02", "zero-padded minute number (00 - 59)");
-    test_value(format_date("S", $d), "5", "non zero-padded second number (0 - 59)");
-    test_value(format_date("SS", $d), "05", "zero-padded second number (00 - 59)");
-    test_value(format_date("P", $d), "AM", "\"AM\" or \"PM\" (upper-case)");
-    test_value(format_date("p", $d), "am", "\"am\" or \"pm\" (lower-case)");
-    test_value(format_date("u", $d), "1", "non zero-padded millisecond number (0 - 999)");
-    test_value(format_date("uu", $d), "001", "zero-padded millisecond number (000 - 999)");
-    test_value(format_date("ms", $d), "001", "zero-padded millisecond number (000 - 999)");
-    test_value(format_date("x", $d), "1000", "non zero-padded microsecond number (0 - 999999)");
-    test_value(format_date("xx", $d), "001000", "zero-padded microsecond number (000000 - 999999)");
-    test_value(format_date("y", $d), "001", "microseconds, with trailing zeros removed (suitable for use after the '.')");
+    $unit.testValue(format_date("YY", $d), "05", "last two digits of year");
+    $unit.testValue(format_date("YYYY", $d), "2005", "four-digit year");
+    $unit.testValue(format_date("M", $d), "4", "non zero-padded month number (1-12)");
+    $unit.testValue(format_date("MM", $d), "04", "zero-padded month number (01-12)");
+    $unit.testValue(format_date("Month", $d), "April", "long month string (ex: \"January\")");
+    $unit.testValue(format_date("MONTH", $d), "APRIL", "long month string capitalized (ex: \"JANUARY\")");
+    $unit.testValue(format_date("Mon", $d), "Apr", "abbreviated month (ex: \"Jan\")");
+    $unit.testValue(format_date("MON", $d), "APR", "abbreviated month, capitalized (ex: \"JAN\")");
+    $unit.testValue(format_date("D", $d), "1", "non zero-padded day number (1 - 31)");
+    $unit.testValue(format_date("DD", $d), "01", "zero-padded day number (01 - 31)");
+    $unit.testValue(format_date("Day", $d), "Friday", "long day of week string (ex: \"Monday\")");
+    $unit.testValue(format_date("DAY", $d), "FRIDAY", "long day of week string, capitalized (ex: \"MONDAY\")");
+    $unit.testValue(format_date("Dy", $d), "Fri", "abbreviated day of week string (ex: \"Mon\")");
+    $unit.testValue(format_date("DY", $d), "FRI", "abbreviated day of week string capitalized (ex: \"MON\")");
+    $unit.testValue(format_date("H", $d), "8", "non zero-padded hour number (0 - 23)");
+    $unit.testValue(format_date("HH", $d), "08", "zero-padded hour number (00 - 23)");
+    $unit.testValue(format_date("h", $d), "8", "non zero-padded hour number, 12-hour clock (1 - 12)");
+    $unit.testValue(format_date("hh", $d), "08", "zero-padded hour number, 12-hour clock (01 - 12)");
+    $unit.testValue(format_date("m", $d), "2", "non zero-padded minute number (0 - 59)");
+    $unit.testValue(format_date("mm", $d), "02", "zero-padded minute number (00 - 59)");
+    $unit.testValue(format_date("S", $d), "5", "non zero-padded second number (0 - 59)");
+    $unit.testValue(format_date("SS", $d), "05", "zero-padded second number (00 - 59)");
+    $unit.testValue(format_date("P", $d), "AM", "\"AM\" or \"PM\" (upper-case)");
+    $unit.testValue(format_date("p", $d), "am", "\"am\" or \"pm\" (lower-case)");
+    $unit.testValue(format_date("u", $d), "1", "non zero-padded millisecond number (0 - 999)");
+    $unit.testValue(format_date("uu", $d), "001", "zero-padded millisecond number (000 - 999)");
+    $unit.testValue(format_date("ms", $d), "001", "zero-padded millisecond number (000 - 999)");
+    $unit.testValue(format_date("x", $d), "1000", "non zero-padded microsecond number (0 - 999999)");
+    $unit.testValue(format_date("xx", $d), "001000", "zero-padded microsecond number (000000 - 999999)");
+    $unit.testValue(format_date("y", $d), "001", "microseconds, with trailing zeros removed (suitable for use after the '.')");
 
     # commented out tests that only work when run in European CET time zone
-    #test_value(format_date("z", $d), "CEST", "local time zone name (ex: \"EST\") if available, otherwise the UTC offset (ex: \"+01:00\")");
-    #test_value(format_date("Z", $d), "+02:00", "time zone UTC offset like +HH:mm[:SS] (ex: \"+01:00\"), seconds are only included if non-zero");
+    #$unit.testValue(format_date("z", $d), "CEST", "local time zone name (ex: \"EST\") if available, otherwise the UTC offset (ex: \"+01:00\")");
+    #$unit.testValue(format_date("Z", $d), "+02:00", "time zone UTC offset like +HH:mm[:SS] (ex: \"+01:00\"), seconds are only included if non-zero");
 }
 
 sub number_tests() {
-    test_value(string(10.2n), "10.2", "first number"); 
-    test_value(string(-10.2n), "-10.2", "second number"); 
-    test_value(string(1.000000000099999999n), "1.000000000099999999", "third number"); 
-    test_value(10.245n.toString(NF_Scientific), "1.0245e+01", "fourth number"); 
-    test_value((-10.245n).toString(NF_Scientific), "-1.0245e+01", "fifth number"); 
-    test_value(0.10245n.toString(NF_Scientific), "1.0245e-01", "sixth number"); 
-    test_value((-0.10245n).toString(NF_Scientific), "-1.0245e-01", "seventh number"); 
-    test_value(1.0245n.toString(NF_Scientific), "1.0245e+00", "sixth number"); 
-    test_value((-1.0245n).toString(NF_Scientific), "-1.0245e+00", "seventh number"); 
-    test_value(10.245n.toString(), "10.245", "eighth number"); 
-    test_value((-10.245n).toString(), "-10.245", "ninth number"); 
-    test_value(0.10245n.toString(), "0.10245", "tenth number"); 
-    test_value((-0.10245n).toString(), "-0.10245", "eleventh number"); 
-    test_value(1.0245n.toString(), "1.0245", "twelfth number"); 
-    test_value((-1.0245n).toString(), "-1.0245", "thirteenth number"); 
-    test_value(10.001999999999n.toString(), "10.001999999999", "fourteenth number"); 
-    test_value((-10.001999999999n).toString(), "-10.001999999999", "fifteenth number"); 
-    test_value(0.10001999999999n.toString(), "0.10001999999999", "sixteenth number"); 
-    test_value((-0.10001999999999n).toString(), "-0.10001999999999", "seventeenth number"); 
-    test_value(1.0001999999999n.toString(), "1.0001999999999", "eighteenth number"); 
-    test_value((-1.0001999999999n).toString(), "-1.0001999999999", "nineteenth number"); 
-    test_value(0.8n.toString(), "0.8", "number rounding 1");
-    test_value(0.8n.toString(NF_Scientific), "8e-01", "number rounding 2");
-    test_value((-0.8n).toString(), "-0.8", "number rounding 3");
-    test_value((-0.8n).toString(NF_Scientific), "-8e-01", "number rounding 4");
-    test_value((34.9n * 100).toString(), "3490", "number rounding 5");
-    test_value(1e50n.toString(), "100000000000000000000000000000000000000000000000000", "number rounding 5");
-    test_value((-1e50n).toString(), "-100000000000000000000000000000000000000000000000000", "number rounding 6");
+    $unit.testValue(string(10.2n), "10.2", "first number"); 
+    $unit.testValue(string(-10.2n), "-10.2", "second number"); 
+    $unit.testValue(string(1.000000000099999999n), "1.000000000099999999", "third number"); 
+    $unit.testValue(10.245n.toString(NF_Scientific), "1.0245e+01", "fourth number"); 
+    $unit.testValue((-10.245n).toString(NF_Scientific), "-1.0245e+01", "fifth number"); 
+    $unit.testValue(0.10245n.toString(NF_Scientific), "1.0245e-01", "sixth number"); 
+    $unit.testValue((-0.10245n).toString(NF_Scientific), "-1.0245e-01", "seventh number"); 
+    $unit.testValue(1.0245n.toString(NF_Scientific), "1.0245e+00", "sixth number"); 
+    $unit.testValue((-1.0245n).toString(NF_Scientific), "-1.0245e+00", "seventh number"); 
+    $unit.testValue(10.245n.toString(), "10.245", "eighth number"); 
+    $unit.testValue((-10.245n).toString(), "-10.245", "ninth number"); 
+    $unit.testValue(0.10245n.toString(), "0.10245", "tenth number"); 
+    $unit.testValue((-0.10245n).toString(), "-0.10245", "eleventh number"); 
+    $unit.testValue(1.0245n.toString(), "1.0245", "twelfth number"); 
+    $unit.testValue((-1.0245n).toString(), "-1.0245", "thirteenth number"); 
+    $unit.testValue(10.001999999999n.toString(), "10.001999999999", "fourteenth number"); 
+    $unit.testValue((-10.001999999999n).toString(), "-10.001999999999", "fifteenth number"); 
+    $unit.testValue(0.10001999999999n.toString(), "0.10001999999999", "sixteenth number"); 
+    $unit.testValue((-0.10001999999999n).toString(), "-0.10001999999999", "seventeenth number"); 
+    $unit.testValue(1.0001999999999n.toString(), "1.0001999999999", "eighteenth number"); 
+    $unit.testValue((-1.0001999999999n).toString(), "-1.0001999999999", "nineteenth number"); 
+    $unit.testValue(0.8n.toString(), "0.8", "number rounding 1");
+    $unit.testValue(0.8n.toString(NF_Scientific), "8e-01", "number rounding 2");
+    $unit.testValue((-0.8n).toString(), "-0.8", "number rounding 3");
+    $unit.testValue((-0.8n).toString(NF_Scientific), "-8e-01", "number rounding 4");
+    $unit.testValue((34.9n * 100).toString(), "3490", "number rounding 5");
+    $unit.testValue(1e50n.toString(), "100000000000000000000000000000000000000000000000000", "number rounding 5");
+    $unit.testValue((-1e50n).toString(), "-100000000000000000000000000000000000000000000000000", "number rounding 6");
 }
 
 sub background_tests() {
@@ -2049,7 +2031,7 @@ sub background_tests() {
     my Program $p();
     try {
         $p.parse("my int $i; background ($i *= 10);background ($i /= 10);background ($i -= 10);background ($i += 10);background ($i %= 10);background ($i >>= 10);background ($i <<= 10);background ++$i;background $i++;background --$i;background $i--;my string $str;background splice $str, 0;background extract $str, 0;", "bg");
-        test_value(False, True, "background negative");
+        $unit.testValue(False, True, "background negative");
     }
     catch (*hash $ex) {
         # count exceptions
@@ -2057,29 +2039,29 @@ sub background_tests() {
             ++$i;
             $ex = $ex.next;
         }
-        test_value($i, 13, "background negative");
+        $unit.testValue($i, 13, "background negative");
     }
 }
 
 sub type_code_test() {
-    test_value(True.typeCode(), NT_BOOLEAN, "typeCode() bool");
-    test_value("foo".typeCode(), NT_STRING, "typeCode() string");
-    test_value(1.typeCode(), NT_INT, "typeCode() int");
-    test_value(1n.typeCode(), NT_NUMBER, "typeCode() number");
-    test_value(now().typeCode(), NT_DATE, "typeCode() date");
-    test_value(1.2.typeCode(), NT_FLOAT, "typeCode() float");
-    test_value((1,2,).typeCode(), NT_LIST, "typeCode() list");
-    test_value(("foo":1).typeCode(), NT_HASH, "typeCode() bool");
-    test_value(NULL.typeCode(), NT_NULL, "typeCode() NULL");
-    test_value(NOTHING.typeCode(), NT_NOTHING, "typeCode() NOTHING");
+    $unit.testValue(True.typeCode(), NT_BOOLEAN, "typeCode() bool");
+    $unit.testValue("foo".typeCode(), NT_STRING, "typeCode() string");
+    $unit.testValue(1.typeCode(), NT_INT, "typeCode() int");
+    $unit.testValue(1n.typeCode(), NT_NUMBER, "typeCode() number");
+    $unit.testValue(now().typeCode(), NT_DATE, "typeCode() date");
+    $unit.testValue(1.2.typeCode(), NT_FLOAT, "typeCode() float");
+    $unit.testValue((1,2,).typeCode(), NT_LIST, "typeCode() list");
+    $unit.testValue(("foo":1).typeCode(), NT_HASH, "typeCode() bool");
+    $unit.testValue(NULL.typeCode(), NT_NULL, "typeCode() NULL");
+    $unit.testValue(NOTHING.typeCode(), NT_NOTHING, "typeCode() NOTHING");
 }
 
 sub mime_tests() {
     my string $str = "This is a test: æéìœü";
-    test_value($str, mime_decode_quoted_printable(mime_encode_quoted_printable($str)), "MIME: quoted printable");
-    test_value($str, mime_decode_base64_to_string(mime_encode_base64($str)), "MIME: base64");
-    test_value($str, mime_decode_header(mime_encode_header_word_q($str)), "MIME: header word q");
-    test_value($str, mime_decode_header(mime_encode_header_word_b($str)), "MIME: header word b");
+    $unit.testValue($str, mime_decode_quoted_printable(mime_encode_quoted_printable($str)), "MIME: quoted printable");
+    $unit.testValue($str, mime_decode_base64_to_string(mime_encode_base64($str)), "MIME: base64");
+    $unit.testValue($str, mime_decode_header(mime_encode_header_word_q($str)), "MIME: header word q");
+    $unit.testValue($str, mime_decode_header(mime_encode_header_word_b($str)), "MIME: header word b");
 }
 
 const DataMap = (
@@ -2182,11 +2164,11 @@ sub mapper_tests() {
     my Mapper $map(DataMap);
     my list $l = $map.mapAll(MapInput);
     #printf("%N\n", $l);
-    test_value($l, MapOutput, "Mapper::mapAll()");
-    test_value($map.getCount(), 2, "1:Mapper::getCount()");
+    $unit.testValue($l, MapOutput, "Mapper::mapAll()");
+    $unit.testValue($map.getCount(), 2, "1:Mapper::getCount()");
     $l = map $map.mapData($1), MapInput;
-    test_value($l, MapOutput, "map Mapper::mapData()");
-    test_value($map.getCount(), 4, "1:Mapper::getCount()");
+    $unit.testValue($l, MapOutput, "map Mapper::mapData()");
+    $unit.testValue($map.getCount(), 4, "1:Mapper::getCount()");
 }
 
 const CsvInput = "UK,1234567890,\"Sony, Xperia S\",31052012
@@ -2208,11 +2190,11 @@ sub csvutil_tests() {
 
     my CsvDataIterator $i(CsvInput, $opts);
     my list $l = map $1, $i;
-    test_value($l, CsvRecords, "CsvDataIterator 1");
+    $unit.testValue($l, CsvRecords, "CsvDataIterator 1");
 
     # test with empty data and header lines
     $i = new CsvDataIterator("", ("header-lines": 1));
-    test_value($i.next(), False, "CsvDataIterator 2");
+    $unit.testValue($i.next(), False, "CsvDataIterator 2");
 }
 
 sub module_tests() {
@@ -2251,7 +2233,7 @@ sub do_tests() {
 	}
     }
     catch () {
-	++$errors;
+        $unit.errorInc();
 	rethrow;	
     }
 }
@@ -2272,7 +2254,9 @@ sub main() {
 
     $counter.waitForZero();
 
-    my int $ntests = elements $thash;
+#    my int $ntests = elements $thash;
+    my int $errors = $unit.errors();
+    my int $ntests = $unit.testCount();
     printf("%d error%s encountered in %d test%s.\n",
 	   $errors, $errors == 1 ? "" : "s", 
 	   $ntests, $ntests == 1 ? "" : "s");
