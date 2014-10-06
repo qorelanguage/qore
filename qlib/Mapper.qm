@@ -137,6 +137,7 @@ list: (2 elements)
       - \c "date_format": gives the format for converting a string to a date; see @ref date_formatting for the format of this string; note that this also implies \c "type" = \c "date"
       - \c "default": gives a default value for the field in case no input or translated value is provided
       - \c "maxlen": an integer giving the maximum output string field length in bytes
+      - \c "number_format": gives the format for converting a string to a number; see @ref Qore::parse_number() for the format of this string; note that this also implies \c "type" = \c "number"
       - \c "trunc": assign to boolean @ref Qore::True "True" if the field should be truncated if over the maximum field length; this key can only be set to @ref Qore::True "True" if the \c "maxlen" key is also given
       - \c "mand": assign to boolean @ref Qore::True "True" if the field is mandatory and an exception should be thrown if no input data is supplied
       - \c "type": this gives the output field type, can be:
@@ -150,6 +151,7 @@ list: (2 elements)
     - \c "date_format": gives the global format for converting a string to a date; see @ref date_formatting for the format of this string; this is applied to all fields of type \c "date" unless the field has a \c "date_format" value that overrides this global setting
     - \c "enc": the output character encoding; if not present then \c "UTF-8" is assumed
     - \c "name": the name of the mapper for use in logging and error strings
+    - \c "number_format": gives the global format for converting a string to a number; see @ref Qore::parse_number() for the format of this string; this is applied to all fields of type \c "number" unless the field has a \c "number_format" value that overrides this global setting
     - \c "trunc": an optional @ref closure "closure" or @ref call_reference "call reference" for a callback for field truncation warnings; must accept a single string giving the warning text
     - \c "trunc_all": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then any field without a \c "trunc" key (see @ref mapperkeys \c "trunc" description) will automatically be truncated if a \c "maxlen" attribute is set for the field
     - \c "allow_dot": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then field names with \c "." characters do not imply a structured internal element lookup; in this case input field names may have \c "." characters in them, use the \c "struct" key to use structured internal element loopups (see @ref mapperkeys \c "struct" docs for more info)
@@ -165,6 +167,7 @@ list: (2 elements)
     - implemented "default" field tag giving a default value if no input value is specified
     - moved field length checks after all transformations have been applied
     - implemented a global "date_format" mapper option
+    - implemented the "number_format" field option and a global option of the same name
 
     @subsection mapperv1_0 Mapper v1.0
     - Initial release
@@ -216,6 +219,9 @@ public namespace Mapper {
             #! the global date format for parsing dates
             *string $.date_format;
 
+            #! the global number format for parsing numbers
+            *string $.number_format;
+
             #! (deprecated) constant hash value for output mappings
             *hash $.crec;
 
@@ -234,6 +240,7 @@ public namespace Mapper {
                 "trunc_all": True,
                 "crec": True,
                 "date_format": True,
+                "number_format": True,
                 );
 
             #! default known mapper hash field keys (can be extended by subclassing and reimplementing validKeys())
@@ -249,6 +256,7 @@ public namespace Mapper {
                 "number": True,
                 "type": True,
                 "date_format": True,
+                "number_format": True,
                 );
 
             #! default known field types (can be extended by subclassing and reimplementing validTypes() and mapFieldType()) 
@@ -333,6 +341,9 @@ my Mapper $map(DataMap);
 
             if ($opts.date_format)
                 $.date_format = $opts.date_format;
+
+            if ($opts.number_format)
+                $.number_format = $opts.number_format;
         }
 
         #! verifies the input map in the constructor
@@ -404,6 +415,17 @@ my Mapper $map(DataMap);
                 }
                 else
                     $fh.type = "date";
+            }
+            
+            if ($fh.number_format) {
+                if ($fh.number_format.typeCode() != NT_STRING)
+                    $.error("field %y has a 'number_format' key assigned to type '%s'; expecting 'string'", $.getFieldName($k), $fh.number_format.type());
+                if (exists $fh.type) {
+                    if ($fh.type != "number")
+                        $.error("field %y has a 'number_format' key but the field's type is '%s'", $.getFieldName($k), $fh.type);
+                }
+                else
+                    $fh.type = "number";
             }
             
             if ($fh.trunc && !$fh.maxlen)
@@ -659,9 +681,12 @@ my Mapper $map(DataMap);
                 return;
             switch ($m.type) {
                 case "number": {
+                    my *string $nf = $m.number_format ? $m.number_format : $.number_format;
+                    if ($nf)
+                        $v = parse_number($v, $nf);
                     # check for valid numeric values
                     if ($v !~ /^([-+])?[0-9]+(\.[0-9]+)?+$/)
-                        $.error2("INVALID-NUMBER", "field %y = %y is marked as a numeric field, but the input data contains non-numeric text in input row: %y", $.getFieldName($key), $v, $rec);
+                        $.error2("INVALID-NUMBER", "field %y = %y is marked as a numeric field, but the input data contains non-numeric text in input row: %y", $.getFieldName($key), $v, $rec);                    
                     $v = number($v);
                     break;
                 }

@@ -2093,6 +2093,8 @@ const DataMap = (
     "implicit_count": int sub (any $ignored, hash $rec) { return $rec.Products.size(); },
     # converts the given field to a date in the specified format
     "order_date": ("name": "OrderDate", "date_format": "DD.MM.YYYY HH:mm:SS.us"),
+    # converts the given field to a number in the specified format
+    "unit_price": ("name": "UnitPrice", "number_format": ".,"),
     # returns a constant value
     "target_sys": ("constant": "Orders"),
     # returns structured output
@@ -2109,6 +2111,7 @@ const MapInput = ((
     "name": "John Smith",
     "Count": 1,
     "OrderDate": "02.01.2014 10:37:45.103948",
+    "UnitPrice": "1.543,50",
     "StoreInfo": ("StoreName": "Store1"),
     "Products": ((
         "ProductName": "Widget 1",
@@ -2120,6 +2123,7 @@ const MapInput = ((
     "Type": "Retail",
     "Count": 2,
     "OrderDate": "04.01.2014 19:21:08.882634",
+    "UnitPrice": "9,95",
     "StoreInfo": ("StoreName": "Store2"),
     "Products": ((
         "ProductName": "Widget X",
@@ -2137,6 +2141,7 @@ const MapOutput = ((
     "explicit_count": 1,
     "implicit_count": 1,
     "order_date": 2014-01-02T10:37:45.103948,
+    "unit_price": 1543.50n,
     "target_sys": "Orders",
     "sr0": (
         "sr1": (
@@ -2156,6 +2161,7 @@ const MapOutput = ((
     "explicit_count": 2,
     "implicit_count": 2,
     "order_date": 2014-01-04T19:21:08.882634,
+    "unit_price": 9.95n,
     "target_sys": "Orders",
     "sr0": (
         "sr1": (
