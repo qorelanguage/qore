@@ -53,6 +53,16 @@ public class UnitTest::UnitTest {
         m_errors++;
     }
 
+    string tmpLocation() {
+        # TODO: add support for other platforms
+        my dir = ENV."TMP";
+        if (!dir) {   # TODO: use some qore idiom?
+            dir = '/tmp';
+	}
+
+        return dir;
+    }
+
     cmp(any v1, any v2, string msg) {
         m_testCount++;
         if (v1 === v2) {
