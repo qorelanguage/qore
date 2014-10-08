@@ -64,5 +64,9 @@ public class UnitTest::UnitTest {
             m_errors++;
         }
     }
+
+    ok(softbool v, string msg) {
+	testValue(v, True, msg);
+    }
 }
 
