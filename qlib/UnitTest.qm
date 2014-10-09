@@ -2,6 +2,8 @@
 %requires qore >= 0.8.11
 %new-style
 
+%requires xml
+
 module UnitTest {
     version = "0.1";
     desc = "user module for unit testing";
@@ -23,6 +25,9 @@ TODO/FIXME
 
 #! TODO/FIXME
 public namespace UnitTest {
+
+    public const PLAINTEXT = 0;
+    public const JUNIT = 1;
 }
 
 #! TODO/FIXME
@@ -31,10 +36,17 @@ public class UnitTest::UnitTest {
         int m_testCount = 0;
         int m_errors = 0;
         bool m_verbose = False;
+
+        hash m_result = hash();
+        int m_output = PLAINTEXT;
     }
 
     constructor(any verbose) {
         setVerbose(verbose);
+    }
+
+    destructor() {
+        report(m_output);
     }
 
     setVerbose(any verbose) {
@@ -53,6 +65,51 @@ public class UnitTest::UnitTest {
         m_errors++;
     }
 
+    report(int format = PLAINTEXT) {
+        switch (format) {
+            case PLAINTEXT:
+                reportPlaintext();
+                break;
+            case JUNIT:
+                reportJunit();
+                break;
+            default:
+                throw "UNIT-TEST-ERROR", "Unknown format type";
+        }
+    }
+
+    private reportPlaintext() {
+        HashIterator it(m_result);
+        while (it.next()) {
+            if (!m_verbose && it.getValue() == "OK")
+                continue;
+            printf("%s: %s\n", it.getValue(), it.getKey());
+        }
+    }
+
+    private reportJunit() {
+        hash junit;
+        junit.testsuites."^attributes^" = ( "errors" : errors(),
+                                            "tests"  : testCount(),
+                                          );
+        junit.testsuites.testcase = list();
+
+        HashIterator it(m_result);
+        while (it.next()) {
+             hash testcase;
+             if (it.getValue() == "OK") {
+                 testcase."^attributes^" = ( "name" : it.getKey(), "status" : it.getValue() );
+             }
+             else {
+                 testcase."^attributes^" = ( "name" : it.getKey(), "status" : "ERROR" );
+                 testcase.error."^attributes^" = ( "message" : it.getKey(), "type" : "ERROR" );
+             }
+             push junit."testsuites"."testcase", testcase;
+        }
+
+        printf("%s\n", makeFormattedXMLString(junit));
+    }
+
     string tmpLocation() {
         # TODO: add support for other platforms
         my dir = ENV."TMP";
@@ -66,11 +123,10 @@ public class UnitTest::UnitTest {
     cmp(any v1, any v2, string msg) {
         m_testCount++;
         if (v1 === v2) {
-            if (m_verbose)
-                printf("OK: %s test\n", msg);
+            m_result{msg} = "OK";
         }
         else {
-            printf("ERROR: %s test failed! (%N != %N)\n", msg, v1, v2);
+            m_result{msg} = sprintf("ERROR: %N != %N", v1, v2);
             m_errors++;
         }
     }
