@@ -17,4 +17,4 @@ my string $content = backquote('cat ' + $file);
 $content = force_encoding($content, "iso-8859-1");
 $t.cmp($content, $str, 'file content check');
 
-backquote('rm ' + $file);
+unlink($file);

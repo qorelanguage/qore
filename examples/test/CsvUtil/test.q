@@ -1,59 +1,78 @@
+%requires UnitTest
 %requires CsvUtil
-%exec-class Test
 
+my UnitTest $t(True);
 
-class Test
-{
-    private {
-        const FNAME = "test.csv";
-    }
+# 1) prepare test file names and its content
+my $str = "website,origin,name,image,mod_data,id
+http://www.myspace.com/alcestmusic,FR,Alcest,alcest.jpg,2013-01-31T13:20:51,345
+http://www.amorphis.net/,FI,Amorphis,amorphis.jpg,2012-10-15T23:08:04,384
+http://www.anthrax.com/,US,Anthrax,anthrax.jpg,2012-12-29T14:02:53,395
+";
+my $rfile = $t.tmpLocation() + "/test.csv";
+my $f = new File();
+$f.open($rfile, O_WRONLY | O_CREAT);
+$f.write($str);
+$f.close();
 
-    constructor() {
-   
-        my hash $opts = (
-                "header-lines" : 1,
-                "header-names" : True,
-                "verify-columns" : True,
-                "fields" : (
-                           "mod_data" : ("type" : "date", "format" : "YYYY-MM-DDTHH:mm:SS", ),
-                           "id" : "int",
-                           ),
+my $wdir = $t.tmpLocation();
+my $wfile1 = $wdir + "/file1.csv";
+my $wfile2 = $wdir + "/file2.csv";
 
-            );
-        my hash $optsw = (
-                "date-format" : "YYYY/MM/DD",
-            );
+# 2a) test match
+my hash $iterator_opts = (
+    "header-lines" : 1,
+    "header-names" : True,
+    "verify-columns" : True,
+    "fields" : (
+	"mod_data" : (
+            "type" : "date",
+            "format" : "YYYY-MM-DDTHH:mm:SS", 
+        ),
+	"id" : "int",
+    ),
+);
 
-        my CsvFileIterator $it1(FNAME, $opts);
-        my CsvFileWriter $fw1(FNAME+".1", $optsw);
-        my CsvStringWriter $sw1($optsw);
-        while ($it1.next()) {
-            $fw1.writeLine(hash_values($it1.getValue()));
-            $sw1.writeLine(hash_values($it1.getValue()));
-        }
+my hash $write_opts = (
+    "date-format" : "YYYY/MM/DD",
+);
 
-        my File $f1();
-        $f1.open2(FNAME+".1");
-        if ($f1.read(-1) != $sw1.getContent()) 
-            throw "TEST-ERROR", "case1: CsvFileWriter and CsvStringWriter result diff";
+my CsvFileIterator $it1($rfile, $iterator_opts);
+my CsvFileWriter $fw1($wfile2, $write_opts);
+my CsvStringWriter $sw1($write_opts);
 
-        $optsw.headers = $it1.getHeaders();
-
-        my CsvFileIterator $it2(FNAME, $opts);
-        my CsvFileIterator $it21(FNAME, $opts);
-        my CsvFileWriter $fw2(FNAME+".2", $optsw);
-        my CsvStringWriter $sw2($optsw);
-
-        $fw2.write($it2);
-        $sw2.write($it21);
-
-        my File $f2();
-        $f2.open2(FNAME+".2");
-
-        if ($f2.read(-1) != $sw2.getContent())
-            throw "TEST-ERROR", "case2: CsvFileWriter and CsvStringWriter result diff";
-    }
-
+# TODO: refactor following lines
+my $headers = ('website', 'origin', 'name', 'image', 'mod_data', 'id');
+$fw1.writeLine($headers);
+$sw1.writeLine($headers);
+while ($it1.next()) {
+    my $value = $it1.getValue();
+    my $list = ($value.website, $value.origin, $value.name, $value.image, format_date("YYYY-MM-DDTHH:mm:SS", $value.mod_data), $value.id);
+    $fw1.writeLine($list);
+    $sw1.writeLine($list);
 }
 
+my File $f1();
+$f1.open2($rfile);
+$t.cmp($f1.read(-1), $sw1.getContent(), 'case1: CsvFileWriter and CsvStringWriter result match');
 
+# 2b) test match
+$write_opts.headers = $it1.getHeaders();
+
+my CsvFileIterator $it2($rfile, $iterator_opts);
+my CsvFileIterator $it21($rfile, $iterator_opts);
+my CsvFileWriter $fw2($wfile2, $write_opts);
+my CsvStringWriter $sw2($write_opts);
+
+$fw2.write($it2);
+$sw2.write($it21);
+
+my File $f2();
+$f2.open2($wfile2);
+
+$t.cmp($f2.read(-1), $sw2.getContent(), 'case2: CsvFileWriter and CsvStringWriter result match');
+
+# 3) cleanup
+unlink($rfile);
+unlink($wfile1);
+unlink($wfile2);
