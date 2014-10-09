@@ -1,28 +1,58 @@
 #!/usr/bin/env qore
+%requires UnitTest
 
 # little script to test hash accesses on a large hash
 # by David Nichols
 
-# default 10000 hash keys
-my int $size = int(shift $ARGV);
-if (!$size)
-    $size = 10000;
+my UnitTest $t(True);
 
-# default minimum hash key length = 20 characters
-my int $min_length = int(shift $ARGV);
-if (!$min_length)
-    $min_length = 20;
+# test configuration
+my int $size       = 10000; # hash keys count
+my int $min_length =    20; # minimum hash key length
+my int $num_loops  =     2; # times to search the hash
+my int $limit_time =   100; # tests failes if it takes more secs
 
-# times to search the hash
-my int $num_loops = int(shift $ARGV);
-if (!$num_loops)
-    $num_loops = 2;
+# init
+srand(now());
+my hash $h;
+my list $l = ();
+
+# test create
+my date $list_start = now_us();
+foreach my int $i in (range($size - 1)) {
+    $l += getKey($i);
+}
+$t.cmp(elements($l), $size, "created list of " + $size + " elements");
+my date $start = now_us();
+my $interval_create = $start - $list_start; 
+$t.ok($interval_create < $limit_time, "it took " + $interval_create + " s");
+
+# test insert
+foreach my int $i in (range($size - 1)) {
+    $h{$l[$i]} = True;
+}
+my date $search = now_us();
+my $interval_insert = $search - $start;
+$t.ok($interval_insert < $limit_time, "inserts took " + $interval_insert + " s");
+
+# test search
+$search = now_us();
+foreach my int $loop in (range($num_loops - 1)) {
+    foreach my int $i in (range($size - 1)) {
+        my bool $v = $h.($l[$i]);
+    }
+}
+my date $et = now_us();
+my $interval_search = $et - $search;
+$t.ok($interval_search < $limit_time, $size * $num_loops + " searchs took " + $interval_search + " s");
+
 
 string sub rstr(int $len) {
     my string $str = "";
 
-    for (my int $i = 0; $i < $len; $i++)
+    foreach my int $i in (range($len - 1)) {
 	$str += doChar(rand() % 52);
+    }
 
     return $str;
 }
@@ -44,37 +74,3 @@ string sub getKey(int $n) {
     $str += rstr($min_length - $str.size());
     return $str;
 }
-
-sub hash_test() {
-    srand(now());
-
-    my hash $h;
-    my list $l = ();
-
-    printf("creating hash key list (%d entries, %d char key len): ", $size, $min_length); flush();
-    # first we get a list of all the hash keys
-    my date $list_start = now_us();
-    for (my int $i = 0; $i < $size; $i++)
-	$l += getKey($i);
-
-    my date $start = now_us();
-    printf("created in %y\n", $start - $list_start); flush();
-    print("running insert: ");
-    for (my int $i = 0; $i < $size; $i++)
-	$h{$l[$i]} = True;
-
-    my date $search = now_us();
-    #$l = keys $h;
-    printf("done in %y (%d keys), running search: ", $search - $start, $h.size()); flush();
-    $search = now_us();
-    
-    for (my int $loop = 0; $loop < $num_loops; ++$loop) {
-	for (my int $i = 0; $i < $size; $i++)
-	    my bool $v = $h.($l[$i]);
-    }
-
-    my date $et = now_us();
-    printf("%d searches in %y, total time: %y\n", $size & $num_loops, $et - $search, $et - $start);
-}
-
-hash_test();
