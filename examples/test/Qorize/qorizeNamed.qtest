@@ -1,0 +1,37 @@
+#!/usr/bin/env qore
+%requires Qorize
+%requires UnitTest
+
+my UnitTest $t(True);
+
+const OLDSTYLE = False;
+const NEWSTYLE = True;
+
+my $h1 = (
+    "key1" : "some string",
+    "key2" : 123,
+);
+
+my $tests = (
+    (
+        "args" : ($h1, "name", OLDSTYLE),
+        "cmp"  : 'my hash $name;
+$name."key1" = "some string";
+$name."key2" = 123;
+'
+    ),
+    (
+        "args" : ($h1, "name", NEWSTYLE),
+        "cmp"  : 'hash name;
+name."key1" = "some string";
+name."key2" = 123;
+'
+    ),
+);
+
+# TODO: put this loop into UnitTest
+foreach my $testcase in ($tests) {
+    my $args = $testcase.args;
+    my $bak = qorizeNamed($args[0], $args[1], $args[2]);
+    $t.cmp($bak, $testcase.cmp, $testcase.args.join(" "));
+}

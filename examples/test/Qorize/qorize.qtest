@@ -1,0 +1,78 @@
+#!/usr/bin/env qore
+%requires Qorize
+%requires UnitTest
+
+my UnitTest $t(True);
+
+const OLDSTYLE = False;
+const NEWSTYLE = True;
+
+my $tests = (
+    (
+        "args" : (True, "b", OLDSTYLE),
+        "cmp"  : "my bool $b = True;"
+    ),
+    (
+        "args" : (True, "b", NEWSTYLE),
+        "cmp"  : "bool b = True;"
+    ),
+    (
+        "args" : ("lorem ipsum", "str", OLDSTYLE),
+        "cmp"  : "my string $str = \"lorem ipsum\";"
+    ),
+    (
+        "args" : ("lorem ipsum", "str", NEWSTYLE),
+        "cmp"  : "string str = \"lorem ipsum\";"
+    ),
+    (
+        "args" : ('foo \n"bar"\n', "str", OLDSTYLE),
+        "cmp"  : "my string $str = \"foo \\n\\\"bar\\\"\\n\";"
+    ),
+    (
+        "args" : (10.34, "f", OLDSTYLE),
+        "cmp"  : "my float $f = 10.34;"
+    ),
+    (
+        "args" : (10.34, "f", NEWSTYLE),
+        "cmp"  : "float f = 10.34;"
+    ),
+    (
+        "args" : (5.23928173726123e50n, "n", OLDSTYLE),
+        "cmp"  : "my number $n = 523928173726123000000000000000000000000000000000000n;"
+    ),
+    (
+        "args" : (5.23928173726123e50n, "n", NEWSTYLE),
+        "cmp"  : "number n = 523928173726123000000000000000000000000000000000000n;"
+    ),
+    (
+        "args" : (3h, "d", OLDSTYLE),
+        "cmp"  : "my date $d = PT3H;"
+    ),
+    (
+        "args" : (3h, "d", NEWSTYLE),
+        "cmp"  : "date d = PT3H;"
+    ),
+    (
+        "args" : (-1D, "d", OLDSTYLE),
+        "cmp"  : "my date $d = P-1D;",
+    ),
+    (
+        "args" : (-1D, "d", NEWSTYLE),
+        "cmp"  : "date d = P-1D;"
+    ),
+    (
+        "args" : (binary("foo"), "b", OLDSTYLE),
+        "cmp"  : "my binary $b = parseHexString(\"666f6f\");"
+    ),
+    (
+        "args" : (binary("foo"), "b", NEWSTYLE),
+        "cmp"  : "binary b = parseHexString(\"666f6f\");"
+    ),
+);
+
+# TODO: put this loop into UnitTest
+foreach my $testcase in ($tests) {
+    my $args = $testcase.args;
+    my $bak = qorize($args[0], $args[1], $args[2]);
+    $t.cmp($bak, $testcase.cmp, $testcase.args.join(" "));
+}

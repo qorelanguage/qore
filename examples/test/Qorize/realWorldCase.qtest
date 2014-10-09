@@ -1,0 +1,35 @@
+#!/usr/bin/env qore
+%requires Qorize
+%requires xml
+%requires UnitTest
+
+my UnitTest $t(True);
+
+const OLDSTYLE = False;
+const NEWSTYLE = True;
+
+const MIN_LENGTH = 10000;
+
+# read xml file
+my string $fname = get_script_dir() + '/complex.xml';
+my File $f();
+$f.open2($fname);
+my string $xml = $f.read(-1);
+
+# parse it into structure
+my hash $h = parseXMLAsData($xml);
+
+# TODO: this code should probably match exact match 
+
+# testing
+my $qorized_new = qorize($h, 'name', NEWSTYLE);
+$t.ok($qorized_new.size() > MIN_LENGTH, 'qorize oldstyle: got some long string');
+
+my $qorized_old = qorize($h, 'name', OLDSTYLE);
+$t.ok($qorized_old.size() > MIN_LENGTH, 'qorize newstyle: got some long string');
+
+my $qorizedN_new = qorizeNamed($h, 'name', NEWSTYLE);
+$t.ok($qorizedN_new.size() > MIN_LENGTH, 'qorizeNamed oldstyle: got some long string');
+
+my $qorizedN_old = qorizeNamed($h, 'name', OLDSTYLE);
+$t.ok($qorizedN_old.size() > MIN_LENGTH, 'qorizeNamed newstyle: got some long string');
