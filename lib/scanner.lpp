@@ -215,6 +215,17 @@ static void scanner_process_path(QoreString& npath, char* ip) {
              }
              struct stat sb;
 
+	     if (tpath[0] == '.' && tpath[1] == '.') {
+		// substitue program path if available
+		const char *sp = getProgram()->parseGetScriptDir();
+		if (sp) {
+		   size_t l = strlen(sp);
+		   if (tpath[0] != '/' && tpath[0] != '\\' && sp[l-1] != '/' && sp[l-1] != '\\')
+		      tpath.replace(0, 0, QORE_DIR_SEP_STR);
+		   tpath.replace(0, 0, sp);
+		}
+	     }
+	     
              //printd(5, "set_include_path() trying '%s'\n", sp);
              // add to path list if the directory exists
              if (!stat(sp, &sb)) {
@@ -238,6 +249,7 @@ static void scanner_process_path(QoreString& npath, char* ip) {
 
        ++p;
     }
+    //printd(5, "ip: '%s' npath: '%s'\n", ip, npath.getBuffer());
 }
 
 static QoreString* getIncludeFileName(char* file) {
