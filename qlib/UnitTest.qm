@@ -208,5 +208,37 @@ available output formats (stdout):
     ok(softbool v, string msg) {
 	cmp(v, True, msg);
     }
+
+    like(string str, string regex, string msg) {
+        bool match = str.regex(regex);
+        ok(match, msg);
+        if (!match) {
+            printf("# FAILING TEST: %N\n", msg);
+
+            if (str.regex(".+\n.+") || regex.regex(".+\n.+")) { # str or regex is multiline
+                str = regex_subst(str, "\n(?=.)", "\n# ");
+                printf("# string:\n# %N\n", str);
+                regex = regex_subst(regex, "\n(?=.)", "\n# ");
+                printf("# not match:\n# %N\n", regex);
+	    }
+            else {
+                printf("#    string: %N\n", str);
+                printf("# not match: %N\n", regex);
+	    }
+        }
+    }
+
+    exception(callref f, list params, string regex, string msg) {
+        try {
+            call_function_args(f, params);
+        }
+        catch (ex) {
+            like(ex.desc, regex, msg);
+            return;
+        }
+        ok(0, msg);
+        printf("# FAILING TEST: %N\n", msg);
+        printf("# found normal exit instead of exception\n");
+    }
 }
 
