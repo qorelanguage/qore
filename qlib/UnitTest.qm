@@ -27,15 +27,15 @@ TODO/FIXME
 public namespace UnitTest {
 
     public const PLAINTEXT = 0;
-    public const JUNIT = 1;
+    public const JUNIT     = 1;
 
     const OUT_TYPES = (
           "plain" : PLAINTEXT,
           "junit" : JUNIT,
         );
 
-    const opts =
-        ( "help"    : "help,h",
+    const opts = (
+          "help"    : "help,h",
           "verbose" : "verbose,v",
           "bq"      : "backquote,b",
           "threads" : "threads,t=i",
@@ -152,10 +152,14 @@ available output formats (stdout):
 
     private reportPlaintext() {
         HashIterator it(m_result);
+        int test_id = 0;
         while (it.next()) {
-            if (!m_options.verbose && it.getValue() == "OK")
+            if (!m_options.verbose && it.getValue().result == "OK")
                 continue;
-            printf("%s: %s\n", it.getValue(), it.getKey());
+            printf("%s: %s\n", it.getValue().result, it.getKey());
+            if (m_options.verbose && it.getValue().result != "OK") {
+                printf("%s\n", it.getValue().msg);
+            }
         }
 
         printf("%d tests started, %d error%s\n", testCount(), errors(), errors() == 1 ? "" : "s");
@@ -171,8 +175,8 @@ available output formats (stdout):
         HashIterator it(m_result);
         while (it.next()) {
              hash testcase;
-             if (it.getValue() == "OK") {
-                 testcase."^attributes^" = ( "name" : it.getKey(), "status" : it.getValue() );
+             if (it.getValue().result == "OK") {
+                 testcase."^attributes^" = ( "name" : it.getKey(), "status" : it.getValue().result );
              }
              else {
                  testcase."^attributes^" = ( "name" : it.getKey(), "status" : "ERROR" );
@@ -197,10 +201,10 @@ available output formats (stdout):
     cmp(any v1, any v2, string msg) {
         m_testCount++;
         if (v1 === v2) {
-            m_result{msg} = "OK";
+            m_result{msg}{'result'} = "OK";
         }
         else {
-            m_result{msg} = sprintf("ERROR: %N != %N", v1, v2);
+            m_result{msg}{'result'} = sprintf("ERROR: %N != %N", v1, v2);
             m_errors++;
         }
     }
@@ -213,18 +217,8 @@ available output formats (stdout):
         bool match = str.regex(regex);
         ok(match, msg);
         if (!match) {
-            printf("# FAILING TEST: %N\n", msg);
-
-            if (str.regex(".+\n.+") || regex.regex(".+\n.+")) { # str or regex is multiline
-                str = regex_subst(str, "\n(?=.)", "\n# ");
-                printf("# string:\n# %N\n", str);
-                regex = regex_subst(regex, "\n(?=.)", "\n# ");
-                printf("# not match:\n# %N\n", regex);
-	    }
-            else {
-                printf("#    string: %N\n", str);
-                printf("# not match: %N\n", regex);
-	    }
+            string msgstr = "#     string: " + str + "\n not match: " + regex;
+            m_result{msg}{'msg'} = regex_subst(msgstr, "\n(?=.)", "\n# ");
         }
     }
 
@@ -237,8 +231,7 @@ available output formats (stdout):
             return;
         }
         ok(0, msg);
-        printf("# FAILING TEST: %N\n", msg);
-        printf("# found normal exit instead of exception\n");
+        m_result{msg}{'msg'} = '# found normal exit instead of exception';
     }
 }
 

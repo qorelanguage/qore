@@ -9,7 +9,7 @@ class App inherits UnitTest {
         cmp(strmul("%s,", 3, 0), '%s,%s,%s,', 'no truncate');
         cmp(strmul("xxx", 1), 'xxx', 'repeat 1 time');
         cmp(strmul("xxx", 1, 3), '', 'remove all chars');
-        exception(\strmul(), ("xxx", 1, 4), '\QOffset (4) is greater than string length (3)', 'remove more chars than exists -> should return empty string (or exception?)');
+        exception(\strmul(), ("xxx", 1, 4), '\QOffset (4) is greater than string length (3)', 'remove more chars than exists -> exception');
         exception(\strmul(), ("xxx", 0), "has to be > 0; value: 0", 'repeat 0 times -> exception'); # TODO: better is to return empty string
     }
 }
