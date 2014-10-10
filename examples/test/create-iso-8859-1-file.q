@@ -2,7 +2,7 @@
 
 %requires UnitTest
 
-my UnitTest $t(True);
+my UnitTest $t();
 
 my string $tmp = $t.tmpLocation();
 my string $file = $tmp + '/iso-8859-1.txt';

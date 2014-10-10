@@ -4,7 +4,7 @@
 # little script to test hash accesses on a large hash
 # by David Nichols
 
-my UnitTest $t(True);
+my UnitTest $t();
 
 # test configuration
 my int $size       = 10000; # hash keys count

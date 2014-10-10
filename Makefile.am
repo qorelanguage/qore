@@ -38,6 +38,12 @@ DOX_MODULES = qlib/SmtpClient.qm \
 	qlib/Schema.qm \
 	qlib/UnitTest.qm
 
+TESTSCRIPTS=examples/test/test.q \
+        examples/test/bare-ref-test.q \
+        examples/test/create-iso-8859-1-file.q \
+        examples/test/hash-test.q
+
+
 USER_MODULES = $(DOX_SRC_MODULES) \
 	$(DOX_MODULES)
 
@@ -719,3 +725,11 @@ TAR_NAME := arch/qore-v$(PACKAGE_VERSION)-$(BUILD)-$(shell date +%Y%m%d).tar
 tar: clean
 	find $(top_srcdir) -name \*~ -exec rm {} \;
 	cd ..; tar cvf $(TAR_NAME) src && gzip $(TAR_NAME)
+
+tests:
+	@for i in $(TESTSCRIPTS); do qore $$i --format=plain; done
+
+tests-ci:
+	@for i in $(TESTSCRIPTS); do qore $$i --format=junit --verbose; done
+
+

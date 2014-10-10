@@ -28,6 +28,19 @@ public namespace UnitTest {
 
     public const PLAINTEXT = 0;
     public const JUNIT = 1;
+
+    const OUT_TYPES = (
+          "plain" : PLAINTEXT,
+          "junit" : JUNIT,
+        );
+
+    const opts =
+        ( "help"    : "help,h",
+          "verbose" : "verbose,v",
+          "bq"      : "backquote,b",
+          "threads" : "threads,t=i",
+          "format"  : "format=s",
+        );
 }
 
 #! TODO/FIXME
@@ -35,22 +48,65 @@ public class UnitTest::UnitTest {
     private {
         int m_testCount = 0;
         int m_errors = 0;
-        bool m_verbose = False;
 
         hash m_result = hash();
         int m_output = PLAINTEXT;
+
+        hash m_options;
     }
 
-    constructor(any verbose) {
-        setVerbose(verbose);
+    constructor() {
+        m_options = new GetOpt(opts).parse2(\ARGV);
+        if (m_options.help)
+            usage();
+
+        m_options.iters = shift ARGV;
+        if (elements ARGV) {
+            printf("error, excess arguments on command-line\n");
+            usage();
+        }
+
+        if (!m_options.iters)
+            m_options.iters = 1;
+        if (!m_options.threads)
+            m_options.threads = 1;
+
+        if (m_options.format) {
+            if (!exists OUT_TYPES{m_options.format})
+                throw "UNIT-TEST-ERROR", sprintf("Unknown output format: %s", m_options.format);
+
+            m_output = OUT_TYPES{m_options.format};
+        }
+        else {
+            m_output = PLAINTEXT;
+        }
+
+        if (m_output == PLAINTEXT) {
+
+            printf("QORE v%s Test Script (%d thread%s, %d iteration%s per thread)\n",
+                   Qore::VersionString,
+                   m_options.threads,
+                   m_options.threads == 1 ? "" : "s",
+                   m_options.iters,
+                   m_options.iters == 1 ? "" : "s"
+                  );
+        }
     }
 
     destructor() {
         report(m_output);
     }
 
-    setVerbose(any verbose) {
-        m_verbose = boolean(verbose);
+    hash options() {
+        return m_options;
+    }
+
+    any option(string key) {
+        return m_options{key};
+    }
+
+    bool verbose() {
+        return exists m_options.verbose ? boolean(m_options.verbose) : False;
     }
 
     int errors() {
@@ -64,6 +120,22 @@ public class UnitTest::UnitTest {
     errorInc() {
         m_errors++;
     }
+
+    private usage() {
+        printf("usage: %s [options]
+ -h,--help        this help text
+ -v.--verbose     more verbose output
+ -b,--backquote    include backquote tests (slow)
+ -t,--threads=ARG  runs tests in ARG threads
+    --format=type output format (default: plain)
+
+available output formats (stdout):
+", get_script_name());
+
+        map printf("    %s\n", $1), keys OUT_TYPES;
+        exit(1);
+    }
+
 
     report(int format = PLAINTEXT) {
         switch (format) {
@@ -81,10 +153,12 @@ public class UnitTest::UnitTest {
     private reportPlaintext() {
         HashIterator it(m_result);
         while (it.next()) {
-            if (!m_verbose && it.getValue() == "OK")
+            if (!m_options.verbose && it.getValue() == "OK")
                 continue;
             printf("%s: %s\n", it.getValue(), it.getKey());
         }
+
+        printf("%d tests started, %d error%s\n", testCount(), errors(), errors() == 1 ? "" : "s");
     }
 
     private reportJunit() {

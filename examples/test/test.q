@@ -27,49 +27,10 @@
 # global variables needed for tests
 our Test $to("program-test.q");
 our Test $ro("readonly");
-our hash $o;
 
-sub usage() {
-    printf(
-"usage: %s [options] <iterations>
-  -h,--help         shows this help text
-  -b,--backquote    include backquote tests (slow)
-  -t,--threads=ARG  runs tests in ARG threads
-  -v,--verbose=ARG  sets verbosity level to ARG
-", 
-	   get_script_name());
-    exit(1);
-}
 
-const opts = 
-    ( "verbose" : "verbose,v:i+",
-      "help"    : "help,h",
-      "bq"      : "backquote,b",
-      "threads" : "threads,t=i" );
+our UnitTest $unit();
 
-sub parse_command_line() {
-    my GetOpt $g(opts);
-    $o = $g.parse(\$ARGV);
-    if (exists $o."_ERRORS_") {
-        printf("%s\n", $o."_ERRORS_"[0]);
-        exit(1);
-    }
-    if ($o.help)
-	usage();
-
-    $o.iters = shift $ARGV;
-    if (elements $ARGV) {
-	printf("error, excess arguments on command-line\n");
-	usage();
-    }
-
-    if (!$o.iters)
-	$o.iters = 1;
-    if (!$o.threads)
-	$o.threads = 1;
-
-    our UnitTest $unit($o.verbose);
-}
 
 sub test_xrange(list $correct, RangeIterator $testing, string $message) {
     my list $l;
@@ -84,7 +45,7 @@ list sub test3() { return (1, 2, 3); }
 
 sub array_helper(list $a) {
     $a[1][1] = 2;
-    $unit.cmp($a[1][1], 2, "passed local array variable assignment");    
+    $unit.cmp($a[1][1], 2, "passed local array variable assignment");
 }
 
 list sub list_return(any $var) {
@@ -115,7 +76,7 @@ static int SC::hash_sort_callback(hash $l, hash $r) {
 sub array_tests() {
     my (list $a, list $b, list $c, list $d);
 
-    if ($o.verbose)
+    if ($unit.verbose())
 	print("%%%% array tests\n");
     $a = 1, 2, 3, 4, 5;
     $unit.cmp(elements $a, 5, "elements operator");
@@ -312,7 +273,7 @@ sub array_tests() {
 }
 
 sub hash_tests() {
-    if ($o.verbose)
+    if ($unit.verbose())
 	print("%%%% hash tests\n");
     # hash tests
     my hash $b = ( "test" : 1, "gee" : 2, "well" : "string" );
@@ -413,7 +374,7 @@ code sub map_closure(any $v) { return any sub(any $v1) { return $v * $v1; }; }
 
 # operator tests
 sub operator_test() {
-    if ($o.verbose)
+    if ($unit.verbose())
 	print("%%%% operator tests\n");
     my int $a = 1;
     $unit.cmp($a, 1, "variable assignment");
@@ -559,7 +520,7 @@ bool sub short_circuit_test(string $op) {
 }
 
 sub logic_message(string $op) {
-    if ($o.verbose)
+    if ($unit.verbose())
 	printf("OK: %s logic test\n", $op);
 }
 
@@ -569,7 +530,7 @@ sub logic_tests() {
     my any $b = 0;
     my int $c;
 
-    if ($o.verbose)
+    if ($unit.verbose())
 	print("%%%% logic tests\n");
     if ($a || short_circuit_test("or"))
 	logic_message("short-circuit or");
@@ -674,7 +635,7 @@ string sub switch_with_relation_test(float $val) {
 }
 
 sub statement_tests() {
-    if ($o.verbose)
+    if ($unit.verbose())
 	print("%%%% statement tests\n");
     # while test
     my int $a = 0;
@@ -2206,8 +2167,8 @@ sub module_tests() {
 sub do_tests() {
     on_exit $counter.dec();
     try {
-	for (my int $i = 0; $i < $o.iters; $i++) {
-	    if ($o.verbose)
+	for (my int $i = 0; $i < $unit.option("iters"); $i++) {
+	    if ($unit.verbose())
 		printf("TID %d: iteration %d\n", gettid(), $i);
             number_tests();
 	    operator_test();
@@ -2228,7 +2189,7 @@ sub do_tests() {
 	    format_date_tests();
             module_tests();
             type_code_test();
-	    if ($o.bq)
+	    if ($unit.option("bq"))
 		backquote_tests();
 	}
     }
@@ -2239,30 +2200,17 @@ sub do_tests() {
 }
 
 sub main() {
-    parse_command_line();
-    printf("QORE v%s Test Script (%d thread%s, %d iteration%s per thread)\n", Qore::VersionString, 
-	   $o.threads, $o.threads == 1 ? "" : "s", $o.iters, $o.iters == 1 ? "" : "s");
-
     # run regression background tests
     background_tests();
 
     our Counter $counter();
-    while ($o.threads--) {
+    my int $threads = $unit.option("threads");
+    while ($threads--) {
 	$counter.inc();
 	background do_tests();
     }
 
     $counter.waitForZero();
-
-#    my int $ntests = elements $thash;
-    my int $errors = $unit.errors();
-    my int $ntests = $unit.testCount();
-    printf("%d error%s encountered in %d test%s.\n",
-	   $errors, $errors == 1 ? "" : "s", 
-	   $ntests, $ntests == 1 ? "" : "s");
-
-    # add exit status as # of errors
-    exit($errors);
 }
 
 main();
