@@ -146,6 +146,10 @@ public:
    DLLLOCAL RNotifier() : setp(false) {
    }
 
+   DLLLOCAL ~RNotifier() {
+      assert(!setp);
+   }
+
    DLLLOCAL void done() {
       assert(setp);
       notify.dec();
@@ -174,9 +178,15 @@ typedef std::list<RNotifier*> n_list_t;
 // the rsection is grabbed with the read lock but only one thread can have the rsection lock at once
 // leaving other threads to read the object normally
 class qore_rsection_priv : public qore_var_rwlock_priv {
+private:
+   // not implemented, listed here to prevent implicit usage
+   DLLLOCAL qore_rsection_priv(const qore_rsection_priv&);
+   DLLLOCAL qore_rsection_priv& operator=(const qore_rsection_priv&);
+
 protected:
 #ifdef DO_OBJ_RECURSIVE_CHECK
-   int rs_tid;          // tid of thread holding the rsection lock
+   // tid of thread holding the rsection lock
+   int rs_tid;
 
    // list of ObjectRSetHelper objects for notifications for rsection management
    n_list_t list;
@@ -482,9 +492,6 @@ protected:
    // current objects being scanned, used to establish a cycle
    ovec_t ovec;
 
-   // list of fomap iterators to current recursive objects found
-   //ovec_t frvec;
-
    // list of ObjectRSet objects to be invalidated when the transaction is committed
    rs_set_t tr_invalidate;
    
@@ -535,7 +542,6 @@ public:
 
    DLLLOCAL ~ObjectRSetHelper() {
       assert(ovec.empty());
-      //assert(frvec.empty());
       assert(!lcnt);
    }
 };

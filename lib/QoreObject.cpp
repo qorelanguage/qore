@@ -663,6 +663,13 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 
 	    // output in any case even when debugging is disabled
 	    print_debug(0, "QoreObject::customDeref() this: %p rcount/refs: %d/%d collecting object (%s) with only recursive references\n", this, (int)priv->rcount, (int)ref_copy, getClassName());
+	    /*
+	    if (priv->rcount != ref_copy)
+	       priv->rset->dbg();
+	    assert(priv->rcount == ref_copy);
+	    */
+	    //assert(strcmp(getClassName(), "WebAppConnection"));
+	    //priv->rset->invalidate();
 
 	    rrf = true;
 	    break;
@@ -1464,12 +1471,6 @@ bool ObjectRSetHelper::checkIntern(QoreObject& obj) {
 	 // get iterator to object record
 	 omap_t::iterator oi = ovec[i];
 
-	 //printd(QRO_LVL, "  + %p %s rcount: %d in_cycle: %d ok: %d (rset: %p) %s\n", o, o->getClassName(), oi->second.rcount, oi->second.in_cycle, oi->second.ok, oi->second.rset, oi->first == &obj ? "" : "->");
-
-	 //printd(QRO_LVL, " + obj %p '%s': marking %d(/%d): %p '%s' current rcount: %d\n", &obj, obj.getClassName(), i, (int)ovec.size(), ovec[i]->first, ovec[i]->first->getClassName(), ovec[i]->second.rcount);
-
-	 //printd(QRO_LVL, "ObjectRSetHelper::checkIntern() done search obj %p '%s': matches found: %d, marking with new rset\n", &obj, obj.getClassName(), frvec.size() - fpos);
-
 	 // merge rsets
 	 if (!oi->second.rset) {
 	    if (!rset) {
@@ -1492,7 +1493,6 @@ bool ObjectRSetHelper::checkIntern(QoreObject& obj) {
 	    break;
 
 	 --i;
-	 //frvec.pop_back();
       }
 
       return false;
@@ -1514,9 +1514,6 @@ bool ObjectRSetHelper::checkIntern(QoreObject& obj) {
 
    // push on current vector chain
    ovec.push_back(fi);
-
-   // save high water mark in rset
-   //size_t fpos = frvec.size();
 
    // remove from invalidation set if present
    tr_out.erase(&obj);
@@ -1674,7 +1671,6 @@ void ObjectRSetHelper::rollback() {
    }
 
    fomap.clear();
-   //frvec.clear();
    ovec.clear();
    tr_out.clear();
    tr_invalidate.clear();

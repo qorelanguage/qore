@@ -684,10 +684,12 @@ my Mapper $map(DataMap);
                     my *string $nf = $m.number_format ? $m.number_format : $.number_format;
                     if ($nf)
                         $v = parse_number($v, $nf);
-                    # check for valid numeric values
-                    if ($v !~ /^([-+])?[0-9]+(\.[0-9]+)?+$/)
-                        $.error2("INVALID-NUMBER", "field %y = %y is marked as a numeric field, but the input data contains non-numeric text in input row: %y", $.getFieldName($key), $v, $rec);                    
-                    $v = number($v);
+                    else {
+                        # check for valid numeric values
+                        if ($v !~ /^([-+])?[0-9]+(\.[0-9]+)?+$/)
+                            $.error2("INVALID-NUMBER", "field %y = %y is marked as a numeric field, but the input data contains non-numeric text in input row: %y", $.getFieldName($key), $v, $rec);                    
+                        $v = number($v);
+                    }
                     break;
                 }
                 case "int":

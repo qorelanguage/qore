@@ -13,6 +13,7 @@
 # make sure we have the right version of qore
 %requires qore >= 0.8.11
 
+%append-module-path ../../qlib
 %requires UnitTest
 
 # for Mime tests
