@@ -1,0 +1,24 @@
+#!/usr/bin/env qore
+%require-types
+%enable-all-warnings
+%requires UnitTest
+
+my UnitTest $t();
+our Queue $q();
+
+sub t() {
+    $q.get();
+    $q.push(1);
+}
+
+try {
+    while (True) {
+   	background t();
+    }
+}
+catch ($ex) {
+    $t.cmp($ex.err, 'THREAD-CREATION-FAILURE', 'found threads count limit');
+    $q.push(1);
+}
+
+$t.ok(num_threads() > 1, "number of threads is " + num_threads());
