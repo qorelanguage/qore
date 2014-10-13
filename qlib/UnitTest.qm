@@ -233,5 +233,12 @@ available output formats (stdout):
         ok(0, msg);
         m_result{msg}{'msg'} = '# found normal exit instead of exception';
     }
-}
 
+    cmploop(callref f, list testcases) {
+        foreach hash testcase in (testcases) {
+            list args = testcase.args;
+            any bak = call_function_args(f, args);
+            cmp(bak, testcase.cmp, testcase.msg);
+        }
+    }
+}
