@@ -1,0 +1,27 @@
+#!/usr/bin/env qore
+%require-types
+#%enable-all-warnings
+#%allow-bare-refs
+%requires UnitTest
+
+my UnitTest $t();
+
+string $str = "content\nxxx";
+string $file = $t.tmpLocation() + "/test";
+my File $fw();
+
+unlink($file);
+$fw.open($file, O_WRONLY | O_CREAT);
+$fw.write($str);
+$fw.close();
+
+my ReadOnlyFile $fr($file);
+$fr.setPos();
+int $c;
+string $s = '';
+while (exists (*string $line1 = $fr.readLine())) {
+    $s += $line1;
+}
+
+$t.cmp($fr.getPos(), 11, 'end position check');
+$t.cmp($str, $s, 'read string check');
