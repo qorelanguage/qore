@@ -1,26 +1,26 @@
 #!/usr/bin/env qore
 %require-types
 %enable-all-warnings
-#%allow-bare-refs
+%allow-bare-refs
 %requires UnitTest
 
-my UnitTest $t();
+my UnitTest t();
 
-my string $str = "content\nxxx";
-my string $file = $t.tmpLocation() + "/test";
-my File $fw();
+my string str = "content\nxxx";
+my string file = t.tmpLocation() + "/test";
+my File fw();
 
-unlink($file);
-$fw.open($file, O_WRONLY | O_CREAT);
-$fw.write($str);
-$fw.close();
+unlink(file);
+fw.open(file, O_WRONLY | O_CREAT);
+fw.write(str);
+fw.close();
 
-my ReadOnlyFile $fr($file);
-$fr.setPos();
-my string $s = '';
-while (exists (my *string $line1 = $fr.readLine())) {
-    $s += $line1;
+my ReadOnlyFile fr(file);
+fr.setPos();
+my string s = '';
+while (exists (my *string line1 = fr.readLine())) {
+    s += line1;
 }
 
-$t.cmp($fr.getPos(), 11, 'end position check');
-$t.cmp($str, $s, 'read string check');
+t.cmp(fr.getPos(), 11, 'end position check');
+t.cmp(str, s, 'read string check');

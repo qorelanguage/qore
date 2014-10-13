@@ -1,0 +1,20 @@
+#!/usr/bin/env qore
+%require-types
+%enable-all-warnings
+%allow-bare-refs
+%requires UnitTest
+
+my UnitTest t();
+
+my string file = t.tmpLocation() + "/output";
+
+system("ls -l " + ENV.QORE_MODULE_DIR + " > " + file);
+
+my File f1();
+f1.open2(file);
+my string stdout = f1.read(-1);
+
+t.like(stdout, 'UnitTest\.qm', 'seems like ls cmd was performed correctly');
+
+unlink(file);
+
