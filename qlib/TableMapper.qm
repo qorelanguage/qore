@@ -68,19 +68,21 @@ const DataMap = (
     "id": "^attributes^.Id",
     # output column: "name": maps from an input field with the same name (no translations are made)
     "name": True,
-    # output column: "explicit_count": maps from the input "Count" field, if any value is present then it is converted to an integer
-    "explicit_count": ("type": "int", "name": "Count"),
+    # output column: "explicit_count": maps from the input "Count" field
+    "explicit_count": "Count",
     # output column: "implicit_count": runs the given code on the input record and retuns the result, the code returns the number of "Products" sub-records
     "implicit_count": int sub (any $ignored, hash $rec) { return $rec.Products.size(); },
     # output column: "order_date": converts the "OrderDate" string input field to a date in the specified format
     "order_date": ("name": "OrderDate", "date_format": "DD.MM.YYYY HH:mm:SS.us"),
+    # output column: order_type: given as a constant value
+    "order_type": ("constant": "NEW"),
 );
     @endcode
 
     If this map is applied in the following way:
     @code
 my Table $table($ds, "order_table");
-my TableMapper $map($table, DataMap);
+my InboundTableMapper $map($table, DataMap);
 {
     on_success $map.commit();
     on_error $map.rollback();
@@ -129,6 +131,7 @@ const DbMapper = (
     "ordered": "Ordered",
     "available": "Available",
     "in_transit": "InTransit",
+    "status": ("constant": "01"),
     "total": int sub (any $x, hash $rec) { return $rec.Available.toInt() + $rec.Ordered.toInt() + $rec.InTransit.toInt(); },
     );
 
@@ -136,7 +139,7 @@ my InboundTableMapper $map($table, DbMapper);
             @endcode
 
             @param table the target table object
-            @param map a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
+            @param map a hash providing field mappings; each hash key is the name in lower case of the output column in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
@@ -162,6 +165,7 @@ const DbMapper = (
     "ordered": "Ordered",
     "available": "Available",
     "in_transit": "InTransit",
+    "status": ("constant": "01"),
     "total": int sub (any $x, hash $rec) { return $rec.Available.toInt() + $rec.Ordered.toInt() + $rec.InTransit.toInt(); },
     );
 
@@ -362,6 +366,7 @@ const DbMapper = (
     "ordered": "Ordered",
     "available": "Available",
     "in_transit": "InTransit",
+    "status": ("constant": "01"),
     "total": int sub (any $x, hash $rec) { return $rec.Available.toInt() + $rec.Ordered.toInt() + $rec.InTransit.toInt(); },
     );
 
@@ -370,7 +375,7 @@ my InboundTableMapperIterator $i($input, $table, DbMapper);
 
             @param i input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
             @param table the target table object
-            @param map a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
+            @param map a hash providing field mappings; each hash key is the name of the output column in lower case in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
             @param commit_limit row count before a commit is made; if <= 0 then no commits are made by this object, otherwise a commit is made for each \a commit_limit rows processed by this object, commits are made in calls to @ref next()
 
@@ -395,6 +400,7 @@ const DbMapper = (
     "ordered": "Ordered",
     "available": "Available",
     "in_transit": "InTransit",
+    "status": ("constant": "01"),
     "total": int sub (any $x, hash $rec) { return $rec.Available.toInt() + $rec.Ordered.toInt() + $rec.InTransit.toInt(); },
     );
 
@@ -403,7 +409,7 @@ my InboundTableMapperIterator $i($input, $table, DbMapper);
 
             @param i input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
             @param table the target table object
-            @param map a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
+            @param map a hash providing field mappings; each hash key is the name of the output column in lower case in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
             @param commit_limit row count before a commit is made; if <= 0 then no commits are made by this object, otherwise a commit is made for each \a commit_limit rows processed by this object, commits are made in calls to @ref next()
 
