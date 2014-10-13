@@ -141,7 +141,8 @@ private:
 
 public:
    bool setp;
-   QoreCounter notify;
+   QoreThreadLock m;
+   QoreCondition c;
       
    DLLLOCAL RNotifier() : setp(false) {
    }
@@ -151,23 +152,23 @@ public:
    }
 
    DLLLOCAL void done() {
+      AutoLocker al(m);
       assert(setp);
-      notify.dec();
+      setp = false;
+      c.signal();
    }
 
    DLLLOCAL void set() {
+      AutoLocker al(m);
       assert(!setp);
       setp = true;
-      assert(!notify.getCount());
-      notify.inc();
    }
 
    DLLLOCAL void wait() {
-      if (setp) {
-         //printd(5, "RNotifier::wait() waiting for notification\n");
-         notify.waitForZero();
-         setp = 0;
-      }
+      AutoLocker al(m);
+
+      while (setp)
+         c.wait(m);
    }
 };
 
