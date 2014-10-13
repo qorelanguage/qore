@@ -46,6 +46,7 @@
       - AbstractSchema::combineOptions() fails when an option variable contains @ref nothing instead of a valid hash
     - <a href="../../modules/Mapper/html/index.html">Mapper</a> module fixes:
       - moved field length checks after all transformations have been applied
+      - fixed bugs in the \c "timezone" and \c "input_timezone" options, documented those options
     - fixed a memory error in error-handling with type errors when parsing user module headers that could cause a crash
     - fixed a memory leak in @ref Qore::Socket::setWarningQueue() "Socket::setWarningQueue()": when a callback argument is used, the argument can be leaked when the @ref Qore::Socket "Socket" is destroyed
     - fixed a bug where the @ref Qore::HTTPClient "HTTPClient" class did not send the X.509 certificate and private key when making a client SSL connection

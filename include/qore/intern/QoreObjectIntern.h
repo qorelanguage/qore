@@ -225,6 +225,7 @@ public:
 #ifdef DO_OBJ_RECURSIVE_CHECK
    // does not block under any circumstances, returns -1 if the lock cannot be acquired and sets a notification
    DLLLOCAL int tryRSectionLockNotifyWaitRead(RNotifier* rn) {
+      assert(!rn->setp);
       assert(has_notify);
 
       int tid = gettid();

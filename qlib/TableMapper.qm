@@ -82,7 +82,7 @@ const DataMap = (
     If this map is applied in the following way:
     @code
 my Table $table($ds, "order_table");
-my TableMapper $map($table, DataMap);
+my InboundTableMapper $map($table, DataMap);
 {
     on_success $map.commit();
     on_error $map.rollback();

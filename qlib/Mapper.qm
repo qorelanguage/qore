@@ -148,16 +148,18 @@ list: (2 elements)
     @section mapperoptions Mapper Options
 
     Mapper objects accept the following options in the option hash:
-    - \c "date_format": gives the global format for converting a string to a date; see @ref date_formatting for the format of this string; this is applied to all fields of type \c "date" unless the field has a \c "date_format" value that overrides this global setting
-    - \c "enc": the output character encoding; if not present then \c "UTF-8" is assumed
-    - \c "name": the name of the mapper for use in logging and error strings
-    - \c "number_format": gives the global format for converting a string to a number; see @ref Qore::parse_number() for the format of this string; this is applied to all fields of type \c "number" unless the field has a \c "number_format" value that overrides this global setting
-    - \c "trunc": an optional @ref closure "closure" or @ref call_reference "call reference" for a callback for field truncation warnings; must accept a single string giving the warning text
-    - \c "trunc_all": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then any field without a \c "trunc" key (see @ref mapperkeys \c "trunc" description) will automatically be truncated if a \c "maxlen" attribute is set for the field
     - \c "allow_dot": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then field names with \c "." characters do not imply a structured internal element lookup; in this case input field names may have \c "." characters in them, use the \c "struct" key to use structured internal element loopups (see @ref mapperkeys \c "struct" docs for more info)
     - \c "allow_output_dot": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then output field names with \c "." characters do not imply a structured/hash output element; in this case output field names may have \c "." characters in them
+    - \c "date_format": gives the global format for converting a string to a date; see @ref date_formatting for the format of this string; this is applied to all fields of type \c "date" unless the field has a \c "date_format" value that overrides this global setting
+    - \c "enc": the output character encoding; if not present then \c "UTF-8" is assumed
     - \c "input_log": an optional input data logging callback; must accept a hash giving the input data hash
+    - \c "input_timezone": an optional string or integer (giving seconds east of UTC) giving the time zone for parsing input data (ex: \c "Europe/Prague"), if not set defaults to the current TimeZone (see @ref Qore::TimeZone::get())
+    - \c "name": the name of the mapper for use in logging and error strings
+    - \c "number_format": gives the global format for converting a string to a number; see @ref Qore::parse_number() for the format of this string; this is applied to all fields of type \c "number" unless the field has a \c "number_format" value that overrides this global setting
     - \c "output_log": an optional output data logging callback; must accept a hash giving the output data hash
+    - \c "timezone": an optional string or integer (giving seconds east of UTC) giving the time zone definition for output data (ex: \c "Europe/Prague"), if not set defaults to the current TimeZone (see @ref Qore::TimeZone::get())
+    - \c "trunc": an optional @ref closure "closure" or @ref call_reference "call reference" for a callback for field truncation warnings; must accept a single string giving the warning text
+    - \c "trunc_all": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then any field without a \c "trunc" key (see @ref mapperkeys \c "trunc" description) will automatically be truncated if a \c "maxlen" attribute is set for the field
 
     @section mapperrelnotes Release Notes
 
@@ -168,6 +170,7 @@ list: (2 elements)
     - moved field length checks after all transformations have been applied
     - implemented a global "date_format" mapper option
     - implemented the "number_format" field option and a global option of the same name
+    - fixed bugs in the "timezone" and "input_timezone" options, documented those options
 
     @subsection mapperv1_0 Mapper v1.0
     - Initial release
@@ -491,7 +494,7 @@ my Mapper $map(DataMap);
 
             switch ($val.typeCode()) {
                 case NT_STRING:
-                case NT_INT: $self.$rn = new TimeZone($val.timezone); break;
+                case NT_INT: $self.$rn = new TimeZone($val); break;
                 default: $.error("type %y assigned to the %s option (expecting TimeZone, string, or int)", $val.type(), $rn);
             }
         }
