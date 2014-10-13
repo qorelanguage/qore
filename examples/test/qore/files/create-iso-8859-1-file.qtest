@@ -1,5 +1,6 @@
 #!/usr/bin/env qore 
-
+%require-types
+%enable-all-warnings
 %requires UnitTest
 
 my UnitTest $t();
@@ -8,7 +9,7 @@ my string $tmp = $t.tmpLocation();
 my string $file = $tmp + '/iso-8859-1.txt';
 my string $str = "Öffentl. Körperschaft/\n\n";
 
-my $f = new File("ISO-8859-1");
+my File $f = new File("ISO-8859-1");
 $f.open($file, O_WRONLY | O_CREAT);
 $f.write($str);
 $f.close();

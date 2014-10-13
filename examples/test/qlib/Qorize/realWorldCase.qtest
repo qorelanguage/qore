@@ -1,9 +1,11 @@
 #!/usr/bin/env qore
+%require-types
+%enable-all-warnings
 %requires Qorize
 %requires xml
 %requires UnitTest
 
-my UnitTest $t(True);
+my UnitTest $t();
 
 const OLDSTYLE = False;
 const NEWSTYLE = True;
@@ -22,14 +24,14 @@ my hash $h = parseXMLAsData($xml);
 # TODO: this code should probably match exact match 
 
 # testing
-my $qorized_new = qorize($h, 'name', NEWSTYLE);
+my string $qorized_new = qorize($h, 'name', NEWSTYLE);
 $t.ok($qorized_new.size() > MIN_LENGTH, 'qorize oldstyle: got some long string');
 
-my $qorized_old = qorize($h, 'name', OLDSTYLE);
+my string $qorized_old = qorize($h, 'name', OLDSTYLE);
 $t.ok($qorized_old.size() > MIN_LENGTH, 'qorize newstyle: got some long string');
 
-my $qorizedN_new = qorizeNamed($h, 'name', NEWSTYLE);
+my string $qorizedN_new = qorizeNamed($h, 'name', NEWSTYLE);
 $t.ok($qorizedN_new.size() > MIN_LENGTH, 'qorizeNamed oldstyle: got some long string');
 
-my $qorizedN_old = qorizeNamed($h, 'name', OLDSTYLE);
+my string $qorizedN_old = qorizeNamed($h, 'name', OLDSTYLE);
 $t.ok($qorizedN_old.size() > MIN_LENGTH, 'qorizeNamed newstyle: got some long string');

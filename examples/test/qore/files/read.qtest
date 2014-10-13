@@ -1,13 +1,13 @@
 #!/usr/bin/env qore
 %require-types
-#%enable-all-warnings
+%enable-all-warnings
 #%allow-bare-refs
 %requires UnitTest
 
 my UnitTest $t();
 
-string $str = "content\nxxx";
-string $file = $t.tmpLocation() + "/test";
+my string $str = "content\nxxx";
+my string $file = $t.tmpLocation() + "/test";
 my File $fw();
 
 unlink($file);
@@ -17,9 +17,8 @@ $fw.close();
 
 my ReadOnlyFile $fr($file);
 $fr.setPos();
-int $c;
-string $s = '';
-while (exists (*string $line1 = $fr.readLine())) {
+my string $s = '';
+while (exists (my *string $line1 = $fr.readLine())) {
     $s += $line1;
 }
 

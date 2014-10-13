@@ -1,23 +1,26 @@
+#!/usr/bin/env qore
+%require-types
+%enable-all-warnings
 %requires UnitTest
 %requires CsvUtil
 
-my UnitTest $t(True);
+my UnitTest $t();
 
 # 1) prepare test file names and its content
-my $str = "website,origin,name,image,mod_data,id
+my string $str = "website,origin,name,image,mod_data,id
 http://www.myspace.com/alcestmusic,FR,Alcest,alcest.jpg,2013-01-31T13:20:51,345
 http://www.amorphis.net/,FI,Amorphis,amorphis.jpg,2012-10-15T23:08:04,384
 http://www.anthrax.com/,US,Anthrax,anthrax.jpg,2012-12-29T14:02:53,395
 ";
-my $rfile = $t.tmpLocation() + "/test.csv";
-my $f = new File();
+my string $rfile = $t.tmpLocation() + "/test.csv";
+my File $f = new File();
 $f.open($rfile, O_WRONLY | O_CREAT);
 $f.write($str);
 $f.close();
 
-my $wdir = $t.tmpLocation();
-my $wfile1 = $wdir + "/file1.csv";
-my $wfile2 = $wdir + "/file2.csv";
+my string $wdir = $t.tmpLocation();
+my string $wfile1 = $wdir + "/file1.csv";
+my string $wfile2 = $wdir + "/file2.csv";
 
 # 2a) test match
 my hash $iterator_opts = (
@@ -42,12 +45,12 @@ my CsvFileWriter $fw1($wfile2, $write_opts);
 my CsvStringWriter $sw1($write_opts);
 
 # TODO: refactor following lines
-my $headers = ('website', 'origin', 'name', 'image', 'mod_data', 'id');
+my list $headers = ('website', 'origin', 'name', 'image', 'mod_data', 'id');
 $fw1.writeLine($headers);
 $sw1.writeLine($headers);
 while ($it1.next()) {
-    my $value = $it1.getValue();
-    my $list = ($value.website, $value.origin, $value.name, $value.image, format_date("YYYY-MM-DDTHH:mm:SS", $value.mod_data), $value.id);
+    my hash $value = $it1.getValue();
+    my list $list = ($value.website, $value.origin, $value.name, $value.image, format_date("YYYY-MM-DDTHH:mm:SS", $value.mod_data), $value.id);
     $fw1.writeLine($list);
     $sw1.writeLine($list);
 }

@@ -1,15 +1,11 @@
 #!/usr/bin/env qore 
 # -*- mode: qore; indent-tabs-mode: nil -*-
-
+%require-types
+%enable-all-warnings
 %requires SqlUtil
 %requires UnitTest
 %require-types
 
-# {{{ init
-
-my int $tests = 0;
-
-# }}}
 # {{{ create test db
 
 my Datasource $ds("oracle:omquser/omquser@xbox");
@@ -47,7 +43,7 @@ my hash $opts = (
 # }}}
 # {{{ smoke tests
 
-my UnitTest $t(True);
+my UnitTest $t();
 
 # CREATE TABLE test
 $db.dropTableIfExists(TEST_TABLE_NAME);
@@ -61,7 +57,7 @@ $table.insert(("id": 2, "col_a": "A2", "col_b" : "B2"));
 $t.cmp($table.rowCount(), 2, "insert: 2 rows inserted");
 
 # SELECT test
-$data = $table.select();
+my hash $data = $table.select();
 $t.cmp($data, ("id" : (1, 2), 'col_a' : ('A1', 'A2'), 'col_b' : ('B1', 'B2')), 'select: data checked');
 $t.cmp($data.id[2], NOTHING, "select: row 2, not exists");
 
@@ -79,7 +75,7 @@ $t.cmp(elements $data.id, 0, "delete: no rows with removed id found");
 # DROP TABLE test
 $db.dropTableIfExists(TEST_TABLE_NAME);
 my Table $removed_table("oracle:omquser/omquser@xbox", TEST_TABLE_NAME);
-$t.cmp($removedTable, NOTHING, "drop table: no table found");
+$t.ok(!$removed_table.checkExistence(), "drop table: no table found");
 
 # }}}
 

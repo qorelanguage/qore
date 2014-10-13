@@ -1,78 +1,89 @@
 #!/usr/bin/env qore
+%require-types
+%enable-all-warnings
 %requires Qorize
 %requires UnitTest
 
-my UnitTest $t(True);
+my UnitTest $t();
 
 const OLDSTYLE = False;
 const NEWSTYLE = True;
 
-my $tests = (
+$t.cmploop(\qorize(), (
     (
         "args" : (True, "b", OLDSTYLE),
-        "cmp"  : "my bool $b = True;"
+        "cmp"  : "my bool $b = True;",
+        "msg"  : "bool in oldstyle",
     ),
     (
         "args" : (True, "b", NEWSTYLE),
-        "cmp"  : "bool b = True;"
+        "cmp"  : "bool b = True;",
+        "msg"  : "bool in newstyle",
     ),
     (
         "args" : ("lorem ipsum", "str", OLDSTYLE),
-        "cmp"  : "my string $str = \"lorem ipsum\";"
+        "cmp"  : "my string $str = \"lorem ipsum\";",
+        "msg"  : "string in oldstyle",
     ),
     (
         "args" : ("lorem ipsum", "str", NEWSTYLE),
-        "cmp"  : "string str = \"lorem ipsum\";"
+        "cmp"  : "string str = \"lorem ipsum\";",
+        "msg"  : "string in newstyle",
     ),
     (
         "args" : ('foo \n"bar"\n', "str", OLDSTYLE),
-        "cmp"  : "my string $str = \"foo \\n\\\"bar\\\"\\n\";"
+        "cmp"  : "my string $str = \"foo \\n\\\"bar\\\"\\n\";",
+        "msg"  : "escaped string in oldstyle",
     ),
     (
         "args" : (10.34, "f", OLDSTYLE),
-        "cmp"  : "my float $f = 10.34;"
+        "cmp"  : "my float $f = 10.34;",
+        "msg"  : "float in oldstyle",
     ),
     (
         "args" : (10.34, "f", NEWSTYLE),
-        "cmp"  : "float f = 10.34;"
+        "cmp"  : "float f = 10.34;",
+        "msg"  : "float in newstyle",
     ),
     (
         "args" : (5.23928173726123e50n, "n", OLDSTYLE),
-        "cmp"  : "my number $n = 523928173726123000000000000000000000000000000000000n;"
+        "cmp"  : "my number $n = 523928173726123000000000000000000000000000000000000n;",
+        "msg"  : "number in oldstyle",
     ),
     (
         "args" : (5.23928173726123e50n, "n", NEWSTYLE),
-        "cmp"  : "number n = 523928173726123000000000000000000000000000000000000n;"
+        "cmp"  : "number n = 523928173726123000000000000000000000000000000000000n;",
+        "msg"  : "number in newstyle",
     ),
     (
         "args" : (3h, "d", OLDSTYLE),
-        "cmp"  : "my date $d = PT3H;"
+        "cmp"  : "my date $d = PT3H;",
+        "msg"  : "date in oldstyle",
     ),
     (
         "args" : (3h, "d", NEWSTYLE),
-        "cmp"  : "date d = PT3H;"
+        "cmp"  : "date d = PT3H;",
+        "msg"  : "date in newstyle",
     ),
     (
         "args" : (-1D, "d", OLDSTYLE),
         "cmp"  : "my date $d = P-1D;",
+        "msg"  : "another date in oldstyle",
     ),
     (
         "args" : (-1D, "d", NEWSTYLE),
-        "cmp"  : "date d = P-1D;"
+        "cmp"  : "date d = P-1D;",
+        "msg"  : "another date in newstyle",
     ),
     (
         "args" : (binary("foo"), "b", OLDSTYLE),
-        "cmp"  : "my binary $b = parseHexString(\"666f6f\");"
+        "cmp"  : "my binary $b = parseHexString(\"666f6f\");",
+        "msg"  : "binary in oldstyle",
     ),
     (
         "args" : (binary("foo"), "b", NEWSTYLE),
-        "cmp"  : "binary b = parseHexString(\"666f6f\");"
+        "cmp"  : "binary b = parseHexString(\"666f6f\");",
+        "msg"  : "binary in newstyle",
     ),
-);
+));
 
-# TODO: put this loop into UnitTest
-foreach my $testcase in ($tests) {
-    my $args = $testcase.args;
-    my $bak = qorize($args[0], $args[1], $args[2]);
-    $t.cmp($bak, $testcase.cmp, $testcase.args.join(" "));
-}

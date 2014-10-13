@@ -1,4 +1,6 @@
 #!/usr/bin/env qore
+%require-types
+%enable-all-warnings
 %requires UnitTest
 %allow-bare-refs
 %exec-class App
