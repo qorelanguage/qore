@@ -308,7 +308,7 @@ public namespace Schema {
             - the schema being upgraded if an older version of the schema exists in the database
             - the schema being downgraded if a newer version of the schema exists in the database
             
-            @note if other database objects not belonging to the schema already exist in the given database, they will be dropped
+            @note if other database objects not belonging to the schema already exist in the given database, they are not touched unless explicitly dropped by upgrade or downgrade code in the schema class; note that any undefined attributes of tables defined in the schema (columns, indexes, constraints, etc) will be dropped however
         */
 	int align(bool force = False, int verbose = 0) {
             SchemaCallbackHelper sch(self, verbose);
