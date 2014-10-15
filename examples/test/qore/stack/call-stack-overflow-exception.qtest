@@ -1,0 +1,23 @@
+#!/usr/bin/env qore 
+%require-types
+%enable-all-warnings
+%requires UnitTest
+
+our UnitTest $t();
+
+if (!Option::HAVE_STACK_GUARD) {
+    $t.ok(True, 'Skipping tests because this qore library was not built with stack protection support');
+}
+else {
+    do_test("main thread");
+    background do_test("background thread");
+}
+
+sub recurse() {
+    recurse();
+}
+
+sub do_test(string $str) {
+    $t.exception(\recurse(), (), "this thread's stack has exceeded the stack size limit", $str + ': STACK-LIMIT-EXCEEDED exception');
+}
+
