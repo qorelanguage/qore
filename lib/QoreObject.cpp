@@ -1475,7 +1475,8 @@ bool ObjectRSetHelper::checkIntern(QoreObject& obj) {
 	       printd(QRO_LVL, " + %p '%s': rcycle: %d second.rset: %p new ObjectRSet: %p\n", oi->first, oi->first->getClassName(), obj.priv->rcycle, oi->second.rset, rset);
 	    }
 
-	    addToRSet(oi, rset, tid);
+	    if (addToRSet(oi, rset, tid))
+	       return true;
 	 }
 	 else {
 	    if (i > 0 && oi->first != &obj && !ovec[i-1]->second.in_cycle) {
