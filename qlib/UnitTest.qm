@@ -2,7 +2,10 @@
 %requires qore >= 0.8.11
 %new-style
 
-%requires xml
+%try-module xmls
+%define NO_XML
+%endtry
+
 
 module UnitTest {
     version = "0.1";
@@ -166,6 +169,10 @@ available output formats (stdout):
     }
 
     private reportJunit() {
+%ifdef NO_XML
+        stderr.printf("No XML module found. Use --format=plain instead\n");
+        exit(1);
+%else
         hash junit;
         junit.testsuites."^attributes^" = ( "errors" : errors(),
                                             "tests"  : testCount(),
@@ -186,6 +193,7 @@ available output formats (stdout):
         }
 
         printf("%s\n", makeFormattedXMLString(junit));
+%endif
     }
 
     string tmpLocation() {
