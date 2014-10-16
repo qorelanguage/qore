@@ -1465,25 +1465,23 @@ string strmul(softstring str, softint smul, *softint offset) [flags=RET_VALUE_ON
       return 0;
    }
 
-   QoreStringNode* ret = new QoreStringNode(str);
+   QoreStringNodeHolder ret(new QoreStringNode(str));
    while (smul != 1) {
       ret->concat(str);
       --smul;
    }
    
    if (offset) {
-      if (offset > ret->length())
-      {
+      if (offset > (int64)ret->length()) {
          xsink->raiseException("STRMUL-ERROR", "Offset (%d) is greater than string length (%d)", offset, ret->length());
          return 0;
       }
-
-      offset = ret->length() - offset;
-      SimpleRefHolder<QoreStringNode> t(ret);
-      return ret->substr(0, offset, xsink);
+      ret->splice(ret->length() - offset, xsink);
+      if (*xsink)
+         return 0;
    }
-       
-   return ret;
+
+   return ret.release();
 }
 
 //! Returns a string of a formatted number according to a number argument and a format string
