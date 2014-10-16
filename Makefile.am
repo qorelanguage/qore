@@ -39,9 +39,20 @@ DOX_MODULES = qlib/SmtpClient.qm \
 	qlib/UnitTest.qm
 
 TESTSCRIPTS=examples/test/test.q \
-        examples/test/bare-ref-test.q \
-        examples/test/create-iso-8859-1-file.q \
-        examples/test/hash-test.q
+        examples/test/qore/vars/hash.qtest \
+        examples/test/qore/vars/bare-ref-test.qtest \
+        examples/test/qore/classes/Program/lasting-subprogram-in-thread.qtest \
+        examples/test/qore/stack/call-stack-overflow-exception.qtest \
+        examples/test/qore/files/create-iso-8859-1-file.qtest \
+        examples/test/qore/files/read.qtest \
+        examples/test/qore/functions/strmul.qtest \
+        examples/test/qore/functions/system.qtest \
+        examples/test/qore/threads/max-threads-count.qtest \
+        examples/test/qlib/CsvUtil/test.qtest \
+        examples/test/qlib/Qorize/qorize.qtest \
+        examples/test/qlib/Qorize/qorizeNamed.qtest \
+        examples/test/qlib/Qorize/realWorldCase.qtest
+#        examples/test/qlib/SqlUtil/smoke.qtest
 
 
 USER_MODULES = $(DOX_SRC_MODULES) \
@@ -552,7 +563,7 @@ EXTRA_DIST = next_build.sh runtest.sh WHATISQORE RELEASE-NOTES \
 
 dist_modver_DATA = $(USER_MODULES)
 
-TESTS = examples/test/test.q
+TESTS = $(TESTSCRIPTS)
 AM_TESTS_ENVIRONMENT = QORE_MODULE_DIR='$(srcdir)/qlib'; export QORE_MODULE_DIR;
 LOG_COMPILER = ./runtest.sh
 
