@@ -143,22 +143,44 @@ public:
    bool setp;
    QoreThreadLock m;
    QoreCondition c;
-      
-   DLLLOCAL RNotifier() : setp(false) {
+#ifdef DEBUG
+   qore_rsection_priv* rs;
+#endif
+
+   DLLLOCAL RNotifier() : setp(false)
+#ifdef DEBUG
+                        , rs(0)
+#endif
+   {
    }
 
    DLLLOCAL ~RNotifier() {
       assert(!setp);
    }
 
+#ifdef DEBUG
+   DLLLOCAL void done(qore_rsection_priv* r) {
+      assert(rs == r);
+#else
    DLLLOCAL void done() {
+#endif
       AutoLocker al(m);
       assert(setp);
+#ifdef DEBUG
+      assert(rs);
+      rs = 0;
+#endif
       setp = false;
       c.signal();
    }
 
+#ifdef DEBUG
+   DLLLOCAL void set(qore_rsection_priv* r) {
+      assert(!rs);
+      rs = r;
+#else
    DLLLOCAL void set() {
+#endif
       AutoLocker al(m);
       assert(!setp);
       setp = true;
@@ -175,7 +197,7 @@ public:
 typedef std::list<RNotifier*> n_list_t;
 #endif
 
-// rwlock with stardard read and write lock handling, and special "rsection" handling
+// rwlock with standard read and write lock handling and special "rsection" handling
 // the rsection is grabbed with the read lock but only one thread can have the rsection lock at once
 // leaving other threads to read the object normally
 class qore_rsection_priv : public qore_var_rwlock_priv {
@@ -195,14 +217,22 @@ protected:
    // notify rsection threads that the rsection lock has been released
    DLLLOCAL virtual void notifyIntern() {
       for (n_list_t::iterator i = list.begin(), e = list.end(); i != e; ++i)
+#ifdef DEBUG
+         (*i)->done(this);
+#else
          (*i)->done();
+#endif
       list.clear();
    }
 
    DLLLOCAL void setNotificationIntern(RNotifier* rn) {
       assert(write_tid != -1 || rs_tid != -1);
       list.push_back(rn);
+#ifdef DEBUG
+      rn->set(this);
+#else
       rn->set();
+#endif
    }
 #endif
 
@@ -226,7 +256,6 @@ public:
 #ifdef DO_OBJ_RECURSIVE_CHECK
    // does not block under any circumstances, returns -1 if the lock cannot be acquired and sets a notification
    DLLLOCAL int tryRSectionLockNotifyWaitRead(RNotifier* rn) {
-      assert(!rn->setp);
       assert(has_notify);
 
       int tid = gettid();
@@ -317,10 +346,6 @@ public:
 
 #ifdef DO_OBJ_RECURSIVE_CHECK
 
-#define ORS_LOCK_ERROR  -1
-#define ORS_NO_MATCH     0
-#define ORS_MATCH        1
-
 /* Qore object recursive reference handling works as follows: objects are sorted into sets making up
    directed cyclic graphs.
 
@@ -336,7 +361,6 @@ protected:
    obj_set_t set;
    // for O(1) size comparisons; std::set::size() can be slow
    size_t ssize;
-   QoreRWLock rwl;
    int acnt;
    bool valid, in_del;
 
@@ -351,6 +375,8 @@ protected:
    }
    
 public:
+   QoreRWLock rwl;
+
    DLLLOCAL ObjectRSet() : ssize(0), acnt(0), valid(true), in_del(false) {
    }
 
@@ -524,7 +550,7 @@ protected:
    DLLLOCAL bool checkIntern(AbstractQoreNode* n);
 
    // queues nodes not scanned to tr_invalidate and tr_out
-   DLLLOCAL int removeInvalidate(ObjectRSet* ors, int tid = gettid());
+   DLLLOCAL bool removeInvalidate(ObjectRSet* ors, int tid = gettid());
 
    DLLLOCAL bool inCurrentSet(omap_t::iterator fi) {
       for (size_t i = 0; i < ovec.size(); ++i)

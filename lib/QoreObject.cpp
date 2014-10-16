@@ -639,8 +639,10 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 	       ObjectRSet* rs;
 	       rs = priv->rset;
 	       if (!rs) {
-		  if (priv->rcount == references)
+		  if (priv->rcount == references) {
+		     assert(references == ref_copy);
 		     rc = 1;
+		  }
 		  else
 		     return;
 	       }
@@ -1227,41 +1229,46 @@ bool ObjectRSetHelper::checkIntern(AbstractQoreNode* n) {
    return false;
 }
 
-int ObjectRSetHelper::removeInvalidate(ObjectRSet* ors, int tid) {
+bool ObjectRSetHelper::removeInvalidate(ObjectRSet* ors, int tid) {
    // get a list of objects to be invalidated
    obj_vec_t rovec;
-   // first grab all rsection locks
-   for (obj_set_t::iterator ri = ors->begin(), re = ors->end(); ri != re; ++ri) {		     
-      // if we already have the rsection lock, then ignore; already processed (either in fomap or tr_out)
-      if ((*ri)->priv->rml.hasRSectionLock(tid))
-	 continue;
 
-#ifdef DEBUG
-      bool hl = (*ri)->priv->rml.hasRSectionLock();
-#endif
-      if ((*ri)->priv->rml.tryRSectionLockNotifyWaitRead(&notifier)) {
-	 printd(QRO_LVL, "ObjectRSetHelper::removeInvalidate() obj %p '%s' cannot enter rsection: tid: %d\n", *ri, (*ri)->getClassName(), (*ri)->priv->rml.rSectionTid());
+   {
+      QoreAutoRWReadLocker al(ors->rwl);
+      
+      if (!ors->active())
+	 return false;
 
-	 // release other rsection locks
-	 for (unsigned i = 0; i < rovec.size(); ++i) {
-	    rovec[i]->priv->rml.rSectionUnlock();
-	    deccnt();
+      // first grab all rsection locks
+      for (obj_set_t::iterator ri = ors->begin(), re = ors->end(); ri != re; ++ri) {		     
+	 // if we already have the rsection lock, then ignore; already processed (either in fomap or tr_out)
+	 if ((*ri)->priv->rml.hasRSectionLock(tid))
+	    continue;
+
+	 if ((*ri)->priv->rml.tryRSectionLockNotifyWaitRead(&notifier)) {
+	    printd(QRO_LVL, "ObjectRSetHelper::removeInvalidate() obj %p '%s' cannot enter rsection: tid: %d\n", *ri, (*ri)->getClassName(), (*ri)->priv->rml.rSectionTid());
+
+	    // release other rsection locks
+	    for (unsigned i = 0; i < rovec.size(); ++i) {
+	       rovec[i]->priv->rml.rSectionUnlock();
+	       deccnt();
+	    }
+	    return true;
 	 }
-	 return ORS_LOCK_ERROR;
-      }
 #ifdef DEBUG
-      if (!hl)
+	 // we always have the rsection lock here
 	 inccnt();
 #endif
 
-      // check object status; do not scan invalid objects or objects being deleted
-      if ((*ri)->priv->in_destructor || (*ri)->priv->status != OS_OK) {
-	 (*ri)->priv->rml.rSectionUnlock();
-	 deccnt();
-	 continue;
-      }
+	 // check object status; do not scan invalid objects or objects being deleted
+	 if ((*ri)->priv->in_destructor || (*ri)->priv->status != OS_OK) {
+	    (*ri)->priv->rml.rSectionUnlock();
+	    deccnt();
+	    continue;
+	 }
       
-      rovec.push_back(*ri);
+	 rovec.push_back(*ri);
+      }
    }
 
    // now that we have all write locks, we have to check the RObjectSet status again
@@ -1271,7 +1278,7 @@ int ObjectRSetHelper::removeInvalidate(ObjectRSet* ors, int tid) {
 	 rovec[i]->priv->rml.rSectionUnlock();
 	 deccnt();
       }
-      return 0;
+      return false;
    }
 
    // invalidate old rset when transaction is committed
@@ -1286,7 +1293,7 @@ int ObjectRSetHelper::removeInvalidate(ObjectRSet* ors, int tid) {
 	 tr_out.insert(rovec[i]);
    }
 
-   return 0;
+   return false;
 }
 
 bool ObjectRSetHelper::addToRSet(omap_t::iterator oi, ObjectRSet* rset, int tid) {
@@ -1303,7 +1310,7 @@ bool ObjectRSetHelper::addToRSet(omap_t::iterator oi, ObjectRSet* rset, int tid)
    // queue any nodes not scanned for rset invalidation
    if (oi->first->priv->rset) {
       assert(rset != oi->first->priv->rset);
-      if (oi->first->priv->rset->active() && removeInvalidate(oi->first->priv->rset, tid))
+      if (removeInvalidate(oi->first->priv->rset, tid))
 	 return true;
    }
 
