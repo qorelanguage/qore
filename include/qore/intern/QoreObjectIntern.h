@@ -358,9 +358,8 @@ public:
 // set of objects in recursive directed graph
 class ObjectRSet {
 protected:
+   /// we assume that obj_set_t::size() is O(1)
    obj_set_t set;
-   // for O(1) size comparisons; std::set::size() can be slow
-   size_t ssize;
    int acnt;
    bool valid, in_del;
 
@@ -377,10 +376,10 @@ protected:
 public:
    QoreRWLock rwl;
 
-   DLLLOCAL ObjectRSet() : ssize(0), acnt(0), valid(true), in_del(false) {
+   DLLLOCAL ObjectRSet() : acnt(0), valid(true), in_del(false) {
    }
 
-   DLLLOCAL ObjectRSet(QoreObject* o) : ssize(1), acnt(0), valid(true), in_del(false) {
+   DLLLOCAL ObjectRSet(QoreObject* o) : acnt(0), valid(true), in_del(false) {
       set.insert(o);
    }
 
@@ -437,12 +436,10 @@ public:
 
    DLLLOCAL void insert(QoreObject* o) {
       set.insert(o);
-      ++ssize;
    }
 
    DLLLOCAL void clear() {
       set.clear();
-      ssize = 0;
    }
 
    DLLLOCAL obj_set_t::iterator begin() {
@@ -468,15 +465,13 @@ public:
    }
 
    DLLLOCAL size_t size() const {
-      return ssize;
+      return set.size();
    }
 
    DLLLOCAL bool pop() {
       assert(!set.empty());
-      assert(ssize);
       set.erase(set.begin());
-      --ssize;
-      return !ssize;
+      return set.empty();
    }
 };
 

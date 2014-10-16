@@ -1271,16 +1271,6 @@ bool ObjectRSetHelper::removeInvalidate(ObjectRSet* ors, int tid) {
       }
    }
 
-   // now that we have all write locks, we have to check the RObjectSet status again
-   if (!ors->active()) {
-      // release other rsection locks and take no action
-      for (unsigned i = 0; i < rovec.size(); ++i) {
-	 rovec[i]->priv->rml.rSectionUnlock();
-	 deccnt();
-      }
-      return false;
-   }
-
    // invalidate old rset when transaction is committed
    tr_invalidate.insert(ors);
 
@@ -1367,12 +1357,12 @@ void ObjectRSetHelper::mergeRSet(int i, ObjectRSet*& rset) {
 }
 
 bool ObjectRSetHelper::makeChain(int i, omap_t::iterator fi, int tid) {
-   for (++i; i < ovec.size(); ++i) {
+   for (++i; i < (int)ovec.size(); ++i) {
       if (!ovec[i]->second.rset) {
 	 printd(QRO_LVL, " + %p '%s': adding parent to rset\n", ovec[i]->first, ovec[i]->first->getClassName());
 	 if (addToRSet(ovec[i], fi->second.rset, tid))
 	    return true;
-	 if (i == (ovec.size() - 1)) {
+	 if (i == (int)(ovec.size() - 1)) {
 	    printd(QRO_LVL, " + %p '%s': parent object %p '%s' was not in cycle (rcount: %d -> %d)\n", fi->first, fi->first->getClassName(), ovec[i]->first, ovec[i]->first->getClassName(), fi->second.rcount, fi->second.rcount + 1);
 	    ++fi->second.rcount;
 	 }
@@ -1693,7 +1683,7 @@ void ObjectRSetHelper::rollback() {
 void ObjectRSet::dbg() {
    QoreAutoRWReadLocker al(rwl);
 
-   printd(0, "ObjectRSet::dbg() this: %p in_del: %d valid: %d ssize: %d size: %d\n", this, (int)in_del, (int)valid, (int)ssize, (int)size());
+   printd(0, "ObjectRSet::dbg() this: %p in_del: %d valid: %d ssize: %d size: %d\n", this, (int)in_del, (int)valid, (int)set.size(), (int)size());
    for (obj_set_t::iterator i = begin(), e = end(); i != e; ++i) {
       printd(0, " + %p '%s' rcount: %d refs: %d\n", *i, (*i)->getClassName(), (int)(*i)->priv->rcount, (int)(*i)->references);
    }
