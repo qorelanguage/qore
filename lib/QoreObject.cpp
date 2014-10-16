@@ -1338,7 +1338,7 @@ void ObjectRSetHelper::mergeRSet(int i, ObjectRSet*& rset) {
 	    assert(noi != fomap.end());
 	    noi->second.rset = rset;
 	 }
-	    delete old_rset;
+	 delete old_rset;
       }
       else {
 	 printd(QRO_LVL, " + %p '%s': oi->second.rset: %p (%d) assimilating %p (%d)\n", oi->first, oi->first->getClassName(), oi->second.rset, (int)oi->second.rset->size(), rset, (int)rset->size());
@@ -1397,8 +1397,8 @@ bool ObjectRSetHelper::checkIntern(QoreObject& obj) {
    int tid = gettid();
 
    // see if the object has been scanned
-   omap_t::iterator fi = fomap.find(&obj);
-   if (fi != fomap.end()) {
+   omap_t::iterator fi = fomap.lower_bound(&obj);
+   if (fi != fomap.end() && fi->first == &obj) {
       printd(QRO_LVL, "ObjectRSetHelper::checkIntern() + found obj %p '%s' rcount: %d in_cycle: %d ok: %d\n", &obj, obj.getClassName(), fi->second.rcount, fi->second.in_cycle, fi->second.ok);
       //printd(QRO_LVL, "ObjectRSetHelper::checkIntern() found obj %p '%s' incrementing rcount: %d -> %d\n", &obj, obj.getClassName(), fi->second.rcount, fi->second.rcount + 1);
 
