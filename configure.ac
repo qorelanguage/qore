@@ -839,7 +839,7 @@ find_bz2lib() {
     if test -n "$bz2lib_static"; then
     	if test -f "$lib/libbz2.a"; then
 	    BZ2_LDFLAGS="$lib/libbz2.a"
-       	    AC_MSG_RESULT([$lib (forced static)])
+	    bzlib_type="forced static"
     	fi
     else
         if test -f "$lib/libbz2.${SHLIB_SUFFIX}"; then
@@ -847,27 +847,30 @@ find_bz2lib() {
        	        BZ2_LDFLAGS="-L$lib"
     	    fi
 	    BZ2_LDFLAGS="$BZ2_LDFLAGS -lbz2"
-       	    AC_MSG_RESULT([$lib (shared)])
+	    bzlib_type="shared"
     	elif test -f "$lib/libbz2.a"; then
             if test "$mingw" = yes -a "$make_dll" = yes; then
 	    	BZ2_LDFLAGS="-Wl,$lib/libbz2.a"
 	    else
 	        BZ2_LDFLAGS="$lib/libbz2.a"
             fi
-       	    AC_MSG_RESULT([$lib (static)])
+	    bzlib_type="static"
     	fi
     fi
     if test -z "$BZ2_LDFLAGS"; then
         return
     fi
-    AC_MSG_CHECKING([for bz2lib include files])
+
     # try to find include files
     if test -f "$inc/bzlib.h"; then
-        AC_MSG_RESULT([found: $inc/bzlib.h])
         set_bz2lib_cppflags $inc
     else
-	AC_MSG_ERROR([not found])
+        unset bzlib_type
+        unset BZ2_LDFLAGS
+	return
     fi
+
+    AC_MSG_RESULT([$lib ($bzlib_type) $inc])
 
     QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $BZ2_LDFLAGS"
     QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS $BZ2_CPPFLAGS"
@@ -917,10 +920,13 @@ find_openssl() {
     if test -n "$openssl_static"; then
     	if test -f "$lib/libssl.a" -a -f "$lib/libcrypto.a"; then
 	    OPENSSL_LDFLAGS="$lib/libssl.a $lib/libcrypto.a"
-       	    AC_MSG_RESULT([$lib (forced static)])
+	    openssl_type="forced static"
+	    #AC_MSG_RESULT([$lib (forced static)])
     	elif test "$bits" = 64 -a -f "$lib/64/libssl.a" -a -f "$lib/64/libcrypto.a"; then
 	    OPENSSL_LDFLAGS="$lib/64/libssl.a $lib/64/libcrypto.a"
-       	    AC_MSG_RESULT([$lib/64 (forced static)])
+	    lib=$lib/64
+	    openssl_type="forced static"
+       	    #AC_MSG_RESULT([$lib/64 (forced static)])
     	fi
     else
         if test -f "$lib/libssl.${SHLIB_SUFFIX}" -a -f "$lib/libcrypto.${SHLIB_SUFFIX}"; then
@@ -928,7 +934,8 @@ find_openssl() {
        	        OPENSSL_LDFLAGS="-L$lib"
     	    fi
 	    OPENSSL_LDFLAGS="$OPENSSL_LDFLAGS -lssl -lcrypto"
-       	    AC_MSG_RESULT([$lib (shared)])
+	    openssl_type="shared"
+	    #AC_MSG_RESULT([$lib (shared)])
     	elif test -f "$lib/libssl.a" -a -f "$lib/libcrypto.a"; then
 	    if test "$mingw" = yes -a "$make_dll" = yes; then
 	    	OPENSSL_LDFLAGS="-Wl,$lib/libssl.a -Wl,$lib/libcrypto.a"
@@ -939,26 +946,35 @@ find_openssl() {
     	        fi
 	        OPENSSL_LDFLAGS="$OPENSSL_LDFLAGS -lssl -lcrypto"
             fi
-       	    AC_MSG_RESULT([$lib (static)])
+	    openssl_type="static"
+       	    #AC_MSG_RESULT([$lib (static)])
         elif test "$bits" = 64 -a -f "$lib/64/libssl.${SHLIB_SUFFIX}" -a -f "$lib/64/libcrypto.${SHLIB_SUFFIX}"; then
 	    OPENSSL_LDFLAGS="-L$lib/64 -lssl -lcrypto"
-       	    AC_MSG_RESULT([$lib/64 (shared)])
+	    lib=$lib/64
+	    openssl_type="shared"
+       	    #AC_MSG_RESULT([$lib/64 (shared)])
     	elif test "$bits" = 64 -a -f "$lib/64/libssl.a" -a -f "$lib/64/libcrypto.a"; then
 	    OPENSSL_LDFLAGS="-L$lib -lssl -lcrypto"
-       	    AC_MSG_RESULT([$lib (static)])
+	    openssl_type="static"
+       	    #AC_MSG_RESULT([$lib (static)])
     	fi
     fi
     if test -z "$OPENSSL_LDFLAGS"; then
         return
     fi
-    AC_MSG_CHECKING([for openssl include files])
+    #AC_MSG_CHECKING([for openssl include files])
     # try to find include files
     if test -f "$inc/openssl/ssl.h"; then
-        AC_MSG_RESULT([found: $inc/openssl])
+        #AC_MSG_RESULT([found: $inc/openssl])
         set_openssl_cppflags $inc
     else
-	AC_MSG_ERROR([not found])
+        unset OPENSSL_LDFLAGS
+	unset openssl_type
+	return;
+	#AC_MSG_ERROR([not found])
     fi
+
+    AC_MSG_RESULT([$lib ($openssl_type) $inc])
 
     QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $OPENSSL_LDFLAGS"
     QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS $OPENSSL_CPPFLAGS"
