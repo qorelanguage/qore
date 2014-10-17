@@ -420,7 +420,7 @@ void QoreHashNode::removeKey(const char* key, ExceptionSink* xsink) {
 }
 
 AbstractQoreNode* QoreHashNode::takeKeyValue(const char* key) {
-   assert(reference_count() == 1);
+   // cannot assert reference_count == 1 here because the HttpClient class modifies a hash with refcount > 1
    return priv->takeKeyValue(key);
 }
 
