@@ -37,17 +37,12 @@
 %requires SqlUtil
 
 module TableMapper {
-    version = "1.0";
+    version = "1.1";
     desc = "user module providing data mapping infrastructure to an SQL Table target";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
     license = "MIT";
 }
-
-/*  Version History
-    * 2014-01-03 v1.0: David Nichols <david@qore.org>
-      + the initial version of the TableMapper module
-*/
 
 /** @mainpage TableMapper Module
 
@@ -97,9 +92,11 @@ printf("%d record%s inserted\n", $map.getCount(), $map.getCount() == 1 ? "" : "s
     
     @section tablemapperrelnotes Release Notes
 
-    @subsection tablemapperv1_0 TableMapper v1.0
+    @subsection tablemapperv1_1 TableMapper v1.1
+    - added table name to error messages
 
-    Initial release.
+    @subsection tablemapperv1_0 TableMapper v1.0
+    - Initial release.
 */
 
 #! the TableMapper namespace contains all the definitions in the TableMapper module
@@ -193,7 +190,7 @@ my InboundTableMapper $map($table, DbMapper);
             # ensure there are no unknown mappings
             foreach my string $k in ($.map.keyIterator()) {
                 if (!$cols.hasKey($k))
-                    $.error("mapper specifies field '%s' that does not exist in the target table '%s'", $.getFieldName($k), $.table.getSqlName());                
+                    $.error("mapper specifies column '%s' that does not exist in the target table '%s'", $.getFieldName($k), $.table.getSqlName());                
             }
 
             # update output field definitions from real table description
@@ -212,7 +209,7 @@ my InboundTableMapper $map($table, DbMapper);
 
                 if ($t != NT_HASH) {
                     if ($t == NT_NOTHING && $mand && !exists $.crec.$cn)
-                        $.error("output column '%s' has a NOT NULL constraint and no default value, and the mapper object has no mapping or constant value; please provide a mapping or constant value for this column", $.getFieldName($cn));
+                        $.error("output column '%s.%s' has a NOT NULL constraint and no default value, and the mapper object has no mapping or constant value; please provide a mapping or constant value for this column", $.table.getSqlName(), $.getFieldName($cn));
                     $.convertToHash($t, $cn, \$ch);
                 }
 
@@ -221,7 +218,7 @@ my InboundTableMapper $map($table, DbMapper);
                     case "number": $ch.type = "number"; break;
                     case "integer": $ch.type = "integer"; break;
                     case "date": $ch.type = "date"; break;
-                    default: throw "TABLE-ERROR", sprintf("column %s.%s has unknown native type %y", $.table.getSqlName(), $cn, $col.native_type);
+                    default: throw "TABLE-ERROR", sprintf("column '%s.%s' has unknown native type %y", $.table.getSqlName(), $cn, $col.native_type);
                 }
                 if ($mand)
                     $ch.mand = True;
@@ -249,13 +246,13 @@ my InboundTableMapper $map($table, DbMapper);
         private checkMapField(string $k, reference $fh, hash $th) {
             if ($fh.sequence) {
                 if ($fh.sequence.typeCode() != NT_STRING)
-                    $.error("field '%s' has a sequence key assigned to type '%s' (%y)", $.getFieldName($k), $fh.sequence.type(), $fh.sequence);
+                    $.error("column '%s.%s' has a sequence key assigned to type '%s' (%y)", $.table.getSqlName(), $.getFieldName($k), $fh.sequence.type(), $fh.sequence);
                 if (!$.db)
                     $.db = AbstractDatabase::getDatabase($.table.getDatasource());
 
                 if ($fh.type) {
                     if ($fh.type != "number" && $fh.type != "integer")
-                        $.error("field '%s' has a 'sequence' key, but the type is '%s'", $.getFieldName($k), $fh.type);
+                        $.error("column '%s.%s' has a 'sequence' key, but the type is '%s'", $.table.getSqlName(), $.getFieldName($k), $fh.type);
                 }
                 else
                     $fh.type = "number";
