@@ -63,6 +63,7 @@ qclass RangeIterator [arg=RangeIterator* i; ns=Qore; vparent=AbstractIterator];
 /** @param start an initial value
     @param stop a final value
     @param step is the interval. Default = 1
+    @param val an optional value to be returned instead of the default integer value
 
     @par Example:
     @code
@@ -70,9 +71,34 @@ my RangeIterator $i(5, 10, 2);
     @endcode
 
     @see xrange()
+
+    @since %Qore 0.8.11.1 this method takes the optional \a val argument
  */
-RangeIterator::constructor(int start, int stop, int step=1) {
-   self->setPrivate(CID_RANGEITERATOR, new RangeIterator(start, stop, step, xsink));
+RangeIterator::constructor(int start, int stop, int step = 1, any val) {
+   ReferenceHolder<RangeIterator> r(new RangeIterator(start, stop, step, val, xsink), xsink);
+   if (*xsink)
+      return;
+   self->setPrivate(CID_RANGEITERATOR, r.release());
+}
+
+//! creates the numerical sequence iterator with the initial arguments
+/** @param stop a final value
+    @param val an optional value to be returned instead of the default integer value
+
+    @par Example:
+    @code
+my RangeIterator $i(5);
+    @endcode
+
+    @see xrange()
+
+    @since %Qore 0.8.11.1
+ */
+RangeIterator::constructor(int stop, any val) {
+   ReferenceHolder<RangeIterator> r(new RangeIterator(0, stop, 1, val, xsink), xsink);
+   if (*xsink)
+      return;
+   self->setPrivate(CID_RANGEITERATOR, r.release());
 }
 
 //! Creates a copy of the RangeIterator object, iterating the same object as the original and in the same position
@@ -117,6 +143,8 @@ while ($i.next()) {
 
     @throw INVALID-ITERATOR the iterator is not pointing at a valid element
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+
+    @note if a value was passed to the constructor, then that value is returned instead of the current range index
  */
 any RangeIterator::getValue() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
@@ -202,6 +230,7 @@ xrange(10, -10, 5); # 10, 5, 0, -5, -10
     @param start the initial value
     @param stop the final value
     @param step the step; the default is 1; must be greater than 0; the function throws a \c RANGE-ERROR exception when this argument is < 1
+    @param val an optional value to be returned instead of the default integer value
 
     @retval Returns a RangeIterator containing an arithmetic progression of integers.
 
@@ -212,9 +241,14 @@ xrange(10, -10, 5); # 10, 5, 0, -5, -10
     @note the main difference between range() and xrange() is that range returns a real list and xrange() returns a RangeIterator
 
     @since %Qore 0.8.6
+    @since %Qore 0.8.11.1 this function takes the optional \a val argument
 */
-RangeIterator xrange(int start, int stop, int step = 1) [flags=RET_VALUE_ONLY] {
-   return new QoreObject(QC_RANGEITERATOR, 0, new RangeIterator(start, stop, step, xsink));
+RangeIterator xrange(int start, int stop, int step = 1, any val) [flags=RET_VALUE_ONLY] {
+   ReferenceHolder<RangeIterator> r(new RangeIterator(start, stop, step, val, xsink), xsink);
+   if (*xsink)
+      return 0;
+
+   return new QoreObject(QC_RANGEITERATOR, 0, r.release());
 }
 
 //! Returns a RangeIterator containing an arithmetic progression of integers with start = 0 and step = 1.
@@ -228,6 +262,7 @@ xrange(-3); # 0, -1, -2, -3
     @endcode
 
     @param stop the final value
+    @param val an optional value to be returned instead of the default integer value
 
     @retval Returns a RangeIterator containing an arithmetic progression of integers with start = 0 and step = 1.
 
@@ -236,8 +271,13 @@ xrange(-3); # 0, -1, -2, -3
     @note the main difference between range() and xrange() is that range() returns a real list and xrange() returns a RangeIterator
 
     @since %Qore 0.8.6
+    @since %Qore 0.8.11.1 this function takes the optional \a val argument
  */
-RangeIterator xrange(int stop) [flags=CONSTANT] {
-   return new QoreObject(QC_RANGEITERATOR, 0, new RangeIterator(0, stop, 1, xsink));
+RangeIterator xrange(int stop, any val) [flags=CONSTANT] {
+   ReferenceHolder<RangeIterator> r(new RangeIterator(0, stop, 1, val, xsink), xsink);
+   if (*xsink)
+      return 0;
+
+   return new QoreObject(QC_RANGEITERATOR, 0, r.release());
 }
 //@}

@@ -257,6 +257,7 @@ sub array_tests() {
     test_xrange(range(0, 10, 5), xrange(0, 10, 5), "xrange - step from 0");
     test_xrange(range(-10, 10, 5), xrange(-10, 10, 5), "xrange - asc test");
     test_xrange(range(10, -10, 5), xrange(10, -10, 5), "xrange - descending step test");
+    $unit.cmp("%v, %v, %v", (foldl $1 + ", " + $2, xrange(2, "%v")), "xrange with value");
 
     # pseudomethods
     my list $pseudoList = (1, 2, 3, 4, 'a');

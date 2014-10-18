@@ -143,44 +143,22 @@ public:
    bool setp;
    QoreThreadLock m;
    QoreCondition c;
-#ifdef DEBUG
-   qore_rsection_priv* rs;
-#endif
 
-   DLLLOCAL RNotifier() : setp(false)
-#ifdef DEBUG
-                        , rs(0)
-#endif
-   {
+   DLLLOCAL RNotifier() : setp(false) {
    }
 
    DLLLOCAL ~RNotifier() {
       assert(!setp);
    }
 
-#ifdef DEBUG
-   DLLLOCAL void done(qore_rsection_priv* r) {
-      assert(rs == r);
-#else
    DLLLOCAL void done() {
-#endif
       AutoLocker al(m);
       assert(setp);
-#ifdef DEBUG
-      assert(rs);
-      rs = 0;
-#endif
       setp = false;
       c.signal();
    }
 
-#ifdef DEBUG
-   DLLLOCAL void set(qore_rsection_priv* r) {
-      assert(!rs);
-      rs = r;
-#else
    DLLLOCAL void set() {
-#endif
       AutoLocker al(m);
       assert(!setp);
       setp = true;
@@ -217,22 +195,14 @@ protected:
    // notify rsection threads that the rsection lock has been released
    DLLLOCAL virtual void notifyIntern() {
       for (n_list_t::iterator i = list.begin(), e = list.end(); i != e; ++i)
-#ifdef DEBUG
-         (*i)->done(this);
-#else
          (*i)->done();
-#endif
       list.clear();
    }
 
    DLLLOCAL void setNotificationIntern(RNotifier* rn) {
       assert(write_tid != -1 || rs_tid != -1);
       list.push_back(rn);
-#ifdef DEBUG
-      rn->set(this);
-#else
       rn->set();
-#endif
    }
 #endif
 
