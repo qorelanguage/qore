@@ -150,7 +150,6 @@ void ThreadPool::worker(ExceptionSink* xsink) {
    for (tplist_t::iterator i = fh.begin(), e = fh.end(); i != e; ++i)
       (*i)->stop();
 
-
    sl.unlock();
 
    // terminate all worker threads
@@ -271,7 +270,7 @@ ThreadPool::constructor(int max = 0, int minidle = 0, int maxidle = 0, timeout r
    self->setPrivate(CID_THREADPOOL, tp.release());
 }
 
-//! destroys the pool; any task threads are detached; to wait for all task threads to complete, call ThreadPool::stopWait() first
+//! destroys the pool; any task threads are detached and pending tasks not yet executed are canceled; to wait for all task threads to complete, call ThreadPool::stopWait() first
 /** @par Example:
     @code
 delete $tp;

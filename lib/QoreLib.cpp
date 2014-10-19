@@ -436,6 +436,9 @@ FeatureList::FeatureList() {
    // register default features
    push_back("sql");
    push_back("threads");
+#ifdef DO_OBJ_RECURSIVE_CHECK
+   push_back("DGC");
+#endif
 #ifdef DEBUG
    push_back("debug");
 #endif
