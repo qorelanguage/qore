@@ -3,7 +3,7 @@
 
 Summary: Multithreaded Programming Language
 Name: qore
-Version: 0.8.11.1
+Version: 0.8.12
 Release: 7%{?dist}
 License: LGPLv2+ or GPLv2+ or MIT
 Group: Development/Languages
@@ -32,7 +32,7 @@ Group: System Environment/Libraries
 Provides: qore-module(abi)%{?_isa} = 0.19
 Provides: qore-module(abi)%{?_isa} = 0.18
 Provides: libqore5 = %{version}
-Obsoletes: libqore5 < 0.8.11.1
+Obsoletes: libqore5 < 0.8.12
 # provided for backwards-compatibility with unversioned capabilities and will be removed when the ABI drops backwards-compatibility
 Provides: qore-module-api-0.18
 Provides: qore-module-api-0.17
@@ -160,6 +160,9 @@ make check
 %{_mandir}/man1/qore.1.*
 
 %changelog
+* Sun Oct 19 2014 David Nichols <david@qore.org> 0.8.12-1
+- updated version to 0.8.12-1
+
 * Tue Jul 29 2014 David Nichols <david@qore.org> 0.8.11.1-7
 - removed irrelevant license files from stdlib package, only the MIT license applies there
 
