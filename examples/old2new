@@ -1,0 +1,69 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+
+main();
+
+const Opts = (
+    "help": "h,help",
+    );
+
+const ReservedWords = ("abstract", "background", "break", "by", "case", "catch", "chomp", "const", "context", "continue", "default", "delete", "deprecated", "do", "elements", "else", "exists", "extract", "final", "find", "foldl", "foldr", "for", "foreach", "if", "in", "inherits", "instanceof", "keys", "map", "module", "my", "namespace", "new", "on_error", "on_exit", "on_success", "our", "pop", "private", "public", "push", "remove", "rethrow", "return", "returns", "select", "shift", "sortBy", "sortDescendingBy", "splice", "static", "sub", "subcontext", "summarize", "switch", "synchronized", "thread_exit", "throw", "trim", "try", "unreference", "unshift", "where", "while",
+    );
+
+sub usage() {
+    printf("%s: [options] input-file
+ -h,--help       this help text
+", get_script_name());
+    exit(0);
+}
+
+sub main() {
+    GetOpt g(Opts);
+    hash o = g.parse3(\ARGV);
+
+    if (o.help || !ARGV[0])
+        usage();
+
+    if (ARGV[0] == "-")
+        ARGV[0] = "/dev/stdin";
+
+    /*
+    File of();
+    of.open(ARGV[2], O_CREAT | O_WRONLY | O_TRUNC);
+    */
+
+    FileLineIterator li(ARGV[0]);
+
+    while (li.next()) {
+        string str = li.getValue();
+
+        # remove "my"
+        str =~ s/(my\s+)(\*?[a-zA-Z0-9_]+)?\s+(\$)/$2 \$/g;
+
+        # change . references of variables and in-object member references to bracket references
+        str =~ s/\.(\$\.?[a-z][a-zA-Z0-9_]*)/{$1}/g;
+
+        # check for reserved words
+        *list l = (str =~ x/(\$\.?abstract|\$\.?background|\$\.?break|\$\.?by|\$\.?case|\$\.?catch|\$\.?chomp|\$\.?const|\$\.?context|\$\.?continue|\$\.?default|\$\.?delete|\$\.?deprecated|\$\.?do|\$\.?elements|\$\.?else|\$\.?exists|\$\.?extract|\$\.?final|\$\.?find|\$\.?foldl|\$\.?foldr|\$\.?for|\$\.?foreach|\$\.?if|\$\.?in|\$\.?inherits|\$\.?instanceof|\$\.?keys|\$\.?map|\$\.?module|\$\.?my|\$\.?namespace|\$\.?new|\$\.?on_error|\$\.?on_exit|\$\.?on_success|\$\.?our|\$\.?pop|\$\.?private|\$\.?public|\$\.?push|\$\.?remove|\$\.?rethrow|\$\.?return|\$\.?returns|\$\.?select|\$\.?shift|\$\.?sortBy|\$\.?sortDescendingBy|\$\.?splice|\$\.?static|\$\.?sub|\$\.?subcontext|\$\.?summarize|\$\.?switch|\$\.?synchronized|\$\.?thread_exit|\$\.?throw|\$\.?trim|\$\.?try|\$\.?unreference|\$\.?unshift|\$\.?where|\$\.?while)/g);
+
+        # substitute reserved words
+        foreach string rw in (l) {
+            bool cv = rw[1] == ".";
+            string nw = rw;
+            nw =~ s/^\$\.?//g;
+            nw += cv ? "c" : "v";
+            str = replace(str, rw, nw);
+        }
+
+        # remove dollar signs on vars
+        str =~ s/\$([a-z][a-z0-9_]*)/$1/ig;
+
+        # remove and rename class vars adding a suffix "c"
+        str =~ s/\$\.([a-z][a-z0-9_]*)/$1c/ig;
+
+        printf("%s\n", str);
+    }
+}
