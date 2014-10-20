@@ -126,7 +126,8 @@ list: (2 elements)
 
     The mapper hash is made up of target (ie output) field names (note that dotted output field names result in a nested hash output unless the \a allow_output_dot option is set) as the key values assigned to field specifications as follows:
     - @ref Qore::True "True": this is a shortcut meaning map from an input field with the same name
-    - a @ref closure "closure" or @ref call_reference "call reference": meaning map from a field of the same name an apply the given code to give the value for the mapping; the @ref closure "closure" or @ref call_reference "call reference" must accept the following arguments:
+    - a @ref string_type "string": giving the input field name directly (equivalent to a hash with the \c "name" key)
+    - a @ref closure "closure" or @ref call_reference "call reference": meaning map from a field of the same name an apply the given code to give the value for the mapping (equivalent to a hash with the \c "code" key); the @ref closure "closure" or @ref call_reference "call reference" must accept the following arguments:
       - @ref any_type "any" <i>$value</i>: the input field value (with the same name as the output field; to use a different name, see the \a code hash option below)
       - @ref hash_type "hash" <i>$rec</i>: the current input record
     - a @ref hash_type "hash" describing the mapping; the following keys are all optional (an empty hash means map from an input field with the same name with no translations):
