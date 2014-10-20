@@ -138,7 +138,7 @@ list: (2 elements)
       - \c "date_format": gives the format for converting a string to a date; see @ref date_formatting for the format of this string; note that this also implies \c "type" = \c "date"
       - \c "default": gives a default value for the field in case no input or translated value is provided
       - \c "maxlen": an integer giving the maximum output string field length in bytes
-      - \c "number_format": gives the format for converting a string to a number; see @ref Qore::parse_number() for the format of this string; note that this also implies \c "type" = \c "number"
+      - \c "number_format": gives the format for converting a string to a number; note that this also implies \c "type" = \c "number"
       - \c "trunc": assign to boolean @ref Qore::True "True" if the field should be truncated if over the maximum field length; this key can only be set to @ref Qore::True "True" if the \c "maxlen" key is also given
       - \c "mand": assign to boolean @ref Qore::True "True" if the field is mandatory and an exception should be thrown if no input data is supplied
       - \c "type": this gives the output field type, can be:
@@ -156,7 +156,7 @@ list: (2 elements)
     - \c "input_log": an optional input data logging callback; must accept a hash giving the input data hash
     - \c "input_timezone": an optional string or integer (giving seconds east of UTC) giving the time zone for parsing input data (ex: \c "Europe/Prague"), if not set defaults to the current TimeZone (see @ref Qore::TimeZone::get())
     - \c "name": the name of the mapper for use in logging and error strings
-    - \c "number_format": gives the global format for converting a string to a number; see @ref Qore::parse_number() for the format of this string; this is applied to all fields of type \c "number" unless the field has a \c "number_format" value that overrides this global setting
+    - \c "number_format": gives the global format for converting a string to a number; this is applied to all fields of type \c "number" unless the field has a \c "number_format" value that overrides this global setting
     - \c "output_log": an optional output data logging callback; must accept a hash giving the output data hash
     - \c "timezone": an optional string or integer (giving seconds east of UTC) giving the time zone definition for output data (ex: \c "Europe/Prague"), if not set defaults to the current TimeZone (see @ref Qore::TimeZone::get())
     - \c "trunc": an optional @ref closure "closure" or @ref call_reference "call reference" for a callback for field truncation warnings; must accept a single string giving the warning text
@@ -179,6 +179,19 @@ list: (2 elements)
 
 #! the Mapper namespace contains all the definitions in the Mapper module
 public namespace Mapper {
+    # private function, added in qore 0.8.12
+    number sub parse_number(string $str, string $fmt) {
+        # get thousands separator
+        my *string $tmp = $fmt[0];
+        if ($tmp) {
+            $str = replace($str, $tmp, "");
+            $tmp = $fmt[1];
+            if ($tmp && $tmp != ".")
+                $str = replace($str, $tmp, ".");
+        }
+        return number($str);
+    }
+
     #! this class is a base class for mapping data; see @ref mapperexamples for usage examples
     public class Mapper {
         public {
