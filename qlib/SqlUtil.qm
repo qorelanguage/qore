@@ -103,6 +103,7 @@ module SqlUtil {
     - added support for the \c forupdate @ref select_option_hash "select option"
     - fixed a bug in schema management where excessively verbose column aliases were used that caused errors when automatically updating columns with existing rows and new default values and non-null contraints with PostgreSQL databases
     - fixed a bug where select and row iterator operations could fail with certain select hash arguments without a \c "columns" entry but where column names were otherwise required
+    - fixed a bug with queries using a \a desc argument with the \a orderby query option with multiple sort columns; the \c "desc" string was added only to the last column but should have been added to all columns
 
     @subsection sqlutilv1_1 SqlUtil v1.1
     - implemented new upsert strategy @ref SqlUtil::AbstractTable::UpsertInsertOnly
@@ -13838,9 +13839,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
         private doSelectOrderBySqlUnlocked(reference sql, reference args, *hash qh, *hash jch, *hash ch) {
             list ce = getOrderByListUnlocked(qh, jch, ch);
 
-            sql += " order by " + (foldl $1 + "," + $2, ce);
-            if (qh.desc)
-                sql += " desc";
+            sql += " order by " + (foldl ($1 + (qh.desc ? " desc" : "")) + "," + ($2 + (qh.desc ? " desc" : "")), ce);
         }
 
         #! deletes rows in the table matching the condition and returns the count of rows deleted; the transaction is committed if successful, if an error occurs then it is rolled back
