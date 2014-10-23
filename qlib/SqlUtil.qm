@@ -13839,7 +13839,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
         private doSelectOrderBySqlUnlocked(reference sql, reference args, *hash qh, *hash jch, *hash ch) {
             list ce = getOrderByListUnlocked(qh, jch, ch);
 
-            sql += " order by " + (foldl ($1 + (qh.desc ? " desc" : "")) + "," + ($2 + (qh.desc ? " desc" : "")), ce);
+            sql += " order by " + (foldl $1 + "," + $2, (map $1 + (qh.desc ? " desc" : ""), ce));
         }
 
         #! deletes rows in the table matching the condition and returns the count of rows deleted; the transaction is committed if successful, if an error occurs then it is rolled back
