@@ -1,0 +1,14 @@
+#!/usr/bin/env qore
+%require-types
+%enable-all-warnings
+%requires UnitTest
+%allow-bare-refs
+%exec-class App
+
+class App inherits UnitTest {
+    constructor() {
+        cmp(format_number(".,3", -48392093894.2349), "-48.392.093.894,235", "format_number()");
+    }
+}
+
+

@@ -1,0 +1,10 @@
+#!/usr/bin/env qore
+%require-types
+%enable-all-warnings
+%requires UnitTest
+
+my UnitTest $unit();
+
+my File $f("iso-8859-1");
+$f.open(get_script_path());
+$unit.cmp($f.getEncoding(), "ISO-8859-1", "file encoding");

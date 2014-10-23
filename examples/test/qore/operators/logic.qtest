@@ -1,0 +1,52 @@
+#!/usr/bin/env qore
+%requires UnitTest
+
+my UnitTest $unit();
+
+my any $a = 1;
+my any $b = 0;
+my int $c;
+
+if ($unit.verbose())
+    print("%%%% logic tests\n");
+if ($a || short_circuit_test("or"))
+    logic_message("short-circuit or");
+if ($b && short_circuit_test("and"))
+    $c = 1;
+else
+    logic_message("short-circuit and");
+if ($a && 1)
+    logic_message("and");
+if ($b || 1)
+    logic_message("or");
+$unit.cmp($b ? 0 : 1, 1, "first question-colon");
+$unit.cmp($a ? 1 : 0, 1, "second question-colon");
+$a = 1;
+$b = "1";
+$unit.cmp($a == $b, True, "comparison with type conversion");
+$unit.cmp($a === $b, False, "absolute comparison");
+$a = 1, 2, 3, 4;
+$b = 1, 2, 3, 4;
+$unit.cmp($a == $b, True, "list comparison");
+delete $b[3];
+$unit.cmp($a == $b, False, "list comparison after delete");
+$a[3] = ("gee" : 1, "whillakers" : 2, "list" : ( 1, 2, "three" ));
+$b[3] = $a[3];
+$unit.cmp($a == $b, True, "complex list comparison");
+$unit.cmp($a[3] == $b[3], True, "hash comparison");
+$unit.cmp($a[3] != $b[3], False, "negative hash unequal comparison");
+$a[3].chello = "hi";
+$unit.cmp($a[3] == $b[3], False, "negative hash comparison");
+$unit.cmp($a[3] != $b[3], True, "hash unequal comparison");
+
+sub logic_message(string $op) {
+    if ($unit.verbose())
+	printf("OK: %s logic test\n", $op);
+}
+
+bool sub short_circuit_test(string $op) {
+    print("ERROR: %n logic short-circuiting is not working!\n", $op);
+    $unit.errorInc();
+    return False;
+}
+

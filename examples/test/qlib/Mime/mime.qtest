@@ -1,0 +1,15 @@
+#!/usr/bin/env qore
+%require-types
+%enable-all-warnings
+%requires Mime
+%requires UnitTest
+
+my UnitTest $unit();
+
+my string $str = "This is a test: æéìœü";
+$unit.cmp($str, mime_decode_quoted_printable(mime_encode_quoted_printable($str)), "MIME: quoted printable");
+$unit.cmp($str, mime_decode_base64_to_string(mime_encode_base64($str)), "MIME: base64");
+$unit.cmp($str, mime_decode_header(mime_encode_header_word_q($str)), "MIME: header word q");
+$unit.cmp($str, mime_decode_header(mime_encode_header_word_b($str)), "MIME: header word b");
+
+    

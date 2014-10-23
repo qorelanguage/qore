@@ -1,0 +1,32 @@
+#!/usr/bin/env qore
+%require-types
+%enable-all-warnings
+%requires UnitTest
+%exec-class App
+
+class App {
+    constructor() {
+        my UnitTest $unit();
+        if (Option::HAVE_UNIX_USERMGT) {
+            $unit.cmp(getpwuid(0).pw_uid, 0, "getpwuid()");
+            my hash $h;
+            # try to get passwd entry for uid 0, ignore exceptions
+            try $h = getpwuid2(0); catch () {}
+            $unit.cmp($h.pw_uid, 0, "getpwuid2()");
+            $unit.cmp(getpwnam("root").pw_uid, 0, "getpwnam()");
+            # try to get passwd entry for root, ignore exceptions
+            try $h = getpwnam2("root"); catch () {}
+            $unit.cmp($h.pw_uid, 0, "getpwnam2()");
+            $unit.cmp(getgrgid(0).gr_gid, 0, "getgrgid()");
+            # try to get group entry for gid 0, ignore exceptions
+            try $h = getgrgid2(0); catch () {}
+            $unit.cmp($h.gr_gid, 0, "getgrgid2()");
+            $unit.cmp(getgrnam($h.gr_name).gr_gid, 0, "getgrnam()");
+            # try to get group entry for root, ignore exceptions
+            try $h = getgrnam2($h.gr_name); catch () {}
+            $unit.cmp($h.gr_gid, 0, "getgrnam2()");
+        }
+    }
+}
+
+

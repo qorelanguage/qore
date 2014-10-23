@@ -1,0 +1,227 @@
+#!/usr/bin/env qore 
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%enable-all-warnings
+%require-types
+%requires UnitTest
+
+%exec-class TestArray
+
+class TestArray {
+    constructor () {
+        my UnitTest $unit();
+        my (list $a, list $b, list $c, list $d);
+
+        $a = 1, 2, 3, 4, 5;
+        $unit.cmp(elements $a, 5, "elements operator");
+        $unit.cmp($a[1], 2, "single-dimensional list dereference");
+        $b = 1, 2, (3, 4, 5), 6, 7;
+        $unit.cmp($b[2][1], 4, "multi-dimensional list dereference");
+        delete $b;
+        $unit.cmp($b[2][1], NOTHING, "multi-dimensional list dereference after delete operator");
+        $b = $a;
+        $a[1] = "hello";
+        $unit.cmp($a[1], "hello", "list dereference after list assignment and element reassignment");
+        $unit.cmp($b[1], 2, "list dereference of source list");
+        $a[0][1] = "hello";
+        $c[10]{"testing"} = "well then";
+        $unit.cmp($a[0][1], "hello", "second multi-dimensional list dereference");
+        $unit.cmp($a[1][500], NOTHING, "non-existent element deference");
+        $unit.cmp(int($c[10].testing), 0, "hash list element dereference");
+        $unit.cmp($c[10]{"testing"}, "well then", "hash element in list dereference");
+        $d = test1(), test2();
+        $unit.cmp($d[1], 2, "list element dereference with evaluation");
+        $b = $a = 1, 2, 3;
+        delete $a[2];
+        $unit.cmp($a[2] != $b[2], True, "shared list element comparison after delete");
+        $a[1][1] = 3;
+        $unit.cmp($a[1][1], 3, "array variable assignment before copy");
+        $a[1][1] = 2;
+        $unit.cmp($a[1][1], 2, "passed local array variable assignment");
+        $unit.cmp(list_return()[0], 1, "simple list return and deref(e)");
+        $unit.cmp(list_return()[1], 2, "list return with function element result and deref(e)");
+        $unit.cmp(list_return("gee")[2], "gee", "list return with local variable result and deref(e)");
+        $a = 1, 2, 3;
+        $a += 4, 5, 6;
+        $unit.cmp($a[3], 4, "first list list plus-equals concatenation");
+        $a += 7;
+        $unit.cmp($a[6], 7, "list element plus-equals concatenation");
+        $a += list(8);
+        $unit.cmp($a[7], 8, "second list list plus-equals concatenation");
+        $a = (1, 2, 3) + (4, 5, 6);
+        $unit.cmp($a[3], 4, "first list list plus operator concatenation");
+        $a = 1, 2, 3;
+        $b = 4, 5, 6;
+        $c = $a + $b;
+        $unit.cmp($c[4], 5, "second list list plus operator concatenation");
+        my list $l1 = ( 3, 2, 4, 1, 6, 5 );
+        my list $l2 = ( "one", "two", "three", "four", "five", "six" );
+        my list $hl = 
+            ( ( "key1" : 8, "key2" : "two" ),
+              ( "key1" : 2, "key2" : "seven" ),
+              ( "key1" : 7, "key2" : "six" ),
+              ( "key1" : 1, "key2" : "eight" ),
+              ( "key1" : 6, "key2" : "four" ),
+              ( "key1" : 9, "key2" : "three" ),
+              ( "key1" : 3, "key2" : "five" ),
+              ( "key1" : 5, "key2" : "nine" ),
+              ( "key1" : 4, "key2" : "one" ) );
+        my list $sorted_hl = 
+            ( ( "key1" : 1, "key2" : "eight" ),
+              ( "key1" : 2, "key2" : "seven" ),
+              ( "key1" : 3, "key2" : "five" ),
+              ( "key1" : 4, "key2" : "one" ),
+              ( "key1" : 5, "key2" : "nine" ),
+              ( "key1" : 6, "key2" : "four" ),
+              ( "key1" : 7, "key2" : "six" ),
+              ( "key1" : 8, "key2" : "two" ),
+              ( "key1" : 9, "key2" : "three" ) );
+        my list $stable_sorted_hl = 
+            ( ( "key1" : 1, "key2" : "eight" ),
+              ( "key1" : 2, "key2" : "seven" ),
+              ( "key1" : 3, "key2" : "five" ),
+              ( "key1" : 3, "key2" : "five-o" ),
+              ( "key1" : 4, "key2" : "one" ),
+              ( "key1" : 5, "key2" : "nine" ),
+              ( "key1" : 6, "key2" : "four" ),
+              ( "key1" : 7, "key2" : "six" ),
+              ( "key1" : 8, "key2" : "two" ),
+              ( "key1" : 9, "key2" : "three" ) );
+        my Sort $s();
+
+        my code $hash_compare = int sub (hash $l, hash $r) { return $l.key1 <=> $r.key1; };
+
+        $unit.cmp(sort($l1), (1,2,3,4,5,6), "first sort()");
+        $unit.cmp(sort($l2), ("five", "four", "one", "six", "three", "two"), "second sort()");
+        $unit.cmp(sort($hl, \hash_sort_callback()), $sorted_hl, "sort() with function call reference callback");
+        $unit.cmp(sort($hl, \$s.hash()), $sorted_hl, "sort() with object method callback");
+        $unit.cmp(sort($hl, "hash_sort_callback"), $sorted_hl, "sort() with string function name callback");
+        $unit.cmp(sort($hl, $hash_compare), $sorted_hl, "sort() with closure callback");
+
+        my list $r_sorted_hl = reverse($sorted_hl);
+        $unit.cmp(sortDescending($l1), (6,5,4,3,2,1), "first sortDescending()");
+        $unit.cmp(sortDescending($l2), ("two", "three", "six", "one", "four", "five"), "second sortDescending()");
+        $unit.cmp(sortDescending($hl, \SC::hash_sort_callback()), $r_sorted_hl, "first sortDescending() with callback");
+        $unit.cmp(sortDescending($hl, \$s.hash()), $r_sorted_hl, "second sortDescending() with callback");
+        $unit.cmp(sortDescending($hl, "hash_sort_callback"), $r_sorted_hl, "third sortDescending() with callback");
+        $unit.cmp(sortDescending($hl, $hash_compare), $r_sorted_hl, "sortDescending() with closure callback");
+
+        $hl += ( "key1" : 3, "key2" : "five-o" );
+        $unit.cmp(sortStable($hl, \hash_sort_callback()), $stable_sorted_hl, "first sortStable() with callback");
+        $unit.cmp(sortStable($hl, \$s.hash()), $stable_sorted_hl, "second sortStable() with callback");
+        $unit.cmp(sortStable($hl, "hash_sort_callback"), $stable_sorted_hl, "third sortStable() with callback");
+        $unit.cmp(sortStable($hl, $hash_compare), $stable_sorted_hl, "sortStable() with closure callback");
+
+        my list $r_stable_sorted_hl = reverse($stable_sorted_hl);
+        $unit.cmp(sortDescendingStable($hl, \SC::hash_sort_callback()), $r_stable_sorted_hl, "first sortDescendingStable() with callback");
+        $unit.cmp(sortDescendingStable($hl, \$s.hash()), $r_stable_sorted_hl, "second sortDescendingStable() with callback");
+        $unit.cmp(sortDescendingStable($hl, "hash_sort_callback"), $r_stable_sorted_hl, "third sortDescendingStable() with callback");
+        $unit.cmp(sortDescendingStable($hl, $hash_compare), $r_stable_sorted_hl, "sortDescendingStable() with closure callback");
+
+        $unit.cmp(min($l1), 1, "simple min()");
+        $unit.cmp(max($l1), 6, "simple max()");
+        $unit.cmp(min($hl, \hash_sort_callback()), ( "key1" : 1, "key2" : "eight" ), "first min() with callback");
+        $unit.cmp(min($hl, \$s.hash()), ( "key1" : 1, "key2" : "eight" ), "second min() with callback");
+        $unit.cmp(min($hl, "hash_sort_callback"), ( "key1" : 1, "key2" : "eight" ), "third min() with callback");
+        $unit.cmp(max($hl, \SC::hash_sort_callback()), ( "key1" : 9, "key2" : "three" ), "first max() with callback");
+        $unit.cmp(max($hl, \$s.hash()), ( "key1" : 9, "key2" : "three" ), "second max() with callback");
+        $unit.cmp(max($hl, "hash_sort_callback"), ( "key1" : 9, "key2" : "three" ), "third max() with callback");
+        my string $v = shift $l2;
+        $unit.cmp($l2, ("two","three","four","five","six"), "array shift");
+        unshift $l2, $v;
+        $unit.cmp($l2, ("one","two","three","four","five","six"), "array unshift");
+        # list assignment tests
+        my list $l[1] = "boo";
+        ($l[0], $l[1]) = "hi1";
+        $unit.cmp($l, ("hi1", NOTHING), "first list assigment");
+        ($l[0], $l[1]) = ("hi2", "shoo1");
+        $unit.cmp($l, ("hi2", "shoo1"), "second list assigment");
+        ($l[0], $l[1]) = ("hi3", "shoo2", "bean1");
+        $unit.cmp($l, ("hi3", "shoo2"), "third list assigment");
+        my int $v2 = pop $l1;
+        $unit.cmp($v2, 5, "first pop");
+        $unit.cmp($l1, (3,2,4,1,6), "second pop");
+        push $l1, "hi";
+
+        # splice tests
+        $unit.cmp($l1, (3,2,4,1,6,"hi"), "push");
+        splice $l1, 5;
+        $unit.cmp($l1, (3,2,4,1,6), "first list splice");
+        splice $l1, 3, 1;
+        $unit.cmp($l1, (3,2,4,6), "second list splice");
+        splice $l1, 1, 2, (4, 5, 5.5);
+        $unit.cmp($l1, (3,4,5,5.5,6), "third list splice");
+        splice $l1, 0, 4, (10, 11, 12);
+        $unit.cmp($l1, (10, 11, 12, 6), "third list splice");
+        splice $l1, 0, 1;
+        $unit.cmp($l1, (11, 12, 6), "fourth list splice");
+        splice $l1, 5, 2, (1, 2, 3);
+        $unit.cmp($l1, (11, 12, 6, 1, 2, 3), "fifth list splice");
+        splice $l1, -4, 2, 9;
+        $unit.cmp($l1, (11, 12, 9, 2, 3), "sixth list splice");
+        splice $l1, -4, -2, (21, 22, 23);
+        $unit.cmp($l1, (11, 21, 22, 23, 2, 3), "seventh list splice");
+
+        # extract tests
+        $unit.cmp((extract $l1, 5), list(3), "first list extract");
+        $unit.cmp((extract $l1, 2, 2), (22, 23), "second list extract");
+        $unit.cmp((extract $l1, 1, 2, 4), (21, 2), "second list extract");
+        $unit.cmp($l1, (11, 4), "final list extract");
+
+        my string $astr = "hello";
+        $unit.cmp($astr[2], "l", "string element dereference");
+        my binary $bin = binary($astr);
+        $unit.cmp($bin[4], ord("o"), "binary byte dereference");
+        
+        # range tests
+        $unit.cmp(range(1), (0, 1,), "range - basic test");
+        $unit.cmp(range(2, 5), (2, 3, 4, 5), "range - boundaries test");
+        $unit.cmp(range(2, -2), (2, 1, 0, -1, -2), "range - descending test");
+        $unit.cmp(range(1, 10, 5), (1, 6), "range - step test");
+        $unit.cmp(range(0, 10, 5), (0, 5, 10), "range - step from 0");
+        $unit.cmp(range(-10, 10, 5), (-10, -5, 0, 5, 10), "range - asc test");
+        $unit.cmp(range(10, -10, 5), (10, 5, 0, -5, -10), "range - descending step test");
+
+        # pseudomethods
+        my list $pseudoList = (1, 2, 3, 4, 'a');
+        $unit.cmp($pseudoList.typeCode(), NT_LIST, "<list>::typeCode");
+        $unit.cmp($pseudoList.size(), 5, "<list>::size");
+        $unit.cmp($pseudoList.empty(), False, "<list>::empty");
+        $unit.cmp($pseudoList.val(), True, "<list>::val");
+        $unit.cmp($pseudoList.first(), 1, "<list>::first");
+        $unit.cmp($pseudoList.last(), 'a', "<list>::last");
+        $unit.cmp($pseudoList.join('-'), '1-2-3-4-a', "<list>::join");
+        $unit.cmp($pseudoList.lsize(), 5, "<list>::lsize");
+        $unit.cmp($pseudoList.contains(2), True, "<list>::contains");
+        #$pseudoList.append(6);
+        #$unit.cmp($pseudoList, (1, 2, 3, 4, 'a', 6), "<list>::append");
+    }
+}
+
+class Sort {
+    int hash(hash $l, hash $r) {
+	return $l.key1 <=> $r.key1;
+    }
+}
+
+class SC {
+    static int hash_sort_callback(hash $y, hash $r) {
+        return $y.key1 <=> $r.key1;
+    }
+}
+
+int sub hash_sort_callback(hash $y, hash $r) {
+    return $y.key1 <=> $r.key1;
+}
+
+list sub list_return(any $var) {
+    return (1, test2(), $var);
+}
+
+int sub test1() {
+    return 1;
+}
+
+int sub test2() {
+    return 2;
+} 

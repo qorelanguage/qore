@@ -1,0 +1,40 @@
+#!/usr/bin/env qore
+%require-types
+%enable-all-warnings
+%requires UnitTest
+%exec-class App
+
+class App {
+    constructor() {
+        my UnitTest $unit();
+
+        $unit.cmp(string(10.2n), "10.2", "first number"); 
+        $unit.cmp(string(-10.2n), "-10.2", "second number"); 
+        $unit.cmp(string(1.000000000099999999n), "1.000000000099999999", "third number"); 
+        $unit.cmp(10.245n.toString(NF_Scientific), "1.0245e+01", "fourth number"); 
+        $unit.cmp((-10.245n).toString(NF_Scientific), "-1.0245e+01", "fifth number"); 
+        $unit.cmp(0.10245n.toString(NF_Scientific), "1.0245e-01", "sixth number"); 
+        $unit.cmp((-0.10245n).toString(NF_Scientific), "-1.0245e-01", "seventh number"); 
+        $unit.cmp(1.0245n.toString(NF_Scientific), "1.0245e+00", "sixth number"); 
+        $unit.cmp((-1.0245n).toString(NF_Scientific), "-1.0245e+00", "seventh number"); 
+        $unit.cmp(10.245n.toString(), "10.245", "eighth number"); 
+        $unit.cmp((-10.245n).toString(), "-10.245", "ninth number"); 
+        $unit.cmp(0.10245n.toString(), "0.10245", "tenth number"); 
+        $unit.cmp((-0.10245n).toString(), "-0.10245", "eleventh number"); 
+        $unit.cmp(1.0245n.toString(), "1.0245", "twelfth number"); 
+        $unit.cmp((-1.0245n).toString(), "-1.0245", "thirteenth number"); 
+        $unit.cmp(10.001999999999n.toString(), "10.001999999999", "fourteenth number"); 
+        $unit.cmp((-10.001999999999n).toString(), "-10.001999999999", "fifteenth number"); 
+        $unit.cmp(0.10001999999999n.toString(), "0.10001999999999", "sixteenth number"); 
+        $unit.cmp((-0.10001999999999n).toString(), "-0.10001999999999", "seventeenth number"); 
+        $unit.cmp(1.0001999999999n.toString(), "1.0001999999999", "eighteenth number"); 
+        $unit.cmp((-1.0001999999999n).toString(), "-1.0001999999999", "nineteenth number"); 
+        $unit.cmp(0.8n.toString(), "0.8", "number rounding 1");
+        $unit.cmp(0.8n.toString(NF_Scientific), "8e-01", "number rounding 2");
+        $unit.cmp((-0.8n).toString(), "-0.8", "number rounding 3");
+        $unit.cmp((-0.8n).toString(NF_Scientific), "-8e-01", "number rounding 4");
+        $unit.cmp((34.9n * 100).toString(), "3490", "number rounding 5");
+        $unit.cmp(1e50n.toString(), "100000000000000000000000000000000000000000000000000", "number rounding 5");
+        $unit.cmp((-1e50n).toString(), "-100000000000000000000000000000000000000000000000000", "number rounding 6");
+    }
+}

@@ -1,0 +1,23 @@
+#!/usr/bin/env qore
+%require-types
+%enable-all-warnings
+%requires UnitTest
+%exec-class App
+
+class App {
+    constructor() {
+        my UnitTest $unit();
+
+        my string $str = "Hello There This is a Test - 1234567890";
+
+        if (HAVE_MD2)
+            $unit.cmp(MD2($str), "349ea9f6c9681278cf86955dabd72d31", "MD2 digest");
+        $unit.cmp(MD4($str), "675d84fbf5d63e0d68c04577c3298fdc", "MD4 digest");
+        $unit.cmp(MD5($str), "bcbece19c1fe41d8c9e2e6134665ba5b", "MD5 digest");
+        $unit.cmp(DSS($str), "f4bc2c85698aae8961d626e2c590852b2d081199", "DSS digest");
+        $unit.cmp(DSS1($str), "f4bc2c85698aae8961d626e2c590852b2d081199", "DSS1 digest");
+        $unit.cmp(SHA($str), "99910d63f10286e8dda3c4a57801996f48f25b4b", "SHA digest");
+        $unit.cmp(SHA1($str), "f4bc2c85698aae8961d626e2c590852b2d081199", "SHA1 digest");
+        $unit.cmp(RIPEMD160($str), "8f32702e0146d5db6145f36271a4ddf249c087ae", "RIPEMD-160 digest");
+    }
+}

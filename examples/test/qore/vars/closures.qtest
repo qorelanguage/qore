@@ -1,0 +1,32 @@
+#!/usr/bin/env qore
+%require-types
+%enable-all-warnings
+%requires UnitTest
+
+my UnitTest $unit();
+
+list sub closures(string $x) {
+    my int $a = 1;
+    
+    my code $inc = string sub (any $y) {
+	return sprintf("%s-%n-%n", $x, $y, ++$a);
+    };
+
+    my code $dec = string sub (any $y) {
+	return sprintf("%s-%n-%n", $x, $y, --$a);
+    };
+
+    return ($inc, $dec);
+}
+
+my (code $inc, code $dec) = closures("test");
+$unit.cmp($inc(5), "test-5-2", "first closure");
+$unit.cmp($inc(7), "test-7-3", "second closure");
+$unit.cmp($dec(3), "test-3-2", "third closure");
+
+my code $c = sub (*reference $r) {
+    $r = "hi";
+};
+my string $str;
+$c(\$str);
+$unit.cmp($str, "hi", "closure with reference arg");

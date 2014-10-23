@@ -1,0 +1,14 @@
+#!/usr/bin/env qore
+%require-types
+%enable-all-warnings
+%requires UnitTest
+%allow-bare-refs
+%exec-class App
+
+class App inherits UnitTest {
+    constructor() {
+        cmp(floor(3.7), 3.0, "floor()");
+    }
+}
+
+

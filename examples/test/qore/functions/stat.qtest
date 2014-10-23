@@ -1,0 +1,17 @@
+#!/usr/bin/env qore
+%require-types
+%enable-all-warnings
+%requires UnitTest
+%exec-class App
+
+class App {
+    constructor() {
+        my UnitTest $unit();
+        if (PlatformOS != "Windows") {
+            $unit.cmp(stat(get_script_path())[1], hstat(get_script_path()).inode, "stat() and hstat()");
+            $unit.cmp(hstat(get_script_path()).type, "REGULAR", "hstat()");
+        }
+    }
+}
+
+

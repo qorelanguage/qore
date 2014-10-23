@@ -1,0 +1,30 @@
+#!/usr/bin/env qore
+%require-types
+%enable-all-warnings
+%requires UnitTest
+%exec-class App
+
+class App {
+    constructor() {
+        my UnitTest $unit();
+
+        my int $i = 0;
+        background delete $i;
+        background remove $i;
+
+        # do negative tests
+        my Program $p();
+        try {
+            $p.parse("my int $i; background ($i *= 10);background ($i /= 10);background ($i -= 10);background ($i += 10);background ($i %= 10);background ($i >>= 10);background ($i <<= 10);background ++$i;background $i++;background --$i;background $i--;my string $str;background splice $str, 0;background extract $str, 0;", "bg");
+            $unit.cmp(False, True, "background negative");
+        }
+        catch (*hash $ex) {
+            # count exceptions
+            while ($ex) {
+                ++$i;
+                $ex = $ex.next;
+            }
+            $unit.cmp($i, 13, "background negative");
+        }
+    }
+}

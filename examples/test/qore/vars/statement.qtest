@@ -1,0 +1,167 @@
+#!/usr/bin/env qore
+%requires UnitTest
+
+const TH = ("a":1);
+
+my UnitTest $unit();
+
+    # while test
+    my int $a = 0;
+    while ($a < 3)
+	$a++;
+    $unit.cmp($a, 3, "while");
+    # do while test
+    $a = 0;
+    do {
+	$a++;
+    } while ($a < 3);
+    $unit.cmp($a, 3, "do while");
+    # for test
+    my int $b = 0;
+    for (my int $i = 0; $i < 3; $i++)
+	$b++;
+    $unit.cmp($a, 3, "for");
+    $unit.cmp($b, 3, "for exec");    
+    # foreach tests
+    $b = 0;
+    my int $v;
+    foreach $v in (1, 2, 3)
+	$b++;
+    $unit.cmp($v, 3, "foreach");
+    $unit.cmp($b, 3, "foreach exec");
+
+    my any $list = my list $x;
+    $unit.cmp($x, NOTHING, "unassigned typed variable");
+    foreach my string $y in (\$list) $y = "test";
+    $unit.cmp($list, NOTHING, "first foreach reference");
+    
+    $list = (1, 2, 3);
+    foreach my any $y in (\$list) $y = "test";
+    $unit.cmp($list, ("test", "test", "test"), "second foreach reference");
+    
+    $list = 1;
+    foreach my any $y in (\$list) $y = "test";
+    $unit.cmp($list, "test", "third foreach reference");
+
+    # switch tests
+    $unit.cmp(switch_test(1), "case 1", "first switch");
+    $unit.cmp(switch_test(2), "default", "second switch");
+    $unit.cmp(switch_test(3), "default", "third switch");
+    $unit.cmp(switch_test(0), "case 1", "fourth switch");
+    $unit.cmp(switch_test("hello"), "case 1", "fifth switch");
+    $unit.cmp(switch_test("testing"), "default", "sixth switch");
+    # switch with operators
+    $unit.cmp(switch_with_relation_test(-2), "first switch", "first operator switch");
+    $unit.cmp(switch_with_relation_test(2), "second switch", "second operator switch");
+    $unit.cmp(switch_with_relation_test(-1.0), "third switch", "third operator switch");
+    $unit.cmp(switch_with_relation_test(1.0), "fourth switch", "fourth operator switch");
+    $unit.cmp(switch_with_relation_test(0), "fifth switch", "fifth operator switch");
+    # regex switch
+    $unit.cmp(regex_switch_test("abc"), "case 1", "first regex switch");
+    $unit.cmp(regex_switch_test(), "case 3", "second regex switch");
+    $unit.cmp(regex_switch_test("BOOM"), "case 3", "third regex switch");
+    $unit.cmp(regex_switch_test("dinosaur"), "case 2", "fourth regex switch");
+    $unit.cmp(regex_switch_test("barney"), "case 1", "fifth regex switch");
+    $unit.cmp(regex_switch_test("canada"), "default", "sixth regex switch");
+
+    # on_exit tests
+    try {
+	$a = 1;
+	on_exit
+	    $a = 2;
+	$a = 3;
+	throw False;
+    }
+    catch() {
+    }
+    my bool $err;
+    my bool $success = False;
+    try {
+	$b = 100;
+	on_exit {
+	    $b = 2;
+	    on_exit
+		$b = 5;
+	    on_error
+		$err = True;
+	    on_success
+		$success = True;
+	    # we use "if (True)..." so we don't get an "unreachable-code" warning
+	    if (True)
+		throw False;
+	    $b = -1;
+	}
+	$v = 100;
+	on_exit
+	    $v = 99;
+	
+	# we use "if (True)..." so we don't get an "unreachable-code" warning
+	if (True)
+	    throw False;
+	on_exit
+	    $v = 101;
+    }
+    catch() {
+    }
+    $unit.cmp($a, 2, "first on_exit");
+    $unit.cmp($b, 5, "second on_exit");
+    $unit.cmp($v, 99, "third on_exit");
+    $unit.cmp($err, True, "on_error");
+    $unit.cmp($success, False, "on_success");
+
+string sub switch_test(any $val) {
+    my string $rv;
+
+    switch ($val) {
+	case 0:
+	case "hello":
+	
+	case TH.a:
+	    $rv = "case 1";
+            break;
+
+	case 2:
+	    $rv = "case 2";
+
+        default:
+	    return "default";
+    }
+    return $rv;
+}
+
+string sub regex_switch_test(any $val) {
+    my string $rv;
+
+    switch ($val) {
+	case /abc/:
+	case /def/:
+	
+	case /barney/:
+	    $rv = "case 1";
+            break;
+
+	case =~ /dinosaur/:
+	    $rv = "case 2";
+	    break;
+
+	case !~ /can/:
+	    $rv = "case 3";
+	    break;
+
+        default:
+	    return "default";
+    }
+    return $rv;
+}
+
+string sub switch_with_relation_test(float $val) {
+  my string $rv;
+  switch ($val) {
+  case < -1.0: $rv = "first switch"; break;
+  case > 1.0: $rv = "second switch"; break;
+  case <= -1.0: $rv = "third switch"; break;
+  case >= 1.0: $rv = "fourth switch"; break;
+  case 0.0: $rv = "fifth switch"; break;
+  }
+  return $rv;
+}

@@ -1,0 +1,18 @@
+#!/usr/bin/env qore
+%require-types
+%enable-all-warnings
+%requires UnitTest
+
+my UnitTest $unit();
+
+$unit.cmp(is_file($ENV."_"), True, "is_file()");
+$unit.cmp(is_executable($ENV."_"), True, "is_executable()");
+$unit.cmp(is_dir("/"), True, "is_dir()");
+$unit.cmp(is_writeable($ENV.HOME), True, "is_writable()");
+$unit.cmp(is_readable($ENV.HOME), True, "is_readable()");
+$unit.cmp(is_dev("/dev/null"), True, "is_dev()");
+$unit.cmp(is_cdev("/dev/null"), True, "is_cdev()");
+$unit.cmp(is_bdev("/dev/null"), False, "is_bdev()");
+$unit.cmp(is_link("/"), False, "is_link()");
+$unit.cmp(is_socket("/"), False, "is_socket()");
+$unit.cmp(is_pipe("/"), False, "is_pipe()");

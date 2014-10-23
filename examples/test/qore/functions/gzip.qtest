@@ -1,0 +1,15 @@
+#!/usr/bin/env qore
+%require-types
+%enable-all-warnings
+%requires UnitTest
+
+my UnitTest $unit();
+
+my string $str = "This is a long string xxxxxxxxxxxxxxxxxxxxxxxxxxxx";
+my binary $bstr = binary($str);
+my binary $c = compress($str);
+$unit.cmp($str, uncompress_to_string($c), "compress() and uncompress_to_string()");
+$unit.cmp($bstr, uncompress_to_binary($c), "compress() and uncompress_to_binary()");
+my binary $gz = gzip($str);
+$unit.cmp($str, gunzip_to_string($gz), "gzip() and gunzip_to_string()");
+$unit.cmp($bstr, gunzip_to_binary($gz), "gzip() and gunzip_to_binary()");

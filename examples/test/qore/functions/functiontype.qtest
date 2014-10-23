@@ -1,0 +1,13 @@
+#!/usr/bin/env qore
+%require-types
+%enable-all-warnings
+%requires UnitTest
+
+my UnitTest $unit();
+
+$unit.cmp(functionType("simple_shift"), "user", "functionType() user");
+$unit.cmp(functionType("printf"), "builtin", "functionType() builtin");
+
+any sub simple_shift() {
+    return shift $argv;
+}

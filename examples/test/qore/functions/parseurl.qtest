@@ -1,0 +1,16 @@
+#!/usr/bin/env qore
+%require-types
+%enable-all-warnings
+%requires UnitTest
+
+my UnitTest $unit();
+
+my string $url = "https://username:passw@rd@hostname:1044/path/is/here";
+my hash $uh = ( "protocol" : "https",
+                "username" : "username",
+                "password" : "passw@rd",
+                "host" : "hostname",
+                "port" : 1044,
+                "path" : "/path/is/here" );
+
+$unit.cmp(parseURL($url), $uh, "parseURL()");

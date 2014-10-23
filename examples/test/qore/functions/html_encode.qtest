@@ -1,0 +1,11 @@
+#!/usr/bin/env qore
+%require-types
+%enable-all-warnings
+%requires UnitTest
+
+my UnitTest $unit();
+
+my string $str1 = "&<>\"";
+my string $str2 = "&amp;&lt;&gt;&quot;";
+$unit.cmp(html_encode($str1), $str2, "html_encode()");
+$unit.cmp(html_decode($str2), $str1, "html_decode()");

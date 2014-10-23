@@ -1,0 +1,13 @@
+#!/usr/bin/env qore
+%require-types
+%enable-all-warnings
+%requires UnitTest
+
+my UnitTest $unit();
+
+my string $str = "This is a long string xxxxxxxxxxxxxxxxxxxxxxxxxxxx";
+my binary $bstr = binary($str);
+
+my binary $bz = bzip2($str);
+$unit.cmp($str, bunzip2_to_string($bz), "bzip2 and bunzip2_to_string");
+$unit.cmp($bstr, bunzip2_to_binary($bz), "bzip2 and bunzip2_to_binary");

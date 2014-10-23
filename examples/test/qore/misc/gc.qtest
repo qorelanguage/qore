@@ -1,0 +1,183 @@
+#!/usr/bin/env qore
+%require-types
+%enable-all-warnings
+%requires UnitTest
+
+my UnitTest $unit();
+gc_tests();
+
+class GcTest { 
+    public {
+        code $.inc;
+        any $.a;
+        *GcTest $.b;
+        *GcTest $.c;
+    }
+
+    private {
+        *GcTest $.o;
+    }
+
+    constructor(code $i, *GcTest $obj) {
+        $.inc = $i;
+        $.o = $obj;
+    }
+    
+    destructor() {
+        # increment static counter in destructor
+        call_function($.inc);
+    } 
+    
+    set(*GcTest $obj) {
+        $.o = $obj;
+    }
+}
+
+sub gc_tests() {
+    if (!HAVE_DETERMINISTIC_GC)
+        return;
+
+    my int $cnt = 0;
+    my code $inc = sub () { ++$cnt; };
+
+    # make circular references
+    {
+        my GcTest $obj1($inc);
+        $obj1.a = $obj1;
+    }
+    $unit.cmp($cnt, 1, "recursive gc 1");
+
+    {
+        my GcTest $obj2($inc);
+        $obj2.a = $obj2;
+    }
+    $unit.cmp($cnt, 2, "recursive gc 2");
+
+    {
+        my GcTest $obj3($inc);
+        $obj3.a.a = $obj3;
+    }
+    $unit.cmp($cnt, 3, "recursive gc 3");
+
+    {
+        my GcTest $obj4($inc);
+        $obj4.a = list($obj4);
+    }
+    $unit.cmp($cnt, 4, "recursive gc 4");
+
+    {
+        my GcTest $obj5($inc);
+        my GcTest $obj6($inc);
+        $obj5.a = $obj6;
+        $obj6.b = $obj5;
+    }
+    $unit.cmp($cnt, 6, "recursive gc 6");
+
+    {
+        my GcTest $obj7($inc);
+        $obj7.a = $obj7;
+        $obj7.b = $obj7;
+    }
+    $unit.cmp($cnt, 7, "recursive gc 7");
+
+    {
+        my GcTest $obj8($inc);
+        my GcTest $obj9($inc);
+        
+        $obj8.a = ("a": $obj9, "b": $obj9);
+        $obj9.b = $obj8;
+        $obj9.c = $obj8;
+    }
+    $unit.cmp($cnt, 9, "recursive gc 9");
+
+    {
+        my GcTest $obj10($inc);
+        my GcTest $obj11($inc);
+        $obj10.set($obj11);
+        $obj11.set($obj10);
+    }
+    $unit.cmp($cnt, 11, "recursive gc 11");
+
+    {
+        my GcTest $obj12($inc);
+        {
+            my GcTest $obj13($inc);
+            
+            $obj12.a = $obj13;
+            $obj13.a = $obj12;
+        }
+    }
+    $unit.cmp($cnt, 13, "recursive gc 13-1");
+
+    {
+        my GcTest $t1($inc);
+        my GcTest $t2($inc);
+        $t1.set($t2);
+        $t2.set($t1);
+        $t1.set();
+
+        $unit.cmp($cnt, 13, "recursive gc 13-2");
+    }
+    $unit.cmp($cnt, 15, "recursive gc 15-1");
+
+    {
+        my GcTest $t1($inc);
+        $t1.set($t1);
+        $t1.set();
+
+        $unit.cmp($cnt, 15, "recursive gc 15-2");
+    }
+    $unit.cmp($cnt, 16, "recursive gc 16-1");
+
+    {
+        my GcTest $t1($inc);
+        {
+            my GcTest $t2($inc);
+            $t1.set($t2);
+            $t2.b = $t1;
+            {
+                my GcTest $t3($inc);
+                $t2.set($t3);
+                $t2.b = $t1;
+                {
+                    my GcTest $t4($inc);
+                    $t3.set($t4);
+                    $t4.set($t1);
+                    $t3.b = $t2;
+                    $t4.b = $t3;
+                }
+            }
+        }
+        $unit.cmp($cnt, 16, "recursive gc 16-2");
+    }
+    $unit.cmp($cnt, 20, "recursive gc 20");
+
+    {
+        my GcTest $t1($inc);
+        {
+            my GcTest $t2($inc);
+            $t1.set($t2);
+            $t2.b = $t1;
+            {
+                my GcTest $t3($inc);
+                $t2.set($t3);
+                $t3.b = $t2;
+                $t3.c = $t1;
+                $t1.b = $t3;
+                {
+                    my GcTest $t4($inc);
+                    $t3.set($t4);
+                    $t4.set($t1);
+                    $t4.b = $t2;
+                    $t4.c = $t3;
+                    $t2.c = $t4;
+                    $t1.c = $t4;
+                }
+            }
+        }
+
+        $unit.cmp($cnt, 20, "recursive gc 20-2");
+
+    }
+    $unit.cmp($cnt, 24, "recursive gc 24");
+}

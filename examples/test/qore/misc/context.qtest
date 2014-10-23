@@ -1,0 +1,107 @@
+#!/usr/bin/env qore
+%require-types
+%enable-all-warnings
+%requires UnitTest
+
+my UnitTest $unit();
+context_tests();
+
+sub context_tests() {
+    my hash $q = ( "name" : ("david", "renata", "laura", "camilla", "isabella"),
+		   "age"  : (37, 30, 7, 4, 1 ) );
+
+    # initial matrix
+    my hash $t = ( "name" : ("david", "renata", "laura", "camilla", "isabella"),
+		   "key1" : (1, 2, 3, 4, 5),
+		   "key2" : (4, 5, 6, 7, 8),
+		   "key3" : (7, 8, 9, 0, 1),
+		   "key4" : (2, 3, 4, 5, 6),
+		   "key5" : (3, 4, 5, 6, 7) );
+
+    # resulting transposed matrix
+    my hash $i = ( "david"    : (1, 4, 7, 2, 3),
+		   "renata"   : (2, 5, 8, 3, 4),
+		   "laura"    : (3, 6, 9, 4, 5),
+		   "camilla"  : (4, 7, 0, 5, 6),
+		   "isabella" : (5, 8, 1, 6, 7) );
+
+    my hash $h;
+    context q ($q) sortBy (%name)
+	context t ($t) where (%q:name == %name) sortBy (%key2)
+	    $h.%q:name = (%key1, %t:key2, %key3, %key4, %key5);
+
+    $unit.cmp($h, $i, "context");
+
+    my int $age = find %age in $q where (%name == "david");
+    $unit.cmp($age, 37, "find");
+
+    my list $ages = find %age in $q where (%name == "david" || %name == "isabella");
+    $unit.cmp($ages, (37, 1), "list find"); 
+    context ($q) {
+	$unit.cmp(%%, ("name" : "david", "age" : 37), "context row");
+        $unit.cmp(cx_first(), True, "cx_first()");
+        $unit.cmp(cx_last(), False, "cx_last()");
+        $unit.cmp(cx_pos(), 0, "cx_pos()");
+        $unit.cmp(cx_total(), 5, "cx_total()");
+        $unit.cmp(cx_value("name"), "david", "cx_value()");
+	break;
+    }
+
+    my HashListIterator $qi($q);
+    while ($qi.next()) {
+	$unit.cmp($qi.getRow(), ("name" : "david", "age" : 37), "HashListIterator::getRow()");
+        $unit.cmp($qi.first(), True, "HashListIterator::first()");
+        $unit.cmp($qi.last(), False, "HashListIterator::last()");
+        $unit.cmp($qi.index(), 0, "HashListIterator::index()");
+        $unit.cmp($qi.max(), 5, "HashListIterator::max()");
+        $unit.cmp($qi.name, "david", "HashListIterator::memberGate()");
+	break;
+    }
+
+    my HashListReverseIterator $rqi($q);
+    while ($rqi.next()) {
+	$unit.cmp($rqi.getRow(), ("name" : "isabella", "age" : 1), "HashListReverseIterator::getRow()");
+        $unit.cmp($rqi.first(), True, "HashListReverseIterator::first()");
+        $unit.cmp($rqi.last(), False, "HashListReverseIterator::last()");
+        $unit.cmp($rqi.index(), 4, "HashListReverseIterator::index()");
+        $unit.cmp($rqi.max(), 5, "HashListReverseIterator::max()");
+        $unit.cmp($rqi.name, "isabella", "HashListReverseIterator::memberGate()");
+	break;
+    }
+
+    # convert the hash of lists to a list of hashes
+    $qi.set(-1);
+    my list $l = map $qi.getRow(), $qi;
+
+    my ListHashIterator $lqi($l);
+    while ($lqi.next()) {
+	$unit.cmp($lqi.getRow(), ("name" : "david", "age" : 37), "ListHashIterator::getRow()");
+        $unit.cmp($lqi.first(), True, "ListHashIterator::first()");
+        $unit.cmp($lqi.last(), False, "ListHashIterator::last()");
+        $unit.cmp($lqi.index(), 0, "ListHashIterator::index()");
+        $unit.cmp($lqi.max(), 5, "ListHashIterator::max()");
+        $unit.cmp($lqi.name, "david", "ListHashIterator::memberGate()");
+
+        my ListHashIterator $ni = $lqi.copy();
+	$unit.cmp($ni.getRow(), ("name" : "david", "age" : 37), "ListHashIterator::getRow() (copy)");
+        $unit.cmp($ni.first(), True, "ListHashIterator::first() (copy)");
+        $unit.cmp($ni.index(), 0, "ListHashIterator::index() (copy)");
+	break;
+    }
+
+    my ListHashReverseIterator $lrqi($l);
+    while ($lrqi.next()) {
+	$unit.cmp($lrqi.getRow(), ("name" : "isabella", "age" : 1), "ListHashReverseIterator::getRow()");
+        $unit.cmp($lrqi.first(), True, "ListHashReverseIterator::first()");
+        $unit.cmp($lrqi.last(), False, "ListHashReverseIterator::last()");
+        $unit.cmp($lrqi.index(), 4, "ListHashReverseIterator::index()");
+        $unit.cmp($lrqi.max(), 5, "ListHashReverseIterator::max()");
+        $unit.cmp($lrqi.name, "isabella", "ListHashReverseIterator::memberGate()");
+
+        my ListHashReverseIterator $ni = $lrqi.copy();
+	$unit.cmp($ni.getRow(), ("name" : "isabella", "age" : 1), "ListHashReverseIterator::getRow() (copy)");
+        $unit.cmp($ni.first(), True, "ListHashReverseIterator::first() (copy)");
+        $unit.cmp($ni.index(), 4, "ListHashReverseIterator::index() (copy)");
+	break;
+    }
+}

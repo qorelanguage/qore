@@ -1,0 +1,8 @@
+#!/usr/bin/env qore
+%require-types
+%enable-all-warnings
+%requires UnitTest
+
+my UnitTest $unit();
+
+$unit.cmp(`echo -n 1`, "1", "backquote");
