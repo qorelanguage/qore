@@ -1193,7 +1193,7 @@ AC_ARG_ENABLE([profile],
 
 AC_ARG_ENABLE([debug],
      [AS_HELP_STRING([--enable-debug],
-		     [turn on debugging (default=no)])],
+		     [turn on debugging (default=yes)])],
      [case "${enable_debug}" in
        yes|no) ;;
        *)      AC_MSG_ERROR(bad value ${enable_debug} for --enable-debug) ;;
