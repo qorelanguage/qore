@@ -586,11 +586,11 @@ void QoreTypeInfo::doNonBooleanWarning(const char* preface) const {
    qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
 }
 
-void QoreTypeInfo::doNonStringWarning(const char* preface) const {
+void QoreTypeInfo::doNonStringWarning(const QoreProgramLocation& loc, const char* preface) const {
    QoreStringNode* desc = new QoreStringNode(preface);
    getThisType(*desc);
    desc->sprintf(", which cannot be converted to a string, therefore will always evaluate to an empty string at runtime");
-   qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+   qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
 }
 
 const QoreTypeInfo* QoreParseTypeInfo::resolveAndDelete(const QoreProgramLocation& loc) {

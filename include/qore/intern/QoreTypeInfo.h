@@ -807,7 +807,7 @@ public:
       return is_int || qt == NT_FLOAT || qt == NT_STRING || qt == NT_BOOLEAN || qt == NT_DATE ? false : true;
    }
 
-   DLLLOCAL void doNonStringWarning(const char *preface) const;
+   DLLLOCAL void doNonStringWarning(const QoreProgramLocation& loc, const char *preface) const;
 
    DLLLOCAL void concatName(std::string &str) const {
       if (!hasType()) {

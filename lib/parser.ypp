@@ -54,6 +54,7 @@
 #include <qore/intern/ConstantList.h>
 #include <qore/intern/GlobalVariableList.h>
 #include <qore/intern/QoreNamespaceIntern.h>
+#include <qore/intern/QoreParseHashNode.h>
 
 #include "parser.hpp"
 
@@ -85,34 +86,22 @@
 
 class HashElement {
 public:
-   char* key;
+   AbstractQoreNode* key;
    AbstractQoreNode* value;
  
-   DLLLOCAL HashElement(AbstractQoreNode* k, AbstractQoreNode* v) {
-      //tracein("HashElement::HashElement()");
-      if (!k || k->getType() != NT_STRING) {
-	 parse_error("hash member name must be a string value!");
-	 key = strdup("");
-      }
-      else
-	 key = strdup(reinterpret_cast<QoreStringNode*>(k)->getBuffer());
-      k->deref(0);
-      value = v;
-      //traceout("HashElement::HashElement()");
-   }
-
-   DLLLOCAL HashElement(int tag, char* constant, AbstractQoreNode* v) {
-      //tracein("HashElement::HashElement()");
-      key = (char* )malloc(sizeof(char) * strlen(constant) + 2);
-      key[0] = tag; // mark as constant
-      strcpy(key + 1, constant);
-      value = v;
-      free(constant);
+   DLLLOCAL HashElement(AbstractQoreNode* k, AbstractQoreNode* v) : key(k), value(v) {
       //traceout("HashElement::HashElement()");
    }
 
    DLLLOCAL ~HashElement() {
-      free(key);
+      discard(key, 0);
+      discard(value, 0);
+   }
+
+   DLLLOCAL void addDelete(QoreParseHashNode* h) {
+      h->add(key, value);
+      key = value = 0;
+      delete this;
    }
 };
 
@@ -1195,7 +1184,7 @@ static qore_var_t get_var_type() {
    char* string;
    BinaryNode* binary;
    AbstractQoreNode* node;
-   QoreHashNode* hash;
+   QoreParseHashNode* hash;
    QoreListNode* list;
    AbstractStatement *statement;
    struct MemberInfo* memberinfo;
@@ -1457,10 +1446,10 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %type <methoddef>      outofline_methoddef
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { delete $$; } TRY_MODULE_ERROR REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS BASE_CLASS_CALL CLASS_SCOPED_REF block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod inline_methoddef class_def top_namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors class_attributes return_value member member2 superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def gvardecl outofline_methoddef
+%destructor { delete $$; } TRY_MODULE_ERROR REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS BASE_CLASS_CALL CLASS_SCOPED_REF block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod inline_methoddef class_def top_namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors class_attributes return_value member member2 superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def gvardecl outofline_methoddef hash
 %destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF SCOPED_VREF KW_IDENTIFIER_OPENPAREN QORE_CAST CLASS_STRING optname ident_openparen
 %destructor { if ($$) $$->deref(); } namespace_decl namespace_decls string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER
-%destructor { if ($$) $$->deref(0); } exp myexp scalar hash list
+%destructor { if ($$) $$->deref(0); } exp myexp scalar list
 
 %%
 top_level_commands:
@@ -2590,28 +2579,20 @@ list:
 
 hash:
         hash_element {
-	   $$ = new QoreHashNode;
-	   $$->setKeyValue($1->key, $1->value, 0);
-	   delete $1;
+	   $$ = new QoreParseHashNode;
+           $1->addDelete($$);
 	}
 	| hash ',' hash_element	{
-	   if ($1->existsKey($3->key))
-	      QoreHashNode::doDuplicateKeyWarning($3->key);
-	   $1->setKeyValue($3->key, $3->value, 0);
-	   delete $3;
+           $3->addDelete($1);
 	   $$ = $1;
 	}
         | hash ','
-	{ /* empty ',' on end of hash */ $$=$1; }
+	{ /* empty ',' on end of hash */ $$ = $1; }
 	;
 
 hash_element:
-	scalar ':' exp
+        exp ':' exp
 	{ $$ = new HashElement($1, $3); }
-        | IDENTIFIER ':' exp     // for constants
-        { $$ = new HashElement(HE_TAG_CONST, $1, $3); }
-        | SCOPED_REF ':' exp     // for scoped constants
-        { $$ = new HashElement(HE_TAG_SCOPED_CONST, $1, $3); }
 	;
 
 exp:    scalar

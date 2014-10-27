@@ -83,9 +83,10 @@ const qore_type_t NT_PROGRAM_FUNC_CALL  = 40; //!< type value for ProgramFunctio
 const qore_type_t NT_PARSEREFERENCE     = 41; //!< type value for ParseReferenceNode (private class)
 const qore_type_t NT_BACKQUOTE          = 42; //!< type value for BackquoteNode
 const qore_type_t NT_RTCONSTREF         = 43; //!< type value for RuntimeConstantRefNode
+const qore_type_t NT_PARSE_HASH         = 44; //!< type value for QoreParseHashNode
 
 //! number of types implemented in the Qore library
-#define QORE_NUM_TYPES 43
+#define QORE_NUM_TYPES 44
 
 //! number of simple value types (not containers)
 #define NUM_SIMPLE_TYPES 8

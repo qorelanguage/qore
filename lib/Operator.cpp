@@ -3529,7 +3529,7 @@ static AbstractQoreNode* check_op_object_ref(QoreTreeNode* tree, LocalVar* oflag
    // issue a warning if the right side of the expression cannot be converted to a string
    // and can not be a list (for a slice)
    if (rightTypeInfo->nonStringValue() && !listTypeInfo->parseAccepts(rightTypeInfo))
-      rightTypeInfo->doNonStringWarning("the right side of the expression with the '.' or '{}' operator is ");
+      rightTypeInfo->doNonStringWarning(loc, "the right side of the expression with the '.' or '{}' operator is ");
 
    return tree;
 }

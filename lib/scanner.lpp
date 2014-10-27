@@ -33,7 +33,7 @@
     no include file depth limits, 
     thread-safe
 
-  requires flex 2.5.31 or better (2.5.37 recommended, 2.5.4 will not work) 
+  requires flex 2.5.31 or better (2.5.37+ recommended, 2.5.4 will not work) 
   so a thread-safe scanner can be generated
 
   see: http://flex.sourceforge.net/

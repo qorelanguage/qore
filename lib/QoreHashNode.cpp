@@ -33,6 +33,7 @@
 #include <qore/intern/QoreHashNodeIntern.h>
 #include <qore/intern/QoreNamespaceIntern.h>
 #include <qore/intern/ParserSupport.h>
+#include <qore/intern/qore_program_private.h>
 
 #include <string.h>
 #include <strings.h>
@@ -545,73 +546,8 @@ QoreHashNode* QoreHashNode::getSlice(const QoreListNode* value_list, ExceptionSi
 }
 
 AbstractQoreNode* QoreHashNode::parseInit(LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   QoreProgramLocation loc = get_parse_location();
-
-   assert(!typeInfo);
-   //printd(5, "QoreHashNode::parseInit() this=%p\n", this);
    typeInfo = hashTypeInfo;
-
-   HashIterator hi(this);
-   while (hi.next()) {
-      const char* k = hi.getKey();
-      AbstractQoreNode** val = hi.getValuePtr();
-      
-      //printd(5, "QoreHashNode::parseInit() this: %p resolving key '%s' val %p (%s)\n", this, k, *val, get_type_name(*val));
-
-      // resolve constant references in keys
-      if (k[0] == HE_TAG_CONST || k[0] == HE_TAG_SCOPED_CONST) {
-         AbstractQoreNode* rv;
-         // currently type information is ignored
-         const QoreTypeInfo *keyTypeInfo = 0;
-         if (k[0] == HE_TAG_CONST)
-	    rv = qore_root_ns_private::parseFindConstantValue(k + 1, keyTypeInfo, true);
-         else {
-            NamedScope nscope(k + 1);
-	    rv = qore_root_ns_private::parseFindConstantValue(nscope, keyTypeInfo, true);
-          }
-
-	 //printd(5, "QoreHashNode::parseInit() resolved constant '%s': %p\n", k + 1, rv);
-
-         if (rv) {
-            QoreStringValueHelper t(rv);
-
-            // check for duplicate key definitions
-            if (priv->existsKey(t->getBuffer()))
-               doDuplicateKeyWarning(t->getBuffer());
-
-            // move value to new hash key
-            setKeyValue(t->getBuffer(), *val, 0);
-	    *val = 0;
-         }
-         
-         // delete the old key (not possible to have an exception here)
-         hi.deleteKey(0);
-         continue;
-      }
-
-      assert(val);
-      if (*val) {
-         const QoreTypeInfo *argTypeInfo = 0;
-
-	 //printd(5, "QoreHashNode::parseInit() this=%p initializing key '%s' val=%p (%s)\n", this, k, *val, get_type_name(*val));
-
-         (*val) = (*val)->parseInit(oflag, pflag, lvids, argTypeInfo);
-         if (!needs_eval_flag && *val && (*val)->needs_eval()) {
-            //printd(5, "setting needs_eval on hash %p key '%s' val=%p (%s)\n", this, k, *val, get_type_name(*val));
-            setNeedsEval();
-         }
-	 // restore parse location
-	 update_parse_location(loc);
-      }
-   }
    return this;
-}
-
-// static function
-void QoreHashNode::doDuplicateKeyWarning(const char* key) {
-   if (key[0] < 32)
-      ++key;
-   qore_program_private::makeParseWarning(getProgram(), QP_WARN_DUPLICATE_HASH_KEY, "DUPLICATE-HASH-KEY", "hash key '%s' has already been given in this hash; the value given in the last occurrence will be assigned to the hash; to avoid seeing this warning, remove the extraneous key definitions or turn off the warning by using '%%disable-warning duplicate-hash-key' in your code", key);
 }
 
 bool QoreHashNode::getAsBoolImpl() const {
@@ -1009,3 +945,22 @@ AbstractQoreNode* HashAssignmentHelper::operator*() const {
    return **priv;
 }
 
+void QoreParseHashNode::doDuplicateWarning(QoreProgramLocation& loc, const char* key) {
+   qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_DUPLICATE_HASH_KEY, "DUPLICATE-HASH-KEY", "hash key '%s' has already been given in this hash; the value given in the last occurrence will be assigned to the hash; to avoid seeing this warning, remove the extraneous key definitions or turn off the warning by using '%%disable-warning duplicate-hash-key' in your code", key);
+}
+
+int QoreParseHashNode::getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
+   str.sprintf("expression hash with %d member%s", (int)keys.size(), keys.size() == 1 ? "" : "s");
+   return 0;
+}
+
+QoreString* QoreParseHashNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
+   del = true;
+   QoreString* rv = new QoreString;
+   getAsString(*rv, foff, xsink);
+   return rv;
+}
+
+const char* QoreParseHashNode::getTypeName() const {
+   return "hash";
+}

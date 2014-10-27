@@ -479,8 +479,6 @@ public:
 
    // "key" is always passed in the default character encoding
    DLLLOCAL AbstractQoreNode* getReferencedKeyValue(const char* key, bool& exists) const;
-
-   DLLLOCAL static void doDuplicateKeyWarning(const char* key);
 };
 
 #include <qore/ReferenceHolder.h>
