@@ -1,7 +1,7 @@
 #!/usr/bin/env qore
-
 %enable-all-warnings
 %disable-warning undeclared-var
+%requires UnitTest
 
 # Examples of qore regular expressions
 # initially written and tested for qore 0.4.0 (Oct 2005)
@@ -14,56 +14,57 @@
 # The following examples are in the order of regex(7) of Debian/Sarge
 # Comments beginning with '##' are quotes from regex(7)
 
+my UnitTest $unit();
 
 ## A (modern) RE is one(!) or more non-empty(!) branches, separated  by '|'.
 ## It matches anything that matches one of the branches.
 $t = 'Branches';          # text
 $s = 'abc';               # string
 $p = 'a|z';               # pattern
-printf("%s %s: \"'%s' =~ /%s/\"\n", ( $s =~ /a|z/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s =~ /a|z/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'qrs';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /a|z/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /a|z/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 ## A  branch  is  one(!) or more pieces, concatenated.  It matches a match
 ## for the first, followed by a match for the second, etc.
 $t = 'Pieces';
 $s = 'abcxyz';
 $p = 'bc';
-printf("%s %s: \"'%s' =~ /%s/\"\n", ( $s =~ /bc/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s =~ /bc/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'bac';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /bc/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s =~ /bac/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 
 ## A piece is an atom possibly followed by a single(!) '*', '+',  '?',  or bound.
 $t = 'Atoms and repeaters';
 $s = 'abcxyz';
 $p = 'ab*c+x?y{1}';
-printf("%s %s: \"'%s' =~ /%s/\"\n", ( $s =~ /ab*c+x?y{1}/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s =~ /ab*c+x?y{1}/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'bac';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /ab*c+x?y{1}/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /ab*c+x?y{1}/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 ## An atom followed by '*' matches a sequence of 0 or more matches of the atom.
 $t = 'None or more';
 $s = 'abbbc';
 $p = 'ab*c';
-printf("%s %s: \"'%s' =~ /%s/\"\n", ( $s =~ /ab*c/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s =~ /ab*c/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'adc';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /ab*c/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /ab*c/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 ## An atom followed by '+' matches a sequence of 1 or more matches of the atom.
 $t = 'One or more';
 $s = 'abbbc';
 $p = 'ab+c';
-printf("%s %s: \"'%s' =~ /%s/\"\n", ( $s =~ /ab+c/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s =~ /ab+c/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'ac';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /ab+c/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /ab+c/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 ## An atom followed by '?' matches a sequence of 0 or 1 matches of the atom.
 $t = 'None or one';
 $s = 'abc';
 $p = 'ab?c';
-printf("%s %s: \"'%s' =~ /%s/\"\n", ( $s =~ /ab?c/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s =~ /ab?c/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'adc';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /ab?c/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /ab?c/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 ## A bound is '{' followed by an unsigned decimal integer, possibly followed 
 ## by ',' possibly followed by another unsigned decimal integer,
@@ -71,62 +72,62 @@ printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /ab?c/ ) ? 'PASS' : 'FAIL' ,$t, $s, 
 $t = 'Bound';
 $s = 'abcc';
 $p = 'a{1}b{0,}c{2,3}';
-printf("%s %s: \"'%s' =~ /%s/\"\n", ( $s =~ /a{0}b{1,}c{2,3}/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s =~ /a{1}b{0,}c{2,3}/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'adc';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /a{0}b{1,}c{2,3}/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /a{1}b{0,}c{2,3}/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 ## The integers must lie between 0 and RE_DUP_MAX (255(!)) inclusive, 
 ## and if there are two of them, the first may not exceed the second.
 $t = 'Bound integers';
 $s = 'abcc';
 $p = 'b{0,1}c{2,255}';
-printf("%s %s: \"'%s' =~ /%s/\"\n", ( $s =~ /b{0,1}c{2,255}/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s =~ /b{0,1}c{2,255}/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'abd';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /b{0,1}c{2,255}/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /b{0,1}c{2,255}/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 ## An atom followed by a bound containing one integer
 ## i and no comma matches a sequence of exactly i matches of the atom.
 $t = 'Bound integer exactly';
 $s = 'abccd';
 $p = 'bc{2}d';
-printf("%s %s: \"'%s' =~ /%s/\"\n", ( $s =~ /bc{2}d/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s =~ /bc{2}d/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'abcccd';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /bc{2}d/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /bc{2}d/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 ## An atom followed by a bound containing one integer i and a comma matches a
 ## sequence of i or more matches of the atom.
 $t = 'Bound integer or more';
 $s = 'abccccc';
 $p = 'c{2,}';
-printf("%s %s: \"'%s' =~ /%s/\"\n", ( $s =~ /c{2,}/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s =~ /c{2,}/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'abcdc';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /c{2,}/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /c{2,}/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 ## An atom followed by a bound containing two integers i and j matches a sequence 
 ## of i through j (inclusive) matches of the atom.
 $t = 'Bound integer through maximum';
 $s = 'abccccd';
 $p = 'bc{2,4}d';
-printf("%s %s: \"'%s' =~ /%s/\"\n", ( $s =~ /bc{2,4}d/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s =~ /bc{2,4}d/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'abcdbcccccd';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /bc{2,4}d/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /bc{2,4}d/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 ## An atom is a regular expression enclosed in '()' (matching a match for
 ## the regular expression),
 $t = 'Enclosed regex';
 $s = 'abc';
 $p = '(b)';
-printf("%s %s: \"'%s' =~ /%s/\"\n", ( $s =~ /(b)/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s =~ /(b)/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'acd';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /(b)/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /(b)/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 ## an empty set of '()' (matching the null string)(!),
 $t = 'Enclosed empty';
 $s = '';
 $p = '^()$';
-printf("%s %s: \"'%s' =~ /%s/\"\n", ( $s =~ /^()$/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s =~ /^()$/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'acd';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /^()$/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /^()$/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
        
 ## a bracket expression (see below),
 
@@ -134,34 +135,34 @@ printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /^()$/ ) ? 'PASS' : 'FAIL' ,$t, $s, 
 $t = 'any single character';
 $s = 'abc';
 $p = 'a.c';
-printf("%s %s: \"'%s' =~ /%s/\"\n", ( $s =~ /a.c/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s =~ /a.c/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'acd';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /a.c/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p); 
+$unit.ok($s !~ /a.c/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 ## '^' (matching the null string at the beginning of a  line),
 $t = 'beginning of line/string';
 $s = 'abc';
 $p = '^ab';
-printf("%s %s: \"'%s' =~ /%s/\"\n", ( $s =~ /^ab/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s =~ /^ab/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'acd';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /^ab/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /^ab/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 ## '$'  (matching the null string at the end of a line),
 $t = 'end of line/string';
 $s = 'abc';
 $p = 'bc$';
-printf("%s %s: \"'%s' =~ /%s/\"\n", ( $s =~ /bc$/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s =~ /bc$/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'bcd';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /bc$/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p); 
+$unit.ok($s !~ /bc$/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 ## a '\' followed by one of the characters '^.[$()|*+?{\' (matching that 
 ## character taken as an ordinary character),
 $t = 'escaped special character';
 $s = '^.[$()|*+?{\\';
 $p = '\^\.\[\$\(\)\|\*\+\?\{\\';
-printf("%s %s: \"'%s' =~ /%s/\"\n", ( $s =~ /\^\.\[\$\(\)\|\*\+\?\{\\/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s =~ /\^\.\[\$\(\)\|\*\+\?\{\\/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = '\^\.\[\$\(\)\|\*\+\?\{\\';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /\^\.\[\$\(\)\|\*\+\?\{\\/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /\^\.\[\$\(\)\|\*\+\?\{\\/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
   
 # This seems to be against POSIX
 ## a '\' followed by any other character(!)
@@ -182,26 +183,26 @@ $p = '\!\"\%\&\=\~\#\-\_\>';
 # | REGEX-COMPILATION-ERROR: invalid UTF-8 string
 # printf("%s %s: \"'%s' =~ /%s/\"\n", ( $s =~ /\a\A\!\"\§\%\&\=\~\#\-\_\>/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
 # printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /\a\A\!\"\§\%\&\=\~\#\-\_\>/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
-printf("%s %s: \"'%s' =~ /%s/\"\n", ( $s =~ /\!\"\%\&\=\~\#\-\_\>/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s =~ /\!\"\%\&\=\~\#\-\_\>/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = '\!\"\%\&\=\~\#\-\_\>';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /\!\"\%\&\=\~\#\-\_\>/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /\!\"\%\&\=\~\#\-\_\>/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 # escaping '<,;}' with '\' has problems
 # NOTE: it would be against POSIX 2, actual behaviour is o.k.
 $t = 'escaped with problems';
 $s = '<,;}';
 $p = '\<\,\;\}';
-#printf("%s %s: \"'%s' =~ /%s/\"\n", ( $s =~ /\<\,\;\}/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+#$unit.ok($s =~ /\<\,\;\}/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = '\<\,\;\}';
-#printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /\<\,\;\}/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);  
+#$unit.ok($s !~ /\<\,\;\}/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 ## or a single character with no other significance (matching that character).
 $t = 'unescaped character';
 $s = '<,;}';
 $p = '<,;}';
-printf("%s %s: \"'%s' =~ /%s/\"\n", ( $s =~ /<,;}/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s =~ /<,;}/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'abc';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /<,;}/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);  
+$unit.ok($s !~ /<,;}/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 ## A '{' followed by a character other than a digit is an ordinary character, 
 ## not the beginning of a bound(!).
@@ -211,9 +212,9 @@ $p = 'a{b}';
 # NOTE: it would be against POSIX 2, actual behaviour is o.k.
 #REGEX-COMPILATION-ERROR: Invalid content of \{\}
 #REGEX-COMPILATION-ERROR: Unmatched \{
-#printf("%s %s: \"'%s' =~ /%s/\"\n", ( $s =~ /a{b/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+#$unit.ok($s =~ /a{b}/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'abc';
-#printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /a{b}/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+#$unit.ok($s !~ /a{b}/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
        
 ## It is illegal to end an RE with '\'.
@@ -223,18 +224,18 @@ $s = 'abc';
 $t = 'bracket expressions'; 
 $s = 'abc';
 $p = 'a[bB]c';
-printf("%s %s: \"'%s' =~ /%s/\"\n", ( $s =~ /a[bB]c/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s =~ /a[bB]c/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'adc';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /a[bB]c/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /a[bB]c/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 ## If the list begins with '^', it matches  any  single  character  (but  see
 ## below) not from the rest of the list.
 $t = 'negated bracket list'; 
 $s = 'abc';
 $p = 'a[^d]c';
-printf("%s %s: \"'%s' =~ /%s/\"\n", ( $s =~ /a[^d]c/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s =~ /a[^d]c/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'adc';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /a[^d]c/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);  
+$unit.ok($s !~ /a[^d]c/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
        
 ## If two characters in the list are separated by '-', this is shorthand for 
 ## the full range of characters between those two (inclusive) in the collating 
@@ -242,9 +243,9 @@ printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /a[^d]c/ ) ? 'PASS' : 'FAIL' ,$t, $s
 $t = 'char range';
 $s = 'abc';
 $p = '^[a-z]+$';
-printf("%s %s: \"'%s' =~ /%s/\"\n",( $s =~ /^[a-z]+$/) ? 'PASS' : 'FAIL' ,$t, $s, $p);  
+$unit.ok($s =~ /^[a-z]+$/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'ABC';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /^[a-z]+$/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /^[a-z]+$/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 ## It is illegal(!) for two ranges to share an endpoint, e.g. 'a-c-e'. Ranges are 
 ## very collating sequence-dependent, and portable programs should avoid relying on them.
@@ -254,33 +255,32 @@ printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /^[a-z]+$/ ) ? 'PASS' : 'FAIL' ,$t, 
 $t = 'literal bracket';
 $s = 'abc]';
 $p = '^[]a-c]+$';
-printf("%s %s: \"'%s' =~ /%s/\"\n",( $s =~ /^[]a-c]+$/) ? 'PASS' : 'FAIL' ,$t, $s, $p);  
+$unit.ok($s =~ /^[]a-c]+$/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'abc[';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /^[]a-c]+$/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /^[]a-c]+$/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 ## To include a literal '-', make it the first 
 $t = 'literal hyphen first';
 $s = 'abc-';
 $p = '^[-a-c]+$';
-printf("%s %s: \"'%s' =~ /%s/\"\n",( $s =~ /^[-a-c]+$/) ? 'PASS' : 'FAIL' ,$t, $s, $p);  
 $s = 'abc[';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /^[-a-c]+$/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /^[-a-c]+$/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 ## or last character, 
 $t = 'literal hyphen last';
 $s = 'abc-';
 $p = '^[a-c-]+$';
-printf("%s %s: \"'%s' =~ /%s/\"\n",( $s =~ /^[a-c-]+$/) ? 'PASS' : 'FAIL' ,$t, $s, $p);  
+$unit.ok($s =~ /^[a-c-]+$/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'abc[';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /^[a-c-]+$/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /^[a-c-]+$/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 ## or the second endpoint of a range. 
 $t = 'hyphen range endpoint';
 $s = '!#-';
 $p = '^[!--]+$';
-printf("%s %s: \"'%s' =~ /%s/\"\n",( $s =~ /^[!--]+$/) ? 'PASS' : 'FAIL' ,$t, $s, $p);  
+$unit.ok($s =~ /^[!--]+$/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'abc[';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /^[!--]+$/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /^[!--]+$/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 ## To use a literal '-' as the first endpoint of a range, enclose it in '[.'  and  '.]'  
 ## to make it a collating element (see below).  
@@ -290,9 +290,9 @@ $p = '^[--c]+$';
 # this is POSIX
 # printf("%s %s: \"'%s' =~ /%s/\"\n",( $s =~ /^[[.-.]-c]+$/) ? 'PASS' : 'FAIL' ,$t, $s, $p);  
 # this is PCRE
-printf("%s %s: \"'%s' =~ /%s/\"\n",( $s =~ /^[--c]+$/) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s =~ /^[--c]+$/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'abc!';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /^[--c]+$/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /^[--c]+$/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 ## With the exception of these and some combinations using `[' (see next paragraphs), 
 ## all other special characters, including '\', lose their special significance within
@@ -302,9 +302,9 @@ $t = 'bracket unescaped';
 $s = '.$()|*+?{}\<>';
 # $p = '^[.$()|*+?{}\<>]+$'; # POSIX
 $p = '^[.$()|*+?{}\\<>]+$';   # PCRE
-printf("%s %s: \"'%s' =~ /%s/\"\n",( $s =~ /^[.$()|*+?{}\\<>]+$/) ? 'PASS' : 'FAIL' ,$t, $s, $p); 
+$unit.ok($s =~ /^[.$()|*+?{}\\<>]+$/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'abc';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /^[.$()|*+?{}\\<>]+$/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /^[.$()|*+?{}\\<>]+$/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 ## Within a bracket expression, a collating element (a character, a multicharacter 
 ## sequence that collates as if it were a single character, or a collating-sequence 
@@ -318,9 +318,9 @@ $t = 'collating element';
 $s = 'abcba';
 $p = '^[[.abc.]]+$';
 # REGEX-COMPILATION-ERROR: Invalid collation character
-# printf("%s %s: \"'%s' =~ /%s/\"\n",( $s =~ /^[[.abc.]]+$/) ? 'PASS' : 'FAIL' ,$t, $s, $p); 
+#$unit.ok($s =~ /^[[.abc.]]+$/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'abcbaa';
-# printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /^[[.abc.]]+$/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+#$unit.ok($s !~ /^[[.abc.]]+$/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 ## Within a bracket expression, a collating element enclosed in '[=' and
 ## '=]' is an equivalence class, standing for the sequences of characters
@@ -343,79 +343,79 @@ $s = 'abcbaa';
 $t = 'named character class';
 $s = 'abc123';
 $p = '^[[:alnum:]]+$';
-printf("%s %s: \"'%s' =~ /%s/\"\n",( $s =~ /^[[:alnum:]]+$/) ? 'PASS' : 'FAIL' ,$t, $s, $p); 
+$unit.ok($s =~ /^[[:alnum:]]+$/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'abcbaa.';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /^[[:alnum:]]+$/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /^[[:alnum:]]+$/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 $t = 'named character class';
 $s = 'abc';
 $p = '^[[:alpha:]]+$';
-printf("%s %s: \"'%s' =~ /%s/\"\n",( $s =~ /^[[:alpha:]]+$/) ? 'PASS' : 'FAIL' ,$t, $s, $p); 
+$unit.ok($s =~ /^[[:alpha:]]+$/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'abcbaa.';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /^[[:alpha:]]+$/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /^[[:alpha:]]+$/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 $t = 'named character class';
 $s = ' ';
 $p = '^[[:blank:]]+$';
-printf("%s %s: \"'%s' =~ /%s/\"\n",( $s =~ /^[[:blank:]]+$/) ? 'PASS' : 'FAIL' ,$t, $s, $p); 
+$unit.ok($s =~ /^[[:blank:]]+$/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'abcbaa.';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /^[[:blank:]]+$/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /^[[:blank:]]+$/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 $t = 'named character class';
 $s = "\t\r\n";
 $p = '^[[:cntrl:]]+$';
-printf("%s %s: \"'%s' =~ /%s/\"\n",( $s =~ /^[[:cntrl:]]+$/) ? 'PASS' : 'FAIL' ,$t, $s, $p); 
+$unit.ok($s =~ /^[[:cntrl:]]+$/, $t + ' ' + '\t\r\n' + ": '" + '\t\r\n' + "' =~ /" + $p + "'");
 $s = 'abcbaa.';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /^[[:cntrl:]]+$/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /^[[:cntrl:]]+$/, $t + ' ' + '\t\r\n' + ": '" + '\t\r\n' + "' !~ /" + $p + "'");
 
 $t = 'named character class';
 $s = '1234567890';
 $p = '^[[:digit:]]+$';
-printf("%s %s: \"'%s' =~ /%s/\"\n",( $s =~ /^[[:digit:]]+$/) ? 'PASS' : 'FAIL' ,$t, $s, $p); 
+$unit.ok($s =~ /^[[:digit:]]+$/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'abcbaa.';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /^[[:digit:]]+$/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /^[[:digit:]]+$/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 $t = 'named character class';
 $s = 'abc';
 $p = '^[[:lower:]]+$';
-printf("%s %s: \"'%s' =~ /%s/\"\n",( $s =~ /^[[:lower:]]+$/) ? 'PASS' : 'FAIL' ,$t, $s, $p); 
+$unit.ok($s =~ /^[[:lower:]]+$/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'ABC';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /^[[:lower:]]+$/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /^[[:lower:]]+$/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 $t = 'named character class';
 $s = 'abc';
 $p = '^[[:print:]]+$';
-printf("%s %s: \"'%s' =~ /%s/\"\n",( $s =~ /^[[:print:]]+$/) ? 'PASS' : 'FAIL' ,$t, $s, $p); 
+$unit.ok($s =~ /^[[:print:]]+$/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = '';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /^[[:print:]]+$/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /^[[:print:]]+$/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 $t = 'named character class';
 $s = '!?,;.:';
 $p = '^[[:punct:]]+$';
-printf("%s %s: \"'%s' =~ /%s/\"\n",( $s =~ /^[[:punct:]]+$/) ? 'PASS' : 'FAIL' ,$t, $s, $p); 
+$unit.ok($s =~ /^[[:punct:]]+$/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'abc1';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /^[[:punct:]]+$/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /^[[:punct:]]+$/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 $t = 'named character class';
 $s = "\t\r\n ";
 $p = '^[[:space:]]+$';
-printf("%s %s: \"'%s' =~ /%s/\"\n",( $s =~ /^[[:space:]]+$/) ? 'PASS' : 'FAIL' ,$t, $s, $p); 
+$unit.ok($s =~ /^[[:space:]]+$/, $t + ' ' + '\t\r\n ' + ": '" + '\t\r\n ' + "' =~ /" + $p + "'");
 $s = 'abc1';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /^[[:space:]]+$/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /^[[:space:]]+$/, $t + ' ' + '\t\r\n ' + ": '" + '\t\r\n ' + "' !~ /" + $p + "'");
 
 $t = 'named character class';
 $s = 'ABC';
 $p = '^[[:upper:]]+$';
-printf("%s %s: \"'%s' =~ /%s/\"\n",( $s =~ /^[[:upper:]]+$/) ? 'PASS' : 'FAIL' ,$t, $s, $p); 
+$unit.ok($s =~ /^[[:upper:]]+$/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'abc';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /^[[:upper:]]+$/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /^[[:upper:]]+$/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 $t = 'named character class';
 $s = '0123456789abcdefABCDEF';
 $p = '^[[:xdigit:]]+$';
-printf("%s %s: \"'%s' =~ /%s/\"\n",( $s =~ /^[[:xdigit:]]+$/) ? 'PASS' : 'FAIL' ,$t, $s, $p); 
+$unit.ok($s =~ /^[[:xdigit:]]+$/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'g';
-printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /^[[:xdigit:]]+$/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /^[[:xdigit:]]+$/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 ## These stand for the character classes defined in wctype(3). A locale
 ## may provide others. A character class may not be used as an endpoint
@@ -434,24 +434,26 @@ $t = 'Word begin';
 $s = ' abcd efg';
 $p = '[[:<:]]abc';
 # REGEX-COMPILATION-ERROR: Invalid character class name
-#printf("%s %s: \"'%s' =~ /%s/\"\n",( $s =~ /[[:<:]]abc/) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+#$unit.ok($s =~ /[[:<:]]abc/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = ' xabcd efg';
-#printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /[[:<:]]abc/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+#$unit.ok($s !~ /[[:<:]]abc/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 $t = 'Word end';
 $s = ' abcd efg';
 $p = 'bcd[[:>:]]';
 # REGEX-COMPILATION-ERROR: Invalid character class name
 #printf("%s %s: \"'%s' =~ /%s/\"\n",( $s =~ /bcd[[:>:]]/) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+#$unit.ok($s =~ /bcd[[:>:]]/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = ' abcdx efg';
 #printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /bcd[[:>:]]/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+#$unit.ok($s !~ /bcd[[:>:]]/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 $t = 'Word';
 $s = ' abcd efg';
 $p = '[[:<:]]abcd[[:>:]]';
-#printf("%s %s: \"'%s' =~ /%s/\"\n",( $s =~ /[[:<:]]abcd[[:>:]]/) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+#$unit.ok($s =~ /[[:<:]]abcd[[:>:]]/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = ' xabcd efg';
-#printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /[[:<:]]abcd[[:>:]]/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+#$unit.ok($s !~ /[[:<:]]abcd[[:>:]]/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 ## In the event that an RE could match more than one substring of a given
 ## string, the RE matches the one starting earliest in the string. If the
@@ -498,9 +500,9 @@ $s = ' xabcd efg';
 $t = 'Empty string';
 $s = '';
 $p = '^$';
-printf("%s %s: \"'%s' =~ /%s/\"\n",( $s =~ /^$/) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s =~ /^$/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'a';
-printf("%s %s: \"'%s' !~ /%s/\"\n",( $s !~ /^$/) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+$unit.ok($s !~ /^$/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");
 
 # Character class
 
