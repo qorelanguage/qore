@@ -1,0 +1,60 @@
+#!/usr/bin/env qore
+%require-our
+%enable-all-warnings
+%requires UnitTest
+
+my UnitTest $unit();
+
+our $home;
+if (gethostname() =~ /^ren/)
+    $home = 1;
+
+our $calls_constructor = 0;
+our $calls_destructor  = 0;
+our $calls_hello  = 0;
+
+class Test {
+    constructor($a) {
+	$.data = $a;
+        $calls_constructor++;
+    }
+    destructor() {
+        $calls_destructor++;
+    }
+    getData() {
+	return $.data;
+    }
+    getType() {
+	return getClassName($self);
+    }
+    private p1() {
+    }
+}
+
+private Test::p2() {
+    $.p1();
+}
+
+Test::hello() {
+    $.p2();
+    $calls_hello++;
+}
+
+sub et($t) {
+    $t.a = "123";
+    #$t.getType();
+    #my $t = new Test(1);
+    #throw("gee");
+}
+
+our $t = new Test(1);
+$unit.cmp($calls_constructor, 1, 'constructor called');
+(new Test(3)).hello();
+$unit.cmp($calls_constructor, 2, 'constructor called');
+$unit.cmp($calls_hello, 1, 'hello called');
+$unit.cmp("Test", $t.getType(), 'class name check');
+$t.hello();
+$unit.cmp($calls_hello, 2, 'hello called');
+et($t);
+$unit.cmp($t.a, "123", 'variable changed in method');
+$unit.cmp(getMethodList($t), ('p2', 'getData', 'hello', 'destructor', 'getType', 'p1', 'constructor'), 'got method list');
