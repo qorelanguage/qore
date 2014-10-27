@@ -1661,7 +1661,11 @@ public:
    DLLLOCAL bool initMembers(qore_classid_t classid) {
       bceamap_t::iterator i = lower_bound(classid);
       if (i == end() || i->first != classid) {
+#ifdef HAVE_STL_INSERT_WITH_HINT
          insert(i, std::make_pair(classid, new BCEANode(false, true)));
+#else
+         insert(std::make_pair(classid, new BCEANode(false, true)));
+#endif
          return false;
       }
       if (!i->second->member_init_done) {
