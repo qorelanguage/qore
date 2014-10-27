@@ -1154,7 +1154,11 @@ void qore_class_private::setPublic() {
 QoreListNode* BCEAList::findArgs(qore_classid_t classid, bool *aexeced, const AbstractQoreFunctionVariant *&variant) {
    bceamap_t::iterator i = lower_bound(classid);
    if (i == end() || i->first != classid) {
+#ifdef HAVE_STL_INSERT_WITH_HINT
       insert(i, std::make_pair(classid, new BCEANode));
+#else
+      insert(std::make_pair(classid, new BCEANode));
+#endif
       *aexeced = false;
       variant = 0;
       return 0;
@@ -1186,7 +1190,11 @@ int BCEAList::add(qore_classid_t classid, const QoreListNode* arg, const Abstrac
 
    // save arguments
    if (n)
+#ifdef HAVE_STL_INSERT_WITH_HINT
       insert(i, std::make_pair(classid, new BCEANode(nargs.release(), variant)));
+#else
+      insert(std::make_pair(classid, new BCEANode(nargs.release(), variant)));
+#endif
    else {
       assert(!i->second->args);
       assert(!i->second->variant);
