@@ -8,13 +8,13 @@ my UnitTest t();
 
 my string file = t.tmpLocation() + "/output";
 
-system("ls -l " + ENV.QORE_MODULE_DIR + " > " + file);
+system("echo OUTPUT > " + file);
 
 my File f1();
 f1.open2(file);
 my string stdout = f1.read(-1);
 
-t.like(stdout, 'UnitTest\.qm', 'seems like ls cmd was performed correctly');
+t.like(stdout, 'OUTPUT', 'seems like echo cmd was performed correctly');
 
 unlink(file);
 
