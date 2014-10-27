@@ -1,0 +1,56 @@
+#!/usr/bin/env qore
+
+%exec-class FtpTest
+%requires UnitTest
+%require-types
+%require-our
+
+class FtpTest inherits FtpClient {
+    constructor() {
+        my UnitTest $t();
+
+        my any $url = 'ftp://ftp.wa.co.za/pub/CPAN/index.html'; # file on some public ftp
+
+	my hash $h = parse_url($url);
+	if (!exists $h.path) {
+	    printf("url %n is missing a path to retrieve\n", $url);
+	    exit(1);
+	}
+	if (!exists $h.host) {
+	    printf("url %n is missing the hostname\n", $url);
+	    exit(1);
+	}
+
+	my any $path = dirname($h.path);
+	my any $file = basename($h.path);
+
+	$.setURL($url);
+
+	if ($.connect()) {
+            $t.ok(False, 'not connected');
+	    printf("%s\n", strerror(errno()));
+	    exit();
+	}
+        $t.ok(True, 'seems we are connected');
+
+        my string $local_path = $t.tmpLocation() + '/ftptest';
+        unlink($local_path);
+
+	$.cwd($path);
+
+        my bool $fail = False;
+        try {
+            $.get($file, $local_path);
+        }
+        catch (hash $ex) {
+            $fail = True;
+        }
+        $t.ok(!$fail, "getting file check");
+
+        my *list $l = stat($local_path);
+        $t.ok(exists $l, 'file exists');
+
+	$.disconnect();
+        unlink($local_path);
+    }
+}
