@@ -1379,15 +1379,6 @@ AC_CXX_MAKE_HASH_MAP_H([include/qore/hash_map_include.h])
 # checks for an STL slist template
 AC_CXX_MAKE_SLIST_H([include/qore/slist_include.h])
 
-# check for stl std::map::insert(iterator, value_type)
-AC_MSG_CHECKING([if std::map::insert() with iterator hint is available])
-AC_LINK_IFELSE([AC_LANG_PROGRAM(
-   [[#include <map>]],
-   [[typedef std::map<int, int> imap_t; imap_t imap; imap_t::iterator i; imap.insert(i, imap_t::value_type(1, 1));]])],
-   [AC_MSG_RESULT([yes])
-    AC_DEFINE([HAVE_STL_INSERT_WITH_HINT], [1], [define if stl insert with iterator hint is supported])],
-   [AC_MSG_RESULT([no])])
-
 # Checks for library functions.
 AC_FUNC_FORK
 AC_FUNC_LSTAT
