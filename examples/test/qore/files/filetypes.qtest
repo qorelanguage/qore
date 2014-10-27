@@ -5,8 +5,9 @@
 
 my UnitTest $unit();
 
-$unit.cmp(is_file($ENV."_"), True, "is_file()");
-$unit.cmp(is_executable($ENV."_"), True, "is_executable()");
+# TODO: test results should be guaranteed
+$unit.cmp(is_file("/"), False, "is_file()");
+$unit.cmp(is_executable("/usr/bin/sh"), True, "is_executable()");
 $unit.cmp(is_dir("/"), True, "is_dir()");
 $unit.cmp(is_writeable($ENV.HOME), True, "is_writable()");
 $unit.cmp(is_readable($ENV.HOME), True, "is_readable()");
