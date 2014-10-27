@@ -33,6 +33,8 @@
 
 #define _QORE_QORE_NUMBER_PRIVATE_H
 
+#include <memory>
+
 // the number of consecutive trailing 0 or 9 digits that will be rounded in string output
 #define QORE_MPFR_ROUND_THRESHOLD 9
 // the number of consecutive trailing 0 or 9 digits that will be rounded in string output if there are 2 trailing non-0/9 digits
@@ -257,12 +259,14 @@ struct qore_number_private : public qore_number_private_intern {
 
    DLLLOCAL qore_number_private* doBinary(q_mpfr_binary_func_t func, const qore_number_private& r, ExceptionSink* xsink = 0) const {
       mpfr_prec_t prec = QORE_MAX(mpfr_get_prec(num), mpfr_get_prec(r.num));
-      qore_number_private* p = new qore_number_private(prec);
+      std::auto_ptr<qore_number_private> p(new qore_number_private(prec));
       func(p->num, num, r.num, QORE_MPFR_RND);
-      if (xsink)
+      if (xsink) {
          checkFlags(xsink);
+         return 0;
+      }
 
-      return p;
+      return p.release();
    }
 
    DLLLOCAL qore_number_private* doPlus(const qore_number_private& r) const {
