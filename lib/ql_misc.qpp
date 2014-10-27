@@ -2076,8 +2076,13 @@ hash get_qore_library_info() [flags=CONSTANT] {
    h->setKeyValue("VersionMajor", new QoreBigIntNode(qore_version_major), xsink);
    h->setKeyValue("VersionMinor", new QoreBigIntNode(qore_version_minor), xsink);
    h->setKeyValue("VersionSub", new QoreBigIntNode(qore_version_sub), xsink);
-   h->setKeyValue("Build", new QoreStringNode(qore_build_number), xsink);
-   h->setKeyValue("ModuleDir", new QoreStringNode(qore_module_dir), xsink);
+   h->setKeyValue("Build", new QoreBigIntNode(qore_build_number), xsink);
+
+   h->setKeyValue("UserModuleVerDir", new QoreStringNode(qore_user_module_ver_dir), xsink);
+   h->setKeyValue("UserModuleDir", new QoreStringNode(qore_user_module_dir), xsink);
+   h->setKeyValue("BinaryModuleVerDir", new QoreStringNode(qore_module_ver_dir), xsink);
+   h->setKeyValue("BinaryModuleDir", new QoreStringNode(qore_module_dir), xsink);
+   h->setKeyValue("ModulePath", new QoreStringNodeMaker("%s:%s:%s:%s", qore_user_module_ver_dir, qore_user_module_dir, qore_module_ver_dir, qore_module_dir), xsink);
 
    h->setKeyValue("BuildHost", new QoreStringNode(qore_build_host), xsink);
    h->setKeyValue("Compiler", new QoreStringNode(qore_cplusplus_compiler), xsink);
