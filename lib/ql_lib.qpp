@@ -415,7 +415,16 @@ setgroups(softlist gids) [dom=PROCESS] {
    if (gids->empty())
       return 0;
 
+#ifdef HAVE_LOCAL_VARIADIC_ARRAYS_X
    gid_t l[gids->size()];
+#else
+   gid_t* l = (gid_t*)malloc(sizeof(gid_t) * gids->size());
+   if (!l) {
+      xsink->outOfMemory();
+      return 0;
+   }
+   ON_BLOCK_EXIT(free, l);
+#endif
    for (qore_size_t i = 0, e = gids->size(); i < e; ++i) {
       const AbstractQoreNode* n = gids->retrieve_entry(i);
       l[i] = n ? n->getAsInt() : 0;
