@@ -46,7 +46,7 @@ sub do_dir(string dname) {
 
 sub do_file(string fname) {
     printf("running %s\n", fname);
-    int mrc = system("/usr/bin/env qore " + fname);
+    int mrc = system("/usr/bin/env qore " + fname + " -q");
     if (mrc && !rc)
 	rc = mrc;
 }

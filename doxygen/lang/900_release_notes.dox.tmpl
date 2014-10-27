@@ -61,6 +61,7 @@
     - fixed a memory leak in classes with multiple inheritance and base classes that are inherited multiple times with member initialization
     - fixed a bug in the @ref include "%include" and @ref append-module-path "%append-module-path" parse directives where relative paths were not calculated from the script's directory but instead were calculated from the current working directory, causing such paths to fail
     - fixed a bug in <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> with queries using a \a desc argument with the \a orderby query option with multiple sort columns; the \c "desc" string was added only to the last column but should have been added to all columns
+    - fixed a bug in @ref Qore::get_qore_library_info() that could cause a crash due to treating the \a Build attribute as a string when it was an integer
 
     @section qore_0811 Qore 0.8.11
 
