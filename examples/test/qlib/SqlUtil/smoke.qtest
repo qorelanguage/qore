@@ -6,10 +6,16 @@
 %requires UnitTest
 %require-types
 
+my UnitTest $t();
+
 # {{{ create test db
 
 # get datasource connect string
-my *string $connstr = shift $ARGV;
+my *string $connstr;
+do {
+    $connstr = shift $ARGV;
+} while ($connstr[0] == '-');
+
 if (!$connstr) {
     $connstr = $ENV.QORE_DB_CONNSTR;
     if (!$connstr) {
@@ -63,8 +69,6 @@ my hash $opts = (
 
 # }}}
 # {{{ smoke tests
-
-my UnitTest $t();
 
 # CREATE TABLE test
 $db.dropTableIfExists(TEST_TABLE_NAME);

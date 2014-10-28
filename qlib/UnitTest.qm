@@ -30,7 +30,6 @@
 %define NO_XML
 %endtry
 
-
 module UnitTest {
     version = "0.1";
     desc = "user module for unit testing";
@@ -165,7 +164,7 @@ public class UnitTest::UnitTest {
         }
 
         m_options.iters = shift ARGV;
-        if (elements ARGV) {
+        if (ARGV) {
             printf("error, excess arguments on command-line\n");
             usage();
         }
