@@ -57,15 +57,15 @@ public:
    
    DLLLOCAL virtual bool hasEffect() const = 0;
 
-   DLLLOCAL virtual QoreOperatorNode *copyBackground(ExceptionSink *xsink) const {
-      return const_cast<QoreOperatorNode *>(this);
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+      return const_cast<QoreOperatorNode* >(this);
    }
 };
 
 template <class T>
 class QoreSingleExpressionOperatorNode : public T {
 protected:
-   AbstractQoreNode *exp;
+   AbstractQoreNode* exp;
 
    DLLLOCAL ~QoreSingleExpressionOperatorNode() {
       if (exp)
@@ -73,18 +73,18 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreSingleExpressionOperatorNode(AbstractQoreNode *n_exp) : exp(n_exp) {
+   DLLLOCAL QoreSingleExpressionOperatorNode(AbstractQoreNode* n_exp) : exp(n_exp) {
    }
-   DLLLOCAL AbstractQoreNode *getExp() {
+   DLLLOCAL AbstractQoreNode* getExp() {
       return exp;
    }
-   DLLLOCAL const AbstractQoreNode *getExp() const {
+   DLLLOCAL const AbstractQoreNode* getExp() const {
       return exp;
    }
 
    template <class O>
-   DLLLOCAL QoreSingleExpressionOperatorNode *makeSpecialization() {
-      AbstractQoreNode *e = exp;
+   DLLLOCAL QoreSingleExpressionOperatorNode* makeSpecialization() {
+      AbstractQoreNode* e = exp;
       exp = 0;
       SimpleRefHolder<QoreSingleExpressionOperatorNode> del(this);
       O* rv = new O(e);
@@ -121,8 +121,8 @@ public:
       return rv;
    }
 
-   DLLLOCAL AbstractQoreNode* swapRight(AbstractQoreNode *n_right) {
-      AbstractQoreNode *old_r = right;
+   DLLLOCAL AbstractQoreNode* swapRight(AbstractQoreNode* n_right) {
+      AbstractQoreNode* old_r = right;
       right = n_right;
       return old_r;
    }
@@ -234,5 +234,7 @@ public:
 #include <qore/intern/QoreLogicalGreaterThanOperatorNode.h>
 #include <qore/intern/QoreLogicalLessThanOrEqualsOperatorNode.h>
 #include <qore/intern/QoreQuestionMarkOperatorNode.h>
+#include <qore/intern/QoreMapOperatorNode.h>
+#include <qore/intern/QoreMapSelectOperatorNode.h>
 
 #endif

@@ -58,7 +58,7 @@ Operator *OP_MODULA,
    *OP_CHOMP, *OP_TRIM, *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT, 
    *OP_LOG_GT, *OP_LOG_EQ, *OP_LOG_NE, *OP_LOG_LE, *OP_LOG_GE, *OP_NOT, 
    *OP_ABSOLUTE_EQ, *OP_ABSOLUTE_NE, *OP_REGEX_MATCH, *OP_REGEX_NMATCH,
-   *OP_EXISTS, *OP_INSTANCEOF, *OP_MAP, *OP_MAP_SELECT, *OP_FOLDR, *OP_FOLDL,
+   *OP_EXISTS, *OP_INSTANCEOF, *OP_FOLDR, *OP_FOLDL,
    *OP_SELECT;
 
 // call to get a node with reference count 1 (copy on write)
@@ -1056,160 +1056,6 @@ static AbstractQoreNode* op_trim(const AbstractQoreNode* arg, const AbstractQore
 
    // reference for return value
    return ref_rv ? val.getReferencedValue() : 0;
-}
-
-static QoreListNode* op_map_iterator(const AbstractQoreNode* left, AbstractIteratorHelper& h, bool ref_rv, ExceptionSink* xsink) {
-   ReferenceHolder<QoreListNode> rv(ref_rv ? new QoreListNode : 0, xsink);
-
-   qore_size_t i = 0;
-   // set offset in thread-local data for "$#"
-   while (true) {
-      bool b = h.next(xsink);
-      if (*xsink)
-         return 0;
-      if (!b)
-         return rv.release();
-
-      ImplicitElementHelper eh(i++);
-
-      ReferenceHolder<> iv(h.getValue(xsink), xsink);
-      if (*xsink)
-         return 0;
-      SingleArgvContextHelper argv_helper(*iv, xsink);
-      //printd(5, "op_map() left=%p (%d %s)\n", left, left->getType(), left->getTypeName());
-      ReferenceHolder<AbstractQoreNode> val(left->eval(xsink), xsink);
-      if (*xsink)
-         return 0;
-      if (ref_rv)
-          rv->push(val.release());
-   }
-   return rv.release();
-}
-
-static AbstractQoreNode* op_map(const AbstractQoreNode* left, const AbstractQoreNode* arg_exp, bool ref_rv, ExceptionSink* xsink) {
-   // conditionally evaluate argument
-   QoreNodeEvalOptionalRefHolder arg(arg_exp, xsink);
-   if (*xsink || is_nothing(*arg))
-      return 0;
-
-   if (arg->getType() != NT_LIST) {
-      // check if it's an AbstractIterator object
-      if (arg->getType() == NT_OBJECT) {
-         AbstractIteratorHelper h(xsink, "map operator", const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg)));
-         if (*xsink)
-            return 0;
-         if (h)
-            return op_map_iterator(left, h, ref_rv, xsink);
-      }
-      SingleArgvContextHelper argv_helper(*arg, xsink);
-      return left->eval(xsink);
-   }
-
-   ReferenceHolder<QoreListNode> rv(ref_rv ? new QoreListNode() : 0, xsink);
-   ConstListIterator li(reinterpret_cast<const QoreListNode*>(*arg));
-   while (li.next()) {
-      // set offset in thread-local data for "$#"
-      ImplicitElementHelper eh(li.index());
-      SingleArgvContextHelper argv_helper(li.getValue(), xsink);
-      //printd(5, "op_map() left=%p (%d %s)\n", left, left->getType(), left->getTypeName());
-      ReferenceHolder<AbstractQoreNode> val(left->eval(xsink), xsink);
-      if (*xsink)
-	 return 0;
-      if (ref_rv)
-	  rv->push(val.release());
-   }
-   return rv.release();
-}
-
-static AbstractQoreNode* op_map_select_iterator(const AbstractQoreNode* left, const AbstractQoreNode* select, AbstractIteratorHelper& h, bool ref_rv, ExceptionSink* xsink) {
-   ReferenceHolder<QoreListNode> rv(ref_rv ? new QoreListNode() : 0, xsink);
-
-   qore_size_t i = 0;
-   while (true) {
-      bool b = h.next(xsink);
-      if (*xsink)
-         return 0;
-      if (!b)
-         return rv.release();
-
-      // set offset in thread-local data for "$#"
-      ImplicitElementHelper eh(i++);
-
-      // check if value can be mapped
-      ReferenceHolder<> iv(h.getValue(xsink), xsink);
-      if (*xsink)
-         return 0;
-      SingleArgvContextHelper argv_helper(*iv, xsink);
-      b = select->boolEval(xsink);
-      if (*xsink)
-         return 0;
-      if (!b)
-         continue;
-
-      //printd(5, "op_map() left=%p (%d %s)\n", left, left->getType(), left->getTypeName());
-      ReferenceHolder<AbstractQoreNode> val(left->eval(xsink), xsink);
-      if (*xsink)
-         return 0;
-      if (ref_rv)
-          rv->push(val.release());
-   }
-   return rv.release();
-}
-
-static AbstractQoreNode* op_map_select(const AbstractQoreNode* left, const AbstractQoreNode* arg_exp, bool ref_rv, ExceptionSink* xsink) {
-   assert(arg_exp->getType() == NT_LIST);
-   const QoreListNode* arg_list = reinterpret_cast<const QoreListNode*>(arg_exp);
-
-   // conditionally evaluate argument expression
-   QoreNodeEvalOptionalRefHolder marg(arg_list->retrieve_entry(0), xsink);
-   if (*xsink)
-      return 0;
-
-   const AbstractQoreNode* select = arg_list->retrieve_entry(1);
-
-   qore_type_t t = get_node_type(*marg);
-   if (t != NT_LIST) {
-      if (t == NT_OBJECT) {
-         AbstractIteratorHelper h(xsink, "map operator", const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*marg)));
-         if (*xsink)
-            return 0;
-         if (h)
-            return op_map_select_iterator(left, select, h, ref_rv, xsink);
-      }
-      if (t == NT_NOTHING)
-         return 0;
-
-      // check if value can be mapped
-      SingleArgvContextHelper argv_helper(*marg, xsink);
-      bool b = select->boolEval(xsink);
-      if (*xsink || !b)
-         return 0;
-
-      ReferenceHolder<AbstractQoreNode> val(left->eval(xsink), xsink);
-      return *xsink ? 0 : val.release();
-   }
-
-   ReferenceHolder<QoreListNode> rv(ref_rv ? new QoreListNode() : 0, xsink);
-   ConstListIterator li(reinterpret_cast<const QoreListNode*>(*marg));
-   while (li.next()) {
-      // set offset in thread-local data for "$#"
-      ImplicitElementHelper eh(li.index());
-      const AbstractQoreNode* elem = li.getValue();
-      // check if value can be mapped
-      SingleArgvContextHelper argv_helper(elem, xsink);
-      bool b = select->boolEval(xsink);
-      if (*xsink)
-         return 0;
-      if (!b)
-         continue;
-
-      ReferenceHolder<AbstractQoreNode> val(left->eval(xsink), xsink);
-      if (*xsink)
-	 return 0;
-      if (ref_rv)
-	  rv->push(val.release());
-   }
-   return rv.release();
 }
 
 static AbstractQoreNode* op_fold_iterator(const AbstractQoreNode* left, AbstractIteratorHelper& h, bool ref_rv, ExceptionSink* xsink) {
@@ -3864,18 +3710,10 @@ void OperatorList::init() {
    OP_TRIM = add(new Operator(1, "trim", "trim characters from an lvalue", 0, true, true, check_op_chomp_trim));
    OP_TRIM->addFunction(NT_ALL, NT_NONE, op_trim);
 
-   // can return a list or NOTHING
-   OP_MAP = add(new Operator(2, "map", "map call reference or closure to a list", 0, true, false));
-   OP_MAP->addFunction(NT_ALL, NT_ALL, op_map);
-
-   // can return a list or NOTHING
-   OP_MAP_SELECT = add(new Operator(2, "map with select", "map call reference or closure to a list with select code expression", 0, true, false));
-   OP_MAP_SELECT->addFunction(NT_ALL, NT_ALL, op_map_select);
-
-   OP_FOLDL = add(new Operator(2, "foldl", "left fold call reference or closure on a list", 0, true, false));
+   OP_FOLDL = add(new Operator(2, "foldl", "left fold expression", 0, true, false));
    OP_FOLDL->addFunction(NT_ALL, NT_ALL, op_foldl);
 
-   OP_FOLDR = add(new Operator(2, "foldr", "right fold call reference or closure on a list", 0, true, false));
+   OP_FOLDR = add(new Operator(2, "foldr", "right fold expression", 0, true, false));
    OP_FOLDR->addFunction(NT_ALL, NT_ALL, op_foldr);
 
    // can return a list or NOTHING

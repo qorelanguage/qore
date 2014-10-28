@@ -1330,6 +1330,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %token TOK_ON_SUCCESS "on_success"
 %token TOK_ON_ERROR "on_error"
 %token TOK_MAP "map"
+%token TOK_HMAP "hmap"
 %token TOK_FOLDR "foldr"
 %token TOK_FOLDL "foldl"
 %token TOK_SELECT "select"
@@ -1369,7 +1370,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %nonassoc TOK_ELSE
 
 // FIXME: check precedence
-%nonassoc TOK_UNSHIFT TOK_PUSH TOK_SPLICE TOK_EXTRACT TOK_MAP TOK_FOLDR TOK_FOLDL TOK_SELECT
+%nonassoc TOK_UNSHIFT TOK_PUSH TOK_SPLICE TOK_EXTRACT TOK_MAP TOK_HMAP TOK_FOLDR TOK_FOLDL TOK_SELECT
 %left ','
 %right PLUS_EQUALS MINUS_EQUALS AND_EQUALS OR_EQUALS MODULA_EQUALS MULTIPLY_EQUALS DIVIDE_EQUALS XOR_EQUALS SHIFT_LEFT_EQUALS SHIFT_RIGHT_EQUALS
 %right '='
@@ -2864,12 +2865,16 @@ exp:    scalar
 	   else if (len == 2) {
 	      AbstractQoreNode* map_exp = l->shift();
 	      AbstractQoreNode* arg = l->shift();
-	      $$ = new QoreTreeNode(map_exp, OP_MAP, arg);
+              $$ = new QoreMapOperatorNode(map_exp, arg);
 	      $2->deref(0);
 	   }
-	   else {
+	   else if (len == 3) {
 	      AbstractQoreNode* map_exp = l->shift();
-	      $$ = new QoreTreeNode(map_exp, OP_MAP_SELECT, l);
+              AbstractQoreNode* iterator_exp = l->shift();
+              AbstractQoreNode* select_exp = l->shift();
+              l->deref(0);
+              $$ = new QoreMapSelectOperatorNode(map_exp, iterator_exp, select_exp);
+	      //$$ = new QoreTreeNode(map_exp, OP_MAP_SELECT, l);
 	   }
 	}
         | TOK_FOLDR exp {

@@ -249,6 +249,8 @@ libqore_la_SOURCES = \
 	QoreIntPreDecrementOperatorNode.cpp \
 	QoreLogicalLessThanOperatorNode.cpp \
 	QoreLogicalGreaterThanOperatorNode.cpp \
+	QoreMapOperatorNode.cpp \
+	QoreMapSelectOperatorNode.cpp \
 	QorePseudoMethods.cpp \
 	QoreHTTPClient.cpp \
 	QoreHttpClientObject.cpp \

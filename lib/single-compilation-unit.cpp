@@ -183,6 +183,8 @@
 #include "QoreIntPreDecrementOperatorNode.cpp"
 #include "QoreLogicalLessThanOperatorNode.cpp"
 #include "QoreLogicalGreaterThanOperatorNode.cpp"
+#include "QoreMapOperatorNode.cpp"
+#include "QoreMapSelectOperatorNode.cpp"
 #include "ql_thread.cpp"
 #include "ql_time.cpp"
 #include "ql_lib.cpp"
