@@ -1,5 +1,6 @@
 #!/usr/bin/env qore 
 # -*- mode: qore; indent-tabs-mode: nil -*-
+
 %require-types
 %enable-all-warnings
 %requires SqlUtil
@@ -29,13 +30,22 @@ if (!$connstr) {
             case /^xbox/: $connstr = "oracle:omquser/omquser@xbox"; break;
             default: {
                 stderr.printf("cannot detect DB connect string from hostname and QORE_DB_CONNSTR environment variable not set; cannot run SqlUtil tests\n");
-                exit(0);
+                return;
             }
         }
     }
 }
-    
-my Datasource $ds($connstr);
+
+my Datasource $ds;
+try {
+    $ds = new Datasource($connstr);
+    $ds.open();
+}
+catch (hash $ex) {
+    stderr.printf("cannot connect to %y; skipping SqlUtil tests\n", $connstr);
+    return;
+}
+
 my Database $db($ds);
 
 const TEST_SCHEMA = (
