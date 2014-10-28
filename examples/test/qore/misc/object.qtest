@@ -1,13 +1,11 @@
 #!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
 %require-our
 %enable-all-warnings
 %requires UnitTest
 
 my UnitTest $unit();
-
-our $home;
-if (gethostname() =~ /^ren/)
-    $home = 1;
 
 our $calls_constructor = 0;
 our $calls_destructor  = 0;
@@ -42,9 +40,6 @@ Test::hello() {
 
 sub et($t) {
     $t.a = "123";
-    #$t.getType();
-    #my $t = new Test(1);
-    #throw("gee");
 }
 
 our $t = new Test(1);
@@ -57,4 +52,17 @@ $t.hello();
 $unit.cmp($calls_hello, 2, 'hello called');
 et($t);
 $unit.cmp($t.a, "123", 'variable changed in method');
-$unit.cmp(getMethodList($t), ('p2', 'getData', 'hello', 'destructor', 'getType', 'p1', 'constructor'), 'got method list');
+
+const Methods = ('p2', 'getData', 'hello', 'destructor', 'getType', 'p1', 'constructor');
+
+# test fails on OSX, method return order is not guaranteed across platforms
+#$unit.cmp(getMethodList($t), Methods, 'got method list');
+
+# test each method separately
+my list $ml = getMethodList($t);
+$unit.cmp(Methods.size(), $ml.size(), "method list size");
+map $unit.cmp(True, inlist_hard($1, Methods), "method list " + $1), $ml;
+
+# unless we explicitly delete, we get the following exception on OSX (but not on Linux):
+#   DESTRUCTOR-ERROR: illegal variable assignment after second phase of variable destruction
+delete $t;

@@ -8,7 +8,28 @@
 
 # {{{ create test db
 
-my Datasource $ds("oracle:omquser/omquser@xbox");
+# get datasource connect string
+my *string $connstr = shift $ARGV;
+if (!$connstr) {
+    $connstr = $ENV.QORE_DB_CONNSTR;
+    if (!$connstr) {
+        my string $hn = gethostname();
+        switch ($hn) {
+            case /^star/: $connstr = "oracle:omquser/omquser@star"; break;
+            case /^quark/: $connstr = "oracle:omquser/omquser@el7"; break;
+            case /^el6/:
+            case /^el5/:
+            case /^manatee/:
+            case /^xbox/: $connstr = "oracle:omquser/omquser@xbox"; break;
+            default: {
+                stderr.printf("cannot detect DB connect string from hostname and QORE_DB_CONNSTR environment variable not set; cannot run SqlUtil tests\n");
+                exit(0);
+            }
+        }
+    }
+}
+    
+my Datasource $ds($connstr);
 my Database $db($ds);
 
 const TEST_SCHEMA = (

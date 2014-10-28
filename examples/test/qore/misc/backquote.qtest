@@ -1,8 +1,11 @@
 #!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
 %require-types
 %enable-all-warnings
 %requires UnitTest
 
 my UnitTest $unit();
 
-$unit.cmp(`echo -n 1`, "1", "backquote");
+if (PlatformOS != "Windows")
+   $unit.cmp(`/bin/echo -n 1`, "1", "backquote");
