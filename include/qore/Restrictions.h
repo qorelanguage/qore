@@ -48,7 +48,7 @@
 #define PO_NO_NEW                         (1 <<  8)    //!< cannot use the new operator (DEPRECATED: this option is not useful anymore because objects can be declared and created without "new")
 #define PO_NO_SYSTEM_CLASSES              (1 <<  9)    //!< do not inherit system classes into this program space
 #define PO_NO_USER_CLASSES                (1 << 10)    //!< do not inherit public user classes into this program space
-#define PO_NO_CHILD_PO_RESTRICTIONS       (1 << 11)    //!< turn off parse option inheritance restrictions
+#define PO_NO_CHILD_PO_RESTRICTIONS       (1 << 11)    //!< turn off parse option inheritance restrictions: FIXME: do not use; will disappear; use PO_RESTRICT_CHILD
 #define PO_NO_EXTERNAL_PROCESS            (1 << 12)    //!< do not allow access to functionality that calls external processes: backquote op, system(), exec(), etc
 #define PO_REQUIRE_OUR                    (1 << 13)    //!< require "our" for global var declaration
 #define PO_NO_PROCESS_CONTROL             (1 << 14)    //!< do not allow access to functionality that can affect the current process: fork(), exec(), abort(), etc

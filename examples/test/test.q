@@ -25,28 +25,97 @@
 %new-style
 %require-our
 %enable-all-warnings
+# allow child Program objects to have more liberal restrictions than the parent
+%no-child-restrictions
 
-main();
+%append-module-path ../../qlib
+%requires UnitTest
 
-sub main() {
-    our int rc;
-    do_dir(get_script_dir());
-    exit(rc);
-}
+%exec-class Test
 
-sub do_dir(string dname) {
-    Dir d();
-    d.chdir(dname);
-    if (!d.exists())
-	throw "DIR-ERROR", sprintf("directory %y does not exist", dname);
+class Test {
+    public {
+    }
+
+    private {
+        int rc = 0;
+    }
+
+    constructor() {
+        our UnitTest unit();
+        doDir(get_script_dir());
+        exit(rc);
+    }
+
+    doDir(string dname) {
+        dname =~ s/\/$//g;
+        Dir d();
+        d.chdir(dname);
+        if (!d.exists())
+            throw "DIR-ERROR", sprintf("directory %y does not exist", dname);
     
-    map do_dir(dname + "/" + $1), d.listDirs();
-    map do_file(dname + "/" + $1), d.listFiles("\\.qtest\$");
-}
+        map doDir(dname + "/" + $1), d.listDirs();
+        map doFile(dname + "/" + $1), d.listFiles("\\.qtest\$");
+    }
 
-sub do_file(string fname) {
-    printf("running %s\n", fname);
-    int mrc = system("/usr/bin/env qore " + fname + " -q");
-    if (mrc && !rc)
-	rc = mrc;
+    doFile(string fname) {
+        if (unit.verbose())
+            printf("running %s\n", fname);
+
+        Program pgm = getTestProgram(fname);
+        pgm.run();
+    }
+
+    private Program getTestProgram(string fname) {
+        # UnitTest variable name detected from the embedded file
+        string vn;
+        # bare-refs flag
+        bool br = False;
+        # read in file
+        string fd = getFile(fname, \vn, \br);
+
+        Program pgm();
+        pgm.setScriptPath(fname);
+        pgm.loadModule("UnitTest");
+        pgm.importGlobalVariable("unit");
+        # add an alias for the $unit variable if the script uses another variable
+        if (vn && vn != "unit") {
+            *string d = br ? "" : "\$";
+            string nd = sprintf("our UnitTest %s%s = %sunit;", d, vn, d);
+            fd = replace(fd, "#XXX_MARKER_XXX", nd);
+        }
+
+        # parse the code
+        try {
+            pgm.parse(fd, fname);
+        }
+        catch (hash ex) {
+            print(fd);
+            rethrow;
+        }
+
+        return pgm;
+    }
+
+    private string getFile(string fname, reference vn, reference br) {
+        FileLineIterator i(fname);
+
+        string str;
+
+        while (i.next()) {
+            string line = i.getValue();
+
+            # replace the UnitTest declaration with a marker
+            if (*string v = (line =~ x/(((my|our)\s+)?UnitTest\s+(\$)?([a-zA-Z0-9_]+)\(\))\s*;/)[4]) {
+                line =~ s/(((my|our)\s+)?UnitTest\s+(\$)?[a-zA-Z0-9_]+\(\))\s*;/#XXX_MARKER_XXX/;
+                vn = v;
+            }
+            else if (line =~ /^%allow-bare-refs/ || line =~ /^%new-style/)
+                br = True;
+
+            str += line + "\n";
+        }
+
+        return str;
+    }
 }

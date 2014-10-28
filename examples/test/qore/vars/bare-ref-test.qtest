@@ -13,7 +13,7 @@ namespace Ns {
     our code vclosure;
 }
 
-class App inherits UnitTest {
+class App {
     const const1 = "const1";
     
     public {
@@ -27,63 +27,64 @@ class App inherits UnitTest {
     }
 
     constructor() {
+        our UnitTest unit();
 
 	Ns::vclosure = sub () { return "Ns var vclosure"; };
 	our code ::vclosure = sub () { return "global var vclosure"; };
 
 	lvartest();
 
-	cmp(t1(), "t1", "static method call 1");
+	unit.cmp(t1(), "t1", "static method call 1");
 	my code func = \t1();
-	cmp(func(), "t1", "static method call 2");
+	unit.cmp(func(), "t1", "static method call 2");
 
-	cmp(App::t1(), "t1", "static method call 3");
+	unit.cmp(App::t1(), "t1", "static method call 3");
 	func = \App::t1();
-	cmp(func(), "t1", "static method call 4");
+	unit.cmp(func(), "t1", "static method call 4");
 
-	cmp(argtest("2", False), ("2", False), "arg test 1");
+	unit.cmp(argtest("2", False), ("2", False), "arg test 1");
 	func = \argtest();
-	cmp(func("True", 2001-01-01), ("True", 2001-01-01), "arg test 2");
+	unit.cmp(func("True", 2001-01-01), ("True", 2001-01-01), "arg test 2");
 
-	cmp(App::argtest("2", False), ("2", False), "arg test 3");
+	unit.cmp(App::argtest("2", False), ("2", False), "arg test 3");
 	func = \App::argtest();
-	cmp(func("True", 2001-01-01), ("True", 2001-01-01), "arg test 4");
+	unit.cmp(func("True", 2001-01-01), ("True", 2001-01-01), "arg test 4");
 
-	cmp(mclosure(), "App::mclosure member", "scope 1");
+	unit.cmp(mclosure(), "App::mclosure member", "scope 1");
 	func = mclosure;
-	cmp(func(), "App::mclosure member", "scope 2");
+	unit.cmp(func(), "App::mclosure member", "scope 2");
 
-	cmp(::mclosure(), "global const mclosure", "scope 3");
+	unit.cmp(::mclosure(), "global const mclosure", "scope 3");
 	func = ::mclosure;
-	cmp(func(), "global const mclosure", "scope 4");
+	unit.cmp(func(), "global const mclosure", "scope 4");
 
-	cmp(closure(), "App::closure const", "scope 5");
+	unit.cmp(closure(), "App::closure const", "scope 5");
 	func = closure;
-	cmp(func(), "App::closure const", "scope 6");
+	unit.cmp(func(), "App::closure const", "scope 6");
 
-	cmp(App::closure(), "App::closure const", "scope 7");
+	unit.cmp(App::closure(), "App::closure const", "scope 7");
 	func = App::closure;
-	cmp(func(), "App::closure const", "scope 8");
+	unit.cmp(func(), "App::closure const", "scope 8");
 
-	cmp(::closure(), "global const closure", "scope 9");
+	unit.cmp(::closure(), "global const closure", "scope 9");
 	func = ::closure;
-	cmp(func(), "global const closure", "scope 10");
+	unit.cmp(func(), "global const closure", "scope 10");
 
-	cmp(vclosure(), "App::vclosure var", "scope 11");
+	unit.cmp(vclosure(), "App::vclosure var", "scope 11");
 	func = vclosure;
-	cmp(func(), "App::vclosure var", "scope 12");
+	unit.cmp(func(), "App::vclosure var", "scope 12");
 
-	cmp(App::vclosure(), "App::vclosure var", "scope 13");
+	unit.cmp(App::vclosure(), "App::vclosure var", "scope 13");
 	func = App::vclosure;
-	cmp(func(), "App::vclosure var", "scope 14");
+	unit.cmp(func(), "App::vclosure var", "scope 14");
 
-	cmp(::vclosure(), "global var vclosure", "scope 15");
+	unit.cmp(::vclosure(), "global var vclosure", "scope 15");
 	func = ::vclosure;
-	cmp(func(), "global var vclosure", "scope 16");
+	unit.cmp(func(), "global var vclosure", "scope 16");
 
-	cmp(Ns::vclosure(), "Ns var vclosure", "scope 17");
+	unit.cmp(Ns::vclosure(), "Ns var vclosure", "scope 17");
 	func = Ns::vclosure;
-	cmp(func(), "Ns var vclosure", "scope 18");
+	unit.cmp(func(), "Ns var vclosure", "scope 18");
     }
     
     argtest(string str, any) {
@@ -97,15 +98,15 @@ class App inherits UnitTest {
 	my (int a1, string b1, c1) = (2, "four", "hi");
 	our (int a2, string b2, c2) = (4, "eight", "hello");
 
-	cmp(a, 1, "var test 1");
-	cmp(b, "1", "var test 2");
-	cmp(c, 2.1, "var test 3");
-	cmp(a1, 2, "var test 4");
-	cmp(b1, "four", "var test 5");
-	cmp(c1, "hi", "var test 6");
-	cmp(a2, 4, "var test 7");
-	cmp(b2, "eight", "var test 8");
-	cmp(c2, "hello", "var test 9");
+	unit.cmp(a, 1, "var test 1");
+	unit.cmp(b, "1", "var test 2");
+	unit.cmp(c, 2.1, "var test 3");
+	unit.cmp(a1, 2, "var test 4");
+	unit.cmp(b1, "four", "var test 5");
+	unit.cmp(c1, "hi", "var test 6");
+	unit.cmp(a2, 4, "var test 7");
+	unit.cmp(b2, "eight", "var test 8");
+	unit.cmp(c2, "hello", "var test 9");
     }
     
     static t1() {

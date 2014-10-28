@@ -1,13 +1,17 @@
 #!/usr/bin/env qore
 %require-types
+
 %enable-all-warnings
+%new-style
+
 %requires UnitTest
-%allow-bare-refs
+
 %exec-class App
 
-class App inherits UnitTest {
+class App {
     constructor() {
-        cmp(ceil(2.7), 3.0, "ceil()");
+	UnitTest unit();
+        unit.cmp(ceil(2.7), 3.0, "ceil()");
     }
 }
 

@@ -98,7 +98,7 @@ const PO_NEW_STYLE = PO_NEW_STYLE;
 const PO_NO_MODULES = PO_NO_MODULES;
 
 //! Allows child program objects to have fewer parse restrictions (i.e. more capabilies) than the parent object
-/** 
+/**
     @see @ref no-child-restrictions "%no-child-restrictions"
 */
 const PO_NO_CHILD_PO_RESTRICTIONS = PO_NO_CHILD_PO_RESTRICTIONS;

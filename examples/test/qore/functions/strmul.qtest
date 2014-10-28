@@ -5,14 +5,15 @@
 %allow-bare-refs
 %exec-class App
 
-class App inherits UnitTest {
+class App {
     constructor() {
-        cmp(strmul("%s,", 3, 1), '%s,%s,%s', 'truncate');
-        cmp(strmul("%s,", 3, 0), '%s,%s,%s,', 'no truncate');
-        cmp(strmul("xxx", 1), 'xxx', 'repeat 1 time');
-        cmp(strmul("xxx", 1, 3), '', 'remove all chars');
-        exception(\strmul(), ("xxx", 1, 4), '\QOffset (4) is greater than string length (3)', 'remove more chars than exists -> exception');
-        exception(\strmul(), ("xxx", 0), "has to be > 0; value: 0", 'repeat 0 times -> exception'); # TODO: better is to return empty string
+        my UnitTest unit();
+	unit.cmp(strmul("%s,", 3, 1), '%s,%s,%s', 'truncate');
+        unit.cmp(strmul("%s,", 3, 0), '%s,%s,%s,', 'no truncate');
+        unit.cmp(strmul("xxx", 1), 'xxx', 'repeat 1 time');
+        unit.cmp(strmul("xxx", 1, 3), '', 'remove all chars');
+        unit.exception(\strmul(), ("xxx", 1, 4), '\QOffset (4) is greater than string length (3)', 'remove more chars than exists -> exception');
+        unit.exception(\strmul(), ("xxx", 0), "has to be > 0; value: 0", 'repeat 0 times -> exception'); # TODO: better is to return empty string
     }
 }
 

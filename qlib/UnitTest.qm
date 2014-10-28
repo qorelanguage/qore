@@ -185,7 +185,6 @@ public class UnitTest::UnitTest {
         }
 
         if (m_output == PLAINTEXT && !quiet()) {
-
             printf("QORE v%s Test Script (%d thread%s, %d iteration%s per thread)\n",
                    Qore::VersionString,
                    m_options.threads,
