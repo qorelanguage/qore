@@ -62,6 +62,8 @@
     - fixed a bug in the @ref include "%include" and @ref append-module-path "%append-module-path" parse directives where relative paths were not calculated from the script's directory but instead were calculated from the current working directory, causing such paths to fail
     - fixed a bug in <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> with queries using a \a desc argument with the \a orderby query option with multiple sort columns; the \c "desc" string was added only to the last column but should have been added to all columns
     - fixed a bug in @ref Qore::get_qore_library_info() that could cause a crash due to treating the \a Build attribute as a string when it was an integer
+    - fixed a bug in <a href="../../modules/WebUtil/html/index.html">WebUtil</a> where template programs with @ref Qore::PO_ALLOW_BARE_REFS set did not work
+    - fixed a bug in the divide-equals (/=) operator where an exception was not thrown when an operand of zero with arbitrary-precision numeric arguments is used
 
     @section qore_0811 Qore 0.8.11
 

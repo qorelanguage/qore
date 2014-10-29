@@ -32,7 +32,7 @@
 %enable-all-warnings
 
 module WebUtil {
-    version = "1.1";
+    version = "1.2";
     desc = "user module supporting web server operations";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -63,6 +63,9 @@ module WebUtil {
     - @ref WebUtil::FileHandler "FileHandler": a class for serving files from the file system anchored at a particular URL; also uses @ref WebUtil::TemplateFileManager "TemplateFileManager" to automatically manage any template files found; supports automatic compilation of and rendering from template files
 
     @section webutil_relnotes Release Notes
+
+    @subsection webutil_v1_2
+    - fixed a bug where template programs with parse option @ref Qore::PO_ALLOW_BARE_REFS set did not work
 
     @subsection webutil_v1_1
     - added logic to the default file serving code to determine if the file is a binary or text file from the MIME type
@@ -154,11 +157,14 @@ TextTemplateBase::add($p, "/html/index.qhtml", $qhtml, "t0");
             $src = "";
             # local variable counter
             my int $vc = 0;
+            # check if PO_ALLOW_BARE_REFS is set in the template program
+            my softbool $bare_refs = ($p.getParseOptions() & PO_ALLOW_BARE_REFS);
+            
             foreach my hash $h in (\$l) {
                 switch ($h.type) {
                     case "text": $h.text =~ s/"/\"/g; $src += $h.text; break;
-                    case "exp": $src += sprintf("\";my any $tmp_TEMPLATE_%d=(%s);$rv_TEMPLATE_str+=(($tmp_TEMPLATE_%d.strp()||!exists$tmp_TEMPLATE_%d||$tmp_TEMPLATE_%d===NULL)?$tmp_TEMPLATE_%d.toString():sprintf(\"%%y\",$tmp_TEMPLATE_%d));$rv_TEMPLATE_str+=\"", $vc, $h.text, $vc, $vc, $vc, $vc, $vc); ++$vc; break;
-                    case "stmt": $src += "\";" + $h.text + "$rv_TEMPLATE_str+=\""; break;
+                    case "exp": $src += TextTemplateBase::getCode($bare_refs, "\";my any $tmp_TEMPLATE_%d=(%s);$rv_TEMPLATE_str+=(($tmp_TEMPLATE_%d.strp()||!exists $tmp_TEMPLATE_%d||$tmp_TEMPLATE_%d===NULL)?$tmp_TEMPLATE_%d.toString():sprintf(\"%%y\",$tmp_TEMPLATE_%d));$rv_TEMPLATE_str+=\"", $vc, $h.text, $vc, $vc, $vc, $vc, $vc); ++$vc; break;
+                    case "stmt": $src += "\";" + $h.text + TextTemplateBase::getCode($bare_refs, "$rv_TEMPLATE_str+=\""); break;
                 }
             }
 
@@ -166,12 +172,20 @@ TextTemplateBase::add($p, "/html/index.qhtml", $qhtml, "t0");
             #printf("src: %s\n", $src);
 
             # build function source: keep template start on same source line for better error reporting
-            my string $tpl = sprintf("string sub %s(*hash $ctx){", $fn);
-            $tpl += sprintf("my string $rv_TEMPLATE_str = \"%s\";\n    return $rv_TEMPLATE_str;\n}\n", $src);
+            my string $tpl = TextTemplateBase::getCode($bare_refs, "string sub %s(*hash $ctx){", $fn);
+            $tpl += TextTemplateBase::getCode($bare_refs, "my string $rv_TEMPLATE_str = \"%s\";\n    return $rv_TEMPLATE_str;\n}\n", $src);
             $p.parse($tpl, $name);
 
             # return the final source string produced
             return $src;
+        }
+
+        #! a helper method that strips dollar signs from code when PO_ALLOW_BARE_REFS is set in the template program
+        private static string getCode(bool $bare_refs, string $fmt) {
+            my string $str = vsprintf($fmt, $argv);
+            if ($bare_refs)
+                $str =~ s/\$//g;
+            return $str;
         }
         
         #! a helper method used in parsing

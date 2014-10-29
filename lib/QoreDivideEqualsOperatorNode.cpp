@@ -50,6 +50,11 @@ AbstractQoreNode *QoreDivideEqualsOperatorNode::evalImpl(ExceptionSink *xsink) c
 
    // is either side a number?
    if ((res && res->getType() == NT_NUMBER) || v.getType() == NT_NUMBER) {
+      const QoreNumberNode* num = (res && res->getType() == NT_NUMBER) ? static_cast<const QoreNumberNode*>(*res) : 0;
+      if (!num || num->zero()) {
+	 xsink->raiseException("DIVISION-BY-ZERO", "division by zero in arbitrary-precision numeric expression");
+	 return 0;
+      }
       v.divideEqualsNumber(*res, "</= operator>");
    }
    // is either side a float?

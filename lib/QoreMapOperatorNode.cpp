@@ -97,8 +97,8 @@ AbstractQoreNode* QoreMapOperatorNode::map(ExceptionSink* xsink) const {
       // set offset in thread-local data for "$#"
       ImplicitElementHelper eh(li.index());
       SingleArgvContextHelper argv_helper(li.getValue(), xsink);
-      //printd(5, "op_map() left=%p (%d %s)\n", left, left->getType(), left->getTypeName());
       ReferenceHolder<AbstractQoreNode> val(left->eval(xsink), xsink);
+      //printd(5, "QoreMapOperatorNode::map() this: %p left: %p '%s' val: %p '%s'\n", this, left, left->getTypeName(), *val, val ? get_type_name(*val) : "n/a");
       if (*xsink)
 	 return 0;
       if (ref_rv)
