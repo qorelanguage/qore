@@ -42,6 +42,18 @@
 
 #include <string>
 
+/*
+  getchar from stdio.h(included via string on some platforms) 
+  is allowed to be defined as a macro and this can cause
+  problems here since the getchar mentioned in this file might
+  get replaced, so we undefine it if it is defined.
+  Undefining getchar is safe since getchar must be defined as 
+  a function, so the function is used if the macro is not available.
+ */
+#ifdef getchar
+#undef getchar
+#endif
+
 class QoreTermIOS;
 class Queue;
 
