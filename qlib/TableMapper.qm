@@ -229,8 +229,14 @@ my InboundTableMapper $map($table, DbMapper);
 
         #! performs type handling
         private mapFieldType(string $key, hash $m, reference $v, hash $rec) {
-            if ($m.sequence)
-                $v = $.db.getNextSequenceValue($m.sequence);
+            if ($m.sequence) {
+                try {
+                    $v = $.db.getNextSequenceValue($m.sequence);
+                }
+                catch (hash $ex) {
+                    throw $ex.err, sprintf("%s (sequence: %y)", $ex.desc, $m.sequence), $ex.arg;
+                }
+            }
             Mapper::$.mapFieldType($key, $m, \$v, $rec);
         }
 
