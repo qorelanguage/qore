@@ -89,6 +89,9 @@ QoreObjectClosureNode::~QoreObjectClosureNode() {
 bool QoreObjectClosureNode::derefImpl(ExceptionSink *xsink) {
    closure_env.del(xsink);
    obj->tDeref();
+#ifdef DEBUG
+   obj = 0;
+#endif
    return true;
 }
 

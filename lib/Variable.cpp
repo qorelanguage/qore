@@ -192,6 +192,7 @@ LValueHelper::LValueHelper(const AbstractQoreNode* exp, ExceptionSink* xsink, bo
 LValueHelper::~LValueHelper() {
 #ifdef DO_OBJ_RECURSIVE_CHECK
    bool obj_chg = before;
+   bool obj_ref = false;
    if (!(*vl.xsink)) {
       // see if we have any object count changes
       if (!ocvec.empty()) {
@@ -231,8 +232,10 @@ LValueHelper::~LValueHelper() {
 
       if (!obj_chg && (val ? val->isObjectContainer() : get_container_obj(*v)))
 	 obj_chg = true;
-      if (robj)
+      if (robj) {
 	 robj->tRef();
+	 obj_ref = true;
+      }
 
       //printd(5, "LValueHelper::~LValueHelper() robj: %p before: %d obj_chg: %d (val: %s v: %s)\n", robj, before, obj_chg, val ? val->getTypeName() : "null", v ? get_type_name(*v) : "null");
    }
@@ -253,7 +256,7 @@ LValueHelper::~LValueHelper() {
       ObjectRSetHelper rsh(*robj);
    }
 
-   if (robj)
+   if (robj && obj_ref)
       robj->tDeref();
 #endif
 }
