@@ -16,6 +16,8 @@
       - @ref Qore::parse_float()
     - @ref Qore::xrange() and @ref Qore::RangeIterator updates:
       - @ref Qore::xrange() and @ref Qore::RangeIterator::constructor() and <list>::rangeIterator() updated to take an optional value to return in the @ref Qore::RangeIterator::getValue() method
+    - @ref Qore::FtpClient updates:
+      - added @ref Qore::FtpClient::getMode()
     - module directory handling changed
       - user modules are now stored in $prefix/share/qore-modules/$version
       - $prefix/share/qore-modules is also added to the module path
@@ -64,6 +66,7 @@
     - fixed a bug in @ref Qore::get_qore_library_info() that could cause a crash due to treating the \a Build attribute as a string when it was an integer
     - fixed a bug in <a href="../../modules/WebUtil/html/index.html">WebUtil</a> where template programs with @ref Qore::PO_ALLOW_BARE_REFS set did not work
     - fixed a bug in the divide-equals (/=) operator where an exception was not thrown when an operand of zero with arbitrary-precision numeric arguments is used
+    - fixed a bug where the connection mode would be reset for every connection in the @ref Qore::FtpClient class
 
     @section qore_0811 Qore 0.8.11
 

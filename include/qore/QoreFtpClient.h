@@ -303,6 +303,9 @@ public:
    //! sets the connection mode for the next connection to "PORT"
    DLLEXPORT void setModePORT();
 
+   //! returns a string for the connection mode: "port", "pasv", "epsv", or "auto" if not connected and auto mode is set
+   DLLEXPORT const char* getMode() const;
+
    DLLEXPORT void clearWarningQueue(ExceptionSink* xsink);
    DLLEXPORT void setWarningQueue(ExceptionSink* xsink, int64 warning_ms, int64 warning_bs, class Queue* wq, AbstractQoreNode* arg, int64 min_ms = 1000);
    DLLEXPORT QoreHashNode* getUsageInfo() const;

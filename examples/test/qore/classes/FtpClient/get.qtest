@@ -50,7 +50,23 @@ class FtpTest inherits FtpClient {
         my *list $l = stat($local_path);
         $t.ok(exists $l, 'file exists');
 
+	$t.ok($.getMode() != "auto", "FtpClient::getMode() != auto");
+
 	$.disconnect();
         unlink($local_path);
+
+	$t.ok($.getMode() == "auto", "FtpClient::getMode() auto");
+	$.setModePASV();
+
+	if ($.connect()) {
+            $t.ok(False, 'not connected');
+	    printf("%s\n", strerror(errno()));
+	    exit();
+	}
+        $t.ok(True, 'seems we are connected');
+
+	$t.ok($.getMode() == "pasv", "FtpClient::getMode() pasv persistent");
+	$.disconnect();
+	$t.ok($.getMode() == "pasv", "FtpClient::getMode() pasv persistent after disconnect");
     }
 }

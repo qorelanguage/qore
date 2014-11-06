@@ -815,6 +815,18 @@ nothing FtpClient::setModePORT() {
    f->setModePORT();
 }
 
+//! returns a string for the connection mode: \c "port", \c "pasv", \c "epsv", or \c "auto" if not connected and auto mode is set
+/** @par Example:
+    @code
+my string $mode = $ftp.getMode();
+    @endcode
+
+    @since %Qore 0.8.12
+*/
+string FtpClient::getMode() [flags=CONSTANT] {
+   return new QoreStringNode(f->getMode());
+}
+
 //! Clears any Queue object that may be set on the FtpClient object so that @ref event_handling "I/O events" are no longer captured on the object on either the data or control connections
 /** 
     @par Example:
