@@ -2868,7 +2868,7 @@ exp:    scalar
               $$ = new QoreMapOperatorNode(map_exp, arg);
 	      $2->deref(0);
 	   }
-	   else if (len == 3) {
+	   else {
 	      AbstractQoreNode* map_exp = l->shift();
               AbstractQoreNode* iterator_exp = l->shift();
               AbstractQoreNode* select_exp = l->shift();
