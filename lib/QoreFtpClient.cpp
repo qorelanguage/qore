@@ -339,17 +339,26 @@ public:
    DLLLOCAL int doProt(FtpResp *resp, ExceptionSink* xsink) {
       int code;
       // RFC-4217: PBSZ 0 for streaming data
-      resp->assign(sendMsg(code, "PBSZ", "0", xsink));
-      if (xsink->isEvent())
+
+      QoreStringNode* mr = sendMsg(code, "PBSZ", "0", xsink);
+      if (!mr) {
+	 assert(*xsink);
 	 return -1;
+      }
+
+      resp->assign(mr);
       if (code != 200) {
 	 xsink->raiseException("FTPS-SECURE-DATA-ERROR", "response from FTP server to PBSZ 0 command: %s", resp->getBuffer());
 	 return -1;
       }
 
-      resp->assign(sendMsg(code, "PROT", "P", xsink));
-      if (xsink->isEvent())
+      mr = sendMsg(code, "PROT", "P", xsink);
+      if (!mr) {
+	 assert(*xsink);
 	 return -1;
+      }
+
+      resp->assign(mr);
       if (code != 200) {
 	 xsink->raiseException("FTPS-SECURE-DATA-ERROR", "response from FTP server to PROT P command: %s", resp->getBuffer());
 	 return -1;
@@ -361,9 +370,13 @@ public:
    // unlocked
    DLLLOCAL int doAuth(FtpResp *resp, ExceptionSink* xsink) {
       int code;
-      resp->assign(sendMsg(code, "AUTH", "TLS", xsink));
-      if (xsink->isEvent())
+
+      QoreStringNode* mr = sendMsg(code, "AUTH", "TLS", xsink);
+      if (!mr) {
+	 assert(*xsink);
 	 return -1;
+      }
+      resp->assign(mr);
 
       if (code != 234) {
 	 // RFC-2228 ADAT exchange not supported
@@ -400,9 +413,14 @@ public:
 	 return -1;
 
       int code;
-      resp.assign(sendMsg(code, "USER", user ? user : (char* )DEFAULT_USERNAME, xsink));
-      if (xsink->isEvent())
+
+      QoreStringNode* mr = sendMsg(code, "USER", user ? user : (char* )DEFAULT_USERNAME, xsink);
+      if (!mr) {
+	 assert(*xsink);
 	 return -1;
+      }
+
+      resp.assign(mr);
 
       // if user not logged in immediately, continue
       if ((code / 100) != 2) {
@@ -413,9 +431,13 @@ public:
 	 }
 
 	 // send password
-	 resp.assign(sendMsg(code, "PASS", pass ? pass : (char* )DEFAULT_PASSWORD, xsink));
-	 if (xsink->isEvent())
+	 mr = sendMsg(code, "PASS", pass ? pass : (char* )DEFAULT_PASSWORD, xsink);
+	 if (!mr) {
+	    assert(*xsink);
 	    return -1;
+	 }
+
+	 resp.assign(mr);
 
 	 // if user not logged in for whatever reason, then exit
 	 if ((code / 100) != 2) {
@@ -433,9 +455,13 @@ public:
    DLLLOCAL int setBinaryMode(bool t, ExceptionSink* xsink) {
       // set transfer mode
       int code;
-      QoreStringNodeHolder resp(sendMsg(code, "TYPE", (char* )(t ? "I" : "A"), xsink));
-      if (xsink->isEvent())
+      QoreStringNode* mr = sendMsg(code, "TYPE", (char* )(t ? "I" : "A"), xsink);
+      if (!mr) {
+	 assert(*xsink);
 	 return -1;
+      }
+
+      QoreStringNodeHolder resp(mr);
 
       if ((code / 100) != 2) {
 	 xsink->raiseException("FTP-ERROR", "can't set mode to '%c', FTP server responded: %s", (t ? 'I' : 'A'), resp->getBuffer());
@@ -512,7 +538,13 @@ public:
    DLLLOCAL int connectDataExtendedPassive(ExceptionSink* xsink) {
       // try extended passive mode
       int code;
-      FtpResp resp(sendMsg(code, "EPSV", 0, xsink));
+      QoreStringNode* mr = sendMsg(code, "EPSV", 0, xsink);
+      if (!mr) {
+	 assert(*xsink);
+	 return -1;
+      }
+
+      FtpResp resp(mr);
       if ((code / 100) != 2)
 	 return -1;
 
@@ -548,7 +580,13 @@ public:
    DLLLOCAL int connectDataPassive(ExceptionSink* xsink) {
       // try passive mode
       int code;
-      FtpResp resp(sendMsg(code, "PASV", 0, xsink));
+      QoreStringNode* mr = sendMsg(code, "PASV", 0, xsink);
+      if (!mr) {
+	 assert(*xsink);
+	 return -1;
+      }
+
+      FtpResp resp(mr);
       if ((code / 100) != 2)
 	 return -1;
 
@@ -623,12 +661,15 @@ public:
       QoreString pconn;
       pconn.sprintf("%s,%d,%d", ifname, dataport >> 8, dataport & 255);
       int code;
-      FtpResp resp(sendMsg(code, "PORT", pconn.getBuffer(), xsink));
-      if (xsink->isEvent()) {
+
+      QoreStringNode* mr = sendMsg(code, "PORT", pconn.getBuffer(), xsink);
+      if (!mr) {
+	 assert(*xsink);
 	 data.close();
 	 return -1;
       }
 
+      FtpResp resp(mr);
       // ex: 200 PORT command successful.
       if ((code / 100) != 2) {
 	 data.close();
@@ -657,11 +698,15 @@ public:
 
       // setup the file transfer on the data channel
       int code;
-      resp.assign(sendMsg(code, "RETR", remotepath, xsink));
-      if (xsink->isEvent()) {
+ 
+      QoreStringNode* mr = sendMsg(code, "RETR", remotepath, xsink);
+      if (!mr) {
+	 assert(*xsink);
 	 data.close();
 	 return -1;
       }
+
+      resp.assign(mr);
       //printf("%s", resp->getBuffer());
 
       if ((code / 100) != 1) {
@@ -752,9 +797,14 @@ QoreStringNode* QoreFtpClient::list(const char* path, bool long_list, ExceptionS
       return 0;
 
    int code;
-   FtpResp resp(priv->sendMsg(code, (long_list ? "LIST" : "NLST"), path, xsink));
-   if (xsink->isEvent())
+   QoreStringNode* mr = priv->sendMsg(code, (long_list ? "LIST" : "NLST"), path, xsink);
+   if (!mr) {
+      assert(*xsink);
+      priv->data.close();
       return 0;
+   }
+
+   FtpResp resp(mr);
 
    //printd(5, "LIST cmd 0: %s\n", resp.getBuffer());
    // file not found or similar
@@ -841,7 +891,15 @@ int QoreFtpClient::put(const char* localpath, const char* remotename, ExceptionS
 
    // transfer file
    int code;
-   FtpResp resp(priv->sendMsg(code, "STOR", rn, xsink));
+
+   QoreStringNode* mr = priv->sendMsg(code, "STOR", rn, xsink);
+   if (!mr) {
+      assert(*xsink);
+      priv->data.close();
+      return -1;
+   }
+
+   FtpResp resp(mr);
    if (rn != remotename)
       free(rn);
 
@@ -903,11 +961,15 @@ int QoreFtpClient::putData(const void *data, qore_size_t len, const char* remote
 
    // transfer file
    int code;
-   FtpResp resp(priv->sendMsg(code, "STOR", remotename, xsink));
-   if (*xsink) {
+
+   QoreStringNode* mr = priv->sendMsg(code, "STOR", remotename, xsink);
+   if (!mr) {
+      assert(*xsink);
       priv->data.close();
       return -1;
    }
+
+   FtpResp resp(mr);
    //printf("%s", resp->getBuffer());
 
    if ((code / 100) != 1) {
@@ -1122,12 +1184,15 @@ int QoreFtpClient::cwd(const char* dir, ExceptionSink* xsink) {
       return -1;
 
    int code;
-   QoreStringNodeHolder p(priv->sendMsg(code, "CWD", dir, xsink));
+   QoreStringNode* mr = priv->sendMsg(code, "CWD", dir, xsink);
+   if (!mr) {
+      assert(*xsink);
+      return -1;
+   }
 
    sl.unlock();
-   if (xsink->isEvent())
-      return -1;
 
+   QoreStringNodeHolder p(mr);
    if ((code / 100) == 2)
       return 0;
 
@@ -1143,8 +1208,15 @@ QoreStringNode* QoreFtpClient::pwd(ExceptionSink* xsink) {
       return 0;
 
    int code;
-   QoreStringNodeHolder p(priv->sendMsg(code, "PWD", 0, xsink));
+   QoreStringNode* mr = priv->sendMsg(code, "PWD", 0, xsink);
+   if (!mr) {
+      assert(*xsink);
+      return 0;
+   }
+
    sl.unlock();
+
+   QoreStringNodeHolder p(mr);
    if ((getFTPCode(*p) / 100) == 2) {
       QoreStringNode* rv = p->substr(4, xsink);
       assert(!*xsink); // not possible to have an exception here
@@ -1163,11 +1235,15 @@ int QoreFtpClient::del(const char* file, ExceptionSink* xsink) {
       return -1;
 
    int code;
-   QoreStringNodeHolder p(priv->sendMsg(code, "DELE", file, xsink));
-   sl.unlock();
-   if (xsink->isEvent())
+   QoreStringNode* mr = priv->sendMsg(code, "DELE", file, xsink);
+   if (!mr) {
+      assert(*xsink);
       return -1;
+   }
 
+   sl.unlock();
+
+   QoreStringNodeHolder p(mr);
    if ((code / 100) == 2)
       return 0;
 
@@ -1182,11 +1258,15 @@ int QoreFtpClient::mkdir(const char* remotepath, ExceptionSink* xsink) {
       return -1;
 
    int code;
-   QoreStringNodeHolder p(priv->sendMsg(code, "MKD", remotepath, xsink));
-   sl.unlock();
-   if (xsink->isEvent())
+   QoreStringNode* mr = priv->sendMsg(code, "MKD", remotepath, xsink);
+   if (!mr) {
+      assert(*xsink);
       return -1;
+   }
 
+   sl.unlock();
+
+   QoreStringNodeHolder p(mr);
    if ((code / 100) == 2)
       return 0;
 
@@ -1201,11 +1281,15 @@ int QoreFtpClient::rmdir(const char* remotepath, ExceptionSink* xsink) {
       return -1;
 
    int code;
-   QoreStringNodeHolder p(priv->sendMsg(code, "RMD", remotepath, xsink));
-   sl.unlock();
-   if (xsink->isEvent())
+   QoreStringNode* mr = priv->sendMsg(code, "RMD", remotepath, xsink);
+   if (!mr) {
+      assert(*xsink);
       return -1;
+   }
 
+   sl.unlock();
+
+   QoreStringNodeHolder p(mr);
    if ((code / 100) == 2)
       return 0;
 
