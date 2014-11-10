@@ -930,6 +930,122 @@ my any $v = $c.name;
                 "tablespace": Type::String,
                 "src": Type::String,
                 );
+
+            #! hash of reserved words
+            const OracleReservedWords = (
+                "access": True,
+                "else": True,
+                "modify": True,
+                "start": True,
+                "add": True,
+                "exclusive": True,
+                "noaudit": True,
+                "select": True,
+                "all": True,
+                "exists": True,
+                "nocompress": True,
+                "session": True,
+                "alter": True,
+                "file": True,
+                "not": True,
+                "set": True,
+                "and": True,
+                "float": True,
+                "notfound": True,
+                "share": True,
+                "any": True,
+                "for": True,
+                "nowait": True,
+                "size": True,
+                "arraylen": True,
+                "from": True,
+                "null": True,
+                "smallint": True,
+                "as": True,
+                "grant": True,
+                "number": True,
+                "sqlbuf": True,
+                "asc": True,
+                "group": True,
+                "of": True,
+                "successful": True,
+                "audit": True,
+                "having": True,
+                "offline": True,
+                "synonym": True,
+                "between": True,
+                "identified": True,
+                "on": True,
+                "sysdate": True,
+                "by": True,
+                "immediate": True,
+                "online": True,
+                "table": True,
+                "char": True,
+                "in": True,
+                "option": True,
+                "then": True,
+                "check": True,
+                "increment": True,
+                "or": True,
+                "to": True,
+                "cluster": True,
+                "index": True,
+                "order": True,
+                "trigger": True,
+                "column": True,
+                "initial": True,
+                "pctfree": True,
+                "uid": True,
+                "comment": True,
+                "insert": True,
+                "prior": True,
+                "union": True,
+                "compress": True,
+                "integer": True,
+                "privileges": True,
+                "unique": True,
+                "connect": True,
+                "intersect": True,
+                "public": True,
+                "update": True,
+                "create": True,
+                "into": True,
+                "raw": True,
+                "user": True,
+                "current": True,
+                "is": True,
+                "rename": True,
+                "validate": True,
+                "date": True,
+                "level": True,
+                "resource": True,
+                "values": True,
+                "decimal": True,
+                "like": True,
+                "revoke": True,
+                "varchar": True,
+                "default": True,
+                "lock": True,
+                "row": True,
+                "varchar2": True,
+                "delete": True,
+                "long": True,
+                "rowid": True,
+                "view": True,
+                "desc": True,
+                "maxextents": True,
+                "rowlabel": True,
+                "whenever": True,
+                "distinct": True,
+                "minus": True,
+                "rownum": True,
+                "where": True,
+                "drop": True,
+                "mode": True,
+                "rows": True,
+                "with": True,
+                );
         }
 
         #! creates the object from the arguments given
@@ -2142,6 +2258,16 @@ my any $v = $c.name;
             }
         }
 
+        #! returns the column name for use in SQL strings; subclasses can return a special string in case the column name is a reserved word
+        string getColumnSqlName(string col) {
+            return OracleDatabase::OracleReservedWords{col.lwr()} ? ("\"" + col + "\"") : col;
+        }
+
+        #! returns a list of column names for use in SQL strings; subclasses can process the argument list in case a column name is a reserved word
+        list getColumnSqlNames(softlist cols) {
+            return map (OracleDatabase::OracleReservedWords{$1.lwr()} ? ("\"" + $1 + "\"") : $1), cols;
+        }
+
         private bool emptyImpl() {
             return True;
         }
@@ -2167,5 +2293,6 @@ my any $v = $c.name;
         #! db-specific copy actions
         private copyImpl(AbstractTable old) {            
         }
-    }
+
+   }
 }
