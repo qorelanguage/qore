@@ -68,6 +68,7 @@
     - fixed a bug in the divide-equals (/=) operator where an exception was not thrown when an operand of zero with arbitrary-precision numeric arguments is used
     - fixed a bug where the connection mode would be reset for every connection in the @ref Qore::FtpClient class
     - fixed a bug in the @ref Qore::FtpClient class where connection problems in the data channel when executing certain FTP commands could cause a crash due to missing error checking
+    - fixed a bug in <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> where column names that are reserved words were not quoted in generated SQL
 
     @section qore_0811 Qore 0.8.11
 

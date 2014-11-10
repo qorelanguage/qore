@@ -12331,7 +12331,7 @@ $table.insertNoCommi($row);
             }
             hash vh = getPlaceholdersAndValues(row);
 
-            sql += (foldl $1 + "," + $2, row.keyIterator());
+            sql += (foldl $1 + "," + $2, (map getColumnSqlName($1), row.keyIterator()));
             sql += ") values (";
             sql += (foldl $1 + "," + $2, vh.placeholders);
             sql += ")";
@@ -12486,7 +12486,7 @@ my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $sourc
                     throw "COLUMN-ERROR", sprintf("%s.%s is not a valid column (valid columns: %y)", name, k, cols);
             }
 
-            sql += (foldl $1 + "," + $2, cols);
+            sql += (foldl $1 + "," + $2, getColumnSqlNames(cols));
             sql += ") " + ssql;
 
             return execData(opt, sql, args);
@@ -12601,7 +12601,7 @@ my int $rows = $table.insertFromIteratorNoCommit($i);
             hash row = i.getValue();
 
             # make insert statement template
-            string sql = sprintf("insert into %s (%s) values (%s)", getSqlName(), (foldl $1 + "," + $2, row.keyIterator()),
+            string sql = sprintf("insert into %s (%s) values (%s)", getSqlName(), (foldl $1 + "," + $2, (map getColumnSqlName($1), row.keyIterator())),
                                  (foldl $1 + "," + $2, (map "%v", row.keyIterator())));
             SQLStatement stmt(ds);
             stmt.prepare(sql);
@@ -13729,6 +13729,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
 
             if (cv != "*" && !cols.hasKey(cv))
                 throw "SELECT-ERROR", sprintf("query references unknown column %y.%y; known columns: %y", tp, cv, cols.keys());
+            cv = getColumnSqlName(cv);
             return join ? sprintf("%s.%s", tp, cv) : cv;
         }
 
@@ -13949,7 +13950,7 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
 
             list sl = ();
             foreach hash h in (set.pairIterator()) {
-                string exp = sprintf("%s = ", h.key);
+                string exp = sprintf("%s = ", getColumnSqlName(h.key));
                 if (h.value.typeCode() == NT_HASH)
                     exp += getUpdateExpression(h.key, h.value);
                 else {
@@ -14237,15 +14238,15 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
                 updc = cols.keys();
 
             return sprintf("select %s from %s where %s", 
-                           (foldl $1 + "," + $2, updc),
+                           (foldl $1 + "," + $2, getColumnSqlNames(updc)),
                            getSqlName(),
-                           (foldl $1 + " and " + $2, (map sprintf("%s = %v", $1), cols.keyIterator()))
+                           (foldl $1 + " and " + $2, (map sprintf("%s = %v", getColumnSqlName($1)), cols.keyIterator()))
                 );            
         }
 
         private string getUpsertInsertSql(hash row) {
             string sql = sprintf("insert into %s (", getSqlName());
-            sql += (foldl $1 + "," + $2, row.keyIterator());
+            sql += (foldl $1 + "," + $2, (map getColumnSqlName($1), row.keyIterator()));
             sql += ") values (";
             sql += (foldl $1 + "," + $2, (map "%v", row.keyIterator()));
             sql += ")";
@@ -14259,9 +14260,9 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
 
             # make sql
             string sql = sprintf("update %s set ", getSqlName());
-            sql += foldl $1 + "," + $2, (map sprintf("%s = %v", $1), updc);
+            sql += foldl $1 + "," + $2, (map sprintf("%s = %v", getColumnSqlName($1)), updc);
             sql += " where ";
-            sql += foldl $1 + " and " + $2, (map sprintf("%s = %v", $1), cols.keyIterator());
+            sql += foldl $1 + " and " + $2, (map sprintf("%s = %v", getColumnSqlName($1)), cols.keyIterator());
 
             return sql;
         }
@@ -15204,7 +15205,7 @@ my *hash $row = $table.find($id);
         *hash find(any id) {
             string cname = getPrimaryKeyColumn();
 
-            return ds.selectRow("select * from %s where %s = %v", getSqlName(), cname, id);
+            return ds.selectRow("select * from %s where %s = %v", getSqlName(), getColumnSqlName(cname), id);
         }
 
         #! finds rows in the table with the given primary key values; if no row matches any primary key value passed then @ref nothing is returned
@@ -15276,7 +15277,7 @@ my *hash $row = $table.find(("account_type": $type, "name": $name));
 
             # make query
             string sql = sprintf("select * from %s where ", getSqlName());
-            sql += foldl $1 + " and " + $2, (map sprintf("%s = %v", $1), row.keyIterator());
+            sql += foldl $1 + " and " + $2, (map sprintf("%s = %v", getColumnSqlName($1)), row.keyIterator());
             return ds.vselectRow(sql, row.values());
         }
 
@@ -15319,6 +15320,16 @@ my *list $rows = $table.findAll($h);
         #! returns the name of the table to be used in SQL (with a possible qualifiers for schema, etc)
         string getSqlName() {
             return name;
+        }
+
+        #! returns the column name for use in SQL strings; subclasses can return a special string in case the column name is a reserved word
+        string getColumnSqlName(string col) {
+            return col;
+        }
+
+        #! returns a list of column names for use in SQL strings; subclasses can process the argument list in case a column name is a reserved word
+        list getColumnSqlNames(softlist cols) {
+            return cols;
         }
 
         #! returns the table options for this driver

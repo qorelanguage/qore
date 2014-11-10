@@ -2258,6 +2258,16 @@ my any $v = $c.name;
             }
         }
 
+        #! returns the column name for use in SQL strings; subclasses can return a special string in case the column name is a reserved word
+        string getColumnSqlName(string col) {
+            return OracleDatabase::OracleReservedWords{col.lwr()} ? ("\"" + col + "\"") : col;
+        }
+
+        #! returns a list of column names for use in SQL strings; subclasses can process the argument list in case a column name is a reserved word
+        list getColumnSqlNames(softlist cols) {
+            return map (OracleDatabase::OracleReservedWords{$1.lwr()} ? ("\"" + $1 + "\"") : $1), cols;
+        }
+
         private bool emptyImpl() {
             return True;
         }
@@ -2283,5 +2293,6 @@ my any $v = $c.name;
         #! db-specific copy actions
         private copyImpl(AbstractTable old) {            
         }
-    }
+
+   }
 }
