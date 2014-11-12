@@ -295,6 +295,13 @@ if test "$enable_64bit" = "auto"; then
     esac
 fi
 
+# allow users to explicitly set libsuffix
+AC_ARG_WITH([libsuffix],
+  [AS_HELP_STRING([--with-libsuffix@<:@=LIBSUFFIX@:>@],
+                  [explitily set libsuffix])],
+  [LIBSUFFIX=$with_libsuffix; LIBSUFFIX_SET=yes;AC_SUBST(LIBSUFFIX)],
+  [])
+
 # see if we know how to set flags properly for different hosts and architectures
 # FIXME: add test on HP-UX if the compiler can generate the appropriate binaries
 if test "$enable_64bit" = "yes"; then
@@ -303,14 +310,16 @@ if test "$enable_64bit" = "yes"; then
 		   CXXFLAGS="$CXXFLAGS -m64"
 		fi
 		# only set LIBSUFFIX=64 if /usr/lib64 exists
-		if test -d /usr/lib64; then
-		   LIBSUFFIX=64
-                fi
-		target="${host_cpu}-${host_os}"
-		if test -d /usr/lib/$target; then
-		   LIBSUFFIX=/$target
-                fi
-		AC_SUBST(LIBSUFFIX)
+		if test "$LIBSUFFIX_SET" != "yes"; then
+		  if test -d /usr/lib64; then
+		     LIBSUFFIX=64
+                  fi
+		  target="${host_cpu}-${host_os}"
+		  if test -d /usr/lib/$target; then
+		     LIBSUFFIX=/$target
+                  fi
+		  AC_SUBST(LIBSUFFIX)
+		fi
 		;;
       *hpux*)	if test "$host_cpu" = "ia64"; then
                     if test -n "`echo $CXX|grep aCC`"; then
@@ -362,10 +371,12 @@ else
  		   esac
 		fi
 		# multiarch
-		if test -a "$host_cpu" = "x86_64" -a -d /usr/lib32; then
-		   LIBSUFFIX=32
-                fi
-		AC_SUBST(LIBSUFFIX)
+		if test "$LIBSUFFIX_SET" != "yes"; then
+		   if test -a "$host_cpu" = "x86_64" -a -d /usr/lib32; then
+		      LIBSUFFIX=32
+                   fi
+		   AC_SUBST(LIBSUFFIX)
+		fi
 		;;
      *darwin*)	if test "$GXX" = "yes"; then
 		   CXXFLAGS="$CXXFLAGS -m32"
