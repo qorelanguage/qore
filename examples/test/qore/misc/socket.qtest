@@ -2,6 +2,7 @@
 
 %require-our
 %enable-all-warnings
+%requires UnitTest
 %exec-class socket_test
 
 const opts = (
@@ -34,6 +35,8 @@ const http_headers =  (
 
 class socket_test {
     constructor() {
+        my UnitTest $t();
+
 	$.process_command_line();
 
 	$.string = "This is a binary string";
@@ -50,11 +53,11 @@ class socket_test {
 	$.stopc = new Counter();
 	if (!exists $.o.server) {
 	    $.stopc.inc();
-	    background $.server_thread();
+	    background $.server_thread($t);
 	}
 	if (!$.o.servonly) {
 	    $.stopc.inc();
-	    background $.client_thread();   
+	    background $.client_thread($t);   
 	}
 
 	$.stopc.waitForZero();
@@ -62,9 +65,9 @@ class socket_test {
 	    $.queue.push();
     }
 
-    private server_thread() {
+    private server_thread(UnitTest $t) {
 	on_exit $.stopc.dec();
-	socket_test::printf("listening for incoming connections on %s\n", $.server_port);
+	#socket_test::printf("listening for incoming connections on %s\n", $.server_port);
 	my Socket $s();
 	# setting the callback will output far too much data
 	if ($.o.events) {
@@ -84,12 +87,12 @@ class socket_test {
 	    foreach my hash $a in ($addr) {
 		try {
 		    $s.bindINET($a.address, $.server_port, True, $a.family);
-		    socket_test::printf("server: bound to %s socket on %s:%d\n", $a.familystr, $a.address_desc, $.server_port);
+		    #socket_test::printf("server: bound to %s socket on %s:%d\n", $a.familystr, $a.address_desc, $.server_port);
 		    break;
 		}
 		catch ($ex) {
 		    if ($# == (elements $addr - 1)) {
-			socket_test::printf("server: error binding socket to %s:%d %s: %s (arg: %y)\n", $a.address_desc, $.server_port, $ex.err, $ex.desc, $ex.arg);
+			#socket_test::printf("server: error binding socket to %s:%d %s: %s (arg: %y)\n", $a.address_desc, $.server_port, $ex.err, $ex.desc, $ex.arg);
 			thread_exit;
 		    }
 		}
@@ -124,7 +127,7 @@ class socket_test {
 	    }
 	    else {
 		$s = $s.accept();
-		socket_test::printf("server: cleartext connection from %s\n", $s.getPeerInfo().address_desc);
+		#socket_test::printf("server: cleartext connection from %s\n", $s.getPeerInfo().address_desc);
 	    }
 	    if ($.o.events)
 		$s.setEventQueue($.queue);
@@ -134,13 +137,13 @@ class socket_test {
 	    thread_exit;
 	}
 	
-	$.receive_messages($s, "server");
+	$.receive_messages($s, "server", $t);
 	$.send_messages($s);
 
 	$s.close();
     }
 
-    private client_thread() {
+    private client_thread(UnitTest $t) {
 	on_exit $.stopc.dec();
 	if (!exists $.o.server)
 	    $.counter.waitForZero();
@@ -172,50 +175,50 @@ class socket_test {
 	}
 
 	$.send_messages($s);
-	$.receive_messages($s, "client");
+	$.receive_messages($s, "client", $t);
     }
 
-    private receive_messages($s, $who) {
+    private receive_messages($s, $who, $t) {
 	my $m = $s.recv();
-	$.test_value($who, $.string, $m, "string");
+        $t.cmp($.string, $m, $who + " string");
 	$s.send("OK");
 
         $m = $s.recvBinary();
-	$.test_value($who, $.binary, $m, "binary");
+        $t.cmp($.binary, $m, $who + " binary");
 	$s.send("OK");
 
 	$m = $s.recvi1();
-	$.test_value($who, $m, i1, "sendi1");
+        $t.cmp(i1, $m, $who + " sendi1");
 	$s.send("OK");
 
 	$m = $s.recvi2();
-	$.test_value($who, $m, i2, "sendi2");
+        $t.cmp(i2, $m, $who + " sendi2");
 	$s.send("OK");
 
 	$m = $s.recvi4();
-	$.test_value($who, $m, i4, "sendi4");
+        $t.cmp(i4, $m, $who + " sendi4");
 	$s.send("OK");
 
 	$m = $s.recvi8();
-	$.test_value($who, $m, i8, "sendi8");
+        $t.cmp(i8, $m, $who + " sendi8");
 	$s.send("OK");
 
 	$m = $s.recvi2LSB();
-	$.test_value($who, $m, i2, "sendi2LSB");
+        $t.cmp(i2, $m, $who + " sendi2LSB");
 	$s.send("OK");
 
 	$m = $s.recvi4LSB();
-	$.test_value($who, $m, i4, "sendi4LSB");
+        $t.cmp(i4, $m, $who + " sendi4LSB");
 	$s.send("OK");
 
 	$m = $s.recvi8LSB();
-	$.test_value($who, $m, i8, "sendi8LSB");
+        $t.cmp(i8, $m, $who + " sendi8LSB");
 	$s.send("OK");
 
         $m = $s.readHTTPHeader();
-        $.test_value($who, $m.method, "POST", "HTTP header method");
+        $t.cmp($m.method, "POST", $who + " HTTP header method");
         $m = $s.recv($m."content-length");
-        $.test_value($who, $m, $.string, "HTTP message body");
+        $t.cmp($m, $.string, $who + " HTTP message body");
 
 	$s.sendHTTPResponse(200, "OK", "1.1", http_headers, "OK");
     }
