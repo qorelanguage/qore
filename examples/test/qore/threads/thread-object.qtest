@@ -2,6 +2,7 @@
 
 %require-our
 %enable-all-warnings
+%requires UnitTest
 %exec-class thread_object_test
 
 const opts = 
@@ -10,10 +11,11 @@ const opts =
 
 class thread_object_test {
     constructor() {
+        my UnitTest $t();
 	$.process_command_line();
-	new CounterTest($.threads, $.iters);
-	new QueueTest($.threads, $.iters);
-        new ThreadTest($.threads, $.iters);
+	new CounterTest($.threads, $.iters, $t);
+	new QueueTest($.threads, $.iters, $t);
+        new ThreadTest($.threads, $.iters, $t);
     }
 
     usage() {
@@ -42,13 +44,11 @@ class thread_object_test {
 	$.threads = int(shift $ARGV);
 	if (!$.threads)
 	    $.threads = 5;
-	printf("iterations=%d threads=%d\n", $.iters, $.threads);
     }
 }
 
 class CounterTest {
-    constructor(int $threads, int $iters) {
-	printf("counter test: "); flush();
+    constructor(int $threads, int $iters, UnitTest $t) {
 	$.threads = $threads;
 	$.iters = $iters;
 	$.obj.key.500.hello = 0;
@@ -56,10 +56,7 @@ class CounterTest {
 	$.c = new Counter();
 	$.do_threads();
 	$.c.waitForZero();
-	if (!$.obj.key.500.hello)
-	    print("OK\n");
-	else
-	    printf("ERROR (%d) %d\n", $.obj.key.500.hello, $.c.getCount());
+        $t.ok(!$.obj.key.500.hello, "counter");
     }
 
     private do_threads() {
@@ -85,8 +82,7 @@ class CounterTest {
 }
 
 class QueueTest {
-    constructor(softint $threads, softint $iters) {
-	printf("queue test: "); flush();
+    constructor(softint $threads, softint $iters, UnitTest $t) {
 	$.q = new Queue();
 	$.x = new Counter();
 	
@@ -102,10 +98,7 @@ class QueueTest {
 		$.q.get();
 
 	$.x.waitForZero();
-	if (!$.q.size())
-	    print("OK\n");
-	else
-	    printf("ERROR: q=%N size=%d (%s)\n", $.q, $.q.size());
+        $t.ok(!$.q.size(), "queue");
     }
 
     private qt(int $threads, int $iters) {
@@ -116,8 +109,7 @@ class QueueTest {
 }
 
 class ThreadTest inherits Mutex {
-    constructor(softint $threads, softint $iters) {
-	print("thread object tests: "); flush();
+    constructor(softint $threads, softint $iters, UnitTest $t) {
 	$.iters = $iters;
         $.drw = new RWLock();
         $.g   = new Gate();
@@ -128,7 +120,7 @@ class ThreadTest inherits Mutex {
             $threads--;
         }
 	$.c.waitForZero();
-	print("OK\n");
+        $t.ok(True, "thread object tests");
     }
     getData(list $list) {
         my $rv;
