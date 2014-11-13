@@ -1,0 +1,133 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# @file CsvUtil.qm Qore user module for working with CSV files
+
+/*  CsvUtil.qm Copyright 2012 - 2014 Qore Technologies, sro
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum required Qore version
+%requires qore >= 0.8.11
+%require-types
+%new-style
+
+module FixedLengthLineFileUtil {
+    version = "1.0";
+    desc    = "user module for working with files with fixed length lines";
+    author  = "Jiri Vaclavik <jiri.vaclavik@qoretechnologies.com>";
+    url     = "http://qore.org";
+    license = "MIT";
+}
+
+/* see release notes below for version history
+*/
+
+/** @mainpage FixedLengthLineFileUtil Module
+
+    @tableofcontents
+
+    @section fixedlengthlinefileutilintro Introduction to the FixedLengthLineFileUtil Module
+
+    The %FixedLengthLineFileUtil module provides functionality for parsing files with fixed length lines.
+
+    To use this module, use \c "%requires FixedLengthLineFileUtil" in your code.
+    
+    All the public symbols in the module are defined in the FixedLengthLineFileUtil namespace
+
+    Currently the module provides the following classes:
+    - @ref FixedLengthLineFileUtil::B4nFileLineIterator "B4nFileLineIterator": iterator class allowing for B4n string data to be processed line by line on a record basis
+
+    <b>Example:</b>
+    @code
+#!/usr/bin/env qore
+
+%new-style
+%requires FixedLengthLineFileUtil
+
+list specs = (
+    (
+        "test" : bool sub (string line) {return line.length() == 7;},
+        "cols" : (
+            "col1" : 5,
+            "col2" : 2,
+        ),
+    ),
+    (
+        "test" : bool sub (string line) {return line.length() == 10;},
+        "cols" : (
+            "col3" : 1,
+            "col4" : 3,
+            "col5" : 6,
+        ),
+    ),
+);
+
+B4nFileLineIterator i(file, specs);
+while(i.next()) {
+    printf("%s\n", i.getValue());
+}
+    @endcode
+
+    @section fixedlengthlinefileutil_relnotes Release Notes
+
+    @subsection fixedlengthlinefileutil_v1_0 Version 1.0
+    - initial version of module
+*/
+
+#! the FixedLengthLineFileUtil namespace contains all the definitions in the FixedLengthLineFileUtil module
+public namespace FixedLengthLineFileUtil {
+}
+
+#! structured line iterator for B4N files allowing efficient "pipelined" processing of B4N data
+public class FixedLengthLineFileUtil::B4nFileLineIterator inherits FileLineIterator {
+    private {
+        list specs;
+        string file;
+    }
+    
+    constructor(string f, list s) : FileLineIterator(f) {
+        file  = f;
+        specs = s;
+    }
+
+    *hash getValue() {
+        string line = getLine();
+
+        if (!line) {
+            return NOTHING;
+        }
+
+        hash result = hash();
+
+        foreach hash type in (specs) {
+            if (!type.test || call_function_args(type.test, line)) {
+                int pos = 0;
+                foreach string col in (type.cols.keys()) {
+                    result{col} = line.substr(pos, type.cols{col});
+                    pos += type.cols{col};
+                }
+                return result;
+            }
+        }
+    }
+
+    string getLine() {
+        return FileLineIterator::getValue();
+    }
+}

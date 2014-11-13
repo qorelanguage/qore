@@ -1,0 +1,44 @@
+#!/usr/bin/env qore
+%require-types
+%new-style
+%enable-all-warnings
+%requires UnitTest
+%requires FixedLengthLineFileUtil
+
+UnitTest unit();
+
+string file = unit.tmpLocation() + "/file.b4n";
+unlink(file);
+File FW = new File();
+FW.open(file, O_WRONLY | O_CREAT);
+FW.write("aaaaabb\ncdddeeeeee\nfffffgg\n");
+FW.close();
+
+list specs = (
+    (
+        "test" : bool sub (string line) {return line.length() == 7;},
+        "cols" : (
+            "col1" : 5,
+            "col2" : 2,
+        ),
+    ),
+    (
+        "test" : bool sub (string line) {return line.length() == 10;},
+        "cols" : (
+            "col3" : 1,
+            "col4" : 3,
+            "col5" : 6,
+        ),
+    ),
+);
+
+B4nFileLineIterator i(file, specs);
+unit.cmp(i.next(), True, "line 1 is there");
+unit.cmp(i.getValue(), ("col1" : "aaaaa", "col2" : "bb"), "line 1 content check");
+unit.cmp(i.next(), True, "line 2 is there");
+unit.cmp(i.getValue(), ("col3" : "c", "col4" : "ddd", "col5" : "eeeeee"), "line 2 content check");
+unit.cmp(i.next(), True, "line 3 is there");
+unit.cmp(i.getValue(), ("col1" : "fffff", "col2" : "gg"), "line 3 content check");
+unit.cmp(i.next(), False, "line 4 is not there");
+
+unlink(file);
