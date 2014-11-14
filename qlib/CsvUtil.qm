@@ -26,7 +26,7 @@
 %requires qore >= 0.8.11
 
 module CsvUtil {
-    version = "1.4";
+    version = "1.5";
     desc = "user module for working with CSV files";
     author = "Petr Vanek <petr@yarpen.cz>, David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -115,6 +115,9 @@ while (i.next())
     Use the \c "header-lines" and \c "header-names" @ref csvabstractiterator_options "options" to automatically read the header names from the file if present.  Use the \c "fields" @ref csvabstractiterator_options "option" to describe the fields and perform transformations on the data read.  For more information, see the @ref CsvUtil::CsvFileIterator "CsvFileIterator" class.
 
     @section csvutil_relnotes Release Notes
+
+    @subsection csvutil_v1_5 Version 1.5
+    - bugfixed handling eol global option
 
     @subsection csvutil_v1_4 Version 1.4
     - fixed the \c "format" field option when used with \c "*date" field types
