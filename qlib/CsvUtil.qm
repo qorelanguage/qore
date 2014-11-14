@@ -764,7 +764,7 @@ while ($i.next()) {
 
             @throw CSVABSTRACTITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header-names" is @ref Qore::True "True" and \c "header-lines" is 0 or \c "headers" is also present; unknown field type
          */
-        constructor(string $path, *hash $opts) : CsvAbstractIterator($opts), FileLineIterator($path, $opts.encoding.typeCode() == NT_STRING ? $opts.encoding : NOTHING, $opts.eol.typeCode == NT_STRING ? $opts.eol : NOTHING) {
+        constructor(string $path, *hash $opts) : CsvAbstractIterator($opts), FileLineIterator($path, $opts.encoding.typeCode() == NT_STRING ? $opts.encoding : NOTHING, $opts.eol.typeCode() == NT_STRING ? $opts.eol : NOTHING) {
         }
 
         #! Returns the name of the input data
