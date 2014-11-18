@@ -25,6 +25,7 @@ DOX_MODULES = qlib/SmtpClient.qm \
 	qlib/TelnetClient.qm \
 	qlib/Pop3Client.qm \
 	qlib/CsvUtil.qm \
+	qlib/FixedLengthLineFileUtil.qm \
 	qlib/OracleSqlUtil.qm \
 	qlib/PgsqlSqlUtil.qm \
         qlib/Qorize.qm \
@@ -42,6 +43,8 @@ DOX_MODULES = qlib/SmtpClient.qm \
 TESTSCRIPTS= \
         examples/test/qlib/CsvUtil/csvutil.qtest \
         examples/test/qlib/CsvUtil/test.qtest \
+        examples/test/qlib/FixedLengthLineFileUtil/FixedLengthLineFileLineIterator.qtest \
+        examples/test/qlib/FixedLengthLineFileUtil/FixedLengthLineFileWriter.qtest \
         examples/test/qlib/Mapper/mapper.qtest \
         examples/test/qlib/Mime/mime.qtest \
         examples/test/qlib/Qorize/qorizeNamed.qtest \
