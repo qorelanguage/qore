@@ -1,0 +1,73 @@
+#!/usr/bin/env qore
+%require-types
+%new-style
+%enable-all-warnings
+%requires UnitTest
+%requires FixedLengthLineFileUtil
+
+UnitTest unit();
+
+string file = unit.tmpLocation() + "/file.fll";
+unlink(file);
+File FW = new File();
+FW.open(file, O_WRONLY | O_CREAT);
+FW.write("11111bb\tcddd31122014\t\t\t22222gg\t");
+FW.close();
+
+hash specs = (
+    "get_type" : *string sub (string line) {
+        if (line.length() == 7) {
+            return "type1";
+        }
+        if (line.length() == 12) {
+            return "type2";
+        }
+        return NOTHING;
+    },
+    "types" : (
+        "type1" : (
+            "col1" : (
+                "length" : 5,
+                "type"   : "int"
+            ),
+            "col2" : (
+                "length" : 2,
+                "type"   : "string",
+            ),
+        ),
+        "type2" : (
+            "col3" : (
+                "length" : 1,
+                "type"   : "string",
+            ),
+            "col4" : (
+                "length" : 3,
+                "type"   : "string",
+            ),
+            "col5" : (
+                "length"   : 8,
+                "type"     : "date",
+                "format"   : "DDMMYYYY",
+#                "timezone" : TimeZone tz("Europe/Prague"), # use global if omitted
+            ),
+        ),
+    ),
+);
+
+hash global_options = (
+    "encoding"     : "UTF-8",
+    "eol"          : "\t",
+    "ignore-empty" : True,
+    "timezone"     : TimeZone tz("Europe/Prague"), # used if not in some date column specification
+);
+
+FixedLengthLineFileLineIterator i(file, specs, global_options);
+unit.cmp(i.next(), True, "line 1 is there");
+unit.cmp(i.getValue(), ("col1" : 11111, "col2" : "bb"), "line 1 content check");
+unit.cmp(i.next(), True, "line 2 is there");
+unit.cmp(i.getValue(), ("col3" : "c", "col4" : "ddd", "col5" : 2014-12-31), "line 2 content check");
+unit.cmp(i.next(), True, "line 3 is there");
+unit.cmp(i.getValue(), ("col1" : 22222, "col2" : "gg"), "line 3 content check");
+unit.cmp(i.next(), False, "line 4 is not there");
+
+unlink(file);

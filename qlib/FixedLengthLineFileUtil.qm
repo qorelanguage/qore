@@ -1,0 +1,308 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# @file FixedLengthLineFileUtil.qm Qore user module for working with files with fixed lines length
+
+/*  FixedLengthLineFileUtil.qm Copyright 2012 - 2014 Qore Technologies, sro
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum required Qore version
+%requires qore >= 0.8.11
+%require-types
+%enable-all-warnings
+%new-style
+
+module FixedLengthLineFileUtil {
+    version = "1.0";
+    desc    = "user module for working with files with fixed length lines";
+    author  = "Jiri Vaclavik <jiri.vaclavik@qoretechnologies.com>";
+    url     = "http://qore.org";
+    license = "MIT";
+}
+
+/* see release notes below for version history
+*/
+
+/** @mainpage FixedLengthLineFileUtil Module
+
+    @tableofcontents
+
+    @section fixedlengthlinefileutilintro Introduction to the FixedLengthLineFileUtil Module
+
+    The %FixedLengthLineFileUtil module provides functionality for parsing files with fixed length lines.
+
+    To use this module, use \c "%requires FixedLengthLineFileUtil" in your code.
+    
+    All the public symbols in the module are defined in the FixedLengthLineFileUtil namespace
+
+    Currently the module provides the following classes:
+    - @ref FixedLengthLineFileUtil::FixedLengthLineFileLineIterator "FixedLengthLineFileLineIterator": iterator class allowing for fixed-length-line data to be processed line by line on a record basis
+    - @ref FixedLengthLineFileUtil::FixedLengthLineFileWriter "FixedLengthLineFileWriter": Fixed length line writer
+
+    <b>Example of reading:</b>
+    @code
+#!/usr/bin/env qore
+
+%new-style
+%requires FixedLengthLineFileUtil
+
+list specs = (
+    (
+        "test" : bool sub (string line) {return line.length() == 7;},
+        "cols" : (
+            "col1" : 5,
+            "col2" : 2,
+        ),
+    ),
+    (
+        "test" : bool sub (string line) {return line.length() == 10;},
+        "cols" : (
+            "col3" : 1,
+            "col4" : 3,
+            "col5" : 6,
+        ),
+    ),
+);
+
+FixedLengthLineFileLineIterator i(file, specs);
+while(i.next()) {
+    printf("%s\n", i.getValue());
+}
+    @endcode
+
+    <b>Example of writing:</b>
+    @code
+#!/usr/bin/env qore
+
+%new-style
+%requires FixedLengthLineFileUtil
+
+list data = (
+    ("col1" : "aaaaa", "col2" : "bb"),
+    ("col3" : "c", "col4" : "ddd", "col5" : "eeeeee"),
+    ("col1" : "fffff", "col2" : "gg"),
+);
+
+list specs = (
+    (
+        "test" : bool sub (string line) {return line.length() == 7;},
+        "cols" : (
+            "col1" : 5,
+            "col2" : 2,
+        ),
+    ),
+    (
+        "test" : bool sub (string line) {return line.length() == 10;},
+        "cols" : (
+            "col3" : 1,
+            "col4" : 3,
+            "col5" : 6,
+        ),
+    ),
+);
+
+FixedLengthLineFileWriter w(file, specs);
+w.write(data);
+    @endcode
+
+    @section fixedlengthlinefileutil_relnotes Release Notes
+
+    @subsection fixedlengthlinefileutil_v1_0 Version 1.0
+    - initial version of module
+*/
+
+#! the FixedLengthLineFileUtil namespace contains all the definitions in the FixedLengthLineFileUtil module
+public namespace FixedLengthLineFileUtil {
+}
+
+#! structured line iterator for fixed-length-line files allowing efficient "pipelined" processing of fixed-length-line data
+public class FixedLengthLineFileUtil::FixedLengthLineFileLineIterator inherits FileLineIterator {
+    private {
+        hash specs;
+        string file;
+        hash opts; # encoding, eol, ignore-empty, timezone
+    }
+
+    #! creates the FixedLengthLineFileLineIterator object
+    /**
+    @param file file to read
+    @param specs specification of fixed-length-line file        
+    */
+    constructor(string f, hash h, hash g) : FileLineIterator(f, g.encoding.typeCode() == NT_STRING ? g.encoding : NOTHING, g.eol.typeCode() == NT_STRING ? g.eol : NOTHING) {
+        file  = f;
+        specs = h;
+        opts  = g;
+    }
+
+    #! returns the current record as a hash
+    /** @par Example:
+        @code
+my hash $h = $i.getValue();
+        @endcode
+
+        @return the current record as a hash
+    */
+    *hash getValue() {
+        string line = getLine();
+
+        if (!line) {
+            return NOTHING;
+        }
+
+        hash result = hash();
+
+        *string type = call_function_args(specs.get_type, line);
+        if (!type || !specs.types{type}) {
+            throw 'NON-MATCHING-TYPE', 'Line type not detected correctly for line >' + line + '<';
+        }
+        int pos = 0;
+        foreach string col in (specs.types{type}.keys()) {
+            hash field = specs.types{type}{col};
+            if (!field.timezone) {
+                field.timezone = opts.timezone;
+            }
+            result{col} = retype(line.substr(pos, field.length), field);
+            pos += field.length;
+        }
+        return result;
+    }
+
+    #! returns a line
+    /** @return the current line
+    */
+    string getLine() {
+        return FileLineIterator::getValue();
+    }
+
+    #! Moves the current line / record position to the next line / record; returns @ref False if there are no more lines to iterate
+    /** This method will return @ref True again after it returns @ref False once if the file being iterated has data that can be iterated, otherwise it will always return @ref False. The iterator object should not be used to retrieve a value after this method returns @ref False.
+        @return @ref False if there are no lines / records to iterate (in which case the iterator object is invalid and should not be used); @ref True if successful (meaning that the iterator object is valid)
+
+        @note that empty lines are ignored if "ignore-empty" option is in effect
+     */
+    bool next() {
+        bool status = FileLineIterator::next();
+        if (opts{"ignore-empty"}) {
+            while (status && getLine() == '') {
+                status = FileLineIterator::next();
+            }
+        }
+        return status;
+    }
+}
+
+#! writer for fixed-length-line files
+public class FixedLengthLineFileUtil::FixedLengthLineFileWriter {
+    private {
+        hash specs;
+        string file;
+        hash opts; # eol
+    }
+    
+    #! creates the FixedLengthLineFileWriter object
+    /**
+    @param file file to write
+    @param specs specification of fixed-length-line file        
+    */
+    constructor(string f, hash h, hash g) {
+        file  = f;
+        specs = h;
+        opts  = g;
+    }
+
+    #! stream iterator into the file.
+    /**
+    @param iterator an iterator to stream data into file
+    */
+    write(list lines) {
+        File FW = new File();
+        FW.open(file, O_WRONLY | O_CREAT);
+
+        foreach hash item in (lines) {
+            foreach string type in (specs.types.keys()) {
+                hash type_specs = specs.types{type};
+                # not this line if columns count mismatch
+                if (elements type_specs.keys() != elements item.keys()) {
+                    continue;
+                }
+
+                # not this line type if columns sizes mismatch
+                bool skip = False; # TODO: I don't like this :-(
+                foreach string col in (type_specs.keys()) {
+                    if (!item{col} || string(item{col}).length() != type_specs{col}{"length"}) {
+                        skip = True;
+                    }
+                }
+                if (skip) {
+                    continue;
+                }
+
+                # not this line type if check fails
+                string line = join("", map string($1), item.values());
+                if (type != call_function_args(specs.get_type, line)) {
+                    continue;
+                }
+
+                # otherwise we suppose this type is correct
+                FW.write(line + (opts.eol ? opts.eol : "\n"));
+                
+                break;
+            }
+        }
+
+        FW.close();
+    }
+}
+
+
+any sub retype(any value, hash type) { # TODO: abstract this into another place
+    switch (type.type) {
+        case "int": {
+            return int(value);
+        }
+        case "string": {
+            return string(value);
+        }
+        case "float": {
+            return float(value);
+        }
+        case "number": {
+            return number(value);
+        }
+        case "date": {
+            if (value.empty()) {
+                return 1970-01-01;
+            }
+            else {
+                *TimeZone timezone = type.timezone;
+                if (!timezone) {
+                    throw "NO-TIMEZONE-GIVEN", "you have to specify timezone while converting dates";
+                }
+                if (type.format) {
+                    return timezone ? timezone.date(value, type.format) : date(value, type.format);
+                }
+                else {
+                    return timezone ? timezone.date(value) : date(value);
+                }
+            }
+        }
+    }
+    
+    return value;
+}
