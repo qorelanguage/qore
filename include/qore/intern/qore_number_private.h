@@ -261,12 +261,10 @@ struct qore_number_private : public qore_number_private_intern {
       mpfr_prec_t prec = QORE_MAX(mpfr_get_prec(num), mpfr_get_prec(r.num));
       std::auto_ptr<qore_number_private> p(new qore_number_private(prec));
       func(p->num, num, r.num, QORE_MPFR_RND);
-      if (xsink) {
+      if (xsink)
          checkFlags(xsink);
-         return 0;
-      }
 
-      return p.release();
+      return *xsink ? 0 : p.release();
    }
 
    DLLLOCAL qore_number_private* doPlus(const qore_number_private& r) const {
