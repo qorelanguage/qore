@@ -25,7 +25,7 @@ DOX_MODULES = qlib/SmtpClient.qm \
 	qlib/TelnetClient.qm \
 	qlib/Pop3Client.qm \
 	qlib/CsvUtil.qm \
-	qlib/FixedLengthLineFileUtil.qm \
+	qlib/FixedLengthRecordUtil.qm \
 	qlib/OracleSqlUtil.qm \
 	qlib/PgsqlSqlUtil.qm \
         qlib/Qorize.qm \
