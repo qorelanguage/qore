@@ -52,8 +52,8 @@ module FixedLengthRecordUtil {
     All the public symbols in the module are defined in the FixedLengthRecordUtil namespace
 
     Currently the module provides the following classes:
-    - @ref FixedLengthRecordUtil::FixedLengthLineFileLineIterator "FixedLengthLineFileLineIterator": iterator class allowing for fixed-length-line data to be processed line by line on a record basis
-    - @ref FixedLengthRecordUtil::FixedLengthLineFileWriter "FixedLengthLineFileWriter": Fixed length line writer
+    - @ref FixedLengthRecordUtil::FixedLengthRecordFileIterator "FixedLengthRecordFileIterator": iterator class allowing for fixed-length-line data to be processed line by line on a record basis
+    - @ref FixedLengthRecordUtil::FixedLengthRecordFileWriter "FixedLengthRecordFileWriter": Fixed length line writer
 
     <b>Example of reading:</b>
     @code
@@ -80,7 +80,7 @@ list specs = (
     ),
 );
 
-FixedLengthLineFileLineIterator i(file, specs);
+FixedLengthRecordFileIterator i(file, specs);
 while(i.next()) {
     printf("%s\n", i.getValue());
 }
@@ -117,7 +117,7 @@ list specs = (
     ),
 );
 
-FixedLengthLineFileWriter w(file, specs);
+FixedLengthRecordFileWriter w(file, specs);
 w.write(data);
     @endcode
 
@@ -132,16 +132,16 @@ public namespace FixedLengthRecordUtil {
 }
 
 #! structured line iterator for fixed-length-line files allowing efficient "pipelined" processing of fixed-length-line data
-public class FixedLengthRecordUtil::FixedLengthLineFileLineIterator inherits FileLineIterator {
+public class FixedLengthRecordUtil::FixedLengthRecordFileIterator inherits FileLineIterator {
     private {
         hash specs;
         string file;
         hash opts; # encoding, eol, ignore-empty, timezone
     }
 
-    #! creates the FixedLengthLineFileLineIterator object
+    #! creates the FixedLengthRecordFileIterator object
     /**
-    @param f file to write
+    @param f file to read
     @param h specification of fixed-length-line file        
     @param g global options
     */
@@ -208,15 +208,96 @@ my hash $h = $i.getValue();
     }
 }
 
+#! structured line iterator for fixed-length-line strings allowing efficient "pipelined" processing of fixed-length-line data
+public class FixedLengthRecordUtil::FixedLengthRecordDataIterator {
+    private {
+        hash specs;
+        int position;
+        hash opts; # encoding, eol, ignore-empty, timezone
+        int max_index;
+
+        list lines;
+        int lines_pos;
+
+        string data;
+    }
+
+    #! creates the FixedLengthLineFileLineIterator object
+    /**
+    @param r string to process
+    @param h specification of fixed-length-line file   
+    @param g global options
+    */
+    constructor(string r, hash h, hash g) {
+        specs = h;
+        opts  = g;
+        data  = r;
+    }
+
+    *hash getValue() {
+        string line = getLine();
+
+        if (!line) {
+            return NOTHING;
+        }
+
+        hash result = hash();
+
+        *string type = call_function_args(specs.get_type, line);
+        if (!type || !specs.types{type}) {
+            throw 'NON-MATCHING-TYPE', 'Line type not detected correctly for line >' + line + '<';
+        }
+        int pos = 0;
+        foreach string col in (specs.types{type}.keys()) {
+            hash field = specs.types{type}{col};
+            if (!field.timezone) {
+                field.timezone = opts.timezone;
+            }
+            result{col} = retype(line.substr(pos, field.length), field);
+            pos += field.length;
+        }
+        return result;
+    }
+
+    create_lines() {
+        string separator = opts.eol ? opts.eol : "\n";
+        lines = data.split(separator);
+        lines_pos = 0;
+    }
+
+    *string getLine() {
+        if (!lines) {
+            create_lines();
+        }
+
+        return lines[lines_pos];
+    }
+
+    bool next() {
+        lines_pos++;
+        if (!lines) {
+            create_lines();
+        }
+        bool status = boolean(getLine() !== NOTHING);
+        if (opts{"ignore-empty"}) {
+            while (status && getLine() == "") { # skip empty lines
+                lines_pos++;
+                status = boolean(getLine() !== NOTHING);
+            }
+        }
+        return status;
+    }
+}
+
 #! writer for fixed-length-line files
-public class FixedLengthRecordUtil::FixedLengthLineFileWriter {
+public class FixedLengthRecordUtil::FixedLengthRecordFileWriter {
     private {
         hash specs;
         string file;
         hash opts; # eol
     }
     
-    #! creates the FixedLengthLineFileWriter object
+    #! creates the FixedLengthRecordFileWriter object
     /**
     @param f file to write
     @param h specification of fixed-length-line file        
@@ -269,6 +350,68 @@ public class FixedLengthRecordUtil::FixedLengthLineFileWriter {
         }
 
         FW.close();
+    }
+}
+
+
+#! writer for fixed-length-line data
+public class FixedLengthRecordUtil::FixedLengthRecordDataWriter {
+    private {
+        hash specs;
+        hash opts; # eol
+    }
+    
+    #! creates the FixedLengthRecordFileWriter object
+    /**
+    @param f file to write
+    @param h specification of fixed-length-line file        
+    @param g global options
+    */
+    constructor(hash h, hash g) {
+        specs = h;
+        opts  = g;
+    }
+
+    #! stream iterator into the string
+    /**
+    @param iterator an iterator to stream data into string
+    */
+    string write(list lines) {
+        string result = "";
+
+        foreach hash item in (lines) {
+            foreach string type in (specs.types.keys()) {
+                hash type_specs = specs.types{type};
+                # not this line if columns count mismatch
+                if (elements type_specs.keys() != elements item.keys()) {
+                    continue;
+                }
+
+                # not this line type if columns sizes mismatch
+                bool skip = False; # TODO: I don't like this :-(
+                foreach string col in (type_specs.keys()) {
+                    if (!item{col} || string(item{col}).length() != type_specs{col}{"length"}) {
+                        skip = True;
+                    }
+                }
+                if (skip) {
+                    continue;
+                }
+
+                # not this line type if check fails
+                string line = join("", map string($1), item.values());
+                if (type != call_function_args(specs.get_type, line)) {
+                    continue;
+                }
+
+                # otherwise we suppose this type is correct
+                result += line + (opts.eol ? opts.eol : "\n");
+                
+                break;
+            }
+        }
+
+        return result;
     }
 }
 

@@ -61,7 +61,7 @@ hash global_options = (
     "timezone"     : TimeZone tz("Europe/Prague"), # used if not in some date column specification
 );
 
-FixedLengthLineFileLineIterator i(file, specs, global_options);
+FixedLengthRecordFileIterator i(file, specs, global_options);
 unit.cmp(i.next(), True, "line 1 is there");
 unit.cmp(i.getValue(), ("col1" : 11111, "col2" : "bb"), "line 1 content check");
 unit.cmp(i.next(), True, "line 2 is there");

@@ -1,0 +1,73 @@
+#!/usr/bin/env qore
+%require-types
+%new-style
+%enable-all-warnings
+%requires UnitTest
+%requires FixedLengthRecordUtil
+
+UnitTest unit();
+
+string file = unit.tmpLocation() + "/file.fll";
+unlink(file);
+
+list data = (
+    ("col1" : 11111, "col2" : "bb"),
+    ("col3" : "c", "col4" : "ddd", "col5" : "31122014"),
+    ("col1" : 22222, "col2" : "gg"),
+);
+
+string data_text = "11111bb\tcddd31122014\t22222gg\t";
+
+
+hash specs = (
+    "get_type" : *string sub (string line) {
+        if (line.length() == 7) {
+            return "type1";
+        }
+        if (line.length() == 12) {
+            return "type2";
+        }
+        return NOTHING;
+    },
+    "types" : (
+        "type1" : (
+            "col1" : (
+                "length" : 5,
+                "type"   : "int"
+            ),
+            "col2" : (
+                "length" : 2,
+                "type"   : "string",
+            ),
+        ),
+        "type2" : (
+            "col3" : (
+                "length" : 1,
+                "type"   : "string",
+            ),
+            "col4" : (
+                "length" : 3,
+                "type"   : "string",
+            ),
+            "col5" : (
+                "length"   : 8,
+                "type"     : "date",
+                "format"   : "DDMMYYYY",
+                "timezone" : TimeZone tz("Europe/Prague"),
+            ),
+        ),
+    ),
+);
+
+hash global_options = (
+    "eol" : "\t",
+);
+
+FixedLengthRecordFileWriter w(file, specs, global_options);
+w.write(data);
+
+File FR();
+FR.open2(file);
+unit.cmp(FR.read(-1), data_text, 'file content check');
+
+unlink(file);

@@ -7,17 +7,7 @@
 
 UnitTest unit();
 
-string file = unit.tmpLocation() + "/file.fll";
-unlink(file);
-
-list data = (
-    ("col1" : 11111, "col2" : "bb"),
-    ("col3" : "c", "col4" : "ddd", "col5" : "31122014"),
-    ("col1" : 22222, "col2" : "gg"),
-);
-
-string data_text = "11111bb\tcddd31122014\t22222gg\t";
-
+string data = "11111bb\tcddd31122014\t\t\t22222gg\t";
 
 hash specs = (
     "get_type" : *string sub (string line) {
@@ -53,21 +43,24 @@ hash specs = (
                 "length"   : 8,
                 "type"     : "date",
                 "format"   : "DDMMYYYY",
-                "timezone" : TimeZone tz("Europe/Prague"),
+#                "timezone" : TimeZone tz("Europe/Prague"), # use global if omitted
             ),
         ),
     ),
 );
 
 hash global_options = (
-    "eol" : "\t",
+    "encoding"     : "UTF-8",
+    "eol"          : "\t",
+    "ignore-empty" : True,
+    "timezone"     : TimeZone tz("Europe/Prague"), # used if not in some date column specification
 );
 
-FixedLengthLineFileWriter w(file, specs, global_options);
-w.write(data);
-
-File FR();
-FR.open2(file);
-unit.cmp(FR.read(-1), data_text, 'file content check');
-
-unlink(file);
+FixedLengthRecordDataIterator i(data, specs, global_options);
+unit.cmp(i.next(), True, "line 1 is there");
+unit.cmp(i.getValue(), ("col1" : 11111, "col2" : "bb"), "line 1 content check");
+unit.cmp(i.next(), True, "line 2 is there");
+unit.cmp(i.getValue(), ("col3" : "c", "col4" : "ddd", "col5" : 2014-12-31), "line 2 content check");
+unit.cmp(i.next(), True, "line 3 is there");
+unit.cmp(i.getValue(), ("col1" : 22222, "col2" : "gg"), "line 3 content check");
+unit.cmp(i.next(), False, "line 4 is not there");
