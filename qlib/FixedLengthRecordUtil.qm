@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file FixedLengthLineFileUtil.qm Qore user module for working with files with fixed lines length
+# @file FixedLengthRecordUtil.qm Qore user module for working with files with fixed lines length
 
-/*  FixedLengthLineFileUtil.qm Copyright 2012 - 2014 Qore Technologies, sro
+/*  FixedLengthRecordUtil.qm Copyright 2012 - 2014 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -28,7 +28,7 @@
 %enable-all-warnings
 %new-style
 
-module FixedLengthLineFileUtil {
+module FixedLengthRecordUtil {
     version = "1.0";
     desc    = "user module for working with files with fixed length lines";
     author  = "Jiri Vaclavik <jiri.vaclavik@qoretechnologies.com>";
@@ -39,28 +39,28 @@ module FixedLengthLineFileUtil {
 /* see release notes below for version history
 */
 
-/** @mainpage FixedLengthLineFileUtil Module
+/** @mainpage FixedLengthRecordUtil Module
 
     @tableofcontents
 
-    @section fixedlengthlinefileutilintro Introduction to the FixedLengthLineFileUtil Module
+    @section fixedlengthlinefileutilintro Introduction to the FixedLengthRecordUtil Module
 
-    The %FixedLengthLineFileUtil module provides functionality for parsing files with fixed length lines.
+    The %FixedLengthRecordUtil module provides functionality for parsing files with fixed length lines.
 
-    To use this module, use \c "%requires FixedLengthLineFileUtil" in your code.
+    To use this module, use \c "%requires FixedLengthRecordUtil" in your code.
     
-    All the public symbols in the module are defined in the FixedLengthLineFileUtil namespace
+    All the public symbols in the module are defined in the FixedLengthRecordUtil namespace
 
     Currently the module provides the following classes:
-    - @ref FixedLengthLineFileUtil::FixedLengthLineFileLineIterator "FixedLengthLineFileLineIterator": iterator class allowing for fixed-length-line data to be processed line by line on a record basis
-    - @ref FixedLengthLineFileUtil::FixedLengthLineFileWriter "FixedLengthLineFileWriter": Fixed length line writer
+    - @ref FixedLengthRecordUtil::FixedLengthLineFileLineIterator "FixedLengthLineFileLineIterator": iterator class allowing for fixed-length-line data to be processed line by line on a record basis
+    - @ref FixedLengthRecordUtil::FixedLengthLineFileWriter "FixedLengthLineFileWriter": Fixed length line writer
 
     <b>Example of reading:</b>
     @code
 #!/usr/bin/env qore
 
 %new-style
-%requires FixedLengthLineFileUtil
+%requires FixedLengthRecordUtil
 
 list specs = (
     (
@@ -127,12 +127,12 @@ w.write(data);
     - initial version of module
 */
 
-#! the FixedLengthLineFileUtil namespace contains all the definitions in the FixedLengthLineFileUtil module
-public namespace FixedLengthLineFileUtil {
+#! the FixedLengthRecordUtil namespace contains all the definitions in the FixedLengthRecordUtil module
+public namespace FixedLengthRecordUtil {
 }
 
 #! structured line iterator for fixed-length-line files allowing efficient "pipelined" processing of fixed-length-line data
-public class FixedLengthLineFileUtil::FixedLengthLineFileLineIterator inherits FileLineIterator {
+public class FixedLengthRecordUtil::FixedLengthLineFileLineIterator inherits FileLineIterator {
     private {
         hash specs;
         string file;
@@ -141,8 +141,9 @@ public class FixedLengthLineFileUtil::FixedLengthLineFileLineIterator inherits F
 
     #! creates the FixedLengthLineFileLineIterator object
     /**
-    @param file file to read
-    @param specs specification of fixed-length-line file        
+    @param f file to write
+    @param h specification of fixed-length-line file        
+    @param g global options
     */
     constructor(string f, hash h, hash g) : FileLineIterator(f, g.encoding.typeCode() == NT_STRING ? g.encoding : NOTHING, g.eol.typeCode() == NT_STRING ? g.eol : NOTHING) {
         file  = f;
@@ -208,7 +209,7 @@ my hash $h = $i.getValue();
 }
 
 #! writer for fixed-length-line files
-public class FixedLengthLineFileUtil::FixedLengthLineFileWriter {
+public class FixedLengthRecordUtil::FixedLengthLineFileWriter {
     private {
         hash specs;
         string file;
@@ -217,8 +218,9 @@ public class FixedLengthLineFileUtil::FixedLengthLineFileWriter {
     
     #! creates the FixedLengthLineFileWriter object
     /**
-    @param file file to write
-    @param specs specification of fixed-length-line file        
+    @param f file to write
+    @param h specification of fixed-length-line file        
+    @param g global options
     */
     constructor(string f, hash h, hash g) {
         file  = f;

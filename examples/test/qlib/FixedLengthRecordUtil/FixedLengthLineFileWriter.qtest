@@ -3,16 +3,21 @@
 %new-style
 %enable-all-warnings
 %requires UnitTest
-%requires FixedLengthLineFileUtil
+%requires FixedLengthRecordUtil
 
 UnitTest unit();
 
 string file = unit.tmpLocation() + "/file.fll";
 unlink(file);
-File FW = new File();
-FW.open(file, O_WRONLY | O_CREAT);
-FW.write("11111bb\tcddd31122014\t\t\t22222gg\t");
-FW.close();
+
+list data = (
+    ("col1" : 11111, "col2" : "bb"),
+    ("col3" : "c", "col4" : "ddd", "col5" : "31122014"),
+    ("col1" : 22222, "col2" : "gg"),
+);
+
+string data_text = "11111bb\tcddd31122014\t22222gg\t";
+
 
 hash specs = (
     "get_type" : *string sub (string line) {
@@ -48,26 +53,21 @@ hash specs = (
                 "length"   : 8,
                 "type"     : "date",
                 "format"   : "DDMMYYYY",
-#                "timezone" : TimeZone tz("Europe/Prague"), # use global if omitted
+                "timezone" : TimeZone tz("Europe/Prague"),
             ),
         ),
     ),
 );
 
 hash global_options = (
-    "encoding"     : "UTF-8",
-    "eol"          : "\t",
-    "ignore-empty" : True,
-    "timezone"     : TimeZone tz("Europe/Prague"), # used if not in some date column specification
+    "eol" : "\t",
 );
 
-FixedLengthLineFileLineIterator i(file, specs, global_options);
-unit.cmp(i.next(), True, "line 1 is there");
-unit.cmp(i.getValue(), ("col1" : 11111, "col2" : "bb"), "line 1 content check");
-unit.cmp(i.next(), True, "line 2 is there");
-unit.cmp(i.getValue(), ("col3" : "c", "col4" : "ddd", "col5" : 2014-12-31), "line 2 content check");
-unit.cmp(i.next(), True, "line 3 is there");
-unit.cmp(i.getValue(), ("col1" : 22222, "col2" : "gg"), "line 3 content check");
-unit.cmp(i.next(), False, "line 4 is not there");
+FixedLengthLineFileWriter w(file, specs, global_options);
+w.write(data);
+
+File FR();
+FR.open2(file);
+unit.cmp(FR.read(-1), data_text, 'file content check');
 
 unlink(file);
