@@ -13,7 +13,7 @@ list data = (
     ("col1" : 22222, "col2" : "gg"),
 );
 
-string data_text = "11111bb\tcddd31122014\t22222gg\t";
+string data_text = "11111bb\ncddd31122014\n22222gg\n";
 
 
 hash specs = (
@@ -50,14 +50,14 @@ hash specs = (
                 "length"   : 8,
                 "type"     : "date",
                 "format"   : "DDMMYYYY",
-                "timezone" : TimeZone tz("Europe/Prague"),
+                "timezone" : "Europe/Prague",
             ),
         ),
     ),
 );
 
 hash global_options = (
-    "eol" : "\t",
+    "eol" : "\n",
 );
 
 FixedLengthRecordDataWriter w(specs, global_options);

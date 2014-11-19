@@ -11,7 +11,7 @@ string file = unit.tmpLocation() + "/file.fll";
 unlink(file);
 File FW = new File();
 FW.open(file, O_WRONLY | O_CREAT);
-FW.write("11111bb\tcddd31122014\t\t\t22222gg\t");
+FW.write("11111bb\ncddd31122014\n\n\n22222gg\n");
 FW.close();
 
 hash specs = (
@@ -48,7 +48,7 @@ hash specs = (
                 "length"   : 8,
                 "type"     : "date",
                 "format"   : "DDMMYYYY",
-#                "timezone" : TimeZone tz("Europe/Prague"), # use global if omitted
+#                "timezone" : "Europe/Prague", # use global if omitted
             ),
         ),
     ),
@@ -56,9 +56,9 @@ hash specs = (
 
 hash global_options = (
     "encoding"     : "UTF-8",
-    "eol"          : "\t",
+    "eol"          : "\n",
     "ignore-empty" : True,
-    "timezone"     : TimeZone tz("Europe/Prague"), # used if not in some date column specification
+    "timezone"     : "Europe/Prague", # used if not in some date column specification
 );
 
 FixedLengthRecordFileIterator i(file, specs, global_options);
