@@ -1,0 +1,121 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# @file Compare.qm Qore user module for working with files with fixed lines length
+
+/*  Compare.qm Copyright 2012 - 2014 Qore Technologies, sro
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum required Qore version
+%requires qore >= 0.8.11
+%require-types
+%enable-all-warnings
+%new-style
+
+module Compare {
+    version = "1.0";
+    desc    = "user module for comparing data structures";
+    author  = "Jiri Vaclavik <jiri.vaclavik@qoretechnologies.com>";
+    url     = "http://qore.org";
+    license = "MIT";
+}
+
+/* see release notes below for version history
+*/
+
+/** @mainpage Compare Module
+
+@tableofcontents
+
+    @section compareintro Introduction to the UnitTest Module
+
+    The %UnitTest module provides functionality for automatic testing.
+
+    To use this module, use \c "%requires UnitTest" in your code.
+    
+    <b>Examples:</b>
+    @code
+Compare cmp();
+struct1_specific_data = cmp.compare(struct1, struct2),
+    @endcode
+
+    @section compare_relnotes Release Notes
+
+    @subsection compare_v0_1 Version 0.1
+    - initial version of module
+*/
+
+#! the Compare namespace contains all the definitions in the Compare module
+public namespace Compare {
+    public class Compare {
+        constructor() {
+        }
+
+        #! Returns information in struct1 that is not in struct2
+        /** @param struct1 data structure
+            @param struct2 data structure
+@par Example:
+            @code
+Compare cmp();
+struct1_specific_data = cmp.compare(struct1, struct2),
+            @endcode
+
+        Note: struct2 is superset of struct1 if result is nothing
+        */
+        any compare(any struct1, any struct2) {
+            if (struct1.type() != struct2.type()) {
+                return struct1;
+            }
+
+            if (struct1 == struct2) {
+                return NOTHING;
+            }
+
+            string type = struct1.type();
+
+            switch (type) {
+                case ('string'): {
+                    return struct1;
+                }
+                case ('integer'): {
+                    return struct1;
+                }
+                case ('number'): {
+                    return struct1;
+                }
+                case ('list'): {
+                    list diff = ();
+                    foreach int i in (xrange(0, struct1.size() - 1)) {
+                        diff[i] = compare(struct1[i], struct2[i]);
+                    }
+                    return diff;
+                }
+                case ('hash'): {
+                    hash diff = hash();
+                    foreach string key in (struct1.keys()) {
+                        diff{key} = compare(struct1{key}, struct2{key});
+                    }
+                    return diff;
+                }
+            }
+
+            throw 'UNSUPPORTED_DATA_TYPE_FOR_COMPARISON', 'Data type >' + type + "< is not supported for comparison";
+        }
+    }
+}

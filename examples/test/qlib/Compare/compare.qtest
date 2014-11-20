@@ -1,0 +1,70 @@
+#!/usr/bin/env qore
+%require-types
+%new-style
+%enable-all-warnings
+%requires UnitTest
+%requires Compare
+
+UnitTest unit();
+Compare cmp();
+
+unit.cmploop(
+    \cmp.compare(),
+    (
+        (
+            "args" : ("grass", 555),
+            "cmp"  : "grass",
+            "msg"  : "different data types",
+        ),
+        (
+            "args" : ("grass", "grass"),
+            "cmp"  : NOTHING,
+            "msg"  : "string: same",
+        ),
+        (
+            "args" : ("grass", "glass"),
+            "cmp"  : "grass",
+            "msg"  : "string: different",
+        ),
+        (
+            "args" : (12, 12),
+            "cmp"  : NOTHING,
+            "msg"  : "number: same",
+        ),
+        (
+            "args" : (11, 13),
+            "cmp"  : 11,
+            "msg"  : "number: difference",
+        ),
+        (
+            "args" : ((12, 13, "ggg"), (12, 13, "ggg")),
+            "cmp"  : NOTHING,
+            "msg"  : "list: same",
+        ),
+        (
+            "args" : ((12, 17, "ggg"), (12, 13, "ggg")),
+            "cmp"  : (NOTHING, 17, NOTHING),
+            "msg"  : "list: different",
+        ),
+        (
+            "args" : (("a" : 1, "b" : 2), ("a" : 1, "b" : 2)),
+            "cmp"  : NOTHING,
+            "msg"  : "hash: same",
+        ),
+        (
+            "args" : (("a" : 1, "b" : 2), ("a" : 1, "b" : 5)),
+            "cmp"  : (("a" : NOTHING, "b" : 2)),
+            "msg"  : "hash: different",
+        ),
+        (
+            "args" : (("a" : 1, "b" : (1, 2, 3, "4")), ("a" : 1, "b" : (1, 2, 3, "4"))),
+            "cmp"  : NOTHING,
+            "msg"  : "nested structure: same",
+        ),
+        (
+            "args" : (("a" : 1, "b" : (1, 7, 3, "4")), ("a" : 1, "b" : (1, 2, 3, "4"))),
+            "cmp"  : (("a" : NOTHING, "b" : (NOTHING, 7, NOTHING, NOTHING))),
+            "msg"  : "nested structure: different",
+        ),
+    ),
+);
