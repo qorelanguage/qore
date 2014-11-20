@@ -43,8 +43,10 @@ DOX_MODULES = qlib/SmtpClient.qm \
 TESTSCRIPTS= \
         examples/test/qlib/CsvUtil/csvutil.qtest \
         examples/test/qlib/CsvUtil/test.qtest \
-        examples/test/qlib/FixedLengthLineFileUtil/FixedLengthLineFileLineIterator.qtest \
-        examples/test/qlib/FixedLengthLineFileUtil/FixedLengthLineFileWriter.qtest \
+        examples/test/qlib/FixedLengthRecordUtil/FixedLengthFileIterator.qtest \
+        examples/test/qlib/FixedLengthRecordUtil/FixedLengthFileWriter.qtest \
+        examples/test/qlib/FixedLengthRecordUtil/FixedLengthDataIterator.qtest \
+        examples/test/qlib/FixedLengthRecordUtil/FixedLengthDataWriter.qtest \
         examples/test/qlib/Mapper/mapper.qtest \
         examples/test/qlib/Mime/mime.qtest \
         examples/test/qlib/Qorize/qorizeNamed.qtest \
