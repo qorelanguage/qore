@@ -148,6 +148,7 @@ public namespace FixedLengthRecordUtil {
 public class FixedLengthRecordUtil::FixedLengthRecordAbstractIterator {
     private {
         hash specs;
+        code identify_record;
         hash opts; # encoding, eol, ignore-empty, timezone
     }
 
@@ -156,9 +157,10 @@ public class FixedLengthRecordUtil::FixedLengthRecordAbstractIterator {
     @param h specification of fixed-length-line file        
     @param g global options
     */
-    constructor(hash h, hash g) {
-        specs = h;
-        opts  = check_options(g);
+    constructor(hash h, code i, *hash g) {
+        specs           = h;
+        identify_record = i;
+        opts            = check_options(g);
     }
 
     abstract *string getLine();
@@ -180,7 +182,7 @@ my hash $h = $i.getValue();
 
         hash result = hash();
 
-        *string type = call_function_args(specs.get_type, line);
+        *string type = call_function_args(identify_record, line);
         if (!type || !specs.types{type}) {
             throw 'NON-MATCHING-TYPE', 'Line type not detected correctly for line >' + line + '<';
         }
@@ -245,7 +247,7 @@ public class FixedLengthRecordUtil::FixedLengthRecordFileIterator inherits priva
     @param h specification of fixed-length-line file        
     @param g global options
     */
-    constructor(string f, hash h, hash g) : FixedLengthRecordUtil::FixedLengthRecordAbstractIterator(h, g), FileLineIterator(f, g.encoding.typeCode() == NT_STRING ? g.encoding : NOTHING, g.eol.typeCode() == NT_STRING ? g.eol : NOTHING) {
+    constructor(string f, hash h, code i, *hash g) : FixedLengthRecordUtil::FixedLengthRecordAbstractIterator(h, i, g), FileLineIterator(f, g.encoding.typeCode() == NT_STRING ? g.encoding : NOTHING, g.eol.typeCode() == NT_STRING ? g.eol : NOTHING) {
         file  = f;
     }
 
@@ -291,7 +293,7 @@ public class FixedLengthRecordUtil::FixedLengthRecordDataIterator inherits priva
     @param h specification of fixed-length-line file   
     @param g global options
     */
-    constructor(string r, hash h, hash g) : FixedLengthRecordUtil::FixedLengthRecordAbstractIterator(h, g) {
+    constructor(string r, hash h, code i, *hash g) : FixedLengthRecordUtil::FixedLengthRecordAbstractIterator(h, i, g) {
         data  = r;
     }
 
@@ -338,6 +340,7 @@ public class FixedLengthRecordUtil::FixedLengthRecordAbstractWriter {
     private {
         hash specs;
         hash opts; # eol
+        code identify_record;
     }
 
     #! creates the FixedLengthRecordAbstractWriter object
@@ -345,9 +348,10 @@ public class FixedLengthRecordUtil::FixedLengthRecordAbstractWriter {
     @param h specification of fixed-length-line file   
     @param g global options
     */
-    constructor(hash h, hash g) {
-        specs = h;
-        opts  = check_options(g);
+    constructor(hash h, *code i, *hash g) {
+        specs           = h;
+        opts            = check_options(g);
+        identify_record = i;
     }
 
     private bool check_item_type_combination(hash item, string type, string line_candidate) {
@@ -369,7 +373,7 @@ public class FixedLengthRecordUtil::FixedLengthRecordAbstractWriter {
         }
 
         # not this line type if check fails
-        if (type != call_function_args(specs.get_type, line_candidate)) {
+        if (type != call_function_args(identify_record, line_candidate)) {
             return False;
         }
 
@@ -414,7 +418,7 @@ public class FixedLengthRecordUtil::FixedLengthRecordFileWriter inherits FixedLe
     @param h specification of fixed-length-line file
     @param g global options
     */
-    constructor(string f, hash h, hash g) : FixedLengthRecordUtil::FixedLengthRecordAbstractWriter(h, g)  {
+    constructor(string f, hash h, code i, *hash g) : FixedLengthRecordUtil::FixedLengthRecordAbstractWriter(h, i, g)  {
         file  = f;
     }
 
@@ -449,7 +453,7 @@ public class FixedLengthRecordUtil::FixedLengthRecordDataWriter inherits FixedLe
     @param h specification of fixed-length-line file        
     @param g global options
     */
-    constructor(hash h, hash g) : FixedLengthRecordUtil::FixedLengthRecordAbstractWriter(h, g) {
+    constructor(hash h, code i, *hash g) : FixedLengthRecordUtil::FixedLengthRecordAbstractWriter(h, i, g) {
     }
 
     #! stream iterator into the string

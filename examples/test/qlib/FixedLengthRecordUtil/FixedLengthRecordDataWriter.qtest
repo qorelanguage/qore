@@ -16,16 +16,17 @@ list data = (
 string data_text = "11111bb\ncddd31122014\n22222gg\n";
 
 
+code identify_type = *string sub (string line) {
+    if (line.length() == 7) {
+        return "type1";
+    }
+    if (line.length() == 12) {
+        return "type2";
+    }
+    return NOTHING;
+};
+
 hash specs = (
-    "get_type" : *string sub (string line) {
-        if (line.length() == 7) {
-            return "type1";
-        }
-        if (line.length() == 12) {
-            return "type2";
-        }
-        return NOTHING;
-    },
     "types" : (
         "type1" : (
             "col1" : (
@@ -60,5 +61,5 @@ hash global_options = (
     "eol" : "\n",
 );
 
-FixedLengthRecordDataWriter w(specs, global_options);
+FixedLengthRecordDataWriter w(specs, identify_type, global_options);
 unit.cmp(w.write(data), data_text, 'file content check');
