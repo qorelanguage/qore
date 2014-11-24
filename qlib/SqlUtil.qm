@@ -538,6 +538,8 @@ $table.insert(("id": $id, "name": $name, "created": now_us()));
 
     Data can be explicitly inserted into the database with immediate values with @ref SqlUtil::Table::insert() and @ref SqlUtil::Table::insertNoCommit() as in the above example.
 
+    Additionally, instead of giving a literal value to be inserted, @ref sql_iop_funcs can be used to insert values based on SQL operations used directly in the insert statement.
+
     @subsection inserting_data_from_select Inserting Data From a Select Statement
 
     @par Example:
@@ -8179,7 +8181,7 @@ my list $l = $table.getDropColumnSql("notes_2");
 $table.insert($row);
             @endcode
 
-            @param row a hash representing the row to insert
+            @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
             @param sql an optional reference to a string to return the SQL generated for the insert statement
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
@@ -8194,7 +8196,7 @@ $table.insert($row);
 $table.insertNoCommit($row);
             @endcode
 
-            @param row a hash representing the row to insert
+            @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
             @param sql an optional reference to a string to return the SQL generated for the insert statement
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
@@ -8209,7 +8211,7 @@ $table.insertNoCommit($row);
 $table.insert($row);
             @endcode
 
-            @param row a hash representing the row to insert
+            @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
             @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
@@ -8224,7 +8226,7 @@ $table.insert($row);
 $table.insertNoCommit($row);
             @endcode
 
-            @param row a hash representing the row to insert
+            @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
             @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
@@ -12289,7 +12291,7 @@ my string $sql = $table.getDropColumnSql("notes_2");
 $table.insert($row);
             @endcode
 
-            @param row a hash representing the row to insert
+            @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
             @param sql an optional reference to a string to return the SQL generated for the insert statement
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
@@ -12307,7 +12309,7 @@ $table.insert($row);
 $table.insertNoCommi($row);
             @endcode
 
-            @param row a hash representing the row to insert
+            @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
             @param sql an optional reference to a string to return the SQL generated for the insert statement
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
@@ -12395,7 +12397,7 @@ $table.insertNoCommi($row);
 $table.insert($row);
             @endcode
 
-            @param row a hash representing the row to insert
+            @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
             @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
@@ -12413,7 +12415,7 @@ $table.insert($row);
 $table.insertNoCommit($row);
             @endcode
 
-            @param row a hash representing the row to insert
+            @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
             @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
