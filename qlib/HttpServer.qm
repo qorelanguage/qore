@@ -245,8 +245,10 @@ public namespace HttpServer {
         @return a hash with the following keys:
         - \c method: (@ref string_type "string") the part of the path before the first \c "?" character or the entire path if no \c "?" character is present in the path
         - \c params: (@ref hash_type "hash", assuming all values are key/value pairs like \c "key=value", otherwise it will be a @ref list_type "list") optional, only if a "?" character is present in the input; the part of the path after the first \c "?" character; arguments should be separated by ";" characters (according to a w3c recommendation: http://www.w3.org/TR/1999/REC-html401-19991224/appendix/notes.html#h-B.2.2), however this function supports both \c ";" and \c "&" as argument separators
+
+        
      */
-    public hash sub parse_uri_query(string $path) {
+    public hash sub parse_uri_query(string $path, bool $trans = True) {
         my int $i = $path.find("?");
         if ($i == -1)
             return ("method": $path);
@@ -970,7 +972,7 @@ public class HttpServer::AbstractHttpRequestHandler {
         - \c user: the current RBAC username (if any)
         @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
         - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
-        - \c path: the HTTP path given in the request, after processing by @ref Qore::decode_url()
+        - \c path: the HTTP path given in the request, after processing by @ref Qore::decode_uri_query()
         - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
         @param body message body, if any
 
@@ -1302,7 +1304,7 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
         - \c user: the current RBAC username (if any)
         @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
         - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
-        - \c path: the HTTP path given in the request, after processing by @ref Qore::decode_url()
+        - \c path: the HTTP path given in the request, after processing by @ref Qore::decode_uri_query()
         - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
         @param b message body, if any
 
@@ -2926,7 +2928,8 @@ public class HttpServer::HttpListener inherits Qore::Socket {
                 #printf("HTTP DEBUG: id: %d, hdr: %y, hi: %y\n", $cx.id, $hdr, $hi);
 
 		# process ascii encodings in url if present
-		$hdr.path = decode_url($hdr.path);
+                $cx.raw_path = $hdr.path;
+		$hdr.path = decode_uri_request($hdr.path);
 
 		# remove leading / if present in path
                 my *string $orig_path = $hdr.path;

@@ -1917,7 +1917,10 @@ my string $decoded_url = decode_url($encoded_url);
 
     @note percent decoding is made according to <a href="http://tools.ietf.org/html/rfc3986#section-2.1">RFC 3986</a>
 
-    @see encode_url()
+    @see
+    - encode_url()
+    - encode_uri_request()
+    - decode_uri_request()
 */
 string decode_url(string url) [flags=CONSTANT] {
    QoreStringNodeHolder str(new QoreStringNode(QCS_UTF8));
@@ -1942,13 +1945,69 @@ nothing decode_url() [flags=RUNTIME_NOOP] {
 my string $encoded_url = encode_url($url);
     @endcode
 
-    @see decode_url()
+    @see
+    - decode_url()
+    - encode_uri_request()
+    - decode_uri_request()
 
     @since %Qore 0.8.9
 */
 string encode_url(string url, softbool encode_all = False) [flags=CONSTANT] {
    QoreStringNodeHolder str(new QoreStringNode(url->getEncoding()));
    str->concatEncodeUrl(xsink, url, encode_all);
+   return *xsink ? 0 : str.release();
+}
+
+//! Decodes percent-encoded codes in a URI path and converts \c "+" signs in the query component to spaces and returns the decoded string in UTF-8 encoding
+/** @param uri a URI request string to decode
+
+    @return the decoded URI request string in UTF-8 encoding
+
+    @par Example:
+    @code
+my string $decoded_uri = decode_uri_request($encoded_uri);
+    @endcode
+
+    @note
+    - percent decoding is made according to <a href="http://tools.ietf.org/html/rfc3986#section-2.1">RFC 3986</a>
+    - the difference between this function and @ref Qore::decode_url() is in the logic for handling of the URI query string
+
+    @see
+    - encode_uri_request()
+    - encode_url()
+    - decode_url()
+
+    @since %Qore 0.8.12
+*/
+string decode_uri_request(string url) [flags=CONSTANT] {
+   QoreStringNodeHolder str(new QoreStringNode(QCS_UTF8));
+   str->concatDecodeUriRequest(*url, xsink);
+   return *xsink ? 0 : str.release();
+}
+
+//! Encodes URI requests by substituting all special characters according to <a href="http://tools.ietf.org/html/rfc3986">RFC 3986</a> in the path with percent-encoded ewquivalents and substituting spaces with \c "+" in the URI query component
+/** @param url a URL string to encode
+
+    @return the URI request string with encoded according to the arguments
+
+    @par Example:
+    @code
+my string $encoded_uri = encode_uri_request($uri_request);
+    @endcode
+
+    @note
+    - the difference between this function and @ref Qore::encode_url() is in the logic for handling of the URI query string
+
+    @see
+    - decode_uri_request()
+    - decode_url()
+    - encode_url()
+
+    @since %Qore 0.8.12
+*/
+string encode_uri_request(string url) [flags=CONSTANT] {
+   QoreStringNodeHolder str(new QoreStringNode(url->getEncoding()));
+   str->concatEncodeUriRequest(xsink, url);
    return *xsink ? 0 : str.release();
 }
 
