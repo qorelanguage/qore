@@ -125,7 +125,6 @@ log("started listener on %s", $lh.desc);
     - fixed a bug setting the response encoding in HttpServer::setReplyHeaders() where the Socket encoding was not set properly and therefore the encoding in the Content-Type in the response header did not necessarily match the encoding of the response
     - added support for private keys with passwords
     - added the @ref HttpServer::PermissiveAuthenticator "PermissiveAuthenticator" class
-    - translate \c "+" (plus) for \c " " (space) in the query part of URIs in @ref HttpServer::parse_uri_query() "parse_uri_query()"
 
     @subsection http0310 HttpServer 0.3.10
     - if an error occurs receiving a message with chunked transfer encoding, send the response immediately before reading the rest of the chunked transfer
@@ -260,9 +259,6 @@ public namespace HttpServer {
 
         # remove method and "?" char; leave only args in path
         splice $path, 0, $i + 1;
-
-        # substitute "+" (plus) for " " (space)
-        $path =~ s/\+/ /g;
 
         # iterate through args
         # w3c recommends ";" instead of "&" to separate arguments
