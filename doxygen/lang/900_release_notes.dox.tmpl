@@ -10,6 +10,8 @@
     @subsection qore_08111_new_features New Features in Qore
     - new literal hash support: hashes can now be given as literal values as follows: <tt>(&lt;key_expr&gt; : &lt;val_expr&gt;[, ...)</tt>; in the past <tt>&lt;key_expr&gt;</tt> had to be either a string or a constant; now any expression can be used to generate the hash keys at runtime
     - new functions:
+      - @ref Qore::decode_uri_request()
+      - @ref Qore::encode_uri_request()
       - @ref Qore::getgroups()
       - @ref Qore::setgroups()
       - @ref Qore::parse_number()
@@ -70,6 +72,8 @@
     - fixed a bug in the @ref Qore::FtpClient class where connection problems in the data channel when executing certain FTP commands could cause a crash due to missing error checking
     - fixed a bug in <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> where column names that are reserved words were not quoted in generated SQL
     - fixed a bug in Qore's internal strcasestr() function on platforms that do not support this function (ex: Solaris) that could result in a crash
+    - fixed a bug in Qore where string data formatted with %n, %N, or %y could be added to another string with a different character encoding without any automatic conversions, therefore resulting in an improperly-encoded string
+    - fixed bugs in the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> and <a href="../../modules/RestClient/html/index.html">RestClient</a> modules where URI strings were improperly encoded and decoded
 
     @section qore_0811 Qore 0.8.11
 

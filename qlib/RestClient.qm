@@ -578,7 +578,7 @@ my hash $ans = $rest.post("/orders/1");
             if ($p && $path)
                 $path = $p + "/" + $path;
 
-            $path = encode_url($path);
+            $path = encode_uri_request($path);
         }        
 
         #! sends an HTTP request to the REST server and returns the response

@@ -615,13 +615,16 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
       printd(QORE_DEBUG_OBJ_REFS, "QoreObject::customDeref() this: %p '%s': references %d->%d\n", this, priv->status == OS_OK ? getClassName() : "<deleted>", references, references - 1);
 #endif
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
+#ifdef DO_OBJ_RECURSIVE_CHECK      
       int ref_copy;
       {
 	 AutoLocker slr(priv->ref_mutex);
 	 ref_copy = --references;
       }
 
+      // FIXME
+      // here the reference has already been decremented - this entire code block needs to be atomic with respect to other customDeref() calls
+      
       bool rrf = false;
       if (ref_copy) {
 	 while (true) {
@@ -639,7 +642,7 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 	       ObjectRSet* rs;
 	       rs = priv->rset;
 	       if (!rs) {
-		  if (priv->rcount == references) {
+		  if (references && priv->rcount == references) {
 		     assert(references == ref_copy);
 		     rc = 1;
 		  }

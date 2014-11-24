@@ -603,12 +603,12 @@ static int process_opt(QoreString *cstr, char* param, const AbstractQoreNode* no
 	 QoreNodeAsStringHelper t(node, *param == 'N' 
 				  ? (width == -1 ? FMT_NORMAL : width) 
 				  : FMT_NONE, xsink);
-	 tbuf.concat(*t);
+	 tbuf.concat(*t, xsink);
 	 break;
       }
       case 'y': {
 	 QoreNodeAsStringHelper t(node, FMT_YAML_SHORT, xsink);
-	 tbuf.concat(*t);
+	 tbuf.concat(*t, xsink);
 	 break;
       }
       default:

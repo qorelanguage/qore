@@ -48,6 +48,7 @@ class BinaryNode;
     @see QoreStringNode
  */
 class QoreString {
+   friend struct qore_string_private;
 protected:
    //! the private implementation of QoreString
    struct qore_string_private* priv;
@@ -171,6 +172,20 @@ public:
        @param encode_all if true then all reserved characters are percent encoded (!*'();:@&=+$,/?#[]), otherwise only non-ascii characters, '%' and ' ' are percent-encoded
     */
    DLLEXPORT int concatEncodeUrl(ExceptionSink* xsink, const QoreString& url, bool encode_all = false);
+
+   //! concatenates a URI-decoded version of the c-string passed
+   /**
+       @since %Qore 0.8.12
+    */
+   DLLEXPORT int concatDecodeUriRequest(const QoreString& url, ExceptionSink* xsink);
+
+   //! concatenates a URI-encoded version of the c-string passed
+   /** @param xsink Qore-language exceptions (in this case character encoding conversion errors) are raised here
+       @param url the url to encode and concatentate to the current string
+
+       @since %Qore 0.8.12
+    */
+   DLLEXPORT int concatEncodeUriRequest(ExceptionSink* xsink, const QoreString& url);
 
    //! concatenates a string and escapes character c with esc_char (converts encodings if necessary)
    DLLEXPORT void concatEscape(const QoreString* str, char c, char esc_char, ExceptionSink* xsink);
