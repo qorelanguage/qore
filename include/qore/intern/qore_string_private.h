@@ -42,6 +42,10 @@
 
 #define MIN_SPRINTF_BUFSIZE   120
 
+#define QUS_PATH     0
+#define QUS_QUERY    1
+#define QUS_FRAGMENT 2
+
 struct qore_string_private {
 private:
 
@@ -447,6 +451,76 @@ public:
       }
    }
 
+   DLLLOCAL void concat(const char *str) {
+      // if it's not a null string
+      if (str) {
+         qore_size_t i = 0;
+         // iterate through new string
+         while (str[i]) {
+            // if priv->buffer needs to be resized
+            check_char(len);
+            // concatenate one character at a time
+            buf[len++] = str[i++];
+         }
+         // see if priv->buffer needs to be resized for '\0'
+         check_char(len);
+         // terminate string
+         buf[len] = '\0';
+      }
+   }
+
+   // return 0 for success
+   DLLLOCAL int vsprintf(const char *fmt, va_list args) {
+      size_t fmtlen = ::strlen(fmt);
+      // ensure minimum space is free
+      if ((allocated - len - fmtlen) < MIN_SPRINTF_BUFSIZE) {
+         allocated += fmtlen + MIN_SPRINTF_BUFSIZE;
+         // resize buffer
+         buf = (char *)realloc(buf, allocated * sizeof(char));
+      }
+      // set free buffer size
+      qore_offset_t free = allocated - len;
+      
+      // copy formatted string to buffer
+      int i = ::vsnprintf(buf + len, free, fmt, args);
+      
+#ifdef HPUX
+      // vsnprintf failed but didn't tell us how big the buffer should be
+      if (i < 0) {
+         //printf("DEBUG: vsnprintf() failed: i=%d allocated="QSD" len="QSD" buf=%p fmtlen="QSD" (new=i+%d = %d)\n", i, allocated, len, buf, fmtlen, STR_CLASS_EXTRA, i + STR_CLASS_EXTRA);
+         // resize buffer
+         allocated += STR_CLASS_EXTRA;
+         buf = (char *)realloc(buf, sizeof(char) * allocated);
+         *(buf + len) = '\0';
+         return -1;
+      }
+#else
+      if (i >= free) {
+         //printf("DEBUG: vsnprintf() failed: i=%d allocated="QSD" len="QSD" buf=%p fmtlen="QSD" (new=i+%d = %d)\n", i, allocated, len, buf, fmtlen, STR_CLASS_EXTRA, i + STR_CLASS_EXTRA);
+         // resize buffer
+         allocated = len + i + STR_CLASS_EXTRA;
+         buf = (char *)realloc(buf, sizeof(char) * allocated);
+         *(buf + len) = '\0';
+         return -1;
+      }
+#endif
+
+      len += i;
+      return 0;
+   }
+
+   DLLLOCAL int sprintf(const char *fmt, ...) {
+      va_list args;
+      while (true) {
+         va_start(args, fmt);
+         int rc = vsprintf(fmt, args);
+         va_end(args);
+         if (!rc)
+            break;
+      }
+      return 0;
+   }
+
    DLLLOCAL void concatUTF8FromUnicode(unsigned code) {
       // 6-byte code
       if (code > 0x03ffffff) {
@@ -614,6 +688,63 @@ public:
          
          concat(*(url++));
       }
+      return 0;
+   }
+
+   DLLLOCAL int concatEncodeUriRequest(ExceptionSink* xsink, const qore_string_private& str) {
+      assert(str.len);
+      
+      int state = QUS_PATH;
+   
+      const unsigned char* p = (const unsigned char*)str.buf;
+      while (*p) {
+         if ((*p) == '%')
+            concat("%25");
+         else if (*p > 127) {
+            qore_size_t len = q_UTF8_get_char_len((const char*)p, str.len - ((const char*)p - str.buf));
+            if (len <= 0) {
+               xsink->raiseException("INVALID-ENCODING", "invalid UTF-8 encoding found in string");
+               return -1;
+            }
+            // add UTF-8 percent-encoded characters
+            for (qore_size_t i = 0; i < len; ++i)
+               sprintf("%%%X", (unsigned)p[i]);
+            p += len;
+            continue;
+         }
+         else if (state == QUS_PATH) {
+            if ((*p) == '?') {
+               state = QUS_QUERY;
+               concat(*p);
+            }
+            else if ((*p) == '#') {
+               state = QUS_FRAGMENT;
+               concat(*p);
+            }
+            else if ((*p) == ' ')
+               concat("%20");
+            else
+               concat(*p);
+         }
+         else if (state == QUS_QUERY) {
+            if ((*p) == ' ')
+               concat('+');
+            else if ((*p) == '+')
+               concat("%2b");
+            else
+               concat(*p);
+         }
+         else {
+            assert(state == QUS_PATH);
+            if ((*p) == ' ')
+               concat("%20");
+            else
+               concat(*p);
+         }
+
+         ++p;
+      }
+
       return 0;
    }
 

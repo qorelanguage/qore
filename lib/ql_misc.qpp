@@ -1915,12 +1915,12 @@ nothing load_module() [flags=RUNTIME_NOOP;dom=MODULES] {
 my string $decoded_url = decode_url($encoded_url);
     @endcode
 
-    @note percent decoding is made according to <a href="http://tools.ietf.org/html/rfc3986#section-2.1">RFC 3986</a>
+    @note percent decoding is made according to <a href="http://tools.ietf.org/html/rfc3986#section-2.1">RFC 3986 2.1</a>
 
     @see
     - encode_url()
     - encode_uri_request()
-    - decode_uri_request()
+    - decode_uri_request() for a similar function that provides AJAX-compatible URI decoding for the URI query component
 */
 string decode_url(string url) [flags=CONSTANT] {
    QoreStringNodeHolder str(new QoreStringNode(QCS_UTF8));
@@ -1947,7 +1947,7 @@ my string $encoded_url = encode_url($url);
 
     @see
     - decode_url()
-    - encode_uri_request()
+    - encode_uri_request() for a similar function that provides AJAX-compatible URI encoding for the URI query component
     - decode_uri_request()
 
     @since %Qore 0.8.9
@@ -1959,18 +1959,24 @@ string encode_url(string url, softbool encode_all = False) [flags=CONSTANT] {
 }
 
 //! Decodes percent-encoded codes in a URI path and converts \c "+" signs in the query component to spaces and returns the decoded string in UTF-8 encoding
-/** @param uri a URI request string to decode
+/** @par Example:
+    @code
+my string $decoded_uri = decode_uri_request("path/to/something%20else?query=1%2b1+%2b2");
+# results in: "path/to/something else?query=1+1 +2"
+    @endcode
+
+    @param uri a URI request string to decode
 
     @return the decoded URI request string in UTF-8 encoding
 
-    @par Example:
-    @code
-my string $decoded_uri = decode_uri_request($encoded_uri);
-    @endcode
+    The URI string is divided into three parts:
+    - the path, which is the first part of the URI string up until any \c "?" or \c "#" character
+    - the query, which is any string following a \c "?" character terminating the path and up to a possible \c "#" character
+    - the fragment, which is any string following a \c "#" character
 
-    @note
-    - percent decoding is made according to <a href="http://tools.ietf.org/html/rfc3986#section-2.1">RFC 3986</a>
-    - the difference between this function and @ref Qore::decode_url() is in the logic for handling of the URI query string
+    For all parts, any percent-encoded codes (<a href="http://tools.ietf.org/html/rfc3986#section-2.1">RFC 3986 2.1</a>) are decoded to the corresponinding character.  The path component is identified and distinguished by a \c "?" or a \c "#" character.  The path component is subjected to standard percent encoding.  The query component is any part of the URI string following a \c "?" character up to the end of the URI string or until a \c "#" characer is found.  The query component is subjected to special decoding for AJAX compatibility; \c "+" characters are decoded to ASCII space (therefore any \c "+" charaters in the query component of the URI must be encoded with percent encoding, such is the case with @ref Qore::encode_uri_request() for example).  The fragment component is identified as any text following a \c "#" character, and this is decoded with the same rules as in the path component.
+
+    @note the difference between this function and @ref Qore::decode_url() is that this function employs special logic in the decoding of the different components of the URI string for compatibility with common AJAX libraries that encode ASCII spaces as \c "+" in the query component of the URI string.
 
     @see
     - encode_uri_request()
@@ -1985,23 +1991,32 @@ string decode_uri_request(string url) [flags=CONSTANT] {
    return *xsink ? 0 : str.release();
 }
 
-//! Encodes URI requests by substituting all special characters according to <a href="http://tools.ietf.org/html/rfc3986">RFC 3986</a> in the path with percent-encoded ewquivalents and substituting spaces with \c "+" in the URI query component
-/** @param url a URL string to encode
+//! Encodes URI requests by substituting special characters in the path with percent-encoded ewquivalents and substituting spaces with \c "+" and \c "+" with the percent-encoded equivalent in the URI query component
+/** @par Example:
+    @code
+my string $encoded_uri = encode_uri_request("path/to/something else?query=1+1 +2")'
+# results in: "path/to/something%20else?query=1%2b1+%2b2"
+    @endcode
+
+    @param url a URL string to encode
 
     @return the URI request string with encoded according to the arguments
 
-    @par Example:
-    @code
-my string $encoded_uri = encode_uri_request($uri_request);
-    @endcode
+    The URI string is divided into three parts:
+    - the path, which is the first part of the URI string up until any \c "?" or \c "#" character
+    - the query, which is any string following a \c "?" character terminating the path and up to a possible \c "#" character
+    - the fragment, which is any string following a \c "#" character
 
-    @note
-    - the difference between this function and @ref Qore::encode_url() is in the logic for handling of the URI query string
+    For all parts, any non-ASCII characters and the \c "%" character are subjected to percent encoding (<a href="http://tools.ietf.org/html/rfc3986#section-2.1">RFC 3986 2.1</a>).  The path component is identified and distinguished by a \c "?" or a \c "#" character.  Any spaces in the path component are also subjected to percent encoding.  The query component is any part of the URI string following a \c "?" character up to the end of the URI string or until a \c "#" characer is found.  Spaces in the query component are encoded with \c "+" for compatibility with AJAX libraries, and \c "+" signs are subjected to percent encoding.  The fragment component is identified as any text following a \c "#" character, and this is encoded with the same rules as in the path component.
+
+    @note the difference between this function and @ref Qore::encode_url() is that this function employs special logic in the encoding of the different components of the URI string for compatibility with common AJAX libraries that encode ASCII spaces as \c "+" in the query component of the URI string
 
     @see
     - decode_uri_request()
     - decode_url()
     - encode_url()
+    - <a href="http://tools.ietf.org/html/rfc3986">RFC 3986</a>
+    - <a href="http://tools.ietf.org/html/rfc6874">RFC 6874</a>
 
     @since %Qore 0.8.12
 */
