@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file FixedLengthRecordUtil.qm Qore user module for working with files with fixed lines length
+# @file FixedLengthUtil.qm Qore user module for working with files with fixed lines length
 
-/*  FixedLengthRecordUtil.qm Copyright 2012 - 2014 Qore Technologies, sro
+/*  FixedLengthUtil.qm Copyright 2012 - 2014 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -28,7 +28,7 @@
 %enable-all-warnings
 %new-style
 
-module FixedLengthRecordUtil {
+module FixedLengthUtil {
     version = "1.0";
     desc    = "user module for working with files with fixed length lines";
     author  = "Jiri Vaclavik <jiri.vaclavik@qoretechnologies.com>";
@@ -39,52 +39,82 @@ module FixedLengthRecordUtil {
 /* see release notes below for version history
 */
 
-/** @mainpage FixedLengthRecordUtil Module
+/** @mainpage FixedLengthUtil Module
 
     @tableofcontents
 
-    @section fixedlengthlinefileutilintro Introduction to the FixedLengthRecordUtil Module
+    @section fixedlengthlinefileutilintro Introduction to the FixedLengthUtil Module
 
-    The %FixedLengthRecordUtil module provides functionality for parsing files with fixed length lines.
+    The %FixedLengthUtil module provides functionality for parsing files with fixed length lines.
 
-    To use this module, use \c "%requires FixedLengthRecordUtil" in your code.
+    To use this module, use \c "%requires FixedLengthUtil" in your code.
     
-    All the public symbols in the module are defined in the FixedLengthRecordUtil namespace
+    All the public symbols in the module are defined in the FixedLengthUtil namespace
 
     Currently the module provides the following classes:
-    - @ref FixedLengthRecordUtil::FixedLengthRecordAbstractIterator "FixedLengthRecordAbstractIterator": iterator class allowing for fixed-length-line data to be processed line by line on a record basis
-    - @ref FixedLengthRecordUtil::FixedLengthRecordFileIterator "FixedLengthRecordFileIterator": iterator class allowing for fixed-length-line file to be processed line by line on a record basis
-    - @ref FixedLengthRecordUtil::FixedLengthRecordDataIterator "FixedLengthRecordDataIterator": iterator class allowing for fixed-length-line strings to be processed line by line on a record basis
-    - @ref FixedLengthRecordUtil::FixedLengthRecordAbstractWriter "FixedLengthRecordAbstractWriter": Fixed length line writer
-    - @ref FixedLengthRecordUtil::FixedLengthRecordFileWriter "FixedLengthRecordFileWriter": Fixed length line writer into the file
-    - @ref FixedLengthRecordUtil::FixedLengthRecordDataWriter "FixedLengthRecordDataWriter": Fixed length line writer into the variable
+    - @ref FixedLengthUtil::FixedLengthAbstractIterator "FixedLengthAbstractIterator": iterator class allowing for fixed-length-line data to be processed line by line on a record basis
+    - @ref FixedLengthUtil::FixedLengthFileIterator "FixedLengthFileIterator": iterator class allowing for fixed-length-line file to be processed line by line on a record basis
+    - @ref FixedLengthUtil::FixedLengthDataIterator "FixedLengthDataIterator": iterator class allowing for fixed-length-line strings to be processed line by line on a record basis
+    - @ref FixedLengthUtil::FixedLengthAbstractWriter "FixedLengthAbstractWriter": Fixed length line writer
+    - @ref FixedLengthUtil::FixedLengthFileWriter "FixedLengthFileWriter": Fixed length line writer into the file
+    - @ref FixedLengthUtil::FixedLengthDataWriter "FixedLengthDataWriter": Fixed length line writer into the variable
 
     <b>Example of reading:</b>
     @code
 #!/usr/bin/env qore
 
 %new-style
-%requires FixedLengthRecordUtil
+%requires FixedLengthUtil
 
-list specs = (
-    (
-        "test" : bool sub (string line) {return line.length() == 7;},
-        "cols" : (
-            "col1" : 5,
-            "col2" : 2,
+code identify_type = *string sub (string line) {
+    if (line.length() == 7) {
+        return "type1";
+    }
+    if (line.length() == 12) {
+        return "type2";
+    }
+    return NOTHING;
+};
+
+hash specs = (
+    "types" : (
+        "type1" : (
+            "col1" : (
+                "length" : 5,
+                "type"   : "int"
+            ),
+            "col2" : (
+                "length" : 2,
+                "type"   : "string",
+            ),
         ),
-    ),
-    (
-        "test" : bool sub (string line) {return line.length() == 10;},
-        "cols" : (
-            "col3" : 1,
-            "col4" : 3,
-            "col5" : 6,
+        "type2" : (
+            "col3" : (
+                "length" : 1,
+                "type"   : "string",
+            ),
+            "col4" : (
+                "length" : 3,
+                "type"   : "string",
+            ),
+            "col5" : (
+                "length"   : 8,
+                "type"     : "date",
+                "format"   : "DDMMYYYY",
+                # "timezone" : "Europe/Prague", # use global if omitted
+            ),
         ),
     ),
 );
 
-FixedLengthRecordFileIterator i(file, specs);
+hash global_options = (
+    "encoding"     : "UTF-8",
+    "eol"          : "\n",
+    "ignore-empty" : True,
+    "timezone"     : "Europe/Prague", # used if not in some date column specification
+);
+
+FixedLengthFileIterator i(file, specs, identify_type, global_options);
 while(i.next()) {
     printf("%s\n", i.getValue());
 }
@@ -95,33 +125,60 @@ while(i.next()) {
 #!/usr/bin/env qore
 
 %new-style
-%requires FixedLengthLineFileUtil
+%requires FixedLengthUtil
 
 list data = (
-    ("col1" : "aaaaa", "col2" : "bb"),
-    ("col3" : "c", "col4" : "ddd", "col5" : "eeeeee"),
-    ("col1" : "fffff", "col2" : "gg"),
+    ("col1" : 11111, "col2" : "bb"),
+    ("col3" : "c", "col4" : "ddd", "col5" : "31122014"),
+    ("col1" : 22222, "col2" : "gg"),
 );
 
-list specs = (
-    (
-        "test" : bool sub (string line) {return line.length() == 7;},
-        "cols" : (
-            "col1" : 5,
-            "col2" : 2,
+code identify_type = *string sub (string line) {
+    if (line.length() == 7) {
+        return "type1";
+    }
+    if (line.length() == 12) {
+        return "type2";
+    }
+    return NOTHING;
+};
+
+hash specs = (
+    "types" : (
+        "type1" : (
+            "col1" : (
+                "length" : 5,
+                "type"   : "int"
+            ),
+            "col2" : (
+                "length" : 2,
+                "type"   : "string",
+            ),
         ),
-    ),
-    (
-        "test" : bool sub (string line) {return line.length() == 10;},
-        "cols" : (
-            "col3" : 1,
-            "col4" : 3,
-            "col5" : 6,
+        "type2" : (
+            "col3" : (
+                "length" : 1,
+                "type"   : "string",
+            ),
+            "col4" : (
+                "length" : 3,
+                "type"   : "string",
+            ),
+            "col5" : (
+                "length"   : 8,
+                "type"     : "date",
+                "format"   : "DDMMYYYY",
+                "timezone" : "Europe/Prague",
+            ),
         ),
     ),
 );
 
-FixedLengthRecordFileWriter w(file, specs);
+hash global_options = (
+    "eol" : "\n",
+);
+
+FixedLengthFileWriter w(file, specs, identify_type, global_options);
 w.write(data);
     @endcode
 
@@ -131,8 +188,8 @@ w.write(data);
     - initial version of module
 */
 
-#! the FixedLengthRecordUtil namespace contains all the definitions in the FixedLengthRecordUtil module
-public namespace FixedLengthRecordUtil {
+#! the FixedLengthUtil namespace contains all the definitions in the FixedLengthUtil module
+public namespace FixedLengthUtil {
     #! Unix end of line character sequence (for new OS X too)
     public const EOL_UNIX = "\n";
     #! MS DOS/Windows end of line character sequence
@@ -145,14 +202,14 @@ public namespace FixedLengthRecordUtil {
 }
 
 #! structured line iterator for abstract data allowing efficient "pipelined" processing
-public class FixedLengthRecordUtil::FixedLengthRecordAbstractIterator {
+public class FixedLengthUtil::FixedLengthAbstractIterator {
     private {
         hash specs;
         code identify_record;
         hash opts; # encoding, eol, ignore-empty, timezone
     }
 
-    #! creates the FixedLengthRecordAbstractIterator object
+    #! creates the FixedLengthAbstractIterator object
     /**
     @param h specification of fixed-length-line file        
     @param g global options
@@ -160,7 +217,7 @@ public class FixedLengthRecordUtil::FixedLengthRecordAbstractIterator {
     constructor(hash h, code i, *hash g) {
         specs           = h;
         identify_record = i;
-        opts            = check_options(g);
+        opts            = checkOptions(g);
     }
 
     abstract *string getLine();
@@ -198,7 +255,7 @@ my hash $h = $i.getValue();
         return result;
     }
 
-    private hash check_options(hash opts) {
+    private hash checkOptions(hash opts) {
         string errname = 'FIXED-LENGTH-RECORD-ITERATOR-ERROR';
 
         foreach my hash i in (opts.pairIterator()) {
@@ -226,7 +283,7 @@ my hash $h = $i.getValue();
                     break;
                 }
                 default: {
-                    throw errname, sprintf("unknown option %y passed to FixedLengthRecordAbstractIterator::constructor()", i.key);
+                    throw errname, sprintf("unknown option %y passed to FixedLengthAbstractIterator::constructor()", i.key);
                 }
             }
         }
@@ -236,18 +293,18 @@ my hash $h = $i.getValue();
 }
 
 #! structured line iterator for fixed-length-line files allowing efficient "pipelined" processing of fixed-length-line data
-public class FixedLengthRecordUtil::FixedLengthRecordFileIterator inherits private FixedLengthRecordUtil::FixedLengthRecordAbstractIterator, FileLineIterator {
+public class FixedLengthUtil::FixedLengthFileIterator inherits private FixedLengthUtil::FixedLengthAbstractIterator, FileLineIterator {
     private {
         string file;
     }
 
-    #! creates the FixedLengthRecordFileIterator object
+    #! creates the FixedLengthFileIterator object
     /**
     @param f file to read
     @param h specification of fixed-length-line file        
     @param g global options
     */
-    constructor(string f, hash h, code i, *hash g) : FixedLengthRecordUtil::FixedLengthRecordAbstractIterator(h, i, g), FileLineIterator(f, g.encoding.typeCode() == NT_STRING ? g.encoding : NOTHING, g.eol.typeCode() == NT_STRING ? g.eol : NOTHING) {
+    constructor(string f, hash h, code i, *hash g) : FixedLengthUtil::FixedLengthAbstractIterator(h, i, g), FileLineIterator(f, g.encoding.typeCode() == NT_STRING ? g.encoding : NOTHING, g.eol.typeCode() == NT_STRING ? g.eol : NOTHING) {
         file  = f;
     }
 
@@ -276,7 +333,7 @@ public class FixedLengthRecordUtil::FixedLengthRecordFileIterator inherits priva
 }
 
 #! structured line iterator for fixed-length-line strings allowing efficient "pipelined" processing of fixed-length-line data
-public class FixedLengthRecordUtil::FixedLengthRecordDataIterator inherits private FixedLengthRecordUtil::FixedLengthRecordAbstractIterator {
+public class FixedLengthUtil::FixedLengthDataIterator inherits private FixedLengthUtil::FixedLengthAbstractIterator {
     private {
         int position;
         int max_index;
@@ -293,11 +350,11 @@ public class FixedLengthRecordUtil::FixedLengthRecordDataIterator inherits priva
     @param h specification of fixed-length-line file   
     @param g global options
     */
-    constructor(string r, hash h, code i, *hash g) : FixedLengthRecordUtil::FixedLengthRecordAbstractIterator(h, i, g) {
+    constructor(string r, hash h, code i, *hash g) : FixedLengthUtil::FixedLengthAbstractIterator(h, i, g) {
         data  = r;
     }
 
-    private create_lines() {
+    private createLines() {
         string separator = opts.eol ? opts.eol : "\n";
         lines = data.split(separator);
         lines_pos = 0;
@@ -305,7 +362,7 @@ public class FixedLengthRecordUtil::FixedLengthRecordDataIterator inherits priva
 
     private *string getLine() {
         if (!lines) {
-            create_lines();
+            createLines();
         }
 
         return lines[lines_pos];
@@ -320,7 +377,7 @@ public class FixedLengthRecordUtil::FixedLengthRecordDataIterator inherits priva
     bool next() {
         lines_pos++;
         if (!lines) {
-            create_lines();
+            createLines();
         }
         bool status = boolean(getLine() !== NOTHING);
         if (opts{"ignore-empty"}) {
@@ -336,25 +393,25 @@ public class FixedLengthRecordUtil::FixedLengthRecordDataIterator inherits priva
 
 
 #! structured writer
-public class FixedLengthRecordUtil::FixedLengthRecordAbstractWriter {
+public class FixedLengthUtil::FixedLengthAbstractWriter {
     private {
         hash specs;
         hash opts; # eol
         code identify_record;
     }
 
-    #! creates the FixedLengthRecordAbstractWriter object
+    #! creates the FixedLengthAbstractWriter object
     /**
     @param h specification of fixed-length-line file   
     @param g global options
     */
     constructor(hash h, *code i, *hash g) {
         specs           = h;
-        opts            = check_options(g);
+        opts            = checkOptions(g);
         identify_record = i;
     }
 
-    private bool check_item_type_combination(hash item, string type, string line_candidate) {
+    private bool checkItemTypeCombination(hash item, string type, string line_candidate) {
         hash type_specs = specs.types{type};
         # not this line if columns count mismatch
         if (elements type_specs.keys() != elements item.keys()) {
@@ -380,7 +437,7 @@ public class FixedLengthRecordUtil::FixedLengthRecordAbstractWriter {
         return True;
     }
 
-    private hash check_options(hash opts) {
+    private hash checkOptions(hash opts) {
         string errname = 'FIXED-LENGTH-RECORD-WRITER-ERROR';
 
         foreach my hash i in (opts.pairIterator()) {
@@ -396,7 +453,7 @@ public class FixedLengthRecordUtil::FixedLengthRecordAbstractWriter {
                     break;
                 }
                 default: {
-                    throw errname, sprintf("unknown option %y passed to FixedLengthRecordAbstractIterator::constructor()", i.key);
+                    throw errname, sprintf("unknown option %y passed to FixedLengthAbstractIterator::constructor()", i.key);
                 }
             }
         }
@@ -407,18 +464,18 @@ public class FixedLengthRecordUtil::FixedLengthRecordAbstractWriter {
 
 
 #! writer for fixed-length-line files
-public class FixedLengthRecordUtil::FixedLengthRecordFileWriter inherits FixedLengthRecordUtil::FixedLengthRecordAbstractWriter {
+public class FixedLengthUtil::FixedLengthFileWriter inherits FixedLengthUtil::FixedLengthAbstractWriter {
     private {
         string file;
     }
     
-    #! creates the FixedLengthRecordFileWriter object
+    #! creates the FixedLengthFileWriter object
     /**
     @param f file to write
     @param h specification of fixed-length-line file
     @param g global options
     */
-    constructor(string f, hash h, code i, *hash g) : FixedLengthRecordUtil::FixedLengthRecordAbstractWriter(h, i, g)  {
+    constructor(string f, hash h, code i, *hash g) : FixedLengthUtil::FixedLengthAbstractWriter(h, i, g)  {
         file  = f;
     }
 
@@ -433,7 +490,7 @@ public class FixedLengthRecordUtil::FixedLengthRecordFileWriter inherits FixedLe
         foreach hash item in (lines) {
             foreach string type in (specs.types.keys()) {
                 string line_candidate = join("", map string($1), item.values());
-                if (check_item_type_combination(item, type, line_candidate)) {
+                if (checkItemTypeCombination(item, type, line_candidate)) {
                     FW.write(line_candidate + (opts.eol ? opts.eol : "\n"));
                     break;
                 }
@@ -446,14 +503,14 @@ public class FixedLengthRecordUtil::FixedLengthRecordFileWriter inherits FixedLe
 
 
 #! writer for fixed-length-line data
-public class FixedLengthRecordUtil::FixedLengthRecordDataWriter inherits FixedLengthRecordUtil::FixedLengthRecordAbstractWriter {
-    #! creates the FixedLengthRecordFileWriter object
+public class FixedLengthUtil::FixedLengthDataWriter inherits FixedLengthUtil::FixedLengthAbstractWriter {
+    #! creates the FixedLengthFileWriter object
     /**
     @param f file to write
     @param h specification of fixed-length-line file        
     @param g global options
     */
-    constructor(hash h, code i, *hash g) : FixedLengthRecordUtil::FixedLengthRecordAbstractWriter(h, i, g) {
+    constructor(hash h, code i, *hash g) : FixedLengthUtil::FixedLengthAbstractWriter(h, i, g) {
     }
 
     #! stream iterator into the string
@@ -466,7 +523,7 @@ public class FixedLengthRecordUtil::FixedLengthRecordDataWriter inherits FixedLe
         foreach hash item in (lines) {
             foreach string type in (specs.types.keys()) {
                 string line_candidate = join("", map string($1), item.values());
-                if (check_item_type_combination(item, type, line_candidate)) {
+                if (checkItemTypeCombination(item, type, line_candidate)) {
                     result += line_candidate + (opts.eol ? opts.eol : "\n");
                     break;
                 }
