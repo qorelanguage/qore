@@ -3,16 +3,11 @@
 %new-style
 %enable-all-warnings
 %requires UnitTest
-%requires FixedLengthRecordUtil
+%requires FixedLengthUtil
 
 UnitTest unit();
 
-string file = unit.tmpLocation() + "/file.fll";
-unlink(file);
-File FW = new File();
-FW.open(file, O_WRONLY | O_CREAT);
-FW.write("11111bb\ncddd31122014\n\n\n22222gg\n");
-FW.close();
+string data = "11111bb\ncddd31122014\n\n\n22222gg\n";
 
 code identify_type = *string sub (string line) {
     if (line.length() == 7) {
@@ -62,7 +57,7 @@ hash global_options = (
     "timezone"     : "Europe/Prague", # used if not in some date column specification
 );
 
-FixedLengthRecordFileIterator i(file, specs, identify_type, global_options);
+FixedLengthDataIterator i(data, specs, identify_type, global_options);
 unit.cmp(i.next(), True, "line 1 is there");
 unit.cmp(i.getValue(), ("col1" : 11111, "col2" : "bb"), "line 1 content check");
 unit.cmp(i.next(), True, "line 2 is there");
@@ -70,5 +65,3 @@ unit.cmp(i.getValue(), ("col3" : "c", "col4" : "ddd", "col5" : 2014-12-31), "lin
 unit.cmp(i.next(), True, "line 3 is there");
 unit.cmp(i.getValue(), ("col1" : 22222, "col2" : "gg"), "line 3 content check");
 unit.cmp(i.next(), False, "line 4 is not there");
-
-unlink(file);

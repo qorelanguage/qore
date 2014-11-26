@@ -3,7 +3,7 @@
 %new-style
 %enable-all-warnings
 %requires UnitTest
-%requires FixedLengthRecordUtil
+%requires FixedLengthUtil
 
 UnitTest unit();
 
@@ -61,5 +61,5 @@ hash global_options = (
     "eol" : "\n",
 );
 
-FixedLengthRecordDataWriter w(specs, identify_type, global_options);
+FixedLengthDataWriter w(specs, identify_type, global_options);
 unit.cmp(w.write(data), data_text, 'file content check');
