@@ -386,7 +386,7 @@ public:
       return valid && !in_del;
    }
 
-   DLLLOCAL int canDelete();
+   DLLLOCAL int canDelete(int ref_copy, int rcount);
 
 #ifdef DEBUG
    DLLLOCAL void dbg();

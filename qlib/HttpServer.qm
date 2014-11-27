@@ -996,7 +996,7 @@ public class HttpServer::AbstractHttpRequestHandler {
     hash handleRequest(HttpListener $listener, Socket $s, hash $cx, hash $hdr, *data $body) {
         # classic, non-streaming interface
         if (!$.stream) {
-            my any $rv = $.handleRequest($cx, $hdr, $body ? $.getMessageBody($s, $hdr, $body) : NOTHING);
+            my any $rv = $.handleRequest($cx, $hdr, $.getMessageBody($s, $hdr, $body));
             switch ($rv.typeCode()) {
                 case NT_HASH: return $rv;
                 case NT_STRING:
@@ -2855,7 +2855,7 @@ public class HttpServer::HttpListener inherits Qore::Socket {
     private connectionThread(Socket $s) {
         on_exit	$.cThreads.dec();
 
-        my hash $info = $s.getPeerInfo();        
+        my hash $info = $s.getPeerInfo();
         # make 'desc' key for logging
         $info.desc = $info.address_desc;
         if ($info.port)
