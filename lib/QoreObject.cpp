@@ -622,9 +622,9 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 	 ref_copy = --references;
       }
 
-      // FIXME
-      // here the reference has already been decremented - this entire code block needs to be atomic with respect to other customDeref() calls
-      
+      // in case this is the last reference (even in recursive cases), ref_copy will remain equal to references throughout this code
+      // in other cases, the references value could change in another thread
+
       bool rrf = false;
       if (ref_copy) {
 	 while (true) {
@@ -636,13 +636,14 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 		  return;
 	       }
 
-	       printd(QRO_LVL, "QoreObject::customDeref() this: %p '%s' rset: %p (valid: %d in_del: %d) rcount: %d references: %d\n", this, getClassName(), priv->rset, priv->rset->isValid(), priv->rset->isInDel(), priv->rcount, references);
+	       printd(QRO_LVL, "QoreObject::customDeref() this: %p '%s' rset: %p (valid: %d in_del: %d) rcount: %d ref_copy: %d references: %d\n", this, getClassName(), priv->rset, priv->rset->isValid(), priv->rset->isInDel(), priv->rcount, ref_copy, references);
 
 	       int rc;
-	       ObjectRSet* rs;
-	       rs = priv->rset;
+	       ObjectRSet* rs = priv->rset;
+
 	       if (!rs) {
-		  if (references && priv->rcount == references) {
+		  if (priv->rcount == ref_copy) {
+		     // this must be true if we really are dealing with an object with no more valid (non-recursive) references
 		     assert(references == ref_copy);
 		     rc = 1;
 		  }
@@ -650,7 +651,7 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 		     return;
 	       }
 	       else
-		  rc = rs->canDelete();
+		  rc = rs->canDelete(ref_copy, priv->rcount);
 
 	       if (!rc)
 		  return;
@@ -667,14 +668,7 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 	    }
 
 	    // output in any case even when debugging is disabled
-	    print_debug(0, "QoreObject::customDeref() this: %p rcount/refs: %d/%d collecting object (%s) with only recursive references\n", this, (int)priv->rcount, (int)ref_copy, getClassName());
-	    /*
-	    if (priv->rcount != ref_copy)
-	       priv->rset->dbg();
-	    assert(priv->rcount == ref_copy);
-	    */
-	    //assert(strcmp(getClassName(), "WebAppConnection"));
-	    //priv->rset->invalidate();
+	    print_debug(0, "QoreObject::customDeref() this: %p rcount/refs: %d/%d collecting object (%s) with only recursive references\n", this, priv->rcount, ref_copy, getClassName());
 
 	    rrf = true;
 	    break;
@@ -1694,7 +1688,7 @@ void ObjectRSet::dbg() {
 }
 #endif
 
-int ObjectRSet::canDelete() {
+int ObjectRSet::canDelete(int ref_copy, int rcount) {
    printd(QRO_LVL, "ObjectRSet::canDelete() this: %p valid: %d in_del: %d\n", this, valid, in_del);
 
    if (!valid)
@@ -1708,6 +1702,10 @@ int ObjectRSet::canDelete() {
 	 return -1;
       if (in_del)
 	 return 1;
+
+      // to avoid race conditions, we only delete in the thread where the references == rcount for the current object
+      if (ref_copy != rcount)
+	 return 0;
 
       for (obj_set_t::iterator i = begin(), e = end(); i != e; ++i) {
 	 if ((*i)->priv->status != OS_OK || (*i)->priv->in_destructor) {
