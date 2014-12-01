@@ -6,8 +6,20 @@ project(qore-language)
 include("${CMAKE_SOURCE_DIR}/cmake/QoreMacros.cmake")
 
 include_directories( ${CMAKE_BINARY_DIR} )
+include_directories( ${CMAKE_BINARY_DIR}/include/ )
 include_directories( ${CMAKE_SOURCE_DIR}/include )
 include_directories( ${CMAKE_SOURCE_DIR}/include/qore )
+
+include(CheckIncludeFiles)
+# usage: CHECK_INCLUDE_FILES (<header> <RESULT_VARIABLE> )
+#check_include_files(getopt.h HAVE_GETOPT_H)
+#check_include_files(malloc.h HAVE_MALLOC_H)
+#check_include_files("sys/param.h;sys/mount.h" HAVE_SYS_MOUNT_H)
+#configure_file(${CMAKE_SOURCE_DIR}/include/qore/intern/unix-config.h.in
+#               ${CMAKE_BINARY_DIR}/include/qore/intern/unix-config.h)
+add_definitions(-DHAVE_UNIX_CONFIG_H)
+add_definitions(-DHAVE_GETOPT_H)
+add_definitions(-DHAVE_STRCASESTR)
 
 # libqore - unused for now
 set(CPP_SRC_LIB lib/single-compilation-unit.cpp )
@@ -107,15 +119,22 @@ set(CPP_SRC single-compilation-unit.cpp)
 
 find_package(BISON REQUIRED)
 find_package(FLEX REQUIRED)
+find_package(OpenSSL REQUIRED)
+find_package(ZLIB REQUIRED)
 
 bison_target(qoreparser lib/parser.ypp ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp)
 flex_target(qorescanner lib/scanner.lpp ${CMAKE_CURRENT_BINARY_DIR}/scanner.cpp)
 add_flex_bison_dependency(qorescanner qoreparser)
 
 # qpp
-add_executable(qpp lib/qpp.cpp)
+add_executable(qpp
+    lib/qpp.cpp
+    # TODO/FIXME: check for it as in autotools
+    #lib/getopt_long.cpp
+)
 # just fake qpp for macro
 set(QORE_QPP_EXECUTABLE ${CMAKE_BINARY_DIR}/qpp)
+target_link_libraries(qpp ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES})
 
 # libqore generators
 qore_wrap_qpp(QPP_CPP_SRC_LIB ${QPP_SRC_LIB})
@@ -132,3 +151,5 @@ add_executable(qore ${CPP_SRC})
 target_link_libraries(qore libqore)
 
 
+message(WARNING "CXX ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES}")
+message(WARNING "Please do not use cmake for production/real builds. Cmake support is experimental and it does not contant all required setup")
