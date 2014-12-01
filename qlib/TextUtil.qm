@@ -1,0 +1,165 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# @file TextUtil.qm Qore user module for working with different kind of data
+
+/*  TextUtil.qm Copyright 2012 - 2014 Qore Technologies, sro
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum required Qore version
+%requires qore >= 0.8.11
+%requires Util
+%require-types
+%enable-all-warnings
+%new-style
+
+module TextUtil {
+    version = "1.0";
+    desc    = "abstract module for iterating various kinds of text data";
+    author  = "Jiri Vaclavik <jiri.vaclavik@qoretechnologies.com>";
+    url     = "http://qore.org";
+    license = "MIT";
+}
+
+/* see release notes below for version history
+*/
+
+/** @mainpage TextUtil Module
+
+    @tableofcontents
+
+    @section textutilintro Introduction to the TextUtil Module
+
+    The %TextUtil module provides functionality for parsing different kinds of files.
+
+    To use this module, use \c "%requires TextUtil" in your code.
+    
+    All the public symbols in the module are defined in the TextUtil namespace
+
+    Currently the module provides the following classes:
+    - @ref TextUtil::AbstractTextIterator "AbstractTextIterator": iterator class allowing different kind of data to be processed line by line on a record basis
+    - @ref TextUtil::AbstractTextWriter "AbstractTextWriter": iterator class allowing writing different kind of data
+
+    @section textutil_relnotes Release Notes
+
+    @subsection textutil_v1_0 Version 1.0
+    - initial version of module
+*/
+
+#! the TextUtil namespace contains all the definitions in the TextUtil module
+public namespace TextUtil {
+    #! Unix end of line character sequence (for new OS X too)
+    public const EOL_UNIX = "\n";
+    #! MS DOS/Windows end of line character sequence
+    public const EOL_WIN = "\r\n";
+    #! Old (pre-OSX) Macintosh end of line character sequence
+    public const EOL_MACINTOSH = "\r";
+
+    # helper list of end of line values
+    const EOLS = (EOL_UNIX, EOL_WIN, EOL_MACINTOSH);
+}
+
+#! structured line iterator for abstract data allowing efficient "pipelined" processing
+public class TextUtil::AbstractTextIterator {
+    private {
+        hash opts; # encoding, eol, ignore-empty, timezone
+    }
+
+    #! creates the AbstractTextIterator object
+    /**
+    @param g global options
+    */
+    constructor(*hash g) {
+        opts = checkOptions(g);
+    }
+
+#    abstract *string getValue();
+
+    private hash checkOptions(*hash opts) {
+        string errname = 'RECORD-ITERATOR-ERROR';
+
+        foreach my hash i in (opts.pairIterator()) {
+            switch (i.key) {
+                case "eol": {
+                    if (i.value.typeCode() != NT_STRING) {
+                        throw errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
+                    }
+                    if (!inlist(i.value, EOLS)) {
+                        throw errname, sprintf("expecting a known end of line value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
+                    }
+                    opts.eol = i.value;
+                    break;
+                }
+                case "timezone": {
+                    opts.timezone = new TimeZone(opts.timezone);
+                    break;
+                }
+                case "ignore-empty": {
+                    opts."ignore-empty" = boolean(opts."ignore-empty");
+                    break;
+                }
+                case "encoding": {
+                    # TODO: check encoding name here
+                    break;
+                }
+            }
+        }
+
+        return opts;
+    }
+}
+
+
+#! structured writer
+public class TextUtil::AbstractTextWriter {
+    private {
+        hash opts; # eol
+    }
+
+    #! creates the AbstractTextWriter object
+    /**
+    @param g global options
+    */
+    constructor(*hash g) {
+        opts = g;
+    }
+
+#    abstract write();
+
+    private hash checkOptions(hash opts) {
+        string errname = 'RECORD-WRITER-ERROR';
+
+        foreach my hash i in (opts.pairIterator()) {
+            switch (i.key) {
+                case "eol": {
+                    if (i.value.typeCode() != NT_STRING) {
+                        throw errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
+                    }
+                    if (!inlist(i.value, EOLS)) {
+                        throw errname, sprintf("expecting a known end of line value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
+                    }
+                    opts.eol = i.value;
+                    break;
+                }
+            }
+        }
+
+        return opts;
+    }
+}

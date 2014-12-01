@@ -24,6 +24,8 @@
 
 # minimum required Qore version
 %requires qore >= 0.8.11
+%requires Util
+%requires TextUtil
 %require-types
 %enable-all-warnings
 %new-style
@@ -43,7 +45,7 @@ module FixedLengthUtil {
 
     @tableofcontents
 
-    @section fixedlengthlinefileutilintro Introduction to the FixedLengthUtil Module
+    @section fixedlengthutilintro Introduction to the FixedLengthUtil Module
 
     The %FixedLengthUtil module provides functionality for parsing files with fixed length lines.
 
@@ -182,31 +184,22 @@ FixedLengthFileWriter w(file, specs, identify_type, global_options);
 w.write(data);
     @endcode
 
-    @section fixedlengthlinefileutil_relnotes Release Notes
+    @section fixedlengthutil_relnotes Release Notes
 
-    @subsection fixedlengthlinefileutil_v1_0 Version 1.0
+    @subsection fixedlengthutil_v1_0 Version 1.0
     - initial version of module
 */
 
 #! the FixedLengthUtil namespace contains all the definitions in the FixedLengthUtil module
 public namespace FixedLengthUtil {
-    #! Unix end of line character sequence (for new OS X too)
-    public const EOL_UNIX = "\n";
-    #! MS DOS/Windows end of line character sequence
-    public const EOL_WIN = "\r\n";
-    #! Old (pre-OSX) Macintosh end of line character sequence
-    public const EOL_MACINTOSH = "\r";
-
-    # helper list of end of line values
-    const EOLS = (EOL_UNIX, EOL_WIN, EOL_MACINTOSH);
 }
 
 #! structured line iterator for abstract data allowing efficient "pipelined" processing
-public class FixedLengthUtil::FixedLengthAbstractIterator {
+public class FixedLengthUtil::FixedLengthAbstractIterator inherits TextUtil::AbstractTextIterator {
     private {
         hash specs;
         code identify_record;
-        hash opts; # encoding, eol, ignore-empty, timezone
+        # hash opts; # encoding, eol, ignore-empty, timezone
     }
 
     #! creates the FixedLengthAbstractIterator object
@@ -214,10 +207,10 @@ public class FixedLengthUtil::FixedLengthAbstractIterator {
     @param h specification of fixed-length-line file        
     @param g global options
     */
-    constructor(hash h, code i, *hash g) {
+    constructor(hash h, code i, *hash g) : TextUtil::AbstractTextIterator(hash() + (g.encoding ? ("encoding" : g.encoding) : hash()) + (g.eol ? ("eol" : g.eol) : hash()) + (g{"ignore-empty"} ? ("ignore-empty" : g{"ignore-empty"}) : hash()) + (g.timezone ? ("timezone" : g.timezone) : hash())) {
         specs           = h;
         identify_record = i;
-        opts            = checkOptions(g);
+        opts            = opts + checkOptions(g);
     }
 
     abstract *string getLine();
@@ -255,39 +248,7 @@ my hash $h = $i.getValue();
         return result;
     }
 
-    private hash checkOptions(hash opts) {
-        string errname = 'FIXED-LENGTH-RECORD-ITERATOR-ERROR';
-
-        foreach my hash i in (opts.pairIterator()) {
-            switch (i.key) {
-                case "eol": {
-                    if (i.value.typeCode() != NT_STRING) {
-                        throw errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
-                    }
-                    if (!inlist(i.value, EOLS)) {
-                        throw errname, sprintf("expecting a known end of line value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
-                    }
-                    opts.eol = i.value;
-                    break;
-                }
-                case "timezone": {
-                    opts.timezone = new TimeZone(opts.timezone);
-                    break;
-                }
-                case "ignore-empty": {
-                    opts."ignore-empty" = boolean(opts."ignore-empty");
-                    break;
-                }
-                case "encoding": {
-                    # TODO: check encoding name here
-                    break;
-                }
-                default: {
-                    throw errname, sprintf("unknown option %y passed to FixedLengthAbstractIterator::constructor()", i.key);
-                }
-            }
-        }
-
+    private hash checkOptions(*hash opts) { # put special options here
         return opts;
     }
 }
@@ -344,7 +305,7 @@ public class FixedLengthUtil::FixedLengthDataIterator inherits private FixedLeng
         string data;
     }
 
-    #! creates the FixedLengthLineFileLineIterator object
+    #! creates the FixedLengthFileIterator object
     /**
     @param r string to process
     @param h specification of fixed-length-line file   
@@ -393,10 +354,9 @@ public class FixedLengthUtil::FixedLengthDataIterator inherits private FixedLeng
 
 
 #! structured writer
-public class FixedLengthUtil::FixedLengthAbstractWriter {
+public class FixedLengthUtil::FixedLengthAbstractWriter inherits TextUtil::AbstractTextWriter {
     private {
         hash specs;
-        hash opts; # eol
         code identify_record;
     }
 
@@ -405,10 +365,11 @@ public class FixedLengthUtil::FixedLengthAbstractWriter {
     @param h specification of fixed-length-line file   
     @param g global options
     */
-    constructor(hash h, *code i, *hash g) {
+    constructor(hash h, *code i, *hash g) : TextUtil::AbstractTextWriter(hash() + (g.eol ? ("eol" : g.eol) : hash())) {
         specs           = h;
-        opts            = checkOptions(g);
         identify_record = i;
+        delete g.eol;
+        opts            = opts + checkOptions(g);
     }
 
     private bool checkItemTypeCombination(hash item, string type, string line_candidate) {
@@ -437,29 +398,7 @@ public class FixedLengthUtil::FixedLengthAbstractWriter {
         return True;
     }
 
-    private hash checkOptions(hash opts) {
-        string errname = 'FIXED-LENGTH-RECORD-WRITER-ERROR';
-
-        foreach my hash i in (opts.pairIterator()) {
-            switch (i.key) {
-                case "eol": {
-                    if (i.value.typeCode() != NT_STRING) {
-                        throw errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
-                    }
-                    if (!inlist(i.value, EOLS)) {
-                        throw errname, sprintf("expecting a known end of line value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
-                    }
-                    opts.eol = i.value;
-                    break;
-                }
-                default: {
-                    throw errname, sprintf("unknown option %y passed to FixedLengthAbstractIterator::constructor()", i.key);
-                }
-            }
-        }
-
-        return opts;
-    }
+#    abstract write();
 }
 
 
@@ -532,41 +471,4 @@ public class FixedLengthUtil::FixedLengthDataWriter inherits FixedLengthUtil::Fi
 
         return result;
     }
-}
-
-
-any sub retype(any value, hash type) { # TODO: abstract this into another place
-    switch (type.type) {
-        case "int": {
-            return int(value);
-        }
-        case "string": {
-            return string(value);
-        }
-        case "float": {
-            return float(value);
-        }
-        case "number": {
-            return number(value);
-        }
-        case "date": {
-            if (value.empty()) {
-                return 1970-01-01;
-            }
-            else {
-                *TimeZone timezone = type.timezone;
-                if (!timezone) {
-                    throw "NO-TIMEZONE-GIVEN", "you have to specify timezone while converting dates";
-                }
-                if (type.format) {
-                    return timezone ? timezone.date(value, type.format) : date(value, type.format);
-                }
-                else {
-                    return timezone ? timezone.date(value) : date(value);
-                }
-            }
-        }
-    }
-    
-    return value;
 }

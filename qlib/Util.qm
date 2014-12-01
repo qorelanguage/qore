@@ -613,4 +613,41 @@ my string $str = get_marketing_byte_size($n);
 
         return $v + $k[0] + "B";
     }
+
+    public any sub retype(any $value, hash $type) {
+        switch ($type.type) {
+            case "int": {
+                return int($value);
+            }
+            case "string": {
+                return string($value);
+            }
+            case "float": {
+                return float($value);
+            }
+            case "number": {
+                return number($value);
+            }
+            case "date": {
+                if ($value.empty()) {
+                    return 1970-01-01;
+                }
+                else {
+                    my *TimeZone $timezone = new TimeZone($type.timezone);
+                    if (!$timezone) {
+                        throw "NO-TIMEZONE-GIVEN", "you have to specify timezone while converting dates";
+                    }
+                    if ($type.format) {
+                        return $timezone ? $timezone.date($value, $type.format) : date($value, $type.format);
+                    }
+                    else {
+                        return $timezone ? $timezone.date($value) : date($value);
+                    }
+                }
+            }
+        }
+
+        return $value;
+    }
 }
+
