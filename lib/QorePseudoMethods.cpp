@@ -48,6 +48,7 @@
 #include "Pseudo_QC_Closure.cpp"
 
 #include "intern/QoreClassIntern.h"
+#include "intern/QoreLibIntern.h"
 
 // list of pseudo-classes for basic types + 2 entries for closures and call references
 static QoreClass* po_list[NODE_ARRAY_LEN + 2];

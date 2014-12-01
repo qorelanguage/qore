@@ -31,6 +31,8 @@
 #include <qore/Qore.h>
 #include <qore/intern/QoreHashListIterator.h>
 
+extern QoreClass* QC_HASHLISTITERATOR;
+
 // internal reverse iterator class implementation only for the getName() function - the iterators remain
 // forwards and are used in the reverse sense by the Qore language class implementation below
 class QoreHashListReverseIterator : public QoreHashListIterator {

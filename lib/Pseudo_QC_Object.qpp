@@ -34,6 +34,13 @@
 #include <qore/intern/QoreObjectIterator.h>
 #include <qore/intern/QoreClassIntern.h>
 
+extern QoreClass* QC_OBJECTITERATOR;
+extern QoreClass* QC_OBJECTKEYITERATOR;
+extern QoreClass* QC_OBJECTPAIRITERATOR;
+extern QoreClass* QC_OBJECTKEYITERATOR;
+extern QoreClass* QC_OBJECTPAIRITERATOR;
+
+
 //! Methods in this pseudo-class can be executed on @ref object "objects"
 /** 
  */

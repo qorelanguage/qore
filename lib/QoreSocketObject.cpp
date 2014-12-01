@@ -32,6 +32,7 @@
 
 #include <qore/Qore.h>
 #include <qore/QoreSocketObject.h>
+#include <qore/intern/qore_socket_private.h>
 #include <qore/intern/QC_Socket.h>
 #include <qore/intern/QC_SSLCertificate.h>
 #include <qore/intern/QC_SSLPrivateKey.h>

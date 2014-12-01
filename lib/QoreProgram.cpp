@@ -33,6 +33,7 @@
 #include <qore/Qore.h>
 #include <qore/Restrictions.h>
 #include <qore/QoreCounter.h>
+#include <qore/intern/QoreSignal.h>
 #include <qore/intern/LocalVar.h>
 #include <qore/intern/qore_program_private.h>
 #include <qore/intern/QoreNamespaceIntern.h>

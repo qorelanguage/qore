@@ -32,6 +32,7 @@
 */
 
 #include <qore/Qore.h>
+#include <openssl/err.h>
 
 #include <qore/intern/ThreadResourceList.h>
 #include <qore/intern/ConstantList.h>

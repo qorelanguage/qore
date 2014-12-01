@@ -31,6 +31,8 @@
 #include <qore/Qore.h>
 #include <qore/intern/QoreHashIterator.h>
 
+extern QoreClass* QC_HASHITERATOR;
+
 //! This class an iterator class for hashes
 /** Call HashReverseIterator::next() to iterate through the hash in reverse order; do not use the iterator if HashReverseIterator::next() returns @ref False.
     A hash can be iterated in reverse order by calling HashReverseIterator::prev() instead of HashReverseIterator::next()

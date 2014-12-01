@@ -39,6 +39,20 @@
 #include <openssl/des.h>
 #include <openssl/hmac.h>
 
+#define MD2_ERR "MD2-DIGEST-ERROR"
+#define MD4_ERR "MD4-DIGEST-ERROR"
+#define MD5_ERR "MD5-DIGEST-ERROR"
+#define SHA_ERR "SHA-DIGEST-ERROR"
+#define SHA1_ERR "SHA1-DIGEST-ERROR"
+static const char SHA224_ERR[] = "SHA224-DIGEST-ERROR";
+static const char SHA256_ERR[] = "SHA256-DIGEST-ERROR";
+static const char SHA384_ERR[] = "SHA384-DIGEST-ERROR";
+static const char SHA512_ERR[] = "SHA512-DIGEST-ERROR";
+#define DSS_ERR "DSS-DIGEST-ERROR"
+#define DSS1_ERR "DSS1-DIGEST-ERROR"
+static const char MDC2_ERR[] = "MDC2-DIGEST-ERROR";
+#define RIPEMD160_ERR "RIPEMD160-DIGEST-ERROR"
+
 DLLLOCAL void init_crypto_functions(QoreNamespace& ns);
 
 class BaseHelper {

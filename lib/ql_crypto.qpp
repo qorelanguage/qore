@@ -43,6 +43,7 @@
 // default initialization vector
 static unsigned char def_iv[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
+/*
 #define MD2_ERR "MD2-DIGEST-ERROR"
 #define MD4_ERR "MD4-DIGEST-ERROR"
 #define MD5_ERR "MD5-DIGEST-ERROR"
@@ -56,6 +57,7 @@ static const char SHA512_ERR[] = "SHA512-DIGEST-ERROR";
 #define DSS1_ERR "DSS1-DIGEST-ERROR"
 static const char MDC2_ERR[] = "MDC2-DIGEST-ERROR";
 #define RIPEMD160_ERR "RIPEMD160-DIGEST-ERROR"
+*/
 
 class CryptoHelper : public BaseHelper {
 private:

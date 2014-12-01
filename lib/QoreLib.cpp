@@ -30,6 +30,7 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/svn-revision.h>
+#include <qore/intern/qore_number_private.h>
 #include <qore/intern/QoreSignal.h>
 #include <qore/intern/QoreObjectIntern.h>
 

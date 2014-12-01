@@ -36,6 +36,8 @@
 #include <qore/intern/ssl_constants.h>
 #include <qore/minitest.hpp>
 
+extern QoreClass* QC_SOCKET;
+
 #ifdef DEBUG_TESTS
 #  include "tests/QC_HTTPClient_tests.cpp"
 #endif

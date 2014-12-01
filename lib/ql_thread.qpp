@@ -36,6 +36,8 @@
 #include <qore/intern/qore_program_private.h>
 
 #include <pthread.h>
+#include <qore/intern/QC_TimeZone.h>
+extern QoreClass* QC_TIMEZONE;
 
 static void delete_thread_data_intern(const QoreListNode *args, ExceptionSink *xsink) {
    // get thread data hash

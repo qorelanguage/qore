@@ -42,6 +42,8 @@
 #include <qore/intern/QC_Queue.h>
 #include <qore/intern/QoreHttpClientObjectIntern.h>
 
+#include <qore/intern/qore_socket_private.h>
+
 #include <string>
 #include <map>
 #include <set>

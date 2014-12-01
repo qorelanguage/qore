@@ -32,6 +32,8 @@
 #include <qore/Qore.h>
 #include <qore/intern/SingleValueIterator.h>
 
+extern QoreClass* QC_SINGLEVALUEITERATOR;
+
 //! Methods in this pseudo-class are available to be executed on any value type (even @ref nothing); this is the root class for all pseudo-classes
 /** 
  */

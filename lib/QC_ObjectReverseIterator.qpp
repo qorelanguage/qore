@@ -31,6 +31,8 @@
 #include <qore/Qore.h>
 #include <qore/intern/QoreObjectIterator.h>
 
+extern QoreClass* QC_OBJECTITERATOR;
+
 //! This class an iterator class for objects
 /** Call ObjectReverseIterator::next() to iterate through the object in reverse order; do not use the iterator if ObjectReverseIterator::next() returns @ref False.
     An object can be iterated in reverse order by calling ObjectReverseIterator::prev() instead of ObjectReverseIterator::next()

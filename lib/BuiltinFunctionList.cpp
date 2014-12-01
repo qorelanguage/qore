@@ -44,6 +44,7 @@
 #include <qore/intern/ql_object.h>
 #include <qore/intern/ql_file.h>
 #include <qore/intern/ql_compression.h>
+#include <qore/intern/QoreNamespaceIntern.h>
 
 #ifdef DEBUG
 #include <qore/intern/ql_debug.h>

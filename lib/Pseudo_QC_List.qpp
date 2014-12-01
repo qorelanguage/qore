@@ -34,6 +34,9 @@
 #include <qore/intern/QoreListIterator.h>
 #include <qore/intern/RangeIterator.h>
 
+extern QoreClass* QC_LISTITERATOR;
+extern QoreClass* QC_RANGEITERATOR;
+
 //! Methods in this pseudo-class can be executed on @ref list "lists"
 /** 
  */

@@ -29,6 +29,8 @@
   information.
 */
 
+#include <errno.h>
+
 #include <qore/Qore.h>
 #include <qore/intern/QC_File.h>
 #include <qore/intern/QC_Queue.h>

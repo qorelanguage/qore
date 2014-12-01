@@ -35,6 +35,8 @@
 
 #define _QORE_DS_PRIVATE_H
 
+#include <qore/intern/qore_dbi_private.h>
+
 struct qore_ds_private {
    Datasource* ds;
    bool in_transaction;

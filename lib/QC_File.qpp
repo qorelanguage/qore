@@ -36,6 +36,8 @@
 #include <qore/intern/QC_TermIOS.h>
 #endif
 
+extern QoreClass* QC_READONLYFILE;
+
 #ifndef TCSANOW
 #define TCSANOW 0
 #endif

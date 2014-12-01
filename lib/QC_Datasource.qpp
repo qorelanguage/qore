@@ -31,6 +31,8 @@
 #include <qore/Qore.h>
 #include <qore/intern/QC_Datasource.h>
 
+extern QoreClass* QC_ABSTRACTDATASOURCE;
+
 static const char *DSC_ERR = "DATASOURCE-CONSTRUCTOR-ERROR";
 
 static int ds_set_options(ManagedDatasource* ds, const QoreHashNode* opts, ExceptionSink* xsink) {
