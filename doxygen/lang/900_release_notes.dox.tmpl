@@ -76,6 +76,7 @@
     - fixed a bug in Qore where string data formatted with %n, %N, or %y could be added to another string with a different character encoding without any automatic conversions, therefore resulting in an improperly-encoded string
     - fixed bugs in the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> and <a href="../../modules/RestClient/html/index.html">RestClient</a> modules where URI strings were improperly encoded and decoded
     - fixed a bug in the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module where chunked sends were not received and decoded properly in all cases for handlers that did not explicitly handle chunked messages
+    - fixed a crash when parsing when parsing function, method, or closure arguments when either of the @ref duplicate-local-vars or @ref duplicate-block-vars warnings are set due to an error handling thread-local variable info in parse initialization
 
     @section qore_0811 Qore 0.8.11
 

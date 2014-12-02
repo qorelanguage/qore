@@ -75,6 +75,11 @@ public:
 
       if (lvar && !refs)
 	 qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_UNREFERENCED_VARIABLE, "UNREFERENCED-VARIABLE", "local variable '%s' was declared in this block but not referenced; to disable this warning, use '%%disable-warning unreferenced-variable' in your code", lvar->getName());
+
+      if (top_level) {
+	 save_global_vnode(0);
+	 //printd(0, "VNode::~VNode() this: %p deleting top-level global vnode\n", this);
+      }
    }
 
    DLLLOCAL void appendLocation(QoreString& str) {
@@ -271,27 +276,24 @@ LocalVar *push_local_var(const char *name, const QoreProgramLocation& loc, const
             if (!found_block && vnode->isBlockStart())
                found_block = true;
             if (!strcmp(vnode->getName(), name)) {
-               if (!found_block && avs) {
+	       if (!found_block) {
 		  QoreStringNode* desc = new QoreStringNodeMaker("local variable '%s' was already declared in the same block", name);
-		  vnode->appendLocation(*desc);
-                  parseException(loc, "PARSE-ERRPR", desc);
-               }
-               else {
-                  if (!found_block) {
-		     QoreStringNode* desc = new QoreStringNodeMaker("local variable '%s' was already declared in the same block", name); 
+		  if (avs) {
+		     vnode->appendLocation(*desc);
+		     parseException(loc, "PARSE-ERRPR", desc);
+		  }
+		  else {
 		     vnode->appendLocation(*desc);
                      qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_DUPLICATE_BLOCK_VARS, "DUPLICATE-BLOCK-VARIABLE", desc);
 		  }
-                  else {
-                     if (top_level || !vnode->isTopLevel()) {
-			QoreStringNode* desc = new QoreStringNodeMaker("local variable '%s' was already declared in this lexical scope", name);
-			vnode->appendLocation(*desc);
-                        qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_DUPLICATE_LOCAL_VARS, "DUPLICATE-LOCAL-VARIABLE", desc);
-		     }
-                  }
-                  break;
-               }
-            }
+	       }
+	       else if (top_level || !vnode->isTopLevel()) {
+		  QoreStringNode* desc = new QoreStringNodeMaker("local variable '%s' was already declared in this lexical scope", name);
+		  vnode->appendLocation(*desc);
+		  qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_DUPLICATE_LOCAL_VARS, "DUPLICATE-LOCAL-VARIABLE", desc);
+	       }
+	       break;
+	    }
             vnode = vnode->nextSearch();
          }
       }
@@ -505,9 +507,6 @@ void TopLevelStatementBlock::parseInit(int64 po) {
       for (unsigned i = 0; i < lvars->size(); ++i)
 	 pop_local_var();
    }
-
-   // reset variable position to 0
-   save_global_vnode(0);
 
    assert(!getVStack());
 
