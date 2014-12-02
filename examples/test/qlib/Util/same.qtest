@@ -1,0 +1,13 @@
+#!/usr/bin/env qore
+%require-types
+%enable-all-warnings
+%new-style
+%requires Util
+%requires UnitTest
+
+UnitTest t();
+
+t.ok(same((1, 1)),           "non-uniq number list");
+t.ok(!same(("a", "b", "a")), "non-uniq string list");
+t.ok(!same((1, 1, 2)),       "non-uniq number list");
+t.ok(same(("a", "a")),       "uniq number list");

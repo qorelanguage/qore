@@ -649,5 +649,77 @@ my string $str = get_marketing_byte_size($n);
 
         return $value;
     }
-}
 
+    #! returns a list with unique elements from the original list
+    /** @par Example:
+        @code
+my list $unique_list = uniq($list);
+        @endcode
+
+        @param list some list
+    */
+    public list sub uniq (list $l) {
+        my hash $uniq = hash();
+        foreach my any $e in ($l) {
+            $uniq{$e}++;
+        }
+        return $uniq.keys();
+    }
+
+    #! checks whether given list has only uniq element
+    /** @par Example:
+        @code
+        if (same((1, 1, 1)) {
+            printf("only uniq element");
+        };
+        @endcode
+
+        @param list some list
+    */
+    public bool sub same (list $l) {
+        if (!$l) {
+            return True;
+        }
+        my any $random_value = $l[0];
+        foreach my any $value in ($l) {
+            if ($value != $random_value) {
+                return False;
+            }
+        }
+
+        return True;
+    }
+    
+    #! remove elements of second list from the first list
+    /** @par Example:
+        @code
+        list_minus((0, 1, 2, 3, 3), (2, 3, 4)); # returns (0, 1)
+        @endcode
+
+        @param list some list
+    */
+    public list sub list_minus (list $a, list $b) { # TODO: put in new module? like SetTheory.qm
+        if (!elements $b) {
+            return $a;
+        }
+        if (!elements $a) {
+            return list();
+        }
+        my list $result = list();
+        foreach my any $index_a in (xrange(0, elements $a - 1)) {
+            my bool $found = False;
+            foreach my any $index_b in (xrange(0, elements $b - 1)) {
+                if ($a[$index_a] == $b[$index_b]) {
+                    delete $a[$index_a];
+                    $found = True;
+                    break;
+                }
+            }
+            if (!$found) {
+                $result += $a[$index_a];
+            }
+        }
+
+        return $result;
+    }
+}

@@ -1,0 +1,12 @@
+#!/usr/bin/env qore
+%require-types
+%enable-all-warnings
+%new-style
+%requires Util
+%requires UnitTest
+
+UnitTest t();
+
+list bak = uniq((2, 3, 4, 3, "a", "b", "a", 3));
+list cmp = (2, 3, 4, "a", "b");
+t.ok(bak == cmp, "basic usage");

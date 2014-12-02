@@ -1,0 +1,12 @@
+#!/usr/bin/env qore
+%require-types
+%enable-all-warnings
+%new-style
+%requires Util
+%requires UnitTest
+
+UnitTest t();
+
+t.ok(list_minus((0, 1, 2, 3, 3), (2, 3, 4)) == (0, 1), "basic usage");
+t.ok(list_minus(list(), (2, 3, 4)) == list(), "empty original list");
+t.ok(list_minus((0, 1, 2, 3, 3), list()) == (0, 1, 2, 3, 3), "empty list to subtract");
