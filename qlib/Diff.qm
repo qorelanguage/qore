@@ -128,7 +128,7 @@ my string $diff = diff_text($str1, $str2);
                 list insert = line.i;
                 list del = line.d;
                 if (insert.size() && del.size()) {
-                    diff += line_range(line1, line1 + insert.size() - 1) + 'c' + line_range(line2, line2 + del.size() - 1) + "\n";
+                    diff += line_range(line2, line2 + del.size() - 1) + 'c' + line_range(line1, line1 + insert.size() - 1) + "\n";
                 }
                 else if (insert.size()) {
                     diff += (line2 - 1) + "a" + line_range(line1, line1 + insert.size() - 1) + "\n";
