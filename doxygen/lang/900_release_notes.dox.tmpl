@@ -2,12 +2,12 @@
 
     @tableofcontents
 
-    @section qore_08111 Qore 0.8.11.1
+    @section qore_0812 Qore 0.8.12
 
     @par Release Summary
     Minor release to meet packaging standards of Fedora and OpenSUSE.
 
-    @subsection qore_08111_new_features New Features in Qore
+    @subsection qore_0812_new_features New Features in Qore
     - <a href="../../modules/FixedLengthUtil/html/index.html">FixedLengthUtil</a> module for handling fixed length line data added
     - new literal hash support: hashes can now be given as literal values as follows: <tt>(&lt;key_expr&gt; : &lt;val_expr&gt;[, ...)</tt>; in the past <tt>&lt;key_expr&gt;</tt> had to be either a string or a constant; now any expression can be used to generate the hash keys at runtime
     - new functions:
@@ -46,7 +46,7 @@
     - added option @ref Qore::Option::HAVE_DETERMINISTIC_GC "HAVE_DETERMINISTIC_GC" for Qore builds where deterministic garbage collection is enabled
     - the @ref Qore::Program "Program" class now creates @ref conditional_parsing "parse defines" for parse options so that conditional code can be implemented depending on the sandboxing configuration of the program container
 
-    @subsection qore_08111_bug_fixes Bug Fixes in Qore
+    @subsection qore_0812_bug_fixes Bug Fixes in Qore
     - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module fixes:
       - fixed a bug setting the response encoding in HttpServer::setReplyHeaders() where the Socket encoding was not set properly and therefore the encoding in the Content-Type in the response header did not necessarily match the encoding of the response
     - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module fixes:

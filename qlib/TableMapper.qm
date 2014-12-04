@@ -94,6 +94,7 @@ printf("%d record%s inserted\n", $map.getCount(), $map.getCount() == 1 ? "" : "s
 
     @subsection tablemapperv1_1 TableMapper v1.1
     - added table name to error messages
+    - added the getDatasource() method to classes
 
     @subsection tablemapperv1_0 TableMapper v1.0
     - Initial release.
@@ -335,6 +336,11 @@ my InboundTableMapper $map($table, DbMapper);
         SqlUtil::AbstractTable getTable() {
             return $.table;
         }
+
+        #! returns the @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object associated with this object
+        AbstractDatasource getDatasource() {
+            return $.table.getDatasource();
+        }
     }
 
     #! provides a hash iterator based on a @ref TableMapper::InboundTableMapper "InboundTableMapper" object and an iterator input source; for each iteration the iterted row is inserted into the @ref SqlUtil::Table "Table" target
@@ -513,6 +519,11 @@ my InboundTableMapperIterator $i($input, $map);
         */
         resetCount() {
             $.mapc.resetCount();
+        }
+
+        #! returns the @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object associated with this object
+        AbstractDatasource getDatasource() {
+            return $.mapc.getDatasource();
         }
     }
 }
