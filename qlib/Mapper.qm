@@ -138,7 +138,7 @@ list: (2 elements)
       - \c "date_format": gives the format for converting a string to a date; see @ref date_formatting for the format of this string; note that this also implies \c "type" = \c "date"
       - \c "default": gives a default value for the field in case no input or translated value is provided
       - \c "maxlen": an integer giving the maximum output string field length in bytes
-      - \c "number_format": gives the format for converting a string to a number; note that this also implies \c "type" = \c "number"
+      - \c "number_format": gives the format for converting a string to a number; see @ref Qore::parse_number() for the format of this string; note that this also implies \c "type" = \c "number"
       - \c "trunc": assign to boolean @ref Qore::True "True" if the field should be truncated if over the maximum field length; this key can only be set to @ref Qore::True "True" if the \c "maxlen" key is also given
       - \c "mand": assign to boolean @ref Qore::True "True" if the field is mandatory and an exception should be thrown if no input data is supplied
       - \c "type": this gives the output field type, can be:
@@ -156,7 +156,7 @@ list: (2 elements)
     - \c "input_log": an optional input data logging callback; must accept a hash giving the input data hash
     - \c "input_timezone": an optional string or integer (giving seconds east of UTC) giving the time zone for parsing input data (ex: \c "Europe/Prague"), if not set defaults to the current TimeZone (see @ref Qore::TimeZone::get())
     - \c "name": the name of the mapper for use in logging and error strings
-    - \c "number_format": gives the global format for converting a string to a number; this is applied to all fields of type \c "number" unless the field has a \c "number_format" value that overrides this global setting
+    - \c "number_format": gives the global format for converting a string to a number; see @ref Qore::parse_number() for the format of this string; this is applied to all fields of type \c "number" unless the field has a \c "number_format" value that overrides this global setting
     - \c "output_log": an optional output data logging callback; must accept a hash giving the output data hash
     - \c "timezone": an optional string or integer (giving seconds east of UTC) giving the time zone definition for output data (ex: \c "Europe/Prague"), if not set defaults to the current TimeZone (see @ref Qore::TimeZone::get())
     - \c "trunc": an optional @ref closure "closure" or @ref call_reference "call reference" for a callback for field truncation warnings; must accept a single string giving the warning text
@@ -201,7 +201,7 @@ public namespace Mapper {
 
         private {
             #! the hash providing output field names and mappings
-            hash $.map;
+            hash $.mapc;
 
             #! the output character encoding; if not given then the output encoding is assumed to be UTF-8
             string $.enc = "utf-8";
@@ -334,7 +334,7 @@ my Mapper $map(DataMap);
             if (!$map)
                 $.error("empty map passed to Mapper::constructor()");
 
-            $.map = $map;
+            $.mapc = $map;
             my hash $ck = $.optionKeys();
             foreach my string $k in ($opts.keyIterator()) {
                 if (!$ck.$k)
@@ -365,7 +365,7 @@ my Mapper $map(DataMap);
 
         #! verifies the input map in the constructor
         private checkMap() {
-            map $.checkMapField($1, \$.map.$1), $.map.keyIterator();
+            map $.checkMapField($1, \$.mapc.$1), $.mapc.keyIterator();
         }
 
         #! convert a field definition to a hash if possible
@@ -574,8 +574,8 @@ my Mapper $map(DataMap);
             my hash $h;
 
             # iterate through target fields
-            foreach my string $key in ($.map.keyIterator()) {
-                my any $m = $.map.$key;
+            foreach my string $key in ($.mapc.keyIterator()) {
+                my any $m = $.mapc.$key;
 
                 # get source field name
                 my string $name = exists $m.name ? $m.name : $key;
@@ -787,7 +787,7 @@ my Mapper $map(DataMap);
 
         private {
             #! data mapper
-            Mapper::Mapper $.map;
+            Mapper::Mapper $.mapc;
         }
 
         #! creates the iterator from the arguments passed
@@ -798,7 +798,7 @@ my Mapper $map(DataMap);
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
          */
         constructor(Qore::AbstractIterator $i, hash $map, *hash $opts) : Mapper::AbstractMapperIterator($i) {
-            $.map = new Mapper($map, $opts);
+            $.mapc = new Mapper($map, $opts);
         }
 
         #! creates the iterator from the arguments passed
@@ -806,26 +806,26 @@ my Mapper $map(DataMap);
             @param map the mapper to transform the data
         */
         constructor(Qore::AbstractIterator $i, Mapper::Mapper $map) : Mapper::AbstractMapperIterator($i) {
-            $.map = $map;
+            $.mapc = $map;
         }
 
         #! returns the current row transformed with the mapper
         hash getValue() {
-            return $.map.mapData($.i.getValue());
+            return $.mapc.mapData($.i.getValue());
         }
 
         #! returns the internal record count
         /** @see resetCount()
         */
         int getCount() {
-            return $.map.getCount();
+            return $.mapc.getCount();
         }
 
         #! resets the internal record count
         /** @see getCount()
         */
         resetCount() {
-            $.map.resetCount();
+            $.mapc.resetCount();
         }
     }
 }

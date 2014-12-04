@@ -188,7 +188,7 @@ my InboundTableMapper $map($table, DbMapper);
             my Columns $cols = $.table.describe();
 
             # ensure there are no unknown mappings
-            foreach my string $k in ($.map.keyIterator()) {
+            foreach my string $k in ($.mapc.keyIterator()) {
                 if (!$cols.hasKey($k))
                     $.error("mapper specifies column '%s' that does not exist in the target table '%s'", $.getFieldName($k), $.table.getSqlName());                
             }
@@ -196,7 +196,7 @@ my InboundTableMapper $map($table, DbMapper);
             # update output field definitions from real table description
             foreach my AbstractColumn $col in ($cols.iterator()) {
                 my string $cn = $col.name.lwr();
-                my reference $ch = \$.map.$cn;
+                my reference $ch = \$.mapc.$cn;
                 my int $t = $ch.typeCode();
 
                 my bool $mand;
@@ -224,7 +224,7 @@ my InboundTableMapper $map($table, DbMapper);
                     $ch.mand = True;
             }
 
-            map $.checkMapField($1, \$.map.$1, ("cols": $cols)), $.map.keyIterator();
+            map $.checkMapField($1, \$.mapc.$1, ("cols": $cols)), $.mapc.keyIterator();
         }
 
         #! performs type handling
@@ -344,7 +344,7 @@ my InboundTableMapper $map($table, DbMapper);
 
         private {
             #! data mapper
-            TableMapper::InboundTableMapper $.map;
+            TableMapper::InboundTableMapper $.mapc;
 
             #! row commit limit (<= 0 for no commits)
             int $.commit_limit;
@@ -386,7 +386,7 @@ my InboundTableMapperIterator $i($input, $table, DbMapper);
             have to be commited explicitly externally
         */
         constructor(Qore::AbstractIterator $i, SqlUtil::Table $table, hash $map, *hash $opts, int $commit_limit = 0) : Mapper::AbstractMapperIterator($i) {
-            $.map = new TableMapper::InboundTableMapper($table, $map, $opts);
+            $.mapc = new TableMapper::InboundTableMapper($table, $map, $opts);
             $.commit_limit = $commit_limit > 0 ? $.commit_limit : 0;
         }
 
@@ -420,7 +420,7 @@ my InboundTableMapperIterator $i($input, $table, DbMapper);
             have to be commited explicitly externally
         */
         constructor(Qore::AbstractIterator $i, SqlUtil::AbstractTable $table, hash $map, *hash $opts, int $commit_limit = 0) : Mapper::AbstractMapperIterator($i) {
-            $.map = new TableMapper::InboundTableMapper($table, $map, $opts);
+            $.mapc = new TableMapper::InboundTableMapper($table, $map, $opts);
             $.commit_limit = $commit_limit > 0 ? $.commit_limit : 0;
         }
 
@@ -449,7 +449,7 @@ my InboundTableMapperIterator $i($input, $map);
             @param commit_limit row count before a commit is made; if <= 0 then no commits are made by this object, otherwise a commit is made for each \a commit_limit rows processed by this object, commits are made in calls to @ref next()
         */
         constructor(Qore::AbstractIterator $i, TableMapper::InboundTableMapper $map, int $commit_limit = 0) : Mapper::AbstractMapperIterator($i) {
-            $.map = $map;
+            $.mapc = $map;
             $.commit_limit = $commit_limit > 0 ? $.commit_limit : 0;
         }
 
@@ -457,7 +457,7 @@ my InboundTableMapperIterator $i($input, $map);
         hash getValue() {
             if ($.val)
                 return $.val;
-            return $.val = $.map.mapData($.i.getValue());
+            return $.val = $.mapc.mapData($.i.getValue());
         }
 
         #! Moves the current position of the input iterator to the next element; returns @ref Qore::False "False" if there are no more elements otherwise inserts the row in the target table and returns @ref Qore::True "True"
@@ -470,11 +470,11 @@ my InboundTableMapperIterator $i($input, $map);
             my bool $rv = $.i.next();
 
             if ($rv)
-                $.map.getTable().insertNoCommit($.getValue());
+                $.mapc.getTable().insertNoCommit($.getValue());
 
             # commit transaction if necessary
             if ($.commit_limit && (($rv && (++$.cnt == $.commit_limit)) || (!$rv && $.cnt))) {
-                $.map.commit();
+                $.mapc.commit();
                 $.cnt = 0;
             }
 
@@ -488,31 +488,31 @@ my InboundTableMapperIterator $i($input, $map);
 
         #! commits the transaction
         nothing commit() {
-            $.map.commit();
+            $.mapc.commit();
         }
 
         #! rolls back the transaction
         nothing rollback() {
-            $.map.rollback();
+            $.mapc.rollback();
         }
 
         #! returns the table name
         string getTableName() {
-            return $.map.getTableName();
+            return $.mapc.getTableName();
         }
 
         #! returns the internal record count
         /** @see resetCount()
         */
         int getCount() {
-            return $.map.getCount();
+            return $.mapc.getCount();
         }
 
         #! resets the internal record count
         /** @see getCount()
         */
         resetCount() {
-            $.map.resetCount();
+            $.mapc.resetCount();
         }
     }
 }
