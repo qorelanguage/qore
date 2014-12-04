@@ -188,7 +188,7 @@ public namespace Mapper {
 
         private {
             #! the hash providing output field names and mappings
-            hash $.map;
+            hash $.mapc;
 
             #! the output character encoding; if not given then the output encoding is assumed to be UTF-8
             string $.enc = "utf-8";
@@ -321,7 +321,7 @@ my Mapper $map(DataMap);
             if (!$map)
                 $.error("empty map passed to Mapper::constructor()");
 
-            $.map = $map;
+            $.mapc = $map;
             my hash $ck = $.optionKeys();
             foreach my string $k in ($opts.keyIterator()) {
                 if (!$ck.$k)
@@ -352,7 +352,7 @@ my Mapper $map(DataMap);
 
         #! verifies the input map in the constructor
         private checkMap() {
-            map $.checkMapField($1, \$.map.$1), $.map.keyIterator();
+            map $.checkMapField($1, \$.mapc.$1), $.mapc.keyIterator();
         }
 
         #! convert a field definition to a hash if possible
@@ -561,8 +561,8 @@ my Mapper $map(DataMap);
             my hash $h;
 
             # iterate through target fields
-            foreach my string $key in ($.map.keyIterator()) {
-                my any $m = $.map.$key;
+            foreach my string $key in ($.mapc.keyIterator()) {
+                my any $m = $.mapc.$key;
 
                 # get source field name
                 my string $name = exists $m.name ? $m.name : $key;
@@ -774,7 +774,7 @@ my Mapper $map(DataMap);
 
         private {
             #! data mapper
-            Mapper::Mapper $.map;
+            Mapper::Mapper $.mapc;
         }
 
         #! creates the iterator from the arguments passed
@@ -785,7 +785,7 @@ my Mapper $map(DataMap);
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
          */
         constructor(Qore::AbstractIterator $i, hash $map, *hash $opts) : Mapper::AbstractMapperIterator($i) {
-            $.map = new Mapper($map, $opts);
+            $.mapc = new Mapper($map, $opts);
         }
 
         #! creates the iterator from the arguments passed
@@ -793,26 +793,26 @@ my Mapper $map(DataMap);
             @param map the mapper to transform the data
         */
         constructor(Qore::AbstractIterator $i, Mapper::Mapper $map) : Mapper::AbstractMapperIterator($i) {
-            $.map = $map;
+            $.mapc = $map;
         }
 
         #! returns the current row transformed with the mapper
         hash getValue() {
-            return $.map.mapData($.i.getValue());
+            return $.mapc.mapData($.i.getValue());
         }
 
         #! returns the internal record count
         /** @see resetCount()
         */
         int getCount() {
-            return $.map.getCount();
+            return $.mapc.getCount();
         }
 
         #! resets the internal record count
         /** @see getCount()
         */
         resetCount() {
-            $.map.resetCount();
+            $.mapc.resetCount();
         }
     }
 }

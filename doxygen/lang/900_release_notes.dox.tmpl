@@ -77,6 +77,7 @@
     - fixed bugs in the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> and <a href="../../modules/RestClient/html/index.html">RestClient</a> modules where URI strings were improperly encoded and decoded
     - fixed a bug in the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module where chunked sends were not received and decoded properly in all cases for handlers that did not explicitly handle chunked messages
     - fixed a crash when parsing when parsing function, method, or closure arguments when either of the @ref duplicate-local-vars or @ref duplicate-block-vars warnings are set due to an error handling thread-local variable info in parse initialization
+    - fixed a bug where code with mixed coding styles (old and new) could result in invalid parse errors when parsing base class constructor calls to a base class defined in another coding style
 
     @section qore_0811 Qore 0.8.11
 

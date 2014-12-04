@@ -445,6 +445,9 @@ void StatementBlock::parseInitConstructor(const QoreTypeInfo *typeInfo, UserVari
    // if there is a base constructor list, resolve all classes and 
    // ensure that all classes referenced are base classes of this class
    if (bcal) {
+      // ensure that parse flags are set before initializing
+      ParseWarnHelper pwh(pwo);
+
       for (bcalist_t::iterator i = bcal->begin(), e = bcal->end(); i != e; ++i) {
 	 assert(typeInfo->getUniqueReturnClass());
 	 (*i)->parseInit(bcl, typeInfo->getUniqueReturnClass()->getName());
