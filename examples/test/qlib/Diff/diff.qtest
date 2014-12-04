@@ -1,0 +1,19 @@
+#!/usr/bin/env qore
+%require-types
+%enable-all-warnings
+%new-style
+%requires Diff
+%requires UnitTest
+
+UnitTest t();
+
+list a = (0,    2, 3,    5, 6, 7, 8);
+list b = (   1, 2, 3, 4, 5, 6, 7, 8);
+list ab = (("d" : list(0), "i" : list(1)), 2, 3, ("i" : list(4), "d" : list()), 5, 6, 7, 8);
+
+t.ok(diff(a, b) == ab, "int diff");
+
+list c = ("a", "b", "c", "d", "e", "f");
+list d = (     "b",           "e", "f", "g", "h");
+list cd = (("d" : list("a"), "i" : list()), "b", ("d" : list("c", "d"), "i" : list()), "e", "f", ("d" : list(), "i" : list("g", "h")));
+t.ok(diff(c, d) == cd, "string diff");

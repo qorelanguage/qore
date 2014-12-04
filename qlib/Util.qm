@@ -722,4 +722,8 @@ my list $unique_list = uniq($list);
 
         return $result;
     }
+
+    public list sub slice(list $l, softlist $indices) {
+        return map $l[$1], select range(0, $l.size() - 1), inlist($1, $indices);
+    }
 }
