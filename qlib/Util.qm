@@ -762,16 +762,15 @@ my list $unique_list = uniq($list);
         @param list some list
     */
     public bool sub same (list $l) {
-        if (!$l) {
+        if ($l.size() < 2) {
             return True;
         }
         my any $random_value = $l[0];
-        foreach my any $value in ($l) {
-            if ($value != $random_value) {
+        for (my int $i = 1; $i < $l.size(); ++$i) {
+            if ($l[$i] != $random_value) {
                 return False;
             }
         }
-
         return True;
     }
     
