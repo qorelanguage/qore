@@ -614,6 +614,91 @@ my string $str = get_marketing_byte_size($n);
         return $v + $k[0] + "B";
     }
 
+    /*
+    class Transform {
+        public {
+            const Opts = (
+                "timezone": True,
+                "encoding": True,
+                "number_format": True,
+                "date_format": True,
+                );
+        }
+
+        private {
+            TimeZone $.timezone;
+            string $.encoding;
+            string $.number_format;
+            string $.date_format;
+        }
+
+        constructor(hash $opt) {
+            $.setOptions($opt);
+        }
+
+        private setOptions(hash $opt) {
+            # ... check and set opts, throw an exception for unknown options
+        }
+
+        any transform(any $value, hash $type) {
+            switch ($type.type) {
+                case "int": {
+                    return int($value);
+                }
+
+                case NOTHING:
+                case "string": {
+                    if ($value.typeCode() == NT_STRING)
+                        return $.encoding ? convert_encoding($value, $.encoding) : $value;
+                    return string($value);
+                }
+
+                case "float": {
+                    if ($value.typeCode() == NT_STRING) {
+                        my *string $nf = $type.format ? $type.format : $.number_format;
+                        return $nf ? parse_float($value, $nf) : float($value);
+                    }
+                    return float($value);
+                }
+                case "number": {
+                    if ($value.typeCode() == NT_STRING) {
+                        my *string $nf = $type.format ? $type.format : $.number_format;
+                        return $nf ? parse_number($value, $nf) : number($value);
+                    }
+                    return number($value);
+                }
+                case "date": {
+                    if ($value.empty()) {
+                        return 1970-01-01;
+                    }
+                    my TimeZone $tz;
+                    if ($type.timezone)
+                        $tz = $type.timezone;
+                    else if ($.timezone)
+                        $tz = $.timezone;
+
+                    my int $t = $value.typeCode();
+                    if ($t == NT_STRING) {
+                        my *string $fmt = $type.format;
+                        if (!$fmt)
+                            $fmt = $.date_format;
+                        
+                        return $tz ? $tz.date($value, $fmt) : date($value, $fmt);
+                    }
+                    if ($t != NT_DATE && $tz)
+                        $value = date($value);
+                    return $tz ? $tz.date($value) : date($value);
+                }
+                default: {
+                    throw "FIELD-TYPE-ERROR", sprintf("output type %y not supported", $type.type);
+                }
+            }
+
+            return $value;
+        }
+    }
+    */
+
     public any sub retype(any $value, hash $type) {
         switch ($type.type) {
             case "int": {
@@ -724,6 +809,6 @@ my list $unique_list = uniq($list);
     }
 
     public list sub slice(list $l, softlist $indices) {
-        return map $l[$1], select range(0, $l.size() - 1), inlist($1, $indices);
+        return map $l[$1], $indices, exists $l[$1];
     }
 }
