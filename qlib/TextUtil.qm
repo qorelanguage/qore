@@ -78,7 +78,7 @@ public namespace TextUtil {
 #! structured line iterator for abstract data allowing efficient "pipelined" processing
 public class TextUtil::AbstractTextIterator {
     private {
-        hash opts; # encoding, eol, ignore-empty, timezone
+        hash m_opts; # encoding, eol, ignore-empty, timezone
     }
 
     #! creates the AbstractTextIterator object
@@ -86,7 +86,7 @@ public class TextUtil::AbstractTextIterator {
     @param g global options
     */
     constructor(*hash g) {
-        opts = checkOptions(g);
+        m_opts = checkOptions(g);
     }
 
 #    abstract *string getValue();
@@ -118,18 +118,80 @@ public class TextUtil::AbstractTextIterator {
                     # TODO: check encoding name here
                     break;
                 }
+                case "number_format": {
+                    # TODO: check here
+                    break;
+                }
+                case "date_format": {
+                    # TODO: check here
+                    break;
+                }
             }
         }
 
         return opts;
     }
-}
 
+    public any transform(any value, hash type) {
+        switch (type.type) {
+            case "int": {
+                return int(value);
+            }
+
+            case NOTHING:
+            case "string": {
+                if (value.typeCode() == NT_STRING)
+                    return m_opts.encoding ? convert_encoding(value, m_opts.encoding) : value;
+                return string(value);
+            }
+
+            case "float": {
+                if (value.typeCode() == NT_STRING) {
+                    my *string nf = type.format ? type.format : m_opts.number_format;
+                    return nf ? parse_float(value, nf) : float(value);
+                }
+                return float(value);
+            }
+            case "number": {
+                if (value.typeCode() == NT_STRING) {
+                    my *string nf = type.format ? type.format : m_opts.number_format;
+                    return nf ? parse_number(value, nf) : number(value);
+                }
+                return number(value);
+            }
+            case "date": {
+                if (value.empty()) {
+                    return 1970-01-01;
+                }
+                my TimeZone tz;
+                if (type.timezone)
+                    tz = new TimeZone(type.timezone);
+                else if (m_opts.timezone)
+                    tz = m_opts.timezone;
+
+                my int t = value.typeCode();
+                if (t == NT_STRING) {
+                    my *string fmt = type.format;
+                    if (!fmt)
+                        fmt = m_opts.date_format;
+                    
+                    return tz ? tz.date(value, fmt) : date(value, fmt);
+                }
+                if (t != NT_DATE && tz)
+                    value = date(value);
+                return tz ? tz.date(value) : date(value);
+            }
+          default: {
+              throw "FIELD-TYPE-ERROR", sprintf("output type %y not supported", type.type);
+            }
+        }
+    }
+}
 
 #! structured writer
 public class TextUtil::AbstractTextWriter {
     private {
-        hash opts; # eol
+        hash m_opts; # eol
     }
 
     #! creates the AbstractTextWriter object
@@ -137,7 +199,7 @@ public class TextUtil::AbstractTextWriter {
     @param g global options
     */
     constructor(*hash g) {
-        opts = g;
+        m_opts = checkOptions(g);
     }
 
 #    abstract write();

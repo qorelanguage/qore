@@ -207,10 +207,10 @@ public class FixedLengthUtil::FixedLengthAbstractIterator inherits TextUtil::Abs
     @param h specification of fixed-length-line file        
     @param g global options
     */
-    constructor(hash h, code i, *hash g) : TextUtil::AbstractTextIterator(hash() + (g.encoding ? ("encoding" : g.encoding) : hash()) + (g.eol ? ("eol" : g.eol) : hash()) + (g{"ignore-empty"} ? ("ignore-empty" : g{"ignore-empty"}) : hash()) + (g.timezone ? ("timezone" : g.timezone) : hash())) {
+    constructor(hash h, code i, *hash g) : TextUtil::AbstractTextIterator(hash() + (g.encoding ? ("encoding" : g.encoding) : hash()) + (g.eol ? ("eol" : g.eol) : hash()) + (g{"ignore-empty"} ? ("ignore-empty" : g{"ignore-empty"}) : hash()) + (g.timezone ? ("timezone" : g.timezone) : hash()) + (g.number_format ? ("number_format" : g.number_format) : hash()) + (g.date_format ? ("date_format" : g.date_format) : hash())) { # TODO : this is ugly! how to do it better? hashmap? or call in sub body?
         specs           = h;
         identify_record = i;
-        opts            = opts + checkOptions(g);
+        m_opts          = m_opts + checkOptions(g);
     }
 
     abstract *string getLine();
@@ -240,9 +240,9 @@ my hash $h = $i.getValue();
         foreach string col in (specs.types{type}.keys()) {
             hash field = specs.types{type}{col};
             if (!field.timezone) {
-                field.timezone = opts.timezone;
+                field.timezone = m_opts.timezone;
             }
-            result{col} = retype(line.substr(pos, field.length), field);
+            result{col} = transform(line.substr(pos, field.length), field);
             pos += field.length;
         }
         return result;
@@ -284,7 +284,7 @@ public class FixedLengthUtil::FixedLengthFileIterator inherits private FixedLeng
      */
     bool next() {
         bool status = FileLineIterator::next();
-        if (opts{"ignore-empty"}) {
+        if (m_opts{"ignore-empty"}) {
             while (status && getLine() == '') {
                 status = FileLineIterator::next();
             }
@@ -316,7 +316,7 @@ public class FixedLengthUtil::FixedLengthDataIterator inherits private FixedLeng
     }
 
     private createLines() {
-        string separator = opts.eol ? opts.eol : "\n";
+        string separator = m_opts.eol ? m_opts.eol : "\n";
         lines = data.split(separator);
         lines_pos = 0;
     }
@@ -341,7 +341,7 @@ public class FixedLengthUtil::FixedLengthDataIterator inherits private FixedLeng
             createLines();
         }
         bool status = boolean(getLine() !== NOTHING);
-        if (opts{"ignore-empty"}) {
+        if (m_opts{"ignore-empty"}) {
             while (status && getLine() == "") { # skip empty lines
                 lines_pos++;
                 status = boolean(getLine() !== NOTHING);
@@ -369,7 +369,7 @@ public class FixedLengthUtil::FixedLengthAbstractWriter inherits TextUtil::Abstr
         specs           = h;
         identify_record = i;
         delete g.eol;
-        opts            = opts + checkOptions(g);
+        m_opts          = m_opts + checkOptions(g);
     }
 
     private bool checkItemTypeCombination(hash item, string type, string line_candidate) {
@@ -430,7 +430,7 @@ public class FixedLengthUtil::FixedLengthFileWriter inherits FixedLengthUtil::Fi
             foreach string type in (specs.types.keys()) {
                 string line_candidate = join("", map string($1), item.values());
                 if (checkItemTypeCombination(item, type, line_candidate)) {
-                    FW.write(line_candidate + (opts.eol ? opts.eol : "\n"));
+                    FW.write(line_candidate + (m_opts.eol ? m_opts.eol : "\n"));
                     break;
                 }
             }
@@ -463,7 +463,7 @@ public class FixedLengthUtil::FixedLengthDataWriter inherits FixedLengthUtil::Fi
             foreach string type in (specs.types.keys()) {
                 string line_candidate = join("", map string($1), item.values());
                 if (checkItemTypeCombination(item, type, line_candidate)) {
-                    result += line_candidate + (opts.eol ? opts.eol : "\n");
+                    result += line_candidate + (m_opts.eol ? m_opts.eol : "\n");
                     break;
                 }
             }
