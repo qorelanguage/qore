@@ -55,7 +55,7 @@
 #include <qore/intern/GlobalVariableList.h>
 #include <qore/intern/QoreNamespaceIntern.h>
 #include <qore/intern/QoreParseHashNode.h>
-
+    
 #include "parser.hpp"
 
 #include <qore/intern/QoreClassIntern.h>
@@ -1330,7 +1330,6 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %token TOK_ON_SUCCESS "on_success"
 %token TOK_ON_ERROR "on_error"
 %token TOK_MAP "map"
-%token TOK_HMAP "hmap"
 %token TOK_FOLDR "foldr"
 %token TOK_FOLDL "foldl"
 %token TOK_SELECT "select"
@@ -1370,7 +1369,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %nonassoc TOK_ELSE
 
 // FIXME: check precedence
-%nonassoc TOK_UNSHIFT TOK_PUSH TOK_SPLICE TOK_EXTRACT TOK_MAP TOK_HMAP TOK_FOLDR TOK_FOLDL TOK_SELECT
+%nonassoc TOK_UNSHIFT TOK_PUSH TOK_SPLICE TOK_EXTRACT TOK_MAP TOK_FOLDR TOK_FOLDL TOK_SELECT
 %left ','
 %right PLUS_EQUALS MINUS_EQUALS AND_EQUALS OR_EQUALS MODULA_EQUALS MULTIPLY_EQUALS DIVIDE_EQUALS XOR_EQUALS SHIFT_LEFT_EQUALS SHIFT_RIGHT_EQUALS
 %right '='
@@ -2877,6 +2876,50 @@ exp:    scalar
 	      //$$ = new QoreTreeNode(map_exp, OP_MAP_SELECT, l);
 	   }
 	}
+        | TOK_MAP '{' exp ':' exp '}' ',' exp {
+	   QoreListNode* l = $<list>8 && $<list>8->getType() == NT_LIST ? reinterpret_cast<QoreListNode*>($<list>8) : 0;
+           if(0 == l)
+               printd(0, "parser: List is NULL! Type: %d \n", $8->getType());
+           AbstractQoreNode* p = l ? 0 : $8;
+           $$ = 0;
+           if (l) {
+              // a literal finalized list (in parantheses) is taken as the list/iterator argument
+              if (l->isFinalized()) {
+                  printd(0, "parser: Finalized!!\n");
+                 p = l;
+                 l = 0;
+              }
+              else if (l->size() == 1) {
+                  printd(0, "parser: Size == 1!!\n");
+                 p = l->shift();
+                 l->deref(0);
+              }
+              else if (l->size() == 2) {
+                 printd(0, "parser: HashMapSelect_______\n");
+                 AbstractQoreNode* iter = l->shift();
+                 AbstractQoreNode* select = l->shift();
+                 l->deref(0);
+                 AbstractQoreNode* args[] = {$3, $5, iter, select};
+                 $$ = new QoreHashMapSelectOperatorNode(args);
+              }
+              else {
+                 parse_error("invalid arguments to hash map operator, expected: iterator expression, [select expression], got %d element%s after hash expressions", (int)l->size(), l->size() == 1 ? "" : "s");
+                 //$$ = makeErrorTree($3, 5);
+                 $$ = makeErrorTree($3, $5);
+                 l->deref(0);
+              }
+           }
+           else
+           {
+               printd(0, "parser: Not a LIST!!\n");
+           }
+           if (!$$)
+           {
+               printd(0, "parser: HashMap\n");
+              AbstractQoreNode* args[] = {$3, $5, p};
+              $$ = new QoreHashMapOperatorNode(args);
+           }
+        }
         | TOK_FOLDR exp {
 	   pop_ignore_numeric_argv_ref();
 	   QoreListNode* l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode*>($2) : 0;

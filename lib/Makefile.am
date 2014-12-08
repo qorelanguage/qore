@@ -251,6 +251,8 @@ libqore_la_SOURCES = \
 	QoreLogicalGreaterThanOperatorNode.cpp \
 	QoreMapOperatorNode.cpp \
 	QoreMapSelectOperatorNode.cpp \
+	QoreHashMapOperatorNode.cpp \
+	QoreHashMapSelectOperatorNode.cpp \
 	QorePseudoMethods.cpp \
 	QoreHTTPClient.cpp \
 	QoreHttpClientObject.cpp \
