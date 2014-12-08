@@ -53,7 +53,7 @@ module UnitTest {
     
     <b>Examples:</b>
     @code
-#!/usr/bin/env qore
+#!/usr/bin/env qore`
 %requires UnitTest
 %requires Cow # module that we want to test
 
@@ -196,7 +196,12 @@ public class UnitTest::UnitTest {
     }
 
     destructor() {
-        report(m_output);
+        if (m_options.format != PLAINTEXT) {
+            report(m_output);
+        }
+        else {
+            reportSummary();
+        }
     }
 
     hash options() {
@@ -243,10 +248,36 @@ available output formats (stdout):
         exit(1);
     }
 
+    reportOneTest(hash testcase) {
+        switch (m_output) {
+            case PLAINTEXT:
+                reportOneTestPlaintext(testcase);
+                break;
+            case JUNIT:
+                throw "NO-GRADUAL-JUNIT", "JUnit format cannot be reported gradually";
+            default:
+                throw "UNIT-TEST-ERROR", "Unknown format type";
+        }
+    }
+
+    private reportSummary() {
+        if (!quiet()) {
+            printf("%d tests started, %d error%s\n", testCount(), errors(), errors() == 1 ? "" : "s");
+        }
+    }
+
+    private reportOneTestPlaintext(hash testcase) {
+        if (!m_options.verbose && testcase.result == "OK")
+            return;
+        printf("%s: %s\n", testcase.result, testcase.msg);
+        if (m_options.verbose && testcase.result != "OK") {
+            printf("%s\n", testcase.msg);
+        }
+    }
 
     report(int format = PLAINTEXT) {
         switch (format) {
-            case PLAINTEXT:
+            case PLAINTEXT: # TODO: remove
                 reportPlaintext();
                 break;
             case JUNIT:
@@ -257,20 +288,11 @@ available output formats (stdout):
         }
     }
 
-    private reportPlaintext() {
+    private reportPlaintext() { # TODO: remove
         HashIterator it(m_result);
         int test_id = 0;
         while (it.next()) {
-            if (!m_options.verbose && it.getValue().result == "OK")
-                continue;
-            printf("%s: %s\n", it.getValue().result, it.getKey());
-            if (m_options.verbose && it.getValue().result != "OK") {
-                printf("%s\n", it.getValue().msg);
-            }
-        }
-
-        if (!quiet()) {
-            printf("%d tests started, %d error%s\n", testCount(), errors(), errors() == 1 ? "" : "s");
+            reportOneTestPlaintext(it.getValue());
         }
     }
 
@@ -331,12 +353,17 @@ this.cmp(Cow.sound(), 'moo', "cow's sound is correct");
     */
     cmp(any v1, any v2, string msg) {
         m_testCount++;
+        m_result{msg}{"msg"} = msg;
         if (v1 === v2) {
             m_result{msg}{'result'} = "OK";
         }
         else {
             m_result{msg}{'result'} = sprintf("ERROR: %N != %N", v1, v2);
             m_errors++;
+        }
+
+        if (m_output == PLAINTEXT) {
+            reportOneTest(m_result{m_result.lastKey()});
         }
     }
 
