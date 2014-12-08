@@ -53,7 +53,7 @@ module UnitTest {
     
     <b>Examples:</b>
     @code
-#!/usr/bin/env qore`
+#!/usr/bin/env qore
 %requires UnitTest
 %requires Cow # module that we want to test
 

@@ -47,6 +47,26 @@ t.cmploop(\try_call(), (
         "cmp"  : ("2" : "1b", "44" : "4b", "12" : "6b"),
         "msg"  : "iterator given",
     ),
+    (
+        "args" : list(any sub() {return map {$1 : $1 * 2}, (1, 4, 6), $1 != 4;}),
+        "cmp"  : ("1" : 2, "6" : 12),
+        "msg"  : "select param given",
+    ),
+    (
+        "args" : list(any sub() {return map {$1 : $1 * 2}, (1, 4, 6), False;}),
+        "cmp"  : hash(),
+        "msg"  : "select param is always False",
+    ),
+    (
+        "args" : list(any sub() {return map {$1 : $1 * 2}, (1, 4, 6), NOTHING;}),
+        "cmp"  : hash(),
+        "msg"  : "select param is NOTHING",
+    ),
+    (
+        "args" : list(any sub() {return map {$1 : $1 * 2}, (1, 4, 6), True;}),
+        "cmp"  : ("1" : 2, "4" : 8, "6" : 12),
+        "msg"  : "select param is always True",
+    ),
 ));
 
 any sub try_call(code c) {
