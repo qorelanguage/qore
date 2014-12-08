@@ -39,7 +39,8 @@ DOX_MODULES = qlib/SmtpClient.qm \
 	qlib/Schema.qm \
 	qlib/UnitTest.qm \
 	qlib/TextUtil.qm \
-	qlib/Diff.qm
+	qlib/Diff.qm \
+	qlib/Set.qm
 
 # TODO: this is ugly... make should look for all qtest files by itself
 TESTSCRIPTS= \
@@ -56,7 +57,7 @@ TESTSCRIPTS= \
         examples/test/qlib/Qorize/realWorldCase.qtest \
         examples/test/qlib/SqlUtil/smoke.qtest \
         examples/test/qlib/SSL/ssl.qtest \
-        examples/test/qlib/Util/list_minus.qtest \
+        examples/test/qlib/Set/list_minus.qtest \
         examples/test/qlib/Util/same.qtest \
         examples/test/qlib/Util/slice.qtest \
         examples/test/qlib/Util/uniq.qtest \
