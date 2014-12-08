@@ -196,6 +196,90 @@ public:
    }
 };
 
+// NEW code ------------
+
+template <unsigned int N = 3, class T = QoreOperatorNode>
+class QoreNOperatorNodeBase : public T{
+protected:
+    AbstractQoreNode* e[N];
+
+    inline QoreNOperatorNodeBase(AbstractQoreNode** eN) {
+        //AbstractQoreNode* tmpN = *eN;
+        for (unsigned int i = 0; i < N; ++i) {
+            e[i] = *eN;
+            ++eN;
+        }
+    }
+    
+    inline ~QoreNOperatorNodeBase() {
+        for (unsigned i = 0; i < N; ++i)
+           if (e[i]) e[i]->deref(0);
+    }
+
+public:
+    DLLLOCAL AbstractQoreNode* get(unsigned i) {
+       assert(i < 3);
+       return e[i];
+    }
+
+};
+
+
+//template <unsigned int N = 3>
+//class QoreNOperatorNodeBase {
+//protected:
+//    AbstractQoreNode* e[N];
+//
+//    inline DLLLOCAL void initialize(AbstractQoreNode** eN)
+//    {
+//        //AbstractQoreNode* tmpN = *eN;
+//        for (unsigned int i = 0; i < N; ++i) {
+//            e[i] = *eN;
+//            ++eN;
+//        }
+//    }
+//
+//    inline DLLLOCAL void release()
+//    {
+//        for (unsigned i = 0; i < N; ++i)
+//           if (e[i]) e[i]->deref(0);
+//    }
+//
+//public:
+//    DLLLOCAL AbstractQoreNode* get(unsigned i) {
+//       assert(i < 3);
+//       return e[i];
+//    }
+//
+//};
+//
+//template <class T = QoreOperatorNode>
+//class QoreTrinaryOperatorNode_NEW : public T, public QoreNOperatorNodeBase<3> {
+//public:
+//    DLLLOCAL QoreTrinaryOperatorNode_NEW(AbstractQoreNode** eN) {
+////        printd(0, "QoreTrinaryOperatorNode_NEW...\n");
+//        initialize(eN);
+//    }
+//
+//    DLLLOCAL ~QoreTrinaryOperatorNode_NEW() {
+//        release();
+//    }
+//};
+//
+//template <class T = QoreOperatorNode>
+//class QoreQuaternaryOperatorNode : public T, public QoreNOperatorNodeBase<4> {
+//public:
+//   DLLLOCAL QoreQuaternaryOperatorNode(AbstractQoreNode** eN) {
+////        printd(0, "QoreQuaternaryOperatorNode...\n");
+//       initialize(eN);
+//   }
+//
+//   DLLLOCAL ~QoreQuaternaryOperatorNode() {
+//       release();
+//   }
+//};
+
+
 // include operator headers
 #include <qore/intern/QoreDeleteOperatorNode.h>
 #include <qore/intern/QoreRemoveOperatorNode.h>
@@ -236,5 +320,9 @@ public:
 #include <qore/intern/QoreQuestionMarkOperatorNode.h>
 #include <qore/intern/QoreMapOperatorNode.h>
 #include <qore/intern/QoreMapSelectOperatorNode.h>
+
+#include <qore/intern/QoreHashMapOperatorNode.h>
+#include <qore/intern/QoreHashMapSelectOperatorNode.h>
+
 
 #endif
