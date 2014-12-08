@@ -185,6 +185,8 @@
 #include "QoreLogicalGreaterThanOperatorNode.cpp"
 #include "QoreMapOperatorNode.cpp"
 #include "QoreMapSelectOperatorNode.cpp"
+#include "QoreHashMapOperatorNode.cpp"
+#include "QoreHashMapSelectOperatorNode.cpp"
 #include "ql_thread.cpp"
 #include "ql_time.cpp"
 #include "ql_lib.cpp"
