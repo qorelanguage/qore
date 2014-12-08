@@ -300,6 +300,7 @@ Content-Length: 36
     @subsection rh_v_1_1 RestHandler v1.1
     - added support for the HTTP \c OPTIONS method
     - return an error if an unsupported HTTP method is used in a REST call
+    - fixed a type error in the ah member of AbstractRestStreamRequestHandler
 
     @subsection rh_v_1_0 RestHandler v1.0
     - the initial version of the RestHandler module
@@ -313,7 +314,7 @@ public namespace RestHandler {
 
         private {
             #! call argument hash
-            hash $.ah;
+            *hash $.ah;
 
             #! headers to add in the response
             hash $.rhdr;

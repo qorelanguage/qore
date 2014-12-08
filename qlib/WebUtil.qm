@@ -66,6 +66,7 @@ module WebUtil {
 
     @subsection webutil_v1_2
     - fixed a bug where template programs with parse option @ref Qore::PO_ALLOW_BARE_REFS set did not work
+    - updated FileHandler::handleRequest() to allow for chunked sends
 
     @subsection webutil_v1_1
     - added logic to the default file serving code to determine if the file is a binary or text file from the MIME type
@@ -688,7 +689,7 @@ my *hash $h = $tm.tryRender("html/index.qhtml", $ctx);
 
             If handleRequestImpl() returns @ref nothing and the requested path cannot be matched and served, then unhandledRequest() is called to handle the error
         */
-        hash handleRequest(hash $cx, hash $hdr, *data $body) {
+        hash handleRequest(HttpListener $listener, Socket $s, hash $cx, hash $hdr, *data $body) {
             # get local request path and "localize" it and strip off any query args
             my string $path = $.getRelativePath($hdr.path);
 
