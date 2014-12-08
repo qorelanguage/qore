@@ -387,8 +387,6 @@ void QoreHttpClientObject::static_init() {
    header_ignore.insert("Content-Length");
 }
 
-
-
 QoreHttpClientObject::QoreHttpClientObject() : http_priv(new qore_httpclient_priv(priv)) {
    http_priv->setSocketPath();
 }
@@ -1151,12 +1149,15 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
 	    msock->socket->setEncoding(QEM.findCreate(content_encoding));
 	    content_encoding = 0;
 	 }
-	 else if (!strcasecmp(content_encoding, "deflate") || !strcasecmp(content_encoding, "x-deflate"))
-	    dec = qore_inflate_to_string;
-	 else if (!strcasecmp(content_encoding, "gzip") || !strcasecmp(content_encoding, "x-gzip"))
-	    dec = qore_gunzip_to_string;
-	 else if (!strcasecmp(content_encoding, "bzip2") || !strcasecmp(content_encoding, "x-bzip2"))
-	    dec = qore_bunzip2_to_string;
+	 else if (!recv_callback) {
+	    // only decode message bodies automatically if there is no receive callback
+	    if (!strcasecmp(content_encoding, "deflate") || !strcasecmp(content_encoding, "x-deflate"))
+	       dec = qore_inflate_to_string;
+	    else if (!strcasecmp(content_encoding, "gzip") || !strcasecmp(content_encoding, "x-gzip"))
+	       dec = qore_gunzip_to_string;
+	    else if (!strcasecmp(content_encoding, "bzip2") || !strcasecmp(content_encoding, "x-bzip2"))
+	       dec = qore_bunzip2_to_string;
+	 }
       }
 
       const char* te = get_string_header(xsink, **ans, "transfer-encoding");
@@ -1251,13 +1252,17 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
    if (body) {
       if (content_encoding) {
 	 if (!dec) {
-	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "don't know how to handle content-encoding '%s'", content_encoding);
-	    ans = 0;
+	    if (!recv_callback) {
+	       xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "don't know how to handle content-encoding '%s'", content_encoding);
+	       ans = 0;
+	    }
 	 }
-	 BinaryNode* bobj = reinterpret_cast<BinaryNode*>(body);
-	 QoreStringNode* str = dec(bobj, msock->socket->getEncoding(), xsink);
-	 bobj->deref();
-	 body = str;
+	 else {
+	    BinaryNode* bobj = reinterpret_cast<BinaryNode*>(body);
+	    QoreStringNode* str = dec(bobj, msock->socket->getEncoding(), xsink);
+	    bobj->deref();
+	    body = str;
+	 }
       }
 
       if (body) {
