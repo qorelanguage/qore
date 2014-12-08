@@ -34,7 +34,7 @@
 
 #include <qore/intern/AbstractIteratorHelper.h>
 
-class QoreHashMapSelectOperatorNode : public QoreNOperatorNodeBase<4> {
+class QoreHashMapSelectOperatorNode : public QoreQuaternaryOperatorNode<> {
 protected:
    const QoreTypeInfo* returnTypeInfo;
 
@@ -49,14 +49,13 @@ protected:
    DLLLOCAL virtual ~QoreHashMapSelectOperatorNode() {
    }
 
-   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, 
-                                                    const QoreTypeInfo*& typeInfo);
+   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
-   inline DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
       return returnTypeInfo;
    }
 
-   inline DLLLOCAL virtual bool hasEffect() const {
+   DLLLOCAL virtual bool hasEffect() const {
       // FIXME: check iterated expression to see if it really has an effect
       return true;
    }
@@ -67,9 +66,9 @@ public:
    /*
     * Constructor
     */
-   inline DLLLOCAL QoreHashMapSelectOperatorNode(AbstractQoreNode** exprs) : QoreNOperatorNodeBase<4>(exprs),
-                                                                       returnTypeInfo(0)
-   {}
+   DLLLOCAL QoreHashMapSelectOperatorNode(AbstractQoreNode* p0, AbstractQoreNode* p1, AbstractQoreNode* p2, AbstractQoreNode* p3) :
+      QoreQuaternaryOperatorNode<>(p0, p1, p2, p3), returnTypeInfo(0) {
+   }
 
    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
    DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
@@ -81,6 +80,5 @@ public:
 
    DLLLOCAL AbstractQoreNode* map(ExceptionSink* xsink) const;
 };
-
 
 #endif // QOREHASHMAPSELECTOPERATORNODE_H

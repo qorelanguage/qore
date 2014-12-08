@@ -174,6 +174,26 @@ public:
       }
    }
 
+   DLLLOCAL size_t size() {
+      return keys.size();
+   }
+
+   // used when converting to the hash map operator
+   DLLLOCAL AbstractQoreNode* takeFirstKeyNode() {
+      assert(keys.size() == 1);
+      AbstractQoreNode* rv = keys[0];
+      keys[0] = 0;
+      return rv;
+   }
+
+   // used when converting to the hash map operator
+   DLLLOCAL AbstractQoreNode* takeFirstValueNode() {
+      assert(values.size() == 1);
+      AbstractQoreNode* rv = values[0];
+      values[0] = 0;
+      return rv;
+   }
+   
    DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
 
    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;

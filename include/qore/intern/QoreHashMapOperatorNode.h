@@ -34,7 +34,7 @@
 
 #include <qore/intern/AbstractIteratorHelper.h>
 
-class QoreHashMapOperatorNode : public QoreNOperatorNodeBase<3> {
+class QoreHashMapOperatorNode : public QoreTrinaryOperatorNode<> {
 protected:
    const QoreTypeInfo* returnTypeInfo;
 
@@ -67,9 +67,9 @@ public:
    /*
     * Constructor
     */
-   inline DLLLOCAL QoreHashMapOperatorNode(AbstractQoreNode** exprs) : QoreNOperatorNodeBase<3>(exprs),
-                                                                       returnTypeInfo(0)
-   {}
+   DLLLOCAL QoreHashMapOperatorNode(AbstractQoreNode* p0, AbstractQoreNode* p1, AbstractQoreNode* p2) :
+      QoreTrinaryOperatorNode<>(p0, p1, p2), returnTypeInfo(0) {
+   }
 
    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
    DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
@@ -81,8 +81,5 @@ public:
 
    DLLLOCAL AbstractQoreNode* map(ExceptionSink* xsink) const;
 };
-
-
-
 
 #endif // QOREHASHMAPOPERATORNODE_H

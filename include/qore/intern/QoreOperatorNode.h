@@ -32,6 +32,8 @@
 #ifndef _QORE_QOREOPERATORNODE_H
 #define _QORE_QOREOPERATORNODE_H
 
+#include <stdarg.h>
+
 class QoreOperatorNode : public ParseNode {
 protected:
    bool ref_rv;
@@ -173,112 +175,50 @@ public:
    }
 };
 
-template <class T = QoreOperatorNode>
-class QoreTrinaryOperatorNode : public T {
+template <unsigned int N, class T = QoreOperatorNode>
+class MyQoreNOperatorNodeBase : public T {
 protected:
-   AbstractQoreNode* e[3];
+   DLLLOCAL AbstractQoreNode* e[N];
 
-public:
-   DLLLOCAL QoreTrinaryOperatorNode(AbstractQoreNode* e0, AbstractQoreNode* e1, AbstractQoreNode* e2) {
-      e[0] = e0;
-      e[1] = e1;
-      e[2] = e2;
+   DLLLOCAL void init(AbstractQoreNode* a0, va_list ap) {
+      e[0] = a0;
+      for (unsigned int i = 1; i < N; ++i)
+         e[i] = va_arg(ap, AbstractQoreNode*);
    }
 
-   DLLLOCAL ~QoreTrinaryOperatorNode() {
-      for (unsigned i = 0; i < 3; ++i)
+   DLLLOCAL virtual ~MyQoreNOperatorNodeBase() {
+      for (unsigned i = 0; i < N; ++i)
          if (e[i]) e[i]->deref(0);
    }
+   
+public:
+    DLLLOCAL AbstractQoreNode* get(unsigned i) {
+       assert(i < N);
+       return e[i];
+    }
+};
 
-   DLLLOCAL AbstractQoreNode* get(unsigned i) {
-      assert(i < 3);
-      return e[i];
+template <class T = QoreOperatorNode>
+class QoreTrinaryOperatorNode : public MyQoreNOperatorNodeBase<3, T> {
+public:
+   DLLLOCAL QoreTrinaryOperatorNode(AbstractQoreNode* a0, ...) {
+      va_list ap;
+      va_start(ap, a0);
+      this->init(a0, ap);
+      va_end(ap);
    }
 };
 
-// NEW code ------------
-
-template <unsigned int N = 3, class T = QoreOperatorNode>
-class QoreNOperatorNodeBase : public T{
-protected:
-    AbstractQoreNode* e[N];
-
-    inline QoreNOperatorNodeBase(AbstractQoreNode** eN) {
-        //AbstractQoreNode* tmpN = *eN;
-        for (unsigned int i = 0; i < N; ++i) {
-            e[i] = *eN;
-            ++eN;
-        }
-    }
-    
-    inline ~QoreNOperatorNodeBase() {
-        for (unsigned i = 0; i < N; ++i)
-           if (e[i]) e[i]->deref(0);
-    }
-
+template <class T = QoreOperatorNode>
+class QoreQuaternaryOperatorNode : public MyQoreNOperatorNodeBase<4, T> {
 public:
-    DLLLOCAL AbstractQoreNode* get(unsigned i) {
-       assert(i < 3);
-       return e[i];
-    }
-
+   DLLLOCAL QoreQuaternaryOperatorNode(AbstractQoreNode* a0, ...) {
+      va_list ap;
+      va_start(ap, a0);
+      this->init(a0, ap);
+      va_end(ap);
+   }
 };
-
-
-//template <unsigned int N = 3>
-//class QoreNOperatorNodeBase {
-//protected:
-//    AbstractQoreNode* e[N];
-//
-//    inline DLLLOCAL void initialize(AbstractQoreNode** eN)
-//    {
-//        //AbstractQoreNode* tmpN = *eN;
-//        for (unsigned int i = 0; i < N; ++i) {
-//            e[i] = *eN;
-//            ++eN;
-//        }
-//    }
-//
-//    inline DLLLOCAL void release()
-//    {
-//        for (unsigned i = 0; i < N; ++i)
-//           if (e[i]) e[i]->deref(0);
-//    }
-//
-//public:
-//    DLLLOCAL AbstractQoreNode* get(unsigned i) {
-//       assert(i < 3);
-//       return e[i];
-//    }
-//
-//};
-//
-//template <class T = QoreOperatorNode>
-//class QoreTrinaryOperatorNode_NEW : public T, public QoreNOperatorNodeBase<3> {
-//public:
-//    DLLLOCAL QoreTrinaryOperatorNode_NEW(AbstractQoreNode** eN) {
-////        printd(0, "QoreTrinaryOperatorNode_NEW...\n");
-//        initialize(eN);
-//    }
-//
-//    DLLLOCAL ~QoreTrinaryOperatorNode_NEW() {
-//        release();
-//    }
-//};
-//
-//template <class T = QoreOperatorNode>
-//class QoreQuaternaryOperatorNode : public T, public QoreNOperatorNodeBase<4> {
-//public:
-//   DLLLOCAL QoreQuaternaryOperatorNode(AbstractQoreNode** eN) {
-////        printd(0, "QoreQuaternaryOperatorNode...\n");
-//       initialize(eN);
-//   }
-//
-//   DLLLOCAL ~QoreQuaternaryOperatorNode() {
-//       release();
-//   }
-//};
-
 
 // include operator headers
 #include <qore/intern/QoreDeleteOperatorNode.h>
