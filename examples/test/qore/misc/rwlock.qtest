@@ -1,33 +1,39 @@
 #!/usr/bin/env qore
 
-RWLock::methodGate($m)
-{
+%requires UnitTest
+
+my UnitTest $t();
+
+RWLock::methodGate($m) {
     return 0;
 }
 
-$o = ( "key1" : "key1", 
-       "key2" : "key2", 
-       "key3" : "key3", 
-       "key4" : "key4" );
+$o = (
+    "key1" : "key1", 
+    "key2" : "key2", 
+    "key3" : "key3", 
+    "key4" : "key4",
+);
 
-$iters   = int(shift $ARGV);
-$writers = int(shift $ARGV);
-$readers = int(shift $ARGV);
-if (!$iters)
-    $iters = 1000;
-if (!$writers)
-    $writers = 10;
-if (!$readers)
-    $readers = 10;
+$iters   = 1000;
+$writers = 10;
+$readers = 10;
 
-printf("iters   = %d\n", $iters);
-printf("writers = %d\n", $writers);
-printf("readers = %d\n", $readers); 
+$rwl = new RWLock();
+while ($writers) {
+    background write_thread($t);
+    $writers--;
+}
+while ($readers) {
+    background read_thread($t);
+    $readers--;
+}
 
-sub read_thread()
-{
-    for (my $i = 0; $i < $iters; $i++)
-    {
+#printf("%s\n", dbg_node_info($rwl));
+
+sub read_thread(UnitTest $t) {
+    my bool $pass = True;
+    for (my $i = 0; $i < $iters; $i++) {
 	my $t;
 	$rwl.readLock();
 	if ($o.key1 == $o.key2)
@@ -46,19 +52,18 @@ sub read_thread()
 	    #printf("read_thread (%02d) %d/%d: key3 != key4\n", gettid(), $i, $iters);
 	$rwl.readUnlock();
 
-	if (my $n = $rwl.numWriters())
-	{
-	    printf("read error:  %d writers\n", $n);
-	    exit(1);
+	if (my $n = $rwl.numWriters()) {
+            $pass = False;
+	    break;
 	}
 	$rwl.readUnlock();
     }
+    $t.ok($pass, "read check");
 }
 
-sub write_thread()
-{
-    for (my $i = 0; $i < $iters; $i++)
-    {
+sub write_thread(UnitTest $t) {
+    my bool $pass = True;
+    for (my $i = 0; $i < $iters; $i++) {
 	#printf("write_thread (%02d) %d/%d trying to get lock\n",
 	#       gettid(), $i, $iters);
 	$rwl.writeLock();
@@ -66,10 +71,9 @@ sub write_thread()
 	$o.key2 = $o.key1;
 	$o.key1 = $t;
 
-	if ((my $n = $rwl.numWriters()) > 1)
-	{
-	    printf("write error: %d writers\n", $n);
-	    exit(2);
+	if (my $n = $rwl.numWriters() > 1) {
+            $pass = False;
+	    break;
 	}
 
 	$t = $o.key4;
@@ -84,18 +88,5 @@ sub write_thread()
 
 	$rwl.writeUnlock();
     }
+    $t.ok($pass, "write check");
 }
-
-$rwl = new RWLock();
-while ($writers)
-{
-    background write_thread();
-    $writers--;
-}
-while ($readers)
-{
-    background read_thread();
-    $readers--;
-}
-
-#printf("%s\n", dbg_node_info($rwl));

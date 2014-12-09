@@ -1,5 +1,9 @@
 #!/usr/bin/env qore
 
+%requires UnitTest
+
+my UnitTest $t();
+
 class ThreadTest {
     constructor() {
 	$.key1 = "key1";
@@ -32,10 +36,10 @@ $num_threads = int(shift $ARGV);
 $iters       = int(shift $ARGV);
 $overall     = int(shift $ARGV);
 
-printf("delay   = %d\n", $delay);
-printf("threads = %d\n", $num_threads);
-printf("iters   = %d\n", $iters);
-printf("overall = %d\n", $overall); 
+#printf("delay   = %d\n", $delay);
+#printf("threads = %d\n", $num_threads);
+#printf("iters   = %d\n", $iters);
+#printf("overall = %d\n", $overall); 
 
 $obj1 = new ThreadTest();
 $obj2 = new ThreadTest();
@@ -117,22 +121,23 @@ try {
 
     while (1) {
 	my $l;
-	$queue.push(sprintf("this TID   = %d\n", gettid()));
-	$queue.push(sprintf("output TID = %d\n", $otid));
-	$queue.push(sprintf("total %d threads\n", num_threads()));
-	foreach my $t in ($l = thread_list())
-	    $queue.push(sprintf("TID %d still running\n", $t));
+#	$queue.push(sprintf("this TID   = %d\n", gettid()));
+#	$queue.push(sprintf("output TID = %d\n", $otid));
+#	$queue.push(sprintf("total %d threads\n", num_threads()));
+	foreach my $t in ($l = thread_list()) {
+#	    $queue.push(sprintf("TID %d still running\n", $t));
+        }
 	if (elements $l == 2)
 	    break;
 	sleep(2);
     }
+    $t.ok(True, "no exception");
 }
 catch ($ex) {
-    printf("QORE %s Exception in line %d of file %s: %s: %s\n", 
-        $ex.type, $ex.line, $ex.file, $ex.err, $ex.desc);
+    $t.ok(False, $ex.type + " Exception in line " + $ex.line + " of file " + $ex.file + ": " + $ex.err + ": " + $ex.desc);
 }
 
-$queue.push(sprintf("key1=%s key2=%s mutex=%s\n", $obj.key1, $obj.key2, type($obj.m)));
+#$queue.push(sprintf("key1=%s key2=%s mutex=%s\n", $obj.key1, $obj.key2, type($obj.m)));
 
 # tell output thread to terminate
 $queue.push("exit");
