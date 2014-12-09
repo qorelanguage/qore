@@ -2633,8 +2633,11 @@ hash_element:
 	;
 
 alt_hash:
-        '{' hash '}'
-	{ $$ = $2; }
+        '{' hash '}' {
+           // mark for the curly-bracket version of a literal parse hash expression for the hash version of the map operator
+           $2->setCurly();
+           $$ = $2;
+        }
 
 exp:    scalar
         { $$ = $1; }
@@ -2908,7 +2911,15 @@ exp:    scalar
               // get first expression from list
               AbstractQoreNode* exp = l->shift();
               qore_type_t t = get_node_type(exp);
-              $$ = t == NT_PARSE_HASH ? parse_hash_map(reinterpret_cast<QoreParseHashNode*>(exp), l) : parse_map(exp, l);
+              $$ = 0;
+              if (t == NT_PARSE_HASH) {
+                 QoreParseHashNode* phn = reinterpret_cast<QoreParseHashNode*>(exp);
+                 if (phn->isCurly())
+                    $$ = parse_hash_map(phn, l);
+              }
+
+              if (!$$)
+                 $$ = parse_map(exp, l);
            }
         }
         | TOK_FOLDR exp {

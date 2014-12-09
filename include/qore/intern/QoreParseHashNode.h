@@ -46,6 +46,8 @@ protected:
    nvec_t keys, values;
    // to detect duplicate values, only stored during parsing
    kmap_t kmap;
+   // flag for a hash expression in curly brackets for the hash version of the map operator
+   bool curly;
 
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
       return hashTypeInfo;
@@ -150,7 +152,7 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreParseHashNode() : ParseNode(NT_PARSE_HASH, true) {
+   DLLLOCAL QoreParseHashNode() : ParseNode(NT_PARSE_HASH, true), curly(false) {
    }
 
    DLLLOCAL ~QoreParseHashNode() {
@@ -192,6 +194,15 @@ public:
       AbstractQoreNode* rv = values[0];
       values[0] = 0;
       return rv;
+   }
+
+   DLLLOCAL void setCurly() {
+      assert(!curly);
+      curly = true;
+   }
+   
+   DLLLOCAL bool isCurly() const {
+      return curly;
    }
    
    DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
