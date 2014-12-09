@@ -497,7 +497,7 @@ struct MethodDef {
 };
 
 static AbstractQoreNode* parse_hash_map(QoreParseHashNode* exp, QoreListNode* l) {
-   assert(l && (l->size() == 2 || l->size() == 3));
+   assert(l && (l->size() == 1 || l->size() == 2));
    ReferenceHolder<> exph(exp, 0);
    ReferenceHolder<> lh(l, 0);
    
@@ -508,7 +508,7 @@ static AbstractQoreNode* parse_hash_map(QoreParseHashNode* exp, QoreListNode* l)
       return &True;
    }
    
-   if (l->size() == 2) {
+   if (l->size() == 1) {
       AbstractQoreNode* iter = l->shift();
       return new QoreHashMapOperatorNode(exp->takeFirstKeyNode(), exp->takeFirstValueNode(), iter);
    }
@@ -519,10 +519,10 @@ static AbstractQoreNode* parse_hash_map(QoreParseHashNode* exp, QoreListNode* l)
 }
 
 static AbstractQoreNode* parse_map(AbstractQoreNode* exp, QoreListNode* l) {
-   assert(l && (l->size() == 2 || l->size() == 3));
+   assert(l && (l->size() == 1 || l->size() == 2));
    ReferenceHolder<> lh(l, 0);
 
-   if (l->size() == 2) {
+   if (l->size() == 1) {
       AbstractQoreNode* arg = l->shift();
       return new QoreMapOperatorNode(exp, arg);
    }
