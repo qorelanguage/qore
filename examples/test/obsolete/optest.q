@@ -3,10 +3,11 @@
 %require-our
 
 %requires qore >= 0.7.2
-%requires UnitTest
 
 my $opt; # global options
-my UnitTest $t();
+
+const opts = ( "verb" : "v,verbose",
+	       "help" : "h,help" );
 
 const infix = ( "+", "-", "*", "/", "&", "|", "&&", "||", "<", "<=", "==",
 		"===", ">=", ">", "<=>", "%", "!=", "!==", ">>", "<<",
@@ -53,7 +54,7 @@ const TypeHash = (
     "list" : ("decl": "list", "val": '(1, "two", 3.0)'),
     "hash" : ("decl": "hash", "val": '( "a" : "value", "another" : 123 )'),
     "object" : ("decl": "object", "val": '(new Mutex())'),
- #   "NOTHING0" : ("decl": "string", "val": 'my $nothing'),
+    "NOTHING0" : ("decl": "string", "val": 'my $nothing'),
     );
 
 const TypeKeys = keys TypeHash;
@@ -61,17 +62,19 @@ const TypeValues = map TypeHash.$1.val, TypeKeys;
 const TypeDecls = map TypeHash.$1.decl, TypeKeys;
 
 sub eval(Program $p, string $name, string $desc, string $str) {
-    my bool $pass = True;
-    my string $msg = $desc;
     try {
+	if ($opt.verb)
+	    stdout.printf("%s: ", $desc);
 	$p.parse($str, $desc);
 	$p.callFunction($name);
+	stdout.print($opt.verb ? "OK\n" : ".");
     }
     catch (hash $ex) {
-        $pass = False;
-        $msg += ' (' + $ex.err + ', ' + $ex.desc + ', ' + $str + ')';
+	if ($opt.verb)
+	    stdout.printf("INVALID (%s: %s) code: %s\n", $ex.err, $ex.desc, $str);
+	else
+	    stdout.printf("X");
     }
-    $t.ok($pass, $msg);
 }
 
 sub infix_test() {
@@ -87,7 +90,8 @@ sub infix_test() {
 		my int $rp = $#;
 		my string $name = sprintf("test%d", $cnt++);
 		my string $desc = sprintf("infix: %s %s %s", $t, $op, $t1);		
-		my string $str = sprintf("any sub %s(){my %s $l=%s;my %s $r=%s; return $l %s $r;}\n", $name, TypeDecls[$lp], TypeValues[$lp], TypeDecls[$rp], TypeValues[$rp], $op);
+		my string $str = sprintf("any sub %s(){my %s $l=%s;my %s $r=%s; return $l %s $r;}\n", $name, 
+					 TypeDecls[$lp], TypeValues[$lp], TypeDecls[$rp], TypeValues[$rp], $op);
 		eval($p, $name, $desc, $str);
 	    }
 	}
@@ -265,13 +269,21 @@ sub pre_tests() {
 }
 
 sub main() {
+    my $g = new GetOpt(opts);
+    try
+	$opt = $g.parse2(\$ARGV);
+    catch ($ex) {
+	printf("option error: %s\n", $ex.desc);
+        exit(1);
+    }
+
     infix_test();
-#    assign_test();
-#    lop_tests();
-#    lv_pre_tests();
-#    lv_post_tests();
-#    lv_tests();
-#    pre_tests();
+    assign_test();
+    lop_tests();
+    lv_pre_tests();
+    lv_post_tests();
+    lv_tests();
+    pre_tests();
 }
 
 main();
