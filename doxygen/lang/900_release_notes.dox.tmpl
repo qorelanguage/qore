@@ -9,8 +9,10 @@
 
     @subsection qore_0812_new_features New Features in Qore
     - <a href="../../modules/FixedLengthUtil/html/index.html">FixedLengthUtil</a> module for handling fixed length line data added
-    - Added new @ref hmap "Hash map" operator
-	- new literal hash support: hashes can now be given as literal values as follows: <tt>(&lt;key_expr&gt; : &lt;val_expr&gt;[, ...)</tt>; in the past <tt>&lt;key_expr&gt;</tt> had to be either a string or a constant; now any expression can be used to generate the hash keys at runtime
+    - hash enhancements:
+      - Added new @ref hmap "Hash map" operator to build a hash from a list or iterator expression
+      - new literal hash support: hashes can now be given as literal values as follows: <tt>(&lt;key_expr&gt; : &lt;val_expr&gt;[, ...)</tt>; in the past <tt>&lt;key_expr&gt;</tt> had to be either a string or a constant; now any expression can be used to generate the hash keys at runtime
+      - new hash syntax; hash elements can now be enclosed by curly brackets as well as regular parentheses; the version with curly brackets when used with the @ref hmap "map" operator results in the hash version of the map operator being used
     - new functions:
       - @ref Qore::decode_uri_request()
       - @ref Qore::encode_uri_request()
