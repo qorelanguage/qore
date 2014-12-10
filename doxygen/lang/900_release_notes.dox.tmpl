@@ -82,6 +82,7 @@
     - fixed a crash when parsing when parsing function, method, or closure arguments when either of the @ref duplicate-local-vars or @ref duplicate-block-vars warnings are set due to an error handling thread-local variable info in parse initialization
     - fixed a bug where code with mixed coding styles (old and new) could result in invalid parse errors when parsing base class constructor calls to a base class defined in another coding style
     - fixed a bug where an HTTP response with an unknown Content-Encoding header would cause a crash
+    - fixed a memory error with receiving HTTP chunked data with receive callbacks where the buffer object was reset with reference counts > 1
 
     @section qore_0811 Qore 0.8.11
 
