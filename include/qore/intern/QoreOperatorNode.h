@@ -176,48 +176,29 @@ public:
 };
 
 template <unsigned int N, class T = QoreOperatorNode>
-class MyQoreNOperatorNodeBase : public T {
+class QoreNOperatorNodeBase : public T {
 protected:
    DLLLOCAL AbstractQoreNode* e[N];
 
-   DLLLOCAL void init(AbstractQoreNode* a0, va_list ap) {
-      e[0] = a0;
-      for (unsigned int i = 1; i < N; ++i)
-         e[i] = va_arg(ap, AbstractQoreNode*);
-   }
-
-   DLLLOCAL virtual ~MyQoreNOperatorNodeBase() {
+   DLLLOCAL virtual ~QoreNOperatorNodeBase() {
       for (unsigned i = 0; i < N; ++i)
          if (e[i]) e[i]->deref(0);
    }
    
 public:
-    DLLLOCAL AbstractQoreNode* get(unsigned i) {
+   DLLLOCAL QoreNOperatorNodeBase(AbstractQoreNode* a0, ...) {
+      e[0] = a0;
+      va_list ap;
+      va_start(ap, a0);
+      for (unsigned int i = 1; i < N; ++i)
+         e[i] = va_arg(ap, AbstractQoreNode*);
+      va_end(ap);
+   }
+
+   DLLLOCAL AbstractQoreNode* get(unsigned i) {
        assert(i < N);
        return e[i];
     }
-};
-
-template <class T = QoreOperatorNode>
-class QoreTrinaryOperatorNode : public MyQoreNOperatorNodeBase<3, T> {
-public:
-   DLLLOCAL QoreTrinaryOperatorNode(AbstractQoreNode* a0, ...) {
-      va_list ap;
-      va_start(ap, a0);
-      this->init(a0, ap);
-      va_end(ap);
-   }
-};
-
-template <class T = QoreOperatorNode>
-class QoreQuaternaryOperatorNode : public MyQoreNOperatorNodeBase<4, T> {
-public:
-   DLLLOCAL QoreQuaternaryOperatorNode(AbstractQoreNode* a0, ...) {
-      va_list ap;
-      va_start(ap, a0);
-      this->init(a0, ap);
-      va_end(ap);
-   }
 };
 
 // include operator headers

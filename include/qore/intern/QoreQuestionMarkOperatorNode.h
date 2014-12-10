@@ -32,7 +32,7 @@
 #ifndef _QORE_QOREQUESTIONMARKOPERATORNODE_H
 #define _QORE_QOREQUESTIONMARKOPERATORNODE_H
 
-class QoreQuestionMarkOperatorNode : public QoreTrinaryOperatorNode<> {
+class QoreQuestionMarkOperatorNode : public QoreNOperatorNodeBase<3> {
 protected:
    static QoreString question_mark_str;
 
@@ -57,7 +57,7 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreQuestionMarkOperatorNode(AbstractQoreNode* e0, AbstractQoreNode* e1, AbstractQoreNode* e2) : QoreTrinaryOperatorNode<>(e0, e1, e2), typeInfo(0) {
+   DLLLOCAL QoreQuestionMarkOperatorNode(AbstractQoreNode* e0, AbstractQoreNode* e1, AbstractQoreNode* e2) : QoreNOperatorNodeBase<3>(e0, e1, e2), typeInfo(0) {
    }
 
    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const {

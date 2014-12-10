@@ -72,8 +72,6 @@ AbstractQoreNode* QoreHashMapOperatorNode::parseInitImpl(LocalVar *oflag, int pf
    const QoreTypeInfo* iteratorTypeInfo = 0;
    e[2] = e[2]->parseInit(oflag, pflag, lvids, iteratorTypeInfo);
 
-   // FIXME: if iterator is a list or an iterator, then the return type is a list, 
-   //        otherwise it's the return type of the iterated expression
    return this;
 }
 
