@@ -5,14 +5,14 @@
     @section qore_0812 Qore 0.8.12
 
     @par Release Summary
-    Minor release to meet packaging standards of Fedora and OpenSUSE.
+    Major new release with major new features and bug fixes as well as packaging fixes.
 
     @subsection qore_0812_new_features New Features in Qore
     - <a href="../../modules/FixedLengthUtil/html/index.html">FixedLengthUtil</a> module for handling fixed length line data added
     - hash enhancements:
-      - Added new @ref hmap "Hash map" operator to build a hash from a list or iterator expression
-      - new literal hash support: hashes can now be given as literal values as follows: <tt>(&lt;key_expr&gt; : &lt;val_expr&gt;[, ...)</tt>; in the past <tt>&lt;key_expr&gt;</tt> had to be either a string or a constant; now any expression can be used to generate the hash keys at runtime
+      - new literal hash support: hashes can now be given as literal values as follows: @code (<key_expr>: <val_expr>, [...]) @endcode in the past the keys in literal hashes had to be either a string or a constant; now any valid %Qore expression can be used to generate the hash keys at runtime
       - new hash syntax; hash elements can now be enclosed by curly brackets as well as regular parentheses; the version with curly brackets when used with the @ref hmap "map" operator results in the hash version of the map operator being used
+      - Added new @ref hmap "hash version of the map" operator to build a hash from a list or iterator expression; ex: @code hash h = map {$1, h2.$1}, $i; @endcode
     - new functions:
       - @ref Qore::decode_uri_request()
       - @ref Qore::encode_uri_request()

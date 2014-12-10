@@ -86,6 +86,14 @@ $hash = (
     ...,
 );
     @endcode \n
+    or alternatively with curly brackets (syntax introduced in %Qore 0.8.12 - note that this syntax is used with the @ref hmap "hash version of the map operator"):
+    @code
+$hash2 = {
+    key_expression : value_expression,
+    key_expression : value_expression,
+    ...,
+};
+    @endcode \n
     Here is a concrete example: \n
     @code
 my hash $hash = (
@@ -121,7 +129,7 @@ $element3 = $hash{"this-element-1!"};
     Note that hash keys can also be given by constants (as long as the constant resolves to a string) when using curly brackets.\n
 
     @par Immediate Value Example:
-    @verbatim ("key1": 1, "key2": "two", "key3": 3.141592653589793238462643383279502884195n)@endverbatim
+    @verbatim ("key1": 1, "key2": "two", get_key_3(): 3.141592653589793238462643383279502884195n)@endverbatim
 
     @par Pseudo Class for Type Hash:
     @ref Qore::zzz8hashzzz9
@@ -137,7 +145,7 @@ $element3 = $hash{"this-element-1!"};
     @note
     - Trailing commas are ignored in immediate hash declarations (as with @ref list "lists") to allow for easier insertion and deletion of elements in source code.
     - Hashes are dereferenced in one of two ways, either using curly brackets: \c "{" and \c "}", where any valid %Qore expression can be used, or using the dot "." hash member dereferencing operator, where literal strings can be used.  In the case of using a literal string with the dot operator, keep in mind that the string is always interpreted as a literal string name of the member, even if there is a constant with the same name.  To use the value of a constant to dereference a hash, use curly brackets with the constant: ex: @code $hash{MyConstant} @endcode
-    - Use quotes around the member name when dereferencing hash members with the same name as a qore keyword or other name that is not a valid identifier: ex: @code $hash."my-tag-1!" @endcode
+    - Use quotes around the member name when dereferencing hash members with the same name as a %Qore keyword or other name that is not a valid identifier: ex: @code $hash."my-tag-1!" @endcode
     - %Qore hashes preserve key insertion order to support consistent serialization and deserialization to strings (such as XML, JSON, or YAML strings) or data encoding formats, therefore the @ref keys "keys operator" and the <hash>::keys() pseudo-method will always return the hash keys in insertion/creation order
     - Dereferencing hash values that are not present in the hash will return @ref nothing; to catch typos in hash member names when dereferencing a hash, you can use an @ref object "object" and declare a list of allowed public members in the @ref qore_classes "class definition" (in which case dereferencing a non-existant member will cause a parse exception to be thrown, if the object's class is known at parse time, otherwise it will cause a runtime exception), also the Qore::ListHashIterator class allows for hash members to be dereferenced transparently and will throw an exception if a non-existant member name is given (to catch typos).
     - There are several pseudo-methods implemented in both the @ref Qore::zzz8hashzzz9 and the @ref Qore::zzz8nothingzzz9 pseudo-classes that provide asy access to special hash iterators:
@@ -146,6 +154,7 @@ $element3 = $hash{"this-element-1!"};
       - <hash>::pairIterator() provides easy access to a hash key/value pair iterator; it returns a @ref Qore::HashPairIterator "HashPairIterator" object where the @ref Qore::HashPairIterator::getValue() "HashPairIterator::getValue()" method returns a hash with \c "key" and \c "value" keys giving the key-value pair for the current iterator position in the hash
       - <hash>::contextIterator() provides easy access to the current element in a hash of lists such as that returned by the @ref Qore::SQL::Datasource::select() "Datasource::select()" or @ref Qore::SQL::DatasourcePool::select() "DatasourcePool::select()" methods; it returns a @ref Qore::HashListIterator "HashListIterator" object where the @ref Qore::HashListIterator::getValue() "HashListIterator::getValue()" method returns a hash of the current row value (which is very useful when iterating query results with the @ref map "map operator", for example); this class also provides a @ref Qore::HashListIterator::memberGate() "memberGate() method" that allows the iterator object itself to be dereferenced directly as a hash representing the current row (which is useful in @ref foreach "foreach statements" for example).
       - the corresponding pseudo-methods in the @ref Qore::zzz8nothingzzz9 pseudo-class return empty @ref Qore::SingleValueIterator "SingleValueIterator" objects so that these pseudo-methods can be safely used with @ref hash_or_nothing_type "*hash" (ie "hash or nothing") value types.
+    - the @ref hmap "hash version of the map operator" is used when a literal single member hash expression with curly brackets is given to the @ref hmap "map" operator; this version of the map operator can be used to build a hash dynamically from a list or iterator expression
 
     <hr>
     @section object Object
