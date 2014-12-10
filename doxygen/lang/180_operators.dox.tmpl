@@ -63,6 +63,7 @@
     |@ref splice "splice"|\c 19|@ref splice "splice list or string operator"|@code splice $list, 2, 2, (1, 2, 3)@endcode
     |@ref extract "extract"|\c 19|@ref extract "extract list or string operator"|@code my $sublist = extract $list, 2, 2, (1, 2, 3)@endcode
     |@ref map "map"|\c 19|@ref map "map operator"|@code map $closure($1), $list@endcode
+	|@ref hmap "hash map"|\c 19|@ref hmap "hash map operator"|@code map {expr($1) : expr($1)}, $list@endcode
     |@ref foldl "foldl"|\c 19|@ref foldl "fold left to right operator"|@code foldl $closure($1 - $2), $list@endcode
     |@ref foldr "foldr"|\c 19|@ref foldr "fold right to left operator"|@code foldr $closure($1 - $2), $list@endcode
     |@ref select "select"|\c 19|@ref select "select elements from list operator"|@code select $list, $1 > 1@endcode
@@ -595,6 +596,51 @@ map printf("%s\n", $1), $hash.keyIterator();
     This operator does not throw any exceptions (however note that exceptions could be thrown by expressions executed by this operator).
 
     @since %Qore 0.8.6.2 the map operator when used with an @ref Qore::AbstractIterator "AbstractIterator" object instantiates the value returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" instead of the iterator itself
+
+	<hr>
+	@section hmap Hash Map Operator (map)
+
+	@par Synopsis
+	Executes (or maps) an expression on a list and returns the result in form of a hsh. An optional select expression can be given to filter elements out from the result list.\n\n
+	If the third argument (\a list_expression) is an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class, the <b><tt>map</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()", and the implicit argument <tt>$1</tt> in the \a map_expression and any optional \a select_expression is the value returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()".\n\n
+	If the third argument is not a list or an object inheriting @ref Qore::AbstractIterator "AbstractIterator", then \a map_expression is executed on the single value and the result is returned, and any \a select_expression is ignored.\n\n
+
+	@par Return Type
+	@ref hash in case of valid third expression, otherwise NOTHING.
+
+	@par Syntax
+	<tt><b>map</b></tt> {}\a key_expression,  : \a value_expression},  <em>list_expression [, select_expression]</em>
+
+	@par Examples
+	@code
+	my list $l = map {$1 : $1 * 2}, (1, 2, 3)
+	# returns 
+	hash {
+		"1" : 2,
+		"2" : 4,
+		"3" : 6
+	}
+	@endcode
+	@code
+	my list $l = map {$1 : $1 * 2}, (1, 2, 3), $1 > 1
+	# returns 
+	hash {
+		"2" : 4,
+		"3" : 6
+	}
+	@endcode
+
+	<b>Arguments Processed by map</b>
+	|!Argument|!Processing
+	|\a key_expression|The expression to map on the list; the implicit argument <tt>$1</tt> represents the current element being processed (or the object itself if the  <b><tt>map</tt></b> operator is iterating an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class). The result of the expression os converted to string!
+	|\a value_expression|The expression to map on the list; the implicit argument <tt>$1</tt> represents the current element being processed (or the object itself if the  <b><tt>map</tt></b> operator is iterating an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class).
+	|\a list_expression|The data to process; if this is not a list then the \a map_expression is run on the single argument passed, unless the \a map_expression is an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class; in this case the <b><tt>map</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()"
+	|<em>[select_expression]</em>|An optional expression than can be used to filter out elements of the list before the map expression is applied; if this expression evaluates to @ref Qore::False "False" on an element, then the element will be skipped and the \a map_expression will not be applied on that element.
+
+	This operator does not throw any exceptions (however note that exceptions could be thrown by expressions executed by this operator).
+
+	@since %Qore 0.8.6.2 the map operator when used with an @ref Qore::AbstractIterator "AbstractIterator" object instantiates the value returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" instead of the iterator itself
+
 
     <hr>
     @section foldl Fold Left Operator (foldl)
