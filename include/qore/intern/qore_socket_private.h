@@ -1850,7 +1850,7 @@ struct qore_socket_private {
    DLLLOCAL int runDataCallback(ExceptionSink* xsink, const char* mname, const ResolvedCallReferenceNode& callback, QoreThreadLock* l, const AbstractQoreNode* data, bool chunked) {
       ReferenceHolder<QoreListNode> args(new QoreListNode, xsink);
       QoreHashNode* arg = new QoreHashNode;
-      arg->setKeyValue("data", data->refSelf(), xsink);
+      arg->setKeyValue("data", data->realCopy(), xsink);
       arg->setKeyValue("chunked", get_bool_node(chunked), xsink);
       args->push(arg);
 
