@@ -3,7 +3,7 @@
  
   Qore Programming Language
  
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2014 Qore Technologies, sro
   
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -82,6 +82,7 @@ AbstractQoreNode* QoreHashMapOperatorNode::map(ExceptionSink* xsink) const {
       return 0;
    
    qore_type_t arglst_type = get_node_type(*arg_lst);
+   assert(arglst_type != NT_NOTHING);
    ReferenceHolder<QoreHashNode> ret_val(ref_rv ? new QoreHashNode() : 0, xsink);
    if (NT_LIST != arglst_type) { // Single value
       // check if it's an AbstractIterator object
@@ -93,44 +94,51 @@ AbstractQoreNode* QoreHashMapOperatorNode::map(ExceptionSink* xsink) const {
          if (h) {
             return mapIterator(h, xsink); // TODO!!
          }// passed iterator
-            
       }
-      if (NT_NOTHING == arglst_type) {
-         return 0;
-      }
-         
+      
       // check if value can be mapped
       SingleArgvContextHelper argv_helper(*arg_lst, xsink);
       
-      ReferenceHolder<AbstractQoreNode> arg_key(e[0]->eval(xsink), xsink);
+      QoreNodeEvalOptionalRefHolder arg_key(e[0], xsink);
       if (*xsink)
          return 0;
-      ReferenceHolder<AbstractQoreNode> arg_val(e[1]->eval(xsink), xsink);
+      QoreNodeEvalOptionalRefHolder arg_val(e[1], xsink);
       if (*xsink)
-         return 0;
-      // For converting to string USE QoreStringValueHelper!!
-      QoreStringValueHelper str_util(*arg_key);
+         return 0;      
+
+      // we have to convert to a string in the default encoding to use a hash key
+      QoreStringValueHelper str_util(*arg_key, QCS_DEFAULT, xsink);
+      if (*xsink)
+	 return 0;
+      
       // Insert key-Value pair to the hash
-      ret_val->setKeyValue(str_util->getBuffer(), arg_val.release(), xsink);
+      ret_val->setKeyValue(str_util->getBuffer(), arg_val.getReferencedValue(), xsink);
    }
-   else {// List of values
+   else { // List of values
       ConstListIterator li(reinterpret_cast<const QoreListNode*>(*arg_lst));
       while (li.next()) {
          // set offset in thread-local data for "$#"
          ImplicitElementHelper eh(li.index()); 
          SingleArgvContextHelper argv_helper(li.getValue(), xsink);
          
-         QoreStringValueHelper key(e[0]->eval(xsink));
-         if (*xsink)
-            return 0;
-         ReferenceHolder<AbstractQoreNode> val(e[1]->eval(xsink), xsink);
+	 // we have to convert to a string in the default encoding to use a hash key
+	 {
+	    QoreNodeEvalOptionalRefHolder ekey(e[0], xsink);
+	    if (*xsink)
+	       return 0;
+	    QoreStringValueHelper key(*ekey, QCS_DEFAULT, xsink);
+	    if (*xsink)
+	       return 0;
+	    QoreNodeEvalOptionalRefHolder val(e[1], xsink);
+	    if (*xsink)
+	       return 0;
 
-         if (*xsink)
-            return 0;
-         if (ref_rv)
-             ret_val->setKeyValue(key->getBuffer(), val.release(), xsink);
-         if (*xsink)
-            return 0;
+	    if (ref_rv)
+	       ret_val->setKeyValue(key->getBuffer(), val.getReferencedValue(), xsink);
+	 }
+	 // if there is an exception dereferencing one of the evaluted nodes above, then exit the loop
+	 if (*xsink)
+	    return 0;
       }
    }
    return *xsink ? 0 : ret_val.release();
@@ -155,17 +163,24 @@ QoreHashNode* QoreHashMapOperatorNode::mapIterator(AbstractIteratorHelper& h, Ex
          return 0;
       SingleArgvContextHelper argv_helper(*iv, xsink);
 
-      QoreStringValueHelper key(e[0]->eval(xsink));
+      {
+	 QoreNodeEvalOptionalRefHolder ekey(e[0], xsink);
+	 if (*xsink)
+	    return 0;
+	 // we have to convert to a string in the default encoding to use a hash key
+	 QoreStringValueHelper key(*ekey, QCS_DEFAULT, xsink);
+	 if (*xsink)
+	    return 0;
+	 QoreNodeEvalOptionalRefHolder val(e[1], xsink);
+	 if (*xsink)
+	    return 0;
+
+	 if (ref_rv)
+	    rv->setKeyValue(key->getBuffer(), val.getReferencedValue(), xsink);
+      }
+      // if there is an exception dereferencing one of the evaluted nodes above, then exit the loop
       if (*xsink)
-         return 0;
-      
-      ReferenceHolder<AbstractQoreNode> val(e[1]->eval(xsink), xsink);
-      if (*xsink)
-         return 0;
-      if (ref_rv)
-          rv->setKeyValue(key->getBuffer(), val.release(), xsink);
-      if (*xsink)
-         return 0;
+	 return 0;
    }
    
    return rv.release();
