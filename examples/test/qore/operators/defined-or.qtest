@@ -1,0 +1,71 @@
+#!/usr/bin/env qore
+%requires UnitTest
+%require-types
+%enable-all-warnings
+%new-style
+
+UnitTest t();
+
+code code_example = any sub() {return;};
+File file_example = new File();
+
+t.cmploop(\try_call(), (
+    (
+        "args" : list(any sub() {return 2 ?? 3;}),
+        "cmp"  : 2,
+        "msg"  : "int ?? int",
+    ),
+    (
+        "args" : list(any sub() {return 0 ?? 3;}),
+        "cmp"  : 0,
+        "msg"  : "zero ?? int",
+    ),
+    (
+        "args" : list(any sub() {return NOTHING ?? 3;}),
+        "cmp"  : 3,
+        "msg"  : "NOTHING ?? int",
+    ),
+    (
+        "args" : list(any sub() {return "a" ?? 3;}),
+        "cmp"  : "a",
+        "msg"  : "str ?? int",
+    ),
+    (
+        "args" : list(any sub() {return code_example ?? 3;}),
+        "cmp"  : code_example,
+        "msg"  : "code ?? int",
+    ),
+    (
+        "args" : list(any sub() {return NOTHING ?? 'a';}),
+        "cmp"  : 'a',
+        "msg"  : "NOTHING ?? str",
+    ),
+    (
+        "args" : list(any sub() {return NOTHING ?? NOTHING;}),
+        "cmp"  : NOTHING,
+        "msg"  : "NOTHING ?? NOTHING",
+    ),
+    (
+        "args" : list(any sub() {return NOTHING ?? NOTHING ?? 4 ?? NOTHING;}),
+        "cmp"  : 4,
+        "msg"  : "NOTHING ?? NOTHING ?? int ?? NOTHING",
+    ),
+    (
+        "args" : list(any sub() {return file_example ?? 3;}),
+        "cmp"  : file_example,
+        "msg"  : "object ?? int",
+    ),
+));
+
+any sub try_call(code c) {
+    any result;
+    try {
+        result = c();
+        t.ok(True, 'call succeeded');
+    }
+    catch(hash ex) {
+        t.ok(False, 'call succeded');
+    }
+
+    return result;
+}
