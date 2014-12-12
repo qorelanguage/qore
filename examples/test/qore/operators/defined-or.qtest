@@ -46,9 +46,29 @@ t.cmploop(\try_call(), (
         "msg"  : "NOTHING ?? NOTHING",
     ),
     (
+        "args" : list(any sub() {return False ?? True;}),
+        "cmp"  : False,
+        "msg"  : "False ?? True",
+    ),
+    (
         "args" : list(any sub() {return NOTHING ?? NOTHING ?? 4 ?? NOTHING;}),
         "cmp"  : 4,
         "msg"  : "NOTHING ?? NOTHING ?? int ?? NOTHING",
+    ),
+    (
+        "args" : list(any sub() {return NOTHING ?? NOTHING ?? 3 ?? 4 ?? NOTHING;}),
+        "cmp"  : 3,
+        "msg"  : "NOTHING ?? NOTHING ?? int ?? int ?? NOTHING (associativity is from left)",
+    ),
+    (
+        "args" : list(any sub() {return True && NOTHING ?? True;}),
+        "cmp"  : False,
+        "msg"  : "True && NOTHING ?? True (?? is first)",
+    ),
+    (
+        "args" : list(any sub() {return True ?? False ? 'a' : 'b';}),
+        "cmp"  : 'a',
+        "msg"  : "?: has lower prio",
     ),
     (
         "args" : list(any sub() {return file_example ?? 3;}),
