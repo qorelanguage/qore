@@ -84,6 +84,7 @@
     - fixed a bug where code with mixed coding styles (old and new) could result in invalid parse errors when parsing base class constructor calls to a base class defined in another coding style
     - fixed a bug where an HTTP response with an unknown Content-Encoding header would cause a crash
     - fixed a memory error with receiving HTTP chunked data with receive callbacks where the buffer object was reset with reference counts > 1
+    - fixed a bug in the <a href="../../modules/RestClient/html/index.html">RestClient</a> module where URI paths were sent as relative paths instead of absolute paths
 
     @section qore_0811 Qore 0.8.11
 

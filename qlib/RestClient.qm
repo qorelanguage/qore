@@ -117,6 +117,7 @@ printf("%N\n", ans.body);
     - allow the Content-Type header to be overriden in REST requests
     - added \a hdr args to REST methods
     - fixed a bug using the module when the yaml module is not available
+    - ensure URI paths are absolute
 
     @subsection restclientv1_1 RestClient v1.1
     - updated to use encode_url() before sending HTTP messages
@@ -577,6 +578,9 @@ my hash $ans = $rest.post("/orders/1");
             my *string $p = $.getConnectionPath();
             if ($p && $path)
                 $path = $p + "/" + $path;
+            # ensure path is absolute
+            if ($path !~ /^\//)
+                splice $path, 0, 0, "/";
 
             $path = encode_uri_request($path);
         }        
