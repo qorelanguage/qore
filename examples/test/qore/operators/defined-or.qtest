@@ -56,11 +56,6 @@ t.cmploop(\try_call(), (
         "msg"  : "NOTHING ?? NOTHING ?? int ?? NOTHING",
     ),
     (
-        "args" : list(any sub() {return NOTHING ?? NOTHING ?? 3 ?? 4 ?? NOTHING;}),
-        "cmp"  : 3,
-        "msg"  : "NOTHING ?? NOTHING ?? int ?? int ?? NOTHING (associativity is from left)",
-    ),
-    (
         "args" : list(any sub() {return True && NOTHING ?? True;}),
         "cmp"  : False,
         "msg"  : "True && NOTHING ?? True (?? is first)",
@@ -75,6 +70,12 @@ t.cmploop(\try_call(), (
         "cmp"  : file_example,
         "msg"  : "object ?? int",
     ),
+# return is a statement so this is not possible :-(
+#    (
+#        "args" : list(any sub() {True ?? return 'right'; return 'left';}),
+#        "cmp"  : 'left',
+#        "msg"  : "associativity test",
+#    ),
 ));
 
 any sub try_call(code c) {
@@ -89,3 +90,4 @@ any sub try_call(code c) {
 
     return result;
 }
+
