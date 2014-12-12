@@ -244,6 +244,6 @@ public:
 
 #include <qore/intern/QoreHashMapOperatorNode.h>
 #include <qore/intern/QoreHashMapSelectOperatorNode.h>
-
+#include <qore/intern/QoreNullCoalescingOperatorNode.h>
 
 #endif

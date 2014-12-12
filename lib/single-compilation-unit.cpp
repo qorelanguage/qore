@@ -187,6 +187,7 @@
 #include "QoreMapSelectOperatorNode.cpp"
 #include "QoreHashMapOperatorNode.cpp"
 #include "QoreHashMapSelectOperatorNode.cpp"
+#include "QoreNullCoalescingOperatorNode.cpp"
 #include "ql_thread.cpp"
 #include "ql_time.cpp"
 #include "ql_lib.cpp"

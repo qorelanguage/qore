@@ -1431,6 +1431,7 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
 \$\$                                    yylval->implicit_arg = new QoreImplicitArgumentNode(-1); return IMPLICIT_ARG_REF;
 \$[0-9][0-9]*                           yylval->implicit_arg = new QoreImplicitArgumentNode(strtol(yytext + 1, 0, 0)); return IMPLICIT_ARG_REF;
 \$#                                     return IMPLICIT_ELEMENT;
+\?\?                                    return NULL_COALESCING;
 \<{WS}*=				return LOGICAL_LE;
 \>{WS}*=				return LOGICAL_GE;
 \!{WS}*=				return LOGICAL_NE;
