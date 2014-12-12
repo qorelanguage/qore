@@ -2971,7 +2971,6 @@ exp:    scalar
         }
         | exp '?' exp ':' exp
         { //$$ = new QoreTreeNode($1, OP_QUESTION_MARK, make_list($3, $5));
-           printd(0, "UnEXPECTED!!!?\n");
            $$ = new QoreQuestionMarkOperatorNode($1, $3, $5);
         }
         

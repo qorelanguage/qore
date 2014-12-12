@@ -46,18 +46,6 @@ int QoreNullCoalescingOperatorNode::getAsString(QoreString &str, int foff, Excep
    return 0;
 }
 
-AbstractQoreNode* QoreNullCoalescingOperatorNode::evalImpl(ExceptionSink *xsink) const {
-   QoreNodeEvalOptionalRefHolder arg(e[0], xsink);
-   if (*xsink)
-      return 0;
-   return arg->getType() == NT_NOTHING ? e[1]->eval(xsink) : e[0]->eval(xsink);
-}
-
-AbstractQoreNode* QoreNullCoalescingOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = true;
-   return QoreNullCoalescingOperatorNode::evalImpl(xsink);
-}
-
 AbstractQoreNode* QoreNullCoalescingOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, 
                                                          const QoreTypeInfo *&typeInfo) {
       assert(!typeInfo);
@@ -68,7 +56,49 @@ AbstractQoreNode* QoreNullCoalescingOperatorNode::parseInitImpl(LocalVar *oflag,
       leftTypeInfo = 0;
       e[1] = e[1]->parseInit(oflag, pflag, lvids, leftTypeInfo);
 
-//      typeInfo = returnTypeInfo = leftTypeInfo;
       return this;
 }
 
+AbstractQoreNode* QoreNullCoalescingOperatorNode::evalImpl(ExceptionSink *xsink) const {
+   QoreNodeEvalOptionalRefHolder arg(e[0], xsink);
+   if (*xsink) 
+      return 0;
+   return is_nothing(*arg) ? e[1]->eval(xsink) : arg.getReferencedValue();
+}
+
+AbstractQoreNode* QoreNullCoalescingOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
+   needs_deref = true;
+   return QoreNullCoalescingOperatorNode::evalImpl(xsink);
+}
+
+int64 QoreNullCoalescingOperatorNode::bigIntEvalImpl(ExceptionSink *xsink) const {
+   QoreNodeEvalOptionalRefHolder arg(e[0], xsink);
+   if (*xsink) 
+      return 0;
+
+   return is_nothing(*arg) ? e[1]->bigIntEval(xsink) : arg->getAsBigInt();
+}
+
+int QoreNullCoalescingOperatorNode::integerEvalImpl(ExceptionSink *xsink) const {
+   QoreNodeEvalOptionalRefHolder arg(e[0], xsink);
+   if (*xsink) 
+      return 0;
+
+   return is_nothing(*arg) ? e[1]->integerEval(xsink) : arg->getAsInt();
+}
+
+double QoreNullCoalescingOperatorNode::floatEvalImpl(ExceptionSink *xsink) const {
+   QoreNodeEvalOptionalRefHolder arg(e[0], xsink);
+   if (*xsink) 
+      return 0;
+
+   return is_nothing(*arg) ? e[1]->floatEval(xsink) : arg->getAsFloat();
+}
+
+bool QoreNullCoalescingOperatorNode::boolEvalImpl(ExceptionSink *xsink) const {
+   QoreNodeEvalOptionalRefHolder arg(e[0], xsink);
+   if (*xsink) 
+      return 0;
+
+   return is_nothing(*arg) ? e[1]->boolEval(xsink) : arg->getAsBool();
+}

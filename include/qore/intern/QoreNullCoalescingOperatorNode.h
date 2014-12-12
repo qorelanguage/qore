@@ -52,6 +52,15 @@ public:
 
    DLLLOCAL virtual AbstractQoreNode* evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
 
+   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
+   
+   DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const;
+   
+   DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
+   
+   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
+   
+   
    DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
       return typeInfo;
    }
