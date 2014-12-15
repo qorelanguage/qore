@@ -620,6 +620,11 @@ my hash $ans = $rest.doRequest("DELETE", "/orders/1");
             # prepare path
             $.preparePath(\$path);
 
+            return $.sendAndDecodeResponse($body, $m, $path, $hdr, \$info, $decode_errors);
+        }
+
+        #! sends the outgoing HTTP message and recodes the response to data
+        hash sendAndDecodeResponse(*data $body, string $m, string $path, hash $hdr, *reference $info, *softbool $decode_errors) {
             my hash $h;
             try {
                 $h = $.send($body, $m, $path, $hdr, False, \$info);
@@ -627,24 +632,8 @@ my hash $ans = $rest.doRequest("DELETE", "/orders/1");
             }
             catch (hash $ex) {
                 $info."response-code" = $ex.arg.status_code;
-                if ($decode_errors && $ex.arg.body) {
-                    try {
-                        $h = $ex.arg;
-                        $.decodeResponse(\$h, \$info);
-                    }
-                    catch () {
-                        # ignore decoding exceptions
-                    }
-                    if ($h.body.err) {
-                        if ($h.body.desc.typeCode() == NT_STRING)
-                            trim $h.body.desc;
-                        throw $h.body.err, $h.body.desc, $h.body.arg;
-                    }
-                    if ($h.body && $h.body.typeCode() == NT_STRING) {
-                        trim $h.body;
-                        throw "REST-RESPONSE-ERROR", $h.body;
-                    }
-                }
+                if ($decode_errors && $ex.arg.body)
+                    $.decodeError($ex.arg, \$info);
 
                 rethrow;
             }
@@ -654,6 +643,25 @@ my hash $ans = $rest.doRequest("DELETE", "/orders/1");
                 $.decodeResponse(\$h, \$info);
 
             return $h;
+        }
+
+        #! decode any REST errors returned if possible
+        private decodeError(hash $h, *reference $info) {
+            try {
+                $.decodeResponse(\$h, \$info);
+            }
+            catch () {
+                # ignore decoding exceptions
+            }
+            if ($h.body.err) {
+                if ($h.body.desc.typeCode() == NT_STRING)
+                    trim $h.body.desc;
+                throw $h.body.err, $h.body.desc, $h.body.arg;
+            }
+            if ($h.body && $h.body.typeCode() == NT_STRING) {
+                trim $h.body;
+                throw "REST-RESPONSE-ERROR", $h.body;
+            }
         }
 
         #! decodes the response
