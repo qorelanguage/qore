@@ -85,6 +85,7 @@
     - fixed a bug where an HTTP response with an unknown Content-Encoding header would cause a crash
     - fixed a memory error with receiving HTTP chunked data with receive callbacks where the buffer object was reset with reference counts > 1
     - fixed a bug in the <a href="../../modules/RestClient/html/index.html">RestClient</a> module where URI paths were sent as relative paths instead of absolute paths
+    - fixed a bug in the @ref Qore::FtpClient "FtpClient" class where socket errors would not cause the connection to be closed automatically and therefore further use of the object required a manual disconnect even though the object supports transparent auto-reconnection
 
     @section qore_0811 Qore 0.8.11
 
