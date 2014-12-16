@@ -57,7 +57,7 @@
     |@ref logical_and_operator "&&"|\c 16|@ref logical_and_operator "logical AND operator"|@code ($a = 1) && ($b < 10)@endcode
     |@ref logical_or_operator "||"|\c 16|@ref logical_or_operator "logical OR operator"|@code ($a = 1) || ($b < 10)@endcode
     |@ref conditional_operator "? :"|\c 17|@ref conditional_operator "conditional operator"|@code $a == 2 ? "yes" : "no"@endcode
-    |@ref null_coalescing_operator "??"|\c 17|@ref null_coalescing_operator "null coalescing operator"|@code any var = "IS_NOTHING" ?? "USE_THIS_IF_ARG1_IS_NOTHING"@endcode
+    |@ref null_coalescing_operator "??"|\c 17|@ref null_coalescing_operator "null coalescing operator"|@code any var = $a ?? $b@endcode
     |@ref comma_operator ","|\c 18|@ref comma_operator "comma operator"|@code 1, 2, 3, 4, 5@endcode
     |@ref unshift "unshift"|\c 19|@ref unshift "unshift list element operator"|@code unshift $list, $val@endcode
     |@ref push "push"|\c 19|@ref push "push list element operator"|@code push $list, $val@endcode
@@ -1521,31 +1521,26 @@ if ($x || $y)
 
     This operator does not throw any exceptions.
 
-
-
     <hr>
-    @section null_coalescing_operator Null coalescing operator (??)
+    @section null_coalescing_operator Null Coalescing Operator (??)
 
     @par Synopsis
-    Evaluates both argument and checks first one for Qore::NOTHING. If True use the second evaluated argument.
+    Evaluates the first operand and checks for a value (ie not @ref nothing).  If it evaluates to a value, then the value of the first operand is returned, otherwise the second operand is evaluated and returned.  When chained, the first argument with a value is returned.
 
     @par Syntax
-    \a expression1 ?? \a expession2 
+    \a expression1 ?? \a expression2 
 
     @par Return Type
     @ref any_type "any"
 
     @par Example
-    @code $a = NOTHING ?? NOTHING ?? "something not nothing";@endcode
+    @code $x = $a ?? $b ?? $c;@endcode
 
     <b>Arguments Processed by ??</b>
     |!Argument|!Processing
-    |All|If \a expression1 is evaluated to be Qore::NOTHING then the \a expession2 is evaluated and returned. Otherwise the \a expession1 is evaluated and returned.
+    |All|If \a expression1 is evaluated to be @ref nothing then the \a expession2 is evaluated and returned. Otherwise the value of \a expession1 is returned.
 
     This operator does not throw any exceptions.
-
-
-
 
     <hr>
     @section comma_operator Comma Operator (,)
