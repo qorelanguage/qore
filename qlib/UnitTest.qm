@@ -353,6 +353,10 @@ this.cmp(Cow.sound(), 'moo', "cow's sound is correct");
     */
     cmp(any v1, any v2, string msg) {
         m_testCount++;
+        if (m_result{msg}) {
+            stderr.printf("test messages must be unique, >%s< is ambiguous\n", msg);
+            exit(1);
+        }
         m_result{msg}{"msg"} = msg;
         if (v1 === v2) {
             m_result{msg}{'result'} = "OK";
