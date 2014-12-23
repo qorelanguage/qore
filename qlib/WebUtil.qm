@@ -77,6 +77,42 @@ module WebUtil {
 
 #! the WebUtil namespace contains all the objects in the WebUtil module
 public namespace WebUtil {
+    #! this class handles chunked file sends
+    public class FileStreamRequest inherits HttpServer::AbstractStreamRequest {
+        public {}
+
+        private {
+            ReadOnlyFile $.f;
+            bool $.txt;
+            string $.ct;
+            int $.cs;
+        }
+
+        #! creates the object
+        constructor(HttpListener $listener, AbstractHttpRequestHandler $handler, Socket $s, hash $cx, hash $hdr, *data $body, ReadOnlyFile $f, bool $txt, string $ct, int $cs) : AbstractStreamRequest($listener, $handler, $s, $cx, $hdr, $body) {
+            $.f = $f;
+            $.txt = $txt;
+            $.ct = $ct;
+            $.cs = $cs;
+        }
+
+        #! returns the reponse headers
+        private hash getResponseHeaderMessageImpl() {
+            return (
+                "code": 200,
+                "hdr": (
+                    "Content-Type": $.ct,
+                    "Transfer-Encoding": "chunked",
+                ),
+                );
+        }
+
+        #! returns data to send
+        private any sendImpl() {
+            return $.txt ? $.f.read($.cs, 1m) : $.f.readBinary($.cs, 1m);
+        }
+    }
+
     #! this is the base class for all template @ref Qore::Program "Program" container classes
     public class TextTemplateBase {
         private {
@@ -556,6 +592,12 @@ my *hash $h = $tm.tryRender("html/index.qhtml", $ctx);
             #! the default target if a URL cannot be satisfied
             *string $.default_target;
 
+            #! minimum size in bytes for plain files to be sent with a chnked transfer
+            softint $.chunked_threshold = Defaults.ChunkedThreshold;
+
+            #! HTTP chunk size in bytes
+            softint $.chunk_size = Defaults.ChunkSize;
+            
             #! set for error info level
             /** The following are valid error levels:
                 - 0: no details
@@ -578,8 +620,10 @@ my *hash $h = $tm.tryRender("html/index.qhtml", $ctx);
                 "TemplateExtensions": (
                     "qhtml": True,
                 ),
+                "ChunkedThreshold": 10 * 1024,
+                "ChunkSize": 4096,
                 );
-
+            
             #! dirlisting template
             const Dirlisting = "<html lang=\"en\" >"
 "{%"
@@ -641,6 +685,8 @@ my *hash $h = $tm.tryRender("html/index.qhtml", $ctx);
             - \c psetup: an optional @ref closure "closure" or @ref call_reference "call reference" taking a single @ref Qore::Program "Program" argument to be called when initializing template @ref Qore::Program "programs" to set up a custom template API, etc
             - \c auth: the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
             - \c error_level: the level of error reporting (0, 1, or 2)
+            - \c chunked_threshold: the minimum size for sending files with a chunked transfer encoding
+            - \c chunk_size: the HTTP chunk size for sending files with chunked transfer encoding
         */
         constructor(string $file_root, string $url_root = "/", *hash $opt) : AbstractUrlHandler($url_root, $opt.auth), TemplateFileManager($opt.po, $opt.psetup) {
             $.file_root = normalize_dir($file_root);
@@ -650,7 +696,11 @@ my *hash $h = $tm.tryRender("html/index.qhtml", $ctx);
             $.default_target = $opt.default_target;
             if ($opt.error_level)
                 $.error_level = $opt.error_level;
-
+            if ($opt.chunked_threshold)
+                $.chunked_threshold = $opt.chunked_threshold;
+            if ($opt.chunk_size)
+                $.chunk_size = $opt.chunk_size;
+            
             # setup :dirlisting template
             $.stm.add(":dirlisting", $.getDirlistingTemplate(), MimeTypeHtml);
         }
@@ -701,10 +751,10 @@ my *hash $h = $tm.tryRender("html/index.qhtml", $ctx);
             try {
                 my *hash $h = $.handleRequestImpl(\$cx, $hdr, $body);
                 if (!$h) {
-                    $h = $.tryServeRequest($cx);
+                    $h = $.tryServeRequest($listener, $s, $cx, $hdr, $body);
                     if (!$h) {
                         $cx.resource_path = $.default_target;
-                        $h = $.tryServeRequest($cx);
+                        $h = $.tryServeRequest($listener, $s, $cx, $hdr, $body);
                     }
                 }
                 if ($h)
@@ -765,13 +815,13 @@ my *hash $h = $tm.tryRender("html/index.qhtml", $ctx);
             return $.makeResponse(500, $desc);
         }
 
-        private *hash tryServeRequest(hash $cx) {
+        private *hash tryServeRequest(HttpListener $listener, Socket $s, hash $cx, hash $hdr, *data $body) {
             my *string $path = $cx.resource_path;
-
+            
             # use Windows directory separator chars on Windows
             if (!Unix)
                 $path =~ s/\//\\/g;
-        
+            
             $path = $.file_root + $path;
 
             my *hash $sh = hstat($path);
@@ -801,23 +851,44 @@ my *hash $h = $tm.tryRender("html/index.qhtml", $ctx);
             my *string $ext = ($cx.resource_path =~ x/\.([a-z0-9]+)$/i)[0];
             if ($ext && $.template_extensions.$ext)
                 return $.render($cx.resource_path, $path, $sh.mtime, $cx);
-
-            my File $f();
-            if ($f.open($path))
-                return;
-
+            
+            my ReadOnlyFile $f;
+            try {
+                $f = new ReadOnlyFile($path);
+            }
+            catch (hash $ex) {
+                if ($ex.err == "READONLYFILE-OPEN-ERROR")
+                    return;
+                rethrow;
+            }
+            
             if (!$sh.size)
                 return $.makeResponse(204, "");
-
+            
             my string $ct = get_mime_type_from_ext($path);
             my bool $txt = ($ext =~ /^text\//) || ($ext =~ /^application\/.*(json|xml|yaml|javascript|tex|tcl|troff|postscript)/);
-            my *data $data = $txt ? $f.read(-1) : $f.readBinary(-1);
+            
+            return $f.hstat().size > $.chunked_threshold ? $.sendFileChunked($listener, $s, $cx, $hdr, $body, $f, $txt, $ct) : $.sendFile($f, $txt, $ct);
+        }
 
+        #! must return a FileStreamRequest object to stream the requested file with chunked transfer encoding
+        private FileStreamRequest getFileStreamRequestImpl(HttpListener $listener, Socket $s, hash $cx, hash $hdr, *data $body, ReadOnlyFile $f, bool $txt, string $ct) {
+            return new FileStreamRequest($listener, $self, $s, $cx, $hdr, $body, $f, $txt, $ct, $.chunk_size);
+        }
+
+        #! returns a handler hash response with the file's data to be sent in a monolithic message
+        private hash sendFile(ReadOnlyFile $f, bool $txt, string $ct) {
             return (
                 "code": 200,
-                "body": $data,
+                "body": $txt ? $f.read(-1) : $f.readBinary(-1),
                 "hdr": ("Content-Type": $ct),
                 );
+        }
+        
+        #! returns a handler hash response with the file's data to be sent in a HTTP message with chunked transfer encoding
+        private hash sendFileChunked(HttpListener $listener, Socket $s, hash $cx, hash $hdr, *data $body, ReadOnlyFile $f, bool $txt, string $ct) {
+            my FileStreamRequest $fsr = $.getFileStreamRequestImpl($listener, $s, $cx, $hdr, $body, $f, $txt, $ct);
+            return $fsr.handleRequest();
         }
 
         #! this method is called when a directory should be rendered
