@@ -668,7 +668,7 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 	    }
 
 	    // output in any case even when debugging is disabled
-	    print_debug(0, "QoreObject::customDeref() this: %p rcount/refs: %d/%d collecting object (%s) with only recursive references\n", this, priv->rcount, ref_copy, getClassName());
+	    printd(QRO_LVL, "QoreObject::customDeref() this: %p rcount/refs: %d/%d collecting object (%s) with only recursive references\n", this, priv->rcount, ref_copy, getClassName());
 
 	    rrf = true;
 	    break;

@@ -125,7 +125,7 @@ void qore_queue_private::pushNode(AbstractQoreNode* v) {
    }
    ++len;
 
-   //printd(5, "qore_queue_private::pushNode(%p) this=%p head=%p (%p) tail=%p (%p) waiting=%d len=%d\n", v, this, head, head->node, tail, tail->node, waiting, len);
+   //printd(5, "qore_queue_private::pushNode(%p '%s') this: %p head: %p (%p) tail: %p (%p) read_waiting: %d len: %d\n", v, get_type_name(v), this, head, head->node, tail, tail->node, read_waiting, len);
 }
 
 void qore_queue_private::pushIntern(AbstractQoreNode* v) {
@@ -215,7 +215,7 @@ AbstractQoreNode* qore_queue_private::shift(ExceptionSink* xsink, int timeout_ms
          return 0;
    }
 
-   //printd(5, "qore_queue_private::shift() GOT DATA this=%p head=%p (rv=%p) tail=%p (%p) waiting=%d len=%d\n", this, head, head->node, tail, tail->node, waiting, len);
+   //printd(5, "qore_queue_private::shift() GOT DATA this: %p head: %p (rv: %p '%s') tail: %p (%p) write_waiting: %d len: %d\n", this, head, head->node, get_type_name(head->node), tail, tail->node, write_waiting, len);
 
    QoreQueueNode* n = head;
    head = head->next;
