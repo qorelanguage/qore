@@ -142,7 +142,7 @@ list: (2 elements)
       - \c "trunc": assign to boolean @ref Qore::True "True" if the field should be truncated if over the maximum field length; this key can only be set to @ref Qore::True "True" if the \c "maxlen" key is also given
       - \c "mand": assign to boolean @ref Qore::True "True" if the field is mandatory and an exception should be thrown if no input data is supplied
       - \c "type": this gives the output field type, can be:
-        - \c "number": field accepts only numeric values (any non-numeric values on input will cause an exception to be thrown when mapping) 
+        - \c "number": field accepts only numeric values (any non-numeric values on input will cause an exception to be thrown when mapping); numeric values are left in their original types, any other type is converted to a @ref number_type "arbitrary-precision numeric" value
         - \c "int": fields accepts only integer values (any non-integer values on input will cause an exception to be thrown when mapping; note: also \c "integer" is accepted as an alias for \c "int") 
         - \c "date": date field
 
@@ -172,6 +172,7 @@ list: (2 elements)
     - implemented a global "date_format" mapper option
     - implemented the "number_format" field option and a global option of the same name
     - fixed bugs in the "timezone" and "input_timezone" options, documented those options
+    - changed the behavior of the "number" field type: now leaves numeric values in their original type, converts all other types to a number
 
     @subsection mapperv1_0 Mapper v1.0
     - Initial release
@@ -691,8 +692,16 @@ my Mapper $map(DataMap);
                     else {
                         # check for valid numeric values
                         if ($v !~ /^([-+])?[0-9]+(\.[0-9]+)?+$/)
-                            $.error2("INVALID-NUMBER", "field %y = %y is marked as a numeric field, but the input data contains non-numeric text in input row: %y", $.getFieldName($key), $v, $rec);                    
-                        $v = number($v);
+                            $.error2("INVALID-NUMBER", "field %y = %y is marked as a numeric field, but the input data contains non-numeric text in input row: %y", $.getFieldName($key), $v, $rec);
+			switch ($v.typeCode()) {
+			    case NT_NUMBER:
+			    case NT_FLOAT:
+			    case NT_INT:
+                                break;
+			    default:
+                                $v = number($v);
+                                break;
+                        }
                     }
                     break;
                 }
