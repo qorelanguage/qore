@@ -118,7 +118,16 @@ struct qore_number_private : public qore_number_private_intern {
    }
 
    DLLLOCAL qore_number_private(double f) {
-      mpfr_set_d(num, f, QORE_MPFR_RND);
+      /* from the MPFR docs: http://www.mpfr.org/mpfr-current/mpfr.html
+         Note: If you want to store a floating-point constant to a mpfr_t, you should use mpfr_set_str
+         (or one of the MPFR constant functions, such as mpfr_const_pi for Pi) instead of mpfr_set_flt,
+         mpfr_set_d, mpfr_set_ld or mpfr_set_decimal64. Otherwise the floating-point constant will be
+         first converted into a reduced-precision (e.g., 53-bit) binary (or decimal, for
+         mpfr_set_decimal64) number before MPFR can work with it.
+      */
+
+      QoreStringMaker str("%.17g", f);
+      mpfr_set_str(num, str.getBuffer(), 10, QORE_MPFR_RND);
    }
 
    DLLLOCAL qore_number_private(int64 i) {
