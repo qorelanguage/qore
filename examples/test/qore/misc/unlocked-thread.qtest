@@ -4,6 +4,9 @@
 
 my UnitTest $t();
 
+# get total number of threads at runtime
+our int $total_threads = thread_list().size();
+
 class ThreadTest {
     constructor() {
 	$.key1 = "key1";
@@ -120,14 +123,14 @@ try {
     }
 
     while (1) {
-	my $l;
+	my list $l;
 #	$queue.push(sprintf("this TID   = %d\n", gettid()));
 #	$queue.push(sprintf("output TID = %d\n", $otid));
 #	$queue.push(sprintf("total %d threads\n", num_threads()));
-	foreach my $t in ($l = thread_list()) {
+	foreach my int $t in ($l = thread_list()) {
 #	    $queue.push(sprintf("TID %d still running\n", $t));
         }
-	if (elements $l == 2)
+	if ($l.size() == $total_threads + 1)
 	    break;
 	sleep(2);
     }
