@@ -74,7 +74,10 @@ union qore_gvar_ref_u {
    }
 
    DLLLOCAL Var* getPtr() const {
-      return _refptr & 1 ? (Var*)(_refptr ^ 1) : (Var*)_refptr;
+      // there is a bug in g++ 4.9.2 20141101 where conditional expression below is executed with the opposite expressions
+      // when compiled with -O2
+      //return (Var*)((_refptr & 1L) ? (_refptr ^ 1L) : _refptr);
+      return (Var*)(_refptr & (~1L));
    }
 
    DLLLOCAL bool isReadOnly() const {
