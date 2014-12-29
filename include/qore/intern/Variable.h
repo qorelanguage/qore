@@ -75,7 +75,7 @@ union qore_gvar_ref_u {
    }
 
    DLLLOCAL Var* getPtr() const {
-      // there is a bug in g++ 4.9.2 20141101 where conditional expression below is executed with the opposite expressions
+      // there is a bug in clang++ 3.0.5 where the conditional expression below is executed with the opposite expressions
       // when compiled with -O2
       //return (Var*)((_refptr & 1L) ? (_refptr ^ 1L) : _refptr);
       return (Var*)(_refptr & (~1L));
