@@ -147,8 +147,9 @@ public class UnitTest::UnitTest {
         int m_testCount = 0;
         int m_errors = 0;
 
-        hash m_result = hash();
+        list m_result = list();
         int m_output = PLAINTEXT;
+        *string m_comment;
 
         hash m_options;
     }
@@ -267,8 +268,9 @@ available output formats (stdout):
     }
 
     private reportOneTestPlaintext(hash testcase) {
-        if (!m_options.verbose && testcase.result == "OK")
+        if (!m_options.verbose && testcase.result == "OK") {
             return;
+        }
         printf("%s: %s\n", testcase.result, testcase.msg);
         if (m_options.verbose && testcase.result != "OK") {
             printf("%s\n", testcase.msg);
@@ -289,7 +291,7 @@ available output formats (stdout):
     }
 
     private reportPlaintext() { # TODO: remove
-        HashIterator it(m_result);
+        ListIterator it(m_result);
         int test_id = 0;
         while (it.next()) {
             reportOneTestPlaintext(it.getValue());
@@ -307,15 +309,15 @@ available output formats (stdout):
                                           );
         junit.testsuites.testcase = list();
 
-        HashIterator it(m_result);
+        ListIterator it(m_result);
         while (it.next()) {
              hash testcase;
              if (it.getValue().result == "OK") {
-                 testcase."^attributes^" = ( "name" : it.getKey(), "status" : it.getValue().result );
+                 testcase."^attributes^" = ( "name" : it.getValue().msg, "status" : it.getValue().result );
              }
              else {
-                 testcase."^attributes^" = ( "name" : it.getKey(), "status" : "ERROR" );
-                 testcase.error."^attributes^" = ( "message" : it.getKey(), "type" : "ERROR" );
+                 testcase."^attributes^" = ( "name" : it.getValue().msg, "status" : "ERROR" );
+                 testcase.error."^attributes^" = ( "message" : it.getValue().msg, "type" : "ERROR" );
              }
              push junit."testsuites"."testcase", testcase;
         }
@@ -348,27 +350,32 @@ unlink(testfile);
         @param msg test message that will be printed
         @par Example:
         @code
-this.cmp(Cow.sound(), 'moo', "cow's sound is correct");
+test_id = this.cmp(Cow.sound(), 'moo', "cow's sound is correct");
         @endcode
     */
-    cmp(any v1, any v2, string msg) {
+    int cmp(any v1, any v2, string msg) {
         m_testCount++;
-        if (m_result{msg}) {
-            stderr.printf("test messages must be unique, >%s< is ambiguous\n", msg);
-            exit(1);
-        }
-        m_result{msg}{"msg"} = msg;
+        hash testcase = ("msg" : msg);
         if (v1 === v2) {
-            m_result{msg}{'result'} = "OK";
+            testcase.result = "OK";
         }
         else {
-            m_result{msg}{'result'} = sprintf("ERROR: %N != %N", v1, v2);
+            testcase.result = sprintf("ERROR: %N != %N", v1, v2);
             m_errors++;
         }
 
-        if (m_output == PLAINTEXT) {
-            reportOneTest(m_result{m_result.lastKey()});
+        if (m_comment) {
+            testcase.msg += m_comment;
+            m_comment = NOTHING;
         }
+
+        push m_result, testcase;
+
+        if (m_output == PLAINTEXT) {
+            reportOneTest(testcase);
+        }
+
+        return elements m_result - 1;
     }
 
     #! Performs an OK test
@@ -379,8 +386,8 @@ this.cmp(Cow.sound(), 'moo', "cow's sound is correct");
 this.ok(Cow.hasFourLegs(), "number of cow's legs correct");
         @endcode
     */
-    ok(softbool v, string msg) {
-	cmp(v, True, msg);
+    int ok(softbool v, string msg) {
+	return cmp(v, True, msg);
     }
 
     #! Performs a LIKE test
@@ -392,13 +399,13 @@ this.ok(Cow.hasFourLegs(), "number of cow's legs correct");
 this.like(Cow.sound(), 'moo+', "cow's sound is correct");
         @endcode
     */
-    like(string str, string regex, string msg) {
+    int like(string str, string regex, string msg) {
         bool match = str.regex(regex);
-        ok(match, msg);
         if (!match) {
             string msgstr = "#     string: " + str + "\n not match: " + regex;
-            m_result{msg}{'msg'} = regex_subst(msgstr, "\n(?=.)", "\n# ");
+            m_comment = regex_subst(msgstr, "\n(?=.)", "\n# ");
         }
+        return ok(match, msg);
     }
 
     #! Performs a test for exception
@@ -417,16 +424,15 @@ sub fly (string animal) {
 this.exception(\fly, ('cow'), 'cow cannot fly', 'invoked exception when cow trying to fly');
         @endcode
     */
-    exception(callref f, list params, string regex, string msg) {
+    int exception(callref f, list params, string regex, string msg) {
         try {
             call_function_args(f, params);
         }
         catch (ex) {
-            like(ex.desc, regex, msg);
-            return;
+            return like(ex.desc, regex, msg);
         }
-        ok(0, msg);
-        m_result{msg}{'msg'} = '# found normal exit instead of exception';
+        m_comment = '# found normal exit instead of exception';
+        return ok(0, msg);
     }
 
     #! Performs a serie of batched CMP tests
