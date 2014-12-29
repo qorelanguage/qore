@@ -118,7 +118,7 @@ AbstractQoreNode* CallReferenceCallNode::parseInitImpl(LocalVar *oflag, int pfla
    if (exp) {
       exp = exp->parseInit(oflag, pflag, lvids, expTypeInfo);
 
-      if (expTypeInfo->hasType() && !codeTypeInfo->parseAccepts(expTypeInfo)) {
+      if (expTypeInfo && codeTypeInfo && expTypeInfo->hasType() && !codeTypeInfo->parseAccepts(expTypeInfo)) {
 	 // raise parse exception
 	 QoreStringNode* desc = new QoreStringNode("invalid call; expression gives ");
 	 expTypeInfo->getThisType(*desc);
@@ -296,7 +296,7 @@ AbstractQoreNode* ParseObjectMethodReferenceNode::parseInitImpl(LocalVar *oflag,
       exp = exp->parseInit(oflag, pflag, lvids, argTypeInfo);
 
       if (argTypeInfo->hasType()) {
-	 if (!objectTypeInfo->parseAccepts(argTypeInfo)) {
+	 if (objectTypeInfo && argTypeInfo && !objectTypeInfo->parseAccepts(argTypeInfo)) {
 	    // raise parse exception
 	    QoreStringNode* desc = new QoreStringNode("invalid call; object expression gives ");
 	    argTypeInfo->getThisType(*desc);

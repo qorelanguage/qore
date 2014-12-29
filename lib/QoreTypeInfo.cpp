@@ -196,6 +196,12 @@ static type_str_map_t type_str_map;
 // rwlock for global type map
 static QoreRWLock extern_type_info_map_lock;
 
+void concatClass(std::string &str, const char *cn) {
+   str.append("<class: ");
+   str.append(cn);
+   str.push_back('>');
+}
+
 static void do_maps(qore_type_t t, const char* name, const QoreTypeInfo* typeInfo, const QoreTypeInfo* orNothingTypeInfo = 0) {
    str_typeinfo_map[name]          = typeInfo;
    str_ornothingtypeinfo_map[name] = orNothingTypeInfo;
@@ -595,7 +601,7 @@ void QoreTypeInfo::doNonStringWarning(const QoreProgramLocation& loc, const char
 }
 
 const QoreTypeInfo* QoreParseTypeInfo::resolveAndDelete(const QoreProgramLocation& loc) {
-   if (!this)
+   if (!qore_check_this(this))
       return 0;
 
    // resolve class

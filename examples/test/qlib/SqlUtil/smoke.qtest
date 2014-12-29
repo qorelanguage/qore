@@ -83,7 +83,7 @@ my hash $opts = (
 # CREATE TABLE test
 $db.dropTableIfExists(TEST_TABLE_NAME);
 $db.getAlignSql(TEST_SCHEMA, $opts);
-my Table $table("oracle:omquser/omquser@xbox", TEST_TABLE_NAME);
+my Table $table($connstr, TEST_TABLE_NAME);
 $t.ok($table.checkExistence(), "create table: existence of 3-columned table checked");
 
 # INSERT test
@@ -109,7 +109,7 @@ $t.cmp(elements $data.id, 0, "delete: no rows with removed id found");
 
 # DROP TABLE test
 $db.dropTableIfExists(TEST_TABLE_NAME);
-my Table $removed_table("oracle:omquser/omquser@xbox", TEST_TABLE_NAME);
+my Table $removed_table($connstr, TEST_TABLE_NAME);
 $t.ok(!$removed_table.checkExistence(), "drop table: no table found");
 
 # }}}

@@ -940,14 +940,14 @@ public:
    }
 
    DLLLOCAL const QoreTypeInfo* getTypeInfo() const {
-      if (!this)
+      if (!qore_check_this(this))
 	 return 0;
 
       return typeInfo;
    }
 
    DLLLOCAL QoreParseTypeInfo* getParseTypeInfo() {
-      if (!this)
+      if (!qore_check_this(this))
 	 return 0;
 
       QoreParseTypeInfo* rv = parseTypeInfo;

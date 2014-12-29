@@ -92,12 +92,12 @@ public:
 
    // returns general UTC offset for the time zone's standard time in seconds east
    DLLLOCAL int getUTCOffset() const {
-      return !this || utcoff == -1 ? 0 : utcoff;
+      return !qore_check_this(this) || utcoff == -1 ? 0 : utcoff;
    }
 
    // returns the UTC offset for the given time given as seconds from the epoch (1970-01-01Z)
    DLLLOCAL int getUTCOffset(int64 epoch_offset) const {
-      if (!this)
+      if (!qore_check_this(this))
          return 0;
 
       const char *temp;
@@ -107,7 +107,7 @@ public:
 
    // returns the UTC offset and local time zone name for the given time given as seconds from the epoch (1970-01-01Z)
    DLLLOCAL int getUTCOffset(int64 epoch_offset, bool &is_dst) const {
-      if (!this) {
+      if (!qore_check_this(this)) {
          is_dst = false;
          return 0;
       }
@@ -118,7 +118,7 @@ public:
 
    // returns the UTC offset and local time zone name for the given time given as seconds from the epoch (1970-01-01Z)
    DLLLOCAL int getUTCOffset(int64 epoch_offset, bool &is_dst, const char *&zone_name) const {
-      if (!this) {
+      if (!qore_check_this(this)) {
          is_dst = false;
          zone_name = "UTC";
          return 0;
@@ -129,11 +129,11 @@ public:
 
    // returns true if the zone has daylight savings time ever
    DLLLOCAL bool hasDST() const {
-      return this ? has_dst : false;
+      return qore_check_this(this) ? has_dst : false;
    }
 
    DLLLOCAL const char *getRegionName() const {
-      if (!this)
+      if (!qore_check_this(this))
          return STATIC_UTC;
 
       return name.c_str();

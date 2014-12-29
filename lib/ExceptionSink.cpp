@@ -58,7 +58,7 @@ bool ExceptionSink::isException() const {
 // ExceptionSink xsink;
 // if (xsink) { .. }
 ExceptionSink::operator bool () const {
-   return this && (priv->head || priv->thread_exit);
+   return qore_check_this(this) && (priv->head || priv->thread_exit);
 }
 
 void ExceptionSink::overrideLocation(const QoreProgramLocation& loc) {

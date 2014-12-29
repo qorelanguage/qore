@@ -1202,15 +1202,15 @@ public:
    }
 
    DLLLOCAL const QoreTypeInfo* getTypeInfo() const {
-      return this ? typeInfo : 0;
+      return qore_check_this(this) ? typeInfo : 0;
    }
 
    DLLLOCAL bool parseHasTypeInfo() const {
-      return this && (typeInfo || parseTypeInfo);
+      return qore_check_this(this) && (typeInfo || parseTypeInfo);
    }
 
    DLLLOCAL QoreMemberInfo* copy() const {
-      if (!this)
+      if (!qore_check_this(this))
          return 0;
 
       return new QoreMemberInfo(*this);
@@ -1265,7 +1265,7 @@ public:
    }
 
    DLLLOCAL QoreVarInfo* copy() const {
-      if (!this)
+      if (!qore_check_this(this))
          return 0;
 
       return new QoreVarInfo(*this);
@@ -2951,7 +2951,7 @@ public:
    }
 
    DLLLOCAL static qore_type_result_e parseCheckCompatibleClass(const QoreClass& qc, const QoreClass& oc) {
-      if (!&oc)
+      if (!qore_check_this(&oc))
          return QTI_NOT_EQUAL;
       return qc.priv->parseCheckCompatibleClass(*oc.priv);
    }

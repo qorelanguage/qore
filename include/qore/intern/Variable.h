@@ -75,7 +75,10 @@ union qore_gvar_ref_u {
    }
 
    DLLLOCAL Var* getPtr() const {
-      return _refptr & 1 ? (Var*)(_refptr ^ 1) : (Var*)_refptr;
+      // there is a bug in g++ 4.9.2 20141101 where conditional expression below is executed with the opposite expressions
+      // when compiled with -O2
+      //return (Var*)((_refptr & 1L) ? (_refptr ^ 1L) : _refptr);
+      return (Var*)(_refptr & (~1L));
    }
 
    DLLLOCAL bool isReadOnly() const {
@@ -228,6 +231,7 @@ public:
       }
 
       typeInfo = n_typeInfo;
+         
       assert(!val.remove(true));
    }
 
@@ -236,7 +240,7 @@ public:
          return;
 
       if (parseTypeInfo) {
-         typeInfo = parseTypeInfo->resolveAndDelete(loc);
+         typeInfo = parseTypeInfo->resolveAndDelete(loc);         
          parseTypeInfo = 0;
 
          val.set(typeInfo);
@@ -445,6 +449,7 @@ public:
       assert(!val);
       v = ptr;
       typeInfo = ti;
+         
 #ifdef DO_OBJ_RECURSIVE_CHECK
       before = get_container_obj(*ptr);
 #endif

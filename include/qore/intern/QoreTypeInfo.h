@@ -46,11 +46,7 @@ DLLLOCAL bool builtinTypeHasDefaultValue(qore_type_t t);
 // returns the default value for any type >= 0 and < NT_OBJECT
 DLLLOCAL AbstractQoreNode *getDefaultValueForBuiltinValueType(qore_type_t t);
 
-static inline void concatClass(std::string &str, const char *cn) {
-   str.append("<class: ");
-   str.append(cn);
-   str.push_back('>');
-}
+DLLLOCAL void concatClass(std::string &str, const char *cn);
 
 /*
  * if input_filter is true, then 
@@ -502,7 +498,7 @@ protected:
    }
 
    DLLLOCAL bool returnsSingleIntern() const {
-      return this && !returns_mult && qt != NT_ALL;
+      return qore_check_this(this) && !returns_mult && qt != NT_ALL;
    }
 
    DLLLOCAL QoreTypeInfo(const QoreClass *n_qc, qore_type_t n_qt, bool n_returns_mult,
@@ -539,7 +535,7 @@ public:
    }
 
    DLLLOCAL qore_type_t getSingleType() const {
-      return this ? qt : NT_ALL;
+      return qore_check_this(this) ? qt : NT_ALL;
    }
 
    DLLLOCAL bool parseAcceptsReturns(qore_type_t t) const {
@@ -568,14 +564,14 @@ public:
 
    // returns true if this type only returns the value given
    DLLLOCAL bool isType(qore_type_t t) const {
-      if (!this || returns_mult)
+      if (!qore_check_this(this) || returns_mult)
          return false;
 
       return t == qt;
    }
 
    DLLLOCAL bool isClass(const QoreClass *n_qc) const {
-      if (!this || returns_mult || !qc)
+      if (!qore_check_this(this) || returns_mult || !qc)
          return false;
 
       return qc->getID() == n_qc->getID();
@@ -616,7 +612,7 @@ public:
    }
 
    DLLLOCAL const QoreClass *getUniqueReturnClass() const {
-      return !this || returns_mult ? 0 : qc;
+      return !qore_check_this(this) || returns_mult ? 0 : qc;
    }
 
    DLLLOCAL bool returnsSingle() const {
@@ -624,15 +620,15 @@ public:
    }
 
    DLLLOCAL bool acceptsSingle() const {
-      return this && !accepts_mult && qt != NT_ALL;
+      return qore_check_this(this) && !accepts_mult && qt != NT_ALL;
    }
 
    DLLLOCAL bool hasType() const {
-      return this && (accepts_mult || returns_mult || qt != NT_ALL);
+      return qore_check_this(this) && (accepts_mult || returns_mult || qt != NT_ALL);
    }
 
    DLLLOCAL bool hasInputFilter() const {
-      return this && input_filter;
+      return qore_check_this(this) && input_filter;
    }
 
    DLLLOCAL const char *getName() const {
@@ -646,7 +642,7 @@ public:
    }
 
    DLLLOCAL void getThisType(QoreString &str) const {
-      if (!this || qt == NT_NOTHING) {
+      if (!qore_check_this(this) || qt == NT_NOTHING) {
 	 str.sprintf("no value");
 	 return;
       }
@@ -940,7 +936,7 @@ public:
 
    // used when parsing user code to find duplicate signatures
    DLLLOCAL bool parseStageOneIdenticalWithParsed(const QoreTypeInfo *typeInfo, bool &recheck) const {
-      bool thisnt = !this;
+      bool thisnt = !qore_check_this(this);
       bool typent = !typeInfo->hasType();
 
       if (thisnt && typent)
@@ -962,7 +958,7 @@ public:
 
    // used when parsing user code to find duplicate signatures
    DLLLOCAL bool parseStageOneIdentical(const QoreParseTypeInfo *typeInfo) const {
-      bool thisnt = !this;
+      bool thisnt = !qore_check_this(this);
       bool typent = !typeInfo;
 
       if (thisnt && typent)
@@ -978,25 +974,25 @@ public:
    DLLLOCAL const QoreTypeInfo *resolveAndDelete(const QoreProgramLocation& loc);
 
 #ifdef DEBUG
-   DLLLOCAL const char *getCID() const { return this && cscope ? cscope->getIdentifier() : "n/a"; }
+   DLLLOCAL const char *getCID() const { return qore_check_this(this) && cscope ? cscope->getIdentifier() : "n/a"; }
 #endif
 
    DLLLOCAL QoreParseTypeInfo *copy() const {
-      if (!this)
+      if (!qore_check_this(this))
 	 return 0;
 
       return new QoreParseTypeInfo(cscope);
    }
 
    DLLLOCAL const char *getName() const {
-      if (!this)
+      if (!qore_check_this(this))
 	 return NO_TYPE_INFO;
 
       return tname.c_str();
    }
 
    DLLLOCAL void concatName(std::string &str) const {
-      if (!this) {
+      if (!qore_check_this(this)) {
 	 str.append(NO_TYPE_INFO);
 	 return;
       }

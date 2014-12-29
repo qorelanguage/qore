@@ -392,11 +392,11 @@ public:
    DLLLOCAL void dbg();
 
    DLLLOCAL bool isValid() const {
-      return this ? valid : false;
+      return qore_check_this(this) ? valid : false;
    }
 
    DLLLOCAL bool isInDel() const {
-      return this ? in_del : false;
+      return qore_check_this(this) ? in_del : false;
    }
 #endif
 
