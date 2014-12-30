@@ -30,32 +30,30 @@ code identify_type = *string sub (string line) {
 };
 
 hash specs = (
-    "types" : (
-        "type1" : (
-            "col1" : (
-                "length" : 5,
-                "type"   : "int"
-            ),
-            "col2" : (
-                "length" : 2,
-                "type"   : "string",
-            ),
+    "type1" : (
+        "col1" : (
+            "length" : 5,
+            "type"   : "int"
         ),
-        "type2" : (
-            "col3" : (
-                "length" : 1,
-                "type"   : "string",
-            ),
-            "col4" : (
-                "length" : 3,
-                "type"   : "string",
-            ),
-            "col5" : (
-                "length"   : 8,
-                "type"     : "date",
-                "format"   : "DDMMYYYY",
-                "timezone" : "Europe/Prague",
-            ),
+        "col2" : (
+            "length" : 2,
+            "type"   : "string",
+        ),
+    ),
+    "type2" : (
+        "col3" : (
+            "length" : 1,
+            "type"   : "string",
+        ),
+        "col4" : (
+            "length" : 3,
+            "type"   : "string",
+        ),
+        "col5" : (
+            "length"   : 8,
+            "type"     : "date",
+            "format"   : "DDMMYYYY",
+            "timezone" : "Europe/Prague",
         ),
     ),
 );

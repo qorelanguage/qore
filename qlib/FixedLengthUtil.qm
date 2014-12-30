@@ -1,6 +1,9 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file FixedLengthUtil.qm Qore user module for working with files with fixed lines length
 
+# TODO: remove key "types" from specs because there is the only key so it is possible to simplify
+# TODO: transition state error checking - keep type of the current line in some attribute variable and check possibility of this transition if the current state changes
+
 /*  FixedLengthUtil.qm Copyright 2012 - 2014 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
@@ -79,32 +82,30 @@ code identify_type = *string sub (string line) {
 };
 
 hash specs = (
-    "types" : (
-        "type1" : (
-            "col1" : (
-                "length" : 5,
-                "type"   : "int"
-            ),
-            "col2" : (
-                "length" : 2,
-                "type"   : "string",
-            ),
+    "type1" : (
+        "col1" : (
+            "length" : 5,
+            "type"   : "int"
         ),
-        "type2" : (
-            "col3" : (
-                "length" : 1,
-                "type"   : "string",
-            ),
-            "col4" : (
-                "length" : 3,
-                "type"   : "string",
-            ),
-            "col5" : (
-                "length"   : 8,
-                "type"     : "date",
-                "format"   : "DDMMYYYY",
-                # "timezone" : "Europe/Prague", # use global if omitted
-            ),
+        "col2" : (
+            "length" : 2,
+            "type"   : "string",
+        ),
+    ),
+    "type2" : (
+        "col3" : (
+            "length" : 1,
+            "type"   : "string",
+        ),
+        "col4" : (
+            "length" : 3,
+            "type"   : "string",
+        ),
+        "col5" : (
+            "length"   : 8,
+            "type"     : "date",
+            "format"   : "DDMMYYYY",
+            # "timezone" : "Europe/Prague", # use global if omitted
         ),
     ),
 );
@@ -146,32 +147,30 @@ code identify_type = *string sub (string line) {
 };
 
 hash specs = (
-    "types" : (
-        "type1" : (
-            "col1" : (
-                "length" : 5,
-                "type"   : "int"
-            ),
-            "col2" : (
-                "length" : 2,
-                "type"   : "string",
-            ),
+    "type1" : (
+        "col1" : (
+            "length" : 5,
+            "type"   : "int"
         ),
-        "type2" : (
-            "col3" : (
-                "length" : 1,
-                "type"   : "string",
-            ),
-            "col4" : (
-                "length" : 3,
-                "type"   : "string",
-            ),
-            "col5" : (
-                "length"   : 8,
-                "type"     : "date",
-                "format"   : "DDMMYYYY",
-                "timezone" : "Europe/Prague",
-            ),
+        "col2" : (
+            "length" : 2,
+            "type"   : "string",
+        ),
+    ),
+    "type2" : (
+        "col3" : (
+            "length" : 1,
+            "type"   : "string",
+        ),
+        "col4" : (
+            "length" : 3,
+            "type"   : "string",
+        ),
+        "col5" : (
+            "length"   : 8,
+            "type"     : "date",
+            "format"   : "DDMMYYYY",
+            "timezone" : "Europe/Prague",
         ),
     ),
 );
@@ -233,12 +232,12 @@ my hash $h = $i.getValue();
         hash result = hash();
 
         *string type = call_function_args(identify_record, line);
-        if (!type || !specs.types{type}) {
+        if (!type || !specs{type}) {
             throw 'NON-MATCHING-TYPE', 'Line type not detected correctly for line >' + line + '<';
         }
         int pos = 0;
-        foreach string col in (specs.types{type}.keys()) {
-            hash field = specs.types{type}{col};
+        foreach string col in (specs{type}.keys()) {
+            hash field = specs{type}{col};
             if (!field.timezone) {
                 field.timezone = m_opts.timezone;
             }
@@ -373,7 +372,7 @@ public class FixedLengthUtil::FixedLengthAbstractWriter inherits TextUtil::Abstr
     }
 
     private bool checkItemTypeCombination(hash item, string type, string line_candidate) {
-        hash type_specs = specs.types{type};
+        hash type_specs = specs{type};
         # not this line if columns count mismatch
         if (elements type_specs.keys() != elements item.keys()) {
             return False;
@@ -427,7 +426,7 @@ public class FixedLengthUtil::FixedLengthFileWriter inherits FixedLengthUtil::Fi
         FW.open(file, O_WRONLY | O_CREAT);
 
         foreach hash item in (lines) {
-            foreach string type in (specs.types.keys()) {
+            foreach string type in (specs.keyIterator()) {
                 string line_candidate = join("", map string($1), item.values());
                 if (checkItemTypeCombination(item, type, line_candidate)) {
                     FW.write(line_candidate + (m_opts.eol ? m_opts.eol : "\n"));
@@ -460,7 +459,7 @@ public class FixedLengthUtil::FixedLengthDataWriter inherits FixedLengthUtil::Fi
         string result = "";
 
         foreach hash item in (lines) {
-            foreach string type in (specs.types.keys()) {
+            foreach string type in (specs.keys()) {
                 string line_candidate = join("", map string($1), item.values());
                 if (checkItemTypeCombination(item, type, line_candidate)) {
                     result += line_candidate + (m_opts.eol ? m_opts.eol : "\n");
