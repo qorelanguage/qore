@@ -1302,6 +1302,39 @@ if test -n "${with_doxygen}"; then
    AC_SUBST(DOXYGEN_CMD, $with_doxygen)
 fi
 
+# check for LLVM bug 22050: http://llvm.org/bugs/show_bug.cgi?id=22050 (clang++ 3.5.0 generates invalid code for the conditional/ternary operator with -O1 or above in some cases)
+if test "$cross_compiling" != "yes" -a -n "`echo $CXX|grep clang`"; then
+   CXXFLAGS_SAVE="$CXXFLAGS"
+   CXXFLAGS="$CXXFLAGS -O2"
+   AC_MSG_CHECKING([for llvm bug 22050 with the conditional/ternary operator code generation])
+   AC_RUN_IFELSE([AC_LANG_PROGRAM(
+   [[#include <sys/types.h>
+#include <stdlib.h>]],
+   [[
+   union u {
+      size_t _refptr;
+      void setPtr(int* refptr, bool readonly = false) {
+         _refptr = (size_t)refptr;
+         if (readonly)
+            _refptr |= 1;
+      }
+      int* getPtr() const {
+         // the line below is compiled incorrectly with clang++ 3.5.0 -O1 or above
+         return (int*)((_refptr & 1L) ? (_refptr ^ 1L) : _refptr);
+      }
+   };
+   u u;
+   int i = 100;   
+   u.setPtr(&i);
+   exit(&i == u.getPtr());
+   ]])],
+      [AC_MSG_RESULT([found; enabling workaround])
+       AC_DEFINE([HAVE_LLVM_BUG_22050], 1, [define if compiling with clang with llvm bug 22050])],
+      [AC_MSG_RESULT([not found])])
+
+   CXXFLAGS="$CXXFLAGS_SAVE"
+fi
+
 # check if socklen_t is needed
 if test "$mingw" != yes; then
    TYPE_SOCKLEN_T

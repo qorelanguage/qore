@@ -1,0 +1,82 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%requires UnitTest
+%requires Util
+    
+my UnitTest $t();
+
+class ThreadTest {
+    constructor() {
+	$.key1 = "key1";
+	$.key2 = "key2";
+	$.key3 = "key3";
+	$.key4 = "key4";
+    }
+    shuffle() {
+	my $v = $.key1;
+	my $x = $.key2;
+	delete $.key2;
+	$.key2 = $v;
+	delete $.key1;
+	$.key1 = $x;
+	$self{rand() % 100} = rand();
+	delete $self{rand() % 100};
+	$v = int();
+	delete $v;
+    }
+    read() {
+	my $v = $.key3;
+	my $x = $.key4;
+	$v = int();
+	delete $v;
+    }
+}
+
+our softint $delay   = shift $ARGV ?? 10;
+our int $num_threads = shift $ARGV ?? 5;
+our int $iters       = shift $ARGV ?? 500;
+our int $overall     = shift $ARGV ?? 10;
+
+if ($t.verbose()) 
+    printf("delay: %d threads: %d iters: %d overall: %d\n", $delay, $num_threads, $iters, $overall); 
+
+our ThreadTest $obj1();
+our ThreadTest $obj2();
+
+sub delay(int $val) {
+    my int $i = 0;
+    while ($i < $val) {
+        if (gettid() % 2) {
+            $obj1.shuffle();
+            my $v = $obj2.key1;
+            $v += " " + $obj2.key2;
+        }
+        else {
+            $obj1.read();
+            my $v += "extra";
+            my $x += "extra";
+            $v += $obj2.key1;
+            $v += " " + $obj2.key2;
+        }
+        $i++;
+    }
+}
+
+our Counter $c();
+
+sub gee() {
+    on_exit $c.dec();
+    for (my $i = 0; $i < $iters; $i++) {
+        #printf("TID %d (%d/%d) %s\n", gettid(), $i, $iters, $arg);
+        delay($delay);
+    }
+    save_thread_data("key", "value");
+}
+
+for (my $i = 1; $i <= $num_threads; $i++) {
+    $c.inc();
+    background gee();
+}
+
+$c.waitForZero();

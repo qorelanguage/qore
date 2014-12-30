@@ -178,7 +178,7 @@ public:
 template <unsigned int N, class T = QoreOperatorNode>
 class QoreNOperatorNodeBase : public T {
 protected:
-   DLLLOCAL AbstractQoreNode* e[N];
+   AbstractQoreNode* e[N];
 
    DLLLOCAL virtual ~QoreNOperatorNodeBase() {
       for (unsigned i = 0; i < N; ++i)

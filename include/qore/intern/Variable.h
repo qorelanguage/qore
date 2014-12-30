@@ -75,10 +75,13 @@ union qore_gvar_ref_u {
    }
 
    DLLLOCAL Var* getPtr() const {
-      // there is a bug in clang++ 3.0.5 where the conditional expression below is executed with the opposite expressions
-      // when compiled with -O2
-      //return (Var*)((_refptr & 1L) ? (_refptr ^ 1L) : _refptr);
+#ifndef HAVE_LLVM_BUG_22050
+      // there is a bug in clang++ 3.5.[0|1] where the conditional expression below is executed with the opposite expressions
+      // when compiled with -O1 or greater: http://llvm.org/bugs/show_bug.cgi?id=22050
+      return (Var*)((_refptr & 1L) ? (_refptr ^ 1L) : _refptr);
+#else
       return (Var*)(_refptr & (~1L));
+#endif
    }
 
    DLLLOCAL bool isReadOnly() const {
