@@ -1525,7 +1525,7 @@ if ($x || $y)
     @section null_coalescing_operator Null Coalescing Operator (??)
 
     @par Synopsis
-    Evaluates the first operand and checks for a value (ie not @ref nothing).  If it evaluates to a value, then the value of the first operand is returned, otherwise the second operand is evaluated and returned.  When chained, the first argument with a value is returned.
+    Evaluates the first operand and checks for a value (ie not @ref nothing or @ref null).  If it evaluates to a value, then the value of the first operand is returned, otherwise the second operand is evaluated and returned.  When chained, the first argument with a value is returned.
 
     @par Syntax
     \a expression1 ?? \a expression2 
@@ -1538,7 +1538,7 @@ if ($x || $y)
 
     <b>Arguments Processed by ??</b>
     |!Argument|!Processing
-    |All|If \a expression1 is evaluated to be @ref nothing then the \a expession2 is evaluated and returned. Otherwise the value of \a expession1 is returned.
+    |All|If \a expression1 is evaluated to be @ref nothing or @ref null then the \a expession2 is evaluated and returned. Otherwise the value of \a expession1 is returned.
 
     This operator does not throw any exceptions.
 

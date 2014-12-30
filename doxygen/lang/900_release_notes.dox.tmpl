@@ -8,7 +8,7 @@
     Major new release with major new features and bug fixes as well as packaging fixes.
 
     @subsection qore_0812_new_features New Features in Qore
-    - Added the @ref null_coalescing_operator which checks the first operand for @ref nothing; if true returns the second argument. The operator can be further chained, in which case the first operand with a value is returned; ex: @code expr1 ?? expr2 ?? expr3 @endcode
+    - Added the @ref null_coalescing_operator which checks the first operand for @ref nothing or @ref null; if true returns the second argument. The operator can be further chained, in which case the first operand with a value is returned; ex: @code expr1 ?? expr2 ?? expr3 @endcode
     - <a href="../../modules/FixedLengthUtil/html/index.html">FixedLengthUtil</a> module for handling fixed length line data added
     - hash enhancements:
       - new literal hash support: hashes can now be given as literal values as follows: @code (<key_expr>: <val_expr>, [...]) @endcode in the past the keys in literal hashes had to be either a string or a constant; now any valid %Qore expression can be used to generate the hash keys at runtime
