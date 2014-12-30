@@ -2,7 +2,6 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
 %requires UnitTest
-%requires Util
     
 my UnitTest $t();
 
