@@ -1,4 +1,6 @@
 #!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
 %require-types
 %enable-all-warnings
 %requires UnitTest
@@ -36,5 +38,8 @@ class App {
         $unit.cmp((34.9n * 100).toString(), "3490", "number rounding 5");
         $unit.cmp(1e50n.toString(), "100000000000000000000000000000000000000000000000000", "number rounding 5");
         $unit.cmp((-1e50n).toString(), "-100000000000000000000000000000000000000000000000000", "number rounding 6");
+
+        # fixed in svn rev 6914
+        $unit.cmp(738.38.toNumber().toString(), 738.38.toString(), "float->number 1");
     }
 }
