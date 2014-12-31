@@ -234,19 +234,6 @@ log("started listener on %s", $lh.desc);
     All the public symbols in the module are defined in this namespace
  */
 public namespace HttpServer {
-    #! parses a URI path for a arguments and a method; where the method is the part of the path before the first \c "?" character, and arguments are after
-    /** @param path the URI path to parse
-
-        @return a hash with the following keys:
-        - \c method: (@ref string_type "string") the part of the path before the first \c "?" character or the entire path if no \c "?" character is present in the path
-        - \c params: (@ref hash_type "hash", assuming all values are key/value pairs like \c "key=value", otherwise it will be a @ref list_type "list") optional, only if a "?" character is present in the input; the part of the path after the first \c "?" character; arguments should be separated by ";" characters (according to a w3c recommendation: http://www.w3.org/TR/1999/REC-html401-19991224/appendix/notes.html#h-B.2.2), however this function supports both \c ";" and \c "&" as argument separators
-
-        @note reexported from HttpServerUtil::parse_uri_query()
-     */
-    public hash sub parse_uri_query(string $path, bool $trans = True) {
-        return HttpServerUtil::parse_uri_query($path, $trans);
-    }
-
     #! returns a multi-line string from the exception hash argument suitable for logging or output on the console
     /** @param ex the exception hash to process
         
@@ -263,7 +250,7 @@ public namespace HttpServer {
 class HttpServer::HandlerInfo {
     public {
         string $.name;
-        HttpServerUtil::AbstractHttpRequestHandler $.obj;
+        HttpServer::AbstractHttpRequestHandler $.obj;
         string $.path;
         bool $.isregex;
         # content type hash
@@ -271,7 +258,7 @@ class HttpServer::HandlerInfo {
         *list $.shdr;
     }
 
-    constructor(string $name, HttpServerUtil::AbstractHttpRequestHandler $obj, string $path, bool $isregex = True, *softlist $content, *softlist $shdr) {
+    constructor(string $name, HttpServer::AbstractHttpRequestHandler $obj, string $path, bool $isregex = True, *softlist $content, *softlist $shdr) {
         $.name = $name;
         $.obj = $obj;
         $.path = $path;
@@ -335,7 +322,7 @@ class HttpServer::HttpHandlerList {
     }
 
     #! sets a request handler according to the arguments given 
-    setHandler(string $name, string $path, bool $isregex = True, *softlist $content, HttpServerUtil::AbstractHttpRequestHandler $obj, *softlist $special_headers) {
+    setHandler(string $name, string $path, bool $isregex = True, *softlist $content, HttpServer::AbstractHttpRequestHandler $obj, *softlist $special_headers) {
         if ($.handlers.$name)
             throw "SETHANDLER-ERROR", sprintf("HTTP request handler %y already exists", $name);
 
@@ -382,7 +369,7 @@ class HttpServer::DynamicHandlerInfo inherits HttpServer::HandlerInfo {
         Counter $.counter();
     }
 
-    constructor(string $name, HttpServerUtil::AbstractHttpRequestHandler $obj, string $path, bool $isregex = True, *softlist $content, *softlist $shdr) : HandlerInfo($name, $obj, $path, $isregex, $content, $shdr) {
+    constructor(string $name, HttpServer::AbstractHttpRequestHandler $obj, string $path, bool $isregex = True, *softlist $content, *softlist $shdr) : HandlerInfo($name, $obj, $path, $isregex, $content, $shdr) {
     }
 }
 
@@ -411,7 +398,7 @@ class HttpServer::DynamicHttpHandlerList inherits HttpServer::HttpHandlerList {
     }
 
     #! sets a dynamic request handler according to the arguments given 
-    setHandler(string $name, string $path, bool $isregex, *softlist $content_type, HttpServerUtil::AbstractHttpRequestHandler $obj, *softlist $special_headers) {
+    setHandler(string $name, string $path, bool $isregex, *softlist $content_type, HttpServer::AbstractHttpRequestHandler $obj, *softlist $special_headers) {
         my DynamicHandlerInfo $dhi($name, $obj, $path, $isregex, $content_type, $special_headers);
 
         $.dhl.writeLock();
@@ -442,8 +429,8 @@ class HttpServer::DynamicHttpHandlerList inherits HttpServer::HttpHandlerList {
             $c = $dhi.counter;
 
             # stop handler if it is a dedicated socket handler
-            if ($dhi.obj instanceof HttpServerUtil::AbstractHttpSocketHandler)
-                cast<HttpServerUtil::AbstractHttpSocketHandler>($dhi.obj).stop();
+            if ($dhi.obj instanceof HttpServer::AbstractHttpSocketHandler)
+                cast<HttpServer::AbstractHttpSocketHandler>($dhi.obj).stop();
         }
 
         # wait for the call counter to reach zero
@@ -464,18 +451,18 @@ class HttpServer::DynamicHttpHandlerList inherits HttpServer::HttpHandlerList {
 }
 
 #! The HttpServer class implements a multithreaded HTTP server primarily designed for serving RPC-style services
-public class HttpServer::HttpServer inherits HttpServerUtil::AbstractLogger {
+public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
     public {
         #! version of the HttpServer's implementation
-        const Version = HttpServerUtil::HttpServerVersion;
+        const Version = HttpServer::HttpServerVersion;
         #! default read timeout in ms
-        const ReadTimeout = HttpServerUtil::ReadTimeout;  # recvs timeout after 30 seconds
+        const ReadTimeout = HttpServer::ReadTimeout;  # recvs timeout after 30 seconds
         #! default poll timeout in ms
         const PollTimeout = 5000;   # check for exit every 5 seconds while waiting
 
         # logging options
-        const LP_LOGPARAMS = HttpServerUtil::LP_LOGPARAMS;
-        const LP_LEVELMASK = HttpServerUtil::LP_LEVELMASK;
+        const LP_LOGPARAMS = HttpServer::LP_LOGPARAMS;
+        const LP_LEVELMASK = HttpServer::LP_LEVELMASK;
 
         #! address info flags
         const AIFlags = AI_PASSIVE | AI_ADDRCONFIG;
@@ -493,7 +480,7 @@ public class HttpServer::HttpServer inherits HttpServerUtil::AbstractLogger {
             );
 
         #! map of HTTP result codes and text messages
-        const HttpCodes = HttpServerUtil::HttpCodes;
+        const HttpCodes = HttpServer::HttpCodes;
 
         #! content-encodings supported; this is a hash to simulate a set with O(ln(n)) access times
         const ContentEncodings = (
@@ -576,7 +563,7 @@ public class HttpServer::HttpServer inherits HttpServerUtil::AbstractLogger {
         @param name the name of the HTTP server as returned in the Server header (should be formatted according to RFC 2616 section 3.8 http://tools.ietf.org/html/rfc2616#section-3.8)
         @param hdr a hash of headers to return in every response by default; to clear the default send an empty hash as the argument here
      */
-    constructor(*code $logfunc, *code $errlogfunc, bool $dbg = False, string $name = HttpServerUtil::HttpServerString, hash $hdr = ("X-Powered-By": "Qore/" + Qore::VersionString)) {
+    constructor(*code $logfunc, *code $errlogfunc, bool $dbg = False, string $name = HttpServer::HttpServerString, hash $hdr = ("X-Powered-By": "Qore/" + Qore::VersionString)) {
 	$.logfunc = $logfunc;
 	$.errlogfunc = $errlogfunc;
         $.debug = $dbg;
@@ -593,7 +580,7 @@ public class HttpServer::HttpServer inherits HttpServerUtil::AbstractLogger {
 
     #! returns the HTTP server version string
     static string getHttpServerVersionString() {
-        return HttpServerUtil::HttpServerVersion;
+        return HttpServer::HttpServerVersion;
     }
 
 %ifdef QorusServer
@@ -608,7 +595,7 @@ public class HttpServer::HttpServer inherits HttpServerUtil::AbstractLogger {
     
     #! adds a dedicated listener to the server with an explicit/dedicated handler for incoming connections
     /** @param hname the name of the handler
-        @param handler the HttpServerUtil::AbstractHttpRequestHandler object that will handle incoming connections
+        @param handler the HttpServer::AbstractHttpRequestHandler object that will handle incoming connections
         @param lp a hash with the following keys:
         - \c cert_path: (optional) a path to an X509 certificate for HTTPS listeners
         - \c key_path: (optional) a path to a private key file for an X509 certificate for HTTPS listeners
@@ -636,7 +623,7 @@ public class HttpServer::HttpServer inherits HttpServerUtil::AbstractLogger {
 
         @note if \c bind begins with a "/" character then it is assumed to be a UNIX socket path and the \a family argument is ignored
      */
-    final list addListenersWithHandler(string $hname, HttpServerUtil::AbstractHttpRequestHandler $handler, hash $lp, *code $logger, *code $errorlogger, *code $stopc, *string $name, int $family = AF_UNSPEC) {
+    final list addListenersWithHandler(string $hname, HttpServer::AbstractHttpRequestHandler $handler, hash $lp, *code $logger, *code $errorlogger, *code $stopc, *string $name, int $family = AF_UNSPEC) {
         if ($lp.bind.typeCode() != NT_STRING)
             throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("missing or invalid 'bind' entry in listener description giving the bind address; expecting type 'string', got type '%s'", $lp.bind.type());
 
@@ -903,7 +890,7 @@ public class HttpServer::HttpServer inherits HttpServerUtil::AbstractLogger {
     }
 
     #! sets the default request handler when no other handler can be matched
-    setDefaultHandler(string $name, HttpServerUtil::AbstractHttpRequestHandler $obj) {
+    setDefaultHandler(string $name, HttpServer::AbstractHttpRequestHandler $obj) {
 	$.defaultHandler = (
             "name" : $name,
             "obj"  : $obj,
@@ -911,27 +898,27 @@ public class HttpServer::HttpServer inherits HttpServerUtil::AbstractLogger {
     }
     
     #! sets a request handler according to the arguments given 
-    setHandler(string $name, string $path, *softlist $content_type, HttpServerUtil::AbstractHttpRequestHandler $obj, *softlist $special_headers, bool $isregex = True) {
+    setHandler(string $name, string $path, *softlist $content_type, HttpServer::AbstractHttpRequestHandler $obj, *softlist $special_headers, bool $isregex = True) {
 	$.handlers.setHandler($name, $path, $isregex, $content_type, $obj, $special_headers);
     }
 
     #! sets a dynamic request handler according to the arguments given
-    setDynamicHandler(string $name, string $path, *softlist $content_type, HttpServerUtil::AbstractHttpRequestHandler $obj, *softlist $special_headers, bool $isregex = True) {
+    setDynamicHandler(string $name, string $path, *softlist $content_type, HttpServer::AbstractHttpRequestHandler $obj, *softlist $special_headers, bool $isregex = True) {
 	$.dhandlers.setHandler($name, $path, $isregex, $content_type, $obj, $special_headers);
     }
 
     #! sets a request handler according to the arguments given 
-    setHandler(string $name, HttpServerUtil::AbstractUrlHandler $obj) {
+    setHandler(string $name, HttpServer::AbstractUrlHandler $obj) {
 	$.handlers.setHandler($name, $obj.url_root, False, NOTHING, $obj);
     }
 
     #! sets a dynamic request handler according to the arguments given
-    setDynamicHandler(string $name, HttpServerUtil::AbstractUrlHandler $obj) {
+    setDynamicHandler(string $name, HttpServer::AbstractUrlHandler $obj) {
 	$.dhandlers.setHandler($name, $obj.url_root, False, NOTHING, $obj);
     }
 
     #! adds a request handler to a listener given the listener's name or bind address
-    addHandlerToListener(softstring $bind, string $name, string $path, *softlist $content_type, HttpServerUtil::AbstractHttpRequestHandler $obj, *softlist $special_headers, bool $isregex = True) {
+    addHandlerToListener(softstring $bind, string $name, string $path, *softlist $content_type, HttpServer::AbstractHttpRequestHandler $obj, *softlist $special_headers, bool $isregex = True) {
 	$.lm.enter();
 	on_exit $.lm.exit();
 
@@ -947,7 +934,7 @@ public class HttpServer::HttpServer inherits HttpServerUtil::AbstractLogger {
     }
 
     #! adds a request handler to a listener given the listener's id
-    addHandlerToListenerID(softint $id, string $name, string $path, *softlist $content_type, HttpServerUtil::AbstractHttpRequestHandler $obj, *softlist $special_headers, bool $isregex = True) {
+    addHandlerToListenerID(softint $id, string $name, string $path, *softlist $content_type, HttpServer::AbstractHttpRequestHandler $obj, *softlist $special_headers, bool $isregex = True) {
 	$.lm.enter();
 	on_exit $.lm.exit();
 
@@ -959,7 +946,7 @@ public class HttpServer::HttpServer inherits HttpServerUtil::AbstractLogger {
     }
 
     #! adds a request handler to a listener given the listener's name or bind address
-    addHandlerToListener(softstring $bind, string $name, HttpServerUtil::AbstractUrlHandler $obj) {
+    addHandlerToListener(softstring $bind, string $name, HttpServer::AbstractUrlHandler $obj) {
 	$.lm.enter();
 	on_exit $.lm.exit();
 
@@ -975,7 +962,7 @@ public class HttpServer::HttpServer inherits HttpServerUtil::AbstractLogger {
     }
 
     #! adds a request handler to a listener given the listener's id
-    addHandlerToListenerID(softint $id, string $name, HttpServerUtil::AbstractUrlHandler $obj) {
+    addHandlerToListenerID(softint $id, string $name, HttpServer::AbstractUrlHandler $obj) {
 	$.lm.enter();
 	on_exit $.lm.exit();
 
@@ -1110,7 +1097,7 @@ public class HttpServer::HttpServer inherits HttpServerUtil::AbstractLogger {
 
     #! helper method to set HTTP response headers
     static nothing setReplyHeaders(Socket $s, hash $cx, reference $rv) {
-        return HttpServerUtil::http_set_reply_headers($s, $cx, \$rv);
+        return HttpServer::http_set_reply_headers($s, $cx, \$rv);
     }
 
     #! @cond nodoc
@@ -1252,7 +1239,7 @@ public class HttpServer::HttpServer inherits HttpServerUtil::AbstractLogger {
             "debug"       : $.debug,
 	    );
 
-        my HttpServerUtil::AbstractHttpRequestHandler $handler;
+        my HttpServer::AbstractHttpRequestHandler $handler;
         # the dynamic handler helper maintains the request count for dynamic handlers so any call to remove the handler will only return after all in-progress requests are completed; the object is only allocated if needed
         my DynamicHandlerHelper $dhh;
 
@@ -1384,7 +1371,7 @@ public class HttpServer::HttpServer inherits HttpServerUtil::AbstractLogger {
 
     # sends a reply to a request
     # don't reimplement this method; fix/enhance it in the module
-    final sendReply(HttpListener $listener, Socket $s, HttpServerUtil::AbstractHttpRequestHandler $handler, hash $rv, reference $cx, hash $hdr, bool $head) {
+    final sendReply(HttpListener $listener, Socket $s, HttpServer::AbstractHttpRequestHandler $handler, hash $rv, reference $cx, hash $hdr, bool $head) {
         if (exists $rv.close)
             $cx.close = boolean($rv.close);
 
@@ -1434,7 +1421,7 @@ public class HttpServer::HttpServer inherits HttpServerUtil::AbstractLogger {
             $.sendHttpError($listener, $cx, $s, $rv.code, $rv.body, $rv.hdr, $cx."response-encoding");
         }
         else {
-            HttpServerUtil::http_set_reply_headers($s, $cx, \$rv);
+            HttpServer::http_set_reply_headers($s, $cx, \$rv);
             #printf("\n**** RESPONSE: %d ct: %s encoding: %y: %N\n", $rv.code, $rv.hdr."Content-Type", $cx.encoding, $rv.body);
 
             if ($head)
@@ -1466,14 +1453,14 @@ public class HttpServer::HttpServer inherits HttpServerUtil::AbstractLogger {
         if ($rv.code == 101) {
             if ($rv.close)
                 $listener.logError("cid %d: 101 Switching Protocols returned from handler %y, but the connection close flag set", $cx.id, $cx.handler_name);
-            else if (!($handler instanceof HttpServerUtil::AbstractHttpSocketHandler)) {
+            else if (!($handler instanceof HttpServer::AbstractHttpSocketHandler)) {
                 $listener.logError("cid %d: 101 Switching Protocols returned from handler %y, but the handler is not derived from AbstractHttpSocketHandler (class: %y)", $cx.id, $cx.handler_name, $handler.className());
             }
             else {
                 if ($listener.registerDedicatedSocket($cx.id, $handler)) {
                     on_exit $cx.close = True;
                     try {
-                        cast<HttpServerUtil::AbstractHttpSocketHandler>($handler).start($listener.getID(), $cx, $hdr, $s);
+                        cast<HttpServer::AbstractHttpSocketHandler>($handler).start($listener.getID(), $cx, $hdr, $s);
                     }
                     catch (hash $ex) {
                         my string $desc = !$.debug
@@ -1495,14 +1482,14 @@ public class HttpServer::HttpServer inherits HttpServerUtil::AbstractLogger {
 class HttpServer::HttpPersistentHandlerInfo {
     public {
         *DynamicHandlerHelper $.dhh;
-        *HttpServerUtil::AbstractHttpRequestHandler $.handler;
+        *HttpServer::AbstractHttpRequestHandler $.handler;
     }
 
     destructor() {
         $.clear();
     }
 
-    assign(DynamicHandlerHelper $dhh, HttpServerUtil::AbstractHttpRequestHandler $handler) {
+    assign(DynamicHandlerHelper $dhh, HttpServer::AbstractHttpRequestHandler $handler) {
         $.dhh = $dhh;
         $.handler = $handler;
     }
@@ -1520,7 +1507,7 @@ class HttpServer::HttpPersistentHandlerInfo {
 #! this class implements the listeners for the @ref HttpServer::HttpServer "HttpServer" class
 /** this class is private; it's not exported in the module API
 */
-class HttpServer::HttpListener inherits Qore::Socket, HttpServerUtil::AbstractLogger {
+class HttpServer::HttpListener inherits Qore::Socket, HttpServer::AbstractLogger {
     private {
         HttpServer $.serv;
         Sequence $.ss;
@@ -2003,7 +1990,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServerUtil::AbstractLo
         $s.close();
     }
 
-    bool registerDedicatedSocket(softstring $id, HttpServerUtil::AbstractHttpSocketHandler $h) {
+    bool registerDedicatedSocket(softstring $id, HttpServer::AbstractHttpSocketHandler $h) {
         $.m.lock();
         on_exit $.m.unlock();
 
@@ -2015,7 +2002,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServerUtil::AbstractLo
         return True;        
     }
 
-    removeDedicatedSocket(softstring $id, HttpServerUtil::AbstractHttpSocketHandler $h) {
+    removeDedicatedSocket(softstring $id, HttpServer::AbstractHttpSocketHandler $h) {
         $.m.lock();
         on_exit $.m.unlock();
 

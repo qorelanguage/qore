@@ -45,39 +45,39 @@ module HttpServerUtil {
 
     To use this module, use \c "%requires HttpServerUtil" in your code.
     
-    All the public symbols in the module are defined in the HttpServerUtil namespace
+    All the public symbols in the module are defined in the HttpServer namespace
 
     The main classes are:
-    - @ref HttpServerUtil::AbstractAuthenticator "AbstractAuthenticator": can be implemented to provide authentication and authorization info to the server
-    - @ref HttpServerUtil::AbstractHttpRequestHandler "AbstractHttpRequestHandler": this class must be subclassed to provide the real work of the HttpServerUtil handling connections
-    - @ref HttpServerUtil::AbstractHttpSocketHandler "AbstractHttpSocketHandler": this class must be subclassed to implement a dedicated socket handler for protcol changes (for an example, see the <a href="../../WebSocketHandler/html/index.html">WebSocketHandler</a> module)
-    - @ref HttpServerUtil::AbstractStreamRequestHandler "AbstractStreamRequestHandler": this class is used as a base class for embedded HTTP chunked request/response handlers
-    - @ref HttpServerUtil::AbstractStreamRequest "AbstractStreamRequest": this class is used to directly handle HTTP chunked requests and responses
-    - @ref HttpServerUtil::AbstractUrlHandler "AbstractUrlHandler": this class serves as a base class for handler classes that serve requests anchored at a particular URL
-    - @ref HttpServerUtil::HttpServerUtil "HttpServerUtil": this class implements the main interface to the HTTP server provided by this module
-    - @ref HttpServerUtil::PermissiveAuthenticator "PermissiveAuthenticator": this class implements a dummy authenticator that accepts all requests
+    - @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator": can be implemented to provide authentication and authorization info to the server
+    - @ref HttpServer::AbstractHttpRequestHandler "AbstractHttpRequestHandler": this class must be subclassed to provide the real work of the HttpServer handling connections
+    - @ref HttpServer::AbstractHttpSocketHandler "AbstractHttpSocketHandler": this class must be subclassed to implement a dedicated socket handler for protcol changes (for an example, see the <a href="../../WebSocketHandler/html/index.html">WebSocketHandler</a> module)
+    - @ref HttpServer::AbstractStreamRequestHandler "AbstractStreamRequestHandler": this class is used as a base class for embedded HTTP chunked request/response handlers
+    - @ref HttpServer::AbstractStreamRequest "AbstractStreamRequest": this class is used to directly handle HTTP chunked requests and responses
+    - @ref HttpServer::AbstractUrlHandler "AbstractUrlHandler": this class serves as a base class for handler classes that serve requests anchored at a particular URL
+    - @ref HttpServer::HttpServer "HttpServer": this class implements the main interface to the HTTP server provided by this module
+    - @ref HttpServer::PermissiveAuthenticator "PermissiveAuthenticator": this class implements a dummy authenticator that accepts all requests
 
     See also:
     - <a href="../../RestHandler/html/index.html">RestHandler</a>: a module providing a handler framework for this module for implementing server-side REST services
     - <a href="../../WebSocketHandler/html/index.html">WebSocketHandler</a>: a module providing a handler framework for this module for implementing server-side WebSocket services
     - <a href="../../WebUtil/html/index.html">WebUtil</a>: a module providing higher-level HTTP services using this module as a base as well as providing support for dynamic template-based HTML rendering (ie rendering qhtml files which are a mix of HTML and Qore code)
-    - <a href="http://www.qore.org/manual/modules/json/current/JsonRpcHandler/html/index.html">JsonRpcHandler</a>: provides infrastructure for implementing JSON-RPC server-side services using the HttpServerUtil module
-    - <a href="http://www.qore.org/manual/modules/yaml/current/YamlRpcHandler/html/index.html">YamlRpcHandler</a>: provides infrastructure for implementing YAML-RPC server-side services using the HttpServerUtil module
-    - <a href="http://www.qore.org/manual/modules/xml/current/XmlRpcHandler/html/index.html">XmlRpcHandler</a>: provides infrastructure for implementing XML-RPC server-side services using the HttpServerUtil module
-    - <a href="http://www.qore.org/manual/modules/xml/current/SoapHandler/html/index.html">SoapHandler</a>: provides infrastructure for implementing SOAP server-side services using the HttpServerUtil module
+    - <a href="http://www.qore.org/manual/modules/json/current/JsonRpcHandler/html/index.html">JsonRpcHandler</a>: provides infrastructure for implementing JSON-RPC server-side services using the HttpServer module
+    - <a href="http://www.qore.org/manual/modules/yaml/current/YamlRpcHandler/html/index.html">YamlRpcHandler</a>: provides infrastructure for implementing YAML-RPC server-side services using the HttpServer module
+    - <a href="http://www.qore.org/manual/modules/xml/current/XmlRpcHandler/html/index.html">XmlRpcHandler</a>: provides infrastructure for implementing XML-RPC server-side services using the HttpServer module
+    - <a href="http://www.qore.org/manual/modules/xml/current/SoapHandler/html/index.html">SoapHandler</a>: provides infrastructure for implementing SOAP server-side services using the HttpServer module
 
-    @section httpserverutil_relnotes HttpServerUtil Module Release Notes
+    @section httpserverutil_relnotes HttpServer Module Release Notes
 
-    @subsection http0311 HttpServerUtil 0.3.11
+    @subsection http0311 HttpServer 0.3.11
     - initial version of the module
  */
 
-#! the main namespace for the HttpServerUtil module
-/** To use this module, use \c "%requires HttpServerUtil" in your code.
+#! the main namespace for the HttpServer module
+/** To use this module, use \c "%requires HttpServer" in your code.
     
     All the public symbols in the module are defined in this namespace
  */
-public namespace HttpServerUtil {
+public namespace HttpServer {
     #! version of the HttpServer's implementation
     public const HttpServerVersion = "0.3.11";
 
@@ -284,7 +284,7 @@ public namespace HttpServerUtil {
 }
 
 #! this abstract class defines the interface for classes that provide logging methods
-public class HttpServerUtil::AbstractLogger {
+public class HttpServer::AbstractLogger {
     #! called to log information to the registered log code
     /** @param fmt the message to log, can be a format string, in which case additional arguments are processed with vsprintf()
     */
@@ -313,7 +313,7 @@ public class HttpServerUtil::AbstractLogger {
 #! abstract base class for external authentication
 /** This class should be inherited by a class providing real authentication
   */
-public class HttpServerUtil::AbstractAuthenticator {
+public class HttpServer::AbstractAuthenticator {
     #! called to check if the connection requires authentication
     /** @return @ref Qore::True "True" if authentication is enabled, @ref Qore::False "False" if not (@ref Qore::False "False" is the default value returned)
       */
@@ -421,7 +421,7 @@ public class HttpServerUtil::AbstractAuthenticator {
 }
 
 #! class providing automatic authentication for all requests
-public class HttpServerUtil::PermissiveAuthenticator inherits HttpServerUtil::AbstractAuthenticator {
+public class HttpServer::PermissiveAuthenticator inherits HttpServer::AbstractAuthenticator {
     #! primary method called to authenticate each request
     /** @param listener an AbstractLogger object the listener serving the request for logging purposes
         @param hdr a hash of request headers
@@ -442,7 +442,7 @@ public class HttpServerUtil::PermissiveAuthenticator inherits HttpServerUtil::Ab
     - getResponseHeaderMessage(): this is called after the message body has been received to get the response headers and optionally a message body.  Subclasses should reimplement getResponseHeaderMessageImpl() which is called by this method
     - send(): this is called if no message body is returned by getResponseHeaderMessage(); each time this method returns data, the data is sent in a response chunk; when this method returns @ref nothing, then no more data is sent.  Subclasses should re-implement sendImpl() which is called by this method
 */
-public class HttpServerUtil::AbstractStreamRequestHandler {
+public class HttpServer::AbstractStreamRequestHandler {
     public {}
 
     private {
@@ -472,7 +472,7 @@ public class HttpServerUtil::AbstractStreamRequestHandler {
     #! this method returns the response message description hash by calling getResponseHeaderMessageImpl()
     /**
         @return a hash with the following keys:
-        - \c "code": the HTTP return code (see @ref HttpServerUtil::HttpCodes)
+        - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
         - \c "body": the message body to return in the response; if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and sendImpl() are not called
         - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
         - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
@@ -527,7 +527,7 @@ public class HttpServerUtil::AbstractStreamRequestHandler {
     #! this method should return the response message description hash
     /**
         @return a hash with the following keys:
-        - \c "code": the HTTP return code (see @ref HttpServerUtil::HttpCodes)
+        - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
         - \c "body": the message body to return in the response; if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and sendImpl() are not called
         - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
         - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
@@ -565,7 +565,7 @@ public class HttpServerUtil::AbstractStreamRequestHandler {
     - getResponseHeaderMessage(): this is called after the message body has been received to get the response headers and optionally a message body.  Subclasses should reimplement getResponseHeaderMessageImpl() which is called by this method
     - send(): this is called if no message body is returned by getResponseHeaderMessage(); each time this method returns data, the data is sent in a response chunk; when this method returns @ref nothing, then no more data is sent.  Subclasses should re-implement sendImpl() which is called by this method
 */
-public class HttpServerUtil::AbstractStreamRequest {
+public class HttpServer::AbstractStreamRequest {
     public {}
 
     private {
@@ -616,9 +616,9 @@ public class HttpServerUtil::AbstractStreamRequest {
         else {
             if ($.hdr."transfer-encoding" == "chunked") {
                 if ($.hdr."content-encoding")
-                    $.s.readHTTPChunkedBodyBinaryWithCallback(\$.recv(), HttpServerUtil::ReadTimeout);
+                    $.s.readHTTPChunkedBodyBinaryWithCallback(\$.recv(), HttpServer::ReadTimeout);
                 else
-                    $.s.readHTTPChunkedBodyWithCallback(\$.recv(), HttpServerUtil::ReadTimeout);
+                    $.s.readHTTPChunkedBodyWithCallback(\$.recv(), HttpServer::ReadTimeout);
             }
             else # signal end of data
                 $.recvImpl(("hdr": NOTHING));
@@ -641,7 +641,7 @@ public class HttpServerUtil::AbstractStreamRequest {
         http_set_reply_headers($.s, $.cx, \$rv);
 
         # send chunked response
-        $.s.sendHTTPResponseWithCallback(\$.send(), $rv.code, HttpServerUtil::HttpCodes.($rv.code), "1.1", $rv.hdr, HttpServerUtil::ReadTimeout);
+        $.s.sendHTTPResponseWithCallback(\$.send(), $rv.code, HttpServer::HttpCodes.($rv.code), "1.1", $rv.hdr, HttpServer::ReadTimeout);
 
         $rv.reply_sent = True;
         return $rv;
@@ -650,7 +650,7 @@ public class HttpServerUtil::AbstractStreamRequest {
     #! this method returns the response message description hash by calling getResponseHeaderMessageImpl()
     /**
         @return a hash with the following keys:
-        - \c "code": the HTTP return code (see @ref HttpServerUtil::HttpCodes)
+        - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
         - \c "body": the message body to return in the response; if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and sendImpl() are not called
         - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
         - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
@@ -696,7 +696,7 @@ public class HttpServerUtil::AbstractStreamRequest {
         Omit the \c "body" key to ensure that a chunked response is sent and the send() and sendImpl() callbacks are called.
 
         @return a hash with the following keys:
-        - \c "code": the HTTP return code (see @ref HttpServerUtil::HttpCodes)
+        - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
         - \c "body": the message body to return in the response; if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and sendImpl() are not called
         - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
         - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
@@ -740,7 +740,7 @@ public class HttpServerUtil::AbstractStreamRequest {
 
     @see AbstractStreamRequest for information about HTTP stream request handlers
   */
-public class HttpServerUtil::AbstractHttpRequestHandler {
+public class HttpServer::AbstractHttpRequestHandler {
     public {
         #! the optional AbstractAuthenticator for requests to this handler
         *AbstractAuthenticator $.auth;
@@ -795,7 +795,7 @@ public class HttpServerUtil::AbstractHttpRequestHandler {
         @param body message body, if any
 
         @return a hash with the following keys:
-        - \c "code": the HTTP return code (see @ref HttpServerUtil::HttpCodes)
+        - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
         - \c "body": the message body to return in the response
         - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
         - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
@@ -869,7 +869,7 @@ public class HttpServerUtil::AbstractHttpRequestHandler {
     #! optionally retrieves and post-processes any message body
     *data getMessageBody(Socket $s, hash $hdr, *data $body, bool $decode = True) {
         if (!$body && $hdr."transfer-encoding" == "chunked") {
-            $hdr += ($hdr."content-encoding" ? $s.readHTTPChunkedBodyBinary(HttpServerUtil::ReadTimeout) : $s.readHTTPChunkedBody(HttpServerUtil::ReadTimeout));
+            $hdr += ($hdr."content-encoding" ? $s.readHTTPChunkedBodyBinary(HttpServer::ReadTimeout) : $s.readHTTPChunkedBody(HttpServer::ReadTimeout));
             $body = remove $hdr.body;
         }
 
@@ -897,14 +897,14 @@ public class HttpServerUtil::AbstractHttpRequestHandler {
 		$params = $cx;
         }
 
-        if (($api.logopt & HttpServerUtil::LP_LEVELMASK) > 1 || !$cx.logfunc)
+        if (($api.logopt & HttpServer::LP_LEVELMASK) > 1 || !$cx.logfunc)
             return;
 
         my string $msg = $cx.method;
 
         # add arguments to log message
         $args = "";
-        if ($api.logopt & HttpServerUtil::LP_LOGPARAMS) {
+        if ($api.logopt & HttpServer::LP_LOGPARAMS) {
             $args += "(";
             my int $i = 0;
             my hash $amh;
@@ -1001,7 +1001,7 @@ public class HttpServerUtil::AbstractHttpRequestHandler {
 }
 
 #! abstract class for HTTP request handlers anchored at a specific URL
-public class HttpServerUtil::AbstractUrlHandler inherits HttpServerUtil::AbstractHttpRequestHandler {
+public class HttpServer::AbstractUrlHandler inherits HttpServer::AbstractHttpRequestHandler {
     public {
         #! root part of URL for matching requests
         string $.url_root;
@@ -1030,7 +1030,7 @@ public class HttpServerUtil::AbstractUrlHandler inherits HttpServerUtil::Abstrac
 #! abstract class that all HTTP dedicated socket handler objects must inherit from
 /** reimplement at least handleRequest() and startImpl() in subclasses
   */
-public class HttpServerUtil::AbstractHttpSocketHandler inherits HttpServerUtil::AbstractHttpRequestHandler {
+public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::AbstractHttpRequestHandler {
     private {
         #! stop listener flag
         bool $.stop = False;
@@ -1131,7 +1131,7 @@ public class HttpServerUtil::AbstractHttpSocketHandler inherits HttpServerUtil::
         - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
         .
         or, to handle the request without a dedicated connection, return a hash with the following keys
-        - \c "code": the HTTP return code (see @ref HttpServerUtil::HttpCodes)
+        - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
         - \c "body": the message body to return in the response
         - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
         - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response

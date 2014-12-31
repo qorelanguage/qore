@@ -141,7 +141,7 @@ public namespace WebSocketHandler {
 
         Websocket connections are identified by their HTTP connection ID as passed in @ref WebSocketHandler::WebSocketHandler::handleRequest() "WebSocketHandler::handleRequest()" in the \c "$cx.id" argument when the connection is first established.
     */
-    public class WebSocketHandler inherits HttpServerUtil::AbstractHttpSocketHandler {
+    public class WebSocketHandler inherits HttpServer::AbstractHttpSocketHandler {
         public {
         }
 
@@ -153,10 +153,10 @@ public namespace WebSocketHandler {
             hash $.ch;            
         }
 
-        #! create the object optionally with the given @ref HttpServerUtil::AbstractAuthenticator "AbstractAuthenticator"
-        /** @param auth the authentication object to use to authenticate connections (see @ref HttpServerUtil::AbstractAuthenticator "AbstractAuthenticator"); if no @ref HttpServerUtil::AbstractAuthenticator "AbstractAuthenticator" object is passed, then by default no authentication will be required
+        #! create the object optionally with the given @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator"
+        /** @param auth the authentication object to use to authenticate connections (see @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator"); if no @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator" object is passed, then by default no authentication will be required
          */
-        constructor(*HttpServerUtil::AbstractAuthenticator $auth) : HttpServerUtil::AbstractHttpSocketHandler($auth) {
+        constructor(*HttpServer::AbstractAuthenticator $auth) : HttpServer::AbstractHttpSocketHandler($auth) {
         }
 
         #! called by the HTTP server to handle incoming HTTP requests
@@ -177,7 +177,7 @@ public namespace WebSocketHandler {
             @param b message body, if any
 
             @return a hash representing the response to the client as follows; to accept a dedicated connection; make sure the \c "code" is 101 (ie \c "Switching Protocols") and the \c "close" key is not @ref Qore::False "False":
-            - \c "code": the HTTP return code (see @ref HttpServerUtil::HttpCodes) (101 \c "Switching Protocols" to accept the dedicated connection, in which case the start() method will be called)
+            - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes) (101 \c "Switching Protocols" to accept the dedicated connection, in which case the start() method will be called)
             - \c "body": the message body to return in the response
             - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
             - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
