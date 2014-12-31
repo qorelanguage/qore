@@ -200,6 +200,38 @@ public namespace HttpServer {
     public const LP_LEVELMASK = LP_LOGPARAMS - 1;
     #@}
 
+    #! returns a complete URL from a bind address
+    /** @param bind the bind address; if for any reason there is a path in the bind address, it will be ignored
+        @param host the hostname to use in case the bind string is only a port number; if none is passed or the value passed is equal to the return value of @ref Qore::gethostname(), then \c "localhost" is used
+     */
+    public string sub http_get_url_from_bind(softstring $bind, *string $host) {
+	my hash $h = parse_url($bind);
+	# if there is only a port number, it will appear in the "host" key
+	if ($h.size() == 1 && $h.host && int($h.host) == $h.host) {
+	    $h.port = int($h.host);
+	    delete $h.host;
+	}
+
+	if (!$h.host) {
+            if (!$h.port && $h.path) {
+                $h.host = "socket=" + remove $h.path;
+                $h.host =~ s/ /%20/g;
+                $h.host =~ s/\//%2f/g;
+            }
+            else
+                $h.host = (!$host || $host == gethostname()) ? "localhost" : $host;
+        }
+
+	my string $login = $h.password ? ($h.password + ":") : "";    
+	if ($h.username)
+	    $login += sprintf("%s@", $h.password);
+
+	return sprintf("%s://%s%s%s", $h.protocol ? $h.protocol : "http", 
+		       $login, 
+		       $h.host, 
+		       $h.port ? sprintf(":%d", $h.port) : "");
+    }
+    
     #! parses a URI path for a arguments and a method; where the method is the part of the path before the first \c "?" character, and arguments are after
     /** @param path the URI path to parse
 
