@@ -1,0 +1,1167 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# @file HttpServerUtil.qm HTTP server base code
+
+/*  HttpServerUtil.qm Copyright (C) 2014 - 2015 David Nichols
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+%requires qore >= 0.8.11
+# need mime definitions
+%requires Mime >= 1.0
+%requires Util >= 1.0
+
+module HttpServerUtil {
+    version = "0.3.11";
+    desc = "HttpServerUtil class definition";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+/** @mainpage HttpServerUtil Module
+
+    @tableofcontents
+
+    @section httpserverutilintro HttpServerUtil Introduction
+
+    The %HttpServerUtil module provides a base code for the @ref httpserverintro "HttpServer" module and code requiring HttpServer definitions but not the entire @ref httpserverintro "HttpServer" module itself.
+
+    To use this module, use \c "%requires HttpServerUtil" in your code.
+    
+    All the public symbols in the module are defined in the HttpServerUtil namespace
+
+    The main classes are:
+    - @ref HttpServerUtil::AbstractAuthenticator "AbstractAuthenticator": can be implemented to provide authentication and authorization info to the server
+    - @ref HttpServerUtil::AbstractHttpRequestHandler "AbstractHttpRequestHandler": this class must be subclassed to provide the real work of the HttpServerUtil handling connections
+    - @ref HttpServerUtil::AbstractHttpSocketHandler "AbstractHttpSocketHandler": this class must be subclassed to implement a dedicated socket handler for protcol changes (for an example, see the <a href="../../WebSocketHandler/html/index.html">WebSocketHandler</a> module)
+    - @ref HttpServerUtil::AbstractStreamRequestHandler "AbstractStreamRequestHandler": this class is used as a base class for embedded HTTP chunked request/response handlers
+    - @ref HttpServerUtil::AbstractStreamRequest "AbstractStreamRequest": this class is used to directly handle HTTP chunked requests and responses
+    - @ref HttpServerUtil::AbstractUrlHandler "AbstractUrlHandler": this class serves as a base class for handler classes that serve requests anchored at a particular URL
+    - @ref HttpServerUtil::HttpServerUtil "HttpServerUtil": this class implements the main interface to the HTTP server provided by this module
+    - @ref HttpServerUtil::PermissiveAuthenticator "PermissiveAuthenticator": this class implements a dummy authenticator that accepts all requests
+
+    See also:
+    - <a href="../../RestHandler/html/index.html">RestHandler</a>: a module providing a handler framework for this module for implementing server-side REST services
+    - <a href="../../WebSocketHandler/html/index.html">WebSocketHandler</a>: a module providing a handler framework for this module for implementing server-side WebSocket services
+    - <a href="../../WebUtil/html/index.html">WebUtil</a>: a module providing higher-level HTTP services using this module as a base as well as providing support for dynamic template-based HTML rendering (ie rendering qhtml files which are a mix of HTML and Qore code)
+    - <a href="http://www.qore.org/manual/modules/json/current/JsonRpcHandler/html/index.html">JsonRpcHandler</a>: provides infrastructure for implementing JSON-RPC server-side services using the HttpServerUtil module
+    - <a href="http://www.qore.org/manual/modules/yaml/current/YamlRpcHandler/html/index.html">YamlRpcHandler</a>: provides infrastructure for implementing YAML-RPC server-side services using the HttpServerUtil module
+    - <a href="http://www.qore.org/manual/modules/xml/current/XmlRpcHandler/html/index.html">XmlRpcHandler</a>: provides infrastructure for implementing XML-RPC server-side services using the HttpServerUtil module
+    - <a href="http://www.qore.org/manual/modules/xml/current/SoapHandler/html/index.html">SoapHandler</a>: provides infrastructure for implementing SOAP server-side services using the HttpServerUtil module
+
+    @section httpserverutil_relnotes HttpServerUtil Module Release Notes
+
+    @subsection http0311 HttpServerUtil 0.3.11
+    - initial version of the module
+ */
+
+#! the main namespace for the HttpServerUtil module
+/** To use this module, use \c "%requires HttpServerUtil" in your code.
+    
+    All the public symbols in the module are defined in this namespace
+ */
+public namespace HttpServerUtil {
+    #! version of the HttpServer's implementation
+    public const HttpServerVersion = "0.3.11";
+
+    #! default HTTP server string
+    public const HttpServerString = sprintf("Qore-HTTP-Server/%s", HttpServerVersion);
+    
+    #! default read timeout in ms
+    public const ReadTimeout = 30s;  # recvs timeout after 30 seconds
+
+    #! map of HTTP result codes and text messages
+    public const HttpCodes = ( 
+        # 100s: Informational
+        "100": "Continue",
+        "101": "Switching Protocols",
+        
+        # RFC 2518: WebDAV
+        "102": "Processing",
+        
+        # 200s: Success
+        "200": "OK",
+        "201": "Created",
+        "202": "Accepted",
+        "203": "Non-Authoritative Information",
+        "204": "No Content",
+        "205": "Reset Content",
+        "206": "Partial Content",
+
+        # RFC 4918: WebDAV: The message body that follows is an XML message and can contain a number of separate response codes, depending on how many sub-requests were made
+        "207": "Multi-Status",
+
+        # RFC 5842: WebDAV: The members of a DAV binding have already been enumerated in a previous reply to this request, and are not being included again
+        "208": "Already Reported",
+
+        # RFC 3229
+        "226": "IM Used",
+
+        # 300s: Redirection
+        "300": "Multiple Choices",
+        "301": "Moved Permanently",
+        "302": "Found",
+        "303": "See Other",
+        "304": "Not Modified",
+        "305": "Use Proxy",
+        #"306": "(Reserved)",
+        "307": "Temporary Redirect",
+
+        # 400s: Client Errors
+        "400": "Bad Request",
+        "401": "Unauthorized",
+        "402": "Payment Required",
+        "403": "Forbidden",
+        "404": "Not Found",
+        "405": "Method Not Allowed",
+        "406": "Not Acceptable",
+        "407": "Proxy Authentication Required",
+        "408": "Request Timeout",
+        "409": "Conflict",
+        "410": "Gone",
+        "411": "Length Required",
+        "412": "Precondition Failed",
+        "413": "Request Entity Too Large",
+        "414": "Request-URI Too Long",
+        "415": "Unsupported Media Type",
+        "416": "Requested Range Not Satisfiable",
+        "417": "Expectation Failed",
+
+        # RFC 2324: http://tools.ietf.org/html/rfc2324
+        "418": "I'm a teapot",
+
+        # Returned by the Twitter Search and Trends API when the client is being rate limited
+        "420": "Enhance Your Calm",
+
+        # RFC 4918: WebDAV: The request was well-formed but was unable to be followed due to semantic errors
+        "422": "Unprocessable Entity",
+
+        # RFC 4918: WebDAV: The resource that is being accessed is locked
+        "423": "Locked",
+
+        # RFC 4918: WebDAV: The request failed due to failure of a previous request (e.g. a PROPPATCH)
+        "424": "Failed Dependency",
+
+        # Internet draft: Defined in drafts of "WebDAV Advanced Collections Protocol", but not present in "Web Distributed Authoring and Versioning (WebDAV) Ordered Collections Protocol"
+        "425": "Unordered Collection",
+
+        # RFC 2817: The client should switch to a different protocol such as TLS/1.0
+        "426": "Upgrade Required",
+
+        # RFC 6585: The origin server requires the request to be conditional. Intended to prevent "the 'lost update' problem, where a client GETs a resource's state, modifies it, and PUTs it back to the server, when meanwhile a third party has modified the state on the server, leading to a conflict."
+        "428": "Precondition Required",
+
+        # RFC 6585: The user has sent too many requests in a given amount of time. Intended for use with rate limiting schemes
+        "429": "Too Many Requests",
+
+        # RFC 6585
+        "431": "Request Header Fields Too Large",
+
+        # 500s: Server Errors
+        "500": "Internal Server Error",
+        "501": "Not Implemented",
+        "502": "Bad Gateway",
+        "503": "Service Unavailable",
+        "504": "Gateway Timeout",
+        "505": "HTTP Version Not Supported",
+        "509": "Bandwidth Limit Exceeded",
+
+        # RFC 2774: Further extensions to the request are required for the server to fulfill it
+        "510": "Not Extended",
+
+        # RFC 6585: The client needs to authenticate to gain network access. Intended for use by intercepting proxies used to control access to the network (e.g. "captive portals" used to require agreement to Terms of Service before granting full Internet access via a Wi-Fi hotspot)
+        "511": "Network Authentication Required",
+        );
+
+    /** @defgroup HttpServerLoggingOptions HttpServer Logging Options
+    */
+    #@{
+    #! bit for logging argument
+    public const LP_LOGPARAMS = 1 << 16;
+
+    #! mask for the log level
+    public const LP_LEVELMASK = LP_LOGPARAMS - 1;
+    #@}
+
+    #! parses a URI path for a arguments and a method; where the method is the part of the path before the first \c "?" character, and arguments are after
+    /** @param path the URI path to parse
+
+        @return a hash with the following keys:
+        - \c method: (@ref string_type "string") the part of the path before the first \c "?" character or the entire path if no \c "?" character is present in the path
+        - \c params: (@ref hash_type "hash", assuming all values are key/value pairs like \c "key=value", otherwise it will be a @ref list_type "list") optional, only if a "?" character is present in the input; the part of the path after the first \c "?" character; arguments should be separated by ";" characters (according to a w3c recommendation: http://www.w3.org/TR/1999/REC-html401-19991224/appendix/notes.html#h-B.2.2), however this function supports both \c ";" and \c "&" as argument separators
+
+        
+    */
+    public hash sub parse_uri_query(string $path, bool $trans = True) {
+        my int $i = $path.find("?");
+        if ($i == -1)
+            return ("method": $path);
+
+        # we use "params" rather than "args" because some RPC protocols require it (like XML-RPC and JSON-RPC)
+        my hash $h = (
+            "method": $path.substr(0, $i),
+            "params": (),
+            );
+
+        # remove method and "?" char; leave only args in path
+        splice $path, 0, $i + 1;
+
+        # iterate through args
+        # w3c recommends ";" instead of "&" to separate arguments
+        # http://www.w3.org/TR/1999/REC-html401-19991224/appendix/notes.html#h-B.2.2
+        # however we support both
+        my string $sep = $path.find(";") == -1 ? "&" : ";";
+        foreach my any $arg in (split($sep, $path)) {
+            my (*string $key, *string $value) = ($arg =~ x/([^=]+)=(.*)$/);
+            if (!exists $value) {
+                $h.params += $arg;
+                continue;
+            }
+
+            my hash $ah.$key = $value;
+            if ($h.params.last().typeCode() != NT_HASH)
+                $h.params += $ah;
+            else
+                $h.params[$h.params.size() - 1] += $ah;
+        }
+        if ($h.params.size() == 1 && $h.params[0].typeCode() == NT_HASH)
+            $h.params = $h.params[0];
+
+        return $h;
+    }
+
+    #! helper function for setting HTTP response headers
+    public nothing sub http_set_reply_headers(Socket $s, hash $cx, reference $rv, *string $server_string) {
+        if (!$rv.hdr.Connection) {
+            if ($rv.close) # RFC 2616 section 14.10 is "close" in all lower-case
+                $rv.hdr.Connection = "close";
+            else
+                $rv.hdr.Connection = "Keep-Alive";
+        }
+
+        if (!$rv.hdr.Date) # RFC 2616 sec 14.18 date format
+            $rv.hdr.Date = gmtime().format("Dy, DD Mon YYYY HH:mm:SS") + " GMT";
+
+        if (!$rv.hdr.Server)
+            $rv.hdr.Server = $server_string ?? HttpServerString;
+
+        my string $old_encoding = $s.getEncoding();
+
+        on_exit if ($s.getEncoding() != $cx."response-encoding")
+            $s.setEncoding($cx."response-encoding");
+
+        if (!$cx."response-encoding")
+            $cx."response-encoding" = $old_encoding.lwr();
+        else if ($cx."response-encoding".lwr() != $old_encoding.lwr())
+            $s.setEncoding($cx."response-encoding");
+
+        if ($rv.body || $rv.hdr."Transfer-Encoding" == "chunked") {
+            if (!$rv.hdr."Content-Type") {
+                $rv.hdr."Content-Type" = MimeTypeHtml + ";charset=" + $cx."response-encoding";
+            }
+            else if ($rv.hdr."Content-Type" !~ /charset=/ && ($rv.body.typeCode() == NT_STRING)) {
+                $rv.hdr."Content-Type" += ";charset=" + $cx."response-encoding";
+            }
+        }
+    }
+}
+
+#! this abstract class defines the interface for classes that provide logging methods
+public class HttpServerUtil::AbstractLogger {
+    #! called to log information to the registered log code
+    /** @param fmt the message to log, can be a format string, in which case additional arguments are processed with vsprintf()
+    */
+    abstract log(string $fmt);
+    
+    #! called to log error information to the registered error log code
+    /** @param fmt the error message to log, can be a format string, in which case additional arguments are processed with vsprintf()
+    */
+    abstract logError(string $fmt);
+    
+    #! calls log() with the given args
+    /** @param args a single string or a list of arguments used to call the log() method
+    */
+    logArgs(softlist $args) {
+        callObjectMethodArgs($self, "log", $args);
+    }
+    
+    #! calls logError() with the given args
+    /** @param args a single string or a list of arguments used to call the logError() method
+    */
+    logErrorArgs(softlist $args = ()) {
+        callObjectMethodArgs($self, "logError", $args);
+    }    
+}
+
+#! abstract base class for external authentication
+/** This class should be inherited by a class providing real authentication
+  */
+public class HttpServerUtil::AbstractAuthenticator {
+    #! called to check if the connection requires authentication
+    /** @return @ref Qore::True "True" if authentication is enabled, @ref Qore::False "False" if not (@ref Qore::False "False" is the default value returned)
+      */
+    bool requiresAuthentication() {
+        return False;
+    }
+
+    #! returns the authentication realm as a string
+    /** @return the authentication realm as a string (default: \c "Default Authentication Realm")
+      */
+    string getRealm() {
+        return "Default Authentication Realm";
+    }
+
+    #! called to authenticate a user for a connection
+    /** This method will only be called if requiresAuthentication() returns @ref Qore::True "True"
+        @param user the username to authenticate
+        @param pass the password for the user
+
+        @throw AUTHENTICATION-ERROR subclasses should throw this exception if the user cannot be authenticated (must be overridden in child classes; this parent method will never throw any exceptions; all connections are accepted by default)
+      */
+    authenticate(string $user, string $pass = "") {
+    }
+
+    #! called when the connection requires authentication, but no authentication credentials were supplied, to try to authenticate the connection based on the source IP address
+    /** This method will only be called if requiresAuthentication() returns @ref Qore::True "True" and no authentication credentials are supplied with the request
+        @param ip the IP address of the source connection
+        @param user a reference to a string that will be populated with the username to use if the request can be authenticated based on the source IP address (this method returns the string \c "admin")
+
+        @throw AUTHENTICATION-ERROR subclasses should throw this exception if the user cannot be authenticated (however this base class method as implemented here will never throw any exceptions
+      */
+    authenticateByIP(string $ip, reference $user) {
+    }
+
+    private hash getAuthHeader() {
+        return ("WWW-Authenticate": sprintf("Basic realm=%y", $.getRealm()));
+    }
+
+    private hash do401(string $msg = "Authentication is required to access this server") {
+        return (
+            "code": 401,
+            "body": "Authentication is required to access this server",
+            "hdr": $.getAuthHeader(),
+            );
+    }
+
+    #! primary method called to authenticate each request
+    /** @param listener an AbstractLogger object the listener serving the request for logging purposes
+        @param hdr a hash of request headers
+        @param cx a reference to the call context hash; set the \c "user" key to the user name if a user was identified and authorized
+
+        @return returns @ref nothing if there were no errors, otherwise returns a hash with the following keys to indicate an authentication or authorization error:
+        - \c "code": the HTTP response code
+        - \c "body": the error message body
+        - \c "hdr": an optional hash of headers for the error response
+    */
+    *hash authenticateRequest(AbstractLogger $listener, hash $hdr, reference $cx) {
+        #printf("HTTP DEBUG %s::authenticateRequest() called\n", $self.className());
+        if (!$.requiresAuthentication())
+            return;
+
+        if ($hdr.authorization) {
+            if ($hdr.authorization !~ /basic /i)
+                return $.do401("Only basic authentication is supported");
+
+            my *string $bstr = ($hdr.authorization =~ x/basic (.*)/i)[0];
+            if (!$bstr)
+                return $.do401();
+
+            my string $str = parseBase64StringToString($bstr);
+            my int $i = $str.find(":");
+            if ($i < 1 || $i == ($str.size() -1))
+                return $.do401();
+
+            my string $user = $str.substr(0, $i);
+            my *string $pass = $str.substr($i + 1);
+
+            try
+                $.authenticate($user, $pass);
+            catch (hash $ex) {
+                if ($ex.err == "AUTHENTICATION-ERROR")
+                    return $.do401();
+                else
+                    rethrow;
+            }
+
+            $cx.user = $user;
+            return;
+        }
+
+        my string $user;
+        # only try ip-based authentication if the connection is not already authenticated
+        try {
+            $.authenticateByIP($cx."peer-info".address, \$user);
+            $cx.user = $user;
+            return;
+        }
+        catch (hash $ex) {
+            # log the error
+            my string $str = sprintf("%s: %s: %s: received from %s", get_ex_pos($ex), $ex.err, $ex.desc, $cx."peer-info".address_desc);
+            $listener.logError($str);
+        }
+        return $.do401();
+    }
+}
+
+#! class providing automatic authentication for all requests
+public class HttpServerUtil::PermissiveAuthenticator inherits HttpServerUtil::AbstractAuthenticator {
+    #! primary method called to authenticate each request
+    /** @param listener an AbstractLogger object the listener serving the request for logging purposes
+        @param hdr a hash of request headers
+        @param cx a reference to the call context hash; set the \c "user" key to the user name if a user was identified and authorized
+
+        @return returns @ref nothing indicating that the request is authenticated
+    */
+    *hash authenticateRequest(AbstractLogger $listener, hash $hdr, reference $cx) {
+        return;
+    }
+}
+
+#! abstract class for embedded objects serving streaming requests
+/**
+    The calling order is as follows:
+    - constructor(): this is called when the request is received; then context argument contains the request header along with other information
+    - recv(): this is called once for each HTTP chunk (if data is sent chunked), and then once with any message trailer.  If data is sent non-chunked, then this method is called with the monolithic message body and then again with @ref nothing to signify the end of the transfer and to simulate a chunked transfer.  Subclasses should re-implement recvImpl() which is called by this method
+    - getResponseHeaderMessage(): this is called after the message body has been received to get the response headers and optionally a message body.  Subclasses should reimplement getResponseHeaderMessageImpl() which is called by this method
+    - send(): this is called if no message body is returned by getResponseHeaderMessage(); each time this method returns data, the data is sent in a response chunk; when this method returns @ref nothing, then no more data is sent.  Subclasses should re-implement sendImpl() which is called by this method
+*/
+public class HttpServerUtil::AbstractStreamRequestHandler {
+    public {}
+
+    private {
+        #! call context hash
+        hash $.cx;
+        #! if an exception is raised in a callback then the exception hash is saved here
+        *hash $.ex;
+    }
+
+    #! creates the object with the given arguments
+    /** @param cx call context hash; this hash will have the following keys:
+        - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
+        - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
+        - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
+        - \c url: a hash of broken-down URL information (as returned from parseURL())
+        - \c id: the unique HTTP connection ID
+        - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
+        - \c user: the current RBAC username (if any)
+        - \c hdr: a hash of header information as returned by @ref Qore::Socket::readHTTPHeader()
+        - \c body: the deserialized message body
+        - \c aih: a hash of \c "Accept" values
+    */
+    constructor(hash $cx) {
+        $.cx = $cx;
+    }
+
+    #! this method returns the response message description hash by calling getResponseHeaderMessageImpl()
+    /**
+        @return a hash with the following keys:
+        - \c "code": the HTTP return code (see @ref HttpServerUtil::HttpCodes)
+        - \c "body": the message body to return in the response; if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and sendImpl() are not called
+        - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
+        - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
+
+        @note this method is called after the message body has been received
+    */
+    hash getResponseHeaderMessage() {
+        try {
+            return $.getResponseHeaderMessageImpl();
+        }
+        catch (hash $ex) {
+            $.ex = $ex;
+            rethrow;
+        }
+    }
+
+    #! this method provides the callback method for receiving chunked data by calling recvImpl()
+    /**
+        @param v the first time this method is called with a hash of the message headers in the \c "hdr" key, and then with any message body in the \c "data"; if a chunked HTTP message is received, then this method is called once for each chunk; when the message has been received, then this method is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
+        - \c "data": the string or binary data, or, in the case of a non-chunked request, the already decoded and deserialized request body, in which case the \c "deserialized" key will be @ref Qore::True "True"
+        - \c "chunked": True if the data was received with chunked transfer encoding, False if not
+        - \c "deserialized": present and set to @ref Qore::True "True" if a non-chunked request was received, and the body has already been deserialized
+        .
+        Header or trailer data is placed in a hash with the following keys:
+        - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
+        - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
+    */
+    nothing recv(hash $v) {
+        try {
+            $.recvImpl($v);
+        }
+        catch (hash $ex) {
+            $.ex = $ex;
+            rethrow;
+        }
+    }
+
+    #! this method provides the callback method for sending chunked data by calling sendImpl()
+    /** 
+        @return The chunked HTTP data to send; this method must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be returned or simply @ref nothing which will close the chunked message
+    */
+    any send() {
+        try {
+            return $.sendImpl();
+        }
+        catch (hash $ex) {
+            $.ex = $ex;
+            rethrow;
+        }
+    }
+
+    #! this method should return the response message description hash
+    /**
+        @return a hash with the following keys:
+        - \c "code": the HTTP return code (see @ref HttpServerUtil::HttpCodes)
+        - \c "body": the message body to return in the response; if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and sendImpl() are not called
+        - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
+        - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
+
+        @note this method is called after the message body has been received
+    */
+    abstract hash getResponseHeaderMessageImpl();
+
+    #! abstract callback method for receiving chunked data
+    /**
+        @param v the first time this method is called with a hash of the message headers in the \c "hdr" key, and then with any message body in the \c "data"; if a chunked HTTP message is received, then this method is called once for each chunk; when the message has been received, then this method is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
+        - \c "data": the string or binary data, or, in the case of a non-chunked request, the already decoded and deserialized request body, in which case the \c "deserialized" key will be @ref Qore::True "True"
+        - \c "chunked": True if the data was received with chunked transfer encoding, False if not
+        - \c "deserialized": present and set to @ref Qore::True "True" if a non-chunked request was received, and the body has already been deserialized
+        .
+        Header or trailer data is placed in a hash with the following keys:
+        - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
+        - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
+    */
+    abstract nothing recvImpl(hash $v);
+
+    #! abstract callback method for sending chunked data
+    /** 
+        @return The chunked HTTP data to send; this method must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be returned or simply @ref nothing which will close the chunked message
+    */
+    abstract any sendImpl();
+}
+
+#! abstract class for streaming HTTP chunked requests/responses
+/** This class is the base class for handling HTTP stream requests; i.e. with chunked data
+
+    The calling order is as follows:
+    - constructor(): this is called when the request is received
+    - recv(): this is called once for each HTTP chunk (if data is sent chunked), and then once with any message trailer.  If data is sent non-chunked, then this method is called with the monolithic message body and then again with @ref nothing to signify the end of the transfer and to simulate a chunked transfer.  The simulation of a chunked transfer or the actual chunked receive with the callbacks is made by the handleRequest() method.  Subclasses should re-implement recvImpl() which is called by this method
+    - getResponseHeaderMessage(): this is called after the message body has been received to get the response headers and optionally a message body.  Subclasses should reimplement getResponseHeaderMessageImpl() which is called by this method
+    - send(): this is called if no message body is returned by getResponseHeaderMessage(); each time this method returns data, the data is sent in a response chunk; when this method returns @ref nothing, then no more data is sent.  Subclasses should re-implement sendImpl() which is called by this method
+*/
+public class HttpServerUtil::AbstractStreamRequest {
+    public {}
+
+    private {
+        #! an AbstractLogger object the listener serving the request for logging purposes
+        AbstractLogger $.listener;
+        #! the request handler for the request
+        AbstractHttpRequestHandler $.handler;
+        #! the Socket object for the response
+        Socket $.s;
+        #! the call context variable
+        hash $.cx;
+        #! a hash of request headers
+        hash $.hdr;
+        #! any message body given in a non-chunked request; could already be deserialized
+        any $.body;
+    }
+
+    #! creates the object with the given attributes
+    /** @param listener an AbstractLogger object the listener serving the request for logging purposes
+        @param handler the handler serving the request
+        @param s the Socket for serving the request
+        @param cx a call context hash
+        @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
+        - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
+        - \c path: the HTTP path given in the request, after processing by @ref Qore::decode_uri_query()
+        - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
+        @param body any message body in the request already received from the incoming socket
+    */
+    constructor(AbstractLogger $listener, AbstractHttpRequestHandler $handler, Socket $s, hash $cx, hash $hdr, any $body) {
+        $.listener = $listener;
+        $.handler = $handler;
+        $.s = $s;
+        $.cx = $cx;
+        $.hdr = $hdr;
+        $.body = $body;
+    }
+
+    hash handleRequest() {
+        # handle message body
+        if (exists $.body) {
+            my hash $dh = ("data": $.body, "chunked": False);
+            if ($.cx.deserialized)
+                $dh.deserialized = True;
+            $.recv($dh);
+            # signal end of data
+            $.recvImpl(("hdr": NOTHING));
+        }
+        else {
+            if ($.hdr."transfer-encoding" == "chunked") {
+                if ($.hdr."content-encoding")
+                    $.s.readHTTPChunkedBodyBinaryWithCallback(\$.recv(), HttpServerUtil::ReadTimeout);
+                else
+                    $.s.readHTTPChunkedBodyWithCallback(\$.recv(), HttpServerUtil::ReadTimeout);
+            }
+            else # signal end of data
+                $.recvImpl(("hdr": NOTHING));
+        }
+
+        return $.sendResponse();
+    }
+
+    #! called to either create the response hash or send a chunked response directly
+    /** This method calls getResponseHeaderMessageImpl() to get the response code, headers and optionally a response message body.
+        If a \c "Content-Encoding: chunked" header is included, then the response is sent chunked using the send() callback; 
+        in this case the \c "reply_sent" key in the response is set to @ref Qore::True "True".
+        Otherwise, any message body is immediately encoded (if accepted by the requestor).
+    */
+    private hash sendResponse() {
+        my hash $rv = $.getResponseHeaderMessage();
+        if ($rv.hdr."Transfer-Encoding" != "chunked")
+            return $rv;
+
+        http_set_reply_headers($.s, $.cx, \$rv);
+
+        # send chunked response
+        $.s.sendHTTPResponseWithCallback(\$.send(), $rv.code, HttpServerUtil::HttpCodes.($rv.code), "1.1", $rv.hdr, HttpServerUtil::ReadTimeout);
+
+        $rv.reply_sent = True;
+        return $rv;
+    }
+
+    #! this method returns the response message description hash by calling getResponseHeaderMessageImpl()
+    /**
+        @return a hash with the following keys:
+        - \c "code": the HTTP return code (see @ref HttpServerUtil::HttpCodes)
+        - \c "body": the message body to return in the response; if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and sendImpl() are not called
+        - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
+        - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
+
+        @note this method is called after the message body has been received
+    */
+    private hash getResponseHeaderMessage() {
+        return $.getResponseHeaderMessageImpl();
+    }
+
+    #! this is the primary callback for receiving chunked data; data will be logged, and then recvImpl() is called
+    /** content decoding is not possible with chunked data because only the entire message can be decoded
+    */
+    private nothing recv(hash $v) {
+        if (exists $v.data) {
+            $.logChunk(False, $v.data.size());
+
+            if ($.cx.deserialized)
+                $v.deserialized = True;
+        }
+        $.recvImpl($v);
+    }
+
+    #! this is the primary callback for sending chunked responses; first sendImpl() is called to get the raw data, and then any chunked data is encoded by this method if required
+    private any send() {
+        my any $v = $.sendImpl();
+        switch ($v.typeCode()) {
+            case NT_STRING:
+            case NT_BINARY: {
+                $.logChunk(True, $v.size());
+                break;
+            }
+        }
+        return $v;
+    }
+
+    private logChunk(bool $send, int $size) {
+        $.listener.log("cid %d %s CHUNK %d bytes", $.cx.id, $send ? "send" : "recv", $size);
+    }
+
+    #! this method should return the response message description hash
+    /** The default implementation in this class is to return a 501 Not Implemented response; override in subclasses to return a custom response.
+        Omit the \c "body" key to ensure that a chunked response is sent and the send() and sendImpl() callbacks are called.
+
+        @return a hash with the following keys:
+        - \c "code": the HTTP return code (see @ref HttpServerUtil::HttpCodes)
+        - \c "body": the message body to return in the response; if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and sendImpl() are not called
+        - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
+        - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
+
+        @note this method is called after the message body has been received
+    */
+    private hash getResponseHeaderMessageImpl() {
+        return (
+            "code": 501,
+            "body": sprintf("default handler (%s) has no implementation", $self.className()),
+            "close": True,
+            );
+    }
+
+    #! abstract callback method for receiving chunked data
+    /**
+        @param v the first time this method is called with a hash of the message headers in the \c "hdr" key, and then with any message body in the \c "data"; if a chunked HTTP message is received, then this method is called once for each chunk; when the message has been received, then this method is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
+        - \c "data": the string or binary data
+        - \c "chunked": True if the data was received with chunked transfer encoding, False if not
+        .
+        Header or trailer data is placed in a hash with the following keys:
+        - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
+        - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
+    */
+    private nothing recvImpl(hash $v) {
+    }
+
+    #! abstract callback method for sending chunked data
+    /** 
+        @return The chunked HTTP data to send; this method must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be returned or simply @ref nothing which will close the chunked message
+    */
+    private any sendImpl() {
+    }
+}
+
+#! abstract class that all HTTP request handler objects must inherit from
+/** Reimplement handleRequest() in subclasses
+
+    For handlers supporting chunked data (both for receiving and sending), set \a stream to True in the constructor() method
+    and implement getStreamRequestImpl() to return the HTTP stream request handler.
+
+    @see AbstractStreamRequest for information about HTTP stream request handlers
+  */
+public class HttpServerUtil::AbstractHttpRequestHandler {
+    public {
+        #! the optional AbstractAuthenticator for requests to this handler
+        *AbstractAuthenticator $.auth;
+
+        #! if POSTed data should be decompressed automatically if there is content-encoding
+        bool $.decompress = True;
+
+        #! if automatically decompressed POSTed data should be converted to a string (if @ref Qore::False "False", then it will be decompressed to a binary)
+        bool $.decompress_to_string = True;
+
+        #! if the handler supports streaming requests/responses with chunked data
+        bool $.stream;
+
+        #! persistent connection flag
+        bool $.persistent;
+    }
+
+    #! create the object optionally with the given AbstractAuthenticator
+    /** @param auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
+        @param stream if @ref Qore::True "True" then stream (i.e. HTTP chunked) requests and responses are handled and getStreamRequestImpl() will be used to return a valid AbstractStreamRequest object to handle requests
+      */
+    constructor(*AbstractAuthenticator $auth, softbool $stream = False) {
+        $.auth = $auth;
+        $.stream = $stream;
+    }
+
+    #! called externally when a persistent connection is closed
+    nothing persistentClosed() {
+    }
+
+    #! this method will throw an exception if a persistent connection cannot be granted
+    private nothing checkPersistent(hash $cx, hash $hdr) {
+        # Socket::readHTTPHeader() sets the value in cx.close according to the HTTP version and the Connection header
+        if ($cx.close)
+            throw "PERSISTENT-ERROR", sprintf("a persistent connection cannot be granted because the requesting HTTP level is %y and the Connection header is %y", $hdr.http_version, $hdr.connection);
+    }
+
+    #! will be called when a request is received that should be directed to the handler
+    /**
+        @param cx call context hash; this hash will have the following keys:
+        - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
+        - \c socket-info: a hash of socket information for the listening socket (as returned by @ref Qore::Socket::getSocketInfo())
+        - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
+        - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
+        - \c id: the unique HTTP connection ID
+        - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
+        - \c user: the current RBAC username (if any)
+        @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
+        - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
+        - \c path: the HTTP path given in the request, after processing by @ref Qore::decode_uri_query()
+        - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
+        @param body message body, if any
+
+        @return a hash with the following keys:
+        - \c "code": the HTTP return code (see @ref HttpServerUtil::HttpCodes)
+        - \c "body": the message body to return in the response
+        - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
+        - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
+
+        @note the default implementation simply returns a 501 error code for all requests; reimplement this method in a subclass to provide the required functionality
+    */
+    hash handleRequest(hash $cx, hash $hdr, *data $body) {
+        return (
+            "code": 501,
+            "body": sprintf("default handler (%s) has no implementation", $self.className()),
+            "close": True,
+            );
+    }
+
+    #! top-level request handling method
+    hash handleRequest(AbstractLogger $listener, Socket $s, hash $cx, hash $hdr, *data $body) {
+        # classic, non-streaming interface
+        if (!$.stream) {
+            my any $rv = $.handleRequest($cx, $hdr, $.getMessageBody($s, $hdr, $body));
+            switch ($rv.typeCode()) {
+                case NT_HASH: return $rv;
+                case NT_STRING:
+                case NT_BINARY: return ("code": 200, "body": $rv);
+                default:
+                throw "HANDLER-ERROR", sprintf("handler returned type %s; expecting \"hash\"; value: %y", $rv.type(), $rv);
+            }
+        }
+
+        my AbstractStreamRequest $req = $.getStreamRequestImpl($listener, $s, $cx, $hdr, $body);
+        return $req.handleRequest();
+    }
+
+    #! returns the AbstractStreamRequest object for handling chunked requests
+    private AbstractStreamRequest getStreamRequestImpl(AbstractLogger $listener, Socket $s, hash $cx, hash $hdr, *data $body) {
+        return new AbstractStreamRequest($listener, $self, $s, $cx, $hdr, $body);
+    }
+
+    #! decodes a message body with content-encoding
+    static data decodeBody(string $ce, binary $body, *string $enc) {
+        switch ($ce) {
+            case "deflate":
+            case "x-deflate":
+                return $enc ? uncompress_to_string(binary($body), $enc) : uncompress_to_binary($body);
+            case "gzip":
+            case "x-gzip":
+                return $enc ? gunzip_to_string(binary($body), $enc) : gunzip_to_binary($body);
+            case "bzip2":
+            case "x-bzip2":
+                return $enc ? bunzip2_to_string(binary($body), $enc) : bunzip2_to_binary($body);
+            case "identity":
+                return $enc ? binary_to_string($body, $enc) : $body;
+        }
+        throw "UNSUPPORTED-CONTENT-ENCODING", sprintf("don't know how to handle content-encoding %y", $ce);
+    }
+
+    #! encodes a message body with content-encoding
+    static binary encodeBody(string $ce, data $body) {
+        switch ($ce) {
+            case "deflate":
+                return compress($body);
+            case "gzip":
+                return gzip($body);
+            case "bzip2":
+                return bzip2($body);
+            case "identity":
+                return $body;
+        }
+        throw "UNSUPPORTED-CONTENT-ENCODING", sprintf("don't know how to handle content-encoding %y", $ce);
+    }
+
+    #! optionally retrieves and post-processes any message body
+    *data getMessageBody(Socket $s, hash $hdr, *data $body, bool $decode = True) {
+        if (!$body && $hdr."transfer-encoding" == "chunked") {
+            $hdr += ($hdr."content-encoding" ? $s.readHTTPChunkedBodyBinary(HttpServerUtil::ReadTimeout) : $s.readHTTPChunkedBody(HttpServerUtil::ReadTimeout));
+            $body = remove $hdr.body;
+        }
+
+        if ($decode && $body && $hdr."content-encoding" && $.decompress)
+            $body = AbstractHttpRequestHandler::decodeBody($hdr."content-encoding", $body, $.decompress_to_string ? $s.getEncoding() : NOTHING);
+
+        return $body;
+    }
+
+    #! helper method for handling log messages
+    /** @param cx the call context hash
+        @param api the API description hash
+        @param params a reference to the call parameters; the call context hash will be added as the first argument
+        @param args an optional reference to a string describing the arguments
+
+        @return a string if the message should be logged, otherwise @ref nothing
+    */
+    static *string getLogMessage(hash $cx, hash $api, reference $params, *reference $args) {
+        on_exit {
+	    if ($params.typeCode() == NT_LIST)
+		unshift $params, $cx;
+	    else if (exists $params)
+		$params = ($cx, $params);
+	    else
+		$params = $cx;
+        }
+
+        if (($api.logopt & HttpServerUtil::LP_LEVELMASK) > 1 || !$cx.logfunc)
+            return;
+
+        my string $msg = $cx.method;
+
+        # add arguments to log message
+        $args = "";
+        if ($api.logopt & HttpServerUtil::LP_LOGPARAMS) {
+            $args += "(";
+            my int $i = 0;
+            my hash $amh;
+            if ($api.maskargs)
+                map $amh.$1 = True, $api.maskargs;
+            foreach my any $arg in ($params) {
+                if ($amh.($i++))
+                    $args += "<masked>, ";
+                else if ($arg.typeCode() == NT_HASH && $arg) {
+                    $args += "{";
+                    $args += foldl $1 + "," + $2, (map $1 == $api.maskkey ? sprintf("%s: <masked>", $1) : sprintf("%s: %y", $1, $arg.$1), $arg.keyIterator());
+                    $args += "}, ";
+                }
+                else
+                    $args += sprintf("%y, ", $arg);
+            }
+            # remove the last two characters from the string if any were added
+            $args =~ s/, $//;
+            $args += ")";
+        }
+       
+        return sprintf("%s(%s)", $msg, $args);
+    }
+
+    #! called before handleRequest() any data returned here will be given to restoreThreadLocalData() after the handleRequest() call
+    /** @note the default implementation does nothing
+      */
+    *hash saveThreadLocalData() {
+    }
+
+    #! called after handleRequest() with any data returned from saveThreadData()
+    /** @note the default implementation does nothing
+      */
+    restoreThreadLocalData(*hash $data) {
+    }
+
+    #! creates a hash for an HTTP response with the response code and the response message body as a formatted string
+    static hash makeResponse(int $code, string $fmt) {
+        return (
+            "code": $code,
+            "body": vsprintf($fmt, $argv),
+            );
+    }
+
+    #! creates a hash for an HTTP response with the response code and the response message body as a formatted string
+    static hash makeResponse(hash $hdr, int $code, string $fmt) {
+        return (
+            "code": $code,
+            "body": vsprintf($fmt, $argv),
+            "hdr": $hdr,
+            );
+    }
+
+    #! creates a hash for an HTTP response with the response code and a literal response message body
+    static hash makeResponse(int $code, *data $body, *hash $hdr) {
+        return (
+            "code": $code,
+            "body": $body,
+            "hdr": $hdr,
+            );
+    }
+
+    #! creates a hash for an HTTP 400 error response with the response message body as a string
+    static hash make400(string $fmt) {
+        return AbstractHttpRequestHandler::makeResponse(400, vsprintf($fmt, $argv));
+    }
+    
+    #! creates a hash for an HTTP 400 error response with the response message body as a string
+    static hash make400(hash $hdr, string $fmt) {
+        return AbstractHttpRequestHandler::makeResponse(400, vsprintf($fmt, $argv), $hdr);
+    }
+    
+    #! creates a hash for an HTTP 501 error response with the response message body as a string
+    static hash make501(string $fmt) {
+        return AbstractHttpRequestHandler::makeResponse(501, vsprintf($fmt, $argv));
+    }
+    
+    #! creates a hash for an HTTP 501 error response with the response message body as a string
+    static hash make501(hash $hdr, string $fmt) {
+        return AbstractHttpRequestHandler::makeResponse(501, vsprintf($fmt, $argv), $hdr);
+    }
+
+    #! generates a redirect hash for the given path
+    static hash redirect(hash $cx, hash $hdr, string $path) {
+        # make sure no forward slashes are doubled in the path
+        $path =~ s/\/+/\//g;
+        my string $uri = sprintf("http%s://%s/%s", $cx.ssl ? "s" : "", $hdr.host, $path);
+        return (
+            "code": 301,
+            "hdr": ("Location": $uri),
+            "body": $hdr.method != "HEAD" ? sprintf("redirecting to %s", $uri) : NOTHING,
+            );
+    }
+}
+
+#! abstract class for HTTP request handlers anchored at a specific URL
+public class HttpServerUtil::AbstractUrlHandler inherits HttpServerUtil::AbstractHttpRequestHandler {
+    public {
+        #! root part of URL for matching requests
+        string $.url_root;
+    }
+
+    #! creates the object based on the URL root and optional authenticator
+    /** @param url_root the root part of the URL path without the leading \c "/"
+        @param auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
+     */
+    constructor(string $url_root, *AbstractAuthenticator $auth) : AbstractHttpRequestHandler($auth) {
+        if ($url_root =~ /\//)
+            $url_root = $url_root.substr(1);
+        $.url_root = $url_root;
+    }
+
+    #! returns the relative path anchored from the url_root if possible; URI query arguments are stripped off, if the url_root cannot be matched then the path is returned with URI query arguments removed
+    string getRelativePath(string $path) {
+        if ($.url_root && $path.equalPartialPath($.url_root))
+            $path = $path.substr($.url_root.size() + 1); 
+        # strip URI query args from path
+        $path =~ s/\?.*$//;
+        return $path;
+    }
+}
+
+#! abstract class that all HTTP dedicated socket handler objects must inherit from
+/** reimplement at least handleRequest() and startImpl() in subclasses
+  */
+public class HttpServerUtil::AbstractHttpSocketHandler inherits HttpServerUtil::AbstractHttpRequestHandler {
+    private {
+        #! stop listener flag
+        bool $.stop = False;
+
+        #! hash of listener references; this is to stop all connections associated with a particular listener
+        hash $.lh;
+        
+        #! hash of listener stop flags
+        hash $.lsh;
+
+        #! listener reference hash mutex
+        Mutex $.m();
+    }
+
+    #! create the object optionally with the given AbstractAuthenticator
+    /** @param auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
+      */
+    constructor(*AbstractAuthenticator $auth) : AbstractHttpRequestHandler($auth) {
+    }
+
+    #! called from the HTTP server after the handleRequest() method indicates that a dedicated connection should be established
+    /** This method should not return until the connection is closed or the stop() method is called
+
+        @param lid the listener ID
+        @param cx call context hash; this hash will have the following keys:
+        - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
+        - \c socket-info: a hash of socket information for the listening socket (as returned by @ref Qore::Socket::getSocketInfo())
+        - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
+        - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
+        - \c id: the unique HTTP connection ID
+        - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
+        - \c user: the current RBAC username (if any)
+        @param hdr a hash of headers in the request
+        @param s the @ref Qore::Socket "Socket" object for the dedicated connection
+     */
+    start(softstring $lid, hash $cx, hash $hdr, Socket $s) {
+        {
+            $.m.lock();
+            on_exit $.m.unlock();
+            ++$.lh.$lid;
+        }
+        on_exit {
+            $.m.lock();
+            on_exit $.m.unlock();
+            if (!--$.lh.$lid) {
+                delete $.lh.$lid;
+                delete $.lsh.$lid;
+            }
+        }
+        $.startImpl($lid, $cx, $hdr, $s);
+    }
+
+    #! called from the HTTP server when the socket should be closed due to an HTTP listener being stopped; the start() method for all connections on the particular listener should return as soon as possible after this method is called
+    /** child classes should implement the stopImpl(string) method which is called from this method to implement custom stop actions for particular listeners
+
+        @param lid the listener ID
+    */
+    stop(softstring $lid) {
+        {
+            $.m.lock();
+            on_exit $.m.unlock();
+            if (!$.lh.$lid)
+                return;
+
+            $.lsh.$lid = True;
+        }
+        
+        $.stopImpl($lid);
+    }
+
+    #! called from the HTTP server when the socket should be closed due to an external request; the start() method should return as soon as possible after this method is called
+    /** child classes should implement the stopImpl() method which is called from this method to implement custom stop actions
+     */
+    stop() {
+        $.stop = True;
+        $.stopImpl();
+    }
+
+    #! called by the HTTP server to handle incoming HTTP requests
+    /** To accept a new dedicated socket connection, make sure the return value returns code 101 (ie \c "Switching Protocols"); after which this class's start() (and then startImpl()) methods are called
+
+        @param cx call context hash; this hash will have the following keys:
+        - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
+        - \c socket-info: a hash of socket information for the listening socket (as returned by @ref Qore::Socket::getSocketInfo())
+        - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
+        - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
+        - \c id: the unique HTTP connection ID
+        - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
+        - \c user: the current RBAC username (if any)
+        @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
+        - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
+        - \c path: the HTTP path given in the request, after processing by @ref Qore::decode_uri_query()
+        - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
+        @param b message body, if any
+
+        @return to accept a dedicated connection, return a hash with the following key:
+        - \c "code": assign to 101 (ie \c "Switching Protocols"); if this is returned, then the start() method will be called with the @ref Qore::Socket "Socket object" for the new connection
+        - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
+        .
+        or, to handle the request without a dedicated connection, return a hash with the following keys
+        - \c "code": the HTTP return code (see @ref HttpServerUtil::HttpCodes)
+        - \c "body": the message body to return in the response
+        - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
+        - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
+     */
+    abstract hash handleRequest(hash $cx, hash $hdr, *data $b);
+
+    #! called from the HTTP server after the handleRequest() method indicates that a dedicated connection should be established
+    /** This method should not return until the connection is closed or the stop() (and therefore stopImpl()) method is called
+
+        @param lid the listener ID
+        @param cx call context hash; this hash will have the following keys:
+        - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
+        - \c socket-info: a hash of socket information for the listening socket (as returned by @ref Qore::Socket::getSocketInfo())
+        - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
+        - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
+        - \c id: the unique HTTP connection ID
+        - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
+        - \c user: the current RBAC username (if any)
+        @param hdr a hash of headers in the request
+        @param s the @ref Qore::Socket "Socket" object for the dedicated connection
+     */
+    private abstract startImpl(softstring $lid, hash $cx, hash $hdr, Socket $s);
+
+    #! called from the HTTP server when the socket should be closed because the listener is stopping; the start() method for all connections handled by the given listener should return as soon as possible after this method is called
+    /** @param lid the listener ID
+    */
+    private stopImpl(string $lid) {
+    }
+
+    #! called from the HTTP server when the socket should be closed due to an external request; the start() method should return as soon as possible after this method is called
+    private stopImpl() {
+    }
+}

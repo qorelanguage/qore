@@ -125,7 +125,7 @@ class httpServer {
             installShutdownHandlers();
         }
         catch (hash ex) {
-            stderr.printf("%s: %s\n", ex.err, ex.desc);
+            stderr.printf("%s: %s: %s\n", get_ex_pos(ex), ex.err, ex.desc);
             stderr.printf("Please correct the above error and try again - the HTTP server was NOT started\n");
             shutdown();
         }

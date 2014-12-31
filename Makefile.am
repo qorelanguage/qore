@@ -16,6 +16,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/include
 DOX_SRC_MODULES = qlib/Mime.qm \
 	qlib/MailMessage.qm \
 	qlib/Util.qm \
+	qlib/HttpServerUtil.qm \
 	qlib/HttpServer.qm \
 	qlib/WebSocketUtil.qm \
 	qlib/SqlUtil.qm \
@@ -691,8 +692,11 @@ doxygen/qlib/Doxyfile.Mime: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
 doxygen/qlib/Doxyfile.Util: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
 	$(QDX) -M=qlib/Util.qm:doxygen/qlib/Util.qm.dox.h $< $@
 
+doxygen/qlib/Doxyfile.HttpServerUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
+	$(QDX) -M=qlib/HttpServerUtil.qm:doxygen/qlib/HttpServerUtil.qm.dox.h -tMime.tag=../../Mime/html -tUtil.tag=../../Util/html $< $@
+
 doxygen/qlib/Doxyfile.HttpServer: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
-	$(QDX) -M=qlib/HttpServer.qm:doxygen/qlib/HttpServer.qm.dox.h -tMime.tag=../../Mime/html -tUtil.tag=../../Util/html $< $@
+	$(QDX) -M=qlib/HttpServer.qm:doxygen/qlib/HttpServer.qm.dox.h -tHttpServerUtil.tag=../../HttpServerUtil/html -tMime.tag=../../Mime/html -tUtil.tag=../../Util/html $< $@
 
 doxygen/qlib/Doxyfile.MailMessage: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
 	$(QDX) -M=qlib/MailMessage.qm:doxygen/qlib/MailMessage.qm.dox.h -tMime.tag=../../Mime/html $< $@

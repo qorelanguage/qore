@@ -31,7 +31,7 @@
 # enable all warnings
 %enable-all-warnings
 
-%requires HttpServer >= 0.3.7
+%requires HttpServerUtil >= 0.3.11
 %requires Mime >= 1.3
 
 %try-module yaml
@@ -117,7 +117,7 @@ module RestHandler {
     @endcode
 
     The arguments passed to the REST action methods are as follows:
-    - \a cx: a call context hash; the same value as documented in the \a cx parameter of @ref HttpServer::AbstractHttpRequestHandler::handleRequest(); with the following additions:
+    - \a cx: a call context hash; the same value as documented in the \a cx parameter of @ref HttpServerUtil::AbstractHttpRequestHandler::handleRequest(); with the following additions:
       - \a body: the deserialized message body (if any); if no body was sent, then any parsed URI arguments are copied here
       - \a hdr: a copy of the header hash as returned by @ref Qore::Socket::readHTTPHeader() "Socket::readHTTPHeader()" as received by the @ref HttpServer::HttpServer "HttpServer" (for example cx.hdr.path gives the original URI request path)
       - \a orig_method: the string if any \c "action" argumnt was sent either in the message body or as a URI argument
@@ -125,7 +125,7 @@ module RestHandler {
       - \a rest_action_method: the method name that will be called on the actual %Qore REST class (a subclass of @ref RestHandler::AbstractRestClass "AbstractRestClass")
     - \c ah: these are the parsed URI query arguments to the REST call; see @ref restargs for more information
 
-    The return value for these methods is the same as the return value for @ref HttpServer::AbstractHttpRequestHandler::handleRequest().
+    The return value for these methods is the same as the return value for @ref HttpServerUtil::AbstractHttpRequestHandler::handleRequest().
 
     consider the following example class:
     @code
@@ -281,7 +281,7 @@ Content-Length: 36
     @endverbatim
 
     @par REST URI Arguments
-    REST URI arguments are available in the \a "$ah" argument to the method.  REST URI arguments are provided internally with the @ref HttpServer::parse_uri_query() "parse_uri_query" function.\n\n
+    REST URI arguments are available in the \a "$ah" argument to the method.  REST URI arguments are provided internally with the @ref HttpServerUtil::parse_uri_query() "parse_uri_query" function.\n\n
     If no URI query argument were provided in the request, then the \a "$ah" parameter is populated by the deserialized message body, if it is deserialized to a hash.
 
     @par REST Message Body
@@ -309,7 +309,7 @@ Content-Length: 36
 #! the RestHandler namespace contains all the objects in the RestHandler module
 public namespace RestHandler {
     #! the base abstract class for REST stream request handlers
-    public class AbstractRestStreamRequestHandler inherits HttpServer::AbstractStreamRequestHandler {
+    public class AbstractRestStreamRequestHandler inherits HttpServerUtil::AbstractStreamRequestHandler {
         public {}
 
         private {
@@ -341,7 +341,7 @@ public namespace RestHandler {
         #! this method returns the response message description hash by calling getResponseHeaderMessageImpl()
         /**
             @return a hash with the following keys:
-            - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
+            - \c "code": the HTTP return code (see @ref HttpServerUtil::HttpCodes)
             - \c "body": the message body to return in the response; if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and sendImpl() are not called
             - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
             - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
@@ -357,14 +357,14 @@ public namespace RestHandler {
     }
 
     #! the base class for handling HTTP chunked requests and responses within the RestHandler infrastructure
-    public class RestStreamRequest inherits HttpServer::AbstractStreamRequest {
+    public class RestStreamRequest inherits HttpServerUtil::AbstractStreamRequest {
         private {
             RestHandler::AbstractRestStreamRequestHandler $.rsh;
             bool $.deserialized;
         }
 
         #! creates the object with the given attributes
-        constructor(RestHandler::AbstractRestStreamRequestHandler $rsh, HttpListener $listener, AbstractHttpRequestHandler $handler, Socket $s, hash $cx, hash $hdr, any $body) : AbstractStreamRequest($listener, $handler, $s, $cx + (exists $body ? ("deserialized": True) : NOTHING), $hdr, $body) {
+        constructor(RestHandler::AbstractRestStreamRequestHandler $rsh, AbstractLogger $listener, AbstractHttpRequestHandler $handler, Socket $s, hash $cx, hash $hdr, any $body) : AbstractStreamRequest($listener, $handler, $s, $cx + (exists $body ? ("deserialized": True) : NOTHING), $hdr, $body) {
             $.rsh = $rsh;
             $.deserialized = exists $body;
         }
@@ -372,7 +372,7 @@ public namespace RestHandler {
         # callback method for the response header; this calls @ref RestHandler::AbstractRestStreamRequestHandler::getResponseHeaderMessage() and returns the result
         /**
             @return a hash with the following keys:
-            - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
+            - \c "code": the HTTP return code (see @ref HttpServerUtil::HttpCodes)
             - \c "body": the message body to return in the response; if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and sendImpl() are not called
             - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
             - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
@@ -438,7 +438,7 @@ public namespace RestHandler {
         }
 
         #! this method is called by the RestHandler class to match the right object with incoming requests
-        hash handleRequest(HttpListener $listener, RestHandler $rh, Socket $s, *list $cl, string $mn, hash $cx, *hash $args) {            
+        hash handleRequest(AbstractLogger $listener, RestHandler $rh, Socket $s, *list $cl, string $mn, hash $cx, *hash $args) {            
             if (!$args && $cx.body.typeCode() == NT_HASH)
                 $args = $cx.body;
             if ($cl) {
@@ -458,7 +458,7 @@ public namespace RestHandler {
         }
 
         #! this method is called to dispatch streamed requests on the given object
-        private hash dispatchStream(HttpListener $listener, RestHandler $rh, Socket $s, string $mn, *hash $ah, hash $cx) {
+        private hash dispatchStream(AbstractLogger $listener, RestHandler $rh, Socket $s, string $mn, *hash $ah, hash $cx) {
             my string $sn = "stream" + $mn[0].upr() + $mn.substr(1);
             try {
                 $cx.socketobject = $s;
@@ -532,7 +532,7 @@ public namespace RestHandler {
         In order to match REST requests under a root path, reimplement the following method in a subclass:
         - @ref RestHandler::RestHandler::removeRootPath()        
     */
-    public class RestHandler inherits HttpServer::AbstractHttpRequestHandler, AbstractRestClass {
+    public class RestHandler inherits HttpServerUtil::AbstractHttpRequestHandler, AbstractRestClass {
         public {
             #! a hash for a 501 Unimplemented error message
             const Err501 = (
@@ -617,12 +617,12 @@ public namespace RestHandler {
             @param b message body, if any
 
             @return a hash with the following keys:
-            - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
+            - \c "code": the HTTP return code (see @ref HttpServerUtil::HttpCodes)
             - \c "body": the message body to return in the response
             - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
             - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
          */
-        hash handleRequest(HttpListener $listener, Socket $s, hash $cx, hash $hdr, *data $b) {
+        hash handleRequest(AbstractLogger $listener, Socket $s, hash $cx, hash $hdr, *data $b) {
             #$.logDebug("REST DBG: cx: %N", $cx);
             #$.logDebug("REST DBG: hdr: %N", $hdr);
             if ($b)
