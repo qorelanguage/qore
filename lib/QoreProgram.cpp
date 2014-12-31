@@ -212,7 +212,7 @@ void qore_program_private_base::newProgram() {
 }
 
 void qore_program_private_base::setParent(QoreProgram *p_pgm, int64 n_parse_options) {
-   printd(1, "qore_program_private_base::setParent() this: %p parent: %p (parent lvl: %p) this: %p (this pgm: %p) parent po: %lld new po: %lld parent no_child_po_restrictions: %d\n", this, p_pgm, p_pgm->priv->sb.getLVList(), this, pgm, p_pgm->priv->pwo.parse_options, n_parse_options, p_pgm->priv->pwo.parse_options & PO_NO_CHILD_PO_RESTRICTIONS);
+   //printd(5, "qore_program_private_base::setParent() this: %p parent: %p (parent lvl: %p) this: %p (this pgm: %p) parent po: %lld new po: %lld parent no_child_po_restrictions: %d\n", this, p_pgm, p_pgm->priv->sb.getLVList(), this, pgm, p_pgm->priv->pwo.parse_options, n_parse_options, p_pgm->priv->pwo.parse_options & PO_NO_CHILD_PO_RESTRICTIONS);
 
    TZ = p_pgm->currentTZ();
 
@@ -405,22 +405,12 @@ void qore_program_private::importClass(qore_program_private& from_pgm, const cha
 
    AutoLocker al(plock);
 
-   if (strstr(path, "::")) {
-      NamedScope nscope(path);
-      QoreNamespace* tns = qore_root_ns_private::runtimeFindNamespaceForAddClass(*RootNS, nscope, xsink);
-      if (!tns)
-         return;
-
-      qore_root_ns_private::importClass(*RootNS, xsink, *tns, c);
-      return;
-   }
-
    std::string nspath;
    vns->getPath(nspath);
 
    // find/create target namespace based on source namespace
    QoreNamespace* tns = nspath.empty() ? RootNS : RootNS->findCreateNamespacePath(nspath.c_str());
-   //printd(5, "qore_program_private::importFunction() this: %p nspath: %s tns: %p %s RootNS: %p %s\n", this, nspath.c_str(), tns, tns->getName(), RootNS, RootNS->getName());
+   //printd(5, "qore_program_private::importClass() this: %p path: %s nspath: %s tns: %p %s RootNS: %p %s\n", this, path, nspath.c_str(), tns, tns->getName(), RootNS, RootNS->getName());
    qore_root_ns_private::importClass(*RootNS, xsink, *tns, c);
 }
 
