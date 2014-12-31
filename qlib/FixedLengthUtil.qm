@@ -1,9 +1,6 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file FixedLengthUtil.qm Qore user module for working with files with fixed lines length
 
-# TODO: remove key "types" from specs because there is the only key so it is possible to simplify
-# TODO: transition state error checking - keep type of the current line in some attribute variable and check possibility of this transition if the current state changes
-
 /*  FixedLengthUtil.qm Copyright 2012 - 2014 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
@@ -83,30 +80,36 @@ code identify_type = *string sub (string line) {
 
 hash specs = (
     "type1" : (
-        "col1" : (
-            "length" : 5,
-            "type"   : "int"
+        "cols" : (
+            "col1" : (
+                "length" : 5,
+                "type"   : "int"
+            ),
+            "col2" : (
+                "length" : 2,
+                "type"   : "string",
+            ),
         ),
-        "col2" : (
-            "length" : 2,
-            "type"   : "string",
-        ),
+        "is_after" : (NOTHING), # is first line
     ),
     "type2" : (
-        "col3" : (
-            "length" : 1,
-            "type"   : "string",
+        "cols" : (
+            "col3" : (
+                "length" : 1,
+                "type"   : "string",
+            ),
+            "col4" : (
+                "length" : 3,
+                "type"   : "string",
+            ),
+            "col5" : (
+                "length"   : 8,
+                "type"     : "date",
+                "format"   : "DDMMYYYY",
+                # "timezone" : "Europe/Prague", # use global if omitted
+            ),
         ),
-        "col4" : (
-            "length" : 3,
-            "type"   : "string",
-        ),
-        "col5" : (
-            "length"   : 8,
-            "type"     : "date",
-            "format"   : "DDMMYYYY",
-            # "timezone" : "Europe/Prague", # use global if omitted
-        ),
+        "is_after" : ("type1", "type2"), # can follow line of the same type or type1
     ),
 );
 
@@ -148,30 +151,36 @@ code identify_type = *string sub (string line) {
 
 hash specs = (
     "type1" : (
-        "col1" : (
-            "length" : 5,
-            "type"   : "int"
+        "cols" : (
+            "col1" : (
+                "length" : 5,
+                "type"   : "int"
+            ),
+            "col2" : (
+                "length" : 2,
+                "type"   : "string",
+            ),
         ),
-        "col2" : (
-            "length" : 2,
-            "type"   : "string",
-        ),
+        "is_after" : (NOTHING, "type2"), # can follow line of the type2 or be first line
     ),
     "type2" : (
-        "col3" : (
-            "length" : 1,
-            "type"   : "string",
+        "cols" : (
+            "col3" : (
+                "length" : 1,
+                "type"   : "string",
+            ),
+            "col4" : (
+                "length" : 3,
+                "type"   : "string",
+            ),
+            "col5" : (
+                "length"   : 8,
+                "type"     : "date",
+                "format"   : "DDMMYYYY",
+                "timezone" : "Europe/Prague",
+            ),
         ),
-        "col4" : (
-            "length" : 3,
-            "type"   : "string",
-        ),
-        "col5" : (
-            "length"   : 8,
-            "type"     : "date",
-            "format"   : "DDMMYYYY",
-            "timezone" : "Europe/Prague",
-        ),
+        "is_after" : ("type1"), # can follow line of the type type1
     ),
 );
 
@@ -196,9 +205,9 @@ public namespace FixedLengthUtil {
 #! structured line iterator for abstract data allowing efficient "pipelined" processing
 public class FixedLengthUtil::FixedLengthAbstractIterator inherits TextUtil::AbstractTextIterator {
     private {
-        hash specs;
-        code identify_record;
-        # hash opts; # encoding, eol, ignore-empty, timezone
+        hash m_specs;
+        code m_identify_record;
+        string m_state;
     }
 
     #! creates the FixedLengthAbstractIterator object
@@ -206,10 +215,10 @@ public class FixedLengthUtil::FixedLengthAbstractIterator inherits TextUtil::Abs
     @param h specification of fixed-length-line file        
     @param g global options
     */
-    constructor(hash h, code i, *hash g) : TextUtil::AbstractTextIterator(hash() + (g.encoding ? ("encoding" : g.encoding) : hash()) + (g.eol ? ("eol" : g.eol) : hash()) + (g{"ignore-empty"} ? ("ignore-empty" : g{"ignore-empty"}) : hash()) + (g.timezone ? ("timezone" : g.timezone) : hash()) + (g.number_format ? ("number_format" : g.number_format) : hash()) + (g.date_format ? ("date_format" : g.date_format) : hash())) { # TODO : this is ugly! how to do it better? hashmap? or call in sub body?
-        specs           = h;
-        identify_record = i;
-        m_opts          = m_opts + checkOptions(g);
+    constructor(hash h, code i, *hash g) : TextUtil::AbstractTextIterator(map {$1 : g{$1}}, ("encoding", "eol", "ignore-empty", "ignore-empty", "timezone", "number_format", "date_format"), g{$1}) {
+        m_specs           = h;
+        m_identify_record = i;
+        m_opts            = m_opts + checkOptions(g);
     }
 
     abstract *string getLine();
@@ -231,13 +240,17 @@ my hash $h = $i.getValue();
 
         hash result = hash();
 
-        *string type = call_function_args(identify_record, line);
-        if (!type || !specs{type}) {
+        *string type = call_function_args(m_identify_record, line);
+        if (!type || !m_specs{type}) {
             throw 'NON-MATCHING-TYPE', 'Line type not detected correctly for line >' + line + '<';
         }
+        if (!inlist(m_state, () + m_specs{type}.is_after)) { # transition checking
+            throw 'WRONG-TRANSITION', 'State ' + (type ?? '<START>') + ' cannot follow state ' + (m_state ?? '<START>') + ' (line >' + line + '<)';
+        }
+        m_state = type;
         int pos = 0;
-        foreach string col in (specs{type}.keys()) {
-            hash field = specs{type}{col};
+        foreach string col in (m_specs{type}.cols.keys()) {
+            hash field = m_specs{type}.cols{col};
             if (!field.timezone) {
                 field.timezone = m_opts.timezone;
             }
@@ -355,8 +368,9 @@ public class FixedLengthUtil::FixedLengthDataIterator inherits private FixedLeng
 #! structured writer
 public class FixedLengthUtil::FixedLengthAbstractWriter inherits TextUtil::AbstractTextWriter {
     private {
-        hash specs;
-        code identify_record;
+        hash m_specs;
+        code m_identify_record;
+        string m_state;
     }
 
     #! creates the FixedLengthAbstractWriter object
@@ -365,14 +379,14 @@ public class FixedLengthUtil::FixedLengthAbstractWriter inherits TextUtil::Abstr
     @param g global options
     */
     constructor(hash h, *code i, *hash g) : TextUtil::AbstractTextWriter(hash() + (g.eol ? ("eol" : g.eol) : hash())) {
-        specs           = h;
-        identify_record = i;
+        m_specs           = h;
+        m_identify_record = i;
         delete g.eol;
-        m_opts          = m_opts + checkOptions(g);
+        m_opts            = m_opts + checkOptions(g);
     }
 
     private bool checkItemTypeCombination(hash item, string type, string line_candidate) {
-        hash type_specs = specs{type};
+        hash type_specs = m_specs{type}.cols;
         # not this line if columns count mismatch
         if (elements type_specs.keys() != elements item.keys()) {
             return False;
@@ -390,7 +404,7 @@ public class FixedLengthUtil::FixedLengthAbstractWriter inherits TextUtil::Abstr
         }
 
         # not this line type if check fails
-        if (type != call_function_args(identify_record, line_candidate)) {
+        if (type != call_function_args(m_identify_record, line_candidate)) {
             return False;
         }
 
@@ -426,9 +440,13 @@ public class FixedLengthUtil::FixedLengthFileWriter inherits FixedLengthUtil::Fi
         FW.open(file, O_WRONLY | O_CREAT);
 
         foreach hash item in (lines) {
-            foreach string type in (specs.keyIterator()) {
+            foreach string type in (m_specs.keyIterator()) {
                 string line_candidate = join("", map string($1), item.values());
                 if (checkItemTypeCombination(item, type, line_candidate)) {
+                    if (!inlist(m_state, () + m_specs{type}.is_after)) { # transition checking
+                        throw 'WRONG-TRANSITION', 'State ' + (type ?? '<START>') + ' cannot follow state ' + (m_state ?? '<START>');
+                    }
+                    m_state = type;
                     FW.write(line_candidate + (m_opts.eol ? m_opts.eol : "\n"));
                     break;
                 }
@@ -459,9 +477,13 @@ public class FixedLengthUtil::FixedLengthDataWriter inherits FixedLengthUtil::Fi
         string result = "";
 
         foreach hash item in (lines) {
-            foreach string type in (specs.keys()) {
+            foreach string type in (m_specs.keys()) {
                 string line_candidate = join("", map string($1), item.values());
                 if (checkItemTypeCombination(item, type, line_candidate)) {
+                    if (!inlist(m_state, () + m_specs{type}.is_after)) { # transition checking
+                        throw 'WRONG-TRANSITION', 'State ' + (type ?? '<START>') + ' cannot follow state ' + (m_state ?? '<START>');
+                    }
+                    m_state = type;
                     result += line_candidate + (m_opts.eol ? m_opts.eol : "\n");
                     break;
                 }
