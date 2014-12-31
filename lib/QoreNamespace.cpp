@@ -501,24 +501,28 @@ void QoreNamespace::addConstant(const char* cname, AbstractQoreNode* val, const 
 }
 
 QoreNamespace* QoreNamespace::findCreateNamespacePath(const char* nspath) {
-   return priv->findCreateNamespacePath(nspath);
+   bool is_new = false;
+   return priv->findCreateNamespacePath(nspath, is_new);
 }
 
-QoreNamespace* qore_ns_private::findCreateNamespace(const char* nsn) {
+QoreNamespace* qore_ns_private::findCreateNamespace(const char* nsn, bool& is_new) {
    QoreNamespace* ns = nsl.find(nsn);
-   if (!ns)
+   if (!ns) {
       nsl.runtimeAdd((ns = new QoreNamespace(nsn)), this);
+      is_new = true;
+   }
    return ns;
 }
 
-QoreNamespace* qore_ns_private::findCreateNamespacePath(const char* nspath) {
+QoreNamespace* qore_ns_private::findCreateNamespacePath(const char* nspath, bool& is_new) {
    assert(nspath);
+   assert(!is_new);
    NamedScope nscope(nspath);
 
    // iterate through each level of the namespace path and find/create namespaces as needed
    QoreNamespace* nns = ns;
    for (unsigned i = 0; i < nscope.size(); ++i)
-      nns = nns->priv->findCreateNamespace(nscope[i]);
+      nns = nns->priv->findCreateNamespace(nscope[i], is_new);
 
    return nns;
 }
@@ -779,6 +783,8 @@ AbstractQoreNode* qore_root_ns_private::parseResolveBarewordIntern(const QorePro
 
    bool abr = (bool)(parse_get_parse_options() & PO_ALLOW_BARE_REFS);
 
+   assert(strcmp(bword, "ds123"));
+   
    // if bare refs are enabled, first look for a local variablee
    if (abr) {
       bool in_closure;
