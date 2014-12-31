@@ -118,8 +118,10 @@ void QoreClassList::parseRollback() {
 
 void QoreClassList::parseCommit(QoreClassList& l) {
    assimilate(l);
-   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
+   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
+      //printd(5, "QoreClassList::parseCommit() this: %p qc: %p '%s' pub: %d\n", this, i->second, i->second->getName(), qore_class_private::isPublic(*i->second));
       qore_class_private::parseCommit(*(i->second));
+   }
 }
 
 void QoreClassList::reset() {

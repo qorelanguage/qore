@@ -501,28 +501,42 @@ void QoreNamespace::addConstant(const char* cname, AbstractQoreNode* val, const 
 }
 
 QoreNamespace* QoreNamespace::findCreateNamespacePath(const char* nspath) {
-   bool is_new = false;
-   return priv->findCreateNamespacePath(nspath, is_new);
-}
-
-QoreNamespace* qore_ns_private::findCreateNamespace(const char* nsn, bool& is_new) {
-   QoreNamespace* ns = nsl.find(nsn);
-   if (!ns) {
-      nsl.runtimeAdd((ns = new QoreNamespace(nsn)), this);
-      is_new = true;
-   }
-   return ns;
-}
-
-QoreNamespace* qore_ns_private::findCreateNamespacePath(const char* nspath, bool& is_new) {
-   assert(nspath);
-   assert(!is_new);
    NamedScope nscope(nspath);
+   bool is_new = false;
+   return priv->findCreateNamespacePath(nscope, is_new);
+}
+
+QoreNamespace* qore_ns_private::findCreateNamespacePath(const NamedScope& nscope, bool& is_new) {
+   assert(!is_new);
 
    // iterate through each level of the namespace path and find/create namespaces as needed
    QoreNamespace* nns = ns;
    for (unsigned i = 0; i < nscope.size(); ++i)
       nns = nns->priv->findCreateNamespace(nscope[i], is_new);
+
+   return nns;
+}
+
+QoreNamespace* qore_ns_private::findCreateNamespace(const char* nsn, bool& is_new) {
+   QoreNamespace* ns = nsl.find(nsn);
+   if (!ns) {
+      ns = new QoreNamespace(nsn);
+      nsl.runtimeAdd(ns, this);
+      is_new = true;
+   }
+   return ns;
+}
+
+QoreNamespace* qore_ns_private::findCreateNamespacePath(const nsvec_t& nsv, bool& is_new) {
+   assert(nsv.size());
+   assert(!is_new);
+   
+   //printd(5, "qore_ns_private::findCreateNamespacePath() this: %p nsv: %ld\n", this, nsv.size());
+
+   // iterate through each level of the namespace path and find/create namespaces as needed
+   QoreNamespace* nns = ns;
+   for (unsigned i = 0; i < nsv.size(); ++i)
+      nns = nns->priv->findCreateNamespace(nsv[i]->name.c_str(), is_new);
 
    return nns;
 }
@@ -1482,6 +1496,8 @@ void qore_ns_private::parseRollback() {
 qore_ns_private *qore_ns_private::parseAddNamespace(QoreNamespace* nns) {
    std::auto_ptr<QoreNamespace> nnsh(nns);
 
+   //printd(5, "qore_ns_private::parseAddNamespace() this: %p '%s::' adding '%s' pub: %d nns->pub: %d\n", this, name.c_str(), nns->getName(), pub, nns->priv->pub);
+   
    if (!pub && nns->priv->pub && parse_check_parse_option(PO_IN_MODULE))
       qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "namespace '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), nns->getName(), name.c_str());
 
@@ -1711,22 +1727,28 @@ void qore_ns_private::copyMergeCommittedNamespace(const qore_ns_private& mns) {
    // add sub namespaces
    for (nsmap_t::const_iterator i = mns.nsl.nsmap.begin(), e = mns.nsl.nsmap.end(); i != e; ++i) {
       if (!qore_ns_private::isUserPublic(*i->second)) {
-         //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p '%s::' skipping %p '%s::'\n", this, name.c_str(), i->second, i->second->getName());
+         //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p (%p) '%s::' skipping %p (%p) '%s::' pub: %d builtin: %d\n", this, ns, name.c_str(), i->second->priv, i->second, i->second->getName(), i->second->priv->pub, i->second->priv->builtin);
          continue;
       }
 
       QoreNamespace* nns = nsl.find(i->first);
       if (!nns) {
-         nns = new QoreNamespace(i->first.c_str());
+         qore_ns_private* npns = new qore_ns_private(i->first.c_str());
+         nns = npns->ns;
+         nns->priv->pub = i->second->priv->pub;
+         nns->priv->imported = true;
          nsl.runtimeAdd(nns, this);
       }
       
       nns->priv->copyMergeCommittedNamespace(*i->second->priv);
       //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p '%s::' merged %p '%s::'\n", this, name.c_str(), ns, ns->getName());
    }
+   //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p '%s' done\n", this, name.c_str());
 }
 
 void qore_ns_private::parseAssimilate(QoreNamespace* ans) {
+   //printd(5, "qore_ns_private::parseAssimilate() this: %p (%p) '%s' pub: %d imported: %d ans->pub: %d ans->imported: %d (%p)\n", this, ns, name.c_str(), pub, imported, ans->priv->pub, ans->priv->imported, ans);
+
    qore_ns_private* pns = ans->priv;
    // make sure there are no objects in the committed lists in the namespace to be merged
    assert(pns->nsl.empty());
@@ -1789,6 +1811,8 @@ void qore_ns_private::parseAssimilate(QoreNamespace* ans) {
 }
 
 void qore_ns_private::runtimeAssimilate(QoreNamespace* ans) {
+   //printd(5, "qore_ns_private::runtimeAssimilate() this: %p '%s' pub: %d imported: %d ans->pub: %d ans->imported: %d\n", this, name.c_str(), pub, imported, ans->priv->pub, ans->priv->imported);
+
    qore_ns_private* pns = ans->priv;
    // make sure there are no objects in the pending lists in the namespace to be merged
    assert(pns->pendNSL.empty());

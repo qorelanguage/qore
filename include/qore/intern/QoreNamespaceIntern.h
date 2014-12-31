@@ -42,6 +42,9 @@
 #include <vector>
 
 class qore_root_ns_private;
+class qore_ns_private;
+
+typedef std::vector<const qore_ns_private*> nsvec_t;
 
 struct GVEntryBase {
    NamedScope* name;
@@ -120,18 +123,23 @@ public:
    // 0 = root namespace, ...
    unsigned depth;
 
-   bool root,  // is this the root namespace?
-      pub,     // is this namespace public (inherited by child programs or programs importing user modules)
-      builtin; // is this namespace builtin?
-
+   bool root,   // is this the root namespace?
+      pub,      // is this namespace public (inherited by child programs or programs importing user modules)
+      builtin,  // is this namespace builtin?
+      imported; // was this namespace imported?
+      
    const qore_ns_private* parent;       // pointer to parent namespace (0 if this is the root namespace or an unattached namespace)
    q_ns_class_handler_t class_handler;   
    QoreNamespace *ns;
 
    // used with builtin namespaces
-   DLLLOCAL qore_ns_private(QoreNamespace *n_ns, const char* n) : name(n), constant(this), pendConstant(this), depth(0), root(false), pub(true), builtin(true), parent(0), class_handler(0), ns(n_ns) {
+   DLLLOCAL qore_ns_private(QoreNamespace *n_ns, const char* n) : name(n), constant(this), pendConstant(this), depth(0), root(false), pub(true), builtin(true), imported(false), parent(0), class_handler(0), ns(n_ns) {
    }
 
+   // called when assimilating
+   DLLLOCAL qore_ns_private(const char* n) : name(n), constant(this), pendConstant(this), depth(0), root(false), pub(false), builtin(false), parent(0), class_handler(0), ns(new QoreNamespace(this)) {
+   }
+   
    // called when parsing
    DLLLOCAL qore_ns_private();
 
@@ -147,6 +155,7 @@ public:
         root(old.root),
         pub(old.builtin ? true : false),
         builtin(old.builtin),
+        imported(old.imported),
         parent(0), class_handler(old.class_handler), ns(0) {
    }
 
@@ -166,6 +175,29 @@ public:
       str += name;
    }
 
+   DLLLOCAL void getNsVector(nsvec_t& nsvec) const {
+      //printd(5, "qore_ns_private::getsVector() this: %p '%s::' root: %d\n", this, name.c_str(), root);
+      if (root)
+         return;
+      
+      const qore_ns_private* w = parent;
+      unsigned size = 1;
+      while (w && w->parent) {
+         ++size;
+         w = w->parent;
+      }
+      w = parent;
+      nsvec.resize(size);
+      while (w && w->parent) {
+         nsvec[--size] = w;
+         w = w->parent;
+      }
+
+      // append this namespace's name
+      nsvec[0] = this;
+      //printd(5, "qore_ns_private::getNsVector() this: %p '%s::' root: %d nsvec.size(): %ld\n", this, name.c_str(), root, nsvec.size());
+   }
+   
    DLLLOCAL static QoreNamespace* newNamespace(const qore_ns_private& old, int64 po) {
       qore_ns_private* p = new qore_ns_private(old, po);
       return new QoreNamespace(p);
@@ -280,7 +312,8 @@ public:
    }
 
    DLLLOCAL QoreNamespace* findCreateNamespace(const char* nme, bool& is_new);
-   DLLLOCAL QoreNamespace* findCreateNamespacePath(const char* nspath, bool& is_new);
+   DLLLOCAL QoreNamespace* findCreateNamespacePath(const nsvec_t& nsv, bool& is_new);
+   DLLLOCAL QoreNamespace* findCreateNamespacePath(const NamedScope& nspath, bool& is_new);
 
    DLLLOCAL AbstractQoreNode *getConstantValue(const char* name, const QoreTypeInfo* &typeInfo);
    DLLLOCAL QoreClass *parseFindLocalClass(const char* name);
@@ -1419,16 +1452,34 @@ public:
       }
    }
 
-   DLLLOCAL QoreNamespace* runtimeFindCreateNamespacePath(const char* nspath) {
+   DLLLOCAL QoreNamespace* runtimeFindCreateNamespacePath(const NamedScope& nspath) {
+      assert(nspath.size());
       bool is_new = false;
-      QoreNamespace* ns = findCreateNamespacePath(nspath, is_new);
+      QoreNamespace* nns = findCreateNamespacePath(nspath, is_new);
       if (is_new)
          // reindex namespace
-         nsmap.update(ns->priv);
-      return ns;
+         nsmap.update(nns->priv);
+      return nns;
+   }
+   
+   DLLLOCAL QoreNamespace* runtimeFindCreateNamespacePath(const qore_ns_private& ns) {
+      // get a vector of namespaces from the root to the current
+      nsvec_t nsv;
+      ns.getNsVector(nsv);
+
+      bool is_new = false;
+      QoreNamespace* nns = findCreateNamespacePath(nsv, is_new);
+      if (is_new)
+         // reindex namespace
+         nsmap.update(nns->priv);
+      return nns;
    }
 
-   DLLLOCAL static QoreNamespace* runtimeFindCreateNamespacePath(const RootQoreNamespace& rns, const char* nspath) {
+   DLLLOCAL static QoreNamespace* runtimeFindCreateNamespacePath(const RootQoreNamespace& rns, const qore_ns_private& ns) {
+      return rns.rpriv->runtimeFindCreateNamespacePath(ns);
+   }
+   
+   DLLLOCAL static QoreNamespace* runtimeFindCreateNamespacePath(const RootQoreNamespace& rns, const NamedScope& nspath) {
       return rns.rpriv->runtimeFindCreateNamespacePath(nspath);
    }
    

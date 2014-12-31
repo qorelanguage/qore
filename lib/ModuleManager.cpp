@@ -767,7 +767,8 @@ QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, con
 
 QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm) {
    assert(feature);
-
+   //printd(5, "QoreModuleManager::loadUserModuleFromPath() path: %s feature: %s tpgm: %p\n", path, feature, tpgm);
+   
    QoreParseCountContextHelper pcch;
    
    // parse options for the module
@@ -786,6 +787,7 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
 
 QoreAbstractModule* QoreModuleManager::loadUserModuleFromSource(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm, const char* src) {
    assert(feature);
+   //printd(5, "QoreModuleManager::loadUserModuleFromSource() path: %s feature: %s tpgm: %p\n", path, feature, tpgm);
 
    QoreParseCountContextHelper pcch;
 
