@@ -31,6 +31,7 @@
 */
 
 #include <qore/Qore.h>
+#include <qore/intern/qore_program_private.h>
 #include <qore/intern/ModuleInfo.h>
 #include <qore/intern/QoreNamespaceIntern.h>
 #include <qore/intern/QoreException.h>
@@ -767,6 +768,8 @@ QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, con
 QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm) {
    assert(feature);
 
+   QoreParseCountContextHelper pcch;
+   
    // parse options for the module
    int64 po = USER_MOD_PO;
    // add in parse options from the current program, if any, disabling style and types options already set with USER_MOD_PO
@@ -783,6 +786,8 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
 
 QoreAbstractModule* QoreModuleManager::loadUserModuleFromSource(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm, const char* src) {
    assert(feature);
+
+   QoreParseCountContextHelper pcch;
 
    // parse options for the module
    int64 po = USER_MOD_PO;
