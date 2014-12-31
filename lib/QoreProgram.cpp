@@ -409,9 +409,9 @@ void qore_program_private::importClass(qore_program_private& from_pgm, const cha
    vns->getPath(nspath);
 
    // find/create target namespace based on source namespace
-   QoreNamespace* tns = nspath.empty() ? RootNS : RootNS->findCreateNamespacePath(nspath.c_str());
+   QoreNamespace* tns = nspath.empty() ? RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, nspath.c_str());
    //printd(5, "qore_program_private::importClass() this: %p path: %s nspath: %s tns: %p %s RootNS: %p %s\n", this, path, nspath.c_str(), tns, tns->getName(), RootNS, RootNS->getName());
-   qore_root_ns_private::importClass(*RootNS, xsink, *tns, c);
+   qore_root_ns_private::runtimeImportClass(*RootNS, xsink, *tns, c);
 }
 
 void qore_program_private::importFunction(ExceptionSink* xsink, QoreFunction *u, const qore_ns_private& oldns, const char* new_name) {
@@ -423,7 +423,7 @@ void qore_program_private::importFunction(ExceptionSink* xsink, QoreFunction *u,
       if (!tns)
 	 return;
 
-      qore_root_ns_private::importFunction(*RootNS, xsink, *tns, u, nscope.getIdentifier());
+      qore_root_ns_private::runtimeImportFunction(*RootNS, xsink, *tns, u, nscope.getIdentifier());
       return;
    }
 
@@ -431,9 +431,9 @@ void qore_program_private::importFunction(ExceptionSink* xsink, QoreFunction *u,
    oldns.getPath(nspath);
    
    // find/create target namespace based on source namespace
-   QoreNamespace* tns = nspath.empty() ? RootNS : RootNS->findCreateNamespacePath(nspath.c_str());
+   QoreNamespace* tns = nspath.empty() ? RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, nspath.c_str());
    //printd(5, "qore_program_private::importFunction() this: %p nspath: %s tns: %p %s RootNS: %p %s\n", this, nspath.c_str(), tns, tns->getName(), RootNS, RootNS->getName());
-   qore_root_ns_private::importFunction(*RootNS, xsink, *tns, u, new_name);
+   qore_root_ns_private::runtimeImportFunction(*RootNS, xsink, *tns, u, new_name);
 }
 
 void qore_program_private::exportGlobalVariable(const char* vname, bool readonly, qore_program_private& tpgm, ExceptionSink* xsink) {
@@ -458,10 +458,10 @@ void qore_program_private::exportGlobalVariable(const char* vname, bool readonly
    vns->getPath(nspath);
 
    // find/create target namespace based on source namespace
-   QoreNamespace* tns = nspath.empty() ? tpgm.RootNS : tpgm.RootNS->findCreateNamespacePath(nspath.c_str());
+   QoreNamespace* tns = nspath.empty() ? tpgm.RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*tpgm.RootNS, nspath.c_str());
    //printd(5, "qore_program_private::exportGlobalVariable() this: %p vname: '%s' ro: %d nspath: '%s' vns: %p '%s::' RootNS: %p '%s::'\n", this, vname, readonly, nspath.c_str(), vns, vns->name.c_str(), RootNS, RootNS->getName());
    AutoLocker al(tpgm.plock);
-   qore_root_ns_private::importGlobalVariable(*tpgm.RootNS, *tns, v, readonly, xsink);
+   qore_root_ns_private::runtimeImportGlobalVariable(*tpgm.RootNS, *tns, v, readonly, xsink);
 }
 
 void qore_program_private::del(ExceptionSink* xsink) {
