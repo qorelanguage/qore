@@ -829,7 +829,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                         }
    ^.*                                  {
                                            if (!strncmp("%try-module", yytext, 11)) {
-                                              //printd(5, "p_skip_to_endif: found %%ifdef (%s); skipping\n", yytext);
+                                              //printd(5, "p_skip_to_endtry: found %%try-module (%s); skipping\n", yytext);
                                               parse_try_module_inc();
                                            }
 #ifdef DEBUG

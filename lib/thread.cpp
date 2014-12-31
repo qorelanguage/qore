@@ -173,7 +173,7 @@ public:
 struct ParseCountHelper {
    unsigned count;
 
-   DLLLOCAL ParseCountHelper() : count (0) {
+   DLLLOCAL ParseCountHelper() : count(0) {
    }
 
    DLLLOCAL void inc() {
@@ -182,7 +182,7 @@ struct ParseCountHelper {
 
    DLLLOCAL bool dec() {
       if (!count) {
-         parse_error("unmatched %%endif");
+         parse_error("unmatched %%endtry");
          return false;
       }
       return !--count;
@@ -190,7 +190,7 @@ struct ParseCountHelper {
 
    DLLLOCAL void purge() {
       if (count) {
-         parse_error("%d %%catch-import-error block%s left open at end of file", count, count == 1 ? "" : "s");
+         parse_error("%d %%try-module block%s left open at end of file", count, count == 1 ? "" : "s");
          count = 0;
       }
    }
@@ -317,8 +317,8 @@ public:
    // Maintains the conditional parse block count for each file parsed
    ParseConditionalStack pcs;
 
-   // Maintains the %catch-import-error block count for each file
-   ParseCountHelper cie;
+   // Maintains the %try-module block count for each file
+   ParseCountHelper tm;
 
    // for capturing namespace and class names while parsing
    typedef std::vector<std::string> npvec_t;
@@ -822,12 +822,20 @@ void purge_thread_resources(ExceptionSink* xsink) {
 
 void parse_try_module_inc() {
    ThreadData *td = thread_data.get();
-   td->cie.inc();
+   td->tm.inc();
 }
 
 bool parse_try_module_dec() {
    ThreadData *td = thread_data.get();
-   return td->cie.dec();
+   return td->tm.dec();
+}
+
+unsigned parse_try_module_get() {
+   return thread_data.get()->tm.count;
+}
+
+void parse_try_module_set(unsigned c) {
+   thread_data.get()->tm.count = c;
 }
 
 void parse_cond_push(bool mark) {
@@ -900,7 +908,7 @@ void* endParsing() {
 
    // ensure there are no conditional blocks left open at EOF
    td->pcs.purge();
-   td->cie.purge();
+   td->tm.purge();
    
    assert(td->plStack);
 

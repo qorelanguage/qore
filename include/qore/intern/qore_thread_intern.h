@@ -269,6 +269,8 @@ DLLLOCAL bool parse_cond_test();
 DLLLOCAL void push_parse_options();
 DLLLOCAL void parse_try_module_inc();
 DLLLOCAL bool parse_try_module_dec();
+DLLLOCAL unsigned parse_try_module_get();
+DLLLOCAL void parse_try_module_set(unsigned c);
 
 DLLLOCAL void parse_push_name(const char* name);
 DLLLOCAL std::string parse_pop_name();
@@ -337,6 +339,20 @@ DLLLOCAL QoreListNode* getCallStackList();
 #endif
 #define popCall(x)
 #endif
+
+class QoreParseCountContextHelper {
+protected:
+   unsigned count;
+
+public:
+   DLLLOCAL QoreParseCountContextHelper() : count(parse_try_module_get()) {
+      parse_try_module_set(0);
+   }
+
+   DLLLOCAL ~QoreParseCountContextHelper() {
+      parse_try_module_set(count);
+   }
+};
 
 class QoreParseClassHelper {
 protected:
