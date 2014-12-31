@@ -335,7 +335,7 @@ public namespace RestHandler {
             - \c aih: a hash of \c "Accept" values
             @param ah any URI arguments in the request
         */
-        constructor(hash $cx, *hash $ah) : AbstractStreamRequestHandler($cx) {
+        constructor(hash $cx, *hash $ah) : HttpServerUtil::AbstractStreamRequestHandler($cx) {
             $.ah = $ah;
         }
 
@@ -350,7 +350,7 @@ public namespace RestHandler {
             @note this method is called after the message body has been received
         */
         hash getResponseHeaderMessage() {
-            my hash $h = AbstractStreamRequestHandler::$.getResponseHeaderMessage();
+            my hash $h = HttpServerUtil::AbstractStreamRequestHandler::$.getResponseHeaderMessage();
             if ($h.code >= 200 && $h.code <= 300 && $.rhdr)
                 $h.hdr += $.rhdr;
             return $h;
@@ -365,7 +365,7 @@ public namespace RestHandler {
         }
 
         #! creates the object with the given attributes
-        constructor(RestHandler::AbstractRestStreamRequestHandler $rsh, AbstractLogger $listener, AbstractHttpRequestHandler $handler, Socket $s, hash $cx, hash $hdr, any $body) : AbstractStreamRequest($listener, $handler, $s, $cx + (exists $body ? ("deserialized": True) : NOTHING), $hdr, $body) {
+        constructor(RestHandler::AbstractRestStreamRequestHandler $rsh, HttpServerUtil::AbstractLogger $listener, HttpServerUtil::AbstractHttpRequestHandler $handler, Socket $s, hash $cx, hash $hdr, any $body) : HttpServerUtil::AbstractStreamRequest($listener, $handler, $s, $cx + (exists $body ? ("deserialized": True) : NOTHING), $hdr, $body) {
             $.rsh = $rsh;
             $.deserialized = exists $body;
         }
@@ -506,7 +506,7 @@ public namespace RestHandler {
                     if ($cx.orig_method)
                         $desc += sprintf(" REST method %y", $cx.orig_method);
                     $desc += sprintf(", available methods: %s", $ml);
-                    return AbstractHttpRequestHandler::makeResponse(("Allow": $ml), 405, $desc);
+                    return HttpServerUtil::AbstractHttpRequestHandler::makeResponse(("Allow": $ml), 405, $desc);
                 }
                 my string $desc = !$cx.debug
                     ? sprintf("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc)
@@ -589,10 +589,10 @@ public namespace RestHandler {
             Mutex $.mx();
         }
 
-        #! create the object optionally with the given AbstractAuthenticator
-        /** @param auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
+        #! create the object optionally with the given HttpServerUtil::AbstractAuthenticator
+        /** @param auth the authentication object to use to authenticate connections (see HttpServerUtil::AbstractAuthenticator); if no HttpServerUtil::AbstractAuthenticator object is passed, then by default no authentication will be required
          */
-        constructor(*AbstractAuthenticator $auth) : AbstractHttpRequestHandler($auth, True) {
+        constructor(*HttpServerUtil::AbstractAuthenticator $auth) : HttpServerUtil::AbstractHttpRequestHandler($auth, True) {
         }
 
         #! returns the name of the root REST class

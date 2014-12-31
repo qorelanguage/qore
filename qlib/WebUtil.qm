@@ -89,7 +89,7 @@ public namespace WebUtil {
         }
 
         #! creates the object
-        constructor(AbstractLogger $listener, AbstractHttpRequestHandler $handler, Socket $s, hash $cx, hash $hdr, *data $body, ReadOnlyFile $f, bool $txt, string $ct, int $cs) : AbstractStreamRequest($listener, $handler, $s, $cx, $hdr, $body) {
+        constructor(AbstractLogger $listener, HttpServerUtil::AbstractHttpRequestHandler $handler, Socket $s, hash $cx, hash $hdr, *data $body, ReadOnlyFile $f, bool $txt, string $ct, int $cs) : HttpServerUtil::AbstractStreamRequest($listener, $handler, $s, $cx, $hdr, $body) {
             $.f = $f;
             $.txt = $txt;
             $.ct = $ct;
@@ -676,19 +676,19 @@ my *hash $h = $tm.tryRender("html/index.qhtml", $ctx);
             StaticTemplateManager $.stm();
         }
 
-        #! create the object optionally with the given AbstractAuthenticator
+        #! create the object optionally with the given HttpServerUtil::AbstractAuthenticator
         /** @param file_root the filesystem root directory for serving files
             @param url_root the root part of the URL path without the leading \c "/"
             @param options an optional with one or more of the following option keys:
             - \c default_target: the default relative path to use if a request cannot be satisfied
             - \c po: the @ref parse_options "Program parse options" for the template file @ref Qore::Program "programs"
             - \c psetup: an optional @ref closure "closure" or @ref call_reference "call reference" taking a single @ref Qore::Program "Program" argument to be called when initializing template @ref Qore::Program "programs" to set up a custom template API, etc
-            - \c auth: the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
+            - \c auth: the authentication object to use to authenticate connections (see HttpServerUtil::AbstractAuthenticator); if no HttpServerUtil::AbstractAuthenticator object is passed, then by default no authentication will be required
             - \c error_level: the level of error reporting (0, 1, or 2)
             - \c chunked_threshold: the minimum size for sending files with a chunked transfer encoding
             - \c chunk_size: the HTTP chunk size for sending files with chunked transfer encoding
         */
-        constructor(string $file_root, string $url_root = "/", *hash $opt) : AbstractUrlHandler($url_root, $opt.auth), TemplateFileManager($opt.po, $opt.psetup) {
+        constructor(string $file_root, string $url_root = "/", *hash $opt) : HttpServerUtil::AbstractUrlHandler($url_root, $opt.auth), TemplateFileManager($opt.po, $opt.psetup) {
             $.file_root = normalize_dir($file_root);
             # make sure file_root ends in a directory separator character
             if ($.file_root[$.file_root.size() - 1] != DirSep)
