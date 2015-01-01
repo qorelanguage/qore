@@ -329,15 +329,17 @@ public class HttpServer::AbstractLogger {
     #! calls log() with the given args
     /** @param args a single string or a list of arguments used to call the log() method
     */
-    logArgs(softlist $args) {
-        callObjectMethodArgs($self, "log", $args);
+    logArgs(*softlist $args) {
+        if ($args)
+            callObjectMethodArgs($self, "log", $args);
     }
     
     #! calls logError() with the given args
     /** @param args a single string or a list of arguments used to call the logError() method
     */
-    logErrorArgs(softlist $args = ()) {
-        callObjectMethodArgs($self, "logError", $args);
+    logErrorArgs(*softlist $args) {
+        if ($args)
+            callObjectMethodArgs($self, "logError", $args);
     }    
 }
 
