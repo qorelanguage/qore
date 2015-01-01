@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file RestHandler.qm Qore handler definition for the HttpServer module for exporting REST services
 
-/* RestHandler.qm Copyright (C) 2013 - 2014 Qore Technologies, sro
+/* RestHandler.qm Copyright (C) 2013 - 2015 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -365,7 +365,7 @@ public namespace RestHandler {
         }
 
         #! creates the object with the given attributes
-        constructor(RestHandler::AbstractRestStreamRequestHandler $rsh, HttpServer::AbstractLogger $listener, HttpServer::AbstractHttpRequestHandler $handler, Socket $s, hash $cx, hash $hdr, any $body) : HttpServer::AbstractStreamRequest($listener, $handler, $s, $cx + (exists $body ? ("deserialized": True) : NOTHING), $hdr, $body) {
+        constructor(RestHandler::AbstractRestStreamRequestHandler $rsh, HttpServer::HttpListenerInterface $listener, HttpServer::AbstractHttpRequestHandler $handler, Socket $s, hash $cx, hash $hdr, any $body) : HttpServer::AbstractStreamRequest($listener, $handler, $s, $cx + (exists $body ? ("deserialized": True) : NOTHING), $hdr, $body) {
             $.rsh = $rsh;
             $.deserialized = exists $body;
         }
@@ -439,7 +439,7 @@ public namespace RestHandler {
         }
 
         #! this method is called by the RestHandler class to match the right object with incoming requests
-        hash handleRequest(AbstractLogger $listener, RestHandler $rh, Socket $s, *list $cl, string $mn, hash $cx, *hash $args) {            
+        hash handleRequest(HttpListenerInterface $listener, RestHandler $rh, Socket $s, *list $cl, string $mn, hash $cx, *hash $args) {            
             if (!$args && $cx.body.typeCode() == NT_HASH)
                 $args = $cx.body;
             if ($cl) {
@@ -459,7 +459,7 @@ public namespace RestHandler {
         }
 
         #! this method is called to dispatch streamed requests on the given object
-        private hash dispatchStream(AbstractLogger $listener, RestHandler $rh, Socket $s, string $mn, *hash $ah, hash $cx) {
+        private hash dispatchStream(HttpListenerInterface $listener, RestHandler $rh, Socket $s, string $mn, *hash $ah, hash $cx) {
             my string $sn = "stream" + $mn[0].upr() + $mn.substr(1);
             try {
                 $cx.socketobject = $s;
@@ -623,7 +623,7 @@ public namespace RestHandler {
             - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
             - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
          */
-        hash handleRequest(AbstractLogger $listener, Socket $s, hash $cx, hash $hdr, *data $b) {
+        hash handleRequest(HttpListenerInterface $listener, Socket $s, hash $cx, hash $hdr, *data $b) {
             #$.logDebug("REST DBG: cx: %N", $cx);
             #$.logDebug("REST DBG: hdr: %N", $hdr);
             if ($b)

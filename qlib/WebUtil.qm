@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file WebUtil.qm Qore user module supprting web server operations
 
-/*  WebUtil.qm Copyright (C) 2013 - 2014 Qore Technologies, sro
+/*  WebUtil.qm Copyright (C) 2013 - 2015 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -89,7 +89,7 @@ public namespace WebUtil {
         }
 
         #! creates the object
-        constructor(AbstractLogger $listener, HttpServer::AbstractHttpRequestHandler $handler, Socket $s, hash $cx, hash $hdr, *data $body, ReadOnlyFile $f, bool $txt, string $ct, int $cs) : HttpServer::AbstractStreamRequest($listener, $handler, $s, $cx, $hdr, $body) {
+        constructor(HttpListenerInterface $listener, HttpServer::AbstractHttpRequestHandler $handler, Socket $s, hash $cx, hash $hdr, *data $body, ReadOnlyFile $f, bool $txt, string $ct, int $cs) : HttpServer::AbstractStreamRequest($listener, $handler, $s, $cx, $hdr, $body) {
             $.f = $f;
             $.txt = $txt;
             $.ct = $ct;
@@ -739,7 +739,7 @@ my *hash $h = $tm.tryRender("html/index.qhtml", $ctx);
 
             If handleRequestImpl() returns @ref nothing and the requested path cannot be matched and served, then unhandledRequest() is called to handle the error
         */
-        hash handleRequest(AbstractLogger $listener, Socket $s, hash $cx, hash $hdr, *data $body) {
+        hash handleRequest(HttpListenerInterface $listener, Socket $s, hash $cx, hash $hdr, *data $body) {
             # get local request path and "localize" it and strip off any query args
             my string $path = $.getRelativePath($hdr.path);
 
@@ -815,7 +815,7 @@ my *hash $h = $tm.tryRender("html/index.qhtml", $ctx);
             return $.makeResponse(500, $desc);
         }
 
-        private *hash tryServeRequest(AbstractLogger $listener, Socket $s, hash $cx, hash $hdr, *data $body) {
+        private *hash tryServeRequest(HttpListenerInterface $listener, Socket $s, hash $cx, hash $hdr, *data $body) {
             my *string $path = $cx.resource_path;
             
             # use Windows directory separator chars on Windows
@@ -872,7 +872,7 @@ my *hash $h = $tm.tryRender("html/index.qhtml", $ctx);
         }
 
         #! must return a FileStreamRequest object to stream the requested file with chunked transfer encoding
-        private FileStreamRequest getFileStreamRequestImpl(AbstractLogger $listener, Socket $s, hash $cx, hash $hdr, *data $body, ReadOnlyFile $f, bool $txt, string $ct) {
+        private FileStreamRequest getFileStreamRequestImpl(HttpListenerInterface $listener, Socket $s, hash $cx, hash $hdr, *data $body, ReadOnlyFile $f, bool $txt, string $ct) {
             return new FileStreamRequest($listener, $self, $s, $cx, $hdr, $body, $f, $txt, $ct, $.chunk_size);
         }
 
@@ -886,7 +886,7 @@ my *hash $h = $tm.tryRender("html/index.qhtml", $ctx);
         }
         
         #! returns a handler hash response with the file's data to be sent in a HTTP message with chunked transfer encoding
-        private hash sendFileChunked(AbstractLogger $listener, Socket $s, hash $cx, hash $hdr, *data $body, ReadOnlyFile $f, bool $txt, string $ct) {
+        private hash sendFileChunked(HttpListenerInterface $listener, Socket $s, hash $cx, hash $hdr, *data $body, ReadOnlyFile $f, bool $txt, string $ct) {
             my FileStreamRequest $fsr = $.getFileStreamRequestImpl($listener, $s, $cx, $hdr, $body, $f, $txt, $ct);
             return $fsr.handleRequest();
         }

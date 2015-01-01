@@ -41,7 +41,7 @@ module HttpServerUtil {
 
     @section httpserverutilintro HttpServerUtil Introduction
 
-    The %HttpServerUtil module provides a base code for the @ref httpserverintro "HttpServer" module and code requiring HttpServer definitions but not the entire @ref httpserverintro "HttpServer" module itself.
+    The %HttpServerUtil module provides a base code for the <a href="../../HttpServer/html/index.html">HttpServer</a> module and code requiring HttpServer definitions but not the entire <a href="../../HttpServer/html/index.html">HttpServer</a> module itself.
 
     To use this module, use \c "%requires HttpServerUtil" in your code.
     
@@ -237,9 +237,7 @@ public namespace HttpServer {
 
         @return a hash with the following keys:
         - \c method: (@ref string_type "string") the part of the path before the first \c "?" character or the entire path if no \c "?" character is present in the path
-        - \c params: (@ref hash_type "hash", assuming all values are key/value pairs like \c "key=value", otherwise it will be a @ref list_type "list") optional, only if a "?" character is present in the input; the part of the path after the first \c "?" character; arguments should be separated by ";" characters (according to a w3c recommendation: http://www.w3.org/TR/1999/REC-html401-19991224/appendix/notes.html#h-B.2.2), however this function supports both \c ";" and \c "&" as argument separators
-
-        
+        - \c params: (@ref hash_type "hash", assuming all values are key/value pairs like \c "key=value", otherwise it will be a @ref list_type "list") optional, only if a "?" character is present in the input; the part of the path after the first \c "?" character; arguments should be separated by ";" characters (according to a w3c recommendation: http://www.w3.org/TR/1999/REC-html401-19991224/appendix/notes.html#h-B.2.2), however this function supports both \c ";" and \c "&" as argument separators  
     */
     public hash sub parse_uri_query(string $path, bool $trans = True) {
         my int $i = $path.find("?");
@@ -342,6 +340,19 @@ public class HttpServer::AbstractLogger {
     }    
 }
 
+#! this absrtact class defines the public interface of the private HttpListener class defined in the HttpServer module
+public class HttpServer::HttpListenerInterface inherits HttpServer::AbstractLogger {
+    #! adds user-defined data to be returned in the \c "uctx" context key when serving requests from this listener
+    /** @param uctx user-defined data to be returned in the \c "uctx" context key when serving requests from this listener
+    */
+    abstract addUserThreadContext(hash $uctx);
+
+    #! removes the given key from the \c "uctx" context key; if no argument is provided, then the \c "uctx" context hash is removed entirely
+    /** @param k the key to remove from the \c "uctx" context hash; if no argument is provided, then the \c "uctx" context hash is removed entirely
+    */
+    abstract any removeUserThreadContext(*string $k);
+}
+
 #! abstract base class for external authentication
 /** This class should be inherited by a class providing real authentication
   */
@@ -393,7 +404,7 @@ public class HttpServer::AbstractAuthenticator {
     }
 
     #! primary method called to authenticate each request
-    /** @param listener an AbstractLogger object the listener serving the request for logging purposes
+    /** @param listener an HttpListenerInterface object for the listener serving the request for logging purposes
         @param hdr a hash of request headers
         @param cx a reference to the call context hash; set the \c "user" key to the user name if a user was identified and authorized
 
@@ -402,7 +413,7 @@ public class HttpServer::AbstractAuthenticator {
         - \c "body": the error message body
         - \c "hdr": an optional hash of headers for the error response
     */
-    *hash authenticateRequest(AbstractLogger $listener, hash $hdr, reference $cx) {
+    *hash authenticateRequest(HttpListenerInterface $listener, hash $hdr, reference $cx) {
         #printf("HTTP DEBUG %s::authenticateRequest() called\n", $self.className());
         if (!$.requiresAuthentication())
             return;
@@ -455,13 +466,13 @@ public class HttpServer::AbstractAuthenticator {
 #! class providing automatic authentication for all requests
 public class HttpServer::PermissiveAuthenticator inherits HttpServer::AbstractAuthenticator {
     #! primary method called to authenticate each request
-    /** @param listener an AbstractLogger object the listener serving the request for logging purposes
+    /** @param listener an HttpListenerInterface object for the listener serving the request for logging purposes
         @param hdr a hash of request headers
         @param cx a reference to the call context hash; set the \c "user" key to the user name if a user was identified and authorized
 
         @return returns @ref nothing indicating that the request is authenticated
     */
-    *hash authenticateRequest(AbstractLogger $listener, hash $hdr, reference $cx) {
+    *hash authenticateRequest(HttpListenerInterface $listener, hash $hdr, reference $cx) {
         return;
     }
 }
@@ -601,8 +612,8 @@ public class HttpServer::AbstractStreamRequest {
     public {}
 
     private {
-        #! an AbstractLogger object the listener serving the request for logging purposes
-        AbstractLogger $.listener;
+        #! an HttpListenerInterface object for the listener serving the request for logging purposes
+        HttpListenerInterface $.listener;
         #! the request handler for the request
         AbstractHttpRequestHandler $.handler;
         #! the Socket object for the response
@@ -616,7 +627,7 @@ public class HttpServer::AbstractStreamRequest {
     }
 
     #! creates the object with the given attributes
-    /** @param listener an AbstractLogger object the listener serving the request for logging purposes
+    /** @param listener an HttpListenerInterface object for the listener serving the request for logging purposes
         @param handler the handler serving the request
         @param s the Socket for serving the request
         @param cx a call context hash
@@ -626,7 +637,7 @@ public class HttpServer::AbstractStreamRequest {
         - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
         @param body any message body in the request already received from the incoming socket
     */
-    constructor(AbstractLogger $listener, AbstractHttpRequestHandler $handler, Socket $s, hash $cx, hash $hdr, any $body) {
+    constructor(HttpListenerInterface $listener, AbstractHttpRequestHandler $handler, Socket $s, hash $cx, hash $hdr, any $body) {
         $.listener = $listener;
         $.handler = $handler;
         $.s = $s;
@@ -843,7 +854,7 @@ public class HttpServer::AbstractHttpRequestHandler {
     }
 
     #! top-level request handling method
-    hash handleRequest(AbstractLogger $listener, Socket $s, hash $cx, hash $hdr, *data $body) {
+    hash handleRequest(HttpListenerInterface $listener, Socket $s, hash $cx, hash $hdr, *data $body) {
         # classic, non-streaming interface
         if (!$.stream) {
             my any $rv = $.handleRequest($cx, $hdr, $.getMessageBody($s, $hdr, $body));
@@ -861,7 +872,7 @@ public class HttpServer::AbstractHttpRequestHandler {
     }
 
     #! returns the AbstractStreamRequest object for handling chunked requests
-    private AbstractStreamRequest getStreamRequestImpl(AbstractLogger $listener, Socket $s, hash $cx, hash $hdr, *data $body) {
+    private AbstractStreamRequest getStreamRequestImpl(HttpListenerInterface $listener, Socket $s, hash $cx, hash $hdr, *data $body) {
         return new AbstractStreamRequest($listener, $self, $s, $cx, $hdr, $body);
     }
 
