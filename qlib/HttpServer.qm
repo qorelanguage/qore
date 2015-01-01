@@ -1740,6 +1740,8 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
     
     logError(string $fmt) {
         my softlist $args = $fmt;
+        if ($argv)
+            $args += $argv;
 	$args[0] = sprintf("%y (%s): %s", $.name, $.socket_info.desc, $args[0]);
 	if ($.errorlogger) {
 	    $args[0] = "HTTP " + $args[0];
