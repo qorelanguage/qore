@@ -57,7 +57,7 @@ module HttpServer {
     
     All the public symbols in the module are defined in the HttpServer namespace
 
-    The main classes is (see @ref httpserverutil_intro HttpServerUtil for supporting definitions):
+    The main classes is (see @ref httpserverutilintro HttpServerUtil for supporting definitions):
     - @ref HttpServer::HttpServer "HttpServer": this class implements the main interface to the HTTP server provided by this module
 
     See also:

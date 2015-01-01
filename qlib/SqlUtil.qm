@@ -119,7 +119,7 @@ module SqlUtil {
 
     @tableofcontents
 
-    @section sql_intro Introduction to SQL Operations
+    @section sql_operations_intro Introduction to SQL Operations
 
     The @ref SqlUtil::Table "Table" class (which is a wrapper for @ref SqlUtil::AbstractTable "AbstractTable") provides methods for SQL operations.
 
