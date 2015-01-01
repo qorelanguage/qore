@@ -51,10 +51,11 @@ module HttpServerUtil {
     - @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator": can be implemented to provide authentication and authorization info to the server
     - @ref HttpServer::AbstractHttpRequestHandler "AbstractHttpRequestHandler": this class must be subclassed to provide the real work of the HttpServer handling connections
     - @ref HttpServer::AbstractHttpSocketHandler "AbstractHttpSocketHandler": this class must be subclassed to implement a dedicated socket handler for protcol changes (for an example, see the <a href="../../WebSocketHandler/html/index.html">WebSocketHandler</a> module)
+    - @ref HttpServer::AbstractLogger "AbstractLogger": this abstract class provides an interface for classes providing basic logging methods
     - @ref HttpServer::AbstractStreamRequestHandler "AbstractStreamRequestHandler": this class is used as a base class for embedded HTTP chunked request/response handlers
     - @ref HttpServer::AbstractStreamRequest "AbstractStreamRequest": this class is used to directly handle HTTP chunked requests and responses
     - @ref HttpServer::AbstractUrlHandler "AbstractUrlHandler": this class serves as a base class for handler classes that serve requests anchored at a particular URL
-    - @ref HttpServer::HttpServer "HttpServer": this class implements the main interface to the HTTP server provided by this module
+    - @ref HttpServer::HttpListenerInterface "HttpListenerInterface": this abstrct class provides the interface for the private HttpListener class implemented in the <a href="../../HttpServer/html/index.html">HttpServer</a> module
     - @ref HttpServer::PermissiveAuthenticator "PermissiveAuthenticator": this class implements a dummy authenticator that accepts all requests
 
     See also:
@@ -66,14 +67,14 @@ module HttpServerUtil {
     - <a href="http://www.qore.org/manual/modules/xml/current/XmlRpcHandler/html/index.html">XmlRpcHandler</a>: provides infrastructure for implementing XML-RPC server-side services using the HttpServer module
     - <a href="http://www.qore.org/manual/modules/xml/current/SoapHandler/html/index.html">SoapHandler</a>: provides infrastructure for implementing SOAP server-side services using the HttpServer module
 
-    @section httpserverutil_relnotes HttpServer Module Release Notes
+    @section httpserverutil_relnotes HttpServerUtil Module Release Notes
 
-    @subsection http0311 HttpServer 0.3.11
+    @subsection http0311 HttpServerUtil 0.3.11
     - initial version of the module
  */
 
-#! the main namespace for the HttpServer module
-/** To use this module, use \c "%requires HttpServer" in your code.
+#! the main namespace for the HttpServer and HttpServerUtil modules
+/** To use this module, use \c "%requires HttpServerUtil" in your code.
     
     All the public symbols in the module are defined in this namespace
  */
