@@ -51,6 +51,8 @@ TESTSCRIPTS= \
         examples/test/qlib/FixedLengthUtil/FixedLengthFileWriter.qtest \
         examples/test/qlib/FixedLengthUtil/FixedLengthDataIterator.qtest \
         examples/test/qlib/FixedLengthUtil/FixedLengthDataWriter.qtest \
+        examples/test/qlib/FixedLengthUtil/transition_check_iterator.qtest \
+        examples/test/qlib/FixedLengthUtil/transition_check_writer.qtest \
         examples/test/qlib/Mapper/mapper.qtest \
         examples/test/qlib/Mime/mime.qtest \
         examples/test/qlib/Qorize/qorizeNamed.qtest \
