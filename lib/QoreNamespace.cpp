@@ -527,16 +527,16 @@ QoreNamespace* qore_ns_private::findCreateNamespace(const char* nsn, bool& is_ne
    return ns;
 }
 
-QoreNamespace* qore_ns_private::findCreateNamespacePath(const nsvec_t& nsv, bool& is_new) {
-   assert(nsv.size());
+QoreNamespace* qore_ns_private::findCreateNamespacePath(const nslist_t& nsl, bool& is_new) {
+   assert(!nsl.empty());
    assert(!is_new);
    
    //printd(5, "qore_ns_private::findCreateNamespacePath() this: %p nsv: %ld\n", this, nsv.size());
 
    // iterate through each level of the namespace path and find/create namespaces as needed
    QoreNamespace* nns = ns;
-   for (unsigned i = 0; i < nsv.size(); ++i)
-      nns = nns->priv->findCreateNamespace(nsv[i]->name.c_str(), is_new);
+   for (nslist_t::const_iterator i = nsl.begin(), e = nsl.end(); i != e; ++i)
+      nns = nns->priv->findCreateNamespace((*i)->name.c_str(), is_new);
 
    return nns;
 }
