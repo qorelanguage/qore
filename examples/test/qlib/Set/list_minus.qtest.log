@@ -1,0 +1,5 @@
+QORE v0.8.12-6920 Test Script (1 thread, 1 iteration per thread)
+OK: basic usage
+OK: empty original list
+OK: empty list to subtract
+3 tests started, 0 errors
