@@ -423,7 +423,8 @@ void qore_program_private::importFunction(ExceptionSink* xsink, QoreFunction *u,
    
    // find/create target namespace based on source namespace
    QoreNamespace* tns = oldns.root ? RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, oldns);
-   //printd(5, "qore_program_private::importFunction() this: %p tns: %p %s RootNS: %p %s\n", this, tns, tns->getName(), RootNS, RootNS->getName());
+   //printd(5, "qore_program_private::importFunction() this: %p tns: %p '%s' oldns: '%s' RootNS: %p %s\n", this, tns, tns->getName(), oldns.name.c_str(), RootNS, RootNS->getName());
+   assert(oldns.name == tns->getName());
    qore_root_ns_private::runtimeImportFunction(*RootNS, xsink, *tns, u, new_name);
 }
 
