@@ -121,7 +121,6 @@ TESTSCRIPTS= \
         examples/test/qore/vars/string.qtest \
         examples/test/qore/vars/typecode.qtest
 
-
 USER_MODULES = $(DOX_SRC_MODULES) \
 	$(DOX_MODULES)
 
@@ -597,34 +596,27 @@ EXTRA_DIST = next_build.sh runtest.sh WHATISQORE RELEASE-NOTES \
 	AUTHORS BUILD \
 	README README-LICENSE README-MODULES \
 	COPYING.LGPL COPYING.GPL COPYING.MIT \
-        examples/test/thread-object-test.q \
-        examples/test/create-iso-8859-1-file.q \
-        examples/test/empty.q \
-        examples/test/file-test.q \
-        examples/test/ftp-test.q \
-        examples/test/max-threads-test.q \
-        examples/test/stack-test.q \
-        examples/test/object-test.q \
-        examples/test/rwlock-test.q \
-        examples/test/socket-test.q \
-        examples/test/subprogram-thread-test.q \
-        examples/test/system-test.q \
-        examples/test/test-exception.q \
-        examples/test/test.q \
-        examples/test/Test.qc \
-        examples/test/unlocked-thread-test.q \
-	examples/test/regex.q \
-	examples/test/deadlock.q \
-	examples/test/optest.q \
-	examples/stmt.q \
-	examples/exp.q \
-	examples/obj2.q \
-	examples/hash.q \
+	$(TESTSCRIPTS) \
+	examples/HelloWorld.q \
 	examples/clisrv.q \
+	examples/email.q \
+	examples/exp.q \
+	examples/getch.q \
+	examples/getopt.q \
+	examples/hash.q \
+	examples/httpserver.q \
 	examples/inherit.q \
 	examples/inherit2.q \
-	examples/getopt.q \
-	examples/getch.q \
+	examples/obj2.q \
+	examples/old2new \
+	examples/pop3.q \
+	examples/qget \
+	examples/rest \
+	examples/restserver.q \
+	examples/schema \
+	examples/sqlutil \
+	examples/stmt.q \
+	examples/telnet.q \
 	qore.spec \
 	qore.spec-fedora \
 	qore.spec-multi \
@@ -805,7 +797,7 @@ cmakedir = $(prefix)/lib${LIBSUFFIX}/cmake/Qore
 cmake_DATA = cmake/QoreConfig.cmake cmake/QoreConfigVersion.cmake cmake/QoreMacros.cmake
 
 BUILD=$(shell $(top_srcdir)/next_build.sh -b)
-PACKAGE_VERSION=$(shell grep PACKAGE_VERSION include/qore/intern/unix-config.h | cut -f3 -d\  | sed s/\"//g)
+PACKAGE_VERSION=$(shell grep PACKAGE_VERSION include/qore/intern/unix-config.h|cut -f3 -d\ |sed s/\"//g)
 TAR_NAME := arch/qore-v$(PACKAGE_VERSION)-$(BUILD)-$(shell date +%Y%m%d).tar
 
 tar: clean

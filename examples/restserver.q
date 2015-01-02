@@ -82,7 +82,10 @@
 %requires qore >= 0.8.8
 
 # use the HttpServer module
-%requires HttpServer >= 0.3.7
+%requires HttpServer >= 0.3.11
+
+# use the HttpServerUtil module
+%requires HttpServerUtil >= 0.3.11
 
 # use the Mime module
 %requires Mime >= 1.3
