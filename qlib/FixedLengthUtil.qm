@@ -215,7 +215,7 @@ public class FixedLengthUtil::FixedLengthAbstractIterator inherits TextUtil::Abs
     @param h specification of fixed-length-line file        
     @param g global options
     */
-    constructor(hash h, code i, *hash g) : TextUtil::AbstractTextIterator(map {$1 : g{$1}}, ("encoding", "eol", "ignore-empty", "ignore-empty", "timezone", "number_format", "date_format"), g{$1}) {
+    constructor(hash h, code i, *hash g) : TextUtil::AbstractTextIterator(g{("encoding", "eol", "ignore-empty", "ignore-empty", "timezone", "number_format", "date_format")}) {
         m_specs           = h;
         m_identify_record = i;
         m_opts            = m_opts + checkOptions(g);
@@ -393,14 +393,10 @@ public class FixedLengthUtil::FixedLengthAbstractWriter inherits TextUtil::Abstr
         }
 
         # not this line type if columns sizes mismatch
-        bool skip = False; # TODO: I don't like this :-(
         foreach string col in (type_specs.keys()) {
             if (!item{col} || string(item{col}).length() != type_specs{col}{"length"}) {
-                skip = True;
+                return False;
             }
-        }
-        if (skip) {
-            return False;
         }
 
         # not this line type if check fails
@@ -436,7 +432,7 @@ public class FixedLengthUtil::FixedLengthFileWriter inherits FixedLengthUtil::Fi
     @param iterator an iterator to stream data into file
     */
     write(list lines) {
-        File FW = new File();
+        File FW();
         FW.open(file, O_WRONLY | O_CREAT);
 
         foreach hash item in (lines) {
@@ -452,8 +448,6 @@ public class FixedLengthUtil::FixedLengthFileWriter inherits FixedLengthUtil::Fi
                 }
             }
         }
-
-        FW.close();
     }
 }
 
