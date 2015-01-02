@@ -80,36 +80,30 @@ code identify_type = *string sub (string line) {
 
 hash specs = (
     "type1" : (
-        "cols" : (
-            "col1" : (
-                "length" : 5,
-                "type"   : "int"
-            ),
-            "col2" : (
-                "length" : 2,
-                "type"   : "string",
-            ),
+        "col1" : (
+            "length" : 5,
+            "type"   : "int"
         ),
-        "is_after" : (NOTHING), # is first line
+        "col2" : (
+            "length" : 2,
+            "type"   : "string",
+        ),
     ),
     "type2" : (
-        "cols" : (
-            "col3" : (
-                "length" : 1,
-                "type"   : "string",
-            ),
-            "col4" : (
-                "length" : 3,
-                "type"   : "string",
-            ),
-            "col5" : (
-                "length"   : 8,
-                "type"     : "date",
-                "format"   : "DDMMYYYY",
-                # "timezone" : "Europe/Prague", # use global if omitted
-            ),
+        "col3" : (
+            "length" : 1,
+            "type"   : "string",
         ),
-        "is_after" : ("type1", "type2"), # can follow line of the same type or type1
+        "col4" : (
+            "length" : 3,
+            "type"   : "string",
+        ),
+        "col5" : (
+            "length"   : 8,
+            "type"     : "date",
+            "format"   : "DDMMYYYY",
+            # "timezone" : "Europe/Prague", # use global if omitted
+        ),
     ),
 );
 
@@ -151,36 +145,30 @@ code identify_type = *string sub (string line) {
 
 hash specs = (
     "type1" : (
-        "cols" : (
-            "col1" : (
-                "length" : 5,
-                "type"   : "int"
-            ),
-            "col2" : (
-                "length" : 2,
-                "type"   : "string",
-            ),
+        "col1" : (
+            "length" : 5,
+            "type"   : "int"
         ),
-        "is_after" : (NOTHING, "type2"), # can follow line of the type2 or be first line
+        "col2" : (
+            "length" : 2,
+            "type"   : "string",
+        ),
     ),
     "type2" : (
-        "cols" : (
-            "col3" : (
-                "length" : 1,
-                "type"   : "string",
-            ),
-            "col4" : (
-                "length" : 3,
-                "type"   : "string",
-            ),
-            "col5" : (
-                "length"   : 8,
-                "type"     : "date",
-                "format"   : "DDMMYYYY",
-                "timezone" : "Europe/Prague",
-            ),
+        "col3" : (
+            "length" : 1,
+            "type"   : "string",
         ),
-        "is_after" : ("type1"), # can follow line of the type type1
+        "col4" : (
+            "length" : 3,
+            "type"   : "string",
+        ),
+        "col5" : (
+            "length"   : 8,
+            "type"     : "date",
+            "format"   : "DDMMYYYY",
+            "timezone" : "Europe/Prague",
+        ),
     ),
 );
 
@@ -244,13 +232,13 @@ my hash $h = $i.getValue();
         if (!type || !m_specs{type}) {
             throw 'NON-MATCHING-TYPE', 'Line type not detected correctly for line >' + line + '<';
         }
-        if (!inlist(m_state, () + m_specs{type}.is_after)) { # transition checking
-            throw 'WRONG-TRANSITION', 'State ' + (type ?? '<START>') + ' cannot follow state ' + (m_state ?? '<START>') + ' (line >' + line + '<)';
+        if (!checkTransition(m_state, type)) {
+            throw 'INVALID-TRANSITION', 'State ' + (type ?? '<START>') + ' cannot follow state ' + (m_state ?? '<START>') + ' for line >' + line + '<';
         }
         m_state = type;
         int pos = 0;
-        foreach string col in (m_specs{type}.cols.keys()) {
-            hash field = m_specs{type}.cols{col};
+        foreach string col in (m_specs{type}.keys()) {
+            hash field = m_specs{type}{col};
             if (!field.timezone) {
                 field.timezone = m_opts.timezone;
             }
@@ -262,6 +250,10 @@ my hash $h = $i.getValue();
 
     private hash checkOptions(*hash opts) { # put special options here
         return opts;
+    }
+
+    bool checkTransition(*string from, *string to) {
+        return True;
     }
 }
 
@@ -386,7 +378,7 @@ public class FixedLengthUtil::FixedLengthAbstractWriter inherits TextUtil::Abstr
     }
 
     private bool checkItemTypeCombination(hash item, string type, string line_candidate) {
-        hash type_specs = m_specs{type}.cols;
+        hash type_specs = m_specs{type};
         # not this line if columns count mismatch
         if (elements type_specs.keys() != elements item.keys()) {
             return False;
@@ -407,7 +399,9 @@ public class FixedLengthUtil::FixedLengthAbstractWriter inherits TextUtil::Abstr
         return True;
     }
 
-#    abstract write();
+    bool checkTransition(*string from, *string to) {
+        return True;
+    }
 }
 
 
@@ -439,8 +433,8 @@ public class FixedLengthUtil::FixedLengthFileWriter inherits FixedLengthUtil::Fi
             foreach string type in (m_specs.keyIterator()) {
                 string line_candidate = join("", map string($1), item.values());
                 if (checkItemTypeCombination(item, type, line_candidate)) {
-                    if (!inlist(m_state, () + m_specs{type}.is_after)) { # transition checking
-                        throw 'WRONG-TRANSITION', 'State ' + (type ?? '<START>') + ' cannot follow state ' + (m_state ?? '<START>');
+                    if (!checkTransition(m_state, type)) {
+                        throw 'INVALID-TRANSITION', 'State ' + (type ?? '<START>') + ' cannot follow state ' + (m_state ?? '<START>') + ' for line >' + line_candidate + '<';
                     }
                     m_state = type;
                     FW.write(line_candidate + (m_opts.eol ? m_opts.eol : "\n"));
@@ -474,8 +468,8 @@ public class FixedLengthUtil::FixedLengthDataWriter inherits FixedLengthUtil::Fi
             foreach string type in (m_specs.keys()) {
                 string line_candidate = join("", map string($1), item.values());
                 if (checkItemTypeCombination(item, type, line_candidate)) {
-                    if (!inlist(m_state, () + m_specs{type}.is_after)) { # transition checking
-                        throw 'WRONG-TRANSITION', 'State ' + (type ?? '<START>') + ' cannot follow state ' + (m_state ?? '<START>');
+                    if (!checkTransition(m_state, type)) {
+                        throw 'INVALID-TRANSITION', 'State ' + (type ?? '<START>') + ' cannot follow state ' + (m_state ?? '<START>') + ' for line >' + line_candidate + '<';
                     }
                     m_state = type;
                     result += line_candidate + (m_opts.eol ? m_opts.eol : "\n");

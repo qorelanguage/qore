@@ -55,7 +55,7 @@ hash global_options = (
     "timezone"     : "Europe/Prague", # used if not in some date column specification
 );
 
-FixedLengthDataIterator i(data, specs, identify_type, global_options);
+MyFixedLengthDataIterator1 i(data, specs, identify_type, global_options);
 unit.cmp(i.next(), True, "line 1 is there");
 unit.cmp(i.getValue(), ("col1" : 11111, "col2" : "bb"), "line 1 content check");
 unit.cmp(i.next(), True, "line 2 is there");
@@ -63,3 +63,43 @@ unit.cmp(i.getValue(), ("col3" : "c", "col4" : "ddd", "col5" : 2014-12-31), "lin
 unit.cmp(i.next(), True, "line 3 is there");
 unit.cmp(i.getValue(), ("col1" : 22222, "col2" : "gg"), "line 3 content check");
 unit.cmp(i.next(), False, "line 4 is not there");
+
+MyFixedLengthDataIterator2 j(data, specs, identify_type, global_options);
+unit.cmp(j.next(), True, "line 1 is there");
+unit.cmp(j.getValue(), ("col1" : 11111, "col2" : "bb"), "line 1 content check");
+unit.cmp(j.next(), True, "line 2 is there");
+unit.cmp(j.getValue(), ("col3" : "c", "col4" : "ddd", "col5" : 2014-12-31), "line 2 content check");
+unit.cmp(j.next(), True, "line 3 is there");
+code wr = sub (MyFixedLengthDataIterator2 k) {
+    k.getValue();
+};
+unit.exception(wr, list(j), 'State type1 cannot follow state type2 for line >22222gg<', 'invalid transition');
+
+public class MyFixedLengthDataIterator1 inherits FixedLengthUtil::FixedLengthDataIterator {
+    constructor(string d, hash h, code c, *hash g) : FixedLengthUtil::FixedLengthDataIterator(d, h, c, g) {
+    }
+
+    bool checkTransition(*string from, *string to) {
+        if (   (from == 'type1' && to == 'type2')
+            || (from == NOTHING && to == 'type1')
+            || (from == 'type2' && to == 'type1')) {
+            return True;
+        }
+
+        return False;
+    }
+}
+
+public class MyFixedLengthDataIterator2 inherits FixedLengthUtil::FixedLengthDataIterator {
+    constructor(string d, hash h, code c, *hash g) : FixedLengthUtil::FixedLengthDataIterator(d, h, c, g) {
+    }
+
+    bool checkTransition(*string from, *string to) {
+        if (   (from == 'type1' && to == 'type2')
+            || (from == NOTHING && to == 'type1')) {
+            return True;
+        }
+
+        return False;
+    }
+}

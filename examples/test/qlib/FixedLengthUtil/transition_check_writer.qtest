@@ -62,11 +62,43 @@ hash global_options = (
     "eol" : "\n",
 );
 
-FixedLengthFileWriter w(file, specs, identify_type, global_options);
-w.write(data);
+MyFixedLengthDataWriter1 w1(specs, identify_type, global_options);
+unit.cmp(w1.write(data), data_text, 'file content check');
 
-File FR();
-FR.open2(file);
-unit.cmp(FR.read(-1), data_text, 'file content check');
+MyFixedLengthDataWriter2 w2(specs, identify_type, global_options);
+code wr = sub (list d) {
+    w2.write(d);
+};
+unit.exception(wr, list(data), 'State type1 cannot follow state <START> for line >11111bb<', 'invalid transition');
 
 unlink(file);
+
+
+public class MyFixedLengthDataWriter1 inherits FixedLengthUtil::FixedLengthDataWriter {
+    constructor(hash h, code i, *hash g) : FixedLengthUtil::FixedLengthDataWriter(h, i, g) {
+    }
+
+    bool checkTransition(*string from, *string to) {
+        if (   (from == 'type1' && to == 'type2')
+            || (from == NOTHING && to == 'type1')
+            || (from == 'type2' && to == 'type1')) {
+            return True;
+        }
+
+        return False;
+    }
+}
+
+public class MyFixedLengthDataWriter2 inherits FixedLengthUtil::FixedLengthDataWriter {
+    constructor(hash h, code i, *hash g) : FixedLengthUtil::FixedLengthDataWriter(h, i, g) {
+    }
+
+    bool checkTransition(*string from, *string to) {
+        if (   (from == 'type1' && to == 'type2')
+            || (from == 'type2' && to == 'type1')) {
+            return True;
+        }
+
+        return False;
+    }
+}
