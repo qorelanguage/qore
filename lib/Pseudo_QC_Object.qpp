@@ -143,6 +143,8 @@ int <object>::size() [flags=RET_VALUE_ONLY] {
     @code
 my string $cn = $o.className();
     @endcode
+
+    @note equivalent to get_class_name()
  */
 string <object>::className() [flags=CONSTANT] {
    return new QoreStringNode(obj->getClassName());
