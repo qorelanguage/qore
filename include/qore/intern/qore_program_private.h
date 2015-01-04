@@ -1370,6 +1370,10 @@ public:
       userFeatureList.push_back(f);
    }
 
+   DLLLOCAL static qore_program_private* get(QoreProgram& pgm) {
+      return pgm.priv;
+   }
+      
    DLLLOCAL static void clearThreadData(QoreProgram& pgm, ExceptionSink* xsink) {
       pgm.priv->clearThreadData(xsink);
    }

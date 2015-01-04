@@ -327,12 +327,15 @@ public:
    // used for error handling when merging module code into a Program object
    QoreModuleContext* qmc;
 
-   // used to capture the module defnition in user modules
+   // used to capture the module definition in user modules
    QoreModuleDefContext* qmd;
 
    // user to track the current user module context
    const char* user_module_context_name;
 
+   // AbstractQoreModule* with boolean ptr in bit 0
+   long qmi;
+   
    bool
    foreign : 1; // true if the thread is a foreign thread
 
@@ -343,7 +346,7 @@ public:
       current_pgm(p), current_ns(0), current_implicit_arg(0), tlpd(0), tpd(new ThreadProgramData(this)),
       closure_parse_env(0), closure_rt_env(0), 
       returnTypeInfo(0), element(0), global_vnode(0),
-      qmc(0), qmd(0), user_module_context_name(0), foreign(n_foreign) {
+      qmc(0), qmd(0), user_module_context_name(0), qmi(0), foreign(n_foreign) {
  
 #ifdef QORE_MANAGE_STACK
 
@@ -694,6 +697,30 @@ int check_stack(ExceptionSink* xsink) {
    return 0;
 }
 #endif
+
+QoreAbstractModule* set_reexport(QoreAbstractModule* m, bool current_reexport, bool& old_reexport) {
+   ThreadData* td = thread_data.get();
+   long rv = td->qmi;
+   if (rv & 1) {
+      old_reexport = true;
+      rv ^= 1;
+   }
+   else
+      old_reexport = false;
+
+   td->qmi = (long)m;
+   if (current_reexport)
+      td->qmi |= 1;
+
+   return (QoreAbstractModule*)rv;
+}
+
+void set_reexport(QoreAbstractModule* m, bool reexport) {
+   ThreadData* td = thread_data.get();
+   td->qmi = (long)m;
+   if (reexport)
+      td->qmi |= 1;
+}
 
 // returns 1 if data structure is already on stack, 0 if not (=OK)
 int thread_push_container(const AbstractQoreNode* n) {

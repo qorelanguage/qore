@@ -1,0 +1,24 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+    
+%requires UnitTest
+
+our UnitTest unit();
+
+test();
+
+sub test() {
+    Program p();
+    p.setScriptPath(get_script_path());
+    p.importGlobalVariable("unit");
+    p.parse("
+%requires ./C.qm
+unit.cmp(AC, 1, \"AC\");
+unit.cmp(BC, 1, \"BC\");
+", "p");
+    p.run();
+}

@@ -234,8 +234,10 @@ DLLLOCAL void parseException(const QoreProgramLocation& loc, const char* err, co
 DLLLOCAL void parseException(const char* err, const char* fmt, ...);
 DLLLOCAL void parseException(const char* err, QoreStringNode* desc);
 DLLLOCAL void parseException(const QoreProgramLocation& loc, const char* err, QoreStringNode* desc);
-DLLLOCAL QoreString *findFileInPath(const char* file, const char* path);
-DLLLOCAL QoreString *findFileInEnvPath(const char* file, const char* varname);
+
+DLLLOCAL QoreString* findFileInPath(const char* file, const char* path);
+DLLLOCAL QoreString* findFileInEnvPath(const char* file, const char* varname);
+DLLLOCAL int qore_find_file_in_path(QoreString& str, const char* file, const char* path);
 
 DLLLOCAL const QoreTypeInfo *getBuiltinUserTypeInfo(const char* str);
 DLLLOCAL const QoreTypeInfo *getBuiltinUserOrNothingTypeInfo(const char* str);

@@ -1,0 +1,22 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+
+module D {
+    version = "1.0";
+    desc = "Test Module D";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+    init = sub () { DV = 1; };
+}
+
+%requires ./A.qm
+%requires ./B.qm
+
+public namespace Common {
+    # conflicts with module A
+    public our int DV;
+    public const DC = 1;
+    public class D;
+}

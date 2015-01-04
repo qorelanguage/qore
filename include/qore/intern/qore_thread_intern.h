@@ -84,6 +84,7 @@ class qore_class_private;
 class AbstractQoreFunctionVariant;
 class AbstractQoreZoneInfo;
 class ThreadProgramData;
+class QoreAbstractModule;
 
 DLLLOCAL extern Operator* OP_BACKGROUND;
 
@@ -314,11 +315,11 @@ DLLLOCAL int get_pop_argv_ref();
 // clears the argv reference stack
 DLLLOCAL void clear_argv_ref();
 
-// ignore further local references to $argv
-//DLLLOCAL void ignore_local_argv();
-
 DLLLOCAL int set_constant(ConstantEntry *ce);
 DLLLOCAL void remove_constant(ConstantEntry *ce);
+
+DLLLOCAL QoreAbstractModule* set_reexport(QoreAbstractModule* m, bool current_reexport, bool& old_reexport);
+DLLLOCAL void set_reexport(QoreAbstractModule* m, bool reexport);
 
 DLLLOCAL void parseSetCodeInfo(const char* parse_code, const QoreTypeInfo* returnTypeInfo, const char*& old_code, const QoreTypeInfo*& old_returnTypeInfo);
 DLLLOCAL void parseRestoreCodeInfo(const char* parse_code, const QoreTypeInfo* returnTypeInfo);
@@ -339,6 +340,16 @@ DLLLOCAL QoreListNode* getCallStackList();
 #endif
 #define popCall(x)
 #endif
+
+class ModuleReExportHelper {
+protected:
+   QoreAbstractModule* m;
+   bool reexport;
+   
+public:
+   DLLLOCAL ModuleReExportHelper(QoreAbstractModule* mi, bool reexp);
+   DLLLOCAL ~ModuleReExportHelper();
+};
 
 class QoreParseCountContextHelper {
 protected:
