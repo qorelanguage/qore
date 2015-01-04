@@ -633,7 +633,7 @@ $smtp.clearStats();
         }
 
         private loginIntern() {
-            my hash $rh = $.sendCommand("AUTH PLAIN %s", makeBase64String(binary($.user) + <00> + binary($.user) + <00> + binary($.pass)));
+            my hash $rh = $.sendCommand("AUTH PLAIN %s", make_base64_string(binary($.user) + <00> + binary($.user) + <00> + binary($.pass)));
             if ($rh.code != 235)
                 throw "SMTP-DATA-EXCEPTION", sprintf("login failed: %y", $rh);
             $.logged_in = True;

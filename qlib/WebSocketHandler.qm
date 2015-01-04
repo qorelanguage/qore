@@ -194,7 +194,7 @@ public namespace WebSocketHandler {
                 );
 
             my string $key = $hdr."sec-websocket-key";
-            my string $response_key = makeBase64String(SHA1_bin($key + WS_GUID));
+            my string $response_key = make_base64_string(SHA1_bin($key + WS_GUID));
 
             my hash $rhdr = (
                 "Upgrade": "websocket",

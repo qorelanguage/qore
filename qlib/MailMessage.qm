@@ -200,7 +200,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 
 	public {
 	    #! create a different multipart boundary string every time based on the current time
-	    string $.mpboundary = replace(makeBase64String(string(now_us())), "=", "");
+	    string $.mpboundary = replace(make_base64_string(string(now_us())), "=", "");
         }
 
 	#! creates a Message object from the arguments given; this variant of the constructor is designed to be used to create a Message object for sending with the SmtpClient class

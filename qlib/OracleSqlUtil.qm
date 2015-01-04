@@ -1652,8 +1652,8 @@ my any $v = $c.name;
             }
 
             # the oracle driver >= 3.0 supports selecting from LONG columns
-            if (compare_version("3.0", getModuleHash().oracle.version) > 0)
-                throw "ORACLE-DRIVER-ERROR", sprintf("OracleSqlUtil requires oracle module 3.0+ to query system catalogs since LONG support was added in oracle module version 3.0; current module version: %s; upgrade your oracle module to at least 3.0 to use OracleSqlUtil", getModuleHash().oracle.version);
+            if (compare_version("3.0", get_module_hash().oracle.version) > 0)
+                throw "ORACLE-DRIVER-ERROR", sprintf("OracleSqlUtil requires oracle module 3.0+ to query system catalogs since LONG support was added in oracle module version 3.0; current module version: %s; upgrade your oracle module to at least 3.0 to use OracleSqlUtil", get_module_hash().oracle.version);
 
             ora_major = (nds.getServerVersion() =~ x/([0-9]+)/)[0].toInt();
         }

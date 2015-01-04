@@ -429,7 +429,7 @@ public class HttpServer::AbstractAuthenticator {
             if (!$bstr)
                 return $.do401();
 
-            my string $str = parseBase64StringToString($bstr);
+            my string $str = parse_base64_string_to_string($bstr);
             my int $i = $str.find(":");
             if ($i < 1 || $i == ($str.size() -1))
                 return $.do401();

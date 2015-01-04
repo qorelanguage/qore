@@ -437,10 +437,10 @@ public namespace Mime {
     /** @param str the string to encode
 	@param len the maximum line length
 
-	@note this function is basically just a wrapper for the standard %Qore function makeBase64String()
+	@note this function is basically just a wrapper for the standard %Qore function make_base64_string()
      */
     public string sub mime_encode_base64(data $str, int $len = MimeBase64LineLen) {
-	return makeBase64String($str, $len);
+	return make_base64_string($str, $len);
     }
 
     #! returns a string in "quoted-printable" (or "QP") encoding according to <a href="http://tools.ietf.org/html/rfc2045#section-6.7">RFC 2045 section 6.7</a>
@@ -520,7 +520,7 @@ public namespace Mime {
 
     #! returns a string in "B" ("BASE64") encoding for MIME header string words according to <a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a>
     public string sub mime_encode_header_word_b(string $str) {
-	return sprintf("=?%s?B?%s?=", get_encoding($str), makeBase64String($str, MimeBase64LineLen));
+	return sprintf("=?%s?B?%s?=", get_encoding($str), make_base64_string($str, MimeBase64LineLen));
     }
 
     #! returns a string in "Q" ("quoted-printable") encoding for MIME header string words according to <a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a>
@@ -535,20 +535,20 @@ public namespace Mime {
     #! returns a binary value from a string in "BASE64" encoding according to <a href="http://tools.ietf.org/html/rfc2045">RFC 2045</a>
     /** @param str the string to decode
 
-	@note this function is basically just a wrapper for the standard %Qore function parseBase64String()
+	@note this function is basically just a wrapper for the standard %Qore function parse_base64_string()
      */
     public binary sub mime_decode_base64(data $str) {
-	return parseBase64String($str);
+	return parse_base64_string($str);
     }
 
     #! returns a string value from a string in "BASE64" encoding according to <a href="http://tools.ietf.org/html/rfc2045">RFC 2045</a>
     /** @param str the string to decode
         @param encoding the character encoding to use for the string returned (if not present the default encoding is used)
 
-	@note this function is basically just a wrapper for the standard %Qore function parseBase64StringtoString()
+	@note this function is basically just a wrapper for the standard %Qore function parse_base64_string_to_string()
      */
     public string sub mime_decode_base64_to_string(data $str, *string $encoding) {
-	return parseBase64StringToString($str, $encoding);
+	return parse_base64_string_to_string($str, $encoding);
     }
 
     #! returns a string parsed from "quoted-printable" (or "QP") encoding according to <a href="http://tools.ietf.org/html/rfc2045#section-6.7">RFC 2045 section 6.7</a>
