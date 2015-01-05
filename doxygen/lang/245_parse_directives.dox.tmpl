@@ -60,7 +60,7 @@
     |@ref require-our "%require-our"|Requires global variables to be declared with @ref our "our" prior to use (like perl's <tt>use strict vars</tt> pragma); equivalent to parse option @ref Qore::PO_REQUIRE_OUR and the <tt>-</tt><tt>-require-our</tt> command line option
     |@ref require-prototypes "%require-prototypes"|Requires type declarations for all function and method parameters and return types. Variables and object members do not need to have type declarations; equivalent to parse option @ref Qore::PO_REQUIRE_PROTOTYPES and the <tt>-</tt><tt>-require-prototypes</tt> command line option <br><br>Since %Qore 0.8.0
     |@ref require-types "%require-types"|Requires type declarations for all function and method parameters, return types, variables, and object members; equivalent to parse option @ref Qore::PO_REQUIRE_TYPES and the <tt>-</tt><tt>-require-types</tt> command line option; also implies @ref strict-args "%strict-args" <br><br>Since %Qore 0.8.0
-    |@ref requires "%requires" <em>feature</em> <tt>[\<\|\<=\|=\|\>=\|\></tt> <em>version</em><tt>]</tt>|If the named feature is not already present in %Qore, then the \c QORE_MODULE_DIR environment variable is used to provide a list of directories to seach for a module with the same name (<em>feature</em><tt>[-api-</tt><em>x</em><tt>.</tt><em>y</em><tt>].qmod</tt> for binary modules or <em>feature</em><tt>.qm</tt> for user modules). If the module is not found, then the qore default module directory is checked.<br><br>This directive must be used to load modules providing parse support (i.e. modules providing classes, constants, functions, etc that are resolved at parse time).<br><br>If version information is provided, then it is compared with the module's version information, and if it does not match a parse exception is raised. <br><br>See also @ref Qore::load_module() for a function providing run-time module loading and @ref try-module "%try-module" for a similar parse directive that allows module loading errors to be handled at runtime
+    |@ref requires "%requires"<tt>[(reexport)] <em>feature</em> [\<\|\<=\|=\|\>=\|\> <em>version</em>]</tt>|If the named feature is not already present in %Qore, then the \c QORE_MODULE_DIR environment variable is used to provide a list of directories to seach for a module with the same name (<em>feature</em><tt>[-api-</tt><em>x</em><tt>.</tt><em>y</em><tt>].qmod</tt> for binary modules or <em>feature</em><tt>.qm</tt> for user modules). If the module is not found, then the qore default module directory is checked.<br><br>This directive must be used to load modules providing parse support (i.e. modules providing classes, constants, functions, etc that are resolved at parse time).<br><br>If version information is provided, then it is compared with the module's version information, and if it does not match a parse exception is raised. <br><br>See also @ref Qore::load_module() for a function providing run-time module loading and @ref try-module "%try-module" for a similar parse directive that allows module loading errors to be handled at runtime
     |@ref set-time-zone "%set-time-zone"|Sets the time zone for the current program from a UTC offset (with format \c "+/-[00[:00[:00]]"; \c ":" characters are optional) or a time zone region name (ex: \c "Europe/Prague") <br><br>Since %Qore 0.8.3
     |@ref strict-args "%strict-args"|Prohibits access to builtin functions and methods flagged with @ref RUNTIME_NOOP and also causes errors to be raised if excess arguments are given to functions that do not access excess arguments <br><br>Since %Qore 0.8.0
     |@ref strict-bool-eval "strict-bool-eval"|Sets qore's default strict mathematic boolean evaluation mode, where any value converted to 0 is @ref Qore::False "False" and otherwise it's is @ref Qore::True "True"; this was how qore behaved by default prior to v0.8.6. <br><br>Equivalent to parse option @ref Qore::PO_STRICT_BOOLEAN_EVAL and the <tt>-pstrict-bool-eval</tt> command line option. <br><br>See also @ref perl-bool-eval "%perl-bool-eval"<br><br>Since %Qore 0.8.6
@@ -1066,7 +1066,7 @@ if ($str)
     @section requires %requires
 
     @par Parse Directive:
-    <tt>%%requires</tt> <em>feature</em> <tt>[\<\|\<=\|=\|\>=\|\></tt> <em>version</em><tt>]</tt>
+    <tt>%%requires[(reexport)] <em>feature</em> [\<\|\<=\|=\|\>=\|\> <em>version</em>]</tt>
 
     @par Command Line:
     <tt>-</tt><tt>-load, -l</tt>
@@ -1075,13 +1075,18 @@ if ($str)
     n/a
 
     @par Description:
-    Loads a %Qore module immediately. The parse directive can be used to load a module during parsing, and the command line version can be used to load a module before parsing.\n\n
+    Loads a %Qore module immediately. The parse directive can be used to load a module during parsing, and the command line version can be used to load a module before parsing.  If the optional <tt><em>(reexport)</em></tt> option is used in a @ref user_modules "user module", then any modules loaded with this form of the <tt>%%requires</tt> parse directive will also be imported into the importing @ref Qore::Program "Program".\n\n
     From %Qore 0.7.1, you can specify a comparison operator (one of <tt>\<, \<=, =, \>=, or \></tt>) and version information after the module name as well. Version numbers are compared via integer comparisons of each element, where elements are separated by a \c ".". If one of the versions does not have as many elements as another, the missing elements are assumed to be \c "0" (i.e. version \c "1.0" compared with version \c "1.0.1" will be extended to \c "1.0.0").\n\n
     For example:\n
     @code
 %requires oracle >= 1.0.1
     @endcode \n
     This will load the oracle module if it is at least version 1.0.1.\n\n
+    For example:\n
+    @code
+%requires(reexport) Mime
+    @endcode \n
+    If this form is used in a @ref user_modules "user module", all public definitions from the <a href="../../modules/Mime/html/index.html">Mime</a> module would also be loaded into any @ref Qore::Program "Program" that requires the user module.\n\n
     Note that there is one special feature name: \c "qore". This pseudo-feature can be used to check the minimum %Qore version; if this feature is requested with version information, then the %Qore library's version information is used for the version number comparison.
 
     @see @ref try-module "%try-module" for a similar parse directive that allows module loading errors to be caught and handled at parse-time

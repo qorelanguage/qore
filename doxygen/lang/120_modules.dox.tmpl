@@ -98,6 +98,8 @@
 
     Any @ref qore_namespaces "namespaces", @ref qore_classes "classes", @ref constants "constants", @ref qore_functions "functions", and @ref global_variables "global variables" declared as @ref mod_public "public" will be exported into the importing @ref Qore::Program "Program" object; all other declarations will be private to the module's @ref Qore::Program "Program" object.  Note that the root namespace of a module @ref Qore::Program "Program" is always @ref mod_public "public" by default.
 
+    If a user module imports other modules with the <tt>%requires(reexport)</tt> form of the @ref requires "%requires" parse directive, then any loaded definitions will also be loaded into the importing @ref Qore::Program "Program".
+
     Note that global variables exported from a module's @ref Qore::Program "Program" object are exported as references; each global variable declared in a module is unique, and they reside in the module's @ref Qore::Program "Program" object.
 
     Furthermore, when using an environment with multiple @ref Qore::Program "Program" objects, if a user module has already been loaded and initialized, then it's functional domain mask is compared against any importing @ref Qore::Program "Program" object's restrictions; if the module uses functionality that is not allowed in the importing @ref Qore::Program "Program" object, then an exception is raised and the module is not imported.
