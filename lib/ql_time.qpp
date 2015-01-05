@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1113,6 +1113,8 @@ nothing getDayNumber() [flags=RUNTIME_NOOP,DEPRECATED] {
 my int $dn = get_day_number($dt);
     @endcode
 
+    @note equivalent to <date>::dayNumber()
+
     @since %Qore 0.8.12 as a replacement for deprecated camel-case getDayNumber()
 */
 int get_day_number(date dt) [flags=CONSTANT] {
@@ -1149,6 +1151,8 @@ nothing getDayOfWeek() [flags=RUNTIME_NOOP,DEPRECATED] {
     @code
 my int $dn = get_day_of_week($dt);
     @endcode
+
+    @note equivalent to <date>::dayOfWeek()
 
     @see get_iso_day_of_week()
 
@@ -1189,6 +1193,8 @@ nothing getISODayOfWeek() [flags=RUNTIME_NOOP,DEPRECATED] {
     @code
 my int $dn = get_iso_day_of_week($dt);
     @endcode
+
+    @note equivalent to <date>::isoDayOfWeek()
 
     @see get_day_of_week()
 
@@ -1238,6 +1244,8 @@ nothing getISOWeekHash() [flags=RUNTIME_NOOP,DEPRECATED] {
     @code
 my hash $h = get_iso_week_hash(2007-05-15); # returns year=2007, week=20, day=2
     @endcode
+
+    @note equivalent to <date>::isoWeekHash()
 
     @see get_iso_week_string()
 
@@ -1293,6 +1301,8 @@ nothing getISOWeekString() [flags=RUNTIME_NOOP,DEPRECATED] {
     @code
 my string $str = get_iso_week_string(2007-05-15); # returns "2007-W20-2"
     @endcode
+
+    @note equivalent to <date>::isoWeekString()
 
     @see get_iso_week_hash()
 

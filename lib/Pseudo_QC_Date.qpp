@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -229,7 +229,7 @@ int <date>::microseconds() [flags=CONSTANT] {
     so if the present time is sent as an argument, 0 is returned, if a future date is used, the number of seconds
     from the present time to the future date is returned, if an @ref absolute_dates "absolute date" in the past is used,
     also 0 is returned (the pseudo-method does not calculate second differences for @ref absolute_dates "absolute dates" in the past (for
-    this use @ref date_time_arithmetic instead); this function can only return a negative value if passed a relative date/time value
+    this use @ref date_time_arithmetic instead); this method can only return a negative value if passed a relative date/time value
 
     @par Example:
     @code
@@ -259,7 +259,7 @@ int <date>::durationSeconds() [flags=CONSTANT] {
     so if the present time is sent as an argument, 0 is returned, if a future date is used, the number of milliseconds
     from the present time to the future date is returned, if an @ref absolute_dates "absolute date" in the past is used,
     also 0 is returned (the pseudo-method does not calculate millisecond differences for @ref absolute_dates "absolute dates" in the past (for
-    this use @ref date_time_arithmetic instead); this function can only return a negative value if passed a relative date/time value
+    this use @ref date_time_arithmetic instead); this method can only return a negative value if passed a relative date/time value
 
     @par Example:
     @code
@@ -287,7 +287,7 @@ int <date>::durationMilliseconds() [flags=CONSTANT] {
     so if the present time is sent as an argument, 0 is returned, if a future date is used, the number of microseconds
     from the present time to the future date is returned, if an @ref absolute_dates "absolute date" in the past is used,
     also 0 is returned (the pseudo-method does not calculate microsecond differences for @ref absolute_dates "absolute dates" in the past (for
-    this use @ref date_time_arithmetic instead); this function can only return a negative value if passed a relative date/time value
+    this use @ref date_time_arithmetic instead); this method can only return a negative value if passed a relative date/time value
 
     @par Example:
     @code
@@ -497,3 +497,112 @@ my hash $h = date_info($date);
 hash <date>::info() [flags=CONSTANT] {
    return date_info(*dt);
 }
+
+//! Returns an integer representing the ordinal day number in the year (corresponding to the <a href="http://en.wikipedia.org/wiki/ISO_8601#Ordinal_dates">ISO-8601 day number</a>) for the @ref absolute_dates "absolute date" value
+/** 
+    @return an integer representing the ordinal day number in the year (corresponding to the <a href="http://en.wikipedia.org/wiki/ISO_8601#Ordinal_dates">ISO-8601 day number</a>) for the @ref absolute_dates "absolute date" value; if a @ref relative_dates "relative date" value is used, then this method will return 0
+
+    @par Example:
+    @code
+my int $dn = $dt.dayNumber();
+    @endcode
+
+    @note equivalent to @ref Qore::get_day_number()
+
+    @since %Qore 0.8.12
+*/
+int <date>::dayNumber() [flags=CONSTANT] {
+  return dt->getDayNumber();
+}
+
+//! Returns an integer representing the day of the week for the @ref absolute_dates "absolute date" value (0=Sunday, 6=Saturday)
+/** 
+    @return an integer representing the day of the week for the @ref absolute_dates "absolute date" value (0=Sunday, 6=Saturday); if a @ref relative_dates "relative date" value is used, then this method will return 0
+
+    @par Example:
+    @code
+my int $dn = $dt.dayOfWeek();
+    @endcode
+
+    @note equivalent to @ref Qore::get_day_of_week()
+
+    @see <date>::isoDayOfWeek()
+
+    @since %Qore 0.8.12
+*/
+int <date>::dayOfWeek() [flags=CONSTANT] {
+   return dt->getDayOfWeek();
+}
+
+//! Returns an integer representing the ISO-8601 day of the week for the @ref absolute_dates "absolute date" value (1=Monday, 7=Sunday)
+/** 
+    @return an integer representing the day of the week for the @ref absolute_dates "absolute date" passed (1=Monday, 7=Sunday); if a @ref relative_dates "relative date" value is used, then this method will return 7
+
+    @par Example:
+    @code
+my int $dn = $dt.isoDayOfWeek();
+    @endcode
+
+    @note equivalent to @ref Qore::get_iso_day_of_week()
+
+    @see <date>::dayOfWeek()
+
+    @since %Qore 0.8.12
+*/
+int <date>::isoDayOfWeek() [flags=CONSTANT] {
+   int d = dt->getDayOfWeek();
+   return (!d ? 7 : d);
+}
+
+//! Returns a hash representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" (hash keys: \c "year", \c "week", \c "day")
+/** @note that the ISO-8601 year does not always correspond with the calendar year at the end and the beginning of every year (for example 2006-01-01 in ISO-8601 calendar week format is: year=2005, week=52, day=7)
+
+    @param dt the date to get information for
+
+    @return a hash representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" (hash keys: \c "year", \c "week", \c "day"); if a @ref relative_dates "relative date" value is used, then this method will return year=1970, week=1, day=1
+
+    @par Example:
+    @code
+my hash $h = 2007-05-15.isoWeekHash(); # returns year=2007, week=20, day=2
+    @endcode
+
+    @note equivalent to @ref Qore::get_iso_week_hash()
+
+    @see <date>::isoWeekString()
+
+    @since %Qore 0.8.12
+*/
+hash <date>::isoWeekHash() [flags=CONSTANT] {
+   int year, week, day;
+   dt->getISOWeek(year, week, day);
+   QoreHashNode *h = new QoreHashNode;
+   h->setKeyValue("year", new QoreBigIntNode(year), 0);
+   h->setKeyValue("week", new QoreBigIntNode(week), 0);
+   h->setKeyValue("day", new QoreBigIntNode(day), 0);
+
+   return h;
+}
+
+//! Returns a string representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" (ex: 2006-01-01 = "2005-W52-7")
+/** 
+    @return a string representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" (ex: 2006-01-01 = "2005-W52-7"); if a @ref relative_dates "relative date" value is used, then this method will return \c "1970-W01-1"
+
+    @par Example:
+    @code
+my string $str = 2007-05-15.isoWeekString(); # returns "2007-W20-2"
+    @endcode
+
+    @note equivalent to @ref Qore::get_iso_week_string()
+
+    @see <date>::isoWeekHash()
+
+    @since %Qore 0.8.12
+*/
+string <date>::isoWeekString() [flags=CONSTANT] {
+   int year, week, day;
+   dt->getISOWeek(year, week, day);
+   QoreStringNode *str = new QoreStringNode();
+   str->sprintf("%04d-W%02d-%d", year, week, day);
+   return str;
+}
+
