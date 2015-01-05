@@ -348,7 +348,9 @@ hash get_all_thread_call_stacks() [dom=THREAD_CONTROL,THREAD_INFO] {
 
     When exceptions are thrown by this function, thread-local resources are also cleaned up at the same time.
 
-    @see mark_thread_resources(), throw_thread_resource_exceptions_to_mark()
+    @see
+    - mark_thread_resources()
+    - throw_thread_resource_exceptions_to_mark()
 
     @deprecated use throw_thread_resource_exceptions(); camel-case function names were deprecated in %Qore 0.8.12
 */
@@ -405,7 +407,9 @@ catch ($ex) {
 }
     @endcode
 
-    @see throwThreadResourceExceptions(), mark_thread_resources()
+    @see 
+    - throw_thread_resource_exceptions()
+    - mark_thread_resources()
 
     @since %Qore 0.8.4
  */
@@ -434,7 +438,9 @@ catch ($ex) {
 }
     @endcode
 
-    @see throwThreadResourceExceptions(), mark_thread_resources()
+    @see
+    - throw_thread_resource_exceptions()
+    - mark_thread_resources()
 
     @since %Qore 0.8.4
  */
