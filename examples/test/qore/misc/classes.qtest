@@ -63,13 +63,12 @@ sub class_library_tests() {
     $unit.cmp($c(2), "gee-1-2-3", "second object closure");
     $unit.cmp($t.t.x, 1, "memberNotification() method");
 
-    # test callObjectMethod*()
-    $unit.cmp(callObjectMethod($t1, "argTest", 1, 2), (1, 2), "callObjectMethod()");
-    $unit.cmp(callObjectMethodArgs($t1, "argTest"), NOTHING, "first callObjectMethodArgs()");
-    $unit.cmp(callObjectMethodArgs($t1, "argTest", 1), list(1), "second callObjectMethodArgs()");
-    $unit.cmp(callObjectMethodArgs($t1, "argTest", (1, 2)), (1, 2), "third callObjectMethodArgs()");
+    # test call_object_method*()
+    $unit.cmp(call_object_method($t1, "argTest", 1, 2), (1, 2), "call_object_method()");
+    $unit.cmp(call_object_method_args($t1, "argTest"), NOTHING, "first call_object_method_args()");
+    $unit.cmp(call_object_method_args($t1, "argTest", 1), list(1), "second call_object_method_args()");
+    $unit.cmp(call_object_method_args($t1, "argTest", (1, 2)), (1, 2), "third call_object_method_args()");
 }
-
 
 class Test inherits Socket {
     private {

@@ -92,8 +92,10 @@ static QoreHashNode *remove_thread_data_intern(const QoreListNode *args, Excepti
     @code
 my int $tid = gettid();
     @endcode
+
+    @note this function is not flagged with @ref CONSTANT since its value could change at runtime
 */
-int gettid() [flags=CONSTANT;dom=THREAD_INFO] {
+int gettid() [flags=RET_VALUE_ONLY;dom=THREAD_INFO] {
    return gettid();
 }
 
@@ -105,8 +107,10 @@ int gettid() [flags=CONSTANT;dom=THREAD_INFO] {
     @code
 my int $num = num_threads();
     @endcode
+
+    @note this function is not flagged with @ref CONSTANT since its value could change at runtime
 */
-int num_threads() [flags=CONSTANT;dom=THREAD_INFO] {
+int num_threads() [flags=RET_VALUE_ONLY;dom=THREAD_INFO] {
    return thread_list.getNumThreads();
 }
 
@@ -119,8 +123,10 @@ int num_threads() [flags=CONSTANT;dom=THREAD_INFO] {
     @code
 my list $l = thread_list();
     @endcode
+
+    @note this function is not flagged with @ref CONSTANT since its value could change at runtime
 */
-list thread_list() [flags=CONSTANT;dom=THREAD_INFO] {
+list thread_list() [flags=RET_VALUE_ONLY;dom=THREAD_INFO] {
    return get_thread_list();
 }
 
@@ -252,8 +258,10 @@ nothing delete_all_thread_data() [dom=THREAD_CONTROL] {
     @code
 my any $data = get_thread_data("key1");
     @endcode
+
+    @note this function is not flagged with @ref CONSTANT since its value could change at runtime
 */
-any get_thread_data(string key) [flags=CONSTANT;dom=THREAD_CONTROL,THREAD_INFO] {
+any get_thread_data(string key) [flags=RET_VALUE_ONLY;dom=THREAD_CONTROL,THREAD_INFO] {
    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
    if (!tmp)
       return 0;
@@ -275,8 +283,10 @@ nothing get_thread_data() [dom=THREAD_CONTROL,THREAD_INFO;flags=RUNTIME_NOOP] {
     @code
 my hash $th = get_all_thread_data();
     @endcode
+
+    @note this function is not flagged with @ref CONSTANT since its value could change at runtime
 */
-hash get_all_thread_data() [flags=CONSTANT;dom=THREAD_CONTROL,THREAD_INFO] {
+hash get_all_thread_data() [flags=RET_VALUE_ONLY;dom=THREAD_CONTROL,THREAD_INFO] {
    const QoreHashNode* h = getProgram()->getThreadData();
    return h->copy();
 }
@@ -288,9 +298,27 @@ hash get_all_thread_data() [flags=CONSTANT;dom=THREAD_CONTROL,THREAD_INFO] {
 
     @return a hash of call stacks keyed by each TID (thread ID); see @ref callstack "call stacks" for the format of the hash values
 
+    @deprecated use get_all_thread_call_stacks(); camel-case function names were deprecated in %Qore 0.8.12
+*/
+hash getAllThreadCallStacks() [dom=THREAD_CONTROL,THREAD_INFO;flags=DEPRECATED] {
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+   return getAllCallStacks();
+#else
+   xsink->raiseException("MISSING-FEATURE-ERROR", "this version of the Qore library was built without support for runtime thread stack tracing; check Qore::Option::HAVE_RUNTIME_THREAD_STACK_TRACE before calling");
+   return 0;
+#endif
+}
+
+//! Returns a hash of call stacks keyed by each TID (thread ID)
+/** 
+    @par Platform Availability:
+    @ref Qore::Option::HAVE_RUNTIME_THREAD_STACK_TRACE
+
+    @return a hash of call stacks keyed by each TID (thread ID); see @ref callstack "call stacks" for the format of the hash values
+
     @par Example:
     @code
-my hash $cs = getAllThreadCallStacks();
+my hash $cs = get_all_thread_call_stacks();
 foreach my string $tid in ($cs.keyIterator()) {
     printf("TID %d\n", $tid);
     my int $i;
@@ -301,8 +329,10 @@ foreach my string $tid in ($cs.keyIterator()) {
             printf(" %d: *** thread started by background operator ***\n", ++$i);
 }
     @endcode
+
+    since %Qore 0.8.12 as a replacement for deprecated camel-case getAllThreadCallStacks()
 */
-hash getAllThreadCallStacks() [dom=THREAD_CONTROL,THREAD_INFO] {
+hash get_all_thread_call_stacks() [dom=THREAD_CONTROL,THREAD_INFO] {
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
    return getAllCallStacks();
 #else
@@ -318,19 +348,38 @@ hash getAllThreadCallStacks() [dom=THREAD_CONTROL,THREAD_INFO] {
 
     When exceptions are thrown by this function, thread-local resources are also cleaned up at the same time.
 
+    @see mark_thread_resources(), throw_thread_resource_exceptions_to_mark()
+
+    @deprecated use throw_thread_resource_exceptions(); camel-case function names were deprecated in %Qore 0.8.12
+*/
+nothing throwThreadResourceExceptions() [dom=THREAD_CONTROL;flags=DEPRECATED] {
+   purge_thread_resources(xsink);
+}
+
+//! Immediately runs all thread resource cleanup routines for the current thread and throws all associated exceptions
+/** This function is particularly useful when used in combination with embedded code in order to catch (and log, for example) thread resource errors (ex: uncommitted transactions, unlocked locks, etc) - this can be used when control returns to the "master" program to ensure that no thread-local resources have been left active.
+
+    This function will run all thread resource cleanup routines even if mark_thread_resources() has been called (i.e. it clears all marks as well).
+
+    When exceptions are thrown by this function, thread-local resources are also cleaned up at the same time.
+
     @par Example:
     @code
 try {
-    throwThreadResourceExceptions();
+    throw_thread_resource_exceptions();
 }
 catch ($ex) {
     # ... log or handle exceptions
 }
     @endcode
 
-    @see mark_thread_resources(), throw_thread_resource_exceptions_to_mark()
+    @see
+    - mark_thread_resources()
+    - throw_thread_resource_exceptions_to_mark()
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case throwThreadResourceExceptions()
 */
-nothing throwThreadResourceExceptions() [dom=THREAD_CONTROL] {
+nothing throw_thread_resource_exceptions() [dom=THREAD_CONTROL] {
    purge_thread_resources(xsink);
 }
 

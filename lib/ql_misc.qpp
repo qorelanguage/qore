@@ -827,7 +827,7 @@ string getClassName(object obj) [flags=CONSTANT,DEPRECATED] {
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing getClassName() [flags=RUNTIME_NOOP] {
+nothing getClassName() [flags=RUNTIME_NOOP,DEPRECATED] {
 }
 
 //! Returns the class name of the object passed
@@ -1605,7 +1605,7 @@ my *int $val = get_word_32($bin, 2); # returns the third 4-byte (32-bit) value i
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing getWord32() [flags=RUNTIME_NOOP] {
+nothing getWord32() [flags=RUNTIME_NOOP,DEPRECATED] {
 }
 
 //! Returns the 64-bit integer value at the given 8-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -2024,14 +2024,14 @@ string make_hex_string(binary bin) [flags=CONSTANT] {
 
     @deprecated use parse_hex_string(); camel-case function names were deprecated in %Qore 0.8.12
 */
-binary parseHexString(string hexstr) [flags=RET_VALUE_ONLY] {
+binary parseHexString(string hexstr) [flags=RET_VALUE_ONLY,DEPRECATED] {
    return hexstr->parseHex(xsink);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing parseHexString() [flags=RUNTIME_NOOP] {
+nothing parseHexString() [flags=RUNTIME_NOOP,DEPRECATED] {
 }
 
 //! Parses a hex-encoded string and returns the binary object

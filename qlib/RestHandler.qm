@@ -463,7 +463,7 @@ public namespace RestHandler {
             my string $sn = "stream" + $mn[0].upr() + $mn.substr(1);
             try {
                 $cx.socketobject = $s;
-                my AbstractRestStreamRequestHandler $rsh = callObjectMethodArgs($self, $sn, ($cx, $ah));
+                my AbstractRestStreamRequestHandler $rsh = call_object_method_args($self, $sn, ($cx, $ah));
 
                 my RestStreamRequest $req($rsh, $listener, $rh, $s, $cx, $cx.hdr, $cx.hdr."content-length" ? $cx.body : NOTHING);
                 return $req.handleRequest();
@@ -486,7 +486,7 @@ public namespace RestHandler {
         #! this method is called to dispatch requests on the given object
         private hash dispatch(RestHandler $rh, string $mn, *hash $ah, hash $cx) {
             try {
-                return callObjectMethodArgs($self, $mn, ($cx, $ah));
+                return call_object_method_args($self, $mn, ($cx, $ah));
             }
             catch (hash $ex) {
                 if ($ex.err == "METHOD-DOES-NOT-EXIST") {

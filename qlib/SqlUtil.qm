@@ -5205,7 +5205,7 @@ my list $l = $db.getDropSchemaSql($schema_hash);
 
         #! executes a method on the contained AbstractDatabase object
         any methodGate(string meth) {
-            return callObjectMethodArgs(db, meth, argv);
+            return call_object_method_args(db, meth, argv);
         }
 
         #! creates a database-specific AbstractSequence object corresponding to the arguments
@@ -7091,7 +7091,7 @@ $table.create();
 
         #! executes a method on the contained AbstractTable object
         any methodGate(string meth) {
-            return callObjectMethodArgs(t, meth, argv);
+            return call_object_method_args(t, meth, argv);
         }
 
         #! returns @ref Qore::True "True" if the table exists in the database, @ref Qore::False "False" if not

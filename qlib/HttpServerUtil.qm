@@ -331,7 +331,7 @@ public class HttpServer::AbstractLogger {
     */
     logArgs(*softlist $args) {
         if ($args)
-            callObjectMethodArgs($self, "log", $args);
+            call_object_method_args($self, "log", $args);
     }
     
     #! calls logError() with the given args
@@ -339,7 +339,7 @@ public class HttpServer::AbstractLogger {
     */
     logErrorArgs(*softlist $args) {
         if ($args)
-            callObjectMethodArgs($self, "logError", $args);
+            call_object_method_args($self, "logError", $args);
     }    
 }
 
