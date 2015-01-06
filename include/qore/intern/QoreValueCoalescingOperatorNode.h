@@ -1,10 +1,10 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreNullCoalescingOperatorNode.h
+  QoreValueCoalescingOperatorNode.h
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 Jiri Vaclavik
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,19 +29,19 @@
   information.
 */
 
-#ifndef _QORE_QORENULLCOALESCINGOPERATORNODE_H
-#define _QORE_QORENULLCOALESCINGOPERATORNODE_H
+#ifndef _QORE_QOREVALUECOALESCINGOPERATORNODE_H
+#define _QORE_QOREVALUECOALESCINGOPERATORNODE_H
 
-class QoreNullCoalescingOperatorNode : public QoreNOperatorNodeBase<2> {
+class QoreValueCoalescingOperatorNode : public QoreNOperatorNodeBase<2> {
 protected:
-   static QoreString null_coalescing_str;
+   static QoreString value_coalescing_str;
 
    const QoreTypeInfo* typeInfo;
 
    DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo);
 
 public:
-   DLLLOCAL QoreNullCoalescingOperatorNode(AbstractQoreNode* e0, AbstractQoreNode* e1) : QoreNOperatorNodeBase<2>(e0, e1), typeInfo(0) { 
+   DLLLOCAL QoreValueCoalescingOperatorNode(AbstractQoreNode* e0, AbstractQoreNode* e1) : QoreNOperatorNodeBase<2>(e0, e1), typeInfo(0) { 
    }
 
    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
@@ -67,7 +67,7 @@ public:
 
    // returns the type name as a c string
    DLLLOCAL virtual const char* getTypeName() const {
-      return null_coalescing_str.getBuffer();
+      return value_coalescing_str.getBuffer();
    }
 
    DLLLOCAL virtual bool hasEffect() const {
