@@ -22,11 +22,11 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%requires qore >= 0.8.11
+%requires qore >= 0.8.12
 # need mime definitions
 %requires Mime >= 1.0
 %requires Util >= 1.0
-%requires HttpServerUtil >= 0.3.11
+%requires(reexport) HttpServerUtil >= 0.3.11
 
 module HttpServer {
     version = "0.3.11";
@@ -55,9 +55,9 @@ module HttpServer {
 
     To use this module, use \c "%requires HttpServer" in your code.  See examples/httpserver.q for an example program using this module
     
-    All the public symbols in the module are defined in the HttpServer namespace
+    All the public symbols in the module are defined in the HttpServer namespace.
 
-    The main classes is (see @ref httpserverutilintro HttpServerUtil for supporting definitions):
+    The main classes is (see @ref httpserverutilintro HttpServerUtil for supporting definitions; note that the @ref httpserverutilintro HttpServerUtil module's definitions are also imported into @ref Qore::Program "Program" objects @ref requires "requiring" this module):
     - @ref HttpServer::HttpServer "HttpServer": this class implements the main interface to the HTTP server provided by this module
 
     See also:
@@ -119,7 +119,7 @@ log("started listener on %s", $lh.desc);
     - fixed a bug setting the response encoding in HttpServer::setReplyHeaders() where the Socket encoding was not set properly and therefore the encoding in the Content-Type in the response header did not necessarily match the encoding of the response
     - added support for private keys with passwords
     - added the @ref HttpServer::PermissiveAuthenticator "PermissiveAuthenticator" class
-    - moved base code to HttpServerUtil module and santized APIs, made HttpListener class private/internal again
+    - moved base code to the HttpServerUtil module (imported with the \c reexport option) and santized APIs, made HttpListener class private/internal again
 
     @subsection http0310 HttpServer 0.3.10
     - if an error occurs receiving a message with chunked transfer encoding, send the response immediately before reading the rest of the chunked transfer
