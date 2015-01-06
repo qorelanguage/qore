@@ -13461,7 +13461,15 @@ my string $sql = $table.getSelectSql($sh, \$args);
                         }
 
                         case NT_HASH: {
-                            ce += doColumnOperatorIntern(cv, jch, boolean(qh.join), ch);
+                            if (!cv.cop)
+                                throw "SELECT-ERROR", sprintf("%s: missing column operator in \"columns\" hash element %d/%d; the \"columns\" select option must be assigned to a list of strings giving the column names or a list of column operator hashes as returned from column operator functions; this element is missing hash key \"cop\" giving the column operator; keys provided: %y", getName(), $# + 1, qh.columns.lsize(), cv.keys());
+                            try {
+                                ce += doColumnOperatorIntern(cv, jch, boolean(qh.join), ch);
+                            }
+                            catch (hash ex) {
+                                # rethrow exception with additional contextual information
+                                throw ex.err, sprintf("%s: in \"columns\" hash element %d/%d: %s", getName(), $# + 1, qh.columns.lsize(), ex.desc), ex.arg;
+                             }
                             if (qh.superquery && cv.cop == COP_AS && cv.arg)
                                 mch{cv.arg} = True;
                             break;
@@ -13674,7 +13682,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
 
         private string doColumnOperatorIntern(any cop, any arg, *string cve, hash cm, *hash jch, bool join, *hash ch) {
             if (cop.typeCode() != NT_STRING)
-                throw "SELECT-ERROR", sprintf("invalid column operator code %y", cop);
+                throw "SELECT-ERROR", sprintf("invalid column operator code %y; use column operator functions to create valid column specifications with supported column operators", cop);
 
             *hash cmd = cm{cop};
             if (!cmd)
