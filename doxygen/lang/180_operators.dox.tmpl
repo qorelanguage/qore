@@ -1526,7 +1526,7 @@ if ($x || $y)
     @section null_coalescing_operator Null Coalescing Operator (??)
 
     @par Synopsis
-    Evaluates the first operand and checks for a value (ie not @ref nothing or @ref null).  If it evaluates to a value, then the value of the first operand is returned, otherwise the second operand is evaluated and returned.  When chained, the first argument with a value is returned.
+    Evaluates the first operand and checks for a value (i. e. not @ref nothing or @ref null).  If it evaluates to a value, then the value of the first operand is returned, otherwise the second operand is evaluated and returned.  When chained, the first argument with a value is returned.
 
     @par Syntax
     \a expression1 ?? \a expression2 
@@ -1543,11 +1543,14 @@ if ($x || $y)
 
     This operator does not throw any exceptions.
 
+    See also @ref value_coalescing_operator that works same except for operands are evaluated based on being @ref Qore::False "False" instead of being @ref nothing or @ref null.
+
+
     <hr>
     @section value_coalescing_operator Value Coalescing Operator (?*)
 
     @par Synopsis
-    Evaluates the first operand and checks for a value (@ref True or @ref False). If it evaluates to a True, then the value of the first operand is returned, otherwise the second operand is evaluated and returned.  When chained, the first argument with a value is returned.
+    Evaluates the first operand and checks for a value (@ref Qore::True "True" or @ref Qore::False "False"). If it evaluates to @ref Qore::True "True", then the value of the first operand is returned, otherwise the second operand is evaluated and returned.  When chained, the first argument with a value is returned.
 
     @par Syntax
     \a expression1 ?* \a expression2 
@@ -1560,9 +1563,12 @@ if ($x || $y)
 
     <b>Arguments Processed by ?*</b>
     |!Argument|!Processing
-    |All|If \a expression1 is evaluated to be @ref False then the \a expession2 is evaluated and returned. Otherwise the value of \a expression1 is returned.
+    |All|If \a expression1 is evaluated to be @ref Qore::False "False" then the \a expession2 is evaluated and returned. Otherwise the value of \a expression1 is returned.
 
     This operator does not throw any exceptions.
+
+    See also @ref null_coalescing_operator that works same except for operands are evaluated based on being @ref nothing or @ref null instead of being @ref Qore::False "False".
+
 
     <hr>
     @section comma_operator Comma Operator (,)
