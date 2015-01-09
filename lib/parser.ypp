@@ -400,6 +400,9 @@ static inline MethodVariantBase* newMethodVariant(const char* name, int mod, int
    if (get_pop_argv_ref())
       flags |= QC_USES_EXTRA_ARGS;
 
+   if (mod & OFM_PUBLIC)
+      parse_error("method %s() cannot be declared public; class methods may not be public; for user module visibility, the entire class is either public or private but methods do not have their own visibility", name);
+   
    if (!strcmp(name, "constructor")) {
       if (mod & OFM_SYNCED)
          parse_error("%s() methods cannot be synchronized", name);
