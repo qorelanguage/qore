@@ -76,14 +76,12 @@ make_version() {
 }
 
 # see if svn is available
-which svn >/dev/null 2>/dev/null
-if [ $? -eq 0 ]; then
-    si=`svn info 2>/dev/null`
-    if [ $? -eq 0 -a -n "$si" ]; then
-	build=`svn info|grep Revision|cut -f2 -d\ `
-	make_file $file
+if build="$($(dirname "$0")/getrev.sh)"; then
+    make_file ${file}
 	ok=1
-    fi
+else
+	printf "Need svn revision to create ${file}"
+	exit 1
 fi
 
 if [ $ok -ne 1 ]; then
