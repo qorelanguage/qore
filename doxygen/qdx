@@ -346,13 +346,16 @@ class qdx {
             }
 
             # see if the line is the start of a method or function declaration
-            if (line =~ /\(.*\)[[:blank:]]*{[[:blank:]]*$/ && line !~ /const .*=/ && line !~ /extern .*=.*\(.*\)/
+            if (line =~ /\(.*\)[[:blank:]]*{[[:blank:]]*(#.*)?$/ && line !~ /const .*=/ && line !~ /extern .*=.*\(.*\)/
                 && line !~ /^[[:blank:]]*\"/) {
                 #printf("method or func: %s", line);
                 
                 # remove "$" signs
                 line =~ s/\$//g;
 
+                # remove any trailing line comment
+                line =~ s/#.*$//;
+                
                 # make into a declaration (also remove any parent class constructor calls)
                 line =~ s/[[:blank:]]*([^:]:[^:].*\(.*)?{[[:blank:]]*$/;/;
 
@@ -365,7 +368,6 @@ class qdx {
                 
                 # remove "$" signs
                 line =~ s/\$//g;
-
             }
 
             # convert Qore line comments to C++ line comments
