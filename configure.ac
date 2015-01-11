@@ -1352,6 +1352,9 @@ fi
 # see if the socket library is required
 AC_SEARCH_LIBS(setsockopt, socket)
 
+# see if the nsl library is required
+AC_SEARCH_LIBS(gethostbyname, nsl)
+
 # look for librt (needed by clock_gettime() on some platforms)
 AC_SEARCH_LIBS(clock_gettime, rt)
 
