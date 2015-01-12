@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -294,7 +294,7 @@ typedef std::list<qore_conditional_block_exit_statement_t> block_list_t;
 // for maps of thread condition variables to TIDs
 typedef std::map<QoreCondition*, int> cond_map_t;
 
-#if defined(HAVE_PTHREAD_ATTR_GETSTACKSIZE) && defined(HAVE_CHECK_STACK_POS)
+#if defined(HAVE_CHECK_STACK_POS)
 #define QORE_MANAGE_STACK
 #endif
 

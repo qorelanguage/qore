@@ -1831,38 +1831,11 @@ extern QoreRWLock thread_stack_lock;
 
 static int initial_thread;
 
-#if 0
-// note: stack guard is currently disabled on windows because it doesn't work
-#ifdef WIN32
-static size_t win_get_stack_size() {
-    MEMORY_BASIC_INFORMATION mbi;
-    VirtualQuery(&mbi, &mbi, sizeof(mbi));
-    // now mbi.AllocationBase = reserved stack memory base address
-
-    VirtualQuery(mbi.AllocationBase, &mbi, sizeof(mbi));
-    // now (mbi.BaseAddress, mbi.RegionSize) describe reserved (uncommitted) portion of the stack
-    // skip it
-
-    VirtualQuery((char*)mbi.BaseAddress + mbi.RegionSize, &mbi, sizeof(mbi));
-    // now (mbi.BaseAddress, mbi.RegionSize) describe the guard page
-    // skip it
-
-    VirtualQuery((char*)mbi.BaseAddress + mbi.RegionSize, &mbi, sizeof(mbi));
-    // now (mbi.BaseAddress, mbi.RegionSize) describe the committed (i.e. accessed) portion of the stack
-
-    //printd(0, "windows stack size: %zd\n", mbi.RegionSize);
-    return mbi.RegionSize;
-}
-#endif
-#endif
-
 void init_qore_threads() {
    QORE_TRACE("qore_init_threads()");
 
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#if defined(QORE_RUNTIME_THREAD_STACK_TRACE) && (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
    thread_stack_lock = new QoreRWLock;
-#endif
 #endif
 
 #ifdef QORE_MANAGE_STACK
@@ -1878,8 +1851,8 @@ void init_qore_threads() {
 #endif // #if TARGET_BITS == 32
 #else
 #ifdef WIN32
-#error stack guard is broken on windows
-   qore_thread_stack_size = win_get_stack_size();
+   // windows stacks are extended automatically; here we set a limit of 1 MB per thread
+   qore_thread_stack_size = 1024 * 1024;
 #else // !WIN32 && !SOLARIS
    qore_thread_stack_size = ta_default.getstacksize();
    assert(qore_thread_stack_size);
@@ -1892,7 +1865,7 @@ void init_qore_threads() {
    qore_thread_stack_size /= 2;
 #endif // #ifdef IA64_64
    qore_thread_stack_limit = qore_thread_stack_size - QORE_STACK_GUARD;
-   //printd(5, "default stack size %ld, limit %ld\n", qore_thread_stack_size, qore_thread_stack_limit);
+   //printd(8, "default stack size %ld, limit %ld\n", qore_thread_stack_size, qore_thread_stack_limit);
 #endif // #ifdef QORE_MANAGE_STACK
 
    // setup parent thread data
@@ -1917,7 +1890,6 @@ QoreNamespace *get_thread_ns(QoreNamespace &qorens) {
    Thread->addSystemClass(initQueueClass(*Thread));
    Thread->addSystemClass(initAbstractSmartLockClass(*Thread));
    Thread->addSystemClass(initMutexClass(*Thread));
-   //Thread->addSystemClass(initRMutexClass());
    Thread->addSystemClass(initConditionClass(*Thread));
    Thread->addSystemClass(initRWLockClass(*Thread));
    Thread->addSystemClass(initGateClass(*Thread));
