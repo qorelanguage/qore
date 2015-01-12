@@ -52,7 +52,9 @@ hash global_options = (
     "encoding"     : "UTF-8",
     "eol"          : "\n",
     "ignore-empty" : True,
+%ifndef Windows
     "timezone"     : "Europe/Prague", # used if not in some date column specification
+%endif
 );
 
 MyFixedLengthDataIterator1 i(data, specs, identify_type, global_options);

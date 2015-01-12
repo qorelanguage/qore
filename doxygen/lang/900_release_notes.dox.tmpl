@@ -139,7 +139,13 @@
     - fixed a bug in @ref Qore::Program::importClass() where the import would fail if a namespace-justified class name was given and any element of the namespace path didn't already exist in the target whereas the same import would succeed if the namespace were omitted in the call
     - fixed bugs in @ref Qore::Program::importClass(), @ref Qore::Program::importFunction(), and @ref Qore::Program::importGlobalVariable() when namespace-justified arguments were given, in this case when namespaces were created in the target, the internal root namespace index was not updated so the imported objects could not be found with namespace-justified references until the root indexes were updated
     - fixed a bug in the @ref requires "%requires" directive where relative paths were not calculated from the script's directory but rather from the current working directory
-    - fixed a bug in @ref Qore::Dir::chdir() on Windows
+    - fixed various bugs in path handling on Windows in the following areas:
+      - @ref Qore::basename()
+      - @ref Qore::get_script_dir()
+      - @ref Qore::get_script_path()
+      - @ref Qore::get_script_name()
+      - @ref Qore::Dir
+      - module importing and includ file handling
 
     @section qore_0811 Qore 0.8.11
 

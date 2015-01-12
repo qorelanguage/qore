@@ -57,7 +57,9 @@ hash global_options = (
     "encoding"     : "UTF-8",
     "eol"          : "\n",
     "ignore-empty" : True,
+%ifndef Windows
     "timezone"     : "Europe/Prague", # used if not in some date column specification
+%endif
 );
 
 FixedLengthFileIterator i(file, specs, identify_type, global_options);

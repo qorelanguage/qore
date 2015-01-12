@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -135,6 +135,42 @@ public:
       while (p >= buf) {
          if (*p == c)
             return (qore_offset_t)(p - buf);
+         --p;
+      }
+      return -1;
+   }
+
+      // NOTE: this is purely byte oriented - no character semantics here
+   DLLLOCAL qore_offset_t findAny(const char* str, qore_offset_t pos = 0) {
+      if (pos < 0) {
+         pos = len + pos;
+         if (pos < 0)
+            pos = 0;
+      }
+      else if (pos > 0 && pos > (qore_offset_t)len)
+         return -1;
+      const char* p;
+      if (!(p = strstr(buf + pos, str)))
+         return -1;
+      return (qore_offset_t)(p - buf);
+   }
+
+   // NOTE: this is purely byte oriented - no character semantics here
+   DLLLOCAL qore_offset_t rfindAny(const char* str, qore_offset_t pos = -1) {
+      if (pos < 0) {
+         pos = len + pos;
+         if (pos < 0)
+            return -1;
+      }
+      else if (pos > 0 && pos > (qore_offset_t)len)
+         pos = len - 1;
+
+      const char* p = buf + pos;
+      while (p >= buf) {
+         for (const char* t = str; *t; ++t) {
+            if (*p == *t)
+               return (qore_offset_t)(p - buf);
+         }
          --p;
       }
       return -1;

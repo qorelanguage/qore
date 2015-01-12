@@ -9,8 +9,10 @@ if (!Option::HAVE_STACK_GUARD) {
     $t.ok(True, 'Skipping tests because this qore library was not built with stack protection support');
 }
 else {
+%ifndef Windows
     do_test("main thread");
     background do_test("background thread");
+%endif
 }
 
 sub recurse() {

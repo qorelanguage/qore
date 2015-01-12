@@ -6,6 +6,7 @@
 
 my UnitTest t();
 
+%ifndef Windows
 my string file = t.tmpLocation() + "/output";
 
 system("echo OUTPUT > " + file);
@@ -17,4 +18,4 @@ my string stdout = f1.read(-1);
 t.like(stdout, 'OUTPUT', 'seems like echo cmd was performed correctly');
 
 unlink(file);
-
+%endif

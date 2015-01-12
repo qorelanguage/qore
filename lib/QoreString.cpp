@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -2223,6 +2223,14 @@ qore_offset_t QoreString::find(char c, qore_offset_t pos) const {
 
 qore_offset_t QoreString::rfind(char c, qore_offset_t pos) const {
    return priv->rfind(c, pos);
+}
+
+qore_offset_t QoreString::findAny(const char* str, qore_offset_t pos) const {
+   return priv->findAny(str, pos);
+}
+
+qore_offset_t QoreString::rfindAny(const char* str, qore_offset_t pos) const {
+   return priv->rfindAny(str, pos);
 }
 
 bool QoreString::isDataPrintableAscii() const {

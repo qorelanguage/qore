@@ -562,7 +562,7 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
    }
 
    // see if this is actually a path
-   if (strchr(name, QORE_DIR_SEP)) {
+   if (name[0] == '.' || q_absolute_path(name)) {
       // see if it's a user or binary module
       size_t len = strlen(name);
       if (len > 5 && !strcasecmp(".qmod", name + len - 5))
@@ -572,7 +572,11 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
 	 qore_offset_t i = n.rfind('.');
 	 if (i > 0)
 	    n.terminate(i);
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+	 i = n.rfindAny("\\/");
+#else
 	 i = n.rfind(QORE_DIR_SEP);
+#endif
 	 if (i >= 0)
 	    n.replace(0, i + 1, (const char*)0);
 	 

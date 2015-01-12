@@ -57,30 +57,69 @@ protected:
    std::string dirname;
    mutable QoreThreadLock m;
 
-   // tokenize the strings by the delimiter
-   DLLLOCAL static void tokenize(const std::string& str, std::vector<std::string>& tokens, const std::string& delimiter = QORE_DIR_SEP_STR) {
+   DLLLOCAL static bool is_dir_sep(const std::string& str) {
+      for (std::string::size_type i = 0, e = str.size(); i < e; ++i) {
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+	 if (str[i] != '\\' && str[i] != '/')
+	    return false;
+#else
+	 if (str[i] != QORE_DIR_SEP)
+	    return false;
+#endif
+      }
+      return true;
+   }
+
+   DLLLOCAL static std::string::size_type get_first_non_dir_sep(const std::string& str, std::string::size_type pos = 0) {
+      for (std::string::size_type i = pos, e = str.size(); i < e; ++i) {
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+	 if (str[i] != '\\' && str[i] != '/')
+	    return i;
+#else
+	 if (str[i] != QORE_DIR_SEP)
+	    return i;
+#endif
+      }
+      return std::string::npos;
+   }
+   
+   DLLLOCAL static std::string::size_type get_first_dir_sep(const std::string& str, std::string::size_type pos = 0) {
+      for (std::string::size_type i = pos, e = str.size(); i < e; ++i) {
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+	 if (str[i] == '\\' || str[i] == '/')
+	    return i;
+#else
+	 if (str[i] == QORE_DIR_SEP)
+	    return i;
+#endif
+      }
+      return std::string::npos;
+   }
+   
+   // tokenize the strings by directory separators
+   DLLLOCAL static void tokenize(const std::string& str, std::vector<std::string>& tokens) {
       // accommodate case when the string consists of only the delimiter (ex: "/")
-      if (str == delimiter) {
-	 tokens.push_back(str);
+      if (is_dir_sep(str)) {
+	 tokens.push_back(QORE_DIR_SEP_STR);
 	 return;
       }
 
       // Skip delimiters at beginning.
-      std::string::size_type lastPos = str.find_first_not_of(delimiter, 0);
+      std::string::size_type lastPos = get_first_non_dir_sep(str, 0);
       // Find first "non-delimiter".
-      std::string::size_type pos     = str.find_first_of(delimiter, lastPos);
+      std::string::size_type pos     = get_first_dir_sep(str, lastPos);
 	 
       while (std::string::npos != pos || std::string::npos != lastPos) {
 	 // Found a token, add it to the vector.
 	 tokens.push_back(str.substr(lastPos, pos - lastPos));
 	 // Skip delimiters.  Note the "not_of"
-	 lastPos = str.find_first_not_of(delimiter, pos);
+	 lastPos = get_first_non_dir_sep(str, pos);
 	 // Find next "non-delimiter"
-	 pos = str.find_first_of(delimiter, lastPos);
+	 pos = get_first_dir_sep(str, lastPos);
       }
    }
 
-   // tokenizes the string (path) and 
+   // tokenizes the string (path) and recreates it
    DLLLOCAL static const std::string stripPath(const std::string& odir) {
       // tokenize the string
       std::vector<std::string> ptoken, dirs;
@@ -105,17 +144,23 @@ protected:
       // create string out of rest..
       std::string ret;
       for (it = dirs.begin(); it < dirs.end(); it++) {
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+	 if (it == dirs.begin() && q_absolute_path_windows((*it).c_str()))
+	     ret += *it;
+	 else
+#endif
 	 ret += QORE_DIR_SEP_STR + (*it);
       }
 
       return ret;
    }
 
-   // check if the given directory is accessable
+   // check if the given directory is accessible
    // return errno of opendir function
    // unlocked
    DLLLOCAL static int verifyDirectory(const std::string &dir) {
-      DIR *dptr = opendir(dir.c_str());
+      DIR* dptr;
+      dptr = opendir(dir.c_str());
       if (!dptr)
 	 return errno;
 
@@ -128,7 +173,7 @@ protected:
    // unlocked
    DLLLOCAL std::string getPathIntern(const char *sub) const {
       if (!dirname.empty())
-	 return dirname + "/" + std::string(sub);
+	 return dirname + QORE_DIR_SEP_STR + std::string(sub);
       return std::string(sub);
    }
 
@@ -185,10 +230,16 @@ public:
    DLLLOCAL int chdir(const char *ndir, ExceptionSink *xsink) {
       assert(ndir);
 
+      //printd(5, "qore_qd_private::chdir() ndir: '%s' dirname: '%s'\n", ndir, dirname.c_str());
+      
       // if changing to the current directory, then ignore
       if (ndir[0] == '.') {
 	 const char* p = ndir + 1;
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+	 while (*p && (*p == '\\' || *p == '/'))
+#else
 	 while (*p && *p == QORE_DIR_SEP)
+#endif
 	    ++p;
 	 if (!*p)
 	    return 0;
@@ -212,7 +263,7 @@ public:
       ds = stripPath(ds);
       dirname = ds;
 
-      //printf("chdir() ndir: '%s' ds: '%s'\n", ndir, ds.c_str());
+      //printd(5, "qore_qd_private::chdir() ndir: '%s' ds: '%s'\n", ndir, ds.c_str());
  
       return checkPathIntern();
    }
@@ -363,7 +414,7 @@ public:
       int cnt = 0;
       const char *path_str;
       for (it = dirs.begin(); it < dirs.end(); it++) {
-	 path += "/" + (*it); // the actual path
+	 path += QORE_DIR_SEP_STR + (*it); // the actual path
 	 path_str = path.c_str();
 	 if (verifyDirectory(path)) { // not existing
 	    if (::mkdir(path_str, mode)) { // failed

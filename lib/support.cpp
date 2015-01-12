@@ -199,7 +199,11 @@ static int try_include_dir(QoreString& dir, const char* file) {
    //printd(5, "try_include_dir(dir='%s', file='%s')\n", dir.getBuffer(), file);
 
    // make fully-justified path
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+   if (dir.strlen() && dir.getBuffer()[dir.strlen() - 1] != '\\' && dir.getBuffer()[dir.strlen() - 1] != '/')
+#else
    if (dir.strlen() && dir.getBuffer()[dir.strlen() - 1] != QORE_DIR_SEP)
+#endif
       dir.concat(QORE_DIR_SEP);
    dir.concat(file);
    struct stat sb;
@@ -259,7 +263,7 @@ QoreString *findFileInEnvPath(const char *file, const char *varname) {
    //printd(5, "findFileInEnvPath(file=%s var=%s)\n", file, varname);
 
    // if the file is an absolute path, then return it
-   if (file[0] == QORE_DIR_SEP)
+   if (q_absolute_path(file))
       return new QoreString(file);
 
    // get path from environment

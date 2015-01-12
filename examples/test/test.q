@@ -1,7 +1,7 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-/*  Copyright 2014 Qore Technologies, sro
+/*  Copyright (C) 2014 - 2015 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -43,19 +43,23 @@ class Test {
 
     constructor() {
         our UnitTest unit();
+
         doDir(get_script_dir());
         exit(rc);
     }
 
     doDir(string dname) {
-        dname =~ s/\/$//g;
+%ifdef Windows
+        dname =~ s/[\\\/]+$//g;
+%else
+        dname =~ s/\/+$//g;
+%endif
         Dir d();
-        d.chdir(dname);
-        if (!d.exists())
+        if (!d.chdir(dname))
             throw "DIR-ERROR", sprintf("directory %y does not exist", dname);
     
-        map doDir(dname + "/" + $1), d.listDirs();
-        map doFile(dname + "/" + $1), d.listFiles("\\.qtest\$");
+        map doDir(dname + DirSep + $1), d.listDirs();
+        map doFile(dname + DirSep + $1), d.listFiles("\\.qtest\$");
     }
 
     doFile(string fname) {

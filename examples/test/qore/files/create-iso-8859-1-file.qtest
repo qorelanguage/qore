@@ -5,6 +5,7 @@
 
 my UnitTest $t();
 
+%ifndef Windows
 my string $tmp = $t.tmpLocation();
 my string $file = $tmp + '/iso-8859-1.txt';
 my string $str = "Öffentl. Körperschaft/\n\n";
@@ -19,3 +20,4 @@ $content = force_encoding($content, "iso-8859-1");
 $t.cmp($content, $str, 'file content check');
 
 unlink($file);
+%endif
