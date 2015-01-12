@@ -40,7 +40,12 @@
 #endif
 
 #ifdef HAVE_CHECK_STACK_POS
+#ifdef WIN32
+// stack guard is disabled on Windows
+#define QORE_CONST_HAVE_CHECK_STACK_POS 0
+#else
 #define QORE_CONST_HAVE_CHECK_STACK_POS 1
+#endif
 #else
 #define QORE_CONST_HAVE_CHECK_STACK_POS 0
 #endif
