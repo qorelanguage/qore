@@ -1505,7 +1505,7 @@ string strmul(softstring str, softint smul, *softint offset) [flags=RET_VALUE_ON
    
    if (offset) {
       if (offset > (int64)ret->length()) {
-         xsink->raiseException("STRMUL-ERROR", "Offset (%d) is greater than string length (%d)", offset, ret->length());
+         xsink->raiseException("STRMUL-ERROR", "Offset ("QLLD") is greater than string length (%d)", offset, ret->length());
          return 0;
       }
       ret->splice(ret->length() - offset, xsink);
