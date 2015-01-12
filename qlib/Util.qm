@@ -687,7 +687,6 @@ my list $unique_list = uniq($list);
         @since 1.3
     */
     public list sub slice(list $l, softlist $indices) {
-        return map $l[$1], $indices, exists $l[$1];
         return map $l[$1], $indices, ($1 >= 0 && $1 < $l.size());
     }
 }
