@@ -281,18 +281,18 @@ static inline long long atoll(const char* str) {
 #define OPENSSL_CONST
 #endif
 
-typedef std::set<const AbstractQoreNode* > const_node_set_t;
-typedef std::set<LocalVar *> lvar_set_t;
+typedef std::set<const AbstractQoreNode*> const_node_set_t;
+typedef std::set<LocalVar*> lvar_set_t;
 
 enum obe_type_e { OBE_Unconditional, OBE_Success, OBE_Error };
 
 class StatementBlock;
-typedef std::pair<enum obe_type_e, StatementBlock *> qore_conditional_block_exit_statement_t;
+typedef std::pair<enum obe_type_e, StatementBlock*> qore_conditional_block_exit_statement_t;
 
 typedef std::list<qore_conditional_block_exit_statement_t> block_list_t;
 
 // for maps of thread condition variables to TIDs
-typedef std::map<QoreCondition *, int> cond_map_t;
+typedef std::map<QoreCondition*, int> cond_map_t;
 
 #if defined(HAVE_PTHREAD_ATTR_GETSTACKSIZE) && defined(HAVE_CHECK_STACK_POS)
 #define QORE_MANAGE_STACK
