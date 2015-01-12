@@ -1810,3 +1810,26 @@ char* strcasestr(const char* s1, const char* s2) {
 #error no strcasestr implementation
 #endif
 #endif
+
+bool q_absolute_path_unix(const char* path) {
+   return path && path[0] == '/';
+}
+
+// returns true if the path is not relative; may not be strictly-speaking an absolute path
+bool q_absolute_path_windows(const char* path) {
+   if (!path)
+      return false;
+   if (path[0] == '\\')
+      return true;
+   if (isalpha(path[0]) && path[1] == ':')
+      return true;
+   return false;
+}
+
+bool q_absolute_path(const char* path) {
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+   return q_absolute_path_windows(path);
+#else
+   return q_absolute_path_unix(path);
+#endif
+}

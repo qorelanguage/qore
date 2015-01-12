@@ -922,4 +922,66 @@ nothing symlink(string old_path, string new_path) [dom=FILESYSTEM] {
    return 0;
 #endif
 }
+
+//! returns @ref Qore::True "True" if the argument is an absolute path on the current platform, @ref Qore::False "False" if not
+/** @par Example:
+    @code
+my bool $abs = absolute_path($path);
+    @endcode
+
+    @param path the path to check
+
+    @return @ref Qore::True "True" if the argument is an absolute path, @ref Qore::False "False" if not
+
+    @see
+    - @ref Qore::absolute_path_unix()
+    - @ref Qore::absolute_path_windows()
+
+    @since %Qore 0.8.12 this function is a native function in %Qore; moved from the <a href="../../modules/Util/html/index.html">Util</a> module
+*/
+bool absolute_path(string path) [flags=CONSTANT] {
+   return q_absolute_path(path->getBuffer());
+}
+
+//! returns @ref Qore::True "True" if the argument is a UNIX absolute path, @ref Qore::False "False" if not
+/** @par Example:
+    @code
+my bool $abs = absolute_path_unix($path);
+    @endcode
+
+    @param path the path to check
+
+    @return @ref Qore::True "True" if the argument is a UNIX absolute path, @ref Qore::False "False" if not
+
+    @see
+    - @ref Qore::absolute_path()
+    - @ref Qore::absolute_path_windows()
+
+    @since %Qore 0.8.12 this function is a native function in %Qore; moved from the <a href="../../modules/Util/html/index.html">Util</a> module
+*/
+bool absolute_path_unix(string path) [flags=CONSTANT] {
+   return q_absolute_path_unix(path->getBuffer());
+}
+
+//! returns @ref Qore::True "True" if the argument is a Windows absolute path, @ref Qore::False "False" if not
+/** @par Example:
+    @code
+my bool $abs = absolute_path_windows($path);
+    @endcode
+
+    @param path the path to check
+
+    @return @ref Qore::True "True" if the argument is a Windows absolute path, @ref Qore::False "False" if not
+
+    @see
+    - @ref Qore::absolute_path()
+    - @ref Qore::absolute_path_unix()
+
+    @since %Qore 0.8.12 this function is a native function in %Qore; moved from the <a href="../../modules/Util/html/index.html">Util</a> module
+*/
+bool absolute_path_windows(string path) [flags=CONSTANT] {
+   return q_absolute_path_windows(path->getBuffer());
+}
+
+
 //@}

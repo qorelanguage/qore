@@ -132,7 +132,7 @@ public class TextUtil::AbstractTextIterator {
         return opts;
     }
 
-    public any transform(any value, hash type) {
+    any transform(any value, hash type) {
         switch (type.type) {
             case "int": {
                 return int(value);

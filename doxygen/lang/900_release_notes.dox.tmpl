@@ -16,6 +16,9 @@
       - new literal hash support: hashes can now be given as literal values as follows: @code (<key_expr>: <val_expr>, [...]) @endcode in the past the keys in literal hashes had to be either a string or a constant; now any valid %Qore expression can be used to generate the hash keys at runtime
       - new hash syntax; hash elements can now be enclosed by curly brackets as well as regular parentheses; the version with curly brackets when used with the @ref hmap "map" operator results in the hash version of the map operator being used
       - Added new @ref hmap "hash version of the map" operator to build a hash from a list or iterator expression; ex: @code hash h = map {$1, h2.$1}, $i; @endcode
+    - new constants:
+      - @ref Qore::DirSep
+      - @ref Qore::Platform
     - new functions:
       - @ref Qore::decode_uri_request()
       - @ref Qore::encode_uri_request()
@@ -29,6 +32,10 @@
       - @ref <date>::isoDayOfWeek()
       - @ref <date>::isoWeekHash()
       - @ref <date>::isoWeekString()
+    - the following functions were moved from the <a href="../../modules/Util/html/index.html">Util</a> module to %Qore:
+      - @ref Qore::absolute_path()
+      - @ref Qore::absolute_path_windows()
+      - @ref Qore::absolute_path_unix()
     - camel-case functions were deprecated in this release, covering the following functions:
       - @ref Qore::callObjectMethod(): deprecated for @ref Qore::call_object_method()
       - @ref Qore::callObjectMethodArgs(): deprecated for @ref Qore::call_object_method_args()
@@ -132,7 +139,7 @@
     - fixed a bug in @ref Qore::Program::importClass() where the import would fail if a namespace-justified class name was given and any element of the namespace path didn't already exist in the target whereas the same import would succeed if the namespace were omitted in the call
     - fixed bugs in @ref Qore::Program::importClass(), @ref Qore::Program::importFunction(), and @ref Qore::Program::importGlobalVariable() when namespace-justified arguments were given, in this case when namespaces were created in the target, the internal root namespace index was not updated so the imported objects could not be found with namespace-justified references until the root indexes were updated
     - fixed a bug in the @ref requires "%requires" directive where relative paths were not calculated from the script's directory but rather from the current working directory
-    - fixed a bug where class methods could be declared public even though it had no effect and broke documentation generation with qdx; now a parse exception is raised
+    - fixed a bug in @ref Qore::Dir::chdir() on Windows
 
     @section qore_0811 Qore 0.8.11
 

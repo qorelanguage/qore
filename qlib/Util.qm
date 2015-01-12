@@ -54,9 +54,6 @@ module Util {
     All the public symbols in the module are defined in the Util namespace
 
     Functions:
-    - @ref Util::absolute_path()
-      - @ref Util::absolute_path_unix()
-      - @ref Util::absolute_path_windows()
     - @ref Util::compare_version()
     - @ref Util::get_byte_size()
     - @ref Util::get_exception_string()
@@ -73,6 +70,10 @@ module Util {
     @section utilrelnotes Release Notes
 
     @subsection util_1_3
+    - the following functions are now actually implemented in the %Qore library and only reexported here for backwards-compatibility:
+      - @ref Qore::absolute_path()
+      - @ref Qore::absolute_path_windows()
+      - @ref Qore::absolute_path_unix()    
     - added Util::slice()
     - added Util::same()
     - added Util::uniq()
@@ -279,9 +280,13 @@ my bool $abs = absolute_path($path);
         @param $path the path to check
 
         @return @ref Qore::True "True" if the argument is an absolute path, @ref Qore::False "False" if not
+
+        @see @ref Qore::absolute_path()
+
+        @note this function has been moved to the %Qore library and is reexported here for backwards-compatibility
      */
     public bool sub absolute_path(string $path) {
-        return PlatformOS != "Windows" ? absolute_path_unix($path) : absolute_path_windows($path);
+        return Qore::absolute_path($path);
     }
 
     #! returns @ref Qore::True "True" if the argument is a UNIX absolute path, @ref Qore::False "False" if not
@@ -293,9 +298,13 @@ my bool $abs = absolute_path_unix($path);
         @param $path the path to check
 
         @return @ref Qore::True "True" if the argument is a UNIX absolute path, @ref Qore::False "False" if not
+
+        @see @ref Qore::absolute_path_unix()
+
+        @note this function has been moved to the %Qore library and is reexported here for backwards-compatibility
      */
     public bool sub absolute_path_unix(string $path) {
-        return $path =~ /^\//;
+        return Qore::absolute_path_unix($path);
     }
 
     #! returns @ref Qore::True "True" if the argument is a Windows absolute path, @ref Qore::False "False" if not
@@ -307,9 +316,13 @@ my bool $abs = absolute_path_windows($path);
         @param $path the path to check
 
         @return @ref Qore::True "True" if the argument is a Windows absolute path, @ref Qore::False "False" if not
+
+        @see @ref Qore::absolute_path_windows()
+
+        @note this function has been moved to the %Qore library and is reexported here for backwards-compatibility
      */
     public bool sub absolute_path_windows(string $path) {        
-        return $path =~ /^\\/ || $path =~ /^[a-z]:\\/i;
+        return Qore::absolute_path_windows($path);
     }
 
     # private, non-exported function: tries to split a string into a list, respects parentheses and quotes
@@ -631,7 +644,7 @@ my list $unique_list = uniq($list);
         @param list some list
         @since 1.3
     */
-    public list sub uniq (list $l) {
+    public list sub uniq(list $l) {
         my hash $uniq = hash();
         foreach my any $e in ($l) {
             $uniq{$e}++;
@@ -650,7 +663,7 @@ my list $unique_list = uniq($list);
         @param list some list
         @since 1.3
     */
-    public bool sub same (list $l) {
+    public bool sub same(list $l) {
         if ($l.size() < 2) {
             return True;
         }
@@ -675,5 +688,6 @@ my list $unique_list = uniq($list);
     */
     public list sub slice(list $l, softlist $indices) {
         return map $l[$1], $indices, exists $l[$1];
+        return map $l[$1], $indices, ($1 >= 0 && $1 < $l.size());
     }
 }

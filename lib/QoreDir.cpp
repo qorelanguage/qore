@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -185,12 +185,20 @@ public:
    DLLLOCAL int chdir(const char *ndir, ExceptionSink *xsink) {
       assert(ndir);
 
+      // if changing to the current directory, then ignore
+      if (ndir[0] == '.') {
+	 const char* p = ndir + 1;
+	 while (*p && *p == QORE_DIR_SEP)
+	    ++p;
+	 if (!*p)
+	    return 0;
+      }
+      
       // if relative path then join with the old path and strip the path
       std::string ds;
 
       AutoLocker al(m);
-      // FIXME: the check below is not sufficient on windows (check for drive name)
-      if (ndir[0] != QORE_DIR_SEP) { // relative path
+      if (!q_absolute_path(ndir)) {
 	 if (dirname.empty()) {
 	    xsink->raiseException("DIR-CHDIR-ERROR", "cannot change to relative directory because no current directory is set");
 	    return -1;

@@ -92,6 +92,8 @@ if (!$d.chdir("../doc")) {
 }
     @endcode
 
+    @note calls to change to the current directory \c "." have no effect
+
     @throw DIR-CHDIR-ERROR cannot change to relative directory because no current directory is set
  */
 bool Dir::chdir(string path) {
