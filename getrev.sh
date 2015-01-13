@@ -1,7 +1,6 @@
 #!/bin/sh
 
-#if out=$(svn info "$1" 2> /dev/null) || out=$(git svn info "$1" 2> /dev/null); then
-if out=$(svn info "$1" 2> /tmp/svn-getrev.sh.out) || out=$(git svn info "$1" 2> /tmp/git-getrev.sh.out); then
+if out=$(svn info "$1" 2> /dev/null) || out=$(git svn info "$1" 2> /dev/null); then
     build=$(echo "${out}"|grep "^Revision:"|cut -f2 -d' ')
     echo "${build}"
     exit 0
