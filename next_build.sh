@@ -80,7 +80,9 @@ if build="$($(dirname "$0")/getrev.sh)"; then
     make_file ${file}
     ok=1
 else
-    printf "Need svn revision to create ${file}"
+    echo "Need svn revision to create ${file}: "
+    cat /tmp/getrev.sh.out
+    rm /tmp/getrev.sh.out
     exit 1
 fi
 
