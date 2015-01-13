@@ -81,8 +81,10 @@ if build="$($(dirname "$0")/getrev.sh)"; then
     ok=1
 else
     echo "Need svn revision to create ${file}: "
-    cat /tmp/getrev.sh.out
-    rm /tmp/getrev.sh.out
+    cat /tmp/svn-getrev.sh.out
+    rm -f /tmp/svn-getrev.sh.out
+    cat /tmp/git-getrev.sh.out
+    rm -f /tmp/git-getrev.sh.out
     exit 1
 fi
 
