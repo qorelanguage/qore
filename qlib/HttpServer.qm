@@ -1312,7 +1312,7 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
                 $rv = $handler.handleRequest($listener, $s, $cx, $hdr, $body);
 
                 # manage persistent handler info, if applicable
-                if (!$phi) {
+                if (!$phi.handler) {
                     if ($handler.persistent)
                         $phi.assign($dhh, $handler);
                 }

@@ -343,7 +343,7 @@ public class HttpServer::AbstractLogger {
     }    
 }
 
-#! this absrtact class defines the public interface of the private HttpListener class defined in the HttpServer module
+#! this abstract class defines the public interface of the private HttpListener class defined in the HttpServer module
 public class HttpServer::HttpListenerInterface inherits HttpServer::AbstractLogger {
     #! adds user-defined data to be returned in the \c "uctx" context key when serving requests from this listener
     /** @param uctx user-defined data to be returned in the \c "uctx" context key when serving requests from this listener

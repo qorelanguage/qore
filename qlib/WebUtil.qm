@@ -610,7 +610,10 @@ my *hash $h = $tm.tryRender("html/index.qhtml", $ctx);
             const Unix = (PlatformOS != "Windows");
 
             #! directory separator character
-            const DirSep = (Unix ? "/" : "\\");
+            /** actually defined in Qore, exported here for backwards-compatibility
+                @see @ref Qore::DirSep
+            */
+            const DirSep = Qore::DirSep;
 
             #! default configuration values
             const Defaults = (
