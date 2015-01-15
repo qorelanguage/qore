@@ -562,7 +562,7 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
    }
 
    // see if this is actually a path
-   if (name[0] == '.' || q_absolute_path(name)) {
+   if (q_find_first_path_sep(name)) {
       // see if it's a user or binary module
       size_t len = strlen(name);
       if (len > 5 && !strcasecmp(".qmod", name + len - 5))

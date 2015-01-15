@@ -997,7 +997,22 @@ struct tm *q_gmtime(const time_t *clock, struct tm *tms) {
    return tms;
 }
 
-static const char* q_find_last_dir_sep(const char* path) {
+const char* q_find_first_path_sep(const char* path) {
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+   // on windows we have to find either '\\' (standard directory separator character) or '/' (UNIX-style, also accepted on Windows)
+   const char* p = path;
+   while (*p) {
+      if (*p == '/' || *p == '\\')
+	 return p;
+      ++p;
+   }
+   return 0;
+#else
+   return strchr(path, QORE_DIR_SEP);
+#endif
+}
+
+const char* q_find_last_path_sep(const char* path) {
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
    // on windows we have to find either '\\' (standard directory separator character) or '/' (UNIX-style, also accepted on Windows)
    const char* p = path;
@@ -1015,7 +1030,7 @@ static const char* q_find_last_dir_sep(const char* path) {
 
 // thread-safe basename function (resulting pointer must be free()ed)
 char* q_basename(const char* path) {
-   const char* p = q_find_last_dir_sep(path);
+   const char* p = q_find_last_path_sep(path);
    if (!p)
       return strdup(path);
    return strdup(p + 1);
@@ -1023,7 +1038,7 @@ char* q_basename(const char* path) {
 
 // returns a pointer within the same string
 char* q_basenameptr(const char* path) {
-   const char* p = q_find_last_dir_sep(path);
+   const char* p = q_find_last_path_sep(path);
    if (!p)
       return (char* )path;
    return (char* )p + 1;
@@ -1031,7 +1046,7 @@ char* q_basenameptr(const char* path) {
 
 // thread-safe basename function (resulting pointer must be free()ed)
 char* q_dirname(const char* path) {
-   const char* p = q_find_last_dir_sep(path);
+   const char* p = q_find_last_path_sep(path);
    if (!p || p == path) {
       char* x = (char* )malloc(sizeof(char) * 2);
       x[0] = !p ? '.' : QORE_DIR_SEP;

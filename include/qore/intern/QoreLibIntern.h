@@ -829,5 +829,10 @@ DLLLOCAL int64 q_clock_getmillis();
 DLLLOCAL int64 q_clock_getmicros();
 DLLLOCAL int64 q_clock_getnanos();
 
+// find the position of the first path separator in the string, or 0
+DLLLOCAL const char* q_find_first_path_sep(const char* path);
+// find the position of the last path separator in the string, or 0
+DLLLOCAL const char* q_find_last_path_sep(const char* path);
+
 #endif
 
