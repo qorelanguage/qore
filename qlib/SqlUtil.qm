@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file SqlUtil.qm Qore user module for working with SQL data
 
-/*  SqlUtil.qm Copyright (C) 2013 - 2014 Qore Technologies, sro
+/*  SqlUtil.qm Copyright (C) 2013 - 2015 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -10462,7 +10462,12 @@ my bool $b = $table.empty();
                 if (!ch.target_columns)
                     ch.target_columns = ch.columns;
 
-                addForeignConstraintUnlocked(cn, ch.columns, ch.table, ch.target_columns, opt.(getForeignConstraintOptions().keys()));
+                try {
+                    addForeignConstraintUnlocked(cn, ch.columns, ch.table, ch.target_columns, opt.(getForeignConstraintOptions().keys()));
+                }
+                catch (hash ex) {
+                    rethrow ex.err, sprintf("error setting up table %s: %s", name, ex.desc), ex.arg;
+                }
             }
 
             # add triggers to table
