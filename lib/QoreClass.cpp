@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -641,16 +641,10 @@ qore_class_private::~qore_class_private() {
       delete orNothingTypeInfo;
 }
 
-static void breaky() {
-}
-
 void qore_class_private::initialize() {
    //printd(5, "qore_class_private::initialize() this: %p '%s' initialized: %d scl: %p\n", this, name.c_str(), initialized, scl);
    if (initialized)
       return;
-
-   if (!sys)
-      breaky();
 
    qcp_set_t qcp_set;
    initializeIntern(qcp_set);
