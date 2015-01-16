@@ -10466,7 +10466,7 @@ my bool $b = $table.empty();
                     addForeignConstraintUnlocked(cn, ch.columns, ch.table, ch.target_columns, opt.(getForeignConstraintOptions().keys()));
                 }
                 catch (hash ex) {
-                    rethrow ex.err, sprintf("error setting up table %s: %s", name, ex.desc), ex.arg;
+                    throw ex.err, sprintf("error setting up table %s: %s", name, ex.desc), ex.arg;
                 }
             }
 
