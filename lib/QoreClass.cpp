@@ -3597,7 +3597,8 @@ bool QoreClass::runtimeHasPublicMembersInHierarchy() const {
 
 void QoreClass::parseSetEmptyPublicMemberDeclaration() {   
    priv->pending_has_public_memdecl = true;
-   priv->has_new_user_changes = true;
+   if (!priv->has_new_user_changes)
+      priv->has_new_user_changes = true;
 }
 
 bool QoreClass::isPublicOrPrivateMember(const char* str, bool &priv_member) const {

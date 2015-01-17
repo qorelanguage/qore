@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -510,15 +510,18 @@ AbstractQoreNode *ProgramFunctionCallNode::makeReferenceNodeAndDerefImpl() {
    return new UnresolvedProgramCallReferenceNode(takeName());
 }
 
-AbstractQoreNode *ScopedObjectCallNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode* ScopedObjectCallNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    assert(!typeInfo);
    if (name) {
       assert(!oc);
       // find object class
-      if ((oc = qore_root_ns_private::parseFindScopedClass(loc, *name))) {
+      if ((oc = qore_root_ns_private::parseFindScopedClass(loc, *name))) {	 
 	 // check if parse options allow access to this class
 	 if (qore_program_private::parseAddDomain(getProgram(), oc->getDomain()))
 	    parseException("ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", oc->getName());
+	 // check if the class has pending changes and is used in a constant initialization expression
+	 if (pflag & PF_CONST_EXPRESSION && qore_class_private::parseHasPendingChanges(*oc))
+	    parseException("ILLEGAL-CLASS-INSTANTIATION", "cannot instantiate '%s' class for assignment in a constant expression in the parse initialization phase when the class has uncommitted changes", oc->getName());	    
       }
       delete name;
       name = 0;

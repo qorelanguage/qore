@@ -1,0 +1,29 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+
+%requires UnitTest
+
+UnitTest unit();
+
+Program p(PO_LOCKDOWN);
+
+string code = "
+class B {
+    abstract string getName();
+}
+
+class C inherits B {
+    string getName() { return 'C'; }
+}
+
+class D {
+    public {
+        const C = new C();
+    }
+}
+";
+
+unit.exception(sub () { p.parse(code, "test"); }, NOTHING, "class", "constant initialization using class with uncommitted changes");

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -2198,10 +2198,16 @@ public:
    }
 
    DLLLOCAL void parseAssimilatePublicConstants(ConstantList &cmap) {
+      if (!has_new_user_changes)
+         has_new_user_changes = true;
+
       pend_pub_const.assimilate(cmap, pub_const, priv_const, pend_priv_const, false, name.c_str());
    }
 
    DLLLOCAL void parseAssimilatePrivateConstants(ConstantList &cmap) {
+      if (!has_new_user_changes)
+         has_new_user_changes = true;
+
       pend_priv_const.assimilate(cmap, priv_const, pub_const, pend_pub_const, true, name.c_str());
    }
 
@@ -2211,6 +2217,9 @@ public:
          val->deref(0);
          return;
       }
+      if (!has_new_user_changes)
+         has_new_user_changes = true;
+
       //printd(5, "parseAddPublicConstant() this=%p cls=%p const=%s\n", this, cls, cname.c_str());
       
       pend_pub_const.parseAdd(cname, val, pub_const, priv_const, pend_priv_const, false, name.c_str());
@@ -2748,9 +2757,17 @@ public:
       }
    }
 
+   DLLLOCAL bool parseHasPendingChanges() const {
+      return has_new_user_changes;
+   }
+
    // static methods
    //DLLLOCAL static
 
+   DLLLOCAL static bool parseHasPendingChanges(const QoreClass& qc) {
+      return qc.priv->parseHasPendingChanges();
+   }
+   
    DLLLOCAL static int parseCheckMemberAccess(const QoreClass& qc, const QoreProgramLocation& loc, const char* mem, const QoreTypeInfo*& memberTypeInfo, int pflag) {
       return qc.priv->parseCheckMemberAccess(loc, mem, memberTypeInfo, pflag);
    }

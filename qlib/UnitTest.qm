@@ -424,7 +424,7 @@ sub fly (string animal) {
 this.exception(\fly, ('cow'), 'cow cannot fly', 'invoked exception when cow trying to fly');
         @endcode
     */
-    int exception(callref f, list params, string regex, string msg) {
+    int exception(callref f, *softlist params, string regex, string msg) {
         try {
             call_function_args(f, params);
         }

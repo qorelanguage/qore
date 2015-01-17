@@ -145,7 +145,8 @@
       - @ref Qore::get_script_path()
       - @ref Qore::get_script_name()
       - @ref Qore::Dir
-      - module importing and includ file handling
+      - module importing and include file handling
+    - fixed a bug in parsing constant value assignment expressions where such expressions could use or instantiate classes with uncommitted changes and therefore a crash could result
 
     @section qore_0811 Qore 0.8.11
 
