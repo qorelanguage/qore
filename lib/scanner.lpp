@@ -664,7 +664,7 @@ static bool parse_is_defined(const char* pstr, bool def = true) {
 
 HEX_DIGIT       [0-9A-Fa-f]
 HEX_CONST       0x{HEX_DIGIT}+
-OCTAL_CONST     \\[0-7]{0,3}
+OCTAL_CONST     \\[0-7]{1,3}
 DIGIT		[0-9]
 WORD		[a-zA-Z][a-zA-Z0-9_]*
 WS		[ \t\r]
@@ -1093,12 +1093,16 @@ RTIME           PT(-?[0-9]+[HMSu])+
       \n				yylval->String->concat('\n');
       {OCTAL_CONST}			{
                                            int val;
-                                           if (isoctaldigit(*(yytext + 2))) {
-					      val = ascii_to_octal(*(yytext + 3)) 
+                                           if (strlen(yytext) == 4) {
+                                              val = ascii_to_octal(*(yytext + 3)) 
 						 + (8 * ascii_to_octal(*(yytext + 2)))
 						 + (64 * ascii_to_octal(*(yytext + 1)));
                                            }
-					   else {
+                                           else if (strlen(yytext) == 3) {
+                                              val = ascii_to_octal(*(yytext + 2)) 
+						 + (8 * ascii_to_octal(*(yytext + 1)));
+                                           }
+                                           else {
 					      val = ascii_to_octal(*(yytext + 1));
                                            }
 					   yylval->String->concat((char)val);
