@@ -1092,17 +1092,18 @@ RTIME           PT(-?[0-9]+[HMSu])+
       \"				BEGIN(INITIAL); return QUOTED_WORD;
       \n				yylval->String->concat('\n');
       {OCTAL_CONST}			{
+                                           int token_lenght = strlen(yytext);
                                            int val;
-                                           if (strlen(yytext) == 4) {
+                                           if (token_lenght == 4) {
                                               val = ascii_to_octal(*(yytext + 3)) 
 						 + (8 * ascii_to_octal(*(yytext + 2)))
 						 + (64 * ascii_to_octal(*(yytext + 1)));
                                            }
-                                           else if (strlen(yytext) == 3) {
+                                           else if (token_lenght == 3) {
                                               val = ascii_to_octal(*(yytext + 2)) 
 						 + (8 * ascii_to_octal(*(yytext + 1)));
                                            }
-                                           else {
+                                           else { // here token_lenght == 2
 					      val = ascii_to_octal(*(yytext + 1));
                                            }
 					   yylval->String->concat((char)val);
