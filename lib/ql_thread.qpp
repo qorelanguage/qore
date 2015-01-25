@@ -330,7 +330,7 @@ foreach my string $tid in ($cs.keyIterator()) {
 }
     @endcode
 
-    since %Qore 0.8.12 as a replacement for deprecated camel-case getAllThreadCallStacks()
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case getAllThreadCallStacks()
 */
 hash get_all_thread_call_stacks() [dom=THREAD_CONTROL,THREAD_INFO] {
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE

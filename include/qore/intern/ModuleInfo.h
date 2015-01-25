@@ -247,8 +247,8 @@ public:
 class QoreUserModuleDefContextHelper;
 class QoreUserModule;
 
-typedef std::set<std::string> strset_t;   
-typedef std::multimap<std::string, strset_t> md_map_t;
+typedef std::set<std::string> strset_t;
+typedef std::map<std::string, strset_t> md_map_t;
 
 class ModMap {
 protected:
@@ -256,9 +256,9 @@ protected:
 
 public:
    DLLLOCAL bool addDep(const char* l, const char* r) {
-      md_map_t::iterator i = map.find(l);      
-      if (i == map.end())
-         i = map.insert(md_map_t::value_type(l, strset_t()));
+      md_map_t::iterator i = map.lower_bound(l);
+      if (i == map.end() || i->first != l)
+         i = map.insert(i, md_map_t::value_type(l, strset_t()));
       else if (i->second.find(r) != i->second.end())
          return true;
       i->second.insert(r);
@@ -292,6 +292,19 @@ public:
    DLLLOCAL bool empty() const {
       return map.empty();
    }
+
+#ifdef DEBUG
+   DLLLOCAL void show() {
+      for (md_map_t::iterator i = map.begin(), e = map.end(); i != e; ++i) {
+         QoreString str("[");
+         for (strset_t::iterator si = i->second.begin(), se = i->second.end(); si != se; ++si)
+            str.sprintf("'%s',", (*si).c_str());
+         str.concat("]");
+	 
+         printd(0, " + rmd_map '%s' -> %s\n", i->first.c_str(), str.getBuffer());
+      }
+   }
+#endif
 };
 
 class QoreModuleManager {
@@ -403,6 +416,7 @@ public:
          //printd(5, "QoreModuleManager::trySetUserModule('%s') UMSET SET: rmd_map: empty\n", name);
       }
 #ifdef DEBUG
+      /*
       else {
 	 QoreString str("[");
 	 for (strset_t::iterator si = i->second.begin(), se = i->second.end(); si != se; ++si)
@@ -410,6 +424,7 @@ public:
 	 str.concat("]");
          //printd(5, "QoreModuleManager::trySetUserModule('%s') UMSET NOT SET: md_map: %s\n", name, str.getBuffer());
       }
+      */
 #endif
    }
 
@@ -429,28 +444,29 @@ public:
    DLLLOCAL void removeUserModuleDependency(const char* name) {
       //printd(5, "QoreModuleManager::removeUserModuleDependency('%s')\n", name);
       md_map_t::iterator i = rmd_map.find(name);
-      if (i == rmd_map.end()) {
-         //printd(5, "QoreModuleManager::removeUserModuleDependency('%s') no deps\n", name);
-         return;
-      }
-
-      // remove dependents
-      for (strset_t::iterator si = i->second.begin(), se = i->second.end(); si != se; ++si) {
-         md_map_t::iterator di = md_map.find(*si);
-         assert(di != md_map.end());
-
-         strset_t::iterator dsi = di->second.find(i->first);
-         assert(dsi != di->second.end());
-         di->second.erase(dsi);
-         if (di->second.empty()) {
-            //printd(5, "QoreModuleManager::removeUserModuleDependency('%s') '%s' now empty, ADDING TO UMMSET: '%s'\n", name, i->first.c_str(), (*si).c_str());
-            md_map.erase(di);
-            assert(umset.find(*si) == umset.end());
-            umset.insert(*si);
+      if (i != rmd_map.end()) {
+         // remove dependents
+         for (strset_t::iterator si = i->second.begin(), se = i->second.end(); si != se; ++si) {
+            md_map_t::iterator di = md_map.find(*si);
+            assert(di != md_map.end());
+            
+            strset_t::iterator dsi = di->second.find(i->first);
+            assert(dsi != di->second.end());
+            di->second.erase(dsi);
+            if (di->second.empty()) {
+               //printd(5, "QoreModuleManager::removeUserModuleDependency('%s') '%s' now empty, ADDING TO UMMSET: '%s'\n", name, i->first.c_str(), (*si).c_str());
+               //md_map.erase(di);
+               assert(umset.find(*si) == umset.end());
+               umset.insert(*si);
+            }
          }
+         // remove from dep map
+         rmd_map.erase(i);
       }
-      // remove from dep map
-      rmd_map.erase(i);
+      
+      i = md_map.find(name);
+      if (i != md_map.end())
+         md_map.erase(i);
    }
 };
 

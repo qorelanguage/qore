@@ -140,7 +140,7 @@
     - fixed a bug in the <a href="../../modules/RestClient/html/index.html">RestClient</a> module where URI paths were sent as relative paths instead of absolute paths
     - fixed a bug in the @ref Qore::FtpClient "FtpClient" class where socket errors would not cause the connection to be closed automatically and therefore further use of the object required a manual disconnect even though the object supports transparent auto-reconnection
     - fixed a bug where conversions from float to number would introduce inaccuracy in the arbitrary-precision number; ex: <code>737.38.toNumber() -> 737.3799999999999954525264911353588104248</code>
-    - fixed a bug where @ref requires "%requires" would fail loading a user module inside a @ref try-module "%rty-module" block
+    - fixed a bug where @ref requires "%requires" would fail loading a user module inside a @ref try-module "%try-module" block
     - fixed a bug in @ref Qore::Program::importClass() where the import would fail if a namespace-justified class name was given and any element of the namespace path didn't already exist in the target whereas the same import would succeed if the namespace were omitted in the call
     - fixed bugs in @ref Qore::Program::importClass(), @ref Qore::Program::importFunction(), and @ref Qore::Program::importGlobalVariable() when namespace-justified arguments were given, in this case when namespaces were created in the target, the internal root namespace index was not updated so the imported objects could not be found with namespace-justified references until the root indexes were updated
     - fixed a bug in the @ref requires "%requires" directive where relative paths were not calculated from the script's directory but rather from the current working directory

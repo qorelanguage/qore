@@ -176,7 +176,7 @@ int QoreModuleDefContext::init(QoreProgram& pgm, ExceptionSink& xsink) {
       ReferenceHolder<> cn(reinterpret_cast<QoreClosureParseNode*>(init_c)->eval(&xsink), &xsink);
       assert(!xsink);
       assert(cn->getType() == NT_RUNTIME_CLOSURE || cn->getType() == NT_FUNCREF);
-      ReferenceHolder<> tmp(reinterpret_cast<QoreClosureNode*>(*cn)->exec(0, &xsink), &xsink);
+      ReferenceHolder<> tmp(reinterpret_cast<ResolvedCallReferenceNode*>(*cn)->exec(0, &xsink), &xsink);
    }
 
    return xsink ? -1 : 0;
@@ -273,9 +273,8 @@ QoreUserModule::~QoreUserModule() {
       if (!xsink) {
          ReferenceHolder<> cn(del->eval(&xsink), &xsink);
          assert(!xsink);
-         assert(cn->getType() == NT_RUNTIME_CLOSURE);
-
-         ReferenceHolder<> tmp(reinterpret_cast<QoreClosureNode*>(*cn)->exec(0, &xsink), &xsink);
+	 assert(cn->getType() == NT_RUNTIME_CLOSURE || cn->getType() == NT_FUNCREF);
+	 ReferenceHolder<> tmp(reinterpret_cast<ResolvedCallReferenceNode*>(*cn)->exec(0, &xsink), &xsink);
          del->deref(&xsink);
       }
    }
@@ -793,7 +792,9 @@ QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, std
 
    mi->set(desc, version, author, url, license_str, qmd.takeDel());
    omi = mi.release();
-   QMM.addModule(omi);
+   addModule(omi);
+   trySetUserModule(name);
+
    return omi;
 }
 
@@ -1093,35 +1094,37 @@ void QoreModuleManager::delUser() {
       strset_t::iterator ui = umset.begin();
       module_map_t::iterator i = map.find((*ui).c_str());
       assert(i != map.end());
-      umset.erase(ui);
       QoreAbstractModule* m = i->second;
       assert(m->isUser());
       //printd(5, "QoreModuleManager::delUser() deleting '%s' (%s) %p\n", (*ui).c_str(), i->first, m);
+      umset.erase(ui);
       removeUserModuleDependency(i->first);
+
       map.erase(i);
       delete m;
    }
 
-#ifdef DEBUG
-   // ensure only builtin modules are left
-   bool abrt = false;
+#ifdef DEBUG   
    for (module_map_t::iterator i = map.begin(), e = map.end(); i != e; ++i) {
       if (i->second->isUser()) {
-	 printd(0, "QoreModuleManager::delUser() '%s' %p not removed\n", i->second->getName(), i->second);
-	 abrt = true;
-      }
-   }
-   if (abrt) {
-      for (md_map_t::iterator i = md_map.begin(), e = md_map.end(); i != e; ++i) {
-	 QoreString str("[");
-	 for (strset_t::iterator si = i->second.begin(), se = i->second.end(); si != se; ++si)
-	    str.sprintf("'%s',", (*si).c_str());
-	 str.concat("]");
+	 printd(0, "QoreModuleManager::delUser() '%s' %p not yet removed\n", i->second->getName(), i->second);
 
-	 printd(0, " + md_map '%s' -> %s\n", i->first.c_str(), str.getBuffer());
+	 for (md_map_t::iterator i = md_map.begin(), e = md_map.end(); i != e; ++i) {
+	    QoreString str("[");
+	    for (strset_t::iterator si = i->second.begin(), se = i->second.end(); si != se; ++si)
+	       str.sprintf("'%s',", (*si).c_str());
+	    str.concat("]");
+	    
+	    printd(0, " + md_map '%s' -> %s\n", i->first.c_str(), str.getBuffer());
+	 }
+
+	 rmd_map.show();
+
+	 assert(false);
       }
    }
 #endif
+   
    assert(md_map.empty());
    assert(rmd_map.empty());
 }
