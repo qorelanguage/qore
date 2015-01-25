@@ -1224,5 +1224,4 @@ Program::loadUserModuleWithProgram(string name, !Qore::Program[QoreProgram] pgm)
 Program::loadApplyToUserModule(string name) [dom=MODULES] {
    p->ref();
    QMM.runTimeLoadModule(*xsink, name->getBuffer(), 0, p);
-   self->doDelete(xsink);
 }
