@@ -2163,6 +2163,25 @@ nothing load_module(string name) [dom=MODULES] {
 nothing load_module() [flags=RUNTIME_NOOP;dom=MODULES] {
 }
 
+//! Loads in a %Qore user module at run-time with using the given @ref Qore::Program "Program" object as the container for the user module code
+/** This function allows a user module to be loaded with a custom API already present in the user module's @ref Qore::Program "Program" container
+
+    @par Example:
+    @code
+load_user_module_with_program("MyModule", $p);
+    @endcode
+
+    @param name the name or path of the user module to load
+    @param pgm the @ref Qore::Program "Program" object to use as a container for the new user module, presumably this has a custom API that the user module can use; note that after this call the @ref Qore::Program "Program" object will be owned by the user module, therefore the object itself will no longer be valid and any accesses to the object after this call will result in an exception
+
+    @throw LOAD-MODULE-ERROR module cannot be loaded: binary modules cannot be loaded in @ref Qore::Program "Program" containers, module defines symbols already defined in the target object, etc
+
+    @since %Qore 0.8.12
+ */
+nothing load_user_module_with_program(string name, !Qore::Program[QoreProgram] pgm) [dom=MODULES] {
+   QMM.runTimeLoadModule(*xsink, name->getBuffer(), getProgram(), pgm);
+}
+
 //! Decodes percent numeric codes in a URL string and returns the decoded string in UTF-8 encoding
 /** @param url a URL string with percent-encodings to decode
 

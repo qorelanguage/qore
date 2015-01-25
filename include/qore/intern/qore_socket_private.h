@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -264,7 +264,7 @@ struct qore_socket_private {
    }
 
    DLLLOCAL int close_internal() {
-      //printd(5, "qore_socket_private::close_internal(this=%08p) sock=%d\n", this, sock);
+      //printd(5, "qore_socket_private::close_internal(this=%p) sock=%d\n", this, sock);
       if (sock >= 0) {
 	 // if an SSL connection has been established, shut it down first
 	 if (ssl) {
@@ -981,7 +981,7 @@ struct qore_socket_private {
 	 return -1;
       }
 
-      //printd(5, "qore_socket_private::connectINETIntern(this=%08p, host='%s', port=%d, timeout_ms=%d) sock=%d\n", this, host, port, timeout_ms, sock);
+      //printd(5, "qore_socket_private::connectINETIntern(this=%p, host='%s', port=%d, timeout_ms=%d) sock=%d\n", this, host, port, timeout_ms, sock);
 
       int rc;
 
@@ -1023,7 +1023,7 @@ struct qore_socket_private {
       stype = ai_socktype;
       sprot = ai_protocol;
       port = prt;
-      //printd(5, "qore_socket_private::connectINETIntern(this=%08p, host='%s', port=%d, timeout_ms=%d) success, rc=%d, sock=%d\n", this, host, port, timeout_ms, rc, sock);
+      //printd(5, "qore_socket_private::connectINETIntern(this=%p, host='%s', port=%d, timeout_ms=%d) success, rc=%d, sock=%d\n", this, host, port, timeout_ms, rc, sock);
 
       do_connected_event();
       return 0;

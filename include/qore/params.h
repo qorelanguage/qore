@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -321,7 +321,10 @@ static inline void HARD_QORE_DATA(const QoreListNode *n, qore_size_t i, const vo
 #define HARD_QORE_OBJECT(list, i) const_cast<QoreObject *>(get_hard_param<const QoreObject>(list, i))
 
 // sets up an object pointer
-#define HARD_QORE_OBJ_DATA(vname, Type, list, i, cid, dname, cname, xsink) HARD_QORE_PARAM(obj_##vname, const QoreObject, list, i); Type *vname = reinterpret_cast<Type *>(obj_##vname->getReferencedPrivateData(cid, xsink)); if (!vname && !*xsink) xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot complete call setup to %s() because parameter %d (<class %s>) has already been deleted", cname, i + 1, dname)
+#define HARD_QORE_OBJ_DATA(vname, Type, list, i, cid, dname, cname, xsink) HARD_QORE_PARAM(obj_##vname, const QoreObject, list, i); Type* vname = reinterpret_cast<Type*>(obj_##vname->getReferencedPrivateData(cid, xsink)); if (!vname && !*xsink) xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot complete call setup to %s() because parameter %d (<class %s>) has already been deleted", cname, i + 1, dname)
+
+// destructively sets up an object pointer; caller owns the pointer
+#define TAKE_HARD_QORE_OBJ_DATA(vname, Type, list, i, cid, dname, cname, xsink) HARD_QORE_PARAM(obj_##vname, const QoreObject, list, i); Type* vname = reinterpret_cast<Type*>(const_cast<QoreObject*>(obj_##vname)->getAndClearPrivateData(cid, xsink)); if (!vname && !*xsink) xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot complete call setup to %s() because parameter %d (<class %s>) has already been deleted", cname, i + 1, dname); else if (vname) const_cast<QoreObject*>(obj_##vname)->doDelete(xsink)
 
 // sets up an object pointer
 #define HARD_QORE_OBJ_OR_NOTHING_DATA(vname, Type, list, i, cid, xsink) HARD_QORE_OR_NOTHING_PARAM(obj_##vname, const QoreObject, list, i); Type* vname = obj_##vname ? reinterpret_cast<Type*>(obj_##vname->getReferencedPrivateData(cid, xsink)) : 0;

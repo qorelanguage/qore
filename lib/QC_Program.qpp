@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1168,10 +1168,61 @@ $pgm.loadModule("mysql");
 
     @throw LOAD-MODULE-ERROR module cannot be loaded: API incompatibility, module defines symbols already defined in the target object, etc
 
-    @see getModuleHash(), getFeatureList()
+    @see
+    - Program::loadApplyToUserModule()
+    - Program::loadUserModuleWithProgram()
+    - get_module_hash()
+    - get_feature_list()
 
     @since %Qore 0.8.7
 */
 Program::loadModule(string name)  [dom=MODULES] {
-   QMM.runTimeLoadModule(name->getBuffer(), p, *xsink);
+   QMM.runTimeLoadModule(*xsink, name->getBuffer(), p);
+}
+
+//! Loads a %Qore user module into the Program object at run-time using the given @ref Qore::Program "Program" object as the container for the user module code
+/** This function allows a user module to be loaded with a custom API already present in the user module's @ref Qore::Program "Program" container. 
+    If a feature with the same name already exists, then this feature's code is imported into the current Program object if necessary and no further action is taken.
+
+    Note that modules providing objects resolved at parse time (classes, constants, functions, etc) must be loaded prior to parsing.
+
+    @par Example:
+    @code
+$pgm.loadUserModuleWithProgram("MyModule", $p);
+    @endcode
+
+    @param name the name or path of the user module to load
+    @param pgm the @ref Qore::Program "Program" object to use as a container for the new user module, presumably this has a custom API that the user module can use; note that after this call the @ref Qore::Program "Program" object will be owned by the user module, therefore the object itself will no longer be valid and any accesses to the object after this call will result in an exception
+
+    @throw LOAD-MODULE-ERROR module cannot be loaded: binary modules cannot be loaded in @ref Qore::Program "Program" containers, module defines symbols already defined in the target object, etc
+
+    @see
+    - Program::loadApplyToUserModule()
+    - Program::loadModule()
+    - get_module_hash()
+    - get_feature_list()
+
+    @since %Qore 0.8.12
+*/
+Program::loadUserModuleWithProgram(string name, !Qore::Program[QoreProgram] pgm) [dom=MODULES] {
+   QMM.runTimeLoadModule(*xsink, name->getBuffer(), p, pgm);
+}
+
+//! Loads a %Qore user module into the given Program contaner at run-time; after this call the Program object is owned by the user module and is no longer accessible in the object used for the call
+/** This function allows a user module to be loaded with a custom API already present in the user module's @ref Qore::Program "Program" container.
+
+    @param name the name or path of the user module to load    
+
+    @note after this call the Program object will be owned by the user module and will no longer be valid, so any accesses to the object after this call will result in an exception
+
+    @see
+    - Program::loadUserModule()
+    - Program::loadUserModuleWithProgram()
+    - get_module_hash()
+    - get_feature_list()
+ */
+Program::loadApplyToUserModule(string name) [dom=MODULES] {
+   p->ref();
+   QMM.runTimeLoadModule(*xsink, name->getBuffer(), 0, p);
+   self->doDelete(xsink);
 }

@@ -551,7 +551,7 @@ static void get_type_name(std::string &t, const std::string &type) {
       t = type;
    else
       t.assign(type, cp + 2, -1);
-   if (t[0] == '*')
+   if (t[0] == '*' || t[0] == '!')
       t.erase(0, 1);
 }
 
@@ -613,7 +613,7 @@ static int get_qore_type(const std::string &qt, std::string &cppt) {
       cppt = "nothingTypeInfo";
       return 0;
    }
-      
+   
    strmap_t::iterator i = tmap.find(qt);
    if (i == tmap.end()) {
       // assume a Qore object of the given class
@@ -1346,7 +1346,10 @@ protected:
             get_type_name(cid, p.type);
             toupper(cid);
 
-            if (p.type[0] != '*')
+            if (p.type[0] == '!')
+               fprintf(fp, "   TAKE_HARD_QORE_OBJ_DATA(%s, %s, args, %d, CID_%s, \"%s%s%s()\", \"%s\", xsink);\n   if (*xsink)\n      return%s;\n",
+                       p.name.c_str(), p.qore.c_str(), i, cid.c_str(), cname ? cname : "", cname ? "::" : "", name.c_str(), p.type.c_str() + 1, rv ? " 0" : "");
+            else if (p.type[0] != '*')
                fprintf(fp, "   HARD_QORE_OBJ_DATA(%s, %s, args, %d, CID_%s, \"%s%s%s()\", \"%s\", xsink);\n   if (*xsink)\n      return%s;\n",
                        p.name.c_str(), p.qore.c_str(), i, cid.c_str(), cname ? cname : "", cname ? "::" : "", name.c_str(), p.type.c_str(), rv ? " 0" : "");
             else
@@ -1469,7 +1472,12 @@ protected:
          if (p.type == "...")
             fputs("...", fp);
          else {
-            fprintf(fp, "%s %s", p.type.c_str(), p.name.c_str());
+            if (p.type[0] == '!')
+               fputs(p.type.c_str() + 1, fp);
+            else
+               fputs(p.type.c_str(), fp);
+               
+            fprintf(fp, " %s", p.name.c_str());
             if (!p.val.empty()) {
                std::string qv;
                if (get_dox_value(p.val, qv))
@@ -1539,6 +1547,11 @@ protected:
       if (tstr == "...")
          return;
 
+      if (tstr[0] == '!') {
+         fputs(tstr.c_str() + 1, fp);
+         return;
+      }
+      
       size_t i = tstr.find('*');
       if (i == std::string::npos) {
          fputs(tstr.c_str(), fp);

@@ -16,6 +16,10 @@
       - new literal hash support: hashes can now be given as literal values as follows: @code (<key_expr>: <val_expr>, [...]) @endcode in the past the keys in literal hashes had to be either a string or a constant; now any valid %Qore expression can be used to generate the hash keys at runtime
       - new hash syntax; hash elements can now be enclosed by curly brackets as well as regular parentheses; the version with curly brackets when used with the @ref hmap "map" operator results in the hash version of the map operator being used
       - Added new @ref hmap "hash version of the map" operator to build a hash from a list or iterator expression; ex: @code hash h = map {$1, h2.$1}, $i; @endcode
+    - implemented support for loading user modules in a pre-defined @ref Qore::Program "Program" object (that can have a custom API) in the following new functions and methods:
+      - @ref Qore::load_user_module_with_program() "load_user_module_with_program()"
+      - @ref Qore::Program::loadApplyToUserModule() "Program::loadApplyToUserModule()"
+      - @ref Qore::Program::loadUserModuleWithProgram() "Program::loadUserModuleWithProgram()"
     - new constants:
       - @ref Qore::DirSep
       - @ref Qore::Platform
@@ -148,6 +152,7 @@
       - @ref Qore::Dir
       - module importing and include file handling
     - fixed a bug in parsing constant value assignment expressions where such expressions could use or instantiate classes with uncommitted changes and therefore a crash could result
+    - fixed a bug in user module initialization where call references were not accepted, contrary to the documentation and implementation goals
 
     @section qore_0811 Qore 0.8.11
 

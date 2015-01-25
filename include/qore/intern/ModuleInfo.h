@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -337,11 +337,11 @@ protected:
       loadModuleIntern(xsink, name, pgm);
    }
 
-   DLLLOCAL void loadModuleIntern(ExceptionSink& xsink, const char* name, QoreProgram* pgm, bool reexport = false, mod_op_e op = MOD_OP_NONE, version_list_t* version = 0, const char* src = 0);
+   DLLLOCAL void loadModuleIntern(ExceptionSink& xsink, const char* name, QoreProgram* pgm, bool reexport = false, mod_op_e op = MOD_OP_NONE, version_list_t* version = 0, const char* src = 0, QoreProgram* mpgm = 0);
 
    DLLLOCAL QoreAbstractModule* loadBinaryModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* pgm = 0, bool reexport = false);
-   DLLLOCAL QoreAbstractModule* loadUserModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* pgm = 0, bool reexport = false);
-   DLLLOCAL QoreAbstractModule* loadUserModuleFromSource(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm, const char* src, bool reexport);
+   DLLLOCAL QoreAbstractModule* loadUserModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* tpgm = 0, bool reexport = false, QoreProgram* pgm = 0);
+   DLLLOCAL QoreAbstractModule* loadUserModuleFromSource(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm, const char* src, bool reexport, QoreProgram* pgm = 0);
    DLLLOCAL QoreAbstractModule* setupUserModule(ExceptionSink& xsink, std::auto_ptr<QoreUserModule>& mi, QoreProgram* tpgm, QoreUserModuleDefContextHelper& qmd);
 
 public:
@@ -367,7 +367,7 @@ public:
    }
 
    DLLLOCAL void parseLoadModule(ExceptionSink& xsink, const char* name, QoreProgram* pgm, bool reexport = false);
-   DLLLOCAL int runTimeLoadModule(const char* name, QoreProgram* pgm, ExceptionSink& xsink);
+   DLLLOCAL int runTimeLoadModule(ExceptionSink& xsink, const char* name, QoreProgram* pgm, QoreProgram* mpgm = 0);
 
    DLLLOCAL QoreHashNode* getModuleHash();
    DLLLOCAL QoreListNode* getModuleList();
@@ -531,11 +531,6 @@ public:
       QoreAbstractModule::set(d, v, a, u, l);
       del = dl;
    }
-
-   /*
-   DLLLOCAL QoreUserModule(const char* fn, const char* n, const char* d, const char* v, const char* a, const char* u, const QoreString& l, QoreProgram* p, QoreClosureParseNode* dl) : QoreAbstractModule(fn, n, d, v, a, u, l), pgm(p), del(dl) {
-   }
-   */
 
    DLLLOCAL QoreProgram* getProgram() const {
       return pgm;
