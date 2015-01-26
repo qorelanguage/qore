@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file RestClient.qm Qore user module for calling REST services
 
-/*  RestClient.qm Copyright (C) 2013 - 2014 Qore Technologies, sro
+/*  RestClient.qm Copyright (C) 2013 - 2015 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -576,8 +576,8 @@ my hash $ans = $rest.post("/orders/1");
         private nothing preparePath(reference $path) {
             # prepare path
             my *string $p = $.getConnectionPath();
-            if ($p && $path)
-                $path = $p + "/" + $path;
+            if ($p)
+                $path = $p + ($path ? ("/" + $path) : "");
             # ensure path is absolute
             if ($path !~ /^\//)
                 splice $path, 0, 0, "/";

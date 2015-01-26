@@ -33,6 +33,7 @@
 #include <qore/intern/QC_Program.h>
 #include <qore/intern/QC_TimeZone.h>
 #include <qore/intern/qore_program_private.h>
+#include <qore/intern/QoreObjectIntern.h>
 
 #include <qore/intern/ModuleInfo.h>
 extern QoreModuleManager QMM;
@@ -1222,6 +1223,17 @@ Program::loadUserModuleWithProgram(string name, !Qore::Program[QoreProgram] pgm)
     - get_feature_list()
  */
 Program::loadApplyToUserModule(string name) [dom=MODULES] {
-   p->ref();
-   QMM.runTimeLoadModule(*xsink, name->getBuffer(), 0, p);
+   // remove the QoreProgram private data from the object
+#ifdef DEBUG
+   QoreProgram* pgm = (QoreProgram*)
+#endif
+   qore_object_private::get(*self)->getAndRemovePrivateData(CID_PROGRAM, xsink);
+#ifdef DEBUG
+   assert(pgm == p);
+#endif
+   if (!*xsink) {
+      p->ref();
+      QMM.runTimeLoadModule(*xsink, name->getBuffer(), 0, p);
+      self->doDelete(xsink);
+   }
 }

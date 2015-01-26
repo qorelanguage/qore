@@ -355,7 +355,7 @@ protected:
    DLLLOCAL QoreAbstractModule* loadBinaryModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* pgm = 0, bool reexport = false);
    DLLLOCAL QoreAbstractModule* loadUserModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* tpgm = 0, bool reexport = false, QoreProgram* pgm = 0);
    DLLLOCAL QoreAbstractModule* loadUserModuleFromSource(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm, const char* src, bool reexport, QoreProgram* pgm = 0);
-   DLLLOCAL QoreAbstractModule* setupUserModule(ExceptionSink& xsink, std::auto_ptr<QoreUserModule>& mi, QoreProgram* tpgm, QoreUserModuleDefContextHelper& qmd);
+   DLLLOCAL QoreAbstractModule* setupUserModule(ExceptionSink& xsink, std::auto_ptr<QoreUserModule>& mi, QoreUserModuleDefContextHelper& qmd);
 
 public:
    DLLLOCAL QoreModuleManager() : mutex(0) {

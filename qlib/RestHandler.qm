@@ -844,6 +844,11 @@ public namespace RestHandler {
             $.ch{$name} = $cls;
         }
 
+        #! default get handler
+        hash get(hash $cx, *hash $ah) {
+            return RestHandler::makeResponse(200, $.ch.keys());
+        }
+        
         #! creates a hash for an HTTP response with the response code and a literal response message body
         static hash makeResponse(int $code, any $body, *hash $hdr) {
             return (

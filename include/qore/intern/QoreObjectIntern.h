@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -117,6 +117,16 @@ public:
 	 return 0;
 
       return i->second.first;
+   }
+
+   DLLLOCAL AbstractPrivateData* getAndRemovePtr(qore_classid_t key) {
+      keymap_t::iterator i = keymap.find(key);
+      if (i == keymap.end() || i->second.second)
+	 return 0;
+
+      AbstractPrivateData* rv = i->second.first;
+      i->second.first = 0;
+      return rv;
    }
 
    DLLLOCAL void insert(qore_classid_t key, AbstractPrivateData* pd) {
@@ -993,6 +1003,11 @@ public:
    DLLLOCAL void incObjectCount(int dt);
 #endif
 
+   DLLLOCAL AbstractPrivateData* getAndRemovePrivateData(qore_classid_t key, ExceptionSink* xsink) {
+      QoreSafeVarRWWriteLocker sl(rml);
+      return privateData ? privateData->getAndRemovePtr(key) : 0;
+   }
+   
    DLLLOCAL static qore_object_private* get(QoreObject& obj) {
       return obj.priv;
    }

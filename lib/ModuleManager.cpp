@@ -734,7 +734,7 @@ void QoreModuleManager::registerUserModuleFromSource(const char* name, const cha
 }
 
 // const char* path, const char* feature, ReferenceHolder<QoreProgram>& pgm
-QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, std::auto_ptr<QoreUserModule>& mi, QoreProgram* tpgm, QoreUserModuleDefContextHelper& qmd) {
+QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, std::auto_ptr<QoreUserModule>& mi, QoreUserModuleDefContextHelper& qmd) {
    if (xsink)
       return 0;
 
@@ -832,7 +832,7 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
    QoreUserModuleDefContextHelper qmd(feature, xsink);
    mi->getProgram()->parseFile(path, &xsink, &xsink, QP_WARN_MODULES);
 
-   return setupUserModule(xsink, mi, tpgm, qmd);
+   return setupUserModule(xsink, mi, qmd);
 }
 
 QoreAbstractModule* QoreModuleManager::loadUserModuleFromSource(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm, const char* src, bool reexport, QoreProgram* pgm) {
@@ -859,7 +859,7 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromSource(ExceptionSink& x
    QoreUserModuleDefContextHelper qmd(feature, xsink);
    mi->getProgram()->parse(src, path, &xsink, &xsink, QP_WARN_MODULES);
 
-   return setupUserModule(xsink, mi, tpgm, qmd);
+   return setupUserModule(xsink, mi, qmd);
 }
 
 struct DLHelper {
