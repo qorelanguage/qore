@@ -1232,7 +1232,6 @@ Program::loadApplyToUserModule(string name) [dom=MODULES] {
    assert(pgm == p);
 #endif
    if (!*xsink) {
-      p->ref();
       QMM.runTimeLoadModule(*xsink, name->getBuffer(), 0, p);
       self->doDelete(xsink);
    }
