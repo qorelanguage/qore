@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   will unlink (delete) UNIX domain socket files when closed
 
@@ -55,6 +55,9 @@ private:
    // do blocking or non-blocking SSL I/O and handle SSL_ERROR_WANT_READ and SSL_ERROR_WANT_WRITE properly
    DLLLOCAL int doSSLRW(const char* mname, void* buf, int num, int timeout_ms, bool read, ExceptionSink* xsink);
 
+   // non-blocking I/O helper
+   DLLLOCAL int doSSLUpgradeNonBlockingIO(int rc, const char* mname, int timeout_ms, const char* ssl_func, ExceptionSink* xsink);
+   
 public:
    DLLLOCAL SSLSocketHelper(qore_socket_private& n_qs) : qs(n_qs), meth(0), ctx(0), ssl(0) {
    }
@@ -66,24 +69,24 @@ public:
          SSL_CTX_free(ctx);
    }
 
-   DLLLOCAL bool sslError(ExceptionSink *xsink, const char* meth, const char *msg, bool always_error = true);
-   DLLLOCAL int setClient(const char* mname, int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink);
-   DLLLOCAL int setServer(const char* mname, int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink);
+   DLLLOCAL bool sslError(ExceptionSink* xsink, const char* meth, const char* msg, bool always_error = true);
+   DLLLOCAL int setClient(const char* mname, int sd, X509* cert, EVP_PKEY* pk, ExceptionSink* xsink);
+   DLLLOCAL int setServer(const char* mname, int sd, X509* cert, EVP_PKEY* pk, ExceptionSink* xsink);
    // returns 0 for success
-   DLLLOCAL int connect(const char* mname, ExceptionSink *xsink);
+   DLLLOCAL int connect(const char* mname, int timeout_ms, ExceptionSink* xsink);
    // returns 0 for success
-   DLLLOCAL int accept(const char* mname, ExceptionSink *xsink);
+   DLLLOCAL int accept(const char* mname, int timeout_ms, ExceptionSink* xsink);
    // returns 0 for success
    DLLLOCAL int shutdown();
    // returns 0 for success
-   DLLLOCAL int shutdown(ExceptionSink *xsink);
+   DLLLOCAL int shutdown(ExceptionSink* xsink);
    // read with optional timeout in milliseconds
-   DLLLOCAL int read(const char* mname, char *buf, int size, int timeout_ms, ExceptionSink* xsink);
+   DLLLOCAL int read(const char* mname, char* buf, int size, int timeout_ms, ExceptionSink* xsink);
    // returns 0 for success
    DLLLOCAL int write(const char* mname, const void* buf, int size, int timeout_ms, ExceptionSink* xsink);
-   DLLLOCAL const char *getCipherName() const;
-   DLLLOCAL const char *getCipherVersion() const;
-   DLLLOCAL X509 *getPeerCertificate() const;
+   DLLLOCAL const char* getCipherName() const;
+   DLLLOCAL const char* getCipherVersion() const;
+   DLLLOCAL X509* getPeerCertificate() const;
    DLLLOCAL long verifyPeerCertificate() const;
 };
 

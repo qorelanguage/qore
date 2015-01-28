@@ -524,6 +524,16 @@ void QoreSocketObject::upgradeServerToSSL(ExceptionSink* xsink) {
    priv->socket->upgradeServerToSSL(priv->cert ? priv->cert->getData() : 0, priv->pk ? priv->pk->getData() : 0, xsink);
 }
 
+void QoreSocketObject::upgradeClientToSSL(int timeout_ms, ExceptionSink* xsink) {
+   AutoLocker al(priv->m);
+   priv->socket->upgradeClientToSSL(priv->cert ? priv->cert->getData() : 0, priv->pk ? priv->pk->getData() : 0, timeout_ms, xsink);
+}
+
+void QoreSocketObject::upgradeServerToSSL(int timeout_ms, ExceptionSink* xsink) {
+   AutoLocker al(priv->m);
+   priv->socket->upgradeServerToSSL(priv->cert ? priv->cert->getData() : 0, priv->pk ? priv->pk->getData() : 0, timeout_ms, xsink);
+}
+
 void QoreSocketObject::setEventQueue(Queue *cbq, ExceptionSink *xsink) {
    AutoLocker al(priv->m);
    priv->socket->setEventQueue(cbq, xsink);

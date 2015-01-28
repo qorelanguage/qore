@@ -183,6 +183,16 @@ public:
    DLLLOCAL ~qore_socket_op_helper();
 };
 
+class SSLSocketHelperHelper {
+protected:
+   qore_socket_private* s;
+
+public:
+   DLLLOCAL SSLSocketHelperHelper(qore_socket_private* sock);
+
+   DLLLOCAL void error();
+};
+
 struct qore_socket_private {
    friend class PrivateQoreSocketTimeoutHelper;
    friend class PrivateQoreSocketThroughputHelper;
@@ -910,6 +920,10 @@ struct qore_socket_private {
    }
 
    DLLLOCAL int set_non_blocking(bool non_blocking, ExceptionSink* xsink = 0) {
+      // ignore call when socket already closed
+      if (sock == QORE_INVALID_SOCKET)
+         return 0;
+      
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
       u_long mode = non_blocking ? 1 : 0;
       int rc = ioctlsocket(sock, FIONBIO, &mode);
@@ -1029,30 +1043,32 @@ struct qore_socket_private {
       return 0;
    }
 
-   DLLLOCAL int upgradeClientToSSLIntern(const char* mname, X509* cert, EVP_PKEY* pkey, ExceptionSink* xsink) {
+   DLLLOCAL int upgradeClientToSSLIntern(const char* mname, X509* cert, EVP_PKEY* pkey, int timeout_ms, ExceptionSink* xsink) {
       assert(!ssl);
-      ssl = new SSLSocketHelper(*this);
+      SSLSocketHelperHelper sshh(this);
+
       int rc;
       do_start_ssl_event();
-      if ((rc = ssl->setClient(mname, sock, cert, pkey, xsink)) || ssl->connect(mname, xsink)) {
-	 delete ssl;
-	 ssl = 0;
-	 return rc;
+      if ((rc = ssl->setClient(mname, sock, cert, pkey, xsink)) || ssl->connect(mname, timeout_ms, xsink)) {         
+         sshh.error();
+	 return rc ? rc : -1;
       }
       do_ssl_established_event();
+
       return 0;
    }
 
-   DLLLOCAL int upgradeServerToSSLIntern(const char* mname, X509* cert, EVP_PKEY* pkey, ExceptionSink* xsink) {
+   DLLLOCAL int upgradeServerToSSLIntern(const char* mname, X509* cert, EVP_PKEY* pkey, int timeout_ms, ExceptionSink* xsink) {
       assert(!ssl);
-      ssl = new SSLSocketHelper(*this);
+      SSLSocketHelperHelper sshh(this);
+
       do_start_ssl_event();
-      if (ssl->setServer(mname, sock, cert, pkey, xsink) || ssl->accept(mname, xsink)) {
-	 delete ssl;
-	 ssl = 0;
+      if (ssl->setServer(mname, sock, cert, pkey, xsink) || ssl->accept(mname, timeout_ms, xsink)) {
+         sshh.error();
 	 return -1;
       }
       do_ssl_established_event();
+
       return 0;
    }
 

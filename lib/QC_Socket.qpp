@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -2537,9 +2537,15 @@ hash Socket::getSocketInfo(bool host_lookup = True) {
     @code
 $sock.upgradeClientToSSL();
     @endcode
+
+    @param timeout_ms If a positive timeout value is passed and the SSL upgrade takes longer to establish than the timeout, an \c "SSL-TIMEOUT-ERROR" exception is thrown. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
+
+    @throw SSL-TIMEOUT-ERROR timeout error negotiating SSL connection
+
+    @since %Qore 0.8.12 the timeout_ms parameter was added
  */
-nothing Socket::upgradeClientToSSL() {
-   s->upgradeClientToSSL(xsink);
+nothing Socket::upgradeClientToSSL(int timeout_ms = -1) {
+   s->upgradeClientToSSL(timeout_ms, xsink);
 }
 
 //! Upgrades a server socket connection to a TLS/SSL connection
@@ -2547,9 +2553,15 @@ nothing Socket::upgradeClientToSSL() {
     @code
 $sock.upgradeServerToSSL();
     @endcode
+
+    @param timeout_ms If a positive timeout value is passed and the SSL upgrade takes longer to establish than the timeout, an \c "SSL-TIMEOUT-ERROR" exception is thrown. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
+
+    @throw SSL-TIMEOUT-ERROR timeout error negotiating SSL connection
+
+    @since %Qore 0.8.12 the timeout_ms parameter was added
  */
-nothing Socket::upgradeServerToSSL() {
-   s->upgradeServerToSSL(xsink);
+nothing Socket::upgradeServerToSSL(int timeout_ms = -1) {
+   s->upgradeServerToSSL(timeout_ms, xsink);
 }
 
 //! Removes any warning @ref Qore::Thread::Queue "Queue" object from the Socket

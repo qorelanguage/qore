@@ -101,6 +101,9 @@
       - translate \c "+" (plus) to \c " " (space) in the query portion of URIs in parse_uri_query()
     - added option @ref Qore::Option::HAVE_DETERMINISTIC_GC "HAVE_DETERMINISTIC_GC" for Qore builds where deterministic garbage collection is enabled
     - the @ref Qore::Program "Program" class now creates @ref conditional_parsing "parse defines" for parse options so that conditional code can be implemented depending on the sandboxing configuration of the program container
+    - added a timeout parameter to the following @ref Qore::Socket "Socket" methods:
+      - @ref Qore::Socket::upgradeClientToSSL()
+      - @ref Qore::Socket::upgradeServerToSSL()
 
     @subsection qore_0812_bug_fixes Bug Fixes in Qore
     - fixed format of octal constant - there was an error if a string contained octal constant that is shorter than 3 digit
@@ -152,7 +155,8 @@
       - @ref Qore::Dir
       - module importing and include file handling
     - fixed a bug in parsing constant value assignment expressions where such expressions could use or instantiate classes with uncommitted changes and therefore a crash could result
-    - fixed a bug in user module initialization where call references were not accepted, contrary to the documentation and implementation goals
+    - fixed a bug in user module initialization and destruction where call references were not accepted, contrary to the documentation and design goals
+    - fixed a bug in @ref Qore::Socket::acceptSSL() and @ref Qore::Socket::connectSSL() where the timeout argument was not respected for SSL protocol negotation by implementing non-blocking I/O support for the internal SSL calls for upgrading the socket connection
 
     @section qore_0811 Qore 0.8.11
 
