@@ -32,7 +32,7 @@
 %enable-all-warnings
 
 module Util {
-    version = "1.3";
+    version = "1.2";
     desc    = "user module for generally useful routines";
     author  = "David Nichols <david@qore.org>";
     url     = "http://qore.org";
@@ -69,7 +69,10 @@ module Util {
 
     @section utilrelnotes Release Notes
 
-    @subsection util_1_3
+    @subsection util_1_2
+    - fixed Util::get_random_string() on Windows
+    - fixed Util::absolute_path_windows()
+    - fixed Util::parse_to_qore_value() with hashes with a comma in the first key name
     - the following functions are now actually implemented in the %Qore library and only reexported here for backwards-compatibility:
       - @ref Qore::absolute_path()
       - @ref Qore::absolute_path_windows()
@@ -77,11 +80,6 @@ module Util {
     - added Util::slice()
     - added Util::same()
     - added Util::uniq()
-
-    @subsection util_1_2
-    - fixed Util::get_random_string() on Windows
-    - fixed Util::absolute_path_windows()
-    - fixed Util::parse_to_qore_value() with hashes with a comma in the first key name
 
     @subsection util_1_1
     - added the Util::get_byte_size() and Util::get_marketing_byte_size() functions
