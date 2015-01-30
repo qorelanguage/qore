@@ -157,6 +157,8 @@
     - fixed a bug in parsing constant value assignment expressions where such expressions could use or instantiate classes with uncommitted changes and therefore a crash could result
     - fixed a bug in user module initialization and destruction where call references were not accepted, contrary to the documentation and design goals
     - fixed a bug in @ref Qore::Socket::acceptSSL() and @ref Qore::Socket::connectSSL() where the timeout argument was not respected for SSL protocol negotation by implementing non-blocking I/O support for the internal SSL calls for upgrading the socket connection
+    - fixed a bug in the <a href="../../modules/Schema/html/index.html">Schema</a> module with <i>"insert-only reference data"</i> with the verbose option; the upsert strategy was changed to \c UpsertSelectFirst which means that insert-only reference data could also be updated
+    - fixed a bug in <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> where foreign key constraints with supporting indexes were not tracked and therefore schema alignment on DBs that automatically create indexes for foreign key constraints would fail
 
     @section qore_0811 Qore 0.8.11
 

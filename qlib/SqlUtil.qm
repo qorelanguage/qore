@@ -104,6 +104,7 @@ module SqlUtil {
     - fixed a bug in schema management where excessively verbose column aliases were used that caused errors when automatically updating columns with existing rows and new default values and non-null contraints with PostgreSQL databases
     - fixed a bug where select and row iterator operations could fail with certain select hash arguments without a \c "columns" entry but where column names were otherwise required
     - fixed a bug with queries using a \a desc argument with the \a orderby query option with multiple sort columns; the \c "desc" string was added only to the last column but should have been added to all columns
+    - fixed a bug where foreign key constraints with supporting indexes were not tracked and therefore schema alignment on DBs that automatically create indexes for foreign key constraints would fail
 
     @subsection sqlutilv1_1 SqlUtil v1.1
     - implemented new upsert strategy @ref SqlUtil::AbstractTable::UpsertInsertOnly
@@ -3195,6 +3196,11 @@ $table.insert(("id": $id, "ref": iop_seq("xid")));
             h = nh;
         }
 
+        #! creates a copy of the object
+        constructor(AbstractHashContainer old) {
+            h = old.h;
+        }
+
         #! creates a "deep copy" of the object
         copy(AbstractHashContainer old) {
             map h.$1 = old.h.$1.copy(), old.h.keyIterator();
@@ -3999,7 +4005,12 @@ map $1.drop(), $tables.getDropIterator();
 
     #! column container class that throws an exception if an unknown column is accessed
     public class Columns inherits AbstractHashContainer {
+        #! creates the object from the argument
         constructor(*hash c) : AbstractHashContainer(c) {
+        }
+
+        #! creates a copy of the object
+        constructor(Columns old) : AbstractHashContainer(old) {
         }
 
         #! adds the given value to the hash with the given key name
@@ -4289,8 +4300,8 @@ my AbstractIndex $ix = $indexes.pk_jobs;
         }
 
         private {
-            #! the AbstractUniqueConstraint that this index supports, if any
-            *AbstractUniqueConstraint constraint;
+            #! the AbstractColumnSupportingConstraint that this index supports, if any
+            *AbstractColumnSupportingConstraint constraint;
         }
 
         #! creates the object from the name, a unique flag, and a hash of column information
@@ -4346,8 +4357,8 @@ my AbstractIndex $ix = $indexes.pk_jobs;
         #! returns a string that can be used to rename the index in the database
         abstract string getRenameSql(string table_name, string new_name);
 
-        #! tags the index with a unique constraint that the index supports
-        setSupportingConstraint(AbstractUniqueConstraint c) {
+        #! tags the index with a column supporting constraint (unique or fk constraint, etc) that the index supports
+        setSupportingConstraint(AbstractColumnSupportingConstraint c) {
             constraint = c;
         }
 
@@ -4357,7 +4368,7 @@ my AbstractIndex $ix = $indexes.pk_jobs;
         }
 
         #! returns the supporting constraint, if any
-        *AbstractUniqueConstraint getSupportingConstraint() {
+        *AbstractColumnSupportingConstraint getSupportingConstraint() {
             return constraint;
         }
 
@@ -4533,8 +4544,8 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
         }
     }
 
-    #! represents a unique column constraint
-    public class AbstractUniqueConstraint inherits AbstractConstraint, Columns {
+    #! the API for a constraint with columns
+    public class AbstractColumnSupportingConstraint inherits AbstractConstraint, Columns {
         private {
             #! a hash of ForeignConstraintSources, keyed by table name, the value is a hash of foreign constraints keyed by constraint name
             hash sourceConstraints;
@@ -4543,17 +4554,14 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
             *string index;
         }
 
-        #! creates the object from the name an a hash of column information
+        #! creates the object from the name and a hash of column information
         constructor(string n, *hash c, *string n_index) : AbstractConstraint(n), Columns(c) {
             index = n_index;
         }
 
-        #! returns a string that can be used to create the constraint in the database
-        abstract string getCreateSql(string table_name, *hash opts);
-
-        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
-        private bool equalImpl(AbstractConstraint c) {
-            return (self.keys() != cast<AbstractUniqueConstraint>(c).keys()) ? False : True;
+        #! creates the object from the name and a Columns object
+        constructor(string n, Columns c, *string n_index) : AbstractConstraint(n), Columns(c) {
+            index = n_index;
         }
 
         #! returns an iterator through all known source foreign constraints on the current table
@@ -4659,6 +4667,34 @@ $uk.addSourceConstraint($table_name, constraint_name);
         *string getIndex() {
             return index;
         }
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        private bool equalImpl(AbstractConstraint c) {
+            return (self.keys() != cast<AbstractColumnSupportingConstraint>(c).keys()) ? False : True;
+        }
+
+        #! returns @ref Qore::True "True" if the object supports an index property and is set, @ref Qore::False "False" if not
+        bool setIndexBase(string ix) {
+            if (index && index != ix)
+                return False;
+            index = ix;
+            return True;
+        }
+
+        #! clears any index base for the constraint
+        clearIndex() {
+            delete index;
+        }
+
+        #! returns a string that can be used to create the constraint in the database
+        abstract string getCreateSql(string table_name, *hash opts);
+    }
+
+    #! represents a unique column constraint
+    public class AbstractUniqueConstraint inherits AbstractColumnSupportingConstraint {
+        #! creates the object from the name an a hash of column information
+        constructor(string n, *hash c, *string n_index) : AbstractColumnSupportingConstraint(n, c, n_index) {
+        }
     }
 
     #! represents a primary key
@@ -4688,7 +4724,7 @@ $uk.addSourceConstraint($table_name, constraint_name);
         #! find an index with columns equal to the index passed
         *AbstractForeignConstraint findEqual(AbstractForeignConstraint fk) {
             foreach AbstractForeignConstraint fk2 in (h.iterator()) {
-                if (fk2.columns.matchKeys(fk.columns) && fk2.target.table == fk.target.table && fk2.target.columns.matchKeys(fk.target.columns))
+                if (fk2.matchKeys(fk) && fk2.target.table == fk.target.table && fk2.target.columns.matchKeys(fk.target.columns))
                     return fk2;
             }
         }
@@ -4717,7 +4753,7 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
         *hash findConstraintOn(string table, softlist cols) {
             foreach AbstractForeignConstraint fk in (h.iterator()) {
                 if (fk.target.table == table && fk.target.columns.matchKeys(cols))
-                    return fk.columns.getHash();
+                    return fk.getHash();
             }
         }
 
@@ -4750,40 +4786,22 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
     }
 
     #! the base class for foreign key constraint information
-    public class AbstractForeignConstraint inherits AbstractConstraint {
+    public class AbstractForeignConstraint inherits AbstractColumnSupportingConstraint {
         public {
-            #! an object of class Columns giving the source table that make up the constraint
-            Columns columns;
-
             #! a ForeignConstraintTarget object to describe the target table and columns
             ForeignConstraintTarget target;
         }
 
-        constructor(string n, Columns c, ForeignConstraintTarget t) : AbstractConstraint(n) {
-            columns = c;
+        constructor(string n, Columns c, ForeignConstraintTarget t) : AbstractColumnSupportingConstraint(n, c) {
             target = t;
         }
 
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
         private bool equalImpl(AbstractConstraint con) {
             AbstractForeignConstraint c = cast<AbstractForeignConstraint>(con);
-            return (columns.keys() != c.columns.keys())
+            return (h.keys() != c.h.keys())
                 || !target.equal(c.target)
                 ? False : True;
-        }
-
-        #! returns @ref Qore::True "True" if the constraint references the named column
-        bool hasColumn(string cname) {
-            return columns.hasKey(cname);
-        }
-
-        #! returns @ref Qore::True "True" if the object supports an index property and is set, @ref Qore::False "False" if not
-        bool setIndexBase(string ix) {
-            return False;
-        }
-
-        #! clears any index base for the constraint
-        clearIndex() {
         }
     }
 
@@ -5196,6 +5214,11 @@ my list $l = $db.getDropSchemaSql($schema_hash);
         */
         list getDropSchemaSql(hash schema_hash, *hash opt) {
             return db.getDropSchemaSql(schema_hash, opt);
+        }
+
+        #! gets the underlying AbstractDatabase
+        SqlUtil::AbstractDatabase getDatabase() {
+            return db;
         }
 
         #! gets the underlying AbstractDatasource
@@ -10773,8 +10796,8 @@ my string $sql = $table.getRenameColumnSql("name", "family_name");
 
             # check foreign constraints
             foreach AbstractForeignConstraint fk in (foreignConstraints.iterator()) {
-                if (fk.columns.hasKey(old_name))
-                    fk.columns.renameKey(old_name, new_name);
+                if (fk.hasKey(old_name))
+                    fk.renameKey(old_name, new_name);
             }
 
             # check unique constraints
@@ -14749,10 +14772,10 @@ my list $l = $table.getAlignSql($table2);
                     }
                     # rename column in foreign constraints
                     foreach AbstractForeignConstraint fk in (foreignConstraints.iterator()) {
-                        if (fk.columns.hasKey(rh.key)) {
-                            AbstractColumn rc = fk.columns{rh.key};
+                        if (fk.hasKey(rh.key)) {
+                            AbstractColumn rc = fk{rh.key};
                             rc.name = rh.value;
-                            fk.columns.renameKey(rh.key, rh.value);
+                            fk.renameKey(rh.key, rh.value);
                         }
                     }
                 }
@@ -14786,29 +14809,25 @@ my list $l = $table.getAlignSql($table2);
                     if (!t.indexes.hasKey(ix.name)) {
                         # make sure there is no unique constraint or primary key for the unique index if the "index" option is supported
                         # in which case update the constraint to be based on the index and do not drop the index
-                        if (ix.unique) {
-                            if (!t.primaryKey.empty() && t.primaryKey.matchKeys(ix.columns)) {
-                                if (t.primaryKey.setIndexBase(ix.name)) {
-                                    ix.setSupportingConstraint(primaryKey);
-                                    continue;
-                                }
+                        if (ix.unique && !t.primaryKey.empty() && t.primaryKey.matchKeys(ix.columns)) {
+                            if (t.primaryKey.setIndexBase(ix.name)) {
+                                ix.setSupportingConstraint(primaryKey);
+                                continue;
                             }
-                            else {
-                                # see if a unique constraint with the same name and columns exists
-                                if (t.constraints.hasKey(ix.name) && t.constraints{ix.name} instanceof AbstractUniqueConstraint) {
-                                    AbstractUniqueConstraint uk = cast<AbstractUniqueConstraint>(t.constraints{ix.name});
-                                    if (uk.matchKeys(ix.columns) && uk.setIndexBase(ix.name)) {
-                                        ix.setSupportingConstraint(uk);
-                                        continue;
-                                    }
-                                }
+                        }
+                        else {
+                            # see if a unique or fk constraint with the same name and columns exists
+                            *AbstractColumnSupportingConstraint csc = getSupportingConstraint(ix.name);
+                            if (csc && csc.matchKeys(ix.columns) && csc.setIndexBase(ix.name)) {
+                                ix.setSupportingConstraint(csc);
+                                continue;
                             }
                         }
                         # see if the index is supporting a constraint that has to be dropped first
-                        *AbstractUniqueConstraint uk = ix.getSupportingConstraint();
-                        if (uk && !constraintsLinkedToIndexesImpl()) {
+                        *AbstractColumnSupportingConstraint csc = ix.getSupportingConstraint();
+                        if (csc && !constraintsLinkedToIndexesImpl()) {
                             code rmv;
-                            AbstractConstraint c = findDropConstraintUnlocked(uk.getName(), \rmv);
+                            AbstractConstraint c = findDropConstraintUnlocked(csc.getName(), \rmv);
 
                             l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "constraint", c.getName(), name);
                             rmv();
@@ -15045,6 +15064,13 @@ my list $l = $table.getAlignSql($table2);
             return l;
         }
 
+        private *AbstractColumnSupportingConstraint getSupportingConstraint(string ixname) {
+            if (constraints.hasKey(ixname) && constraints{ixname} instanceof AbstractColumnSupportingConstraint)
+                return constraints{ixname};
+            if (foreignConstraints.hasKey(ixname))
+                return foreignConstraints{ixname};            
+        }
+    
         private renameIndexUnlocked(AbstractIndex ix, string new_name) {
             string old_name = ix.name;
             indexes.renameKey(old_name, new_name);

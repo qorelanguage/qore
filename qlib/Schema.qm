@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file Schema.qm Qore user module for working with SQL data
 
-/*  Schema.qm Copyright 2014 Qore Technologies, sro
+/*  Schema.qm Copyright 2014 - 2015 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -70,6 +70,7 @@ module Schema {
 
     @subsection schema_v1.1 Schema Module v1.1
     - fixed @ref Schema::AbstractSchema::combineOptions() "AbstractSchema::combineOptions()" to accept NOTHING as well as a valid option hash
+    - fixed a bug with <i>"insert-only reference data"</i> with the verbose option; the upsert strategy was changed to \c UpsertSelectFirst which means that insert-only reference data could also be updated
 
     @subsection schema_v1.0 Schema Module v1.0
     - initial release
@@ -181,7 +182,7 @@ public namespace Schema {
 	- getStrictReferenceDataHashImpl(): returns a hash of "strict reference data", describing the only data that can appear in the target table
         - getReferenceDataHashImpl(): returns a hash of "normal reference data", describing data that must appear in the target table, however additional rows are also acceptable
         - getCreateOnlyReferenceDataImpl(): returns a hash of "create-only reference data", describing data that is written to the table when the table is created
-	- getInsertOnlyReferenceDataImpl(): returns a hash of "create-only reference data", describing data that will only be inserted if missing, otherwise existing rows with changed data are left unchanged
+	- getInsertOnlyReferenceDataImpl(): returns a hash of "insert-only reference data", describing data that will only be inserted if missing, otherwise existing rows with changed data are left unchanged
     */
     public class AbstractSchema {
 	private {
@@ -672,7 +673,7 @@ public namespace Schema {
 	private *hash getCreateOnlyReferenceDataImpl() {
 	}
 
-	#! returns a hash of "create-only reference data", describing data that will only be inserted if missing, otherwise existing rows with changed data are left unchanged
+	#! returns a hash of "insert-only reference data", describing data that will only be inserted if missing, otherwise existing rows with changed data are left unchanged
         /** the default behavior of this method is to return @ref nothing, reimplement in subclasses to return custom configuration
         */
 	private *hash getInsertOnlyReferenceDataImpl() {
@@ -728,7 +729,8 @@ public namespace Schema {
         private doTable(AbstractTable table, list rows, int upsert_strategy, bool delete_others, int verbose, reference sh) {
             # if we are reporting the status, then change to "UpsertSelectFirst" so that we can only report updated rows
             if (verbose) {
-                upsert_strategy = AbstractTable::UpsertSelectFirst;
+                if (upsert_strategy != AbstractTable::UpsertInsertOnly)
+                    upsert_strategy = AbstractTable::UpsertSelectFirst;
                 log("checking table %s", table.getName());
             }
 
