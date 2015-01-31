@@ -159,6 +159,7 @@
     - fixed a bug in @ref Qore::Socket::acceptSSL() and @ref Qore::Socket::connectSSL() where the timeout argument was not respected for SSL protocol negotation by implementing non-blocking I/O support for the internal SSL calls for upgrading the socket connection
     - fixed a bug in the <a href="../../modules/Schema/html/index.html">Schema</a> module with <i>"insert-only reference data"</i> with the verbose option; the upsert strategy was changed to \c UpsertSelectFirst which means that insert-only reference data could also be updated
     - fixed a bug in <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> where foreign key constraints with supporting indexes were not tracked and therefore schema alignment on DBs that automatically create indexes for foreign key constraints would fail
+    - fixed a bug in <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> where driver-specific objects were not included when dropping a schema
 
     @section qore_0811 Qore 0.8.11
 

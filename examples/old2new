@@ -10,7 +10,7 @@ const Opts = (
     "help": "h,help",
     );
 
-const ReservedWords = ("abstract", "background", "break", "by", "case", "catch", "chomp", "const", "context", "continue", "default", "delete", "deprecated", "do", "elements", "else", "exists", "extract", "final", "find", "foldl", "foldr", "for", "foreach", "if", "in", "inherits", "instanceof", "keys", "map", "module", "my", "namespace", "new", "on_error", "on_exit", "on_success", "our", "pop", "private", "public", "push", "remove", "rethrow", "return", "returns", "select", "shift", "sortBy", "sortDescendingBy", "splice", "static", "sub", "subcontext", "summarize", "switch", "synchronized", "thread_exit", "throw", "trim", "try", "unreference", "unshift", "where", "while",
+const ReservedWords = ("abstract", "background", "break", "by", "case", "catch", "chomp", "class", "const", "context", "continue", "default", "delete", "deprecated", "do", "elements", "else", "exists", "extract", "final", "find", "foldl", "foldr", "for", "foreach", "if", "in", "inherits", "instanceof", "keys", "map", "module", "my", "namespace", "new", "on_error", "on_exit", "on_success", "our", "pop", "private", "public", "push", "remove", "rethrow", "return", "returns", "select", "shift", "sortBy", "sortDescendingBy", "splice", "static", "sub", "subcontext", "summarize", "switch", "synchronized", "thread_exit", "throw", "trim", "try", "unreference", "unshift", "where", "while",
     );
 
 sub usage() {
@@ -49,7 +49,7 @@ sub main() {
             str =~ s/\.(\$\.?[a-z][a-zA-Z0-9_]*)/{$1}/g;
 
             # check for reserved words
-            *list l = (str =~ x/(\$\.?abstract|\$\.?background|\$\.?break|\$\.?by|\$\.?case|\$\.?catch|\$\.?chomp|\$\.?const|\$\.?context|\$\.?continue|\$\.?default|\$\.?delete|\$\.?deprecated|\$\.?do|\$\.?elements|\$\.?else|\$\.?exists|\$\.?extract|\$\.?final|\$\.?find|\$\.?foldl|\$\.?foldr|\$\.?for|\$\.?foreach|\$\.?if|\$\.?in|\$\.?inherits|\$\.?instanceof|\$\.?keys|\$\.?map|\$\.?module|\$\.?my|\$\.?namespace|\$\.?new|\$\.?on_error|\$\.?on_exit|\$\.?on_success|\$\.?our|\$\.?pop|\$\.?private|\$\.?public|\$\.?push|\$\.?remove|\$\.?rethrow|\$\.?return|\$\.?returns|\$\.?select|\$\.?shift|\$\.?sortBy|\$\.?sortDescendingBy|\$\.?splice|\$\.?static|\$\.?sub|\$\.?subcontext|\$\.?summarize|\$\.?switch|\$\.?synchronized|\$\.?thread_exit|\$\.?throw|\$\.?trim|\$\.?try|\$\.?unreference|\$\.?unshift|\$\.?where|\$\.?while)[^a-zA-Z0-9_]/g);
+            *list l = (str =~ x/(\$\.?abstract|\$\.?background|\$\.?break|\$\.?by|\$\.?case|\$\.?catch|\$\.?chomp|\$\.?const|\$\.?class|\$\.?context|\$\.?continue|\$\.?default|\$\.?delete|\$\.?deprecated|\$\.?do|\$\.?elements|\$\.?else|\$\.?exists|\$\.?extract|\$\.?final|\$\.?find|\$\.?foldl|\$\.?foldr|\$\.?for|\$\.?foreach|\$\.?if|\$\.?in|\$\.?inherits|\$\.?instanceof|\$\.?keys|\$\.?map|\$\.?module|\$\.?my|\$\.?namespace|\$\.?new|\$\.?on_error|\$\.?on_exit|\$\.?on_success|\$\.?our|\$\.?pop|\$\.?private|\$\.?public|\$\.?push|\$\.?remove|\$\.?rethrow|\$\.?return|\$\.?returns|\$\.?select|\$\.?shift|\$\.?sortBy|\$\.?sortDescendingBy|\$\.?splice|\$\.?static|\$\.?sub|\$\.?subcontext|\$\.?summarize|\$\.?switch|\$\.?synchronized|\$\.?thread_exit|\$\.?throw|\$\.?trim|\$\.?try|\$\.?unreference|\$\.?unshift|\$\.?where|\$\.?while)[^a-zA-Z0-9_]/g);
 
             # substitute reserved words
             foreach string rw in (l) {

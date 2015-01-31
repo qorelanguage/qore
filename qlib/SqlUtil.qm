@@ -105,6 +105,7 @@ module SqlUtil {
     - fixed a bug where select and row iterator operations could fail with certain select hash arguments without a \c "columns" entry but where column names were otherwise required
     - fixed a bug with queries using a \a desc argument with the \a orderby query option with multiple sort columns; the \c "desc" string was added only to the last column but should have been added to all columns
     - fixed a bug where foreign key constraints with supporting indexes were not tracked and therefore schema alignment on DBs that automatically create indexes for foreign key constraints would fail
+    - fixed a bug where driver-specific objects were not included when dropping a schema
 
     @subsection sqlutilv1_1 SqlUtil v1.1
     - implemented new upsert strategy @ref SqlUtil::AbstractTable::UpsertInsertOnly
@@ -6225,13 +6226,22 @@ my list $l = $db.getDropSchemaSql($schema_hash);
             list tl = getDropSchemaSqlImpl(schema_hash, opt + ("start": True));
             if (tl) l += tl;
 
+            # now process DB procedures
+            AbstractDatabase::checkDriverOptions(\schema_hash.procedures, drv);
+
             # drop procedures
             tl = dropSqlUnlocked("procedure", schema_hash, \getProcedure(), \makeProcedure(), opt, Type::String);
             if (tl) l += tl;
 
+            # now process DB functions
+            AbstractDatabase::checkDriverOptions(\schema_hash.functions, drv);
+
             # drop functions
             tl = dropSqlUnlocked("function", schema_hash, \getFunction(), \makeFunction(), opt, Type::String);
             if (tl) l += tl;
+
+            # now process DB tables
+            AbstractDatabase::checkDriverOptions(\schema_hash.tables, drv);
 
             # setup tables with names from description but contents from DB
             Tables tables();
@@ -6239,6 +6249,9 @@ my list $l = $db.getDropSchemaSql($schema_hash);
             foreach AbstractTable t in (tables.dropIterator()) {
                 l += AbstractDatabase::doCallback(opt, t.getDropSql(), AC_Drop, "table", t.getName());
             }
+
+            # now process DB sequences
+            AbstractDatabase::checkDriverOptions(\schema_hash.sequences, drv);
 
             # drop sequences
             tl = dropSqlUnlocked("sequence", schema_hash, \getSequence(), \makeSequenceFromDescription(), opt, Type::Hash);
