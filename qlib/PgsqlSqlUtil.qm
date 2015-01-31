@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file PgsqlSqlUtil.qm Qore user module for working with PostgreSQL SQL data
 
-/*  PgsqlSqlUtil.qm Copyright (C) 2013 - 2014 Qore Technologies, sro
+/*  PgsqlSqlUtil.qm Copyright (C) 2013 - 2015 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -154,6 +154,7 @@ $function$
 
     @subsection pgsqlsqlutilv11 PgsqlSqlUtil v1.1
     - fixed bugs handling "bigint" and "double precision" column types with schema alignments
+    - fixed a bug with PgsqlTable::tryInsertImpl(); added an explicit "begin" call to make the savepoint work with PostgreSQL 9.3+ servers
 
     @subsection pgsqlsqlutilv10 PgsqlSqlUtil v1.0
     - initial release
@@ -1632,8 +1633,9 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         }
 
         private bool tryInsertImpl(string sql, hash row) {
+            ds.exec("begin");
             ds.exec("savepoint " + PgsqlDatabase::PGSQL_TempSavepoint);
-
+            
             try {
                 ds.vexec(sql, row.values());
                 ds.exec("release savepoint " + PgsqlDatabase::PGSQL_TempSavepoint);
