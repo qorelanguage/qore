@@ -104,6 +104,7 @@
     - added a timeout parameter to the following @ref Qore::Socket "Socket" methods:
       - @ref Qore::Socket::upgradeClientToSSL()
       - @ref Qore::Socket::upgradeServerToSSL()
+    - added zoneinfo -> Windows time zone translation code on Windows to support standard UNIX time zone names on Windows; time zone information is still taken from the Windows registry but region names are reported using the standard names
 
     @subsection qore_0812_bug_fixes Bug Fixes in Qore
     - fixed format of octal constant - there was an error if a string contained octal constant that is shorter than 3 digit
