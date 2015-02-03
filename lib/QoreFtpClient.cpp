@@ -900,6 +900,9 @@ int QoreFtpClient::put(const char* localpath, const char* remotename, ExceptionS
    if (!mr) {
       assert(*xsink);
       priv->data.close();
+      if (rn != remotename) {
+         free(rn);
+      }
       return -1;
    }
 
