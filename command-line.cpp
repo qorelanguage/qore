@@ -139,7 +139,7 @@ static const char helpstr[] =
    "                               UTC offset with format S[DD[:DD[:DD]]], S=+ or -\n"
    "\n"
    " PARSE OPTIONS:\n"
-   "  -H, --parse-option-help      display options controlling parse options\n";
+   "  -H, --parse-option-help      display options controlling parse options";
 
 static const char parseopts[] =    "qore options controlling parse options:\n"
    "  -o, --list-parse-options     list all parse options\n"
