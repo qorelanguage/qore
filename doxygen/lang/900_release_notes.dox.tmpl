@@ -162,6 +162,7 @@
     - fixed a bug in <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> where foreign key constraints with supporting indexes were not tracked and therefore schema alignment on DBs that automatically create indexes for foreign key constraints would fail
     - fixed a bug in <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> where driver-specific objects were not included when dropping a schema
     - fixed a bug in the <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> module with PgsqlTable::tryInsertImpl(); added an explicit \c "begin" call to make the savepoint work with PostgreSQL 9.3+ servers
+    - fixed a memory leak in exception handling in the @ref Qore::FtpClient::put() method (thanks to nros)
 
     @section qore_0811 Qore 0.8.11
 
