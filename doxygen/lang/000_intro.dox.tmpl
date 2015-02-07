@@ -27,11 +27,12 @@
     <b>Familiar Syntax</b>\n
     %Qore syntax is similar to other programming languages, allowing new programmers to rapidly come up to speed in %Qore. %Qore borrows features from languages such as: C++ (ex: @ref inheritance "multiple inheritance", @ref exception_handling "exception handling", @ref static_methods "static methods"), Java (ex: the synchronized keyword, the @ref instanceof "instanceof operator", @ref object "object" and @ref qore_classes "class" implementation), <a href="http://www.perl.org">Perl</a> (ex: the @ref foreach "foreach statement", @ref splice "splice", @ref push "push", @ref pop "pop", @ref chomp "chomp", @ref trim "trim" operators, perl5-compatible @ref qore_regex "regular expressions", and more), the D Programming Language (the @ref on_exit "on_exit", @ref on_success "on_success", and @ref on_error "on_error" statements provide exception-aware functionality similar to D's <tt>scope(exit)</tt>, <tt>scope(failure)</tt>, allowing exception-aware cleanup code to be placed next to the code requiring cleanup), Python (@ref Qore::range() "range()", @ref Qore::xrange() "xrange()", and the @ref Qore::RangeIterator "RangeIterator" class), and others, also with many features unique to %Qore. Furthermore, %Qore supports @ref closure "closures" (including binding local variables in the closure in a way that is safe to use even in multithreaded contexts) and features for advanced list processing (@ref map "map", @ref foldl "foldl", @ref foldr "foldr", and @ref select "select").
 
-    %Qore's @ref garbage_collection "garbage collection" approach is unique and allows %Qore to support the
-    <a href="http://en.wikipedia.org/wiki/Resource_Acquisition_Is_Initialization">RAII idiom</a> for resource management with deterministic collection and
-    destruction of objects even when objects participate in recursive directed graphs; see @ref garbage_collection for more information.
-
     %Qore's @ref operators "operators" are designed to produce the expected results for the programmer even when data types are mixed, a feature meant to further flatten the learning curve for new programmers.
+
+    <b>Simple Resource Management</b>\n
+    %Qore's @ref garbage_collection "garbage collection" approach is unique and allows %Qore to support the
+<a href="http://en.wikipedia.org/wiki/Resource_Acquisition_Is_Initialization">RAII idiom</a> for resource management with deterministic collection and
+destruction of objects even when objects participate in recursive directed graphs; see @ref garbage_collection for more information.
 
     Additionally, every effort is made to find and fix bugs in %Qore before every release; for example <a href="http://www.valgrind.org">valgrind</a> is used on Linux and OSX and dbx on Solaris to check for memory leaks and memory errors.  Particular attention is paid to thread-safety of all %Qore components as well; %Qore aims to be a stable platform for enterprise development supporting both quick script-based solutions and as an encapsulating language for embedding (and protecting) code in a server application.
 */
