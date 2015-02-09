@@ -87,9 +87,11 @@ protected:
 	 else if (!needs_eval && keys[i] && keys[i]->needs_eval())
 	    needs_eval = true;
    
-	 if (argTypeInfo->nonStringValue())
-	    argTypeInfo->doNonStringWarning(loc, "key number %d (starting from 0) in the hash is ");
-
+	 if (argTypeInfo->nonStringValue()) {
+            QoreStringMaker str("key number %ld (starting from 0) in the hash is ", i);
+            argTypeInfo->doNonStringWarning(loc, str.getBuffer());
+         }
+         
 	 argTypeInfo = 0;
 	 values[i] = values[i]->parseInit(oflag, pflag, lvids, argTypeInfo);
 	 if (!needs_eval && values[i] && values[i]->needs_eval())
