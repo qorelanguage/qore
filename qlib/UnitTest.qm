@@ -56,41 +56,44 @@ module UnitTest {
 #!/usr/bin/env qore
 %requires UnitTest
 %requires Cow # module that we want to test
+%exec-class TestCow
 
 class TestCow inherits UnitTest {
-    string testfile = tmpLocation() + '/test.txt';
-    # some processing
-    unlink(testfile);
+	constructor() {
+		string testfile = tmpLocation() + '/test.txt';
+		# some processing
+		unlink(testfile);
 
-    cmp(Cow.sound(), 'moo', "cow's sound is correct");
+		cmp(Cow.sound(), 'moo', "cow's sound is correct");
 
-    ok(Cow.hasFourLegs(), "number of cow's legs correct");
+		ok(Cow.hasFourLegs(), "number of cow's legs correct");
 
-    like(Cow.sound(), 'moo+', "cow's sound is correct");
+		like(Cow.sound(), 'moo+', "cow's sound is correct");
 
-    sub fly (string animal) {
-        if (animal === "cow") {
-            throw 'cow cannot fly'
-        }
-    }
+		sub fly (string animal) {
+			if (animal === "cow") {
+				throw 'cow cannot fly'
+			}
+		}
 
-    exception(\fly, ('cow'), 'cow cannot fly', 'invoked exception when cow trying to fly');
+		exception(\fly, ('cow'), 'cow cannot fly', 'invoked exception when cow trying to fly');
 
-    cmploop(
-        \eat(),
-        (
-            (
-                "args" : ("grass"),
-                "cmp"  : True,
-                "msg"  : "cow can eat grass",
-            ),
-            (
-                "args" : ("itself"),
-                "cmp"  : False,
-                "msg"  : "cow cannot eat itself",
-            ),
-        ),
-    );
+		cmploop(
+			\eat(),
+			(
+				(
+					"args" : ("grass"),
+					"cmp"  : True,
+					"msg"  : "cow can eat grass",
+				),
+				(
+					"args" : ("itself"),
+					"cmp"  : False,
+					"msg"  : "cow cannot eat itself",
+				),
+			),
+		);
+	}
 }
     @endcode
 
