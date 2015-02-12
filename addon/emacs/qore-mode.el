@@ -152,8 +152,8 @@ The expansion is entirely correct because it uses the C preprocessor."
     ;; `$' is also a prefix char so I was tempted to say "/ p",
     ;; but the `p' thingy basically overrides the `/' :-(   --stef
     (modify-syntax-entry ?$ "/" st)
-    (modify-syntax-entry ?% ". p" st)
-    (modify-syntax-entry ?@ ". p" st)
+    ;;(modify-syntax-entry ?% ". p" st)
+    ;;(modify-syntax-entry ?@ ". p" st)
     (modify-syntax-entry ?& "." st)
     (modify-syntax-entry ?\' "\"" st)
     (modify-syntax-entry ?* "." st)
@@ -165,7 +165,7 @@ The expansion is entirely correct because it uses the C preprocessor."
     (modify-syntax-entry ?> "." st)
     (modify-syntax-entry ?\\ "\\" st)
     (modify-syntax-entry ?` "\"" st)
-    (modify-syntax-entry ?| "." st)
+    ;;(modify-syntax-entry ?| "." st)
     st)
   "Syntax table in use in `qore-mode' buffers.")
 
@@ -194,9 +194,9 @@ The expansion is entirely correct because it uses the C preprocessor."
     ;;  (1 font-lock-constant-face) (2 font-lock-variable-name-face nil t))
     ;;
     ;; Fontify function and package names in declarations.
-    ("\\<\\(namespace\\|class\\|sub\\)\\>[ \t]*\\(\\sw+\\)?"
+    ("\\<\\(namespace\\|class\\|sub\\|module\\)\\>[ \t]+\\(\\sw+\\)?"
      (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t))
-    ("\\<\\(%include\\|%requires\\|const\\)\\>[ \t]*\\(\\sw+\\)?"
+    ("\\<\\(%include\\|%requires\\|const\\)\\>[ \t]+\\(\\sw+\\)?"
      (1 font-lock-keyword-face) (2 font-lock-constant-face nil t)))
   "Subdued level highlighting for Qore mode.")
 
