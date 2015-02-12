@@ -3,7 +3,7 @@
 
 # @file sqlutil example program for the SqlUtil module
 
-/*  Copyright (C) 2013 - 2014 David Nichols
+/*  Copyright 2013 -2015 David Nichols
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,9 @@
 %enable-all-warnings
 
 %requires SqlUtil
+%try-module yaml
+%define NoYaml
+%endtry
 
 const opts = (
     "align_all": "A,align-all=s",
@@ -36,6 +39,8 @@ const opts = (
     "align_data_strict": "s,align-data-strict",
     "align_table": "a,align-table=s",
     "dump_table": "t,dump-table=s@",
+    "export_table": "export=s",
+    "import_table": "import=s",
     "dump_sequence": "S,dump-sequence=s@",
     "omit": "O,omit=s@",
     "list_tables": "L,list-tables",
@@ -74,6 +79,9 @@ sub usage() {
   -S,--dump-sequence=ARG      dump the DDL for the given sequence
   -T,--target-ds=ARG          target datasource
   -v,--verbose=ARG            increase verbosity level (more v's = more info)
+     --export=ARG             export table data to standard output in YAML format
+     --import=ARG:ARG         import YAML data into table (ARG 1) from file
+                              name (ARG 2). Batch commit per 1000 lines.
 ", get_script_name());
     exit(1);
 }
@@ -233,6 +241,50 @@ sub main() {
         printf("%s;\n", seq.getCreateSql(copt));
     }
 
+    if (opt.export_table) {
+%ifdef NoYaml
+        throw "YAML-ERROR", "the binary yaml module is not available";    
+%else
+        on_success source.commit();
+        on_error source.rollback();
+
+        done = True;
+        Table table(source, opt.export_table);
+        SQLStatement sql = table.getRowIterator();
+        while (sql.next()) {
+            hash row = sql.fetchRow();
+            printf("%s", makeYAML(row));
+        }
+%endif
+    }
+
+    if (opt.import_table) {
+%ifdef NoYaml
+        throw "YAML-ERROR", "the binary yaml module is not available";    
+%else
+        on_success source.commit();
+        on_error source.rollback();
+
+        list arg = opt.import_table.split(":");
+        if (!exists arg[0])
+            throw "TABLE-IMPORT-ERROR", "No argument with table name";
+        if (!exists arg[1])
+            throw "TABLE-IMPORT-ERROR", "No argument with file name";
+
+        done = True;
+        Table table(source, arg[0]);
+
+        FileLineIterator it(arg[1]);
+        while (it.next()) {
+            hash row = parseYAML(it.getValue());
+            table.insertNoCommit(row);
+
+            if (it.index() % 1000 == 0)
+                source.commit();
+        }
+%endif
+    }
+
     code align_table = sub (AbstractTable source_table) {
         done = True;
         Table target_table(target, source_table.getName());        
@@ -270,9 +322,9 @@ sub main() {
     }
 
     if (opt.align_data) {
-        if (opt.align_table =~ /[\*\?]/) {
+        if (opt.align_data =~ /[\*\?]/) {
             # transform into regex
-            string tspec = get_regex(opt.align_table);
+            string tspec = get_regex(opt.align_data);
             GlobTables tables(db, source, tspec);
 
             foreach AbstractTable t in (tables.iterator()) {
@@ -283,7 +335,7 @@ sub main() {
             }
         }
         else {
-            Table table(source, opt.align_table);
+            Table table(source, opt.align_data);
             align_data(table.getTable());
         }
         reset();
