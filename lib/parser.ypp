@@ -4,7 +4,7 @@
 
    Qore Programming Language
 
-   Copyright (C) 2003 - 2014 David Nichols
+   Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -3205,6 +3205,7 @@ exp:    scalar
            }
 	}
         | '(' ')' { QoreListNode* l = new QoreListNode; l->setFinalized(); $$ = l; }
+        | '{' '}' { $$ = new QoreHashNode; }
         | TOK_SUB '(' myexp ')' return_value block {
 	   int ar = get_pop_argv_ref();
 	   $$ = new QoreClosureParseNode(new UserClosureFunction($6, @3.first_line, @3.last_line, $3, $5, false, ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS));

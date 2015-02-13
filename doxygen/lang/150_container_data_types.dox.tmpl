@@ -53,6 +53,8 @@ $element3 = $list[2];
 
     @par Immediate Value Example:
     @verbatim (1, "two", 3.0)@endverbatim
+    Gives an empty list (note that <tt>{}</tt> gives an empty hash):
+    @verbatim ()@endverbatim
 
     @par Pseudo Class for Type List:
     @ref Qore::zzz8listzzz9
@@ -129,7 +131,11 @@ $element3 = $hash{"this-element-1!"};
     Note that hash keys can also be given by constants (as long as the constant resolves to a string) when using curly brackets.\n
 
     @par Immediate Value Example:
+    @verbatim {"key1": 1, "key2": "two", get_key_3(): 3.141592653589793238462643383279502884195n}@endverbatim
+    Hashes can be declared with parentheses or curly brackets:
     @verbatim ("key1": 1, "key2": "two", get_key_3(): 3.141592653589793238462643383279502884195n)@endverbatim
+    Gives an empty hash (note that <tt>()</tt> gives an empty list):
+    @verbatim {}@endverbatim
 
     @par Pseudo Class for Type Hash:
     @ref Qore::zzz8hashzzz9
