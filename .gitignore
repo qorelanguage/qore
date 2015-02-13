@@ -2,6 +2,8 @@
 *.o
 *.la
 *.lo
+*.log
+*.trs
 
 # Automake & friends
 .deps
