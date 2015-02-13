@@ -12,13 +12,13 @@
     - greatly improved support on Windows
 
     @subsection qore_0812_new_features New Features in Qore
-    - Added the @ref value_coalescing_operator which checks first argument for @ref Qore::False "False" and perhaps assigns second argument. The operator can be further chained. @code expr1 ?* expr2 ?* expr3 @endcode
+    - Added the @ref value_coalescing_operator which checks first argument if it evaluates to @ref Qore::False "False" with @ref <value>::val() and perhaps assigns second argument. The operator can be further chained. @code expr1 ?* expr2 ?* expr3 @endcode
     - Added the @ref null_coalescing_operator which checks the first operand for @ref nothing or @ref null; if true returns the second argument. The operator can be further chained, in which case the first operand with a value is returned; ex: @code expr1 ?? expr2 ?? expr3 @endcode
-    - new syntax for an expression giving an empty hash: @verbatim {}@endverbatim
     - <a href="../../modules/FixedLengthUtil/html/index.html">FixedLengthUtil</a> module for handling fixed length line data added
     - <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a> module split from the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module containing supporting definitions for handler classes and other code interfacing with the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
     - hash enhancements:
-      - new literal hash support: hashes can now be given as literal values as follows: @code (<key_expr>: <val_expr>, [...]) @endcode in the past the keys in literal hashes had to be either a string or a constant; now any valid %Qore expression can be used to generate the hash keys at runtime
+      - new syntax for an expression giving an empty hash: <tt>{}</tt>; for example: @code hash h = {};@endcode
+      - new literal hash support: hashes can now be given as literal values as follows: @code (<key_expr>: <val_expr>, [...]) @endcode For example: @code return (get_key(): get_value()); @endcode in the past the keys in literal hashes had to be either a string or a constant; now any valid %Qore expression can be used to generate the hash keys at runtime
       - new hash syntax; hash elements can now be enclosed by curly brackets as well as regular parentheses; the version with curly brackets when used with the @ref hmap "map" operator results in the hash version of the map operator being used
       - Added new @ref hmap "hash version of the map" operator to build a hash from a list or iterator expression; ex: @code hash h = map {$1, h2.$1}, $i; @endcode
     - implemented support for loading user modules in a pre-defined @ref Qore::Program "Program" object (that can have a custom API) in the following new functions and methods:
@@ -109,7 +109,7 @@
     - added a timeout parameter to the following @ref Qore::Socket "Socket" methods:
       - @ref Qore::Socket::upgradeClientToSSL()
       - @ref Qore::Socket::upgradeServerToSSL()
-    - added zoneinfo -> Windows time zone translation code on Windows to support standard UNIX time zone names on Windows; time zone information is still taken from the Windows registry but region names are reported using the standard names
+    - added zoneinfo -> Windows time zone translation code on Windows to support standard UNIX (zoneinfo) time zone names on Windows; time zone information is still taken from the Windows registry but region names are reported using the standard zoneinfo names
 
     @subsection qore_0812_bug_fixes Bug Fixes in Qore
     - fixed format of octal constant - there was an error if a string contained octal constant that is shorter than 3 digit
