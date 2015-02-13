@@ -23,7 +23,7 @@
 */
 
 # minimum qore version
-%requires qore >= 0.8.11
+%requires qore >= 0.8.12
 
 # need mime definitions
 %requires Mime >= 1.0
