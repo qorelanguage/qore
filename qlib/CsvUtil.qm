@@ -590,7 +590,7 @@ my hash $h = $i.getRecord();
          */
         hash getRecord() {
             my list $l = $.parseLine();
-            my hash $h = hash();
+            my hash $h = {};
             foreach my any $v in ($l) {
                 my string $col = $.headers[$#] ? $.headers[$#] : string($#);
                 $h.$col = $v;

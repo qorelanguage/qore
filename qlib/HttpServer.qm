@@ -738,7 +738,7 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
     /** @return a hash of listener info hashes keyed by listener ID; see the return value of HttpServer::getListenerInfo() for the description of each hash value
      */
     hash getListeners() {
-        my hash $h = hash();
+        my hash $h = {};
         map $h.$1 = $.listeners.$1.getInfo(), $.listeners.keyIterator();
         return $h;
     }

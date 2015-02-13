@@ -146,7 +146,7 @@ end",
 );
 
 const SequenceList = (
-    "seq_customers": hash(),
+    "seq_customers": {},
     );
 
 const Sequences = (

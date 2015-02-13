@@ -19,7 +19,7 @@ t.cmploop(\try_call(), (
     ),
     (
         "args" : list(any sub() {return map {$1 + $1 : True}, ();}),
-        "cmp"  : hash(),
+        "cmp"  : {},
         "msg"  : "hmap for empty list",
     ),
     (
@@ -54,12 +54,12 @@ t.cmploop(\try_call(), (
     ),
     (
         "args" : list(any sub() {return map {$1 : $1 * 2}, (1, 4, 6), False;}),
-        "cmp"  : hash(),
+        "cmp"  : {},
         "msg"  : "select param is always False",
     ),
     (
         "args" : list(any sub() {return map {$1 : $1 * 2}, (1, 4, 6), NOTHING;}),
-        "cmp"  : hash(),
+        "cmp"  : {},
         "msg"  : "select param is NOTHING",
     ),
     (

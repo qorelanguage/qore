@@ -364,11 +364,11 @@ my Mapper $map(DataMap);
                 case NT_CALLREF:
                 case NT_CLOSURE: $fh = ("code": $fh); break;
                 case NT_BOOLEAN: if ($fh) {
-                    $fh = hash();
+                    $fh = {};
                     break;
                 }
                 case NT_NOTHING: {
-                    $fh = hash();
+                    $fh = {};
                     break;
                 }
                 default: $.error("unsupported type %y assigned to map key %y", $fh.type(), $k);

@@ -1407,7 +1407,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                     }
                     # send "blank" column for function index
                     if (row.column_name =~ /\(.*\)/ || !columns.hasKey(row.column_name))
-                        ih.(row.index_name).columns{row.column_name} = hash();
+                        ih.(row.index_name).columns{row.column_name} = {};
                     else
                         ih.(row.index_name).columns{row.column_name} = columns{row.column_name};
                 }
@@ -1476,7 +1476,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             foreach hash row in (qh.contextIterator()) {
                 reference ch = \rv.(row.constraint_name);
                 if (!ch)
-                    ch = new PgsqlUniqueConstraint(row.constraint_name, hash(), row.status == "ENABLED");
+                    ch = new PgsqlUniqueConstraint(row.constraint_name, {}, row.status == "ENABLED");
                 ch.add(row.column_name, columns{row.column_name});
             }
             

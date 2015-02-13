@@ -484,12 +484,12 @@ class QorizeHelper {
         $.type = $container.typeCode();
         $.newstyle = $newstyle;
         if (!inlist($.type, (NT_LIST, NT_HASH)))
-            throw "QORIZE-ERROR", sprintf("Unsupported type %s (list, hash)", $container.type());
+            throw "QORIZE-ERROR", sprintf("Unsupported type %y (expecting \"list\", \"hash\")", $container.type());
     }
 
     string list() {
         if ($.type != NT_LIST)
-            throw "QORIZE-ERROR", "Cannot call list() for different type";
+            throw "QORIZE-ERROR", sprintf("Cannot call %s::list() for type \"hash\"", $self.className());
 
         $.process($.container);
 
@@ -498,7 +498,7 @@ class QorizeHelper {
 
     string hash() {
         if ($.type != NT_HASH)
-            throw "QORIZE-ERROR", "Cannot call hash() for different type";
+            throw "QORIZE-ERROR", sprintf("Cannot call %s::hash() for type \"list\"", $self.className());
 
         $.process($.container);
 

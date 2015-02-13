@@ -1104,7 +1104,7 @@ end";
                     }
                     # send "blank" column for function index
                     if (row.column_name =~ /\(.*\)/ || !columns.hasKey(row.column_name))
-                        ih.(row.index_name).columns{row.column_name} = hash();
+                        ih.(row.index_name).columns{row.column_name} = {};
                     else
                         ih.(row.index_name).columns{row.column_name} = columns{row.column_name};
                 }
@@ -1154,7 +1154,7 @@ end";
             foreach hash row in (qh.contextIterator()) {
                 reference ch = \rv.(row.constraint_name);
                 if (!ch)
-                    ch = new MysqlUniqueConstraint(row.constraint_name, hash());
+                    ch = new MysqlUniqueConstraint(row.constraint_name, {});
                 ch.add(row.column_name, columns{row.column_name});
             }
             

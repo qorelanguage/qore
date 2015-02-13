@@ -628,7 +628,7 @@ $m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 	    @note headers for importance, delivery receipt and read receipt will be added automatically and should not be included here
          */
 	setHeader(list $hdrs) {
-	    $.headers = hash();
+	    $.headers = {};
 	    map $.headers += $.parseHeader($1. False), $hdrs;
 	}
 

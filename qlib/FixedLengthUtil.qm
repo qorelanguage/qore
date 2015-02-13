@@ -226,7 +226,7 @@ my hash $h = $i.getValue();
             return NOTHING;
         }
 
-        hash result = hash();
+        hash result = {};
 
         *string type = call_function_args(m_identify_record, line);
         if (!type || !m_specs{type}) {
@@ -370,7 +370,7 @@ public class FixedLengthUtil::FixedLengthAbstractWriter inherits TextUtil::Abstr
     @param h specification of fixed-length-line file   
     @param g global options
     */
-    constructor(hash h, *code i, *hash g) : TextUtil::AbstractTextWriter(hash() + (g.eol ? ("eol" : g.eol) : hash())) {
+    constructor(hash h, *code i, *hash g) : TextUtil::AbstractTextWriter({} + (g.eol ? ("eol" : g.eol) : {})) {
         m_specs           = h;
         m_identify_record = i;
         delete g.eol;

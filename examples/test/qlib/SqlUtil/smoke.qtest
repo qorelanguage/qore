@@ -56,7 +56,7 @@ const TEST_SCHEMA = (
 const TEST_TABLE_NAME = "t_some_table";
 
 const TEST_SCHEMA_SEQUENCES = (
-    "tracking_logging_s" : hash(),
+    "tracking_logging_s" : {},
 );
 
 const TEST_SCHEMA_TABLES = (

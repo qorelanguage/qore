@@ -1202,7 +1202,7 @@ const T_Customers = (
 );
 
 const SequenceList = (
-    "seq_customers": hash(),
+    "seq_customers": {},
     );
 
 const Sequences = (
@@ -3149,7 +3149,7 @@ my *list $rows = $table.selectRows(("where": ("name": op_ceq("other_name"))));
     public const IOP_SEQ = "seq";
     
     #! a hash of default insert operator descriptions
-    public const DefaultIopMap = hash();
+    public const DefaultIopMap = {};
     #@}
 
     /** @defgroup sql_iop_funcs SQL Insert Operator Functions
@@ -9834,7 +9834,7 @@ my Triggers $trig = $table.getTriggers();
                 );
 
             #! Column options; this is currently empty and can be extended in database-specific modules
-            const ColumnOptions = hash();
+            const ColumnOptions = {};
 
             #! generic SQL data operation callbacks
             /** The following keys can be set for this option:
@@ -11327,7 +11327,7 @@ printf("%s;\n", $sql);
                 if (!columns.hasKey(v)) {
                     if (v !~ /\(.*\)/)
                         throw "INDEX-ERROR", sprintf("%s: has no column named %y", name, v);
-                    ch{v} = hash();
+                    ch{v} = {};
                 }
                 else
                     ch{v} = columns{v};

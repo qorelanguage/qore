@@ -637,7 +637,7 @@ public namespace RestHandler {
             $.removeRootPath(\$path);
 
             # get object and args
-            my hash $ah = $path ? parse_uri_query($path) : hash();
+            my hash $ah = $path ? parse_uri_query($path) : {};
 
             my *hash $args;
             if ($ah.params) {

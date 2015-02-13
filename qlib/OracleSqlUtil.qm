@@ -1988,7 +1988,7 @@ my any $v = $c.name;
                     # process function indexes
                     if (row.column_expression) {
                         row.column_expression =~ s/"//g;
-                        ih{row.index_name}{row.column_expression} = hash();
+                        ih{row.index_name}{row.column_expression} = {};
                     }
                     else
                         ih{row.index_name}{row.column_name} = columns{row.column_name};
@@ -2083,7 +2083,7 @@ my any $v = $c.name;
                     map row.$1 = row.$1.lwr(), ("constraint_name", "column_name");
                 reference ch = \rv.(row.constraint_name);
                 if (!ch) {
-                    ch = new OracleUniqueConstraint(row.constraint_name, hash(), row.status == "ENABLED");
+                    ch = new OracleUniqueConstraint(row.constraint_name, {}, row.status == "ENABLED");
                     if (row.index_name)
                         ch.setIndexBase(row.index_name);
                 }
