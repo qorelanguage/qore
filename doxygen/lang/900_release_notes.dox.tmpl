@@ -12,7 +12,7 @@
     - greatly improved support on Windows
 
     @subsection qore_0812_new_features New Features in Qore
-    - Added the @ref value_coalescing_operator which checks first argument if it evaluates to @ref Qore::False "False" with @ref <value>::val() and perhaps assigns second argument. The operator can be further chained. @code expr1 ?* expr2 ?* expr3 @endcode
+    - Added the @ref value_coalescing_operator which checks first argument if it evaluates to @ref Qore::False "False" with @ref <value>::val() and if so assigns the second argument. The operator can be further chained; for example: @code expr1 ?* expr2 ?* expr3 @endcode
     - Added the @ref null_coalescing_operator which checks the first operand for @ref nothing or @ref null; if true returns the second argument. The operator can be further chained, in which case the first operand with a value is returned; ex: @code expr1 ?? expr2 ?? expr3 @endcode
     - <a href="../../modules/FixedLengthUtil/html/index.html">FixedLengthUtil</a> module for handling fixed length line data added
     - <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a> module split from the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module containing supporting definitions for handler classes and other code interfacing with the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
