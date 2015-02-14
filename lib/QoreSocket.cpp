@@ -178,8 +178,9 @@ void qore_socket_error_intern(int rc, ExceptionSink* xsink, const char* err, con
       assert(!buf);
       desc->sprintf("Windows FormatMessage() failed on error code %d", rc);
    }
+   else
+      assert(buf);
 
-   assert(buf);
    desc->concat(buf);
    free(buf);
 

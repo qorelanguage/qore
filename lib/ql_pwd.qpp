@@ -313,14 +313,14 @@ hash getgrnam2(string name) [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
 //! returns the current username
 /** @par Example:
     @code
-my string $name = get_username();
+my string $name = getusername();
     @endcode
 
     @return the current username
 
     @since %Qore 0.8.12
 */
-string get_username() [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
+string getusername() [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
 #ifdef HAVE_PWD_H
    errno = 0;
    ReferenceHolder<QoreHashNode> h(q_getpwuid(geteuid()), xsink);
@@ -358,7 +358,7 @@ string get_username() [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
    name->terminate(size);
    return name.release();
 #else
-#error need get_username() support for this platform
+#error need getusername() support for this platform
 #endif
 #endif   
 }

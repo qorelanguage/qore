@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -776,7 +776,7 @@ int fsync (int fd) {
        * errors.  MSDN is useless as usual - in this case it doesn't 
        * document the full range of errors. 
        */ 
-      err = GetLastError (); 
+      err = GetLastError(); 
       switch (err) { 
 	 /* eg. Trying to fsync a tty. */ 
 	 case ERROR_INVALID_HANDLE: 
