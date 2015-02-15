@@ -540,7 +540,7 @@ static int process_opt(QoreString *cstr, char* param, const AbstractQoreNode* no
 	       *(f++) = '0';
 	    f += sprintf(f, "%d", width);
 	 }
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+#ifdef _Q_WINDOWS 
 	 *(f++) = 'I';
 	 *(f++) = '6';
 	 *(f++) = '4';
@@ -998,7 +998,7 @@ struct tm *q_gmtime(const time_t *clock, struct tm *tms) {
 }
 
 const char* q_find_first_path_sep(const char* path) {
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
    // on windows we have to find either '\\' (standard directory separator character) or '/' (UNIX-style, also accepted on Windows)
    const char* p = path;
    while (*p) {
@@ -1013,7 +1013,7 @@ const char* q_find_first_path_sep(const char* path) {
 }
 
 const char* q_find_last_path_sep(const char* path) {
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
    // on windows we have to find either '\\' (standard directory separator character) or '/' (UNIX-style, also accepted on Windows)
    const char* p = path;
    const char* rv = 0;
@@ -1608,7 +1608,7 @@ int qore_usleep(int64 usecs) {
 #ifdef HAVE_NANOSLEEP
    return qore_nanosleep(usecs * 1000);
 #else
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+#ifdef _Q_WINDOWS 
    LARGE_INTEGER ft; 
    ft.QuadPart = -(10 * usecs); // Convert to 100 nanosecond interval, negative value indicates relative time
 
@@ -1859,7 +1859,7 @@ bool q_absolute_path_windows(const char* path) {
 }
 
 bool q_absolute_path(const char* path) {
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
    return q_absolute_path_windows(path);
 #else
    return q_absolute_path_unix(path);

@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -183,7 +183,7 @@ void qore_program_private_base::newProgram() {
    dmap["QorePlatformCPU"] = new QoreStringNode(TARGET_ARCH);
    dmap["QorePlatformOS"] = new QoreStringNode(TARGET_OS);
 
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+#ifdef _Q_WINDOWS 
    dmap["Windows"] = &True;
 #else
    dmap["Unix"] = &True;

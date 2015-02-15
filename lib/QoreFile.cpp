@@ -101,7 +101,7 @@ struct qore_qf_private {
       if (!flags)
 	 flags = O_RDONLY;
 
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
       // open files in binary mode by default on Windows
       if (!(flags & O_TEXT))
 	 flags |= O_BINARY;
@@ -761,7 +761,7 @@ const QoreEncoding *QoreFile::getEncoding() const {
  
    Written by Richard W.M. Jones <rjones.at.redhat.com> 
 */ 
-#if (defined _WIN32 || defined __WIN32__)
+#ifdef _Q_WINDOWS
 int fsync (int fd) { 
    HANDLE h = (HANDLE) _get_osfhandle (fd); 
    DWORD err; 

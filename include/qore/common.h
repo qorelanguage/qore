@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -42,6 +42,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <inttypes.h>
 
 #include <string>
 #include <functional>
@@ -64,13 +65,13 @@
 #define Q_SOCK_STREAM -1
 
 //! used to identify unique Qore data and parse types (descendents of AbstractQoreNode)
-typedef signed short qore_type_t;
+typedef int16_t qore_type_t;
 
 //! used for sizes (same range as a pointer)
 typedef size_t qore_size_t;
 
 //! used for offsets that could be negative
-typedef long qore_offset_t;
+typedef intptr_t qore_offset_t;
 
 //! used for the unique class ID for QoreClass objects
 typedef unsigned qore_classid_t;
@@ -86,6 +87,13 @@ enum qore_license_t {
 };
 
 #if defined _MSC_VER || ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__)
+#define _Q_WINDOWS 1
+#ifdef _WIN64
+#define _Q_WINDOWS64 1
+#endif
+#endif
+
+#ifdef _Q_WINDOWS
   #ifdef BUILDING_DLL
     #define DLLEXPORT __declspec(dllexport)
   #else
@@ -213,7 +221,7 @@ typedef std::vector<AbstractQoreNode *> arg_vec_t;
 //! vector of parameter names for parameter lists
 typedef std::vector<std::string> name_vec_t;
 
-typedef long long int64;
+typedef int64_t int64;
 
 //! the type used for builtin function signatures
 /** @param args the list of arguments to the function (could be 0), use inline functions in params.h to access

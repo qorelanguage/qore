@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -334,7 +334,7 @@ public:
    const char* user_module_context_name;
 
    // AbstractQoreModule* with boolean ptr in bit 0
-   long qmi;
+   uintptr_t qmi;
    
    bool
    foreign : 1; // true if the thread is a foreign thread
@@ -700,7 +700,7 @@ int check_stack(ExceptionSink* xsink) {
 
 QoreAbstractModule* set_reexport(QoreAbstractModule* m, bool current_reexport, bool& old_reexport) {
    ThreadData* td = thread_data.get();
-   long rv = td->qmi;
+   uintptr_t rv = td->qmi;
    if (rv & 1) {
       old_reexport = true;
       rv ^= 1;
@@ -708,7 +708,7 @@ QoreAbstractModule* set_reexport(QoreAbstractModule* m, bool current_reexport, b
    else
       old_reexport = false;
 
-   td->qmi = (long)m;
+   td->qmi = (uintptr_t)m;
    if (current_reexport)
       td->qmi |= 1;
 
@@ -717,7 +717,7 @@ QoreAbstractModule* set_reexport(QoreAbstractModule* m, bool current_reexport, b
 
 void set_reexport(QoreAbstractModule* m, bool reexport) {
    ThreadData* td = thread_data.get();
-   td->qmi = (long)m;
+   td->qmi = (uintptr_t)m;
    if (reexport)
       td->qmi |= 1;
 }
@@ -1822,7 +1822,7 @@ static AbstractQoreNode* check_op_background(QoreTreeNode* tree, LocalVar* oflag
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 #include <qore/QoreRWLock.h>
 
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
 extern QoreRWLock *thread_stack_lock;
 #else
 extern QoreRWLock thread_stack_lock;
@@ -1834,7 +1834,7 @@ static int initial_thread;
 void init_qore_threads() {
    QORE_TRACE("qore_init_threads()");
 
-#if defined(QORE_RUNTIME_THREAD_STACK_TRACE) && (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#if defined(QORE_RUNTIME_THREAD_STACK_TRACE) && defined(_Q_WINDOWS)
    thread_stack_lock = new QoreRWLock;
 #endif
 
@@ -1850,14 +1850,14 @@ void init_qore_threads() {
    qore_thread_stack_size = 1024*1024*2;
 #endif // #if TARGET_BITS == 32
 #else
-#ifdef WIN32
+#ifdef _Q_WINDOWS
    // windows stacks are extended automatically; here we set a limit of 1 MB per thread
    qore_thread_stack_size = 1024 * 1024;
-#else // !WIN32 && !SOLARIS
+#else // !_Q_WINDOWS && !SOLARIS
    qore_thread_stack_size = ta_default.getstacksize();
    assert(qore_thread_stack_size);
    //printd(5, "getstacksize() returned: %ld\n", qore_thread_stack_size);
-#endif // #ifdef WIN32
+#endif // #ifdef _Q_WINDOWS
 #endif // #ifdef SOLARIS
 
 #ifdef IA64_64
@@ -1932,7 +1932,7 @@ void delete_qore_threads() {
    thread_list.deleteDataRelease(initial_thread);
 
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
    delete thread_stack_lock;
 #endif
 #endif
@@ -1958,7 +1958,7 @@ QoreListNode* get_thread_list() {
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 #include <qore/QoreRWLock.h>
 
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
 extern QoreRWLock* thread_stack_lock;
 #else
 extern QoreRWLock thread_stack_lock;

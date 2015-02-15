@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -35,7 +35,7 @@
 // the read lock, reading all threads' stacks is performed in the write lock
 #include <qore/QoreRWLock.h>
 
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
 QoreRWLock *thread_stack_lock;
 #else
 QoreRWLock thread_stack_lock;

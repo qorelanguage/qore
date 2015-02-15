@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -167,7 +167,7 @@ DLLEXPORT char *q_dirname(const char *path);
 //! frees memory if there is an allocation error
 DLLEXPORT void *q_realloc(void *ptr, size_t size);
 
-#if (!defined _WIN32 && !defined __WIN32__) || defined __CYGWIN__
+#ifndef _Q_WINDOWS
 //! thread-safe version of getpwuid(): returns a Qore hash of the passwd information from the uid if possible, otherwise 0
 DLLEXPORT QoreHashNode *q_getpwuid(uid_t uid);
 

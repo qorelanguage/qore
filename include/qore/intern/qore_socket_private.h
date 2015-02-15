@@ -73,7 +73,7 @@ DLLLOCAL void se_not_open(const char* meth, ExceptionSink* xsink);
 DLLLOCAL void se_timeout(const char* meth, int timeout_ms, ExceptionSink* xsink);
 DLLLOCAL void se_closed(const char* mname, ExceptionSink* xsink);
 
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+#ifdef _Q_WINDOWS 
 #define GETSOCKOPT_ARG_4 char*
 #define SETSOCKOPT_ARG_4 const char*
 #define SHUTDOWN_ARG SD_BOTH
@@ -251,7 +251,7 @@ struct qore_socket_private {
       assert(sock != QORE_INVALID_SOCKET);
       int rc;
       while (true) {
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+#ifdef _Q_WINDOWS 
 	 rc = ::closesocket(sock);
 #else
 	 rc = ::close(sock);
@@ -416,7 +416,7 @@ struct qore_socket_private {
 	 return QSE_NOT_OPEN;
       if (in_op)
          return QSE_IN_OP;
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
       if (::listen(sock, backlog)) {
 	 // set errno
 	 sock_get_error();
@@ -465,7 +465,7 @@ struct qore_socket_private {
 
       int rc;
       if (sfamily == AF_UNIX) {
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
 	 if (xsink)
 	    xsink->raiseException("SOCKET-ACCEPT-ERROR", "UNIX sockets are not available under Windows");
 	 return -1;
@@ -734,7 +734,7 @@ struct qore_socket_private {
    DLLLOCAL int connectUNIX(const char* p, int sock_type, int protocol, ExceptionSink* xsink) {
       QORE_TRACE("connectUNIX()");
 
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
       xsink->raiseException("SOCKET-CONNECTUNIX-ERROR", "UNIX sockets are not available under Windows");
       return -1;
 #else
@@ -848,7 +848,7 @@ struct qore_socket_private {
 	 if (!::connect(sock, ai_addr, ai_addrlen))
 	    return 0;
 
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+#ifdef _Q_WINDOWS 
 	 if (WSAGetLastError() != WSAEWOULDBLOCK) {
 	    qore_socket_error(xsink, "SOCKET-CONNECT-ERROR", "error in connect()", 0, 0, 0, ai_addr);
 	    break;
@@ -924,7 +924,7 @@ struct qore_socket_private {
       if (sock == QORE_INVALID_SOCKET)
          return 0;
       
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+#ifdef _Q_WINDOWS 
       u_long mode = non_blocking ? 1 : 0;
       int rc = ioctlsocket(sock, FIONBIO, &mode);
       if (check_windows_rc(rc))
@@ -1139,7 +1139,7 @@ struct qore_socket_private {
 
    // bind to UNIX domain socket file
    DLLLOCAL int bindUNIX(const char* name, int socktype = SOCK_STREAM, int protocol = 0, ExceptionSink* xsink = 0) {
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
       xsink->raiseException("SOCKET-BINDUNIX-ERROR", "UNIX sockets are not available under Windows");
       return -1;
 #else
@@ -1283,7 +1283,7 @@ struct qore_socket_private {
 
 	 h->setKeyValue("port", new QoreBigIntNode(tport), 0);
       }
-#if (!defined _WIN32 && !defined __WIN32__) || defined __CYGWIN__
+#ifndef _Q_WINDOWS
       else if (addr.ss_family == AF_UNIX) {
 	 assert(!socketname.empty());
 	 QoreStringNode* addrstr = new QoreStringNode(socketname);
@@ -1319,7 +1319,7 @@ struct qore_socket_private {
 	 if (!getnameinfo((struct sockaddr *)&addr, get_in_len((struct sockaddr *)&addr), host, sizeof(host), 0, 0, 0))
 	    o->setValue("source_host", new QoreStringNode(host), 0);
       }
-#if (!defined _WIN32 && !defined __WIN32__) || defined __CYGWIN__
+#ifndef _Q_WINDOWS
       else if (addr.ss_family == AF_UNIX) {
 	 QoreStringNode* astr = new QoreStringNode(enc);
 	 struct sockaddr_un *addr_un = (struct sockaddr_un *)&addr;

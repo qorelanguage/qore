@@ -164,7 +164,7 @@ static void scanner_process_path(QoreString& npath, char* ip) {
     p = lp = ip;
     
     while (true) {
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
        // do not assume ':' separates paths on windows if it's the second character in a path
        if ((*p == ':' && p != lp + 1) || !*p)
 #else
@@ -242,7 +242,7 @@ static void scanner_process_path(QoreString& npath, char* ip) {
           lp = ++p;
           continue;
        }
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
        // transform '/ characters to '\' characters
        if (*p == '/')
           *p = '\\';
@@ -254,7 +254,7 @@ static void scanner_process_path(QoreString& npath, char* ip) {
 }
 
 static QoreString* get_include_file_name(char* file) {
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
    // convert UNIX-style '/' character to '\'
    for (char* p = file; *p; ++p)
       if (*p == '/')

@@ -56,7 +56,7 @@ void se_closed(const char* mname, ExceptionSink* xsink) {
    xsink->raiseException("SOCKET-CLOSED", "error in Socket::%s(): remote end closed the connection", mname);
 }
 
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+#ifdef _Q_WINDOWS 
 int sock_get_raw_error() {
    return WSAGetLastError();
 }
@@ -1519,7 +1519,7 @@ int QoreSocket::bind(const struct sockaddr *addr, int size) {
       return -1;
 
    if ((::bind(priv->sock, addr, size)) == QORE_SOCKET_ERROR) {
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+#ifdef _Q_WINDOWS 
       // set errno from windows error
       sock_get_error();
 #endif
@@ -1545,7 +1545,7 @@ int QoreSocket::bind(int family, const struct sockaddr *addr, int size, int sock
       return -1;
 
    if ((::bind(priv->sock, addr, size)) == -1) {
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+#ifdef _Q_WINDOWS 
       // set errno from windows error
       sock_get_error();
 #endif

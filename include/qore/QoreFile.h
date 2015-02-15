@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
   
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -507,7 +507,7 @@ public:
    //! returns the filename of the file being read (NULL if no file name is set); caller owns the reference count returned
    DLLEXPORT QoreStringNode* getFileName() const;
 
-#if (!defined _WIN32 && !defined __WIN32__) || defined __CYGWIN__ 
+#ifndef _Q_WINDOWS
    //! changes ownership of the file (if possible)
    DLLEXPORT int chown(uid_t owner, gid_t group, ExceptionSink *xsink);
 

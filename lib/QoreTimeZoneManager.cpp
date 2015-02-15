@@ -250,7 +250,7 @@ int QoreTimeZoneManager::process(const char *fn) {
 }
 
 const AbstractQoreZoneInfo *QoreTimeZoneManager::processFile(const char *fn, ExceptionSink *xsink) {
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
    tzmap_t::iterator i = tzmap.find(fn);
    if (i != tzmap.end())
       return i->second;
@@ -650,7 +650,7 @@ typedef std::map<const char*, const char*, ltstr> tzmap_t;
 // maps zoneinfo names to Windows names
 tzmap_t win_tzmap;
 
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
 static void win_add_map(const char* win, const char* tzr) {
    assert(!strchr(tzr, ' '));
    assert(win_tzmap.find(tzr) == win_tzmap.end());
@@ -1175,7 +1175,6 @@ QoreStringNode *get_windows_err(LONG rc) {
    return desc;
 }
 
-#define RRF_RT_REG_SZ 0x0000ffff
 static int wgetregstr(HKEY hk, const char *name, QoreString &val, ExceptionSink *xsink) {
    DWORD size = 0;
    LONG rc = RegQueryValueEx(hk, name, 0, 0, 0, &size);
@@ -1366,7 +1365,7 @@ void QoreTimeZoneManager::init_intern(QoreString &TZ) {
 void QoreTimeZoneManager::init() {
    QoreString TZ(QCS_USASCII);
 
-#if (!defined _WIN32 && !defined __WIN32__) || defined __CYGWIN__
+#ifndef _Q_WINDOWS
    init_intern(TZ);
 #endif
 
@@ -1391,7 +1390,7 @@ void QoreTimeZoneManager::init() {
       }
    }
 #endif
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
    win_init_maps();
    TIME_ZONE_INFORMATION tzi;
    int rc = GetTimeZoneInformation(&tzi);

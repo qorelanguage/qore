@@ -333,7 +333,7 @@ string getusername() [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
    }
    return h->getReferencedKeyValue("pw_name");
 #else
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
 #define USERNAME_MAX 255
    SimpleRefHolder<QoreStringNode> name(new QoreStringNode);
    name->reserve(USERNAME_MAX);

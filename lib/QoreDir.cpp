@@ -45,7 +45,7 @@
 
 #include <string>
 
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+#ifdef _Q_WINDOWS 
 static int mkdir(const char *path, mode_t mode) {
    return mkdir(path);
 }
@@ -59,7 +59,7 @@ protected:
 
    DLLLOCAL static bool is_dir_sep(const std::string& str) {
       for (std::string::size_type i = 0, e = str.size(); i < e; ++i) {
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
 	 if (str[i] != '\\' && str[i] != '/')
 	    return false;
 #else
@@ -72,7 +72,7 @@ protected:
 
    DLLLOCAL static std::string::size_type get_first_non_dir_sep(const std::string& str, std::string::size_type pos = 0) {
       for (std::string::size_type i = pos, e = str.size(); i < e; ++i) {
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
 	 if (str[i] != '\\' && str[i] != '/')
 	    return i;
 #else
@@ -85,7 +85,7 @@ protected:
    
    DLLLOCAL static std::string::size_type get_first_dir_sep(const std::string& str, std::string::size_type pos = 0) {
       for (std::string::size_type i = pos, e = str.size(); i < e; ++i) {
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
 	 if (str[i] == '\\' || str[i] == '/')
 	    return i;
 #else
@@ -144,7 +144,7 @@ protected:
       // create string out of rest..
       std::string ret;
       for (it = dirs.begin(); it < dirs.end(); it++) {
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
 	 if (it == dirs.begin() && q_absolute_path_windows((*it).c_str()))
 	     ret += *it;
 	 else
@@ -235,7 +235,7 @@ public:
       // if changing to the current directory, then ignore
       if (ndir[0] == '.') {
 	 const char* p = ndir + 1;
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
 	 while (*p && (*p == '\\' || *p == '/'))
 #else
 	 while (*p && *p == QORE_DIR_SEP)

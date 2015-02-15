@@ -218,7 +218,7 @@ void UniqueDirectoryList::addDirList(const char* str) {
 
    // add each directory
    while (char* p = (char*)strchr(str, ':')) {
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
       // don't match ':' as the second character in a path as a path separator
       if (p == str + 1) {
 	 p = (char*)strchr(p + 1, ':');
@@ -574,7 +574,7 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
 	 qore_offset_t i = n.rfind('.');
 	 if (i > 0)
 	    n.terminate(i);
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
 	 i = n.rfindAny("\\/");
 #else
 	 i = n.rfind(QORE_DIR_SEP);

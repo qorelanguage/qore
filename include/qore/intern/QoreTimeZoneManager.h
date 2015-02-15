@@ -192,7 +192,7 @@ public:
    }
 };
 
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
 class QoreWindowsZoneInfo : public AbstractQoreZoneInfo {
 protected:
    QoreString display,  // display name for the zone from the registry

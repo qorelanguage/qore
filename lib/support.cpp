@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -199,7 +199,7 @@ static int try_include_dir(QoreString& dir, const char* file) {
    //printd(5, "try_include_dir(dir='%s', file='%s')\n", dir.getBuffer(), file);
 
    // make fully-justified path
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
    if (dir.strlen() && dir.getBuffer()[dir.strlen() - 1] != '\\' && dir.getBuffer()[dir.strlen() - 1] != '/')
 #else
    if (dir.strlen() && dir.getBuffer()[dir.strlen() - 1] != QORE_DIR_SEP)
@@ -225,7 +225,7 @@ int qore_find_file_in_path(QoreString& str, const char *file, const char *path) 
    // try each directory
    while (char *p = strchr(idir, ':')) {
       if (p != idir) {
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
 	 // do not assume ':' separates paths on windows if it's the second character in a path
 	 if (p == idir + 1) {
 	    p = strchr(p + 1, ':');

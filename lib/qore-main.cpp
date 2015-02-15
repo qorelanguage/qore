@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -71,7 +71,7 @@ typedef std::vector<QoreThreadLock*> mutex_vec_t;
 static mutex_vec_t q_openssl_mutex_list;
 
 static unsigned long q_openssl_id_function(void) {
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+#ifdef _Q_WINDOWS 
    return GetCurrentThreadId();
 #else
    return (unsigned long)pthread_self();
@@ -139,7 +139,7 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
    // set up pseudo-methods
    pseudo_classes_init();
 
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+#ifdef _Q_WINDOWS 
    // do windows socket initialization
    WORD wsver = MAKEWORD(2, 2);
    WSADATA wsd;
@@ -157,7 +157,7 @@ void qore_cleanup() {
    // first delete all user modules
    QMM.delUser();
 
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+#ifdef _Q_WINDOWS 
    // do windows socket cleanup
    WSACleanup();
 #endif
