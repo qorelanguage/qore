@@ -149,6 +149,8 @@ DLLLOCAL bool get_container_obj(const AbstractQoreNode* n);
 DLLLOCAL void inc_container_obj(const AbstractQoreNode* n, int dt);
 #endif
 
+DLLLOCAL void missing_openssl_feature(const char* f, ExceptionSink* xsink);
+
 struct ParseWarnOptions {
    int64 parse_options;
    int warn_mask;

@@ -213,7 +213,7 @@ public:
 */
 };
 
-static void missing_openssl_feature(const char *f, ExceptionSink *xsink) {
+void missing_openssl_feature(const char *f, ExceptionSink *xsink) {
    xsink->raiseException("MISSING-FEATURE-ERROR", "the openssl library version that qore was compiled with did not support the %s algorithm; for maximum portability, check Option::HAVE_%s before calling this function", f, f);
 }
 
