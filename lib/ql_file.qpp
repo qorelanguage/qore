@@ -4,7 +4,7 @@
  
   Qore Programming Language
  
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
  
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -36,6 +36,11 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
+
+#ifdef _Q_WINDOWS
+#include <io.h>
+#include <direct.h>
+#endif
 
 #ifdef HAVE_GLOB_H
 #include <glob.h>
@@ -665,7 +670,11 @@ if (mkdir("/tmp/newdir", 0755))
     @see umask()
  */
 int mkdir(string path, softint mode = 0777) [dom=FILESYSTEM] {
+#ifdef _Q_WINDOWS
+   return _mkdir(path->getBuffer());
+#else
    return mkdir(path->getBuffer(), mode);
+#endif
 }
 
 //! Removes a directory
