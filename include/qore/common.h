@@ -221,7 +221,8 @@ typedef std::vector<AbstractQoreNode *> arg_vec_t;
 //! vector of parameter names for parameter lists
 typedef std::vector<std::string> name_vec_t;
 
-typedef int64_t int64;
+//! 64bit integer type, cannot use int64_t here since it breaks the API on some 64-bit systems due to equivalence between long int and int
+typedef long long int64;
 
 //! the type used for builtin function signatures
 /** @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
