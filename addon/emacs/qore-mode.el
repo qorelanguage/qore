@@ -299,7 +299,8 @@ The expansion is entirely correct because it uses the C preprocessor."
           '(7))))
     ;;("\\(^\\|[?:.,;=!~({[ \t]\\)\\([msx]\\|q[qxrw]?\\|tr\\)\\>\\s-*\\([^])}> \n\t]\\)"
     ;;("\\(^\\|[?:~({[ \t]\\)\\([msx]\\|q[qxrw]?\\|tr\\)\\>\\s-*\\([^])}> \n\t]\\)"
-    ("\\(^\\|[?:~({[ \t]\\)\\([msx]\\|tr\\)\\>\\s-*\\([^])}> \n\t]\\)"
+    ;;("\\(^\\|[?:~({[ \t]\\)\\([msx]\\|tr\\)\\>\\s-*\\([^])}> \n\t]\\)"
+    ("\\(^\\|[?:~({[ \t]\\)\\([msx]\\|tr\\)\\>\\s-*\\(/\\)"
      ;; Nasty cases:
      ;; /foo/m  $a->m  $#m $m @m %m
      ;; \s (appears often in regexps).
