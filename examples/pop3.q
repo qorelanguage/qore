@@ -127,7 +127,7 @@ class pop3 {
     }
 
     log(string msg) {
-	printf("%y: %s\n", now_ms(), vsprintf(msg, argv));
+	printf("%y: %s\n", now_us(), vsprintf(msg, argv));
     }
 
     saveFile(string msgid, string tag, *data data) {
