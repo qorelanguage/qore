@@ -45,8 +45,8 @@
 // the values here are subject to change and come from purely empirical testing
 #ifndef QORE_STACK_GUARD
 #ifdef CPU_X86_64
-// for some reason we need 22K of stack guard on x86_64
-#define QORE_STACK_GUARD (1024 * 22)
+// for some reason we need 32K of stack guard on x86_64
+#define QORE_STACK_GUARD (1024 * 32)
 #else
 
 #ifdef SPARC

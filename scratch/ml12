@@ -18,7 +18,6 @@ class T2 inherits T1 {
 class T3 inherits T2 {
     constructor(int i) : T2(i) {} 
 }
-
 class T4 inherits T3 {
     constructor(int i) : T3(i) {} 
 }

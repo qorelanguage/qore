@@ -170,7 +170,7 @@
     - fixed a memory leak in exception handling in the @ref Qore::FtpClient::put() method (thanks to nros)
     - fixed a bug in aligning table data in the sqlutil example program
     - fixed a bug when loading modules by a path argument; if the module is already loaded, then do not throw an exception
-    - adjusted the stack guard buffer for x86_64 from 20K -> 22K which solved some rare crashes related to stack exhaustion (ex: make check works consistently now on x86_64 Linux)
+    - adjusted the stack guard buffer for x86_64 from 20K -> 32K which solved some rare crashes related to stack exhaustion (ex: make check works consistently now on x86_64 Linux)
 
     @section qore_0811 Qore 0.8.11
 
