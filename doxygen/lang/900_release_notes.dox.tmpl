@@ -169,6 +169,7 @@
     - fixed a bug in the <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> module with PgsqlTable::tryInsertImpl(); added an explicit \c "begin" call to make the savepoint work with PostgreSQL 9.3+ servers
     - fixed a memory leak in exception handling in the @ref Qore::FtpClient::put() method (thanks to nros)
     - fixed a bug in aligning table data in the sqlutil example program
+    - fixed a bug when loading modules by a path argument; if the module is already loaded, then do not throw an exception
 
     @section qore_0811 Qore 0.8.11
 

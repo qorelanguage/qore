@@ -167,6 +167,15 @@ public:
       if (!xsink)
          reexport(xsink, pgm);
    }
+
+   DLLLOCAL bool equalTo(const QoreAbstractModule* m) const {
+      assert(name == m->name);
+      return filename == m->filename;
+   }
+
+   DLLLOCAL bool isPath(const char* p) const {
+      return filename == p;
+   }
    
    DLLLOCAL virtual bool isBuiltin() const = 0;
    DLLLOCAL virtual bool isUser() const = 0;

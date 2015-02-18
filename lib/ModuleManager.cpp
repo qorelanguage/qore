@@ -756,6 +756,9 @@ QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, std
 
    // see if a module with this name is already registered
    if ((omi = findModuleUnlocked(name))) {
+      // if the module is the same, then do not return an error
+      if (mi->equalTo(omi))
+	 return omi;
       xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s' already registered by '%s'", mi->getFileName(), name, omi->getFileName());
       return 0;
    }
@@ -906,6 +909,9 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
 
    // see if a module with this name is already registered
    if ((mi = findModuleUnlocked(name))) {
+      // if the module is the same, then do not return an error
+      if (mi->isPath(path))
+	 return mi;
       xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s' already registered by '%s'", path, name, mi->getFileName());
       return 0;
    }
