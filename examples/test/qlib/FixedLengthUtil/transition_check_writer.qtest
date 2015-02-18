@@ -3,7 +3,7 @@
 %new-style
 %enable-all-warnings
 %requires UnitTest
-%requires FixedLengthUtil
+%requires ../../../../qlib/FixedLengthUtil.qm
 
 UnitTest unit();
 
@@ -11,23 +11,12 @@ string file = unit.tmpLocation() + "/file.fll";
 unlink(file);
 
 list data = (
-    ("col1" : 11111, "col2" : "bb"),
-    ("col3" : "c", "col4" : "ddd", "col5" : "31122014"),
-    ("col1" : 22222, "col2" : "gg"),
+    ("type": "type1", "record": ("col1" : 11111, "col2" : "bb")),
+    ("type": "type2", "record": ("col3" : "c", "col4" : "ddd", "col5" : "31122014")),
+    ("type": "type1", "record": ("col1" : 22222, "col2" : "gg")),
 );
 
 string data_text = "11111bb\ncddd31122014\n22222gg\n";
-
-
-code identify_type = *string sub (string line) {
-    if (line.length() == 7) {
-        return "type1";
-    }
-    if (line.length() == 12) {
-        return "type2";
-    }
-    return NOTHING;
-};
 
 hash specs = (
     "type1" : (
@@ -62,10 +51,10 @@ hash global_options = (
     "eol" : "\n",
 );
 
-MyFixedLengthDataWriter1 w1(specs, identify_type, global_options);
+MyFixedLengthDataWriter1 w1(specs, global_options);
 unit.cmp(w1.write(data), data_text, 'file content check');
 
-MyFixedLengthDataWriter2 w2(specs, identify_type, global_options);
+MyFixedLengthDataWriter2 w2(specs, global_options);
 code wr = sub (list d) {
     w2.write(d);
 };
@@ -75,7 +64,7 @@ unlink(file);
 
 
 public class MyFixedLengthDataWriter1 inherits FixedLengthUtil::FixedLengthDataWriter {
-    constructor(hash h, code i, *hash g) : FixedLengthUtil::FixedLengthDataWriter(h, i, g) {
+    constructor(hash h, *hash g) : FixedLengthUtil::FixedLengthDataWriter(h, g) {
     }
 
     bool checkTransition(*string from, *string to) {
@@ -90,7 +79,7 @@ public class MyFixedLengthDataWriter1 inherits FixedLengthUtil::FixedLengthDataW
 }
 
 public class MyFixedLengthDataWriter2 inherits FixedLengthUtil::FixedLengthDataWriter {
-    constructor(hash h, code i, *hash g) : FixedLengthUtil::FixedLengthDataWriter(h, i, g) {
+    constructor(hash h, *hash g) : FixedLengthUtil::FixedLengthDataWriter(h, g) {
     }
 
     bool checkTransition(*string from, *string to) {

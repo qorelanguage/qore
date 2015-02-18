@@ -1,0 +1,74 @@
+#!/usr/bin/env qore
+%require-types
+%new-style
+%enable-all-warnings
+%requires UnitTest
+%requires ./FixedLengthUtil.qm
+
+UnitTest unit();
+
+string strdata = "11111  bb\ncddd31122014\n22222gggg\n";
+
+hash specs = (
+    "type1" : (
+        "col1" : (
+            "length" : 5,
+            "type"   : "int",
+        ),
+        "col2" : (
+            "length" : 4,
+            "type"   : "string",
+        ),
+    ),
+    "type2" : (
+        "col3" : (
+            "length" : 1,
+            "type"   : "string",
+        ),
+        "col4" : (
+            "length" : 3,
+            "type"   : "string",
+        ),
+        "col5" : (
+            "length"   : 8,
+            "type"     : "date",
+            "format"   : "DDMMYYYY",
+            # "timezone" : "Europe/Prague", # use global if omitted
+        ),
+    ),
+);
+
+list hashdata = (
+    ("type": "type1", "record": ("col1" : 11111, "col2" : "  bb")),
+    ("type": "type2", "record": ("col3" : "c", "col4" : "ddd", "col5" : 2014-12-31)),
+    ("type": "type1", "record": ("col1" : 22222, "col2" : "gggg")),
+);
+
+hash global_options;
+
+global_options = (
+    "encoding"     : "UTF-8",
+    "eol"          : "\n",
+    "ignore-empty" : True,
+    "timezone"     : "Europe/Prague", # used if not in some date column specification
+);
+
+FixedLengthDataIterator i(strdata, specs, global_options);
+unit.cmp(i.next(), True, "line 1 present");
+unit.cmp(i.getValue(), hashdata[0], "line 1 content check");
+unit.cmp(i.next(), True, "line 2 present");
+unit.cmp(i.getValue(), hashdata[1], "line 2 content check");
+unit.cmp(i.next(), True, "line 3 present");
+unit.cmp(i.getValue(), hashdata[2], "line 3 content check");
+unit.cmp(i.next(), False, "line 4 is not there");
+
+global_options = (
+    "eol" : "\n",
+);
+
+#FIXME(zbehan): date export is broken
+hashdata[1]{"record"}{"col5"} = "31122014";
+
+FixedLengthDataWriter w(specs, global_options);
+unit.cmp(w.write(hashdata), strdata, 'file content check');
+
