@@ -380,7 +380,7 @@ hash HTTPClient::sendWithSendCallback(code scb, string method, *string path, *ha
 
     @par Example:
     @code
-my hash $msg = $httpclient.sendWithRecvCallback($rcv_callback, $data, "POST", "/path", ("Content-Type":"application/x-yaml"));
+$httpclient.sendWithRecvCallback($rcv_callback, $data, "POST", "/path", ("Content-Type":"application/x-yaml"));
     @endcode
 
     @param rcb The receive callback for the data received; first this method is called with a hash of the message headers, and then with any message body; if a chunked HTTP message is received, then the callback is called once for each chunk; when the message has been received, then the receive callback is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
@@ -426,7 +426,7 @@ nothing HTTPClient::sendWithRecvCallback(code rcb, string body, string method, *
 
     @par Example:
     @code
-my hash $msg = $httpclient.sendWithRecvCallback($rcv_callback, $data, "POST", "/path", ("Content-Type":"application/x-yaml"));
+$httpclient.sendWithRecvCallback($rcv_callback, $data, "POST", "/path", ("Content-Type":"application/x-yaml"));
     @endcode
 
     @param rcb The receive callback for the data received; first this method is called with a hash of the message headers, and then with any message body; if a chunked HTTP message is received, then the callback is called once for each chunk; when the message has been received, then the receive callback is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
