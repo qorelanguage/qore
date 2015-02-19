@@ -1945,6 +1945,10 @@ struct qore_socket_private {
          switch (get_node_type(*res)) {
             case NT_STRING: {
                const QoreStringNode* str = reinterpret_cast<const QoreStringNode*>(*res);
+               if (str->empty()) {
+                  done = true;
+                  break;
+               }
                buf.sprintf("%x\r\n", (int)str->size());
                buf.concat(str->getBuffer(), str->size());
                break;
@@ -1952,6 +1956,10 @@ struct qore_socket_private {
 
             case NT_BINARY: {
                const BinaryNode* b = reinterpret_cast<const BinaryNode*>(*res);
+               if (b->empty()) {
+                  done = true;
+                  break;
+               }
                buf.sprintf("%x\r\n", (int)b->size());
                buf.concat((const char*)b->getPtr(), b->size());
                break;

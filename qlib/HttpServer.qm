@@ -1870,6 +1870,8 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                         break;
                     }
 		    my string $etxt = sprintf("ERROR reading HTTP header: %s: %s", $ex.err, $ex.desc);
+                    #if ($ex.arg)
+                    #    $etxt += printf(" (%s)", $ex.arg);
 		    my string $str = sprintf("%s: received from %s via %s", $etxt, $info.address_desc, $.socket_info.address_desc);
 		    $.logError($str);
                     $cx.close = True;
