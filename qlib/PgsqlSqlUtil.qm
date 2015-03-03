@@ -155,6 +155,7 @@ $function$
     @subsection pgsqlsqlutilv11 PgsqlSqlUtil v1.1
     - fixed bugs handling "bigint" and "double precision" column types with schema alignments
     - fixed a bug with PgsqlTable::tryInsertImpl(); added an explicit "begin" call to make the savepoint work with PostgreSQL 9.3+ servers
+    - fixed a bug retrieving foreign constraints; columns were not guaranteed to be returned in declaration order
 
     @subsection pgsqlsqlutilv10 PgsqlSqlUtil v1.0
     - initial release
@@ -1440,7 +1441,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         private ForeignConstraints getForeignConstraintsImpl(*hash opts) {
             hash rv;
             # get foreign referential constraints 
-            *hash qh = ds.select("select constraint_name, att2.attname source_column, cl.relname target_table, att.attname target_column from (select con1.conname constraint_name, generate_subscripts(con1.conkey, 1) AS rn, unnest(con1.conkey) parent, unnest(con1.confkey) child, con1.confrelid, con1.conrelid from pg_class cl join pg_namespace ns on cl.relnamespace = ns.oid join pg_constraint con1 on con1.conrelid = cl.oid where cl.relname = %v and ns.nspname = %v and con1.contype = 'f' order by conname, rn) con join pg_attribute att on att.attrelid = con.confrelid and att.attnum = con.child join pg_class cl on cl.oid = con.confrelid join pg_attribute att2 on att2.attrelid = con.conrelid and att2.attnum = con.parent", name, schema);
+            *hash qh = ds.select("select constraint_name, att2.attname source_column, cl.relname target_table, att.attname target_column from (select con1.conname constraint_name, generate_subscripts(con1.conkey, 1) AS rn, unnest(con1.conkey) parent, unnest(con1.confkey) child, con1.confrelid, con1.conrelid from pg_class cl join pg_namespace ns on cl.relnamespace = ns.oid join pg_constraint con1 on con1.conrelid = cl.oid where cl.relname = %v and ns.nspname = %v and con1.contype = 'f' order by conname, rn) con join pg_attribute att on att.attrelid = con.confrelid and att.attnum = con.child join pg_class cl on cl.oid = con.confrelid join pg_attribute att2 on att2.attrelid = con.conrelid and att2.attnum = con.parent order by att.attnum", name, schema);
             if (qh.constraint_name) {
                 hash ch;
                 foreach hash row in (qh.contextIterator()) {
