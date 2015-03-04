@@ -10,8 +10,22 @@ const Opts = (
     "help": "h,help",
     );
 
-const ReservedWords = ("abstract", "background", "break", "by", "case", "catch", "chomp", "class", "const", "context", "continue", "default", "delete", "deprecated", "do", "elements", "else", "exists", "extract", "final", "find", "foldl", "foldr", "for", "foreach", "if", "in", "inherits", "instanceof", "keys", "map", "module", "my", "namespace", "new", "on_error", "on_exit", "on_success", "our", "pop", "private", "public", "push", "remove", "rethrow", "return", "returns", "select", "shift", "sortBy", "sortDescendingBy", "splice", "static", "sub", "subcontext", "summarize", "switch", "synchronized", "thread_exit", "throw", "trim", "try", "unreference", "unshift", "where", "while",
-    );
+const ReservedWords = (
+    "abstract",         "background",     "break",        "by",            "case",
+    "catch",            "chomp",          "class",        "const",         "context",
+    "continue",         "default",        "delete",       "deprecated",    "do",
+    "elements",         "else",           "exists",       "extract",       "final",
+    "find",             "foldl",          "foldr",        "for",           "foreach",
+    "if",               "in",             "inherits",     "instanceof",    "keys",
+    "map",              "module",         "my",           "namespace",     "new",
+    "on_error",         "on_exit",        "on_success",   "our",           "pop",
+    "private",          "public",         "push",         "remove",        "rethrow",
+    "return",           "returns",        "select",       "shift",         "sortBy",
+    "sortDescendingBy", "splice",         "static",       "sub",           "subcontext",
+    "summarize",        "switch",         "synchronized", "thread_exit",   "throw",
+    "trim",             "try",            "unreference",  "unshift",       "where",
+    "while",
+);
 
 sub usage() {
     printf("%s: [options] input-file
@@ -61,7 +75,8 @@ sub main() {
             }
 
             # remove dollar signs on vars
-            str =~ s/\$([a-z][a-z0-9_]*)/$1/ig;
+            # this uses a trick: only even number of "s means that it is a var - otherwise it could be $ inside the string (ok, this is not very rigorous but what we can do without tokenizer)
+            str =~ s/\A(?:[^"]*"[^"]*"[^"]*)\$([a-z][a-z0-9_]*)/$1/ig;
 
             # remove and rename class vars class declarations with a constructor adding a suffix "c" to the class var name
             # this uses a trick to recognize class declarations by the capitalized first letter of the class name
