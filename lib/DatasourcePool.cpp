@@ -517,6 +517,14 @@ int DatasourcePool::rollback(ExceptionSink* xsink) {
    return dpah->rollback(xsink);
 }
 
+AbstractQoreNode* DatasourcePool::getServerVersion(ExceptionSink* xsink) {
+   DatasourcePoolActionHelper dpah(*this, xsink);
+   if (!dpah)
+      return 0;
+
+   return dpah->getServerVersion(xsink);
+}
+
 QoreStringNode* DatasourcePool::toString() {
    QoreStringNode* str = new QoreStringNode();
 
