@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -515,6 +515,14 @@ int DatasourcePool::rollback(ExceptionSink* xsink) {
    //printd(5, "DatasourcePool::rollback() this: %p ds: %p\n", this, *dpah);
 
    return dpah->rollback(xsink);
+}
+
+AbstractQoreNode* DatasourcePool::getServerVersion(ExceptionSink* xsink) {
+   DatasourcePoolActionHelper dpah(*this, xsink);
+   if (!dpah)
+      return 0;
+
+   return dpah->getServerVersion(xsink);
 }
 
 QoreStringNode* DatasourcePool::toString() {
