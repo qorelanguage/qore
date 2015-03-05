@@ -55,7 +55,7 @@ public:
    }
 
    DLLLOCAL FileLineIterator(ExceptionSink* xsink, const FileLineIterator& old)
-   : QoreFile(old.getEncoding()), line(new QoreStringNode(old.getEncoding())), eol(old.eol->stringRefSelf()), num(old.num), validp(old.validp), trim(old.trim) {
+      : QoreFile(old.getEncoding()), line(new QoreStringNode(old.getEncoding())), eol(old.eol ? old.eol->stringRefSelf() : 0), num(old.num), validp(old.validp), trim(old.trim) {
       // reopen file
       std::string fn = old.getFileNameStr();
       if (open(fn.c_str(), O_RDONLY, 0, old.getEncoding()))

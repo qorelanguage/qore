@@ -174,6 +174,7 @@
     - fixed a bug handling HTTP send callbacks that returned zero-length strings and binary objects which would cause invalid chunked data to be sent violating the HTTP protocol
     - fixed a bug in the <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> retrieving foreign constraints; columns were not guaranteed to be returned in declaration order
     - fixed a bug in the @ref Qore::SQL::DatasourcePool::getServerVersion() "DatasourcePool::getServerVersion()" method where the connection to the server was not guaranteed to be in place before the call, in case of connection errors in the pool a crash could result
+    - fixed a crash in @ref Qore::FileLineIterator::copy() when no \a eol attribute is set
 
     @section qore_0811 Qore 0.8.11
 
