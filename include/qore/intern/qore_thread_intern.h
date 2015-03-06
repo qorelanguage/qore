@@ -192,9 +192,8 @@ public:
 
    AbstractQoreNode* init_c, // the initialization closure
       * del_c;               // the destructor closure
-   bool name_set;
 
-   DLLLOCAL QoreModuleDefContext() : init_c(0), del_c(0), name_set(false) {
+   DLLLOCAL QoreModuleDefContext() : init_c(0), del_c(0) {
    }
 
    DLLLOCAL ~QoreModuleDefContext() {
@@ -219,7 +218,10 @@ public:
 
    DLLLOCAL void parseInit();
    DLLLOCAL int init(QoreProgram& pgm, ExceptionSink& xsink);
-   DLLLOCAL void checkName();
+   DLLLOCAL void setName(const char* name) {
+      assert(vmap.find("name") == vmap.end());
+      vmap["name"] = name;
+   }
 
    DLLLOCAL QoreClosureParseNode* takeDel();
 };
@@ -281,6 +283,7 @@ DLLLOCAL void set_module_context(QoreModuleContext* qmc);
 DLLLOCAL QoreModuleContext* get_module_context();
 DLLLOCAL QoreModuleDefContext* set_module_def_context(QoreModuleDefContext* qmd);
 DLLLOCAL QoreModuleDefContext* get_module_def_context();
+DLLLOCAL void parse_set_module_def_context_name(const char* name);
 DLLLOCAL const char* set_user_module_context_name(const char* n);
 DLLLOCAL const char* get_user_module_context_name();
 

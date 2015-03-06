@@ -1125,10 +1125,13 @@ QoreModuleDefContext* set_module_def_context(QoreModuleDefContext* qmd) {
 }
 
 QoreModuleDefContext* get_module_def_context() {
-   QoreModuleDefContext* qmd = thread_data.get()->qmd;
-   if (qmd)
-      qmd->checkName();
-   return qmd;
+   return thread_data.get()->qmd;
+}
+
+void parse_set_module_def_context_name(const char* name) {
+   ThreadData* td = thread_data.get();
+   if (td->qmd)
+      td->qmd->setName(name);
 }
 
 const char* set_user_module_context_name(const char* n) {
