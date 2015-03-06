@@ -9,8 +9,6 @@
     
 class Test {
     private {
-        UnitTest t();
-
 	const DataList = (
 	    "a2ps-4.13-1332.1.x86_64",
 	    "a2ps-devel-4.13-1332.1.x86_64",
@@ -19,6 +17,8 @@ class Test {
     }
     
     constructor() {
+        our UnitTest t();
+
 	doTests("LF", "\n");
 	doTests("CR", "\r");
 	doTests("CRLF", "\r\n");
