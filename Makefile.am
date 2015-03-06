@@ -66,6 +66,7 @@ TESTSCRIPTS= \
         examples/test/qore/classes/Program/lasting-subprogram-in-thread.qtest \
         examples/test/qore/classes/FtpClient/get.qtest \
         examples/test/qore/classes/Program/program.qtest \
+	examples/test/qore/classes/DataLineIterator/DataLineIterator.qtest \
         examples/test/qore/files/create-iso-8859-1-file.qtest \
         examples/test/qore/files/filetypes.qtest \
         examples/test/qore/files/read.qtest \
