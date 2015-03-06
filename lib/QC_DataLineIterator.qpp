@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_FileLineIterator.qpp FileLineIterator class definition */
+/** @file QC_DataLineIterator.qpp DataLineIterator class definition */
 /*
   Qore Programming Language
 
@@ -158,7 +158,7 @@ public:
          // reset line buffer
          line->deref();
          line = new QoreStringNode(data->getEncoding());
-         // reset file position
+         // reset position
          offset = 0;
       }
    }
@@ -179,8 +179,8 @@ public:
    DLLLOCAL virtual const char* getName() const { return "DataLineIterator"; }
 };
 
-//! This class defines a line iterator for text files
-/** @since %Qore 0.8.6
+//! This class defines a line iterator for string data
+/** @since %Qore 0.8.12
 
     @par Example: DataLineIterator basic usage
     @code
@@ -207,13 +207,12 @@ qclass DataLineIterator [arg=DataLineIterator* i; ns=Qore; vparent=AbstractItera
     @param eol the optional end of line character(s) to use to detect lines in the data; if this string is not passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n"; if this string is passed and has a different @ref character_encoding "character encoding" from this object's (as determined by the \c encoding parameter), then it will be converted to the DataLineIterator's @ref character_encoding "character encoding"
     @param trim if @ref Qore::True "True" the string return values for the lines iterated will be trimmed of the eol bytes
 
-    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the eol argument has a different @ref character_encoding "character encoding" from the File's and an error occurs during encoding conversion
-    @throw ILLEGAL-EXPRESSION DataLineIterator::constructor() cannot be called with a TTY target when @ref no-terminal-io "%no-terminal-io" is set
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the eol argument has a different @ref character_encoding "character encoding" from the data's and an error occurs during encoding conversion
  */
 DataLineIterator::constructor(string string, *string eol, bool trim = True) {
    if (eol && eol->empty())
       eol = 0;
-   // make sure that we use the same encoding for the EOL marker as for the file, convert if necessary
+   // make sure that we use the same encoding for the EOL marker as with the input data
    SimpleRefHolder<QoreStringNode> neol(eol ? new QoreStringNode(string->getEncoding()) : 0);
    if (eol) {
       neol->concat(eol, xsink);
@@ -228,14 +227,11 @@ DataLineIterator::constructor(string string, *string eol, bool trim = True) {
    self->setPrivate(CID_DATALINEITERATOR, fli.release());
 }
 
-//! Creates a new DataLineIterator object, based on the same object being iterated in the original object (the original file is reopened)
+//! Creates a new DataLineIterator object, based on the same object being iterated in the original object
 /** @par Example:
     @code
 my DataLineIterator $ni = $i.copy();
     @endcode
-
-    @throw DATALINEITERATOR-COPY-ERROR the original file cannot be reopened for reading (\c arg will be assigned to the errno value)
-    @throw ILLEGAL-EXPRESSION DataLineIterator::constructor() cannot be called with a TTY target when @ref no-terminal-io "%no-terminal-io" is set
  */
 DataLineIterator::copy() {
    SimpleRefHolder<DataLineIterator> fli(new DataLineIterator(xsink, *i));
