@@ -177,6 +177,7 @@
     - fixed a bug in the <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> retrieving foreign constraints; columns were not guaranteed to be returned in declaration order
     - fixed a bug in the @ref Qore::SQL::DatasourcePool::getServerVersion() "DatasourcePool::getServerVersion()" method where the connection to the server was not guaranteed to be in place before the call, in case of connection errors in the pool a crash could result
     - fixed a crash in @ref Qore::FileLineIterator::copy() when no \a eol attribute is set
+    - fixed a bug importing invalid user modules with no module declaration
 
     @section qore_0811 Qore 0.8.11
 

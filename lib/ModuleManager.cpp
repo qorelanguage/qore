@@ -192,13 +192,6 @@ QoreClosureParseNode* QoreModuleDefContext::takeDel() {
    return rv;
 }
 
-void QoreModuleDefContext::checkName() {
-   if (!name_set) {
-      vmap["name"] = parse_pop_name();
-      name_set = true;
-   }
-}
-
 QoreModuleContextHelper::QoreModuleContextHelper(const char* name, QoreProgram* pgm, ExceptionSink& xsink)
    : QoreModuleContext(name, qore_root_ns_private::get(pgm ? *(pgm->getRootNS()) : *staticSystemNamespace), xsink) {
    set_module_context(this);
