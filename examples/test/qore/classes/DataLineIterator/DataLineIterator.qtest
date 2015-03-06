@@ -1,0 +1,52 @@
+#!/usr/bin/env qore
+
+%exec-class Test
+%requires UnitTest
+%require-types
+%require-our
+%new-style
+%enable-all-warnings
+    
+class Test {
+    private {
+        UnitTest t();
+
+	const DataList = (
+	    "a2ps-4.13-1332.1.x86_64",
+	    "a2ps-devel-4.13-1332.1.x86_64",
+	    "aaa_base-11.3-7.2.x86_64",
+	    );
+    }
+    
+    constructor() {
+	doTests("LF", "\n");
+	doTests("CR", "\r");
+	doTests("CRLF", "\r\n");
+    }
+
+    doTests(string pref, string eol) {
+	string data = foldl $1 + eol + $2, DataList;
+
+	{
+	    DataLineIterator di(data, eol);
+
+	    for (int i = 0; i < DataList.size(); ++i) {
+		t.ok(di.next(), pref + "-DataLineIterator::next() " + i);
+		t.ok(di.getValue() == DataList[i], pref + "-DataLineIterator::getValue() " + i);
+	    }
+
+	    t.ok(!di.next(), pref + "-DataLineIterator::next() final");
+	}
+	
+	pref = "AUTO-" + pref;
+
+	DataLineIterator di(data);
+
+	for (int i = 0; i < DataList.size(); ++i) {
+	    t.ok(di.next(), pref + "-DataLineIterator::next() " + i);
+	    t.ok(di.getValue() == DataList[i], pref + "-DataLineIterator::getValue() " + i);
+	}
+
+	t.ok(!di.next(), pref + "-DataLineIterator::next() final");
+    }
+}

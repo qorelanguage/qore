@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -128,27 +128,27 @@ protected:
       return h.release();
    }
 
-   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const {
+   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink* xsink) const {
       discard(QoreParseHashNode::evalImpl(xsink), xsink);
       return 0;
    }
 
-   DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const {
+   DLLLOCAL virtual int integerEvalImpl(ExceptionSink* xsink) const {
       discard(QoreParseHashNode::evalImpl(xsink), xsink);
       return 0;
    }
 
-   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const {
+   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink* xsink) const {
       discard(QoreParseHashNode::evalImpl(xsink), xsink);
       return false;
    }
 
-   DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const {
+   DLLLOCAL virtual double floatEvalImpl(ExceptionSink* xsink) const {
       discard(QoreParseHashNode::evalImpl(xsink), xsink);
       return 0.0;
    }
 
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
+   DLLLOCAL virtual AbstractQoreNode* evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
       needs_deref = true;
       return QoreParseHashNode::evalImpl(xsink);
    }

@@ -152,6 +152,8 @@ public:
     ...
     /export/home/pvanek/ren.list:2155 = "zypper-1.4.5-1.10.x86_64"
     @endcode
+
+    @see @ref Qore::DataLineIterator
  */
 qclass FileLineIterator [arg=FileLineIterator* i; ns=Qore; vparent=AbstractIterator; dom=FILESYSTEM];
 
