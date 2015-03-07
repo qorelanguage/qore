@@ -117,14 +117,32 @@
     - fixed format of octal constant - there was an error if a string contained octal constant that is shorter than 3 digit
     - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module fixes:
       - fixed a bug setting the response encoding in HttpServer::setReplyHeaders() where the Socket encoding was not set properly and therefore the encoding in the Content-Type in the response header did not necessarily match the encoding of the response
+      - fixed a socket / connection performance problem with HTTPS listeners where the SSL connection was being negotiated inline with the accept instead of in the connection thread, thereby blocking new connections from being accepted
+      - fixed bugs where URI strings were improperly encoded and decoded (also fixed in the <a href="../../modules/RestClient/html/index.html">RestClient</a> module)
+      - fixed a bug in the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module where chunked sends were not received and decoded properly in all cases for handlers that did not explicitly handle chunked messages
+    - <a href="../../modules/RestClient/html/index.html">RestClient</a> module fixes:
+      - fixed bugs where URI strings were improperly encoded and decoded (also fixed in the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module)
+      - fixed a bug where URI paths were sent as relative paths instead of absolute paths
     - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module fixes:
       - fixed a bug where the \c "format" field option was not usable with fields assigned type \c "*date"
       - fixed the default field type as "*string" (from "string") to avoid parsing and outputting empty strings for missing input data
     - <a href="../../modules/Schema/html/index.html">Schema</a> module fixes:
       - AbstractSchema::combineOptions() fails when an option variable contains @ref nothing instead of a valid hash
+      - fixed a bug with <i>"insert-only reference data"</i> with the verbose option; the upsert strategy was changed to \c UpsertSelectFirst which means that insert-only reference data could also be updated
     - <a href="../../modules/Mapper/html/index.html">Mapper</a> module fixes:
       - moved field length checks after all transformations have been applied
       - fixed bugs in the \c "timezone" and \c "input_timezone" options, documented those options
+    - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module fixes:
+      - fixed a bug with queries using a \a desc argument with the \a orderby query option with multiple sort columns; the \c "desc" string was added only to the last column but should have been added to all columns
+      - fixed a bug where foreign key constraints with supporting indexes were not tracked and therefore schema alignment on DBs that automatically create indexes for foreign key constraints would fail
+      - fixed a bug where driver-specific objects were not included when dropping a schema
+    - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module fixes:
+      - fixed a bug where column names that are reserved words were not quoted in generated SQL
+    - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> module fixes:
+      - fixed a bug in PgsqlTable::tryInsertImpl(); added an explicit \c "begin" call to make the savepoint work with PostgreSQL 9.3+ servers
+      - fixed a bug retrieving foreign constraints; columns were not guaranteed to be returned in declaration order
+    -  <a href="../../modules/WebUtil/html/index.html">WebUtil</a> module fixes:
+      - fixed a bug where template programs with @ref Qore::PO_ALLOW_BARE_REFS set did not work
     - fixed a memory error in error-handling with type errors when parsing user module headers that could cause a crash
     - fixed a memory leak in @ref Qore::Socket::setWarningQueue() "Socket::setWarningQueue()": when a callback argument is used, the argument can be leaked when the @ref Qore::Socket "Socket" is destroyed
     - fixed a bug where the @ref Qore::HTTPClient "HTTPClient" class did not send the X.509 certificate and private key when making a client SSL connection
@@ -133,22 +151,16 @@
     - fixed a bug where a class calling an overridden method in a base class constructor that referred to a member that should have been initialized in the subclass would be executed before the subclass's members were initialized causing the method call to fail
     - fixed a memory leak in classes with multiple inheritance and base classes that are inherited multiple times with member initialization
     - fixed a bug in the @ref include "%include" and @ref append-module-path "%append-module-path" parse directives where relative paths were not calculated from the script's directory but instead were calculated from the current working directory, causing such paths to fail
-    - fixed a bug in <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> with queries using a \a desc argument with the \a orderby query option with multiple sort columns; the \c "desc" string was added only to the last column but should have been added to all columns
     - fixed a bug in @ref Qore::get_qore_library_info() that could cause a crash due to treating the \a Build attribute as a string when it was an integer
-    - fixed a bug in <a href="../../modules/WebUtil/html/index.html">WebUtil</a> where template programs with @ref Qore::PO_ALLOW_BARE_REFS set did not work
     - fixed a bug in the divide-equals (/=) operator where an exception was not thrown when an operand of zero with arbitrary-precision numeric arguments is used
     - fixed a bug where the connection mode would be reset for every connection in the @ref Qore::FtpClient class
     - fixed a bug in the @ref Qore::FtpClient class where connection problems in the data channel when executing certain FTP commands could cause a crash due to missing error checking
-    - fixed a bug in <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> where column names that are reserved words were not quoted in generated SQL
     - fixed a bug in Qore's internal strcasestr() function on platforms that do not support this function (ex: Solaris) that could result in a crash
     - fixed a bug in Qore where string data formatted with \c %%n, \c %%N, or \c %%y could be added to another string with a different character encoding without any automatic conversions, therefore resulting in an improperly-encoded string
-    - fixed bugs in the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> and <a href="../../modules/RestClient/html/index.html">RestClient</a> modules where URI strings were improperly encoded and decoded
-    - fixed a bug in the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module where chunked sends were not received and decoded properly in all cases for handlers that did not explicitly handle chunked messages
     - fixed a crash when parsing when parsing function, method, or closure arguments when either of the @ref duplicate-local-vars or @ref duplicate-block-vars warnings are set due to an error handling thread-local variable info in parse initialization
     - fixed a bug where code with mixed coding styles (old and new) could result in invalid parse errors when parsing base class constructor calls to a base class defined in another coding style
     - fixed a bug where an HTTP response with an unknown Content-Encoding header would cause a crash
     - fixed a memory error with receiving HTTP chunked data with receive callbacks where the buffer object was reset with reference counts > 1
-    - fixed a bug in the <a href="../../modules/RestClient/html/index.html">RestClient</a> module where URI paths were sent as relative paths instead of absolute paths
     - fixed a bug in the @ref Qore::FtpClient "FtpClient" class where socket errors would not cause the connection to be closed automatically and therefore further use of the object required a manual disconnect even though the object supports transparent auto-reconnection
     - fixed a bug where conversions from float to number would introduce inaccuracy in the arbitrary-precision number; ex: <code>737.38.toNumber() -> 737.3799999999999954525264911353588104248</code>
     - fixed a bug where @ref requires "%requires" would fail loading a user module inside a @ref try-module "%try-module" block
@@ -165,19 +177,15 @@
     - fixed a bug in parsing constant value assignment expressions where such expressions could use or instantiate classes with uncommitted changes and therefore a crash could result
     - fixed a bug in user module initialization and destruction where call references were not accepted, contrary to the documentation and design goals
     - fixed a bug in @ref Qore::Socket::acceptSSL() and @ref Qore::Socket::connectSSL() where the timeout argument was not respected for SSL protocol negotation by implementing non-blocking I/O support for the internal SSL calls for upgrading the socket connection
-    - fixed a bug in the <a href="../../modules/Schema/html/index.html">Schema</a> module with <i>"insert-only reference data"</i> with the verbose option; the upsert strategy was changed to \c UpsertSelectFirst which means that insert-only reference data could also be updated
-    - fixed a bug in <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> where foreign key constraints with supporting indexes were not tracked and therefore schema alignment on DBs that automatically create indexes for foreign key constraints would fail
-    - fixed a bug in <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> where driver-specific objects were not included when dropping a schema
-    - fixed a bug in the <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> module with PgsqlTable::tryInsertImpl(); added an explicit \c "begin" call to make the savepoint work with PostgreSQL 9.3+ servers
     - fixed a memory leak in exception handling in the @ref Qore::FtpClient::put() method (thanks to nros)
     - fixed a bug in aligning table data in the sqlutil example program
     - fixed a bug when loading modules by a path argument; if the module is already loaded, then do not throw an exception
     - adjusted the stack guard buffer for x86_64 from 20K -> 32K which solved some rare crashes related to stack exhaustion (ex: make check works consistently now on x86_64 Linux)
     - fixed a bug handling HTTP send callbacks that returned zero-length strings and binary objects which would cause invalid chunked data to be sent violating the HTTP protocol
-    - fixed a bug in the <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> retrieving foreign constraints; columns were not guaranteed to be returned in declaration order
     - fixed a bug in the @ref Qore::SQL::DatasourcePool::getServerVersion() "DatasourcePool::getServerVersion()" method where the connection to the server was not guaranteed to be in place before the call, in case of connection errors in the pool a crash could result
     - fixed a crash in @ref Qore::FileLineIterator::copy() when no \a eol attribute is set
     - fixed a bug importing invalid user modules with no module declaration
+    - fixed bugs in @ref Qore::Socket::accept() and @ref Qore::Socket::acceptSSL() where the SSL configuration was not copied to the new @ref Qore::Socket
 
     @section qore_0811 Qore 0.8.11
 

@@ -48,6 +48,8 @@ protected:
 
 public:
    //! increments the reference count of the object
+   /** FIXME: this function should be const
+    */
    DLLLOCAL void ref() {
       ROreference();
    }
@@ -56,7 +58,7 @@ public:
    /**
       @param xsink any Qore-language exception information is stored here
    */
-   DLLLOCAL virtual void deref(class ExceptionSink *xsink) {
+   DLLLOCAL virtual void deref(ExceptionSink* xsink) {
       if (ROdereference())
          delete this;
    }

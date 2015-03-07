@@ -49,7 +49,7 @@ private:
    friend class my_socket_priv;
    friend struct qore_httpclient_priv;
 
-   DLLLOCAL QoreSocketObject(QoreSocket* s);
+   DLLLOCAL QoreSocketObject(QoreSocket* s, QoreSSLCertificate* cert = 0, QoreSSLPrivateKey* pk = 0);
 
 protected:
    my_socket_priv* priv;
