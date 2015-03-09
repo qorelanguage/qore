@@ -846,7 +846,7 @@ $sock.send($data, 20s);
     @since %Qore 0.8.6 this method takes a timeout value and throws exceptions on error like Socket::send2(); this change was
     made because it was not possible to catch SSL errors with this method with the previous implementation
  */
-int Socket::send(binary bin, int timeout_ms = -1) {
+int Socket::send(binary bin, timeout timeout_ms = -1) {
    return s->send(bin, timeout_ms, xsink);
 }
 
@@ -2544,7 +2544,7 @@ $sock.upgradeClientToSSL();
 
     @since %Qore 0.8.12 the timeout_ms parameter was added
  */
-nothing Socket::upgradeClientToSSL(int timeout_ms = -1) {
+nothing Socket::upgradeClientToSSL(timeout timeout_ms = -1) {
    s->upgradeClientToSSL(timeout_ms, xsink);
 }
 
@@ -2560,7 +2560,7 @@ $sock.upgradeServerToSSL();
 
     @since %Qore 0.8.12 the timeout_ms parameter was added
  */
-nothing Socket::upgradeServerToSSL(int timeout_ms = -1) {
+nothing Socket::upgradeServerToSSL(timeout timeout_ms = -1) {
    s->upgradeServerToSSL(timeout_ms, xsink);
 }
 
