@@ -251,7 +251,7 @@ my hash $h = $i.getValue();
 }
 
 #! Structured line iterator for fixed-length line files allowing efficient "pipelined" processing.
-public class FixedLengthUtil::FixedLengthFileIterator inherits private FixedLengthUtil::FixedLengthAbstractIterator, FileLineIterator {
+public class FixedLengthUtil::FixedLengthFileIterator inherits FixedLengthUtil::FixedLengthAbstractIterator, FileLineIterator {
     private {
         string file;
     }
@@ -289,7 +289,7 @@ public class FixedLengthUtil::FixedLengthFileIterator inherits private FixedLeng
 }
 
 #! Structured line iterator for fixed-length line strings allowing efficient "pipelined" processing.
-public class FixedLengthUtil::FixedLengthDataIterator inherits private FixedLengthUtil::FixedLengthAbstractIterator {
+public class FixedLengthUtil::FixedLengthDataIterator inherits FixedLengthUtil::FixedLengthAbstractIterator {
     private {
         int position;
         int max_index;
