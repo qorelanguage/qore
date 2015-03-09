@@ -2,7 +2,7 @@
 %require-types
 %enable-all-warnings
 %requires UnitTest
-%requires CsvUtil
+%requires ../../../../qlib/CsvUtil.qm
 
 my UnitTest $t();
 

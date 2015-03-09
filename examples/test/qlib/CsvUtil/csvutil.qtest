@@ -1,8 +1,8 @@
 #!/usr/bin/env qore
 %require-types
 %enable-all-warnings
-%requires CsvUtil
 %requires UnitTest
+%requires ../../../../qlib/CsvUtil.qm
 
 my UnitTest $unit();
 

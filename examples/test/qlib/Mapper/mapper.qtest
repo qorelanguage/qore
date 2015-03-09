@@ -1,8 +1,8 @@
 #!/usr/bin/env qore
 %require-types
 %enable-all-warnings
-%requires Mapper
 %requires UnitTest
+%requires ../../../../qlib/Mapper.qm
 
 my UnitTest $unit();
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env qore
 %require-types
 %enable-all-warnings
-%requires Qorize
 %requires UnitTest
+%requires ../../../../qlib/Qorize.qm
 
 my UnitTest $t();
 

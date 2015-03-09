@@ -3,8 +3,8 @@
 
 %require-types
 %enable-all-warnings
-%requires SqlUtil
 %requires UnitTest
+%requires ../../../../qlib/SqlUtil.qm
 %require-types
 
 my UnitTest $t();

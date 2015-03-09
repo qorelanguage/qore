@@ -2,8 +2,8 @@
 %require-types
 %enable-all-warnings
 %new-style
-%requires Util
 %requires UnitTest
+%requires ../../../../qlib/Util.qm
 
 UnitTest t();
 
