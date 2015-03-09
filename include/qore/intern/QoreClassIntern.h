@@ -1519,8 +1519,8 @@ public:
 
    DLLLOCAL bool isPrivate() const { return priv; }
    // returns -1 if a recursive reference is found, 0 if not
-   DLLLOCAL int initialize(QoreClass* cls, bool &has_delete_blocker, qcp_set_t& qcp_set);
-   DLLLOCAL const QoreClass* getClass(qore_classid_t cid, bool &n_priv) const {
+   DLLLOCAL int initialize(QoreClass* cls, bool& has_delete_blocker, qcp_set_t& qcp_set);
+   DLLLOCAL const QoreClass* getClass(qore_classid_t cid, bool& n_priv) const {
       // sclass can be 0 if the class could not be found during parse initialization
       if (!sclass)
          return 0;
@@ -1576,12 +1576,12 @@ public:
    //DLLLOCAL const QoreMethod* parseFindCommittedStaticMethod(const char* name);
 
    // looks in committed and pending method lists
-   DLLLOCAL const QoreMethod* parseFindMethodTree(const char* name);
-   DLLLOCAL const QoreMethod* parseFindStaticMethodTree(const char* name);
-   DLLLOCAL const QoreMethod* parseFindAnyMethodTree(const char* name);
+   DLLLOCAL const QoreMethod* parseFindMethodTree(const char* name, bool& priv);
+   DLLLOCAL const QoreMethod* parseFindStaticMethodTree(const char* name, bool& priv);
+   DLLLOCAL const QoreMethod* parseFindAnyMethodTree(const char* name, bool &priv);
 
-   DLLLOCAL const QoreMethod* findCommittedMethod(const char* name, bool &priv_flag) const;
-   DLLLOCAL const QoreMethod* findCommittedStaticMethod(const char* name, bool &priv_flag) const;
+   DLLLOCAL const QoreMethod* findCommittedMethod(const char* name, bool& priv_flag) const;
+   DLLLOCAL const QoreMethod* findCommittedStaticMethod(const char* name, bool& priv_flag) const;
 
    DLLLOCAL bool match(const QoreClass* cls);
    DLLLOCAL int initMembers(QoreObject& o, BCEAList* bceal, ExceptionSink* xsink) const;
@@ -1590,12 +1590,12 @@ public:
    DLLLOCAL bool parseCheckHierarchy(const QoreClass* cls) const;
    DLLLOCAL bool isPrivateMember(const char* str) const;
    // member_has_type_info could return true while typeInfo is 0 if it has unresolved parse type information
-   DLLLOCAL const QoreClass* parseFindPublicPrivateMember(const QoreProgramLocation*& loc, const char* mem, const QoreTypeInfo*& memberTypeInfo, bool &has_type_info, bool &priv) const;
-   DLLLOCAL const QoreClass* parseFindPublicPrivateVar(const QoreProgramLocation*& loc, const char* mem, const QoreTypeInfo*& varTypeInfo, bool &has_type_info, bool &priv) const;
-   DLLLOCAL bool runtimeGetMemberInfo(const char* mem, const QoreTypeInfo*& memberTypeInfo, bool &priv) const;
+   DLLLOCAL const QoreClass* parseFindPublicPrivateMember(const QoreProgramLocation*& loc, const char* mem, const QoreTypeInfo*& memberTypeInfo, bool& has_type_info, bool& priv) const;
+   DLLLOCAL const QoreClass* parseFindPublicPrivateVar(const QoreProgramLocation*& loc, const char* mem, const QoreTypeInfo*& varTypeInfo, bool& has_type_info, bool& priv) const;
+   DLLLOCAL bool runtimeGetMemberInfo(const char* mem, const QoreTypeInfo*& memberTypeInfo, bool& priv) const;
    DLLLOCAL bool parseHasPublicMembersInHierarchy() const;
-   DLLLOCAL const qore_class_private* isPublicOrPrivateMember(const char* mem, bool &priv) const;
-   DLLLOCAL const QoreClass* getClass(qore_classid_t cid, bool &priv) const {
+   DLLLOCAL const qore_class_private* isPublicOrPrivateMember(const char* mem, bool& priv) const;
+   DLLLOCAL const QoreClass* getClass(qore_classid_t cid, bool& priv) const {
       for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
 	 const QoreClass* qc = (*i)->getClass(cid, priv);
 	 if (qc)
@@ -1605,7 +1605,7 @@ public:
       return 0;
    }
 
-   DLLLOCAL const QoreClass* getClass(const qore_class_private& qc, bool &priv) const;
+   DLLLOCAL const QoreClass* getClass(const qore_class_private& qc, bool& priv) const;
 
    DLLLOCAL void addNewAncestors(QoreMethod* m);
    DLLLOCAL void addAncestors(QoreMethod* m);
@@ -1993,7 +1993,7 @@ public:
    }
 
    // returns true = found, false = not found
-   DLLLOCAL bool runtimeGetMemberInfo(const char* mem, const QoreTypeInfo*& memberTypeInfo, bool &priv) const {
+   DLLLOCAL bool runtimeGetMemberInfo(const char* mem, const QoreTypeInfo*& memberTypeInfo, bool& priv) const {
       member_map_t::const_iterator i = private_members.find(const_cast<char*>(mem));
       if (i != private_members.end()) {
 	 priv = true;
@@ -2011,12 +2011,12 @@ public:
       return scl ? scl->runtimeGetMemberInfo(mem, memberTypeInfo, priv) : false;
    }
 
-   DLLLOCAL const QoreClass* parseFindPublicPrivateMember(const QoreProgramLocation*& loc, const char* mem, const QoreTypeInfo*& memberTypeInfo, bool &has_type_info, bool &priv) const {
+   DLLLOCAL const QoreClass* parseFindPublicPrivateMember(const QoreProgramLocation*& loc, const char* mem, const QoreTypeInfo*& memberTypeInfo, bool& has_type_info, bool& priv) const {
       const_cast<qore_class_private*>(this)->initialize();
       return parseFindPublicPrivateMemberNoInit(loc, mem, memberTypeInfo, has_type_info, priv);
    }
 
-   DLLLOCAL const QoreClass* parseFindPublicPrivateMemberNoInit(const QoreProgramLocation*& loc, const char* mem, const QoreTypeInfo*& memberTypeInfo, bool &has_type_info, bool &priv) const {
+   DLLLOCAL const QoreClass* parseFindPublicPrivateMemberNoInit(const QoreProgramLocation*& loc, const char* mem, const QoreTypeInfo*& memberTypeInfo, bool& has_type_info, bool& priv) const {
       bool found = false;
       member_map_t::const_iterator i = private_members.find(const_cast<char*>(mem));
 
@@ -2060,7 +2060,7 @@ public:
       return scl ? scl->parseFindPublicPrivateMember(loc, mem, memberTypeInfo, has_type_info, priv) : 0;
    }
 
-   DLLLOCAL const QoreClass* parseFindPublicPrivateVar(const QoreProgramLocation*& loc, const char* dname, const QoreTypeInfo*& varTypeInfo, bool &var_has_type_info, bool &priv) const {
+   DLLLOCAL const QoreClass* parseFindPublicPrivateVar(const QoreProgramLocation*& loc, const char* dname, const QoreTypeInfo*& varTypeInfo, bool& var_has_type_info, bool& priv) const {
       //printd(5, "parseFindPublicPrivateVar() this=%p cls=%p (%s) scl=%p\n", this, cls, cls->getName(), scl);
 
       QoreVarInfo* vi = private_vars.find(const_cast<char*>(dname));
@@ -2443,7 +2443,7 @@ public:
       scl->parseAddAncestors(m);
    }
 
-   DLLLOCAL const qore_class_private* isPublicOrPrivateMember(const char* mem, bool &priv) const {
+   DLLLOCAL const qore_class_private* isPublicOrPrivateMember(const char* mem, bool& priv) const {
       if (private_members.find(const_cast<char*>(mem)) != private_members.end()) {
 	 priv = true;
 	 return this;
@@ -2597,31 +2597,43 @@ public:
    }
 */
 
-   DLLLOCAL const QoreMethod* parseFindAnyMethodIntern(const char* mname) {
+   DLLLOCAL const QoreMethod* parseFindAnyMethodIntern(const char* mname, bool& priv) {
       const QoreMethod* m = parseFindAnyLocalMethod(mname);
       if (!m && scl)
-	 m = scl->parseFindAnyMethodTree(mname);
+	 m = scl->parseFindAnyMethodTree(mname, priv);
+
+      if (m && !priv && m->parseIsPrivate())
+         priv = true;
+      
       return m;
    }
 
    // finds a non-static method in the class hierarchy at parse time, optionally initializes classes
-   DLLLOCAL const QoreMethod* parseFindMethod(const char* mname) {
+   DLLLOCAL const QoreMethod* parseFindMethod(const char* mname, bool& priv) {
       const QoreMethod* m = parseFindLocalMethod(mname);
       if (!m && scl)
-	 m = scl->parseFindMethodTree(mname);
+	 m = scl->parseFindMethodTree(mname, priv);
+
+      if (m && !priv && m->parseIsPrivate())
+         priv = true;
+      
       return m;
    }
 
    // finds a static method in the class hierarchy at parse time, optionally initializes classes
-   DLLLOCAL const QoreMethod* parseFindStaticMethod(const char* mname) {
+   DLLLOCAL const QoreMethod* parseFindStaticMethod(const char* mname, bool& priv) {
       const QoreMethod* m = parseFindLocalStaticMethod(mname);
       if (!m && scl)
-	 m = scl->parseFindStaticMethodTree(mname);
+	 m = scl->parseFindStaticMethodTree(mname, priv);
+
+      if (m && !priv && m->parseIsPrivate())
+         priv = true;
+      
       return m;
    }
 
    // returns a non-static method if it exists in class hierarchy and has been committed to the class
-   DLLLOCAL const QoreMethod* findCommittedStaticMethod(const char* nme, bool &p) const {
+   DLLLOCAL const QoreMethod* findCommittedStaticMethod(const char* nme, bool& p) const {
       const QoreMethod* w = findLocalCommittedStaticMethod(nme);
       if (!w && scl)
 	 w = scl->findCommittedStaticMethod(nme, p);
@@ -2629,14 +2641,14 @@ public:
    }
 
    // returns a non-static method if it exists in class hierarchy and has been committed to the class
-   DLLLOCAL const QoreMethod* findCommittedMethod(const char* nme, bool &p) const {
+   DLLLOCAL const QoreMethod* findCommittedMethod(const char* nme, bool& p) const {
       const QoreMethod* w = findLocalCommittedMethod(nme);
       if (!w && scl)
 	 w = scl->findCommittedMethod(nme, p);
       return w;
    }
 
-   DLLLOCAL const QoreMethod* findStaticMethod(const char* nme, bool &priv_flag) const {
+   DLLLOCAL const QoreMethod* findStaticMethod(const char* nme, bool& priv_flag) const {
       const QoreMethod* w;
       if (!(w = findLocalCommittedStaticMethod(nme))) {
 	 // search superclasses
@@ -2646,7 +2658,7 @@ public:
       return w;
    }
 
-   const QoreMethod* findMethod(const char* nme, bool &priv_flag) const {
+   const QoreMethod* findMethod(const char* nme, bool& priv_flag) const {
       const QoreMethod* w;
       if (!(w = findLocalCommittedMethod(nme))) {
 	 // search superclasses
@@ -2721,7 +2733,7 @@ public:
    // this = class to find in "oc"
    DLLLOCAL qore_type_result_e runtimeCheckCompatibleClass(const qore_class_private& oc) const;
 
-   DLLLOCAL const QoreClass* getClassIntern(const qore_class_private& qc, bool &priv) const {
+   DLLLOCAL const QoreClass* getClassIntern(const qore_class_private& qc, bool& priv) const {
       // check hashes if names are the same
       // FIXME: check fully-qualified namespace name
       if (qc.classID == classID || (qc.name == name && qc.hash == hash))
@@ -2761,9 +2773,31 @@ public:
       return has_new_user_changes;
    }
 
+   DLLLOCAL const QoreMethod* parseFindMethodTree(const char* nme, bool& priv) {
+      initialize();
+      return parseFindMethod(nme, priv);
+   }
+   
+   DLLLOCAL const QoreMethod* parseFindStaticMethodTree(const char* nme, bool& priv) {
+      initialize();
+      return parseFindStaticMethod(nme, priv);
+   }
+   
    // static methods
    //DLLLOCAL static
 
+   DLLLOCAL static const QoreMethod* parseFindLocalMethod(const QoreClass& qc, const char* mname) {
+      return qc.priv->parseFindLocalMethod(mname);
+   }
+
+   DLLLOCAL static const QoreMethod* parseFindMethodTree(const QoreClass& qc, const char* nme, bool& priv) {
+      return qc.priv->parseFindMethodTree(nme, priv);
+   }
+   
+   DLLLOCAL static const QoreMethod* parseFindStaticMethodTree(const QoreClass& qc, const char* nme, bool& priv) {
+      return qc.priv->parseFindStaticMethodTree(nme, priv);
+   }
+   
    DLLLOCAL static bool parseHasPendingChanges(const QoreClass& qc) {
       return qc.priv->parseHasPendingChanges();
    }
@@ -2784,7 +2818,7 @@ public:
       return qc.priv->hasCallableMethod(m, QCCM_STATIC);
    }
 
-   DLLLOCAL static const qore_class_private* isPublicOrPrivateMember(const QoreClass& qc, const char* mem, bool &priv) {
+   DLLLOCAL static const qore_class_private* isPublicOrPrivateMember(const QoreClass& qc, const char* mem, bool& priv) {
       return qc.priv->isPublicOrPrivateMember(mem, priv);
    }
 
@@ -2911,8 +2945,8 @@ public:
       qc.priv->parseAddPublicMember(nme, mInfo);
    }
 
-   DLLLOCAL static const QoreMethod* parseFindAnyMethodIntern(const QoreClass* qc, const char* mname) {
-      return qc->priv->parseFindAnyMethodIntern(mname);
+   DLLLOCAL static const QoreMethod* parseFindAnyMethodIntern(const QoreClass* qc, const char* mname, bool& priv) {
+      return qc->priv->parseFindAnyMethodIntern(mname, priv);
    }
 
    DLLLOCAL static AbstractQoreNode* evalPseudoMethod(const QoreClass* qc, const AbstractQoreNode* n, const char* name, const QoreListNode* args, ExceptionSink* xsink) {

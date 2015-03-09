@@ -833,13 +833,6 @@ public:
    DLLLOCAL BCSMList *getBCSMList() const;
    // returns true if the class has a delete_blocker function (somewhere in the hierarchy)
    DLLLOCAL bool has_delete_blocker() const;
-   // looks in current and pending method lists, non-static methods only, no initialization
-   DLLLOCAL const QoreMethod *parseFindLocalMethod(const char *name) const;
-   // looks in current and pending method lists for the entire hierarchy (local class plus base classes), non-static methods only
-   DLLLOCAL const QoreMethod *parseFindMethodTree(const char *name);
-   // looks in current and pending method lists for the entire hierarchy (local class plus base classes), static methods only
-   DLLLOCAL const QoreMethod *parseFindStaticMethodTree(const char *name);
-   // returns true if the class passed is equal to or in the class' hierarchy - to be called only at parse time or under the program's parse lock
    DLLLOCAL bool parseCheckHierarchy(const QoreClass *cls) const;
    DLLLOCAL bool parseHasPublicMembersInHierarchy() const;
    DLLLOCAL bool runtimeGetMemberInfo(const char *mem, const QoreTypeInfo *&memberTypeInfo, bool &priv) const;

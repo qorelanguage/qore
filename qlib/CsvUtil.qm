@@ -1249,7 +1249,7 @@ while ($i.next()) {
     } # AbstractCsvWriter class
       
     #! the CsvFileWriter class for easy and safe CSV file creation
-    public class CsvFileWriter inherits private AbstractCsvWriter {
+    public class CsvFileWriter inherits AbstractCsvWriter {
         
         private {
             # a file to write
@@ -1280,7 +1280,7 @@ while ($i.next()) {
     } # CsvFileWriter
 
     #! the CsvStringWriter class for in-memory string CSV creation
-    public class CsvStringWriter inherits private AbstractCsvWriter {
+    public class CsvStringWriter inherits AbstractCsvWriter {
         
         private {
             # a csv content

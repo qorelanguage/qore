@@ -3,7 +3,7 @@
  
   Qore Programming Language
  
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
  
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -306,11 +306,14 @@ AbstractQoreNode* ParseObjectMethodReferenceNode::parseInitImpl(LocalVar *oflag,
 	 else {
 	    const QoreClass *n_qc = argTypeInfo->getUniqueReturnClass();
 	    if (n_qc) {
-	       m = const_cast<QoreClass*>(n_qc)->parseFindMethodTree(method);
-	       if (!m)
-		  parseException("PARSE-ERROR", "method %s::%s() cannot be found", n_qc->getName(), method);
-	       else
+	       bool m_priv = false;
+	       m = qore_class_private::parseFindMethodTree(*const_cast<QoreClass*>(n_qc), method, m_priv);
+	       if (m) {
 		  qc = n_qc;
+		  // FIXME: check for reference to a private method
+	       }
+	       else
+		  parseException("PARSE-ERROR", "method %s::%s() cannot be found", n_qc->getName(), method);
 	    }
 	 }
       }
@@ -602,11 +605,13 @@ AbstractQoreNode* UnresolvedStaticMethodCallReferenceNode::parseInit(LocalVar *o
    // try to find a pointer to a non-static method if parsing in the class' context
    // and bare references are enabled
    if (oflag && parse_check_parse_option(PO_ALLOW_BARE_REFS) && oflag->getTypeInfo()->getUniqueReturnClass()->parseCheckHierarchy(qc)) {
-      qm = qc->parseFindMethodTree(scope->getIdentifier());
+      bool m_priv = false;
+      qm = qore_class_private::parseFindMethodTree(*qc, scope->getIdentifier(), m_priv);
       assert(!qm || !qm->isStatic());
    }
    if (!qm) {
-      qm = qc->parseFindStaticMethodTree(scope->getIdentifier());
+      bool m_priv = false;
+      qm = qore_class_private::parseFindStaticMethodTree(*qc, scope->getIdentifier(), m_priv);
       if (!qm) {
 	 parseException("INVALID-METHOD", "class '%s' has no static method '%s'", qc->getName(), scope->getIdentifier());
 	 return this;

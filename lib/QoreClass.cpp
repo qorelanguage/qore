@@ -1421,29 +1421,35 @@ const QoreMethod* BCList::parseFindCommittedMethod(const char* name) {
    return 0;
 }
 
-const QoreMethod* BCList::parseFindMethodTree(const char* name) {
+const QoreMethod* BCList::parseFindMethodTree(const char* name, bool& priv) {
    if (!valid)
       return 0;
 
    for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
       if ((*i)->sclass) {
 	 const QoreMethod* m;
-	 if ((m = (*i)->sclass->parseFindMethodTree(name)))
+	 if ((m = (*i)->sclass->priv->parseFindMethodTree(name, priv))) {
+	    if (!priv && (*i)->priv)
+	       priv = true;
 	    return m;
+	 }
       }
    }
    return 0;
 }
 
-const QoreMethod* BCList::parseFindAnyMethodTree(const char* name) {
+const QoreMethod* BCList::parseFindAnyMethodTree(const char* name, bool& priv) {
    if (!valid)
       return 0;
 
    for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
       if ((*i)->sclass) {
 	 const QoreMethod* m;
-	 if ((m = (*i)->sclass->priv->parseFindAnyMethodIntern(name)))
+	 if ((m = (*i)->sclass->priv->parseFindAnyMethodIntern(name, priv))) {
+	    if (!priv && (*i)->priv)
+	       priv = true;
 	    return m;
+	 }
       }
    }
    return 0;
@@ -1487,15 +1493,18 @@ const QoreMethod* BCList::parseFindCommittedStaticMethod(const char* name) {
 }
 */
 
-const QoreMethod* BCList::parseFindStaticMethodTree(const char* name) {
+const QoreMethod* BCList::parseFindStaticMethodTree(const char* name, bool& priv) {
    if (!valid)
       return 0;
 
    for (bclist_t::iterator i = begin(); i != end(); i++) {
       if ((*i)->sclass) {
 	 const QoreMethod* m;
-	 if ((m = (*i)->sclass->priv->parseFindStaticMethod(name)))
+	 if ((m = (*i)->sclass->priv->parseFindStaticMethod(name, priv))) {
+	    if (!priv && (*i)->priv)
+	       priv = true;
 	    return m;
+	 }
       }
    }
    return 0;
@@ -1766,10 +1775,6 @@ const QoreMethod* QoreClass::parseGetConstructor() const {
    return priv->parseFindLocalMethod("constructor");
 }
 
-const QoreMethod* QoreClass::parseFindLocalMethod(const char* mname) const {
-   return priv->parseFindLocalMethod(mname);
-}
-
 bool QoreClass::has_delete_blocker() const {
    return priv->has_delete_blocker;
 }
@@ -1866,16 +1871,6 @@ int QoreClass::numUserMethods() const {
 
 int QoreClass::numStaticUserMethods() const {
    return priv->num_static_user_methods;
-}
-
-const QoreMethod* QoreClass::parseFindMethodTree(const char* nme) {
-   priv->initialize();
-   return priv->parseFindMethod(nme);
-}
-
-const QoreMethod* QoreClass::parseFindStaticMethodTree(const char* nme) {
-   priv->initialize();
-   return priv->parseFindStaticMethod(nme);
 }
 
 void QoreClass::addBuiltinBaseClass(QoreClass* qc, QoreListNode* xargs) {
@@ -2734,7 +2729,8 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase *f, b
       hasMemberNotification = methGate || memGate ? false : !strcmp(mname, "memberNotification");
    }
 
-   QoreMethod* m = const_cast<QoreMethod* >(!n_static ? parseFindMethod(mname) : parseFindStaticMethod(mname));
+   bool m_priv = false;
+   QoreMethod* m = const_cast<QoreMethod* >(!n_static ? parseFindMethod(mname, m_priv) : parseFindStaticMethod(mname, m_priv));
    if (!n_static && m && (dst || cpy || methGate || memGate || hasMemberNotification)) {
       parseException("ILLEGAL-METHOD-OVERLOAD", "a %s::%s() method has already been defined; cannot overload %s methods", tname, mname, mname);
       return -1;
@@ -3988,52 +3984,102 @@ void DestructorMethodFunction::evalDestructor(const QoreClass &thisclass, QoreOb
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
 AbstractQoreNode* NormalMethodFunction::evalMethod(const AbstractQoreFunctionVariant *variant, QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const {
+   bool had_variant = (bool)variant;
    const char* mname = getName();
    CodeEvaluationHelper ceh(xsink, this, variant, mname, args, getClassName());
    if (*xsink) return 0;
 
    const MethodVariant* mv = METHV_const(variant);
-   if (variant && mv->isAbstract()) {
+   if (mv->isAbstract()) {
       xsink->raiseException("ABSTRACT-VARIANT-ERROR", "cannot call abstract variant %s::%s(%s) directly", getClassName(), mname, mv->getSignature()->getSignatureText());
       return 0;
    }
-
+   //printd(5, "NormalMethodFunction::evalMethod() %s::%s(%s) (self: %s) variant: %p, mv: %p priv: %p access: %d\n",getClassName(), mname, mv->getSignature()->getSignatureText(), self->getClass()->getName(), variant, mv, mv->isPrivate(), qore_class_private::runtimeCheckPrivateClassAccess(*mv->getClass()));
+   if (!had_variant && mv->isPrivate() && !qore_class_private::runtimeCheckPrivateClassAccess(*mv->getClass())) {
+      xsink->raiseException("ILLEGAL-CALL", "cannot call private variant %s::%s(%s) from outside the class", getClassName(), mname, mv->getSignature()->getSignatureText());
+      return 0;
+   }
+   
    return mv->evalMethod(self, ceh, xsink);
 }
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
 int64 NormalMethodFunction::bigIntEvalMethod(const AbstractQoreFunctionVariant *variant, QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const {
+   bool had_variant = (bool)variant;
    const char* mname = getName();
    CodeEvaluationHelper ceh(xsink, this, variant, mname, args, getClassName());
    if (*xsink) return 0;
 
+   const MethodVariant* mv = METHV_const(variant);
+   if (mv->isAbstract()) {
+      xsink->raiseException("ABSTRACT-VARIANT-ERROR", "cannot call abstract variant %s::%s(%s) directly", getClassName(), mname, mv->getSignature()->getSignatureText());
+      return 0;
+   }
+   if (!had_variant && mv->isPrivate() && !qore_class_private::runtimeCheckCompatibleClass(*mv->getClass(), *self->getClass())) {
+      xsink->raiseException("ILLEGAL-CALL", "cannot call private variant %s::%s(%s) from outside the class", getClassName(), mname, mv->getSignature()->getSignatureText());
+      return 0;
+   }
+   
    return METHV_const(variant)->bigIntEvalMethod(self, ceh, xsink);      
 }
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
 int NormalMethodFunction::intEvalMethod(const AbstractQoreFunctionVariant *variant, QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const {
+   bool had_variant = (bool)variant;
    const char* mname = getName();
    CodeEvaluationHelper ceh(xsink, this, variant, mname, args, getClassName());
    if (*xsink) return 0;
 
+   const MethodVariant* mv = METHV_const(variant);
+   if (mv->isAbstract()) {
+      xsink->raiseException("ABSTRACT-VARIANT-ERROR", "cannot call abstract variant %s::%s(%s) directly", getClassName(), mname, mv->getSignature()->getSignatureText());
+      return 0;
+   }
+   if (!had_variant && mv->isPrivate() && !qore_class_private::runtimeCheckCompatibleClass(*mv->getClass(), *self->getClass())) {
+      xsink->raiseException("ILLEGAL-CALL", "cannot call private variant %s::%s(%s) from outside the class", getClassName(), mname, mv->getSignature()->getSignatureText());
+      return 0;
+   }
+   
    return METHV_const(variant)->intEvalMethod(self, ceh, xsink);      
 }
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
 bool NormalMethodFunction::boolEvalMethod(const AbstractQoreFunctionVariant *variant, QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const {
+   bool had_variant = (bool)variant;
    const char* mname = getName();
    CodeEvaluationHelper ceh(xsink, this, variant, mname, args, getClassName());
    if (*xsink) return 0;
 
+   const MethodVariant* mv = METHV_const(variant);
+   if (mv->isAbstract()) {
+      xsink->raiseException("ABSTRACT-VARIANT-ERROR", "cannot call abstract variant %s::%s(%s) directly", getClassName(), mname, mv->getSignature()->getSignatureText());
+      return 0;
+   }
+   if (!had_variant && mv->isPrivate() && !qore_class_private::runtimeCheckCompatibleClass(*mv->getClass(), *self->getClass())) {
+      xsink->raiseException("ILLEGAL-CALL", "cannot call private variant %s::%s(%s) from outside the class", getClassName(), mname, mv->getSignature()->getSignatureText());
+      return 0;
+   }
+   
    return METHV_const(variant)->boolEvalMethod(self, ceh, xsink);      
 }
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
 double NormalMethodFunction::floatEvalMethod(const AbstractQoreFunctionVariant *variant, QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const {
+   bool had_variant = (bool)variant;
    const char* mname = getName();
    CodeEvaluationHelper ceh(xsink, this, variant, mname, args, getClassName());
    if (*xsink) return 0;
 
+   const MethodVariant* mv = METHV_const(variant);
+   if (mv->isAbstract()) {
+      xsink->raiseException("ABSTRACT-VARIANT-ERROR", "cannot call abstract variant %s::%s(%s) directly", getClassName(), mname, mv->getSignature()->getSignatureText());
+      return 0;
+   }
+   if (!had_variant && mv->isPrivate() && !qore_class_private::runtimeCheckCompatibleClass(*mv->getClass(), *self->getClass())) {
+      xsink->raiseException("ILLEGAL-CALL", "cannot call private variant %s::%s(%s) from outside the class", getClassName(), mname, mv->getSignature()->getSignatureText());
+      return 0;
+   }
+   
    return METHV_const(variant)->floatEvalMethod(self, ceh, xsink);      
 }
 

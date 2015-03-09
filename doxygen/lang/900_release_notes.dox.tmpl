@@ -186,6 +186,7 @@
     - fixed a crash in @ref Qore::FileLineIterator::copy() when no \a eol attribute is set
     - fixed a bug importing invalid user modules with no module declaration
     - fixed bugs in @ref Qore::Socket::accept() and @ref Qore::Socket::acceptSSL() where the SSL configuration was not copied to the new @ref Qore::Socket
+    - fixed some object encapsulation violation bugs where access to methods of a privately-inherited class was allowed from a subclass in certain situations
 
     @section qore_0811 Qore 0.8.11
 

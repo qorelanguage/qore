@@ -29,7 +29,8 @@
 %no-child-restrictions
 
 %append-module-path ../../qlib
-%requires UnitTest
+%requires ../../qlib/UnitTest.qm
+%requires ../../qlib/Util.qm
 
 %exec-class Test
 
