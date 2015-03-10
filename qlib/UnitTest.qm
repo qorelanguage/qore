@@ -76,7 +76,7 @@ class TestCow inherits UnitTest {
 			}
 		}
 
-		exception(\fly, ('cow'), 'cow cannot fly', 'invoked exception when cow trying to fly');
+		exception(\fly(), ('cow'), 'cow cannot fly', 'invoked exception when cow trying to fly');
 
 		cmploop(
 			\eat(),
@@ -424,7 +424,7 @@ sub fly (string animal) {
     }
 }
 
-this.exception(\fly, ('cow'), 'cow cannot fly', 'invoked exception when cow trying to fly');
+this.exception(\fly(), ('cow'), 'cow cannot fly', 'invoked exception when cow trying to fly');
         @endcode
     */
     int exception(callref f, *softlist params, string regex, string msg) {

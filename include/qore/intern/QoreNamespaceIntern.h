@@ -1107,6 +1107,7 @@ protected:
       if (ip != pend_clmap.end())
          return ip->second.obj;
 
+      //printd(5, "qore_root_ns_private::parseFindClassIntern() this: %p '%s' not found\n", this, cname);
       return 0;
    }
 

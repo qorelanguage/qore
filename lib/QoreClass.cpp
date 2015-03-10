@@ -2281,8 +2281,7 @@ bool qore_class_private::hasCallableMethod(const char* m, int mask) const {
 }
 
 const QoreMethod* qore_class_private::getMethodForEval(const char* nme, ExceptionSink* xsink) const {
-   bool external = (cls != getStackClass());
-   printd(5, "qore_class_private::getMethodForEval() %s::%s() %s call attempted\n", name.c_str(), nme, external ? "external" : "internal" );
+   //printd(5, "qore_class_private::getMethodForEval() %s::%s() %s call attempted\n", name.c_str(), nme, runtimeCheckPrivateClassAccess() ? "external" : "internal" );
 
    const QoreMethod* w;
 
@@ -2299,15 +2298,13 @@ const QoreMethod* qore_class_private::getMethodForEval(const char* nme, Exceptio
       return 0;
    }
 
-   if (external) {
-      if (w->isPrivate()) {
-	 xsink->raiseException("METHOD-IS-PRIVATE", "%s::%s() is private and cannot be accessed externally", name.c_str(), nme);
-	 return 0;
-      }
-      else if (priv_flag) {
-	 xsink->raiseException("BASE-CLASS-IS-PRIVATE", "%s() is a method of a privately-inherited class of %s", nme, name.c_str());
-	 return 0;
-      }
+   if (w->isPrivate() && !runtimeCheckPrivateClassAccess()) {
+      xsink->raiseException("METHOD-IS-PRIVATE", "%s::%s() is private and cannot be accessed externally", name.c_str(), nme);
+      return 0;
+   }
+   else if (priv_flag && !runtimeCheckPrivateClassAccess()) {
+      xsink->raiseException("BASE-CLASS-IS-PRIVATE", "%s() is a method of a privately-inherited class %s", nme, name.c_str());
+      return 0;
    }
 
    return w;
@@ -3994,7 +3991,7 @@ AbstractQoreNode* NormalMethodFunction::evalMethod(const AbstractQoreFunctionVar
       xsink->raiseException("ABSTRACT-VARIANT-ERROR", "cannot call abstract variant %s::%s(%s) directly", getClassName(), mname, mv->getSignature()->getSignatureText());
       return 0;
    }
-   //printd(5, "NormalMethodFunction::evalMethod() %s::%s(%s) (self: %s) variant: %p, mv: %p priv: %p access: %d\n",getClassName(), mname, mv->getSignature()->getSignatureText(), self->getClass()->getName(), variant, mv, mv->isPrivate(), qore_class_private::runtimeCheckPrivateClassAccess(*mv->getClass()));
+   //printd(5, "NormalMethodFunction::evalMethod() %s::%s(%s) (self: %s) variant: %p, mv: %p priv: %d access: %d (%p %s)\n",getClassName(), mname, mv->getSignature()->getSignatureText(), self->getClass()->getName(), variant, mv, mv->isPrivate(), qore_class_private::runtimeCheckPrivateClassAccess(*mv->getClass()), runtime_get_class(), runtime_get_class() ? runtime_get_class()->name.c_str() : "n/a");
    if (!had_variant && mv->isPrivate() && !qore_class_private::runtimeCheckPrivateClassAccess(*mv->getClass())) {
       xsink->raiseException("ILLEGAL-CALL", "cannot call private variant %s::%s(%s) from outside the class", getClassName(), mname, mv->getSignature()->getSignatureText());
       return 0;
