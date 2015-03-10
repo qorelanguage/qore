@@ -1,0 +1,84 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%requires UnitTest
+%new-style
+    
+UnitTest unit();
+
+test();
+
+const Code = "
+class B { 
+    private string t(int i) {return \"int\";}
+    string t(string str) {return \"string\";}
+    code get_t() {return \\t();}
+
+    private string u(int i) {return \"int\";}
+    private string u(string str) {return \"string\";}
+    code get_u() {return \\u();}
+
+    string v(int i) {return \"int\";}
+    string v(string str) {return \"string\";}
+    code get_v() {return \\v();}
+
+    string w() {return \"none\";}
+    code get_w() {return \\w();}
+
+    private string x() {return \"none\";}
+    code get_x() {return \\x();}
+}
+class C inherits B {}
+class D inherits private B {}
+
+string sub t1() { C t(); return t.t(False ? NOTHING : 1); }
+string sub t2() { C t(); return t.t(False ? NOTHING : \"str\"); }
+
+string sub t3() { object t = new D(); return t.t(False ? NOTHING : 1); }
+string sub t4() { object t = new D(); return t.t(False ? NOTHING : \"str\"); }
+
+string sub t5() { C t(); return t.get_t()(False ? NOTHING : 1); }
+string sub t6() { C t(); return t.get_t()(False ? NOTHING : \"str\"); }
+
+string sub t7() { C t(); return t.get_u()(False ? NOTHING : 1); }
+string sub t8() { C t(); return t.get_u()(False ? NOTHING : \"str\"); }
+
+string sub t9() { C t(); return t.get_v()(False ? NOTHING : 1); }
+string sub t10() { C t(); return t.get_v()(False ? NOTHING : \"str\"); }
+
+string sub t11() { C t(); return t.get_w()(); }
+string sub t12() { C t(); return t.w(); }
+
+string sub t13() { C t(); return t.get_x()(); }
+string sub t14() { object t = new C(); return t.x(); }
+
+code sub t15() { C t(); return t.get_x(); }
+";
+
+sub test() {
+    Program p();
+    p.parse(Code, "access");
+    unit.exception(sub() {p.callFunction("t1");}, NOTHING, "cannot call private variant", "negative-private-method-access-1");
+    unit.cmp(p.callFunction("t2"), "string", "private-method-access-1");
+
+    unit.exception(sub() {p.callFunction("t3");}, NOTHING, "method of a privately-inherited class", "negative-private-method-access-2");
+    unit.exception(sub() {p.callFunction("t4");}, NOTHING, "method of a privately-inherited class", "negative-private-method-access-3");
+    unit.cmp(p.callFunction("t5"), "int", "private-method-access-2");
+    unit.cmp(p.callFunction("t6"), "string", "private-method-access-3");
+
+    unit.cmp(p.callFunction("t7"), "int", "private-method-access-4");
+    unit.cmp(p.callFunction("t8"), "string", "private-method-access-5");
+
+    unit.cmp(p.callFunction("t9"), "int", "private-method-access-6");
+    unit.cmp(p.callFunction("t10"), "string", "private-method-access-7");
+
+    unit.cmp(p.callFunction("t11"), "none", "private-method-access-8");
+    unit.cmp(p.callFunction("t12"), "none", "private-method-access-9");
+
+    unit.cmp(p.callFunction("t13"), "none", "private-method-access-10");
+    unit.exception(sub() {p.callFunction("t14");}, NOTHING, "is private and cannot be accessed externally", "negative-private-method-access-8");
+
+    unit.cmp(p.callFunction("t15")(), "none", "private-method-access-11");
+}
