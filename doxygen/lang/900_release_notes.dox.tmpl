@@ -188,6 +188,7 @@
     - fixed bugs in @ref Qore::Socket::accept() and @ref Qore::Socket::acceptSSL() where the SSL configuration was not copied to the new @ref Qore::Socket
     - fixed some object encapsulation violation bugs where access to methods of a privately-inherited class was allowed from a subclass in certain situations
     - fixed inconsistent object encapsulation enforcement with method references; if a reference to a method is created inside the class, then when executed the call inherits the access rights at the time of creation
+    - fixed inconsistent thread gating for code data structures in @ref Qore::Program "Program" containers that could have theoretically lead to crashes in @ref Qore::Program "Program" containers that parse code while threads are running
 
     @section qore_0811 Qore 0.8.11
 

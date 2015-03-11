@@ -33,6 +33,7 @@
 #include <qore/intern/qore_number_private.h>
 #include <qore/intern/QoreSignal.h>
 #include <qore/intern/QoreObjectIntern.h>
+#include <qore/intern/qore_qd_private.h>
 
 #include <string.h>
 #ifdef HAVE_PWD_H
@@ -1750,6 +1751,35 @@ bool q_absolute_path(const char* path) {
 #else
    return q_absolute_path_unix(path);
 #endif
+}
+
+void q_normalize_path(QoreString& path) {
+   std::string str = path.getBuffer();
+   str = qore_qd_private::normalizePath(str);
+   //printd(5, " q_normalize_path() '%s' -> '%s'\n", path.getBuffer(), str.c_str());
+   path.clear();
+   path = str;
+}
+
+int q_getcwd(QoreString& cwd) {
+   int bs = 512;
+   cwd.reserve(bs);
+
+   while (true) {
+      char *b = getcwd((char*)cwd.getBuffer(), bs);
+      if (!b) {
+          if (errno == ERANGE) {
+              bs *= 2;
+	      cwd.reserve(bs);
+              continue;
+          }
+          return -1;
+      }
+      break;
+   }
+
+   cwd.terminate(strlen(cwd.getBuffer()));
+   return 0;
 }
 
 void qore_disable_gc() {

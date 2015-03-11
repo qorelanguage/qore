@@ -516,13 +516,6 @@ public:
    DLLLOCAL int incThreadCount(ExceptionSink* xsink) {
       // grab program-level lock
       AutoLocker al(plock);
-      /*
-      while (parse_count) {
-         ++thread_waiting;
-         pcond.wait(plock);
-         --thread_waiting;
-      }
-      */
       
       if (ptid && ptid != gettid()) {
          xsink->raiseException("PROGRAM-ERROR", "the Program accessed has already been deleted");
@@ -558,14 +551,6 @@ public:
          xsink->raiseException("PROGRAM-ERROR", "the Program accessed has already been deleted and therefore cannot be accessed for parsing");
          return -1;
       }      
-
-      /*
-      // module loading requires the parse lock, and load_module() causes modules to be loaded in the current program
-      if (thread_count > 1 || (thread_count == 1 && !curr)) {
-         xsink->raiseException("PROGRAM-PARSE-ERROR", "the Program is currently running and therefore no parsing actions can be started");
-         return -1;
-      }
-      */
       
       //printd(5, "qore_program_private::lockParsing() this: %p ptid: %d thread_count: %d parse_count: %d -> %d\n", this, ptid, thread_count, parse_count, parse_count + 1);
       ++parse_count;

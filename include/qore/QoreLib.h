@@ -506,6 +506,9 @@ DLLEXPORT bool q_get_option_constant_value(const char* opt);
 //! concatenates UNIX-style permissions to perm and from mode and returns a string giving the file type
 DLLEXPORT const char* q_mode_to_perm(mode_t mode, QoreString& perm);
 
+//! returns the current working directory in the given string; -1 is returned if an error occurred, 0 = OK
+int q_getcwd(QoreString& cwd);
+
 //! returns true if the given string is an absolute path on UNIX systems
 DLLEXPORT bool q_absolute_path_unix(const char* path);
 
@@ -514,4 +517,8 @@ DLLEXPORT bool q_absolute_path_windows(const char* path);
 
 //! returns true if the given string is an absolute path on the current platform
 DLLEXPORT bool q_absolute_path(const char* path);
+
+//! normalizes the given path for the current platform in place (makes absolute, removes "." and "..")
+DLLEXPORT void q_normalize_path(QoreString& path);
+
 #endif // _QORE_QORELIB_H

@@ -127,9 +127,11 @@ public:
    name_vec_t rmod;
 
    DLLLOCAL QoreAbstractModule(const char* fn, const char* n, const char* d, const char* v, const char* a, const char* u, const QoreString& l) : filename(fn), name(n), desc(d), author(a), url(u), license(l), version_list(v) {
+      q_normalize_path(filename);
    }
 
    DLLLOCAL QoreAbstractModule(const char* fn, const char* n) : filename(fn), name(n) {
+      q_normalize_path(filename);
    }
 
    // for "builtin" modules
