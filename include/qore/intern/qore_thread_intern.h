@@ -614,14 +614,15 @@ public:
    DLLLOCAL ~ObjectSubstitutionHelper();
 };
 
-class OptionalObjectSubstitutionHelper {
+class OptionalClassObjSubstitutionHelper {
 private:
    ClassObj old;
    bool subst;
 
 public:
-   DLLLOCAL OptionalObjectSubstitutionHelper(QoreObject* obj);
-   DLLLOCAL ~OptionalObjectSubstitutionHelper();
+   DLLLOCAL OptionalClassObjSubstitutionHelper(QoreObject* obj);
+   DLLLOCAL OptionalClassObjSubstitutionHelper(const qore_class_private* qc);
+   DLLLOCAL ~OptionalClassObjSubstitutionHelper();
 };
 
 typedef std::map<const LocalVar*, ClosureVarValue*> cvar_map_t;

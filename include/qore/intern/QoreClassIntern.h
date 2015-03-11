@@ -2637,6 +2637,8 @@ public:
       const QoreMethod* w = findLocalCommittedStaticMethod(nme);
       if (!w && scl)
 	 w = scl->findCommittedStaticMethod(nme, p);
+      if (w && !p && w->isPrivate())
+         p = true;
       return w;
    }
 
@@ -2645,27 +2647,17 @@ public:
       const QoreMethod* w = findLocalCommittedMethod(nme);
       if (!w && scl)
 	 w = scl->findCommittedMethod(nme, p);
+      if (w && !p && w->isPrivate())
+         p = true;
       return w;
    }
-
+   
    DLLLOCAL const QoreMethod* findStaticMethod(const char* nme, bool& priv_flag) const {
-      const QoreMethod* w;
-      if (!(w = findLocalCommittedStaticMethod(nme))) {
-	 // search superclasses
-	 if (scl)
-	    w = scl->findCommittedStaticMethod(nme, priv_flag);
-      }
-      return w;
+      return findCommittedStaticMethod(nme, priv_flag);
    }
 
    const QoreMethod* findMethod(const char* nme, bool& priv_flag) const {
-      const QoreMethod* w;
-      if (!(w = findLocalCommittedMethod(nme))) {
-	 // search superclasses
-	 if (scl)
-	    w = scl->findCommittedMethod(nme, priv_flag);
-      }
-      return w;
+      return findCommittedMethod(nme, priv_flag);
    }
 
    DLLLOCAL bool hasCallableMethod(const char* m, int mask) const;

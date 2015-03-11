@@ -33,10 +33,15 @@ class B {
 class C inherits B {}
 class D inherits private B {}
 
+# this must fail: B::t(int) is private
 string sub t1() { C t(); return t.t(False ? NOTHING : 1); }
+
 string sub t2() { C t(); return t.t(False ? NOTHING : \"str\"); }
 
+# this must fail: B::t(int) is private and also B is privately-inherited
 string sub t3() { object t = new D(); return t.t(False ? NOTHING : 1); }
+
+# this must fail: B::t(string) is a method of a privately-inherited class
 string sub t4() { object t = new D(); return t.t(False ? NOTHING : \"str\"); }
 
 string sub t5() { C t(); return t.get_t()(False ? NOTHING : 1); }
@@ -52,9 +57,17 @@ string sub t11() { C t(); return t.get_w()(); }
 string sub t12() { C t(); return t.w(); }
 
 string sub t13() { C t(); return t.get_x()(); }
+
+# this must fail: C::x() is private
 string sub t14() { object t = new C(); return t.x(); }
 
 code sub t15() { C t(); return t.get_x(); }
+
+# this must fail when calling the call reference with an integer and succeed when calling with a string arg
+code sub t16_17() { C t(); return \\t.t(); }
+
+# this must fail because B is privately inherited in D
+code sub t18() { object t = new D(); return \\t.t(); }
 ";
 
 sub test() {
@@ -81,4 +94,14 @@ sub test() {
     unit.exception(sub() {p.callFunction("t14");}, NOTHING, "is private and cannot be accessed externally", "negative-private-method-access-8");
 
     unit.cmp(p.callFunction("t15")(), "none", "private-method-access-11");
+
+    unit.exception(sub() {p.callFunction("t16_17")(1);}, NOTHING, "cannot call private variant", "negative-private-method-access-9");
+
+    unit.cmp(p.callFunction("t16_17")("str"), "string", "private-method-access-12");
+
+    # this must fail because B is privately inherited in D
+    unit.exception(sub() {p.callFunction("t18");}, NOTHING, "cannot create a call reference", "negative-private-method-access-10");
+
+    # this must fail at parse time because B::t() is privately inherited in D, therefore it should not be possible to take a reference to the method of the privately-inherited class
+    unit.exception(sub() {p.parse("code sub test() { D t(); return \\t.t(); }", "test");}, NOTHING, "is private in this context", "negative-private-method-access-11");
 }

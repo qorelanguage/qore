@@ -33,6 +33,8 @@
 
 #define _QORE_INTERN_FUNCTIONREFERENCENODE_H
 
+#include <string>
+
 class LocalFunctionCallReferenceNode;
 
 class AbstractUnresolvedCallReferenceNode : public AbstractCallReferenceNode {
@@ -220,13 +222,13 @@ class ImportedFunctionEntry;
 class RunTimeObjectMethodReferenceNode : public ResolvedCallReferenceNode {
 private:
    QoreObject* obj;
-   char* method;
-   bool in_object;
+   std::string method;
+   const qore_class_private* qc;
 
    DLLLOCAL virtual ~RunTimeObjectMethodReferenceNode();
    
 public:
-   DLLLOCAL RunTimeObjectMethodReferenceNode(QoreObject* n_obj, const char* n_method, bool n_in_object = false);
+   DLLLOCAL RunTimeObjectMethodReferenceNode(QoreObject* n_obj, const char* n_method);
    DLLLOCAL virtual AbstractQoreNode* exec(const QoreListNode* args, ExceptionSink* xsink) const;
    DLLLOCAL virtual QoreProgram* getProgram() const;
    DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode* v, ExceptionSink* xsink) const {
@@ -246,6 +248,7 @@ class RunTimeResolvedMethodReferenceNode : public ResolvedCallReferenceNode {
 private:
    QoreObject* obj;
    const QoreMethod* method;
+   const qore_class_private* qc;
 
    DLLLOCAL virtual ~RunTimeResolvedMethodReferenceNode();
 
