@@ -62,6 +62,38 @@ unit.cmp(i.next(), True, "line 3 present");
 unit.cmp(i.getValue(), hashdata[2], "line 3 content check");
 unit.cmp(i.next(), False, "line 4 is not there");
 
+# Incorrect use
+hash redundant_specs = (
+    "type1" : (
+        "col1" : (
+            "length" : 5,
+            "type"   : "int",
+        ),
+        "col2" : (
+            "length" : 4,
+            "type"   : "string",
+        ),
+    ),
+    "type2" : (
+        "col1" : (
+            "length" : 5,
+            "type"   : "int",
+        ),
+        "col2" : (
+            "length" : 4,
+            "type"   : "string",
+        ),
+    ),
+);
+
+FixedLengthDataIterator i2(strdata, redundant_specs, global_options);
+nothing sub testRoutine() {
+	i2.next();
+	i2.getValue();
+}
+unit.exception(\testRoutine(), list(), "\\QA format specifier has multiple line types of the same length. You need to provide your own identifyType() method.", "redundant line specifications");
+
+# Writer
 global_options = (
     "eol" : "\n",
 );

@@ -229,12 +229,15 @@ my hash $h = $i.getValue();
         return type;
     }
 
-	#! Identify a fixed-length line. This method performs a lookup to an implicit table based on line lengths. In case a different criteria is needed, eg. when two line types in a spec have the same length, this methods needs to be overriden.
+	#! Identify a fixed-length line type, given the raw line string. This method performs a lookup to a precalculated table based on line lengths (see @constructor). In case a different criteria is needed, eg. when two line types in a spec have the same length, this methods needs to be overriden, and will throw an exception, because the precalcualted m_line_lenghts mapping will be empty.
 	/**
 	@param s Input line to be identified
 	*/
     *string identifyTypeImpl(string s) {
-        if (!inlist(s.length(), m_line_lengths.keys())) {
+        if (!m_line_lengths) {
+            throw 'NON-MATCHING-TYPE', 'A format specifier has multiple line types of the same length. You need to provide your own identifyType() method.';
+        }
+        if (!m_line_lengths.hasKey(s.length())) {
             throw 'NON-MATCHING_TYPE', 'Line of unexpected length found >' + s + '<';
         }
         return m_line_lengths{s.length()};
