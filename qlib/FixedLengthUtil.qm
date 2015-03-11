@@ -234,7 +234,7 @@ my hash $h = $i.getValue();
 	@param s Input line to be identified
 	*/
     *string identifyTypeImpl(string s) {
-        if (!m_line_lengths) {
+        if (!m_line_lengths) { # this happens only if it was emptied because lengths of various types were not unique - see how m_line_lengths was constructed
             throw 'NON-MATCHING-TYPE', 'A format specifier has multiple line types of the same length. You need to provide your own identifyType() method.';
         }
         if (!m_line_lengths.hasKey(s.length())) {
