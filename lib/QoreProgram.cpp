@@ -234,8 +234,8 @@ void qore_program_private_base::setParent(QoreProgram *p_pgm, int64 n_parse_opti
    thread_local_storage = p_pgm->priv->thread_local_storage;
       
    {
-      // grab program's parse lock
-      AutoLocker al(p_pgm->priv->plock);
+      // make sure no parsing is running in the parent while we copy namespaces
+      ProgramRuntimeParseAccessHelper rah(0, p_pgm);
       // setup derived namespaces
       RootNS = qore_root_ns_private::copy(*p_pgm->priv->RootNS, n_parse_options);
    }
@@ -394,7 +394,10 @@ void qore_program_private::importClass(qore_program_private& from_pgm, const cha
    const qore_ns_private* vns = 0;
    const QoreClass* c;
    {
-      AutoLocker al(&from_pgm.plock);
+      // acquire safe access to parse structures in the source program
+      ProgramRuntimeParseAccessHelper rah(xsink, from_pgm.pgm);
+      if (*xsink)
+	 return;
       c = qore_root_ns_private::runtimeFindClass(*from_pgm.RootNS, path, vns);
    }
 
@@ -403,7 +406,10 @@ void qore_program_private::importClass(qore_program_private& from_pgm, const cha
        return;
    }
 
-   AutoLocker al(plock);
+   // get exclusive access to program object for parsing
+   ProgramRuntimeParseContextHelper pch(xsink, pgm);
+   if (*xsink)
+      return;
 
    // find/create target namespace based on source namespace
    QoreNamespace* tns = vns->root ? RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, *vns);
@@ -412,7 +418,10 @@ void qore_program_private::importClass(qore_program_private& from_pgm, const cha
 }
 
 void qore_program_private::importFunction(ExceptionSink* xsink, QoreFunction *u, const qore_ns_private& oldns, const char* new_name) {
-   AutoLocker al(plock);
+   // get exclusive access to program object for parsing
+   ProgramRuntimeParseContextHelper pch(xsink, pgm);
+   if (*xsink)
+      return;
 
    if (new_name && strstr(new_name, "::")) {
       NamedScope nscope(new_name);
@@ -437,7 +446,9 @@ void qore_program_private::exportGlobalVariable(const char* vname, bool readonly
    const qore_ns_private* vns = 0;
    Var* v;
    {
-      AutoLocker al(&plock);
+      ProgramRuntimeParseAccessHelper pah(xsink, pgm);
+      if (*xsink)
+	 return;
       v = qore_root_ns_private::runtimeFindGlobalVar(*RootNS, vname, vns);
    }
 
@@ -446,6 +457,11 @@ void qore_program_private::exportGlobalVariable(const char* vname, bool readonly
       return;
    }
 
+   // get exclusive access to program object for parsing
+   ProgramRuntimeParseContextHelper pch(xsink, tpgm.pgm);
+   if (*xsink)
+      return;
+   
    // find/create target namespace based on source namespace
    QoreNamespace* tns = vns->root ? tpgm.RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*tpgm.RootNS, *vns);
    //printd(5, "qore_program_private::exportGlobalVariable() this: %p vname: '%s' ro: %d vns: %p '%s::' RootNS: %p '%s::'\n", this, vname, readonly, vns, vns->name.c_str(), RootNS, RootNS->getName());
@@ -568,7 +584,12 @@ int64 QoreProgram::getParseOptions64() const {
 }
 
 QoreListNode* QoreProgram::getUserFunctionList() {
-   AutoLocker al(&priv->plock);
+   ExceptionSink xsink;
+   ProgramRuntimeParseAccessHelper pah(&xsink, this);
+   if (xsink) {
+      xsink.clear();
+      return 0;
+   }
    return qore_ns_private::getUserFunctionList(*priv->RootNS);
 }
 
@@ -616,8 +637,12 @@ int QoreProgram::getWarningMask() const {
 }
 
 bool QoreProgram::existsFunction(const char* name) {
-   // need to grab the parse lock for safe access to the user function map
-   AutoLocker al(&priv->plock);
+   ExceptionSink xsink;
+   ProgramRuntimeParseAccessHelper pah(&xsink, this);
+   if (xsink) {
+      xsink.clear();
+      return 0;
+   }
    return qore_root_ns_private::runtimeExistsFunction(*priv->RootNS, name) ? true : false;
 }
 
@@ -745,12 +770,17 @@ AbstractQoreNode* QoreProgram::callFunction(const char* name, const QoreListNode
 
    printd(5, "QoreProgram::callFunction() creating function call to %s()\n", name);
 
-   // need to grab parse lock for safe access to the user function map and imported function map
-   priv->plock.lock();
    const qore_ns_private* ns = 0;
-   const QoreFunction* qf = qore_root_ns_private::runtimeFindFunction(*priv->RootNS, name, ns);
-   priv->plock.unlock();
+   const QoreFunction* qf;
 
+   // need to grab parse lock for safe access to the user function map and imported function map
+   {
+      ProgramRuntimeParseAccessHelper pah(xsink, this);
+      if (*xsink)
+	 return 0;
+      qf = qore_root_ns_private::runtimeFindFunction(*priv->RootNS, name, ns);
+   }
+   
    if (!qf) {
       xsink->raiseException("NO-FUNCTION", "function name '%s' does not exist", name);
       return 0;
@@ -769,15 +799,19 @@ AbstractQoreNode* QoreProgram::callFunction(const char* name, const QoreListNode
 }
 
 void QoreProgram::parseCommit(ExceptionSink* xsink, ExceptionSink* wS, int wm) {
-   ProgramThreadCountContextHelper tch(xsink, this, false);
-   if (*xsink) return;
+   ProgramRuntimeParseContextHelper pch(xsink, this);
+   if (*xsink)
+      return;
    priv->parseCommit(xsink, wS, wm);
 }
 
-// this function cannot throw an exception because as long as the 
-// parse lock is held
 void QoreProgram::parseRollback() {
-   priv->parseRollback();
+   ExceptionSink xsink;
+   priv->parseRollback(&xsink);
+}
+
+int QoreProgram::parseRollback(ExceptionSink* xsink) {
+   return priv->parseRollback(xsink);
 }
 
 void QoreProgram::runClass(const char* classname, ExceptionSink* xsink) {

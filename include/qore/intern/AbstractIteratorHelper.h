@@ -73,14 +73,14 @@ public:
 
       obj = o;
       // get "next" method if accessible
-      nextMethod = qore_class_private::get(*o->getClass())->findMethod(fwd ? "next" : "prev", priv);
+      nextMethod = qore_class_private::get(*o->getClass())->runtimeFindCommittedMethod(fwd ? "next" : "prev", priv);
       // method must be found because we have an instance of AbstractIterator/AbstractBidirectionalIterator
       assert(nextMethod);
       nextVariant = getCheckVariant(op, nextMethod, xsink);
       if (!nextVariant)
          return;
       if (get_value) {
-         getValueMethod = qore_class_private::get(*o->getClass())->findMethod("getValue", priv);
+         getValueMethod = qore_class_private::get(*o->getClass())->runtimeFindCommittedMethod("getValue", priv);
          // method must be found because we have an instance of AbstractIterator
          assert(getValueMethod);
          getValueVariant = getCheckVariant(op, getValueMethod, xsink);

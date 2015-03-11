@@ -39,11 +39,9 @@ qore_object_private::qore_object_private(QoreObject* n_obj, const QoreClass *oc,
    theclass(oc), status(OS_OK), 
    privateData(0), data(n_data), pgm(p), system_object(!p), 
    delete_blocker_run(false), in_destructor(false), pgm_ref(true), 
-#ifdef DO_OBJ_RECURSIVE_CHECK
    recursive_ref_found(false),
    rscan(0),
    rcount(0), rwaiting(0), rcycle(0), rset(0),
-#endif
    obj(n_obj) {
    //printd(5, "qore_object_private::qore_object_private() this: %p obj: %p '%s'\n", this, obj, oc->getName());
 #ifdef QORE_DEBUG_OBJ_REFS
@@ -65,9 +63,7 @@ qore_object_private::qore_object_private(QoreObject* n_obj, const QoreClass *oc,
 }
 
 void qore_object_private::merge(const QoreHashNode* h, AutoVLock& vl, ExceptionSink* xsink) {
-#ifdef DO_OBJ_RECURSIVE_CHECK
    bool check_recursive = false;
-#endif
 
    // list for saving all overwritten values to be dereferenced outside the object lock
    ReferenceHolder<QoreListNode> holder(xsink);
@@ -97,14 +93,10 @@ void qore_object_private::merge(const QoreHashNode* h, AutoVLock& vl, ExceptionS
 	 if (*xsink)
 	    return;
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
 	 AbstractQoreNode* nv = *val;
-#endif
 	 AbstractQoreNode *n = data->swapKeyValue(hi.getKey(), val.release());
-#ifdef DO_OBJ_RECURSIVE_CHECK
 	 if (!check_recursive && (is_container(n) || is_container(nv)))
 	    check_recursive = true;
-#endif
 
 	 //printd(5, "QoreObject::merge() n=%p (rc=%d, type=%s)\n", n, n ? n->isReferenceCounted() : 0, get_type_name(n));
 	 // if we are overwriting a value, then save it in the list for dereferencing after the lock is released
@@ -116,14 +108,11 @@ void qore_object_private::merge(const QoreHashNode* h, AutoVLock& vl, ExceptionS
       }
    }
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
    if (check_recursive) {
       ObjectRSetHelper orsh(*obj);
    }
-#endif
 }
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
 unsigned qore_object_private::getObjectCount() {
    return data->priv->obj_count;
 }
@@ -131,7 +120,6 @@ unsigned qore_object_private::getObjectCount() {
 void qore_object_private::incObjectCount(int dt) {
    data->priv->incObjectCount(dt);
 }
-#endif
 
 AbstractQoreNode *qore_object_private::takeMember(ExceptionSink* xsink, const char* key, bool check_access) {
    const QoreTypeInfo* mti = 0;
@@ -173,12 +161,10 @@ AbstractQoreNode* qore_object_private::takeMember(LValueHelper& lvh, const char*
    rv = data->swapKeyValue(key, 0);
 #endif
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
    if (get_container_obj(rv)) {
       if (!getObjectCount())
 	 lvh.setDelta(-1);
    }
-#endif
 
    return rv;
 }
@@ -196,9 +182,7 @@ void qore_object_private::takeMembers(QoreLValueGeneric& rv, LValueHelper& lvh, 
       return;
    }
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
    unsigned old_count = getObjectCount();
-#endif
    
    ConstListIterator li(l);
    while (li.next()) {
@@ -222,10 +206,8 @@ void qore_object_private::takeMembers(QoreLValueGeneric& rv, LValueHelper& lvh, 
       assert(!*lvh.vl.xsink);
    }
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
    if (old_count && !getObjectCount())
       lvh.setDelta(-1);   
-#endif
 }
 
 int qore_object_private::getLValue(const char* key, LValueHelper& lvh, bool internal, bool for_remove, ExceptionSink* xsink) const {
@@ -615,7 +597,6 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
       printd(QORE_DEBUG_OBJ_REFS, "QoreObject::customDeref() this: %p '%s': references %d->%d\n", this, priv->status == OS_OK ? getClassName() : "<deleted>", references, references - 1);
 #endif
 
-#ifdef DO_OBJ_RECURSIVE_CHECK      
       int ref_copy;
       {
 	 AutoLocker slr(priv->ref_mutex);
@@ -687,22 +668,6 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 	    priv->tDeref();
 	 return;
       }
-#else
-      {
-	 AutoLocker slr(priv->ref_mutex);
-	 if (--references)
-	    return;
-      }
-
-      QoreSafeVarRWWriteLocker sl(priv->rml);
-
-      // if the destructor has already been run, then just run tDeref() which should delete the QoreObject
-      if (priv->in_destructor || priv->status != OS_OK) {
-	 sl.unlock();
-	 priv->tDeref();
-	 return;
-      }
-#endif
 
       // if the scope deletion is blocked, then do not run the destructor
       if (!priv->delete_blocker_run && priv->theclass->has_delete_blocker()) {
@@ -1191,7 +1156,6 @@ bool QoreObject::getAsBoolImpl() const {
    return priv->status != OS_DELETED;
 }
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
 bool ObjectRSetHelper::checkIntern(AbstractQoreNode* n) {
    if (!get_container_obj(n))
       return false;
@@ -1563,6 +1527,9 @@ ObjectRSetHelper::ObjectRSetHelper(QoreObject& obj) {
 #ifdef DEBUG
    lcnt = 0;
 #endif
+   if (q_disable_gc)
+      return;
+   
    printd(QRO_LVL, "ObjectRSetHelper::ObjectRSetHelper() this: %p (%p) ENTER\n", this, &obj);
 
    ObjectRScanHelper rsh(*obj.priv);
@@ -1691,6 +1658,9 @@ void ObjectRSet::dbg() {
 int ObjectRSet::canDelete(int ref_copy, int rcount) {
    printd(QRO_LVL, "ObjectRSet::canDelete() this: %p valid: %d in_del: %d\n", this, valid, in_del);
 
+   if (q_disable_gc)
+      return 0;
+   
    if (!valid)
       return -1;
    if (in_del)
@@ -1723,4 +1693,3 @@ int ObjectRSet::canDelete(int ref_copy, int rcount) {
    printd(QRO_LVL, "ObjectRSet::canDelete() this: %p can delete all objects in graph\n", this);
    return 1;
 }
-#endif

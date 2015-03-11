@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -173,10 +173,8 @@ public:
       
       // dereference node if present
       if ((*li)->node) {
-#ifdef DO_OBJ_RECURSIVE_CHECK
          if (get_container_obj((*li)->node))
             incObjectCount(-1);
-#endif
 
          if ((*li)->node->getType() == NT_OBJECT)
             reinterpret_cast<QoreObject*>((*li)->node)->doDelete(xsink);
@@ -200,10 +198,8 @@ public:
       
       // dereference node if present
       if ((*li)->node) {
-#ifdef DO_OBJ_RECURSIVE_CHECK
          if (get_container_obj((*li)->node))
             incObjectCount(-1);
-#endif
          (*li)->node->deref(xsink);
       }
       
@@ -224,10 +220,8 @@ public:
       AbstractQoreNode *rv = (*li)->node;
       internDeleteKey(li);
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
       if (get_container_obj(rv))
          incObjectCount(-1);
-#endif
 
       return rv;
    }
@@ -308,7 +302,6 @@ public:
       return member_list.empty();
    }
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
    DLLLOCAL void incObjectCount(int dt) {
       assert(dt);
       assert(obj_count || dt > 0);
@@ -323,7 +316,6 @@ public:
    DLLLOCAL static void incObjectCount(const QoreHashNode& h, int dt) {
       h.priv->incObjectCount(dt);
    }
-#endif
 
    DLLLOCAL static AbstractQoreNode* getFirstKeyValue(const QoreHashNode* h) { 
       return h->priv->member_list.empty() ? 0 : h->priv->member_list.front()->node;

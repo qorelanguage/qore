@@ -246,7 +246,7 @@ my bool $b = $obj.hasCallableMethod("getStatus");
     @since %Qore 0.8.8
  */
 bool <object>::hasCallableMethod(string name) [flags=CONSTANT] {
-   return qore_class_private::hasCallableMethod(*(obj->getClass()), name->getBuffer());
+   return qore_class_private::runtimeHasCallableMethod(*(obj->getClass()), name->getBuffer());
 }
 
 //! Returns @ref Qore::True "True" if the given non-static method exists and is callable from the current context
@@ -269,7 +269,7 @@ my bool $b = $obj.hasCallableNormalMethod("getStatus");
     @since %Qore 0.8.8
  */
 bool <object>::hasCallableNormalMethod(string name) [flags=CONSTANT] {
-   return qore_class_private::hasCallableNormalMethod(*(obj->getClass()), name->getBuffer());
+   return qore_class_private::runtimeHasCallableNormalMethod(*(obj->getClass()), name->getBuffer());
 }
 
 //! Returns @ref Qore::True "True" if the given static method exists and is callable from the current context
@@ -291,7 +291,7 @@ my bool $b = $obj.hasCallableStaticMethod("getStatus");
     @since %Qore 0.8.8
  */
 bool <object>::hasCallableStaticMethod(string name) [flags=CONSTANT] {
-   return qore_class_private::hasCallableStaticMethod(*(obj->getClass()), name->getBuffer());
+   return qore_class_private::runtimeHasCallableStaticMethod(*(obj->getClass()), name->getBuffer());
 }
 
 //! Returns @ref True since objects can return a non-zero size

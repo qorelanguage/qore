@@ -1580,8 +1580,8 @@ public:
    DLLLOCAL const QoreMethod* parseFindStaticMethodTree(const char* name, bool& priv);
    DLLLOCAL const QoreMethod* parseFindAnyMethodTree(const char* name, bool &priv);
 
-   DLLLOCAL const QoreMethod* findCommittedMethod(const char* name, bool& priv_flag) const;
-   DLLLOCAL const QoreMethod* findCommittedStaticMethod(const char* name, bool& priv_flag) const;
+   DLLLOCAL const QoreMethod* runtimeFindCommittedMethod(const char* name, bool& priv_flag) const;
+   DLLLOCAL const QoreMethod* runtimeFindCommittedStaticMethod(const char* name, bool& priv_flag) const;
 
    DLLLOCAL bool match(const QoreClass* cls);
    DLLLOCAL int initMembers(QoreObject& o, BCEAList* bceal, ExceptionSink* xsink) const;
@@ -1918,8 +1918,6 @@ public:
 
    DLLLOCAL void parseInitPartial();
    DLLLOCAL void parseInitPartialIntern();
-
-   DLLLOCAL const QoreExternalMethodVariant* findUserMethodVariant(const char* name, const QoreMethod*& method, const type_vec_t &argTypeList) const;
 
    DLLLOCAL int parseCheckMemberAccess(const QoreProgramLocation& loc, const char* mem, const QoreTypeInfo*& memberTypeInfo, int pflag) const {
       const_cast<qore_class_private*>(this)->parseInitPartial();
@@ -2587,16 +2585,6 @@ public:
       return m;
    }
 
-/*
-   // returns a static method if it exists in the local class and has been committed to the class, initializes base classes if necessary
-   DLLLOCAL const QoreMethod* parseFindCommittedStaticMethod(const char* nme) {
-      const QoreMethod* m = findLocalCommittedStaticMethod(nme);
-      if (!m && scl)
-	 m = scl->parseFindCommittedStaticMethod(nme);
-      return m;
-   }
-*/
-
    DLLLOCAL const QoreMethod* parseFindAnyMethodIntern(const char* mname, bool& priv) {
       const QoreMethod* m = parseFindAnyLocalMethod(mname);
       if (!m && scl)
@@ -2632,35 +2620,41 @@ public:
       return m;
    }
 
-   // returns a non-static method if it exists in class hierarchy and has been committed to the class
-   DLLLOCAL const QoreMethod* findCommittedStaticMethod(const char* nme, bool& p) const {
-      const QoreMethod* w = findLocalCommittedStaticMethod(nme);
-      if (!w && scl)
-	 w = scl->findCommittedStaticMethod(nme, p);
-      if (w && !p && w->isPrivate())
-         p = true;
-      return w;
+   DLLLOCAL const QoreMethod* runtimeFindCommittedStaticMethod(const char* nme, bool& p) const {
+      CurrentProgramRuntimeParseContextHelper pch;
+      return runtimeFindCommittedStaticMethodIntern(nme, p);
    }
 
-   // returns a non-static method if it exists in class hierarchy and has been committed to the class
-   DLLLOCAL const QoreMethod* findCommittedMethod(const char* nme, bool& p) const {
-      const QoreMethod* w = findLocalCommittedMethod(nme);
-      if (!w && scl)
-	 w = scl->findCommittedMethod(nme, p);
-      if (w && !p && w->isPrivate())
-         p = true;
-      return w;
+   DLLLOCAL const QoreMethod* runtimeFindCommittedMethod(const char* nme, bool& p) const {
+      return runtimeFindCommittedMethodIntern(nme, p);
    }
    
-   DLLLOCAL const QoreMethod* findStaticMethod(const char* nme, bool& priv_flag) const {
-      return findCommittedStaticMethod(nme, priv_flag);
+   // returns a non-static method if it exists in class hierarchy and has been committed to the class
+   DLLLOCAL const QoreMethod* runtimeFindCommittedStaticMethodIntern(const char* nme, bool& p) const {
+      const QoreMethod* w = findLocalCommittedStaticMethod(nme);
+      if (!w && scl)
+	 w = scl->runtimeFindCommittedStaticMethod(nme, p);
+      if (w && !p && w->isPrivate())
+         p = true;
+      return w;
    }
 
-   const QoreMethod* findMethod(const char* nme, bool& priv_flag) const {
-      return findCommittedMethod(nme, priv_flag);
+   // returns a non-static method if it exists in class hierarchy and has been committed to the class
+   DLLLOCAL const QoreMethod* runtimeFindCommittedMethodIntern(const char* nme, bool& p) const {
+      const QoreMethod* w = findLocalCommittedMethod(nme);
+      if (!w && scl)
+	 w = scl->runtimeFindCommittedMethod(nme, p);
+      if (w && !p && w->isPrivate())
+         p = true;
+      return w;
    }
 
-   DLLLOCAL bool hasCallableMethod(const char* m, int mask) const;
+   DLLLOCAL const QoreMethod* findMethod(const char* nme, bool& priv_flag) const {
+      CurrentProgramRuntimeParseContextHelper pch;
+      return runtimeFindCommittedMethod(nme, priv_flag);
+   }
+   
+   DLLLOCAL bool runtimeHasCallableMethod(const char* m, int mask) const;
 
    DLLLOCAL void execDestructor(QoreObject *self, ExceptionSink* xsink) const;
 
@@ -2699,10 +2693,11 @@ public:
       return m;
    }
    
-   const QoreMethod* findPseudoMethod(const AbstractQoreNode* n, const char* nme, ExceptionSink* xsink) const {
+   const QoreMethod* runtimeFindPseudoMethod(const AbstractQoreNode* n, const char* nme, ExceptionSink* xsink) const {
       const QoreMethod* w;
       bool priv_flag = false;
-      if (!(w = findMethod(nme, priv_flag))) {
+      
+      if (!(w = runtimeFindCommittedMethod(nme, priv_flag))) {
          qore_type_t t = get_node_type(n);
          // throw an exception
          if (t == NT_OBJECT) {
@@ -2778,6 +2773,14 @@ public:
    // static methods
    //DLLLOCAL static
 
+   DLLLOCAL static const QoreMethod* runtimeFindCommittedMethod(const QoreClass& qc, const char* nme, bool& p) {
+      return qc.priv->runtimeFindCommittedMethod(nme, p);
+   }
+
+   DLLLOCAL static const QoreMethod* runtimeFindCommittedStaticMethod(const QoreClass& qc, const char* nme, bool& p) {
+      return qc.priv->runtimeFindCommittedStaticMethod(nme, p);
+   }
+   
    DLLLOCAL static const QoreMethod* parseFindLocalMethod(const QoreClass& qc, const char* mname) {
       return qc.priv->parseFindLocalMethod(mname);
    }
@@ -2798,16 +2801,16 @@ public:
       return qc.priv->parseCheckMemberAccess(loc, mem, memberTypeInfo, pflag);
    }
 
-   DLLLOCAL static bool hasCallableMethod(const QoreClass& qc, const char* m) {
-      return qc.priv->hasCallableMethod(m, QCCM_NORMAL | QCCM_STATIC);
+   DLLLOCAL static bool runtimeHasCallableMethod(const QoreClass& qc, const char* m) {
+      return qc.priv->runtimeHasCallableMethod(m, QCCM_NORMAL | QCCM_STATIC);
    }
 
-   DLLLOCAL static bool hasCallableNormalMethod(const QoreClass& qc, const char* m) {
-      return qc.priv->hasCallableMethod(m, QCCM_NORMAL);
+   DLLLOCAL static bool runtimeHasCallableNormalMethod(const QoreClass& qc, const char* m) {
+      return qc.priv->runtimeHasCallableMethod(m, QCCM_NORMAL);
    }
 
-   DLLLOCAL static bool hasCallableStaticMethod(const QoreClass& qc, const char* m) {
-      return qc.priv->hasCallableMethod(m, QCCM_STATIC);
+   DLLLOCAL static bool runtimeHasCallableStaticMethod(const QoreClass& qc, const char* m) {
+      return qc.priv->runtimeHasCallableMethod(m, QCCM_STATIC);
    }
 
    DLLLOCAL static const qore_class_private* isPublicOrPrivateMember(const QoreClass& qc, const char* mem, bool& priv) {

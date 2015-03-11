@@ -105,6 +105,9 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
       CRYPTO_set_locking_callback(q_openssl_locking_function);
    }
 
+   if (qore_library_options & QLO_DISABLE_GARBAGE_COLLECTION)
+      q_disable_gc = true;
+   
    qore_string_init();
    QoreHttpClientObject::static_init();
 

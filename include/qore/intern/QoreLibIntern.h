@@ -38,9 +38,6 @@
 #include <stdarg.h>
 #include <sys/types.h>
 
-#define DO_OBJ_RECURSIVE_CHECK 1
-//#undef DO_OBJ_RECURSIVE_CHECK
-
 #ifdef HAVE_SYS_STATVFS_H
 #include <sys/statvfs.h>
 #endif
@@ -142,12 +139,10 @@ DLLLOCAL inline bool qore_check_this(const void* p) {
 }
 
 DLLLOCAL bool is_container(const AbstractQoreNode* n);
-#ifdef DO_OBJ_RECURSIVE_CHECK
 // returns true if the container has objects or false if not
 DLLLOCAL bool get_container_obj(const AbstractQoreNode* n);
 // increments or decrements the object count depending on the sign of the argument (cannot be 0)
 DLLLOCAL void inc_container_obj(const AbstractQoreNode* n, int dt);
-#endif
 
 DLLLOCAL void missing_openssl_feature(const char* f, ExceptionSink* xsink);
 
@@ -705,48 +700,6 @@ public:
 DLLLOCAL int q_get_af(int type);
 DLLLOCAL int q_get_sock_type(int t);
 
-/*
-struct QoreParam {
-   const char* name;
-   const QoreTypeInfo *type;
-
-   DLLLOCAL QoreParam() : name(0), type(0) {
-   }
-
-   DLLLOCAL QoreParam(const char* n_name, const QoreTypeInfo *n_type) : name(n_name), type(n_type) {
-   } 
-};
-
-typedef std::vector<QoreParam> param_vec_t;
-
-class AbstractVirtualMethod {
-protected:
-   const char* name;
-   bool requires_value;
-   const QoreTypeInfo *return_type;
-   param_vec_t params;
-
-   DLLLOCAL virtual AbstractQoreNode* evalImpl(ExceptionSink* xsink) const = 0;
-
-public:
-   DLLLOCAL AbstractVirtualMethod(const char* n_name, bool n_requires_lvalue, const QoreTypeInfo *n_return_type, ...);
-   DLLLOCAL virtual ~AbstractVirtualMethod();
-   DLLLOCAL AbstractQoreNode* eval(AbstractQoreNode* self, const QoreListNode* args, ExceptionSink* xsink) const;
-   DLLLOCAL unsigned numArgs() const {
-      return params.size();
-   }
-   DLLLOCAL const QoreTypeInfo *getReturnTypeInfo() const {
-      return return_type;
-   }
-   DLLLOCAL const char* getName() const {
-      return name;
-   }
-   DLLLOCAL const param_vec_t &getParamList() const {
-      return params;
-   }
-};
-*/
-
 class OptHashRefHelper {
    const ReferenceNode* ref;
    ExceptionSink* xsink;
@@ -794,6 +747,8 @@ public:
 };
 
 DLLLOCAL extern QoreString YamlNullString;
+
+DLLLOCAL extern bool q_disable_gc;
 
 DLLLOCAL AbstractQoreNode* qore_parse_get_define_value(const char* str, QoreString &arg, bool &ok);
 

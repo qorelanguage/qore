@@ -518,6 +518,8 @@ while ($wh) {
     - Qore::Program::parseCommit()
     - Qore::parse()
 
+    @throw PROGRAM-PARSE-ERROR this exception is thrown if any parse actions are started while the Program object has running threads
+
     @since %Qore 0.8.7 the \a source, \a offset, and \a format_label arguments were added
  */
 *hash Program::parse(string code, string label, *softint warning_mask, *string source, *softint offset, softbool format_label = True) [dom=EMBEDDED_LOGIC] {
@@ -570,6 +572,8 @@ $pgm.parseCommit();
     - Qore::Program::parseRollback()
     - Qore::parse()
 
+    @throw PROGRAM-PARSE-ERROR this exception is thrown if any parse actions are started while the Program object has running threads
+
     @since %Qore 0.8.7 the \a source, \a offset, and \a format_label arguments were added
  */
 *hash Program::parsePending(string code, string label, *softint warning_mask, *string source, *softint offset, softbool format_label = True) [dom=EMBEDDED_LOGIC] {
@@ -603,6 +607,8 @@ $pgm.parseCommit();
     - Qore::Program::parsePending()
     - Qore::Program::parseRollback()
     - Qore::parse()
+
+    @throw PROGRAM-PARSE-ERROR this exception is thrown if any parse actions are started while the Program object has running threads
  */
 nothing Program::parseCommit() {
    p->parseCommit(xsink);
@@ -627,6 +633,8 @@ while (exists $wh) {
     - Qore::Program::parsePending()
     - Qore::Program::parseRollback()
     - Qore::parse()
+
+    @throw PROGRAM-PARSE-ERROR this exception is thrown if any parse actions are started while the Program object has running threads
  */
 *hash Program::parseCommit(int warning_mask) {
    ExceptionSink wsink;
@@ -650,9 +658,11 @@ $pgm.parseRollback();
     - Qore::Program::parseCommit()
     - Qore::Program::parsePending()
     - Qore::parse()
+
+    @throw PROGRAM-PARSE-ERROR this exception is thrown if any parse actions are started while the Program object has running threads
  */
 nothing Program::parseRollback() {
-   p->parseRollback();
+   p->parseRollback(xsink);
 }
 
 //! Calls a function in the program object and returns the return value
@@ -845,7 +855,7 @@ nothing Program::importClass(string cls) {
 my list $l = $pgm.getUserFunctionList();
     @endcode
  */
-list Program::getUserFunctionList() {
+softlist Program::getUserFunctionList() {
    return p->getUserFunctionList();
 }
 

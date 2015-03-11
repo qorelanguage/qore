@@ -307,8 +307,9 @@ public:
    // for the thread counter, used only with plock
    QoreCondition pcond;
    unsigned thread_count;   // number of threads currently running in this Program
-   unsigned thread_waiting; // number of threads waiting on all threads to terminate
-
+   unsigned thread_waiting; // number of threads waiting on all threads to terminate or parsing to complete
+   unsigned parse_count;    // recursive parse count
+   
    // to save file names for later deleting
    cstr_vector_t fileList;
    // features present in this Program object
@@ -316,7 +317,7 @@ public:
    // user modules present in this Program object
    CharPtrList userFeatureList;
 
-   // parse lock, making parsing actions atomic and thread-safe
+   // parse lock, making parsing actions atomic and thread-safe, also for runtime thread attachment
    mutable QoreThreadLock plock;
 
    // set of signals being handled by code in this Program (to be deleted on exit)
@@ -342,7 +343,7 @@ public:
    int tclear;   // clearing thread-local variables in progress? if so, this is the TID
 
    int exceptions_raised,
-      ptid;
+      ptid;      // TID of thread destroying the program's private data
 
    ParseWarnOptions pwo;
 
@@ -377,7 +378,7 @@ public:
    QoreProgram* pgm;
    
    DLLLOCAL qore_program_private_base(QoreProgram *n_pgm, int64 n_parse_options, QoreProgram *p_pgm = 0) 
-      : thread_count(0), thread_waiting(0), plock(&ma_recursive), parseSink(0), warnSink(0), pendingParseSink(0), RootNS(0), QoreNS(0),
+      : thread_count(0), thread_waiting(0), parse_count(0), plock(&ma_recursive), parseSink(0), warnSink(0), pendingParseSink(0), RootNS(0), QoreNS(0),
         only_first_except(false), po_locked(false), po_allow_restrict(true), exec_class(false), base_object(false),
         requires_exception(false), tclear(0),
         exceptions_raised(0), ptid(0), pwo(n_parse_options), dom(0), pend_dom(0), thread_local_storage(0), twaiting(0),
@@ -447,6 +448,17 @@ private:
    DLLLOCAL void init(QoreProgram *n_pgm, int64 n_parse_options, const AbstractQoreZoneInfo *n_TZ = QTZM.getLocalZoneInfo()) {
    }
 
+   // only called from parseSetTimeZone
+   DLLLOCAL void mergeParseException(ExceptionSink &xsink) {
+      if (parseSink)
+         parseSink->assimilate(xsink);
+      else {
+         if (!pendingParseSink)
+            pendingParseSink = new ExceptionSink;
+         pendingParseSink->assimilate(xsink);
+      }
+   }
+
 public:
    DLLLOCAL qore_program_private(QoreProgram *n_pgm, int64 n_parse_options) : qore_program_private_base(n_pgm, n_parse_options) {
       printd(5, "qore_program_private::qore_program_private() this: %p pgm: %p\n", this, pgm);
@@ -504,10 +516,19 @@ public:
    DLLLOCAL int incThreadCount(ExceptionSink* xsink) {
       // grab program-level lock
       AutoLocker al(plock);
+      /*
+      while (parse_count) {
+         ++thread_waiting;
+         pcond.wait(plock);
+         --thread_waiting;
+      }
+      */
+      
       if (ptid && ptid != gettid()) {
-         xsink->raiseException("PROGRAM-ERROR", "the program accessed has already been deleted");
+         xsink->raiseException("PROGRAM-ERROR", "the Program accessed has already been deleted");
          return -1;
       }
+      
       ++thread_count;
       return 0;
    }
@@ -520,8 +541,46 @@ public:
 	 pcond.broadcast();
    }
 
+   DLLLOCAL int lockParsing(ExceptionSink* xsink) {
+      // grab program-level lock
+      AutoLocker al(plock);
+
+      bool curr = (pgm == getProgram());
+      if (parse_count && !curr) {
+         while (parse_count) {
+            ++thread_waiting;
+            pcond.wait(plock);
+            --thread_waiting;
+         }
+      }
+
+      if (ptid) {
+         xsink->raiseException("PROGRAM-ERROR", "the Program accessed has already been deleted and therefore cannot be accessed for parsing");
+         return -1;
+      }      
+
+      /*
+      // module loading requires the parse lock, and load_module() causes modules to be loaded in the current program
+      if (thread_count > 1 || (thread_count == 1 && !curr)) {
+         xsink->raiseException("PROGRAM-PARSE-ERROR", "the Program is currently running and therefore no parsing actions can be started");
+         return -1;
+      }
+      */
+      
+      //printd(5, "qore_program_private::lockParsing() this: %p ptid: %d thread_count: %d parse_count: %d -> %d\n", this, ptid, thread_count, parse_count, parse_count + 1);
+      ++parse_count;
+      return 0;
+   }
+   
+   DLLLOCAL void unlockParsing() {
+      // grab program-level lock
+      AutoLocker al(plock);
+      if (!(--parse_count) && thread_waiting)
+         pcond.broadcast();
+   }
+   
    DLLLOCAL void waitForAllThreadsToTerminateIntern() {
-      while (thread_count) {
+      while (thread_count || parse_count) {
          ++thread_waiting;
          pcond.wait(plock);
          --thread_waiting;
@@ -593,7 +652,7 @@ public:
    }
 
    DLLLOCAL QoreListNode* getVarList() {
-      AutoLocker al(&plock);
+      //AutoLocker al(&plock);
       // FIXME: implement
       return new QoreListNode;
       //return global_var_list.getVarList();
@@ -670,12 +729,9 @@ public:
    DLLLOCAL int parsePending(const char* code, const char* label, ExceptionSink* xsink, ExceptionSink* wS, int wm, const char* orig_src = 0, int offset = 0) {
       //printd(5, "qore_program_private::parsePending() wm=0x%x UV=0x%x on=%d\n", wm, QP_WARN_UNREFERENCED_VARIABLE, wm & QP_WARN_UNREFERENCED_VARIABLE);
 
-      ProgramThreadCountContextHelper pch(xsink, pgm, false);
+      ProgramRuntimeParseContextHelper pch(xsink, pgm);
       if (*xsink)
          return -1;
-
-      // grab program-level parse lock
-      AutoLocker al(plock);
 
       startParsing(xsink, wS, wm);
 
@@ -705,10 +761,9 @@ public:
    }
 
    DLLLOCAL int parseCommit(ExceptionSink* xsink, ExceptionSink* wS, int wm) {
-      // grab program-level parse lock
-      AutoLocker al(plock);
-      if (checkParseCommitUnlocked(xsink))
-	 return -1;
+      ProgramRuntimeParseContextHelper pch(xsink, pgm);
+      if (*xsink)
+         return -1;
 
       startParsing(xsink, wS, wm);
 
@@ -723,38 +778,35 @@ public:
       return rc;
    }
 
-   DLLLOCAL void parseRollback() {
-      // grab program-level parse lock and release on exit
-      AutoLocker al(&plock);
+   DLLLOCAL int parseRollback(ExceptionSink* xsink) {
+      ProgramRuntimeParseContextHelper pch(xsink, pgm);
+      if (*xsink)
+         return -1;
    
       // back out all pending changes
       internParseRollback();
+      return 0;
    }
 
    DLLLOCAL void parse(FILE *fp, const char* name, ExceptionSink* xsink, ExceptionSink* wS, int wm) {
-      printd(5, "QoreProgram::parse(fp=%p, name=%s, xsink=%p, wS=%p, wm=%d)\n", fp, name, xsink, wS, wm);
+      printd(5, "QoreProgram::parse(fp: %p, name: %s, xsink: %p, wS: %p, wm: %d)\n", fp, name, xsink, wS, wm);
 
       // if already at the end of file, then return
       // try to get one character from file
       int c = fgetc(fp);
       if (feof(fp)) {
-	 printd(5, "QoreProgram::parse(fp=%p, name=%s) EOF\n", fp, name);
+	 printd(5, "QoreProgram::parse(fp: %p, name: %s) EOF\n", fp, name);
 	 return;
       }
       // push back read character
       ungetc(c, fp);
 
       yyscan_t lexer;
-	 
-      // grab program-level parse lock
+      
       {
-         ProgramThreadCountContextHelper pch(xsink, pgm, false);
+         ProgramRuntimeParseContextHelper pch(xsink, pgm);
          if (*xsink)
             return;
-
-	 AutoLocker al(plock);
-	 if (checkParseCommitUnlocked(xsink))
-	    return;
 
          startParsing(xsink, wS, wm);
 	 
@@ -814,14 +866,9 @@ public:
 
       assert(code && code[0]);
 
-      ProgramThreadCountContextHelper pch(xsink, pgm, false);
+      ProgramRuntimeParseContextHelper pch(xsink, pgm);
       if (*xsink)
          return;
-
-      // grab program-level parse lock
-      AutoLocker al(plock);
-      if (checkParseCommitUnlocked(xsink))
-	 return;
 
       startParsing(xsink, wS, wm);
 
@@ -851,7 +898,7 @@ public:
 
       setScriptPath(filename);
       
-      ProgramThreadCountContextHelper pch(xsink, pgm, false);
+      ProgramRuntimeParseContextHelper pch(xsink, pgm);
       if (*xsink)
          return;
 
@@ -1022,7 +1069,9 @@ public:
       const qore_ns_private* ns = 0;
 
       {
-	 AutoLocker al(plock);
+         ProgramRuntimeParseAccessHelper rah(xsink, pgm);
+         if (*xsink)
+            return;
 	 u = qore_root_ns_private::runtimeFindFunction(*RootNS, name, ns);
       }
 
@@ -1075,19 +1124,6 @@ public:
 
       //printd(5, "qore_program_private::replaceParseOptions() this: %p pgm: %p replacing po: %lld with po: %lld\n", this, pgm, pwo.parse_options, po);
       pwo.parse_options = po;
-   }
-
-   DLLLOCAL void mergeParseException(ExceptionSink &xsink) {
-      if (parseSink)
-         parseSink->assimilate(xsink);
-      else {
-         // grab program-level parse lock if we are not already parsing; just in case
-         AutoLocker al(&plock);
-         
-         if (!pendingParseSink)
-            pendingParseSink = new ExceptionSink;
-         pendingParseSink->assimilate(xsink);
-      }
    }
 
    DLLLOCAL void parseSetTimeZone(const char* zone) {
@@ -1266,7 +1302,9 @@ public:
    }
 
    DLLLOCAL ResolvedCallReferenceNode* runtimeGetCallReference(const char* name, ExceptionSink* xsink) {
-      AutoLocker al(&plock);
+      ProgramRuntimeParseAccessHelper pah(xsink, pgm);
+      if (*xsink)
+         return 0;
       return qore_root_ns_private::runtimeGetCallReference(*RootNS, name, xsink);
    }
 
@@ -1368,6 +1406,14 @@ public:
 
    DLLLOCAL void addUserFeature(const char* f) {
       userFeatureList.push_back(f);
+   }
+
+   DLLLOCAL static int lockParsing(QoreProgram& pgm, ExceptionSink* xsink) {
+      return pgm.priv->lockParsing(xsink);
+   }
+   
+   DLLLOCAL static void unlockParsing(QoreProgram& pgm) {
+      pgm.priv->unlockParsing();
    }
 
    DLLLOCAL static qore_program_private* get(QoreProgram& pgm) {

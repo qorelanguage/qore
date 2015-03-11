@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
   
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -200,19 +200,15 @@ void QoreListNode::set_entry(qore_size_t index, AbstractQoreNode *val, Exception
       val = 0;
    AbstractQoreNode **v = get_entry_ptr(index);
    if (*v) {
-#ifdef DO_OBJ_RECURSIVE_CHECK
       if (get_container_obj(*v))
 	 priv->incObjectCount(-1);
-#endif
 
       (*v)->deref(xsink);
    }
    *v = val;
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
    if (get_container_obj(val))
       priv->incObjectCount(1);
-#endif
 }
 
 AbstractQoreNode *QoreListNode::eval_entry(qore_size_t num, ExceptionSink* xsink) const {
@@ -228,10 +224,8 @@ void QoreListNode::push(AbstractQoreNode* val) {
    assert(reference_count() == 1);
    AbstractQoreNode **v = get_entry_ptr(priv->length);
    *v = val;
-#ifdef DO_OBJ_RECURSIVE_CHECK
    if (get_container_obj(val))
       priv->incObjectCount(1);
-#endif
 }
 
 void QoreListNode::merge(const QoreListNode *list) {
@@ -242,10 +236,8 @@ void QoreListNode::merge(const QoreListNode *list) {
       AbstractQoreNode* p = list->priv->entry[i];
       if (p) {
 	 priv->entry[start + i] = p->refSelf();
-#ifdef DO_OBJ_RECURSIVE_CHECK
 	 if (get_container_obj(p))
 	    priv->incObjectCount(1);
-#endif
       }
       else
 	 priv->entry[start + i] = 0;
@@ -264,10 +256,8 @@ int QoreListNode::delete_entry(qore_size_t ind, ExceptionSink* xsink) {
       return -1;
 
    AbstractQoreNode *e = priv->entry[ind];
-#ifdef DO_OBJ_RECURSIVE_CHECK
    if (get_container_obj(e))
       priv->incObjectCount(-1);
-#endif
    
    if (e && e->getType() == NT_OBJECT)
       reinterpret_cast<QoreObject *>(e)->doDelete(xsink);
@@ -302,10 +292,8 @@ void QoreListNode::pop_entry(qore_size_t ind, ExceptionSink* xsink) {
    if (e && e->getType() == NT_OBJECT)
       reinterpret_cast<QoreObject *>(e)->doDelete(xsink);
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
    if (get_container_obj(e))
       priv->incObjectCount(-1);
-#endif
 
    if (e) {
       e->deref(xsink);
@@ -325,10 +313,8 @@ void QoreListNode::insert(AbstractQoreNode *val) {
    if (priv->length - 1)
       memmove(priv->entry + 1, priv->entry, sizeof(AbstractQoreNode *) * (priv->length - 1));
    priv->entry[0] = val;
-#ifdef DO_OBJ_RECURSIVE_CHECK
    if (get_container_obj(val))
       priv->incObjectCount(1);
-#endif
 }
 
 AbstractQoreNode *QoreListNode::shift() {
@@ -341,10 +327,8 @@ AbstractQoreNode *QoreListNode::shift() {
    priv->entry[pos] = 0;
    resize(pos);
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
    if (get_container_obj(rv))
       priv->incObjectCount(-1);
-#endif
 
    return rv;
 }
@@ -357,10 +341,8 @@ AbstractQoreNode *QoreListNode::pop() {
    priv->entry[priv->length - 1] = 0;
    resize(priv->length - 1);
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
    if (get_container_obj(rv))
       priv->incObjectCount(-1);
-#endif
 
    return rv;
 }
@@ -526,10 +508,8 @@ AbstractQoreNode *StackList::getAndClear(qore_size_t i) {
    AbstractQoreNode *rv = priv->entry[i];
    priv->entry[i] = 0;
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
    if (get_container_obj(rv))
       priv->incObjectCount(-1);
-#endif
 
    return rv;
 }
@@ -744,10 +724,8 @@ QoreListNode *QoreListNode::splice_intern(qore_size_t offset, qore_size_t len, E
       if (rv) 
 	 rv->push(priv->entry[i]);
       else if (priv->entry[i]) {
-#ifdef DO_OBJ_RECURSIVE_CHECK
 	 if (get_container_obj(priv->entry[i]))
 	    priv->incObjectCount(-1);
-#endif
 	 priv->entry[i]->deref(xsink);
       }
    }
@@ -786,10 +764,8 @@ QoreListNode *QoreListNode::splice_intern(qore_size_t offset, qore_size_t len, c
       if (rv)
 	 rv->push(priv->entry[i]);
       else if (priv->entry[i]) {
-#ifdef DO_OBJ_RECURSIVE_CHECK
 	 if (get_container_obj(priv->entry[i]))
 	    priv->incObjectCount(-1);
-#endif
 	 priv->entry[i]->deref(xsink);
       }
    }
@@ -822,10 +798,8 @@ QoreListNode *QoreListNode::splice_intern(qore_size_t offset, qore_size_t len, c
    // add in new entries
    if (!l || l->getType() != NT_LIST) {
       if (l) {
-#ifdef DO_OBJ_RECURSIVE_CHECK
 	 if (get_container_obj(l))
 	    priv->incObjectCount(1);
-#endif
 	 priv->entry[offset] = l->refSelf();
       }
       else
@@ -837,10 +811,8 @@ QoreListNode *QoreListNode::splice_intern(qore_size_t offset, qore_size_t len, c
 	 const AbstractQoreNode *v = lst->retrieve_entry(i);
 	 if (v) {
 	    priv->entry[offset + i] = v->refSelf();
-#ifdef DO_OBJ_RECURSIVE_CHECK
 	    if (get_container_obj(v))
 	       priv->incObjectCount(1);
-#endif
 	 }
 	 else
 	    priv->entry[offset + i] = 0;

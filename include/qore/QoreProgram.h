@@ -381,8 +381,18 @@ public:
    /**
       @see QoreProgram::parsePending()
       @see QoreProgram::parseCommit()
+
+      @deprecated use parseRollback(ExceptionSink*) instead; exceptions raised with this version cannot be caught
    */
    DLLEXPORT void parseRollback();
+
+   //! rolls back changes to the program object that were added with QoreProgram::parsePending()
+   /** a Qore-language exception could be raised if the parse lock could not be acquired (Program has running threads)
+
+       @see QoreProgram::parsePending()
+       @see QoreProgram::parseCommit()
+   */
+   DLLEXPORT int parseRollback(ExceptionSink* xsink);
 
    //! returns true if the given function exists as a user function, false if not
    DLLEXPORT bool existsFunction(const char* name);
@@ -494,7 +504,7 @@ public:
 
    //! returns a list of all user functions in this program
    /**
-      @return a list of all user functions in this program
+      @return a list of all user functions in this program; returns 0 only if the Program is being destroyed, otherwise returns an empty list
    */
    DLLEXPORT QoreListNode* getUserFunctionList();
 
@@ -551,6 +561,8 @@ public:
 
    //! sets the time zone during parsing
    /** @param zone can be either a region name (ex: 'Europe/Prague') or a UTC offset in the format SDD[:DD[:DD]] where S is + or - and D is an integer 0 - 9; the ':' characters are optional
+
+       @note do not call this function if there are any running threads; a crash could result
     */
    DLLEXPORT void parseSetTimeZone(const char* zone);
 

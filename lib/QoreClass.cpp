@@ -1280,7 +1280,7 @@ int BCNode::initialize(QoreClass* cls, bool& has_delete_blocker, qcp_set_t& qcp_
    return rc;
 }
 
-const QoreClass* BCNode::getClass(const qore_class_private& qc, bool &n_priv) const {
+const QoreClass* BCNode::getClass(const qore_class_private& qc, bool& n_priv) const {
    // sclass can be 0 if the class could not be found during parse initialization
    if (!sclass)
       return 0;
@@ -1292,7 +1292,7 @@ const QoreClass* BCNode::getClass(const qore_class_private& qc, bool &n_priv) co
    return rv;
 }
 
-int BCList::initialize(QoreClass* cls, bool &has_delete_blocker, qcp_set_t& qcp_set) {
+int BCList::initialize(QoreClass* cls, bool& has_delete_blocker, qcp_set_t& qcp_set) {
    printd(5, "BCList::parseInit(%s) this=%p empty=%d\n", cls->getName(), this, empty());
    for (bclist_t::iterator i = begin(), e = end(); i != e;) {
       if ((*i)->initialize(cls, has_delete_blocker, qcp_set)) {
@@ -1320,7 +1320,7 @@ int BCList::initialize(QoreClass* cls, bool &has_delete_blocker, qcp_set_t& qcp_
    return valid ? 0 : -1;
 }
 
-const qore_class_private* BCList::isPublicOrPrivateMember(const char* mem, bool &priv) const {
+const qore_class_private* BCList::isPublicOrPrivateMember(const char* mem, bool& priv) const {
    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i)
       if ((*i)->sclass && (*i)->sclass->isPublicOrPrivateMember(mem, priv)) {
          if (!priv && (*i)->priv)
@@ -1337,7 +1337,7 @@ bool BCList::parseHasPublicMembersInHierarchy() const {
    return false;
 }
    
-bool BCList::runtimeGetMemberInfo(const char* mem, const QoreTypeInfo *&memberTypeInfo, bool &priv) const {
+bool BCList::runtimeGetMemberInfo(const char* mem, const QoreTypeInfo *&memberTypeInfo, bool& priv) const {
    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i)
       if ((*i)->sclass && (*i)->sclass->priv->runtimeGetMemberInfo(mem, memberTypeInfo, priv)) {
          if (!priv && (*i)->priv)
@@ -1347,7 +1347,7 @@ bool BCList::runtimeGetMemberInfo(const char* mem, const QoreTypeInfo *&memberTy
    return false;
 }
 
-const QoreClass* BCList::parseFindPublicPrivateMember(const QoreProgramLocation*& loc, const char* mem, const QoreTypeInfo *&memberTypeInfo, bool &member_has_type_info, bool &priv) const {
+const QoreClass* BCList::parseFindPublicPrivateMember(const QoreProgramLocation*& loc, const char* mem, const QoreTypeInfo *&memberTypeInfo, bool& member_has_type_info, bool& priv) const {
    //printd(5, "BCList::parseFindPublicPrivateMember() this: %p '%s' valid: %d\n", this, mem, valid);
 
    if (!valid)
@@ -1367,7 +1367,7 @@ const QoreClass* BCList::parseFindPublicPrivateMember(const QoreProgramLocation*
    return 0;
 }
 
-const QoreClass* BCList::parseFindPublicPrivateVar(const QoreProgramLocation*& loc, const char* name, const QoreTypeInfo *&varTypeInfo, bool &has_type_info, bool &priv) const {
+const QoreClass* BCList::parseFindPublicPrivateVar(const QoreProgramLocation*& loc, const char* name, const QoreTypeInfo *&varTypeInfo, bool& has_type_info, bool& priv) const {
    if (!valid)
       return 0;
 
@@ -1386,7 +1386,7 @@ const QoreClass* BCList::parseFindPublicPrivateVar(const QoreProgramLocation*& l
 }
 
 // called at run time
-const QoreMethod* BCList::findCommittedMethod(const char* name, bool &priv_flag) const {
+const QoreMethod* BCList::runtimeFindCommittedMethod(const char* name, bool& priv_flag) const {
    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
       if ((*i)->sclass) {
 	 // this can be called before the class has been initialized if called by
@@ -1395,7 +1395,7 @@ const QoreMethod* BCList::findCommittedMethod(const char* name, bool &priv_flag)
 	 //assert(!(*i)->sclass->priv->scl || ((*i)->sclass->priv->scl && (*i)->sclass->priv->initialized));
 
 	 const QoreMethod* m;
-	 if ((m = (*i)->sclass->priv->findCommittedMethod(name, priv_flag))) {
+	 if ((m = (*i)->sclass->priv->runtimeFindCommittedMethod(name, priv_flag))) {
 	    if (!priv_flag && (*i)->priv)
 	       priv_flag = true;
 	    return m;
@@ -1456,7 +1456,7 @@ const QoreMethod* BCList::parseFindAnyMethodTree(const char* name, bool& priv) {
 }
 
 // called at run time
-const QoreMethod* BCList::findCommittedStaticMethod(const char* name, bool &priv_flag) const {
+const QoreMethod* BCList::runtimeFindCommittedStaticMethod(const char* name, bool& priv_flag) const {
    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
       if ((*i)->sclass) {
 	 // this can be called before the class has been initialized if called by
@@ -1465,7 +1465,7 @@ const QoreMethod* BCList::findCommittedStaticMethod(const char* name, bool &priv
 	 //assert(!(*i)->sclass->priv->scl || ((*i)->sclass->priv->scl && (*i)->sclass->priv->initialized));
 
 	 const QoreMethod* m;
-	 if ((m = (*i)->sclass->priv->findCommittedStaticMethod(name, priv_flag))) {
+	 if ((m = (*i)->sclass->priv->runtimeFindCommittedStaticMethodIntern(name, priv_flag))) {
 	    if ((*i)->priv)
 	       priv_flag = true;
 	    return m;
@@ -1557,7 +1557,7 @@ int BCList::initMembers(QoreObject& o, BCEAList* bceal, ExceptionSink* xsink) co
    return 0;
 }
 
-void BCList::execConstructors(QoreObject* o, BCEAList *bceal, ExceptionSink* xsink) const {
+void BCList::execConstructors(QoreObject* o, BCEAList* bceal, ExceptionSink* xsink) const {
    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
       printd(5, "BCList::execConstructors() %s::constructor() o=%p (for subclass %s) virtual=%d\n", (*i)->sclass->getName(), o, o->getClass()->getName(), (*i)->is_virtual); 
 
@@ -1714,7 +1714,7 @@ QoreVarInfo *BCList::parseFindStaticVar(const char* vname, const QoreClass*& qc,
    return 0;
 }
 
-const QoreClass* BCList::getClass(const qore_class_private& qc, bool &priv) const {
+const QoreClass* BCList::getClass(const qore_class_private& qc, bool& priv) const {
    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
       const QoreClass* rv = (*i)->getClass(qc, priv);
       if (rv)
@@ -1759,7 +1759,7 @@ int BCAList::execBaseClassConstructorArgs(BCEAList *bceal, ExceptionSink* xsink)
    return 0;
 }
 
-bool QoreClass::runtimeGetMemberInfo(const char* mem, const QoreTypeInfo *&memberTypeInfo, bool &priv_member) const {
+bool QoreClass::runtimeGetMemberInfo(const char* mem, const QoreTypeInfo *&memberTypeInfo, bool& priv_member) const {
    memberTypeInfo = 0;
    return priv->runtimeGetMemberInfo(mem, memberTypeInfo, priv_member);
 }
@@ -1784,37 +1784,31 @@ BCSMList *QoreClass::getBCSMList() const {
 }
 
 const QoreMethod* QoreClass::findLocalStaticMethod(const char* nme) const {
+   CurrentProgramRuntimeParseContextHelper pch;
    return priv->findLocalCommittedStaticMethod(nme);
 }
 
 const QoreMethod* QoreClass::findLocalMethod(const char* nme) const {
+   CurrentProgramRuntimeParseContextHelper pch;
    return priv->findLocalCommittedMethod(nme);
 }
 
-// FIXME: make entry point only, called at run-time; grab program parse lock before accessing method maps
 const QoreMethod* QoreClass::findStaticMethod(const char* nme) const {
    bool p = false;
-   return priv->findStaticMethod(nme, p);
+   return priv->runtimeFindCommittedStaticMethod(nme, p);
 }
 
-// FIXME: make entry point only, called at run-time; grab program parse lock before accessing method maps
-const QoreMethod* QoreClass::findStaticMethod(const char* nme, bool &priv_flag) const {
-   return priv->findStaticMethod(nme, priv_flag);
+const QoreMethod* QoreClass::findStaticMethod(const char* nme, bool& priv_flag) const {
+   return priv->runtimeFindCommittedStaticMethod(nme, priv_flag);
 }
 
-// FIXME: make entry point only, called at run-time; grab program parse lock before accessing method maps
 const QoreMethod* QoreClass::findMethod(const char* nme) const {
    bool p = false;
-   return priv->findMethod(nme, p);
+   return priv->runtimeFindCommittedMethod(nme, p);
 }
 
-// FIXME: make entry point only, called at run-time; grab program parse lock before accessing method maps
-const QoreMethod* QoreClass::findMethod(const char* nme, bool &priv_flag) const {
-   return priv->findMethod(nme, priv_flag);
-}
-
-const QoreExternalMethodVariant *QoreClass::findUserMethodVariant(const char* mname, const QoreMethod*& method, const type_vec_t &argTypeList) const {
-   return priv->findUserMethodVariant(mname, method, argTypeList);
+const QoreMethod* QoreClass::findMethod(const char* nme, bool& priv_flag) const {
+   return priv->runtimeFindCommittedMethod(nme, priv_flag);
 }
 
 bool QoreClass::hasCopy() const {
@@ -2182,18 +2176,18 @@ QoreClass* QoreClass::getClass(qore_classid_t cid) const {
    return priv->scl ? priv->scl->sml.getClass(cid) : 0;
 }
 
-const QoreClass* QoreClass::getClassIntern(qore_classid_t cid, bool &cpriv) const {
+const QoreClass* QoreClass::getClassIntern(qore_classid_t cid, bool& cpriv) const {
    if (cid == priv->classID)
       return (QoreClass* )this;
    return priv->scl ? priv->scl->getClass(cid, cpriv) : 0;
 }
 
-const QoreClass* QoreClass::getClass(qore_classid_t cid, bool &cpriv) const {
+const QoreClass* QoreClass::getClass(qore_classid_t cid, bool& cpriv) const {
    cpriv = false;
    return getClassIntern(cid, cpriv);
 }
 
-const QoreClass* QoreClass::getClass(const QoreClass& qc, bool &cpriv) const {
+const QoreClass* QoreClass::getClass(const QoreClass& qc, bool& cpriv) const {
    cpriv = false;
    return priv->getClassIntern(*(qc.priv), cpriv);
 }
@@ -2258,7 +2252,7 @@ void QoreClass::insertStaticMethod(QoreMethod* m) {
    priv->insertBuiltinStaticMethod(m);
 }      
 
-const QoreClass* qore_class_private::parseGetClass(const qore_class_private& qc, bool &cpriv) const {
+const QoreClass* qore_class_private::parseGetClass(const qore_class_private& qc, bool& cpriv) const {
    cpriv = false;
    const_cast<qore_class_private*>(this)->initialize();
    if (qc.classID == classID || (qc.name == name && qc.hash == hash))
@@ -2266,16 +2260,18 @@ const QoreClass* qore_class_private::parseGetClass(const qore_class_private& qc,
    return scl ? scl->getClass(qc, cpriv) : 0;
 }
 
-bool qore_class_private::hasCallableMethod(const char* m, int mask) const {
+bool qore_class_private::runtimeHasCallableMethod(const char* m, int mask) const {
    bool external = (cls != getStackClass());
    const QoreMethod* w = 0;
    bool priv_flag = false;
 
+   CurrentProgramRuntimeParseContextHelper pch;
+
    if (mask & QCCM_NORMAL)
-      w = findMethod(m, priv_flag);
+      w = runtimeFindCommittedMethodIntern(m, priv_flag);
 
    if (!w && (mask & QCCM_STATIC))
-      w = findStaticMethod(m, priv_flag);
+      w = runtimeFindCommittedStaticMethodIntern(m, priv_flag);
 
    return !w || (external && priv_flag) ? false : true;   
 }
@@ -2284,12 +2280,15 @@ const QoreMethod* qore_class_private::getMethodForEval(const char* nme, Exceptio
    //printd(5, "qore_class_private::getMethodForEval() %s::%s() %s call attempted\n", name.c_str(), nme, runtimeCheckPrivateClassAccess() ? "external" : "internal" );
 
    const QoreMethod* w;
-
    bool priv_flag = false;
-   // FIXME: check locking when accessing method maps at runtime
-   if (!(w = findMethod(nme, priv_flag)) && !(w = findStaticMethod(nme, priv_flag)))
-      return 0;
 
+   {
+      CurrentProgramRuntimeParseContextHelper pch;
+
+      if (!(w = runtimeFindCommittedMethodIntern(nme, priv_flag)) && !(w = runtimeFindCommittedStaticMethodIntern(nme, priv_flag)))
+	 return 0;
+   }
+   
    //printd(5, "QoreClass::getMethodForEval() %s::%s() found method %p class %s\n", name.c_str(), nme, w, w->getClassName());
 
    // check for illegal explicit call
@@ -3309,24 +3308,6 @@ void qore_class_private::recheckBuiltinMethodHierarchy() {
       scl->addNewStaticAncestors(i->second);
 }
 
-const QoreExternalMethodVariant *qore_class_private::findUserMethodVariant(const char* mname, const QoreMethod*& method, const type_vec_t &argTypeList) const {
-   bool p = false;
-   method = findMethod(mname, p);
-   if (!method)
-      return 0;
-   // make sure it's not a special method
-   if (method == constructor
-       || method == destructor
-       || method == copyMethod) {
-#ifdef DEBUG
-      printd(0, "cannot call QoreClass::findUserMethodVariant() with special methods like '%s'\n", mname);
-      assert(false);
-#endif
-      return 0;
-   }
-   return reinterpret_cast<const QoreExternalMethodVariant *>(method ? method->priv->func->runtimeFindVariant(argTypeList, true) : 0);
-}
-
 void qore_class_private::resolveCopy() {
    if (resolve_copy_done)
       return;
@@ -3395,7 +3376,7 @@ int qore_class_private::checkExistingVarMember(const QoreProgramLocation& loc, c
 AbstractQoreNode* qore_class_private::evalPseudoMethod(const AbstractQoreNode* n, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {
    QORE_TRACE("qore_class_private::evalPseudoMethod()");
 
-   const QoreMethod* m = findPseudoMethod(n, nme, xsink);
+   const QoreMethod* m = runtimeFindPseudoMethod(n, nme, xsink);
    if (!m)
       return 0;
 
@@ -3407,7 +3388,7 @@ AbstractQoreNode* qore_class_private::evalPseudoMethod(const AbstractQoreNode* n
 int64 qore_class_private::bigIntEvalPseudoMethod(const AbstractQoreNode* n, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {
    QORE_TRACE("qore_class_private::bigIntEvalPseudoMethod()");
 
-   const QoreMethod* m = findPseudoMethod(n, nme, xsink);
+   const QoreMethod* m = runtimeFindPseudoMethod(n, nme, xsink);
    if (!m)
       return 0;
 
@@ -3419,7 +3400,7 @@ int64 qore_class_private::bigIntEvalPseudoMethod(const AbstractQoreNode* n, cons
 int qore_class_private::intEvalPseudoMethod(const AbstractQoreNode* n, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {
    QORE_TRACE("qore_class_private::intEvalPseudoMethod()");
 
-   const QoreMethod* m = findPseudoMethod(n, nme, xsink);
+   const QoreMethod* m = runtimeFindPseudoMethod(n, nme, xsink);
    if (!m)
       return 0;
 
@@ -3431,7 +3412,7 @@ int qore_class_private::intEvalPseudoMethod(const AbstractQoreNode* n, const cha
 bool qore_class_private::boolEvalPseudoMethod(const AbstractQoreNode* n, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {
    QORE_TRACE("qore_class_private::boolEvalPseudoMethod()");
 
-   const QoreMethod* m = findPseudoMethod(n, nme, xsink);
+   const QoreMethod* m = runtimeFindPseudoMethod(n, nme, xsink);
    if (!m)
       return 0;
 
@@ -3443,7 +3424,7 @@ bool qore_class_private::boolEvalPseudoMethod(const AbstractQoreNode* n, const c
 double qore_class_private::floatEvalPseudoMethod(const AbstractQoreNode* n, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {
    QORE_TRACE("qore_class_private::intEvalPseudoMethod()");
 
-   const QoreMethod* m = findPseudoMethod(n, nme, xsink);
+   const QoreMethod* m = runtimeFindPseudoMethod(n, nme, xsink);
    if (!m)
       return 0;
 
@@ -3594,7 +3575,7 @@ void QoreClass::parseSetEmptyPublicMemberDeclaration() {
       priv->has_new_user_changes = true;
 }
 
-bool QoreClass::isPublicOrPrivateMember(const char* str, bool &priv_member) const {
+bool QoreClass::isPublicOrPrivateMember(const char* str, bool& priv_member) const {
    return (bool)priv->isPublicOrPrivateMember(str, priv_member);
 }
 

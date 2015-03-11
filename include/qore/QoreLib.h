@@ -482,6 +482,12 @@ DLLEXPORT void parse_set_time_zone(const char *zone);
 //! use this function instead of usleep(), as usleep() is not signal-safe on some platforms (ex: Solaris 8, 9)
 DLLEXPORT int qore_usleep(int64 usecs);
 
+//! this function will cause garbage collection to be disabled
+DLLEXPORT void qore_disable_gc();
+
+//! returns true if garbage collection is enabled, false if not
+DLLEXPORT bool qore_is_gc_enabled();
+
 //! platform-independent API that tells if the given path is readable by the current user
 DLLEXPORT bool q_path_is_readable(const char* path);
 

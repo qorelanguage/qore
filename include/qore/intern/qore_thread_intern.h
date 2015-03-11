@@ -660,6 +660,32 @@ public:
    DLLLOCAL ~ProgramThreadCountContextHelper();
 };
 
+class ProgramRuntimeParseContextHelper {
+protected:
+   QoreProgram* old_pgm;
+   bool restore;
+
+public:
+   DLLLOCAL ProgramRuntimeParseContextHelper(ExceptionSink* xsink, QoreProgram* pgm);
+   DLLLOCAL ~ProgramRuntimeParseContextHelper();
+};
+
+class CurrentProgramRuntimeParseContextHelper {
+public:
+   DLLLOCAL CurrentProgramRuntimeParseContextHelper();
+   DLLLOCAL ~CurrentProgramRuntimeParseContextHelper();
+};
+
+class ProgramRuntimeParseAccessHelper {
+protected:
+   QoreProgram* old_pgm;
+   bool restore;
+   
+public:
+   DLLLOCAL ProgramRuntimeParseAccessHelper(ExceptionSink* xsink, QoreProgram* pgm);
+   DLLLOCAL ~ProgramRuntimeParseAccessHelper();
+};
+
 //int thread_ref_set(const lvalue_ref* r);
 //void thread_ref_remove(const lvalue_ref* r);
 

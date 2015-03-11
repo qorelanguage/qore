@@ -76,6 +76,8 @@ int qore_min_mod_api_minor = QORE_MODULE_COMPAT_API_MINOR;
 DLLLOCAL QoreListNode* ARGV = 0;
 DLLLOCAL QoreListNode* QORE_ARGV = 0;
 
+DLLLOCAL bool q_disable_gc = false;
+
 #ifndef HAVE_LOCALTIME_R
 DLLLOCAL QoreThreadLock lck_localtime;
 #endif
@@ -200,11 +202,7 @@ const qore_option_s qore_option_list_l[] = {
    { QORE_OPT_DETERMINISTIC_GC,
      "HAVE_DETEMINISTIC_GC",
      QO_OPTION,
-#ifdef DO_OBJ_RECURSIVE_CHECK
      true
-#else
-     false
-#endif
    },
    { QORE_OPT_SHA224,
      "HAVE_SSH224",
@@ -389,14 +387,14 @@ bool q_get_option_constant_value(const char* opt) {
    return false;
 }
 
-static inline int get_number(char* *param) {
+static inline int get_number(char** param) {
    int num = 0;
    while (isdigit(**param)) {
       num = num*10 + (**param - '0');
       ++(*param);
    }
    //printd(0, "get_number(%x: %s) num=%d\n", *param, *param, num);
-      return num;
+   return num;
 }
 
 // print options
@@ -437,9 +435,7 @@ FeatureList::FeatureList() {
    // register default features
    push_back("sql");
    push_back("threads");
-#ifdef DO_OBJ_RECURSIVE_CHECK
    push_back("DGC");
-#endif
 #ifdef DEBUG
    push_back("debug");
 #endif
@@ -1349,116 +1345,6 @@ QoreStringNode* qore_reassign_signal(int sig, const char* name) {
 }
 #endif
 
-/*
-static int qoreCheckHash(QoreHashNode* h, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink) {
-   int rc = 0;
-
-   HashIterator hi(h);
-   while (hi.next()) {
-      rc += qoreCheckContainer(hi.getValue(), omap, vl, xsink);
-   }
-      
-   return rc;
-}
-
-static int qoreCheckList(QoreListNode* l, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink) {
-   int rc = 0;
-
-   ListIterator li(l);
-   while (li.next()) {
-      rc += qoreCheckContainer(li.getValue(), omap, vl, xsink);
-   }
-
-   return rc;
-}
-
-int qoreCheckContainer(AbstractQoreNode* v, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink) {
-   printd(0, "qoreCheckContainer() v=%p (%s) omap size=%d\n", v, get_type_name(v), omap.size());
-   if (!v || omap.empty())
-      return 0;
-   qore_type_t t = v->getType();
-
-   if (t == NT_OBJECT) {
-      QoreObject *o = reinterpret_cast<QoreObject *>(v);
-      if (omap.check(o))
-	 return 1;
-
-      return qore_object_private::checkRecursive(o, omap, vl, xsink);
-   }
-
-   if (t == NT_HASH)
-      return qoreCheckHash(reinterpret_cast<QoreHashNode* >(v), omap, vl, xsink);
-
-   if (t == NT_LIST)
-      return qoreCheckList(reinterpret_cast<QoreListNode* >(v), omap, vl, xsink);
-
-   return 0;
-}
-
-void ObjMap::set(QoreObject *obj, const char* key) {
-   assert(omap.find(obj) == omap.end());
-   obj_map_t::iterator i = omap.insert(obj_map_t::value_type(obj, key)).first;
-   ovec.push_back(i);
-}
-
-void ObjMap::reset(QoreObject *obj, const char* key) {
-   obj_map_t::iterator i = omap.find(obj);
-   if (i == omap.end()) {
-      set(obj, key);
-      return;
-   }
-
-   // erase objects inserted from last key
-   popAll(i);
-   i->second = key;
-   return;
-}
-
-int ObjMap::check(QoreObject *obj) {
-   {
-      obj_map_t::iterator i = omap.find(obj);
-      if (i == omap.end()) {
-	 // now check if the object is already in the cycle list for any of the objects already in the list
-	 for (unsigned j = 0; j < ovec.size(); ++j) {
-	    if (qore_object_private::verifyRecursive(obj, ovec[j]->first)) {
-	       printd(0, "ObjMap::check() %p (%s) already mapped from %p (%s)\n", obj, obj->getClassName(), ovec[j]->first, ovec[j]->first->getClassName());
-	       return -1;
-	    }
-	 }
-
-	 printd(0, "ObjMap::check() %p (%s) not mapped, continuing\n", obj, obj->getClassName());
-	 return 0;
-      }
-   }
-
-   printd(0, "ObjMap::check() found recursive object refs (%ld): (obj=%p %s first=%p) ix range: [%d..%d]\n", ovec.size(), obj, obj->getClassName(), (*(ovec.begin()))->first, start, ovec.size());
-
-   unsigned i = start;
-   //if (i == ovec.size()) i = 0;
-   while (true) {
-      unsigned n = i + 1;
-      if (n == ovec.size())
-	 n = 0;
-
-      bool is_new = true;
-      printd(0, "  obj=%p (%s) '%s' -> %p (%s) '%s' i=%d/%d n=%d is_new=%d ix range: [%d..%d]\n", ovec[i]->first, ovec[i]->first->getClassName(), ovec[i]->second,
-	     ovec[n]->first, ovec[n]->first->getClassName(), ovec[n]->second, i, ovec.size(), n, is_new, start, ovec.size());
-
-      if (qore_object_private::addRecursive(ovec[i]->first, ovec[i]->second, ovec[n]->first, is_new)) {
-	 printd(0, "  ignoring rest of chain, last object already mapped\n");
-	 break;
-      }
-
-      if (!n)
-	 break;  
-
-      ++i;
-   }
-   mark();
-   return 1;
-}
-*/
-
 // returns 0 for OK, -1 for error
 int check_lvalue(AbstractQoreNode* node, bool assignment) {
    qore_type_t ntype = node->getType();
@@ -1864,4 +1750,12 @@ bool q_absolute_path(const char* path) {
 #else
    return q_absolute_path_unix(path);
 #endif
+}
+
+void qore_disable_gc() {
+   q_disable_gc = true;
+}
+
+bool qore_is_gc_enabled() {
+   return !q_disable_gc;
 }

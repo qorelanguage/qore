@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -530,7 +530,6 @@ bool is_container(const AbstractQoreNode* n) {
    return false;
 }
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
 bool get_container_obj(const AbstractQoreNode* n) {
    if (!n)
       return false;
@@ -553,4 +552,3 @@ void inc_container_obj(const AbstractQoreNode* n, int dt) {
       default: assert(false);
    }
 }
-#endif

@@ -3,7 +3,7 @@
 
   Qore programming language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -148,7 +148,6 @@ void Var::deref(ExceptionSink* xsink) {
    }
 }
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
 ObjCountRec::ObjCountRec(const QoreListNode* c) : con(c), before((bool)qore_list_private::getObjectCount(*c)) {
    //printd(5, "ObjCountRec::ObjCountRec() list %p count: %d\n", c, qore_list_private::getObjectCount(*c));
 }
@@ -167,22 +166,13 @@ int ObjCountRec::getDifference() {
       return !before ? 1 : 0;
    return before ? -1 : 0;
 }
-#endif
 
-LValueHelper::LValueHelper(const ReferenceNode& ref, ExceptionSink* xsink, bool for_remove) : vl(xsink), v(0), lvid_set(0), before(false), rdt(0),
-#ifdef DO_OBJ_RECURSIVE_CHECK
-											      robj(0), 
-#endif
-											      val(0), typeInfo(0) {
+LValueHelper::LValueHelper(const ReferenceNode& ref, ExceptionSink* xsink, bool for_remove) : vl(xsink), v(0), lvid_set(0), before(false), rdt(0), robj(0), val(0), typeInfo(0) {
    RuntimeReferenceHelper rh(ref, xsink);
    doLValue(lvalue_ref::get(&ref)->vexp, for_remove);
 }
 
-LValueHelper::LValueHelper(const AbstractQoreNode* exp, ExceptionSink* xsink, bool for_remove) : vl(xsink), v(0), lvid_set(0), before(false), rdt(0),
-#ifdef DO_OBJ_RECURSIVE_CHECK
-												 robj(0),
-#endif
-												 val(0), typeInfo(0) {
+LValueHelper::LValueHelper(const AbstractQoreNode* exp, ExceptionSink* xsink, bool for_remove) : vl(xsink), v(0), lvid_set(0), before(false), rdt(0), robj(0), val(0), typeInfo(0) {
    // exp can be 0 when called from LValueRefHelper if the attach to the Program fails, for example
    //printd(5, "LValueHelper::LValueHelper() exp: %p (%s %d)\n", exp, get_type_name(exp), get_node_type(exp));
    if (exp)
@@ -190,7 +180,6 @@ LValueHelper::LValueHelper(const AbstractQoreNode* exp, ExceptionSink* xsink, bo
 }
 
 LValueHelper::~LValueHelper() {
-#ifdef DO_OBJ_RECURSIVE_CHECK
    bool obj_chg = before;
    bool obj_ref = false;
    if (!(*vl.xsink)) {
@@ -239,7 +228,6 @@ LValueHelper::~LValueHelper() {
 
       //printd(5, "LValueHelper::~LValueHelper() robj: %p before: %d obj_chg: %d (val: %s v: %s)\n", robj, before, obj_chg, val ? val->getTypeName() : "null", v ? get_type_name(*v) : "null");
    }
-#endif
 
    // first free any locks
    vl.del();
@@ -250,7 +238,6 @@ LValueHelper::~LValueHelper() {
 
    delete lvid_set;
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
    // recalculate recusive references for objects if necessary
    if (robj && obj_chg) {
       ObjectRSetHelper rsh(*robj);
@@ -258,7 +245,6 @@ LValueHelper::~LValueHelper() {
 
    if (robj && obj_ref)
       robj->tDeref();
-#endif
 }
 
 void LValueHelper::saveTemp(AbstractQoreNode* n) {
@@ -304,9 +290,7 @@ int LValueHelper::doListLValue(const QoreTreeNode* tree, bool for_remove) {
       ensureUnique();
       l = reinterpret_cast<QoreListNode*>(*v);
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
       ocvec.push_back(ObjCountRec(l));
-#endif
    }
    else {
       if (for_remove)
@@ -321,9 +305,7 @@ int LValueHelper::doListLValue(const QoreTreeNode* tree, bool for_remove) {
       //printd(5, "LValueHelper::doListLValue() this: %p saving old value: %p '%s'\n", this, vp, get_type_name(vp));
       saveTemp(*v);
       *v = l = new QoreListNode;
-#ifdef DO_OBJ_RECURSIVE_CHECK
       ocvec.push_back(ObjCountRec(l));
-#endif
    }
 
    resetPtr(l->get_entry_ptr(ind));
@@ -357,9 +339,7 @@ int LValueHelper::doHashObjLValue(const QoreTreeNode* tree, bool for_remove) {
          ensureUnique();
          h = reinterpret_cast<QoreHashNode*>(*v);
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
 	 ocvec.push_back(ObjCountRec(h));
-#endif
       }
       else {
          if (for_remove)
@@ -374,9 +354,7 @@ int LValueHelper::doHashObjLValue(const QoreTreeNode* tree, bool for_remove) {
          saveTemp(*v);
          *v = h = new QoreHashNode;
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
 	 ocvec.push_back(ObjCountRec(h));
-#endif
       }
 
       //printd(5, "LValueHelper::doHashObjLValue() def=%s member %s \"%s\"\n", QCS_DEFAULT->getCode(), mem->getEncoding()->getCode(), mem->getBuffer());
@@ -386,10 +364,8 @@ int LValueHelper::doHashObjLValue(const QoreTreeNode* tree, bool for_remove) {
 
    //printd(5, "LValueHelper::doHashObjLValue() obj: %p member: %s\n", o, mem->getBuffer());
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
    // clear ocvec when we get to an object
    ocvec.clear();
-#endif
    clearPtr();
 
    bool intern = qore_class_private::runtimeCheckPrivateClassAccess(*o->getClass());
@@ -400,10 +376,8 @@ int LValueHelper::doHashObjLValue(const QoreTreeNode* tree, bool for_remove) {
    if (*vl.xsink)
       return -1;
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
    robj = o;
    ocvec.push_back(ObjCountRec(o));
-#endif
 
    return 0;
 }
@@ -444,10 +418,8 @@ int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
       if (qore_object_private::getLValue(*obj, v->str, *this, true, for_remove, vl.xsink))
          return -1;
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
       robj = obj;
       ocvec.push_back(ObjCountRec(obj));
-#endif
    }
    else if (ntype == NT_CLASS_VARREF)
       reinterpret_cast<const StaticClassVarRefNode*>(n)->getLValue(*this);
@@ -1115,9 +1087,7 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
       if (o)
 	 qore_object_private::takeMembers(*o, rv, lvh, l);
       else {
-#ifdef DO_OBJ_RECURSIVE_CHECK
 	 unsigned old_count = qore_hash_private::getObjectCount(*h);
-#endif
 
 	 QoreHashNode* rvh = new QoreHashNode;
 	 rv.assignInitial(rvh);
@@ -1137,10 +1107,8 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
 	    assert(!*xsink);
 	 }
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
 	 if (old_count && !qore_hash_private::getObjectCount(*h))
 	    lvh.setDelta(-1);
-#endif
       }
 
       return;
@@ -1155,12 +1123,10 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
       v = qore_object_private::takeMember(*o, lvh, mem->getBuffer());
    else {
       v = h->takeKeyValue(mem->getBuffer());
-#ifdef DO_OBJ_RECURSIVE_CHECK
       if (get_container_obj(v)) {
 	 if (!qore_hash_private::getObjectCount(*h))
 	    lvh.setDelta(-1);
       }
-#endif
    }
 
    rv.assignInitial(v);

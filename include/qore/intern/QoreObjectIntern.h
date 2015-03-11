@@ -142,7 +142,6 @@ public:
    }
 };
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
 class qore_rsection_priv;
 class RNotifier {
 private:
@@ -183,7 +182,6 @@ public:
 };
 
 typedef std::list<RNotifier*> n_list_t;
-#endif
 
 // rwlock with standard read and write lock handling and special "rsection" handling
 // the rsection is grabbed with the read lock but only one thread can have the rsection lock at once
@@ -195,7 +193,6 @@ private:
    DLLLOCAL qore_rsection_priv& operator=(const qore_rsection_priv&);
 
 protected:
-#ifdef DO_OBJ_RECURSIVE_CHECK
    // tid of thread holding the rsection lock
    int rs_tid;
 
@@ -214,26 +211,17 @@ protected:
       list.push_back(rn);
       rn->set();
    }
-#endif
 
 public:
-#ifdef DO_OBJ_RECURSIVE_CHECK
    DLLLOCAL qore_rsection_priv() : rs_tid(-1) {
       has_notify = true;
    }
-#else
-   DLLLOCAL qore_rsection_priv() {
-   }
-#endif
 
    DLLLOCAL virtual ~qore_rsection_priv() {
-#ifdef DO_OBJ_RECURSIVE_CHECK
       assert(rs_tid == -1);
       assert(list.empty());
-#endif
    }
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
    // does not block under any circumstances, returns -1 if the lock cannot be acquired and sets a notification
    DLLLOCAL int tryRSectionLockNotifyWaitRead(RNotifier* rn) {
       assert(has_notify);
@@ -289,7 +277,6 @@ public:
    DLLLOCAL int rSectionTid() const {
       return rs_tid;
    }
-#endif
 };
 
 class RSectionLock : public QoreVarRWLock {
@@ -300,7 +287,6 @@ public:
    DLLLOCAL ~RSectionLock() {
    }
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
    // does not block under any circumstances, returns -1 if the lock cannot be acquired and sets a notification
    DLLLOCAL int tryRSectionLockNotifyWaitRead(RNotifier* rn) {
       return static_cast<qore_rsection_priv*>(priv)->tryRSectionLockNotifyWaitRead(rn);
@@ -321,10 +307,7 @@ public:
    DLLLOCAL int rSectionTid() const {
       return static_cast<qore_rsection_priv*>(priv)->rSectionTid();
    }
-#endif
 };
-
-#ifdef DO_OBJ_RECURSIVE_CHECK
 
 /* Qore object recursive reference handling works as follows: objects are sorted into sets making up
    directed cyclic graphs.
@@ -548,7 +531,6 @@ public:
       assert(!lcnt);
    }
 };
-#endif
 
 class qore_object_private {
 public:
@@ -567,7 +549,6 @@ public:
    QoreProgram* pgm;
 
    bool system_object, delete_blocker_run, in_destructor, pgm_ref;
-#ifdef DO_OBJ_RECURSIVE_CHECK
    bool recursive_ref_found;
 
    QoreThreadLock rlck;
@@ -580,7 +561,6 @@ public:
 
    // set of objects in a cyclic directed graph
    ObjectRSet* rset;
-#endif
    QoreObject* obj;
 
    DLLLOCAL qore_object_private(QoreObject* n_obj, const QoreClass *oc, QoreProgram* p, QoreHashNode* n_data);
@@ -589,9 +569,7 @@ public:
       assert(!pgm);
       assert(!data);
       assert(!privateData);
-#ifdef DO_OBJ_RECURSIVE_CHECK
       assert(!rset);
-#endif
    }
 
    DLLLOCAL void plusEquals(const AbstractQoreNode* v, AutoVLock& vl, ExceptionSink* xsink) {
@@ -817,9 +795,7 @@ public:
 	 td = data;
 	 data = 0;
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
          removeInvalidateRSet();
-#endif
       }
 
       cleanup(xsink, td);
@@ -894,9 +870,7 @@ public:
 	 QoreHashNode* td = data;
 	 data = 0;
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
          removeInvalidateRSet();
-#endif
 
 	 //printd(5, "Object lock %p unlocked (safe)\n", &rml);
 	 sl.unlock();
@@ -958,7 +932,6 @@ public:
       }
    }
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
    DLLLOCAL void setRSet(ObjectRSet* rs, int rcnt) {
       assert(rml.checkRSectionExclusive());
       printd(QRO_LVL, "qore_object_private::setRSet() this: %p obj: %p (%s) rs: %p rcnt: %d\n", this, obj, obj->getClassName(), rs, rcnt);
@@ -995,13 +968,10 @@ public:
          rcount = 0;
       }
    }
-#endif
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
    DLLLOCAL unsigned getObjectCount();
 
    DLLLOCAL void incObjectCount(int dt);
-#endif
 
    DLLLOCAL AbstractPrivateData* getAndRemovePrivateData(qore_classid_t key, ExceptionSink* xsink) {
       QoreSafeVarRWWriteLocker sl(rml);
@@ -1048,7 +1018,6 @@ public:
       return obj->priv->lastKey(xsink);
    }
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
    DLLLOCAL static unsigned getObjectCount(const QoreObject& o) {
       return o.priv->getObjectCount();
    }
@@ -1056,7 +1025,6 @@ public:
    DLLLOCAL static void incObjectCount(const QoreObject& o, int dt) {
       o.priv->incObjectCount(dt);
    }
-#endif
 };
 
 class qore_object_lock_handoff_helper {

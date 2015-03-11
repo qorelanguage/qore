@@ -1371,6 +1371,62 @@ ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() {
    qore_program_private::decThreadCount(*pgm);
 }
 
+ProgramRuntimeParseContextHelper::ProgramRuntimeParseContextHelper(ExceptionSink* xsink, QoreProgram* pgm) : restore(false) {
+   if (!pgm)
+      return;
+   
+   // attach to and lock program for parsing
+   if (qore_program_private::lockParsing(*pgm, xsink))
+      return;
+
+   restore = true;
+   
+   ThreadData* td = thread_data.get();
+   old_pgm = td->current_pgm;
+   td->current_pgm = pgm;
+}
+
+ProgramRuntimeParseContextHelper::~ProgramRuntimeParseContextHelper() {
+   if (!restore)
+      return;
+
+   ThreadData* td = thread_data.get();
+   qore_program_private::unlockParsing(*td->current_pgm);
+   td->current_pgm = old_pgm;
+}
+
+CurrentProgramRuntimeParseContextHelper::CurrentProgramRuntimeParseContextHelper() {
+   ThreadData* td = thread_data.get();   
+   // attach to and lock current program for parsing - cannot fail with a running program
+   qore_program_private::lockParsing(*td->current_pgm, 0);
+}
+
+CurrentProgramRuntimeParseContextHelper::~CurrentProgramRuntimeParseContextHelper() {
+   ThreadData* td = thread_data.get();
+   qore_program_private::unlockParsing(*td->current_pgm);
+}
+
+ProgramRuntimeParseAccessHelper::ProgramRuntimeParseAccessHelper(ExceptionSink* xsink, QoreProgram* pgm) : restore(false) {
+   ThreadData* td = thread_data.get();
+   if (pgm != td->current_pgm) {
+      if (qore_program_private::incThreadCount(*pgm, xsink))
+         return;
+      
+      restore = true;
+      old_pgm = td->current_pgm;
+      td->current_pgm = pgm;
+   }
+}
+
+ProgramRuntimeParseAccessHelper::~ProgramRuntimeParseAccessHelper() {
+   if (!restore)
+      return;
+
+   ThreadData* td = thread_data.get();
+   qore_program_private::decThreadCount(*td->current_pgm);
+   td->current_pgm = old_pgm;
+}
+
 QoreProgram* getProgram() {
    return (thread_data.get())->current_pgm;
    //return (thread_data.get())->pgmStack->getProgram();

@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -871,7 +871,6 @@ AbstractQoreNode* hash_assignment_priv::swapImpl(AbstractQoreNode* v) {
    AbstractQoreNode* old = om->node;
    om->node = v;
 
-#ifdef DO_OBJ_RECURSIVE_CHECK
    bool before = get_container_obj(old);
    bool after = get_container_obj(v);
    if (before) {
@@ -880,7 +879,6 @@ AbstractQoreNode* hash_assignment_priv::swapImpl(AbstractQoreNode* v) {
    }
    else if (after)
       h.incObjectCount(1);
-#endif
 
    return old;
 }

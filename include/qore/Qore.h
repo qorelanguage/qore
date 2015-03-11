@@ -168,6 +168,7 @@ DLLEXPORT extern const QoreStringMaker mpfrInfo;
 #define QLO_DISABLE_SIGNAL_HANDLING    (1 << 0)  //!< disable qore signal handling entirely
 #define QLO_DISABLE_OPENSSL_INIT       (1 << 1)  //!< do not initialize the openssl library (= is initialized before the qore library is initialized)
 #define QLO_DISABLE_OPENSSL_CLEANUP    (1 << 2)  //!< do not perform cleanup on the openssl library (= is cleaned up manually)
+#define QLO_DISABLE_GARBAGE_COLLECTION (1 << 3)  //!< disable garbage collection / recursive object reference detection
 
 //! do not perform any initialization or cleanup of the openssl library (= is performed outside of the qore library)
 #define QLO_DISABLE_OPENSSL_INIT_CLEANUP (QLO_DISABLE_OPENSSL_INIT|QLO_DISABLE_OPENSSL_CLEANUP)
