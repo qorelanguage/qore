@@ -547,7 +547,8 @@ public:
          }
       }
 
-      if (ptid) {
+      if (ptid && ptid != gettid()) {
+         assert(xsink);
          xsink->raiseException("PROGRAM-ERROR", "the Program accessed has already been deleted and therefore cannot be accessed for parsing");
          return -1;
       }      
