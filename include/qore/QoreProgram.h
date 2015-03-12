@@ -589,11 +589,6 @@ public:
    DLLLOCAL void parseSetIncludePath(const char* path);
    DLLLOCAL const char* parseGetIncludePath() const;
 
-   /* for run-time module loading; the parse lock must be grabbed
-      before loading new modules - note this should only be assigned
-      to an AutoLock or SafeLocker object!
-   */
-   DLLLOCAL QoreThreadLock *getParseLock();
    DLLLOCAL const LVList* getTopLevelLVList() const;
 
    //! returns the script directory, if known (0 if not), does not grab the parse lock, only to be called while parsing
