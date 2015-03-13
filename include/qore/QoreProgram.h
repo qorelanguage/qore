@@ -581,6 +581,7 @@ public:
    // returns 0 if a "requires" exception has already occurred
    DLLLOCAL ExceptionSink* getParseExceptionSink();
 
+   DLLLOCAL QoreThreadLock* getParseLock();
    DLLLOCAL QoreHashNode* getThreadData();
    DLLLOCAL void depRef();
    DLLLOCAL void depDeref(ExceptionSink* xsink);
