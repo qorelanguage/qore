@@ -78,3 +78,10 @@ lib/parser.cpp
 lib/parser.hpp
 lib/scanner.cpp
 
+# Doxygen generated files
+docs
+*.dox.*
+Doxyfile*
+doxygen/lang/*.dox
+*.tag
+
