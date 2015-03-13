@@ -106,6 +106,8 @@ module SqlUtil {
     - fixed a bug with queries using a \a desc argument with the \a orderby query option with multiple sort columns; the \c "desc" string was added only to the last column but should have been added to all columns
     - fixed a bug where foreign key constraints with supporting indexes were not tracked and therefore schema alignment on DBs that automatically create indexes for foreign key constraints would fail
     - fixed a bug where driver-specific objects were not included when dropping a schema
+    - fixed a bug in subquery handling where bind-by-value arguments from the subquery were lost
+    - fixed a bug in the partition by/over operator where column names as given in the query argument hash were not properly recognized
 
     @subsection sqlutilv1_1 SqlUtil v1.1
     - implemented new upsert strategy @ref SqlUtil::AbstractTable::UpsertInsertOnly
@@ -13475,7 +13477,9 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 if (!qh.limit)
                     throw "SELECT-ERROR", sprintf("%s: select 'offset' supplied (%d) without limit", getName(), qh.offset);
             }
-            args = ();
+            # do not overwrite args; could be used in a subquery
+            if (!exists args)
+                args = ();
 
             # make a hash of aliases to tables when using joins
             hash jch;
@@ -13496,7 +13500,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
                         case NT_STRING: {
                             string cn = getColumnNameIntern(cv, jch, boolean(qh.join), ch);
                             if (qh.superquery)
-                                mch{cn} = True;
+                                mch{cv} = True;
                             ce += cn;
                             break;
                         }

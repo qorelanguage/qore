@@ -136,6 +136,8 @@
       - fixed a bug with queries using a \a desc argument with the \a orderby query option with multiple sort columns; the \c "desc" string was added only to the last column but should have been added to all columns
       - fixed a bug where foreign key constraints with supporting indexes were not tracked and therefore schema alignment on DBs that automatically create indexes for foreign key constraints would fail
       - fixed a bug where driver-specific objects were not included when dropping a schema
+      - fixed a bug in subquery handling where bind-by-value arguments from the subquery were lost
+      - fixed a bug in the partition by/over operator where column names as given in the query argument hash were not properly recognized
     - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module fixes:
       - fixed a bug where column names that are reserved words were not quoted in generated SQL
     - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> module fixes:
