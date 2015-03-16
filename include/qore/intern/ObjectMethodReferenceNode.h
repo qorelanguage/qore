@@ -142,6 +142,7 @@ protected:
 
 public:
    DLLLOCAL ParseSelfMethodReferenceNode(char* n_method) : method(n_method), meth(0) {
+      free(n_method);
    }
 
    DLLLOCAL ParseSelfMethodReferenceNode(const QoreMethod* m) : meth(m) {

@@ -235,6 +235,7 @@ bool AbstractCallReferenceNode::getAsBoolImpl() const {
 }
 
 ParseObjectMethodReferenceNode::ParseObjectMethodReferenceNode(AbstractQoreNode* n_exp, char *n_method) : exp(n_exp), method(n_method), qc(0), m(0) {
+   free(n_method);
 }
 
 ParseObjectMethodReferenceNode::~ParseObjectMethodReferenceNode() {

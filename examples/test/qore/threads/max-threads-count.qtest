@@ -11,6 +11,11 @@ sub t() {
     $q.push(1);
 }
 
+if ($ENV.SKIP_MAX_THREAD_TEST) {
+    printf("skipping max thread test due to environment variable\n");
+    return;
+}
+
 try {
     while (True) {
    	background t();
