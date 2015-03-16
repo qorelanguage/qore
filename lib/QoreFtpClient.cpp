@@ -273,8 +273,11 @@ public:
 	       //printd(FTPDEBUG, "QoreFtpClient::getResponse() read %s\n", r->getBuffer());
 	       // in case the buffer gets reallocated
 	       int pos = p - resp->getBuffer();
+	       // cannot maintain start across buffer reallocations
+	       size_t offset = p - start;
 	       resp->concat(*r);
 	       p = resp->getBuffer() + pos;
+	       start = p + offset;
 	    }
 	    p++;
 	 }
@@ -887,29 +890,21 @@ int QoreFtpClient::put(const char* localpath, const char* remotename, ExceptionS
    }
 
    // get remote file name
-   char* rn;
-   if (remotename)
-      rn = (char* )remotename;
-   else
-      rn = q_basename(localpath);
+   char* rn = remotename ? (char*)remotename : q_basename(localpath);
 
    // transfer file
    int code;
 
    QoreStringNode* mr = priv->sendMsg(code, "STOR", rn, xsink);
+   if (rn != remotename)
+      free(rn);
    if (!mr) {
       assert(*xsink);
       priv->data.close();
-      if (rn != remotename) {
-         free(rn);
-      }
       return -1;
    }
 
    FtpResp resp(mr);
-   if (rn != remotename)
-      free(rn);
-
    if (*xsink) {
       priv->data.close();
       return -1;

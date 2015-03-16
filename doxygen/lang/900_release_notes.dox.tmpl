@@ -186,6 +186,7 @@
     - fixed a bug in user module initialization and destruction where call references were not accepted, contrary to the documentation and design goals
     - fixed a bug in @ref Qore::Socket::acceptSSL() and @ref Qore::Socket::connectSSL() where the timeout argument was not respected for SSL protocol negotation by implementing non-blocking I/O support for the internal SSL calls for upgrading the socket connection
     - fixed a memory leak in exception handling in the @ref Qore::FtpClient::put() method (thanks to nros)
+    - fixed a memory error in string handling in the @ref Qore::FtpClient class's FTP response handling code
     - fixed a bug in aligning table data in the sqlutil example program
     - fixed a bug when loading modules by a path argument; if the module is already loaded, then do not throw an exception
     - adjusted the stack guard buffer for x86_64 from 20K -> 32K which solved some rare crashes related to stack exhaustion (ex: make check works consistently now on x86_64 Linux)
