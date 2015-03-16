@@ -838,13 +838,22 @@ $pgm.importClass("MyNamespace::MyClass");
     @throw CLASS-IMPORT-ERROR Cannot import a class into the same Program object; class or namespace with this name already exists or the source class does not exist
     @throw ENCODING-CONVERSION-ERROR the class name could not be converted to the @ref default_encoding "default character encoding"
 
-    @since %Qore 0.8.7
+    @since
+    - This method was first implemented in %Qore 0.8.7
+    - %Qore 0.8.12 added the \a new_name parameter
  */
-nothing Program::importClass(string cls) {
+nothing Program::importClass(string cls, *string new_name) {
    TempEncodingHelper tmp(cls, QCS_DEFAULT, xsink);
    if (!tmp)
       return 0;
-   qore_program_private::importClass(*p, *(getProgram()), tmp->getBuffer(), xsink);
+
+   TempEncodingHelper nn;
+   if (new_name) {
+      nn.set(new_name, QCS_DEFAULT, xsink);
+      if (!nn)
+         return 0;
+   }
+   qore_program_private::importClass(xsink, *p, *(getProgram()), tmp->getBuffer(), new_name ? nn->getBuffer() : 0);
 }
 
 //! Returns a list of strings of all user functions defined in the program object
@@ -1245,4 +1254,46 @@ Program::loadApplyToUserModule(string name) [dom=MODULES] {
       QMM.runTimeLoadModule(*xsink, name->getBuffer(), 0, p);
       self->doDelete(xsink);
    }
+}
+
+//! imports system classes into a Program container at runtime; will throw an exception if the Program was not created with @ref Qore::PO_NO_SYSTEM_CLASSES
+/** @par Example:
+    @code
+$pgm.importSystemClasses();
+    @endcode
+
+    @note adds @ref Qore::PO_NO_SYSTEM_CLASSES to the parse option mask after a successful completion
+
+    @since %Qore 0.8.12
+*/
+Program::importSystemClasses() {
+   qore_program_private::runtimeImportSystemClasses(*p, xsink);
+}
+
+//! imports system functions into a Program container at runtime; will throw an exception if the Program was not created with @ref Qore::PO_NO_SYSTEM_FUNC_VARIANTS
+/** @par Example:
+    @code
+$pgm.importSystemFunctions();
+    @endcode
+
+    @note adds @ref Qore::PO_NO_FUNC_VARIANTS to the parse option mask after a successful completion
+
+    @since %Qore 0.8.12
+*/
+Program::importSystemFunctions() {
+   qore_program_private::runtimeImportSystemFunctions(*p, xsink);
+}
+
+//! imports system classes and functions into a Program container at runtime; will throw an exception if the Program was not created with @ref Qore::PO_NO_SYSTEM_FUNC_VARIANTS or @ref Qore::PO_NO_SYSTEM_CLASSES
+/** @par Example:
+    @code
+$pgm.importSystemApi();
+    @endcode
+
+    @note adds @ref Qore::PO_NO_SYSTEM_CLASSES and @ref Qore::PO_NO_FUNC_VARIANTS to the parse option mask after a successful completion
+
+    @since %Qore 0.8.12
+*/
+Program::importSystemApi() {
+   qore_program_private::runtimeImportSystemApi(*p, xsink);
 }

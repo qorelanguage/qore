@@ -829,9 +829,9 @@ public:
    }
 
    DLLLOCAL ~QorePThreadAttr() {
-      //printd(2, "calling pthread_attr_destroy(%08p)\n", &attr);
+      //printd(2, "calling pthread_attr_destroy(%p)\n", &attr);
       pthread_attr_destroy(&attr);
-      //printd(2, "returned from pthread_attr_destroy(%08p)\n", &attr);
+      //printd(2, "returned from pthread_attr_destroy(%p)\n", &attr);
    }
 
 #ifdef HAVE_PTHREAD_ATTR_GETSTACK

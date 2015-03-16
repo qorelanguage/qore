@@ -1048,7 +1048,7 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
    const char** dep_list = (const char**)dlsym(ptr, "qore_module_dependencies");
    if (dep_list) {
       const char* dep = dep_list[0];
-      //printd(5, "dep_list=%08p (0=%s)\n", dep_list, dep);
+      //printd(5, "dep_list=%p (0=%s)\n", dep_list, dep);
       for (int j = 0; dep; dep = dep_list[++j]) {
 	 //printd(5, "loading module dependency=%s\n", dep);
 	 loadModuleIntern(xsink, dep, pgm);
@@ -1057,7 +1057,7 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
       }
    }
 
-   printd(5, "QoreModuleManager::loadBinaryModuleFromPath(%s) %s: calling module_init@%08p\n", path, name, *module_init);
+   printd(5, "QoreModuleManager::loadBinaryModuleFromPath(%s) %s: calling module_init@%p\n", path, name, *module_init);
 
    // this is needed for backwards-compatibility for modules that add builtin functions in the module initilization code
    QoreModuleContextHelper qmc(name, pgm, xsink);

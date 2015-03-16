@@ -3,7 +3,7 @@
  
   Qore Programming Language
  
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
  
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -158,4 +158,15 @@ void FunctionList::assimilate(FunctionList& fl, qore_ns_private* ns) {
 
       fl.erase(i++);
    }   
+}
+
+void FunctionList::importSystemFunctions(const FunctionList& src, qore_ns_private* ns) {
+   for (fl_map_t::const_iterator i = src.begin(), e = src.end(); i != e; ++i) {
+      if (!i->second->hasBuiltin() || fl_map_t::find(i->second->getName()) != fl_map_t::end())
+	 continue;
+
+      FunctionEntry* fe = new ModuleImportedFunctionEntry(*i->second, ns);
+      //printd(5, "FunctionList::importSystemFunctions() this: %p merging in %s (%p)\n", this, i->first, fe);
+      insert(fl_map_t::value_type(fe->getName(), fe));
+   }
 }

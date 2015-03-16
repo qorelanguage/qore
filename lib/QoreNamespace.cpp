@@ -201,6 +201,44 @@ void qore_ns_private::setPublic() {
    //printd(5, "qore_ns_private::setPublic() this: %p '%s::' pub:%d\n", this, name.c_str(), pub);
 }
 
+void qore_ns_private::runtimeImportSystemClasses(const qore_ns_private& source) {
+   classList.importSystemClasses(source.classList, this);
+
+   // add sub namespaces
+   for (nsmap_t::const_iterator i = source.nsl.nsmap.begin(), e = source.nsl.nsmap.end(); i != e; ++i) {
+      QoreNamespace* nns = nsl.find(i->first);
+      if (!nns) {
+         qore_ns_private* npns = new qore_ns_private(i->first.c_str());
+         nns = npns->ns;
+         nns->priv->pub = i->second->priv->pub;
+         nns->priv->imported = true;
+         nsl.runtimeAdd(nns, this);
+      }
+      
+      nns->priv->runtimeImportSystemClasses(*i->second->priv);
+      //printd(5, "qore_ns_private::runtimeImportSystemClasses() this: %p '%s::' imported %p '%s::'\n", this, name.c_str(), ns, ns->getName());
+   }
+}
+
+void qore_ns_private::runtimeImportSystemFunctions(const qore_ns_private& source) {
+   func_list.importSystemFunctions(source.func_list, this);
+
+   // add sub namespaces
+   for (nsmap_t::const_iterator i = source.nsl.nsmap.begin(), e = source.nsl.nsmap.end(); i != e; ++i) {
+      QoreNamespace* nns = nsl.find(i->first);
+      if (!nns) {
+         qore_ns_private* npns = new qore_ns_private(i->first.c_str());
+         nns = npns->ns;
+         nns->priv->pub = i->second->priv->pub;
+         nns->priv->imported = true;
+         nsl.runtimeAdd(nns, this);
+      }
+      
+      nns->priv->runtimeImportSystemFunctions(*i->second->priv);
+      //printd(5, "qore_ns_private::runtimeImportSystemFunctions() this: %p '%s::' imported %p '%s::'\n", this, name.c_str(), ns, ns->getName());
+   }
+}
+
 FunctionEntry* qore_ns_private::addPendingVariantIntern(const char* fname, AbstractQoreFunctionVariant* v, bool& new_func) {
    SimpleRefHolder<AbstractQoreFunctionVariant> vh(v);
 
@@ -512,7 +550,7 @@ QoreNamespace* qore_ns_private::findCreateNamespacePath(const NamedScope& nscope
 
    // iterate through each level of the namespace path and find/create namespaces as needed
    QoreNamespace* nns = ns;
-   for (unsigned i = 0; i < nscope.size(); ++i)
+   for (unsigned i = 0; i < nscope.size() - 1; ++i)
       nns = nns->priv->findCreateNamespace(nscope[i], is_new);
 
    return nns;

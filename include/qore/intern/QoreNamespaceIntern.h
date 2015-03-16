@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -282,11 +282,11 @@ public:
       return 0;
    }
 
-   DLLLOCAL QoreClass* runtimeImportClass(ExceptionSink* xsink, const QoreClass* c) {
-      if (checkImportClass(c->getName(), xsink))
+   DLLLOCAL QoreClass* runtimeImportClass(ExceptionSink* xsink, const QoreClass* c, const char* new_name = 0) {
+      if (checkImportClass(new_name ? new_name : c->getName(), xsink))
          return 0;
 
-      QoreClass* nc = new QoreClass(*c);
+      QoreClass* nc = qore_class_private::makeClass(*c, new_name);
       qore_class_private::setNamespace(nc, this);
       classList.add(nc);
 
@@ -367,6 +367,9 @@ public:
    DLLLOCAL void parseAddGlobalVarDecl(char *name, const QoreTypeInfo* typeInfo, QoreParseTypeInfo* parseTypeInfo, bool pub);
 
    DLLLOCAL void setPublic();
+
+   DLLLOCAL void runtimeImportSystemClasses(const qore_ns_private& source);
+   DLLLOCAL void runtimeImportSystemFunctions(const qore_ns_private& source);
 
    DLLLOCAL static void addNamespace(QoreNamespace& ns, QoreNamespace* nns) {
       ns.priv->addNamespace(nns->priv);
@@ -842,12 +845,12 @@ protected:
    }
 
    // performed at runtime
-   DLLLOCAL int runtimeImportClass(ExceptionSink *xsink, qore_ns_private& ns, const QoreClass *c) {
-      QoreClass* nc = ns.runtimeImportClass(xsink, c);
+   DLLLOCAL int runtimeImportClass(ExceptionSink *xsink, qore_ns_private& ns, const QoreClass *c, const char* new_name = 0) {
+      QoreClass* nc = ns.runtimeImportClass(xsink, c, new_name);
       if (!nc)
          return -1;
 
-      //printd(5, "qore_root_ns_private::runtimeImportClass() this: %p ns: %p '%s' (depth %d) func: %p %s\n", this, &ns, ns.name.c_str(), ns.depth, u, c->getName());
+      //printd(5, "qore_root_ns_private::runtimeImportClass() this: %p ns: %p '%s' (depth %d) class: %p %s\n", this, &ns, ns.name.c_str(), ns.depth, nc, nc->getName());
 
       clmap.update(nc->getName(), &ns, nc);
       return 0;
@@ -1447,12 +1450,11 @@ public:
       assert(nspath.size());
       bool is_new = false;
       QoreNamespace* nns = findCreateNamespacePath(nspath, is_new);
-      assert(nspath.getIdentifierStr() ==  nns->getName());
       if (is_new) // add namespace index
          nsmap.update(nns->priv);
       return nns;
    }
-   
+
    DLLLOCAL QoreNamespace* runtimeFindCreateNamespacePath(const qore_ns_private& ns) {
       // get a list of namespaces from after the root (not including the root) to the current
       nslist_t nsl;
@@ -1468,6 +1470,14 @@ public:
       return nns;
    }
 
+   DLLLOCAL static void runtimeImportSystemClasses(RootQoreNamespace& rns, const RootQoreNamespace& source) {
+      rns.priv->runtimeImportSystemClasses(*source.priv);
+   }
+   
+   DLLLOCAL static void runtimeImportSystemFunctions(RootQoreNamespace& rns, const RootQoreNamespace& source) {
+      rns.priv->runtimeImportSystemFunctions(*source.priv);
+   }
+   
    DLLLOCAL static QoreNamespace* runtimeFindCreateNamespacePath(const RootQoreNamespace& rns, const qore_ns_private& ns) {
       return rns.rpriv->runtimeFindCreateNamespacePath(ns);
    }
@@ -1492,8 +1502,8 @@ public:
       return rns.rpriv->runtimeImportFunction(xsink, *ns.priv, u, new_name);
    }
 
-   DLLLOCAL static int runtimeImportClass(RootQoreNamespace& rns, ExceptionSink* xsink, QoreNamespace& ns, const QoreClass *c) {
-      return rns.rpriv->runtimeImportClass(xsink, *ns.priv, c);
+   DLLLOCAL static int runtimeImportClass(RootQoreNamespace& rns, ExceptionSink* xsink, QoreNamespace& ns, const QoreClass *c, const char* new_name = 0) {
+      return rns.rpriv->runtimeImportClass(xsink, *ns.priv, c, new_name);
    }
 
    DLLLOCAL static const QoreClass* runtimeFindClass(RootQoreNamespace& rns, const char* name, const qore_ns_private*& ns) {

@@ -271,7 +271,7 @@ int QoreGetOpt::processShortArg(const char* arg, QoreListNode* l, class QoreHash
    doOption(w, h, val);
    if (do_modify)
       l->pop_entry(--i, 0);
-   //printd(5, "processShortArg(%c) val=%08p %s returning %d\n", opt, val, val, !j);
+   //printd(5, "processShortArg(%c) val=%p %s returning %d\n", opt, val, val, !j);
    return !j;
 }
 
@@ -308,6 +308,6 @@ QoreHashNode* QoreGetOpt::parse(QoreListNode* l, bool modify, ExceptionSink *xsi
 	 l->pop_entry(i--, 0);
       }
    }
-   //printd(5, "QoreGetOpt::parse() returning h=%08p (size %d)\n", h, h->size());
+   //printd(5, "QoreGetOpt::parse() returning h=%p (size %d)\n", h, h->size());
    return h;
 }

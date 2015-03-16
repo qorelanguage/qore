@@ -252,7 +252,7 @@ bool ManagedDatasource::beginTransaction(ExceptionSink *xsink) {
       return false;
 
    Datasource::beginTransaction(xsink);
-   //printd(0, "ManagedDatasource::beginTransaction() this=%08p isInTransaction()=%d\n", this, isInTransaction());
+   //printd(0, "ManagedDatasource::beginTransaction() this=%p isInTransaction()=%d\n", this, isInTransaction());
 
    return dbah.newTransaction();
 }

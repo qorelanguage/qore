@@ -4,7 +4,7 @@
  
   Qore Programming Language
  
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
  
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -110,6 +110,10 @@ public:
       return func->hasUserPublic();
    }
 
+   DLLLOCAL bool hasBuiltin() const {
+      return func->hasBuiltin();
+   }
+   
    DLLLOCAL void updateNs(qore_ns_private* ns) {
       func->updateNs(ns);
    }
@@ -162,6 +166,8 @@ public:
          insert(fl_map_t::value_type(fe->getName(), fe));
       }
    }
+
+   DLLLOCAL void importSystemFunctions(const FunctionList& src, qore_ns_private* ns);
 
    DLLLOCAL void del();
    DLLLOCAL void parseInit();

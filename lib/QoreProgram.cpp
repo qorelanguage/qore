@@ -385,7 +385,68 @@ int qore_program_private::internParseCommit() {
    return rc;
 }
 
-void qore_program_private::importClass(qore_program_private& from_pgm, const char* path, ExceptionSink* xsink) {
+void qore_program_private::runtimeImportSystemClassesIntern(const qore_program_private& spgm) {
+   qore_root_ns_private::runtimeImportSystemClasses(*RootNS, *spgm.RootNS);
+   pwo.parse_options &= ~PO_NO_SYSTEM_CLASSES;
+}
+
+void qore_program_private::runtimeImportSystemFunctionsIntern(const qore_program_private& spgm) {
+   qore_root_ns_private::runtimeImportSystemFunctions(*RootNS, *spgm.RootNS);
+   pwo.parse_options &= ~PO_NO_SYSTEM_FUNC_VARIANTS;
+}
+
+void qore_program_private::runtimeImportSystemClasses(ExceptionSink* xsink) {
+   // acquire safe access to parse structures in the source program
+   ProgramRuntimeParseAccessHelper rah(xsink, pgm);
+
+   if (!(pwo.parse_options & PO_NO_SYSTEM_CLASSES)) {
+      xsink->raiseException("IMPORT-SYSTEM-CLASSES-ERROR", "cannot import system classes in a Program container where system classes have already been imported");
+      return;
+   }
+   if (po_locked)
+      xsink->raiseException("IMPORT-SYSTEM-CLASSES-ERROR", "parse options have been locked on this program object");
+
+   const QoreProgram* spgm = getProgram();
+   runtimeImportSystemClassesIntern(*spgm->priv);
+}
+
+void qore_program_private::runtimeImportSystemFunctions(ExceptionSink* xsink) {
+   // acquire safe access to parse structures in the source program
+   ProgramRuntimeParseAccessHelper rah(xsink, pgm);
+   if (!(pwo.parse_options & PO_NO_SYSTEM_FUNC_VARIANTS)) {
+      xsink->raiseException("IMPORT-SYSTEM-FUNCTIONS-ERROR", "cannot import system functions in a Program container where system functions have already been imported");
+      return;
+   }
+   if (po_locked)
+      xsink->raiseException("IMPORT-SYSTEM-FUNCTIONS-ERROR", "parse options have been locked on this program object");
+
+   const QoreProgram* spgm = getProgram();
+   runtimeImportSystemFunctionsIntern(*spgm->priv);
+}
+
+void qore_program_private::runtimeImportSystemApi(ExceptionSink* xsink) {
+   // acquire safe access to parse structures in the source program
+   ProgramRuntimeParseAccessHelper rah(xsink, pgm);
+
+   if (!(pwo.parse_options & PO_NO_SYSTEM_CLASSES)) {
+      xsink->raiseException("IMPORT-SYSTEM-API-ERROR", "cannot import system classes in a Program container where system classes have already been imported");
+      return;
+   }
+
+   if (!(pwo.parse_options & PO_NO_SYSTEM_FUNC_VARIANTS)) {
+      xsink->raiseException("IMPORT-SYSTEM-API-ERROR", "cannot import system functions in a Program container where system functions have already been imported");
+      return;
+   }
+
+   if (po_locked)
+      xsink->raiseException("IMPORT-SYSTEM-API-ERROR", "parse options have been locked on this program object");
+
+   const QoreProgram* spgm = getProgram();
+   runtimeImportSystemClassesIntern(*spgm->priv);
+   runtimeImportSystemFunctionsIntern(*spgm->priv);
+}
+
+void qore_program_private::importClass(ExceptionSink* xsink, qore_program_private& from_pgm, const char* path, const char* new_name) {
    if (&from_pgm == this) {
       xsink->raiseException("CLASS-IMPORT-ERROR", "cannot import class \"%s\" with the same source and target Program objects", path);
       return;
@@ -412,9 +473,17 @@ void qore_program_private::importClass(qore_program_private& from_pgm, const cha
       return;
 
    // find/create target namespace based on source namespace
-   QoreNamespace* tns = vns->root ? RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, *vns);
-   //printd(5, "qore_program_private::importClass() this: %p path: %s nspath: %s tns: %p %s RootNS: %p %s\n", this, path, nspath.c_str(), tns, tns->getName(), RootNS, RootNS->getName());
-   qore_root_ns_private::runtimeImportClass(*RootNS, xsink, *tns, c);
+   QoreNamespace* tns;
+   if (new_name && strstr(new_name, "::")) {
+      NamedScope nscope(new_name);
+      tns = qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, nscope);
+      qore_root_ns_private::runtimeImportClass(*RootNS, xsink, *tns, c, nscope.getIdentifier());
+   }
+   else {
+      tns = vns->root ? RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, *vns);
+      //printd(5, "qore_program_private::importClass() this: %p path: %s nspath: %s tns: %p %s RootNS: %p %s\n", this, path, nspath.c_str(), tns, tns->getName(), RootNS, RootNS->getName());
+      qore_root_ns_private::runtimeImportClass(*RootNS, xsink, *tns, c, new_name);
+   }
 }
 
 void qore_program_private::importFunction(ExceptionSink* xsink, QoreFunction *u, const qore_ns_private& oldns, const char* new_name) {

@@ -73,7 +73,7 @@ void Datasource::setPendingConnectionValues(const Datasource *other) {
 }
 
 void Datasource::setTransactionStatus(bool t) {
-   //printd(5, "Datasource::setTS(%d) this=%08p\n", t, this);
+   //printd(5, "Datasource::setTS(%d) this=%p\n", t, this);
    priv->in_transaction = t;
 }
 
@@ -157,7 +157,7 @@ AbstractQoreNode *Datasource::exec_internal(bool doBind, const QoreString *query
 
    AbstractQoreNode *rv = doBind ? qore_dbi_private::get(*priv->dsl)->execSQL(this, query_str, args, xsink)
       : qore_dbi_private::get(*priv->dsl)->execRawSQL(this, query_str, xsink);;
-   //printd(5, "Datasource::exec_internal() this=%08p, autocommit=%d, in_transaction=%d, xsink=%d\n", this, priv->autocommit, priv->in_transaction, xsink->isException());
+   //printd(5, "Datasource::exec_internal() this=%p, autocommit=%d, in_transaction=%d, xsink=%d\n", this, priv->autocommit, priv->in_transaction, xsink->isException());
 
    if (priv->connection_aborted) {
       assert(*xsink);

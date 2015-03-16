@@ -44,7 +44,7 @@ QoreNothingNode::QoreNothingNode() : UniqueValueQoreNode(NT_NOTHING) {
 }
 
 QoreNothingNode::~QoreNothingNode() {
-   //printd(0, "QoreNothingNode::~QoreNothingNode() called this=%08p\n", this);
+   //printd(0, "QoreNothingNode::~QoreNothingNode() called this=%p\n", this);
 }
 
 AbstractQoreNode *QoreNothingNode::evalImpl(class ExceptionSink *xsink) const {

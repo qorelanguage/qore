@@ -282,7 +282,7 @@ protected:
 
 public:
    DLLLOCAL MethodCallNode(char* name, QoreListNode* n_args) : AbstractMethodCallNode(NT_METHOD_CALL, n_args), c_str(name), pseudo(false) {
-      //printd(0, "MethodCallNode::MethodCallNode() this=%08p name='%s' args=%08p (len=%d)\n", this, c_str, args, args ? args->size() : -1);
+      //printd(0, "MethodCallNode::MethodCallNode() this=%p name='%s' args=%p (len=%d)\n", this, c_str, args, args ? args->size() : -1);
    }
 
    DLLLOCAL MethodCallNode(const MethodCallNode &old, QoreListNode* n_args) : AbstractMethodCallNode(NT_METHOD_CALL, n_args), c_str(old.c_str ? strdup(old.c_str) : 0), pseudo(old.pseudo) {
@@ -453,7 +453,7 @@ public:
    }
       
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink* xsink) const {
-      str.sprintf("static method call %s::%s() (0x%08p)", method->getClass()->getName(), method->getName(), this);
+      str.sprintf("static method call %s::%s() (0x%p)", method->getClass()->getName(), method->getName(), this);
       return 0;
    }
 

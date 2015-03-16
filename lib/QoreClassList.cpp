@@ -99,6 +99,16 @@ void QoreClassList::mergeUserPublic(const QoreClassList& old, qore_ns_private* n
    }
 }
 
+void QoreClassList::importSystemClasses(const QoreClassList& source, qore_ns_private* ns) {
+   for (hm_qc_t::const_iterator i = source.hm.begin(), e = source.hm.end(); i != e; ++i) {
+      if (i->second->isSystem() && hm.find(i->second->getName()) == hm.end()) {
+	 QoreClass* qc = new QoreClass(*i->second);
+	 qore_class_private::setNamespace(qc, ns);
+	 add(qc);
+      }
+   }
+}
+
 void QoreClassList::resolveCopy() {
    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
       qore_class_private::resolveCopy(*(i->second));

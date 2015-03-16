@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -67,7 +67,7 @@ double QoreClosureParseNode::floatEvalImpl(ExceptionSink *xsink) const {
 }
 
 int QoreClosureParseNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
-   str.sprintf("parsed closure (%slambda, 0x%08p)", lambda ? "" : "non-", this);
+   str.sprintf("parsed closure (%slambda, 0x%p)", lambda ? "" : "non-", this);
    return 0;
 }
 

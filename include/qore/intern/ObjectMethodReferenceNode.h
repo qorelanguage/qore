@@ -59,7 +59,7 @@ public:
    }
 
    DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
-      str.sprintf("object method reference (0x%08p)", this);
+      str.sprintf("object method reference (0x%p)", this);
       return 0;
    }
 

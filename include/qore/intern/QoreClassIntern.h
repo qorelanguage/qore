@@ -2773,6 +2773,13 @@ public:
    // static methods
    //DLLLOCAL static
 
+   DLLLOCAL static QoreClass* makeClass(const QoreClass& qc, const char* nme) {
+      QoreClass* rv = new QoreClass(qc);
+      if (nme)
+         rv->priv->name = nme;
+      return rv;
+   }
+
    DLLLOCAL static const QoreMethod* runtimeFindCommittedMethod(const QoreClass& qc, const char* nme, bool& p) {
       return qc.priv->runtimeFindCommittedMethod(nme, p);
    }

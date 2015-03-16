@@ -1250,7 +1250,7 @@ string replace(string str, string source, string target, int start = 0, int end 
    }
 
    while (const char* p = strstr(cstr, pattern)) {
-      //printd(5, "str=%08p p=%08p '%s' '%s'->'%s'\n", cstr, p, cstr, pattern, t1->getBuffer());
+      //printd(5, "str=%p p=%p '%s' '%s'->'%s'\n", cstr, p, cstr, pattern, t1->getBuffer());
       if ((end > 0) && (p - str->getBuffer() + plen) > end)
          break;
 

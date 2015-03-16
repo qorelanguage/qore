@@ -1384,7 +1384,7 @@ public:
          parse_error("illegal top-level statement (conflicts with parse option NO_TOP_LEVEL_STATEMENTS)");
    }
 
-   DLLLOCAL void importClass(qore_program_private& from_pgm, const char* path, ExceptionSink* xsink);
+   DLLLOCAL void importClass(ExceptionSink* xsink, qore_program_private& from_pgm, const char* path, const char* new_name = 0);
 
    DLLLOCAL void addFile(char* f) {
       fileList.push_back(f);
@@ -1394,6 +1394,25 @@ public:
       userFeatureList.push_back(f);
    }
 
+   DLLLOCAL void runtimeImportSystemClassesIntern(const qore_program_private& spgm);
+   DLLLOCAL void runtimeImportSystemFunctionsIntern(const qore_program_private& spgm);
+
+   DLLLOCAL void runtimeImportSystemClasses(ExceptionSink* xsink);
+   DLLLOCAL void runtimeImportSystemFunctions(ExceptionSink* xsink);
+   DLLLOCAL void runtimeImportSystemApi(ExceptionSink* xsink);
+
+   DLLLOCAL static void runtimeImportSystemClasses(QoreProgram& pgm, ExceptionSink* xsink) {
+      pgm.priv->runtimeImportSystemClasses(xsink);
+   }
+   
+   DLLLOCAL static void runtimeImportSystemFunctions(QoreProgram& pgm, ExceptionSink* xsink) {
+      pgm.priv->runtimeImportSystemFunctions(xsink);
+   }
+   
+   DLLLOCAL static void runtimeImportSystemApi(QoreProgram& pgm, ExceptionSink* xsink) {
+      pgm.priv->runtimeImportSystemApi(xsink);
+   }
+   
    DLLLOCAL static int lockParsing(QoreProgram& pgm, ExceptionSink* xsink) {
       return pgm.priv->lockParsing(xsink);
    }
@@ -1418,8 +1437,8 @@ public:
       pgm.priv->addFile(f);
    }
 
-   DLLLOCAL static void importClass(QoreProgram& pgm, QoreProgram& from_pgm, const char* path, ExceptionSink* xsink) {
-      pgm.priv->importClass(*(from_pgm.priv), path, xsink);
+   DLLLOCAL static void importClass(ExceptionSink* xsink, QoreProgram& pgm, QoreProgram& from_pgm, const char* path, const char* new_name = 0) {
+      pgm.priv->importClass(xsink, *(from_pgm.priv), path, new_name);
    }
 
    DLLLOCAL static void addStatement(QoreProgram& pgm, AbstractStatement* s) {

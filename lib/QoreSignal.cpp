@@ -440,7 +440,7 @@ int QoreSignalManager::setHandler(int sig, const ResolvedCallReferenceNode *fr, 
          if (!thread_running && start_signal_thread(xsink))
             return -1;
 
-         //printd(5, "setting handler for signal %d, pgm=%08p\n", sig, pgm);
+         //printd(5, "setting handler for signal %d, pgm=%p\n", sig, pgm);
          qore_program_private::addSignal(*pgm, sig);
          handlers[sig].set(fr, pgm);
          ++num_handlers;
