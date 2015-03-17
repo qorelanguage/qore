@@ -80,7 +80,7 @@ FunctionEntry* FunctionList::import(QoreFunction* func, qore_ns_private* ns) {
 
    // copy function entry for import and insert into map
    FunctionEntry* fe = new FunctionEntry(new QoreFunction(*func, 0, ns));
-   insert(std::make_pair(fe->getName(), fe));
+   insert(fl_map_t::value_type(fe->getName(), fe));
    return fe;
 }
 
@@ -166,9 +166,7 @@ int FunctionList::importSystemFunctions(const FunctionList& src, qore_ns_private
       if (!i->second->hasBuiltin() || fl_map_t::find(i->second->getName()) != fl_map_t::end())
 	 continue;
 
-      FunctionEntry* fe = new ModuleImportedFunctionEntry(*i->second, ns);
-      //printd(5, "FunctionList::importSystemFunctions() this: %p merging in %s (%p)\n", this, i->first, fe);
-      insert(fl_map_t::value_type(fe->getName(), fe));
+      import(i->second->getFunction(), ns);
       ++cnt;
    }
    return cnt;
