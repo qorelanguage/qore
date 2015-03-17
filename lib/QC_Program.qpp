@@ -809,8 +809,8 @@ nothing Program::importFunction(string func, string new_name, *softbool inject) 
    TempEncodingHelper tnew_name(new_name, QCS_DEFAULT, xsink);
    if (!tnew_name)
       return 0;
-   if (tnew_name->empty()) {
-         xsink->raiseException("FUNCTION-IMPORT-ERROR", "the new function name while importing function '%s' may not be empty", func);
+   if (tnew_name->empty())
+      xsink->raiseException("FUNCTION-IMPORT-ERROR", "the new function name while importing function '%s' may not be empty", func);
 
    qore_program_private::exportFunction(getProgram(), xsink, p, tfunc->getBuffer(), tnew_name->getBuffer(), inject);
 }
@@ -866,7 +866,7 @@ nothing Program::importClass(string cls, *string new_name, *softbool inject) {
       if (!nn)
          return 0;
 
-      if (nn->empty()) {
+      if (nn->empty())
          xsink->raiseException("CLASS-IMPORT-ERROR", "the new class name while importing class '%s' may not be empty", cls);
       return 0;
    }
