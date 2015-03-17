@@ -101,6 +101,7 @@ TESTSCRIPTS= \
         examples/test/qore/misc/regex.qtest \
 	examples/test/qore/misc/access.qtest \
 	examples/test/qore/misc/thread-parsing.qtest \
+	examples/test/qore/misc/curly-brackets.qtest \
         examples/test/qore/operators/logic.qtest \
         examples/test/qore/operators/operators.qtest \
         examples/test/qore/stack/call-stack-overflow-exception.qtest \

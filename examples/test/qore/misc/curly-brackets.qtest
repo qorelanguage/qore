@@ -1,0 +1,35 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%requires UnitTest
+%new-style
+
+namespace None {}
+class NoClass {}
+class None::NoClass {}
+
+class SomeClass {
+    public {}
+
+    noMeth() {}
+}
+
+UnitTest unit();
+
+test();
+
+sub no_func() {}
+
+sub test() {
+    SomeClass sc();
+
+    # these test the reduce-reduce conflicts in the qore parser due to the introduction of the empty hash syntax: {}
+    unit.cmp(sc.typeCode(), NT_OBJECT, "empty-class-public-1");
+    unit.cmp((new NoClass()).typeCode(), NT_OBJECT, "empty-class-public-2");
+    unit.cmp(no_func(), NOTHING, "empty-func");
+    unit.cmp(sc.noMeth(), NOTHING, "empty-func");
+    unit.cmp((sub () {})(), NOTHING, "empty-closure");
+    unit.cmp({}, hash(), "empty-hash");
+}
