@@ -251,12 +251,12 @@ public:
       return 0;
    }
 
-   DLLLOCAL FunctionEntry* runtimeImportFunction(ExceptionSink* xsink, QoreFunction* u, const char* new_name = 0) {
+   DLLLOCAL FunctionEntry* runtimeImportFunction(ExceptionSink* xsink, QoreFunction* u, const char* new_name = 0, bool inject = false) {
       const char* fn = new_name ? new_name : u->getName();
       if (checkImportFunction(fn, xsink))
          return 0;
 
-      return func_list.import(fn, u, this);
+      return func_list.import(fn, u, this, inject);
    }
 
    DLLLOCAL int checkImportClass(const char* cname, ExceptionSink *xsink) {
@@ -282,11 +282,11 @@ public:
       return 0;
    }
 
-   DLLLOCAL QoreClass* runtimeImportClass(ExceptionSink* xsink, const QoreClass* c, const char* new_name = 0) {
+   DLLLOCAL QoreClass* runtimeImportClass(ExceptionSink* xsink, const QoreClass* c, const char* new_name = 0, bool inject = false) {
       if (checkImportClass(new_name ? new_name : c->getName(), xsink))
          return 0;
 
-      QoreClass* nc = qore_class_private::makeImportClass(*c, new_name);
+      QoreClass* nc = qore_class_private::makeImportClass(*c, new_name, inject);
       qore_class_private::setNamespace(nc, this);
       classList.add(nc);
 
@@ -368,8 +368,8 @@ public:
 
    DLLLOCAL void setPublic();
 
-   DLLLOCAL void runtimeImportSystemClasses(const qore_ns_private& source, qore_root_ns_private& rns);
-   DLLLOCAL void runtimeImportSystemFunctions(const qore_ns_private& source, qore_root_ns_private& rns);
+   DLLLOCAL void runtimeImportSystemClasses(const qore_ns_private& source, qore_root_ns_private& rns, ExceptionSink* xsink);
+   DLLLOCAL void runtimeImportSystemFunctions(const qore_ns_private& source, qore_root_ns_private& rns, ExceptionSink* xsink);
 
    DLLLOCAL static void addNamespace(QoreNamespace& ns, QoreNamespace* nns) {
       ns.priv->addNamespace(nns->priv);
@@ -845,8 +845,8 @@ protected:
    }
 
    // performed at runtime
-   DLLLOCAL int runtimeImportClass(ExceptionSink *xsink, qore_ns_private& ns, const QoreClass *c, const char* new_name = 0) {
-      QoreClass* nc = ns.runtimeImportClass(xsink, c, new_name);
+   DLLLOCAL int runtimeImportClass(ExceptionSink *xsink, qore_ns_private& ns, const QoreClass *c, const char* new_name = 0, bool inject = false) {
+      QoreClass* nc = ns.runtimeImportClass(xsink, c, new_name, inject);
       if (!nc)
          return -1;
 
@@ -857,8 +857,8 @@ protected:
    }
 
    // performed at runtime
-   DLLLOCAL int runtimeImportFunction(ExceptionSink *xsink, qore_ns_private& ns, QoreFunction *u, const char* new_name = 0) {
-      FunctionEntry* fe = ns.runtimeImportFunction(xsink, u, new_name);
+   DLLLOCAL int runtimeImportFunction(ExceptionSink *xsink, qore_ns_private& ns, QoreFunction *u, const char* new_name = 0, bool inject = false) {
+      FunctionEntry* fe = ns.runtimeImportFunction(xsink, u, new_name, inject);
       if (!fe)
          return -1;
 
@@ -1481,12 +1481,12 @@ public:
       rebuildFunctionIndexes(fmap, ns->func_list, ns);
    }
 
-   DLLLOCAL static void runtimeImportSystemClasses(RootQoreNamespace& rns, const RootQoreNamespace& source) {
-      rns.priv->runtimeImportSystemClasses(*source.priv, *rns.rpriv);
+   DLLLOCAL static void runtimeImportSystemClasses(RootQoreNamespace& rns, const RootQoreNamespace& source, ExceptionSink* xsink) {
+      rns.priv->runtimeImportSystemClasses(*source.priv, *rns.rpriv, xsink);
    }
    
-   DLLLOCAL static void runtimeImportSystemFunctions(RootQoreNamespace& rns, const RootQoreNamespace& source) {
-      rns.priv->runtimeImportSystemFunctions(*source.priv, *rns.rpriv);
+   DLLLOCAL static void runtimeImportSystemFunctions(RootQoreNamespace& rns, const RootQoreNamespace& source, ExceptionSink* xsink) {
+      rns.priv->runtimeImportSystemFunctions(*source.priv, *rns.rpriv, xsink);
    }
    
    DLLLOCAL static QoreNamespace* runtimeFindCreateNamespacePath(const RootQoreNamespace& rns, const qore_ns_private& ns) {
@@ -1509,12 +1509,12 @@ public:
       return getRootNS()->rpriv->addPendingVariantIntern(nsp, name, v);
    }
 
-   DLLLOCAL static int runtimeImportFunction(RootQoreNamespace& rns, ExceptionSink *xsink, QoreNamespace& ns, QoreFunction *u, const char* new_name = 0) {
-      return rns.rpriv->runtimeImportFunction(xsink, *ns.priv, u, new_name);
+   DLLLOCAL static int runtimeImportFunction(RootQoreNamespace& rns, ExceptionSink *xsink, QoreNamespace& ns, QoreFunction *u, const char* new_name = 0, bool inject = false) {
+      return rns.rpriv->runtimeImportFunction(xsink, *ns.priv, u, new_name, inject);
    }
 
-   DLLLOCAL static int runtimeImportClass(RootQoreNamespace& rns, ExceptionSink* xsink, QoreNamespace& ns, const QoreClass *c, const char* new_name = 0) {
-      return rns.rpriv->runtimeImportClass(xsink, *ns.priv, c, new_name);
+   DLLLOCAL static int runtimeImportClass(RootQoreNamespace& rns, ExceptionSink* xsink, QoreNamespace& ns, const QoreClass *c, const char* new_name = 0, bool inject = false) {
+      return rns.rpriv->runtimeImportClass(xsink, *ns.priv, c, new_name, inject);
    }
 
    DLLLOCAL static const QoreClass* runtimeFindClass(RootQoreNamespace& rns, const char* name, const qore_ns_private*& ns) {

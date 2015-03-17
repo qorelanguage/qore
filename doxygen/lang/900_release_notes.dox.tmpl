@@ -27,15 +27,24 @@
       - @ref Qore::load_user_module_with_program() "load_user_module_with_program()"
       - @ref Qore::Program::loadApplyToUserModule() "Program::loadApplyToUserModule()"
       - @ref Qore::Program::loadUserModuleWithProgram() "Program::loadUserModuleWithProgram()"
+    - implemented support for code / dependency injections in @ref Qore::Program "Program" containers with the following changes:
+      - @ref Qore::Program::importClass() now accepts optional arguments that allow the imported version of the class to live in another namespace and have another name and an argument that allows the imported version of the class to remain even if it overlaps with an imported system or user class from a module
+      - @ref Qore::Program::importFunction() now accepts an optional argument that allows the imported version of the function to remain even if it overlaps with an imported system or user function from a module
+      - the new parse option @ref Qore::PO_ALLOW_INJECTION must be set on the @ref Qore::Program "Program" object in order to use code / dependency injection parameters in the above methods
+      - once a @ref Qore::Program "Program" object has an injected API set up, the system API can be imported (possibly already overridden with injected code) with the following new methods:
+        - @ref Qore::Program::importSystemApi()
+        - @ref Qore::Program::importSystemClasses()
+        - @ref Qore::Program::importSystemFunctions()
+	.
+	additionally user modules can be loaded with overridden injected code with the following new functions / methods:
+        - @ref Qore::load_user_module_with_program() "load_user_module_with_program()"
+        - @ref Qore::Program::loadApplyToUserModule() "Program::loadApplyToUserModule()"
+        - @ref Qore::Program::loadUserModuleWithProgram() "Program::loadUserModuleWithProgram()"
     - new constants:
       - @ref Qore::DirSep
       - @ref Qore::Platform
     - new classes:
       - @ref Qore::DataLineIterator
-    - new methods in existing classes:
-      - @ref Qore::Program::importSystemApi()
-      - @ref Qore::Program::importSystemClasses()
-      - @ref Qore::Program::importSystemFunctions()
     - new functions:
       - @ref Qore::decode_uri_request()
       - @ref Qore::encode_uri_request()

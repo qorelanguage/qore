@@ -912,7 +912,7 @@ public:
    }
 
    // called during run time (not during parsing)
-   DLLLOCAL void importFunction(ExceptionSink* xsink, QoreFunction *u, const qore_ns_private& oldns, const char* new_name = 0);
+   DLLLOCAL void importFunction(ExceptionSink* xsink, QoreFunction *u, const qore_ns_private& oldns, const char* new_name = 0, bool inject = false);
 
    DLLLOCAL void del(ExceptionSink* xsink);
 
@@ -1045,10 +1045,15 @@ public:
       TZ = n_TZ;
    }
 
-   DLLLOCAL void exportFunction(ExceptionSink* xsink, qore_program_private* p, const char* name, const char* new_name = 0) {
+   DLLLOCAL void exportFunction(ExceptionSink* xsink, qore_program_private* p, const char* name, const char* new_name = 0, bool inject = false) {
       if (this == p) {
-	 xsink->raiseException("PROGRAM-IMPORTFUNCTION-PARAMETER-ERROR", "cannot import a function from the same Program object");
+	 xsink->raiseException("FUNCTION-IMPORT-ERROR", "cannot import a function from the same Program object");
 	 return;
+      }
+
+      if (inject && !(p->pwo.parse_options & PO_ALLOW_INJECTION)) {
+         xsink->raiseException("FUNCTION-IMPORT-ERROR", "cannot import function \"%s\" in a Program object without PO_ALLOW_INJECTION set", name);
+         return;
       }
 
       const QoreFunction* u;
@@ -1065,7 +1070,7 @@ public:
 	 xsink->raiseException("PROGRAM-IMPORTFUNCTION-NO-FUNCTION", "function '%s' does not exist in the current program scope", name);
       else {
          assert(ns);
-	 p->importFunction(xsink, const_cast<QoreFunction*>(u), *ns, new_name);
+	 p->importFunction(xsink, const_cast<QoreFunction*>(u), *ns, new_name, inject);
       }
    }
 
@@ -1384,7 +1389,7 @@ public:
          parse_error("illegal top-level statement (conflicts with parse option NO_TOP_LEVEL_STATEMENTS)");
    }
 
-   DLLLOCAL void importClass(ExceptionSink* xsink, qore_program_private& from_pgm, const char* path, const char* new_name = 0);
+   DLLLOCAL void importClass(ExceptionSink* xsink, qore_program_private& from_pgm, const char* path, const char* new_name = 0, bool inject = false);
 
    DLLLOCAL void addFile(char* f) {
       fileList.push_back(f);
@@ -1394,8 +1399,8 @@ public:
       userFeatureList.push_back(f);
    }
 
-   DLLLOCAL void runtimeImportSystemClassesIntern(const qore_program_private& spgm);
-   DLLLOCAL void runtimeImportSystemFunctionsIntern(const qore_program_private& spgm);
+   DLLLOCAL void runtimeImportSystemClassesIntern(const qore_program_private& spgm, ExceptionSink* xsink);
+   DLLLOCAL void runtimeImportSystemFunctionsIntern(const qore_program_private& spgm, ExceptionSink* xsink);
 
    DLLLOCAL void runtimeImportSystemClasses(ExceptionSink* xsink);
    DLLLOCAL void runtimeImportSystemFunctions(ExceptionSink* xsink);
@@ -1437,8 +1442,8 @@ public:
       pgm.priv->addFile(f);
    }
 
-   DLLLOCAL static void importClass(ExceptionSink* xsink, QoreProgram& pgm, QoreProgram& from_pgm, const char* path, const char* new_name = 0) {
-      pgm.priv->importClass(xsink, *(from_pgm.priv), path, new_name);
+   DLLLOCAL static void importClass(ExceptionSink* xsink, QoreProgram& pgm, QoreProgram& from_pgm, const char* path, const char* new_name = 0, bool inject = false) {
+      pgm.priv->importClass(xsink, *(from_pgm.priv), path, new_name, inject);
    }
 
    DLLLOCAL static void addStatement(QoreProgram& pgm, AbstractStatement* s) {
@@ -1580,8 +1585,8 @@ public:
       pgm->priv->addParseException(xsink, loc);
    }
 
-   DLLLOCAL static void exportFunction(QoreProgram* srcpgm, ExceptionSink* xsink, QoreProgram *trgpgm, const char* name, const char* new_name = 0) {
-      srcpgm->priv->exportFunction(xsink, trgpgm->priv, name, new_name);
+   DLLLOCAL static void exportFunction(QoreProgram* srcpgm, ExceptionSink* xsink, QoreProgram *trgpgm, const char* name, const char* new_name = 0, bool inject = false) {
+      srcpgm->priv->exportFunction(xsink, trgpgm->priv, name, new_name, inject);
    }
 
    DLLLOCAL static int parseAddDomain(QoreProgram* pgm, int64 n_dom) {

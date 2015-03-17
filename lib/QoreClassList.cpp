@@ -99,10 +99,15 @@ void QoreClassList::mergeUserPublic(const QoreClassList& old, qore_ns_private* n
    }
 }
 
-int QoreClassList::importSystemClasses(const QoreClassList& source, qore_ns_private* ns) {
+int QoreClassList::importSystemClasses(const QoreClassList& source, qore_ns_private* ns, ExceptionSink* xsink) {
    int cnt = 0;
    for (hm_qc_t::const_iterator i = source.hm.begin(), e = source.hm.end(); i != e; ++i) {
-      if (i->second->isSystem() && hm.find(i->second->getName()) == hm.end()) {
+      if (i->second->isSystem()) {
+	 hm_qc_t::const_iterator ci = hm.find(i->second->getName());
+	 if (ci != hm.end() && !qore_class_private::injected(*ci->second)) {
+	    xsink->raiseException("IMPORT-SYSTEM-API-ERROR", "cannot import system class %s::%s due to an existing class without the injection flag set", ns->name.c_str(), ci->second->getName());
+	    break;
+	 }
          //printd(5, "QoreClassList::importSystemClasses() this: %p importing %p %s::'%s'\n", this, i->second, ns->name.c_str(), i->second->getName());
 	 QoreClass* qc = new QoreClass(*i->second);
 	 qore_class_private::setNamespace(qc, ns);

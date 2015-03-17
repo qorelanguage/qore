@@ -1776,7 +1776,7 @@ public:
       owns_ornothingtypeinfo,       // do we own the "or nothing" type info
       pub,                          // is a public class (modules only)
       final,                        // is the class "final" (cannot be inherited)
-      explicit_import               // has the class been explicitly imported?
+      inject                        // has the class been injected
       ;
 
    int64 domain;                    // capabilities of builtin class to use in the context of parse restrictions
@@ -2774,16 +2774,16 @@ public:
    // static methods
    //DLLLOCAL static
 
-   DLLLOCAL static bool explicitlyImported(const QoreClass& qc) {
-      return qc.priv->explicit_import;
+   DLLLOCAL static bool injected(const QoreClass& qc) {
+      return qc.priv->inject;
    }
 
-   DLLLOCAL static QoreClass* makeImportClass(const QoreClass& qc, const char* nme) {
+   DLLLOCAL static QoreClass* makeImportClass(const QoreClass& qc, const char* nme, bool inject) {
       QoreClass* rv = new QoreClass(qc);
       if (nme)
          rv->priv->name = nme;
-      rv->priv->explicit_import = true;
-      //printd(5, "qore_program_private::makeImportClass() name: '%s' (%s) rv: %p import: %d\n", qc.getName(), nme ? nme : "n/a", rv, rv->priv->explicit_import);
+      rv->priv->inject = inject;
+      //printd(5, "qore_program_private::makeImportClass() name: '%s' (%s) rv: %p inject: %d\n", qc.getName(), nme ? nme : "n/a", rv, rv->priv->inject);
       return rv;
    }
 

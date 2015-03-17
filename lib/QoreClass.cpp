@@ -485,7 +485,7 @@ qore_class_private::qore_class_private(QoreClass* n_cls, const char* nme, int64 
      owns_ornothingtypeinfo(false),
      pub(false),
      final(false),
-     explicit_import(false),
+     inject(false),
      domain(dom), 
      num_methods(0), 
      num_user_methods(0),
@@ -539,7 +539,7 @@ qore_class_private::qore_class_private(const qore_class_private& old, QoreClass*
      owns_ornothingtypeinfo(false),
      pub(false), // set the public flag to false; only code directly declared public in a module can be exported
      final(old.final),
-     explicit_import(old.explicit_import),
+     inject(old.inject),
      domain(old.domain), 
      num_methods(old.num_methods), 
      num_user_methods(old.num_user_methods),

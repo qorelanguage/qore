@@ -150,7 +150,7 @@ public:
 
    DLLLOCAL FunctionEntry* add(QoreFunction* func);
    DLLLOCAL FunctionEntry* import(QoreFunction* func, qore_ns_private* ns);
-   DLLLOCAL FunctionEntry* import(const char* new_name, QoreFunction* func, qore_ns_private* ns);
+   DLLLOCAL FunctionEntry* import(const char* new_name, QoreFunction* func, qore_ns_private* ns, bool inject);
    DLLLOCAL QoreFunction* find(const char* name, bool runtime) const;
    DLLLOCAL FunctionEntry* findNode(const char* name) const;
 
@@ -168,7 +168,7 @@ public:
    }
 
    // returns the number of functions imported
-   DLLLOCAL int importSystemFunctions(const FunctionList& src, qore_ns_private* ns);
+   DLLLOCAL int importSystemFunctions(const FunctionList& src, qore_ns_private* ns, ExceptionSink* xsink);
 
    DLLLOCAL void del();
    DLLLOCAL void parseInit();

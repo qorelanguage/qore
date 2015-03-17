@@ -84,13 +84,13 @@ FunctionEntry* FunctionList::import(QoreFunction* func, qore_ns_private* ns) {
    return fe;
 }
 
-FunctionEntry* FunctionList::import(const char* new_name, QoreFunction* func, qore_ns_private* ns) {
-   QORE_TRACE("FunctionList::add()");
+FunctionEntry* FunctionList::import(const char* new_name, QoreFunction* func, qore_ns_private* ns, bool inject) {
+   QORE_TRACE("FunctionList::import()");
 
    assert(!findNode(new_name));
 
    // copy function entry for import and insert into map
-   FunctionEntry* fe = new FunctionEntry(new_name, new QoreFunction(*func, 0, ns, true));
+   FunctionEntry* fe = new FunctionEntry(new_name, new QoreFunction(*func, 0, ns, true, inject));
    insert(std::make_pair(fe->getName(), fe));
    return fe;
 }
@@ -160,14 +160,19 @@ void FunctionList::assimilate(FunctionList& fl, qore_ns_private* ns) {
    }   
 }
 
-int FunctionList::importSystemFunctions(const FunctionList& src, qore_ns_private* ns) {
+int FunctionList::importSystemFunctions(const FunctionList& src, qore_ns_private* ns, ExceptionSink* xsink) {
    int cnt = 0;
    for (fl_map_t::const_iterator i = src.begin(), e = src.end(); i != e; ++i) {
-      if (!i->second->hasBuiltin() || fl_map_t::find(i->second->getName()) != fl_map_t::end())
-	 continue;
+      if (i->second->hasBuiltin()) {
+	 fl_map_t::const_iterator ci = fl_map_t::find(i->second->getName());
+	 if (ci != fl_map_t::end() && !ci->second->getFunction()->injected()) {
+	    xsink->raiseException("IMPORT-SYSTEM-API-ERROR", "cannot import system function %s::%s() due to an existing function without the injection flag set", ns->name.c_str(), ci->second->getName());
+	    break;
+	 }
 
-      import(i->second->getFunction(), ns);
-      ++cnt;
+	 import(i->second->getFunction(), ns);
+	 ++cnt;
+      }
    }
    return cnt;
 }

@@ -576,6 +576,7 @@ protected:
    bool has_user;                   // has at least 1 committed user variant
    bool has_builtin;                // has at least 1 committed builtin variant
    bool has_mod_pub;                // has at least 1 committed user variant with public visibility
+   bool inject;
 
    const QoreTypeInfo* nn_uniqueReturnType;
 
@@ -682,13 +683,14 @@ public:
         unique_functionality(QDOM_DEFAULT), unique_flags(QC_NO_FLAGS),
         nn_same_return_type(true), nn_unique_functionality(QDOM_DEFAULT),
         nn_unique_flags(QC_NO_FLAGS), nn_count(0), parse_rt_done(true),
-        parse_init_done(true), has_user(false), has_builtin(false), has_mod_pub(false), nn_uniqueReturnType(0) {
+        parse_init_done(true), has_user(false), has_builtin(false), has_mod_pub(false), inject(false),
+        nn_uniqueReturnType(0) {
       ilist.push_back(this);
       //printd(5, "QoreFunction::QoreFunction() this: %p %s\n", this, name.c_str());
    }
 
    // copy constructor (used by method functions when copied)
-   DLLLOCAL QoreFunction(const QoreFunction& old, int64 po = 0, qore_ns_private* n = 0, bool copy_all = false)
+   DLLLOCAL QoreFunction(const QoreFunction& old, int64 po = 0, qore_ns_private* n = 0, bool copy_all = false, bool n_inject = false)
       : name(old.name), ns(n), same_return_type(old.same_return_type),
         parse_same_return_type(true), 
         unique_functionality(old.unique_functionality),
@@ -698,7 +700,7 @@ public:
         nn_unique_flags(old.nn_unique_flags),
         nn_count(old.nn_count),
         parse_rt_done(true), parse_init_done(true),
-        has_user(old.has_user), has_builtin(old.has_builtin), has_mod_pub(false),
+        has_user(old.has_user), has_builtin(old.has_builtin), has_mod_pub(false), inject(n_inject), 
         nn_uniqueReturnType(old.nn_uniqueReturnType) {
       bool no_user = po & PO_NO_INHERIT_USER_FUNC_VARIANTS;
       bool no_builtin = po & PO_NO_SYSTEM_FUNC_VARIANTS;
@@ -749,7 +751,7 @@ public:
         nn_unique_flags(old.nn_unique_flags),
         nn_count(old.nn_count),
         parse_rt_done(true), parse_init_done(true),
-        has_user(true), has_builtin(false), has_mod_pub(false /*old.has_mod_pub*/),
+        has_user(true), has_builtin(false), has_mod_pub(false /*old.has_mod_pub*/), inject(false), 
         nn_uniqueReturnType(old.nn_uniqueReturnType) {
       assert(!ignore);
       assert(old.has_mod_pub);
@@ -941,6 +943,10 @@ public:
       return has_mod_pub && has_user;
    }
 
+   DLLLOCAL bool injected() const {
+      return inject;
+   }
+   
    DLLLOCAL const std::string& getNameStr() const {
       return name;
    }

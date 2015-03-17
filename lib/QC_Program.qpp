@@ -299,6 +299,11 @@ const PO_STRICT_ARGS = PO_STRICT_ARGS;
     @since %Qore 0.8.6
  */
 const PO_STRICT_BOOLEAN_EVAL = PO_STRICT_BOOLEAN_EVAL;
+
+//! Allows code/dependency injections in the contained Program object
+/** @since %Qore 0.8.12
+ */
+const PO_ALLOW_INJECTION = PO_ALLOW_INJECTION;
 //@}
 
 /** @defgroup warning_constants Warning Constants
@@ -781,27 +786,33 @@ nothing Program::importFunction(string func) {
 /** This allows a user-defined API with greater capabilities than the embedded Program object to be imported into the embedded code.
 
     @param func the name of the function to import into the Program object
-    @param new_name the name of the function as it will be known in the Program object once imported
+    @param new_name the name of the function as it will be known in the Program object once imported; can be a fully-qualified namespace path, in which case the namespace path will be created in the target Program object if necessary as well (ex: \c "Ns1::Ns2::my_func")
+    @param inject if @ref Qore::True "True" then the imported function will be marked as a dependency injection and therefore will not be overritten by subsequent calls to Program::importSystemFunctions(), Program::importSystemApi(), or Program::loadApplyToUserModule(); note that for this call to succeed, the Program must have @ref Qore::PO_ALLOW_INJECTION set
 
     @par Example:
     @code
 $pgm.importFunction("service_log", "log");
     @endcode
 
-    @throw FUNCTION-IMPORT-ERROR Cannot import a function into the same Program object; function with this name already exists; target namespace does not exist
+    @throw FUNCTION-IMPORT-ERROR Cannot import a function into the same Program object; function with this name already exists; target namespace does not exist; injection indicated but @ref Qore::PO_ALLOW_INJECTION not set
     @throw PROGRAM-IMPORTFUNCTION-NO-FUNCTION The function does not exist
     @throw ENCODING-CONVERSION-ERROR the function name could not be converted to the @ref default_encoding "default character encoding"
 
-    @since %Qore 0.8.4 the function name can include a namespace path (ex \c "Namespace::func")
+    @since
+    - %Qore 0.8.4 the function name can include a namespace path (ex \c "Namespace::func")
+    - %Qore 0.8.12 added the \a inject parameter
  */
-nothing Program::importFunction(string func, string new_name) {
+nothing Program::importFunction(string func, string new_name, *softbool inject) {
    TempEncodingHelper tfunc(func, QCS_DEFAULT, xsink);
    if (!tfunc)
       return 0;
    TempEncodingHelper tnew_name(new_name, QCS_DEFAULT, xsink);
    if (!tnew_name)
       return 0;
-   qore_program_private::exportFunction(getProgram(), xsink, p, tfunc->getBuffer(), tnew_name->getBuffer());
+   if (tnew_name->empty()) {
+         xsink->raiseException("FUNCTION-IMPORT-ERROR", "the new function name while importing function '%s' may not be empty", func);
+
+   qore_program_private::exportFunction(getProgram(), xsink, p, tfunc->getBuffer(), tnew_name->getBuffer(), inject);
 }
 
 //! Imports a global variable into the program object's space
@@ -829,31 +840,37 @@ nothing Program::importGlobalVariable(string varname, bool readonly = False) {
 /** This allows a user-defined API with greater capabilities than the embedded Program object to be imported into the embedded code.
 
     @param cls the name of the class to import into the Program object
+    @param new_name the name of the class in the imported Program object; can be a fully-qualified namespace path, in which case the namespace path will be created in the target Program object if necessary as well (ex: \c "Ns1::Ns2::MyClass")
+    @param inject if @ref Qore::True "True" then the imported class will be marked as a dependency injection and therefore will not be overritten by subsequent calls to Program::importSystemClasses(), Program::importSystemApi(), or Program::loadApplyToUserModule(); note that for this call to succeed, the Program must have @ref Qore::PO_ALLOW_INJECTION set
 
     @par Example:
     @code
 $pgm.importClass("MyNamespace::MyClass");
     @endcode
 
-    @throw CLASS-IMPORT-ERROR Cannot import a class into the same Program object; class or namespace with this name already exists or the source class does not exist
+    @throw CLASS-IMPORT-ERROR Cannot import a class into the same Program object; class or namespace with this name already exists or the source class does not exist; injection indicated but @ref Qore::PO_ALLOW_INJECTION not set
     @throw ENCODING-CONVERSION-ERROR the class name could not be converted to the @ref default_encoding "default character encoding"
 
     @since
     - This method was first implemented in %Qore 0.8.7
-    - %Qore 0.8.12 added the \a new_name parameter
+    - %Qore 0.8.12 added the \a new_name and \a inject parameters
  */
-nothing Program::importClass(string cls, *string new_name) {
+nothing Program::importClass(string cls, *string new_name, *softbool inject) {
    TempEncodingHelper tmp(cls, QCS_DEFAULT, xsink);
    if (!tmp)
       return 0;
-
+   
    TempEncodingHelper nn;
    if (new_name) {
       nn.set(new_name, QCS_DEFAULT, xsink);
       if (!nn)
          return 0;
+
+      if (nn->empty()) {
+         xsink->raiseException("CLASS-IMPORT-ERROR", "the new class name while importing class '%s' may not be empty", cls);
+      return 0;
    }
-   qore_program_private::importClass(xsink, *p, *(getProgram()), tmp->getBuffer(), new_name ? nn->getBuffer() : 0);
+   qore_program_private::importClass(xsink, *p, *(getProgram()), tmp->getBuffer(), new_name ? nn->getBuffer() : 0, inject);
 }
 
 //! Returns a list of strings of all user functions defined in the program object
@@ -1262,6 +1279,8 @@ Program::loadApplyToUserModule(string name) [dom=MODULES] {
 $pgm.importSystemClasses();
     @endcode
 
+    @throw IMPORT-SYSTEM-API-ERROR objects already imported; parse options are locked on the Program object; conflicting object found; system API incorrectly imported; in case this exception is raised, the Program object will not contain the full system API and is most likely unusable
+
     @note adds @ref Qore::PO_NO_SYSTEM_CLASSES to the parse option mask after a successful completion
 
     @since %Qore 0.8.12
@@ -1276,6 +1295,8 @@ Program::importSystemClasses() {
 $pgm.importSystemFunctions();
     @endcode
 
+    @throw IMPORT-SYSTEM-API-ERROR objects already imported; parse options are locked on the Program object; conflicting object found; system API incorrectly imported; in case this exception is raised, the Program object will not contain the full system API and is most likely unusable
+
     @note adds @ref Qore::PO_NO_FUNC_VARIANTS to the parse option mask after a successful completion
 
     @since %Qore 0.8.12
@@ -1289,6 +1310,8 @@ Program::importSystemFunctions() {
     @code
 $pgm.importSystemApi();
     @endcode
+
+    @throw IMPORT-SYSTEM-API-ERROR objects already imported; parse options are locked on the Program object; conflicting object found; system API incorrectly imported; in case this exception is raised, the Program object will not contain the full system API and is most likely unusable
 
     @note adds @ref Qore::PO_NO_SYSTEM_CLASSES and @ref Qore::PO_NO_FUNC_VARIANTS to the parse option mask after a successful completion
 
