@@ -386,16 +386,20 @@ int qore_program_private::internParseCommit() {
 }
 
 void qore_program_private::runtimeImportSystemClassesIntern(const qore_program_private& spgm) {
+   assert(&spgm != pgm->priv);
    qore_root_ns_private::runtimeImportSystemClasses(*RootNS, *spgm.RootNS);
    pwo.parse_options &= ~PO_NO_SYSTEM_CLASSES;
 }
 
 void qore_program_private::runtimeImportSystemFunctionsIntern(const qore_program_private& spgm) {
+   assert(&spgm != pgm->priv);
    qore_root_ns_private::runtimeImportSystemFunctions(*RootNS, *spgm.RootNS);
    pwo.parse_options &= ~PO_NO_SYSTEM_FUNC_VARIANTS;
 }
 
 void qore_program_private::runtimeImportSystemClasses(ExceptionSink* xsink) {
+   // must acquire current program before setting program context below
+   const QoreProgram* spgm = getProgram();
    // acquire safe access to parse structures in the source program
    ProgramRuntimeParseAccessHelper rah(xsink, pgm);
 
@@ -406,11 +410,12 @@ void qore_program_private::runtimeImportSystemClasses(ExceptionSink* xsink) {
    if (po_locked)
       xsink->raiseException("IMPORT-SYSTEM-CLASSES-ERROR", "parse options have been locked on this program object");
 
-   const QoreProgram* spgm = getProgram();
    runtimeImportSystemClassesIntern(*spgm->priv);
 }
 
 void qore_program_private::runtimeImportSystemFunctions(ExceptionSink* xsink) {
+   // must acquire current program before setting program context below
+   const QoreProgram* spgm = getProgram();
    // acquire safe access to parse structures in the source program
    ProgramRuntimeParseAccessHelper rah(xsink, pgm);
    if (!(pwo.parse_options & PO_NO_SYSTEM_FUNC_VARIANTS)) {
@@ -420,7 +425,6 @@ void qore_program_private::runtimeImportSystemFunctions(ExceptionSink* xsink) {
    if (po_locked)
       xsink->raiseException("IMPORT-SYSTEM-FUNCTIONS-ERROR", "parse options have been locked on this program object");
 
-   const QoreProgram* spgm = getProgram();
    runtimeImportSystemFunctionsIntern(*spgm->priv);
 }
 

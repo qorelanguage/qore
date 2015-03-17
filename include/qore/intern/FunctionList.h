@@ -167,7 +167,8 @@ public:
       }
    }
 
-   DLLLOCAL void importSystemFunctions(const FunctionList& src, qore_ns_private* ns);
+   // returns the number of functions imported
+   DLLLOCAL int importSystemFunctions(const FunctionList& src, qore_ns_private* ns);
 
    DLLLOCAL void del();
    DLLLOCAL void parseInit();

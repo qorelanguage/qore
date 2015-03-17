@@ -286,7 +286,7 @@ public:
       if (checkImportClass(new_name ? new_name : c->getName(), xsink))
          return 0;
 
-      QoreClass* nc = qore_class_private::makeClass(*c, new_name);
+      QoreClass* nc = qore_class_private::makeImportClass(*c, new_name);
       qore_class_private::setNamespace(nc, this);
       classList.add(nc);
 
@@ -368,8 +368,8 @@ public:
 
    DLLLOCAL void setPublic();
 
-   DLLLOCAL void runtimeImportSystemClasses(const qore_ns_private& source);
-   DLLLOCAL void runtimeImportSystemFunctions(const qore_ns_private& source);
+   DLLLOCAL void runtimeImportSystemClasses(const qore_ns_private& source, qore_root_ns_private& rns);
+   DLLLOCAL void runtimeImportSystemFunctions(const qore_ns_private& source, qore_root_ns_private& rns);
 
    DLLLOCAL static void addNamespace(QoreNamespace& ns, QoreNamespace* nns) {
       ns.priv->addNamespace(nns->priv);
@@ -1293,14 +1293,17 @@ protected:
          clmap.update(cli.getName(), ns, cli.get());
    }
 
+   DLLLOCAL static void rebuildFunctionIndexes(fmap_t& fmap, fl_map_t& flmap, qore_ns_private* ns) {
+      for (fl_map_t::iterator i = flmap.begin(), e = flmap.end(); i != e; ++i) {
+         assert(i->second->getFunction()->getNamespace() == ns);
+         fmap.update(i->first, i->second);
+         //printd(5, "qore_root_ns_private::rebuildFunctionIndexes() this: %p ns: %p func %s\n", this, ns, i->first);
+      }
+   }
+   
    DLLLOCAL void rebuildIndexes(qore_ns_private* ns) {
       // process function indexes
-      for (fl_map_t::iterator i = ns->func_list.begin(), e = ns->func_list.end(); i != e; ++i) {
-         assert(i->second->getFunction()->getNamespace() == ns);
-
-         fmap.update(i->first, i->second);
-         //printd(5, "qore_root_ns_private::rebuildIndexes() this: %p ns: %p func %s\n", this, ns, i->first);
-      }
+      rebuildFunctionIndexes(fmap, ns->func_list, ns);
 
       // process variable indexes
       for (map_var_t::iterator i = ns->var_list.vmap.begin(), e = ns->var_list.vmap.end(); i != e; ++i)
@@ -1470,12 +1473,20 @@ public:
       return nns;
    }
 
+   DLLLOCAL void runtimeRebuildClassIndexes(qore_ns_private* ns) {
+      rebuildClassIndexes(clmap, ns->classList, ns);
+   }
+
+   DLLLOCAL void runtimeRebuildFunctionIndexes(qore_ns_private* ns) {
+      rebuildFunctionIndexes(fmap, ns->func_list, ns);
+   }
+
    DLLLOCAL static void runtimeImportSystemClasses(RootQoreNamespace& rns, const RootQoreNamespace& source) {
-      rns.priv->runtimeImportSystemClasses(*source.priv);
+      rns.priv->runtimeImportSystemClasses(*source.priv, *rns.rpriv);
    }
    
    DLLLOCAL static void runtimeImportSystemFunctions(RootQoreNamespace& rns, const RootQoreNamespace& source) {
-      rns.priv->runtimeImportSystemFunctions(*source.priv);
+      rns.priv->runtimeImportSystemFunctions(*source.priv, *rns.rpriv);
    }
    
    DLLLOCAL static QoreNamespace* runtimeFindCreateNamespacePath(const RootQoreNamespace& rns, const qore_ns_private& ns) {

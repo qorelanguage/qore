@@ -160,7 +160,8 @@ void FunctionList::assimilate(FunctionList& fl, qore_ns_private* ns) {
    }   
 }
 
-void FunctionList::importSystemFunctions(const FunctionList& src, qore_ns_private* ns) {
+int FunctionList::importSystemFunctions(const FunctionList& src, qore_ns_private* ns) {
+   int cnt = 0;
    for (fl_map_t::const_iterator i = src.begin(), e = src.end(); i != e; ++i) {
       if (!i->second->hasBuiltin() || fl_map_t::find(i->second->getName()) != fl_map_t::end())
 	 continue;
@@ -168,5 +169,7 @@ void FunctionList::importSystemFunctions(const FunctionList& src, qore_ns_privat
       FunctionEntry* fe = new ModuleImportedFunctionEntry(*i->second, ns);
       //printd(5, "FunctionList::importSystemFunctions() this: %p merging in %s (%p)\n", this, i->first, fe);
       insert(fl_map_t::value_type(fe->getName(), fe));
+      ++cnt;
    }
+   return cnt;
 }

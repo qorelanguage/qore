@@ -1775,7 +1775,8 @@ public:
       has_new_user_changes,         // does the class have new user code that needs to be processed?
       owns_ornothingtypeinfo,       // do we own the "or nothing" type info
       pub,                          // is a public class (modules only)
-      final                         // is the class "final" (cannot be inherited)
+      final,                        // is the class "final" (cannot be inherited)
+      explicit_import               // has the class been explicitly imported?
       ;
 
    int64 domain;                    // capabilities of builtin class to use in the context of parse restrictions
@@ -2773,10 +2774,16 @@ public:
    // static methods
    //DLLLOCAL static
 
-   DLLLOCAL static QoreClass* makeClass(const QoreClass& qc, const char* nme) {
+   DLLLOCAL static bool explicitlyImported(const QoreClass& qc) {
+      return qc.priv->explicit_import;
+   }
+
+   DLLLOCAL static QoreClass* makeImportClass(const QoreClass& qc, const char* nme) {
       QoreClass* rv = new QoreClass(qc);
       if (nme)
          rv->priv->name = nme;
+      rv->priv->explicit_import = true;
+      //printd(5, "qore_program_private::makeImportClass() name: '%s' (%s) rv: %p import: %d\n", qc.getName(), nme ? nme : "n/a", rv, rv->priv->explicit_import);
       return rv;
    }
 

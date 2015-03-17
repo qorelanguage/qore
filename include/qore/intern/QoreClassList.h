@@ -65,7 +65,7 @@ private:
    DLLLOCAL void assimilate(QoreClassList& n);
 
    DLLLOCAL void remove(hm_qc_t::iterator i) {
-      QoreClass *qc = i->second;
+      QoreClass* qc = i->second;
       //printd(5, "QCL::remove() this=%p '%s' (%p)\n", this, qc->getName(), qc);
       hm.erase(i);
       delete qc;
@@ -78,22 +78,23 @@ public:
    
    DLLLOCAL void mergeUserPublic(const QoreClassList& old, qore_ns_private* ns);
 
-   DLLLOCAL void importSystemClasses(const QoreClassList& source, qore_ns_private* ns);
+   // returns the number of classes imported
+   DLLLOCAL int importSystemClasses(const QoreClassList& source, qore_ns_private* ns);
    
-   DLLLOCAL int add(QoreClass *ot);
-   DLLLOCAL QoreClass *find(const char* name);
-   DLLLOCAL const QoreClass *find(const char* name) const;
+   DLLLOCAL int add(QoreClass* ot);
+   DLLLOCAL QoreClass* find(const char* name);
+   DLLLOCAL const QoreClass* find(const char* name) const;
    DLLLOCAL void resolveCopy();
    DLLLOCAL void parseInit();
    DLLLOCAL void parseRollback();
    DLLLOCAL void parseCommit(QoreClassList& n);
    DLLLOCAL void reset();
    DLLLOCAL void assimilate(QoreClassList& n, qore_ns_private& ns);
-   DLLLOCAL QoreHashNode *getInfo();
+   DLLLOCAL QoreHashNode* getInfo();
 
-   DLLLOCAL AbstractQoreNode *findConstant(const char* cname, const QoreTypeInfo*& typeInfo);
+   DLLLOCAL AbstractQoreNode* findConstant(const char* cname, const QoreTypeInfo*& typeInfo);
 
-   DLLLOCAL AbstractQoreNode *parseResolveBareword(const char* name, const QoreTypeInfo*& typeInfo);
+   DLLLOCAL AbstractQoreNode* parseResolveBareword(const char* name, const QoreTypeInfo*& typeInfo);
 
    DLLLOCAL bool empty() const {
       return hm.empty();

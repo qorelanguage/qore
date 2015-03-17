@@ -201,8 +201,9 @@ void qore_ns_private::setPublic() {
    //printd(5, "qore_ns_private::setPublic() this: %p '%s::' pub:%d\n", this, name.c_str(), pub);
 }
 
-void qore_ns_private::runtimeImportSystemClasses(const qore_ns_private& source) {
-   classList.importSystemClasses(source.classList, this);
+void qore_ns_private::runtimeImportSystemClasses(const qore_ns_private& source, qore_root_ns_private& rns) {
+   if (classList.importSystemClasses(source.classList, this))
+      rns.runtimeRebuildClassIndexes(this);
 
    // add sub namespaces
    for (nsmap_t::const_iterator i = source.nsl.nsmap.begin(), e = source.nsl.nsmap.end(); i != e; ++i) {
@@ -215,13 +216,14 @@ void qore_ns_private::runtimeImportSystemClasses(const qore_ns_private& source) 
          nsl.runtimeAdd(nns, this);
       }
       
-      nns->priv->runtimeImportSystemClasses(*i->second->priv);
+      nns->priv->runtimeImportSystemClasses(*i->second->priv, rns);
       //printd(5, "qore_ns_private::runtimeImportSystemClasses() this: %p '%s::' imported %p '%s::'\n", this, name.c_str(), ns, ns->getName());
    }
 }
 
-void qore_ns_private::runtimeImportSystemFunctions(const qore_ns_private& source) {
-   func_list.importSystemFunctions(source.func_list, this);
+void qore_ns_private::runtimeImportSystemFunctions(const qore_ns_private& source, qore_root_ns_private& rns) {
+   if (func_list.importSystemFunctions(source.func_list, this))
+      rns.runtimeRebuildFunctionIndexes(this);
 
    // add sub namespaces
    for (nsmap_t::const_iterator i = source.nsl.nsmap.begin(), e = source.nsl.nsmap.end(); i != e; ++i) {
@@ -234,7 +236,7 @@ void qore_ns_private::runtimeImportSystemFunctions(const qore_ns_private& source
          nsl.runtimeAdd(nns, this);
       }
       
-      nns->priv->runtimeImportSystemFunctions(*i->second->priv);
+      nns->priv->runtimeImportSystemFunctions(*i->second->priv, rns);
       //printd(5, "qore_ns_private::runtimeImportSystemFunctions() this: %p '%s::' imported %p '%s::'\n", this, name.c_str(), ns, ns->getName());
    }
 }
@@ -1684,8 +1686,12 @@ void qore_ns_private::scanMergeCommittedNamespace(const qore_ns_private& mns, Qo
       while (cli.next()) {
          if (!cli.isUserPublic())
             continue;
-         if (classList.find(cli.getName()))
-            qmc.error("duplicate class %s::%s", name.c_str(), cli.getName());
+
+         const QoreClass* c = classList.find(cli.getName());
+         if (c) {
+            if (!qore_class_private::explicitlyImported(*c))
+               qmc.error("duplicate class %s::%s", name.c_str(), cli.getName());
+         }
          else if (pendClassList.find(cli.getName()))
             qmc.error("duplicate pending class %s::%s", name.c_str(), cli.getName());            
       }
