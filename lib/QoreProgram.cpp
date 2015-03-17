@@ -120,6 +120,7 @@ public:
       (*this)[PO_NO_IO] = "PO_NO_IO";
       (*this)[PO_LOCKDOWN] = "PO_LOCKDOWN";
       (*this)[PO_NEW_STYLE] = "PO_NEW_STYLE";
+      (*this)[PO_ALLOW_INJECTION] = "PO_ALLOW_INJECTION";
    }
 };
 
@@ -429,6 +430,8 @@ void qore_program_private::runtimeImportSystemFunctions(ExceptionSink* xsink) {
 }
 
 void qore_program_private::runtimeImportSystemApi(ExceptionSink* xsink) {
+   // must acquire current program before setting program context below
+   const QoreProgram* spgm = getProgram();
    // acquire safe access to parse structures in the source program
    ProgramRuntimeParseAccessHelper rah(xsink, pgm);
 
@@ -445,7 +448,6 @@ void qore_program_private::runtimeImportSystemApi(ExceptionSink* xsink) {
    if (po_locked)
       xsink->raiseException("IMPORT-SYSTEM-API-ERROR", "parse options have been locked on this program object");
 
-   const QoreProgram* spgm = getProgram();
    runtimeImportSystemClassesIntern(*spgm->priv);
    runtimeImportSystemFunctionsIntern(*spgm->priv);
 }

@@ -73,6 +73,7 @@
 #define PO_IN_MODULE                      (1LL << 33)  //!< do not use directly, this is set automatically in user module programs
 #define PO_NO_EMBEDDED_LOGIC              (1LL << 34)  //!< do not allow embedded logic or runtime parsing
 #define PO_STRICT_BOOLEAN_EVAL            (1LL << 35)  //!< do non-intuitive strict mathematical boolean evaluations (the Qore default prior to v0.8.6)
+#define PO_ALLOW_INJECTION                (1LL << 36)  //!< allow code injection
 
 #define PO_DEFAULT                     0            //!< no parse options set by default
 
@@ -99,7 +100,7 @@
 #define PO_NEW_STYLE                 (PO_ALLOW_BARE_REFS|PO_ASSUME_LOCAL)
 
 //! mask of all options allowing for more freedom (instead of less)
-#define PO_POSITIVE_OPTIONS          (PO_NO_CHILD_PO_RESTRICTIONS)
+#define PO_POSITIVE_OPTIONS          (PO_NO_CHILD_PO_RESTRICTIONS|PO_ALLOW_INJECTION)
 
 //! mask of options that have no effect on code access or code safety
 #define PO_FREE_OPTIONS              (PO_ALLOW_BARE_REFS|PO_ASSUME_LOCAL|PO_STRICT_BOOLEAN_EVAL)
