@@ -30,55 +30,55 @@
 
 #include <qore/Qore.h>
 
-QoreClosureParseNode::QoreClosureParseNode(UserClosureFunction *n_uf, bool n_lambda) : ParseNode(NT_CLOSURE), uf(n_uf), lambda(n_lambda), in_method(false) {
+QoreClosureParseNode::QoreClosureParseNode(UserClosureFunction* n_uf, bool n_lambda) : ParseNode(NT_CLOSURE), uf(n_uf), lambda(n_lambda), in_method(false) {
 }
 
-QoreClosureNode *QoreClosureParseNode::evalClosure() const {
+QoreClosureNode* QoreClosureParseNode::evalClosure() const {
    return new QoreClosureNode(this);
 }
 
-QoreObjectClosureNode *QoreClosureParseNode::evalObjectClosure() const {
+QoreObjectClosureNode* QoreClosureParseNode::evalObjectClosure() const {
    return new QoreObjectClosureNode(runtime_get_stack_object(), this);
 }
 
-AbstractQoreNode *QoreClosureParseNode::evalImpl(ExceptionSink *xsink) const {
-   return in_method ? (AbstractQoreNode *)evalObjectClosure() : (AbstractQoreNode *)evalClosure();
+AbstractQoreNode* QoreClosureParseNode::evalImpl(ExceptionSink* xsink) const {
+   return in_method ? (AbstractQoreNode*)evalObjectClosure() : (AbstractQoreNode*)evalClosure();
 }
 
-AbstractQoreNode *QoreClosureParseNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
+AbstractQoreNode* QoreClosureParseNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
    needs_deref = true;
-   return in_method ? (AbstractQoreNode *)evalObjectClosure() : (AbstractQoreNode *)evalClosure();
+   return in_method ? (AbstractQoreNode*)evalObjectClosure() : (AbstractQoreNode*)evalClosure();
 }
 
-int64 QoreClosureParseNode::bigIntEvalImpl(ExceptionSink *xsink) const {
+int64 QoreClosureParseNode::bigIntEvalImpl(ExceptionSink* xsink) const {
    return 0;
 }
 
-int QoreClosureParseNode::integerEvalImpl(ExceptionSink *xsink) const {
+int QoreClosureParseNode::integerEvalImpl(ExceptionSink* xsink) const {
    return 0;
 }
 
-bool QoreClosureParseNode::boolEvalImpl(ExceptionSink *xsink) const {
+bool QoreClosureParseNode::boolEvalImpl(ExceptionSink* xsink) const {
    return false;
 }
 
-double QoreClosureParseNode::floatEvalImpl(ExceptionSink *xsink) const {
+double QoreClosureParseNode::floatEvalImpl(ExceptionSink* xsink) const {
    return 0.0;
 }
 
-int QoreClosureParseNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
+int QoreClosureParseNode::getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
    str.sprintf("parsed closure (%slambda, 0x%p)", lambda ? "" : "non-", this);
    return 0;
 }
 
-QoreString *QoreClosureParseNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
+QoreString* QoreClosureParseNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
    del = true;
-   QoreString *rv = new QoreString;
+   QoreString* rv = new QoreString;
    getAsString(*rv, foff, xsink);
    return rv;
 }
 
-AbstractQoreNode *QoreClosureParseNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode* QoreClosureParseNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
    if (oflag) {
       in_method = true;
       uf->setClassType(oflag->getTypeInfo());
@@ -89,11 +89,11 @@ AbstractQoreNode *QoreClosureParseNode::parseInitImpl(LocalVar *oflag, int pflag
    return this;
 }
 
-const char *QoreClosureParseNode::getTypeName() const {
+const char* QoreClosureParseNode::getTypeName() const {
    return getStaticTypeName();
 }
 
-AbstractQoreNode *QoreClosureParseNode::exec(const QoreListNode *args, QoreObject *self, ExceptionSink *xsink) const {   
-   return uf->evalClosure(args, self, xsink);
+AbstractQoreNode* QoreClosureParseNode::exec(ThreadSafeLocalVarRuntimeEnvironment& closure_env, const QoreListNode* args, QoreObject* self, ExceptionSink* xsink) const {   
+   return uf->evalClosure(closure_env, args, self, xsink);
 }
 

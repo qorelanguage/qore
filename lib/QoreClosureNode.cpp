@@ -3,7 +3,7 @@
    
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@
 ThreadSafeLocalVarRuntimeEnvironment::ThreadSafeLocalVarRuntimeEnvironment(const lvar_set_t* vlist) {
    for (lvar_set_t::const_iterator i = vlist->begin(), e = vlist->end(); i != e; ++i) {
       ClosureVarValue* cvar = thread_find_closure_var((*i)->getName());
-      //printd(5, "ThreadSafeLocalVarRuntimeEnvironment::ThreadSafeLocalVarRuntimeEnvironment() this: %p '%s' %p\n", this, (*i)->getName(), cvar);
+      //printd(5, "ThreadSafeLocalVarRuntimeEnvironment::ThreadSafeLocalVarRuntimeEnvironment() this: %p '%s' i: %p %p\n", this, (*i)->getName(), *i, cvar);
       cmap[*i] = cvar;
       cvar->ref();
    }
@@ -44,13 +44,14 @@ ThreadSafeLocalVarRuntimeEnvironment::~ThreadSafeLocalVarRuntimeEnvironment() {
    assert(cmap.empty());
 }
 
-ClosureVarValue *ThreadSafeLocalVarRuntimeEnvironment::find(const LocalVar *id) {
+ClosureVarValue* ThreadSafeLocalVarRuntimeEnvironment::find(const LocalVar* id) {
+   //printd(5, "ThreadSafeLocalVarRuntimeEnvironment::find(%p '%s') this: %p\n", id, id->getName(), this);
    cvar_map_t::iterator i = cmap.find(id);
    assert(i != cmap.end());
    return i->second;
 }
 
-void ThreadSafeLocalVarRuntimeEnvironment::del(ExceptionSink *xsink) {
+void ThreadSafeLocalVarRuntimeEnvironment::del(ExceptionSink* xsink) {
    for (cvar_map_t::iterator i = cmap.begin(), e = cmap.end(); i != e; ++i)
       i->second->deref(xsink);
 
@@ -59,16 +60,15 @@ void ThreadSafeLocalVarRuntimeEnvironment::del(ExceptionSink *xsink) {
 #endif
 }
 
-bool QoreClosureNode::derefImpl(ExceptionSink *xsink) {
+bool QoreClosureNode::derefImpl(ExceptionSink* xsink) {
    closure_env.del(xsink);
    if (pgm_ref)
       pgm->depDeref(xsink);
    return true;
 }
 
-AbstractQoreNode *QoreClosureNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
-   ThreadSafeLocalVarRuntimeEnvironmentHelper ch(&closure_env);
-   return closure->exec(args, 0, xsink);
+AbstractQoreNode* QoreClosureNode::exec(const QoreListNode* args, ExceptionSink* xsink) const {
+   return closure->exec(closure_env, args, 0, xsink);
 }
 
 bool QoreClosureNode::getAsBoolImpl() const {
@@ -79,14 +79,14 @@ bool QoreClosureNode::getAsBoolImpl() const {
    return true;
 }
 
-QoreObjectClosureNode::QoreObjectClosureNode(QoreObject *n_obj, const QoreClosureParseNode *n_closure) : QoreClosureBase(n_closure), closure_env(n_closure->getVList()), obj(n_obj) {
+QoreObjectClosureNode::QoreObjectClosureNode(QoreObject* n_obj, const QoreClosureParseNode* n_closure) : QoreClosureBase(n_closure), closure_env(n_closure->getVList()), obj(n_obj) {
    obj->tRef();
 }
 
 QoreObjectClosureNode::~QoreObjectClosureNode() {
 }
 
-bool QoreObjectClosureNode::derefImpl(ExceptionSink *xsink) {
+bool QoreObjectClosureNode::derefImpl(ExceptionSink* xsink) {
    closure_env.del(xsink);
    obj->tDeref();
 #ifdef DEBUG
@@ -95,7 +95,6 @@ bool QoreObjectClosureNode::derefImpl(ExceptionSink *xsink) {
    return true;
 }
 
-AbstractQoreNode *QoreObjectClosureNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
-   ThreadSafeLocalVarRuntimeEnvironmentHelper ch(&closure_env);
-   return closure->exec(args, obj, xsink);
+AbstractQoreNode* QoreObjectClosureNode::exec(const QoreListNode* args, ExceptionSink* xsink) const {
+   return closure->exec(closure_env, args, obj, xsink);
 }

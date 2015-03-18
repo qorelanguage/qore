@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -38,15 +38,16 @@
 #include <vector>
 
 class LocalVar;
+class ThreadSafeLocalVarRuntimeEnvironment;
 
 class ClosureParseEnvironment {
 private:
-   lvar_set_t *vlist;
-   VNode *high_water_mark;
-   ClosureParseEnvironment *prev;
+   lvar_set_t* vlist;
+   VNode* high_water_mark;
+   ClosureParseEnvironment* prev;
 
 public:
-   DLLLOCAL ClosureParseEnvironment(lvar_set_t *n_vlist) : vlist(n_vlist), high_water_mark(getVStack()) {
+   DLLLOCAL ClosureParseEnvironment(lvar_set_t* n_vlist) : vlist(n_vlist), high_water_mark(getVStack()) {
       prev = thread_get_closure_parse_env();
       thread_set_closure_parse_env(this);
    }
@@ -55,11 +56,11 @@ public:
       thread_set_closure_parse_env(prev);
    }
 
-   DLLLOCAL VNode *getHighWaterMark() {
+   DLLLOCAL VNode* getHighWaterMark() {
       return high_water_mark;
    }
 
-   DLLLOCAL void add(LocalVar *var) {
+   DLLLOCAL void add(LocalVar* var) {
       // insert var into the set
       vlist->insert(var);
    }
@@ -70,49 +71,49 @@ class QoreObjectClosureNode;
 
 class QoreClosureParseNode : public ParseNode {
 private:
-   UserClosureFunction *uf;
+   UserClosureFunction* uf;
    bool lambda, in_method;
 
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
+   DLLLOCAL virtual AbstractQoreNode* evalImpl(ExceptionSink* xsink) const;
+   DLLLOCAL virtual AbstractQoreNode* evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
-   DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const;
-   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
-   DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink* xsink) const;
+   DLLLOCAL virtual int integerEvalImpl(ExceptionSink* xsink) const;
+   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink* xsink) const;
+   DLLLOCAL virtual double floatEvalImpl(ExceptionSink* xsink) const;
 
-   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
-   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
       return runTimeClosureTypeInfo;
    }
 
-   DLLLOCAL QoreClosureNode *evalClosure() const;
-   DLLLOCAL QoreObjectClosureNode *evalObjectClosure() const;
+   DLLLOCAL QoreClosureNode* evalClosure() const;
+   DLLLOCAL QoreObjectClosureNode* evalObjectClosure() const;
 
 public:
-   DLLLOCAL QoreClosureParseNode(UserClosureFunction *n_uf, bool n_lambda = false);
+   DLLLOCAL QoreClosureParseNode(UserClosureFunction* n_uf, bool n_lambda = false);
 
    DLLLOCAL ~QoreClosureParseNode() {
       delete uf;
    }
 
-   DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
-   DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
-   DLLLOCAL virtual const char *getTypeName() const;
-   DLLLOCAL static const char *getStaticTypeName() {
+   DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
+   DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
+   DLLLOCAL virtual const char* getTypeName() const;
+   DLLLOCAL static const char* getStaticTypeName() {
       return "function closure";
    }
 
    DLLLOCAL bool isLambda() const { return lambda; }
 
    // warning: can only be called when the closure runtime environment is set
-   DLLLOCAL AbstractQoreNode *exec(const QoreListNode *args, QoreObject *self, ExceptionSink *xsink) const;
+   DLLLOCAL AbstractQoreNode* exec(ThreadSafeLocalVarRuntimeEnvironment& closure_env, const QoreListNode* args, QoreObject* self, ExceptionSink* xsink) const;
 
-   DLLLOCAL const lvar_set_t *getVList() const {
+   DLLLOCAL const lvar_set_t* getVList() const {
       return uf->getVList();
    }
 
-   DLLLOCAL UserClosureFunction *getFunction() const {
+   DLLLOCAL UserClosureFunction* getFunction() const {
       return uf;
    }
 };

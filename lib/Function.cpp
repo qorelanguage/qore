@@ -1708,7 +1708,7 @@ void QoreFunction::parseInit() {
    }
 }
 
-AbstractQoreNode* UserClosureFunction::evalClosure(const QoreListNode* args, QoreObject *self, ExceptionSink* xsink) const {
+AbstractQoreNode* UserClosureFunction::evalClosure(ThreadSafeLocalVarRuntimeEnvironment& closure_env, const QoreListNode* args, QoreObject *self, ExceptionSink* xsink) const {
    // closures cannot be overloaded
    assert(vlist.singular());
 
@@ -1719,6 +1719,8 @@ AbstractQoreNode* UserClosureFunction::evalClosure(const QoreListNode* args, Qor
    if (*xsink)
       return 0;
 
+   ThreadSafeLocalVarRuntimeEnvironmentHelper ch(&closure_env);
+   
    //printd(5, "UserClosureFunction::evalClosure() this=%p (%s) variant=%p args=%p self=%p\n", this, getName(), variant, args, self);
    return UCLOV_const(variant)->evalClosure(ceh, self, xsink);
 }

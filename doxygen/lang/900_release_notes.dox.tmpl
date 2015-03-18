@@ -208,6 +208,7 @@
     - fixed inconsistent object encapsulation enforcement with method references; if a reference to a method is created inside the class, then when executed the call inherits the access rights at the time of creation
     - fixed inconsistent thread gating for code data structures in @ref Qore::Program "Program" containers that could have theoretically lead to crashes in @ref Qore::Program "Program" containers that parse code while threads are running
     - fixed a bug in @ref Qore::Program::importFunction() with function names with a namespace path
+    - fixed a bug in closure calls when a closure is called from within a closure and referes to closure-bound locally variables in the internal closure call which would previously result in a crash
 
     @section qore_0811 Qore 0.8.11
 

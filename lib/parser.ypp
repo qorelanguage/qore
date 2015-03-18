@@ -1222,14 +1222,14 @@ static qore_var_t get_var_type() {
    AbstractQoreNode* node;
    QoreParseHashNode* hash;
    QoreListNode* list;
-   AbstractStatement *statement;
+   AbstractStatement* statement;
    struct MemberInfo* memberinfo;
    struct ClassVarInfo* classvarinfo;
    StatementBlock *sblock;
    ContextModList* cmods;
    ContextMod *cmod;
-   class HashElement *hashelement;
-   QoreFunction *userfunc;	
+   class HashElement* hashelement;
+   QoreFunction* userfunc;	
    struct MethodNode* methodnode;
    class MemberList* memberlist;
    QoreClass *qoreclass;
@@ -1241,7 +1241,7 @@ static qore_var_t get_var_type() {
    DateTimeNode* datetime;
    RegexSubstNode* RegexSubst;
    RegexTransNode* RegexTrans;
-   SwitchStatement *switchstmt;
+   SwitchStatement* switchstmt;
    CaseNode* casenode;
    BCList* sclist;
    class BCNode* sclnode;
@@ -1251,7 +1251,7 @@ static qore_var_t get_var_type() {
    QoreRegexNode* Regex;
    QoreImplicitArgumentNode* implicit_arg;
    RetTypeInfo* returnTypeInfo;
-   struct ParserTypeStruct *parsertype;
+   struct ParserTypeStruct* parsertype;
    class ParseUserFunction* parsefunc;
    class ParseScopedUserFunction* sparsefunc;
    struct GVarDecl* gv;
