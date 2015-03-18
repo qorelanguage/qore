@@ -93,7 +93,7 @@ const char* QoreClosureParseNode::getTypeName() const {
    return getStaticTypeName();
 }
 
-AbstractQoreNode* QoreClosureParseNode::exec(ThreadSafeLocalVarRuntimeEnvironment& closure_env, const QoreListNode* args, QoreObject* self, ExceptionSink* xsink) const {   
-   return uf->evalClosure(closure_env, args, self, xsink);
+AbstractQoreNode* QoreClosureParseNode::exec(ThreadSafeLocalVarRuntimeEnvironment& closure_env, QoreProgram* pgm, const QoreListNode* args, QoreObject* self, ExceptionSink* xsink) const {   
+   return uf->evalClosure(closure_env, pgm, args, self, xsink);
 }
 

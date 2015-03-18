@@ -69,7 +69,7 @@ static void check_constant_cycle(QoreProgram *pgm, AbstractQoreNode *n) {
    else if (t == NT_HASH)
       check_constant_cycle_hash(pgm, reinterpret_cast<QoreHashNode *>(n));
    else if (t == NT_OBJECT)
-      qore_object_private::derefProgramCycle(reinterpret_cast<QoreObject *>(n), pgm);
+      qore_object_private::derefProgramCycle(reinterpret_cast<QoreObject*>(n), pgm);
    else if (t == NT_RUNTIME_CLOSURE) {
       //printd(5, "check_constant_cycle() closure=%p\n", n);
       reinterpret_cast<QoreClosureBase *>(n)->derefProgramCycle(pgm);
@@ -119,6 +119,7 @@ int ConstantEntry::scanValue(const AbstractQoreNode* n) const {
 }
 
 void ConstantEntry::del(QoreListNode& l) {
+   //printd(5, "ConstantEntry::del(l) this: %p '%s' node: %p (%d) %s %d\n", this, name.c_str(), node, get_node_type(node), get_type_name(node), node->reference_count());
    if (saved_node) {
       node->deref(0);
       l.push(saved_node);

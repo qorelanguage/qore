@@ -40,37 +40,41 @@
 #define TRACK_REFS 0
 
 #if TRACK_REFS
-//#define REF_LVL (type!=NT_FUNCREF)
+#define REF_LVL (type!=NT_RUNTIME_CLOSURE)
 #endif
 
 AbstractQoreNode::AbstractQoreNode(qore_type_t t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one, bool n_custom_reference_handlers) : type(t), value(n_value), needs_eval_flag(n_needs_eval), there_can_be_only_one(n_there_can_be_only_one), custom_reference_handlers(n_custom_reference_handlers) {
 #if TRACK_REFS
-   printd(REF_LVL, "AbstractQoreNode::ref() %p type=%d (0->1)\n", this, type);
+   printd(REF_LVL, "AbstractQoreNode::ref() %p type: %d (0->1)\n", this, type);
 #endif
 }
 
 AbstractQoreNode::AbstractQoreNode(const AbstractQoreNode& v) : type(v.type), value(v.value), needs_eval_flag(v.needs_eval_flag), there_can_be_only_one(v.there_can_be_only_one), custom_reference_handlers(v.custom_reference_handlers) {
 #if TRACK_REFS
-   printd(REF_LVL, "AbstractQoreNode::ref() %p type=%d (0->1)\n", this, type);
+   printd(REF_LVL, "AbstractQoreNode::ref() %p type: %d (0->1)\n", this, type);
 #endif
 }
 
 AbstractQoreNode::~AbstractQoreNode() {
 #if 0
-   printd(5, "AbstractQoreNode::~AbstractQoreNode() type=%d (%s)\n", type, getTypeName());
+   printd(5, "AbstractQoreNode::~AbstractQoreNode() type: %d (%s)\n", type, getTypeName());
 #endif
+}
+
+static void breakit() {
 }
 
 void AbstractQoreNode::ref() const {
 #ifdef DEBUG
 #if TRACK_REFS
    if (type == NT_OBJECT) {
-      const QoreObject *o = reinterpret_cast<const QoreObject *>(this);
-      printd(REF_LVL, "AbstractQoreNode::ref() %p type=object (%d->%d) object=%p, class=%s\n", this, references, references + 1, o, o->getClass()->getName());
+      const QoreObject *o = reinterpret_cast<const QoreObject*>(this);
+      printd(REF_LVL, "AbstractQoreNode::ref() %p type: %d object (%d->%d) object: %p, class: %s\n", this, type, references, references + 1, o, o->getClass()->getName());
    }
    else
-      printd(REF_LVL, "AbstractQoreNode::ref() %p type=%s (%d->%d)\n", this, getTypeName(), references, references + 1);
+      printd(REF_LVL, "AbstractQoreNode::ref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), references, references + 1);
 #endif
+   if (type == 32) breakit();
 #endif
    if (!there_can_be_only_one) {
       if (custom_reference_handlers)
@@ -101,19 +105,18 @@ void AbstractQoreNode::deref(ExceptionSink* xsink) {
    //QORE_TRACE("AbstractQoreNode::deref()");
 #ifdef DEBUG
 #if TRACK_REFS
-   if (type == NT_STRING) printd(REF_LVL, "AbstractQoreNode::deref() %p (%d->%d) string='%s'\n", this, references, references - 1, ((QoreStringNode* )this)->getBuffer());
-   else if (type == NT_OBJECT)
-      printd(REF_LVL, "QoreObject::deref() %p class=%s (%d->%d) %d\n", this, ((QoreObject *)this)->getClassName(), references, references - 1, custom_reference_handlers);
+   if (type == NT_OBJECT)
+      printd(REF_LVL, "QoreObject::deref() %p class: %s (%d->%d) %d\n", this, ((QoreObject*)this)->getClassName(), references, references - 1, custom_reference_handlers);
    else
-      printd(REF_LVL, "AbstractQoreNode::deref() %p type=%s (%d->%d)\n", this, getTypeName(), references, references - 1);
+      printd(REF_LVL, "AbstractQoreNode::deref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), references, references - 1);
 
 #endif
    if (references > 10000000 || references <= 0){
       if (type == NT_STRING)
-	 printd(0, "AbstractQoreNode::deref() WARNING, node %p references=%d (type=%s) (val=\"%s\")\n",
-		this, references, getTypeName(), ((QoreStringNode* )this)->getBuffer());
+	 printd(0, "AbstractQoreNode::deref() WARNING, node %p references: %d (type: %s) (val=\"%s\")\n",
+		this, references, getTypeName(), ((QoreStringNode*)this)->getBuffer());
       else
-	 printd(0, "AbstractQoreNode::deref() WARNING, node %p references=%d (type=%s)\n", this, references, getTypeName());
+	 printd(0, "AbstractQoreNode::deref() WARNING, node %p references: %d (type: %s)\n", this, references, getTypeName());
       assert(false);
    }
 #endif
@@ -221,27 +224,27 @@ double AbstractQoreNode::getAsFloat() const {
 }
 
 // get the value of the type in a string context, empty string for complex types (default implementation)
-QoreString *AbstractQoreNode::getStringRepresentation(bool &del) const {
+QoreString *AbstractQoreNode::getStringRepresentation(bool& del) const {
    del = false;
    return NullString;
 }
 
 // empty default implementation
-void AbstractQoreNode::getStringRepresentation(QoreString &str) const {
+void AbstractQoreNode::getStringRepresentation(QoreString& str) const {
 }
 
 // if del is true, then the returned DateTime * should be deleted, if false, then it should not
-DateTime *AbstractQoreNode::getDateTimeRepresentation(bool &del) const {
+DateTime *AbstractQoreNode::getDateTimeRepresentation(bool& del) const {
    del = false;
    return ZeroDate;
 }
 
 // assign date representation to a DateTime (no action for complex types = default implementation)
-void AbstractQoreNode::getDateTimeRepresentation(DateTime &dt) const {
+void AbstractQoreNode::getDateTimeRepresentation(DateTime& dt) const {
    dt.setDate(0LL);
 }
 
-AbstractQoreNode* AbstractQoreNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode* AbstractQoreNode::parseInit(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
    return this;
 }
 
@@ -388,7 +391,7 @@ static inline AbstractQoreNode* crlr_fcall_copy(const FunctionCallNode* n, Excep
 
 static inline AbstractQoreNode* crlr_mcall_copy(const MethodCallNode* m, ExceptionSink* xsink) {
    QoreListNode* args = const_cast<QoreListNode*>(m->getArgs());
-   //printd(5, "crlr_mcall_copy() m=%p (%s) args=%p (len=%d)\n", m, m->getName(), args, args ? args->size() : 0);
+   //printd(5, "crlr_mcall_copy() m: %p (%s) args: %p (len: %d)\n", m, m->getName(), args, args ? args->size() : 0);
    if (args) {
       ReferenceHolder<QoreListNode> args_holder(crlr_list_copy(args, xsink), xsink);
       if (*xsink)
@@ -402,7 +405,7 @@ static inline AbstractQoreNode* crlr_mcall_copy(const MethodCallNode* m, Excepti
 
 static inline AbstractQoreNode* crlr_smcall_copy(const StaticMethodCallNode* m, ExceptionSink* xsink) {
    QoreListNode* args = const_cast<QoreListNode*>(m->getArgs());
-   //printd(5, "crlr_mcall_copy() m=%p (%s) args=%p (len=%d)\n", m, m->getName(), args, args ? args->size() : 0);
+   //printd(5, "crlr_mcall_copy() m: %p (%s) args: %p (len: %d)\n", m, m->getName(), args, args ? args->size() : 0);
    if (args) {
       ReferenceHolder<QoreListNode> args_holder(crlr_list_copy(args, xsink), xsink);
       if (*xsink)

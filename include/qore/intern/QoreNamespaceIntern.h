@@ -332,8 +332,6 @@ public:
    DLLLOCAL QoreClass *parseMatchScopedClassWithMethod(const NamedScope& nscope, unsigned& matched);
    DLLLOCAL AbstractQoreNode *parseCheckScopedReference(const NamedScope &ns, unsigned &m, const QoreTypeInfo* &typeInfo, bool abr) const;
 
-   DLLLOCAL AbstractQoreNode *parseResolveScopedReference(const NamedScope &ns, unsigned &m, const QoreTypeInfo* &typeInfo) const;
-
    DLLLOCAL AbstractQoreNode *parseFindLocalConstantValue(const char* cname, const QoreTypeInfo* &typeInfo);
    DLLLOCAL QoreNamespace *parseFindLocalNamespace(const char* nname);
 
@@ -375,7 +373,7 @@ public:
       ns.priv->addNamespace(nns->priv);
    }
 
-   DLLLOCAL static AbstractQoreNode* parseResolveClassConstant(QoreClass* qc, const char* name, const QoreTypeInfo*& typeInfo);
+   DLLLOCAL static AbstractQoreNode* parseResolveReferencedClassConstant(QoreClass* qc, const char* name, const QoreTypeInfo*& typeInfo);
 
    DLLLOCAL static ConstantList& getConstantList(const QoreNamespace *ns) {
       return ns->priv->constant;
@@ -1159,11 +1157,11 @@ protected:
 
    DLLLOCAL void addConstant(qore_ns_private& ns, const char* cname, AbstractQoreNode *value, const QoreTypeInfo* typeInfo);
 
-   DLLLOCAL AbstractQoreNode *parseFindConstantValueIntern(const NamedScope& name, const QoreTypeInfo*& typeInfo, bool error);
+   DLLLOCAL AbstractQoreNode *parseFindReferencedConstantValueIntern(const NamedScope& name, const QoreTypeInfo*& typeInfo, bool error);
 
    DLLLOCAL AbstractQoreNode* parseResolveBarewordIntern(const QoreProgramLocation& loc, const char* bword, const QoreTypeInfo*& typeInfo);
 
-   DLLLOCAL AbstractQoreNode *parseResolveScopedReferenceIntern(const NamedScope& name, const QoreTypeInfo* &typeInfo);
+   DLLLOCAL AbstractQoreNode *parseResolveReferencedScopedReferenceIntern(const NamedScope& name, const QoreTypeInfo* &typeInfo);
 
    DLLLOCAL void parseAddConstantIntern(QoreNamespace& ns, const NamedScope& name, AbstractQoreNode* value, bool pub);
 
@@ -1573,16 +1571,16 @@ public:
       return getRootNS()->rpriv->parseFindConstantValueIntern(name, typeInfo, error);
    }
 
-   DLLLOCAL static AbstractQoreNode *parseFindConstantValue(const NamedScope& name, const QoreTypeInfo* &typeInfo, bool error) {
-      return getRootNS()->rpriv->parseFindConstantValueIntern(name, typeInfo, error);
+   DLLLOCAL static AbstractQoreNode *parseFindReferencedConstantValue(const NamedScope& name, const QoreTypeInfo* &typeInfo, bool error) {
+      return getRootNS()->rpriv->parseFindReferencedConstantValueIntern(name, typeInfo, error);
    }
 
    DLLLOCAL static AbstractQoreNode* parseResolveBareword(const QoreProgramLocation& loc, const char* bword, const QoreTypeInfo* &typeInfo) {
       return getRootNS()->rpriv->parseResolveBarewordIntern(loc, bword, typeInfo);
    }
 
-   DLLLOCAL static AbstractQoreNode *parseResolveScopedReference(const NamedScope& name, const QoreTypeInfo*& typeInfo) {
-      return getRootNS()->rpriv->parseResolveScopedReferenceIntern(name, typeInfo);
+   DLLLOCAL static AbstractQoreNode *parseResolveReferencedScopedReference(const NamedScope& name, const QoreTypeInfo*& typeInfo) {
+      return getRootNS()->rpriv->parseResolveReferencedScopedReferenceIntern(name, typeInfo);
    }
 
    DLLLOCAL static QoreClass *parseFindClass(const QoreProgramLocation& loc, const char* name) {

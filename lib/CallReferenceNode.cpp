@@ -40,8 +40,10 @@ CallReferenceCallNode::CallReferenceCallNode(AbstractQoreNode* n_exp, QoreListNo
 }
 
 CallReferenceCallNode::~CallReferenceCallNode() {
-   if (exp)
+   if (exp) {
+      //printd(5, "CallReferenceCallNode::~CallReferenceCallNode() this: %p exp: %p '%s' type: %d refs: %d\n", this, exp, get_type_name(exp), get_node_type(exp), exp->reference_count());
       exp->deref(0);
+   }
    if (args)
       args->deref(0);
 }

@@ -266,7 +266,7 @@ double AbstractFunctionCallNode::floatEvalImpl(ExceptionSink *xsink) const {
 AbstractQoreNode* SelfFunctionCallNode::evalImpl(ExceptionSink *xsink) const {
    QoreObject* self = runtime_get_stack_object();
    
-   //printd(0, "SelfFunctionCallNode::evalImpl() this=%p self=%p method=%p (%s)\n", this, self, method, ns.ostr);
+   //printd(5, "SelfFunctionCallNode::evalImpl() this=%p self=%p method=%p (%s)\n", this, self, method, ns.ostr);
    if (is_copy)
       return self->getClass()->execCopy(self, xsink);
 
@@ -413,7 +413,7 @@ AbstractQoreNode* FunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag, in
       if (abr && !qore_class_private::parseResolveInternalMemberAccess(qc, c_str, returnTypeInfo)) {
 	 n = new SelfVarrefNode(takeName(), loc);
       }
-      else if ((n = qore_class_private::parseFindConstantValue(const_cast<QoreClass* >(qc), c_str, returnTypeInfo))) {
+      else if ((n = qore_class_private::parseFindConstantValue(const_cast<QoreClass*>(qc), c_str, returnTypeInfo))) {
 	 //printd(5, "FunctionCallNode::parseInitImpl() this=%p n=%p (%d -> %d)\n", this, n, n->reference_count(), n->reference_count() + 1);
 	 n->ref();
       }
@@ -658,10 +658,10 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
       }
 
       if (!n)
-         n = qore_root_ns_private::parseFindConstantValue(*scope, typeInfo, false);
+         n = qore_root_ns_private::parseFindReferencedConstantValue(*scope, typeInfo, false);
 
       if (n) {
-	 CallReferenceCallNode* crcn = new CallReferenceCallNode(n->refSelf(), takeArgs());	 
+	 CallReferenceCallNode* crcn = new CallReferenceCallNode(n, takeArgs());	 
 	 deref();
 	 return crcn->parseInit(oflag, pflag, lvids, typeInfo);
       }

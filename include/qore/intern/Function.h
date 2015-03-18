@@ -1104,7 +1104,7 @@ public:
       return reinterpret_cast<const UserClosureVariant*>(pending_first())->getUserSignature()->hasReturnTypeInfo();
    }
 
-   DLLLOCAL AbstractQoreNode* evalClosure(ThreadSafeLocalVarRuntimeEnvironment& closure_env, const QoreListNode* args, QoreObject* self, ExceptionSink* xsink) const;
+   DLLLOCAL AbstractQoreNode* evalClosure(ThreadSafeLocalVarRuntimeEnvironment& closure_env, QoreProgram* pgm, const QoreListNode* args, QoreObject* self, ExceptionSink* xsink) const;
 
    DLLLOCAL void setClassType(const QoreTypeInfo* cti) {
       classTypeInfo = cti;

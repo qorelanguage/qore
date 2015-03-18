@@ -52,7 +52,7 @@ public:
    }
 };
 
-class CharPtrList : public safe_dslist<const char* > {
+class CharPtrList : public safe_dslist<const char*> {
 public:
    // returns true for found, false for not found
    // FIXME: use STL find algorithm

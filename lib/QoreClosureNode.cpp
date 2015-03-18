@@ -63,12 +63,12 @@ void ThreadSafeLocalVarRuntimeEnvironment::del(ExceptionSink* xsink) {
 bool QoreClosureNode::derefImpl(ExceptionSink* xsink) {
    closure_env.del(xsink);
    if (pgm_ref)
-      pgm->depDeref(xsink);
+      pgm->deref(xsink);
    return true;
 }
 
 AbstractQoreNode* QoreClosureNode::exec(const QoreListNode* args, ExceptionSink* xsink) const {
-   return closure->exec(closure_env, args, 0, xsink);
+   return closure->exec(closure_env, pgm, args, 0, xsink);
 }
 
 bool QoreClosureNode::getAsBoolImpl() const {
@@ -96,5 +96,5 @@ bool QoreObjectClosureNode::derefImpl(ExceptionSink* xsink) {
 }
 
 AbstractQoreNode* QoreObjectClosureNode::exec(const QoreListNode* args, ExceptionSink* xsink) const {
-   return closure->exec(closure_env, args, obj, xsink);
+   return closure->exec(closure_env, 0, args, obj, xsink);
 }
