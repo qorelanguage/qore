@@ -35,7 +35,7 @@
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
 int SelfVarrefNode::getAsString(QoreString &qstr, int foff, ExceptionSink *xsink) const {
-   qstr.sprintf("in-object variable reference '%s' (0x%p)", str ? str : "<null>", this);
+   qstr.sprintf("in-object variable reference '%s' (%p)", str ? str : "<null>", this);
    return 0;
 }
 

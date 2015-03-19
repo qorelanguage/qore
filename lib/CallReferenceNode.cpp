@@ -53,7 +53,7 @@ CallReferenceCallNode::~CallReferenceCallNode() {
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
 int CallReferenceCallNode::getAsString(QoreString &str, int foff, ExceptionSink* xsink) const {
-   str.sprintf("call reference call (0x%p)", this);
+   str.sprintf("call reference call (%p)", this);
    return 0;
 }
 
@@ -182,7 +182,7 @@ bool AbstractCallReferenceNode::is_equal_hard(const AbstractQoreNode* v, Excepti
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
 int AbstractCallReferenceNode::getAsString(QoreString &str, int foff, ExceptionSink* xsink) const {
-   str.sprintf("function reference (0x%p)", this);
+   str.sprintf("function reference (%p)", this);
    return 0;
 }
 

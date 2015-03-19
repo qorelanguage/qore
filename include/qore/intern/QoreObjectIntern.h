@@ -102,7 +102,7 @@ public:
 
    DLLLOCAL void addToString(QoreString* str) const {
       for (keymap_t::const_iterator i = keymap.begin(), e = keymap.end(); i != e; ++i)
-	 str->sprintf("%d=<0x%p>, ", i->first, i->second.first);
+	 str->sprintf("%d=<%p>, ", i->first, i->second.first);
    }
 
    DLLLOCAL void derefAll(ExceptionSink* xsink) const {

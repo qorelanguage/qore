@@ -45,7 +45,7 @@ BackquoteNode::~BackquoteNode() {
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
 int BackquoteNode::getAsString(QoreString &qstr, int foff, ExceptionSink *xsink) const {
-   qstr.sprintf("backquote '%s' (0x%p)", str ? str : "<null>", this);
+   qstr.sprintf("backquote '%s' (%p)", str ? str : "<null>", this);
    return 0;
 }
 

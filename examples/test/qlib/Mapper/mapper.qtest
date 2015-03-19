@@ -1,4 +1,6 @@
 #!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
 %require-types
 %enable-all-warnings
 %requires UnitTest

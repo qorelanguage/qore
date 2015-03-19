@@ -95,7 +95,7 @@ public:
    DLLEXPORT virtual bool getAsBoolImpl() const;
 
    DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
-      str.sprintf("function closure (%slambda, 0x%p)", closure->isLambda() ? "" : "non-", this);
+      str.sprintf("function closure (%slambda, %p)", closure->isLambda() ? "" : "non-", this);
       return 0;
    }
 
@@ -151,7 +151,7 @@ public:
    }
 
    DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
-      str.sprintf("function closure (%slambda, in object of class '%s', 0x%p)", closure->isLambda() ? "" : "non-", obj->getClassName(), this);
+      str.sprintf("function closure (%slambda, in object of class '%s', %p)", closure->isLambda() ? "" : "non-", obj->getClassName(), this);
       return 0;
    }
 

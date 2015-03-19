@@ -34,6 +34,7 @@
 #include <qore/intern/QoreSignal.h>
 #include <qore/intern/QoreObjectIntern.h>
 #include <qore/intern/qore_qd_private.h>
+#include <qore/intern/ql_crypto.h>
 
 #include <string.h>
 #ifdef HAVE_PWD_H
@@ -76,6 +77,8 @@ int qore_min_mod_api_minor = QORE_MODULE_COMPAT_API_MINOR;
 
 DLLLOCAL QoreListNode* ARGV = 0;
 DLLLOCAL QoreListNode* QORE_ARGV = 0;
+
+QoreString random_salt;
 
 DLLLOCAL bool q_disable_gc = false;
 
@@ -1788,4 +1791,21 @@ void qore_disable_gc() {
 
 bool qore_is_gc_enabled() {
    return !q_disable_gc;
+}
+
+void qore_init_random_salt() {
+   random_salt.sprintf(QLLD, q_clock_getmicros());
+}
+
+int qore_get_ptr_hash(QoreString& str, const void* ptr) {
+   assert(!random_salt.empty());
+   QoreString tmp(random_salt);
+   tmp.sprintf("%p", ptr);
+   DigestHelper dh(tmp);
+   int rc = dh.doDigest(SHA1_ERR, EVP_sha1());
+   if (!rc)
+      dh.getString(str);
+   else
+      printd(0, "qore_get_ptr_hash() digest calculation failed for ptr %p\n", ptr);
+   return rc;
 }

@@ -72,7 +72,7 @@ ComplexContextrefNode::~ComplexContextrefNode() {
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
 int ComplexContextrefNode::getAsString(QoreString &qstr, int foff, ExceptionSink *xsink) const {
-   qstr.sprintf("complex context reference '%s:%s' (0x%p)", name ? name : "<null>", member ? member : "<null>", this);
+   qstr.sprintf("complex context reference '%s:%s' (%p)", name ? name : "<null>", member ? member : "<null>", this);
    return 0;
 }
 

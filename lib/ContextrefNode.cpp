@@ -43,7 +43,7 @@ ContextrefNode::~ContextrefNode() {
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
 int ContextrefNode::getAsString(QoreString &qstr, int foff, ExceptionSink *xsink) const {
-   qstr.sprintf("context reference '%s' (0x%p)", str ? str : "<null>", this);
+   qstr.sprintf("context reference '%s' (%p)", str ? str : "<null>", this);
    return 0;
 }
 

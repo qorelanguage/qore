@@ -58,7 +58,7 @@ RegexTransNode::~RegexTransNode() {
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
 int RegexTransNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
-   str.sprintf("transliteration expression (0x%p)", this);
+   str.sprintf("transliteration expression (%p)", this);
    return 0;
 }
 

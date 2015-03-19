@@ -39,7 +39,7 @@
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
 int VarRefNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
-   str.sprintf("variable reference '%s' %s (0x%p)", name.ostr, type == VT_GLOBAL ? "global" : type == VT_LOCAL ? "local" : "unresolved", this);
+   str.sprintf("variable reference '%s' %s (%p)", name.ostr, type == VT_GLOBAL ? "global" : type == VT_LOCAL ? "local" : "unresolved", this);
    return 0;
 }
 

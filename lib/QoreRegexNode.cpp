@@ -64,7 +64,7 @@ QoreRegexNode::~QoreRegexNode() {
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
 int QoreRegexNode::getAsString(QoreString &mstr, int foff, ExceptionSink *xsink) const {
-   mstr.sprintf("regular expression (0x%p)", this);
+   mstr.sprintf("regular expression (%p)", this);
    return 0;
 }
 

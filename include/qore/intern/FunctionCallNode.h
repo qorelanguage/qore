@@ -453,7 +453,7 @@ public:
    }
       
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink* xsink) const {
-      str.sprintf("static method call %s::%s() (0x%p)", method->getClass()->getName(), method->getName(), this);
+      str.sprintf("static method call %s::%s() (%p)", method->getClass()->getName(), method->getName(), this);
       return 0;
    }
 

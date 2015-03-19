@@ -51,7 +51,7 @@ FindNode::~FindNode() {
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
 int FindNode::getAsString(QoreString &qstr, int foff, ExceptionSink *xsink) const {
-   qstr.sprintf("find expression (0x%p)", this);
+   qstr.sprintf("find expression (%p)", this);
    return 0;
 }
 

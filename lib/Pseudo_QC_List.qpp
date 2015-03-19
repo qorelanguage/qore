@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -242,4 +242,17 @@ AbstractIterator <list>::rangeIterator(any val) [flags=CONSTANT] {
 */
 bool <list>::sizep() [flags=CONSTANT] {
    return true;
+}
+
+//! Return a unique string for the data independent of the content
+/** @return a unique string for the data independent of the content
+
+    @note an SHA1 hash is created from a random salt created when the %Qore library is initialized and the internal pointer address
+
+    @since %Qore 0.8.12
+ */
+string <list>::addressHash() [flags=CONSTANT] {
+   QoreStringNode* rv = new QoreStringNode;
+   qore_get_ptr_hash(*rv, l);
+   return rv;
 }

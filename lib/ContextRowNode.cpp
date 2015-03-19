@@ -41,7 +41,7 @@ ContextRowNode::~ContextRowNode() {
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
 int ContextRowNode::getAsString(QoreString &qstr, int foff, ExceptionSink *xsink) const {
-   qstr.sprintf("context row reference '%%' (0x%p)", this);
+   qstr.sprintf("context row reference '%%' (%p)", this);
    return 0;
 }
 

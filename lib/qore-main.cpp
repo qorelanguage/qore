@@ -111,6 +111,9 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
    qore_string_init();
    QoreHttpClientObject::static_init();
 
+   // init random salt
+   qore_init_random_salt();
+   
    // init threading infrastructure
    init_qore_threads();
 

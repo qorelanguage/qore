@@ -316,7 +316,7 @@ AbstractQoreNode* SelfFunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag
 }
 
 int SelfFunctionCallNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
-   str.sprintf("in-object method call (0x%p) to %s::%s()", this, method->getClass()->getName(), method->getName());
+   str.sprintf("in-object method call (%p) to %s::%s()", this, method->getClass()->getName(), method->getName());
    return 0;
 }
 
@@ -344,7 +344,7 @@ AbstractQoreNode* SelfFunctionCallNode::makeReferenceNodeAndDeref() {
    returns -1 for exception raised, 0 = OK
 */
 int FunctionCallNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
-   str.sprintf("function call to '%s()' (0x%p)", getName(), this);
+   str.sprintf("function call to '%s()' (%p)", getName(), this);
    return 0;
 }
 
