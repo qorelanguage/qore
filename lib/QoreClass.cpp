@@ -2278,14 +2278,16 @@ bool qore_class_private::runtimeHasCallableMethod(const char* m, int mask) const
    return !w || (external && priv_flag) ? false : true;   
 }
 
-const QoreMethod* qore_class_private::getMethodForEval(const char* nme, ExceptionSink* xsink) const {
+const QoreMethod* qore_class_private::getMethodForEval(const char* nme, QoreProgram* pgm, ExceptionSink* xsink) const {
    //printd(5, "qore_class_private::getMethodForEval() %s::%s() %s call attempted\n", name.c_str(), nme, runtimeCheckPrivateClassAccess() ? "external" : "internal" );
 
    const QoreMethod* w;
    bool priv_flag = false;
 
    {
-      CurrentProgramRuntimeParseContextHelper pch;
+      ProgramRuntimeParseContextHelper pch(xsink, pgm);
+      if (*xsink)
+	 return 0;
 
       if (!(w = runtimeFindCommittedMethodIntern(nme, priv_flag)) && !(w = runtimeFindCommittedStaticMethodIntern(nme, priv_flag)))
 	 return 0;
@@ -2313,7 +2315,8 @@ const QoreMethod* qore_class_private::getMethodForEval(const char* nme, Exceptio
 
 AbstractQoreNode* QoreClass::evalMethod(QoreObject* self, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {
    QORE_TRACE("QoreClass::evalMethod()");
-
+   assert(self);
+   
    if (!strcmp(nme, "copy")) {
       if (args) {
          xsink->raiseException("COPY-ERROR", "while calling %s::copy(): it is illegal to pass arguments to copy methods", self->getClassName());
@@ -2322,7 +2325,7 @@ AbstractQoreNode* QoreClass::evalMethod(QoreObject* self, const char* nme, const
       return execCopy(self, xsink);
    }
 
-   const QoreMethod* w = priv->getMethodForEval(nme, xsink);
+   const QoreMethod* w = priv->getMethodForEval(nme, self->getProgram(), xsink);
    if (*xsink)
       return 0;
 
@@ -2357,7 +2360,7 @@ int64 QoreClass::bigIntEvalMethod(QoreObject* self, const char* nme, const QoreL
       return 0;
    }
 
-   const QoreMethod* w = priv->getMethodForEval(nme, xsink);
+   const QoreMethod* w = priv->getMethodForEval(nme, self->getProgram(), xsink);
    if (*xsink)
       return 0;
 
@@ -2381,7 +2384,7 @@ int QoreClass::intEvalMethod(QoreObject* self, const char* nme, const QoreListNo
       return 0;
    }
 
-   const QoreMethod* w = priv->getMethodForEval(nme, xsink);
+   const QoreMethod* w = priv->getMethodForEval(nme, self->getProgram(), xsink);
    if (*xsink)
       return 0;
 
@@ -2405,7 +2408,7 @@ bool QoreClass::boolEvalMethod(QoreObject* self, const char* nme, const QoreList
       return false;
    }
 
-   const QoreMethod* w = priv->getMethodForEval(nme, xsink);
+   const QoreMethod* w = priv->getMethodForEval(nme, self->getProgram(), xsink);
    if (*xsink)
       return false;
 
@@ -2429,7 +2432,7 @@ double QoreClass::floatEvalMethod(QoreObject* self, const char* nme, const QoreL
       return 0.0;
    }
 
-   const QoreMethod* w = priv->getMethodForEval(nme, xsink);
+   const QoreMethod* w = priv->getMethodForEval(nme, self->getProgram(), xsink);
    if (*xsink)
       return 0.0;
 
