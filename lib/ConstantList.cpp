@@ -71,7 +71,7 @@ static void check_constant_cycle(QoreProgram *pgm, AbstractQoreNode *n) {
    else if (t == NT_OBJECT)
       qore_object_private::derefProgramCycle(reinterpret_cast<QoreObject*>(n), pgm);
    else if (t == NT_RUNTIME_CLOSURE) {
-      printd(0, "check_constant_cycle() closure=%p\n", n);
+      //printd(5, "check_constant_cycle() closure=%p\n", n);
       reinterpret_cast<QoreClosureBase *>(n)->derefProgramCycle(pgm);
    }
 }
