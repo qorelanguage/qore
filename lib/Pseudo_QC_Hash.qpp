@@ -393,7 +393,7 @@ bool <hash>::sizep() [flags=CONSTANT] {
 
     @since %Qore 0.8.12
  */
-string <hash>::addressHash() [flags=CONSTANT] {
+string <hash>::uniqueHash() [flags=CONSTANT] {
    QoreStringNode* rv = new QoreStringNode;
    qore_get_ptr_hash(*rv, h);
    return rv;

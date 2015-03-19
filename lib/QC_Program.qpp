@@ -301,7 +301,11 @@ const PO_STRICT_ARGS = PO_STRICT_ARGS;
 const PO_STRICT_BOOLEAN_EVAL = PO_STRICT_BOOLEAN_EVAL;
 
 //! Allows code/dependency injections in the contained Program object
-/** @since %Qore 0.8.12
+/** @see
+    - @ref Qore::Program::importClass()
+    - @ref Qore::Program::importFunction()
+
+    @since %Qore 0.8.12
  */
 const PO_ALLOW_INJECTION = PO_ALLOW_INJECTION;
 //@}

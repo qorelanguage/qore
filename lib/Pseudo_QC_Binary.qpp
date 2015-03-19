@@ -449,7 +449,7 @@ bool <binary>::sizep() [flags=CONSTANT] {
 
     @since %Qore 0.8.12
  */
-string <binary>::addressHash() [flags=CONSTANT] {
+string <binary>::uniqueHash() [flags=CONSTANT] {
    QoreStringNode* rv = new QoreStringNode;
    qore_get_ptr_hash(*rv, b);
    return rv;
