@@ -65,13 +65,13 @@ static void check_constant_cycle_hash(QoreProgram *pgm, QoreHashNode *h) {
 static void check_constant_cycle(QoreProgram *pgm, AbstractQoreNode *n) {
    qore_type_t t = get_node_type(n);
    if (t == NT_LIST)
-      check_constant_cycle_list(pgm, reinterpret_cast<QoreListNode *>(n));
+      check_constant_cycle_list(pgm, reinterpret_cast<QoreListNode*>(n));
    else if (t == NT_HASH)
-      check_constant_cycle_hash(pgm, reinterpret_cast<QoreHashNode *>(n));
+      check_constant_cycle_hash(pgm, reinterpret_cast<QoreHashNode*>(n));
    else if (t == NT_OBJECT)
       qore_object_private::derefProgramCycle(reinterpret_cast<QoreObject*>(n), pgm);
    else if (t == NT_RUNTIME_CLOSURE) {
-      //printd(5, "check_constant_cycle() closure=%p\n", n);
+      printd(0, "check_constant_cycle() closure=%p\n", n);
       reinterpret_cast<QoreClosureBase *>(n)->derefProgramCycle(pgm);
    }
 }

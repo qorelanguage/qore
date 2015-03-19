@@ -243,16 +243,3 @@ AbstractIterator <list>::rangeIterator(any val) [flags=CONSTANT] {
 bool <list>::sizep() [flags=CONSTANT] {
    return true;
 }
-
-//! Return a unique string for the data independent of the content
-/** @return a unique string for the data independent of the content
-
-    @note an SHA1 hash is created with a random salt created when the %Qore library is initialized and the internal pointer address
-
-    @since %Qore 0.8.12
- */
-string <list>::uniqueHash() [flags=CONSTANT] {
-   QoreStringNode* rv = new QoreStringNode;
-   qore_get_ptr_hash(*rv, l);
-   return rv;
-}
