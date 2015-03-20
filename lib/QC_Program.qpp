@@ -861,18 +861,23 @@ $pgm.importClass("MyNamespace::MyClass");
  */
 nothing Program::importClass(string cls, *string new_name, *softbool inject) {
    TempEncodingHelper tmp(cls, QCS_DEFAULT, xsink);
-   if (!tmp)
+   if (!tmp) {
+      assert(*xsink);
       return 0;
+   }
    
    TempEncodingHelper nn;
    if (new_name) {
       nn.set(new_name, QCS_DEFAULT, xsink);
-      if (!nn)
+      if (!nn) {
+         assert(*xsink);
          return 0;
+      }
 
-      if (nn->empty())
+      if (nn->empty()) {
          xsink->raiseException("CLASS-IMPORT-ERROR", "the new class name while importing class '%s' may not be empty", cls);
-      return 0;
+         return 0;
+      }
    }
    qore_program_private::importClass(xsink, *p, *(getProgram()), tmp->getBuffer(), new_name ? nn->getBuffer() : 0, inject);
 }
