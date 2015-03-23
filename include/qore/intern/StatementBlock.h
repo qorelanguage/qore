@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -70,7 +70,7 @@ public:
    DLLLOCAL void add(int num) {
       assert(num > 0);
       unsigned start = lv.size();
-      //printd(5, "LVList::add(num=%d) this=%p start=%d\n", num, this, start);
+      //printd(5, "LVList::add(num: %d) this: %p start: %d\n", num, this, start);
       lv.resize(start + num);
       // pop variables off stack and save in reverse order
       for (int i = (int)(start + num - 1); i >= (int)start; --i) {
@@ -88,7 +88,7 @@ public:
    DLLLOCAL LVListInstantiator(const LVList *n_l, ExceptionSink *xs) : l(n_l), xsink(xs) {
       if (!l) return;
       for (unsigned i = 0; i < l->size(); ++i) {
-         //printd(5, "LVListInstantiator::LVListInstantiator() this=%p v=%p %s\n", this, l->lv[i], l->lv[i]->getName());
+         //printd(5, "LVListInstantiator::LVListInstantiator() this: %p v: %p %s\n", this, l->lv[i], l->lv[i]->getName());
          l->lv[i]->instantiate();
       }
    }
@@ -96,7 +96,7 @@ public:
    DLLLOCAL ~LVListInstantiator() {
       if (!l) return;
       for (int i = (int)l->size() - 1; i >= 0; --i) {
-         //printd(5, "LVListInstantiator::~LVListInstantiator() this=%p v=%p %s\n", this, l->lv[i], l->lv[i]->getName());
+         //printd(5, "LVListInstantiator::~LVListInstantiator() this: %p v: %p %s\n", this, l->lv[i], l->lv[i]->getName());
          l->lv[i]->uninstantiate(xsink);
       }
    }

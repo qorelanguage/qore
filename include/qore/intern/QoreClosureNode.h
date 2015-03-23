@@ -46,7 +46,7 @@ protected:
    DLLLOCAL void del(ExceptionSink* xsink) {
       closure_env.del(xsink);
    }
-   
+
 public:
    //! constructor is not exported outside the library
    DLLLOCAL QoreClosureBase(const QoreClosureParseNode* n_closure) : ResolvedCallReferenceNode(false, NT_RUNTIME_CLOSURE), closure(n_closure), closure_env(n_closure->getVList()), pgm_ref(true) {

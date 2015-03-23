@@ -61,9 +61,6 @@ AbstractQoreNode::~AbstractQoreNode() {
 #endif
 }
 
-static void breakit() {
-}
-
 void AbstractQoreNode::ref() const {
 #ifdef DEBUG
 #if TRACK_REFS
@@ -74,7 +71,6 @@ void AbstractQoreNode::ref() const {
    else
       printd(REF_LVL, "AbstractQoreNode::ref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), references, references + 1);
 #endif
-   if (type == NT_HASH) breakit();
 #endif
    if (!there_can_be_only_one) {
       if (custom_reference_handlers)
@@ -119,7 +115,6 @@ void AbstractQoreNode::deref(ExceptionSink* xsink) {
 	 printd(0, "AbstractQoreNode::deref() WARNING, node %p references: %d (type: %s)\n", this, references, getTypeName());
       assert(false);
    }
-   if (type == NT_HASH) breakit();
 #endif
    assert(references > 0);
 

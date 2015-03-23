@@ -3,7 +3,7 @@
 
   Qore programming language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -72,35 +72,35 @@ void VarRefNode::resolve(const QoreTypeInfo* typeInfo) {
       else
 	 type = VT_LOCAL;
 
-      printd(5, "VarRefNode::resolve(): local var %s resolved (id=%p, in_closure=%d)\n", name.ostr, ref.id, in_closure);
+      printd(5, "VarRefNode::resolve(): local var %s resolved (id: %p, in_closure: %d)\n", name.ostr, ref.id, in_closure);
    }
    else {
       ref.var = qore_root_ns_private::parseCheckImplicitGlobalVar(loc, name, typeInfo);
       type = VT_GLOBAL;
-      printd(5, "VarRefNode::resolve(): implicit global var %s resolved (var=%p)\n", name.ostr, ref.var);
+      printd(5, "VarRefNode::resolve(): implicit global var %s resolved (var: %p)\n", name.ostr, ref.var);
    }
 }
 
 AbstractQoreNode *VarRefNode::evalImpl(ExceptionSink *xsink) const {
    AbstractQoreNode* v;
    if (type == VT_LOCAL) {
-      printd(5, "VarRefNode::evalImpl() this=%p lvar %p (%s)\n", this, ref.id, ref.id->getName());
+      printd(5, "VarRefNode::evalImpl() this: %p lvar %p (%s)\n", this, ref.id, ref.id->getName());
       v = ref.id->eval(xsink);
    }
    else if (type == VT_CLOSURE) {
-      printd(5, "VarRefNode::evalImpl() this=%p closure var %p (%s)\n", this, ref.id, ref.id->getName());
+      printd(5, "VarRefNode::evalImpl() this: %p closure var %p (%s)\n", this, ref.id, ref.id->getName());
       ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
       v = val->eval(xsink);
    }
    else if (type == VT_LOCAL_TS) {
-      printd(5, "VarRefNode::evalImpl() this=%p local thread-safe var %p (%s)\n", this, ref.id, ref.id->getName());
+      printd(5, "VarRefNode::evalImpl() this: %p local thread-safe var %p (%s)\n", this, ref.id, ref.id->getName());
       ClosureVarValue *val = thread_find_closure_var(ref.id->getName());
       v = val->eval(xsink);
    }
    else if (type == VT_IMMEDIATE)
       v = ref.cvv->eval(xsink);
    else {
-      printd(5, "VarRefNode::evalImpl() this=%p global var=%p (%s)\n", this, ref.var, ref.var->getName());
+      printd(5, "VarRefNode::evalImpl() this: %p global var: %p (%s)\n", this, ref.var, ref.var->getName());
       v = ref.var->eval();
    }
 
@@ -220,7 +220,7 @@ AbstractQoreNode *VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &l
 	 ref.id = push_local_var(name.ostr, loc, typeInfo, true, is_new ? 1 : 0, pflag & PF_TOP_LEVEL);
 	 ++lvids;
       }
-      //printd(5, "VarRefNode::parseInitIntern() this=%p local var '%s' declared (id=%p)\n", this, name.ostr, ref.id);
+      //printd(5, "VarRefNode::parseInitIntern() this: %p local var '%s' declared (id: %p)\n", this, name.ostr, ref.id);
    }
    else if (type != VT_GLOBAL) {
       assert(type == VT_UNRESOLVED);
@@ -369,7 +369,7 @@ void VarRefFunctionCallBase::parseInitConstructorCall(const QoreProgramLocation&
       const QoreTypeInfo *typeInfo;
       lvids += parseArgsVariant(loc, oflag, pflag, constructor ? constructor->getFunction() : 0, typeInfo);
 
-      //printd(5, "VarRefFunctionCallBase::parseInitConstructorCall() this=%p constructor=%p variant=%p\n", this, constructor, variant);
+      //printd(5, "VarRefFunctionCallBase::parseInitConstructorCall() this: %p constructor: %p variant: %p\n", this, constructor, variant);
 
       if (((constructor && constructor->parseIsPrivate()) || (variant && CONMV_const(variant)->isPrivate())) && !qore_class_private::parseCheckPrivateClassAccess(*qc)) {
 	 if (variant)
@@ -378,7 +378,7 @@ void VarRefFunctionCallBase::parseInitConstructorCall(const QoreProgramLocation&
 	    parse_error(loc, "illegal external access to private constructor of class %s", qc->getName());
       }
 
-      //printd(5, "VarRefFunctionCallBase::parseInitConstructorCall() this=%p class=%s (%p) constructor=%p function=%p variant=%p\n", this, qc->getName(), qc, constructor, constructor ? constructor->getFunction() : 0, variant);
+      //printd(5, "VarRefFunctionCallBase::parseInitConstructorCall() this: %p class: %s (%p) constructor: %p function: %p variant: %p\n", this, qc->getName(), qc, constructor, constructor ? constructor->getFunction() : 0, variant);
    }
 
    if (pflag & PF_FOR_ASSIGNMENT)

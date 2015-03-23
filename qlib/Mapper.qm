@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Mapper.qm data mapping module
 
-/*  Mapper.qm Copyright 2014 Qore Technologies, sro
+/*  Mapper.qm Copyright 2014 - 2015 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -634,7 +634,7 @@ my Mapper $map(DataMap);
                         my string $k = $m.ostruct[$off];
                         my any $oh = $ch.$k;
                         if (exists $oh && $oh.typeCode() != NT_HASH)
-                            throw "INVALID-OUTPUT", sprintf("field %y cannot overwrite element %s with type %y", $.getFieldName($key), $k, $oh.type());
+                            throw "INVALID-OUTPUT", sprintf("field %y cannot overwrite element %y with type %y", $.getFieldName($key), $k, $oh.type());
                         $ch.$k = $ah($oh, $off + 1);
                         return $ch;
                     };

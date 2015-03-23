@@ -67,9 +67,10 @@ bool ThreadSafeLocalVarRuntimeEnvironment::hasVar(ClosureVarValue* cvv) const {
 }
 
 void ThreadSafeLocalVarRuntimeEnvironment::del(ExceptionSink* xsink) {
+   //printd(5, "ThreadSafeLocalVarRuntimeEnvironment::del() this: %p\n", this);
    for (cvar_map_t::iterator i = cmap.begin(), e = cmap.end(); i != e; ++i)
       i->second->deref(xsink);
-
+   
 #ifdef DEBUG
    cmap.clear();
    cvvset.clear();

@@ -183,7 +183,7 @@ public:
    }
 
    DLLLOCAL ClosureVarValue* instantiate(const char* id, const QoreTypeInfo* typeInfo, QoreValue& nval) {
-      ClosureVarValue *cvar = new ClosureVarValue(id, typeInfo, nval);
+      ClosureVarValue* cvar = new ClosureVarValue(id, typeInfo, nval);
       instantiate(cvar);
       return cvar;
    }
@@ -206,7 +206,7 @@ public:
       curr->var[--curr->pos]->deref(xsink);
    }
 
-   DLLLOCAL ClosureVarValue *find(const char* id) {
+   DLLLOCAL ClosureVarValue* find(const char* id) {
       //printd(5, "ThreadClosureVariableStack::find() this: %p id: %p\n", this, id);
       Block *w = curr;
       while (true) {

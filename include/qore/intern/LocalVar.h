@@ -249,7 +249,7 @@ public:
       // try to set an optimized value type for the value holder if possible
       val.set(varTypeInfo);
 
-      //printd(5, "ClosureVarValue::ClosureVarValue() this: %p pgm: %p\n", this, getProgram());
+      //printd(5, "ClosureVarValue::ClosureVarValue() this: %p pgm: %p val: %s\n", this, getProgram(), nval.getTypeName());
       // also since only basic value types could be returned, no exceptions can occur with the value passed either
       discard(val.assignInitial(nval), 0);
    }
