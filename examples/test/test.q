@@ -46,7 +46,8 @@ class Test {
         our UnitTest unit();
 
         doDir(get_script_dir());
-        exit(rc);
+        if (rc)
+            exit(rc);
     }
 
     doDir(string dname) {
