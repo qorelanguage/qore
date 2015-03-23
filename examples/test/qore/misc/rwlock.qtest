@@ -2,7 +2,7 @@
 
 %requires UnitTest
 
-my UnitTest $t();
+our UnitTest $t();
 
 RWLock::methodGate($m) {
     return 0;
@@ -21,17 +21,17 @@ $readers = 10;
 
 $rwl = new RWLock();
 while ($writers) {
-    background write_thread($t);
+    background write_thread();
     $writers--;
 }
 while ($readers) {
-    background read_thread($t);
+    background read_thread();
     $readers--;
 }
 
 #printf("%s\n", dbg_node_info($rwl));
 
-sub read_thread(UnitTest $t) {
+sub read_thread() {
     my bool $pass = True;
     for (my $i = 0; $i < $iters; $i++) {
 	my $t;
@@ -61,7 +61,7 @@ sub read_thread(UnitTest $t) {
     $t.ok($pass, "read check");
 }
 
-sub write_thread(UnitTest $t) {
+sub write_thread() {
     my bool $pass = True;
     for (my $i = 0; $i < $iters; $i++) {
 	#printf("write_thread (%02d) %d/%d trying to get lock\n",

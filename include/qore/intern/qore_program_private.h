@@ -33,13 +33,17 @@
 #define _QORE_QORE_PROGRAM_PRIVATE_H
 
 extern QoreListNode* ARGV, *QORE_ARGV;
-extern QoreHashNode* ENV;
+extern QoreHashNode* ENV; 
 
 #include <qore/intern/ParserSupport.h>
 #include <qore/intern/QoreNamespaceIntern.h>
 
 #include <stdarg.h>
 #include <errno.h>
+
+#include <map>
+
+typedef std::map<int, unsigned> ptid_map_t;
 
 class QoreParseLocationHelper {
 public:
@@ -239,7 +243,7 @@ public:
 struct ThreadLocalProgramData {
 private:
    // not implemented
-   DLLLOCAL ThreadLocalProgramData(const ThreadLocalProgramData &old);
+   DLLLOCAL ThreadLocalProgramData(const ThreadLocalProgramData& old);
 
 public:
    // local variable data slots
@@ -306,6 +310,7 @@ public:
 
    // for the thread counter, used only with plock
    QoreCondition pcond;
+   ptid_map_t tidmap;       // map of tids -> thread count in program object
    unsigned thread_count;   // number of threads currently running in this Program
    unsigned thread_waiting; // number of threads waiting on all threads to terminate or parsing to complete
    unsigned parse_count;    // recursive parse count
@@ -514,21 +519,30 @@ public:
 
    // returns 0 for OK, -1 for error
    DLLLOCAL int incThreadCount(ExceptionSink* xsink) {
+      int tid = gettid();
+
       // grab program-level lock
       AutoLocker al(plock);
       
-      if (ptid && ptid != gettid()) {
+      if (ptid && ptid != tid) {
          xsink->raiseException("PROGRAM-ERROR", "the Program accessed has already been deleted and therefore cannot be accessed at runtime");
          return -1;
       }
-      
+
+      ++tidmap[tid];
       ++thread_count;
       return 0;
    }
 
-   DLLLOCAL void decThreadCount() {
+   DLLLOCAL void decThreadCount(int tid) {
       // grab program-level lock
       AutoLocker al(plock);
+
+      ptid_map_t::iterator i = tidmap.find(tid);
+      assert(i != tidmap.end());
+      if (!--i->second)
+         tidmap.erase(i);
+      
       assert(thread_count > 0);
       if (!--thread_count && thread_waiting)
 	 pcond.broadcast();
@@ -566,7 +580,12 @@ public:
    }
    
    DLLLOCAL void waitForAllThreadsToTerminateIntern() {
-      while (thread_count || parse_count) {
+      int tid = gettid();
+      
+      ptid_map_t::iterator i = tidmap.find(tid);
+      unsigned adj = (i != tidmap.end() ? 1 : 0);
+      
+      while ((thread_count - adj) || parse_count) {
          ++thread_waiting;
          pcond.wait(plock);
          --thread_waiting;
@@ -731,20 +750,6 @@ public:
 
    // caller must have grabbed the lock and put the current program on the program stack
    DLLLOCAL int internParseCommit();
-
-   // checks to see if parseCommit() can be called - updating existing runtime data structures
-   DLLLOCAL int checkParseCommitUnlocked(ExceptionSink* xsink) {
-      // if no threads are running, return 0
-      if (!thread_count)
-	 return 0;
-
-      // if one thread is running, and it's the current thread, return 0
-      if (thread_count == 1 && getProgram() == pgm)
-	 return 0;
-
-      xsink->raiseException("PROGRAM-PARSE-CONFLICT", "cannot execute any operation on a program object that modifies run-time data structures when another thread is currently executing in that program object (thread count: %d)", thread_count);
-      return -1;
-   }
 
    DLLLOCAL int parseCommit(ExceptionSink* xsink, ExceptionSink* wS, int wm) {
       ProgramRuntimeParseContextHelper pch(xsink, pgm);
@@ -971,9 +976,9 @@ public:
       }
    }
 
-   DLLLOCAL void doTopLevelInstantiation(ThreadLocalProgramData &tlpd) {
+   DLLLOCAL void doTopLevelInstantiation(ThreadLocalProgramData& tlpd) {
       // instantiate top-level vars for this thread
-      const LVList *lvl = sb.getLVList();
+      const LVList* lvl = sb.getLVList();
       if (lvl)
          for (unsigned i = 0; i < lvl->size(); ++i)
             lvl->lv[i]->instantiate();
@@ -1458,8 +1463,8 @@ public:
       return pgm.priv->incThreadCount(xsink);
    }
 
-   DLLLOCAL static void decThreadCount(QoreProgram& pgm) {
-      pgm.priv->decThreadCount();
+   DLLLOCAL static void decThreadCount(QoreProgram& pgm, int tid) {
+      pgm.priv->decThreadCount(tid);
    }
 
    // locking is done by the signal manager

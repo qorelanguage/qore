@@ -263,7 +263,7 @@ DLLLOCAL void substituteObjectIfEqual(QoreObject* o);
 DLLLOCAL QoreObject* substituteObject(QoreObject* o);
 DLLLOCAL QoreException* catchSwapException(QoreException* e);
 DLLLOCAL QoreException* catchGetException();
-DLLLOCAL VLock *getVLock();
+DLLLOCAL VLock* getVLock();
 DLLLOCAL void end_signal_thread(ExceptionSink* xsink);
 DLLLOCAL void delete_thread_local_data();
 DLLLOCAL void parse_cond_push(bool mark = false);
@@ -319,8 +319,8 @@ DLLLOCAL int get_pop_argv_ref();
 // clears the argv reference stack
 DLLLOCAL void clear_argv_ref();
 
-DLLLOCAL int set_constant(ConstantEntry *ce);
-DLLLOCAL void remove_constant(ConstantEntry *ce);
+DLLLOCAL int set_constant(ConstantEntry* ce);
+DLLLOCAL void remove_constant(ConstantEntry* ce);
 
 DLLLOCAL QoreAbstractModule* set_reexport(QoreAbstractModule* m, bool current_reexport, bool& old_reexport);
 DLLLOCAL void set_reexport(QoreAbstractModule* m, bool reexport);
@@ -334,7 +334,7 @@ DLLLOCAL const QoreTypeInfo* getReturnTypeInfo();
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 DLLLOCAL void pushCall(CallNode* cn);
 DLLLOCAL void popCall(ExceptionSink* xsink);
-DLLLOCAL CallStack *getCallStack();
+DLLLOCAL CallStack* getCallStack();
 DLLLOCAL QoreListNode* getCallStackList();
 #else
 #ifdef __GNUC__
@@ -831,7 +831,7 @@ public:
    }
 
 #ifdef HAVE_PTHREAD_ATTR_GETSTACK
-   DLLLOCAL void getstack(void*& ptr, size_t &ssize) {
+   DLLLOCAL void getstack(void*& ptr, size_t& ssize) {
       pthread_attr_getstack(&attr, &ptr, &ssize);
    }
 #endif

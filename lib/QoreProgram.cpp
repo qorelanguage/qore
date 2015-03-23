@@ -193,7 +193,7 @@ void qore_program_private_base::newProgram() {
    if (pwo.parse_options & PO_IN_MODULE)
       dmap["QoreHasUserModuleLicense"] = &True;
 
-   QoreNamespace *ns = QoreNS->findLocalNamespace("Option");
+   QoreNamespace* ns = QoreNS->findLocalNamespace("Option");
    assert(ns);
    ConstantListIterator cli(qore_ns_private::getConstantList(ns));
    while (cli.next()) {
@@ -212,7 +212,7 @@ void qore_program_private_base::newProgram() {
 #endif
 }
 
-void qore_program_private_base::setParent(QoreProgram *p_pgm, int64 n_parse_options) {
+void qore_program_private_base::setParent(QoreProgram* p_pgm, int64 n_parse_options) {
    //printd(5, "qore_program_private_base::setParent() this: %p parent: %p (parent lvl: %p) this: %p (this pgm: %p) parent po: %lld new po: %lld parent no_child_po_restrictions: %d\n", this, p_pgm, p_pgm->priv->sb.getLVList(), this, pgm, p_pgm->priv->pwo.parse_options, n_parse_options, p_pgm->priv->pwo.parse_options & PO_NO_CHILD_PO_RESTRICTIONS);
 
    TZ = p_pgm->currentTZ();
@@ -246,7 +246,7 @@ void qore_program_private_base::setParent(QoreProgram *p_pgm, int64 n_parse_opti
    p_pgm->priv->featureList.populate(&featureList);
       
    // copy top-level local variables in case any are referenced in static methods in the parent program (static methods are executed in the child's space)
-   const LVList *lvl = p_pgm->priv->sb.getLVList();
+   const LVList* lvl = p_pgm->priv->sb.getLVList();
    if (lvl)
       sb.assignLocalVars(lvl);
 
@@ -481,7 +481,7 @@ void qore_program_private::importClass(ExceptionSink* xsink, qore_program_privat
    }
 }
 
-void qore_program_private::importFunction(ExceptionSink* xsink, QoreFunction *u, const qore_ns_private& oldns, const char* new_name, bool inject) {
+void qore_program_private::importFunction(ExceptionSink* xsink, QoreFunction* u, const qore_ns_private& oldns, const char* new_name, bool inject) {
    // get exclusive access to program object for parsing
    ProgramRuntimeParseContextHelper pch(xsink, pgm);
    if (*xsink)
@@ -580,13 +580,13 @@ QoreProgram::QoreProgram() : priv(new qore_program_private(this, PO_DEFAULT)) {
 QoreProgram::QoreProgram(int64 po) : priv(new qore_program_private(this, po)) {
 }
 
-QoreProgram::QoreProgram(QoreProgram *pgm, int64 po, bool ec, const char* ecn) : priv(new qore_program_private(this, po, pgm)) {
+QoreProgram::QoreProgram(QoreProgram* pgm, int64 po, bool ec, const char* ecn) : priv(new qore_program_private(this, po, pgm)) {
    priv->exec_class = ec;
    if (ecn)
       priv->exec_class_name = ecn;
 }
 
-QoreThreadLock *QoreProgram::getParseLock() {
+QoreThreadLock* QoreProgram::getParseLock() {
    return &priv->plock;
 }
 
@@ -596,8 +596,8 @@ void QoreProgram::deref(ExceptionSink* xsink) {
       priv->clear(xsink);
 }
 
-LocalVar *QoreProgram::createLocalVar(const char* name, const QoreTypeInfo *typeInfo) {
-   LocalVar *lv = new LocalVar(name, typeInfo);
+LocalVar* QoreProgram::createLocalVar(const char* name, const QoreTypeInfo* typeInfo) {
+   LocalVar* lv = new LocalVar(name, typeInfo);
    priv->local_var_list.push_back(lv);
    return lv;
 }
@@ -635,7 +635,7 @@ int QoreProgram::disableWarning(int code) {
    return -1; 
 }
 
-RootQoreNamespace *QoreProgram::getRootNS() const {
+RootQoreNamespace* QoreProgram::getRootNS() const {
    return priv->RootNS; 
 }
 
@@ -679,7 +679,7 @@ void QoreProgram::setExecClass(const char* ecn) {
       priv->exec_class_name.clear();
 }
 
-QoreNamespace *QoreProgram::getQoreNS() const {
+QoreNamespace* QoreProgram::getQoreNS() const {
    return priv->QoreNS;
 }
 
@@ -757,18 +757,18 @@ AbstractQoreNode* QoreProgram::run(ExceptionSink* xsink) {
    return runTopLevel(xsink);
 }
 
-void QoreProgram::parse(FILE *fp, const char* name, ExceptionSink* xsink, ExceptionSink* wS, int wm) {
+void QoreProgram::parse(FILE* fp, const char* name, ExceptionSink* xsink, ExceptionSink* wS, int wm) {
    priv->parse(fp, name, xsink, wS, wm);
 }
 
-void QoreProgram::parse(const QoreString *str, const QoreString *lstr, ExceptionSink* xsink, ExceptionSink* wS, int wm) {
+void QoreProgram::parse(const QoreString* str, const QoreString* lstr, ExceptionSink* xsink, ExceptionSink* wS, int wm) {
    if (!str || str->empty())
       return;
 
    priv->parse(str, lstr, xsink, wS, wm);
 }
 
-void QoreProgram::parse(const QoreString *str, const QoreString *lstr, ExceptionSink* xsink, ExceptionSink* wS, int wm, const QoreString* source, int offset) {
+void QoreProgram::parse(const QoreString* str, const QoreString* lstr, ExceptionSink* xsink, ExceptionSink* wS, int wm, const QoreString* source, int offset) {
    if (!str || str->empty())
       return;
 
@@ -794,14 +794,14 @@ void QoreProgram::parseFile(const char* filename, ExceptionSink* xsink, Exceptio
    priv->parseFile(filename, xsink, wS, wm);
 }
 
-void QoreProgram::parsePending(const QoreString *str, const QoreString *lstr, ExceptionSink* xsink, ExceptionSink* wS, int wm) {
+void QoreProgram::parsePending(const QoreString* str, const QoreString* lstr, ExceptionSink* xsink, ExceptionSink* wS, int wm) {
    if (!str || str->empty())
       return;
 
    priv->parsePending(str, lstr, xsink, wS, wm);
 }
 
-void QoreProgram::parsePending(const QoreString *str, const QoreString *lstr, ExceptionSink* xsink, ExceptionSink* wS, int wm, const QoreString* source, int offset) {
+void QoreProgram::parsePending(const QoreString* str, const QoreString* lstr, ExceptionSink* xsink, ExceptionSink* wS, int wm, const QoreString* source, int offset) {
    if (!str || str->empty())
       return;
 
@@ -880,7 +880,7 @@ int QoreProgram::parseRollback(ExceptionSink* xsink) {
 
 void QoreProgram::runClass(const char* classname, ExceptionSink* xsink) {
    // find class
-   QoreClass *qc = qore_root_ns_private::runtimeFindClass(*priv->RootNS, classname);
+   QoreClass* qc = qore_root_ns_private::runtimeFindClass(*priv->RootNS, classname);
    if (!qc) {
       xsink->raiseException("CLASS-NOT-FOUND", "cannot find any class '%s' in any namespace", classname);
       return;
@@ -901,7 +901,7 @@ void QoreProgram::parseFileAndRunClass(const char* filename, const char* classna
       runClass(classname, &xsink);
 }
 
-void QoreProgram::parseAndRunClass(FILE *fp, const char* name, const char* classname) {
+void QoreProgram::parseAndRunClass(FILE* fp, const char* name, const char* classname) {
    ExceptionSink xsink;
 
    parse(fp, name, &xsink);
@@ -945,7 +945,7 @@ void QoreProgram::parseFileAndRun(const char* filename) {
    }
 }
 
-void QoreProgram::parseAndRun(FILE *fp, const char* name) {
+void QoreProgram::parseAndRun(FILE* fp, const char* name) {
    ExceptionSink xsink;
    
    if (priv->exec_class && priv->exec_class_name.empty())
@@ -1010,13 +1010,13 @@ void QoreProgram::setScriptPath(const char* path) {
    priv->setScriptPathExtern(path);
 }
 
-const LVList *QoreProgram::getTopLevelLVList() const {
+const LVList* QoreProgram::getTopLevelLVList() const {
    return priv->sb.getLVList();
 }
 
-AbstractQoreNode* QoreProgram::getGlobalVariableValue(const char* var, bool &found) const {
+AbstractQoreNode* QoreProgram::getGlobalVariableValue(const char* var, bool& found) const {
    const qore_ns_private* vns = 0;
-   Var *v = qore_root_ns_private::runtimeFindGlobalVar(*(priv->RootNS), var, vns);
+   Var* v = qore_root_ns_private::runtimeFindGlobalVar(*(priv->RootNS), var, vns);
    if (!v) {
       found = false;
       return 0;
@@ -1035,11 +1035,11 @@ const char* QoreProgram::parseGetIncludePath() const {
    return priv->include_path.empty() ? 0 : priv->include_path.c_str();
 }
 
-const AbstractQoreZoneInfo *QoreProgram::currentTZ() const {
+const AbstractQoreZoneInfo* QoreProgram::currentTZ() const {
    return priv->currentTZ();
 }
 
-void QoreProgram::setTZ(const AbstractQoreZoneInfo *n_TZ) {
+void QoreProgram::setTZ(const AbstractQoreZoneInfo* n_TZ) {
    priv->setTZ(n_TZ);
 }
 
@@ -1051,7 +1051,7 @@ void QoreProgram::parseSetTimeZone(const char* zone) {
    return priv->parseSetTimeZone(zone);
 }
 
-AbstractQoreNode* qore_parse_get_define_value(const char* str, QoreString &arg, bool &ok) {
+AbstractQoreNode* qore_parse_get_define_value(const char* str, QoreString& arg, bool& ok) {
    ok = true;
    char c = arg[0];
    // see if a string is being defined

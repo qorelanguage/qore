@@ -211,7 +211,8 @@
     - fixed a bug in @ref Qore::Program::importFunction() with function names with a namespace path
     - fixed a bug in closure calls when a closure is called from within a closure and referes to closure-bound locally variables in the internal closure call which would previously result in a crash
     - fixed a parse-time memory leak in call reference calls when the callable object is resolved from a class constant
-    - fixed a bug in maintaining the conditional complilation status when parsing @ref include "%include" directives and @ref requires "%requires" directives with user modules
+    - fixed a bug in maintaining the conditional compilation status when parsing @ref include "%include" directives and @ref requires "%requires" directives with user modules
+    - fixed an obscure bug when a thread terminates in a Program object after the Program container itself has already been deleted where the termination would hang while waiting for the Program's thread count to reach zero while the last thread doing the waiting also held the last thread reference
 
     @section qore_0811 Qore 0.8.11
 
