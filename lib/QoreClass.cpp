@@ -3854,7 +3854,7 @@ void UserCopyVariant::evalCopy(const QoreClass &thisclass, QoreObject* self, Qor
    args->push(self->refSelf());
    ceh.setArgs(args);
 
-   UserVariantExecHelper uveh(this, &ceh, false, xsink);
+   UserVariantExecHelper uveh(this, &ceh, xsink);
    if (!uveh)
       return;
 

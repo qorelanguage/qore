@@ -436,8 +436,8 @@ protected:
    bool init;
 
    DLLLOCAL AbstractQoreNode* evalIntern(ReferenceHolder<QoreListNode>& argv, QoreObject* self, ExceptionSink* xsink) const;
-   DLLLOCAL AbstractQoreNode* eval(const char* name, CodeEvaluationHelper* ceh, QoreObject* self, ExceptionSink* xsink, const qore_class_private* qc = 0, bool for_closure = false) const;
-   DLLLOCAL int setupCall(CodeEvaluationHelper* ceh, ReferenceHolder<QoreListNode>& argv, bool for_closure, ExceptionSink* xsink) const;
+   DLLLOCAL AbstractQoreNode* eval(const char* name, CodeEvaluationHelper* ceh, QoreObject* self, ExceptionSink* xsink, const qore_class_private* qc = 0) const;
+   DLLLOCAL int setupCall(CodeEvaluationHelper* ceh, ReferenceHolder<QoreListNode>& argv, ExceptionSink* xsink) const;
 
 public:
 
@@ -480,8 +480,8 @@ protected:
    ExceptionSink* xsink;
 
 public:
-   DLLLOCAL UserVariantExecHelper(const UserVariantBase* n_uvb, CodeEvaluationHelper* ceh, bool for_closure, ExceptionSink* n_xsink) : uvb(n_uvb), argv(n_xsink), xsink(n_xsink) {
-      if (uvb->setupCall(ceh, argv, for_closure, xsink))
+   DLLLOCAL UserVariantExecHelper(const UserVariantBase* n_uvb, CodeEvaluationHelper* ceh, ExceptionSink* n_xsink) : uvb(n_uvb), argv(n_xsink), xsink(n_xsink) {
+      if (uvb->setupCall(ceh, argv, xsink))
 	 uvb = 0;
    }
    DLLLOCAL ~UserVariantExecHelper();
@@ -1083,7 +1083,7 @@ public:
    DLLLOCAL virtual void parseInit(QoreFunction* f);
 
    DLLLOCAL AbstractQoreNode* evalClosure(CodeEvaluationHelper& ceh, QoreObject* self, ExceptionSink* xsink) const {
-      return eval("<anonymous closure>", &ceh, self, xsink, 0, true);
+      return eval("<anonymous closure>", &ceh, self, xsink);
    }
 };
 
@@ -1104,7 +1104,7 @@ public:
       return reinterpret_cast<const UserClosureVariant*>(pending_first())->getUserSignature()->hasReturnTypeInfo();
    }
 
-   DLLLOCAL AbstractQoreNode* evalClosure(ThreadSafeLocalVarRuntimeEnvironment& closure_env, QoreProgram* pgm, const QoreListNode* args, QoreObject* self, ExceptionSink* xsink) const;
+   DLLLOCAL AbstractQoreNode* evalClosure(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject* self, ExceptionSink* xsink) const;
 
    DLLLOCAL void setClassType(const QoreTypeInfo* cti) {
       classTypeInfo = cti;

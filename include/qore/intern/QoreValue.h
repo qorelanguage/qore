@@ -191,9 +191,8 @@ struct QoreValue {
          case QV_Float: return NT_FLOAT;
          case QV_Node: return v.n ? v.n->getType() : 0;
          default: assert(false);
-         // no break
+            // no break
       }
-      return NT_NOTHING;
    }
 
    DLLLOCAL const char* getTypeName() const {
@@ -203,7 +202,7 @@ struct QoreValue {
          case QV_Float: return QoreFloatNode::getStaticTypeName();
          case QV_Node: return get_type_name(v.n);
          default: assert(false);
-         // no break
+            // no break
       }
       return 0;
    }
@@ -857,27 +856,29 @@ public:
    */
 
    DLLLOCAL qore_type_t getType() const {
-      switch (type) {
-         case QV_Bool: return NT_BOOLEAN;
-         case QV_Int: return NT_INT;
-         case QV_Float: return NT_FLOAT;
-         case QV_Node: return v.n ? v.n->getType() : 0;
-         default: assert(false);
-         // no break
-      }
+      if (assigned)
+         switch (type) {
+            case QV_Bool: return NT_BOOLEAN;
+            case QV_Int: return NT_INT;
+            case QV_Float: return NT_FLOAT;
+            case QV_Node: return v.n ? v.n->getType() : 0;
+            default: assert(false);
+               // no break
+         }
       return NT_NOTHING;      
    }
 
    DLLLOCAL const char* getTypeName() const {
-      switch (type) {
-	 case QV_Bool: return QoreBoolNode::getStaticTypeName();
-	 case QV_Int: return QoreBigIntNode::getStaticTypeName();
-	 case QV_Float: return QoreFloatNode::getStaticTypeName();
-	 case QV_Node: return get_type_name(v.n);
-         default: assert(false);
-         // no break
-      }
-      return 0;
+      if (assigned)
+         switch (type) {
+            case QV_Bool: return QoreBoolNode::getStaticTypeName();
+            case QV_Int: return QoreBigIntNode::getStaticTypeName();
+            case QV_Float: return QoreFloatNode::getStaticTypeName();
+            case QV_Node: return get_type_name(v.n);
+            default: assert(false);
+               // no break
+         }
+      return "NOTHING";
    }
 
    DLLLOCAL AbstractQoreNode** getValuePtr(ExceptionSink* xsink) const {

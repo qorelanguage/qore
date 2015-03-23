@@ -87,7 +87,7 @@ void Var::remove(LValueRemoveHelper& lvrh) {
 
 void Var::del(ExceptionSink* xsink) {
    if (val.type == QV_Ref) {
-      printd(4, "Var::~Var() refptr=%p\n", val.v.getPtr());
+      printd(4, "Var::~Var() refptr: %p\n", val.v.getPtr());
       val.v.getPtr()->deref(xsink);
       // clear type so no further deleting will be done
    }
@@ -238,13 +238,13 @@ LValueHelper::~LValueHelper() {
 
    delete lvid_set;
 
-   // recalculate recusive references for objects if necessary
-   if (robj && obj_chg) {
-      ObjectRSetHelper rsh(*robj);
+   if (robj) {
+      // recalculate recursive references for objects if necessary
+      if (obj_chg)
+	 ObjectRSetHelper rsh(*robj);
+      if (obj_ref)
+	 robj->tDeref();
    }
-
-   if (robj && obj_ref)
-      robj->tDeref();
 }
 
 void LValueHelper::saveTemp(AbstractQoreNode* n) {
@@ -332,7 +332,7 @@ int LValueHelper::doHashObjLValue(const QoreTreeNode* tree, bool for_remove) {
    QoreObject* o = t == NT_OBJECT ? reinterpret_cast<QoreObject*>(*v) : 0;
    QoreHashNode* h = 0;
 
-   //printd(5, "LValueHelper::doHashObjLValue() h=%p v: %p ('%s', refs: %d)\n", h, v, v ? v->getTypeName() : "(null)", v ? v->reference_count() : 0);
+   //printd(5, "LValueHelper::doHashObjLValue() h: %p v: %p ('%s', refs: %d)\n", h, v, v ? v->getTypeName() : "(null)", v ? v->reference_count() : 0);
 
    if (!o) {
       if (t == NT_HASH) {
@@ -357,7 +357,7 @@ int LValueHelper::doHashObjLValue(const QoreTreeNode* tree, bool for_remove) {
 	 ocvec.push_back(ObjCountRec(h));
       }
 
-      //printd(5, "LValueHelper::doHashObjLValue() def=%s member %s \"%s\"\n", QCS_DEFAULT->getCode(), mem->getEncoding()->getCode(), mem->getBuffer());
+      //printd(5, "LValueHelper::doHashObjLValue() def: %s member %s \"%s\"\n", QCS_DEFAULT->getCode(), mem->getEncoding()->getCode(), mem->getBuffer());
       resetPtr(h->getKeyValuePtr(mem->getBuffer()));
       return 0;
    }
@@ -405,7 +405,7 @@ int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
    //printd(5, "LValueHelper::doLValue(exp: %p) %s %d\n", n, get_type_name(n), get_node_type(n));
    if (ntype == NT_VARREF) {
       const VarRefNode* v = reinterpret_cast<const VarRefNode*>(n);
-      //printd(5, "LValueHelper::doLValue(): vref=%s (%p)\n", v->name, v);
+      //printd(5, "LValueHelper::doLValue(): vref: %s (%p) type: %d\n", v->getName(), v, v->getType());
       if (v->getLValue(*this, for_remove))
          return -1;
    }
@@ -1185,4 +1185,66 @@ void ClosureVarValue::remove(LValueRemoveHelper& lvrh) {
    }
 
    lvrh.doRemove((QoreLValueGeneric&)val, typeInfo);
+}
+
+static bool check_closure_loop_closure(ClosureVarValue* cvv, const QoreClosureBase* c) {
+   //printd(5, "check_closure_loop_closure() c: %p cvv: %p rv: %d\n", c, cvv, c->hasVar(cvv));
+   return c->hasVar(cvv);
+}
+
+static bool check_closure_loop(ClosureVarValue* cvv, const AbstractQoreNode* n) {
+   switch (get_node_type(n)) {
+      case NT_RUNTIME_CLOSURE: return check_closure_loop_closure(cvv, reinterpret_cast<const QoreClosureBase*>(n));
+      case NT_HASH: {
+	 ConstHashIterator hi(reinterpret_cast<const QoreHashNode*>(n));
+	 while (hi.next())
+	    if (check_closure_loop(cvv, hi.getValue()))
+	       return true;
+	 break;
+      }
+      case NT_LIST: {
+	 ConstListIterator li(reinterpret_cast<const QoreListNode*>(n));
+	 while (li.next())
+	    if (check_closure_loop(cvv, li.getValue()))
+	       return true;
+	 break;
+      }
+   }
+   return false;
+}
+
+void ClosureVarValue::deref(ExceptionSink* xsink) {
+   //printd(5, "ClosureVarValue::deref() this: %p refs: %d -> %d val: %s\n", this, references, references - 1, val.getTypeName());
+   if (reference_count() == 2) {
+      // process recursive closure vars embedded in the current closure
+      QoreSafeVarRWReadLocker sl(this);
+      if (val.assigned && val.type == QV_Node && val.v.n) {
+	 ReferenceHolder<> holder(xsink);
+	 bool rdel = false;
+	 switch (val.v.n->getType()) {
+	    case NT_RUNTIME_CLOSURE:
+	       rdel = check_closure_loop_closure(this, reinterpret_cast<const QoreClosureBase*>(val.v.n));
+	       sl.unlock();
+	       break;
+	    case NT_LIST:
+	    case NT_HASH:
+	       holder = val.v.n->refSelf();
+	       sl.unlock();
+	       rdel = check_closure_loop(this, *holder);
+	       break;
+	    default:
+	       sl.unlock();
+	       break;
+	 }
+	 if (rdel) {
+	    printd(5, "ClosureVarValue::deref() this: %p found recursive reference; deleting value\n", this);
+	    del(xsink);
+	 }
+      }
+   }
+
+   if (ROdereference()) {
+      del(xsink);
+      delete this;
+   }
 }

@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -58,10 +58,10 @@ protected:
    bool top_level;
    
 public:
-   LocalVar *lvar;
+   LocalVar* lvar;
    VNode* next;
 
-   DLLLOCAL VNode(LocalVar *lv, const QoreProgramLocation* n_loc = 0, int n_refs = 0, bool n_top_level = false) : refs(n_refs), loc(n_loc), block_start(false), top_level(n_top_level), lvar(lv), next(getVStack()) {
+   DLLLOCAL VNode(LocalVar* lv, const QoreProgramLocation* n_loc = 0, int n_refs = 0, bool n_top_level = false) : refs(n_refs), loc(n_loc), block_start(false), top_level(n_top_level), lvar(lv), next(getVStack()) {
       updateVStack(this);
 
       //printd(5, "VNode::VNode() this: %p '%s' %p top_level: %d\n", this, lvar ? lvar->getName() : "n/a", lvar, top_level);
@@ -115,7 +115,7 @@ public:
       return top_level;
    }
 
-   DLLLOCAL const char *getName() const {
+   DLLLOCAL const char* getName() const {
       return lvar->getName();
    }
 
@@ -169,12 +169,12 @@ AbstractQoreNode* StatementBlock::exec(ExceptionSink* xsink) {
    return return_value;
 }
 
-void StatementBlock::addStatement(AbstractStatement *s) {
+void StatementBlock::addStatement(AbstractStatement* s) {
    //QORE_TRACE("StatementBlock::addStatement()");
 
    if (s) {
       statement_list.push_back(s);
-      OnBlockExitStatement *obe = dynamic_cast<OnBlockExitStatement *>(s);
+      OnBlockExitStatement* obe = dynamic_cast<OnBlockExitStatement* >(s);
       if (obe)
 	 on_block_exit_list.push_front(std::make_pair(obe->getType(), obe->getCode()));
 
@@ -247,19 +247,19 @@ void StatementBlock::exec() {
    exec(&xsink);
 }
 
-static void push_top_level_local_var(LocalVar *lv, const QoreProgramLocation& loc) {
+static void push_top_level_local_var(LocalVar* lv, const QoreProgramLocation& loc) {
    new VNode(lv, &loc, 1, true);
 }
 
 // used for constructor methods sharing a common "self" local variable
-void push_local_var(LocalVar *lv, const QoreProgramLocation& loc) {
+void push_local_var(LocalVar* lv, const QoreProgramLocation& loc) {
    new VNode(lv, &loc, 1);
 }
 
-LocalVar *push_local_var(const char *name, const QoreProgramLocation& loc, const QoreTypeInfo *typeInfo, bool is_arg, int n_refs, bool top_level) {
-   QoreProgram *pgm = getProgram();
+LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const QoreTypeInfo* typeInfo, bool is_arg, int n_refs, bool top_level) {
+   QoreProgram* pgm = getProgram();
 
-   LocalVar *lv = pgm->createLocalVar(name, typeInfo);
+   LocalVar* lv = pgm->createLocalVar(name, typeInfo);
 
    QoreString ls;
    loc.toString(ls);
@@ -313,10 +313,10 @@ int pop_local_var_get_id() {
    return refs;
 }
 
-LocalVar *pop_local_var(bool set_unassigned) {
+LocalVar* pop_local_var(bool set_unassigned) {
    std::auto_ptr<VNode> vnode(getVStack());
    assert(vnode.get());
-   LocalVar *rc = vnode->lvar;
+   LocalVar* rc = vnode->lvar;
    if (set_unassigned)
       rc->parseUnassigned();
    printd(5, "pop_local_var(): popping var %s\n", rc->getName());
@@ -324,9 +324,9 @@ LocalVar *pop_local_var(bool set_unassigned) {
    return rc;
 }
 
-LocalVar *find_local_var(const char *name, bool &in_closure) {
+LocalVar* find_local_var(const char* name, bool& in_closure) {
    VNode* vnode = getVStack();
-   ClosureParseEnvironment *cenv = thread_get_closure_parse_env();
+   ClosureParseEnvironment* cenv = thread_get_closure_parse_env();
    in_closure = false;
 
    if (vnode && !vnode->lvar)
@@ -355,12 +355,12 @@ LocalVar *find_local_var(const char *name, bool &in_closure) {
    return 0;
 }
 
-int StatementBlock::parseInitIntern(LocalVar *oflag, int pflag, statement_list_t::iterator start) {
+int StatementBlock::parseInitIntern(LocalVar* oflag, int pflag, statement_list_t::iterator start) {
    QORE_TRACE("StatementBlock::parseInitIntern");
 
    int lvids = 0;
 
-   AbstractStatement *ret = 0;
+   AbstractStatement* ret = 0;
 
    if (start != statement_list.end())
       ++start;
@@ -379,7 +379,7 @@ int StatementBlock::parseInitIntern(LocalVar *oflag, int pflag, statement_list_t
    return lvids;
 }
 
-int StatementBlock::parseInitImpl(LocalVar *oflag, int pflag) {
+int StatementBlock::parseInitImpl(LocalVar* oflag, int pflag) {
    QORE_TRACE("StatementBlock::parseInitImpl");
 
    printd(4, "StatementBlock::parseInitImpl(b=%p, oflag=%p)\n", this, oflag);
@@ -396,7 +396,7 @@ int StatementBlock::parseInitImpl(LocalVar *oflag, int pflag) {
    return 0;
 }
 
-void StatementBlock::parseInit(UserVariantBase *uvb) {
+void StatementBlock::parseInit(UserVariantBase* uvb) {
    QORE_TRACE("StatementBlock::parseInit");
 
    VariableBlockHelper vbh;
@@ -410,7 +410,7 @@ void StatementBlock::parseInit(UserVariantBase *uvb) {
 }
 
 void StatementBlock::parseCheckReturn() {
-   const QoreTypeInfo *returnTypeInfo = getReturnTypeInfo();
+   const QoreTypeInfo* returnTypeInfo = getReturnTypeInfo();
    if (returnTypeInfo->hasType() && !returnTypeInfo->parseAccepts(nothingTypeInfo)) {
       // make sure the last statement is a return statement if the block has a return type
       if (statement_list.empty() || !(*statement_list.last())->hasFinalReturn()) {
@@ -422,7 +422,7 @@ void StatementBlock::parseCheckReturn() {
    }
 }
 
-void StatementBlock::parseInitMethod(const QoreTypeInfo *typeInfo, UserVariantBase *uvb) {
+void StatementBlock::parseInitMethod(const QoreTypeInfo* typeInfo, UserVariantBase* uvb) {
    QORE_TRACE("StatementBlock::parseInitMethod");
 
    VariableBlockHelper vbh;
@@ -435,7 +435,7 @@ void StatementBlock::parseInitMethod(const QoreTypeInfo *typeInfo, UserVariantBa
    parseCheckReturn();
 }
 
-void StatementBlock::parseInitConstructor(const QoreTypeInfo *typeInfo, UserVariantBase *uvb, BCAList *bcal, BCList *bcl) {
+void StatementBlock::parseInitConstructor(const QoreTypeInfo* typeInfo, UserVariantBase* uvb, BCAList* bcal, BCList* bcl) {
    QORE_TRACE("StatementBlock::parseInitConstructor");
 
    VariableBlockHelper vbh;
@@ -458,7 +458,7 @@ void StatementBlock::parseInitConstructor(const QoreTypeInfo *typeInfo, UserVari
    parseInitImpl(uvb->getUserSignature()->selfid);
 }
 
-void StatementBlock::parseInitClosure(UserVariantBase *uvb, const QoreTypeInfo *classTypeInfo, lvar_set_t *vlist) {
+void StatementBlock::parseInitClosure(UserVariantBase* uvb, const QoreTypeInfo* classTypeInfo, lvar_set_t* vlist) {
    QORE_TRACE("StatementBlock::parseInitClosure");
 
    ClosureParseEnvironment cenv(vlist);

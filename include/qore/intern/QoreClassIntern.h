@@ -398,7 +398,7 @@ public:
       if (*xsink)
          return;
 
-      UserVariantExecHelper uveh(this, &ceh, false, xsink);
+      UserVariantExecHelper uveh(this, &ceh, xsink);
       if (!uveh)
 	 return;
 

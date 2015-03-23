@@ -203,14 +203,14 @@ int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const Abs
       return 0;
    unsigned nparams = sig->numParams();
 
-   //printd(5, "processDefaultArgs() %s nargs=%d nparams=%d flags=%lld po=%d\n", func->getName(), nargs, nparams, variant->getFlags(), (bool)(getProgram()->getParseOptions64() & (PO_REQUIRE_TYPES | PO_STRICT_ARGS)));
+   //printd(5, "processDefaultArgs() %s nargs: %d nparams: %d flags: %lld po: %d\n", func->getName(), nargs, nparams, variant->getFlags(), (bool)(getProgram()->getParseOptions64() & (PO_REQUIRE_TYPES | PO_STRICT_ARGS)));
    //if (nargs > nparams && (getProgram()->getParseOptions64() & (PO_REQUIRE_TYPES | PO_STRICT_ARGS))) {
 if (nargs > nparams && (runtime_get_parse_options() & (PO_REQUIRE_TYPES | PO_STRICT_ARGS))) {
       int64 flags = variant->getFlags();
 
       if (!(flags & QC_USES_EXTRA_ARGS)) {
 	 for (unsigned i = nparams; i < nargs; ++i) {
-	    //printd(5, "processDefaultArgs() %s arg %d nothing=%d\n", func->getName(), i, is_nothing(tmp->retrieve_entry(i)));
+	    //printd(5, "processDefaultArgs() %s arg %d nothing: %d\n", func->getName(), i, is_nothing(tmp->retrieve_entry(i)));
 	    if (!is_nothing(tmp->retrieve_entry(i))) {
 	       QoreStringNode* desc = new QoreStringNode("call to ");
 	       do_call_name(*desc, func);
@@ -426,7 +426,7 @@ void UserSignature::parseInitPushLocalVars(const QoreTypeInfo* classTypeInfo) {
    
    // push $argv var on stack and save id
    argvid = push_local_var("argv", loc, listOrNothingTypeInfo, false, 1);
-   printd(5, "UserSignature::parseInitPushLocalVars() this=%p argvid=%p\n", this, argvid);
+   printd(5, "UserSignature::parseInitPushLocalVars() this: %p argvid: %p\n", this, argvid);
 
    resolve();
 
@@ -434,7 +434,7 @@ void UserSignature::parseInitPushLocalVars(const QoreTypeInfo* classTypeInfo) {
    for (unsigned i = 0; i < typeList.size(); ++i) {
       // check for dups but do not check if the variables are referenced in the block
       lv.push_back(push_local_var(names[i].c_str(), loc, typeList[i], true, 1));
-      printd(5, "UserSignature::parseInitPushLocalVars() registered local var %s (id=%p)\n", names[i].c_str(), lv[i]);
+      printd(5, "UserSignature::parseInitPushLocalVars() registered local var %s (id: %p)\n", names[i].c_str(), lv[i]);
    }
 }
 
@@ -551,7 +551,7 @@ const AbstractQoreFunctionVariant* QoreFunction::findVariant(const QoreListNode*
    int match = -1;
    const AbstractQoreFunctionVariant* variant = 0;
 
-   //printd(5, "QoreFunction::findVariant() this=%p %s%s%s() vlist=%d (pend=%d) ilist=%d args=%p (%d)\n", this, className() ? className() : "", className() ? "::" : "", getName(), vlist.size(), pending_vlist.size(), ilist.size(), args, args ? args->size() : 0);
+   //printd(5, "QoreFunction::findVariant() this: %p %s%s%s() vlist: %d (pend: %d) ilist: %d args: %p (%d)\n", this, className() ? className() : "", className() ? "::" : "", getName(), vlist.size(), pending_vlist.size(), ilist.size(), args, args ? args->size() : 0);
 
    // perfect match score
    unsigned nargs = args ? args->size() : 0;
@@ -593,7 +593,7 @@ const AbstractQoreFunctionVariant* QoreFunction::findVariant(const QoreListNode*
 	       const QoreTypeInfo* t = sig->getParamTypeInfo(pi);
 	       const AbstractQoreNode* n = args ? args->retrieve_entry(pi) : 0;
 
-	       //printd(5, "QoreFunction::findVariant() this=%p %s(%s) i=%d param=%s arg=%s\n", this, getName(), sig->getSignatureText(), pi, t->getName(), get_type_name(n));
+	       //printd(5, "QoreFunction::findVariant() this: %p %s(%s) i: %d param: %s arg: %s\n", this, getName(), sig->getSignatureText(), pi, t->getName(), get_type_name(n));
 	    
 	       int rc;
 	       if (is_nothing(n) && sig->hasDefaultArg(pi))
@@ -659,7 +659,7 @@ const AbstractQoreFunctionVariant* QoreFunction::findVariant(const QoreListNode*
 	 int64 po = runtime_get_parse_options();
          //int64 po = pgm->getParseOptions64();
          if (variant->getFunctionality() & po) {
-            //printd(5, "QoreFunction::findVariant() this=%p %s(%s) getProgram()=%p getProgram()->getParseOptions64()=%x variant->getFunctionality()=%x\n", this, getName(), variant->getSignature()->getSignatureText(), getProgram(), getProgram()->getParseOptions64(), variant->getFunctionality());
+            //printd(5, "QoreFunction::findVariant() this: %p %s(%s) getProgram(): %p getProgram()->getParseOptions64(): %x variant->getFunctionality(): %x\n", this, getName(), variant->getSignature()->getSignatureText(), getProgram(), getProgram()->getParseOptions64(), variant->getFunctionality());
             if (!only_user) {
                const char* class_name = className();
                xsink->raiseException("INVALID-FUNCTION-ACCESS", "parse options do not allow access to builtin %s '%s%s%s(%s)'", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", getName(), variant->getSignature()->getSignatureText());
@@ -701,7 +701,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(const type_v
    const AbstractQoreFunctionVariant* variant = 0;
    unsigned num_args = argTypeInfo.size();
 
-   //printd(5, "QoreFunction::runtimeFindVariant() this=%p %s() vlist=%d pend=%d ilist=%d num_args=%d\n", this, getName(), vlist.size(), pending_vlist.size(), ilist.size(), num_args);
+   //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s() vlist: %d pend: %d ilist: %d num_args: %d\n", this, getName(), vlist.size(), pending_vlist.size(), ilist.size(), num_args);
 
    QoreFunction* aqf = 0;
    
@@ -718,7 +718,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(const type_v
 
 	 AbstractFunctionSignature* sig = (*i)->getSignature();
 
-	 //printd(5, "QoreFunction::runtimeFindVariant() this=%p checking %s(%s) variant=%p sig->pt=%d sig->mpt=%d match=%d, args=%d\n", this, getName(), sig->getSignatureText(), variant, sig->getParamTypes(), sig->getMinParamTypes(), match, num_args);
+	 //printd(5, "QoreFunction::runtimeFindVariant() this: %p checking %s(%s) variant: %p sig->pt: %d sig->mpt: %d match: %d, args: %d\n", this, getName(), sig->getSignatureText(), variant, sig->getParamTypes(), sig->getMinParamTypes(), match, num_args);
 	 
 	 if (!variant && !sig->getParamTypes()) {
 	    match = 0;
@@ -738,7 +738,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(const type_v
 	    // must have type information
 	    assert(a || pi >= num_args);
 
-	    //printd(5, "QoreFunction::runtimeFindVariant() %s(%s) pi=%d t=%s (has type: %d) a=%s (%p) t->parseEqual(a)=%d\n", getName(), sig->getSignatureText(), pi, t->getName(), t->hasType(), a->getName(), a, t->parseEqual(a));
+	    //printd(5, "QoreFunction::runtimeFindVariant() %s(%s) pi: %d t: %s (has type: %d) a: %s (%p) t->parseEqual(a): %d\n", getName(), sig->getSignatureText(), pi, t->getName(), t->hasType(), a->getName(), a, t->parseEqual(a));
 	  
 	    int rc;
 	    if (t->hasType() && !a->hasType() && sig->hasDefaultArg(pi))
@@ -758,7 +758,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(const type_v
 	 if (!ok)
 	    continue;
 
-	 //printd(5, "QoreFunction::runtimeFindVariant() this=%p tested %s(%s) ok=%d count=%d match=%d variant_pmatch=%d\n", this, getName(), sig->getSignatureText(), ok, count, match, variant_pmatch);
+	 //printd(5, "QoreFunction::runtimeFindVariant() this: %p tested %s(%s) ok: %d count: %d match: %d variant_pmatch: %d\n", this, getName(), sig->getSignatureText(), ok, count, match, variant_pmatch);
 	 if (count > match) {
 	    match = count;
 	    variant = *i;
@@ -766,7 +766,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(const type_v
       }
    }
 
-   //printd(5, "QoreFunction::runtimeFindVariant() this=%p %s%s%s() returning %p %s(%s)\n", this, className() ? className() : "", className() ? "::" : "", getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a");
+   //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s%s%s() returning %p %s(%s)\n", this, className() ? className() : "", className() ? "::" : "", getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a");
    return variant;
 }
 
@@ -825,7 +825,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
    const AbstractQoreFunctionVariant* pvariant = 0;
    unsigned num_args = argTypeInfo.size();
 
-   //printd(5, "QoreFunction::parseFindVariant() this=%p %s() vlist=%d pend=%d ilist=%d num_args=%d\n", this, getName(), vlist.size(), pending_vlist.size(), ilist.size(), num_args);
+   //printd(5, "QoreFunction::parseFindVariant() this: %p %s() vlist: %d pend: %d ilist: %d num_args: %d\n", this, getName(), vlist.size(), pending_vlist.size(), ilist.size(), num_args);
 
    QoreFunction* aqf = 0;
    
@@ -839,7 +839,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
       for (vlist_t::const_iterator i = aqf->vlist.begin(), e = aqf->vlist.end(); i != e; ++i) {
 	 AbstractFunctionSignature* sig = (*i)->getSignature();
 	 
-	 //printd(5, "QoreFunction::parseFindVariant() this=%p checking %s(%s) variant=%p sig->pt=%d sig->mpt=%d match=%d, args=%d\n", this, getName(), sig->getSignatureText(), variant, sig->getParamTypes(), sig->getMinParamTypes(), match, num_args);
+	 //printd(5, "QoreFunction::parseFindVariant() this: %p checking %s(%s) variant: %p sig->pt: %d sig->mpt: %d match: %d, args: %d\n", this, getName(), sig->getSignatureText(), variant, sig->getParamTypes(), sig->getMinParamTypes(), match, num_args);
 	 
 	 if (!variant && !sig->getParamTypes() && pmatch == -1) {
 	    match = pmatch = nperfect = 0;
@@ -852,7 +852,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
 
 	    ++npv;
 
-	    //printd(5, "QoreFunction::parseFindVariant() this=%p matched with no args %s(%s) variant=%p sig->pt=%d sig->mpt=%d match=%d, args=%d\n", this, getName(), sig->getSignatureText(), variant, sig->getParamTypes(), sig->getMinParamTypes(), match, num_args);
+	    //printd(5, "QoreFunction::parseFindVariant() this: %p matched with no args %s(%s) variant: %p sig->pt: %d sig->mpt: %d match: %d, args: %d\n", this, getName(), sig->getSignatureText(), variant, sig->getParamTypes(), sig->getMinParamTypes(), match, num_args);
 
 	    continue;
 	 }
@@ -869,7 +869,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
 	       const QoreTypeInfo* t = sig->getParamTypeInfo(pi);
 	       const QoreTypeInfo* a = (num_args && num_args > pi) ? argTypeInfo[pi] : 0;
 	       
-	       //printd(5, "QoreFunction::parseFindVariant() %s(%s) committed pi=%d t=%s (has type: %d) a=%s (%p) t->parseAccepts(a)=%d\n", getName(), sig->getSignatureText(), pi, t->getName(), t->hasType(), a->getName(), a, t->parseAccepts(a));
+	       //printd(5, "QoreFunction::parseFindVariant() %s(%s) committed pi: %d t: %s (has type: %d) a: %s (%p) t->parseAccepts(a): %d\n", getName(), sig->getSignatureText(), pi, t->getName(), t->hasType(), a->getName(), a, t->parseAccepts(a));
 
 	       int rc = QTI_UNASSIGNED;
 	       if (t->hasType()) {
@@ -892,7 +892,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
 	       if (rc == QTI_UNASSIGNED) {
 		  bool may_not_match = false;
 		  rc = t->parseAccepts(a, may_not_match);
-		  //printd(5, "QoreFunction::parseFindVariant() %s(%s) rc=%d may_not_match=%d\n", getName(), sig->getSignatureText(), rc, may_not_match);
+		  //printd(5, "QoreFunction::parseFindVariant() %s(%s) rc: %d may_not_match: %d\n", getName(), sig->getSignatureText(), rc, may_not_match);
 		  if (may_not_match && !variant_missing_types)
 		     variant_missing_types = true;
 		  if (rc == QTI_IDENT)
@@ -914,7 +914,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
 		  //}
 	    }
 	    
-	    //printd(5, "QoreFunction::parseFindVariant() this=%p tested %s(%s) ok=%d count=%d match=%d variant_missing_types=%d variant_pmatch=%d variant_nperfect=%d nperfect=%d\n", this, getName(), sig->getSignatureText(), ok, count, match, variant_missing_types, variant_pmatch, variant_nperfect, nperfect);
+	    //printd(5, "QoreFunction::parseFindVariant() this: %p tested %s(%s) ok: %d count: %d match: %d variant_missing_types: %d variant_pmatch: %d variant_nperfect: %d nperfect: %d\n", this, getName(), sig->getSignatureText(), ok, count, match, variant_missing_types, variant_pmatch, variant_nperfect, nperfect);
 	    if (!ok)
 	       continue;
 
@@ -996,7 +996,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
 	       const QoreTypeInfo* t = sig->getParamTypeInfo(pi);
 	       const QoreTypeInfo* a = (num_args && num_args > pi) ? argTypeInfo[pi] : 0;
 
-	       //printd(5, "QoreFunction::parseFindVariant() %s(%s) uncommitted pi=%d t=%s (has type: %d) a=%s (%p) t->parseAccepts(a)=%d\n", getName(), sig->getSignatureText(), pi, t->getName(), t->hasType(), a->getName(), a, t->parseAccepts(a));
+	       //printd(5, "QoreFunction::parseFindVariant() %s(%s) uncommitted pi: %d t: %s (has type: %d) a: %s (%p) t->parseAccepts(a): %d\n", getName(), sig->getSignatureText(), pi, t->getName(), t->hasType(), a->getName(), a, t->parseAccepts(a));
 
 	       int rc = QTI_UNASSIGNED;
 	       if (t->hasType()) {
@@ -1035,7 +1035,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
 	       // only increment for actual type matches (t may be NULL)
 	       //if (t) {
 		  ++variant_pmatch;
-		  //printd(5, "QoreFunction::parseFindVariant() this=%p %s() variant=%p i=%d match (param %s == %s)\n", this, getName(), variant, pi, t->getName(), a->getName());
+		  //printd(5, "QoreFunction::parseFindVariant() this: %p %s() variant: %p i: %d match (param %s == %s)\n", this, getName(), variant, pi, t->getName(), a->getName());
 		  if (rc != QTI_IGNORE)
 		     count += rc;
 		  //}
@@ -1136,7 +1136,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
 	 warn_excess_args(this, argTypeInfo, sig);
    }
 
-   //printd(5, "QoreFunction::parseFindVariant() this=%p %s%s%s() returning %p %s(%s) flags=%lld\n", this, className() ? className() : "", className() ? "::" : "", getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", variant ? variant->getFlags() : 0ll);
+   //printd(5, "QoreFunction::parseFindVariant() this: %p %s%s%s() returning %p %s(%s) flags: %lld\n", this, className() ? className() : "", className() ? "::" : "", getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", variant ? variant->getFlags() : 0ll);
    return variant;
 }
 
@@ -1215,7 +1215,7 @@ void QoreFunction::addBuiltinVariant(AbstractQoreFunctionVariant* variant) {
       if (tp != sig->numParams())
 	 continue;
       if (!tp) {
-         printd(0, "BuiltinFunctionBase::addBuiltinVariant() this=%p %s(%s) added twice: %p, %p\n", this, getName(), sig->getSignatureText(), *i, variant);
+         printd(0, "BuiltinFunctionBase::addBuiltinVariant() this: %p %s(%s) added twice: %p, %p\n", this, getName(), sig->getSignatureText(), *i, variant);
 	 assert(false);
       }
       bool ok = false;
@@ -1226,7 +1226,7 @@ void QoreFunction::addBuiltinVariant(AbstractQoreFunctionVariant* variant) {
 	 }
       }
       if (!ok) {
-	 printd(0, "BuiltinFunctionBase::addBuiltinVariant() this=%p %s(%s) added twice: %p, %p\n", this, getName(), sig->getSignatureText(), *i, variant);
+	 printd(0, "BuiltinFunctionBase::addBuiltinVariant() this: %p %s(%s) added twice: %p, %p\n", this, getName(), sig->getSignatureText(), *i, variant);
 	 assert(false);
       }
    }
@@ -1267,7 +1267,7 @@ void UserVariantBase::parseInitPopLocalVars() {
 }
 
 // instantiates arguments and sets up the argv variable
-int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreListNode> &argv, bool for_closure, ExceptionSink* xsink) const {
+int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreListNode> &argv, ExceptionSink* xsink) const {
    const QoreListNode* args = ceh ? ceh->getArgs() : 0;
    unsigned num_args = args ? args->size() : 0;
    // instantiate local vars from param list
@@ -1288,7 +1288,7 @@ int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreLi
    }
 
    // if there are more arguments than parameters
-   printd(5, "UserVariantBase::setupCall() params=%d args=%d\n", num_params, num_args);
+   printd(5, "UserVariantBase::setupCall() params: %d args: %d\n", num_params, num_args);
 
    if (num_params < num_args) {
       argv = new QoreListNode;
@@ -1352,7 +1352,7 @@ AbstractQoreNode* UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &arg
 }
 
 // primary function for executing user code
-AbstractQoreNode* UserVariantBase::eval(const char* name, CodeEvaluationHelper *ceh, QoreObject *self, ExceptionSink* xsink, const qore_class_private* qc, bool for_closure) const {
+AbstractQoreNode* UserVariantBase::eval(const char* name, CodeEvaluationHelper *ceh, QoreObject *self, ExceptionSink* xsink, const qore_class_private* qc) const {
    QORE_TRACE("UserVariantBase::eval()");
    //printd(5, "UserVariantBase::eval() this: %p '%s()' args: %p (size: %d) self: %p class: %p '%s'\n", this, name, ceh ? ceh->getArgs() : 0, ceh && ceh->getArgs() ? ceh->getArgs()->size() : 0, self, qc, qc ? qc->name.c_str() : "n/a");
 
@@ -1360,7 +1360,7 @@ AbstractQoreNode* UserVariantBase::eval(const char* name, CodeEvaluationHelper *
    ProgramThreadCountContextHelper tch(xsink, pgm, true);
    if (*xsink) return 0;
 
-   UserVariantExecHelper uveh(this, ceh, for_closure, xsink);
+   UserVariantExecHelper uveh(this, ceh, xsink);
    if (!uveh)
       return 0;
 
@@ -1457,7 +1457,7 @@ int QoreFunction::parseCheckDuplicateSignature(AbstractQoreFunctionVariant* vari
       // get number of parameters with type information
       unsigned tp = vs->getParamTypes();
 
-      //printd(5, "QoreFunction::parseCheckDuplicateSignature() adding %s(%s) checking %s(%s) vmp=%d vtp=%d mp=%d tp=%d\n", getName(), sig->getSignatureText(), getName(), vs->getSignatureText(), vmp, vtp, mp, tp);
+      //printd(5, "QoreFunction::parseCheckDuplicateSignature() adding %s(%s) checking %s(%s) vmp: %d vtp: %d mp: %d tp: %d\n", getName(), sig->getSignatureText(), getName(), vs->getSignatureText(), vmp, vtp, mp, tp);
 
       // shortcut: if the two variants have different numbers of parameters with type information, then they do not match
       if (vmp > tp || vtp < mp)
@@ -1532,7 +1532,7 @@ int QoreFunction::parseCheckDuplicateSignature(AbstractQoreFunctionVariant* vari
 	       break;
 	    }
 	 }
-	 //printd(5, "QoreFunction::parseCheckDuplicateSignature() %s(%s) == %s(%s) i=%d: %s <=> %s dup=%d\n", getName(), sig->getSignatureText(), getName(), vs->getSignatureText(), pi, typeInfo->getName(), variantTypeInfo->getName(), dup);
+	 //printd(5, "QoreFunction::parseCheckDuplicateSignature() %s(%s) == %s(%s) i: %d: %s <=> %s dup: %d\n", getName(), sig->getSignatureText(), getName(), vs->getSignatureText(), pi, typeInfo->getName(), variantTypeInfo->getName(), dup);
       }
       if (dup) {
 	 if (ambiguous)
@@ -1708,7 +1708,7 @@ void QoreFunction::parseInit() {
    }
 }
 
-AbstractQoreNode* UserClosureFunction::evalClosure(ThreadSafeLocalVarRuntimeEnvironment& closure_env, QoreProgram* pgm, const QoreListNode* args, QoreObject *self, ExceptionSink* xsink) const {
+AbstractQoreNode* UserClosureFunction::evalClosure(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject *self, ExceptionSink* xsink) const {
    // closures cannot be overloaded
    assert(vlist.singular());
 
@@ -1723,9 +1723,9 @@ AbstractQoreNode* UserClosureFunction::evalClosure(ThreadSafeLocalVarRuntimeEnvi
    if (*xsink)
       return 0;
    
-   ThreadSafeLocalVarRuntimeEnvironmentHelper ch(&closure_env);
+   ThreadSafeLocalVarRuntimeEnvironmentHelper ch(&closure_base);
    
-   //printd(5, "UserClosureFunction::evalClosure() this=%p (%s) variant=%p args=%p self=%p\n", this, getName(), variant, args, self);
+   //printd(5, "UserClosureFunction::evalClosure() this: %p (%s) variant: %p args: %p self: %p\n", this, getName(), variant, args, self);
    return UCLOV_const(variant)->evalClosure(ceh, self, xsink);
 }
 

@@ -1340,7 +1340,6 @@ bool ObjectRSetHelper::checkIntern(QoreObject& obj) {
 #endif
    if (obj.priv->rml.tryRSectionLockNotifyWaitRead(&notifier)) {
       printd(QRO_LVL, "ObjectRSetHelper::checkIntern() + obj %p '%s' cannot enter rsection: rsection tid: %d\n", &obj, obj.getClassName(), obj.priv->rml.rSectionTid());
-      //assert(strcmp(obj.getClassName(), "HttpListener"));
       return true;
    }
 #ifdef DEBUG

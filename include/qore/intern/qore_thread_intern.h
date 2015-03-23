@@ -72,9 +72,10 @@ class Context;
 class CVNode;
 class CallNode;
 class CallStack;
+class LocalVar;
 class LocalVarValue;
 class ClosureParseEnvironment;
-class ThreadSafeLocalVarRuntimeEnvironment;
+class QoreClosureBase;
 struct ClosureVarValue;
 class VLock;
 class ConstantEntry;
@@ -412,19 +413,18 @@ DLLLOCAL block_list_t::iterator popBlock();
 // called by each "on_block_exit" statement to activate it's code for the block exit
 DLLLOCAL void advanceOnBlockExit();
 
-DLLLOCAL LocalVarValue *thread_instantiate_lvar();
+DLLLOCAL LocalVarValue* thread_instantiate_lvar();
 DLLLOCAL void thread_uninstantiate_lvar(ExceptionSink* xsink);
 
 DLLLOCAL void thread_set_closure_parse_env(ClosureParseEnvironment* cenv);
 DLLLOCAL ClosureParseEnvironment* thread_get_closure_parse_env();
 
-DLLLOCAL ClosureVarValue *thread_instantiate_closure_var(const char* id, const QoreTypeInfo* typeInfo, QoreValue& nval);
+DLLLOCAL ClosureVarValue* thread_instantiate_closure_var(const char* id, const QoreTypeInfo* typeInfo, QoreValue& nval);
 DLLLOCAL void thread_uninstantiate_closure_var(ExceptionSink* xsink);
-DLLLOCAL ClosureVarValue *thread_find_closure_var(const char* id);
-DLLLOCAL ClosureVarValue *thread_get_runtime_closure_var(const LocalVar* id);
+DLLLOCAL ClosureVarValue* thread_find_closure_var(const char* id);
 
-DLLLOCAL ThreadSafeLocalVarRuntimeEnvironment* thread_get_runtime_closure_env();
-DLLLOCAL void thread_set_runtime_closure_env(ThreadSafeLocalVarRuntimeEnvironment* cenv);
+DLLLOCAL ClosureVarValue* thread_get_runtime_closure_var(const LocalVar* id);
+DLLLOCAL const QoreClosureBase* thread_set_runtime_closure_env(const QoreClosureBase* current);
 
 DLLLOCAL int get_implicit_element();
 DLLLOCAL int save_implicit_element(int n_element);
@@ -464,25 +464,9 @@ public:
    }
 };
 
-class ThreadSafeLocalVarRuntimeEnvironmentHelper {
-private:
-   ThreadSafeLocalVarRuntimeEnvironment* cenv;
-      
-public:
-   DLLLOCAL ThreadSafeLocalVarRuntimeEnvironmentHelper(ThreadSafeLocalVarRuntimeEnvironment* n_cenv) : cenv(n_cenv ? thread_get_runtime_closure_env() : 0) {
-      if (n_cenv)
-         thread_set_runtime_closure_env(n_cenv);
-   }
-   
-   DLLLOCAL ~ThreadSafeLocalVarRuntimeEnvironmentHelper() {
-      if (cenv)
-         thread_set_runtime_closure_env(cenv);
-   }
-};
-
 DLLLOCAL const QoreListNode* thread_get_implicit_args();
 
-DLLLOCAL LocalVarValue *thread_find_lvar(const char* id);
+DLLLOCAL LocalVarValue* thread_find_lvar(const char* id);
 
 // to get the current runtime object
 DLLLOCAL QoreObject* runtime_get_stack_object();
@@ -625,16 +609,28 @@ public:
    DLLLOCAL ~OptionalClassObjSubstitutionHelper();
 };
 
+class ThreadSafeLocalVarRuntimeEnvironmentHelper {
+private:
+   const QoreClosureBase* prev;
+
+public:
+   DLLLOCAL ThreadSafeLocalVarRuntimeEnvironmentHelper(const QoreClosureBase* current);   
+   DLLLOCAL ~ThreadSafeLocalVarRuntimeEnvironmentHelper();
+};
+
 typedef std::map<const LocalVar*, ClosureVarValue*> cvar_map_t;
+typedef std::set<ClosureVarValue*> cvv_set_t;
 
 class ThreadSafeLocalVarRuntimeEnvironment {
 private:
    cvar_map_t cmap;
-
+   cvv_set_t cvvset;
+   
 public:
    DLLLOCAL ThreadSafeLocalVarRuntimeEnvironment(const lvar_set_t* vlist);
    DLLLOCAL ~ThreadSafeLocalVarRuntimeEnvironment();
-   DLLLOCAL ClosureVarValue* find(const LocalVar* id);
+   DLLLOCAL ClosureVarValue* find(const LocalVar* id) const;
+   DLLLOCAL bool hasVar(ClosureVarValue* cvv) const;
    DLLLOCAL void del(ExceptionSink* xsink);
 };
 

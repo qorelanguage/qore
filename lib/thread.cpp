@@ -250,7 +250,7 @@ public:
    int64 runtime_po;
    int tid;
    VLock vlock;     // for deadlock detection
-   Context *context_stack;
+   Context* context_stack;
    ProgramLocation* plStack;
    QoreProgramLocation parse_loc;
    QoreProgramLocation runtime_loc;
@@ -288,10 +288,10 @@ public:
    ThreadProgramData* tpd;
 
    // current parsing closure environment
-   ClosureParseEnvironment *closure_parse_env;
+   ClosureParseEnvironment* closure_parse_env;
 
    // current runtime closure environment
-   ThreadSafeLocalVarRuntimeEnvironment *closure_rt_env;
+   const QoreClosureBase* closure_rt_env;
 
    ArgvRefStack argv_refs;
 
@@ -747,7 +747,7 @@ void thread_ref_remove(const lvalue_ref* r) {
    td->ref_set.erase(r);
 }
 
-LocalVarValue *thread_instantiate_lvar() {
+LocalVarValue* thread_instantiate_lvar() {
    return thread_data.get()->tlpd->lvstack.instantiate();
 }
 
@@ -756,12 +756,12 @@ void thread_uninstantiate_lvar(ExceptionSink* xsink) {
    td->tlpd->lvstack.uninstantiate(xsink);
 }
 
-LocalVarValue *thread_find_lvar(const char* id) {
+LocalVarValue* thread_find_lvar(const char* id) {
    ThreadData* td = thread_data.get();
    return td->tlpd->lvstack.find(id);
 }
 
-ClosureVarValue *thread_instantiate_closure_var(const char* n_id, const QoreTypeInfo* typeInfo, QoreValue& nval) {
+ClosureVarValue* thread_instantiate_closure_var(const char* n_id, const QoreTypeInfo* typeInfo, QoreValue& nval) {
    return thread_data.get()->tlpd->cvstack.instantiate(n_id, typeInfo, nval);
 }
 
@@ -773,23 +773,22 @@ ClosureVarValue* thread_find_closure_var(const char* id) {
    return thread_data.get()->tlpd->cvstack.find(id);
 }
 
-ThreadSafeLocalVarRuntimeEnvironment *thread_get_runtime_closure_env() {
-   return thread_data.get()->closure_rt_env;
+const QoreClosureBase* thread_set_runtime_closure_env(const QoreClosureBase* current) {
+   ThreadData* td = thread_data.get();
+   const QoreClosureBase* rv = td->closure_rt_env;
+   td->closure_rt_env = current;
+   return rv;
 }
 
-void thread_set_runtime_closure_env(ThreadSafeLocalVarRuntimeEnvironment *cenv) {
-   thread_data.get()->closure_rt_env = cenv;
-}
-
-void thread_set_closure_parse_env(ClosureParseEnvironment *cenv) {
+void thread_set_closure_parse_env(ClosureParseEnvironment* cenv) {
    thread_data.get()->closure_parse_env = cenv;
 }
 
-ClosureVarValue *thread_get_runtime_closure_var(const LocalVar* id) {
+ClosureVarValue* thread_get_runtime_closure_var(const LocalVar* id) {
    return thread_data.get()->closure_rt_env->find(id);
 }
 
-ClosureParseEnvironment *thread_get_closure_parse_env() {
+ClosureParseEnvironment* thread_get_closure_parse_env() {
    return thread_data.get()->closure_parse_env;
 }
 
@@ -961,16 +960,16 @@ int gettid() {
    return (thread_data.get())->tid;
 }
 
-VLock *getVLock() {
+VLock* getVLock() {
    ThreadData* td = thread_data.get();
    return &td->vlock;
 }
 
-Context *get_context_stack() {
+Context* get_context_stack() {
    return (thread_data.get())->context_stack;
 }
 
-void update_context_stack(Context *cstack) {
+void update_context_stack(Context* cstack) {
    ThreadData* td    = thread_data.get();
    td->context_stack = cstack;
 }
@@ -1890,7 +1889,7 @@ static AbstractQoreNode* check_op_background(QoreTreeNode* tree, LocalVar* oflag
 #include <qore/QoreRWLock.h>
 
 #ifdef _Q_WINDOWS
-extern QoreRWLock *thread_stack_lock;
+extern QoreRWLock* thread_stack_lock;
 #else
 extern QoreRWLock thread_stack_lock;
 #endif

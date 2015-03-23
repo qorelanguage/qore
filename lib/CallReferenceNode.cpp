@@ -52,21 +52,21 @@ CallReferenceCallNode::~CallReferenceCallNode() {
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
-int CallReferenceCallNode::getAsString(QoreString &str, int foff, ExceptionSink* xsink) const {
+int CallReferenceCallNode::getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
    str.sprintf("call reference call (%p)", this);
    return 0;
 }
 
-// if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *CallReferenceCallNode::getAsString(bool &del, int foff, ExceptionSink* xsink) const {
+// if del is true, then the returned QoreString*  should be deleted, if false, then it must not be
+QoreString* CallReferenceCallNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
    del = true;
-   QoreString *rv = new QoreString;
+   QoreString* rv = new QoreString;
    getAsString(*rv, foff, xsink);
    return rv;
 }
 
 // returns the type name as a c string
-const char *CallReferenceCallNode::getTypeName() const {
+const char* CallReferenceCallNode::getTypeName() const {
    return "call reference call";
 }
 
@@ -85,7 +85,7 @@ AbstractQoreNode* CallReferenceCallNode::evalImpl(ExceptionSink* xsink) const {
 }
 
 // evalImpl(): return value requires a deref(xsink) if not 0
-AbstractQoreNode* CallReferenceCallNode::evalImpl(bool &needs_deref, ExceptionSink* xsink) const {
+AbstractQoreNode* CallReferenceCallNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
    needs_deref = true;
    return CallReferenceCallNode::evalImpl(xsink);
 }
@@ -110,13 +110,13 @@ double CallReferenceCallNode::floatEvalImpl(ExceptionSink* xsink) const {
    return rv ? rv->getAsFloat() : 0;
 }
 
-AbstractQoreNode* CallReferenceCallNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode* CallReferenceCallNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
    // call references calls can return any value
    typeInfo = 0;
 
    pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
-   const QoreTypeInfo *expTypeInfo = 0;
+   const QoreTypeInfo* expTypeInfo = 0;
    if (exp) {
       exp = exp->parseInit(oflag, pflag, lvids, expTypeInfo);
 
@@ -137,9 +137,9 @@ AbstractQoreNode* CallReferenceCallNode::parseInitImpl(LocalVar *oflag, int pfla
       
       ListIterator li(args);
       while (li.next()) {
-	 AbstractQoreNode* *n = li.getValuePtr();
+	 AbstractQoreNode** n = li.getValuePtr();
 	 if (*n) {
-	    const QoreTypeInfo *argTypeInfo = 0;
+	    const QoreTypeInfo* argTypeInfo = 0;
 	    (*n) = (*n)->parseInit(oflag, pflag, lvids, argTypeInfo);
 	    
 	    if (!needs_eval && (*n)->needs_eval()) {
@@ -181,15 +181,15 @@ bool AbstractCallReferenceNode::is_equal_hard(const AbstractQoreNode* v, Excepti
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
-int AbstractCallReferenceNode::getAsString(QoreString &str, int foff, ExceptionSink* xsink) const {
+int AbstractCallReferenceNode::getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
    str.sprintf("function reference (%p)", this);
    return 0;
 }
 
-// if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *AbstractCallReferenceNode::getAsString(bool &del, int foff, ExceptionSink* xsink) const {
+// if del is true, then the returned QoreString*  should be deleted, if false, then it must not be
+QoreString* AbstractCallReferenceNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
    del = true;
-   QoreString *rv = new QoreString();
+   QoreString* rv = new QoreString();
    getAsString(*rv, foff, xsink);
    return rv;
 }
@@ -199,7 +199,7 @@ AbstractQoreNode* AbstractCallReferenceNode::evalImpl(ExceptionSink* xsink) cons
    return 0;
 }
 
-AbstractQoreNode* AbstractCallReferenceNode::evalImpl(bool &needs_deref, ExceptionSink* xsink) const {
+AbstractQoreNode* AbstractCallReferenceNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
    assert(false);
    return 0;
 }
@@ -225,7 +225,7 @@ double AbstractCallReferenceNode::floatEvalImpl(ExceptionSink* xsink) const {
 }
 
 // returns the type name as a c string
-const char *AbstractCallReferenceNode::getTypeName() const {
+const char* AbstractCallReferenceNode::getTypeName() const {
    return getStaticTypeName();
 }
 
@@ -236,7 +236,7 @@ bool AbstractCallReferenceNode::getAsBoolImpl() const {
    return true;
 }
 
-ParseObjectMethodReferenceNode::ParseObjectMethodReferenceNode(AbstractQoreNode* n_exp, char *n_method) : exp(n_exp), method(n_method), qc(0), m(0) {
+ParseObjectMethodReferenceNode::ParseObjectMethodReferenceNode(AbstractQoreNode* n_exp, char* n_method) : exp(n_exp), method(n_method), qc(0), m(0) {
    free(n_method);
 }
 
@@ -295,7 +295,7 @@ AbstractQoreNode* ParseObjectMethodReferenceNode::evalImpl(ExceptionSink* xsink)
 }
 
 // evalImpl(): return value requires a deref(xsink) if not 0
-AbstractQoreNode* ParseObjectMethodReferenceNode::evalImpl(bool &needs_deref, ExceptionSink* xsink) const {
+AbstractQoreNode* ParseObjectMethodReferenceNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
    needs_deref = true;
    return ParseObjectMethodReferenceNode::evalImpl(xsink);
 }
@@ -316,10 +316,10 @@ double ParseObjectMethodReferenceNode::floatEvalImpl(ExceptionSink* xsink) const
    return 0.0;
 }
 
-AbstractQoreNode* ParseObjectMethodReferenceNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode* ParseObjectMethodReferenceNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
    typeInfo = callReferenceTypeInfo;
    if (exp) {
-      const QoreTypeInfo *argTypeInfo = 0;
+      const QoreTypeInfo* argTypeInfo = 0;
       exp = exp->parseInit(oflag, pflag, lvids, argTypeInfo);
 
       if (argTypeInfo->hasType()) {
@@ -331,7 +331,7 @@ AbstractQoreNode* ParseObjectMethodReferenceNode::parseInitImpl(LocalVar *oflag,
 	    qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
 	 }
 	 else {
-	    const QoreClass *n_qc = argTypeInfo->getUniqueReturnClass();
+	    const QoreClass* n_qc = argTypeInfo->getUniqueReturnClass();
 	    if (n_qc) {
 	       bool m_priv = false;
 	       m = qore_class_private::parseFindMethodTree(*const_cast<QoreClass*>(n_qc), method.c_str(), m_priv);
@@ -362,7 +362,7 @@ AbstractQoreNode* ParseSelfMethodReferenceNode::evalImpl(ExceptionSink* xsink) c
 }
 
 // evalImpl(): return value requires a deref(xsink) if not 0
-AbstractQoreNode* ParseSelfMethodReferenceNode::evalImpl(bool &needs_deref, ExceptionSink* xsink) const {
+AbstractQoreNode* ParseSelfMethodReferenceNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
    needs_deref = true;
    return ParseSelfMethodReferenceNode::evalImpl(xsink);
 }
@@ -383,7 +383,7 @@ double ParseSelfMethodReferenceNode::floatEvalImpl(ExceptionSink* xsink) const {
    return 0.0;
 }
 
-AbstractQoreNode* ParseSelfMethodReferenceNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode* ParseSelfMethodReferenceNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
    typeInfo = callReferenceTypeInfo;
    if (!oflag)
       parse_error("reference to object member '%s' out of a class member function definition", method.c_str());
@@ -395,7 +395,7 @@ AbstractQoreNode* ParseSelfMethodReferenceNode::parseInitImpl(LocalVar *oflag, i
    return this;
 }
 
-ParseScopedSelfMethodReferenceNode::ParseScopedSelfMethodReferenceNode(NamedScope *n_nscope) : nscope(n_nscope), method(0) {
+ParseScopedSelfMethodReferenceNode::ParseScopedSelfMethodReferenceNode(NamedScope* n_nscope) : nscope(n_nscope), method(0) {
 }
 
 ParseScopedSelfMethodReferenceNode::~ParseScopedSelfMethodReferenceNode() {
@@ -408,7 +408,7 @@ AbstractQoreNode* ParseScopedSelfMethodReferenceNode::evalImpl(ExceptionSink* xs
 }
 
 // evalImpl(): return value requires a deref(xsink) if not 0
-AbstractQoreNode* ParseScopedSelfMethodReferenceNode::evalImpl(bool &needs_deref, ExceptionSink* xsink) const {
+AbstractQoreNode* ParseScopedSelfMethodReferenceNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
    needs_deref = true;
    return ParseScopedSelfMethodReferenceNode::evalImpl(xsink);
 }
@@ -429,7 +429,7 @@ double ParseScopedSelfMethodReferenceNode::floatEvalImpl(ExceptionSink* xsink) c
    return 0.0;
 }
 
-AbstractQoreNode* ParseScopedSelfMethodReferenceNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode* ParseScopedSelfMethodReferenceNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
    typeInfo = callReferenceTypeInfo;
    if (!oflag)
       parse_error("reference to object member '%s' out of a class member function definition", method);
@@ -442,7 +442,7 @@ AbstractQoreNode* ParseScopedSelfMethodReferenceNode::parseInitImpl(LocalVar *of
    return this;
 }
 
-RunTimeResolvedMethodReferenceNode::RunTimeResolvedMethodReferenceNode(QoreObject *n_obj, const QoreMethod *n_method) : obj(n_obj), method(n_method), qc(runtime_get_class()) {
+RunTimeResolvedMethodReferenceNode::RunTimeResolvedMethodReferenceNode(QoreObject* n_obj, const QoreMethod* n_method) : obj(n_obj), method(n_method), qc(runtime_get_class()) {
    printd(5, "RunTimeResolvedMethodReferenceNode::RunTimeResolvedMethodReferenceNode() this: %p obj: %p\n", this, obj);
    obj->tRef();
 }
@@ -457,7 +457,7 @@ AbstractQoreNode* RunTimeResolvedMethodReferenceNode::exec(const QoreListNode* a
    return qore_method_private::eval(*method, obj, args, xsink);
 }
 
-QoreProgram *RunTimeResolvedMethodReferenceNode::getProgram() const {
+QoreProgram* RunTimeResolvedMethodReferenceNode::getProgram() const {
    return obj->getProgram();
 }
 
@@ -466,7 +466,7 @@ bool RunTimeResolvedMethodReferenceNode::is_equal_hard(const AbstractQoreNode* v
    return vc && vc->obj == obj && vc->method == method;
 }
 
-RunTimeObjectMethodReferenceNode::RunTimeObjectMethodReferenceNode(QoreObject *n_obj, const char *n_method) : obj(n_obj), method(n_method), qc(runtime_get_class()) {
+RunTimeObjectMethodReferenceNode::RunTimeObjectMethodReferenceNode(QoreObject* n_obj, const char* n_method) : obj(n_obj), method(n_method), qc(runtime_get_class()) {
    printd(5, "RunTimeObjectMethodReferenceNode::RunTimeObjectMethodReferenceNode() this: %p obj: %p (method: %s qc: %p)\n", this, obj, n_method, qc);
    obj->tRef();
 }
@@ -482,7 +482,7 @@ AbstractQoreNode* RunTimeObjectMethodReferenceNode::exec(const QoreListNode* arg
    return obj->evalMethod(method.c_str(), args, xsink);
 }
 
-QoreProgram *RunTimeObjectMethodReferenceNode::getProgram() const {
+QoreProgram* RunTimeObjectMethodReferenceNode::getProgram() const {
    return obj->getProgram();
 }
 
@@ -491,19 +491,19 @@ bool RunTimeObjectMethodReferenceNode::is_equal_hard(const AbstractQoreNode* v, 
    return vc && obj == vc->obj && method == vc->method;
 }
 
-UnresolvedProgramCallReferenceNode::UnresolvedProgramCallReferenceNode(char *n_str) : AbstractUnresolvedCallReferenceNode(false), str(n_str) {
+UnresolvedProgramCallReferenceNode::UnresolvedProgramCallReferenceNode(char* n_str) : AbstractUnresolvedCallReferenceNode(false), str(n_str) {
 }
 
 UnresolvedProgramCallReferenceNode::~UnresolvedProgramCallReferenceNode() {
    free(str);
 }
 
-AbstractQoreNode* UnresolvedProgramCallReferenceNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode* UnresolvedProgramCallReferenceNode::parseInit(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
    typeInfo = callReferenceTypeInfo;
    return qore_root_ns_private::parseResolveCallReference(this);
 }
 
-AbstractQoreNode* UnresolvedCallReferenceNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode* UnresolvedCallReferenceNode::parseInit(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
    typeInfo = callReferenceTypeInfo;
 
    // try to resolve a method call if bare references are allowed
@@ -526,7 +526,7 @@ AbstractQoreNode* LocalStaticMethodCallReferenceNode::evalImpl(ExceptionSink* xs
 }
 
 // evalImpl(): return value requires a deref(xsink) if not 0
-AbstractQoreNode* LocalStaticMethodCallReferenceNode::evalImpl(bool &needs_deref, ExceptionSink* xsink) const {
+AbstractQoreNode* LocalStaticMethodCallReferenceNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
    needs_deref = true;
    return new StaticMethodCallReferenceNode(method, ::getProgram());
 }
@@ -546,7 +546,7 @@ AbstractQoreNode* LocalMethodCallReferenceNode::evalImpl(ExceptionSink* xsink) c
 }
 
 // evalImpl(): return value requires a deref(xsink) if not 0
-AbstractQoreNode* LocalMethodCallReferenceNode::evalImpl(bool &needs_deref, ExceptionSink* xsink) const {
+AbstractQoreNode* LocalMethodCallReferenceNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
    needs_deref = true;
    return new MethodCallReferenceNode(method, ::getProgram());
 }
@@ -561,7 +561,7 @@ bool LocalMethodCallReferenceNode::is_equal_hard(const AbstractQoreNode* v, Exce
    return vc && method == vc->method;
 }
 
-StaticMethodCallReferenceNode::StaticMethodCallReferenceNode(const QoreMethod *n_method, QoreProgram *n_pgm) : LocalStaticMethodCallReferenceNode(n_method, false), pgm(n_pgm) {
+StaticMethodCallReferenceNode::StaticMethodCallReferenceNode(const QoreMethod* n_method, QoreProgram* n_pgm) : LocalStaticMethodCallReferenceNode(n_method, false), pgm(n_pgm) {
    assert(pgm);
    //printd(5, "StaticMethodCallReferenceNode::StaticMethodCallReferenceNode() this=%p calling QoreProgram::depRef() pgm=%p\n", this, pgm);
    pgm->depRef();
@@ -583,7 +583,7 @@ AbstractQoreNode* StaticMethodCallReferenceNode::exec(const QoreListNode* args, 
    return qore_method_private::eval(*method, 0, args, xsink);
 }
 
-MethodCallReferenceNode::MethodCallReferenceNode(const QoreMethod *n_method, QoreProgram *n_pgm) : LocalMethodCallReferenceNode(n_method, false), pgm(n_pgm) {
+MethodCallReferenceNode::MethodCallReferenceNode(const QoreMethod* n_method, QoreProgram* n_pgm) : LocalMethodCallReferenceNode(n_method, false), pgm(n_pgm) {
    assert(pgm);
    //printd(5, "MethodCallReferenceNode::MethodCallReferenceNode() this=%p calling QoreProgram::depRef() pgm=%p\n", this, pgm);
    pgm->depRef();
@@ -604,7 +604,7 @@ AbstractQoreNode* MethodCallReferenceNode::exec(const QoreListNode* args, Except
    return qore_method_private::eval(*method, runtime_get_stack_object(), args, xsink);
 }
 
-UnresolvedStaticMethodCallReferenceNode::UnresolvedStaticMethodCallReferenceNode(NamedScope *n_scope) : AbstractUnresolvedCallReferenceNode(false), scope(n_scope) {
+UnresolvedStaticMethodCallReferenceNode::UnresolvedStaticMethodCallReferenceNode(NamedScope* n_scope) : AbstractUnresolvedCallReferenceNode(false), scope(n_scope) {
    //printd(5, "UnresolvedStaticMethodCallReferenceNode::UnresolvedStaticMethodCallReferenceNode(%s) this=%p\n", n_scope->ostr, this);
 }
 
@@ -613,10 +613,10 @@ UnresolvedStaticMethodCallReferenceNode::~UnresolvedStaticMethodCallReferenceNod
    delete scope;
 }
 
-AbstractQoreNode* UnresolvedStaticMethodCallReferenceNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode* UnresolvedStaticMethodCallReferenceNode::parseInit(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
    typeInfo = callReferenceTypeInfo;
 
-   QoreClass *qc = qore_root_ns_private::parseFindScopedClassWithMethod(*scope, false);
+   QoreClass* qc = qore_root_ns_private::parseFindScopedClassWithMethod(*scope, false);
    if (!qc) {
       // see if this is a function call to a function defined in a namespace
       const QoreFunction* f = qore_root_ns_private::parseResolveFunction(*scope);
@@ -629,7 +629,7 @@ AbstractQoreNode* UnresolvedStaticMethodCallReferenceNode::parseInit(LocalVar *o
       return this;
    }
 
-   const QoreMethod *qm = 0;
+   const QoreMethod* qm = 0;
    // try to find a pointer to a non-static method if parsing in the class' context
    // and bare references are enabled
    if (oflag && parse_check_parse_option(PO_ALLOW_BARE_REFS) && oflag->getTypeInfo()->getUniqueReturnClass()->parseCheckHierarchy(qc)) {
@@ -658,17 +658,17 @@ AbstractQoreNode* UnresolvedStaticMethodCallReferenceNode::parseInit(LocalVar *o
    return rv;
 }
 
-LocalFunctionCallReferenceNode::LocalFunctionCallReferenceNode(const QoreFunction *n_uf, bool n_needs_eval) : ResolvedCallReferenceNode(n_needs_eval), uf(n_uf) {
+LocalFunctionCallReferenceNode::LocalFunctionCallReferenceNode(const QoreFunction* n_uf, bool n_needs_eval) : ResolvedCallReferenceNode(n_needs_eval), uf(n_uf) {
 }
 
-LocalFunctionCallReferenceNode::LocalFunctionCallReferenceNode(const QoreFunction *n_uf) : ResolvedCallReferenceNode(true), uf(n_uf) {
+LocalFunctionCallReferenceNode::LocalFunctionCallReferenceNode(const QoreFunction* n_uf) : ResolvedCallReferenceNode(true), uf(n_uf) {
 }
 
 AbstractQoreNode* LocalFunctionCallReferenceNode::evalImpl(ExceptionSink* xsink) const {
    return new FunctionCallReferenceNode(uf, ::getProgram());
 }
 
-AbstractQoreNode* LocalFunctionCallReferenceNode::evalImpl(bool &needs_deref, ExceptionSink* xsink) const {
+AbstractQoreNode* LocalFunctionCallReferenceNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
    needs_deref = true;
    return new FunctionCallReferenceNode(uf, ::getProgram());
 }
@@ -697,6 +697,6 @@ AbstractQoreNode* FunctionCallReferenceNode::exec(const QoreListNode* args, Exce
 ResolvedCallReferenceNode::ResolvedCallReferenceNode(bool n_needs_eval, qore_type_t n_type) : AbstractCallReferenceNode(n_needs_eval, n_type) {
 }
 
-QoreProgram *ResolvedCallReferenceNode::getProgram() const {
+QoreProgram* ResolvedCallReferenceNode::getProgram() const {
    return 0;
 }

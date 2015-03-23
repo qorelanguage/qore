@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -79,7 +79,7 @@ public:
       return valp;
    }
 
-   DLLLOCAL LValueHelper *operator->() {
+   DLLLOCAL LValueHelper* operator->() {
       return &valp;
    }
 };
@@ -119,9 +119,9 @@ public:
 };
 
 struct SkipHelper {
-   VarValueBase *vvb;
+   VarValueBase* vvb;
 
-   DLLLOCAL SkipHelper(VarValueBase *n_vvb) : vvb(n_vvb) {
+   DLLLOCAL SkipHelper(VarValueBase* n_vvb) : vvb(n_vvb) {
       assert(!vvb->skip);
       vvb->skip = true;
    }
@@ -244,6 +244,8 @@ public:
    const QoreTypeInfo* typeInfo; // type restriction for lvalue
 
    DLLLOCAL ClosureVarValue(const char* n_id, const QoreTypeInfo* varTypeInfo, QoreValue& nval) : VarValueBase(n_id, varTypeInfo), typeInfo(varTypeInfo) {
+      //printd(5, "ClosureVarValue::ClosureVarValue() this: %p refs: 0 -> 1 val: %s\n", this, val.getTypeName());
+
       // try to set an optimized value type for the value holder if possible
       val.set(varTypeInfo);
 
@@ -259,17 +261,11 @@ public:
 #endif
 
    DLLLOCAL void ref() {
-      //printd(5, "ClosureVarValue::ref() this: %p refs: %d -> %d\n", this, references, references + 1);
+      //printd(5, "ClosureVarValue::ref() this: %p refs: %d -> %d val: %s\n", this, references, references + 1, val.getTypeName());
       ROreference(); 
    }
 
-   DLLLOCAL void deref(ExceptionSink* xsink) {
-      //printd(5, "ClosureVarValue::deref() this: %p refs: %d -> %d\n", this, references, references - 1);
-      if (ROdereference()) {
-         del(xsink);
-         delete this;
-      }
-   }
+   DLLLOCAL void deref(ExceptionSink* xsink);
 
    DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove) const;
    DLLLOCAL void remove(LValueRemoveHelper& lvrh);
@@ -397,7 +393,7 @@ public:
    }
 
    DLLLOCAL void instantiate(QoreValue nval) const {
-      //printd(5, "LocalVar::instantiate(%s) this: %p '%s' value closure_use: %s pgm: %p\n", nval.getTypeName(), this, name.c_str(), closure_use ? "true" : "false", getProgram());
+      //printd(5, "LocalVar::instantiate(%s) this: %p '%s' value closure_use: %s pgm: %p val: %s\n", nval.getTypeName(), this, name.c_str(), closure_use ? "true" : "false", getProgram(), nval.getTypeName());
 
       if (!closure_use) {
          LocalVarValue* val = thread_instantiate_lvar();
@@ -503,7 +499,7 @@ public:
    }
 
    DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove) const {
-      //printd(5, "LocalVar::getLValue() this: %p '%s' closure_use: %d\n", this, getName(), closure_use);
+      //printd(5, "LocalVar::getLValue() this: %p '%s' for_remove: %d closure_use: %d\n", this, getName(), for_remove, closure_use);
       if (!closure_use) {
          lvh.setTypeInfo(typeInfo);
          return get_var()->getLValue(lvh, for_remove);

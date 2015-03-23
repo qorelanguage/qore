@@ -40,7 +40,7 @@
 #define TRACK_REFS 0
 
 #if TRACK_REFS
-#define REF_LVL (type!=NT_RUNTIME_CLOSURE)
+#define REF_LVL (type!=NT_HASH)
 #endif
 
 AbstractQoreNode::AbstractQoreNode(qore_type_t t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one, bool n_custom_reference_handlers) : type(t), value(n_value), needs_eval_flag(n_needs_eval), there_can_be_only_one(n_there_can_be_only_one), custom_reference_handlers(n_custom_reference_handlers) {
@@ -74,7 +74,7 @@ void AbstractQoreNode::ref() const {
    else
       printd(REF_LVL, "AbstractQoreNode::ref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), references, references + 1);
 #endif
-   if (type == 32) breakit();
+   if (type == NT_HASH) breakit();
 #endif
    if (!there_can_be_only_one) {
       if (custom_reference_handlers)
@@ -119,6 +119,7 @@ void AbstractQoreNode::deref(ExceptionSink* xsink) {
 	 printd(0, "AbstractQoreNode::deref() WARNING, node %p references: %d (type: %s)\n", this, references, getTypeName());
       assert(false);
    }
+   if (type == NT_HASH) breakit();
 #endif
    assert(references > 0);
 

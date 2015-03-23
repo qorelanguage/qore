@@ -40,18 +40,33 @@
 class QoreClosureBase : public ResolvedCallReferenceNode {
 protected:
    const QoreClosureParseNode* closure;
+   mutable ThreadSafeLocalVarRuntimeEnvironment closure_env;
    bool pgm_ref;
 
+   DLLLOCAL void del(ExceptionSink* xsink) {
+      closure_env.del(xsink);
+   }
+   
 public:
    //! constructor is not exported outside the library
-   DLLLOCAL QoreClosureBase(const QoreClosureParseNode* n_closure) : ResolvedCallReferenceNode(false, NT_RUNTIME_CLOSURE), closure(n_closure), pgm_ref(true) {
+   DLLLOCAL QoreClosureBase(const QoreClosureParseNode* n_closure) : ResolvedCallReferenceNode(false, NT_RUNTIME_CLOSURE), closure(n_closure), closure_env(n_closure->getVList()), pgm_ref(true) {
+      //printd(5, "QoreClosureBase::QoreClosureBase() this: %p closure: %p\n", this, closure);
       closure->ref();
    }
 
    DLLLOCAL ~QoreClosureBase() {
+      //printd(5, "QoreClosureBase::~QoreClosureBase() this: %p closure: %p\n", this, closure);
       const_cast<QoreClosureParseNode*>(closure)->deref();
    }
-      
+
+   DLLLOCAL ClosureVarValue* find(const LocalVar* id) const {
+      return closure_env.find(id);
+   }
+
+   DLLLOCAL bool hasVar(ClosureVarValue* cvv) const {
+      return closure_env.hasVar(cvv);
+   }
+
    DLLLOCAL static const char* getStaticTypeName() {
       return "closure";
    }      
@@ -65,7 +80,6 @@ public:
 
 class QoreClosureNode : public QoreClosureBase {
 private:
-   mutable ThreadSafeLocalVarRuntimeEnvironment closure_env;
    QoreProgram* pgm;
 
    DLLLOCAL QoreClosureNode(const QoreClosureNode&); // not implemented
@@ -75,7 +89,7 @@ protected:
    DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink);
       
 public:
-   DLLLOCAL QoreClosureNode(const QoreClosureParseNode* n_closure) : QoreClosureBase(n_closure), closure_env(n_closure->getVList()), pgm(::getProgram()) {
+   DLLLOCAL QoreClosureNode(const QoreClosureParseNode* n_closure) : QoreClosureBase(n_closure), pgm(::getProgram()) {
       //pgm->depRef();
       pgm->ref();
    }
@@ -101,7 +115,7 @@ public:
 
    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const {
       del = true;
-      QoreString* rv = new QoreString();
+      QoreString* rv = new QoreString;
       getAsString(*rv, foff, xsink);
       return rv;
    }
@@ -132,7 +146,6 @@ public:
 
 class QoreObjectClosureNode : public QoreClosureBase {
 private:
-   mutable ThreadSafeLocalVarRuntimeEnvironment closure_env;
    QoreObject* obj;
 
    DLLLOCAL QoreObjectClosureNode(const QoreObjectClosureNode&); // not implemented
