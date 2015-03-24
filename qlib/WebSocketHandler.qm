@@ -35,7 +35,7 @@
 %requires WebSocketUtil >= 1.0
 
 module WebSocketHandler {
-    version = "1.0";
+    version = "1.1";
     desc = "user module for providing WebSocket server services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
