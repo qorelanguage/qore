@@ -515,8 +515,8 @@ qore_class_private::qore_class_private(const qore_class_private& old, QoreClass*
      ahm(old.ahm),
      pend_pub_const(this),              // pending public constants
      pend_priv_const(this),             // pending private constants
-     pub_const(old.pub_const, this),    // committed public constants
-     priv_const(old.priv_const, this),  // committed private constants
+     pub_const(old.pub_const, 0, this),    // committed public constants
+     priv_const(old.priv_const, 0, this),  // committed private constants
      system_constructor(old.system_constructor ? old.system_constructor->copy(cls) : 0),
      constructor(0), // method pointers set below when methods are copied
      destructor(0),
@@ -537,7 +537,7 @@ qore_class_private::qore_class_private(const qore_class_private& old, QoreClass*
      resolve_copy_done(false),
      has_new_user_changes(false),
      owns_ornothingtypeinfo(false),
-     pub(false), // set the public flag to false; only code directly declared public in a module can be exported
+     pub(false), // the public flag must be explicitly set if necessary after this constructor
      final(old.final),
      inject(old.inject),
      domain(old.domain), 

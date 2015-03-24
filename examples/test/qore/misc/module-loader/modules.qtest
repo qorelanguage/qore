@@ -12,7 +12,7 @@ our UnitTest unit();
 test();
 
 sub test() {
-    Program p();
+    Program p(PO_NEW_STYLE);
     p.setScriptPath(get_script_path());
     p.importGlobalVariable("unit");
     p.parse("

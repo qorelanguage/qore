@@ -250,7 +250,7 @@ int ConstantEntry::parseInit(ClassNs ptr) {
    return 0;
 }
 
-ConstantList::ConstantList(const ConstantList &old, ClassNs p) : ptr(p) {
+ConstantList::ConstantList(const ConstantList &old, int64 po, ClassNs p) : ptr(p) {
    //printd(5, "ConstantList::ConstantList(old: %p, p: %s %s) this: %p cls: %p ns: %p\n", &old, p.getType(), p.getName(), this, ptr.getClass(), ptr.getNs());
 
    // DEBUG
@@ -258,10 +258,17 @@ ConstantList::ConstantList(const ConstantList &old, ClassNs p) : ptr(p) {
    cnemap_t::iterator last = cnemap.begin();
    for (cnemap_t::const_iterator i = old.cnemap.begin(), e = old.cnemap.end(); i != e; ++i) {
       assert(i->second->init);
-      // only check the public flag if copying a constant list in a namespace
-      if (p.isNs() && !i->second->pub)
-         continue;
-
+      // only check copying criteria when copying a constant list in a namespace
+      if (p.isNs()) {
+	 // check the public flag
+	 if (!i->second->pub)
+	    continue;
+	 if (po & PO_NO_INHERIT_USER_CONSTANTS && i->second->isUser())
+	    continue;
+	 if (po & PO_NO_INHERIT_SYSTEM_CONSTANTS && i->second->isSystem())
+	    continue;
+      }
+      
       ConstantEntry* ce = new ConstantEntry(*(i->second));
 
       last = cnemap.insert(last, cnemap_t::value_type(ce->getName(), ce));

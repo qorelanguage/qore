@@ -2781,6 +2781,8 @@ public:
       if (nme)
          rv->priv->name = nme;
       rv->priv->inject = inject;
+      if (qc.priv->pub)
+         rv->priv->pub = true;
       //printd(5, "qore_program_private::makeImportClass() name: '%s' (%s) rv: %p inject: %d\n", qc.getName(), nme ? nme : "n/a", rv, rv->priv->inject);
       return rv;
    }

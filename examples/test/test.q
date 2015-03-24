@@ -40,11 +40,15 @@ class Test {
 
     private {
         int rc = 0;
+        *string rstr;
     }
 
     constructor() {
         our UnitTest unit();
 
+        while (ARGV || rstr[0] == '-')
+            rstr = shift ARGV;
+        
         doDir(get_script_dir());
         if (rc)
             exit(rc);
@@ -65,6 +69,9 @@ class Test {
     }
 
     doFile(string fname) {
+        if (rstr && !regex(fname, rstr))
+            return;
+        
         if (unit.verbose())
             printf("running %s\n", fname);
 
@@ -80,7 +87,7 @@ class Test {
         # read in file
         string fd = getFile(fname, \vn, \br);
 
-        Program pgm();
+        Program pgm(PO_ALLOW_INJECTION|PO_NO_CHILD_PO_RESTRICTIONS);
         pgm.setScriptPath(fname);
         pgm.loadModule("UnitTest");
         pgm.importGlobalVariable("unit");

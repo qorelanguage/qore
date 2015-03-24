@@ -6,7 +6,7 @@
 
   Qore Programming Language
   
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
   
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -124,6 +124,9 @@ static strset_t oset;
 
 // map of functional domains to parse restriction codes
 static strmap_t dmap;
+
+// map of negative functional domains to parse restriction codes
+static strmap_t dnmap;
 
 // set of possible code flags
 static strset_t fset;
@@ -1000,7 +1003,7 @@ int dom_get(strlist_t& dom, const std::string& str) {
    get_string_list(dom, str);
    for (strlist_t::iterator di = dom.begin(), e = dom.end(); di != e; ++di) {
       toupper(*di);
-      if (dmap.find(*di) == dmap.end()) {
+      if (dmap.find(*di) == dmap.end() && dnmap.find(*di) == dnmap.end()) {
          error("unknown domain code: '%s'; domains must be listed separated by commas and without the QDOM_ prefix\n", (*di).c_str());
          return -1;
       }
@@ -1227,12 +1230,19 @@ static int serialize_dox_comment(FILE* fp, std::string &buf, const strlist_t& do
       else {
          std::string fbuf = "@par Restrictions:\n    ";
          for (strlist_t::const_iterator i = dom.begin(), e = dom.end(); i != e; ++i) {
-            strmap_t::const_iterator di = dmap.find(*i);
-            assert(di != dmap.end());
             if (i != dom.begin())
                fbuf += ", ";
-            fbuf += "@ref Qore::";
-            fbuf += di->second;
+            strmap_t::const_iterator di = dmap.find(*i);
+            if (di != dmap.end()) {
+               fbuf += "@ref Qore::";
+               fbuf += di->second;
+            }
+            else {
+               di = dnmap.find(*i);
+               assert(di != dnmap.end());
+               fbuf += "MUST HAVE: @ref Qore::";
+               fbuf += di->second;
+            }
          }
          fbuf += "\n\n";
          buf.insert(start, fbuf);
@@ -3448,6 +3458,8 @@ void init() {
    dmap["IN_MODULE"] = "PO_IN_MODULE";
    dmap["EMBEDDED_LOGIC"] = "PO_NO_EMBEDDED_LOGIC";
 
+   dnmap["INJECTION"] = "PO_ALLOW_INJECTION";
+   
    // initialize code flag set
    fset.insert("NO_FLAGS");
    fset.insert("NOOP");

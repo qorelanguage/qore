@@ -554,16 +554,19 @@ void QoreNamespace::addConstant(const char* cname, AbstractQoreNode* val, const 
 QoreNamespace* QoreNamespace::findCreateNamespacePath(const char* nspath) {
    NamedScope nscope(nspath);
    bool is_new = false;
-   return priv->findCreateNamespacePath(nscope, is_new);
+   return priv->findCreateNamespacePath(nscope, false, is_new);
 }
 
-QoreNamespace* qore_ns_private::findCreateNamespacePath(const NamedScope& nscope, bool& is_new) {
+QoreNamespace* qore_ns_private::findCreateNamespacePath(const NamedScope& nscope, bool pub, bool& is_new) {
    assert(!is_new);
 
    // iterate through each level of the namespace path and find/create namespaces as needed
    QoreNamespace* nns = ns;
-   for (unsigned i = 0; i < nscope.size() - 1; ++i)
+   for (unsigned i = 0; i < nscope.size() - 1; ++i) {
       nns = nns->priv->findCreateNamespace(nscope[i], is_new);
+      if (pub)
+         nns->priv->pub = true;
+   }
 
    return nns;
 }
@@ -1622,9 +1625,14 @@ int qore_ns_private::parseAddPendingClass(QoreClass* oc) {
       return -1;
    }
 
-   if (classList.find(oc->getName())) {
-      parse_error("class '%s' already exists in namespace '%s::'", oc->getName(), name.c_str());
-      return -1;
+   {
+      QoreClass* c = classList.find(oc->getName());
+      if (c) {
+         // see if the conflicting class in place has the injected flag set; if so, ignore the new class by returning -1 without raising an exception
+         if (!qore_class_private::injected(*c))
+            parse_error("class '%s' already exists in namespace '%s::'", oc->getName(), name.c_str());
+         return -1;
+      }
    }
 
    if (pendClassList.add(oc)) {
@@ -1793,6 +1801,7 @@ void qore_ns_private::copyMergeCommittedNamespace(const qore_ns_private& mns) {
          nns = npns->ns;
          nns->priv->pub = i->second->priv->pub;
          nns->priv->imported = true;
+         //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p '%s::' merged %p '%s::' pub: %d\n", this, name.c_str(), nns, nns->getName(), nns->priv->pub);
          nsl.runtimeAdd(nns, this);
       }
       

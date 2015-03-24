@@ -86,7 +86,8 @@ protected:
       desc,
       author,
       url,
-      license;
+      license,
+      orig_name;
    
    DLLLOCAL QoreHashNode* getHashIntern(bool with_filename = true) const {
       QoreHashNode* h = new QoreHashNode;
@@ -134,8 +135,8 @@ public:
       q_normalize_path(filename);
    }
 
-   // for "builtin" modules
    DLLLOCAL virtual ~QoreAbstractModule() {
+      //printd(5, "QoreAbstractModule::~QoreAbstractModule() this: %p name: %s\n", this, name.getBuffer());
    }
 
    DLLLOCAL const char* getName() const {
@@ -158,6 +159,10 @@ public:
       return url.getBuffer();
    }
 
+   DLLLOCAL const char* getOrigName() const {
+      return orig_name.empty() ? 0 : orig_name.getBuffer();
+   }
+
    DLLLOCAL void addModuleReExport(const char* m) {
       rmod.push_back(m);
    }
@@ -177,6 +182,16 @@ public:
 
    DLLLOCAL bool isPath(const char* p) const {
       return filename == p;
+   }
+
+   DLLLOCAL void rename(const QoreString& n) {
+      assert(orig_name.empty());
+      name = n;
+   }
+
+   DLLLOCAL void setOrigName(const char* n) {
+      assert(orig_name.empty());
+      orig_name = n;
    }
    
    DLLLOCAL virtual bool isBuiltin() const = 0;
@@ -361,13 +376,16 @@ protected:
       loadModuleIntern(xsink, name, pgm);
    }
 
-   DLLLOCAL void loadModuleIntern(ExceptionSink& xsink, const char* name, QoreProgram* pgm, bool reexport = false, mod_op_e op = MOD_OP_NONE, version_list_t* version = 0, const char* src = 0, QoreProgram* mpgm = 0);
+   DLLLOCAL void loadModuleIntern(ExceptionSink& xsink, const char* name, QoreProgram* pgm, bool reexport = false, mod_op_e op = MOD_OP_NONE, version_list_t* version = 0, const char* src = 0, QoreProgram* mpgm = 0, bool inject = false, bool reinject = false);
 
    DLLLOCAL QoreAbstractModule* loadBinaryModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* pgm = 0, bool reexport = false);
-   DLLLOCAL QoreAbstractModule* loadUserModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* tpgm = 0, bool reexport = false, QoreProgram* pgm = 0);
+   DLLLOCAL QoreAbstractModule* loadUserModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* tpgm = 0, bool reexport = false, QoreProgram* pgm = 0, bool inject = false, bool reinject = false, QoreProgram* path_pgm = 0);
    DLLLOCAL QoreAbstractModule* loadUserModuleFromSource(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm, const char* src, bool reexport, QoreProgram* pgm = 0);
-   DLLLOCAL QoreAbstractModule* setupUserModule(ExceptionSink& xsink, std::auto_ptr<QoreUserModule>& mi, QoreUserModuleDefContextHelper& qmd);
+   DLLLOCAL QoreAbstractModule* setupUserModule(ExceptionSink& xsink, std::auto_ptr<QoreUserModule>& mi, QoreUserModuleDefContextHelper& qmd, bool inject = false, bool reinject = false);
 
+   DLLLOCAL void reinjectModule(QoreAbstractModule* mi);
+   DLLLOCAL void delOrig(QoreAbstractModule* mi);
+   
 public:
    DLLLOCAL QoreModuleManager() : mutex(0) {
    }
@@ -382,7 +400,7 @@ public:
    DLLLOCAL void issueParseCmd(const char* mname, QoreProgram* pgm, QoreString &cmd);
 
    DLLLOCAL void addModule(QoreAbstractModule* m) {
-      map.insert(std::make_pair(m->getName(), m));
+      map.insert(module_map_t::value_type(m->getName(), m));
    }
 
    DLLLOCAL QoreAbstractModule* findModule(const char* name) {
@@ -391,7 +409,7 @@ public:
    }
 
    DLLLOCAL void parseLoadModule(ExceptionSink& xsink, const char* name, QoreProgram* pgm, bool reexport = false);
-   DLLLOCAL int runTimeLoadModule(ExceptionSink& xsink, const char* name, QoreProgram* pgm, QoreProgram* mpgm = 0);
+   DLLLOCAL int runTimeLoadModule(ExceptionSink& xsink, const char* name, QoreProgram* pgm, QoreProgram* mpgm = 0, bool inject = false, bool reinject = false);
 
    DLLLOCAL QoreHashNode* getModuleHash();
    DLLLOCAL QoreListNode* getModuleList();

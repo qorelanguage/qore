@@ -213,10 +213,30 @@ const PO_NO_PROCESS_CONTROL = PO_NO_PROCESS_CONTROL;
 const PO_NO_SUBROUTINE_DEFS = PO_NO_SUBROUTINE_DEFS;
 
 //! Prohibits system classes from being imported into the new Program object
-const PO_NO_SYSTEM_CLASSES = PO_NO_SYSTEM_CLASSES;
+/** @note: PO_NO_SYSTEM_CLASSES is a synonym of this constant
+
+    @since %Qore 0.8.12 to harmonize permission names
+ */
+const PO_NO_INHERIT_SYSTEM_CLASSES = PO_NO_INHERIT_SYSTEM_CLASSES;
+
+//! Prohibits system classes from being imported into the new Program object
+/** 
+    @note PO_NO_INHERIT_SYSTEM_CLASSES was added in %Qore 0.8.12 with the same value of this constant to provide a consistent naming convention for inheritance permissions
+ */
+const PO_NO_SYSTEM_CLASSES = PO_NO_INHERIT_SYSTEM_CLASSES;
 
 //! Prohibits builtin/system function variants from being imported into the new Program object
-const PO_NO_SYSTEM_FUNC_VARIANTS = PO_NO_SYSTEM_FUNC_VARIANTS;
+/** @note: PO_NO_SYSTEM_FUNC_VARIANTS is a synonym of this constant
+
+    @since %Qore 0.8.12 to harmonize permission names
+ */
+const PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS = PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS;
+
+//! Prohibits builtin/system function variants from being imported into the new Program object
+/** 
+    @note PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS was added in %Qore 0.8.12 with the same value of this constant to provide a consistent naming convention for inheritance permissions
+*/
+const PO_NO_SYSTEM_FUNC_VARIANTS = PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS;
 
 //! Disallows access to reading from and/or writing to the terminal
 /** 
@@ -249,7 +269,17 @@ const PO_NO_THREAD_INFO = PO_NO_THREAD_INFO;
 const PO_NO_TOP_LEVEL_STATEMENTS = PO_NO_TOP_LEVEL_STATEMENTS;
 
 //! Prohibits user classes from being imported into the new Program object
-const PO_NO_USER_CLASSES = PO_NO_USER_CLASSES;
+/** @note: PO_NO_USER_CLASSES is a synonym of this constant
+
+    @since %Qore 0.8.12 to harmonize permission names
+ */
+const PO_NO_INHERIT_USER_CLASSES = PO_NO_INHERIT_USER_CLASSES;
+
+//! Prohibits user classes from being imported into the new Program object
+/** 
+    @note PO_NO_INHERIT_USER_CLASSES was added in %Qore 0.8.12 with the same value of this constant to provide a consistent naming convention for inheritance permissions
+ */
+const PO_NO_USER_CLASSES = PO_NO_INHERIT_USER_CLASSES;
 
 //! Prohibits access to all threading information
 /** made up of @ref PO_NO_THREAD_CONTROL | @ref PO_NO_THREAD_CLASSES | @ref PO_NO_THREAD_INFO
@@ -259,7 +289,9 @@ const PO_NO_USER_CLASSES = PO_NO_USER_CLASSES;
 const PO_NO_THREADS = PO_NO_THREADS;
 
 //! mask of all parse options allowing for more freedom (instead of less)
-/** made up of only @ref PO_NO_CHILD_PO_RESTRICTIONS
+/** made up of a binary-or'ed combination of:
+    - @ref PO_NO_CHILD_PO_RESTRICTIONS
+    - @ref PO_ALLOW_INJECTION
  */
 const PO_POSITIVE_OPTIONS = PO_POSITIVE_OPTIONS;
 
@@ -308,6 +340,55 @@ const PO_STRICT_BOOLEAN_EVAL = PO_STRICT_BOOLEAN_EVAL;
     @since %Qore 0.8.12
  */
 const PO_ALLOW_INJECTION = PO_ALLOW_INJECTION;
+
+//! Prohibits user constants from being imported into the new Program object
+/** @note this does not apply to class constants
+
+    @since %Qore 0.8.12
+ */
+const PO_NO_INHERIT_USER_CONSTANTS = PO_NO_INHERIT_USER_CONSTANTS;
+
+//! Prohibits system constants from being imported into the new Program object
+/** @note this does not apply to class constants
+
+    @since %Qore 0.8.12
+ */
+const PO_NO_INHERIT_SYSTEM_CONSTANTS = PO_NO_INHERIT_SYSTEM_CONSTANTS;
+
+//! Prohibits any user code from being inherited into the Program object
+/** made up of:
+    - @ref PO_NO_INHERIT_GLOBAL_VARS
+    - @ref PO_NO_INHERIT_USER_CLASSES
+    - @ref PO_NO_INHERIT_USER_CONSTANTS
+    - @ref PO_NO_INHERIT_USER_FUNC_VARIANTS
+
+    @since %Qore 0.8.12
+ */
+const PO_NO_USER_API = PO_NO_USER_API;
+
+//! Prohibits any code from being inherited into the Program object, including the system API
+/** made up of:
+    - @ref PO_NO_INHERIT_SYSTEM_CLASSES
+    - @ref PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS
+    - @ref PO_NO_INHERIT_SYSTEM_CONSTANTS
+
+    @since %Qore 0.8.12
+ */
+const PO_NO_SYSTEM_API = PO_NO_SYSTEM_API;
+
+//! Prohibits any code from being inherited into the Program object, including the system API
+/** made up of:
+    - @ref PO_NO_INHERIT_SYSTEM_CLASSES
+    - @ref PO_NO_INHERIT_SYSTEM_CONSTANTS
+    - @ref PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS
+    - @ref PO_NO_INHERIT_GLOBAL_VARS
+    - @ref PO_NO_INHERIT_USER_CLASSES
+    - @ref PO_NO_INHERIT_USER_CONSTANTS
+    - @ref PO_NO_INHERIT_USER_FUNC_VARIANTS
+
+    @since %Qore 0.8.12
+ */
+const PO_NO_API = PO_NO_API;
 //@}
 
 /** @defgroup warning_constants Warning Constants
@@ -1222,7 +1303,7 @@ $pgm.loadModule("mysql");
 
     @since %Qore 0.8.7
 */
-Program::loadModule(string name)  [dom=MODULES] {
+Program::loadModule(string name) [dom=MODULES] {
    QMM.runTimeLoadModule(*xsink, name->getBuffer(), p);
 }
 
@@ -1250,24 +1331,27 @@ $pgm.loadUserModuleWithProgram("MyModule", $p);
 
     @since %Qore 0.8.12
 */
-Program::loadUserModuleWithProgram(string name, !Qore::Program[QoreProgram] pgm) [dom=MODULES] {
-   QMM.runTimeLoadModule(*xsink, name->getBuffer(), p, pgm);
+Program::loadUserModuleWithProgram(string name, !Qore::Program[QoreProgram] pgm) [dom=MODULES,INJECTION] {
+   QMM.runTimeLoadModule(*xsink, name->getBuffer(), p, pgm, true);
 }
 
 //! Loads a %Qore user module into the given Program contaner at run-time; after this call the Program object is owned by the user module and is no longer accessible in the object used for the call
 /** This function allows a user module to be loaded with a custom API already present in the user module's @ref Qore::Program "Program" container.
 
     @param name the name or path of the user module to load    
+    @param reinject if @ref Qore::True "True" then the module will be reloaded even if already loaded previously
+
+    @throw LOAD-MODULE-ERROR module cannot be loaded: binary modules cannot be loaded in @ref Qore::Program "Program" containers, etc
 
     @note after this call the Program object will be owned by the user module and will no longer be valid, so any accesses to the object after this call will result in an exception
 
     @see
-    - Program::loadUserModule()
+    - Program::loadModule()
     - Program::loadUserModuleWithProgram()
     - get_module_hash()
     - get_feature_list()
  */
-Program::loadApplyToUserModule(string name) [dom=MODULES] {
+Program::loadApplyToUserModule(string name, *softbool reinject) [dom=MODULES,INJECTION] {
    // remove the QoreProgram private data from the object
 #ifdef DEBUG
    QoreProgram* pgm = (QoreProgram*)
@@ -1277,7 +1361,7 @@ Program::loadApplyToUserModule(string name) [dom=MODULES] {
    assert(pgm == p);
 #endif
    if (!*xsink) {
-      QMM.runTimeLoadModule(*xsink, name->getBuffer(), 0, p);
+      QMM.runTimeLoadModule(*xsink, name->getBuffer(), 0, p, true, reinject);
       self->doDelete(xsink);
    }
 }

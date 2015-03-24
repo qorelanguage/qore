@@ -147,7 +147,7 @@ public:
    DLLLOCAL qore_ns_private(const qore_ns_private &old, int64 po) 
       : name(old.name), 
         classList(old.classList, po, this), 
-        constant(old.constant, this),
+        constant(old.constant, po, this),
         pendConstant(this),
         nsl(old.nsl, po, *this),
         func_list(old.func_list, this, po),
@@ -303,7 +303,7 @@ public:
 
    DLLLOCAL QoreNamespace* findCreateNamespace(const char* nme, bool& is_new);
    DLLLOCAL QoreNamespace* findCreateNamespacePath(const nslist_t& nsl, bool& is_new);
-   DLLLOCAL QoreNamespace* findCreateNamespacePath(const NamedScope& nspath, bool& is_new);
+   DLLLOCAL QoreNamespace* findCreateNamespacePath(const NamedScope& nspath, bool pub, bool& is_new);
 
    DLLLOCAL AbstractQoreNode *getConstantValue(const char* name, const QoreTypeInfo* &typeInfo);
    DLLLOCAL QoreClass *parseFindLocalClass(const char* name);
@@ -1447,10 +1447,10 @@ public:
       }
    }
 
-   DLLLOCAL QoreNamespace* runtimeFindCreateNamespacePath(const NamedScope& nspath) {
+   DLLLOCAL QoreNamespace* runtimeFindCreateNamespacePath(const NamedScope& nspath, bool pub) {
       assert(nspath.size());
       bool is_new = false;
-      QoreNamespace* nns = findCreateNamespacePath(nspath, is_new);
+      QoreNamespace* nns = findCreateNamespacePath(nspath, pub, is_new);
       if (is_new) // add namespace index
          nsmap.update(nns->priv);
       return nns;
@@ -1491,8 +1491,8 @@ public:
       return rns.rpriv->runtimeFindCreateNamespacePath(ns);
    }
    
-   DLLLOCAL static QoreNamespace* runtimeFindCreateNamespacePath(const RootQoreNamespace& rns, const NamedScope& nspath) {
-      return rns.rpriv->runtimeFindCreateNamespacePath(nspath);
+   DLLLOCAL static QoreNamespace* runtimeFindCreateNamespacePath(const RootQoreNamespace& rns, const NamedScope& nspath, bool pub) {
+      return rns.rpriv->runtimeFindCreateNamespacePath(nspath, pub);
    }
    
    DLLLOCAL static RootQoreNamespace* copy(const RootQoreNamespace& rns, int64 po) {

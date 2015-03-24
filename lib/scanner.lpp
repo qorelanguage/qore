@@ -706,6 +706,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%no-new{WS}*$                          getProgram()->parseSetParseOptions(PO_NO_NEW);
 ^%no-network{WS}*$                      getProgram()->parseSetParseOptions(PO_NO_NETWORK);
 ^%no-child-restrictions{WS}*$           getProgram()->parseSetParseOptions(PO_NO_CHILD_PO_RESTRICTIONS);
+^%allow-injection{WS}*$                 getProgram()->parseSetParseOptions(PO_ALLOW_INJECTION);
 ^%no-database{WS}*$                     getProgram()->parseSetParseOptions(PO_NO_DATABASE);
 ^%no-gui{WS}*$                          getProgram()->parseSetParseOptions(PO_NO_GUI);
 ^%no-terminal-io{WS}*$                  getProgram()->parseSetParseOptions(PO_NO_TERMINAL_IO);

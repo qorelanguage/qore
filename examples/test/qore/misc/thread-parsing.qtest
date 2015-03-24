@@ -17,7 +17,7 @@ sub test() {
     our Counter ack(1);
 
     # set up the Program container
-    Program p();
+    Program p(PO_NEW_STYLE);
     p.importGlobalVariable("c");
     p.importGlobalVariable("ack");
     p.parse(Code, "thread-parsing");

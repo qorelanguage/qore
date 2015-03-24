@@ -1344,11 +1344,25 @@ public:
       parseSink->assimilate(xsink);
    }
 
-   DLLLOCAL int parseAddDomain(int64 n_dom) {
-      if (n_dom & pwo.parse_options)
-         return -1;
-      pend_dom |= n_dom;
-      return 0;
+   // returns the mask of domain options not met in the current program
+   DLLLOCAL int64 parseAddDomain(int64 n_dom) {
+      assert(!(n_dom & PO_FREE_OPTIONS));
+      int64 rv = 0;
+
+      // handle negative and positive options separately / differently
+      int64 pos = (n_dom & PO_POSITIVE_OPTIONS);
+      if (pos) {
+         int64 p_tmp = pwo.parse_options & PO_POSITIVE_OPTIONS;
+         // make sure all positive arguments are set
+         if ((pos & p_tmp) != pos)
+            rv = ((pos & p_tmp) ^ pos);
+      }
+      int64 neg = (n_dom & ~PO_POSITIVE_OPTIONS);
+      if (neg && (neg & pwo.parse_options)) {
+         rv |= (neg & pwo.parse_options);
+         pend_dom |= neg;
+      }
+      return rv;
    }
 
    DLLLOCAL void exportGlobalVariable(const char* name, bool readonly, qore_program_private& tpgm, ExceptionSink* xsink);

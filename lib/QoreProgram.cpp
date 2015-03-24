@@ -85,8 +85,8 @@ public:
       (*this)[PO_NO_NAMESPACE_DEFS] = "PO_NO_NAMESPACE_DEFS";
       (*this)[PO_NO_CONSTANT_DEFS] = "PO_NO_CONSTANT_DEFS";
       (*this)[PO_NO_NEW] = "PO_NO_NEW";
-      (*this)[PO_NO_SYSTEM_CLASSES] = "PO_NO_SYSTEM_CLASSES";
-      (*this)[PO_NO_USER_CLASSES] = "PO_NO_USER_CLASSES";
+      (*this)[PO_NO_INHERIT_SYSTEM_CLASSES] = "PO_NO_INHERIT_SYSTEM_CLASSES";
+      (*this)[PO_NO_INHERIT_USER_CLASSES] = "PO_NO_INHERIT_USER_CLASSES";
       (*this)[PO_NO_CHILD_PO_RESTRICTIONS] = "PO_NO_CHILD_PO_RESTRICTIONS";
       (*this)[PO_NO_EXTERNAL_PROCESS] = "PO_NO_EXTERNAL_PROCESS";
       (*this)[PO_REQUIRE_OUR] = "PO_REQUIRE_OUR";
@@ -107,7 +107,7 @@ public:
       (*this)[PO_ASSUME_LOCAL] = "PO_ASSUME_LOCAL";
       (*this)[PO_NO_MODULES] = "PO_NO_MODULES";
       (*this)[PO_NO_INHERIT_USER_FUNC_VARIANTS] = "PO_NO_INHERIT_USER_FUNC_VARIANTS";
-      (*this)[PO_NO_SYSTEM_FUNC_VARIANTS] = "PO_NO_SYSTEM_FUNC_VARIANTS";
+      (*this)[PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS] = "PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS";
       (*this)[PO_NO_INHERIT_GLOBAL_VARS] = "PO_NO_INHERIT_GLOBAL_VARS";
       (*this)[PO_IN_MODULE] = "PO_IN_MODULE";
       (*this)[PO_NO_EMBEDDED_LOGIC] = "PO_NO_EMBEDDED_LOGIC";
@@ -121,6 +121,8 @@ public:
       (*this)[PO_LOCKDOWN] = "PO_LOCKDOWN";
       (*this)[PO_NEW_STYLE] = "PO_NEW_STYLE";
       (*this)[PO_ALLOW_INJECTION] = "PO_ALLOW_INJECTION";
+      (*this)[PO_NO_INHERIT_SYSTEM_CONSTANTS] = "PO_NO_INHERIT_SYSTEM_CONSTANTS";
+      (*this)[PO_NO_INHERIT_USER_CONSTANTS] = "PO_NO_INHERIT_USER_CONSTANTS";
    }
 };
 
@@ -471,7 +473,7 @@ void qore_program_private::importClass(ExceptionSink* xsink, qore_program_privat
    QoreNamespace* tns;
    if (new_name && strstr(new_name, "::")) {
       NamedScope nscope(new_name);
-      tns = qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, nscope);
+      tns = qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, nscope, qore_class_private::isPublic(*c));
       qore_root_ns_private::runtimeImportClass(*RootNS, xsink, *tns, c, nscope.getIdentifier(), inject);
    }
    else {
@@ -489,7 +491,7 @@ void qore_program_private::importFunction(ExceptionSink* xsink, QoreFunction* u,
 
    if (new_name && strstr(new_name, "::")) {
       NamedScope nscope(new_name);
-      QoreNamespace* tns = qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, nscope);
+      QoreNamespace* tns = qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, nscope, u->hasPublic());
       qore_root_ns_private::runtimeImportFunction(*RootNS, xsink, *tns, u, nscope.getIdentifier());
       return;
    }
@@ -529,7 +531,6 @@ void qore_program_private::exportGlobalVariable(const char* vname, bool readonly
    // find/create target namespace based on source namespace
    QoreNamespace* tns = vns->root ? tpgm.RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*tpgm.RootNS, *vns);
    //printd(5, "qore_program_private::exportGlobalVariable() this: %p vname: '%s' ro: %d vns: %p '%s::' RootNS: %p '%s::'\n", this, vname, readonly, vns, vns->name.c_str(), RootNS, RootNS->getName());
-   AutoLocker al(tpgm.plock);
    qore_root_ns_private::runtimeImportGlobalVariable(*tpgm.RootNS, *tns, v, readonly, xsink);
 }
 
