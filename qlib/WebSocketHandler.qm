@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file WebSocketHandler.qm Qore handler definition for the HttpServer module for providing WebSocket server services
 
-/*  WebSocketHandler.qm Copyright 2013 Qore Technologies, sro
+/*  WebSocketHandler.qm Copyright 2013 - 2015 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -42,12 +42,9 @@ module WebSocketHandler {
     license = "MIT";
 }
 
-/*  Version History
-    * 2013-10-04 v1.0: David Nichols <david@qore.org>
-      + the initial version of the WebSocketHandler module
-*/
-
 /** @mainpage WebSocketHandler Module
+
+    @toc
 
     @section websockethandlerintro Introduction to the WebSocketHandler Module
 
@@ -61,6 +58,14 @@ module WebSocketHandler {
     The main classes provided in this module are:
     - @ref WebSocketHandler::WebSocketConnection
     - @ref WebSocketHandler::WebSocketHandler
+
+    @section websockethandler_relnotes WebSocketHandler Release History
+
+    @subsection websockethandler_v1_1 Version 1.1
+    - bug fix: do not delete the connection object when the connection closes, remove it so it can go out of scope naturally to avoid excess exceptions in the server code
+
+    @subsection websockethandler_v1_0 Version 1.0
+    - the initial version of the WebSocketHandler module
 */
 
 #! the WebSocketHandler namespace contains all the objects in the WebSocketHandler module
@@ -242,7 +247,7 @@ public namespace WebSocketHandler {
                 $.deregisterConnectionImpl($wsc);
                 $.rwl.writeLock();
                 on_exit $.rwl.writeUnlock();
-                delete $.ch.$cid;
+                remove $.ch.$cid;
             }
 
             while (True) {

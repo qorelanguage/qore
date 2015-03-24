@@ -161,6 +161,8 @@
       - fixed a bug retrieving foreign constraints; columns were not guaranteed to be returned in declaration order
     -  <a href="../../modules/WebUtil/html/index.html">WebUtil</a> module fixes:
       - fixed a bug where template programs with @ref Qore::PO_ALLOW_BARE_REFS set did not work
+    - <a href="../../modules/WebSocketHandler/html/index.html">WebSocketHandler</a> module updates:
+      - fixed a bug where the connection object was deleted when the connection closes which could cause excess exceptions in multithreaded server code
     - fixed a memory error in error-handling with type errors when parsing user module headers that could cause a crash
     - fixed a memory leak in @ref Qore::Socket::setWarningQueue() "Socket::setWarningQueue()": when a callback argument is used, the argument can be leaked when the @ref Qore::Socket "Socket" is destroyed
     - fixed a bug where the @ref Qore::HTTPClient "HTTPClient" class did not send the X.509 certificate and private key when making a client SSL connection
