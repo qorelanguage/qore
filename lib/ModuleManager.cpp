@@ -857,7 +857,7 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
    QoreString tpath;
 
    QoreProgram* p = tpgm ? tpgm : path_pgm;
-   const char* td = p->parseGetScriptDir();
+   const char* td = p ? p->parseGetScriptDir() : 0;
 
    // calculate path from relative path if possible
    if ((tpgm || path_pgm) && path[0] == '.') {

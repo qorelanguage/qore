@@ -129,18 +129,9 @@ public namespace UnitTest {
     public const PLAINTEXT = 0;
     public const JUNIT     = 1;
 
-    const OUT_TYPES = (
-          "plain" : PLAINTEXT,
-          "junit" : JUNIT,
-        );
-
-    const opts = (
-          "help"    : "help,h",
-          "verbose" : "verbose,v",
-          "quiet"   : "quiet,q",
-          "bq"      : "backquote,b",
-          "threads" : "threads,t=i",
-          "format"  : "format=s",
+    public const OUT_TYPES = (
+        "plain" : PLAINTEXT,
+        "junit" : JUNIT,
         );
 }
 
@@ -157,8 +148,27 @@ public class UnitTest::UnitTest {
         hash m_options;
     }
 
-    constructor() {
-        m_options = new GetOpt(opts).parse2(\ARGV);
+    public {
+        const Opts = (
+            "help"    : "help,h",
+            "verbose" : "verbose,v",
+            "quiet"   : "quiet,q",
+            "bq"      : "backquote,b",
+            
+            "iters"   : "iters,i=i",
+            "threads" : "threads,t=i",
+            "format"  : "format=s",
+            );
+    }
+
+    constructor(*reference p_argv, hash opts = Opts) {
+        if (!p_argv)
+            p_argv = \ARGV;
+        m_options = new GetOpt(opts).parse2(\p_argv);
+        processOptions(\p_argv);
+    }
+
+    private processOptions(reference p_argv) {
         if (m_options.help)
             usage();
 
@@ -167,8 +177,7 @@ public class UnitTest::UnitTest {
             exit(1);
         }
 
-        m_options.iters = shift ARGV;
-        if (ARGV) {
+        if (p_argv) {
             printf("error, excess arguments on command-line\n");
             usage();
         }

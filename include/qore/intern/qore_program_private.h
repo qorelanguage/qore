@@ -517,6 +517,40 @@ public:
    // called when the program's ref count = 0 (but the dc count may not go to 0 yet)
    DLLLOCAL void clear(ExceptionSink* xsink);
 
+   // called when starting a new thread before the new thread is started, to avoid race conditions
+   // once the new thread has been started, the TID is registered in startThread()
+   DLLLOCAL int preregisterNewThread(ExceptionSink* xsink) {
+      // grab program-level lock
+      AutoLocker al(plock);
+
+      if (ptid) {
+         xsink->raiseException("PROGRAM-ERROR", "the Program accessed has already been deleted and therefore no new threads can be started in it");
+         return -1;
+      }
+
+      ++thread_count;
+      return 0;
+   }
+
+   // called when thread startup fails after preregistration
+   DLLLOCAL void cancelPreregistration() {
+      // grab program-level lock
+      AutoLocker al(plock);
+
+      assert(thread_count > 0);
+      if (!--thread_count && thread_waiting)
+	 pcond.broadcast();
+   }
+
+   // called from the new thread once the thread has been started (after preregisterNewThread())
+   DLLLOCAL void registerNewThread(int tid) {
+      // grab program-level lock
+      AutoLocker al(plock);
+
+      assert(thread_count);
+      ++tidmap[tid];
+   }
+   
    // returns 0 for OK, -1 for error
    DLLLOCAL int incThreadCount(ExceptionSink* xsink) {
       int tid = gettid();
@@ -1425,6 +1459,21 @@ public:
    DLLLOCAL void runtimeImportSystemFunctions(ExceptionSink* xsink);
    DLLLOCAL void runtimeImportSystemApi(ExceptionSink* xsink);
 
+   // called when starting a new thread before the new thread is started, to avoid race conditions
+   DLLLOCAL static int preregisterNewThread(QoreProgram& pgm, ExceptionSink* xsink) {
+      return pgm.priv->preregisterNewThread(xsink);
+   }
+
+   // called when thread startup fails after preregistration
+   DLLLOCAL static void cancelPreregistration(QoreProgram& pgm) {
+      pgm.priv->cancelPreregistration();
+   }
+
+   // called from the new thread once the thread has been started (after preregisterNewThread())
+   DLLLOCAL static void registerNewThread(QoreProgram& pgm, int tid) {
+      pgm.priv->registerNewThread(tid);
+   }
+   
    DLLLOCAL static void runtimeImportSystemClasses(QoreProgram& pgm, ExceptionSink* xsink) {
       pgm.priv->runtimeImportSystemClasses(xsink);
    }

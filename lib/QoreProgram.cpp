@@ -140,7 +140,7 @@ void qore_program_private_base::setDefines() {
    }
 }
 
-void qore_program_private_base::startThread(ExceptionSink& xsink) {
+void qore_program_private_base::startThread(ExceptionSink& xsink) {   
    assert(!thread_local_storage->get());
    thread_local_storage->set(new QoreHashNode);
 

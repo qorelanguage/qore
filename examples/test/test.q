@@ -34,6 +34,31 @@
 
 %exec-class Test
 
+class MyUnitTest inherits UnitTest {
+    private {
+        *softlist rlist;
+    }
+
+    constructor(*reference p_argv, hash opts = Opts) : UnitTest(\p_argv, opts) {
+    }
+
+    processOptions(reference p_argv) {
+        rlist = remove p_argv;
+        UnitTest::processOptions(\p_argv);
+    }
+
+    bool doFile(string fname) {
+        if (!rlist)
+            return True;
+
+        foreach my string rstr in (rlist) {
+            if (regex(fname, rstr))
+                return True;
+        }
+        return False;
+    }
+}
+    
 class Test {
     public {
     }
@@ -44,10 +69,7 @@ class Test {
     }
 
     constructor() {
-        our UnitTest unit();
-
-        while (ARGV || rstr[0] == '-')
-            rstr = shift ARGV;
+        our MyUnitTest unit(\ARGV);
         
         doDir(get_script_dir());
         if (rc)
@@ -69,7 +91,7 @@ class Test {
     }
 
     doFile(string fname) {
-        if (rstr && !regex(fname, rstr))
+        if (!unit.doFile(fname))
             return;
         
         if (unit.verbose())

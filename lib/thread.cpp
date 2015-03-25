@@ -558,13 +558,22 @@ public:
    QoreProgram* pgm;
    int tid;
    QoreProgramLocation loc;
-   bool deref_count;
+   bool registered, started;
    
    DLLLOCAL BGThreadParams(AbstractQoreNode* f, int t, ExceptionSink* xsink)
       : callobj((thread_data.get())->current_classobj), obj(0),
-        fc(f), pgm(getProgram()), tid(t), loc(RunTimeLocation), deref_count(false) {
+        fc(f), pgm(getProgram()), tid(t), loc(RunTimeLocation), registered(false), started(false) {
+      //printd(5, "BGThreadParams::BGThreadParams(f: %p (%s %d), t: %d) this: %p callobj: %p\n", f, f->getTypeName(), f->getType(), t, this, callobj);
+
+      // first try to preregister the new thread
+      if (qore_program_private::preregisterNewThread(*pgm, xsink)) {
+         callobj.clear();
+         return;
+      }
+
+      registered = true;
+      
       qore_type_t fctype = fc->getType();
-      //printd(5, "BGThreadParams::BGThreadParams(f=%p (%s %d), t=%d) this=%p callobj=%p\n", f, f->getTypeName(), f->getType(), t, this, callobj);
       if (fctype == NT_SELF_CALL) {
 	 // must have a current object if an in-object method call is being executed
 	 // (i.e. $.method())
@@ -600,22 +609,25 @@ public:
 
    DLLLOCAL void del(ExceptionSink* xsink) {
       // decrement program's thread count
-      if (deref_count) {
+      if (started) {
          qore_program_private::decThreadCount(*pgm, tid);
          pgm->depDeref(xsink);
       }
+      else if (registered)
+         qore_program_private::cancelPreregistration(*pgm);
       
       delete this;
    }
    
-   DLLLOCAL int startThread(ExceptionSink* xsink) {
-      // increment the program's thread counter
-      if (!qore_program_private::incThreadCount(*pgm, xsink)) {
-         pgm->depRef();
-         deref_count = true;
-         return 0;
-      }
-      return -1;
+   DLLLOCAL void startThread(ExceptionSink& xsink) {
+      // register the new tid
+      qore_program_private::registerNewThread(*pgm, tid);
+      // create thread-local data in the program object
+      qore_program_private::startThread(*pgm, xsink);
+      // set program counter for new thread
+      update_runtime_location(loc);
+      started = true;
+      pgm->depRef();
    }
    
    DLLLOCAL QoreObject* getCallObject() {
@@ -644,7 +656,7 @@ public:
    }
    
    DLLLOCAL AbstractQoreNode* exec(ExceptionSink* xsink) {
-      //printd(5, "BGThreadParams::exec() this=%p fc=%p (%s %d)\n", this, fc, fc->getTypeName(), fc->getType());
+      //printd(5, "BGThreadParams::exec() this: %p fc: %p (%s %d)\n", this, fc, fc->getTypeName(), fc->getType());
       AbstractQoreNode* rv = fc->eval(xsink);
       fc->deref(xsink);
       fc = 0;
@@ -658,7 +670,7 @@ ThreadCleanupList::ThreadCleanupList() {
 }
 
 ThreadCleanupList::~ThreadCleanupList() {
-   //printf("ThreadCleanupList::~ThreadCleanupList() head=%p\n", head);
+   //printf("ThreadCleanupList::~ThreadCleanupList() head: %p\n", head);
 
    while (head) {
       ThreadCleanupNode* w = head->next;
@@ -681,11 +693,11 @@ void ThreadCleanupList::push(qtdest_t func, void* arg) {
    w->func = func;
    w->arg = arg;
    head = w;
-   //printf("TCL::push() this=%p, &head=%p, head=%p, head->next=%p\n", this, &head, head, head->next);
+   //printf("TCL::push() this: %p, &head: %p, head: %p, head->next: %p\n", this, &head, head, head->next);
 }
 
 void ThreadCleanupList::pop(bool exec) {
-   //printf("TCL::pop() this=%p, &head=%p, head=%p\n", this, &head, head);
+   //printf("TCL::pop() this: %p, &head: %p, head: %p\n", this, &head, head);
    // NOTE: if exit() is called, then somehow head = 0 !!!
    // I can't explain it, but that's why the if statement is there... :-(
    if (head) {
@@ -700,9 +712,9 @@ void ThreadCleanupList::pop(bool exec) {
 #ifdef QORE_MANAGE_STACK
 int check_stack(ExceptionSink* xsink) {
    ThreadData* td = thread_data.get();
-   printd(5, "check_stack() current=%p limit=%p\n", get_stack_pos(), td->stack_limit);
+   printd(5, "check_stack() current: %p limit: %p\n", get_stack_pos(), td->stack_limit);
 #ifdef IA64_64
-   //printd(5, "check_stack() bsp current=%p limit=%p\n", get_rse_bsp(), td->rse_limit);
+   //printd(5, "check_stack() bsp current: %p limit: %p\n", get_rse_bsp(), td->rse_limit);
    if (td->rse_limit < get_rse_bsp()) {
       xsink->raiseException("STACK-LIMIT-EXCEEDED", "this thread's stack has exceeded the IA-64 RSE (Register Stack Engine) stack size limit (%ld bytes)", qore_thread_stack_limit);
       return -1;
@@ -1277,7 +1289,7 @@ CodeContextHelper::~CodeContextHelper() {
    if (o)
       o->deref(xsink);
 
-   //printd(5, "CodeContextHelper::~CodeContextHelper() this: %p td: %p current=(code: %s, {cls: %p, obj: %p}) restoring code=%s, {cls: %p, obj: %p}\n", this, td, td->current_code ? td->current_code : "null", td->current_classobj.getClass(), o, old_code ? old_code : "null", old.getClass(), old.getObj());
+   //printd(5, "CodeContextHelper::~CodeContextHelper() this: %p td: %p current=(code: %s, {cls: %p, obj: %p}) restoring code: %s, {cls: %p, obj: %p}\n", this, td, td->current_code ? td->current_code : "null", td->current_classobj.getClass(), o, old_code ? old_code : "null", old.getClass(), old.getObj());
    td->current_code = old_code;
    td->current_classobj = old;
 }
@@ -1286,7 +1298,7 @@ ArgvContextHelper::ArgvContextHelper(QoreListNode* argv, ExceptionSink* n_xsink)
    ThreadData* td  = thread_data.get();
    old_argv = td->current_implicit_arg;
    td->current_implicit_arg = argv;
-   //printd(5, "ArgvContextHelper::ArgvContextHelper() setting argv=%p\n", argv);
+   //printd(5, "ArgvContextHelper::ArgvContextHelper() setting argv: %p\n", argv);
 }
 
 ArgvContextHelper::~ArgvContextHelper() {
@@ -1294,11 +1306,11 @@ ArgvContextHelper::~ArgvContextHelper() {
    if (td->current_implicit_arg)
       td->current_implicit_arg->deref(xsink);
    td->current_implicit_arg = old_argv;
-   //printd(5, "ArgvContextHelper::~ArgvContextHelper() setting argv=%p\n", old_argv);
+   //printd(5, "ArgvContextHelper::~ArgvContextHelper() setting argv: %p\n", old_argv);
 }
 
 SingleArgvContextHelper::SingleArgvContextHelper(const AbstractQoreNode* val, ExceptionSink* n_xsink) : xsink(n_xsink) {
-   //printd(5, "SingleArgvContextHelper::SingleArgvContextHelper() this=%p arg=%p (%s)\n", this, val, val ? val->getTypeName() : 0);
+   //printd(5, "SingleArgvContextHelper::SingleArgvContextHelper() this: %p arg: %p (%s)\n", this, val, val ? val->getTypeName() : 0);
    ThreadData* td  = thread_data.get();
    old_argv = td->current_implicit_arg;
    QoreListNode* argv;
@@ -1379,7 +1391,7 @@ ProgramThreadCountContextHelper::ProgramThreadCountContextHelper(ExceptionSink* 
       return;
 
    ThreadData* td = thread_data.get();
-   printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() current_pgm=%p new_pgm=%p\n", td->current_pgm, pgm);
+   printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() current_pgm: %p new_pgm: %p\n", td->current_pgm, pgm);
    if (pgm != td->current_pgm) {
       // try to increment thread count
       if (qore_program_private::incThreadCount(*pgm, xsink))
@@ -1538,7 +1550,7 @@ QoreException* catchSwapException(QoreException* e) {
 // for "rethrow"
 QoreException* catchGetException() {
    ThreadData* td = thread_data.get();
-   //printd(5, "cGE() td=%p e=%p\n", td, td->catchException);
+   //printd(5, "cGE() td: %p e: %p\n", td, td->catchException);
    assert(td->catchException);
    return td->catchException;
 }
@@ -1771,77 +1783,60 @@ namespace {
       BGThreadParams* btp = (BGThreadParams*) x;
       // register thread
       register_thread(btp->tid, pthread_self(), btp->pgm);
-      printd(5, "op_background_thread() btp=%p TID %d started\n", btp, btp->tid);
-      //printf("op_background_thread() btp=%p TID %d started\n", btp, btp->tid);
+      printd(5, "op_background_thread() btp: %p TID %d started\n", btp, btp->tid);
+      //printf("op_background_thread() btp: %p TID %d started\n", btp, btp->tid);
 
       pthread_cleanup_push(qore_thread_cleanup, (void*)0);
 
       {
          ExceptionSink xsink;
 
-         if (btp->startThread(&xsink)) {
-            btp->cleanup(&xsink);
-            int tid = btp->tid;
-            btp->del(&xsink);
-
-            // delete any thread data
-            thread_data.get()->del(&xsink);
-
-            xsink.handleExceptions();
-
-            // delete internal thread data structure and release TID entry
-            thread_list.deleteDataRelease(tid);
-         }
-         else {
-            // create thread-local data for this thread in the program object
-            qore_program_private::startThread(*btp->pgm, xsink);
-            // set program counter for new thread
-            update_runtime_location(btp->loc);
+         // register thread in Program object
+         btp->startThread(xsink);
             
+         {
+            AbstractQoreNode* rv;
             {
-               AbstractQoreNode* rv;
-               {
-                  CodeContextHelper cch(0, btp->getCallObject(), &xsink);
+               CodeContextHelper cch(0, btp->getCallObject(), &xsink);
                   
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-                  // push this call on the thread stack
-                  CallStackHelper csh("background operator", CT_NEWTHREAD, btp->getCallObject(), &xsink);
+               // push this call on the thread stack
+               CallStackHelper csh("background operator", CT_NEWTHREAD, btp->getCallObject(), &xsink);
 #endif
                   
-                  // dereference call object if present
-                  btp->derefCallObj();
+               // dereference call object if present
+               btp->derefCallObj();
                   
-                  // run thread expression
-                  rv = btp->exec(&xsink);
+               // run thread expression
+               rv = btp->exec(&xsink);
                   
-                  // if there is an object, we dereference the extra reference here
-                  btp->derefObj(&xsink);
-               }
-               
-               // dereference any return value from the background expression
-               if (rv)
-                  rv->deref(&xsink);
-
-               int tid = btp->tid;
-               // dereference current Program object
-               btp->del(&xsink);
-               
-               // delete any thread data
-               thread_data.get()->del(&xsink);
-            
-               // cleanup thread resources
-               purge_thread_resources(&xsink);
-               
-               xsink.handleExceptions();
-               
-               printd(4, "thread terminating");
-               
-               // delete internal thread data structure and release TID entry
-               thread_list.deleteDataRelease(tid);
-               
-               // run any cleanup functions
-               tclist.exec();
+               // if there is an object, we dereference the extra reference here
+               btp->derefObj(&xsink);
             }
+               
+            // dereference any return value from the background expression
+            if (rv)
+               rv->deref(&xsink);
+
+            int tid = btp->tid;
+            // dereference current Program object
+            btp->del(&xsink);
+               
+            // delete any thread data
+            thread_data.get()->del(&xsink);
+            
+            // cleanup thread resources
+            purge_thread_resources(&xsink);
+               
+            xsink.handleExceptions();
+               
+            printd(4, "thread terminating");
+               
+            // delete internal thread data structure and release TID entry
+            thread_list.deleteDataRelease(tid);
+               
+            // run any cleanup functions
+            tclist.exec();
          }
       }
 
