@@ -785,11 +785,13 @@ QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, std
 	 if (mi->equalTo(omi)) {
 	    if (inject) {
 	       xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s' already loaded therefore cannot be used for injection unless the reinject flag is set", mi->getFileName(), name);
+	       qmd.setDuplicate();
 	       return 0;
 	    }
 	    return omi;
 	 }
 	 xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s' already registered by '%s'", mi->getFileName(), name, omi->getFileName());
+	 qmd.setDuplicate();
 	 return 0;
       }
    }

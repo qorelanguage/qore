@@ -604,16 +604,22 @@ class QoreUserModuleDefContextHelper : public QoreModuleDefContextHelper {
 protected:
    const char* old_name;
    ExceptionSink& xsink;
-
+   bool dup;
+   
 public:
-   DLLLOCAL QoreUserModuleDefContextHelper(const char* name, ExceptionSink& xs) : old_name(set_user_module_context_name(name)), xsink(xs) {
+   DLLLOCAL QoreUserModuleDefContextHelper(const char* name, ExceptionSink& xs) : old_name(set_user_module_context_name(name)), xsink(xs), dup(false) {
    }
 
    DLLLOCAL ~QoreUserModuleDefContextHelper() {
       const char* name = set_user_module_context_name(old_name);
 
-      if (xsink)
+      if (xsink && !dup)
          QMM.removeUserModuleDependency(name);
+   }
+
+   DLLLOCAL void setDuplicate() {
+      assert(!dup);
+      dup = true;
    }
 };
 

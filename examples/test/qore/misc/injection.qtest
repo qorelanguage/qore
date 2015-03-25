@@ -10,7 +10,7 @@
 
 # for negative testing of loadApplyUserModule
 %requires Util
-    
+ 
 %requires ./MyTestModule.qm
 #/;
     

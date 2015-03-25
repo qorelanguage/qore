@@ -1,6 +1,5 @@
 
 %new-style
-%requires ../../../../qlib/FixedLengthUtil.qm
 
 module MyTestModule {
     version = "0.1";
