@@ -564,8 +564,6 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
 	    qore_check_load_module_intern(mi, op, version, pgm, xsink);
 	 return;
       }
-
-      reinjectModule(mi);
    }
 
    //printd(5, "QoreModuleManager::loadModuleIntern() this: %p name: %s not found\n", this, name);
@@ -591,6 +589,11 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
 	    xsink.raiseException("LOAD-MODULE-ERROR", "cannot load a binary module with a Program container");
 	    return;
 	 }
+	 if (reinject) {
+	    xsink.raiseException("LOAD-MODULE-ERROR", "cannot reinject module '%s' because reinjection is not currently supported for binary modules", name);
+	    return;
+	 }
+
 	 mi = loadBinaryModuleFromPath(xsink, name, 0, pgm, reexport);
       }
       else {
@@ -759,6 +762,17 @@ void QoreModuleManager::registerUserModuleFromSource(const char* name, const cha
 
 // const char* path, const char* feature, ReferenceHolder<QoreProgram>& pgm
 QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, std::auto_ptr<QoreUserModule>& mi, QoreUserModuleDefContextHelper& qmd, bool inject, bool reinject) {
+   // see if a module with this name is already registered
+   QoreAbstractModule* omi = findModuleUnlocked(mi->getName());
+   if (omi)
+      qmd.setDuplicate();
+   else if (reinject) {
+      xsink.raiseException("LOAD-MODULE-ERROR", "cannot reinject module '%s' because it has not yet been loaded", mi->getName());
+      return 0;
+   }
+
+   //printd(5, "QoreModuleManager::setupUserModule() '%s' omi: %p\n", mi->getName(), omi);
+   
    if (xsink)
       return 0;
 
@@ -776,22 +790,18 @@ QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, std
       return 0;
    }
 
-   QoreAbstractModule* omi = 0;
-
    // see if a module with this name is already registered
-   if ((omi = findModuleUnlocked(name))) {
+   if (omi) {
       if (!reinject) {
 	 // if the module is the same, then do not return an error unless trying to inject
 	 if (mi->equalTo(omi)) {
 	    if (inject) {
 	       xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s' already loaded therefore cannot be used for injection unless the reinject flag is set", mi->getFileName(), name);
-	       qmd.setDuplicate();
 	       return 0;
 	    }
 	    return omi;
 	 }
 	 xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s' already registered by '%s'", mi->getFileName(), name, omi->getFileName());
-	 qmd.setDuplicate();
 	 return 0;
       }
    }
@@ -1161,9 +1171,8 @@ void QoreModuleManager::delUser() {
       assert(i != map.end());
       QoreAbstractModule* m = i->second;
       assert(m->isUser());
-
+      
       delOrig(m);
-
       //printd(5, "QoreModuleManager::delUser() deleting '%s' (%s) %p\n", (*ui).c_str(), i->first, m);
       umset.erase(ui);
       removeUserModuleDependency(i->first);
