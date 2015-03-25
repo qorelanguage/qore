@@ -64,6 +64,28 @@ code sub t16_17() { C t(); return \\t.t(); }
 code sub t18() { object t = new D(); return \\t.t(); }
 ";
 
+
+class TestInheritA
+{
+    public { string m_bar = "A"; }
+    string foo() { return "A"; }
+}
+
+class TestInheritB
+{
+    public { string m_bar = "B"; }
+    string foo() { return "B"; }
+}
+
+class TestInheritAB inherits TestInheritA, TestInheritB
+{
+}
+
+class TestInheritBA inherits TestInheritB, TestInheritA
+{
+}
+
+
 sub test() {
     Program p(PO_NEW_STYLE);
     p.parse(Code, "access");
@@ -108,4 +130,12 @@ sub test() {
 
     # this must fail at parse time because B::t() is privately inherited in D, therefore it should not be possible to take a reference to the method of the privately-inherited class
     unit.exception(sub() {p.parse("code sub test() { D t(); return \\t.t(); }", "test");}, NOTHING, "is private in this context", "negative-private-method-access-11");
+
+    # inheritance ordering
+    TestInheritAB ab();
+    unit.cmp(ab.foo(), "A", "inheritance with 2 classes and the same methods");
+    unit.cmp(ab.m_bar, "A", "inheritance with 2 classes and the same members");
+    TestInheritBA ba();
+    unit.cmp(ba.foo(), "B", "inheritance with 2 classes and the same methods");
+    unit.cmp(ab.m_bar, "B", "inheritance with 2 classes and the same members");
 }
