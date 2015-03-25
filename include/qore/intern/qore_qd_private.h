@@ -96,7 +96,7 @@ protected:
    }
    
    // tokenize the strings by directory separators
-   DLLLOCAL static void tokenize(const std::string& str, std::vector<std::string>& tokens) {
+   DLLLOCAL static void tokenize(const std::string& str, name_vec_t& tokens) {
       // accommodate case when the string consists of only the delimiter (ex: "/")
       if (is_dir_sep(str)) {
 	 tokens.push_back(QORE_DIR_SEP_STR);
@@ -367,12 +367,12 @@ public:
       }
 
       // split the directory in its subdirectories tree
-      std::vector<std::string> dirs;
+      name_vec_t dirs;
       tokenize(dirname, dirs);
-	 
+      
       // iterate through all directories and try to create them if
       // they do not exist (should happen only on the first level)
-      std::vector<std::string>::iterator it;
+      name_vec_t::iterator it;
       std::string path;
       int cnt = 0;
       const char *path_str;
@@ -505,12 +505,11 @@ public:
    // tokenizes the string (path) and recreates it
    DLLLOCAL static const std::string normalizePath(const std::string& odir) {
       // tokenize the string
-      std::vector<std::string> ptoken, dirs;
+      name_vec_t ptoken, dirs;
       tokenize(odir, ptoken);
-
+      
       // push them to the new path
-      std::vector<std::string>::iterator it;
-      for (it = ptoken.begin(); it < ptoken.end(); it++) {
+      for (name_vec_t::iterator it = ptoken.begin(), et = ptoken.end(); it != et; ++it) {
 	 std::string d = *it;
 	 if (d == "." || d == "") // ignore
 	    continue;
@@ -523,7 +522,7 @@ public:
 
       // create string out of rest..
       std::string ret;
-      for (it = dirs.begin(); it < dirs.end(); it++) {
+      for (name_vec_t::iterator it = dirs.begin(), et = dirs.end(); it != et; ++it) {
 #ifdef _Q_WINDOWS
 	 if (it == dirs.begin() && q_absolute_path_windows((*it).c_str()))
 	     ret += *it;

@@ -1756,11 +1756,21 @@ bool q_absolute_path(const char* path) {
 #endif
 }
 
-void q_normalize_path(QoreString& path) {
+void q_normalize_path(QoreString& path, const char* cwd) {
+   if (!path.empty() && path[0] == '.') {
+      path.insertch(QORE_DIR_SEP, 0, 1);
+      if (cwd)
+	 path.prepend(cwd);
+      else {
+	 QoreString cwd_str;
+	 if (!q_getcwd(cwd_str))
+	    path.prepend(cwd_str.getBuffer(), cwd_str.size());
+      }
+   }
    std::string str = path.getBuffer();
    str = qore_qd_private::normalizePath(str);
-   //printd(5, " q_normalize_path() '%s' -> '%s'\n", path.getBuffer(), str.c_str());
-   path.clear();
+   //printd(5, "q_normalize_path() '%s' -> '%s'\n", path.getBuffer(), str.c_str());
+   //path.clear();
    path = str;
 }
 

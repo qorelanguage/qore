@@ -127,11 +127,11 @@ public:
    // list of dependent modules to reexport
    name_vec_t rmod;
 
-   DLLLOCAL QoreAbstractModule(const char* fn, const char* n, const char* d, const char* v, const char* a, const char* u, const QoreString& l) : filename(fn), name(n), desc(d), author(a), url(u), license(l), version_list(v) {
-      q_normalize_path(filename);
+   DLLLOCAL QoreAbstractModule(const char* cwd, const char* fn, const char* n, const char* d, const char* v, const char* a, const char* u, const QoreString& l) : filename(fn), name(n), desc(d), author(a), url(u), license(l), version_list(v) {
+      q_normalize_path(filename, cwd);
    }
 
-   DLLLOCAL QoreAbstractModule(const char* fn, const char* n) : filename(fn), name(n) {
+   DLLLOCAL QoreAbstractModule(const char* cwd, const char* fn, const char* n) : filename(fn), name(n) {
       q_normalize_path(filename);
    }
 
@@ -513,7 +513,7 @@ protected:
    DLLLOCAL virtual void addToProgramImpl(QoreProgram* pgm, ExceptionSink& xsink) const;
 
 public:
-   DLLLOCAL QoreBuiltinModule(const char* fn, const char* n, const char* d, const char* v, const char* a, const char* u, const QoreString& l, unsigned major, unsigned minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, qore_module_parse_cmd_t pcmd, const void* p) : QoreAbstractModule(fn, n, d, v, a, u, l), api_major(major), api_minor(minor), module_init(init), module_ns_init(ns_init), module_delete(del), module_parse_cmd(pcmd), dlptr(p) {
+   DLLLOCAL QoreBuiltinModule(const char* cwd, const char* fn, const char* n, const char* d, const char* v, const char* a, const char* u, const QoreString& l, unsigned major, unsigned minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, qore_module_parse_cmd_t pcmd, const void* p) : QoreAbstractModule(cwd, fn, n, d, v, a, u, l), api_major(major), api_minor(minor), module_init(init), module_ns_init(ns_init), module_delete(del), module_parse_cmd(pcmd), dlptr(p) {
    }
 
    DLLLOCAL virtual ~QoreBuiltinModule() {
@@ -569,7 +569,7 @@ protected:
    DLLLOCAL virtual void addToProgramImpl(QoreProgram* pgm, ExceptionSink& xsink) const;
 
 public:
-   DLLLOCAL QoreUserModule(const char* fn, const char* n, QoreProgram* p) : QoreAbstractModule(fn, n), pgm(p), del(0) {
+   DLLLOCAL QoreUserModule(const char* cwd, const char* fn, const char* n, QoreProgram* p) : QoreAbstractModule(cwd, fn, n), pgm(p), del(0) {
    }
 
    DLLLOCAL void set(const char* d, const char* v, const char* a, const char* u, const QoreString& l, QoreClosureParseNode* dl) {

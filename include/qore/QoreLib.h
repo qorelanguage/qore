@@ -519,6 +519,6 @@ DLLEXPORT bool q_absolute_path_windows(const char* path);
 DLLEXPORT bool q_absolute_path(const char* path);
 
 //! normalizes the given path for the current platform in place (makes absolute, removes "." and "..")
-DLLEXPORT void q_normalize_path(QoreString& path);
+DLLEXPORT void q_normalize_path(QoreString& path, const char* cwd = 0);
 
 #endif // _QORE_QORELIB_H

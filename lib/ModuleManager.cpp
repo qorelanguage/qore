@@ -856,10 +856,11 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
 
    QoreString tpath;
 
+   QoreProgram* p = tpgm ? tpgm : path_pgm;
+   const char* td = p->parseGetScriptDir();
+
    // calculate path from relative path if possible
    if ((tpgm || path_pgm) && path[0] == '.') {
-      QoreProgram* p = tpgm ? tpgm : path_pgm;
-      const char* td = p->parseGetScriptDir();
       //printd(5, "QoreModuleManager::loadUserModuleFromPath() path: '%s' feature: '%s' tpgm: %p td: '%s'\n", path, feature, p, td ? td : "n/a");
       if (!qore_find_file_in_path(tpath, path, td))
 	 path = tpath.getBuffer();
@@ -870,7 +871,7 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
    else
       pgm = new QoreProgram(po);
    
-   std::auto_ptr<QoreUserModule> mi(new QoreUserModule(path, feature, pgm));
+   std::auto_ptr<QoreUserModule> mi(new QoreUserModule(td, path, feature, pgm));
 
    ModuleReExportHelper mrh(mi.get(), reexport);
 
@@ -897,7 +898,7 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromSource(ExceptionSink& x
    else
       pgm = new QoreProgram(po);
    
-   std::auto_ptr<QoreUserModule> mi(new QoreUserModule(path, feature, pgm));
+   std::auto_ptr<QoreUserModule> mi(new QoreUserModule(0, path, feature, pgm));
 
    ModuleReExportHelper mrh(mi.get(), reexport);
 
@@ -1126,7 +1127,7 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
    // commit all module changes - to the current program or to the static namespace
    qmc.commit();
 
-   mi = new QoreBuiltinModule(path, name, desc, version, author, url, license_str, *api_major, *api_minor, *module_init, *module_ns_init, *module_delete, pcmd ? *pcmd : 0, dlh.release());
+   mi = new QoreBuiltinModule(0, path, name, desc, version, author, url, license_str, *api_major, *api_minor, *module_init, *module_ns_init, *module_delete, pcmd ? *pcmd : 0, dlh.release());
    QMM.addModule(mi);
 
    ModuleReExportHelper mrh(mi, reexport);
