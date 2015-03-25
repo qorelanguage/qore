@@ -137,5 +137,5 @@ sub test() {
     unit.cmp(ab.m_bar, "A", "inheritance with 2 classes and the same members");
     TestInheritBA ba();
     unit.cmp(ba.foo(), "B", "inheritance with 2 classes and the same methods");
-    unit.cmp(ab.m_bar, "B", "inheritance with 2 classes and the same members");
+    unit.cmp(ba.m_bar, "B", "inheritance with 2 classes and the same members");
 }
