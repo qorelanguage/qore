@@ -872,7 +872,7 @@ nothing Program::importFunction(string func) {
 
     @param func the name of the function to import into the Program object
     @param new_name the name of the function as it will be known in the Program object once imported; can be a fully-qualified namespace path, in which case the namespace path will be created in the target Program object if necessary as well (ex: \c "Ns1::Ns2::my_func")
-    @param inject if @ref Qore::True "True" then the imported function will be marked as a dependency injection and therefore will not be overritten by subsequent calls to Program::importSystemFunctions(), Program::importSystemApi(), or Program::loadApplyToUserModule(); note that for this call to succeed, the Program must have @ref Qore::PO_ALLOW_INJECTION set
+    @param inject if @ref Qore::True "True" then the imported function will be marked as a dependency injection and therefore will not be overritten by subsequent calls to Program::importSystemFunctions(), Program::importSystemApi(), Program::loadApplyToPrivateUserModule(), or Program::loadApplyToUserModule(); note that for this call to succeed, the Program must have @ref Qore::PO_ALLOW_INJECTION set
 
     @par Example:
     @code
@@ -926,7 +926,7 @@ nothing Program::importGlobalVariable(string varname, bool readonly = False) {
 
     @param cls the name of the class to import into the Program object
     @param new_name the name of the class in the imported Program object; can be a fully-qualified namespace path, in which case the namespace path will be created in the target Program object if necessary as well (ex: \c "Ns1::Ns2::MyClass")
-    @param inject if @ref Qore::True "True" then the imported class will be marked as a dependency injection and therefore will not be overritten by subsequent calls to Program::importSystemClasses(), Program::importSystemConstants(), Program::importSystemApi(), or Program::loadApplyToUserModule(); note that for this call to succeed, the Program must have @ref Qore::PO_ALLOW_INJECTION set
+    @param inject if @ref Qore::True "True" then the imported class will be marked as a dependency injection and therefore will not be overritten by subsequent calls to Program::importSystemClasses(), Program::importSystemConstants(), Program::importSystemApi(), Program::loadApplyToPrivateUserModule(), or Program::loadApplyToUserModule(); note that for this call to succeed, the Program must have @ref Qore::PO_ALLOW_INJECTION set
 
     @par Example:
     @code
@@ -1296,6 +1296,7 @@ $pgm.loadModule("mysql");
     @throw LOAD-MODULE-ERROR module cannot be loaded: API incompatibility, module defines symbols already defined in the target object, etc
 
     @see
+    - Program::loadApplyToPrivateUserModule()
     - Program::loadApplyToUserModule()
     - Program::loadUserModuleWithProgram()
     - get_module_hash()
@@ -1324,6 +1325,7 @@ $pgm.loadUserModuleWithProgram("MyModule", $p);
     @throw LOAD-MODULE-ERROR module cannot be loaded: binary modules cannot be loaded in @ref Qore::Program "Program" containers, module defines symbols already defined in the target object, etc
 
     @see
+    - Program::loadApplyToPrivateUserModule()
     - Program::loadApplyToUserModule()
     - Program::loadModule()
     - get_module_hash()
@@ -1335,7 +1337,7 @@ Program::loadUserModuleWithProgram(string name, !Qore::Program[QoreProgram] pgm)
    QMM.runTimeLoadModule(*xsink, name->getBuffer(), p, pgm, true);
 }
 
-//! Loads a %Qore user module into the given Program contaner at run-time; after this call the Program object is owned by the user module and is no longer accessible in the object used for the call
+//! Loads a %Qore user module into the given Program container at run-time; after this call the Program object is owned by the user module and is no longer accessible in the object used for the call
 /** This function allows a user module to be loaded with a custom API already present in the user module's @ref Qore::Program "Program" container.
 
     @param name the name or path of the user module to load    
@@ -1346,6 +1348,7 @@ Program::loadUserModuleWithProgram(string name, !Qore::Program[QoreProgram] pgm)
     @note after this call the Program object will be owned by the user module and will no longer be valid, so any accesses to the object after this call will result in an exception
 
     @see
+    - Program::loadApplyToPrivateUserModule()
     - Program::loadModule()
     - Program::loadUserModuleWithProgram()
     - get_module_hash()
@@ -1362,6 +1365,40 @@ Program::loadApplyToUserModule(string name, *softbool reinject) [dom=MODULES,INJ
 #endif
    if (!*xsink) {
       QMM.runTimeLoadModule(*xsink, name->getBuffer(), 0, p, true, reinject);
+      self->doDelete(xsink);
+   }
+}
+
+//! Loads a %Qore user module privately into the given Program container at run-time; after this call the Program object is owned by the user module and is no longer accessible in the object used for the call
+/** This function allows a user module to be privately loaded with a custom API already present in the user module's @ref Qore::Program "Program" container.
+
+    @param name the name or path of the user module to load    
+    @param reinject if @ref Qore::True "True" then the module will be reloaded even if already loaded previously
+
+    @throw LOAD-MODULE-ERROR module cannot be loaded: binary modules cannot be loaded in @ref Qore::Program "Program" containers, etc
+
+    @note
+    - after this call the Program object will be owned by the user module and will no longer be valid, so any accesses to the object after this call will result in an exception
+    - this module will not be available for use in other Program objects; this method is useful for loading modules that register themselves with an injected API in code that does not have @ref Qore::PO_ALLOW_INJECTION set or where the module's functionality should be protected from other %Qore code
+
+    @see
+    - Program::loadApplyToUserModule()
+    - Program::loadModule()
+    - Program::loadUserModuleWithProgram()
+    - get_module_hash()
+    - get_feature_list()
+ */
+Program::loadApplyToPrivateUserModule(string name) [dom=MODULES] {
+   // remove the QoreProgram private data from the object
+#ifdef DEBUG
+   QoreProgram* pgm = (QoreProgram*)
+#endif
+   qore_object_private::get(*self)->getAndRemovePrivateData(CID_PROGRAM, xsink);
+#ifdef DEBUG
+   assert(pgm == p);
+#endif
+   if (!*xsink) {
+      QMM.runTimeLoadModule(*xsink, name->getBuffer(), 0, p, true, false, true);
       self->doDelete(xsink);
    }
 }

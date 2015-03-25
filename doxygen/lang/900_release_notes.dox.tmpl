@@ -25,6 +25,7 @@
       - Added new @ref hmap "hash version of the map" operator to build a hash from a list or iterator expression; ex: @code hash h = map {$1, h2.$1}, $i; @endcode
     - implemented support for loading user modules in a pre-defined @ref Qore::Program "Program" object (that can have a custom API) in the following new functions and methods:
       - @ref Qore::load_user_module_with_program() "load_user_module_with_program()"
+      - @ref Qore::Program::loadApplyToPrivateUserModule() "Program::loadApplyToPrivateUserModule()"
       - @ref Qore::Program::loadApplyToUserModule() "Program::loadApplyToUserModule()"
       - @ref Qore::Program::loadUserModuleWithProgram() "Program::loadUserModuleWithProgram()"
     - implemented support for code / dependency injections in @ref Qore::Program "Program" containers with the following changes:
@@ -39,6 +40,7 @@
 	.
 	additionally user modules can be loaded with overridden injected code with the following new functions / methods:
         - @ref Qore::load_user_module_with_program() "load_user_module_with_program()"
+        - @ref Qore::Program::loadApplyToPrivateUserModule() "Program::loadApplyToPrivateUserModule()"
         - @ref Qore::Program::loadApplyToUserModule() "Program::loadApplyToUserModule()"
         - @ref Qore::Program::loadUserModuleWithProgram() "Program::loadUserModuleWithProgram()"
     - new constants:

@@ -88,6 +88,8 @@ protected:
       url,
       license,
       orig_name;
+
+   bool priv;
    
    DLLLOCAL QoreHashNode* getHashIntern(bool with_filename = true) const {
       QoreHashNode* h = new QoreHashNode;
@@ -127,11 +129,13 @@ public:
    // list of dependent modules to reexport
    name_vec_t rmod;
 
-   DLLLOCAL QoreAbstractModule(const char* cwd, const char* fn, const char* n, const char* d, const char* v, const char* a, const char* u, const QoreString& l) : filename(fn), name(n), desc(d), author(a), url(u), license(l), version_list(v) {
+   // for binary modules
+   DLLLOCAL QoreAbstractModule(const char* cwd, const char* fn, const char* n, const char* d, const char* v, const char* a, const char* u, const QoreString& l) : filename(fn), name(n), desc(d), author(a), url(u), license(l), priv(false), version_list(v) {
       q_normalize_path(filename, cwd);
    }
 
-   DLLLOCAL QoreAbstractModule(const char* cwd, const char* fn, const char* n) : filename(fn), name(n) {
+   // for user modules
+   DLLLOCAL QoreAbstractModule(const char* cwd, const char* fn, const char* n, bool n_priv) : filename(fn), name(n), priv(n_priv) {
       q_normalize_path(filename);
    }
 
@@ -192,6 +196,10 @@ public:
    DLLLOCAL void setOrigName(const char* n) {
       assert(orig_name.empty());
       orig_name = n;
+   }
+
+   DLLLOCAL bool isPrivate() const {
+      return priv;
    }
    
    DLLLOCAL virtual bool isBuiltin() const = 0;
@@ -376,16 +384,17 @@ protected:
       loadModuleIntern(xsink, name, pgm);
    }
 
-   DLLLOCAL void loadModuleIntern(ExceptionSink& xsink, const char* name, QoreProgram* pgm, bool reexport = false, mod_op_e op = MOD_OP_NONE, version_list_t* version = 0, const char* src = 0, QoreProgram* mpgm = 0, bool inject = false, bool reinject = false);
+   DLLLOCAL void loadModuleIntern(ExceptionSink& xsink, const char* name, QoreProgram* pgm, bool reexport = false, mod_op_e op = MOD_OP_NONE, version_list_t* version = 0, const char* src = 0, QoreProgram* mpgm = 0, bool inject = false, bool reinject = false, bool priv = false);
 
    DLLLOCAL QoreAbstractModule* loadBinaryModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* pgm = 0, bool reexport = false);
-   DLLLOCAL QoreAbstractModule* loadUserModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* tpgm = 0, bool reexport = false, QoreProgram* pgm = 0, bool inject = false, bool reinject = false, QoreProgram* path_pgm = 0);
+   DLLLOCAL QoreAbstractModule* loadUserModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* tpgm = 0, bool reexport = false, QoreProgram* pgm = 0, bool inject = false, bool reinject = false, QoreProgram* path_pgm = 0, bool priv = false);
    DLLLOCAL QoreAbstractModule* loadUserModuleFromSource(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm, const char* src, bool reexport, QoreProgram* pgm = 0);
    DLLLOCAL QoreAbstractModule* setupUserModule(ExceptionSink& xsink, std::auto_ptr<QoreUserModule>& mi, QoreUserModuleDefContextHelper& qmd, bool inject = false, bool reinject = false);
 
    DLLLOCAL void reinjectModule(QoreAbstractModule* mi);
    DLLLOCAL void delOrig(QoreAbstractModule* mi);
-   
+   DLLLOCAL void getUniqueName(QoreString& nname, const char* name, const char* suffix);
+
 public:
    DLLLOCAL QoreModuleManager() : mutex(0) {
    }
@@ -409,7 +418,7 @@ public:
    }
 
    DLLLOCAL void parseLoadModule(ExceptionSink& xsink, const char* name, QoreProgram* pgm, bool reexport = false);
-   DLLLOCAL int runTimeLoadModule(ExceptionSink& xsink, const char* name, QoreProgram* pgm, QoreProgram* mpgm = 0, bool inject = false, bool reinject = false);
+   DLLLOCAL int runTimeLoadModule(ExceptionSink& xsink, const char* name, QoreProgram* pgm, QoreProgram* mpgm = 0, bool inject = false, bool reinject = false, bool priv = false);
 
    DLLLOCAL QoreHashNode* getModuleHash();
    DLLLOCAL QoreListNode* getModuleList();
@@ -569,7 +578,7 @@ protected:
    DLLLOCAL virtual void addToProgramImpl(QoreProgram* pgm, ExceptionSink& xsink) const;
 
 public:
-   DLLLOCAL QoreUserModule(const char* cwd, const char* fn, const char* n, QoreProgram* p) : QoreAbstractModule(cwd, fn, n), pgm(p), del(0) {
+   DLLLOCAL QoreUserModule(const char* cwd, const char* fn, const char* n, QoreProgram* p, bool n_priv) : QoreAbstractModule(cwd, fn, n, n_priv), pgm(p), del(0) {
    }
 
    DLLLOCAL void set(const char* d, const char* v, const char* a, const char* u, const QoreString& l, QoreClosureParseNode* dl) {

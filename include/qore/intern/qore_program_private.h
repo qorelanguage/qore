@@ -1388,14 +1388,18 @@ public:
       if (pos) {
          int64 p_tmp = pwo.parse_options & PO_POSITIVE_OPTIONS;
          // make sure all positive arguments are set
-         if ((pos & p_tmp) != pos)
+         if ((pos & p_tmp) != pos) {
             rv = ((pos & p_tmp) ^ pos);
+            pend_dom |= pos;
+         }
       }
       int64 neg = (n_dom & ~PO_POSITIVE_OPTIONS);
       if (neg && (neg & pwo.parse_options)) {
          rv |= (neg & pwo.parse_options);
          pend_dom |= neg;
       }
+
+      //printd(5, "qore_program_private::parseAddDomain() this: %p n_dom: "QLLD" po: "QLLD"\n", this, n_dom, pwo.parse_options);
       return rv;
    }
 
@@ -1663,7 +1667,7 @@ public:
       srcpgm->priv->exportFunction(xsink, trgpgm->priv, name, new_name, inject);
    }
 
-   DLLLOCAL static int parseAddDomain(QoreProgram* pgm, int64 n_dom) {
+   DLLLOCAL static int64 parseAddDomain(QoreProgram* pgm, int64 n_dom) {
       return pgm->priv->parseAddDomain(n_dom);
    }
 

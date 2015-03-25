@@ -657,8 +657,10 @@ const AbstractQoreFunctionVariant* QoreFunction::findVariant(const QoreListNode*
       if (pgm) {
          // check parse options
 	 int64 po = runtime_get_parse_options();
-         //int64 po = pgm->getParseOptions64();
-         if (variant->getFunctionality() & po) {
+	 int64 vflags = variant->getFunctionality();
+	 // check restrictive flags
+	 //printd(5, "QoreFunction::findVariant() this: %p %s() returning %p %s(%s) vflags: "QLLD" po: "QLLD" neg: "QLLD"\n", this, getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", (vflags & po & ~PO_POSITIVE_OPTIONS));
+         if ((vflags & po & ~PO_POSITIVE_OPTIONS) || ((vflags & PO_POSITIVE_OPTIONS) && (((vflags & PO_POSITIVE_OPTIONS) & po) != (vflags & PO_POSITIVE_OPTIONS)))) {
             //printd(5, "QoreFunction::findVariant() this: %p %s(%s) getProgram(): %p getProgram()->getParseOptions64(): %x variant->getFunctionality(): %x\n", this, getName(), variant->getSignature()->getSignatureText(), getProgram(), getProgram()->getParseOptions64(), variant->getFunctionality());
             if (!only_user) {
                const char* class_name = className();
@@ -666,7 +668,7 @@ const AbstractQoreFunctionVariant* QoreFunction::findVariant(const QoreListNode*
             }
             return 0;
          }
-
+	 
          if (po & (PO_REQUIRE_TYPES | PO_STRICT_ARGS) && variant->getFlags() & QC_RUNTIME_NOOP) {
             QoreStringNode* desc = getNoopError(this, aqf, variant);
             desc->concat("; this variant is not accessible when PO_REQUIRE_TYPES or PO_STRICT_ARGS is set");
