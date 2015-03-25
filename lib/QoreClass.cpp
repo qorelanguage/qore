@@ -654,7 +654,6 @@ void qore_class_private::initialize() {
 
 int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
    //printd(5, "QoreClass::initializeIntern() this: %p %s class: %p scl: %p initialized: %d\n", this, name.c_str(), cls, scl, initialized);
-
    if (initialized)
       return 0;
 

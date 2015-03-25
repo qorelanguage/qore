@@ -390,6 +390,22 @@ void ConstantList::mergeUserPublic(const ConstantList& src) {
    }
 }
 
+int ConstantList::importSystemConstants(const ConstantList& src, ExceptionSink* xsink) {
+   for (cnemap_t::const_iterator i = src.cnemap.begin(), e = src.cnemap.end(); i != e; ++i) {
+      if (!i->second->isSystem())
+	 continue;
+
+      if (inList(i->first)) {
+	 xsink->raiseException("IMPORT-SYSTEM-API-ERROR", "cannot import system constant %s due to an existing constant with the same name in the target namespace", i->first);
+	 return -1;
+      }
+      
+      ConstantEntry* n = new ConstantEntry(*i->second);
+      cnemap[n->getName()] = n;
+   }
+   return 0;
+}
+
 // no duplicate checking is done here
 void ConstantList::assimilate(ConstantList& n) {
    for (cnemap_t::iterator i = n.cnemap.begin(), e = n.cnemap.end(); i != e; ++i) {

@@ -202,7 +202,7 @@ void qore_program_private_base::newProgram() {
       AbstractQoreNode* v = cli.getValue();
       assert(v);
       // skip boolean options defined as False
-      if (v->getType() == NT_BOOLEAN && !reinterpret_cast<QoreBoolNode* >(v)->getValue())
+      if (v->getType() == NT_BOOLEAN && !reinterpret_cast<QoreBoolNode*>(v)->getValue())
 	 continue;
 
       dmap[cli.getName()] = v->refSelf();
@@ -390,25 +390,35 @@ int qore_program_private::internParseCommit() {
 
 void qore_program_private::runtimeImportSystemClassesIntern(const qore_program_private& spgm, ExceptionSink* xsink) {
    assert(&spgm != pgm->priv);
-   if (!(pwo.parse_options & PO_NO_SYSTEM_CLASSES)) {
+   if (!(pwo.parse_options & PO_NO_INHERIT_SYSTEM_CLASSES)) {
       xsink->raiseException("IMPORT-SYSTEM-CLASSES-ERROR", "cannot import system classes in a Program container where system classes have already been imported");
       return;
    }
+   pwo.parse_options &= ~PO_NO_INHERIT_SYSTEM_CLASSES;
    qore_root_ns_private::runtimeImportSystemClasses(*RootNS, *spgm.RootNS, xsink);
-   pwo.parse_options &= ~PO_NO_SYSTEM_CLASSES;
+}
+
+void qore_program_private::runtimeImportSystemConstantsIntern(const qore_program_private& spgm, ExceptionSink* xsink) {
+   assert(&spgm != pgm->priv);
+   if (!(pwo.parse_options & PO_NO_INHERIT_SYSTEM_CONSTANTS)) {
+      xsink->raiseException("IMPORT-SYSTEM-CONSTANTS-ERROR", "cannot import system constants in a Program container where system constants have already been imported");
+      return;
+   }
+   pwo.parse_options &= ~PO_NO_INHERIT_SYSTEM_CONSTANTS;
+   qore_root_ns_private::runtimeImportSystemConstants(*RootNS, *spgm.RootNS, xsink);
 }
 
 void qore_program_private::runtimeImportSystemFunctionsIntern(const qore_program_private& spgm, ExceptionSink* xsink) {
    assert(&spgm != pgm->priv);
-   if (!(pwo.parse_options & PO_NO_SYSTEM_FUNC_VARIANTS)) {
+   if (!(pwo.parse_options & PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS)) {
       xsink->raiseException("IMPORT-SYSTEM-API-ERROR", "cannot import system functions in a Program container where system functions have already been imported");
       return;
    }
    if (po_locked)
       xsink->raiseException("IMPORT-SYSTEM-API-ERROR", "parse options have been locked on this program object");
 
+   pwo.parse_options &= ~PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS;
    qore_root_ns_private::runtimeImportSystemFunctions(*RootNS, *spgm.RootNS, xsink);
-   pwo.parse_options &= ~PO_NO_SYSTEM_FUNC_VARIANTS;
 }
 
 void qore_program_private::runtimeImportSystemClasses(ExceptionSink* xsink) {
@@ -418,6 +428,15 @@ void qore_program_private::runtimeImportSystemClasses(ExceptionSink* xsink) {
    ProgramRuntimeParseAccessHelper rah(xsink, pgm);
 
    runtimeImportSystemClassesIntern(*spgm->priv, xsink);
+}
+
+void qore_program_private::runtimeImportSystemConstants(ExceptionSink* xsink) {
+   // must acquire current program before setting program context below
+   const QoreProgram* spgm = getProgram();
+   // acquire safe access to parse structures in the source program
+   ProgramRuntimeParseAccessHelper rah(xsink, pgm);
+
+   runtimeImportSystemConstantsIntern(*spgm->priv, xsink);
 }
 
 void qore_program_private::runtimeImportSystemFunctions(ExceptionSink* xsink) {
@@ -434,8 +453,11 @@ void qore_program_private::runtimeImportSystemApi(ExceptionSink* xsink) {
    // acquire safe access to parse structures in the source program
    ProgramRuntimeParseAccessHelper rah(xsink, pgm);
    runtimeImportSystemClassesIntern(*spgm->priv, xsink);
-   if (!*xsink)
+   if (!*xsink) {
       runtimeImportSystemFunctionsIntern(*spgm->priv, xsink);
+      if (!*xsink)
+	 runtimeImportSystemConstantsIntern(*spgm->priv, xsink);
+   }
 }
 
 void qore_program_private::importClass(ExceptionSink* xsink, qore_program_private& from_pgm, const char* path, const char* new_name, bool inject) {
@@ -852,7 +874,7 @@ AbstractQoreNode* QoreProgram::callFunction(const char* name, const QoreListNode
    }
 
    // we assign the args to 0 below so that they will not be deleted
-   fc = new FunctionCallNode(qf, const_cast<QoreListNode* >(args), this);
+   fc = new FunctionCallNode(qf, const_cast<QoreListNode*>(args), this);
 
    ProgramThreadCountContextHelper tch(xsink, this, true);
    AbstractQoreNode* rv = !*xsink ? fc->eval(xsink) : 0;

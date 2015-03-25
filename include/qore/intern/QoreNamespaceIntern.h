@@ -367,6 +367,7 @@ public:
    DLLLOCAL void setPublic();
 
    DLLLOCAL void runtimeImportSystemClasses(const qore_ns_private& source, qore_root_ns_private& rns, ExceptionSink* xsink);
+   DLLLOCAL void runtimeImportSystemConstants(const qore_ns_private& source, qore_root_ns_private& rns, ExceptionSink* xsink);
    DLLLOCAL void runtimeImportSystemFunctions(const qore_ns_private& source, qore_root_ns_private& rns, ExceptionSink* xsink);
 
    DLLLOCAL static void addNamespace(QoreNamespace& ns, QoreNamespace* nns) {
@@ -1408,7 +1409,14 @@ public:
    }
 
    DLLLOCAL qore_root_ns_private(const qore_root_ns_private& old, int64 po) : qore_ns_private(old, po) {
-      qoreNS = nsl.find("Qore");
+      if ((po & PO_NO_API) == PO_NO_API) {
+         // create empty Qore namespace
+         qoreNS = new QoreNamespace("Qore");
+         nsl.nsmap.insert(nsmap_t::value_type("Qore", qoreNS));
+         qoreNS->priv->nsl.nsmap.insert(nsmap_t::value_type("Option", new QoreNamespace("Option")));
+      }
+      else
+         qoreNS = nsl.find("Qore");
       assert(qoreNS);
 
       // always set the module public flag to true in the root namespace
@@ -1471,6 +1479,10 @@ public:
       return nns;
    }
 
+   DLLLOCAL void runtimeRebuildConstantIndexes(qore_ns_private* ns) {
+      rebuildConstantIndexes(cnmap, ns->constant, ns);
+   }
+
    DLLLOCAL void runtimeRebuildClassIndexes(qore_ns_private* ns) {
       rebuildClassIndexes(clmap, ns->classList, ns);
    }
@@ -1481,6 +1493,10 @@ public:
 
    DLLLOCAL static void runtimeImportSystemClasses(RootQoreNamespace& rns, const RootQoreNamespace& source, ExceptionSink* xsink) {
       rns.priv->runtimeImportSystemClasses(*source.priv, *rns.rpriv, xsink);
+   }
+   
+   DLLLOCAL static void runtimeImportSystemConstants(RootQoreNamespace& rns, const RootQoreNamespace& source, ExceptionSink* xsink) {
+      rns.priv->runtimeImportSystemConstants(*source.priv, *rns.rpriv, xsink);
    }
    
    DLLLOCAL static void runtimeImportSystemFunctions(RootQoreNamespace& rns, const RootQoreNamespace& source, ExceptionSink* xsink) {

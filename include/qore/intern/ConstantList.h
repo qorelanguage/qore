@@ -247,6 +247,8 @@ public:
    // copy all user/public elements of the source list to the target, assuming no duplicates
    DLLLOCAL void mergeUserPublic(const ConstantList& src);
 
+   DLLLOCAL int importSystemConstants(const ConstantList& src, ExceptionSink* xsink);
+
    // assimilate a constant list in a class constant list with duplicate checking (pub & priv + pending)
    DLLLOCAL void assimilate(ConstantList& n, ConstantList& committed, ConstantList& other, ConstantList& otherPend, bool priv, const char* cname);
    // add a constant to a list with duplicate checking (pub & priv + pending)

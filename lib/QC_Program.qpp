@@ -926,7 +926,7 @@ nothing Program::importGlobalVariable(string varname, bool readonly = False) {
 
     @param cls the name of the class to import into the Program object
     @param new_name the name of the class in the imported Program object; can be a fully-qualified namespace path, in which case the namespace path will be created in the target Program object if necessary as well (ex: \c "Ns1::Ns2::MyClass")
-    @param inject if @ref Qore::True "True" then the imported class will be marked as a dependency injection and therefore will not be overritten by subsequent calls to Program::importSystemClasses(), Program::importSystemApi(), or Program::loadApplyToUserModule(); note that for this call to succeed, the Program must have @ref Qore::PO_ALLOW_INJECTION set
+    @param inject if @ref Qore::True "True" then the imported class will be marked as a dependency injection and therefore will not be overritten by subsequent calls to Program::importSystemClasses(), Program::importSystemConstants(), Program::importSystemApi(), or Program::loadApplyToUserModule(); note that for this call to succeed, the Program must have @ref Qore::PO_ALLOW_INJECTION set
 
     @par Example:
     @code
@@ -1366,7 +1366,7 @@ Program::loadApplyToUserModule(string name, *softbool reinject) [dom=MODULES,INJ
    }
 }
 
-//! imports system classes into a Program container at runtime; will throw an exception if the Program was not created with @ref Qore::PO_NO_SYSTEM_CLASSES
+//! imports system classes into a Program container at runtime; will throw an exception if the Program was not created with @ref Qore::PO_NO_INHERIT_SYSTEM_CLASSES
 /** @par Example:
     @code
 $pgm.importSystemClasses();
@@ -1374,7 +1374,7 @@ $pgm.importSystemClasses();
 
     @throw IMPORT-SYSTEM-API-ERROR objects already imported; parse options are locked on the Program object; conflicting object found; system API incorrectly imported; in case this exception is raised, the Program object will not contain the full system API and is most likely unusable
 
-    @note adds @ref Qore::PO_NO_SYSTEM_CLASSES to the parse option mask after a successful completion
+    @note removes @ref Qore::PO_NO_INHERIT_SYSTEM_CLASSES from the parse option mask after a successful completion
 
     @since %Qore 0.8.12
 */
@@ -1382,7 +1382,23 @@ Program::importSystemClasses() {
    qore_program_private::runtimeImportSystemClasses(*p, xsink);
 }
 
-//! imports system functions into a Program container at runtime; will throw an exception if the Program was not created with @ref Qore::PO_NO_SYSTEM_FUNC_VARIANTS
+//! imports system constants into a Program container at runtime; will throw an exception if the Program was not created with @ref Qore::PO_NO_INHERIT_SYSTEM_CONSTANTS
+/** @par Example:
+    @code
+$pgm.importSystemConstants();
+    @endcode
+
+    @throw IMPORT-SYSTEM-API-ERROR objects already imported; parse options are locked on the Program object; conflicting object found; system API incorrectly imported; in case this exception is raised, the Program object will not contain the full system API and is most likely unusable
+
+    @note removes @ref Qore::PO_NO_INHERIT_SYSTEM_CONSTANTS from the parse option mask after a successful completion
+
+    @since %Qore 0.8.12
+*/
+Program::importSystemConstants() {
+   qore_program_private::runtimeImportSystemConstants(*p, xsink);
+}
+
+//! imports system functions into a Program container at runtime; will throw an exception if the Program was not created with @ref Qore::PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS
 /** @par Example:
     @code
 $pgm.importSystemFunctions();
@@ -1390,7 +1406,7 @@ $pgm.importSystemFunctions();
 
     @throw IMPORT-SYSTEM-API-ERROR objects already imported; parse options are locked on the Program object; conflicting object found; system API incorrectly imported; in case this exception is raised, the Program object will not contain the full system API and is most likely unusable
 
-    @note adds @ref Qore::PO_NO_FUNC_VARIANTS to the parse option mask after a successful completion
+    @note removes @ref Qore::PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS from the parse option mask after a successful completion
 
     @since %Qore 0.8.12
 */
@@ -1398,7 +1414,7 @@ Program::importSystemFunctions() {
    qore_program_private::runtimeImportSystemFunctions(*p, xsink);
 }
 
-//! imports system classes and functions into a Program container at runtime; will throw an exception if the Program was not created with @ref Qore::PO_NO_SYSTEM_FUNC_VARIANTS or @ref Qore::PO_NO_SYSTEM_CLASSES
+//! imports system classes and functions into a Program container at runtime; will throw an exception if the Program was not created with @ref Qore::PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS, @ref Qore::PO_NO_INHERIT_SYSTEM_CONSTANTS, and @ref Qore::PO_NO_INHERIT_SYSTEM_CLASSES
 /** @par Example:
     @code
 $pgm.importSystemApi();
@@ -1406,7 +1422,7 @@ $pgm.importSystemApi();
 
     @throw IMPORT-SYSTEM-API-ERROR objects already imported; parse options are locked on the Program object; conflicting object found; system API incorrectly imported; in case this exception is raised, the Program object will not contain the full system API and is most likely unusable
 
-    @note adds @ref Qore::PO_NO_SYSTEM_CLASSES and @ref Qore::PO_NO_FUNC_VARIANTS to the parse option mask after a successful completion
+    @note removes @ref Qore::PO_NO_INHERIT_SYSTEM_CLASSES, @ref Qore::PO_NO_INHERIT_SYSTEM_CONSTANTS, and @ref Qore::PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS from the parse option mask after a successful completion
 
     @since %Qore 0.8.12
 */

@@ -226,6 +226,31 @@ void qore_ns_private::runtimeImportSystemClasses(const qore_ns_private& source, 
    }
 }
 
+void qore_ns_private::runtimeImportSystemConstants(const qore_ns_private& source, qore_root_ns_private& rns, ExceptionSink* xsink) {
+   if (constant.importSystemConstants(source.constant, xsink))
+      rns.runtimeRebuildConstantIndexes(this);
+
+   if (*xsink)
+      return;
+   
+   // add sub namespaces
+   for (nsmap_t::const_iterator i = source.nsl.nsmap.begin(), e = source.nsl.nsmap.end(); i != e; ++i) {
+      QoreNamespace* nns = nsl.find(i->first);
+      if (!nns) {
+         qore_ns_private* npns = new qore_ns_private(i->first.c_str());
+         nns = npns->ns;
+         nns->priv->pub = i->second->priv->pub;
+         nns->priv->imported = true;
+         nsl.runtimeAdd(nns, this);
+      }
+      
+      nns->priv->runtimeImportSystemConstants(*i->second->priv, rns, xsink);
+      //printd(5, "qore_ns_private::runtimeImportSystemConstants() this: %p '%s::' imported %p '%s::'\n", this, name.c_str(), ns, ns->getName());
+      if (*xsink)
+         break;
+   }
+}
+
 void qore_ns_private::runtimeImportSystemFunctions(const qore_ns_private& source, qore_root_ns_private& rns, ExceptionSink* xsink) {
    if (func_list.importSystemFunctions(source.func_list, this, xsink))
       rns.runtimeRebuildFunctionIndexes(this);
@@ -474,6 +499,8 @@ QoreNamespace* QoreNamespace::copy(int64 po) const {
 }
 
 QoreNamespaceList::QoreNamespaceList(const QoreNamespaceList& old, int64 po, const qore_ns_private& parent) {
+   if ((po & PO_NO_API) == PO_NO_API)
+      return;
    //printd(5, "QoreNamespaceList::QoreNamespaceList(old=%p) this=%p po=%lld size=%ld\n", &old, this, po, nsmap.size());
    nsmap_t::iterator last = nsmap.begin();
    for (nsmap_t::const_iterator i = old.nsmap.begin(), e = old.nsmap.end(); i != e; ++i) {

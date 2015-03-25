@@ -163,7 +163,7 @@ public class UnitTest::UnitTest {
 
     constructor(*reference p_argv, hash opts = Opts) {
         if (!p_argv)
-            p_argv = \ARGV;
+            p_argv = ARGV;
         m_options = new GetOpt(opts).parse2(\p_argv);
         processOptions(\p_argv);
     }

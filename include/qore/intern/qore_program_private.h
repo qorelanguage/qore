@@ -1453,9 +1453,11 @@ public:
    }
 
    DLLLOCAL void runtimeImportSystemClassesIntern(const qore_program_private& spgm, ExceptionSink* xsink);
+   DLLLOCAL void runtimeImportSystemConstantsIntern(const qore_program_private& spgm, ExceptionSink* xsink);
    DLLLOCAL void runtimeImportSystemFunctionsIntern(const qore_program_private& spgm, ExceptionSink* xsink);
 
    DLLLOCAL void runtimeImportSystemClasses(ExceptionSink* xsink);
+   DLLLOCAL void runtimeImportSystemConstants(ExceptionSink* xsink);
    DLLLOCAL void runtimeImportSystemFunctions(ExceptionSink* xsink);
    DLLLOCAL void runtimeImportSystemApi(ExceptionSink* xsink);
 
@@ -1476,6 +1478,10 @@ public:
    
    DLLLOCAL static void runtimeImportSystemClasses(QoreProgram& pgm, ExceptionSink* xsink) {
       pgm.priv->runtimeImportSystemClasses(xsink);
+   }
+   
+   DLLLOCAL static void runtimeImportSystemConstants(QoreProgram& pgm, ExceptionSink* xsink) {
+      pgm.priv->runtimeImportSystemConstants(xsink);
    }
    
    DLLLOCAL static void runtimeImportSystemFunctions(QoreProgram& pgm, ExceptionSink* xsink) {
