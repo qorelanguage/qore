@@ -139,10 +139,10 @@ public:
 class ObjClassDef {
 public:
    NamedScope *name;
-   QoreClass *oc;
+   QoreClass* oc;
 
-   DLLLOCAL inline ObjClassDef(NamedScope *n, QoreClass *o) : name(n), oc(o) {}
-   DLLLOCAL inline ObjClassDef(char* n, QoreClass *o) : name(new NamedScope(n)), oc(o) {}
+   DLLLOCAL inline ObjClassDef(NamedScope *n, QoreClass* o) : name(n), oc(o) {}
+   DLLLOCAL inline ObjClassDef(char* n, QoreClass* o) : name(new NamedScope(n)), oc(o) {}
    DLLLOCAL inline ~ObjClassDef() { delete name; }
 };
 
@@ -698,11 +698,13 @@ public:
       if (!mi->parseHasTypeInfo() && parse_check_parse_option(PO_REQUIRE_TYPES))
 	 parse_error("member '%s' declared without type information, but parse options require type information for all declarations", name);
    }
+   /*
    DLLLOCAL MemberInfo(char* n) : name(n), type(MI_Member)  {
       u.memberInfo = 0; 
       if (parse_check_parse_option(PO_REQUIRE_TYPES))
 	 parse_error("member '%s' declared without type information, but parse options require type information for all declarations", name);
    }
+   */
    DLLLOCAL MemberInfo(char* n, AbstractQoreNode* exp) : name(n), type(MI_Constant) {
       u.exp = exp;
    }
@@ -850,7 +852,7 @@ public:
       return 0;
    }
 
-   DLLLOCAL void mergePrivate(QoreClass *qc) {
+   DLLLOCAL void mergePrivate(QoreClass* qc) {
       {
 	 member_map_t::iterator i;
 	 // merge private members
@@ -873,7 +875,7 @@ public:
       qc->parseAssimilatePrivateConstants(cmap);
    }
 
-   DLLLOCAL void mergePublic(QoreClass *qc) {
+   DLLLOCAL void mergePublic(QoreClass* qc) {
       // merge public members
       if (mmap.empty())
 	 qc->parseSetEmptyPublicMemberDeclaration();
@@ -1143,7 +1145,7 @@ public:
       free(name);
       delete m;
    }
-   DLLLOCAL inline void addAndDelete(QoreClass *qc) {
+   DLLLOCAL inline void addAndDelete(QoreClass* qc) {
       qore_class_private::addUserMethod(*qc, name, m, static_flag);
       m = 0;
       delete this;
@@ -1232,7 +1234,7 @@ static qore_var_t get_var_type() {
    QoreFunction* userfunc;	
    struct MethodNode* methodnode;
    class MemberList* memberlist;
-   QoreClass *qoreclass;
+   QoreClass* qoreclass;
    class ConstNode* constnode;
    QoreNamespace *ns;
    struct NSNodeList* nsnlist;
@@ -2028,28 +2030,28 @@ class_def:
 	}
 	| nsc_modifiers CLASS_STRING inheritance_list ';' {
            // class name is set automatically from name saved in scanner
-	   QoreClass *qc = new QoreClass;
+	   QoreClass* qc = new QoreClass;
            check_classmod($1, *qc);
            qore_class_private::parseSetBaseClassList(*qc, $3);
 	   $$ = new ObjClassDef($2, qc);
 	}
 	| nsc_modifiers CLASS_SCOPED_REF inheritance_list ';' {
            // class name is set automatically from name saved in scanner
-	   QoreClass *qc = new QoreClass;
+	   QoreClass* qc = new QoreClass;
            check_classmod($1, *qc);
 	   $$ = new ObjClassDef($2, qc);
            qore_class_private::parseSetBaseClassList(*qc, $3);
 	}
         | nsc_modifiers CLASS_STRING inheritance_list '{' '}' {
            // class name is set automatically from name saved in scanner
-	   QoreClass *qc = new QoreClass;
+	   QoreClass* qc = new QoreClass;
            check_classmod($1, *qc);
            qore_class_private::parseSetBaseClassList(*qc, $3);
 	   $$ = new ObjClassDef($2, qc);
 	}
 	| nsc_modifiers CLASS_SCOPED_REF inheritance_list '{' '}' {
            // class name is set automatically from name saved in scanner
-	   QoreClass *qc = new QoreClass;
+	   QoreClass* qc = new QoreClass;
            check_classmod($1, *qc);
 	   $$ = new ObjClassDef($2, qc);
            qore_class_private::parseSetBaseClassList(*qc, $3);
@@ -2314,7 +2316,7 @@ member2:
 
 member:
 	SELF_REF {
-	   $$ = new MemberInfo($1);
+	   $$ = new MemberInfo($1, new QoreMemberInfo(@1.first_line, @1.last_line));
 	   if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
 	      parse_error("reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $1);
         }

@@ -666,6 +666,18 @@ public:
    DLLLOCAL ~ProgramRuntimeParseContextHelper();
 };
 
+// ensures the program is locked for parsing and that thread-local data is available for execution at parse commit time
+class ProgramRuntimeParseCommitContextHelper {
+protected:
+   QoreProgram* old_pgm;
+   ThreadLocalProgramData* old_tlpd;
+   bool restore;
+
+public:
+   DLLLOCAL ProgramRuntimeParseCommitContextHelper(ExceptionSink* xsink, QoreProgram* pgm);
+   DLLLOCAL ~ProgramRuntimeParseCommitContextHelper();
+};
+
 class CurrentProgramRuntimeParseContextHelper {
 public:
    DLLLOCAL CurrentProgramRuntimeParseContextHelper();

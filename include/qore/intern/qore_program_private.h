@@ -786,7 +786,7 @@ public:
    DLLLOCAL int internParseCommit();
 
    DLLLOCAL int parseCommit(ExceptionSink* xsink, ExceptionSink* wS, int wm) {
-      ProgramRuntimeParseContextHelper pch(xsink, pgm);
+      ProgramRuntimeParseCommitContextHelper pch(xsink, pgm);
       if (*xsink)
          return -1;
 
@@ -829,7 +829,7 @@ public:
       yyscan_t lexer;
       
       {
-         ProgramRuntimeParseContextHelper pch(xsink, pgm);
+         ProgramRuntimeParseCommitContextHelper pch(xsink, pgm);
          if (*xsink)
             return;
 
@@ -891,7 +891,7 @@ public:
 
       assert(code && code[0]);
 
-      ProgramRuntimeParseContextHelper pch(xsink, pgm);
+      ProgramRuntimeParseCommitContextHelper pch(xsink, pgm);
       if (*xsink)
          return;
 
@@ -923,7 +923,7 @@ public:
 
       setScriptPath(filename);
       
-      ProgramRuntimeParseContextHelper pch(xsink, pgm);
+      ProgramRuntimeParseCommitContextHelper pch(xsink, pgm);
       if (*xsink)
          return;
 
@@ -1496,14 +1496,6 @@ public:
       pgm.priv->runtimeImportSystemApi(xsink);
    }
    
-   DLLLOCAL static int lockParsing(QoreProgram& pgm, ExceptionSink* xsink) {
-      return pgm.priv->lockParsing(xsink);
-   }
-   
-   DLLLOCAL static void unlockParsing(QoreProgram& pgm) {
-      pgm.priv->unlockParsing();
-   }
-
    DLLLOCAL static qore_program_private* get(QoreProgram& pgm) {
       return pgm.priv;
    }
@@ -1530,6 +1522,14 @@ public:
 
    DLLLOCAL static const AbstractQoreZoneInfo* currentTZIntern(QoreProgram& pgm) {
       return pgm.priv->TZ;
+   }
+
+   DLLLOCAL static int lockParsing(QoreProgram& pgm, ExceptionSink* xsink) {
+      return pgm.priv->lockParsing(xsink);
+   }
+   
+   DLLLOCAL static void unlockParsing(QoreProgram& pgm) {
+      pgm.priv->unlockParsing();
    }
 
    DLLLOCAL static int incThreadCount(QoreProgram& pgm, ExceptionSink* xsink) {

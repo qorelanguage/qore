@@ -1421,6 +1421,42 @@ ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() {
    qore_program_private::decThreadCount(*pgm, td->tid);
 }
 
+ProgramRuntimeParseCommitContextHelper::ProgramRuntimeParseCommitContextHelper(ExceptionSink* xsink, QoreProgram* pgm) :
+      old_pgm(0), old_tlpd(0), restore(false) {
+   if (!pgm)
+      return;
+
+   ThreadData* td = thread_data.get();
+   printd(5, "ProgramRuntimeParseCommitContextHelper::ProgramRuntimeParseCommitContextHelper() current_pgm: %p new_pgm: %p\n", td->current_pgm, pgm);
+   if (pgm != td->current_pgm) {
+      // try to increment thread count
+      if (qore_program_private::lockParsing(*pgm, xsink))
+         return;
+
+      // set up thread stacks
+      restore = true;
+      old_pgm = td->current_pgm;
+      old_tlpd = td->tlpd;
+      td->current_pgm = pgm;
+      td->tpd->saveProgram(false);
+   }
+}
+
+ProgramRuntimeParseCommitContextHelper::~ProgramRuntimeParseCommitContextHelper() {
+   if (!restore)
+      return;
+
+   // restore thread stacks
+   ThreadData* td = thread_data.get();
+
+   QoreProgram* pgm = td->current_pgm;
+   //printd(5, "ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() current_pgm: %p restoring old pgm: %p old tlpd: %p\n", td->current_pgm, old_pgm, old_tlpd);
+   td->current_pgm = old_pgm;
+   td->tlpd        = old_tlpd;
+
+   qore_program_private::unlockParsing(*pgm);
+}
+
 ProgramRuntimeParseContextHelper::ProgramRuntimeParseContextHelper(ExceptionSink* xsink, QoreProgram* pgm) : restore(false) {
    if (!pgm)
       return;

@@ -975,7 +975,7 @@ protected:
 
       // commit pending namespace entries
       nsmap.commit(pend_nsmap);
-
+      
       qore_ns_private::parseCommit();
    }
 

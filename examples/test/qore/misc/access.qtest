@@ -126,6 +126,6 @@ sub test() {
 
     # check inheritance
     p.parse(Class1, "class-1");
-    unit.exception(sub() {p.parse(Class2, "test");}, NOTHING, "xxx", "negative-inheritance-1");
-    unit.exception(sub() {p.parse(Class3, "test");}, NOTHING, "xxx", "negative-inheritance-2");
+    unit.exception(sub() {p.parse(Class2, "test");}, NOTHING, "cannot be combined with class", "negative-inheritance-1");
+    unit.exception(sub() {p.parse(Class3, "test");}, NOTHING, "cannot be combined with class", "negative-inheritance-2");
 }

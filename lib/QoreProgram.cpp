@@ -886,7 +886,7 @@ AbstractQoreNode* QoreProgram::callFunction(const char* name, const QoreListNode
 }
 
 void QoreProgram::parseCommit(ExceptionSink* xsink, ExceptionSink* wS, int wm) {
-   ProgramRuntimeParseContextHelper pch(xsink, this);
+   ProgramRuntimeParseCommitContextHelper pch(xsink, this);
    if (*xsink)
       return;
    priv->parseCommit(xsink, wS, wm);
