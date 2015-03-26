@@ -1247,20 +1247,6 @@ public:
    DLLLOCAL void parseInit(const char* name, bool priv);
 };
 
-/*
-XXX FIXME
-struct ParseMemberEntry {
-   QoreMemberInfoBase* mem;
-   qore_class_private* cls;
-   bool priv;
-   
-   DLLLOCAL ParseMemberEntry(QoreMemberInfoBase* m, qore_class_private* c, bool p = false) : mem(m), cls(c), priv(p) {
-   }
-};
-
-typedef std::map<const char*, ParseMemberEntry> pmmap_t;
-*/
-
 class QoreVarInfo : public QoreMemberInfoBase {
 protected:
    DLLLOCAL QoreVarInfo(const QoreVarInfo& old) : QoreMemberInfoBase(old), val(old.val), finalized(old.finalized) {

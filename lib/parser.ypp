@@ -698,13 +698,6 @@ public:
       if (!mi->parseHasTypeInfo() && parse_check_parse_option(PO_REQUIRE_TYPES))
 	 parse_error("member '%s' declared without type information, but parse options require type information for all declarations", name);
    }
-   /*
-   DLLLOCAL MemberInfo(char* n) : name(n), type(MI_Member)  {
-      u.memberInfo = 0; 
-      if (parse_check_parse_option(PO_REQUIRE_TYPES))
-	 parse_error("member '%s' declared without type information, but parse options require type information for all declarations", name);
-   }
-   */
    DLLLOCAL MemberInfo(char* n, AbstractQoreNode* exp) : name(n), type(MI_Constant) {
       u.exp = exp;
    }
