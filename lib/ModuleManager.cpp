@@ -846,12 +846,15 @@ QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, std
       assert(reinject);
       reinjectModule(omi);
       mi->setOrigName(omi->getName());
+      name = mi->getName();
    }
    else if (mi->isPrivate()) {
+      QoreString orig_name(mi->getName());
       // rename to unique name
       QoreString nname;
       getUniqueName(nname, mi->getName(), "!!private-");
       mi->rename(nname);
+      mi->setOrigName(orig_name.getBuffer());
       name = mi->getName();
    }
    
@@ -877,10 +880,15 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
    QoreString tpath;
 
    QoreProgram* p = tpgm ? tpgm : path_pgm;
+   if (!p) {
+      p = pgm;
+      if (!p)
+	 p = getProgram();
+   }
    const char* td = p ? p->parseGetScriptDir() : 0;
 
    // calculate path from relative path if possible
-   if ((tpgm || path_pgm) && path[0] == '.') {
+   if (td && path[0] == '.') {
       //printd(5, "QoreModuleManager::loadUserModuleFromPath() path: '%s' feature: '%s' tpgm: %p td: '%s'\n", path, feature, p, td ? td : "n/a");
       if (!qore_find_file_in_path(tpath, path, td))
 	 path = tpath.getBuffer();
@@ -1187,7 +1195,7 @@ void QoreModuleManager::delUser() {
       delOrig(m);
       //printd(5, "QoreModuleManager::delUser() deleting '%s' (%s) %p\n", (*ui).c_str(), i->first, m);
       umset.erase(ui);
-      removeUserModuleDependency(i->first);
+      removeUserModuleDependency(i->first, m->getOrigName());
       
       map.erase(i);
       delete m;
@@ -1254,8 +1262,10 @@ QoreHashNode* QoreModuleManager::getModuleHash() {
    bool with_filename = !(runtime_get_parse_options() & PO_NO_EXTERNAL_INFO);
    QoreHashNode* h = new QoreHashNode;
    AutoLocker al(mutex);
-   for (module_map_t::const_iterator i = map.begin(); i != map.end(); ++i)
-      h->setKeyValue(i->second->getName(), i->second->getHash(with_filename), 0);
+   for (module_map_t::const_iterator i = map.begin(); i != map.end(); ++i) {
+      if (!i->second->isPrivate())
+	 h->setKeyValue(i->second->getName(), i->second->getHash(with_filename), 0);
+   }
    return h;   
 }
 

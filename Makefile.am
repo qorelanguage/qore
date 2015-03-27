@@ -101,8 +101,14 @@ TESTSCRIPTS= \
         examples/test/qore/misc/regex.qtest \
 	examples/test/qore/misc/access.qtest \
 	examples/test/qore/misc/thread-parsing.qtest \
-	examples/test/qore/misc/injection.qtest \
-	examples/test/qore/misc/MyTestModule.qm \
+	examples/test/qore/misc/module-loader/A.qm \
+	examples/test/qore/misc/module-loader/B.qm \
+	examples/test/qore/misc/module-loader/C.qm \
+	examples/test/qore/misc/module-loader/modules.qtest \
+	examples/test/qore/misc/module-loader/injection.qtest \
+	examples/test/qore/misc/module-loader/MyTestModule.qm \
+	examples/test/qore/misc/module-loader/private-module.qtest \
+	examples/test/qore/misc/module-loader/MyTestModule2.qm \
 	examples/test/qore/misc/curly-brackets.qtest \
         examples/test/qore/operators/logic.qtest \
         examples/test/qore/operators/operators.qtest \

@@ -479,9 +479,11 @@ public:
       }
    }
 
-   DLLLOCAL void removeUserModuleDependency(const char* name) {
-      //printd(5, "QoreModuleManager::removeUserModuleDependency('%s')\n", name);
+   DLLLOCAL void removeUserModuleDependency(const char* name, const char* orig_name = 0) {
+      //printd(5, "QoreModuleManager::removeUserModuleDependency() name: '%s' orig: '%s'\n", name, orig_name ? orig_name : "n/a");
       md_map_t::iterator i = rmd_map.find(name);
+      if (i == rmd_map.end() && orig_name)
+         i = rmd_map.find(orig_name);
       if (i != rmd_map.end()) {
          // remove dependents
          for (strset_t::iterator si = i->second.begin(), se = i->second.end(); si != se; ++si) {
@@ -505,6 +507,11 @@ public:
       i = md_map.find(name);
       if (i != md_map.end())
          md_map.erase(i);
+      if (orig_name) {
+         i = md_map.find(orig_name);
+         if (i != md_map.end())
+            md_map.erase(i);
+      }
    }
 };
 
