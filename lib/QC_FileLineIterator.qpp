@@ -350,6 +350,34 @@ string FileLineIterator::getFileName() [flags=CONSTANT] {
    return i->getFileName();
 }
 
+//! returns @ref stat_list of stat() of the underlying file
+/** If any errors occur, a \c FILE-HSTAT-ERROR exception is thrown
+    @par Example:
+    @code
+my list $l = $f.stat();
+    @endcode
+
+    @return @ref stat_list of stat() of the underlying file
+    @since %Qore 0.8.12
+ */
+list FileLineIterator::stat() [flags=CONSTANT] {
+   return i->stat(xsink);
+}
+
+//! returns @ref stat_hash of hstat() of the underlying file
+/** If any errors occur, a \c FILE-HSTAT-ERROR exception is thrown
+    @par Example:
+    @code
+my hash $h = $f.hstat();
+    @endcode
+
+    @return @ref stat_hash of hstat() of the underlying file
+    @since %Qore 0.8.12
+ */
+hash FileLineIterator::hstat() [flags=CONSTANT] {
+   return i->hstat(xsink);
+}
+
 //! Reset the iterator instance to its initial state
 /** Reset the iterator instance to its initial state
 

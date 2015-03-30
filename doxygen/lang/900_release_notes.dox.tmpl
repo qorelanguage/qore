@@ -136,6 +136,8 @@
       - @ref Qore::Socket::upgradeClientToSSL()
       - @ref Qore::Socket::upgradeServerToSSL()
     - added zoneinfo -> Windows time zone translation code on Windows to support standard UNIX (zoneinfo) time zone names on Windows; time zone information is still taken from the Windows registry but region names are reported using the standard zoneinfo names
+    - @ref Qore::FileLineIterator updates:
+      - added @ref Qore::FileLineIterator::hstat() and @ref Qore::FileLineIterator::stat()
 
     @subsection qore_0812_bug_fixes Bug Fixes in Qore
     - fixed format of octal constant - there was an error if a string contained octal constant that is shorter than 3 digit
