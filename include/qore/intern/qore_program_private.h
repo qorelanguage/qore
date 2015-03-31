@@ -87,10 +87,16 @@ typedef QoreThreadLocalStorage<QoreHashNode> qpgm_thread_local_storage_t;
 class ThreadLocalVariableData : public ThreadLocalData<LocalVarValue> {
 public:
    // marks all variables as finalized on the stack
-   DLLLOCAL void finalize(ExceptionSink* xsink) {
+   DLLLOCAL void finalize(arg_vec_t*& cl) {
       ThreadLocalVariableData::iterator i(curr);
-      while (i.next())
-         i.get().finalize(xsink);
+      while (i.next()) {
+         AbstractQoreNode* n = i.get().finalize();
+         if (n && n->isReferenceCounted()) {
+            if (!cl)
+               cl = new arg_vec_t;
+            cl->push_back(n);
+         }
+      }
    }
 
    // deletes everything on the stack
@@ -170,10 +176,16 @@ private:
 
 public:
    // marks all variables as finalized on the stack
-   DLLLOCAL void finalize(ExceptionSink* xsink) {
+   DLLLOCAL void finalize(arg_vec_t*& cl) {
       ThreadClosureVariableStack::iterator i(curr);
-      while (i.next())
-         i.get()->finalize(xsink);
+      while (i.next()) {
+         AbstractQoreNode* n = i.get()->finalize();
+         if (n && n->isReferenceCounted()) {
+            if (!cl)
+               cl = new arg_vec_t;
+            cl->push_back(n);
+         }
+      }
    }
 
    // deletes everything on the stack
@@ -263,9 +275,9 @@ public:
       assert(cvstack.empty());
    }
 
-   DLLLOCAL void finalize(ExceptionSink* xsink) {
-      lvstack.finalize(xsink);
-      cvstack.finalize(xsink);
+   DLLLOCAL void finalize(arg_vec_t*& cl) {
+      lvstack.finalize(cl);
+      cvstack.finalize(cl);
    }
 
    DLLLOCAL void del(ExceptionSink* xsink) {
@@ -475,18 +487,27 @@ public:
    DLLLOCAL void clearProgramThreadData(ExceptionSink* xsink) {
       // delete local variables for all threads that have used this program
       pgm_data_map_t pdm_copy;
-      // copy the map and run on the copy to avoid deadlocks
+
+      // grab all thread-local data in a vector and finalize it outside the lock
+      arg_vec_t* cl = 0;
       {
          AutoLocker al(tlock);
          // twaiting must be 0 here, as it can only be incremented while clearProgramThreadData() is in progress, which can only be executed once
          assert(!twaiting);
          assert(!tclear);
          tclear = gettid();
+
+         for (pgm_data_map_t::iterator i = pgm_data_map.begin(), e = pgm_data_map.end(); i != e; ++i)
+            i->second->finalize(cl);
+
          pdm_copy = pgm_data_map;
       }
 
-      for (pgm_data_map_t::iterator i = pdm_copy.begin(), e = pdm_copy.end(); i != e; ++i) {
-         i->second->finalize(xsink);
+      // dereference finalized thread-local data outside the lock to avoid deadlocks
+      if (cl) {
+         for (arg_vec_t::iterator i = cl->begin(), e = cl->end(); i != e; ++i)
+            (*i)->deref(xsink);
+         delete cl;
       }
 
       for (pgm_data_map_t::iterator i = pdm_copy.begin(), e = pdm_copy.end(); i != e; ++i) {
@@ -914,6 +935,9 @@ public:
       // delete thread local storage data
       deleteThreadData(xsink);
 
+      // delete thread-local data outside the lock
+      arg_vec_t* cl = 0;
+
       // delete all local variables for this thread
       SafeLocker sl(tlock);
       while (tclear) {
@@ -929,12 +953,19 @@ public:
          ReferenceHolder<QoreProgram> pgm_holder(pgm, xsink);
          // remove from map and delete outside of lock to avoid deadlocks (or the need for recursive locking)
          ThreadLocalProgramData *tlpd = i->second;
-         sl.unlock();
-         tlpd->finalize(xsink);
-         sl.lock();
+         tlpd->finalize(cl);
          pgm_data_map.erase(i);
          sl.unlock();
          tlpd->del(xsink);
+      }
+      else
+         sl.unlock();
+
+      // dereference finalized thread-local data outside the lock to avoid deadlocks
+      if (cl) {
+         for (arg_vec_t::iterator i = cl->begin(), e = cl->end(); i != e; ++i)
+            (*i)->deref(xsink);
+         delete cl;
       }
    }
 
