@@ -69,7 +69,25 @@ ModuleManager MM;
 
 static bool show_errors = false;
 
+// for detecting recursive user module dependencies
+typedef std::set<const char*, ltstr> mod_set_t;
+static mod_set_t modset;
+
 QoreModuleDefContext::strset_t QoreModuleDefContext::vset;
+
+static int module_load_check(const char* path) {
+   mod_set_t::iterator i = modset.lower_bound(path);
+   if (i != modset.end() && !strcmp(*i, path))
+      return -1;
+   modset.insert(i, path);
+   return 0;
+}
+
+static void module_load_clear(const char* path) {
+   mod_set_t::iterator i = modset.find(path);
+   assert(i != modset.end());
+   modset.erase(i);
+}
 
 ModuleReExportHelper::ModuleReExportHelper(QoreAbstractModule* mi, bool reexp) : m(set_reexport(mi, reexp, reexport)) {
    //printd(5, "ModuleReExportHelper::ModuleReExportHelper() %p '%s' (reexp: %d) to %p '%s' (reexp: %d)\n", mi, mi ? mi->getName() : "n/a", reexp, m, m ? m->getName() : "n/a", reexport);
@@ -545,7 +563,7 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
 	 else
 	    check_module_version(mi, op, *version, xsink);
       }
-	 
+
       trySetUserModuleDependency(mi);
       return;
    }
@@ -563,8 +581,11 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
       if (!reinject) {
 	 if (inject)
 	    xsink.raiseException("LOAD-MODULE-ERROR", "cannot load module '%s' for injection because the module has already been loaded; to reinject a module, call Program::loadApplyToUserModule() with the reinject flag set to True", name);
-	 else
+	 else {
+	    //printd(5, "QoreModuleManager::loadModuleIntern() name: %s inject: %d, reinject: %d found: %p (%s, %s) injected: %d reinjected: %d\n", name, inject, reinject, mi, mi->getName(), mi->getFileName(), mi->isInjected(), mi->isReInjected());
+
 	    qore_check_load_module_intern(mi, op, version, pgm, xsink);
+	 }
 	 return;
       }
    }
@@ -857,6 +878,8 @@ QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, std
       mi->setOrigName(orig_name.getBuffer());
       name = mi->getName();
    }
+
+   //printd(5, "QoreModuleManager::setupUserModule() path: %s name: %s feature: %s injected: %d reinjected: %d orig: %s\n", mi->getFileName(), name, mi->getName(), mi->isInjected(), mi->isReInjected(), mi->getOrigName() ? mi->getOrigName() : "n/a");
    
    omi = mi.release();
    addModule(omi);
@@ -868,7 +891,7 @@ QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, std
 QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm, bool reexport, QoreProgram* pgm, bool inject, bool reinject, QoreProgram* path_pgm, bool priv) {
    assert(feature);
    //printd(5, "QoreModuleManager::loadUserModuleFromPath() path: %s feature: %s tpgm: %p\n", path, feature, tpgm);
-
+   
    QoreParseCountContextHelper pcch;
 
    // parse options for the module
@@ -900,9 +923,17 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
       pgm = new QoreProgram(po);
 
    //printd(5, "QoreModuleManager::loadUserModuleFromPath(%s) tpgm: %p po: "QLLD" allow-injection: %s tpgm allow-injection: %s pgm allow-injection: %s\n", path, tpgm, po, po & PO_ALLOW_INJECTION ? "true" : "false", (tpgm ? tpgm->getParseOptions64() & PO_ALLOW_INJECTION : 0) ? "true" : "false", pgm->getParseOptions64() & PO_ALLOW_INJECTION ? "true" : "false");
-   
-   std::auto_ptr<QoreUserModule> mi(new QoreUserModule(td, path, feature, pgm, priv));
 
+   std::auto_ptr<QoreUserModule> mi(new QoreUserModule(td, path, feature, pgm, priv, inject, reinject));
+
+   td = mi->getFileName();
+   
+   if (module_load_check(td)) {
+      xsink.raiseException("LOAD-MODULE-ERROR", "cannot load user module '%s'; recursive module dependency detected", td);
+      return 0;
+   }
+   ON_BLOCK_EXIT(module_load_clear, td);
+   
    ModuleReExportHelper mrh(mi.get(), reexport);
 
    QoreUserModuleDefContextHelper qmd(feature, xsink);
@@ -1235,6 +1266,8 @@ void QoreModuleManager::cleanup() {
       map.erase(i);
       delete m;
    }
+
+   assert(modset.empty());
 }
 
 void QoreModuleManager::issueParseCmd(const char* mname, QoreProgram* pgm, QoreString& cmd) {
@@ -1263,7 +1296,7 @@ QoreHashNode* QoreModuleManager::getModuleHash() {
    QoreHashNode* h = new QoreHashNode;
    AutoLocker al(mutex);
    for (module_map_t::const_iterator i = map.begin(); i != map.end(); ++i) {
-      if (!i->second->isPrivate())
+      //if (!i->second->isPrivate())
 	 h->setKeyValue(i->second->getName(), i->second->getHash(with_filename), 0);
    }
    return h;   

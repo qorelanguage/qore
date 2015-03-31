@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -186,7 +186,7 @@ public:
    */
    DLLEXPORT virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
 
-   DLLEXPORT virtual class AbstractQoreNode *realCopy() const;
+   DLLEXPORT virtual AbstractQoreNode *realCopy() const;
 
    //! tests for equality with possible type conversion (soft compare)
    /** this function does not throw any Qore-language exceptions

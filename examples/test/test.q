@@ -37,21 +37,37 @@
 class MyUnitTest inherits UnitTest {
     private {
         *softlist rlist;
+        *softlist slist;
+        
+        const MyOpts = Opts + (
+            "skip": "S,skip=s@",
+            );
     }
 
-    constructor(*reference p_argv, hash opts = Opts) : UnitTest(\p_argv, opts) {
+    constructor(*reference p_argv, hash opts = MyOpts) : UnitTest(\p_argv, opts) {
     }
 
     processOptions(reference p_argv) {
         rlist = remove p_argv;
+        if (m_options.slist && rlist) {
+            printf("%s: error: cannot use both \"skip\" and inclusive test options in the same command\n", get_script_name());
+            exit(1);
+        }
         UnitTest::processOptions(\p_argv);
     }
 
     bool doFile(string fname) {
+        # check for tests to be skipped
+        foreach string sstr in (m_options.slist) {
+            if (regex(fname, sstr))
+                return False;
+        }
+
+        # check for tests to be expicitly run
         if (!rlist)
             return True;
 
-        foreach my string rstr in (rlist) {
+        foreach string rstr in (rlist) {
             if (regex(fname, rstr))
                 return True;
         }

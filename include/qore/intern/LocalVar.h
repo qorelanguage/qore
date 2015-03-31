@@ -169,12 +169,13 @@ public:
    }
 #endif
 
-   DLLLOCAL void finalize(ExceptionSink* xsink) {
-      //assert(!finalized);
-      if (val.type == QV_Node) {
-         discard(val.remove(true), xsink);
-         finalized = true;
-      }
+   DLLLOCAL AbstractQoreNode* finalize() {
+      if (finalized)
+         return 0;
+
+      finalized = true;
+      
+      return val.remove(true);
    }
 
    DLLLOCAL AbstractQoreNode* eval(ExceptionSink* xsink) {
@@ -270,14 +271,15 @@ public:
    DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove) const;
    DLLLOCAL void remove(LValueRemoveHelper& lvrh);
 
-   DLLLOCAL void finalize(ExceptionSink* xsink) {
+   // sets the current variable to finalized, sets the value to 0, and returns the value held (for dereferencing outside the lock)
+   DLLLOCAL AbstractQoreNode* finalize() {
       QoreSafeVarRWWriteLocker sl(this);
-      if (!finalized) {
-         AbstractQoreNode* dr = val.remove(true);
-         finalized = true;
-         sl.unlock();
-         discard(dr, xsink);         
-      }
+      if (finalized)
+         return 0;
+
+      finalized = true;
+      
+      return val.remove(true);
    }
 
    DLLLOCAL AbstractQoreNode* eval(ExceptionSink* xsink) {

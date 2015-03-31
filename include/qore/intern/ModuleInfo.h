@@ -89,7 +89,9 @@ protected:
       license,
       orig_name;
 
-   bool priv;
+   bool priv : 1,
+      injected : 1,
+      reinjected : 1;
    
    DLLLOCAL QoreHashNode* getHashIntern(bool with_filename = true) const {
       QoreHashNode* h = new QoreHashNode;
@@ -110,6 +112,8 @@ protected:
             l->push(new QoreStringNode(*i));
          h->setKeyValue("reexported-modules", l, 0);
       }
+      h->setKeyValue("injected", get_bool_node(injected), 0);
+      h->setKeyValue("reinjected", get_bool_node(injected), 0);
       
       return h;
    }
@@ -130,13 +134,13 @@ public:
    name_vec_t rmod;
 
    // for binary modules
-   DLLLOCAL QoreAbstractModule(const char* cwd, const char* fn, const char* n, const char* d, const char* v, const char* a, const char* u, const QoreString& l) : filename(fn), name(n), desc(d), author(a), url(u), license(l), priv(false), version_list(v) {
+      DLLLOCAL QoreAbstractModule(const char* cwd, const char* fn, const char* n, const char* d, const char* v, const char* a, const char* u, const QoreString& l) : filename(fn), name(n), desc(d), author(a), url(u), license(l), priv(false), injected(false), reinjected(false), version_list(v) {
       q_normalize_path(filename, cwd);
    }
 
    // for user modules
-   DLLLOCAL QoreAbstractModule(const char* cwd, const char* fn, const char* n, bool n_priv) : filename(fn), name(n), priv(n_priv) {
-      q_normalize_path(filename);
+   DLLLOCAL QoreAbstractModule(const char* cwd, const char* fn, const char* n, bool n_priv, bool n_injected, bool n_reinjected) : filename(fn), name(n), priv(n_priv), injected(n_injected), reinjected(n_reinjected) {
+      q_normalize_path(filename, cwd);
    }
 
    DLLLOCAL virtual ~QoreAbstractModule() {
@@ -167,6 +171,14 @@ public:
       return orig_name.empty() ? 0 : orig_name.getBuffer();
    }
 
+   DLLLOCAL bool isInjected() const {
+      return injected;
+   }
+   
+   DLLLOCAL bool isReInjected() const {
+      return reinjected;
+   }
+   
    DLLLOCAL void addModuleReExport(const char* m) {
       rmod.push_back(m);
    }
@@ -585,7 +597,7 @@ protected:
    DLLLOCAL virtual void addToProgramImpl(QoreProgram* pgm, ExceptionSink& xsink) const;
 
 public:
-   DLLLOCAL QoreUserModule(const char* cwd, const char* fn, const char* n, QoreProgram* p, bool n_priv) : QoreAbstractModule(cwd, fn, n, n_priv), pgm(p), del(0) {
+   DLLLOCAL QoreUserModule(const char* cwd, const char* fn, const char* n, QoreProgram* p, bool n_priv, bool n_injected = false, bool n_reinjected = false) : QoreAbstractModule(cwd, fn, n, n_priv, n_injected, n_reinjected), pgm(p), del(0) {
    }
 
    DLLLOCAL void set(const char* d, const char* v, const char* a, const char* u, const QoreString& l, QoreClosureParseNode* dl) {

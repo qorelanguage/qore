@@ -4,7 +4,7 @@
 
   Qore programming language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -41,8 +41,8 @@ class AbstractQoreZoneInfo;
 struct qore_tm {
    int year, month, day, hour, minute, second, us, utc_secs_east;
    bool dst;
-   const char *zone_name;
-   const AbstractQoreZoneInfo *zone;
+   const char* zone_name;
+   const AbstractQoreZoneInfo* zone;
 
    DLLLOCAL void clear() {
       year = 0;
@@ -66,7 +66,7 @@ struct qore_tm {
    DLLEXPORT int secsEast() const;
 
    //! returns the region name of the zone
-   DLLEXPORT const char *regionName() const;
+   DLLEXPORT const char* regionName() const;
 };
 
 //! Holds absolute and relative date/time values in Qore with precision to the microsecond
@@ -142,13 +142,13 @@ public:
    //! constructor for setting the date from a string
    /** @param date the string to use to set the date in the format YYYYMMDDHHmmSS[.xxx]
    */
-   DLLEXPORT DateTime(const char *date);
+   DLLEXPORT DateTime(const char* date);
 
    //! constructor for setting the date from a string with a flexible format
    /** @param zone the time zone for the time (0 = UTC, @see currentTZ())
        @param date the string to use to set the date
    */
-   DLLEXPORT DateTime(const AbstractQoreZoneInfo *zone, const char *date);
+   DLLEXPORT DateTime(const AbstractQoreZoneInfo* zone, const char* date);
 
    //! constructor for setting an absolute date based on a "struct tm"
    /**
@@ -174,7 +174,7 @@ public:
    /** @param zone the time zone for the time  (0 = UTC, @see currentTZ())
        @since %Qore 0.8.7
     */
-   DLLEXPORT void setNow(const AbstractQoreZoneInfo *zone);
+   DLLEXPORT void setNow(const AbstractQoreZoneInfo* zone);
 
    //! sets the absolute date value based on the number of seconds from January 1, 1970
    /** note that the local time zone will be assumed
@@ -194,33 +194,33 @@ public:
        @param seconds the number of seconds from January 1, 1970 UTC
        @param us the microseconds portion of the time	 
    */
-   DLLEXPORT void setDate(const AbstractQoreZoneInfo *zone, int64 seconds, int us);
+   DLLEXPORT void setDate(const AbstractQoreZoneInfo* zone, int64 seconds, int us);
 
    //! sets the absolute date value based on the number of seconds from January 1, 1970 in the given time zone (plus microseconds)
    /** @param zone the time zone for the time (0 = UTC, @see currentTZ())
        @param seconds the number of seconds from January 1, 1970 in the given time zone
        @param us the microseconds portion of the time	 
    */
-   DLLEXPORT void setLocalDate(const AbstractQoreZoneInfo *zone, int64 seconds, int us);
+   DLLEXPORT void setLocalDate(const AbstractQoreZoneInfo* zone, int64 seconds, int us);
 
    //! sets the date to an absolute date/time as given
-   DLLEXPORT void setDate(const AbstractQoreZoneInfo *n_zone, int n_year, int n_month, int n_day, int n_hour = 0, int n_minute = 0, int n_second = 0, int n_us = 0);
+   DLLEXPORT void setDate(const AbstractQoreZoneInfo* n_zone, int n_year, int n_month, int n_day, int n_hour = 0, int n_minute = 0, int n_second = 0, int n_us = 0);
 
    //! sets an absolute date value from a string with a flexible format
    /** note that the local time zone will be assumed
        @param str the string to use to set the date
    */
-   DLLEXPORT void setDate(const char *str);
+   DLLEXPORT void setDate(const char* str);
 
    //! sets an absolute date value from a time zone pointer and a string with a flexible format
    /** 
        @param zone the time zone for the time (0 = UTC, @see currentTZ())
        @param str the string to use to set the date with a flexible format
    */
-   DLLEXPORT void setDate(const AbstractQoreZoneInfo *zone, const char *str);
+   DLLEXPORT void setDate(const AbstractQoreZoneInfo* zone, const char* str);
 
    //! sets a relative date from a string in the format YYYYMMDDHHmmSS
-   DLLEXPORT void setRelativeDate(const char *str);
+   DLLEXPORT void setRelativeDate(const char* str);
 
    //! sets the absolute date from a "struct tm" pointer and millisecond value
    DLLEXPORT void setDate(const struct tm *tms, short ms = 0);
@@ -238,9 +238,9 @@ public:
    DLLEXPORT void setTime(int h, int m, int s, short ms = 0);
 
    DLLEXPORT bool checkValidity() const;
-   DLLEXPORT bool isEqual(const DateTime *dt) const;
-   DLLEXPORT DateTime *add(const DateTime *dt) const;
-   DLLEXPORT DateTime *subtractBy(const DateTime *dt) const;
+   DLLEXPORT bool isEqual(const DateTime* dt) const;
+   DLLEXPORT DateTime* add(const DateTime* dt) const;
+   DLLEXPORT DateTime* subtractBy(const DateTime* dt) const;
 
    //! gets the number of seconds since January 1, 1970 for the current date offset in local time
    /**
@@ -284,7 +284,7 @@ public:
        @param week the ISO-9601 week number
        @param day the day offset in the week (1-7 = Mon-Sun)
    */
-   DLLEXPORT void getISOWeek(int &year, int &week, int &day) const;
+   DLLEXPORT void getISOWeek(int& year, int& week, int& day) const;
 
    //! formats the date/time value to a QoreString
    /** the formatted date/time value will be appended to the QoreString argument according to the format string
@@ -326,7 +326,7 @@ public:
        @param str the QoreString where the formatted date data will be written (appended)
        @param fmt the format string as per the above description
    */
-   DLLEXPORT void format(QoreString &str, const char *fmt) const;
+   DLLEXPORT void format(QoreString& str, const char* fmt) const;
 
    //! returns true if the value is a relative date-time value
    /**
@@ -409,19 +409,19 @@ public:
    DLLEXPORT bool hasValue() const;
 
    //! returns the negative time from the current time
-   DLLEXPORT DateTime *unaryMinus() const;
+   DLLEXPORT DateTime* unaryMinus() const;
 
    //! converts the current value to the negative of itself
    DLLEXPORT void unaryMinusInPlace();
 
    //! returns the broken-down time in the given time zone (n_zone = 0 means UTC)
-   DLLEXPORT void getInfo(const AbstractQoreZoneInfo *n_zone, qore_tm &info) const;
+   DLLEXPORT void getInfo(const AbstractQoreZoneInfo* n_zone, qore_tm &info) const;
 
    //! returns the broken-down time in the current time zone
    DLLEXPORT void getInfo(qore_tm &info) const;
 
    //! changes the time zone for the time without updating the epoch offset
-   DLLEXPORT void setZone(const AbstractQoreZoneInfo *n_zone);
+   DLLEXPORT void setZone(const AbstractQoreZoneInfo* n_zone);
 
    //! gets the time zone for the object; returns 0 for relative date/time values
    DLLEXPORT const AbstractQoreZoneInfo* getZone() const;
@@ -442,13 +442,13 @@ public:
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @return the DateTime value corresponding to the ISO-8601 week information (or 0 if an error occured)
    */
-   DLLEXPORT static DateTime *getDateFromISOWeek(int year, int week, int day, ExceptionSink *xsink);
+   DLLEXPORT static DateTime* getDateFromISOWeek(int year, int week, int day, ExceptionSink* xsink);
 
    //! returns -1, 0, or 1 if the left date is less than, equal, or greater than the right date
-   DLLEXPORT static int compareDates(const DateTime *left, const DateTime *right);
+   DLLEXPORT static int compareDates(const DateTime* left, const DateTime* right);
 
    //! static "constructor" to create an absolute time, including microseconds
-   DLLEXPORT static DateTime *makeAbsolute(const AbstractQoreZoneInfo *n_zone, int n_year, int n_month, int n_day, int n_hour = 0, int n_minute = 0, int n_second = 0, int n_us = 0);
+   DLLEXPORT static DateTime* makeAbsolute(const AbstractQoreZoneInfo* n_zone, int n_year, int n_month, int n_day, int n_hour = 0, int n_minute = 0, int n_second = 0, int n_us = 0);
 
    //! static "constructor" to create an absolute time as an offset from the epoch, including microseconds
    /**
@@ -456,7 +456,7 @@ public:
       @param seconds the number of seconds from January 1, 1970Z
       @param us the microseconds portion of the time	 
    */
-   DLLEXPORT static DateTime *makeAbsolute(const AbstractQoreZoneInfo *zone, int64 seconds, int us = 0);
+   DLLEXPORT static DateTime* makeAbsolute(const AbstractQoreZoneInfo* zone, int64 seconds, int us = 0);
 
    //! static "constructor" to create an absolute time as an offset from the given time zone's epoch, including microseconds
    /**
@@ -464,10 +464,10 @@ public:
       @param seconds the number of seconds from January 1, 1970 in the time zone passed as the first argument
       @param us the microseconds portion of the time
    */
-   DLLEXPORT static DateTime *makeAbsoluteLocal(const AbstractQoreZoneInfo *zone, int64 seconds, int us = 0);
+   DLLEXPORT static DateTime* makeAbsoluteLocal(const AbstractQoreZoneInfo* zone, int64 seconds, int us = 0);
 
    //! static "constructor" to create a relative time, including microseconds
-   DLLEXPORT static DateTime *makeRelative(int n_year, int n_month, int n_day, int n_hour = 0, int n_minute = 0, int n_second = 0, int n_us = 0);
+   DLLEXPORT static DateTime* makeRelative(int n_year, int n_month, int n_day, int n_hour = 0, int n_minute = 0, int n_second = 0, int n_us = 0);
 };
 
 #endif

@@ -109,6 +109,9 @@ TESTSCRIPTS= \
 	examples/test/qore/misc/module-loader/MyTestModule.qm \
 	examples/test/qore/misc/module-loader/private-module.qtest \
 	examples/test/qore/misc/module-loader/MyTestModule2.qm \
+	examples/test/qore/misc/module-loader/R1.qm \
+	examples/test/qore/misc/module-loader/R2.qm \
+	examples/test/qore/misc/module-loader/recursive-dependency.qtest \
 	examples/test/qore/misc/curly-brackets.qtest \
         examples/test/qore/operators/logic.qtest \
         examples/test/qore/operators/operators.qtest \
