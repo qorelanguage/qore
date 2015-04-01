@@ -1756,21 +1756,29 @@ bool q_absolute_path(const char* path) {
 #endif
 }
 
+static void add_cwd(QoreString& path) {
+   QoreString cwd_str;
+   if (!q_getcwd(cwd_str))
+      path.prepend(cwd_str.getBuffer(), cwd_str.size());
+}
+
 void q_normalize_path(QoreString& path, const char* cwd) {
+   //printd(5, "q_normalize_path(path: '%s', cwd: '%s')\n", path.getBuffer(), cwd);
    if (!path.empty() && path[0] == '.') {
       path.insertch(QORE_DIR_SEP, 0, 1);
-      if (cwd)
+      if (cwd) {
 	 path.prepend(cwd);
-      else {
-	 QoreString cwd_str;
-	 if (!q_getcwd(cwd_str))
-	    path.prepend(cwd_str.getBuffer(), cwd_str.size());
+	 if (path[0] == '.') {
+	    path.insertch(QORE_DIR_SEP, 0, 1);
+	    add_cwd(path);
+	 }
       }
+      else
+	 add_cwd(path);
    }
    std::string str = path.getBuffer();
    str = qore_qd_private::normalizePath(str);
-   //printd(5, "q_normalize_path() '%s' -> '%s'\n", path.getBuffer(), str.c_str());
-   //path.clear();
+   //printd(5, "q_normalize_path() '%s' -> '%s' (cwd: '%s')\n", path.getBuffer(), str.c_str(), cwd);
    path = str;
 }
 
@@ -1779,7 +1787,7 @@ int q_getcwd(QoreString& cwd) {
    cwd.reserve(bs);
 
    while (true) {
-      char *b = getcwd((char*)cwd.getBuffer(), bs);
+      char* b = getcwd((char*)cwd.getBuffer(), bs);
       if (!b) {
           if (errno == ERANGE) {
               bs *= 2;

@@ -193,6 +193,8 @@ struct QoreValue {
          default: assert(false);
             // no break
       }
+      // to avoid a warning
+      return NT_NOTHING;
    }
 
    DLLLOCAL const char* getTypeName() const {
