@@ -32,7 +32,7 @@
 #ifndef _QORE_QORE_PROGRAM_PRIVATE_H
 #define _QORE_QORE_PROGRAM_PRIVATE_H
 
-extern QoreListNode* ARGV, *QORE_ARGV;
+extern QoreListNode* ARGV, * QORE_ARGV;
 extern QoreHashNode* ENV; 
 
 #include <qore/intern/ParserSupport.h>
@@ -502,9 +502,6 @@ public:
    }
 
    DLLLOCAL void clearProgramThreadData(ExceptionSink* xsink) {
-      // delete local variables for all threads that have used this program
-      pgm_data_map_t pdm_copy;
-
       // grab all thread-local data in a vector and finalize it outside the lock
       arg_vec_t* cl = 0;
       {
@@ -512,12 +509,11 @@ public:
          // twaiting must be 0 here, as it can only be incremented while clearProgramThreadData() is in progress, which can only be executed once
          assert(!twaiting);
          assert(!tclear);
+         // while tclear is set, no threads can attach to this program object - pgm_data_map cannot be modified
          tclear = gettid();
 
          for (pgm_data_map_t::iterator i = pgm_data_map.begin(), e = pgm_data_map.end(); i != e; ++i)
             i->second->finalize(cl);
-
-         pdm_copy = pgm_data_map;
       }
 
       // dereference finalized thread-local data outside the lock to avoid deadlocks
@@ -527,8 +523,7 @@ public:
          delete cl;
       }
 
-      // xxx
-      for (pgm_data_map_t::iterator i = pdm_copy.begin(), e = pdm_copy.end(); i != e; ++i) {
+      for (pgm_data_map_t::iterator i = pgm_data_map.begin(), e = pgm_data_map.end(); i != e; ++i) {
          i->second->del(xsink);
          i->first->delProgram(pgm);
       }
@@ -1072,6 +1067,7 @@ public:
 
       pgm_data_map_t::iterator i = pgm_data_map.find(td);
       if (i == pgm_data_map.end()) {
+         assert(!tclear);
          ThreadLocalProgramData *tlpd = new ThreadLocalProgramData;
 
          //printd(5, "qore_program_private::setThreadVarData() (first) this=%p pgm=%p td=%p run=%s inst=%s\n", this, pgm, td, run ? "true" : "false", tlpd->inst ? "true" : "false");

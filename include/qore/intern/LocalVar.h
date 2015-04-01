@@ -116,6 +116,15 @@ public:
    DLLLOCAL bool isRef() const {
       return val.getType() == NT_REFERENCE;
    }
+
+   DLLLOCAL AbstractQoreNode* finalize() {
+      if (finalized)
+         return 0;
+
+      finalized = true;
+      
+      return val.remove(true);
+   }
 };
 
 struct SkipHelper {
@@ -152,31 +161,6 @@ public:
 
    DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove) const;
    DLLLOCAL void remove(LValueRemoveHelper& lvrh, const QoreTypeInfo* typeInfo);
-
-#if 0
-   DLLLOCAL bool optimizedLocal() const {
-      return val.optimized();
-   }
-
-   DLLLOCAL qore_type_t getValueType() const {
-      assert(optimizedLocal());
-      return val.getType();
-   }
-
-   DLLLOCAL const char* getValueTypeName() const {
-      assert(optimizedLocal());
-      return val.getTypeName();
-   }
-#endif
-
-   DLLLOCAL AbstractQoreNode* finalize() {
-      if (finalized)
-         return 0;
-
-      finalized = true;
-      
-      return val.remove(true);
-   }
 
    DLLLOCAL AbstractQoreNode* eval(ExceptionSink* xsink) {
       if (val.getType() == NT_REFERENCE) {
@@ -274,12 +258,7 @@ public:
    // sets the current variable to finalized, sets the value to 0, and returns the value held (for dereferencing outside the lock)
    DLLLOCAL AbstractQoreNode* finalize() {
       QoreSafeVarRWWriteLocker sl(this);
-      if (finalized)
-         return 0;
-
-      finalized = true;
-      
-      return val.remove(true);
+      return VarValueBase::finalize();
    }
 
    DLLLOCAL AbstractQoreNode* eval(ExceptionSink* xsink) {
