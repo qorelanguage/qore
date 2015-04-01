@@ -118,6 +118,7 @@ TESTSCRIPTS= \
         examples/test/qore/stack/call-stack-overflow-exception.qtest \
         examples/test/qore/threads/background.qtest \
         examples/test/qore/threads/max-threads-count.qtest \
+        examples/test/qore/threads/deadlock.qtest \
         examples/test/qore/vars/argv.qtest \
         examples/test/qore/vars/array.qtest \
         examples/test/qore/vars/bare-ref-test.qtest \
