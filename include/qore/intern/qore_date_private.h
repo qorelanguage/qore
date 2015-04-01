@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -41,7 +41,7 @@
 
 #define SECS_PER_MINUTE          60
 // 3600
-#define SECS_PER_HOUR            (SECS_PER_MINUTE * 60)
+#define SECS_PER_HOUR            (SECS_PER_MINUTE*  60)
 // number of seconds in a normal day (no DST) = 86400
 #define SECS_PER_DAY             (SECS_PER_HOUR * 24)
 // number of seconds in a normal year (no leap day)
@@ -51,7 +51,7 @@
 
 #define MICROSECS_PER_SEC        1000000ll
 #define MICROSECS_PER_MINUTE     (MICROSECS_PER_SEC * 60)
-#define MICROSECS_PER_HOUR       (MICROSECS_PER_MINUTE * 60)
+#define MICROSECS_PER_HOUR       (MICROSECS_PER_MINUTE*  60)
 // number of microseconds in a day (no DST)
 #define MICROSECS_PER_DAY        (MICROSECS_PER_HOUR * 24)
 // number of microseconds in an average month (30 days)
@@ -78,7 +78,7 @@
 #define SECS_AFTER_LD            (SECS_PER_DAY * 306)
 
 template <typename T1, typename T2>
-DLLLOCAL void normalize_units(T1 &bigger, T2 &smaller, int ratio) {
+DLLLOCAL void normalize_units(T1& bigger, T2& smaller, int ratio) {
    if (smaller <= -ratio || smaller >= ratio) {
       int64 units = smaller / ratio;
       bigger += (T1)units;
@@ -100,7 +100,7 @@ DLLLOCAL void normalize_units(T1 &bigger, T2 &smaller, int ratio) {
 
 // normalize so that the smaller units are always positive
 template <typename T1, typename T2>
-DLLLOCAL void normalize_units2(T1 &bigger, T2 &smaller, int ratio) {
+DLLLOCAL void normalize_units2(T1& bigger, T2& smaller, int ratio) {
    if (smaller <= -ratio || smaller >= ratio) {
       int64 units = smaller / ratio;
       bigger += (T1)units;
@@ -116,7 +116,7 @@ DLLLOCAL void normalize_units2(T1 &bigger, T2 &smaller, int ratio) {
 
 // normalize with second unsigned
 template <typename T1>
-DLLLOCAL void normalize_units3(T1 &bigger, unsigned &smaller, unsigned ratio) {
+DLLLOCAL void normalize_units3(T1& bigger, unsigned& smaller, unsigned ratio) {
    if (smaller >= ratio) {
       int64 units = smaller / ratio;
       bigger += units;
@@ -139,7 +139,7 @@ struct qore_date_info {
    // because the leap day calculations are regular from that point, as
    // this date marks the start of a 400-year cycle, being right after the
    // last leap day of the previous 400-year cycle
-   DLLLOCAL static void get_epoch_year(int64 &epoch, int &year, bool &ly) {
+   DLLLOCAL static void get_epoch_year(int64 &epoch, int& year, bool& ly) {
       // get second offset from 2000-03-01
       epoch -= SECS_TO_2KLD;
 
@@ -284,7 +284,7 @@ struct qore_date_info {
 
       return secs
          + (int64)hour * 3600
-         + (int64)minute * 60
+         + (int64)minute*  60
          + (int64)second;
    }
 
@@ -298,10 +298,10 @@ struct qore_date_info {
 };
 
 // normalize the given date to the last day of the month
-DLLLOCAL void normalize_dm(int &year, int &month, int &day);
+DLLLOCAL void normalize_dm(int& year, int& month, int& day);
 
 // normalize to the correct day, month, and year
-DLLLOCAL void normalize_day(int &year, int &month, int &day);
+DLLLOCAL void normalize_day(int& year, int& month, int& day);
 
 class qore_relative_time;
 
@@ -384,12 +384,12 @@ public:
 
 // for time info
 struct qore_time_info : public qore_simple_tm {
-   const char *zname;
+   const char* zname;
    int utcoffset;
    bool isdst;
-   const AbstractQoreZoneInfo *zone;
+   const AbstractQoreZoneInfo* zone;
 
-   DLLLOCAL void set(int64 epoch, unsigned n_us, int n_utcoffset, bool n_isdst, const char *n_zname, const AbstractQoreZoneInfo *n_zone) {
+   DLLLOCAL void set(int64 epoch, unsigned n_us, int n_utcoffset, bool n_isdst, const char* n_zname, const AbstractQoreZoneInfo* n_zone) {
       zname = n_zname ? n_zname : STATIC_UTC;
       utcoffset = n_utcoffset;
       isdst = n_isdst;
@@ -398,7 +398,7 @@ struct qore_time_info : public qore_simple_tm {
       qore_simple_tm::set(epoch + utcoffset, n_us);
    }
 
-   DLLLOCAL qore_time_info &operator=(const qore_simple_tm &t) {
+   DLLLOCAL qore_time_info& operator=(const qore_simple_tm& t) {
       zname = STATIC_UTC;
       utcoffset = 0;
       isdst = false;
@@ -414,7 +414,7 @@ struct qore_time_info : public qore_simple_tm {
       return *this;
    }
 
-   DLLLOCAL void copyTo(qore_tm &info) {
+   DLLLOCAL void copyTo(qore_tm& info) {
       info.year          = year;
       info.month         = month;
       info.day           = day;
@@ -443,7 +443,7 @@ struct qore_simple_tm2 : public qore_simple_tm {
       //printd(5, "qore_simple_tm2::setLiteral(date=%lld, usecs=%d)\n", date, usecs);
 
       year = (int)(date / 10000000000ll);
-      date -= year * 10000000000ll;
+      date -= year*  10000000000ll;
       month = (int)(date / 100000000ll);
       date -= month * 100000000ll;
       day = (int)(date / 1000000ll);
@@ -451,7 +451,7 @@ struct qore_simple_tm2 : public qore_simple_tm {
       hour = (int)(date / 10000ll); 
       date -= hour * 10000ll;
       minute = (int)(date / 100ll);
-      second = (int)(date - minute * 100ll);
+      second = (int)(date - minute*  100ll);
       us = usecs;
 
       normalize_units2<int, int>(second, us, 1000000);
@@ -476,17 +476,17 @@ struct qore_simple_tm2 : public qore_simple_tm {
 
       //printd(5, "qore_simple_tm2::setLiteral() %04d-%02d-%02d %02d:%02d:%02d.%06d\n", year, month, day, hour, minute, second, us);
    }
-   DLLLOCAL void getISOWeek(int &yr, int &week, int &wday) const;
+   DLLLOCAL void getISOWeek(int& yr, int& week, int& wday) const;
 };
 
-DLLLOCAL void concatOffset(int utcoffset, QoreString &str);
+DLLLOCAL void concatOffset(int utcoffset, QoreString& str);
 
 class qore_absolute_time {
    friend class qore_relative_time;
 protected:
    int64 epoch;                       // offset in seconds from the epoch (1970-01-01Z)
    unsigned us;                       // microseconds
-   const AbstractQoreZoneInfo *zone;  // time zone region
+   const AbstractQoreZoneInfo* zone;  // time zone region
 
    // epoch is set to local time; needs to be converted to UTC
    DLLLOCAL void setLocalIntern(int n_us) {
@@ -507,7 +507,7 @@ protected:
          epoch -= (aoff - off);
    }
 
-   DLLLOCAL void setTM(qore_simple_tm2 &tm, struct tm &tms, bool dst = false) const {
+   DLLLOCAL void setTM(qore_simple_tm2& tm, struct tm& tms, bool dst = false) const {
       tms.tm_year = tm.year - 1900;
       tms.tm_mon = tm.month - 1;
       tms.tm_mday = tm.day;
@@ -595,32 +595,32 @@ public:
       setNowIntern();
    }
 
-   DLLLOCAL void setNow(const AbstractQoreZoneInfo *n_zone) {
+   DLLLOCAL void setNow(const AbstractQoreZoneInfo* n_zone) {
       zone = n_zone;
       setNowIntern();
    }
 
-   DLLLOCAL void getISOWeek(int &yr, int &week, int &wday) const {
+   DLLLOCAL void getISOWeek(int& yr, int& week, int& wday) const {
       qore_simple_tm2 tm(epoch + zone->getUTCOffset(epoch), us);
       tm.getISOWeek(yr, week, wday);
    }
 
-   DLLLOCAL void get(qore_time_info &info) const {
-      const char *zname;
+   DLLLOCAL void get(qore_time_info& info) const {
+      const char* zname;
       bool isdst;
       int offset = zone->getUTCOffset(epoch, isdst, zname);
       //printf("qore_absolute_time::get() epoch=%lld UTC offset=%d isdst=%d zname=%s\n", epoch, offset, isdst, zname);
       info.set(epoch, us, offset, isdst, zname, zone);
    }
 
-   DLLLOCAL void get(const AbstractQoreZoneInfo *z, qore_time_info &info) const {
-      const char *zname;
+   DLLLOCAL void get(const AbstractQoreZoneInfo* z, qore_time_info& info) const {
+      const char* zname;
       bool isdst;
       int offset = z->getUTCOffset(epoch, isdst, zname);
       info.set(epoch, us, offset, isdst, zname, zone);
    }
 
-   DLLLOCAL void getDate(qore_simple_tm &tm) const {
+   DLLLOCAL void getDate(qore_simple_tm& tm) const {
       int off = zone->getUTCOffset(epoch);
       tm.set(epoch + off, us);
    }
@@ -670,7 +670,7 @@ public:
 
    DLLLOCAL int64 getRelativeMicroseconds() const;
 
-   DLLLOCAL void localtime(struct tm &tms) const {
+   DLLLOCAL void localtime(struct tm& tms) const {
       bool isdst;
       int offset = zone->getUTCOffset(epoch, isdst);
       qore_simple_tm2 tm(epoch + offset, us);
@@ -678,12 +678,12 @@ public:
       setTM(tm, tms, isdst);
    }
 
-   DLLLOCAL void gmtime(struct tm &tms) const {
+   DLLLOCAL void gmtime(struct tm& tms) const {
       qore_simple_tm2 tm(epoch, us);
       setTM(tm, tms, false);
    }
 
-   DLLLOCAL int compare(const qore_absolute_time &r) const {
+   DLLLOCAL int compare(const qore_absolute_time& r) const {
       if (epoch > r.epoch)
          return 1;
       if (epoch < r.epoch)
@@ -733,18 +733,22 @@ public:
       return epoch * 1000 + (us / 1000);
    }
 
-   DLLLOCAL qore_absolute_time &operator+=(const qore_relative_time &dt);
-   DLLLOCAL qore_absolute_time &operator-=(const qore_relative_time &dt);
+   DLLLOCAL qore_absolute_time& operator+=(const qore_relative_time& dt);
+   DLLLOCAL qore_absolute_time& operator-=(const qore_relative_time& dt);
 
-   DLLLOCAL void getAsString(QoreString &str) const;
+   DLLLOCAL void getAsString(QoreString& str) const;
 
    DLLLOCAL void unaryMinus() {
       epoch = -epoch;
       us = -us;
    }
 
-   const AbstractQoreZoneInfo* getZone() const {
+   DLLLOCAL const AbstractQoreZoneInfo* getZone() const {
       return zone;
+   }
+
+   DLLLOCAL void addSecondsTo(int64 secs, int n_us = 0) {
+      set(zone, epoch + secs, us + n_us);
    }
 };
    
@@ -775,7 +779,7 @@ public:
       normalize();
    }
 
-   DLLLOCAL void set(const qore_relative_time &p) {
+   DLLLOCAL void set(const qore_relative_time& p) {
       year = p.year;
       month = p.month;
       day = p.day;
@@ -786,7 +790,7 @@ public:
    }
 
    // takes the different between seconds.micros - dt and sets this to the relative date/time difference
-   DLLLOCAL void setDifference(int64 seconds, int micros, const qore_absolute_time &dt) {
+   DLLLOCAL void setDifference(int64 seconds, int micros, const qore_absolute_time& dt) {
       int64 sec = seconds - dt.epoch;
       us = micros - dt.us;      
 
@@ -808,7 +812,7 @@ public:
 
    DLLLOCAL void setLiteral(int64 date, int usecs = 0) {
       year = (int)(date / 10000000000ll);
-      date -= year * 10000000000ll;
+      date -= year*  10000000000ll;
       month = (int)(date / 100000000ll);
       date -= month * 100000000ll;
       day = (int)(date / 1000000ll);
@@ -816,7 +820,7 @@ public:
       hour = (int)(date / 10000ll); 
       date -= hour * 10000ll;
       minute = (int)(date / 100ll);
-      second = (int)(date - minute * 100ll);
+      second = (int)(date - minute*  100ll);
       us = usecs;
 
       normalize();
@@ -861,7 +865,7 @@ public:
       return us;
    }
 
-   DLLLOCAL int compare(const qore_relative_time &r) const {      
+   DLLLOCAL int compare(const qore_relative_time& r) const {      
       if (year > r.year)
          return 1;
       if (year < r.year)
@@ -913,17 +917,17 @@ public:
 
    DLLLOCAL int64 getRelativeMicroseconds() const {
       return (int64)us + (int64)second * MICROSECS_PER_SEC
-         + (int64)minute * MICROSECS_PER_MINUTE 
+         + (int64)minute*  MICROSECS_PER_MINUTE 
          + (int64)hour * MICROSECS_PER_HOUR 
          + (int64)day * MICROSECS_PER_DAY 
          + (month ? (int64)month * MICROSECS_PER_AVG_MONTH : 0ll)
-         + (year ? (int64)year * MICROSECS_PER_YEAR : 0ll);
+         + (year ? (int64)year*  MICROSECS_PER_YEAR : 0ll);
    }
 
-   DLLLOCAL qore_relative_time &operator+=(const qore_relative_time &dt);
-   DLLLOCAL qore_relative_time &operator-=(const qore_relative_time &dt);
+   DLLLOCAL qore_relative_time& operator+=(const qore_relative_time& dt);
+   DLLLOCAL qore_relative_time& operator-=(const qore_relative_time& dt);
 
-   DLLLOCAL void getAsString(QoreString &str) const {
+   DLLLOCAL void getAsString(QoreString& str) const {
       int f = 0;
       str.concat("<time:");
 
@@ -955,7 +959,7 @@ public:
       str.concat('>');
    }
 
-   DLLLOCAL void getTM(struct tm &tms) const {
+   DLLLOCAL void getTM(struct tm& tms) const {
       tms.tm_year = year;
       tms.tm_mon = month;
       tms.tm_mday = day;
@@ -967,7 +971,7 @@ public:
       tms.tm_isdst = -1;
    }
 
-   DLLLOCAL void get(qore_time_info &info) const {
+   DLLLOCAL void get(qore_time_info& info) const {
       info = *this;
 
       info.zname = 0;
@@ -983,9 +987,14 @@ public:
    DLLLOCAL bool hasValue() const {
       return qore_simple_tm::hasValue();
    }
+
+   DLLLOCAL void addSecondsTo(int64 secs, int n_us = 0) {
+      second += secs;
+      us += n_us;
+   }
 };
 
-static inline void zero_tm(struct tm &tms) {
+static inline void zero_tm(struct tm& tms) {
    tms.tm_year = 70;
    tms.tm_mon = 0;
    tms.tm_mday = 1;
@@ -1017,11 +1026,11 @@ public:
          d.abs.set(currentTZ(), 0, 0);
    }
 
-   DLLLOCAL qore_date_private(const AbstractQoreZoneInfo *zone, int64 seconds, int us = 0) : relative(false) {
+   DLLLOCAL qore_date_private(const AbstractQoreZoneInfo* zone, int64 seconds, int us = 0) : relative(false) {
       d.abs.set(zone, seconds, us);
    }
 
-   DLLLOCAL qore_date_private(const AbstractQoreZoneInfo *zone, int y, int mo, int dy, int h, int mi, int s, int us) : relative(false) {
+   DLLLOCAL qore_date_private(const AbstractQoreZoneInfo* zone, int y, int mo, int dy, int h, int mi, int s, int us) : relative(false) {
       d.abs.set(zone, y, mo, dy, h, mi, s, us);
    }
 
@@ -1033,7 +1042,7 @@ public:
          d.abs.set(currentTZ(), y, mo, dy, h, mi, s, us);
    }
 
-   DLLLOCAL static int compare(const qore_date_private &left, const qore_date_private &right) {
+   DLLLOCAL static int compare(const qore_date_private& left, const qore_date_private& right) {
       // absolute dates are always larger than relative dates, no matter the value
       if (left.relative)
          return right.relative ? left.d.rel.compare(right.d.rel) : -1;
@@ -1041,7 +1050,7 @@ public:
       return right.relative ? 1 : left.d.abs.compare(right.d.abs);
    }
 
-   DLLLOCAL qore_date_private &operator=(const qore_date_private &p) {
+   DLLLOCAL qore_date_private& operator=(const qore_date_private& p) {
       if (p.relative)
          d.rel.set(p.d.rel);
       else
@@ -1056,33 +1065,33 @@ public:
       d.abs.setNow();
    }
 
-   DLLLOCAL void setNow(const AbstractQoreZoneInfo *n_zone) {
+   DLLLOCAL void setNow(const AbstractQoreZoneInfo* n_zone) {
       relative = false;
       d.abs.setNow(n_zone);
    }
 
-   DLLLOCAL void setDate(const qore_date_private &p) {
+   DLLLOCAL void setDate(const qore_date_private& p) {
       *this = p;
    }
 
    // assumes local time zone
-   DLLLOCAL void setDate(const struct tm &tms, int us) {
+   DLLLOCAL void setDate(const struct tm& tms, int us) {
       relative = false;
 
       d.abs.set(currentTZ(), 1900 + tms.tm_year, tms.tm_mon + 1, tms.tm_mday, tms.tm_hour, tms.tm_min, tms.tm_sec, us);
    }
 
-   DLLLOCAL void setAbsoluteDate(const char *str, const AbstractQoreZoneInfo *zone = currentTZ());
-   DLLLOCAL void setRelativeDate(const char *str);
-   DLLLOCAL void setISO8601RelativeDate(const char *str);
+   DLLLOCAL void setAbsoluteDate(const char* str, const AbstractQoreZoneInfo* zone = currentTZ());
+   DLLLOCAL void setRelativeDate(const char* str);
+   DLLLOCAL void setISO8601RelativeDate(const char* str);
 
-   DLLLOCAL void setDate(const char *str);
+   DLLLOCAL void setDate(const char* str);
 
    DLLLOCAL bool isRelative() const {
       return relative;
    }
 
-   DLLLOCAL void setZone(const AbstractQoreZoneInfo *n_zone) {
+   DLLLOCAL void setZone(const AbstractQoreZoneInfo* n_zone) {
       if (!relative)
          d.abs.setZone(n_zone);
    }
@@ -1144,7 +1153,7 @@ public:
    }
 
    // it's not legal to call with this=relative and dt=absolute
-   DLLLOCAL void add(const qore_date_private &dt) {
+   DLLLOCAL void add(const qore_date_private& dt) {
       if (!relative) {
          if (dt.relative)
             d.abs += dt.d.rel;
@@ -1165,7 +1174,7 @@ public:
    }
 
    // it's not legal to call with this=relative and dt=absolute
-   DLLLOCAL void subtractBy(const qore_date_private &dt) {
+   DLLLOCAL void subtractBy(const qore_date_private& dt) {
       if (!relative) {
          if (dt.relative)
             d.abs -= dt.d.rel;
@@ -1182,6 +1191,13 @@ public:
       d.rel -= dt.d.rel;
    }
 
+   DLLLOCAL void addSecondsTo(int64 secs, int us) {
+      if (!relative)
+         d.abs.addSecondsTo(secs, us);
+      else
+         d.rel.addSecondsTo(secs, us);
+   }
+
    DLLLOCAL void setTime(int h, int m, int s, int us) {
       if (relative)
          d.rel.setTime(h, m, s, us);
@@ -1189,12 +1205,12 @@ public:
          d.abs.setTime(h, m, s, us);
    }
 
-   DLLLOCAL void setDate(const AbstractQoreZoneInfo *n_zone, int year, int month, int day, int hour, int minute, int second, int n_us) {
+   DLLLOCAL void setDate(const AbstractQoreZoneInfo* n_zone, int year, int month, int day, int hour, int minute, int second, int n_us) {
       relative = false;
       d.abs.set(n_zone, year, month, day, hour, minute, second, n_us);
    }
 
-   DLLLOCAL void setDate(const AbstractQoreZoneInfo *zone, int64 seconds, int us = 0) {
+   DLLLOCAL void setDate(const AbstractQoreZoneInfo* zone, int64 seconds, int us = 0) {
       relative = false;
       d.abs.set(zone, seconds, us);
    }
@@ -1209,7 +1225,7 @@ public:
       d.abs.setLocal(currentTZ(), seconds, us);
    }
 
-   DLLLOCAL void setLocalDate(const AbstractQoreZoneInfo *zone, int64 seconds, int us) {
+   DLLLOCAL void setLocalDate(const AbstractQoreZoneInfo* zone, int64 seconds, int us) {
       relative = false;
       d.abs.setLocal(zone, seconds, us);
    }
@@ -1240,7 +1256,7 @@ public:
       return relative ? 0 : d.abs.getDayOfWeek();
    }
 
-   DLLLOCAL void getISOWeek(int &yr, int &week, int &wday) const {
+   DLLLOCAL void getISOWeek(int& yr, int& week, int& wday) const {
       if (relative) {
          yr = 1970;
          week = wday = 1;
@@ -1249,18 +1265,18 @@ public:
       return d.abs.getISOWeek(yr, week, wday);
    }
 
-   DLLLOCAL bool isEqual(const qore_date_private &dt) const {
+   DLLLOCAL bool isEqual(const qore_date_private& dt) const {
       return !compare(*this, dt);
    }
 
-   DLLLOCAL void localtime(struct tm &tms) const {
+   DLLLOCAL void localtime(struct tm& tms) const {
       if (relative)
          d.rel.getTM(tms);
       else
          d.abs.localtime(tms);
    }
 
-   DLLLOCAL void gmtime(struct tm &tms) const {
+   DLLLOCAL void gmtime(struct tm& tms) const {
       if (relative) {
          zero_tm(tms);
          return;
@@ -1268,23 +1284,23 @@ public:
       d.abs.gmtime(tms);
    }
 
-   DLLLOCAL void get(qore_time_info &info) const {
+   DLLLOCAL void get(qore_time_info& info) const {
       if (relative)
          d.rel.get(info);
       else
          d.abs.get(info);
    }
 
-   DLLLOCAL void get(const AbstractQoreZoneInfo *zone, qore_time_info &info) const {
+   DLLLOCAL void get(const AbstractQoreZoneInfo* zone, qore_time_info& info) const {
       if (relative)
          d.rel.get(info);
       else
          d.abs.get(zone, info);
    }
 
-   DLLLOCAL void format(QoreString &str, const char *fmt) const;
+   DLLLOCAL void format(QoreString& str, const char* fmt) const;
 
-   DLLLOCAL void getAsString(QoreString &str) const {
+   DLLLOCAL void getAsString(QoreString& str) const {
       if (!relative)
          d.abs.getAsString(str);
       else
@@ -1293,7 +1309,7 @@ public:
 
    // note that ISO-8601 week days go from 1 - 7 = Mon - Sun
    // return value: 0 = an exception was raised, not 0 = OK
-   DLLLOCAL static qore_date_private *getDateFromISOWeek(qore_date_private &result, int year, int week, int day, ExceptionSink *xsink) {
+   DLLLOCAL static qore_date_private* getDateFromISOWeek(qore_date_private& result, int year, int week, int day, ExceptionSink* xsink) {
       if (week <= 0) {
          xsink->raiseException("ISO-8601-INVALID-WEEK", "week numbers must be positive (value passed: %d)", week);
          return 0;

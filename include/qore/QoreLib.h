@@ -119,6 +119,9 @@
 //! defined because this version of Qore has the QL_MIT license enum value
 #define _QORE_HAS_QL_MIT 1
 
+//! defined because this version of Qore has the DateTime::addSecondsTo() API
+#define _QORE_HAS_DATETIME_ADD_SECONDS_TO 1
+
 // qore code flags
 #define QC_NO_FLAGS                 0   //! no flag
 #define QC_NOOP               (1 << 0)  //! this variant is a noop, meaning it returns a constant value with the given argument types

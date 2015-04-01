@@ -242,6 +242,16 @@ public:
    DLLEXPORT DateTime* add(const DateTime* dt) const;
    DLLEXPORT DateTime* subtractBy(const DateTime* dt) const;
 
+   //! adds the given number of seconds (and microseconds) to the date/time value
+   /** this is a very fast operation and particularly useful for date arithmentic on absolute date/time values 
+
+       @param secs the number of seconds to add (a negative argument results in subtraction)
+       @param us the number of microseconds to add (a negative argument results in subtraction)
+
+       @since %Qore 0.8.12
+    */
+   DLLEXPORT void addSecondsTo(int64 secs, int us = 0);
+   
    //! gets the number of seconds since January 1, 1970 for the current date offset in local time
    /**
       @return the number of seconds since January 1, 1970 offset in local time
