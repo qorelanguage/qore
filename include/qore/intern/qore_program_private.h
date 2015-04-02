@@ -1272,7 +1272,7 @@ public:
    }
 
    // internal method - does not bother with the parse lock
-   DLLLOCAL const AbstractQoreNode* getDefine(const char* name, bool &is_defined) {
+   DLLLOCAL const AbstractQoreNode* getDefine(const char* name, bool& is_defined) {
       dmap_t::iterator i = dmap.find(name);
       if (i != dmap.end()) {
          is_defined = true;
@@ -1282,7 +1282,7 @@ public:
       return 0;
    }
 
-   DLLLOCAL AbstractQoreNode* runTimeGetDefine(const char* name, bool &is_defined) {
+   DLLLOCAL AbstractQoreNode* runTimeGetDefine(const char* name, bool& is_defined) {
       AutoLocker al(plock);
       const AbstractQoreNode* rv = getDefine(name, is_defined);
       return rv ? rv->refSelf() : 0;
@@ -1367,8 +1367,11 @@ public:
    }
 
    DLLLOCAL void pushParseOptions(const char* pf) {
-      assert(ppo.find(pf) == ppo.end());
-      ppo[pf] = pwo.parse_options;
+      // ignore %push-parse-options used multiple times in the same file
+      ppo_t::iterator i = ppo.lower_bound(pf);
+      if (i != ppo.end() && !strcmp(pf, i->first))
+         return;
+      ppo.insert(ppo_t::value_type(pf, pwo.parse_options));
       //printd(5, "qore_program_private::pushParseOptions() this: %p %p '%s' saving %lld\n", this, pf, pf, pwo.parse_options);
    }
 
@@ -1637,7 +1640,7 @@ public:
       return pgm->priv->getDefine(name, is_defined);
    }
 
-   DLLLOCAL static const AbstractQoreNode* parseGetDefine(QoreProgram *pgm, const char* name, bool &is_defined) {
+   DLLLOCAL static const AbstractQoreNode* parseGetDefine(QoreProgram *pgm, const char* name, bool& is_defined) {
       return pgm->priv->getDefine(name, is_defined);
    }
 
@@ -1646,7 +1649,7 @@ public:
       return pgm->priv->runTimeGetDefine(name, is_defined);
    }
 
-   DLLLOCAL static AbstractQoreNode* runTimeGetDefine(QoreProgram *pgm, const char* name, bool &is_defined) {
+   DLLLOCAL static AbstractQoreNode* runTimeGetDefine(QoreProgram *pgm, const char* name, bool& is_defined) {
       return pgm->priv->runTimeGetDefine(name, is_defined);
    }
 

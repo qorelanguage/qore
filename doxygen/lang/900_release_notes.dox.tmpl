@@ -228,6 +228,7 @@
     - fixed a bug where incompatible class definitions were not verified at parse time which could cause a crash in debug builds and unpredictable behavior in non-debug builds
     - fixed a race condition in finalizing thread-local data in  @ref Qore::Program "Program" objects during Program destruction that could lead to a runtime crash
     - fixed a crash when user modules have recursive dependencies
+    - fixed a bug with @ref push-parse-options "%push-parse-options" when used multiple times in the same file; now multiple appearances of this parsee directive are ignored
 
     @section qore_0811 Qore 0.8.11
 
