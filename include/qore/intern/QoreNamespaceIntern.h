@@ -317,6 +317,7 @@ public:
    DLLLOCAL void parseInitConstants();
    DLLLOCAL void parseRollback();
    DLLLOCAL void parseCommit();
+   DLLLOCAL void parseCommitRuntimeInit(ExceptionSink* xsink);
 
    DLLLOCAL const QoreClass* runtimeMatchClass(const NamedScope& nscope, const qore_ns_private*& rns) const;
    DLLLOCAL const qore_ns_private* runtimeMatchAddClass(const NamedScope& nscope, bool& fnd) const;
@@ -977,6 +978,8 @@ protected:
       nsmap.commit(pend_nsmap);
       
       qore_ns_private::parseCommit();
+      // exceptions can be through thrown when performing runtime initialization
+      qore_ns_private::parseCommitRuntimeInit(getProgram()->getParseExceptionSink());
    }
 
    DLLLOCAL void parseRollback() {

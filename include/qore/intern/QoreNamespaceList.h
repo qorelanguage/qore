@@ -106,6 +106,7 @@ public:
 
    DLLLOCAL void parseInit();
    DLLLOCAL void parseCommit(QoreNamespaceList& n);
+   DLLLOCAL void parseCommitRuntimeInit(ExceptionSink* sink);
    DLLLOCAL void parseRollback();
    DLLLOCAL void deleteAllConstants(ExceptionSink *xsink);
    DLLLOCAL void reset();

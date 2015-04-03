@@ -544,7 +544,7 @@ AbstractQoreNode* ScopedObjectCallNode::parseInitImpl(LocalVar* oflag, int pflag
 
       // initialize class immediately, in case the class will be instantiated immediately after during parsing
       // to be assigned to a constant
-      //qore_class_private::parseInit(*const_cast<QoreClass* >(oc));
+      //qore_class_private::parseInit(*const_cast<QoreClass*>(oc));
 
       typeInfo = oc->getTypeInfo();
       desc.sprintf("new %s", oc->getName());

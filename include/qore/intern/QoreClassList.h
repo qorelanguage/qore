@@ -88,6 +88,7 @@ public:
    DLLLOCAL void parseInit();
    DLLLOCAL void parseRollback();
    DLLLOCAL void parseCommit(QoreClassList& n);
+   DLLLOCAL void parseCommitRuntimeInit(ExceptionSink* xsink);
    DLLLOCAL void reset();
    DLLLOCAL void assimilate(QoreClassList& n, qore_ns_private& ns);
    DLLLOCAL QoreHashNode* getInfo();

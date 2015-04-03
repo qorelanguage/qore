@@ -652,9 +652,14 @@ int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
    //printd(5, "QoreClass::initialize() %s class: %p scl: %p\n", name.c_str(), cls, scl);
    
    // initialize static vars   
-   if (scl && scl->initialize(cls, has_delete_blocker, qcp_set))
-      return -1;
-
+   if (scl) {
+      bool hdb = has_delete_blocker;
+      int rc = scl->initialize(cls, hdb, qcp_set);
+      has_delete_blocker = hdb;
+      if (rc)
+	 return -1;
+   }
+   
    QoreParseClassHelper qpch(cls);
 
    // first resolve types in pending variants in all method signatures (incl. return types)
@@ -939,26 +944,14 @@ void qore_class_private::parseCommit() {
 	    i = pending_members.begin();
 	 }
       }
-   
-      // exceptions thrown when initializing static class variables
-      // will be stored here and cannot be caught by user code
-      ExceptionSink xsink;
-      {
-	 // add all pending static vars to real list and initialize them
-	 var_map_t::iterator i = pending_vars.begin();  
-	 while (i != pending_vars.end()) { 
-	    //printd(5, "QoreClass::parseCommit() %s committing %s var %p %s\n", name.c_str(), privpub(i->second->priv), l->first, l->first);
-	    if (i->second)
-	       csig.sprintf("%s var %s %s %s\n", privpub(i->second->priv), i->second->getTypeInfo()->getName(), i->first, get_type_name(i->second->exp));
-	    else
-	       csig.sprintf("%s var %s\n", privpub(i->second->priv), i->first);
-	    vars[i->first] = i->second;
-	    // initialize variable
-	    initVar(i->first, *(i->second), &xsink);
 
-	    pending_vars.erase(i);
-	    i = pending_vars.begin();
-	 }
+      // add all pending static vars to signature
+      for (var_map_t::iterator i = pending_vars.begin(), e = pending_vars.end(); i != e; ++i) {
+	 //printd(5, "QoreClass::parseCommit() %s committing %s var %p %s\n", name.c_str(), privpub(i->second->priv), l->first, l->first);
+	 if (i->second)
+	    csig.sprintf("%s var %s %s %s\n", privpub(i->second->priv), i->second->getTypeInfo()->getName(), i->first, get_type_name(i->second->exp));
+	 else
+	    csig.sprintf("%s var %s\n", privpub(i->second->priv), i->first);
       }
    
       // set flags
@@ -1010,6 +1003,19 @@ void qore_class_private::parseCommit() {
    // running parseCommit())
    if (!has_public_memdecl && (scl ? scl->parseHasPublicMembersInHierarchy() : false))
       has_public_memdecl = true;
+}
+
+void qore_class_private::parseCommitRuntimeInit(ExceptionSink* xsink) {
+   // add all pending static vars to real list and initialize them
+   if (!pending_vars.empty()) {
+      for (var_map_t::iterator i = pending_vars.begin(), e = pending_vars.end(); i != e; ++i) { 
+	 //printd(5, "QoreClass::parseCommitRuntimeInit() %s committing %s var %p %s\n", name.c_str(), privpub(i->second->priv), l->first, l->first);
+	 vars[i->first] = i->second;
+	 // initialize variable
+	 initVar(i->first, *(i->second), xsink);
+      }
+      pending_vars.var_map_t::clear();
+   }
 }
 
 void qore_class_private::addBuiltinMethod(const char* mname, MethodVariantBase* variant) {

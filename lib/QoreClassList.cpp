@@ -146,6 +146,11 @@ void QoreClassList::parseCommit(QoreClassList& l) {
    }
 }
 
+void QoreClassList::parseCommitRuntimeInit(ExceptionSink* xsink) {
+   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
+      qore_class_private::parseCommitRuntimeInit(*(i->second), xsink);
+}
+
 void QoreClassList::reset() {
    deleteAll();
 }

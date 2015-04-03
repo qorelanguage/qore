@@ -555,6 +555,11 @@ void QoreNamespaceList::parseCommit(QoreNamespaceList& l) {
       i->second->priv->parseCommit();
 }
 
+void QoreNamespaceList::parseCommitRuntimeInit(ExceptionSink* xsink) {
+   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
+      i->second->priv->parseCommitRuntimeInit(xsink);
+}
+
 void QoreNamespaceList::parseRollback() {
    for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
       i->second->priv->parseRollback();
@@ -1541,6 +1546,11 @@ void qore_ns_private::parseCommit() {
 
    // merge pending namespaces and repeat for all subnamespaces
    nsl.parseCommit(pendNSL);
+}
+
+void qore_ns_private::parseCommitRuntimeInit(ExceptionSink* xsink) {
+   classList.parseCommitRuntimeInit(xsink);
+   nsl.parseCommitRuntimeInit(xsink);
 }
 
 void qore_ns_private::parseRollback() {

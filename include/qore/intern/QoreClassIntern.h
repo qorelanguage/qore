@@ -1793,20 +1793,20 @@ public:
       methodID;                     // for subclasses of builtin classes that will not have their own private data,
                                     // instead they will get the private data from this class
 
-   bool sys,                        // system/builtin class?
-      initialized,                  // is initialized? (only performed once)
-      parse_init_called,            // has parseInit() been called? (performed once for each parseCommit())
-      parse_init_partial_called,    // has parseInitPartial() been called? (performed once for each parseCommit())
-      has_delete_blocker,           // has a delete_blocker function somewhere in the hierarchy?
-      has_public_memdecl,           // has a public member declaration somewhere in the hierarchy?
-      pending_has_public_memdecl,   // has a pending public member declaration in this class?
-      owns_typeinfo,                // do we own the typeInfo data or not?
-      resolve_copy_done,            // has the copy already been resolved
-      has_new_user_changes,         // does the class have new user code that needs to be processed?
-      owns_ornothingtypeinfo,       // do we own the "or nothing" type info
-      pub,                          // is a public class (modules only)
-      final,                        // is the class "final" (cannot be inherited)
-      inject                        // has the class been injected
+   bool sys : 1,                        // system/builtin class?
+      initialized : 1,                  // is initialized? (only performed once)
+      parse_init_called : 1,            // has parseInit() been called? (performed once for each parseCommit())
+      parse_init_partial_called : 1,    // has parseInitPartial() been called? (performed once for each parseCommit())
+      has_delete_blocker : 1,           // has a delete_blocker function somewhere in the hierarchy?
+      has_public_memdecl : 1,           // has a public member declaration somewhere in the hierarchy?
+      pending_has_public_memdecl : 1,   // has a pending public member declaration in this class?
+      owns_typeinfo : 1,                // do we own the typeInfo data or not?
+      resolve_copy_done : 1,            // has the copy already been resolved
+      has_new_user_changes : 1,         // does the class have new user code that needs to be processed?
+      owns_ornothingtypeinfo : 1,       // do we own the "or nothing" type info
+      pub : 1,                          // is a public class (modules only)
+      final : 1,                        // is the class "final" (cannot be inherited)
+      inject : 1                        // has the class been injected
       ;
 
    int64 domain;                    // capabilities of builtin class to use in the context of parse restrictions
@@ -2136,9 +2136,6 @@ public:
    DLLLOCAL void parseAddPrivateStaticVar(char* dname, QoreVarInfo* VarInfo) {
       VarInfo->priv = true;
       if (!parseCheckVar(dname, VarInfo)) {
-	 if (!has_new_user_changes)
-	    has_new_user_changes = true;
-
 	 //printd(5, "qore_class_private::parseAddPrivateStaticVar() this: %p %s adding %p %s\n", this, name.c_str(), mem, mem);
 	 pending_vars[dname] = VarInfo;
 	 return;
@@ -2150,9 +2147,6 @@ public:
 
    DLLLOCAL void parseAddPublicStaticVar(char* dname, QoreVarInfo* VarInfo) {
       if (!parseCheckVar(dname, VarInfo)) {
-	 if (!has_new_user_changes)
-	    has_new_user_changes = true;
-
 	 //printd(5, "QoreClass::parseAddPublicStaticVar() this: %p %s adding %p %s\n", this, name.c_str(), mem, mem);
 	 pending_vars[dname] = VarInfo;
 	 return;
@@ -2626,6 +2620,7 @@ public:
 
    DLLLOCAL void parseInit();
    DLLLOCAL void parseCommit();
+   DLLLOCAL void parseCommitRuntimeInit(ExceptionSink* xsink);
    DLLLOCAL void parseRollback();
    DLLLOCAL int addUserMethod(const char* mname, MethodVariantBase* f, bool n_static);
 
@@ -2817,6 +2812,10 @@ public:
       qc.priv->parseCommit();
    }
 
+   DLLLOCAL static void parseCommitRuntimeInit(QoreClass& qc, ExceptionSink* xsink) {
+      qc.priv->parseCommitRuntimeInit(xsink);
+   }
+   
    DLLLOCAL static void parseRollback(QoreClass& qc) {
       qc.priv->parseRollback();
    }
