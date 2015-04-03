@@ -25,7 +25,9 @@ foreach my int $i in (range($size - 1)) {
 $t.cmp(elements($l), $size, "created list of " + $size + " elements");
 my date $start = now_us();
 my $interval_create = $start - $list_start; 
-$t.ok($interval_create < $limit_time, "it took " + $interval_create + " s");
+#$t.ok($interval_create < $limit_time, "it took " + $interval_create + " s");
+if ($t.verbose())
+    printf("create: %y\n", $interval_create);
 
 # test insert
 foreach my int $i in (range($size - 1)) {
@@ -33,7 +35,9 @@ foreach my int $i in (range($size - 1)) {
 }
 my date $search = now_us();
 my $interval_insert = $search - $start;
-$t.ok($interval_insert < $limit_time, "inserts took " + $interval_insert + " s");
+#$t.ok($interval_insert < $limit_time, "inserts took " + $interval_insert + " s");
+if ($t.verbose())
+    printf("insert: %y\n", $interval_insert);
 
 # test search
 $search = now_us();
@@ -44,8 +48,9 @@ foreach my int $loop in (range($num_loops - 1)) {
 }
 my date $et = now_us();
 my $interval_search = $et - $search;
-$t.ok($interval_search < $limit_time, $size * $num_loops + " searchs took " + $interval_search + " s");
-
+#$t.ok($interval_search < $limit_time, $size * $num_loops + " searchs took " + $interval_search + " s");
+if ($t.verbose())
+    printf("search: %y\n", $interval_search);
 
 string sub rstr(int $len) {
     my string $str = "";
