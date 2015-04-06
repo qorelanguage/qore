@@ -500,7 +500,7 @@ static int process_opt(QoreString *cstr, char* param, const AbstractQoreNode* no
 	 if ((width != -1) && (length > width) && !type)
 	    width = length;
 	 if ((width != -1) && (length > width)) {
-	    tbuf.concat(*astr, width, xsink); // string encodings are converted here if necessary
+	    tbuf.concat(*astr, (size_t)width, xsink); // string encodings are converted here if necessary
 	 }
 	 else {
 	    if ((width != -1) && (opts & P_JUSTIFY_LEFT)) {
@@ -1794,12 +1794,14 @@ int q_getcwd(QoreString& cwd) {
 	      cwd.reserve(bs);
               continue;
           }
+	  //printd(5, "q_getcwd() failed: errno: %d\n", errno);
           return -1;
       }
       break;
    }
 
    cwd.terminate(strlen(cwd.getBuffer()));
+   //printd(5, "q_getcwd() succeeded: '%s'\n", cwd.getBuffer());
    return 0;
 }
 
