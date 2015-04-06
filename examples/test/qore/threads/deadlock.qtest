@@ -21,6 +21,7 @@ synchronized sub internal_deadlock_a(*Counter $c) {
     }
     catch ($ex) {
 	$unit.cmp($ex.err, "THREAD-DEADLOCK", "mutex-deadlock");
+	$dl = True;
     }
 }
 

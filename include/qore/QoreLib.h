@@ -524,4 +524,7 @@ DLLEXPORT bool q_absolute_path(const char* path);
 //! normalizes the given path for the current platform in place (makes absolute, removes "." and "..")
 DLLEXPORT void q_normalize_path(QoreString& path, const char* cwd = 0);
 
+//! normalizes the given path and resolves any symlinks
+DLLEXPORT int q_realpath(const QoreString& path, QoreString& rv, ExceptionSink* xsink = 0);
+
 #endif // _QORE_QORELIB_H

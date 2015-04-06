@@ -143,6 +143,9 @@ public:
    //! sets the value to the copy of the QoreString passed
    DLLEXPORT void set(const QoreString& str);
 
+   //! takes ownership of the char* passed; discards current state
+   DLLEXPORT void set(char* nbuf, size_t nlen, size_t nallocated, const QoreEncoding* enc);
+
    //! changes the tagged encoding to the given encoding; does not affect the actual string buffer, only changes the tagged encoding value
    DLLEXPORT void setEncoding(const QoreEncoding* new_encoding);
 

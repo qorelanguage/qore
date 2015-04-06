@@ -1009,26 +1009,7 @@ my string $realpath = realpath($path);
     @since %Qore 0.8.12
  */
 string realpath(string path) [dom=FILESYSTEM] {
-#ifdef HAVE_REALPATH
-   char* p = realpath(path->getBuffer(), 0);
-   if (!p) {
-      xsink->raiseErrnoException("REALPATH-ERROR", errno, "error calling realpath()");
-      return 0;
-   }
-   size_t len = strlen(p);
-   return new QoreStringNode(p, len, len + 1, QCS_DEFAULT);
-#else
-#ifndef _Q_WINDOWS
-#error must implement an alternative to realpath on UNIX systems
-#endif
-   SimpleRefHolder<QoreStringNode> rv(new QoreStringNode(*path));
-   q_normalize_path(**rv);
-   // verify that the path exists
-   if (!q_get_mode(**rv)) {
-      xsink->raiseException("REALPATH-ERROR", "path '%s' does not exist", rv->getBuffer());
-      return 0;
-   }
-   return rv.release();
-#endif
+   SimpleRefHolder<QoreStringNode> rv(new QoreStringNode(path->getEncoding()));
+   return q_realpath(*path, **rv, xsink) ? 0 : rv.release();
 }
 //@}

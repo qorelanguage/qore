@@ -1767,7 +1767,9 @@ void q_normalize_path(QoreString& path, const char* cwd) {
    if (!path.empty() && path[0] == '.') {
       path.insertch(QORE_DIR_SEP, 0, 1);
       if (cwd) {
-	 path.prepend(cwd);
+	 QoreString Cwd(cwd);
+	 q_realpath(Cwd, Cwd);
+	 path.prepend(Cwd.getBuffer());
 	 if (path[0] == '.') {
 	    path.insertch(QORE_DIR_SEP, 0, 1);
 	    add_cwd(path);
@@ -1802,6 +1804,33 @@ int q_getcwd(QoreString& cwd) {
 
    cwd.terminate(strlen(cwd.getBuffer()));
    //printd(5, "q_getcwd() succeeded: '%s'\n", cwd.getBuffer());
+   return 0;
+}
+
+int q_realpath(const QoreString& path, QoreString& rv, ExceptionSink* xsink) {
+#ifdef HAVE_REALPATH
+   char* p = realpath(path.getBuffer(), 0);
+   if (!p) {
+      if (xsink)
+	 xsink->raiseErrnoException("REALPATH-ERROR", errno, "error calling realpath()");
+      return -1;
+   }
+   rv.takeAndTerminate(p, strlen(p));
+#else
+#ifndef _Q_WINDOWS
+#error must implement an alternative to realpath on UNIX systems
+#endif
+   if (&rv != &path)
+      rv = path;
+   q_normalize_path(rv);
+   // verify that the path exists
+   if (!q_get_mode(rv)) {
+      if (xsink)
+	 xsink->raiseException("REALPATH-ERROR", "path '%s' does not exist", rv.getBuffer());
+      return -1;
+   }
+   return 0;
+#endif
    return 0;
 }
 

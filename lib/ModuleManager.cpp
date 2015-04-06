@@ -919,6 +919,7 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
    std::auto_ptr<QoreUserModule> mi(new QoreUserModule(td, path, feature, pgm, priv, inject, reinject));
 
    td = mi->getFileName();
+   //printd(5, "QoreModuleManager::loadUserModuleFromPath() normalized path: '%s'\n", td);
    
    if (module_load_check(td)) {
       xsink.raiseException("LOAD-MODULE-ERROR", "cannot load user module '%s'; recursive module dependency detected", td);

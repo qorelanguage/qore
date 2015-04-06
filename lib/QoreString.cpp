@@ -559,6 +559,20 @@ void QoreString::set(const std::string& str, const QoreEncoding* ne) {
    memcpy(priv->buf, str.c_str(), priv->len + 1);
 }
 
+void QoreString::set(char* nbuf, size_t nlen, size_t nallocated, const QoreEncoding* enc) {
+   if (priv->buf)
+      free(priv->buf);
+   
+   assert(nallocated >= nlen);
+   priv->buf = nbuf;
+   priv->len = nlen;
+   priv->allocated = nallocated;
+   if (nallocated == nlen) {
+      priv->check_char(nlen);
+      priv->buf[nlen] = '\0';
+   }
+   priv->charset = enc;
+}
 
 void QoreString::setEncoding(const QoreEncoding* new_encoding) {
    priv->charset = new_encoding;
