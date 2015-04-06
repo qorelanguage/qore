@@ -1023,7 +1023,7 @@ string realpath(string path) [dom=FILESYSTEM] {
    q_normalize_path(**rv);
    // verify that the path exists
    if (!q_get_mode(**rv)) {
-      xsink->raiseErrnoException("REALPATH-ERROR", "path '%s' does not exist", rv->getBuffer());
+      xsink->raiseException("REALPATH-ERROR", "path '%s' does not exist", rv->getBuffer());
       return 0;
    }
    return rv.release();
