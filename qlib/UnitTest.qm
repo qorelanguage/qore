@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file UnitTest.qm Qore user module for automatic testing
 
-/*  UnitTest.qm Copyright 2012 - 2014 Qore Technologies, sro
+/*  UnitTest.qm Copyright 2012 - 2015 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -348,12 +348,14 @@ unlink(testfile);
     */
     string tmpLocation() {
         # TODO: add support for other platforms
-        my dir = ENV."TMP";
-        if (!dir) {   # TODO: use some qore idiom?
-            dir = '/tmp';
-	}
+        my *string dir = ENV.TMP ?* ENV.TMPDIR ?* ENV.TEMP;
+        if (!dir)
+            dir = PlatformOS == "Windows" ? "c::\\temp" : "/tmp";
 
-        return dir;
+        if (!is_writable(dir))
+            throw "TMP-ERROR", sprintf("unable to find the location of the temporary directory; %y is not writable", dir);
+
+        return realpath(dir);
     }
 
     #! Performs a compare test

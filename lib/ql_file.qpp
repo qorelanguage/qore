@@ -101,13 +101,26 @@ static bool is_writable_intern(const QoreStringNode* path) {
       return true;
    
    return false;
+#elif defined _Q_WINDOWS
+   int ftype = q_get_mode(*path) & S_IFMT;
+   if (ftype & S_ISDIR) {
+      QoreStringMaker tfn("%s\\xxx_qore_tmp_test_xxx", path->getBuffer());
+      HANDLE h = CreateFile(tfn.getBuffer(), GENERIC_WRITE, 0, 0, CREATE_NEW, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_DELETE_ON_CLOSE, 0);
+      if (h == INVALID_HANDLE_VALUE)
+         return false;
+      CloseHandle(h);
+      return true;
+   }
+   else {
+      // try to open the file with write permissions
+      int rc = open(path->getBuffer(), O_WRONLY);
+      if (rc == -1)
+         return false;
+      close(rc);
+      return true;
+   }
 #else
-   // try to open the file with write permissions
-   int rc = open(path->getBuffer(), O_WRONLY);
-   if (rc == -1)
-      return false;
-   close(rc);
-   return true;
+#error no is_writable() implementation for this platform
 #endif
 }
 
