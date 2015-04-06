@@ -52,15 +52,6 @@
 #include <qore/intern/glob.h>
 #endif
 
-static int q_get_mode(const QoreString& path) {
-   struct stat sbuf;
-   
-   if (stat(path.getBuffer(), &sbuf))
-      return 0;
-
-   return sbuf.st_mode;
-}
-
 static bool check_stat(unsigned code, const QoreString& path) {
    return (q_get_mode(path) & S_IFMT) == code;
 }

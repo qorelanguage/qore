@@ -1807,6 +1807,15 @@ int q_getcwd(QoreString& cwd) {
    return 0;
 }
 
+int q_get_mode(const QoreString& path) {
+   struct stat sbuf;
+   
+   if (stat(path.getBuffer(), &sbuf))
+      return 0;
+
+   return sbuf.st_mode;
+}
+
 int q_realpath(const QoreString& path, QoreString& rv, ExceptionSink* xsink) {
 #ifdef HAVE_REALPATH
    char* p = realpath(path.getBuffer(), 0);
