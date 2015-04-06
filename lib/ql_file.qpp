@@ -352,7 +352,7 @@ bool is_readable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 my bool $b = is_writable("/etc/hosts");
     @endcode
 
-    @bug on Windows this function always returns @ref Qore::False "False" for directories; this will be fixed in a later version of Qore
+    @since %Qore 0.8.12 this function works properly on Windows
  */
 bool is_writable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
    return is_writable_intern(path);
@@ -368,6 +368,8 @@ bool is_writable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
     @code
 my bool $b = is_writeable("/etc/hosts");
     @endcode
+
+    @since %Qore 0.8.12 this function works properly on Windows
  */
 bool is_writeable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
    return is_writable_intern(path);
