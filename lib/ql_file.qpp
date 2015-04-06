@@ -40,6 +40,10 @@
 #ifdef _Q_WINDOWS
 #include <io.h>
 #include <direct.h>
+#else
+#include <sys/param.h>
+#include <limits.h>
+#include <stdlib.h>
 #endif
 
 #ifdef HAVE_GLOB_H
@@ -48,29 +52,32 @@
 #include <qore/intern/glob.h>
 #endif
 
-bool check_stat(unsigned code, const QoreStringNode* path) {
+static int q_get_mode(const QoreString& path) {
    struct stat sbuf;
-   int rc;
    
-   if ((rc = stat(path->getBuffer(), &sbuf)))
-      return false;
+   if (stat(path.getBuffer(), &sbuf))
+      return 0;
 
-   return (sbuf.st_mode & S_IFMT) == code;
+   return sbuf.st_mode;
+}
+
+static bool check_stat(unsigned code, const QoreString& path) {
+   return (q_get_mode(path) & S_IFMT) == code;
 }
 
 #ifdef HAVE_LSTAT
-bool check_lstat(unsigned code, const QoreStringNode* path) {
+static bool check_lstat(unsigned code, const QoreString& path) {
    struct stat sbuf;
    int rc;
    
-   if ((rc = lstat(path->getBuffer(), &sbuf)))
+   if ((rc = lstat(path.getBuffer(), &sbuf)))
       return false;
    
    return (sbuf.st_mode & S_IFMT) == code;
 }
 #endif
 
-bool is_writable_intern(const QoreStringNode* path) {
+static bool is_writable_intern(const QoreStringNode* path) {
 #ifdef HAVE_ACCESS
    // solution for situation like:
    // $ id
@@ -172,7 +179,7 @@ my bool $b = is_file("/etc/hosts");
     @endcode
  */
 bool is_file(string path) [flags=CONSTANT;dom=FILESYSTEM] {
-   return check_stat(S_IFREG, path);
+   return check_stat(S_IFREG, *path);
 }
 
 //! Returns @ref True if the string passed identifies a directory on the filesystem, @ref False if not
@@ -187,7 +194,7 @@ my bool $b = is_dir("/tmp/mydir");
     @endcode
  */
 bool is_dir(string path) [flags=CONSTANT;dom=FILESYSTEM] {
-   return check_stat(S_IFDIR, path);
+   return check_stat(S_IFDIR, *path);
 }
 
 //! Returns @ref True if the string passed identifies a socket on the filesystem, @ref False if not
@@ -205,7 +212,7 @@ my bool $b = is_socket("/tmp/X0");
  */
 bool is_socket(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 #ifdef S_IFSOCK
-   return check_stat(S_IFSOCK, path);
+   return check_stat(S_IFSOCK, *path);
 #else
    missing_function_error("is_socket", "UNIX_FILEMGT", xsink);
    return false;
@@ -224,7 +231,7 @@ my bool $b = is_pipe("/tmp/mypipe");
     @endcode
  */
 bool is_pipe(string path) [flags=CONSTANT;dom=FILESYSTEM] {
-   return check_stat(S_IFIFO, path);
+   return check_stat(S_IFIFO, *path);
 }
 
 //! Returns @ref True if the string passed identifies a character device on the filesystem, @ref False if not
@@ -239,7 +246,7 @@ my bool $b = is_cdev("/tmp/tty");
     @endcode
  */
 bool is_cdev(string path) [flags=CONSTANT;dom=FILESYSTEM] {
-   return check_stat(S_IFCHR, path);
+   return check_stat(S_IFCHR, *path);
 }
 
 //! Returns @ref True if the string passed identifies a block device on the filesystem, @ref False if not
@@ -254,7 +261,7 @@ my bool $b = is_bdev("/tmp/sda1");
     @endcode
  */
 bool is_bdev(string path) [flags=CONSTANT;dom=FILESYSTEM] {
-   return check_stat(S_IFBLK, path);
+   return check_stat(S_IFBLK, *path);
 }
 
 //! Returns @ref True if the string passed identifies a device (either block or character) on the filesystem, @ref False if not
@@ -297,7 +304,7 @@ my bool $b = is_link("/etc/hosts");
  */
 bool is_link(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 #ifdef HAVE_LSTAT
-   return check_lstat(S_IFLNK, path);
+   return check_lstat(S_IFLNK, *path);
 #else
    missing_function_error("is_link", "UNIX_FILEMGT", xsink);
    return false;
@@ -972,5 +979,41 @@ bool absolute_path_windows(string path) [flags=CONSTANT] {
    return q_absolute_path_windows(path->getBuffer());
 }
 
+//! Returns the canonicalized absolute pathname from the given path
+/** @par Example:
+    @code
+my string $realpath = realpath($path);
+    @endcode
 
+    @param path the path to process
+
+    @return the corresponding absolute path with all relative references removed and all symbolic links resolved (if applicable for the current platform)
+
+    @throw REALPATH-ERROR if an error occurs calculating the return value then this exception is thrown
+
+    @since %Qore 0.8.12
+ */
+string realpath(string path) [dom=FILESYSTEM] {
+#ifdef HAVE_REALPATH
+   char* p = realpath(path->getBuffer(), 0);
+   if (!p) {
+      xsink->raiseErrnoException("REALPATH-ERROR", errno, "error calling realpath()");
+      return 0;
+   }
+   size_t len = strlen(p);
+   return new QoreStringNode(p, len, len + 1, QCS_DEFAULT);
+#else
+#ifndef _Q_WINDOWS
+#error must implement an alternative to realpath on UNIX systems
+#endif
+   SimpleRefHolder<QoreStringNode> rv(new QoreStringNode(*path));
+   q_normalize_path(**rv);
+   // verify that the path exists
+   if (!q_get_mode(**rv)) {
+      xsink->raiseErrnoException("REALPATH-ERROR", "path '%s' does not exist", rv->getBuffer());
+      return 0;
+   }
+   return rv.release();
+#endif
+}
 //@}
