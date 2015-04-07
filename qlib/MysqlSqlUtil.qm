@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file MysqlSqlUtil.qm Qore user module for working with MySQL SQL data
 
-/*  MysqlSqlUtil.qm Copyright 2013 - 2014 Qore Technologies, sro
+/*  MysqlSqlUtil.qm Copyright 2013 - 2015 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -1422,6 +1422,15 @@ my string $str = $table.getSqlValue($date);
                 sql += " offset %v";
                 args += qh.offset;
             }
+        }
+
+        private *hash doReturningImpl(hash opt, reference sql, list args) {
+            throw "RETURNING-ERROR", sprintf("table %s: the mysql driver does not support the returning clause in an insert statement", getSqlName());
+        }
+        
+        #! returns @ref Qore::True "True" if the current database driver supports the \c "returning" clause in insert statements, @ref Qore::False "False" if not
+        bool hasReturningImpl() {
+            return False;
         }
 
         #! db-specific copy actions

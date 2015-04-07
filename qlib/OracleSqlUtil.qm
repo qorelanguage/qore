@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file OracleSqlUtil.qm Qore user module for working with Oracle SQL data
 
-/*  OracleSqlUtil.qm Copyright 2013 - 2014 Qore Technologies, sro
+/*  OracleSqlUtil.qm Copyright 2013 - 2015 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -245,6 +245,7 @@ my hash $schema = (
     - fixed selects with "limit" but no "offset"
     - convert date/time values to timestamps with microseconds resolution instead of dates with second resolution when dynamically inserting values as strings in SQL (binding by value not affected)
     - fixed schema information classes when the "string-numbers" driver option is enabled
+    - implemented \c "returning" clause as an insert option
 
     @subsection v10 OracleSqlUtil v1.0
     - initial release
@@ -2266,6 +2267,20 @@ my any $v = $c.name;
         #! returns a list of column names for use in SQL strings; subclasses can process the argument list in case a column name is a reserved word
         list getColumnSqlNames(softlist cols) {
             return map (OracleDatabase::OracleReservedWords{$1.lwr()} ? ("\"" + $1 + "\"") : $1), cols;
+        }
+
+        private *hash doReturningImpl(hash opt, reference sql, list args) {
+            list l = ();
+            foreach softstring k in (opt.returning) {
+                *OracleColumn c = columns{k};
+                if (!c)
+                    throw "COLUMN-ERROR", sprintf("%s.%s is not a valid column for the \"returning\" clause (valid columns: %y)", name, k, columns.keys());
+                l += k;
+                args += c.qore_type *? Type::String;
+            }
+            sql += sprintf(" returning %s into %s", (foldl $1 + "," + $2, l), (foldl $1 + "," + $2, (map ":" + $1, l)));
+            
+            return execData(opt, sql, args);
         }
 
         private bool emptyImpl() {

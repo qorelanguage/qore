@@ -108,6 +108,7 @@ module SqlUtil {
     - fixed a bug where driver-specific objects were not included when dropping a schema
     - fixed a bug in subquery handling where bind-by-value arguments from the subquery were lost
     - fixed a bug in the partition by/over operator where column names as given in the query argument hash were not properly recognized
+    - implemented insert option support (see @ref AbstractTable::InsertOptions) with the \c "returning" clause in supported drivers
 
     @subsection sqlutilv1_1 SqlUtil v1.1
     - implemented new upsert strategy @ref SqlUtil::AbstractTable::UpsertInsertOnly
@@ -574,7 +575,7 @@ $table.insertFromIterator($l.iterator(), ("commit_block": 5000));
 
     The iterator given to the @ref SqlUtil::Table::insertFromIterator() or @ref SqlUtil::Table::insertFromIteratorNoCommit() methods can be any iterator whose @ref Qore::AbstractIterator::getValue() "getValue()" method returns a @ref hash_type "hash".
 
-    @note the @ref SqlUtil::AbstractTable::InsertOptions "insert option" \c "commit_block" can be used to insert a large amount of data in pieces in order to avoid overwhelming the database server's rollback cache
+    @note the @ref SqlUtil::AbstractTable::InsertFromIteratorOptions "insert option" \c "commit_block" can be used to insert a large amount of data in pieces in order to avoid overwhelming the database server's rollback cache
 
     @section updating_data Updating Data
 
@@ -8221,11 +8222,12 @@ $table.insert($row);
 
             @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
             @param sql an optional reference to a string to return the SQL generated for the insert statement
+            @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
          */
-        insert(hash row, *reference sql) {
-            t.insert(row, \sql);
+        *hash insert(hash row, *reference sql, *hash opt) {
+            return t.insert(row, \sql, opt);
         }
 
         #! inserts a row into the table without any transaction management; a transaction will be in progress after this method is successfully executed
@@ -8236,11 +8238,12 @@ $table.insertNoCommit($row);
 
             @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
             @param sql an optional reference to a string to return the SQL generated for the insert statement
+            @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
          */
-        insertNoCommit(hash row, *reference sql) {
-            t.insertNoCommit(row, \sql);
+        *hash insertNoCommit(hash row, *reference sql, *hash opt) {
+            return t.insertNoCommit(row, \sql, opt);
         }
 
         #! inserts a row into the table; the transaction is committed if successful, if an error occurs, it is rolled back
@@ -8250,11 +8253,13 @@ $table.insert($row);
             @endcode
 
             @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
-            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+            @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
+
+            @return in case the \c "returning" @ref AbstractTable::InsertOptions "insert option" is used, a hash of return values is returned, otherwise @ref nothing is returned
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
          */
-        insert(hash row, *hash opt) {
+        *hash insert(hash row, *hash opt) {
             t.insert(row, opt);
         }
 
@@ -8265,11 +8270,13 @@ $table.insertNoCommit($row);
             @endcode
 
             @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
-            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+            @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
+
+            @return in case the \c "returning" @ref AbstractTable::InsertOptions "insert option" is used, a hash of return values is returned, otherwise @ref nothing is returned
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
          */
-        insertNoCommit(hash row, *hash opt) {
+        *hash insertNoCommit(hash row, *hash opt) {
             t.insertNoCommit(row, opt);
         }
 
@@ -8464,7 +8471,7 @@ my int $rows = $table.insertFromIterator($i);
             @endcode
 
             @param i the @ref Qore::AbstractIterator argument that will provide the data to insert into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here); note that the iterator is assumed to return the same columns in the same order in every element
-            @param opt a hash of options for the insert operation; see @ref SqlUtil::AbstractTable::InsertOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the insert operation; see @ref SqlUtil::AbstractTable::InsertFromIteratorOptions for common options; each driver can support additional driver-specific options
 
             @return the number of rows inserted
 
@@ -8487,7 +8494,7 @@ my int $rows = $table.insertFromIteratorNoCommit($i);
             @endcode
 
             @param i the @ref Qore::AbstractIterator argument that will provide the data to insert into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here); note that the iterator is assumed to return the same columns in the same order in every element
-            @param opt a hash of options for the insert operation; see @ref SqlUtil::AbstractTable::InsertOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the insert operation; see @ref SqlUtil::AbstractTable::InsertFromIteratorOptions for common options; each driver can support additional driver-specific options
 
             @return the number of rows inserted
 
@@ -9846,6 +9853,16 @@ my Triggers $trig = $table.getTriggers();
                 "sqlarg_callback": "code",
                 );
 
+            #! generic SQL insert options
+            /** In addition to any @ref SqlDataCallbackOptions, the following keys can be set for this option:
+                - \c returning: a list of \c "returning" columns
+
+                @note using \c "returning" with a database that does not support this clause will cause an exception to be thrown; see @ref SqlUtil::Table::hasReturning()
+            */
+            const InsertOptions = SqlDataCallbackOptions + (
+                "returning": "softstringlist",
+            );
+
             #! default upsert option keys
             /** The following keys can be set for this option:
                 - \c info_callback: see @ref upsert_info_callback
@@ -9863,7 +9880,7 @@ my Triggers $trig = $table.getTriggers();
                 - \c info_callback: see @ref insert_info_callback
                 - \c commit_block: the number of changes made before an automatic commit is made for insert methods that perform commits
             */
-            const InsertOptions = SqlDataCallbackOptions + (
+            const InsertFromIteratorOptions = SqlDataCallbackOptions + (
                 "info_callback": "code",
                 "commit_block": Type::Int,
                 );
@@ -12336,14 +12353,15 @@ $table.insert($row);
 
             @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
             @param sql an optional reference to a string to return the SQL generated for the insert statement
+            @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
          */
-        insert(hash row, *reference sql) {
+        *hash insert(hash row, *reference sql, *hash opt) {
             on_success ds.commit();
             on_error ds.rollback();
 
-            insertNoCommit(row, \sql);
+            return insertNoCommit(row, \sql, opt);
         }
 
         #! inserts a row into the table without any transaction management; a transaction will be in progress after this method is successfully executed
@@ -12354,16 +12372,17 @@ $table.insertNoCommi($row);
 
             @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
             @param sql an optional reference to a string to return the SQL generated for the insert statement
+            @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
          */
-        insertNoCommit(hash row, *reference sql) {
-            return insertNoCommitIntern(row, \sql);
+        *hash insertNoCommit(hash row, *reference sql, *hash opt) {
+            return insertNoCommitIntern(row, \sql, opt);
         }
 
-        private insertNoCommitIntern(hash row, *reference sql, *hash opt) { 
+        private *hash insertNoCommitIntern(hash row, *reference sql, *hash opt) { 
             # check data callback options if any
-            validateOptionsIntern("OPTION-ERROR", getSqlDataCallbackOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getInsertOptions(), \opt);
 
             l.lock();
             on_exit l.unlock();
@@ -12381,7 +12400,12 @@ $table.insertNoCommi($row);
             sql += (foldl $1 + "," + $2, vh.placeholders);
             sql += ")";
 
-            execData(opt, sql, vh.values);
+            softlist args = vh.values;
+
+            if (opt.returning)
+                return doReturningImpl(opt, \sql, args);
+
+            execData(opt, sql, args);
         }
 
         private hash getPlaceholdersAndValues(hash row) {
@@ -12434,6 +12458,14 @@ $table.insertNoCommi($row);
             );
         }
 
+        #! returns @ref Qore::True "True" if the current database driver supports the \c "returning" clause in insert statements, @ref Qore::False "False" if not
+        /** @return @ref Qore::True "True" if the current database driver supports the \c "returning" clause in insert statements, @ref Qore::False "False" if not
+            @since %SqlUtil 1.2
+        */
+        bool hasReturning() {
+            return hasReturningImpl();
+        }
+
         #! inserts a row into the table; the transaction is committed if successful, if an error occurs, it is rolled back
         /** @par Example:
             @code
@@ -12441,15 +12473,17 @@ $table.insert($row);
             @endcode
 
             @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
-            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+            @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
+
+            @return in case the \c "returning" @ref AbstractTable::InsertOptions "insert option" is used, a hash of return values is returned, otherwise @ref nothing is returned
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
          */
-        insert(hash row, *hash opt) {
+        *hash insert(hash row, *hash opt) {
             on_success ds.commit();
             on_error ds.rollback();
 
-            insertNoCommitIntern(row, NOTHING, opt);
+            return insertNoCommitIntern(row, NOTHING, opt);
         }
 
         #! inserts a row into the table without any transaction management; a transaction will be in progress after this method is successfully executed
@@ -12459,12 +12493,14 @@ $table.insertNoCommit($row);
             @endcode
 
             @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
-            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+            @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
+
+            @return in case the \c "returning" @ref AbstractTable::InsertOptions "insert option" is used, a hash of return values is returned, otherwise @ref nothing is returned
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
          */
-        insertNoCommit(hash row, *hash opt) {
-            insertNoCommitIntern(row, NOTHING, opt);
+        *hash insertNoCommit(hash row, *hash opt) {
+            return insertNoCommitIntern(row, NOTHING, opt);
         }
 
         #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); the transaction is committed if successful, if an error occurs, it is rolled back
@@ -12593,7 +12629,7 @@ my int $rows = $table.insertFromIterator($i);
             @endcode
 
             @param i the @ref Qore::AbstractIterator argument that will provide the data to insert into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here); note that the iterator is assumed to return the same columns in every element
-            @param opt a hash of options for the insert operation; see @ref SqlUtil::AbstractTable::InsertOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the insert operation; see @ref SqlUtil::AbstractTable::InsertFromIteratorOptions for common options; each driver can support additional driver-specific options
 
             @return the number of rows inserted
 
@@ -12619,7 +12655,7 @@ my int $rows = $table.insertFromIteratorNoCommit($i);
             @endcode
 
             @param i the @ref Qore::AbstractIterator argument that will provide the data to insert into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here); note that the iterator is assumed to return the same columns in the same order in every element
-            @param opt a hash of options for the insert operation; see @ref SqlUtil::AbstractTable::InsertOptions for common options; each driver can support additional driver-specific options; note that this method ignores any \c "commit_block" option
+            @param opt a hash of options for the insert operation; see @ref SqlUtil::AbstractTable::InsertFromIteratorOptions for common options; each driver can support additional driver-specific options; note that this method ignores any \c "commit_block" option
 
             @return the number of rows inserted
 
@@ -12637,7 +12673,7 @@ my int $rows = $table.insertFromIteratorNoCommit($i);
 
         private int insertFromIteratorNoCommitIntern(Qore::AbstractIterator i, *hash opt) {
             # check upsert options
-            validateOptionsIntern("OPTION-ERROR", getInsertOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getInsertFromIteratorOptions(), \opt);
 
             if (!i.next())
                 return 0;
@@ -15495,6 +15531,13 @@ my *list $rows = $table.findAll($h);
             return InsertOptions;
         }
 
+        #! returns the insert from iterator options for this driver
+        /** override in subclasses to return driver-specific options    
+        */
+        private hash getInsertFromIteratorOptions() {
+            return InsertFromIteratorOptions;
+        }
+
         #! returns the sql data operation callback options for this driver
         /** override in subclasses to return driver-specific options    
         */
@@ -15800,6 +15843,11 @@ my *list $rows = $table.findAll($h);
             inDb = True;
         }
 
+        #! returns @ref Qore::True "True" if the current database driver supports the \c "returning" clause in insert statements, @ref Qore::False "False" if not
+        private bool hasReturningImpl() {
+            return True;
+        }
+
         private softlist getDropSqlImpl() {
             return sprintf("drop table %s", getSqlName());
         }
@@ -15824,7 +15872,9 @@ my *list $rows = $table.findAll($h);
 
         private preSetupTableImpl(reference desc, *hash opt) {
         }
-
+    
+        private abstract *hash doReturningImpl(hash opt, reference sql, list args);
+    
         private abstract bool emptyImpl();
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string

@@ -156,6 +156,7 @@ $function$
     - fixed bugs handling "bigint" and "double precision" column types with schema alignments
     - fixed a bug with PgsqlTable::tryInsertImpl(); added an explicit "begin" call to make the savepoint work with PostgreSQL 9.3+ servers
     - fixed a bug retrieving foreign constraints; columns were not guaranteed to be returned in declaration order
+    - implemented support for the \c "returning" clause as an insert option
 
     @subsection pgsqlsqlutilv10 PgsqlSqlUtil v1.0
     - initial release
@@ -1758,6 +1759,21 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         private copyImpl(AbstractTable old) {            
             if (triggerFunctions)
                 triggerFunctions = triggerFunctions.copy();
+        }
+
+        private *hash doReturningImpl(hash opt, reference sql, list args) {
+            list l = ();
+            foreach softstring k in (opt.returning) {
+                *PgsqlColumn c = columns{k};
+                if (!c)
+                    throw "COLUMN-ERROR", sprintf("%s.%s is not a valid column for the \"returning\" clause (valid columns: %y)", name, k, columns.keys());
+                l += k;
+                args += c.qore_type ?* Type::String;
+            }
+            sql += sprintf(" returning %s", (foldl $1 + "," + $2, l));
+            
+            *hash h = execData(opt, sql, args);
+            return h ? map {$1.key: $1.value[0]}, h.pairIterator() : h;
         }
     }
 }

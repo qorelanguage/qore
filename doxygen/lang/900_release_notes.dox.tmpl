@@ -139,6 +139,8 @@
     - added zoneinfo -> Windows time zone translation code on Windows to support standard UNIX (zoneinfo) time zone names on Windows; time zone information is still taken from the Windows registry but region names are reported using the standard zoneinfo names
     - @ref Qore::FileLineIterator updates:
       - added @ref Qore::FileLineIterator::hstat() and @ref Qore::FileLineIterator::stat()
+    - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module updates:
+      - implemented insert option support and support for the \c "returning" clause in supported drivers to avoid server round trips
 
     @subsection qore_0812_bug_fixes Bug Fixes in Qore
     - fixed format of octal constant - there was an error if a string contained octal constant that is shorter than 3 digit
