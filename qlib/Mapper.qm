@@ -652,8 +652,7 @@ my Mapper $map(DataMap);
                     $h.$key = $v;
             }
 
-            if ($.output_log)
-                call_function($.output_log, $h);
+            $.logOutput($h);
 
             # increment record count
             ++$.count;
@@ -662,6 +661,12 @@ my Mapper $map(DataMap);
             return $h;
         }
 
+        #! calls the output logging @ref closure "closure" or @ref call_reference "call reference" (if any) to log the output record
+        logOutput(hash $h) {
+            if ($.output_log)
+                call_function($.output_log, $h);
+        }
+        
         #! returns the internal record count
         /** @see resetCount()
         */

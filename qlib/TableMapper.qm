@@ -31,6 +31,9 @@
 # enable all warnings
 %enable-all-warnings
 
+# don't use "$" signs for variables and class members, assume local variable scope
+%new-style
+    
 # requires the Mapper module
 %requires Mapper
 # requires the SqlUtil module
@@ -66,7 +69,7 @@ const DataMap = (
     # output column: "explicit_count": maps from the input "Count" field
     "explicit_count": "Count",
     # output column: "implicit_count": runs the given code on the input record and retuns the result, the code returns the number of "Products" sub-records
-    "implicit_count": int sub (any $ignored, hash $rec) { return $rec.Products.size(); },
+    "implicit_count": int sub (any ignored, hash rec) { return rec.Products.size(); },
     # output column: "order_date": converts the "OrderDate" string input field to a date in the specified format
     "order_date": ("name": "OrderDate", "date_format": "DD.MM.YYYY HH:mm:SS.us"),
     # output column: order_type: given as a constant value
@@ -76,15 +79,15 @@ const DataMap = (
 
     If this map is applied in the following way:
     @code
-my Table $table($ds, "order_table");
-my InboundTableMapper $map($table, DataMap);
+Table table(ds, "order_table");
+InboundTableMapper map(table, DataMap);
 {
-    on_success $map.commit();
-    on_error $map.rollback();
+    on_success map.commit();
+    on_error map.rollback();
     # apply the map and insert the mapped for for each input record
-    map $map.insertRowNoCommit($1), $input;
+    map map.insertRowNoCommit($1), input;
 }
-printf("%d record%s inserted\n", $map.getCount(), $map.getCount() == 1 ? "" : "s");
+printf("%d record%s inserted\n", map.getCount(), map.getCount() == 1 ? "" : "s");
     @endcode
 
     This will insert all the mapped input data into data into the \c ORDER_TABLE
@@ -95,6 +98,7 @@ printf("%d record%s inserted\n", $map.getCount(), $map.getCount() == 1 ? "" : "s
     @subsection tablemapperv1_1 TableMapper v1.1
     - added table name to error messages
     - added the getDatasource() method to classes
+    - implemented more efficient support for inserts from a sequence for databases supporting the \c "returning" clause in insert statements; now such inserts are made in a single round trip instead of n + 1 where n is the number of sequences in the insert
 
     @subsection tablemapperv1_0 TableMapper v1.0
     - Initial release.
@@ -110,10 +114,16 @@ public namespace TableMapper {
 
         private {
             #! the target table object
-            SqlUtil::AbstractTable $.table;
+            SqlUtil::AbstractTable table;
 
             #! the target Database object in case sequence value need to be acquired
-            SqlUtil::AbstractDatabase $.db;
+            SqlUtil::AbstractDatabase db;
+
+            #! if the AbstractTable object supports the "returning" clause
+            bool has_returning;
+
+            #! "returning" arguments for sequences
+            list ret_args = ();
         }
 
         #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
@@ -130,24 +140,25 @@ const DbMapper = (
     "available": "Available",
     "in_transit": "InTransit",
     "status": ("constant": "01"),
-    "total": int sub (any $x, hash $rec) { return $rec.Available.toInt() + $rec.Ordered.toInt() + $rec.InTransit.toInt(); },
+    "total": int sub (any x, hash rec) { return rec.Available.toInt() + rec.Ordered.toInt() + rec.InTransit.toInt(); },
     );
 
-my InboundTableMapper $map($table, DbMapper);
+InboundTableMapper mapper(table, DbMapper);
             @endcode
 
-            @param table the target table object
-            @param map a hash providing field mappings; each hash key is the name in lower case of the output column in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
+            @param target the target table object
+            @param mapv a hash providing field mappings; each hash key is the name in lower case of the output column in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
         */
-        constructor(SqlUtil::Table $table, hash $map, *hash $opts) {
-            $.table = $table.getTable();
-            $.setup($map, $opts);
+        constructor(SqlUtil::Table target, hash mapv, *hash opts) {
+            table = target.getTable();
+            has_returning = table.hasReturning();
+            setup(mapv, opts);
 
             # check map for logical errors
-            $.checkMap();            
+            checkMap();            
         }
 
         #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
@@ -164,108 +175,126 @@ const DbMapper = (
     "available": "Available",
     "in_transit": "InTransit",
     "status": ("constant": "01"),
-    "total": int sub (any $x, hash $rec) { return $rec.Available.toInt() + $rec.Ordered.toInt() + $rec.InTransit.toInt(); },
+    "total": int sub (any x, hash rec) { return rec.Available.toInt() + rec.Ordered.toInt() + rec.InTransit.toInt(); },
     );
 
-my InboundTableMapper $map($table, DbMapper);
+InboundTableMapper mapper(table, DbMapper);
             @endcode
 
             @param table the target table object
-            @param map a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
+            @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
         */
-        constructor(SqlUtil::AbstractTable $table, hash $map, *hash $opts) {
-            $.table = $table;
-            $.setup($map, $opts);
+        constructor(SqlUtil::AbstractTable table, hash mapv, *hash opts) {
+            table = table;
+            setup(mapv, opts);
 
             # check map for logical errors
-            $.checkMap();            
+            checkMap();            
         }
 
         #! verifies the input map in the constructor
         private checkMap() {
-            my Columns $cols = $.table.describe();
+            Columns cols = table.describe();
 
             # ensure there are no unknown mappings
-            foreach my string $k in ($.mapc.keyIterator()) {
-                if (!$cols.hasKey($k))
-                    $.error("mapper specifies column '%s' that does not exist in the target table '%s'", $.getFieldName($k), $.table.getSqlName());                
+            foreach string k in (mapc.keyIterator()) {
+                if (!cols.hasKey(k))
+                    error("mapper specifies column '%s' that does not exist in the target table '%s'", getFieldName(k), table.getSqlName());                
             }
 
             # update output field definitions from real table description
-            foreach my AbstractColumn $col in ($cols.iterator()) {
-                my string $cn = $col.name.lwr();
-                my reference $ch = \$.mapc.$cn;
-                my int $t = $ch.typeCode();
+            foreach AbstractColumn col in (cols.iterator()) {
+                string cn = col.name.lwr();
+                reference ch = \mapc{cn};
+                int t = ch.typeCode();
 
-                my bool $mand;
-                if (!$col.nullable && !exists $col.def_val)
-                    $mand = True;
+                bool mand;
+                if (!col.nullable && !exists col.def_val)
+                    mand = True;
 
                 # only add column descriptions where mappings are missing if there is a NOT NULL constraint and no default value
-                if (!exists $ch && !$mand)
+                if (!exists ch && !mand)
                     continue;
 
-                if ($t != NT_HASH) {
-                    if ($t == NT_NOTHING && $mand && !exists $.crec.$cn)
-                        $.error("output column '%s.%s' has a NOT NULL constraint and no default value, and the mapper object has no mapping or constant value; please provide a mapping or constant value for this column", $.table.getSqlName(), $.getFieldName($cn));
-                    $.convertToHash($t, $cn, \$ch);
+                if (t != NT_HASH) {
+                    if (t == NT_NOTHING && mand && !exists crec{cn})
+                        error("output column '%s.%s' has a NOT NULL constraint and no default value, and the mapper object has no mapping or constant value; please provide a mapping or constant value for this column", table.getSqlName(), getFieldName(cn));
+                    convertToHash(t, cn, \ch);
                 }
 
-                switch ($col.qore_type) {
-                    case "string": $ch += ("maxlen": $col.size, "trunc": $.trunc_all); break;
-                    case "number": $ch.type = "number"; break;
-                    case "integer": $ch.type = "integer"; break;
-                    case "date": $ch.type = "date"; break;
-                    default: throw "TABLE-ERROR", sprintf("column '%s.%s' has unknown native type %y", $.table.getSqlName(), $cn, $col.native_type);
+                switch (col.qore_type) {
+                    case "string": ch += ("maxlen": col.size, "trunc": trunc_all); break;
+                    case "number": ch.type = "number"; break;
+                    case "integer": ch.type = "integer"; break;
+                    case "date": ch.type = "date"; break;
+                    default: throw "TABLE-ERROR", sprintf("column '%s.%s' has unknown native type %y", table.getSqlName(), cn, col.native_type);
                 }
-                if ($mand)
-                    $ch.mand = True;
+                if (mand)
+                    ch.mand = True;
             }
 
-            map $.checkMapField($1, \$.mapc.$1, ("cols": $cols)), $.mapc.keyIterator();
+            map checkMapField($1, \mapc.$1, ("cols": cols)), mapc.keyIterator();
         }
 
         #! performs type handling
-        private mapFieldType(string $key, hash $m, reference $v, hash $rec) {
-            if ($m.sequence) {
-                try {
-                    $v = $.db.getNextSequenceValue($m.sequence);
+        private mapFieldType(string key, hash m, reference v, hash rec) {
+            if (m.sequence) {
+                if (!has_returning) {
+                    try {
+                        v = db.getNextSequenceValue(m.sequence);
+                    }
+                    catch (hash ex) {
+                        throw ex.err, sprintf("%s (sequence: %y)", ex.desc, m.sequence), ex.arg;
+                    }
                 }
-                catch (hash $ex) {
-                    throw $ex.err, sprintf("%s (sequence: %y)", $ex.desc, $m.sequence), $ex.arg;
-                }
+                else
+                    return;
             }
-            Mapper::$.mapFieldType($key, $m, \$v, $rec);
+            Mapper::mapFieldType(key, m, \v, rec);
         }
 
         #! returns @ref Qore::True "True" if the field has a mapping, @ref Qore::False "False" if not
-        private bool hasMapping(hash $fh) {
-            return $fh.name || $fh.struct || $fh.code || $fh.sequence;
+        private bool hasMapping(hash fh) {
+            return fh.name || fh.struct || fh.code || fh.sequence;
         }
 
         #! perform per-field pre-processing on the passed map in the constructor
         /** @param k the field name
             @param fh a reference to the field's value in the map
         */
-        private checkMapField(string $k, reference $fh, hash $th) {
-            if ($fh.sequence) {
-                if ($fh.sequence.typeCode() != NT_STRING)
-                    $.error("column '%s.%s' has a sequence key assigned to type '%s' (%y)", $.table.getSqlName(), $.getFieldName($k), $fh.sequence.type(), $fh.sequence);
-                if (!$.db)
-                    $.db = AbstractDatabase::getDatabase($.table.getDatasource());
+        private checkMapField(string k, reference fh, hash th) {
+            if (fh.sequence) {
+                if (fh.sequence.typeCode() != NT_STRING)
+                    error("column '%s.%s' has a sequence key assigned to type '%s' (%y)", table.getSqlName(), getFieldName(k), fh.sequence.type(), fh.sequence);
 
-                if ($fh.type) {
-                    if ($fh.type != "number" && $fh.type != "integer")
-                        $.error("column '%s.%s' has a 'sequence' key, but the type is '%s'", $.table.getSqlName(), $.getFieldName($k), $fh.type);
+                if (!has_returning) {
+                    if (!db)
+                        db = AbstractDatabase::getDatabase(table.getDatasource());
+                
+                    if (fh.type) {
+                        if (fh.type != "number" && fh.type != "integer")
+                            error("column '%s.%s' has a 'sequence' key, but the type is '%s'", table.getSqlName(), getFieldName(k), fh.type);
+                    }
+                    else
+                        fh.type = "number";
                 }
-                else
-                    $fh.type = "number";
+                else {
+                    fh.constant = iop_seq(fh.sequence);
+                    ret_args += k;
+                }
             }
 
-            Mapper::$.checkMapField($k, \$fh);
+            Mapper::checkMapField(k, \fh);
+        }
+
+        #! returns a list of valid field types for this class (can be overridden in subclasses)
+        /** @return a list of valid types for this class (can be overridden in subclasses)
+        */
+        hash validTypes() {
+            return ValidTypes + (has_returning ? ("sequence": True) : NOTHING);
         }
 
         #! returns a list of valid field keys for this class (can be overridden in subclasses)
@@ -287,7 +316,7 @@ my InboundTableMapper $map($table, DbMapper);
         }
 
         #! inserts a row into the target table based on a mapped input record; does not commit the transaction
-        /** @param $rec the input record
+        /** @param rec the input record
 
             @return a hash of the row values inserted (row name: value)
 
@@ -295,14 +324,22 @@ my InboundTableMapper $map($table, DbMapper);
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
             @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data        
         */
-        hash insertRowNoCommit(hash $rec) {
-            my hash $h = $.mapData($rec + $.crec);
-            $.table.insertNoCommit($h);
-            return $h;
+        hash insertRowNoCommit(hash rec) {
+            hash h = mapData(rec + crec);
+            *hash rh = table.insertNoCommit(h, ("returning": ret_args));
+            if (rh)
+                h += rh;
+
+            Mapper::logOutput(h);
+            return h;
+        }
+
+        #! ignore logging from Mapper since we may have to log sequence values; output logged manually in insertRowNoCommit()
+        logOutput(hash h) {
         }
 
         #! inserts a row into the target table based on a mapped input record; commits the transaction
-        /** @param $rec the input record
+        /** @param rec the input record
 
             @return a hash of the row values inserted (column: value), not including the extra values
 
@@ -310,36 +347,36 @@ my InboundTableMapper $map($table, DbMapper);
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
             @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data        
         */
-        hash insertRow(hash $rec) {
-            on_success $.table.commit();
-            on_error $.table.rollback();
+        hash insertRow(hash rec) {
+            on_success table.commit();
+            on_error table.rollback();
 
-            return $.insertRowNoCommit($rec);
+            return insertRowNoCommit(rec);
         }
 
         #! commits the transaction
         nothing commit() {
-            $.table.commit();
+            table.commit();
         }
 
         #! rolls back the transaction
         nothing rollback() {
-            $.table.rollback();
+            table.rollback();
         }
 
         #! returns the table name
         string getTableName() {
-            return $.table.getSqlName();
+            return table.getSqlName();
         }
 
         #! returns the underlying SqlUtil::AbstractTable object
         SqlUtil::AbstractTable getTable() {
-            return $.table;
+            return table;
         }
 
         #! returns the @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object associated with this object
         AbstractDatasource getDatasource() {
-            return $.table.getDatasource();
+            return table.getDatasource();
         }
     }
 
@@ -350,16 +387,16 @@ my InboundTableMapper $map($table, DbMapper);
 
         private {
             #! data mapper
-            TableMapper::InboundTableMapper $.mapc;
+            TableMapper::InboundTableMapper mapc;
 
             #! row commit limit (<= 0 for no commits)
-            int $.commit_limit;
+            int commit_limit;
 
             #! row count for commit
-            int $.cnt = 0;
+            int cnt = 0;
 
             #! a copy of the last hash value mapped
-            hash $.val;
+            hash val;
         }
 
         #! creates the iterator from the arguments passed
@@ -376,24 +413,24 @@ const DbMapper = (
     "available": "Available",
     "in_transit": "InTransit",
     "status": ("constant": "01"),
-    "total": int sub (any $x, hash $rec) { return $rec.Available.toInt() + $rec.Ordered.toInt() + $rec.InTransit.toInt(); },
+    "total": int sub (any x, hash rec) { return rec.Available.toInt() + rec.Ordered.toInt() + rec.InTransit.toInt(); },
     );
 
-my InboundTableMapperIterator $i($input, $table, DbMapper);
+InboundTableMapperIterator i(input, table, DbMapper);
             @endcode
 
             @param i input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
-            @param table the target table object
-            @param map a hash providing field mappings; each hash key is the name of the output column in lower case in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
+            @param target the target table object
+            @param mapv a hash providing field mappings; each hash key is the name of the output column in lower case in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
             @param commit_limit row count before a commit is made; if <= 0 then no commits are made by this object, otherwise a commit is made for each \a commit_limit rows processed by this object, commits are made in calls to @ref next()
 
             @note by default \a commit_limit is 0 meaning that this object will make no commits; in this case the transaction will
             have to be commited explicitly externally
         */
-        constructor(Qore::AbstractIterator $i, SqlUtil::Table $table, hash $map, *hash $opts, int $commit_limit = 0) : Mapper::AbstractMapperIterator($i) {
-            $.mapc = new TableMapper::InboundTableMapper($table, $map, $opts);
-            $.commit_limit = $commit_limit > 0 ? $.commit_limit : 0;
+        constructor(Qore::AbstractIterator i, SqlUtil::Table target, hash mapv, *hash opts, int commit_limit = 0) : Mapper::AbstractMapperIterator(i) {
+            mapc = new TableMapper::InboundTableMapper(target, mapv, opts);
+            commit_limit = commit_limit > 0 ? commit_limit : 0;
         }
 
         #! creates the iterator from the arguments passed
@@ -410,24 +447,24 @@ const DbMapper = (
     "available": "Available",
     "in_transit": "InTransit",
     "status": ("constant": "01"),
-    "total": int sub (any $x, hash $rec) { return $rec.Available.toInt() + $rec.Ordered.toInt() + $rec.InTransit.toInt(); },
+    "total": int sub (any x, hash rec) { return rec.Available.toInt() + rec.Ordered.toInt() + rec.InTransit.toInt(); },
     );
 
-my InboundTableMapperIterator $i($input, $table, DbMapper);
+InboundTableMapperIterator i(input, table, DbMapper);
             @endcode
 
             @param i input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
-            @param table the target table object
-            @param map a hash providing field mappings; each hash key is the name of the output column in lower case in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
+            @param target the target table object
+            @param mapv a hash providing field mappings; each hash key is the name of the output column in lower case in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
             @param commit_limit row count before a commit is made; if <= 0 then no commits are made by this object, otherwise a commit is made for each \a commit_limit rows processed by this object, commits are made in calls to @ref next()
 
             @note by default \a commit_limit is 0 meaning that this object will make no commits; in this case the transaction will
             have to be commited explicitly externally
         */
-        constructor(Qore::AbstractIterator $i, SqlUtil::AbstractTable $table, hash $map, *hash $opts, int $commit_limit = 0) : Mapper::AbstractMapperIterator($i) {
-            $.mapc = new TableMapper::InboundTableMapper($table, $map, $opts);
-            $.commit_limit = $commit_limit > 0 ? $.commit_limit : 0;
+        constructor(Qore::AbstractIterator i, SqlUtil::AbstractTable target, hash mapv, *hash opts, int commit_limit = 0) : Mapper::AbstractMapperIterator(i) {
+            mapc = new TableMapper::InboundTableMapper(target, mapv, opts);
+            commit_limit = commit_limit > 0 ? commit_limit : 0;
         }
 
         #! creates the iterator from the arguments passed
@@ -443,27 +480,27 @@ const DbMapper = (
     "ordered": "Ordered",
     "available": "Available",
     "in_transit": "InTransit",
-    "total": int sub (any $x, hash $rec) { return $rec.Available.toInt() + $rec.Ordered.toInt() + $rec.InTransit.toInt(); },
+    "total": int sub (any x, hash rec) { return rec.Available.toInt() + rec.Ordered.toInt() + rec.InTransit.toInt(); },
     );
 
-my InboundTableMapper $map($table, DbMapper);
-my InboundTableMapperIterator $i($input, $map);
+InboundTableMapper mapper(table, DbMapper);
+InboundTableMapperIterator i(input, mapper);
             @endcode
 
             @param i input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
             @param map the mapper to transform the data
             @param commit_limit row count before a commit is made; if <= 0 then no commits are made by this object, otherwise a commit is made for each \a commit_limit rows processed by this object, commits are made in calls to @ref next()
         */
-        constructor(Qore::AbstractIterator $i, TableMapper::InboundTableMapper $map, int $commit_limit = 0) : Mapper::AbstractMapperIterator($i) {
-            $.mapc = $map;
-            $.commit_limit = $commit_limit > 0 ? $.commit_limit : 0;
+        constructor(Qore::AbstractIterator i, TableMapper::InboundTableMapper mapv, int commit_limit = 0) : Mapper::AbstractMapperIterator(i) {
+            mapc = mapv;
+            commit_limit = commit_limit > 0 ? commit_limit : 0;
         }
 
         #! returns the current row transformed with the mapper
         hash getValue() {
-            if ($.val)
-                return $.val;
-            return $.val = $.mapc.mapData($.i.getValue());
+            if (val)
+                return val;
+            return val = mapc.mapData(i.getValue());
         }
 
         #! Moves the current position of the input iterator to the next element; returns @ref Qore::False "False" if there are no more elements otherwise inserts the row in the target table and returns @ref Qore::True "True"
@@ -472,58 +509,58 @@ my InboundTableMapperIterator $i($input, $map);
             @return @ref Qore::False "False" if there are no more elements, in this case if there is an uncommitted transaction according to the internal row count, then @ref TableMapper::InboundTableMapper::commit() is called as well
         */
         bool next() {
-            delete $.val;
-            my bool $rv = $.i.next();
+            delete val;
+            bool rv = i.next();
 
-            if ($rv)
-                $.mapc.getTable().insertNoCommit($.getValue());
+            if (rv)
+                mapc.getTable().insertNoCommit(getValue());
 
             # commit transaction if necessary
-            if ($.commit_limit && (($rv && (++$.cnt == $.commit_limit)) || (!$rv && $.cnt))) {
-                $.mapc.commit();
-                $.cnt = 0;
+            if (commit_limit && ((rv && (++cnt == commit_limit)) || (!rv && cnt))) {
+                mapc.commit();
+                cnt = 0;
             }
 
-            return $rv;
+            return rv;
         }
 
         #! returns the \a commit_limit value set in the constructor()
         int commitLimit() {
-            return $.commit_limit;
+            return commit_limit;
         }
 
         #! commits the transaction
         nothing commit() {
-            $.mapc.commit();
+            mapc.commit();
         }
 
         #! rolls back the transaction
         nothing rollback() {
-            $.mapc.rollback();
+            mapc.rollback();
         }
 
         #! returns the table name
         string getTableName() {
-            return $.mapc.getTableName();
+            return mapc.getTableName();
         }
 
         #! returns the internal record count
         /** @see resetCount()
         */
         int getCount() {
-            return $.mapc.getCount();
+            return mapc.getCount();
         }
 
         #! resets the internal record count
         /** @see getCount()
         */
         resetCount() {
-            $.mapc.resetCount();
+            mapc.resetCount();
         }
 
         #! returns the @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object associated with this object
         AbstractDatasource getDatasource() {
-            return $.mapc.getDatasource();
+            return mapc.getDatasource();
         }
     }
 }

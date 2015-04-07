@@ -124,6 +124,7 @@
       - implemented per-field and global \c "number_format" mapper options
     - <a href="../../modules/TableMapper/html/index.html">TableMapper</a> module updates:
       - added table name to error messages
+      - implemented more efficient support for inserts from a sequence for databases supporting the \c "returning" clause in insert statements; now such inserts are made in a single round trip instead of n + 1 where n is the number of sequences in the insert
     - <a href="../../modules/RestClient/html/index.html">RestClient</a> module updates:
       - implemented RestClient::addDefaultHeaders()
       - implemented RestClient::getDefaultHeaders()

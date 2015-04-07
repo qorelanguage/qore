@@ -8260,7 +8260,7 @@ $table.insert($row);
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
          */
         *hash insert(hash row, *hash opt) {
-            t.insert(row, opt);
+            return t.insert(row, opt);
         }
 
         #! inserts a row into the table without any transaction management; a transaction will be in progress after this method is successfully executed
@@ -8277,7 +8277,7 @@ $table.insertNoCommit($row);
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
          */
         *hash insertNoCommit(hash row, *hash opt) {
-            t.insertNoCommit(row, opt);
+            return t.insertNoCommit(row, opt);
         }
 
         #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); the transaction is committed if successful, if an error occurs, it is rolled back
