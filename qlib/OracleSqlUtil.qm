@@ -245,7 +245,7 @@ my hash $schema = (
     - fixed selects with "limit" but no "offset"
     - convert date/time values to timestamps with microseconds resolution instead of dates with second resolution when dynamically inserting values as strings in SQL (binding by value not affected)
     - fixed schema information classes when the "string-numbers" driver option is enabled
-    - implemented \c "returning" clause as an insert option
+    - implemented support for the \c "returning" clause as an insert option
 
     @subsection v10 OracleSqlUtil v1.0
     - initial release
@@ -2276,7 +2276,7 @@ my any $v = $c.name;
                 if (!c)
                     throw "COLUMN-ERROR", sprintf("%s.%s is not a valid column for the \"returning\" clause (valid columns: %y)", name, k, columns.keys());
                 l += k;
-                args += c.qore_type *? Type::String;
+                args += c.qore_type ?* Type::String;
             }
             sql += sprintf(" returning %s into %s", (foldl $1 + "," + $2, l), (foldl $1 + "," + $2, (map ":" + $1, l)));
             
