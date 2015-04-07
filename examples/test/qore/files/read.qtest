@@ -2,12 +2,13 @@
 %require-types
 %enable-all-warnings
 %allow-bare-refs
+%requires Util
 %requires UnitTest
 
 my UnitTest t();
 
 my string str = "content\nxxx";
-my string file = t.tmpLocation() + "/test";
+my string file = tmpLocation() + "/test";
 my File fw();
 
 unlink(file);

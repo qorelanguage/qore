@@ -1,12 +1,13 @@
 #!/usr/bin/env qore 
 %require-types
 %enable-all-warnings
+%requires Util
 %requires UnitTest
 
 my UnitTest $t();
 
 %ifndef Windows
-my string $tmp = $t.tmpLocation();
+my string $tmp = tmpLocation();
 my string $file = $tmp + '/iso-8859-1.txt';
 my string $str = "Öffentl. Körperschaft/\n\n";
 

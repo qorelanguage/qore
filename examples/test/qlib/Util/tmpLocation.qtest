@@ -1,0 +1,10 @@
+#!/usr/bin/env qore
+%require-types
+%enable-all-warnings
+%new-style
+%requires UnitTest
+%requires ../../../../qlib/Util.qm
+
+UnitTest t();
+
+t.ok(tmpLocation().length() > 0, "got some location");

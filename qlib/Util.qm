@@ -65,6 +65,7 @@ module Util {
     - @ref Util::parse_to_qore_value()
     - @ref Util::slice()
     - @ref Util::same()
+    - @ref Util::tmpLocation()
 
     @section utilrelnotes Release Notes
 
@@ -667,5 +668,25 @@ my string $str = get_marketing_byte_size($n);
     */
     public list sub slice(list $l, softlist $indices) {
         return map $l[$1], $indices, ($1 >= 0 && $1 < $l.size());
+    }
+
+    #! Returns path for temporary files
+    /** @par Example:
+        @code
+my string $testfile = this.tmpLocation() + '/test.txt';
+# some processing
+unlink(testfile);
+        @endcode
+    */
+    public string sub tmpLocation() {
+        # TODO: add support for other platforms
+        my *string $dir = $ENV.TMP ?* $ENV.TMPDIR ?* $ENV.TEMP;
+        if (!$dir)
+            $dir = PlatformOS == "Windows" ? "c::\\temp" : "/tmp";
+
+        if (!is_writable($dir))
+            throw "TMP-ERROR", sprintf("unable to find the location of the temporary directory; %y is not writable", $dir);
+
+        return realpath($dir);
     }
 }

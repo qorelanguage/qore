@@ -2,12 +2,13 @@
 %require-types
 %enable-all-warnings
 %allow-bare-refs
+%requires Util
 %requires UnitTest
 
 my UnitTest t();
 
 %ifndef Windows
-my string file = t.tmpLocation() + "/output";
+my string file = tmpLocation() + "/output";
 
 system("echo OUTPUT > " + file);
 

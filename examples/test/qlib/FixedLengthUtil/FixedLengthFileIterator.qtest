@@ -3,11 +3,12 @@
 %new-style
 %enable-all-warnings
 %requires UnitTest
+%requires Util    
 %requires ../../../../qlib/FixedLengthUtil.qm
 
 UnitTest unit();
 
-string file = unit.tmpLocation() + "/file.fll";
+string file = tmpLocation() + "/file.fll";
 unlink(file);
 File FW = new File();
 FW.open(file, O_WRONLY | O_CREAT);

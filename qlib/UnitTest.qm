@@ -55,6 +55,7 @@ module UnitTest {
     @code
 #!/usr/bin/env qore
 %requires UnitTest
+%requires Util
 %requires Cow # module that we want to test
 %exec-class TestCow
 
@@ -336,26 +337,6 @@ available output formats (stdout):
 
         printf("%s\n", makeFormattedXMLString(junit));
 %endif
-    }
-
-    #! Returns path for temporary files
-    /** @par Example:
-        @code
-string testfile = this.tmpLocation() + '/test.txt';
-# some processing
-unlink(testfile);
-        @endcode
-    */
-    string tmpLocation() {
-        # TODO: add support for other platforms
-        my *string dir = ENV.TMP ?* ENV.TMPDIR ?* ENV.TEMP;
-        if (!dir)
-            dir = PlatformOS == "Windows" ? "c::\\temp" : "/tmp";
-
-        if (!is_writable(dir))
-            throw "TMP-ERROR", sprintf("unable to find the location of the temporary directory; %y is not writable", dir);
-
-        return realpath(dir);
     }
 
     #! Performs a compare test
