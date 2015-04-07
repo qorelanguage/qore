@@ -72,11 +72,11 @@ class TestCow inherits UnitTest {
 
 		sub fly (string animal) {
 			if (animal === "cow") {
-				throw 'cow cannot fly'
+				throw 'UNABLE-FLY', 'cow cannot fly'
 			}
 		}
 
-		exception(\fly(), ('cow'), 'cow cannot fly', 'invoked exception when cow trying to fly');
+                exception(\fly(), ('cow'), 'invoked exception when cow trying to fly', UNABLE-FLY, 'cow cannot fly');
 
 		cmploop(
 			\eat(),
@@ -425,25 +425,30 @@ this.like(Cow.sound(), 'moo+', "cow's sound is correct");
     #! Performs a test for exception
     /** @param f tested function
         @param params params for tested function
-        @param regex a regexp that expected result value of callref with given params should match
         @param msg test message that will be printed
+        @param err exception code
+        @param regex a regexp that expected exception desc value of callref with given params should match
         @par Example:
         @code
 sub fly (string animal) {
     if (animal === "cow") {
-        throw 'cow cannot fly'
+        throw 'UNABLE-FLY', 'cow cannot fly'
     }
 }
 
-this.exception(\fly(), ('cow'), 'cow cannot fly', 'invoked exception when cow trying to fly');
+this.exception(\fly(), ('cow'), 'invoked exception when cow trying to fly', UNABLE-FLY, 'cow cannot fly');
         @endcode
     */
-    int exception(callref f, *softlist params, string regex, string msg) {
+    int exception(callref f, *softlist params, string msg, string err, *string regex) {
         try {
             call_function_args(f, params);
         }
         catch (ex) {
-            return like(ex.desc, regex, msg);
+            cmp(err, ex.err, msg + ' (err check)');
+            if (exists regex) {
+                like(ex.desc, regex, msg + ' (desc check)');
+            }
+            return 2;
         }
         m_comment = '# found normal exit instead of exception';
         return ok(0, msg);

@@ -86,15 +86,15 @@ sub test() {
         unit.cmp(p.callFunction("get_value"), "test", "injection-2");
         unit.cmp(p.callFunction("next"), False, "injection-3");
         
-        unit.exception(sub() {p.callFunction("get_value");}, NOTHING, "iterator not valid", "neg-injection-1");
+        unit.exception(sub() {p.callFunction("get_value");}, "iterator not valid", "neg-injection-1", 'ITERATOR-ERROR');
     }
 
     {
         # set up the Program container
         Program p(PO_NO_API|PO_NO_CHILD_PO_RESTRICTIONS|PO_NEW_STYLE);
-        unit.exception(sub() {p.importClass("Test::FileLineIteratorFake", "Qore::FileLineIterator", True);}, NOTHING, "cannot import class", "neg-injection-2");
-        unit.exception(sub() {p.importFunction("Test::exit", "Qore::exit", True);}, NOTHING, "cannot import function", "neg-injection-3");
-        unit.exception(sub() {p.loadApplyToUserModule("Util");}, NOTHING, "cannot load module.*for injection", "neg-injection-4");
+        unit.exception(sub() {p.importClass("Test::FileLineIteratorFake", "Qore::FileLineIterator", True);}, NOTHING, "neg-injection-2", 'CLASS-IMPORT-ERROR', "cannot import class");
+        unit.exception(sub() {p.importFunction("Test::exit", "Qore::exit", True);}, NOTHING, "neg-injection-3", 'FUNCTION-IMPORT-ERROR', "cannot import function");
+        unit.exception(sub() {p.loadApplyToUserModule("Util");}, NOTHING, "neg-injection-4", 'LOAD-MODULE-ERROR', "cannot load module.*for injection");
     }
 
     # test re-injection of a module

@@ -84,15 +84,15 @@ sub test() {
     p.parse(Code, "access");
 
     # this must fail: B::t(int) is private
-    unit.exception(sub() {p.callFunction("t1");}, NOTHING, "cannot call private variant", "negative-private-method-access-1");
+    unit.exception(sub() {p.callFunction("t1");}, "cannot call private variant", "negative-private-method-access-1", 'ILLEGAL-CALL');
 
     unit.cmp(p.callFunction("t2"), "string", "private-method-access-1");
 
     # this must fail: B::t(int) is private and also B is privately-inherited
-    unit.exception(sub() {p.callFunction("t3");}, NOTHING, "method of a privately-inherited class", "negative-private-method-access-2");
+    unit.exception(sub() {p.callFunction("t3");}, "method of a privately-inherited class", "negative-private-method-access-2", 'BASE-CLASS-IS-PRIVATE');
 
     # this must fail: B::t(string) is a method of a privately-inherited class
-    unit.exception(sub() {p.callFunction("t4");}, NOTHING, "method of a privately-inherited class", "negative-private-method-access-3");
+    unit.exception(sub() {p.callFunction("t4");}, "method of a privately-inherited class", "negative-private-method-access-3", 'BASE-CLASS-IS-PRIVATE');
 
     unit.cmp(p.callFunction("t5"), "int", "private-method-access-2");
     unit.cmp(p.callFunction("t6"), "string", "private-method-access-3");
@@ -109,23 +109,23 @@ sub test() {
     unit.cmp(p.callFunction("t13"), "none", "private-method-access-10");
 
     # this must fail: C::x() is private
-    unit.exception(sub() {p.callFunction("t14");}, NOTHING, "is private and cannot be accessed externally", "negative-private-method-access-8");
+    unit.exception(sub() {p.callFunction("t14");}, "is private and cannot be accessed externally", "negative-private-method-access-8", 'METHOD-IS-PRIVATE');
 
     unit.cmp(p.callFunction("t15")(), "none", "private-method-access-11");
 
     # this must fail when calling the call reference with an integer and succeed when calling with a string arg
-    unit.exception(sub() {p.callFunction("t16_17")(1);}, NOTHING, "cannot call private variant", "negative-private-method-access-9");
+    unit.exception(sub() {p.callFunction("t16_17")(1);}, "cannot call private variant", "negative-private-method-access-9", 'ILLEGAL-CALL');
 
     unit.cmp(p.callFunction("t16_17")("str"), "string", "private-method-access-12");
 
     # this must fail because B is privately inherited in D
-    unit.exception(sub() {p.callFunction("t18");}, NOTHING, "cannot create a call reference", "negative-private-method-access-10");
+    unit.exception(sub() {p.callFunction("t18");}, "cannot create a call reference", "negative-private-method-access-10", 'ILLEGAL-CALL-REFERENCE');
 
     # this must fail at parse time because B::t() is privately inherited in D, therefore it should not be possible to take a reference to the method of the privately-inherited class
-    unit.exception(sub() {p.parse("code sub test() { D t(); return \\t.t(); }", "test");}, NOTHING, "is private in this context", "negative-private-method-access-11");
+    unit.exception(sub() {p.parse("code sub test() { D t(); return \\t.t(); }", "test");}, "is private in this context", "negative-private-method-access-11", 'PARSE-ERROR');
 
     # check inheritance
     p.parse(Class1, "class-1");
-    unit.exception(sub() {p.parse(Class2, "test");}, NOTHING, "cannot be combined with class", "negative-inheritance-1");
-    unit.exception(sub() {p.parse(Class3, "test");}, NOTHING, "cannot be combined with class", "negative-inheritance-2");
+    unit.exception(sub() {p.parse(Class2, "test");}, "cannot be combined with class", "negative-inheritance-1", 'PARSE-ERROR');
+    unit.exception(sub() {p.parse(Class3, "test");}, "cannot be combined with class", "negative-inheritance-2", 'PARSE-ERROR');
 }

@@ -26,4 +26,4 @@ class D {
 }
 ";
 
-unit.exception(sub () { p.parse(code, "test"); }, NOTHING, "class", "constant initialization using class with uncommitted changes");
+unit.exception(sub () { p.parse(code, "test"); }, (), "constant initialization using class with uncommitted changes", 'ILLEGAL-CLASS-INSTANTIATION', "class");

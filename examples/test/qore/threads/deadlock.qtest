@@ -97,19 +97,19 @@ sub test_thread_resources() {
     my Mutex $m();
     $m.lock();
 
-    $unit.exception(sub () {throw_thread_resource_exceptions();}, NOTHING, "terminated while holding", "mutex-resource-error-1");
+    $unit.exception(sub () {throw_thread_resource_exceptions();}, NOTHING, "mutex-resource-error-1", 'LOCK-ERROR', "terminated while holding");
 
     my Gate $g();
     $g.enter();
-    $unit.exception(sub () {throw_thread_resource_exceptions();}, NOTHING, "terminated while holding", "gate-resource-error-1");
+    $unit.exception(sub () {throw_thread_resource_exceptions();}, NOTHING, "gate-resource-error-1", 'LOCK-ERROR', "terminated while holding");
 
     my RWLock $rw();
     $rw.readLock();
     $rw.readLock();
-    $unit.exception(sub () {throw_thread_resource_exceptions();}, NOTHING, "terminated while holding", "rwl-resource-error-1");
+    $unit.exception(sub () {throw_thread_resource_exceptions();}, NOTHING, "rwl-resource-error-1", 'LOCK-ERROR', "terminated while holding");
 
     $rw.writeLock();
-    $unit.exception(sub () {throw_thread_resource_exceptions();}, NOTHING, "terminated while holding", "rwl-resource-error-2");
+    $unit.exception(sub () {throw_thread_resource_exceptions();}, NOTHING, "rwl-resource-error-2", 'LOCK-ERROR', "terminated while holding");
 
     $rw.readLock();
     mark_thread_resources();
@@ -117,7 +117,7 @@ sub test_thread_resources() {
     # no exception should be thrown here
     throw_thread_resource_exceptions_to_mark();    
 
-    $unit.exception(sub () {throw_thread_resource_exceptions();}, NOTHING, "terminated while holding", "rwl-resource-error-3");
+    $unit.exception(sub () {throw_thread_resource_exceptions();}, NOTHING, "rwl-resource-error-3", 'LOCK-ERROR', "terminated while holding");
 }
 
 sub cond_test(Counter $c, Condition $cond, Mutex $m, int $n) {
@@ -188,27 +188,27 @@ sub main() {
 
     # mutex tests
     $m.lock();
-    $unit.exception(sub () {$m.lock();}, NOTHING, "called Mutex::lock", "mutex-lock-error-1");
+    $unit.exception(sub () {$m.lock();}, NOTHING, "mutex-lock-error-1", 'LOCK-ERROR', "called Mutex::lock");
 
     $m.unlock();
-    $unit.exception(sub () {$m.unlock();}, NOTHING, "called Mutex::unlock", "mutex-lock-error-2");
+    $unit.exception(sub () {$m.unlock();}, NOTHING, "mutex-lock-error-2", 'LOCK-ERROR', "called Mutex::unlock");
 
     delete $m;
 
     # Gate tests
-    $unit.exception(sub () {$g.exit();}, NOTHING, "called Gate::exit", "gate-lock-error-1");
+    $unit.exception(sub () {$g.exit();}, NOTHING, "gate-lock-error-1", 'LOCK-ERROR', "called Gate::exit");
     $g.enter();
-    $unit.exception(sub () {delete $g;}, NOTHING, "deleted Gate object", "gate-destructor-error");
+    $unit.exception(sub () {delete $g;}, NOTHING, "gate-destructor-error", 'LOCK-ERROR', "deleted Gate object");
 
-    $unit.exception(sub () {$rw1.writeUnlock();}, NOTHING, "RWLock::writeUnlock", "rwl-lock-error-1");
-    $unit.exception(sub () {$rw1.readUnlock();}, NOTHING, "RWLock::readUnlock", "rwl-lock-error-2");
+    $unit.exception(sub () {$rw1.writeUnlock();}, NOTHING, "rwl-lock-error-1", 'LOCK-ERROR', "RWLock::writeUnlock");
+    $unit.exception(sub () {$rw1.readUnlock();}, NOTHING, "rwl-lock-error-2", 'LOCK-ERROR', "RWLock::readUnlock");
 
     $rw1.writeLock();
-    $unit.exception(sub () {$rw1.readUnlock();}, NOTHING, "RWLock::readUnlock", "rwl-lock-error-3");
+    $unit.exception(sub () {$rw1.readUnlock();}, NOTHING, "rwl-lock-error-3", 'LOCK-ERROR', "RWLock::readUnlock");
 
     $rw1.writeUnlock();
     $rw1.readLock();
-    $unit.exception(sub () {$rw1.writeUnlock();}, NOTHING, "RWLock::writeUnlock", "rwl-lock-error-4");
+    $unit.exception(sub () {$rw1.writeUnlock();}, NOTHING, "rwl-lock-error-4", 'LOCK-ERROR', "RWLock::writeUnlock");
 
     $rw1.readUnlock();
 
@@ -225,7 +225,7 @@ sub main() {
     # lock and unlock to ensure until there are 2 condition variables waiting on this Mutex
     $m.lock();
     $m.unlock();
-    $unit.exception(sub () {delete $m;}, NOTHING, "Mutex object deleted", "mutex-destructor-error");
+    $unit.exception(sub () {delete $m;}, NOTHING, "mutex-destructor-error", 'LOCK-ERROR', "Mutex object deleted");
 
     # try it with a RWLock object
     $c.inc();
@@ -236,7 +236,7 @@ sub main() {
     # lock and unlock to ensure until there are 2 condition variables waiting on this Mutex
     $rw1.writeLock();
     $rw1.writeUnlock();
-    $unit.exception(sub () {delete $rw1;}, NOTHING, "RWLock object deleted", "rwl-destructor-error");
+    $unit.exception(sub () {delete $rw1;}, NOTHING, "rwl-destructor-error", 'RWLOCK-ERROR', "RWLock object deleted");
 
     # make sure threads sleeping on a counter wake up with an exception 
     # when the counter is deleted
@@ -247,7 +247,7 @@ sub main() {
     # sleep until there are 2 counter variables waiting on this Mutex
     while ($c1.getWaiting() != 2)
 	usleep(10ms);
-    $unit.exception(sub () {delete $c1;}, NOTHING, "Counter deleted while", "counter-destructor-error");
+    $unit.exception(sub () {delete $c1;}, NOTHING, "counter-destructor-error", 'COUNTER-ERROR', "Counter deleted while");
 
     # make sure threads sleeping on a Queue wake up with an exception 
     # when the Queue is deleted
@@ -257,7 +257,7 @@ sub main() {
     # sleep until there are 2 threads waiting on this Queue
     while ($q.getWaiting() != 2)
 	usleep(10ms);
-    $unit.exception(sub () {delete $q;}, NOTHING, "Queue deleted while", "queue-destructor-error");
+    $unit.exception(sub () {delete $q;}, NOTHING, "queue-destructor-error", 'QUEUE-ERROR', "Queue deleted while");
 
     # test thread resource tracking checks
     background test_thread_resources();

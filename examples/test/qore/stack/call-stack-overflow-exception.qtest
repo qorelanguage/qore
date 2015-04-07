@@ -18,6 +18,6 @@ sub recurse() {
 }
 
 sub do_test(string $str) {
-    $t.exception(\recurse(), (), "this thread's stack has exceeded the stack size limit", $str + ': STACK-LIMIT-EXCEEDED exception');
+    $t.exception(\recurse(), (), $str + ': STACK-LIMIT-EXCEEDED exception', 'STACK-LIMIT-EXCEEDED', "this thread's stack has exceeded the stack size limit");
 }
 

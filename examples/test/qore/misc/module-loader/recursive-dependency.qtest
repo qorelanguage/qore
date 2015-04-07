@@ -12,5 +12,5 @@ our UnitTest unit();
 test();
 
 sub test() {
-    unit.exception(sub() {load_module("./R1.qm");}, NOTHING, "cannot load user module", "module-recursive-1");
+    unit.exception(sub() {load_module("./R1.qm");}, NOTHING, "module-recursive-1", 'LOAD-MODULE-ERROR', "cannot load user module");
 }
