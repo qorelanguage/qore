@@ -117,8 +117,6 @@ void QoreRegexNode::parse() {
       qore_program_private::addParseException(getProgram(), xsink);
 }
 
-#define OVECCOUNT 30
-#define OVECMAX 300
 bool QoreRegexNode::exec(const QoreString* target, ExceptionSink* xsink) const {
    TempEncodingHelper t(target, QCS_UTF8, xsink);
    if (!t)
@@ -127,6 +125,10 @@ bool QoreRegexNode::exec(const QoreString* target, ExceptionSink* xsink) const {
    return exec(t->getBuffer(), t->strlen());
 }
 
+// default subpattern buffer size; see pcre_exec() / pcreapi for more info
+#define OVECCOUNT 30
+// maximum subpattern buffer size; we must limit this to control the amount of stack space used; must be OVECCOUNT * a power of 2
+#define OVECMAX 480
 bool QoreRegexNode::exec(const char* str, size_t len) const {   
    // the PCRE docs say that if we don't send an ovector here the library may have to malloc
    // memory, so, even though we don't need the results, we include the vector to avoid 
