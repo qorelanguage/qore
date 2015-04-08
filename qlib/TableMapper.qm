@@ -187,8 +187,8 @@ InboundTableMapper mapper(table, DbMapper);
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
         */
-        constructor(SqlUtil::AbstractTable table, hash mapv, *hash opts) {
-            table = table;
+        constructor(SqlUtil::AbstractTable target, hash mapv, *hash opts) {
+            table = target;
             setup(mapv, opts);
 
             # check map for logical errors
