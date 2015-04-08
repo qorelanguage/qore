@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -63,8 +63,6 @@ typedef qore_size_t (*mbcs_pos_t)(const char* str, const char* ptr, bool &invali
     @return 0=invalid, positive = number of characters needed, negative numbers = number of additional bytes needed to perform the check
  */
 typedef qore_size_t (*mbcs_charlen_t)(const char* str, qore_size_t valid_len);
-
-class ExceptionSink;
 
 //! defines string encoding functions in Qore
 /** for performance reasons this is not a class hierarchy with virtual methods;
@@ -182,8 +180,8 @@ public:
 };
 
 // case-insensitive maps for encodings
-typedef std::map<const char*, QoreEncoding*, class ltcstrcase> encoding_map_t;
-typedef std::map<const char*, const QoreEncoding*, class ltcstrcase> const_encoding_map_t;
+typedef std::map<const char*, QoreEncoding*, ltcstrcase> encoding_map_t;
+typedef std::map<const char*, const QoreEncoding*, ltcstrcase> const_encoding_map_t;
 
 class QoreString;
 
@@ -194,7 +192,7 @@ class QoreEncodingManager {
 private:
    DLLLOCAL static encoding_map_t emap;
    DLLLOCAL static const_encoding_map_t amap;
-   DLLLOCAL static class QoreThreadLock mutex;
+   DLLLOCAL static QoreThreadLock mutex;
    
    DLLLOCAL static const QoreEncoding* addUnlocked(const char* code, const char* desc, unsigned char maxwidth = 1, mbcs_length_t l = 0, mbcs_end_t e = 0, mbcs_pos_t p = 0, mbcs_charlen_t = 0);
    DLLLOCAL static const QoreEncoding* findUnlocked(const char* name);
@@ -232,7 +230,8 @@ DLLEXPORT extern QoreEncodingManager QEM;
 // builtin character encodings
 DLLEXPORT extern const QoreEncoding* QCS_DEFAULT, //!< the default encoding for the Qore library 
    *QCS_USASCII,                                  //!< ascii encoding
-   *QCS_UTF8,                                     //!< UTF-8 multi-byte encoding (the only multi-byte encoding, all others are single-byte encodings)
+   *QCS_UTF8,                                     //!< UTF-8 multi-byte encoding (only UTF-8 and UTF-16 are multi-byte encodings)
+   *QCS_UTF16,                                    //!< UTF-16 (only UTF-8 and UTF-16 are multi-byte encodings)
    *QCS_ISO_8859_1,                               //!< latin-1, Western European encoding
    *QCS_ISO_8859_2,                               //!< latin-2, Central European encoding
    *QCS_ISO_8859_3,                               //!< latin-3, Southern European character set
@@ -252,7 +251,14 @@ DLLEXPORT extern const QoreEncoding* QCS_DEFAULT, //!< the default encoding for 
    *QCS_KOI8_U,                                   //!< Ukrainian: Kod Obmena Informatsiey, 8 bit
    *QCS_KOI7;                                     //!< Russian: Kod Obmena Informatsiey, 7 bit characters
 
-//! returns the length of the next UTF-8 character or 0 for an encoding error or a negative number if the string is too short to represent the character
+//! returns the byte length of the next UTF-8 character or 0 for an encoding error or a negative number if the string is too short to represent the character
+/** FIXME: change return type to qore_offset_t
+ */
 DLLEXPORT qore_size_t q_UTF8_get_char_len(const char* p, qore_size_t valid_len);
+
+//! returns the byte length of the next UTF-16 character or 0 for an encoding error or a negative number if the string is too short to represent the character
+/** FIXME: change return type to qore_offset_t
+ */
+DLLEXPORT qore_size_t q_UTF16_get_char_len(const char* p, qore_size_t valid_len);
 
 #endif // _QORE_CHARSET_H

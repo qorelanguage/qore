@@ -142,6 +142,7 @@
       - added @ref Qore::FileLineIterator::hstat() and @ref Qore::FileLineIterator::stat()
     - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module updates:
       - implemented insert option support and support for the \c "returning" clause in supported drivers to avoid server round trips
+    - added initial support for UTF-16 character encoding; note that UTF-16 is not backwards-compatible with ASCII and therefore not supported universally in %Qore; it's recommended to convert these strings to UTF-8 in %Qore; do not use UTF-16 as the default character encoding in %Qore
 
     @subsection qore_0812_bug_fixes Bug Fixes in Qore
     - fixed format of octal constant - there was an error if a string contained octal constant that is shorter than 3 digit
