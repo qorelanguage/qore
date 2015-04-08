@@ -1,0 +1,39 @@
+#!/usr/bin/env qore
+%require-types
+%enable-all-warnings
+%new-style
+%allow-bare-refs
+
+%requires UnitTest
+%exec-class App
+
+class App {
+    private {
+        int SUBPATTERNS_TO_TEST  = 100000;
+        int SUBPATTERNS_AT_LEAST = 1;
+    }
+    constructor() {
+        UnitTest unit();
+
+        foreach int capture_length in ((1, 10, 100, 1000, 10000, 100000, 1000000, 10000000)) {
+            string fixedlenstr = (map 'a', xrange(1, capture_length)).join('');
+            foreach int i in (xrange(1, SUBPATTERNS_TO_TEST)) {
+                string str   = (map fixedlenstr, xrange(1, i)).join('');
+                string regex = (map '(' + fixedlenstr + ')', xrange(1, i)).join('');
+                
+                any result;
+                try {
+                    result = regex_extract(str, regex);
+                }
+                catch(hash ex) {
+                    unit.ok(i >= SUBPATTERNS_AT_LEAST, i + ' subpatterns of the length ' + capture_length + ' available');
+                    break;
+                }
+                
+                if (!exists result) {
+                    unit.ok(False, 'no subpatterns found but it either should or throw an exception for subpattern length ' + capture_length);
+                }
+            }
+        }
+    }
+}
