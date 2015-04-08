@@ -63,6 +63,8 @@ protected:
          const char* p = strstr(ptr, eol->getBuffer());
          if (!p) {
             line->concat(ptr);
+            if (line->empty())
+               return false;
             offset += line->strlen();
          }
          else {

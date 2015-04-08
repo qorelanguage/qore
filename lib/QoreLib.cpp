@@ -1867,3 +1867,33 @@ int qore_get_ptr_hash(QoreString& str, const void* ptr) {
       printd(0, "qore_get_ptr_hash() digest calculation failed for ptr %p\n", ptr);
    return rc;
 }
+
+void* q_memmem(const void* big, size_t big_len, const void* little, size_t little_len) {
+   assert(big_len && little_len);
+#ifdef HAVE_MEMMEM
+   return memmem(big, big_len, little, little_len);
+#else
+   const char* lt = (const char*)little;
+   const char* bg = (const char*)big;
+   const char* p = bg;
+   const char* end = bg + big_len;
+   while (p < end) {
+      const char* f = (const char*)memchr(p, lt[0], end - p);
+      if (!f || ((bg - f) < little_len))
+	 return 0;
+      p = f;
+      bool found = true;
+      for (size_t i = 1; i < little_len; ++i) {
+	 if (*f != lt[i]) {
+	    found = false;
+	    break;
+	 }
+	 ++f;
+      }
+      if (found)
+	 return (void*)p;
+      ++p;
+   }
+   return 0
+#endif
+}
