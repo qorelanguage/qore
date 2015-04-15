@@ -96,7 +96,7 @@ printf("%d record%s inserted\n", map.getCount(), map.getCount() == 1 ? "" : "s")
     @section tablemapperrelnotes Release Notes
 
     @subsection tablemapperv1_1 TableMapper v1.1
-    - added table name to error messages
+    - added table name and datasource description to error messages
     - added the getDatasource() method to classes
     - implemented more efficient support for inserts from a sequence for databases supporting the \c "returning" clause in insert statements; now such inserts are made in a single round trip instead of n + 1 where n is the number of sequences in the insert
 
@@ -186,6 +186,7 @@ InboundTableMapper mapper(table, DbMapper);
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
+            @throw TABLE-ERROR the table includes a column using an unknown native data type
         */
         constructor(SqlUtil::AbstractTable target, hash mapv, *hash opts) {
             table = target;
@@ -202,7 +203,7 @@ InboundTableMapper mapper(table, DbMapper);
             # ensure there are no unknown mappings
             foreach string k in (mapc.keyIterator()) {
                 if (!cols.hasKey(k))
-                    error("mapper specifies column '%s' that does not exist in the target table '%s'", getFieldName(k), table.getSqlName());                
+                    error("mapper specifies column '%s' that does not exist in target table '%s'", getFieldName(k), table.getSqlName());                
             }
 
             # update output field definitions from real table description
@@ -230,7 +231,7 @@ InboundTableMapper mapper(table, DbMapper);
                     case "number": ch.type = "number"; break;
                     case "integer": ch.type = "integer"; break;
                     case "date": ch.type = "date"; break;
-                    default: throw "TABLE-ERROR", sprintf("column '%s.%s' has unknown native type %y", table.getSqlName(), cn, col.native_type);
+                    default: error2("TABLE-ERROR", "column '%s.%s' has unknown native type %y", table.getSqlName(), cn, col.native_type);
                 }
                 if (mand)
                     ch.mand = True;
@@ -377,6 +378,16 @@ InboundTableMapper mapper(table, DbMapper);
         #! returns the @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object associated with this object
         AbstractDatasource getDatasource() {
             return table.getDatasource();
+        }
+
+        #! prepends the datasource description to the error string and calls Mapper::error()
+        private error(string fmt) {
+            Mapper::error(vsprintf(sprintf("datasource %s: ", get_desc(table.getDatasource())) + fmt, argv));
+        }
+
+        #! prepends the datasource description to the error description and calls Mapper::error2()
+        private error2(string ex, string fmt) {
+            Mapper::error2(ex, vsprintf(sprintf("datasource %s: ", get_desc(table.getDatasource())) + fmt, argv));
         }
     }
 
@@ -562,5 +573,18 @@ InboundTableMapperIterator i(input, mapper);
         AbstractDatasource getDatasource() {
             return mapc.getDatasource();
         }
+    }
+}
+
+namespace Private {
+    # returns a descriptive string for the datasource
+    string sub get_desc(AbstractDatasource ds) {
+        hash h = ds.getConfigHash();
+        string str = sprintf("%s:%s@%s", h.type, h.user, h.db);
+        if (h.host)
+            str += "%" + h.host;
+        if (h.port)
+            str += ":" + h.port;
+        return str;
     }
 }
