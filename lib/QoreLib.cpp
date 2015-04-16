@@ -1894,6 +1894,6 @@ void* q_memmem(const void* big, size_t big_len, const void* little, size_t littl
 	 return (void*)p;
       ++p;
    }
-   return 0
+   return 0;
 #endif
 }
