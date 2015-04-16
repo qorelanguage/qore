@@ -463,6 +463,24 @@ void ThreadProgramData::saveProgram(bool runtime) {
 }
 
 void ThreadProgramData::del(ExceptionSink* xsink) {
+   // first purge all data
+   arg_vec_t* cl = 0;
+
+   // remove and finalize all thread-local data in all referenced programs
+   {
+      AutoLocker al(pslock);
+      for (pgm_set_t::iterator i = pgm_set.begin(), e = pgm_set.end(); i != e; ++i)
+         qore_program_private::finalizeThreadData(*i, this, cl);
+   }
+
+   // delete thread-local data
+   if (cl) {
+      for (arg_vec_t::iterator i = cl->begin(), e = cl->end(); i != e; ++i)
+         (*i)->deref(xsink);
+      delete cl;
+   }
+
+   // purge thread data in contained programs
    while (true) {
       QoreProgram* pgm;
       {
@@ -1639,7 +1657,7 @@ namespace {
    }
 
    extern "C" void* op_background_thread(void* x) {
-      BGThreadParams* btp = (BGThreadParams*) x;
+      BGThreadParams* btp = (BGThreadParams*)x;
       // register thread
       register_thread(btp->tid, pthread_self(), btp->pgm);
       printd(5, "op_background_thread() btp=%p TID %d started\n", btp, btp->tid);

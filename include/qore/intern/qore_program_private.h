@@ -930,43 +930,43 @@ public:
       }
    }
 
-   DLLLOCAL void endThread(ThreadProgramData *td, ExceptionSink* xsink) {
-      //printd(5, "qore_program_private::endThread() this=%p pgm=%p\n", this, pgm);
-      // delete thread local storage data
-      deleteThreadData(xsink);
-
-      // delete thread-local data outside the lock
-      arg_vec_t* cl = 0;
+   DLLLOCAL void finalizeThreadData(ThreadProgramData* td, arg_vec_t*& cl) {
+      QoreHashNode* h = thread_local_storage->get();
+      if (h) {
+         if (!cl)
+            cl = new arg_vec_t;
+         cl->push_back(h);
+         thread_local_storage->set(0);
+      }
 
       // delete all local variables for this thread
-      SafeLocker sl(tlock);
-      while (tclear) {
-         ++twaiting;
-         tcond.wait(tlock);
-         --twaiting;
-      }
+      AutoLocker al(tlock);
+      if (tclear)
+         return;
 
       pgm_data_map_t::iterator i = pgm_data_map.find(td);
-      if (i != pgm_data_map.end()) {
-         // make sure the Program doesn't disappear while we are clearing thread-local variables
-         pgm->ref();
-         ReferenceHolder<QoreProgram> pgm_holder(pgm, xsink);
-         // remove from map and delete outside of lock to avoid deadlocks (or the need for recursive locking)
-         ThreadLocalProgramData *tlpd = i->second;
-         tlpd->finalize(cl);
-         pgm_data_map.erase(i);
-         sl.unlock();
-         tlpd->del(xsink);
-      }
-      else
-         sl.unlock();
+      if (i != pgm_data_map.end())
+         i->second->finalize(cl);
+   }
 
-      // dereference finalized thread-local data outside the lock to avoid deadlocks
-      if (cl) {
-         for (arg_vec_t::iterator i = cl->begin(), e = cl->end(); i != e; ++i)
-            (*i)->deref(xsink);
-         delete cl;
+   // TODO: xsink should not be necessary; vars should be emptied and finalized in the finalizeThreadData() call
+   DLLLOCAL void endThread(ThreadProgramData* td, ExceptionSink* xsink) {
+      ThreadLocalProgramData* tlpd = 0;
+
+      // delete all local variables for this thread
+      {
+         AutoLocker al(tlock);
+         if (tclear)
+            return;
+
+         pgm_data_map_t::iterator i = pgm_data_map.find(td);
+         if (i == pgm_data_map.end())
+            return;
+         tlpd = i->second;
+         pgm_data_map.erase(i);
       }
+
+      tlpd->del(xsink);
    }
 
    DLLLOCAL void doTopLevelInstantiation(ThreadLocalProgramData &tlpd) {
@@ -1475,6 +1475,10 @@ public:
 
    DLLLOCAL static bool setThreadVarData(QoreProgram *pgm, ThreadProgramData *td, ThreadLocalProgramData *&tlpd, bool run) {
       return pgm->priv->setThreadVarData(td, tlpd, run);
+   }
+
+   DLLLOCAL static void finalizeThreadData(QoreProgram* pgm, ThreadProgramData* td, arg_vec_t*& cl) {
+      pgm->priv->finalizeThreadData(td, cl);
    }
 
    DLLLOCAL static void endThread(QoreProgram *pgm, ThreadProgramData *td, ExceptionSink* xsink) {
