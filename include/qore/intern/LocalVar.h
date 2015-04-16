@@ -144,6 +144,7 @@ class LocalVarValue : public VarValueBase {
 public:
    DLLLOCAL void set(const char* n_id, const QoreTypeInfo* typeInfo, QoreValue nval) {
       //printd(5, "LocalVarValue::set() this: %p id: '%s' type: '%s' code: %d\n", this, n_id, typeInfo->getName(), nval.getType());
+      assert(!finalized);
       skip = false;
       id = n_id;
 
