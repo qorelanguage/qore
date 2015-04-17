@@ -1028,7 +1028,12 @@ public:
    DLLLOCAL void addBuiltinMethodVariant(MethodVariantBase* variant);
    // maintains all_private flag and commits user variants
    DLLLOCAL void parseCommitMethod(QoreString& csig, const char* mod);
-
+   DLLLOCAL void parseCommitMethod();
+   // processes method signatures while parsing classes for pending variants
+   DLLLOCAL void parsePendingSignatures(QoreString& csig, const char* mod) const;
+   // processes method signatures for committed variants
+   DLLLOCAL void parseCommittedSignatures(QoreString& csig, const char* mod) const;
+   
    // if an identical signature is found to the passed variant, then it is removed from the abstract list
    DLLLOCAL MethodVariantBase* parseHasVariantWithSignature(MethodVariantBase* v) const;
 

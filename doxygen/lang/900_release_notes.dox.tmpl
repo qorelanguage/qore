@@ -238,6 +238,7 @@
     - fixed a bug initializing static class variables in the parse commit phase where a crash could result due to an error in managing parse commit dependencies
     - fixed @ref Qore::is_writable() on Windows when used with a directory
     - fixed a bug in @ref Qore::regex_extract() and in the @ref regex_extract_operator where the result buffer was not resized when it was too small, limiting regular expressions to nine subpatterns; the maximum has been raised to between 90 and 100 before an exception is raised (since the subpattern buffer is allocated on the stack, we need to enforce a limit)
+    - fixed a bug with the @ref cast "cast<>() operator where compatible classes were not recognized at runtime that would otherwise be recognized correctly without the cast
 
     @section qore_0811 Qore 0.8.11
 

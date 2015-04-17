@@ -3,7 +3,7 @@
  
   Qore Programming Language
  
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
   
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -547,7 +547,7 @@ bool QoreTypeInfo::isOutputIdentical(const QoreTypeInfo* typeInfo) const {
    return true;
 }
 
-qore_type_result_e QoreTypeInfo::matchClassIntern(const QoreClass *n_qc) const {
+qore_type_result_e QoreTypeInfo::matchClassIntern(const QoreClass* n_qc) const {
    if (qt == NT_ALL)
       return QTI_AMBIGUOUS;
    
@@ -563,7 +563,7 @@ qore_type_result_e QoreTypeInfo::matchClassIntern(const QoreClass *n_qc) const {
    return rc;
 }
 
-qore_type_result_e QoreTypeInfo::runtimeMatchClassIntern(const QoreClass *n_qc) const {
+qore_type_result_e QoreTypeInfo::runtimeMatchClassIntern(const QoreClass* n_qc) const {
    if (qt == NT_ALL)
       return QTI_AMBIGUOUS;
 
@@ -605,7 +605,7 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveAndDelete(const QoreProgramLocatio
       return 0;
 
    // resolve class
-   const QoreClass *qc = qore_root_ns_private::parseFindScopedClass(loc, *cscope);
+   const QoreClass* qc = qore_root_ns_private::parseFindScopedClass(loc, *cscope);
 
    bool my_or_nothing = or_nothing;
    delete this;

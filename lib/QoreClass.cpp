@@ -482,6 +482,7 @@ qore_class_private::qore_class_private(QoreClass* n_cls, const char* nme, int64 
      owns_typeinfo(n_typeInfo ? false : true),
      resolve_copy_done(false),
      has_new_user_changes(false),
+     has_sig_changes(false),
      owns_ornothingtypeinfo(false),
      pub(false),
      final(false),
@@ -536,6 +537,7 @@ qore_class_private::qore_class_private(const qore_class_private& old, QoreClass*
      owns_typeinfo(false),
      resolve_copy_done(false),
      has_new_user_changes(false),
+     has_sig_changes(false),
      owns_ornothingtypeinfo(false),
      pub(false), // the public flag must be explicitly set if necessary after this constructor
      final(old.final),
@@ -641,6 +643,43 @@ void qore_class_private::initialize() {
    initializeIntern(qcp_set);
 }
 
+// process signature entries for base classes
+static void do_sig(QoreString& csig, BCNode& n) {
+   qore_class_private* qc = qore_class_private::get(*n.sclass);
+   csig.sprintf("inherits %s %s ", n.isPrivate() ? "priv" : "pub", qc->name.c_str());
+   SignatureHash& h = qc->pend_hash ? qc->pend_hash : qc->hash;
+   if (h) {
+      csig.concat('[');
+      h.toString(csig);
+      csig.concat("]\n");
+   }
+   else
+      csig.sprintf("{%d}\n", qc->classID);	    
+}
+
+// process signature entries for class members
+static void do_sig(QoreString& csig, member_map_t::iterator i) {  
+   if (i->second)
+      csig.sprintf("%s mem %s %s %s\n", privpub(i->second->priv), i->second->getTypeInfo()->getName(), i->first, get_type_name(i->second->exp));
+   else
+      csig.sprintf("%s mem %s\n", privpub(i->second->priv), i->first);
+}
+
+// process signature entries for class static vars
+static void do_sig(QoreString& csig, var_map_t::iterator i) {  
+   if (i->second)
+      csig.sprintf("%s var %s %s %s\n", privpub(i->second->priv), i->second->getTypeInfo()->getName(), i->first, get_type_name(i->second->exp));
+   else
+      csig.sprintf("%s var %s\n", privpub(i->second->priv), i->first);
+}
+
+// process signature entries for class constants
+static void do_sig(QoreString& csig, ConstantList& clist, const char* prot) {
+   ConstantListIterator cli(clist);
+   while (cli.next())
+      csig.sprintf("%s const %s %s\n", prot, cli.getName().c_str(), get_type_name(cli.getValue()));
+}
+
 int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
    //printd(5, "QoreClass::initializeIntern() this: %p %s class: %p scl: %p initialized: %d\n", this, name.c_str(), cls, scl, initialized);
    if (initialized)
@@ -649,7 +688,7 @@ int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
    initialized = true;
 
    assert(!name.empty());
-   //printd(5, "QoreClass::initialize() %s class: %p scl: %p\n", name.c_str(), cls, scl);
+   //printd(5, "QoreClass::initializeIntern() %s class: %p scl: %p\n", name.c_str(), cls, scl);
    
    // initialize static vars   
    if (scl) {
@@ -680,11 +719,17 @@ int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
       return -1;
    }
 
+   // signature string - also processed in parseCommit()
+   QoreString csig;
+
    // initialize parent classes
    if (scl) {      
       // merge direct base class abstract method lists to ourselves
       for (BCList::iterator i = scl->begin(), e = scl->end(); i != e; ++i) {
          if ((*i)->sclass) {
+	    if (has_sig_changes)
+	       do_sig(csig, **i);
+
             // called during class initialization to copy committed abstract variants to our variant lists
             AbstractMethodMap& mm = (*i)->sclass->priv->ahm;
             //printd(5, "qore_class_private::initializeIntern() this: %p '%s' parent: %p '%s' mm empty: %d\n", this, name.c_str(), (*i)->sclass, (*i)->sclass->getName(), (int)mm.empty());
@@ -718,27 +763,72 @@ int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
       }
    }
 
+   if (has_sig_changes) {
+      // add methods to class signature
+      // pending "normal" (non-static) method variants
+      for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
+	 i->second->priv->func->parsePendingSignatures(csig, 0);
+      // pending static method variants
+      for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i)
+	 i->second->priv->func->parsePendingSignatures(csig, "static");
+   }
+
+   if (has_sig_changes) {
+      // add committed vars to signature first before members
+      for (var_map_t::iterator i = vars.begin(), e = vars.end(); i != e; ++i) {
+	 do_sig(csig, i);
+      }
+   }
+   
    {
       VariableBlockHelper vbh;
       SelfLocalVarParseHelper slvph(&selfid);
-      // initialize new members
-      for (member_map_t::iterator i = pending_members.begin(), e = pending_members.end(); i != e; ++i) {
-	 if (i->second)
-	    i->second->parseInit(i->first, true);
-      }
 
       // initialize new static vars
       for (var_map_t::iterator i = pending_vars.begin(), e = pending_vars.end(); i != e; ++i) {
+	 if (has_sig_changes)
+	    do_sig(csig, i);
 	 if (i->second)
 	    i->second->parseInit(i->first, true);
       }
-}
-   
-   // check new members for conflicts in base classes
-   for (member_map_t::iterator i = pending_members.begin(), e = pending_members.end(); i != e; ++i) {      
-      parseCheckMemberInBaseClasses(i->first, i->second);
+
+      // add committed members to signature
+      if (has_sig_changes) {
+	 for (member_map_t::iterator i = members.begin(), e = members.end(); i != e; ++i) {
+	    do_sig(csig, i);
+	 }
+      }
+
+      // initialize new members
+      for (member_map_t::iterator i = pending_members.begin(), e = pending_members.end(); i != e; ++i) {
+	 if (has_sig_changes)
+	    do_sig(csig, i);
+	 if (i->second)
+	    i->second->parseInit(i->first, true);
+	 // check new members for conflicts in base classes
+	 parseCheckMemberInBaseClasses(i->first, i->second);
+      }
    }
 
+   if (has_sig_changes) {
+      // process constants for class signature, private first, then public
+      do_sig(csig, priv_const, "priv");
+      do_sig(csig, pend_priv_const, "priv");
+      do_sig(csig, pub_const, "pub");
+      do_sig(csig, pend_pub_const, "pub");
+   }
+   
+   if (has_sig_changes) {
+      if (!csig.empty()) {
+	 printd(5, "qore_class_private::initializeIntern() this: %p '%s' sig:\n%s", this, name.c_str(), csig.getBuffer());
+	 pend_hash.update(csig);
+      }
+
+      has_sig_changes = false;
+   }
+   else
+      assert(csig.empty());
+   
    return 0;
 }
 
@@ -887,29 +977,25 @@ void qore_class_private::parseCommit() {
       parse_init_partial_called = false;
    
    if (has_new_user_changes) {
-      // signature string
+      // signature string: note the signature is updated in two places, here and in initializeIntern()
       QoreString csig;
 
       // add parent classes to signature if creating for the first time
-      if (!hash && scl) {
+      if (has_sig_changes && scl) {
          for (bclist_t::const_iterator i = scl->begin(), e = scl->end(); i != e; ++i) {
             assert((*i)->sclass);
-            qore_class_private* qc = (*i)->sclass->priv;
-            csig.sprintf("inherits %s %s ", (*i)->isPrivate() ? "priv" : "pub", qc->name.c_str());
-            if (qc->hash) {
-               csig.concat('[');
-               qc->hash.toString(csig);
-               csig.concat("]\n");
-            }
-            else
-               csig.sprintf("{%d}\n", qc->classID);
+	    (*i)->sclass->priv->parseCommit();
+	    do_sig(csig, **i);
          }
-      }
-
+      }      
+      
       // commit pending "normal" (non-static) method variants
       for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
 	 bool is_new = i->second->priv->func->committedEmpty();
-	 i->second->priv->func->parseCommitMethod(csig, 0);
+	 if (has_sig_changes)
+	    i->second->priv->func->parseCommitMethod(csig, 0);
+	 else
+	    i->second->priv->func->parseCommitMethod();
 	 if (is_new) {
 	    checkAssignSpecial(i->second);
 	    ++num_methods;
@@ -920,7 +1006,10 @@ void qore_class_private::parseCommit() {
       // commit pending static method variants
       for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i) {
 	 bool is_new = i->second->priv->func->committedEmpty();
-	 i->second->priv->func->parseCommitMethod(csig, "static");
+	 if (has_sig_changes)
+	    i->second->priv->func->parseCommitMethod(csig, "static");
+	 else
+	    i->second->priv->func->parseCommitMethod();
 	 if (is_new) {
 	    ++num_static_methods;
 	    ++num_static_user_methods;
@@ -935,25 +1024,26 @@ void qore_class_private::parseCommit() {
 	 member_map_t::iterator i = pending_members.begin();  
 	 while (i != pending_members.end()) { 
 	    //printd(5, "QoreClass::parseCommit() %s committing %s member %p %s\n", name.c_str(), privpub(i->second->priv), j->first, j->first);
-	    if (i->second)
-	       csig.sprintf("%s mem %s %s %s\n", privpub(i->second->priv), i->second->getTypeInfo()->getName(), i->first, get_type_name(i->second->exp));
-	    else
-	       csig.sprintf("%s mem %s\n", privpub(i->second->priv), i->first);
 	    members[i->first] = i->second;
 	    pending_members.erase(i);
 	    i = pending_members.begin();
 	 }
       }
 
-      // add all pending static vars to signature
-      for (var_map_t::iterator i = pending_vars.begin(), e = pending_vars.end(); i != e; ++i) {
-	 //printd(5, "QoreClass::parseCommit() %s committing %s var %p %s\n", name.c_str(), privpub(i->second->priv), l->first, l->first);
-	 if (i->second)
-	    csig.sprintf("%s var %s %s %s\n", privpub(i->second->priv), i->second->getTypeInfo()->getName(), i->first, get_type_name(i->second->exp));
-	 else
-	    csig.sprintf("%s var %s\n", privpub(i->second->priv), i->first);
+      if (has_sig_changes) {
+	 // add all committed static vars to signature
+	 for (var_map_t::iterator i = vars.begin(), e = vars.end(); i != e; ++i) {
+	    do_sig(csig, i);
+	 }
+	 // add all pending static vars to signature
+	 // pending static vars are committed in the "runtime init" step after this call
+	 for (var_map_t::iterator i = pending_vars.begin(), e = pending_vars.end(); i != e; ++i)
+	    do_sig(csig, i);
+
+	 for (member_map_t::iterator i = members.begin(), e = members.end(); i != e; ++i)
+	    do_sig(csig, i);
       }
-   
+
       // set flags
       if (pending_has_public_memdecl) {
 	 if (!has_public_memdecl)
@@ -961,28 +1051,32 @@ void qore_class_private::parseCommit() {
 	 pending_has_public_memdecl = false;
       }
 
-      // process pending constants for signature
-      {
-	 ConstantListIterator cli(pend_priv_const);
-	 while (cli.next())
-	    csig.sprintf("priv const %s %s\n", cli.getName().c_str(), get_type_name(cli.getValue()));
-      }
-      {
-	 ConstantListIterator cli(pend_pub_const);
-	 while (cli.next())
-	    csig.sprintf("pub const %s %s\n", cli.getName().c_str(), get_type_name(cli.getValue()));
-      }
-
       // commit pending constants
       priv_const.assimilate(pend_priv_const);
       pub_const.assimilate(pend_pub_const);
 
-      // if there are any signature changes, then change the class' signature
-      if (!csig.empty()) {
-         printd(5, "qore_class_private::parseCommit() this:%p '%s' sig:\n%s", this, name.c_str(), csig.getBuffer());
-	 hash.update(csig);
+      // process constants for signature
+      if (has_sig_changes) {
+	 do_sig(csig, priv_const, "priv");
+	 do_sig(csig, pub_const, "pub");
       }
 
+      // if there are any signature changes, then change the class' signature
+      if (has_sig_changes) {
+	 if (!csig.empty()) {
+	    printd(5, "qore_class_private::parseCommit() this:%p '%s' sig:\n%s", this, name.c_str(), csig.getBuffer());
+	    hash.update(csig);
+	 }
+	 has_sig_changes = false;
+      }
+      else {
+	 assert(csig.empty());
+	 if (pend_hash) {
+	    hash = pend_hash;
+	    pend_hash.clear();
+	 }
+      }
+      
       has_new_user_changes = false;
    }
 #ifdef DEBUG
@@ -997,6 +1091,8 @@ void qore_class_private::parseCommit() {
    }
 #endif
 
+   assert(!pend_hash);
+   
    // we check base classes if they have public members if we don't have any
    // it's safe to call parseHasPublicMembersInHierarchy() because the 2nd stage
    // of parsing has completed without any errors (or we wouldn't be
@@ -1274,6 +1370,18 @@ const QoreClass* BCNode::getClass(const qore_class_private& qc, bool& n_priv) co
       return 0;
    
    const QoreClass* rv = sclass->priv->getClassIntern(qc, n_priv);
+   
+   if (rv && !n_priv && priv)
+      n_priv = true;
+   return rv;
+}
+
+const QoreClass* BCNode::parseGetClass(const qore_class_private& qc, bool& n_priv) const {
+   // sclass can be 0 if the class could not be found during parse initialization
+   if (!sclass)
+      return 0;
+   
+   const QoreClass* rv = sclass->priv->parseGetClassIntern(qc, n_priv);
    
    if (rv && !n_priv && priv)
       n_priv = true;
@@ -1708,6 +1816,16 @@ const QoreClass* BCList::getClass(const qore_class_private& qc, bool& priv) cons
    return 0;
 }
 
+const QoreClass* BCList::parseGetClass(const qore_class_private& qc, bool& priv) const {
+   for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
+      const QoreClass* rv = (*i)->parseGetClass(qc, priv);
+      if (rv)
+	 return rv;
+   }
+	 
+   return 0;
+}
+
 MethodVariantBase* BCList::matchNonAbstractVariant(const std::string& name, MethodVariantBase* v) const {
    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
       const QoreClass* nqc = (*i)->sclass;
@@ -1883,7 +2001,7 @@ int qore_class_private::parseCheckClassHierarchyMembers(const char* mname, const
       return -1;
    }
    if (l_mi.parseHasTypeInfo() || b_mi.parseHasTypeInfo()) {
-      //printd(0, "qore_class_private::parseCheckClassHierarchyMembers() this: %p '%s' mname: '%s' l: '%s' %p b: '%s' %p ('%s' %p)\n", this, name.c_str(), mname, l_mi.getClass(this)->name.c_str(), l_mi.getClass(this), b_qc.name.c_str(), &b_qc, b_mi.getClass(&b_qc)->name.c_str(), b_mi.getClass(&b_qc));
+      //printd(5, "qore_class_private::parseCheckClassHierarchyMembers() this: %p '%s' mname: '%s' l: '%s' %p b: '%s' %p ('%s' %p)\n", this, name.c_str(), mname, l_mi.getClass(this)->name.c_str(), l_mi.getClass(this), b_qc.name.c_str(), &b_qc, b_mi.getClass(&b_qc)->name.c_str(), b_mi.getClass(&b_qc));
       // raise an exception only if parse exceptions are enabled
       if (getProgram()->getParseExceptionSink()) {
 	 qore_program_private::makeParseException(getProgram(), l_mi.parseHasTypeInfo() ? l_mi.loc : b_mi.loc, "PARSE-ERROR", new QoreStringNodeMaker("class '%s' cannot be combined with class '%s' in the same hierarchy because member '%s' is declared with a type definition", l_mi.getClass(this)->name.c_str(), b_mi.getClass(&b_qc)->name.c_str(), mname));
@@ -1921,6 +2039,9 @@ void qore_class_private::parseRollback() {
    if (parse_init_partial_called)
       parse_init_partial_called = false;
 
+   if (has_sig_changes)
+      has_sig_changes = false;
+   
    if (!has_new_user_changes) {
       // verify status
       for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
@@ -1971,6 +2092,7 @@ void qore_class_private::parseRollback() {
       pending_has_public_memdecl = false;
 
    has_new_user_changes = false;
+   pend_hash.clear();
 }
 
 QoreMethod::QoreMethod(const QoreClass* n_parent_class, MethodFunctionBase* n_func, bool n_static) : priv(new qore_method_private(n_parent_class, n_func, n_static)) {
@@ -2280,7 +2402,7 @@ const QoreClass* qore_class_private::parseGetClass(const qore_class_private& qc,
    const_cast<qore_class_private*>(this)->initialize();
    if (qc.classID == classID || (qc.name == name && qc.hash == hash))
       return (QoreClass*)cls;
-   return scl ? scl->getClass(qc, cpriv) : 0;
+   return scl ? scl->parseGetClass(qc, cpriv) : 0;
 }
 
 bool qore_class_private::runtimeHasCallableMethod(const char* m, int mask) const {
@@ -2762,6 +2884,8 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
 
    if (!has_new_user_changes)
       has_new_user_changes = true;
+   if (!has_sig_changes)
+      has_sig_changes = true;
 
    bool is_new = false;
    // if the method does not exist, then create it
@@ -3474,11 +3598,11 @@ bool qore_class_private::parseCheckPrivateClassAccess() const {
    if (!pc)
       return false;
 
-   if (pc->priv->classID == classID || (pc->priv->name == name && pc->priv->hash == hash))
+   if (pc->priv->classID == classID || (pc->priv->name == name && parseCheckEqualHash(*pc->priv)))
       return true;
 
    bool pv;
-   return pc->priv->parseGetClass(*this, pv) || (scl && scl->getClass(*(pc->priv), pv));
+   return pc->priv->parseGetClass(*this, pv) || (scl && scl->parseGetClass(*(pc->priv), pv));
 }
 
 bool qore_class_private::runtimeCheckPrivateClassAccess() const {
@@ -3497,9 +3621,14 @@ qore_type_result_e qore_class_private::parseCheckCompatibleClass(const qore_clas
    const_cast<qore_class_private*>(this)->initialize();
    const_cast<qore_class_private&>(oc).initialize();
 
-   //printd(5, "qore_class_private::parseCheckCompatibleClass(%p '%s') this: %p '%s'\n", &oc, oc.name.c_str(), this, name.c_str());
-
-   if (classID == oc.classID || (oc.name == name && oc.hash == hash))
+#ifdef DEBUG_SKIP
+   QoreString h1, h2;
+   pend_hash.toString(h1);
+   oc.pend_hash.toString(h2);
+   printd(5, "qore_class_private::parseCheckCompatibleClass() %p '%s' (%d %s) == %p '%s' (%d %s)\n", this, name.c_str(), classID, h1.getBuffer(), &oc, oc.name.c_str(), oc.classID, h2.getBuffer());
+#endif
+   
+   if (classID == oc.classID || (oc.name == name && parseCheckEqualHash(oc)))
       return QTI_IDENT;
 
    bool priv = false;
@@ -3531,7 +3660,7 @@ bool QoreClass::hasParentClass() const {
 }
 
 bool QoreClass::parseCheckHierarchy(const QoreClass* cls) const {
-   if (cls == this)
+   if (cls == this || (priv->name == cls->priv->name && priv->parseCheckEqualHash(*cls->priv)))
       return true;
 
    return priv->scl ? priv->scl->parseCheckHierarchy(cls) : false;
@@ -3722,23 +3851,40 @@ int MethodFunctionBase::parseAddUserMethodVariant(MethodVariantBase* variant) {
    return rc;
 }
 
-void MethodFunctionBase::parseCommitMethod(QoreString& csig, const char* mod) {
-   // add to signature
-   for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
-      MethodVariantBase* v = METHVB(*i);
-      csig.concat("abstract ");
-      csig.concat(v->isPrivate() ? "priv " : "pub ");
-      if (mod) {
-         csig.concat(mod);
-         csig.concat(' ');
-      }
-      csig.concat(name);
-      csig.concat('(');
-      csig.concat(v->getSignature()->getSignatureText());
-      csig.concat(')');
-      csig.concat('\n');
+static void do_variant_sig(QoreString& csig, const std::string& name, const MethodVariantBase* v, const char* mod) {
+   csig.concat("abstract ");
+   csig.concat(v->isPrivate() ? "priv " : "pub ");
+   if (mod) {
+      csig.concat(mod);
+      csig.concat(' ');
    }
+   csig.concat(name);
+   csig.concat('(');
+   csig.concat(v->getSignature()->getSignatureText());
+   csig.concat(')');
+   csig.concat('\n');
+}
 
+void MethodFunctionBase::parsePendingSignatures(QoreString& csig, const char* mod) const {
+   for (vlist_t::const_iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
+      const MethodVariantBase* v = METHVB_const(*i);
+      do_variant_sig(csig, name, v, mod);
+   }
+}
+
+void MethodFunctionBase::parseCommittedSignatures(QoreString& csig, const char* mod) const {
+   for (vlist_t::const_iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
+      const MethodVariantBase* v = METHVB_const(*i);
+      do_variant_sig(csig, name, v, mod);
+   }
+}
+
+void MethodFunctionBase::parseCommitMethod(QoreString& csig, const char* mod) {
+   parsePendingSignatures(csig, mod);
+   parseCommitMethod();
+}
+
+void MethodFunctionBase::parseCommitMethod() {
    parseCommit();
    if (!pending_all_private) {
       if (all_private)

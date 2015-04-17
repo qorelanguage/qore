@@ -3,7 +3,7 @@
  
   Qore Programming Language
  
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
  
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,36 +30,46 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/QoreNamespaceIntern.h>
+#include <qore/intern/QoreClassIntern.h>
 
 QoreString QoreCastOperatorNode::cast_str("cast operator expression");
 
-// if del is true, then the returned QoreString * should be castd, if false, then it must not be
-QoreString *QoreCastOperatorNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
+// if del is true, then the returned QoreString*  should be castd, if false, then it must not be
+QoreString* QoreCastOperatorNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
    del = false;
    return &cast_str;
 }
 
-int QoreCastOperatorNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
+int QoreCastOperatorNode::getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
    str.concat(&cast_str);
    return 0;
 }
 
-int QoreCastOperatorNode::evalIntern(const AbstractQoreNode *rv, ExceptionSink *xsink) const {
+int QoreCastOperatorNode::evalIntern(const AbstractQoreNode* rv, ExceptionSink* xsink) const {
    if (!rv || rv->getType() != NT_OBJECT) {
       xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from type '%s' to %s'%s'", get_type_name(rv), qc ? "class " : "", qc ? qc->getName() : "object");
       return -1;
    }
 
-   const QoreObject *obj = reinterpret_cast<const QoreObject *>(rv);
-   if (qc && !obj->getClass(qc->getID())) {
-      xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from class '%s' to class '%s'", obj->getClassName(), qc->getName());
-      return -1;
+   const QoreObject* obj = reinterpret_cast<const QoreObject*>(rv);
+   if (qc) {
+      const QoreClass* oc = obj->getClass();
+      bool priv;
+      const QoreClass* tc = oc->getClass(*qc, priv);
+      if (!tc) {
+	 xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from class '%s' to class '%s'", obj->getClassName(), qc->getName());
+	 return -1;
+      }
+      if (priv && !qore_class_private::runtimeCheckPrivateClassAccess(*tc)) {
+	 xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from class '%s' to privately-accessible class '%s' in this context", obj->getClassName(), qc->getName());
+	 return -1;
+      }
    }
 
    return 0;
 }
 
-AbstractQoreNode *QoreCastOperatorNode::evalImpl(ExceptionSink *xsink) const {
+AbstractQoreNode* QoreCastOperatorNode::evalImpl(ExceptionSink* xsink) const {
    ReferenceHolder<AbstractQoreNode> rv(exp->eval(xsink), xsink);
    if (*xsink)
       return 0;
@@ -70,7 +80,7 @@ AbstractQoreNode *QoreCastOperatorNode::evalImpl(ExceptionSink *xsink) const {
    return rv.release();
 }
 
-AbstractQoreNode *QoreCastOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
+AbstractQoreNode* QoreCastOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
    QoreNodeEvalOptionalRefHolder rv(exp, xsink);
    if (*xsink)
       return 0;
@@ -80,17 +90,17 @@ AbstractQoreNode *QoreCastOperatorNode::evalImpl(bool &needs_deref, ExceptionSin
 
    if (rv.isTemp()) {
       needs_deref = false;
-      return const_cast<AbstractQoreNode *>(*rv);
+      return const_cast<AbstractQoreNode*>(*rv);
    }
    needs_deref = true;
    return rv.getReferencedValue();
 }
 
-AbstractQoreNode *QoreCastOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode* QoreCastOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
    assert(!typeInfo);
    if (path->size() == 1) {
       // if the class is "object", then set qc = 0 to use as a catch-all and generic "cast to object"
-      const char *id = path->getIdentifier();
+      const char* id = path->getIdentifier();
       qc = !strcmp(id, "object") ? 0 : qore_root_ns_private::parseFindClass(loc, path->getIdentifier());
    }
    else {

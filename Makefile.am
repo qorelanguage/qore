@@ -96,6 +96,7 @@ TESTSCRIPTS= \
         examples/test/qore/misc/context.qtest \
         examples/test/qore/misc/exception.qtest \
         examples/test/qore/misc/gc.qtest \
+        examples/test/qore/misc/cast.qtest \
         examples/test/qore/misc/object.qtest \
         examples/test/qore/misc/recursive.qtest \
         examples/test/qore/misc/regex.qtest \
