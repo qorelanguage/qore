@@ -1057,6 +1057,31 @@ my any $v = $c.name;
                 "rows": True,
                 "with": True,
                 );
+
+            #! Options for rebuildIndex()
+            const OracleRebuildIndexOptions = (
+                "parallel"          : Type::Boolean,
+                "logging"           : Type::Boolean,
+                "statictics"        : Type::Boolean,
+                "tablespace"        : Type::String,
+                "cond_rebuild"      : Type::Boolean,
+                "cond_maxheight"    : Type::Int,
+                "cond_maxleafpct"   : Type::Int,
+                );
+
+            #! Options for computeStatistics()
+            const OracleComputeStatisticsOptions = ComputeStatisticsOptions + (
+                "estimate_percent"  : Type::Int,
+                "block_sample"      : Type::Boolean,
+                "method_opt"        : Type::String,
+                "degree"            : Type::Int,
+                "granularity"       : Type::String,
+                "cascade"           : Type::Boolean,
+                "stattab"           : Type::String,
+                "statid"            : Type::String,
+                "options"           : Type::String,
+                "statown"           : Type::String,
+                );
         }
 
         #! creates the object from the arguments given
@@ -1373,6 +1398,16 @@ my any $v = $c.name;
             return OracleSchemaDescriptionOptions;
         }
 
+        #! returns driver-specific options to the base abstract class
+        private hash getRebuildIndexOptions() {
+            return OracleRebuildIndexOptions;
+        }
+
+        #! returns driver-specific options to the base abstract class
+        private hash getComputeStatisticsOptions() {
+            return OracleComputeStatisticsOptions;
+        }
+
         #! returns the next value in the given sequence
         private softint getNextSequenceValueImpl(string name) {
             return ds.selectRow("select %s.nextval from dual", name).nextval;
@@ -1392,6 +1427,159 @@ my any $v = $c.name;
         private bool supportsPackagesImpl() {
             return True;
         }
+
+        #! analyze index with ALTER INDEX ANAYZE. Then it checks INDEX_STATS for advices to rebuild.
+        /** Outputs of this method are hints only. Real investigation of index is strongly recommended.
+
+            @warning content of this method can be changed anytime when there will be any better way how to analyze indexes.
+
+            @param index an AbstractIndex to analyze
+            @param maxh maximum oracle index height before rebuilding index
+            @param maxleaf maximum oracle percentage of deleted leaf nodes before rebuilding index
+
+            @return bool True for "suggested for rebuilding", False for "no action needed"
+
+            @throws ANALYZE-INDEX-ERROR if there are no data in INDEX_STATS table
+        */
+        bool rebuildIndexAnalyze(AbstractIndex index, int maxh, int maxleaf) {
+            return rebuildIndexAnalyze(index.name, maxh, maxleaf);
+        }
+
+        #! analyze index with ALTER INDEX ANAYZE. Then it checks INDEX_STATS for advices to rebuild.
+        /** Outputs of this method are hints only. Real investigation of index is strongly recommended.
+
+            @warning content of this method can be changed anytime when there will be any better way how to analyze indexes.
+
+            @param index index name
+            @param maxh maximum oracle index height before rebuilding index
+            @param maxleaf maximum oracle percentage of deleted leaf nodes before rebuilding index
+
+            @return bool True for "suggested for rebuilding", False for "no action needed"
+
+            @throws ANALYZE-INDEX-ERROR if there are no data in INDEX_STATS table
+        */
+        bool rebuildIndexAnalyze(string name, int maxh, int maxleaf) {
+            # unfortunately analyze index/select * from index_stats requires one transaction
+            ds.select("analyze index " + name + " validate structure");
+            *hash is = ds.selectRow("select name, height, lf_rows as leafrows, del_lf_rows as leafrowsdeleted from index_stats");
+            if (!is)
+                return False;
+
+            softfloat pct = is.leafrows ? float(is.leafrowsdeleted) * 100 / is.leafrows : 0;
+            return is.height > maxh || (is.leafrowsdeleted > 0 && pct > maxleaf);
+        }
+
+        #! rebuild index implementation. See @ref SqlUtil::AbstractDatabase::rebuildIndex()
+        private bool rebuildIndexImpl(string name, *hash options) {
+            bool rebuild = True;
+            # this conditional rebuilding is still place to be used carefully.
+            # See eg. https://richardfoote.wordpress.com/2011/05/22/del_lf_rows-index-rebuild-criteria-codex/
+            if (options.cond_rebuild) {
+                int maxh = options.cond_maxheight ?? 20;
+                int maxleaf = options.cond_maxleafpct ?? 3;
+                rebuild = rebuildIndexAnalyze(name, maxh, maxleaf);
+            }
+
+            if (!rebuild)
+                return False;
+
+            string sql = sprintf("alter index %s rebuild ", name);
+            sql += options.parallel ? "parallel " : "";
+            sql += options.logging ? "" : "nologging ";
+            sql += options.statictics ? "compute statistics" : "";
+            if (strlen(options.tablespace))
+                sql += " tablespace " + options.tablespace;
+
+            ds.select(sql);
+            return True;
+        }
+
+        #! compute statistics implementation. See @ref SqlUtil::AbstractDatabase::computeStatistics()
+        private computeStatisticsImpl(*hash options) {
+            if (options.tables)
+                return computeStatisticsTablesImpl(options);
+            else
+                return computeStatisticsSchemaImpl(options);
+        }
+
+        #! compute statistics for schema - a helper method
+        private computeStatisticsSchemaImpl(*hash options) {
+            string sql = "begin
+            dbms_stats.gather_schema_stats(
+                                        ownname => %v,
+                                        estimate_percent => %s,
+                                        block_sample => %s,
+                                        method_opt => %v,
+                                        degree => %v,
+                                        granularity => %v,
+                                        cascade => %s,
+                                        stattab => %v,
+                                        statid => %v,
+                                        options => %v,
+                                        statown => %v
+                                    );
+            end;";
+
+            ds.select(sql,  ds.getUserName(),
+                            options.estimate_percent ?? "dbms_stats.auto_sample_size",
+                            options.block_sample ? "true" : "false",
+                            options.method_opt ?? "for all columns size auto",
+                            options.degree ?? NULL,
+                            options.granularity ?? "all",
+                            !exists options.cascade ? "dbms_stats.auto_cascade" : options.cascade ? "true" : "false",
+                            options.stattab ?? NULL,
+                            options.statid ?? NULL,
+                            options.options ?? "gather auto",
+                            options.statown ?? NULL
+                     );
+        }
+
+        #! compute statistics for table(s) - a helper method
+        private computeStatisticsTablesImpl(*hash options) {
+            string sql = "begin
+                dbms_stats.gather_table_stats (
+                                        ownname => %v,
+                                        tabname => %v,
+                                        partname => %v,
+                                        estimate_percent => %s,
+                                        block_sample => %s,
+                                        method_opt => %v,
+                                        degree => %v,
+                                        granularity => %v,
+                                        cascade => %s,
+                                        stattab => %v,
+                                        statid => %v,
+                                        statown => %v
+                                    );
+                end;";
+
+            foreach string i in (options.tables) {
+                ds.select(sql,  ds.getUserName(),
+                                i,
+                                options.partname ?? NULL,
+                                options.estimate_percent ?? "dbms_stats.auto_sample_size",
+                                options.block_sample ? "true" : "false",
+                                options.method_opt ?? "for all columns size auto",
+                                options.degree ?? NULL,
+                                options.granularity ?? "all",
+                                options.cascade ? "true" : "false",
+                                options.stattab ?? NULL,
+                                options.statid ?? NULL,
+                                options.statown ?? NULL
+                         );
+            }
+        }
+
+        #! reclaim space implementation. See @ref SqlUtil::AbstractDatabase::reclaimSpace()
+        private reclaimSpaceImpl(*hash options) {
+            string sql = "alter table %s shrink space cascade";
+            softlist tables = options.tables ? options.tables : listTables();
+
+            foreach string i in (tables.iterator()) {
+                ds.select(sql, i);
+            }
+        }
+
     }
 
     #! represents an Oracle table

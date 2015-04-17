@@ -297,6 +297,7 @@ public namespace PgsqlSqlUtil {
         string getRenameSql(string table_name, string new_name) {
             return sprintf("alter index %s rename to %s", name, new_name);
         }
+
     }
 
     #! represents a PostgreSQL-specific foreign constraint
@@ -781,6 +782,12 @@ my any $v = $c.name;
                 );
 
             const PGSQL_TempSavepoint = "qore_pgsql_tmp_savepoint";
+
+            #! Options for reclaimSpace()
+            const PgsqlReclaimSpaceOptions = ReclaimSpaceOptions + (
+                "full"              : Type::Boolean,
+                "analyze"           : Type::Boolean,
+                );
         }
 
         constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
@@ -1091,6 +1098,11 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             return PgsqlSchemaDescriptionOptions;
         }
 
+        #! returns driver-specific options to the base abstract class
+        private hash getReclaimSpaceOptions() {
+            return PgsqlReclaimSpaceOptions;
+        }
+
         #! returns the next value in the given sequence
         private softint getNextSequenceValueImpl(string name) {
             return ds.selectRow("select nextval(%v)", name).nextval;
@@ -1109,6 +1121,39 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         #! returns @ref Qore::True "True" if the database supports packages
         private bool supportsPackagesImpl() {
             return False;
+        }
+
+        #! rebuild index implementation. See @ref SqlUtil::AbstractDatabase::rebuildIndex()
+        private bool rebuildIndexImpl(string name, *hash options) {
+            string sql = sprintf("reindex index %s", name);
+            ds.select(sql);
+            return True;
+        }
+
+        #! compute statistics implementation. See @ref SqlUtil::AbstractDatabase::computeStatistics()
+        private computeStatisticsImpl(*hash options) {
+            softlist tables = options.tables ? options.tables : listTables();
+
+            string sql = "analyze %s";
+
+            foreach string i in (tables)
+                ds.select(sql, i);
+        }
+
+        #! reclaim space implementation. See @ref SqlUtil::AbstractDatabase::reclaimSpace()
+        private reclaimSpaceImpl(*hash options) {
+            softlist tables = options.tables ? options.tables : listTables();
+
+            string sql = sprintf("vacuum %s%s%s", options.full ? "full " : "",
+                                                  options.analyze ? "analyze " : "");
+
+            if (options.tables) {
+                foreach string i in (tables)
+                    ds.select(sql, i);
+            }
+            else {
+                ds.select(sql, "");
+            }
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost

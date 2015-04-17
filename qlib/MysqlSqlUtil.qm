@@ -590,6 +590,16 @@ begin
   update %s set id = last_insert_id(id + 1) where name = seq_name;
   return last_insert_id();
 end";
+
+            #! Options for computeStatistics()
+            const MysqlComputeStatisticsOptions = ComputeStatisticsOptions + (
+                "no-binlog"         : Type::Boolean,
+                );
+
+            #! Options for reclaimSpace()
+            const MysqlReclaimSpaceOptions = ReclaimSpaceOptions + (
+                "no-binlog"         : Type::Boolean,
+                );
         }
 
         private {
@@ -788,6 +798,16 @@ end";
             return MysqlSchemaDescriptionOptions;
         }
 
+        #! returns driver-specific options to the base abstract class
+        private hash getComputeStatisticsOptions() {
+            return MysqlComputeStatisticsOptions;
+        }
+
+        #! returns driver-specific options to the base abstract class
+        private hash getReclaimSpaceOptions() {
+            return MysqlReclaimSpaceOptions;
+        }
+
         #! returns the next value in the given sequence
         private softint getNextSequenceValueImpl(string name) {
             return seqds.selectRow("select nextval(%s)", name).nextval;
@@ -806,6 +826,37 @@ end";
         #! returns @ref Qore::True "True" if the database supports packages
         private bool supportsPackagesImpl() {
             return False;
+        }
+
+        #! rebuild index implementation. See @ref SqlUtil::AbstractDatabase::rebuildIndex()
+        private bool rebuildIndexImpl(string name, *hash options) {
+            throw "REBUILD-INDEX-ERROR", "MySQL does not support index rebuilding. Use reclaimSpace()";
+        }
+
+        #! compute statistics implementation. See @ref SqlUtil::AbstractDatabase::computeStatistics()
+        private computeStatisticsImpl(*hash options) {
+            string sql = "analyze ";
+            sql += options."no-binlog" ? "no_write_to_binlog " : "local ";
+            sql += "table ";
+
+            softlist tables = options.tables ? options.tables : listTables();
+
+            sql += sprintf("%s", tables.join(", "));
+
+            ds.select(sql);
+        }
+
+        #! reclaim space implementation. See @ref SqlUtil::AbstractDatabase::reclaimSpace()
+        private reclaimSpaceImpl(*hash options) {
+            string sql = "optimize ";
+            sql += options."no-binlog" ? "no_write_to_binlog " : "local ";
+            sql += "table ";
+
+            softlist tables = options.tables ? options.tables : listTables();
+
+            sql += sprintf("%s", tables.join(", "));
+
+            ds.select(sql);
         }
     }
 
@@ -1020,7 +1071,7 @@ end";
                     case "int":
                     case "bigint":
                     case "double":
-                    case "float": 
+                    case "float":
                     case /text$/:
                     case /blob$/: {
                         row.numeric_precision = 0;

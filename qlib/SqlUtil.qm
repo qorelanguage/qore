@@ -63,6 +63,8 @@ module SqlUtil {
     - @subpage sql_operations "SQL Operations": working with database data (finding, updating, inserting, deleting, merging data, etc)
     - @subpage schema_management "Schema Management": working schema definitions (creating, modifying, aligning tables, functions, types, triggers, etc)
 
+    - @subpage dba_management "DBA Management": special database administrator tools
+
     The %SqlUtil module provides generic functionality and a framework for SQL operations and schema management, and in order
     to use the %SqlUtil module with a particular database, a driver-specific module has to be available as well.
 
@@ -91,6 +93,10 @@ module SqlUtil {
       - @ref interdependent_tables
       - @ref aligning_schemas
       - @ref table_management
+    - @ref dba_management
+      - @ref dba_indexes
+      - @ref dba_statistics
+      - @ref dba_space_management
 
     @section relnotes Release Notes
 
@@ -1598,10 +1604,160 @@ my hash $sh = $table.upsertFromIterator($i, $upsert_strategy, False, ("info_call
 
     This option is identical to @ref upsert_info_callback, except the \a result argument is always @ref SqlUtil::AbstractTable::UR_Inserted.
 */
+/** @page dba_management DBA Management
+
+    @tableofcontents
+
+    @section dba_management_intro Introduction to DB Administration
+
+    This part of SqlUtil contain some additional tools to handle subset of database administration.
+    Common application developer usually does not need to handle anything described in this section on his own.
+
+    @warning Database administration is complex task and it requires knowledge in various areas of IT. Always ask your DBA if and when you can use these tools.
+
+    DBA tools are part of the AbstractDatabase (or Database) classes. Methods described below are wrappers around database specific commands.
+
+    @section dba_indexes Index Management
+
+    - @ref SqlUtil::AbstractDatabase::rebuildIndex()
+
+    Index rebuilding is quite controversial task and it is highly variable for each database server. And even worse - it's varying between database server versions too. Modern database servers usually do not need to rebuild indexes in regular operations, but there can be situations when it's required still. Like: testing DB features, index corruption as a result of HW failure, storage parameters changing etc.
+
+    The easiest criteria which can be quickly and easily given to you is it not to rebuild or coalesce any index unless you have a specific, proven reason for doing so.
+
+    rebuildIndex() methods always takes a index name or an SqlUtil::AbstractIndex instance as first argument. The second argument is an optional hash with rebuild index options. These options are specific for each database server.
+    See driver-specific modules for more info.
+
+    @code
+new Database(ds).rebuildIndex("ix_foo_bar");
+    @endcode
+
+    @subsection dba_indexes_oracle Oracle Options
+
+    Oracle backend implementation uses \c ALTER \c INDEX \c REBUILD statement internally.
+
+    |!Option|!Type|!Description
+    |\c parallel|Boolean|Use parallel keyword in the statement if it's set to True
+    |\c logging|Boolean|Use \c logging keyword in the statement if it's set to True. By default \c nologging keyword is used.
+    |\c statistics|Boolean|Use \c compute \c statistics keyword in the stetement if it's set to True
+    |\c tablespace|String|Rebuild index in given tablespace
+    |\c cond_rebuild|Boolean|Rebuild index only when it meets \c INDEX_STATS criteria
+    |\c cond_maxheight|Integer|maximum index height before rebuilding index
+    |\c cond_maxleafpct|Integer|maximum percentage of deleted leaf nodes before rebuilding index
+
+    @subsection dba_indexes_pgsql PostgreSQL Options
+
+    PostgreSQL uses \c REINDEX \c INDEX statement internally.
+
+    There are no special options for PostgreSQL.
+
+    @subsection dba_indexes_mysql MySQL Options
+
+    MySQL does not offer any command to rebuild an index. Exception \c MYSQL-REBUILD-INDEX-ERROR is thrown if is the rebuildIndex method called for MySQL.
+
+    Use reclaimSpace method for MySQL.
+
+    @section dba_statistics Database Statistics
+
+    - @ref SqlUtil::AbstractDatabase::computeStatistics()
+
+    Database statistics are critical metadata used by SQL optimizers to build as good execution plans as possible.
+    Some DB environments refresh statistics on regular basis, some not. All is usually highly configured by DBA.
+
+    The optional argument holds options for statistics. These options are specific for each database server.
+    See driver-specific modules for more info.
+
+    @subsection dba_statistics_oracle Oracle Options
+
+    Oracle uses \c DBMS_STATS package internally. With \c GATHER_SCHEMA_STATS or \c GATHER_TABLE_STATS depending on options set below.
+
+    Statistics are calculated in currently logged user's schema.
+
+    Please consult Oracle documentation for exact option meanings.
+
+    |!Option|!Type|!Description
+    |\c tables|list of strings|If it's set, the table by table statistics are computed with \c GATHER_TABLE_STATS. Otherwise the full schema with \c GATHER_SCHEMA_STATS is used.
+    |\c estimate_percent|Integer|A percent as integer given. \c DBMS_STATS.AUTO_SAMPLE_SIZE is used as a default
+    |\c block_sample|Boolean|Whether use random block sampling
+    |\c method_opt|String|an optional size clause. By default "for all columns size auto" is used.
+    |\c degree|Integer|a degree of parallelism. Default is NULL.
+    |\c granularity|String|granularity of statistics to collect. Default is "ALL"
+    |\c cascade|Boolean|True = gather statistics on indexes as well, False = do not make statistics for indexes. By default "dbms_stats.auto_cascade" is used.
+    |\c stattab|String|user statistics table identifier describing where to save the current statistics
+    |\c statid|String|identifier to associate with these statistics within \c stattab
+    |\c options|String|further specification of which objects to gather statistics. By default "gather auto"
+    |\c statown|String|schema containing \c stattab (if different than \c ownname)
+
+    <b>Example:</b>
+    Compute statistics for enumerated tables only.
+    @code
+hash opts = (
+        "tables" : ( "workflows", "workflow_instance"),
+    );
+db.computeStatistics(opts);
+    @endcode
+
+    @subsection dba_statistics_pgsql PostgreSQL Options
+
+    PostgreSQL uses \c ANALYZE \c TABLE internally.
+
+    |!Option|!Type|!Description
+    |\c tables|list of strings|If it's set, the table by table statistics are computed. Otherwise all tables in the user DB are used.
+
+    @subsection dba_statistics_mysql MySQL Options
+
+    MySQL uses \c ANALYZE \c TABLE internally.
+
+    Please consult MySQL documentation for exact option meanings.
+
+    |!Option|!Type|!Description
+    |\c tables|list of strings|If it's set, the table by table statistics are computed. Otherwise all tables in the user DB are used.
+    |\c no-binlog|Boolean|If True, the "no_write_to_binlog" is used. If False (default), the "local" keyword is used.
+
+    @section dba_space_management Space Management
+
+    - @ref SqlUtil::AbstractDatabase::reclaimSpace()
+
+    Space reclaiming can be done if there was a huge deletion from some tables. As usual causes are DB-dependent.
+
+    The optional argument holds options for space management. These options are specific for each database server.
+    See driver-specific modules for more info.
+
+    @subsection dba_space_management_oracle Oracle Options
+
+    Oracle uses \c ALTER \c TABLE \c SHRINK \c SPACE \c CASCADE statement internally. So it requires enabled row movement.
+
+    Please consult Oracle documentation for more information.
+
+    |!Option|!Type|!Description
+    |\c tables|list of strings|If it's set, the table by table statistics are computed. Otherwise all tables in the user DB are used.
+
+    @subsection dba_space_management_pgsql PostgreSQL Options
+
+    PostgreSQL uses \c VACUUM internally.
+
+    Please consult PostgreSQL documentation for exact option meanings.
+
+    |!Option|!Type|!Description
+    |\c tables|list of strings|If it's set, the table by table statistics are computed. Otherwise all tables in the user DB are used.
+    |\c full|Boolean|True if \c full keyword should be used
+    |\c analyze|Boolean|True if \c analyze keyword should be used
+
+    @subsection dba_space_management_mysql MySQL Options
+
+    MySQL uses \c OPTIMIZE \c TABLE internally.
+
+    Please consult MySQL documentation for exact option meanings.
+
+    |!Option|!Type|!Description
+    |\c tables|list of strings|If it's set, the table by table statistics are computed. Otherwise all tables in the user DB are used.
+    |\c no-binlog|Boolean|If True, the "no_write_to_binlog" is used. If False (default), the "local" keyword is used.
+
+*/
 
 #! the SqlUtil namespace contains all the objects in the SqlUtil module
 public namespace SqlUtil {
-    
+
     /* @defgroup DBFeaturesConstants DB Features Constants
         These constants can be used as a lookup values in AbstractDatabase::features() method.
     */
@@ -2963,6 +3119,8 @@ my *list $rows = $table.selectRows(("where": ("name": op_ne("Smith"))));
         @return a where operation description hash for use in @ref where_clauses "where clauses"
 
         @see op_cne() for a function to be used when comparing two column values
+
+        This operator also handles Qore::NULL as SQL NULL values expanding them into <tt>IS NOT NULL</tt> clause.
     */
     public hash sub op_ne(any arg) {
         return make_op(OP_NE, arg);
@@ -2979,6 +3137,8 @@ my *list $rows = $table.selectRows(("where": ("name": op_eq("Smith"))));
         @return a where operation description hash for use in @ref where_clauses "where clauses"
 
         @see op_ceq() for a function to be used when comparing two column values
+
+        This operator also handles Qore::NULL as SQL NULL values expanding them into <tt>IS NULL</tt> clause.
     */
     public hash sub op_eq(any arg) {
         return make_op(OP_EQ, arg);
@@ -5934,6 +6094,16 @@ my string $sql = $t.getSqlFromList($list);
                 "increment": Type::Int,
                 "end": Type::Int,
                 );
+
+            #! Options for computeStatistics()
+            const ComputeStatisticsOptions = (
+                "tables"            : "softstringlist",
+                );
+
+            #! Options for reclaimSpace()
+            const ReclaimSpaceOptions = (
+                "tables"            : "softstringlist",
+                );
         }
 
         private {
@@ -6869,6 +7039,54 @@ my string $sql = $t.getSqlFromList($list);
             return listViewsImpl().iterator();            
         }
 
+        #! Rebuild an index in the DB
+        /** See @ref dba_indexes
+            @param name an index name
+            @param options an optional database-specific option hash
+
+            @return bool True if the index was rebuild, False it it was left untouched
+
+            @throw REBUILD-INDEX-ERROR in case of MySQL or in case of wrong options given
+         */
+        bool rebuildIndex(string name, *hash options) {
+            validateOptionsIntern("REBUILD-INDEX-ERROR", getRebuildIndexOptions(), \options);
+            return rebuildIndexImpl(name, options);
+        }
+
+        #! Rebuild an index in the DB
+        /** See @ref dba_indexes
+            @param index an AbstractIndex object
+            @param options an optional database-specific option hash
+
+            @throw REBUILD-INDEX-ERROR in case of MySQL or in case of wrong options given
+         */
+        bool rebuildIndex(AbstractIndex index, *hash options) {
+            validateOptionsIntern("REBUILD-INDEX-ERROR", getRebuildIndexOptions(), \options);
+            return rebuildIndexImpl(index.name, options);
+        }
+
+        #! Compute database statistics
+        /** See @ref dba_statistics
+            @param options an optional database-specific option hash
+
+            @throw COMPUTE-STATISTICS-ERROR in case of wrong options given
+         */
+        computeStatistics(*hash options) {
+            validateOptionsIntern("COMPUTE-STATISTICS-ERROR", getComputeStatisticsOptions(), \options);
+            return computeStatisticsImpl(options);
+        }
+
+        #! Reclaim taken but unused space in the DB
+        /** See @ref dba_space_management
+            @param options an optional database-specific option hash
+
+            @throw RECLAIM-SPACE-ERROR in case of wrong options given
+         */
+        reclaimSpace(*hash options) {
+            validateOptionsIntern("RECLAIM-SPACE-ERROR", getReclaimSpaceOptions(), \options);
+            return reclaimSpaceImpl(options);
+        }
+
         private validateOptionsIntern(string err, hash ropt, reference opt) {
             AbstractSqlUtilBase::validateOptionsIntern(err, ropt, \opt, ds.getDBName());
         }
@@ -6958,6 +7176,21 @@ my string $sql = $t.getSqlFromList($list);
             return SequenceDescriptionOptions;
         }
 
+        #! override in subclasses to return driver-specific options
+        private hash getRebuildIndexOptions() {
+            return hash();
+        }
+
+        #! override in subclasses to return driver-specific options
+        private hash getComputeStatisticsOptions() {
+            return ComputeStatisticsOptions;
+        }
+
+        #! override in subclasses to return driver-specific options
+        private hash getReclaimSpaceOptions() {
+            return ReclaimSpaceOptions;
+        }
+
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
         private any tryExecArgsImpl(string sql, *softlist args) {
             return ds.vexec(sql, args);
@@ -6995,6 +7228,10 @@ my string $sql = $t.getSqlFromList($list);
         private abstract bool supportsSequencesImpl();
         private abstract bool supportsPackagesImpl();
         private abstract bool supportsTypesImpl();
+
+        private abstract bool rebuildIndexImpl(string name, *hash options);
+        private abstract computeStatisticsImpl(*hash options);
+        private abstract reclaimSpaceImpl(*hash options);
     }
 
     #! represents a database table; this class embeds an AbstractTable object that is created automatically in the constructor based on the database driver for the AbstractDatasource object providing the database connection
