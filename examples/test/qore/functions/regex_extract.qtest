@@ -9,13 +9,14 @@
 
 class App {
     private {
-        int SUBPATTERNS_TO_TEST  = 100000;
+        int SUBPATTERNS_TO_TEST  = 10000;
         int SUBPATTERNS_AT_LEAST = 1;
+        list CAPTURE_LENGTHS = (1, 10, 100, 1000, 10000, 100000);
     }
     constructor() {
         UnitTest unit();
 
-        foreach int capture_length in ((1, 10, 100, 1000, 10000, 100000, 1000000, 10000000)) {
+        foreach int capture_length in (CAPTURE_LENGTHS) {
             string fixedlenstr = (map 'a', xrange(1, capture_length)).join('');
             foreach int i in (xrange(1, SUBPATTERNS_TO_TEST)) {
                 string str   = (map fixedlenstr, xrange(1, i)).join('');
