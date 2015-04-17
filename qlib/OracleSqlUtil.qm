@@ -556,6 +556,16 @@ my any $v = $c.name;
         string getEnableSql(string table_name, *hash opt) {
             return sprintf("alter table %s enable constraint %s", table_name, name);
         }
+
+        #! returns @ref Qore::True "True" if the constraint is enabled, @ref Qore::False "False" if not
+        bool isEnabled() {
+            return enabled;
+        }
+
+        #! returns the tablespace name used for this constraint, if known
+        *string getTablespace() {
+            return tablespace;
+        }
     }
 
     #! represents an Oracle primary key

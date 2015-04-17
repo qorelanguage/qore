@@ -157,6 +157,7 @@ $function$
     - fixed a bug with PgsqlTable::tryInsertImpl(); added an explicit "begin" call to make the savepoint work with PostgreSQL 9.3+ servers
     - fixed a bug retrieving foreign constraints; columns were not guaranteed to be returned in declaration order
     - implemented support for the \c "returning" clause as an insert option
+    - fixed a bug handling tablespaces in unique constraints
 
     @subsection pgsqlsqlutilv10 PgsqlSqlUtil v1.0
     - initial release
@@ -197,6 +198,7 @@ public namespace PgsqlSqlUtil {
 	    string src;
 	}
 
+        #! creates the type from the supplied arguments
         constructor(string n_name, string n_src) {
             name = n_name;
             src = n_src;
@@ -246,6 +248,7 @@ public namespace PgsqlSqlUtil {
 	    return sqll;
 	}
 
+        #! returns a string that can be used to create the type in the database
 	string getCreateSql(*hash opt) {
 	    return sprintf("create type %s as (%s)", name, src);
 	}
@@ -298,9 +301,11 @@ public namespace PgsqlSqlUtil {
 
     #! represents a PostgreSQL-specific foreign constraint
     public class PgsqlForeignConstraint inherits SqlUtil::AbstractForeignConstraint {
+        #! creates the constraint from the supplied arguments
         constructor(string n, Columns c, ForeignConstraintTarget t) : AbstractForeignConstraint(n, c, t) {
         }
 
+        #! returns a string that can be used to create the constraint in the database
         string getCreateSql(string table_name, *hash opt) {
             return getCreateSql(name, table_name, opt);
         }
@@ -313,6 +318,7 @@ public namespace PgsqlSqlUtil {
             return l;
         }
 
+        #! returns a string that can be used to create the constraint in the database
         string getCreateSql(string name, string table_name, *hash opt) {
             return sprintf("alter table %s add constraint %s foreign key (%s) references %s (%s)", table_name, name, (foldl $1 + ", " + $2, h.keys()), target.table, (foldl $1 + ", " + $2, target.columns.keys()));
         }
@@ -320,9 +326,11 @@ public namespace PgsqlSqlUtil {
 
     #! represents a PostgreSQL-specific check constraint
     public class PgsqlCheckConstraint inherits SqlUtil::AbstractCheckConstraint {
+        #! creates the constraint from the supplied arguments
         constructor(string n, string n_src) : AbstractCheckConstraint(n, n_src) {
-        }        
+        }
 
+        #! returns a string that can be used to create the constraint in the database
         string getCreateSql(string table_name, *hash opt) {
             return getCreateSql(name, table_name, opt);
         }
@@ -335,6 +343,7 @@ public namespace PgsqlSqlUtil {
             return l;
         }
 
+        #! returns a string that can be used to create the constraint in the database
         string getCreateSql(string name, string table_name, *hash opt) {
             return sprintf("alter table %s add constraint %s check (%s)", table_name, name, src);
         }
@@ -347,10 +356,12 @@ public namespace PgsqlSqlUtil {
             int byte_size;
         }
 
+        #! creates the column from the supplied arguments
         constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs) : AbstractColumn(n, nt, qt, sz, nul, dv, cm) {
             byte_size = bs;
         }
 
+        #! returns a string giving the native type of the column
         string getNativeTypeString() {
             string sql = native_type;
             switch (native_type) {
@@ -446,9 +457,11 @@ my string $str = $col.getRenameSql($t, "new_name");
 
     #! represents a PostgreSQL-specific numeric column
     public class PgsqlNumericColumn inherits PgsqlColumn, SqlUtil::NumericColumnInfo {
+        #! creates the column from the supplied arguments
         constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs, softint n_scale) : PgsqlColumn(n, nt, qt, sz, nul, dv, cm, bs), NumericColumnInfo(n_scale) {
         }
 
+        #! returns a string giving the native type of the column
         string getNativeTypeString() {
             switch (native_type) {
                 # do not return with numeric precision
@@ -460,16 +473,29 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
     }
 
+    #! common base class for unique constraints
     public class PgsqlUniqueConstraintCommon inherits SqlUtil::AbstractUniqueConstraint {
         private {
             #! any tablespace for the unique key index
             *string tablespace;
         }
 
+        #! creates the constraint with an optional tablespace name
         constructor(*string ts) {
             tablespace = ts;
         }
 
+        #! returns the tablespace name used for this constraint, if known
+        *string getTablespace() {
+            return tablespace;
+        }
+
+        #! sets or clears the tablespace name
+        setTablespace(*string ts) {
+            tablespace = ts;
+        }
+
+        #! sets the supporting index name
         bool setIndexBase(string ix) {
             if (index && index != ix)
                 return False;
@@ -483,6 +509,7 @@ my string $str = $col.getRenameSql($t, "new_name");
             delete index;
         }
 
+        #! returns an iterator for keys iterating a list of string key names
         abstract AbstractIterator keyIterator();
 
         #! adds index options onto the sql creation string
@@ -500,12 +527,19 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
     }
 
+    #! class modeling a unique constraint
     public class PgsqlUniqueConstraint inherits SqlUtil::AbstractUniqueConstraint, PgsqlUniqueConstraintCommon {
         private {
             #! @ref Qore::True "True" if the constraint is enabled, @ref Qore::False "False" if not
             bool enabled;
         }
 
+        #! creates the object with the given attributes
+        /** @param n name of the constraint
+            @param n_cols column hash
+            @param e the enabled status of the constraint
+            @param ts optional tablespace name
+        */
         constructor(string n, hash n_cols, bool e = True, *string ts) : AbstractUniqueConstraint(n, n_cols), PgsqlUniqueConstraintCommon(ts) {
             enabled = e;
         }
@@ -532,6 +566,7 @@ my any $v = $c.name;
             return h{k};
         }
 
+        #! returns a string that can be used to create the constraint
         string getCreateSql(string table_name, *hash opts) {
             return getCreateSql(name, table_name, opts);
         }
@@ -544,18 +579,30 @@ my any $v = $c.name;
             return l;
         }
 
+        #! returns a string that can be used to rename the constraint
         string getCreateSql(string name, string table_name, *hash opts) {
             string sql = sprintf("alter table %s add constraint %s unique ", table_name, name);
             getIndexSql(\sql, name, opts);
             return sql;
         }
+
+        #! returns @ref Qore::True "True" if the constraint is enabled, @ref Qore::False "False" if not
+        bool isEnabled() {
+            return enabled;
+        }
     }
 
     #! represents a PostgreSQL-specific primary key constraint
     public class PgsqlPrimaryKey inherits SqlUtil::AbstractPrimaryKey, PgsqlUniqueConstraintCommon {
+        #! creates an empty primary key object
         constructor() {
         }
 
+        #! creates the object with the given attributes
+        /** @param n name of the constraint
+            @param c column hash
+            @param ts optional tablespace name
+        */
         constructor(string n, *hash c, *string ts) : AbstractPrimaryKey(n, c), PgsqlUniqueConstraintCommon(ts) {
         }
 
@@ -581,12 +628,14 @@ my any $v = $c.name;
             return h{k};
         }
 
+        #! returns a string that can be used to create the constraint
         string getCreateSql(string table_name, *hash opts) {
             string sql = sprintf("alter table %s add constraint %s primary key", table_name, name);
             getIndexSql(\sql, name, opts);
             return sql;
         }
 
+        #! returns a string that can be used to rename the constraint
         softlist getRenameSql(string table_name, string new_name) {
             # the following is only valid with postgresql 9.2+
             #return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
@@ -1027,10 +1076,12 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             return ds.select("select table_name from information_schema.views where table_schema = any (current_schemas(false))").table_name;
         }
 
+        #! returns a string that can be used to create the schema in the database
         private string getCreateSqlImpl(list l) {
             return PgsqlDatabase::getCreateSql(l);
         }
 
+        #! returns a string that can be used to create the schema in the database
         static string getCreateSql(list l) {
             return !l ? "" : foldl $1 + "\n" + $2, (map sprintf("%s%s", $1, $1 =~ /(;|\$)$/ ? "" : ";"), l);
         }
@@ -1427,8 +1478,8 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                         PgsqlUniqueConstraint uk = cast<PgsqlUniqueConstraint>(constraints{i.key});
                         if (uk.matchKeys(i.value.columns)) {
                             # set tablespace in constraint
-                            if (i.value.tablespace && !uk.tablespace)
-                                uk.tablespace = i.value.tablespace;
+                            if (i.value.tablespace && !uk.getTablespace())
+                                uk.setTablespace(i.value.tablespace);
                             continue;
                         }
                     }
@@ -1536,6 +1587,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             return new Triggers(rv);
         }
 
+        #! returns a string that can be used to create the table in the database
         private string getCreateTableSqlImpl(*hash opt) {
             string sql = sprintf("create table %s (\n", name);
 
@@ -1595,6 +1647,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             return l ? l : NOTHING;
         }
 
+        #! returns a string that can be used to create the table in the database
         private string getCreateSqlImpl(list l) {
             return PgsqlDatabase::getCreateSql(l);
         }
