@@ -689,6 +689,10 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
 	    
 	 //printd(5, "ModuleManager::loadModule(%s) trying user module: %s\n", name, str.getBuffer());
 	 if (!stat(str.getBuffer(), &sb)) {
+	    // see if this is a relative path; if so normalize it; we cannot send a relative path to loadUserModuleFromPath()
+	    // since it will try to normalize the path using the current programs directory as the cwd
+	    if (!q_absolute_path(str.getBuffer()))
+	       q_normalize_path(str);
 	    printd(5, "ModuleManager::loadModule(%s) found user module: %s\n", name, str.getBuffer());
 	    mi = loadUserModuleFromPath(xsink, str.getBuffer(), name, pgm, reexport, pholder.release(), inject, reinject, reinject ? mpgm : 0, priv);
 	    if (xsink) {
