@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file MailMessage.qm MailMessage module definition
 
-/*  MailMessage.qm Copyright 2012 - 2013 Qore Technologies, sro
+/*  MailMessage.qm Copyright 2012 - 2015 Qore Technologies, sro
     
     Original Authors: Wolfgang Ritzinger, Marian Bonda, Pavol Potoncok
 

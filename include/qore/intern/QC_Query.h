@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright 2003 - 2015 David Nichols
 */
 
 #ifndef _QORE_SQL_OBJECTS_QUERY_H
