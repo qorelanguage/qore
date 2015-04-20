@@ -107,7 +107,8 @@ class qdx {
         # get module name and version (the easy way)
         string name = substr(basename(src), 0, -3);
         Program p();
-        p.parse(sprintf("%requires %s\nhash sub get() { return getModuleHash().'%s'; }\n", src, name), "mod");
+        string msrc = sprintf("%%requires %s\nhash sub get() { return getModuleHash().'%s'; }\n", src, name);
+        p.parse(msrc, "mod");
         hash h = p.callFunction("get");
 
         printf("processing %y -> %y (module %s %s src: %y trg: %y)\n", fn, ofn, name, h.version, src, trg);

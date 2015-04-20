@@ -1764,7 +1764,7 @@ static void add_cwd(QoreString& path) {
 
 void q_normalize_path(QoreString& path, const char* cwd) {
    //printd(5, "q_normalize_path(path: '%s', cwd: '%s')\n", path.getBuffer(), cwd);
-   if (!path.empty() && path[0] == '.') {
+   if (!path.empty() && !q_absolute_path(path.getBuffer())) {
       path.insertch(QORE_DIR_SEP, 0, 1);
       if (cwd) {
 	 QoreString Cwd(cwd);
