@@ -346,7 +346,8 @@ AbstractQoreNode *VarRefDeclNode::makeNewCall(AbstractQoreNode *args) {
 }
 
 void VarRefDeclNode::makeGlobal() {
-   assert(type == VT_UNRESOLVED); 
+   // could be tagged as local if allow-bare-refs is enabled
+   assert(type == VT_UNRESOLVED || (type == VT_LOCAL && parse_check_parse_option(PO_ALLOW_BARE_REFS))); 
 
    type = VT_GLOBAL;
    if (parseTypeInfo)
