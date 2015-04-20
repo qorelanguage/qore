@@ -1037,7 +1037,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
 					      fname->trim(fn[0]);
 					   }
 
-					   if (getProgram()->getParseOptions64() & PO_NO_FILESYSTEM) {
+					   QoreProgram* pgm = getProgram();
+
+					   if (pgm->getParseOptions64() & PO_NO_FILESYSTEM) {
 					      parse_error("cannot use the %%include parse directive when PO_NO_FILESYSTEM is in force");
 					      BEGIN(INITIAL);
                                            }
@@ -1052,7 +1054,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 					      struct stat sbuf;
 					      int rc = stat(fn, &sbuf);
 					      if (rc) {
-					         ExceptionSink *xsink = getProgram()->getParseExceptionSink();
+					         ExceptionSink* xsink = pgm->getParseExceptionSink();
 						 if (xsink)
 						    xsink->raiseErrnoException("PARSE-ERROR", errno, "stat() failed on include file: \"%s\"", fn);
 						 BEGIN(INITIAL);
@@ -1076,7 +1078,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 						       // take string from buffer
 						       char* str = fname->giveBuffer();
 						       // save file name string in QoreProgram's list - the list now owns the string memory
-						       qore_program_private::addFile(*(getProgram()), str);
+						       qore_program_private::addFile(*pgm, str);
 						       beginParsing(str, (void*)YY_CURRENT_BUFFER);
 						       yy_switch_to_buffer(yy_create_buffer(yyin, YY_BUF_SIZE, yyscanner), yyscanner);
 						       BEGIN(INITIAL);
