@@ -749,7 +749,7 @@ my *string $cwd = getcwd();
 
     @see getcwd2() for a similar function that throws an exception if an error occurs instead
  */
-string getcwd() [flags=CONSTANT;dom=FILESYSTEM,EXTERNAL_INFO] {
+*string getcwd() [flags=CONSTANT;dom=FILESYSTEM,EXTERNAL_INFO] {
    SimpleRefHolder<QoreStringNode> rv(new QoreStringNode);
    return q_getcwd(**rv) ? 0 : rv.release();
 }
