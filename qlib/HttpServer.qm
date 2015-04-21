@@ -1443,10 +1443,15 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
                         cast<HttpServer::AbstractHttpSocketHandler>($handler).start($listener.getID(), $cx, $hdr, $s);
                     }
                     catch (hash $ex) {
-                        my string $desc = !$.debug
-                            ? sprintf("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc)
-                            : get_exception_string($ex);
-                        $listener.logError("cid %d: error in dedicated socket handler %y: %s", $cx.id, $cx.handler_name, $desc);
+                        if ($ex.err == "SOCKET-NOT-OPEN") {
+                            $listener.logError("cid %d: dedicated socket handler %y: socket closed by remote", $cx.id, $cx.handler_name);
+                        }
+                        else {
+                            my string $desc = !$.debug
+                                ? sprintf("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc)
+                                : get_exception_string($ex);
+                            $listener.logError("cid %d: error in dedicated socket handler %y: %s", $cx.id, $cx.handler_name, $desc);
+                        }
                     }
                     $listener.removeDedicatedSocket($cx.id, $handler);
                     $listener.log("cid %d: stopped dedicated socket handler: %y", $cx.id, $cx.handler_name);
