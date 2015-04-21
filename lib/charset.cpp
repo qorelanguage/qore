@@ -55,8 +55,31 @@ static qore_size_t UTF16_getCharPos(const char* p, const char* e, bool& invalid)
 
 encoding_map_t QoreEncodingManager::emap;
 const_encoding_map_t QoreEncodingManager::amap;
-class QoreThreadLock QoreEncodingManager::mutex;
-class QoreEncodingManager QEM;
+QoreThreadLock QoreEncodingManager::mutex;
+QoreEncodingManager QEM;
+
+// FIXME: this is a horrible hack
+unsigned QoreEncoding::getMinCharWidth() const {
+   return this == QCS_UTF16 ? 2 : 1;
+}
+
+// FIXME: this is a horrible hack
+bool QoreEncoding::isAsciiCompat() const {
+   return this == QCS_UTF16 ? false : true;
+}
+
+// FIXME: this is an even more horrible hack - can only be called with UTF-16 encodings now
+unsigned QoreEncoding::getUnicode(const char* p) const {
+   assert(this == QCS_UTF16);
+
+   unsigned code_unit = (((unsigned char)p[0]) << 8) + ((unsigned char)p[1]);
+   if (code_unit >= 0xd800 && code_unit <= 0xdbff) {
+      unsigned code_unit_2 = (((unsigned char)p[2]) << 8) + ((unsigned char)p[3]);
+      if (code_unit_2 >= 0xdc00 && code_unit_2 <= 0xdfff)
+	 return (code_unit << 10) + code_unit_2 - 0x35fdc00;
+   }
+   return code_unit;
+}
 
 const QoreEncoding* QoreEncodingManager::addUnlocked(const char* code, const char* desc, unsigned char maxwidth, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, mbcs_charlen_t c) {
    QoreEncoding* qcs = new QoreEncoding(code, desc, maxwidth, l, e, p, c);
@@ -444,8 +467,11 @@ static qore_size_t UTF8_getCharPos(const char* p, const char* end, bool& invalid
 
 // we assume that all characters are 2 bytes wide and ignore characters in the supplementary planes
 qore_size_t q_UTF16_get_char_len(const char* p, qore_size_t len) {
-   // ensure that the length is a multiple of 2
-   return (len > 1) ? 2 : -1;
+   assert(len);
+
+   unsigned char c = (unsigned char)*p;
+   size_t l = c >= 0xd8 && c < 0xdc ? 4 : 2;
+   return len >= l ? l : -l;
 }
 
 static qore_size_t UTF16_getLength(const char* p, const char* end, bool& invalid) {

@@ -836,6 +836,11 @@ int QoreString::convert_encoding_intern(const char* src, qore_size_t src_len, co
 	 break;
       }
    }
+   /*
+   // remove byte order markers at the beginning of UTF16 strings
+   if (nccs == QCS_UTF16 && targ.priv->len >= 2 && (signed char)targ.priv->buf[0] == -2 && (signed char)targ.priv->buf[1] == -1)
+      targ.splice_simple(0, 2);
+   */
    return 0;
 }
 

@@ -29,9 +29,9 @@
   information.
 */
 
-#ifndef _QORE_CHARSET_H
+#ifndef _QORE_ENCODING_H
 
-#define _QORE_CHARSET_H
+#define _QORE_ENCODING_H
 
 /** @file QoreEncoding.h
     provides definitions related to character encoding support in Qore including the QoreEncoding class
@@ -69,14 +69,16 @@ typedef qore_size_t (*mbcs_charlen_t)(const char* str, qore_size_t valid_len);
     this ugly implementation with function pointers is much faster.
     Only encodings where a single character can be more than 1 byte needs to
     have functions implemented.
-    @note only encodings that are backwards compatible with ASCII are supported
-    by Qore; currently the only multi-byte encoding supported by qore is UTF-8
-    @note the default encoding is represented by QCS_DEFAULT; unless another 
-    encoding is explicitly given, all strings will be tagged with QCS_DEFAULT
+
+    @note only encodings that are backwards compatible with ASCII are supported by Qore; currently the only multi-byte encoding supported by qore is UTF-8 (UTF-16 is not properly supported yet)
+
+    @note the default encoding is represented by QCS_DEFAULT; unless another encoding is explicitly given, all strings will be tagged with QCS_DEFAULT
+
     @see QCS_DEFAULT
 */
 class QoreEncoding {
 private:
+   // FIXME: this class must have a private implementation
    std::string code;
    std::string desc;
    mbcs_length_t flength;
@@ -98,7 +100,7 @@ public:
        @param invalid if true after executing the function, invalid input was given and the return value should be ignored 
        @return the number of characters in the string
    */
-   DLLLOCAL qore_size_t getLength(const char* p, const char* end, bool &invalid) const {
+   DLLLOCAL qore_size_t getLength(const char* p, const char* end, bool& invalid) const {
       return flength ? flength(p, end, invalid) : strlen(p);
    }
 
@@ -177,6 +179,15 @@ public:
    DLLLOCAL int getMaxCharWidth() const {
       return maxwidth;
    }
+
+   //! returns the minimum character width in bytes for the encoding
+   DLLLOCAL unsigned getMinCharWidth() const;
+   
+   //! returns true if the character encoding is backwards-compatible with ASCII
+   DLLLOCAL bool isAsciiCompat() const;
+
+   //! returns the unicode code point for the given character, must be a complete character and only one character; assumes that there is space left in the string for the character (call getCharLen() before calling this function)
+   DLLLOCAL unsigned getUnicode(const char* p) const;
 };
 
 // case-insensitive maps for encodings
@@ -231,7 +242,7 @@ DLLEXPORT extern QoreEncodingManager QEM;
 DLLEXPORT extern const QoreEncoding* QCS_DEFAULT, //!< the default encoding for the Qore library 
    *QCS_USASCII,                                  //!< ascii encoding
    *QCS_UTF8,                                     //!< UTF-8 multi-byte encoding (only UTF-8 and UTF-16 are multi-byte encodings)
-   *QCS_UTF16,                                    //!< UTF-16 (only UTF-8 and UTF-16 are multi-byte encodings)
+   *QCS_UTF16,                                    //!< UTF-16 (only UTF-8 and UTF-16 are multi-byte encodings) - do not use; use UTF-8 instead
    *QCS_ISO_8859_1,                               //!< latin-1, Western European encoding
    *QCS_ISO_8859_2,                               //!< latin-2, Central European encoding
    *QCS_ISO_8859_3,                               //!< latin-3, Southern European character set
@@ -261,4 +272,4 @@ DLLEXPORT qore_size_t q_UTF8_get_char_len(const char* p, qore_size_t valid_len);
  */
 DLLEXPORT qore_size_t q_UTF16_get_char_len(const char* p, qore_size_t valid_len);
 
-#endif // _QORE_CHARSET_H
+#endif // _QORE_ENCODING_H

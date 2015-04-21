@@ -29,6 +29,7 @@
 */
 
 #include <qore/Qore.h>
+#include <qore/intern/qore_qf_private.h>
 
 #include <errno.h>
 
@@ -39,6 +40,7 @@ protected:
    int64 num;
    bool validp;
    bool trim;
+   bool convert_to_utf8;
 
    DLLLOCAL ~FileLineIterator() {
       if (eol)
@@ -49,13 +51,13 @@ protected:
 
 public:
    DLLLOCAL FileLineIterator(ExceptionSink* xsink, const char* name, const QoreEncoding* enc = QCS_DEFAULT, QoreStringNode* n_eol = 0, bool n_trim = true)
-   : QoreFile(enc), line(new QoreStringNode(enc)), eol(n_eol), num(0), validp(false), trim(n_trim) {
+      : QoreFile(enc), line(new QoreStringNode(enc->isAsciiCompat() ? enc : QCS_UTF8)), eol(n_eol), num(0), validp(false), trim(n_trim), convert_to_utf8(!enc->isAsciiCompat()) {
       if (open(name, O_RDONLY, 0, enc))
          xsink->raiseErrnoException("FILELINEITERATOR-OPEN-ERROR", errno, "cannot open '%s'", name);
    }
 
    DLLLOCAL FileLineIterator(ExceptionSink* xsink, const FileLineIterator& old)
-      : QoreFile(old.getEncoding()), line(new QoreStringNode(old.getEncoding())), eol(old.eol ? old.eol->stringRefSelf() : 0), num(old.num), validp(old.validp), trim(old.trim) {
+      : QoreFile(old.getEncoding()), line(new QoreStringNode(old.getEncoding())), eol(old.eol ? old.eol->stringRefSelf() : 0), num(old.num), validp(old.validp), trim(old.trim), convert_to_utf8(old.convert_to_utf8) {
       // reopen file
       std::string fn = old.getFileNameStr();
       if (open(fn.c_str(), O_RDONLY, 0, old.getEncoding()))
@@ -70,9 +72,13 @@ public:
       // make sure and use a new string if the iterator was already valid
       if (validp) {
          line->deref();
-         line = new QoreStringNode(getEncoding());
+         line = new QoreStringNode(convert_to_utf8 ? QCS_UTF8 : getEncoding());
       }
-      validp = eol ? !readUntil(eol->getBuffer(), *line, !trim) : !readLine(*line, !trim);
+      if (convert_to_utf8)
+         validp = eol ? !priv->readUntilUnicode(eol->getBuffer(), *line, !trim) : !priv->readLineUnicode(*line, !trim);
+      else
+         validp = eol ? !readUntil(eol->getBuffer(), *line, !trim) : !readLine(*line, !trim);
+
       if (validp) {
          // increment line number
          ++num;

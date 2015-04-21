@@ -64,11 +64,10 @@ class Queue;
     @see QoreEncoding
  */
 class QoreFile {
-private:
+protected:
    //! private implementation
    struct qore_qf_private *priv;
-      
-protected:
+
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreFile(const QoreFile&);
 

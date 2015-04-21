@@ -527,4 +527,7 @@ DLLEXPORT void q_normalize_path(QoreString& path, const char* cwd = 0);
 //! normalizes the given path and resolves any symlinks
 DLLEXPORT int q_realpath(const QoreString& path, QoreString& rv, ExceptionSink* xsink = 0);
 
+//! finds a memory sequence in a larger memory sequence
+DLLEXPORT void* q_memmem(const void* big, size_t big_len, const void* little, size_t little_len);
+
 #endif // _QORE_QORELIB_H
