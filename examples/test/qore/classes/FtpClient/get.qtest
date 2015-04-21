@@ -34,7 +34,7 @@ class FtpTest inherits FtpClient {
 	}
         $t.ok(True, 'seems we are connected');
 
-        my string $local_path = tmpLocation() + '/ftptest';
+        my string $local_path = tmp_location() + '/ftptest';
         unlink($local_path);
 
 	$.cwd($path);

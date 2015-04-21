@@ -65,7 +65,7 @@ module Util {
     - @ref Util::parse_to_qore_value()
     - @ref Util::slice()
     - @ref Util::same()
-    - @ref Util::tmpLocation()
+    - @ref Util::tmp_location()
 
     @section utilrelnotes Release Notes
 
@@ -673,12 +673,14 @@ my string $str = get_marketing_byte_size($n);
     #! Returns path for temporary files
     /** @par Example:
         @code
-my string $testfile = this.tmpLocation() + '/test.txt';
+my string $testfile = this.tmp_location() + '/test.txt';
 # some processing
 unlink(testfile);
         @endcode
+        @throw TMP-ERROR unable to find the location of the temporary directory
+        @since 1.3
     */
-    public string sub tmpLocation() {
+    public string sub tmp_location() {
         # TODO: add support for other platforms
         my *string $dir = $ENV.TMP ?* $ENV.TMPDIR ?* $ENV.TEMP;
         if (!$dir)

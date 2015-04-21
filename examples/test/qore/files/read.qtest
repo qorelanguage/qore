@@ -8,7 +8,7 @@
 my UnitTest t();
 
 my string str = "content\nxxx";
-my string file = tmpLocation() + "/test";
+my string file = tmp_location() + "/test";
 my File fw();
 
 unlink(file);

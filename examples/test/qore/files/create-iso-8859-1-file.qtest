@@ -7,7 +7,7 @@
 my UnitTest $t();
 
 %ifndef Windows
-my string $tmp = tmpLocation();
+my string $tmp = tmp_location();
 my string $file = $tmp + '/iso-8859-1.txt';
 my string $str = "Öffentl. Körperschaft/\n\n";
 

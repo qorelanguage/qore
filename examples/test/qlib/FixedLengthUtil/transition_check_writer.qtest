@@ -8,7 +8,7 @@
 
 UnitTest unit();
 
-string file = tmpLocation() + "/file.fll";
+string file = tmp_location() + "/file.fll";
 unlink(file);
 
 list data = (

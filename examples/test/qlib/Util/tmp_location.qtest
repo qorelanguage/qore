@@ -7,4 +7,4 @@
 
 UnitTest t();
 
-t.ok(tmpLocation().length() > 0, "got some location");
+t.ok(tmp_location().length() > 0, "got some location");

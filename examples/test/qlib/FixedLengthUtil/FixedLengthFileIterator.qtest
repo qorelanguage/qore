@@ -8,7 +8,7 @@
 
 UnitTest unit();
 
-string file = tmpLocation() + "/file.fll";
+string file = tmp_location() + "/file.fll";
 unlink(file);
 File FW = new File();
 FW.open(file, O_WRONLY | O_CREAT);

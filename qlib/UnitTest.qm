@@ -61,7 +61,7 @@ module UnitTest {
 
 class TestCow inherits UnitTest {
 	constructor() {
-		string testfile = tmpLocation() + '/test.txt';
+		string testfile = tmp_location() + '/test.txt';
 		# some processing
 		unlink(testfile);
 

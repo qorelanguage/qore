@@ -13,13 +13,13 @@ http://www.myspace.com/alcestmusic,FR,Alcest,alcest.jpg,2013-01-31T13:20:51,345
 http://www.amorphis.net/,FI,Amorphis,amorphis.jpg,2012-10-15T23:08:04,384
 http://www.anthrax.com/,US,Anthrax,anthrax.jpg,2012-12-29T14:02:53,395
 ";
-my string $rfile = tmpLocation() + "/test.csv";
+my string $rfile = tmp_location() + "/test.csv";
 my File $f = new File();
 $f.open($rfile, O_WRONLY | O_CREAT);
 $f.write($str);
 $f.close();
 
-my string $wdir = tmpLocation();
+my string $wdir = tmp_location();
 my string $wfile1 = $wdir + "/file1.csv";
 my string $wfile2 = $wdir + "/file2.csv";
 
