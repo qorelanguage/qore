@@ -139,12 +139,8 @@ public namespace UnitTest {
 #! Base class that exports functions for unit testing. For realworld examples see @ref unittestintro.
 public class UnitTest::UnitTest {
     private {
-        int m_testCount = 0;
-        int m_errors = 0;
-
-        list m_result = list();
+        list m_results = list();
         int m_output = PLAINTEXT;
-        *string m_comment;
 
         hash m_options;
     }
@@ -155,7 +151,6 @@ public class UnitTest::UnitTest {
             "verbose" : "verbose,v",
             "quiet"   : "quiet,q",
             "bq"      : "backquote,b",
-            
             "iters"   : "iters,i=i",
             "threads" : "threads,t=i",
             "format"  : "format=s",
@@ -167,6 +162,33 @@ public class UnitTest::UnitTest {
             p_argv = ARGV;
         m_options = new GetOpt(opts).parse2(\p_argv);
         processOptions(\p_argv);
+
+        printHeader();
+    }
+
+    private printHeader() {
+        if (m_output == PLAINTEXT && !quiet()) {
+            printf("QORE v%s Test Script (%d thread%s, %d iteration%s per thread)\n",
+                   Qore::VersionString,
+                   m_options.threads,
+                   m_options.threads == 1 ? "" : "s",
+                   m_options.iters,
+                   m_options.iters == 1 ? "" : "s"
+                  );
+        }
+    }
+
+    destructor() {
+        printFooter();
+    }
+
+    printFooter() {
+        if (m_options.format != PLAINTEXT) {
+            report(m_output);
+        }
+        else {
+            reportSummary();
+        }
     }
 
     private processOptions(reference p_argv) {
@@ -197,26 +219,8 @@ public class UnitTest::UnitTest {
         else {
             m_output = PLAINTEXT;
         }
-
-        if (m_output == PLAINTEXT && !quiet()) {
-            printf("QORE v%s Test Script (%d thread%s, %d iteration%s per thread)\n",
-                   Qore::VersionString,
-                   m_options.threads,
-                   m_options.threads == 1 ? "" : "s",
-                   m_options.iters,
-                   m_options.iters == 1 ? "" : "s"
-                  );
-        }
     }
 
-    destructor() {
-        if (m_options.format != PLAINTEXT) {
-            report(m_output);
-        }
-        else {
-            reportSummary();
-        }
-    }
 
     hash options() {
         return m_options;
@@ -235,15 +239,23 @@ public class UnitTest::UnitTest {
     }
 
     int errors() {
-        return m_errors;
+        int errs = 0;
+        ListIterator it(m_results);
+        while (it.next()) {
+            if (!it.getValue(){"result"}) {
+                errs++;
+            }
+        }
+        return errs;
     }
 
     int testCount() {
-        return m_testCount;
-    }
-
-    errorInc() {
-        m_errors++;
+        int tot = 0;
+        ListIterator it(m_results);
+        while (it.next()) {
+            tot++;
+        }
+        return tot;
     }
 
     private usage() {
@@ -253,9 +265,8 @@ public class UnitTest::UnitTest {
  -q.--quiet        print only errors
  -b,--backquote    include backquote tests (slow)
  -t,--threads=ARG  runs tests in ARG threads
-    --format=type  output format (default: plain)
+    --format=type  output format [default: plain, available: plain, junit]
 
-available output formats (stdout):
 ", get_script_name());
 
         map printf("    %s\n", $1), keys OUT_TYPES;
@@ -276,17 +287,17 @@ available output formats (stdout):
 
     private reportSummary() {
         if (!quiet()) {
-            printf("%d tests started, %d error%s\n", testCount(), errors(), errors() == 1 ? "" : "s");
+            printf("%d tests started, %d failed\n", testCount(), errors());
         }
     }
 
     private reportOneTestPlaintext(hash testcase) {
-        if (!m_options.verbose && testcase.result == "OK") {
+        if (!m_options.verbose && testcase.result) {
             return;
         }
-        printf("%s: %s\n", testcase.result, testcase.msg);
-        if (m_options.verbose && testcase.result != "OK") {
-            printf("%s\n", testcase.msg);
+        printf("%s: %s\n", testcase.result ? "OK" : "ERROR", testcase.msg);
+        if (m_options.verbose && !testcase.result) {
+            printf("-----\n%s\n-----\n", testcase.detail);
         }
     }
 
@@ -304,8 +315,7 @@ available output formats (stdout):
     }
 
     private reportPlaintext() { # TODO: remove
-        ListIterator it(m_result);
-        int test_id = 0;
+        ListIterator it(m_results);
         while (it.next()) {
             reportOneTestPlaintext(it.getValue());
         }
@@ -322,21 +332,49 @@ available output formats (stdout):
                                           );
         junit.testsuites.testcase = list();
 
-        ListIterator it(m_result);
+        ListIterator it(m_results);
         while (it.next()) {
              hash testcase;
-             if (it.getValue().result == "OK") {
-                 testcase."^attributes^" = ( "name" : it.getValue().msg, "status" : it.getValue().result );
+             if (it.getValue().result) {
+                 testcase."^attributes^" = ( "name" : it.getValue().msg, "status" : "OK" );
              }
              else {
                  testcase."^attributes^" = ( "name" : it.getValue().msg, "status" : "ERROR" );
-                 testcase.error."^attributes^" = ( "message" : it.getValue().msg, "type" : "ERROR" );
+                 testcase.error."^attributes^" = ( "message" : it.getValue().detail, "type" : "ERROR" );
              }
              push junit."testsuites"."testcase", testcase;
         }
 
         printf("%s\n", makeFormattedXMLString(junit));
 %endif
+    }
+
+    private addTestResult(string name, bool success, *string detail) {
+        hash testcase = ("msg": name, "result": success, "detail": detail);
+
+        if (m_output == PLAINTEXT) {
+            reportOneTest(testcase);
+        }
+
+        push m_results, testcase;
+    }
+
+    #! Performs a compare test
+    /** @param v1 result of tested function
+        @param v2 expected value
+        @param msg test message that will be printed
+        @param detail Only for internal use: chainer reason for failure
+        @par Example:
+        @code
+test_id = this.cmp(Cow.sound(), 'moo', "cow's sound is correct");
+        @endcode
+    */
+    int cmp(any v1, any v2, string msg, string detail) {
+        bool result = (v1 === v2);
+
+        addTestResult(msg, result, detail);
+
+        return elements m_results - 1;
     }
 
     #! Performs a compare test
@@ -349,28 +387,7 @@ test_id = this.cmp(Cow.sound(), 'moo', "cow's sound is correct");
         @endcode
     */
     int cmp(any v1, any v2, string msg) {
-        m_testCount++;
-        hash testcase = ("msg" : msg);
-        if (v1 === v2) {
-            testcase.result = "OK";
-        }
-        else {
-            testcase.result = sprintf("ERROR: %N != %N", v1, v2);
-            m_errors++;
-        }
-
-        if (m_comment) {
-            testcase.msg += m_comment;
-            m_comment = NOTHING;
-        }
-
-        push m_result, testcase;
-
-        if (m_output == PLAINTEXT) {
-            reportOneTest(testcase);
-        }
-
-        return elements m_result - 1;
+        return cmp(v1, v2, msg, sprintf("%N != %N", v1, v2));
     }
 
     #! Performs an OK test
@@ -382,7 +399,20 @@ this.ok(Cow.hasFourLegs(), "number of cow's legs correct");
         @endcode
     */
     int ok(softbool v, string msg) {
-	return cmp(v, True, msg);
+        return cmp(v, True, msg);
+    }
+
+    #! Performs an OK test
+    /** @param v result of some statement
+        @param msg test message that will be printed
+        @param detail Only for internal use: chained reason for failure
+        @par Example:
+        @code
+this.ok(Cow.hasFourLegs(), "number of cow's legs correct");
+        @endcode
+    */
+    int ok(softbool v, string msg, string detail) {
+        return cmp(v, True, msg, detail);
     }
 
     #! Performs a LIKE test
@@ -396,11 +426,9 @@ this.like(Cow.sound(), 'moo+', "cow's sound is correct");
     */
     int like(string str, string regex, string msg) {
         bool match = str.regex(regex);
-        if (!match) {
-            string msgstr = "#     string: " + str + "\n not match: " + regex;
-            m_comment = regex_subst(msgstr, "\n(?=.)", "\n# ");
-        }
-        return ok(match, msg);
+        string msgstr = "#     string: " + str + "\n not match: " + regex;
+        string detail = regex_subst(msgstr, "\n(?=.)", "\n# ");
+        return ok(match, msg, detail);
     }
 
     #! Performs a test for exception
@@ -431,8 +459,8 @@ this.exception(\fly(), ('cow'), 'invoked exception when cow trying to fly', UNAB
             }
             return 2;
         }
-        m_comment = '# found normal exit instead of exception';
-        return ok(0, msg);
+        string detail = '# found normal exit instead of exception';
+        return ok(0, msg, detail);
     }
 
     #! Performs a serie of batched CMP tests
