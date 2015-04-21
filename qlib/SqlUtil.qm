@@ -1838,7 +1838,7 @@ public namespace SqlUtil {
     */
     public const COP_APPEND = "append";
 
-    #! to append a constant value to use as an output column value
+    #! to append a constant value (SQL Literal) to use as an output column value
     /** @see cop_value()
     */
     public const COP_VALUE = "value";
@@ -2028,7 +2028,7 @@ public namespace SqlUtil {
         - @ref cop_as(): rename columns
         - @ref cop_prepend(): prepend a string to the output of a column
         - @ref cop_append(): append a string to the output of a column
-        - @ref cop_value(): return a constant value in a column
+        - @ref cop_value(): return a constant value (SQL Literal) in a column
         - @ref cop_upper(): return a column in upper case
         - @ref cop_lower(): return a column in lower case
 
@@ -2062,10 +2062,12 @@ my *hash $rows = t.selectRows(("columns": cop_as(cop_lower("permission_type"), "
 my *list $rows = $table.selectRows(("columns": ("id", "name", cop_as("errors", "error_count")), "where": ("type": "user")));
         @endcode
 
-        @param column the column specification for the column (string name or dot notation for use in joins)
+        @param column the column specification for the column (string name or dot notation for use in joins) or any other column "cop_..." function
         @param arg the new name of the output column
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+
+        @see SqlUtil::cop_value for SQL literals handling
     */
     public hash sub cop_as(any column, string arg) {
         return make_cop(COP_AS, column, arg);
@@ -2101,7 +2103,7 @@ my *list $rows = $table.selectRows(("columns": ("id", cop_append("name", "-migra
         return make_cop(COP_APPEND, column, arg);
     }
 
-    #! returns a hash for the \c "value" operator with the given argument
+    #! returns a hash for the \c "value" (literal) operator with the given argument
     /** @par Example:
         @code
 my *list $rows = $table.selectRows(("columns": ("id", "name", cop_value(100)), "where": ("type": "user")));
@@ -2110,6 +2112,77 @@ my *list $rows = $table.selectRows(("columns": ("id", "name", cop_value(100)), "
         @param arg the value to be returned in the column
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    
+        SQL literals can be useful in some cases - as dummy values for select
+        statements where there is exact columns required, unions, expected values
+        for \c arc.insertFromIteratorNoCommit(src.getRowIterator(sh))
+        "insert as select", etc.
+
+        The term literal refers to a fixed data value. For example, 123, 'foobar' etc.
+
+        Mapping of Qore values to literals:
+
+        |!Qore Type|!SQL Type|!Qore Example|!SQL interpretation
+        |Integer|NUMBER as it is|\c 123|\c 123
+        |Float|NUMBER as it is|\c 12.3|\c 12.3
+        |Numeric|NUMBER as it is|\c 1.2n|\c 1.2
+        |Date|String representation of the date using DB native implementation like TO_TIMESTAMP for Oracle.|\c now()|\c to_timestamp('20150421104825000000', 'YYYYMMDDHH24MISSFF6')
+        |Bool|Internal representation of the bool value using DB native implementation|\c True|\c 1
+        |String|Standard and escaped string literal. No additional literal methods like Oracle's <tt>nq{foobar}</tt> are supported now|\c "foo bar"|\c 'foo bar'
+        |\c NULL|Direct null literal|\c NULL|\c null
+        |\c NOTHING|Direct null literal|\c NOTHING|\c null
+
+        @note Passing an existing SQL function name as a value to the op_value
+              does not result in function call. The string value is escaped as it is.
+              Example: sysdate becomes 'sysdate'. See example below.
+
+        The most useful SqlUtil::cop_value usage is with cooperation of SqlUtil::cop_as which allows
+        nice and human readable column name aliases.
+
+        @warning Using SqlUtil::cop_value withtou SqlUtil::cop_as can result in errors
+                 depending on the DB backend. For example Oracle's use of <tt>cop_value(1), cop_value(True)</tt>
+                 ends with <tt>ORA-00918: column ambiguously defined</tt>
+                 because both values are interpreted as 1 in the resulting SQL.
+
+    <b>Example</b>
+    @code
+%new-style
+%requires SqlUtil
+
+DatasourcePool ds("oracle:pvanek_omq/omq@xbox(al32utf8)");
+Database db(ds);
+Table t(ds, "dual");
+
+hash sh = ( 
+    "columns" : (
+        cop_as(cop_value(1), "as_int"),
+        cop_as(cop_value(1.2), "as_float"),
+        cop_as(cop_value(3.2n), "as_numeric"),
+        cop_as(cop_value(now()), "as_date"),
+        cop_as(cop_value("foo bar"), "as_string"),
+        cop_as(cop_value("sysdate"), "as_function_call"),
+        cop_as(cop_value(True), "as_bool"),
+        cop_as(cop_value(NULL), "as_null"),
+        cop_as(cop_value(NOTHING), "as_nothing"),
+    ),
+);
+string sql;
+on_exit { printf("sql: %s\n", sql); }
+printf("%N\n", t.selectRow(sh, \sql));
+
+# results in:
+hash: (9 members)
+  as_int : 1
+  as_float : 1.2
+  as_numeric : 3.2
+  as_date : 2015-04-21 10:56:57.000000 Tue +02:00 (CEST)
+  as_string : "foo bar"
+  as_function_call : "sysdate"
+  as_bool : 1
+  as_null : <NULL>
+  as_nothing : <NULL>
+sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421105657000000', 'YYYYMMDDHH24MISSFF6') as as_date,'foo bar' as as_string,'sysdate' as as_function_call,1 as as_bool,null as as_null,null as as_nothing from pvanek_omq.workflows fetch next %v rows only
+    @endcode
     */
     public hash sub cop_value(any arg) {
         return make_cop(COP_VALUE, "", arg);
