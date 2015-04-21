@@ -485,7 +485,7 @@ struct qore_qf_private {
          str.concatUnicode(ch);
          if (rc == -1)
             rc = 0;
-         if (str[str.size() - 1] == byte) {
+         if (ch == byte) {
             if (!incl_byte)
                str.terminate(str.strlen() - 1);
             break;
@@ -495,9 +495,6 @@ struct qore_qf_private {
       return rc;
    }
    DLLLOCAL int readUntilUnicode(const char* bytes, QoreString& str, bool incl_bytes) {
-      if (!bytes[1])
-         return readUntilUnicode(bytes[0], str, incl_bytes);
-
       str.clear();
 
       AutoLocker al(m);

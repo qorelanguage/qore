@@ -178,7 +178,7 @@ FileLineIterator::constructor(string path, *string encoding, *string eol, bool t
    if (eol && eol->empty())
       eol = 0;
    // make sure that we use the same encoding for the EOL marker as for the file, convert if necessary
-   SimpleRefHolder<QoreStringNode> neol(eol ? new QoreStringNode(qe) : 0);
+   SimpleRefHolder<QoreStringNode> neol(eol ? new QoreStringNode(qe->isAsciiCompat() ? qe : QCS_UTF8) : 0);
    if (eol) {
       neol->concat(eol, xsink);
       if (*xsink)
