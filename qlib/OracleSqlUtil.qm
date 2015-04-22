@@ -1827,6 +1827,9 @@ my any $v = $c.name;
 
             # Oracle server major version
             int ora_major;
+
+            # helper flag to indicate if is the OracleTable real table or a view
+            bool m_isView = False;
         }
 
         constructor(AbstractDatasource nds, string nname, *hash opts) : AbstractTable(nds, nname, opts) {
@@ -1878,8 +1881,10 @@ my any $v = $c.name;
                 tablespace = tablespace.lwr();
 
             # get any comment
-            any cm = ds.selectRow("select * from all_tab_comments" + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v", schema.upr(), name.upr()).comments;
-            comment = cm ? cm : NOTHING;
+            if (!m_isView) {
+                any cm = ds.selectRow("select * from all_tab_comments" + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v", schema.upr(), name.upr()).comments;
+                comment = cm ? cm : NOTHING;
+            }
 
 	    inDb = True;
 	}
@@ -1889,12 +1894,24 @@ my any $v = $c.name;
             return sprintf("%s.%s" + (dblink ? "@" + dblink : ""), schema, name);
         }
 
+        #! This method can change itself or disappear in the near future. Do not use it.
+        bool isView() {
+            return m_isView;
+        }
+
         private hash setSchemaTable() {
             # get the table information if possible
             *hash row = ds.selectRow("select * from all_tables" + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v", schema.upr(), name.upr());
-            if (!row)
-                throw "TABLE-ERROR", sprintf("table %y.%y does not exist or is not accessible to this user (%s)", schema, name, getDBString());
-            return row;
+            if (row)
+                return row;
+
+            row = ds.selectRow("select * from all_views" + (dblink ? "@" + dblink : "") + " where owner = %v and view_name = %v", schema.upr(), name.upr());
+            if (row) {
+                m_isView = True;
+                return row;
+            }
+
+            throw "TABLE-ERROR", sprintf("table %y.%y does not exist or is not accessible to this user (%s)", schema, name, getDBString());
         }
 
         private setDblinkSchema() {
@@ -1910,6 +1927,13 @@ my any $v = $c.name;
             # see if the current user has the table
             *hash row = ds.selectRow("select * from user_tables where table_name = %v", name.upr());
             if (row) {
+                schema = getUserSchema();
+                return row;
+            }
+
+            row = ds.selectRow("select * from user_views where view_name = %v", name.upr());
+            if (row) {
+                m_isView = True;
                 schema = getUserSchema();
                 return row;
             }
@@ -1950,9 +1974,16 @@ my any $v = $c.name;
 
             # get the table information if possible
             row = ds.selectRow("select * from all_tables" + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v", schema.upr(), name.upr());
-            if (!row)
-                throw "TABLE-ERROR", sprintf("%y is a %ssynonym pointing to table %y.%y which does not exist or is not accessible to this user (%s)", orig_name, pub ? "public " : "", schema, name, getDBString());
-            return row;
+            if (row)
+                return row;
+
+            row = ds.selectRow("select * from all_views" + (dblink ? "@" + dblink : "") + " where owner = %v and view_name = %v", schema.upr(), name.upr());
+            if (row) {
+                m_isView = True;
+                return row;
+            }
+
+            throw "TABLE-ERROR", sprintf("%y is a %ssynonym pointing to table %y.%y which does not exist or is not accessible to this user (%s)", orig_name, pub ? "public " : "", schema, name, getDBString());
         }
 
         private string getUserSchema() {

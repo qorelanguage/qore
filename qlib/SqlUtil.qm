@@ -7317,6 +7317,8 @@ my string $sql = $t.getSqlFromList($list);
         - \c "mysql": <a href="../../MysqlSqlUtil/html/index.html">MysqlSqlUtil</a>
 
         etc.
+    
+        @note Objects of Table class can hold AbstractTable pointing to a view in Oracle.
     */
     public class Table {
         private {
