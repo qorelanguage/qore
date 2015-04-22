@@ -54,17 +54,12 @@ struct GVEntryBase {
    DLLLOCAL GVEntryBase(const NamedScope& n, Var* v) : name(new NamedScope(n)), var(v) {
    }
 
-   DLLLOCAL GVEntryBase(char* n, const QoreTypeInfo* typeInfo, QoreParseTypeInfo* parseTypeInfo) : name(new NamedScope(n)), var(typeInfo ? new Var(name->getIdentifier(), typeInfo) : new Var(name->getIdentifier(), parseTypeInfo)) {
-   }
+   DLLLOCAL GVEntryBase(char* n, const QoreTypeInfo* typeInfo, QoreParseTypeInfo* parseTypeInfo);
 
    DLLLOCAL GVEntryBase(const GVEntryBase& old) : name(old.name), var(old.var) {
    }
 
-   DLLLOCAL void clear() {
-      delete name;
-      if (var)
-         var->deref(0);
-   }
+   DLLLOCAL void clear();
 
    DLLLOCAL Var* takeVar() {
       Var* rv = var;

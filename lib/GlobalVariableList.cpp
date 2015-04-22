@@ -35,6 +35,31 @@
 
 #include <assert.h>
 
+GlobalVariableList::GlobalVariableList(const GlobalVariableList& old, int64 po) {
+   // don't inherit any global vars if the appropriate flag is not already set
+   if ((po & PO_NO_INHERIT_GLOBAL_VARS))
+      return;
+   
+   map_var_t::iterator last = vmap.begin();
+   for (map_var_t::const_iterator i = old.vmap.begin(), e = old.vmap.end(); i != e; ++i) {
+      //printd(5, "GlobalVariableList::GlobalVariableList() this: %p v: %p '%s' pub: %d\n", this, i->second, i->second->getName(), i->second->isPublic());
+      if (!i->second->isPublic())
+	 continue;
+      Var* v = new Var(const_cast<Var*>(i->second));
+      last = vmap.insert(last, map_var_t::value_type(v->getName(), v));
+   }
+}
+
+void GlobalVariableList::mergePublic(const GlobalVariableList& old) {
+   map_var_t::iterator last = vmap.begin();
+   for (map_var_t::const_iterator i = old.vmap.begin(), e = old.vmap.end(); i != e; ++i) {
+      if (!i->second->isPublic())
+	 continue;
+      Var* v = new Var(const_cast<Var*>(i->second));
+      last = vmap.insert(last, map_var_t::value_type(v->getName(), v));
+   }
+}
+
 // adds directly to committed list
 Var* GlobalVariableList::import(Var* v, ExceptionSink* xsink, bool readonly) {
    map_var_t::iterator i = vmap.find(v->getName());
@@ -133,3 +158,9 @@ QoreListNode *GlobalVariableList::getVarList() const {
    
    return l;
 }
+
+void GlobalVariableList::parseAdd(Var* v) {
+   assert(!parseFindVar(v->getName()));
+   pending_vmap[v->getName()] = v;
+}
+

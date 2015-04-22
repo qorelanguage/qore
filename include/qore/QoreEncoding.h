@@ -64,21 +64,27 @@ typedef qore_size_t (*mbcs_pos_t)(const char* str, const char* ptr, bool &invali
  */
 typedef qore_size_t (*mbcs_charlen_t)(const char* str, qore_size_t valid_len);
 
+//! for multi-byte non-ascii compatible character encodings: returns the unicode code point for the given character, assumes there is enough data for the character (must be checked before calling)
+typedef unsigned (*mbcs_get_unicode_t)(const char* p);
+
+// private implementation of the QoreEncoding class
+struct qore_encoding_private;
+
 //! defines string encoding functions in Qore
 /** for performance reasons this is not a class hierarchy with virtual methods;
     this ugly implementation with function pointers is much faster.
     Only encodings where a single character can be more than 1 byte needs to
     have functions implemented.
 
-    @note only encodings that are backwards compatible with ASCII are supported by Qore; currently the only multi-byte encoding supported by qore is UTF-8 (UTF-16 is not properly supported yet)
+    @note only encodings that are backwards compatible with ASCII are supported by Qore; currently the only multi-byte encoding completely supported by qore is UTF-8 (UTF-16* encodings are not properly supported yet)
 
     @note the default encoding is represented by QCS_DEFAULT; unless another encoding is explicitly given, all strings will be tagged with QCS_DEFAULT
 
     @see QCS_DEFAULT
 */
 class QoreEncoding {
-private:
-   // FIXME: this class must have a private implementation
+protected:
+   // FIXME: move all this to the private implementation with the ABI change
    std::string code;
    std::string desc;
    mbcs_length_t flength;
@@ -87,12 +93,12 @@ private:
    mbcs_charlen_t fcharlen;
    unsigned char maxwidth;
 
-public:
-   DLLLOCAL QoreEncoding(const char* n_code, const char* n_desc = 0, unsigned char n_maxwidth = 1, mbcs_length_t l = 0, mbcs_end_t e = 0, mbcs_pos_t p = 0, mbcs_charlen_t c = 0) : code(n_code), desc(n_desc ? n_desc : ""), flength(l), fend(e), fpos(p), fcharlen(c), maxwidth(n_maxwidth) {
-   }
+   qore_encoding_private* priv;
 
-   DLLLOCAL ~QoreEncoding() {
-   }
+public:
+   DLLLOCAL QoreEncoding(const char* n_code, const char* n_desc = 0, unsigned char n_minwidth = 1, unsigned char n_maxwidth = 1, mbcs_length_t l = 0, mbcs_end_t e = 0, mbcs_pos_t p = 0, mbcs_charlen_t c = 0,  mbcs_get_unicode_t gu = 0, bool n_ascii_compat = true);
+
+   DLLLOCAL ~QoreEncoding();
 
    //! gives the length of the string in characters
    /** @param p a pointer to the character data
@@ -100,9 +106,7 @@ public:
        @param invalid if true after executing the function, invalid input was given and the return value should be ignored 
        @return the number of characters in the string
    */
-   DLLLOCAL qore_size_t getLength(const char* p, const char* end, bool& invalid) const {
-      return flength ? flength(p, end, invalid) : strlen(p);
-   }
+   DLLLOCAL qore_size_t getLength(const char* p, const char* end, bool& invalid) const;
 
    //! gives the length of the string in characters
    /** @param p a pointer to the character data
@@ -119,9 +123,7 @@ public:
        @param invalid if true after executing the function, invalid input was given and the return value should be ignored 
        @return the number of bytes for the given number of characters in the string or up to the end of the string
    */
-   DLLLOCAL qore_size_t getByteLen(const char* p, const char* end, qore_size_t c, bool& invalid) const {
-      return fend ? fend(p, end, c, invalid) : c;
-   }
+   DLLLOCAL qore_size_t getByteLen(const char* p, const char* end, qore_size_t c, bool& invalid) const;
 
    //! gives the number of bytes for the number of chars in the string or up to the end of the string
    /** @param p a pointer to the character data
@@ -138,9 +140,7 @@ public:
        @param invalid if true after executing the function, invalid input was given and the return value should be ignored 
        @return the number of bytes for the given number of characters in the string
    */
-   DLLLOCAL qore_size_t getCharPos(const char* p, const char* end, bool& invalid) const {
-      return fpos ? fpos(p, end, invalid) : end - p;
-   }
+   DLLLOCAL qore_size_t getCharPos(const char* p, const char* end, bool& invalid) const;
 
    //! gives the character position (number of characters) starting from the first pointer to the second
    /** @param p a pointer to the character data
@@ -156,29 +156,19 @@ public:
        @param valid_len the number of valid bytes at the start of the character pointer
        @return 0=invalid, positive = number of characters needed, negative numbers = number of additional bytes needed to perform the check
    */
-   DLLLOCAL qore_size_t getCharLen(const char* p, qore_size_t valid_len) const {
-      return fcharlen ? fcharlen(p, valid_len) : 1;
-   }
+   DLLLOCAL qore_size_t getCharLen(const char* p, qore_size_t valid_len) const;
       
    //! returns true if the encoding is a multi-byte encoding
-   DLLLOCAL bool isMultiByte() const {
-      return (bool)flength;
-   }
+   DLLLOCAL bool isMultiByte() const;
 
    //! returns the string code (ex: "UTF-8") for the encoding
-   DLLLOCAL const char* getCode() const {
-      return code.c_str();
-   }
+   DLLLOCAL const char* getCode() const;
 
    //! returns the description for the encoding
-   DLLLOCAL const char* getDesc() const {
-      return desc.empty() ? "<no description available>" : desc.c_str();
-   }
+   DLLLOCAL const char* getDesc() const;
 
    //! returns the maximum character width in bytes for the encoding
-   DLLLOCAL int getMaxCharWidth() const {
-      return maxwidth;
-   }
+   DLLLOCAL int getMaxCharWidth() const;
 
    //! returns the minimum character width in bytes for the encoding
    DLLLOCAL unsigned getMinCharWidth() const;
@@ -205,7 +195,7 @@ private:
    DLLLOCAL static const_encoding_map_t amap;
    DLLLOCAL static QoreThreadLock mutex;
    
-   DLLLOCAL static const QoreEncoding* addUnlocked(const char* code, const char* desc, unsigned char maxwidth = 1, mbcs_length_t l = 0, mbcs_end_t e = 0, mbcs_pos_t p = 0, mbcs_charlen_t = 0);
+   DLLLOCAL static const QoreEncoding* addUnlocked(const char* n_code, const char* n_desc = 0, unsigned char n_minwidth = 1, unsigned char n_maxwidth = 1, mbcs_length_t l = 0, mbcs_end_t e = 0, mbcs_pos_t p = 0, mbcs_charlen_t c = 0,  mbcs_get_unicode_t gu = 0, bool n_ascii_compat = true);
    DLLLOCAL static const QoreEncoding* findUnlocked(const char* name);
 
 public:
@@ -242,7 +232,9 @@ DLLEXPORT extern QoreEncodingManager QEM;
 DLLEXPORT extern const QoreEncoding* QCS_DEFAULT, //!< the default encoding for the Qore library 
    *QCS_USASCII,                                  //!< ascii encoding
    *QCS_UTF8,                                     //!< UTF-8 multi-byte encoding (only UTF-8 and UTF-16 are multi-byte encodings)
-   *QCS_UTF16,                                    //!< UTF-16 (only UTF-8 and UTF-16 are multi-byte encodings) - do not use; use UTF-8 instead
+   *QCS_UTF16,                                    //!< UTF-16 (only UTF-8 and UTF-16* are multi-byte encodings) - do not use; use UTF-8 instead
+   *QCS_UTF16BE,                                  //!< UTF-16BE (only UTF-8 and UTF-16* are multi-byte encodings) - do not use; use UTF-8 instead
+   *QCS_UTF16LE,                                  //!< UTF-16LE (only UTF-8 and UTF-16* are multi-byte encodings) - do not use; use UTF-8 instead
    *QCS_ISO_8859_1,                               //!< latin-1, Western European encoding
    *QCS_ISO_8859_2,                               //!< latin-2, Central European encoding
    *QCS_ISO_8859_3,                               //!< latin-3, Southern European character set
@@ -261,15 +253,5 @@ DLLEXPORT extern const QoreEncoding* QCS_DEFAULT, //!< the default encoding for 
    *QCS_KOI8_R,                                   //!< Russian: Kod Obmena Informatsiey, 8 bit
    *QCS_KOI8_U,                                   //!< Ukrainian: Kod Obmena Informatsiey, 8 bit
    *QCS_KOI7;                                     //!< Russian: Kod Obmena Informatsiey, 7 bit characters
-
-//! returns the byte length of the next UTF-8 character or 0 for an encoding error or a negative number if the string is too short to represent the character
-/** FIXME: change return type to qore_offset_t
- */
-DLLEXPORT qore_size_t q_UTF8_get_char_len(const char* p, qore_size_t valid_len);
-
-//! returns the byte length of the next UTF-16 character or 0 for an encoding error or a negative number if the string is too short to represent the character
-/** FIXME: change return type to qore_offset_t
- */
-DLLEXPORT qore_size_t q_UTF16_get_char_len(const char* p, qore_size_t valid_len);
 
 #endif // _QORE_ENCODING_H

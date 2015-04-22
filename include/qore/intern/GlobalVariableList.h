@@ -35,6 +35,8 @@
 
 #define _QORE_GLOBALVARIABLELIST_H
 
+#include <qore/intern/Variable.h>
+
 #include <map>
 
 class Var;
@@ -61,30 +63,9 @@ public:
    DLLLOCAL GlobalVariableList() {
    }
 
-   DLLLOCAL GlobalVariableList(const GlobalVariableList& old, int64 po) {
-      // don't inherit any global vars if the appropriate flag is not already set
-      if ((po & PO_NO_INHERIT_GLOBAL_VARS))
-         return;
+   DLLLOCAL GlobalVariableList(const GlobalVariableList& old, int64 po);
 
-      map_var_t::iterator last = vmap.begin();
-      for (map_var_t::const_iterator i = old.vmap.begin(), e = old.vmap.end(); i != e; ++i) {
-         //printd(5, "GlobalVariableList::GlobalVariableList() this: %p v: %p '%s' pub: %d\n", this, i->second, i->second->getName(), i->second->isPublic());
-         if (!i->second->isPublic())
-            continue;
-         Var* v = new Var(const_cast<Var*>(i->second));
-         last = vmap.insert(last, map_var_t::value_type(v->getName(), v));
-      }
-   }
-
-   DLLLOCAL void mergePublic(const GlobalVariableList& old) {
-      map_var_t::iterator last = vmap.begin();
-      for (map_var_t::const_iterator i = old.vmap.begin(), e = old.vmap.end(); i != e; ++i) {
-         if (!i->second->isPublic())
-            continue;
-         Var* v = new Var(const_cast<Var*>(i->second));
-         last = vmap.insert(last, map_var_t::value_type(v->getName(), v));
-      }
-   }
+   DLLLOCAL void mergePublic(const GlobalVariableList& old);
 
    DLLLOCAL ~GlobalVariableList() {
       assert(vmap.empty());
@@ -103,10 +84,7 @@ public:
    DLLLOCAL Var* parseCreatePendingVar(const char* name, const QoreTypeInfo* typeInfo);
    DLLLOCAL const Var* parseFindVar(const char* name) const;
 
-   DLLLOCAL void parseAdd(Var* v) {
-      assert(!parseFindVar(v->getName()));
-      pending_vmap[v->getName()] = v;
-   }
+   DLLLOCAL void parseAdd(Var* v);
 
    // xxx DLLLOCAL Var* parseFindCreateVar(const char* name, QoreParseTypeInfo* typeInfo, bool& new_var);
    // xxx DLLLOCAL Var* parseFindCreateVar(const char* name, const QoreTypeInfo* typeInfo, bool& new_var);

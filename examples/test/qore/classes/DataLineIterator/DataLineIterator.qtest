@@ -1,4 +1,5 @@
 #!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
 %exec-class Test
 %requires UnitTest
@@ -13,7 +14,10 @@ class Test {
 	    "a2ps-4.13-1332.1.x86_64",
 	    "a2ps-devel-4.13-1332.1.x86_64",
 	    "aaa_base-11.3-7.2.x86_64",
+            "příliš žluťoučký kůň úpěl ďábelské ódy",
 	    );
+
+        const DataListUtf16 = map convert_encoding($1, "utf16"), DataList;
     }
     
     constructor() {
@@ -25,6 +29,8 @@ class Test {
     }
 
     doTests(string pref, string eol) {
+        string opref = pref;
+        
 	string data = foldl $1 + eol + $2, DataList;
 
 	{
@@ -40,13 +46,44 @@ class Test {
 	
 	pref = "AUTO-" + pref;
 
-	DataLineIterator di(data);
+        {
+            DataLineIterator di(data);
 
-	for (int i = 0; i < DataList.size(); ++i) {
-	    t.ok(di.next(), pref + "-DataLineIterator::next() " + i);
-	    t.ok(di.getValue() == DataList[i], pref + "-DataLineIterator::getValue() " + i);
+            for (int i = 0; i < DataList.size(); ++i) {
+                t.ok(di.next(), pref + "-DataLineIterator::next() " + i);
+                t.ok(di.getValue() == DataList[i], pref + "-DataLineIterator::getValue() " + i);
+            }
+
+            t.ok(!di.next(), pref + "-DataLineIterator::next() final");
+        }
+        
+        # do UTF-16 (non-ascii-compat) tests
+        data = foldl $1 + convert_encoding(eol, "utf16") + $2, DataListUtf16;
+
+        pref = "UTF16-" + opref;
+        {
+	    DataLineIterator di(data, eol);
+
+	    for (int i = 0; i < DataList.size(); ++i) {
+		t.ok(di.next(), pref + "-DataLineIterator::next() " + i);
+		t.ok(di.getValue() == DataList[i], pref + "-DataLineIterator::getValue() " + i);
+	    }
+
+	    t.ok(!di.next(), pref + "-DataLineIterator::next() final");
 	}
 
-	t.ok(!di.next(), pref + "-DataLineIterator::next() final");
+	pref = "AUTO-" + pref;
+
+        {
+            DataLineIterator di(data);
+
+            for (int i = 0; i < DataList.size(); ++i) {
+                t.ok(di.next(), pref + "-DataLineIterator::next() " + i);
+                t.ok(di.getValue() == DataList[i], pref + "-DataLineIterator::getValue() " + i);
+            }
+
+            t.ok(!di.next(), pref + "-DataLineIterator::next() final");
+        }
+
     }
 }

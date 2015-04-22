@@ -33,19 +33,20 @@
 
 #define _QORE_SWITCHSTATEMENT_H
 
-#include "intern/AbstractStatement.h"
+#include <qore/intern/AbstractStatement.h>
+#include <qore/intern/StatementBlock.h>
 
 class CaseNode {
 private:
    DLLLOCAL virtual bool isCaseNodeImpl() const;
    
 public:
-   AbstractQoreNode *val;
-   StatementBlock *code;
-   CaseNode *next;
+   AbstractQoreNode* val;
+   StatementBlock* code;
+   CaseNode* next;
 
-   DLLLOCAL CaseNode(AbstractQoreNode *v, StatementBlock *c);
-   DLLLOCAL virtual bool matches(AbstractQoreNode* lhs_value, ExceptionSink *xsink);
+   DLLLOCAL CaseNode(AbstractQoreNode* v, StatementBlock* c);
+   DLLLOCAL virtual bool matches(AbstractQoreNode* lhs_value, ExceptionSink* xsink);
    DLLLOCAL virtual bool isDefault() const {
       return !val;
    }
@@ -55,21 +56,21 @@ public:
 
 class SwitchStatement : public AbstractStatement {
 private:
-   CaseNode *head, *tail;
-   AbstractQoreNode *sexp;
-   CaseNode *deflt;
+   CaseNode* head, *tail;
+   AbstractQoreNode* sexp;
+   CaseNode* deflt;
 
-   DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
-   DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
+   DLLLOCAL virtual int parseInitImpl(LocalVar* oflag, int pflag = 0);
+   DLLLOCAL virtual int execImpl(AbstractQoreNode** return_value, ExceptionSink* xsink);
 
 public:
     LVList *lvars;
 
    // start and end line are set later
-   DLLLOCAL SwitchStatement(CaseNode *f);
+   DLLLOCAL SwitchStatement(CaseNode* f);
    DLLLOCAL virtual ~SwitchStatement();
-   DLLLOCAL void setSwitch(AbstractQoreNode *s);
-   DLLLOCAL void addCase(CaseNode *c);
+   DLLLOCAL void setSwitch(AbstractQoreNode* s);
+   DLLLOCAL void addCase(CaseNode* c);
 
    // fake it here and let it be checked at runtime
    DLLLOCAL virtual bool hasFinalReturn() const {

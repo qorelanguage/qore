@@ -35,6 +35,8 @@
 
 #include <qore/common.h>
 
+#include <qore/intern/Function.h>
+
 #include <map>
 #include <string>
 
@@ -63,9 +65,7 @@ public:
       func->deref();
    }
 
-   DLLLOCAL qore_ns_private* getNamespace() const {
-      return func->getNamespace();
-   }
+   DLLLOCAL qore_ns_private* getNamespace() const;
 
    DLLLOCAL QoreFunction* getFunction() const {
       return func;
@@ -114,17 +114,12 @@ public:
       return func->hasBuiltin();
    }
    
-   DLLLOCAL void updateNs(qore_ns_private* ns) {
-      func->updateNs(ns);
-   }
+   DLLLOCAL void updateNs(qore_ns_private* ns);
 };
 
 class ModuleImportedFunctionEntry : public FunctionEntry {
 public:
-   //DLLLOCAL ModuleImportedFunctionEntry(const FunctionEntry& old, qore_ns_private* ns) : FunctionEntry(old.getName(), new QoreFunction(false, *(old.getFunction()), ns)) {
-   //}
-   DLLLOCAL ModuleImportedFunctionEntry(const FunctionEntry& old, qore_ns_private* ns) : FunctionEntry(old.getName(), new QoreFunction(*(old.getFunction()), PO_NO_SYSTEM_FUNC_VARIANTS, ns)) {
-   }
+   DLLLOCAL ModuleImportedFunctionEntry(const FunctionEntry& old, qore_ns_private* ns);
 };
 
 #ifdef HAVE_QORE_HASH_MAP

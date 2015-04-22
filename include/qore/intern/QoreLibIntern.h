@@ -797,5 +797,16 @@ DLLLOCAL const char* q_find_last_path_sep(const char* path);
 // reutrns the given file's mode or 0 if the stat() call fails
 DLLLOCAL int q_get_mode(const QoreString& path);
 
+//! returns the byte length of the next UTF-8 character or 0 for an encoding error or a negative number if the string is too short to represent the character
+/** FIXME: change return type to qore_offset_t
+ */
+DLLLOCAL qore_size_t q_UTF8_get_char_len(const char* p, qore_size_t valid_len);
+
+//! returns the byte length of the next UTF-16 (big-endian encoded) character or 0 for an encoding error or a negative number if the string is too short to represent the character
+/** FIXME: change return type to qore_offset_t
+ */
+DLLLOCAL qore_size_t q_UTF16BE_get_char_len(const char* p, qore_size_t valid_len);
+DLLLOCAL qore_size_t q_UTF16LE_get_char_len(const char* p, qore_size_t len);
+
 #endif
 

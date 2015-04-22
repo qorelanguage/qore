@@ -30,11 +30,23 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/FunctionList.h>
+#include <qore/intern/QoreNamespaceIntern.h>
 
 #include <string.h>
 
+qore_ns_private* FunctionEntry::getNamespace() const {
+   return func->getNamespace();
+}
+
 ResolvedCallReferenceNode* FunctionEntry::makeCallReference() const {
    return new LocalFunctionCallReferenceNode(func);
+}
+
+void FunctionEntry::updateNs(qore_ns_private* ns) {
+   func->updateNs(ns);
+}
+
+ModuleImportedFunctionEntry::ModuleImportedFunctionEntry(const FunctionEntry& old, qore_ns_private* ns) : FunctionEntry(old.getName(), new QoreFunction(*(old.getFunction()), PO_NO_SYSTEM_FUNC_VARIANTS, ns)) {
 }
 
 FunctionList::FunctionList(const FunctionList& old, qore_ns_private* ns, int64 po) {
@@ -176,3 +188,4 @@ int FunctionList::importSystemFunctions(const FunctionList& src, qore_ns_private
    }
    return cnt;
 }
+

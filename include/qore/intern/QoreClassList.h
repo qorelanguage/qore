@@ -54,6 +54,9 @@ typedef std::map<const char*, QoreClass*, ltstr> hm_qc_t;
 
 class QoreNamespaceList;
 
+class ClassListIterator;
+class ConstClassListIterator;
+
 class QoreClassList {
    friend class ClassListIterator;
    friend class ConstClassListIterator;

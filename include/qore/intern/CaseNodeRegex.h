@@ -39,36 +39,28 @@
 // switch ($a) {
 // case ~= /regex_exp/: ..
 //
-class CaseNodeRegex : public CaseNode
-{
+class CaseNodeRegex : public CaseNode {
 protected:
    QoreRegexNode *re;
    
-   DLLLOCAL virtual bool isCaseNodeImpl() const
-   {
+   DLLLOCAL virtual bool isCaseNodeImpl() const {
       return false;
    }
-   DLLLOCAL virtual bool isDefault() const
-   {
+   DLLLOCAL virtual bool isDefault() const {
       return false;
    }
    
 public:
-   DLLLOCAL CaseNodeRegex(QoreRegexNode *m_re, StatementBlock *blk) : CaseNode(NULL, blk), re(m_re) 
-   {
-   }
-   DLLLOCAL virtual ~CaseNodeRegex()
-   {
+   DLLLOCAL CaseNodeRegex(QoreRegexNode *m_re, StatementBlock *blk);
+   DLLLOCAL virtual ~CaseNodeRegex() {
       delete re;
    }
    DLLLOCAL virtual bool matches(AbstractQoreNode *lhs_value, class ExceptionSink *xsink);
 };
 
-class CaseNodeNegRegex : public CaseNodeRegex
-{
+class CaseNodeNegRegex : public CaseNodeRegex {
 public:
-   DLLLOCAL CaseNodeNegRegex(QoreRegexNode *m_re, StatementBlock *blk) : CaseNodeRegex(m_re, blk) 
-   {
+   DLLLOCAL CaseNodeNegRegex(QoreRegexNode *m_re, StatementBlock *blk) : CaseNodeRegex(m_re, blk) {
    }
    DLLLOCAL virtual bool matches(AbstractQoreNode *lhs_value, class ExceptionSink *xsink);
 };

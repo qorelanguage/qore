@@ -40,6 +40,21 @@
     |\c US-ASCII|\c ASCII, \c USASCII|7-bit ASCII character set    
     |\c UTF-8|\c UTF8|variable-width universal character set
     |\c UTF-16|\c UTF16|variable-width universal character set based on a fundamental 2-byte character encoding; not backwards-compatible with ASCII and therefore not supported universally in %Qore; it's recommended to convert these strings to UTF-8 in %Qore; do not use UTF-16 as the default character encoding in %Qore
+    |\c UTF-16LE|\c UTF16LE|variable-width universal character set based on a fundamental 2-byte character encoding with little-endian encoding; not backwards-compatible with ASCII and therefore not supported universally in %Qore; it's recommended to convert these strings to UTF-8 in %Qore; do not use UTF-16LE as the default character encoding in %Qore
+
+    @subsection utf16_in_qore UTF-16 Support in Qore
+
+    UTF-16 is currently not well supported in %Qore, because %Qore's string support is based on the assumption that all strings are backwards-compatible with ASCII, and UTF-16 is not due to the minimum 2-byte character width and the possibility of embedded null bytes.
+
+    It's possible to generate string data in UTF-16 encoding (using @ref Qore::convert_encoding()), however note that all strings so generated will be tagged with a BOM (byte order marker) at the beginning of the string data (this is performed by libiconv).
+
+    The following classes support parsing UTF-16 data by converting it to UTF-8 and processing the UTF-8 data:
+    - @ref Qore::DataLineIterator
+    - @ref Qore::FileLineIterator
+
+    Most string operations on UTF-16 data will provide invalid results due to the embedded nulls.
+
+    @bug BOMs are ignored and all UTF-16 data is assumed to be big-endian; little-endian UTF-16-encoded data, even with a correct BOM, will not be processed correctly in %Qore (in this case use the \c UTF-16LE encodign specifically)
 
     @section default_encoding Default Character Encoding
 

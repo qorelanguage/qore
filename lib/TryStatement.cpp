@@ -132,3 +132,8 @@ int TryStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    return 0;
 }
 
+bool TryStatement::hasFinalReturn() const {
+   // this works because try and rethrow both return true for hasFinalReturn
+   // because throwing an exception trumpts any return statement
+   return try_block && try_block->hasFinalReturn() && catch_block && catch_block->hasFinalReturn();
+}
