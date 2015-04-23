@@ -331,6 +331,8 @@ DLLLOCAL void parseRestoreCodeInfo(const char* parse_code, const QoreTypeInfo* r
 DLLLOCAL const QoreTypeInfo* saveReturnTypeInfo(const QoreTypeInfo* returnTypeInfo);
 DLLLOCAL const QoreTypeInfo* getReturnTypeInfo();
 
+DLLLOCAL const QoreTypeInfo* parse_get_return_type_info();
+
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 DLLLOCAL void pushCall(CallNode* cn);
 DLLLOCAL void popCall(ExceptionSink* xsink);

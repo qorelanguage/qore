@@ -85,6 +85,8 @@ struct qore_encoding_private;
 class QoreEncoding {
 protected:
    // FIXME: move all this to the private implementation with the ABI change
+   // NOTE: the following class members cannot be removed because until Qore 0.8.12 this class implemented inline member functions
+   //       that refered directly to these member variables, therefore they make up a part of the library's ABI :(
    std::string code;
    std::string desc;
    mbcs_length_t flength;
@@ -106,7 +108,7 @@ public:
        @param invalid if true after executing the function, invalid input was given and the return value should be ignored 
        @return the number of characters in the string
    */
-   DLLLOCAL qore_size_t getLength(const char* p, const char* end, bool& invalid) const;
+   DLLEXPORT qore_size_t getLength(const char* p, const char* end, bool& invalid) const;
 
    //! gives the length of the string in characters
    /** @param p a pointer to the character data
@@ -114,7 +116,7 @@ public:
        @param xsink Qore-language exceptions will be raised using this argument
        @return the number of characters in the string
    */
-   DLLLOCAL qore_size_t getLength(const char* p, const char* end, ExceptionSink* xsink) const;
+   DLLEXPORT qore_size_t getLength(const char* p, const char* end, ExceptionSink* xsink) const;
 
    //! gives the number of bytes for the number of chars in the string or up to the end of the string
    /** @param p a pointer to the character data
@@ -123,7 +125,7 @@ public:
        @param invalid if true after executing the function, invalid input was given and the return value should be ignored 
        @return the number of bytes for the given number of characters in the string or up to the end of the string
    */
-   DLLLOCAL qore_size_t getByteLen(const char* p, const char* end, qore_size_t c, bool& invalid) const;
+   DLLEXPORT qore_size_t getByteLen(const char* p, const char* end, qore_size_t c, bool& invalid) const;
 
    //! gives the number of bytes for the number of chars in the string or up to the end of the string
    /** @param p a pointer to the character data
@@ -132,7 +134,7 @@ public:
        @param xsink Qore-language exceptions will be raised using this argument
        @return the number of bytes for the given number of characters in the string or up to the end of the string
    */
-   DLLLOCAL qore_size_t getByteLen(const char* p, const char* end, qore_size_t c, ExceptionSink* xsink) const;
+   DLLEXPORT qore_size_t getByteLen(const char* p, const char* end, qore_size_t c, ExceptionSink* xsink) const;
 
    //! gives the character position (number of characters) starting from the first pointer to the second
    /** @param p a pointer to the character data
@@ -140,7 +142,7 @@ public:
        @param invalid if true after executing the function, invalid input was given and the return value should be ignored 
        @return the number of bytes for the given number of characters in the string
    */
-   DLLLOCAL qore_size_t getCharPos(const char* p, const char* end, bool& invalid) const;
+   DLLEXPORT qore_size_t getCharPos(const char* p, const char* end, bool& invalid) const;
 
    //! gives the character position (number of characters) starting from the first pointer to the second
    /** @param p a pointer to the character data
@@ -148,7 +150,7 @@ public:
        @param xsink Qore-language exceptions will be raised using this argument
        @return the number of bytes for the given number of characters in the string
    */
-   DLLLOCAL qore_size_t getCharPos(const char* p, const char* end, ExceptionSink* xsink) const;
+   DLLEXPORT qore_size_t getCharPos(const char* p, const char* end, ExceptionSink* xsink) const;
 
    //! gives the number of total bytes for the character given one or more characters
    /** always returns 1 for single-byte encodings
@@ -156,27 +158,34 @@ public:
        @param valid_len the number of valid bytes at the start of the character pointer
        @return 0=invalid, positive = number of characters needed, negative numbers = number of additional bytes needed to perform the check
    */
-   DLLLOCAL qore_size_t getCharLen(const char* p, qore_size_t valid_len) const;
+   DLLEXPORT qore_size_t getCharLen(const char* p, qore_size_t valid_len) const;
       
    //! returns true if the encoding is a multi-byte encoding
-   DLLLOCAL bool isMultiByte() const;
+   DLLEXPORT bool isMultiByte() const;
 
    //! returns the string code (ex: "UTF-8") for the encoding
-   DLLLOCAL const char* getCode() const;
+   DLLEXPORT const char* getCode() const;
 
    //! returns the description for the encoding
-   DLLLOCAL const char* getDesc() const;
+   DLLEXPORT const char* getDesc() const;
 
    //! returns the maximum character width in bytes for the encoding
-   DLLLOCAL int getMaxCharWidth() const;
+   DLLEXPORT int getMaxCharWidth() const;
 
    //! returns the minimum character width in bytes for the encoding
-   DLLLOCAL unsigned getMinCharWidth() const;
+   /** @since Qore 0.8.12
+    */
+   DLLEXPORT unsigned getMinCharWidth() const;
    
    //! returns true if the character encoding is backwards-compatible with ASCII
-   DLLLOCAL bool isAsciiCompat() const;
+   /** @since Qore 0.8.12
+    */
+   DLLEXPORT bool isAsciiCompat() const;
 
    //! returns the unicode code point for the given character, must be a complete character and only one character; assumes that there is space left in the string for the character (call getCharLen() before calling this function)
+   /** @note: can only be called for character encodings where isAsciiCompat() returns false 
+       @since Qore 0.8.12
+    */
    DLLLOCAL unsigned getUnicode(const char* p) const;
 };
 

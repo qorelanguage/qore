@@ -313,6 +313,9 @@ public:
    // currently-executing/parsing block's return type
    const QoreTypeInfo* returnTypeInfo;
 
+   // parse-time block return type
+   const QoreTypeInfo* parse_return_type_info;
+   
    // current implicit element offset
    int element;
 
@@ -350,7 +353,7 @@ public:
       parseClass(0), catchException(0), trlist(new ThreadResourceList), current_code(0),
       current_pgm(p), current_ns(0), current_implicit_arg(0), tlpd(0), tpd(new ThreadProgramData(this)),
       closure_parse_env(0), closure_rt_env(0), 
-      returnTypeInfo(0), element(0), global_vnode(0), pcs(0),
+      returnTypeInfo(0), parse_return_type_info(0), element(0), global_vnode(0), pcs(0),
       qmc(0), qmd(0), user_module_context_name(0), qmi(0), foreign(n_foreign) {
  
 #ifdef QORE_MANAGE_STACK
@@ -1082,15 +1085,19 @@ const char* get_parse_code() {
 void parseSetCodeInfo(const char* parse_code, const QoreTypeInfo* returnTypeInfo, const char*& old_code, const QoreTypeInfo*& old_returnTypeInfo) {
    ThreadData* td = thread_data.get();
    old_code = td->parse_code;
-   old_returnTypeInfo = td->returnTypeInfo;
+   old_returnTypeInfo = td->parse_return_type_info;
    td->parse_code = parse_code;
-   td->returnTypeInfo = returnTypeInfo;
+   td->parse_return_type_info = returnTypeInfo;
 }
 
 void parseRestoreCodeInfo(const char* parse_code, const QoreTypeInfo* returnTypeInfo) {
    ThreadData* td = thread_data.get();
    td->parse_code = parse_code;
-   td->returnTypeInfo = returnTypeInfo;
+   td->parse_return_type_info = returnTypeInfo;
+}
+
+const QoreTypeInfo* parse_get_return_type_info() {
+   return (thread_data.get())->parse_return_type_info;
 }
 
 const QoreTypeInfo* getReturnTypeInfo() {
