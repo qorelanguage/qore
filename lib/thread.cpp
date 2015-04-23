@@ -511,8 +511,9 @@ void ThreadProgramData::del(ExceptionSink* xsink) {
          pgm_set.erase(i);
       }
       pgm->depDeref(xsink);
-      qore_program_private::endThread(pgm, this, xsink);
-      deref();
+      // only dereference the current object if the thread was deleted from the program
+      if (!qore_program_private::endThread(pgm, this, xsink))
+         deref();
    }
 }
 
