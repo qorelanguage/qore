@@ -950,23 +950,24 @@ public:
    }
 
    // TODO: xsink should not be necessary; vars should be emptied and finalized in the finalizeThreadData() call
-   DLLLOCAL void endThread(ThreadProgramData* td, ExceptionSink* xsink) {
+   DLLLOCAL int endThread(ThreadProgramData* td, ExceptionSink* xsink) {
       ThreadLocalProgramData* tlpd = 0;
 
       // delete all local variables for this thread
       {
          AutoLocker al(tlock);
          if (tclear)
-            return;
+            return -1;
 
          pgm_data_map_t::iterator i = pgm_data_map.find(td);
          if (i == pgm_data_map.end())
-            return;
+            return -1;
          tlpd = i->second;
          pgm_data_map.erase(i);
       }
 
       tlpd->del(xsink);
+      return 0;
    }
 
    DLLLOCAL void doTopLevelInstantiation(ThreadLocalProgramData &tlpd) {
@@ -1481,8 +1482,8 @@ public:
       pgm->priv->finalizeThreadData(td, cl);
    }
 
-   DLLLOCAL static void endThread(QoreProgram *pgm, ThreadProgramData *td, ExceptionSink* xsink) {
-      pgm->priv->endThread(td, xsink);
+   DLLLOCAL static int endThread(QoreProgram *pgm, ThreadProgramData *td, ExceptionSink* xsink) {
+      return pgm->priv->endThread(td, xsink);
    }
 
    DLLLOCAL static void makeParseException(QoreProgram *pgm, const char* err, QoreStringNode* desc) {
