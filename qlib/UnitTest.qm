@@ -241,6 +241,8 @@ public class UnitTest::UnitTest {
 
     destructor() {
         printSummary();
+        # Return the number of errors as exit code, as >0 means failure in unix terms.
+        exit(errors());
     }
 
     private callPrinterFunction(string type, list args) {
