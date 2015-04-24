@@ -35,25 +35,16 @@
 %requires Util >= 1.0
 
 module WebSocketClient {
-    version = "1.2";
+    version = "1.3";
     desc = "user module for providing client support for the WebSocket protocol";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
     license = "MIT";
 }
 
-/*  Version History
-    * 2014-03-14 v1.2: David Nichols <david@qore.org>
-      + prepend "WebSocketClient: " to log messages
-
-    * 2014-02-04 v1.1: David Nichols <david@qore.org>
-      + added socket instrumention support from Qore 0.8.9
-
-    * 2013-10-04 v1.0: David Nichols <david@qore.org>
-      + the initial version of the WebSocketClient module
-*/
-
 /** @mainpage WebSocketClient Module
+
+    @tableofcontents
 
     @section websocketclientintro Introduction to the WebSocketClient Module
 
@@ -89,6 +80,20 @@ $ws.connect(("url": $url, "callback": sub (*data $d) { if ($d.typeCode() == NT_B
 my Counter $c(1);
 $c.waitForZero();
     @endcode
+
+    @section websocketclient_relnotes WebSocketClient Module Release History
+
+    @subsection wsc_v13 v1.3
+    - ignore \c SOCKET-NOT-OPEN errors when closing (server already closed the connection)
+
+    @subsection wsc_v12 v1.2
+    - prepend "WebSocketClient: " to log messages
+
+    @subsection wsc_v11 v1.1
+    - added socket instrumention support from Qore 0.8.9
+
+    @subsection wsc_v10 v1.0
+    - the initial version of the WebSocketClient module
 */
 
 #! the WebSocketClient namespace contains all the definitions in the WebSocketClient module
@@ -423,7 +428,15 @@ $ws.clearStats();
             else
                 $txtmsg = WSCCMap.$code;
             $msg += $txtmsg;
-            $.hc.send2(ws_encode_message($msg, WSOP_Close, True), $.timeout_ms);
+            try {
+                $.hc.send2(ws_encode_message($msg, WSOP_Close, True), $.timeout_ms);
+            }
+            catch (hash $ex) {
+                # ignore SOCKET-NOT-OPEN errors when closing (server already closed the connection)
+                if ($ex.err == "SOCKET-NOT-OPEN")
+                    return;
+                rethrow;
+            }
         }
 
         private hash connectUnlocked(*hash $hdr, *reference $info) {
