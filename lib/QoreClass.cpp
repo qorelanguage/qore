@@ -2510,7 +2510,7 @@ int64 QoreClass::bigIntEvalMethod(QoreObject* self, const char* nme, const QoreL
    if (!w) {
       if (priv->methodGate && !priv->methodGate->inMethod(self)) { // call methodGate with unknown method name and arguments
 	 ReferenceHolder<AbstractQoreNode> rv(evalMethodGate(self, nme, args, xsink), xsink);
-	 return *xsink ? 0 : rv->getAsBigInt();
+	 return (*xsink || !rv) ? 0 : rv->getAsBigInt();
       }
 
       return pseudo_classes_int64_eval(self, nme, args, xsink);
@@ -2534,7 +2534,7 @@ int QoreClass::intEvalMethod(QoreObject* self, const char* nme, const QoreListNo
    if (!w) {
       if (priv->methodGate && !priv->methodGate->inMethod(self)) { // call methodGate with unknown method name and arguments
 	 ReferenceHolder<AbstractQoreNode> rv(evalMethodGate(self, nme, args, xsink), xsink);
-	 return *xsink ? 0 : rv->getAsInt();
+	 return (*xsink || !rv) ? 0 : rv->getAsInt();
       }
 
       return pseudo_classes_int_eval(self, nme, args, xsink);
@@ -2558,7 +2558,7 @@ bool QoreClass::boolEvalMethod(QoreObject* self, const char* nme, const QoreList
    if (!w) {
       if (priv->methodGate && !priv->methodGate->inMethod(self)) { // call methodGate with unknown method name and arguments
 	 ReferenceHolder<AbstractQoreNode> rv(evalMethodGate(self, nme, args, xsink), xsink);
-	 return *xsink ? false : rv->getAsBool();
+	 return (*xsink || !rv) ? false : rv->getAsBool();
       }
 
       return pseudo_classes_bool_eval(self, nme, args, xsink);
@@ -2582,7 +2582,7 @@ double QoreClass::floatEvalMethod(QoreObject* self, const char* nme, const QoreL
    if (!w) {
       if (priv->methodGate && !priv->methodGate->inMethod(self)) { // call methodGate with unknown method name and arguments
 	 ReferenceHolder<AbstractQoreNode> rv(evalMethodGate(self, nme, args, xsink), xsink);
-	 return *xsink ? 0.0 : rv->getAsFloat();
+	 return (*xsink || !rv) ? 0.0 : rv->getAsFloat();
       }
 
       return pseudo_classes_double_eval(self, nme, args, xsink);

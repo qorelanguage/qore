@@ -181,6 +181,7 @@
       - fixed a bug where template programs with @ref Qore::PO_ALLOW_BARE_REFS set did not work
     - <a href="../../modules/WebSocketHandler/html/index.html">WebSocketHandler</a> module updates:
       - fixed a bug where the connection object was deleted when the connection closes which could cause excess exceptions in multithreaded server code
+      - added the WebSocketConnection::connectionClosed() method to be called when the connection is closed
     - <a href="../../modules/WebSocketClient/html/index.html">WebSocketClient</a> module updates:
       - updated module to version 1.3
       - ignore \c SOCKET-NOT-OPEN errors when closing (server already closed the connection)
@@ -246,6 +247,7 @@
     - fixed a bug with the @ref cast "cast<>() operator where compatible classes were not recognized at runtime that would otherwise be recognized correctly without the cast
     - fixed the return type in @ref Qore::getcwd() to @ref "string_or_nothing" "*string"
     - fixed a bug in the @ref return "return statement" where the runtime return type was used at parse time which did not work when parsing embedded code
+    - fixed a bug validating return values in method evaluation that could lead to a qore crash
 
     @section qore_0811 Qore 0.8.11
 
