@@ -1054,7 +1054,7 @@ QoreString* QoreString::convertEncoding(const QoreEncoding* nccs, ExceptionSink*
 	 return 0;
 
       // remove BOM bytes (invisible non-breaking space) at the beginning of a string when converting to UTF-8
-      if (nccs == QCS_UTF8 && targ->priv->len >= 3 && targ->priv->buf[0] == 0xef && targ->priv->buf[1] == 0xbb && targ->priv->buf[2] == 0xbf) {
+      if (nccs == QCS_UTF8 && targ->priv->len >= 3 && (unsigned char)targ->priv->buf[0] == 0xef && (unsigned char)targ->priv->buf[1] == 0xbb && (unsigned char)targ->priv->buf[2] == 0xbf) {
 	 printd(0, "QoreString::convertEncoding() found BOM, removing\n");
 	 targ->splice_simple(0, 3);
       }
