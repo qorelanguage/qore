@@ -31,6 +31,9 @@
 # requires the Util module
 %requires Util >= 1.0
 
+# for bindOracleCollection
+%requires oracle
+
 # don't use "$" signs for variables and class members, assume local variable scope
 %new-style
 
@@ -98,8 +101,17 @@ my *hash $q = $table.select(("where": ("col1": op_in(1, 2, 3, 4))));
 
     Results in the equivalent of the following SQL:
     @code
-my *hash $q = $ds.select("select * from schema.table where col1 in (select regexp_substr(%v,'[^,]+', 1, level) from dual connect by regexp_substr(%v, '[^,]+', 1, level) is not null)", "1,2,3,4", "1,2,3,4");
+my *hash $q = $ds.select("select * from schema.table where col1 in (select column_value from table(%v))", bindOracleCollection("SYS.ODCIVARCHAR2LIST", (1,2,3,4)));
     @endcode
+
+    |!Qore Type|!Oracle Collection
+    |Date|\c SYS.ODCIDATELIST
+    |Float|\c SYS.ODCINUMBERLIST
+    |Integer|\c SYS.ODCINUMBERLIST
+    |Number|\c SYS.ODCINUMBERLIST
+    |String|\c SYS.ODCIVARCHAR2LIST
+
+    There universal collections are limited to 32767 elements. And \c SYS.ODCIVARCHAR2LIST element size is \c VARCHAR2(4000).
 
     @subsection ora_partitioning_select Partition Support in Selects
     
@@ -1742,20 +1754,54 @@ my any $v = $c.name;
             #! where operator specializations for Oracle
             const OracleOpMap = DefaultOpMap + (
                 OP_IN: (
-                    "code": string sub (object t, string cn, any arg, reference args) {
-                        *string argstr = (foldl $1 + "," + $2, (map $1.toString(), arg));
+                    "code": string sub (object t, string cn, softlist arg, reference args) {
+                        # Qorus bug #989 SqlUtil: oracle op_in can fail in large amount of input elements
+                        # There is no support for CLOBs in WHERE clause in Oracle at all.
+                        # Binding large strings (over 4000 chars is performed by a CLOB in Qore driver.
+                        # Result of op_in operator can be "ORA-00932: inconsistent datatypes" if is
+                        # the list longer or if it contains large items with:
+                        # return cn + " in (select regexp_substr(%v,'[^,]+', 1, level) from dual connect by regexp_substr(%v, '[^,]+', 1, level) is not null)";
 
-                        # in this case this part of the expression will fail
-                        if (!argstr)
-                            return "1 != 1";
+                        # determine list members type. Let's assume the 1st non NULL/NOTHING
+                        # element gives the type code for all elements.
+                        ListIterator it(arg);
+                        int ltype;
+                        while (it.next()) {
+                            switch (it.getValue().typeCode()) {
+                                case NT_NULL:
+                                case NT_NOTHING:
+                                    continue;
+                                case NT_DATE:
+                                case NT_FLOAT:
+                                case NT_INT:
+                                case NT_NUMBER:
+                                case NT_STRING:
+                                    ltype = it.getValue().typeCode();
+                                    break;
+                                default:
+                                    throw "ORACLE-DRIVER-ERROR", sprintf("op_in operator unexpected list member type: %s. Only simple types are supported.", it.getValue().type());
+                            }
+                            if (ltype) break;
+                        }
 
-                        args += argstr;
-                        args += argstr;
+                        # Bind to oracle by expected type
+                        switch (ltype) {
+                            case NT_DATE:
+                                args += bindOracleCollection("SYS.ODCIDATELIST", arg);
+                                break;
+                            case NT_FLOAT:
+                            case NT_NUMBER:
+                            case NT_INT:
+                                args += bindOracleCollection("SYS.ODCINUMBERLIST", arg);                                
+                                break;
+                            default:
+                                args += bindOracleCollection("SYS.ODCIVARCHAR2LIST", arg);                                
+                        }
 
-                        return cn + " in (select regexp_substr(%v,'[^,]+', 1, level) from dual connect by regexp_substr(%v, '[^,]+', 1, level) is not null)";
+                        return cn + " in (select column_value from table(%v))";
                     },
                 ),
-                );
+            );
 
             #! column operator specializations for Oracle
             const OracleCopMap = DefaultCopMap + (
