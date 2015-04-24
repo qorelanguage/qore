@@ -3,7 +3,7 @@
 %new-style
 %enable-all-warnings
 %requires UnitTest
-%requires ./FixedLengthUtil.qm
+%requires ../../../../qlib/FixedLengthUtil.qm
 
 UnitTest unit();
 
