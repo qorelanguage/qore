@@ -127,11 +127,13 @@ class TestCow inherits UnitTest {
 #! the UnitTest namespace contains all the definitions in the UnitTest module
 public namespace UnitTest {
 
-    public const PLAINTEXT = 0;
-    public const JUNIT     = 1;
+    public const QUIET = 0;
+    public const PLAIN = 1;
+    public const JUNIT = 2;
 
     public const OUT_TYPES = (
-        "plain" : PLAINTEXT,
+        "quiet" : QUIET,
+        "plain" : PLAIN,
         "junit" : JUNIT,
         );
 }
@@ -140,9 +142,12 @@ public namespace UnitTest {
 public class UnitTest::UnitTest {
     private {
         list m_results = list();
-        int m_output = PLAINTEXT;
+        int m_output;
 
         hash m_options;
+
+        # A map of print methods, categorised into three types: header, summary, testreport
+        hash m_printMethods;
     }
 
     public {
@@ -150,53 +155,37 @@ public class UnitTest::UnitTest {
             "help"    : "help,h",
             "verbose" : "verbose,v",
             "quiet"   : "quiet,q",
-            "bq"      : "backquote,b",
             "iters"   : "iters,i=i",
             "threads" : "threads,t=i",
             "format"  : "format=s",
-            );
+        );
     }
 
-    constructor(*reference p_argv, hash opts = Opts) {
-        if (!p_argv)
-            p_argv = ARGV;
-        m_options = new GetOpt(opts).parse2(\p_argv);
-        processOptions(\p_argv);
+    private usage() {
+        printf("usage: %s [options]
+ -h,--help         this help text
+ -t,--threads=ARG  runs tests in ARG threads
+ -i,--iters=ARGS   run tests with this many iterations
+    --format=type  output format [default: quiet]
+        Format descriptions:
+            quiet ... only print failed tests and a summary at the end
+            plain      ... print a status for each test performed
+            junit      ... print a junit xml output
+ -v.--verbose      shorthand for --format=plain
+ -q.--quiet        shorthand for --format=quietplain
 
-        printHeader();
-    }
+", get_script_name());
 
-    private printHeader() {
-        if (m_output == PLAINTEXT && !quiet()) {
-            printf("QORE v%s Test Script (%d thread%s, %d iteration%s per thread)\n",
-                   Qore::VersionString,
-                   m_options.threads,
-                   m_options.threads == 1 ? "" : "s",
-                   m_options.iters,
-                   m_options.iters == 1 ? "" : "s"
-                  );
-        }
-    }
-
-    destructor() {
-        printFooter();
-    }
-
-    printFooter() {
-        if (m_options.format != PLAINTEXT) {
-            report(m_output);
-        }
-        else {
-            reportSummary();
-        }
+        map printf("    %s\n", $1), keys OUT_TYPES;
+        exit(1);
     }
 
     private processOptions(reference p_argv) {
         if (m_options.help)
             usage();
 
-        if (m_options.verbose && m_options.quiet) {
-            printf("You cannot use quiet and verbose options together\n");
+        if (m_options.verbose && m_options.quiet && m_options.format) {
+            printf("Please only select one format type\n");
             exit(1);
         }
 
@@ -213,86 +202,74 @@ public class UnitTest::UnitTest {
         if (m_options.format) {
             if (!exists OUT_TYPES{m_options.format})
                 throw "UNIT-TEST-ERROR", sprintf("Unknown output format: %s", m_options.format);
-
             m_output = OUT_TYPES{m_options.format};
-        }
-        else {
-            m_output = PLAINTEXT;
-        }
-    }
-
-
-    hash options() {
-        return m_options;
-    }
-
-    any option(string key) {
-        return m_options{key};
-    }
-
-    bool verbose() {
-        return exists m_options.verbose ? boolean(m_options.verbose) : False;
-    }
-
-    bool quiet() {
-        return exists m_options.quiet ? boolean(m_options.quiet) : False;
-    }
-
-    int errors() {
-        int errs = 0;
-        ListIterator it(m_results);
-        while (it.next()) {
-            if (!it.getValue(){"result"}) {
-                errs++;
-            }
-        }
-        return errs;
-    }
-
-    int testCount() {
-        int tot = 0;
-        ListIterator it(m_results);
-        while (it.next()) {
-            tot++;
-        }
-        return tot;
-    }
-
-    private usage() {
-        printf("usage: %s [options]
- -h,--help         this help text
- -v.--verbose      more verbose output
- -q.--quiet        print only errors
- -b,--backquote    include backquote tests (slow)
- -t,--threads=ARG  runs tests in ARG threads
-    --format=type  output format [default: plain, available: plain, junit]
-
-", get_script_name());
-
-        map printf("    %s\n", $1), keys OUT_TYPES;
-        exit(1);
-    }
-
-    reportOneTest(hash testcase) {
-        switch (m_output) {
-            case PLAINTEXT:
-                reportOneTestPlaintext(testcase);
-                break;
-            case JUNIT:
-                throw "NO-GRADUAL-JUNIT", "JUnit format cannot be reported gradually";
-            default:
-                throw "UNIT-TEST-ERROR", "Unknown format type";
+        } else if (m_options.quiet) {
+            m_output = QUIET;
+        } else if (m_options.verbose) {
+            m_output = PLAIN;
+        } else {
+            # Default
+            m_output = QUIET;
         }
     }
 
-    private reportSummary() {
-        if (!quiet()) {
-            printf("%d tests started, %d failed\n", testCount(), errors());
+    constructor(*reference p_argv, hash opts = Opts) {
+        if (!p_argv)
+            p_argv = ARGV;
+        m_options = new GetOpt(opts).parse2(\p_argv);
+        processOptions(\p_argv);
+
+        # A map of print methods, categorised into three types: header, summary, testreport
+        m_printMethods = (
+            QUIET: (
+                "header" : \self.printPlaintextHeader(),
+                "testreport" : \self.printPlaintextOneTest(),
+                "summary" : \self.printPlaintextSummary(),
+            ),
+            PLAIN: (
+                "header" : \self.printPlaintextHeader(),
+                "testreport" : \self.printPlaintextOneTest(),
+                "summary" : \self.printPlaintextSummary(),
+            ),
+            JUNIT: (
+                "summary" : \self.printJunitSummary(),
+            )
+        );
+
+        printHeader();
+    }
+
+    destructor() {
+        printSummary();
+    }
+
+    private callPrinterFunction(string type, list args) {
+        *code c = m_printMethods{m_output}{type};
+        if (c) {
+            call_function_args(c, args);
         }
     }
 
-    private reportOneTestPlaintext(hash testcase) {
-        if (!m_options.verbose && testcase.result) {
+    private printHeader() { callPrinterFunction("header", list()); }
+    private printSummary() { callPrinterFunction("summary", list()); }
+    private printTestReport(hash testcase) { callPrinterFunction("testreport", (testcase,)); }
+
+    private printPlaintextHeader() {
+        printf("QORE v%s Test Script (%d thread%s, %d iteration%s per thread)\n",
+            Qore::VersionString,
+            m_options.threads,
+            m_options.threads == 1 ? "" : "s",
+            m_options.iters,
+            m_options.iters == 1 ? "" : "s"
+        );
+    }
+
+    private printPlaintextSummary() {
+        printf("%d tests started, %d failed\n", testCount(), errors());
+    }
+
+    private printPlaintextOneTest(hash testcase) {
+        if (m_output == QUIET && testcase.result) {
             return;
         }
         printf("%s: %s\n", testcase.result ? "OK" : "ERROR", testcase.msg);
@@ -301,27 +278,7 @@ public class UnitTest::UnitTest {
         }
     }
 
-    report(int format = PLAINTEXT) {
-        switch (format) {
-            case PLAINTEXT: # TODO: remove
-                reportPlaintext();
-                break;
-            case JUNIT:
-                reportJunit();
-                break;
-            default:
-                throw "UNIT-TEST-ERROR", "Unknown format type";
-        }
-    }
-
-    private reportPlaintext() { # TODO: remove
-        ListIterator it(m_results);
-        while (it.next()) {
-            reportOneTestPlaintext(it.getValue());
-        }
-    }
-
-    private reportJunit() {
+    private printJunitSummary() {
 %ifdef NO_XML
         stderr.printf("No XML module found. Use --format=plain instead\n");
         exit(1);
@@ -349,12 +306,31 @@ public class UnitTest::UnitTest {
 %endif
     }
 
+
+    int errors() {
+        int errs = 0;
+        ListIterator it(m_results);
+        while (it.next()) {
+            if (!it.getValue(){"result"}) {
+                errs++;
+            }
+        }
+        return errs;
+    }
+
+    int testCount() {
+        int tot = 0;
+        ListIterator it(m_results);
+        while (it.next()) {
+            tot++;
+        }
+        return tot;
+    }
+
     private addTestResult(string name, bool success, *string detail) {
         hash testcase = ("msg": name, "result": success, "detail": detail);
 
-        if (m_output == PLAINTEXT) {
-            reportOneTest(testcase);
-        }
+        printTestReport(testcase);
 
         push m_results, testcase;
     }
