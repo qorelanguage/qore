@@ -261,7 +261,7 @@ struct qore_qf_private {
       int len = (int)charset->getCharLen(buf, 1);
       if (len < 0) {
 	 len = -len;
-	 for (unsigned i = 1; i < len; ++i) {
+	 for (int i = 1; i < len; ++i) {
 	    if (read(&buf[i], 1) != 1)
 	       return -1;
 	 }
@@ -434,7 +434,16 @@ struct qore_qf_private {
       int ch, rc = -1;
 
       while ((ch = readUnicode()) >= 0) {
-         str.concatUnicode(ch);
+	 // skip BOM
+	 if (ch == 0xfeff)
+	    continue;
+	 else if (ch == 0xfffe && charset == QCS_UTF16 && str.empty()) {
+	    charset = QCS_UTF16LE;
+	    continue;
+	 }
+	 
+	 str.concatUnicode(ch);
+	 
          if (rc == -1)
 	    rc = 0;
 
@@ -482,7 +491,16 @@ struct qore_qf_private {
       int ch, rc = -1;
 
       while ((ch = readUnicode()) >= 0) {
-         str.concatUnicode(ch);
+	 // skip BOM
+	 if (ch == 0xfeff)
+	    continue;
+	 else if (ch == 0xfffe && charset == QCS_UTF16 && str.empty()) {
+	    charset = QCS_UTF16LE;
+	    continue;
+	 }
+
+	 str.concatUnicode(ch);
+	 
          if (rc == -1)
             rc = 0;
          if (ch == byte) {
@@ -508,8 +526,17 @@ struct qore_qf_private {
       int ch, rc = -1;
 
       while ((ch = readUnicode()) >= 0) {
-         str.concatUnicode(ch);
-         if (rc == -1)
+	 // skip BOM
+	 if (ch == 0xfeff)
+	    continue;
+	 else if (ch == 0xfffe && charset == QCS_UTF16 && str.empty()) {
+	    charset = QCS_UTF16LE;
+	    continue;
+	 }
+
+	 str.concatUnicode(ch);
+
+	 if (rc == -1)
             rc = 0;
 
          if (ch == bytes[pos]) {

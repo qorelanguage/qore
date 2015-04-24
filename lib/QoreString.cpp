@@ -41,6 +41,7 @@
 #include <ctype.h>
 
 #include <set>
+#include <memory>
 
 #ifdef DEBUG_TESTS
 #  include "tests/QoreString_tests.cpp"
@@ -1045,16 +1046,21 @@ QoreString* QoreString::convertEncoding(const QoreEncoding* nccs, ExceptionSink*
 
    if (nccs == priv->getEncoding())
       return copy();
-   if (!priv->len)
-      return new QoreString(nccs);
 
-   QoreString* targ = new QoreString(nccs);
+   std::auto_ptr<QoreString> targ(new QoreString(nccs));
 
-   if (convert_encoding_intern(priv->buf, priv->len, priv->getEncoding(), *targ, nccs, xsink)) {
-      delete targ;
-      return 0;
+   if (priv->len) {
+      if (convert_encoding_intern(priv->buf, priv->len, priv->getEncoding(), *targ, nccs, xsink))
+	 return 0;
+
+      // remove BOM bytes (invisible non-breaking space) at the beginning of a string when converting to UTF-8
+      if (nccs == QCS_UTF8 && targ->priv->len >= 3 && targ->priv->buf[0] == 0xef && targ->priv->buf[1] == 0xbb && targ->priv->buf[2] == 0xbf) {
+	 printd(0, "QoreString::convertEncoding() found BOM, removing\n");
+	 targ->splice_simple(0, 3);
+      }
    }
-   return targ;
+   
+   return targ.release();
 }
 
 static void base64_concat(QoreString& str, unsigned char c, qore_size_t& linelen, qore_size_t maxlinelen) {

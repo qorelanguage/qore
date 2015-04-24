@@ -38,7 +38,7 @@ class Test {
 
 	    for (int i = 0; i < DataList.size(); ++i) {
 		t.ok(di.next(), pref + "-DataLineIterator::next() " + i);
-		t.ok(di.getValue() == DataList[i], pref + "-DataLineIterator::getValue() " + i);
+		t.cmp(di.getValue(), DataList[i], pref + "-DataLineIterator::getValue() " + i);
 	    }
 
 	    t.ok(!di.next(), pref + "-DataLineIterator::next() final");
@@ -51,12 +51,12 @@ class Test {
 
             for (int i = 0; i < DataList.size(); ++i) {
                 t.ok(di.next(), pref + "-DataLineIterator::next() " + i);
-                t.ok(di.getValue() == DataList[i], pref + "-DataLineIterator::getValue() " + i);
+                t.cmp(di.getValue(), DataList[i], pref + "-DataLineIterator::getValue() " + i);
             }
 
             t.ok(!di.next(), pref + "-DataLineIterator::next() final");
         }
-        
+
         # do UTF-16 (non-ascii-compat) tests
         data = foldl $1 + convert_encoding(eol, "utf16") + $2, DataListUtf16;
 
@@ -66,7 +66,7 @@ class Test {
 
 	    for (int i = 0; i < DataList.size(); ++i) {
 		t.ok(di.next(), pref + "-DataLineIterator::next() " + i);
-		t.ok(di.getValue() == DataList[i], pref + "-DataLineIterator::getValue() " + i);
+		t.cmp(di.getValue(), DataList[i], pref + "-DataLineIterator::getValue() " + i);
 	    }
 
 	    t.ok(!di.next(), pref + "-DataLineIterator::next() final");
@@ -79,7 +79,7 @@ class Test {
 
             for (int i = 0; i < DataList.size(); ++i) {
                 t.ok(di.next(), pref + "-DataLineIterator::next() " + i);
-                t.ok(di.getValue() == DataList[i], pref + "-DataLineIterator::getValue() " + i);
+                t.cmp(di.getValue(), DataList[i], pref + "-DataLineIterator::getValue() " + i);
             }
 
             t.ok(!di.next(), pref + "-DataLineIterator::next() final");
