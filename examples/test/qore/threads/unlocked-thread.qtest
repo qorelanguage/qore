@@ -37,8 +37,7 @@ our int $num_threads = shift $ARGV ?? 5;
 our int $iters       = shift $ARGV ?? 500;
 our int $overall     = shift $ARGV ?? 10;
 
-if ($t.verbose()) 
-    printf("delay: %d threads: %d iters: %d overall: %d\n", $delay, $num_threads, $iters, $overall); 
+$t.printLog(sprintf("delay: %d threads: %d iters: %d overall: %d", $delay, $num_threads, $iters, $overall)); 
 
 our ThreadTest $obj1();
 our ThreadTest $obj2();

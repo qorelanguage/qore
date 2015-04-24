@@ -146,7 +146,7 @@ public class UnitTest::UnitTest {
 
         hash m_options;
 
-        # A map of print methods, categorised into three types: header, summary, testreport
+        # A map of print methods, categorised into three types: header, summary, testreport, log
         hash m_printMethods;
     }
 
@@ -168,11 +168,11 @@ public class UnitTest::UnitTest {
  -i,--iters=ARGS   run tests with this many iterations
     --format=type  output format [default: quiet]
         Format descriptions:
-            quiet ... only print failed tests and a summary at the end
+            quiet      ... only print failed tests and a summary at the end
             plain      ... print a status for each test performed
             junit      ... print a junit xml output
  -v.--verbose      shorthand for --format=plain
- -q.--quiet        shorthand for --format=quietplain
+ -q.--quiet        shorthand for --format=quiet
 
 ", get_script_name());
 
@@ -230,6 +230,7 @@ public class UnitTest::UnitTest {
                 "header" : \self.printPlaintextHeader(),
                 "testreport" : \self.printPlaintextOneTest(),
                 "summary" : \self.printPlaintextSummary(),
+                "print" : \self.printSimpleLog(),
             ),
             JUNIT: (
                 "summary" : \self.printJunitSummary(),
@@ -255,6 +256,7 @@ public class UnitTest::UnitTest {
     private printHeader() { callPrinterFunction("header", list()); }
     private printSummary() { callPrinterFunction("summary", list()); }
     private printTestReport(hash testcase) { callPrinterFunction("testreport", (testcase,)); }
+    public printLog(string text) { callPrinterFunction("print", (text,)); }
 
     private printPlaintextHeader() {
         printf("QORE v%s Test Script (%d thread%s, %d iteration%s per thread)\n",
@@ -278,6 +280,10 @@ public class UnitTest::UnitTest {
         if (m_options.verbose && !testcase.result) {
             printf("-----\n%s\n-----\n", testcase.detail);
         }
+    }
+
+    private printSimpleLog(string text) {
+        printf("%s\n", text);
     }
 
     private printJunitSummary() {

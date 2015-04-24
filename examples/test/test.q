@@ -110,8 +110,7 @@ class Test {
         if (!unit.doFile(fname))
             return;
         
-        if (unit.verbose())
-            printf("running %s\n", fname);
+        unit.printLog(sprintf("running %s", fname));
 
         Program pgm = getTestProgram(fname);
         pgm.run();
