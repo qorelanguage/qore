@@ -363,7 +363,7 @@ public namespace Schema {
                     }
                 }
 
-                exit(1);
+                throw "GET-ALIGN-SCHEMA-DEBUG-ERROR", "unexpected result";
             }
 %endif
 
@@ -458,7 +458,7 @@ public namespace Schema {
                     if (!schh{sql})
                         printf("MISSING IN CALLBACK %d: %s\n", $#, sql);
                 }
-                exit(1);
+                throw "DROP-SCHEMA-DEBUG-ERROR", "unexpected result";
             }
 %endif
 
