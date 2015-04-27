@@ -44,7 +44,7 @@
 %enable-all-warnings
 
 module OracleSqlUtil {
-    version = "1.1";
+    version = "1.2";
     desc = "user module for working with Oracle SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -253,11 +253,15 @@ my hash $schema = (
 
     @section ora_relnotes Release Notes
 
+    @subsection v12 OracleSqlUtil v1.2
+    - implemented support for the \c "returning" clause as an insert option
+    - implemented support for views for DML in the @ref OracleSqlUtil::OracleTable class
+    - implemented @ref OracleSqlUtil::OracleTable::getBaseType()
+
     @subsection v11 OracleSqlUtil v1.1
     - fixed selects with "limit" but no "offset"
     - convert date/time values to timestamps with microseconds resolution instead of dates with second resolution when dynamically inserting values as strings in SQL (binding by value not affected)
     - fixed schema information classes when the "string-numbers" driver option is enabled
-    - implemented support for the \c "returning" clause as an insert option
 
     @subsection v10 OracleSqlUtil v1.0
     - initial release
@@ -689,7 +693,6 @@ my any $v = $c.name;
     
     #! represents an Oracle view
     public class OracleView inherits SqlUtil::AbstractView {
-    
         public {
             #! Type clause of the typed view
             *string type_text;
@@ -2544,6 +2547,14 @@ my any $v = $c.name;
             return map (OracleDatabase::OracleReservedWords{$1.lwr()} ? ("\"" + $1 + "\"") : $1), cols;
         }
 
+        #! returns the base type of the underlying object (either \"table\" or \c "view")
+        /**
+            @since OracleSqlUtil 1.2
+        */
+        string getBaseType() {
+            return m_isView ? "view" : "table";
+        }
+        
         private *hash doReturningImpl(hash opt, reference sql, list args) {
             list l = ();
             foreach softstring k in (opt.returning) {
@@ -2583,6 +2594,5 @@ my any $v = $c.name;
         #! db-specific copy actions
         private copyImpl(AbstractTable old) {            
         }
-
-   }
+    }
 }

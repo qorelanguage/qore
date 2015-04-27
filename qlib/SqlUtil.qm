@@ -10634,7 +10634,7 @@ $table.createNoCommit();
          */
         createNoCommit(*hash opt) {
             if (inDb) 
-                throw "CREATE-TABLE-ERROR", sprintf("table %s has already been read from or created in the database", getSqlName());
+                throw "CREATE-TABLE-ERROR", sprintf("%s has already been read from or created in the database", getDesc());
 
             # get and execute all the creation strings
             map ds.execRaw($1), getCreateSql(opt);
@@ -10735,7 +10735,7 @@ my bool $b = $table.empty();
             on_exit l.unlock();
 
             if (!emptyUnlocked())
-                throw "DESCRIPTION-ERROR", sprintf("%s: cannot set up a non-empty table from a hash description", name);
+                throw "DESCRIPTION-ERROR", sprintf("%s: cannot set up a non-empty table from a hash description", getDesc());
 
             # add current table to cache
             opt.table_cache.add(name, self);
@@ -10756,7 +10756,7 @@ my bool $b = $table.empty();
             # process column definitions
             foreach string cn in (desc.columns.keyIterator()) {
                 if (desc.columns{cn}.typeCode() != NT_HASH)
-                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to column key %y is not a hash, got type %y instead (%y)", name, cn, desc.columns{cn}.type(), desc.columns{cn});
+                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to column key %y is not a hash, got type %y instead (%y)", getDesc(), cn, desc.columns{cn}.type(), desc.columns{cn});
                 if (desc.columns{cn}.driver) {
                     desc.columns{cn} += desc.columns{cn}.driver{drv};
                     delete desc.columns{cn}.driver;
@@ -10775,12 +10775,12 @@ my bool $b = $table.empty();
             # add indexes to table
             foreach string ixn in (desc.indexes.keyIterator()) {
                 if (desc.indexes{ixn}.typeCode() != NT_HASH)
-                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to index key %y is not a hash, got type %y instead (%y)", name, ixn, desc.indexes{ixn}.type(), desc.indexes{ixn});
+                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to index key %y is not a hash, got type %y instead (%y)", getDesc(), ixn, desc.indexes{ixn}.type(), desc.indexes{ixn});
 
                 hash ih = desc.indexes{ixn};
 
                 if (!ih.columns || !inlist(ih.columns.typeCode(), (NT_LIST, NT_STRING)))
-                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to \"columns\" key for index %y is not a list or a string, got type %y instead (%y)", name, ixn, ih.columns.type(), ih.columns);
+                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to \"columns\" key for index %y is not a list or a string, got type %y instead (%y)", getDesc(), ixn, ih.columns.type(), ih.columns);
                 
                 addIndexUnlocked(ixn, ih.unique ? True : False, ih.columns, opt.(getIndexOptions().keys()));
             }
@@ -10788,9 +10788,9 @@ my bool $b = $table.empty();
             # add primary key to table
             if (desc.primary_key) {
                 if (desc.primary_key.typeCode() != NT_HASH)
-                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to primary_key is not a hash, got type %y instead (%y)", name, desc.primary_key.type(), desc.primary_key);
+                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to primary_key is not a hash, got type %y instead (%y)", getDesc(), desc.primary_key.type(), desc.primary_key);
                 if (!desc.primary_key.name || desc.primary_key.name.typeCode() != NT_STRING)
-                    throw "DESCRIPTION-ERROR", sprintf("%s: missing string value for 'name' key in primary_key hash: %y", name, desc.primary_key);
+                    throw "DESCRIPTION-ERROR", sprintf("%s: missing string value for 'name' key in primary_key hash: %y", getDesc(), desc.primary_key);
                 
                 addPrimaryKeyUnlocked(desc.primary_key.name, desc.primary_key.columns, opt.(getConstraintOptions().keys()));
             }
@@ -10798,12 +10798,12 @@ my bool $b = $table.empty();
             # add unique constraints to table
             foreach string un in (desc.unique_constraints.keyIterator()) {
                 if (desc.unique_constraints{un}.typeCode() != NT_HASH)
-                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to index key %y is not a hash, got type %y instead (%y)", name, un, desc.unique_constraints{un}.type(), desc.unique_constraints{un});
+                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to index key %y is not a hash, got type %y instead (%y)", getDesc(), un, desc.unique_constraints{un}.type(), desc.unique_constraints{un});
 
                 hash ch = desc.unique_constraints{un};
 
                 if (!ch.columns || !inlist(ch.columns.typeCode(), (NT_LIST, NT_STRING)))
-                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to \"columns\" key for unique constraint %y is not a list or a string, got type %y instead (%y)", name, un, ch.columns.type(), ch.columns);
+                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to \"columns\" key for unique constraint %y is not a list or a string, got type %y instead (%y)", getDesc(), un, ch.columns.type(), ch.columns);
 
                 if (constraints.hasKey(un))                    
                     continue;
@@ -10813,18 +10813,18 @@ my bool $b = $table.empty();
             # add foreign constraints to table
             foreach string cn in (desc.foreign_constraints.keyIterator()) {
                 if (desc.foreign_constraints{cn}.typeCode() != NT_HASH)
-                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to foreign constraint key %y is not a hash, got type %y instead (%y)", name, cn, desc.foreign_constraints{cn}.type(), desc.foreign_constraints{cn});
+                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to foreign constraint key %y is not a hash, got type %y instead (%y)", getDesc(), cn, desc.foreign_constraints{cn}.type(), desc.foreign_constraints{cn});
 
                 hash ch = desc.foreign_constraints{cn};
 
                 if (!ch.columns || !inlist(ch.columns.typeCode(), (NT_LIST, NT_STRING)))
-                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to \"columns\" key for foreign constraint %y is not a list or a string, got type %y instead (%y)", name, cn, ch.columns.type(), ch.columns);
+                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to \"columns\" key for foreign constraint %y is not a list or a string, got type %y instead (%y)", getDesc(), cn, ch.columns.type(), ch.columns);
 
                 if (!ch.table || ch.table.typeCode() != NT_STRING)
-                    throw "DESCRIPTION-ERROR", sprintf("%s: missing string value for \"table\" key in foreign constraint %y description: %y", name, cn, ch);
+                    throw "DESCRIPTION-ERROR", sprintf("%s: missing string value for \"table\" key in foreign constraint %y description: %y", getDesc(), cn, ch);
 
                 if (exists ch.target_columns && !inlist(ch.target_columns.typeCode(), (NT_LIST, NT_STRING)))
-                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to \"target_columns\" key for foreign constraint %y is not a list or a string, got type %y instead (%y)", name, cn, ch.target_columns.type(), ch.target_columns);
+                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to \"target_columns\" key for foreign constraint %y is not a list or a string, got type %y instead (%y)", getDesc(), cn, ch.target_columns.type(), ch.target_columns);
                 
                 if (!ch.target_columns)
                     ch.target_columns = ch.columns;
@@ -10833,14 +10833,14 @@ my bool $b = $table.empty();
                     addForeignConstraintUnlocked(cn, ch.columns, ch.table, ch.target_columns, opt.(getForeignConstraintOptions().keys()));
                 }
                 catch (hash ex) {
-                    throw ex.err, sprintf("error setting up table %y: %s", name, ex.desc), ex.arg;
+                    throw ex.err, sprintf("error setting up %s: %s", getDesc(), ex.desc), ex.arg;
                 }
             }
 
             # add triggers to table
             foreach string tn in (desc.triggers.keyIterator()) {
                 if (desc.triggers{tn}.typeCode() != NT_STRING)
-                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to trigger key %y is not a string giving the trigger source code, got type %y instead (%y)", name, tn, desc.triggers{tn}.type(), desc.triggers{tn});
+                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to trigger key %y is not a string giving the trigger source code, got type %y instead (%y)", getDesc(), tn, desc.triggers{tn}.type(), desc.triggers{tn});
                 string src = desc.triggers{tn};
                 
                 addTriggerUnlocked(tn, src, opt.(getTriggerOptions().keys()));
@@ -10927,10 +10927,10 @@ my list $l = $table.getAddColumnSql("name", ("qore_type": Type::String, "size": 
             if (!columns)
                 columns = new Columns();
             else if (columns.hasKey(cname))
-                throw "COLUMN-ERROR", sprintf("%s.%s: this column already exists", name, cname);    
+                throw "COLUMN-ERROR", sprintf("%s column %y: this column already exists", getDesc(), cname);    
 
             if (!opt.native_type && !opt.qore_type)
-                throw "COLUMN-ERROR", sprintf("%s.%s: no native_type or qore_type keys in column option hash: %y", name, cname, opt);
+                throw "COLUMN-ERROR", sprintf("%s column %y: no native_type or qore_type keys in column option hash: %y", getDesc(), cname, opt);
 
             validateColumnOptions(cname, \opt, nullable);
 
@@ -10983,10 +10983,10 @@ $table.modifyColumn("name", ("qore_type": Type::String, "size": 240), False);
             on_exit l.unlock();
             getColumnsUnlocked();
             if (!columns.hasKey(cname))
-                throw "COLUMN-ERROR", sprintf("%s.%s: the given column does not exist", name, cname);    
+                throw "COLUMN-ERROR", sprintf("%s column %y: the given column does not exist", getDesc(), cname);    
 
             if (!opt.native_type && !opt.qore_type)
-                throw "COLUMN-ERROR", sprintf("%s.%s: no native_type or qore_type keys in column option hash: %y", name, cname, opt);
+                throw "COLUMN-ERROR", sprintf("%s column %y: no native_type or qore_type keys in column option hash: %y", getDesc(), cname, opt);
 
             validateColumnOptions(cname, \opt, nullable);
 
@@ -11035,10 +11035,10 @@ my list $l = $table.getModifyColumnSql("name", ("qore_type": Type::String, "size
             on_exit l.unlock();
             getColumnsUnlocked();
             if (!columns.hasKey(cname))
-                throw "COLUMN-ERROR", sprintf("%s.%s: the given column does not exist", name, cname);    
+                throw "COLUMN-ERROR", sprintf("%s column %y: the given column does not exist", getDesc(), cname);    
 
             if (!copt.native_type && !copt.qore_type)
-                throw "COLUMN-ERROR", sprintf("%s.%s: no native_type or qore_type keys in column option hash: %y", name, cname, copt);
+                throw "COLUMN-ERROR", sprintf("%s column %y: no native_type or qore_type keys in column option hash: %y", getDesc(), cname, copt);
 
             validateColumnOptions(cname, \copt, nullable);
 
@@ -11074,7 +11074,7 @@ my AbstractColumn $col = $table.renameColumn("name", "family_name");
             on_exit l.unlock();
             getColumnsUnlocked();
             if (!columns.hasKey(old_name))
-                throw "COLUMN-ERROR", sprintf("%s.%s: the given column does not exist", name, old_name);
+                throw "COLUMN-ERROR", sprintf("%s column %y: the given column does not exist", getDesc(), old_name);
 
             AbstractColumn c = columns{old_name};
             
@@ -11113,10 +11113,10 @@ my string $sql = $table.getRenameColumnSql("name", "family_name");
             getColumnsUnlocked();
 
             if (!columns.hasKey(old_name))
-                throw "COLUMN-ERROR", sprintf("rename %s.%s to %s: old column %y column does not exist", name, old_name, new_name, old_name);
+                throw "COLUMN-ERROR", sprintf("rename %s column %y to %y: old column %y column does not exist", getDesc(), old_name, new_name, old_name);
 
             if (columns.hasKey(new_name))
-                throw "COLUMN-ERROR", sprintf("rename %s.%s to %s: new column %y already exists in the table", name, old_name, new_name, new_name);
+                throw "COLUMN-ERROR", sprintf("rename %s column %y to %y: new column %y already exists in the table", getDesc(), old_name, new_name, new_name);
 
             on_success if (opt.sql_callback_executed)
                 renameColumnIntern(columns{old_name}, new_name);
@@ -11262,18 +11262,18 @@ printf("%s;\n", $sql);
             checkUniqueConstraintNameValidateOptions("PRIMARY-KEY-ERROR", pkname, getConstraintOptions(), \opt);
 
             if (!primaryKey.empty())
-                throw "PRIMARY-KEY-ERROR", sprintf("%s add primary key %y: already has primary key %y with columns: %y", name, pkname, primaryKey.getName(), primaryKey.keys());
+                throw "PRIMARY-KEY-ERROR", sprintf("%s add primary key %y: already has primary key %y with columns: %y", getDesc(), pkname, primaryKey.getName(), primaryKey.keys());
 
             if (!cols)
-                throw "PRIMARY-KEY-ERROR", sprintf("%s add primary key %y: no column names passed to %s::addPrimaryKey()", name, pkname, self.className());
+                throw "PRIMARY-KEY-ERROR", sprintf("%s add primary key %y: no column names passed to %s::addPrimaryKey()", getDesc(), pkname, self.className());
 
             hash ch;
             while (cols) {
                 any v = shift cols;
                 if (v.typeCode() != NT_STRING)
-                    throw "PRIMARY-KEY-ERROR", sprintf("%s add primary key %y: %y argument passed as column name to %s::addPrimaryKey(); expecting \"string\" (value: %y)", name, pkname, v.type(), self.className(), v);
+                    throw "PRIMARY-KEY-ERROR", sprintf("%s add primary key %y: %y argument passed as column name to %s::addPrimaryKey(); expecting \"string\" (value: %y)", getDesc(), pkname, v.type(), self.className(), v);
                 if (!columns.hasKey(v))
-                    throw "PRIMARY-KEY-ERROR", sprintf("%s add primary key %y: table has no column named %y", name, pkname, v);
+                    throw "PRIMARY-KEY-ERROR", sprintf("%s add primary key %y: table has no column named %y", getDesc(), pkname, v);
                 ch{v} = columns{v};
             }
 
@@ -11390,7 +11390,7 @@ my list $l = $table.getDropPrimaryKeySql();
 
             getPrimaryKeyUnlocked();
             if (primaryKey.empty())
-                throw "PRIMARY-KEY-ERROR", sprintf("%s: has no primary key", name);
+                throw "PRIMARY-KEY-ERROR", sprintf("%s: has no primary key", getDesc());
 
             on_success if (opt.sql_callback_executed)
                 remove primaryKey;
@@ -11426,7 +11426,7 @@ $table.dropPrimaryKey();
             on_exit l.unlock();
             getPrimaryKeyUnlocked();
             if (primaryKey.empty())
-                throw "PRIMARY-KEY-ERROR", sprintf("%s: has no primary key", name);
+                throw "PRIMARY-KEY-ERROR", sprintf("%s: has no primary key", getDesc());
 
             lsql = ();
             map execSql(lsql += $1.fk.getDropSql($1.table)), primaryKey.getSourceConstraintIterator();
@@ -11524,15 +11524,15 @@ printf("%s;\n", $sql);
             checkUniqueConstraintNameValidateOptions("UNIQUE-CONSTRAINT-ERROR", cname, getConstraintOptions(), \opt);
 
             if (!cols)
-                throw "UNIQUE-CONSTRAINT-ERROR", sprintf("%s add unique constraint %y: no column names passed to %s::addUniqueConstraint()", name, cname, self.className());
+                throw "UNIQUE-CONSTRAINT-ERROR", sprintf("%s add unique constraint %y: no column names passed to %s::addUniqueConstraint()", getDesc(), cname, self.className());
 
             hash ch;
             while (cols) {
                 any v = shift cols;
                 if (v.typeCode() != NT_STRING)
-                    throw "PRIMARY-KEY-ERROR", sprintf("%s add unique constraint %y: %y argument passed as column name to %s::addUniqueConstraint(); expecting \"string\" (value: %y)", name, cname, v.type(), self.className(), v);
+                    throw "PRIMARY-KEY-ERROR", sprintf("%s add unique constraint %y: %y argument passed as column name to %s::addUniqueConstraint(); expecting \"string\" (value: %y)", getDesc(), cname, v.type(), self.className(), v);
                 if (!columns.hasKey(v))
-                    throw "PRIMARY-KEY-ERROR", sprintf("%s add unique constraint %y: table has no column named %y", name, cname, v);
+                    throw "PRIMARY-KEY-ERROR", sprintf("%s add unique constraint %y: table has no column named %y", getDesc(), cname, v);
                 ch{v} = columns{v};
             }
 
@@ -11644,20 +11644,20 @@ printf("%s;\n", $sql);
             if (!indexes)
                 indexes = new Indexes();
             else if (indexes.hasKey(iname))
-                throw "INDEX-ERROR", sprintf("%s: already has an index named %y with columns: %y", name, iname, indexes{iname}.columns.keys());
+                throw "INDEX-ERROR", sprintf("%s: already has an index named %y with columns: %y", getDesc(), iname, indexes{iname}.columns.keys());
 
             if (!cols)
-                throw "INDEX-ERROR", sprintf("%s: no column names passed to %s::addIndex()", name, self.className());
+                throw "INDEX-ERROR", sprintf("%s: no column names passed to %s::addIndex()", getDesc(), self.className());
 
             hash ch;
             while (cols) {
                 any v = shift cols;
                 if (v.typeCode() != NT_STRING)
-                    throw "INDEX-ERROR", sprintf("%s: %y argument passed as column name to %s::addIndex(); expecting \"string\" (value: %y)", name, v.type(), self.className(), v);
+                    throw "INDEX-ERROR", sprintf("%s: %y argument passed as column name to %s::addIndex(); expecting \"string\" (value: %y)", getDesc(), v.type(), self.className(), v);
                 # only check for column if the index is not a function index
                 if (!columns.hasKey(v)) {
                     if (v !~ /\(.*\)/)
-                        throw "INDEX-ERROR", sprintf("%s: has no column named %y", name, v);
+                        throw "INDEX-ERROR", sprintf("%s: has no column named %y", getDesc(), v);
                     ch{v} = {};
                 }
                 else
@@ -11701,7 +11701,7 @@ my AbstractIndex $ix = $table.renameIndex("uk_table_name", "unique_table_name");
             code rename;
 
             if (!indexes || !indexes.hasKey(old_name))
-                throw "INDEX-ERROR", sprintf("%s: has no index %y; valid index: %y", name, old_name, indexes.keys());
+                throw "INDEX-ERROR", sprintf("%s: has no index %y; valid index: %y", getDesc(), old_name, indexes.keys());
 
             ix = indexes{old_name};
             rename = sub () { indexes.renameKey(old_name, new_name); };
@@ -11742,7 +11742,7 @@ $table.dropIndex("uk_mytable_name");
             on_exit l.unlock();
             getIndexesUnlocked();
             if (!indexes.hasKey(iname))
-                throw "INDEX-ERROR", sprintf("%s: has no index %y; valid indexes: %y", name, iname, indexes.keys());
+                throw "INDEX-ERROR", sprintf("%s: has no index %y; valid indexes: %y", getDesc(), iname, indexes.keys());
 
             # drop index from table if the table already exists in the DB
             execSql(sql = indexes{iname}.getDropSql(getSqlName()));
@@ -11779,7 +11779,7 @@ my string $sql = $table.getDropIndexSql("uk_mytable_name");
 
             getIndexesUnlocked();
             if (!indexes.hasKey(iname))
-                throw "INDEX-ERROR", sprintf("%s: has no index %y; valid indexes: %y", name, iname, indexes.keys());
+                throw "INDEX-ERROR", sprintf("%s: has no index %y; valid indexes: %y", getDesc(), iname, indexes.keys());
 
             on_success if (opt.sql_callback_executed)
                 indexes.take(iname);
@@ -11898,15 +11898,15 @@ printf("%s;\n", $sql);
             checkUniqueConstraintNameValidateOptions("FOREIGN-CONSTRAINT-ERROR", cname, getForeignConstraintOptions(), \opt);
 
             if (!cols)
-                throw "FOREIGN-CONSTRAINT-ERROR", sprintf("%y: no column names passed to %s::addForeignConstraint()", name, self.className());
+                throw "FOREIGN-CONSTRAINT-ERROR", sprintf("%y: no column names passed to %s::addForeignConstraint()", getDesc(), self.className());
 
             hash ch;
             while (cols) {
                 any v = shift cols;
                 if (v.typeCode() != NT_STRING)
-                    throw "FOREIGN-CONSTRAINT-ERROR", sprintf("%y: %y argument passed as column name to %s::addForeignConstraint(); expecting \"string\" (value: %y)", name, v.type(), self.className(), v);
+                    throw "FOREIGN-CONSTRAINT-ERROR", sprintf("%y: %y argument passed as column name to %s::addForeignConstraint(); expecting \"string\" (value: %y)", getDesc(), v.type(), self.className(), v);
                 if (!columns.hasKey(v))
-                    throw "FOREIGN-CONSTRAINT-ERROR", sprintf("%y: has no column named %y", name, v);
+                    throw "FOREIGN-CONSTRAINT-ERROR", sprintf("%y: has no column named %y", getDesc(), v);
                 ch{v} = columns{v};
             }
 
@@ -11919,9 +11919,9 @@ printf("%s;\n", $sql);
             while (tcols) {
                 any v = shift tcols;
                 if (v.typeCode() != NT_STRING)
-                    throw "FOREIGN-CONSTRAINT-ERROR", sprintf("%y target %y: %y argument passed as target column name to %s::addForeignConstraint(); expecting \"string\" (value: %y)", name, table, v.type(), self.className(), v);
+                    throw "FOREIGN-CONSTRAINT-ERROR", sprintf("%y target %y: %y argument passed as target column name to %s::addForeignConstraint(); expecting \"string\" (value: %y)", getDesc(), table, v.type(), self.className(), v);
                 if (!targ_cols.hasKey(v))
-                    throw "FOREIGN-CONSTRAINT-ERROR", sprintf("%y target %y: target table has no column named %y", name, table, v);
+                    throw "FOREIGN-CONSTRAINT-ERROR", sprintf("%y target %y: target table has no column named %y", getDesc(), table, v);
                 tch{v} = targ_cols{v};
             }
 
@@ -11958,7 +11958,7 @@ $table.dropForeignConstraint("uk_mytable_name");
             on_exit l.unlock();
             getForeignConstraintsUnlocked();
             if (!foreignConstraints.hasKey(cname))
-                throw "FOREIGN-CONSTRAINT-ERROR", sprintf("%s: has no foreign constraint %y; valid foreign constraints: %y", name, cname, foreignConstraints.keys());
+                throw "FOREIGN-CONSTRAINT-ERROR", sprintf("%s: has no foreign constraint %y; valid foreign constraints: %y", getDesc(), cname, foreignConstraints.keys());
 
             # drop foreign constraint from table if the table already exists in the DB
             execSql(sql = foreignConstraints{cname}.getDropSql(getSqlName()));
@@ -11988,7 +11988,7 @@ $table.removeForeignConstraint("uk_mytable_name");
             on_exit l.unlock();
             getForeignConstraintsUnlocked();
             if (!foreignConstraints.hasKey(cname))
-                throw "FOREIGN-CONSTRAINT-ERROR", sprintf("%s: has no foreign constraint %y; valid foreign constraints: %y", name, cname, foreignConstraints.keys());
+                throw "FOREIGN-CONSTRAINT-ERROR", sprintf("%s: has no foreign constraint %y; valid foreign constraints: %y", getDesc(), cname, foreignConstraints.keys());
 
             # remove from foreign constraint structure and return removed foreign constraint
             return foreignConstraints.take(cname);
@@ -12141,7 +12141,7 @@ my AbstractConstraint $con = $table.renameConstraint("pk_table_name", "pkey_tabl
                     cl += primaryKey.getName();
                 if (foreignConstraints)
                     cl += foreignConstraints.keys();
-                throw "CONSTRAINT-ERROR", sprintf("%s: has no constraint %y; valid constraints: %y", name, old_name, cl);
+                throw "CONSTRAINT-ERROR", sprintf("%s: has no constraint %y; valid constraints: %y", getDesc(), old_name, cl);
             }
 
             # rename foreign constraint in table if the table already exists in the DB
@@ -12273,7 +12273,7 @@ my *string $sql = $table.getDropConstraintIfExistsSql("uk_mytable_name");
                     cl += primaryKey.getName();
                 if (foreignConstraints)
                     cl += foreignConstraints.keys();
-                throw "CONSTRAINT-ERROR", sprintf("%s: has no constraint %y; valid constraints: %y", name, cname, cl);
+                throw "CONSTRAINT-ERROR", sprintf("%s: has no constraint %y; valid constraints: %y", getDesc(), cname, cl);
             }
 
             return c;
@@ -12404,7 +12404,7 @@ printf("%s;\n", $sql);
 
             # verify unique trigger name
             if (triggers && triggers.hasKey(tname))
-                throw "TRIGGER-ERROR", sprintf("%y: already has a trigger named %y, drop the trigger before adding it", name, tname);
+                throw "TRIGGER-ERROR", sprintf("%y: already has a trigger named %y, drop the trigger before adding it", getDesc(), tname);
 
             # validate/process options
             validateOptionsIntern("TRIGGER-ERROR", getTriggerOptions(), \opt);
@@ -12442,7 +12442,7 @@ $table.dropTrigger("trig_mytable");
             on_exit l.unlock();
             getTriggersUnlocked();
             if (!triggers.hasKey(tname))
-                throw "TRIGGER-ERROR", sprintf("%s: has no trigger %y; valid triggers: %y", name, tname, triggers.keys());
+                throw "TRIGGER-ERROR", sprintf("%s: has no trigger %y; valid triggers: %y", getDesc(), tname, triggers.keys());
 
             # drop trigger from table if the table already exists in the DB
             execSql(sql = triggers{tname}.getDropSql(getSqlName()));
@@ -12479,7 +12479,7 @@ my string $sql = $table.getDropTriggerSql("trig_mytable");
 
             getTriggersUnlocked();
             if (!triggers.hasKey(tname))
-                throw "TRIGGER-ERROR", sprintf("%s: has no trigger %y; valid triggers: %y", name, tname, triggers.keys());
+                throw "TRIGGER-ERROR", sprintf("%s: has no trigger %y; valid triggers: %y", getDesc(), tname, triggers.keys());
 
             # remove from trigger structure if sql is executed
             on_success if (opt.sql_callback_executed)
@@ -12529,10 +12529,10 @@ my string $sql = $table.getDropTriggerSql("trig_mytable");
                 hash qtm = getQoreTypeMapImpl();
                 opt.native_type = qtm{opt.qore_type};
                 if (!opt.native_type)
-                    throw "COLUMN-ERROR", sprintf("%s.%s: qore type %y cannot be mapped to a column type (valid values: %y)", name, cname, opt.qore_type, qtm.keys());
+                    throw "COLUMN-ERROR", sprintf("%s column %y: qore type %y cannot be mapped to a column type (valid values: %y)", getDesc(), cname, opt.qore_type, qtm.keys());
             }
             else if (!otm{opt.native_type})
-                throw "COLUMN-ERROR", sprintf("%s.%s: unknown native_type %y (valid values: %y)", name, cname, opt.native_type, otm.keys());
+                throw "COLUMN-ERROR", sprintf("%s column %s: unknown native_type %y (valid values: %y)", getDesc(), cname, opt.native_type, otm.keys());
 
             # get native type description
             hash th = otm{opt.native_type};
@@ -12543,13 +12543,13 @@ my string $sql = $table.getDropTriggerSql("trig_mytable");
 
             if (exists opt.size) {
                 if (!th.size)
-                    throw "COLUMN-ERROR", sprintf("%s.%s: size %y given but type %y does not take a size attribute", name, cname, opt.size, opt.native_type);
+                    throw "COLUMN-ERROR", sprintf("%s column %y: size %y given but type %y does not take a size attribute", getDesc(), cname, opt.size, opt.native_type);
                 if (th.size_range && (opt.size < th.size_range[0] || opt.size > th.size_range[1]))
-                    throw "COLUMN-ERROR", sprintf("%s.%s: size %y is not valid for type %y; must be between %d and %d inclusive", name, cname, opt.size, opt.native_type, th.size_range[0], th.size_range[1]);
+                    throw "COLUMN-ERROR", sprintf("%s column %y: size %y is not valid for type %y; must be between %d and %d inclusive", getDesc(), cname, opt.size, opt.native_type, th.size_range[0], th.size_range[1]);
             }
             else {
                 if (th.size == SZ_MAND)
-                    throw "COLUMN-ERROR", sprintf("%s.%s: type %y requires a size argument but none was supplied (options: %y)", name, cname, opt.native_type, opt);
+                    throw "COLUMN-ERROR", sprintf("%s column %y: type %y requires a size argument but none was supplied (options: %y)", getDesc(), cname, opt.native_type, opt);
                 opt.size = 0;
             }
 
@@ -12558,13 +12558,13 @@ my string $sql = $table.getDropTriggerSql("trig_mytable");
                 opt.size = 0;
                 if (opt.scale) {
                     if (th.scale_range && (opt.scale < th.scale_range[0] || opt.scale > th.scale_range[1]))
-                        throw "COLUMN-ERROR", sprintf("%s.%s: scale %y is not valid for type %y; must be between %d and %d inclusive", name, cname, opt.scale, opt.native_type, th.scale_range[0], th.scale_range[1]);
+                        throw "COLUMN-ERROR", sprintf("%s column %y: scale %y is not valid for type %y; must be between %d and %d inclusive", getDesc(), cname, opt.scale, opt.native_type, th.scale_range[0], th.scale_range[1]);
                 }
                 else
                     opt.scale = 0;
             }
             else if (opt.scale) 
-                throw "COLUMN-ERROR", sprintf("%s.%s: scale %y is not valid for type %y; it is not a numeric type", name, cname, opt.scale, opt.native_type);
+                throw "COLUMN-ERROR", sprintf("%s column %y: scale %y is not valid for type %y; it is not a numeric type", getDesc(), cname, opt.scale, opt.native_type);
             else
                 opt.precision = opt.scale = 0;
 
@@ -12602,7 +12602,7 @@ $table.dropColumn("notes_2");
             on_exit l.unlock();
             getColumnsUnlocked();
             if (!columns.hasKey(cname))
-                throw "COLUMN-ERROR", sprintf("%s.%s: no such column (valid columns: %y)", name, cname, columns.keys());
+                throw "COLUMN-ERROR", sprintf("%s column %y: no such column (valid columns: %y)", getDesc(), cname, columns.keys());
 
             code sc;
             if (inDb) {
@@ -12646,7 +12646,7 @@ my string $sql = $table.getDropColumnSql("notes_2");
             on_exit l.unlock();
             getColumnsUnlocked();
             if (!columns.hasKey(cname))
-                throw "COLUMN-ERROR", sprintf("%s.%s: no such column (valid columns: %y)", name, cname, columns.keys());
+                throw "COLUMN-ERROR", sprintf("%s column %y: no such column (valid columns: %y)", getDesc(), cname, columns.keys());
 
             on_success if (opt.sql_callback_executed)
                 columns.take(cname);
@@ -12702,8 +12702,8 @@ $table.insertNoCommi($row);
             getColumnsUnlocked();
             sql = sprintf("insert into %s (", getSqlName());
             foreach string k in (row.keyIterator()) {
-                if (!columns{k})
-                    throw "COLUMN-ERROR", sprintf("%s.%s is not a valid column (valid columns: %y)", name, k, columns.keys());
+                if (!columns.hasKey(k))
+                    throw "COLUMN-ERROR", sprintf("%s column %y is not a valid column (valid columns: %y)", getDesc(), k, columns.keys());
             }
             hash vh = getPlaceholdersAndValues(row);
 
@@ -12736,14 +12736,14 @@ $table.insertNoCommi($row);
                         im = getInsertOperatorMap();
                     *hash cmd = im{iop};
                     if (!cmd)
-                        throw "INSERT-OPERATOR-ERROR", sprintf("unknown insert operator %y: expecting one of: %y", iop, im.keys());
+                        throw "INSERT-OPERATOR-ERROR", sprintf("%s: unknown insert operator %y: expecting one of: %y", getDesc(), iop, im.keys());
                     v = v.arg;
                     if (cmd.arg) {
                         string at = v.type();
                         switch (cmd.arg) {
                             default: {
                                 if (at != cmd.arg)
-                                    throw "INSERT-OPERATOR-ERROR", sprintf("invalid argument to insert operator %y; got type %y, expecting %y", iop, at, cmd.arg);
+                                    throw "INSERT-OPERATOR-ERROR", sprintf("%s: invalid argument to insert operator %y; got type %y, expecting %y", getDesc(), iop, at, cmd.arg);
                             }
                         }
                     }
@@ -12753,7 +12753,7 @@ $table.insertNoCommi($row);
                     if (cmd.immediate) {
                         # make sure only identifiers are included here since the string is inserted directly into the query
                         if (v =~ /[^a-z\._0-9]/i)
-                            throw "INSERT-OPERATOR-ERROR", sprintf("immediate value to insert operator %y is %y which contains illegal characters", iop, v);
+                            throw "INSERT-OPERATOR-ERROR", sprintf("%s: immediate value to insert operator %y is %y which contains illegal characters", getDesc(), iop, v);
                         phl += v;
                         continue;
                     }
@@ -12875,8 +12875,8 @@ my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $sourc
             sql = sprintf("insert into %s (", getSqlName());
 
             foreach string k in (cols) {
-                if (!columns{k})
-                    throw "COLUMN-ERROR", sprintf("%s.%s is not a valid column (valid columns: %y)", name, k, cols);
+                if (!columns.hasKey(k))
+                    throw "COLUMN-ERROR", sprintf("%s column %y is not a valid column (valid columns: %y)", getDesc(), k, cols);
             }
 
             sql += (foldl $1 + "," + $2, getColumnSqlNames(cols));
@@ -13120,7 +13120,7 @@ map $upsert($1), $row_list;
 
             return int sub (hash row) {
                 if (!row.compareKeys(example_row))
-                    throw "UPSERT-ERROR", sprintf("the keys in the row passed to the upsert closure (%y) do not match the keys passed to AbstractTable::getUpsertClosureWithValidation() (%y)", row.keys, example_row.keys());
+                    throw "UPSERT-ERROR", sprintf("%s: the keys in the row passed to the upsert closure (%y) do not match the keys passed to AbstractTable::getUpsertClosureWithValidation() (%y)", getDesc(), row.keys, example_row.keys());
                 return upsert(row);
             };
         }        
@@ -13820,10 +13820,10 @@ my string $sql = $table.getSelectSql($sh, \$args);
                     if (!primaryKey.empty())
                         qh.orderby = primaryKey.keys();
                     else
-                        throw "SELECT-ERROR", sprintf("%s: select 'offset' supplied (%d) but no 'orderby' and the table has no primary key", getName(), qh.offset);
+                        throw "SELECT-ERROR", sprintf("%s: select 'offset' supplied (%d) but no 'orderby' and the table has no primary key", getDesc(), qh.offset);
                 }
                 if (!qh.limit)
-                    throw "SELECT-ERROR", sprintf("%s: select 'offset' supplied (%d) without limit", getName(), qh.offset);
+                    throw "SELECT-ERROR", sprintf("%s: select 'offset' supplied (%d) without limit", getDesc(), qh.offset);
             }
             # do not overwrite args; could be used in a subquery
             if (!exists args)
@@ -13855,7 +13855,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
 
                         case NT_HASH: {
                             if (!cv.cop)
-                                throw "SELECT-ERROR", sprintf("%s: missing column operator in \"columns\" hash element %d/%d; the \"columns\" select option must be assigned to a list of strings giving the column names or a list of column operator hashes as returned from column operator functions; this element is missing hash key \"cop\" giving the column operator; keys provided: %y", getName(), $# + 1, qh.columns.lsize(), cv.keys());
+                                throw "SELECT-ERROR", sprintf("%s: missing column operator in \"columns\" hash element %d/%d; the \"columns\" select option must be assigned to a list of strings giving the column names or a list of column operator hashes as returned from column operator functions; this element is missing hash key \"cop\" giving the column operator; keys provided: %y", getDesc(), $# + 1, qh.columns.lsize(), cv.keys());
                             try {
                                 ce += doColumnOperatorIntern(cv, jch, boolean(qh.join), ch);
                             }
@@ -13869,7 +13869,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
                         }
 
                         default:
-                            throw "SELECT-ERROR", sprintf("don't know how to parse argument type %y (value: %y) in column list, expecting \"string\" or \"hash\"", cv.type(), cv);
+                            throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in column list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv);
                     }
                 }
                 cstr = foldl $1 + "," + $2, ce.iterator();
@@ -13898,7 +13898,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 else if (js instanceof Table)
                     jh.table = js.getTable();
                 else
-                    throw "SELECT-ERROR", sprintf("don't know how to process join element of type %y; expecting a join hash, an AbstractTable object, or a Table object", js.type());
+                    throw "SELECT-ERROR", sprintf("%s: don't know how to process join element of type %y; expecting a join hash, an AbstractTable object, or a Table object", getDesc(), js.type());
 
                 AbstractTable t = jh.table;
                 t.describe();
@@ -13908,7 +13908,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 AbstractTable jt;
                 if (jh.ta) {
                     if (!jch{jh.ta})
-                        throw "SELECT-ERROR", sprintf("can't join with unknown table/alias %y; known tables/aliases: %y", jh.ta, list(getName()) + jch.keys());
+                        throw "SELECT-ERROR", sprintf("%s: can't join with unknown table/alias %y; known tables/aliases: %y", getDesc(), jh.ta, list(getName()) + jch.keys());
                     jt = jch{jh.ta};                    
                 }
                 else
@@ -13933,12 +13933,12 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 list jel = ();
                 if (jh.jcols) {
                     if (jh.jcols.typeCode() != NT_HASH)
-                        throw "SELECT-ERROR", sprintf("join clause error; expecting a hash assigned to the \"jcols\" key; got %y instead", jh.jcols.type());
+                        throw "SELECT-ERROR", sprintf("%s: join clause error; expecting a hash assigned to the \"jcols\" key; got %y instead", getDesc(), jh.jcols.type());
                     foreach hash jmh in (jh.jcols.pairIterator()) {
                         if (!jt.columns.hasKey(jmh.key))
-                            throw "SELECT-ERROR", sprintf("cannot join on unknown column %y.%y; known columns: %y", jt.getSqlName(), jmh.key, jt.columns.keys());
+                            throw "SELECT-ERROR", sprintf("%s: cannot join on unknown column %y.%y; known columns: %y", getDesc(), jt.getSqlName(), jmh.key, jt.columns.keys());
                         if (!t.describe().hasKey(jmh.value))
-                            throw "SELECT-ERROR", sprintf("cannot join on unknown column %y.%y; known columns: %y", t.getSqlName(), jmh.value, t.columns.keys());
+                            throw "SELECT-ERROR", sprintf("%s: cannot join on unknown column %y.%y; known columns: %y", getDesc(), t.getSqlName(), jmh.value, t.columns.keys());
                         jel += sprintf("%s.%s = %s.%s", jtn, jmh.key, an, jmh.value);
                     }
                 }
@@ -13970,7 +13970,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
                         }
 
                         if (!fkh)
-                            throw "SELECT-ERROR", sprintf("cannot perform a %s join from %s on %s without a column specification since neither table has a foreign constraint on the primary key of the other table", jh.jop, jt.getSqlName(), t.getSqlName());
+                            throw "SELECT-ERROR", sprintf("%s: cannot perform a %s join from %s on %s without a column specification since neither table has a foreign constraint on the primary key of the other table", getDesc(), jh.jop, jt.getSqlName(), t.getSqlName());
                     }
                 }
 
@@ -13998,7 +13998,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
                         }
 
                         default:
-                            throw "SELECT-ERROR", sprintf("don't know how to parse argument type %y (value: %y) in group by list, expecting \"string\" or \"hash\"", cv.type(), cv);
+                            throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in group by list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv);
                     }
                 }
 
@@ -14013,9 +14013,9 @@ my string $sql = $table.getSelectSql($sh, \$args);
 
                 foreach hash hh in (qh.having.pairIterator()) {
                     if (hh.value.typeCode() != NT_LIST)
-                        throw "SELECT-ERROR", sprintf("expecting a list argument to the \"having\" condition for column %y; got type %y instead (value: %y)", hh.key, hh.value.type(), hh.value);
+                        throw "SELECT-ERROR", sprintf("%s: expecting a list argument to the \"having\" condition for column %y; got type %y instead (value: %y)", getDesc(), hh.key, hh.value.type(), hh.value);
                     if (hh.value[0].typeCode() != NT_STRING)
-                        throw "SELECT-ERROR", sprintf("expecting a string argument to the \"having\" condition in the first position giving the column operator code for column %y; got type %y instead (value: %y)", hh.key, hh.value[0].type(), hh.value[0]);
+                        throw "SELECT-ERROR", sprintf("%s: expecting a string argument to the \"having\" condition in the first position giving the column operator code for column %y; got type %y instead (value: %y)", getDesc(), hh.key, hh.value[0].type(), hh.value[0]);
 
                     string hstr = doColumnOperatorIntern(hh.value[0], NOTHING, getColumnExpressionIntern(hh.key, jch, boolean(qh.join), ch), cm, jch, boolean(qh.join), ch);
                     hl += doWhereExpressionIntern(hstr, hh.value[1], \args, jch, boolean(qh.join), ch);
@@ -14027,7 +14027,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
             if (qh.orderby) {
                 if (qh.offset || qh.limit) {
                     if (!matchAnyUnique(qh.orderby))
-                        throw "SELECT-ERROR", sprintf("%s: 'orderby': %y with 'offset' = %d, 'limit' = %d does not match any unique constraint", getName(), qh.orderby, qh.offset, qh.limit);
+                        throw "SELECT-ERROR", sprintf("%s: 'orderby': %y with 'offset' = %d, 'limit' = %d does not match any unique constraint", getDesc(), qh.orderby, qh.offset, qh.limit);
 
                     doSelectOrderByWithOffsetSqlUnlockedImpl(\sql, \args, qh, jch, ch);
                 }
@@ -14066,7 +14066,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 case NT_STRING:
                     return getColumnNameIntern(cvc, jch, join, ch);
             }
-            throw "SELECT-ERROR", sprintf("column operator hash %y has an invalid \"column\" key; expecting a string column specification or a column operator description hash", cvc);
+            throw "SELECT-ERROR", sprintf("%s: column operator hash %y has an invalid \"column\" key; expecting a string column specification or a column operator description hash", getDesc(), cvc);
         }
 
         private string doColumnOperatorIntern(hash cvc, *hash jch, bool join, *hash ch) {
@@ -14075,18 +14075,18 @@ my string $sql = $table.getSelectSql($sh, \$args);
 
         private string doColumnOperatorIntern(any cop, any arg, *string cve, hash cm, *hash jch, bool join, *hash ch) {
             if (cop.typeCode() != NT_STRING)
-                throw "SELECT-ERROR", sprintf("invalid column operator code %y; use column operator functions to create valid column specifications with supported column operators", cop);
+                throw "SELECT-ERROR", sprintf("%s: invalid column operator code %y; use column operator functions to create valid column specifications with supported column operators", getDesc(), cop);
 
             *hash cmd = cm{cop};
             if (!cmd)
-                throw "SELECT-ERROR", sprintf("unknown column operator %y: expecting one of: %y", cop, cm.keys());
+                throw "SELECT-ERROR", sprintf("%s: unknown column operator %y: expecting one of: %y", getDesc(), cop, cm.keys());
 
             if (cmd.arg) {
                 string at = arg.type();
                 switch (cmd.arg) {
                     default: {
                         if (at != cmd.arg)
-                            throw "SELECT-ERROR", sprintf("invalid argument to column operator %y; got type %y, expecting %y", cop, at, cmd.arg);
+                            throw "SELECT-ERROR", sprintf("%s: invalid argument to column operator %y; got type %y, expecting %y", getDesc(), cop, at, cmd.arg);
                     }
                 }
             }
@@ -14096,13 +14096,13 @@ my string $sql = $table.getSelectSql($sh, \$args);
             else if (cmd.argcolumn) {
                 if (!cmd.argoptional || arg) {
                     if (arg.typeCode() != NT_STRING)
-                        throw "SELECT-ERROR", sprintf("expecting a string column designation for column operator %y; got type %y instead", cop, arg.type());
+                        throw "SELECT-ERROR", sprintf("%s: expecting a string column designation for column operator %y; got type %y instead", getDesc(), cop, arg.type());
                     arg = getColumnNameIntern(arg, jch, join, ch);
                 }
             }
 
             if (!cve && !cmd.nocolumn)
-                throw "SELECT-ERROR", sprintf("column operator %y requires a column argument name but none was provided", cop);
+                throw "SELECT-ERROR", sprintf("%s: column operator %y requires a column argument name but none was provided", getDesc(), cop);
 
             return cmd.code(cve, arg);
         }
@@ -14116,13 +14116,13 @@ my string $sql = $table.getSelectSql($sh, \$args);
             *string tp = (cv =~ x/(\w+)\.\w+/)[0];
             if (tp) {
                 if (!jch{tp})
-                    throw "SELECT-ERROR", sprintf("query references unknown alias %y in %y; known aliases in this query: %y", tp, cv, jch.keys());
+                    throw "SELECT-ERROR", sprintf("%s: query references unknown alias %y in %y; known aliases in this query: %y", getDesc(), tp, cv, jch.keys());
                 cols = jch{tp}.describe();
                 splice cv, 0, tp.size() + 1;
             }
             else if (ch) {
                 if (!ch{cv})
-                    throw "SELECT-ERROR", sprintf("query references unknown column %y; known columns from subquery: %y", cv, ch.keys());
+                    throw "SELECT-ERROR", sprintf("%s: query references unknown column %y; known columns from subquery: %y", getDesc(), cv, ch.keys());
                 return cv;
             }
             else {
@@ -14131,7 +14131,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
             }
 
             if (cv != "*" && !cols.hasKey(cv))
-                throw "SELECT-ERROR", sprintf("query references unknown column %y.%y; known columns: %y", tp, cv, cols.keys());
+                throw "SELECT-ERROR", sprintf("%s: query references unknown column %y.%y; known columns: %y", getDesc(), tp, cv, cols.keys());
             cv = getColumnSqlName(cv);
             return join ? sprintf("%s.%s", tp, cv) : cv;
         }
@@ -14193,13 +14193,13 @@ my string $sql = $table.getSelectSql($sh, \$args);
             int wt = we.typeCode();
             if (wt == NT_HASH) {
                 if (!we.op)
-                    throw "WHERE-ERROR", sprintf("argument to key %y is a hash without an \"op\" key: %y", cn, we);
+                    throw "WHERE-ERROR", sprintf("%s: argument to key %y is a hash without an \"op\" key: %y", getDesc(), cn, we);
 
                 hash wm = getWhereOperatorMap();
 
                 *hash cmd = wm{we.op};
                 if (!cmd)
-                    throw "WHERE-ERROR", sprintf("operator hash for key %y has unknown operator %y: expecting one of: %y (operator hash: %y)", cn, we.op, wm.keys(), we);
+                    throw "WHERE-ERROR", sprintf("%s: operator hash for key %y has unknown operator %y: expecting one of: %y (operator hash: %y)", getDesc(), cn, we.op, wm.keys(), we);
 
                 if (cmd.recursive) {
                     cn = doWhereExpressionIntern(cn, we.arg, \args, jch, join, ch);
@@ -14207,7 +14207,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 }
                 else if (cmd.argcolumn) {
                     if (!we.arg || we.arg.typeCode() != NT_STRING)
-                        throw "WHERE-ERROR", sprintf("operator hash for key %y expects a string column name; got type %y instead", cn, we.arg.type());
+                        throw "WHERE-ERROR", sprintf("%s: operator hash for key %y expects a string column name; got type %y instead", getDesc(), cn, we.arg.type());
                     we.arg = getColumnNameIntern(we.arg, jch, join, ch);
                 }
 
@@ -14234,7 +14234,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
                     }
 
                     default:
-                        throw "SELECT-ERROR", sprintf("don't know how to parse argument type %y (value: %y) in orderby list, expecting \"string\" or \"hash\"", cv.type(), cv);
+                        throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in orderby list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv);
                 }
             }
             return ce;
@@ -14347,7 +14347,7 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
             sql = sprintf("update %s set ", getSqlName());
 
             if (!set)
-                throw "UPDATE-ERROR", "the set hash is empty";
+                throw "UPDATE-ERROR", sprintf("%s: the set hash is empty", getDesc());
 
             list args;
 
@@ -14463,14 +14463,14 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
 
             *hash cmd = um{uh.uop};
             if (!cmd)
-                throw "UPDATE-ERROR", sprintf("unknown update operator %y in %y: expecting one of: %y", uh.uop, uh, um.keys());
+                throw "UPDATE-ERROR", sprintf("%s: unknown update operator %y in %y: expecting one of: %y", getDesc(), uh.uop, uh, um.keys());
 
             if (cmd.arg) {
                 string at = uh.arg.type();
                 switch (cmd.arg) {
                     default: {
                         if (at != cmd.arg)
-                            throw "UPDATE-ERROR", sprintf("invalid argument to update operator %y; got type %y, expecting %y", uh.uop, at, cmd.arg);
+                            throw "UPDATE-ERROR", sprintf("%s: invalid argument to update operator %y; got type %y, expecting %y", getDesc(), uh.uop, at, cmd.arg);
                     }
                 }
             }
@@ -14502,15 +14502,15 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
             # column list: make sure all columns in the key are used and have a value
             list cl = ();
             foreach string k in (row.keyIterator()) {
-                if (!columns{k})
-                    throw "COLUMN-ERROR", sprintf("%s.%s is not a valid column (valid columns: %y)", name, k, columns.keys());
+                if (!columns.hasKey(k))
+                    throw "COLUMN-ERROR", sprintf("%s column %y is not a valid column (valid columns: %y)", getDesc(), k, columns.keys());
                 if (cols.hasKey(k))
                     cl += k;
             }
 
             # if not all columns of the unique constraint are used, then throw an exception
             if (cl.size() != cols.size())
-                throw "UPSERT-ERROR", sprintf("not all columns from %s are used in the upsert statement; required: %y; used: %y", csrc, columns.keys(), cl);
+                throw "UPSERT-ERROR", sprintf("%s: not all columns from %s are used in the upsert statement; required: %y; used: %y", getDesc(), csrc, columns.keys(), cl);
 
             # use UpsertSelectFirst if the row size == the key size (ie only key values are used)
             if (cols.size() == row.size())
@@ -14530,7 +14530,7 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
                     return getUpsertInsertOnly(cols, row);
             }
 
-            throw "UPSERT-ERROR", sprintf("invalid upsert code: %d", upsert_strategy);
+            throw "UPSERT-ERROR", sprintf("%s: invalid upsert code: %d", getDesc(), upsert_strategy);
         }
 
         private code getUpsertInsertFirst(Columns cols, hash example_row) {
@@ -14625,7 +14625,7 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
                     }
 
                     if (!cols)
-                        throw "UPSERT-ERROR", sprintf("cannot perform an upsert on %s because it has no primary key, unique constraint, or unique index", name);
+                        throw "UPSERT-ERROR", sprintf("%s: cannot perform upsert because there is no primary key, unique constraint, or unique index", getDesc());
                 }
             }
 
@@ -14685,42 +14685,42 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
             switch (type) {
                 case Type::Int: {
                     if (!val.intp())
-                        throw "COLUMN-ERROR", sprintf("%s.%s: %s has type %y, expecting %y (value: %y)", name, cname, argname, val.type(), type, val);
+                        throw "COLUMN-ERROR", sprintf("%s column %y: %s has type %y, expecting %y (value: %y)", name, cname, argname, val.type(), type, val);
                     if (val.type() != type)
                         val = val.toInt();
                     break;
                 }
                 case Type::Float: {
                     if (!val.intp())
-                        throw "COLUMN-ERROR", sprintf("%s.%s: %s has type %y, expecting %y (value: %y)", name, cname, argname, val.type(), type, val);
+                        throw "COLUMN-ERROR", sprintf("%s column %y: %s has type %y, expecting %y (value: %y)", getDesc(), cname, argname, val.type(), type, val);
                     if (val.type() != type)
                         val = val.toFloat();
                     break;
                 }
                 case Type::Number: {
                     if (!val.intp())
-                        throw "COLUMN-ERROR", sprintf("%s.%s: %s has type %y, expecting %y (value: %y)", name, cname, argname, val.type(), type, val);
+                        throw "COLUMN-ERROR", sprintf("%s column %y: %s has type %y, expecting %y (value: %y)", getDesc(), cname, argname, val.type(), type, val);
                     if (val.type() != type)
                         val = number(val);
                     break;
                 }
                 case Type::Boolean: {
                     if (!val.intp())
-                        throw "COLUMN-ERROR", sprintf("%s.%s: %s has type %y, expecting %y (value: %y)", name, cname, argname, val.type(), type, val);
+                        throw "COLUMN-ERROR", sprintf("%s column %y: %s has type %y, expecting %y (value: %y)", getDesc(), cname, argname, val.type(), type, val);
                     if (val.type() != type)
                         val = val.toBool();
                     break;
                 }
                 case Type::String: {
                     if (!val.strp())
-                        throw "COLUMN-ERROR", sprintf("%s.%s: %s has type %y, expecting %y (value: %y)", name, cname, argname, val.type(), type, val);
+                        throw "COLUMN-ERROR", sprintf("%s column %y: %s has type %y, expecting %y (value: %y)", getDesc(), cname, argname, val.type(), type, val);
                     if (val.type() != type)
                         val = val.toString();
                     break;
                 }
               default: {
                   if (val.type() != type)
-                      throw "COLUMN-ERROR", sprintf("%s.%s: %s value for has type %y, expecting %y (value: %y)", name, cname, argname, val.type(), type, val);
+                      throw "COLUMN-ERROR", sprintf("%s column %y: %s value for has type %y, expecting %y (value: %y)", getDesc(), cname, argname, val.type(), type, val);
                   break;
                 }
             }
@@ -14755,7 +14755,7 @@ my string $str = $table.getSqlValue($date);
         string getSqlValue(any v) {
             *string str = getSqlValueImpl(v);
             if (!exists str)
-                throw "VALUE-ERROR", sprintf("class %s cannot convert type %y to an SQL string (value: %y)", self.className(), v.type(), v);
+                throw "VALUE-ERROR", sprintf("%s: class %s cannot convert type %y to an SQL string (value: %y)", getDesc(), self.className(), v.type(), v);
 
             return str;
         }
@@ -15048,7 +15048,7 @@ my list $l = $table.getAlignSql($table2);
         */
         list getAlignSql(AbstractTable t, *hash opt) {
             if (self.className() != t.className())
-                throw "ALIGN-TABLE-ERROR", sprintf("cannot align table %y of class %y with table %y of class %y", name, self.className(), t.name, t.className());
+                throw "ALIGN-TABLE-ERROR", sprintf("cannot align %s of class %y with %s of class %y", getDesc(), self.className(), t.getDesc(), t.className());
 
             hash ato = getAlignTableOptions();
 
@@ -15079,7 +15079,7 @@ my list $l = $table.getAlignSql($table2);
             }
 
             if (!t.columns || t.columns.empty())
-                throw "ALIGN-TABLE-ERROR", sprintf("cannot align table %y with table %y: table %y has no columns", name, t.name, t.name);
+                throw "ALIGN-TABLE-ERROR", sprintf("cannot align %s with %s: %y has no columns", getDesc(), t.getDesc(), t.name);
 
             if (!columns)
                 columns = new Columns();
@@ -15644,9 +15644,9 @@ my *list $rows = $table.find($list);
             on_exit l.unlock();
             getPrimaryKeyUnlocked();
             if (primaryKey.empty())
-                throw "PRIMARY-KEY-ERROR", sprintf("table %s has no primary key", name);
+                throw "PRIMARY-KEY-ERROR", sprintf("%s: has no primary key", getDesc());
             if (primaryKey.size() > 1)
-                throw "PRIMARY-KEY-ERROR", sprintf("table %s has a primary key with %d columns (%y)", name, primaryKey.size(), primaryKey.keys());
+                throw "PRIMARY-KEY-ERROR", sprintf("%s: has a primary key with %d columns (%y); this method can only be called on tables with a primary key with one column", getDesc(), primaryKey.size(), primaryKey.keys());
             return primaryKey.firstKey();
         }
 
@@ -15671,14 +15671,14 @@ my *hash $row = $table.find(("account_type": $type, "name": $name));
                 on_exit l.unlock();
                 getPrimaryKeyUnlocked();
                 if (primaryKey.empty())
-                    throw "PRIMARY-KEY-ERROR", sprintf("table %s has no primary key", name);
+                    throw "PRIMARY-KEY-ERROR", sprintf("%s: has no primary key", getDesc());
                 cols = primaryKey;
             }
 
             # make sure all columns of the primary key are included in the row
             foreach string k in (cols.keyIterator()) {
                 if (!row.hasKey(k))
-                    throw "PRIMARY-KEY-ERROR", sprintf("row passed is missing column %y of primary key (%y)", k, cols.keys());
+                    throw "PRIMARY-KEY-ERROR", sprintf("%s: row passed is missing column %y of primary key (%y)", getDesc(), k, cols.keys());
             }
 
             # make query
@@ -15723,7 +15723,21 @@ my *list $rows = $table.findAll($h);
             return selectRows(("where": cond));
         }
 
-        #! returns the name of the table to be used in SQL (with a possible qualifiers for schema, etc)
+        #! returns a descriptive string of the datasource (without the password) and the table name (with a possible qualifier for schema, etc)
+        /** Used in exception descriptions
+    
+            @since SqlUtil 1.2
+        */
+        string getDesc() {
+            return sprintf("%s: %s %s", AbstractSqlUtilBase::makeDatasourceDesc(ds), getBaseType(), getSqlName());
+        }
+
+        #! returns the base type of the underlying object (normally \"table\", some DB-specific implementations may support others like \c "view")
+        string getBaseType() {
+            return "table";
+        }
+    
+        #! returns the name of the table to be used in SQL (with a possible qualifier for schema, etc)
         string getSqlName() {
             return name;
         }
