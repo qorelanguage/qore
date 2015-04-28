@@ -7120,6 +7120,8 @@ my string $sql = $t.getSqlFromList($list);
             @return bool True if the index was rebuild, False it it was left untouched
 
             @throw REBUILD-INDEX-ERROR in case of MySQL or in case of wrong options given
+
+            @since %SqlUtil 1.2
          */
         bool rebuildIndex(string name, *hash options) {
             validateOptionsIntern("REBUILD-INDEX-ERROR", getRebuildIndexOptions(), \options);
@@ -7132,6 +7134,8 @@ my string $sql = $t.getSqlFromList($list);
             @param options an optional database-specific option hash
 
             @throw REBUILD-INDEX-ERROR in case of MySQL or in case of wrong options given
+
+            @since %SqlUtil 1.2
          */
         bool rebuildIndex(AbstractIndex index, *hash options) {
             validateOptionsIntern("REBUILD-INDEX-ERROR", getRebuildIndexOptions(), \options);
@@ -7143,6 +7147,8 @@ my string $sql = $t.getSqlFromList($list);
             @param options an optional database-specific option hash
 
             @throw COMPUTE-STATISTICS-ERROR in case of wrong options given
+
+            @since %SqlUtil 1.2
          */
         computeStatistics(*hash options) {
             validateOptionsIntern("COMPUTE-STATISTICS-ERROR", getComputeStatisticsOptions(), \options);
@@ -7154,6 +7160,8 @@ my string $sql = $t.getSqlFromList($list);
             @param options an optional database-specific option hash
 
             @throw RECLAIM-SPACE-ERROR in case of wrong options given
+
+            @since %SqlUtil 1.2
          */
         reclaimSpace(*hash options) {
             validateOptionsIntern("RECLAIM-SPACE-ERROR", getReclaimSpaceOptions(), \options);
