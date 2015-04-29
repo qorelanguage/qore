@@ -254,7 +254,7 @@ my hash $h = $i.getValue();
 }
 
 #! Structured line iterator for fixed-length line files allowing efficient "pipelined" processing.
-public class FixedLengthUtil::FixedLengthFileIterator inherits FixedLengthUtil::FixedLengthAbstractIterator, FileLineIterator {
+public class FixedLengthUtil::FixedLengthFileIterator inherits FixedLengthUtil::FixedLengthAbstractIterator, Qore::FileLineIterator {
     private {
         string file;
     }

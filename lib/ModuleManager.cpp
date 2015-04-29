@@ -515,10 +515,10 @@ static void qore_check_load_module_intern(QoreAbstractModule* mi, mod_op_e op, v
       mi->addToProgram(pgm, xsink);
 }
 
-void QoreModuleManager::getUniqueName(QoreString& nname, const char* name, const char* suffix) {
+void QoreModuleManager::getUniqueName(QoreString& nname, const char* name, const char* prefix) {
    int ver = 1;
    while (true) {
-      nname.sprintf("%s!!%s%d", name, suffix, ver++);
+      nname.sprintf("!!%s-%s-%d", prefix, name, ver++);
       if (!findModuleUnlocked(nname.getBuffer()))
 	 break;
       nname.clear();
@@ -528,7 +528,7 @@ void QoreModuleManager::getUniqueName(QoreString& nname, const char* name, const
 void QoreModuleManager::reinjectModule(QoreAbstractModule* mi) {
    // handle reinjections here
    QoreString nname;
-   getUniqueName(nname, mi->getName(), "!!orig-");
+   getUniqueName(nname, mi->getName(), "orig-");
    module_map_t::iterator i = map.find(mi->getName());
    assert(i != map.end());
    map.erase(i);
@@ -540,7 +540,7 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
    assert(!version || (version && op != MOD_OP_NONE));
 
    ReferenceHolder<QoreProgram> pholder(mpgm, &xsink);
-   
+
    // check for special "qore" feature
    if (!strcmp(name, "qore")) {
       if (version)
@@ -548,7 +548,10 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
       return;
    }
 
-   QoreAbstractModule* mi = findModuleUnlocked(name);
+   module_map_t::iterator mmi = map.find(name);
+   assert(mmi == map.end() || !strcmp(mmi->second->getName(), name));
+
+   QoreAbstractModule* mi = (mmi == map.end() ? 0 : mmi->second);
 
    // handle module reloads
    if (load_opt & QMLO_RELOAD) {
@@ -559,31 +562,31 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
 	 return;
 
       // rename module and make private
-      module_map_t::iterator i = map.find(mi->getName());
-      assert(i != map.end());
-      map.erase(i);
-      
+      map.erase(mmi);
+
       QoreString orig_name(mi->getName());
       // rename to unique name
       QoreString nname;
-      getUniqueName(nname, mi->getName(), "!!private-");
+      getUniqueName(nname, mi->getName(), "private");
       mi->rename(nname);
       mi->setOrigName(orig_name.getBuffer());
       mi->setPrivate();
       assert(mi->isUser());
       addModule(mi);
       
-      loadUserModuleFromPath(xsink, mi->getFileName(), mi->getOrigName(), pgm, reexport, pholder.release(), load_opt & QMLO_REINJECT ? mpgm : 0, load_opt);
+      QoreAbstractModule* nmi = loadUserModuleFromPath(xsink, mi->getFileName(), mi->getOrigName(), pgm, reexport, pholder.release(), load_opt & QMLO_REINJECT ? mpgm : 0, load_opt);
       if (xsink) {
-	 module_map_t::iterator i = map.find(mi->getName());
-	 assert(i != map.end());
-	 map.erase(i);
+	 mmi = map.find(mi->getName());
+	 assert(mmi != map.end());
+	 map.erase(mmi);
 	 mi->resetName();
 	 mi->setPrivate(false);
 	 addModule(mi);
       }
-      else
+      else {
+	 nmi->setLink(mi);
 	 trySetUserModuleDependency(mi);
+      }
       return;
    }
 
@@ -837,7 +840,7 @@ QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, std
    }
 
    //printd(5, "QoreModuleManager::setupUserModule() '%s' omi: %p\n", mi->getName(), omi);
-   
+
    if (xsink)
       return 0;
 
@@ -907,14 +910,14 @@ QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, std
    if (omi) {
       assert(load_opt & QMLO_REINJECT);
       reinjectModule(omi);
-      mi->setOrigName(omi->getName());
       name = mi->getName();
+      mi->setLink(omi);
    }
    else if (mi->isPrivate()) {
       QoreString orig_name(mi->getName());
       // rename to unique name
       QoreString nname;
-      getUniqueName(nname, mi->getName(), "!!private-");
+      getUniqueName(nname, mi->getName(), "private");
       mi->rename(nname);
       mi->setOrigName(orig_name.getBuffer());
       name = mi->getName();
@@ -1232,19 +1235,24 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
 }
 
 void QoreModuleManager::delOrig(QoreAbstractModule* mi) {
-   const char *n = mi->getOrigName();
-   //printd(5, "QoreModuleManager::delOrig() mi: %p '%s' orig: %s\n", mi, mi->getName(), n ? n : "n/a");
-   if (!n)
-      return;
+   while (mi) {
+      const char *n = mi->getName();
+      //printd(5, "QoreModuleManager::delOrig() mi: %p '%s'\n", mi, mi->getName());
 
-   module_map_t::iterator i = map.find(n);
-   if (i == map.end())
-      return;
+      module_map_t::iterator i = map.find(n);
+      assert(i != map.end());
+      assert(i->second == mi);
+      
+      //if (i == map.end())
+      //return;
 
-   mi = i->second;
-   delOrig(mi);
-   map.erase(i);
-   delete mi;
+      QoreAbstractModule* next = mi->getNext();
+      if (next)
+	 delOrig(next);
+      map.erase(i);
+      delete mi;
+      mi = next;
+   }
 }
 
 // deletes only user modules
@@ -1257,10 +1265,11 @@ void QoreModuleManager::delUser() {
       QoreAbstractModule* m = i->second;
       assert(m->isUser());
       
-      delOrig(m);
+      delOrig(m->getNext());
       //printd(5, "QoreModuleManager::delUser() deleting '%s' (%s) %p\n", (*ui).c_str(), i->first, m);
       umset.erase(ui);
-      removeUserModuleDependency(i->first, m->getOrigName());
+
+      removeUserModuleDependency(m->getName(), m->getOrigName());
       
       map.erase(i);
       delete m;

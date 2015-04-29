@@ -45,6 +45,7 @@ extern "C" {
 #include <map>
 #include <deque>
 #include <memory>
+#include <vector>
 
 // user module parse options
 #define USER_MOD_PO (PO_NO_TOP_LEVEL_STATEMENTS | PO_REQUIRE_PROTOTYPES | PO_REQUIRE_OUR | PO_IN_MODULE)
@@ -96,6 +97,9 @@ protected:
       license,
       orig_name;
 
+   // link to associated modules (originals with reinjection, etc)
+   QoreAbstractModule* prev, * next;
+
    bool priv : 1,
       injected : 1,
       reinjected : 1;
@@ -141,17 +145,25 @@ public:
    name_vec_t rmod;
 
    // for binary modules
-   DLLLOCAL QoreAbstractModule(const char* cwd, const char* fn, const char* n, const char* d, const char* v, const char* a, const char* u, const QoreString& l) : filename(fn), name(n), desc(d), author(a), url(u), license(l), priv(false), injected(false), reinjected(false), version_list(v) {
+   DLLLOCAL QoreAbstractModule(const char* cwd, const char* fn, const char* n, const char* d, const char* v, const char* a, const char* u, const QoreString& l) : filename(fn), name(n), desc(d), author(a), url(u), license(l), prev(0), next(0), priv(false), injected(false), reinjected(false), version_list(v) {
       q_normalize_path(filename, cwd);
    }
 
    // for user modules
-   DLLLOCAL QoreAbstractModule(const char* cwd, const char* fn, const char* n, unsigned load_opt) : filename(fn), name(n), priv(load_opt & QMLO_PRIVATE), injected(load_opt & QMLO_INJECT), reinjected(load_opt & QMLO_REINJECT) {
+   DLLLOCAL QoreAbstractModule(const char* cwd, const char* fn, const char* n, unsigned load_opt) : filename(fn), name(n), prev(0), next(0), priv(load_opt & QMLO_PRIVATE), injected(load_opt & QMLO_INJECT), reinjected(load_opt & QMLO_REINJECT) {
       q_normalize_path(filename, cwd);
    }
 
    DLLLOCAL virtual ~QoreAbstractModule() {
       //printd(5, "QoreAbstractModule::~QoreAbstractModule() this: %p name: %s\n", this, name.getBuffer());
+      if (next) {
+         assert(next->prev == this);
+         next->prev = prev;
+      }
+      if (prev) {
+         assert(prev->next = this);
+         prev->next = next;
+      }
    }
 
    DLLLOCAL const char* getName() const {
@@ -232,6 +244,17 @@ public:
       priv = p;
    }
 
+   DLLLOCAL void setLink(QoreAbstractModule* n) {      
+      assert(!next);
+      assert(!n->prev);
+      next = n;
+      n->prev = this;
+   }
+
+   DLLLOCAL QoreAbstractModule* getNext() const {
+      return next;
+   }
+   
    DLLLOCAL virtual bool isBuiltin() const = 0;
    DLLLOCAL virtual bool isUser() const = 0;
    DLLLOCAL virtual QoreHashNode* getHash(bool with_filename = true) const = 0;
@@ -423,7 +446,7 @@ protected:
 
    DLLLOCAL void reinjectModule(QoreAbstractModule* mi);
    DLLLOCAL void delOrig(QoreAbstractModule* mi);
-   DLLLOCAL void getUniqueName(QoreString& nname, const char* name, const char* suffix);
+   DLLLOCAL void getUniqueName(QoreString& nname, const char* name, const char* prefix);
 
 public:
    DLLLOCAL QoreModuleManager() : mutex(0) {
