@@ -230,6 +230,15 @@ public:
    //! returns the precision of the number
    DLLEXPORT unsigned getPrec() const;
 
+   //! returns true if the number is NaN
+   DLLEXPORT bool nan() const;
+   
+   //! returns true if the number is +/-inf
+   DLLEXPORT bool inf() const;
+   
+   //! returns true if the number is an ordinary number (neither NaN nor an infinity)
+   DLLEXPORT bool ordinary() const;
+   
    //! returns the type information
    DLLLOCAL virtual AbstractQoreNode* parseInit(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 

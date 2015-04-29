@@ -40,9 +40,9 @@
 #include <time.h>
 #include <errno.h>
 
-static const QoreFunction *get_builtin_func(const QoreStringNode *str, ExceptionSink *xsink) {
+static const QoreFunction* get_builtin_func(const QoreStringNode* str, ExceptionSink* xsink) {
    const qore_ns_private* ns;
-   const QoreFunction *f = qore_root_ns_private::runtimeFindFunction(*(getRootNS()), str->getBuffer(), ns);
+   const QoreFunction* f = qore_root_ns_private::runtimeFindFunction(*(getRootNS()), str->getBuffer(), ns);
    if (f)
       return f;
 
@@ -50,7 +50,7 @@ static const QoreFunction *get_builtin_func(const QoreStringNode *str, Exception
    return 0;
 }
 
-static const char *tlist[] = { "OPTION", "ALGORITHM", "FUNCTION" };
+static const char* tlist[] = { "OPTION", "ALGORITHM", "FUNCTION" };
 
 // signal constants - if they are not defined define them here
 #ifndef SIGABRT
@@ -556,7 +556,7 @@ my any $result = call_builtin_function("func_name", $arg1, $arg2);
     @since 0.8.4 this function no longer restricts its search to builtin functions as as of Qore 0.8.4 builtin and user functions are stored identically internally; there is only one function implementation which can contain both builtin and user variants
 */
 any call_builtin_function(string name, ...) {
-   const QoreFunction *f = get_builtin_func(name, xsink);
+   const QoreFunction* f = get_builtin_func(name, xsink);
    if (!f)
       return 0;
 
@@ -588,7 +588,7 @@ my any $result = call_builtin_function_args("func_name", ($arg1, $arg2));
     @since 0.8.4 this function no longer restricts its search to builtin functions as as of Qore 0.8.4 builtin and user functions are stored identically internally; there is only one function implementation which can contain both builtin and user variants
 */
 any call_builtin_function_args(string name, *softlist vargs) {
-   const QoreFunction *f = get_builtin_func(name, xsink);
+   const QoreFunction* f = get_builtin_func(name, xsink);
    if (!f)
       return 0;
 
@@ -679,7 +679,7 @@ bool exists_function(code[doc] c) [flags=NOOP] {
 */
 *string functionType(string name) [flags=CONSTANT,DEPRECATED] {
    const qore_ns_private* ns;
-   const QoreFunction *f = qore_root_ns_private::runtimeFindFunction(*(getRootNS()), name->getBuffer(), ns);
+   const QoreFunction* f = qore_root_ns_private::runtimeFindFunction(*(getRootNS()), name->getBuffer(), ns);
    if (!f)
       return 0;
 
@@ -706,7 +706,7 @@ my *string $type = function_type("print");
 */
 *string function_type(string name) {
    const qore_ns_private* ns;
-   const QoreFunction *f = qore_root_ns_private::runtimeFindFunction(*(getRootNS()), name->getBuffer(), ns);
+   const QoreFunction* f = qore_root_ns_private::runtimeFindFunction(*(getRootNS()), name->getBuffer(), ns);
    if (!f)
       return 0;
 
@@ -724,7 +724,7 @@ my string $str = html_encode("<hello>"); # returns "&lt;hello&gt;"
     @endcode
 */
 string html_encode(string str) [flags=CONSTANT] {
-   QoreStringNode *ns = new QoreStringNode(str->getEncoding());
+   QoreStringNode* ns = new QoreStringNode(str->getEncoding());
    ns->concatAndHTMLEncode(str->getBuffer());
    return ns;
 }
@@ -746,7 +746,7 @@ my string $str = html_decode("&lt;hello&gt;"); # returns "<hello>"
     @endcode
 */
 string html_decode(string str) [flags=CONSTANT] {
-   QoreStringNode *ns = new QoreStringNode(str->getEncoding());
+   QoreStringNode* ns = new QoreStringNode(str->getEncoding());
    ns->concatAndHTMLDecode(str);
    return ns;
 }
@@ -802,7 +802,7 @@ parse($code, $filename);
       if (!wsink.isException())
          return 0;
 
-      QoreException *e = wsink.catchException();
+      QoreException* e = wsink.catchException();
       return e->makeExceptionObjectAndDelete(xsink);
    }
 
@@ -972,7 +972,7 @@ nothing backquote() [flags=RUNTIME_NOOP;dom=EXTERNAL_PROCESS] {
     @deprecated use make_base64_string(); camel-case function names were deprecated in %Qore 0.8.12
 */
 string makeBase64String(string str, softint maxlinelen = -1) [flags=CONSTANT,DEPRECATED] {
-   QoreStringNode *rv = new QoreStringNode;
+   QoreStringNode* rv = new QoreStringNode;
    rv->concatBase64(str, maxlinelen);
    return rv;
 }
@@ -1023,7 +1023,7 @@ my string $base64 = make_base64_string($data, 64);
     @since %Qore 0.8.12 as a replacement for deprecated camel-case makeBase64String()
 */
 string make_base64_string(string str, softint maxlinelen = -1) [flags=CONSTANT] {
-   QoreStringNode *rv = new QoreStringNode;
+   QoreStringNode* rv = new QoreStringNode;
    rv->concatBase64(str, maxlinelen);
    return rv;
 }
@@ -1295,7 +1295,7 @@ my list $vl = hash_values($vl);
     @see <hash>::keys()
 */
 list hash_values(hash h) [flags=CONSTANT] {
-   QoreListNode *l = new QoreListNode;
+   QoreListNode* l = new QoreListNode;
 
    ConstHashIterator hi(h);
    while (hi.next())
@@ -1343,7 +1343,7 @@ my bool $b = has_key($obj, "key");
 */
 bool has_key(object obj, string key) {
    AutoVLock vl(xsink);
-   AbstractQoreNode **ptr = obj->getExistingValuePtr(key, &vl, xsink);
+   AbstractQoreNode* *ptr = obj->getExistingValuePtr(key, &vl, xsink);
    return (bool)ptr;
 }
 
@@ -1363,7 +1363,7 @@ my *int $byte = get_byte($str, 2); # returns the third byte of the string
     Furthermore this function is identical to getByte(), except this function has no @ref RUNTIME_NOOP variant
 */
 *int get_byte(string str, softint offset = 0) [flags=CONSTANT] {
-   unsigned char *ptr = (unsigned char *)str->getBuffer();
+   unsigned char* ptr = (unsigned char* )str->getBuffer();
    int size = str->strlen();
 
    if (offset >= size || offset < 0)
@@ -1388,7 +1388,7 @@ my *int $byte = get_byte($bin, 2); # returns the third byte of the binary object
     Furthermore this function is identical to getByte(), except this function has no @ref RUNTIME_NOOP variant
 */
 *int get_byte(binary b, softint offset = 0) [flags=CONSTANT] {
-   unsigned char *ptr = (unsigned char *)b->getPtr();
+   unsigned char* ptr = (unsigned char* )b->getPtr();
    int size = b->size();
 
    if (offset >= size || offset < 0)
@@ -1410,7 +1410,7 @@ my *int $byte = get_byte($bin, 2); # returns the third byte of the binary object
     @deprecated since %Qore 0.8.4 marked as deprecated; use the get_byte() function instead
 */
 *int getByte(string str, softint offset = 0) [flags=CONSTANT,DEPRECATED] {
-   unsigned char *ptr = (unsigned char *)str->getBuffer();
+   unsigned char* ptr = (unsigned char* )str->getBuffer();
    int size = str->strlen();
 
    if (offset >= size || offset < 0)
@@ -1438,7 +1438,7 @@ nothing getByte() [flags=RUNTIME_NOOP,DEPRECATED] {
     @deprecated %Qore 0.8.4 marked as deprecated; use the get_byte() function instead
 */
 *int getByte(binary b, softint offset = 0) [flags=CONSTANT,DEPRECATED] {
-   unsigned char *ptr = (unsigned char *)b->getPtr();
+   unsigned char* ptr = (unsigned char* )b->getPtr();
    int size = b->size();
 
    if (offset >= size || offset < 0)
@@ -1463,7 +1463,7 @@ my *int $val = get_word_16($str, 2); # returns the third 2-byte (16-bit) value i
     @see get_word_16_lsb()
 */
 *int get_word_16(string str, softint offset = 0) [flags=CONSTANT] {
-   unsigned char *ptr = (unsigned char *)str->getBuffer();
+   unsigned char* ptr = (unsigned char* )str->getBuffer();
    int size = str->strlen();
 
    if (offset >= (size - 1) || offset < 0)
@@ -1489,7 +1489,7 @@ my *int $val = get_word_16($bin, 2); # returns the third 2-byte (16-bit) value i
     @see get_word_16_lsb()
 */
 *int get_word_16(binary b, softint offset = 0) [flags=CONSTANT] {
-   unsigned char *ptr = (unsigned char *)b->getPtr();
+   unsigned char* ptr = (unsigned char* )b->getPtr();
    int size = b->size();
 
    if (offset >= (size - 1) || offset < 0)
@@ -1518,7 +1518,7 @@ my *int $val = get_word_32($str, 4); # returns the third 4-byte (32-bit) value i
     @see get_word_32_lsb()
 */
 *int get_word_32(string str, softint offset = 0) [flags=CONSTANT] {
-   unsigned char *ptr = (unsigned char *)str->getBuffer();
+   unsigned char* ptr = (unsigned char* )str->getBuffer();
    int size = str->strlen();
 
    if (offset >= (size - 3) || offset < 0)
@@ -1546,7 +1546,7 @@ my *int $val = get_word_32($bin, 2); # returns the third 4-byte (32-bit) value i
     @see get_word_32_lsb()
 */
 *int get_word_32(binary b, softint offset = 0) [flags=CONSTANT] {
-   unsigned char *ptr = (unsigned char *)b->getPtr();
+   unsigned char* ptr = (unsigned char* )b->getPtr();
    int size = b->size();
 
    if (offset >= (size - 3) || offset < 0)
@@ -1570,7 +1570,7 @@ my *int $val = get_word_32($bin, 2); # returns the third 4-byte (32-bit) value i
     @deprecated %Qore 0.8.4 marked as deprecated; use the get_word_32() function instead
 */
 *int getWord32(string str, softint offset = 0) [flags=CONSTANT,DEPRECATED] {
-   unsigned char *ptr = (unsigned char *)str->getBuffer();
+   unsigned char* ptr = (unsigned char* )str->getBuffer();
    int size = str->strlen();
 
    if (offset >= (size - 3) || offset < 0)
@@ -1593,7 +1593,7 @@ my *int $val = get_word_32($bin, 2); # returns the third 4-byte (32-bit) value i
     @deprecated %Qore 0.8.4 marked as deprecated; use the get_word_32() function instead
 */
 *int getWord32(binary b, softint offset = 0) [flags=CONSTANT,DEPRECATED] {
-   unsigned char *ptr = (unsigned char *)b->getPtr();
+   unsigned char* ptr = (unsigned char* )b->getPtr();
    int size = b->size();
 
    if (offset >= (size - 3) || offset < 0)
@@ -1626,7 +1626,7 @@ my *int $val = get_word_64($str, 4); # returns the third 8-byte (64-bit) value i
     @see get_word_64_lsb()
 */
 *int get_word_64(string str, softint offset = 0) [flags=CONSTANT] {
-   unsigned char *ptr = (unsigned char *)str->getBuffer();
+   unsigned char* ptr = (unsigned char* )str->getBuffer();
    int size = str->strlen();
 
    if (offset >= (size - 7) || offset < 0)
@@ -1652,7 +1652,7 @@ my *int $val = get_word_64($bin, 2); # returns the third 8-byte (64-bit) value i
     @see get_word_64_lsb()
 */
 *int get_word_64(binary b, softint offset = 0) [flags=CONSTANT] {
-   unsigned char *ptr = (unsigned char *)b->getPtr();
+   unsigned char* ptr = (unsigned char* )b->getPtr();
    int size = b->size();
 
    if (offset >= (size - 7) || offset < 0)
@@ -1679,7 +1679,7 @@ my *int $val = get_word_16_lsb($str, 2); # returns the third 2-byte (16-bit) val
     @see get_word_16()
 */
 *int get_word_16_lsb(string str, softint offset = 0) [flags=CONSTANT] {
-   unsigned char *ptr = (unsigned char *)str->getBuffer();
+   unsigned char* ptr = (unsigned char* )str->getBuffer();
    int size = str->strlen();
 
    if (offset >= (size - 1) || offset < 0)
@@ -1705,7 +1705,7 @@ my *int $val = get_word_16_lsb($bin, 2); # returns the third 2-byte (16-bit) val
     @see get_word_16()
 */
 *int get_word_16_lsb(binary b, softint offset = 0) [flags=CONSTANT] {
-   unsigned char *ptr = (unsigned char *)b->getPtr();
+   unsigned char* ptr = (unsigned char* )b->getPtr();
    int size = b->size();
 
    if (offset >= (size - 1) || offset < 0)
@@ -1733,7 +1733,7 @@ my *int $val = get_word_32_lsb($str, 4); # returns the third 4-byte (32-bit) val
     @see get_word_32()
 */
 *int get_word_32_lsb(string str, softint offset = 0) [flags=CONSTANT] {
-   unsigned char *ptr = (unsigned char *)str->getBuffer();
+   unsigned char* ptr = (unsigned char* )str->getBuffer();
    int size = str->strlen();
 
    if (offset >= (size - 3) || offset < 0)
@@ -1759,7 +1759,7 @@ my *int $val = get_word_32_lsb($bin, 2); # returns the third 4-byte (32-bit) val
     @see get_word_32()
 */
 *int get_word_32_lsb(binary b, softint offset = 0) [flags=CONSTANT] {
-   unsigned char *ptr = (unsigned char *)b->getPtr();
+   unsigned char* ptr = (unsigned char* )b->getPtr();
    int size = b->size();
 
    if (offset >= (size - 3) || offset < 0)
@@ -1786,7 +1786,7 @@ my *int $val = get_word_64_lsb($str, 4); # returns the third 8-byte (64-bit) val
     @see get_word_64()
 */
 *int get_word_64_lsb(string str, softint offset = 0) [flags=CONSTANT] {
-   unsigned char *ptr = (unsigned char *)str->getBuffer();
+   unsigned char* ptr = (unsigned char* )str->getBuffer();
    int size = str->strlen();
 
    if (offset >= (size - 7) || offset < 0)
@@ -1812,7 +1812,7 @@ my *int $val = get_word_64_lsb($bin, 2); # returns the third 8-byte (64-bit) val
     @see get_word_64()
 */
 *int get_word_64_lsb(binary b, softint offset = 0) [flags=CONSTANT] {
-   unsigned char *ptr = (unsigned char *)b->getPtr();
+   unsigned char* ptr = (unsigned char* )b->getPtr();
    int size = b->size();
 
    if (offset >= (size - 7) || offset < 0)
@@ -1938,7 +1938,7 @@ nothing splice() [flags=RUNTIME_NOOP] {
     @deprecated use make_hex_string(); camel-case function names were deprecated in %Qore 0.8.12
 */
 string makeHexString(string str) [flags=CONSTANT,DEPRECATED] {
-   QoreStringNode *rv = new QoreStringNode;
+   QoreStringNode* rv = new QoreStringNode;
    rv->concatHex(str);
    return rv;
 }
@@ -1956,7 +1956,7 @@ string makeHexString(string str) [flags=CONSTANT,DEPRECATED] {
     @deprecated use make_hex_string(); camel-case function names were deprecated in %Qore 0.8.12
 */
 string makeHexString(binary bin) [flags=CONSTANT,DEPRECATED] {
-   QoreStringNode *str = new QoreStringNode;
+   QoreStringNode* str = new QoreStringNode;
    str->concatHex(bin);
    return str;
 }
@@ -1985,7 +1985,7 @@ my string $str = make_hex_string($str2);
     @since %Qore 0.8.12 as a replacement for deprecated camel-case makeHexString()
 */
 string make_hex_string(string str) [flags=CONSTANT] {
-   QoreStringNode *rv = new QoreStringNode;
+   QoreStringNode* rv = new QoreStringNode;
    rv->concatHex(str);
    return rv;
 }
@@ -2008,7 +2008,7 @@ my string $str = make_hex_string($bin);
     @since %Qore 0.8.12 as a replacement for deprecated camel-case makeHexString()
 */
 string make_hex_string(binary bin) [flags=CONSTANT] {
-   QoreStringNode *str = new QoreStringNode;
+   QoreStringNode* str = new QoreStringNode;
    str->concatHex(bin);
    return str;
 }
@@ -2076,7 +2076,7 @@ int hextoint(string str) {
 
    int64 rc = 0;
    int64 pow = 0;
-   const char *buf = str->getBuffer();
+   const char* buf = str->getBuffer();
    qore_size_t len = str->size();
    if (*buf == '0' && *(buf + 1) == 'x') {
       buf += 2;
@@ -2086,7 +2086,7 @@ int hextoint(string str) {
       buf++;
       --len;
    }
-   for (const char *p = buf + len - 1; p >= buf; p--) {
+   for (const char* p = buf + len - 1; p >= buf; p--) {
       int n = get_nibble(*p, xsink);
       if (xsink->isException())
 	 return 0;
@@ -2182,6 +2182,32 @@ load_user_module_with_program("MyModule", $p);
  */
 nothing load_user_module_with_program(string name, !Qore::Program[QoreProgram] pgm) [dom=MODULES] {
    QMM.runTimeLoadModule(*xsink, name->getBuffer(), getProgram(), pgm);
+}
+
+//! Reloads a %Qore module at run-time into %Qore; the module's code is not imported into the current Program object; if the module is already loaded, for the module to be reloaded, the module must have been loaded with code injected
+/** 
+    @param name either a feature name (a module will be searched with this feature name) or a path to a module to load
+
+    @par Example:
+    @code
+reload_module("FixedLengthUtil");
+    @endcode
+
+    @throw LOAD-MODULE-ERROR module cannot be loaded: API incompatibility, etc
+
+    @note
+    - unlike load_module(), this function does not cause the given module's code to be loaded in the current Program object
+    - in case the given module has already been loaded and was not subject to code injection, this call is silently ignored
+
+    @see 
+    - load_module()
+    - get_module_hash()
+    - get_feature_list()
+
+    @since %Qore 0.8.12
+*/
+nothing reload_module(string name) [dom=MODULES,INJECTION] {
+   QMM.runTimeLoadModule(*xsink, name->getBuffer(), 0, 0, QMLO_RELOAD);
 }
 
 //! Decodes percent numeric codes in a URL string and returns the decoded string in UTF-8 encoding
@@ -2356,10 +2382,10 @@ my list $l = get_qore_option_list();
     @see get_qore_option_hash()
 */
 list get_qore_option_list() [flags=CONSTANT] {
-   QoreListNode *l = new QoreListNode;
+   QoreListNode* l = new QoreListNode;
 
    for (unsigned j = 0; j < qore_option_list_size; ++j) {
-      QoreHashNode *h = new QoreHashNode;
+      QoreHashNode* h = new QoreHashNode;
       h->setKeyValue("option", new QoreStringNode(qore_option_list[j].option), xsink);
       h->setKeyValue("constant", new QoreStringNode(qore_option_list[j].constant), xsink);
       h->setKeyValue("type", new QoreStringNode(tlist[qore_option_list[j].type]), xsink);
@@ -2386,10 +2412,10 @@ my hash $h = get_qore_option_hash();
     @since %Qore 0.8.4
 */
 hash get_qore_option_hash() [flags=CONSTANT] {
-   QoreHashNode *rv = new QoreHashNode;
+   QoreHashNode* rv = new QoreHashNode;
 
    for (unsigned j = 0; j < qore_option_list_size; ++j) {
-      QoreHashNode *h = new QoreHashNode;
+      QoreHashNode* h = new QoreHashNode;
       h->setKeyValue("option", new QoreStringNode(qore_option_list[j].option), xsink);
       h->setKeyValue("constant", new QoreStringNode(qore_option_list[j].constant), xsink);
       h->setKeyValue("type", new QoreStringNode(tlist[qore_option_list[j].type]), xsink);
@@ -2421,7 +2447,7 @@ my hash $h = get_qore_library_info();
     @endcode
 */
 hash get_qore_library_info() [flags=CONSTANT] {
-   QoreHashNode *h = new QoreHashNode;
+   QoreHashNode* h = new QoreHashNode;
 
    h->setKeyValue("PlatformOS", new QoreStringNode(qore_target_os), xsink);
    h->setKeyValue("PlatformCPU", new QoreStringNode(qore_target_arch), xsink);

@@ -1334,7 +1334,7 @@ $pgm.loadUserModuleWithProgram("MyModule", $p);
     @since %Qore 0.8.12
 */
 Program::loadUserModuleWithProgram(string name, !Qore::Program[QoreProgram] pgm) [dom=MODULES,INJECTION] {
-   QMM.runTimeLoadModule(*xsink, name->getBuffer(), p, pgm, true);
+   QMM.runTimeLoadModule(*xsink, name->getBuffer(), p, pgm, QMLO_INJECT);
 }
 
 //! Loads a %Qore user module into the given Program container at run-time; after this call the Program object is owned by the user module and is no longer accessible in the object used for the call
@@ -1364,7 +1364,7 @@ Program::loadApplyToUserModule(string name, *softbool reinject) [dom=MODULES,INJ
    assert(pgm == p);
 #endif
    if (!*xsink) {
-      QMM.runTimeLoadModule(*xsink, name->getBuffer(), 0, p, true, reinject);
+      QMM.runTimeLoadModule(*xsink, name->getBuffer(), 0, p, QMLO_INJECT | (reinject ? QMLO_REINJECT : 0));
       self->doDelete(xsink);
    }
 }
@@ -1398,7 +1398,7 @@ Program::loadApplyToPrivateUserModule(string name) [dom=MODULES] {
    assert(pgm == p);
 #endif
    if (!*xsink) {
-      QMM.runTimeLoadModule(*xsink, name->getBuffer(), 0, p, true, false, true);
+      QMM.runTimeLoadModule(*xsink, name->getBuffer(), 0, p, QMLO_INJECT | QMLO_PRIVATE);
       self->doDelete(xsink);
    }
 }

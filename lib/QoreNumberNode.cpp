@@ -484,3 +484,15 @@ QoreNumberNode* QoreNumberNode::toNumber(const AbstractQoreNode* n) {
 
    return new QoreNumberNode(n ? n->getAsFloat() : 0.0);
 }
+
+bool QoreNumberNode::nan() const {
+   return priv->nan();
+}
+
+bool QoreNumberNode::inf() const {
+   return priv->inf();
+}
+
+bool QoreNumberNode::ordinary() const {
+   return priv->number();
+}

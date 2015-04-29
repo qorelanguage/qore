@@ -43,6 +43,9 @@
         - @ref Qore::Program::loadApplyToPrivateUserModule() "Program::loadApplyToPrivateUserModule()"
         - @ref Qore::Program::loadApplyToUserModule() "Program::loadApplyToUserModule()"
         - @ref Qore::Program::loadUserModuleWithProgram() "Program::loadUserModuleWithProgram()"
+	.
+	furthermore the following function can be used to reload injected modules with the non-injected version:
+	- @ref Qore::reload_module() "reload_module()"
     - new constants:
       - @ref Qore::DirSep
       - @ref Qore::Platform
@@ -251,6 +254,7 @@
     - fixed the return type in @ref Qore::getcwd() to @ref "string_or_nothing" "*string"
     - fixed a bug in the @ref return "return statement" where the runtime return type was used at parse time which did not work when parsing embedded code
     - fixed a bug validating return values in method evaluation that could lead to a qore crash
+    - fixed a bug in the @ref requires "%requires" directive when applied to builtin features where code to manage user module dependencies was inappropriately applied
 
     @section qore_0811 Qore 0.8.11
 
