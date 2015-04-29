@@ -141,7 +141,7 @@ public:
    name_vec_t rmod;
 
    // for binary modules
-      DLLLOCAL QoreAbstractModule(const char* cwd, const char* fn, const char* n, const char* d, const char* v, const char* a, const char* u, const QoreString& l) : filename(fn), name(n), desc(d), author(a), url(u), license(l), priv(false), injected(false), reinjected(false), version_list(v) {
+   DLLLOCAL QoreAbstractModule(const char* cwd, const char* fn, const char* n, const char* d, const char* v, const char* a, const char* u, const QoreString& l) : filename(fn), name(n), desc(d), author(a), url(u), license(l), priv(false), injected(false), reinjected(false), version_list(v) {
       q_normalize_path(filename, cwd);
    }
 
@@ -178,14 +178,20 @@ public:
       return orig_name.empty() ? 0 : orig_name.getBuffer();
    }
 
+   DLLLOCAL void resetName() {
+      assert(!orig_name.empty());
+      name = orig_name;
+      orig_name.clear();
+   }
+
    DLLLOCAL bool isInjected() const {
       return injected;
    }
-   
+
    DLLLOCAL bool isReInjected() const {
       return reinjected;
    }
-   
+
    DLLLOCAL void addModuleReExport(const char* m) {
       rmod.push_back(m);
    }
@@ -220,7 +226,12 @@ public:
    DLLLOCAL bool isPrivate() const {
       return priv;
    }
-   
+
+   DLLLOCAL void setPrivate(bool p = true) {
+      assert(priv != p);
+      priv = p;
+   }
+
    DLLLOCAL virtual bool isBuiltin() const = 0;
    DLLLOCAL virtual bool isUser() const = 0;
    DLLLOCAL virtual QoreHashNode* getHash(bool with_filename = true) const = 0;

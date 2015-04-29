@@ -2184,9 +2184,9 @@ nothing load_user_module_with_program(string name, !Qore::Program[QoreProgram] p
    QMM.runTimeLoadModule(*xsink, name->getBuffer(), getProgram(), pgm);
 }
 
-//! Reloads a %Qore module at run-time into %Qore; the module's code is not imported into the current Program object; if the module is already loaded, for the module to be reloaded, the module must have been loaded with code injected
+//! Reloads an already-loaded %Qore module subject to code injection at run-time into %Qore; the module's code is not imported into the current Program object
 /** 
-    @param name either a feature name (a module will be searched with this feature name) or a path to a module to load
+    @param name a feature name for an already-loaded module
 
     @par Example:
     @code
@@ -2197,12 +2197,10 @@ reload_module("FixedLengthUtil");
 
     @note
     - unlike load_module(), this function does not cause the given module's code to be loaded in the current Program object
-    - in case the given module has already been loaded and was not subject to code injection, this call is silently ignored
+    - in case the given feature has not been loaded or has already been loaded and was not subject to code injection, this call is silently ignored
 
     @see 
     - load_module()
-    - get_module_hash()
-    - get_feature_list()
 
     @since %Qore 0.8.12
 */

@@ -52,6 +52,14 @@ QoreClassList::~QoreClassList() {
    deleteAll();
 }
 
+void QoreClassList::addInternal(QoreClass *oc) {
+   printd(5, "QCL::addInternal() this: %p '%s' (%p)\n", this, oc->getName(), oc);
+
+   assert(!find(oc->getName()));
+   hm[oc->getName()] = oc;
+}
+
+
 int QoreClassList::add(QoreClass *oc) {
    printd(5, "QCL::add() this: %p '%s' (%p)\n", this, oc->getName(), oc);
 
@@ -84,7 +92,7 @@ QoreClassList::QoreClassList(const QoreClassList& old, int64 po, qore_ns_private
             continue;
       QoreClass* qc = new QoreClass(*i->second);
       qore_class_private::setNamespace(qc, ns);
-      add(qc);
+      addInternal(qc);
    }
 }
 
@@ -93,9 +101,15 @@ void QoreClassList::mergeUserPublic(const QoreClassList& old, qore_ns_private* n
       if (!qore_class_private::isUserPublic(*i->second))
 	 continue;
 
-      QoreClass* qc = new QoreClass(*i->second);
+      QoreClass* qc = find(i->first);
+      if (qc) {
+	 assert(qore_class_private::injected(*qc));
+	 continue;
+      }
+      
+      qc = new QoreClass(*i->second);
       qore_class_private::setNamespace(qc, ns);
-      add(qc);
+      addInternal(qc);
    }
 }
 
@@ -114,7 +128,7 @@ int QoreClassList::importSystemClasses(const QoreClassList& source, qore_ns_priv
          //printd(5, "QoreClassList::importSystemClasses() this: %p importing %p %s::'%s'\n", this, i->second, ns->name.c_str(), i->second->getName());
 	 QoreClass* qc = new QoreClass(*i->second);
 	 qore_class_private::setNamespace(qc, ns);
-	 add(qc);
+	 addInternal(qc);
 	 ++cnt;
       }
    }
@@ -163,7 +177,7 @@ void QoreClassList::assimilate(QoreClassList& n) {
       i = n.hm.begin();
 
       assert(!find(nc->getName()));
-      add(nc);
+      addInternal(nc);
    }
 }
 

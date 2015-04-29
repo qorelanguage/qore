@@ -548,12 +548,49 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
       return;
    }
 
-   // if the feature already exists in this program, then return
-   if (pgm && pgm->checkFeature(name)) {
-      if (load_opt & QMLO_INJECT)
-	 xsink.raiseException("LOAD-MODULE-ERROR", "cannot load module '%s' for injection because the module has already been loaded", name);
+   QoreAbstractModule* mi = findModuleUnlocked(name);
 
-      QoreAbstractModule* mi = findModuleUnlocked(name);
+   // handle module reloads
+   if (load_opt & QMLO_RELOAD) {
+      assert(!version);
+      assert(!src);
+      // only loaded & injected modules can be reloaded
+      if (!mi || !mi->isInjected())
+	 return;
+
+      // rename module and make private
+      module_map_t::iterator i = map.find(mi->getName());
+      assert(i != map.end());
+      map.erase(i);
+      
+      QoreString orig_name(mi->getName());
+      // rename to unique name
+      QoreString nname;
+      getUniqueName(nname, mi->getName(), "!!private-");
+      mi->rename(nname);
+      mi->setOrigName(orig_name.getBuffer());
+      mi->setPrivate();
+      assert(mi->isUser());
+      addModule(mi);
+      
+      loadUserModuleFromPath(xsink, mi->getFileName(), mi->getOrigName(), pgm, reexport, pholder.release(), load_opt & QMLO_REINJECT ? mpgm : 0, load_opt);
+      if (xsink) {
+	 module_map_t::iterator i = map.find(mi->getName());
+	 assert(i != map.end());
+	 map.erase(i);
+	 mi->resetName();
+	 mi->setPrivate(false);
+	 addModule(mi);
+      }
+      else
+	 trySetUserModuleDependency(mi);
+      return;
+   }
+
+   // if the feature already exists in this program, then return 
+   if (pgm && pgm->checkFeature(name)) {
+     if (load_opt & QMLO_INJECT)
+	 xsink.raiseException("LOAD-MODULE-ERROR", "cannot load module '%s' for injection because the module has already been loaded", name);
 
       // check version if necessary
       if (version) {
@@ -576,7 +613,6 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
    }   
 
    // if the feature already exists, then load the namespace changes into this program and register the feature
-   QoreAbstractModule* mi = findModuleUnlocked(name);
 
    if (mi) {
       if (!(load_opt & QMLO_REINJECT)) {

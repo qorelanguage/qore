@@ -74,6 +74,8 @@ private:
       delete qc;
    }
 
+   DLLLOCAL void addInternal(QoreClass* ot);
+
 public:
    DLLLOCAL QoreClassList() {}
    DLLLOCAL ~QoreClassList();
