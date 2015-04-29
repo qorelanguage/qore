@@ -503,7 +503,8 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
 	    check_module_version(mi, op, *version, xsink);
       }
 
-      trySetUserModuleDependency(mi);
+      if (mi)
+	 trySetUserModuleDependency(mi);
       return;
    }
 
