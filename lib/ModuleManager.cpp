@@ -834,11 +834,7 @@ QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, std
    QoreAbstractModule* omi = findModuleUnlocked(mi->getName());
    if (omi)
       qmd.setDuplicate();
-   else if (load_opt & QMLO_REINJECT) {
-      xsink.raiseException("LOAD-MODULE-ERROR", "cannot reinject module '%s' because it has not yet been loaded", mi->getName());
-      return 0;
-   }
-
+   
    //printd(5, "QoreModuleManager::setupUserModule() '%s' omi: %p\n", mi->getName(), omi);
 
    if (xsink)

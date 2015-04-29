@@ -1341,11 +1341,13 @@ Program::loadUserModuleWithProgram(string name, !Qore::Program[QoreProgram] pgm)
 /** This function allows a user module to be loaded with a custom API already present in the user module's @ref Qore::Program "Program" container.
 
     @param name the name or path of the user module to load    
-    @param reinject if @ref Qore::True "True" then the module will be reloaded even if already loaded previously
+    @param reinject if @ref Qore::True "True" then the module will be reloaded even if already loaded previously; if the module was not already loaded then it is loaded with this call
 
     @throw LOAD-MODULE-ERROR module cannot be loaded: binary modules cannot be loaded in @ref Qore::Program "Program" containers, etc
 
-    @note after this call the Program object will be owned by the user module and will no longer be valid, so any accesses to the object after this call will result in an exception
+    @note
+    - it is not an error to set the \a reinject argument to @ref Qore::True "True" when the given module has not already been loaded
+    - after this call the Program object will be owned by the user module and will no longer be valid, so any accesses to the object after this call will result in an exception
 
     @see
     - Program::loadApplyToPrivateUserModule()
