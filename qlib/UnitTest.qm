@@ -243,7 +243,9 @@ public class UnitTest::UnitTest {
     destructor() {
         printSummary();
         # Return the number of errors as exit code, as >0 means failure in unix terms.
-        exit(errors());
+        int nerrs = errors();
+        if (nerrs)
+            exit(nerrs);
     }
 
     private callPrinterFunction(string type, list args) {
