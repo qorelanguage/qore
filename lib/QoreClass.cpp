@@ -496,7 +496,8 @@ qore_class_private::qore_class_private(QoreClass* n_cls, const char* nme, int64 
      orNothingTypeInfo(0),
      selfid("self", typeInfo), 
      ptr(0),
-     new_copy(0) {
+     new_copy(0),
+     spgm(0) {
    assert(methodID == classID);
 
    if (nme)
@@ -552,7 +553,8 @@ qore_class_private::qore_class_private(const qore_class_private& old, QoreClass*
      selfid(old.selfid), 
      hash(old.hash),
      ptr(old.ptr),
-     new_copy(0) {
+     new_copy(0),
+     spgm(old.spgm ? old.spgm->programRefSelf() : 0) {
    QORE_TRACE("qore_class_private::qore_class_private(const qore_class_private& old)");
    printd(5, "qore_class_private::qore_class_private() this: %p creating copy of '%s' ID:%d cls: %p old: %p\n", this, name.c_str(), classID, cls, old.cls);
 
@@ -608,7 +610,8 @@ qore_class_private::~qore_class_private() {
    printd(5, "qore_class_private::~qore_class_private() this: %p %s\n", this, name.c_str());
 
    assert(vars.empty());
-
+   assert(!spgm);
+   
    if (!pending_vars.empty())
       pending_vars.del();
 

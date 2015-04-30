@@ -1859,6 +1859,9 @@ public:
    // pointer to new class when copying
    mutable QoreClass* new_copy;
 
+   // pointer to owning program for imported classes
+   QoreProgram* spgm;
+   
    DLLLOCAL qore_class_private(QoreClass* n_cls, const char* nme, int64 dom = QDOM_DEFAULT, QoreTypeInfo* n_typeinfo = 0);
 
    // only called while the parse lock for the QoreProgram owning "old" is held
@@ -2482,6 +2485,10 @@ public:
       vars.del(xsink);
       priv_const.deleteAll(xsink);
       pub_const.deleteAll(xsink);
+      if (spgm) {
+         spgm->deref(xsink);
+         spgm = 0;
+      }
    }
 
    /*
@@ -2817,14 +2824,16 @@ public:
       return qc.priv->inject;
    }
 
-   DLLLOCAL static QoreClass* makeImportClass(const QoreClass& qc, const char* nme, bool inject) {
+   DLLLOCAL static QoreClass* makeImportClass(const QoreClass& qc, QoreProgram* spgm, const char* nme, bool inject) {
       QoreClass* rv = new QoreClass(qc);
       if (nme)
          rv->priv->name = nme;
       rv->priv->inject = inject;
       if (qc.priv->pub)
          rv->priv->pub = true;
-      //printd(5, "qore_program_private::makeImportClass() name: '%s' (%s) rv: %p inject: %d\n", qc.getName(), nme ? nme : "n/a", rv, rv->priv->inject);
+      // reference source program and save in copied class
+      rv->priv->spgm = spgm->programRefSelf();
+      printd(5, "qore_program_private::makeImportClass() name: '%s' (%s) rv: %p inject: %d\n", qc.getName(), nme ? nme : "n/a", rv, rv->priv->inject);
       return rv;
    }
 

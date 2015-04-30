@@ -467,7 +467,7 @@ void qore_program_private::importClass(ExceptionSink* xsink, qore_program_privat
    }
 
    if (inject && !(pwo.parse_options & PO_ALLOW_INJECTION)) {
-      xsink->raiseException("CLASS-IMPORT-ERROR", "cannot import class \"%s\" in a Program object without PO_ALLOW_INJECTION set", path);
+      xsink->raiseException("CLASS-IMPORT-ERROR", "cannot import class \"%s\" with the injection flag set in a Program object without PO_ALLOW_INJECTION set", path);
       return;
    }
    
@@ -496,12 +496,12 @@ void qore_program_private::importClass(ExceptionSink* xsink, qore_program_privat
    if (new_name && strstr(new_name, "::")) {
       NamedScope nscope(new_name);
       tns = qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, nscope, qore_class_private::isPublic(*c));
-      qore_root_ns_private::runtimeImportClass(*RootNS, xsink, *tns, c, nscope.getIdentifier(), inject);
+      qore_root_ns_private::runtimeImportClass(*RootNS, xsink, *tns, c, from_pgm.pgm, nscope.getIdentifier(), inject);
    }
    else {
       tns = vns->root ? RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, *vns);
       //printd(5, "qore_program_private::importClass() this: %p path: %s nspath: %s tns: %p %s RootNS: %p %s\n", this, path, nspath.c_str(), tns, tns->getName(), RootNS, RootNS->getName());
-      qore_root_ns_private::runtimeImportClass(*RootNS, xsink, *tns, c, new_name, inject);
+      qore_root_ns_private::runtimeImportClass(*RootNS, xsink, *tns, c, from_pgm.pgm, new_name, inject);
    }
 }
 
@@ -1139,6 +1139,11 @@ void QoreProgram::parseDefine(const char* str, const char* val) {
    if (!ok)
       return;
    priv->parseDefine(qoreCommandLineLocation, str, v);
+}
+
+QoreProgram* QoreProgram::programRefSelf() const {
+   const_cast<QoreProgram*>(this)->ref();
+   return const_cast<QoreProgram*>(this);
 }
 
 int get_warning_code(const char* str) {

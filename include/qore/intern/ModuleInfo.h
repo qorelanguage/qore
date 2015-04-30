@@ -174,6 +174,10 @@ public:
       return filename.getBuffer();
    }
 
+   DLLLOCAL const QoreString& getFileNameStr() const {
+      return filename;
+   }
+
    DLLLOCAL const char* getDesc() const {
       return desc.getBuffer();
    }
@@ -418,8 +422,8 @@ protected:
 
    // module hash
    typedef std::map<const char*, QoreAbstractModule*, ltstr> module_map_t;
-   module_map_t map;   
-
+   module_map_t map;
+   
    // set of user modules with no dependencies
    strset_t umset;
 
