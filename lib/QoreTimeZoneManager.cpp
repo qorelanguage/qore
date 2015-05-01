@@ -35,7 +35,6 @@
 
 #include <stdio.h>
 #include <time.h>
-#include <sys/timeb.h>
 
 #ifdef HAVE_GLOB_H
 #include <glob.h>
