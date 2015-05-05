@@ -32,7 +32,10 @@
 %requires Util >= 1.0
 
 # for bindOracleCollection
-%requires oracle
+%try-module oracle
+%define NO_ORACLE
+%endtry
+
 
 # don't use "$" signs for variables and class members, assume local variable scope
 %new-style
@@ -1758,6 +1761,7 @@ my any $v = $c.name;
             const OracleOpMap = DefaultOpMap + (
                 OP_IN: (
                     "code": string sub (object t, string cn, softlist arg, reference args) {
+%ifndef NO_ORACLE
                         # Qorus bug #989 SqlUtil: oracle op_in can fail in large amount of input elements
                         # There is no support for CLOBs in WHERE clause in Oracle at all.
                         # Binding large strings (over 4000 chars is performed by a CLOB in Qore driver.
@@ -1802,6 +1806,10 @@ my any $v = $c.name;
                         }
 
                         return cn + " in (select column_value from table(%v))";
+%endif
+%ifdef NO_ORACLE
+                        throw "MISSING-ORACLE-DRIVER", "op_in requires oracle driver";
+%endif
                     },
                 ),
             );
