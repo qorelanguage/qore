@@ -128,6 +128,8 @@
     - <a href="../../modules/TableMapper/html/index.html">TableMapper</a> module updates:
       - added table name and datasource description to error messages
       - implemented more efficient support for inserts from a sequence for databases supporting the \c "returning" clause in insert statements; now such inserts are made in a single round trip instead of n + 1 where n is the number of sequences in the insert
+      - implemented an optimized insert approach assuming stable input data
+      - implemented the \c unstable_input option to accommodate unstable input data and disable the insert optimization
     - <a href="../../modules/RestClient/html/index.html">RestClient</a> module updates:
       - implemented RestClient::addDefaultHeaders()
       - implemented RestClient::getDefaultHeaders()

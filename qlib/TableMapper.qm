@@ -99,6 +99,8 @@ printf("%d record%s inserted\n", map.getCount(), map.getCount() == 1 ? "" : "s")
     - added table name and datasource description to error messages
     - added the getDatasource() method to classes
     - implemented more efficient support for inserts from a sequence for databases supporting the \c "returning" clause in insert statements; now such inserts are made in a single round trip instead of n + 1 where n is the number of sequences in the insert
+    - implemented an optimized insert approach assuming stable input data
+    - implemented the \c unstable_input option to accommodate unstable input data and disable the insert optimization
 
     @subsection tablemapperv1_0 TableMapper v1.0
     - Initial release.
@@ -108,8 +110,11 @@ printf("%d record%s inserted\n", map.getCount(), map.getCount() == 1 ? "" : "s")
 public namespace TableMapper {
     #! provides an inbound data mapper to a Table target
     public class InboundTableMapper inherits Mapper::Mapper {
-        # no public members
         public {
+            #! option keys for this object
+            const OptionKeys = Mapper::OptionKeys + (
+                "unstable_input": True,
+                );
         }
 
         private {
@@ -124,6 +129,12 @@ public namespace TableMapper {
 
             #! "returning" arguments for sequences
             list ret_args = ();
+
+            #! "unstable input" option for non-optimized inserts (~33% performance reduction in insert speed)
+            bool unstable_input = False;
+            
+            #! statement for inserts
+            SQLStatement stmt;
         }
 
         #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
@@ -148,17 +159,14 @@ InboundTableMapper mapper(table, DbMapper);
 
             @param target the target table object
             @param mapv a hash providing field mappings; each hash key is the name in lower case of the output column in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
-            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
+            - \c unstable_input: set this option to @ref Qore::True "True" if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow() or insertRowNoCommit(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
         */
         constructor(SqlUtil::Table target, hash mapv, *hash opts) {
             table = target.getTable();
-            has_returning = table.hasReturning();
-            setup(mapv, opts);
-
-            # check map for logical errors
-            checkMap();            
+            init(mapv, opts);
         }
 
         #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
@@ -183,19 +191,29 @@ InboundTableMapper mapper(table, DbMapper);
 
             @param table the target table object
             @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
-            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
+            - \c unstable_input: set this option to @ref Qore::True "True" if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow() or insertRowNoCommit(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
             @throw TABLE-ERROR the table includes a column using an unknown native data type
         */
         constructor(SqlUtil::AbstractTable target, hash mapv, *hash opts) {
             table = target;
+            init(mapv, opts);
+        }
+
+        #! common constructor initialization
+        private init(hash mapv, *hash opts) {
+            has_returning = table.hasReturning();
             setup(mapv, opts);
 
+            if (opts.unstable_input)
+                unstable_input = True;
+            
             # check map for logical errors
             checkMap();            
         }
-
+        
         #! verifies the input map in the constructor
         private checkMap() {
             Columns cols = table.describe();
@@ -311,9 +329,7 @@ InboundTableMapper mapper(table, DbMapper);
         /** @return a list of valid constructor options for this class (can be overridden in subclasses)
         */
         hash optionKeys() {
-            return OptionKeys + (
-                "table": True,
-                );
+            return OptionKeys;
         }
 
         #! inserts a row into the target table based on a mapped input record; does not commit the transaction
@@ -327,7 +343,27 @@ InboundTableMapper mapper(table, DbMapper);
         */
         hash insertRowNoCommit(hash rec) {
             hash h = mapData(rec + crec);
-            *hash rh = table.insertNoCommit(h, ("returning": ret_args));
+            *hash rh;
+
+            if (unstable_input)
+                rh = table.insertNoCommit(h, ("returning": ret_args));
+            else {
+                # when executing for the first time on stable input data, get an SQLStatement for the SQL used to insert
+                if (!stmt) {
+                    string sql;
+                    rh = table.insertNoCommit(h, \sql, ("returning": ret_args));
+                    stmt = new SQLStatement(table.getDatasource());
+                    stmt.prepare(sql);
+                }
+                else {
+                    # remove sequences
+                    map remove h.$1, ret_args;
+                    # execute the SQLStatement on the args
+                    stmt.execArgs(h.values());
+                    rh = stmt.getOutput();
+                }
+            }
+
             if (rh)
                 h += rh;
 
@@ -382,12 +418,12 @@ InboundTableMapper mapper(table, DbMapper);
 
         #! prepends the datasource description to the error string and calls Mapper::error()
         private error(string fmt) {
-            Mapper::error(vsprintf(sprintf("datasource %s: ", get_desc(table.getDatasource())) + fmt, argv));
+            Mapper::error(vsprintf(sprintf("datasource %s: ", table.getDatasourceDesc()) + fmt, argv));
         }
 
         #! prepends the datasource description to the error description and calls Mapper::error2()
         private error2(string ex, string fmt) {
-            Mapper::error2(ex, vsprintf(sprintf("datasource %s: ", get_desc(table.getDatasource())) + fmt, argv));
+            Mapper::error2(ex, vsprintf(sprintf("datasource %s: ", table.getDatasourceDesc()) + fmt, argv));
         }
     }
 
@@ -433,7 +469,8 @@ InboundTableMapperIterator i(input, table, DbMapper);
             @param i input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
             @param target the target table object
             @param mapv a hash providing field mappings; each hash key is the name of the output column in lower case in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
-            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
+            - \c unstable_input: set this option to @ref Qore::True "True" if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow() or insertRowNoCommit(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
             @param commit_limit row count before a commit is made; if <= 0 then no commits are made by this object, otherwise a commit is made for each \a commit_limit rows processed by this object, commits are made in calls to @ref next()
 
             @note by default \a commit_limit is 0 meaning that this object will make no commits; in this case the transaction will
@@ -467,7 +504,8 @@ InboundTableMapperIterator i(input, table, DbMapper);
             @param i input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
             @param target the target table object
             @param mapv a hash providing field mappings; each hash key is the name of the output column in lower case in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
-            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
+            - \c unstable_input: set this option to @ref Qore::True "True" if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow() or insertRowNoCommit(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
             @param commit_limit row count before a commit is made; if <= 0 then no commits are made by this object, otherwise a commit is made for each \a commit_limit rows processed by this object, commits are made in calls to @ref next()
 
             @note by default \a commit_limit is 0 meaning that this object will make no commits; in this case the transaction will
@@ -573,18 +611,5 @@ InboundTableMapperIterator i(input, mapper);
         AbstractDatasource getDatasource() {
             return mapc.getDatasource();
         }
-    }
-}
-
-namespace Private {
-    # returns a descriptive string for the datasource
-    string sub get_desc(AbstractDatasource ds) {
-        hash h = ds.getConfigHash();
-        string str = sprintf("%s:%s@%s", h.type, h.user, h.db);
-        if (h.host)
-            str += "%" + h.host;
-        if (h.port)
-            str += ":" + h.port;
-        return str;
     }
 }
