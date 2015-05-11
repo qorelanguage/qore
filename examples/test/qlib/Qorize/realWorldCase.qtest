@@ -1,37 +1,59 @@
 #!/usr/bin/env qore
+%new-style
+
+%requires QUnit
+
 %require-types
 %enable-all-warnings
+
 %requires xml
-%requires UnitTest
+
 %requires ../../../../qlib/Qorize.qm
 
-my UnitTest $t();
+public class QorizeRealWorldTest inherits QUnit::Test {
+    public {
+        const OLDSTYLE = False;
+        const NEWSTYLE = True;
 
-const OLDSTYLE = False;
-const NEWSTYLE = True;
+        const MIN_LENGTH = 10000;
 
-const MIN_LENGTH = 10000;
+        hash m_h;
+    }
 
-# read xml file
-my string $fname = get_script_dir() + '/complex.xml';
-my File $f();
-$f.open2($fname);
-my string $xml = $f.read(-1);
+    constructor() {
+        testFunctions = (
+            ("func": \testQorizeNewstyle(), "name": "qorize newstyle"),
+            ("func": \testQorizeOldstyle(), "name": "qorize oldstyle"),
+            ("func": \testQorizeNamedNewstyle(), "name": "qorize named newstyle"),
+            ("func": \testQorizeNamedOldstyle(), "name": "qorize named oldstyle")
+        );
+    }
 
-# parse it into structure
-my hash $h = parseXMLAsData($xml);
+    setUp() {
+        string fname = get_script_dir() + '/complex.xml';
 
-# TODO: this code should probably match exact match 
+        File f();
+        f.open2(fname);
 
-# testing
-my string $qorized_new = qorize($h, 'name', NEWSTYLE);
-$t.ok($qorized_new.size() > MIN_LENGTH, 'qorize oldstyle: got some long string');
+        string xml = f.read(-1);
+        m_h = parseXMLAsData(xml);
+    }
 
-my string $qorized_old = qorize($h, 'name', OLDSTYLE);
-$t.ok($qorized_old.size() > MIN_LENGTH, 'qorize newstyle: got some long string');
+    testQorizeNewstyle() {
+        testAssertion( bool sub () { return (qorize(m_h, 'name', NEWSTYLE).size() > MIN_LENGTH); }, list());
+    }
 
-my string $qorizedN_new = qorizeNamed($h, 'name', NEWSTYLE);
-$t.ok($qorizedN_new.size() > MIN_LENGTH, 'qorizeNamed oldstyle: got some long string');
+    testQorizeOldstyle() {
+        testAssertion( bool sub () { return (qorize(m_h, 'name', OLDSTYLE).size() > MIN_LENGTH); }, list());
+    }
 
-my string $qorizedN_old = qorizeNamed($h, 'name', OLDSTYLE);
-$t.ok($qorizedN_old.size() > MIN_LENGTH, 'qorizeNamed newstyle: got some long string');
+    testQorizeNamedNewstyle() {
+        testAssertion( bool sub () { return (qorizeNamed(m_h, 'name', NEWSTYLE).size() > MIN_LENGTH); }, list());
+    }
+
+    testQorizeNamedOldstyle() {
+        testAssertion( bool sub() { return (qorizeNamed(m_h, 'name', OLDSTYLE).size() > MIN_LENGTH); }, list());
+    }
+}
+
+return new QorizeRealWorldTest().main();

@@ -1,23 +1,38 @@
-#!/usr/bin/env qore 
+#!/usr/bin/env qore
+%new-style
+
 %require-types
 %enable-all-warnings
-%requires UnitTest
 
-our UnitTest $t();
+%requires QUnit
 
-if (!Option::HAVE_STACK_GUARD) {
-    $t.ok(True, 'Skipping tests because this qore library was not built with stack protection support');
-}
-else {
-    do_test("main thread");
-    background do_test("background thread");
+public class StackGuardTest inherits QUnit::Test {
+    constructor() {
+        testFunctions = (
+            ("func": \testInfiniteRecurse(), "name": "Test overflowing the stack limit"),
+            ("func": \testRecurseWithBackground(), "name": "Test two threads"),
+        );
+    }
+
+    setUp() {
+        if (!Option::HAVE_STACK_GUARD) {
+            testSkip("Qore library was not built with stack protection support");
+        }
+    }
+
+    recurse() {
+        recurse();
+    }
+
+    testInfiniteRecurse() {
+        testAssertion(\recurse(), list(), new QUnit::TestResultExceptionRegexp("STACK-LIMIT-EXCEEDED", "this thread's stack has exceeded the stack size limit"));
+    }
+
+    testRecurseWithBackground() {
+        background testInfiniteRecurse();
+        testInfiniteRecurse();
+    }
 }
 
-sub recurse() {
-    recurse();
-}
-
-sub do_test(string $str) {
-    $t.exception(\recurse(), (), $str + ': STACK-LIMIT-EXCEEDED exception', 'STACK-LIMIT-EXCEEDED', "this thread's stack has exceeded the stack size limit");
-}
+return new StackGuardTest().main();
 

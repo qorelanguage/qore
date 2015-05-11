@@ -1,10 +1,30 @@
 #!/usr/bin/env qore
+%new-style
+
+%requires QUnit
+
 %require-types
 %enable-all-warnings
-%new-style
-%requires UnitTest
+
 %requires ../../../../qlib/Util.qm
 
-UnitTest t();
+public class TmpLocationTest inherits QUnit::Test {
+    constructor() {
+        testFunctions = (
+            ("func": \testTmpLocation(), "name": "Test presence of tmp_location()"),
+        );
+    }
 
-t.ok(tmp_location().length() > 0, "got some location");
+    bool haveLocation() {
+        if (tmp_location().length() > 0) {
+            return True;
+        }
+        return False;
+    }
+
+    testTmpLocation() {
+        testAssertion(\haveLocation(), ());
+    }
+}
+
+return new TmpLocationTest().main();

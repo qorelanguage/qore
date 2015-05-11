@@ -1,13 +1,26 @@
 #!/usr/bin/env qore
+%new-style
+
+%requires QUnit
+
 %require-types
 %enable-all-warnings
-%new-style
-%requires UnitTest
+
 %requires ../../../../qlib/Util.qm
 
-UnitTest t();
+public class SliceTest inherits QUnit::Test {
+    constructor() {
+        testFunctions = (
+            ("func": \testSliceBasic(), "name": "Basic slice() tests"),
+        );
+    }
 
-t.ok(slice((1, 2, 3, 4), (2, 3)) == (3, 4), "got some slice");
-t.cmp(slice((1, 2, 3, 4), (5, 6)), (), "slice is empty");
-t.ok(slice((1, 2, 3, 4), list()) == list(), "empty slicing list");
-t.cmp(slice(list(), (2, 3)), (), "empty source list");
+    testSliceBasic() {
+        testAssertion(\slice(), ((1, 2, 3, 4), (2, 3)), new TestResultValue((3, 4)));
+        testAssertion(\slice(), ((1, 2, 3, 4), (5, 6)), new TestResultValue(()));
+        testAssertion(\slice(), ((1, 2, 3, 4), ()), new TestResultValue(()));
+        testAssertion(\slice(), ((), (2, 3)), new TestResultValue(()));
+    }
+}
+
+return new SliceTest().main();

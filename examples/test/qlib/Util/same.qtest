@@ -1,13 +1,26 @@
 #!/usr/bin/env qore
+%new-style
+
+%requires QUnit
+
 %require-types
 %enable-all-warnings
-%new-style
-%requires UnitTest
+
 %requires ../../../../qlib/Util.qm
 
-UnitTest t();
+public class SameTest inherits QUnit::Test {
+    constructor() {
+        testFunctions = (
+            ("func": \testSameBasics(), "name": "Basic tests for the same() function"),
+        );
+    }
 
-t.ok(same((1, 1)),           "non-uniq number list");
-t.ok(!same(("a", "b", "a")), "non-uniq string list");
-t.ok(!same((1, 1, 2)),       "non-uniq number list");
-t.ok(same(("a", "a")),       "uniq number list");
+    testSameBasics() {
+        testAssertion(\same(), (list(1, 1),)); # non-uniq number list
+        testAssertion(\same(), (list("a", "b", "a"),), RESULT_FAILURE); # non-uniq string list
+        testAssertion(\same(), (list(1, 1, 2),), RESULT_FAILURE); # non-uniq number list
+        testAssertion(\same(), (list("a", "a"),)); # uniq number list
+    }
+}
+
+return new SameTest().main();
