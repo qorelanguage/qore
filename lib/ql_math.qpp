@@ -36,6 +36,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <limits.h>
 
 static double minus_infinity() {
 #ifdef INFINITY
