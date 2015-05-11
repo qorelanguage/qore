@@ -1,0 +1,29 @@
+#!/usr/bin/env qore
+%new-style
+
+%requires QUnit
+
+#%include ./_some_module_to_test
+
+public class QUnitTest inherits QUnit::Test {
+    constructor() {
+        testFunctions = (
+            ("func": \testMethod(), "name": "What this method is testing"),
+            ("func": \testSkipped(), "name": "Skipped test")
+        );
+    }
+
+    testMethod() {
+        # Test against success
+        testAssertion(\equals(), (True, True));
+        # Test against something else
+        testAssertion(\equals(), (True, False), RESULT_FAILURE);
+    }
+
+    testSkipped() {
+        testSkip("Because of the reason it skipped");
+    }
+}
+
+# Return for compatibility with test harness that checks return value.
+return new QUnitTest().main();

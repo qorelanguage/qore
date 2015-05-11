@@ -39,6 +39,7 @@ DOX_MODULES = qlib/SmtpClient.qm \
 	qlib/TableMapper.qm \
 	qlib/Schema.qm \
 	qlib/UnitTest.qm \
+	qlib/QUnit.qm \
 	qlib/TextUtil.qm \
 	qlib/Diff.qm
 
@@ -62,6 +63,9 @@ TESTSCRIPTS= \
 	examples/test/qlib/Qorize/realWorldCase.qtest \
 	examples/test/qlib/SqlUtil/smoke.qtest \
 	examples/test/qlib/SSL/ssl.qtest \
+	examples/test/qlib/QUnit/inject.qtest \
+	examples/test/qlib/QUnit/results.qtest \
+	examples/test/qlib/QUnit/tests.qtest \
 	examples/test/qlib/Util/same.qtest \
 	examples/test/qlib/Util/slice.qtest \
 	examples/test/qlib/Util/tmp_location.qtest \

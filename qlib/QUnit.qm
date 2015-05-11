@@ -1,0 +1,789 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# @file UnitTest.qm Qore user module for automatic testing
+
+%requires qore >= 0.8.12
+%new-style
+
+%try-module xml
+%define NO_XML
+%endtry
+
+%no-child-restrictions
+%allow-injection
+
+module QUnit {
+    version = "0.1";
+    desc = "User module for unit testing with dependency injection support";
+    author = "Zdenek Behan <zdenek.behan@qoretechnologies.com>";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+/** @mainpage QUnit Module
+
+@tableofcontents
+
+    @section qunit_intro Introduction to the UnitTest Module
+
+    The %QUnit module provides a framework for automated testing.
+
+    It contains base classes for creating test cases and test suites. It also provides a
+    dependency injection helper for mocking pre-existing classes without modifying their code.
+
+    It also provides a number of pre-defined testing functions for use in assertions.
+    
+    <b>Examples:</b>
+    \include examples/test/TestTemplate.qtest
+    \include examples/test/TestTempalteInjected.qtest
+
+    @subsection qunit_run Running tests
+
+    Tests are ran by simply executing the test script:
+    @verbatim
+    qore test.qtest [OPTIONS]
+    @endverbatim
+
+    A number of options is available, controlling the behaviour/output of the test
+    @subsection unittestformats Supported output formats of test reports
+
+    Currently the module provides the following output formats:
+    - plainquiet - human readable quiet format, prints only failures and a short summary at the end, which is also the default
+    - plaintext - human readable format, prints one statement per test
+    - junit - machine readable format for further processing
+
+    @section unittest_relnotes Release Notes
+
+    @subsection qunit_v0_1 Version 0.1
+    - initial version of module
+*/
+
+public namespace QUnit;
+
+#! An abstract class representing test result interface
+public class QUnit::AbstractTestResult {
+    public {
+        string m_type;
+        string m_subType;
+        *any m_value;
+    }
+    constructor() {
+        m_type = "";
+        m_subType = "";
+        m_value = NOTHING;
+    }
+    # test
+    abstract public bool equals(AbstractTestResult r);
+    abstract public string toString();
+}
+
+#! Class representing boolean True
+public class QUnit::TestResultSuccess inherits QUnit::AbstractTestResult {
+    constructor() {
+        m_type = "True";
+    }
+
+    #! Equality operator
+    public bool equals(QUnit::AbstractTestResult r) {
+        return r.m_type == "True";
+    }
+
+    public string toString() {
+        return "Success";
+    }
+}
+
+#! Class representing test function failure, both unspecific and with detail
+public class QUnit::TestResultFailure inherits QUnit::AbstractTestResult {
+    private {
+        *string m_detail;
+    }
+
+    #! Instantiate an unspecific failure, no detail.
+    constructor() {
+        m_type = "False";
+        m_detail = NOTHING;
+    }
+
+    #! Instantiate an annotated failure, string detail.
+    constructor(string s) {
+        m_type = "False";
+        m_detail = s;
+    }
+
+    #! Equality operator
+    public bool equals(QUnit::AbstractTestResult r) {
+        # All failures are equal. Annotation is just for description. For structured errors, Exceptions should be used.
+        return r.m_type == "False";
+    }
+
+    public string toString() {
+        return "Failure" + (m_detail ? ": " + m_detail : "");
+    }
+}
+
+#! Class representing any non-boolean value
+public class QUnit::TestResultValue inherits QUnit::AbstractTestResult {
+    constructor(*any value) {
+        m_type = "Value";
+        if (type(value) == "bool") {
+            throw "TESTING-EXCEPTION", "Cannot instantiate TestResultValue using a boolean value";
+        }
+        m_value = value;
+    }
+
+    #! Equality operator
+    public bool equals(QUnit::AbstractTestResult r) {
+        return ((r.m_type == "Value") && (r.m_value === m_value));
+    }
+
+    public string toString() {
+        return sprintf("Value: %N", m_value);
+    }
+}
+
+#! Class representing Exception of a particular type
+public class QUnit::TestResultExceptionType inherits QUnit::AbstractTestResult {
+    private {
+       string m_exceptionType;
+    }
+
+    constructor(string exceptionType) {
+        m_type = "Exception";
+        m_exceptionType = exceptionType;
+    }
+
+    #! Equality operator
+    public bool equals(QUnit::AbstractTestResult r) {
+        if (r.m_type != "Exception") {
+            return False;
+        }
+        QUnit::TestResultExceptionType e = r;
+        if (e.m_exceptionType != m_exceptionType) {
+            return False;
+        }
+        return True;
+    }
+
+    public string toString() {
+        return sprintf("Exception: %s", m_exceptionType);
+    }
+}
+
+#! Class representing Exception of a particular type with a particular detail message
+public class QUnit::TestResultExceptionDetail inherits QUnit::TestResultExceptionType {
+    private {
+        string m_exceptionDetail;
+    }
+
+    constructor(string exceptionType, string exceptionDetail) : TestResultExceptionType(exceptionType)  {
+        m_subType = "Detail";
+        m_exceptionDetail = exceptionDetail;
+    }
+
+    #! Equality operator
+    public bool equals(QUnit::AbstractTestResult r) {
+        if (!TestResultExceptionType::equals(r)) {
+            return False;
+        }
+        if (r.m_subType == "Regexp") {
+            /* Ensure reflectiveness of regexp == operation.
+               Note that this will only work if this == Detail and r == Regexp, otherwise we could get into infinite recursion.
+             */
+            return r.equals(self);
+        }
+        if (r.m_subType != "Detail") {
+            return False;
+        }
+        QUnit::TestResultExceptionDetail e = cast<QUnit::TestResultExceptionDetail>(r);
+        if (e.m_exceptionDetail != m_exceptionDetail) {
+            return False;
+        }
+        return True;
+    }
+
+    public string toString() {
+        return sprintf("Exception: %s: Detail '%s'", m_exceptionType, m_exceptionDetail);
+    }
+}
+
+#! Class representing Exception of a particular type and matching regexp for detail
+public class QUnit::TestResultExceptionRegexp inherits QUnit::TestResultExceptionDetail {
+    private {
+        string m_exceptionRegexp;
+    }
+
+    constructor(string exceptionType, string exceptionRegexp) : TestResultExceptionDetail(exceptionType, "")  {
+        m_subType = "Regexp";
+        m_exceptionRegexp = exceptionRegexp;
+    }
+
+    #! Equality operator
+    public bool equals(QUnit::AbstractTestResult r) {
+        if (!TestResultExceptionType::equals(r)) {
+            return False;
+        }
+        if (r.m_subType != "Detail") {
+            return False;
+        }
+        QUnit::TestResultExceptionDetail e = cast<QUnit::TestResultExceptionDetail>(r);
+        if (!e.m_exceptionDetail.regex(m_exceptionRegexp)) {
+            return False;
+        }
+        return True;
+    }
+
+    public string toString() {
+        return sprintf("Exception: %s: Regexp '%s'", m_exceptionType, m_exceptionRegexp);
+    }
+}
+
+#! Class representing Exception of a particular type and substring for detail
+public class QUnit::TestResultExceptionSubstring inherits QUnit::TestResultExceptionRegexp {
+    private {
+        string m_substring;
+    }
+
+    constructor(string exceptionType, string exceptionSubstring) : TestResultExceptionRegexp(exceptionType, sprintf(".*%s.*", exceptionSubstring)) {
+        # This will implicitly set the inherited equality operator.
+        m_substring = exceptionSubstring;
+    }
+
+    public string toString() {
+        return sprintf("Exception: %s: Substring '%s'", m_exceptionType, m_substring);
+    }
+}
+
+#! Base class for collecting test results and reporting
+public class QUnit::TestReporter {
+    private {
+        const PLAINQUIET = 0;
+        const PLAIN = 1;
+        const JUNIT = 2;
+
+        const OUT_TYPES = (
+            "plainquiet" : PLAINQUIET,
+            "plain" : PLAIN,
+            "junit" : JUNIT,
+        );
+
+        const TEST_SUCCESS = 0;
+        const TEST_FAILURE = 1;
+        const TEST_ERROR = 2;
+        const TEST_SKIPPED = 3;
+
+        const RESULT_TYPE_DESCRIPTION = (
+            TEST_SUCCESS : ("desc": "Success", "junittag" : NOTHING), # Success does not have a junit child tag
+            TEST_FAILURE : ("desc": "Failure", "junittag" : "failure"),
+            TEST_ERROR   : ("desc": "ERROR", "junittag" : "error"),
+            TEST_SKIPPED : ("desc": "Skipped", "junittag" : "skipped"),
+        );
+
+        # A map of print methods, categorised into three types: header, summary, testreport
+        hash m_printMethods;
+
+        list m_results = ();
+        int m_output;
+        *string m_comment;
+
+        hash m_options;
+    }
+
+    public {
+        const Opts = (
+            "help"    : "help,h",
+            "verbose" : "verbose,v",
+            "quiet"   : "quiet,q",
+            "iters"   : "iters,i=i",
+            "threads" : "threads,t=i",
+            "format"  : "format=s",
+            );
+    }
+
+    private usage() {
+        printf("usage: %s [options]
+ -h,--help         this help text
+ -t,--threads=ARG  runs tests in ARG threads
+ -i,--iters=ARGS   run tests with this many iterations
+    --format=type  output format [default: plainquiet]
+        Format descriptions:
+            plainquiet ... only print failed tests and a summary at the end
+            plain      ... print a status for each test performed
+            junit      ... print a junit xml output
+ -v.--verbose      shorthand for --format=plain
+ -q.--quiet        shorthand for --format=quietplain
+
+", get_script_name());
+
+        map printf("    %s\n", $1), keys OUT_TYPES;
+        exit(1);
+    }
+
+    private processOptions(reference p_argv) {
+        if (m_options.help)
+            usage();
+
+        if (m_options.verbose && m_options.quiet && m_options.format) {
+            printf("Please only select one format type\n");
+            exit(1);
+        }
+
+        if (p_argv) {
+            printf("Warning: excess arguments on command-line\n");
+        }
+
+        if (!m_options.iters)
+            m_options.iters = 1;
+        if (!m_options.threads)
+            m_options.threads = 1;
+
+        if (m_options.format) {
+            if (!exists OUT_TYPES{m_options.format})
+                throw "UNIT-TEST-ERROR", sprintf("Unknown output format: %s", m_options.format);
+            m_output = OUT_TYPES{m_options.format};
+        } else if (m_options.quiet) {
+            m_output = PLAINQUIET;
+        } else if (m_options.verbose) {
+            m_output = PLAIN;
+        } else {
+            # Default
+            m_output = PLAINQUIET;
+        }
+    }
+
+    constructor(*reference p_argv, hash opts = Opts) {
+        if (!p_argv)
+            p_argv = ARGV;
+        m_options = new GetOpt(opts).parse2(\p_argv);
+        processOptions(\p_argv);
+
+        # A map of print methods, categorised into three types: header, summary, testreport
+        m_printMethods = (
+            PLAINQUIET: (
+                "header" : \self.printPlaintextHeader(),
+                "testreport" : \self.printPlaintextOneTest(),
+                "summary" : \self.printPlaintextSummary(),
+            ),
+            PLAIN: (
+                "header" : \self.printPlaintextHeader(),
+                "testreport" : \self.printPlaintextOneTest(),
+                "summary" : \self.printPlaintextSummary(),
+            ),
+            JUNIT: (
+                "summary" : \self.printJunitSummary(),
+            )
+        );
+    }
+
+    private callPrinterFunction(string type, list args) {
+        *code c = m_printMethods{m_output}{type};
+        if (c) {
+            call_function_args(c, args);
+        }
+    }
+
+    private printHeader() { callPrinterFunction("header", ()); }
+    private printSummary() { callPrinterFunction("summary", ()); }
+    private printTestReport(hash testcase) { callPrinterFunction("testreport", (testcase,)); }
+
+    private printPlaintextHeader() {
+        printf("QORE v%s Test Script (%d thread%s, %d iteration%s per thread)\n",
+            Qore::VersionString,
+            m_options.threads,
+            m_options.threads == 1 ? "" : "s",
+            m_options.iters,
+            m_options.iters == 1 ? "" : "s"
+        );
+    }
+
+    private printPlaintextSummary() {
+        string serrors = sprintf(", %d errors", errors());
+        string sskipped = sprintf(", %d skipped", skipped());
+        int succeeded = testCount() - errors() - skipped();
+        string ssucceeded = sprintf(", %d succeeded", succeeded);
+        printf("Ran %d tests%s%s%s\n", testCount(), succeeded > 0 ? ssucceeded : "", errors() > 0 ? serrors : "", skipped() > 0 ? sskipped : "" );
+    }
+
+    private printPlaintextOneTest(hash testcase) {
+        if (m_output == PLAINQUIET && (testcase.result == TEST_SUCCESS)) {
+            return;
+        }
+        string resultType = RESULT_TYPE_DESCRIPTION{testcase.result}{"desc"};
+
+        printf("%s: %s\n", resultType, testcase.msg);
+        if (testcase.result != TEST_SUCCESS) {
+            string out = "";
+            printf("%s at %s\n", testcase.error, testcase.pos);
+            ListIterator errorDescription(testcase.detail.split("\n"));
+            while (errorDescription.next()) {
+                out += sprintf("\t>> %s\n", errorDescription.getValue());
+            }
+            printf("-----\n%s-----\n", out);
+        }
+    }
+
+    private printJunitSummary() {
+%ifdef NO_XML
+        stderr.printf("No XML module found. Use --format=plain instead\n");
+        exit(1);
+%else
+        hash junit;
+        junit.testsuites."^attributes^" = (
+            "tests"  : testCount(),
+            "errors" : errors(),
+            "skipped" : skipped(),
+        );
+        junit.testsuites.testcase = ();
+
+        ListIterator it(m_results);
+        while (it.next()) {
+            hash testcase;
+
+            testcase."^attributes^".name = it.getValue().msg;
+            string errmsg = sprintf("%s at %s:\n%s", it.getValue().error, it.getValue().pos, it.getValue().detail);
+
+            int status = it.getValue().result;
+            testcase."^attributes^"."status" = RESULT_TYPE_DESCRIPTION{status}.desc;
+
+            if (status != TEST_SUCCESS) {
+                string tag = RESULT_TYPE_DESCRIPTION{status}.junittag;
+                hash result = ("message" : errmsg, "type" : RESULT_TYPE_DESCRIPTION{status}.desc );
+                testcase{tag}."^attributes^" = result;
+            }
+            push junit."testsuites"."testcase", testcase;
+        }
+
+        printf("%s\n", makeFormattedXMLString(junit));
+%endif
+    }
+
+    int errors() {
+        int errs = 0;
+        ListIterator it(m_results);
+        while (it.next()) {
+            if (!(TEST_SUCCESS: "", TEST_SKIPPED: "").hasKey(it.getValue(){"result"})) {
+                errs++;
+            }
+        }
+        return errs;
+    }
+
+    int skipped() {
+        int errs = 0;
+        ListIterator it(m_results);
+        while (it.next()) {
+            if (!it.getValue(){"result"} == TEST_SKIPPED) {
+                errs++;
+            }
+        }
+        return errs;
+    }
+
+    int testCount() {
+        int tot = 0;
+        ListIterator it(m_results);
+        while (it.next()) {
+            tot++;
+        }
+        return tot;
+    }
+
+    private addTestResult(string name, int success, *string error, *string pos, *string detail) {
+        if (!(RESULT_TYPE_DESCRIPTION.hasKey(success))) {
+            throw "TESTING-EXCEPTION", "Invalid test result type!";
+        }
+        hash testcase = ("msg": name, "result": success, "error": error, "pos": pos, "detail": detail);
+
+        printTestReport(testcase);
+
+        push m_results, testcase;
+    }
+}
+
+#! Base class representing a simple test, implements an implicit main() function and all utility functions for testing
+public class QUnit::Test inherits QUnit::TestReporter {
+    private {
+        *list testFunctions = NOTHING;
+        static QUnit::TestResultSuccess RESULT_SUCCESS = new QUnit::TestResultSuccess();
+        static QUnit::TestResultFailure RESULT_FAILURE = new QUnit::TestResultFailure();
+    }
+
+    #! Prototype function for setting up test environment. It will be called for each test individually.
+    public setUp() {}
+
+    #! Prototype function for cleaning up test environemnt. It will be called after each test has executed.
+    public tearDown() {}
+
+    #! Helper function for printing out human-readable comparison of two values.
+    private string printUnexpectedData(any exp, any act) {
+        string expected = sprintf("%N", exp);
+        string actual = sprintf("%N", act);
+        list expectedLines = expected.split("\n");
+        list actualLines = actual.split("\n");
+
+        # Distinguish between multiline
+        bool multiline = (((elements expectedLines) + (elements actualLines)) > 2);
+
+        string result = "";
+        if (!multiline) {
+            # For some very simple values that fit on one line, just put it on one line. For values that would overflow the standard line size, do two lines.
+            bool twoline = length(expected) + length(actual) > 40;
+            result += sprintf("Expected %s%sActual %s", expected, twoline ? "\n" : ", ", actual);
+        } else {
+            ListIterator it;
+            result += "* Expected:";
+            result += "\n\t--------------------\n";
+            it = new ListIterator(expectedLines);
+            while (it.next()) {
+                result += sprintf("\t%s\n", it.getValue());
+            }
+            result += "\t--------------------\n";
+            result += "*   Actual:";
+            result += "\n\t--------------------\n";
+            it = new ListIterator(actualLines);
+            while (it.next()) {
+                result += sprintf("\t%s\n", it.getValue());
+            }
+            result += "\t--------------------\n";
+        }
+        return result;
+    }
+
+######### Assertions & test control functions
+
+    #! Tests for a single assertion and returns the value
+    /**
+     * @param condition A test function whose result we are asserting
+     * @param args Arguments passed to condition
+     * @param expectedResult A class describing the expected result of condition
+     *
+     * @return the result of the condition call, if the immediate value has any further use
+     */
+    public *any testAssertion(code condition, *softlist args, QUnit::AbstractTestResult expectedResult) {
+        AbstractTestResult result;
+        *any ret = NOTHING;
+        try {
+            ret = call_function_args(condition, args);
+            if (type(ret) == "bool") {
+                if (ret) {
+                    result = new QUnit::TestResultSuccess();
+                } else {
+                    result = new QUnit::TestResultFailure();
+                }
+            } else {
+                result = new QUnit::TestResultValue(ret);
+            }
+        }
+        catch (e) {
+            if (e.err == "TEST-FAILED-EXCEPTION") {
+                # Since boolean can contain no detail, we abuse Exceptions this way to annotate a simple failure.
+                result = new QUnit::TestResultFailure(e.desc);
+            } else {
+                result = new QUnit::TestResultExceptionDetail(e.err, e.desc);
+            }
+        }
+
+        if (!expectedResult.equals(result)) {
+            throw "TEST-EXCEPTION", printUnexpectedData(expectedResult.toString(), result.toString());
+        }
+        return ret;
+    }
+
+    #! Tests for a True assertion. Implicitly assumes True as the test result
+    /**
+     * @param condition A test function whose result we are asserting
+     * @param args Arguments passed to condition
+     *
+     * @return True if the function call succeeded
+     */
+    public *any testAssertion(code condition, *softlist args) {
+        return testAssertion(condition, args, new QUnit::TestResultSuccess());
+    }
+
+    #! Skips a given test, eg. because it may be missing some dependencies.
+    /**
+     * @param reason The reason for the test skip
+     */
+    public testSkip(string reason) {
+        throw "TEST-SKIPPED-EXCEPTION", reason;
+    }
+
+######### Test conditions passable to test assertions
+
+    #! Compare two values for equality
+    /**
+     * @param a Argument 1
+     * @param b Argument 2
+     *
+     * @returns a == b
+     */
+    bool equals(any a, any b) {
+        if (a != b) {
+            throw "TEST-FAILED-EXCEPTION", "Value mismatch, " + printUnexpectedData(a, b);
+        }
+        return True;
+    }
+
+    #! Compare a string for match against a regexp
+    /**
+     * @param s String to match
+     * @param regexp Regular expression to match against
+     *
+     * @returns a == b
+     */
+    bool regexpMatches(string s, string regexp) {
+        if (!s.regex(regexp)) {
+            throw "TEST-FAILED-EXCEPTION", sprintf("String does not match: \nString: %s\nRegexp: %s\n", s, regexp);
+        }
+        return True;
+    }
+
+    #! Compare two iterables, item by item, for equality of each index
+    /**
+     * @param a Iterable 1
+     * @param b Iterable 2
+     *
+     * @returns a == b
+     */
+    bool equalsIterated(AbstractIterator a, AbstractIterator b) {
+        int index = 0;
+        while (a.next()) {
+            if (!b.next()) {
+                throw "TEST-FAILED-EXCEPTION", sprintf("Iterated mismatch, index %d:\n", index) + printUnexpectedData(a.getValue(), "Right hand side ran out of data!");
+            }
+            if (a.getValue() != b.getValue()) {
+                throw "TEST-FAILED-EXCEPTION", sprintf("Iterated mismatch, index %d\n", index) + printUnexpectedData(a.getValue(), b.getValue());
+            }
+            index++;
+        }
+        if (b.next()) {
+            throw "TEST-FAILED-EXCEPTION", sprintf("Iterated mismatch, index %d\n", index) + printUnexpectedData(b.getValue(), "Left hand side ran out of data!");
+        }
+        return True;
+    }
+
+######### Main function and test running helpers
+
+    #! Run the whole suite, report results
+    int main() {
+        if (!testFunctions) {
+            throw "TESTING-EXCEPTION", "Please define some tests first in 'testFunctions'!";
+        }
+
+        printHeader();
+
+        ListIterator it(testFunctions);
+        while (it.next()) {
+            hash test = it.getValue();
+            code testFunction = test{"func"};
+            string testName = test{"name"};
+            {
+                # Setup before test
+                setUp();
+                # Attempt to run the test function
+                try {
+                    call_function_args(testFunction, ());
+                    # Test success
+                    addTestResult(testName, TEST_SUCCESS, "", "", "");
+                }
+                catch (e) {
+                    hash loc = e.callstack[0];
+                    string pos = sprintf("%s:%s%s", loc.file, loc.line, loc.line != loc.endline ? "-" + loc.endline : '');
+                    if (e.err == "TEST-SKIPPED-EXCEPTION") {
+                        addTestResult(testName, TEST_SKIPPED, "Skip requested", pos, e.desc);
+                    } else if (e.err == "TEST-EXCEPTION") {
+                        addTestResult(testName, TEST_FAILURE, "Assertion failure", pos, e.desc);
+                    } else {
+                        # Cleanup and rethrow anything unexpected
+                        addTestResult(testName, TEST_ERROR, sprintf("Unexpected exception: %s", e.err), pos, e.desc);
+                    }
+                }
+                # Cleanup
+                tearDown();
+            }
+        }
+
+        printSummary();
+        return errors();
+    }
+}
+
+#! A class representing a test with injected dependencies.
+public class QUnit::DependencyInjectedTest inherits QUnit::Test {
+    private {
+        *string m_testedFile = NOTHING;
+        Program m_child;
+        *hash m_modules;
+
+        static bool instantiated = False;
+    }
+
+    constructor() {
+        if (instantiated) {
+            throw "TESTING-EXCEPTION", "Only one instance of DependencyInjectedTest per program allowed!";
+        }
+        instantiated = True;
+    }
+
+    #! A helper function. It must be called once for a new instance with get_script_path() as argument.
+    setScriptPath(*string testedFile) {
+        if (testedFile) {
+            m_testedFile = testedFile;
+        }
+    }
+
+    #! A prototype function
+    setUp() { }
+    tearDown() { }
+
+    private Program createInjectedProgram() {
+        Program p(PO_NO_API|PO_NO_CHILD_PO_RESTRICTIONS|PO_ALLOW_INJECTION);
+        p.setScriptPath(m_testedFile);
+        # Replace oneself with the test runner
+        p.importClass("QUnit::DependencyInjectedTestRunner", "QUnit::DependencyInjectedTest", True);
+        performInjections(p);
+
+        # Default classes
+        p.importSystemApi();
+        return p;
+    }
+
+    abstract performInjections(Program p);
+    abstract performModuleInjections();
+
+    private injectIntoModule(string module) {
+        m_modules{module} = createInjectedProgram();
+        m_modules{module}.loadApplyToUserModule(module, True);
+    }
+
+    destructor() {
+        # Un-inject all injected modules.
+        ListIterator it = new ListIterator(m_modules.keys());
+        while (it.next()) {
+            string mn = basename(it.getValue());
+            mn =~ s/\..+$//; # Strip suffix, if any
+            reload_module(mn);
+        }
+    }
+
+    int main() {
+        if (!m_testedFile) {
+            throw "TESTING-EXCEPTION", "You need to set the script path to run DependencyInjectedTest! Please run setScriptPath(get_script_path()) in the program.";
+        }
+
+        Program p = createInjectedProgram();
+
+        # Inject the same into all modules
+        performModuleInjections();
+
+        # Load self, with replacements
+        ReadOnlyFile f(m_testedFile, NOTHING);
+        p.parse(f.read(-1), "self-replication");
+
+        return p.run();
+    }
+}
+
+public class QUnit::DependencyInjectedTestRunner inherits QUnit::Test {
+    public setScriptPath(*string testedFile) {}
+    private injectIntoModule(string module) {}
+}

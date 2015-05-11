@@ -1,0 +1,52 @@
+#!/usr/bin/env qore
+%new-style
+
+%include ../../../../qlib/QUnit.qm
+
+public class DIJClass inherits QUnit::DependencyInjectedTest {
+    performModuleInjections() {
+    }
+
+    performInjections(Program p) {
+    }
+
+    static DIJClass makeMe() {
+        return new DIJClass();
+    }
+}
+
+public class EmptyTest inherits QUnit::Test {
+    static EmptyTest makeMe() {
+        return new EmptyTest();
+    }
+}
+
+public class QUnitTest inherits QUnit::Test {
+    constructor() {
+        testFunctions = (
+            ("func": \testInjectedClass(), "name": "Dependency injection tests"),
+            ("func": \testEmptyTest(), "name": "Test empty test"),
+        );
+    }
+
+    bool boolWrapper(callref f, softlist args) {
+        call_function_args(f, args);
+        return True;
+    }
+
+    testInjectedClass() {
+        DIJClass dit = DIJClass::makeMe();
+
+        # Try to run a dependency injected test before script path was set
+        testAssertion(\dit.main(), list(), new QUnit::TestResultExceptionRegexp("TESTING-EXCEPTION", "need to set the script path"));
+        # Try to instantiate a second dependency injected test
+        testAssertion(\DIJClass::makeMe(), list(), new QUnit::TestResultExceptionRegexp("TESTING-EXCEPTION", "Only one instance of"));
+    }
+
+    testEmptyTest() {
+        EmptyTest t();
+        testAssertion(\t.main(), list(), new QUnit::TestResultExceptionRegexp("TESTING-EXCEPTION", "define some tests first"));
+    }
+}
+
+return new QUnitTest().main();
