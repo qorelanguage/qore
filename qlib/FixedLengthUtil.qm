@@ -292,7 +292,7 @@ public class FixedLengthUtil::FixedLengthFileIterator inherits FixedLengthUtil::
 }
 
 #! Structured line iterator for fixed-length line strings allowing efficient "pipelined" processing.
-public class FixedLengthUtil::FixedLengthDataIterator inherits FixedLengthUtil::FixedLengthAbstractIterator {
+public class FixedLengthUtil::FixedLengthDataIterator inherits FixedLengthUtil::FixedLengthAbstractIterator, Qore::DataLineIterator {
     private {
         int position;
         int max_index;
@@ -309,24 +309,8 @@ public class FixedLengthUtil::FixedLengthDataIterator inherits FixedLengthUtil::
     @param h Fixed-length line specification
     @param g Global options
     */
-    constructor(string r, hash h, *hash g) : FixedLengthUtil::FixedLengthAbstractIterator(h, g) {
+    constructor(string r, hash h, *hash g) : FixedLengthUtil::FixedLengthAbstractIterator(h, g), DataLineIterator(r, g.eol.typeCode() == NT_STRING ? g.eol : NOTHING, g.trim.typeCode() == NT_BOOLEAN ? g.trim : NOTHING) {
         data  = r;
-    }
-
-	#! Parse the input string into individual lines
-    private createLines() {
-        string separator = m_opts.eol ? m_opts.eol : "\n";
-        lines = data.split(separator);
-        lines_pos = 0;
-    }
-
-	#! Returns the current line, for iteration purposes.
-    private *string getLine() {
-        if (!lines) {
-            createLines();
-        }
-
-        return lines[lines_pos];
     }
 
     #! Moves the current line / record position to the next line / record; returns @ref False if there are no more lines to iterate
@@ -336,15 +320,10 @@ public class FixedLengthUtil::FixedLengthDataIterator inherits FixedLengthUtil::
         @note that empty lines are ignored if "ignore-empty" option is in effect
      */
     bool next() {
-        lines_pos++;
-        if (!lines) {
-            createLines();
-        }
-        bool status = boolean(getLine() !== NOTHING);
+        any status = DataLineIterator::next();
         if (m_opts{"ignore-empty"}) {
-            while (status && getLine() == "") { # skip empty lines
-                lines_pos++;
-                status = boolean(getLine() !== NOTHING);
+            while (status && DataLineIterator::getValue() == "") { # skip empty lines
+                status = DataLineIterator::next();
             }
         }
         return status;
