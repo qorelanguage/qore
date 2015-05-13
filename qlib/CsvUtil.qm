@@ -797,21 +797,7 @@ while ($i.next()) {
         - @ref csvabstractiterator_option_field_types
         - @ref csvabstractiterator_option_field_hash
      */
-    public class CsvDataIterator inherits CsvUtil::CsvAbstractIterator {
-        private {
-            #! input data
-            string $.data;
-            #! EOL marker
-            *string $.eol;
-            #! current line
-            *string $.line;
-            #! current byte pos
-            int $.pos = 0;
-            #! current line number
-            int $.lineno = 0;
-            #! valid flag
-            bool $.valid = False;
-        }
+    public class CsvDataIterator inherits CsvUtil::CsvAbstractIterator, DataLineIterator {
 
         #! creates the CsvDataIterator with the input data and optionally an option hash
         /** @param data the input data to iterate
@@ -819,50 +805,25 @@ while ($i.next()) {
 
             @throw CSVABSTRACTITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header-names" is @ref Qore::True "True" and \c "header-lines" is 0 or \c "headers" is also present; unknown field type
          */
-        constructor(string $data, *hash $opts) : CsvAbstractIterator($opts) {
-            $.data = $data;
-            $.eol = $opts.eol;
-        }
-
-        #! returns @ref Qore::True "True" if the iterator is currently pointing at a valid element, @ref Qore::False "False" if not
-        /** @par Example:
-            @code
-            if ($i.valid())
-                printf("current value: %y\n", $i.getValue());
-            @endcode
-
-            @return @ref Qore::True "True" if the iterator is currently pointing at a valid element, @ref Qore::False "False" if not
-        */
-        bool valid() {
-            return $.valid;
+        constructor(string $data, *hash $opts)
+            : CsvAbstractIterator($opts),
+              DataLineIterator($data, $opts.eol)
+        {
         }
 
         #! Returns the current line number; returns 0 if not pointing at any data
         private int lineNumberImpl() {
-            return $.lineno;
+            return DataLineIterator::$.index();
         }
 
         #! Returns the current line trimmed of the EOL character(s)
         private string getLineValueImpl() {
-            if (!$.valid)
-                throw "INVALID-ITERATOR", "the iterator is not pointing at a valid element";
-            return $.line;
+            return DataLineIterator::$.getLine();
         }
 
         #! Moves the current line / record position to the next line / record; returns @ref False if there are no more lines to iterate
         private bool nextLineImpl() {
-            if (!$.valid) {
-                if (!$.data)
-                    return False;
-                $.lineno = 0;
-            }
-            my int $size;
-            $.line = $.data.getLine($.pos, $.eol, True, \$size);
-            if ($size) {
-                $.pos += $size;
-                ++$.lineno;
-            }
-            return $.valid = exists $.line;
+            return DataLineIterator::$.next();
         }
     }
 
