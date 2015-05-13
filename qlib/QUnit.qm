@@ -765,7 +765,7 @@ public class QUnit::DependencyInjectedTest inherits QUnit::Test {
         }
     }
 
-    int main() {
+    *int main() {
         if (!m_testedFile) {
             throw "TESTING-EXCEPTION", "You need to set the script path to run DependencyInjectedTest! Please run setScriptPath(get_script_path()) in the program.";
         }
