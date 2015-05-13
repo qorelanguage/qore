@@ -40,7 +40,7 @@
 #include <set>
 #include <vector>
 
-#include "intern/QoreClassIntern.h"
+#include <qore/intern/QoreClassIntern.h>
 #include <qore/intern/qore_var_rwlock_priv.h>
 
 #define OS_OK            0

@@ -33,7 +33,7 @@
 
 #define _QORE_TRYSTATEMENT_H
 
-#include "intern/AbstractStatement.h"
+#include <qore/intern/AbstractStatement.h>
 
 class TryStatement : public AbstractStatement {
 public:

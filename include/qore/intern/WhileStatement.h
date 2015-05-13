@@ -33,7 +33,7 @@
 
 #define _QORE_WHILESTATEMENT_H
 
-#include "intern/AbstractStatement.h"
+#include <qore/intern/AbstractStatement.h>
 
 class WhileStatement : public AbstractStatement {
 protected:

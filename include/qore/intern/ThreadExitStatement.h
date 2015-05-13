@@ -33,7 +33,7 @@
 
 #define _QORE_THREADEXITSTATEMENT_H
 
-#include "intern/AbstractStatement.h"
+#include <qore/intern/AbstractStatement.h>
 
 class ThreadExitStatement : public AbstractStatement {
 private:

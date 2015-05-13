@@ -33,7 +33,7 @@
 
 #define _QORE_EXPRESSIONSTATEMENT_H
 
-#include "intern/AbstractStatement.h"
+#include <qore/intern/AbstractStatement.h>
 
 class ExpressionStatement : public AbstractStatement {
 private:

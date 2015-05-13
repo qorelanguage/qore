@@ -33,7 +33,7 @@
 
 #define _QORE_DOWHILESTATEMENT_H
 
-#include "intern/AbstractStatement.h"
+#include <qore/intern/AbstractStatement.h>
 
 #include <qore/intern/WhileStatement.h>
 

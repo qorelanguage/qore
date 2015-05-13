@@ -667,7 +667,7 @@ LOG_COMPILER = ./runtest.sh
 BUILT_SOURCES = dummy
 
 dummy:
-	./next_build.sh
+	$(top_srcdir)/next_build.sh
 
 if COND_DOXYGEN
 MOD_OUTPUT = $(addprefix docs/modules/,$(addsuffix /html,$(USER_MODS)))

@@ -33,7 +33,7 @@
 
 #define _QORE_RETURNSTATEMENT_H
 
-#include "intern/AbstractStatement.h"
+#include <qore/intern/AbstractStatement.h>
 
 class ReturnStatement : public AbstractStatement {
 private:

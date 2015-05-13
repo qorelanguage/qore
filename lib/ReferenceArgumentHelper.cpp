@@ -30,7 +30,7 @@
 
 #include <qore/Qore.h>
 
-#include "ReferenceArgumentHelper.h"
+#include <qore/ReferenceArgumentHelper.h>
 
 struct lvih_intern {
    LocalVar lv;

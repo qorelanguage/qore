@@ -33,7 +33,7 @@
 
 #define _QORE_CONTINUESTATEMENT_H
 
-#include "intern/AbstractStatement.h"
+#include <qore/intern/AbstractStatement.h>
 
 class ContinueStatement : public AbstractStatement
 {

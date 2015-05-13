@@ -33,8 +33,8 @@
 
 #define _QORE_FOREACHSTATEMENT_H
 
-#include "intern/AbstractStatement.h"
-#include "intern/AbstractIteratorHelper.h"
+#include <qore/intern/AbstractStatement.h>
+#include <qore/intern/AbstractIteratorHelper.h>
 
 class ForEachStatement : public AbstractStatement {
 private:

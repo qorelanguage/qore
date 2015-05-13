@@ -33,7 +33,7 @@
 
 #define _QORE_IFSTATEMENT_H
 
-#include "intern/AbstractStatement.h"
+#include <qore/intern/AbstractStatement.h>
 
 class IfStatement : public AbstractStatement {
 private:

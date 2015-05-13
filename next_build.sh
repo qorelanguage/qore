@@ -21,13 +21,14 @@
 #  Note that the Qore library is released under a choice of three open-source
 #  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
 #  information.
-
+builddir=`pwd`
 dir=`dirname $0`
-
 qore_inc="$dir/include/qore"
 file="$qore_inc/intern/svn-revision.h"
 version_file="$qore_inc/qore-version.h"
 version_tmp="$qore_inc/qore-version.h.tmp"
+
+unix_config=$builddir'/include/qore/intern/unix-config.h'
 
 ok=0
 
@@ -44,13 +45,14 @@ make_file() {
         echo svn revision changed to $build in $file
     elif [ $show_build -eq 1 ]; then
         echo $build
+        exit 0
     fi
 }
 
 make_version() {
-    major=`grep define.VERSION_MAJOR "$qore_inc/intern/unix-config.h"|cut -f3 -d\ `
-    minor=`grep define.VERSION_MINOR "$qore_inc/intern/unix-config.h"|cut -f3 -d\ `
-    sub=`grep define.VERSION_SUB "$qore_inc/intern/unix-config.h"|cut -f3 -d\ `
+    major=`grep define.VERSION_MAJOR "$unix_config"|cut -f3 -d\ `
+    minor=`grep define.VERSION_MINOR "$unix_config"|cut -f3 -d\ `
+    sub=`grep define.VERSION_SUB "$unix_config"|cut -f3 -d\ `
 
     if [ "$major" -gt 0 ]; then
         qore_ver=`printf %d%02d%02d $major $minor $sub`

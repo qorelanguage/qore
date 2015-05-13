@@ -3,12 +3,14 @@ pkglibdir = $(libdir)/$(mypkglibdir)
 
 SUBDIRS =
 
+# Apps and files included in BUILT_SOURCES are compiled/created first.
+# It must include qpp since qpp is required to generate some cpp's
 BUILT_SOURCES = dummy
 
 dummy:
-	$(top_srcdir)/next_build.sh
+	echo "Build started!"
 
-EXTRA_INCLUDES = -I$(top_srcdir)/include
+EXTRA_INCLUDES = -I$(top_srcdir)/include -I$(top_builddir)/include -I$(top_builddir)/lib
 libqore_la_LDFLAGS = -version-info 18:0:13 -no-undefined ${QORE_LIB_LDFLAGS}
 AM_CPPFLAGS = $(EXTRA_INCLUDES) ${QORE_LIB_CPPFLAGS}
 AM_CXXFLAGS = ${QORE_LIB_CXXFLAGS}
@@ -16,7 +18,7 @@ AM_YFLAGS = -d
 
 lib_LTLIBRARIES = libqore.la
 
-bin_PROGRAMS = qpp$(EXEEXT)
+bin_PROGRAMS = qpp
 
 qpp_SOURCES = qpp.cpp
 
@@ -31,10 +33,8 @@ qpp_native: $(qpp_SOURCES)
 	$(NATIVE_CXX) $(EXTRA_INCLUDES) $(NATIVE_CPPFLAGS) $(QPP_CPPFLAGS) $(NATIVE_LDFLAGS) -o $@ $(qpp_SOURCES)
 else
 QPP=./qpp$(EXEEXT)
+BUILT_SOURCES += ./qpp$(EXEEXT)
 endif
-
-qpp$(EXEEXT): $(qpp_SOURCES)
-	$(CXX) $(EXTRA_INCLUDES) $(AM_CPPFLAGS) $(AM_CXXFLAGS) $(AM_LDFLAGS) -o $@ $(qpp_SOURCES)
 
 QORE_PSEUDO_SRC = Pseudo_QC_All.cpp Pseudo_QC_Bool.cpp Pseudo_QC_Int.cpp \
 	Pseudo_QC_Float.cpp Pseudo_QC_Date.cpp Pseudo_QC_Object.cpp \
@@ -79,10 +79,8 @@ QORE_ALL_SRC = $(QORE_GENERATED_SOURCES) $(QORE_PSEUDO_SRC)
 
 QORE_ALL_QPP_SRC = $(subst cpp,qpp,$(QORE_QPP_TARGETS) $(QORE_PSEUDO_SRC))
 
-$(QORE_ALL_QPP_SRC): $(QPP)
-
 $(QORE_QPP_TARGETS) $(QORE_PSEUDO_SRC): %.cpp: %.qpp
-	$(QPP) $<
+	$(QPP) $< -o $@
 
 CLEANFILES = $(QORE_ALL_SRC)
 
