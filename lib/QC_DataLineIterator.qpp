@@ -314,7 +314,7 @@ line 3 = "aaa_base-11.3-7.2.x86_64"
  */
 qclass DataLineIterator [arg=DataLineIterator* i; ns=Qore; vparent=AbstractIterator];
 
-//! creates the DataLineIterator bsaed on the string given
+//! creates the DataLineIterator based on the string given
 /** @param string the string to iterate over; note that if this string is in a non-ascii-compatible character encoding, it will be converted to UTF-8 for processing in the constructor and the UTF-8 version of the string will be used for iterating in this object
     @param eol the optional end of line character(s) to use to detect lines in the data; if this string is not passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n"; if this string is passed and has a different @ref character_encoding "character encoding" from this object's (as determined by the \c encoding parameter), then it will be converted to the DataLineIterator's @ref character_encoding "character encoding"
     @param trim if @ref Qore::True "True" the string return values for the lines iterated will be trimmed of the eol bytes
