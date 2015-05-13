@@ -2602,5 +2602,10 @@ my any $v = $c.name;
         #! db-specific copy actions
         private copyImpl(AbstractTable old) {            
         }
+
+        #! returns @ref Qore::True "True" because the oracle driver supports array binds / bulk DML operations
+        private bool hasArrayBind() {
+            return True;
+        }
     }
 }

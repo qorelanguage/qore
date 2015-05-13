@@ -31,6 +31,9 @@
 # enable all warnings
 %enable-all-warnings
 
+# do not use "$" for vars
+%new-style
+    
 module Mapper {
     version = "1.1";
     desc = "user module providing basic data mapping infrastructure";
@@ -68,7 +71,7 @@ const DataMap = (
     # output field: "explicit_count": maps from the input "Count" field, if any value is present then it is converted to an integer
     "explicit_count": ("type": "int", "name": "Count"),
     # output field: "implicit_count": runs the given code on the input record and retuns the result, the code returns the number of "Products" sub-records
-    "implicit_count": int sub (any $ignored, hash $rec) { return $rec.Products.size(); },
+    "implicit_count": int sub (any ignored, hash rec) { return rec.Products.size(); },
     # output field: "order_date": converts the "OrderDate" string input field to a date in the specified format
     "order_date": ("name": "OrderDate", "date_format": "DD.MM.YYYY HH:mm:SS.us"),
 );
@@ -100,9 +103,9 @@ const MapInput = ((
     )),
 );
 
-my Mapper $map(DataMap);
-my list $l = $map.mapAll(MapInput);
-printf("%N\n", $l);
+Mapper mapv(DataMap);
+list l = mapv.mapAll(MapInput);
+printf("%N\n", l);
     @endcode
 
     The result will be:
@@ -128,8 +131,8 @@ list: (2 elements)
     - @ref Qore::True "True": this is a shortcut meaning map from an input field with the same name
     - a @ref string_type "string": giving the input field name directly (equivalent to a hash with the \c "name" key)
     - a @ref closure "closure" or @ref call_reference "call reference": meaning map from a field of the same name an apply the given code to give the value for the mapping (equivalent to a hash with the \c "code" key); the @ref closure "closure" or @ref call_reference "call reference" must accept the following arguments:
-      - @ref any_type "any" <i>$value</i>: the input field value (with the same name as the output field; to use a different name, see the \a code hash option below)
-      - @ref hash_type "hash" <i>$rec</i>: the current input record
+      - @ref any_type "any" <i>value</i>: the input field value (with the same name as the output field; to use a different name, see the \a code hash option below)
+      - @ref hash_type "hash" <i>rec</i>: the current input record
     - a @ref hash_type "hash" describing the mapping; the following keys are all optional (an empty hash means map from an input field with the same name with no translations):
       - \c "name": the value of this key gives the name of the input field; only use this if the input record name is different than the output field name; note that if this value contains \c "." characters and the \a allow_dot option is not set (see @ref mapperoptions), then the value will be treated like \c "struct" (the \c "struct" key value will be created automatically); cannot be used with the \c "constant" key
       - \c "struct": the value of this key gives the location of the input field in an input hash in dot notation, ex: \c "element.name" would look for the field's value in the \c "name" key of the \c "element" hash in the input record; cannot be used with the \c "constant" key
@@ -189,49 +192,49 @@ public namespace Mapper {
 
         private {
             #! the hash providing output field names and mappings
-            hash $.mapc;
+            hash mapc;
 
             #! the output character encoding; if not given then the output encoding is assumed to be UTF-8
-            string $.enc = "utf-8";
+            string enc = "utf-8";
 
             #! the optional name for the object (for example a table name); will be prepended to field names in error messages
-            *string $.name;
+            *string name;
 
             #! an optional field truncation callback
-            *code $.trunc;
+            *code trunc;
 
             #! an optional input data logging callback; must accept a hash giving the input data hash
-            *code $.input_log;
+            *code input_log;
 
             #! an optional output data logging callback; must accept a hash giving the output data hash
-            *code $.output_log;
+            *code output_log;
 
             #! an optional timezone for output date fields
-            *Qore::TimeZone $.timezone;
+            *Qore::TimeZone timezone;
 
             #! the timezone for input fields in case of parsing text values; if not set defaults to the current TimeZone (see @ref Qore::TimeZone::get())
-            Qore::TimeZone $.input_timezone = TimeZone::get();
+            Qore::TimeZone input_timezone = TimeZone::get();
 
             #! truncate all option
-            bool $.trunc_all = False;
+            bool trunc_all = False;
 
             #! do not assume \a struct when field names have a \c "." in them; instead allow input field names to have a \c "." in them
-            bool $.allow_dot = False;
+            bool allow_dot = False;
 
             #! do not assume structured/hash output when output field names have a \c "." in them; instead allow output field names to have a \c "." in them
-            bool $.allow_output_dot = False;
+            bool allow_output_dot = False;
 
             #! the global date format for parsing dates
-            *string $.date_format;
+            *string date_format;
 
             #! the global number format for parsing numbers
-            *string $.number_format;
+            *string number_format;
 
             #! (deprecated) constant hash value for output mappings
-            *hash $.crec;
+            *hash crec;
 
             #! count of records mapped
-            int $.count = 0;
+            int count = 0;
 
             #! constructor option keys (can be extended by subclassing and reimplementing optionKeys())
             const OptionKeys = (
@@ -284,12 +287,12 @@ const DataMap = (
     # output field: "explicit_count": maps from the input "Count" field, if any value is present then it is converted to an integer
     "explicit_count": ("type": "int", "name": "Count"),
     # output field: "implicit_count": runs the given code on the input record and retuns the result, the code returns the number of "Products" sub-records
-    "implicit_count": int sub (any $ignored, hash $rec) { return $rec.Products.size(); },
+    "implicit_count": int sub (any ignored, hash rec) { return rec.Products.size(); },
     # output field: "order_date": converts the "OrderDate" string input field to a date in the specified format
     "order_date": ("name": "OrderDate", "date_format": "DD.MM.YYYY HH:mm:SS.us"),
 );
 
-my Mapper $map(DataMap);
+Mapper mapv(DataMap);
             @endcode
 
             @param map a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
@@ -297,11 +300,11 @@ my Mapper $map(DataMap);
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
          */
-        constructor(hash $map, *hash $opts) {
-            $.setup($map, $opts);
+        constructor(hash mapv, *hash opts) {
+            setup(mapv, opts);
 
             # check map for logical errors
-            $.checkMap();
+            checkMap();
         }
 
         #! private constructor for subclasses
@@ -309,69 +312,69 @@ my Mapper $map(DataMap);
         }
 
         #! sets up the mapper object before checking the mapper hash
-        private setup(hash $map, *hash $opts) {
-            $.name = $opts.name;
-            $.input_log = $opts.input_log;
-            $.output_log = $opts.output_log;
+        private setup(hash mapv, *hash opts) {
+            name = opts.name;
+            input_log = opts.input_log;
+            output_log = opts.output_log;
 
-            if ($opts.trunc_all)
-                $.trunc_all = parse_boolean($opts.trunc_all);
+            if (opts.trunc_all)
+                trunc_all = parse_boolean(opts.trunc_all);
 
-            $.crec = $opts.crec;
+            crec = opts.crec;
 
-            if (!$map)
-                $.error("empty map passed to Mapper::constructor()");
+            if (!mapv)
+                error("empty map passed to Mapper::constructor()");
 
-            $.mapc = $map;
-            my hash $ck = $.optionKeys();
-            foreach my string $k in ($opts.keyIterator()) {
-                if (!$ck.$k)
-                    $.error("unknown option key %y passed to Mapper::constructor(); recognized option keys: %y", $.getFieldName($k), $ck.keys());
+            mapc = mapv;
+            hash ck = optionKeys();
+            foreach string k in (opts.keyIterator()) {
+                if (!ck{k})
+                    error("unknown option key %y passed to Mapper::constructor(); recognized option keys: %y", getFieldName(k), ck.keys());
             }
 
-            if ($opts.enc)
-                $.enc = $opts.enc;
-            $.trunc = $opts.trunc;
+            if (opts.enc)
+                enc = opts.enc;
+            trunc = opts.trunc;
             
-            if ($opts.allow_dot)
-                $.allow_dot = parse_boolean($opts.allow_dot);
+            if (opts.allow_dot)
+                allow_dot = parse_boolean(opts.allow_dot);
 
-            if ($opts.allow_output_dot)
-                $.allow_output_dot = parse_boolean($opts.allow_output_dot);
+            if (opts.allow_output_dot)
+                allow_output_dot = parse_boolean(opts.allow_output_dot);
 
-            if ($opts) {
-                $.checkTimezoneOption($opts, "timezone");
-                $.checkTimezoneOption($opts, "input_timezone");
+            if (opts) {
+                checkTimezoneOption(opts, "timezone");
+                checkTimezoneOption(opts, "input_timezone");
             }
 
-            if ($opts.date_format)
-                $.date_format = $opts.date_format;
+            if (opts.date_format)
+                date_format = opts.date_format;
 
-            if ($opts.number_format)
-                $.number_format = $opts.number_format;
+            if (opts.number_format)
+                number_format = opts.number_format;
         }
 
         #! verifies the input map in the constructor
         private checkMap() {
-            map $.checkMapField($1, \$.mapc.$1), $.mapc.keyIterator();
+            map checkMapField($1, \mapc.$1), mapc.keyIterator();
         }
 
         #! convert a field definition to a hash if possible
-        private convertToHash(int $t, string $k, reference $fh) {
-            switch ($t) {
+        private convertToHash(int t, string k, reference fh) {
+            switch (t) {
                 # convert to a hash if the value of the column is a string (giving the source key name)
-                case NT_STRING: $fh = (!$.allow_dot && $fh =~ /\./ ? ("struct": $fh.split(".")) : ("name": $fh)); break;
+                case NT_STRING: fh = (!allow_dot && fh =~ /\./ ? ("struct": fh.split(".")) : ("name": fh)); break;
                 case NT_CALLREF:
-                case NT_CLOSURE: $fh = ("code": $fh); break;
-                case NT_BOOLEAN: if ($fh) {
-                    $fh = {};
+                case NT_CLOSURE: fh = ("code": fh); break;
+                case NT_BOOLEAN: if (fh) {
+                    fh = {};
                     break;
                 }
                 case NT_NOTHING: {
-                    $fh = {};
+                    fh = {};
                     break;
                 }
-                default: $.error("unsupported type %y assigned to map key %y", $fh.type(), $k);
+                default: error("unsupported type %y assigned to map key %y", fh.type(), k);
             }
         }
 
@@ -379,130 +382,130 @@ my Mapper $map(DataMap);
         /** @param k the field name
             @param fh a reference to the field's value in the map
         */
-        private checkMapField(string $k, reference $fh, *hash $th) {
+        private checkMapField(string k, reference fh, *hash th) {
             # check field description
-            my int $t = $fh.typeCode();
-            if ($t != NT_HASH)
-                $.convertToHash($t, $k, \$fh);
+            int t = fh.typeCode();
+            if (t != NT_HASH)
+                convertToHash(t, k, \fh);
             else {
-                if ($fh.name) {
-                    if ($fh.struct)
-                        $.error("field %y has both 'name' (%y) and 'struct' (%y) values; only one can be given to identify the input field", $.getFieldName($k), $fh.name, $fh.struct);
-                    if (!$.allow_dot && $fh.name =~ /\./)
-                        $fh.struct = (remove $fh.name).split(".");
+                if (fh.name) {
+                    if (fh.struct)
+                        error("field %y has both 'name' (%y) and 'struct' (%y) values; only one can be given to identify the input field", getFieldName(k), fh.name, fh.struct);
+                    if (!allow_dot && fh.name =~ /\./)
+                        fh.struct = (remove fh.name).split(".");
                 }
-                if ($fh.constant) {
-                    my *list $cl = map $1, $fh.keys(){ConstantConflictList};
-                    if ($cl)
-                        $.error("field %y has a \"constant\" key giving a constant output value and also the following conflicting keys: %y", $.getFieldName($k), $cl);
+                if (fh.constant) {
+                    *list cl = map $1, fh.keys(){ConstantConflictList};
+                    if (cl)
+                        error("field %y has a \"constant\" key giving a constant output value and also the following conflicting keys: %y", getFieldName(k), cl);
                 }
             }
 
-            switch ($fh.struct.typeCode()) {
+            switch (fh.struct.typeCode()) {
                 case NT_NOTHING: break;
-                case NT_STRING: $fh.struct = $fh.struct.split("."); # then fall down to next case
+                case NT_STRING: fh.struct = fh.struct.split("."); # then fall down to next case
                 case NT_LIST: {
-                    if (!$fh.struct)
-                        $.error("field %y has an empty 'struct' key", $.getFieldName($k));
-                    if ($fh.struct.size() == 1)
-                        $fh.name = (remove $fh.struct)[0];
+                    if (!fh.struct)
+                        error("field %y has an empty 'struct' key", getFieldName(k));
+                    if (fh.struct.size() == 1)
+                        fh.name = (remove fh.struct)[0];
                     break;
                 }
-                default: $.error("field %y has an invalid struct key assigned to type %y (%y)", $.getFieldName($k), $fh.struct.type(), $fh);
+                default: error("field %y has an invalid struct key assigned to type %y (%y)", getFieldName(k), fh.struct.type(), fh);
             }
 
-            if ($fh.date_format) {
-                if ($fh.date_format.typeCode() != NT_STRING)
-                    $.error("field %y has a 'date_format' key assigned to type '%s'; expecting 'string'", $.getFieldName($k), $fh.date_format.type());
-                if (exists $fh.type) {
-                    if ($fh.type != "date")
-                        $.error("field %y has a 'date_format' key but the field's type is '%s'", $.getFieldName($k), $fh.type);
+            if (fh.date_format) {
+                if (fh.date_format.typeCode() != NT_STRING)
+                    error("field %y has a 'date_format' key assigned to type '%s'; expecting 'string'", getFieldName(k), fh.date_format.type());
+                if (exists fh.type) {
+                    if (fh.type != "date")
+                        error("field %y has a 'date_format' key but the field's type is '%s'", getFieldName(k), fh.type);
                 }
                 else
-                    $fh.type = "date";
+                    fh.type = "date";
             }
             
-            if ($fh.number_format) {
-                if ($fh.number_format.typeCode() != NT_STRING)
-                    $.error("field %y has a 'number_format' key assigned to type '%s'; expecting 'string'", $.getFieldName($k), $fh.number_format.type());
-                if (exists $fh.type) {
-                    if ($fh.type != "number")
-                        $.error("field %y has a 'number_format' key but the field's type is '%s'", $.getFieldName($k), $fh.type);
+            if (fh.number_format) {
+                if (fh.number_format.typeCode() != NT_STRING)
+                    error("field %y has a 'number_format' key assigned to type '%s'; expecting 'string'", getFieldName(k), fh.number_format.type());
+                if (exists fh.type) {
+                    if (fh.type != "number")
+                        error("field %y has a 'number_format' key but the field's type is '%s'", getFieldName(k), fh.type);
                 }
                 else
-                    $fh.type = "number";
+                    fh.type = "number";
             }
             
-            if ($fh.trunc && !$fh.maxlen)
-                $.error("field %y has the 'trunc' key set to True but has no 'maxlen' key", $.getFieldName($k));
+            if (fh.trunc && !fh.maxlen)
+                error("field %y has the 'trunc' key set to True but has no 'maxlen' key", getFieldName(k));
             
-            if ($fh.maxlen && !exists $fh.trunc && $.trunc_all)
-                $fh.trunc = True;
+            if (fh.maxlen && !exists fh.trunc && trunc_all)
+                fh.trunc = True;
 
-            my hash $vk = $.validKeys();
-            my hash $vt = $.validTypes();
+            hash vk = validKeys();
+            hash vt = validTypes();
 
-            foreach my string $hk in ($fh.keyIterator())
-                if (!$vk.$hk)
-                    $.error("field %y in map hash contains unknown key '%s' (valid keys: %y)", $.getFieldName($k), $hk, $vk.keys());
+            foreach string hk in (fh.keyIterator())
+                if (!vk{hk})
+                    error("field %y in map hash contains unknown key '%s' (valid keys: %y)", getFieldName(k), hk, vk.keys());
             
             # convert old "number" tag to new "type" tag
-            if ($fh.number) {
-                if (exists $fh.type)
-                    $.error("field %y has both 'type' and deprecated 'number' tags", $.getFieldName($k));
-                $fh.type = "number";
-                delete $fh.number;
+            if (fh.number) {
+                if (exists fh.type)
+                    error("field %y has both 'type' and deprecated 'number' tags", getFieldName(k));
+                fh.type = "number";
+                delete fh.number;
             }
-            else if (exists $fh.type && !$vt.($fh.type))
-                $.error("field %y contains an invalid type value '%s' (valid types: %y)", $.getFieldName($k), $fh.type, $vt.keys());
+            else if (exists fh.type && !vt.(fh.type))
+                error("field %y contains an invalid type value '%s' (valid types: %y)", getFieldName(k), fh.type, vt.keys());
             
-            if (exists $fh.code && !$fh.code.callp())
-                $.error("field %y has a code argument assigned to type '%s'", $.getFieldName($k), $fh.code.type());
+            if (exists fh.code && !fh.code.callp())
+                error("field %y has a code argument assigned to type '%s'", getFieldName(k), fh.code.type());
 
-            if ($.hasMapping($fh)) {
-                if (exists $.crec.$k)
-                    $.error("field %y has a mapping and also a constant value with the deprecated \"crec\" mapper option", $.getFieldName($k));
+            if (hasMapping(fh)) {
+                if (exists crec{k})
+                    error("field %y has a mapping and also a constant value with the deprecated \"crec\" mapper option", getFieldName(k));
             }
 
-            if (exists $fh."default" && $fh.type) {
-                my hash $rec.$k = $fh."default";
+            if (exists fh."default" && fh.type) {
+                hash rec{k} = fh."default";
                 try {
-                    $.mapFieldType($k, $fh, \$rec.$k, $rec);
+                    mapFieldType(k, fh, \rec{k}, rec);
                 }
-                catch (hash $ex) {
-                    $.error("field %y has default value %y that is not acceptable for the field's type (%y): %s: %s", $k, $fh."default", $fh.type, $ex.err, $ex.desc);
+                catch (hash ex) {
+                    error("field %y has default value %y that is not acceptable for the field's type (%y): %s: %s", k, fh."default", fh.type, ex.err, ex.desc);
                 }
             }
 
             # check if the output field should be a hash
-            if (!$.allow_output_dot && $k =~ /\./)
-                $fh.ostruct = $k.split(".");            
+            if (!allow_output_dot && k =~ /\./)
+                fh.ostruct = k.split(".");            
         }
 
         #! returns @ref Qore::True "True" if the field has a mapping, @ref Qore::False "False" if not
-        private bool hasMapping(hash $fh) {
-            return $fh.name || $fh.struct || $fh.code || $fh.constant;
+        private bool hasMapping(hash fh) {
+            return fh.name || fh.struct || fh.code || fh.constant;
         }
 
         #! verifies a timezone constructor option
-        private checkTimezoneOption(hash $opts, string $rn) {
-            my any $val = $opts.$rn;
-            if (!exists $val)
+        private checkTimezoneOption(hash opts, string rn) {
+            any val = opts{rn};
+            if (!exists val)
                 return;
-            if ($val instanceof TimeZone) {
-                $self.$rn = $val;
+            if (val instanceof TimeZone) {
+                self{rn} = val;
                 return;
             }
 
-            switch ($val.typeCode()) {
+            switch (val.typeCode()) {
                 case NT_STRING:
-                case NT_INT: $self.$rn = new TimeZone($val); break;
-                default: $.error("type %y assigned to the %s option (expecting TimeZone, string, or int)", $val.type(), $rn);
+                case NT_INT: self{rn} = new TimeZone(val); break;
+                default: error("type %y assigned to the %s option (expecting TimeZone, string, or int)", val.type(), rn);
             }
         }
 
-        string getFieldName(string $name) {
-            return $.name.val() ? sprintf("%s.%s", $.name, $name) : $name;
+        string getFieldName(string name) {
+            return name.val() ? sprintf("%s.%s", name, name) : name;
         }
 
         #! returns a list of valid field keys for this class (can be overridden in subclasses)
@@ -536,8 +539,128 @@ my Mapper $map(DataMap);
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
             @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
         */
-        list mapAll(softlist $recs) {
-            return map $.mapData($1), $recs;
+        list mapAll(softlist recs) {
+            return map mapData($1), recs;
+        }
+
+        #! processes the input record and adds mapped data to a hash of the mapped values where the keys in the hash returned are the target field names; the order of the fields in the hash returned is the same order as the keys in the map hash.
+        /** @param h a reference to a hash for the mapped record; adds values to the hash keys in the target format based on the input data and processed according to the logic in the map hash
+            @param rec the record to translate
+
+            @throw MISSING-INPUT a field marked mandatory is missing
+            @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
+            @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
+
+            @note each time this method is executed successfully, the record count is updated (see @ref getCount() and @ref resetCount())
+        */
+        private mapData(reference h, hash rec) {
+            if (input_log)
+                call_function(input_log, rec);
+
+            if (crec)
+                rec += crec;
+
+            # hash of mapped data to be added to h
+            hash th;
+
+            # iterate through target fields
+            foreach string key in (mapc.keyIterator()) {
+                any m = mapc{key};
+
+                # get source field name
+                string name = exists m.name ? m.name : key;
+
+                # get source record value
+                any v;
+                if (m.constant)
+                    v = m.constant;
+                else if (m.struct) {
+                    # get the value
+                    v = rec;
+                    map v = v{m.struct[$1]}, xrange(0, m.struct.size() - 1);
+                }
+                else
+                    v = rec{name} !== NULL ? rec{name} : NOTHING;
+
+                # move any XML CDATA into the field value
+                if (v."^cdata^")
+                    v = v."^cdata^";
+
+                # if the internal field was marked as needing processing by a subclass, then call the mapSubclass method
+                if (m.subclass)
+                    v = mapSubclass(m, v);
+
+                # execute any field filter if necessary
+                if (exists m.code) {
+                    try {
+                        v = m.code(v, rec);
+                    }
+                    catch (hash ex) {
+                        ex.desc = sprintf("field %y closure: %s", key, ex.desc);
+                        throw ex.err, ex.desc, ex.arg;
+                    }
+                }
+
+                if (v.typeCode() == NT_STRING && v.empty())
+                    delete v;
+
+                if (m.type)
+                    mapFieldType(key, m, \v, rec);
+
+                if (exists m."default" && (!exists v || v === NULL))
+                    v = m."default";                    
+
+                # check maximum length
+                if (m.maxlen && v.size() > m.maxlen) {
+                    # truncate the string if necessary
+                    if (m.trunc) {
+                        if (trunc) {
+                            string msg = sprintf("field %y = %y input length %d truncating to %d bytes", getFieldName(key), v, v.size(), m.maxlen);
+                            call_function(trunc, msg);
+                        }
+                        v = trunc_str(v, m.maxlen, enc);
+                    }
+                    else
+                        error2("STRING-TOO-LONG", "field %y = %y, input length %d exceeds maximum byte length %d for input row: %y", getFieldName(key), v, strlen(v), m.maxlen, rec);
+                }
+
+                if (m.mand && !exists v)
+                    error2("MISSING-INPUT", "field %y is marked as mandatory but is missing in the input row: %y", getFieldName(key), rec);
+                
+                # add value to row list
+                if (m.ostruct) {
+                    # recursive closure for generating structured data
+                    code ah = any sub (any ch, int off = 0) {
+                        if (off == m.ostruct.size())
+                            return v;
+                        string k = m.ostruct[off];
+                        any oh = ch{k};
+                        if (exists oh && oh.typeCode() != NT_HASH)
+                            throw "INVALID-OUTPUT", sprintf("field %y cannot overwrite element %y with type %y", getFieldName(key), k, oh.type());
+                        ch{k} = ah(oh, off + 1);
+                        return ch;
+                    };
+                    try {
+                        th = ah(th);
+                    }
+                    catch (hash ex) {
+                        if (ex.err == "INVALID-OUTPUT")
+                            error2(ex.err, ex.desc);
+                        else
+                            rethrow;
+                    }
+                }
+                else
+                    th{key} = v;
+            }
+
+            logOutput(th);
+
+            # add to return hash
+            map h.($1.key) += $1.value, th.pairIterator();
+            
+            # increment record count
+            ++count;
         }
         
         #! processes the input record and returns a hash of the mapped values where the keys in the hash returned are the target field names; the order of the fields in the hash returned is the same order as the keys in the map hash.
@@ -551,160 +674,56 @@ my Mapper $map(DataMap);
 
             @note each time this method is executed successfully, the record count is updated (see @ref getCount() and @ref resetCount())
         */
-        hash mapData(hash $rec) {
-            if ($.input_log)
-                call_function($.input_log, $rec);
-
-            if ($.crec)
-                $rec += $.crec;
-
-            # we know the map has at least 1 element so no need to initialize $h as a hash to guarantee the return type
-            my hash $h;
-
-            # iterate through target fields
-            foreach my string $key in ($.mapc.keyIterator()) {
-                my any $m = $.mapc.$key;
-
-                # get source field name
-                my string $name = exists $m.name ? $m.name : $key;
-
-                # get source record value
-                my any $v;
-                if ($m.constant)
-                    $v = $m.constant;
-                else if ($m.struct) {
-                    # get the value
-                    $v = $rec;
-                    map $v = $v{$m.struct[$1]}, xrange(0, $m.struct.size() - 1);
-                }
-                else
-                    $v = $rec.$name !== NULL ? $rec.$name : NOTHING;
-
-                # move any XML CDATA into the field value
-                if ($v."^cdata^")
-                    $v = $v."^cdata^";
-
-                # if the internal field was marked as needing processing by a subclass, then call the mapSubclass method
-                if ($m.subclass)
-                    $v = $.mapSubclass($m, $v);
-
-                # execute any field filter if necessary
-                if (exists $m.code) {
-                    try {
-                        $v = $m.code($v, $rec);
-                    }
-                    catch (hash $ex) {
-                        $ex.desc = sprintf("field %y closure: %s", $key, $ex.desc);
-                        throw $ex.err, $ex.desc, $ex.arg;
-                    }
-                }
-
-                if ($v.typeCode() == NT_STRING && $v.empty())
-                    delete $v;
-
-                if ($m.type)
-                    $.mapFieldType($key, $m, \$v, $rec);
-
-                if (exists $m."default" && (!exists $v || $v === NULL))
-                    $v = $m."default";                    
-
-                # check maximum length
-                if ($m.maxlen && $v.size() > $m.maxlen) {
-                    # truncate the string if necessary
-                    if ($m.trunc) {
-                        if ($.trunc) {
-                            my string $msg = sprintf("field %y = %y input length %d truncating to %d bytes", $.getFieldName($key), $v, $v.size(), $m.maxlen);
-                            call_function($.trunc, $msg);
-                        }
-                        $v = trunc_str($v, $m.maxlen, $.enc);
-                    }
-                    else
-                        $.error2("STRING-TOO-LONG", "field %y = %y, input length %d exceeds maximum byte length %d for input row: %y", $.getFieldName($key), $v, strlen($v), $m.maxlen, $rec);
-                }
-
-                if ($m.mand && !exists $v)
-                    $.error2("MISSING-INPUT", "field %y is marked as mandatory but is missing in the input row: %y", $.getFieldName($key), $rec);
-                
-                # add value to row list
-                if ($m.ostruct) {
-                    # recursive closure for generating structured data
-                    my code $ah = any sub (any $ch, int $off = 0) {
-                        if ($off == $m.ostruct.size())
-                            return $v;
-                        my string $k = $m.ostruct[$off];
-                        my any $oh = $ch.$k;
-                        if (exists $oh && $oh.typeCode() != NT_HASH)
-                            throw "INVALID-OUTPUT", sprintf("field %y cannot overwrite element %y with type %y", $.getFieldName($key), $k, $oh.type());
-                        $ch.$k = $ah($oh, $off + 1);
-                        return $ch;
-                    };
-                    try {
-                        $h = $ah($h);
-                    }
-                    catch (hash $ex) {
-                        if ($ex.err == "INVALID-OUTPUT")
-                            $.error2($ex.err, $ex.desc);
-                        else
-                            rethrow;
-                    }
-                }
-                else
-                    $h.$key = $v;
-            }
-
-            $.logOutput($h);
-
-            # increment record count
-            ++$.count;
-
-            # return list of values for row
-            return $h;
+        hash mapData(hash rec) {
+            hash h;
+            mapData(\h, rec);
+            return h;
         }
 
         #! calls the output logging @ref closure "closure" or @ref call_reference "call reference" (if any) to log the output record
-        logOutput(hash $h) {
-            if ($.output_log)
-                call_function($.output_log, $h);
+        logOutput(hash h) {
+            if (output_log)
+                output_log(h);
         }
         
         #! returns the internal record count
         /** @see resetCount()
         */
         int getCount() {
-            return $.count;
+            return count;
         }
 
         #! resets the internal record count
         /** @see getCount()
         */
         resetCount() {
-            $.count = 0;
+            count = 0;
         }
 
         #! performs type handling
-        private mapFieldType(string $key, hash $m, reference $v, hash $rec) {
-            if ($v === NULL) {
-                delete $v;
+        private mapFieldType(string key, hash m, reference v, hash rec) {
+            if (v === NULL) {
+                delete v;
                 return;
             }
-            if (!exists $v)
+            if (!exists v)
                 return;
-            switch ($m.type) {
+            switch (m.type) {
                 case "number": {
-                    my *string $nf = $m.number_format ? $m.number_format : $.number_format;
-                    if ($nf)
-                        $v = parse_number($v, $nf);
+                    *string nf = m.number_format ? m.number_format : number_format;
+                    if (nf)
+                        v = parse_number(v, nf);
                     else {
                         # check for valid numeric values
-                        if ($v !~ /^([-+])?[0-9]+(\.[0-9]+)?+$/)
-                            $.error2("INVALID-NUMBER", "field %y = %y is marked as a numeric field, but the input data contains non-numeric text in input row: %y", $.getFieldName($key), $v, $rec);
-			switch ($v.typeCode()) {
+                        if (v !~ /^([-+])?[0-9]+(\.[0-9]+)?+$/)
+                            error2("INVALID-NUMBER", "field %y = %y is marked as a numeric field, but the input data contains non-numeric text in input row: %y", getFieldName(key), v, rec);
+			switch (v.typeCode()) {
 			    case NT_NUMBER:
 			    case NT_FLOAT:
 			    case NT_INT:
                                 break;
 			    default:
-                                $v = number($v);
+                                v = number(v);
                                 break;
                         }
                     }
@@ -713,42 +732,42 @@ my Mapper $map(DataMap);
                 case "int":
                 case "integer": {
                     # check for valid integer values
-                    if ($v !~ /^([-+])?[0-9]+$/)
-                        $.error2("INVALID-INTEGER", "field %y = %y is marked as an integer field, but the input data contains non-integer text in input row: %y", $.getFieldName($key), $v, $rec);
-                    $v = int($v);
+                    if (v !~ /^([-+])?[0-9]+$/)
+                        error2("INVALID-INTEGER", "field %y = %y is marked as an integer field, but the input data contains non-integer text in input row: %y", getFieldName(key), v, rec);
+                    v = int(v);
                     break;
                 }
                 case "date": {
                     # if there is no date_format below, then the default conversion is made
-                    if ($v.typeCode() != NT_DATE)
-                        $v = $.input_timezone.date($v, $m.date_format ? $m.date_format : $.date_format);
+                    if (v.typeCode() != NT_DATE)
+                        v = input_timezone.date(v, m.date_format ? m.date_format : date_format);
                     # convert to the output TimeZone if necessary
-                    if ($.timezone)
-                        $v = $.timezone.date($v);
+                    if (timezone)
+                        v = timezone.date(v);
                     break;
                 }
             }
         }
 
         #! throws a \c MAP-ERROR exception; prepends the map name to the description if known
-        private error(string $fmt) {
-            my string $err = vsprintf($fmt, $argv);
-            if ($.name)
-                $err = sprintf("%y mapper: %s", $.name, $err);
-            throw "MAP-ERROR", $err;
+        private error(string fmt) {
+            string err = vsprintf(fmt, argv);
+            if (name)
+                err = sprintf("%y mapper: %s", name, err);
+            throw "MAP-ERROR", err;
         }
 
         #! throws the given exception; prepends the map name to the description if known
-        private error2(string $ex, string $fmt) {
-            my string $err = vsprintf($fmt, $argv);
-            if ($.name)
-                $err = sprintf("%y mapper: %s", $.name, $err);
-            throw $ex, $err;
+        private error2(string ex, string fmt) {
+            string err = vsprintf(fmt, argv);
+            if (name)
+                err = sprintf("%y mapper: %s", name, err);
+            throw ex, err;
         }
 
         #! to be overridden as necessary in subclasses
-        private any mapSubclass(hash $m, any $v) {
-            return $v;
+        private any mapSubclass(hash m, any v) {
+            return v;
         }
     }
 
@@ -759,25 +778,25 @@ my Mapper $map(DataMap);
 
         private {
             #! input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
-            Qore::AbstractIterator $.i;
+            Qore::AbstractIterator i;
         }
 
         #! creates the iterator from the arguments passed
-        /** @param i input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
+        /** @param iter input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
             @param map the mapper to transform the data
         */
-        constructor(Qore::AbstractIterator $i) {
-            $.i = $i;
+        constructor(Qore::AbstractIterator iter) {
+            i = iter;
         }
 
         #! Moves the current position of the input iterator to the next element; returns @ref Qore::False "False" if there are no more elements
         bool next() {
-            return $.i.next();
+            return i.next();
         }
 
         #! returns @ref Qore::True "True" if the input iterator is currently pointing at a valid element, @ref Qore::False "False" if not
         bool valid() {
-            return $.i.valid();
+            return i.valid();
         }
     }
 
@@ -788,7 +807,7 @@ my Mapper $map(DataMap);
 
         private {
             #! data mapper
-            Mapper::Mapper $.mapc;
+            Mapper::Mapper mapc;
         }
 
         #! creates the iterator from the arguments passed
@@ -798,35 +817,35 @@ my Mapper $map(DataMap);
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
          */
-        constructor(Qore::AbstractIterator $i, hash $map, *hash $opts) : Mapper::AbstractMapperIterator($i) {
-            $.mapc = new Mapper($map, $opts);
+        constructor(Qore::AbstractIterator i, hash mapv, *hash opts) : Mapper::AbstractMapperIterator(i) {
+            mapc = new Mapper(mapv, opts);
         }
 
         #! creates the iterator from the arguments passed
         /** @param i input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
             @param map the mapper to transform the data
         */
-        constructor(Qore::AbstractIterator $i, Mapper::Mapper $map) : Mapper::AbstractMapperIterator($i) {
-            $.mapc = $map;
+        constructor(Qore::AbstractIterator i, Mapper::Mapper mapv) : Mapper::AbstractMapperIterator(i) {
+            mapc = mapv;
         }
 
         #! returns the current row transformed with the mapper
         hash getValue() {
-            return $.mapc.mapData($.i.getValue());
+            return mapc.mapData(i.getValue());
         }
 
         #! returns the internal record count
         /** @see resetCount()
         */
         int getCount() {
-            return $.mapc.getCount();
+            return mapc.getCount();
         }
 
         #! resets the internal record count
         /** @see getCount()
         */
         resetCount() {
-            $.mapc.resetCount();
+            mapc.resetCount();
         }
     }
 }

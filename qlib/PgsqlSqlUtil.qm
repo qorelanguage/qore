@@ -1873,5 +1873,10 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             *hash h = execData(opt, sql, args);
             return h ? map {$1.key: $1.value[0]}, h.pairIterator() : h;
         }
+
+        #! returns @ref Qore::False "False" because the pgsql driver does not support array binds / bulk DML operations
+        private bool hasArrayBind() {
+            return False;
+        }
     }
 }

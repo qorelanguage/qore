@@ -67,6 +67,7 @@ struct dbi_cap_hash dbi_cap_list[] =
   { DBI_CAP_AUTORECONNECT,          "AutoReconnect" },
   { DBI_CAP_EVENTS,                 "Events" },
   { DBI_CAP_HAS_DESCRIBE,           "HasDescribe" },
+  { DBI_CAP_HAS_ARRAY_BIND,         "HasArrayBind" },
 };
 
 #define NUM_DBI_CAPS (sizeof(dbi_cap_list) / sizeof(dbi_cap_hash))

@@ -206,6 +206,9 @@ const DBI_CAP_EVENTS = DBI_CAP_EVENTS;
 
 //! Indicates that the DBI driver supports the describe method
 const DBI_CAP_HAS_DESCRIBE = DBI_CAP_HAS_DESCRIBE;
+
+//! Indicates that the DBI driver supports binding arrays by value for bulk DML operations
+const DBI_CAP_HAS_ARRAY_BIND = DBI_CAP_HAS_ARRAY_BIND;
 //@}
 
 //! This class provides the %Qore interface to databases

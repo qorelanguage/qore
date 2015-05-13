@@ -12769,7 +12769,7 @@ $table.insertNoCommi($row);
                         ph = cmd.placeholder;
                 }
                 phl += ph;
-                vl += v;
+                push vl, v;
             }
 
             return (
@@ -16270,6 +16270,9 @@ my *list $rows = $table.findAll($h);
 
         #! db-specific copy actions
         private abstract copyImpl(AbstractTable old);
+
+        #! returns @ref Qore::True "True" if the underlying DB driver supports bulk DML operations
+        private abstract bool hasArrayBind();
     }
 }
 

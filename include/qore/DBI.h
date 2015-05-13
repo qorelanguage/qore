@@ -52,6 +52,7 @@
 #define DBI_CAP_AUTORECONNECT            (1 << 13) //!< supports automatically/transparently reconnecting to the server if the connection is lost while not in a transaction
 #define DBI_CAP_EVENTS                   (1 << 14) //!< supports DBI events
 #define DBI_CAP_HAS_DESCRIBE             (1 << 15) //!< supports the describe API
+#define DBI_CAP_HAS_ARRAY_BIND           (1 << 16) //!< supports binding arrays by value for bulk DML operations
 
 #define BN_PLACEHOLDER  0
 #define BN_VALUE        1

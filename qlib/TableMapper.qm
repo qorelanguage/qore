@@ -100,7 +100,10 @@ printf("%d record%s inserted\n", map.getCount(), map.getCount() == 1 ? "" : "s")
     - added the getDatasource() method to classes
     - implemented more efficient support for inserts from a sequence for databases supporting the \c "returning" clause in insert statements; now such inserts are made in a single round trip instead of n + 1 where n is the number of sequences in the insert
     - implemented an optimized insert approach assuming stable input data
-    - implemented the \c unstable_input option to accommodate unstable input data and disable the insert optimization
+    - implemented the following new options:
+      - \c unstable_input: to accommodate unstable input data and disable the insert optimization (default: False)
+      - \c insert_block: for DB drivers supporting bulk DML, the number of rows inserted at once (default: 500, only used when \c unstable_input is False) and bulk inserts are supported in the table object
+    - added method for bulk / batch inserts for db drivers supporting bulk DML (ex: Oracle)
 
     @subsection tablemapperv1_0 TableMapper v1.0
     - Initial release.
@@ -112,8 +115,12 @@ public namespace TableMapper {
     public class InboundTableMapper inherits Mapper::Mapper {
         public {
             #! option keys for this object
-            const OptionKeys = Mapper::OptionKeys + (
-                "unstable_input": True,
+            const OptionKeys = Mapper::OptionKeys + (map {$1: True}, OptionDefaults.keyIterator());
+
+            #! default option values
+            const OptionDefaults = (
+                "unstable_input": False,
+                "insert_block": 500,
                 );
         }
 
@@ -135,6 +142,12 @@ public namespace TableMapper {
             
             #! statement for inserts
             SQLStatement stmt;
+
+            #! bulk insert block size
+            int insert_block;
+            
+            #! buffer for bulk inserts
+            hash hbuf;
         }
 
         #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
@@ -160,7 +173,8 @@ InboundTableMapper mapper(table, DbMapper);
             @param target the target table object
             @param mapv a hash providing field mappings; each hash key is the name in lower case of the output column in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
-            - \c unstable_input: set this option to @ref Qore::True "True" if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow() or insertRowNoCommit(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
+            - \c unstable_input: set this option to @ref Qore::True "True" (default @ref Qore::False "False") if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow() or insertRowNoCommit(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
+            - \c insert_block: for DB drivers supporting bulk DML, the number of rows inserted at once (default: 500, only used when \c unstable_input is@ref Qore::False "False") and bulk inserts are supported in the table object
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
         */
@@ -192,7 +206,8 @@ InboundTableMapper mapper(table, DbMapper);
             @param table the target table object
             @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
-            - \c unstable_input: set this option to @ref Qore::True "True" if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow() or insertRowNoCommit(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
+            - \c unstable_input: set this option to @ref Qore::True "True" (default @ref Qore::False "False") if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow() or insertRowNoCommit(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
+            - \c insert_block: for DB drivers supporting bulk DML (for use with the queueBatchRow() and flush() methods), the number of rows inserted at once (default: 500, only used when \c unstable_input is@ref Qore::False "False") and bulk inserts are supported in the table object
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
             @throw TABLE-ERROR the table includes a column using an unknown native data type
@@ -202,13 +217,24 @@ InboundTableMapper mapper(table, DbMapper);
             init(mapv, opts);
         }
 
+        #! throws an exception if there is data pending in the block cache
+        /** @throw BLOCK-ERROR there is unflushed data in the block cache; make sure to call flush() before destroying the object
+        */
+        destructor() {
+            if (hbuf.firstValue())
+                throw "BLOCK-ERROR", sprintf("there %s still %d row%s of data in the block cache; make sure to call %s::flush() before destroying the object to flush all data to the database", hbuf.firstValue().size() == 1 ? "is" : "are", hbuf.firstValue().size(), hbuf.firstValue().size() == 1 ? "" : "s", self.className());
+        }
+        
         #! common constructor initialization
         private init(hash mapv, *hash opts) {
             has_returning = table.hasReturning();
             setup(mapv, opts);
 
-            if (opts.unstable_input)
-                unstable_input = True;
+            # set options with defaults
+            map self{$1.key} = opts{$1.key} ?* $1.value, OptionDefaults.pairIterator();
+
+            if (insert_block < 1)
+                throw "MAP-ERROR", sprintf("the insert_block option is set to %d; this value must be >= 1", insert_block);
             
             # check map for logical errors
             checkMap();            
@@ -371,6 +397,92 @@ InboundTableMapper mapper(table, DbMapper);
             return h;
         }
 
+        #! inserts a row into the block buffer based on a mapped input record; does not commit the transaction
+        /** Data is only inserted if the block buffer size reaches the limit defined by the \c insert_block option, in which case this method returns all the data inserted.  In case the mapped data is only inserted into the cache, no value is returned.
+
+            @param rec the input record
+
+            @return if batch data was inserted then a hash (columns) of lists (row data) of all data inserted and potentially returned (in case of sequences) from the database server is returned
+
+            @note
+            - make sure to call flush() before committing the transaction or destroying the object when using this method
+            - this method and batched inserts in general cannot be used when the \c unstable_input option is given in the constructor
+            - if the \c insert_block option is set to 1, then this method simply calls insertRowNoCommit()
+
+            @throw MAPPER-BATCH-ERROR this exception is thrown if this method is called when the \c unstable_input option was given in the constructor
+            @throw MISSING-INPUT a field marked mandatory is missing
+            @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
+            @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data        
+        */
+        *hash queueBatchRow(hash rec) {
+            if (unstable_input)
+                throw "MAPPER-BATCH-ERROR", sprintf("cannot call %s::queueBatchRow() when the unstable_input option is set", self.className());
+
+            if (insert_block == 1)
+                return insertRowNoCommit(rec);
+            
+            # map a single record to get the keys for the buffer
+            if (!hbuf) {
+                hash h = mapData(rec + crec);
+                map hbuf{$1.key} = list($1.value), h.pairIterator();
+            }
+            else {
+                # map data and add to buffer
+                mapData(\hbuf, rec + crec);
+            }
+            
+            # return nothing if nothing needs to be flushed
+            if (hbuf.firstValue().size() < insert_block)
+                return;
+
+            return flushIntern();
+        }
+
+        #! flushes any remaining batched data to the database; this method should always be called before committing the transaction or destroying the object
+        /** @return if batch data was inserted then a hash (columns) of lists (row data) of all data inserted and potentially returned (in case of sequences) from the database server is returned
+        */
+        *hash flush() {
+            if (hbuf.firstValue())
+                return flushIntern();
+        }
+
+        #! flushes queued data to the database
+        private hash flushIntern() {
+            *hash rh;
+
+            #if (info_log)                
+            printf("flushing %d rows\n", hbuf.firstValue().size());
+            
+            # when executing for the first time on stable input data, get an SQLStatement for the SQL used to insert
+            if (!stmt) {
+                string sql;
+                # update sequences to a single value for the insert
+                if (ret_args && hbuf{ret_args[0]}.typeCode() == NT_LIST)
+                    map hbuf.$1 = hbuf.$1[0], ret_args;
+                # insert the row and get the sql and sequence values
+                rh = table.insertNoCommit(hbuf, \sql, ("returning": ret_args));
+                # create the statement for future inserts
+                stmt = new SQLStatement(table.getDatasource());
+                stmt.prepare(sql);
+            }
+            else {
+                # remove sequences
+                map remove hbuf.$1, ret_args;
+                # execute the SQLStatement on the args
+                stmt.execArgs(hbuf.values());
+                # get sequence values
+                rh = stmt.getOutput();
+            }
+
+            # get return value
+            hash rv = hbuf + rh;
+            # clear buffer but keep hash keys
+            map hbuf.$1 = (), hbuf.keyIterator();
+
+            # return all data inserted
+            return rv;
+        }
+
         #! ignore logging from Mapper since we may have to log sequence values; output logged manually in insertRowNoCommit()
         logOutput(hash h) {
         }
@@ -393,6 +505,7 @@ InboundTableMapper mapper(table, DbMapper);
 
         #! commits the transaction
         nothing commit() {
+            flush();
             table.commit();
         }
 
@@ -470,7 +583,8 @@ InboundTableMapperIterator i(input, table, DbMapper);
             @param target the target table object
             @param mapv a hash providing field mappings; each hash key is the name of the output column in lower case in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
-            - \c unstable_input: set this option to @ref Qore::True "True" if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow() or insertRowNoCommit(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
+            - \c unstable_input: set this option to @ref Qore::True "True" (default @ref Qore::False "False") if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow() or insertRowNoCommit(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
+            - \c insert_block: for DB drivers supporting bulk DML (for use with the queueBatchRow() and flush() methods), the number of rows inserted at once (default: 500, only used when \c unstable_input is@ref Qore::False "False") and bulk inserts are supported in the table object
             @param commit_limit row count before a commit is made; if <= 0 then no commits are made by this object, otherwise a commit is made for each \a commit_limit rows processed by this object, commits are made in calls to @ref next()
 
             @note by default \a commit_limit is 0 meaning that this object will make no commits; in this case the transaction will
@@ -505,7 +619,8 @@ InboundTableMapperIterator i(input, table, DbMapper);
             @param target the target table object
             @param mapv a hash providing field mappings; each hash key is the name of the output column in lower case in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
-            - \c unstable_input: set this option to @ref Qore::True "True" if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow() or insertRowNoCommit(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
+            - \c unstable_input: set this option to @ref Qore::True "True" (default @ref Qore::False "False") if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow() or insertRowNoCommit(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
+            - \c insert_block: for DB drivers supporting bulk DML (for use with the queueBatchRow() and flush() methods), the number of rows inserted at once (default: 500, only used when \c unstable_input is@ref Qore::False "False") and bulk inserts are supported in the table object
             @param commit_limit row count before a commit is made; if <= 0 then no commits are made by this object, otherwise a commit is made for each \a commit_limit rows processed by this object, commits are made in calls to @ref next()
 
             @note by default \a commit_limit is 0 meaning that this object will make no commits; in this case the transaction will

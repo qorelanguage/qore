@@ -38,6 +38,8 @@
 #include <qore/AbstractQoreNode.h>
 #include <qore/QoreString.h>
 
+#include <string.h>
+
 //! Qore's string value type, reference counted, dynamically-allocated only
 /** for a version that can be used on the stack, use QoreString
     Each QoreStringNode is tagged with a specific encoding implemented by
@@ -399,6 +401,21 @@ public:
       return rv;
    }
 
+   //! returns a char* string that the caller owns and must free()
+   /** the object is empty after this call
+    */
+   DLLLOCAL char* giveBuffer() {
+      if (!str)
+         return 0;
+      if (!del)
+         return strdup(str->getBuffer());
+      char* rv = str->giveBuffer();
+      delete str;
+      del = false;
+      str = 0;
+      return rv;
+   }
+   
    //! returns true if the pointer being managed is temporary
    DLLLOCAL bool is_temp() const {
       return del;
