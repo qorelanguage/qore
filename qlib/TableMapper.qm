@@ -424,13 +424,12 @@ InboundTableMapper mapper(table, DbMapper);
             hash h = mapData(rec + crec);
 
             if (output_log)
-                Mapper::logOutput(h - ret_args);
+                output_log(h - ret_args);
             
             # map a single record to get the keys for the buffer
             if (!hbuf)
-                map hbuf{$1.key} = list($1.value), h.pairIterator();
-            else 
-                map hbuf{$1.key} += $1.value, h.pairIterator();
+                map hbuf{$1.key} = (), h.pairIterator();
+            map (push hbuf{$1.key}, $1.value), h.pairIterator();
             
             # return nothing if nothing needs to be flushed
             if (hbuf.firstValue().size() < insert_block)
@@ -448,6 +447,11 @@ InboundTableMapper mapper(table, DbMapper);
                 return flushIntern();
         }
 
+        #! discards any buffered batched data
+        discard() {
+            delete hbuf;
+        }
+        
         #! flushes queued data to the database
         private hash flushIntern() {
             *hash rh;
