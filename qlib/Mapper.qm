@@ -583,7 +583,7 @@ Mapper mapv(DataMap);
         */
         private hash mapDataIntern(hash rec) {
             if (input_log)
-                call_function(input_log, rec);
+                input_log(rec);
 
             if (crec)
                 rec += crec;
@@ -596,7 +596,7 @@ Mapper mapv(DataMap);
                 any m = mapc{key};
 
                 # get source field name
-                string name = exists m.name ? m.name : key;
+                string name = m.name ?? key;
 
                 # get source record value
                 any v;
@@ -608,7 +608,7 @@ Mapper mapv(DataMap);
                     map v = v{m.struct[$1]}, xrange(0, m.struct.size() - 1);
                 }
                 else
-                    v = rec{name} !== NULL ? rec{name} : NOTHING;
+                    v = rec{name} ?? NOTHING;
 
                 # move any XML CDATA into the field value
                 if (v."^cdata^")
@@ -619,7 +619,7 @@ Mapper mapv(DataMap);
                     v = mapSubclass(m, v);
 
                 # execute any field filter if necessary
-                if (exists m.code) {
+                if (m.code) {
                     try {
                         v = m.code(v, rec);
                     }
@@ -629,13 +629,13 @@ Mapper mapv(DataMap);
                     }
                 }
 
-                if (v.typeCode() == NT_STRING && v.empty())
+                if (v === "" || v === NULL)
                     delete v;
 
                 if (m.type)
                     mapFieldType(key, m, \v, rec);
 
-                if (exists m."default" && (!exists v || v === NULL))
+                if (exists m."default" && !exists v)
                     v = m."default";                    
 
                 # check maximum length
@@ -644,7 +644,7 @@ Mapper mapv(DataMap);
                     if (m.trunc) {
                         if (trunc) {
                             string msg = sprintf("field %y = %y input length %d truncating to %d bytes", getFieldName(key), v, v.size(), m.maxlen);
-                            call_function(trunc, msg);
+                            trunc(msg);
                         }
                         v = trunc_str(v, m.maxlen, enc);
                     }
