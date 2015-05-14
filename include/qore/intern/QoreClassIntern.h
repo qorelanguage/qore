@@ -1476,7 +1476,7 @@ public:
    DLLLOCAL int execBaseClassConstructorArgs(BCEAList* bceal, ExceptionSink* xsink) const;
 };
 
-typedef std::pair<QoreClass* , bool> class_virt_pair_t;
+typedef std::pair<QoreClass*, bool> class_virt_pair_t;
 //typedef std::list<class_virt_pair_t> class_list_t;
 typedef std::vector<class_virt_pair_t> class_list_t;
 

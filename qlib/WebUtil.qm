@@ -32,7 +32,7 @@
 %enable-all-warnings
 
 module WebUtil {
-    version = "1.2";
+    version = "1.3";
     desc = "user module supporting web server operations";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -64,14 +64,16 @@ module WebUtil {
 
     @section webutil_relnotes Release Notes
 
-    @subsection webutil_v1_2
-    - fixed a bug where template programs with parse option @ref Qore::PO_ALLOW_BARE_REFS set did not work
+    @subsection webutil_v1_3 WebUtil v1.3
     - updated FileHandler::handleRequest() to allow for chunked sends
 
-    @subsection webutil_v1_1
+    @subsection webutil_v1_2 WebUtil v1.2
+    - fixed a bug where template programs with parse option @ref Qore::PO_ALLOW_BARE_REFS set did not work
+
+    @subsection webutil_v1_1 WebUtil v1.1
     - added logic to the default file serving code to determine if the file is a binary or text file from the MIME type
 
-    @subsection webutil_v1_0
+    @subsection webutil_v1_0 WebUtil v1.0
     - the initial version of the WebUtil module
 */
 
