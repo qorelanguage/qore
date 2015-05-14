@@ -75,6 +75,7 @@ sub main() {
 
     hash opts = (
         "output_log": \output_log(),
+        "info_log": \info_log(),
         #"unstable_input": True,
         "insert_block": o.bs,
         );
@@ -119,6 +120,10 @@ sub main() {
 }
 
 our int cnt = 0;
+
+sub info_log(string fmt) {
+    vprintf("\n" + fmt + "\n", argv);
+}
 
 sub output_log(hash h) {
     print(".");

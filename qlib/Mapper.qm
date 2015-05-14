@@ -156,6 +156,7 @@ list: (2 elements)
     - \c "allow_output_dot": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then output field names with \c "." characters do not imply a structured/hash output element; in this case output field names may have \c "." characters in them
     - \c "date_format": gives the global format for converting a string to a date; see @ref date_formatting for the format of this string; this is applied to all fields of type \c "date" unless the field has a \c "date_format" value that overrides this global setting
     - \c "enc": the output character encoding; if not present then \c "UTF-8" is assumed
+    - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-style arguments
     - \c "input_log": an optional input data logging callback; must accept a hash giving the input data hash
     - \c "input_timezone": an optional string or integer (giving seconds east of UTC) giving the time zone for parsing input data (ex: \c "Europe/Prague"), if not set defaults to the current TimeZone (see @ref Qore::TimeZone::get())
     - \c "name": the name of the mapper for use in logging and error strings
@@ -203,6 +204,9 @@ public namespace Mapper {
             #! an optional field truncation callback
             *code trunc;
 
+            #! an optional info logging callback; must accept a sprintf()-style format specifier and optional arguments
+            *code info_log;
+
             #! an optional input data logging callback; must accept a hash giving the input data hash
             *code input_log;
 
@@ -241,6 +245,7 @@ public namespace Mapper {
                 "enc": True,
                 "name": True,
                 "trunc": True,
+                "info_log": True,
                 "input_log": True,
                 "output_log": True,
                 "timezone": True,
@@ -314,9 +319,10 @@ Mapper mapv(DataMap);
         #! sets up the mapper object before checking the mapper hash
         private setup(hash mapv, *hash opts) {
             name = opts.name;
+            info_log = opts.info_log;
             input_log = opts.input_log;
             output_log = opts.output_log;
-
+            
             if (opts.trunc_all)
                 trunc_all = parse_boolean(opts.trunc_all);
 
