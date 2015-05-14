@@ -21,6 +21,11 @@ const Defaults = (
     
 main();
 
+const Opts = (
+    "max": "m,max=i",
+    "bs": "b,blocksize=i",
+    );
+
 const Map = (
     "id": ("sequence": "gsi_stock_reconciliation_s"),
     "target_system": ("constant": "H3G"),
@@ -43,7 +48,14 @@ const Map = (
     );
 
 sub main() {
-    our softint max = ARGV[0] ?* Defaults.Max;
+    GetOpt opt(Opts);
+    hash opts = opt.parse3(\ARGV);
+
+    if (opts.max <= 0)
+        opts.max = Defaults.Max;
+
+    if (opts.bs < 1)
+        opts.bs = Defaults.BlockSize;
 
     Table t("oracle:staging/staging@xbox", "gsi_stock_reconciliation");
 

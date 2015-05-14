@@ -187,15 +187,15 @@ struct ParseCountHelper {
 
 struct ParseConditionalStack {
    unsigned count;
-   unsigned mark;
+   typedef std::vector<unsigned> ui_vec_t;
+   ui_vec_t markvec;
 
-   DLLLOCAL ParseConditionalStack() : count(0), mark(0) {
+   DLLLOCAL ParseConditionalStack() : count(0) {
    }
 
    DLLLOCAL void push(bool do_mark = false) {
       if (do_mark) {
-         assert(!mark);
-         mark = count;
+         markvec.push_back(count);
       }
       ++count;
    }
@@ -209,7 +209,9 @@ struct ParseConditionalStack {
          parse_error("%%else without %%ifdef");
          return false;
       }
-      return mark == (count - 1);
+      if (markvec.empty())
+         return false;
+      return markvec.back() == (count - 1);
    }
 
    DLLLOCAL bool pop() {
@@ -218,8 +220,9 @@ struct ParseConditionalStack {
          return false;
       }
       --count;
-      if (count == mark) {
-         mark = 0;
+      assert(!markvec.empty());
+      if (count == markvec.back()) {
+         markvec.pop_back();
          return true;
       }
       return false;
@@ -229,7 +232,7 @@ struct ParseConditionalStack {
       if (count) {
          parse_error("%d conditional block%s left open at end of file", count, count == 1 ? "" : "s");
          count = 0;
-         mark = 0;
+         markvec.clear();
       }
    }
 };
