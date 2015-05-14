@@ -17,13 +17,24 @@
 
 const Defaults = (
     "Max": 20000,
+    "BlockSize": 1000,
     );
     
 main();
 
+sub usage() {
+    printf("usage: %s [options]
+ -b,--blocksize=ARG  set the insert block buffer size
+ -m,--max=ARG        set the total number of rows to generate
+ -h,--help           this help text
+", get_script_name());
+    exit(1);
+}
+
 const Opts = (
     "max": "m,max=i",
     "bs": "b,blocksize=i",
+    "help": "h,help",
     );
 
 const Map = (
@@ -49,25 +60,28 @@ const Map = (
 
 sub main() {
     GetOpt opt(Opts);
-    hash opts = opt.parse3(\ARGV);
+    our hash o = opt.parse3(\ARGV);
 
-    if (opts.max <= 0)
-        opts.max = Defaults.Max;
+    if (o.help)
+        usage();
+    
+    if (o.max <= 0)
+        o.max = Defaults.Max;
 
-    if (opts.bs < 1)
-        opts.bs = Defaults.BlockSize;
+    if (o.bs < 1)
+        o.bs = Defaults.BlockSize;
 
     Table t("oracle:staging/staging@xbox", "gsi_stock_reconciliation");
 
     hash opts = (
         "output_log": \output_log(),
         #"unstable_input": True,
-        "insert_block": 10000,
+        "insert_block": o.bs,
         );
     
     InboundTableMapper mapper(t, Map, opts);
 
-    printf("test rows: %d\n", max);
+    printf("test rows: %d block size: %d\n", o.max, o.bs);
 
     hash data = (
         "organizationdescription": "TEST",
@@ -88,7 +102,7 @@ sub main() {
             mapper.rollback();
         }
     
-        for (int i = 0; i < max; ++i) {
+        for (int i = 0; i < o.max; ++i) {
             data += (
                 "stockinfonumber": i,
                 "loadid": i,
@@ -110,6 +124,6 @@ sub output_log(hash h) {
     print(".");
     ++cnt;
     if (!(cnt % 100))
-        printf(" %6d / %5.1f %\n", cnt, (cnt / float(max)) * 100);
+        printf(" %6d / %5.1f %\n", cnt, (cnt / float(o.max)) * 100);
     #flush();
 }

@@ -368,7 +368,7 @@ InboundTableMapper mapper(table, DbMapper);
             @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data        
         */
         hash insertRowNoCommit(hash rec) {
-            hash h = mapData(rec + crec);
+            hash h = mapDataIntern(rec + crec);
             *hash rh;
 
             if (unstable_input)
@@ -420,21 +420,20 @@ InboundTableMapper mapper(table, DbMapper);
 
             if (insert_block == 1)
                 return insertRowNoCommit(rec);
-            
+
+            hash h = mapData(rec + crec);
+
             # map a single record to get the keys for the buffer
-            if (!hbuf) {
-                hash h = mapData(rec + crec);
+            if (!hbuf)
                 map hbuf{$1.key} = list($1.value), h.pairIterator();
-            }
-            else {
-                # map data and add to buffer
-                mapData(\hbuf, rec + crec);
-            }
+            else 
+                map hbuf{$1.key} += $1.value, h.pairIterator();
             
             # return nothing if nothing needs to be flushed
             if (hbuf.firstValue().size() < insert_block)
                 return;
 
+            # return all target data
             return flushIntern();
         }
 

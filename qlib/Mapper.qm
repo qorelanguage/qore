@@ -543,17 +543,39 @@ Mapper mapv(DataMap);
             return map mapData($1), recs;
         }
 
-        #! processes the input record and adds mapped data to a hash of the mapped values where the keys in the hash returned are the target field names; the order of the fields in the hash returned is the same order as the keys in the map hash.
-        /** @param h a reference to a hash for the mapped record; adds values to the hash keys in the target format based on the input data and processed according to the logic in the map hash
-            @param rec the record to translate
+        #! processes the input record and returns a hash of the mapped values where the keys in the hash returned are the target field names; the order of the fields in the hash returned is the same order as the keys in the map hash.
+        /** @param rec the record to translate
+
+            @return a hash of field values in the target format based on the input data and processed according to the logic in the map hash
 
             @throw MISSING-INPUT a field marked mandatory is missing
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
             @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
 
-            @note each time this method is executed successfully, the record count is updated (see @ref getCount() and @ref resetCount())
+            @note
+            - each time this method is executed successfully, the record count is updated (see @ref getCount() and @ref resetCount())
+            - uses mapDataIntern() to map the data, then logOutput() is called for each output row
         */
-        private mapData(reference h, hash rec) {
+        hash mapData(hash rec) {
+            hash h = mapDataIntern(rec);
+            logOutput(h);
+            return h;
+        }
+        
+        #! processes the input record and returns a hash of the mapped values where the keys in the hash returned are the target field names; the order of the fields in the hash returned is the same order as the keys in the map hash.
+        /** @param rec the record to translate
+
+            @return a hash of field values in the target format based on the input data and processed according to the logic in the map hash
+
+            @throw MISSING-INPUT a field marked mandatory is missing
+            @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
+            @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
+
+            @note
+            - each time this method is executed successfully, the record count is updated (see @ref getCount() and @ref resetCount())
+            - this is the same as mapData() except no output logging is performed
+        */
+        private hash mapDataIntern(hash rec) {
             if (input_log)
                 call_function(input_log, rec);
 
@@ -561,7 +583,7 @@ Mapper mapv(DataMap);
                 rec += crec;
 
             # hash of mapped data to be added to h
-            hash th;
+            hash h;
 
             # iterate through target fields
             foreach string key in (mapc.keyIterator()) {
@@ -641,7 +663,7 @@ Mapper mapv(DataMap);
                         return ch;
                     };
                     try {
-                        th = ah(th);
+                        h = ah(h);
                     }
                     catch (hash ex) {
                         if (ex.err == "INVALID-OUTPUT")
@@ -651,35 +673,15 @@ Mapper mapv(DataMap);
                     }
                 }
                 else
-                    th{key} = v;
+                    h{key} = v;
             }
 
-            logOutput(th);
-
-            # add to return hash
-            map h.($1.key) += $1.value, th.pairIterator();
-            
             # increment record count
             ++count;
-        }
-        
-        #! processes the input record and returns a hash of the mapped values where the keys in the hash returned are the target field names; the order of the fields in the hash returned is the same order as the keys in the map hash.
-        /** @param rec the record to translate
 
-            @return a hash of field values in the target format based on the input data and processed according to the logic in the map hash
-
-            @throw MISSING-INPUT a field marked mandatory is missing
-            @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
-            @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
-
-            @note each time this method is executed successfully, the record count is updated (see @ref getCount() and @ref resetCount())
-        */
-        hash mapData(hash rec) {
-            hash h;
-            mapData(\h, rec);
             return h;
         }
-
+        
         #! calls the output logging @ref closure "closure" or @ref call_reference "call reference" (if any) to log the output record
         logOutput(hash h) {
             if (output_log)
