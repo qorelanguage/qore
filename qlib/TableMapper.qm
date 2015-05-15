@@ -545,7 +545,7 @@ on_error $table_mapper.rollback();
             *hash rh;
 
             if (info_log)
-                info_log("%s: flushing %d rows", table.getSqlName(), hbuf.firstValue().size());
+                info_log("%s: flushing %d row%s", table.getSqlName(), hbuf.firstValue().size(), hbuf.firstValue().size() == 1 ? "" : "s");
 
             try {
                 # when executing for the first time on stable input data, get an SQLStatement for the SQL used to insert
@@ -575,6 +575,9 @@ on_error $table_mapper.rollback();
                 rethrow;
             }
 
+            if (rh && rh.firstValue().typeCode() != NT_LIST)
+                map rh.($1.key) = (rh.($1.value),), rh.pairIterator();
+            
             # get return value
             hash rv = hbuf + rh;
             # clear buffer but keep hash keys
