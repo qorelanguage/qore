@@ -102,7 +102,7 @@ printf("%d record%s inserted\n", map.getCount(), map.getCount() == 1 ? "" : "s")
     - implemented an optimized insert approach assuming stable input data
     - implemented the following new options for TableMapper::InboundTableMapper:
       - \c unstable_input: to accommodate unstable input data and disable the insert optimization (default: False)
-      - \c insert_block: for DB drivers supporting bulk DML (for use with the TableMapper::InboundTableMapper::queueBatchRow() and TableMapper::InboundTableMapper::flush() methods), the number of rows inserted at once (default: 500, only used when \c unstable_input is @ref Qore::False "False") and bulk inserts are supported in the table object
+      - \c insert_block: for DB drivers supporting bulk DML (for use with the TableMapper::InboundTableMapper::queueBatchRow(), TableMapper::InboundTableMapper::flush(), and TableMapper::InboundTableMapper::discard() methods), the number of rows inserted at once (default: 500, only used when \c unstable_input is @ref Qore::False "False") and bulk inserts are supported in the table object
     - added method for bulk / batch inserts for db drivers supporting bulk DML (ex: Oracle)
 
     @subsection tablemapperv1_0 TableMapper v1.0
@@ -174,7 +174,7 @@ InboundTableMapper mapper(table, DbMapper);
             @param mapv a hash providing field mappings; each hash key is the name in lower case of the output column in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
             - \c unstable_input: set this option to @ref Qore::True "True" (default @ref Qore::False "False") if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow() or insertRowNoCommit(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
-            - \c insert_block: for DB drivers supporting bulk DML (for use with the queueBatchRow() and flush() methods), the number of rows inserted at once (default: 500, only used when \c unstable_input is @ref Qore::False "False") and bulk inserts are supported in the table object
+            - \c insert_block: for DB drivers supporting bulk DML (for use with the queueBatchRow(), flush(), and discard() methods), the number of rows inserted at once (default: 500, only used when \c unstable_input is @ref Qore::False "False") and bulk inserts are supported in the table object
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
         */
@@ -207,7 +207,7 @@ InboundTableMapper mapper(table, DbMapper);
             @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
             - \c unstable_input: set this option to @ref Qore::True "True" (default @ref Qore::False "False") if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow() or insertRowNoCommit(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
-            - \c insert_block: for DB drivers supporting bulk DML (for use with the queueBatchRow() and flush() methods), the number of rows inserted at once (default: 500, only used when \c unstable_input is @ref Qore::False "False") and bulk inserts are supported in the table object
+            - \c insert_block: for DB drivers supporting bulk DML (for use with the queueBatchRow(), flush(), and discard() methods), the number of rows inserted at once (default: 500, only used when \c unstable_input is @ref Qore::False "False") and bulk inserts are supported in the table object
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
             @throw TABLE-ERROR the table includes a column using an unknown native data type
@@ -218,11 +218,11 @@ InboundTableMapper mapper(table, DbMapper);
         }
 
         #! throws an exception if there is data pending in the block cache
-        /** @throw BLOCK-ERROR there is unflushed data in the block cache; make sure to call flush() before destroying the object
+        /** @throw BLOCK-ERROR there is unflushed data in the block cache; make sure to call flush() or discard() before destroying the object
         */
         destructor() {
             if (hbuf.firstValue())
-                throw "BLOCK-ERROR", sprintf("there %s still %d row%s of data in the block cache; make sure to call %s::flush() before destroying the object to flush all data to the database", hbuf.firstValue().size() == 1 ? "is" : "are", hbuf.firstValue().size(), hbuf.firstValue().size() == 1 ? "" : "s", self.className());
+                throw "BLOCK-ERROR", sprintf("there %s still %d row%s of data in the block cache; make sure to call %s::flush() or %s::discard() before destroying the object to flush all data to the database", hbuf.firstValue().size() == 1 ? "is" : "are", hbuf.firstValue().size(), hbuf.firstValue().size() == 1 ? "" : "s", self.className(), self.className());
         }
         
         #! common constructor initialization
@@ -398,16 +398,33 @@ InboundTableMapper mapper(table, DbMapper);
         }
 
         #! inserts a row into the block buffer based on a mapped input record; does not commit the transaction
-        /** Data is only inserted if the block buffer size reaches the limit defined by the \c insert_block option, in which case this method returns all the data inserted.  In case the mapped data is only inserted into the cache, no value is returned.
+        /** @par Example:
+            @code
+on_success $table_mapper.commit();
+on_error $table_mapper.rollback();
+{
+    on_success $table_mapper.flush();
+    on_error $table_mapper.discard();
+
+    map $table_mapper.queueBatchRow($1), $data.iterator();
+}
+            @endcode
+
+            Data is only inserted if the block buffer size reaches the limit defined by the \c insert_block option, in which case this method returns all the data inserted.  In case the mapped data is only inserted into the cache, no value is returned.
 
             @param rec the input record
 
             @return if batch data was inserted then a hash (columns) of lists (row data) of all data inserted and potentially returned (in case of sequences) from the database server is returned
 
             @note
-            - make sure to call flush() before committing the transaction or destroying the object when using this method
+            - make sure to call flush() before committing the transaction or discard() before rolling back the transaction or destroying the object when using this method
+            - flush() or discard() needs to be executed for each mapper used in the block when using multiple mappers whereas the DB transaction needs to be committed or rolled back once per datasource 
             - this method and batched inserts in general cannot be used when the \c unstable_input option is given in the constructor
             - if the \c insert_block option is set to 1, then this method simply calls insertRowNoCommit()
+
+            @see
+            - flush()
+            - discard()
 
             @throw MAPPER-BATCH-ERROR this exception is thrown if this method is called when the \c unstable_input option was given in the constructor
             @throw MISSING-INPUT a field marked mandatory is missing
@@ -440,14 +457,52 @@ InboundTableMapper mapper(table, DbMapper);
         }
 
         #! flushes any remaining batched data to the database; this method should always be called before committing the transaction or destroying the object
-        /** @return if batch data was inserted then a hash (columns) of lists (row data) of all data inserted and potentially returned (in case of sequences) from the database server is returned
+        /** @par Example:
+            @code
+on_success $table_mapper.commit();
+on_error $table_mapper.rollback();
+{
+    on_success $table_mapper.flush();
+    on_error $table_mapper.discard();
+
+    map $table_mapper.queueBatchRow($1), $data.iterator();
+}
+            @endcode
+
+            @return if batch data was inserted then a hash (columns) of lists (row data) of all data inserted and potentially returned (in case of sequences) from the database server is returned
+
+            @note
+            - flush() or discard() needs to be executed for each mapper used in the block when using multiple mappers whereas the DB transaction needs to be committed or rolled back once per datasource 
+
+            @see
+            - queueBatchRow()
+            - discard()
         */
         *hash flush() {
             if (hbuf.firstValue())
                 return flushIntern();
         }
 
-        #! discards any buffered batched data
+        #! discards any buffered batched data; this method should be called after using the batch APIs (queueBatchRow()) and an error occurs
+        /** @par Example:
+            @code
+on_success $table_mapper.commit();
+on_error $table_mapper.rollback();
+{
+    on_success $table_mapper.flush();
+    on_error $table_mapper.discard();
+
+    map $table_mapper.queueBatchRow($1), $data.iterator();
+}
+            @endcode
+
+            @note
+            - flush() or discard() needs to be executed for each mapper used in the block when using multiple mappers whereas the DB transaction needs to be committed or rolled back once per datasource 
+
+            @see
+            - queueBatchRow()
+            - flush()
+        */
         discard() {
             delete hbuf;
         }

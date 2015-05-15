@@ -196,7 +196,7 @@ The expansion is entirely correct because it uses the C preprocessor."
     ;; Fontify function and package names in declarations.
     ("\\<\\(namespace\\|class\\|sub\\|module\\)\\>[ \t]+\\(\\sw+\\)?"
      (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t))
-    ("\\<\\(%include\\|%requires\\|const\\)\\>[ \t]+\\(\\sw+\\)?"
+    ("\\<const\\>[ \t]+\\(\\sw+\\)?"
      (1 font-lock-keyword-face) (2 font-lock-constant-face nil t)))
   "Subdued level highlighting for Qore mode.")
 
@@ -231,15 +231,19 @@ The expansion is entirely correct because it uses the C preprocessor."
     ;;orig '("[$*]{?\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-variable-name-face)
     '("\\${?\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-variable-name-face)
     '("\\$\\.{?\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-variable-name-face)
+
+    '("^\\(%[^ \t]+\\)\\(?:[ \t]+\\)?\\(?:\\(.+\\)\\)?" (1 font-lock-constant-face) (2 font-lock-keywords))
     '("%{?\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-constant-face)
+
     ;;'("\\(\\$#\\)\\(\\sw+\\(::\\sw+\\)*\\)"
     ;;  (2 (cons font-lock-variable-name-face '(underline))))
     '("<\\(\\sw+\\)>" 1 font-lock-constant-face)
     ;;
     ;; Fontify keywords with/and labels as we do in `c++-font-lock-keywords'.
-    '("\\<\\(continue\\|break\\)\\>[ \t]*\\(\\sw+\\)?"
+    '("\\<\\(continue\\|break\\)\\>[ \]*t\\(\\sw+\\)?"
       (1 font-lock-keyword-face) (2 font-lock-constant-face nil t))
-    '("^[ \t]*\\(\\sw+\\)[ \t]*:[^:]" 1 font-lock-constant-face)))
+    ;;'("^[ \t]*\\(\\sw+\\)[ \t]*:[^:]" 1 font-lock-constant-face)
+    ))
   "Gaudy level highlighting for Qore mode.")
 
 (defvar qore-font-lock-keywords qore-font-lock-keywords-1
@@ -417,7 +421,6 @@ The expansion is entirely correct because it uses the C preprocessor."
   ;; Tell font-lock that this needs not further processing.
   nil)
 
-
 (defcustom qore-indent-level 4
   "*Indentation of Qore statements with respect to containing block."
   :type 'integer
@@ -479,7 +482,7 @@ create a new comment."
   :type 'boolean
   :group 'qore)
 
-(defcustom qore-nochange ";?#\\|\f\\|\\s(\\|\\(\\w\\|\\s_\\)+:[^:]"
+(defcustom qore-nochange "#\\|\f"
   "*Lines starting with this regular expression are not auto-indented."
   :type 'regexp
   :group 'qore)
@@ -571,6 +574,8 @@ Turning on Qore mode runs the normal hook `qore-mode-hook'."
   (setq comment-end "")
   (make-local-variable 'comment-start-skip)
   (setq comment-start-skip "\\(^\\|\\s-\\);?#+ *")
+  (make-local-variable 'parse-directive)
+  (setq parse-directive "^%")
   (make-local-variable 'comment-indent-function)
   (setq comment-indent-function 'qore-comment-indent)
   (make-local-variable 'parse-sexp-ignore-comments)
@@ -603,7 +608,7 @@ Turning on Qore mode runs the normal hook `qore-mode-hook'."
 (defalias 'electric-qore-terminator 'qore-electric-terminator)
 (defun qore-electric-terminator (arg)
   "Insert character and adjust indentation.
-If at end-of-line, and not in a comment or a quote, correct the's indentation."
+If at end-of-line, and not in a comment or a quote, correct the line's indentation."
   (interactive "P")
   (let ((insertpos (point)))
     (and (not arg)			; decide whether to indent
@@ -757,9 +762,9 @@ changed by, or (parse-state) if line starts in a quoted string."
   (or
    (and virtual (save-excursion (skip-chars-backward " \t") (bolp))
 	(current-column))
-   (and (looking-at "\\(\\w\\|\\s_\\)+:[^:]")
-	(max 1 (+ (or default (qore-calculate-indent parse-start))
-		  qore-label-offset)))
+;;   (and (looking-at "\\(\\w\\|\\s_\\)+:[^:]")
+;;	(max 1 (+ (or default (qore-calculate-indent parse-start))
+;;		  qore-label-offset)))
    (and (= (char-syntax (following-char)) ?\))
 	(save-excursion
 	  (forward-char 1)
