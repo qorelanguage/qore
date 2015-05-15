@@ -1752,7 +1752,6 @@ db.computeStatistics(opts);
     |!Option|!Type|!Description
     |\c tables|list of strings|If it's set, the table by table statistics are computed. Otherwise all tables in the user DB are used.
     |\c no-binlog|Boolean|If True, the "no_write_to_binlog" is used. If False (default), the "local" keyword is used.
-
 */
 
 #! the SqlUtil namespace contains all the objects in the SqlUtil module
@@ -1923,10 +1922,15 @@ public namespace SqlUtil {
     */           
     public const COP_YEAR_HOUR = "year_hour";
 
-    #! to return the value of a sequence
+    #! to return the next value of a sequence
     /** @see cop_seq()
     */           
     public const COP_SEQ = "seq";
+
+    #! to return the last value of a sequence issued in the same session
+    /** @see cop_seq_currval()
+    */           
+    public const COP_SEQ_CURRVAL = "seq_currval";
 
     #! a hash of default column operator descriptions
     public const DefaultCopMap = (
@@ -2429,11 +2433,26 @@ my *list $rows = $table.selectRows(("columns": ("id", "name", cop_seq("xid")), "
     public hash sub cop_seq(string seq) {
         return make_cop(COP_SEQ, seq);
     }
+
+    #! returns a hash for the \c "seq_currval" operator with the given argument giving the sequence name whose current value should be returned
+    /** @par Example:
+        @code
+my *list $rows = $table.selectRows(("columns": ("id", "name", cop_seq("xid"), cop_seq_currval("xid")), "where": ("type": "user")));
+        @endcode
+
+        @param seq the name of the sequence whose current value should be returned
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    public hash sub cop_seq_currval(string seq) {
+        return make_cop(COP_SEQ_CURRVAL, seq);
+    }
     #@}
 
     /** @defgroup sql_uops SQL Update Operators
         These are the operators that can be used in update statements to process column values automatically
      */
+    #@{
     #! a hash of valid update operators
     public const DefaultUopMap = (
         COP_PREPEND: True,
@@ -2441,6 +2460,7 @@ my *list $rows = $table.selectRows(("columns": ("id", "name", cop_seq("xid")), "
         COP_UPPER: True,
         COP_LOWER: True,
         COP_SEQ: True,
+        COP_SEQ_CURRVAL: True,
         );
     #@}
 
@@ -2451,11 +2471,12 @@ my *list $rows = $table.selectRows(("columns": ("id", "name", cop_seq("xid")), "
         - @ref uop_upper(): return a column in upper case
         - @ref uop_lower(): return a column in lower case
         - @ref uop_seq(): returns the value of the given sequence
+        - @ref uop_seq_currval(): returns the last value issued in the current session for the given sequence
 
         Update operator functions can be nested as in the following example:
         @par Example:
         @code
-my int $rows_updated = t.update(("permission_type": uop_append("-migrated", uop_lower())));
+my int $rows_updated = $t.update(("permission_type": uop_append("-migrated", uop_lower())));
         @endcode
      */
     #@{
@@ -2475,7 +2496,7 @@ my int $rows_updated = t.update(("permission_type": uop_append("-migrated", uop_
     #! returns a hash for the \c "prepend" operator with the given argument
     /** @par Example:
         @code
-my int $rows_updated = t.update(("permission_type": uop_prepend("migrated-", uop_lower())));
+my int $rows_updated = $t.update(("permission_type": uop_prepend("migrated-", uop_lower())));
         @endcode
 
         @param arg the text to prepend to the row values in the output column
@@ -2490,7 +2511,7 @@ my int $rows_updated = t.update(("permission_type": uop_prepend("migrated-", uop
     #! returns a hash for the \c "append" or concatenate operator with the given argument
     /** @par Example:
         @code
-my int $rows_updated = t.update(("permission_type": uop_append("-migrated", uop_lower())));
+my int $rows_updated = $t.update(("permission_type": uop_append("-migrated", uop_lower())));
         @endcode
 
         @param arg the text to prepend to the row values in the output column
@@ -2505,7 +2526,7 @@ my int $rows_updated = t.update(("permission_type": uop_append("-migrated", uop_
     #! returns a hash for the \c "upper" operator with the given argument; returns a column value in upper case
     /** @par Example:
         @code
-my int $rows_updated = t.update(("permission_type": uop_upper()));
+my int $rows_updated = $t.update(("permission_type": uop_upper()));
         @endcode
 
         @param nest any nested operation to the operator
@@ -2519,7 +2540,7 @@ my int $rows_updated = t.update(("permission_type": uop_upper()));
     #! returns a hash for the \c "lower" operator with the given argument; returns a column value in lower case
     /** @par Example:
         @code
-my int $rows_updated = t.update(("permission_type": uop_lower()));
+my int $rows_updated = $t.update(("permission_type": uop_lower()));
         @endcode
 
         @param nest any nested operation to the operator
@@ -2533,7 +2554,7 @@ my int $rows_updated = t.update(("permission_type": uop_lower()));
     #! returns a hash for the \c "seq" operator with the given argument giving the sequence name whose value should be returned
     /** @par Example:
         @code
-my *list $rows = $table.selectRows(("columns": ("id", "name", cop_seq("xid")), "where": ("type": "user")));
+my *list $rows = $t.update(("id": uop_seq("xid")), ("type": "user"));
         @endcode
 
         @param seq the name of the sequence whose value should be returned
@@ -2542,6 +2563,20 @@ my *list $rows = $table.selectRows(("columns": ("id", "name", cop_seq("xid")), "
     */
     public hash sub uop_seq(string seq) {
         return make_uop(COP_SEQ, seq);
+    }
+
+    #! returns a hash for the \c "seq" operator with the given argument giving the sequence name whose current value should be returned
+    /** @par Example:
+        @code
+my *list $rows = $t.update(("id": uop_seq("xid")), ("type": "user"));
+        @endcode
+
+        @param seq the name of the sequence whose current value should be returned
+
+        @return an update operator description hash corresponding to the arguments for use in update statements
+    */
+    public hash sub uop_seq_currval(string seq) {
+        return make_uop(COP_SEQ_CURRVAL, seq);
     }
     #@}
 
@@ -3383,8 +3418,13 @@ my *list $rows = $table.selectRows(("where": ("name": op_ceq("other_name"))));
     /** @see iop_seq()
     */
     public const IOP_SEQ = "seq";
-    
-    #! a hash of default insert operator descriptions
+
+    #! for using the last value of a sequence issued in the current session
+    /** @see iop_seq_currval()
+    */
+    public const IOP_SEQ_CURRVAL = "seq_currval";
+
+    #! a hash of default insert operator descriptions (currently empty, all operators are driver-dependent)
     public const DefaultIopMap = {};
     #@}
 
@@ -3417,6 +3457,20 @@ $table.insert(("id": $id, "ref": iop_seq("xid")));
     */
     public hash sub iop_seq(string arg) {
         return make_iop(IOP_SEQ, arg);
+    }
+
+    #! returns a hash for retrieving the current value of the given sequence in insert queries
+    /** @par Example:
+        @code
+$table.insert(("id": $id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
+        @endcode
+
+        @param arg the name of the sequence whose current value should be inserted into the column
+
+        @return a value operator description hash corresponding to the arguments for use in insert queries
+    */
+    public hash sub iop_seq_currval(string arg) {
+        return make_iop(IOP_SEQ_CURRVAL, arg);
     }
     #@}
 
@@ -5727,6 +5781,20 @@ my number $n = $db.getNextSequenceValue("seq_customers");
             return db.getNextSequenceValue(name);
         }
 
+        #! returns the last value issued for the given sequence in the current session
+        /** @par Example:
+            @code
+my number $n = $db.getCurrentSequenceValue("seq_customers");
+            @endcode
+
+            @param name the name of the sequence
+
+            @return the last value issued for the given sequence in the current session
+        */
+        int getCurrentSequenceValue(string name) {
+            return db.getCurrentSequenceValue(name);
+        }
+
         #! returns an SQL string corresponding to the list of commands in the argument
         /** @par Example:
             @code
@@ -7033,6 +7101,20 @@ my number $n = $db.getNextSequenceValue("seq_customers");
             return getNextSequenceValueImpl(name);
         }
 
+        #! returns the last value issued for the given sequence in the current session
+        /** @par Example:
+            @code
+my number $n = $db.getCurrentSequenceValue("seq_customers");
+            @endcode
+
+            @param name the name of the sequence
+
+            @return the last value issued for the given sequence in the current session
+        */
+        int getCurrentSequenceValue(string name) {
+            return getCurrentSequenceValueImpl(name);
+        }
+
         #! returns an SQL string corresponding to the list of commands in the argument
         /** @par Example:
             @code
@@ -7304,6 +7386,8 @@ my string $sql = $t.getSqlFromList($list);
 
         #! returns the next value in the given sequence
         private abstract int getNextSequenceValueImpl(string name);
+        #! returns the last value issued for the given sequence in the current session
+        private abstract int getCurrentSequenceValueImpl(string name);
 
         #! returns @ref Qore::True "True" if the database supports sequences
         private abstract bool supportsSequencesImpl();

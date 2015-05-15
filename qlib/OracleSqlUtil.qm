@@ -1431,6 +1431,11 @@ my any $v = $c.name;
             return ds.selectRow("select %s.nextval from dual", name).nextval;
         }
 
+        #! returns the last value issued for the given sequence in the current session
+        private softint getCurrentSequenceValueImpl(string name) {
+            return ds.selectRow("select %s.currval from dual", name).nextval;
+        }
+
         #! returns @ref Qore::True "True" if the database supports sequences
         private bool supportsSequencesImpl() {
             return True;
@@ -1852,6 +1857,11 @@ my any $v = $c.name;
                         return sprintf("%s.nextval", arg);
                     }
                 ),
+                COP_SEQ_CURRVAL: (
+                    "code": string sub (string arg1, any arg) {
+                        return sprintf("%s.currval", arg);
+                    }
+                ),
                 );
 
             #! a hash of default value operator descriptions for Oracle
@@ -1861,6 +1871,13 @@ my any $v = $c.name;
                     "immediate": True,
                     "code": string sub (string cve, string arg) {
                         return sprintf("%s.nextval", arg);
+                    },
+                ),
+                IOP_SEQ_CURRVAL: (
+                    "arg": Type::String,
+                    "immediate": True,
+                    "code": string sub (string cve, string arg) {
+                        return sprintf("%s.currval", arg);
                     },
                 ),
                 );

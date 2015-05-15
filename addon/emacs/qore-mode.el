@@ -574,8 +574,6 @@ Turning on Qore mode runs the normal hook `qore-mode-hook'."
   (setq comment-end "")
   (make-local-variable 'comment-start-skip)
   (setq comment-start-skip "\\(^\\|\\s-\\);?#+ *")
-  (make-local-variable 'parse-directive)
-  (setq parse-directive "^%")
   (make-local-variable 'comment-indent-function)
   (setq comment-indent-function 'qore-comment-indent)
   (make-local-variable 'parse-sexp-ignore-comments)

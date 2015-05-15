@@ -298,12 +298,24 @@ InboundTableMapper mapper(table, DbMapper);
                 else
                     return;
             }
+            if (m.sequence_currval) {
+                if (!has_returning) {
+                    try {
+                        v = db.getCurrentSequenceValue(m.sequence_currval);
+                    }
+                    catch (hash ex) {
+                        throw ex.err, sprintf("%s (sequence: %y)", ex.desc, m.sequence_currval), ex.arg;
+                    }
+                }
+                else
+                    return;
+            }
             Mapper::mapFieldType(key, m, \v, rec);
         }
 
         #! returns @ref Qore::True "True" if the field has a mapping, @ref Qore::False "False" if not
         private bool hasMapping(hash fh) {
-            return fh.name || fh.struct || fh.code || fh.sequence;
+            return fh.name || fh.struct || fh.code || fh.sequence || fh.sequence_currval;
         }
 
         #! perform per-field pre-processing on the passed map in the constructor
@@ -331,6 +343,26 @@ InboundTableMapper mapper(table, DbMapper);
                     ret_args += k;
                 }
             }
+            if (fh.sequence_currval) {
+                if (fh.sequence_currval.typeCode() != NT_STRING)
+                    error("column '%s.%s' has a sequence_currval key assigned to type '%s' (%y)", table.getSqlName(), getFieldName(k), fh.sequence_currval.type(), fh.sequence_currval);
+
+                if (!has_returning) {
+                    if (!db)
+                        db = AbstractDatabase::getDatabase(table.getDatasource());
+                
+                    if (fh.type) {
+                        if (fh.type != "number" && fh.type != "integer")
+                            error("column '%s.%s' has a 'sequence_currval' key, but the type is '%s'", table.getSqlName(), getFieldName(k), fh.type);
+                    }
+                    else
+                        fh.type = "number";
+                }
+                else {
+                    fh.constant = iop_seq_currval(fh.sequence_currval);
+                    ret_args += k;
+                }
+            }
 
             Mapper::checkMapField(k, \fh);
         }
@@ -339,7 +371,7 @@ InboundTableMapper mapper(table, DbMapper);
         /** @return a list of valid types for this class (can be overridden in subclasses)
         */
         hash validTypes() {
-            return ValidTypes + (has_returning ? ("sequence": True) : NOTHING);
+            return ValidTypes + (has_returning ? ("sequence": True, "sequence_currval": True) : NOTHING);
         }
 
         #! returns a list of valid field keys for this class (can be overridden in subclasses)
@@ -348,6 +380,7 @@ InboundTableMapper mapper(table, DbMapper);
         hash validKeys() {
             return Mapper::ValidKeys + (
                 "sequence": True,
+                "sequence_currval": True,
                 );
         }
 

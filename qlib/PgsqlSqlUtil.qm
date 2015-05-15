@@ -1108,6 +1108,11 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             return ds.selectRow("select nextval(%v)", name).nextval;
         }
 
+        #! returns the last value issued for the given sequence in the current session
+        private softint getCurrentSequenceValueImpl(string name) {
+            return ds.selectRow("select currval(%v)", name).nextval;
+        }
+
         #! returns @ref Qore::True "True" if the database supports sequences
         private bool supportsSequencesImpl() {
             return True;
@@ -1319,6 +1324,11 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                         return sprintf("nextval('%s')", arg);
                     }
                 ),
+                COP_SEQ_CURRVAL: (
+                    "code": string sub (string arg1, string arg) {
+                        return sprintf("currval('%s')", arg);
+                    }
+                ),
                 );
 
             #! a hash of default value operator descriptions for PostgreSQL
@@ -1326,6 +1336,10 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 IOP_SEQ: (
                     "arg": Type::String,
                     "placeholder": "nextval(%v)",
+                ),
+                IOP_SEQ_CURRVAL: (
+                    "arg": Type::String,
+                    "placeholder": "currval(%v)",
                 ),
                 );
         }

@@ -813,6 +813,11 @@ end";
             return seqds.selectRow("select nextval(%s)", name).nextval;
         }
 
+        #! returns the last value issued for the given sequence in the current session
+        private softint getCurrentSequenceValueImpl(string name) {
+            throw "MYSQL-SEQUENCE-ERROR", "currval is not supported for emulated MySQL sequences";
+        }
+
         #! returns @ref Qore::True "True" since we have a workaround implementation for sequences in MySQL
         private bool supportsSequencesImpl() {
             return False;
