@@ -575,9 +575,6 @@ on_error $table_mapper.rollback();
                 rethrow;
             }
 
-            if (rh && rh.firstValue().typeCode() != NT_LIST)
-                map rh.($1.key) = (rh.($1.value),), rh.pairIterator();
-            
             # get return value
             hash rv = hbuf + rh;
             # clear buffer but keep hash keys
