@@ -232,7 +232,7 @@ The expansion is entirely correct because it uses the C preprocessor."
     '("\\${?\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-variable-name-face)
     '("\\$\\.{?\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-variable-name-face)
 
-    '("^\\(%[^ \t]+\\)\\(?:[ \t]+\\)?\\(?:\\(.+\\)\\)?" (1 font-lock-constant-face) (2 font-lock-keywords))
+    '("^\\(%[^ \t]+\\)\\(?:[ \t]+?\\(.+\\)\\)?" (1 font-lock-constant-face) (2 font-lock-keywords))
     '("%{?\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-constant-face)
 
     ;;'("\\(\\$#\\)\\(\\sw+\\(::\\sw+\\)*\\)"

@@ -121,18 +121,18 @@ static const char* memstr(const char* str, const char* pattern, qore_size_t pl, 
    return 0;
 }
 
-static void split_add_element(QoreListNode *l, const char* str, unsigned len, const QoreEncoding *enc) {
+static void split_add_element(QoreListNode* l, const char* str, unsigned len, const QoreEncoding *enc) {
    if (enc)
       l->push(new QoreStringNode(str, len, enc));
    else {
-      BinaryNode *b = new BinaryNode;
+      BinaryNode* b = new BinaryNode;
       b->append(str, len);
       l->push(b);
    }
 }
 
-QoreListNode *split_intern(const char* pattern, qore_size_t pl, const char* str, qore_size_t sl, const QoreEncoding *enc, bool with_separator) {
-   QoreListNode *l = new QoreListNode();
+QoreListNode* split_intern(const char* pattern, qore_size_t pl, const char* str, qore_size_t sl, const QoreEncoding *enc, bool with_separator) {
+   QoreListNode* l = new QoreListNode();
    const char* ostr = str;
    while (const char* p = memstr(str, pattern, pl, sl - (str - ostr))) {
       split_add_element(l, str, p - str + (with_separator ? pl : 0), enc);
@@ -234,11 +234,11 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
    return l.release();
 }
 
-QoreStringNode *join_intern(const QoreStringNode *p0, const QoreListNode *l, int offset, ExceptionSink* xsink) {
+QoreStringNode* join_intern(const QoreStringNode* p0, const QoreListNode* l, int offset, ExceptionSink* xsink) {
    SimpleRefHolder<QoreStringNode> str(new QoreStringNode(p0->getEncoding()));
 
    for (unsigned i = offset; i < l->size(); i++) {
-      const AbstractQoreNode *p = l->retrieve_entry(i);
+      const AbstractQoreNode* p = l->retrieve_entry(i);
       if (p) {
 	 QoreStringValueHelper t(p, p0->getEncoding(), xsink);	 
 	 if (*xsink)
@@ -1222,7 +1222,7 @@ string replace(string str, string source, string target, int start = 0, int end 
    if (*xsink)
       return 0;
 
-   QoreStringNode *nstr = new QoreStringNode(ccs);   
+   QoreStringNode* nstr = new QoreStringNode(ccs);   
 
    const char* cstr, *pattern;
    cstr = str->getBuffer();
@@ -1332,7 +1332,7 @@ my string $line = chomp("hello\n"); # returns "hello"
     @see the @ref chomp "chomp operator"
  */
 string chomp(string str) [flags=CONSTANT] {
-   QoreStringNode *rv = str->copy();
+   QoreStringNode* rv = str->copy();
    rv->chomp();
    return rv;
 }
@@ -1354,7 +1354,7 @@ chomp(\$str);
    if (!ref || ref.getType() != NT_STRING)
       return 0;
 
-   QoreStringNode *rv = reinterpret_cast<QoreStringNode *>(ref.getUnique(xsink));
+   QoreStringNode* rv = reinterpret_cast<QoreStringNode* >(ref.getUnique(xsink));
    if (*xsink)
       return 0;
 
@@ -1385,7 +1385,7 @@ my string $tstr = trim($str);
  */
 string trim(string str, *string chars) [flags=CONSTANT] {
    const char* tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
-   QoreStringNode *rv = str->copy();
+   QoreStringNode* rv = str->copy();
    rv->trim(tchars);
    return rv;
 }
@@ -1412,7 +1412,7 @@ trim(\$str);
    if (!ref || ref.getType() != NT_STRING)
       return 0;
 
-   QoreStringNode *rv = reinterpret_cast<QoreStringNode *>(ref.getUnique(xsink));
+   QoreStringNode* rv = reinterpret_cast<QoreStringNode* >(ref.getUnique(xsink));
    if (*xsink)
       return 0;
 
@@ -1711,7 +1711,7 @@ f_printf("%5s", "a long string"); # will print out "a lon"
     - printf() for a similar function that does not enforce field widths
  */
 string f_printf(string[doc] fmt, ...) [dom=TERMINAL_IO] {
-   AbstractQoreNode *node;
+   AbstractQoreNode* node;
    print_node(stdout, node = q_sprintf(args, 1, 0, xsink));
    return node;
 }
@@ -1742,7 +1742,7 @@ printf("%5s", "a long string"); # will print out "a long string"
     - f_printf() for a similar function that enforces field widths
  */
 string printf(string[doc] fmt, ...) [dom=TERMINAL_IO] {
-   AbstractQoreNode *node;
+   AbstractQoreNode* node;
    print_node(stdout, node = q_sprintf(args, 0, 0, xsink));
    return node;
 }
@@ -1775,7 +1775,7 @@ f_vprintf("%5s %3d", ("a long string", 5000)); # will print out "a lon 500"
     @since %Qore 0.8.4
  */
 string f_vprintf(string[doc] fmt, any[doc] varg) [dom=TERMINAL_IO] {
-   AbstractQoreNode *node;
+   AbstractQoreNode* node;
    print_node(stdout, node = q_vsprintf(args, 1, 0, xsink));
    return node;
 }
@@ -1799,7 +1799,7 @@ vprintf("%5s %3d", ("a long string", 5000)); # will print out "a long string 500
     - f_vprintf() for a similar function that enforces field widths
  */
 string vprintf(string[doc] fmt, ...) [dom=TERMINAL_IO] {
-   AbstractQoreNode *node;
+   AbstractQoreNode* node;
    print_node(stdout, node = q_vsprintf(args, 0, 0, xsink));
    return node;
 }

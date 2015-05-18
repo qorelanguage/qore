@@ -204,15 +204,23 @@ number number() [flags=CONSTANT] {
 //! Converts the argument to a string
 /** 
     @param str the argument to convert to a string
+    @param enc the encoding of the string returned
 
-    @return the string value corresponding to the argument
+    @return the string value corresponding to the argument(s)
 
     @par Example:
     @code
 my string $str = string(100);
     @endcode
+
+    @since the \c enc argument was added in %Qore 0.8.12
 */
-string string(softstring str) [flags=CONSTANT] {
+string string(softstring str, *string enc) [flags=CONSTANT] {
+   if (enc) {
+      const QoreEncoding* e = QEM.findCreate(enc->getBuffer());
+      if (e != str->getEncoding())
+         return str->convertEncoding(e, xsink);
+   }
    return str->refSelf();
 }
 
