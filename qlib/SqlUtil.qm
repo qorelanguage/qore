@@ -11030,7 +11030,7 @@ my list $l = $table.getAddColumnSql("name", ("qore_type": Type::String, "size": 
             AbstractColumn c = addColumnImpl(cname, opt, nullable);
 
             # add column in table if the table is already known to be in the database
-            lsql = c.getCreateSql(self);
+            lsql = c.getAddColumnSql(self);
             if (do_exec)
                 execSql(lsql);
 
