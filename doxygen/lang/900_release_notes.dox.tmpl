@@ -128,6 +128,10 @@
       - implemented the global \c "date_format" mapper option
       - implemented support for structured output fields with dot notation in the output field name
       - implemented per-field and global \c "number_format" mapper options
+      - fixed bugs in the \c "timezone" and \c "input_timezone" options, documented those options
+      - changed the behavior of the \c "number" field type: now leaves numeric values in their original type, converts all other types to a number
+      - removed the deprecated \c "crec" option
+      - implemented the \c "input" option with input record validation
     - <a href="../../modules/TableMapper/html/index.html">TableMapper</a> module updates:
       - added table name and datasource description to error messages
       - implemented more efficient support for inserts from a sequence for databases supporting the \c "returning" clause in insert statements; now such inserts are made in a single round trip instead of n + 1 where n is the number of sequences in the insert

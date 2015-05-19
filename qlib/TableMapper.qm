@@ -268,8 +268,8 @@ InboundTableMapper mapper(table, DbMapper);
                     continue;
 
                 if (t != NT_HASH) {
-                    if (t == NT_NOTHING && mand && !exists crec{cn})
-                        error("output column '%s.%s' has a NOT NULL constraint and no default value, and the mapper object has no mapping or constant value; please provide a mapping or constant value for this column", table.getSqlName(), getFieldName(cn));
+                    if (t == NT_NOTHING && mand)
+                        error("output column '%s.%s' has a NOT NULL constraint and no default value, and the mapper object has no mapping; please provide a mapping for this column", table.getSqlName(), getFieldName(cn));
                     convertToHash(t, cn, \ch);
                 }
 
@@ -404,7 +404,7 @@ InboundTableMapper mapper(table, DbMapper);
             @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data        
         */
         hash insertRowNoCommit(hash rec) {
-            hash h = mapDataIntern(rec + crec);
+            hash h = mapDataIntern(rec);
             *hash rh;
 
             if (unstable_input)
@@ -481,7 +481,7 @@ on_error $table_mapper.rollback();
             if (insert_block == 1)
                 return insertRowNoCommit(rec);
 
-            hash h = mapDataIntern(rec + crec);
+            hash h = mapDataIntern(rec);
 
             # map a single record to get the keys for the buffer
             if (!hbuf)
