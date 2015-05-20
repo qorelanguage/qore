@@ -104,7 +104,7 @@ printf("%d record%s inserted\n", map.getCount(), map.getCount() == 1 ? "" : "s")
       - \c unstable_input: to accommodate unstable input data and disable the insert optimization (default: False)
       - \c insert_block: for DB drivers supporting bulk DML (for use with the TableMapper::InboundTableMapper::queueBatchRow(), TableMapper::InboundTableMapper::flush(), and TableMapper::InboundTableMapper::discard() methods), the number of rows inserted at once (default: 500, only used when \c unstable_input is @ref Qore::False "False") and bulk inserts are supported in the table object
     - added method for bulk / batch inserts for db drivers supporting bulk DML (ex: Oracle)
-    - updated to Mapper changes: use table description to define output record for Mapper module
+    - updated to Mapper changes: use table description to define output record for the Mapper module
 
     @subsection tablemapperv1_0 TableMapper v1.0
     - Initial release.
@@ -116,7 +116,10 @@ public namespace TableMapper {
     public class InboundTableMapper inherits Mapper::Mapper {
         public {
             #! option keys for this object
-            const OptionKeys = Mapper::OptionKeys + (map {$1: True}, OptionDefaults.keyIterator());
+            const OptionKeys = Mapper::OptionKeys + (
+                "unstable_input": sprintf("if this is set to True then a slower insert method will be used that verifies each input row; if False an optimized insert method is used (additionally bulk inserts are possible) but all input hashes must have the same keys in the same order; default: %y", OptionDefaults.unstable_input),
+                "insert_block": sprintf("the row block size used when bulk DML / batch inserts are used; default: %y", OptionDefaults.insert_block),
+                );
 
             #! default option values
             const OptionDefaults = (
@@ -228,17 +231,13 @@ InboundTableMapper mapper(table, DbMapper);
             if (hbuf.firstValue())
                 throw "BLOCK-ERROR", sprintf("there %s still %d row%s of data in the block cache; make sure to call %s::flush() or %s::discard() before destroying the object to flush all data to the database", hbuf.firstValue().size() == 1 ? "is" : "are", hbuf.firstValue().size(), hbuf.firstValue().size() == 1 ? "" : "s", self.className(), self.className());
         }
-        
-        #! common constructor initialization
-        private init(hash mapv, *hash opts) {
-            has_returning = table.hasReturning();
 
-            # setup output description for Mapper
+        static hash getOutputRecord(*string mname, AbstractTable table, *hash output) {
             Columns cols = table.describe();
             # update output field definitions from real table description
             foreach AbstractColumn col in (cols.iterator()) {
                 string cn = col.name.lwr();
-                reference outf = \opts.output{cn};
+                reference outf = \output{cn};
                 if (outf.typeCode() != NT_HASH)
                     outf = {};
                 if (!col.nullable && !exists col.def_val)
@@ -253,10 +252,20 @@ InboundTableMapper mapper(table, DbMapper);
                         outf.type = col.qore_type;
                         break;
                     default:
-                        error2("TABLE-ERROR", "column '%s.%s' has unknown native type %y", table.getSqlName(), cn, col.native_type);
+                        throw "TABLE-ERROR", sprintf("%scolumn '%s.%s' has unknown native type %y", mname ? sprintf("mapper %y: ", mname) : "", mname, table.getSqlName(), cn, col.native_type);
                 }
-
+                if (col.comment)
+                    outf.desc = col.comment;
             }
+            return output;
+        }
+        
+        #! common constructor initialization
+        private init(hash mapv, *hash opts) {
+            has_returning = table.hasReturning();
+
+            # setup output description for Mapper
+            opts.output = InboundTableMapper::getOutputRecord(opts.name, table, opts.output);
             
             setup(mapv, opts);
 

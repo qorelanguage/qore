@@ -133,6 +133,7 @@
       - removed the deprecated \c "crec" option
       - implemented the \c "input" option with input record validation
       - implemented the \c "output" option with output record validation
+      - implemented the \c "info_log" option and removed the \c "trunc" option
     - <a href="../../modules/TableMapper/html/index.html">TableMapper</a> module updates:
       - added table name and datasource description to error messages
       - implemented more efficient support for inserts from a sequence for databases supporting the \c "returning" clause in insert statements; now such inserts are made in a single round trip instead of n + 1 where n is the number of sequences in the insert
@@ -141,7 +142,7 @@
         - \c unstable_input: to accommodate unstable input data and disable the insert optimization (default: False)
         - \c insert_block: for DB drivers supporting bulk DML, the number of rows inserted at once (default: 500, only used when \c unstable_input is False) and bulk inserts are supported in the table object
       - added methods for bulk / batch inserts for db drivers supporting bulk DML (ex: Oracle)
-      - updated to <a href="../../modules/Mapper/html/index.html">Mapper</a> changes: use table description to define output record for <a href="../../modules/Mapper/html/index.html">Mapper</a> module
+      - updated to <a href="../../modules/Mapper/html/index.html">Mapper</a> changes: use table description to define output record for the <a href="../../modules/Mapper/html/index.html">Mapper</a> module
     - <a href="../../modules/RestClient/html/index.html">RestClient</a> module updates:
       - implemented RestClient::addDefaultHeaders()
       - implemented RestClient::getDefaultHeaders()

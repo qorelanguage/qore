@@ -175,7 +175,6 @@ list: (2 elements)
         - \c "string": field accepts string values; in this case any other value will be converted to a string in the output
     - \c "output_log": an optional output data logging callback; must accept a hash giving the output data hash
     - \c "timezone": an optional string or integer (giving seconds east of UTC) giving the time zone definition for output data (ex: \c "Europe/Prague"), if not set defaults to the current TimeZone (see @ref Qore::TimeZone::get())
-    - \c "trunc": an optional @ref closure "closure" or @ref call_reference "call reference" for a callback for field truncation warnings; must accept a single string giving the warning text
     - \c "trunc_all": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then any field without a \c "trunc" key (see @ref mapperkeys \c "trunc" description) will automatically be truncated if a \c "maxlen" attribute is set for the field
 
     @note
@@ -196,6 +195,7 @@ list: (2 elements)
     - removed the deprecated \c "crec" option
     - implemented the \c "input" option with input record validation
     - implemented the \c "output" option with output record validation
+    - implemented the \c "info_log" option and removed the \c "trunc" option
 
     @subsection mapperv1_0 Mapper v1.0
     - Initial release
@@ -208,6 +208,55 @@ public namespace Mapper {
         public {
             #! field keys that conflict with "constant"
             const ConstantConflictList = ("name", "struct", "code", "default");
+
+            #! constructor option keys (can be extended by subclassing and reimplementing optionKeys())
+            const OptionKeys = (
+                "date_format": "gives the default format for parsing dates from strings; ex: \"MM/DD/YYYY HH:mm:SS\"",
+                "enc": "gives the default output character encoding for string fields",
+                "info_log": "a call reference / closure for informational logging",
+                "input": "a hash describing the input record",
+                "input_log": "a call reference / closure for input record logging",
+                "input_timezone": "the default timezone to assume when parsing input dates",
+                "name": "the name of the Mapper object",
+                "number_format": "the default number format when parsing number fields from strings; ex: \".,\"",
+                "output": "a hash describing the output record",
+                "output_log": "a call reference / closure for input record logging",
+                "timezone": "the default output timezone for date/time values",
+                "trunc_all": "if True then all output fields will be truncated to the maximum size if the input value exceeds the allowed width in bytes",
+                );
+
+            #! default known mapper hash field keys (can be extended by subclassing and reimplementing validKeys())
+            const ValidKeys = (
+                "name": True,
+                "struct": True,
+                "constant": True,
+                "code": True,
+                "default": True,
+                "maxlen": True,
+                "trunc": True, 
+                "mand": True,
+                "number": True,
+                "type": True,
+                "date_format": True,
+                "number_format": True,
+                );
+
+            #! default known field types (can be extended by subclassing and reimplementing validTypes() and mapFieldType()) 
+            const ValidTypes = (
+                "number": True,
+                "integer": True,
+                "int": True, # is an alias for "integer"
+                "date": True,
+                "string": True,
+                );
+
+            #! output option keys
+            const OutputKeys = (
+                "desc": True,
+                "mand": True,
+                "maxlen": True,
+                "type": True,
+                );
         }
 
         private {
@@ -219,9 +268,6 @@ public namespace Mapper {
 
             #! the optional name for the object (for example a table name); will be prepended to field names in error messages
             *string name;
-
-            #! an optional field truncation callback
-            *code trunc;
 
             #! an optional info logging callback; must accept a sprintf()-style format specifier and optional arguments
             *code info_log;
@@ -261,56 +307,6 @@ public namespace Mapper {
             
             #! count of records mapped
             int count = 0;
-
-            #! constructor option keys (can be extended by subclassing and reimplementing optionKeys())
-            const OptionKeys = (
-                "date_format": True,
-                "enc": True,
-                "info_log": True,
-                "input": True,
-                "input_log": True,
-                "input_timezone": True,
-                "name": True,
-                "number_format": True,
-                "output": True,
-                "output_log": True,
-                "timezone": True,
-                "trunc": True,
-                "trunc_all": True,
-                );
-
-            #! default known mapper hash field keys (can be extended by subclassing and reimplementing validKeys())
-            const ValidKeys = (
-                "name": True,
-                "struct": True,
-                "constant": True,
-                "code": True,
-                "default": True,
-                "maxlen": True,
-                "trunc": True, 
-                "mand": True,
-                "number": True,
-                "type": True,
-                "date_format": True,
-                "number_format": True,
-                );
-
-            #! default known field types (can be extended by subclassing and reimplementing validTypes() and mapFieldType()) 
-            const ValidTypes = (
-                "number": True,
-                "integer": True,
-                "int": True, # is an alias for "integer"
-                "date": True,
-                "string": True,
-                );
-
-            #! output option keys
-            const OutputKeys = (
-                "desc": True,
-                "mand": True,
-                "maxlen": True,
-                "type": True,
-                );
         }
 
         #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
@@ -403,7 +399,6 @@ Mapper mapv(DataMap);
 
             if (opts.enc)
                 enc = opts.enc;
-            trunc = opts.trunc;
             
             if (opts.allow_dot)
                 allow_dot = parse_boolean(opts.allow_dot);
@@ -530,6 +525,9 @@ Mapper mapv(DataMap);
             # check for contradictory definitions and assign values according to the output definition
             if (outf) {
                 foreach string ok in (outf.keyIterator()) {
+                    # ignore the "desc" key
+                    if (ok == "desc")
+                        continue;
                     if (exists fh{ok} && outf{ok} != fh{ok})
                         error("field %y has the %y key set to %y but the output definition has %y set to %y", getFieldName(k), ok, fh{ok}, ok, outf{ok});
                     fh{ok} = outf{ok};
@@ -619,6 +617,16 @@ Mapper mapv(DataMap);
             return OptionKeys;
         }
 
+        #! returns the value of the \c "input" option
+        *hash getInputRecord() {
+            return input;
+        }
+        
+        #! returns the value of the \c "output" option
+        *hash getOutputRecord() {
+            return output;
+        }
+        
         #! maps all input records and returns the mapped data as a list of output records
         /** this method applies the @ref mapData() method to all input records and returns the resulting list
             @param recs the list of input records
@@ -723,10 +731,8 @@ Mapper mapv(DataMap);
                 if (m.maxlen && v.size() > m.maxlen) {
                     # truncate the string if necessary
                     if (m.trunc) {
-                        if (trunc) {
-                            string msg = sprintf("field %y = %y input length %d truncating to %d bytes", getFieldName(key), v, v.size(), m.maxlen);
-                            trunc(msg);
-                        }
+                        if (info_log)
+                            info_log("field %y = %y input length %d truncating to %d bytes", getFieldName(key), v, v.size(), m.maxlen);
                         v = trunc_str(v, m.maxlen, enc);
                     }
                     else
