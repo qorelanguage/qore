@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! @file TableMapper.qm provides mapping functionality to a Table target 
+#! @file TableMapper.qm provides mapping functionality to an SQL Table target 
 
 /*  TableMapper.qm Copyright 2014 - 2015 Qore Technologies, sro
 
@@ -104,6 +104,7 @@ printf("%d record%s inserted\n", map.getCount(), map.getCount() == 1 ? "" : "s")
       - \c unstable_input: to accommodate unstable input data and disable the insert optimization (default: False)
       - \c insert_block: for DB drivers supporting bulk DML (for use with the TableMapper::InboundTableMapper::queueBatchRow(), TableMapper::InboundTableMapper::flush(), and TableMapper::InboundTableMapper::discard() methods), the number of rows inserted at once (default: 500, only used when \c unstable_input is @ref Qore::False "False") and bulk inserts are supported in the table object
     - added method for bulk / batch inserts for db drivers supporting bulk DML (ex: Oracle)
+    - updated to Mapper changes: use table description to define output record for Mapper module
 
     @subsection tablemapperv1_0 TableMapper v1.0
     - Initial release.
@@ -231,6 +232,32 @@ InboundTableMapper mapper(table, DbMapper);
         #! common constructor initialization
         private init(hash mapv, *hash opts) {
             has_returning = table.hasReturning();
+
+            # setup output description for Mapper
+            Columns cols = table.describe();
+            # update output field definitions from real table description
+            foreach AbstractColumn col in (cols.iterator()) {
+                string cn = col.name.lwr();
+                reference outf = \opts.output{cn};
+                if (outf.typeCode() != NT_HASH)
+                    outf = {};
+                if (!col.nullable && !exists col.def_val)
+                    outf.mand = True;
+                switch (col.qore_type) {
+                    case "string":
+                        outf += ("maxlen": col.size);
+                        # fall down to next case
+                    case "number":
+                    case "integer":
+                    case "date":
+                        outf.type = col.qore_type;
+                        break;
+                    default:
+                        error2("TABLE-ERROR", "column '%s.%s' has unknown native type %y", table.getSqlName(), cn, col.native_type);
+                }
+
+            }
+            
             setup(mapv, opts);
 
             # set options with defaults
@@ -241,50 +268,6 @@ InboundTableMapper mapper(table, DbMapper);
             
             # check map for logical errors
             checkMap();            
-        }
-        
-        #! verifies the input map in the constructor
-        private checkMap() {
-            Columns cols = table.describe();
-
-            # ensure there are no unknown mappings
-            foreach string k in (mapc.keyIterator()) {
-                if (!cols.hasKey(k))
-                    error("mapper specifies column '%s' that does not exist in target table '%s'", getFieldName(k), table.getSqlName());                
-            }
-
-            # update output field definitions from real table description
-            foreach AbstractColumn col in (cols.iterator()) {
-                string cn = col.name.lwr();
-                reference ch = \mapc{cn};
-                int t = ch.typeCode();
-
-                bool mand;
-                if (!col.nullable && !exists col.def_val)
-                    mand = True;
-
-                # only add column descriptions where mappings are missing if there is a NOT NULL constraint and no default value
-                if (!exists ch && !mand)
-                    continue;
-
-                if (t != NT_HASH) {
-                    if (t == NT_NOTHING && mand)
-                        error("output column '%s.%s' has a NOT NULL constraint and no default value, and the mapper object has no mapping; please provide a mapping for this column", table.getSqlName(), getFieldName(cn));
-                    convertToHash(t, cn, \ch);
-                }
-
-                switch (col.qore_type) {
-                    case "string": ch += ("maxlen": col.size, "trunc": trunc_all); break;
-                    case "number": ch.type = "number"; break;
-                    case "integer": ch.type = "integer"; break;
-                    case "date": ch.type = "date"; break;
-                    default: error2("TABLE-ERROR", "column '%s.%s' has unknown native type %y", table.getSqlName(), cn, col.native_type);
-                }
-                if (mand)
-                    ch.mand = True;
-            }
-
-            map checkMapField($1, \mapc.$1, ("cols": cols)), mapc.keyIterator();
         }
 
         #! performs type handling
@@ -316,16 +299,11 @@ InboundTableMapper mapper(table, DbMapper);
             Mapper::mapFieldType(key, m, \v, rec);
         }
 
-        #! returns @ref Qore::True "True" if the field has a mapping, @ref Qore::False "False" if not
-        private bool hasMapping(hash fh) {
-            return fh.name || fh.struct || fh.code || fh.sequence || fh.sequence_currval;
-        }
-
         #! perform per-field pre-processing on the passed map in the constructor
         /** @param k the field name
             @param fh a reference to the field's value in the map
         */
-        private checkMapField(string k, reference fh, hash th) {
+        private checkMapField(string k, reference fh) {
             if (fh.sequence) {
                 if (fh.sequence.typeCode() != NT_STRING)
                     error("column '%s.%s' has a sequence key assigned to type '%s' (%y)", table.getSqlName(), getFieldName(k), fh.sequence.type(), fh.sequence);

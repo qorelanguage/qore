@@ -134,20 +134,21 @@ list: (2 elements)
       - @ref any_type "any" <i>value</i>: the input field value (with the same name as the output field; to use a different name, see the \a code hash option below)
       - @ref hash_type "hash" <i>rec</i>: the current input record
     - a @ref hash_type "hash" describing the mapping; the following keys are all optional (an empty hash means map from an input field with the same name with no translations):
-      - \c "name": the value of this key gives the name of the input field; only use this if the input record name is different than the output field name; note that if this value contains \c "." characters and the \a allow_dot option is not set (see @ref mapperoptions), then the value will be treated like \c "struct" (the \c "struct" key value will be created automatically); cannot be used with the \c "constant" key
-      - \c "struct": the value of this key gives the location of the input field in an input hash in dot notation, ex: \c "element.name" would look for the field's value in the \c "name" key of the \c "element" hash in the input record; cannot be used with the \c "constant" key; this option is only necessary in place of the "name" option if the \a allow_dot option is set, otherwise use \c "name" instead
-      - \c "constant": the value of this key will be returned as a constant value; this key cannot be used with the \c "name", \c "struct", \c "code", or \c "default" keys
       - \c "code": a closure or call reference to process the field data; cannot be used with the \c "constant" key
-      - \c "date_format": gives the format for converting a string to a date; see @ref date_formatting for the format of this string; note that this also implies \c "type" = \c "date"
+      - \c "constant": the value of this key will be returned as a constant value; this key cannot be used with the \c "name", \c "struct", \c "code", or \c "default" keys
+      - \c "date_format": gives the format for converting an input string to a date; see @ref date_formatting for the format of this string; note that this also implies \c "type" = \c "date"
       - \c "default": gives a default value for the field in case no input or translated value is provided
-      - \c "maxlen": an integer giving the maximum output string field length in bytes
-      - \c "number_format": gives the format for converting a string to a number; see @ref Qore::parse_number() for the format of this string; note that this also implies \c "type" = \c "number"
-      - \c "trunc": assign to boolean @ref Qore::True "True" if the field should be truncated if over the maximum field length; this key can only be set to @ref Qore::True "True" if the \c "maxlen" key is also given
       - \c "mand": assign to boolean @ref Qore::True "True" if the field is mandatory and an exception should be thrown if no input data is supplied
+      - \c "maxlen": an integer giving the maximum output string field length in bytes
+      - \c "name": the value of this key gives the name of the input field; only use this if the input record name is different than the output field name; note that if this value contains \c "." characters and the \a allow_dot option is not set (see @ref mapperoptions), then the value will be treated like \c "struct" (the \c "struct" key value will be created automatically); cannot be used with the \c "constant" key
+      - \c "number_format": gives the format for converting an input string to a number; see @ref Qore::parse_number() for the format of this string; note that this also implies \c "type" = \c "number"
+      - \c "struct": the value of this key gives the location of the input field in an input hash in dot notation, ex: \c "element.name" would look for the field's value in the \c "name" key of the \c "element" hash in the input record; cannot be used with the \c "constant" key; this option is only necessary in place of the "name" option if the \a allow_dot option is set, otherwise use \c "name" instead
+      - \c "trunc": assign to boolean @ref Qore::True "True" if the field should be truncated if over the maximum field length; this key can only be set to @ref Qore::True "True" if the \c "maxlen" key is also given
       - \c "type": this gives the output field type, can be:
-        - \c "number": field accepts only numeric values (any non-numeric values on input will cause an exception to be thrown when mapping); numeric values are left in their original types, any other type is converted to a @ref number_type "arbitrary-precision numeric" value
+        - \c "date": date/time field
         - \c "int": fields accepts only integer values (any non-integer values on input will cause an exception to be thrown when mapping; note: also \c "integer" is accepted as an alias for \c "int") 
-        - \c "date": date field
+        - \c "number": field accepts only numeric values (any non-numeric values on input will cause an exception to be thrown when mapping); numeric values are left in their original types, any other type is converted to a @ref number_type "arbitrary-precision numeric" value
+        - \c "string": field accepts string values; in this case any other value will be converted to a string in the output
 
     @section mapperoptions Mapper Options
 
@@ -157,20 +158,30 @@ list: (2 elements)
     - \c "date_format": gives the global format for converting a string to a date; see @ref date_formatting for the format of this string; this is applied to all fields of type \c "date" unless the field has a \c "date_format" value that overrides this global setting
     - \c "enc": the output character encoding; if not present then \c "UTF-8" is assumed
     - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-style arguments
-    - \c "input": an optional hash describing the input records where each key is a possible input field name (where dot notation indicates a multi-level hash) and each value as a hash describing the field with the following optional keys:
+    - \c "input": an optional hash describing the input records where each key is a possible input field name (where dot notation indicates a multi-level hash) and each value is a hash describing the field with the following optional keys:
       - \c "desc": this gives the description of the input field
     - \c "input_log": an optional input data logging callback; must accept a hash giving the input data hash
     - \c "input_timezone": an optional string or integer (giving seconds east of UTC) giving the time zone for parsing input data (ex: \c "Europe/Prague"), if not set defaults to the current TimeZone (see @ref Qore::TimeZone::get())
     - \c "name": the name of the mapper for use in logging and error strings
     - \c "number_format": gives the global format for converting a string to a number; see @ref Qore::parse_number() for the format of this string; this is applied to all fields of type \c "number" unless the field has a \c "number_format" value that overrides this global setting
+    - \c "output": an optional hash describing the output data structure; each hash key is a output field name (where dot notation indicates a multi-level hash) and each value is an optional hash describing the output field taking an optional \c "desc" key and a subset of @ref mapperkeys "mapper field hash keys" as follows:
+      - \c "desc": a description of the output field
+      - \c "mand": @ref Qore::True "True" if the field is mandatory and an exception should be thrown if no input data is supplied
+      - \c "maxlen": an integer giving the maximum length of a string field in bytes
+      - \c "type": this gives the output field type, can be:
+        - \c "date": date/time field
+        - \c "int": fields accepts only integer values (any non-integer values on input will cause an exception to be thrown when mapping; note: also \c "integer" is accepted as an alias for \c "int") 
+        - \c "number": field accepts only numeric values (any non-numeric values on input will cause an exception to be thrown when mapping); numeric values are left in their original types, any other type is converted to a @ref number_type "arbitrary-precision numeric" value
+        - \c "string": field accepts string values; in this case any other value will be converted to a string in the output
     - \c "output_log": an optional output data logging callback; must accept a hash giving the output data hash
     - \c "timezone": an optional string or integer (giving seconds east of UTC) giving the time zone definition for output data (ex: \c "Europe/Prague"), if not set defaults to the current TimeZone (see @ref Qore::TimeZone::get())
     - \c "trunc": an optional @ref closure "closure" or @ref call_reference "call reference" for a callback for field truncation warnings; must accept a single string giving the warning text
     - \c "trunc_all": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then any field without a \c "trunc" key (see @ref mapperkeys \c "trunc" description) will automatically be truncated if a \c "maxlen" attribute is set for the field
 
     @note
-    - if the \c "input" option is given, then only those defined fields can be referenced as input fields in the @ref mapperkeys "mapper hash"; therefore all possible input fields should be defined here
-    
+    - if the \c "input" option is given, then only those defined fields can be referenced as input fields in the @ref mapperkeys "mapper hash"; all possible input fields should be defined here if this option is used
+    - if the \c "output" option is given, then only those defined fields can be referenced as output fields, additionally the types given in the output definition cannot be overridden in the @ref mapperkeys "mapper hash"; all possible output fields should be defined here if this option is used
+
     @section mapperrelnotes Release Notes
 
     @subsection mapperv1_1 Mapper v1.1
@@ -184,6 +195,7 @@ list: (2 elements)
     - changed the behavior of the \c "number" field type: now leaves numeric values in their original type, converts all other types to a number
     - removed the deprecated \c "crec" option
     - implemented the \c "input" option with input record validation
+    - implemented the \c "output" option with output record validation
 
     @subsection mapperv1_0 Mapper v1.0
     - Initial release
@@ -243,24 +255,28 @@ public namespace Mapper {
 
             #! an optional description of possible input hash keys
             *hash input;
+
+            #! an optional description of the output data structure
+            *hash output;
             
             #! count of records mapped
             int count = 0;
 
             #! constructor option keys (can be extended by subclassing and reimplementing optionKeys())
             const OptionKeys = (
+                "date_format": True,
                 "enc": True,
-                "name": True,
-                "trunc": True,
                 "info_log": True,
                 "input": True,
                 "input_log": True,
+                "input_timezone": True,
+                "name": True,
+                "number_format": True,
+                "output": True,
                 "output_log": True,
                 "timezone": True,
-                "input_timezone": True,
+                "trunc": True,
                 "trunc_all": True,
-                "date_format": True,
-                "number_format": True,
                 );
 
             #! default known mapper hash field keys (can be extended by subclassing and reimplementing validKeys())
@@ -286,6 +302,14 @@ public namespace Mapper {
                 "int": True, # is an alias for "integer"
                 "date": True,
                 "string": True,
+                );
+
+            #! output option keys
+            const OutputKeys = (
+                "desc": True,
+                "mand": True,
+                "maxlen": True,
+                "type": True,
                 );
         }
 
@@ -331,20 +355,50 @@ Mapper mapv(DataMap);
             input_log = opts.input_log;
             output_log = opts.output_log;
 
-            if (opts.input)
+            # validate input record definition
+            if (opts.input) {
+                if (opts.input.typeCode() != NT_HASH)
+                    error("\"input\" option passed to %s::constructor() is not type \"hash\"; got type %y instead", self.className(), opts.input.type());
                 input = opts.input;
-            
+                foreach hash h in (input.pairIterator()) {
+                    switch (h.value.typeCode()) {
+                        case NT_STRING: input{h.key} = ("desc": h.value); break;
+                        case NT_HASH: break;
+                        default: error("\"input\" key %y passed to %s::constructor() assigned to type %y (value %y); expecting \"hash\"", h.key, self.className(), h.value.type(), h.value);
+                    }
+                }
+            }
+
+            # validate output record definition
+            if (opts.output) {
+                if (opts.output.typeCode() != NT_HASH)
+                    error("\"output\" option passed to %s::constructor() is not type \"hash\"; got type %y instead", self.className(), opts.output.type());
+                output = opts.output;
+                foreach hash h in (output.pairIterator()) {
+                    if (h.value === True || !exists h.value) {
+                        output{h.key} = {};
+                        continue;
+                    }
+                    if (h.value.typeCode() != NT_HASH)
+                        error("\"output\" key %y passed to %s::constructor() assigned to type %y (value %y); expecting \"hash\"", h.key, self.className(), h.value.type(), h.value);
+                    foreach string k in (h.value.keyIterator()) {
+                        if (!OutputKeys{k})
+                            error("\"output\" key %y passed to %s::constructor() has unknown key %y (valid keys: %y)", h.key, self.className(), k, OutputKeys.keys());
+                    }
+                }
+            }
+
             if (opts.trunc_all)
                 trunc_all = parse_boolean(opts.trunc_all);
 
             if (!mapv)
-                error("empty map passed to Mapper::constructor()");
+                error("empty map passed to %s::constructor()", self.className());
 
             mapc = mapv;
             hash ck = optionKeys();
             foreach string k in (opts.keyIterator()) {
                 if (!ck{k})
-                    error("unknown option key %y passed to Mapper::constructor(); recognized option keys: %y", getFieldName(k), ck.keys());
+                    error("unknown option key %y passed to %s::constructor(); recognized option keys: %y", getFieldName(k), self.className(), ck.keys());
             }
 
             if (opts.enc)
@@ -378,7 +432,7 @@ Mapper mapv(DataMap);
         private convertToHash(int t, string k, reference fh) {
             switch (t) {
                 # convert to a hash if the value of the column is a string (giving the source key name)
-                case NT_STRING: fh = (!allow_dot && fh =~ /\./ ? ("struct": fh.split(".")) : ("name": fh)); break;
+                case NT_STRING: fh = ("name": fh); break;
                 case NT_CALLREF:
                 case NT_CLOSURE: fh = ("code": fh); break;
                 case NT_BOOLEAN: if (fh) {
@@ -389,14 +443,14 @@ Mapper mapv(DataMap);
                     fh = {};
                     break;
                 }
-                default: error("unsupported type %y assigned to map key %y", fh.type(), k);
+                default: error("unsupported type %y assigned to output field %y", fh.type(), getFieldName(k));
             }
         }
 
-        #! raises an error if an invalid input field name is declared; only call this if input is defined
+        #! raises an error if an invalid input field name is declared; only call this if "input" is defined
         private checkInputField(string k, string name) {
             if (!input.hasKey(name))
-                error("field %y requires unknown input field %y; valid input fields are: %y", getFieldName(k), name, input.keys());
+                error("output field %y requires unknown input field %y; valid input fields are: %y", getFieldName(k), name, input.keys());
         }
         
         #! perform per-field pre-processing on the passed map in the constructor
@@ -404,29 +458,33 @@ Mapper mapv(DataMap);
             @param fh a reference to the field's value in the map
         */
         private checkMapField(string k, reference fh, *hash th) {
+            *hash outf;
+            # check output name
+            if (output) {
+                if (!output.hasKey(k))
+                    error("output field %y is not a defined output field; known output fields: %y", getFieldName(k), output.keys());
+                # get output definition, if any
+                outf = output{k};
+            }            
+            
             # check field description
             int t = fh.typeCode();
-            if (t != NT_HASH) {
+            if (t != NT_HASH)
                 convertToHash(t, k, \fh);
-                if (input)
-                    checkInputField(k, k);
+            if (fh.name) {
+                if (fh.struct)
+                    error("output field %y has both 'name' (%y) and 'struct' (%y) values; only one can be given to identify the input field", getFieldName(k), fh.name, fh.struct);
+                if (input && !fh.constant && !fh.code)
+                    checkInputField(k, fh.name);
+                if (!allow_dot && fh.name =~ /\./)
+                    fh.struct = (remove fh.name).split(".");
             }
-            else {
-                if (fh.name) {
-                    if (fh.struct)
-                        error("field %y has both 'name' (%y) and 'struct' (%y) values; only one can be given to identify the input field", getFieldName(k), fh.name, fh.struct);
-                    if (input && !fh.constant && !fh.code)
-                        checkInputField(k, fh.name);
-                    if (!allow_dot && fh.name =~ /\./)
-                        fh.struct = (remove fh.name).split(".");
-                }
-                else if (!fh.struct && input && !fh.constant && !fh.code)
-                    checkInputField(k, k);
-                if (fh.constant) {
-                    *list cl = map $1, fh.keys(){ConstantConflictList};
-                    if (cl)
-                        error("field %y has a \"constant\" key giving a constant output value and also the following conflicting keys: %y", getFieldName(k), cl);
-                }
+            else if (!fh.struct && input && !fh.constant && !fh.code)
+                checkInputField(k, k);
+            if (fh.constant) {
+                *list cl = map $1, fh.keys(){ConstantConflictList};
+                if (cl)
+                    error("output field %y has a \"constant\" key giving a constant output value and also the following conflicting keys: %y", getFieldName(k), cl);
             }
 
             switch (fh.struct.typeCode()) {
@@ -434,7 +492,7 @@ Mapper mapv(DataMap);
                 case NT_STRING: fh.struct = fh.struct.split("."); # then fall down to next case
                 case NT_LIST: {
                     if (!fh.struct)
-                        error("field %y has an empty 'struct' key", getFieldName(k));
+                        error("output field %y has an empty 'struct' key", getFieldName(k));
                     if (fh.struct.size() == 1) {
                         fh.name = (remove fh.struct)[0];
                         if (input)
@@ -444,7 +502,7 @@ Mapper mapv(DataMap);
                         checkInputField(k, (foldl $1 + "." + $2, fh.struct));
                     break;
                 }
-                default: error("field %y has an invalid struct key assigned to type %y (%y)", getFieldName(k), fh.struct.type(), fh);
+                default: error("output field %y has an invalid struct key assigned to type %y (%y)", getFieldName(k), fh.struct.type(), fh);
             }
 
             if (fh.date_format) {
@@ -468,9 +526,18 @@ Mapper mapv(DataMap);
                 else
                     fh.type = "number";
             }
+
+            # check for contradictory definitions and assign values according to the output definition
+            if (outf) {
+                foreach string ok in (outf.keyIterator()) {
+                    if (exists fh{ok} && outf{ok} != fh{ok})
+                        error("field %y has the %y key set to %y but the output definition has %y set to %y", getFieldName(k), ok, fh{ok}, ok, outf{ok});
+                    fh{ok} = outf{ok};
+                }
+            }
             
             if (fh.trunc && !fh.maxlen)
-                error("field %y has the 'trunc' key set to True but has no 'maxlen' key", getFieldName(k));
+                error("output field %y has the 'trunc' key set to True but has no 'maxlen' key", getFieldName(k));
             
             if (fh.maxlen && !exists fh.trunc && trunc_all)
                 fh.trunc = True;
@@ -480,20 +547,20 @@ Mapper mapv(DataMap);
 
             foreach string hk in (fh.keyIterator())
                 if (!vk{hk})
-                    error("field %y in map hash contains unknown key '%s' (valid keys: %y)", getFieldName(k), hk, vk.keys());
+                    error("output field %y in map hash contains unknown key '%s' (valid keys: %y)", getFieldName(k), hk, vk.keys());
             
             # convert old "number" tag to new "type" tag
             if (fh.number) {
                 if (exists fh.type)
-                    error("field %y has both 'type' and deprecated 'number' tags", getFieldName(k));
+                    error("output field %y has both 'type' and deprecated 'number' tags", getFieldName(k));
                 fh.type = "number";
                 delete fh.number;
             }
             else if (exists fh.type && !vt.(fh.type))
-                error("field %y contains an invalid type value '%s' (valid types: %y)", getFieldName(k), fh.type, vt.keys());
+                error("output field %y contains an invalid type value '%s' (valid types: %y)", getFieldName(k), fh.type, vt.keys());
             
             if (exists fh.code && !fh.code.callp())
-                error("field %y has a code argument assigned to type '%s'", getFieldName(k), fh.code.type());
+                error("output field %y has a code argument assigned to type '%s'", getFieldName(k), fh.code.type());
 
             if (exists fh."default" && fh.type) {
                 hash rec{k} = fh."default";
@@ -501,18 +568,13 @@ Mapper mapv(DataMap);
                     mapFieldType(k, fh, \rec{k}, rec);
                 }
                 catch (hash ex) {
-                    error("field %y has default value %y that is not acceptable for the field's type (%y): %s: %s", k, fh."default", fh.type, ex.err, ex.desc);
+                    error("output field %y has default value %y that is not acceptable for the field's type (%y): %s: %s", getFieldName(k), fh."default", fh.type, ex.err, ex.desc);
                 }
             }
 
             # check if the output field should be a hash
             if (!allow_output_dot && k =~ /\./)
                 fh.ostruct = k.split(".");            
-        }
-
-        #! returns @ref Qore::True "True" if the field has a mapping, @ref Qore::False "False" if not
-        private bool hasMapping(hash fh) {
-            return fh.name || fh.struct || fh.code || fh.constant;
         }
 
         #! verifies a timezone constructor option
@@ -801,6 +863,8 @@ Mapper mapv(DataMap);
         }
 
         #! throws a \c MAP-ERROR exception; prepends the map name to the description if known
+        /** if this method is subclassed, it must also cause an exception to be thrown
+        */
         private error(string fmt) {
             string err = vsprintf(fmt, argv);
             if (name)
