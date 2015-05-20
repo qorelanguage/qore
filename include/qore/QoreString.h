@@ -568,6 +568,9 @@ public:
    //! returns the string's buffer; this data should not be changed
    DLLEXPORT const char* getBuffer() const;
 
+   //! returns the string's buffer; this data should not be changed
+   DLLEXPORT const char* c_str() const { return getBuffer(); }
+
    //! Ensure the internal buffer has at least expected size in bytes
    /** Useful to eliminate repeated buffer reallocations when data are appended in a loop
     */
