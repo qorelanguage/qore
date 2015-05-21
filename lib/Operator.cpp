@@ -47,8 +47,7 @@ DLLLOCAL OperatorList oplist;
 DLLLOCAL extern const QoreTypeInfo* bigIntFloatOrNumberTypeInfo, * floatOrNumberTypeInfo;
 
 // the standard, system-default operator pointers
-Operator *OP_MODULA, 
-   *OP_BIN_AND, *OP_BIN_OR, *OP_BIN_NOT, *OP_BIN_XOR, *OP_MINUS, *OP_PLUS, 
+Operator *OP_BIN_AND, *OP_BIN_OR, *OP_BIN_NOT, *OP_BIN_XOR, *OP_MINUS, *OP_PLUS, 
    *OP_MULT, *OP_DIV, *OP_SHIFT_LEFT, *OP_SHIFT_RIGHT, 
    *OP_LOG_CMP, 
    *OP_LIST_REF, *OP_OBJECT_REF, *OP_ELEMENTS, *OP_KEYS,
@@ -56,7 +55,7 @@ Operator *OP_MODULA,
    *OP_UNSHIFT, *OP_REGEX_SUBST, *OP_LIST_ASSIGNMENT, 
    *OP_REGEX_TRANS, *OP_REGEX_EXTRACT, 
    *OP_CHOMP, *OP_TRIM, *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT, 
-   *OP_LOG_GT, *OP_LOG_EQ, *OP_LOG_NE, *OP_LOG_LE, *OP_LOG_GE, *OP_NOT, 
+   *OP_LOG_GT, *OP_LOG_EQ, *OP_LOG_NE, *OP_LOG_LE, *OP_LOG_GE, 
    *OP_ABSOLUTE_EQ, *OP_ABSOLUTE_NE, *OP_REGEX_MATCH, *OP_REGEX_NMATCH,
    *OP_EXISTS, *OP_INSTANCEOF, *OP_FOLDR, *OP_FOLDL,
    *OP_SELECT;
@@ -809,10 +808,6 @@ static int64 op_cmp_double(double left, double right) {
       return 0;
        
    return 1;
-}
-
-static int64 op_modula_int(int64 left, int64 right) {
-    return right ? left % right : 0;
 }
 
 static int64 op_bin_and_int(int64 left, int64 right) {
@@ -3596,9 +3591,6 @@ void OperatorList::init() {
    OP_INSTANCEOF = add(new Operator(2, "instanceof", "instanceof", 0, false, false, check_op_logical));
    OP_INSTANCEOF->addFunction(NT_ALL, NT_CLASSREF, op_instanceof);
 
-   OP_NOT = add(new Operator(1, "!", "logical-not", 1, false, false, check_op_logical));
-   OP_NOT->addBoolNotFunction();
-
    // bigint operators
    OP_LOG_CMP = add(new Operator(2, "<=>", "logical-comparison", 1, false, false, check_op_returns_integer));
    OP_LOG_CMP->addFunction(op_cmp_string);
@@ -3609,9 +3601,6 @@ void OperatorList::init() {
 
    OP_ELEMENTS = add(new Operator(1, "elements", "number of elements", 0, false, false, check_op_elements));
    OP_ELEMENTS->addFunction(NT_ALL, NT_NONE, op_elements);
-
-   OP_MODULA = add(new Operator(2, "%", "modula", 1, false, false, check_op_returns_integer));
-   OP_MODULA->addFunction(op_modula_int);
 
    // non-boolean operators
    OP_LIST_ASSIGNMENT = add(new Operator(2, "(list) =", "list assignment", 0, true, true, check_op_list_assignment));

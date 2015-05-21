@@ -152,6 +152,20 @@ public:
    }
 };
 
+class QoreIntBinaryOperatorNode : public QoreBinaryOperatorNode<> {
+public:
+   DLLLOCAL QoreIntBinaryOperatorNode(AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(n_left, n_right) {
+   }
+
+   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+      return bigIntTypeInfo;
+   }
+
+   DLLLOCAL virtual bool hasEffect() const {
+      return false;
+   }
+};
+
 #define OP_COMMON protected:\
    DLLLOCAL static QoreString op_str;\
 public:\
@@ -208,9 +222,11 @@ public:
 #include <qore/intern/QoreExtractOperatorNode.h>
 #include <qore/intern/QoreCastOperatorNode.h>
 #include <qore/intern/QoreUnaryMinusOperatorNode.h>
+#include <qore/intern/QoreLogicalNotOperatorNode.h>
 #include <qore/intern/QoreDotEvalOperatorNode.h>
 #include <qore/intern/QoreLogicalEqualsOperatorNode.h>
 #include <qore/intern/QoreLogicalNotEqualsOperatorNode.h>
+#include <qore/intern/QoreModulaOperatorNode.h>
 #include <qore/intern/QoreBinaryLValueOperatorNode.h>
 #include <qore/intern/QoreAssignmentOperatorNode.h>
 #include <qore/intern/QoreIntAssignmentOperatorNode.h>

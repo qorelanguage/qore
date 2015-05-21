@@ -3114,7 +3114,7 @@ exp:    scalar
         | exp SHIFT_RIGHT exp	     { $$ = new QoreTreeNode($1, OP_SHIFT_RIGHT, $3); }
         | exp '+' exp		     { $$ = new QoreTreeNode($1, OP_PLUS, $3); }
         | exp '-' exp		     { $$ = new QoreTreeNode($1, OP_MINUS, $3); }
-        | exp '%' exp		     { $$ = new QoreTreeNode($1, OP_MODULA, $3); }
+        | exp '%' exp		     { $$ = new QoreModulaOperatorNode($1, $3); }
         | exp '/' exp		     { $$ = new QoreTreeNode($1, OP_DIV, $3); }
         | exp '*' exp		     { $$ = new QoreTreeNode($1, OP_MULT, $3); }
         | '-' exp %prec NEG	     { 
@@ -3124,7 +3124,7 @@ exp:    scalar
 	   $$ = QoreUnaryMinusOperatorNode::makeNode($2);
 	}
         | '~' exp		     { $$ = new QoreTreeNode($2, OP_BIN_NOT, 0); }
-        | '!' exp                    { $$ = new QoreTreeNode($2, OP_NOT, 0); }
+        | '!' exp                    { $$ = new QoreLogicalNotOperatorNode($2); }
         | '\\' exp {
 	   qore_type_t t = $2 ? $2->getType() : 0;
 	   //printd(5, "backslash exp line %d, type %s\n", @2.first_line, $2->getTypeName());

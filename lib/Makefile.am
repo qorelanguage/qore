@@ -222,8 +222,10 @@ libqore_la_SOURCES = \
 	QoreExtractOperatorNode.cpp \
 	QoreCastOperatorNode.cpp \
 	QoreUnaryMinusOperatorNode.cpp \
+	QoreLogicalNotOperatorNode.cpp \
 	QoreDotEvalOperatorNode.cpp \
 	QoreLogicalEqualsOperatorNode.cpp \
+	QoreModulaOperatorNode.cpp \
 	QoreAssignmentOperatorNode.cpp \
 	QoreIntAssignmentOperatorNode.cpp \
 	QorePlusEqualsOperatorNode.cpp \
