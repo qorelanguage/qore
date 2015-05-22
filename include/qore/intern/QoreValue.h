@@ -104,7 +104,7 @@ struct QoreValue {
       return *this;
    }
 
-   DLLLOCAL int64 getAsBool() const {
+   DLLLOCAL bool getAsBool() const {
       switch (type) {
          case QV_Bool: return v.b;
          case QV_Int: return (bool)v.i;
@@ -140,6 +140,38 @@ struct QoreValue {
       return 0.0;
    }
 
+   DLLLOCAL AbstractQoreNode* getInternalNode() const {
+      return type == QV_Node ? v.n : 0;
+   }
+
+   DLLLOCAL AbstractQoreNode* assign(AbstractQoreNode* n) {
+      AbstractQoreNode* rv = takeIfNode();
+      type = QV_Node;
+      v.n = n;
+      return rv;
+   }
+   
+   DLLLOCAL AbstractQoreNode* assign(int64 n) {
+      AbstractQoreNode* rv = takeIfNode();
+      type = QV_Int;
+      v.i = n;
+      return rv;
+   }
+   
+   DLLLOCAL AbstractQoreNode* assign(double n) {
+      AbstractQoreNode* rv = takeIfNode();
+      type = QV_Float;
+      v.f = n;
+      return rv;
+   }
+   
+   DLLLOCAL AbstractQoreNode* assign(bool n) {
+      AbstractQoreNode* rv = takeIfNode();
+      type = QV_Bool;
+      v.b = n;
+      return rv;
+   }
+   
    /*
    DLLLOCAL AbstractQoreNode* getAsReferencedNode() const {
       switch (type) {

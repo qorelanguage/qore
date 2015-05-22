@@ -326,24 +326,20 @@ protected:
       return -1;
    }
 
-   /*
-   DLLLOCAL int doObjectTypeException(const char* param_name, const QoreValue n, ExceptionSink* xsink) const {
+   DLLLOCAL int doObjectTypeException(const char* param_name, const QoreValue& n, ExceptionSink* xsink) const {
       assert(xsink);
       QoreStringNode* desc = new QoreStringNode;
-      desc->sprintf("member '$.%s' expects ", param_name);
+      desc->sprintf("member '%s' expects ", param_name);
       getThisType(*desc);
-      desc->concat(", but got ");
-      getNodeType(*desc, n);
-      desc->concat(" instead");
+      desc->sprintf(", but got %s instead", n.getTypeName());
       xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
       return -1;
    }
-   */
 
    DLLLOCAL int doObjectTypeException(const char* param_name, const AbstractQoreNode* n, ExceptionSink* xsink) const {
       assert(xsink);
       QoreStringNode* desc = new QoreStringNode;
-      desc->sprintf("member '$.%s' expects ", param_name);
+      desc->sprintf("member '%s' expects ", param_name);
       getThisType(*desc);
       desc->concat(", but got ");
       getNodeType(*desc, n);
@@ -355,41 +351,38 @@ protected:
    DLLLOCAL int doObjectPrivateClassException(const char* param_name, const AbstractQoreNode* n, ExceptionSink* xsink) const {
       assert(xsink);
       QoreStringNode* desc = new QoreStringNode;
-      desc->sprintf("member '$.%s' expects ", param_name);
+      desc->sprintf("member '%s' expects ", param_name);
       getThisType(*desc);
       desc->concat(", but got an object where this class is privately inherited instead");
       xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
       return -1;
    }
 
-   /*
    // returns -1 for error encountered, 0 for OK
    // can only be called with accepts_mult is false
-   DLLLOCAL int runtimeAcceptInputIntern(bool& priv_error, QoreValue n) const;
+   DLLLOCAL int runtimeAcceptInputIntern(bool& priv_error, QoreValue& n) const;
 
    // returns -1 for error encountered, 0 for OK
-   DLLLOCAL int acceptInputDefault(bool& priv_error, QoreValue n) const;
+   DLLLOCAL int acceptInputDefault(bool& priv_error, QoreValue& n) const;
 
-   DLLLOCAL QoreValue acceptInputIntern(bool obj, int param_num, const char* param_name, QoreValue& n, ExceptionSink* xsink) const {
+   DLLLOCAL void acceptInputIntern(bool obj, int param_num, const char* param_name, QoreValue& n, ExceptionSink* xsink) const {
       if (!input_filter) {
          bool priv_error = false;
          if (acceptInputDefault(priv_error, n))
             doAcceptError(priv_error, obj, param_num, param_name, n, xsink);
-         return n;
+         return;
       }
 
       // first check if input matches default type
       bool priv_error = false;
       if (!runtimeAcceptInputIntern(priv_error, n))
-         return n;
+         return;
 
       if (!acceptInputImpl(n, xsink) && !*xsink)
          doAcceptError(false, obj, param_num, param_name, n, xsink);
-
-      return n;
    }
-   */
 
+   /*
    // returns -1 for error encountered, 0 for OK
    // can only be called with accepts_mult is false
    DLLLOCAL int runtimeAcceptInputIntern(bool& priv_error, AbstractQoreNode* n) const;
@@ -415,7 +408,8 @@ protected:
 
       return n;
    }
-
+   */
+   
    DLLLOCAL bool isTypeIdenticalIntern(const QoreTypeInfo* typeInfo) const {
       if (qt != typeInfo->qt)
 	 return false;
@@ -433,7 +427,7 @@ protected:
    }
 
    // must be reimplemented in subclasses if input_filter is true
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode*& n, ExceptionSink* xsink) const {
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
       assert(false);
       return false;
    }
@@ -586,7 +580,7 @@ public:
       if (t == NT_OBJECT)
          return runtimeAcceptsClass(reinterpret_cast<const QoreObject*>(n)->getClass());
 
-      return parseAcceptsType(t, t == NT_INT || (t >= QORE_NUM_TYPES && dynamic_cast<const QoreBigIntNode*>(n)));
+      return parseAcceptsType(t, t == NT_INT);
    }
 
    DLLLOCAL qore_type_result_e parseAccepts(const QoreTypeInfo* typeInfo) const {
@@ -665,34 +659,47 @@ public:
       return *((type_vec_t*)0);
    }
 
+   // FIXME: eliminate
    DLLLOCAL AbstractQoreNode* acceptInputParam(int param_num, const char* param_name, AbstractQoreNode* n, ExceptionSink* xsink) const {
       if (!hasType())
          return n;
-      return acceptInputIntern(false, param_num, param_name, n, xsink);
+      QoreValue v(n);
+      acceptInputIntern(false, param_num, param_name, v, xsink);
+      return v.takeNode();
+   }
+
+   DLLLOCAL void acceptInputParam(int param_num, const char* param_name, QoreValue& n, ExceptionSink* xsink) const {
+      if (hasType())
+         acceptInputIntern(false, param_num, param_name, n, xsink);
    }
 
    DLLLOCAL AbstractQoreNode* acceptInputMember(const char* member_name, AbstractQoreNode* n, ExceptionSink* xsink) const {
       if (!hasType())
          return n;
-      return acceptInputIntern(true, -1, member_name, n, xsink);
+      QoreValue v(n);
+      acceptInputIntern(true, -1, member_name, v, xsink);
+      return v.takeNode();
    }
 
-   /*
-   DLLLOCAL QoreValue acceptAssignment(const char* text, QoreValue n, ExceptionSink* xsink) const {
-      assert(text && text[0] == '<');
-      if (!hasType())
-         return n;
-      return acceptInputIntern(false, -1, text, n, xsink);
+   DLLLOCAL void acceptInputMember(const char* member_name, QoreValue& n, ExceptionSink* xsink) const {
+      if (hasType())
+         acceptInputIntern(true, -1, member_name, n, xsink);
    }
-   */
+
+   DLLLOCAL void acceptAssignment(const char* text, QoreValue& n, ExceptionSink* xsink) const {
+      assert(text && text[0] == '<');
+      if (hasType())
+         acceptInputIntern(false, -1, text, n, xsink);
+   }
 
    DLLLOCAL AbstractQoreNode* acceptAssignment(const char* text, AbstractQoreNode* n, ExceptionSink* xsink) const {
-      assert(text && text[0] == '<');
       if (!hasType())
          return n;
-      return acceptInputIntern(false, -1, text, n, xsink);
+      QoreValue v(n);
+      acceptAssignment(text, v, xsink);
+      return v.takeNode();
    }
-
+   
    DLLLOCAL bool hasDefaultValue() const {
       if (!hasType())
          return false;
@@ -746,8 +753,7 @@ public:
 
       // only set n_is_int = true if our 'is_int' is true
       // only perform the dynamic cast if the type is external
-      bool n_is_int = (is_int && (nt == NT_INT 
-                                  || (nt >= QORE_NUM_TYPES && dynamic_cast<const QoreBigIntNode*>(n)))) ? true : false;
+      bool n_is_int = (is_int && nt == NT_INT) ? true : false;
       if (n_is_int)
          return qt == nt ? false : true;
 
@@ -817,13 +823,12 @@ public:
          concatClass(str, qc->getName());
    }
 
-   /*
-   DLLLOCAL int doAcceptError(bool priv_error, bool obj, int param_num, const char* param_name, QoreValue n, ExceptionSink* xsink) const {
+   DLLLOCAL int doAcceptError(bool priv_error, bool obj, int param_num, const char* param_name, QoreValue& n, ExceptionSink* xsink) const {
       if (priv_error) {
          if (obj)
-            doObjectPrivateClassException(param_name, n.getNode(), xsink);
+            doObjectPrivateClassException(param_name, n.getInternalNode(), xsink);
          else
-            doPrivateClassException(param_num + 1, param_name, n.getNode(), xsink);
+            doPrivateClassException(param_num + 1, param_name, n.getInternalNode(), xsink);
       }
       else {
          if (obj)
@@ -833,7 +838,6 @@ public:
       }
       return -1;
    }
-   */
 
    DLLLOCAL int doAcceptError(bool priv_error, bool obj, int param_num, const char* param_name, AbstractQoreNode* n, ExceptionSink* xsink) const {
       if (priv_error) {
@@ -851,7 +855,6 @@ public:
       return -1;
    }
 
-   /*
    DLLLOCAL int doTypeException(int param_num, const char* param_name, const QoreValue& n, ExceptionSink* xsink) const {
       // xsink may be null in case parse exceptions have been disabled in the QoreProgram object
       // for example if there was a "requires" error
@@ -862,13 +865,10 @@ public:
       QoreTypeInfo::ptext(*desc, param_num, param_name);
       desc->concat("expects ");
       getThisType(*desc);
-      desc->concat(", but got ");
-      getNodeType(*desc, n);
-      desc->concat(" instead");
+      desc->sprintf(", but got %s instead", n.getTypeName());
       xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
       return -1;
    }
-   */
 
    DLLLOCAL int doTypeException(int param_num, const char* param_name, const AbstractQoreNode* n, ExceptionSink* xsink) const {
       // xsink may be null in case parse exceptions have been disabled in the QoreProgram object
@@ -1026,7 +1026,7 @@ public:
 class AcceptsMultiFilterTypeInfo : public AcceptsMultiTypeInfo {
 protected:
    // must be reimplemented in subclasses if input_filter is true
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode*& n, ExceptionSink* xsink) const = 0;
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const = 0;
 
 public:
    DLLLOCAL AcceptsMultiFilterTypeInfo(const QoreClass* n_qc, qore_type_t n_qt, bool n_returns_mult, bool n_has_subtype = false, 
@@ -1060,24 +1060,21 @@ protected:
       return "*float";
    }
 
-   DLLLOCAL bool acceptInputImpl(AbstractQoreNode*& n, ExceptionSink* xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_FLOAT || t == NT_NOTHING)
          return true;
 
       if (t == NT_NULL) {
-         n = &Nothing;
+         discard(n.assign((AbstractQoreNode*)0), xsink);
          return true;
       }
 
-      // only perform dynamic cast if type is external
-      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode*>(n)))
+      if (t != NT_INT)
          return false;
 
-      QoreFloatNode* f = new QoreFloatNode(reinterpret_cast<const QoreBigIntNode*>(n)->val);
-      n->deref(xsink);
-      n = f;
+      discard(n.assign((double)n.getAsBigInt()), xsink);
       return true;
    }
 
@@ -1099,19 +1096,16 @@ public:
 
 class FloatTypeInfo : public AcceptsMultiFilterTypeInfo {
 protected:
-   DLLLOCAL bool acceptInputImpl(AbstractQoreNode*& n, ExceptionSink* xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_FLOAT)
          return true;
 
-      // only perform dynamic cast if type is external
-      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode*>(n)))
+      if (t != NT_INT)
          return false;
 
-      QoreFloatNode* f = new QoreFloatNode(reinterpret_cast<const QoreBigIntNode*>(n)->val);
-      n->deref(xsink);
-      n = f;
+      discard(n.assign((double)n.getAsBigInt()), xsink);
       return true;
    }
 
@@ -1128,31 +1122,26 @@ protected:
       return "*number";
    }
 
-   DLLLOCAL bool acceptInputImpl(AbstractQoreNode*& n, ExceptionSink* xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_NUMBER || t == NT_NOTHING)
          return true;
 
       if (t == NT_NULL) {
-         n = &Nothing;
+         discard(n.assign((AbstractQoreNode*)0), xsink);
          return true;
       }
 
       if (t == NT_FLOAT) {
-         QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreFloatNode*>(n)->f);
-         n->deref(xsink);
-         n = nn;
+         discard(n.assign(new QoreNumberNode(n.getAsFloat())), xsink);
          return true;
       }
 
-      // only perform dynamic cast if type is external
-      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode*>(n)))
+      if (t != NT_INT)
          return false;
 
-      QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreBigIntNode*>(n)->val);
-      n->deref(xsink);
-      n = nn;
+      discard(n.assign(new QoreNumberNode(n.getAsBigInt())), xsink);
       return true;
    }
 
@@ -1176,26 +1165,22 @@ public:
 
 class NumberTypeInfo : public AcceptsMultiFilterTypeInfo {
 protected:
-   DLLLOCAL bool acceptInputImpl(AbstractQoreNode*& n, ExceptionSink* xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_NUMBER)
          return true;
 
       if (t == NT_FLOAT) {
-         QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreFloatNode*>(n)->f);
-         n->deref(xsink);
-         n = nn;
+         discard(n.assign(new QoreNumberNode(n.getAsFloat())), xsink);
          return true;
       }
 
       // only perform dynamic cast if type is external
-      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode*>(n)))
+      if (t != NT_INT)
          return false;
 
-      QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreBigIntNode*>(n)->val);
-      n->deref(xsink);
-      n = nn;
+      discard(n.assign(new QoreNumberNode(n.getAsBigInt())), xsink);
       return true;
    }
 
@@ -1247,7 +1232,7 @@ protected:
       return tname.getBuffer();
    }
 
-   DLLLOCAL bool acceptInputImpl(AbstractQoreNode*& n, ExceptionSink* xsink) const;
+   DLLLOCAL bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const;
 
 public:
    DLLLOCAL OrNothingTypeInfo(const QoreTypeInfo& ti, const char* name) : AcceptsReturnsMultiFilterTypeInfo(ti.qc, ti.qt, ti.has_subtype, true) {
@@ -1294,9 +1279,9 @@ protected:
       return "*code";
    }
 
-   DLLLOCAL bool acceptInputImpl(AbstractQoreNode*& n, ExceptionSink* xsink) const {
-      if (n && n->getType() == NT_NULL)
-         n = &Nothing;
+   DLLLOCAL bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      if (n.getType() == NT_NULL)
+         discard(n.assign((AbstractQoreNode*)0), xsink);
       return true;
    }
 
@@ -1371,9 +1356,9 @@ protected:
       return "*data";
    }
 
-   DLLLOCAL bool acceptInputImpl(AbstractQoreNode*& n, ExceptionSink* xsink) const {
-      if (n && n->getType() == NT_NULL)
-         n = &Nothing;
+   DLLLOCAL bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      if (n.getType() == NT_NULL)
+         discard(n.assign((AbstractQoreNode*)0), xsink);
       return true;
    }
 
@@ -1397,10 +1382,10 @@ protected:
       return "softint";
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode*& n, ExceptionSink* xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
-      if (t == NT_INT || (t >= QORE_NUM_TYPES && dynamic_cast<const QoreBigIntNode*>(n)))
+      if (t == NT_INT)
          return true;
 
       if (t != NT_FLOAT
@@ -1411,9 +1396,7 @@ protected:
             && t != NT_NULL)
          return false;
 
-      int64 rv = n->getAsBigInt();
-      n->deref(xsink);
-      n = new QoreBigIntNode(rv);
+      discard(n.assign(n.getAsBigInt()), xsink);
       return true;
    }
 
@@ -1443,15 +1426,15 @@ protected:
       return "*softint";
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode*& n, ExceptionSink* xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_NULL) {
-         n = &Nothing;
+         discard(n.assign((AbstractQoreNode*)0), xsink);
          return true;
       }
 
-      if (t == NT_NOTHING || t == NT_INT || (t >= QORE_NUM_TYPES && dynamic_cast<const QoreBigIntNode*>(n)))
+      if (t == NT_NOTHING || t == NT_INT)
          return true;
 
       if (t != NT_FLOAT
@@ -1462,9 +1445,7 @@ protected:
             && t != NT_NULL)
          return false;
 
-      int64 rv = n->getAsBigInt();
-      n->deref(xsink);
-      n = new QoreBigIntNode(rv);
+      discard(n.assign(n.getAsBigInt()), xsink);
       return true;
    }
 
@@ -1490,13 +1471,13 @@ protected:
       return "softfloat";
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode*& n, ExceptionSink* xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_FLOAT)
          return true;
 
-      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode*>(n))
+      if (t != NT_INT
             && t != NT_NUMBER
             && t != NT_STRING
             && t != NT_BOOLEAN
@@ -1504,9 +1485,7 @@ protected:
             && t != NT_NULL)
          return false;
 
-      double rv = n->getAsFloat();
-      n->deref(xsink);
-      n = new QoreFloatNode(rv);
+      discard(n.assign(n.getAsFloat()), xsink);
       return true;
    }
 
@@ -1532,18 +1511,18 @@ protected:
       return "*softfloat";
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode*& n, ExceptionSink* xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_FLOAT || t == NT_NOTHING)
          return true;
 
       if (t == NT_NULL) {
-         n = &Nothing;
+         discard(n.assign((AbstractQoreNode*)0), xsink);
          return true;
       }
 
-      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode*>(n))
+      if (t != NT_INT
             && t != NT_NUMBER
             && t != NT_STRING
             && t != NT_BOOLEAN
@@ -1551,9 +1530,7 @@ protected:
             && t != NT_NULL)
          return false;
 
-      double rv = n->getAsFloat();
-      n->deref(xsink);
-      n = new QoreFloatNode(rv);
+      discard(n.assign(n.getAsFloat()), xsink);
       return true;
    }
 
@@ -1579,30 +1556,24 @@ protected:
       return "softnumber";
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode*& n, ExceptionSink* xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_NUMBER)
          return true;
 
       if (t == NT_FLOAT) {
-         QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreFloatNode*>(n)->f);
-         n->deref(xsink);
-         n = nn;
+         discard(n.assign(new QoreNumberNode(n.getAsFloat())), xsink);
          return true;
       }
 
       if (t == NT_STRING) {
-         QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreStringNode*>(n)->getBuffer());
-         n->deref(xsink);
-         n = nn;
+         discard(n.assign(new QoreNumberNode(reinterpret_cast<const QoreStringNode*>(n.getInternalNode())->getBuffer())), xsink);
          return true;
       }
 
-      if (t == NT_INT || (t > QORE_NUM_TYPES && dynamic_cast<const QoreBigIntNode*>(n))) {
-         QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreBigIntNode*>(n)->val);
-         n->deref(xsink);
-         n = nn;
+      if (t == NT_INT) {
+         discard(n.assign(new QoreNumberNode(n.getAsBigInt())), xsink);
          return true;
       }
 
@@ -1611,9 +1582,7 @@ protected:
           && t != NT_NULL)
          return false;
 
-      double rv = n->getAsFloat();
-      n->deref(xsink);
-      n = new QoreNumberNode(rv);
+      discard(n.assign(new QoreNumberNode(n.getAsFloat())), xsink);
       return true;
    }
 
@@ -1640,35 +1609,29 @@ protected:
       return "*softnumber";
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode*& n, ExceptionSink* xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_NUMBER || t == NT_NOTHING)
          return true;
 
       if (t == NT_NULL) {
-         n = &Nothing;
+         discard(n.assign((AbstractQoreNode*)0), xsink);
          return true;
       }
 
       if (t == NT_FLOAT) {
-         QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreFloatNode*>(n)->f);
-         n->deref(xsink);
-         n = nn;
+         discard(n.assign(new QoreNumberNode(n.getAsFloat())), xsink);
          return true;
       }
 
       if (t == NT_STRING) {
-         QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreStringNode*>(n)->getBuffer());
-         n->deref(xsink);
-         n = nn;
+         discard(n.assign(new QoreNumberNode(reinterpret_cast<const QoreStringNode*>(n.getInternalNode())->getBuffer())), xsink);
          return true;
       }
 
-      if (t == NT_INT || (t > QORE_NUM_TYPES && dynamic_cast<const QoreBigIntNode*>(n))) {
-         QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreBigIntNode*>(n)->val);
-         n->deref(xsink);
-         n = nn;
+      if (t == NT_INT) {
+         discard(n.assign(new QoreNumberNode(n.getAsBigInt())), xsink);
          return true;
       }
 
@@ -1677,9 +1640,7 @@ protected:
           && t != NT_NULL)
          return false;
 
-      double rv = n->getAsFloat();
-      n->deref(xsink);
-      n = new QoreNumberNode(rv);
+      discard(n.assign(new QoreNumberNode(n.getAsFloat())), xsink);
       return true;
    }
 
@@ -1705,13 +1666,13 @@ protected:
       return "softbool";
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode*& n, ExceptionSink* xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_BOOLEAN)
          return true;
 
-      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode*>(n))
+      if (t != NT_INT
             && t != NT_FLOAT
             && t != NT_NUMBER
             && t != NT_STRING
@@ -1719,9 +1680,7 @@ protected:
             && t != NT_NULL)
          return false;
 
-      bool rv = n->getAsBool();
-      n->deref(xsink);
-      n = get_bool_node(rv);
+      discard(n.assign(n.getAsBool()), xsink);
       return true;
    }
 
@@ -1747,18 +1706,18 @@ protected:
       return "*softbool";
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode*& n, ExceptionSink* xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_BOOLEAN || t == NT_NOTHING)
          return true;
 
       if (t == NT_NULL) {
-         n = &Nothing;
+         discard(n.assign((AbstractQoreNode*)0), xsink);
          return true;
       }
 
-      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode*>(n))
+      if (t != NT_INT
             && t != NT_NUMBER
             && t != NT_FLOAT
             && t != NT_STRING
@@ -1766,9 +1725,7 @@ protected:
             && t != NT_NULL)
          return false;
 
-      bool rv = n->getAsBool();
-      n->deref(xsink);
-      n = get_bool_node(rv);
+      discard(n.assign(n.getAsBool()), xsink);
       return true;
    }
 
@@ -1794,24 +1751,26 @@ protected:
       return "softdate";
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode*& n, ExceptionSink* xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_DATE)
          return true;
 
-      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode*>(n))
-          && t != NT_FLOAT
-          && t != NT_NUMBER
-          && t != NT_STRING
-          && t != NT_BOOLEAN
-          && t != NT_NULL)
+      if (t == NT_INT
+          || t == NT_BOOLEAN
+          || t == NT_FLOAT
+          || t == NT_NULL) {
+         discard(n.assign(new DateTimeNode(n.getAsBigInt())), xsink);
+         return true;
+      }
+      
+      if (t != NT_NUMBER
+          && t != NT_STRING)
          return false;
 
-      DateTimeNodeValueHelper dt(n);
-      DateTimeNode* rv = dt.getReferencedValue();
-      n->deref(xsink);
-      n = rv;
+      DateTimeNodeValueHelper dt(n.getInternalNode());
+      discard(n.assign(dt.getReferencedValue()), xsink);
       return true;
    }
 
@@ -1837,29 +1796,31 @@ protected:
       return "*softdate";
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode*& n, ExceptionSink* xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_DATE || t == NT_NOTHING)
          return true;
 
       if (t == NT_NULL) {
-         n = &Nothing;
+         discard(n.assign((AbstractQoreNode*)0), xsink);
          return true;
       }
 
-      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode*>(n))
-          && t != NT_FLOAT
-          && t != NT_NUMBER
-          && t != NT_STRING
-          && t != NT_BOOLEAN
-          && t != NT_NULL)
+      if (t == NT_INT
+          || t == NT_BOOLEAN
+          || t == NT_FLOAT
+          || t == NT_NULL) {
+         discard(n.assign(new DateTimeNode(n.getAsBigInt())), xsink);
+         return true;
+      }
+      
+      if (t != NT_NUMBER
+          && t != NT_STRING)
          return false;
 
-      DateTimeNodeValueHelper dt(n);
-      DateTimeNode* rv = dt.getReferencedValue();
-      n->deref(xsink);
-      n = rv;
+      DateTimeNodeValueHelper dt(n.getInternalNode());
+      discard(n.assign(dt.getReferencedValue()), xsink);
       return true;
    }
 
@@ -1885,24 +1846,30 @@ protected:
       return "softstring";
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode*& n, ExceptionSink* xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_STRING)
          return true;
 
-      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode*>(n))
-          && t != NT_FLOAT
-          && t != NT_NUMBER
-          && t != NT_BOOLEAN
-          && t != NT_DATE
-          && t != NT_NULL)
+      if (t == NT_INT
+          || t == NT_BOOLEAN
+          || t == NT_NULL) {
+         discard(n.assign(new QoreStringNodeMaker("%d", n.getAsBigInt())), xsink);
+         return true;
+      }
+
+      if (t == NT_FLOAT) {
+         discard(n.assign(new QoreStringNodeMaker("%.9g", n.getAsFloat())), xsink);
+         return true;
+      }
+
+      if (t != NT_NUMBER
+          && t != NT_DATE)
          return false;
 
-      QoreStringNodeValueHelper str(n);
-      QoreStringNode* rv = str.getReferencedValue();
-      n->deref(xsink);
-      n = rv;
+      QoreStringNodeValueHelper str(n.getInternalNode());
+      discard(n.assign(str.getReferencedValue()), xsink);
       return true;
    }
 
@@ -1928,29 +1895,35 @@ protected:
       return "*softstring";
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode*& n, ExceptionSink* xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_STRING || t == NT_NOTHING)
          return true;
 
       if (t == NT_NULL) {
-         n = &Nothing;
+         discard(n.assign((AbstractQoreNode*)0), xsink);
          return true;
       }
 
-      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode*>(n))
-          && t != NT_FLOAT
-          && t != NT_NUMBER
-          && t != NT_BOOLEAN
-          && t != NT_DATE
-          && t != NT_NULL)
+      if (t == NT_INT
+          || t == NT_BOOLEAN
+          || t == NT_NULL) {
+         discard(n.assign(new QoreStringNodeMaker("%d", n.getAsBigInt())), xsink);
+         return true;
+      }
+
+      if (t == NT_FLOAT) {
+         discard(n.assign(new QoreStringNodeMaker("%.9g", n.getAsFloat())), xsink);
+         return true;
+      }
+
+      if (t != NT_NUMBER
+          && t != NT_DATE)
          return false;
 
-      QoreStringNodeValueHelper str(n);
-      QoreStringNode* rv = str.getReferencedValue();
-      n->deref(xsink);
-      n = rv;
+      QoreStringNodeValueHelper str(n.getInternalNode());
+      discard(n.assign(str.getReferencedValue()), xsink);
       return true;
    }
 
@@ -1976,18 +1949,17 @@ protected:
       return "timeout";
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode*& n, ExceptionSink* xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
-      if (t == NT_INT || (t < QORE_NUM_TYPES && dynamic_cast<const QoreBigIntNode*>(n)))
+      if (t == NT_INT)
          return true;
 
       if (t != NT_DATE)
          return false;
 
-      int64 ms = reinterpret_cast<const DateTimeNode*>(n)->getRelativeMilliseconds();
-      n->deref(xsink);
-      n = new QoreBigIntNode(ms);
+      int64 ms = reinterpret_cast<const DateTimeNode*>(n.getInternalNode())->getRelativeMilliseconds();
+      discard(n.assign(ms), xsink);
       return true;
    }
 
@@ -2008,23 +1980,22 @@ protected:
       return "*timeout";
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode*& n, ExceptionSink* xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
-      if (t == NT_INT || t == NT_NOTHING || (t < QORE_NUM_TYPES && dynamic_cast<const QoreBigIntNode*>(n)))
+      if (t == NT_INT || t == NT_NOTHING)
          return true;
 
       if (t == NT_NULL) {
-         n = &Nothing;
+         discard(n.assign((AbstractQoreNode*)0), xsink);
          return true;
       }
 
       if (t != NT_DATE)
          return false;
 
-      int64 ms = reinterpret_cast<const DateTimeNode*>(n)->getRelativeMilliseconds();
-      n->deref(xsink);
-      n = new QoreBigIntNode(ms);
+      int64 ms = reinterpret_cast<const DateTimeNode*>(n.getInternalNode())->getRelativeMilliseconds();
+      discard(n.assign(ms), xsink);
       return true;
    }
 
@@ -2051,21 +2022,18 @@ protected:
       return "softlist";
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode*& n, ExceptionSink* xsink) const {
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
       //printd(5, "SoftListTypeInfo::acceptInputImpl() n=%p %s\n", n, get_type_name(n));
-      qore_type_t t = get_node_type(n);
+      qore_type_t t = n.getType();
 
-      if (t == NT_LIST || (t >= QORE_NUM_TYPES && dynamic_cast<const QoreListNode*>(n)))
+      if (t == NT_LIST)
          return true;
 
       QoreListNode* l = new QoreListNode;
-      if (t == NT_NOTHING)
-         n = l;
-      else {
-         l->push(n);
-         n = l;
-      }
-
+      if (t != NT_NOTHING)
+         l->push(n.takeNode());
+         
+      discard(n.assign(l), xsink);
       return true;
    }
 
@@ -2091,21 +2059,20 @@ protected:
       return rt;
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode*& n, ExceptionSink* xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_NULL) {
-         n = &Nothing;
+         discard(n.assign((AbstractQoreNode*)0), xsink);
          return true;
       }
 
-      if (t == NT_LIST || t == NT_NOTHING || (t >= QORE_NUM_TYPES && dynamic_cast<const QoreListNode*>(n)))
+      if (t == NT_LIST || t == NT_NOTHING)
          return true;
 
       QoreListNode* l = new QoreListNode;
-      l->push(n);
-      n = l;
-
+      l->push(n.takeNode());
+      discard(n.assign(l), xsink);
       return true;
    }
    
@@ -2158,8 +2125,15 @@ protected:
       return at;
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode*& n, ExceptionSink* xsink) const {
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
       return helper.acceptInputImpl(n, xsink);
+   }
+
+   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode*& v, ExceptionSink* xsink) const {
+      QoreValue n(v);
+      bool b = helper.acceptInputImpl(n, xsink);
+      v = n.takeNode();
+      return b;
    }
 
 public:

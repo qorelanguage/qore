@@ -175,12 +175,15 @@ int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const Abs
       }
       else if (i < typeList.size()) {
 	 const AbstractQoreNode* n = tmp ? tmp->retrieve_entry(i) : 0;
-	 const QoreTypeInfo* paramTypeInfo = sig->getParamTypeInfo(i);
 
 	 if (is_copy && !i && !n) {
 	    continue;
 	 }
 
+	 const QoreTypeInfo* paramTypeInfo = sig->getParamTypeInfo(i);
+	 if (!paramTypeInfo)
+	    continue;
+	 
 	 // test for change or incompatibility
 	 if (check_args || paramTypeInfo->mayRequireFilter(n)) {
 	    if (!edit_done) {

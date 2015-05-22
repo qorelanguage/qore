@@ -126,7 +126,7 @@ void QoreTypeInfoHelper::setIntMatch() {
    typeInfo->setIntMatch();
 }
 
-bool QoreTypeInfoHelper::acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
+bool QoreTypeInfoHelper::acceptInputImpl(QoreValue& n, ExceptionSink *xsink) const {
    assert(false);
    return false;
 }

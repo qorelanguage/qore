@@ -170,6 +170,7 @@ enum qore_type_result_e {
 
 //! this class is private; not exported
 class ExternalTypeInfo;
+struct QoreValue;
 
 //! helper type to allocate and manage QoreTypeInfo objects (not exported by the library)
 /** should be used to allocate and deallocate QoreTypeInfo objects for new types created in modules
@@ -184,7 +185,7 @@ protected:
    }
 
    //! this function must be reimplemented if setInputFilter() is called
-   DLLEXPORT virtual bool acceptInputImpl(AbstractQoreNode*& n, ExceptionSink* xsink) const;
+   DLLEXPORT virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const;
 
 public:
    //! allocates a QoreTypeInfo object with no type information
