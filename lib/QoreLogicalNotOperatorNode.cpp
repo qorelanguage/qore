@@ -43,20 +43,12 @@ int QoreLogicalNotOperatorNode::getAsString(QoreString& str, int foff, Exception
    return 0;
 }
 
-AbstractQoreNode* QoreLogicalNotOperatorNode::evalImpl(ExceptionSink* xsink) const {
-   bool b = exp->boolEval(xsink);
-   if (*xsink)
-      return 0;
-   return b ? (AbstractQoreNode*)&False : (AbstractQoreNode*)&True;
-}
-
-AbstractQoreNode* QoreLogicalNotOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreLogicalNotOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    assert(exp);
    needs_deref = false;
-   bool b = exp->boolEval(xsink);
-   if (*xsink)
-      return 0;
-   return b ? (AbstractQoreNode*)&False : (AbstractQoreNode*)&True;
+
+   ValueEvalRefHolder v(exp, xsink);
+   return !v->getAsBool();
 }
 
 AbstractQoreNode* QoreLogicalNotOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {

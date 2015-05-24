@@ -550,6 +550,13 @@ public:
    */
    DLLEXPORT AbstractQoreNode* getGlobalVariableValue(const char* var, bool &found) const;
 
+   //! returns the value of the global variable given (do not include the "$" symbol), the caller owns the reference count returned
+   /** @param var the variable name to return (do not include the "$" symbol)
+       @param found returns true if the variable exists, false if not
+       @return the value of the global variable given; if a non-zero pointer is returned, the caller owns the reference count returned
+   */
+   DLLEXPORT QoreValue getGlobalVariableVal(const char* var, bool &found) const;
+
    // retrieves the time zone setting for the program
    DLLEXPORT const AbstractQoreZoneInfo *currentTZ() const;
 

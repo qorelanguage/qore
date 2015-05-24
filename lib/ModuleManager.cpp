@@ -194,7 +194,7 @@ int QoreModuleDefContext::init(QoreProgram& pgm, ExceptionSink& xsink) {
       ReferenceHolder<> cn(reinterpret_cast<QoreClosureParseNode*>(init_c)->eval(&xsink), &xsink);
       assert(!xsink);
       assert(cn->getType() == NT_RUNTIME_CLOSURE || cn->getType() == NT_FUNCREF);
-      ReferenceHolder<> tmp(reinterpret_cast<ResolvedCallReferenceNode*>(*cn)->exec(0, &xsink), &xsink);
+      reinterpret_cast<ResolvedCallReferenceNode*>(*cn)->execValue(0, &xsink).discard(&xsink);
    }
 
    return xsink ? -1 : 0;
@@ -285,7 +285,7 @@ QoreUserModule::~QoreUserModule() {
          ReferenceHolder<> cn(del->eval(&xsink), &xsink);
          assert(!xsink);
 	 assert(cn->getType() == NT_RUNTIME_CLOSURE || cn->getType() == NT_FUNCREF);
-	 ReferenceHolder<> tmp(reinterpret_cast<ResolvedCallReferenceNode*>(*cn)->exec(0, &xsink), &xsink);
+	 reinterpret_cast<ResolvedCallReferenceNode*>(*cn)->execValue(0, &xsink).discard(&xsink);
          del->deref(&xsink);
       }
    }

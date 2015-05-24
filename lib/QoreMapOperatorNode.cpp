@@ -45,15 +45,6 @@ int QoreMapOperatorNode::getAsString(QoreString &str, int foff, ExceptionSink *x
    return 0;
 }
 
-AbstractQoreNode* QoreMapOperatorNode::evalImpl(ExceptionSink *xsink) const {
-   return map(xsink);
-}
-
-AbstractQoreNode* QoreMapOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = ref_rv;
-   return map(xsink);
-}
-
 AbstractQoreNode* QoreMapOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    assert(!typeInfo);
    
@@ -72,66 +63,85 @@ AbstractQoreNode* QoreMapOperatorNode::parseInitImpl(LocalVar *oflag, int pflag,
    return this;
 }
 
-AbstractQoreNode* QoreMapOperatorNode::map(ExceptionSink* xsink) const {
-   // conditionally evaluate argument
-   QoreNodeEvalOptionalRefHolder arg(right, xsink);
-   if (*xsink || is_nothing(*arg))
-      return 0;
-
-   if (arg->getType() != NT_LIST) {
-      // check if it's an AbstractIterator object
-      if (arg->getType() == NT_OBJECT) {
-         AbstractIteratorHelper h(xsink, "map operator", const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg)));
-         if (*xsink)
-            return 0;
-         if (h)
-            return mapIterator(h, xsink);
-      }
-      SingleArgvContextHelper argv_helper(*arg, xsink);
-      return left->eval(xsink);
+QoreValue QoreMapOperatorNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
+   // conditionally evaluate argument expression
+   ValueEvalRefHolder marg(right, xsink);
+   if (*xsink) {
+      needs_deref = false;
+      return QoreValue();
    }
 
-   ReferenceHolder<QoreListNode> rv(ref_rv ? new QoreListNode() : 0, xsink);
-   ConstListIterator li(reinterpret_cast<const QoreListNode*>(*arg));
+   qore_type_t t = marg->getType();
+   if (t != NT_LIST) {
+      if (t == NT_OBJECT) {
+         AbstractIteratorHelper h(xsink, "map operator", const_cast<QoreObject*>(marg->get<const QoreObject>()));
+         if (*xsink) {
+	    needs_deref = false;
+            return QoreValue();
+	 }
+         if (h) {
+	    needs_deref = ref_rv;
+            return mapIterator(h, xsink);
+	 }
+      }
+      if (t == NT_NOTHING) { 
+	 needs_deref = false;
+	 return QoreValue();
+      }
+
+      // FIXME: inefficient
+      ReferenceHolder<> argv_val(marg.getReferencedValue(), xsink);
+      SingleArgvContextHelper argv_helper(*argv_val, xsink);
+      ValueEvalRefHolder val(left, xsink);
+      return *xsink ? QoreValue() : val.takeValue(needs_deref);       
+   }
+
+   ReferenceHolder<QoreListNode> rv(ref_rv ? new QoreListNode : 0, xsink);
+   ConstListIterator li(marg->get<const QoreListNode>());
    while (li.next()) {
       // set offset in thread-local data for "$#"
       ImplicitElementHelper eh(li.index());
-      SingleArgvContextHelper argv_helper(li.getValue(), xsink);
-      ReferenceHolder<AbstractQoreNode> val(left->eval(xsink), xsink);
-      //printd(5, "QoreMapOperatorNode::map() this: %p left: %p '%s' val: %p '%s'\n", this, left, left->getTypeName(), *val, val ? get_type_name(*val) : "n/a");
-      if (*xsink)
-	 return 0;
-      if (ref_rv)
-	  rv->push(val.release());
-   }
+      const AbstractQoreNode* elem = li.getValue();
+      // check if value can be mapped
+      SingleArgvContextHelper argv_helper(elem, xsink);
 
+      ValueEvalRefHolder val(left, xsink);
+      if (*xsink) {
+	 needs_deref = false;
+	 return QoreValue();
+      }
+      if (ref_rv)
+	 rv->push(val.getReferencedValue());
+   }
+   needs_deref = true;
    return rv.release();
 }
 
-QoreListNode* QoreMapOperatorNode::mapIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const {
+QoreValue QoreMapOperatorNode::mapIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const {
    ReferenceHolder<QoreListNode> rv(ref_rv ? new QoreListNode : 0, xsink);
 
    qore_size_t i = 0;
-   // set offset in thread-local data for "$#"
    while (true) {
       bool b = h.next(xsink);
       if (*xsink)
-         return 0;
+         return QoreValue();
       if (!b)
-         return rv.release();
+         break;
 
+      // set offset in thread-local data for "$#"
       ImplicitElementHelper eh(i++);
 
+      // check if value can be mapped
       ReferenceHolder<> iv(h.getValue(xsink), xsink);
       if (*xsink)
-         return 0;
+         return QoreValue();
       SingleArgvContextHelper argv_helper(*iv, xsink);
-      //printd(5, "op_map() left=%p (%d %s)\n", left, left->getType(), left->getTypeName());
-      ReferenceHolder<AbstractQoreNode> val(left->eval(xsink), xsink);
+      //printd(5, "op_map() e[0]=%p (%d %s)\n", e[0], e[0]->getType(), e[0]->getTypeName());
+      ValueEvalRefHolder val(left, xsink);
       if (*xsink)
-         return 0;
+         return QoreValue();
       if (ref_rv)
-          rv->push(val.release());
+	 rv->push(val.getReferencedValue());
    }
    
    return rv.release();

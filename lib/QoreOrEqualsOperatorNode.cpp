@@ -37,14 +37,14 @@ AbstractQoreNode *QoreOrEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int p
    return this;
 }
 
-int64 QoreOrEqualsOperatorNode::bigIntEvalImpl(ExceptionSink *xsink) const {
+QoreValue QoreOrEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    int64 val = right->bigIntEval(xsink);
-   if (xsink->isEvent())
-      return 0;
+   if (*xsink)
+      return QoreValue();
 
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);
    if (!v)
-      return 0;
-   return v.orEqualsBigInt(val, "<|= operator");
+      return QoreValue();
+   return v.orEqualsBigInt(val, "<|= operator>");
 }

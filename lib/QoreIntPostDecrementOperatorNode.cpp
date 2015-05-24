@@ -32,34 +32,10 @@
 
 QoreString QoreIntPostDecrementOperatorNode::op_str("-- (post-decrement) operator expression");
 
-AbstractQoreNode *QoreIntPostDecrementOperatorNode::evalImpl(ExceptionSink *xsink) const {
-   int64 rv = QoreIntPostDecrementOperatorNode::bigIntEvalImpl(xsink);
-   if (!ref_rv || *xsink)
-      return 0;
-
-   return new QoreBigIntNode(rv);
-}
-
-AbstractQoreNode *QoreIntPostDecrementOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = ref_rv;
-   return QoreIntPostDecrementOperatorNode::evalImpl(xsink);
-}
-
-int64 QoreIntPostDecrementOperatorNode::bigIntEvalImpl(ExceptionSink *xsink) const {
+QoreValue QoreIntPostDecrementOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
+   needs_deref = false;
    LValueHelper n(exp, xsink);
    if (!n)
-      return 0;
+      return QoreValue();
    return n.postDecrementBigInt("<-- (post) operator>");
-}
-
-int QoreIntPostDecrementOperatorNode::integerEvalImpl(ExceptionSink *xsink) const {
-   return QoreIntPostDecrementOperatorNode::bigIntEvalImpl(xsink);
-}
-
-double QoreIntPostDecrementOperatorNode::floatEvalImpl(ExceptionSink *xsink) const {
-   return QoreIntPostDecrementOperatorNode::bigIntEvalImpl(xsink);
-}
-
-bool QoreIntPostDecrementOperatorNode::boolEvalImpl(ExceptionSink *xsink) const {
-   return QoreIntPostDecrementOperatorNode::bigIntEvalImpl(xsink);
 }

@@ -32,13 +32,17 @@
 
 QoreString QoreModulaOperatorNode::op_str("% (modula) operator expression");
 
-int64 QoreModulaOperatorNode::bigIntEvalImpl(ExceptionSink *xsink) const {
+QoreValue QoreModulaOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    int64 l = left->bigIntEval(xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
    int64 r = right->bigIntEval(xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
+   if (!r) {
+      xsink->raiseException("DIVISION-BY-ZERO", "modula operand cannot be zero ("QLLD" %% "QLLD" attempted)", l, r);
+      return QoreValue();
+   }
    return l % r;
 }
 
@@ -53,11 +57,13 @@ AbstractQoreNode* QoreModulaOperatorNode::parseInitImpl(LocalVar *oflag, int pfl
    left = left->parseInit(oflag, pflag, lvids, lti);
    right = right->parseInit(oflag, pflag, lvids, rti);
 
-   // see if both arguments are constants, then eval immediately and substitute this node with the result
-   if (left && left->is_value() && right && right->is_value()) {
+   // see if both arguments are constant values and the right side is > 0, then eval immediately and substitute this node with the result
+   if (left && left->is_value() && right && right->is_value() && right->getAsBigInt()) {
       SimpleRefHolder<QoreModulaOperatorNode> del(this);
       ParseExceptionSink xsink;
-      return QoreModulaOperatorNode::evalImpl(*xsink);
+      ValueEvalRefHolder v(this, *xsink);
+      assert(!*xsink);
+      return v.getReferencedValue();
    }
 
    return this;

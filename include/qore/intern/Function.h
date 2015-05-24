@@ -348,6 +348,7 @@ public:
       return is_user ? const_cast<AbstractQoreFunctionVariant*>(this)->getUserVariantBase() : 0;
    }
 
+   // FIXME: change rv to QoreValue
    DLLLOCAL virtual AbstractQoreNode* evalFunction(const char* name, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
       assert(false);
       return 0;

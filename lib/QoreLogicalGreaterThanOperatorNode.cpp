@@ -33,38 +33,34 @@
 QoreString QoreLogicalGreaterThanOperatorNode::op_str("> operator expression");
 QoreString QoreLogicalLessThanOrEqualsOperatorNode::op_str("<= operator expression");
 
-bool QoreLogicalGreaterThanOperatorNode::boolEvalImpl(ExceptionSink *xsink) const {
+QoreValue QoreLogicalGreaterThanOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
+   needs_deref = false;
+
    if (pfunc)
       return (this->*pfunc)(xsink);
 
-   QoreNodeEvalOptionalRefHolder lh(left, xsink);
+   ValueEvalRefHolder lh(left, xsink);
    if (*xsink)
-      return false;
-   QoreNodeEvalOptionalRefHolder rh(right, xsink);
+      return QoreValue();
+   ValueEvalRefHolder rh(right, xsink);
    if (*xsink)
-      return false;
+      return QoreValue();
 
-   const AbstractQoreNode *l = *lh, *r = *rh;
-
-   qore_type_t lt = get_node_type(l);
-   qore_type_t rt = get_node_type(r);
-
-   if (!l)
-      l = &Nothing;
-   if (!r)
-      r = &Nothing;
+   qore_type_t lt = lh->getType();
+   qore_type_t rt = rh->getType();
 
    if (lt == NT_NUMBER) {
       switch (rt) {
 	 case NT_NUMBER:
-	    return reinterpret_cast<const QoreNumberNode*>(l)->compare(*reinterpret_cast<const QoreNumberNode*>(r)) > 0;
+	    return lh->get<const QoreNumberNode>()->compare(*rh->get<const QoreNumberNode>()) > 0;
 	 case NT_FLOAT:
-	    return reinterpret_cast<const QoreNumberNode*>(l)->compare(reinterpret_cast<const QoreFloatNode*>(r)->f) > 0;
+	    return lh->get<const QoreNumberNode>()->compare(rh->getAsFloat()) > 0;
+	 case NT_BOOLEAN:
 	 case NT_INT:
-	    return reinterpret_cast<const QoreNumberNode*>(l)->compare(reinterpret_cast<const QoreBigIntNode*>(r)->val) > 0;
+	    return lh->get<const QoreNumberNode>()->compare(rh->getAsBigInt()) > 0;
 	 default: {
-	    ReferenceHolder<QoreNumberNode> rn(new QoreNumberNode(r), xsink);
-	    return reinterpret_cast<const QoreNumberNode*>(l)->compare(**rn) > 0;
+	    ReferenceHolder<QoreNumberNode> rn(new QoreNumberNode(rh->getInternalNode()), xsink);
+	    return lh->get<const QoreNumberNode>()->compare(**rn) > 0;
 	 }
       }
    }
@@ -73,37 +69,38 @@ bool QoreLogicalGreaterThanOperatorNode::boolEvalImpl(ExceptionSink *xsink) cons
       assert(lt != NT_NUMBER);
       switch (lt) {
 	 case NT_FLOAT:
-	    return reinterpret_cast<const QoreNumberNode*>(r)->compare(reinterpret_cast<const QoreFloatNode*>(l)->f) <= 0;
+	    return rh->get<const QoreNumberNode>()->compare(lh->getAsFloat()) <= 0;
+	 case NT_BOOLEAN:
 	 case NT_INT:
-	    return reinterpret_cast<const QoreNumberNode*>(r)->compare(reinterpret_cast<const QoreBigIntNode*>(l)->val) <= 0;
+	    return rh->get<const QoreNumberNode>()->compare(lh->getAsBigInt()) <= 0;
 	 default: {
-	    ReferenceHolder<QoreNumberNode> ln(new QoreNumberNode(l), xsink);
-	    return reinterpret_cast<const QoreNumberNode*>(r)->compare(**ln) <= 0;
+	    ReferenceHolder<QoreNumberNode> ln(new QoreNumberNode(lh->getInternalNode()), xsink);
+	    return rh->get<const QoreNumberNode>()->compare(**ln) <= 0;
 	 }
       }
    }
 
    if (lt == NT_FLOAT || rt == NT_FLOAT)
-      return l->getAsFloat() > r->getAsFloat();
+      return lh->getAsFloat() > rh->getAsFloat();
 
    if (lt == NT_INT || rt == NT_INT)
-      return l->getAsBigInt() > r->getAsBigInt();
+      return lh->getAsBigInt() > rh->getAsBigInt();
 
    if (lt == NT_STRING || rt == NT_STRING) {
-      QoreStringValueHelper ls(l);
-      QoreStringValueHelper rs(r, ls->getEncoding(), xsink);
+      QoreStringValueHelper ls(*lh);
+      QoreStringValueHelper rs(*rh, ls->getEncoding(), xsink);
       if (*xsink)
 	 return false;
       return ls->compare(*rs) > 0;
    }
  
    if (lt == NT_DATE || rt == NT_DATE) {
-      DateTimeNodeValueHelper ld(l);
-      DateTimeNodeValueHelper rd(r);
+      DateTimeValueHelper ld(*lh);
+      DateTimeValueHelper rd(*rh);
       return DateTime::compareDates(*ld, *rd) > 0;
    }
 
-   return l->getAsFloat() > r->getAsFloat();
+   return lh->getAsFloat() > rh->getAsFloat();
 }
 
 AbstractQoreNode *QoreLogicalGreaterThanOperatorNode::parseInitIntern(const char *name, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {

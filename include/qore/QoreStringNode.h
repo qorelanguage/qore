@@ -298,7 +298,7 @@ extern QoreStringNode* NullString;
     @endcode
 */
 class QoreStringValueHelper {
-private:
+protected:
    QoreString* str;
    bool del;
 
@@ -311,24 +311,16 @@ private:
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL void* operator new(size_t); // not implemented, make sure it is not new'ed
 
+   //! sets up the object / common initialization
+   DLLLOCAL void setup(ExceptionSink* xsink, QoreValue n, const QoreEncoding* enc = 0);
+   
 public:
    //! creates the object and acquires a pointer to the QoreString representation of the AbstractQoreNode passed
-   DLLLOCAL QoreStringValueHelper(const AbstractQoreNode* n) {
-      if (n) {
-         //optimization to remove the need for a virtual function call in the most common case
-         if (n->getType() == NT_STRING) {
-            del = false;
-            str = const_cast<QoreStringNode*>(reinterpret_cast<const QoreStringNode*>(n));
-         }
-         else
-            str = n->getStringRepresentation(del);
-      }
-      else {
-         str = NullString;
-         del = false;
-      }
-   }
+   DLLEXPORT QoreStringValueHelper(const AbstractQoreNode* n);
 
+   //! creates the object and acquires a pointer to the QoreString representation of the QoreValue passed
+   DLLEXPORT explicit QoreStringValueHelper(QoreValue& n);
+   
    //! gets the QoreString representation and ensures that it's in the desired encoding
    /** a Qore-language exception may be thrown if an encoding error occurs
        @code
@@ -342,30 +334,10 @@ public:
        return new MStringData(t->getBuffer(), MEncoding::M_ASCII);
        @endcode
    */
-   DLLLOCAL QoreStringValueHelper(const AbstractQoreNode* n, const QoreEncoding* enc, ExceptionSink* xsink) {
-      if (n) {
-         //optimization to remove the need for a virtual function call in the most common case
-         if (n->getType() == NT_STRING) {
-            del = false;
-            str = const_cast<QoreStringNode*>(reinterpret_cast<const QoreStringNode*>(n));
-         }
-         else
-            str = n->getStringRepresentation(del);
-         if (str->getEncoding() != enc) {
-            QoreString* t = str->convertEncoding(enc, xsink);
-            if (!t)
-               return;
-            if (del)
-               delete str;
-            str = t;
-            del = true;
-         }
-      }
-      else {
-         str = NullString;
-         del = false;
-      }
-   }
+   DLLEXPORT QoreStringValueHelper(const AbstractQoreNode* n, const QoreEncoding* enc, ExceptionSink* xsink);
+
+   //! gets the QoreString representation and ensures that it's in the desired encoding
+   DLLEXPORT QoreStringValueHelper(QoreValue& n, const QoreEncoding* enc, ExceptionSink* xsink);
 
    //! destroys the object and deletes the QoreString pointer being managed if it was a temporary pointer
    DLLLOCAL ~QoreStringValueHelper() {
@@ -445,30 +417,12 @@ private:
    DLLLOCAL void* operator new(size_t);
 
 public:
-   DLLLOCAL QoreStringNodeValueHelper(const AbstractQoreNode* n) {
-      if (!n) {
-         str = NullString;
-         temp = false;
-         return;
-      }
+   DLLLOCAL QoreStringNodeValueHelper(const AbstractQoreNode* n);
 
-      qore_type_t ntype = n->getType();
-      if (ntype == NT_STRING) {
-         str = const_cast<QoreStringNode*>(reinterpret_cast<const QoreStringNode*>(n));
-         temp = false;
-      }
-      else {
-         str = new QoreStringNode;
-         n->getStringRepresentation(*(static_cast<QoreString*>(str)));
-         temp = true;
-      }
-   }
-
+   DLLLOCAL QoreStringNodeValueHelper(QoreValue& n);
+   
    //! destroys the object and dereferences the QoreStringNode if it is a temporary pointer
-   DLLLOCAL ~QoreStringNodeValueHelper() {
-      if (temp)
-         str->deref();
-   }
+   DLLLOCAL ~QoreStringNodeValueHelper();
 
    //! returns the object being managed
    /**
@@ -487,13 +441,7 @@ public:
       The string is referenced if necessary (if it was a temporary value)
       @return the string value, where the caller will own the reference count
    */
-   DLLLOCAL QoreStringNode* getReferencedValue() {
-      if (temp)
-         temp = false;
-      else if (str)
-         str->ref();
-      return str;
-   }
+   DLLLOCAL QoreStringNode* getReferencedValue();
 };
 
 #include <qore/ReferenceHolder.h>

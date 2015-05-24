@@ -48,56 +48,12 @@ const AbstractQoreNode *QoreImplicitArgumentNode::get() const {
    return argv->retrieve_entry(offset);
 }
 
-AbstractQoreNode *QoreImplicitArgumentNode::evalImpl(ExceptionSink *xsink) const {
-   if (offset == -1) {
-      const QoreListNode *argv = thread_get_implicit_args();
-      //printd(5, "QoreImplicitArgumentNode::evalImpl() offset=%d argv=%p (%d)\n", offset, argv, argv ? argv->size() : -1);
-      return argv ? argv->refSelf() : 0;
-   }
-
-   const AbstractQoreNode *v = get();
-   //printd(5, "QoreImplicitArgumentNode::evalImpl() offset=%d v=%p\n", offset, v);
-   return v ? v->refSelf() : 0;
-}
-
-AbstractQoreNode *QoreImplicitArgumentNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
+QoreValue QoreImplicitArgumentNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
    needs_deref = false;
    if (offset == -1)
       return const_cast<QoreListNode *>(thread_get_implicit_args());
 
    return const_cast<AbstractQoreNode *>(get());
-}
-
-int64 QoreImplicitArgumentNode::bigIntEvalImpl(ExceptionSink *xsink) const {
-   if (offset == -1)
-      return 0;
-
-   const AbstractQoreNode *v = get();
-   return v ? v->getAsBigInt() : 0;
-}
-
-int QoreImplicitArgumentNode::integerEvalImpl(ExceptionSink *xsink) const {
-   if (offset == -1)
-      return 0;
-
-   const AbstractQoreNode *v = get();
-   return v ? v->getAsInt() : 0;
-}
-
-bool QoreImplicitArgumentNode::boolEvalImpl(ExceptionSink *xsink) const {
-   if (offset == -1)
-      return 0;
-
-   const AbstractQoreNode *v = get();
-   return v ? v->getAsBool() : 0;
-}
-
-double QoreImplicitArgumentNode::floatEvalImpl(ExceptionSink *xsink) const {
-   if (offset == -1)
-      return 0;
-
-   const AbstractQoreNode *v = get();
-   return v ? v->getAsFloat() : 0;
 }
 
 int QoreImplicitArgumentNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {

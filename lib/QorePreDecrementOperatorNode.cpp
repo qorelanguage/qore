@@ -39,11 +39,13 @@ AbstractQoreNode *QorePreDecrementOperatorNode::parseInitImpl(LocalVar *oflag, i
    return (typeInfo == bigIntTypeInfo || typeInfo == softBigIntTypeInfo) ? makeSpecialization<QoreIntPreDecrementOperatorNode>() : this;
 }
 
-AbstractQoreNode *QorePreDecrementOperatorNode::evalImpl(ExceptionSink *xsink) const {
+QoreValue QorePreDecrementOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {   
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper n(exp, xsink);
-   if (!n)
-      return 0;
+   if (!n) {
+      needs_deref = false;
+      return QoreValue();
+   }
    if (n.getType() == NT_NUMBER) {
       n.preDecrementNumber("<-- (pre) operator>");
       assert(!*xsink);
@@ -55,10 +57,11 @@ AbstractQoreNode *QorePreDecrementOperatorNode::evalImpl(ExceptionSink *xsink) c
    else
       n.preDecrementBigInt("<-- (pre) operator>");
 
-   return *xsink || !ref_rv ? 0 : n.getReferencedValue();
-}
+   if (*xsink || !ref_rv) {
+      needs_deref = false;
+      return QoreValue();
+   }
 
-AbstractQoreNode *QorePreDecrementOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = ref_rv;
-   return QorePreDecrementOperatorNode::evalImpl(xsink);
+   needs_deref = true;
+   return n.getReferencedValue();
 }

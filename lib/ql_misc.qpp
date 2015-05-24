@@ -496,7 +496,7 @@ any call_function(code f, ...) {
    if (num_args(args) > 1)
       vargs = args->copyListFrom(1);
 
-   return f->exec(*vargs, xsink);
+   return f->execValue(*vargs, xsink).takeNode();
 }
 
 //! Calls a function and returns the return value, using the optional second argument as a list of arguments for the function
@@ -533,7 +533,7 @@ my any $result = call_function_args($call_ref, ($arg1, $arg2));
     @note The @ref call_reference "call reference" or @ref closure "closure" called could also throw other exceptions
 */
 any call_function_args(code f, *softlist vargs) {
-   return f->exec(vargs, xsink);
+   return f->execValue(vargs, xsink).takeNode();
 }
 
 //! Calls a function and returns the return value, passing the remaining arguments after the function name to the builtin function
@@ -944,7 +944,7 @@ string backquote(string cmd, *reference rc) [dom=EXTERNAL_PROCESS] {
       if (!rh)
          return 0;
 
-      rh.assignBigInt(prc);
+      rh.assign((int64)prc);
    }
    return str.release();
 }

@@ -150,8 +150,9 @@ void qore_program_private_base::startThread(ExceptionSink& xsink) {
       AutoLocker al(tlock);
       ti = thr_init ? thr_init->refRefSelf() : 0;
    }
-   if (ti)
-      ti->boolExec(0, &xsink);
+   if (ti) {
+      ValueHolder v(ti->execValue(0, &xsink), &xsink);
+   }
 }
 
 void qore_program_private_base::newProgram() {
@@ -1037,15 +1038,19 @@ const LVList* QoreProgram::getTopLevelLVList() const {
    return priv->sb.getLVList();
 }
 
-AbstractQoreNode* QoreProgram::getGlobalVariableValue(const char* var, bool& found) const {
+QoreValue QoreProgram::getGlobalVariableVal(const char* var, bool& found) const {
    const qore_ns_private* vns = 0;
    Var* v = qore_root_ns_private::runtimeFindGlobalVar(*(priv->RootNS), var, vns);
    if (!v) {
       found = false;
-      return 0;
+      return QoreValue();
    }
    found = true;   
    return v->eval();
+}
+
+AbstractQoreNode* QoreProgram::getGlobalVariableValue(const char* var, bool& found) const {
+   return getGlobalVariableVal(var, found).takeNode();
 }
 
 // only called when parsing, therefore in the parse thread lock

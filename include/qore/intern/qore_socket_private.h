@@ -1859,7 +1859,7 @@ struct qore_socket_private {
       arg->setKeyValue("send_aborted", get_bool_node(send_aborted), xsink);
       args->push(arg);
 
-      ReferenceHolder<> rv(xsink);
+      ValueHolder rv(xsink);
       return runCallback(xsink, mname, rv, callback, l, *args);
    }
 
@@ -1870,17 +1870,17 @@ struct qore_socket_private {
       arg->setKeyValue("chunked", get_bool_node(chunked), xsink);
       args->push(arg);
 
-      ReferenceHolder<> rv(xsink);
+      ValueHolder rv(xsink);
       return runCallback(xsink, mname, rv, callback, l, *args);
    }
 
-   DLLLOCAL int runCallback(ExceptionSink* xsink, const char* mname, ReferenceHolder<>& res, const ResolvedCallReferenceNode& callback, QoreThreadLock* l, const QoreListNode* args = 0) {
+   DLLLOCAL int runCallback(ExceptionSink* xsink, const char* mname, ValueHolder& res, const ResolvedCallReferenceNode& callback, QoreThreadLock* l, const QoreListNode* args = 0) {
       // FIXME: subtract callback execution time from socket performance measurement
 
       // unlock and execute callback
       {
          AutoUnlocker al(l);
-         res = callback.exec(args, xsink);
+         res = callback.execValue(args, xsink);
       }
 
       // check exception and socket status
@@ -1932,7 +1932,7 @@ struct qore_socket_private {
          }
          
          // FIXME: subtract callback execution time from socket performance measurement
-         ReferenceHolder<AbstractQoreNode> res(xsink);
+         ValueHolder res(xsink);
          rc = runCallback(xsink, mname, res, send_callback, &l);
          if (rc)
             return rc;
@@ -1942,9 +1942,9 @@ struct qore_socket_private {
          // check callback return val
          QoreString buf;
 
-         switch (get_node_type(*res)) {
+         switch (res->getType()) {
             case NT_STRING: {
-               const QoreStringNode* str = reinterpret_cast<const QoreStringNode*>(*res);
+               const QoreStringNode* str = res->get<const QoreStringNode>();
                if (str->empty()) {
                   done = true;
                   break;
@@ -1955,7 +1955,7 @@ struct qore_socket_private {
             }
 
             case NT_BINARY: {
-               const BinaryNode* b = reinterpret_cast<const BinaryNode*>(*res);
+               const BinaryNode* b = res->get<const BinaryNode>();
                if (b->empty()) {
                   done = true;
                   break;
@@ -1968,7 +1968,7 @@ struct qore_socket_private {
             case NT_HASH: {
                buf.concat("0\r\n");
 
-               ConstHashIterator hi(reinterpret_cast<const QoreHashNode*>(*res));
+               ConstHashIterator hi(res->get<const QoreHashNode>());
 
                while (hi.next()) {
                   const AbstractQoreNode* v = hi.getValue();
@@ -1994,7 +1994,7 @@ struct qore_socket_private {
                break;
 
             default:
-               xsink->raiseException("SOCKET-CALLBACK-ERROR", "HTTP chunked data callback returned type '%s'; expecting one of: 'string', 'binary', 'hash', 'nothing' (or 'NULL')", get_type_name(*res));
+               xsink->raiseException("SOCKET-CALLBACK-ERROR", "HTTP chunked data callback returned type '%s'; expecting one of: 'string', 'binary', 'hash', 'nothing' (or 'NULL')", res->getTypeName());
                return -1;
          }
 

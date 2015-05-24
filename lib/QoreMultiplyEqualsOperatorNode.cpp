@@ -38,42 +38,47 @@ AbstractQoreNode *QoreMultiplyEqualsOperatorNode::parseInitImpl(LocalVar *oflag,
    return this;
 }
 
-AbstractQoreNode *QoreMultiplyEqualsOperatorNode::evalImpl(ExceptionSink *xsink) const {
-   QoreNodeEvalOptionalRefHolder res(right, xsink);
-   if (*xsink)
-      return 0;
-
+QoreValue QoreMultiplyEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
+   ValueEvalRefHolder res(right, xsink);
+   if (*xsink) {
+      needs_deref = false;
+      return QoreValue();
+   }
+   
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);
-   if (!v)
-      return 0;
-
+   if (!v) {
+      needs_deref = false;
+      return QoreValue();
+   }
+   
    // is either side a number?
-   if ((res && res->getType() == NT_NUMBER) || v.getType() == NT_NUMBER) {
-      v.multiplyEqualsNumber(*res, "<*= operator>");
+   if (v.getType() == NT_NUMBER || res->getType() == NT_NUMBER) {
+      // FIXME: needs more efficient impl
+      ReferenceHolder<> rh(res.getReferencedValue(), xsink);
+      v.multiplyEqualsNumber(*rh, "<*= operator>");
+      if (ref_rv && !*xsink) {
+	 needs_deref = true;
+	 return v.getReferencedValue();
+      }
+      return QoreValue();
    }
+   
+   needs_deref = false;
+   
    // is either side a float?
-   else if (v.getType() == NT_FLOAT)
-      v.multiplyEqualsFloat(res ? res->getAsFloat() : 0.0, "<*= operator>");
-   else {
-      if (res && res->getType() == NT_FLOAT) {
-	 v.multiplyEqualsFloat((reinterpret_cast<const QoreFloatNode*>(*res))->f, "<*= operator>");
-      }
-      else { // do integer multiply equals
-        if (v.getType() == NT_NOTHING || !res) {
-           if (v.assignBigInt(0))
-              return 0;
-        }
-        else
-	    v.multiplyEqualsBigInt(res->getAsBigInt(), "<*= operator>");
-      }
+   if (v.getType() == NT_FLOAT || res->getType() == NT_FLOAT)
+      return v.multiplyEqualsFloat(res->getAsFloat(), "<*= operator>");
+
+   // get operand
+   int64 y = res->getAsBigInt();
+   
+   // do integer multiply equals
+   if (!v.getAsBigInt() || !y) {
+      // no need to multiply something by zero
+      v.assign(0ll);
+      return 0ll;
    }
 
-   // reference return value and return
-   return ref_rv ? v.getReferencedValue() : 0;
-}
-
-AbstractQoreNode *QoreMultiplyEqualsOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = ref_rv;
-   return QoreMultiplyEqualsOperatorNode::evalImpl(xsink);
+   return v.multiplyEqualsBigInt(res->getAsBigInt(), "<*= operator>");
 }

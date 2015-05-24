@@ -40,8 +40,7 @@ protected:
 
    DLLLOCAL static QoreString map_str;
 
-   DLLLOCAL virtual AbstractQoreNode* evalImpl(ExceptionSink* xsink) const;
-   DLLLOCAL virtual AbstractQoreNode* evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
    /*
     * Destructor
@@ -60,7 +59,7 @@ protected:
       return true;
    }
 
-   DLLLOCAL QoreHashNode* mapIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const;
+   DLLLOCAL QoreValue mapIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const;
 
 public:
    /*
@@ -78,7 +77,7 @@ public:
       return map_str.getBuffer();
    }
 
-   DLLLOCAL AbstractQoreNode* map(ExceptionSink* xsink) const;
+   //DLLLOCAL AbstractQoreNode* map(ExceptionSink* xsink) const;
 };
 
 #endif // QOREHASHMAPSELECTOPERATORNODE_H

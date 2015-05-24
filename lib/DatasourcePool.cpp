@@ -338,7 +338,7 @@ int DatasourcePool::checkWait(int64 wait_total, ExceptionSink* xsink) {
    args->push(new QoreBigIntNode(wait_total));
    args->push(new QoreBigIntNode(tl_warning_ms));
    args->push(callback_arg ? callback_arg->refSelf() : 0);
-   discard(wc->exec(*args, xsink), xsink);
+   wc->execValue(*args, xsink).discard(xsink);
    return *xsink ? -1 : 0;
 }
 

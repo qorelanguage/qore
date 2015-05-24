@@ -30,37 +30,13 @@
 
 #include <qore/Qore.h>
 
-AbstractQoreNode *QoreIntPlusEqualsOperatorNode::evalImpl(ExceptionSink *xsink) const {
-   int64 rv = QoreIntPlusEqualsOperatorNode::bigIntEvalImpl(xsink);
-   if (!ref_rv || *xsink)
-      return 0;
-
-   return new QoreBigIntNode(rv);
-}
-
-AbstractQoreNode *QoreIntPlusEqualsOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = ref_rv;
-   return QoreIntPlusEqualsOperatorNode::evalImpl(xsink);
-}
-
-int64 QoreIntPlusEqualsOperatorNode::bigIntEvalImpl(ExceptionSink *xsink) const {
+QoreValue QoreIntPlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+   needs_deref = false;
    int64 rv = right->bigIntEval(xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
    LValueHelper v(left, xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
    return v.plusEqualsBigInt(rv, "<+= operator>");
-}
-
-int QoreIntPlusEqualsOperatorNode::integerEvalImpl(ExceptionSink *xsink) const {
-   return QoreIntPlusEqualsOperatorNode::bigIntEvalImpl(xsink);
-}
-
-double QoreIntPlusEqualsOperatorNode::floatEvalImpl(ExceptionSink *xsink) const {
-   return QoreIntPlusEqualsOperatorNode::bigIntEvalImpl(xsink);
-}
-
-bool QoreIntPlusEqualsOperatorNode::boolEvalImpl(ExceptionSink *xsink) const {
-   return QoreIntPlusEqualsOperatorNode::bigIntEvalImpl(xsink);
 }

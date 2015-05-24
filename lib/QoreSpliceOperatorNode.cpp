@@ -44,15 +44,6 @@ int QoreSpliceOperatorNode::getAsString(QoreString &str, int foff, ExceptionSink
    return 0;
 }
 
-AbstractQoreNode *QoreSpliceOperatorNode::evalImpl(ExceptionSink *xsink) const {
-   return splice(xsink);
-}
-
-AbstractQoreNode *QoreSpliceOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = ref_rv;
-   return splice(xsink);
-}
-
 AbstractQoreNode *QoreSpliceOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    assert(!typeInfo);
    const QoreTypeInfo *expTypeInfo = 0;
@@ -101,26 +92,32 @@ AbstractQoreNode *QoreSpliceOperatorNode::parseInitImpl(LocalVar *oflag, int pfl
    return this;
 }
 
-AbstractQoreNode *QoreSpliceOperatorNode::splice(ExceptionSink *xsink) const {
-   printd(5, "QoreSpliceOperatorNode::splice() lvalue_exp = %p, offset_exp=%p, length_exp=%p, new_exp=%p, isEvent=%d\n", lvalue_exp, offset_exp, length_exp, new_exp, xsink->isEvent());
+QoreValue QoreSpliceOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+   printd(5, "QoreSpliceOperatorNode::splice() lvalue_exp = %p, offset_exp: %p, length_exp: %p, new_exp: %p, isEvent: %d\n", lvalue_exp, offset_exp, length_exp, new_exp, xsink->isEvent());
 
+   needs_deref = ref_rv;
+   
    // evaluate arguments
-   QoreNodeEvalOptionalRefHolder eoffset(offset_exp, xsink);
+   ValueEvalRefHolder eoffset(offset_exp, xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
-   QoreNodeEvalOptionalRefHolder elength(length_exp, xsink);
+   ValueEvalRefHolder elength(length_exp, xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
-   QoreNodeEvalOptionalRefHolder exp(new_exp, xsink);
+   ValueEvalRefHolder exp(new_exp, xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
+   ReferenceHolder<> exp_holder(xsink);
+   if (new_exp)
+      exp_holder = exp.getReferencedValue();
+   
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper val(lvalue_exp, xsink);
    if (!val)
-      return 0;
+      return QoreValue();
 
    // if value is not a list or string, throw exception
    qore_type_t vt = val.getType();
@@ -129,29 +126,29 @@ AbstractQoreNode *QoreSpliceOperatorNode::splice(ExceptionSink *xsink) const {
       // see if the lvalue has a default type
       const QoreTypeInfo *typeInfo = val.getTypeInfo();
       if (typeInfo == softListTypeInfo || typeInfo == listTypeInfo || typeInfo == stringTypeInfo || typeInfo == softStringTypeInfo) {
-	 if (val.assign(typeInfo->getDefaultValue()))
-	    return 0;
-	 vt = val.getType();
+         if (val.assign(typeInfo->getDefaultValue()))
+            return QoreValue();
+         vt = val.getType();
       }
    }
 
    if (vt != NT_LIST && vt != NT_STRING && vt != NT_BINARY) {
-      xsink->raiseException("SPLICE-ERROR", "first (lvalue) argument to the splice operator is not a list, string, or binary object");
-      return 0;
+      xsink->raiseException("EXTRACT-ERROR", "first (lvalue) argument to the extract operator is not a list, string, or binary object");
+      return QoreValue();
    }
    
    // no exception can occur here
    val.ensureUnique();
 
-   qore_size_t offset = eoffset ? (qore_size_t)eoffset->getAsBigInt() : 0;
+   qore_size_t offset = (qore_size_t)eoffset->getAsBigInt();
 
 #ifdef DEBUG
    if (vt == NT_LIST) {
-      QoreListNode *vl = reinterpret_cast<QoreListNode *>(val.getValue());
+      QoreListNode *vl = reinterpret_cast<QoreListNode*>(val.getValue());
       printd(5, "op_splice() val: %p (size: "QSD") offset: "QSD"\n", vl, vl->size(), offset);
    }
    else {
-      QoreStringNode *vs = reinterpret_cast<QoreStringNode *>(val.getValue());
+      QoreStringNode *vs = reinterpret_cast<QoreStringNode*>(val.getValue());
       printd(5, "op_splice() val: %p (strlen: "QSD") offset: "QSD"\n", vs, vs->strlen(), offset);
    }
 #endif
@@ -161,11 +158,11 @@ AbstractQoreNode *QoreSpliceOperatorNode::splice(ExceptionSink *xsink) const {
       if (!length_exp && !new_exp)
 	 vl->splice(offset, xsink);
       else {
-	 qore_size_t length = elength ? (qore_size_t)elength->getAsBigInt() : 0;
+	 qore_size_t length = (qore_size_t)elength->getAsBigInt();
 	 if (!new_exp)
 	    vl->splice(offset, length, xsink);
 	 else	    
-	    vl->splice(offset, length, *exp, xsink);
+	    vl->splice(offset, length, *exp_holder, xsink);
       }
    }
    else if (vt == NT_STRING) {
@@ -173,11 +170,11 @@ AbstractQoreNode *QoreSpliceOperatorNode::splice(ExceptionSink *xsink) const {
       if (!length_exp && !new_exp)
          vs->splice(offset, xsink);
       else {
-         qore_size_t length = elength ? (qore_size_t)elength->getAsBigInt() : 0;
+         qore_size_t length = (qore_size_t)elength->getAsBigInt();
          if (!new_exp)
             vs->splice(offset, length, xsink);
          else
-            vs->splice(offset, length, *exp, xsink);
+            vs->splice(offset, length, *exp_holder, xsink);
       }
    }
    else { // must be a binary
@@ -185,17 +182,17 @@ AbstractQoreNode *QoreSpliceOperatorNode::splice(ExceptionSink *xsink) const {
       if (!length_exp && !new_exp)
          b->splice(offset, b->size());
       else {
-         qore_size_t length = elength ? (qore_size_t)elength->getAsBigInt() : 0;
+         qore_size_t length = (qore_size_t)elength->getAsBigInt();
          if (!new_exp)
             b->splice(offset, length);
          else {
-            qore_type_t t = get_node_type(*exp);
+            qore_type_t t = get_node_type(*exp_holder);
             if (t == NT_BINARY) {
-               const BinaryNode* b1 = reinterpret_cast<const BinaryNode*>(*exp);
+               const BinaryNode* b1 = reinterpret_cast<const BinaryNode*>(*exp_holder);
                b->splice(offset, length, b1->getPtr(), b1->size());
             }
             else {
-               QoreStringNodeValueHelper sv(*exp);
+               QoreStringNodeValueHelper sv(*exp_holder);
                if (!sv->strlen())
                   b->splice(offset, length);
                else
@@ -206,5 +203,9 @@ AbstractQoreNode *QoreSpliceOperatorNode::splice(ExceptionSink *xsink) const {
    }
 
    // reference for return value
-   return ref_rv ? val.getReferencedValue() : 0;
+   if (!ref_rv || *xsink) {
+      needs_deref = false;
+      return QoreValue();
+   }
+   return val.getReferencedValue();
 }

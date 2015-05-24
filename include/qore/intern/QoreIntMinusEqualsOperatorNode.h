@@ -34,13 +34,7 @@
 
 class QoreIntMinusEqualsOperatorNode : public QoreMinusEqualsOperatorNode {
 protected:
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
-
-   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
-   DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const;
-   DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
-   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
    DLLLOCAL QoreIntMinusEqualsOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreMinusEqualsOperatorNode(n_left, n_right) {

@@ -39,7 +39,7 @@
 #include <qore/QoreType.h>
 #include <qore/intern/ParserSupport.h>
 #include <qore/intern/QoreObjectIntern.h>
-#include <qore/intern/QoreValue.h>
+#include <qore/intern/QoreLValue.h>
 #include <qore/intern/qore_number_private.h>
 #include <qore/intern/qore_list_private.h>
 #include <qore/intern/QoreHashNodeIntern.h>
@@ -92,7 +92,7 @@ void Var::del(ExceptionSink* xsink) {
       // clear type so no further deleting will be done
    }
    else
-      discard(val.remove(true), xsink);
+      discard(val.removeNode(true), xsink);
 }
 
 bool Var::isImported() const {
@@ -103,6 +103,15 @@ const char* Var::getName() const {
    return name.c_str();
 }
 
+QoreValue Var::eval() const {
+   if (val.type == QV_Ref)
+      return val.v.getPtr()->eval();
+   QoreAutoVarRWReadLocker al(rwl);
+   return val.getReferencedValue();
+}
+
+
+/*
 AbstractQoreNode* Var::eval() const {
    if (val.type == QV_Ref)
       return val.v.getPtr()->eval();
@@ -140,6 +149,7 @@ double Var::floatEval() const {
    QoreAutoVarRWReadLocker al(rwl);
    return val.getAsFloat();
 }
+*/
 
 void Var::deref(ExceptionSink* xsink) {
    if (ROdereference()) {
@@ -245,6 +255,10 @@ LValueHelper::~LValueHelper() {
       if (obj_ref)
 	 robj->tDeref();
    }
+}
+
+void LValueHelper::saveTemp(QoreValue& n) {
+   saveTemp(n.takeIfNode());
 }
 
 void LValueHelper::saveTemp(AbstractQoreNode* n) {
@@ -464,9 +478,16 @@ void LValueHelper::set(QoreVarRWLock& rwl) {
    vl.set(&rwl);
 }
 
-AbstractQoreNode* LValueHelper::getReferencedValue() const {
+QoreValue LValueHelper::getReferencedValue() const {
    if (val)
       return val->getReferencedValue();
+
+   return QoreValue(*v ? (*v)->refSelf() : 0);
+}
+
+AbstractQoreNode* LValueHelper::getReferencedNodeValue() const {
+   if (val)
+      return val->getReferencedNodeValue();
 
    return *v ? (*v)->refSelf() : 0;
 }
@@ -498,22 +519,19 @@ double LValueHelper::getAsFloat() const {
    return (*v) ? (*v)->getAsFloat() : 0;
 }
 
-int LValueHelper::assign(AbstractQoreNode* n, const char* desc) {
-   //printd(5, "LValueHelper::assign() this: %p (%s) n: %p '%s' typeInfo: %p '%s' lvid_set: %p\n", this, desc, n, get_type_name(n), typeInfo, typeInfo->getName(), lvid_set);
-
-   // before we can entirely get rid of QoreNothingNode, try to convert Nothing -> 0
-   if (n == &Nothing)
-      n = 0;
-
+int LValueHelper::assign(QoreValue n, const char* desc) {
+   if (n.type == QV_Node && n.v.n == &Nothing)
+      n.v.n = 0;
+   
    // check type for assignment
-   n = typeInfo->acceptAssignment(desc, n, vl.xsink);
+   typeInfo->acceptAssignment(desc, n, vl.xsink);
    if (*vl.xsink) {
       //printd(5, "LValueHelper::assign() this: %p saving type-rejected value: %p '%s'\n", this, n, get_type_name(n));
       saveTemp(n);
       return -1;
    }
 
-   if (lvid_set && get_node_type(n) == NT_REFERENCE && (lvid_set->find(lvalue_ref::get(reinterpret_cast<const ReferenceNode*>(n))->lvalue_id) != lvid_set->end())) {
+   if (lvid_set && n.getType() == NT_REFERENCE && (lvid_set->find(lvalue_ref::get(reinterpret_cast<const ReferenceNode*>(n.getInternalNode()))->lvalue_id) != lvid_set->end())) {
       vl.xsink->raiseException("REFERENCE-ERROR", "recursive reference detected in assignment");
       saveTemp(n);
       return -1;
@@ -526,10 +544,11 @@ int LValueHelper::assign(AbstractQoreNode* n, const char* desc) {
    
    //printd(5, "LValueHelper::assign() this: %p saving old value: %p '%s'\n", this, *v, get_type_name(*v));
    saveTemp(*v);
-   *v = n;
+   *v = n.takeNode();
    return 0;
 }
 
+/*
 int LValueHelper::assignBigInt(int64 va, const char* desc) {
    // check type for assignment
    if (!typeInfo->parseAccepts(bigIntTypeInfo)) {
@@ -577,6 +596,7 @@ int LValueHelper::assignFloat(double va, const char* desc) {
    *v = n;
    return 0;
 }
+*/
 
 int64 LValueHelper::plusEqualsBigInt(int64 va, const char* desc) {
    if (val)
@@ -929,29 +949,18 @@ void LValueHelper::divideEqualsNumber(const AbstractQoreNode* r, const char* des
       qore_number_private::divideEquals(*n, *rn);
 }
 
-int64 LValueHelper::removeBigInt() {
+AbstractQoreNode* LValueHelper::removeNode(bool for_del) {
    if (val)
-      return val->removeBigInt(getTempRef());
+      return val->removeNode(for_del);
 
-   int64 rv = *v ? (*v)->getAsBigInt() : 0;
-   saveTemp(*v);
+   AbstractQoreNode* rv = *v;
    *v = 0;
    return rv;
 }
 
-double LValueHelper::removeFloat() {
+QoreValue LValueHelper::remove() {
    if (val)
-      return val->removeFloat(getTempRef());
-
-   double rv = *v ? (*v)->getAsFloat() : 0;
-   saveTemp(*v);
-   *v = 0;
-   return rv;
-}
-
-AbstractQoreNode* LValueHelper::remove(bool for_del) {
-   if (val)
-      return val->remove(for_del);
+      return val->remove();
 
    AbstractQoreNode* rv = *v;
    *v = 0;
@@ -968,28 +977,21 @@ LValueRemoveHelper::LValueRemoveHelper(const ReferenceNode& ref, ExceptionSink* 
       doRemove(const_cast<AbstractQoreNode*>(lvalue_ref::get(&ref)->vexp));
 }
 
-int64 LValueRemoveHelper::removeBigInt() {
+AbstractQoreNode* LValueRemoveHelper::removeNode() {
    assert(!*xsink);
-   ReferenceHolder<> dr(xsink);
-   return rv.removeBigInt(dr.getRef());
+   return rv.removeNode(for_del);
 }
 
-double LValueRemoveHelper::removeFloat() {
+QoreValue LValueRemoveHelper::remove() {
    assert(!*xsink);
-   ReferenceHolder<> dr(xsink);
-   return rv.removeFloat(dr.getRef());
-}
-
-AbstractQoreNode* LValueRemoveHelper::remove() {
-   assert(!*xsink);
-   return rv.remove(for_del);
+   return rv.remove();
 }
 
 void LValueRemoveHelper::deleteLValue() {
    assert(!*xsink);
    assert(for_del);
 
-   ReferenceHolder<> v(remove(), xsink);
+   ValueHolder v(remove(), xsink);
    if (!v)
       return;
 
@@ -997,7 +999,7 @@ void LValueRemoveHelper::deleteLValue() {
    if (t != NT_OBJECT)
       return;
 
-   QoreObject* o = reinterpret_cast<QoreObject* >(*v);
+   QoreObject* o = reinterpret_cast<QoreObject* >(v->getInternalNode());
    if (o->isSystemObject()) {
       xsink->raiseException("SYSTEM-OBJECT-ERROR", "you cannot delete a system constant object");
       return;
@@ -1042,7 +1044,8 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
       if (!lvhb)
 	 return;
 
-      rv.assignInitial(lvhb.remove(for_del));
+      QoreValue tmp = lvhb.remove();
+      rv.assignInitial(tmp);
       /*
       int offset = tree->right->integerEval(xsink);
       if (*xsink)

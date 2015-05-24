@@ -39,26 +39,21 @@ AbstractQoreNode *QorePreIncrementOperatorNode::parseInitImpl(LocalVar* oflag, i
    return (typeInfo == bigIntTypeInfo || typeInfo == softBigIntTypeInfo) ? makeSpecialization<QoreIntPreIncrementOperatorNode>() : this;
 }
 
-AbstractQoreNode *QorePreIncrementOperatorNode::evalImpl(ExceptionSink *xsink) const {
+QoreValue QorePreIncrementOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+   needs_deref = false;
+
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper n(exp, xsink);
    if (!n)
-      return 0;
+      return QoreValue();
    if (n.getType() == NT_NUMBER) {
       n.preIncrementNumber("<++ (pre) operator>");
       assert(!*xsink);
    }
-   else if (n.getType() == NT_FLOAT) {
-      n.preIncrementFloat("<++ (pre) operator>");
-      assert(!*xsink);
-   }
+   else if (n.getType() == NT_FLOAT)
+      return n.preIncrementFloat("<++ (pre) operator>");
    else
-      n.preIncrementBigInt("<++ (pre) operator>");
+      return n.preIncrementBigInt("<++ (pre) operator>");
 
-   return *xsink || !ref_rv ? 0 : n.getReferencedValue();
-}
-
-AbstractQoreNode *QorePreIncrementOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = ref_rv;
-   return QorePreIncrementOperatorNode::evalImpl(xsink);
+   return *xsink || !ref_rv ? QoreValue() : n.getReferencedValue();
 }

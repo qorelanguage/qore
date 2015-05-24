@@ -260,6 +260,7 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/qc_qore.qpp
 
 include_HEADERS = \
+	include/qore/QoreValue.h \
 	include/qore/ReferenceArgumentHelper.h \
 	include/qore/QoreTypeSafeReferenceHelper.h \
 	include/qore/qore_thread.h \
@@ -292,7 +293,6 @@ include_HEADERS = \
 	include/qore/support.h \
 	include/qore/ExceptionSink.h \
 	include/qore/AbstractQoreNode.h \
-	include/qore/QoreNodeEvalOptionalRefHolder.h \
 	include/qore/QoreStringNode.h \
 	include/qore/DateTimeNode.h \
 	include/qore/QoreHashNode.h \
@@ -360,7 +360,7 @@ noinst_HEADERS = \
 	include/qore/intern/qore_qf_private.h \
 	include/qore/intern/VRMutex.h \
 	include/qore/intern/Variable.h \
-	include/qore/intern/QoreValue.h \
+	include/qore/intern/QoreLValue.h \
 	include/qore/intern/LocalVar.h \
 	include/qore/intern/QoreQueueIntern.h \
 	include/qore/intern/ModuleInfo.h \

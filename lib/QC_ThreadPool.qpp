@@ -55,7 +55,7 @@ void ThreadPoolThread::worker(ExceptionSink* xsink) {
       assert(task);
       
       sl.unlock();
-      discard(task->run(xsink), xsink);
+      task->run(xsink).discard(xsink);
       sl.lock();
       task->del(xsink);
       task = 0;

@@ -363,34 +363,9 @@ protected:
       return getTypeInfoForValue(ce->saved_node);
    }
 
-   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink* xsink) const {
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
       assert(ce->saved_node);
-      return ce->saved_node->bigIntEval(xsink);
-   }
-
-   DLLLOCAL virtual int integerEvalImpl(ExceptionSink* xsink) const {
-      assert(ce->saved_node);
-      return ce->saved_node->integerEval(xsink);
-   }
-
-   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink* xsink) const {
-      assert(ce->saved_node);
-      return ce->saved_node->boolEval(xsink);
-   }
-
-   DLLLOCAL virtual double floatEvalImpl(ExceptionSink* xsink) const {
-      assert(ce->saved_node);
-      return ce->saved_node->floatEval(xsink);
-   }
-
-   DLLLOCAL virtual AbstractQoreNode* evalImpl(ExceptionSink* xsink) const {
-      assert(ce->saved_node);
-      return ce->saved_node->eval(xsink);
-   }
-
-   DLLLOCAL virtual AbstractQoreNode* evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-      assert(ce->saved_node);
-      return ce->saved_node->eval(needs_deref, xsink);
+      return ce->saved_node->evalValue(needs_deref, xsink);
    }
 
    DLLLOCAL ~RuntimeConstantRefNode() {

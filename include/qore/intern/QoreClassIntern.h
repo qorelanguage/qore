@@ -35,7 +35,7 @@
 
 #include <qore/safe_dslist>
 #include <qore/intern/ConstantList.h>
-#include <qore/intern/QoreValue.h>
+#include <qore/intern/QoreLValue.h>
 #include <qore/intern/qore_var_rwlock_priv.h>
 
 #include <string.h>
@@ -1284,12 +1284,12 @@ public:
       QoreAutoVarRWWriteLocker al(rwl);
       if (!finalized)
          finalized = true;
-      tmp = val.remove(true);
+      tmp = val.removeNode(true);
    }
 
    DLLLOCAL void delVar(ExceptionSink* xsink) {
       del();
-      discard(val.remove(true), xsink);
+      discard(val.removeNode(true), xsink);
    }
 
    DLLLOCAL QoreVarInfo* copy() const {
@@ -1321,9 +1321,14 @@ public:
 #endif
    }
 
-   DLLLOCAL AbstractQoreNode* getReferencedValue() const {
+   DLLLOCAL QoreValue getReferencedValue() const {
       QoreAutoVarRWReadLocker al(rwl);
       return val.getReferencedValue();
+   }
+   
+   DLLLOCAL AbstractQoreNode* getReferencedNodeValue() const {
+      QoreAutoVarRWReadLocker al(rwl);
+      return val.getReferencedNodeValue();
    }
 
    DLLLOCAL int64 getAsBigInt() const {

@@ -40,8 +40,7 @@ protected:
 
    DLLLOCAL static QoreString extract_str;
 
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
    DLLLOCAL ~QoreExtractOperatorNode() {
       discard(lvalue_exp, 0);
@@ -71,7 +70,7 @@ public:
       return extract_str.getBuffer();
    }
 
-   DLLLOCAL AbstractQoreNode *extract(ExceptionSink *xsink) const;
+   //DLLLOCAL QoreValue extract(ExceptionSink* xsink) const;
 };
 
 #endif

@@ -239,35 +239,11 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation& loc, LocalVar*
 
    return lvids;
 }
- 
-// evalImpl(): return value requires a deref(xsink) if not 0
-AbstractQoreNode* AbstractFunctionCallNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
+
+QoreValue SelfFunctionCallNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
    needs_deref = true;
-   return evalImpl(xsink);
-}
-
-int64 AbstractFunctionCallNode::bigIntEvalImpl(ExceptionSink *xsink) const {
-   ReferenceHolder<AbstractQoreNode> rv(evalImpl(xsink), xsink);
-   return rv ? rv->getAsBigInt() : 0;
-}
-
-int AbstractFunctionCallNode::integerEvalImpl(ExceptionSink *xsink) const {
-   return bigIntEvalImpl(xsink);
-}
-
-bool AbstractFunctionCallNode::boolEvalImpl(ExceptionSink *xsink) const {
-   ReferenceHolder<AbstractQoreNode> rv(evalImpl(xsink), xsink);
-   return rv ? rv->getAsBool() : 0;
-}
-
-double AbstractFunctionCallNode::floatEvalImpl(ExceptionSink *xsink) const {
-   ReferenceHolder<AbstractQoreNode> rv(evalImpl(xsink), xsink);
-   return rv ? rv->getAsFloat() : 0;
-}
-
-AbstractQoreNode* SelfFunctionCallNode::evalImpl(ExceptionSink *xsink) const {
    QoreObject* self = runtime_get_stack_object();
-   
+
    //printd(5, "SelfFunctionCallNode::evalImpl() this: %p self: %p method: %p (%s)\n", this, self, method, ns.ostr);
    if (is_copy)
       return self->getClass()->execCopy(self, xsink);
@@ -359,29 +335,10 @@ QoreString *FunctionCallNode::getAsString(bool &del, int foff, ExceptionSink *xs
 }
 
 // eval(): return value requires a deref(xsink)
-AbstractQoreNode* FunctionCallNode::evalImpl(ExceptionSink *xsink) const {
+QoreValue FunctionCallNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
+   needs_deref = true;
    //printd(5, "FunctionCallNode::evalImpl() calling %s() current pgm: %p new pgm: %p\n", func->getName(), ::getProgram(), pgm);
    return func->evalFunction(variant, args, pgm, xsink);
-}
-
-int64 FunctionCallNode::bigIntEvalImpl(ExceptionSink *xsink) const {
-   //printd(5, "FunctionCallNode::bigIntEvalImpl() calling %s() current pgm: %p new pgm: %p\n", func->getName(), ::getProgram(), pgm);
-   return func->bigIntEvalFunction(variant, args, pgm, xsink);
-}
-
-int FunctionCallNode::integerEvalImpl(ExceptionSink *xsink) const {
-   //printd(5, "FunctionCallNode::intEvalImpl() calling %s() current pgm: %p new pgm: %p\n", func->getName(), ::getProgram(), pgm);
-   return func->intEvalFunction(variant, args, pgm, xsink);
-}
-
-bool FunctionCallNode::boolEvalImpl(ExceptionSink *xsink) const {
-   //printd(5, "FunctionCallNode::boolEvalImpl() calling %s() current pgm: %p new pgm: %p\n", func->getName(), ::getProgram(), pgm);
-   return func->boolEvalFunction(variant, args, pgm, xsink);
-}
-
-double FunctionCallNode::floatEvalImpl(ExceptionSink *xsink) const {
-   //printd(5, "FunctionCallNode::floatEvalImpl() calling %s() current pgm: %p new pgm: %p\n", func->getName(), ::getProgram(), pgm);
-   return func->floatEvalFunction(variant, args, pgm, xsink);
 }
 
 AbstractQoreNode* FunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
@@ -704,7 +661,9 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
    return this;
 }
 
-DLLLOCAL AbstractQoreNode* StaticMethodCallNode::evalImpl(ExceptionSink *xsink) const {
+QoreValue StaticMethodCallNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
+   needs_deref = true;
+   // FIXME: implement rv as QoreValue
    return qore_method_private::eval(*method, 0, args, xsink);
 }
 

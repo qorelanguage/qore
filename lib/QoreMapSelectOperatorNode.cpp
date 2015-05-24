@@ -45,15 +45,6 @@ int QoreMapSelectOperatorNode::getAsString(QoreString &str, int foff, ExceptionS
    return 0;
 }
 
-AbstractQoreNode* QoreMapSelectOperatorNode::evalImpl(ExceptionSink *xsink) const {
-   return map(xsink);
-}
-
-AbstractQoreNode* QoreMapSelectOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = ref_rv;
-   return map(xsink);
-}
-
 AbstractQoreNode* QoreMapSelectOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    assert(!typeInfo);
    
@@ -76,65 +67,82 @@ AbstractQoreNode* QoreMapSelectOperatorNode::parseInitImpl(LocalVar *oflag, int 
    return this;
 }
 
-AbstractQoreNode* QoreMapSelectOperatorNode::map(ExceptionSink* xsink) const {
+QoreValue QoreMapSelectOperatorNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
    // conditionally evaluate argument expression
-   QoreNodeEvalOptionalRefHolder marg(e[1], xsink);
-   if (*xsink)
-      return 0;
-
-   qore_type_t t = get_node_type(*marg);
-   if (t != NT_LIST) {
-      if (t == NT_OBJECT) {
-         AbstractIteratorHelper h(xsink, "map operator", const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*marg)));
-         if (*xsink)
-            return 0;
-         if (h)
-            return mapSelectIterator(h, xsink);
-      }
-      if (t == NT_NOTHING)
-         return 0;
-
-      // check if value can be mapped
-      SingleArgvContextHelper argv_helper(*marg, xsink);
-      bool b = e[2]->boolEval(xsink);
-      if (*xsink || !b)
-         return 0;
-
-      ReferenceHolder<AbstractQoreNode> val(e[0]->eval(xsink), xsink);
-      return *xsink ? 0 : val.release();
+   ValueEvalRefHolder marg(e[1], xsink);
+   if (*xsink) {
+      needs_deref = false;
+      return QoreValue();
    }
 
-   ReferenceHolder<QoreListNode> rv(ref_rv ? new QoreListNode() : 0, xsink);
-   ConstListIterator li(reinterpret_cast<const QoreListNode*>(*marg));
+   qore_type_t t = marg->getType();
+   if (t != NT_LIST) {
+      if (t == NT_OBJECT) {
+         AbstractIteratorHelper h(xsink, "map operator", marg->get<QoreObject>());
+         if (*xsink) {
+	    needs_deref = false;
+            return QoreValue();
+	 }
+         if (h) {
+	    needs_deref = ref_rv;
+            return mapSelectIterator(h, xsink);
+	 }
+      }
+      if (t == NT_NOTHING) { 
+	 needs_deref = false;
+	 return QoreValue();
+      }
+
+      ReferenceHolder<> argv_val(marg.getReferencedValue(), xsink);
+      SingleArgvContextHelper argv_helper(*argv_val, xsink);
+
+      // check if value can be mapped
+      ValueEvalRefHolder result(e[2], xsink);
+      if (*xsink || !result->getAsBool()) {
+	 needs_deref = false;
+	 return QoreValue();
+      }
+
+      ValueEvalRefHolder val(e[0], xsink);
+      return *xsink ? QoreValue() : val.takeValue(needs_deref);       
+   }
+
+   ReferenceHolder<QoreListNode> rv(ref_rv ? new QoreListNode : 0, xsink);
+   ConstListIterator li(marg->get<const QoreListNode>());
    while (li.next()) {
       // set offset in thread-local data for "$#"
       ImplicitElementHelper eh(li.index());
       const AbstractQoreNode* elem = li.getValue();
       // check if value can be mapped
       SingleArgvContextHelper argv_helper(elem, xsink);
-      bool b = e[2]->boolEval(xsink);
-      if (*xsink)
-         return 0;
-      if (!b)
+      ValueEvalRefHolder result(e[2], xsink);
+      if (*xsink) {
+	 needs_deref = false;
+         return QoreValue();
+      }
+      if (!result->getAsBool())
          continue;
 
-      ReferenceHolder<AbstractQoreNode> val(e[0]->eval(xsink), xsink);
-      if (*xsink)
-	 return 0;
+      ValueEvalRefHolder val(e[0], xsink);
+      if (*xsink) {
+	 needs_deref = false;
+	 return QoreValue();
+      }
       if (ref_rv)
-	  rv->push(val.release());
+	 rv->push(val.getReferencedValue());
    }
+   needs_deref = true;
    return rv.release();
 }
 
-QoreListNode* QoreMapSelectOperatorNode::mapSelectIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const {
-   ReferenceHolder<QoreListNode> rv(ref_rv ? new QoreListNode() : 0, xsink);
+QoreValue QoreMapSelectOperatorNode::mapSelectIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const {
+   ReferenceHolder<QoreListNode> rv(ref_rv ? new QoreListNode : 0, xsink);
 
    qore_size_t i = 0;
    while (true) {
       bool b = h.next(xsink);
       if (*xsink)
-         return 0;
+         return QoreValue();
       if (!b)
          break;
 
@@ -144,20 +152,20 @@ QoreListNode* QoreMapSelectOperatorNode::mapSelectIterator(AbstractIteratorHelpe
       // check if value can be mapped
       ReferenceHolder<> iv(h.getValue(xsink), xsink);
       if (*xsink)
-         return 0;
+         return QoreValue();
       SingleArgvContextHelper argv_helper(*iv, xsink);
-      b = e[2]->boolEval(xsink);
+      ValueEvalRefHolder result(e[2], xsink);
       if (*xsink)
-         return 0;
-      if (!b)
+         return QoreValue();
+      if (!result->getAsBool())
          continue;
 
       //printd(5, "op_map() e[0]=%p (%d %s)\n", e[0], e[0]->getType(), e[0]->getTypeName());
-      ReferenceHolder<AbstractQoreNode> val(e[0]->eval(xsink), xsink);
+      ValueEvalRefHolder val(e[0], xsink);
       if (*xsink)
-         return 0;
+         return QoreValue();
       if (ref_rv)
-          rv->push(val.release());
+	 rv->push(val.getReferencedValue());
    }
    
    return rv.release();

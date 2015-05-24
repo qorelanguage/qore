@@ -89,8 +89,9 @@ const char *ComplexContextrefNode::getTypeName() const {
    return "complex context reference";
 }
 
-// eval(): return value requires a deref(xsink)
-AbstractQoreNode *ComplexContextrefNode::evalImpl(ExceptionSink *xsink) const {
+// evalImpl(): return value requires a deref(xsink) if not 0
+QoreValue ComplexContextrefNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
+   needs_deref = true;
    int count = 0;
 
    Context *cs = get_context_stack();
@@ -99,32 +100,6 @@ AbstractQoreNode *ComplexContextrefNode::evalImpl(ExceptionSink *xsink) const {
       cs = cs->next;
    }
    return cs->evalValue(member, xsink);
-}
-
-// evalImpl(): return value requires a deref(xsink) if not 0
-AbstractQoreNode *ComplexContextrefNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = true;
-   return ComplexContextrefNode::evalImpl(xsink);
-}
-
-int64 ComplexContextrefNode::bigIntEvalImpl(ExceptionSink *xsink) const {
-   ReferenceHolder<AbstractQoreNode> rv(ComplexContextrefNode::evalImpl(xsink), xsink);
-   return rv ? rv->getAsBigInt() : 0;
-}
-
-int ComplexContextrefNode::integerEvalImpl(ExceptionSink *xsink) const {
-   ReferenceHolder<AbstractQoreNode> rv(ComplexContextrefNode::evalImpl(xsink), xsink);
-   return rv ? rv->getAsInt() : 0;
-}
-
-bool ComplexContextrefNode::boolEvalImpl(ExceptionSink *xsink) const {
-   ReferenceHolder<AbstractQoreNode> rv(ComplexContextrefNode::evalImpl(xsink), xsink);
-   return rv ? rv->getAsBool() : 0;
-}
-
-double ComplexContextrefNode::floatEvalImpl(ExceptionSink *xsink) const {
-   ReferenceHolder<AbstractQoreNode> rv(ComplexContextrefNode::evalImpl(xsink), xsink);
-   return rv ? rv->getAsFloat() : 0;
 }
 
 AbstractQoreNode *ComplexContextrefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {

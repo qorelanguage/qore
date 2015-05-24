@@ -40,8 +40,7 @@ protected:
 
    DLLLOCAL static QoreString splice_str;
 
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
    DLLLOCAL ~QoreSpliceOperatorNode() {
       discard(lvalue_exp, 0);
@@ -71,7 +70,7 @@ public:
       return splice_str.getBuffer();
    }
 
-   DLLLOCAL AbstractQoreNode *splice(ExceptionSink *xsink) const;
+   //DLLLOCAL AbstractQoreNode *splice(ExceptionSink *xsink) const;
 };
 
 #endif

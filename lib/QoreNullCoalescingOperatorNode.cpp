@@ -58,46 +58,22 @@ AbstractQoreNode* QoreNullCoalescingOperatorNode::parseInitImpl(LocalVar *oflag,
    return this;
 }
 
-AbstractQoreNode* QoreNullCoalescingOperatorNode::evalImpl(ExceptionSink *xsink) const {
-   QoreNodeEvalOptionalRefHolder arg(e[0], xsink);
-   if (*xsink) 
-      return 0;
-   return is_nothing(*arg) || is_null(*arg) ? e[1]->eval(xsink) : arg.getReferencedValue();
-}
-
-AbstractQoreNode* QoreNullCoalescingOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = true;
-   return QoreNullCoalescingOperatorNode::evalImpl(xsink);
-}
-
-int64 QoreNullCoalescingOperatorNode::bigIntEvalImpl(ExceptionSink *xsink) const {
-   QoreNodeEvalOptionalRefHolder arg(e[0], xsink);
-   if (*xsink) 
-      return 0;
-
-   return is_nothing(*arg) || is_null(*arg) ? e[1]->bigIntEval(xsink) : arg->getAsBigInt();
-}
-
-int QoreNullCoalescingOperatorNode::integerEvalImpl(ExceptionSink *xsink) const {
-   QoreNodeEvalOptionalRefHolder arg(e[0], xsink);
-   if (*xsink) 
-      return 0;
-
-   return is_nothing(*arg) || is_null(*arg) ? e[1]->integerEval(xsink) : arg->getAsInt();
-}
-
-double QoreNullCoalescingOperatorNode::floatEvalImpl(ExceptionSink *xsink) const {
-   QoreNodeEvalOptionalRefHolder arg(e[0], xsink);
-   if (*xsink) 
-      return 0;
-
-   return is_nothing(*arg) || is_null(*arg) ? e[1]->floatEval(xsink) : arg->getAsFloat();
-}
-
-bool QoreNullCoalescingOperatorNode::boolEvalImpl(ExceptionSink *xsink) const {
-   QoreNodeEvalOptionalRefHolder arg(e[0], xsink);
-   if (*xsink) 
-      return 0;
-
-   return is_nothing(*arg) || is_null(*arg) ? e[1]->boolEval(xsink) : arg->getAsBool();
+QoreValue QoreNullCoalescingOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+   {
+      ValueEvalRefHolder arg(e[0], xsink);
+      if (*xsink) {
+         needs_deref = false;
+         return QoreValue();
+      }
+      
+      if (!arg->isNullOrNothing())
+         return arg.takeValue(needs_deref);
+   }
+   
+   ValueEvalRefHolder arg(e[1], xsink);
+   if (*xsink) {
+      needs_deref = false;
+      return QoreValue();
+   }
+   return arg.takeValue(needs_deref);
 }

@@ -58,46 +58,22 @@ AbstractQoreNode* QoreValueCoalescingOperatorNode::parseInitImpl(LocalVar *oflag
    return this;
 }
 
-AbstractQoreNode* QoreValueCoalescingOperatorNode::evalImpl(ExceptionSink *xsink) const {
-   QoreNodeEvalOptionalRefHolder arg(e[0], xsink);
-   if (*xsink) 
-      return 0;
-   return !(*arg) || !(*arg)->getAsBool() ? e[1]->eval(xsink) : arg.getReferencedValue();
-}
-
-AbstractQoreNode* QoreValueCoalescingOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = true;
-   return QoreValueCoalescingOperatorNode::evalImpl(xsink);
-}
-
-int64 QoreValueCoalescingOperatorNode::bigIntEvalImpl(ExceptionSink *xsink) const {
-   QoreNodeEvalOptionalRefHolder arg(e[0], xsink);
-   if (*xsink) 
-      return 0;
-
-   return !(*arg) || !(*arg)->getAsBool() ? e[1]->bigIntEval(xsink) : arg->getAsBigInt();
-}
-
-int QoreValueCoalescingOperatorNode::integerEvalImpl(ExceptionSink *xsink) const {
-   QoreNodeEvalOptionalRefHolder arg(e[0], xsink);
-   if (*xsink) 
-      return 0;
-
-   return !(*arg) || !(*arg)->getAsBool() ? e[1]->integerEval(xsink) : arg->getAsInt();
-}
-
-double QoreValueCoalescingOperatorNode::floatEvalImpl(ExceptionSink *xsink) const {
-   QoreNodeEvalOptionalRefHolder arg(e[0], xsink);
-   if (*xsink) 
-      return 0;
-
-   return !(*arg) || !(*arg)->getAsBool() ? e[1]->floatEval(xsink) : arg->getAsFloat();
-}
-
-bool QoreValueCoalescingOperatorNode::boolEvalImpl(ExceptionSink *xsink) const {
-   QoreNodeEvalOptionalRefHolder arg(e[0], xsink);
-   if (*xsink) 
-      return 0;
-
-   return !(*arg) || !(*arg)->getAsBool() ? e[1]->boolEval(xsink) : arg->getAsBool();
+QoreValue QoreValueCoalescingOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+   {
+      ValueEvalRefHolder arg(e[0], xsink);
+      if (*xsink) {
+	 needs_deref = false;
+	 return QoreValue();
+      }
+      
+      if (arg->getAsBool())
+	 return arg.takeValue(needs_deref);
+   }
+   
+   ValueEvalRefHolder arg(e[1], xsink);
+   if (*xsink) {
+      needs_deref = false;
+      return QoreValue();
+   }
+   return arg.takeValue(needs_deref);
 }

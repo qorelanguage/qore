@@ -469,9 +469,9 @@ static int compareListEntries(AbstractQoreNode *l, AbstractQoreNode *r) {
       return 1;
 
    ExceptionSink xsink;
-   int rc = (int)OP_LOG_LT->bool_eval(l, r, &xsink);
-   //printd(5, "compareListEntries() returning %d\n", rc);
-   return rc;
+   ValueHolder v(OP_LOG_LT->eval(l, r, true, &xsink), &xsink);
+   //printd(5, "compareListEntries() returning %d\n", (int)v->getAsBool());
+   return (int)v->getAsBool();
 }
 
 static int compareListEntriesDescending(AbstractQoreNode *l, AbstractQoreNode *r) {
@@ -555,10 +555,10 @@ int QoreListNode::mergesort(const ResolvedCallReferenceNode *fr, bool ascending,
       AbstractQoreNode *l = left.priv->entry[li];
       AbstractQoreNode *r = right.priv->entry[ri];
       safe_qorelist_t args(do_args(l, r), xsink);
-      ReferenceHolder<AbstractQoreNode> rv(fr->exec(*args, xsink), xsink);
+      ValueHolder rv(fr->execValue(*args, xsink), xsink);
       if (*xsink)
 	 return -1;
-      int rc = *rv ? rv->getAsInt() : 0;
+      int rc = (int)rv->getAsBigInt();
       if ((ascending && rc <= 0)
 	  || (!ascending && rc > 0))
 	 push(left.getAndClear(li++));
@@ -588,10 +588,10 @@ int QoreListNode::qsort(const ResolvedCallReferenceNode *fr, qore_size_t left, q
    while (left < right) {
       while (true) {
 	 safe_qorelist_t args(do_args(priv->entry[right], pivot), xsink);
-	 ReferenceHolder<AbstractQoreNode> rv(fr->exec(*args, xsink), xsink);
+	 ValueHolder rv(fr->execValue(*args, xsink), xsink);
 	 if (*xsink)
 	    return -1;
-	 int rc = *rv ? rv->getAsInt() : 0;
+	 int rc = (int)rv->getAsBigInt();
 	 if ((left < right)
 	     && ((rc >= 0 && ascending)
 		 || (rc < 0 && !ascending)))
@@ -607,10 +607,10 @@ int QoreListNode::qsort(const ResolvedCallReferenceNode *fr, qore_size_t left, q
 
       while (true) {
 	 safe_qorelist_t args(do_args(priv->entry[left], pivot), xsink);
-	 ReferenceHolder<AbstractQoreNode> rv(fr->exec(*args, xsink), xsink);
+	 ValueHolder rv(fr->execValue(*args, xsink), xsink);
 	 if (*xsink)
 	    return -1;
-	 int rc = *rv ? rv->getAsInt() : 0;
+	 int rc = (int)rv->getAsBigInt();
 	 if ((left < right) 
 	     && ((rc <= 0 && ascending)
 		 || (rc > 0 && !ascending)))
@@ -852,7 +852,8 @@ AbstractQoreNode *QoreListNode::min() const {
       if (!rv)
 	 rv = v;
       else {
-	 if (OP_LOG_LT->bool_eval(v, rv, &xsink))
+	 ValueHolder vh(OP_LOG_LT->eval(v, rv, true, &xsink), &xsink);
+	 if (vh->getAsBool())
 	    rv = v;
 	 assert(!xsink);
       }
@@ -872,7 +873,8 @@ AbstractQoreNode *QoreListNode::max() const {
       if (!rv)
 	 rv = v;
       else {
-	 if (OP_LOG_GT->bool_eval(v, rv, &xsink))
+	 ValueHolder vh(OP_LOG_GT->eval(v, rv, true, &xsink), &xsink);
+	 if (vh->getAsBool())
 	    rv = v;
 	 assert(!xsink);
       }
@@ -890,10 +892,10 @@ AbstractQoreNode *QoreListNode::min(const ResolvedCallReferenceNode *fr, Excepti
 	 rv = v;
       else {
 	 safe_qorelist_t args(do_args(v, rv), xsink);
-	 ReferenceHolder<AbstractQoreNode> result(fr->exec(*args, xsink), xsink);
+	 ValueHolder result(fr->execValue(*args, xsink), xsink);
 	 if (*xsink)
 	    return 0;
-	 if (*result ? result->getAsInt() < 0 : false)
+	 if (result->getAsBigInt() < 0)
 	    rv = v;
       }
    }
@@ -910,10 +912,10 @@ AbstractQoreNode *QoreListNode::max(const ResolvedCallReferenceNode *fr, Excepti
 	 rv = v;
       else {
 	 safe_qorelist_t args(do_args(v, rv), xsink);
-	 ReferenceHolder<AbstractQoreNode> result(fr->exec(*args, xsink), xsink);
+	 ValueHolder result(fr->execValue(*args, xsink), xsink);
 	 if (*xsink)
 	    return 0;
-	 if (*result ? result->getAsInt() > 0 : false)
+	 if (result->getAsBigInt() > 0)
 	    rv = v;
       }
    }

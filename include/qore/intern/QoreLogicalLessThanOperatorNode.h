@@ -41,27 +41,7 @@ protected:
    // pointer to optimized versions depending on arguments found at parse-time   
    eval_t pfunc;
 
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const {
-      bool rc = QoreLogicalLessThanOperatorNode::boolEvalImpl(xsink);
-      return *xsink ? 0 : get_bool_node(rc);
-   }
-
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-      needs_deref = false;
-      return QoreLogicalLessThanOperatorNode::evalImpl(xsink);
-   }
-
-   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const {
-      return QoreLogicalLessThanOperatorNode::boolEvalImpl(xsink);
-   }
-   DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const {
-      return QoreLogicalLessThanOperatorNode::boolEvalImpl(xsink);
-   }
-   DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const {
-      return QoreLogicalLessThanOperatorNode::boolEvalImpl(xsink);
-   }
-
-   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
    DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 

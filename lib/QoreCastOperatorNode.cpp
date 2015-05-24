@@ -45,55 +45,37 @@ int QoreCastOperatorNode::getAsString(QoreString& str, int foff, ExceptionSink* 
    return 0;
 }
 
-int QoreCastOperatorNode::evalIntern(const AbstractQoreNode* rv, ExceptionSink* xsink) const {
-   if (!rv || rv->getType() != NT_OBJECT) {
-      xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from type '%s' to %s'%s'", get_type_name(rv), qc ? "class " : "", qc ? qc->getName() : "object");
-      return -1;
+QoreValue QoreCastOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+   ValueEvalRefHolder rv(exp, xsink);
+   if (*xsink) {
+      needs_deref = false;
+      return QoreValue();
    }
 
-   const QoreObject* obj = reinterpret_cast<const QoreObject*>(rv);
+   if (rv->getType() != NT_OBJECT) {
+      xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from type '%s' to %s'%s'", rv->getTypeName(), qc ? "class " : "", qc ? qc->getName() : "object");
+      needs_deref = false;
+      return QoreValue();
+   }
+
+   const QoreObject* obj = rv->get<const QoreObject>();
    if (qc) {
       const QoreClass* oc = obj->getClass();
       bool priv;
       const QoreClass* tc = oc->getClass(*qc, priv);
       if (!tc) {
 	 xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from class '%s' to class '%s'", obj->getClassName(), qc->getName());
-	 return -1;
+	 needs_deref = false;
+	 return QoreValue();
       }
       if (priv && !qore_class_private::runtimeCheckPrivateClassAccess(*tc)) {
 	 xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from class '%s' to privately-accessible class '%s' in this context", obj->getClassName(), qc->getName());
-	 return -1;
+	 needs_deref = false;
+	 return QoreValue();
       }
    }
 
-   return 0;
-}
-
-AbstractQoreNode* QoreCastOperatorNode::evalImpl(ExceptionSink* xsink) const {
-   ReferenceHolder<AbstractQoreNode> rv(exp->eval(xsink), xsink);
-   if (*xsink)
-      return 0;
-
-   if (evalIntern(*rv, xsink))
-      return 0;
-
-   return rv.release();
-}
-
-AbstractQoreNode* QoreCastOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   QoreNodeEvalOptionalRefHolder rv(exp, xsink);
-   if (*xsink)
-      return 0;
-   
-   if (evalIntern(*rv, xsink))
-      return 0;
-
-   if (rv.isTemp()) {
-      needs_deref = false;
-      return const_cast<AbstractQoreNode*>(*rv);
-   }
-   needs_deref = true;
-   return rv.getReferencedValue();
+   return rv.takeValue(needs_deref);
 }
 
 AbstractQoreNode* QoreCastOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {

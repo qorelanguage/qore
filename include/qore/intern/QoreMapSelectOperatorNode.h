@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreMapOperatorNode.h
+  QoreMapSelectOperatorNode.h
  
   Qore Programming Language
  
@@ -41,8 +41,7 @@ protected:
 
    DLLLOCAL static QoreString map_str;
 
-   DLLLOCAL virtual AbstractQoreNode* evalImpl(ExceptionSink* xsink) const;
-   DLLLOCAL virtual AbstractQoreNode* evalImpl(bool& needs_deref, ExceptionSink *xsink) const;
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
    DLLLOCAL virtual ~QoreMapSelectOperatorNode() {
    }
@@ -58,7 +57,7 @@ protected:
       return true;
    }
    
-   DLLLOCAL QoreListNode* mapSelectIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const;
+   DLLLOCAL QoreValue mapSelectIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const;
    
 public:
    DLLLOCAL QoreMapSelectOperatorNode(AbstractQoreNode* e0, AbstractQoreNode* e1, AbstractQoreNode* e2) : QoreNOperatorNodeBase<3>(e0, e1, e2), returnTypeInfo(0) {
@@ -72,7 +71,7 @@ public:
       return map_str.getBuffer();
    }
 
-   DLLLOCAL AbstractQoreNode* map(ExceptionSink* xsink) const;
+   //DLLLOCAL AbstractQoreNode* map(ExceptionSink* xsink) const;
 };
 
 #endif

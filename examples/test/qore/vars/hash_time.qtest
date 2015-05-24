@@ -7,10 +7,10 @@
 my UnitTest $t();
 
 # test configuration
-my int $size       = 10000; # hash keys count
+my int $size       =  1000; # hash keys count
 my int $min_length =    20; # minimum hash key length
 my int $num_loops  =     2; # times to search the hash
-my int $limit_time =   100; # tests failes if it takes more secs
+my int $limit_time =   200; # tests failes if it takes more secs
 
 # init
 srand(now());

@@ -49,7 +49,7 @@ void QoreSignalHandler::runHandler(int sig, ExceptionSink *xsink) {
    // create signal number argument
    ReferenceHolder<QoreListNode> args(new QoreListNode, xsink);
    args->push(new QoreBigIntNode(sig));
-   discard(funcref->exec(*args, xsink), xsink);
+   funcref->execValue(*args, xsink).discard(xsink);
 }
 
 QoreSignalManager::QoreSignalManager() : is_enabled(false), tid(-1), block(false), waiting(0), num_handlers(0), thread_running(false), cmd(C_None) {

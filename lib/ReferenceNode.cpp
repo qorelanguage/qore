@@ -152,35 +152,13 @@ QoreString* ReferenceNode::getAsString(bool& del, int foff, ExceptionSink* xsink
    return rv;
 }
 
-AbstractQoreNode* ReferenceNode::evalImpl(ExceptionSink* xsink) const {
-   LValueHelper lvh(this, xsink);
-   return lvh ? lvh.getReferencedValue() : 0;
-}
-
-AbstractQoreNode* ReferenceNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
+/*
+QoreValue ReferenceNode::evalValue(bool& needs_deref, ExceptionSink* xsink) const {
    needs_deref = true;
-   return ReferenceNode::evalImpl(xsink);
-}
-
-int64 ReferenceNode::bigIntEvalImpl(ExceptionSink* xsink) const {
    LValueHelper lvh(this, xsink);
-   return lvh ? lvh.getAsBigInt() : 0;
+   return lvh ? lvh.getReferencedValue() : QoreValue();
 }
-
-int ReferenceNode::integerEvalImpl(ExceptionSink* xsink) const {
-   LValueHelper lvh(this, xsink);
-   return lvh ? (int)lvh.getAsBigInt() : 0;
-}
-
-bool ReferenceNode::boolEvalImpl(ExceptionSink *xsink) const {
-   LValueHelper lvh(this, xsink);
-   return lvh ? lvh.getAsBool() : false;
-}
-
-double ReferenceNode::floatEvalImpl(ExceptionSink *xsink) const {
-   LValueHelper lvh(this, xsink);
-   return lvh ? lvh.getAsFloat() : 0.0;
-}
+*/
 
 AbstractQoreNode* ReferenceNode::realCopy() const {
    return new ReferenceNode(new lvalue_ref(*priv));
@@ -213,4 +191,34 @@ const char* ReferenceNode::getTypeName() const {
 bool ReferenceNode::derefImpl(ExceptionSink* xsink) {
    priv->del(xsink);
    return true;
+}
+
+AbstractQoreNode* ReferenceNode::evalImpl(ExceptionSink* xsink) const {
+   LValueHelper lvh(this, xsink);
+   return lvh ? lvh.getReferencedNodeValue() : 0;
+}
+
+AbstractQoreNode* ReferenceNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
+   needs_deref = true;
+   return ReferenceNode::evalImpl(xsink);
+}
+
+int64 ReferenceNode::bigIntEvalImpl(ExceptionSink* xsink) const {
+   LValueHelper lvh(this, xsink);
+   return lvh ? lvh.getAsBigInt() : 0;
+}
+
+int ReferenceNode::integerEvalImpl(ExceptionSink* xsink) const {
+   LValueHelper lvh(this, xsink);
+   return lvh ? (int)lvh.getAsBigInt() : 0;
+}
+
+bool ReferenceNode::boolEvalImpl(ExceptionSink *xsink) const {
+   LValueHelper lvh(this, xsink);
+   return lvh ? lvh.getAsBool() : false;
+}
+
+double ReferenceNode::floatEvalImpl(ExceptionSink *xsink) const {
+   LValueHelper lvh(this, xsink);
+   return lvh ? lvh.getAsFloat() : 0.0;
 }

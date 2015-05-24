@@ -41,29 +41,9 @@ QoreObjectClosureNode* QoreClosureParseNode::evalObjectClosure() const {
    return new QoreObjectClosureNode(runtime_get_stack_object(), this);
 }
 
-AbstractQoreNode* QoreClosureParseNode::evalImpl(ExceptionSink* xsink) const {
-   return in_method ? (AbstractQoreNode*)evalObjectClosure() : (AbstractQoreNode*)evalClosure();
-}
-
-AbstractQoreNode* QoreClosureParseNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreClosureParseNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    needs_deref = true;
    return in_method ? (AbstractQoreNode*)evalObjectClosure() : (AbstractQoreNode*)evalClosure();
-}
-
-int64 QoreClosureParseNode::bigIntEvalImpl(ExceptionSink* xsink) const {
-   return 0;
-}
-
-int QoreClosureParseNode::integerEvalImpl(ExceptionSink* xsink) const {
-   return 0;
-}
-
-bool QoreClosureParseNode::boolEvalImpl(ExceptionSink* xsink) const {
-   return false;
-}
-
-double QoreClosureParseNode::floatEvalImpl(ExceptionSink* xsink) const {
-   return 0.0;
 }
 
 int QoreClosureParseNode::getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {

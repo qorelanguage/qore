@@ -210,7 +210,8 @@ bool CaseNodeWithOperator::isCaseNodeImpl() const {
 }
 
 bool CaseNodeWithOperator::matches(AbstractQoreNode* lhs_value, ExceptionSink *xsink) {
-   return m_operator->bool_eval(lhs_value, val, xsink);
+   ValueHolder rv(m_operator->eval(lhs_value, val, true, xsink), xsink);
+   return rv->getAsBool();
 }
 
 CaseNodeRegex::CaseNodeRegex(QoreRegexNode *m_re, StatementBlock *blk) : CaseNode(NULL, blk), re(m_re) {

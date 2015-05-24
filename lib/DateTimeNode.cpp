@@ -208,3 +208,51 @@ DateTimeNode *DateTimeNode::makeAbsoluteLocal(const AbstractQoreZoneInfo *zone, 
 DateTimeNode *DateTimeNode::makeRelative(int y, int mo, int d, int h, int mi, int s, int u) {
    return new DateTimeNode(new qore_date_private(y, mo, d, h, mi, s, u, true));
 }
+
+DateTimeValueHelper::DateTimeValueHelper(const AbstractQoreNode* n) {
+   // optmization without virtual function call for most common case
+   if (n) {
+      if (n->getType() == NT_DATE) {
+	 dt = reinterpret_cast<const DateTimeNode *>(n);
+	 del = false;
+      }
+      else
+	 dt = n->getDateTimeRepresentation(del);
+   }
+   else {
+      dt = ZeroDate;
+      del = false;
+   }
+}
+
+DateTimeValueHelper::DateTimeValueHelper(QoreValue& n) {
+   if (!n.isNullOrNothing()) {
+      switch (n.type) {
+	 case QV_Node: {
+	    dt = n.getInternalNode()->getDateTimeRepresentation(del);
+	    return;
+	 }
+	 case QV_Bool:
+	 case QV_Int: {
+	    dt = new DateTimeNode(n.getAsBigInt());
+	    del = true;
+	    return;
+	 }
+	 case QV_Float: {
+	    dt = DateTimeNode::makeAbsoluteLocal(currentTZ(), (int64)n.v.f, (int)((n.v.f - (float)((int)n.v.f)) * 1000000));
+	    del = true;
+	    return;
+	 }
+	 default:
+	    assert(false);
+	    // no break
+      }
+   }
+   dt = ZeroDate;
+   del = false;
+}
+
+DateTimeValueHelper::~DateTimeValueHelper() {
+   if (del)
+      delete const_cast<DateTime*>(dt);
+}

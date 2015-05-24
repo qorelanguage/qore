@@ -99,24 +99,24 @@ class TestArray {
         $unit.cmp(sort($hl, $hash_compare), $sorted_hl, "sort() with closure callback");
 
         my list $r_sorted_hl = reverse($sorted_hl);
-        $unit.cmp(sortDescending($l1), (6,5,4,3,2,1), "first sortDescending()");
-        $unit.cmp(sortDescending($l2), ("two", "three", "six", "one", "four", "five"), "second sortDescending()");
-        $unit.cmp(sortDescending($hl, \SC::hash_sort_callback()), $r_sorted_hl, "first sortDescending() with callback");
-        $unit.cmp(sortDescending($hl, \$s.hash()), $r_sorted_hl, "second sortDescending() with callback");
-        $unit.cmp(sortDescending($hl, "hash_sort_callback"), $r_sorted_hl, "third sortDescending() with callback");
-        $unit.cmp(sortDescending($hl, $hash_compare), $r_sorted_hl, "sortDescending() with closure callback");
+        $unit.cmp(sort_descending($l1), (6,5,4,3,2,1), "first sort_descending()");
+        $unit.cmp(sort_descending($l2), ("two", "three", "six", "one", "four", "five"), "second sort_descending()");
+        $unit.cmp(sort_descending($hl, \SC::hash_sort_callback()), $r_sorted_hl, "first sort_descending() with callback");
+        $unit.cmp(sort_descending($hl, \$s.hash()), $r_sorted_hl, "second sort_descending() with callback");
+        $unit.cmp(sort_descending($hl, "hash_sort_callback"), $r_sorted_hl, "third sort_descending() with callback");
+        $unit.cmp(sort_descending($hl, $hash_compare), $r_sorted_hl, "sort_descending() with closure callback");
 
         $hl += ( "key1" : 3, "key2" : "five-o" );
-        $unit.cmp(sortStable($hl, \hash_sort_callback()), $stable_sorted_hl, "first sortStable() with callback");
-        $unit.cmp(sortStable($hl, \$s.hash()), $stable_sorted_hl, "second sortStable() with callback");
-        $unit.cmp(sortStable($hl, "hash_sort_callback"), $stable_sorted_hl, "third sortStable() with callback");
-        $unit.cmp(sortStable($hl, $hash_compare), $stable_sorted_hl, "sortStable() with closure callback");
+        $unit.cmp(sort_stable($hl, \hash_sort_callback()), $stable_sorted_hl, "first sort_stable() with callback");
+        $unit.cmp(sort_stable($hl, \$s.hash()), $stable_sorted_hl, "second sort_stable() with callback");
+        $unit.cmp(sort_stable($hl, "hash_sort_callback"), $stable_sorted_hl, "third sort_stable() with callback");
+        $unit.cmp(sort_stable($hl, $hash_compare), $stable_sorted_hl, "sort_stable() with closure callback");
 
         my list $r_stable_sorted_hl = reverse($stable_sorted_hl);
-        $unit.cmp(sortDescendingStable($hl, \SC::hash_sort_callback()), $r_stable_sorted_hl, "first sortDescendingStable() with callback");
-        $unit.cmp(sortDescendingStable($hl, \$s.hash()), $r_stable_sorted_hl, "second sortDescendingStable() with callback");
-        $unit.cmp(sortDescendingStable($hl, "hash_sort_callback"), $r_stable_sorted_hl, "third sortDescendingStable() with callback");
-        $unit.cmp(sortDescendingStable($hl, $hash_compare), $r_stable_sorted_hl, "sortDescendingStable() with closure callback");
+        $unit.cmp(sort_descending_stable($hl, \SC::hash_sort_callback()), $r_stable_sorted_hl, "first sort_descending_stable() with callback");
+        $unit.cmp(sort_descending_stable($hl, \$s.hash()), $r_stable_sorted_hl, "second sort_descending_stable() with callback");
+        $unit.cmp(sort_descending_stable($hl, "hash_sort_callback"), $r_stable_sorted_hl, "third sort_descending_stable() with callback");
+        $unit.cmp(sort_descending_stable($hl, $hash_compare), $r_stable_sorted_hl, "sort_descending_stable() with closure callback");
 
         $unit.cmp(min($l1), 1, "simple min()");
         $unit.cmp(max($l1), 6, "simple max()");

@@ -30,35 +30,8 @@
 
 #include <qore/Qore.h>
 
-AbstractQoreNode *QoreImplicitElementNode::evalImpl(ExceptionSink *xsink) const {
-   return new QoreBigIntNode(get_implicit_element());
-}
-
-AbstractQoreNode *QoreImplicitElementNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   int val = get_implicit_element();
-   if (!val) {
-      needs_deref = false;
-      return Zero;
-   }
-
-   needs_deref = true;
-   return new QoreBigIntNode(val);
-}
-
-int64 QoreImplicitElementNode::bigIntEvalImpl(ExceptionSink *xsink) const {
-   return get_implicit_element();
-}
-
-int QoreImplicitElementNode::integerEvalImpl(ExceptionSink *xsink) const {
-   return get_implicit_element();
-}
-
-bool QoreImplicitElementNode::boolEvalImpl(ExceptionSink *xsink) const {
-   return get_implicit_element();
-}
-
-double QoreImplicitElementNode::floatEvalImpl(ExceptionSink *xsink) const {
-   return get_implicit_element();
+QoreValue QoreImplicitElementNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
+   return (int64)get_implicit_element();
 }
 
 int QoreImplicitElementNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {

@@ -32,34 +32,9 @@
 
 QoreString QoreIntPostIncrementOperatorNode::op_str("++ (post-increment) operator expression");
 
-AbstractQoreNode *QoreIntPostIncrementOperatorNode::evalImpl(ExceptionSink *xsink) const {
-   int64 rv = QoreIntPostIncrementOperatorNode::bigIntEvalImpl(xsink);
-   if (!ref_rv || *xsink)
-      return 0;
-
-   return new QoreBigIntNode(rv);
-}
-
-AbstractQoreNode *QoreIntPostIncrementOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = ref_rv;
-   return QoreIntPostIncrementOperatorNode::evalImpl(xsink);
-}
-
-int64 QoreIntPostIncrementOperatorNode::bigIntEvalImpl(ExceptionSink *xsink) const {
+QoreValue QoreIntPostIncrementOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    LValueHelper n(exp, xsink);
    if (!n)
-      return 0;
-   return n.postIncrementBigInt("<++ (post) operator>");
-}
-
-int QoreIntPostIncrementOperatorNode::integerEvalImpl(ExceptionSink *xsink) const {
-   return QoreIntPostIncrementOperatorNode::bigIntEvalImpl(xsink);
-}
-
-double QoreIntPostIncrementOperatorNode::floatEvalImpl(ExceptionSink *xsink) const {
-   return QoreIntPostIncrementOperatorNode::bigIntEvalImpl(xsink);
-}
-
-bool QoreIntPostIncrementOperatorNode::boolEvalImpl(ExceptionSink *xsink) const {
-   return QoreIntPostIncrementOperatorNode::bigIntEvalImpl(xsink);
+      return QoreValue();
+   return QoreValue(n.postIncrementBigInt("<++ (post) operator>"));
 }

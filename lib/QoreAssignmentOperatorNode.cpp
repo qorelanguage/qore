@@ -71,37 +71,37 @@ AbstractQoreNode* QoreAssignmentOperatorNode::parseInitImpl(LocalVar* oflag, int
    return this;
 }
 
-AbstractQoreNode* QoreAssignmentOperatorNode::evalImpl(ExceptionSink *xsink) const {
+QoreValue QoreAssignmentOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    /* assign new value, this value gets referenced with the
       eval(xsink) call, so there's no need to reference it again
       for the variable assignment - however it does need to be
       copied/referenced for the return value
    */
-   ReferenceHolder<AbstractQoreNode> new_value(right->eval(xsink), xsink);
-   if (*xsink)
-      return 0;
+   ValueEvalRefHolder new_value(right, xsink);
+   if (*xsink) {
+      needs_deref = false;
+      return QoreValue();
+   }
 
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);
-   if (!v)
-      return 0;
+   if (!v) {
+      needs_deref = false;
+      return QoreValue();
+   }
 
    // assign new value
-   if (v.assign(new_value.release()))
-      return 0;
-
-#if 0
-   printd(5, "QoreAssignmentOperatorNode::evalImpl() *%p=%p (type=%s refs=%d)\n",
-	  v, new_value, 
-	  new_value ? new_value->getTypeName() : "(null)",
-	  new_value ? new_value->reference_count() : 0);
-#endif
+   if (v.assign(new_value.takeReferencedValue())) {
+      needs_deref = false;
+      return QoreValue();
+   }
 
    // reference return value if necessary
-   return ref_rv ? v.getReferencedValue() : 0;
+   if (ref_rv) {
+      needs_deref = true;
+      return v.getReferencedValue();
+   }
+   needs_deref = false;
+   return QoreValue();
 }
 
-AbstractQoreNode* QoreAssignmentOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = ref_rv;
-   return QoreAssignmentOperatorNode::evalImpl(xsink);
-}

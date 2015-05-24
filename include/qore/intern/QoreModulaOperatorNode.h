@@ -36,29 +36,7 @@
 class QoreModulaOperatorNode : public QoreIntBinaryOperatorNode {
 OP_COMMON
 protected:
-   DLLLOCAL virtual AbstractQoreNode* evalImpl(ExceptionSink *xsink) const {
-      int64 v = QoreModulaOperatorNode::bigIntEvalImpl(xsink);
-      return *xsink ? 0 : new QoreBigIntNode(v);
-   }
-
-   DLLLOCAL virtual AbstractQoreNode* evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-      needs_deref = true;
-      return QoreModulaOperatorNode::evalImpl(xsink);
-   }
-
-   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
-
-   DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const {
-      return QoreModulaOperatorNode::bigIntEvalImpl(xsink);
-   }
-
-   DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const {
-      return QoreModulaOperatorNode::bigIntEvalImpl(xsink);
-   }
-
-   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const {
-      return QoreModulaOperatorNode::bigIntEvalImpl(xsink);
-   }
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 

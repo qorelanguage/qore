@@ -282,27 +282,14 @@ private:
 
 public:
    //! gets the DateTime value and set the delete flag
-   DLLLOCAL DateTimeValueHelper(const AbstractQoreNode *n) {
-      // optmization without virtual function call for most common case
-      if (n) {
-         if (n->getType() == NT_DATE) {
-            dt = reinterpret_cast<const DateTimeNode *>(n);
-            del = false;
-         }
-         else
-            dt = n->getDateTimeRepresentation(del);
-      }
-      else {
-         dt = ZeroDate;
-         del = false;
-      }
-   }
+   DLLEXPORT DateTimeValueHelper(const AbstractQoreNode *n);
+
+   //! gets the DateTime value and set the delete flag
+   DLLEXPORT DateTimeValueHelper(QoreValue& n);
 
    //! deletes the DateTime value being managed if necessary
-   DLLLOCAL ~DateTimeValueHelper() {
-      if (del)
-         delete const_cast<DateTime *>(dt);
-   }
+   DLLLOCAL ~DateTimeValueHelper();
+
    DLLLOCAL const DateTime *operator->() { return dt; }
    DLLLOCAL const DateTime *operator*() { return dt; }
 };

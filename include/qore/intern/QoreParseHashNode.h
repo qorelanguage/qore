@@ -103,54 +103,31 @@ protected:
       if (needs_eval)
 	 return this;
 
-      AbstractQoreNode* h = evalImpl(0);
+      // evaluate immediately
+      ValueEvalRefHolder rv(this, 0);
       deref();
-      return h;
+      return rv.getReferencedValue();
    }
 
-   DLLLOCAL virtual AbstractQoreNode* evalImpl(ExceptionSink* xsink) const {
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+      needs_deref = true;
       assert(keys.size() == values.size());
       ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
       for (size_t i = 0; i < keys.size(); ++i) {
 	 QoreNodeEvalOptionalRefHolder k(keys[i], xsink);
 	 if (*xsink)
-	    return 0;
+	    return QoreValue();
 
 	 QoreNodeEvalOptionalRefHolder v(values[i], xsink);
 	 if (*xsink)
-	    return 0;
+	    return QoreValue();
 
 	 QoreStringValueHelper key(*k);
 	 h->setKeyValue(key->getBuffer(), v.getReferencedValue(), xsink);
 	 if (*xsink)
-	    return 0;
+	    return QoreValue();
       }
       return h.release();
-   }
-
-   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink* xsink) const {
-      discard(QoreParseHashNode::evalImpl(xsink), xsink);
-      return 0;
-   }
-
-   DLLLOCAL virtual int integerEvalImpl(ExceptionSink* xsink) const {
-      discard(QoreParseHashNode::evalImpl(xsink), xsink);
-      return 0;
-   }
-
-   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink* xsink) const {
-      discard(QoreParseHashNode::evalImpl(xsink), xsink);
-      return false;
-   }
-
-   DLLLOCAL virtual double floatEvalImpl(ExceptionSink* xsink) const {
-      discard(QoreParseHashNode::evalImpl(xsink), xsink);
-      return 0.0;
-   }
-
-   DLLLOCAL virtual AbstractQoreNode* evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-      needs_deref = true;
-      return QoreParseHashNode::evalImpl(xsink);
    }
 
 public:

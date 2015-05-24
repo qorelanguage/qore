@@ -44,7 +44,7 @@ enum qore_var_t {
 };
 
 #include <qore/intern/VRMutex.h>
-#include <qore/intern/QoreValue.h>
+#include <qore/intern/QoreLValue.h>
 #include <qore/intern/qore_var_rwlock_priv.h>
 
 #include <string.h>
@@ -154,7 +154,7 @@ public:
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
          h = val.assign(typeInfo->getDefaultQoreValue());
 #else
-         h = val.remove(true);
+         h = val.removeNode(true);
 #endif
       }
 #ifdef DEBUG
@@ -173,11 +173,7 @@ public:
    DLLLOCAL bool isImported() const;
    DLLLOCAL void deref(ExceptionSink* xsink);
 
-   DLLLOCAL AbstractQoreNode* eval() const;
-   DLLLOCAL AbstractQoreNode* eval(bool& needs_deref) const;
-   DLLLOCAL bool boolEval() const;
-   DLLLOCAL int64 bigIntEval() const;
-   DLLLOCAL double floatEval() const;
+   DLLLOCAL QoreValue eval() const;
 
    DLLLOCAL void doDoubleDeclarationError() {
       // make sure types are identical or throw an exception
@@ -212,7 +208,7 @@ public:
       }
 
       parseTypeInfo = ti.release();
-      assert(!val.remove(true));
+      assert(!val.removeNode(true));
    }
 
    DLLLOCAL void checkAssignType(const QoreTypeInfo *n_typeInfo) {
@@ -235,7 +231,7 @@ public:
 
       typeInfo = n_typeInfo;
          
-      assert(!val.remove(true));
+      assert(!val.removeNode(true));
    }
 
    DLLLOCAL void parseInit() {
@@ -404,6 +400,7 @@ public:
 
    DLLLOCAL ~LValueHelper();
 
+   DLLLOCAL void saveTemp(QoreValue& n);
    DLLLOCAL void saveTemp(AbstractQoreNode* n);
 
    DLLLOCAL AbstractQoreNode*& getTempRef() {
@@ -478,7 +475,9 @@ public:
       return checkType(NT_NOTHING);
    }
 
-   DLLLOCAL AbstractQoreNode* getReferencedValue() const;
+   DLLLOCAL QoreValue getReferencedValue() const;
+   
+   DLLLOCAL AbstractQoreNode* getReferencedNodeValue() const;
 
    // only call after calling checkType() to ensure the type is correct and cannot be optimized
    // FIXME: port operators to LValueHelper instead and remove this function
@@ -569,16 +568,14 @@ public:
       return reinterpret_cast<QoreNumberNode*>(*v);
    }
 
-   //DLLLOCAL int assign(QoreValue val, const char* desc = "<lvalue>");
-
-   DLLLOCAL int assign(AbstractQoreNode *val, const char* desc = "<lvalue>");
-
+   DLLLOCAL int assign(QoreValue val, const char* desc = "<lvalue>");
+   /*
    DLLLOCAL int assignBigInt(int64 v, const char* desc = "<lvalue>");
    DLLLOCAL int assignFloat(double v, const char* desc = "<lvalue>");
-
-   DLLLOCAL int64 removeBigInt();
-   DLLLOCAL double removeFloat();
-   DLLLOCAL AbstractQoreNode* remove(bool for_del);
+   */
+   
+   DLLLOCAL AbstractQoreNode* removeNode(bool for_del);
+   DLLLOCAL QoreValue remove();
 
    DLLLOCAL void setDelta(int dt) {
       assert(!rdt);
@@ -624,10 +621,9 @@ public:
 #endif
    }
 
-   DLLLOCAL int64 removeBigInt();
-   DLLLOCAL double removeFloat();
-   DLLLOCAL AbstractQoreNode* remove();
-
+   DLLLOCAL AbstractQoreNode* removeNode();
+   DLLLOCAL QoreValue remove();
+   
    DLLLOCAL void deleteLValue();
 };
 

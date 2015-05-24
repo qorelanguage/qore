@@ -37,11 +37,8 @@
 
 class ScopedObjectCallNode : public AbstractFunctionCallNode {
 protected:
-   DLLLOCAL virtual AbstractQoreNode* evalImpl(ExceptionSink* xsink) const {
-      return oc->execConstructor(variant, args, xsink);
-   }
    // WARNING: pay attention when subclassing; this method must also be implemented in the subclass
-   DLLLOCAL virtual AbstractQoreNode* evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
       needs_deref = true;
       return oc->execConstructor(variant, args, xsink);
    }

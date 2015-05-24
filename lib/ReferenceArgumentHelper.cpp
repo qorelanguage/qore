@@ -61,7 +61,7 @@ struct lvih_intern {
 	 return 0;
 
       // take output value from our temporary "variable" and return it
-      return vp.remove();
+      return vp.removeNode();
    }
 
    DLLLOCAL AbstractQoreNode *getArg() {

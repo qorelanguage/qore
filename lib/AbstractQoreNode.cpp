@@ -43,13 +43,13 @@
 #define REF_LVL (type!=NT_HASH)
 #endif
 
-AbstractQoreNode::AbstractQoreNode(qore_type_t t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one, bool n_custom_reference_handlers) : type(t), value(n_value), needs_eval_flag(n_needs_eval), there_can_be_only_one(n_there_can_be_only_one), custom_reference_handlers(n_custom_reference_handlers) {
+AbstractQoreNode::AbstractQoreNode(qore_type_t t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one, bool n_custom_reference_handlers) : type(t), value(n_value), needs_eval_flag(n_needs_eval), there_can_be_only_one(n_there_can_be_only_one), custom_reference_handlers(n_custom_reference_handlers), has_value_api(false) {
 #if TRACK_REFS
    printd(REF_LVL, "AbstractQoreNode::ref() %p type: %d (0->1)\n", this, type);
 #endif
 }
 
-AbstractQoreNode::AbstractQoreNode(const AbstractQoreNode& v) : type(v.type), value(v.value), needs_eval_flag(v.needs_eval_flag), there_can_be_only_one(v.there_can_be_only_one), custom_reference_handlers(v.custom_reference_handlers) {
+AbstractQoreNode::AbstractQoreNode(const AbstractQoreNode& v) : type(v.type), value(v.value), needs_eval_flag(v.needs_eval_flag), there_can_be_only_one(v.there_can_be_only_one), custom_reference_handlers(v.custom_reference_handlers), has_value_api(v.has_value_api) {
 #if TRACK_REFS
    printd(REF_LVL, "AbstractQoreNode::ref() %p type: %d (0->1)\n", this, type);
 #endif
@@ -132,6 +132,36 @@ void AbstractQoreNode::deref(ExceptionSink* xsink) {
    }
 }
 
+QoreValue AbstractQoreNode::evalValue(ExceptionSink* xsink) const {
+   if (!needs_eval_flag)
+      return refSelf();
+
+   if (has_value_api) {
+      const ParseNode* pn = reinterpret_cast<const ParseNode*>(this);
+      ValueEvalRefHolder v(pn, xsink);
+      return v.takeReferencedValue();
+   }
+
+   QoreProgramLocationHelper qplh;
+   return evalImpl(xsink);
+}
+
+QoreValue AbstractQoreNode::evalValue(bool& needs_deref, ExceptionSink* xsink) const {
+   if (!needs_eval_flag) {
+      needs_deref = false;
+      return const_cast<AbstractQoreNode*>(this);
+   }
+
+   if (has_value_api) {
+      const ParseNode* pn = reinterpret_cast<const ParseNode*>(this);
+      ValueEvalRefHolder v(pn, xsink);
+      return v.takeValue(needs_deref);
+   }
+
+   QoreProgramLocationHelper qplh;
+   return evalImpl(needs_deref, xsink);
+}
+
 // AbstractQoreNode::eval(): return value requires a dereference
 AbstractQoreNode* AbstractQoreNode::eval(ExceptionSink* xsink) const {
    if (!needs_eval_flag)
@@ -152,21 +182,41 @@ AbstractQoreNode* AbstractQoreNode::eval(bool &needs_deref, ExceptionSink* xsink
 }
 
 int64 AbstractQoreNode::bigIntEvalImpl(ExceptionSink* xsink) const {
+   if (has_value_api) {
+      const ParseNode* pn = reinterpret_cast<const ParseNode*>(this);
+      ValueEvalRefHolder v(pn, xsink);
+      return v->getAsBigInt();
+   }
    ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
    return rv ? rv->getAsBigInt() : 0;
 }
 
 int AbstractQoreNode::integerEvalImpl(ExceptionSink* xsink) const {
+   if (has_value_api) {
+      const ParseNode* pn = reinterpret_cast<const ParseNode*>(this);
+      ValueEvalRefHolder v(pn, xsink);
+      return v->getAsBigInt();
+   }
    ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
    return rv ? rv->getAsInt() : 0;
 }
 
 bool AbstractQoreNode::boolEvalImpl(ExceptionSink* xsink) const {
+   if (has_value_api) {
+      const ParseNode* pn = reinterpret_cast<const ParseNode*>(this);
+      ValueEvalRefHolder v(pn, xsink);
+      return v->getAsBool();
+   }
    ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
    return rv ? rv->getAsBool() : false;
 }
 
 double AbstractQoreNode::floatEvalImpl(ExceptionSink* xsink) const {
+   if (has_value_api) {
+      const ParseNode* pn = reinterpret_cast<const ParseNode*>(this);
+      ValueEvalRefHolder v(pn, xsink);
+      return v->getAsFloat();
+   }
    ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
    return rv ? rv->getAsFloat() : 0.0;
 }
@@ -242,6 +292,10 @@ void AbstractQoreNode::getDateTimeRepresentation(DateTime& dt) const {
 
 AbstractQoreNode* AbstractQoreNode::parseInit(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
    return this;
+}
+
+bool AbstractQoreNode::hasValueApi() const {
+   return has_value_api;
 }
 
 // for getting relative time values or integer values

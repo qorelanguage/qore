@@ -66,13 +66,13 @@ public:
       delete this;
    }
 
-   DLLLOCAL AbstractQoreNode* run(ExceptionSink* xsink) {
-      return code->exec(0, xsink);
+   DLLLOCAL QoreValue run(ExceptionSink* xsink) {
+      return code->execValue(0, xsink);
    }
 
    DLLLOCAL void cancel(ExceptionSink* xsink) {
       if (cancelCode)
-         discard(cancelCode->exec(0, xsink), xsink);
+         cancelCode->execValue(0, xsink).discard(xsink);
    }
 };
 

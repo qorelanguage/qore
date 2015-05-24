@@ -33,8 +33,6 @@
 
 #define _QORE_QORETYPEINFO_H
 
-#include <qore/intern/QoreValue.h>
-
 #include <map>
 #include <vector>
 
@@ -455,7 +453,7 @@ protected:
 	 str.sprintf("type '%s'", n.getTypeName());
 	 return;
       }
-      str.sprintf("an object of class '%s'", reinterpret_cast<const QoreObject*>(n.getNode())->getClassName());
+      str.sprintf("an object of class '%s'", reinterpret_cast<const QoreObject*>(n.getInternalNode())->getClassName());
    }
    */
 

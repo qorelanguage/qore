@@ -69,7 +69,9 @@ public:
 		    AbstractQoreNode *cond = NULL,
 		    int sort_type = -1, AbstractQoreNode *sort = NULL,
 		    AbstractQoreNode *summary = NULL, int ignore_key = 0);
+   // FIXME: change rv to QoreValue
    DLLLOCAL AbstractQoreNode *evalValue(const char *field, ExceptionSink *xsink);
+
    DLLLOCAL QoreHashNode *getRow(ExceptionSink *xsink);
    DLLLOCAL int next_summary();
    DLLLOCAL int check_condition(AbstractQoreNode *cond, ExceptionSink *xsinkx);
@@ -92,6 +94,7 @@ public:
    }
 };
 
+// FIXME: change rv to QoreValue
 DLLLOCAL AbstractQoreNode *evalContextRef(const char *key, ExceptionSink *xsink);
 DLLLOCAL AbstractQoreNode *evalContextRow(ExceptionSink *xsink);
 

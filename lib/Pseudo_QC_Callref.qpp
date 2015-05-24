@@ -76,7 +76,7 @@ bool <callref>::val() [flags=CONSTANT] {
     @return the return value of the code called
 */
 any <callref>::exec(...) {
-   c->exec(args, xsink);
+   c->execValue(args, xsink).takeNode();
 }
 
 //! Returns @ref True because this is a callable type

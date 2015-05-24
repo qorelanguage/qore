@@ -259,6 +259,7 @@ libqore_la_SOURCES = \
 	QorePseudoMethods.cpp \
 	QoreHTTPClient.cpp \
 	QoreHttpClientObject.cpp \
+	QoreValue.cpp \
 	xxhash.cpp \
 	minitest.cpp
 

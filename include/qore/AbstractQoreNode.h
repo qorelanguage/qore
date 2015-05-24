@@ -168,6 +168,9 @@ protected:
    //! set to one for objects that need custom reference handlers
    bool custom_reference_handlers : 1;
 
+   //! set to flag with new QoreValue API (derived from ParseNode) - FIXME: to be removed when new ABI is implemented
+   bool has_value_api : 1;
+   
    //! default destructor does nothing
    /**
       The destructor is protected because it should not be called directly, which also means that these objects cannot normally be created on the stack.  They are referenced counted, and the deref() function should be used to decrement the reference count rather than using the delete operator.  Because the QoreObject class at least could throw a Qore Exception when it is deleted, AbstractQoreNode::deref() takes an ExceptionSink pointer argument by default as well. 
@@ -395,6 +398,13 @@ public:
        FIXME: add QoreProgramLocation& arg
    */
    DLLEXPORT virtual AbstractQoreNode* parseInit(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+
+   // new eval APIs - to be virtual in bew API
+   DLLEXPORT QoreValue evalValue(ExceptionSink* xsink) const;
+   DLLEXPORT QoreValue evalValue(bool& needs_deref, ExceptionSink* xsink) const;
+   
+   //! returns the "has value api" flags - FIXME: remove with new ABI
+   DLLLOCAL bool hasValueApi() const;   
 };
 
 //! The base class for all types in Qore expression trees that cannot throw an exception when deleted

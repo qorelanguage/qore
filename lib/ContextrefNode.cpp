@@ -60,35 +60,9 @@ const char *ContextrefNode::getTypeName() const {
    return "context reference";
 }
 
-// eval(): return value requires a deref(xsink)
-AbstractQoreNode *ContextrefNode::evalImpl(ExceptionSink *xsink) const {
-   return evalContextRef(str, xsink);
-}
-
-// evalImpl(): return value requires a deref(xsink) if not 0
-AbstractQoreNode *ContextrefNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
+QoreValue ContextrefNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
    needs_deref = true;
-   return ContextrefNode::evalImpl(xsink);
-}
-
-int64 ContextrefNode::bigIntEvalImpl(ExceptionSink *xsink) const {
-   ReferenceHolder<AbstractQoreNode> rv(ContextrefNode::evalImpl(xsink), xsink);
-   return rv ? rv->getAsBigInt() : 0;
-}
-
-int ContextrefNode::integerEvalImpl(ExceptionSink *xsink) const {
-   ReferenceHolder<AbstractQoreNode> rv(ContextrefNode::evalImpl(xsink), xsink);
-   return rv ? rv->getAsInt() : 0;
-}
-
-bool ContextrefNode::boolEvalImpl(ExceptionSink *xsink) const {
-   ReferenceHolder<AbstractQoreNode> rv(ContextrefNode::evalImpl(xsink), xsink);
-   return rv ? rv->getAsBool() : 0;
-}
-
-double ContextrefNode::floatEvalImpl(ExceptionSink *xsink) const {
-   ReferenceHolder<AbstractQoreNode> rv(ContextrefNode::evalImpl(xsink), xsink);
-   return rv ? rv->getAsFloat() : 0;
+   return evalContextRef(str, xsink);
 }
 
 AbstractQoreNode *ContextrefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {

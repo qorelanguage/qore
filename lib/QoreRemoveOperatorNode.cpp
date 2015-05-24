@@ -43,37 +43,14 @@ int QoreRemoveOperatorNode::getAsString(QoreString &str, int foff, ExceptionSink
    return 0;
 }
 
-int64 QoreRemoveOperatorNode::bigIntEvalImpl(ExceptionSink *xsink) const {
+QoreValue QoreRemoveOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
    LValueRemoveHelper lvrh(exp, xsink, false);
    if (!lvrh)
-      return 0;
-   return lvrh.removeBigInt();
-}
-
-int QoreRemoveOperatorNode::integerEvalImpl(ExceptionSink *xsink) const {
-   LValueRemoveHelper lvrh(exp, xsink, false);
-   if (!lvrh)
-      return 0;
-   return (int)lvrh.removeBigInt();
-}
-
-double QoreRemoveOperatorNode::floatEvalImpl(ExceptionSink *xsink) const {
-   LValueRemoveHelper lvrh(exp, xsink, false);
-   if (!lvrh)
-      return 0;
-   return lvrh.removeFloat();
-}
-
-AbstractQoreNode *QoreRemoveOperatorNode::evalImpl(ExceptionSink *xsink) const {
-   LValueRemoveHelper lvrh(exp, xsink, false);
-   if (!lvrh)
-      return 0;
-   return lvrh.remove();
-}
-
-AbstractQoreNode *QoreRemoveOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = true;
-   return QoreRemoveOperatorNode::evalImpl(xsink);
+      return QoreValue();
+   QoreValue v = lvrh.remove();
+   if (v.getInternalNode())
+      needs_deref = true;
+   return v;
 }
 
 AbstractQoreNode *QoreRemoveOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {

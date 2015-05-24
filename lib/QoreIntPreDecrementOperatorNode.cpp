@@ -32,34 +32,10 @@
 
 QoreString QoreIntPreDecrementOperatorNode::op_str("-- (pre-decrement) operator expression");
 
-AbstractQoreNode *QoreIntPreDecrementOperatorNode::evalImpl(ExceptionSink *xsink) const {
-   int64 rv = QoreIntPreDecrementOperatorNode::bigIntEvalImpl(xsink);
-   if (!ref_rv || *xsink)
-      return 0;
-
-   return new QoreBigIntNode(rv);
-}
-
-AbstractQoreNode *QoreIntPreDecrementOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
+QoreValue QoreIntPreDecrementOperatorNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
    needs_deref = ref_rv;
-   return QoreIntPreDecrementOperatorNode::evalImpl(xsink);
-}
-
-int64 QoreIntPreDecrementOperatorNode::bigIntEvalImpl(ExceptionSink *xsink) const {
    LValueHelper n(exp, xsink);
    if (!n)
-      return 0;
+      return QoreValue();
    return n.preDecrementBigInt("<-- (pre) operator>");
-}
-
-int QoreIntPreDecrementOperatorNode::integerEvalImpl(ExceptionSink *xsink) const {
-   return QoreIntPreDecrementOperatorNode::bigIntEvalImpl(xsink);
-}
-
-double QoreIntPreDecrementOperatorNode::floatEvalImpl(ExceptionSink *xsink) const {
-   return QoreIntPreDecrementOperatorNode::bigIntEvalImpl(xsink);
-}
-
-bool QoreIntPreDecrementOperatorNode::boolEvalImpl(ExceptionSink *xsink) const {
-   return QoreIntPreDecrementOperatorNode::bigIntEvalImpl(xsink);
 }
