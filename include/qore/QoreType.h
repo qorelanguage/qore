@@ -107,7 +107,9 @@ DLLEXPORT extern const QoreTypeInfo* anyTypeInfo,
 
 DLLEXPORT qore_type_t get_next_type_id();
 
+//! true = not equal, false = equal
 DLLEXPORT bool compareHard(const AbstractQoreNode* l, const AbstractQoreNode* r, ExceptionSink* xsink);
+//! true = not equal, false = equal
 DLLEXPORT bool compareSoft(const AbstractQoreNode* l, const AbstractQoreNode* r, ExceptionSink* xsink);
 
 static inline AbstractQoreNode* boolean_false() {

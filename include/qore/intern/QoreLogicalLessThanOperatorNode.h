@@ -37,22 +37,24 @@ class QoreLogicalLessThanOperatorNode : public QoreBoolBinaryOperatorNode {
 OP_COMMON
 protected:
    // type of pointer to optimized versions depending on arguments found at parse-time
-   typedef bool(QoreLogicalLessThanOperatorNode::*eval_t)(ExceptionSink *xsink) const;
+   typedef bool(QoreLogicalLessThanOperatorNode::*eval_t)(ExceptionSink* xsink) const;
    // pointer to optimized versions depending on arguments found at parse-time   
    eval_t pfunc;
 
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
-   DLLLOCAL AbstractQoreNode *parseInitIntern(const char *name, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+   DLLLOCAL AbstractQoreNode *parseInitIntern(const char* name, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
-   DLLLOCAL bool floatLessThan(ExceptionSink *xsink) const;
-   DLLLOCAL bool bigIntLessThan(ExceptionSink *xsink) const;
+   DLLLOCAL bool floatLessThan(ExceptionSink* xsink) const;
+   DLLLOCAL bool bigIntLessThan(ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL QoreLogicalLessThanOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBoolBinaryOperatorNode(n_left, n_right), pfunc(0) {
+   DLLLOCAL QoreLogicalLessThanOperatorNode(AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBoolBinaryOperatorNode(n_left, n_right), pfunc(0) {
    }
+
+   DLLLOCAL static bool doLessThan(QoreValue l, QoreValue r, ExceptionSink* xsink);
 };
 
 #endif

@@ -142,7 +142,7 @@ struct qore_value_list_private {
       return rv;
    }
 
-   DLLLOCAL QoreValueList* spliceIntern(size_t offset, size_t len, const AbstractQoreNode* l, ExceptionSink* xsink, bool extract) {
+   DLLLOCAL QoreValueList* spliceIntern(size_t offset, size_t len, const QoreValue l, ExceptionSink* xsink, bool extract) {
       assert(reference_count() == 1);
 
       //printd(5, "spliceIntern(offset: %d, len: %d, length: %d)\n", offset, len, length);
@@ -162,10 +162,8 @@ struct qore_value_list_private {
 
       // get number of entries to insert
       size_t n;
-      if (!l)
-         n = 1;
-      else if (l->getType() == NT_VALUE_LIST)
-         n = (reinterpret_cast<const QoreValueList*>(l))->size();
+      if (l.getType() == NT_VALUE_LIST)
+         n = l.get<const QoreValueList*>()->size();
       else
          n = 1;
       // difference
@@ -185,17 +183,13 @@ struct qore_value_list_private {
       }
 
       // add in new entries
-      if (!l || l->getType() != NT_VALUE_LIST) {
-         if (l) {
-            if (get_container_obj(l))
-               incObjectCount(1);
-            entry[offset].assign(l->refSelf());
-         }
-         else
-            entry[offset].assignNothing();
+      if (l.getType() != NT_VALUE_LIST) {
+         entry[offset].assign(l.refSelf());
+         if (l.isNode() && get_container_obj(l.getInternalNode()))
+            incObjectCount(1);
       }
       else {
-         const QoreValueList* lst = reinterpret_cast<const QoreValueList*>(l);
+         const QoreValueList* lst = l.get<const QoreValueList*>();
          for (size_t i = 0; i < n; ++i) {
             const QoreValue v = lst->retrieveEntry(i);
             if (v.isNode() && get_container_obj(v.v.n))
@@ -223,6 +217,17 @@ struct qore_value_list_private {
          incObjectCount(-1);
 
       return rv;
+   }
+
+   DLLLOCAL QoreValueList* eval(ExceptionSink* xsink) const {
+      ReferenceHolder<QoreValueList> nl(new QoreValueList, xsink);
+      for (size_t i = 0; i < priv->length; i++) {
+         QoreValue v = priv->entry[i];
+         nl->push(v.isNode() ? v.getInternalNode()->eval(xsink) : v);
+         if (*xsink)
+            return 0;
+      }
+      return nl.release();
    }
 
    // mergesort for controlled and interruptible sorts (stable)

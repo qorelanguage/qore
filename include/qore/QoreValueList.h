@@ -185,7 +185,7 @@ public:
    /**
       @param index the index of the element (first element is index 0)
    */
-   DLLEXPORT QoreValue& getExistingEntryReference(size_t index);
+   DLLEXPORT QoreValue* getExistingEntryReference(size_t index);
 
    //! sets the value of a list element
    /**
@@ -306,13 +306,13 @@ public:
    /** so "soft" comparisons are made, meaning that the list can be made up of different types, and, as long
        as the comparisons are meaningful, the minimum value can be returned
    */
-   DLLEXPORT QoreValue minValue() const;
+   DLLEXPORT QoreValue minValue(ExceptionSink* xsink) const;
 
    //! returns the element having the highest value (determined by calling OP_LOG_GT - the greater-than ">" operator)
    /** so "soft" comparisons are made, meaning that the list can be made up of different types, and, as long
        as the comparisons are meaningful, the maximum value can be returned
    */
-   DLLEXPORT QoreValue maxValue() const;
+   DLLEXPORT QoreValue maxValue(ExceptionSink* xsink) const;
 
    //! returns the element having the lowest value (determined by calling the function reference passed to give lexical order)
    /** 
@@ -352,7 +352,7 @@ public:
       @param l the value or list of values to insert
       @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLEXPORT void splice(ptrdiff_t offset, ptrdiff_t length, const AbstractQoreNode* l, ExceptionSink* xsink);
+   DLLEXPORT void splice(ptrdiff_t offset, ptrdiff_t length, const QoreValue l, ExceptionSink* xsink);
 
    //! truncates the list at position "offset" (first element is offset 0) and returns any elements removed from the list as a new list
    /**

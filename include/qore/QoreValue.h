@@ -101,6 +101,13 @@ public:
 
    DLLEXPORT AbstractQoreNode* assignNothing();
 
+   DLLEXPORT bool isEqualSoft(const QoreValue v, ExceptionSink* xsink) const;
+   DLLEXPORT bool isEqualHard(const QoreValue v) const;
+
+   // FIXME: remove with new API/ABI
+   // converts pointers to efficient reprensentations
+   DLLEXPORT void sanitize();
+   
    DLLEXPORT QoreValue& operator=(const QoreValue& n);
    
    DLLEXPORT void clearNode();

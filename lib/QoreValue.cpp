@@ -143,21 +143,21 @@ AbstractQoreNode* QoreValue::assign(AbstractQoreNode* n) {
    v.n = n;
    return rv;
 }
-   
+
 AbstractQoreNode* QoreValue::assign(int64 n) {
    AbstractQoreNode* rv = takeIfNode();
    type = QV_Int;
    v.i = n;
    return rv;
 }
-   
+
 AbstractQoreNode* QoreValue::assign(double n) {
    AbstractQoreNode* rv = takeIfNode();
    type = QV_Float;
    v.f = n;
    return rv;
 }
-   
+
 AbstractQoreNode* QoreValue::assign(bool n) {
    AbstractQoreNode* rv = takeIfNode();
    type = QV_Bool;
@@ -170,6 +170,53 @@ AbstractQoreNode* QoreValue::assignNothing() {
    type = QV_Node;
    v.n = 0;
    return rv;
+}
+
+bool QoreValue::isEqualSoft(const QoreValue v, ExceptionSink* xsink) const {
+   return QoreLogicalEqualsOperatorNode::softEqual(*this, v, xsink);
+}
+
+bool QoreValue::isEqualHard(const QoreValue n) const {
+   qore_type_t t = getType();
+   if (t != n.getType())
+      return false;
+   switch (t) {
+      case NT_INT: return getAsBigInt() == n.getAsBigInt();
+      case NT_BOOLEAN: return getAsBool() == n.getAsBool();
+      case NT_FLOAT: return getAsFloat() == n.getAsFloat();
+      case NT_NOTHING:
+      case NT_NULL:
+	 return true;
+   }
+   return !compareHard(v.n, n.v.n, 0);
+}
+
+void QoreValue::sanitize() {
+   if (type != QV_Node || !v.n)
+      return;
+   switch (v.n->getType()) {
+      case NT_NOTHING: v.n = 0; break;
+      case NT_INT: {
+	 int64 i = reinterpret_cast<QoreBigIntNode*>(v.n)->val;
+	 type = QV_Int;
+	 v.n->deref(0);
+	 v.i = i;
+	 break;
+      }
+      case NT_FLOAT: {
+	 double f = reinterpret_cast<QoreFloatNode*>(v.n)->f;
+	 type = QV_Float;
+	 v.n->deref(0);
+	 v.i = f;
+	 break;
+      }
+      case NT_BOOLEAN: {
+	 bool b = reinterpret_cast<QoreBoolNode*>(v.n)->getValue();
+	 type = QV_Bool;
+	 v.b = b;
+	 break;
+      }
+   }
 }
 
 template<typename T>

@@ -55,6 +55,8 @@ protected:
 public:
    DLLLOCAL QoreLogicalGreaterThanOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBoolBinaryOperatorNode(n_left, n_right), pfunc(0) {
    }
+
+   DLLLOCAL static bool doGreaterThan(QoreValue l, QoreValue r, ExceptionSink* xsink);
 };
 
 #endif
