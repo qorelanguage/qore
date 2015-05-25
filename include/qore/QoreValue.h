@@ -114,6 +114,10 @@ public:
    
    DLLEXPORT void discard(ExceptionSink* xsink);
 
+   DLLEXPORT int getAsString(QoreString& str, int format_offset, ExceptionSink *xsink) const;
+
+   DLLEXPORT QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
+   
    template<typename T>
    DLLEXPORT T* get();
    

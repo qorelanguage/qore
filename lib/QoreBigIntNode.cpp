@@ -53,7 +53,7 @@ QoreString *QoreBigIntNode::getStringRepresentation(bool &del) const {
 
 // concatenate string representation to a QoreString (no action for complex types = default implementation)
 void QoreBigIntNode::getStringRepresentation(QoreString &str) const {
-   str.sprintf("%lld", val);
+   str.sprintf(QLLD, val);
 }
 
 // if del is true, then the returned DateTime * should be deleted, if false, then it should not

@@ -185,7 +185,7 @@ public:
    /**
       @param index the index of the element (first element is index 0)
    */
-   DLLEXPORT QoreValue* getExistingEntryReference(size_t index);
+   DLLEXPORT QoreValue* getExistingEntryPtr(size_t index);
 
    //! sets the value of a list element
    /**
@@ -400,7 +400,7 @@ public:
    DLLEXPORT QoreValueList* listRefSelf() const;
 
    //! swaps the value at the given position with the value given, caller owns any reference returned
-   DLLEXPORT QoreValue swap(ptrdiff_t offset, AbstractQoreNode* val);
+   DLLEXPORT QoreValue swap(ptrdiff_t offset, QoreValue val);
 
    //! takes the value at the given position and replaces with NULL, only if the list position exists
    DLLEXPORT QoreValue takeExists(ptrdiff_t offset);
@@ -484,13 +484,10 @@ public:
    DLLEXPORT QoreValue getValue() const;
 
    //! returns a pointer to a pointer of the value of the list element, so it can be changed externally
-   DLLEXPORT QoreValue& getValueReference() const;
+   DLLEXPORT QoreValue* getValueReference() const;
 
    //! returns the current value with an incremented reference count
    DLLEXPORT QoreValue getReferencedValue() const;
-
-   //! if the list is unique (has reference count = 1), returns the current value with the reference count that belongs to the list and sets the list entry to 0, otherwise returns getReferencesValue()
-   DLLEXPORT QoreValue takeValue();
 
    //! returns true when the iterator is pointing to the first element in the list
    DLLEXPORT bool first() const;

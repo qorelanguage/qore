@@ -335,6 +335,43 @@ QoreNodeAsStringHelper::QoreNodeAsStringHelper(const AbstractQoreNode *n, int fo
    }
 }
 
+QoreNodeAsStringHelper::QoreNodeAsStringHelper(const QoreValue n, int format_offset, ExceptionSink *xsink) {
+   str = n.getAsString(del, format_offset, xsink);
+   /*
+   if (n.isNothing()) {
+      str = format_offset == FMT_YAML_SHORT ? &YamlNullString : &NothingTypeString;
+      del = false;
+      return;
+   }
+   switch (n.type) {
+      case QV_Int: str = new QoreStringMaker(QLLD, n.v.i); del = true; break;
+      case QV_Bool: str = n.v.b ? &TrueString : &FalseString; del = false; break;
+      case QV_Float: str = new QoreStringMaker("%.9g", n.v.f); del = true; break;
+      case QV_Node: str = n.getAsString(del, format_offset, xsink); break;
+      default:
+	 assert(false);
+	 // no break;
+   }
+   */
+}
+
+QoreNodeAsStringHelper::~QoreNodeAsStringHelper() {
+   if (del)
+      delete str;
+}
+
+QoreString* QoreNodeAsStringHelper::giveString() {
+   if (!str)
+      return 0;
+   if (!del)
+      return str->copy();
+   
+   QoreString* rv = str;
+   del = false;
+   str = 0;
+   return rv;
+}
+
 void QoreStringValueHelper::setup(ExceptionSink* xsink, const QoreValue n, const QoreEncoding* enc) {
    switch (n.type) {
       case QV_Bool:
