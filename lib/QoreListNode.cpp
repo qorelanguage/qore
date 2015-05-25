@@ -721,13 +721,15 @@ QoreListNode *QoreListNode::splice_intern(qore_size_t offset, qore_size_t len, E
 
    // dereference all entries that will be removed or add to return value list
    for (qore_size_t i = offset; i < end; i++) {
-      if (rv) 
-	 rv->push(priv->entry[i]);
-      else if (priv->entry[i]) {
-	 if (get_container_obj(priv->entry[i]))
+      AbstractQoreNode* v = priv->entry[i];
+      if (v) {
+	 if (get_container_obj(v))
 	    priv->incObjectCount(-1);
-	 priv->entry[i]->deref(xsink);
+	 if (!rv)
+	    v->deref(xsink);
       }
+      if (rv)
+	 rv->push(v);
    }
 
    // move down entries if necessary
@@ -761,13 +763,15 @@ QoreListNode *QoreListNode::splice_intern(qore_size_t offset, qore_size_t len, c
 
    // dereference all entries that will be removed or add to return value list
    for (qore_size_t i = offset; i < end; i++) {
-      if (rv)
-	 rv->push(priv->entry[i]);
-      else if (priv->entry[i]) {
-	 if (get_container_obj(priv->entry[i]))
+      AbstractQoreNode* v = priv->entry[i];
+      if (v) {
+	 if (get_container_obj(v))
 	    priv->incObjectCount(-1);
-	 priv->entry[i]->deref(xsink);
+	 if (!rv)
+	    v->deref(xsink);
       }
+      if (rv)
+	 rv->push(v);
    }
 
    // get number of entries to insert
