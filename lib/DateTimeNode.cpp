@@ -225,7 +225,7 @@ DateTimeValueHelper::DateTimeValueHelper(const AbstractQoreNode* n) {
    }
 }
 
-DateTimeValueHelper::DateTimeValueHelper(QoreValue& n) {
+DateTimeValueHelper::DateTimeValueHelper(const QoreValue& n) {
    if (!n.isNullOrNothing()) {
       switch (n.type) {
 	 case QV_Node: {

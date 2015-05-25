@@ -87,7 +87,7 @@ public:
       return false;
    }
 
-   DLLLOCAL static bool softEqual(QoreValue left, QoreValue right, ExceptionSink *xsink);
+   DLLLOCAL static bool softEqual(const QoreValue left, const QoreValue right, ExceptionSink *xsink);
 };
 
 #endif

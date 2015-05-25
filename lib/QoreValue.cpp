@@ -123,7 +123,11 @@ double QoreValue::getAsFloat() const {
    return 0.0;
 }
 
-AbstractQoreNode* QoreValue::getInternalNode() const {
+AbstractQoreNode* QoreValue::getInternalNode() {
+   return type == QV_Node ? v.n : 0;
+}
+
+const AbstractQoreNode* QoreValue::getInternalNode() const {
    return type == QV_Node ? v.n : 0;
 }
 
@@ -169,6 +173,13 @@ T* QoreValue::get() {
    assert(type == QV_Node);
    assert(dynamic_cast<T*>(v.n));
    return reinterpret_cast<T*>(v.n);
+}
+
+template<typename T>
+const T* QoreValue::get() const {
+   assert(type == QV_Node);
+   assert(dynamic_cast<const T*>(v.n));
+   return reinterpret_cast<const T*>(v.n);
 }
 
 void QoreValue::clearNode() {

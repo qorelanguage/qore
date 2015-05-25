@@ -335,7 +335,7 @@ QoreNodeAsStringHelper::QoreNodeAsStringHelper(const AbstractQoreNode *n, int fo
    }
 }
 
-void QoreStringValueHelper::setup(ExceptionSink* xsink, QoreValue n, const QoreEncoding* enc) {
+void QoreStringValueHelper::setup(ExceptionSink* xsink, const QoreValue n, const QoreEncoding* enc) {
    switch (n.type) {
       case QV_Bool:
       case QV_Int:
@@ -353,7 +353,7 @@ void QoreStringValueHelper::setup(ExceptionSink* xsink, QoreValue n, const QoreE
 	    //optimization to remove the need for a virtual function call in the most common case
 	    if (n.v.n->getType() == NT_STRING) {
 	       del = false;
-	       str = n.get<QoreStringNode>();
+	       str = const_cast<QoreStringNode*>(n.get<QoreStringNode>());
 	    }
 	    else
 	       str = n.get<AbstractQoreNode>()->getStringRepresentation(del);
@@ -379,11 +379,11 @@ void QoreStringValueHelper::setup(ExceptionSink* xsink, QoreValue n, const QoreE
    }
 }
 
-QoreStringValueHelper::QoreStringValueHelper(QoreValue& n) {
+QoreStringValueHelper::QoreStringValueHelper(const QoreValue& n) {
    setup(0, n);
 }
 
-QoreStringValueHelper::QoreStringValueHelper(QoreValue& n, const QoreEncoding* enc, ExceptionSink* xsink) {
+QoreStringValueHelper::QoreStringValueHelper(const QoreValue& n, const QoreEncoding* enc, ExceptionSink* xsink) {
    setup(xsink, n, enc);
 }
 
@@ -395,7 +395,7 @@ QoreStringValueHelper::QoreStringValueHelper(const AbstractQoreNode* n, const Qo
    setup(xsink, const_cast<AbstractQoreNode*>(n), enc);
 }
 
-QoreStringNodeValueHelper::QoreStringNodeValueHelper(QoreValue& n) {
+QoreStringNodeValueHelper::QoreStringNodeValueHelper(const QoreValue& n) {
    switch (n.type) {
       case QV_Bool:
       case QV_Int:
@@ -411,7 +411,7 @@ QoreStringNodeValueHelper::QoreStringNodeValueHelper(QoreValue& n) {
 	    //optimization to remove the need for a virtual function call in the most common case
 	    if (n.v.n->getType() == NT_STRING) {
 	       temp = false;
-	       str = n.get<QoreStringNode>();
+	       str = const_cast<QoreStringNode*>(n.get<QoreStringNode>());
 	    }
 	    else {
 	       str = new QoreStringNode;

@@ -312,14 +312,14 @@ protected:
    DLLLOCAL void* operator new(size_t); // not implemented, make sure it is not new'ed
 
    //! sets up the object / common initialization
-   DLLLOCAL void setup(ExceptionSink* xsink, QoreValue n, const QoreEncoding* enc = 0);
+   DLLLOCAL void setup(ExceptionSink* xsink, const QoreValue n, const QoreEncoding* enc = 0);
    
 public:
    //! creates the object and acquires a pointer to the QoreString representation of the AbstractQoreNode passed
    DLLEXPORT QoreStringValueHelper(const AbstractQoreNode* n);
 
    //! creates the object and acquires a pointer to the QoreString representation of the QoreValue passed
-   DLLEXPORT explicit QoreStringValueHelper(QoreValue& n);
+   DLLEXPORT explicit QoreStringValueHelper(const QoreValue& n);
    
    //! gets the QoreString representation and ensures that it's in the desired encoding
    /** a Qore-language exception may be thrown if an encoding error occurs
@@ -337,7 +337,7 @@ public:
    DLLEXPORT QoreStringValueHelper(const AbstractQoreNode* n, const QoreEncoding* enc, ExceptionSink* xsink);
 
    //! gets the QoreString representation and ensures that it's in the desired encoding
-   DLLEXPORT QoreStringValueHelper(QoreValue& n, const QoreEncoding* enc, ExceptionSink* xsink);
+   DLLEXPORT QoreStringValueHelper(const QoreValue& n, const QoreEncoding* enc, ExceptionSink* xsink);
 
    //! destroys the object and deletes the QoreString pointer being managed if it was a temporary pointer
    DLLLOCAL ~QoreStringValueHelper() {
@@ -419,7 +419,7 @@ private:
 public:
    DLLLOCAL QoreStringNodeValueHelper(const AbstractQoreNode* n);
 
-   DLLLOCAL QoreStringNodeValueHelper(QoreValue& n);
+   DLLLOCAL QoreStringNodeValueHelper(const QoreValue& n);
    
    //! destroys the object and dereferences the QoreStringNode if it is a temporary pointer
    DLLLOCAL ~QoreStringNodeValueHelper();

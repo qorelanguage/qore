@@ -80,7 +80,7 @@ AbstractQoreNode *QoreLogicalEqualsOperatorNode::parseInitImpl(LocalVar *oflag, 
    return this;
 }
 
-bool QoreLogicalEqualsOperatorNode::softEqual(QoreValue left, QoreValue right, ExceptionSink *xsink) {
+bool QoreLogicalEqualsOperatorNode::softEqual(const QoreValue left, const QoreValue right, ExceptionSink *xsink) {
    qore_type_t lt = left.getType();
    qore_type_t rt = right.getType();
 
@@ -148,9 +148,9 @@ bool QoreLogicalEqualsOperatorNode::softEqual(QoreValue left, QoreValue right, E
       return l->isEqual(*r);
    }
 
-   AbstractQoreNode* ln = left.getInternalNode();
+   const AbstractQoreNode* ln = left.getInternalNode();
    if (!ln) ln = &Nothing;
-   AbstractQoreNode* rn = right.getInternalNode();
+   const AbstractQoreNode* rn = right.getInternalNode();
    if (!rn) rn = &Nothing;
    
    return ln->is_equal_soft(rn, xsink);

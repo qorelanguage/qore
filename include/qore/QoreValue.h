@@ -85,7 +85,9 @@ public:
 
    DLLEXPORT double getAsFloat() const;
 
-   DLLEXPORT AbstractQoreNode* getInternalNode() const;
+   DLLEXPORT AbstractQoreNode* getInternalNode();
+
+   DLLEXPORT const AbstractQoreNode* getInternalNode() const;
 
    DLLEXPORT AbstractQoreNode* assign(AbstractQoreNode* n);
    
@@ -103,6 +105,9 @@ public:
 
    template<typename T>
    DLLEXPORT T* get();
+   
+   template<typename T>
+   DLLEXPORT const T* get() const;
    
    template<typename T>
    DLLEXPORT T* take();

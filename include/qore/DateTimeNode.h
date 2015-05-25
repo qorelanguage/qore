@@ -285,7 +285,7 @@ public:
    DLLEXPORT DateTimeValueHelper(const AbstractQoreNode *n);
 
    //! gets the DateTime value and set the delete flag
-   DLLEXPORT DateTimeValueHelper(QoreValue& n);
+   DLLEXPORT DateTimeValueHelper(const QoreValue& n);
 
    //! deletes the DateTime value being managed if necessary
    DLLLOCAL ~DateTimeValueHelper();
