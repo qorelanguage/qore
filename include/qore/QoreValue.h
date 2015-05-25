@@ -85,6 +85,8 @@ public:
 
    DLLEXPORT double getAsFloat() const;
 
+   DLLEXPORT QoreValue refSelf() const;
+   
    DLLEXPORT AbstractQoreNode* getInternalNode();
 
    DLLEXPORT const AbstractQoreNode* getInternalNode() const;
@@ -96,6 +98,8 @@ public:
    DLLEXPORT AbstractQoreNode* assign(double n);
    
    DLLEXPORT AbstractQoreNode* assign(bool n);
+
+   DLLEXPORT AbstractQoreNode* assignNothing();
 
    DLLEXPORT QoreValue& operator=(const QoreValue& n);
    
@@ -120,6 +124,8 @@ public:
 
    DLLEXPORT const char* getTypeName() const;
 
+   DLLEXPORT bool hasNode() const;
+   
    DLLEXPORT bool isNothing() const;
 
    DLLEXPORT bool isNull() const;

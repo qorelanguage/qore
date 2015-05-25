@@ -84,9 +84,10 @@ const qore_type_t NT_PARSEREFERENCE     = 41; //!< type value for ParseReference
 const qore_type_t NT_BACKQUOTE          = 42; //!< type value for BackquoteNode
 const qore_type_t NT_RTCONSTREF         = 43; //!< type value for RuntimeConstantRefNode
 const qore_type_t NT_PARSE_HASH         = 44; //!< type value for QoreParseHashNode
+const qore_type_t NT_VALUE_LIST         = 45; //!< type value for QoreValueList (will replace QoreListNode)
 
 //! number of types implemented in the Qore library
-#define QORE_NUM_TYPES 44
+#define QORE_NUM_TYPES 45
 
 //! number of simple value types (not containers)
 #define NUM_SIMPLE_TYPES 8

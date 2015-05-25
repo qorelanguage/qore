@@ -127,6 +127,12 @@ AbstractQoreNode* QoreValue::getInternalNode() {
    return type == QV_Node ? v.n : 0;
 }
 
+QoreValue QoreValue::refSelf() const {
+   if (type == QV_Node && v.n)
+      v.n->ref();
+   return const_cast<QoreValue&>(*this);
+}
+
 const AbstractQoreNode* QoreValue::getInternalNode() const {
    return type == QV_Node ? v.n : 0;
 }
@@ -156,6 +162,13 @@ AbstractQoreNode* QoreValue::assign(bool n) {
    AbstractQoreNode* rv = takeIfNode();
    type = QV_Bool;
    v.b = n;
+   return rv;
+}
+
+AbstractQoreNode* QoreValue::assignNothing() {
+   AbstractQoreNode* rv = takeIfNode();
+   type = QV_Node;
+   v.n = 0;
    return rv;
 }
 
@@ -238,6 +251,10 @@ AbstractQoreNode* QoreValue::takeNodeIntern() {
    AbstractQoreNode* rv = v.n;
    v.n = 0;
    return rv;
+}
+
+bool QoreValue::hasNode() const {
+   return type == QV_Node && v.n;
 }
 
 bool QoreValue::isNothing() const {

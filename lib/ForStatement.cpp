@@ -54,7 +54,7 @@ int ForStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink
    
    // evaluate assignment expression and discard results if any
    if (assignment)
-      discard(assignment->eval(xsink), xsink);
+      assignment->bigIntEval(xsink);
    
    // execute "for" body
    while (!xsink->isEvent()) {
@@ -75,7 +75,7 @@ int ForStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink
       
       // evaluate iterator expression and discard results if any
       if (iterator)
-	 discard(iterator->eval(xsink), xsink);
+	 iterator->bigIntEval(xsink);
    }
    
    return rc;

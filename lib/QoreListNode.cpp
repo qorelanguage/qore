@@ -102,11 +102,11 @@ void QoreListNode::check_offset(qore_offset_t offset, qore_offset_t len, qore_si
    n_len = len;
 }
 
-QoreListNode::QoreListNode() : AbstractQoreNode(NT_LIST, true, false), priv(new qore_list_private()) {
+QoreListNode::QoreListNode() : AbstractQoreNode(NT_LIST, true, false), priv(new qore_list_private) {
    //printd(5, "QoreListNode::QoreListNode() 1 this=%p ne=%d v=%d\n", this, needs_eval_flag, value);
 }
 
-QoreListNode::QoreListNode(bool i) : AbstractQoreNode(NT_LIST, !i, i), priv(new qore_list_private()) {
+QoreListNode::QoreListNode(bool i) : AbstractQoreNode(NT_LIST, !i, i), priv(new qore_list_private) {
    //printd(5, "QoreListNode::QoreListNode() 2 this=%p ne=%d v=%d\n", this, needs_eval_flag, value);
 }
 

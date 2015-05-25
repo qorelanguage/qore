@@ -61,7 +61,7 @@ ExpressionStatement::~ExpressionStatement() {
 }
 
 int ExpressionStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) {
-   discard(exp->eval(xsink), xsink);
+   exp->bigIntEval(xsink);
    return 0;
 }
 
