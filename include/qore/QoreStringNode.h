@@ -417,12 +417,12 @@ private:
    DLLLOCAL void* operator new(size_t);
 
 public:
-   DLLLOCAL QoreStringNodeValueHelper(const AbstractQoreNode* n);
+   DLLEXPORT QoreStringNodeValueHelper(const AbstractQoreNode* n);
 
-   DLLLOCAL QoreStringNodeValueHelper(const QoreValue& n);
+   DLLEXPORT QoreStringNodeValueHelper(const QoreValue& n);
    
    //! destroys the object and dereferences the QoreStringNode if it is a temporary pointer
-   DLLLOCAL ~QoreStringNodeValueHelper();
+   DLLEXPORT ~QoreStringNodeValueHelper();
 
    //! returns the object being managed
    /**
@@ -441,7 +441,7 @@ public:
       The string is referenced if necessary (if it was a temporary value)
       @return the string value, where the caller will own the reference count
    */
-   DLLLOCAL QoreStringNode* getReferencedValue();
+   DLLEXPORT QoreStringNode* getReferencedValue();
 };
 
 #include <qore/ReferenceHolder.h>
