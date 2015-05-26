@@ -288,7 +288,7 @@ public:
    DLLEXPORT DateTimeValueHelper(const QoreValue& n);
 
    //! deletes the DateTime value being managed if necessary
-   DLLLOCAL ~DateTimeValueHelper();
+   DLLEXPORT ~DateTimeValueHelper();
 
    DLLLOCAL const DateTime *operator->() { return dt; }
    DLLLOCAL const DateTime *operator*() { return dt; }
