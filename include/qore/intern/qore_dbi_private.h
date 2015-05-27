@@ -196,20 +196,16 @@ struct qore_dbi_private {
       if (!res)
          return 0;
 
-      if (res->getType() != NT_LIST) {
-         xsink->raiseException("DBI-SELECT-ROW-ERROR", "the call to selectRow() did not return a single row; type returned: %s", res->getTypeName());
-         return 0;
+      if (res->getType() != NT_HASH) {
+         assert(res->getType() == NT_LIST);
+         QoreListNode* l = reinterpret_cast<QoreListNode*>(*res);
+         assert(l->size() <= 1);
+         AbstractQoreNode* n = l->shift();
+         assert(!n || n->getType() == NT_HASH);
+         return reinterpret_cast<QoreHashNode*>(n);
       }
 
-      QoreListNode* l = reinterpret_cast<QoreListNode* >(*res);
-      if (l->size() > 1) {
-         xsink->raiseException("DBI-SELECT-ROW-ERROR", "the call to selectRow() returned %lld rows; SQL passed to this method must return not more than 1 row", l->size());
-         return 0;
-      }
-
-      AbstractQoreNode* rv = l->shift();
-      assert(!rv || rv->getType() == NT_HASH);
-      return reinterpret_cast<QoreHashNode* >(rv);
+      return reinterpret_cast<QoreHashNode*>(res.release());
    }
 
    DLLLOCAL AbstractQoreNode* execSQL(Datasource* ds, const QoreString* sql, const QoreListNode* args, ExceptionSink* xsink) const {
