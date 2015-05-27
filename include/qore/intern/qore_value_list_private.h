@@ -32,6 +32,8 @@
 #ifndef _QORE_QOREVALUELISTPRIVATE_H
 #define _QORE_QOREVALUELISTPRIVATE_H
 
+typedef ReferenceHolder<QoreValueList> safe_qorevaluelist_t;
+
 static inline QoreValueList* do_args(const QoreValue& e1, const QoreValue& e2) {
    QoreValueList* l = new QoreValueList;
    l->push(e1.refSelf());
@@ -47,10 +49,10 @@ struct qore_value_list_private {
    bool finalized : 1;
    bool vlist : 1;
 
-   DLLLOCAL qore_list_private() : entry(0), length(0), allocated(0), obj_count(0), finalized(false), vlist(false) {
+   DLLLOCAL qore_value_list_private() : entry(0), length(0), allocated(0), obj_count(0), finalized(false), vlist(false) {
    }
 
-   DLLLOCAL ~qore_list_private() {
+   DLLLOCAL ~qore_value_list_private() {
       assert(!length);
 
       if (entry)
@@ -59,7 +61,7 @@ struct qore_value_list_private {
 
    DLLLOCAL void resize(size_t num) {
       if (num < length) { // make smaller
-         //entry = (AbstractQoreNode **)realloc(priv->entry, sizeof (AbstractQoreNode **) * num);
+         //entry = (AbstractQoreNode **)realloc(entry, sizeof (AbstractQoreNode **) * num);
          length = num;
          return;
       }
@@ -78,15 +80,14 @@ struct qore_value_list_private {
          entry[i] = QoreValue();
    }
 
-   DLLLOCAL void removeEntry(QoreValue& v, QoreValueList* rv) {
+   DLLLOCAL void removeEntry(QoreValue& v, QoreValueList*& rv) {
       if (v.hasNode()) {
          if (get_container_obj(v.v.n))
             incObjectCount(-1);
-         if (!rv)
-            v.v.n->deref(xsink);
       }
-      if (rv)
-         rv->push(v);
+      if (!rv)
+         rv = new QoreValueList;
+      rv->push(v);
    }
    
    DLLLOCAL size_t checkOffset(ptrdiff_t offset) {
@@ -104,15 +105,13 @@ struct qore_value_list_private {
       n_offset = checkOffset(offset);
       if (len < 0) {
          len = length + len - n_offset;
-         n_len = len < 0 ? o : len;
+         n_len = len < 0 ? 0 : len;
          return;
       }
       n_len = len;
    }
 
-   DLLLOCAL QoreValueList* spliceIntern(size_t offset, size_t len, ExceptionSink* xsink, bool extract) {
-      assert(reference_count() == 1);
-
+   DLLLOCAL QoreValueList* spliceIntern(size_t offset, size_t len, ExceptionSink* xsink, bool extract = false) {
       //printd(5, "spliceIntern(offset: %d, len: %d, length: %d)\n", offset, len, length);
       size_t end;
       if (len > (length - offset)) {
@@ -142,9 +141,7 @@ struct qore_value_list_private {
       return rv;
    }
 
-   DLLLOCAL QoreValueList* spliceIntern(size_t offset, size_t len, const QoreValue l, ExceptionSink* xsink, bool extract) {
-      assert(reference_count() == 1);
-
+   DLLLOCAL QoreValueList* spliceIntern(size_t offset, size_t len, const QoreValue l, ExceptionSink* xsink, bool extract = false) {
       //printd(5, "spliceIntern(offset: %d, len: %d, length: %d)\n", offset, len, length);
       size_t end;
       if (len > (length - offset)) {
@@ -161,11 +158,7 @@ struct qore_value_list_private {
          removeEntry(entry[i], rv);
 
       // get number of entries to insert
-      size_t n;
-      if (l.getType() == NT_VALUE_LIST)
-         n = l.get<const QoreValueList*>()->size();
-      else
-         n = 1;
+      size_t n = l.getType() == NT_VALUE_LIST ? l.get<const QoreValueList>()->size() : 1;
       // difference
       if (n > len) { // make bigger
          size_t ol = length;
@@ -184,26 +177,32 @@ struct qore_value_list_private {
 
       // add in new entries
       if (l.getType() != NT_VALUE_LIST) {
-         entry[offset].assign(l.refSelf());
-         if (l.isNode() && get_container_obj(l.getInternalNode()))
+         entry[offset] = l.refSelf();
+         if (l.hasNode() && get_container_obj(l.getInternalNode()))
             incObjectCount(1);
       }
       else {
-         const QoreValueList* lst = l.get<const QoreValueList*>();
+         const QoreValueList* lst = l.get<const QoreValueList>();
          for (size_t i = 0; i < n; ++i) {
             const QoreValue v = lst->retrieveEntry(i);
-            if (v.isNode() && get_container_obj(v.v.n))
+            if (v.hasNode() && get_container_obj(v.v.n))
                incObjectCount(1);
-            entry[offset + i].assign(v.refSelf());
+            entry[offset + i] = v.refSelf();
          }
       }
 
       return rv;
    }
 
+   DLLLOCAL QoreValue& getEntryReference(size_t num) {
+      if (num >= length)
+         resize(num + 1);
+      return entry[num];
+   }
+
    DLLLOCAL void push(QoreValue val) {
       getEntryReference(length) = val;
-      if (val.isNode() && get_container_obj(val.v.n))
+      if (val.hasNode() && get_container_obj(val.v.n))
          incObjectCount(1);
    }
    
@@ -213,7 +212,7 @@ struct qore_value_list_private {
       QoreValue rv = entry[i];
       entry[i] = QoreValue();
 
-      if (rv.isNode() && get_container_obj(rv.v.n))
+      if (rv.hasNode() && get_container_obj(rv.v.n))
          incObjectCount(-1);
 
       return rv;
@@ -221,9 +220,9 @@ struct qore_value_list_private {
 
    DLLLOCAL QoreValueList* eval(ExceptionSink* xsink) const {
       ReferenceHolder<QoreValueList> nl(new QoreValueList, xsink);
-      for (size_t i = 0; i < priv->length; i++) {
-         QoreValue v = priv->entry[i];
-         nl->push(v.isNode() ? v.getInternalNode()->eval(xsink) : v);
+      for (size_t i = 0; i < length; i++) {
+         QoreValue v = entry[i];
+         nl->push(v.hasNode() ? v.getInternalNode()->eval(xsink) : v);
          if (*xsink)
             return 0;
       }
@@ -240,45 +239,56 @@ struct qore_value_list_private {
       // separate list into two equal-sized lists
       ReferenceHolder<QoreValueList> left(new QoreValueList, xsink);
       ReferenceHolder<QoreValueList> right(new QoreValueList, xsink);
+      qore_value_list_private* l = left->priv;
+      qore_value_list_private* r = right->priv;
       size_t mid = length / 2;
       {
          size_t i = 0;
          for (; i < mid; i++)
-            left->push(entry[i]);
+            l->push(entry[i]);
          for (; i < length; i++)
-            right->push(entry[i]);
+            r->push(entry[i]);
       }
 
       // set length to 0 - the temporary lists own the entry references now
       length = 0;
 
       // mergesort the two lists
-      if (left->priv->mergesort(fr, ascending, xsink) || right->priv->mergesort(fr, ascending, xsink))
+      if (l->mergesort(fr, ascending, xsink) || r->mergesort(fr, ascending, xsink))
          return -1;
 
       // merge the resulting lists
       // use offsets and StackList::getAndClear() to avoid moving a lot of memory around
       size_t li = 0, ri = 0;
-      while ((li < left.length) && (ri < right.length)) {
-         QoreValue& l = left.entry[li];
-         QoreValue& r = right.entry[ri];
-         safe_qorelist_t args(do_args(l, r), xsink);
-         ValueHolder rv(fr->execValue(*args, xsink), xsink);
-         if (*xsink)
-            return -1;
-         int rc = (int)rv->getAsBigInt();
+      while ((li < l->length) && (ri < r->length)) {
+         QoreValue& lv = l->entry[li];
+         QoreValue& rv = r->entry[ri];
+         int rc;
+         if (fr) {
+            safe_qorevaluelist_t args(do_args(lv, rv), xsink);
+            ValueHolder result(fr->execValue(*args, xsink), xsink);
+            if (*xsink)
+               return -1;
+            rc = (int)result->getAsBigInt();
+         }
+         else {
+            ValueHolder result(OP_LOG_CMP->eval(lv, rv, true, 2, xsink), xsink);
+            if (*xsink)
+               return -1;
+            rc = (int)result->getAsBigInt();
+         }
          if ((ascending && rc <= 0)
              || (!ascending && rc > 0))
-            push(left->priv->getAndClear(li++));
+            push(l->getAndClear(li++));
          else
-            push(right->priv->getAndClear(ri++));
+            push(r->getAndClear(ri++));
       }
 
       // only one list will have entries left...
-      while (li < left->length)
-         push(left->getAndClear(li++));
-      while (ri < right->length)
-         push(right->getAndClear(ri++));
+      while (li < l->length)
+         push(l->getAndClear(li++));
+      while (ri < r->length)
+         push(r->getAndClear(ri++));
 
       //printd(5, "List::mergesort() EXIT this: %p, length: %d\n", this, length);
 
@@ -291,45 +301,63 @@ struct qore_value_list_private {
    DLLLOCAL int qsort(const ResolvedCallReferenceNode* fr, size_t left, size_t right, bool ascending, ExceptionSink* xsink) {
       size_t l_hold = left;
       size_t r_hold = right;
-      AbstractQoreNode* pivot = entry[left];
+      QoreValue pivot = entry[left];
 
       while (left < right) {
          while (true) {
-            safe_qorelist_t args(do_args(entry[right], pivot), xsink);
-            ValueHolder rv(fr->execValue(*args, xsink), xsink);
-            if (*xsink)
-               return -1;
-            int rc = (int)rv->getAsBigInt();
+            int rc;
+            if (fr) {
+               safe_qorevaluelist_t args(do_args(entry[right], pivot), xsink);
+               ValueHolder rv(fr->execValue(*args, xsink), xsink);
+               if (*xsink)
+                  return -1;
+               rc = (int)rv->getAsBigInt();
+            }
+            else {
+               ValueHolder rv(OP_LOG_CMP->eval(entry[right], pivot, true, 2, xsink), xsink);
+               if (*xsink)
+                  return -1;
+               rc = (int)rv->getAsBigInt();
+            }
             if ((left < right)
                 && ((rc >= 0 && ascending)
                     || (rc < 0 && !ascending)))
-               right--;
+               --right;
             else
                break;
          }
 
          if (left != right) {
             entry[left] = entry[right];
-            left++;
+            ++left;
          }
 
          while (true) {
-            safe_qorelist_t args(do_args(entry[left], pivot), xsink);
-            ValueHolder rv(fr->execValue(*args, xsink), xsink);
-            if (*xsink)
-               return -1;
-            int rc = (int)rv->getAsBigInt();
+            int rc;
+            if (fr) {
+               safe_qorevaluelist_t args(do_args(entry[left], pivot), xsink);
+               ValueHolder rv(fr->execValue(*args, xsink), xsink);
+               if (*xsink)
+                  return -1;
+               rc = (int)rv->getAsBigInt();
+            }
+            else {
+               ValueHolder rv(OP_LOG_CMP->eval(entry[left], pivot, true, 2, xsink), xsink);
+               if (*xsink)
+                  return -1;
+               rc = (int)rv->getAsBigInt();
+            }
             if ((left < right) 
                 && ((rc <= 0 && ascending)
                     || (rc > 0 && !ascending)))
-               left++;
+               ++left;
             else
                break;
          }
       
          if (left != right) {
             entry[right] = entry[left];
-            right--;
+            --right;
          }
       }
       entry[left] = pivot;
@@ -347,15 +375,15 @@ struct qore_value_list_private {
    DLLLOCAL void incObjectCount(int dt) {
       assert(dt);
       assert(obj_count || (dt > 0));
-      //printd(5, "qore_list_private::incObjectCount() this: %p dt: %d: %d -> %d\n", this, dt, obj_count, obj_count + dt);
+      //printd(5, "qore_value_list_private::incObjectCount() this: %p dt: %d: %d -> %d\n", this, dt, obj_count, obj_count + dt);
       obj_count += dt;
    }
 
-   DLLLOCAL static unsigned getObjectCount(const QoreListNode& l) {
+   DLLLOCAL static unsigned getObjectCount(const QoreValueList& l) {
       return l.priv->obj_count;
    }
 
-   DLLLOCAL static void incObjectCount(const QoreListNode& l, int dt) {
+   DLLLOCAL static void incObjectCount(const QoreValueList& l, int dt) {
       l.priv->incObjectCount(dt);
    }
 };

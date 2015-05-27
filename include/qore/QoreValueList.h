@@ -220,7 +220,7 @@ public:
 
       @note cannot be used when reference count > 1
    */
-   DLLEXPORT void popEntry(size_t index, ExceptionSink* xsink);
+   //DLLEXPORT void popEntry(size_t index, ExceptionSink* xsink);
 
    //! evaluates the list and returns a value (or 0)
    /** return value requires a deref(xsink)
@@ -254,7 +254,7 @@ public:
    /** "soft" comparisons are made using OP_LOG_LT, meaning that the list can be made up of 
        different data types and still be sorted
    */
-   DLLEXPORT QoreValueList* sort() const;
+   DLLEXPORT QoreValueList* sort(ExceptionSink* xsink) const;
 
    //! returns a new list based on quicksorting the source list ("this") using the passed function reference to determine lexical order
    /** 
@@ -267,7 +267,7 @@ public:
    /** "soft" comparisons are made using OP_LOG_LT, meaning that the list can be made up of 
        different data types and still be sorted
    */
-   DLLEXPORT QoreValueList* sortStable() const;
+   DLLEXPORT QoreValueList* sortStable(ExceptionSink* xsink) const;
 
    //! returns a new list based on executing mergesort on the source list ("this") using the passed function reference to determine lexical order
    /** 
@@ -280,7 +280,7 @@ public:
    /** "soft" comparisons are made using OP_LOG_LT, meaning that the list can be made up of 
        different data types and still be sorted
    */
-   DLLEXPORT QoreValueList* sortDescending() const;
+   DLLEXPORT QoreValueList* sortDescending(ExceptionSink* xsink) const;
 
    //! returns a new list based on quicksorting the source list ("this") in descending order, using the passed function reference to determine lexical order
    /** 
@@ -293,7 +293,7 @@ public:
    /** "soft" comparisons are made using OP_LOG_LT, meaning that the list can be made up of 
        different data types and still be sorted
    */
-   DLLEXPORT QoreValueList* sortDescendingStable() const;
+   DLLEXPORT QoreValueList* sortDescendingStable(ExceptionSink* xsink) const;
 
    //! returns a new list based on executing mergesort on the source list ("this") in descending order, using the passed function reference to determine lexical order
    /** 
@@ -332,16 +332,20 @@ public:
    /**
       @param offset the index of the element (first element is offset 0, negative offsets are offsets from the end of the list)
       @param xsink if an error occurs, the Qore-language exception information will be added here
+
+      @return the elements removed from the list as a new list; if no elements are removed, 0 is returned
    */
-   DLLEXPORT void splice(ptrdiff_t offset, ExceptionSink* xsink);
+   DLLEXPORT QoreValueList* splice(ptrdiff_t offset, ExceptionSink* xsink);
 
    //! removes "length" elements at position "offset" (first element is offset 0)
    /**
       @param offset the index of the element (first element is offset 0, negative offsets are offsets from the end of the list)
       @param length the number of elements to remove (negative numbers mean all except that many elements from the end)
       @param xsink if an error occurs, the Qore-language exception information will be added here
+
+      @return the elements removed from the list as a new list; if no elements are removed, 0 is returned
    */
-   DLLEXPORT void splice(ptrdiff_t offset, ptrdiff_t length, ExceptionSink* xsink);
+   DLLEXPORT QoreValueList* splice(ptrdiff_t offset, ptrdiff_t length, ExceptionSink* xsink);
 
    //! adds a single value or a list of values ("l") to list possition "offset", while removing "length" elements
    /** the "l" AbstractQoreNode (or each element if it is a QoreValueList) will be referenced for the assignment in the QoreValueList
@@ -351,14 +355,16 @@ public:
       @param length the number of elements to remove (negative numbers mean all except that many elements from the end)
       @param l the value or list of values to insert
       @param xsink if an error occurs, the Qore-language exception information will be added here
+
+      @return the elements removed from the list as a new list; if no elements are removed, 0 is returned
    */
-   DLLEXPORT void splice(ptrdiff_t offset, ptrdiff_t length, const QoreValue l, ExceptionSink* xsink);
+   DLLEXPORT QoreValueList* splice(ptrdiff_t offset, ptrdiff_t length, const QoreValue l, ExceptionSink* xsink);
 
    //! truncates the list at position "offset" (first element is offset 0) and returns any elements removed from the list as a new list
    /**
       @param offset the index of the element (first element is offset 0, negative offsets are offsets from the end of the list)
       @param xsink if an error occurs, the Qore-language exception information will be added here
-      @return the elements removed from the list as a new list; if no elements are removed, and empty list is returned
+      @return the elements removed from the list as a new list; if no elements are removed, an empty list is returned
    */
    DLLEXPORT QoreValueList* extract(ptrdiff_t offset, ExceptionSink* xsink);
 
@@ -367,7 +373,7 @@ public:
       @param offset the index of the element (first element is offset 0, negative offsets are offsets from the end of the list)
       @param length the number of elements to remove (negative numbers mean all except that many elements from the end)
       @param xsink if an error occurs, the Qore-language exception information will be added here
-      @return the elements removed from the list as a new list; if no elements are removed, and empty list is returned
+      @return the elements removed from the list as a new list; if no elements are removed, an empty list is returned
    */
    DLLEXPORT QoreValueList* extract(ptrdiff_t offset, ptrdiff_t length, ExceptionSink* xsink);
 
@@ -379,9 +385,9 @@ public:
       @param length the number of elements to remove (negative numbers mean all except that many elements from the end)
       @param l the value or list of values to insert
       @param xsink if an error occurs, the Qore-language exception information will be added here
-      @return the elements removed from the list as a new list; if no elements are removed, and empty list is returned
+      @return the elements removed from the list as a new list; if no elements are removed, an empty list is returned
    */
-   DLLEXPORT QoreValueList* extract(ptrdiff_t offset, ptrdiff_t length, const AbstractQoreNode* l, ExceptionSink* xsink);
+   DLLEXPORT QoreValueList* extract(ptrdiff_t offset, ptrdiff_t length, const QoreValue l, ExceptionSink* xsink);
 
    //! returns the number of elements in the list
    /** return the number of elements in the list

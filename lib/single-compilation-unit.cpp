@@ -105,6 +105,7 @@
 #include "QoreString.cpp"
 #include "QoreObject.cpp"
 #include "QoreListNode.cpp"
+//#include "QoreValueList.cpp"
 #include "qore-main.cpp"
 #include "QoreGetOpt.cpp"
 #include "QoreFtpClient.cpp"

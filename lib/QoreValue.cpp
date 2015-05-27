@@ -286,6 +286,18 @@ QoreString* QoreValue::getAsString(bool& del, int format_offset, ExceptionSink* 
    return 0;   
 }
 
+AbstractQoreNode* QoreValue::getReferencedValue() const {
+   switch (type) {
+      case QV_Bool: return get_bool_node(v.b);
+      case QV_Int: return new QoreBigIntNode(v.i);
+      case QV_Float: return new QoreFloatNode(v.f);
+      case QV_Node: return v.n ? v.n->refSelf() : 0;
+      default: assert(false);
+         // no break
+   }
+   return 0;
+}
+
 AbstractQoreNode* QoreValue::takeNode() {
    switch (type) {
       case QV_Bool: return get_bool_node(v.b);

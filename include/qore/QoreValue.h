@@ -127,6 +127,8 @@ public:
    template<typename T>
    DLLEXPORT T* take();
    
+   DLLEXPORT AbstractQoreNode* getReferencedValue() const;
+
    DLLEXPORT AbstractQoreNode* takeNode();
 
    DLLEXPORT AbstractQoreNode* takeIfNode();
