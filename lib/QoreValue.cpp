@@ -219,29 +219,6 @@ void QoreValue::sanitize() {
    }
 }
 
-template<typename T>
-T* QoreValue::take() {
-   assert(type == QV_Node);
-   assert(dynamic_cast<T*>(v.n));
-   T* rv = reinterpret_cast<T*>(v.n);
-   v.n = 0;
-   return rv;
-}
-
-template<typename T>
-T* QoreValue::get() {
-   assert(type == QV_Node);
-   assert(dynamic_cast<T*>(v.n));
-   return reinterpret_cast<T*>(v.n);
-}
-
-template<typename T>
-const T* QoreValue::get() const {
-   assert(type == QV_Node);
-   assert(dynamic_cast<const T*>(v.n));
-   return reinterpret_cast<const T*>(v.n);
-}
-
 void QoreValue::clearNode() {
    if (type == QV_Node)
       v.n = 0;
@@ -386,17 +363,6 @@ ValueEvalRefHolder::ValueEvalRefHolder(const AbstractQoreNode* exp, ExceptionSin
    }
 
    v = exp->eval(needs_deref, xsink);
-}
-
-template<typename T>
-T* ValueEvalRefHolder::takeReferencedNode() {
-   T* rv = v.take<T>();
-   if (needs_deref)
-      needs_deref = false;
-   else
-      rv->ref();
-
-   return rv;
 }
 
 AbstractQoreNode* ValueEvalRefHolder::getReferencedValue() {

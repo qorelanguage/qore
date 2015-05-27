@@ -117,16 +117,30 @@ public:
    DLLEXPORT int getAsString(QoreString& str, int format_offset, ExceptionSink *xsink) const;
 
    DLLEXPORT QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
-   
+
    template<typename T>
-   DLLEXPORT T* get();
-   
+   DLLLOCAL T* take() {
+      assert(type == QV_Node);
+      assert(dynamic_cast<T*>(v.n));
+      T* rv = reinterpret_cast<T*>(v.n);
+      v.n = 0;
+      return rv;
+   }
+
    template<typename T>
-   DLLEXPORT const T* get() const;
-   
+   DLLLOCAL T* get() {
+      assert(type == QV_Node);
+      assert(dynamic_cast<T*>(v.n));
+      return reinterpret_cast<T*>(v.n);
+   }
+
    template<typename T>
-   DLLEXPORT T* take();
-   
+   DLLLOCAL const T* get() const {
+      assert(type == QV_Node);
+      assert(dynamic_cast<const T*>(v.n));
+      return reinterpret_cast<const T*>(v.n);
+   }
+
    DLLEXPORT AbstractQoreNode* getReferencedValue() const;
 
    DLLEXPORT AbstractQoreNode* takeNode();
@@ -216,7 +230,15 @@ public:
    DLLEXPORT ValueEvalRefHolder(const AbstractQoreNode* exp, ExceptionSink* xs);
 
    template<typename T>
-   DLLEXPORT T* takeReferencedNode();
+   DLLLOCAL T* takeReferencedNode() {
+      T* rv = v.take<T>();
+      if (needs_deref)
+         needs_deref = false;
+      else
+         rv->ref();
+      
+      return rv;
+   }
 
    // leaves the container empty
    DLLEXPORT AbstractQoreNode* getReferencedValue();
