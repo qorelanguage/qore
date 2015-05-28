@@ -207,7 +207,7 @@ void QoreValue::sanitize() {
 	 double f = reinterpret_cast<QoreFloatNode*>(v.n)->f;
 	 type = QV_Float;
 	 v.n->deref(0);
-	 v.i = f;
+	 v.f = f;
 	 break;
       }
       case NT_BOOLEAN: {
