@@ -30,8 +30,9 @@
 */
 
 #ifndef _QORE_QOREVALUE_H
-
 #define _QORE_QOREVALUE_H
+
+#include <assert.h>
 
 typedef unsigned char valtype_t;
 
