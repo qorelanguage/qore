@@ -43,6 +43,7 @@ typedef unsigned char valtype_t;
 
 // forward reference
 class AbstractQoreNode;
+class QoreString;
 
 union qore_value_u {
    bool b;
