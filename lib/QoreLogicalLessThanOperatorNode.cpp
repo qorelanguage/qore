@@ -74,14 +74,16 @@ AbstractQoreNode *QoreLogicalLessThanOperatorNode::parseInitIntern(const char *n
 
    // check for optimizations based on type; but only if types are known on both sides, although the highest priority (float)
    // can be assigned if either side is a float
-   if (lti->isType(NT_FLOAT) || rti->isType(NT_FLOAT))
-      pfunc = &QoreLogicalLessThanOperatorNode::floatLessThan;
-   else if (lti->hasType() && rti->hasType()) {
-      if (lti->isType(NT_INT)) {
-	 if (rti->isType(NT_INT))
-	    pfunc = &QoreLogicalLessThanOperatorNode::bigIntLessThan;
+   if (!lti->isType(NT_NUMBER) && !rti->isType(NT_NUMBER)) {
+      if (lti->isType(NT_FLOAT) || rti->isType(NT_FLOAT))
+	 pfunc = &QoreLogicalLessThanOperatorNode::floatLessThan;
+      else if (lti->hasType() && rti->hasType()) {
+	 if (lti->isType(NT_INT)) {
+	    if (rti->isType(NT_INT))
+	       pfunc = &QoreLogicalLessThanOperatorNode::bigIntLessThan;
+	 }
+	 // FIXME: check for invalid operation here      
       }
-      // FIXME: check for invalid operation here      
    }
 
    return this;

@@ -276,6 +276,7 @@
     - fixed a bug validating return values in method evaluation that could lead to a qore crash
     - fixed a bug in the @ref requires "%requires" directive when applied to builtin features where code to manage user module dependencies was inappropriately applied
     - fixed a bug nesting 3 levels or more of parse conditionals (@ref ifdef "%ifdef" and @ref ifndef "%ifndef") where the conditional parse state could be lost (and an assertion was made in debug mode)
+    - fixed a bug where ==, >, and < operators applied type precendence incorrectly when applying optimizations at parse time in relation to arbitrary-precision numeric values
 
     @section qore_0811 Qore 0.8.11
 
