@@ -675,3 +675,11 @@ void DatasourcePool::setEventQueue(Queue* q, AbstractQoreNode* arg, ExceptionSin
 	 pool[i]->setEventQueue(q ? q->eventRefSelf() : 0, arg ? arg->refSelf() : 0, xsink);
    }
 }
+
+QoreListNode* DatasourcePool::getCapabilityList() const {
+   return pool[0]->getCapabilityList();
+}
+
+int DatasourcePool::getCapabilities() const {
+   return pool[0]->getCapabilities();
+}

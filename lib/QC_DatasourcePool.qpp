@@ -956,3 +956,36 @@ nothing DatasourcePool::setEventQueue(Qore::Thread::Queue[Queue] queue, any arg)
 nothing DatasourcePool::clearEventQueue() {
    ds->setEventQueue(0, 0, xsink);
 }
+
+//! Returns an integer bitfield of DBI driver capabilities
+/** @return an integer bitfield of DBI driver capabilities; see @ref dbi_capabilities for the meaning of each bit
+
+    @par Example:
+    @code
+my int $caps = $pool.getCapabilities();
+if (!($caps & DBI_CAP_TRANSACTION_MANAGEMENT))
+    throw "DATASOURCE-ERROR", sprintf("DBI driver %y does not support transaction management", $db.getDriverName());
+    @endcode
+
+    @since %Qore 0.8.12
+*/
+int DatasourcePool::getCapabilities() [flags=CONSTANT] {
+   return ds->getCapabilities();
+}
+
+//! Returns a list of strings giving the capabilities of the current DBI driver
+/** @return a list of strings giving the capabilities of the current DBI driver
+
+    @par Example:
+    @code
+printf("driver %y has the following capabilities:\n", $db.getDriverName());
+foreach my string $cap in ($db.getCapabilityList())
+    printf("- %s\n", $cap);
+    @endcode
+
+    @since %Qore 0.8.12
+*/
+list DatasourcePool::getCapabilityList() [flags=CONSTANT] {
+   return ds->getCapabilityList();
+}
+

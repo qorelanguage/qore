@@ -122,11 +122,14 @@ public:
       return pool[0]->getDriverName();
    }
 
+   DLLLOCAL QoreListNode* getCapabilityList() const;
+   DLLLOCAL int getCapabilities() const;
+   
    DLLLOCAL AbstractQoreNode* getServerVersion(ExceptionSink* xsink);
-
    DLLLOCAL AbstractQoreNode* getClientVersion(ExceptionSink* xsink) {
       return pool[0]->getClientVersion(xsink);
    }
+
    DLLLOCAL bool inTransaction();
 
    DLLLOCAL QoreHashNode* getOptionHash() const {
