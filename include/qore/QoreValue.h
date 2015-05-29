@@ -114,7 +114,7 @@ struct QoreValueCastHelper<int> {
 
 struct QoreValue {
    friend class ValueEvalRefHolder;
-   template<typename> friend class detail::QoreValueCastHelper;
+   template<typename> friend struct detail::QoreValueCastHelper;
 
 protected:
    DLLEXPORT AbstractQoreNode* takeNodeIntern();
