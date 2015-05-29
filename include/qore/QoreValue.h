@@ -54,8 +54,67 @@ union qore_value_u {
    void* p;
 };
 
+
+namespace detail {
+
+template<typename Type>
+struct QoreValueCastHelper {
+    typedef Type * Result;
+
+    template<typename QV>
+    static Result cast(QV *qv, valtype_t type) {
+      assert(type == QV_Node);
+      assert(dynamic_cast<Result>(qv->v.n));
+      return reinterpret_cast<Result>(qv->v.n);
+    }
+};
+
+template<>
+struct QoreValueCastHelper<bool> {
+    typedef bool Result;
+
+    template<typename QV>
+    static bool cast(QV *qv, valtype_t type) {
+        return qv->getAsBool();
+    }
+};
+
+template<>
+struct QoreValueCastHelper<double> {
+    typedef double Result;
+
+    template<typename QV>
+    static double cast(QV *qv, valtype_t type) {
+        return qv->getAsFloat();
+    }
+};
+
+template<>
+struct QoreValueCastHelper<int64> {
+    typedef int64 Result;
+
+    template<typename QV>
+    static double cast(QV *qv, valtype_t type) {
+        return qv->getAsBigInt();
+    }
+};
+
+template<>
+struct QoreValueCastHelper<int> {
+    typedef int Result;
+
+    template<typename QV>
+    static int cast(QV *qv, valtype_t type) {
+        return qv->getAsBigInt();
+    }
+};
+
+} // namespace detail
+
+
 struct QoreValue {
    friend class ValueEvalRefHolder;
+   template<typename> friend class detail::QoreValueCastHelper;
 
 protected:
    DLLEXPORT AbstractQoreNode* takeNodeIntern();
@@ -130,18 +189,16 @@ public:
    }
 
    template<typename T>
-   DLLLOCAL T* get() {
-      assert(type == QV_Node);
-      assert(dynamic_cast<T*>(v.n));
-      return reinterpret_cast<T*>(v.n);
+   DLLLOCAL typename detail::QoreValueCastHelper<T>::Result get() {
+      return detail::QoreValueCastHelper<T>::cast(this, type);
    }
 
    template<typename T>
-   DLLLOCAL const T* get() const {
-      assert(type == QV_Node);
-      assert(dynamic_cast<const T*>(v.n));
-      return reinterpret_cast<const T*>(v.n);
+   DLLLOCAL typename detail::QoreValueCastHelper<const T>::Result get() const {
+      return detail::QoreValueCastHelper<const T>::cast(this, type);
    }
+
+
 
    DLLEXPORT AbstractQoreNode* getReferencedValue() const;
 
