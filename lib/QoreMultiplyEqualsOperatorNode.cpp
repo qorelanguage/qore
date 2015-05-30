@@ -61,6 +61,7 @@ QoreValue QoreMultiplyEqualsOperatorNode::evalValueImpl(bool& needs_deref, Excep
 	 needs_deref = true;
 	 return v.getReferencedValue();
       }
+      needs_deref = false;
       return QoreValue();
    }
    

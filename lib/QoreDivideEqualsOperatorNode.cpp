@@ -57,6 +57,7 @@ QoreValue QoreDivideEqualsOperatorNode::evalValueImpl(bool &needs_deref, Excepti
       // check for divide by zero
       if (res->getAsFloat() == 0.0) {
 	 xsink->raiseException("DIVISION-BY-ZERO", "division by zero in arbitrary-precision numeric expression");
+	 needs_deref = false;
 	 return QoreValue();
       }
       // FIXME: efficiency

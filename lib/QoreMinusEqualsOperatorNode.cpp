@@ -113,14 +113,15 @@ QoreValue QoreMinusEqualsOperatorNode::evalValueImpl(bool &needs_deref, Exceptio
 	    return QoreValue();
 	 }
 
-	 needs_deref = ref_rv;
-	 
+	 needs_deref = ref_rv;	 
 	 // v has been assigned to a value by this point
 	 return ref_rv ? v.getReferencedValue() : QoreValue();
       }
    }
-   else if (vtype == NT_FLOAT)
+   else if (vtype == NT_FLOAT) {
+      needs_deref = true;
       return v.minusEqualsFloat(new_right->getAsFloat());
+   }
    else if (vtype == NT_NUMBER) {
       // FIXME: could be more efficient
       ReferenceHolder<> ra(new_right.getReferencedValue(), xsink);
@@ -191,5 +192,6 @@ QoreValue QoreMinusEqualsOperatorNode::evalValueImpl(bool &needs_deref, Exceptio
 
    // here we know that v has a value
    // reference return value and return
+   needs_deref = ref_rv;
    return ref_rv ? v.getReferencedValue() : QoreValue();
 }

@@ -104,7 +104,11 @@ QoreValue QoreMapSelectOperatorNode::evalValueImpl(bool &needs_deref, ExceptionS
       }
 
       ValueEvalRefHolder val(e[0], xsink);
-      return *xsink ? QoreValue() : val.takeValue(needs_deref);       
+      if (*xsink) {
+	needs_deref = false;
+	return QoreValue();
+      }
+      return val.takeValue(needs_deref);       
    }
 
    ReferenceHolder<QoreListNode> rv(ref_rv ? new QoreListNode : 0, xsink);

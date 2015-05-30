@@ -33,6 +33,7 @@
 QoreString QoreModulaOperatorNode::op_str("% (modula) operator expression");
 
 QoreValue QoreModulaOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+   needs_deref = false;
    int64 l = left->bigIntEval(xsink);
    if (*xsink)
       return QoreValue();

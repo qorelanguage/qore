@@ -45,11 +45,12 @@ int QoreRemoveOperatorNode::getAsString(QoreString &str, int foff, ExceptionSink
 
 QoreValue QoreRemoveOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
    LValueRemoveHelper lvrh(exp, xsink, false);
-   if (!lvrh)
+   if (!lvrh) {
+      needs_deref = false;
       return QoreValue();
+   }
    QoreValue v = lvrh.remove();
-   if (v.getInternalNode())
-      needs_deref = true;
+   needs_deref = (bool)v.getInternalNode();
    return v;
 }
 

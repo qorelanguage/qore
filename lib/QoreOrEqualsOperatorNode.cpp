@@ -38,6 +38,7 @@ AbstractQoreNode *QoreOrEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int p
 }
 
 QoreValue QoreOrEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+   needs_deref = false;
    int64 val = right->bigIntEval(xsink);
    if (*xsink)
       return QoreValue();

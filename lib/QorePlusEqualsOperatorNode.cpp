@@ -107,6 +107,7 @@ QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, Exception
 	 
 	 // v has been assigned to a value by this point
 	 // reference return value
+	 needs_deref = ref_rv;
 	 return ref_rv ? v.getReferencedValue() : QoreValue();
       }
    }
@@ -183,5 +184,6 @@ QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, Exception
 
    // v has been assigned to a value by this point
    // reference return value
+   needs_deref = ref_rv;
    return ref_rv ? v.getReferencedValue() : QoreValue();
 }
