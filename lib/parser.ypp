@@ -625,6 +625,7 @@ struct NSNode {
             break;
          case NSN_METH:
             n.meth->add(ns);
+            delete n.meth;
             break;
          default:
             assert(false);
