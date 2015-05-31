@@ -227,6 +227,10 @@ int64 DateTime::getRelativeMicroseconds() const {
    return priv->getRelativeMicroseconds();
 }
 
+double DateTime::getRelativeSecondsDouble() const {
+   return priv->getRelativeSecondsDouble();
+}
+
 // static methods
 bool DateTime::isLeapYear(int year) {
    return qore_date_info::isLeapYear(year);

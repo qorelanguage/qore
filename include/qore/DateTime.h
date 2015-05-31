@@ -415,6 +415,12 @@ public:
    */
    DLLEXPORT int64 getRelativeMicroseconds() const;
 
+   //! returns the difference as the number of seconds between the date/time value and the local time at the moment of the call for absolute date/time values; for relative date/time values, the duration is converted to seconds and returned as a floating-point value with fractional seconds as digits to the right of the decimal point
+   /**
+       @return the difference as the number of seconds between the date/time value and the local time at the moment of the call for absolute date/time values; for relative date/time values, the duration is converted to seconds and returned as a floating-point value with fractional seconds as digits to the right of the decimal point
+   */
+   DLLEXPORT double getRelativeSecondsDouble() const;
+
    //! returns true if the object has a value, false if not (zero value = 1970-01-01Z for absolute times, or all relative components = 0)
    DLLEXPORT bool hasValue() const;
 

@@ -670,6 +670,10 @@ public:
 
    DLLLOCAL int64 getRelativeMicroseconds() const;
 
+   DLLLOCAL double getRelativeSecondsDouble() const {
+      return ((double)getRelativeMicroseconds()) / 1000000.0;
+   }
+
    DLLLOCAL void localtime(struct tm& tms) const {
       bool isdst;
       int offset = zone->getUTCOffset(epoch, isdst);
@@ -922,6 +926,10 @@ public:
          + (int64)day * MICROSECS_PER_DAY 
          + (month ? (int64)month * MICROSECS_PER_AVG_MONTH : 0ll)
          + (year ? (int64)year*  MICROSECS_PER_YEAR : 0ll);
+   }
+
+   DLLLOCAL double getRelativeSecondsDouble() const {
+      return ((double)getRelativeMicroseconds()) / 1000000.0;
    }
 
    DLLLOCAL qore_relative_time& operator+=(const qore_relative_time& dt);
@@ -1250,6 +1258,10 @@ public:
 
    DLLLOCAL int64 getRelativeMicroseconds() const {
       return relative ? d.rel.getRelativeMicroseconds() : d.abs.getRelativeMicroseconds();
+   }
+
+   DLLLOCAL double getRelativeSecondsDouble() const {
+      return relative ? d.rel.getRelativeSecondsDouble() : d.abs.getRelativeSecondsDouble();
    }
 
    DLLLOCAL int getDayOfWeek() const {

@@ -241,6 +241,7 @@ my int $us = PT2M15S3u.durationSeconds(); # returns 135
     - to get the literal seconds integer value from a date/time value without calculating a duration, use @ref <date>::seconds()
 
     @see
+    - <date>::durationSecondsFloat()
     - <date>::durationMilliseconds()
     - <date>::durationMicroseconds()
 
@@ -271,6 +272,7 @@ my int $us = PT2M15S3u.durationMilliseconds(); # returns 135000
     - to get the literal milliseconds integer value from a date/time value without calculating a duration, use @ref <date>::milliseconds()
 
     @see
+    - <date>::durationSecondsFloat()
     - <date>::durationSeconds()
     - <date>::durationMicroseconds()
 
@@ -299,6 +301,7 @@ my int $us = PT2M15S3u.durationMicroseconds(); # returns 135000003
     - to get the literal microseconds integer value from a date/time value without calculating a duration, use @ref <date>::microseconds()
 
     @see
+    - <date>::durationSecondsFloat()
     - <date>::durationSeconds()
     - <date>::durationMilliseconds()
 
@@ -306,6 +309,31 @@ my int $us = PT2M15S3u.durationMicroseconds(); # returns 135000003
 */
 int <date>::durationMicroseconds() [flags=CONSTANT] {
    return dt->getRelativeMicroseconds();
+}
+
+//! Returns a floating-point value representing the the number of seconds of duration in the value of the date passed (can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date)
+/** The duration in seconds is calculated and any fractional seconds are returned as digits to the right of the decimal point.
+
+    @return a floating-point vlaue representing the the number of seconds of duration in the value of the date passed; if the argument is a @ref relative_dates "relative date", the value is normalized to seconds and the floating-point seconds value is returned with microseconds providing the digits to the right of the decimal place, if the argument is an @ref absolute_dates "absolute date", the duration in seconds is calculated from the present time; so if the present time is sent as an argument, 0 is returned, if a future date is used, the number of seconds from the present time to the future date is returned, if an @ref absolute_dates "absolute date" in the past is passed as an argument, also 0 is returned (the function does not calculate second differences for @ref absolute_dates "absolute dates" in the past (for this use @ref date_time_arithmetic instead); this function can only return a negative value if passed a relative date/time value
+
+    @par Example:
+    @code
+my float $dt = PT2M15S3u.durationSecondsFloat(); # returns 135.000003
+    @endcode
+
+    @note
+    - equivalent to get_duration_seconds_f()
+    - to get the literal seconds integer value from a date/time value without calculating a duration, use @ref <date>::seconds()
+
+    @see
+    - <date>::durationSeconds()
+    - <date>::durationMilliseconds()
+    - <date>::durationMicroseconds()
+
+    @since %Qore 0.8.12
+*/
+float <date>::durationSecondsFloat() [flags=CONSTANT] {
+   return dt->getRelativeSecondsDouble();
 }
 
 //! Returns a formatted string for the date value
