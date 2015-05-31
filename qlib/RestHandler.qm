@@ -659,9 +659,9 @@ public namespace RestHandler {
             else
                 $body = $args;
 
-            # reflect body in arguments if body is a hash and there are no args
-            if (!$args && $body && $body.typeCode() == NT_HASH)
-                $args = $body;
+            # reflect body in arguments if body is a hash
+            if ($body.typeCode() == NT_HASH)
+                map $args.$1 = $body.$1, $body.keyIterator(), !exists $args.$1;
 
             if (!Methods.($hdr.method))
                 return RestHandler::make400("unsupported HTTP method %y given in REST call %y", $hdr.method, $path);

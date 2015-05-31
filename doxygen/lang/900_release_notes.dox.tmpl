@@ -207,12 +207,14 @@
       - fixed a bug handling tablespaces in unique constraints
     -  <a href="../../modules/WebUtil/html/index.html">WebUtil</a> module fixes:
       - fixed a bug where template programs with @ref Qore::PO_ALLOW_BARE_REFS set did not work
-    - <a href="../../modules/WebSocketHandler/html/index.html">WebSocketHandler</a> module updates:
+    - <a href="../../modules/WebSocketHandler/html/index.html">WebSocketHandler</a> module fixes:
       - fixed a bug where the connection object was deleted when the connection closes which could cause excess exceptions in multithreaded server code
       - added the WebSocketConnection::connectionClosed() method to be called when the connection is closed
     - <a href="../../modules/WebSocketClient/html/index.html">WebSocketClient</a> module updates:
       - updated module to version 1.3
       - ignore \c SOCKET-NOT-OPEN errors when closing (server already closed the connection)
+    - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module fixes:
+      - fold all possible arguments in the REST request body into the argument hash so that complex REST requests can be made with clear URI strings
     - fixed a memory error in error-handling with type errors when parsing user module headers that could cause a crash
     - fixed a memory leak in @ref Qore::Socket::setWarningQueue() "Socket::setWarningQueue()": when a callback argument is used, the argument can be leaked when the @ref Qore::Socket "Socket" is destroyed
     - fixed a bug where the @ref Qore::HTTPClient "HTTPClient" class did not send the X.509 certificate and private key when making a client SSL connection
