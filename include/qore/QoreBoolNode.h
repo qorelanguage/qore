@@ -114,6 +114,8 @@ public:
       return NT_BOOLEAN;
    }
 
+   static const qore_type_t TYPE = NT_BOOLEAN;
+
    //! returns the value of the argument (useful in templates)
    DLLLOCAL static bool getValue(QoreBoolNode *v) {
       return v->b;

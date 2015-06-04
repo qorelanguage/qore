@@ -109,6 +109,8 @@ public:
    DLLLOCAL static qore_type_t getStaticTypeCode() {
       return NT_NOTHING;
    }
+
+   static const qore_type_t TYPE = NT_NOTHING;
 };
 
 //! the global and unique NOTHING object in Qore

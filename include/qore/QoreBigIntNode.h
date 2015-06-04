@@ -148,6 +148,8 @@ public:
       return NT_INT;
    }
 
+   static const qore_type_t TYPE = NT_INT;
+
    //! returns the integer value (useful in templates)
    DLLLOCAL static int64 getValue(AbstractQoreNode *v) {
       return v->getAsBigInt();

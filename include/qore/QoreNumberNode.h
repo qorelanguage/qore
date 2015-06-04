@@ -257,6 +257,8 @@ public:
    DLLLOCAL static qore_type_t getStaticTypeCode() {
       return NT_NUMBER;
    }
+
+   static const qore_type_t TYPE = NT_NUMBER;
 };
 
 #endif

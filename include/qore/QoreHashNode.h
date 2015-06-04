@@ -107,6 +107,7 @@ protected:
    DLLEXPORT virtual ~QoreHashNode();
 
 public:
+
    //! creates an empty hash
    DLLEXPORT QoreHashNode();
 
@@ -456,6 +457,8 @@ public:
    DLLLOCAL static qore_type_t getStaticTypeCode() {
       return NT_HASH;
    }
+
+   static const qore_type_t TYPE = NT_HASH;
 
    //! initializes during parsing
    DLLLOCAL virtual AbstractQoreNode* parseInit(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);

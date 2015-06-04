@@ -121,6 +121,8 @@ public:
    DLLLOCAL static qore_type_t getStaticTypeCode() {
       return NT_NULL;
    }
+
+   static const qore_type_t TYPE = NT_NULL;
 };
 
 //! use this function to test for NULL

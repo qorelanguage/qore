@@ -272,6 +272,8 @@ public:
       return NT_STRING;
    }
 
+   static const qore_type_t TYPE = NT_STRING;
+
    //! returns the type information
    DLLLOCAL virtual AbstractQoreNode* parseInit(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 };

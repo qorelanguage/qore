@@ -163,6 +163,8 @@ public:
       return NT_FLOAT;
    }
 
+   static const qore_type_t TYPE = NT_FLOAT;
+
    //! returns the value of the argument (useful in templates)
    DLLLOCAL static double getValue(AbstractQoreNode *v) {
       return v->getAsFloat();
