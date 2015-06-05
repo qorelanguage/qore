@@ -124,6 +124,7 @@ public:
 
    // FIXME: move to AbstractQoreNode
    DLLLOCAL QoreValue evalValue(bool& needs_deref, ExceptionSink* xsink) const {
+      needs_deref = true;
       return evalValueImpl(needs_deref, xsink);
    }
 };

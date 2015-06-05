@@ -38,8 +38,6 @@ AbstractQoreNode *QoreShiftRightEqualsOperatorNode::parseInitImpl(LocalVar *ofla
 }
 
 QoreValue QoreShiftRightEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   needs_deref = false;
-   
    int64 val = right->bigIntEval(xsink);
    if (*xsink)
       return QoreValue();

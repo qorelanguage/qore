@@ -204,10 +204,8 @@ QoreValue QoreExtractOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
    }
 
    // return value only if used and no exception occured
-   if (*xsink || !ref_rv) {
-      needs_deref = false;
+   if (*xsink || !ref_rv)
       return QoreValue();
-   }
-   needs_deref = true;
+
    return rv.release();
 }

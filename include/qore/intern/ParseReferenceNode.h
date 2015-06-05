@@ -49,7 +49,6 @@ protected:
 
    // returns a runtime reference (ReferenceNode)
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-      needs_deref = true;
       return evalToRef(xsink);
    }
 

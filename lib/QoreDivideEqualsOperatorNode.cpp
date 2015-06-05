@@ -38,26 +38,21 @@ AbstractQoreNode *QoreDivideEqualsOperatorNode::parseInitImpl(LocalVar *oflag, i
    return this;
 }
 
-QoreValue QoreDivideEqualsOperatorNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
+QoreValue QoreDivideEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    ValueEvalRefHolder res(right, xsink);
-   if (*xsink) {
-      needs_deref = false;
+   if (*xsink)
       return QoreValue();
-   }
 
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);
-   if (!v) {
-      needs_deref = false;
+   if (!v)
       return QoreValue();
-   }
 
    // is either side a number?
    if (res->getType() == NT_NUMBER || v.getType() == NT_NUMBER) {
       // check for divide by zero
       if (res->getAsFloat() == 0.0) {
 	 xsink->raiseException("DIVISION-BY-ZERO", "division by zero in arbitrary-precision numeric expression");
-	 needs_deref = false;
 	 return QoreValue();
       }
       // FIXME: efficiency
@@ -66,7 +61,6 @@ QoreValue QoreDivideEqualsOperatorNode::evalValueImpl(bool &needs_deref, Excepti
    }
    // is either side a float?
    else if (res->getType() == NT_FLOAT || v.getType() == NT_FLOAT) {
-      needs_deref = false;
       double val = res->getAsFloat();
       if (val == 0.0) {
 	 xsink->raiseException("DIVISION-BY-ZERO", "division by zero in floating-point expression");
@@ -75,7 +69,6 @@ QoreValue QoreDivideEqualsOperatorNode::evalValueImpl(bool &needs_deref, Excepti
       return v.divideEqualsFloat(val, "</= operator>");
    }
    else { // do integer divide equals
-      needs_deref = false;
       int64 val = res->getAsBigInt();
       if (!val) {
 	 xsink->raiseException("DIVISION-BY-ZERO", "division by zero in integer expression");
@@ -86,6 +79,5 @@ QoreValue QoreDivideEqualsOperatorNode::evalValueImpl(bool &needs_deref, Excepti
    }
 
    // reference return value and return
-   needs_deref = ref_rv;
    return ref_rv ? v.getReferencedValue() : QoreValue();
 }

@@ -70,44 +70,32 @@ AbstractQoreNode* QoreMapSelectOperatorNode::parseInitImpl(LocalVar *oflag, int 
 QoreValue QoreMapSelectOperatorNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
    // conditionally evaluate argument expression
    ValueEvalRefHolder marg(e[1], xsink);
-   if (*xsink) {
-      needs_deref = false;
+   if (*xsink)
       return QoreValue();
-   }
 
    qore_type_t t = marg->getType();
    if (t != NT_LIST) {
       if (t == NT_OBJECT) {
          AbstractIteratorHelper h(xsink, "map operator", marg->get<QoreObject>());
-         if (*xsink) {
-	    needs_deref = false;
+         if (*xsink)
             return QoreValue();
-	 }
-         if (h) {
-	    needs_deref = ref_rv;
+         if (h)
             return mapSelectIterator(h, xsink);
-	 }
       }
-      if (t == NT_NOTHING) { 
-	 needs_deref = false;
+      if (t == NT_NOTHING)
 	 return QoreValue();
-      }
 
       ReferenceHolder<> argv_val(marg.getReferencedValue(), xsink);
       SingleArgvContextHelper argv_helper(*argv_val, xsink);
 
       // check if value can be mapped
       ValueEvalRefHolder result(e[2], xsink);
-      if (*xsink || !result->getAsBool()) {
-	 needs_deref = false;
+      if (*xsink || !result->getAsBool())
 	 return QoreValue();
-      }
 
       ValueEvalRefHolder val(e[0], xsink);
-      if (*xsink) {
-	needs_deref = false;
+      if (*xsink)
 	return QoreValue();
-      }
       return val.takeValue(needs_deref);       
    }
 
@@ -120,22 +108,17 @@ QoreValue QoreMapSelectOperatorNode::evalValueImpl(bool &needs_deref, ExceptionS
       // check if value can be mapped
       SingleArgvContextHelper argv_helper(elem, xsink);
       ValueEvalRefHolder result(e[2], xsink);
-      if (*xsink) {
-	 needs_deref = false;
+      if (*xsink)
          return QoreValue();
-      }
       if (!result->getAsBool())
          continue;
 
       ValueEvalRefHolder val(e[0], xsink);
-      if (*xsink) {
-	 needs_deref = false;
+      if (*xsink)
 	 return QoreValue();
-      }
       if (ref_rv)
 	 rv->push(val.getReferencedValue());
    }
-   needs_deref = true;
    return rv.release();
 }
 

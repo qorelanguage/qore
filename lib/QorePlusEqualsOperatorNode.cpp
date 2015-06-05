@@ -70,17 +70,13 @@ AbstractQoreNode *QorePlusEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int
 
 QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    ValueEvalRefHolder new_right(right, xsink);
-   if (*xsink) {
-      needs_deref = false;
+   if (*xsink)
       return QoreValue();
-   }
 
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);
-   if (!v) {
-      needs_deref = false;
+   if (!v)
       return QoreValue();
-   }
 
    // dereferences happen in each section so that the
    // already referenced value can be passed to list->push()
@@ -92,22 +88,17 @@ QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, Exception
       // see if the lvalue has a default type
       const QoreTypeInfo *typeInfo = v.getTypeInfo();
       if (typeInfo->hasDefaultValue()) {
-	 if (v.assign(typeInfo->getDefaultValue())) {
-	    needs_deref = false;
+	 if (v.assign(typeInfo->getDefaultValue()))
 	    return QoreValue();
-	 }
 	 vtype = v.getType();
       }
       else if (!new_right->isNothing()) {
 	 // assign rhs to lhs (take reference for plusequals)
-	 if (v.assign(new_right.getReferencedValue())) {
-	    needs_deref = false;
+	 if (v.assign(new_right.getReferencedValue()))
 	    return QoreValue();
-	 }
 	 
 	 // v has been assigned to a value by this point
 	 // reference return value
-	 needs_deref = ref_rv;
 	 return ref_rv ? v.getReferencedValue() : QoreValue();
       }
    }
@@ -177,13 +168,10 @@ QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, Exception
    else { // do integer plus-equals
       v.plusEqualsBigInt(new_right->getAsBigInt());
    }
-   if (*xsink) {
-      needs_deref = false;
+   if (*xsink)
       return QoreValue();
-   }
 
    // v has been assigned to a value by this point
    // reference return value
-   needs_deref = ref_rv;
    return ref_rv ? v.getReferencedValue() : QoreValue();
 }

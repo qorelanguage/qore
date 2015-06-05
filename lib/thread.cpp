@@ -1344,7 +1344,7 @@ SingleArgvContextHelper::SingleArgvContextHelper(const AbstractQoreNode* val, Ex
    old_argv = td->current_implicit_arg;
    QoreListNode* argv;
    if (!is_nothing(val)) {
-      argv = new QoreListNode();
+      argv = new QoreListNode;
       argv->push(val->refSelf());
    }
    else

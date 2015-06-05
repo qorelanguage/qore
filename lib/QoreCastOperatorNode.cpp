@@ -47,14 +47,11 @@ int QoreCastOperatorNode::getAsString(QoreString& str, int foff, ExceptionSink* 
 
 QoreValue QoreCastOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    ValueEvalRefHolder rv(exp, xsink);
-   if (*xsink) {
-      needs_deref = false;
+   if (*xsink)
       return QoreValue();
-   }
 
    if (rv->getType() != NT_OBJECT) {
       xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from type '%s' to %s'%s'", rv->getTypeName(), qc ? "class " : "", qc ? qc->getName() : "object");
-      needs_deref = false;
       return QoreValue();
    }
 
@@ -65,12 +62,10 @@ QoreValue QoreCastOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* 
       const QoreClass* tc = oc->getClass(*qc, priv);
       if (!tc) {
 	 xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from class '%s' to class '%s'", obj->getClassName(), qc->getName());
-	 needs_deref = false;
 	 return QoreValue();
       }
       if (priv && !qore_class_private::runtimeCheckPrivateClassAccess(*tc)) {
 	 xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from class '%s' to privately-accessible class '%s' in this context", obj->getClassName(), qc->getName());
-	 needs_deref = false;
 	 return QoreValue();
       }
    }

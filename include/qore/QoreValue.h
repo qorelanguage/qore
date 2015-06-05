@@ -305,7 +305,6 @@ public:
    DLLLOCAL AbstractQoreNode* takeNode(bool& nd) {
       if (v.type == QV_Node) {
          nd = needs_deref;
-	 needs_deref = false;
          return v.takeNodeIntern();
       }
       nd = true;
@@ -314,12 +313,7 @@ public:
 
    DLLLOCAL QoreValue takeValue(bool& nd) {
       if (v.type == QV_Node) {
-	 if (needs_deref) {
-	    needs_deref = false;
-	    nd = true;
-	    return v.takeNodeIntern();
-	 }
-	 nd = false;
+         nd = needs_deref;
 	 return v.takeNodeIntern();
       }
       nd = false;

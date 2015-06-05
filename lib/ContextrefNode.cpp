@@ -60,8 +60,7 @@ const char *ContextrefNode::getTypeName() const {
    return "context reference";
 }
 
-QoreValue ContextrefNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = true;
+QoreValue ContextrefNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    return evalContextRef(str, xsink);
 }
 

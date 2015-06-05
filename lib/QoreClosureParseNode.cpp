@@ -42,7 +42,6 @@ QoreObjectClosureNode* QoreClosureParseNode::evalObjectClosure() const {
 }
 
 QoreValue QoreClosureParseNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   needs_deref = true;
    return in_method ? (AbstractQoreNode*)evalObjectClosure() : (AbstractQoreNode*)evalClosure();
 }
 

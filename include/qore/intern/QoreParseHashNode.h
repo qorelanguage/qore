@@ -110,7 +110,6 @@ protected:
    }
 
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-      needs_deref = true;
       assert(keys.size() == values.size());
       ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
       for (size_t i = 0; i < keys.size(); ++i) {

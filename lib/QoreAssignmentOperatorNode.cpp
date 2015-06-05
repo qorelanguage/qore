@@ -78,30 +78,19 @@ QoreValue QoreAssignmentOperatorNode::evalValueImpl(bool& needs_deref, Exception
       copied/referenced for the return value
    */
    ValueEvalRefHolder new_value(right, xsink);
-   if (*xsink) {
-      needs_deref = false;
+   if (*xsink)
       return QoreValue();
-   }
 
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);
-   if (!v) {
-      needs_deref = false;
+   if (!v)
       return QoreValue();
-   }
 
    // assign new value
-   if (v.assign(new_value.takeReferencedValue())) {
-      needs_deref = false;
+   if (v.assign(new_value.takeReferencedValue()))
       return QoreValue();
-   }
 
    // reference return value if necessary
-   if (ref_rv) {
-      needs_deref = true;
-      return v.getReferencedValue();
-   }
-   needs_deref = false;
-   return QoreValue();
+   return ref_rv ? v.getReferencedValue() : QoreValue();
 }
 

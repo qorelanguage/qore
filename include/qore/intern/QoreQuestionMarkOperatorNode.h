@@ -58,18 +58,15 @@ protected:
 
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
       ValueEvalRefHolder b(e[0], xsink);
-      if (*xsink) {
-         needs_deref = false;
+      if (*xsink)
          return QoreValue();
-      }
 
       AbstractQoreNode* exp = b->getAsBool() ? e[1] : e[2];
 
       ValueEvalRefHolder rv(exp, xsink);
-      if (*xsink) {
-         needs_deref = false;
+      if (*xsink)
          return QoreValue();
-      }
+
       return rv.takeValue(needs_deref);
    }
 

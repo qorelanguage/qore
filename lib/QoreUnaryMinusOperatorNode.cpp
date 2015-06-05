@@ -46,34 +46,27 @@ int QoreUnaryMinusOperatorNode::getAsString(QoreString &str, int foff, Exception
 
 QoreValue QoreUnaryMinusOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
    ValueEvalRefHolder v(exp, xsink);
-   if (*xsink) {
-      needs_deref = false;
+   if (*xsink)
       return QoreValue();
-   }
 
    switch (v->getType()) {
       case NT_NUMBER: {
-	 needs_deref = true;
 	 return v.takeReferencedNode<QoreNumberNode>()->negate();
       }
 
       case NT_FLOAT: {
-	 needs_deref = false;
 	 return -(v->getAsFloat());
       }
 	 
       case NT_DATE: {
-	 needs_deref = true;
 	 return v->get<const DateTimeNode>()->unaryMinus();
       }
 
       case NT_INT: {
-	 needs_deref = false;
 	 return -(v->getAsBigInt());
       }
    }
 
-   needs_deref = false;
    return QoreValue(0ll);
 }
 

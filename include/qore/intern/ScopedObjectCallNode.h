@@ -39,7 +39,6 @@ class ScopedObjectCallNode : public AbstractFunctionCallNode {
 protected:
    // WARNING: pay attention when subclassing; this method must also be implemented in the subclass
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-      needs_deref = true;
       return oc->execConstructor(variant, args, xsink);
    }
 

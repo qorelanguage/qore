@@ -220,10 +220,9 @@ public:
          ReferenceHolder<ReferenceNode> ref(reinterpret_cast<ReferenceNode*>(val.v.n->refSelf()), xsink);
          sl.unlock();
          LocalRefHelper<ClosureVarValue> helper(this, **ref, xsink);
-         return helper ? lvalue_ref::get(*ref)->vexp->eval(needs_deref, xsink) : 0;
+         return helper ? lvalue_ref::get(*ref)->vexp->eval(needs_deref, xsink) : QoreValue();
       }
 
-      needs_deref = true;
       return val.getReferencedValue();
    }
 };

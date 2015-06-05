@@ -45,8 +45,6 @@ int QoreLogicalNotOperatorNode::getAsString(QoreString& str, int foff, Exception
 
 QoreValue QoreLogicalNotOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    assert(exp);
-   needs_deref = false;
-
    ValueEvalRefHolder v(exp, xsink);
    return !v->getAsBool();
 }

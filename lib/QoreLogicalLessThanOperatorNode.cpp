@@ -34,8 +34,6 @@ QoreString QoreLogicalLessThanOperatorNode::op_str("< operator expression");
 QoreString QoreLogicalGreaterThanOrEqualsOperatorNode::op_str(">= operator expression");
 
 QoreValue QoreLogicalLessThanOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   needs_deref = false;
-
    if (pfunc)
       return (this->*pfunc)(xsink);
 

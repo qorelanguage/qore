@@ -100,8 +100,8 @@ QoreValue VarRefNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) con
    else if (type == VT_IMMEDIATE)
       v = ref.cvv->evalValue(needs_deref, xsink);
    else {
+      assert(needs_deref);
       printd(5, "VarRefNode::evalImpl() this: %p global var: %p (%s)\n", this, ref.var, ref.var->getName());
-      needs_deref = true;
       v = ref.var->eval();
    }
 
@@ -321,6 +321,5 @@ QoreValue VarRefNewObjectNode::evalValueImpl(bool& needs_deref, ExceptionSink* x
    lv.assign(obj.release());
    if (*xsink)
       return QoreValue();
-   needs_deref = true;
    return QoreValue(rv->refSelf());
 }

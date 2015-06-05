@@ -63,31 +63,23 @@ AbstractQoreNode* QoreMapOperatorNode::parseInitImpl(LocalVar *oflag, int pflag,
    return this;
 }
 
-QoreValue QoreMapOperatorNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
+QoreValue QoreMapOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    // conditionally evaluate argument expression
    ValueEvalRefHolder marg(right, xsink);
-   if (*xsink) {
-      needs_deref = false;
+   if (*xsink)
       return QoreValue();
-   }
 
    qore_type_t t = marg->getType();
    if (t != NT_LIST) {
       if (t == NT_OBJECT) {
          AbstractIteratorHelper h(xsink, "map operator", const_cast<QoreObject*>(marg->get<const QoreObject>()));
-         if (*xsink) {
-	    needs_deref = false;
+         if (*xsink)
             return QoreValue();
-	 }
-         if (h) {
-	    needs_deref = ref_rv;
+         if (h)
             return mapIterator(h, xsink);
-	 }
       }
-      if (t == NT_NOTHING) { 
-	 needs_deref = false;
+      if (t == NT_NOTHING)
 	 return QoreValue();
-      }
 
       // FIXME: inefficient
       ReferenceHolder<> argv_val(marg.getReferencedValue(), xsink);
@@ -106,14 +98,12 @@ QoreValue QoreMapOperatorNode::evalValueImpl(bool &needs_deref, ExceptionSink *x
       SingleArgvContextHelper argv_helper(elem, xsink);
 
       ValueEvalRefHolder val(left, xsink);
-      if (*xsink) {
-	 needs_deref = false;
+      if (*xsink)
 	 return QoreValue();
-      }
       if (ref_rv)
 	 rv->push(val.getReferencedValue());
    }
-   needs_deref = true;
+
    return rv.release();
 }
 

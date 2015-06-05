@@ -70,7 +70,6 @@ const char* QoreTreeNode::getTypeName() const {
 }
 
 QoreValue QoreTreeNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = true;
    return op->eval(left, right, need_rv(), xsink);
 }
 

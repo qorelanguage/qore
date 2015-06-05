@@ -72,10 +72,8 @@ AbstractQoreNode* QoreHashMapSelectOperatorNode::parseInitImpl(LocalVar *oflag, 
 
 QoreValue QoreHashMapSelectOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    ValueEvalRefHolder arg_lst(e[2], xsink);
-   if (*xsink || arg_lst->isNothing()) {
-      needs_deref = false;
+   if (*xsink || arg_lst->isNothing())
       return QoreValue();
-   }
    
    qore_type_t arglst_type = arg_lst->getType();
    assert(arglst_type != NT_NOTHING);
@@ -85,36 +83,28 @@ QoreValue QoreHashMapSelectOperatorNode::evalValueImpl(bool& needs_deref, Except
       if (NT_OBJECT == arglst_type) {
          AbstractIteratorHelper h(xsink, "hmap operator select", 
 				  const_cast<QoreObject*>(arg_lst->get<const QoreObject>()));
-         if (*xsink) {
-	    needs_deref = false;
+         if (*xsink)
 	    return QoreValue();
-	 }
-         if (h) {
-	    needs_deref = ref_rv;
+
+         if (h)
             return mapIterator(h, xsink); // TODO!!
-         }// passed iterator
+	 // passed iterator
       }
 
       // check if value can be mapped     
       ReferenceHolder<> arg_ival(arg_lst.getReferencedValue(), xsink);
       SingleArgvContextHelper argv_helper(*arg_ival, xsink);
       ValueEvalRefHolder result(e[3], xsink);
-      if (*xsink || !result->getAsBool()) {
-	 needs_deref = false;
+      if (*xsink || !result->getAsBool())
 	 return QoreValue();
-      }
 
       ValueEvalRefHolder arg_key(e[0], xsink);
-      if (*xsink) {
-	 needs_deref = false;
+      if (*xsink)
 	 return QoreValue();
-      }
 
       ValueEvalRefHolder arg_val(e[1], xsink);
-      if (*xsink) {
-	 needs_deref = false;
+      if (*xsink)
 	 return QoreValue();
-      }
 
       // we have to convert to a string in the default encoding to use a hash key
       QoreStringValueHelper str_util(*arg_key, QCS_DEFAULT, xsink);
@@ -132,20 +122,16 @@ QoreValue QoreHashMapSelectOperatorNode::evalValueImpl(bool& needs_deref, Except
          SingleArgvContextHelper argv_helper(li.getValue(), xsink);
 
 	 ValueEvalRefHolder result(e[3], xsink);
-	 if (*xsink) {
-	    needs_deref = false;
+	 if (*xsink)
 	    return QoreValue();
-	 }
 
 	 if (!result->getAsBool())
 	    continue;
         
 	 {
 	    ValueEvalRefHolder ekey(e[0], xsink);
-	    if (*xsink) {
-	       needs_deref = false;
+	    if (*xsink)
 	       return QoreValue();
-	    }
 
 	    // we have to convert to a string in the default encoding to use a hash key
 	    QoreStringValueHelper key(*ekey, QCS_DEFAULT, xsink);
@@ -153,10 +139,8 @@ QoreValue QoreHashMapSelectOperatorNode::evalValueImpl(bool& needs_deref, Except
 	       return QoreValue();
 	    
 	    ValueEvalRefHolder val(e[1], xsink);
-	    if (*xsink) {
-	       needs_deref = false;
+	    if (*xsink)
 	       return QoreValue();
-	    }
 
 	    if (ref_rv)
 	       ret_val->setKeyValue(key->getBuffer(), val.getReferencedValue(), xsink);
@@ -166,11 +150,9 @@ QoreValue QoreHashMapSelectOperatorNode::evalValueImpl(bool& needs_deref, Except
 	    return QoreValue();
       }
    }
-   if (*xsink || !ref_rv) {
-      needs_deref = false;
+   if (*xsink || !ref_rv)
       return QoreValue();
-   }
-   needs_deref = true;
+
    return ret_val.release();
 }
 

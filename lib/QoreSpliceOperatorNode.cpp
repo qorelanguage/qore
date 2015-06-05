@@ -95,8 +95,6 @@ AbstractQoreNode *QoreSpliceOperatorNode::parseInitImpl(LocalVar *oflag, int pfl
 QoreValue QoreSpliceOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    printd(5, "QoreSpliceOperatorNode::splice() lvalue_exp = %p, offset_exp: %p, length_exp: %p, new_exp: %p, isEvent: %d\n", lvalue_exp, offset_exp, length_exp, new_exp, xsink->isEvent());
 
-   needs_deref = ref_rv;
-   
    // evaluate arguments
    ValueEvalRefHolder eoffset(offset_exp, xsink);
    if (*xsink)
@@ -203,9 +201,8 @@ QoreValue QoreSpliceOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink
    }
 
    // reference for return value
-   if (!ref_rv || *xsink) {
-      needs_deref = false;
+   if (!ref_rv || *xsink)
       return QoreValue();
-   }
+
    return val.getReferencedValue();
 }

@@ -42,17 +42,11 @@ AbstractQoreNode* QorePostIncrementOperatorNode::parseInitImpl(LocalVar *oflag, 
 QoreValue QorePostIncrementOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper n(exp, xsink);
-   if (!n) {
-      needs_deref = false;
+   if (!n)
       return QoreValue();
-   }
    
-   if (n.getType() == NT_NUMBER) {
-      needs_deref = true;
+   if (n.getType() == NT_NUMBER)
       return n.postIncrementNumber(ref_rv, "<-- (post) operator>");
-   }
-
-   needs_deref = false;
 
    if (n.getType() == NT_FLOAT) {
       double f = n.postIncrementFloat("<++ (post) operator>");

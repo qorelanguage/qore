@@ -53,7 +53,6 @@ const char *SelfVarrefNode::getTypeName() const {
 }
 
 QoreValue SelfVarrefNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = true;
    assert(runtime_get_stack_object());
    return runtime_get_stack_object()->getReferencedMemberNoMethod(str, xsink);
 }

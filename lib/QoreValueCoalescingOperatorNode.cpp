@@ -61,19 +61,16 @@ AbstractQoreNode* QoreValueCoalescingOperatorNode::parseInitImpl(LocalVar *oflag
 QoreValue QoreValueCoalescingOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    {
       ValueEvalRefHolder arg(e[0], xsink);
-      if (*xsink) {
-	 needs_deref = false;
+      if (*xsink)
 	 return QoreValue();
-      }
       
       if (arg->getAsBool())
 	 return arg.takeValue(needs_deref);
    }
    
    ValueEvalRefHolder arg(e[1], xsink);
-   if (*xsink) {
-      needs_deref = false;
+   if (*xsink)
       return QoreValue();
-   }
+
    return arg.takeValue(needs_deref);
 }

@@ -33,7 +33,6 @@
 QoreString QoreIntPostDecrementOperatorNode::op_str("-- (post-decrement) operator expression");
 
 QoreValue QoreIntPostDecrementOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
-   needs_deref = true;
    LValueHelper n(exp, xsink);
    if (!n)
       return QoreValue();

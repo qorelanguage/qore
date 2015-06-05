@@ -241,7 +241,6 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation& loc, LocalVar*
 }
 
 QoreValue SelfFunctionCallNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
-   needs_deref = true;
    QoreObject* self = runtime_get_stack_object();
 
    //printd(5, "SelfFunctionCallNode::evalImpl() this: %p self: %p method: %p (%s)\n", this, self, method, ns.ostr);
@@ -336,7 +335,6 @@ QoreString *FunctionCallNode::getAsString(bool &del, int foff, ExceptionSink *xs
 
 // eval(): return value requires a deref(xsink)
 QoreValue FunctionCallNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
-   needs_deref = true;
    //printd(5, "FunctionCallNode::evalImpl() calling %s() current pgm: %p new pgm: %p\n", func->getName(), ::getProgram(), pgm);
    return func->evalFunction(variant, args, pgm, xsink);
 }
@@ -662,7 +660,6 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
 }
 
 QoreValue StaticMethodCallNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
-   needs_deref = true;
    // FIXME: implement rv as QoreValue
    return qore_method_private::eval(*method, 0, args, xsink);
 }

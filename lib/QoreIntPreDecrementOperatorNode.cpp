@@ -32,8 +32,7 @@
 
 QoreString QoreIntPreDecrementOperatorNode::op_str("-- (pre-decrement) operator expression");
 
-QoreValue QoreIntPreDecrementOperatorNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = ref_rv;
+QoreValue QoreIntPreDecrementOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    LValueHelper n(exp, xsink);
    if (!n)
       return QoreValue();

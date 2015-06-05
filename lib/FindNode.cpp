@@ -69,7 +69,6 @@ const char *FindNode::getTypeName() const {
 }
 
 QoreValue FindNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = true;
    ReferenceHolder<AbstractQoreNode> rv(xsink);
    ReferenceHolder<Context> context(new Context(0, xsink, find_exp), xsink);
    if (*xsink)

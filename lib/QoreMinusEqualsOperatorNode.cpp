@@ -67,22 +67,16 @@ AbstractQoreNode *QoreMinusEqualsOperatorNode::parseInitImpl(LocalVar *oflag, in
 
 QoreValue QoreMinusEqualsOperatorNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
    ValueEvalRefHolder new_right(right, xsink);
-   if (*xsink) {
-      needs_deref = false;
+   if (*xsink)
       return QoreValue();
-   }
 
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);
-   if (!v) {
-      needs_deref = false;
+   if (!v)
       return QoreValue();
-   }
 
-   if (new_right->isNothing()) {
-      needs_deref = ref_rv;
+   if (new_right->isNothing())
       return needs_deref ? v.getReferencedValue() : QoreValue();
-   }
    
    // do float minus-equals if left side is a float
    qore_type_t vtype = v.getType();
@@ -91,10 +85,8 @@ QoreValue QoreMinusEqualsOperatorNode::evalValueImpl(bool &needs_deref, Exceptio
       // see if the lvalue has a default type
       const QoreTypeInfo* typeInfo = v.getTypeInfo();
       if (typeInfo->hasDefaultValue()) {
-	 if (v.assign(typeInfo->getDefaultValue())) {
-	    needs_deref = false;
+	 if (v.assign(typeInfo->getDefaultValue()))
 	    return QoreValue();
-	 }
 	 vtype = v.getType();
       }
       else {
@@ -108,20 +100,15 @@ QoreValue QoreMinusEqualsOperatorNode::evalValueImpl(bool &needs_deref, Exceptio
 	 else
 	    v.assign(-new_right->getAsBigInt());
 
-	 if (*xsink) {
-	    needs_deref = false;
+	 if (*xsink)
 	    return QoreValue();
-	 }
 
-	 needs_deref = ref_rv;	 
 	 // v has been assigned to a value by this point
 	 return ref_rv ? v.getReferencedValue() : QoreValue();
       }
    }
-   else if (vtype == NT_FLOAT) {
-      needs_deref = true;
+   else if (vtype == NT_FLOAT)
       return v.minusEqualsFloat(new_right->getAsFloat());
-   }
    else if (vtype == NT_NUMBER) {
       // FIXME: could be more efficient
       ReferenceHolder<> ra(new_right.getReferencedValue(), xsink);
@@ -144,10 +131,8 @@ QoreValue QoreMinusEqualsOperatorNode::evalValueImpl(bool &needs_deref, Exceptio
 	       QoreStringValueHelper val(li.getValue());
 	       
 	       vh->removeKey(*val, xsink);
-	       if (*xsink) {
-		  needs_deref = false;
+	       if (*xsink)
 		  return QoreValue();
-	       }
 	    }
 	 }
 	 else {
@@ -168,10 +153,8 @@ QoreValue QoreMinusEqualsOperatorNode::evalValueImpl(bool &needs_deref, Exceptio
 	       QoreStringValueHelper val(li.getValue());
 	       
 	       o->removeMember(*val, xsink);
-	       if (*xsink) {
-		  needs_deref = false;
+	       if (*xsink)
 		  return QoreValue();
-	       }
 	    }
 	 }
 	 else {
@@ -180,18 +163,13 @@ QoreValue QoreMinusEqualsOperatorNode::evalValueImpl(bool &needs_deref, Exceptio
 	 }
       }
    }
-   else { // do integer minus-equals
-      needs_deref = false;
+   else // do integer minus-equals
       return v.minusEqualsBigInt(new_right->getAsBigInt());
-   }
 
-   if (*xsink) {
-      needs_deref = false;
+   if (*xsink)
       return QoreValue();
-   }
 
    // here we know that v has a value
    // reference return value and return
-   needs_deref = ref_rv;
    return ref_rv ? v.getReferencedValue() : QoreValue();
 }

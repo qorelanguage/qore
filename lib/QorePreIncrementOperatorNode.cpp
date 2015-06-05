@@ -40,8 +40,6 @@ AbstractQoreNode *QorePreIncrementOperatorNode::parseInitImpl(LocalVar* oflag, i
 }
 
 QoreValue QorePreIncrementOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   needs_deref = false;
-
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper n(exp, xsink);
    if (!n)

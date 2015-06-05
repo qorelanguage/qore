@@ -40,33 +40,25 @@ AbstractQoreNode *QoreMultiplyEqualsOperatorNode::parseInitImpl(LocalVar *oflag,
 
 QoreValue QoreMultiplyEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
    ValueEvalRefHolder res(right, xsink);
-   if (*xsink) {
-      needs_deref = false;
+   if (*xsink)
       return QoreValue();
-   }
    
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);
-   if (!v) {
-      needs_deref = false;
+   if (!v)
       return QoreValue();
-   }
-   
+
    // is either side a number?
    if (v.getType() == NT_NUMBER || res->getType() == NT_NUMBER) {
       // FIXME: needs more efficient impl
       ReferenceHolder<> rh(res.getReferencedValue(), xsink);
       v.multiplyEqualsNumber(*rh, "<*= operator>");
-      if (ref_rv && !*xsink) {
-	 needs_deref = true;
+      if (ref_rv && !*xsink)
 	 return v.getReferencedValue();
-      }
-      needs_deref = false;
+
       return QoreValue();
    }
-   
-   needs_deref = false;
-   
+
    // is either side a float?
    if (v.getType() == NT_FLOAT || res->getType() == NT_FLOAT)
       return v.multiplyEqualsFloat(res->getAsFloat(), "<*= operator>");

@@ -31,7 +31,6 @@
 #include <qore/Qore.h>
 
 QoreValue QoreIntMinusEqualsOperatorNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = false;
    int64 rv = right->bigIntEval(xsink);
    if (*xsink)
       return QoreValue();
