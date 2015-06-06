@@ -232,6 +232,7 @@ InboundTableMapper mapper(table, DbMapper);
                 throw "BLOCK-ERROR", sprintf("there %s still %d row%s of data in the block cache; make sure to call %s::flush() or %s::discard() before destroying the object to flush all data to the database", hbuf.firstValue().size() == 1 ? "is" : "are", hbuf.firstValue().size(), hbuf.firstValue().size() == 1 ? "" : "s", self.className(), self.className());
         }
 
+        #! returns a description of the output record based on the @ref SqlUtil::AbstractTable "AbstractTable" target
         static hash getOutputRecord(*string mname, AbstractTable table, *hash output) {
             Columns cols = table.describe();
             # update output field definitions from real table description
@@ -252,7 +253,7 @@ InboundTableMapper mapper(table, DbMapper);
                         outf.type = col.qore_type;
                         break;
                     default:
-                        throw "TABLE-ERROR", sprintf("%scolumn '%s.%s' has unknown native type %y", mname ? sprintf("mapper %y: ", mname) : "", mname, table.getSqlName(), cn, col.native_type);
+                        throw "TABLE-ERROR", sprintf("%scolumn '%s.%s' has unknown native type %y", mname ? sprintf("mapper %y: ", mname) : "", table.getSqlName(), cn, col.native_type);
                 }
                 if (col.comment)
                     outf.desc = col.comment;
@@ -274,6 +275,10 @@ InboundTableMapper mapper(table, DbMapper);
 
             if (insert_block < 1)
                 throw "MAP-ERROR", sprintf("the insert_block option is set to %d; this value must be >= 1", insert_block);
+
+            # unconditionally set insert_block = 1 if the driver does not support bulk DML
+            if (!table.hasArrayBind())
+                insert_block = 1;
             
             # check map for logical errors
             checkMap();            
@@ -465,8 +470,12 @@ on_error $table_mapper.rollback();
             if (unstable_input)
                 throw "MAPPER-BATCH-ERROR", sprintf("cannot call %s::queueBatchRow() when the unstable_input option is set", self.className());
 
-            if (insert_block == 1)
-                return insertRowNoCommit(rec);
+            if (insert_block == 1) {
+                hash h = insertRowNoCommit(rec);
+                if (rowcode)
+                    rowcode(h);
+                return h;
+            }
 
             hash h = mapDataIntern(rec);
 
@@ -619,6 +628,7 @@ on_error $table_mapper.rollback();
 
         #! rolls back the transaction
         nothing rollback() {
+            discard();
             table.rollback();
         }
 

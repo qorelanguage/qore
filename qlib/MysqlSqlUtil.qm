@@ -1243,6 +1243,11 @@ end";
             return sql;
         }
 
+        #! returns @ref Qore::False "False" because the mysql driver does not support array binds / bulk DML operations
+        bool hasArrayBind() {
+            return False;
+        }
+
         private *list getCreateMiscSqlImpl(*hash opt, bool cache) {
         }
 
@@ -1491,11 +1496,6 @@ my string $str = $table.getSqlValue($date);
 
         #! db-specific copy actions
         private copyImpl(AbstractTable old) {
-        }
-
-        #! returns @ref Qore::False "False" because the mysql driver does not support array binds / bulk DML operations
-        private bool hasArrayBind() {
-            return False;
         }
     }
 }

@@ -15844,6 +15844,9 @@ my *list $rows = $table.findAll($h);
             return cols;
         }
 
+        #! returns @ref Qore::True "True" if the underlying DB driver supports bulk DML operations
+        abstract bool hasArrayBind();
+
         #! returns the table options for this driver
         /** override in subclasses to return driver-specific options    
         */
@@ -16354,9 +16357,6 @@ my *list $rows = $table.findAll($h);
 
         #! db-specific copy actions
         private abstract copyImpl(AbstractTable old);
-
-        #! returns @ref Qore::True "True" if the underlying DB driver supports bulk DML operations
-        private abstract bool hasArrayBind();
     }
 }
 
