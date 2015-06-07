@@ -399,7 +399,7 @@ InboundTableMapper mapper(table, DbMapper);
             hash h = mapDataIntern(rec);
             *hash rh;
 
-            if (unstable_input)
+            if (unstable_input || (insert_block == 1))
                 rh = table.insertNoCommit(h, ("returning": ret_args));
             else {
                 # when executing for the first time on stable input data, get an SQLStatement for the SQL used to insert
