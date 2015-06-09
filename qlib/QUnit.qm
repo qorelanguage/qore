@@ -513,6 +513,14 @@ public class QUnit::Test inherits QUnit::TestReporter {
     #! Prototype function for cleaning up test environemnt. It will be called after each test has executed.
     public tearDown() {}
 
+    #! facade for the system environment variables
+    public string getEnv(string key, *string def) {
+        string ekey = sprintf("QUNIT_%s", key);
+        if (ENV{ekey} != NOTHING)
+            return ENV{ekey};
+        return def;
+    }
+
     #! Helper function for printing out human-readable comparison of two values.
     private string printUnexpectedData(any exp, any act) {
         string expected = sprintf("%N", exp);
