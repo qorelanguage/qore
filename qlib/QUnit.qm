@@ -684,12 +684,13 @@ public class QUnit::Test inherits QUnit::TestReporter {
             hash test = it.getValue();
             code testFunction = test{"func"};
             string testName = test{"name"};
+            list args = test{"args"} == NOTHING ? () : test{"args"} ;
             {
                 # Setup before test
                 setUp();
                 # Attempt to run the test function
                 try {
-                    call_function_args(testFunction, ());
+                    call_function_args(testFunction, args);
                     # Test success
                     addTestResult(testName, TEST_SUCCESS, "", "", "");
                 }
