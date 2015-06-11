@@ -514,7 +514,7 @@ public class QUnit::Test inherits QUnit::TestReporter {
     public tearDown() {}
 
     #! facade for the system environment variables
-    public string getEnv(string key, *string def) {
+    public *string getEnv(string key, *string def) {
         string ekey = sprintf("QUNIT_%s", key);
         if (ENV{ekey} != NOTHING)
             return ENV{ekey};
@@ -671,6 +671,11 @@ public class QUnit::Test inherits QUnit::TestReporter {
 
 ######### Main function and test running helpers
 
+    private string exception2str(hash e) {
+        return sprintf("%s:%s%s", e.file, e.line,
+            e.line != e.endline ? "-" + e.endline : '');
+    }
+
     #! Run the whole suite, report results
     int main() {
         if (!testFunctions) {
@@ -696,13 +701,15 @@ public class QUnit::Test inherits QUnit::TestReporter {
                 }
                 catch (e) {
                     hash loc = e.callstack[0];
-                    string pos = sprintf("%s:%s%s", loc.file, loc.line, loc.line != loc.endline ? "-" + loc.endline : '');
                     if (e.err == "TEST-SKIPPED-EXCEPTION") {
+                        string pos = exception2str(loc);
                         addTestResult(testName, TEST_SKIPPED, "Skip requested", pos, e.desc);
                     } else if (e.err == "TEST-EXCEPTION") {
+                        string pos = exception2str(loc);
                         addTestResult(testName, TEST_FAILURE, "Assertion failure", pos, e.desc);
                     } else {
-                        # Cleanup and rethrow anything unexpected
+                        # show little higher traceback record in this case
+                        string pos = exception2str(e);
                         addTestResult(testName, TEST_ERROR, sprintf("Unexpected exception: %s", e.err), pos, e.desc);
                     }
                 }
