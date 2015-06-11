@@ -39,21 +39,21 @@ SQLStatement::~SQLStatement() {
    delete priv;
 }
 
-void *SQLStatement::getPrivateData() const {
+void* SQLStatement::getPrivateData() const {
    return priv->data;
 }
 
-void *SQLStatement::takePrivateData() {
-   void *rv = priv->data;
+void* SQLStatement::takePrivateData() {
+   void* rv = priv->data;
    priv->data = 0;
    return rv;
 }
 
-void SQLStatement::setPrivateData(void *n_data) {
+void SQLStatement::setPrivateData(void* n_data) {
    assert(!priv->data || !n_data);
    priv->data = n_data;
 }
 
-Datasource *SQLStatement::getDatasource() const {
+Datasource* SQLStatement::getDatasource() const {
    return priv->ds;
 }

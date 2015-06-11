@@ -42,28 +42,28 @@ class SQLStatement {
    friend class QoreSQLStatement;
 
 private:
-   struct sql_statement_private *priv; // private implementation
+   struct sql_statement_private* priv; // private implementation
 
 public:
    DLLLOCAL SQLStatement();
    DLLLOCAL ~SQLStatement();
 
    //! returns the private DBI-specific data structure for this object
-   DLLEXPORT void *getPrivateData() const;
+   DLLEXPORT void* getPrivateData() const;
 
    //! returns the private DBI-specific data structure for this object and clears the object
-   DLLEXPORT void *takePrivateData();
+   DLLEXPORT void* takePrivateData();
 
    //! sets the private DBI-specific data structure for this object
    /** this should only be called once in the actual DBI driver code
        @param data the data for the DBI driver that holds the driver-specific state of the connection
    */
-   DLLEXPORT void setPrivateData(void *data);
+   DLLEXPORT void setPrivateData(void* data);
 
    //! returns the Datasource bound to this statement
    /** @return the Datasource bound to this statement
     */
-   DLLEXPORT Datasource *getDatasource() const;
+   DLLEXPORT Datasource* getDatasource() const;
 };
 
 #endif

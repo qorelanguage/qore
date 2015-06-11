@@ -35,9 +35,9 @@
 // private implementation of the SQLStatement class
 struct sql_statement_private {
    // Datasource pointer
-   Datasource *ds;
+   Datasource* ds;
    // private data for statement handle/ptr
-   void *data;
+   void* data;
 
    DLLLOCAL sql_statement_private() : ds(0), data(0) {
    }
