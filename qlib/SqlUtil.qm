@@ -14585,6 +14585,26 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
             if (upsert_strategy == UpsertAuto)
                 upsert_strategy = emptyDataUnlocked() ? UpsertInsertFirst : UpsertUpdateFirst;
 
+            Columns cols = checkUpsertRow(row, \upsert_strategy);
+
+            switch (upsert_strategy) {
+                case UpsertInsertFirst:
+                    return getUpsertInsertFirst(cols, row);
+
+                case UpsertUpdateFirst:
+                    return getUpsertUpdateFirst(cols, row);
+
+                case UpsertSelectFirst:
+                    return getUpsertSelectFirst(cols, row);
+
+                case UpsertInsertOnly:
+                    return getUpsertInsertOnly(cols, row);
+            }
+
+            throw "UPSERT-ERROR", sprintf("%s: invalid upsert code: %d", getDesc(), upsert_strategy);
+        }
+
+        private Columns checkUpsertRow(hash row, reference upsert_strategy) {
             # unique column source
             string csrc;
 
@@ -14608,21 +14628,7 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
             if (cols.size() == row.size())
                 upsert_strategy = UpsertSelectFirst;
 
-            switch (upsert_strategy) {
-                case UpsertInsertFirst:
-                    return getUpsertInsertFirst(cols, row);
-
-                case UpsertUpdateFirst:
-                    return getUpsertUpdateFirst(cols, row);
-
-                case UpsertSelectFirst:
-                    return getUpsertSelectFirst(cols, row);
-
-                case UpsertInsertOnly:
-                    return getUpsertInsertOnly(cols, row);
-            }
-
-            throw "UPSERT-ERROR", sprintf("%s: invalid upsert code: %d", getDesc(), upsert_strategy);
+            return cols;
         }
 
         private code getUpsertInsertFirst(Columns cols, hash example_row) {
@@ -14732,11 +14738,11 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
             else
                 updc = cols.keys();
 
-            return sprintf("select %s from %s where %s", 
+            return sprintf("select %s from %s where %s",
                            (foldl $1 + "," + $2, getColumnSqlNames(updc)),
                            getSqlName(),
                            (foldl $1 + " and " + $2, (map sprintf("%s = %v", getColumnSqlName($1)), cols.keyIterator()))
-                );            
+                );
         }
 
         private string getUpsertInsertSql(hash row) {

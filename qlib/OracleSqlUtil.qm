@@ -2579,6 +2579,32 @@ my any $v = $c.name;
         string getBaseType() {
             return m_isView ? "view" : "table";
         }
+
+        #! returns a closure for performing upserts; the upsert_strategy argument is ignored and a closure using an Oracle merge statement is returned
+        private code getUpsertClosureUnlocked(hash row, int upsert_strategy = UpsertAuto) {
+            Columns cols = checkUpsertRow(row, \upsert_strategy);
+
+            string sql = sprintf("merge into %s t using dual on (", getSqlName());
+            sql += foldl $1 + "," + $2, (map sprintf("%s = %v", $1), getColumnSqlNames(cols.keys()));
+            sql += sprintf(") when not matched then insert (");
+            sql += (foldl $1 + "," + $2, getColumnSqlNames(row.keys()));
+            sql += ") values (";
+            sql += (foldl $1 + "," + $2, (map "%v", row.keyIterator()));
+            sql += sprintf(") when matched then update set ");
+
+            # get update columns
+            list updc = ();
+            map updc += $1, row.keyIterator(), !cols.hasKey($1);
+            sql += (foldl $1 + "," + $2, (map sprintf("%s = %v", $1), getColumnSqlNames(updc)));
+
+            printf("sql: %s\n", sql);
+            
+            return int sub (hash crow) {
+                list args = crow.(cols.keys()).values() + crow.values() + crow{updc}.values();                
+                ds.vexec(sql, args);
+                return UR_Verified;
+            };
+        }
         
         #! returns @ref Qore::True "True" because the oracle driver supports array binds / bulk DML operations
         bool hasArrayBind() {
