@@ -62,14 +62,11 @@ public namespace QUnit;
 #! An abstract class representing test result interface
 public class QUnit::AbstractTestResult {
     public {
-        string m_type;
-        string m_subType;
-        *any m_value;
+        string m_type = "";
+        string m_subType = "";
+        any m_value;
     }
     constructor() {
-        m_type = "";
-        m_subType = "";
-        m_value = NOTHING;
     }
     # test
     abstract public bool equals(AbstractTestResult r);
@@ -101,7 +98,6 @@ public class QUnit::TestResultFailure inherits QUnit::AbstractTestResult {
     #! Instantiate an unspecific failure, no detail.
     constructor() {
         m_type = "False";
-        m_detail = NOTHING;
     }
 
     #! Instantiate an annotated failure, string detail.
@@ -123,7 +119,7 @@ public class QUnit::TestResultFailure inherits QUnit::AbstractTestResult {
 
 #! Class representing any non-boolean value
 public class QUnit::TestResultValue inherits QUnit::AbstractTestResult {
-    constructor(*any value) {
+    constructor(any value) {
         m_type = "Value";
         if (type(value) == "bool") {
             throw "TESTING-EXCEPTION", "Cannot instantiate TestResultValue using a boolean value";
@@ -502,7 +498,7 @@ public class QUnit::TestReporter {
 #! Base class representing a simple test, implements an implicit main() function and all utility functions for testing
 public class QUnit::Test inherits QUnit::TestReporter {
     private {
-        *list testFunctions = NOTHING;
+        *list testFunctions;
         static QUnit::TestResultSuccess RESULT_SUCCESS = new QUnit::TestResultSuccess();
         static QUnit::TestResultFailure RESULT_FAILURE = new QUnit::TestResultFailure();
     }
@@ -516,9 +512,7 @@ public class QUnit::Test inherits QUnit::TestReporter {
     #! facade for the system environment variables
     public *string getEnv(string key, *string def) {
         string ekey = sprintf("QUNIT_%s", key);
-        if (ENV{ekey} != NOTHING)
-            return ENV{ekey};
-        return def;
+        return ENV{ekey} ?? def;
     }
 
     #! Helper function for printing out human-readable comparison of two values.
@@ -566,9 +560,9 @@ public class QUnit::Test inherits QUnit::TestReporter {
      *
      * @return the result of the condition call, if the immediate value has any further use
      */
-    public *any testAssertion(code condition, *softlist args, QUnit::AbstractTestResult expectedResult) {
+    public any testAssertion(code condition, *softlist args, QUnit::AbstractTestResult expectedResult) {
         AbstractTestResult result;
-        *any ret = NOTHING;
+        any ret;
         try {
             ret = call_function_args(condition, args);
             if (type(ret) == "bool") {
@@ -603,7 +597,7 @@ public class QUnit::Test inherits QUnit::TestReporter {
      *
      * @return True if the function call succeeded
      */
-    public *any testAssertion(code condition, *softlist args) {
+    public any testAssertion(code condition, *softlist args) {
         return testAssertion(condition, args, new QUnit::TestResultSuccess());
     }
 
@@ -687,9 +681,9 @@ public class QUnit::Test inherits QUnit::TestReporter {
         ListIterator it(testFunctions);
         while (it.next()) {
             hash test = it.getValue();
-            code testFunction = test{"func"};
-            string testName = test{"name"};
-            list args = test{"args"} == NOTHING ? () : test{"args"} ;
+            code testFunction = test.func;
+            string testName = test.name;
+            softlist args = test.args;
             {
                 # Setup before test
                 setUp();
@@ -726,7 +720,7 @@ public class QUnit::Test inherits QUnit::TestReporter {
 #! A class representing a test with injected dependencies.
 public class QUnit::DependencyInjectedTest inherits QUnit::Test {
     private {
-        *string m_testedFile = NOTHING;
+        *string m_testedFile;
         Program m_child;
         *hash m_modules;
 
@@ -773,7 +767,7 @@ public class QUnit::DependencyInjectedTest inherits QUnit::Test {
 
     destructor() {
         # Un-inject all injected modules.
-        ListIterator it = new ListIterator(m_modules.keys());
+        ListIterator it(m_modules.keys());
         while (it.next()) {
             string mn = basename(it.getValue());
             mn =~ s/\..+$//; # Strip suffix, if any
