@@ -767,7 +767,7 @@ public class QUnit::DependencyInjectedTest inherits QUnit::Test {
 
     destructor() {
         # Un-inject all injected modules.
-        ListIterator it(m_modules.keys());
+        HashKeyIterator it(m_modules);
         while (it.next()) {
             string mn = basename(it.getValue());
             mn =~ s/\..+$//; # Strip suffix, if any
