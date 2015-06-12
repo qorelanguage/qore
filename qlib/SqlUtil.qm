@@ -14585,6 +14585,10 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
             if (upsert_strategy == UpsertAuto)
                 upsert_strategy = emptyDataUnlocked() ? UpsertInsertFirst : UpsertUpdateFirst;
 
+            # accommodate for bulk DML
+            if (row.firstValue().typeCode() == NT_LIST)
+                row = map {$1.key : $1.value[0]}, row.pairIterator();
+
             Columns cols = checkUpsertRow(row, \upsert_strategy);
 
             switch (upsert_strategy) {
