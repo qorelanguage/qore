@@ -1818,13 +1818,22 @@ int q_get_mode(const QoreString& path) {
 
 int q_realpath(const QoreString& path, QoreString& rv, ExceptionSink* xsink) {
 #ifdef HAVE_REALPATH
+#ifdef SOLARIS
+   char buf[PATH_MAX];
+   char* p = realpath(path.getBuffer(), buf);
+#else
    char* p = realpath(path.getBuffer(), 0);
+#endif
    if (!p) {
       if (xsink)
 	 xsink->raiseErrnoException("REALPATH-ERROR", errno, "error calling realpath()");
       return -1;
    }
+#ifdef SOLARIS
+   rv.set(buf);
+#else
    rv.takeAndTerminate(p, strlen(p));
+#endif
 #else
 #ifndef _Q_WINDOWS
 #error must implement an alternative to realpath on UNIX systems
