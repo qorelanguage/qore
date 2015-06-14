@@ -371,13 +371,12 @@ const char* getBuiltinTypeName(qore_type_t type) {
    // return "string|binary";
    //}
 
+   //printd(0, "type: %d unknown (map size: %d)\n", type, type_str_map.size());
    /*
-   printd(0, "type: %d unknown (map size: %d)\n", type, type_str_map.size());
    for (type_str_map_t::iterator i = type_str_map.begin(), e = type_str_map.end(); i != e; ++i)
       printd(0, "map[%d] = %s\n", i->first, i->second);
-      
-   assert(false);
    */
+   //assert(false);
 
    return "<unknown type>";
 }

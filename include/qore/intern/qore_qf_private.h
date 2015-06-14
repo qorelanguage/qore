@@ -254,7 +254,12 @@ struct qore_qf_private {
 
    // private function, unlocked
    DLLLOCAL int readUnicode(int* n_len = 0) const {
+#ifdef HAVE_LOCAL_VARIADIC_ARRAYS
       char buf[charset->getMaxCharWidth()];
+#else
+      assert(charset->getMaxCharWidth() <= 4);
+      char buf[4];
+#endif
       if (read(buf, 1) != 1)
 	 return -1;
 

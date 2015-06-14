@@ -589,7 +589,7 @@ void QoreNamespace::addConstant(const char* cname, AbstractQoreNode* val, const 
       return;
    }
 
-   qore_root_ns_private::addConstant(*rns, *priv, cname, val, typeInfo);
+   rns->addConstant(*priv, cname, val, typeInfo);
 }
 
 QoreNamespace* QoreNamespace::findCreateNamespacePath(const char* nspath) {

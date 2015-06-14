@@ -10,7 +10,7 @@ class FtpTest inherits FtpClient {
     constructor() {
         my UnitTest $t();
 
-        my any $url = 'ftp://ftp.wa.co.za/pub/CPAN/index.html'; # file on some public ftp
+        my string $url = 'ftp://ftp.wa.co.za/pub/CPAN/index.html'; # file on some public ftp
 
 	my hash $h = parse_url($url);
 	if (!exists $h.path) {
@@ -27,12 +27,20 @@ class FtpTest inherits FtpClient {
 
 	$.setURL($url);
 
-	if ($.connect()) {
-            $t.ok(False, 'not connected');
-	    printf("%s\n", strerror(errno()));
-	    exit();
+	try {
+	    if ($.connect()) {
+		$t.ok(False, 'not connected');
+		printf("%s\n", strerror(errno()));
+		return;
+	    }
 	}
-        $t.ok(True, 'seems we are connected');
+	catch (hash $ex) {
+	    $t.ok(False, 'not connected');
+	    printf("%s: %s\n", $ex.err, $ex.desc);
+	    return;		
+	}
+
+	$t.ok(True, 'seems we are connected');
 
         my string $local_path = tmp_location() + '/ftptest';
         unlink($local_path);

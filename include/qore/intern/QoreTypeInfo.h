@@ -66,7 +66,12 @@ protected:
    // class pointer
    const QoreClass* qc;
    // basic type
+#ifdef __SUNPRO_CC
+   // seems to be converted to unsigned with oracle studio compilers
+   qore_type_t qt;
+#else
    qore_type_t qt : 11;
+#endif
    // true if type indicates more than one return type can be returned
    bool returns_mult : 1;
    // true if type accepts multiple types

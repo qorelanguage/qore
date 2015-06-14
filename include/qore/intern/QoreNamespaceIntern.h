@@ -802,6 +802,7 @@ typedef GVList<GVEntry> gvlist_t;
 
 class qore_root_ns_private : public qore_ns_private {
    friend class qore_ns_private;
+   friend class QoreNamespace;
 
 protected:
    DLLLOCAL int addPendingVariantIntern(qore_ns_private& ns, const char* name, AbstractQoreFunctionVariant* v) {

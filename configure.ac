@@ -1599,6 +1599,10 @@ else
     fi
 fi
 
+# hack to add C++ libs with oracle sun studio on solaris
+if test "$CXX" = "CC" -a "`echo $host_os|cut -b-7`" = "solaris"; then
+   LIBS="$LIBS -lCrun -lCstd"
+fi
 
 # try to find libtbbmalloc on Darwin and link with it if present
 if test "$darwin" = "yes"; then
@@ -1643,6 +1647,7 @@ else
 	    solaris_cc_x86_64=yes
          fi
       else
+
 	 if test "$build_cpu" = sparc; then
 	    solaris_cc_sparc32=yes
 	 else

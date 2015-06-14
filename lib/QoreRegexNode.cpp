@@ -29,6 +29,8 @@
 #include <qore/Qore.h>
 #include <qore/intern/qore_program_private.h>
 
+#include <memory>
+
 QoreRegexNode::QoreRegexNode() : ParseNoEvalNode(NT_REGEX) {
    init();
    str = new QoreString();
@@ -138,7 +140,12 @@ bool QoreRegexNode::exec(const char* str, size_t len) const {
    
    int vsize = OVECCOUNT;
    while (true) {   
+#ifdef HAVE_LOCAL_VARIADIC_ARRAYS
       int ovector[vsize];
+#else
+      std::auto_ptr<int> ovc((int*)malloc(sizeof(int)*vsize));
+      int* ovector = ovc.get();
+#endif
       rc = pcre_exec(p, 0, str, len, 0, 0, ovector, vsize);
       if (!rc) {
 	 // rc == 0 means not enough space was available in ovector
@@ -171,7 +178,12 @@ QoreListNode* QoreRegexNode::extractSubstrings(const QoreString* target, Excepti
    while (true) {
       if (offset >= (int)t->strlen())
          break;
+#ifdef HAVE_LOCAL_VARIADIC_ARRAYS
       int ovector[vsize];
+#else
+      std::auto_ptr<int> ovc((int*)malloc(sizeof(int)*vsize));
+      int* ovector = ovc.get();
+#endif
       int rc = pcre_exec(p, 0, t->getBuffer(), t->strlen(), offset, 0, ovector, vsize);
       //printd(5, "QoreRegexNode::exec(%s) =~ /xxx/ = %d (global: %d)\n", t->getBuffer() + offset, rc, global);
 

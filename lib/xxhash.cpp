@@ -121,7 +121,7 @@ typedef unsigned long long U64;
 #endif
 
 #if !defined(XXH_USE_UNALIGNED_ACCESS) && !defined(__GNUC__)
-#  ifdef __IBMC__
+#  if defined(__IBMC__) || defined(__SUNPRO_CC)
 #    pragma pack(1)
 #  else
 #    pragma pack(push, 1)
@@ -138,7 +138,11 @@ typedef struct _U64_S
 } _PACKED U64_S;
 
 #if !defined(XXH_USE_UNALIGNED_ACCESS) && !defined(__GNUC__)
-#  pragma pack(pop)
+#  ifdef __SUNPRO_CC
+#    pragma pack()
+#  else
+#    pragma pack(pop)
+#  endif
 #endif
 
 #define A32(x) (((U32_S *)(x))->v)
