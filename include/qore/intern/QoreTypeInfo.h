@@ -1858,7 +1858,7 @@ protected:
       if (t == NT_INT
           || t == NT_BOOLEAN
           || t == NT_NULL) {
-         discard(n.assign(new QoreStringNodeMaker("%d", n.getAsBigInt())), xsink);
+         discard(n.assign(new QoreStringNodeMaker(QLLD, n.getAsBigInt())), xsink);
          return true;
       }
 
@@ -1912,7 +1912,7 @@ protected:
       if (t == NT_INT
           || t == NT_BOOLEAN
           || t == NT_NULL) {
-         discard(n.assign(new QoreStringNodeMaker("%d", n.getAsBigInt())), xsink);
+         discard(n.assign(new QoreStringNodeMaker(QLLD, n.getAsBigInt())), xsink);
          return true;
       }
 
