@@ -1828,9 +1828,11 @@ nothing flush() [dom=TERMINAL_IO] {
 my bool $b = parse_boolean($str);
     @endcode
 
-    @param str case-insensitive \c "on", \c "true", \c "enable*", \c "yes" are @ref Qore::True "True", the rest is interpreted as a number where 0 is @ref Qore::False "False", everything else is  @ref Qore::True "True"
+    @param str case-insensitive \c "on", \c "true", \c "enable*", \c "yes", \c "y" are @ref Qore::True "True", the rest is interpreted as a number where 0 is @ref Qore::False "False", everything else is  @ref Qore::True "True"
 
     @return a boolean value according to the parsed argument
+
+    @since Qore 0.8.12 \c "y" is also parsed as @ref Qore::True "True"
  */
 bool parse_boolean(string str) [flags=CONSTANT] {
    return q_parse_bool(str->getBuffer());

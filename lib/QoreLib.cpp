@@ -1587,7 +1587,7 @@ bool q_parse_bool(const AbstractQoreNode* n) {
 }
 
 bool q_parse_bool(const char* str) {
-   if (!strcasecmp(str, "true") || !strcasecmp(str, "on") || !strcasecmp(str, "yes") || !strncasecmp(str, "enable", 6))
+   if (!strcasecmp(str, "true") || !strcasecmp(str, "on") || !strcasecmp(str, "yes") || !strncasecmp(str, "enable", 6) || !strcasecmp(str, "y"))
       return true;
 
    return (bool)atoi(str);
