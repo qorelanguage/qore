@@ -13453,7 +13453,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
                         case NT_STRING: {
                             string cn = getColumnNameIntern(cv, jch, boolean(qh.join), ch);
                             if (qh.superquery)
-                                mch{cn} = True;
+                                mch{cv} = True;
                             ce += cn;
                             break;
                         }
