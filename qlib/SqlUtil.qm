@@ -12806,6 +12806,37 @@ $table.insertNoCommi($row);
 
             softlist args = vh.values;
 
+            # check for a bulk insert in case the driver does not support array binding
+            if (!hasArrayBind()) {
+                int size = 0;
+                foreach any arg in (args) {
+                    if (arg.typeCode() == NT_LIST) {
+                        size = arg.size();
+                        break;
+                    }
+                }
+                if (size) {
+                     hash rv;
+                     for (int i = 0; i < size; ++i) {
+                         # get arg list for row
+                         list targs = map $1.typeCode() == NT_LIST ? $1[i] : $1, args;
+                         if (opt.returning) {
+                             if (!rv) {
+                                 hash h = doReturningImpl(opt, \sql, targs);
+                                 map rv{$1.key} += ($1.value,), h.pairIterator();
+                             }
+                             else {
+                                 hash h = execData(opt, sql, targs);
+                                 map rv{$1.key} += $1.value, h.pairIterator();
+                             }
+                         }
+                         else
+                             execData(opt, sql, targs);
+                     }
+                     return rv;
+                }
+            }
+
             if (opt.returning)
                 return doReturningImpl(opt, \sql, args);
 
@@ -12822,6 +12853,8 @@ $table.insertNoCommi($row);
             foreach hash rh in (row.pairIterator()) {
                 string ph = "%v";
                 any v = rh.value;
+                if (v.typeCode() == NT_LIST)
+                    v = v[0];
                 if (v."_iop".typeCode() == NT_STRING) {
                     string iop = v."_iop";
                     if (!exists im)
@@ -12851,9 +12884,12 @@ $table.insertNoCommi($row);
                     }
                     if (cmd.placeholder)
                         ph = cmd.placeholder;
+                    phl += ph;
+                    push vl, v;
+                    continue;
                 }
                 phl += ph;
-                push vl, v;
+                push vl, rh.value;
             }
 
             return (
