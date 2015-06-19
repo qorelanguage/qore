@@ -910,6 +910,12 @@ struct qore_socket_private {
    }
 
    DLLLOCAL int set_non_blocking(bool non_blocking, ExceptionSink* xsink = 0) {
+      // ignore call when socket already closed
+      if (sock == QORE_INVALID_SOCKET) {
+         assert(!xsink || *xsink);
+         return -1;
+      }
+
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
       u_long mode = non_blocking ? 1 : 0;
       int rc = ioctlsocket(sock, FIONBIO, &mode);

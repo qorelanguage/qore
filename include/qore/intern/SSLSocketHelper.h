@@ -66,7 +66,7 @@ public:
          SSL_CTX_free(ctx);
    }
 
-   DLLLOCAL bool sslError(ExceptionSink *xsink, const char* meth, const char *msg, bool always_error = true);
+   DLLLOCAL bool sslError(ExceptionSink *xsink, bool& closed, const char* meth, const char *msg, bool always_error = true);
    DLLLOCAL int setClient(const char* mname, int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink);
    DLLLOCAL int setServer(const char* mname, int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink);
    // returns 0 for success
