@@ -63,9 +63,9 @@ struct QoreValueCastHelper {
 
     template<typename QV>
     static Result cast(QV *qv, valtype_t type) {
-      assert(type == QV_Node);
-      assert(dynamic_cast<Result>(qv->v.n));
-      return reinterpret_cast<Result>(qv->v.n);
+       assert(type == QV_Node);
+       assert(dynamic_cast<Result>(qv->v.n));
+       return reinterpret_cast<Result>(qv->v.n);
     }
 };
 
@@ -75,7 +75,7 @@ struct QoreValueCastHelper<bool> {
 
     template<typename QV>
     static bool cast(QV *qv, valtype_t type) {
-        return qv->getAsBool();
+       return qv->getAsBool();
     }
 };
 

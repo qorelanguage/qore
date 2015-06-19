@@ -893,8 +893,6 @@ AbstractQoreNode* qore_root_ns_private::parseResolveBarewordIntern(const QorePro
 
    bool abr = (bool)(parse_get_parse_options() & PO_ALLOW_BARE_REFS);
 
-   assert(strcmp(bword, "ds123"));
-   
    // if bare refs are enabled, first look for a local variablee
    if (abr) {
       bool in_closure;

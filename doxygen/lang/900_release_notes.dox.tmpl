@@ -283,6 +283,7 @@
     - fixed a bug nesting 3 levels or more of parse conditionals (@ref ifdef "%ifdef" and @ref ifndef "%ifndef") where the conditional parse state could be lost (and an assertion was made in debug mode)
     - fixed a bug where ==, >, and < operators applied type precendence incorrectly when applying optimizations at parse time in relation to arbitrary-precision numeric values
     - fixed a static memory leak in the parser handling out of line method declarations
+    - fixed a bug in handling socket disconnection errors in SSL operations where the SSL helper object was deleted and then used causing a crash
 
     @section qore_0811 Qore 0.8.11
 

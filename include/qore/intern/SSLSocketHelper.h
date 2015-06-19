@@ -56,7 +56,7 @@ private:
    DLLLOCAL int doSSLRW(const char* mname, void* buf, int num, int timeout_ms, bool read, ExceptionSink* xsink);
 
    // non-blocking I/O helper
-   DLLLOCAL int doSSLUpgradeNonBlockingIO(int rc, const char* mname, int timeout_ms, const char* ssl_func, ExceptionSink* xsink);
+   DLLLOCAL int doSSLUpgradeNonBlockingIO(int rc, const char* mname, int timeout_ms, const char* ssl_func, bool& closed, ExceptionSink* xsink);
    
 public:
    DLLLOCAL SSLSocketHelper(qore_socket_private& n_qs) : qs(n_qs), meth(0), ctx(0), ssl(0) {
@@ -69,7 +69,8 @@ public:
          SSL_CTX_free(ctx);
    }
 
-   DLLLOCAL bool sslError(ExceptionSink* xsink, const char* meth, const char* msg, bool always_error = true);
+   // if closed is returned as true, then the SSLSocketHelper object has been deleted
+   DLLLOCAL bool sslError(ExceptionSink* xsink, bool& closed, const char* meth, const char* msg, bool always_error = true);
    DLLLOCAL int setClient(const char* mname, int sd, X509* cert, EVP_PKEY* pk, ExceptionSink* xsink);
    DLLLOCAL int setServer(const char* mname, int sd, X509* cert, EVP_PKEY* pk, ExceptionSink* xsink);
    // returns 0 for success

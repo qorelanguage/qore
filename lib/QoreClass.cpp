@@ -2044,13 +2044,15 @@ void qore_class_private::parseRollback() {
 
    if (has_sig_changes)
       has_sig_changes = false;
-   
+
    if (!has_new_user_changes) {
+#ifdef DEBUG
       // verify status
       for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
 	 assert(i->second->priv->func->pendingEmpty());
       for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i)
 	 assert(i->second->priv->func->pendingEmpty());
+#endif
       assert(!pending_has_public_memdecl);
       return;
    }

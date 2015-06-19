@@ -2420,12 +2420,12 @@ outofline_methoddef:
 	   $$ = new MethodDef($1, $3, @5.first_line, @5.last_line, $5, $7, rt, $8);
 	}
         | method_modifiers SCOPED_REF '(' myexp ')' base_constructor_list return_value ';' {
-           if (!$1 & OFM_ABSTRACT)
+           if (!($1 & OFM_ABSTRACT))
               parse_error("non-abstract method declared without any body; either declare the method 'abstract' or declare an empty method body with '{}'");
            $$ = new MethodDef($1, $2, @4.first_line, @4.last_line, $4, $6, $7, 0);
         }
         | method_modifiers uncqtypedef SCOPED_REF '(' myexp ')' base_constructor_list ';' {
-           if (!$1 & OFM_ABSTRACT)
+           if (!($1 & OFM_ABSTRACT))
               parse_error("non-abstract method declared without any body; either declare the method 'abstract' or declare an empty method body with '{}'");
            RetTypeInfo* rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
            delete $2;

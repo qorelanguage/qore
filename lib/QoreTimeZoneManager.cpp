@@ -1232,9 +1232,10 @@ QoreWindowsZoneInfo::QoreWindowsZoneInfo(const char *n_name, ExceptionSink *xsin
       if (daylight_date.wMonth < standard_date.wMonth)
          daylight_first = true;
 
-      // FIXME: change logic to set valid = false
-      assert(standard_date.wDay >= 1 && standard_date.wDay <= 5);
-      assert(daylight_date.wDay >= 1 && daylight_date.wDay <= 5);
+      if (standard_date.wDay < 1 || standard_date.wDay > 5 || daylight_date.wDay < 1 || daylight_date.wDay > 5) {
+         assert(false);
+         valid = false;
+      }
    }
    else {
       // cannot handle this yet
