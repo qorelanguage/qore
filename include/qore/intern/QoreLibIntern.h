@@ -746,6 +746,25 @@ public:
    DLLLOCAL ~VariableBlockHelper();
 };
 
+class ParseOptionMaps {
+protected:
+   DLLLOCAL void doMap(int64 code, const char* desc);
+
+public:
+   typedef std::map<int64, const char*> pomap_t;
+   typedef std::map<const char*, int64, ltstr> pormap_t;
+   
+   pomap_t pomap;
+   pormap_t pormap;
+
+   DLLLOCAL ParseOptionMaps();
+
+   DLLLOCAL QoreHashNode* getCodeToStringMap() const;
+   DLLLOCAL QoreHashNode* getStringToCodeMap() const;
+};
+
+DLLLOCAL extern ParseOptionMaps pomaps;
+
 DLLLOCAL extern QoreString YamlNullString;
 
 DLLLOCAL extern bool q_disable_gc;

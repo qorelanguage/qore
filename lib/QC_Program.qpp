@@ -42,6 +42,20 @@ extern QoreModuleManager QMM;
     These are the possible values that can be or'ed together to set @ref Qore::Program "Program" parse options
 */
 //@{
+//! Maps from parse option code values (as string keys) to parse option names
+/** @see ParseOptionStringMap for the reverse mapping
+
+    @since %Qore 0.8.12
+ */
+const ParseOptionCodeMap = qore(pomaps.getCodeToStringMap());
+
+//! Maps from parse option strings to parse option integer codes
+/** @see ParseOptionCodeMap for the reverse mapping
+
+    @since %Qore 0.8.12
+ */
+const ParseOptionStringMap = qore(pomaps.getStringToCodeMap());
+
 //! Prohibits the use of the '$' character in variable names, method calls, and object member references
 /** This option should probably be named \c "PO_REQUIRE_BARE_REFS" as it is an error to use the \c "$" character when this option is set
 

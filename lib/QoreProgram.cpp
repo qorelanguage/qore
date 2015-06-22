@@ -48,6 +48,8 @@
 #include <memory>
 #include <map>
 
+ParseOptionMaps pomaps;
+
 // note the number and order of the warnings has to correspond to those in QoreProgram.h
 static const char* qore_warnings_l[] = {
    "warning-mask-unchanged",
@@ -69,71 +71,92 @@ static const char* qore_warnings_l[] = {
 };
 #define NUM_WARNINGS (sizeof(qore_warnings_l)/sizeof(const char* ))
 
-typedef std::map<int64, const char*> pomap_t;
+void ParseOptionMaps::doMap(int64 code, const char* desc) {
+   assert(pomap.find(code) == pomap.end());
+   assert(pormap.find(desc) == pormap.end());
+   pomap[code] = desc;
+   pormap[desc] = code;
+}
 
-class PoMap : public pomap_t {
-public:
-   DLLLOCAL PoMap() {
-      // to generate this list:
-      // grep define.PO_ ../Restrictions.h|grep -v PO_POSITIVE_OPTIONS|grep -v PO_FREE_OPTIONS|grep -v PO_INHERITANCE_OPTIONS|cut -f2 -d\ | while read a; do printf "      pomap[%s] = \"%s\";\n" $a $a; done
-      (*this)[PO_NO_GLOBAL_VARS] = "PO_NO_GLOBAL_VARS";
-      (*this)[PO_NO_SUBROUTINE_DEFS] = "PO_NO_SUBROUTINE_DEFS";
-      (*this)[PO_NO_THREAD_CONTROL] = "PO_NO_THREAD_CONTROL";
-      (*this)[PO_NO_THREAD_CLASSES] = "PO_NO_THREAD_CLASSES";
-      (*this)[PO_NO_TOP_LEVEL_STATEMENTS] = "PO_NO_TOP_LEVEL_STATEMENTS";
-      (*this)[PO_NO_CLASS_DEFS] = "PO_NO_CLASS_DEFS";
-      (*this)[PO_NO_NAMESPACE_DEFS] = "PO_NO_NAMESPACE_DEFS";
-      (*this)[PO_NO_CONSTANT_DEFS] = "PO_NO_CONSTANT_DEFS";
-      (*this)[PO_NO_NEW] = "PO_NO_NEW";
-      (*this)[PO_NO_INHERIT_SYSTEM_CLASSES] = "PO_NO_INHERIT_SYSTEM_CLASSES";
-      (*this)[PO_NO_INHERIT_USER_CLASSES] = "PO_NO_INHERIT_USER_CLASSES";
-      (*this)[PO_NO_CHILD_PO_RESTRICTIONS] = "PO_NO_CHILD_PO_RESTRICTIONS";
-      (*this)[PO_NO_EXTERNAL_PROCESS] = "PO_NO_EXTERNAL_PROCESS";
-      (*this)[PO_REQUIRE_OUR] = "PO_REQUIRE_OUR";
-      (*this)[PO_NO_PROCESS_CONTROL] = "PO_NO_PROCESS_CONTROL";
-      (*this)[PO_NO_NETWORK] = "PO_NO_NETWORK";
-      (*this)[PO_NO_FILESYSTEM] = "PO_NO_FILESYSTEM";
-      (*this)[PO_LOCK_WARNINGS] = "PO_LOCK_WARNINGS";
-      (*this)[PO_NO_DATABASE] = "PO_NO_DATABASE";
-      (*this)[PO_NO_GUI] = "PO_NO_GUI";
-      (*this)[PO_NO_TERMINAL_IO] = "PO_NO_TERMINAL_IO";
-      (*this)[PO_REQUIRE_TYPES] = "PO_REQUIRE_TYPES";
-      (*this)[PO_NO_EXTERNAL_INFO] = "PO_NO_EXTERNAL_INFO";
-      (*this)[PO_NO_THREAD_INFO] = "PO_NO_THREAD_INFO";
-      (*this)[PO_NO_LOCALE_CONTROL] = "PO_NO_LOCALE_CONTROL";
-      (*this)[PO_REQUIRE_PROTOTYPES] = "PO_REQUIRE_PROTOTYPES";
-      (*this)[PO_STRICT_ARGS] = "PO_STRICT_ARGS";
-      (*this)[PO_REQUIRE_BARE_REFS] = "PO_REQUIRE_BARE_REFS";
-      (*this)[PO_ASSUME_LOCAL] = "PO_ASSUME_LOCAL";
-      (*this)[PO_NO_MODULES] = "PO_NO_MODULES";
-      (*this)[PO_NO_INHERIT_USER_FUNC_VARIANTS] = "PO_NO_INHERIT_USER_FUNC_VARIANTS";
-      (*this)[PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS] = "PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS";
-      (*this)[PO_NO_INHERIT_GLOBAL_VARS] = "PO_NO_INHERIT_GLOBAL_VARS";
-      (*this)[PO_IN_MODULE] = "PO_IN_MODULE";
-      (*this)[PO_NO_EMBEDDED_LOGIC] = "PO_NO_EMBEDDED_LOGIC";
-      (*this)[PO_STRICT_BOOLEAN_EVAL] = "PO_STRICT_BOOLEAN_EVAL";
-      (*this)[PO_DEFAULT] = "PO_DEFAULT";
-      (*this)[PO_SYSTEM_OPS] = "PO_SYSTEM_OPS";
-      (*this)[PO_ALLOW_BARE_REFS] = "PO_ALLOW_BARE_REFS";
-      (*this)[PO_NO_THREADS] = "PO_NO_THREADS";
-      (*this)[PO_NO_EXTERNAL_ACCESS] = "PO_NO_EXTERNAL_ACCESS";
-      (*this)[PO_NO_IO] = "PO_NO_IO";
-      (*this)[PO_LOCKDOWN] = "PO_LOCKDOWN";
-      (*this)[PO_NEW_STYLE] = "PO_NEW_STYLE";
-      (*this)[PO_ALLOW_INJECTION] = "PO_ALLOW_INJECTION";
-      (*this)[PO_NO_INHERIT_SYSTEM_CONSTANTS] = "PO_NO_INHERIT_SYSTEM_CONSTANTS";
-      (*this)[PO_NO_INHERIT_USER_CONSTANTS] = "PO_NO_INHERIT_USER_CONSTANTS";
+ParseOptionMaps::ParseOptionMaps() {
+      doMap(PO_NO_GLOBAL_VARS, "PO_NO_GLOBAL_VARS");
+      doMap(PO_NO_SUBROUTINE_DEFS, "PO_NO_SUBROUTINE_DEFS");
+      doMap(PO_NO_THREAD_CONTROL, "PO_NO_THREAD_CONTROL");
+      doMap(PO_NO_THREAD_CLASSES, "PO_NO_THREAD_CLASSES");
+      doMap(PO_NO_TOP_LEVEL_STATEMENTS, "PO_NO_TOP_LEVEL_STATEMENTS");
+      doMap(PO_NO_CLASS_DEFS, "PO_NO_CLASS_DEFS");
+      doMap(PO_NO_NAMESPACE_DEFS, "PO_NO_NAMESPACE_DEFS");
+      doMap(PO_NO_CONSTANT_DEFS, "PO_NO_CONSTANT_DEFS");
+      doMap(PO_NO_NEW, "PO_NO_NEW");
+      doMap(PO_NO_INHERIT_SYSTEM_CLASSES, "PO_NO_INHERIT_SYSTEM_CLASSES");
+      doMap(PO_NO_INHERIT_USER_CLASSES, "PO_NO_INHERIT_USER_CLASSES");
+      doMap(PO_NO_CHILD_PO_RESTRICTIONS, "PO_NO_CHILD_PO_RESTRICTIONS");
+      doMap(PO_NO_EXTERNAL_PROCESS, "PO_NO_EXTERNAL_PROCESS");
+      doMap(PO_REQUIRE_OUR, "PO_REQUIRE_OUR");
+      doMap(PO_NO_PROCESS_CONTROL, "PO_NO_PROCESS_CONTROL");
+      doMap(PO_NO_NETWORK, "PO_NO_NETWORK");
+      doMap(PO_NO_FILESYSTEM, "PO_NO_FILESYSTEM");
+      doMap(PO_LOCK_WARNINGS, "PO_LOCK_WARNINGS");
+      doMap(PO_NO_DATABASE, "PO_NO_DATABASE");
+      doMap(PO_NO_GUI, "PO_NO_GUI");
+      doMap(PO_NO_TERMINAL_IO, "PO_NO_TERMINAL_IO");
+      doMap(PO_REQUIRE_TYPES, "PO_REQUIRE_TYPES");
+      doMap(PO_NO_EXTERNAL_INFO, "PO_NO_EXTERNAL_INFO");
+      doMap(PO_NO_THREAD_INFO, "PO_NO_THREAD_INFO");
+      doMap(PO_NO_LOCALE_CONTROL, "PO_NO_LOCALE_CONTROL");
+      doMap(PO_REQUIRE_PROTOTYPES, "PO_REQUIRE_PROTOTYPES");
+      doMap(PO_STRICT_ARGS, "PO_STRICT_ARGS");
+      //doMap(PO_REQUIRE_BARE_REFS, "PO_REQUIRE_BARE_REFS");
+      doMap(PO_ASSUME_LOCAL, "PO_ASSUME_LOCAL");
+      doMap(PO_NO_MODULES, "PO_NO_MODULES");
+      doMap(PO_NO_INHERIT_USER_FUNC_VARIANTS, "PO_NO_INHERIT_USER_FUNC_VARIANTS");
+      doMap(PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS, "PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS");
+      doMap(PO_NO_INHERIT_GLOBAL_VARS, "PO_NO_INHERIT_GLOBAL_VARS");
+      doMap(PO_IN_MODULE, "PO_IN_MODULE");
+      doMap(PO_NO_EMBEDDED_LOGIC, "PO_NO_EMBEDDED_LOGIC");
+      doMap(PO_STRICT_BOOLEAN_EVAL, "PO_STRICT_BOOLEAN_EVAL");
+      doMap(PO_DEFAULT, "PO_DEFAULT");
+      //doMap(PO_SYSTEM_OPS, "PO_SYSTEM_OPS");
+      doMap(PO_ALLOW_BARE_REFS, "PO_ALLOW_BARE_REFS");
+      doMap(PO_NO_THREADS, "PO_NO_THREADS");
+      doMap(PO_NO_EXTERNAL_ACCESS, "PO_NO_EXTERNAL_ACCESS");
+      doMap(PO_NO_IO, "PO_NO_IO");
+      doMap(PO_LOCKDOWN, "PO_LOCKDOWN");
+      doMap(PO_NEW_STYLE, "PO_NEW_STYLE");
+      doMap(PO_ALLOW_INJECTION, "PO_ALLOW_INJECTION");
+      doMap(PO_NO_INHERIT_SYSTEM_CONSTANTS, "PO_NO_INHERIT_SYSTEM_CONSTANTS");
+      doMap(PO_NO_INHERIT_USER_CONSTANTS, "PO_NO_INHERIT_USER_CONSTANTS");
+}
+
+QoreHashNode* ParseOptionMaps::getCodeToStringMap() const {
+   QoreHashNode* h = new QoreHashNode;
+   
+   QoreString key;
+   for (pomap_t::const_iterator i = pomap.begin(), e = pomap.end(); i != e; ++i) {
+      key.clear();
+      key.sprintf(QLLD, i->first);
+      h->setKeyValue(key.c_str(), new QoreStringNode(i->second), 0);
    }
-};
+   
+   return h;
+}
 
-static PoMap pomap;
+QoreHashNode* ParseOptionMaps::getStringToCodeMap() const {
+   QoreHashNode* h = new QoreHashNode;
+
+   for (pormap_t::const_iterator i = pormap.begin(), e = pormap.end(); i != e; ++i) {
+      h->setKeyValue(i->first, new QoreBigIntNode(i->second), 0);
+   }
+
+   return h;
+}
 
 //public symbols
 const char** qore_warnings = qore_warnings_l;
 unsigned qore_num_warnings = NUM_WARNINGS;
 
 void qore_program_private_base::setDefines() {
-   for (pomap_t::iterator i = pomap.begin(), e = pomap.end(); i != e; ++i) {
+   for (ParseOptionMaps::pomap_t::iterator i = pomaps.pomap.begin(), e = pomaps.pomap.end(); i != e; ++i) {
       if ((pwo.parse_options & i->first) == i->first) {
 	 dmap[i->second] = &True;
       }
