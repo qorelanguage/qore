@@ -596,6 +596,8 @@ int SSLSocketHelper::doSSLRW(const char* mname, void* buf, int size, int timeout
    return rc;
 }
 
+// if we close the connection due to a socket error, then the SSLSocketHelper object is deleted, therefore have to ensure that we do not access
+// "this" after the connection is closed
 int SSLSocketHelper::doSSLUpgradeNonBlockingIO(int rc, const char* mname, int timeout_ms, const char* ssl_func, bool& closed, ExceptionSink* xsink) {
    assert(xsink);
    assert(!closed);
@@ -631,6 +633,7 @@ int SSLSocketHelper::doSSLUpgradeNonBlockingIO(int rc, const char* mname, int ti
 	    
 #ifdef ECONNRESET
 	    // close the socket if connection reset received
+	    // do not access "this" after the connection is closed since the SSLSocketHelper has been deleted
 	    if (!closed && sock_get_error() == ECONNRESET)
 	       qs.close();
 #endif
@@ -669,6 +672,8 @@ int SSLSocketHelper::read(const char* mname, char* buf, int size, int timeout_ms
 }
 
 // returns true if an error was raised, false if not
+// if we close the connection due to a socket error, then the SSLSocketHelper object is deleted, therefore have to ensure that we do not access
+// "this" after the connection is closed
 bool SSLSocketHelper::sslError(ExceptionSink* xsink, bool& closed, const char* mname, const char* func, bool always_error) {
    assert(!closed);
    long e = ERR_get_error();
