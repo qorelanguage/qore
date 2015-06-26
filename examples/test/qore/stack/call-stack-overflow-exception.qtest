@@ -4,14 +4,17 @@
 %require-types
 %enable-all-warnings
 
-%requires QUnit
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class StackGuardTest
 
 public class StackGuardTest inherits QUnit::Test {
-    constructor() {
+    constructor() : Test("StackuardTest", "1.0") {
         testFunctions = (
             ("func": \testInfiniteRecurse(), "name": "Test overflowing the stack limit"),
             ("func": \testRecurseWithBackground(), "name": "Test two threads"),
         );
+	set_return_value(main());
     }
 
     setUp() {
@@ -33,6 +36,4 @@ public class StackGuardTest inherits QUnit::Test {
         testInfiniteRecurse();
     }
 }
-
-return new StackGuardTest().main();
 

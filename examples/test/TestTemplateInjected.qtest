@@ -1,15 +1,19 @@
 #!/usr/bin/env qore
 %new-style
 
-%requires QUnit
+%requires ../../qlib/QUnit.qm
 
 #%include ./_MODULE_TO_TEST_
 
+%exec-class MyTestClass
+
 public class MyTestClass inherits QUnit::DependencyInjectedTest {
-    constructor() {
+    constructor() : DependencyInjectedTest("MyTestClass", "1.0") {
         testFunctions = (
             ("func": \testMethod(), "name": "Test something"),
         );
+ 	setScriptPath(get_script_path());
+	set_return_value(main());
     }
 
     nothing performModuleInjections() {
@@ -25,8 +29,3 @@ public class MyTestClass inherits QUnit::DependencyInjectedTest {
         testAssertion(\equals(), (True, True));
     }
 }
-
-MyTestClass c();
-c.setScriptPath(get_script_path());
-# Return for compatibility with test harness that checks return value.
-return c.main();

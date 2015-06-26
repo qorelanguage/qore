@@ -1,7 +1,7 @@
 #!/usr/bin/env qore
 %new-style
 
-%requires QUnit
+%requires ../../../../qlib/QUnit.qm
 
 %require-types
 %enable-all-warnings
@@ -9,6 +9,8 @@
 %requires xml
 
 %requires ../../../../qlib/Qorize.qm
+
+%exec-class QorizeRealWorldTest
 
 public class QorizeRealWorldTest inherits QUnit::Test {
     public {
@@ -20,13 +22,14 @@ public class QorizeRealWorldTest inherits QUnit::Test {
         hash m_h;
     }
 
-    constructor() {
+    constructor() : Test("QorizeRealWorldTest", "1.0") {
         testFunctions = (
             ("func": \testQorizeNewstyle(), "name": "qorize newstyle"),
             ("func": \testQorizeOldstyle(), "name": "qorize oldstyle"),
             ("func": \testQorizeNamedNewstyle(), "name": "qorize named newstyle"),
             ("func": \testQorizeNamedOldstyle(), "name": "qorize named oldstyle")
         );
+	set_return_value(main());
     }
 
     setUp() {
@@ -55,5 +58,3 @@ public class QorizeRealWorldTest inherits QUnit::Test {
         testAssertion( bool sub() { return (qorizeNamed(m_h, 'name', OLDSTYLE).size() > MIN_LENGTH); }, list());
     }
 }
-
-return new QorizeRealWorldTest().main();

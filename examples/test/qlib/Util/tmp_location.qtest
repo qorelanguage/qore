@@ -1,18 +1,21 @@
 #!/usr/bin/env qore
 %new-style
 
-%requires QUnit
+%requires ../../../../qlib/QUnit.qm
 
 %require-types
 %enable-all-warnings
 
 %requires ../../../../qlib/Util.qm
 
+%exec-class TmpLocationTest
+
 public class TmpLocationTest inherits QUnit::Test {
-    constructor() {
+    constructor() : Test("TmpLocationTest", "1.0") {
         testFunctions = (
             ("func": \testTmpLocation(), "name": "Test presence of tmp_location()"),
         );
+	set_return_value(main());
     }
 
     bool haveLocation() {
@@ -26,5 +29,3 @@ public class TmpLocationTest inherits QUnit::Test {
         testAssertion(\haveLocation(), ());
     }
 }
-
-return new TmpLocationTest().main();

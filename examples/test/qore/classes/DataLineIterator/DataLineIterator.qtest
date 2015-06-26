@@ -2,13 +2,15 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
 %exec-class Test
-%requires UnitTest
+
+%requires ../../../../../qlib/QUnit.qm
+
 %require-types
 %require-our
 %new-style
 %enable-all-warnings
     
-class Test {
+class Test inherits QUnit::Test {
     private {
 	const DataList = (
 	    "a2ps-4.13-1332.1.x86_64",
@@ -20,70 +22,60 @@ class Test {
         const DataListUtf16 = map convert_encoding($1, "utf16"), DataList;
     }
     
-    constructor() {
-        our UnitTest t();
+    constructor() : QUnit::Test("DataLineIterator", "1.0") {
+        testFunctions = (
+            ("func": sub() {doTestsExplicit("\n");}, "name": "LF Explicit tests"),
+            ("func": sub() {doTestsAuto("\n");}, "name": "LF Auto tests"),
+            ("func": sub() {doTestsExplicitUtf16("\n");}, "name": "LF Explicit UTF-16 tests"),
+            ("func": sub() {doTestsAutoUtf16("\n");}, "name": "LF Auto UTF-16 tests"),
 
-	doTests("LF", "\n");
-	doTests("CR", "\r");
-	doTests("CRLF", "\r\n");
+            ("func": sub() {doTestsExplicit("\r");}, "name": "CR Explicit tests"),
+            ("func": sub() {doTestsAuto("\r");}, "name": "CR Auto tests"),
+            ("func": sub() {doTestsExplicitUtf16("\r");}, "name": "CR Explicit UTF-16 tests"),
+            ("func": sub() {doTestsAutoUtf16("\r");}, "name": "CR Auto UTF-16 tests"),
+
+            ("func": sub() {doTestsExplicit("\r\n");}, "name": "CRLF Explicit tests"),
+            ("func": sub() {doTestsAuto("\r\n");}, "name": "CRLF Auto tests"),
+            ("func": sub() {doTestsExplicitUtf16("\r\n");}, "name": "CRLF Explicit UTF-16 tests"),
+            ("func": sub() {doTestsAutoUtf16("\r\n");}, "name": "CRLF Auto UTF-16 tests"),
+            );
+        set_return_value(main());
     }
 
-    doTests(string pref, string eol) {
-        string opref = pref;
-        
+    doTestsIntern(string data, DataLineIterator di) {
+        for (int i = 0; i < DataList.size(); ++i) {
+            testAssertion(bool sub() {return di.next();});
+            testAssertion(string sub() {return di.getValue();}, NOTHING, new TestResultValue(DataList[i]));
+        }
+
+        testAssertion(bool sub() {return !di.next();});
+    }
+    
+    doTestsExplicit(string eol) {
 	string data = foldl $1 + eol + $2, DataList;
+        DataLineIterator di(data, eol);
+        doTestsIntern(data, di);
+    }
 
-	{
-	    DataLineIterator di(data, eol);
+    doTestsAuto(string eol) {    
+        string data = foldl $1 + eol + $2, DataList;
+        DataLineIterator di(data);
+        doTestsIntern(data, di);
+    }
 
-	    for (int i = 0; i < DataList.size(); ++i) {
-		t.ok(di.next(), pref + "-DataLineIterator::next() " + i);
-		t.cmp(di.getValue(), DataList[i], pref + "-DataLineIterator::getValue() " + i);
-	    }
-
-	    t.ok(!di.next(), pref + "-DataLineIterator::next() final");
-	}
-	
-	pref = "AUTO-" + pref;
-
-        {
-            DataLineIterator di(data);
-
-            for (int i = 0; i < DataList.size(); ++i) {
-                t.ok(di.next(), pref + "-DataLineIterator::next() " + i);
-                t.cmp(di.getValue(), DataList[i], pref + "-DataLineIterator::getValue() " + i);
-            }
-
-            t.ok(!di.next(), pref + "-DataLineIterator::next() final");
-        }
-
+    doTestsExplicitUtf16(string eol) {
         # do UTF-16 (non-ascii-compat) tests
-        data = foldl $1 + convert_encoding(eol, "utf16") + $2, DataListUtf16;
+        string eolutf16 = convert_encoding(eol, "utf16");
+        string data = foldl $1 + eolutf16 + $2, DataListUtf16;
+        DataLineIterator di(data, eol);
+        doTestsIntern(data, di);
+    }
 
-        pref = "UTF16-" + opref;
-        {
-	    DataLineIterator di(data, eol);
-
-	    for (int i = 0; i < DataList.size(); ++i) {
-		t.ok(di.next(), pref + "-DataLineIterator::next() " + i);
-		t.cmp(di.getValue(), DataList[i], pref + "-DataLineIterator::getValue() " + i);
-	    }
-
-	    t.ok(!di.next(), pref + "-DataLineIterator::next() final");
-	}
-
-	pref = "AUTO-" + pref;
-
-        {
-            DataLineIterator di(data);
-
-            for (int i = 0; i < DataList.size(); ++i) {
-                t.ok(di.next(), pref + "-DataLineIterator::next() " + i);
-                t.cmp(di.getValue(), DataList[i], pref + "-DataLineIterator::getValue() " + i);
-            }
-
-            t.ok(!di.next(), pref + "-DataLineIterator::next() final");
-        }
-
+    doTestsAutoUtf16(string eol) {        
+        # do UTF-16 (non-ascii-compat) tests
+        string eolutf16 = convert_encoding(eol, "utf16");
+        string data = foldl $1 + eolutf16 + $2, DataListUtf16;
+        DataLineIterator di(data);
+        doTestsIntern(data, di);
     }
 }

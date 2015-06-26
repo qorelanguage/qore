@@ -2,12 +2,14 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 %new-style
 
-%requires QUnit
+%requires ../../../../qlib/QUnit.qm
 
 %require-types
 %enable-all-warnings
 
 %requires ../../../../qlib/Mapper.qm
+
+%exec-class MapperTest
 
 public class MapperTest inherits QUnit::Test {
     public {
@@ -108,11 +110,12 @@ public class MapperTest inherits QUnit::Test {
         );
     }
 
-    constructor() {
+    constructor() : Test("MapperTest", "1.0") {
         testFunctions = (
             ("func": \testMapperMapAll(), "name": "Test mapAll()"),
             ("func": \testMapperMapData(), "name": "Test MapData()"),
         );
+        set_return_value(main());
     }
 
     private {
@@ -136,5 +139,3 @@ public class MapperTest inherits QUnit::Test {
         testAssertion(\equals(), (m_map.getCount(), 2));
     }
 }
-
-return new MapperTest().main();

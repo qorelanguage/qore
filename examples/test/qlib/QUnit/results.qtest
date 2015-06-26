@@ -3,12 +3,14 @@
 
 %include ../../../../qlib/QUnit.qm
 
+%exec-class ResultsTest
+
 public class ResultsTest inherits QUnit::Test {
     throwsException(string type, string detail) {
         throw type, detail;
     }
 
-    constructor() {
+    constructor() : Test("ResultsTest", "1.0") {
         testFunctions = (
             # Tests for TestResult* classes
             ("func": \testBoolResults(), "name": "Boolean results comparisons"),
@@ -22,6 +24,7 @@ public class ResultsTest inherits QUnit::Test {
             ("func": \testRegexp(), "name": "Exercise the regexpMatches() comparator"),
             ("func": \testIteration(), "name": "Exercise the equalsIterated() comparator")
         );
+	set_return_value(main());
     }
 
     testBoolResults() {
@@ -159,5 +162,3 @@ public class ResultsTest inherits QUnit::Test {
         testAssertion(\equalsIterated(), (new ListIterator(left), new ListIterator(right)), RESULT_FAILURE);
     }
 }
-
-return new ResultsTest().main();

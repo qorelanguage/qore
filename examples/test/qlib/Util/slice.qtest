@@ -1,18 +1,21 @@
 #!/usr/bin/env qore
 %new-style
 
-%requires QUnit
+%requires ../../../../qlib/QUnit.qm
 
 %require-types
 %enable-all-warnings
 
 %requires ../../../../qlib/Util.qm
 
+%exec-class SliceTest
+
 public class SliceTest inherits QUnit::Test {
-    constructor() {
+    constructor() : Test("SliceTest", "1.0") {
         testFunctions = (
             ("func": \testSliceBasic(), "name": "Basic slice() tests"),
         );
+	set_return_value(main());
     }
 
     testSliceBasic() {
@@ -22,5 +25,3 @@ public class SliceTest inherits QUnit::Test {
         testAssertion(\slice(), ((), (2, 3)), new TestResultValue(()));
     }
 }
-
-return new SliceTest().main();

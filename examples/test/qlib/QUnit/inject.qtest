@@ -5,6 +5,8 @@
 
 %include ../../../../qlib/QUnit.qm
 
+%exec-class DIJClass
+
 public class A {
     constructor() {
         throw "TEST-EXCEPTION", "This should never happen!";
@@ -45,12 +47,14 @@ public class FileLineIteratorFake {
 }
 
 public class DIJClass inherits QUnit::DependencyInjectedTest {
-    constructor() {
+    constructor() : DependencyInjectedTest("Inject", "1.0") {
         testFunctions = (
             ("func": \testDirectlyInjectedClass(), "name": "Directly instantiate injected classes"),
             ("func": \testInheritedInjectedClass(), "name": "Instantiate classes with an injected ancestor"),
             ("func": \testModuleInjectedClass(), "name": "Instantiate class from a module with injected ancestor")
         );
+	setScriptPath(get_script_path());
+	set_return_value(main());
     }
 
     performModuleInjections() {
@@ -82,7 +86,3 @@ public class DIJClass inherits QUnit::DependencyInjectedTest {
         testAssertion(\createIterator(), list(), new QUnit::TestResultExceptionRegexp("TEST-EXCEPTION", "this signifies that it actually works"));
     }
 }
-
-DIJClass c();
-c.setScriptPath(get_script_path());
-return c.main();

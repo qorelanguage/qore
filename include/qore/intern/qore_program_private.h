@@ -391,6 +391,9 @@ public:
    // thread initialization user code
    ResolvedCallReferenceNode* thr_init;
 
+   // return value for use with %exec-class
+   AbstractQoreNode* exec_class_rv;
+   
    // public object that owns this private implementation
    QoreProgram* pgm;
 
@@ -399,7 +402,7 @@ public:
         only_first_except(false), po_locked(false), po_allow_restrict(true), exec_class(false), base_object(false),
         requires_exception(false), tclear(0),
         exceptions_raised(0), ptid(0), pwo(n_parse_options), dom(0), pend_dom(0), thread_local_storage(0), twaiting(0),
-        thr_init(0), pgm(n_pgm) {
+        thr_init(0), exec_class_rv(0), pgm(n_pgm) {
       //printd(5, "qore_program_private_base::qore_program_private_base() this: %p pgm: %p po: "QLLD"\n", this, pgm, n_parse_options);
 
       if (p_pgm)
@@ -491,6 +494,7 @@ public:
       assert(!warnSink);
       assert(!pendingParseSink);
       assert(pgm_data_map.empty());
+      assert(!exec_class_rv);
    }
 
    DLLLOCAL void depDeref(ExceptionSink* xsink) {
@@ -1497,6 +1501,17 @@ public:
    DLLLOCAL void runtimeImportSystemFunctions(ExceptionSink* xsink);
    DLLLOCAL void runtimeImportSystemApi(ExceptionSink* xsink);
 
+   DLLLOCAL static int setReturnValue(QoreProgram& pgm, AbstractQoreNode* val, ExceptionSink* xsink) {
+      ReferenceHolder<> rv(val, xsink);
+      if (!pgm.priv->exec_class) {
+         xsink->raiseException("SETRETURNVALUE-ERROR", "cannot set return value when not running in %%exec-class mode; in this case simply return the value directly (or call exit(<val>))");
+         return -1;
+      }
+      discard(pgm.priv->exec_class_rv, xsink);
+      pgm.priv->exec_class_rv = rv.release();
+      return 0;
+   }
+   
    // called when starting a new thread before the new thread is started, to avoid race conditions
    DLLLOCAL static int preregisterNewThread(QoreProgram& pgm, ExceptionSink* xsink) {
       return pgm.priv->preregisterNewThread(xsink);

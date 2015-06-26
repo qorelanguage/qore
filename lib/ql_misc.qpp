@@ -2483,6 +2483,22 @@ int get_parse_options() [flags=CONSTANT] {
    return runtime_get_parse_options();
 }
 
+//! sets the return value for a Program object when running with @ref exec-class "%exec-class"
+/** @par Example:
+    @code
+set_return_value(1);
+    @endcode
+
+    @param val the return value for the Program
+
+    @throw SETRETURNVALUE-ERROR this exception is thrown if the Program is not currently running in @ref exec-class "%exec-class" mode
+
+    @since %Qore 0.8.12
+ */
+set_return_value(any val) [dom=PROCESS] {
+   qore_program_private::setReturnValue(*getProgram(), val ? val->refSelf() : 0, xsink);
+}
+
 //! returns a descriptive string for an exception location; the \c source and \c offset information will also be included in the string returned if present in the @ref exception_hash "exception hash" argument
 /** @par Example:
     @code

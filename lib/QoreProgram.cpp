@@ -350,6 +350,10 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
          pendingParseSink = 0;
       }
 
+      // clear any exec-class return value
+      discard(exec_class_rv, xsink);
+      exec_class_rv = 0;
+      
       // clear program location
       update_runtime_location(QoreProgramLocation());
    }
@@ -799,7 +803,9 @@ QoreHashNode* QoreProgram::getThreadData() {
 AbstractQoreNode* QoreProgram::run(ExceptionSink* xsink) {
    if (!priv->exec_class_name.empty()) {
       runClass(priv->exec_class_name.c_str(), xsink);
-      return 0;
+      AbstractQoreNode* rv = priv->exec_class_rv;
+      priv->exec_class_rv = 0;
+      return rv;
    }
    return runTopLevel(xsink);
 }

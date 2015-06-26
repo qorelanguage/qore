@@ -121,18 +121,22 @@ class Test {
         string vn;
         # bare-refs flag
         bool br = False;
+        # uses UnitTest?
+        bool ut = False;
         # read in file
-        string fd = getFile(fname, \vn, \br);
+        string fd = getFile(fname, \vn, \br, \ut);
 
         Program pgm(PO_ALLOW_INJECTION|PO_NO_CHILD_PO_RESTRICTIONS);
         pgm.setScriptPath(fname);
-        pgm.loadModule("UnitTest");
-        pgm.importGlobalVariable("unit");
-        # add an alias for the $unit variable if the script uses another variable
-        if (vn && vn != "unit") {
-            *string d = br ? "" : "\$";
-            string nd = sprintf("our UnitTest %s%s = %sunit;", d, vn, d);
-            fd = replace(fd, "#XXX_MARKER_XXX", nd);
+        if (ut) {
+            pgm.loadModule("UnitTest");
+            pgm.importGlobalVariable("unit");
+            # add an alias for the $unit variable if the script uses another variable
+            if (vn && vn != "unit") {
+                *string d = br ? "" : "\$";
+                string nd = sprintf("our UnitTest %s%s = %sunit;", d, vn, d);
+                fd = replace(fd, "#XXX_MARKER_XXX", nd);
+            }
         }
 
         # parse the code
@@ -147,13 +151,16 @@ class Test {
         return pgm;
     }
 
-    private string getFile(string fname, reference vn, reference br) {
+    private string getFile(string fname, reference vn, reference br, reference ut) {
         FileLineIterator i(fname);
 
         string str;
 
         while (i.next()) {
             string line = i.getValue();
+
+            if (!ut && line =~ /^%requires.*UnitTest/)
+                ut = True;
 
             # replace the UnitTest declaration with a marker
             if (*string v = (line =~ x/(((my|our)\s+)?UnitTest\s+(\$)?([a-zA-Z0-9_]+)\(\))\s*;/)[4]) {

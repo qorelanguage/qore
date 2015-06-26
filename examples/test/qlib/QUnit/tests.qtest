@@ -3,7 +3,12 @@
 
 %include ../../../../qlib/QUnit.qm
 
+%exec-class QUnitTest
+
 public class DIJClass inherits QUnit::DependencyInjectedTest {
+    constructor() : DependencyInjectedTest("DIJClass", "1.0") {
+    }
+
     performModuleInjections() {
     }
 
@@ -16,17 +21,21 @@ public class DIJClass inherits QUnit::DependencyInjectedTest {
 }
 
 public class EmptyTest inherits QUnit::Test {
+    constructor() : Test("EmptyTest", "1.0") {
+    }
+
     static EmptyTest makeMe() {
         return new EmptyTest();
     }
 }
 
 public class QUnitTest inherits QUnit::Test {
-    constructor() {
+    constructor() : Test("QUnitTest", "1.0") {
         testFunctions = (
             ("func": \testInjectedClass(), "name": "Dependency injection tests"),
             ("func": \testEmptyTest(), "name": "Test empty test"),
         );
+	set_return_value(main());
     }
 
     bool boolWrapper(callref f, softlist args) {
@@ -48,5 +57,3 @@ public class QUnitTest inherits QUnit::Test {
         testAssertion(\t.main(), list(), new QUnit::TestResultExceptionRegexp("TESTING-EXCEPTION", "define some tests first"));
     }
 }
-
-return new QUnitTest().main();

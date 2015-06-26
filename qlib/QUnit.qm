@@ -282,6 +282,11 @@ public class QUnit::TestReporter {
         *string m_comment;
 
         hash m_options;
+
+        #! test case name
+        string m_name;
+        #! test case version
+        string m_version;
     }
 
     public {
@@ -289,8 +294,6 @@ public class QUnit::TestReporter {
             "help"    : "help,h",
             "verbose" : "verbose,v",
             "quiet"   : "quiet,q",
-            "iters"   : "iters,i=i",
-            "threads" : "threads,t=i",
             "format"  : "format=s",
             );
     }
@@ -298,8 +301,6 @@ public class QUnit::TestReporter {
     private usage() {
         printf("usage: %s [options]
  -h,--help         this help text
- -t,--threads=ARG  runs tests in ARG threads
- -i,--iters=ARGS   run tests with this many iterations
     --format=type  output format [default: plainquiet]
         Format descriptions:
             plainquiet ... only print failed tests and a summary at the end
@@ -327,11 +328,6 @@ public class QUnit::TestReporter {
             printf("Warning: excess arguments on command-line\n");
         }
 
-        if (!m_options.iters)
-            m_options.iters = 1;
-        if (!m_options.threads)
-            m_options.threads = 1;
-
         if (m_options.format) {
             if (!exists OUT_TYPES{m_options.format})
                 throw "UNIT-TEST-ERROR", sprintf("Unknown output format: %s", m_options.format);
@@ -346,7 +342,9 @@ public class QUnit::TestReporter {
         }
     }
 
-    constructor(*reference p_argv, hash opts = Opts) {
+    constructor(string name, string version, *reference p_argv, hash opts = Opts) {
+        m_name = name;
+        m_version = version;
         if (!p_argv)
             p_argv = ARGV;
         m_options = new GetOpt(opts).parse2(\p_argv);
@@ -382,13 +380,7 @@ public class QUnit::TestReporter {
     private printTestReport(hash testcase) { callPrinterFunction("testreport", (testcase,)); }
 
     private printPlaintextHeader() {
-        printf("QORE v%s Test Script (%d thread%s, %d iteration%s per thread)\n",
-            Qore::VersionString,
-            m_options.threads,
-            m_options.threads == 1 ? "" : "s",
-            m_options.iters,
-            m_options.iters == 1 ? "" : "s"
-        );
+        printf("QUnit Test %y v%s\n", m_name, m_version);
     }
 
     private printPlaintextSummary() {
@@ -503,14 +495,18 @@ public class QUnit::Test inherits QUnit::TestReporter {
         static QUnit::TestResultFailure RESULT_FAILURE = new QUnit::TestResultFailure();
     }
 
+    #! creates the object and sets the name of the test
+    constructor(string name, string version) : QUnit::TestReporter(name, version) {
+    }
+
     #! Prototype function for setting up test environment. It will be called for each test individually.
-    public setUp() {}
+    setUp() {}
 
     #! Prototype function for cleaning up test environemnt. It will be called after each test has executed.
-    public tearDown() {}
+    tearDown() {}
 
     #! facade for the system environment variables
-    public *string getEnv(string key, *string def) {
+    *string getEnv(string key, *string def) {
         string ekey = sprintf("QUNIT_%s", key);
         return ENV{ekey} ?? def;
     }
@@ -556,16 +552,16 @@ public class QUnit::Test inherits QUnit::TestReporter {
     /**
      * @param condition A test function whose result we are asserting
      * @param args Arguments passed to condition
-     * @param expectedResult A class describing the expected result of condition
+     * @param expectedResult A class describing the expected result of condition; the default is QUnit::TestResultSuccess
      *
      * @return the result of the condition call, if the immediate value has any further use
      */
-    public any testAssertion(code condition, *softlist args, QUnit::AbstractTestResult expectedResult) {
+    public any testAssertion(code condition, *softlist args, QUnit::AbstractTestResult expectedResult = new QUnit::TestResultSuccess()) {
         AbstractTestResult result;
         any ret;
         try {
             ret = call_function_args(condition, args);
-            if (type(ret) == "bool") {
+            if (ret.typeCode() == NT_BOOLEAN) {
                 if (ret) {
                     result = new QUnit::TestResultSuccess();
                 } else {
@@ -588,17 +584,6 @@ public class QUnit::Test inherits QUnit::TestReporter {
             throw "TEST-EXCEPTION", printUnexpectedData(expectedResult.toString(), result.toString());
         }
         return ret;
-    }
-
-    #! Tests for a True assertion. Implicitly assumes True as the test result
-    /**
-     * @param condition A test function whose result we are asserting
-     * @param args Arguments passed to condition
-     *
-     * @return True if the function call succeeded
-     */
-    public any testAssertion(code condition, *softlist args) {
-        return testAssertion(condition, args, new QUnit::TestResultSuccess());
     }
 
     #! Skips a given test, eg. because it may be missing some dependencies.
@@ -727,7 +712,7 @@ public class QUnit::DependencyInjectedTest inherits QUnit::Test {
         static bool instantiated = False;
     }
 
-    constructor() {
+    constructor(string name, string version) : QUnit::Test(name, version) {
         if (instantiated) {
             throw "TESTING-EXCEPTION", "Only one instance of DependencyInjectedTest per program allowed!";
         }
@@ -789,11 +774,14 @@ public class QUnit::DependencyInjectedTest inherits QUnit::Test {
         ReadOnlyFile f(m_testedFile, NOTHING);
         p.parse(f.read(-1), "self-replication");
 
-        return p.run();
+        return p.run() ?? 0;
     }
 }
 
 public class QUnit::DependencyInjectedTestRunner inherits QUnit::Test {
     public setScriptPath(*string testedFile) {}
     private injectIntoModule(string module) {}
+
+    constructor(string name, string version) : QUnit::Test(name, version) {
+    }
 }
