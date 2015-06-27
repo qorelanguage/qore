@@ -1,81 +1,124 @@
 #!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
 %exec-class FtpTest
-%requires UnitTest
-%requires Util
+
+%requires ../../../../../qlib/QUnit.qm
+%requires ../../../../../qlib/Util.qm
+
 %require-types
 %require-our
+%new-style
+    
+class FtpTest inherits FtpClient, QUnit::Test {    
+    private {
+        # file on some public ftp
+        const Url = 'ftp://ftp.wa.co.za/pub/CPAN/index.html';
 
-class FtpTest inherits FtpClient {
-    constructor() {
-        my UnitTest $t();
+        # path on remote host
+        string path;
 
-        my string $url = 'ftp://ftp.wa.co.za/pub/CPAN/index.html'; # file on some public ftp
+        # file on remote host
+        string file;
+        
+        # valid flag
+        bool valid = True;
+    }
+    
+    constructor() : Test("FtpClient Test", "1.0", \ARGV) {
+        # set valid flag; skip tests if no connection can be made
+        string url = ARGV[0] ?? Url;
+        setup(url);
+        
+        testFunctions = (
+            ("func": \tryConnect(), "name": "connect to remote host"),
+            ("func": \testConnection(), "name": "test FtpClient connection"),
+            );
+        set_return_value(main());
+    }
 
-	my hash $h = parse_url($url);
-	if (!exists $h.path) {
-	    printf("url %n is missing a path to retrieve\n", $url);
-	    exit(1);
+    setup(string url) {
+        #UnitTest t();
+
+	hash h = parse_url(url);
+	if (!exists h.path) {
+	    printf("url %y is missing a path to retrieve\n", url);
+            valid = False;
+            return;
 	}
-	if (!exists $h.host) {
-	    printf("url %n is missing the hostname\n", $url);
-	    exit(1);
+	if (!exists h.host) {
+	    printf("url %y is missing the hostname\n", url);
+            valid = False;
+            return;
 	}
 
-	my any $path = dirname($h.path);
-	my any $file = basename($h.path);
+	path = dirname(h.path);
+	file = basename(h.path);
 
-	$.setURL($url);
+	setURL(url);
+    }
 
-	try {
-	    if ($.connect()) {
-		$t.ok(False, 'not connected');
-		printf("%s\n", strerror(errno()));
-		return;
-	    }
-	}
-	catch (hash $ex) {
-	    $t.ok(False, 'not connected');
-	    printf("%s: %s\n", $ex.err, $ex.desc);
-	    return;		
-	}
+    tryConnect() {
+        if (!valid) {
+            testSkip("FtpClient object is not valid");
+            return;
+        }
 
-	$t.ok(True, 'seems we are connected');
-
-        my string $local_path = tmp_location() + '/ftptest';
-        unlink($local_path);
-
-	$.cwd($path);
-
-        my bool $fail = False;
         try {
-            $.get($file, $local_path);
-        }
-        catch (hash $ex) {
-            $fail = True;
-        }
-        $t.ok(!$fail, "getting file check");
-
-        my *list $l = stat($local_path);
-        $t.ok(exists $l, 'file exists');
-
-	$t.ok($.getMode() != "auto", "FtpClient::getMode() != auto");
-
-	$.disconnect();
-        unlink($local_path);
-
-	$t.ok($.getMode() == "auto", "FtpClient::getMode() auto");
-	$.setModePASV();
-
-	if ($.connect()) {
-            $t.ok(False, 'not connected');
-	    printf("%s\n", strerror(errno()));
-	    exit();
+	    connect();
+            testAssertion(\equals(), (True, True));
 	}
-        $t.ok(True, 'seems we are connected');
+	catch (hash ex) {
+            testAssertion(\equals(), (True, False));
+            valid = False;
+	    #printf("%s: %s\n", ex.err, ex.desc);
+	}
+    }
+    
+    testConnection() {
+	#t.ok(True, 'seems we are connected');
 
-	$t.ok($.getMode() == "pasv", "FtpClient::getMode() pasv persistent");
-	$.disconnect();
-	$t.ok($.getMode() == "pasv", "FtpClient::getMode() pasv persistent after disconnect");
+        string local_path = tmp_location() + '/ftptest';
+        unlink(local_path);
+
+	cwd(path);
+
+        try {
+            get(file, local_path);
+            testAssertion(\equals(), (True, True));
+        }
+        catch (hash ex) {
+            testAssertion(\equals(), (True, False));
+        }
+
+        *list l = stat(local_path);
+        testAssertion(\equals(), (exists l, True));
+        #t.ok(exists l, 'file exists');
+
+        testAssertion(\notEquals(), (getMode(), "auto"));
+	#t.ok(getMode() != "auto", "FtpClient::getMode() != auto");
+
+	disconnect();
+        unlink(local_path);
+
+        testAssertion(\equals(), (getMode(), "auto"));
+	#t.ok(getMode() == "auto", "FtpClient::getMode() auto");
+	setModePASV();
+
+        try {
+	    connect();
+            testAssertion(\equals(), (True, True));
+	}
+	catch (hash ex) {
+            testAssertion(\equals(), (True, False));
+            valid = False;
+	    #printf("%s: %s\n", ex.err, ex.desc);
+	}
+
+        testAssertion(\equals(), (getMode(), "pasv"));
+	#t.ok(getMode() == "pasv", "FtpClient::getMode() pasv persistent");
+	disconnect();
+        testAssertion(\equals(), (getMode(), "pasv"));
+	#t.ok(getMode() == "pasv", "FtpClient::getMode() pasv persistent after disconnect");
     }
 }

@@ -291,9 +291,9 @@ public class QUnit::TestReporter {
 
     public {
         const Opts = (
-            "help"    : "help,h",
-            "verbose" : "verbose,v",
-            "quiet"   : "quiet,q",
+            "help"    : "h,help",
+            "verbose" : "v,verbose",
+            "quiet"   : "q,quiet",
             "format"  : "format=s",
             );
     }
@@ -496,7 +496,7 @@ public class QUnit::Test inherits QUnit::TestReporter {
     }
 
     #! creates the object and sets the name of the test
-    constructor(string name, string version) : QUnit::TestReporter(name, version) {
+    constructor(string name, string version, *reference p_argv, *hash opts) : QUnit::TestReporter(name, version, \p_argv, opts) {
     }
 
     #! Prototype function for setting up test environment. It will be called for each test individually.
@@ -610,6 +610,20 @@ public class QUnit::Test inherits QUnit::TestReporter {
         return True;
     }
 
+    #! Compare two values for inequality
+    /**
+     * @param a Argument 1
+     * @param b Argument 2
+     *
+     * @returns a != b
+     */
+    bool notEquals(any a, any b) {
+        if (a == b) {
+            throw "TEST-FAILED-EXCEPTION", "Value mismatch, " + printUnexpectedData(a, b);
+        }
+        return True;
+    }
+
     #! Compare a string for match against a regexp
     /**
      * @param s String to match
@@ -712,7 +726,7 @@ public class QUnit::DependencyInjectedTest inherits QUnit::Test {
         static bool instantiated = False;
     }
 
-    constructor(string name, string version) : QUnit::Test(name, version) {
+    constructor(string name, string version, *reference p_argv, *hash opts) : QUnit::Test(name, version, \p_argv, opts) {
         if (instantiated) {
             throw "TESTING-EXCEPTION", "Only one instance of DependencyInjectedTest per program allowed!";
         }
@@ -782,6 +796,6 @@ public class QUnit::DependencyInjectedTestRunner inherits QUnit::Test {
     public setScriptPath(*string testedFile) {}
     private injectIntoModule(string module) {}
 
-    constructor(string name, string version) : QUnit::Test(name, version) {
+    constructor(string name, string version, *reference p_argv, *hash opts) : QUnit::Test(name, version, \p_argv, opts) {
     }
 }
