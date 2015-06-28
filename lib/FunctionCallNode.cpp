@@ -114,21 +114,21 @@ static void invalid_access(QoreFunction *func) {
    parse_error("parse options do not allow access to builtin %s '%s%s%s()'", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
 }
 
-static void warn_retval_ignored(QoreFunction *func) {
+static void warn_retval_ignored(const QoreProgramLocation& loc, QoreFunction *func) {
    const char* class_name = func->className();
-   qore_program_private::makeParseWarning(getProgram(), QP_WARN_RETURN_VALUE_IGNORED, "RETURN-VALUE-IGNORED", "call to %s %s%s%s() does not have any side effects and the return value is ignored; to disable this warning, use '%%disable-warning return-value-ignored' in your code", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
+   qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_RETURN_VALUE_IGNORED, "RETURN-VALUE-IGNORED", "call to %s %s%s%s() does not have any side effects and the return value is ignored; to disable this warning, use '%%disable-warning return-value-ignored' in your code", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
 }
 
-static void warn_deprecated(QoreFunction *func) {
+static void warn_deprecated(const QoreProgramLocation& loc, QoreFunction *func) {
    const char* class_name = func->className();
-   qore_program_private::makeParseWarning(getProgram(), QP_WARN_DEPRECATED, "DEPRECATED", "call to deprecated %s %s%s%s(); to disable this warning, use '%%disable-warning deprecated' in your code", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
+   qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_DEPRECATED, "DEPRECATED", "call to deprecated %s %s%s%s(); to disable this warning, use '%%disable-warning deprecated' in your code", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
 }
 
-static void check_flags(QoreFunction *func, int64 flags, int64 pflag) {
+static void check_flags(const QoreProgramLocation& loc, QoreFunction *func, int64 flags, int64 pflag) {
    if ((pflag & PF_RETURN_VALUE_IGNORED) && ((flags & QC_CONSTANT) == QC_CONSTANT))
-      warn_retval_ignored(func);
+      warn_retval_ignored(loc, func);
    if (flags & QC_DEPRECATED)
-      warn_deprecated(func);
+      warn_deprecated(loc, func);
 }
 
 int FunctionCallBase::parseArgsVariant(const QoreProgramLocation& loc, LocalVar* oflag, int pflag, QoreFunction *func, const QoreTypeInfo*& returnTypeInfo) {
@@ -202,7 +202,7 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation& loc, LocalVar*
             if (dflags && qore_program_private::parseAddDomain(pgm, dflags))
                invalid_access(func);
             int64 flags = variant->getFlags();
-            check_flags(func, flags, pflag);
+            check_flags(loc, func, flags, pflag);
          }
       }
       else {
@@ -211,7 +211,7 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation& loc, LocalVar*
 	 int64 dflags = func->parseGetUniqueFunctionality();
 	 if (dflags && qore_program_private::parseAddDomain(pgm, dflags))
 	    invalid_access(func);
-         check_flags(func, func->parseGetUniqueFlags(), pflag);
+         check_flags(loc, func, func->parseGetUniqueFlags(), pflag);
       }
 
       returnTypeInfo = variant ? variant->parseGetReturnTypeInfo() : func->parseGetUniqueReturnTypeInfo();

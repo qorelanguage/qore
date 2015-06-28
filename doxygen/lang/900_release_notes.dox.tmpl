@@ -287,6 +287,7 @@
     - fixed a bug where ==, >, and < operators applied type precendence incorrectly when applying optimizations at parse time in relation to arbitrary-precision numeric values
     - fixed a static memory leak in the parser handling out of line method declarations
     - fixed a bug in handling socket disconnection errors in SSL operations where the SSL helper object was deleted and then used causing a crash
+    - fixed a bug where @ref deprecated and @ref return-value-ignored warnings were reported at the incorrect source location
 
     @section qore_0811 Qore 0.8.11
 
