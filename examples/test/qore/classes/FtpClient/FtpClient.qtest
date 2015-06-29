@@ -24,22 +24,19 @@ class FtpTest inherits FtpClient, QUnit::Test {
         # valid flag
         bool valid = True;
     }
-    
+
     constructor() : Test("FtpClient Test", "1.0", \ARGV) {
         # set valid flag; skip tests if no connection can be made
-        string url = ARGV[0] ?? Url;
+        string url = ARGV[0] ?? ENV.QORE_FTPTEST_URL ?? Url;
         setup(url);
-        
+
         testFunctions = (
-            ("func": \tryConnect(), "name": "connect to remote host"),
-            ("func": \testConnection(), "name": "test FtpClient connection"),
+            ("func": \testFtpClient(), "name": "test FtpClient object"),
             );
         set_return_value(main());
     }
 
     setup(string url) {
-        #UnitTest t();
-
 	hash h = parse_url(url);
 	if (!exists h.path) {
 	    printf("url %y is missing a path to retrieve\n", url);
@@ -58,67 +55,36 @@ class FtpTest inherits FtpClient, QUnit::Test {
 	setURL(url);
     }
 
-    tryConnect() {
+    testFtpClient() {
         if (!valid) {
             testSkip("FtpClient object is not valid");
             return;
         }
 
-        try {
-	    connect();
-            testAssertion(\equals(), (True, True));
-	}
-	catch (hash ex) {
-            testAssertion(\equals(), (True, False));
-            valid = False;
-	    #printf("%s: %s\n", ex.err, ex.desc);
-	}
-    }
-    
-    testConnection() {
-	#t.ok(True, 'seems we are connected');
+        testAssertion(\connect(), NOTHING, new TestResultValue(NOTHING));
 
         string local_path = tmp_location() + '/ftptest';
         unlink(local_path);
 
 	cwd(path);
 
-        try {
-            get(file, local_path);
-            testAssertion(\equals(), (True, True));
-        }
-        catch (hash ex) {
-            testAssertion(\equals(), (True, False));
-        }
+        testAssertion(\get(), (file, local_path), new TestResultValue(NOTHING));
 
         *list l = stat(local_path);
-        testAssertion(\equals(), (exists l, True));
-        #t.ok(exists l, 'file exists');
+        testAssertion(int sub () {return l.typeCode();}, NOTHING, new TestResultValue(NT_LIST));
 
         testAssertion(\notEquals(), (getMode(), "auto"));
-	#t.ok(getMode() != "auto", "FtpClient::getMode() != auto");
 
 	disconnect();
         unlink(local_path);
 
         testAssertion(\equals(), (getMode(), "auto"));
-	#t.ok(getMode() == "auto", "FtpClient::getMode() auto");
 	setModePASV();
 
-        try {
-	    connect();
-            testAssertion(\equals(), (True, True));
-	}
-	catch (hash ex) {
-            testAssertion(\equals(), (True, False));
-            valid = False;
-	    #printf("%s: %s\n", ex.err, ex.desc);
-	}
+        testAssertion(\connect(), NOTHING, new TestResultValue(NOTHING));
 
         testAssertion(\equals(), (getMode(), "pasv"));
-	#t.ok(getMode() == "pasv", "FtpClient::getMode() pasv persistent");
 	disconnect();
         testAssertion(\equals(), (getMode(), "pasv"));
-	#t.ok(getMode() == "pasv", "FtpClient::getMode() pasv persistent after disconnect");
     }
 }

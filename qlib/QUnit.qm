@@ -306,12 +306,12 @@ public class QUnit::TestReporter {
             plainquiet ... only print failed tests and a summary at the end
             plain      ... print a status for each test performed
             junit      ... print a junit xml output
- -v.--verbose      shorthand for --format=plain
- -q.--quiet        shorthand for --format=quietplain
+ -v,--verbose      shorthand for --format=plain
+ -q,--quiet        shorthand for --format=quietplain
 
 ", get_script_name());
 
-        map printf("    %s\n", $1), keys OUT_TYPES;
+        map printf("    %s\n", $1), OUT_TYPES.keyIterator();
         exit(1);
     }
 
