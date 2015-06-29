@@ -23,32 +23,28 @@ class Test inherits QUnit::Test {
     }
     
     constructor() : QUnit::Test("DataLineIterator", "1.0") {
-        testFunctions = (
-            ("func": sub() {doTestsExplicit("\n");}, "name": "LF Explicit tests"),
-            ("func": sub() {doTestsAuto("\n");}, "name": "LF Auto tests"),
-            ("func": sub() {doTestsExplicitUtf16("\n");}, "name": "LF Explicit UTF-16 tests"),
-            ("func": sub() {doTestsAutoUtf16("\n");}, "name": "LF Auto UTF-16 tests"),
-
-            ("func": sub() {doTestsExplicit("\r");}, "name": "CR Explicit tests"),
-            ("func": sub() {doTestsAuto("\r");}, "name": "CR Auto tests"),
-            ("func": sub() {doTestsExplicitUtf16("\r");}, "name": "CR Explicit UTF-16 tests"),
-            ("func": sub() {doTestsAutoUtf16("\r");}, "name": "CR Auto UTF-16 tests"),
-
-            ("func": sub() {doTestsExplicit("\r\n");}, "name": "CRLF Explicit tests"),
-            ("func": sub() {doTestsAuto("\r\n");}, "name": "CRLF Auto tests"),
-            ("func": sub() {doTestsExplicitUtf16("\r\n");}, "name": "CRLF Explicit UTF-16 tests"),
-            ("func": sub() {doTestsAutoUtf16("\r\n");}, "name": "CRLF Auto UTF-16 tests"),
-            );
+        addTestCase("LF Explicit tests", sub() {doTestsExplicit("\n");});
+        addTestCase("LF Auto tests", sub() {doTestsAuto("\n");});
+        addTestCase("LF Explicit UTF-16 tests", sub() {doTestsExplicitUtf16("\n");});
+        addTestCase("LF Auto UTF-16 tests", sub() {doTestsAutoUtf16("\n");});
+        addTestCase("CR Explicit tests", sub() {doTestsExplicit("\r");});
+        addTestCase("CR Auto tests", sub() {doTestsAuto("\r");});
+        addTestCase("CR Explicit UTF-16 tests", sub() {doTestsExplicitUtf16("\r");});
+        addTestCase("CR Auto UTF-16 tests", sub() {doTestsAutoUtf16("\r");});
+        addTestCase("CRLF Explicit tests", sub() {doTestsExplicit("\r\n");});
+        addTestCase("CRLF Auto tests", sub() {doTestsAuto("\r\n");});
+        addTestCase("CRLF Explicit UTF-16 tests", sub() {doTestsExplicitUtf16("\r\n");});
+        addTestCase("CRLF Auto UTF-16 tests", sub() {doTestsAutoUtf16("\r\n");});
         set_return_value(main());
     }
 
     doTestsIntern(string data, DataLineIterator di) {
         for (int i = 0; i < DataList.size(); ++i) {
-            testAssertion(bool sub() {return di.next();});
-            testAssertion(string sub() {return di.getValue();}, NOTHING, new TestResultValue(DataList[i]));
+            testAssertion(sprintf("next() #%d", i+1), bool sub() {return di.next();});
+            testAssertion(sprintf("getValue() #%d", i+1), string sub() {return di.getValue();}, NOTHING, new TestResultValue(DataList[i]));
         }
 
-        testAssertion(bool sub() {return !di.next();});
+        testAssertion("final next()", bool sub() {return !di.next();});
     }
     
     doTestsExplicit(string eol) {

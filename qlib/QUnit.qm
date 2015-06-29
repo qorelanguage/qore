@@ -21,7 +21,7 @@ module QUnit {
 
 /** @mainpage QUnit Module
 
-@tableofcontents
+    @tableofcontents
 
     @section qunit_intro Introduction to the UnitTest Module
 
@@ -287,12 +287,24 @@ public class QUnit::TestReporter {
         string m_name;
         #! test case version
         string m_version;
+
+        #! number of assertions in current test case
+        int case_num_asserts = 0;
+
+        #! number of successful assertions in current test case
+        int case_num_asserts_ok = 0;
+
+        #! total number of assertions in script
+        int num_asserts = 0;
+
+        #! total number of successful assertions in script
+        int num_asserts_ok = 0;
     }
 
     public {
         const Opts = (
             "help"    : "h,help",
-            "verbose" : "v,verbose",
+            "verbose" : "v,verbose:i+",
             "quiet"   : "q,quiet",
             "format"  : "format=s",
             );
@@ -368,27 +380,33 @@ public class QUnit::TestReporter {
         );
     }
 
-    private callPrinterFunction(string type, list args) {
+    private callPrinterFunction(string type, *softlist args) {
         *code c = m_printMethods{m_output}{type};
         if (c) {
             call_function_args(c, args);
         }
     }
 
-    private printHeader() { callPrinterFunction("header", ()); }
-    private printSummary() { callPrinterFunction("summary", ()); }
-    private printTestReport(hash testcase) { callPrinterFunction("testreport", (testcase,)); }
+    private printHeader() { callPrinterFunction("header"); }
+    private printSummary() { callPrinterFunction("summary"); }
+    private printTestReport(hash testcase) { callPrinterFunction("testreport", testcase); }
 
     private printPlaintextHeader() {
         printf("QUnit Test %y v%s\n", m_name, m_version);
     }
 
     private printPlaintextSummary() {
-        string serrors = sprintf(", %d errors", errors());
+        int err = errors();
+        string serrors = sprintf(", %d error", err, err == 1 ? "" : "s");
         string sskipped = sprintf(", %d skipped", skipped());
         int succeeded = testCount() - errors() - skipped();
         string ssucceeded = sprintf(", %d succeeded", succeeded);
-        printf("Ran %d tests%s%s%s\n", testCount(), succeeded > 0 ? ssucceeded : "", errors() > 0 ? serrors : "", skipped() > 0 ? sskipped : "" );
+        string assert_str = sprintf(" (%d assertion%s", num_asserts, num_asserts == 1 ? "" : "s");
+        if (num_asserts != num_asserts_ok)
+            assert_str += sprintf(", %d succeeded", num_asserts_ok);
+        assert_str += ")";
+        int cnt = testCount();
+        printf("Ran %d test case%s%s%s%s%s\n", cnt, cnt == 1 ? "" : "s", succeeded > 0 ? ssucceeded : "", errors() > 0 ? serrors : "", skipped() > 0 ? sskipped : "", assert_str);
     }
 
     private printPlaintextOneTest(hash testcase) {
@@ -397,7 +415,10 @@ public class QUnit::TestReporter {
         }
         string resultType = RESULT_TYPE_DESCRIPTION{testcase.result}{"desc"};
 
-        printf("%s: %s\n", resultType, testcase.msg);
+        printf("%s: %s: %d assertion%s", resultType, testcase.msg, case_num_asserts, case_num_asserts == 1 ? "" : "s");
+        if (case_num_asserts != case_num_asserts_ok)
+            printf(", %d succeeded", case_num_asserts_ok);
+        print("\n");
         if (testcase.result != TEST_SUCCESS) {
             string out = "";
             printf("%s at %s\n", testcase.error, testcase.pos);
@@ -490,7 +511,11 @@ public class QUnit::TestReporter {
 #! Base class representing a simple test, implements an implicit main() function and all utility functions for testing
 public class QUnit::Test inherits QUnit::TestReporter {
     private {
-        *list testFunctions;
+        #! list of test cases
+        list testFunctions = ();
+        #! current assertion name
+        *string assertion_name;
+
         static QUnit::TestResultSuccess RESULT_SUCCESS = new QUnit::TestResultSuccess();
         static QUnit::TestResultFailure RESULT_FAILURE = new QUnit::TestResultFailure();
     }
@@ -509,6 +534,24 @@ public class QUnit::Test inherits QUnit::TestReporter {
     *string getEnv(string key, *string def) {
         string ekey = sprintf("QUNIT_%s", key);
         return ENV{ekey} ?? def;
+    }
+
+    #! adds a test case to run
+    /** @par Example:
+        @code
+addTestCase("MyTest", \myTest());
+        @endcode
+
+        @param name the name of the test case
+        @param call the code to call that executes the test case
+        @param args any optional arguments to the test case call
+    */
+    addTestCase(string name, code call, *softlist args) {
+        testFunctions += (
+            "name": name,
+            "func": call,
+            "args": args,
+            );
     }
 
     #! Helper function for printing out human-readable comparison of two values.
@@ -550,13 +593,19 @@ public class QUnit::Test inherits QUnit::TestReporter {
 
     #! Tests for a single assertion and returns the value
     /**
+     * @param name the name or description of the assertion
      * @param condition A test function whose result we are asserting
      * @param args Arguments passed to condition
      * @param expectedResult A class describing the expected result of condition; the default is QUnit::TestResultSuccess
      *
      * @return the result of the condition call, if the immediate value has any further use
      */
-    public any testAssertion(code condition, *softlist args, QUnit::AbstractTestResult expectedResult = new QUnit::TestResultSuccess()) {
+    public any testAssertion(string name, code condition, *softlist args, QUnit::AbstractTestResult expectedResult = new QUnit::TestResultSuccess()) {
+        setAssertionName(name);
+        on_success setAssertionName();
+        ++case_num_asserts;
+        ++num_asserts;
+
         AbstractTestResult result;
         any ret;
         try {
@@ -583,7 +632,17 @@ public class QUnit::Test inherits QUnit::TestReporter {
         if (!expectedResult.equals(result)) {
             throw "TEST-EXCEPTION", printUnexpectedData(expectedResult.toString(), result.toString());
         }
+        else {
+            ++case_num_asserts_ok;
+            ++num_asserts_ok;
+            if (m_options.verbose > 1)
+                printf("+ OK: %y assertion %y\n", m_name, name);
+        }
         return ret;
+    }
+
+    private setAssertionName(*string name) {
+        assertion_name = name;
     }
 
     #! Skips a given test, eg. because it may be missing some dependencies.
@@ -672,7 +731,7 @@ public class QUnit::Test inherits QUnit::TestReporter {
     #! Run the whole suite, report results
     int main() {
         if (!testFunctions) {
-            throw "TESTING-EXCEPTION", "Please define some tests first in 'testFunctions'!";
+            throw "TESTING-EXCEPTION", sprintf("Please define some tests first by calling %s::addTestCase()", self.className());
         }
 
         printHeader();
@@ -683,6 +742,7 @@ public class QUnit::Test inherits QUnit::TestReporter {
             code testFunction = test.func;
             string testName = test.name;
             softlist args = test.args;
+            case_num_asserts = case_num_asserts_ok = 0;
             {
                 # Setup before test
                 setUp();
@@ -696,10 +756,12 @@ public class QUnit::Test inherits QUnit::TestReporter {
                     hash loc = e.callstack[0];
                     if (e.err == "TEST-SKIPPED-EXCEPTION") {
                         string pos = exception2str(loc);
+                        string txt = sprintf("Skip %srequested", assertion_name ? sprintf("of %y ", assertion_name) : NOTHING);
                         addTestResult(testName, TEST_SKIPPED, "Skip requested", pos, e.desc);
                     } else if (e.err == "TEST-EXCEPTION") {
                         string pos = exception2str(loc);
-                        addTestResult(testName, TEST_FAILURE, "Assertion failure", pos, e.desc);
+                        string txt = sprintf("Assertion %sfailure", assertion_name ? sprintf("%y ", assertion_name) : NOTHING);
+                        addTestResult(testName, TEST_FAILURE, txt, pos, e.desc);
                     } else {
                         # show little higher traceback record in this case
                         string pos = exception2str(e);

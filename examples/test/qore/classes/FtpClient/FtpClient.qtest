@@ -9,7 +9,7 @@
 %require-types
 %require-our
 %new-style
-    
+
 class FtpTest inherits FtpClient, QUnit::Test {    
     private {
         # file on some public ftp
@@ -20,7 +20,7 @@ class FtpTest inherits FtpClient, QUnit::Test {
 
         # file on remote host
         string file;
-        
+
         # valid flag
         bool valid = True;
     }
@@ -30,9 +30,7 @@ class FtpTest inherits FtpClient, QUnit::Test {
         string url = ARGV[0] ?? ENV.QORE_FTPTEST_URL ?? Url;
         setup(url);
 
-        testFunctions = (
-            ("func": \testFtpClient(), "name": "test FtpClient object"),
-            );
+        addTestCase("FtpClient class test case", \testFtpClient());
         set_return_value(main());
     }
 
@@ -61,30 +59,30 @@ class FtpTest inherits FtpClient, QUnit::Test {
             return;
         }
 
-        testAssertion(\connect(), NOTHING, new TestResultValue(NOTHING));
+        testAssertion("FtpClient::connect()", \connect(), NOTHING, new TestResultValue(NOTHING));
 
         string local_path = tmp_location() + '/ftptest';
         unlink(local_path);
 
 	cwd(path);
 
-        testAssertion(\get(), (file, local_path), new TestResultValue(NOTHING));
+        testAssertion("FtpClient::get()", \get(), (file, local_path), new TestResultValue(NOTHING));
 
         *list l = stat(local_path);
-        testAssertion(int sub () {return l.typeCode();}, NOTHING, new TestResultValue(NT_LIST));
+        testAssertion("FtpClient::get() return value", int sub () {return l.typeCode();}, NOTHING, new TestResultValue(NT_LIST));
 
-        testAssertion(\notEquals(), (getMode(), "auto"));
+        testAssertion("FtpClient mode-1", \notEquals(), (getMode(), "auto"));
 
 	disconnect();
         unlink(local_path);
 
-        testAssertion(\equals(), (getMode(), "auto"));
+        testAssertion("FtpClient mode-2", \getMode(), NOTHING, new TestResultValue("auto"));
 	setModePASV();
 
-        testAssertion(\connect(), NOTHING, new TestResultValue(NOTHING));
+        testAssertion("FtpClient::connect() PASV", \connect(), NOTHING, new TestResultValue(NOTHING));
 
-        testAssertion(\equals(), (getMode(), "pasv"));
+        testAssertion("FtpClient mode-3", \getMode(), NOTHING, new TestResultValue("pasv"));
 	disconnect();
-        testAssertion(\equals(), (getMode(), "pasv"));
+        testAssertion("FtpClient mode-4", \getMode(), NOTHING, new TestResultValue("pasv"));
     }
 }
