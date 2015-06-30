@@ -9,12 +9,11 @@
 %exec-class StackGuardTest
 
 public class StackGuardTest inherits QUnit::Test {
-    constructor() : Test("StackuardTest", "1.0") {
-        testFunctions = (
-            ("func": \testInfiniteRecurse(), "name": "Test overflowing the stack limit"),
-            ("func": \testRecurseWithBackground(), "name": "Test two threads"),
-        );
-	set_return_value(main());
+    constructor() : Test("StackGuardTest", "1.0") {
+        addTestCase("Test overflowing the stack limit", \testInfiniteRecurse(), NOTHING);
+        addTestCase("Test two threads", \testRecurseWithBackground(), NOTHING);
+
+        set_return_value(main());
     }
 
     setUp() {
@@ -28,7 +27,7 @@ public class StackGuardTest inherits QUnit::Test {
     }
 
     testInfiniteRecurse() {
-        testAssertion(\recurse(), list(), new QUnit::TestResultExceptionRegexp("STACK-LIMIT-EXCEEDED", "this thread's stack has exceeded the stack size limit"));
+        testAssertion("recurse infinitely", \recurse(), NOTHING, new QUnit::TestResultExceptionRegexp("STACK-LIMIT-EXCEEDED", "this thread's stack has exceeded the stack size limit"));
     }
 
     testRecurseWithBackground() {

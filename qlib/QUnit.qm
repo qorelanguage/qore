@@ -140,7 +140,7 @@ public class QUnit::TestResultValue inherits QUnit::AbstractTestResult {
 
 #! Class representing Exception of a particular type
 public class QUnit::TestResultExceptionType inherits QUnit::AbstractTestResult {
-    private {
+    public {
        string m_exceptionType;
     }
 
@@ -675,7 +675,7 @@ addTestCase(obj);
      * @return the result of the condition call, if the immediate value has any further use
      */
     public any testAssertion(string name, code condition, *softlist args, QUnit::AbstractTestResult expectedResult = new QUnit::TestResultSuccess()) {
-       TestCase tc = get_thread_data("tc");
+        TestCase tc = get_thread_data("tc");
         tc.incAssertions();
         ++num_asserts;
 
