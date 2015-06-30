@@ -31,7 +31,7 @@ module QUnit {
     dependency injection helper for mocking pre-existing classes without modifying their code.
 
     It also provides a number of pre-defined testing functions for use in assertions.
-    
+
     <b>Examples:</b>
     \include examples/test/TestTemplate.qtest
     \include examples/test/TestTempalteInjected.qtest
@@ -62,11 +62,16 @@ public namespace QUnit;
 #! An abstract class representing test result interface
 public class QUnit::AbstractTestResult {
     public {
-        string m_type = "";
-        string m_subType = "";
+        string m_type;
+        *string m_subType;
         any m_value;
     }
-    constructor() {
+    constructor(string type) {
+        m_type = type;
+    }
+    constructor(string type, string subType) {
+        m_type = type;
+        m_subType = subType;
     }
     # test
     abstract public bool equals(AbstractTestResult r);
@@ -75,8 +80,7 @@ public class QUnit::AbstractTestResult {
 
 #! Class representing boolean True
 public class QUnit::TestResultSuccess inherits QUnit::AbstractTestResult {
-    constructor() {
-        m_type = "True";
+    constructor() : AbstractTestResult("True") {
     }
 
     #! Equality operator
@@ -96,13 +100,11 @@ public class QUnit::TestResultFailure inherits QUnit::AbstractTestResult {
     }
 
     #! Instantiate an unspecific failure, no detail.
-    constructor() {
-        m_type = "False";
+    constructor() : AbstractTestResult("False") {
     }
 
     #! Instantiate an annotated failure, string detail.
-    constructor(string s) {
-        m_type = "False";
+    constructor(string s) : AbstractTestResult("False") {
         m_detail = s;
     }
 
@@ -119,9 +121,8 @@ public class QUnit::TestResultFailure inherits QUnit::AbstractTestResult {
 
 #! Class representing any non-boolean value
 public class QUnit::TestResultValue inherits QUnit::AbstractTestResult {
-    constructor(any value) {
-        m_type = "Value";
-        if (type(value) == "bool") {
+    constructor(any value) : AbstractTestResult("Value") {
+        if (value.typeCode() == NT_BOOLEAN) {
             throw "TESTING-EXCEPTION", "Cannot instantiate TestResultValue using a boolean value";
         }
         m_value = value;
@@ -143,8 +144,11 @@ public class QUnit::TestResultExceptionType inherits QUnit::AbstractTestResult {
        string m_exceptionType;
     }
 
-    constructor(string exceptionType) {
-        m_type = "Exception";
+    constructor(string exceptionType) : AbstractTestResult("Exception") {
+        m_exceptionType = exceptionType;
+    }
+
+    private constructor(string exceptionType, string subType) : AbstractTestResult("Exception", subType) {
         m_exceptionType = exceptionType;
     }
 
@@ -171,8 +175,7 @@ public class QUnit::TestResultExceptionDetail inherits QUnit::TestResultExceptio
         string m_exceptionDetail;
     }
 
-    constructor(string exceptionType, string exceptionDetail) : TestResultExceptionType(exceptionType)  {
-        m_subType = "Detail";
+    constructor(string exceptionType, string exceptionDetail) : TestResultExceptionType(exceptionType, "Detail")  {
         m_exceptionDetail = exceptionDetail;
     }
 
@@ -200,16 +203,19 @@ public class QUnit::TestResultExceptionDetail inherits QUnit::TestResultExceptio
     public string toString() {
         return sprintf("Exception: %s: Detail '%s'", m_exceptionType, m_exceptionDetail);
     }
+
+    string getDetail() {
+        return m_exceptionDetail;
+    }
 }
 
 #! Class representing Exception of a particular type and matching regexp for detail
-public class QUnit::TestResultExceptionRegexp inherits QUnit::TestResultExceptionDetail {
+public class QUnit::TestResultExceptionRegexp inherits QUnit::TestResultExceptionType {
     private {
         string m_exceptionRegexp;
     }
 
-    constructor(string exceptionType, string exceptionRegexp) : TestResultExceptionDetail(exceptionType, "")  {
-        m_subType = "Regexp";
+    constructor(string exceptionType, string exceptionRegexp) : TestResultExceptionType(exceptionType, "Regexp")  {
         m_exceptionRegexp = exceptionRegexp;
     }
 
@@ -222,7 +228,7 @@ public class QUnit::TestResultExceptionRegexp inherits QUnit::TestResultExceptio
             return False;
         }
         QUnit::TestResultExceptionDetail e = cast<QUnit::TestResultExceptionDetail>(r);
-        if (!e.m_exceptionDetail.regex(m_exceptionRegexp)) {
+        if (!e.getDetail().regex(m_exceptionRegexp)) {
             return False;
         }
         return True;
@@ -235,17 +241,80 @@ public class QUnit::TestResultExceptionRegexp inherits QUnit::TestResultExceptio
 
 #! Class representing Exception of a particular type and substring for detail
 public class QUnit::TestResultExceptionSubstring inherits QUnit::TestResultExceptionRegexp {
-    private {
-        string m_substring;
-    }
-
-    constructor(string exceptionType, string exceptionSubstring) : TestResultExceptionRegexp(exceptionType, sprintf(".*%s.*", exceptionSubstring)) {
-        # This will implicitly set the inherited equality operator.
-        m_substring = exceptionSubstring;
+    constructor(string exceptionType, string exceptionSubstring) : TestResultExceptionRegexp(exceptionType, exceptionSubstring) {
     }
 
     public string toString() {
-        return sprintf("Exception: %s: Substring '%s'", m_exceptionType, m_substring);
+        return sprintf("Exception: %s: Substring '%s'", m_exceptionType, m_exceptionRegexp);
+    }
+}
+
+#! Class containing the configuration for a test case
+public class QUnit::TestCase {
+    private {
+        string m_name;
+        code m_code;
+        *list m_args;
+
+        #! number of assertions in current test case
+        int num_asserts = 0;
+
+        #! number of successful assertions in current test case
+        int num_asserts_ok = 0;
+    }
+
+    constructor(string name, code code, *softlist args) {
+        m_name = name;
+        m_code = code;
+        m_args = args;
+    }
+
+    run(QUnit::Test test) {
+        # Attempt to run the test function
+        try {
+            save_thread_data("tc", self);
+            on_exit remove_thread_data("tc");
+            call_function_args(m_code, m_args);
+            # Test success
+            test.addTestResult(self, TestReporter::TEST_SUCCESS);
+        }
+        catch (hash e) {
+            hash loc = e.callstack[0];
+            *string assertion_name = e.arg;
+            if (e.err == "TEST-SKIPPED-EXCEPTION") {
+                string pos = get_ex_pos(e);
+                string txt = sprintf("Skip %srequested", assertion_name ? sprintf("of %y ", assertion_name) : NOTHING);
+                test.addTestResult(self, TestReporter::TEST_SKIPPED, "Skip requested", pos, e.desc);
+            } else if (e.err == "TEST-EXCEPTION") {
+                string pos = get_ex_pos(e);
+                string txt = sprintf("Assertion %sfailure", assertion_name ? sprintf("%y ", assertion_name) : NOTHING);
+                test.addTestResult(self, TestReporter::TEST_FAILURE, txt, pos, e.desc);
+            } else {
+                # show little higher traceback record in this case
+                string pos = get_ex_pos(e);
+                test.addTestResult(self, TestReporter::TEST_ERROR, sprintf("Unexpected exception: %s", e.err), pos, e.desc);
+            }
+        }
+    }
+
+    string getName() {
+        return m_name;
+    }    
+    
+    incAssertions() {
+        ++num_asserts;
+    }
+
+    incAssertionsOk() {
+        ++num_asserts_ok;
+    }
+
+    int getAssertionCount() {
+        return num_asserts;
+    }
+
+    int getAssertionOkCount() {
+        return num_asserts_ok;
     }
 }
 
@@ -261,11 +330,6 @@ public class QUnit::TestReporter {
             "plain" : PLAIN,
             "junit" : JUNIT,
         );
-
-        const TEST_SUCCESS = 0;
-        const TEST_FAILURE = 1;
-        const TEST_ERROR = 2;
-        const TEST_SKIPPED = 3;
 
         const RESULT_TYPE_DESCRIPTION = (
             TEST_SUCCESS : ("desc": "Success", "junittag" : NOTHING), # Success does not have a junit child tag
@@ -288,12 +352,6 @@ public class QUnit::TestReporter {
         #! test case version
         string m_version;
 
-        #! number of assertions in current test case
-        int case_num_asserts = 0;
-
-        #! number of successful assertions in current test case
-        int case_num_asserts_ok = 0;
-
         #! total number of assertions in script
         int num_asserts = 0;
 
@@ -308,6 +366,11 @@ public class QUnit::TestReporter {
             "quiet"   : "q,quiet",
             "format"  : "format=s",
             );
+
+        const TEST_SUCCESS = 0;
+        const TEST_FAILURE = 1;
+        const TEST_ERROR = 2;
+        const TEST_SKIPPED = 3;
     }
 
     private usage() {
@@ -415,9 +478,9 @@ public class QUnit::TestReporter {
         }
         string resultType = RESULT_TYPE_DESCRIPTION{testcase.result}{"desc"};
 
-        printf("%s: %s: %d assertion%s", resultType, testcase.msg, case_num_asserts, case_num_asserts == 1 ? "" : "s");
-        if (case_num_asserts != case_num_asserts_ok)
-            printf(", %d succeeded", case_num_asserts_ok);
+        printf("%s: %s: %d assertion%s", resultType, testcase.testcase.getName(), testcase.testcase.getAssertionCount(), testcase.testcase.getAssertionCount() == 1 ? "" : "s");
+        if (testcase.testcase.getAssertionCount() != testcase.testcase.getAssertionOkCount())
+            printf(", %d succeeded", testcase.testcase.getAssertionOkCount());
         print("\n");
         if (testcase.result != TEST_SUCCESS) {
             string out = "";
@@ -496,11 +559,11 @@ public class QUnit::TestReporter {
         return tot;
     }
 
-    private addTestResult(string name, int success, *string error, *string pos, *string detail) {
+    addTestResult(TestCase tc, int success, *string error, *string pos, *string detail) {
         if (!(RESULT_TYPE_DESCRIPTION.hasKey(success))) {
             throw "TESTING-EXCEPTION", "Invalid test result type!";
         }
-        hash testcase = ("msg": name, "result": success, "error": error, "pos": pos, "detail": detail);
+        hash testcase = ("testcase": tc, "result": success, "error": error, "pos": pos, "detail": detail);
 
         printTestReport(testcase);
 
@@ -512,7 +575,7 @@ public class QUnit::TestReporter {
 public class QUnit::Test inherits QUnit::TestReporter {
     private {
         #! list of test cases
-        list testFunctions = ();
+        list testCases = ();
 
         static QUnit::TestResultSuccess RESULT_SUCCESS = new QUnit::TestResultSuccess();
         static QUnit::TestResultFailure RESULT_FAILURE = new QUnit::TestResultFailure();
@@ -545,11 +608,19 @@ addTestCase("MyTest", \myTest());
         @param args any optional arguments to the test case call
     */
     addTestCase(string name, code call, *softlist args) {
-        testFunctions += (
-            "name": name,
-            "func": call,
-            "args": args,
-            );
+        testCases += new TestCase(name, call, args);
+    }
+
+    #! adds a test case to run
+    /** @par Example:
+        @code
+addTestCase(obj);
+        @endcode
+
+        @param tc the test case object
+    */
+    addTestCase(QUnit::TestCase tc) {
+        testCases += tc;
     }
 
     #! Helper function for printing out human-readable comparison of two values.
@@ -596,7 +667,8 @@ addTestCase("MyTest", \myTest());
      * @return the result of the condition call, if the immediate value has any further use
      */
     public any testAssertion(string name, code condition, *softlist args, QUnit::AbstractTestResult expectedResult = new QUnit::TestResultSuccess()) {
-        ++case_num_asserts;
+       TestCase tc = get_thread_data("tc");
+        tc.incAssertions();
         ++num_asserts;
 
         AbstractTestResult result;
@@ -626,7 +698,7 @@ addTestCase("MyTest", \myTest());
             throw "TEST-EXCEPTION", printUnexpectedData(expectedResult.toString(), result.toString(), False, name), name;
         }
         else {
-            ++case_num_asserts_ok;
+            tc.incAssertionsOk();
             ++num_asserts_ok;
             if (m_options.verbose > 1)
                 printf("+ OK: %y assertion %y\n", m_name, name);
@@ -712,55 +784,23 @@ addTestCase("MyTest", \myTest());
 
 ######### Main function and test running helpers
 
-    private string exception2str(hash e) {
-        return sprintf("%s:%s%s", e.file, e.line,
-            e.line != e.endline ? "-" + e.endline : '');
-    }
-
     #! Run the whole suite, report results
     int main() {
-        if (!testFunctions) {
+        if (!testCases) {
             throw "TESTING-EXCEPTION", sprintf("Please define some tests first by calling %s::addTestCase()", self.className());
         }
 
         printHeader();
 
-        ListIterator it(testFunctions);
-        while (it.next()) {
-            hash test = it.getValue();
-            code testFunction = test.func;
-            string testName = test.name;
-            softlist args = test.args;
-            case_num_asserts = case_num_asserts_ok = 0;
-            {
-                # Setup before test
-                setUp();
-                # Attempt to run the test function
-                try {
-                    call_function_args(testFunction, args);
-                    # Test success
-                    addTestResult(testName, TEST_SUCCESS, "", "", "");
-                }
-                catch (hash e) {
-                    hash loc = e.callstack[0];
-                    *string assertion_name = e.arg;
-                    if (e.err == "TEST-SKIPPED-EXCEPTION") {
-                        string pos = exception2str(loc);
-                        string txt = sprintf("Skip %srequested", assertion_name ? sprintf("of %y ", assertion_name) : NOTHING);
-                        addTestResult(testName, TEST_SKIPPED, "Skip requested", pos, e.desc);
-                    } else if (e.err == "TEST-EXCEPTION") {
-                        string pos = exception2str(loc);
-                        string txt = sprintf("Assertion %sfailure", assertion_name ? sprintf("%y ", assertion_name) : NOTHING);
-                        addTestResult(testName, TEST_FAILURE, txt, pos, e.desc);
-                    } else {
-                        # show little higher traceback record in this case
-                        string pos = exception2str(e);
-                        addTestResult(testName, TEST_ERROR, sprintf("Unexpected exception: %s", e.err), pos, e.desc);
-                    }
-                }
-                # Cleanup
-                tearDown();
-            }
+        foreach TestCase tc in (testCases) {
+            # Setup before test
+            setUp();
+
+            # run test case
+            tc.run(self);
+
+            # Cleanup
+            tearDown();
         }
 
         printSummary();
