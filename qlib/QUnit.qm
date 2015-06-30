@@ -513,8 +513,6 @@ public class QUnit::Test inherits QUnit::TestReporter {
     private {
         #! list of test cases
         list testFunctions = ();
-        #! current assertion name
-        *string assertion_name;
 
         static QUnit::TestResultSuccess RESULT_SUCCESS = new QUnit::TestResultSuccess();
         static QUnit::TestResultFailure RESULT_FAILURE = new QUnit::TestResultFailure();
@@ -555,35 +553,32 @@ addTestCase("MyTest", \myTest());
     }
 
     #! Helper function for printing out human-readable comparison of two values.
-    private string printUnexpectedData(any exp, any act) {
+    private string printUnexpectedData(any exp, any act, *bool neg) {
         string expected = sprintf("%N", exp);
-        string actual = sprintf("%N", act);
+        string actual = neg ? "<identical>" : sprintf("%N", act);
         list expectedLines = expected.split("\n");
         list actualLines = actual.split("\n");
 
         # Distinguish between multiline
-        bool multiline = (((elements expectedLines) + (elements actualLines)) > 2);
+        bool multiline = ((expectedLines.size() + actualLines.size()) > 2);
 
         string result = "";
         if (!multiline) {
             # For some very simple values that fit on one line, just put it on one line. For values that would overflow the standard line size, do two lines.
             bool twoline = length(expected) + length(actual) > 40;
-            result += sprintf("Expected %s%sActual %s", expected, twoline ? "\n" : ", ", actual);
+            result += sprintf("Expected%s %s%sActual %s", neg ? " Not Equal" : "", expected, twoline ? "\n" : ", ", actual);
         } else {
             ListIterator it;
-            result += "* Expected:";
+            result += sprintf("* Expected%s:", neg ? " Not Equal" : "");
             result += "\n\t--------------------\n";
-            it = new ListIterator(expectedLines);
-            while (it.next()) {
-                result += sprintf("\t%s\n", it.getValue());
-            }
+            map result += sprintf("\t%s\n", $1), expectedLines;
             result += "\t--------------------\n";
             result += "*   Actual:";
             result += "\n\t--------------------\n";
-            it = new ListIterator(actualLines);
-            while (it.next()) {
-                result += sprintf("\t%s\n", it.getValue());
-            }
+            if (neg)
+                result += "\t<same as above>\n";
+            else
+                map result += sprintf("\t%s\n", $1), actualLines;
             result += "\t--------------------\n";
         }
         return result;
@@ -601,8 +596,6 @@ addTestCase("MyTest", \myTest());
      * @return the result of the condition call, if the immediate value has any further use
      */
     public any testAssertion(string name, code condition, *softlist args, QUnit::AbstractTestResult expectedResult = new QUnit::TestResultSuccess()) {
-        setAssertionName(name);
-        on_success setAssertionName();
         ++case_num_asserts;
         ++num_asserts;
 
@@ -630,7 +623,7 @@ addTestCase("MyTest", \myTest());
         }
 
         if (!expectedResult.equals(result)) {
-            throw "TEST-EXCEPTION", printUnexpectedData(expectedResult.toString(), result.toString());
+            throw "TEST-EXCEPTION", printUnexpectedData(expectedResult.toString(), result.toString(), False, name), name;
         }
         else {
             ++case_num_asserts_ok;
@@ -639,10 +632,6 @@ addTestCase("MyTest", \myTest());
                 printf("+ OK: %y assertion %y\n", m_name, name);
         }
         return ret;
-    }
-
-    private setAssertionName(*string name) {
-        assertion_name = name;
     }
 
     #! Skips a given test, eg. because it may be missing some dependencies.
@@ -678,7 +667,7 @@ addTestCase("MyTest", \myTest());
      */
     bool notEquals(any a, any b) {
         if (a == b) {
-            throw "TEST-FAILED-EXCEPTION", "Value mismatch, " + printUnexpectedData(a, b);
+            throw "TEST-FAILED-EXCEPTION", "Value mismatch, " + printUnexpectedData(a, b, True);
         }
         return True;
     }
@@ -752,8 +741,9 @@ addTestCase("MyTest", \myTest());
                     # Test success
                     addTestResult(testName, TEST_SUCCESS, "", "", "");
                 }
-                catch (e) {
+                catch (hash e) {
                     hash loc = e.callstack[0];
+                    *string assertion_name = e.arg;
                     if (e.err == "TEST-SKIPPED-EXCEPTION") {
                         string pos = exception2str(loc);
                         string txt = sprintf("Skip %srequested", assertion_name ? sprintf("of %y ", assertion_name) : NOTHING);
