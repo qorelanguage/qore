@@ -48,13 +48,12 @@ public class FileLineIteratorFake {
 
 public class DIJClass inherits QUnit::DependencyInjectedTest {
     constructor() : DependencyInjectedTest("Inject", "1.0") {
-        testFunctions = (
-            ("func": \testDirectlyInjectedClass(), "name": "Directly instantiate injected classes"),
-            ("func": \testInheritedInjectedClass(), "name": "Instantiate classes with an injected ancestor"),
-            ("func": \testModuleInjectedClass(), "name": "Instantiate class from a module with injected ancestor")
-        );
-	setScriptPath(get_script_path());
-	set_return_value(main());
+        addTestCase("Directly instantiate injected classes", \testDirectlyInjectedClass(), NOTHING);
+        addTestCase("Instantiate classes with an injected ancestor", \testInheritedInjectedClass(), NOTHING);
+        addTestCase("Instantiate class from a module with injected ancestor", \testModuleInjectedClass(), NOTHING);
+
+        setScriptPath(get_script_path());
+        set_return_value(main());
     }
 
     performModuleInjections() {
@@ -68,12 +67,12 @@ public class DIJClass inherits QUnit::DependencyInjectedTest {
 
     testDirectlyInjectedClass() {
         A a();
-        testAssertion(\a.test(), list());
+        testAssertion("run test", \a.test(), list());
     }
 
     testInheritedInjectedClass() {
         B b();
-        testAssertion(\b.test(), list());
+        testAssertion("run test", \b.test(), list());
     }
 
     createIterator() {
@@ -83,6 +82,6 @@ public class DIJClass inherits QUnit::DependencyInjectedTest {
 
     testModuleInjectedClass() {
         # Since FileLineIterator tries to open a file in the constructor, this will succeed as soon as our constructor of FileLineIteratorFake is called
-        testAssertion(\createIterator(), list(), new QUnit::TestResultExceptionRegexp("TEST-EXCEPTION", "this signifies that it actually works"));
+        testAssertion("instantiate iterator", \createIterator(), list(), new QUnit::TestResultExceptionRegexp("TEST-EXCEPTION", "this signifies that it actually works"));
     }
 }

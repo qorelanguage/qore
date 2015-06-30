@@ -31,11 +31,10 @@ public class EmptyTest inherits QUnit::Test {
 
 public class QUnitTest inherits QUnit::Test {
     constructor() : Test("QUnitTest", "1.0") {
-        testFunctions = (
-            ("func": \testInjectedClass(), "name": "Dependency injection tests"),
-            ("func": \testEmptyTest(), "name": "Test empty test"),
-        );
-	set_return_value(main());
+        addTestCase("Dependency injection tests", \testInjectedClass(), NOTHING);
+        addTestCase("Test empty test", \testEmptyTest(), NOTHING);
+
+        set_return_value(main());
     }
 
     bool boolWrapper(callref f, softlist args) {
@@ -47,13 +46,13 @@ public class QUnitTest inherits QUnit::Test {
         DIJClass dit = DIJClass::makeMe();
 
         # Try to run a dependency injected test before script path was set
-        testAssertion(\dit.main(), list(), new QUnit::TestResultExceptionRegexp("TESTING-EXCEPTION", "need to set the script path"));
+        testAssertion("missing script path", \dit.main(), list(), new QUnit::TestResultExceptionRegexp("TESTING-EXCEPTION", "need to set the script path"));
         # Try to instantiate a second dependency injected test
-        testAssertion(\DIJClass::makeMe(), list(), new QUnit::TestResultExceptionRegexp("TESTING-EXCEPTION", "Only one instance of"));
+        testAssertion("too many instances", \DIJClass::makeMe(), list(), new QUnit::TestResultExceptionRegexp("TESTING-EXCEPTION", "Only one instance of"));
     }
 
     testEmptyTest() {
         EmptyTest t();
-        testAssertion(\t.main(), list(), new QUnit::TestResultExceptionRegexp("TESTING-EXCEPTION", "define some tests first"));
+        testAssertion("no tests defined", \t.main(), list(), new QUnit::TestResultExceptionRegexp("TESTING-EXCEPTION", "define some tests first"));
     }
 }
