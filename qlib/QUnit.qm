@@ -274,7 +274,12 @@ public class QUnit::TestCase {
         try {
             setupThread();
             on_exit restoreThread();
+            # User code setup
+            test.setUp();
+            # Main test routine
             call_function_args(m_code, m_args);
+            # User code cleanup
+            test.tearDown();
             # Test success
             test.addTestResult(self, TestReporter::TEST_SUCCESS);
         }
@@ -801,17 +806,11 @@ addTestCase(obj);
         printHeader();
 
         foreach TestCase tc in (testCases) {
-            # Setup before test
-            setUp();
-
             code tinit = sub () {tc.setupThread();};
             set_thread_init(tinit);
 
             # run test case
             tc.run(self);
-
-            # Cleanup
-            tearDown();
         }
 
         printSummary();
