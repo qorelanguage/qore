@@ -12,10 +12,9 @@
 
 public class TmpLocationTest inherits QUnit::Test {
     constructor() : Test("TmpLocationTest", "1.0") {
-        testFunctions = (
-            ("func": \testTmpLocation(), "name": "Test presence of tmp_location()"),
-        );
-	set_return_value(main());
+        addTestCase("Test presence of tmp_location()", \testTmpLocation(), NOTHING);
+
+        set_return_value(main());
     }
 
     bool haveLocation() {
