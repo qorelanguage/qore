@@ -272,8 +272,8 @@ public class QUnit::TestCase {
     run(QUnit::Test test) {
         # Attempt to run the test function
         try {
-            save_thread_data("tc", self);
-            on_exit remove_thread_data("tc");
+            setupThread();
+            on_exit restoreThread();
             call_function_args(m_code, m_args);
             # Test success
             test.addTestResult(self, TestReporter::TEST_SUCCESS);
@@ -315,6 +315,14 @@ public class QUnit::TestCase {
 
     int getAssertionOkCount() {
         return num_asserts_ok;
+    }
+
+    setupThread() {
+        save_thread_data("tc", self);
+    }
+
+    restoreThread() {
+        remove_thread_data("tc");
     }
 }
 
@@ -795,6 +803,9 @@ addTestCase(obj);
         foreach TestCase tc in (testCases) {
             # Setup before test
             setUp();
+
+            code tinit = sub () {tc.setupThread();};
+            set_thread_init(tinit);
 
             # run test case
             tc.run(self);
