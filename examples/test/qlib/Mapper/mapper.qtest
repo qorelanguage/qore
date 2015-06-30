@@ -111,10 +111,8 @@ public class MapperTest inherits QUnit::Test {
     }
 
     constructor() : Test("MapperTest", "1.0") {
-        testFunctions = (
-            ("func": \testMapperMapAll(), "name": "Test mapAll()"),
-            ("func": \testMapperMapData(), "name": "Test MapData()"),
-        );
+        addTestCase("Test mapAll()", \testMapperMapAll(), NOTHING);
+        addTestCase("Test mapData()", \testMapperMapData(), NOTHING);
         set_return_value(main());
     }
 
@@ -129,13 +127,13 @@ public class MapperTest inherits QUnit::Test {
 
     testMapperMapAll() {
         list l = m_map.mapAll(MapInput);
-        testAssertion(\equalsIterated(), (new ListIterator(l), new ListIterator(MapOutput)));
-        testAssertion(\equals(), (m_map.getCount(), 2));
+        testAssertion("Verify mapped list", \equalsIterated(), (new ListIterator(l), new ListIterator(MapOutput)));
+        testAssertion("Verify item count", \equals(), (m_map.getCount(), 2));
     }
 
     testMapperMapData() {
         list l = map m_map.mapData($1), MapInput;
-        testAssertion(\equalsIterated(), (new ListIterator(l), new ListIterator(MapOutput)));
-        testAssertion(\equals(), (m_map.getCount(), 2));
+        testAssertion("Verify mapped list", \equalsIterated(), (new ListIterator(l), new ListIterator(MapOutput)));
+        testAssertion("Verify item count", \equals(), (m_map.getCount(), 2));
     }
 }
