@@ -9,11 +9,12 @@
 
 public class MyTestClass inherits QUnit::DependencyInjectedTest {
     constructor() : DependencyInjectedTest("MyTestClass", "1.0") {
-        testFunctions = (
-            ("func": \testMethod(), "name": "Test something"),
-        );
- 	setScriptPath(get_script_path());
-	set_return_value(main());
+        addTestCase("Test something", \testMethod(), NOTHING);
+
+        # Mandatory for injected tests
+        setScriptPath(get_script_path());
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
     }
 
     nothing performModuleInjections() {
@@ -26,6 +27,6 @@ public class MyTestClass inherits QUnit::DependencyInjectedTest {
 
     testMethod() {
         # Same test style as in TestExample.qtest
-        testAssertion(\equals(), (True, True));
+        testAssertion("success", \equals(), (True, True));
     }
 }

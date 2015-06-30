@@ -9,22 +9,22 @@
 
 public class QUnitTest inherits QUnit::Test {
     constructor() : Test("QUnitTest", "1.0") {
-        testFunctions = (
-            ("func": \testMethod(), "name": "What this method is testing"),
-            ("func": \testSkipped(), "name": "Skipped test")
-        );
- 	# Return for compatibility with test harness that checks return value.
-	set_return_value(main());	
+        addTestCase("What this method is testing", \testMethod(), NOTHING);
+        addTestCase("Skipped test", \testSkipped(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
     }
 
     testMethod() {
         # Test against success
-        testAssertion(\equals(), (True, True));
+        testAssertion("success", \equals(), (True, True));
         # Test against something else
-        testAssertion(\equals(), (True, False), RESULT_FAILURE);
+        testAssertion("failure", \equals(), (True, False), RESULT_FAILURE);
     }
 
     testSkipped() {
+        # Skip this test
         testSkip("Because of the reason it skipped");
     }
 }
