@@ -60,13 +60,32 @@ public:
    DLLLOCAL virtual AbstractQoreNode* parseInit(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 };
 
+// have no program reference
+class LocalResolvedCallReferenceNode : public ResolvedCallReferenceNode {
+public:
+   DLLLOCAL LocalResolvedCallReferenceNode(bool n_needs_eval = false, qore_type_t n_type = NT_FUNCREF) : ResolvedCallReferenceNode(n_needs_eval, n_type) {
+   }
+
+   DLLLOCAL virtual ~LocalResolvedCallReferenceNode() {
+   }
+   
+   // returns true if the cycle was dereferenced
+   DLLLOCAL virtual bool derefProgramCycle(QoreProgram* cpgm, ExceptionSink* xsink) {
+      return false;
+   }
+
+   // reset the Program reference / dependency
+   DLLLOCAL virtual void resetProgramCycle(QoreProgram* cpgm) {
+   }
+};
+
 //! a call reference to a static user method
-class LocalStaticMethodCallReferenceNode : public ResolvedCallReferenceNode {
+class LocalStaticMethodCallReferenceNode : public LocalResolvedCallReferenceNode {
 protected:
    const QoreMethod* method;
 
    // constructor for subclasses
-   DLLLOCAL LocalStaticMethodCallReferenceNode(const QoreMethod* n_method, bool n_needs_eval) : ResolvedCallReferenceNode(n_needs_eval), method(n_method) {
+   DLLLOCAL LocalStaticMethodCallReferenceNode(const QoreMethod* n_method, bool n_needs_eval) : LocalResolvedCallReferenceNode(n_needs_eval), method(n_method) {
    }
 
    DLLLOCAL virtual AbstractQoreNode* evalImpl(ExceptionSink* xsink) const;
@@ -85,7 +104,7 @@ protected:
    }
 
 public:
-   DLLLOCAL LocalStaticMethodCallReferenceNode(const QoreMethod* n_method) : ResolvedCallReferenceNode(true), method(n_method) {
+   DLLLOCAL LocalStaticMethodCallReferenceNode(const QoreMethod* n_method) : LocalResolvedCallReferenceNode(true), method(n_method) {
       //printd(5, "LocalStaticMethodCallReferenceNode::LocalStaticMethodCallReferenceNode() this=%p %s::%s() pgm=%p\n", this, method->getClass()->getName(), method->getName(), pgm);
    }
    DLLLOCAL virtual ~LocalStaticMethodCallReferenceNode() {
@@ -104,6 +123,7 @@ public:
 class StaticMethodCallReferenceNode : public LocalStaticMethodCallReferenceNode {
 protected:   
    QoreProgram* pgm;
+   bool pgm_ref;
 
    DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink);
 
@@ -113,6 +133,23 @@ public:
       assert(!pgm);
    }
    DLLLOCAL virtual QoreValue execValue(const QoreListNode *args, ExceptionSink *xsink) const;
+
+   // returns true if the cycle was dereferenced
+   DLLLOCAL virtual bool derefProgramCycle(QoreProgram* cpgm, ExceptionSink* xsink) {
+      if (pgm_ref && pgm == cpgm) {
+         pgm_ref = false;
+         pgm->depDeref(xsink);
+         return true;
+      }
+      return false;
+   }
+
+   // reset the Program reference / dependency
+   DLLLOCAL virtual void resetProgramCycle(QoreProgram* cpgm) {
+      assert(!pgm_ref && pgm == cpgm);
+      pgm_ref = true;
+      pgm->depRef();
+   }
 };
 
 //! a call reference to a static user method
@@ -139,18 +176,36 @@ public:
 };
 
 class MethodCallReferenceNode : public LocalMethodCallReferenceNode {
-protected:   
+protected:
    QoreProgram* pgm;
-
+   bool pgm_ref;
+   
    DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink);
 
 public:
    DLLLOCAL MethodCallReferenceNode(const QoreMethod* n_method, QoreProgram* n_pgm);
    DLLLOCAL virtual QoreValue execValue(const QoreListNode* args, ExceptionSink* xsink) const;
+
+   // returns true if the cycle was dereferenced
+   DLLLOCAL virtual bool derefProgramCycle(QoreProgram* cpgm, ExceptionSink* xsink) {
+      if (pgm_ref && pgm == cpgm) {
+         pgm_ref = false;
+         pgm->depDeref(xsink);
+         return true;
+      }
+      return false;
+   }
+
+   // reset the Program reference / dependency
+   DLLLOCAL virtual void resetProgramCycle(QoreProgram* cpgm) {
+      assert(!pgm_ref && pgm == cpgm);
+      pgm_ref = true;
+      pgm->depRef();
+   }
 };
 
 //! a call reference to a user function from within the same QoreProgram object
-class LocalFunctionCallReferenceNode : public ResolvedCallReferenceNode {
+class LocalFunctionCallReferenceNode : public LocalResolvedCallReferenceNode {
 protected:
    const QoreFunction* uf;
 
@@ -188,16 +243,34 @@ public:
 class FunctionCallReferenceNode : public LocalFunctionCallReferenceNode {
 protected:
    QoreProgram* pgm;
-
+   bool pgm_ref;
+   
    DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink);
 
 public:
-   DLLLOCAL FunctionCallReferenceNode(const QoreFunction* n_uf, QoreProgram* n_pgm) : LocalFunctionCallReferenceNode(n_uf, false), pgm(n_pgm) {      
+   DLLLOCAL FunctionCallReferenceNode(const QoreFunction* n_uf, QoreProgram* n_pgm) : LocalFunctionCallReferenceNode(n_uf, false), pgm(n_pgm), pgm_ref(true) {
       assert(pgm);
       //pgm->depRef();
       pgm->ref();
    }
    DLLLOCAL virtual QoreValue execValue(const QoreListNode* args, ExceptionSink* xsink) const;
+
+   // returns true if the cycle was dereferenced
+   DLLLOCAL virtual bool derefProgramCycle(QoreProgram* cpgm, ExceptionSink* xsink) {
+      if (pgm_ref && pgm == cpgm) {
+         pgm_ref = false;
+         pgm->deref(xsink);
+         return true;
+      }
+      return false;
+   }
+
+   // reset the Program reference / dependency
+   DLLLOCAL virtual void resetProgramCycle(QoreProgram* cpgm) {
+      assert(!pgm_ref && pgm == cpgm);
+      pgm_ref = true;
+      pgm->ref();
+   }
 };
 
 //! an unresolved static method call reference, only present temporarily in the parse tree
@@ -240,6 +313,12 @@ public:
       // FIXME: implement type checking and method matching in ParseObjectMethodReferenceNode::parseInit()
       return 0;
    }
+
+   // returns true if the cycle was dereferenced
+   DLLLOCAL virtual bool derefProgramCycle(QoreProgram* cpgm, ExceptionSink* xsink);
+
+   // reset the Program reference / dependency
+   DLLLOCAL virtual void resetProgramCycle(QoreProgram* cpgm);
 };
 
 //! a run-time call reference to a method of a particular object where the method's class
@@ -263,6 +342,12 @@ public:
    DLLLOCAL virtual QoreFunction* getFunction() {
       return method ? method->getFunction() : 0;
    }
+
+   // returns true if the cycle was dereferenced
+   DLLLOCAL virtual bool derefProgramCycle(QoreProgram* cpgm, ExceptionSink* xsink);
+
+   // reset the Program reference / dependency
+   DLLLOCAL virtual void resetProgramCycle(QoreProgram* cpgm);
 };
 
 #endif

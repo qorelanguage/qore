@@ -41,48 +41,48 @@ private:
    //! this function will never be executed for parse types; this function should never be called directly
    /** in debug mode this function calls assert(false)
     */
-   DLLLOCAL virtual AbstractQoreNode *realCopy() const;
+   DLLLOCAL virtual AbstractQoreNode* realCopy() const;
 
    //! this function will never be executed for parse types; this function should never be called directly
    /** in debug mode this function calls assert(false)
     */
-   DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const;
+   DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode* v, ExceptionSink* xsink) const;
 
    //! this function will never be executed for parse types; this function should never be called directly
    /** in debug mode this function calls assert(false)
     */
-   DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
+   DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink) const;
 
 protected:
    //! this function should never be called for function references; this function should never be called directly
    /** in debug mode this function calls assert(false)
     */
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL virtual AbstractQoreNode* evalImpl(ExceptionSink* xsink) const;
 
    //! this function should never be called for function references; this function should never be called directly
    /** in debug mode this function calls assert(false)
     */
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
+   DLLLOCAL virtual AbstractQoreNode* evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
    //! this function should never be called for function references; this function should never be called directly
    /** in debug mode this function calls assert(false)
     */
-   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink* xsink) const;
 
    //! this function should never be called for function references; this function should never be called directly
    /** in debug mode this function calls assert(false)
     */
-   DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL virtual int integerEvalImpl(ExceptionSink* xsink) const;
 
    //! this function should never be called for function references; this function should never be called directly
    /** in debug mode this function calls assert(false)
     */
-   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink* xsink) const;
 
    //! this function should never be called for function references; this function should never be called directly
    /** in debug mode this function calls assert(false)
     */
-   DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL virtual double floatEvalImpl(ExceptionSink* xsink) const;
 
    //! protected constructor for subclasses that are not reference-counted
    DLLLOCAL AbstractCallReferenceNode(bool n_needs_eval, bool n_there_can_be_only_one, qore_type_t n_type = NT_FUNCREF);
@@ -104,7 +104,7 @@ public:
        @param xsink not used by this implementation of the function
        @return -1 for exception raised, 0 = OK
    */
-   DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
+   DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
 
    //! returns a QoreString giving the verbose string representation of the value
    /** used for %n and %N printf formatting
@@ -114,15 +114,17 @@ public:
        NOTE: Use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
        @see QoreNodeAsStringHelper
    */
-   DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
+   DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
 
    //! returns the type name as a c string
-   DLLLOCAL virtual const char *getTypeName() const;
+   DLLLOCAL virtual const char* getTypeName() const;
 
-   DLLLOCAL static const char *getStaticTypeName() {
+   DLLLOCAL static const char* getStaticTypeName() {
       return "call reference";
    }
 };
+
+class QoreFunction;
 
 //! base class for resolved call references
 class ResolvedCallReferenceNode : public AbstractCallReferenceNode {
@@ -142,13 +144,19 @@ public:
    /** this function is not exported in the library's public interface
        @return a pointer to the QoreProgram object associated with this reference (can be 0)
    */
-   DLLLOCAL virtual QoreProgram *getProgram() const;
+   DLLLOCAL virtual QoreProgram* getProgram() const;
 
-   DLLLOCAL virtual class QoreFunction *getFunction() = 0;
+   DLLLOCAL virtual QoreFunction* getFunction() = 0;
 
-   DLLLOCAL ResolvedCallReferenceNode *refRefSelf() const {
+   // returns true if the cycle was dereferenced
+   DLLLOCAL virtual bool derefProgramCycle(QoreProgram* cpgm, ExceptionSink* xsink) = 0;
+
+   // reset the Program reference / dependency
+   DLLLOCAL virtual void resetProgramCycle(QoreProgram* cpgm) = 0;
+
+   DLLLOCAL ResolvedCallReferenceNode* refRefSelf() const {
       ref();
-      return const_cast<ResolvedCallReferenceNode *>(this);
+      return const_cast<ResolvedCallReferenceNode*>(this);
    }
 };
 

@@ -355,7 +355,8 @@ public:
       po_allow_restrict : 1,
       exec_class : 1,
       base_object : 1,
-      requires_exception : 1;
+      requires_exception : 1,
+      tip_ref;
 
    int tclear;   // clearing thread-local variables in progress? if so, this is the TID
 
@@ -400,7 +401,7 @@ public:
    DLLLOCAL qore_program_private_base(QoreProgram* n_pgm, int64 n_parse_options, QoreProgram* p_pgm = 0)
       : thread_count(0), thread_waiting(0), parse_count(0), plock(&ma_recursive), parseSink(0), warnSink(0), pendingParseSink(0), RootNS(0), QoreNS(0),
         only_first_except(false), po_locked(false), po_allow_restrict(true), exec_class(false), base_object(false),
-        requires_exception(false), tclear(0),
+        requires_exception(false), tip_ref(false), tclear(0),
         exceptions_raised(0), ptid(0), pwo(n_parse_options), dom(0), pend_dom(0), thread_local_storage(0), twaiting(0),
         thr_init(0), exec_class_rv(0), pgm(n_pgm) {
       //printd(5, "qore_program_private_base::qore_program_private_base() this: %p pgm: %p po: "QLLD"\n", this, pgm, n_parse_options);
@@ -1442,15 +1443,7 @@ public:
    DLLLOCAL void exportGlobalVariable(const char* name, bool readonly, qore_program_private& tpgm, ExceptionSink* xsink);
 
    // returns true if there was already a thread init closure set, false if not
-   DLLLOCAL bool setThreadInit(const ResolvedCallReferenceNode* n_thr_init, ExceptionSink* xsink) {
-      ReferenceHolder<> old(xsink);
-      {
-         AutoLocker al(tlock);
-         old = thr_init;
-         thr_init = n_thr_init ? n_thr_init->refRefSelf() : 0;
-      }
-      return (bool)old;
-   }
+   DLLLOCAL bool setThreadInit(const ResolvedCallReferenceNode* n_thr_init, ExceptionSink* xsink);
 
    DLLLOCAL void setThreadTZ(ThreadProgramData* tpd, const AbstractQoreZoneInfo* tz) {
       AutoLocker al(tlock);

@@ -828,16 +828,26 @@ public:
       td->deref(xsink);
    }
 
-   DLLLOCAL void derefProgramCycle(QoreProgram* p) {
+   DLLLOCAL bool derefProgramCycle(QoreProgram* p, ExceptionSink* xsink) {
       QoreAutoVarRWWriteLocker al(rml);
 
-      if (pgm && pgm_ref) {
+      if (pgm_ref && pgm == p) {
          //pgm->depDeref(0);
-         pgm->deref(0);
-         pgm_ref = 0;
+         pgm->deref(xsink);
+         pgm_ref = false;
+         return true;
       }
+      return false;
    }
 
+   DLLLOCAL void resetProgramCycle(QoreProgram* cpgm) {
+      QoreAutoVarRWWriteLocker al(rml);
+      assert(!pgm_ref && !pgm);
+      pgm_ref = true;
+      pgm = cpgm;
+      pgm->ref();
+   }
+   
    // this method is called when there is an exception in a constructor and the object should be deleted
    DLLLOCAL void obliterate(ExceptionSink* xsink) {
       printd(5, "qore_object_private::obliterate() obj=%p class=%s %d->%d\n", obj, theclass->getName(), obj->references, obj->references - 1);
@@ -1006,10 +1016,14 @@ public:
       obj->priv->plusEquals(v, vl, xsink);
    }
 
-   DLLLOCAL static void derefProgramCycle(QoreObject* obj, QoreProgram* p) {
-      obj->priv->derefProgramCycle(p);
+   DLLLOCAL static bool derefProgramCycle(QoreObject* obj, QoreProgram* p, ExceptionSink* xsink) {
+      return obj->priv->derefProgramCycle(p, xsink);
    }
 
+   DLLLOCAL static void resetProgramCycle(QoreObject* obj, QoreProgram* cpgm) {
+      obj->priv->resetProgramCycle(cpgm);
+   }
+   
    DLLLOCAL static QoreStringNode* firstKey(QoreObject* obj, ExceptionSink* xsink) {
       return obj->priv->firstKey(xsink);
    }

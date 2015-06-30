@@ -41,7 +41,6 @@ class QoreClosureBase : public ResolvedCallReferenceNode {
 protected:
    const QoreClosureParseNode* closure;
    mutable ThreadSafeLocalVarRuntimeEnvironment closure_env;
-   bool pgm_ref;
 
    DLLLOCAL void del(ExceptionSink* xsink) {
       closure_env.del(xsink);
@@ -49,7 +48,7 @@ protected:
 
 public:
    //! constructor is not exported outside the library
-   DLLLOCAL QoreClosureBase(const QoreClosureParseNode* n_closure) : ResolvedCallReferenceNode(false, NT_RUNTIME_CLOSURE), closure(n_closure), closure_env(n_closure->getVList()), pgm_ref(true) {
+   DLLLOCAL QoreClosureBase(const QoreClosureParseNode* n_closure) : ResolvedCallReferenceNode(false, NT_RUNTIME_CLOSURE), closure(n_closure), closure_env(n_closure->getVList()) {
       //printd(5, "QoreClosureBase::QoreClosureBase() this: %p closure: %p\n", this, closure);
       closure->ref();
    }
@@ -74,13 +73,14 @@ public:
    DLLLOCAL virtual QoreFunction* getFunction() {
       return closure->getFunction();
    }
-
-   DLLLOCAL virtual void derefProgramCycle(QoreProgram* cpgm) = 0;
 };
 
 class QoreClosureNode : public QoreClosureBase {
 private:
    QoreProgram* pgm;
+   // for Program dependency management
+   QoreThreadLock m;
+   bool pgm_ref;
 
    DLLLOCAL QoreClosureNode(const QoreClosureNode&); // not implemented
    DLLLOCAL QoreClosureNode& operator=(const QoreClosureNode&); // not implemented
@@ -89,14 +89,14 @@ protected:
    DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink);
       
 public:
-   DLLLOCAL QoreClosureNode(const QoreClosureParseNode* n_closure) : QoreClosureBase(n_closure), pgm(::getProgram()) {
+   DLLLOCAL QoreClosureNode(const QoreClosureParseNode* n_closure) : QoreClosureBase(n_closure), pgm(::getProgram()), pgm_ref(true) {
       //pgm->depRef();
       pgm->ref();
    }
 
    DLLLOCAL virtual ~QoreClosureNode() {
    }
-
+   
    DLLLOCAL virtual QoreValue execValue(const QoreListNode* args, ExceptionSink* xsink) const;
 
    DLLLOCAL virtual QoreProgram* getProgram() const {
@@ -134,13 +134,23 @@ public:
       return v == this;
    }
 
-   DLLLOCAL virtual void derefProgramCycle(QoreProgram* cpgm) {
+   DLLLOCAL virtual bool derefProgramCycle(QoreProgram* cpgm, ExceptionSink* xsink) {
+      AutoLocker al(m);
       //printd(5, "QoreClosureNode::derefProgramCycle(cpgm: %p) this: %p pgm_ref: %d pgm: %p\n", cpgm, this, pgm_ref, pgm);
-      if (pgm_ref) {
-         assert(cpgm == pgm);
-         pgm->deref(0);
+      if (pgm_ref && cpgm == pgm) {
+         pgm->deref(xsink);
          pgm_ref = false;
+         return true;
       }
+      return false;
+   }
+
+   // reset the Program reference / dependency
+   DLLLOCAL virtual void resetProgramCycle(QoreProgram* cpgm) {
+      AutoLocker al(m);
+      assert(!pgm_ref && pgm == cpgm);
+      pgm_ref = true;
+      pgm->ref();
    }
 };
 
@@ -190,12 +200,14 @@ public:
       return v == this;
    }
 
-   DLLLOCAL virtual void derefProgramCycle(QoreProgram* cpgm) {
+   DLLLOCAL virtual bool derefProgramCycle(QoreProgram* cpgm, ExceptionSink* xsink) {
       //printd(5, "QoreObjectClosureNode::derefProgramCycle(cpgm: %p) this: %p pgm_ref: %d obj: %p\n", cpgm, this, pgm_ref, obj);
-      if (pgm_ref) {
-         qore_object_private::derefProgramCycle(obj, cpgm);
-         pgm_ref = false;
-      }
+      return qore_object_private::derefProgramCycle(obj, cpgm, xsink);
+   }
+
+   // reset the Program reference / dependency
+   DLLLOCAL virtual void resetProgramCycle(QoreProgram* cpgm) {
+      qore_object_private::resetProgramCycle(obj, cpgm);
    }
 };
 

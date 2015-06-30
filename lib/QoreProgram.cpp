@@ -164,17 +164,18 @@ void qore_program_private_base::setDefines() {
 }
 
 void qore_program_private_base::startThread(ExceptionSink& xsink) {   
-   assert(!thread_local_storage->get());
-   thread_local_storage->set(new QoreHashNode);
+   if (!thread_local_storage->get())
+      thread_local_storage->set(new QoreHashNode);
 }
 
 void qore_program_private::doThreadInit(ExceptionSink* xsink) {
+   // create/destroy temporary ExceptionSink object if necessary
    std::auto_ptr<ExceptionSink> xs;
    if (!xsink) {
       xs.reset(new ExceptionSink);
       xsink = xs.get();
    }
-   
+
    // if there is any thread-initialization code, execute it here
    ReferenceHolder<ResolvedCallReferenceNode> ti(xsink);
    {
@@ -184,6 +185,25 @@ void qore_program_private::doThreadInit(ExceptionSink* xsink) {
    if (ti) {
       ValueHolder v(ti->execValue(0, xsink), xsink);
    }
+}
+
+// returns true if there was already a thread init closure set, false if not
+bool qore_program_private::setThreadInit(const ResolvedCallReferenceNode* n_thr_init, ExceptionSink* xsink) {
+   // check 
+   ReferenceHolder<ResolvedCallReferenceNode> old(xsink);
+   {
+      AutoLocker al(tlock);
+      old = thr_init;
+      thr_init = n_thr_init ? n_thr_init->refRefSelf() : 0;
+
+      if (tip_ref) {
+	 assert(old);
+	 old->resetProgramCycle(pgm);
+      }
+      tip_ref = thr_init ? thr_init->derefProgramCycle(pgm, xsink) : false;
+      //printd(5, "qore_program_private::setThreadInit() this: %p thr_init: %p %d '%s' tip_ref: %d\n", this, thr_init, get_node_type(thr_init), get_type_name(thr_init), tip_ref);
+   }
+   return (bool)old;
 }
 
 void qore_program_private_base::newProgram() {
@@ -197,6 +217,8 @@ void qore_program_private_base::newProgram() {
    // save thread local storage hash
    assert(!thread_local_storage->get());
    thread_local_storage->set(new QoreHashNode);
+
+   //printd(5, "qore_program_private_base::newProgram() this: %p\n", this);
 
    // copy global feature list to local list
    for (FeatureList::iterator i = qoreFeatureList.begin(), e = qoreFeatureList.end(); i != e; ++i)
