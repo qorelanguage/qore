@@ -23,13 +23,12 @@ public class QorizeRealWorldTest inherits QUnit::Test {
     }
 
     constructor() : Test("QorizeRealWorldTest", "1.0") {
-        testFunctions = (
-            ("func": \testQorizeNewstyle(), "name": "qorize newstyle"),
-            ("func": \testQorizeOldstyle(), "name": "qorize oldstyle"),
-            ("func": \testQorizeNamedNewstyle(), "name": "qorize named newstyle"),
-            ("func": \testQorizeNamedOldstyle(), "name": "qorize named oldstyle")
-        );
-	set_return_value(main());
+        addTestCase("qorize newstyle", \testQorizeNewstyle(), NOTHING);
+        addTestCase("qorize oldstyle", \testQorizeOldstyle(), NOTHING);
+        addTestCase("qorize named newstyle", \testQorizeNamedNewstyle(), NOTHING);
+        addTestCase("qorize named oldstyle", \testQorizeNamedOldstyle(), NOTHING);
+
+	    set_return_value(main());
     }
 
     setUp() {
@@ -43,18 +42,18 @@ public class QorizeRealWorldTest inherits QUnit::Test {
     }
 
     testQorizeNewstyle() {
-        testAssertion( bool sub () { return (qorize(m_h, 'name', NEWSTYLE).size() > MIN_LENGTH); }, list());
+        testAssertion("qorize NEWSTYLE",  bool sub () { return (qorize(m_h, 'name', NEWSTYLE).size() > MIN_LENGTH); }, list());
     }
 
     testQorizeOldstyle() {
-        testAssertion( bool sub () { return (qorize(m_h, 'name', OLDSTYLE).size() > MIN_LENGTH); }, list());
+        testAssertion("qorize OLDSTYLE",  bool sub () { return (qorize(m_h, 'name', OLDSTYLE).size() > MIN_LENGTH); }, list());
     }
 
     testQorizeNamedNewstyle() {
-        testAssertion( bool sub () { return (qorizeNamed(m_h, 'name', NEWSTYLE).size() > MIN_LENGTH); }, list());
+        testAssertion("qorizeNamed NEWSTYLE", bool sub () { return (qorizeNamed(m_h, 'name', NEWSTYLE).size() > MIN_LENGTH); }, list());
     }
 
     testQorizeNamedOldstyle() {
-        testAssertion( bool sub() { return (qorizeNamed(m_h, 'name', OLDSTYLE).size() > MIN_LENGTH); }, list());
+        testAssertion("qorizeNamed OLDSTYLE", bool sub() { return (qorizeNamed(m_h, 'name', OLDSTYLE).size() > MIN_LENGTH); }, list());
     }
 }
