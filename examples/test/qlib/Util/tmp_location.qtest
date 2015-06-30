@@ -25,6 +25,6 @@ public class TmpLocationTest inherits QUnit::Test {
     }
 
     testTmpLocation() {
-        testAssertion(\haveLocation(), ());
+        testAssertion("have location", \haveLocation(), ());
     }
 }
