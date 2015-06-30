@@ -15,6 +15,9 @@ class FtpTest inherits FtpClient, QUnit::Test {
         # file on some public ftp
         const Url = 'ftp://ftp.wa.co.za/pub/CPAN/index.html';
 
+        # FtpClient url
+        string url;
+        
         # path on remote host
         string path;
 
@@ -27,14 +30,13 @@ class FtpTest inherits FtpClient, QUnit::Test {
 
     constructor() : Test("FtpClient Test", "1.0", \ARGV) {
         # set valid flag; skip tests if no connection can be made
-        string url = ARGV[0] ?? ENV.QORE_FTPTEST_URL ?? Url;
-        setup(url);
+        url = ARGV[0] ?? ENV.QORE_FTPTEST_URL ?? Url;
 
         addTestCase("FtpClient class test case", \testFtpClient());
         set_return_value(main());
     }
 
-    setup(string url) {
+    setUp() {
 	hash h = parse_url(url);
 	if (!exists h.path) {
 	    printf("url %y is missing a path to retrieve\n", url);
