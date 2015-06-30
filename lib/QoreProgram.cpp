@@ -166,15 +166,23 @@ void qore_program_private_base::setDefines() {
 void qore_program_private_base::startThread(ExceptionSink& xsink) {   
    assert(!thread_local_storage->get());
    thread_local_storage->set(new QoreHashNode);
+}
 
+void qore_program_private::doThreadInit(ExceptionSink* xsink) {
+   std::auto_ptr<ExceptionSink> xs;
+   if (!xsink) {
+      xs.reset(new ExceptionSink);
+      xsink = xs.get();
+   }
+   
    // if there is any thread-initialization code, execute it here
-   ReferenceHolder<ResolvedCallReferenceNode> ti(&xsink);
+   ReferenceHolder<ResolvedCallReferenceNode> ti(xsink);
    {
       AutoLocker al(tlock);
       ti = thr_init ? thr_init->refRefSelf() : 0;
    }
    if (ti) {
-      ValueHolder v(ti->execValue(0, &xsink), &xsink);
+      ValueHolder v(ti->execValue(0, xsink), xsink);
    }
 }
 

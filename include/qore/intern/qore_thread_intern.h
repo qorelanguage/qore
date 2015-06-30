@@ -945,7 +945,7 @@ public:
    }
 
    DLLLOCAL void delProgram(QoreProgram* pgm);
-   DLLLOCAL void saveProgram(bool runtime);
+   DLLLOCAL void saveProgram(bool runtime, ExceptionSink* xsink);
    DLLLOCAL void del(ExceptionSink* xsink);
 
    DLLLOCAL void deref() {

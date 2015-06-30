@@ -288,6 +288,7 @@
     - fixed a static memory leak in the parser handling out of line method declarations
     - fixed a bug in handling socket disconnection errors in SSL operations where the SSL helper object was deleted and then used causing a crash
     - fixed a bug where @ref deprecated and @ref return-value-ignored warnings were reported at the incorrect source location
+    - fixed a bug in @ref Qore::set_thread_init() where thread initialization did not occur when foreign threads attached to a @ref Qore::Program object with thread initialization set
 
     @section qore_0811 Qore 0.8.11
 

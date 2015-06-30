@@ -1501,6 +1501,12 @@ public:
    DLLLOCAL void runtimeImportSystemFunctions(ExceptionSink* xsink);
    DLLLOCAL void runtimeImportSystemApi(ExceptionSink* xsink);
 
+   DLLLOCAL void doThreadInit(ExceptionSink* xsink);
+   
+   DLLLOCAL static void doThreadInit(QoreProgram& pgm, ExceptionSink* xsink) {
+      pgm.priv->doThreadInit(xsink);
+   }
+   
    DLLLOCAL static int setReturnValue(QoreProgram& pgm, AbstractQoreNode* val, ExceptionSink* xsink) {
       ReferenceHolder<> rv(val, xsink);
       if (!pgm.priv->exec_class) {

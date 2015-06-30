@@ -456,10 +456,10 @@ void ThreadEntry::activate(int tid, pthread_t n_ptid, QoreProgram* p, bool forei
    assert(!thread_data);
    thread_data = new ThreadData(tid, p, foreign);
    ::thread_data.set(thread_data);
+   status = QTS_ACTIVE;
    // set lvstack if QoreProgram set
    if (p)
-      thread_data->tpd->saveProgram(true);
-   status = QTS_ACTIVE;
+      thread_data->tpd->saveProgram(true, 0);
 }
 
 void ThreadProgramData::delProgram(QoreProgram* pgm) {
@@ -476,14 +476,18 @@ void ThreadProgramData::delProgram(QoreProgram* pgm) {
    deref();
 }
 
-void ThreadProgramData::saveProgram(bool runtime) {
+void ThreadProgramData::saveProgram(bool runtime, ExceptionSink* xsink) {
    if (!qore_program_private::setThreadVarData(td->current_pgm, this, td->tlpd, runtime))
       return;
    ref();
    td->current_pgm->depRef();
-   AutoLocker al(pslock);
-   assert(pgm_set.find(td->current_pgm) == pgm_set.end());
-   pgm_set.insert(td->current_pgm);
+   {
+      AutoLocker al(pslock);
+      assert(pgm_set.find(td->current_pgm) == pgm_set.end());
+      pgm_set.insert(td->current_pgm);
+   }
+   if (runtime)
+      qore_program_private::doThreadInit(*td->current_pgm, xsink);
 }
 
 void ThreadProgramData::del(ExceptionSink* xsink) {
@@ -1431,7 +1435,7 @@ ProgramThreadCountContextHelper::ProgramThreadCountContextHelper(ExceptionSink* 
       old_pgm = td->current_pgm;
       old_tlpd = td->tlpd;
       td->current_pgm = pgm;
-      td->tpd->saveProgram(runtime);
+      td->tpd->saveProgram(runtime, xsink);
    }
 }
 
@@ -1467,7 +1471,7 @@ ProgramRuntimeParseCommitContextHelper::ProgramRuntimeParseCommitContextHelper(E
       old_pgm = td->current_pgm;
       old_tlpd = td->tlpd;
       td->current_pgm = pgm;
-      td->tpd->saveProgram(false);
+      td->tpd->saveProgram(false, 0);
    }
 }
 
