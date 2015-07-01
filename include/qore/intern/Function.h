@@ -441,7 +441,6 @@ protected:
    DLLLOCAL int setupCall(CodeEvaluationHelper* ceh, ReferenceHolder<QoreListNode>& argv, ExceptionSink* xsink) const;
 
 public:
-
    DLLLOCAL UserVariantBase(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced);
    DLLLOCAL virtual ~UserVariantBase();
    DLLLOCAL UserSignature* getUserSignature() const {

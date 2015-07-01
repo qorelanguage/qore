@@ -148,12 +148,6 @@ public:
 
    DLLLOCAL virtual QoreFunction* getFunction() = 0;
 
-   // returns true if the cycle was dereferenced
-   DLLLOCAL virtual bool derefProgramCycle(QoreProgram* cpgm, ExceptionSink* xsink) = 0;
-
-   // reset the Program reference / dependency
-   DLLLOCAL virtual void resetProgramCycle(QoreProgram* cpgm) = 0;
-
    DLLLOCAL ResolvedCallReferenceNode* refRefSelf() const {
       ref();
       return const_cast<ResolvedCallReferenceNode*>(this);

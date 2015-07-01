@@ -463,6 +463,7 @@ void ThreadEntry::activate(int tid, pthread_t n_ptid, QoreProgram* p, bool forei
 }
 
 void ThreadProgramData::delProgram(QoreProgram* pgm) {
+   //printd(5, "ThreadProgramData::delProgram() this: %p pgm: %p\n", this, pgm);
    {
       AutoLocker al(pslock);
       pgm_set_t::iterator i = pgm_set.find(pgm);
@@ -470,6 +471,7 @@ void ThreadProgramData::delProgram(QoreProgram* pgm) {
          return;
       pgm_set.erase(i);
    }
+   //printd(5, "ThreadProgramData::delProgram() this: %p deref pgm: %p\n", this, pgm);
    // this can never cause the program to go out of scope because it's always called
    // when the reference count > 1, therefore *xsink = 0 is OK
    pgm->depDeref(0);
@@ -479,6 +481,7 @@ void ThreadProgramData::delProgram(QoreProgram* pgm) {
 void ThreadProgramData::saveProgram(bool runtime, ExceptionSink* xsink) {
    if (!qore_program_private::setThreadVarData(td->current_pgm, this, td->tlpd, runtime))
       return;
+   //printd(5, "ThreadProgramData::saveProgram() this: %p pgm: %p\n", this, td->current_pgm);
    ref();
    td->current_pgm->depRef();
    {
@@ -520,6 +523,7 @@ void ThreadProgramData::del(ExceptionSink* xsink) {
          pgm = (*i);
          pgm_set.erase(i);
       }
+      //printd(5, "ThreadProgramData::del() this: %p pgm: %p\n", this, pgm);
       pgm->depDeref(xsink);
       // only dereference the current object if the thread was deleted from the program
       if (!qore_program_private::endThread(pgm, this, xsink))
@@ -640,6 +644,7 @@ public:
       // decrement program's thread count
       if (started) {
          qore_program_private::decThreadCount(*pgm, tid);
+         //printd(5, "BGThreadParams::del() this: %p pgm: %p\n", this, pgm);
          pgm->depDeref(xsink);
       }
       else if (registered)
@@ -656,6 +661,7 @@ public:
       // set program counter for new thread
       update_runtime_location(loc);
       started = true;
+      //printd(5, "BGThreadParams::startThread() this: %p pgm: %p\n", this, pgm);
       pgm->depRef();
    }
    

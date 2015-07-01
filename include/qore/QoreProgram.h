@@ -404,7 +404,7 @@ public:
    */
    using AbstractPrivateData::deref;
    DLLEXPORT virtual void deref(ExceptionSink* xsink);
-
+   
    //! references "this" and returns a non-const pointer to itself
    DLLEXPORT QoreProgram* programRefSelf() const;
    

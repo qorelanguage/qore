@@ -548,7 +548,7 @@ public:
    QoreHashNode* data;
    QoreProgram* pgm;
 
-   bool system_object, delete_blocker_run, in_destructor, pgm_ref;
+   bool system_object, delete_blocker_run, in_destructor;
    bool recursive_ref_found;
 
    QoreThreadLock rlck;
@@ -816,11 +816,8 @@ public:
          QoreAutoVarRWWriteLocker al(rml);
 
          if (pgm) {
-            if (pgm_ref) {
-               printd(5, "qore_object_private::cleanup() obj=%p (%s) calling QoreProgram::depDeref() (%p)\n", obj, theclass->getName(), pgm);
-               //pgm->depDeref(xsink);
-               pgm->deref(xsink);
-            }
+            printd(5, "qore_object_private::cleanup() obj=%p (%s) calling QoreProgram::depDeref() (%p)\n", obj, theclass->getName(), pgm);
+            pgm->depDeref(xsink);
             pgm = 0;
          }
       }
@@ -828,26 +825,6 @@ public:
       td->deref(xsink);
    }
 
-   DLLLOCAL bool derefProgramCycle(QoreProgram* p, ExceptionSink* xsink) {
-      QoreAutoVarRWWriteLocker al(rml);
-
-      if (pgm_ref && pgm == p) {
-         //pgm->depDeref(0);
-         pgm->deref(xsink);
-         pgm_ref = false;
-         return true;
-      }
-      return false;
-   }
-
-   DLLLOCAL void resetProgramCycle(QoreProgram* cpgm) {
-      QoreAutoVarRWWriteLocker al(rml);
-      assert(!pgm_ref && !pgm);
-      pgm_ref = true;
-      pgm = cpgm;
-      pgm->ref();
-   }
-   
    // this method is called when there is an exception in a constructor and the object should be deleted
    DLLLOCAL void obliterate(ExceptionSink* xsink) {
       printd(5, "qore_object_private::obliterate() obj=%p class=%s %d->%d\n", obj, theclass->getName(), obj->references, obj->references - 1);
@@ -1016,14 +993,6 @@ public:
       obj->priv->plusEquals(v, vl, xsink);
    }
 
-   DLLLOCAL static bool derefProgramCycle(QoreObject* obj, QoreProgram* p, ExceptionSink* xsink) {
-      return obj->priv->derefProgramCycle(p, xsink);
-   }
-
-   DLLLOCAL static void resetProgramCycle(QoreObject* obj, QoreProgram* cpgm) {
-      obj->priv->resetProgramCycle(cpgm);
-   }
-   
    DLLLOCAL static QoreStringNode* firstKey(QoreObject* obj, ExceptionSink* xsink) {
       return obj->priv->firstKey(xsink);
    }

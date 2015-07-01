@@ -62,7 +62,7 @@ QoreValue QoreDotEvalOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
       return pseudo_classes_eval(*nop, m->getName(), m->getArgs(), xsink);
    }
 
-   QoreObject* o = const_cast<QoreObject*>(reinterpret_cast<const QoreObject *>(op->getInternalNode()));
+   QoreObject* o = const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(op->getInternalNode()));
    // FIXME: inefficient
    return m->exec(o, xsink);
 }
@@ -72,7 +72,7 @@ AbstractQoreNode *QoreDotEvalOperatorNode::parseInitImpl(LocalVar *oflag, int pf
    const QoreTypeInfo* typeInfo = 0;
    left = left->parseInit(oflag, pflag, lvids, typeInfo);
 
-   QoreClass* qc = const_cast<QoreClass *>(typeInfo->getUniqueReturnClass());
+   QoreClass* qc = const_cast<QoreClass*>(typeInfo->getUniqueReturnClass());
 
    const QoreMethod* meth = 0;
 
@@ -205,5 +205,5 @@ AbstractQoreNode *QoreDotEvalOperatorNode::makeCallReference() {
 }
 
 QoreOperatorNode *QoreDotEvalOperatorNode::copyBackground(ExceptionSink *xsink) const {
-   return new QoreDotEvalOperatorNode(copy_and_resolve_lvar_refs(left, xsink), reinterpret_cast<MethodCallNode *>(copy_and_resolve_lvar_refs(m, xsink)));
+   return new QoreDotEvalOperatorNode(copy_and_resolve_lvar_refs(left, xsink), reinterpret_cast<MethodCallNode*>(copy_and_resolve_lvar_refs(m, xsink)));
 }

@@ -196,12 +196,7 @@ bool qore_program_private::setThreadInit(const ResolvedCallReferenceNode* n_thr_
       old = thr_init;
       thr_init = n_thr_init ? n_thr_init->refRefSelf() : 0;
 
-      if (tip_ref) {
-	 assert(old);
-	 old->resetProgramCycle(pgm);
-      }
-      tip_ref = thr_init ? thr_init->derefProgramCycle(pgm, xsink) : false;
-      //printd(5, "qore_program_private::setThreadInit() this: %p thr_init: %p %d '%s' tip_ref: %d\n", this, thr_init, get_node_type(thr_init), get_type_name(thr_init), tip_ref);
+      //printd(5, "qore_program_private::setThreadInit() this: %p thr_init: %p %d '%s'\n", this, thr_init, get_node_type(thr_init), get_type_name(thr_init));
    }
    return (bool)old;
 }
@@ -346,6 +341,19 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
       // delete all global variables, etc
       qore_root_ns_private::clearData(*RootNS, xsink);
 
+      // clear thread init code reference if any
+      {
+	 ReferenceHolder<ResolvedCallReferenceNode> old(xsink);
+
+	 {
+	    AutoLocker al(tlock);
+
+	    // clear thread init code reference
+	    old = thr_init;
+	    thr_init = 0;
+	 }
+      }
+
       // clear thread data if base object
       if (base_object)
          clearThreadData(xsink);
@@ -359,11 +367,12 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
 
       // now clear the original map
       {
-         AutoLocker al(tlock);
-         pgm_data_map.clear();
-         tclear = 0;
-         if (twaiting)
-            tcond.broadcast();
+	 AutoLocker al(tlock);
+	 pgm_data_map.clear();
+	 tclear = 0;
+	    
+	 if (twaiting)
+	    tcond.broadcast();
       }
 #ifdef HAVE_SIGNAL_HANDLING
       {
@@ -406,7 +415,7 @@ struct SaveParseLocationHelper : QoreProgramLocation {
 
 int qore_program_private::internParseCommit() {
    QORE_TRACE("qore_program_private::internParseCommit()");
-   printd(5, "qore_program_private::internParseCommit() pgm=%p isEvent=%d\n", pgm, parseSink->isEvent());
+   printd(5, "qore_program_private::internParseCommit() pgm: %p isEvent: %d\n", pgm, parseSink->isEvent());
 
    // save and restore parse location on exit
    // FIXME: remove this when all parseInit code sets the location manually (remove calls to update_parse_location in parseInit code)
@@ -419,7 +428,7 @@ int qore_program_private::internParseCommit() {
       // also initializes namespaces, constants, etc
       sb.parseInit(pwo.parse_options);
 
-      printd(5, "QoreProgram::internParseCommit() this=%p RootNS=%p\n", pgm, RootNS);
+      printd(5, "QoreProgram::internParseCommit() this: %p RootNS: %p\n", pgm, RootNS);
    }
 	 
    // if a parse exception has occurred, then back out all new
@@ -615,7 +624,7 @@ void qore_program_private::exportGlobalVariable(const char* vname, bool readonly
 }
 
 void qore_program_private::del(ExceptionSink* xsink) {
-   printd(5, "QoreProgram::del() pgm=%p (base_object=%d)\n", pgm, base_object);
+   printd(5, "QoreProgram::del() pgm: %p (base_object: %d)\n", pgm, base_object);
 
    if (thr_init)
       thr_init->deref(xsink);
@@ -642,14 +651,14 @@ void qore_program_private::del(ExceptionSink* xsink) {
 
    // method call can be repeated
    sb.del();
-   //printd(5, "QoreProgram::~QoreProgram() this=%p deleting root ns %p\n", this, RootNS);
+   //printd(5, "QoreProgram::~QoreProgram() this: %p deleting root ns %p\n", this, RootNS);
 
    delete RootNS;
    RootNS = 0;
 }
 
 QoreProgram::~QoreProgram() {
-   printd(5, "QoreProgram::~QoreProgram() this=%p\n", this);
+   printd(5, "QoreProgram::~QoreProgram() this: %p\n", this);
    delete priv;
 }
 
@@ -671,8 +680,10 @@ QoreThreadLock* QoreProgram::getParseLock() {
    return &priv->plock;
 }
 
+static void breakit() {}
+
 void QoreProgram::deref(ExceptionSink* xsink) {
-   //printd(5, "QoreProgram::deref() this=%p %d->%d\n", this, reference_count(), reference_count() - 1);
+   //printd(5, "QoreProgram::deref() this: %p %d->%d\n", this, reference_count(), reference_count() - 1);
    if (ROdereference())
       priv->clear(xsink);
 }
@@ -765,7 +776,7 @@ QoreNamespace* QoreProgram::getQoreNS() const {
 }
 
 void QoreProgram::depRef() {
-   //printd(5, "QoreProgram::depRef() this=%p %d->%d\n", this, priv->dc.reference_count(), priv->dc.reference_count() + 1);
+   //printd(5, "QoreProgram::depRef() this: %p %d->%d\n", this, priv->dc.reference_count(), priv->dc.reference_count() + 1);
    priv->dc.ROreference();
 }
 

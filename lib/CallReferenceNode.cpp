@@ -375,15 +375,6 @@ bool RunTimeResolvedMethodReferenceNode::is_equal_hard(const AbstractQoreNode* v
    return vc && vc->obj == obj && vc->method == method;
 }
 
-bool RunTimeResolvedMethodReferenceNode::derefProgramCycle(QoreProgram* cpgm, ExceptionSink* xsink) {
-   return qore_object_private::derefProgramCycle(obj, cpgm, xsink);
-}
-
-// reset the Program reference / dependency
-void RunTimeResolvedMethodReferenceNode::resetProgramCycle(QoreProgram* cpgm) {
-   qore_object_private::resetProgramCycle(obj, cpgm);
-}
-
 RunTimeObjectMethodReferenceNode::RunTimeObjectMethodReferenceNode(QoreObject* n_obj, const char* n_method) : obj(n_obj), method(n_method), qc(runtime_get_class()) {
    printd(5, "RunTimeObjectMethodReferenceNode::RunTimeObjectMethodReferenceNode() this: %p obj: %p (method: %s qc: %p)\n", this, obj, n_method, qc);
    obj->tRef();
@@ -407,15 +398,6 @@ QoreProgram* RunTimeObjectMethodReferenceNode::getProgram() const {
 bool RunTimeObjectMethodReferenceNode::is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink) const {
    const RunTimeObjectMethodReferenceNode* vc = dynamic_cast<const RunTimeObjectMethodReferenceNode*>(v);
    return vc && obj == vc->obj && method == vc->method;
-}
-
-bool RunTimeObjectMethodReferenceNode::derefProgramCycle(QoreProgram* cpgm, ExceptionSink* xsink) {
-   return qore_object_private::derefProgramCycle(obj, cpgm, xsink);
-}
-
-// reset the Program reference / dependency
-void RunTimeObjectMethodReferenceNode::resetProgramCycle(QoreProgram* cpgm) {
-   qore_object_private::resetProgramCycle(obj, cpgm);
 }
 
 UnresolvedProgramCallReferenceNode::UnresolvedProgramCallReferenceNode(char* n_str) : AbstractUnresolvedCallReferenceNode(false), str(n_str) {
@@ -488,18 +470,15 @@ bool LocalMethodCallReferenceNode::is_equal_hard(const AbstractQoreNode* v, Exce
    return vc && method == vc->method;
 }
 
-StaticMethodCallReferenceNode::StaticMethodCallReferenceNode(const QoreMethod* n_method, QoreProgram* n_pgm) : LocalStaticMethodCallReferenceNode(n_method, false), pgm(n_pgm), pgm_ref(true) {
+StaticMethodCallReferenceNode::StaticMethodCallReferenceNode(const QoreMethod* n_method, QoreProgram* n_pgm) : LocalStaticMethodCallReferenceNode(n_method, false), pgm(n_pgm) {
    assert(pgm);
    //printd(5, "StaticMethodCallReferenceNode::StaticMethodCallReferenceNode() this=%p calling QoreProgram::depRef() pgm=%p\n", this, pgm);
    pgm->depRef();
-   //xxx pgm->ref();
 }
 
 bool StaticMethodCallReferenceNode::derefImpl(ExceptionSink* xsink) {
    //printd(5, "StaticMethodCallReferenceNode::deref() this=%p pgm=%p refs: %d -> %d\n", this, pgm, reference_count(), reference_count() - 1);
-   if (pgm_ref)
-      pgm->depDeref(xsink);
-   //xxx pgm->deref(xsink);
+   pgm->depDeref(xsink);
 #ifdef DEBUG
    pgm = 0;
 #endif
@@ -511,18 +490,15 @@ QoreValue StaticMethodCallReferenceNode::execValue(const QoreListNode* args, Exc
    return qore_method_private::eval(*method, 0, args, xsink);
 }
 
-MethodCallReferenceNode::MethodCallReferenceNode(const QoreMethod* n_method, QoreProgram* n_pgm) : LocalMethodCallReferenceNode(n_method, false), pgm(n_pgm), pgm_ref(true) {
+MethodCallReferenceNode::MethodCallReferenceNode(const QoreMethod* n_method, QoreProgram* n_pgm) : LocalMethodCallReferenceNode(n_method, false), pgm(n_pgm) {
    assert(pgm);
    //printd(5, "MethodCallReferenceNode::MethodCallReferenceNode() this=%p calling QoreProgram::depRef() pgm=%p\n", this, pgm);
    pgm->depRef();
-   //xxx pgm->ref();
 }
 
 bool MethodCallReferenceNode::derefImpl(ExceptionSink* xsink) {
    //printd(5, "MethodCallReferenceNode::deref() this=%p pgm=%p refs: %d -> %d\n", this, pgm, reference_count(), reference_count() - 1);
-   //xxx pgm->deref(xsink);
-   if (pgm_ref)
-      pgm->depDeref(xsink);
+   pgm->depDeref(xsink);
    return true;
 }
 
@@ -587,10 +563,10 @@ AbstractQoreNode* UnresolvedStaticMethodCallReferenceNode::parseInit(LocalVar* o
    return rv;
 }
 
-LocalFunctionCallReferenceNode::LocalFunctionCallReferenceNode(const QoreFunction* n_uf, bool n_needs_eval) : LocalResolvedCallReferenceNode(n_needs_eval), uf(n_uf) {
+LocalFunctionCallReferenceNode::LocalFunctionCallReferenceNode(const QoreFunction* n_uf, bool n_needs_eval) : ResolvedCallReferenceNode(n_needs_eval), uf(n_uf) {
 }
 
-LocalFunctionCallReferenceNode::LocalFunctionCallReferenceNode(const QoreFunction* n_uf) : LocalResolvedCallReferenceNode(true), uf(n_uf) {
+LocalFunctionCallReferenceNode::LocalFunctionCallReferenceNode(const QoreFunction* n_uf) : ResolvedCallReferenceNode(true), uf(n_uf) {
 }
 
 AbstractQoreNode* LocalFunctionCallReferenceNode::evalImpl(ExceptionSink* xsink) const {
@@ -614,9 +590,7 @@ bool LocalFunctionCallReferenceNode::is_equal_hard(const AbstractQoreNode* v, Ex
 
 bool FunctionCallReferenceNode::derefImpl(ExceptionSink* xsink) {
    //printd(5, "FunctionCallReferenceNode::deref() this=%p pgm=%p refs: %d -> %d\n", this, pgm, reference_count(), reference_count() - 1);
-   //pgm->depDeref(xsink);
-   if (pgm_ref)
-      pgm->deref(xsink);
+   pgm->depDeref(xsink);
    return true;
 }
 

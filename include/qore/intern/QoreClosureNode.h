@@ -78,9 +78,6 @@ public:
 class QoreClosureNode : public QoreClosureBase {
 private:
    QoreProgram* pgm;
-   // for Program dependency management
-   QoreThreadLock m;
-   bool pgm_ref;
 
    DLLLOCAL QoreClosureNode(const QoreClosureNode&); // not implemented
    DLLLOCAL QoreClosureNode& operator=(const QoreClosureNode&); // not implemented
@@ -89,9 +86,8 @@ protected:
    DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink);
       
 public:
-   DLLLOCAL QoreClosureNode(const QoreClosureParseNode* n_closure) : QoreClosureBase(n_closure), pgm(::getProgram()), pgm_ref(true) {
-      //pgm->depRef();
-      pgm->ref();
+   DLLLOCAL QoreClosureNode(const QoreClosureParseNode* n_closure) : QoreClosureBase(n_closure), pgm(::getProgram()) {
+      pgm->depRef();
    }
 
    DLLLOCAL virtual ~QoreClosureNode() {
@@ -132,25 +128,6 @@ public:
 
    DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink) const {
       return v == this;
-   }
-
-   DLLLOCAL virtual bool derefProgramCycle(QoreProgram* cpgm, ExceptionSink* xsink) {
-      AutoLocker al(m);
-      //printd(5, "QoreClosureNode::derefProgramCycle(cpgm: %p) this: %p pgm_ref: %d pgm: %p\n", cpgm, this, pgm_ref, pgm);
-      if (pgm_ref && cpgm == pgm) {
-         pgm->deref(xsink);
-         pgm_ref = false;
-         return true;
-      }
-      return false;
-   }
-
-   // reset the Program reference / dependency
-   DLLLOCAL virtual void resetProgramCycle(QoreProgram* cpgm) {
-      AutoLocker al(m);
-      assert(!pgm_ref && pgm == cpgm);
-      pgm_ref = true;
-      pgm->ref();
    }
 };
 
@@ -198,16 +175,6 @@ public:
 
    DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink) const {
       return v == this;
-   }
-
-   DLLLOCAL virtual bool derefProgramCycle(QoreProgram* cpgm, ExceptionSink* xsink) {
-      //printd(5, "QoreObjectClosureNode::derefProgramCycle(cpgm: %p) this: %p pgm_ref: %d obj: %p\n", cpgm, this, pgm_ref, obj);
-      return qore_object_private::derefProgramCycle(obj, cpgm, xsink);
-   }
-
-   // reset the Program reference / dependency
-   DLLLOCAL virtual void resetProgramCycle(QoreProgram* cpgm) {
-      qore_object_private::resetProgramCycle(obj, cpgm);
    }
 };
 

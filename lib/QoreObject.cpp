@@ -38,14 +38,14 @@
 qore_object_private::qore_object_private(QoreObject* n_obj, const QoreClass *oc, QoreProgram* p, QoreHashNode* n_data) : 
    theclass(oc), status(OS_OK), 
    privateData(0), data(n_data), pgm(p), system_object(!p), 
-   delete_blocker_run(false), in_destructor(false), pgm_ref(true), 
+   delete_blocker_run(false), in_destructor(false),
    recursive_ref_found(false),
    rscan(0),
    rcount(0), rwaiting(0), rcycle(0), rset(0),
    obj(n_obj) {
    //printd(5, "qore_object_private::qore_object_private() this: %p obj: %p '%s'\n", this, obj, oc->getName());
 #ifdef QORE_DEBUG_OBJ_REFS
-   printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::qore_object_private() obj=%p, pgm=%p, class=%s, references 0->1\n", obj, p, oc->getName());
+   printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::qore_object_private() obj: %p, pgm: %p, class: %s, references 0->1\n", obj, p, oc->getName());
 #endif
    /* instead of referencing the class, we reference the program, because the
       program contains the namespace that contains the class, and the class'
@@ -53,9 +53,8 @@ qore_object_private::qore_object_private(QoreObject* n_obj, const QoreClass *oc,
       disappear when the program is deleted
    */
    if (p) {
-      printd(5, "qore_object_private::qore_object_private() obj=%p (%s) calling QoreProgram::ref() (%p)\n", obj, theclass->getName(), p);
-      //p->depRef();
-      p->ref();
+      printd(5, "qore_object_private::qore_object_private() obj: %p (%s) calling QoreProgram::ref() (%p)\n", obj, theclass->getName(), p);
+      p->depRef();
    }
 #ifdef DEBUG
    n_data->priv->is_obj = true;
@@ -78,7 +77,7 @@ void qore_object_private::merge(const QoreHashNode* h, AutoVLock& vl, ExceptionS
 	 return;
       }
 
-      //printd(5, "qore_object_private::merge() obj=%p\n", obj);
+      //printd(5, "qore_object_private::merge() obj: %p\n", obj);
 
       ConstHashIterator hi(h);
       while (hi.next()) {
@@ -98,7 +97,7 @@ void qore_object_private::merge(const QoreHashNode* h, AutoVLock& vl, ExceptionS
 	 if (!check_recursive && (is_container(n) || is_container(nv)))
 	    check_recursive = true;
 
-	 //printd(5, "QoreObject::merge() n=%p (rc=%d, type=%s)\n", n, n ? n->isReferenceCounted() : 0, get_type_name(n));
+	 //printd(5, "QoreObject::merge() n: %p (rc: %d, type: %s)\n", n, n ? n->isReferenceCounted() : 0, get_type_name(n));
 	 // if we are overwriting a value, then save it in the list for dereferencing after the lock is released
 	 if (n && n->isReferenceCounted()) {
 	    if (!holder)
@@ -276,7 +275,7 @@ QoreObject::QoreObject(const QoreClass* oc, QoreProgram* p, QoreHashNode* h) : A
 
 QoreObject::~QoreObject() {
    //QORE_TRACE("QoreObject::~QoreObject()");
-   //printd(5, "QoreObject::~QoreObject() this=%p, pgm=%p, class=%s\n", this, priv->pgm, priv->theclass->getName());
+   //printd(5, "QoreObject::~QoreObject() this: %p, pgm: %p, class: %s\n", this, priv->pgm, priv->theclass->getName());
 
    delete priv;
 }
@@ -330,7 +329,7 @@ AbstractQoreNode *QoreObject::evalBuiltinMethodWithPrivateData(const QoreMethod 
    if (pd)
       return meth->evalImpl(this, *pd, args, xsink);
 
-   //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this=%p (%s) pd=%p, call=%s::%s(), class ID=%d, method class ID=%d\n", this, priv->theclass->getName(), *pd, method.getClass()->getName(), method.getName(), method.getClass()->getID(), method.getClass()->getIDForMethod());
+   //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this: %p (%s) pd: %p, call: %s::%s(), class ID: %d, method class ID: %d\n", this, priv->theclass->getName(), *pd, method.getClass()->getName(), method.getName(), method.getClass()->getID(), method.getClass()->getIDForMethod());
    check_meth_eval(priv->theclass, method.getName(), method.getClass(), xsink);
    return 0;
 }
@@ -342,7 +341,7 @@ int64 QoreObject::bigIntEvalBuiltinMethodWithPrivateData(const QoreMethod &metho
    if (pd)
       return meth->bigIntEvalImpl(this, *pd, args, xsink);
 
-   //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this=%p (%s) pd=%p, call=%s::%s(), class ID=%d, method class ID=%d\n", this, priv->theclass->getName(), *pd, method.getClass()->getName(), method.getName(), method.getClass()->getID(), method.getClass()->getIDForMethod());
+   //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this: %p (%s) pd: %p, call: %s::%s(), class ID: %d, method class ID: %d\n", this, priv->theclass->getName(), *pd, method.getClass()->getName(), method.getName(), method.getClass()->getID(), method.getClass()->getIDForMethod());
    check_meth_eval(priv->theclass, method.getName(), method.getClass(), xsink);
    return 0;
 }
@@ -354,7 +353,7 @@ int QoreObject::intEvalBuiltinMethodWithPrivateData(const QoreMethod &method, co
    if (pd)
       return meth->intEvalImpl(this, *pd, args, xsink);
 
-   //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this=%p (%s) pd=%p, call=%s::%s(), class ID=%d, method class ID=%d\n", this, priv->theclass->getName(), *pd, method.getClass()->getName(), method.getName(), method.getClass()->getID(), method.getClass()->getIDForMethod());
+   //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this: %p (%s) pd: %p, call: %s::%s(), class ID: %d, method class ID: %d\n", this, priv->theclass->getName(), *pd, method.getClass()->getName(), method.getName(), method.getClass()->getID(), method.getClass()->getIDForMethod());
    check_meth_eval(priv->theclass, method.getName(), method.getClass(), xsink);
    return 0;
 }
@@ -366,7 +365,7 @@ bool QoreObject::boolEvalBuiltinMethodWithPrivateData(const QoreMethod &method, 
    if (pd)
       return meth->boolEvalImpl(this, *pd, args, xsink);
 
-   //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this=%p (%s) pd=%p, call=%s::%s(), class ID=%d, method class ID=%d\n", this, priv->theclass->getName(), *pd, method.getClass()->getName(), method.getName(), method.getClass()->getID(), method.getClass()->getIDForMethod());
+   //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this: %p (%s) pd: %p, call: %s::%s(), class ID: %d, method class ID: %d\n", this, priv->theclass->getName(), *pd, method.getClass()->getName(), method.getName(), method.getClass()->getID(), method.getClass()->getIDForMethod());
    check_meth_eval(priv->theclass, method.getName(), method.getClass(), xsink);
    return 0;
 }
@@ -378,7 +377,7 @@ double QoreObject::floatEvalBuiltinMethodWithPrivateData(const QoreMethod &metho
    if (pd)
       return meth->floatEvalImpl(this, *pd, args, xsink);
 
-   //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this=%p (%s) pd=%p, call=%s::%s(), class ID=%d, method class ID=%d\n", this, priv->theclass->getName(), *pd, method.getClass()->getName(), method.getName(), method.getClass()->getID(), method.getClass()->getIDForMethod());
+   //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this: %p (%s) pd: %p, call: %s::%s(), class ID: %d, method class ID: %d\n", this, priv->theclass->getName(), *pd, method.getClass()->getName(), method.getName(), method.getClass()->getID(), method.getClass()->getIDForMethod());
    check_meth_eval(priv->theclass, method.getName(), method.getClass(), xsink);
    return 0;
 }
@@ -407,7 +406,7 @@ bool QoreObject::evalDeleteBlocker(qore_classid_t classid_for_method, BuiltinDel
    if (pd)
       return meth->eval(this, *pd);
 
-   //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this=%p, method class ID=%d\n", this, classid_for_method);
+   //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this: %p, method class ID: %d\n", this, classid_for_method);
    return false;
 }
 
@@ -496,7 +495,7 @@ AbstractQoreNode *QoreObject::evalMember(const QoreString *member, ExceptionSink
 
    const char *mem = tstr->getBuffer();
 
-   //printd(5, "QoreObject::evalMember() find_key(%s)=%p theclass=%s\n", mem, find_key(mem), theclass ? theclass->getName() : "NONE");
+   //printd(5, "QoreObject::evalMember() find_key(%s): %p theclass: %s\n", mem, find_key(mem), theclass ? theclass->getName() : "NONE");
 
    int rc = priv->checkMemberAccess(mem);
    if (rc) {
@@ -849,7 +848,7 @@ int64 QoreObject::getMemberAsBigInt(const char *mem, bool &found, ExceptionSink*
 AbstractQoreNode *QoreObject::getReferencedMemberNoMethod(const char *mem, ExceptionSink* xsink) const {
    QoreSafeVarRWReadLocker sl(priv->rml);
 
-   printd(5, "QoreObject::getReferencedMemberNoMethod(this=%p, mem=%p (%s), xsink=%p, data->size()=%d)\n",
+   printd(5, "QoreObject::getReferencedMemberNoMethod(this: %p, mem: %p (%s), xsink: %p, data->size(): %d)\n",
 	  this, mem, mem, xsink, priv->data ? priv->data->size() : -1);
 
    if (priv->status == OS_DELETED) {
@@ -983,7 +982,7 @@ void QoreObject::addPrivateDataToString(QoreString* str, ExceptionSink* xsink) c
 
 void QoreObject::defaultSystemDestructor(qore_classid_t classID, ExceptionSink* xsink) {
    AbstractPrivateData *pd = getAndClearPrivateData(classID, xsink);
-   printd(5, "QoreObject::defaultSystemDestructor() this=%p class=%s private_data=%p\n", this, priv->theclass->getName(), pd); 
+   printd(5, "QoreObject::defaultSystemDestructor() this: %p class: %s private_data: %p\n", this, priv->theclass->getName(), pd); 
    if (pd)
       pd->deref(xsink);
 }

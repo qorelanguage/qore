@@ -84,7 +84,7 @@ public:
    }
 
    // returns the type name as a c string
-   DLLLOCAL virtual const char *getTypeName() const {
+   DLLLOCAL virtual const char* getTypeName() const {
       return name.getBuffer();
    }
 
@@ -92,7 +92,7 @@ public:
       return true;
    }
 
-   DLLLOCAL virtual QoreOperatorNode *copyBackground(ExceptionSink *xsink) const;
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const;
 };
 
 #endif

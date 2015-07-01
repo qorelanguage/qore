@@ -315,6 +315,7 @@ class AbstractQoreZoneInfo;
 class qore_program_private_base {
    friend class QoreProgramAccessHelper;
 
+protected:
    DLLLOCAL void setDefines();
 
 public:
@@ -355,8 +356,8 @@ public:
       po_allow_restrict : 1,
       exec_class : 1,
       base_object : 1,
-      requires_exception : 1,
-      tip_ref;
+      requires_exception : 1
+      ;
 
    int tclear;   // clearing thread-local variables in progress? if so, this is the TID
 
@@ -401,11 +402,11 @@ public:
    DLLLOCAL qore_program_private_base(QoreProgram* n_pgm, int64 n_parse_options, QoreProgram* p_pgm = 0)
       : thread_count(0), thread_waiting(0), parse_count(0), plock(&ma_recursive), parseSink(0), warnSink(0), pendingParseSink(0), RootNS(0), QoreNS(0),
         only_first_except(false), po_locked(false), po_allow_restrict(true), exec_class(false), base_object(false),
-        requires_exception(false), tip_ref(false), tclear(0),
+        requires_exception(false), tclear(0),
         exceptions_raised(0), ptid(0), pwo(n_parse_options), dom(0), pend_dom(0), thread_local_storage(0), twaiting(0),
         thr_init(0), exec_class_rv(0), pgm(n_pgm) {
       //printd(5, "qore_program_private_base::qore_program_private_base() this: %p pgm: %p po: "QLLD"\n", this, pgm, n_parse_options);
-
+      
       if (p_pgm)
 	 setParent(p_pgm, n_parse_options);
       else {
