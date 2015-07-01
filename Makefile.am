@@ -47,8 +47,7 @@ DOX_MODULES = qlib/SmtpClient.qm \
 TESTSCRIPTS= \
 	examples/test/qlib/CsvUtil/csvutil.qtest \
 	examples/test/qlib/CsvUtil/test.qtest \
-	examples/test/qlib/Diff/diff.qtest \
-	examples/test/qlib/Diff/diff_text.qtest \
+	examples/test/qlib/Diff/Diff.qtest \
 	examples/test/qlib/FixedLengthUtil/FixedLengthDataIterator.qtest \
 	examples/test/qlib/FixedLengthUtil/FixedLengthDataWriter.qtest \
 	examples/test/qlib/FixedLengthUtil/FixedLengthFileIterator.qtest \
