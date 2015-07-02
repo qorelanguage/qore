@@ -194,6 +194,7 @@ protected:
 public:
    DLLLOCAL FunctionCallReferenceNode(const QoreFunction* n_uf, QoreProgram* n_pgm) : LocalFunctionCallReferenceNode(n_uf, false), pgm(n_pgm) {
       assert(pgm);
+      // make a weak reference to the Program - a strong reference (QoreProgram::ref()) could cause a recursive reference
       pgm->depRef();
    }
    DLLLOCAL virtual QoreValue execValue(const QoreListNode* args, ExceptionSink* xsink) const;

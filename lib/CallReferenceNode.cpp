@@ -473,6 +473,7 @@ bool LocalMethodCallReferenceNode::is_equal_hard(const AbstractQoreNode* v, Exce
 StaticMethodCallReferenceNode::StaticMethodCallReferenceNode(const QoreMethod* n_method, QoreProgram* n_pgm) : LocalStaticMethodCallReferenceNode(n_method, false), pgm(n_pgm) {
    assert(pgm);
    //printd(5, "StaticMethodCallReferenceNode::StaticMethodCallReferenceNode() this=%p calling QoreProgram::depRef() pgm=%p\n", this, pgm);
+   // make a weak reference to the Program - a strong reference (QoreProgram::ref()) could cause a recursive reference
    pgm->depRef();
 }
 
@@ -493,6 +494,7 @@ QoreValue StaticMethodCallReferenceNode::execValue(const QoreListNode* args, Exc
 MethodCallReferenceNode::MethodCallReferenceNode(const QoreMethod* n_method, QoreProgram* n_pgm) : LocalMethodCallReferenceNode(n_method, false), pgm(n_pgm) {
    assert(pgm);
    //printd(5, "MethodCallReferenceNode::MethodCallReferenceNode() this=%p calling QoreProgram::depRef() pgm=%p\n", this, pgm);
+   // make a weak reference to the Program - a strong reference (QoreProgram::ref()) could cause a recursive reference
    pgm->depRef();
 }
 

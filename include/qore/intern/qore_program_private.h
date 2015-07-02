@@ -341,7 +341,7 @@ public:
    // set of signals being handled by code in this Program (to be deleted on exit)
    int_set_t sigset;
 
-   // dependency counter, when this hits zero, the object is deleted
+   // weak reference dependency counter, when this hits zero, the object is deleted
    QoreReferenceCounter dc;
    ExceptionSink* parseSink, *warnSink, *pendingParseSink;
    RootQoreNamespace* RootNS;

@@ -54,6 +54,7 @@ qore_object_private::qore_object_private(QoreObject* n_obj, const QoreClass *oc,
    */
    if (p) {
       printd(5, "qore_object_private::qore_object_private() obj: %p (%s) calling QoreProgram::ref() (%p)\n", obj, theclass->getName(), p);
+      // make a weak reference to the Program - a strong reference (QoreProgram::ref()) could cause a recursive reference
       p->depRef();
    }
 #ifdef DEBUG

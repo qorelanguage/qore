@@ -817,6 +817,7 @@ public:
 
          if (pgm) {
             printd(5, "qore_object_private::cleanup() obj=%p (%s) calling QoreProgram::depDeref() (%p)\n", obj, theclass->getName(), pgm);
+            // release weak reference
             pgm->depDeref(xsink);
             pgm = 0;
          }
