@@ -333,7 +333,7 @@ my string $str = $b.toHex();
 
     @see
     - @ref <string>::toHex()
-    - @ref Qore::makeHexString(binary)
+    - @ref Qore::make_hex_string(binary)
 
  */
 string <binary>::toHex() [flags=CONSTANT] {
@@ -358,7 +358,7 @@ my string $base64 = $bin.toBase64(64);
 
     @see
     - <string>::toBase64()
-    - makeBase64String(binary)
+    - make_base64_string(binary, softint)
 */
 string <binary>::toBase64(softint maxlinelen = -1) [flags=CONSTANT] {
    return new QoreStringNode(b, maxlinelen);

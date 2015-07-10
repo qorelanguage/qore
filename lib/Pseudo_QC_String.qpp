@@ -501,7 +501,7 @@ my string $str = "hello".toMD5(); # returns "5d41402abc4b2a76b9719d911017c592"
 
     @see
     - MD5_bin()
-    - <string>::toMD5()
+    - <binary>::toMD5()
 
     @since %Qore 0.8.5
  */
@@ -529,7 +529,7 @@ my string $str = "hello".toSHA1(); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9ae
 
     @see
     - SHA1_bin()
-    - <string>::toSHA1()
+    - <binary>::toSHA1()
 
     @since %Qore 0.8.5
  */
@@ -560,7 +560,7 @@ my string $str = "hello".toSHA224("hello"); # returns "ea09ae9cc6768c50fcee903ed
 
     @see
     - SHA224_bin()
-    - <string>::toSHA224()
+    - <binary>::toSHA224()
 
     @since %Qore 0.8.5
  */
@@ -596,7 +596,7 @@ my string $str = "hello".toSHA256(); # returns "2cf24dba5fb0a30e26e83b2ac5b9e29e
 
     @see
     - SHA256_bin()
-    - <string>::toSHA256()
+    - <binary>::toSHA256()
 
     @since %Qore 0.8.5
  */
@@ -632,7 +632,7 @@ my string $str = "hello".toSHA384(); # returns "59e1748777448c69de6b800d7a33bbfb
 
     @see
     - SHA384_bin()
-    - <string>::toSHA224()
+    - <binary>::toSHA224()
 
     @since %Qore 0.8.5
  */
@@ -668,7 +668,7 @@ my string $str = "hello".toSHA512(); # returns "9b71d224bd62f3785d96d46ad3ea3d73
 
     @see
     - SHA512_bin()
-    - <string>::toSHA512()
+    - <binary>::toSHA512()
 
     @since %Qore 0.8.5
  */
@@ -725,7 +725,7 @@ my string $str = $str.toHex();
 
     @see
     - <binary>::toHex()
-    - makeHexString(string)
+    - make_hex_string(string)
  */
 string <string>::toHex() [flags=CONSTANT] {
    QoreStringNode *rv = new QoreStringNode;
@@ -749,7 +749,7 @@ my string $base64 = $str.toBase64(64);
 
     @see
     - <binary>::toBase64()
-    - makeBase64String(string, softint)
+    - make_base64_string(string, softint)
 */
 string <string>::toBase64(softint maxlinelen = -1) [flags=CONSTANT] {
    QoreStringNode *rv = new QoreStringNode;
