@@ -448,12 +448,12 @@ class qdx {
                     continue;
                 }
                 else if (class_name) {
-                    if (line =~ /{/) {
-                        if (line !~ /}/)
-                            ++cbc;
-                    }
-                    else if (line =~ /}/) {
-                        --cbc;
+                    if (line =~ /({|})/) {
+                        # count how many open curly brackets
+                        int ob = (line =~ x/({)/g).size();
+                        # count how many close curly brackets
+                        int cb = (line =~ x/(})/g).size();
+                        cbc += (ob - cb);
                         if (!cbc) {
                             line =~ s/}/};/;
                             delete class_name;
