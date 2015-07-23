@@ -598,6 +598,12 @@ public class QUnit::Test inherits QUnit::TestReporter {
     constructor(string name, string version, *reference p_argv, *hash opts) : QUnit::TestReporter(name, version, \p_argv, opts) {
     }
 
+    #! global setup; will be called once before tests are run
+    globalSetUp() {}
+
+    #! global tear down; will be called once after all tests are run
+    globalTearDown() {}
+
     #! Prototype function for setting up test environment. It will be called for each test individually.
     setUp() {}
 
@@ -680,7 +686,9 @@ addTestCase(obj);
      * @return the result of the condition call, if the immediate value has any further use
      */
     public any testAssertion(string name, code condition, *softlist args, QUnit::AbstractTestResult expectedResult = new QUnit::TestResultSuccess()) {
-        TestCase tc = get_thread_data("tc");
+        *TestCase tc = get_thread_data("tc");
+        if (!tc)
+            throw "TEST-ERROR", sprintf("cannot test assertion %y while not executing a test case; testAssertion() can only be called in code executed in a test case (added with %s::addTestCase())", name, self.className());
         tc.incAssertions();
         ++num_asserts;
 
@@ -805,6 +813,8 @@ addTestCase(obj);
 
         printHeader();
 
+        globalSetUp();
+
         foreach TestCase tc in (testCases) {
             code tinit = sub () {tc.setupThread();};
             set_thread_init(tinit);
@@ -812,6 +822,8 @@ addTestCase(obj);
             # run test case
             tc.run(self);
         }
+
+        globalTearDown();
 
         printSummary();
         return errors();
