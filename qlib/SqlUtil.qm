@@ -6572,7 +6572,9 @@ my list $l = $db.getDropSchemaSql($schema_hash);
             if (tl) l += tl;            
 
             # call driver-specific align schema sql function (end)
-            tl = getDropSchemaSqlImpl(schema_hash, opt);
+            # Option "force" is here to drop all objects (where required)
+            # without dependencies checking (Oracle NTY for now)
+            tl = getDropSchemaSqlImpl(schema_hash, opt + ( "force" : True ) );
             if (tl) l += tl;
 
             return l;
@@ -6595,7 +6597,12 @@ my list $l = $db.getDropSchemaSql($schema_hash);
                 # see if object exists
                 *object f = get(name);
                 if (f) {
-                    l += AbstractDatabase::doCallback(opt, tmpl.getDropSql(), AC_Drop, type, name);
+                    if (opt.force) {
+                        # Oracle NTY
+                        l += AbstractDatabase::doCallback(opt, tmpl.getDropSqlForce(), AC_Drop, type, name);
+                    }
+                    else
+                        l += AbstractDatabase::doCallback(opt, tmpl.getDropSql(), AC_Drop, type, name);
                 }
                 else
                     AbstractDatabase::doOkCallback(opt, AC_NotFound, type, name);

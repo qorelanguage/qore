@@ -808,6 +808,18 @@ my any $v = $c.name;
     public class OracleType inherits OracleCodeBase {
         constructor(string n_name, string n_src) : OracleCodeBase(n_name, "type", n_src) {
         }
+
+        #! Force to drop named type (object or collection)
+        /** Named types in schema can have dependencies between each other.
+            But the FORCE keyword used in drop allows us to avoid complex
+            dependency tree calculation because all objects will be droped
+            at the end
+
+            @note It should be used only in Schema management
+         */
+        string getDropSqlForce() {
+            return sprintf("drop %s %s force", type, name);
+        }
     }
 
     #! represents an Oracle function
@@ -1216,7 +1228,7 @@ my any $v = $c.name;
 
                 return l;
             }
-            
+
             # drop types
             list tl = dropSqlUnlocked("type", schema_hash, \getType(), \makeType(), opt, Type::String);
             if (tl) l += tl;
