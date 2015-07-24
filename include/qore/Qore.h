@@ -114,10 +114,15 @@ DLLEXPORT extern int qore_version_minor;
 DLLEXPORT extern int qore_version_sub;
 
 //! the build number of the qore library
+/** @deprecated always assigned to 0 - no longer relevant with git
+ */
 DLLEXPORT extern int qore_build_number;
 
 //! the build target machine word size in bits (32 or 64 normally)
 DLLEXPORT extern int qore_target_bits;
+
+//! the git hash of the sources
+DLLEXPORT extern const char* qore_git_hash;
 
 //! the build target Operating System name
 DLLEXPORT extern const char* qore_target_os;

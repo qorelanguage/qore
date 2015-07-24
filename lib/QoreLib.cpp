@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/svn-revision.h>
+#include <qore/intern/git-revision.h>
 #include <qore/intern/qore_number_private.h>
 #include <qore/intern/QoreSignal.h>
 #include <qore/intern/QoreObjectIntern.h>
@@ -55,12 +55,16 @@ FeatureList qoreFeatureList;
 #define cpp_xstr(s) cpp_str(s)
 
 // global library variables
-const char* qore_version_string      = VERSION "-" cpp_xstr(BUILD);
+const char* qore_version_string      = VERSION;
 int qore_version_major               = VERSION_MAJOR;
 int qore_version_minor               = VERSION_MINOR;
 int qore_version_sub                 = VERSION_SUB;
-int qore_build_number                = BUILD;
 int qore_target_bits                 = TARGET_BITS;
+
+// obsolete: no more svn
+int qore_build_number                = 0;
+
+const char* qore_git_hash            = BUILD;
 const char* qore_target_os           = TARGET_OS;
 const char* qore_target_arch         = TARGET_ARCH;
 const char* qore_module_dir          = MODULE_DIR;

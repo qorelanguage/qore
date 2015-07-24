@@ -24,7 +24,7 @@
 builddir=`pwd`
 dir=`dirname $0`
 qore_inc="$dir/include/qore"
-file="$qore_inc/intern/svn-revision.h"
+file="$qore_inc/intern/git-revision.h"
 version_file="$qore_inc/qore-version.h"
 version_tmp="$qore_inc/qore-version.h.tmp"
 
@@ -39,10 +39,10 @@ else
 fi
 
 make_file() {
-    crev=`cat "$file" 2>/dev/null|cut -b15-`
+    crev=`cat "$file" 2>/dev/null|cut -d\" -f2`
     if [ "$crev" != "$build" ]; then
-        printf "#define BUILD %s\n" $build > $1
-        echo svn revision changed to $build in $file
+        printf "#define BUILD \"%s\"\n" $build > $1
+        echo git revision changed to $build in $file
     elif [ $show_build -eq 1 ]; then
         echo $build
         exit 0
@@ -77,19 +77,19 @@ make_version() {
     fi
 }
 
-# see if svn is available
+# see if git is available
 if build="$($(dirname "$0")/getrev.sh)"; then
     make_file ${file}
     ok=1
 else
-    echo "Need svn revision to create ${file}"
+    echo "Need git revision to create ${file}"
 fi
 
 if [ $ok -ne 1 ]; then
     if [ -f $file ]; then
         build=`cat $file|cut -b15-`
     else
-        echo WARNING! $file not found and svn is not available
+        echo WARNING! $file not found and git is not available
         build=0
         make_file $build
     fi

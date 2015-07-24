@@ -8,9 +8,8 @@ if [ -n "$BASH_VERSION" -o "$KSH_VERSION" ]; then
     fi
 fi
 
-if out=$(svn info "$1" 2> /dev/null) || out=$(git svn info "$1" 2> /dev/null); then
-    build=$(echo "${out}"|grep "^Revision:"|cut -f2 -d' ')
-    echo "${build}"
+if [ -d `dirname $0`/.git ]; then
+    git rev-parse HEAD
     exit 0
 else
     echo "No version control found."
