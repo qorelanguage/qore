@@ -756,12 +756,14 @@ docs/library/html: $(include_HEADERS) $(LIB_DOXYFILES)
 	$(DOXYGEN_CMD) doxygen/lib/Doxyfile
 
 docs/lang/html: $(LANG_DOXYFILES) $(LANG_QPP_SRC)
+	$(MKDIR_P) $@
 	$(DOXYGEN_CMD) doxygen/lang/Doxyfile
 	$(top_srcdir)/doxygen/pdox docs/lang/html docs/lang/html/search
 	$(top_srcdir)/doxygen/pdox -t docs/lang/latex
 
 TMP_MOD_HTML_TARG = $(addsuffix /html,$(addprefix docs/modules/,$(USER_MODS)))
 $(TMP_MOD_HTML_TARG): docs/modules/%/html: doxygen/qlib/%.qm.dox.h doxygen/qlib/Doxyfile.% #docs/lang/html
+	$(MKDIR_P) $@
 	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.$*
 	$(top_srcdir)/doxygen/pdox $@ $@/search
 

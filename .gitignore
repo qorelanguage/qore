@@ -5,6 +5,7 @@
 *.log
 *.trs
 .nfs*
+*~
 
 # Automake & friends
 .deps
