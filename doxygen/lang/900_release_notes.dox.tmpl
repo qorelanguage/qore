@@ -291,6 +291,7 @@
     - fixed a bug in @ref Qore::set_thread_init() where thread initialization did not occur when foreign threads attached to a @ref Qore::Program object with thread initialization set
     - fixed a bug in call references and objects by replacing string references to the containing Program object with weak references which solved a recursive reference / memory leak issue
     - fixed a memory leak when a thread init call reference was used with @ref Qore::Program objects
+    - fixed bugs in Qore SSL socket handling when the remote connection is disconnected while performing an SSL upgrade (client or server) that could cause a crash
 
     @section qore_0811 Qore 0.8.11
 

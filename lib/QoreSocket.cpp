@@ -329,8 +329,11 @@ int SSLSocketHelper::connect(const char* mname, int timeout_ms, ExceptionSink* x
       while (true) {
 	 rc = SSL_connect(ssl);
 
-	 if (rc == -1 && !(rc = doSSLUpgradeNonBlockingIO(rc, mname, timeout_ms, "SSL_connect", closed, xsink)))
+	 if (rc == -1 && !(rc = doSSLUpgradeNonBlockingIO(rc, mname, timeout_ms, "SSL_connect", closed, xsink))) {
+	    if (closed)
+	       break;
 	    continue;
+	 }
 	    
 	 break;
       }
@@ -363,8 +366,11 @@ int SSLSocketHelper::accept(const char* mname, int timeout_ms, ExceptionSink* xs
       while (true) {
 	 rc = SSL_accept(ssl);
 
-	 if (rc == -1 && !(rc == doSSLUpgradeNonBlockingIO(rc, mname, timeout_ms, "SSL_accept", closed, xsink)))
+	 if (rc == -1 && !(rc == doSSLUpgradeNonBlockingIO(rc, mname, timeout_ms, "SSL_accept", closed, xsink))) {
+	    if (closed)
+	       break;
 	    continue;
+	 }
 
 	 break;
       }
