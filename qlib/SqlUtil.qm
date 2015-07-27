@@ -13432,7 +13432,9 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 if (!qh.limit)
                     throw "SELECT-ERROR", sprintf("%s: select 'offset' supplied (%d) without limit", getName(), qh.offset);
             }
-            args = ();
+            # do not overwrite args; could be used in a subquery
+            if (!exists args)
+                args = ();
 
             # make a hash of aliases to tables when using joins
             hash jch;
