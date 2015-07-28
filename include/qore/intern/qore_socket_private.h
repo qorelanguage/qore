@@ -351,7 +351,7 @@ struct qore_socket_private {
    }
 
    DLLLOCAL static void do_header(const char* key, QoreString& hdr, const AbstractQoreNode* v) {
-      switch (v->getType()) {
+      switch (get_node_type(v)) {
 	 case NT_STRING:
 	    hdr.sprintf("%s: %s\r\n", key, reinterpret_cast<const QoreStringNode*>(v)->getBuffer());
 	    break;
