@@ -139,7 +139,7 @@ MACRO (QORE_DIST _version)
     SET(CPACK_PACKAGE_VERSION "${_version}")
     SET(CPACK_SOURCE_GENERATOR "TBZ2")
     SET(CPACK_SOURCE_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}")
-    SET(CPACK_IGNORE_FILES "/CVS/;/\\\\.svn/;\\\\.swp$;\\\\.#;/#;\\\\.~$;\\\\.tar.gz$;/CMakeFiles/;CMakeCache.txt;refresh-copyright-and-license.pl;\\\\.spec$")
+    SET(CPACK_IGNORE_FILES "/CVS/;/\\\\.svn/;\\\\.swp$;\\\\.#;/#;\\\\.~$;\\\\.tar.gz$;/CMakeFiles/;CMakeCache.txt;refresh-copyright-and-license.pl;\\\\.spec$;/\\\\.git/;/\\\\.hg/;\\\\.fslckout")
     SET(CPACK_SOURCE_IGNORE_FILES ${CPACK_IGNORE_FILES})
     INCLUDE(CPack)
     # simulate autotools' "make dist"
