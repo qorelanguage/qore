@@ -27,6 +27,8 @@
 %requires Mime >= 1.0
 %requires Util >= 1.0
 
+%new-style
+    
 module HttpServerUtil {
     version = "0.3.11";
     desc = "HttpServerUtil class definition";
@@ -205,32 +207,32 @@ public namespace HttpServer {
     /** @param bind the bind address; if for any reason there is a path in the bind address, it will be ignored
         @param host the hostname to use in case the bind string is only a port number; if none is passed or the value passed is equal to the return value of @ref Qore::gethostname(), then \c "localhost" is used
      */
-    public string sub http_get_url_from_bind(softstring $bind, *string $host) {
-	my hash $h = parse_url($bind);
+    public string sub http_get_url_from_bind(softstring bind, *string host) {
+	hash h = parse_url(bind);
 	# if there is only a port number, it will appear in the "host" key
-	if ($h.size() == 1 && $h.host && int($h.host) == $h.host) {
-	    $h.port = int($h.host);
-	    delete $h.host;
+	if (h.size() == 1 && h.host && int(h.host) == h.host) {
+	    h.port = int(h.host);
+	    delete h.host;
 	}
 
-	if (!$h.host) {
-            if (!$h.port && $h.path) {
-                $h.host = "socket=" + remove $h.path;
-                $h.host =~ s/ /%20/g;
-                $h.host =~ s/\//%2f/g;
+	if (!h.host) {
+            if (!h.port && h.path) {
+                h.host = "socket=" + remove h.path;
+                h.host =~ s/ /%20/g;
+                h.host =~ s/\//%2f/g;
             }
             else
-                $h.host = (!$host || $host == gethostname()) ? "localhost" : $host;
+                h.host = (!host || host == gethostname()) ? "localhost" : host;
         }
 
-	my string $login = $h.password ? ($h.password + ":") : "";    
-	if ($h.username)
-	    $login += sprintf("%s@", $h.password);
+	string login = h.password ? (h.password + ":") : "";    
+	if (h.username)
+	    login += sprintf("%s@", h.password);
 
-	return sprintf("%s://%s%s%s", $h.protocol ? $h.protocol : "http", 
-		       $login, 
-		       $h.host, 
-		       $h.port ? sprintf(":%d", $h.port) : "");
+	return sprintf("%s://%s%s%s", h.protocol ? h.protocol : "http", 
+		       login, 
+		       h.host, 
+		       h.port ? sprintf(":%d", h.port) : "");
     }
     
     #! parses a URI path for a arguments and a method; where the method is the part of the path before the first \c "?" character, and arguments are after
@@ -240,75 +242,75 @@ public namespace HttpServer {
         - \c method: (@ref string_type "string") the part of the path before the first \c "?" character or the entire path if no \c "?" character is present in the path
         - \c params: (@ref hash_type "hash", assuming all values are key/value pairs like \c "key=value", otherwise it will be a @ref list_type "list") optional, only if a "?" character is present in the input; the part of the path after the first \c "?" character; arguments should be separated by ";" characters (according to a w3c recommendation: http://www.w3.org/TR/1999/REC-html401-19991224/appendix/notes.html#h-B.2.2), however this function supports both \c ";" and \c "&" as argument separators  
     */
-    public hash sub parse_uri_query(string $path, bool $trans = True) {
-        my int $i = $path.find("?");
-        if ($i == -1)
-            return ("method": $path);
+    public hash sub parse_uri_query(string path, bool trans = True) {
+        int i = path.find("?");
+        if (i == -1)
+            return ("method": path);
 
         # we use "params" rather than "args" because some RPC protocols require it (like XML-RPC and JSON-RPC)
-        my hash $h = (
-            "method": $path.substr(0, $i),
+        hash h = (
+            "method": path.substr(0, i),
             "params": (),
             );
 
         # remove method and "?" char; leave only args in path
-        splice $path, 0, $i + 1;
+        splice path, 0, i + 1;
 
         # iterate through args
         # w3c recommends ";" instead of "&" to separate arguments
         # http://www.w3.org/TR/1999/REC-html401-19991224/appendix/notes.html#h-B.2.2
         # however we support both
-        my string $sep = $path.find(";") == -1 ? "&" : ";";
-        foreach my any $arg in (split($sep, $path)) {
-            my (*string $key, *string $value) = ($arg =~ x/([^=]+)=(.*)$/);
-            if (!exists $value) {
-                $h.params += $arg;
+        string sep = path.find(";") == -1 ? "&" : ";";
+        foreach any arg in (split(sep, path)) {
+            my (*string key, *string value) = (arg =~ x/([^=]+)=(.*)$/);
+            if (!exists value) {
+                h.params += arg;
                 continue;
             }
 
-            my hash $ah.$key = $value;
-            if ($h.params.last().typeCode() != NT_HASH)
-                $h.params += $ah;
+            hash ah{key} = value;
+            if (h.params.last().typeCode() != NT_HASH)
+                h.params += ah;
             else
-                $h.params[$h.params.size() - 1] += $ah;
+                h.params[h.params.size() - 1] += ah;
         }
-        if ($h.params.size() == 1 && $h.params[0].typeCode() == NT_HASH)
-            $h.params = $h.params[0];
+        if (h.params.size() == 1 && h.params[0].typeCode() == NT_HASH)
+            h.params = h.params[0];
 
-        return $h;
+        return h;
     }
 
     #! helper function for setting HTTP response headers
-    public nothing sub http_set_reply_headers(Socket $s, hash $cx, reference $rv, *string $server_string) {
-        if (!$rv.hdr.Connection) {
-            if ($rv.close) # RFC 2616 section 14.10 is "close" in all lower-case
-                $rv.hdr.Connection = "close";
+    public nothing sub http_set_reply_headers(Socket s, hash cx, reference rv, *string server_string) {
+        if (!rv.hdr.Connection) {
+            if (rv.close) # RFC 2616 section 14.10 is "close" in all lower-case
+                rv.hdr.Connection = "close";
             else
-                $rv.hdr.Connection = "Keep-Alive";
+                rv.hdr.Connection = "Keep-Alive";
         }
 
-        if (!$rv.hdr.Date) # RFC 2616 sec 14.18 date format
-            $rv.hdr.Date = gmtime().format("Dy, DD Mon YYYY HH:mm:SS") + " GMT";
+        if (!rv.hdr.Date) # RFC 2616 sec 14.18 date format
+            rv.hdr.Date = gmtime().format("Dy, DD Mon YYYY HH:mm:SS") + " GMT";
 
-        if (!$rv.hdr.Server)
-            $rv.hdr.Server = $server_string ?? HttpServerString;
+        if (!rv.hdr.Server)
+            rv.hdr.Server = server_string ?? HttpServerString;
 
-        my string $old_encoding = $s.getEncoding();
+        string old_encoding = s.getEncoding();
 
-        on_exit if ($s.getEncoding() != $cx."response-encoding")
-            $s.setEncoding($cx."response-encoding");
+        on_exit if (s.getEncoding() != cx."response-encoding")
+            s.setEncoding(cx."response-encoding");
 
-        if (!$cx."response-encoding")
-            $cx."response-encoding" = $old_encoding.lwr();
-        else if ($cx."response-encoding".lwr() != $old_encoding.lwr())
-            $s.setEncoding($cx."response-encoding");
+        if (!cx."response-encoding")
+            cx."response-encoding" = old_encoding.lwr();
+        else if (cx."response-encoding".lwr() != old_encoding.lwr())
+            s.setEncoding(cx."response-encoding");
 
-        if ($rv.body || $rv.hdr."Transfer-Encoding" == "chunked") {
-            if (!$rv.hdr."Content-Type") {
-                $rv.hdr."Content-Type" = MimeTypeHtml + ";charset=" + $cx."response-encoding";
+        if (rv.body || rv.hdr."Transfer-Encoding" == "chunked") {
+            if (!rv.hdr."Content-Type") {
+                rv.hdr."Content-Type" = MimeTypeHtml + ";charset=" + cx."response-encoding";
             }
-            else if ($rv.hdr."Content-Type" !~ /charset=/ && ($rv.body.typeCode() == NT_STRING)) {
-                $rv.hdr."Content-Type" += ";charset=" + $cx."response-encoding";
+            else if (rv.hdr."Content-Type" !~ /charset=/ && (rv.body.typeCode() == NT_STRING)) {
+                rv.hdr."Content-Type" += ";charset=" + cx."response-encoding";
             }
         }
     }
@@ -319,27 +321,27 @@ public class HttpServer::AbstractLogger {
     #! called to log information to the registered log code
     /** @param fmt the message to log, can be a format string, in which case additional arguments are processed with vsprintf()
     */
-    abstract log(string $fmt);
+    abstract log(string fmt);
     
     #! called to log error information to the registered error log code
     /** @param fmt the error message to log, can be a format string, in which case additional arguments are processed with vsprintf()
     */
-    abstract logError(string $fmt);
+    abstract logError(string fmt);
     
     #! calls log() with the given args
     /** @param args a single string or a list of arguments used to call the log() method
     */
-    logArgs(*softlist $args) {
-        if ($args)
-            call_object_method_args($self, "log", $args);
+    logArgs(*softlist args) {
+        if (args)
+            call_object_method_args(self, "log", args);
     }
     
     #! calls logError() with the given args
     /** @param args a single string or a list of arguments used to call the logError() method
     */
-    logErrorArgs(*softlist $args) {
-        if ($args)
-            call_object_method_args($self, "logError", $args);
+    logErrorArgs(*softlist args) {
+        if (args)
+            call_object_method_args(self, "logError", args);
     }    
 }
 
@@ -348,12 +350,12 @@ public class HttpServer::HttpListenerInterface inherits HttpServer::AbstractLogg
     #! adds user-defined data to be returned in the \c "uctx" context key when serving requests from this listener
     /** @param uctx user-defined data to be returned in the \c "uctx" context key when serving requests from this listener
     */
-    abstract addUserThreadContext(hash $uctx);
+    abstract addUserThreadContext(hash uctx);
 
     #! removes the given key from the \c "uctx" context key; if no argument is provided, then the \c "uctx" context hash is removed entirely
     /** @param k the key to remove from the \c "uctx" context hash; if no argument is provided, then the \c "uctx" context hash is removed entirely
     */
-    abstract any removeUserThreadContext(*string $k);
+    abstract any removeUserThreadContext(*string k);
 }
 
 #! abstract base class for external authentication
@@ -381,7 +383,7 @@ public class HttpServer::AbstractAuthenticator {
 
         @throw AUTHENTICATION-ERROR subclasses should throw this exception if the user cannot be authenticated (must be overridden in child classes; this parent method will never throw any exceptions; all connections are accepted by default)
       */
-    authenticate(string $user, string $pass = "") {
+    authenticate(string user, string pass = "") {
     }
 
     #! called when the connection requires authentication, but no authentication credentials were supplied, to try to authenticate the connection based on the source IP address
@@ -391,18 +393,18 @@ public class HttpServer::AbstractAuthenticator {
 
         @throw AUTHENTICATION-ERROR subclasses should throw this exception if the user cannot be authenticated (however this base class method as implemented here will never throw any exceptions
       */
-    authenticateByIP(string $ip, reference $user) {
+    authenticateByIP(string ip, reference user) {
     }
 
     private hash getAuthHeader() {
-        return ("WWW-Authenticate": sprintf("Basic realm=%y", $.getRealm()));
+        return ("WWW-Authenticate": sprintf("Basic realm=%y", getRealm()));
     }
 
-    private hash do401(string $msg = "Authentication is required to access this server") {
+    private hash do401(string msg = "Authentication is required to access this server") {
         return (
             "code": 401,
             "body": "Authentication is required to access this server",
-            "hdr": $.getAuthHeader(),
+            "hdr": getAuthHeader(),
             );
     }
 
@@ -416,53 +418,53 @@ public class HttpServer::AbstractAuthenticator {
         - \c "body": the error message body
         - \c "hdr": an optional hash of headers for the error response
     */
-    *hash authenticateRequest(HttpListenerInterface $listener, hash $hdr, reference $cx) {
-        #printf("HTTP DEBUG %s::authenticateRequest() called\n", $self.className());
-        if (!$.requiresAuthentication())
+    *hash authenticateRequest(HttpListenerInterface listener, hash hdr, reference cx) {
+        #printf("HTTP DEBUG %s::authenticateRequest() called\n", self.className());
+        if (!requiresAuthentication())
             return;
 
-        if ($hdr.authorization) {
-            if ($hdr.authorization !~ /basic /i)
-                return $.do401("Only basic authentication is supported");
+        if (hdr.authorization) {
+            if (hdr.authorization !~ /basic /i)
+                return do401("Only basic authentication is supported");
 
-            my *string $bstr = ($hdr.authorization =~ x/basic (.*)/i)[0];
-            if (!$bstr)
-                return $.do401();
+            *string bstr = (hdr.authorization =~ x/basic (.*)/i)[0];
+            if (!bstr)
+                return do401();
 
-            my string $str = parse_base64_string_to_string($bstr);
-            my int $i = $str.find(":");
-            if ($i < 1 || $i == ($str.size() -1))
-                return $.do401();
+            string str = parse_base64_string_to_string(bstr);
+            int i = str.find(":");
+            if (i < 1 || i == (str.size() -1))
+                return do401();
 
-            my string $user = $str.substr(0, $i);
-            my *string $pass = $str.substr($i + 1);
+            string user = str.substr(0, i);
+            *string pass = str.substr(i + 1);
 
             try
-                $.authenticate($user, $pass);
-            catch (hash $ex) {
-                if ($ex.err == "AUTHENTICATION-ERROR")
-                    return $.do401();
+                authenticate(user, pass);
+            catch (hash ex) {
+                if (ex.err == "AUTHENTICATION-ERROR")
+                    return do401();
                 else
                     rethrow;
             }
 
-            $cx.user = $user;
+            cx.user = user;
             return;
         }
 
-        my string $user;
+        string user;
         # only try ip-based authentication if the connection is not already authenticated
         try {
-            $.authenticateByIP($cx."peer-info".address, \$user);
-            $cx.user = $user;
+            authenticateByIP(cx."peer-info".address, \user);
+            cx.user = user;
             return;
         }
-        catch (hash $ex) {
+        catch (hash ex) {
             # log the error
-            my string $str = sprintf("%s: %s: %s: received from %s", get_ex_pos($ex), $ex.err, $ex.desc, $cx."peer-info".address_desc);
-            $listener.logError($str);
+            string str = sprintf("%s: %s: %s: received from %s", get_ex_pos(ex), ex.err, ex.desc, cx."peer-info".address_desc);
+            listener.logError(str);
         }
-        return $.do401();
+        return do401();
     }
 }
 
@@ -475,7 +477,7 @@ public class HttpServer::PermissiveAuthenticator inherits HttpServer::AbstractAu
 
         @return returns @ref nothing indicating that the request is authenticated
     */
-    *hash authenticateRequest(HttpListenerInterface $listener, hash $hdr, reference $cx) {
+    *hash authenticateRequest(HttpListenerInterface listener, hash hdr, reference cx) {
         return;
     }
 }
@@ -493,13 +495,13 @@ public class HttpServer::AbstractStreamRequestHandler {
 
     private {
         #! call context hash
-        hash $.cx;
+        hash cx;
         #! if an exception is raised in a callback then the exception hash is saved here
-        *hash $.ex;
+        *hash ex;
     }
 
     #! creates the object with the given arguments
-    /** @param cx call context hash; this hash will have the following keys:
+    /** @param n_cx call context hash; this hash will have the following keys:
         - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
         - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
         - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
@@ -511,8 +513,8 @@ public class HttpServer::AbstractStreamRequestHandler {
         - \c body: the deserialized message body
         - \c aih: a hash of \c "Accept" values
     */
-    constructor(hash $cx) {
-        $.cx = $cx;
+    constructor(hash n_cx) {
+        cx = n_cx;
     }
 
     #! this method returns the response message description hash by calling getResponseHeaderMessageImpl()
@@ -527,10 +529,10 @@ public class HttpServer::AbstractStreamRequestHandler {
     */
     hash getResponseHeaderMessage() {
         try {
-            return $.getResponseHeaderMessageImpl();
+            return getResponseHeaderMessageImpl();
         }
-        catch (hash $ex) {
-            $.ex = $ex;
+        catch (hash n_ex) {
+            ex = n_ex;
             rethrow;
         }
     }
@@ -546,12 +548,12 @@ public class HttpServer::AbstractStreamRequestHandler {
         - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
         - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
     */
-    nothing recv(hash $v) {
+    nothing recv(hash v) {
         try {
-            $.recvImpl($v);
+            recvImpl(v);
         }
-        catch (hash $ex) {
-            $.ex = $ex;
+        catch (hash n_ex) {
+            ex = n_ex;
             rethrow;
         }
     }
@@ -562,10 +564,10 @@ public class HttpServer::AbstractStreamRequestHandler {
     */
     any send() {
         try {
-            return $.sendImpl();
+            return sendImpl();
         }
-        catch (hash $ex) {
-            $.ex = $ex;
+        catch (hash n_ex) {
+            ex = n_ex;
             rethrow;
         }
     }
@@ -593,7 +595,7 @@ public class HttpServer::AbstractStreamRequestHandler {
         - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
         - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
     */
-    abstract nothing recvImpl(hash $v);
+    abstract nothing recvImpl(hash v);
 
     #! abstract callback method for sending chunked data
     /** 
@@ -616,17 +618,17 @@ public class HttpServer::AbstractStreamRequest {
 
     private {
         #! an HttpListenerInterface object for the listener serving the request for logging purposes
-        HttpListenerInterface $.listener;
+        HttpListenerInterface listener;
         #! the request handler for the request
-        AbstractHttpRequestHandler $.handler;
+        AbstractHttpRequestHandler handler;
         #! the Socket object for the response
-        Socket $.s;
+        Socket s;
         #! the call context variable
-        hash $.cx;
+        hash cx;
         #! a hash of request headers
-        hash $.hdr;
+        hash hdr;
         #! any message body given in a non-chunked request; could already be deserialized
-        any $.body;
+        any body;
     }
 
     #! creates the object with the given attributes
@@ -640,37 +642,37 @@ public class HttpServer::AbstractStreamRequest {
         - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
         @param body any message body in the request already received from the incoming socket
     */
-    constructor(HttpListenerInterface $listener, AbstractHttpRequestHandler $handler, Socket $s, hash $cx, hash $hdr, any $body) {
-        $.listener = $listener;
-        $.handler = $handler;
-        $.s = $s;
-        $.cx = $cx;
-        $.hdr = $hdr;
-        $.body = $body;
+    constructor(HttpListenerInterface n_listener, AbstractHttpRequestHandler n_handler, Socket n_s, hash n_cx, hash n_hdr, any n_body) {
+        listener = n_listener;
+        handler = n_handler;
+        s = n_s;
+        cx = n_cx;
+        hdr = n_hdr;
+        body = n_body;
     }
 
     hash handleRequest() {
         # handle message body
-        if (exists $.body) {
-            my hash $dh = ("data": $.body, "chunked": False);
-            if ($.cx.deserialized)
-                $dh.deserialized = True;
-            $.recv($dh);
+        if (exists body) {
+            hash dh = ("data": body, "chunked": False);
+            if (cx.deserialized)
+                dh.deserialized = True;
+            recv(dh);
             # signal end of data
-            $.recvImpl(("hdr": NOTHING));
+            recvImpl(("hdr": NOTHING));
         }
         else {
-            if ($.hdr."transfer-encoding" == "chunked") {
-                if ($.hdr."content-encoding")
-                    $.s.readHTTPChunkedBodyBinaryWithCallback(\$.recv(), HttpServer::ReadTimeout);
+            if (hdr."transfer-encoding" == "chunked") {
+                if (hdr."content-encoding")
+                    s.readHTTPChunkedBodyBinaryWithCallback(\recv(), HttpServer::ReadTimeout);
                 else
-                    $.s.readHTTPChunkedBodyWithCallback(\$.recv(), HttpServer::ReadTimeout);
+                    s.readHTTPChunkedBodyWithCallback(\recv(), HttpServer::ReadTimeout);
             }
             else # signal end of data
-                $.recvImpl(("hdr": NOTHING));
+                recvImpl(("hdr": NOTHING));
         }
 
-        return $.sendResponse();
+        return sendResponse();
     }
 
     #! called to either create the response hash or send a chunked response directly
@@ -680,17 +682,17 @@ public class HttpServer::AbstractStreamRequest {
         Otherwise, any message body is immediately encoded (if accepted by the requestor).
     */
     private hash sendResponse() {
-        my hash $rv = $.getResponseHeaderMessage();
-        if ($rv.hdr."Transfer-Encoding" != "chunked")
-            return $rv;
+        hash rv = getResponseHeaderMessage();
+        if (rv.hdr."Transfer-Encoding" != "chunked")
+            return rv;
 
-        http_set_reply_headers($.s, $.cx, \$rv);
+        http_set_reply_headers(s, cx, \rv);
 
         # send chunked response
-        $.s.sendHTTPResponseWithCallback(\$.send(), $rv.code, HttpServer::HttpCodes.($rv.code), "1.1", $rv.hdr, HttpServer::ReadTimeout);
+        s.sendHTTPResponseWithCallback(\send(), rv.code, HttpServer::HttpCodes.(rv.code), "1.1", rv.hdr, HttpServer::ReadTimeout);
 
-        $rv.reply_sent = True;
-        return $rv;
+        rv.reply_sent = True;
+        return rv;
     }
 
     #! this method returns the response message description hash by calling getResponseHeaderMessageImpl()
@@ -704,37 +706,37 @@ public class HttpServer::AbstractStreamRequest {
         @note this method is called after the message body has been received
     */
     private hash getResponseHeaderMessage() {
-        return $.getResponseHeaderMessageImpl();
+        return getResponseHeaderMessageImpl();
     }
 
     #! this is the primary callback for receiving chunked data; data will be logged, and then recvImpl() is called
     /** content decoding is not possible with chunked data because only the entire message can be decoded
     */
-    private nothing recv(hash $v) {
-        if (exists $v.data) {
-            $.logChunk(False, $v.data.size());
+    private nothing recv(hash v) {
+        if (exists v.data) {
+            logChunk(False, v.data.size());
 
-            if ($.cx.deserialized)
-                $v.deserialized = True;
+            if (cx.deserialized)
+                v.deserialized = True;
         }
-        $.recvImpl($v);
+        recvImpl(v);
     }
 
     #! this is the primary callback for sending chunked responses; first sendImpl() is called to get the raw data, and then any chunked data is encoded by this method if required
     private any send() {
-        my any $v = $.sendImpl();
-        switch ($v.typeCode()) {
+        any v = sendImpl();
+        switch (v.typeCode()) {
             case NT_STRING:
             case NT_BINARY: {
-                $.logChunk(True, $v.size());
+                logChunk(True, v.size());
                 break;
             }
         }
-        return $v;
+        return v;
     }
 
-    private logChunk(bool $send, int $size) {
-        $.listener.log("cid %d %s CHUNK %d bytes", $.cx.id, $send ? "send" : "recv", $size);
+    private logChunk(bool send, int size) {
+        listener.log("cid %d %s CHUNK %d bytes", cx.id, send ? "send" : "recv", size);
     }
 
     #! this method should return the response message description hash
@@ -752,7 +754,7 @@ public class HttpServer::AbstractStreamRequest {
     private hash getResponseHeaderMessageImpl() {
         return (
             "code": 501,
-            "body": sprintf("default handler (%s) has no implementation", $self.className()),
+            "body": sprintf("default handler (%s) has no implementation", self.className()),
             "close": True,
             );
     }
@@ -767,7 +769,7 @@ public class HttpServer::AbstractStreamRequest {
         - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
         - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
     */
-    private nothing recvImpl(hash $v) {
+    private nothing recvImpl(hash v) {
     }
 
     #! abstract callback method for sending chunked data
@@ -789,28 +791,28 @@ public class HttpServer::AbstractStreamRequest {
 public class HttpServer::AbstractHttpRequestHandler {
     public {
         #! the optional AbstractAuthenticator for requests to this handler
-        *AbstractAuthenticator $.auth;
+        *AbstractAuthenticator auth;
 
         #! if POSTed data should be decompressed automatically if there is content-encoding
-        bool $.decompress = True;
+        bool decompress = True;
 
         #! if automatically decompressed POSTed data should be converted to a string (if @ref Qore::False "False", then it will be decompressed to a binary)
-        bool $.decompress_to_string = True;
+        bool decompress_to_string = True;
 
         #! if the handler supports streaming requests/responses with chunked data
-        bool $.stream;
+        bool stream;
 
         #! persistent connection flag
-        bool $.persistent;
+        bool persistent;
     }
 
     #! create the object optionally with the given AbstractAuthenticator
     /** @param auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
         @param stream if @ref Qore::True "True" then stream (i.e. HTTP chunked) requests and responses are handled and getStreamRequestImpl() will be used to return a valid AbstractStreamRequest object to handle requests
       */
-    constructor(*AbstractAuthenticator $auth, softbool $stream = False) {
-        $.auth = $auth;
-        $.stream = $stream;
+    constructor(*AbstractAuthenticator n_auth, softbool n_stream = False) {
+        auth = n_auth;
+        stream = n_stream;
     }
 
     #! called externally when a persistent connection is closed
@@ -818,10 +820,10 @@ public class HttpServer::AbstractHttpRequestHandler {
     }
 
     #! this method will throw an exception if a persistent connection cannot be granted
-    private nothing checkPersistent(hash $cx, hash $hdr) {
+    private nothing checkPersistent(hash cx, hash hdr) {
         # Socket::readHTTPHeader() sets the value in cx.close according to the HTTP version and the Connection header
-        if ($cx.close)
-            throw "PERSISTENT-ERROR", sprintf("a persistent connection cannot be granted because the requesting HTTP level is %y and the Connection header is %y", $hdr.http_version, $hdr.connection);
+        if (cx.close)
+            throw "PERSISTENT-ERROR", sprintf("a persistent connection cannot be granted because the requesting HTTP level is %y and the Connection header is %y", hdr.http_version, hdr.connection);
     }
 
     #! will be called when a request is received that should be directed to the handler
@@ -848,81 +850,81 @@ public class HttpServer::AbstractHttpRequestHandler {
 
         @note the default implementation simply returns a 501 error code for all requests; reimplement this method in a subclass to provide the required functionality
     */
-    hash handleRequest(hash $cx, hash $hdr, *data $body) {
+    hash handleRequest(hash cx, hash hdr, *data body) {
         return (
             "code": 501,
-            "body": sprintf("default handler (%s) has no implementation", $self.className()),
+            "body": sprintf("default handler (%s) has no implementation", self.className()),
             "close": True,
             );
     }
 
     #! top-level request handling method
-    hash handleRequest(HttpListenerInterface $listener, Socket $s, hash $cx, hash $hdr, *data $body) {
+    hash handleRequest(HttpListenerInterface listener, Socket s, hash cx, hash hdr, *data body) {
         # classic, non-streaming interface
-        if (!$.stream) {
-            my any $rv = $.handleRequest($cx, $hdr, $.getMessageBody($s, $hdr, $body));
-            switch ($rv.typeCode()) {
-                case NT_HASH: return $rv;
+        if (!stream) {
+            any rv = handleRequest(cx, hdr, getMessageBody(s, hdr, body));
+            switch (rv.typeCode()) {
+                case NT_HASH: return rv;
                 case NT_STRING:
-                case NT_BINARY: return ("code": 200, "body": $rv);
+                case NT_BINARY: return ("code": 200, "body": rv);
                 default:
-                throw "HANDLER-ERROR", sprintf("handler returned type %s; expecting \"hash\"; value: %y", $rv.type(), $rv);
+                throw "HANDLER-ERROR", sprintf("handler returned type %s; expecting \"hash\"; value: %y", rv.type(), rv);
             }
         }
 
-        my AbstractStreamRequest $req = $.getStreamRequestImpl($listener, $s, $cx, $hdr, $body);
-        return $req.handleRequest();
+        AbstractStreamRequest req = getStreamRequestImpl(listener, s, cx, hdr, body);
+        return req.handleRequest();
     }
 
     #! returns the AbstractStreamRequest object for handling chunked requests
-    private AbstractStreamRequest getStreamRequestImpl(HttpListenerInterface $listener, Socket $s, hash $cx, hash $hdr, *data $body) {
-        return new AbstractStreamRequest($listener, $self, $s, $cx, $hdr, $body);
+    private AbstractStreamRequest getStreamRequestImpl(HttpListenerInterface listener, Socket s, hash cx, hash hdr, *data body) {
+        return new AbstractStreamRequest(listener, self, s, cx, hdr, body);
     }
 
     #! decodes a message body with content-encoding
-    static data decodeBody(string $ce, binary $body, *string $enc) {
-        switch ($ce) {
+    static data decodeBody(string ce, binary body, *string enc) {
+        switch (ce) {
             case "deflate":
             case "x-deflate":
-                return $enc ? uncompress_to_string(binary($body), $enc) : uncompress_to_binary($body);
+                return enc ? uncompress_to_string(binary(body), enc) : uncompress_to_binary(body);
             case "gzip":
             case "x-gzip":
-                return $enc ? gunzip_to_string(binary($body), $enc) : gunzip_to_binary($body);
+                return enc ? gunzip_to_string(binary(body), enc) : gunzip_to_binary(body);
             case "bzip2":
             case "x-bzip2":
-                return $enc ? bunzip2_to_string(binary($body), $enc) : bunzip2_to_binary($body);
+                return enc ? bunzip2_to_string(binary(body), enc) : bunzip2_to_binary(body);
             case "identity":
-                return $enc ? binary_to_string($body, $enc) : $body;
+                return enc ? binary_to_string(body, enc) : body;
         }
-        throw "UNSUPPORTED-CONTENT-ENCODING", sprintf("don't know how to handle content-encoding %y", $ce);
+        throw "UNSUPPORTED-CONTENT-ENCODING", sprintf("don't know how to handle content-encoding %y", ce);
     }
 
     #! encodes a message body with content-encoding
-    static binary encodeBody(string $ce, data $body) {
-        switch ($ce) {
+    static binary encodeBody(string ce, data body) {
+        switch (ce) {
             case "deflate":
-                return compress($body);
+                return compress(body);
             case "gzip":
-                return gzip($body);
+                return gzip(body);
             case "bzip2":
-                return bzip2($body);
+                return bzip2(body);
             case "identity":
-                return $body;
+                return body;
         }
-        throw "UNSUPPORTED-CONTENT-ENCODING", sprintf("don't know how to handle content-encoding %y", $ce);
+        throw "UNSUPPORTED-CONTENT-ENCODING", sprintf("don't know how to handle content-encoding %y", ce);
     }
 
     #! optionally retrieves and post-processes any message body
-    *data getMessageBody(Socket $s, hash $hdr, *data $body, bool $decode = True) {
-        if (!$body && $hdr."transfer-encoding" == "chunked") {
-            $hdr += ($hdr."content-encoding" ? $s.readHTTPChunkedBodyBinary(HttpServer::ReadTimeout) : $s.readHTTPChunkedBody(HttpServer::ReadTimeout));
-            $body = remove $hdr.body;
+    *data getMessageBody(Socket s, hash hdr, *data body, bool decode = True) {
+        if (!body && hdr."transfer-encoding" == "chunked") {
+            hdr += (hdr."content-encoding" ? s.readHTTPChunkedBodyBinary(HttpServer::ReadTimeout) : s.readHTTPChunkedBody(HttpServer::ReadTimeout));
+            body = remove hdr.body;
         }
 
-        if ($decode && $body && $hdr."content-encoding" && $.decompress)
-            $body = AbstractHttpRequestHandler::decodeBody($hdr."content-encoding", $body, $.decompress_to_string ? $s.getEncoding() : NOTHING);
+        if (decode && body && hdr."content-encoding" && decompress)
+            body = AbstractHttpRequestHandler::decodeBody(hdr."content-encoding", body, decompress_to_string ? s.getEncoding() : NOTHING);
 
-        return $body;
+        return body;
     }
 
     #! helper method for handling log messages
@@ -933,46 +935,46 @@ public class HttpServer::AbstractHttpRequestHandler {
 
         @return a string if the message should be logged, otherwise @ref nothing
     */
-    static *string getLogMessage(hash $cx, hash $api, reference $params, *reference $args) {
+    static *string getLogMessage(hash cx, hash api, reference params, *reference args) {
         on_exit {
-	    if ($params.typeCode() == NT_LIST)
-		unshift $params, $cx;
-	    else if (exists $params)
-		$params = ($cx, $params);
+	    if (params.typeCode() == NT_LIST)
+		unshift params, cx;
+	    else if (exists params)
+		params = (cx, params);
 	    else
-		$params = $cx;
+		params = cx;
         }
 
-        if (($api.logopt & HttpServer::LP_LEVELMASK) > 1 || !$cx.logfunc)
+        if ((api.logopt & HttpServer::LP_LEVELMASK) > 1 || !cx.logfunc)
             return;
 
-        my string $msg = $cx.method;
+        string msg = cx.method;
 
         # add arguments to log message
-        $args = "";
-        if ($api.logopt & HttpServer::LP_LOGPARAMS) {
-            $args += "(";
-            my int $i = 0;
-            my hash $amh;
-            if ($api.maskargs)
-                map $amh.$1 = True, $api.maskargs;
-            foreach my any $arg in ($params) {
-                if ($amh.($i++))
-                    $args += "<masked>, ";
-                else if ($arg.typeCode() == NT_HASH && $arg) {
-                    $args += "{";
-                    $args += foldl $1 + "," + $2, (map $1 == $api.maskkey ? sprintf("%s: <masked>", $1) : sprintf("%s: %y", $1, $arg.$1), $arg.keyIterator());
-                    $args += "}, ";
+        args = "";
+        if (api.logopt & HttpServer::LP_LOGPARAMS) {
+            args += "(";
+            int i = 0;
+            hash amh;
+            if (api.maskargs)
+                map amh.$1 = True, api.maskargs;
+            foreach any arg in (params) {
+                if (amh.(i++))
+                    args += "<masked>, ";
+                else if (arg.typeCode() == NT_HASH && arg) {
+                    args += "{";
+                    args += foldl $1 + "," + $2, (map $1 == api.maskkey ? sprintf("%s: <masked>", $1) : sprintf("%s: %y", $1, arg.$1), arg.keyIterator());
+                    args += "}, ";
                 }
                 else
-                    $args += sprintf("%y, ", $arg);
+                    args += sprintf("%y, ", arg);
             }
             # remove the last two characters from the string if any were added
-            $args =~ s/, $//;
-            $args += ")";
+            args =~ s/, $//;
+            args += ")";
         }
        
-        return sprintf("%s(%s)", $msg, $args);
+        return sprintf("%s(%s)", msg, args);
     }
 
     #! called before handleRequest() any data returned here will be given to restoreThreadLocalData() after the handleRequest() call
@@ -984,64 +986,64 @@ public class HttpServer::AbstractHttpRequestHandler {
     #! called after handleRequest() with any data returned from saveThreadData()
     /** @note the default implementation does nothing
       */
-    restoreThreadLocalData(*hash $data) {
+    restoreThreadLocalData(*hash data) {
     }
 
     #! creates a hash for an HTTP response with the response code and the response message body as a formatted string
-    static hash makeResponse(int $code, string $fmt) {
+    static hash makeResponse(int code, string fmt) {
         return (
-            "code": $code,
-            "body": vsprintf($fmt, $argv),
+            "code": code,
+            "body": vsprintf(fmt, argv),
             );
     }
 
     #! creates a hash for an HTTP response with the response code and the response message body as a formatted string
-    static hash makeResponse(hash $hdr, int $code, string $fmt) {
+    static hash makeResponse(hash hdr, int code, string fmt) {
         return (
-            "code": $code,
-            "body": vsprintf($fmt, $argv),
-            "hdr": $hdr,
+            "code": code,
+            "body": vsprintf(fmt, argv),
+            "hdr": hdr,
             );
     }
 
     #! creates a hash for an HTTP response with the response code and a literal response message body
-    static hash makeResponse(int $code, *data $body, *hash $hdr) {
+    static hash makeResponse(int code, *data body, *hash hdr) {
         return (
-            "code": $code,
-            "body": $body,
-            "hdr": $hdr,
+            "code": code,
+            "body": body,
+            "hdr": hdr,
             );
     }
 
     #! creates a hash for an HTTP 400 error response with the response message body as a string
-    static hash make400(string $fmt) {
-        return AbstractHttpRequestHandler::makeResponse(400, vsprintf($fmt, $argv));
+    static hash make400(string fmt) {
+        return AbstractHttpRequestHandler::makeResponse(400, vsprintf(fmt, argv));
     }
     
     #! creates a hash for an HTTP 400 error response with the response message body as a string
-    static hash make400(hash $hdr, string $fmt) {
-        return AbstractHttpRequestHandler::makeResponse(400, vsprintf($fmt, $argv), $hdr);
+    static hash make400(hash hdr, string fmt) {
+        return AbstractHttpRequestHandler::makeResponse(400, vsprintf(fmt, argv), hdr);
     }
     
     #! creates a hash for an HTTP 501 error response with the response message body as a string
-    static hash make501(string $fmt) {
-        return AbstractHttpRequestHandler::makeResponse(501, vsprintf($fmt, $argv));
+    static hash make501(string fmt) {
+        return AbstractHttpRequestHandler::makeResponse(501, vsprintf(fmt, argv));
     }
     
     #! creates a hash for an HTTP 501 error response with the response message body as a string
-    static hash make501(hash $hdr, string $fmt) {
-        return AbstractHttpRequestHandler::makeResponse(501, vsprintf($fmt, $argv), $hdr);
+    static hash make501(hash hdr, string fmt) {
+        return AbstractHttpRequestHandler::makeResponse(501, vsprintf(fmt, argv), hdr);
     }
 
     #! generates a redirect hash for the given path
-    static hash redirect(hash $cx, hash $hdr, string $path) {
+    static hash redirect(hash cx, hash hdr, string path) {
         # make sure no forward slashes are doubled in the path
-        $path =~ s/\/+/\//g;
-        my string $uri = sprintf("http%s://%s/%s", $cx.ssl ? "s" : "", $hdr.host, $path);
+        path =~ s/\/+/\//g;
+        string uri = sprintf("http%s://%s/%s", cx.ssl ? "s" : "", hdr.host, path);
         return (
             "code": 301,
-            "hdr": ("Location": $uri),
-            "body": $hdr.method != "HEAD" ? sprintf("redirecting to %s", $uri) : NOTHING,
+            "hdr": ("Location": uri),
+            "body": hdr.method != "HEAD" ? sprintf("redirecting to %s", uri) : NOTHING,
             );
     }
 }
@@ -1050,26 +1052,26 @@ public class HttpServer::AbstractHttpRequestHandler {
 public class HttpServer::AbstractUrlHandler inherits HttpServer::AbstractHttpRequestHandler {
     public {
         #! root part of URL for matching requests
-        string $.url_root;
+        string url_root;
     }
 
     #! creates the object based on the URL root and optional authenticator
-    /** @param url_root the root part of the URL path without the leading \c "/"
+    /** @param n_url_root the root part of the URL path without the leading \c "/"
         @param auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
      */
-    constructor(string $url_root, *AbstractAuthenticator $auth) : AbstractHttpRequestHandler($auth) {
-        if ($url_root =~ /\//)
-            $url_root = $url_root.substr(1);
-        $.url_root = $url_root;
+    constructor(string n_url_root, *AbstractAuthenticator auth) : AbstractHttpRequestHandler(auth) {
+        if (n_url_root =~ /\//)
+            n_url_root = n_url_root.substr(1);
+        url_root = n_url_root;
     }
 
     #! returns the relative path anchored from the url_root if possible; URI query arguments are stripped off, if the url_root cannot be matched then the path is returned with URI query arguments removed
-    string getRelativePath(string $path) {
-        if ($.url_root && $path.equalPartialPath($.url_root))
-            $path = $path.substr($.url_root.size() + 1); 
+    string getRelativePath(string path) {
+        if (url_root && path.equalPartialPath(url_root))
+            path = path.substr(url_root.size() + 1); 
         # strip URI query args from path
-        $path =~ s/\?.*$//;
-        return $path;
+        path =~ s/\?.*$//;
+        return path;
     }
 }
 
@@ -1079,22 +1081,22 @@ public class HttpServer::AbstractUrlHandler inherits HttpServer::AbstractHttpReq
 public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::AbstractHttpRequestHandler {
     private {
         #! stop listener flag
-        bool $.stop = False;
+        bool stop = False;
 
         #! hash of listener references; this is to stop all connections associated with a particular listener
-        hash $.lh;
+        hash lh;
         
         #! hash of listener stop flags
-        hash $.lsh;
+        hash lsh;
 
         #! listener reference hash mutex
-        Mutex $.m();
+        Mutex m();
     }
 
     #! create the object optionally with the given AbstractAuthenticator
     /** @param auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
       */
-    constructor(*AbstractAuthenticator $auth) : AbstractHttpRequestHandler($auth) {
+    constructor(*AbstractAuthenticator auth) : AbstractHttpRequestHandler(auth) {
     }
 
     #! called from the HTTP server after the handleRequest() method indicates that a dedicated connection should be established
@@ -1112,21 +1114,21 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
         @param hdr a hash of headers in the request
         @param s the @ref Qore::Socket "Socket" object for the dedicated connection
      */
-    start(softstring $lid, hash $cx, hash $hdr, Socket $s) {
+    start(softstring lid, hash cx, hash hdr, Socket s) {
         {
-            $.m.lock();
-            on_exit $.m.unlock();
-            ++$.lh.$lid;
+            m.lock();
+            on_exit m.unlock();
+            ++lh{lid};
         }
         on_exit {
-            $.m.lock();
-            on_exit $.m.unlock();
-            if (!--$.lh.$lid) {
-                delete $.lh.$lid;
-                delete $.lsh.$lid;
+            m.lock();
+            on_exit m.unlock();
+            if (!--lh{lid}) {
+                delete lh{lid};
+                delete lsh{lid};
             }
         }
-        $.startImpl($lid, $cx, $hdr, $s);
+        startImpl(lid, cx, hdr, s);
     }
 
     #! called from the HTTP server when the socket should be closed due to an HTTP listener being stopped; the start() method for all connections on the particular listener should return as soon as possible after this method is called
@@ -1134,25 +1136,25 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
 
         @param lid the listener ID
     */
-    stop(softstring $lid) {
+    stop(softstring lid) {
         {
-            $.m.lock();
-            on_exit $.m.unlock();
-            if (!$.lh.$lid)
+            m.lock();
+            on_exit m.unlock();
+            if (!lh{lid})
                 return;
 
-            $.lsh.$lid = True;
+            lsh{lid} = True;
         }
         
-        $.stopImpl($lid);
+        stopImpl(lid);
     }
 
     #! called from the HTTP server when the socket should be closed due to an external request; the start() method should return as soon as possible after this method is called
     /** child classes should implement the stopImpl() method which is called from this method to implement custom stop actions
      */
     stop() {
-        $.stop = True;
-        $.stopImpl();
+        stop = True;
+        stopImpl();
     }
 
     #! called by the HTTP server to handle incoming HTTP requests
@@ -1182,7 +1184,7 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
         - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
         - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
      */
-    abstract hash handleRequest(hash $cx, hash $hdr, *data $b);
+    abstract hash handleRequest(hash cx, hash hdr, *data b);
 
     #! called from the HTTP server after the handleRequest() method indicates that a dedicated connection should be established
     /** This method should not return until the connection is closed or the stop() (and therefore stopImpl()) method is called
@@ -1199,12 +1201,12 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
         @param hdr a hash of headers in the request
         @param s the @ref Qore::Socket "Socket" object for the dedicated connection
      */
-    private abstract startImpl(softstring $lid, hash $cx, hash $hdr, Socket $s);
+    private abstract startImpl(softstring lid, hash cx, hash hdr, Socket s);
 
     #! called from the HTTP server when the socket should be closed because the listener is stopping; the start() method for all connections handled by the given listener should return as soon as possible after this method is called
     /** @param lid the listener ID
     */
-    private stopImpl(string $lid) {
+    private stopImpl(string lid) {
     }
 
     #! called from the HTTP server when the socket should be closed due to an external request; the start() method should return as soon as possible after this method is called
