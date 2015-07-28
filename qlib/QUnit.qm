@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file UnitTest.qm Qore user module for automatic testing
+# @file QUnit.qm Qore user module for automatic testing
 
 %requires qore >= 0.8.12
 %new-style
@@ -23,7 +23,7 @@ module QUnit {
 
     @tableofcontents
 
-    @section qunit_intro Introduction to the UnitTest Module
+    @section qunit_intro Introduction to the QUnit Module
 
     The %QUnit module provides a framework for automated testing.
 
