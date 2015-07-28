@@ -159,6 +159,10 @@
       - implemented RestClient::setContentEncoding()
     -  <a href="../../modules/WebUtil/html/index.html">WebUtil</a> module updates:
       - updated FileHandler::handleRequest() to allow for chunked sends
+    - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module updates:
+      - new methods implemented in HttpServer:
+        - HttpServer::setListenerLogAll()
+        - HttpServer::setListenerLogAllID()
     - added option @ref Qore::Option::HAVE_DETERMINISTIC_GC "HAVE_DETERMINISTIC_GC" for %Qore builds where deterministic garbage collection is enabled
     - @ref Qore::Program "Program" class enhancements:
       - the @ref Qore::Program "Program" class now creates @ref conditional_parsing "parse defines" for parse options so that conditional code can be implemented depending on the sandboxing configuration of the program container
@@ -235,7 +239,7 @@
     - fixed a bug in Qore where string data formatted with \c %%n, \c %%N, or \c %%y could be added to another string with a different character encoding without any automatic conversions, therefore resulting in an improperly-encoded string
     - fixed a crash when parsing when parsing function, method, or closure arguments when either of the @ref duplicate-local-vars or @ref duplicate-block-vars warnings are set due to an error handling thread-local variable info in parse initialization
     - fixed a bug where code with mixed coding styles (old and new) could result in invalid parse errors when parsing base class constructor calls to a base class defined in another coding style
-    - fixed a bug where an HTTP response with an unknown Content-Encoding header would cause a crash
+    - fixed a bug where an HTTP response with an unknown \c Content-Encoding header would cause a crash
     - fixed a memory error with receiving HTTP chunked data with receive callbacks where the buffer object was reset with reference counts > 1
     - fixed a bug in the @ref Qore::FtpClient "FtpClient" class where socket errors would not cause the connection to be closed automatically and therefore further use of the object required a manual disconnect even though the object supports transparent auto-reconnection
     - fixed a bug where conversions from float to number would introduce inaccuracy in the arbitrary-precision number; ex: <code>737.38.toNumber() -> 737.3799999999999954525264911353588104248</code>
@@ -292,6 +296,7 @@
     - fixed a bug in call references and objects by replacing string references to the containing Program object with weak references which solved a recursive reference / memory leak issue
     - fixed a memory leak when a thread init call reference was used with @ref Qore::Program objects
     - fixed bugs in Qore SSL socket handling when the remote connection is disconnected while performing an SSL upgrade (client or server) that could cause a crash
+    - fixed a bug where the sending an invalid HTTP header to the @ref Qore::Socket::sendHTTPResponse() method could cause a crash
 
     @section qore_0811 Qore 0.8.11
 
