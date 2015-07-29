@@ -78,6 +78,8 @@ module HttpServer {
 %requires HttpServer
 %requires Mime
 
+%new-style
+
 class MyHandler inherits AbstractHttpRequestHandler {
     hash handleRequest(hash cx, hash hdr, *data body) {
         # NOTE: change "%y" to "%N" to get a more readable multi-line output format for container values 
@@ -124,8 +126,8 @@ log("started listener on %s", lh.desc);
     - moved base code to the HttpServerUtil module (imported with the \c reexport option) and santized APIs, made HttpListener class private/internal again
     - fixed a socket / connection performance problem with HTTPS listeners where the SSL connection was being negotiated inline with the accept instead of in the connection thread, thereby blocking new connections from being accepted
     - new methods implemented in HttpServer:
-      - HttpServer::setListenerLogAll()
-      - HttpServer::setListenerLogAllID()
+      - HttpServer::setListenerLogOptions()
+      - HttpServer::setListenerLogOptionsID()
 
     @subsection http0310 HttpServer 0.3.10
     - if an error occurs receiving a message with chunked transfer encoding, send the response immediately before reading the rest of the chunked transfer
@@ -503,6 +505,28 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
 
         #! default threadhold for data compressions; transfers smaller than this size will not be compressed
         const CompressionThreshold = 1024;
+
+        /** @defgroup ListenerLogOptions Listener Log Options
+            Options to control how listener headers and body options are logged
+            @see
+            - HttpServer::getListenerLogOptions()
+            - HttpServer::getListenerLogOptionsID()
+            - HttpServer::setListenerLogOptions()
+            - HttpServer::setListenerLogOptionsID()
+         */
+        #@{
+        #! listener log option: log recv headers
+        const LLO_RECV_HEADERS = (1 << 0);
+
+        #! listener log option: log recv message body
+        const LLO_RECV_BODY = (1 << 1);
+
+        #! listener log option: log send headers
+        const LLO_SEND_HEADERS = (1 << 2);
+
+        #! listener log option: log sent message body
+        const LLO_SEND_BODY = (1 << 3);
+        #@}
     }
 
     #! @cond nodoc
@@ -969,23 +993,58 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         listeners{id}.addHandlers(h);
     }
     
-    #! sets both send and receive header and body log flags on the given listener
-    setListenerLogAll(softstring bind, softbool flag = True) {
+    #! turns on or off header and body logging options for receive operations for the given listener
+    /** @par Example:
+        @code
+http.setListenerLogOptions("app", LLO_RECV_HEADERS|LLO_SEND_HEADERS);
+        @endcode
+
+        @param bind the name of the listener or bind string
+        @param code a binary-or'ed product of @ref ListenerLogOptions "listener log options"; bits set enable logging; bits not set disable logging
+     */
+    setListenerLogOptions(softstring bind, softint code) {
 	lm.enter();
 	on_exit lm.exit();
 
-        setListenerLogAllUnlocked(getListenerIdFromBindUnlocked(bind), flag);
+        setListenerLogOptionsUnlocked(getListenerIdFromBindUnlocked(bind), code);
     }
 
-    #! sets both send and receive header and body log flags on the given listener
-    setListenerLogAllID(softint id, softbool flag = True) {
+    #! turns on or off header and body logging options for receive operations for the given listener
+    /** @par Example:
+        @code
+http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
+        @endcode
+
+        @param id the unique listener ID
+        @param code a binary-or'ed product of @ref ListenerLogOptions "listener log options"; bits set enable logging; bits not set disable logging
+     */
+    setListenerLogOptionsID(softint id, softint code) {
 	lm.enter();
 	on_exit lm.exit();
 
-	if (!listeners{id})
+        if (!listeners{id})
             throw "HTTP-SERVER-ERROR", sprintf("there is no listener with ID %d", id);
 
-        setListenerLogAllUnlocked(id, flag);
+        setListenerLogOptionsUnlocked(id, code);
+    }
+
+    #! returns a binary-or'ed product of @ref ListenerLogOptions "listener log options" corresponding to enabled log options for the given listener
+    int getListenerLogOptions(softstring bind) {
+	lm.enter();
+	on_exit lm.exit();
+
+        return getListenerLogOptionsUnlocked(getListenerIdFromBindUnlocked(bind));
+    }
+
+    #! returns a binary-or'ed product of @ref ListenerLogOptions "listener log options" corresponding to enabled log options for the given listener
+    int getListenerLogOptionsID(softint id) {
+	lm.enter();
+	on_exit lm.exit();
+
+        if (!listeners{id})
+            throw "HTTP-SERVER-ERROR", sprintf("there is no listener with ID %d", id);
+
+        return getListenerLogOptionsUnlocked(id);
     }
 
     #! remove dynamic handler
@@ -1102,13 +1161,24 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         return id;
     }    
 
-    #! turns on all header and body logging options for the given listener
-    private setListenerLogAllUnlocked(softstring id, bool flag) {
+    #! turns on or off header and body logging options for the given listener according to the option code
+    private setListenerLogOptionsUnlocked(softstring id, int code) {
         HttpListener l = listeners{id};
-        l.logRecvHeaders(flag);
-        l.logRecvBody(flag);
-        l.logSendHeaders(flag);
-        l.logSendBody(flag);
+        l.logRecvHeaders(code & LLO_RECV_HEADERS);
+        l.logRecvBody(code & LLO_RECV_BODY);
+        l.logSendHeaders(code & LLO_SEND_HEADERS);
+        l.logSendBody(code & LLO_RECV_BODY);
+    }
+
+    #! returns header and body logging options for the given listener as a binary-or'ed value of @ref ListenerLogOptions "listener log option codes" 
+    private int getListenerLogOptionsUnlocked(softstring id) {
+        HttpListener l = listeners{id};
+        hash h = l.getLogOptions();
+        return
+            (h.recv_headers ? LLO_RECV_HEADERS : 0)
+            | (h.recv_body ? LLO_RECV_BODY : 0)
+            | (h.send_headers ? LLO_SEND_HEADERS : 0)
+            | (h.send_body ? LLO_SEND_BODY : 0);
     }
 
     #! helper method to set HTTP response headers
@@ -1676,20 +1746,29 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
 	stop();
     }
 
-    logRecvHeaders(bool flag = True) {
+    logRecvHeaders(softbool flag = True) {
         log_recv_headers = flag;
     }
 
-    logRecvBody(bool flag = True) {
+    logRecvBody(softbool flag = True) {
         log_recv_body = flag;
     }
     
-    logSendHeaders(bool flag = True) {
+    logSendHeaders(softbool flag = True) {
         log_send_headers = flag;
     }
 
-    logSendBody(bool flag = True) {
+    logSendBody(softbool flag = True) {
         log_send_body = flag;
+    }
+
+    hash getLogOptions() {
+        return (
+            "recv_headers": log_recv_headers,
+            "recv_body": log_recv_body,
+            "send_headers": log_send_headers,
+            "send_body": log_send_body,
+            );
     }
     
     string getName() {
