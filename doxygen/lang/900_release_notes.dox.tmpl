@@ -161,8 +161,8 @@
       - updated FileHandler::handleRequest() to allow for chunked sends
     - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module updates:
       - new methods implemented in HttpServer:
-        - HttpServer::setListenerLogAll()
-        - HttpServer::setListenerLogAllID()
+        - HttpServer::setListenerLogOptions()
+        - HttpServer::setListenerLogOptionsID()
     - added option @ref Qore::Option::HAVE_DETERMINISTIC_GC "HAVE_DETERMINISTIC_GC" for %Qore builds where deterministic garbage collection is enabled
     - @ref Qore::Program "Program" class enhancements:
       - the @ref Qore::Program "Program" class now creates @ref conditional_parsing "parse defines" for parse options so that conditional code can be implemented depending on the sandboxing configuration of the program container
@@ -223,6 +223,7 @@
       - ignore \c SOCKET-NOT-OPEN errors when closing (server already closed the connection)
     - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module fixes:
       - fold all possible arguments in the REST request body into the argument hash so that complex REST requests can be made with clear URI strings
+      - fixed a bug where an error calling an internal nonexistent method would be reported with an incorrect error message
     - fixed a memory error in error-handling with type errors when parsing user module headers that could cause a crash
     - fixed a memory leak in @ref Qore::Socket::setWarningQueue() "Socket::setWarningQueue()": when a callback argument is used, the argument can be leaked when the @ref Qore::Socket "Socket" is destroyed
     - fixed a bug where the @ref Qore::HTTPClient "HTTPClient" class did not send the X.509 certificate and private key when making a client SSL connection

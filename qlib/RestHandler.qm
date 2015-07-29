@@ -302,6 +302,7 @@ Content-Length: 36
     - added support for the HTTP \c OPTIONS method
     - return an error if an unsupported HTTP method is used in a REST call
     - fixed a type error in the ah member of AbstractRestStreamRequestHandler
+    - fixed a bug where an error calling an internal nonexistent method would be reported with an incorrect error message
 
     @subsection rh_v_1_0 RestHandler v1.0
     - the initial version of the RestHandler module
@@ -493,20 +494,29 @@ public namespace RestHandler {
                     $rh.logError("DISPATCH-ERROR: cannot dispatch to unimplemented method %y: class %y, args: %y", $mn, $.name(), $ah);
                     # see if alternate methods would work
                     my list $hl = ();
+                    # break flag
+                    my bool $brk;
                     foreach my hash $mh in (RestHandler::Methods.pairIterator()) {
                         my string $nmn = $mh.value + $cx.rest_method;
-                        if ($self.hasCallableMethod($nmn))
+                        if ($self.hasCallableMethod($nmn)) {
+                            if ($mh.key == $cx.hdr.method) {
+                                $brk = True;
+                                break;
+                            }
                             $hl += $mh.key;
+                        }
                     }
-                    if (!$hl)
-                        return RestHandler::make501("REST class %y (%s) does not implement method %y", $.name(), $self.className(), $cx.orig_method ? $cx.orig_method : $mn);
+                    if (!$brk) {
+                        if (!$hl)
+                            return RestHandler::make501("REST class %y (%s) does not implement method %y", $.name(), $self.className(), $cx.orig_method ? $cx.orig_method : $mn);
  
-                    my string $ml = foldl $1 + "," + $2, $hl;
-                    my string $desc = sprintf("HTTP method %s is unimplemented in REST class %y (%s)", $cx.hdr.method, $.name(), $self.className());
-                    if ($cx.orig_method)
-                        $desc += sprintf(" REST method %y", $cx.orig_method);
-                    $desc += sprintf(", available methods: %s", $ml);
-                    return HttpServer::AbstractHttpRequestHandler::makeResponse(("Allow": $ml), 405, $desc);
+                        my string $ml = foldl $1 + "," + $2, $hl;
+                        my string $desc = sprintf("HTTP method %s is unimplemented in REST class %y (%s)", $cx.hdr.method, $.name(), $self.className());
+                        if ($cx.orig_method)
+                            $desc += sprintf(" REST method %y", $cx.orig_method);
+                        $desc += sprintf(", available methods: %s", $ml);
+                        return HttpServer::AbstractHttpRequestHandler::makeResponse(("Allow": $ml), 405, $desc);
+                    }
                 }
                 my string $desc = !$cx.debug
                     ? sprintf("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc)
