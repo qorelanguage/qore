@@ -300,6 +300,7 @@
     - fixed a memory leak when a thread init call reference was used with @ref Qore::Program objects
     - fixed bugs in Qore SSL socket handling when the remote connection is disconnected while performing an SSL upgrade (client or server) that could cause a crash
     - fixed a bug where the sending an invalid HTTP header to the @ref Qore::Socket::sendHTTPResponse() method could cause a crash
+    - fixed a bug in @ref Qore::system() "system()" where \c & (ampersand) characters were not recognized as shell meta-characters
 
     @section qore_0811 Qore 0.8.11
 
