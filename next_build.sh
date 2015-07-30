@@ -21,6 +21,7 @@
 #  Note that the Qore library is released under a choice of three open-source
 #  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
 #  information.
+
 builddir=`pwd`
 dir=`dirname $0`
 qore_inc="$dir/include/qore"
@@ -38,11 +39,15 @@ else
     show_build=0
 fi
 
+create_file() {
+    printf "#define BUILD \"%s\"\n" $build > $file
+    echo git revision changed to $build in $file
+}
+
 make_file() {
     crev=`cat "$file" 2>/dev/null|cut -d\" -f2`
     if [ "$crev" != "$build" ]; then
-        printf "#define BUILD \"%s\"\n" $build > $1
-        echo git revision changed to $build in $file
+	create_file
     elif [ $show_build -eq 1 ]; then
         echo $build
         exit 0
@@ -78,20 +83,18 @@ make_version() {
 }
 
 # see if git is available
-if build="$($(dirname "$0")/getrev.sh)"; then
-    make_file ${file}
+if build="$($(dirname '$0')/getrev.sh 2>/dev/null)"; then
+    make_file
     ok=1
 else
     echo "Need git revision to create ${file}"
 fi
 
 if [ $ok -ne 1 ]; then
-    if [ -f $file ]; then
-        build=`cat $file|cut -b15-`
-    else
+    if [ ! -f $file ]; then
         echo WARNING! $file not found and git is not available
-        build=0
-        make_file $build
+	build=0
+        create_file
     fi
 fi
 

@@ -199,6 +199,7 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_HashListReverseIterator.qpp \
 	lib/QC_ListHashIterator.qpp \
 	lib/QC_ListHashReverseIterator.qpp \
+	lib/QC_DataLineIterator.qpp \
 	lib/QC_FileLineIterator.qpp \
 	lib/QC_SingleValueIterator.qpp \
 	lib/QC_AbstractDatasource.qpp \
@@ -501,6 +502,7 @@ noinst_HEADERS = \
 	include/qore/intern/QoreMapOperatorNode.h \
 	include/qore/intern/QoreMapSelectOperatorNode.h \
 	include/qore/intern/QoreHashMapOperatorNode.h \
+	include/qore/intern/QoreHashMapSelectOperatorNode.h \
 	include/qore/intern/QorePseudoMethods.h \
 	include/qore/intern/QoreHashIterator.h \
 	include/qore/intern/QoreListIterator.h \
