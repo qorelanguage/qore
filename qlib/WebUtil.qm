@@ -545,14 +545,14 @@ hash h = tm.render("html/index.qhtml", ctx);
             @throw TEMPLATE-ERROR the given template does not exist
         */
         hash render(string tname, hash ctx, int code = 200, *hash hdr) {
-            *hash th = th{tname};
-            if (!th)
+            *hash vth = th{tname};
+            if (!vth)
                 throw "TEMPLATE-ERROR", sprintf("no template %y exists; known templates: %y", tname, th.keys());
 
             return (
                 "code": code,
-                "body": p.callFunction(th.func, ctx),
-                "hdr": hdr + ("Content-Type": th.ct),
+                "body": p.callFunction(vth.func, ctx),
+                "hdr": hdr + ("Content-Type": vth.ct),
                 );
         }
 
@@ -573,14 +573,14 @@ hash h = tm.render("html/index.qhtml", ctx);
             - \c hdr: a hash of headers corresponding to the \a hdr argument plus the \c "Content-Type" key set from the template's "Content-Type" value)
         */
         *hash tryRender(string tname, hash ctx, int code = 200, *hash hdr) {
-            *hash th = th{tname};
-            if (!th)
+            *hash vth = th{tname};
+            if (!vth)
                 return;
 
             return (
                 "code": code,
-                "body": p.callFunction(th.func, ctx),
-                "hdr": hdr + ("Content-Type": th.ct),
+                "body": p.callFunction(vth.func, ctx),
+                "hdr": hdr + ("Content-Type": vth.ct),
                 );
         }
 
