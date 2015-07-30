@@ -87,3 +87,5 @@ Doxyfile*
 doxygen/lang/*.dox
 *.tag
 
+# release pkgs
+*.bz2
