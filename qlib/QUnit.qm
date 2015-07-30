@@ -716,7 +716,7 @@ addTestCase(obj);
         }
 
         if (!expectedResult.equals(result)) {
-            throw "TEST-EXCEPTION", printUnexpectedData(expectedResult.toString(), result.toString(), False, name), name;
+            throw "TEST-EXCEPTION", printUnexpectedData(expectedResult.toString(), result.toString()), name;
         }
         else {
             tc.incAssertionsOk();
