@@ -240,7 +240,7 @@ noinst_HEADERS = \
 	include/qore/intern/config.h \
 	include/qore/intern/unix-config.h \
 	include/qore/intern/win32-config.h \
-	include/qore/intern/svn-revision.h \
+	include/qore/intern/git-revision.h \
 	include/qore/intern/glob.h \
 	include/qore/intern/AbstractIteratorHelper.h \
 	include/qore/intern/ParseReferenceNode.h \

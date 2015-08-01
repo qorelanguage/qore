@@ -29,7 +29,7 @@ file="$qore_inc/intern/git-revision.h"
 version_file="$qore_inc/qore-version.h"
 version_tmp="$qore_inc/qore-version.h.tmp"
 
-unix_config=$builddir'/include/qore/intern/unix-config.h'
+unix_config=$dir'/include/qore/intern/unix-config.h'
 
 ok=0
 
@@ -83,7 +83,7 @@ make_version() {
 }
 
 # see if git is available
-if build="$($(dirname '$0')/getrev.sh 2>/dev/null)"; then
+if build="$($dir/getrev.sh 2>/dev/null)"; then
     make_file
     ok=1
 else
