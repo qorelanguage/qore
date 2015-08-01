@@ -85,7 +85,7 @@ InboundTableMapper map(table, DataMap);
 {
     on_success map.commit();
     on_error map.rollback();
-    # apply the map and insert the mapped for for each input record
+    # apply the map and insert the mapped data for each input record
     map map.insertRowNoCommit($1), input;
 }
 printf("%d record%s inserted\n", map.getCount(), map.getCount() == 1 ? "" : "s");
