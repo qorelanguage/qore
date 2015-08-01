@@ -218,6 +218,8 @@ void DatasourcePool::destructor(ExceptionSink* xsink) {
       callback_arg = 0;
 #endif
    }
+
+   config.del(xsink);
 }
 
 #ifdef DEBUG
