@@ -52,7 +52,7 @@ class ManagedDatasource : public AbstractThreadResource, public Datasource, publ
    friend class DatasourceLockHelper;
 protected:
    // connection/transaction lock
-   mutable QoreThreadLock ds_lock;                     
+   mutable QoreThreadLock ds_lock;
 
    int tid,                        // TID of thread holding the connection/transaction lock
       waiting,                     // number of threads waiting on the transaction lock

@@ -39,11 +39,13 @@
 
 struct qore_ds_private {
    Datasource* ds;
+
    bool in_transaction;
    bool active_transaction;
    bool isopen;
    bool autocommit;
    bool connection_aborted;
+
    mutable DBIDriver* dsl;
    const QoreEncoding* qorecharset;
    void* private_data;               // driver private data per connection
