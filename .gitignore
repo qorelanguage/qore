@@ -89,3 +89,6 @@ doxygen/lang/*.dox
 
 # release pkgs
 *.bz2
+
+# ignore compiled emacs files
+*.elc
