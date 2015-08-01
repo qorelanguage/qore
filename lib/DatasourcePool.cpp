@@ -47,6 +47,7 @@ DatasourcePool::DatasourcePool(ExceptionSink* xsink, DBIDriver* ndsl, const char
       stats_hits(0),
       warning_callback(0),
       callback_arg(0),
+      config(ndsl, user, pass, db, charset, hostname, port, q, a),
       valid(false) {
    //assert(mn > 0);
    //assert(mx > min);   
@@ -60,16 +61,7 @@ DatasourcePool::DatasourcePool(ExceptionSink* xsink, DBIDriver* ndsl, const char
 	  hostname ? hostname : "(null)", min, max, port, pool);
 
    // open initial datasource manually
-   pool[0] = new Datasource(ndsl);
-   if (user)     pool[0]->setPendingUsername(user);
-   if (pass)     pool[0]->setPendingPassword(pass);
-   if (db)       pool[0]->setPendingDBName(db);
-   if (charset)  pool[0]->setPendingDBEncoding(charset);
-   if (hostname) pool[0]->setPendingHostName(hostname);
-   if (port)     pool[0]->setPendingPort(port);
-
-   if (q)
-      pool[0]->setEventQueue(q, a, xsink);
+   pool[0] = config.get();
 
    // set initial options
    ConstHashIterator hi(opts);
@@ -94,7 +86,7 @@ DatasourcePool::DatasourcePool(ExceptionSink* xsink, DBIDriver* ndsl, const char
    free_list.push_back(0);
 
    while (++cmax < min) {
-      pool[cmax] = pool[0]->copy();
+      pool[cmax] = config.get();
       // turn off autocommit
       pool[cmax]->setAutoCommit(false);
       // open connection to server
@@ -123,8 +115,9 @@ DatasourcePool::DatasourcePool(const DatasourcePool& old, ExceptionSink* xsink) 
    stats_hits(0),
    warning_callback(old.warning_callback ? old.warning_callback->refRefSelf() : 0),
    callback_arg(old.callback_arg ? old.callback_arg->refSelf() : 0),
+   config(old.config),
    valid(false) {
-   pool[0] = old.pool[0]->copy();
+   pool[0] = old.config.get();
 
    // open connection to server
    pool[0]->open(xsink);
@@ -672,8 +665,10 @@ void DatasourcePool::setEventQueue(Queue* q, AbstractQoreNode* arg, ExceptionSin
 	 first = false;
       }
       else
-	 pool[i]->setEventQueue(q ? q->eventRefSelf() : 0, arg ? arg->refSelf() : 0, xsink);
+	 pool[i]->setEventQueue(q ? q->queueRefSelf() : 0, arg ? arg->refSelf() : 0, xsink);
    }
+
+   config.setQueue(q, arg, xsink);
 }
 
 QoreListNode* DatasourcePool::getCapabilityList() const {

@@ -86,7 +86,7 @@ struct qore_ds_private {
       port(0), 
       //opt(old.opt->copy()) {
       opt(old.getCurrentOptionHash(true)), 
-      event_queue(old.event_queue ? old.event_queue->eventRefSelf() : 0),
+      event_queue(old.event_queue ? old.event_queue->queueRefSelf() : 0),
       event_arg(old.event_arg ? old.event_arg->refSelf() : 0) {
    }
 

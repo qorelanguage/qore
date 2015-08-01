@@ -301,6 +301,7 @@
     - fixed bugs in Qore SSL socket handling when the remote connection is disconnected while performing an SSL upgrade (client or server) that could cause a crash
     - fixed a bug where the sending an invalid HTTP header to the @ref Qore::Socket::sendHTTPResponse() method could cause a crash
     - fixed a bug in @ref Qore::system() "system()" where \c & (ampersand) characters were not recognized as shell meta-characters
+    - fixed a race condition in the @ref Qore::SQL::DatasourcePool "DatasourcePool" class when opening new datasources after a connection error in the first datasource which could cause a crash.  Now the first datasource is no longer a "special" datasource used for configuration information; configuration information is contained in a separate object which serves as an internal Datasource factory
 
     @section qore_0811 Qore 0.8.11
 
