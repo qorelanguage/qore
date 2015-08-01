@@ -281,7 +281,7 @@
     - fixed a bug where incompatible class definitions were not verified at parse time which could cause a crash in debug builds and unpredictable behavior in non-debug builds
     - fixed a race condition in finalizing thread-local data in  @ref Qore::Program "Program" objects during Program destruction that could lead to a runtime crash
     - fixed a crash when user modules have recursive dependencies
-    - fixed a bug with @ref push-parse-options "%push-parse-options" when used multiple times in the same file; now multiple appearances of this parsee directive are ignored
+    - fixed a bug with @ref push-parse-options "%push-parse-options" when used multiple times in the same file; now multiple appearances of this parse directive are ignored
     - fixed a bug initializing static class variables in the parse commit phase where a crash could result due to an error in managing parse commit dependencies
     - fixed @ref Qore::is_writable() on Windows when used with a directory
     - fixed a bug in @ref Qore::regex_extract() and in the @ref regex_extract_operator where the result buffer was not resized when it was too small, limiting regular expressions to nine subpatterns; the maximum has been raised to between 90 and 100 before an exception is raised (since the subpattern buffer is allocated on the stack, we need to enforce a limit)
