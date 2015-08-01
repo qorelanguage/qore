@@ -29,6 +29,7 @@ set(QORE_API_VERSION @MODULE_API_MAJOR@.@MODULE_API_MINOR@)
 
 set(QORE_EXECUTABLE @myprefix@/bin/qore)
 set(QORE_QPP_EXECUTABLE @myprefix@/bin/qpp)
+set(QORE_QPP_EXECUTABLE @myprefix@/bin/qdx)
 
 
 # warning: the same prefix for current qore is ised if there is no
