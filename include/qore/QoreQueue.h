@@ -101,7 +101,7 @@ protected:
 public:
    DLLEXPORT Queue(int max = -1);
 
-   DLLEXPORT Queue* eventRefSelf() const;
+   DLLEXPORT Queue* queueRefSelf() const;
 };
 
 #endif // _QORE_QOREQUEUE_H

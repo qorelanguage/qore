@@ -338,7 +338,7 @@ Queue::Queue(int max) : QoreQueue(max) {
 Queue::~Queue() {
 }
 
-Queue* Queue::eventRefSelf() const {
+Queue* Queue::queueRefSelf() const {
    ((Queue*)this)->ref();
    return (Queue*)this;
 }

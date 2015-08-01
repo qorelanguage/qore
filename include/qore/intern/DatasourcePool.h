@@ -4,7 +4,7 @@
  
   Qore Programming Language
  
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
  
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -44,9 +44,123 @@
 
 #include <map>
 #include <deque>
+#include <string>
 
 typedef std::map<int, int> thread_use_t;   // for marking a datasource in use
 typedef std::deque<int> free_list_t;       // for the free list
+
+// class holding datasource configuration params
+class DatasourceConfig {
+protected:
+   DBIDriver* driver;
+
+   std::string user,
+      pass,
+      db,
+      encoding,
+      host;
+
+   int port;
+
+   // options
+   QoreHashNode* opts;
+   // event queue
+   Queue* q;
+   // Queue argument
+   AbstractQoreNode* arg;
+   
+public:
+   DLLLOCAL DatasourceConfig(DBIDriver* n_driver, const char* n_user, const char* n_pass, const char* n_db,
+                             const char* n_encoding, const char* n_host, int n_port,
+                             const QoreHashNode* n_opts, Queue* n_q, AbstractQoreNode* n_arg) :
+      driver(n_driver), user(n_user ? n_user : ""), pass(n_pass ? n_pass : ""), db(n_db ? n_db : ""),
+      encoding(n_encoding ? n_encoding : ""), host(n_host ? n_host : ""), port(n_port),
+      opts(n_opts ? n_opts->hashRefSelf() : 0), q(n_q), arg(n_arg) {
+   }
+
+   DLLLOCAL DatasourceConfig(const DatasourceConfig& old) :
+      driver(old.driver), user(old.user), pass(old.pass), db(old.db), encoding(old.encoding), host(old.host),
+      port(old.port), opts(old.opts ? old.opts->hashRefSelf() : 0),
+      q(old.q ? old.q->queueRefSelf() : 0), arg(old.arg ? old.arg->refSelf() : 0) {
+   }
+   
+   DLLLOCAL ~DatasourceConfig() {
+      assert(!q);
+      assert(!arg);
+      assert(!opts);
+   }
+
+   DLLLOCAL void del(ExceptionSink* xsink) {
+      if (q) {
+         q->deref(xsink);
+#ifdef DEBUG
+         q = 0;
+#endif
+      }
+      if (arg) {
+         arg->deref(xsink);
+#ifdef DEBUG
+         arg = 0;
+#endif
+      }
+      if (opts) {
+         opts->deref(xsink);
+#ifdef DEBUG
+         opts = 0;
+#endif
+      }
+   }
+
+   // the first connection (opened in the DatasourcePool constructor) is passed with an xsink obj
+   // because invalid options can cause an exception to be thrown
+   DLLLOCAL Datasource* get(ExceptionSink* xsink = 0) const {
+      Datasource* ds = new Datasource(driver);
+
+      if (!user.empty())
+         ds->setPendingUsername(user.c_str());
+      if (!pass.empty())
+         ds->setPendingPassword(pass.c_str());
+      if (!db.empty())
+         ds->setPendingDBName(db.c_str());
+      if (!encoding.empty())
+         ds->setPendingDBEncoding(encoding.c_str());
+      if (!host.empty())
+         ds->setPendingHostName(host.c_str());
+
+      if (port)
+         ds->setPendingPort(port);
+
+      if (q) {
+         q->ref();
+         ds->setEventQueue(q, arg ? arg->refSelf() : 0, 0);
+      }
+
+      // set options
+      ConstHashIterator hi(opts);
+      while (hi.next()) {
+         // skip "min" and "max" options
+         if (!strcmp(hi.getKey(), "min") || !strcmp(hi.getKey(), "max"))
+            continue;
+
+         if (ds->setOption(hi.getKey(), hi.getValue(), xsink))
+            break;
+      }
+
+      // turn off autocommit
+      ds->setAutoCommit(false);
+
+      return ds;
+   }
+
+   DLLLOCAL void setQueue(Queue* n_q, AbstractQoreNode* n_arg, ExceptionSink* xsink) {
+      if (q)
+         q->deref(xsink);
+      q = n_q;
+      if (arg)
+         arg->deref(xsink);
+      arg = n_arg;
+   }
+};
 
 class DatasourcePool : public AbstractThreadResource, public QoreCondition, public QoreThreadLock, public DatasourceStatementHelper {
    friend class DatasourcePoolActionHelper;
@@ -55,6 +169,7 @@ protected:
    int* tid_list;            // list of thread IDs per pool index
    thread_use_t tmap;        // map from tids to pool index
    free_list_t free_list;
+
    unsigned min, 
       max,
       cmax,			 // current max
@@ -66,8 +181,12 @@ protected:
       stats_reqs,
       stats_hits
       ;
+
    ResolvedCallReferenceNode* warning_callback;
    AbstractQoreNode* callback_arg;
+
+   DatasourceConfig config;
+
    bool valid;
 
 #ifdef DEBUG
@@ -83,7 +202,8 @@ protected:
    // share the code for exec() and execRaw()
    DLLLOCAL AbstractQoreNode* exec_internal(bool doBind, const QoreString* sql, const QoreListNode* args, ExceptionSink* xsink);
    DLLLOCAL int checkWait(int64 warn_total, ExceptionSink* xsink);
-     
+   DLLLOCAL void init(ExceptionSink* xsink);
+   
 public:
 #ifdef DEBUG
    QoreString* getAndResetSQL();
@@ -121,10 +241,12 @@ public:
    DLLLOCAL const char* getDriverName () const {
       return pool[0]->getDriverName();
    }
+
    DLLLOCAL AbstractQoreNode* getServerVersion(ExceptionSink* xsink);
    DLLLOCAL AbstractQoreNode* getClientVersion(ExceptionSink* xsink) {
       return pool[0]->getClientVersion(xsink);
    }
+
    DLLLOCAL bool inTransaction();
 
    DLLLOCAL QoreHashNode* getOptionHash() const {

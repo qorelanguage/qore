@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 #  Permission is hereby granted, free of charge, to any person obtaining a
 #  copy of this software and associated documentation files (the "Software"),
@@ -22,12 +22,14 @@
 #  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
 #  information.
 
+builddir=`pwd`
 dir=`dirname $0`
-
 qore_inc="$dir/include/qore"
-file="$qore_inc/intern/svn-revision.h"
+file="$qore_inc/intern/git-revision.h"
 version_file="$qore_inc/qore-version.h"
 version_tmp="$qore_inc/qore-version.h.tmp"
+
+unix_config=$builddir'/include/qore/intern/unix-config.h'
 
 ok=0
 
@@ -37,62 +39,62 @@ else
     show_build=0
 fi
 
+create_file() {
+    printf "#define BUILD \"%s\"\n" $build > $file
+    echo git revision changed to $build in $file
+}
+
 make_file() {
-    crev=`cat "$file" 2>/dev/null|cut -b15-`
+    crev=`cat "$file" 2>/dev/null|cut -d\" -f2`
     if [ "$crev" != "$build" ]; then
-	printf "#define BUILD %s\n" $build > $1
-	echo svn revision changed to $build in $file
+	create_file
     elif [ $show_build -eq 1 ]; then
-	echo $build
+        echo $build
+        exit 0
     fi
 }
 
 make_version() {
-    major=`grep define.VERSION_MAJOR "$qore_inc/intern/unix-config.h"|cut -f3 -d\ `
-    minor=`grep define.VERSION_MINOR "$qore_inc/intern/unix-config.h"|cut -f3 -d\ `
-    sub=`grep define.VERSION_SUB "$qore_inc/intern/unix-config.h"|cut -f3 -d\ `
+    major=`grep define.VERSION_MAJOR "$unix_config"|cut -f3 -d\ `
+    minor=`grep define.VERSION_MINOR "$unix_config"|cut -f3 -d\ `
+    sub=`grep define.VERSION_SUB "$unix_config"|cut -f3 -d\ `
 
     if [ "$major" -gt 0 ]; then
-	qore_ver=`printf %d%02d%02d $major $minor $sub`
+        qore_ver=`printf %d%02d%02d $major $minor $sub`
     else
-	qore_ver=`printf %d%02d $minor $sub`
+        qore_ver=`printf %d%02d $minor $sub`
     fi
 
     printf "#ifndef _QORE_VERSION_H\n#define _QORE_VERSION_H\n#define QORE_VERSION_MAJOR %s\n#define QORE_VERSION_MINOR %s\n#define QORE_VERSION_SUB %s\n#define QORE_VERSION \"%s.%s.%s\"\n#define QORE_VERSION_CODE %s\n#endif\n" $major $minor $sub $major $minor $sub $qore_ver > "$version_tmp"
     create=yes
     if [ -f "$version_file" ]; then
-	diff "$version_tmp" "$version_file" >/dev/null 2>/dev/null
-	if [ $? -eq 0 ]; then
-	    create=no
-	fi
+        diff "$version_tmp" "$version_file" >/dev/null 2>/dev/null
+        if [ $? -eq 0 ]; then
+            create=no
+        fi
     fi
 
     if [ "$create" = "yes" ]; then
-	mv "$version_tmp" "$version_file"
-	printf "created $version_file for qore %s.%s.%s\n" $major $minor $sub
+        mv "$version_tmp" "$version_file"
+        printf "created $version_file for qore %s.%s.%s\n" $major $minor $sub
     else
-	rm -f "$version_tmp"
+        rm -f "$version_tmp"
     fi
 }
 
-# see if svn is available
-which svn >/dev/null 2>/dev/null
-if [ $? -eq 0 ]; then
-    si=`svn info 2>/dev/null`
-    if [ $? -eq 0 -a -n "$si" ]; then
-	build=`svn info|grep Revision|cut -f2 -d\ `
-	make_file $file
-	ok=1
-    fi
+# see if git is available
+if build="$($(dirname '$0')/getrev.sh 2>/dev/null)"; then
+    make_file
+    ok=1
+else
+    echo "Need git revision to create ${file}"
 fi
 
 if [ $ok -ne 1 ]; then
-    if [ -f $file ]; then
-	build=`cat $file|cut -b15-`
-    else
-	echo WARNING! $file not found and svn is not available
+    if [ ! -f $file ]; then
+        echo WARNING! $file not found and git is not available
 	build=0
-	make_file $build
+        create_file
     fi
 fi
 
