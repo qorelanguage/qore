@@ -189,7 +189,7 @@ list: (2 elements)
     - implemented \c "default" field tag giving a default value if no input value is specified
     - moved field length checks after all transformations have been applied
     - implemented a global \c "date_format" mapper option
-    - implemented the "number_format" field option and a global option of the same name
+    - implemented the \c "number_format" field option and a global option of the same name
     - fixed bugs in the \c "timezone" and \c "input_timezone" options, documented those options
     - changed the behavior of the \c "number" field type: now leaves numeric values in their original type, converts all other types to a number
     - removed the deprecated \c "crec" option
