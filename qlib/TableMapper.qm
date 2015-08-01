@@ -55,6 +55,7 @@ module TableMapper {
 
     Classes provided by this module:
     - @ref TableMapper::InboundTableMapper "InboundTableMapper": extends the @ref Mapper::Mapper class; assumes an SQL table target
+    - @ref TableMapper::InboundIdentityTableMapper "InboundIdentityTableMapper": extends the @ref TableMapper::InboundTableMapper "InboundTableMapper" class for the case when the source and target tables have the exact same structure
     - @ref TableMapper::InboundTableMapperIterator "InboundTableMapperIterator": provides a specialization of the @ref Mapper::AbstractMapperIterator class; assumes an SQL table target; automatically inserts mapped data into the target table based on the mapper provided
 
     @section tablemapperexamples TableMapper Examples
@@ -105,6 +106,7 @@ printf("%d record%s inserted\n", map.getCount(), map.getCount() == 1 ? "" : "s")
       - \c insert_block: for DB drivers supporting bulk DML (for use with the TableMapper::InboundTableMapper::queueBatchRow(), TableMapper::InboundTableMapper::flush(), and TableMapper::InboundTableMapper::discard() methods), the number of rows inserted at once (default: 500, only used when \c unstable_input is @ref Qore::False "False") and bulk inserts are supported in the table object
     - added method for bulk / batch inserts for db drivers supporting bulk DML (ex: Oracle)
     - updated to Mapper changes: use table description to define output record for the Mapper module
+    - added the @ref TableMapper::InboundIdentityTableMapper "InboundIdentityTableMapper" class
 
     @subsection tablemapperv1_0 TableMapper v1.0
     - Initial release.
@@ -655,6 +657,71 @@ on_error $table_mapper.rollback();
         #! prepends the datasource description to the error description and calls Mapper::error2()
         private error2(string ex, string fmt) {
             Mapper::error2(ex, vsprintf(sprintf("datasource %s: ", table.getDatasourceDesc()) + fmt, argv));
+        }
+    }
+
+    #! maps from source to target tables with exactly the same structure
+    public class InboundIdentityTableMapper inherits TableMapper::InboundTableMapper {        
+        #! builds the object based on an optional hash providing field mappings, data constraints, and optionally custom mapping logic
+        /** The target table is also scanned using @ref sqlutilintro "SqlUtil" and column definitions are used to update the target record specification, also if there are any columns with NOT NULL constraints and no default value, mapping, or constant value, then a MAP-ERROR exception is thrown
+
+            @par Example:
+            @code
+const DbMapper = (
+    "id": ("sequence": "seq_inventory_example"),
+    );
+
+InboundIdentityTableMapper mapper(table, DbMapper);
+            @endcode
+
+            @param target the target table object
+            @param mapv a optional hash providing overrides for the default 1:1 input to output field mappings; each hash key is the name in lower case of the output column in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
+            - \c unstable_input: set this option to @ref Qore::True "True" (default @ref Qore::False "False") if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow() or insertRowNoCommit(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
+            - \c insert_block: for DB drivers supporting bulk DML (for use with the queueBatchRow(), flush(), and discard() methods), the number of rows inserted at once (default: 500, only used when \c unstable_input is @ref Qore::False "False") and bulk inserts are supported in the table object
+
+            @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
+        */
+        constructor(SqlUtil::Table target, hash mapv = {}, *hash opts) : InboundTableMapper(target, mapv, opts) {
+        }
+
+        #! builds the object based on an optional hash providing field mappings, data constraints, and optionally custom mapping logic
+        /** The target table is also scanned using @ref sqlutilintro "SqlUtil" and column definitions are used to update the target record specification, also if there are any columns with NOT NULL constraints and no default value, mapping, or constant value, then a MAP-ERROR exception is thrown
+
+            @par Example:
+            @code
+const DbMapper = (
+    "id": ("sequence": "seq_inventory_example"),
+    );
+
+InboundIdentityTableMapper mapper(table, DbMapper);
+            @endcode
+
+            @param table the target table object
+            @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
+            - \c unstable_input: set this option to @ref Qore::True "True" (default @ref Qore::False "False") if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow() or insertRowNoCommit(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
+            - \c insert_block: for DB drivers supporting bulk DML (for use with the queueBatchRow(), flush(), and discard() methods), the number of rows inserted at once (default: 500, only used when \c unstable_input is @ref Qore::False "False") and bulk inserts are supported in the table object
+
+            @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
+            @throw TABLE-ERROR the table includes a column using an unknown native data type
+        */
+        constructor(SqlUtil::AbstractTable target, hash mapv = {}, *hash opts) : InboundTableMapper(target, mapv, opts) {
+        }
+
+        #! common constructor initialization
+        private init(hash mapv, *hash opts) {
+            # setup input description as equal to the output
+            opts.input = InboundIdentityTableMapper::getInputRecord(table);
+            mapv = (map {$1.name.lwr(): ("name": $1.name.lwr())}, table.describe().iterator()) + mapv;
+            InboundTableMapper::init(mapv, opts);
+        }
+
+        
+
+        #! returns a description of the input record based on the @ref SqlUtil::AbstractTable "AbstractTable" source
+        static hash getInputRecord(SqlUtil::AbstractTable table) {
+            return map {$1.name.lwr(): $1.comment ? ("desc": $1.comment) : {}}, table.describe().iterator();
         }
     }
 
