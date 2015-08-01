@@ -47,7 +47,7 @@ DatasourcePool::DatasourcePool(ExceptionSink* xsink, DBIDriver* ndsl, const char
       stats_hits(0),
       warning_callback(0),
       callback_arg(0),
-      config(ndsl, user, pass, db, charset, hostname, port, q, a),
+      config(ndsl, user, pass, db, charset, hostname, port, opts, q, a),
       valid(false) {
    //assert(mn > 0);
    //assert(mx > min);   
@@ -60,45 +60,7 @@ DatasourcePool::DatasourcePool(ExceptionSink* xsink, DBIDriver* ndsl, const char
           ndsl, user ? user : "(null)", pass ? pass : "(null)", db ? db : "(null)", charset ? charset : "(null)", 
 	  hostname ? hostname : "(null)", min, max, port, pool);
 
-   // open initial datasource manually
-   pool[0] = config.get();
-
-   // set initial options
-   ConstHashIterator hi(opts);
-   while (hi.next()) {
-      // skip "min" and "max" options
-      if (!strcmp(hi.getKey(), "min") || !strcmp(hi.getKey(), "max"))
-         continue;
-
-      if (pool[0]->setOption(hi.getKey(), hi.getValue(), xsink))
-         return;
-   }
-
-   // turn off autocommit
-   pool[0]->setAutoCommit(false);
-   // open connection to server
-   pool[0]->open(xsink);
-   if (*xsink)
-      return;
-   //printd(5, "DP::DP() open %s: %p (%d)\n", ndsl->getName(), pool[0], xsink->isEvent());
-
-   // add to free list
-   free_list.push_back(0);
-
-   while (++cmax < min) {
-      pool[cmax] = config.get();
-      // turn off autocommit
-      pool[cmax]->setAutoCommit(false);
-      // open connection to server
-      pool[cmax]->open(xsink);
-      if (*xsink)
-         return;
-
-      //printd(5, "DP::DP() open %s: %p (%d)\n", ndsl->getName(), pool[cmax], xsink->isEvent());
-      // add to free list
-      free_list.push_back(cmax);
-   }
-   valid = true;
+   init(xsink);
 }
 
 DatasourcePool::DatasourcePool(const DatasourcePool& old, ExceptionSink* xsink) :
@@ -117,31 +79,7 @@ DatasourcePool::DatasourcePool(const DatasourcePool& old, ExceptionSink* xsink) 
    callback_arg(old.callback_arg ? old.callback_arg->refSelf() : 0),
    config(old.config),
    valid(false) {
-   pool[0] = old.config.get();
-
-   // open connection to server
-   pool[0]->open(xsink);
-   if (*xsink)
-      return;
-   //printd(5, "DP::DP() open %s: %p (%d)\n", ndsl->getName(), pool[0], xsink->isEvent());
-
-   // add to free list
-   free_list.push_back(0);
-
-   while (++cmax < min) {
-      pool[cmax] = pool[0]->copy();
-      // turn off autocommit
-      pool[cmax]->setAutoCommit(false);
-      // open connection to server
-      pool[cmax]->open(xsink);
-      if (*xsink)
-         return;
-
-      //printd(5, "DP::DP() open %s: %p (%d)\n", ndsl->getName(), pool[cmax], xsink->isEvent());
-      // add to free list
-      free_list.push_back(cmax);
-   }
-   valid = true;
+   init(xsink);
 }
 
 DatasourcePool::~DatasourcePool() {
@@ -152,6 +90,33 @@ DatasourcePool::~DatasourcePool() {
    delete [] pool;
    assert(!warning_callback);
    assert(!callback_arg);
+}
+
+// common constructor code
+void DatasourcePool::init(ExceptionSink* xsink) {
+   pool[0] = config.get();
+
+   // open connection to server
+   pool[0]->open(xsink);
+   if (*xsink)
+      return;
+   //printd(5, "DP::init() open %s: %p (%d)\n", ndsl->getName(), pool[0], xsink->isEvent());
+
+   // add to free list
+   free_list.push_back(0);
+
+   while (++cmax < min) {
+      pool[cmax] = config.get();
+      // open connection to server
+      pool[cmax]->open(xsink);
+      if (*xsink)
+         return;
+
+      //printd(5, "DP::init() open %s: %p (%d)\n", ndsl->getName(), pool[cmax], xsink->isEvent());
+      // add to free list
+      free_list.push_back(cmax);
+   }
+   valid = true;
 }
 
 void DatasourcePool::cleanup(ExceptionSink* xsink) {
@@ -382,7 +347,7 @@ Datasource* DatasourcePool::getDSIntern(bool& new_ds, int64& wait_total, Excepti
 
       // see if we can open a new connection
       if (cmax < max) {
-	 ds = pool[cmax] = pool[0]->copy();
+	 ds = pool[cmax] = config.get();
 	 
 	 tmap[tid] = cmax;
 	 tid_list[cmax++] = tid;
