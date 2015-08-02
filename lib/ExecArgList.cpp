@@ -36,33 +36,31 @@
 
 #define ARG_BLOCK 10
 
-char *ExecArgList::getString(const char *start, int size) {
-   char *str = (char *)malloc(sizeof(char) * (size + 1));
+char* ExecArgList::getString(const char* start, int size) {
+   char* str = (char* )malloc(sizeof(char) * (size + 1));
    strncpy(str, start, size);
    str[size] = '\0';
    //printd(5, "ExecArgList::getString() %d: %s\n", len, str);
    return str;
 }
 
-void ExecArgList::addArg(char *str) {
+void ExecArgList::addArg(char* str) {
+   //printd(5, "ExecArgList::addArg() '%s'\n", str);
    // resize args
    if (len == allocated) {
       allocated += ARG_BLOCK;
-      arg = (char **)realloc(arg, sizeof(char *) * allocated);
+      arg = (char**)realloc(arg, sizeof(char*) * allocated);
    }
    arg[len] = str;
    len++;
 }
 
-ExecArgList::ExecArgList(const char *str) {
+ExecArgList::ExecArgList(const char* str) : arg(0), allocated(0), len(0) {
    // copy string as we will edit it in place
    QoreString tmp(str);
 
-   allocated = 0;
-   len = 0;
-   arg = 0;
-   char *start = (char *)tmp.getBuffer();
-   char *p = start;
+   char* start = (char*)tmp.getBuffer();
+   char* p = start;
    int quote = 0;
    
    while (*p) {
@@ -99,19 +97,19 @@ ExecArgList::~ExecArgList() {
    }
 }
 
-char *ExecArgList::getFile() {
+char* ExecArgList::getFile() {
    if (len)
       return arg[0];
    return 0;
 }
 
-char **ExecArgList::getArgs() {
+char** ExecArgList::getArgs() {
    return arg;
 }
 
 #ifdef DEBUG
 void ExecArgList::showArgs() {
-   printd(0, "ExecArgList %p len=%d\n", this, len);
+   printd(0, "ExecArgList %p len: %d\n", this, len);
    if (!len)
       return;
 
@@ -120,7 +118,7 @@ void ExecArgList::showArgs() {
    str.sprintf("file: %s", arg[0]);
 
    for (int i = 1; i < len; ++i)
-      str.sprintf(" [%s]='%s'", i, arg[i]);
+      str.sprintf(" [%d]: '%s'", i, arg[i]);
    
    printd(0, "  %s\n", str.getBuffer());
 }

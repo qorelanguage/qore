@@ -35,18 +35,18 @@
 
 class ExecArgList {
 private:
-   char **arg;
+   char** arg;
    int allocated;
    int len;
 
-   DLLLOCAL char *getString(const char *start, int size);
-   DLLLOCAL void addArg(char *str);
+   DLLLOCAL char* getString(const char* start, int size);
+   DLLLOCAL void addArg(char* str);
 
 public:
-   DLLLOCAL ExecArgList(const char *str);
+   DLLLOCAL ExecArgList(const char* str);
    DLLLOCAL ~ExecArgList();
-   DLLLOCAL char *getFile();
-   DLLLOCAL char **getArgs();
+   DLLLOCAL char* getFile();
+   DLLLOCAL char** getArgs();
 #ifdef DEBUG
    DLLLOCAL void showArgs();
 #endif

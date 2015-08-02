@@ -94,6 +94,7 @@ AbstractQoreNode *missing_function_error(const char *func, const char *opt, Exce
 
 #ifdef HAVE_SYSTEM
 static int do_system(const QoreString &str) {
+   /*
    QoreString c(str);
    // escape backslashes: replace '\' -> '\\'
    c.replaceAll("\\", "\\\\");
@@ -102,8 +103,10 @@ static int do_system(const QoreString &str) {
 
    c.concat('"');
    c.prepend("/bin/sh -c \"");
-   
+
    return system(c.getBuffer());
+   */
+   return system(str.getBuffer());
 }
 #endif
 
@@ -234,7 +237,7 @@ nothing exec(string command) [dom=EXTERNAL_PROCESS,PROCESS] {
 /** @par Platform Availability:
     @ref Qore::Option::HAVE_SYSTEM
 
-    @param command the command to execute; if shell meta-characters are found (currently defined as any of <tt>$=*?\\><&;|"\\</tt>) or if the current platform does not support fork(), then the command is executed with %system() (3), otherwise fork() and execvp() (3) are used instead
+    @param command the command to execute with %system() (3)
 
     @return the exit code of the process executed
 
@@ -251,10 +254,12 @@ int system(string command) [dom=EXTERNAL_PROCESS] {
 #ifdef HAVE_FORK
    int rc;
    // use system() if shell meta-characters are found
-   if (strchrs(command->getBuffer(), "$=*?><&;|\"\\")) {
+   if (strchrs(command->getBuffer(), "$=*?><&;|\"\\")) {      
+      //printd(5, "system() using system() (3)\n");
       rc = do_system(*command);
    }
    else { // otherwise fork and exec
+      //printd(5, "system() using fork() && execvp()\n");
       pid_t pid;
       if (!(pid = fork())) {
 	 ExecArgList exec_args(command->getBuffer());
@@ -1055,7 +1060,7 @@ nothing close_all_fd(*softbool strd) [dom=PROCESS] {
    int start = strd ? 0 : 2;
    // get max file descriptor
    int max = (int)sysconf(_SC_OPEN_MAX);
-   printd(0, "close_all_fd() start: %d max: %d\n", start, max);
+   printd(5, "close_all_fd() start: %d max: %d\n", start, max);
 
    for (;start < max; ++start)
       close(start);
