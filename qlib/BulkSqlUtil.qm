@@ -383,7 +383,7 @@ on_error op.rollback();
         constructor(SqlUtil::AbstractTable target, *hash opts) : AbstractBulkOperation("insert", target, opts) {
         }
 
-        #! inserts queued data in the database
+        #! inserts internally-queued queued data in the database wuith bulk DML operations
         private flushImpl() {
             if (!stmt) {
                 string sql;
@@ -440,7 +440,7 @@ on_error op.rollback();
             AbstractBulkOperation::init(opts);
         }
 
-        #! inserts queued data in the database
+        #! executes bulk DML upserts in the database with internally queued data
         private flushImpl() {
             if (!upsert)
                 upsert = table.getUpsertClosure(hbuf, upsert_strategy);
