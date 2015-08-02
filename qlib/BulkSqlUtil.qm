@@ -55,7 +55,9 @@ module BulkSqlUtil {
     The %BulkSqlUtil module provides APIs for bulk DML operations using <a href="../../SqlUtil/html/index.html">SqlUtil</a> in %Qore.
 
     The main functionality provided by this module:
-    - @ref BulkSqlUtil::
+    - @ref BulkSqlUtil::AbstractBulkOperation "AbstractBulkOperation": abstract base class for bulk DML operation classes
+    - @ref BulkSqlUtil::BulkInsertOperation "BulkInsertOperation": provides a high-level API for bulk DML inserts
+    - @ref BulkSqlUtil::BulkUpsertOperation "BulkUpsertOperation": provides a high-level API for bulk DML upsert uperations (ie SQL merge)
 */
 
 #! the BulkSqlUtil namespace contains all the definitions in the BulkSqlUtil module
