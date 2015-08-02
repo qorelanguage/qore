@@ -41,7 +41,8 @@ DOX_MODULES = qlib/SmtpClient.qm \
 	qlib/UnitTest.qm \
 	qlib/QUnit.qm \
 	qlib/TextUtil.qm \
-	qlib/Diff.qm
+	qlib/Diff.qm \
+	qlib/BulkSqlUtil.qm
 
 # TODO: this is ugly... make should look for all qtest files by itself
 TESTSCRIPTS= \
