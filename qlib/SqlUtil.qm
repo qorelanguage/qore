@@ -945,7 +945,7 @@ else
 
     @subsection sql_upsert_strategies Upsert Strategies
     The approach used is based on one of the following strategies (see @ref upsert_options):
-    - @ref SqlUtil::AbstractTable::UpsertAuto "AbstractTable::UpsertAuto": if the target table is empty, then @ref SqlUtil::AbstractTable::UpsertInsertFirst is used, otherwise @ref SqlUtil::AbstractTable::UpsertUpdateFirst is used
+    - @ref SqlUtil::AbstractTable::UpsertAuto "AbstractTable::UpsertAuto": if the target table is empty, then @ref SqlUtil::AbstractTable::UpsertInsertFirst is used, otherwise @ref SqlUtil::AbstractTable::UpsertUpdateFirst is used; note that if a driver-specific optimized version of the upsert operation is implemented, this strategy will normally result in the best performance
     - @ref SqlUtil::AbstractTable::UpsertInsertFirst "AbstractTable::UpsertInsertFirst": first an insert will be attempted, if it fails due to a duplicate key, then an update will be made; this strategy should be used if more inserts will be made than updates
     - @ref SqlUtil::AbstractTable::UpsertUpdateFirst "AbstractTable::UpsertUpdateFirst": first an update will be attempted, if it fails due to missing data, then an insert is performed; this strategy should be used if more updates will be made then inserts
     - @ref SqlUtil::AbstractTable::UpsertSelectFirst "AbstractTable::UpsertSelectFirst": first a select is made on the unique key, if the data to be updated is equal, nothing is done and @ref upsert_results "upsert result" @ref SqlUtil::AbstractTable::UR_Unchanged is returned
