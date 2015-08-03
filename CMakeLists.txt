@@ -2,8 +2,14 @@ cmake_minimum_required(VERSION 2.8.3)
 
 project(qore-language)
 
+set(VERSION_MAJOR 0)
+set(VERSION_MINOR 8)
+set(VERSION_SUB 11)
+
 
 include("${CMAKE_SOURCE_DIR}/cmake/QoreMacros.cmake")
+include("${CMAKE_SOURCE_DIR}/cmake/QoreMacrosIntern.cmake")
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 include_directories( ${CMAKE_BINARY_DIR} )
 include_directories( ${CMAKE_BINARY_DIR}/include/ )
@@ -18,8 +24,9 @@ include(CheckIncludeFiles)
 #configure_file(${CMAKE_SOURCE_DIR}/include/qore/intern/unix-config.h.in
 #               ${CMAKE_BINARY_DIR}/include/qore/intern/unix-config.h)
 add_definitions(-DHAVE_UNIX_CONFIG_H)
-add_definitions(-DHAVE_GETOPT_H)
-add_definitions(-DHAVE_STRCASESTR)
+#add_definitions(-DHAVE_GETOPT_H)
+#add_definitions(-DHAVE_STRCASESTR)
+
 
 # libqore - unused for now
 set(CPP_SRC_LIB lib/single-compilation-unit.cpp )
@@ -57,7 +64,8 @@ set(QPP_SRC_LIB
 	lib/QC_FileLineIterator.qpp 
 	lib/QC_SingleValueIterator.qpp 
 	lib/QC_AbstractDatasource.qpp 
-	lib/QC_RangeIterator.qpp 
+	lib/QC_RangeIterator.qpp
+	lib/QC_DataLineIterator.qpp
 	lib/QC_Datasource.qpp 
 	lib/QC_DatasourcePool.qpp 
 	lib/QC_Dir.qpp 
@@ -117,20 +125,48 @@ set(QPP_SRC_LIB
 # qore interpreter
 set(CPP_SRC single-compilation-unit.cpp)
 
+qore_find_pthreads()
 find_package(BISON REQUIRED)
-find_package(FLEX REQUIRED)
+find_package(FLEX 2.5.35 REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(ZLIB REQUIRED)
+find_package(MPFR REQUIRED)
+find_package(BZip2 REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(PCRE REQUIRED libpcre)
+
+create_git_revision()
+
+qore_openssl_checks()
+qore_mpfr_checks()
+
+
+qore_check_headers_cxx(fcntl.h inttypes.h netdb.h netinet/in.h stddef.h stdlib.h string.h strings.h sys/socket.h sys/time.h unistd.h execinfo.h cxxabi.h arpa/inet.h sys/socket.h sys/statvfs.h winsock2.h ws2tcpip.h glob.h sys/un.h termios.h netinet/tcp.h pwd.h sys/wait.h getopt.h stdint.h grp.h)
+
+set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES} Threads::Threads)
+qore_check_funcs(bzero floor gethostbyaddr gethostbyname gethostname gettimeofday memmove memset mkfifo putenv regcomp select socket setsockopt getsockopt strcasecmp strchr strdup strerror strspn strstr atoll strtol strtoll isblank localtime_r gmtime_r exp2 clock_gettime realloc timegm seteuid setegid setenv unsetenv round pthread_attr_getstacksize getpwuid_r getpwnam_r getgrgid_r getgrnam_r backtrace glob system inet_ntop inet_pton lstat fsync lchown chown setsid setuid mkfifo random kill getppid getgid getegid getuid geteuid setuid seteuid setgid setegid sleep usleep nanosleep readlink symlink access strcasestr strncasecmp setgroups getgroups realpath memmem)
+
+qore_other_checks()
+qore_gethost_checks()
+
+execute_process(COMMAND uname -a OUTPUT_VARIABLE QORE_BUILD_HOST OUTPUT_STRIP_TRAILING_WHITESPACE)
+if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
+   set(TARGET_BITS 64)
+else()
+   set(TARGET_BITS 32)
+endif()
 
 bison_target(qoreparser lib/parser.ypp ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp)
 flex_target(qorescanner lib/scanner.lpp ${CMAKE_CURRENT_BINARY_DIR}/scanner.cpp)
 add_flex_bison_dependency(qorescanner qoreparser)
 
 # qpp
+if(NOT HAVE_GETOPT_H)
+set(QPP_GETOPT_LONG_SRC lib/getopt_long.cpp)
+endif()
 add_executable(qpp
     lib/qpp.cpp
-    # TODO/FIXME: check for it as in autotools
-    #lib/getopt_long.cpp
+    ${QPP_GETOPT_LONG_SRC}
 )
 # just fake qpp for macro
 set(QORE_QPP_EXECUTABLE ${CMAKE_BINARY_DIR}/qpp)
@@ -139,17 +175,24 @@ target_link_libraries(qpp ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES})
 # libqore generators
 qore_wrap_qpp(QPP_CPP_SRC_LIB ${QPP_SRC_LIB})
 
+add_custom_target(QPP_GENERATED_FILES DEPENDS ${QPP_CPP_SRC_LIB})
+add_custom_target(BISON_GENERATED_FILES DEPENDS ${BISON_qoreparser_OUTPUTS})
+add_custom_target(FLEX_GENERATED_FILES DEPENDS ${FLEX_qorescanner_OUTPUTS})
 
-add_library(libqore SHARED ${QPP_CPP_SRC_LIB}
-						   ${CPP_SRC_LIB}
-						   ${BISON_qoreparser_OUTPUTS}
-						   ${FLEX_qorescanner_OUTPUTS}
-		    )
+add_library(libqore SHARED ${CPP_SRC_LIB})
 add_dependencies(libqore qpp)
+add_dependencies(libqore QPP_GENERATED_FILES BISON_GENERATED_FILES FLEX_GENERATED_FILES)
+target_compile_definitions(libqore PUBLIC -D_QORE_LIB_INTERN)
+target_include_directories(libqore PUBLIC ${BZIP2_INCLUDE_DIR} ${MPFR_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${PCRE_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/lib)
+target_link_libraries(libqore Threads::Threads)
 
 add_executable(qore ${CPP_SRC})
 target_link_libraries(qore libqore)
 
+configure_file(${CMAKE_SOURCE_DIR}/cmake/unix-config.h.cmake
+               ${CMAKE_BINARY_DIR}/include/qore/intern/unix-config.h)
+configure_file(${CMAKE_SOURCE_DIR}/cmake/qore-version.h.cmake 
+               ${CMAKE_BINARY_DIR}/include/qore/qore-version.h)
 
 message(WARNING "CXX ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES}")
 message(WARNING "Please do not use cmake for production/real builds. Cmake support is experimental and it does not contant all required setup")
