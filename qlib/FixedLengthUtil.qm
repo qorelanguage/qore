@@ -404,15 +404,26 @@ public class FixedLengthUtil::FixedLengthFileWriter inherits FixedLengthUtil::Fi
 
     #! Stream iterator into the resulting file
     /**
-    @param iterator An iterator to stream data into file.
+        @param lines A list of line data to add to the file.
     */
     write(list lines) {
         File FW();
         FW.open(file, O_WRONLY | O_CREAT);
 
-        foreach hash item in (lines) {
-            FW.write(formatLine(item) + (m_opts.eol ? m_opts.eol : "\n"));
-        }
+        string eol = m_opts.eol ?? "\n";
+        map FW.write(formatLine($1) + eol), lines;
+    }
+
+    #! Stream iterator into the resulting file
+    /**
+        @param iterator An iterator to stream data into file.
+    */
+    write(Qore::AbstractIterator lines) {
+        File FW();
+        FW.open(file, O_WRONLY | O_CREAT);
+
+        string eol = m_opts.eol ?? "\n";
+        map FW.write(formatLine($1) + eol), lines;
     }
 }
 
