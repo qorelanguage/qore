@@ -11,6 +11,8 @@
 %no-child-restrictions
 %allow-injection
 
+%requires Util
+    
 module QUnit {
     version = "0.1";
     desc = "User module for unit testing with dependency injection support";
@@ -285,19 +287,22 @@ public class QUnit::TestCase {
         }
         catch (hash e) {
             hash loc = e.callstack[0];
-            *string assertion_name = e.arg;
-            if (e.err == "TEST-SKIPPED-EXCEPTION") {
-                string pos = get_ex_pos(e);
-                string txt = sprintf("Skip %srequested", assertion_name ? sprintf("of %y ", assertion_name) : NOTHING);
-                test.addTestResult(self, TestReporter::TEST_SKIPPED, "Skip requested", pos, e.desc);
-            } else if (e.err == "TEST-EXCEPTION") {
-                string pos = get_ex_pos(e);
-                string txt = sprintf("Assertion %sfailure", assertion_name ? sprintf("%y ", assertion_name) : NOTHING);
-                test.addTestResult(self, TestReporter::TEST_FAILURE, txt, pos, e.desc);
+            if (e.arg =~ /TEST-.*EXCEPTION/) {
+                *string assertion_name = e.arg;
+                if (e.err == "TEST-SKIPPED-EXCEPTION") {
+                    string pos = get_ex_pos(e);
+                    string txt = sprintf("Skip %srequested", assertion_name ? sprintf("of %y ", assertion_name) : NOTHING);
+                    test.addTestResult(self, TestReporter::TEST_SKIPPED, "Skip requested", pos, e.desc);
+                } else if (e.err == "TEST-EXCEPTION") {
+                    string pos = get_ex_pos(e);
+                    string txt = sprintf("Assertion %sfailure", assertion_name ? sprintf("%y ", assertion_name) : NOTHING);
+                    test.addTestResult(self, TestReporter::TEST_FAILURE, txt, pos, e.desc);
+                }                
             } else {
                 # show little higher traceback record in this case
                 string pos = get_ex_pos(e);
                 test.addTestResult(self, TestReporter::TEST_ERROR, sprintf("Unexpected exception: %s", e.err), pos, e.desc);
+                printf("%s\n", get_exception_string(e));
             }
         }
     }
