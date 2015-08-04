@@ -378,6 +378,7 @@ public class FixedLengthUtil::FixedLengthAbstractWriter inherits TextUtil::Abstr
     private {
         hash m_specs;
         string m_state;
+        int m_linescount = 0;
     }
 
     #! creates the FixedLengthAbstractWriter object
@@ -405,6 +406,11 @@ public class FixedLengthUtil::FixedLengthAbstractWriter inherits TextUtil::Abstr
                 }
             }
         }
+    }
+
+    #! get processed lines count
+    int linesCount() {
+        return m_linescount;
     }
 
 	#! Formats a single line from hash of columns
@@ -441,6 +447,7 @@ public class FixedLengthUtil::FixedLengthAbstractWriter inherits TextUtil::Abstr
             throw "FIXED-LENGTH-UTIL-INVALID-TRANSITION", sprintf("State '%s' cannot follow state '%s' for line '%s'", (type ?? "<START>"), (m_state ?? "<START>"), result);
         }
         m_state = type;
+        m_linescount++;
         return result;
     }
 
