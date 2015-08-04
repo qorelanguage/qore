@@ -756,6 +756,7 @@ QLIB_TMP_DOXYFILES = $(TMP_MOD_TARG) $(addsuffix .tag,$(USER_MODS))
 DX_CLEANFILES = $(LIB_TMP_DOXYFILES) $(LANG_TMP_DOXYFILES) $(QLIB_TMP_DOXYFILES)
 
 docs/library/html: $(include_HEADERS) $(LIB_DOXYFILES)
+	$(MKDIR_P) $@
 	$(DOXYGEN_CMD) doxygen/lib/Doxyfile
 
 docs/lang/html: $(LANG_DOXYFILES) $(LANG_QPP_SRC)

@@ -78,6 +78,7 @@ lib/ql_type.cpp
 # Bison
 lib/parser.cpp
 lib/parser.hpp
+lib/parser.h
 lib/scanner.cpp
 
 # Doxygen generated files
