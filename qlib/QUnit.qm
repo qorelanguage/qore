@@ -301,8 +301,8 @@ public class QUnit::TestCase {
             } else {
                 # show little higher traceback record in this case
                 string pos = get_ex_pos(e);
-                test.addTestResult(self, TestReporter::TEST_ERROR, sprintf("Unexpected exception: %s", e.err), pos, e.desc);
-                printf("%s\n", get_exception_string(e));
+                string errtxt = sprintf("Unexpected exception: %s", e.err);
+                test.addTestResult(self, TestReporter::TEST_ERROR, errtxt, pos, get_exception_string(e));
             }
         }
     }
