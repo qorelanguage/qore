@@ -91,7 +91,7 @@ nothing sub testRoutine() {
 	i2.next();
 	i2.getValue();
 }
-unit.exception(\testRoutine(), list(), "redundant line specifications", "NON-MATCHING-TYPE", "\\QA format specifier has multiple line types of the same length. You need to provide your own identifyType() method.");
+unit.exception(\testRoutine(), list(), "redundant line specifications", "FIXED-LENGTH-UTIL-NON-MATCHING-TYPE", "\\QA format specifier has multiple line types of the same length. You need to provide your own identifyType() method.");
 
 # Writer
 global_options = (
@@ -104,3 +104,22 @@ hashdata[1]{"record"}{"col5"} = "31122014";
 FixedLengthDataWriter w(specs, global_options);
 unit.cmp(w.write(hashdata), strdata, 'file content check');
 
+
+# padding test
+const PADDING_STR = "XXXXa0000aa0000    a\n";
+
+const PADDING_SPEC = (
+        "r1" : (
+            "c1" : ( "length" : 5, "type" : "string", "padding_char" : "X"),
+            "c2" : ( "length" : 5, "type" : "string", "padding" : "left", "padding_char" : "0"),
+            "c3" : ( "length" : 5, "type" : "string", "padding" : "right", "padding_char" : "0"),
+            "c4" : ( "length" : 5, "type" : "string", "padding" : "left", "padding_char" : " "),
+        )
+    );
+
+const PADDING_DATA = (
+    ("type": "r1", "record": ("c1" : "a", "c2" : "a", "c3" : "a", "c4" : "a")),
+);
+
+FixedLengthDataWriter pw(PADDING_SPEC);
+unit.cmp(pw.write(PADDING_DATA), PADDING_STR, 'file content check - padding');

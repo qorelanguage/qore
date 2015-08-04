@@ -91,7 +91,7 @@ public class TextUtil::AbstractTextIterator {
 
 #    abstract *string getValue();
 
-    private hash checkOptions(*hash opts) {
+    private *hash checkOptions(*hash opts) {
         string errname = 'RECORD-ITERATOR-ERROR';
 
         foreach my hash i in (opts.pairIterator()) {
@@ -204,7 +204,7 @@ public class TextUtil::AbstractTextWriter {
 
 #    abstract write();
 
-    private hash checkOptions(hash opts) {
+    private *hash checkOptions(*hash opts) {
         string errname = 'RECORD-WRITER-ERROR';
 
         foreach my hash i in (opts.pairIterator()) {

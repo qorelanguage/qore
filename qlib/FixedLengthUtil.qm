@@ -61,6 +61,49 @@ module FixedLengthUtil {
     - @ref FixedLengthUtil::FixedLengthFileWriter "FixedLengthFileWriter": Fixed length line writer into a file
     - @ref FixedLengthUtil::FixedLengthDataWriter "FixedLengthDataWriter": Fixed length line writer into a variable
 
+    @section fixedlenghtglobals Global Options
+
+    - encoding
+    - eol
+    - ignore-empty
+    - timezone
+    - file-flags - additional writer Open File Constants. O_WRONLY | O_CREAT are used by default. Use eg. \c O_EXCL to ensure not to overwrite the target
+
+    @section fixedlengthspec Specification Hash
+
+    Fixed length specification hash is in form:
+    - rowtype 1
+        - row hash
+    - rowtype 2
+        - row hash
+    - ...
+
+    @subsection fixedlengthspecrow Row Specification hash
+
+    |!Key|!Type|!Description
+    | \c length|integer|a size of the column
+    | \c type|string|a type of the data bound to the column @res fixedlengthspectypes
+    | \c format|string|a date mask if is the \type of value "date"
+    | \c timezone|string|override global timezone for current "date" column
+    | \c padding|string|set padding of the column "left" (default) or "right". Used in writers
+    | \c padding_char|string|a string with size 1 to use for \c padding. Default \c " " (space). Used in writers
+
+    @subsection fixedlengthspectypes Row Data Types
+
+    - string
+    - int
+    - date
+
+    @section fixedlengthformat Fixed Length Data Format
+
+    Input and output data are formatted in a hash with two mandatory keys:
+    - \c type - a string with name of the type
+    - \c record - a hash with line data in column - value map
+
+    @code
+    ("type": "type1", "record": {"col1" : 11111, "col2" : "bb"}),
+    @endcode
+
     <b>Example of reading:</b>
     @code
 #!/usr/bin/env qore
@@ -194,7 +237,7 @@ my hash $h = $i.getValue();
         if (!type || !m_specs{type}) {
         }
         if (!checkTransition(m_state, type)) {
-            throw 'INVALID-TRANSITION', 'State ' + (type ?? '<START>') + ' cannot follow state ' + (m_state ?? '<START>') + ' for line >' + line + '<';
+            throw "FIXED-LENGTH-UTIL-INVALID-TRANSITION", sprintf("State %s cannot follow state %s for line %s", (type ?? "<START>"), (type ?? "<START>"), line);
         }
         m_state = type;
         int pos = 0;
@@ -213,7 +256,7 @@ my hash $h = $i.getValue();
 	/**
 	@param opts Options passed during class instatiation.
 	*/
-    private hash checkOptions(*hash opts) { # put special options here
+    private *hash checkOptions(*hash opts) { # put special options here
         return opts;
     }
 
@@ -224,7 +267,7 @@ my hash $h = $i.getValue();
     string identifyType(string s) {
         *string type = identifyTypeImpl(s);
         if (!type || !inlist(type, m_specs.keys())) {
-            throw 'NON-MATCHING-TYPE', 'Line identified to be of type that is not present in ths spec >' + s + '<';
+            throw "FIXED-LENGTH-UTIL-NON-MATCHING-TYPE", sprintf("Line identified to be of type that is not present in ths spec '%s'", s);
         }
         return type;
     }
@@ -235,10 +278,10 @@ my hash $h = $i.getValue();
 	*/
     *string identifyTypeImpl(string s) {
         if (!m_line_lengths) { # this happens only if it was emptied because lengths of various types were not unique - see how m_line_lengths was constructed
-            throw 'NON-MATCHING-TYPE', 'A format specifier has multiple line types of the same length. You need to provide your own identifyType() method.';
+            throw "FIXED-LENGTH-UTIL-NON-MATCHING-TYPE", sprintf("A format specifier has multiple line types of the same length. You need to provide your own identifyType() method. Type: %s", s);
         }
         if (!m_line_lengths.hasKey(s.length())) {
-            throw 'NON-MATCHING_TYPE', 'Line of unexpected length found >' + s + '<';
+            throw "FIXED-LENGTH-UTIL-NON-MATCHING_TYPE", sprintf("Line of unexpected length found '%s'", s);
         }
         return m_line_lengths{s.length()};
     }
@@ -346,6 +389,22 @@ public class FixedLengthUtil::FixedLengthAbstractWriter inherits TextUtil::Abstr
         m_specs           = h;
         delete g.eol;
         m_opts            = m_opts + checkOptions(g);
+
+        # validate padding options
+        HashIterator hit(h);
+        while (hit.next()) {
+            HashIterator cit(hit.getValue());
+            while (cit.next()) {
+                if (cit.getValue(){"padding"} && cit.getValue(){"padding"} != "left" && cit.getValue(){"padding"} != "right") {
+                    throw "FIXED-LENGTH-UTIL-PADDING-ERROR", sprintf("Row type: %s; Column: %s; Key: padding; value must be 'left' or 'right'. Got: %s",
+                                                                     hit.getKey(), cit.getKey(), cit.getValue(){"padding"});
+                }
+                if (cit.getValue(){"padding_char"} && cit.getValue(){"padding_char"}.size() != 1) {
+                    throw "FIXED-LENGTH-UTIL-PADDING-ERROR", sprintf("Row type: %s; Column: %s; Key: padding; value must have size 1. Got: %d",
+                                                                     hit.getKey(), cit.getKey(), cit.getValue(){"padding_char"}.size());
+                }
+            }
+        }
     }
 
 	#! Formats a single line from hash of columns
@@ -359,17 +418,27 @@ public class FixedLengthUtil::FixedLengthAbstractWriter inherits TextUtil::Abstr
             string value = string(line{"record"}{column});
             # Validate
             if (value.length() > m_specs{type}{column}{"length"}) {
-                throw 'NON-MATCHING-TYPE', 'Value too large to pack into column!';
+                throw "FIXED-LENGTH-UTIL-NON-MATCHING-TYPE", sprintf("Value too large to pack into column: %s", column);
             }
             # Justify to the right.
-            for(int i=0; i<(value.length() - m_specs{type}{column}{"length"}); i++) {
-                result += " ";
+            int spacingsize = abs(value.length() - m_specs{type}{column}{"length"});
+            string spacing;
+            if (spacingsize) {
+
+                string s = m_specs{type}{column}{"padding_char"} ?? " ";
+                spacing = strmul(s, spacingsize);
+
+                if (m_specs{type}{column}{"padding"} == "right")
+                    result += value + spacing;
+                else
+                    result += spacing + value;
             }
-            result += value;
+            else
+                result += value;
         }
 
         if (!checkTransition(m_state, type)) {
-            throw 'INVALID-TRANSITION', 'State ' + (type ?? '<START>') + ' cannot follow state ' + (m_state ?? '<START>') + ' for line >' + result + '<';
+            throw "FIXED-LENGTH-UTIL-INVALID-TRANSITION", sprintf("State '%s' cannot follow state '%s' for line '%s'", (type ?? "<START>"), (m_state ?? "<START>"), result);
         }
         m_state = type;
         return result;
@@ -408,7 +477,7 @@ public class FixedLengthUtil::FixedLengthFileWriter inherits FixedLengthUtil::Fi
     */
     write(list lines) {
         File FW();
-        FW.open(file, O_WRONLY | O_CREAT);
+        FW.open(file, O_WRONLY | O_CREAT | m_opts."file-flags");
 
         string eol = m_opts.eol ?? "\n";
         map FW.write(formatLine($1) + eol), lines;
@@ -420,7 +489,7 @@ public class FixedLengthUtil::FixedLengthFileWriter inherits FixedLengthUtil::Fi
     */
     write(Qore::AbstractIterator lines) {
         File FW();
-        FW.open(file, O_WRONLY | O_CREAT);
+        FW.open(file, O_WRONLY | O_CREAT | m_opts."file-flags");
 
         string eol = m_opts.eol ?? "\n";
         map FW.write(formatLine($1) + eol), lines;
