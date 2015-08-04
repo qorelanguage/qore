@@ -120,7 +120,7 @@
       - @ref Qore::throwThreadResourceExceptions(): deprecated for @ref Qore::throw_thread_resource_exceptions()
       .
       Functions deprecated in this release will remain for the forseeable future for backwards-compatibility
-    - Added support for reexporting imported definitions in user module with the new <tt>%%requires(reexport)</tt> form of the @ref requires "%requires" parse directive.  
+    - Added support for reexporting imported definitions in user module with the new <tt>%%requires(reexport)</tt> form of the @ref requires "%requires" parse directive.
     - @ref Qore::xrange() and @ref Qore::RangeIterator updates:
       - @ref Qore::xrange() and @ref Qore::RangeIterator::constructor() and <list>::rangeIterator() updated to take an optional value to return in the @ref Qore::RangeIterator::getValue() method
     - @ref Qore::FtpClient updates:
@@ -179,6 +179,7 @@
     - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module updates:
       - implemented insert option support and support for the \c "returning" clause in supported drivers to avoid server round trips
       - implemented the AbstractTable::getDesc() method and improved exception description messages
+      - implemented support for late table resoluton in join arguments to enable joins from serialized parameters
     - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module updates:
       - implemented support for views for DML in the OracleTable class
     - added initial support for UTF-16 character encoding; note that UTF-16 is not backwards-compatible with ASCII and therefore not supported universally in %Qore; it's recommended to convert these strings to UTF-8 in %Qore; do not use UTF-16 as the default character encoding in %Qore; currently UTF-16 data can be parsed using the following classes that convert the data to UTF-8:
@@ -333,13 +334,13 @@
       - read from /dev/urandom instead of /dev/random since reads from the latter can block for long periods to fill the entropy pool
     - do not start signal thread after a fork() if signal handling is enabled, pthread_create() is not async-signal safe (on FreeBSD at least this reliably causes segfaults)
 
-    @section qore_0810 Qore 0.8.10 
+    @section qore_0810 Qore 0.8.10
 
     @par Release Summary
     Major release with many many bugfixes and new features such as much improved HTTP and REST support (ex: chunked transfer support + new
     client and server classes for REST support for chunked transfers and data streaming), improved DB support
     (ex: new <a href="../../modules/Schema/html/index.html">Schema</a> module, <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> improvements),
-    and much more.  
+    and much more.
 
     @subsection qore_0810_new_features New Features in Qore
     - better HTTP support; support for chunked sends and receives for streaming data over HTTP and other improvements:
@@ -425,13 +426,13 @@
       - no need to set \c "headers" in the constructor if \c "fields" are set; headers are assumed to be the field labels in the same order
     - added the @ref Qore::encode_url() function with <a href="http://tools.ietf.org/html/rfc3986#section-2.1">RFC 3986 section 2.1</a> compliance
     - @ref Qore::decode_url() function updated to decode UTF-8 encoded characters according to <a href="http://tools.ietf.org/html/rfc3986#section-2.1">RFC 3986 section 2.1</a>
-    - added get_byte_size() and get_marketing_byte_size() to the <a href="../../modules/Util/html/index.html">Util</a> module    
+    - added get_byte_size() and get_marketing_byte_size() to the <a href="../../modules/Util/html/index.html">Util</a> module
     - the error message now includes the module path used for the search when a module cannot be found in the module path
     - @ref Qore::SQL::DatasourcePool "DatasourcePool" enhancements:
-      - new method: @ref Qore::SQL::DatasourcePool::clearWarningCallback() "DatasourcePool::clearWarningCallback()" 
-      - new method: @ref Qore::SQL::DatasourcePool::setWarningCallback() "DatasourcePool::setWarningCallback()" 
-      - new method: @ref Qore::SQL::DatasourcePool::getUsageInfo() "DatasourcePool::getUsageInfo()" 
-      - new method: @ref Qore::SQL::DatasourcePool::setErrorTimeout() "DatasourcePool::setErrorTimeout()" 
+      - new method: @ref Qore::SQL::DatasourcePool::clearWarningCallback() "DatasourcePool::clearWarningCallback()"
+      - new method: @ref Qore::SQL::DatasourcePool::setWarningCallback() "DatasourcePool::setWarningCallback()"
+      - new method: @ref Qore::SQL::DatasourcePool::getUsageInfo() "DatasourcePool::getUsageInfo()"
+      - new method: @ref Qore::SQL::DatasourcePool::setErrorTimeout() "DatasourcePool::setErrorTimeout()"
       - new method: @ref Qore::SQL::DatasourcePool::getErrorTimeout() "DatasourcePool::getErrorTimeout()"
       - new method: @ref Qore::SQL::DatasourcePool::setEventQueue() "DatasourcePool::setEventQueue()"
       - new method: @ref Qore::SQL::DatasourcePool::clearEventQueue() "DatasourcePool::clearEventQueue()"
@@ -680,9 +681,9 @@
     @subsection qore_087_compatibility Changes That Can Affect Backwards-Compatibility
     @par Fixes for Code Inheritance in Program Objects
     The following changes are meant to sanitize code inheritance in child @ref Qore::Program "Program" objects to fix long-standing design bugs in code encapsulation by addressing the lack of fine-grained control over symbol visibility in inherited code.
-    - @ref mod_public "public": The @ref mod_public "public" keyword's usage in modules has now been expanded 
+    - @ref mod_public "public": The @ref mod_public "public" keyword's usage in modules has now been expanded
       to provide the same functionality generically in @ref Qore::Program "Program" objects; if @ref qore_classes "classes",
-      @ref constants "constants", @ref qore_namespaces "namespaces", @ref qore_functions "functions", or 
+      @ref constants "constants", @ref qore_namespaces "namespaces", @ref qore_functions "functions", or
       @ref global_variables "global variables" are defined with the @ref mod_public "public" keyword, then these symbols will
       be inherited into child @ref Qore::Program "Program" objects as long as no @ref parse_options "parse options" prohibit
       it.\n\n
@@ -748,7 +749,7 @@
     - new location tags \c "source" and \c "offset" added for parse and runtime exceptions to allow for error-reporting to display information about files where sections of a source file are parsed; this allows both the label and line offset in the label and the file name and absolute file line position to be reported in exception information
       - new parameters added to the following methods and function to accommodate the new location information:
         - @ref Qore::Program::parse() "Program::parse()"
-	- @ref Qore::Program::parsePending() "Program::parsePending()" 
+	- @ref Qore::Program::parsePending() "Program::parsePending()"
 	- @ref Qore::parse() "parse()"
       - see @ref exception_hash "Exception Hash" and @ref callstack "Call Stacks" for new keys in eception and call stack information hashes
     - <date>::format() now accepts \c "us" for microseconds (see @ref date_formatting)
@@ -773,7 +774,7 @@
     @subsection qore_087_bug_fixes Bug Fixes in Qore
     - fixed a runtime class matching bug when identical user classes were created in different @ref Qore::Program "Program" objects,
       the match could fail at runtime because the wrong APIs were being used
-    - fixed a crashing bug in the @ref map "map" operator with a select expression when used with an 
+    - fixed a crashing bug in the @ref map "map" operator with a select expression when used with an
       @ref Qore::AbstractIterator "AbstractIterator" object for the list operand
     - fixed a bug where the generation of internal strings for abstract method signatures tries to resolve class names that
       are declared out of order, which incorrectly resulted in a parse exception; the fix is to use the class name in the
@@ -842,7 +843,7 @@
     - added code to raise an @ref invalid-operation warning with the @ref elements "elements operator" when called with a type that can never return a value with this operator
     - updated the @ref Qore::File "File" class's internal buffer size from 4KB to 16KB which greatly improves read performance
     - added new public APIs for the QoreNumberNode class to allow for proper de/serialization in external modules
-    - <a href="../../modules/Pop3Client/html/index.html">Pop3Client</a> module: 
+    - <a href="../../modules/Pop3Client/html/index.html">Pop3Client</a> module:
       - added the Pop3Client::logPassword() methods and masked password by default in the debug log
       - updated module to v1.1
     - <a href="../../modules/Mime/html/index.html">Mime.qm</a> module:
@@ -893,7 +894,7 @@
     @note also affects the @ref Qore::boolean(any) "boolean(any)" function
 
     @par Changes in the Socket Class
-    The @ref Qore::Socket "Socket" class was enhanced to support timeouts with non-blocking I/O on all send operations; 
+    The @ref Qore::Socket "Socket" class was enhanced to support timeouts with non-blocking I/O on all send operations;
     many Socket methods that send data were originally implemented to return an error code on error, however they would
     also throw exceptions if the socket were not open, so the error handling was inconsistent (exceptions versus return codes).\n\n
     Additionally it was not possible to get error information at all for SSL errors if the socket was connected with SSL, which,
@@ -949,7 +950,7 @@ class MyConcreteClass inherits MyAbstractClass {
         return "hello";
     }
 }
-    @endcode    
+    @endcode
 
     @par DBI Improvements
     Three new DBI capabilities were implemented, including a new option API as follows:
@@ -1008,7 +1009,7 @@ class MyConcreteClass inherits MyAbstractClass {
       - @ref Qore::HashIterator::getValuePair()
     - all iterator classes had copy methods added to them (ex: @ref Qore::HashIterator::copy())
     - new Python-inspired @ref Qore::range() "range()" and @ref Qore::xrange() "xrange()" functions (the latter returning a @ref Qore::RangeIterator "RangeIterator" object to efficiently iterate large integral sequences or ranges
- 
+
     @par Text File Parsing Enhancements
     The following improvements were made in qore to support more flexible file parsing:
     - the @ref Qore::ReadOnlyFile class was added as a parent class of @ref Qore::File to allow for a more convenient API for reading files (the @ref Qore::File class's API remains the same as it publically inherits  @ref Qore::ReadOnlyFile)
@@ -1373,7 +1374,7 @@ our int $i1;
     - fixed crashing bugs on some 32bit platforms where size_t was assumed to be 64 bits
     - fixed a crashing bug parsing invalid @ref requires "%requires" directives in the scanner
     - fixed a bug in usleep() with relative date/time values (added a new usleep() variant to support this)
-    - fixed a typo in the command-line help for the qore binary with unknown parse options	  
+    - fixed a typo in the command-line help for the qore binary with unknown parse options
     - fixed @ref Qore::Option::HAVE_SIGNAL_HANDLING "HAVE_SIGNAL_HANDLING" to be @ref Qore::False "False" if signal handling is disabled on platforms where signal handling is otherwise available
     - fixed a scanner bug parsing out of line class definitions with a root-justified namespace path (ex: \c "class ::X::ClassName ...")
     - merging code from binary modules at parse time and at runtime is now transaction-safe (before it would cause memory errors and/or a crash), now if errors are detected then an exception is raised and changes are not applied.

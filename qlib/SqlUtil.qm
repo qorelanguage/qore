@@ -56,7 +56,7 @@ module SqlUtil {
     The %SqlUtil module provides a high level database-independent API for working with database objects and SQL.
 
     To use this module, use \c "%requires SqlUtil" in your code.
-    
+
     All the public symbols in the module are defined in the SqlUtil namespace
 
     Major sections of this documentation:
@@ -73,7 +73,7 @@ module SqlUtil {
     - <a href="../../OracleSqlUtil/html/index.html">OracleSqlUtil</a>: for working with Oracle databases
     - <a href="../../PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a>: for working with PostgreSQL databases
 
-    The underlying driver-specific module is automatically loaded and used when required; the classes provided in 
+    The underlying driver-specific module is automatically loaded and used when required; the classes provided in
     the %SqlUtil module provide a generic API that uses the driver-specific implementations for the underlying driver-specific
     implementation.
 
@@ -115,6 +115,7 @@ module SqlUtil {
     - fixed a bug in subquery handling where bind-by-value arguments from the subquery were lost
     - fixed a bug in the partition by/over operator where column names as given in the query argument hash were not properly recognized
     - implemented insert option support (see @ref AbstractTable::InsertOptions) with the \c "returning" clause in supported drivers
+    - implemented support for late table resolution in joins to support executing SQL from serialized parameters
 
     @subsection sqlutilv1_1 SqlUtil v1.1
     - implemented new upsert strategy @ref SqlUtil::AbstractTable::UpsertInsertOnly
@@ -164,7 +165,7 @@ module SqlUtil {
     To retrieve a single row based on a single primary key value, use @ref SqlUtil::Table::find(any):
     @code
 my *hash $row = $table.find($id);
-    @endcode 
+    @endcode
     If no primary key value matches the given argument, then @ref nothing is returned. A %Qore SQL statement like the following is generated from the above:
     @code
 my *hash $row = $ds.selectRow("select * from schema.table where id = %v", $id);
@@ -279,7 +280,7 @@ my *list $rows = $table.selectRows(("columns": ("id", "name", "started", cop_as(
     - @ref SqlUtil::Table::upsertFromSelectNoCommit()
 
     SQL strings for select statements are constructed programmatically based on a select option hash described below.
-    
+
     @par Select Option Hash Example:
     @code
 my hash $soh = (
@@ -319,7 +320,7 @@ $table.selectRows( ("comment" : "foo bar") );
 select /* foo bar *<!--%%-->/ ...
     @endcode
     @warning Oracle: using different comments in the same SQL can lead to new optimizer statement hard parsing.
-    
+
     @anchor select_option_hint
     @par Select Option "hint"
     In database query operations, various SQL implementations use hints as additions to the SQL standard that instruct the database engine on how to execute the query. For example, a hint may tell the engine to use as little memory as possible (even if the query will run slowly), or to use or not to use an index (even if the query optimizer would decide otherwise).
@@ -335,7 +336,7 @@ select /*+ full(a) *<!--%%-->/ ...
     The string is taken as is and it's up to user to handle correct aliases in join functions etc.
     @note Hints are platform dependent. Curently only Oracle and some versions of PostgreSQL hints are supported in Sqlutil module.
     @warning Use hints only when you know what you are doing.
-    
+
     @anchor select_option_columns
     @par Select Option "columns"
     <b>Columns Example:</b>
@@ -374,7 +375,7 @@ my *list $rows = $table.selectRows(("columns": "*"));
 my *list $rows = $table.selectRows(("columns": ("table.id", "t2.*"), "join": join_inner($table2, "t2", ("id": "altid"))));
     @endcode
 
-    @anchor select_option_where 
+    @anchor select_option_where
     @par Select Option "where"
     <b>Where Example:</b>
     @code
@@ -447,7 +448,7 @@ my *list $rows = $table.selectRows(("columns": (cop_as(cop_max("service_type"), 
     @endcode
     The \c "groupby" option allows for aggregate SQL column operator functions to be used (ex: @ref cop_max(), cop_min()) in select statements.
     The \c "groupby" hash key should be assigned to a list of column specifiers or a single column specifier.  Column specifies for the \c "groupby"
-    key are strings giving column names, optionally in dot notation.    
+    key are strings giving column names, optionally in dot notation.
 
     @anchor select_option_having
     @par Select Option "having"
@@ -479,13 +480,13 @@ on_success $ds.commit();
 on_error $ds.rollback();
 
 my *list $rows = $table.selectRows("columns": ("serviceid", "service_methodid"), "forupdate": True);
-    @endcode 
+    @endcode
     \n The \c "forupdate" option allows for the rows selected to be locked for updating; to release the locks, call commit() or rollback() on the underlying datasource object.
   The above example results in an SQL commit equivalent to the following:
     @code
 my *list $rows = $table.vselectRows("select serviceid,service_methodid from schema.service_methods for update");
     @endcode
-    
+
     @subsection sql_paging Select With Paging
 
     There is support for paging query results in the following methods:
@@ -516,7 +517,7 @@ $ds.vselectRows("select * from public.table where type = %v order by type limit 
 
     @subsection check_matching_rows Check For At Least One Matching Row
 
-    Use the @ref SqlUtil::Table::findSingle() method to find at least one matching row: 
+    Use the @ref SqlUtil::Table::findSingle() method to find at least one matching row:
     @code
 my *hash $h = $table.findSingle(("account_type": "CUSTOMER"));
 if ($h)
@@ -555,7 +556,7 @@ $table.insert(("id": $id, "name": $name, "created": now_us()));
 
     @par Example:
     @code
-my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table, (("columns": ("cid", "fullname", "created"), "where": ("type": "CUSTOMER")))); 
+my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table, (("columns": ("cid", "fullname", "created"), "where": ("type": "CUSTOMER"))));
     @endcode
 
     Data can be inserted into the database based on the results of a select statement with @ref SqlUtil::Table::insertFromSelect() and @ref SqlUtil::Table::insertFromSelectNoCommit() as in the above example.
@@ -785,7 +786,7 @@ if ($l) {
 
     on_success $ds.commit();
     on_error $ds.rollback();
- 
+
     # loop through the reference data rows
     map $upsert($1), $l;
 }
@@ -853,12 +854,12 @@ my int $upsert_strategy = $verbose ? AbstractTable::UpsertSelectFirst : Abstract
 # get the rows to be inserted
 my list $l = get_table_rows();
 
-my code $callback = sub (string $table_name, hash $row, int $result) { 
+my code $callback = sub (string $table_name, hash $row, int $result) {
     if ($result == AbstractTable::UR_Unchanged)
         return;
     my string $change = AbstractTable::UpsertResultMap{$result};
     if ($verbose)
-        printf("*** reference data %s: %y: %s\n", $table_name, $row, $change); 
+        printf("*** reference data %s: %y: %s\n", $table_name, $row, $change);
 };
 
 my hash $sh = $table.upsertFromIterator($l.iterator(), $upsert_strategy, False, ("info_callback": $callback, "commit_block": 5000));
@@ -886,12 +887,12 @@ $table.upsertFromSelect($table2, ("where": ("account_type": "CUSTOMER")));
 # set the upsert strategy depending on the use case
 my int $upsert_strategy = $verbose ? AbstractTable::UpsertSelectFirst : AbstractTable::UpsertAuto;
 
-my code $callback = sub (string $table_name, hash $row, int $result) { 
+my code $callback = sub (string $table_name, hash $row, int $result) {
     if ($result == AbstractTable::UR_Unchanged)
         return;
     my string $change = AbstractTable::UpsertResultMap{$result};
     if ($verbose)
-        printf("*** reference data %s: %y: %s\n", $table_name, $row, $change); 
+        printf("*** reference data %s: %y: %s\n", $table_name, $row, $change);
 };
 
 my hash $sh = $table.upsertFromSelect($table2, ("where": ("account_type": "CUSTOMER")), $upsert_strategy, False, ("info_callback": $callback, "commit_block": 5000));
@@ -926,12 +927,12 @@ my int $upsert_strategy = $verbose ? AbstractTable::UpsertSelectFirst : Abstract
 # get the rows to be inserted
 my list $l = get_table_rows();
 
-my code $callback = sub (string $table_name, hash $row, int $result) { 
+my code $callback = sub (string $table_name, hash $row, int $result) {
     if ($result == AbstractTable::UR_Unchanged)
         return;
     my string $change = AbstractTable::UpsertResultMap{$result};
     if ($verbose)
-        printf("*** reference data %s: %y: %s\n", $table_name, $row, $change); 
+        printf("*** reference data %s: %y: %s\n", $table_name, $row, $change);
 };
 
 my hash $sh = $table.upsertFromSelect($table2, ("where": ("account_type": "CUSTOMER")), $upsert_strategy, ("delete_others": True, "info_callback": $callback, "commit_block": 5000));
@@ -973,7 +974,7 @@ else
     - if the object exists and matches, then nothing is done
 
     Unfortuntely, it's not currently possible to describe all database objects in a generic way (and it probably never will be); in particular,
-    functions, triggers, and other objects based on procedural code or database-specific functionality have to be defined in their 
+    functions, triggers, and other objects based on procedural code or database-specific functionality have to be defined in their
     database-specific formats.
 
     The following is a table describing the alignment support for various objects supported by %SqlUtil; for database-specific objects, see the
@@ -994,7 +995,7 @@ else
     @note
     - For objects that are dropped and recreated, renaming the object is generally supported if the underlying database server supports
     renaming.
-    - Schemas (and other objects) can also be dropped based on a generic description (or descriptions derived from the database); see 
+    - Schemas (and other objects) can also be dropped based on a generic description (or descriptions derived from the database); see
     @ref SqlUtil::Database::getDropSchemaSql()
 
     @section creating_new_objects Creating New Objects
@@ -1021,7 +1022,7 @@ else
 
     Each database driver may provide additional objects (such as types or materialized views, etc); see driver-specific documentation for more
     information.
-    
+
     @section listing_objects Listing Objects
 
     Listing database objects can be performed using appropriate methods from the @ref SqlUtil::Database "Database" class, such as the following:
@@ -1030,7 +1031,7 @@ else
     - @ref SqlUtil::Database::listSequences() "Database::listSequences()"
     - @ref SqlUtil::Database::listTables() "Database::listTables()"
     - @ref SqlUtil::Database::listViews() "Database::listViews()"
-    
+
     Alternatively, iterators for lists of objects can be acquired with the following methods:
     - @ref SqlUtil::Database::functionIterator() "Database::functionIterator()"
     - @ref SqlUtil::Database::procedureIterator() "Database::procedureIterator()"
@@ -1125,15 +1126,15 @@ $db.getAlignSql($schema_template, $callback_opts, $table_cache);
     @endcode
 
     @subsection schema_desc_hash Schema Description Hash
-    
+
     The schema description hash has the following structure:
     - \c tables: a hash of @ref table_desc_hash "table description hashes" keyed by table name; each entry describes a table
     - \c sequences: a hash of sequence description hashes keyed by sequence name; each entry describes a sequence
     - \c functions: a hash of function description hashes keyed by function name; each entry describes a function
-    - \c procedures: a hash of procedure description hashes keyed by procedure name; each entry describes a procedure    
+    - \c procedures: a hash of procedure description hashes keyed by procedure name; each entry describes a procedure
     - \c driver: this key can optionally contain a hash keyed by driver name which contains a hash of values that will be added to the schema description hash before processing; this way a schema description hash can contain all the information required for the schema including driver-specific options; any driver-specific options will overwrite values in the top level of the hash if there are duplicate hash keys
 
-    Each database driver may provide additional objects (such as types or materialized views, packages, etc); see 
+    Each database driver may provide additional objects (such as types or materialized views, packages, etc); see
     driver-specific documentation for more information.
 
     The following is an example of a schema description hash:
@@ -1150,7 +1151,7 @@ const Options = (
 const T_Customers = (
     "columns": (
         "id": (
-            "qore_type": Type::Number, 
+            "qore_type": Type::Number,
             "size": 14,
             "notnull": True,
             # this column is normally populated from a sequence by a trigger, but mysql
@@ -1261,16 +1262,16 @@ const Schema = (
     Otherwise a table can be built from a @ref table_desc_hash "table description hash" with one of the following methods:
     - @ref SqlUtil::Table::constructor()
     - @ref SqlUtil::Table::setupTable()
-    
+
     Table description hashes are also used when aligning tables to a template, which can be used to automate schema upgrades; see @ref SqlUtil::Table::getAlignSql(), @ref SqlUtil::Database::getAlignSql(), and @ref table_desc_hash "table description hash" for more information.
 
     @subsection retrieving_table_info Retrieving Table Information
 
     The following methods retrieve table information from the database:
     - @ref SqlUtil::Table::cache() "Table::cache()": this method reads in the entire table configuration immediately
-    - @ref SqlUtil::Table::describe() "Table::describe()": this method returns an object of class @ref SqlUtil::Columns describing the table's columns 
+    - @ref SqlUtil::Table::describe() "Table::describe()": this method returns an object of class @ref SqlUtil::Columns describing the table's columns
     - @ref SqlUtil::Table::getPrimaryKey() "Table::getPrimaryKey()": this method returns an object of class @ref SqlUtil::AbstractPrimaryKey describing the table's primary key if it has one
-    - @ref SqlUtil::Table::getIndexes() "Table::getIndexes()": this method returns an object of class @ref SqlUtil::Indexes describing the table's indexes 
+    - @ref SqlUtil::Table::getIndexes() "Table::getIndexes()": this method returns an object of class @ref SqlUtil::Indexes describing the table's indexes
     - @ref SqlUtil::Table::getForeignConstraints() "Table::getForeignConstraints()": this method returns an object of class @ref SqlUtil::ForeignConstraints describing the table's foreign constraints
     - @ref SqlUtil::Table::getConstraints() "Table::getConstraints()": this method returns an object of class @ref SqlUtil::Constraints describing the table's non-foreign constraints
     - @ref SqlUtil::Table::getTriggers() "Table::getTriggers()": this method returns an object of class @ref SqlUtil::Triggers describing the table's triggers
@@ -1327,7 +1328,7 @@ $db_table.getAlignSql($template_table, $callback_opts);
     @endcode
 
     @subsection table_desc_hash Table Description Hash
-    
+
     Table description hashes have the following structure:
     - \c columns: (required) a hash of column information keyed by column name; the values are @ref column_desc_hash "column description hashes"
     - \c primary_key: (optional) a @ref pk_desc_hash "primary key description hash" describing the primary key for the table
@@ -1342,7 +1343,7 @@ $db_table.getAlignSql($template_table, $callback_opts);
 my hash $table_desc = (
     "columns": (
         "domain": (
-            "qore_type": Type::String, 
+            "qore_type": Type::String,
             "size": 240,
             "notnull": True,
         ),
@@ -1493,7 +1494,7 @@ my hash $ix_desc = (
     @endcode
 
     @section callbacks Callbacks
-    
+
     Most of the SqlUtil methods that return SQL strings also accept an option hash where callbacks an be set.  Callbacks can be used
     to display detailed information about long-running operations, such as schema or data alignment for complex schemas or large
     data sets, or as a generic framework for executing and logging SQL operations.
@@ -1588,7 +1589,7 @@ my code $upsert_callback = sub (string $table_name, hash $row, int $result) {
             print("\n");
             $dot_count = 0;
         }
-        printf("%s reference data %s: %y: %s\n", t ? "+++" : "***", $table_name, $row, AbstractTable::UpsertResultMap{$result}); 
+        printf("%s reference data %s: %y: %s\n", t ? "+++" : "***", $table_name, $row, AbstractTable::UpsertResultMap{$result});
     }
     else {
         ++$dot_count;
@@ -1780,7 +1781,7 @@ public namespace SqlUtil {
     #! Feature: views
     public const DB_VIEWS = "views";
     #@}
-    
+
     /* @defgroup SqlTypeConstants SQL Type Constants
         These constants can be used for the \c "qore_type" values when creating columns to specify additional SQL column types
     */
@@ -1904,32 +1905,32 @@ public namespace SqlUtil {
 
     #! to return a date value with year information only
     /** @see cop_year()
-    */           
+    */
     public const COP_YEAR = "year";
 
     #! to return a date value with year to month information
     /** @see cop_year_month()
-    */           
+    */
     public const COP_YEAR_MONTH = "year_month";
 
     #! to return a date value with year to day information
     /** @see cop_year_day()
-    */           
+    */
     public const COP_YEAR_DAY = "year_day";
 
     #! to return a date value with year to hour information
     /** @see cop_year_hour()
-    */           
+    */
     public const COP_YEAR_HOUR = "year_hour";
 
     #! to return the next value of a sequence
     /** @see cop_seq()
-    */           
+    */
     public const COP_SEQ = "seq";
 
     #! to return the last value of a sequence issued in the same session
     /** @see cop_seq_currval()
-    */           
+    */
     public const COP_SEQ_CURRVAL = "seq_currval";
 
     #! a hash of default column operator descriptions
@@ -2116,7 +2117,7 @@ my *list $rows = $table.selectRows(("columns": ("id", "name", cop_value(100)), "
         @param arg the value to be returned in the column
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
-    
+
         SQL literals can be useful in some cases - as dummy values for select
         statements where there is exact columns required, unions, expected values
         for \c arc.insertFromIteratorNoCommit(src.getRowIterator(sh))
@@ -2157,7 +2158,7 @@ DatasourcePool ds("oracle:pvanek_omq/omq@xbox(al32utf8)");
 Database db(ds);
 Table t(ds, "dual");
 
-hash sh = ( 
+hash sh = (
     "columns" : (
         cop_as(cop_value(1), "as_int"),
         cop_as(cop_value(1.2), "as_float"),
@@ -2628,6 +2629,17 @@ my *list $rows = $t.update(("id": uop_seq("xid")), ("type": "user"));
         return h;
     }
 
+    #! returns a hash keyed with the table name assigned to a hash with \c jop, \c table, \c jcols, \c cond, \c alias, and \c ta keys
+    /** This version is used for deferred table resolution at join time
+
+        @note this function is normally not used directly, but rather is called by the other @ref sql_jop_funcs
+    */
+    public hash sub make_jop(string jop, string table_name, *string alias, *hash jcols, *hash cond, *string ta, *hash opt) {
+        string hk = alias ? alias : table_name;
+        hash h{hk} = ("jop": jop, "table": table_name, "jcols": jcols, "cond": cond, "alias": alias, "ta": ta, "opt": opt);
+        return h;
+    }
+
     #! returns a hash for standard inner joins with the given arguments
     /** @par Example With Explicit Join Columns:
         @code
@@ -2676,6 +2688,30 @@ my *list $rows = $table.selectRows(("join": join_inner($table2)));
         return make_jop(JOP_INNER, table.getTable(), alias, jcols, cond, NOTHING, opt);
     }
 
+    #! returns a hash for standard inner joins with the given arguments
+    /** @par Example With Explicit Join Columns:
+        @code
+my *list $rows = $table.selectRows(("join": join_inner($table2, "t2", ("id": "altid"))));
+        @endcode
+
+        @par Example With Implicit Join Columns:
+        (using an automatically detected foreign key to primary key constraint)
+        @code
+my *list $rows = $table.selectRows(("join": join_inner($table2)));
+        @endcode
+
+        @param table_name the table to join with; table will be subject to deferred resolution
+        @param alias the alias for \a table in the query
+        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
+        @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
+        @param opt optional join options (for example, to specify a partition for the join if supported)
+
+        @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
+    */
+    public hash sub join_inner(string table_name, *string alias, *hash jcols, *hash cond, *hash opt) {
+        return make_jop(JOP_INNER, table_name, alias, jcols, cond, NOTHING, opt);
+    }
+
     #! returns a hash for standard inner joins with the given arguments for use when joining with a table other than the primary table
     /** @par Example With Explicit Join Columns:
         @code
@@ -2696,6 +2732,8 @@ my *list $rows = $table.selectRows(("join": join_inner($table2)));
         @param opt optional join options (for example, to specify a partition for the join if supported)
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
+
+        @since %SqlUtil 1.2
     */
     public hash sub join_inner(string ta, AbstractTable table, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_INNER, table, alias, jcols, cond, ta, opt);
@@ -2726,11 +2764,38 @@ my *list $rows = $table.selectRows(("join": join_inner($table2)));
         return make_jop(JOP_INNER, table.getTable(), alias, jcols, cond, ta, opt);
     }
 
+    #! returns a hash for standard inner joins with the given arguments for use when joining with a table other than the primary table
+    /** @par Example With Explicit Join Columns:
+        @code
+my *list $rows = $table.selectRows(("join": join_inner($table2, "t2", ("id": "altid")) + join_inner("t2", $table3)));
+        @endcode
+
+        @par Example With Implicit Join Columns:
+        (using an automatically detected foreign key to primary key constraint)
+        @code
+my *list $rows = $table.selectRows(("join": join_inner($table2)));
+        @endcode
+
+        @param ta the table name or alias of the other table to join with when not joining with the primary table
+        @param table_name the table to join with
+        @param alias the alias for \a table in the query
+        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
+        @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
+        @param opt optional join options (for example, to specify a partition for the join if supported)
+
+        @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
+
+        @since %SqlUtil 1.2
+    */
+    public hash sub join_inner_alias(string ta, string table_name, *string alias, *hash jcols, *hash cond, *hash opt) {
+        return make_jop(JOP_INNER, table_name, alias, jcols, cond, ta, opt);
+    }
+
     #! returns a hash for left outer joins with the given arguments
     /** @par Example With Explicit Join Columns:
         @code
 my *list $rows = $table.selectRows(("join": join_left($table2, "t2", ("id": "altid"), ("tag", op_like("offset%")))));
-        @endcode 
+        @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
@@ -2754,7 +2819,7 @@ my *list $rows = $table.selectRows(("join": join_left($table2, "t2", NOTHING, ("
     /** @par Example With Explicit Join Columns:
         @code
 my *list $rows = $table.selectRows(("join": join_left($table2, "t2", ("id": "altid"), ("tag", op_like("offset%")))));
-        @endcode 
+        @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
@@ -2774,11 +2839,37 @@ my *list $rows = $table.selectRows(("join": join_left($table2, "t2", NOTHING, ("
         return make_jop(JOP_LEFT, table.getTable(), alias, jcols, cond, NOTHING, opt);
     }
 
+    #! returns a hash for left outer joins with the given arguments
+    /** @par Example With Explicit Join Columns:
+        @code
+my *list $rows = $table.selectRows(("join": join_left($table2, "t2", ("id": "altid"), ("tag", op_like("offset%")))));
+        @endcode
+
+        @par Example With Implicit Join Columns:
+        (using an automatically detected foreign key to primary key constraint)
+        @code
+my *list $rows = $table.selectRows(("join": join_left($table2, "t2", NOTHING, ("tag", op_like("offset%")))));
+        @endcode
+
+        @param table_name the table to join with
+        @param alias the alias for \a table in the query
+        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
+        @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
+        @param opt optional join options (for example, to specify a partition for the join if supported)
+
+        @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
+
+        @since %SqlUtil 1.2
+    */
+    public hash sub join_left(string table_name, *string alias, *hash jcols, *hash cond, *hash opt) {
+        return make_jop(JOP_LEFT, table_name, alias, jcols, cond, NOTHING, opt);
+    }
+
     #! returns a hash for left outer joins with the given arguments for use when joining with a table other than the primary table
     /** @par Example With Explicit Join Columns:
         @code
 my *list $rows = $table.selectRows(("join": join_left($table2, "t2", ("id": "altid"), ("tag", op_like("offset%"))) + join_left("t2", $table3, "t3")));
-        @endcode 
+        @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
@@ -2803,7 +2894,7 @@ my *list $rows = $table.selectRows(("join": join_left($table2, "t2", NOTHING, ("
     /** @par Example With Explicit Join Columns:
         @code
 my *list $rows = $table.selectRows(("join": join_left($table2, "t2", ("id": "altid"), ("tag", op_like("offset%"))) + join_left("t2", $table3, "t3")));
-        @endcode 
+        @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
@@ -2824,11 +2915,38 @@ my *list $rows = $table.selectRows(("join": join_left($table2, "t2", NOTHING, ("
         return make_jop(JOP_LEFT, table.getTable(), alias, jcols, cond, ta, opt);
     }
 
+    #! returns a hash for left outer joins with the given arguments for use when joining with a table other than the primary table
+    /** @par Example With Explicit Join Columns:
+        @code
+my *list $rows = $table.selectRows(("join": join_left($table2, "t2", ("id": "altid"), ("tag", op_like("offset%"))) + join_left("t2", $table3, "t3")));
+        @endcode
+
+        @par Example With Implicit Join Columns:
+        (using an automatically detected foreign key to primary key constraint)
+        @code
+my *list $rows = $table.selectRows(("join": join_left($table2, "t2", NOTHING, ("tag", op_like("offset%"))) + join_left("t2", $table3, "t3")));
+        @endcode
+
+        @param ta the table name or alias of the other table to join with when not joining with the primary table
+        @param table_name the table to join with
+        @param alias the alias for \a table in the query
+        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
+        @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
+        @param opt optional join options (for example, to specify a partition for the join if supported)
+
+        @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
+
+        @since %SqlUtil 1.2
+    */
+    public hash sub join_left_alias(string ta, string table_name, *string alias, *hash jcols, *hash cond, *hash opt) {
+        return make_jop(JOP_LEFT, table_name, alias, jcols, cond, ta, opt);
+    }
+
     #! returns a hash for right outer joins with the given arguments
     /** @par Example With Explicit Join Columns:
         @code
 my *list $rows = $table.selectRows(("join": join_right($table2, "t2", ("id": "altid"), ("tag", op_like("offset%")))));
-        @endcode 
+        @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
@@ -2852,7 +2970,7 @@ my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, (
     /** @par Example With Explicit Join Columns:
         @code
 my *list $rows = $table.selectRows(("join": join_right($table2, "t2", ("id": "altid"), ("tag", op_like("offset%")))));
-        @endcode 
+        @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
@@ -2872,11 +2990,37 @@ my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, (
         return make_jop(JOP_RIGHT, table.getTable(), alias, jcols, cond, NOTHING, opt);
     }
 
+    #! returns a hash for right outer joins with the given arguments
+    /** @par Example With Explicit Join Columns:
+        @code
+my *list $rows = $table.selectRows(("join": join_right($table2, "t2", ("id": "altid"), ("tag", op_like("offset%")))));
+        @endcode
+
+        @par Example With Implicit Join Columns:
+        (using an automatically detected foreign key to primary key constraint)
+        @code
+my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, ("tag", op_like("offset%")))));
+        @endcode
+
+        @param table_name the table to join with
+        @param alias the alias for \a table in the query
+        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
+        @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
+        @param opt optional join options (for example, to specify a partition for the join if supported)
+
+        @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
+
+        @since %SqlUtil 1.2
+    */
+    public hash sub join_right(string table_name, *string alias, *hash jcols, *hash cond, *hash opt) {
+        return make_jop(JOP_RIGHT, table_name, alias, jcols, cond, NOTHING, opt);
+    }
+
     #! returns a hash for right outer joins with the given arguments for use when joining with a table other than the primary table
     /** @par Example With Explicit Join Columns:
         @code
 my *list $rows = $table.selectRows(("join": join_right($table2, "t2", ("id": "altid"), ("tag", op_like("offset%"))) + join_right("t2", $table3, "t3")));
-        @endcode 
+        @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
@@ -2901,7 +3045,7 @@ my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, (
     /** @par Example With Explicit Join Columns:
         @code
 my *list $rows = $table.selectRows(("join": join_right($table2, "t2", ("id": "altid"), ("tag", op_like("offset%"))) + join_right("t2", $table3, "t3")));
-        @endcode 
+        @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
@@ -2920,6 +3064,33 @@ my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, (
     */
     public hash sub join_right(string ta, Table table, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_RIGHT, table.getTable(), alias, jcols, cond, ta, opt);
+    }
+
+    #! returns a hash for right outer joins with the given arguments for use when joining with a table other than the primary table
+    /** @par Example With Explicit Join Columns:
+        @code
+my *list $rows = $table.selectRows(("join": join_right($table2, "t2", ("id": "altid"), ("tag", op_like("offset%"))) + join_right("t2", $table3, "t3")));
+        @endcode
+
+        @par Example With Implicit Join Columns:
+        (using an automatically detected foreign key to primary key constraint)
+        @code
+my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, ("tag", op_like("offset%"))) + join_right("t2", $table3, "t3")));
+        @endcode
+
+        @param ta the table name or alias of the other table to join with when not joining with the primary table
+        @param table_name the table to join with
+        @param alias the alias for \a table in the query
+        @param jcols the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument; if this argument is @ref nothing, then if there is any foreign key in one table pointing to the primary key of the other table, then this information is automatically assumed as the join condition; a foreign constraint in the current table to the primary key in \a table will be used first if it exists
+        @param cond additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
+        @param opt optional join options (for example, to specify a partition for the join if supported)
+
+        @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
+
+        @since %SqlUtil 1.2
+    */
+    public hash sub join_right_alias(string ta, string table_name, *string alias, *hash jcols, *hash cond, *hash opt) {
+        return make_jop(JOP_RIGHT, table_name, alias, jcols, cond, ta, opt);
     }
     #@}
 
@@ -3036,7 +3207,7 @@ my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, (
         OP_GE: (
             "code": string sub (object t, string cn, any arg, reference args) {
                 args += arg;
-                return sprintf("%s >= %v", cn);                
+                return sprintf("%s >= %v", cn);
             },
         ),
         OP_NE: (
@@ -3071,7 +3242,7 @@ my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, (
         OP_NOT: (
             "recursive": True,
             "code": string sub (object t, string cn, any arg, reference args) {
-                return sprintf("not (%s)", cn); 
+                return sprintf("not (%s)", cn);
             },
         ),
         OP_CLT: (
@@ -3145,7 +3316,7 @@ my *list $rows = $table.selectRows(("where": ("name": op_like("%smith%"))));
         @endcode
 
         @param str the argument for the operator
-        
+
         @return a where operation description hash for use in @ref where_clauses "where clauses"
     */
     public hash sub op_like(string str) {
@@ -3159,7 +3330,7 @@ my *list $rows = $table.selectRows(("where": ("name": op_lt("Zebra"))));
         @endcode
 
         @param arg the argument for the operator
-        
+
         @return a where operation description hash for use in @ref where_clauses "where clauses"
 
         @see op_clt() for a function to be used when comparing two column values
@@ -3175,7 +3346,7 @@ my *list $rows = $table.selectRows(("where": ("name": op_le("Zebra"))));
         @endcode
 
         @param arg the argument for the operator
-        
+
         @return a where operation description hash for use in @ref where_clauses "where clauses"
 
         @see op_cle() for a function to be used when comparing two column values
@@ -3191,7 +3362,7 @@ my *list $rows = $table.selectRows(("where": ("name": op_gt("Apple"))));
         @endcode
 
         @param arg the argument for the operator
-        
+
         @return a where operation description hash for use in @ref where_clauses "where clauses"
 
         @see op_cgt() for a function to be used when comparing two column values
@@ -3207,7 +3378,7 @@ my *list $rows = $table.selectRows(("where": ("name": op_ge("Apple"))));
         @endcode
 
         @param arg the argument for the operator
-        
+
         @return a where operation description hash for use in @ref where_clauses "where clauses"
 
         @see op_cge() for a function to be used when comparing two column values
@@ -3223,7 +3394,7 @@ my *list $rows = $table.selectRows(("where": ("name": op_ne("Smith"))));
         @endcode
 
         @param arg the argument for the operator
-        
+
         @return a where operation description hash for use in @ref where_clauses "where clauses"
 
         @see op_cne() for a function to be used when comparing two column values
@@ -3241,7 +3412,7 @@ my *list $rows = $table.selectRows(("where": ("name": op_eq("Smith"))));
         @endcode
 
         @param arg the argument for the operator
-        
+
         @return a where operation description hash for use in @ref where_clauses "where clauses"
 
         @see op_ceq() for a function to be used when comparing two column values
@@ -3260,7 +3431,7 @@ my *list $rows = $table.selectRows(("where": ("name": op_between("US", "UX"))));
 
         @param l the lower bound for the \c "between" operator
         @param r the upper bound for the \c "between" operator
-        
+
         @return a where operation description hash for use in @ref where_clauses "where clauses"
 
         @throw BETWEEN-ERROR one or both of the required arguments are @ref null or @ref nothing
@@ -3278,12 +3449,12 @@ my *list $rows = $table.selectRows(("where": ("name": op_between("US", "UX"))));
         @code
 my *list $rows = $table.selectRows(("where": ("name": op_in(200, 300, 500, 9))));
         @endcode
-        
+
         @return a where operation description hash for use in @ref where_clauses "where clauses"
     */
     public hash sub op_in() {
         return make_op(OP_IN, argv);
-    }    
+    }
 
     #! returns a hash for the \c "in" operator with the given argument list as the first argument; for use in @ref where_clauses "where clauses"
     /** @par Example:
@@ -3292,7 +3463,7 @@ my *list $rows = $table.selectRows(("where": ("name": op_in($idlist))));
         @endcode
 
         @param args a list of values for the \c "in" operator
-        
+
         @return a where operation description hash for use in @ref where_clauses "where clauses"
     */
     public hash sub op_in(list args) {
@@ -3304,12 +3475,12 @@ my *list $rows = $table.selectRows(("where": ("name": op_in($idlist))));
         @code
 my *list $rows = $table.selectRows(("where": ("name": opt_not(op_in(200, 300, 500, 9))))_;
         @endcode
-        
+
         @return a where operation description hash for use in @ref where_clauses "where clauses"
     */
     public hash sub op_not(hash arg) {
         return make_op(OP_NOT, arg);
-    } 
+    }
 
     #! returns a hash for the \c "<" operator with the given argument for use in @ref where_clauses "where clauses" when comparing the values of two columns
     /** @par Example:
@@ -3318,7 +3489,7 @@ my *list $rows = $table.selectRows(("where": ("name": op_clt("other_name"))));
         @endcode
 
         @param arg the name of the column to compare against
-        
+
         @return a where operation description hash for use in @ref where_clauses "where clauses"
 
         @see op_lt() for a function to be used when comparing a column against an immediate value
@@ -3334,7 +3505,7 @@ my *list $rows = $table.selectRows(("where": ("name": op_cle("other_name"))));
         @endcode
 
         @param arg the name of the column to compare against
-        
+
         @return a where operation description hash for use in @ref where_clauses "where clauses"
 
         @see op_le() for a function to be used when comparing a column against an immediate value
@@ -3350,7 +3521,7 @@ my *list $rows = $table.selectRows(("where": ("name": op_cgt("other_name"))));
         @endcode
 
         @param arg the name of the column to compare against
-        
+
         @return a where operation description hash for use in @ref where_clauses "where clauses"
 
         @see op_gt() for a function to be used when comparing a column against an immediate value
@@ -3366,7 +3537,7 @@ my *list $rows = $table.selectRows(("where": ("name": op_cge("other_name"))));
         @endcode
 
         @param arg the name of the column to compare against
-        
+
         @return a where operation description hash for use in @ref where_clauses "where clauses"
 
         @see op_ge() for a function to be used when comparing a column against an immediate value
@@ -3398,7 +3569,7 @@ my *list $rows = $table.selectRows(("where": ("name": op_ceq("other_name"))));
         @endcode
 
         @param arg the name of the column to compare against
-        
+
         @return a where operation description hash for use in @ref where_clauses "where clauses"
 
         @see op_eq() for a function to be used when comparing a column against an immediate value
@@ -3410,7 +3581,7 @@ my *list $rows = $table.selectRows(("where": ("name": op_ceq("other_name"))));
 
     /** @defgroup sql_iops SQL Insert Operators
         These are operators that can be used for special value functions as the values of inserted columns.
-        
+
         @note these operators are normally not used directly, but rather are used by the @ref sql_iop_funcs
     */
     #@{
@@ -3510,7 +3681,7 @@ my any $v = $c.name;
             @throw KEY-ERROR the given key does not exist in the contained hash
 
             @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
-            
+
             @see @ref memberGate_methods
         */
         any memberGate(string k) {
@@ -3640,7 +3811,7 @@ my bool $b = $c.partialMatchKeys($l);
         bool partialMatchKeys(list l) {
             if (h.size() > l.size())
                 return False;
-            
+
             # make a hash of the list for quick searching
             hash h1;
             map h1.$1 = True, l;
@@ -3846,7 +4017,7 @@ my any $v = $c.get(2);
         abstract any get(softint i);
 
         #! adds the given value to the list
-        add(any val) {            
+        add(any val) {
             l += val;
         }
 
@@ -3955,7 +4126,7 @@ my int $num = $l.size();
         }
 
         #! populates the object from a hash description
-        populate(AbstractDatasource ds, hash tables, *hash opt) {            
+        populate(AbstractDatasource ds, hash tables, *hash opt) {
             delete h;
             AbstractDatabase::checkDriverOptions(\tables, ds.getDriverName());
             foreach string name in (tables.keyIterator()) {
@@ -4016,7 +4187,7 @@ my *list $l = $tables.getDropAllForeignConstraintsOnTableSql($name);
                 }
             }
 
-            return l;            
+            return l;
         }
 
         #! returns the AbstractTable object corresponding to the key given or throws a KEY-ERROR exception
@@ -4032,7 +4203,7 @@ my AbstractTable $t = $tables.table_name;
             @throw KEY-ERROR the given key does not exist in the contained hash
 
             @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
-            
+
             @see @ref memberGate_methods
         */
         AbstractTable memberGate(string k) {
@@ -4048,7 +4219,7 @@ my AbstractTable $t = $tables.table_name;
         *AbstractTable getIfExists(AbstractDatasource ds, string name) {
             if (h{name})
                 return h{name};
-            
+
             Table t(ds, name);
             if (!t.checkExistence())
                 return;
@@ -4060,7 +4231,7 @@ my AbstractTable $t = $tables.table_name;
         AbstractTable get(AbstractDatasource ds, string name) {
             if (h{name})
                 return h{name};
-            
+
             Table t(ds, name);
             t.cache(("table_cache": self));
             return h{name} = t.getTable();
@@ -4327,7 +4498,7 @@ my AbstractColumn $c = $cols.id;
             @throw KEY-ERROR the given key does not exist in the contained hash
 
             @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
-            
+
             @see @ref memberGate_methods
         */
         AbstractColumn memberGate(string k) {
@@ -4376,7 +4547,7 @@ my AbstractColumn $c = $cols.id;
             int size;
 
             #! @ref Qore::True "True" if the column can hold a NULL value, @ref Qore::False "False" if not
-            bool nullable; 
+            bool nullable;
 
             #! default value for column
             *string def_val;
@@ -4451,8 +4622,8 @@ my list $l = $col.getModifySql($t, $newcol);
                - a not null constraint is being added whereas there was none before
                - the table is not empty
             */
-            if (def_val != c.def_val 
-                && (exists c.def_val && c.def_val != NULL) 
+            if (def_val != c.def_val
+                && (exists c.def_val && c.def_val != NULL)
                 && (!exists def_val || def_val == NULL)
                 && !c.nullable && nullable && !t.emptyData()) {
                 string sql = sprintf("update %s set %s = %s where %s is null", t.getSqlName(), name, c.def_val, name);
@@ -4515,7 +4686,7 @@ my list $l = $col.getModifySql($t, $newcol);
         constructor(softint n_scale = 0) {
             scale = n_scale;
         }
- 
+
         #! returns the string describing the native type that can be used in SQL (for example to add the column to a table or when creating the table)
         string getNativeTypeString(string native_type, int precision) {
             string sql = native_type;
@@ -4528,7 +4699,7 @@ my list $l = $col.getModifySql($t, $newcol);
             return sql;
         }
    }
-    
+
     #! index container class that throws an exception if an unknown index is accessed
     public class Indexes inherits AbstractHashContainer {
         constructor(*hash c) : AbstractHashContainer(c) {
@@ -4546,7 +4717,7 @@ my list $l = $col.getModifySql($t, $newcol);
                     return ix2;
             }
         }
-        
+
         #! removes the given key from the contained hash and returns the value
         AbstractIndex take(string k) {
             return remove h{k};
@@ -4565,7 +4736,7 @@ my AbstractIndex $ix = $indexes.pk_jobs;
             @throw KEY-ERROR the given key does not exist in the contained hash
 
             @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
-            
+
             @see @ref memberGate_methods
         */
         AbstractIndex memberGate(string k) {
@@ -4582,7 +4753,7 @@ my AbstractIndex $ix = $indexes.pk_jobs;
         public {
             #! the name of the index
             string name;
-            
+
             #! @ref Qore::True "True" if the index is a unique index, @ref Qore::False "False" if not
             bool unique;
 
@@ -4627,7 +4798,7 @@ my AbstractIndex $ix = $indexes.pk_jobs;
 
             if (name != ix.name || unique != ix.unique || (columns.keys() != ix.columns.keys()))
                 return False;
-            
+
             return equalImpl(ix);
         }
 
@@ -4638,9 +4809,9 @@ my AbstractIndex $ix = $indexes.pk_jobs;
 
             if (unique != ix.unique || (columns.keys() != ix.columns.keys()))
                 return False;
-            
+
             return equalImpl(ix);
-        }        
+        }
 
         #! returns @ref Qore::True "True" if the argument is equal to the current index, @ref Qore::False "False" if not
         abstract bool equalImpl(AbstractIndex ix);
@@ -4727,7 +4898,7 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
             @throw KEY-ERROR the given key does not exist in the contained hash
 
             @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
-            
+
             @see @ref memberGate_methods
         */
         AbstractConstraint memberGate(string k) {
@@ -4747,7 +4918,7 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
             #! the name of the constraint
             string name;
         }
-        
+
         #! creates the object and sets its name
         constructor(string n) {
             name = n;
@@ -4764,7 +4935,7 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
         }
 
         #! returns a string that can be used to create the constraint in the database
-        abstract string getCreateSql(string table_name, *hash opt);        
+        abstract string getCreateSql(string table_name, *hash opt);
 
         #! returns a string that can be used to drop the constraint from the database
         string getDropSql(string table_name) {
@@ -4886,7 +5057,7 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
                     unshift ch.enable, fk.getEnableSql(sch.key, opts);
                 }
             }
-            
+
             ch.disable += getDisableSql(table_name);
             unshift ch.enable, getEnableSql(table_name, opts);
 
@@ -5019,7 +5190,7 @@ $uk.addSourceConstraint($table_name, constraint_name);
                     return fk2;
             }
         }
-        
+
         #! returns the AbstractForeignConstraint object corresponding to the key given or throws a KEY-ERROR exception
         /** @par Example:
             @code
@@ -5033,7 +5204,7 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
             @throw KEY-ERROR the given key does not exist in the contained hash
 
             @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
-            
+
             @see @ref memberGate_methods
         */
         AbstractForeignConstraint memberGate(string k) {
@@ -5107,7 +5278,7 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
 
             #! the increment
             number increment;
-            
+
             #! the ending number
             *number max;
         }
@@ -5129,7 +5300,7 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
         }
 
         #! returns a string that can be used to create the sequence in the database
-        abstract string getCreateSql(*hash opt);        
+        abstract string getCreateSql(*hash opt);
 
         #! returns a string that can be used to drop the sequence from the database
         string getDropSql() {
@@ -5139,7 +5310,7 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
         #! returns a string that can be used to rename the sequence in the database
         abstract string getRenameSql(string new_name);
     }
-    
+
     #! base class for views
     public class AbstractView {
         public {
@@ -5151,7 +5322,7 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
 
             #! the source code
             string src;
-            
+
             #! Flag showing if is the view updatable with DML commands.
             bool updatable;
         }
@@ -5163,7 +5334,7 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
         }
 
         #! returns a string that can be used to create the view in the database
-        abstract string getCreateSql(*hash opt);        
+        abstract string getCreateSql(*hash opt);
 
         #! returns a string that can be used to drop the view from the database
         string getDropSql() {
@@ -5183,7 +5354,7 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
 
             #! the type of object
             string type;
-            
+
             #! the source of the object
             string src;
         }
@@ -5198,12 +5369,12 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
             type = n_type;
             src = n_src;
         }
-        
+
         #! returns the type of object
         string getType() {
             return type;
         }
-        
+
         # FIXME: not appropriate for pgsql triggers for example
         #! returns a string that can be used to drop the function from the database
         string getDropSql() {
@@ -5226,7 +5397,7 @@ my AbstractForeignConstraint $ix = $fcs.fk_jobs_job_defs;
                 return False;
             }
             #printf("%s\nXXXXXX EQUAL XXXXXXXXX\n%s\n", src1, src2);
-            
+
             return equalImpl(t);
         }
 
@@ -5284,7 +5455,7 @@ my AbstractFunction $f = $funcs.func1;
             @throw KEY-ERROR the given key does not exist in the contained hash
 
             @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
-            
+
             @see @ref memberGate_methods
         */
         AbstractFunction memberGate(string k) {
@@ -5303,7 +5474,7 @@ my AbstractFunction $f = $funcs.func1;
         }
 
         #! returns a string that can be used to create the trigger in the database
-        abstract list getCreateSql(string table_name, *hash opt);        
+        abstract list getCreateSql(string table_name, *hash opt);
 
         #! returns a string that can be used to rename the trigger in the database
 	abstract list getRenameSql(string table_name, string new_name);
@@ -5340,7 +5511,7 @@ my AbstractTrigger $trig = $trigs.job_trig;
             @throw KEY-ERROR the given key does not exist in the contained hash
 
             @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
-            
+
             @see @ref memberGate_methods
         */
         AbstractTrigger memberGate(string k) {
@@ -5378,7 +5549,7 @@ my Database $db($ds);
             @param ds the AbstractDatasource object used to provide the DB connection
             @param opts a hash of options for the function creation string; see @ref AbstractDatabase::DatabaseOptions for common options; each driver can support additional driver-specific options
 
-            @throw DATABASE-DRIVER-ERROR no database-specific module can be loaded 
+            @throw DATABASE-DRIVER-ERROR no database-specific module can be loaded
             @throw OPTION-ERROR invalid or unsupported option passed
         */
         constructor(AbstractDatasource ds, *hash opts) {
@@ -5399,7 +5570,7 @@ my AbstractDatabase $db("pgsql:user/pass@db%host");
         constructor(string ds, *hash opts) {
             db = AbstractDatabase::getDatabase(ds, opts);
         }
-        
+
         #! creates the AbstractDatabase object
         /** @par Example:
             @code
@@ -5424,7 +5595,7 @@ my AbstractDatabase $db("pgsql:user/pass@db%host");
         }
 
         #! executes some SQL with optional arguments so that if an error occurs the current transaction state is not lost
-        /** @par Example: 
+        /** @par Example:
             @code
 $t.tryExec("drop table tmp_table");
             @endcode
@@ -5440,7 +5611,7 @@ $t.tryExec("drop table tmp_table");
         }
 
         #! executes some SQL with optional arguments so that if an error occurs the current transaction state is not lost
-        /** @par Example: 
+        /** @par Example:
             @code
 $t.tryExec("delete from tmp_table where id = %v and name = %v", $arglist);
             @endcode
@@ -5455,7 +5626,7 @@ $t.tryExec("delete from tmp_table where id = %v and name = %v", $arglist);
         }
 
         #! executes some SQL so that if an error occurs the current transaction state is not lost
-        /** @par Example: 
+        /** @par Example:
             @code
 $t.tryExecRaw("drop table tmp_table");
             @endcode
@@ -5599,7 +5770,7 @@ $db.dropFunctionIfExists($name);
 
             @param name the name of the function
             @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
-            
+
             @return @ref Qore::True "True" if the function was dropped, @ref Qore::False "False" if not
 
             @throw OPTION-ERROR invalid or unknown callback option
@@ -5655,7 +5826,7 @@ $db.dropTableIfExists($name);
 
             @throw OPTION-ERROR invalid or unknown callback option
         */
-        bool dropTableIfExists(string name, *hash opt) {            
+        bool dropTableIfExists(string name, *hash opt) {
             return db.dropTableIfExists(name, opt);
         }
 
@@ -5752,7 +5923,7 @@ my *AbstractFunction $f = $db.getProcedure("update_queue");
         *AbstractFunction getProcedure(string name) {
             return db.getProcedure(name);
         }
-        
+
         #! returns an AbstractView argument for the given view name or @ref nothing if the view
         /** @par Example:
             @code
@@ -5802,7 +5973,7 @@ my string $sql = $t.getSqlFromList($list);
             @endcode
 
             @param l a list of SQL commands
-            
+
             @return an SQL string corresponding to the list of commands in the argument
         */
         string getSqlFromList(list l) {
@@ -5818,47 +5989,47 @@ my string $sql = $t.getSqlFromList($list);
         list listTables() {
             return db.listTables();
         }
-        
+
         #! returns an iterator listing the string table names in the database
         Qore::ListIterator tableIterator() {
-            return db.tableIterator();            
+            return db.tableIterator();
         }
- 
+
         #! returns a list of string function names in the database
         list listFunctions() {
             return db.listFunctions();
         }
-        
+
         #! returns an iterator listing the string function names in the database
         Qore::ListIterator functionIterator() {
-            return db.functionIterator();            
+            return db.functionIterator();
         }
 
         #! returns a list of string procedure names in the database
         list listProcedures() {
             return db.listProcedures();
         }
-        
+
         #! returns an iterator listing the string procedure names in the database
         Qore::ListIterator procedureIterator() {
-            return db.procedureIterator();            
+            return db.procedureIterator();
         }
 
         #! returns a list of string sequence names in the database
         list listSequences() {
             return db.listSequences();
         }
-        
+
         #! returns an iterator listing the string sequence names in the database
         Qore::ListIterator sequenceIterator() {
-            return db.sequenceIterator();            
+            return db.sequenceIterator();
         }
 
         #! returns a list of string view names in the database
         list listViews() {
             return db.listViews();
         }
-        
+
         #! returns an iterator listing the string view names in the database
         Qore::ListIterator viewIterator() {
             return db.viewIterator();
@@ -5903,7 +6074,7 @@ my string $sql = $t.getSqlFromList($list);
         }
 
         private validateOptionsIntern(string err, hash ropt, reference opt, string tag) {
-            # make sure driver-specific options take precedence over generic options            
+            # make sure driver-specific options take precedence over generic options
             string dn = getDriverName();
             if (opt.driver{dn})
                 opt += remove opt.driver{dn};
@@ -5918,7 +6089,7 @@ my string $sql = $t.getSqlFromList($list);
 
                 if (!ropt.hasKey(k))
                     throw err, sprintf("%s: unknown key %y; valid keys for %y: %y", tag, k, self.className(), ropt.keys());
-                
+
                 AbstractSqlUtilBase::validateOptionIntern(err, ropt{k}, \opt{k}, k, tag);
             }
         }
@@ -5981,7 +6152,7 @@ my string $sql = $t.getSqlFromList($list);
                     if (opt.typeCode() == NT_LIST) {
                         foreach any v in (opt) {
                             if (v.typeCode() != NT_HASH)
-                                throw err, sprintf("%s: key %y element %d/%d (first is 0) has type %y, expecting \"hash\" (value: %y)", tag, k, $#, opt.size(), v.type(), opt);                            
+                                throw err, sprintf("%s: key %y element %d/%d (first is 0) has type %y, expecting \"hash\" (value: %y)", tag, k, $#, opt.size(), v.type(), opt);
                         }
                     }
                     else if (opt.typeCode() != NT_HASH)
@@ -5996,17 +6167,17 @@ my string $sql = $t.getSqlFromList($list);
 
                 # no validation for NOTHING
                 case Type::NothingType: break;
-                
+
                 case "code": if (opt.typeCode() == NT_CLOSURE || opt.typeCode() == NT_CALLREF)
                     break;
-                
+
                 # throw an exception if the type is not supported
-                default: 
+                default:
                     if (opt.type() != type)
                         throw err, sprintf("key %y requires type %y but type %y was passed (%y)", k, type, opt.type(), opt);
             }
         }
-        
+
         #! Check input node for all hash keys - if it contains a key with whitespace in the beginning or at the end -> error
         private validateHashKeysForWhitespaces(any node) {
             switch (node.typeCode()) {
@@ -6035,7 +6206,7 @@ my string $sql = $t.getSqlFromList($list);
             return ds;
         }
 
-        #! returns the database driver name 
+        #! returns the database driver name
         string getDriverName() {
             return ds.getDriverName();
         }
@@ -6356,7 +6527,7 @@ my string $sql = $t.getSqlFromList($list);
 */
 
         #! executes some SQL with optional arguments so that if an error occurs the current transaction state is not lost
-        /** @par Example: 
+        /** @par Example:
             @code
 $t.tryExec("drop table tmp_table");
             @endcode
@@ -6372,7 +6543,7 @@ $t.tryExec("drop table tmp_table");
         }
 
         #! executes some SQL with optional arguments so that if an error occurs the current transaction state is not lost
-        /** @par Example: 
+        /** @par Example:
             @code
 $t.tryExec("delete from tmp_table where id = %v and name = %v", $arglist);
             @endcode
@@ -6387,7 +6558,7 @@ $t.tryExec("delete from tmp_table where id = %v and name = %v", $arglist);
         }
 
         #! executes some SQL so that if an error occurs the current transaction state is not lost
-        /** @par Example: 
+        /** @par Example:
             @code
 $t.tryExecRaw("drop table tmp_table");
             @endcode
@@ -6471,7 +6642,7 @@ my list $l = $db.getAlignSql($schema_hash);
 
             # rename any tables
             AbstractDatabase::checkDriverOptions(\schema_hash.table_map, drv);
-            foreach hash th in (schema_hash.table_map) {                
+            foreach hash th in (schema_hash.table_map) {
                 if (th.value.typeCode() != NT_STRING)
                     throw "SCHEMA-DESCRIPTION-ERROR", sprintf("table_map %y value is not a string in the schema description hash; got type %y instead (%y)", th.key, th.value.type(), th.value);
 
@@ -6569,7 +6740,7 @@ my list $l = $db.getDropSchemaSql($schema_hash);
 
             # drop sequences
             tl = dropSqlUnlocked("sequence", schema_hash, \getSequence(), \makeSequenceFromDescription(), opt, Type::Hash);
-            if (tl) l += tl;            
+            if (tl) l += tl;
 
             # call driver-specific align schema sql function (end)
             # Option "force" is here to drop all objects (where required)
@@ -6621,7 +6792,7 @@ my list $l = $db.getDropSchemaSql($schema_hash);
             # rename objects
             reference fmap = \schema_hash{type + "_map"};
             AbstractDatabase::checkDriverOptions(\fmap, drv);
-            foreach hash fh in (fmap.pairIterator()) {                
+            foreach hash fh in (fmap.pairIterator()) {
                 if (fh.value.typeCode() != NT_STRING)
                     throw "SCHEMA-DESCRIPTION-ERROR", sprintf("%s %y value is not a string in the schema description hash; got type %y instead (%y)", type + "_map", fh.key, fh.value.type(), fh.value);
 
@@ -6760,7 +6931,7 @@ $db.dropFunctionIfExists($name);
 
             @param name the name of the function
             @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
-            
+
             @return @ref Qore::True "True" if the function was dropped, @ref Qore::False "False" if not
 
             @throw OPTION-ERROR invalid or unknown callback option
@@ -6828,14 +6999,14 @@ $db.dropViewIfExists($name);
 
             @throw OPTION-ERROR invalid or unknown callback option
         */
-        bool dropViewIfExists(string name, *hash opt) {            
+        bool dropViewIfExists(string name, *hash opt) {
             validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
             *AbstractView obj = getView(name);
             if (!obj)
                 return False;
             return AbstractDatabase::doDrop(obj.getDropSql(), "view", name, opt);
         }
-        
+
         #! drops the given table if it exists; returns @ref Qore::True "True" if the table was dropped, @ref Qore::False "False" if not
         /** @par Example:
             @code
@@ -6849,7 +7020,7 @@ $db.dropTableIfExists($name);
 
             @throw OPTION-ERROR invalid or unknown callback option
         */
-        bool dropTableIfExists(string name, *hash opt) {            
+        bool dropTableIfExists(string name, *hash opt) {
             validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
             *AbstractTable obj = getTable(name);
             if (!obj)
@@ -6866,7 +7037,7 @@ my string $sql = $db.getDropFunctionSqlIfExists($name);
 
             @param name the name of the function
             @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
-            
+
             @return the SQL require to drop the given function if it exists or @ref nothing if the named function does not exist
 
             @throw OPTION-ERROR invalid or unknown callback option
@@ -6887,7 +7058,7 @@ my string $sql = $db.getDropProcedureSqlIfExists($name);
 
             @param name the name of the procedure
             @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
-            
+
             @return the SQL require to drop the given procedure if it exists or @ref nothing if the named procedure does not exist
 
             @throw OPTION-ERROR invalid or unknown callback option
@@ -6908,7 +7079,7 @@ my string $sql = $db.getDropSequenceSqlIfExists($name);
 
             @param name the name of the sequence
             @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
-            
+
             @return the SQL require to drop the given sequence if it exists or @ref nothing if the named sequence does not exist
 
             @throw OPTION-ERROR invalid or unknown callback option
@@ -6929,12 +7100,12 @@ my string $sql = $db.getDropTableSqlIfExists($name);
 
             @param name the name of the table
             @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
-            
+
             @return the SQL require to drop the given table if it exists or @ref nothing if the named table does not exist
 
             @throw OPTION-ERROR invalid or unknown callback option
         */
-        *list getDropTableSqlIfExists(string name, *hash opt) {            
+        *list getDropTableSqlIfExists(string name, *hash opt) {
             validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
             *AbstractTable t = getTable(name);
             if (!t)
@@ -7015,7 +7186,7 @@ my list $l = $db.getAlignProcedureSql($f);
                 l += of.getDropSql();
                 l += f.getCreateSql(opt);
             }
-                
+
             return l;
         }
 
@@ -7079,7 +7250,7 @@ my *AbstractFunction $f = $db.getProcedure("update_queue");
         *AbstractFunction getProcedure(string name) {
             return getProcedureImpl(name);
         }
-        
+
         #! returns an AbstractView argument for the given view name or @ref nothing if the view cannot be found
         /** @par Example:
             @code
@@ -7129,7 +7300,7 @@ my string $sql = $t.getSqlFromList($list);
             @endcode
 
             @param l a list of SQL commands
-            
+
             @return an SQL string corresponding to the list of commands in the argument
         */
         string getSqlFromList(list l) {
@@ -7140,7 +7311,7 @@ my string $sql = $t.getSqlFromList($list);
         bool supportsSequences() {
             return supportsSequencesImpl();
         }
-        
+
         #! returns @ref Qore::True "True" if the database supports named types
         bool supportsTypes() {
             return supportsTypesImpl();
@@ -7155,50 +7326,50 @@ my string $sql = $t.getSqlFromList($list);
         list listTables() {
             return listTablesImpl();
         }
-        
+
         #! returns an iterator listing the string table names in the database
         Qore::ListIterator tableIterator() {
-            return listTablesImpl().iterator();            
+            return listTablesImpl().iterator();
         }
- 
+
         #! returns a list of string function names in the database
         list listFunctions() {
             return listFunctionsImpl();
         }
-        
+
         #! returns an iterator listing the string function names in the database
         Qore::ListIterator functionIterator() {
-            return listFunctionsImpl().iterator();            
+            return listFunctionsImpl().iterator();
         }
 
         #! returns a list of string procedure names in the database
         list listProcedures() {
             return listProceduresImpl();
         }
-        
+
         #! returns an iterator listing the string procedure names in the database
         Qore::ListIterator procedureIterator() {
-            return listProceduresImpl().iterator();            
+            return listProceduresImpl().iterator();
         }
 
         #! returns a list of string sequence names in the database
         list listSequences() {
             return listSequencesImpl();
         }
-        
+
         #! returns an iterator listing the string sequence names in the database
         Qore::ListIterator sequenceIterator() {
-            return listSequencesImpl().iterator();            
+            return listSequencesImpl().iterator();
         }
 
         #! returns a list of string view names in the database
         list listViews() {
             return listViewsImpl();
         }
-        
+
         #! returns an iterator listing the string view names in the database
         Qore::ListIterator viewIterator() {
-            return listViewsImpl().iterator();            
+            return listViewsImpl().iterator();
         }
 
         #! Rebuild an index in the DB
@@ -7273,7 +7444,7 @@ my string $sql = $t.getSqlFromList($list);
 
             # try to load module
             try {
-                load_module(mn);                
+                load_module(mn);
             }
             catch (hash ex) {
                 throw "DATABASE-DRIVER-ERROR", sprintf("%s: no support for driver %y yet: %s: %s", get_ex_pos(ex), drv, ex.err, ex.desc);
@@ -7416,7 +7587,7 @@ my string $sql = $t.getSqlFromList($list);
         - \c "mysql": <a href="../../MysqlSqlUtil/html/index.html">MysqlSqlUtil</a>
 
         etc.
-    
+
         @note Objects of Table class can hold AbstractTable pointing to a view in Oracle.
     */
     public class Table {
@@ -7458,7 +7629,7 @@ my Table $table("pgsql:user/pass@db%host", "table");
         constructor(string ds, string name, *hash opts) {
             t = AbstractTable::getTable(ds, name, opts);
         }
-        
+
         #! creates the Table object
         /** @par Example:
             @code
@@ -7621,9 +7792,9 @@ $table.dropNoCommit();
         dropNoCommit(*hash opt) {
             t.dropNoCommit(opt);
         }
-        
+
         #! executes some SQL with optional arguments so that if an error occurs the current transaction state is not lost
-        /** @par Example: 
+        /** @par Example:
             @code
 $t.tryExec("drop table tmp_table");
             @endcode
@@ -7639,7 +7810,7 @@ $t.tryExec("drop table tmp_table");
         }
 
         #! executes some SQL with optional arguments so that if an error occurs the current transaction state is not lost
-        /** @par Example: 
+        /** @par Example:
             @code
 $t.tryExec("delete from tmp_table where id = %v and name = %v", $arglist);
             @endcode
@@ -7654,7 +7825,7 @@ $t.tryExec("delete from tmp_table where id = %v and name = %v", $arglist);
         }
 
         #! executes some SQL so that if an error occurs the current transaction state is not lost
-        /** @par Example: 
+        /** @par Example:
             @code
 $t.tryExecRaw("drop table tmp_table");
             @endcode
@@ -7692,7 +7863,7 @@ $table.truncateNoCommit();
         truncateNoCommit() {
             t.truncateNoCommit();
         }
-        
+
         #! gets the SQL that can be used to truncate the table
         /** @par Example:
             @code
@@ -7767,7 +7938,7 @@ my bool $b = $table.emptyData();
 
             @return @ref Qore::True "True" if the table has no data rows, @ref Qore::False "False" if not
 
-            @see 
+            @see
             - empty()
             - rowCount()
         */
@@ -7897,7 +8068,7 @@ my list $l = $table.getModifyColumnSql("name", ("qore_type": Type::String, "size
             - \c default_value: the default value for the column
             @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
             @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
-                
+
             @return a list of SQL strings that can be used to modify an existing column in the table
 
             @throw OPTION-ERROR invalid or unsupported option passed
@@ -7943,7 +8114,7 @@ my string $sql = $table.getRenameColumnSql("name", "family_name");
             @param old_name the current name of the column
             @param new_name the new name of the column
             @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
-                
+
             @return an SQL string that can be used to rename an existing column in the table
 
             @throw OPTION-ERROR invalid or unsupported option passed
@@ -8077,7 +8248,7 @@ printf("%s;\n", $sql);
             @throw UNIQUE-CONSTRAINT-ERROR the table already has a constraint with the given name or invalid columns passed
             @throw OPTION-ERROR invalid or unsupported option passed
 
-            @see 
+            @see
             - inDb() for a method that tells if the table is already in the database or not
             - dropUniqueConstraint() for a method that allows unique constraints to be dropped from the table
          */
@@ -8462,7 +8633,7 @@ $table.dropConstraint("uk_mytable_name");
             @see inDb() for a method that tells if the table is already in the database or not
          */
         AbstractConstraint dropConstraint(string cname, *reference sql) {
-            return t.dropConstraint(cname, \sql); 
+            return t.dropConstraint(cname, \sql);
         }
 
         #! adds a trigger to the table; if the table is already known to be in the database, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
@@ -8579,7 +8750,7 @@ my string $str = $table.getSqlValue($date);
         string getSqlValue(any v) {
             return t.getSqlValue(v);
         }
-        
+
         #! drops a column from the table; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
         /** @par Example:
             @code
@@ -8700,7 +8871,7 @@ $table.insertNoCommit($row);
         #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); the transaction is committed if successful, if an error occurs, it is rolled back
         /** @par Example:
             @code
-my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER")))); 
+my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER"))));
             @endcode
 
             @param cols the list of column names to use to insert in the current table
@@ -8723,7 +8894,7 @@ my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table,
         #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); the transaction is committed if successful, if an error occurs, it is rolled back
         /** @par Example:
             @code
-my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER")))); 
+my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER"))));
             @endcode
 
             @param cols the list of column names to use to insert in the current table
@@ -8746,7 +8917,7 @@ my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table,
         #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); a transaction will be in progress after this method is successfully executed
         /** @par Example:
             @code
-my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER")))); 
+my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER"))));
             @endcode
 
             @param cols the list of column names to use to insert in the current table
@@ -8769,7 +8940,7 @@ my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $sourc
         #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); a transaction will be in progress after this method is successfully executed
         /** @par Example:
             @code
-my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER")))); 
+my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER"))));
             @endcode
 
             @param cols the list of column names to use to insert in the current table
@@ -8792,7 +8963,7 @@ my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $sourc
         #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); the transaction is committed if successful, if an error occurs, it is rolled back
         /** @par Example:
             @code
-my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER")))); 
+my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER"))));
             @endcode
 
             @param cols the list of column names to use to insert in the current table
@@ -8815,7 +8986,7 @@ my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table,
         #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); the transaction is committed if successful, if an error occurs, it is rolled back
         /** @par Example:
             @code
-my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER")))); 
+my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER"))));
             @endcode
 
             @param cols the list of column names to use to insert in the current table
@@ -8838,7 +9009,7 @@ my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table,
         #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); a transaction will be in progress after this method is successfully executed
         /** @par Example:
             @code
-my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER")))); 
+my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER"))));
             @endcode
 
             @param cols the list of column names to use to insert in the current table
@@ -8861,7 +9032,7 @@ my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $sourc
         #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); a transaction will be in progress after this method is successfully executed
         /** @par Example:
             @code
-my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER")))); 
+my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER"))));
             @endcode
 
             @param cols the list of column names to use to insert in the current table
@@ -8936,7 +9107,7 @@ $table.upsert($row);
             @param row a hash representing the row to insert or update
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
 
-            @return an integer code giving the result of the update; see @ref upsert_results for more information 
+            @return an integer code giving the result of the update; see @ref upsert_results for more information
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
@@ -8961,7 +9132,7 @@ $table.upsertNoCommit($row);
             @param row a hash representing the row to insert or update
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
 
-            @return an integer code giving the result of the update; see @ref upsert_results for more information 
+            @return an integer code giving the result of the update; see @ref upsert_results for more information
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
@@ -8991,7 +9162,7 @@ map $upsert($1), $row_list;
             @param example_row a hash representing an example row to insert or update; every row passed to the upsert closure returned must have the same keys in the same order
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
 
-            @return a closure that can be executed given a hash argument representing a single row that will be updated or inserted in the database with the given upsert strategy; the closure returned does not check the input hash for validity; the closure has the following signature: @code int sub upsert(hash $row) {} @endcode The return value of the closuse is an integer code giving the result of the update; see @ref upsert_results for more information 
+            @return a closure that can be executed given a hash argument representing a single row that will be updated or inserted in the database with the given upsert strategy; the closure returned does not check the input hash for validity; the closure has the following signature: @code int sub upsert(hash $row) {} @endcode The return value of the closuse is an integer code giving the result of the update; see @ref upsert_results for more information
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
@@ -9021,7 +9192,7 @@ map $upsert($1), $row_list;
             @param example_row a hash representing an example row to insert or update; every row passed to the upsert closure returned must have the same keys in the same order or the closure returned will throw an \c UPSERT-ERROR exception
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
 
-            @return a closure that can be executed given a hash argument representing a single row that will be updated or inserted in the database with the given upsert strategy; the closure has the following signature: @code int sub upsert(hash $row) {} @endcode The return value of the closuse is an integer code giving the result of the update; see @ref upsert_results for more information 
+            @return a closure that can be executed given a hash argument representing a single row that will be updated or inserted in the database with the given upsert strategy; the closure has the following signature: @code int sub upsert(hash $row) {} @endcode The return value of the closuse is an integer code giving the result of the update; see @ref upsert_results for more information
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
@@ -9301,6 +9472,7 @@ my SQLStatement $i = $table.getRowIterator();
 
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param sql an optional reference to a string to return the SQL generated for the select statement
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
 
             @return an @ref Qore::SQL::SQLStatement "SQLStatement" object that will iterate the results of a select statement matching the arguments
 
@@ -9311,8 +9483,8 @@ my SQLStatement $i = $table.getRowIterator();
             - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
             - the @ref Qore::SQL::SQLStatement "SQLStatement" object created by a successful call to this method acquires a thread resource for the underlying @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object that must be released by calling @ref Qore::SQL::AbstractDatasource::commit() "commit()" or @ref Qore::SQL::AbstractDatasource::rollback() "rollback()", even if the statement does not acquire any database locks
          */
-        Qore::SQL::SQLStatement getRowIterator(*hash sh, *reference sql) {
-            return t.getRowIterator(sh, \sql);
+        Qore::SQL::SQLStatement getRowIterator(*hash sh, *reference sql, *hash opt) {
+            return t.getRowIterator(sh, \sql, opt);
         }
 
         #! returns an @ref Qore::SQL::SQLStatement "SQLStatement" object that will iterate the results of a select statement matching the arguments
@@ -9345,6 +9517,7 @@ my *hash $h = $table.selectRow($sh);
 
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param sql an optional reference to a string to return the SQL generated for the select statement
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
 
             @return a hash representing the row in the table that matches the argument hash; if more than one row would be returned an exception is raised
 
@@ -9356,8 +9529,8 @@ my *hash $h = $table.selectRow($sh);
             - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
             - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
          */
-        *hash selectRow(*hash sh, *reference sql) {
-            return t.selectRow(sh, \sql);
+        *hash selectRow(*hash sh, *reference sql, *hash opt) {
+            return t.selectRow(sh, \sql, opt);
         }
 
         #! returns a list of hashes representing the rows in the table that match the argument hash
@@ -9368,6 +9541,7 @@ my *list $l = $table.selectRows($sh);
 
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param sql an optional reference to a string to return the SQL generated for the select statement
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
 
             @return a list of hashes representing the rows in the table that match the argument hash
 
@@ -9378,8 +9552,8 @@ my *list $l = $table.selectRows($sh);
             - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
             - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
          */
-        *list selectRows(*hash sh, *reference sql) {
-            return t.selectRows(sh, \sql);
+        *list selectRows(*hash sh, *reference sql, *hash opt) {
+            return t.selectRows(sh, \sql, opt);
         }
 
         #! returns a hash of lists representing the columns and rows in the table that match the argument hahs
@@ -9390,6 +9564,7 @@ my *hash $h = $table.select($sh);
 
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param sql an optional reference to a string to return the SQL generated for the select statement
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
 
             @return a hash of lists representing the columns and rows in the table that match the argument hash
 
@@ -9400,8 +9575,8 @@ my *hash $h = $table.select($sh);
             - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
             - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
          */
-        *hash select(*hash sh, *reference sql) {
-            return t.select(sh, \sql);
+        *hash select(*hash sh, *reference sql, *hash opt) {
+            return t.select(sh, \sql, opt);
         }
 
         #! returns a hash representing the row in the table that matches the argument hash; if more than one row would be returned an exception is raised
@@ -9661,7 +9836,7 @@ my string $sql = $t.getSqlFromList($list);
             @endcode
 
             @param l a list of SQL commands
-            
+
             @return an SQL string corresponding to the list of commands in the argument
         */
         string getSqlFromList(list l) {
@@ -9683,7 +9858,7 @@ my string $sql = $table.getRenameSql("new_name");
 
             @note If the @ref sql_callback_executed "sql_callback_executed option key" is @ref Qore::True "True", this method also renames the object internally (see @ref sql_callback_executed for more information), additionally if the \c "db_table_cache" option key is assigned to a @ref SqlUtil::Tables "Tables" argument, then the table cache is also updated with the name change in this case
 
-            @see 
+            @see
             - rename()
             - inDb() for a method that tells if the table is already in the database or not
         */
@@ -9721,7 +9896,7 @@ map printf("$1;\n", $1), $table.getCreateSql();
             return t.getCreateSql(opt);
         }
 
-        #! returns an SQL string that could be used to create the basic table structure without indexes and constraints 
+        #! returns an SQL string that could be used to create the basic table structure without indexes and constraints
         /** @par Example:
             @code
 my string $sql = $table.getCreateTableSql();
@@ -9729,7 +9904,7 @@ my string $sql = $table.getCreateTableSql();
 
             @param opt a hash of options for the SQL creation string; see @ref SqlUtil::AbstractTable::TableCreationOptions for common options; each driver can support additional driver-specific options
 
-            @return an SQL string that could be used to create the basic table structure without indexes and constraints 
+            @return an SQL string that could be used to create the basic table structure without indexes and constraints
 
             @throw OPTION-ERROR invalid or unsupported option passed
         */
@@ -10094,7 +10269,7 @@ my Triggers $trig = $table.getTriggers();
             return t.getConstraints();
         }
 
-        #! returns the database driver name 
+        #! returns the database driver name
         string getDriverName() {
             return t.getDriverName();
         }
@@ -10106,7 +10281,7 @@ my Triggers $trig = $table.getTriggers();
             #! table options
             /** The following keys can be set for this option:
                 - \c native_case: (@ref bool_type) if @ref Qore::True "True" then objects will be returned in the case the database server returns them in even if the database server uses case-insensitive names; normally in this case %SqlUtil will convert the names to lower-case
-                - \c table_cache: (@ref SqlUtil::Tables "Tables") an optional table cache for maintaining cached tables and foreign key relationships between tables                
+                - \c table_cache: (@ref SqlUtil::Tables "Tables") an optional table cache for maintaining cached tables and foreign key relationships between tables
             */
             const TableOptions = (
                 "native_case": Type::Boolean,
@@ -10135,7 +10310,7 @@ my Triggers $trig = $table.getTriggers();
 
             #! default foreign constraint options
             /** The following keys can be set for this option:
-                - \c table_cache: (@ref SqlUtil::Tables "Tables") an optional table cache for maintaining cached tables and foreign key relationships between tables                
+                - \c table_cache: (@ref SqlUtil::Tables "Tables") an optional table cache for maintaining cached tables and foreign key relationships between tables
             */
             const ForeignConstraintOptions = ConstraintOptions + (
                 "table_cache": "Tables",
@@ -10213,9 +10388,9 @@ my Triggers $trig = $table.getTriggers();
                 - \c primary_key : (@ref pk_desc_hash "primary key description hash") a hash describing the primary key for the table
                 - \c indexes: (@ref index_desc_hash "index description hashes") a hash describing the indexes on the table
                 - \c triggers: a hash of trigger information keyed by trigger name; the values are the trigger source code; since triggers are driver-dependent, a driver-independent table description would include trigger hashes under the \c drivers key and the driver key name under that
-                - \c foreign_constraints: (@ref fk_desc_hash "foreign constraint hashes") a hash describing the foreign constraints on the table 
-                - \c unique_constraints: (@ref uk_desc_hash "unique constraint hashes") a hash describing the unique constraints on the table 
-                - \c table_cache: (@ref SqlUtil::Tables "Tables") an optional table cache for maintaining cached tables and foreign key relationships between tables                
+                - \c foreign_constraints: (@ref fk_desc_hash "foreign constraint hashes") a hash describing the foreign constraints on the table
+                - \c unique_constraints: (@ref uk_desc_hash "unique constraint hashes") a hash describing the unique constraints on the table
+                - \c table_cache: (@ref SqlUtil::Tables "Tables") an optional table cache for maintaining cached tables and foreign key relationships between tables
 
                 @see @ref table_desc_hash
             */
@@ -10265,9 +10440,11 @@ my Triggers $trig = $table.getTriggers();
             #! generic SQL data operation callbacks
             /** The following keys can be set for this option:
                 - \c sqlarg_callback: see @ref sqlarg_callback
+                - \c tablecode: a closure taking a string table name and returning an AbstractTable object for late resolution of table names in joins
             */
             const SqlDataCallbackOptions = (
                 "sqlarg_callback": "code",
+                "tablecode": "code",
                 );
 
             #! generic SQL insert options
@@ -10384,7 +10561,7 @@ my Triggers $trig = $table.getTriggers();
             #@{
             #! row was inserted
             const UR_Inserted = 1;
-            
+
             #! row was updated unconditionally (not returned with @ref UpsertSelectFirst)
             const UR_Verified = 2;
 
@@ -10582,7 +10759,7 @@ $table.drop();
         }
 
         #! executes some SQL with optional arguments so that if an error occurs the current transaction state is not lost
-        /** @par Example: 
+        /** @par Example:
             @code
 $t.tryExec("drop table tmp_table");
             @endcode
@@ -10598,7 +10775,7 @@ $t.tryExec("drop table tmp_table");
         }
 
         #! executes some SQL with optional arguments so that if an error occurs the current transaction state is not lost
-        /** @par Example: 
+        /** @par Example:
             @code
 $t.tryExec("delete from tmp_table where id = %v and name = %v", $arglist);
             @endcode
@@ -10613,7 +10790,7 @@ $t.tryExec("delete from tmp_table where id = %v and name = %v", $arglist);
         }
 
         #! executes some SQL so that if an error occurs the current transaction state is not lost
-        /** @par Example: 
+        /** @par Example:
             @code
 $t.tryExecRaw("drop table tmp_table");
             @endcode
@@ -10705,7 +10882,7 @@ my string $sql = $table.getTruncateSql();
             @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
          */
         string getTruncateSql(*hash opt) {
-            validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);        
+            validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
             return AbstractDatabase::doCallback(opt, getTruncateSqlImpl(), AbstractDatabase::AC_Truncate, "table", name);
         }
 
@@ -10738,7 +10915,7 @@ $table.createNoCommit();
             @throw CREATE-TABLE-ERROR table has already been read from or created in the database
          */
         createNoCommit(*hash opt) {
-            if (inDb) 
+            if (inDb)
                 throw "CREATE-TABLE-ERROR", sprintf("%s has already been read from or created in the database", getDesc());
 
             # get and execute all the creation strings
@@ -10781,7 +10958,7 @@ my bool $b = $table.emptyData();
 
             @return @ref Qore::True "True" if the table has no data rows, @ref Qore::False "False" if not
 
-            @see 
+            @see
             - empty()
             - rowCount()
         */
@@ -10886,7 +11063,7 @@ my bool $b = $table.empty();
 
                 if (!ih.columns || !inlist(ih.columns.typeCode(), (NT_LIST, NT_STRING)))
                     throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to \"columns\" key for index %y is not a list or a string, got type %y instead (%y)", getDesc(), ixn, ih.columns.type(), ih.columns);
-                
+
                 addIndexUnlocked(ixn, ih.unique ? True : False, ih.columns, opt.(getIndexOptions().keys()));
             }
 
@@ -10896,7 +11073,7 @@ my bool $b = $table.empty();
                     throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to primary_key is not a hash, got type %y instead (%y)", getDesc(), desc.primary_key.type(), desc.primary_key);
                 if (!desc.primary_key.name || desc.primary_key.name.typeCode() != NT_STRING)
                     throw "DESCRIPTION-ERROR", sprintf("%s: missing string value for 'name' key in primary_key hash: %y", getDesc(), desc.primary_key);
-                
+
                 addPrimaryKeyUnlocked(desc.primary_key.name, desc.primary_key.columns, opt.(getConstraintOptions().keys()));
             }
 
@@ -10910,7 +11087,7 @@ my bool $b = $table.empty();
                 if (!ch.columns || !inlist(ch.columns.typeCode(), (NT_LIST, NT_STRING)))
                     throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to \"columns\" key for unique constraint %y is not a list or a string, got type %y instead (%y)", getDesc(), un, ch.columns.type(), ch.columns);
 
-                if (constraints.hasKey(un))                    
+                if (constraints.hasKey(un))
                     continue;
                 addUniqueConstraintUnlocked(un, ch.columns, opt.(getConstraintOptions().keys()));
             }
@@ -10930,7 +11107,7 @@ my bool $b = $table.empty();
 
                 if (exists ch.target_columns && !inlist(ch.target_columns.typeCode(), (NT_LIST, NT_STRING)))
                     throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to \"target_columns\" key for foreign constraint %y is not a list or a string, got type %y instead (%y)", getDesc(), cn, ch.target_columns.type(), ch.target_columns);
-                
+
                 if (!ch.target_columns)
                     ch.target_columns = ch.columns;
 
@@ -10947,10 +11124,10 @@ my bool $b = $table.empty();
                 if (desc.triggers{tn}.typeCode() != NT_STRING)
                     throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to trigger key %y is not a string giving the trigger source code, got type %y instead (%y)", getDesc(), tn, desc.triggers{tn}.type(), desc.triggers{tn});
                 string src = desc.triggers{tn};
-                
+
                 addTriggerUnlocked(tn, src, opt.(getTriggerOptions().keys()));
             }
-            
+
             setupTableImpl(desc, opt);
         }
 
@@ -11024,7 +11201,7 @@ my list $l = $table.getAddColumnSql("name", ("qore_type": Type::String, "size": 
                 on_exit l.unlock();
                 addColumnUnlocked(cname, copt, nullable, \lsql, False, opt.sql_callback_executed);
             }
-            
+
             return AbstractDatabase::doCallback(opt, lsql, AbstractDatabase::AC_Add, "column", name, cname);
         }
 
@@ -11032,7 +11209,7 @@ my list $l = $table.getAddColumnSql("name", ("qore_type": Type::String, "size": 
             if (!columns)
                 columns = new Columns();
             else if (columns.hasKey(cname))
-                throw "COLUMN-ERROR", sprintf("%s column %y: this column already exists", getDesc(), cname);    
+                throw "COLUMN-ERROR", sprintf("%s column %y: this column already exists", getDesc(), cname);
 
             if (!opt.native_type && !opt.qore_type)
                 throw "COLUMN-ERROR", sprintf("%s column %y: no native_type or qore_type keys in column option hash: %y", getDesc(), cname, opt);
@@ -11088,7 +11265,7 @@ $table.modifyColumn("name", ("qore_type": Type::String, "size": 240), False);
             on_exit l.unlock();
             getColumnsUnlocked();
             if (!columns.hasKey(cname))
-                throw "COLUMN-ERROR", sprintf("%s column %y: the given column does not exist", getDesc(), cname);    
+                throw "COLUMN-ERROR", sprintf("%s column %y: the given column does not exist", getDesc(), cname);
 
             if (!opt.native_type && !opt.qore_type)
                 throw "COLUMN-ERROR", sprintf("%s column %y: no native_type or qore_type keys in column option hash: %y", getDesc(), cname, opt);
@@ -11097,7 +11274,7 @@ $table.modifyColumn("name", ("qore_type": Type::String, "size": 240), False);
 
             # get the new column object
             AbstractColumn c = addColumnImpl(cname, opt, nullable);
-            
+
             # add column in table if the table already exists in the DB
             execSql(lsql = columns{cname}.getModifySql(self, c));
 
@@ -11121,7 +11298,7 @@ my list $l = $table.getModifyColumnSql("name", ("qore_type": Type::String, "size
             - \c default_value: the default value for the column
             @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
             @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
-                
+
             @return a list of SQL strings that can be used to modify an existing column in the table
 
             @throw OPTION-ERROR invalid or unsupported option passed
@@ -11140,7 +11317,7 @@ my list $l = $table.getModifyColumnSql("name", ("qore_type": Type::String, "size
             on_exit l.unlock();
             getColumnsUnlocked();
             if (!columns.hasKey(cname))
-                throw "COLUMN-ERROR", sprintf("%s column %y: the given column does not exist", getDesc(), cname);    
+                throw "COLUMN-ERROR", sprintf("%s column %y: the given column does not exist", getDesc(), cname);
 
             if (!copt.native_type && !copt.qore_type)
                 throw "COLUMN-ERROR", sprintf("%s column %y: no native_type or qore_type keys in column option hash: %y", getDesc(), cname, copt);
@@ -11152,7 +11329,7 @@ my list $l = $table.getModifyColumnSql("name", ("qore_type": Type::String, "size
             # replaces the column in the internal column representation with the new definition
             on_success if (opt.sql_callback_executed)
                 addColumnToTableUnlocked(c);
-            
+
             return AbstractDatabase::doCallback(opt, columns{cname}.getModifySql(self, c), AbstractDatabase::AC_Modify, "column", cname, name, NOTHING, c.getNativeTypeString());
         }
 
@@ -11165,7 +11342,7 @@ my AbstractColumn $col = $table.renameColumn("name", "family_name");
             @param old_name the current name of the column
             @param new_name the new name of the column
             @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
-                
+
             @return the column object that was updated
 
             @throw COLUMN-ERROR if the given column does not exist in the table
@@ -11182,7 +11359,7 @@ my AbstractColumn $col = $table.renameColumn("name", "family_name");
                 throw "COLUMN-ERROR", sprintf("%s column %y: the given column does not exist", getDesc(), old_name);
 
             AbstractColumn c = columns{old_name};
-            
+
             # add column in table if the table already exists in the DB
             execSql(sql = c.getRenameSql(self, new_name));
 
@@ -11200,7 +11377,7 @@ my string $sql = $table.getRenameColumnSql("name", "family_name");
             @param old_name the current name of the column
             @param new_name the new name of the column
             @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
-                
+
             @return an SQL string that can be used to rename an existing column in the table
 
             @throw OPTION-ERROR invalid or unsupported option passed
@@ -11229,7 +11406,7 @@ my string $sql = $table.getRenameColumnSql("name", "family_name");
             return AbstractDatabase::doCallback(opt, columns{old_name}.getRenameSql(self, new_name), AbstractDatabase::AC_Rename, "column", old_name, name, new_name);
         }
 
-        private AbstractColumn renameColumnIntern(AbstractColumn c, string new_name) {            
+        private AbstractColumn renameColumnIntern(AbstractColumn c, string new_name) {
             string old_name = c.name;
 
             # rename column after database is updated
@@ -11278,7 +11455,7 @@ my string $sql = $table.getRenameColumnSql("name", "family_name");
                 on_error ds.rollback();
                 map ds.execRaw($1), lsql;
             }
-            else 
+            else
                 manual = True;
         }
 
@@ -11384,7 +11561,7 @@ printf("%s;\n", $sql);
 
             # get the new primary key object
             AbstractPrimaryKey pk = addPrimaryKeyImpl(pkname, ch, opt);
-            
+
             # find matching index for unique constraint
             pk.findMatchingIndex(indexes);
 
@@ -11436,7 +11613,7 @@ my list $l = $table.getDropAllConstraintsAndIndexesOnColumnSql("status");
             foreach AbstractConstraint c in (constraints.iterator()) {
                 if (c.hasColumn(cname)) {
                     on_success if (opt.sql_callback_executed) {
-                        constraints.take(c.getName()); 
+                        constraints.take(c.getName());
                         # if it's a unique constraint, remove any index with the same name
                         if (c instanceof AbstractUniqueConstraint && constraintsLinkedToIndexesImpl())
                             indexes.take(c.getName());
@@ -11445,25 +11622,25 @@ my list $l = $table.getDropAllConstraintsAndIndexesOnColumnSql("status");
                     lst += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "constraint", c.getName(), getSqlName());
                 }
             }
-            
+
             foreach AbstractForeignConstraint fk in (foreignConstraints.iterator()) {
                 if (fk.hasColumn(cname)) {
                     on_success if (opt.sql_callback_executed)
-                        foreignConstraints.take(fk.getName()); 
+                        foreignConstraints.take(fk.getName());
 
                     lst += AbstractDatabase::doCallback(opt, fk.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "foreign constraint", fk.getName(), getSqlName());
                 }
             }
-            
+
             foreach AbstractIndex ix in (indexes.iterator()) {
                 if (ix.hasColumn(cname)) {
                     on_success if (opt.sql_callback_executed)
-                        indexes.take(ix.name); 
+                        indexes.take(ix.name);
 
                     lst += AbstractDatabase::doCallback(opt, ix.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "index", ix.name, getSqlName());
                 }
             }
-            
+
             return lst;
         }
 
@@ -11541,7 +11718,7 @@ $table.dropPrimaryKey();
 
             return remove primaryKey;
         }
-        
+
         #! adds a unique constraint to the table; if the table is known to be in the database already, then the constraint is added to the database also immediately; otherwise it is only added internally and can be created when create() is called for example
         /** @par Example:
             @code
@@ -11643,7 +11820,7 @@ printf("%s;\n", $sql);
 
             # get the new constraint object
             AbstractUniqueConstraint c = addUniqueConstraintImpl(cname, ch, opt);
-            
+
             # find matching index for unique constraint
             c.findMatchingIndex(indexes);
 
@@ -11775,7 +11952,7 @@ printf("%s;\n", $sql);
 
             # get the new index object
             AbstractIndex ix = addIndexImpl(iname, unique, ch, opt);
-            
+
             # add index to table in the DB if the table already exists in the DB
             sql = ix.getCreateSql(getSqlName(), opt);
 
@@ -11800,7 +11977,7 @@ my AbstractIndex $ix = $table.renameIndex("uk_table_name", "unique_table_name");
             l.lock();
             on_exit l.unlock();
             getIndexesUnlocked();
-            
+
             AbstractIndex ix;
 
             code rename;
@@ -11818,7 +11995,7 @@ my AbstractIndex $ix = $table.renameIndex("uk_table_name", "unique_table_name");
 
             # rename index in container structure
             rename();
-            
+
             # return the updated index
             return ix;
         }
@@ -11957,7 +12134,7 @@ printf("%s;\n", $sql);
                 # update cached tables with foreign constraint source info
                 if (opt.table_cache.hasKey(fk.target.table))
                     opt.table_cache{fk.target.table}.addSourceConstraint(getSqlName(), fk);
-                
+
                 # set as foreign constraint for the table
                 if (!foreignConstraints)
                     foreignConstraints = new ForeignConstraints();
@@ -12032,7 +12209,7 @@ printf("%s;\n", $sql);
 
             # get the new foreign constraint object
             AbstractForeignConstraint fk = addForeignConstraintImpl(cname, ch, table, tch, opt);
-            
+
             sql = fk.getCreateSql(getSqlName());
 
             # return the new foreign constraint
@@ -12146,7 +12323,7 @@ printf("%s;\n", $sql);
             @throw CHECK-CONSTRAINT-ERROR the table already has a constraint with the given name or invalid columns or options were passed
 
             @see inDb() for a method that tells if the table is already in the database or not
- 
+
             @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
          */
         string getAddCheckConstraintSql(string cname, string src, *hash copt, *hash opt) {
@@ -12170,7 +12347,7 @@ printf("%s;\n", $sql);
         private AbstractCheckConstraint addCheckConstraintUnlocked(string cname, string src, *hash opt, *reference sql) {
             AbstractCheckConstraint cc = addCheckConstraintUnlockedIntern(cname, src, opt, \sql);
             execSql(sql);
-            
+
             # set as constraint for the table
             if (!constraints)
                 constraints = new Constraints();
@@ -12186,7 +12363,7 @@ printf("%s;\n", $sql);
 
             # get the new constraint object
             AbstractCheckConstraint cc = addCheckConstraintImpl(cname, src, opt);
-            
+
             # get the sql creation string
             sql = cc.getCreateSql(getSqlName());
 
@@ -12211,7 +12388,7 @@ my AbstractConstraint $con = $table.renameConstraint("pk_table_name", "pkey_tabl
             l.lock();
             on_exit l.unlock();
             getAllConstraintsUnlocked();
-            
+
             AbstractConstraint c;
 
             code rename;
@@ -12237,7 +12414,7 @@ my AbstractConstraint $con = $table.renameConstraint("pk_table_name", "pkey_tabl
                     }
                 }
             }
-            
+
             if (!c) {
                 list cl = ();
                 # get a list of all constraint names
@@ -12256,7 +12433,7 @@ my AbstractConstraint $con = $table.renameConstraint("pk_table_name", "pkey_tabl
 
             # rename constraint in container structure
             rename();
-            
+
             # return the updated constraint
             return c;
         }
@@ -12292,7 +12469,7 @@ my string $sql = $table.getDropConstraintSql("uk_mytable_name");
 
             on_success if (opt.sql_callback_executed)
                 rmv();
- 
+
             return AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "constraint", c.getName(), name);
         }
 
@@ -12336,19 +12513,19 @@ my *string $sql = $table.getDropConstraintIfExistsSql("uk_mytable_name");
 
             on_success if (opt.sql_callback_executed)
                 rmv();
- 
+
             return AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "constraint", c.getName(), name);
         }
 
         private AbstractConstraint findDropConstraintUnlocked(string cname, reference rmv) {
             getAllConstraintsUnlocked();
-            
+
             AbstractConstraint c;
 
             if (constraints && constraints.hasKey(cname)) {
                 c = constraints{cname};
                 rmv = sub () {
-                    constraints.take(cname); 
+                    constraints.take(cname);
                     # if it's a unique constraint, remove any index with the same name
                     if (c instanceof AbstractUniqueConstraint && constraintsLinkedToIndexesImpl())
                         indexes.take(cname);
@@ -12356,8 +12533,8 @@ my *string $sql = $table.getDropConstraintIfExistsSql("uk_mytable_name");
             }
             else if (!primaryKey.empty() && primaryKey.getName() == cname) {
                 c = primaryKey;
-                rmv = sub () { 
-                    remove self.primaryKey; 
+                rmv = sub () {
+                    remove self.primaryKey;
                     # remove any index with the same name
                     if (constraintsLinkedToIndexesImpl())
                         indexes.take(cname);
@@ -12366,10 +12543,10 @@ my *string $sql = $table.getDropConstraintIfExistsSql("uk_mytable_name");
             else if (foreignConstraints && foreignConstraints.hasKey(cname)) {
                 c = foreignConstraints{cname};
                 rmv = sub () {
-                    foreignConstraints.take(cname); 
+                    foreignConstraints.take(cname);
                 };
             }
-            
+
             if (!c) {
                 list cl = ();
                 # get a list of all constraint names
@@ -12409,7 +12586,7 @@ $table.dropConstraint("uk_mytable_name");
 
             code rmv;
             AbstractConstraint c = findDropConstraintUnlocked(cname, \rmv);
-            
+
             # drop foreign constraint from table if the table already exists in the DB
             execSql(sql = c.getDropSql(getSqlName()));
 
@@ -12481,7 +12658,7 @@ printf("%s;\n", $sql);
                 # store trigger in trigger container
                 if (!triggers)
                     triggers = new Triggers();
-                
+
                 triggers.add(tname, trig);
                 manual = True;
             }
@@ -12516,7 +12693,7 @@ printf("%s;\n", $sql);
 
             # get the new constraint object
             AbstractTrigger trig = addTriggerImpl(tname, src, opt);
-            
+
             lsql = trig.getCreateSql(getSqlName());
 
             # return the new trigger
@@ -12627,7 +12804,7 @@ my string $sql = $table.getDropTriggerSql("trig_mytable");
 
             # check valid options and option value types
             validateOptionsIntern("COLUMN-ERROR", copt, \opt, sprintf("%s.%s", name, cname));
-            
+
             hash otm = getTypeMapImpl();
 
             if (!opt.native_type) {
@@ -12668,14 +12845,14 @@ my string $sql = $table.getDropTriggerSql("trig_mytable");
                 else
                     opt.scale = 0;
             }
-            else if (opt.scale) 
+            else if (opt.scale)
                 throw "COLUMN-ERROR", sprintf("%s column %y: scale %y is not valid for type %y; it is not a numeric type", getDesc(), cname, opt.scale, opt.native_type);
             else
                 opt.precision = opt.scale = 0;
 
             if (!opt.size && th.default_size)
                 opt.size = th.default_size;
-            
+
             # check type of default value (must match column type)
             if (exists opt.default_value) {
                 checkValue(cname, "default_value", \opt.default_value, th.qore);
@@ -12713,7 +12890,7 @@ $table.dropColumn("notes_2");
             if (inDb) {
                 sc = sub (string str) {
                     ds.execRaw(str);
-                }; 
+                };
             }
 
             # if there are any indexes or constraints on this column, remove them from the table first
@@ -12801,7 +12978,7 @@ $table.insertNoCommi($row);
             return insertNoCommitIntern(row, \sql, opt);
         }
 
-        private *hash insertNoCommitIntern(hash row, *reference sql, *hash opt) { 
+        private *hash insertNoCommitIntern(hash row, *reference sql, *hash opt) {
             # check data callback options if any
             validateOptionsIntern("OPTION-ERROR", getInsertOptions(), \opt);
 
@@ -12963,7 +13140,7 @@ $table.insertNoCommit($row);
         #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); the transaction is committed if successful, if an error occurs, it is rolled back
         /** @par Example:
             @code
-my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER")))); 
+my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER"))));
             @endcode
 
             @param cols the list of column names to use to insert in the current table
@@ -13033,7 +13210,7 @@ my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $sourc
         #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); the transaction is committed if successful, if an error occurs, it is rolled back
         /** @par Example:
             @code
-my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER")))); 
+my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER"))));
             @endcode
 
             @param cols the list of column names to use to insert in the current table
@@ -13059,7 +13236,7 @@ my int $rows = $table.insertFromSelect(("id", "name", "created"), $source_table,
         #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); a transaction will be in progress after this method is successfully executed
         /** @par Example:
             @code
-my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER")))); 
+my int $rows = $table.insertFromSelectNoCommit(("id", "name", "created"), $source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER"))));
             @endcode
 
             @param cols the list of column names to use to insert in the current table
@@ -13145,7 +13322,7 @@ my int $rows = $table.insertFromIteratorNoCommit($i);
             stmt.prepare(sql);
 
             opt.change_count = 0;
-            int rc = 0;             
+            int rc = 0;
             do {
                 execData(stmt, opt, row.values());
                 if (opt.info_callback)
@@ -13172,7 +13349,7 @@ $table.upsert($row);
             @param row a hash representing the row to insert or update
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
 
-            @return an integer code giving the result of the update; see @ref upsert_results for more information 
+            @return an integer code giving the result of the update; see @ref upsert_results for more information
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
@@ -13195,7 +13372,7 @@ $table.upsertNoCommit($row);
             @param row a hash representing the row to insert or update
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
 
-            @return an integer code giving the result of the update; see @ref upsert_results for more information 
+            @return an integer code giving the result of the update; see @ref upsert_results for more information
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
@@ -13225,7 +13402,7 @@ map $upsert($1), $row_list;
             @param example_row a hash representing an example row to insert or update; every row passed to the upsert closure returned must have the same keys in the same order
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
 
-            @return a closure that can be executed given a hash argument representing a single row that will be updated or inserted in the database with the given upsert strategy; the closure returned does not check the input hash for validity; the closure has the following signature: @code int sub upsert(hash $row) {} @endcode The return value of the closuse is an integer code giving the result of the update; see @ref upsert_results for more information 
+            @return a closure that can be executed given a hash argument representing a single row that will be updated or inserted in the database with the given upsert strategy; the closure returned does not check the input hash for validity; the closure has the following signature: @code int sub upsert(hash $row) {} @endcode The return value of the closuse is an integer code giving the result of the update; see @ref upsert_results for more information
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
@@ -13253,7 +13430,7 @@ map $upsert($1), $row_list;
             @param example_row a hash representing an example row to insert or update; every row passed to the upsert closure returned must have the same keys in the same order or the closure returned will throw an \c UPSERT-ERROR exception
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
 
-            @return a closure that can be executed given a hash argument representing a single row that will be updated or inserted in the database with the given upsert strategy; the closure has the following signature: @code int sub upsert(hash $row) {} @endcode The return value of the closuse is an integer code giving the result of the update; see @ref upsert_results for more information 
+            @return a closure that can be executed given a hash argument representing a single row that will be updated or inserted in the database with the given upsert strategy; the closure has the following signature: @code int sub upsert(hash $row) {} @endcode The return value of the closuse is an integer code giving the result of the update; see @ref upsert_results for more information
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
@@ -13268,7 +13445,7 @@ map $upsert($1), $row_list;
                     throw "UPSERT-ERROR", sprintf("%s: the keys in the row passed to the upsert closure (%y) do not match the keys passed to AbstractTable::getUpsertClosureWithValidation() (%y)", getDesc(), row.keys, example_row.keys());
                 return upsert(row);
             };
-        }        
+        }
 
         #! this method upserts or merges data from the given iterator argument (whose @ref Qore::AbstractIterator::getValue() "getValue()" method must return a hash giving row values) into the current table; the transaction is committed if successful, if an error occurs then it is rolled back
         /** @par Example:
@@ -13622,6 +13799,7 @@ my SQLStatement $i = $table.getRowIterator($sh);
 
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param sql an optional reference to a string to return the SQL generated for the select statement
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
 
             @return an @ref Qore::SQL::SQLStatement "SQLStatement" object that will iterate the results of a select statement matching the arguments
 
@@ -13632,15 +13810,15 @@ my SQLStatement $i = $table.getRowIterator($sh);
             - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
             - the @ref Qore::SQL::SQLStatement "SQLStatement" object created by a successful call to this method acquires a thread resource for the underlying @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object that must be released by calling @ref Qore::SQL::AbstractDatasource::commit() "commit()" or @ref Qore::SQL::AbstractDatasource::rollback() "rollback()", even if the statement does not acquire any database locks
          */
-        Qore::SQL::SQLStatement getRowIterator(*hash sh, *reference sql) {
-            return getRowIteratorIntern(sh, \sql);
+        Qore::SQL::SQLStatement getRowIterator(*hash sh, *reference sql, *hash opt) {
+            return getRowIteratorIntern(sh, \sql, opt);
         }
 
         private Qore::SQL::SQLStatement getRowIteratorIntern(*hash sh, *reference sql, *hash opt) {
             validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
 
             list args;
-            sql = getSelectSqlIntern(sh, \args);
+            sql = getSelectSqlIntern(sh, \args, opt);
 
             SQLStatement stmt(ds);
             stmt.prepare(sql);
@@ -13679,6 +13857,7 @@ my *hash $h = $table.selectRow($sh);
 
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param sql an optional reference to a string to return the SQL generated for the select statement
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
 
             @return a hash representing the row in the table that matches the argument hash; if more than one row would be returned an exception is raised
 
@@ -13690,12 +13869,12 @@ my *hash $h = $table.selectRow($sh);
             - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
             - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
          */
-        *hash selectRow(*hash sh, *reference sql) {
-            validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);       
+        *hash selectRow(*hash sh, *reference sql, *hash opt) {
+            validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
 
             list args;
-            sql = getSelectSqlUnlocked(sh, \args);
-            
+            sql = getSelectSqlUnlocked(sh, \args, opt);
+
             bool rollback_on_error = False;
             if (sh.forupdate) {
                 rollback_on_error = !ds.currentThreadInTransaction();
@@ -13716,6 +13895,7 @@ my *list $l = $table.selectRows($sh);
 
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param sql an optional reference to a string to return the SQL generated for the select statement
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
 
             @return a list of hashes representing the rows in the table that match the argument hash
 
@@ -13726,11 +13906,11 @@ my *list $l = $table.selectRows($sh);
             - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
             - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
          */
-        *list selectRows(*hash sh, *reference sql) {
+        *list selectRows(*hash sh, *reference sql, *hash opt) {
             validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
 
             list args;
-            sql = getSelectSqlUnlocked(sh, \args);
+            sql = getSelectSqlUnlocked(sh, \args, opt);
 
             bool rollback_on_error = False;
             if (sh.forupdate) {
@@ -13752,6 +13932,7 @@ my *hash $h = $table.select($sh);
 
             @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
             @param sql an optional reference to a string to return the SQL generated for the select statement
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
 
             @return a hash of lists representing the columns and rows in the table that match the argument hash
 
@@ -13762,11 +13943,11 @@ my *hash $h = $table.select($sh);
             - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
             - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
          */
-        *hash select(*hash sh, *reference sql) {
+        *hash select(*hash sh, *reference sql, *hash opt) {
             validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
 
             list args;
-            sql = getSelectSqlUnlocked(sh, \args);
+            sql = getSelectSqlUnlocked(sh, \args, opt);
 
             bool rollback_on_error = False;
             if (sh.forupdate) {
@@ -13805,7 +13986,7 @@ my *hash $h = $table.selectRow($sh);
             validateOptionsIntern("OPTION-ERROR", getSqlDataCallbackOptions(), \opt);
 
             list args;
-            string sql = getSelectSqlUnlocked(sh, \args);
+            string sql = getSelectSqlUnlocked(sh, \args, opt);
 
             if (opt.sqlarg_callback)
                 opt.sqlarg_callback(sql, args);
@@ -13818,7 +13999,7 @@ my *hash $h = $table.selectRow($sh);
             }
             on_error if (rollback_on_error)
                 ds.rollback();
-            
+
             return ds.vselectRow(sql, args);
         }
 
@@ -13846,7 +14027,7 @@ my *list $l = $table.selectRows($sh);
             validateOptionsIntern("OPTION-ERROR", getSqlDataCallbackOptions(), \opt);
 
             list args;
-            string sql = getSelectSqlUnlocked(sh, \args);
+            string sql = getSelectSqlUnlocked(sh, \args, opt);
 
             if (opt.sqlarg_callback)
                 opt.sqlarg_callback(sql, args);
@@ -13887,7 +14068,7 @@ my *hash $h = $table.select($sh);
             validateOptionsIntern("OPTION-ERROR", getSqlDataCallbackOptions(), \opt);
 
             list args;
-            string sql = getSelectSqlUnlocked(sh, \args);
+            string sql = getSelectSqlUnlocked(sh, \args, opt);
 
             if (opt.sqlarg_callback)
                 opt.sqlarg_callback(sql, args);
@@ -13900,7 +14081,7 @@ my *hash $h = $table.select($sh);
             }
             on_error if (rollback_on_error)
                 ds.rollback();
-            
+
             return ds.vselect(sql, args);
         }
 
@@ -13946,18 +14127,18 @@ my string $sql = $table.getSelectSql($sh, \$args);
             }
         }
 
-        string getSelectSqlIntern(*hash qh, reference args) {            
+        string getSelectSqlIntern(*hash qh, reference args, *hash opt) {
             l.lock();
             l.unlock();
 
-            return getSelectSqlUnlocked(qh, \args);
+            return getSelectSqlUnlocked(qh, \args, opt);
         }
 
-        string getSelectSqlUnlocked(*hash qh, reference args) {            
-            return getSelectSqlUnlockedIntern(qh, getSelectSqlName(qh), \args);
+        string getSelectSqlUnlocked(*hash qh, reference args, *hash opt) {
+            return getSelectSqlUnlockedIntern(qh, getSelectSqlName(qh), \args, NOTHING, opt);
         }
 
-        string getSelectSqlUnlockedIntern(*hash qh, string from, reference args, *hash ch) {
+        string getSelectSqlUnlockedIntern(*hash qh, string from, reference args, *hash ch, *hash opt) {
             if (qh.offset) {
                 if (!qh.orderby) {
                     # use primary key by default
@@ -13973,6 +14154,12 @@ my string $sql = $table.getSelectSql($sh, \$args);
             # do not overwrite args; could be used in a subquery
             if (!exists args)
                 args = ();
+
+            # resolve any table names in joins first
+            foreach string k in (qh.join.keyIterator()) {
+                if (qh.join{k}.table.typeCode() == NT_STRING)
+                        qh.join{k}.table = opt.tablecode ? opt.tablecode(ds, qh.join{k}.table) : new Table(ds, qh.join{k}.table).getTable();
+            }
 
             # make a hash of aliases to tables when using joins
             hash jch;
@@ -14054,7 +14241,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 if (jh.ta) {
                     if (!jch{jh.ta})
                         throw "SELECT-ERROR", sprintf("%s: can't join with unknown table/alias %y; known tables/aliases: %y", getDesc(), jh.ta, list(getName()) + jch.keys());
-                    jt = jch{jh.ta};                    
+                    jt = jch{jh.ta};
                 }
                 else
                     jt = self;
@@ -14097,7 +14284,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
                             AbstractIterator fki = fkh.keyIterator();
                             while (pki.next() && fki.next())
                                 jel += sprintf("%s.%s = %s.%s", jtn, pki.getValue(), an, fki.getValue());
-                        } 
+                        }
                     }
                     if (!fkh) {
                         # see if there is a foreign constraint in self -> pk of table
@@ -14602,7 +14789,7 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
         int updateNoCommit(hash set, *hash cond, *hash opt) {
             return updateNoCommitIntern(set, cond, NOTHING, opt);
         }
-        
+
         private string getUpdateExpression(string col, hash uh) {
             hash um = getUpdateOperatorMap();
 
@@ -14698,7 +14885,7 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
                     return UR_Inserted;
 
                 tryUpdate(update_sql, row, cols, updc);
-                return UR_Verified;            
+                return UR_Verified;
             };
         }
 
@@ -14710,14 +14897,14 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
             return int sub (hash row) {
                 if (tryUpdate(update_sql, row, cols, updc))
                     return UR_Verified;
-                
+
                 ds.vexec(insert_sql, row.values());
                 return UR_Inserted;
             };
         }
 
         private code getUpsertSelectFirst(Columns cols, hash example_row) {
-            #printf("getUpsertSelectFirst() %s: %y\n", name, cols.keys()); 
+            #printf("getUpsertSelectFirst() %s: %y\n", name, cols.keys());
             list updc = ();
             string select_sql = getUpsertSelectSql(example_row, cols, \updc);
             string insert_sql = getUpsertInsertSql(example_row);
@@ -14836,7 +15023,7 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
                 delete val;
                 return;
             }
-                
+
             switch (type) {
                 case Type::Int: {
                     if (!val.intp())
@@ -14888,7 +15075,7 @@ my string $sql = $t.getSqlFromList($list);
             @endcode
 
             @param l a list of SQL commands
-            
+
             @return an SQL string corresponding to the list of commands in the argument
         */
         string getSqlFromList(list l) {
@@ -14914,7 +15101,7 @@ my string $str = $table.getSqlValue($date);
 
             return str;
         }
-        
+
         #! returns the name of the table
         string getName() {
             return name;
@@ -15076,7 +15263,7 @@ my string $sql = $table.getRenameSql("new_name");
 
             @note If the @ref sql_callback_executed "sql_callback_executed option key" is @ref Qore::True "True", this method also renames the object internally (see @ref sql_callback_executed for more information), additionally if the \c "db_table_cache" option key is assigned to a @ref SqlUtil::Tables "Tables" argument, then the table cache is also updated with the name change in this case
 
-            @see 
+            @see
             - rename()
             - inDb() for a method that tells if the table is already in the database or not
          */
@@ -15136,7 +15323,7 @@ map printf("$1;\n", $1), $table.getCreateSql();
             return getCreateSqlUnlocked(opt, False);
         }
 
-        #! returns an SQL string that could be used to create the basic table structure without indexes and constraints 
+        #! returns an SQL string that could be used to create the basic table structure without indexes and constraints
         /** @par Example:
             @code
 my string $sql = $table.getCreateTableSql();
@@ -15144,7 +15331,7 @@ my string $sql = $table.getCreateTableSql();
 
             @param opt a hash of options for the table creation string; see @ref TableCreationOptions for common options; each driver can support additional driver-specific options
 
-            @return an SQL string that could be used to create the basic table structure without indexes and constraints 
+            @return an SQL string that could be used to create the basic table structure without indexes and constraints
 
             @throw OPTION-ERROR invalid or unsupported option passed
         */
@@ -15217,7 +15404,7 @@ my list $l = $table.getAlignSql($table2);
             # lock "template" table
             t.l.lock();
             on_exit t.l.unlock();
-            
+
             # cache tables if not already cached
             if (!t.manual)
                 t.cacheUnlocked(opt);
@@ -15413,7 +15600,7 @@ my list $l = $table.getAlignSql($table2);
                         fk.rename(other.getName());
                     }
                 }
- 
+
                 # check for foreign constraints not in the template and drop them
                 foreach AbstractForeignConstraint c in (foreignConstraints.iterator()) {
                     if (!t.foreignConstraints.hasKey(c.getName())) {
@@ -15588,9 +15775,9 @@ my list $l = $table.getAlignSql($table2);
             if (constraints.hasKey(ixname) && constraints{ixname} instanceof AbstractColumnSupportingConstraint)
                 return constraints{ixname};
             if (foreignConstraints.hasKey(ixname))
-                return foreignConstraints{ixname};            
+                return foreignConstraints{ixname};
         }
-    
+
         private renameIndexUnlocked(AbstractIndex ix, string new_name) {
             string old_name = ix.name;
             indexes.renameKey(old_name, new_name);
@@ -15793,7 +15980,7 @@ my *list $rows = $table.find($list);
 
             return ds.vselectRows(sql, args);
         }
-                
+
         private string getPrimaryKeyColumn() {
             l.lock();
             on_exit l.unlock();
@@ -15880,7 +16067,7 @@ my *list $rows = $table.findAll($h);
 
         #! returns a descriptive string of the datasource (without the password) and the table name (with a possible qualifier for schema, etc)
         /** Used in exception descriptions
-    
+
             @since SqlUtil 1.2
         */
         string getDesc() {
@@ -15891,7 +16078,7 @@ my *list $rows = $table.findAll($h);
         string getBaseType() {
             return "table";
         }
-    
+
         #! returns the name of the table to be used in SQL (with a possible qualifier for schema, etc)
         string getSqlName() {
             return name;
@@ -15911,147 +16098,147 @@ my *list $rows = $table.findAll($h);
         abstract bool hasArrayBind();
 
         #! returns the table options for this driver
-        /** override in subclasses to return driver-specific options    
+        /** override in subclasses to return driver-specific options
         */
         private hash getTableOptions() {
             return TableOptions;
         }
 
         #! return the foreign constraint options for this driver
-        /** override in subclasses to return driver-specific options    
+        /** override in subclasses to return driver-specific options
         */
         private hash getForeignConstraintOptions() {
             return ForeignConstraintOptions;
         }
 
         #! returns the constraint options for this driver
-        /** override in subclasses to return driver-specific options    
+        /** override in subclasses to return driver-specific options
         */
         private hash getConstraintOptions() {
             return ConstraintOptions;
         }
 
         #! returns the cache options for this driver
-        /** override in subclasses to return driver-specific options    
+        /** override in subclasses to return driver-specific options
         */
         private hash getCacheOptions() {
             return CacheOptions;
         }
 
         #! returns the table creation options for this driver
-        /** override in subclasses to return driver-specific options    
+        /** override in subclasses to return driver-specific options
         */
         private hash getTableCreationOptions() {
             return TableCreationOptions;
         }
 
         #! returns the align table options for this driver
-        /** override in subclasses to return driver-specific options    
+        /** override in subclasses to return driver-specific options
         */
         private hash getAlignTableOptions() {
             return AlignTableOptions;
         }
 
         #! returns the table description hash options for this driver
-        /** override in subclasses to return driver-specific options    
+        /** override in subclasses to return driver-specific options
         */
         private hash getTableDescriptionHashOptions() {
             return TableDescriptionHashOptions;
         }
 
         #! returns the column options for this driver
-        /** override in subclasses to return driver-specific options    
+        /** override in subclasses to return driver-specific options
         */
         private hash getColumnOptions() {
             return ColumnOptions;
         }
 
         #! returns the column description options for this driver
-        /** override in subclasses to return driver-specific options    
+        /** override in subclasses to return driver-specific options
         */
         private hash getColumnDescOptions() {
             return ColumnDescOptions;
         }
 
         #! returns the table column description options for this driver
-        /** override in subclasses to return driver-specific options    
+        /** override in subclasses to return driver-specific options
         */
         private hash getTableColumnDescOptions() {
             return getColumnDescOptions() + AdditionalColumnDescOptions;
         }
 
         #! returns the index options for this driver
-        /** override in subclasses to return driver-specific options    
+        /** override in subclasses to return driver-specific options
         */
         private hash getIndexOptions() {
             return IndexOptions;
         }
 
         #! returns the trigger options for this driver
-        /** override in subclasses to return driver-specific options    
+        /** override in subclasses to return driver-specific options
         */
         private hash getTriggerOptions() {
             return TriggerOptions;
         }
 
         #! returns the select options for this driver
-        /** override in subclasses to return driver-specific options    
+        /** override in subclasses to return driver-specific options
         */
         private hash getSelectOptions() {
             return SelectOptions;
         }
 
         #! returns the upsert options for this driver
-        /** override in subclasses to return driver-specific options    
+        /** override in subclasses to return driver-specific options
         */
         private hash getUpsertOptions() {
             return UpsertOptions;
         }
 
         #! returns the insert options for this driver
-        /** override in subclasses to return driver-specific options    
+        /** override in subclasses to return driver-specific options
         */
         private hash getInsertOptions() {
             return InsertOptions;
         }
 
         #! returns the insert from iterator options for this driver
-        /** override in subclasses to return driver-specific options    
+        /** override in subclasses to return driver-specific options
         */
         private hash getInsertFromIteratorOptions() {
             return InsertFromIteratorOptions;
         }
 
         #! returns the sql data operation callback options for this driver
-        /** override in subclasses to return driver-specific options    
+        /** override in subclasses to return driver-specific options
         */
         private hash getSqlDataCallbackOptions() {
             return SqlDataCallbackOptions;
         }
 
         #! returns the "where" operator map for this object
-        /** override in subclasses to return driver-specific options    
+        /** override in subclasses to return driver-specific options
         */
         private hash getWhereOperatorMap() {
             return DefaultOpMap;
         }
 
         #! returns the column operator map for this object
-        /** override in subclasses to return driver-specific options    
+        /** override in subclasses to return driver-specific options
         */
         private hash getColumnOperatorMap() {
             return DefaultCopMap;
         }
 
         #! returns the insert operator map for this object
-        /** override in subclasses to return driver-specific options    
+        /** override in subclasses to return driver-specific options
         */
         private hash getInsertOperatorMap() {
             return DefaultIopMap;
         }
 
         #! returns the update operator map for this object
-        /** override in subclasses to return driver-specific options    
+        /** override in subclasses to return driver-specific options
         */
         private hash getUpdateOperatorMap() {
             return getColumnOperatorMap().(DefaultUopMap.keys());
@@ -16173,7 +16360,7 @@ my *list $rows = $table.findAll($h);
 
             # try to load module
             try {
-                load_module(mn);                
+                load_module(mn);
             }
             catch (hash ex) {
                 throw "TABLE-DRIVER-ERROR", sprintf("%s: no support for driver %y yet: %s: %s", get_ex_pos(ex), drv, ex.err, ex.desc);
@@ -16252,7 +16439,7 @@ my *list $rows = $table.findAll($h);
                 foreignConstraints = new ForeignConstraints();
                 return;
             }
-                
+
             getColumnsUnlocked();
             foreignConstraints = getForeignConstraintsImpl(opt);
 
@@ -16335,7 +16522,7 @@ my *list $rows = $table.findAll($h);
         private softlist getDropSqlImpl() {
             return sprintf("drop table %s", getSqlName());
         }
-        
+
         private string getTruncateSqlImpl() {
             return sprintf("truncate table %s", getSqlName());
         }
@@ -16356,16 +16543,16 @@ my *list $rows = $table.findAll($h);
 
         private preSetupTableImpl(reference desc, *hash opt) {
         }
-    
+
         private abstract *hash doReturningImpl(hash opt, reference sql, list args);
-    
+
         private abstract bool emptyImpl();
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
         private abstract *string getSqlValueImpl(any v);
 
         #! returns @ref Qore::True "True" if the table exists in the DB, @ref Qore::False "False" if not
-        /** this method will only be called if inDb is @ref Qore::False "False" and 
+        /** this method will only be called if inDb is @ref Qore::False "False" and
             should set inDb = True if it returns @ref Qore::True "True"
          */
         private abstract bool checkExistenceImpl();
@@ -16393,7 +16580,7 @@ my *list $rows = $table.findAll($h);
         private abstract string getCreateSqlImpl(list l);
         private abstract string getRenameSqlImpl(string new_name);
         private abstract *list getAlignSqlImpl(AbstractTable t, *hash opt);
-        
+
         private abstract AbstractColumn addColumnImpl(string cname, hash opt, bool nullable = True);
         private abstract AbstractPrimaryKey addPrimaryKeyImpl(string cname, hash ch, *hash opt);
         private abstract AbstractIndex addIndexImpl(string iname, bool enabled, hash ch, *hash opt);
@@ -16422,4 +16609,3 @@ my *list $rows = $table.findAll($h);
         private abstract copyImpl(AbstractTable old);
     }
 }
-
