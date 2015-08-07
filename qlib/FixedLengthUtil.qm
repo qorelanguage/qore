@@ -466,6 +466,7 @@ public class FixedLengthUtil::FixedLengthAbstractWriter inherits TextUtil::Abstr
 public class FixedLengthUtil::FixedLengthFileWriter inherits FixedLengthUtil::FixedLengthAbstractWriter {
     private {
         string file;
+        File m_file();
     }
     
     #! Instantiates the FixedLengthFileWriter object
@@ -476,6 +477,16 @@ public class FixedLengthUtil::FixedLengthFileWriter inherits FixedLengthUtil::Fi
     */
     constructor(string f, hash h, *hash g) : FixedLengthUtil::FixedLengthAbstractWriter(h, g)  {
         file  = f;
+        m_opts.eol = m_opts.eol ?? "\n";
+        m_file.open2(file, O_WRONLY | O_CREAT | m_opts."file-flags");
+    }
+
+    #! Stream one hash into the resulting file
+    /**
+        @param line A hash to be writen to the file
+    */
+    write(hash line) {
+        m_file.write(formatLine($1) + m_opts.eol);
     }
 
     #! Stream iterator into the resulting file
@@ -483,11 +494,7 @@ public class FixedLengthUtil::FixedLengthFileWriter inherits FixedLengthUtil::Fi
         @param lines A list of line data to add to the file.
     */
     write(list lines) {
-        File FW();
-        FW.open(file, O_WRONLY | O_CREAT | m_opts."file-flags");
-
-        string eol = m_opts.eol ?? "\n";
-        map FW.write(formatLine($1) + eol), lines;
+        map m_file.write(formatLine($1) + m_opts.eol), lines;
     }
 
     #! Stream iterator into the resulting file
@@ -495,11 +502,7 @@ public class FixedLengthUtil::FixedLengthFileWriter inherits FixedLengthUtil::Fi
         @param iterator An iterator to stream data into file.
     */
     write(Qore::AbstractIterator lines) {
-        File FW();
-        FW.open(file, O_WRONLY | O_CREAT | m_opts."file-flags");
-
-        string eol = m_opts.eol ?? "\n";
-        map FW.write(formatLine($1) + eol), lines;
+        map m_file.write(formatLine($1) + m_opts.eol), lines;
     }
 }
 
