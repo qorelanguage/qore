@@ -4,8 +4,22 @@ project(qore-language)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 8)
-set(VERSION_SUB 11)
+set(VERSION_SUB 12)
 
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "release")
+endif (NOT CMAKE_BUILD_TYPE)
+string(TOLOWER ${CMAKE_BUILD_TYPE} QORE_BUILD_TYPE_LWR)
+if (${QORE_BUILD_TYPE_LWR} MATCHES "debug")
+    add_definitions(-DDEBUG)
+else ()
+    add_definitions(-DNDEBUG)
+endif ()
+
+execute_process(COMMAND ${CMAKE_SOURCE_DIR}/cmake/get-define.sh QORE_MODULE_API_MAJOR ${CMAKE_SOURCE_DIR}/include/qore/ModuleManager.h
+                OUTPUT_VARIABLE MODULE_API_MAJOR)
+execute_process(COMMAND ${CMAKE_SOURCE_DIR}/cmake/get-define.sh QORE_MODULE_API_MINOR ${CMAKE_SOURCE_DIR}/include/qore/ModuleManager.h
+                OUTPUT_VARIABLE MODULE_API_MINOR)
 
 include("${CMAKE_SOURCE_DIR}/cmake/QoreMacros.cmake")
 include("${CMAKE_SOURCE_DIR}/cmake/QoreMacrosIntern.cmake")
@@ -17,6 +31,7 @@ include_directories( ${CMAKE_SOURCE_DIR}/include )
 include_directories( ${CMAKE_SOURCE_DIR}/include/qore )
 
 include(CheckIncludeFiles)
+include(GNUInstallDirs)
 # usage: CHECK_INCLUDE_FILES (<header> <RESULT_VARIABLE> )
 #check_include_files(getopt.h HAVE_GETOPT_H)
 #check_include_files(malloc.h HAVE_MALLOC_H)
@@ -27,6 +42,13 @@ add_definitions(-DHAVE_UNIX_CONFIG_H)
 #add_definitions(-DHAVE_GETOPT_H)
 #add_definitions(-DHAVE_STRCASESTR)
 
+set(prefix ${CMAKE_INSTALL_PREFIX})
+set(includedir ${CMAKE_INSTALL_FULL_INCLUDEDIR}/qore)
+set(libdir ${CMAKE_INSTALL_FULL_LIBDIR})
+set(MODULE_DIR ${CMAKE_INSTALL_FULL_LIBDIR}/qore-modules)
+set(MODULE_VER_DIR ${CMAKE_INSTALL_FULL_LIBDIR}/qore-modules/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB})
+set(USER_MODULE_DIR ${CMAKE_INSTALL_FULL_DATADIR}/qore-modules)
+set(USER_MODULE_VER_DIR ${CMAKE_INSTALL_FULL_DATADIR}/qore-modules/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB})
 
 # libqore - unused for now
 set(CPP_SRC_LIB lib/single-compilation-unit.cpp )
@@ -145,9 +167,12 @@ qore_check_headers_cxx(fcntl.h inttypes.h netdb.h netinet/in.h stddef.h stdlib.h
 
 set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES} Threads::Threads)
 qore_check_funcs(bzero floor gethostbyaddr gethostbyname gethostname gettimeofday memmove memset mkfifo putenv regcomp select socket setsockopt getsockopt strcasecmp strchr strdup strerror strspn strstr atoll strtol strtoll isblank localtime_r gmtime_r exp2 clock_gettime realloc timegm seteuid setegid setenv unsetenv round pthread_attr_getstacksize getpwuid_r getpwnam_r getgrgid_r getgrnam_r backtrace glob system inet_ntop inet_pton lstat fsync lchown chown setsid setuid mkfifo random kill getppid getgid getegid getuid geteuid setuid seteuid setgid setegid sleep usleep nanosleep readlink symlink access strcasestr strncasecmp setgroups getgroups realpath memmem)
+unset(CMAKE_REQUIRED_LIBRARIES)
 
 qore_other_checks()
 qore_gethost_checks()
+qore_stl_hash_map(include/qore/hash_map_include.h)
+qore_stl_slist(include/qore/slist_include.h)
 
 execute_process(COMMAND uname -a OUTPUT_VARIABLE QORE_BUILD_HOST OUTPUT_STRIP_TRAILING_WHITESPACE)
 if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
@@ -184,7 +209,8 @@ add_dependencies(libqore qpp)
 add_dependencies(libqore QPP_GENERATED_FILES BISON_GENERATED_FILES FLEX_GENERATED_FILES)
 target_compile_definitions(libqore PUBLIC -D_QORE_LIB_INTERN)
 target_include_directories(libqore PUBLIC ${BZIP2_INCLUDE_DIR} ${MPFR_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${PCRE_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/lib)
-target_link_libraries(libqore Threads::Threads)
+target_link_libraries(libqore Threads::Threads ${BZIP2_LIBRARIES} ${MPFR_LIBRARIES} ${OPENSSL_LIBRARIES} ${PCRE_LDFLAGS} ${ZLIB_LIBRARIES})
+set_property(TARGET libqore PROPERTY OUTPUT_NAME qore)
 
 add_executable(qore ${CPP_SRC})
 target_link_libraries(qore libqore)
@@ -193,6 +219,31 @@ configure_file(${CMAKE_SOURCE_DIR}/cmake/unix-config.h.cmake
                ${CMAKE_BINARY_DIR}/include/qore/intern/unix-config.h)
 configure_file(${CMAKE_SOURCE_DIR}/cmake/qore-version.h.cmake 
                ${CMAKE_BINARY_DIR}/include/qore/qore-version.h)
+configure_file(${CMAKE_SOURCE_DIR}/cmake/QoreConfigVersion.cmake.in
+               ${CMAKE_BINARY_DIR}/cmake/QoreConfigVersion.cmake)
+configure_file(${CMAKE_SOURCE_DIR}/cmake/QoreConfig.cmake.in
+               ${CMAKE_BINARY_DIR}/cmake/QoreConfig.cmake)
+configure_file(${CMAKE_SOURCE_DIR}/qore.pc.in
+               ${CMAKE_BINARY_DIR}/qore.pc)
+
+install(PROGRAMS doxygen/qdx
+        DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
+install(TARGETS qore qpp libqore
+	RUNTIME DESTINATION ${CMAKE_INSTALL_FULL_BINDIR}
+	LIBRARY DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR})
+install(FILES ${CMAKE_BINARY_DIR}/cmake/QoreConfig.cmake ${CMAKE_BINARY_DIR}/cmake/QoreConfigVersion.cmake cmake/QoreMacros.cmake
+        DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/cmake/Qore)
+install(FILES ${CMAKE_BINARY_DIR}/qore.pc
+        DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/pkgconfig)
+install(DIRECTORY include/qore
+        DESTINATION ${CMAKE_INSTALL_FULL_INCLUDEDIR}
+        PATTERN intern EXCLUDE
+        PATTERN minitest.hpp EXCLUDE
+        PATTERN macros-none.h EXCLUDE)
+install(FILES qore.1
+        DESTINATION ${CMAKE_INSTALL_FULL_MANDIR}/man1)
+install(DIRECTORY qlib/
+        DESTINATION ${USER_MODULE_VER_DIR})
 
 message(WARNING "CXX ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES}")
 message(WARNING "Please do not use cmake for production/real builds. Cmake support is experimental and it does not contant all required setup")

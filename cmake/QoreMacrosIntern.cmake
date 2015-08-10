@@ -240,6 +240,14 @@ check_cxx_compiler_flag(-fvisibility=hidden HAVE_GCC_VISIBILITY)
 
 check_cxx_symbol_exists(strtoimax inttypes.h HAVE_STRTOIMAX)
 
+#see if compiler supports namespaces
+check_cxx_source_compiles("
+namespace Outer {namespace Inner { int i = 0; }}
+int main(void){
+using namespace Outer::Inner;
+return i;
+}" HAVE_NAMESPACES)
+
 endmacro()
 
 macro(create_git_revision)
@@ -258,3 +266,269 @@ if (NOT EXISTS ${CMAKE_SOURCE_DIR}/include/qore/intern/git-revision.h)
 endif()
 
 endmacro()
+
+
+macro(qore_stl_hash_map _hash_map_output_file)
+
+set(CMAKE_REQUIRED_QUIET true)
+set(STL_HASH_MAP_FOUND false)
+message(STATUS "Checking location of STL unordered_map")
+
+#unordered map
+check_cxx_source_compiles("
+#include <unordered_map>
+int main(void){
+unordered_map<int, int> t;
+const unordered_map<int, int> &tr = t;
+tr.find(1); 
+return 0;
+}" UNORDERED_MAP_FOUND)
+
+if(UNORDERED_MAP_FOUND)
+set(HAVE_UNORDERED_MAP true)
+set(HAVE_QORE_HASH_MAP true)
+set(HASH_MAP_INCLUDE "<unordered_map>")
+set(HASH_NAMESPACE "")
+set(HASH_TYPE "unordered_map")
+set(STL_HASH_MAP_FOUND true)
+endif()
+
+#std unordered map
+if(NOT STL_HASH_MAP_FOUND)
+check_cxx_source_compiles("
+#include <unordered_map>
+int main(void){
+std::unordered_map<int, int> t;
+const std::unordered_map<int, int> &tr = t;
+tr.find(1);
+return 0;
+}" STD_UNORDERED_MAP_FOUND)
+
+if(STD_UNORDERED_MAP_FOUND)
+set(HAVE_UNORDERED_MAP true)
+set(HAVE_QORE_HASH_MAP true)
+set(HASH_MAP_INCLUDE "<unordered_map>")
+set(HASH_NAMESPACE "std")
+set(HASH_TYPE "std_unordered_map")
+set(STL_HASH_MAP_FOUND true)
+endif()
+endif()
+
+#tr1 unordered map
+if(NOT STL_HASH_MAP_FOUND)
+check_cxx_source_compiles("
+#include <tr1/unordered_map>
+int main(void){
+std::tr1::unordered_map<int, int> t;
+const std::tr1::unordered_map<int, int> &tr = t; 
+tr.find(1);
+return 0;
+}" TR1_UNORDERED_MAP_FOUND)
+
+if(TR1_UNORDERED_MAP_FOUND)
+set(HAVE_UNORDERED_MAP true)
+set(HAVE_QORE_HASH_MAP true)
+set(HASH_MAP_INCLUDE "<tr1/unordered_map>")
+set(HASH_NAMESPACE "std::tr1")
+set(HASH_TYPE "tr1_unordered_map")
+set(STL_HASH_MAP_FOUND true)
+endif()
+endif()
+
+#hash map
+if(NOT STL_HASH_MAP_FOUND)
+check_cxx_source_compiles("
+#include <hash_map>
+int main(void){
+hash_map<int, int> t;
+return 0;
+}" HASH_MAP_FOUND)
+
+if(HASH_MAP_FOUND)
+set(HAVE_HASH_MAP true)
+set(HAVE_HASH_SET true)
+set(HAVE_QORE_HASH_MAP true)
+set(HASH_MAP_INCLUDE "<hash_map>")
+set(HASH_SET_INCLUDE "<hash_set>")
+set(HASH_NAMESPACE "")
+set(HASH_TYPE "hash_map")
+set(STL_HASH_MAP_FOUND true)
+endif()
+endif()
+
+#ext hash map
+if(NOT STL_HASH_MAP_FOUND)
+check_cxx_source_compiles("
+#include <ext/hash_map>
+int main(void){
+__gnu_cxx::hash_map<int, int> t;
+return 0;
+}" EXT_HASH_MAP_FOUND)
+
+if(EXT_HASH_MAP_FOUND)
+set(HAVE_EXT_HASH_MAP true)
+set(HAVE_EXT_HASH_SET true)
+set(HAVE_QORE_HASH_MAP true)
+set(HASH_MAP_INCLUDE "<ext/hash_map>")
+set(HASH_SET_INCLUDE "<ext/hash_set>")
+set(HASH_NAMESPACE "__gnu_cxx")
+set(HASH_TYPE "ext_hash_map")
+set(STL_HASH_MAP_FOUND true)
+endif()
+endif()
+
+#std hash map
+if(NOT STL_HASH_MAP_FOUND)
+check_cxx_source_compiles("
+#include <hash_map>
+int main(void){
+std::hash_map<int, int> t;
+return 0;
+}" STD_HASH_MAP_FOUND)
+
+if(STD_HASH_MAP_FOUND)
+set(HAVE_HASH_MAP true)
+set(HAVE_HASH_SET true)
+set(HAVE_QORE_HASH_MAP true)
+set(HASH_MAP_INCLUDE "<hash_map>")
+set(HASH_SET_INCLUDE "<hash_set>")
+set(HASH_NAMESPACE "std")
+set(HASH_TYPE "std_hash_map")
+set(STL_HASH_MAP_FOUND true)
+endif()
+endif()
+
+#stdext hash map
+if(NOT STL_HASH_MAP_FOUND)
+check_cxx_source_compiles("
+#include <hash_map>
+int main(void){
+std::hash_map<int, int> t;
+return 0;
+}" STDEXT_HASH_MAP_FOUND)
+
+if(STDEXT_HASH_MAP_FOUND)
+set(HAVE_HASH_MAP true)
+set(HAVE_HASH_SET true)
+set(HAVE_QORE_HASH_MAP true)
+set(HASH_MAP_INCLUDE "<hash_map>")
+set(HASH_SET_INCLUDE "<hash_set>")
+set(HASH_NAMESPACE "stdext")
+set(HASH_TYPE "stdext_hash_map")
+set(STL_HASH_MAP_FOUND true)
+endif()
+endif()
+
+if(STL_HASH_MAP_FOUND)
+message(STATUS "STL unordered_map found: ${HASH_TYPE}")
+else()
+message(WARNING "Couldn't find an STL unordered_map")
+endif()
+
+#write the file.
+configure_file(${CMAKE_SOURCE_DIR}/cmake/stl_hash_map.in 
+               ${CMAKE_BINARY_DIR}/${_hash_map_output_file})
+
+unset(CMAKE_REQUIRED_QUIET)
+endmacro()
+
+
+
+macro(qore_stl_slist _stl_slist_output_file)
+
+set(CMAKE_REQUIRED_QUIET true)
+set(STL_SLIST_FOUND false)
+message(STATUS "Checking location of STL slist")
+
+#slist
+check_cxx_source_compiles("
+#include <slist>
+int main(void){
+slist<int> t;
+return 0;
+}" SLIST_FOUND)
+
+if(SLIST_FOUND)
+set(HAVE_SLIST true)
+set(HAVE_QORE_SLIST true)
+set(SLIST_INCLUDE "<slist>")
+set(LIST_SET_INCLUDE "list_set")
+set(LIST_NAMESPACE "")
+set(SLIST_TYPE "slist")
+set(STL_SLIST_FOUND true)
+endif()
+
+#ext slist
+if(NOT STL_SLIST_FOUND)
+check_cxx_source_compiles("
+#include <ext/slist>
+int main(void){
+__gnu_cxx::slist<int> t;
+return 0;
+}" EXT_SLIST_FOUND)
+
+if(EXT_SLIST_FOUND)
+set(HAVE_SLIST true)
+set(HAVE_QORE_SLIST true)
+set(SLIST_INCLUDE "<ext/slist>")
+set(LIST_SET_INCLUDE "<ext/list_set>")
+set(LIST_NAMESPACE "__gnu_cxx")
+set(SLIST_TYPE "ext_slist")
+set(STL_SLIST_FOUND true)
+endif()
+endif()
+
+
+#std slist
+if(NOT STL_SLIST_FOUND)
+check_cxx_source_compiles("
+#include <slist>
+int main(void){
+std::slist<int> t;
+return 0;
+}" STD_SLIST_FOUND)
+
+if(STD_SLIST_FOUND)
+set(HAVE_SLIST true)
+set(HAVE_QORE_SLIST true)
+set(SLIST_INCLUDE "<slist>")
+set(LIST_SET_INCLUDE "<list_set>")
+set(LIST_NAMESPACE "std")
+set(SLIST_TYPE "std_slist")
+set(STL_SLIST_FOUND true)
+endif()
+endif()
+
+#stdext slist
+if(NOT STL_SLIST_FOUND)
+check_cxx_source_compiles("
+#include <slist>
+int main(void){
+stdext::slist<int> t;
+return 0;
+}" STDEXT_SLIST_FOUND)
+
+if(STDEXT_SLIST_FOUND)
+set(HAVE_SLIST true)
+set(HAVE_QORE_SLIST true)
+set(SLIST_INCLUDE "<slist>")
+set(LIST_SET_INCLUDE "<list_set>")
+set(LIST_NAMESPACE "stdext")
+set(SLIST_TYPE "stdext_slist")
+set(STL_SLIST_FOUND true)
+endif()
+endif()
+
+if(STL_SLIST_FOUND)
+message(STATUS "STL slist found: ${SLIST_TYPE}")
+else()
+message(WARNING "couldn't find an STL slist")
+endif()
+
+configure_file(${CMAKE_SOURCE_DIR}/cmake/stl_slist.in 
+               ${CMAKE_BINARY_DIR}/${_stl_slist_output_file})
+
+unset(CMAKE_REQUIRED_QUIET)
+
+endmacro()
+

@@ -132,8 +132,20 @@
 #cmakedefine HAVE_GETHOSTBYNAME_R_GLIBC2_STYLE
 #cmakedefine HAVE_GETHOSTBYNAME_R_RETURN_INT
 
+/* stl hash_map and list */
+#cmakedefine HAVE_EXT_HASH_MAP
+#cmakedefine HAVE_EXT_HASH_SET
+#cmakedefine HAVE_EXT_SLIST
+#cmakedefine HAVE_HASH_MAP
+#cmakedefine HAVE_HASH_SET
+#cmakedefine HAVE_SLIST
+#cmakedefine HAVE_QORE_HASH_MAP
+#cmakedefine HAVE_QORE_SLIST
+#cmakedefine HAVE_UNORDERED_MAP
+
 /* the rest */
 #cmakedefine HAVE_LOCAL_VARIADIC_ARRAYS
+#cmakedefine HAVE_NAMESPACES
 #cmakedefine HAVE_STRUCT_FLOCK
 #cmakedefine HAVE_GCC_VISIBILITY
 
@@ -154,7 +166,7 @@
 /* to be set later */
 #define QORE_LIB_CFLAGS ""
 #define QORE_LIB_LDFLAGS ""
-#define MODULE_DIR ""
-#define MODULE_VER_DIR ""
-#define USER_MODULE_DIR ""
-#define USER_MODULE_VER_DIR ""
+#define MODULE_DIR "@MODULE_DIR@"
+#define MODULE_VER_DIR "@MODULE_VER_DIR@"
+#define USER_MODULE_DIR "@USER_MODULE_DIR@"
+#define USER_MODULE_VER_DIR "@USER_MODULE_VER_DIR@"
