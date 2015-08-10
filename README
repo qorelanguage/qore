@@ -23,7 +23,7 @@ RELEASE-NOTES:
   release notes online:
   	  http://qore.org/manual/current/lang/html/release_notes.html
 
-BUILD: 
+BUILDING: 
   information on how to build and install qore from sources - some quick
   information below
 

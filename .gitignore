@@ -93,3 +93,6 @@ doxygen/lang/*.dox
 
 # compiled emacs lisp
 *.elc
+
+# Darwin symbol dirs
+*.dSYM/
