@@ -12,7 +12,7 @@
 %allow-injection
 
 %requires Util
-    
+
 module QUnit {
     version = "0.1";
     desc = "User module for unit testing with dependency injection support";
@@ -297,7 +297,7 @@ public class QUnit::TestCase {
                     string pos = get_ex_pos(e);
                     string txt = sprintf("Assertion %sfailure", assertion_name ? sprintf("%y ", assertion_name) : NOTHING);
                     test.addTestResult(self, TestReporter::TEST_FAILURE, txt, pos, e.desc);
-                }                
+                }
             } else {
                 # show little higher traceback record in this case
                 string pos = get_ex_pos(e);
@@ -309,8 +309,8 @@ public class QUnit::TestCase {
 
     string getName() {
         return m_name;
-    }    
-    
+    }
+
     incAssertions() {
         ++num_asserts;
     }
@@ -356,7 +356,7 @@ public class QUnit::TestReporter {
             TEST_SKIPPED : ("desc": "Skipped", "junittag" : "skipped"),
         );
 
-        # A map of print methods, categorised into three types: header, summary, testreport
+        #! A map of print methods, categorised into three types: header, summary, testreport
         hash m_printMethods;
 
         list m_results = ();
@@ -378,6 +378,7 @@ public class QUnit::TestReporter {
     }
 
     public {
+        #! default options for @ref Qore::GetOpt::constructor()
         const Opts = (
             "help"    : "h,help",
             "verbose" : "v,verbose:i+",
@@ -435,6 +436,12 @@ public class QUnit::TestReporter {
         }
     }
 
+    #! creates the object from the arguments
+    /** @param name the name of the test
+        @param version the version of the test
+        @param p_argv an optional reference to a list of command-line arguments
+        @param opts the option hash to be passed to @ref Qore::GetOpt::constructor()
+    */
     constructor(string name, string version, *reference p_argv, hash opts = Opts) {
         m_name = name;
         m_version = version;
@@ -546,6 +553,7 @@ public class QUnit::TestReporter {
 %endif
     }
 
+    #! returns the number of errors encountered during test execution
     int errors() {
         int errs = 0;
         ListIterator it(m_results);
@@ -557,6 +565,7 @@ public class QUnit::TestReporter {
         return errs;
     }
 
+    #! returns the number of tests skipped
     int skipped() {
         int errs = 0;
         ListIterator it(m_results);
@@ -568,15 +577,12 @@ public class QUnit::TestReporter {
         return errs;
     }
 
+    #! returns the total number of test results
     int testCount() {
-        int tot = 0;
-        ListIterator it(m_results);
-        while (it.next()) {
-            tot++;
-        }
-        return tot;
+        return m_results.lsize();
     }
 
+    #! adds a test result
     addTestResult(TestCase tc, int success, *string error, *string pos, *string detail) {
         if (!(RESULT_TYPE_DESCRIPTION.hasKey(success))) {
             throw "TESTING-EXCEPTION", "Invalid test result type!";
