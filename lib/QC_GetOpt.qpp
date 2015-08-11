@@ -3,7 +3,7 @@
   QC_GetOpt.qpp
 
   Qore Programming Language
-  
+
   Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
@@ -152,7 +152,7 @@ static AbstractQoreNode *GETOPT_parse3_intern(ReferenceHolder<QoreHashNode> &rv,
 }
 
 //! The %GetOpt class provides an easy way to process POSIX-style command-line options in %Qore scripts/programs
-/** 
+/**
  */
 qclass GetOpt [arg=GetOpt* g];
 
@@ -171,18 +171,19 @@ qclass GetOpt [arg=GetOpt* g];
 
     @par Example:
     @code
-const program_options =
-    ( "url"  : "url,u=s",
-      "xml"  : "xml,x",
-      "lxml" : "literal-xml,X",
-      "verb" : "verbose,v",
-      "help" : "help,h" );
+const ProgramPptions = (
+     "url"  : "u,url=s",
+     "xml"  : "x,xml",
+     "lxml" : "X,literal-xml",
+     "verb" : "v,verbose",
+     "help" : "h,help",
+ );
 
-my GetOpt $getopt(program_options);
+my GetOpt $getopt(ProgramOptions);
     @endcode
 
     @throw GETOPT-PARAMETER-ERROR option key value is not a string; \c "_ERRORS_" used as option key
-    @throw GETOPT-OPTION-ERROR list option specified as optional; empty option key value string; multiple long options given for key; duplicate options given; invalid attributes for option; unknown modifier given for option 
+    @throw GETOPT-OPTION-ERROR list option specified as optional; empty option key value string; multiple long options given for key; duplicate options given; invalid attributes for option; unknown modifier given for option
  */
 GetOpt::constructor(hash options) {
    SimpleRefHolder<GetOpt> g(new GetOpt);
@@ -203,7 +204,7 @@ GetOpt::constructor(hash options) {
       }
 
       const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(v);
-      
+
       qore_type_t at = -1;
       const char *long_opt = 0;
       char short_opt = '\0';
@@ -225,7 +226,7 @@ GetOpt::constructor(hash options) {
 	    xsink->raiseException("GETOPT-OPTION-ERROR", "option '%s' takes a list and therefore must have mandatory arguments", k);
 	    break;
 	 }
-	 
+
 	 (*tok) = '\0';
       }
       // get option names
@@ -275,7 +276,7 @@ GetOpt::constructor(hash options) {
 }
 
 //! Throws an exception; objects of this class cannot be copied
-/** 
+/**
     @throw GETOPT-COPY-ERROR copying GetOpt objects is not supported
  */
 GetOpt::copy() {
@@ -295,7 +296,7 @@ GetOpt::copy() {
     @code
 my hash $o = $getopt.parse(\$ARGV);
 if (exists $o."_ERRORS_") {
-    foreach my string $err in ($o."_ERRORS_") 
+    foreach my string $err in ($o."_ERRORS_")
         stderr.printf("%s\n", $err);
     exit(1);
 }
@@ -329,7 +330,7 @@ hash GetOpt::parse(reference pgm_args) {
     @code
 my hash $o = $getopt.parse($ARGV);
 if (exists $o."_ERRORS_") {
-    foreach my string $err in ($o."_ERRORS_") 
+    foreach my string $err in ($o."_ERRORS_")
         stderr.printf("%s\n", $err);
     exit(1);
 }

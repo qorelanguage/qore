@@ -363,6 +363,11 @@ public class QUnit::TestReporter {
         int m_output;
         *string m_comment;
 
+        #! the result of parsing command-line options with @ref Qore::GetOpt::parse2()
+        /** @see
+            - Opts
+            - constructor()
+        */
         hash m_options;
 
         #! test case name
