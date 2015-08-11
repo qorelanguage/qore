@@ -397,7 +397,7 @@ public class QUnit::TestReporter {
         const TEST_SKIPPED = 3;
     }
 
-    private usage() {
+    private usageIntern() {
         printf("usage: %s [options]
  -h,--help         this help text
     --format=type  output format [default: plainquiet]
@@ -407,10 +407,11 @@ public class QUnit::TestReporter {
             junit      ... print a junit xml output
  -v,--verbose      shorthand for --format=plain
  -q,--quiet        shorthand for --format=quietplain
-
 ", get_script_name());
+    }
 
-        map printf("    %s\n", $1), OUT_TYPES.keyIterator();
+    private usage() {
+        usageIntern();
         exit(1);
     }
 
