@@ -1,4 +1,4 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file restserver.q example program using the RestHandler and HttpServer modules
 
@@ -41,7 +41,7 @@
     GET /files
 
     will return a list of files, and
-    
+
     GET /dirs
 
     will return a list of directories
@@ -71,9 +71,6 @@
     POST /dirs/
     {'name': 'subdir', 'mode': 0755}
 */
-
-# do not use "$" signs for vars, etc
-%new-style
 
 # execute the restServer class as the application object
 %exec-class restServer
@@ -117,14 +114,14 @@ class AbstractExampleInstanceBaseClass inherits AbstractRestClass {
 
     hash putChmod(hash cx, *hash ah) {
         if (!exists cx.body.mode)
-            return RestHandler::make400("missing 'mode' parameter for chmod(%y)", h.path);        
+            return RestHandler::make400("missing 'mode' parameter for chmod(%y)", h.path);
         int rc = chmod(h.path, cx.body.mode);
         return rc ? RestHandler::make400("ERROR chmod(%y): %s", h.path, strerror()) : RestHandler::makeResponse(200, "OK");
     }
 
     hash putRename(hash cx, *hash ah) {
         if (!exists cx.body.newPath)
-            return RestHandler::make400("missing 'newPath' parameter for rename(%y)", h.path);        
+            return RestHandler::make400("missing 'newPath' parameter for rename(%y)", h.path);
         try {
             rename(h.path, cx.body.newPath);
         }
@@ -172,7 +169,7 @@ class ExampleFilesClass inherits AbstractRestClass {
 
     hash post(hash cx, *hash ah) {
         if (!cx.body.name)
-            return RestHandler::make400("missing 'name' parameter for new file");        
+            return RestHandler::make400("missing 'name' parameter for new file");
 
         File f();
         f.open2(cx.body.name, O_CREAT | O_WRONLY | O_TRUNC, cx.body.mode);
@@ -285,7 +282,7 @@ class restServer {
 	    "dir"    : "d,dir=s",
 	    "bind"   : "b,bind=s@",
 	    "help"   : "h,help",
-	    "verbose": "v,verbose:i+" 
+	    "verbose": "v,verbose:i+"
 	    );
 
 	# HttpServer object
@@ -303,9 +300,9 @@ class restServer {
 	GetOpt g(Opts);
         # NOTE: by passing a reference to the list, the arguments parsed will be removed from the list
         # NOTE: calling GetOpt::parse3() means that errors will cause the script to exit immediately
-        #       with an informative message	
+        #       with an informative message
 	opt = g.parse3(\ARGV);
-	
+
 	# --help: show help text and exit
 	if (opt.help)
 	    usage();
@@ -333,7 +330,7 @@ class restServer {
 
         # setup app variable
         app = self;
-	
+
 	# create our example rest handler object
 	ExampleRestHandler rh(auth, opt.dir, opt.verbose);
 

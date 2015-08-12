@@ -287,7 +287,7 @@ public class QUnit::TestCase {
         }
         catch (hash e) {
             hash loc = e.callstack[0];
-            if (e.arg =~ /TEST-.*EXCEPTION/) {
+            if (e.err =~ /TEST-.*EXCEPTION/) {
                 *string assertion_name = e.arg;
                 if (e.err == "TEST-SKIPPED-EXCEPTION") {
                     string pos = get_ex_pos(e);
@@ -916,8 +916,14 @@ public class QUnit::DependencyInjectedTest inherits QUnit::Test {
         performModuleInjections();
 
         # Load self, with replacements
-        ReadOnlyFile f(m_testedFile, NOTHING);
-        p.parse(f.read(-1), "self-replication");
+        string file_data = ReadOnlyFile::readTextFile(m_testedFile);
+        int eol = file_data.find("\n");
+        if (eol) {
+            string fl = file_data.substr(0, eol);
+            if (fl =~ /(\\|\s)qr\s*$/)
+                p.setParseOptions(PO_NEW_STYLE);
+        }
+        p.parse(file_data, "self-replication");
 
         return p.run() ?? 0;
     }

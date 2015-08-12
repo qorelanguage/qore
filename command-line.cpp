@@ -34,6 +34,7 @@
 
 #include <qore/Qore.h>
 #include <qore/ParseOptionMap.h>
+#include <qore/safe_dslist>
 
 #include "command-line.h"
 
@@ -42,49 +43,54 @@
 #include <stdlib.h>
 #include <libgen.h>
 #include <ctype.h>
+#include <strings.h>
 
+#include <string>
 #include <map>
 
+#define is_assign_char(a) ((((a) == '=') || ((a) == ':')))
+
 // license type for initializing the library
-qore_license_t license = QL_GPL;
+static qore_license_t license = QL_GPL;
 
 // list of modules to load after library initialization
-cl_mod_list_t cl_mod_list;
+typedef safe_dslist<std::string> cl_mod_list_t;
+static cl_mod_list_t cl_mod_list;
 
 // global parse_option
-int64 parse_options = PO_DEFAULT;
-int warnings = QP_WARN_DEFAULT;
-int qore_lib_options = QLO_NONE;
+static int64 parse_options = PO_DEFAULT;
+static int warnings = QP_WARN_DEFAULT;
+static int qore_lib_options = QLO_NONE;
 
 // lock options
-bool lock_options = false;
+static bool lock_options = false;
 
 // command-line specified default character set
-const char* def_charset = 0;
+static const char* def_charset = 0;
 
 // classname to instantiate as program
-const char* exec_class_name = 0;
+static const char* exec_class_name = 0;
 
 // time zone to set after initialization
 const char* cmd_zone = 0;
 
 // show module errors
-bool show_mod_errs = false;
+static bool show_mod_errs = false;
 
 // execute class
-bool exec_class = false;
+static bool exec_class = false;
 
 // treat warnings as errors
-bool warnings_are_errors = false;
+static bool warnings_are_errors = false;
 
 // stop writing parse exceptions after 1st one
-bool only_first_except = false;
+static bool only_first_except = false;
 
 // program text given on the command-line
-const char* cl_pgm = 0;
+static const char* cl_pgm = 0;
 
 // argument to evaluate given on the command-line
-const char* eval_arg = 0;
+static const char* eval_arg = 0;
 
 // program name
 static char* pn;
@@ -93,14 +99,14 @@ static char* pn;
 typedef std::map<std::string, std::string> defmap_t;
 
 // parse define map
-defmap_t defmap;
+static defmap_t defmap;
 
 static int opt_errors = 0;
 
 static const char usage[] = "usage: %s [option(s)]... [program file]\n";
 static const char suggest[] = "try '%s -h' for more information.\n";
 
-static const char helpstr[] = 
+static const char helpstr[] =
    "  -a, --show-aliases           displays the list of character sets aliases\n"
    "  -b, --disable-signals        disables signal handling\n"
    "  -B, --show-build-options     show Qore build options and quit\n"
@@ -184,12 +190,12 @@ static const char parseopts[] =    "qore options controlling parse options:\n"
    "      --no-thread-info         disallow access to thread info\n"
    "  -S, --no-subroutine-defs     make subroutine definitions illegal\n"
    "  -T, --no-threads             disallow thread access and control\n"
-   "      --no-thread-classes      disallow access to thread classes\n" 
+   "      --no-thread-classes      disallow access to thread classes\n"
    "  -Y, --no-network             disallow access to the network";
 ////12345678901234567890123456789012345678901234567890123456789012345678901234567890
 static const char debugstr[] = "\n DEBUGGING OPTIONS:\n"
    "  -d, --debug=arg              sets debugging level (higher number = more output)\n"
-   "  -t, --trace                  turns on function tracing" 
+   "  -t, --trace                  turns on function tracing"
    ;
 
 static inline void show_usage() {
@@ -519,7 +525,7 @@ static void do_version(const char* arg) {
 
    // show git hash
    printf("\n  git hash: %s", qore_git_hash);
-   
+
    // show module api and compatible module apis
    printf("\n  module API: %d.%d", qore_mod_api_list[0].major, qore_mod_api_list[0].minor);
    if (qore_mod_api_list_len == 1)
@@ -534,7 +540,7 @@ static void do_version(const char* arg) {
        printf(")\n");
    }
 
-   printf("  build host: %s\n  C++ compiler: %s\n  CFLAGS: %s\n  LDFLAGS: %s\n  MPFR: %s\n", 
+   printf("  build host: %s\n  C++ compiler: %s\n  CFLAGS: %s\n  LDFLAGS: %s\n  MPFR: %s\n",
 	  qore_build_host, qore_cplusplus_compiler, qore_cflags, qore_ldflags, mpfrInfo.getBuffer());
 
    printf("use -B to show build options\n");
@@ -713,7 +719,7 @@ static int process_char_opt(char* argv[], unsigned *i, unsigned *j, unsigned arg
    unsigned x;
 
    if (isblank(argv[*i][*j])) {
-      do 
+      do
 	 (*j)++;
       while (isblank(argv[*i][*j]));
       if (argv[*i][*j] == '-') {
@@ -731,7 +737,7 @@ static int process_char_opt(char* argv[], unsigned *i, unsigned *j, unsigned arg
    for (x = 0; x < NUM_OPTS; x++)
       if (options[x].short_opt == c) {
 	 //printf("found '%c' %s (%d)\n", c, options[x].long_opt, options[x].arg);
-	 if (options[x].arg == ARG_MAND || 
+	 if (options[x].arg == ARG_MAND ||
 	     (options[x].arg == ARG_OPT && (argv[*i][(*j) + 1] == '='))) {
 	    const char* arg;
 
@@ -814,7 +820,7 @@ static void process_str_opt(char* argv[], unsigned *i, unsigned j, unsigned argc
 
 // returns either 0 or a string that must be freed with free()
 // also sets up the global ARGV argument list
-char* parse_command_line(unsigned argc, char* argv[]) {
+static char* parse_command_line(unsigned argc, char* argv[]) {
    pn = basename(argv[0]);
 
    // file name to return, if any
@@ -841,7 +847,7 @@ char* parse_command_line(unsigned argc, char* argv[]) {
 	    else {
 	       unsigned j;
 
-	       for (j = 1; j < strlen(argv[i]); j++)		  
+	       for (j = 1; j < strlen(argv[i]); j++)
 		  if (process_char_opt(argv, &i, &j, argc))
 		     break;
 	    }
@@ -865,4 +871,127 @@ char* parse_command_line(unsigned argc, char* argv[]) {
       exit(1);
    }
    return fn;
+}
+
+int qore_main_intern(int argc, char* argv[], int other_po) {
+   int rc = 0;
+
+   if (other_po)
+      parse_options |= other_po;
+
+   // parse the command line
+   char* program_file_name = parse_command_line(argc, argv);
+   ON_BLOCK_EXIT(free, program_file_name);
+
+   // initialize Qore subsystem
+   qore_init(license, def_charset, show_mod_errs, qore_lib_options);
+
+   ExceptionSink wsink, xsink;
+   {
+      QoreProgramHelper qpgm(parse_options, xsink);
+
+      // set parse defines
+      for (defmap_t::iterator i = defmap.begin(), e = defmap.end(); i != e; ++i)
+	 qpgm->parseDefine(i->first.c_str(), i->second.c_str());
+
+      // load any modules requested on the command-line
+      bool mod_errs = false;
+      for (cl_mod_list_t::iterator i = cl_mod_list.begin(), e = cl_mod_list.end(); i != e; ++i) {
+	 // display any error messages
+	 SimpleRefHolder<QoreStringNode> err(MM.parseLoadModule((*i).c_str(), *qpgm));
+	 if (err) {
+	    printf("cannot load '%s': %s\n", (*i).c_str(), err->getBuffer());
+	    mod_errs = true;
+	 }
+      }
+
+      cl_mod_list.clear();
+      if (mod_errs) {
+	 printf("please fix the errors listed above and try again.\n");
+	 rc = 2;
+	 goto exit;
+      }
+
+      // set time zone if requested
+      if (cmd_zone)
+	 qpgm->parseSetTimeZone(cmd_zone);
+
+      // lock the parse options if necessary
+      if (lock_options)
+	 qpgm->lockOptions();
+
+      // parse immediate argument if any
+      if (eval_arg) {
+	 QoreString str("printf(\"%N\n\", (");
+	 str.concat(eval_arg);
+	 str.concat("));");
+	 qpgm->parse(str.getBuffer(), "<command-line>", &xsink, &wsink, warnings);
+      }
+      else  {
+	 // set for program class execution if "exec_class" is set
+	 if (exec_class) {
+	    if (exec_class_name)
+	       qpgm->setExecClass(exec_class_name);
+	    else if (program_file_name) {
+	       char* cn = make_class_name(program_file_name);
+	       qpgm->setExecClass(cn);
+	       free(cn);
+	    }
+	    else {
+	       fprintf(stderr, "error, missing class name to instantiate as application\n");
+	       rc = 1;
+	       goto exit;
+	    }
+	 }
+
+	 // parse the program
+	 if (cl_pgm)
+	    qpgm->parse(cl_pgm, "<command-line>", &xsink, &wsink, warnings);
+	 else if (program_file_name)
+	    qpgm->parseFile(program_file_name, &xsink, &wsink, warnings, only_first_except);
+	 else
+	    qpgm->parse(stdin, "<stdin>", &xsink, &wsink, warnings);
+      }
+
+      // display any warnings now
+      if (wsink.isException()) {
+	 wsink.handleWarnings();
+	 if (warnings_are_errors && !xsink.isException()) {
+	    printf("exiting due to the above warnings...\n");
+	    rc = 2; // set return code to 2 if there were parse warnings to be treated as errors
+	    goto exit;
+	 }
+      }
+
+      // if there were no parse exceptions, execute the program
+      if (!xsink.isException()) {
+	 {
+	    // execute the program and get the return value
+	    AbstractQoreNode* rv = qpgm->run(&xsink);
+	    // set the return code for this program from the core returned by the Qore program
+	    rc = rv ? rv->getAsInt() : 0;
+	    discard(rv, &xsink);
+	 }
+
+	 // if there is any unhandled exception, set the return code to 3
+	 if (xsink.isException())
+	    rc = 3;
+      }
+      else // set return code to 2 if there were parse errors
+	 rc = 2;
+
+      // run the default exception handler on any unhandled exceptions in the primary thread or during parsing
+      xsink.handleExceptions();
+
+exit:
+      ;
+   }
+   // run the default exception handler on any unhandled exceptions if necessary (again)
+   // -- exceptions could have been thrown in the QoreProgram object's destructor
+   xsink.handleExceptions();
+
+   // cleanup Qore subsystem (deallocate memory, etc)
+   qore_cleanup();
+
+   return rc;
 }

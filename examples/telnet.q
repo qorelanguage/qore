@@ -1,4 +1,4 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file telnet.q example program using the TelnetClient module
 
@@ -29,12 +29,9 @@
     This is a very simple telnet client program using the TelnetClient user module.
     To exit the client, just type ^] (ie ctrl-])
 
-    Note that there is a bug on Darwin where SIGWINCH is not delivered to 
+    Note that there is a bug on Darwin where SIGWINCH is not delivered to
     Qore's signal handling thread; window resizing does not work on Darwin.
 */
-
-# do not use "$" signs for vars, etc
-%new-style
 
 # execute the telnet class as the application object
 %exec-class telnet
@@ -124,7 +121,7 @@ class telnet {
 		    }
 		    telnet.sendTextData(c);
 		}
-	    }  
+	    }
 
             if (opt.verbose)
 		printf("TID %d input thread terminated\n", gettid());
@@ -134,7 +131,7 @@ class telnet {
 	    if (ex.err != "NOT-CONNECTED-EXCEPTION") {
 		printf("%s:%d: %s: %s\n", ex.file, ex.line, ex.err, ex.desc);
 		exit(2);
-	    }	    
+	    }
 	}
     }
 

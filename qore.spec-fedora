@@ -157,11 +157,13 @@ make check
 
 %files
 %{_bindir}/qore
+%{_bindir}/qr
 %{_mandir}/man1/qore.1.*
 
 %changelog
-* Sun Oct 19 2014 David Nichols <david@qore.org> 0.8.12-1
+* Wed Aug 12 2015 David Nichols <david@qore.org> 0.8.12-2
 - updated version to 0.8.12-1
+- added qr binary
 
 * Tue Jul 29 2014 David Nichols <david@qore.org> 0.8.11.1-7
 - removed irrelevant license files from stdlib package, only the MIT license applies there
@@ -330,4 +332,3 @@ make check
 
 * Wed Dec 7 2005 David Nichols <david_nichols@users.sourceforge.net> 0.5.8-1
 - Initial rpm build
-

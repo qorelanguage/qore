@@ -1,4 +1,4 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
 # @file rest example program for the RestClient module
@@ -24,7 +24,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%new-style
 %strict-args
 %enable-all-warnings
 
@@ -87,7 +86,7 @@ sub main() {
         printf("ERROR: unrecognized HTTP method %y; allowed methods: %y\n", meth, Methods.keys());
         usage();
     }
-    
+
     *string url = shift ARGV;
     if (!url) {
         printf("ERROR: missing URL for REST server\n");

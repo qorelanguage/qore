@@ -1,4 +1,6 @@
 /*
+  qr-main.cpp
+
   Qore Programming Language
 
   Copyright (C) 2003 - 2015 David Nichols
@@ -26,5 +28,10 @@
   information.
 */
 
-#include "command-line.cpp"
-#include "main.cpp"
+#include <qore/Qore.h>
+
+#include "command-line.h"
+
+int main(int argc, char* argv[]) {
+   return qore_main_intern(argc, argv, PO_NEW_STYLE);
+}

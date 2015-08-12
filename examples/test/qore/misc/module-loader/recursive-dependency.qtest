@@ -1,10 +1,9 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
 %require-types
 %enable-all-warnings
-%new-style
-    
+
 %requires UnitTest
 
 our UnitTest unit();

@@ -12,6 +12,7 @@
     - greatly improved support on Windows
 
     @subsection qore_0812_new_features New Features in Qore
+    - new \c qr binary that assumes @ref new-style "%new-style" with %Qore code to make it easier to switch to @ref new-style "%new-style"
     - Added the @ref value_coalescing_operator which checks first argument if it evaluates to @ref Qore::False "False" with @ref <value>::val() and if so assigns the second argument. The operator can be further chained; for example: @code expr1 ?* expr2 ?* expr3 @endcode
     - Added the @ref null_coalescing_operator which checks the first operand for @ref nothing or @ref null; if true returns the second argument. The operator can be further chained, in which case the first operand with a value is returned; ex: @code expr1 ?? expr2 ?? expr3 @endcode
     - <a href="../../modules/FixedLengthUtil/html/index.html">FixedLengthUtil</a> module for handling fixed length line data added

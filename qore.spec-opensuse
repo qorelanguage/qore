@@ -173,6 +173,7 @@ rm %{buildroot}/%{_libdir}/libqore.la
 %files
 %defattr(-,root,root,-)
 %{_bindir}/qore
+%{_bindir}/qr
 %{module_dir}
 %{_mandir}/man1/qore.1.*
 

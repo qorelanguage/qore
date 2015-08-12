@@ -1,9 +1,9 @@
 /*
-  command-line.h
+  qore-main.cpp
 
-  qore
+  Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -26,13 +26,12 @@
   Note that the Qore library is released under a choice of three open-source
   licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
   information.
-
 */
 
-#ifndef QORE_COMMAND_LINE_H
+#include <qore/Qore.h>
 
-#define QORE_COMMAND_LINE_H
+#include "command-line.h"
 
-DLLLOCAL int qore_main_intern(int argc, char* argv[], int other_po = 0);
-
-#endif
+int main(int argc, char* argv[]) {
+   return qore_main_intern(argc, argv);
+}

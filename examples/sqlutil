@@ -1,4 +1,4 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
 # @file sqlutil example program for the SqlUtil module
@@ -24,7 +24,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%new-style
 %strict-args
 %enable-all-warnings
 
@@ -139,7 +138,7 @@ class GlobTables inherits Tables {
             if (t.regex(tspec, RE_Caseless))
                 get(source, t);
         }
-        
+
         if (empty())
             printf("%y: no matching tables\n", tspec);
     }
@@ -313,7 +312,7 @@ sub main() {
                 print("\n");
                 dot_count = 0;
             }
-            printf("%s reference data %s: %y: %s\n", t ? "+++" : "***", table_name, row, AbstractTable::UpsertResultMap{result}); 
+            printf("%s reference data %s: %y: %s\n", t ? "+++" : "***", table_name, row, AbstractTable::UpsertResultMap{result});
         }
         else {
             ++dot_count;
@@ -388,7 +387,7 @@ sub main() {
 
     if (opt.export_table) {
 %ifdef NoYaml
-        throw "YAML-ERROR", "the binary yaml module is not available";    
+        throw "YAML-ERROR", "the binary yaml module is not available";
 %else
         on_success source.commit();
         on_error source.rollback();
@@ -405,7 +404,7 @@ sub main() {
 
     if (opt.import_table) {
 %ifdef NoYaml
-        throw "YAML-ERROR", "the binary yaml module is not available";    
+        throw "YAML-ERROR", "the binary yaml module is not available";
 %else
         on_success source.commit();
         on_error source.rollback();
@@ -432,7 +431,7 @@ sub main() {
 
     code align_table = sub (AbstractTable source_table) {
         done = True;
-        Table target_table(target, source_table.getName());        
+        Table target_table(target, source_table.getName());
         target_table.getAlignSql(source_table, aopt);
     };
 
@@ -485,7 +484,7 @@ sub main() {
         }
         reset();
     }
-    
+
     if (!done) {
         printf("Server:\n%n\n", source.getServerVersion());
         printf("Client:\n%n\n", source.getClientVersion());

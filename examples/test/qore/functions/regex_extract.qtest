@@ -1,7 +1,6 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
 %require-types
 %enable-all-warnings
-%new-style
 %allow-bare-refs
 
 %requires UnitTest
@@ -21,7 +20,7 @@ class App {
             foreach int i in (xrange(1, SUBPATTERNS_TO_TEST)) {
                 string str   = (map fixedlenstr, xrange(1, i)).join('');
                 string regex = (map '(' + fixedlenstr + ')', xrange(1, i)).join('');
-                
+
                 any result;
                 try {
                     result = regex_extract(str, regex);
@@ -30,7 +29,7 @@ class App {
                     unit.ok(i >= SUBPATTERNS_AT_LEAST, i + ' subpatterns of the length ' + capture_length + ' available');
                     break;
                 }
-                
+
                 if (!exists result) {
                     unit.ok(False, 'no subpatterns found but it either should or throw an exception for subpattern length ' + capture_length);
                 }

@@ -1,4 +1,4 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
 %exec-class FtpTest
@@ -8,16 +8,15 @@
 
 %require-types
 %require-our
-%new-style
 
-class FtpTest inherits FtpClient, QUnit::Test {    
+class FtpTest inherits FtpClient, QUnit::Test {
     private {
         # file on some public ftp
         const Url = 'ftp://ftp.wa.co.za/pub/CPAN/index.html';
 
         # FtpClient url
         string url;
-        
+
         # path on remote host
         string path;
 

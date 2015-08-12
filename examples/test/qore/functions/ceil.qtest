@@ -1,8 +1,7 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
 %require-types
 
 %enable-all-warnings
-%new-style
 
 %requires UnitTest
 
@@ -14,5 +13,3 @@ class App {
         unit.cmp(ceil(2.7), 3.0, "ceil()");
     }
 }
-
-

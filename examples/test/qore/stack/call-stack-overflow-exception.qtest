@@ -1,5 +1,4 @@
-#!/usr/bin/env qore
-%new-style
+#!/usr/bin/env qr
 
 %require-types
 %enable-all-warnings
@@ -35,4 +34,3 @@ public class StackGuardTest inherits QUnit::Test {
         testInfiniteRecurse();
     }
 }
-

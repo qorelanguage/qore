@@ -1,4 +1,4 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file httpserver.q example program using the HttpServer module
 
@@ -32,9 +32,6 @@
     SIGINT which is handled like other signals)
 */
 
-# do not use "$" signs for vars, etc
-%new-style
-
 # execute the httpServer class as the application object
 %exec-class httpServer
 
@@ -58,7 +55,7 @@ class httpServer {
 	    "dir"    : "d,dir=s",
 	    "bind"   : "b,bind=s@",
 	    "help"   : "h,help",
-	    "verbose": "verbose:i+" 
+	    "verbose": "verbose:i+"
 	    );
 
 	# HttpServer object
@@ -76,9 +73,9 @@ class httpServer {
 	GetOpt g(Opts);
         # NOTE: by passing a reference to the list, the arguments parsed will be removed from the list
         # NOTE: calling GetOpt::parse3() means that errors will cause the script to exit immediately
-        #       with an informative message	
+        #       with an informative message
 	opt = g.parse3(\ARGV);
-	
+
 	# --help: show help text and exit
 	if (opt.help)
 	    usage();

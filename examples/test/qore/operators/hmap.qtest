@@ -1,8 +1,7 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
 %requires UnitTest
 %require-types
 %enable-all-warnings
-%new-style
 
 UnitTest t();
 

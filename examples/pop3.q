@@ -1,4 +1,4 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
 
 # @file pop3.q example program using the Pop3Client module
 
@@ -27,7 +27,6 @@
     * 2012-06-23 v1.0: simple example program using the Pop3Client user module to retrieve emails from the command line from a POP3 server
 */
 
-%new-style
 %enable-all-warnings
 %require-types
 %exec-class pop3
@@ -77,7 +76,7 @@ class pop3 {
             stderr.print("missing POP3 server address\n");
             usage();
         }
-	
+
 	try {
 	    string url = sprintf("pop3%s://%s:%s@%s", opt.ssl ? "s" : "", opt.user, opt.pass, opt.svr);
 	    Pop3Client pop3(url, \log(), opt.verbose ? \log() : NOTHING);
@@ -140,7 +139,7 @@ class pop3 {
 
 	int cnt = 0;
 	string fn = sprintf("%s/%s", msgid, tag);
-	
+
 	while (exists stat(fn)) {
 	    fn = sprintf("%s/%s.%d", msgid, tag, ++cnt);
 	}

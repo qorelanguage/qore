@@ -242,6 +242,7 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 /usr/bin/qore
+/usr/bin/qr
 %if 0%{?rh_dist}
 %if %{?rh_dist} <= 5
 /usr/man/man1/qore.1.*
@@ -379,4 +380,3 @@ rm -rf $RPM_BUILD_ROOT
 
 * Wed Dec 7 2005 David Nichols <david_nichols@users.sourceforge.net>
 - Initial rpm build
-

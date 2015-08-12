@@ -1,5 +1,4 @@
-#!/usr/bin/env qore
-%new-style
+#!/usr/bin/env qr
 
 %requires ../../../../qlib/FixedLengthUtil.qm
 

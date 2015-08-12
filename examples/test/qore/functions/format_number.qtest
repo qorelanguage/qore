@@ -1,8 +1,7 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
 
 %require-types
 %enable-all-warnings
-%new-style
 
 %requires UnitTest
 
@@ -14,5 +13,3 @@ class App {
         unit.cmp(format_number(".,3", -48392093894.2349), "-48.392.093.894,235", "format_number()");
     }
 }
-
-

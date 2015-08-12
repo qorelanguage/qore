@@ -1,6 +1,5 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
 # -*- mode: qore; indent-tabs-mode: nil -*-
-%new-style
 
 %requires ../../../../qlib/QUnit.qm
 

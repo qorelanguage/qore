@@ -1,4 +1,4 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
 /*  Copyright (C) 2014 - 2015 Qore Technologies, sro
@@ -22,7 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%new-style
 %require-our
 %enable-all-warnings
 # allow child Program objects to have more liberal restrictions than the parent
@@ -38,7 +37,7 @@ class MyUnitTest inherits UnitTest {
     private {
         *softlist rlist;
         *softlist slist;
-        
+
         const MyOpts = Opts + (
             "skip": "S,skip=s@",
             );
@@ -74,7 +73,7 @@ class MyUnitTest inherits UnitTest {
         return False;
     }
 }
-    
+
 class Test {
     public {
     }
@@ -86,7 +85,7 @@ class Test {
 
     constructor() {
         our MyUnitTest unit(\ARGV);
-        
+
         doDir(get_script_dir());
         if (rc)
             exit(rc);
@@ -101,7 +100,7 @@ class Test {
         Dir d();
         if (!d.chdir(dname))
             throw "DIR-ERROR", sprintf("directory %y does not exist", dname);
-    
+
         map doDir(dname + DirSep + $1), d.listDirs();
         map doFile(dname + DirSep + $1), d.listFiles("\\.qtest\$");
     }
@@ -109,7 +108,7 @@ class Test {
     doFile(string fname) {
         if (!unit.doFile(fname))
             return;
-        
+
         unit.printLog(sprintf("running %s", fname));
 
         Program pgm = getTestProgram(fname);
@@ -123,10 +122,12 @@ class Test {
         bool br = False;
         # uses UnitTest?
         bool ut = False;
+        # parse options
+        int po = PO_ALLOW_INJECTION|PO_NO_CHILD_PO_RESTRICTIONS;
         # read in file
-        string fd = getFile(fname, \vn, \br, \ut);
+        string fd = getFile(fname, \vn, \br, \ut, \po);
 
-        Program pgm(PO_ALLOW_INJECTION|PO_NO_CHILD_PO_RESTRICTIONS);
+        Program pgm(po);
         pgm.setScriptPath(fname);
         if (ut) {
             pgm.loadModule("UnitTest");
@@ -151,13 +152,23 @@ class Test {
         return pgm;
     }
 
-    private string getFile(string fname, reference vn, reference br, reference ut) {
+    private string getFile(string fname, reference vn, reference br, reference ut, reference po) {
         FileLineIterator i(fname);
 
         string str;
 
+        bool fl;
+
         while (i.next()) {
             string line = i.getValue();
+
+            if (!fl) {
+                fl = True;
+                if (line =~ /(\\|\s)qr\s*$/) {
+                    po |= PO_NEW_STYLE;
+                    br = True;
+                }
+            }
 
             if (!ut && line =~ /^%requires.*UnitTest/)
                 ut = True;
@@ -167,7 +178,7 @@ class Test {
                 line =~ s/(((my|our)\s+)?UnitTest\s+(\$)?[a-zA-Z0-9_]+\(\))\s*;/#XXX_MARKER_XXX/;
                 vn = v;
             }
-            else if (line =~ /^%allow-bare-refs/ || line =~ /^%new-style/)
+            else if (!br && (line =~ /^%allow-bare-refs/ || line =~ /^%new-style/))
                 br = True;
 
             str += line + "\n";

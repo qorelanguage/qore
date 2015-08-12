@@ -1,7 +1,6 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-%new-style
 %enable-all-warnings
 
 main();
@@ -89,7 +88,7 @@ sub main() {
             # remove and rename class vars adding a suffix "c"
             str =~ s/\$\.([a-z][a-z0-9_]*)/$1/ig;
         }
-        
+
         printf("%s\n", str);
     }
 }

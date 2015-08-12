@@ -1,17 +1,16 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
 %require-types
 %enable-all-warnings
 %requires UnitTest
-%new-style
-    
+
 UnitTest unit();
 
 test();
 
 const Code = "
-class B { 
+class B {
     private string t(int i) {return \"int\";}
     string t(string str) {return \"string\";}
     code get_t() {return \\t();}

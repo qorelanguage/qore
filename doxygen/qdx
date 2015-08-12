@@ -1,9 +1,8 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
 %require-our
 %strict-args
-%new-style
 
 %exec-class qdx
 
@@ -118,11 +117,11 @@ class qdx {
 
         File of();
         of.open2(ofn, O_CREAT | O_TRUNC | O_WRONLY);
-        
+
         # get tags substitution string
         string tags = o.tag ? o.tag.join(" ") : "";
 
-        while ((*string line = inf.readLine()).val()) {            
+        while ((*string line = inf.readLine()).val()) {
             if (line =~ /{module}/)
                 line = replace(line, "{module}", name);
             else if (line =~ /{input}/)
@@ -149,7 +148,7 @@ class qdx {
 
         DocumentTableHelper dth();
 
-        while ((*string line = inf.readLine()).val()) {            
+        while ((*string line = inf.readLine()).val()) {
             line = dth.process(line);
 
             if (line =~ /{qore_version}/)
@@ -184,7 +183,7 @@ class qdx {
                 line =~ s/\\_\\-\\_\\-5\\_\\-/-/g;
                 line =~ s/\\_\\-\\_\\-6\\_\\-/\$/g;
                 line =~ s/\\_\\-\\_\\-7\\_\\-/*/g; #//;
-            } 
+            }
 
             line =~ s/__1_/[/g;
             line =~ s/__2_/]/g;
@@ -310,7 +309,7 @@ class qdx {
                 of.print(line);
                 continue;
             }
-            
+
             if (line =~ /^[[:blank:]]*\/\*/){ #/){
                 if (line !~ /\*\//)
                     in_doc = True;
@@ -337,7 +336,7 @@ class qdx {
             line =~ s/public[[:space:]]+(const|our|namespace|class)/$1/g;
 
             # remove regular expressions
-            line =~ s/[=!]~ *\/.*\//==1/g;        
+            line =~ s/[=!]~ *\/.*\//==1/g;
 
             # skip module declarations for now
             if (line =~ /^[[:space:]]*module[[:space:]]+/) {
@@ -350,13 +349,13 @@ class qdx {
             if (line =~ /\(.*\)[[:blank:]]*{[[:blank:]]*(#.*)?$/ && line !~ /const .*=/ && line !~ /extern .*=.*\(.*\)/
                 && line !~ /^[[:blank:]]*\"/) {
                 #printf("method or func: %s", line);
-                
+
                 # remove "$" signs
                 line =~ s/\$//g;
 
                 # remove any trailing line comment
                 line =~ s/#.*$//;
-                
+
                 # make into a declaration (also remove any parent class constructor calls)
                 line =~ s/[[:blank:]]*([^:]:[^:].*\(.*)?{[[:blank:]]*$/;/;
 
@@ -366,7 +365,7 @@ class qdx {
 
             if (line =~ /[[:blank:]]*abstract .*;[[:blank:]]*$/) {
                 #printf("method or func: %s", line);
-                
+
                 # remove "$" signs
                 line =~ s/\$//g;
             }
@@ -387,7 +386,7 @@ class qdx {
             if (line =~ /inherits / && line !~ /\/(\/|\*)/) {
                 trim line;
                 xl = (line =~ x/(.*) inherits ([^{]+)(.*)/);
-                xl[1] = split(",", xl[1]);                
+                xl[1] = split(",", xl[1]);
                 foreach string e in (\xl[1]) {
                     if (e !~ /(private|public)[^A-Za-z0-9_]/)
                         e = "public " + e;
@@ -419,7 +418,7 @@ class qdx {
 
                 if (line =~ /{/ && line !~ /}/)
                     ++nbc;
-                    
+
                 of.print(line);
                 continue;
             }
@@ -441,9 +440,9 @@ class qdx {
                             ++cbc;
                         }
                         else
-                            delete class_name;                            
+                            delete class_name;
                     }
-                    
+
                     of.print(line);
                     continue;
                 }
@@ -490,7 +489,7 @@ class qdx {
                     else if (line =~ /}/) {
                         --nbc;
                         if (!nbc) {
-                            line =~ s/}/};/;                            
+                            line =~ s/}/};/;
                         }
                         ns_name = pop nss;
                     }
@@ -540,7 +539,7 @@ class qdx {
             }
         }
     }
-    
+
     private readUntilCloseBracket(File inf) {
         int cnt = 1;
         string quote;
@@ -560,7 +559,7 @@ class qdx {
                     --regex;
                 continue;
             }
-            
+
             #printf("%s", c);
             if (c == "'" || c == '"') {
                 if (quote.val()) {
@@ -602,7 +601,7 @@ class qdx {
                 if (c != "#")
                     need = False;
             }
-            else if (c == "#") {                
+            else if (c == "#") {
                 # read until EOL
                 inf.readLine();
             }
@@ -677,7 +676,7 @@ class DocumentTableHelper {
                 str += sprintf("        <td class=\"qore\"><b>%s</b></td>\n", substr(cell, 1));
             else
                 str += sprintf("        <td>%s</td>\n", cell);
-        }        
+        }
         str += "      </tr>\n";
         return str;
     }

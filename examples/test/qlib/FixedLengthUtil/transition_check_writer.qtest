@@ -1,6 +1,5 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
 %require-types
-%new-style
 %enable-all-warnings
 %requires UnitTest
 %requires Util

@@ -1,4 +1,4 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
 %exec-class Test
@@ -7,9 +7,8 @@
 
 %require-types
 %require-our
-%new-style
 %enable-all-warnings
-    
+
 class Test inherits QUnit::Test {
     private {
 	const DataList = (
@@ -21,7 +20,7 @@ class Test inherits QUnit::Test {
 
         const DataListUtf16 = map convert_encoding($1, "utf16"), DataList;
     }
-    
+
     constructor() : QUnit::Test("DataLineIterator", "1.0") {
         addTestCase("LF Explicit tests", sub() {doTestsExplicit("\n");});
         addTestCase("LF Auto tests", sub() {doTestsAuto("\n");});
@@ -46,14 +45,14 @@ class Test inherits QUnit::Test {
 
         testAssertion("final next()", bool sub() {return !di.next();});
     }
-    
+
     doTestsExplicit(string eol) {
 	string data = foldl $1 + eol + $2, DataList;
         DataLineIterator di(data, eol);
         doTestsIntern(data, di);
     }
 
-    doTestsAuto(string eol) {    
+    doTestsAuto(string eol) {
         string data = foldl $1 + eol + $2, DataList;
         DataLineIterator di(data);
         doTestsIntern(data, di);
@@ -67,7 +66,7 @@ class Test inherits QUnit::Test {
         doTestsIntern(data, di);
     }
 
-    doTestsAutoUtf16(string eol) {        
+    doTestsAutoUtf16(string eol) {
         # do UTF-16 (non-ascii-compat) tests
         string eolutf16 = convert_encoding(eol, "utf16");
         string data = foldl $1 + eolutf16 + $2, DataListUtf16;
