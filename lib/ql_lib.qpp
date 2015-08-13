@@ -80,20 +80,20 @@ extern bool threads_initialized;
 #  include "tests/ReferenceHolder_tests.cpp"
 #endif
 
-AbstractQoreNode *missing_function_error(const char *func, ExceptionSink *xsink) {
+AbstractQoreNode* missing_function_error(const char* func, ExceptionSink* xsink) {
    QoreString have(func);
    have.toupr();
    xsink->raiseException("MISSING-FEATURE-ERROR", "this system does not implement %s(); for maximum portability use the constant Option::HAVE_%s to check if this function is implemented before calling", func, have.getBuffer());
    return 0;
 }
 
-AbstractQoreNode *missing_function_error(const char *func, const char *opt, ExceptionSink *xsink) {
+AbstractQoreNode* missing_function_error(const char* func, const char* opt, ExceptionSink* xsink) {
    xsink->raiseException("MISSING-FEATURE-ERROR", "this system does not implement %s(); for maximum portability use the constant Option::HAVE_%s to check if this function is implemented before calling", func, opt);
    return 0;
 }
 
 #ifdef HAVE_SYSTEM
-static int do_system(const QoreString &str) {
+static int do_system(const QoreString& str) {
    /*
    QoreString c(str);
    // escape backslashes: replace '\' -> '\\'
@@ -111,7 +111,7 @@ static int do_system(const QoreString &str) {
 #endif
 
 #ifdef DEBUG_X
-static AbstractQoreNode *runQoreTests(const QoreListNode *args, ExceptionSink *xsink) {
+static AbstractQoreNode* runQoreTests(const QoreListNode* args, ExceptionSink* xsink) {
    minitest::result res = minitest::execute_all_tests();
    if (res.all_tests_succeeded) {
       printf("Qore runtime: %d tests succeeded\n", res.sucessful_tests_count);
@@ -123,7 +123,7 @@ static AbstractQoreNode *runQoreTests(const QoreListNode *args, ExceptionSink *x
    return 0;
 }
 
-static AbstractQoreNode *runRecentQoreTests(const QoreListNode *args, ExceptionSink *xsink) {
+static AbstractQoreNode* runRecentQoreTests(const QoreListNode* args, ExceptionSink* xsink) {
    minitest::result res = minitest::test_last_changed_files(3); // 3 last modified files
    if (res.all_tests_succeeded) {
       printf("Qore runtime: %d recent tests succeeded\n", res.sucessful_tests_count);
@@ -144,20 +144,20 @@ TEST() {
 /*
 // need an easier to use function here
 // usage: mknod(path, mode)
-static AbstractQoreNode *f_mknod(const QoreListNode *args, ExceptionSink *xsink) {
-   const QoreStringNode *p0 = test_string_param(args, 0);
+static AbstractQoreNode* f_mknod(const QoreListNode* args, ExceptionSink* xsink) {
+   const QoreStringNode* p0 = test_string_param(args, 0);
    if (!p0) {
       xsink->raiseException("MKNOD-PARAMETER-ERROR", "expecting string as first parameter of mknod");
       return 0;
    }
 
-   const AbstractQoreNode *p1 = get_param(args, 1);
+   const AbstractQoreNode* p1 = get_param(args, 1);
    if (is_nothing(p1)) {
       xsink->raiseException("MKNOD-PARAMETER-ERROR", "expecting mode as second parameter of mknod");
       return 0;
    }
 
-   const AbstractQoreNode *p2 = get_param(args, 2);
+   const AbstractQoreNode* p2 = get_param(args, 2);
    if (is_nothing(p2)) {
       xsink->raiseException("MKNOD-PARAMETER-ERROR", "expecting device as second parameter of mknod");
       return 0;
@@ -767,7 +767,7 @@ my string $fn = basename("/usr/local/bin/file_name");
     @see dirname()
  */
 string basename(string path) [flags=CONSTANT] {
-   char *p = q_basename(path->getBuffer());
+   char* p = q_basename(path->getBuffer());
    int len = strlen(p);
    return new QoreStringNode(p, len, len + 1, path->getEncoding());
 }
@@ -791,7 +791,7 @@ my string $dir = dirname("/usr/local/bin/file_name");
     @see basename()
  */
 string dirname(string path) [flags=CONSTANT] {
-   char *p = q_dirname(path->getBuffer());
+   char* p = q_dirname(path->getBuffer());
    int len = strlen(p);
    return new QoreStringNode(p, len, len + 1, path->getEncoding());
 }
