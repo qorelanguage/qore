@@ -92,24 +92,6 @@ AbstractQoreNode* missing_function_error(const char* func, const char* opt, Exce
    return 0;
 }
 
-#ifdef HAVE_SYSTEM
-static int do_system(const QoreString& str) {
-   /*
-   QoreString c(str);
-   // escape backslashes: replace '\' -> '\\'
-   c.replaceAll("\\", "\\\\");
-   // escape double quotes: replace '"' -> '\"'
-   c.replaceAll("\"", "\\\"");
-
-   c.concat('"');
-   c.prepend("/bin/sh -c \"");
-
-   return system(c.getBuffer());
-   */
-   return system(str.getBuffer());
-}
-#endif
-
 #ifdef DEBUG_X
 static AbstractQoreNode* runQoreTests(const QoreListNode* args, ExceptionSink* xsink) {
    minitest::result res = minitest::execute_all_tests();
@@ -256,7 +238,7 @@ int system(string command) [dom=EXTERNAL_PROCESS] {
    // use system() if shell meta-characters are found
    if (strchrs(command->getBuffer(), "$=*?><&;|\"\\")) {      
       //printd(5, "system() using system() (3)\n");
-      rc = do_system(*command);
+      rc = system(command->getBuffer());
    }
    else { // otherwise fork and exec
       //printd(5, "system() using fork() && execvp()\n");
