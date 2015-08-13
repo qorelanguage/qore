@@ -28,6 +28,7 @@ configure
 depcomp
 install-sh
 qore
+qr
 qore.pc
 qore.spec
 test-driver
