@@ -8,11 +8,11 @@
     Major new release with major new features and bug fixes as well as packaging fixes:
     - added support for @ref garbage_collection "deterministic garbage collection"
     - standardized function naming convention
-    - many new functions, methods, constants, also new user modules
+    - new functions, methods, constants, operators, and user modules
     - greatly improved support on Windows
 
     @subsection qore_0812_new_features New Features in Qore
-    - new \c qr binary that assumes @ref new-style "%new-style" with %Qore code to make it easier to switch to @ref new-style "%new-style"
+    - new \c qr binary that assumes @ref new-style "%new-style" with %Qore code to make it easier to write programs in @ref new-style "%new-style"
     - Added the @ref value_coalescing_operator which checks first argument if it evaluates to @ref Qore::False "False" with @ref <value>::val() and if so assigns the second argument. The operator can be further chained; for example: @code expr1 ?* expr2 ?* expr3 @endcode
     - Added the @ref null_coalescing_operator which checks the first operand for @ref nothing or @ref null; if true returns the second argument. The operator can be further chained, in which case the first operand with a value is returned; ex: @code expr1 ?? expr2 ?? expr3 @endcode
     - <a href="../../modules/FixedLengthUtil/html/index.html">FixedLengthUtil</a> module for handling fixed length line data added
@@ -303,8 +303,9 @@
     - fixed a memory leak when a thread init call reference was used with @ref Qore::Program objects
     - fixed bugs in Qore SSL socket handling when the remote connection is disconnected while performing an SSL upgrade (client or server) that could cause a crash
     - fixed a bug where the sending an invalid HTTP header to the @ref Qore::Socket::sendHTTPResponse() method could cause a crash
-    - fixed a bug in @ref Qore::system() "system()" where \c & (ampersand) characters were not recognized as shell meta-characters
+    - fixed a bug in @ref Qore::system() "system()" where \c system(3) was not being used when shell meta-characters were not found and additionally \c & (ampersand) characters were not recognized as shell meta-characters - now @ref Qore::system() "system()" always uses \c system(3)
     - fixed a race condition in the @ref Qore::SQL::DatasourcePool "DatasourcePool" class when opening new datasources after a connection error in the first datasource which could cause a crash.  Now the first datasource is no longer a "special" datasource used for configuration information; configuration information is contained in a separate object which serves as an internal Datasource factory
+    - fixed a problem where \c SIGCHLD was blocked by default which caused deadlocks when spawning child processes that in turn waited on grandchild processes - now %Qore no longer blocks \c SIGCHLD on UNIX platforms
 
     @section qore_0811 Qore 0.8.11
 

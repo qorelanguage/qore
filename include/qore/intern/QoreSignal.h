@@ -76,11 +76,11 @@ public:
    DLLLOCAL CodePgm() : funcref(0), pgm(0) {
    }
 
-   DLLLOCAL CodePgm(ResolvedCallReferenceNode *f, QoreProgram* p) : funcref(f), pgm(p) {
+   DLLLOCAL CodePgm(ResolvedCallReferenceNode* f, QoreProgram* p) : funcref(f), pgm(p) {
    }
 
    // must be called in the signal lock
-   DLLLOCAL void set(const ResolvedCallReferenceNode *n_funcref, QoreProgram* n_pgm) {
+   DLLLOCAL void set(const ResolvedCallReferenceNode* n_funcref, QoreProgram* n_pgm) {
       assert(!funcref);
       assert(!pgm);
 
@@ -89,7 +89,7 @@ public:
    }
 
    // must be called in the signal lock
-   DLLLOCAL CodePgm replace(const ResolvedCallReferenceNode *n_funcref, QoreProgram* n_pgm) {
+   DLLLOCAL CodePgm replace(const ResolvedCallReferenceNode* n_funcref, QoreProgram* n_pgm) {
       assert(funcref);
       assert(pgm);
       assert(n_funcref);
@@ -109,7 +109,7 @@ public:
       return rv;
    }
 
-   DLLLOCAL void del(ExceptionSink *xsink) {
+   DLLLOCAL void del(ExceptionSink* xsink) {
       if (funcref) {
          funcref->deref(xsink);
          assert(pgm);
@@ -125,11 +125,11 @@ public:
    sh_status_e status;
 
    DLLLOCAL void init();
-   DLLLOCAL void runHandler(int sig, ExceptionSink *xsink);
+   DLLLOCAL void runHandler(int sig, ExceptionSink* xsink);
    DLLLOCAL bool isSet() const {
       return (bool)funcref;
    }
-   DLLLOCAL QoreProgram *getProgram() const {
+   DLLLOCAL QoreProgram* getProgram() const {
       return pgm;
    }
 };
@@ -148,13 +148,13 @@ private:
    QoreCondition cond;     // to ensure atomicity of set and remove calls
    bool block;
    int waiting;
-      
+
    DLLLOCAL void reload();
    DLLLOCAL void stop_signal_thread_unlocked();
-   DLLLOCAL int start_signal_thread(ExceptionSink *xsink);
+   DLLLOCAL int start_signal_thread(ExceptionSink* xsink);
    DLLLOCAL void stop_signal_thread();
-   DLLLOCAL void setMask(sigset_t &mask);   
-      
+   DLLLOCAL void setMask(sigset_t& mask);
+
 public:
    enum sig_cmd_e { C_None = 0, C_Reload = 1, C_Exit = 2 };
 
@@ -169,20 +169,20 @@ public:
    QoreSignalHandler handlers[QORE_SIGNAL_MAX];
    QoreThreadLock mutex;
    sig_cmd_e cmd;
-      
+
    DLLLOCAL QoreSignalManager();
    DLLLOCAL void init(bool disable_signal_mask = false);
    DLLLOCAL void del();
-   DLLLOCAL int setHandler(int sig, const ResolvedCallReferenceNode *fr, ExceptionSink *xsink);
-   DLLLOCAL int removeHandler(int sig, ExceptionSink *xsink);
-   DLLLOCAL const char *getSignalName(int sig);
+   DLLLOCAL int setHandler(int sig, const ResolvedCallReferenceNode* fr, ExceptionSink* xsink);
+   DLLLOCAL int removeHandler(int sig, ExceptionSink* xsink);
+   DLLLOCAL const char* getSignalName(int sig);
    DLLLOCAL void signal_handler_thread();
    DLLLOCAL void lock_idle();
    DLLLOCAL void release_idle();
    DLLLOCAL void start_handler();
    DLLLOCAL void end_handler();
    DLLLOCAL void pre_fork_block_and_stop();
-   DLLLOCAL void post_fork_unblock_and_start(bool new_process, ExceptionSink *xsink);
+   DLLLOCAL void post_fork_unblock_and_start(bool new_process, ExceptionSink* xsink);
    DLLLOCAL int gettid() {
       return tid;
    }
@@ -193,7 +193,7 @@ public:
    // try to allow the signal to be managed externally (by a module)
    // sig = signal number, name = name of module to manage signal
    // returns 0 for OK, or an error string on error
-   DLLLOCAL QoreStringNode *reassign_signal(int sig, const char *name);
+   DLLLOCAL QoreStringNode* reassign_signal(int sig, const char* name);
 };
 
 DLLLOCAL extern QoreSignalManager QSM;

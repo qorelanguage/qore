@@ -99,7 +99,7 @@ static AbstractQoreNode* runQoreTests(const QoreListNode* args, ExceptionSink* x
       printf("Qore runtime: %d tests succeeded\n", res.sucessful_tests_count);
       return 0;
    }
-   
+
    xsink->raiseException("A Qore test failed", "Qore test in file %s, line %d threw an exception.",
 			 res.failed_test_file, res.failed_test_line);
    return 0;
@@ -111,7 +111,7 @@ static AbstractQoreNode* runRecentQoreTests(const QoreListNode* args, ExceptionS
       printf("Qore runtime: %d recent tests succeeded\n", res.sucessful_tests_count);
       return 0;
    }
-   
+
    xsink->raiseException("A Qore test failed", "Qore test in file %s, line %d threw an exception.",
 			 res.failed_test_file, res.failed_test_line);
    return 0;
@@ -122,32 +122,6 @@ TEST() {
 }
 }
 #endif
-
-/*
-// need an easier to use function here
-// usage: mknod(path, mode)
-static AbstractQoreNode* f_mknod(const QoreListNode* args, ExceptionSink* xsink) {
-   const QoreStringNode* p0 = test_string_param(args, 0);
-   if (!p0) {
-      xsink->raiseException("MKNOD-PARAMETER-ERROR", "expecting string as first parameter of mknod");
-      return 0;
-   }
-
-   const AbstractQoreNode* p1 = get_param(args, 1);
-   if (is_nothing(p1)) {
-      xsink->raiseException("MKNOD-PARAMETER-ERROR", "expecting mode as second parameter of mknod");
-      return 0;
-   }
-
-   const AbstractQoreNode* p2 = get_param(args, 2);
-   if (is_nothing(p2)) {
-      xsink->raiseException("MKNOD-PARAMETER-ERROR", "expecting device as second parameter of mknod");
-      return 0;
-   }
-
-   return new QoreBigIntNode(mknod(p0->getBuffer(), p1->getAsInt(), p2->getAsInt()));
-}
-*/
 
 /** @defgroup library_functions Library Functions
     Library functions
@@ -233,47 +207,16 @@ int rc = system("ls -l");
     - @ref backquote_operator "the backquote operator"
  */
 int system(string command) [dom=EXTERNAL_PROCESS] {
-#ifdef HAVE_FORK
-   int rc;
-   // use system() if shell meta-characters are found
-   if (strchrs(command->getBuffer(), "$=*?><&;|\"\\")) {      
-      //printd(5, "system() using system() (3)\n");
-      rc = system(command->getBuffer());
-   }
-   else { // otherwise fork and exec
-      //printd(5, "system() using fork() && execvp()\n");
-      pid_t pid;
-      if (!(pid = fork())) {
-	 ExecArgList exec_args(command->getBuffer());
-	 execvp(exec_args.getFile(), exec_args.getArgs());
-	 fprintf(stderr, "execvp() failed in child process for target '%s' with error code %d: %s\n", exec_args.getFile(), errno, strerror(errno));
-	 exit(-1);
-	 //qore_exit_process(-1);
-      }
-      if (pid == -1)
-	 rc = -1;
-      else {
-	 int status;
-	 wait(&status);
-	 if (WIFEXITED(status))
-	    rc = WEXITSTATUS(status);
-	 else
-	    rc = -1;
-      }
-   }
-   return rc;
-#else
 #ifdef HAVE_SYSTEM
-   return do_system(*command);
+   return system(command->getBuffer());
 #else
    missing_function_error("system", xsink);
    return 0;
-#endif // HAVE_SYSTEM
-#endif // HAVE_FORK
+#endif
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing system() [flags=RUNTIME_NOOP;dom=EXTERNAL_PROCESS] {
 }
@@ -449,7 +392,7 @@ int sleep(softint seconds) [dom=PROCESS] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing sleep() [flags=RUNTIME_NOOP;dom=PROCESS] {
 }
@@ -494,7 +437,7 @@ int usleep(date d) [dom=PROCESS] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing usleep() [flags=RUNTIME_NOOP;dom=PROCESS] {
 }
@@ -524,7 +467,7 @@ my int $ppid = HAVE_GETPPID ? getppid() : -1;
  */
 int getppid() [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
 #ifdef HAVE_GETPPID
-   return getppid();   
+   return getppid();
 #else
    missing_function_error("getppid", xsink);
    return 0;
@@ -548,7 +491,7 @@ if ($pid = fork())
 
     @throw ILLEGAL-FORK Cannot fork if more than one thread is running
 
-    @note 
+    @note
     - after a fork(), the only safe call is @ref exec(), many system calls are not async-signal safe, including pthread_create() which is
       used to start new threads.
     - the %Qore process will crash if unsafe operations are called after a fork()
@@ -574,7 +517,7 @@ int fork() [dom=PROCESS] {
       xsink->raiseException("ILLEGAL-FORK", "cannot fork() within a signal handler");
       return 0;
    }
-   
+
    // stop signal handling thread and make sure it can't be restarted until fork is done
    QSM.pre_fork_block_and_stop();
 #endif
@@ -622,7 +565,7 @@ int kill(softint pid, softint sig = SIGHUP) [dom=EXTERNAL_PROCESS] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing kill() [flags=RUNTIME_NOOP;dom=EXTERNAL_PROCESS] {
 }
@@ -631,7 +574,7 @@ nothing kill() [flags=RUNTIME_NOOP;dom=EXTERNAL_PROCESS] {
 /** This function uses the C library function random() to generate the number if available on the current platform, otherwise uses %rand().
 
     @return a random 64-bit integer number
-    
+
     @par Example:
     @code
 my int $num = rand();
@@ -668,7 +611,7 @@ nothing srand(softint seed) [dom=PROCESS] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing srand() [flags=RUNTIME_NOOP;dom=PROCESS] {
 }
@@ -755,7 +698,7 @@ string basename(string path) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing basename() [flags=RUNTIME_NOOP] {
 }
@@ -779,7 +722,7 @@ string dirname(string path) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing dirname() [flags=RUNTIME_NOOP] {
 }
@@ -915,7 +858,7 @@ if (!exists $host)
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing gethostbyname() [flags=RUNTIME_NOOP] {
 }
@@ -944,13 +887,13 @@ if (!exists $hostname)
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing gethostbyaddr() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns @ref host_information_hash "a hash" representing all host and address information corresponding to the hostname passed as an argument
-/** 
+/**
     @param name the name to look up
 
     @return @ref host_information_hash "a hash" representing all host and address information corresponding to the hostname passed as an argument
@@ -969,7 +912,7 @@ if (!exists $host)
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing gethostbyname_long() [flags=RUNTIME_NOOP] {
 }
@@ -998,7 +941,7 @@ if (!exists $ah)
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing gethostbyaddr_long() [flags=RUNTIME_NOOP] {
 }
