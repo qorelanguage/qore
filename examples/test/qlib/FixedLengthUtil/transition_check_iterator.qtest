@@ -62,7 +62,7 @@ unit.cmp(j.next(), True, "line 3 is there");
 code wr = sub (MyFixedLengthDataIterator2 k) {
     k.getValue();
 };
-unit.exception(wr, list(j), 'invalid transition', 'INVALID-TRANSITION', 'State type1 cannot follow state type2 for line >22222gg<');
+unit.exception(wr, list(j), 'invalid transition', 'FIXED-LENGTH-UTIL-INVALID-TRANSITION', 'State type1 cannot follow state type1 for line 22222gg');
 
 public class MyFixedLengthDataIterator1 inherits FixedLengthUtil::FixedLengthDataIterator {
     constructor(string d, hash h, *hash g) : FixedLengthUtil::FixedLengthDataIterator(d, h, g) {

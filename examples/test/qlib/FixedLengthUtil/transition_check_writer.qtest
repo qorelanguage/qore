@@ -58,7 +58,7 @@ MyFixedLengthDataWriter2 w2(specs, global_options);
 code wr = sub (list d) {
     w2.write(d);
 };
-unit.exception(wr, list(data), 'invalid transition', 'INVALID-TRANSITION', 'State type1 cannot follow state <START> for line >11111bb<');
+unit.exception(wr, list(data), 'invalid transition', 'FIXED-LENGTH-UTIL-INVALID-TRANSITION', "State 'type1' cannot follow state '<START>' for line '11111bb'");
 
 unlink(file);
 
