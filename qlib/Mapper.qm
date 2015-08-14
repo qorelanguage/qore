@@ -33,7 +33,7 @@
 
 # do not use "$" for vars
 %new-style
-    
+
 module Mapper {
     version = "1.1";
     desc = "user module providing basic data mapping infrastructure";
@@ -146,7 +146,7 @@ list: (2 elements)
       - \c "trunc": assign to boolean @ref Qore::True "True" if the field should be truncated if over the maximum field length; this key can only be set to @ref Qore::True "True" if the \c "maxlen" key is also given
       - \c "type": this gives the output field type, can be:
         - \c "date": date/time field
-        - \c "int": fields accepts only integer values (any non-integer values on input will cause an exception to be thrown when mapping; note: also \c "integer" is accepted as an alias for \c "int") 
+        - \c "int": fields accepts only integer values (any non-integer values on input will cause an exception to be thrown when mapping; note: also \c "integer" is accepted as an alias for \c "int")
         - \c "number": field accepts only numeric values (any non-numeric values on input will cause an exception to be thrown when mapping); numeric values are left in their original types, any other type is converted to a @ref number_type "arbitrary-precision numeric" value
         - \c "string": field accepts string values; in this case any other value will be converted to a string in the output
 
@@ -170,7 +170,7 @@ list: (2 elements)
       - \c "maxlen": an integer giving the maximum length of a string field in bytes
       - \c "type": this gives the output field type, can be:
         - \c "date": date/time field
-        - \c "int": fields accepts only integer values (any non-integer values on input will cause an exception to be thrown when mapping; note: also \c "integer" is accepted as an alias for \c "int") 
+        - \c "int": fields accepts only integer values (any non-integer values on input will cause an exception to be thrown when mapping; note: also \c "integer" is accepted as an alias for \c "int")
         - \c "number": field accepts only numeric values (any non-numeric values on input will cause an exception to be thrown when mapping); numeric values are left in their original types, any other type is converted to a @ref number_type "arbitrary-precision numeric" value
         - \c "string": field accepts string values; in this case any other value will be converted to a string in the output
     - \c "output_log": an optional output data logging callback; must accept a hash giving the output data hash
@@ -196,6 +196,7 @@ list: (2 elements)
     - implemented the \c "input" option with input record validation
     - implemented the \c "output" option with output record validation
     - implemented the \c "info_log" option and removed the \c "trunc" option
+    - implemented the @ref Mapper::Mapper::addConstantMapping() "Mapper::addConstantMapping()" method
 
     @subsection mapperv1_0 Mapper v1.0
     - Initial release
@@ -233,7 +234,7 @@ public namespace Mapper {
                 "code": True,
                 "default": True,
                 "maxlen": True,
-                "trunc": True, 
+                "trunc": True,
                 "mand": True,
                 "number": True,
                 "type": True,
@@ -241,7 +242,7 @@ public namespace Mapper {
                 "number_format": True,
                 );
 
-            #! default known field types (can be extended by subclassing and reimplementing validTypes() and mapFieldType()) 
+            #! default known field types (can be extended by subclassing and reimplementing validTypes() and mapFieldType())
             const ValidTypes = (
                 "number": True,
                 "integer": True,
@@ -304,7 +305,7 @@ public namespace Mapper {
 
             #! an optional description of the output data structure
             *hash output;
-            
+
             #! count of records mapped
             int count = 0;
         }
@@ -399,7 +400,7 @@ Mapper mapv(DataMap);
 
             if (opts.enc)
                 enc = opts.enc;
-            
+
             if (opts.allow_dot)
                 allow_dot = parse_boolean(opts.allow_dot);
 
@@ -447,7 +448,7 @@ Mapper mapv(DataMap);
             if (!input.hasKey(name))
                 error("output field %y requires unknown input field %y; valid input fields are: %y", getFieldName(k), name, input.keys());
         }
-        
+
         #! perform per-field pre-processing on the passed map in the constructor
         /** @param k the field name
             @param fh a reference to the field's value in the map
@@ -460,8 +461,8 @@ Mapper mapv(DataMap);
                     error("output field %y is not a defined output field; known output fields: %y", getFieldName(k), output.keys());
                 # get output definition, if any
                 outf = output{k};
-            }            
-            
+            }
+
             # check field description
             int t = fh.typeCode();
             if (t != NT_HASH)
@@ -510,7 +511,7 @@ Mapper mapv(DataMap);
                 else
                     fh.type = "date";
             }
-            
+
             if (fh.number_format) {
                 if (fh.number_format.typeCode() != NT_STRING)
                     error("field %y has a 'number_format' key assigned to type '%s'; expecting 'string'", getFieldName(k), fh.number_format.type());
@@ -533,10 +534,10 @@ Mapper mapv(DataMap);
                     fh{ok} = outf{ok};
                 }
             }
-            
+
             if (fh.trunc && !fh.maxlen)
                 error("output field %y has the 'trunc' key set to True but has no 'maxlen' key", getFieldName(k));
-            
+
             if (fh.maxlen && !exists fh.trunc && trunc_all)
                 fh.trunc = True;
 
@@ -546,7 +547,7 @@ Mapper mapv(DataMap);
             foreach string hk in (fh.keyIterator())
                 if (!vk{hk})
                     error("output field %y in map hash contains unknown key '%s' (valid keys: %y)", getFieldName(k), hk, vk.keys());
-            
+
             # convert old "number" tag to new "type" tag
             if (fh.number) {
                 if (exists fh.type)
@@ -556,7 +557,7 @@ Mapper mapv(DataMap);
             }
             else if (exists fh.type && !vt.(fh.type))
                 error("output field %y contains an invalid type value '%s' (valid types: %y)", getFieldName(k), fh.type, vt.keys());
-            
+
             if (exists fh.code && !fh.code.callp())
                 error("output field %y has a code argument assigned to type '%s'", getFieldName(k), fh.code.type());
 
@@ -572,7 +573,7 @@ Mapper mapv(DataMap);
 
             # check if the output field should be a hash
             if (!allow_output_dot && k =~ /\./)
-                fh.ostruct = k.split(".");            
+                fh.ostruct = k.split(".");
         }
 
         #! verifies a timezone constructor option
@@ -592,6 +593,18 @@ Mapper mapv(DataMap);
             }
         }
 
+        #! adds constant mappings after the object has been constructed; replaces any existing configuration for the given fields
+        addConstantMapping(hash ch) {
+            foreach string k in (ch.keyIterator()) {
+                if (output && !output.hasKey(k))
+                    error("output field %y is not a defined output field; known output fields: %y", getFieldName(k), output.keys());
+                # delete keys in conflict with the "constant" key
+                delete mapc{k}{ConstantConflictList};
+                mapc{k}.constant = ch{k};
+            }
+        }
+
+        #! returns a descriptive name of the given field if possible, otherwise returns the field name itself
         string getFieldName(string fname) {
             return name ? sprintf("%s.%s", name, fname) : fname;
         }
@@ -621,12 +634,12 @@ Mapper mapv(DataMap);
         *hash getInputRecord() {
             return input;
         }
-        
+
         #! returns the value of the \c "output" option
         *hash getOutputRecord() {
             return output;
         }
-        
+
         #! maps all input records and returns the mapped data as a list of output records
         /** this method applies the @ref mapData() method to all input records and returns the resulting list
             @param recs the list of input records
@@ -659,7 +672,7 @@ Mapper mapv(DataMap);
             logOutput(h);
             return h;
         }
-        
+
         #! processes the input record and returns a hash of the mapped values where the keys in the hash returned are the target field names; the order of the fields in the hash returned is the same order as the keys in the map hash.
         /** @param rec the record to translate
 
@@ -725,7 +738,7 @@ Mapper mapv(DataMap);
                     mapFieldType(key, m, \v, rec);
 
                 if (exists m."default" && !exists v)
-                    v = m."default";                    
+                    v = m."default";
 
                 # check maximum length
                 if (m.maxlen && v.size() > m.maxlen) {
@@ -741,7 +754,7 @@ Mapper mapv(DataMap);
 
                 if (m.mand && !exists v)
                     error2("MISSING-INPUT", "field %y is marked as mandatory but is missing in the input row: %y", getFieldName(key), rec);
-                
+
                 # add value to row list
                 if (m.ostruct) {
                     # recursive closure for generating structured data
@@ -774,13 +787,13 @@ Mapper mapv(DataMap);
 
             return h;
         }
-        
+
         #! calls the output logging @ref closure "closure" or @ref call_reference "call reference" (if any) to log the output record
         logOutput(hash h) {
             if (output_log)
                 output_log(h);
         }
-        
+
         #! returns the internal record count
         /** @see resetCount()
         */
@@ -803,7 +816,7 @@ Mapper mapv(DataMap);
             }
             if (!exists v)
                 return;
-                
+
             # valid types are checked in the map initialization
             switch (m.type) {
                 case "number": {
@@ -848,7 +861,7 @@ Mapper mapv(DataMap);
                                 error2("INVALID-INTEGER", "field %y = %y is marked as an integer field, but the input data contains non-integer data in input row: %y", getFieldName(key), v, rec);
                             v = rc;
                             return;
-                        }                        
+                        }
                     }
             }
                 case "date": {

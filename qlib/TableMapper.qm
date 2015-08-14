@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! @file TableMapper.qm provides mapping functionality to an SQL Table target 
+#! @file TableMapper.qm provides mapping functionality to an SQL Table target
 
 /*  TableMapper.qm Copyright 2014 - 2015 Qore Technologies, sro
 
@@ -33,7 +33,7 @@
 
 # don't use "$" signs for variables and class members, assume local variable scope
 %new-style
-    
+
 # requires the Mapper module
 %requires Mapper
 # requires the SqlUtil module
@@ -93,7 +93,7 @@ printf("%d record%s inserted\n", map.getCount(), map.getCount() == 1 ? "" : "s")
 
     This will insert all the mapped input data into data into the \c ORDER_TABLE
     table and then print out the number of rows inserted.
-    
+
     @section tablemapperrelnotes Release Notes
 
     @subsection tablemapperv1_1 TableMapper v1.1
@@ -145,13 +145,13 @@ public namespace TableMapper {
 
             #! "unstable input" option for non-optimized inserts (~33% performance reduction in insert speed)
             bool unstable_input = False;
-            
+
             #! statement for inserts
             SQLStatement stmt;
 
             #! bulk insert block size
             int insert_block;
-            
+
             #! buffer for bulk inserts
             hash hbuf;
 
@@ -262,14 +262,14 @@ InboundTableMapper mapper(table, DbMapper);
             }
             return output;
         }
-        
+
         #! common constructor initialization
         private init(hash mapv, *hash opts) {
             has_returning = table.hasReturning();
 
             # setup output description for Mapper
             opts.output = InboundTableMapper::getOutputRecord(opts.name, table, opts.output);
-            
+
             setup(mapv, opts);
 
             # set options with defaults
@@ -281,9 +281,9 @@ InboundTableMapper mapper(table, DbMapper);
             # unconditionally set insert_block = 1 if the driver does not support bulk DML
             if (!table.hasArrayBind())
                 insert_block = 1;
-            
+
             # check map for logical errors
-            checkMap();            
+            checkMap();
         }
 
         #! performs type handling
@@ -327,7 +327,7 @@ InboundTableMapper mapper(table, DbMapper);
                 if (!has_returning) {
                     if (!db)
                         db = AbstractDatabase::getDatabase(table.getDatasource());
-                
+
                     if (fh.type) {
                         if (fh.type != "number" && fh.type != "integer")
                             error("column '%s.%s' has a 'sequence' key, but the type is '%s'", table.getSqlName(), getFieldName(k), fh.type);
@@ -347,7 +347,7 @@ InboundTableMapper mapper(table, DbMapper);
                 if (!has_returning) {
                     if (!db)
                         db = AbstractDatabase::getDatabase(table.getDatasource());
-                
+
                     if (fh.type) {
                         if (fh.type != "number" && fh.type != "integer")
                             error("column '%s.%s' has a 'sequence_currval' key, but the type is '%s'", table.getSqlName(), getFieldName(k), fh.type);
@@ -395,7 +395,7 @@ InboundTableMapper mapper(table, DbMapper);
 
             @throw MISSING-INPUT a field marked mandatory is missing
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
-            @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data        
+            @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
         */
         hash insertRowNoCommit(hash rec) {
             hash h = mapDataIntern(rec);
@@ -455,7 +455,7 @@ on_error $table_mapper.rollback();
 
             @note
             - make sure to call flush() before committing the transaction or discard() before rolling back the transaction or destroying the object when using this method
-            - flush() or discard() needs to be executed for each mapper used in the block when using multiple mappers whereas the DB transaction needs to be committed or rolled back once per datasource 
+            - flush() or discard() needs to be executed for each mapper used in the block when using multiple mappers whereas the DB transaction needs to be committed or rolled back once per datasource
             - this method and batched inserts in general cannot be used when the \c unstable_input option is given in the constructor
             - if the \c insert_block option is set to 1, then this method simply calls insertRowNoCommit()
 
@@ -466,7 +466,7 @@ on_error $table_mapper.rollback();
             @throw MAPPER-BATCH-ERROR this exception is thrown if this method is called when the \c unstable_input option was given in the constructor
             @throw MISSING-INPUT a field marked mandatory is missing
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
-            @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data        
+            @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
         */
         *hash queueBatchRow(hash rec) {
             if (unstable_input)
@@ -499,7 +499,7 @@ on_error $table_mapper.rollback();
             @throw MAPPER-BATCH-ERROR this exception is thrown if this method is called when the \c unstable_input option was given in the constructor
             @throw MISSING-INPUT a field marked mandatory is missing
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
-            @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data        
+            @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
         */
         private *hash queueBatchRowIntern(hash rec) {
             if (insert_block == 1) {
@@ -541,7 +541,7 @@ on_error $table_mapper.rollback();
             @return if batch data was inserted then a hash (columns) of lists (row data) of all data inserted and potentially returned (in case of sequences) from the database server is returned
 
             @note
-            - flush() or discard() needs to be executed for each mapper used in the block when using multiple mappers whereas the DB transaction needs to be committed or rolled back once per datasource 
+            - flush() or discard() needs to be executed for each mapper used in the block when using multiple mappers whereas the DB transaction needs to be committed or rolled back once per datasource
             - also clears any row @ref closure or @ref call_reference set for batch operations
 
             @see
@@ -568,7 +568,7 @@ on_error $table_mapper.rollback();
             @endcode
 
             @note
-            - flush() or discard() needs to be executed for each mapper used in the block when using multiple mappers whereas the DB transaction needs to be committed or rolled back once per datasource 
+            - flush() or discard() needs to be executed for each mapper used in the block when using multiple mappers whereas the DB transaction needs to be committed or rolled back once per datasource
             - also clears any row @ref closure or @ref call_reference set for batch operations
 
             @see
@@ -622,9 +622,9 @@ on_error $table_mapper.rollback();
 
             if (output_log) {
                 if (rowcode)
-                    map (Mapper::logOutput($1), rowcode($1)), rv.contextIterator();                    
+                    map (Mapper::logOutput($1), rowcode($1)), rv.contextIterator();
                 else
-                    map Mapper::logOutput($1), rv.contextIterator();                                 
+                    map Mapper::logOutput($1), rv.contextIterator();
             }
             else if (rowcode)
                 map rowcode($1), rv.contextIterator();
@@ -644,7 +644,7 @@ on_error $table_mapper.rollback();
 
             @throw MISSING-INPUT a field marked mandatory is missing
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
-            @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data        
+            @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
         */
         hash insertRow(hash rec) {
             on_success table.commit();
@@ -692,7 +692,7 @@ on_error $table_mapper.rollback();
     }
 
     #! maps from source to target tables with exactly the same structure
-    public class InboundIdentityTableMapper inherits TableMapper::InboundTableMapper {        
+    public class InboundIdentityTableMapper inherits TableMapper::InboundTableMapper {
         #! builds the object based on an optional hash providing field mappings, data constraints, and optionally custom mapping logic
         /** The target table is also scanned using @ref sqlutilintro "SqlUtil" and column definitions are used to update the target record specification, also if there are any columns with NOT NULL constraints and no default value, mapping, or constant value, then a MAP-ERROR exception is thrown
 
@@ -748,7 +748,7 @@ InboundIdentityTableMapper mapper(table, DbMapper);
             InboundTableMapper::init(mapv, opts);
         }
 
-        
+
 
         #! returns a description of the input record based on the @ref SqlUtil::AbstractTable "AbstractTable" source
         static hash getInputRecord(SqlUtil::AbstractTable table) {
