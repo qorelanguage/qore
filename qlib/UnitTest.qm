@@ -50,7 +50,7 @@ module UnitTest {
     The %UnitTest module provides functionality for automatic testing.
 
     To use this module, use \c "%requires UnitTest" in your code.
-    
+
     <b>Examples:</b>
     @code
 #!/usr/bin/env qore
@@ -352,7 +352,7 @@ public class UnitTest::UnitTest {
         @param detail Only for internal use: chainer reason for failure
         @par Example:
         @code
-test_id = this.cmp(Cow.sound(), 'moo', "cow's sound is correct");
+test_id = cmp(Cow.sound(), 'moo', "cow's sound is correct");
         @endcode
     */
     int cmp(any v1, any v2, string msg, string detail) {
@@ -369,7 +369,7 @@ test_id = this.cmp(Cow.sound(), 'moo', "cow's sound is correct");
         @param msg test message that will be printed
         @par Example:
         @code
-test_id = this.cmp(Cow.sound(), 'moo', "cow's sound is correct");
+test_id = cmp(Cow.sound(), 'moo', "cow's sound is correct");
         @endcode
     */
     int cmp(any v1, any v2, string msg) {
@@ -381,7 +381,7 @@ test_id = this.cmp(Cow.sound(), 'moo', "cow's sound is correct");
         @param msg test message that will be printed
         @par Example:
         @code
-this.ok(Cow.hasFourLegs(), "number of cow's legs correct");
+ok(Cow.hasFourLegs(), "number of cow's legs correct");
         @endcode
     */
     int ok(softbool v, string msg) {
@@ -394,7 +394,7 @@ this.ok(Cow.hasFourLegs(), "number of cow's legs correct");
         @param detail Only for internal use: chained reason for failure
         @par Example:
         @code
-this.ok(Cow.hasFourLegs(), "number of cow's legs correct");
+ok(Cow.hasFourLegs(), "number of cow's legs correct");
         @endcode
     */
     int ok(softbool v, string msg, string detail) {
@@ -407,7 +407,7 @@ this.ok(Cow.hasFourLegs(), "number of cow's legs correct");
         @param msg test message that will be printed
         @par Example:
         @code
-this.like(Cow.sound(), 'moo+', "cow's sound is correct");
+like(Cow.sound(), 'moo+', "cow's sound is correct");
         @endcode
     */
     int like(string str, string regex, string msg) {
@@ -431,7 +431,7 @@ sub fly (string animal) {
     }
 }
 
-this.exception(\fly(), ('cow'), 'invoked exception when cow trying to fly', UNABLE-FLY, 'cow cannot fly');
+exception(\fly(), ('cow'), 'invoked exception when cow trying to fly', UNABLE-FLY, 'cow cannot fly');
         @endcode
     */
     int exception(callref f, *softlist params, string msg, string err, *string regex) {
@@ -459,7 +459,7 @@ this.exception(\fly(), ('cow'), 'invoked exception when cow trying to fly', UNAB
         * test message for this particular testcase
         @par Example:
         @code
-this.cmploop(
+cmploop(
     \eat(),
     (
         (
