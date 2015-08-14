@@ -48,6 +48,7 @@ void BinaryNode::clear() {
       assert(ptr);
       free(ptr);
       len = 0;
+      ptr = 0;
    }
 }
 
