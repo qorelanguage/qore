@@ -25,6 +25,9 @@
 # this module requires Qore 0.8.12 or better
 %requires qore >= 0.8.12
 
+# do not use $ for vars, assume local var scope
+%new-style
+
 # require type definitions everywhere
 %require-types
 
@@ -50,7 +53,7 @@ module Util {
     writing in Qore than in C++.
 
     To use this module, use \c "%requires Util" in your code.
-    
+
     All the public symbols in the module are defined in the Util namespace
 
     Functions:
@@ -76,9 +79,10 @@ module Util {
     - the following functions are now actually implemented in the %Qore library and only reexported here for backwards-compatibility:
       - @ref Qore::absolute_path()
       - @ref Qore::absolute_path_windows()
-      - @ref Qore::absolute_path_unix()    
+      - @ref Qore::absolute_path_unix()
     - added Util::slice()
     - added Util::same()
+    - added Util::tmp_location()
 
     @subsection util_1_1
     - added the Util::get_byte_size() and Util::get_marketing_byte_size() functions
@@ -89,11 +93,11 @@ module Util {
 
 namespace Init {
     sub init() {
-        our hash $storage_sizes;
-        map $storage_sizes.$1 = pow(1024, $# + 1), StorageNames;
+        our hash storage_sizes;
+        map storage_sizes.$1 = pow(1024, $# + 1), StorageNames;
 
-        our hash $marketing_storage_sizes;
-        map $marketing_storage_sizes.$1 = pow(1000, $# + 1), StorageNames;
+        our hash marketing_storage_sizes;
+        map marketing_storage_sizes.$1 = pow(1000, $# + 1), StorageNames;
     }
 }
 
@@ -102,10 +106,10 @@ public namespace Util {
     #! compares complex versions by breaking down strings into component parts
     /** @par Example:
         @code
-my int $result = compare_version("2.11.1", "2.2");
+int result = compare_version("2.11.1", "2.2");
         @endcode
 
-        Each element is compared separately, so that compare_version("2.11.1", "2.2") returns 1 
+        Each element is compared separately, so that compare_version("2.11.1", "2.2") returns 1
         (a regular string comparison would give the opposite result)
 
         @param lv left-hand version
@@ -113,46 +117,46 @@ my int $result = compare_version("2.11.1", "2.2");
 
         @return -1 if lv < rv, 0 if equal, and 1 if lv > rv
     */
-    public int sub compare_version(string $lv, string $rv) {
-        my list $ll = $lv.split(".");
-        my list $rl = $rv.split(".");
+    public int sub compare_version(string lv, string rv) {
+        list ll = lv.split(".");
+        list rl = rv.split(".");
 
-        my int $le = $ll.size();
-        my int $re = $rl.size();
+        int le = ll.size();
+        int re = rl.size();
 
-        my int $i = 0;
+        int i = 0;
         while (True) {
-            if ($le == $i) {
-                if ($re == $i)
+            if (le == i) {
+                if (re == i)
                     return 0;
                 # see if all remaining elements in rl are 0
-                splice $rl, 0, $i;
-                return (select $rl, $1) ? -1 : 0;
+                splice rl, 0, i;
+                return (select rl, $1) ? -1 : 0;
             }
-            if ($re == $i) {
+            if (re == i) {
                 # see if all remaining elements in ll are 0
-                splice $ll, 0, $i;
-                return (select $ll, $1) ? 1 : 0;
+                splice ll, 0, i;
+                return (select ll, $1) ? 1 : 0;
             }
-            my any $l = $ll[$i];
-            my any $r = $rl[$i];
-            if ($l =~ /^[0-9]/)
-                $l = int($l);
-            if ($r =~ /^[0-9]/)
-                $r = int($r);
-            
-            my int $rc = $l <=> $r;
-            if ($rc)
-                return $rc;
-            
-            ++$i;
+            any l = ll[i];
+            any r = rl[i];
+            if (l =~ /^[0-9]/)
+                l = int(l);
+            if (r =~ /^[0-9]/)
+                r = int(r);
+
+            int rc = l <=> r;
+            if (rc)
+                return rc;
+
+            ++i;
         }
     }
 
     #! returns a platform-specific normalized path name (starting from /, eliminates \c ".", \c "..", and \c "//")
     /** @par Example:
         @code
-my string $dir = normalize_dir($dir);
+string dir = normalize_dir(dir);
         @endcode
 
         Currently only Windows and UNIX-style directories are supported; this function calls either:
@@ -168,14 +172,14 @@ my string $dir = normalize_dir($dir);
         - @ref Util::normalize_dir_unix() or
         - @ref Util::normalize_dir_windows()
      */
-    public string sub normalize_dir(string $dir, string $cwd = getcwd()) {
-        return PlatformOS != "Windows" ? normalize_dir_unix($dir, $cwd) : normalize_dir_windows($dir, $cwd);
+    public string sub normalize_dir(string dir, string cwd = getcwd()) {
+        return PlatformOS != "Windows" ? normalize_dir_unix(dir, cwd) : normalize_dir_windows(dir, cwd);
     }
 
     #! returns a normalized UNIX path name (starting from /, eliminates \c ".", \c "..", and \c "//")
     /** @par Example:
         @code
-my string $dir = normalize_dir_unix($dir, "/var/tmp");
+string dir = normalize_dir_unix(dir, "/var/tmp");
         @endcode
 
         For example, calling:
@@ -188,43 +192,43 @@ my string $dir = normalize_dir_unix($dir, "/var/tmp");
 
         @return a normalized path name (starting from /, eliminates \c ".", \c "..", and \c "//")
      */
-    public string sub normalize_dir_unix(string $dir, string $cwd = getcwd()) {
+    public string sub normalize_dir_unix(string dir, string cwd = getcwd()) {
         # if the directory begins with a ".", prefix the cwd to the string
-        if (!absolute_path_unix($dir))
-            $dir = $cwd + "/" + $dir;
+        if (!absolute_path_unix(dir))
+            dir = cwd + "/" + dir;
 
         # substitute "/./" with "/" until all occurrences are gone
         while (True) {
-            my string $old = $dir;
-            $dir =~ s/\/\.\//\//g;
-            if ($old == $dir)
+            string old = dir;
+            dir =~ s/\/\.\//\//g;
+            if (old == dir)
                 break;
         }
-        
-        $dir =~ s/^\.\///;
-        $dir =~ s/\/\.$//;
-        
+
+        dir =~ s/^\.\///;
+        dir =~ s/\/\.$//;
+
         # change // -> /
-        $dir =~ s/\/\/+/\//g;
-        
+        dir =~ s/\/\/+/\//g;
+
         # separate into a list for eliminating occurences of ".."
-        my list $l = $dir.split("/");
-        
-        for (my int $i = 1; $i < $l.size(); ++$i) {
-            if ($l[$i] == "..") {
-                splice $l, $i - 1, 2;
-                $i -= 2;
+        list l = dir.split("/");
+
+        for (int i = 1; i < l.size(); ++i) {
+            if (l[i] == "..") {
+                splice l, i - 1, 2;
+                i -= 2;
             }
         }
-        
-        $dir = $l.join("/");
-        return $dir ? $dir : "/";
+
+        dir = l.join("/");
+        return dir ? dir : "/";
     }
 
     #! returns a normalized Windows path name (eliminates \c ".", \c "..", and \c "//")
     /** @par Example:
         @code
-my string $dir = normalize_dir_windows($dir, "c:\\qore"));
+string dir = normalize_dir_windows(dir, "c:\\qore"));
         @endcode
 
         For example, calling:
@@ -235,46 +239,46 @@ my string $dir = normalize_dir_windows($dir, "c:\\qore"));
         @param dir the directory name to normalize
         @return a normalized path name (eliminates \c ".", \c "..", and \c "\\")
      */
-    public string sub normalize_dir_windows(string $dir, string $cwd = getcwd()) {
+    public string sub normalize_dir_windows(string dir, string cwd = getcwd()) {
         # if the directory begins with a ".", prefix the cwd to the string
-        if (!absolute_path_windows($dir))
-            $dir = $cwd + "\\" + $dir;
+        if (!absolute_path_windows(dir))
+            dir = cwd + "\\" + dir;
 
         # substitute "\.\" with "\" until all occurrences are gone
         while (True) {
-            my string $old = $dir;
-            $dir =~ s/\\\.\\/\\/g;
-            if ($old == $dir)
+            string old = dir;
+            dir =~ s/\\\.\\/\\/g;
+            if (old == dir)
                 break;
         }
-        
-        $dir =~ s/^\.\\//;
-        $dir =~ s/\\\.$//;
+
+        dir =~ s/^\.\\//;
+        dir =~ s/\\\.$//;
 
         # change \\ -> \
-        $dir =~ s/\\\\+/\\/g;
+        dir =~ s/\\\\+/\\/g;
 
         # separate into a list for eliminating occurences of ".."
-        my list $l = $dir.split("\\");
+        list l = dir.split("\\");
 
-        for (my int $i = 1; $i < $l.size(); ++$i) {
-            if ($l[$i] == "..") {
-                splice $l, $i - 1, 2;
-                $i -= 2;
+        for (int i = 1; i < l.size(); ++i) {
+            if (l[i] == "..") {
+                splice l, i - 1, 2;
+                i -= 2;
             }
         }
-        
-        $dir = $l.join("\\");
-        return $dir ? $dir : "\\";
+
+        dir = l.join("\\");
+        return dir ? dir : "\\";
     }
 
     #! returns @ref Qore::True "True" if the argument is an absolute path, @ref Qore::False "False" if not
     /** @par Example:
         @code
-my bool $abs = absolute_path($path);
+bool abs = absolute_path(path);
         @endcode
 
-        @param $path the path to check
+        @param path the path to check
 
         @return @ref Qore::True "True" if the argument is an absolute path, @ref Qore::False "False" if not
 
@@ -282,17 +286,17 @@ my bool $abs = absolute_path($path);
 
         @note this function has been moved to the %Qore library and is reexported here for backwards-compatibility
      */
-    public bool sub absolute_path(string $path) {
-        return Qore::absolute_path($path);
+    public bool sub absolute_path(string path) {
+        return Qore::absolute_path(path);
     }
 
     #! returns @ref Qore::True "True" if the argument is a UNIX absolute path, @ref Qore::False "False" if not
     /** @par Example:
         @code
-my bool $abs = absolute_path_unix($path);
+bool abs = absolute_path_unix(path);
         @endcode
 
-        @param $path the path to check
+        @param path the path to check
 
         @return @ref Qore::True "True" if the argument is a UNIX absolute path, @ref Qore::False "False" if not
 
@@ -300,17 +304,17 @@ my bool $abs = absolute_path_unix($path);
 
         @note this function has been moved to the %Qore library and is reexported here for backwards-compatibility
      */
-    public bool sub absolute_path_unix(string $path) {
-        return Qore::absolute_path_unix($path);
+    public bool sub absolute_path_unix(string path) {
+        return Qore::absolute_path_unix(path);
     }
 
     #! returns @ref Qore::True "True" if the argument is a Windows absolute path, @ref Qore::False "False" if not
     /** @par Example:
         @code
-my bool $abs = absolute_path_windows($path);
+bool abs = absolute_path_windows(path);
         @endcode
 
-        @param $path the path to check
+        @param path the path to check
 
         @return @ref Qore::True "True" if the argument is a Windows absolute path, @ref Qore::False "False" if not
 
@@ -318,169 +322,169 @@ my bool $abs = absolute_path_windows($path);
 
         @note this function has been moved to the %Qore library and is reexported here for backwards-compatibility
      */
-    public bool sub absolute_path_windows(string $path) {        
-        return Qore::absolute_path_windows($path);
+    public bool sub absolute_path_windows(string path) {
+        return Qore::absolute_path_windows(path);
     }
 
     # private, non-exported function: tries to split a string into a list, respects parentheses and quotes
-    any sub try_split(string $arg) {
-        my list $l = ();
+    any sub try_split(string arg) {
+        list l = ();
 
-        my hash $bc;
-        my *string $quote;
-        my int $len = $arg.length();
-        my string $str;
-        for (my int $i = 0; $i < $len; ++$i) {
-            my string $c = $arg[$i];
-            if ($c == ",") {
-                if (!$quote && !$bc) {
-                    $l += parse_to_qore_value($str);
-                    $str = "";
+        hash bc;
+        *string quote;
+        int len = arg.length();
+        string str;
+        for (int i = 0; i < len; ++i) {
+            string c = arg[i];
+            if (c == ",") {
+                if (!quote && !bc) {
+                    l += parse_to_qore_value(str);
+                    str = "";
                     continue;
                 }
             }
-            else if ($c == '"' || $c == "'") {
-                if ($quote) {
-                    if ($c == $quote)
-                        delete $quote;
+            else if (c == '"' || c == "'") {
+                if (quote) {
+                    if (c == quote)
+                        delete quote;
                 }
                 else
-                    $quote = $c;
+                    quote = c;
             }
-            else if (!$quote) {
-                if (inlist($c, ("{","(","["))) {
-                    ++$bc.$c;
+            else if (!quote) {
+                if (inlist(c, ("{","(","["))) {
+                    ++bc{c};
                 }
-                else if (inlist($c, ("}",")","]"))) {
-                    if ($bc.$c && !--$bc.$c)
-                        delete $bc.$c;
+                else if (inlist(c, ("}",")","]"))) {
+                    if (bc{c} && !--bc{c})
+                        delete bc{c};
                 }
             }
-            $str += $c;
+            str += c;
         }
-        #printf("trySplit() str=%y l=%y\n", $str, $l);
-        if (!$l)
-            return $arg;
+        #printf("trySplit() str=%y l=%y\n", str, l);
+        if (!l)
+            return arg;
 
-        $l += $str;
-        return $l;
+        l += str;
+        return l;
     }
 
     # private, non-exported function: tries to evaluate the argument as a Qore expression/value
-    hash sub eval_text(string $arg, bool $err = False) {
+    hash sub eval_text(string arg, bool err = False) {
         # try to evaluate as a Qore expression
-        my string $str = sprintf("any sub get() { return %s; }", $arg);
+        string str = sprintf("any sub get() { return %s; }", arg);
         # use a sandboxed Program object
-        my Program $prog(PO_LOCKDOWN);
+        Program prog(PO_LOCKDOWN);
         try {
-            $prog.parse($str, "main");
-            my any $rv = $prog.callFunction("get");
-            #printf("DEBUG: no exception, rv=%y\nstr=%s\n", $rv, $rv, $str);
+            prog.parse(str, "main");
+            any rv = prog.callFunction("get");
+            #printf("DEBUG: no exception, rv=%y\nstr=%s\n", rv, rv, str);
             # if it's a float, then return a string to preseve formatting
-            if ($rv.typeCode() != NT_FLOAT && $rv.val())
-                return ("valid": True, "value": $rv);
+            if (rv.typeCode() != NT_FLOAT && rv.val())
+                return ("valid": True, "value": rv);
         }
-        catch (hash $ex) {
-            if ($err)
-                throw "EVAL-ERROR", sprintf("error in EVAL cmd: %s: %s (arg: %s)\n", $ex.err, $ex.desc, $arg);
+        catch (hash ex) {
+            if (err)
+                throw "EVAL-ERROR", sprintf("error in EVAL cmd: %s: %s (arg: %s)\n", ex.err, ex.desc, arg);
         }
-        
+
         return ("valid": False);
     }
-	
+
     #! tries to convert a string (such as an argument given from the command-line) to a Qore value
     /** This method recognizes two special prefixes in the string:
         - \c %STR= this prefix indicates that the rest of the string should be passed literally and not parsed
         - \c %EVAL= this prefix indicates that the rest of the string should be taken as a Qore expression and executed and the value returned
-        
+
         @param arg a string to convert to a Qore value
         @return the Qore value corresponding to the input string
     */
-    public any sub parse_to_qore_value(string $arg) {
-        if ($arg.empty())
+    public any sub parse_to_qore_value(string arg) {
+        if (arg.empty())
             return;
 
         # see if there is aprocessing cmd
-        if (my *list $pc = ($arg =~ x/^\%(STR|EVAL)=(.*)$/s)) {
-            if ($pc[0] == "STR")
-                return $pc[1];
+        if (*list pc = (arg =~ x/^\%(STR|EVAL)=(.*)$/s)) {
+            if (pc[0] == "STR")
+                return pc[1];
             else # must be EVAL
-                return eval_text($pc[1], True).value;
+                return eval_text(pc[1], True).value;
         }
 
         # see if it's an int
-        if (int($arg) == $arg) {
-            if (int($arg) >= 2147483648)
-                return $arg;
-            return int($arg);
+        if (int(arg) == arg) {
+            if (int(arg) >= 2147483648)
+                return arg;
+            return int(arg);
         }
-	    
-        if ($arg == "True")
+
+        if (arg == "True")
             return True;
-        if ($arg == "False")
+        if (arg == "False")
             return False;
-	    
+
         # see if it's a date/time value
-        if ($arg =~ /^[0-9]{4}-[0-9]{2}-[0-9]{2}([-T ][0-5][0-9]:[0-5][0-9](:[0-5][0-9](\.[0-9]+)))?/)
-            return date($arg);
-	    
+        if (arg =~ /^[0-9]{4}-[0-9]{2}-[0-9]{2}([-T ][0-5][0-9]:[0-5][0-9](:[0-5][0-9](\.[0-9]+)))?/)
+            return date(arg);
+
         # see if it's a potential string value
-        if ($arg =~ /^[-_\.[:alnum:]]+$/)
-            return $arg;
-	    
+        if (arg =~ /^[-_\.[:alnum:]]+$/)
+            return arg;
+
         # see if it's a Qore expression
-        my hash $h = eval_text($arg);
-        if ($h.valid)
-            return $h.value;
-	    
+        hash h = eval_text(arg);
+        if (h.valid)
+            return h.value;
+
         # see if it's a string like "key=val,key=val[,...]", if so, return a hash
-        if ($arg =~ /^([^ ]+)[ \t]*=([^,]*)(,([^ ]+)[ \t]*=([^,]*))?/s) {
-            my list $l = split(",", $arg);
-		
+        if (arg =~ /^([^ ]+)[ \t]*=([^,]*)(,([^ ]+)[ \t]*=([^,]*))?/s) {
+            list l = split(",", arg);
+
             # coalesce each element without a "=" into the previous element
-            for (my int $i = 1; $i < $l.size(); ++$i) {
-                if ($l[$i] !~ /.+=.+/) {
+            for (int i = 1; i < l.size(); ++i) {
+                if (l[i] !~ /.+=.+/) {
                     # copy element
-                    my string $x = "," + $l[$i];
+                    string x = "," + l[i];
                     # remove from list
-                    splice $l, $i, 1;
+                    splice l, i, 1;
                     # append to previous string
-                    $l[$i - 1] += $x;
-                    --$i;
+                    l[i - 1] += x;
+                    --i;
                 }
             }
 
             # coalesce the first element into the second if there is no "="
-            if ($l[0] !~ /=/) {
+            if (l[0] !~ /=/) {
                 # copy element
-                my string $x = $l[0] + ",";
+                string x = l[0] + ",";
                 # remove from list
-                splice $l, 0, 1;
+                splice l, 0, 1;
                 # append to new initial element
-                $l[0] = $x + $l[0];
+                l[0] = x + l[0];
             }
-            
-            my hash $rh;
-            foreach my string $a in ($l) {
-                trim $a;
-                my (string $key, any $val) = ($a =~ x/^([^ =]+)[ \t]*=(.*)/gm);
-                $rh.$key = parse_to_qore_value($val);
+
+            hash rh;
+            foreach string a in (l) {
+                trim a;
+                my (string key, any val) = (a =~ x/^([^ =]+)[ \t]*=(.*)/gm);
+                rh{key} = parse_to_qore_value(val);
             }
-	
-            return $rh;
+
+            return rh;
         }
-	    
+
         # see if it's a list
-        if ($arg =~ /,/)
-            return try_split($arg);
-        
-        return $arg;
+        if (arg =~ /,/)
+            return try_split(arg);
+
+        return arg;
     }
 
     #! function that returns a random string
     /** @par Example:
         @code
-my string $pass = get_random_string();
+string pass = get_random_string();
         @endcode
 
         @param len the length fo the string returned
@@ -492,76 +496,76 @@ my string $pass = get_random_string();
 
         @return a random string of the given length containing only printable ASCII characters according to the \a level argument
     */
-    public string sub get_random_string(softint $len = 15, int $level = 3) {
-        my string $str;
-        if ($level < 1)
-            $level = 1;
-        else if ($level > 4)
-            $level = 4;
-        --$level;
-        $level = (26, 52, 62, 88)[$level];  # 15(77), 7(84), 4
+    public string sub get_random_string(softint len = 15, int level = 3) {
+        string str;
+        if (level < 1)
+            level = 1;
+        else if (level > 4)
+            level = 4;
+        --level;
+        level = (26, 52, 62, 88)[level];  # 15(77), 7(84), 4
         # do not seed the random number generator and use rand() as this requires PO_PROCESS_CONTROL permissions
         if (PlatformOS == "Windows") {
             # on windows, just use clock_getmicros() to generate a pseudo-random number
-            my int $start = (clock_getmicros() * 7621 + 1);
-            for (my int $i = 0; $i < $len; ++$i) {
-                my int $v = $start;
-                if ($i)
-                    $v += rand();
-                $v = $v.abs() % $level;
-                $str += ($v < 26 ? chr($v + ord("A")) : 
-                         ($v < 52 ? chr($v - 26 + ord("a")) : 
-                          ($v < 62 ? chr($v - 4) :
-                           ($v < 77 ? chr($v - 29) :
-                            ($v < 84 ? chr($v - 19) :
-                             chr($v + 39))))));
+            int start = (clock_getmicros() * 7621 + 1);
+            for (int i = 0; i < len; ++i) {
+                int v = start;
+                if (i)
+                    v += rand();
+                v = v.abs() % level;
+                str += (v < 26 ? chr(v + ord("A")) :
+                         (v < 52 ? chr(v - 26 + ord("a")) :
+                          (v < 62 ? chr(v - 4) :
+                           (v < 77 ? chr(v - 29) :
+                            (v < 84 ? chr(v - 19) :
+                             chr(v + 39))))));
             }
         }
         else {
-            my ReadOnlyFile $f("/dev/urandom");
-            for (my int $i = 0; $i < $len; ++$i) {
-                my int $v = $f.readi2().abs() % $level;
-                $str += ($v < 26 ? chr($v + ord("A")) : 
-                         ($v < 52 ? chr($v - 26 + ord("a")) : 
-                          ($v < 62 ? chr($v - 4) :
-                           ($v < 77 ? chr($v - 29) :
-                            ($v < 84 ? chr($v - 19) :
-                             chr($v + 39))))));
-            }            
+            ReadOnlyFile f("/dev/urandom");
+            for (int i = 0; i < len; ++i) {
+                int v = f.readi2().abs() % level;
+                str += (v < 26 ? chr(v + ord("A")) :
+                         (v < 52 ? chr(v - 26 + ord("a")) :
+                          (v < 62 ? chr(v - 4) :
+                           (v < 77 ? chr(v - 29) :
+                            (v < 84 ? chr(v - 19) :
+                             chr(v + 39))))));
+            }
         }
-        return $str;
+        return str;
     }
 
     #! returns a multi-line string from the exception hash argument suitable for logging or output on the console
     /** @param ex the exception hash to process
-        
+
         @return a multi-line string from the exception hash argument suitable for logging or output on the console
      */
-    public string sub get_exception_string(hash $ex) {
-        my string $str;
-        
+    public string sub get_exception_string(hash ex) {
+        string str;
+
         while (True) {
-            $str += sprintf("%s exception: %s: %s: %s%s\ncall stack:",
-                            $ex.type, get_ex_pos($ex), $ex.err, $ex.desc,
-                            $ex.arg ? sprintf(" (arg: %y)", $ex.arg) : "");
-            
-            if ($ex.callstack) {
-                foreach my hash $l in ($ex.callstack) {
-                    if ($l.type == "new-thread")
-                        $str += sprintf("\n  *** thread started by background operator ***");
-                    else if ($l.type == "rethrow")
-                        $str += sprintf("\n  *** RETHROW at %s", get_ex_pos($l));
+            str += sprintf("%s exception: %s: %s: %s%s\ncall stack:",
+                            ex.type, get_ex_pos(ex), ex.err, ex.desc,
+                            ex.arg ? sprintf(" (arg: %y)", ex.arg) : "");
+
+            if (ex.callstack) {
+                foreach hash l in (ex.callstack) {
+                    if (l.type == "new-thread")
+                        str += sprintf("\n  *** thread started by background operator ***");
+                    else if (l.type == "rethrow")
+                        str += sprintf("\n  *** RETHROW at %s", get_ex_pos(l));
                     else
-                        $str += sprintf("\n  %s() called at %s (%s function)", $l.function, get_ex_pos($l), $l.type);
+                        str += sprintf("\n  %s() called at %s (%s function)", l.function, get_ex_pos(l), l.type);
                 }
             }
-            
-            if (!$ex.next)
+
+            if (!ex.next)
                 break;
-            $ex = $ex.next;
-            $str += "\nchained exception:\n";
+            ex = ex.next;
+            str += "\nchained exception:\n";
         }
-        return $str;
+        return str;
     }
 
     #! storage names (Geop, which would normally follow Bronto, is excluded as the abbreviation would be GB/GiB)
@@ -570,66 +574,66 @@ my string $pass = get_random_string();
     #! returns a string giving a user-friendly real storage size (ie based on 1KiB = 1024 bytes) in KiB, MiB, GiB, TiB, etc for the given byte size
     /** @par Example:
         @code
-my string $str = get_byte_size($n);
+string str = get_byte_size(n);
         @endcode
 
         @param n the number to display
         @param decimals the number of digits after the decimal point
     */
-    public string sub get_byte_size(softnumber $n, int $decimals = 2) {
-        my string $k;
+    public string sub get_byte_size(softnumber n, int decimals = 2) {
+        string k;
 
-        my HashPairIterator $i($storage_sizes);
-        while ($i.next()) {
-            if ($n >= $i.getValue().value)
-                $k = $i.getValue().key;
+        HashPairIterator i(storage_sizes);
+        while (i.next()) {
+            if (n >= i.getValue().value)
+                k = i.getValue().key;
             else
                 break;
         }
 
-        my string $fmt = sprintf("%%.%df ", $decimals);
+        string fmt = sprintf("%%.%df ", decimals);
 
-        if (!$k)
-            return sprintf($fmt + "byte" + ($n == 1 ? "" : "s"), $n);
+        if (!k)
+            return sprintf(fmt + "byte" + (n == 1 ? "" : "s"), n);
 
-        $n /= $storage_sizes.$k;
-        my string $v = sprintf($fmt, $n);
-        $v =~ s/(\.)?0*$//;
+        n /= storage_sizes{k};
+        string v = sprintf(fmt, n);
+        v =~ s/(\.)?0*$//;
 
-        return $v + $k[0] + "iB";
+        return v + k[0] + "iB";
     }
 
     #! returns a string giving a user-friendly "marketing storage" size (ie based on 1KB = 1000 bytes) in KB, MB, GB, TB, etc for the given byte size
     /** @par Example:
         @code
-my string $str = get_marketing_byte_size($n);
+string str = get_marketing_byte_size(n);
         @endcode
 
         @param n the number to display
         @param decimals the number of digits after the decimal point
     */
-    public string sub get_marketing_byte_size(softnumber $n, int $decimals = 2) {
-        my string $k;
+    public string sub get_marketing_byte_size(softnumber n, int decimals = 2) {
+        string k;
 
-        my HashPairIterator $i($marketing_storage_sizes);
-        while ($i.next()) {
-            if ($n >= $i.getValue().value)
-                $k = $i.getValue().key;
+        HashPairIterator i(marketing_storage_sizes);
+        while (i.next()) {
+            if (n >= i.getValue().value)
+                k = i.getValue().key;
             else
                 break;
         }
 
-        my string $fmt = sprintf("%%.%df ", $decimals);
+        string fmt = sprintf("%%.%df ", decimals);
 
-        if (!$k)
-            return sprintf($fmt + "byte" + ($n == 1 ? "" : "s"), $n);
+        if (!k)
+            return sprintf(fmt + "byte" + (n == 1 ? "" : "s"), n);
 
-        $n /= $marketing_storage_sizes.$k;
-        my string $v = sprintf($fmt, $n);
+        n /= marketing_storage_sizes{k};
+        string v = sprintf(fmt, n);
         # remove trailing zeros
-        $v =~ s/(\.)?0*$//;
+        v =~ s/(\.)?0*$//;
 
-        return $v + $k[0] + "B";
+        return v + k[0] + "B";
     }
 
     #! checks whether given list has only uniq element
@@ -643,19 +647,19 @@ my string $str = get_marketing_byte_size($n);
         @param list some list
         @since 1.3
     */
-    public bool sub same(list $l) {
-        if ($l.size() < 2) {
+    public bool sub same(list l) {
+        if (l.size() < 2) {
             return True;
         }
-        my any $random_value = $l[0];
-        for (my int $i = 1; $i < $l.size(); ++$i) {
-            if ($l[$i] != $random_value) {
+        any random_value = l[0];
+        for (int i = 1; i < l.size(); ++i) {
+            if (l[i] != random_value) {
                 return False;
             }
         }
         return True;
     }
-    
+
     #! list slice implementation
     /** @par Example:
         @code
@@ -666,29 +670,31 @@ my string $str = get_marketing_byte_size($n);
         @param list indices that should be sliced from the original list
         @since 1.3
     */
-    public list sub slice(list $l, softlist $indices) {
-        return map $l[$1], $indices, ($1 >= 0 && $1 < $l.size());
+    public list sub slice(list l, softlist indices) {
+        return map l[$1], indices, ($1 >= 0 && $1 < l.size());
     }
 
-    #! Returns path for temporary files
+    #! Returns a path for temporary files
     /** @par Example:
         @code
-my string $testfile = this.tmp_location() + '/test.txt';
+string testfile = tmp_location() + '/test.txt';
 # some processing
 unlink(testfile);
         @endcode
-        @throw TMP-ERROR unable to find the location of the temporary directory
+
+        @throw TMP-ERROR unable to find the location of the temporary directory; temporary directory is not writable
+
         @since 1.3
     */
     public string sub tmp_location() {
         # TODO: add support for other platforms
-        my *string $dir = $ENV.TMP ?* $ENV.TMPDIR ?* $ENV.TEMP;
-        if (!$dir)
-            $dir = PlatformOS == "Windows" ? "c::\\temp" : "/tmp";
+        *string dir = ENV.TMP ?* ENV.TMPDIR ?* ENV.TEMPDIR ?* ENV.TEMP;
+        if (!dir)
+            dir = PlatformOS == "Windows" ? "c::\\temp" : "/tmp";
 
-        if (!is_writable($dir))
-            throw "TMP-ERROR", sprintf("unable to find the location of the temporary directory; %y is not writable", $dir);
+        if (!is_writable(dir))
+            throw "TMP-ERROR", sprintf("unable to find the location of the temporary directory; %y is not writable", dir);
 
-        return realpath($dir);
+        return realpath(dir);
     }
 }
