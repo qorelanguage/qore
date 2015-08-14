@@ -68,7 +68,7 @@ module Schema {
 
     @section schema_relnotes Schema Module Release History
 
-    @subsection schema_v1.1 Schema Module v1.1
+    @subsection schema_v1_1 Schema Module v1.1
     - fixed @ref Schema::AbstractSchema::combineOptions() "AbstractSchema::combineOptions()" to accept NOTHING as well as a valid option hash
     - fixed a bug with <i>"insert-only reference data"</i> with the verbose option; the upsert strategy was changed to \c UpsertSelectFirst which means that insert-only reference data could also be updated
     - added the following public functions:
@@ -78,7 +78,7 @@ module Schema {
       - Schema::c_timestamp()
       - Schema::c_varchar()
 
-    @subsection schema_v1.0 Schema Module v1.0
+    @subsection schema_v1_0 Schema Module v1.0
     - initial release
 */
 
