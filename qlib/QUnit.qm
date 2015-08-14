@@ -278,10 +278,10 @@ public class QUnit::TestCase {
             on_exit restoreThread();
             # User code setup
             test.setUp();
+            # User code cleanup
+            on_exit test.tearDown();
             # Main test routine
             call_function_args(m_code, m_args);
-            # User code cleanup
-            test.tearDown();
             # Test success
             test.addTestResult(self, TestReporter::TEST_SUCCESS);
         }
