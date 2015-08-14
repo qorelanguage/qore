@@ -97,3 +97,6 @@ doxygen/lang/*.dox
 
 # Darwin symbol dirs
 *.dSYM/
+
+# do not ignore the following directories (matched by patterns above)
+!examples/test/qore/
