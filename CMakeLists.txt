@@ -145,7 +145,8 @@ set(QPP_SRC_LIB
 )
 
 # qore interpreter
-set(CPP_SRC single-compilation-unit.cpp)
+set(QORE_CPP_SRC qore-single-compilation-unit.cpp)
+set(QR_CPP_SRC qr-single-compilation-unit.cpp)
 
 qore_find_pthreads()
 find_package(BISON REQUIRED)
@@ -212,8 +213,10 @@ target_include_directories(libqore PUBLIC ${BZIP2_INCLUDE_DIR} ${MPFR_INCLUDE_DI
 target_link_libraries(libqore Threads::Threads ${BZIP2_LIBRARIES} ${MPFR_LIBRARIES} ${OPENSSL_LIBRARIES} ${PCRE_LDFLAGS} ${ZLIB_LIBRARIES})
 set_property(TARGET libqore PROPERTY OUTPUT_NAME qore)
 
-add_executable(qore ${CPP_SRC})
+add_executable(qore ${QORE_CPP_SRC})
 target_link_libraries(qore libqore)
+add_executable(qr ${QR_CPP_SRC})
+target_link_libraries(qr libqore)
 
 configure_file(${CMAKE_SOURCE_DIR}/cmake/unix-config.h.cmake
                ${CMAKE_BINARY_DIR}/include/qore/intern/unix-config.h)
@@ -228,7 +231,7 @@ configure_file(${CMAKE_SOURCE_DIR}/qore.pc.in
 
 install(PROGRAMS doxygen/qdx
         DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
-install(TARGETS qore qpp libqore
+install(TARGETS qore qpp qr libqore
 	RUNTIME DESTINATION ${CMAKE_INSTALL_FULL_BINDIR}
 	LIBRARY DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR})
 install(FILES ${CMAKE_BINARY_DIR}/cmake/QoreConfig.cmake ${CMAKE_BINARY_DIR}/cmake/QoreConfigVersion.cmake cmake/QoreMacros.cmake
