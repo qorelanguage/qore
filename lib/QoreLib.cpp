@@ -116,12 +116,12 @@ QoreCommandLineLocation qoreCommandLineLocation;
 
 // for base64 encoding
 char table64[64] = {
-   'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 
-   'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 
-   'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 
-   'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 
-   'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 
-   'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 
+   'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
+   'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
+   'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
+   'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
+   'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
+   'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
    'w', 'x', 'y', 'z', '0', '1', '2', '3',
    '4', '5', '6', '7', '8', '9', '+', '/' };
 
@@ -544,7 +544,7 @@ static int process_opt(QoreString *cstr, char* param, const AbstractQoreNode* no
 	       *(f++) = '0';
 	    f += sprintf(f, "%d", width);
 	 }
-#ifdef _Q_WINDOWS 
+#ifdef _Q_WINDOWS
 	 *(f++) = 'I';
 	 *(f++) = '6';
 	 *(f++) = '4';
@@ -605,8 +605,8 @@ static int process_opt(QoreString *cstr, char* param, const AbstractQoreNode* no
       }
       case 'n':
       case 'N': {
-	 QoreNodeAsStringHelper t(node, *param == 'N' 
-				  ? (width == -1 ? FMT_NORMAL : width) 
+	 QoreNodeAsStringHelper t(node, *param == 'N'
+				  ? (width == -1 ? FMT_NORMAL : width)
 				  : FMT_NONE, xsink);
 	 tbuf.concat(*t, xsink);
 	 break;
@@ -781,7 +781,7 @@ BinaryNode* parseBase64(const char* buf, int len, ExceptionSink* xsink) {
 
       // low 4 bits from 2nd char become high 4 bits of next value
       b = (c & 15) << 4;
-      
+
       // get third 6 bits
       c = getBase64Value(buf, pos, false, xsink);
       if (xsink->isEvent()) {
@@ -1302,7 +1302,7 @@ const char* check_hash_key(const QoreHashNode* h, const char* key, const char* e
    const AbstractQoreNode* p = h->getKeyValue(key);
    if (is_nothing(p))
       return 0;
-   
+
    if (p->getType() != NT_STRING) {
       xsink->raiseException(err, "'%s' key is not type 'string' but is type '%s'", key, get_type_name(p));
       return 0;
@@ -1405,7 +1405,7 @@ QoreListNode* stat_to_list(const struct stat& sbuf) {
    // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
    l->push(new QoreBigIntNode((int64)sbuf.st_rdev));
    l->push(new QoreBigIntNode(sbuf.st_size));
-   
+
    l->push(DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_atime));
    l->push(DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_mtime));
    l->push(DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_ctime));
@@ -1431,7 +1431,7 @@ QoreHashNode* stat_to_hash(const struct stat& sbuf) {
    // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
    h->setKeyValue("rdev",    new QoreBigIntNode((int64)sbuf.st_rdev), 0);
    h->setKeyValue("size",    new QoreBigIntNode(sbuf.st_size), 0);
-   
+
    h->setKeyValue("atime",   DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_atime), 0);
    h->setKeyValue("mtime",   DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_mtime), 0);
    h->setKeyValue("ctime",   DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_ctime), 0);
@@ -1480,7 +1480,7 @@ void qore_machine_backtrace() {
    void *array[_QORE_BT_SIZE];
    // get void*'s for all entries on the stack
    size_t size = backtrace(array, _QORE_BT_SIZE);
-   
+
    // print out all the frames to stderr
    backtrace_symbols_fd(array, size, 2);
 }
@@ -1502,13 +1502,13 @@ int qore_usleep(int64 usecs) {
 #ifdef HAVE_NANOSLEEP
    return qore_nanosleep(usecs * 1000);
 #else
-#ifdef _Q_WINDOWS 
-   LARGE_INTEGER ft; 
+#ifdef _Q_WINDOWS
+   LARGE_INTEGER ft;
    ft.QuadPart = -(10 * usecs); // Convert to 100 nanosecond interval, negative value indicates relative time
 
-   HANDLE timer = CreateWaitableTimer(0, TRUE, 0); 
-   SetWaitableTimer(timer, &ft, 0, 0, 0, 0); 
-   WaitForSingleObject(timer, INFINITE); 
+   HANDLE timer = CreateWaitableTimer(0, TRUE, 0);
+   SetWaitableTimer(timer, &ft, 0, 0, 0, 0);
+   WaitForSingleObject(timer, INFINITE);
    CloseHandle(timer);
    return 0;
 #else
@@ -1518,9 +1518,7 @@ int qore_usleep(int64 usecs) {
 }
 
 bool q_path_is_readable(const char* path) {
-#ifdef HAVE_ACCESS
-   return !access(path, R_OK);
-#elif defined HAVE_PWD_H
+#if defined HAVE_PWD_H
    struct stat sbuf;
    int rc;
 
@@ -1534,8 +1532,10 @@ bool q_path_is_readable(const char* path) {
       return true;
 
    return false;
+#elif define(HAVE_ACCESS) && defined(_Q_WINDOWS)
+   // only use access(2) on Windows
+   return !access(path, R_OK);
 #else
-   // FIXME: implement properly for windows
    // check if it's a directory
    struct stat sbuf;
    int rc;
@@ -1722,7 +1722,7 @@ char* strcasestr(const char* s1, const char* s2) {
    size_t len2 = strlen(s2);
    if (len2 > len1)
       return 0;
- 
+
    for (size_t i = 0, end = len1 - len2; i <= end; ++i) {
       if (!strncasecmp(s2, s1 + i, len2)) {
 	 return ((char*)s1 + i);
@@ -1813,7 +1813,7 @@ int q_getcwd(QoreString& cwd) {
 
 int q_get_mode(const QoreString& path) {
    struct stat sbuf;
-   
+
    if (stat(path.getBuffer(), &sbuf))
       return 0;
 

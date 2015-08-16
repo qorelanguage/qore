@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   ql_file.qpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -60,38 +60,39 @@ static bool check_stat(unsigned code, const QoreString& path) {
 static bool check_lstat(unsigned code, const QoreString& path) {
    struct stat sbuf;
    int rc;
-   
+
    if ((rc = lstat(path.getBuffer(), &sbuf)))
       return false;
-   
+
    return (sbuf.st_mode & S_IFMT) == code;
 }
 #endif
 
 static bool is_writable_intern(const QoreStringNode* path) {
-#ifdef HAVE_ACCESS
-   // solution for situation like:
+#if defined HAVE_PWD_H
+   // does not cover situations like:
    // $ id
    // uid=5920(user1) gid=6183(group1) groups=6003(group2),6183(group3)
    // $ ls -la /foo/bar/
    // drwxrwsr-x 2  5921 group2 4096 Aug  7 14:37 .
    // where 6183(group1) is an effective group etc so geteuid() != dir group
-   return access(path->getBuffer(), W_OK) == 0;
 
-#elif defined HAVE_PWD_H
    struct stat sbuf;
    int rc;
-   
+
    if ((rc = stat(path->getBuffer(), &sbuf)))
       return false;
-   
+
    uid_t euid = geteuid();
-   if (!euid || sbuf.st_mode & S_IWOTH 
-       || (euid      == sbuf.st_uid && (sbuf.st_mode & S_IWUSR)) 
+   if (!euid || sbuf.st_mode & S_IWOTH
+       || (euid      == sbuf.st_uid && (sbuf.st_mode & S_IWUSR))
        || (getegid() == sbuf.st_gid && (sbuf.st_mode & S_IWGRP)))
       return true;
-   
+
    return false;
+#elif defined(HAVE_ACCESS) && defined(_Q_WINDOWS)
+   // only use access(2) on Windows
+   return access(path->getBuffer(), W_OK) == 0;
 #elif defined _Q_WINDOWS
    int ftype = q_get_mode(*path) & S_IFMT;
    if (ftype & S_ISDIR) {
@@ -110,7 +111,6 @@ static bool is_writable_intern(const QoreStringNode* path) {
       close(rc);
       return true;
    }
-#else
 #error no is_writable() implementation for this platform
 #endif
 }
@@ -282,14 +282,14 @@ my bool $b = is_dev("/tmp/scanner");
 bool is_dev(string path) [flags=CONSTANT;dom=FILESYSTEM] {
    struct stat sbuf;
    int rc;
-   
+
 #ifdef HAVE_LSTAT
    if ((rc = lstat(path->getBuffer(), &sbuf)))
 #else
    if ((rc = stat(path->getBuffer(), &sbuf)))
 #endif
       return false;
-   
+
    return ((sbuf.st_mode & S_IFMT) == S_IFCHR) || ((sbuf.st_mode & S_IFMT) == S_IFBLK);
 }
 
@@ -316,7 +316,7 @@ bool is_link(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 }
 
 //! Returns @ref True if the string passed identifies a file readable by the current user, @ref False if not
-/** 
+/**
     @param path the path to check
 
     @return @ref True if the string passed identifies a file readable by the current user, @ref False if not
@@ -333,7 +333,7 @@ bool is_readable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 }
 
 //! Returns @ref True if the string passed identifies a file writable by the current user, @ref False if not
-/** 
+/**
     @param path the path to check
 
     @return @ref True if the string passed identifies a file writable by the current user, @ref False if not
@@ -350,7 +350,7 @@ bool is_writable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 }
 
 //! Returns @ref True if the string passed identifies a file writable by the current user (backwards-compatible misspelling of is_writable())
-/** 
+/**
     @param path the path to check
 
     @return @ref True if the string passed identifies a file writable by the current user, @ref False if not
@@ -383,15 +383,15 @@ bool is_executable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 #ifdef HAVE_PWD_H
    struct stat sbuf;
    int rc;
-   
+
    if ((rc = stat(path->getBuffer(), &sbuf)))
       return 0;
-   
-   if (sbuf.st_mode & S_IXOTH 
-       || (geteuid() == sbuf.st_uid && (sbuf.st_mode & S_IXUSR)) 
+
+   if (sbuf.st_mode & S_IXOTH
+       || (geteuid() == sbuf.st_uid && (sbuf.st_mode & S_IXUSR))
        || (getegid() == sbuf.st_gid && (sbuf.st_mode & S_IXGRP)))
       return true;
-   
+
    return false;
 #else
    missing_function_error("is_executable", xsink);
@@ -453,7 +453,7 @@ my *hash $h = statvfs("/tmp")
    struct statvfs vfs;
    if (statvfs(path->getBuffer(), &vfs))
       return 0;
-   
+
    return statvfs_to_hash(vfs);
 #else
    missing_function_error("statvfs", xsink);
@@ -486,7 +486,7 @@ if (!exists $l)
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing stat() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
 }
@@ -521,7 +521,7 @@ if (!exists $l)
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing lstat() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
 }
@@ -551,7 +551,7 @@ if (!exists $h)
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing hstat() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
 }
@@ -585,13 +585,13 @@ if (!exists $h)
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing hlstat() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
 }
 
 //! Returns a list of files matching the string argument or @ref nothing if the call to glob() fails
-/** 
+/**
     @param glob_str the glob string, containing an optional path (in which case the entire path must be readable) and a glob filename pattern
 
     @return a list of files matching the string argument or @ref nothing if the call to glob() fails, in which case errno() can be used to get the error
@@ -613,13 +613,13 @@ if (!exists $gl)
    QoreListNode *l = new QoreListNode;
    for (unsigned i = 0; i < globbuf.gl_pathc; ++i)
       l->push(new QoreStringNode(globbuf.gl_pathv[i]));
-   
+
    globfree(&globbuf);
    return l;
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing glob() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
 }
@@ -642,7 +642,7 @@ int unlink(string path) [dom=FILESYSTEM] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing unlink() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
 }
@@ -663,7 +663,7 @@ int umask(softint mask) [dom=PROCESS] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing umask() [flags=RUNTIME_NOOP;dom=PROCESS] {
 }
@@ -722,9 +722,9 @@ int chmod(string path, softint mode) [dom=FILESYSTEM] {
 }
 
 //! Changes the current working directory for the current process
-/** 
+/**
     @param path the new working directory for the current process
-    
+
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
     @par Example:
@@ -755,7 +755,7 @@ my *string $cwd = getcwd();
 }
 
 //! Returns a string giving the current working directory; throws an exception if the current directory cannot be read
-/** 
+/**
     @par Example:
     @code
 my string $cwd = getcwd2();
