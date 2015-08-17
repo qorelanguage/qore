@@ -1532,7 +1532,7 @@ bool q_path_is_readable(const char* path) {
       return true;
 
    return false;
-#elif define(HAVE_ACCESS) && defined(_Q_WINDOWS)
+#elif defined(HAVE_ACCESS) && defined(_Q_WINDOWS)
    // only use access(2) on Windows
    return !access(path, R_OK);
 #else
