@@ -169,7 +169,7 @@ void QoreSignalManager::reload() {
 void QoreSignalManager::stop_signal_thread_unlocked() {
    QORE_TRACE("QoreSignalManager::stop_signal_thread_unlocked()");
 
-   printd(5, "QoreSignalManager::stop_signal_thread_unlocked() pid=%d, thread_running=%d\n", getpid(), thread_running);
+   printd(5, "QoreSignalManager::stop_signal_thread_unlocked() pid: %d, thread_running: %d\n", getpid(), thread_running);
 
    cmd = C_Exit;
    if (thread_running) {
@@ -214,7 +214,7 @@ void QoreSignalManager::pre_fork_block_and_stop() {
    sl.unlock();
    tcount.waitForZero();
 
-   printd(5, "QoreSignalManager::pre_fork_block_and_stop() pid=%d signal handling thread stopped\n", getpid());
+   printd(5, "QoreSignalManager::pre_fork_block_and_stop() pid: %d signal handling thread stopped\n", getpid());
 }
 
 void QoreSignalManager::post_fork_unblock_and_start(bool new_process, ExceptionSink *xsink) {
@@ -235,7 +235,7 @@ void QoreSignalManager::post_fork_unblock_and_start(bool new_process, ExceptionS
       return;
    }
 
-   printd(5, "QoreSignalManager::post_fork_unblock_and_start() pid=%d, new_process=%d, starting signal thread\n", getpid(), new_process);
+   printd(5, "QoreSignalManager::post_fork_unblock_and_start() pid: %d, new_process: %d, starting signal thread\n", getpid(), new_process);
 
    AutoLocker al(mutex);
    start_signal_thread(xsink);
@@ -244,7 +244,7 @@ void QoreSignalManager::post_fork_unblock_and_start(bool new_process, ExceptionS
 void QoreSignalManager::signal_handler_thread() {
    register_thread(tid, ptid, 0);
 
-   printd(5, "QoreSignalManager::signal_handler_thread() pid=%d, signal handler thread started (TID %d) &ptid=%p\n", getpid(), tid, &ptid);
+   printd(5, "QoreSignalManager::signal_handler_thread() pid: %d, signal handler thread started (TID %d) &ptid: %p\n", getpid(), tid, &ptid);
 
    sigset_t c_mask;
    int sig;
@@ -308,11 +308,11 @@ void QoreSignalManager::signal_handler_thread() {
 	 // reacquire lock to check command and handler status
 	 sl.lock();
 
-	 //printd(5, "sigwait() sig=%d (cmd=%d)\n", sig, cmd);
+	 //printd(5, "sigwait() sig: %d (cmd: %d)\n", sig, cmd);
 	 if (sig == QORE_STATUS_SIGNAL && cmd != C_None)
 	    continue;
 
-	 //printd(5, "signal %d received (handler=%d)\n", sig, handlers[sig].isSet());
+	 //printd(5, "signal %d received (handler: %d)\n", sig, handlers[sig].isSet());
 	 if (!handlers[sig].isSet())
 	    continue;
 
@@ -355,7 +355,7 @@ void QoreSignalManager::signal_handler_thread() {
 
 #ifdef DEBUG
 	 if (handlers[sig].status != QoreSignalHandler::SH_Delete)
-	    printd(0, "error: status=%d (sig=%d)\n", handlers[sig].status, sig);
+	    printd(0, "error: status: %d (sig: %d)\n", handlers[sig].status, sig);
 #endif
 	 assert(handlers[sig].status == QoreSignalHandler::SH_Delete);
 	 CodePgm old = handlers[sig].take();
@@ -372,7 +372,7 @@ void QoreSignalManager::signal_handler_thread() {
       sl.unlock();
    }
 
-   printd(5, "QoreSignalManager::signal_handler_thread() pid=%d signal handler thread terminating\n", getpid());
+   printd(5, "QoreSignalManager::signal_handler_thread() pid: %d signal handler thread terminating\n", getpid());
 
    // delete internal thread data structure
    delete_signal_thread();
@@ -382,7 +382,7 @@ void QoreSignalManager::signal_handler_thread() {
 
    tcount.dec();
 
-   //fprintf(stderr, "signal handler thread stopped (count=%d) &ptid=%p\n", tcount.getCount(), &ptid);fflush(stderr);
+   //fprintf(stderr, "signal handler thread stopped (count: %d) &ptid: %p\n", tcount.getCount(), &ptid);fflush(stderr);
    pthread_exit(0);
 }
 
@@ -392,7 +392,7 @@ extern "C" void *sig_thread(void *x) {
 }
 
 int QoreSignalManager::start_signal_thread(ExceptionSink *xsink) {
-   printd(5, "QoreSignalManager::start_signal_thread() pid=%d, start_signal_thread() called\n", getpid());
+   printd(5, "QoreSignalManager::start_signal_thread() pid: %d, start_signal_thread() called\n", getpid());
    tid = get_signal_thread_entry();
    assert(!tid);
 
@@ -409,7 +409,7 @@ int QoreSignalManager::start_signal_thread(ExceptionSink *xsink) {
       thread_running = false;
    }
 
-   printd(5, "QoreSignalManager::start_signal_thread() pid=%d, rc=%d\n", getpid(), rc);
+   printd(5, "QoreSignalManager::start_signal_thread() pid: %d, rc: %d\n", getpid(), rc);
    return rc;
 }
 
@@ -444,7 +444,7 @@ int QoreSignalManager::setHandler(int sig, const ResolvedCallReferenceNode *fr, 
          if (!thread_running && start_signal_thread(xsink))
             return -1;
 
-         //printd(5, "setting handler for signal %d, pgm=%p\n", sig, pgm);
+         //printd(5, "setting handler for signal %d, pgm: %p\n", sig, pgm);
          qore_program_private::addSignal(*pgm, sig);
          handlers[sig].set(fr, pgm);
          ++num_handlers;
