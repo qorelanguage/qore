@@ -124,6 +124,7 @@ TESTSCRIPTS= \
 	examples/test/qore/operators/operators.qtest \
 	examples/test/qore/operators/value_coalescing.qtest \
 	examples/test/qore/stack/call-stack-overflow-exception.qtest \
+	examples/test/qore/stack/exception-location.qtest \
 	examples/test/qore/threads/background.qtest \
 	examples/test/qore/threads/deadlock.qtest \
 	examples/test/qore/threads/max-threads-count.qtest \

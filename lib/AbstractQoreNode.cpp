@@ -122,7 +122,7 @@ void AbstractQoreNode::deref(ExceptionSink* xsink) {
       assert(is_unique());
       return;
    }
-   
+
    if (custom_reference_handlers) {
       customDeref(xsink);
    }
@@ -142,7 +142,6 @@ QoreValue AbstractQoreNode::evalValue(ExceptionSink* xsink) const {
       return v.takeReferencedValue();
    }
 
-   QoreProgramLocationHelper qplh;
    return evalImpl(xsink);
 }
 
@@ -158,7 +157,6 @@ QoreValue AbstractQoreNode::evalValue(bool& needs_deref, ExceptionSink* xsink) c
       return v.takeValue(needs_deref);
    }
 
-   QoreProgramLocationHelper qplh;
    return evalImpl(needs_deref, xsink);
 }
 
@@ -166,7 +164,6 @@ QoreValue AbstractQoreNode::evalValue(bool& needs_deref, ExceptionSink* xsink) c
 AbstractQoreNode* AbstractQoreNode::eval(ExceptionSink* xsink) const {
    if (!needs_eval_flag)
       return refSelf();
-   QoreProgramLocationHelper qplh;
    return evalImpl(xsink);
 }
 
@@ -177,7 +174,6 @@ AbstractQoreNode* AbstractQoreNode::eval(bool &needs_deref, ExceptionSink* xsink
       return const_cast<AbstractQoreNode*>(this);
    }
 
-   QoreProgramLocationHelper qplh;
    return evalImpl(needs_deref, xsink);
 }
 
@@ -536,7 +532,7 @@ void SimpleQoreNode::deref() {
    }
 
    if (ROdereference())
-      delete this;   
+      delete this;
 }
 
 AbstractQoreNode* SimpleValueQoreNode::evalImpl(ExceptionSink* xsink) const {

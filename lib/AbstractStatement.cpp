@@ -41,8 +41,8 @@ AbstractStatement::AbstractStatement(int sline, int eline) : loc(sline, eline) {
 }
 
 int AbstractStatement::exec(AbstractQoreNode **return_value, ExceptionSink *xsink) {
-   printd(1, "AbstractStatement::exec() this: %p type: %s file: %s line: %d\n", this, typeid(this).name(), loc.file, loc.start_line);
-   update_runtime_location(loc);
+   printd(1, "AbstractStatement::exec() this: %p file: %s line: %d\n", this, loc.file, loc.start_line);
+   QoreProgramLocationHelper l(loc);
 
 #ifdef QORE_MANAGE_STACK
    if (check_stack(xsink))
@@ -63,4 +63,3 @@ int AbstractStatement::parseInit(LocalVar *oflag, int pflag) {
    update_parse_location(loc);
    return parseInitImpl(oflag, pflag);
 }
-

@@ -1,0 +1,37 @@
+#!/usr/bin/env qr
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%exec-class Test
+
+%requires ../../../../qlib/QUnit.qm
+
+%require-types
+%require-our
+%enable-all-warnings
+
+class Test inherits QUnit::Test {
+    constructor() : QUnit::Test("exception-location", "1.0") {
+        addTestCase("exception-location-1", \loc1());
+        set_return_value(main());
+    }
+
+    loc1() {
+        *int line;
+        try {
+            hash h = do_loc1();
+            delete h;
+        }
+        catch (hash ex) {
+            line = ex.line;
+        }
+
+        testAssertionValue("runtime-location-1", line, 21);
+    }
+
+    static *hash do_loc1() {
+        return Test::do_loc1_1();
+    }
+
+    static *hash do_loc1_1() {
+    }
+}

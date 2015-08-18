@@ -126,7 +126,7 @@ public:
    }
    DLLLOCAL int pop() {
       int rc = stack[stack.size() - 1];
-      if (stack.size() > 1) 
+      if (stack.size() > 1)
 	 stack.pop_back();
       else
 	 stack[0] = 0;
@@ -318,7 +318,7 @@ public:
 
    // parse-time block return type
    const QoreTypeInfo* parse_return_type_info;
-   
+
    // current implicit element offset
    int element;
 
@@ -346,7 +346,7 @@ public:
 
    // AbstractQoreModule* with boolean ptr in bit 0
    uintptr_t qmi;
-   
+
    bool
    foreign : 1; // true if the thread is a foreign thread
 
@@ -355,10 +355,10 @@ public:
       parse_code(0), parseState(0), vstack(0), cvarstack(0),
       parseClass(0), catchException(0), trlist(new ThreadResourceList), current_code(0),
       current_pgm(p), current_ns(0), current_implicit_arg(0), tlpd(0), tpd(new ThreadProgramData(this)),
-      closure_parse_env(0), closure_rt_env(0), 
+      closure_parse_env(0), closure_rt_env(0),
       returnTypeInfo(0), parse_return_type_info(0), element(0), global_vnode(0), pcs(0),
       qmc(0), qmd(0), user_module_context_name(0), qmi(0), foreign(n_foreign) {
- 
+
 #ifdef QORE_MANAGE_STACK
 
 #ifdef STACK_DIRECTION_DOWN
@@ -391,7 +391,7 @@ public:
       }
       tm.purge();
    }
-   
+
    DLLLOCAL int getElement() {
       return element;
    }
@@ -519,7 +519,7 @@ void ThreadProgramData::del(ExceptionSink* xsink) {
          pgm_set_t::iterator i = pgm_set.begin();
          if (i == pgm_set.end())
             break;
-         
+
          pgm = (*i);
          pgm_set.erase(i);
       }
@@ -545,12 +545,12 @@ public:
    AbstractQoreNode* fc;
    int tid;
    QoreProgram* pgm;
-   
+
    DLLLOCAL ThreadParams(AbstractQoreNode* f, int t) {
-      fc = f; 
+      fc = f;
       tid = t;
       pgm = getProgram();
-   } 
+   }
 };
 
 // this constructor must only be called with the QoreThreadList lock held
@@ -592,7 +592,7 @@ public:
    int tid;
    QoreProgramLocation loc;
    bool registered, started;
-   
+
    DLLLOCAL BGThreadParams(AbstractQoreNode* f, int t, ExceptionSink* xsink)
       : callobj((thread_data.get())->current_classobj), obj(0),
         fc(f), pgm(getProgram()), tid(t), loc(RunTimeLocation), registered(false), started(false) {
@@ -605,7 +605,7 @@ public:
       }
 
       registered = true;
-      
+
       qore_type_t fctype = fc->getType();
       if (fctype == NT_SELF_CALL) {
 	 // must have a current object if an in-object method call is being executed
@@ -649,10 +649,10 @@ public:
       }
       else if (registered)
          qore_program_private::cancelPreregistration(*pgm);
-      
+
       delete this;
    }
-   
+
    DLLLOCAL void startThread(ExceptionSink& xsink) {
       // register the new tid
       qore_program_private::registerNewThread(*pgm, tid);
@@ -664,17 +664,17 @@ public:
       //printd(5, "BGThreadParams::startThread() this: %p pgm: %p\n", this, pgm);
       pgm->depRef();
    }
-   
+
    DLLLOCAL QoreObject* getCallObject() {
       return obj ? obj : callobj.getObj();
    }
-   
+
    DLLLOCAL void cleanup(ExceptionSink* xsink) {
       if (fc) fc->deref(xsink);
       derefObj(xsink);
       derefCallObj();
    }
-   
+
    DLLLOCAL void derefCallObj() {
       // dereference call object if present
       QoreObject* o = callobj.getObj();
@@ -689,7 +689,7 @@ public:
 	 obj = 0;
       }
    }
-   
+
    DLLLOCAL AbstractQoreNode* exec(ExceptionSink* xsink) {
       //printd(5, "BGThreadParams::exec() this: %p fc: %p (%s %d)\n", this, fc, fc->getTypeName(), fc->getType());
       AbstractQoreNode* rv = fc->eval(xsink);
@@ -767,7 +767,7 @@ int check_stack(ExceptionSink* xsink) {
       xsink->raiseException("STACK-LIMIT-EXCEEDED", "this thread's stack has exceeded the stack size limit (%ld bytes)", qore_thread_stack_limit);
       return -1;
    }
-   
+
    return 0;
 }
 #endif
@@ -804,7 +804,7 @@ int thread_push_container(const AbstractQoreNode* n) {
 
 void thread_pop_container(const AbstractQoreNode* n) {
    ThreadData* td = thread_data.get();
-   
+
    const_node_set_t::iterator i = td->node_set.find(n);
    assert(i != td->node_set.end());
    td->node_set.erase(i);
@@ -997,7 +997,7 @@ void advanceOnBlockExit() {
 void beginParsing(const char* file, void* ps, const char* src, int offset) {
    ThreadData* td = thread_data.get();
    //printd(5, "beginParsing() td: %p of %p (%s), (stack: %s) src: %s:%d\n", td, file, file ? file : "(null)", (td->plStack ? td->plStack->file : "n/a"), src ? src : "(null)", offset);
-   
+
    // store current position
    ProgramParseContext* pl = new ProgramParseContext(td->parse_loc.file, td->parseState, td->parse_loc.source, td->parse_loc.offset, td->pcs, td->plStack);
    td->plStack = pl;
@@ -1019,10 +1019,10 @@ void* endParsing() {
 
    // ensure there are no conditional blocks left open at EOF
    td->endFileParsing();
-   
+
    assert(td->plStack);
    assert(!td->pcs);
-   
+
    ProgramParseContext* pl = td->plStack->next;
    //printd(5, "endParsing() td: %p ending parsing of '%s', returning %p, setting file: %p '%s'\n", td, td->parse_file, rv, td->plStack->file, td->plStack->file);
 
@@ -1033,7 +1033,7 @@ void* endParsing() {
    td->pcs              = td->plStack->pcs;
    delete td->plStack;
    td->plStack = pl;
-   
+
    return rv;
 }
 
@@ -1062,6 +1062,12 @@ void update_context_stack(Context* cstack) {
 
 QoreProgramLocation get_runtime_location() {
    return thread_data.get()->runtime_loc;
+}
+
+QoreProgramLocation update_get_runtime_location(const QoreProgramLocation& loc) {
+   QoreProgramLocation rv = thread_data.get()->runtime_loc;
+   thread_data.get()->runtime_loc = loc;
+   return rv;
 }
 
 void update_runtime_location(const QoreProgramLocation& loc) {
@@ -1254,7 +1260,7 @@ const char* set_user_module_context_name(const char* n) {
    ThreadData* td = thread_data.get();
    const char* rv = td->user_module_context_name;
    td->user_module_context_name = n;
-   return rv;   
+   return rv;
 }
 
 const char* get_user_module_context_name() {
@@ -1499,13 +1505,13 @@ ProgramRuntimeParseCommitContextHelper::~ProgramRuntimeParseCommitContextHelper(
 ProgramRuntimeParseContextHelper::ProgramRuntimeParseContextHelper(ExceptionSink* xsink, QoreProgram* pgm) : restore(false) {
    if (!pgm)
       return;
-   
+
    // attach to and lock program for parsing
    if (qore_program_private::lockParsing(*pgm, xsink))
       return;
 
    restore = true;
-   
+
    ThreadData* td = thread_data.get();
    old_pgm = td->current_pgm;
    td->current_pgm = pgm;
@@ -1521,7 +1527,7 @@ ProgramRuntimeParseContextHelper::~ProgramRuntimeParseContextHelper() {
 }
 
 CurrentProgramRuntimeParseContextHelper::CurrentProgramRuntimeParseContextHelper() {
-   ThreadData* td = thread_data.get();   
+   ThreadData* td = thread_data.get();
    // attach to and lock current program for parsing - cannot fail with a running program
    qore_program_private::lockParsing(*td->current_pgm, 0);
 }
@@ -1536,7 +1542,7 @@ ProgramRuntimeParseAccessHelper::ProgramRuntimeParseAccessHelper(ExceptionSink* 
    if (pgm != td->current_pgm) {
       if (qore_program_private::incThreadCount(*pgm, xsink))
          return;
-      
+
       restore = true;
       old_pgm = td->current_pgm;
       td->current_pgm = pgm;
@@ -1826,7 +1832,7 @@ namespace {
 
          {
             ta->run(&xsink);
-            
+
             // delete any thread data
             thread_data.get()->del(&xsink);
 
@@ -1839,7 +1845,7 @@ namespace {
 
             // delete internal thread data structure and release TID entry
             thread_list.deleteDataRelease(ta->tid);
-            
+
             // run any cleanup functions
             tclist.exec();
 
@@ -1868,27 +1874,27 @@ namespace {
 
          // register thread in Program object
          btp->startThread(xsink);
-            
+
          {
             AbstractQoreNode* rv;
             {
                CodeContextHelper cch(0, btp->getCallObject(), &xsink);
-                  
+
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
                // push this call on the thread stack
                CallStackHelper csh("background operator", CT_NEWTHREAD, btp->getCallObject(), &xsink);
 #endif
-                  
+
                // dereference call object if present
                btp->derefCallObj();
-                  
+
                // run thread expression
                rv = btp->exec(&xsink);
-                  
+
                // if there is an object, we dereference the extra reference here
                btp->derefObj(&xsink);
             }
-               
+
             // dereference any return value from the background expression
             if (rv)
                rv->deref(&xsink);
@@ -1896,20 +1902,20 @@ namespace {
             int tid = btp->tid;
             // dereference current Program object
             btp->del(&xsink);
-               
+
             // delete any thread data
             thread_data.get()->del(&xsink);
-            
+
             // cleanup thread resources
             purge_thread_resources(&xsink);
-               
+
             xsink.handleExceptions();
-               
+
             printd(4, "thread terminating");
-               
+
             // delete internal thread data structure and release TID entry
             thread_list.deleteDataRelease(tid);
-               
+
             // run any cleanup functions
             tclist.exec();
          }
@@ -2107,7 +2113,7 @@ void delete_thread_local_data() {
    ExceptionSink xsink;
    // delete any thread data
    thread_data.get()->del(&xsink);
-   
+
    purge_thread_resources(&xsink);
    xsink.handleExceptions();
 }

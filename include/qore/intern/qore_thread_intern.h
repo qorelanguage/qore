@@ -107,7 +107,7 @@ class ModuleContextNamespaceList : public mcnl_t {
 private:
    // not implemented
    DLLLOCAL ModuleContextNamespaceList(const ModuleContextNamespaceList&);
-   
+
 public:
    DLLLOCAL ModuleContextNamespaceList() {
    }
@@ -134,7 +134,7 @@ class ModuleContextFunctionList : public mcfl_t {
 private:
    // not implemented
    DLLLOCAL ModuleContextFunctionList(const ModuleContextFunctionList&);
-   
+
 public:
    DLLLOCAL ModuleContextFunctionList() {
    }
@@ -224,7 +224,7 @@ public:
       assert(vmap.find("name") == vmap.end());
       vmap["name"] = name;
    }
-   
+
    DLLLOCAL QoreClosureParseNode* takeDel();
 };
 
@@ -238,6 +238,7 @@ DLLLOCAL Context* get_context_stack();
 DLLLOCAL void update_context_stack(Context* cstack);
 
 DLLLOCAL QoreProgramLocation get_runtime_location();
+DLLLOCAL QoreProgramLocation update_get_runtime_location(const QoreProgramLocation& loc);
 DLLLOCAL void update_runtime_location(const QoreProgramLocation& loc);
 
 DLLLOCAL void update_parse_line_location(int start_line, int end_line);
@@ -351,7 +352,7 @@ class ModuleReExportHelper {
 protected:
    QoreAbstractModule* m;
    bool reexport;
-   
+
 public:
    DLLLOCAL ModuleReExportHelper(QoreAbstractModule* mi, bool reexp);
    DLLLOCAL ~ModuleReExportHelper();
@@ -387,7 +388,7 @@ class QoreProgramLocationHelper {
 protected:
    QoreProgramLocation loc;
 public:
-   DLLLOCAL QoreProgramLocationHelper() : loc(get_runtime_location()) {
+   DLLLOCAL QoreProgramLocationHelper(QoreProgramLocation& n_loc) : loc(update_get_runtime_location(n_loc)) {
    }
 
    DLLLOCAL ~QoreProgramLocationHelper() {
@@ -444,7 +445,7 @@ public:
       qore_type_t t = n_n ? n_n->getType() : NT_NOTHING;
       if ((t == NT_LIST || t == NT_HASH || t == NT_OBJECT || t >= QORE_NUM_TYPES)) {
 	 if (!thread_push_container(n_n)) {
-	    n = n_n;	    
+	    n = n_n;
 	    err = false;
 	 }
 	 else {
@@ -616,7 +617,7 @@ private:
    const QoreClosureBase* prev;
 
 public:
-   DLLLOCAL ThreadSafeLocalVarRuntimeEnvironmentHelper(const QoreClosureBase* current);   
+   DLLLOCAL ThreadSafeLocalVarRuntimeEnvironmentHelper(const QoreClosureBase* current);
    DLLLOCAL ~ThreadSafeLocalVarRuntimeEnvironmentHelper();
 };
 
@@ -627,7 +628,7 @@ class ThreadSafeLocalVarRuntimeEnvironment {
 private:
    cvar_map_t cmap;
    cvv_set_t cvvset;
-   
+
 public:
    DLLLOCAL ThreadSafeLocalVarRuntimeEnvironment(const lvar_set_t* vlist);
    DLLLOCAL ~ThreadSafeLocalVarRuntimeEnvironment();
@@ -690,7 +691,7 @@ class ProgramRuntimeParseAccessHelper {
 protected:
    QoreProgram* old_pgm;
    bool restore;
-   
+
 public:
    DLLLOCAL ProgramRuntimeParseAccessHelper(ExceptionSink* xsink, QoreProgram* pgm);
    DLLLOCAL ~ProgramRuntimeParseAccessHelper();
@@ -739,7 +740,7 @@ class ArgvContextHelper {
 private:
    QoreListNode* old_argv;
    ExceptionSink* xsink;
-   
+
 public:
    DLLLOCAL ArgvContextHelper(QoreListNode* argv, ExceptionSink* n_xsink);
    // calls deref(xsink) on list in destructor
@@ -750,7 +751,7 @@ class SingleArgvContextHelper {
 private:
    QoreListNode* old_argv;
    ExceptionSink* xsink;
-   
+
 public:
    DLLLOCAL SingleArgvContextHelper(const AbstractQoreNode* val, ExceptionSink* n_xsink);
    // calls deref(xsink) on list in destructor
@@ -803,12 +804,12 @@ public:
 
 class CallStackHelper : public CallNode {
    ExceptionSink* xsink;
-   
+
    // not implemented
    DLLLOCAL CallStackHelper(const CallStackHelper&);
    DLLLOCAL CallStackHelper& operator=(const CallStackHelper&);
    DLLLOCAL void* operator new(size_t);
-   
+
 public:
    DLLLOCAL CallStackHelper(const char* f, int t, ClassObj o, ExceptionSink* n_xsink) : CallNode(f, t, o), xsink(n_xsink) {
       pushCall(this);
@@ -849,7 +850,7 @@ public:
       pthread_attr_getstack(&attr, &ptr, &ssize);
    }
 #endif
-      
+
    DLLLOCAL size_t getstacksize() const {
       size_t ssize;
       pthread_attr_getstacksize(&attr, &ssize);
