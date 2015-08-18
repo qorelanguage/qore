@@ -1,10 +1,10 @@
 /*
   ExecArgList.cpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -44,15 +44,18 @@ char* ExecArgList::getString(const char* start, int size) {
    return str;
 }
 
-void ExecArgList::addArg(char* str) {
-   //printd(5, "ExecArgList::addArg() '%s'\n", str);
+void ExecArgList::addArgIntern(char* str) {
+   //printd(5, "ExecArgList::addArgIntern() '%s'\n", str);
    // resize args
    if (len == allocated) {
       allocated += ARG_BLOCK;
       arg = (char**)realloc(arg, sizeof(char*) * allocated);
    }
    arg[len] = str;
-   len++;
+   ++len;
+}
+
+ExecArgList::ExecArgList() : arg(0), allocated(0), len(0) {
 }
 
 ExecArgList::ExecArgList(const char* str) : arg(0), allocated(0), len(0) {
@@ -62,7 +65,7 @@ ExecArgList::ExecArgList(const char* str) : arg(0), allocated(0), len(0) {
    char* start = (char*)tmp.getBuffer();
    char* p = start;
    int quote = 0;
-   
+
    while (*p) {
       if (start == p && !quote && (*p == '\'' || *p == '\"')) {
 	 quote = *p;
@@ -78,14 +81,18 @@ ExecArgList::ExecArgList(const char* str) : arg(0), allocated(0), len(0) {
 	 continue;
       }
       else if (!quote && *p == ' ') {
-	 addArg(getString(start, p - start));
+	 addArgIntern(getString(start, p - start));
 	 start = p + 1;
       }
    }
    if (*start)
-      addArg(getString(start, strlen(start)));
+      addArgIntern(getString(start, strlen(start)));
    // terminate list
-   addArg(0);
+   addArgIntern(0);
+}
+
+void ExecArgList::addArg(const char* str) {
+   addArgIntern(str ? strdup(str) : 0);
 }
 
 ExecArgList::~ExecArgList() {
@@ -119,7 +126,7 @@ void ExecArgList::showArgs() {
 
    for (int i = 1; i < len; ++i)
       str.sprintf(" [%d]: '%s'", i, arg[i]);
-   
+
    printd(0, "  %s\n", str.getBuffer());
 }
 #endif

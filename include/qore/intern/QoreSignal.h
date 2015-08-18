@@ -181,8 +181,8 @@ public:
    DLLLOCAL void release_idle();
    DLLLOCAL void start_handler();
    DLLLOCAL void end_handler();
-   DLLLOCAL void pre_fork_block_and_stop();
-   DLLLOCAL void post_fork_unblock_and_start(bool new_process, ExceptionSink* xsink);
+   DLLLOCAL void preFork();
+   DLLLOCAL void postFork(bool new_process, ExceptionSink* xsink);
    DLLLOCAL int gettid() {
       return tid;
    }

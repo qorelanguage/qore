@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   ExecArgList.h
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -40,11 +40,14 @@ private:
    int len;
 
    DLLLOCAL char* getString(const char* start, int size);
-   DLLLOCAL void addArg(char* str);
+   DLLLOCAL void addArgIntern(char* str);
 
 public:
+   DLLLOCAL ExecArgList();
    DLLLOCAL ExecArgList(const char* str);
    DLLLOCAL ~ExecArgList();
+
+   DLLLOCAL void addArg(const char* str);
    DLLLOCAL char* getFile();
    DLLLOCAL char** getArgs();
 #ifdef DEBUG

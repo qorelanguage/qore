@@ -207,7 +207,37 @@ int rc = system("ls -l");
     - @ref backquote_operator "the backquote operator"
  */
 int system(string command) [dom=EXTERNAL_PROCESS] {
-#ifdef HAVE_SYSTEM
+#if defined(HAVE_FORK) && defined(HAVE_SIGNAL_HANDLING)
+   // on platforms with fork(2) and signal handling, we need to fork, enable all signals, then execvp()
+   pid_t pid;
+   if (!(pid = fork())) {
+      // enable all signals
+      sigset_t mask;
+      sigemptyset(&mask);
+      sigprocmask(SIG_SETMASK, &mask, 0);
+
+      // exec pgm like system(): sh -c "command"
+      /*
+      ExecArgList exec_args;
+      exec_args.addArg("sh");
+      exec_args.addArg("-c");
+      exec_args.addArg(command->getBuffer());
+      exec_args.addArg(0);
+      execvp("/bin/sh", exec_args.getArgs());
+      */
+      execl("/bin/sh", "sh", "-c", command->getBuffer(), 0);
+      fprintf(stderr, "execvp() failed in child process for target '/bin/sh' with error code %d: %s\n", errno, strerror(errno));
+      exit(-1);
+      //qore_exit_process(-1);
+   }
+   if (pid == -1)
+      return -1;
+
+   // wait for child to exit
+   int status;
+   wait(&status);
+   return WIFEXITED(status) ? WEXITSTATUS(status) : -1;
+#elif defined(HAVE_SYSTEM)
    return system(command->getBuffer());
 #else
    missing_function_error("system", xsink);
@@ -519,7 +549,7 @@ int fork() [dom=PROCESS] {
    }
 
    // stop signal handling thread and make sure it can't be restarted until fork is done
-   QSM.pre_fork_block_and_stop();
+   QSM.preFork();
 #endif
 
    //printd(5, "stopped signal thread, about to fork pid %d\n", getpid()); fflush(stdout);
@@ -527,7 +557,7 @@ int fork() [dom=PROCESS] {
 
 #ifdef HAVE_SIGNAL_HANDLING
    // release signal handler lock
-   QSM.post_fork_unblock_and_start(!pid, xsink);
+   QSM.postFork(!pid, xsink);
 #endif
 
    return pid;

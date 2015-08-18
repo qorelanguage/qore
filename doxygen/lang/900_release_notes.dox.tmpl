@@ -313,7 +313,9 @@
     - fixed a memory leak when a thread init call reference was used with @ref Qore::Program objects
     - fixed bugs in Qore SSL socket handling when the remote connection is disconnected while performing an SSL upgrade (client or server) that could cause a crash
     - fixed a bug where the sending an invalid HTTP header to the @ref Qore::Socket::sendHTTPResponse() method could cause a crash
-    - fixed a bug in @ref Qore::system() "system()" where \c system(3) was not being used when shell meta-characters were not found and additionally \c & (ampersand) characters were not recognized as shell meta-characters - now @ref Qore::system() "system()" always uses \c system(3)
+    - fixed bugs in @ref Qore::system() "system()":
+      - the shell was not being used to execute commands with commands where shell meta-characters were not found with a manual search which caused such commands to fail; additionally \c & (ampersand) characters were not recognized as shell meta-characters
+      - fixed problems with signal handling in child processes on UNIXes: @ref Qore::system() "system()" now always performs a \c fork(2), enables all signals, and calls <tt>execl("/bin/sh", "sh", "-c", </tt><i>command</i><tt>, 0)</tt> in the child process (on UNIX systems; on Windows, system(3) is used directly as before)
     - fixed a race condition in the @ref Qore::SQL::DatasourcePool "DatasourcePool" class when opening new datasources after a connection error in the first datasource which could cause a crash.  Now the first datasource is no longer a "special" datasource used for configuration information; configuration information is contained in a separate object which serves as an internal Datasource factory
     - fixed a problem where \c SIGCHLD was blocked by default which caused deadlocks when spawning child processes that in turn waited on grandchild processes - now %Qore no longer blocks \c SIGCHLD on UNIX platforms
    - fixed a bug in BinaryNode::clear() where the internal pointer was freed but not set to 0 leading to a subsequent crash when the object is destroyed; affected HTTPClient chunked reads of binary data when used with a callback

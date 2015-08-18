@@ -59,7 +59,7 @@ QoreSignalManager::QoreSignalManager() : is_enabled(false), tid(-1), block(false
       handlers[i].init();
 }
 
-void QoreSignalManager::setMask(sigset_t &mask) {
+void QoreSignalManager::setMask(sigset_t& mask) {
    // block all signals
    sigfillset(&mask);
 #ifdef PROFILE
@@ -123,24 +123,25 @@ void QoreSignalManager::del() {
       sigdelset(&mask, i);
       changed = true;
    }
-   if (changed)
+   if (changed) {
       reload();
 
-   for (int i = 0; i < QORE_SIGNAL_MAX; ++i) {
-      if (!handlers[i].isSet())
-         continue;
+      for (int i = 0; i < QORE_SIGNAL_MAX; ++i) {
+	 if (!handlers[i].isSet())
+	    continue;
 
-      if (handlers[i].status == QoreSignalHandler::SH_InProgress)
-	 handlers[i].status = QoreSignalHandler::SH_Delete;
-      else {
-         // must be called in the signal lock
-         CodePgm old = handlers[i].take();
-         qore_program_private::delSignal(*old.pgm, i);
-         --num_handlers;
-         assert(num_handlers >= 0);
-         sl.unlock();
-         old.del(&xsink);
-         sl.lock();
+	 if (handlers[i].status == QoreSignalHandler::SH_InProgress)
+	    handlers[i].status = QoreSignalHandler::SH_Delete;
+	 else {
+	    // must be called in the signal lock
+	    CodePgm old = handlers[i].take();
+	    qore_program_private::delSignal(*old.pgm, i);
+	    --num_handlers;
+	    assert(num_handlers >= 0);
+	    sl.unlock();
+	    old.del(&xsink);
+	    sl.lock();
+	 }
       }
    }
 
@@ -196,7 +197,7 @@ void QoreSignalManager::stop_signal_thread() {
    tcount.waitForZero();
 }
 
-void QoreSignalManager::pre_fork_block_and_stop() {
+void QoreSignalManager::preFork() {
    SafeLocker sl(&mutex);
    if (!running())
       return;
@@ -214,10 +215,10 @@ void QoreSignalManager::pre_fork_block_and_stop() {
    sl.unlock();
    tcount.waitForZero();
 
-   printd(5, "QoreSignalManager::pre_fork_block_and_stop() pid: %d signal handling thread stopped\n", getpid());
+   printd(5, "QoreSignalManager::preFork() pid: %d signal handling thread stopped\n", getpid());
 }
 
-void QoreSignalManager::post_fork_unblock_and_start(bool new_process, ExceptionSink *xsink) {
+void QoreSignalManager::postFork(bool new_process, ExceptionSink *xsink) {
    if (!enabled())
       return;
 
@@ -228,14 +229,14 @@ void QoreSignalManager::post_fork_unblock_and_start(bool new_process, ExceptionS
    if (new_process) {
       // do not start signal thread after a fork(), pthread_create() is not async-signal safe
       is_enabled = false;
-      // block all signals
+      // enable all signals
       sigset_t new_mask;
-      setMask(new_mask);
-      pthread_sigmask(SIG_SETMASK, &new_mask, 0);
+      sigemptyset(&new_mask);
+      sigprocmask(SIG_SETMASK, &new_mask, 0);
       return;
    }
 
-   printd(5, "QoreSignalManager::post_fork_unblock_and_start() pid: %d, new_process: %d, starting signal thread\n", getpid(), new_process);
+   printd(5, "QoreSignalManager::postFork() pid: %d, new_process: %d, starting signal thread\n", getpid(), new_process);
 
    AutoLocker al(mutex);
    start_signal_thread(xsink);
@@ -280,13 +281,14 @@ void QoreSignalManager::signal_handler_thread() {
 
       while (true) {
 	 if (cmd != C_None) {
+	    //printd(5, "QoreSignalManager::signal_handler_thread() cmd: %d\n", cmd);
 	    sig_cmd_e c = cmd;
 	    cmd = C_None;
 	    // check command
 	    if (c == C_Exit)
 	       break;
 	    if (c == C_Reload) {
-	       //printd(5, "QoreSignalManager::signal_handler_thread() Reload called:\n");
+	       //printd(5, "QoreSignalManager::signal_handler_thread() C_Reload called:\n");
 	       memcpy(&c_mask, &mask, sizeof(sigset_t));
 	       // block only signals we are catching in this thread
 	       pthread_sigmask(SIG_SETMASK, &c_mask, 0);
@@ -308,7 +310,7 @@ void QoreSignalManager::signal_handler_thread() {
 	 // reacquire lock to check command and handler status
 	 sl.lock();
 
-	 //printd(5, "sigwait() sig: %d (cmd: %d)\n", sig, cmd);
+	 //printd(5, "sigwait() sig: %d (cmd: %d) set: %d\n", sig, cmd, handlers[sig].isSet());
 	 if (sig == QORE_STATUS_SIGNAL && cmd != C_None)
 	    continue;
 
@@ -414,7 +416,7 @@ int QoreSignalManager::start_signal_thread(ExceptionSink *xsink) {
 }
 
 int QoreSignalManager::setHandler(int sig, const ResolvedCallReferenceNode *fr, ExceptionSink *xsink) {
-   //printd(5, "QoreSignalManager::setHandler() pgm: %p\n", getProgram());
+   //printd(5, "QoreSignalManager::setHandler(sig: %d fr: %p) pgm: %p\n", sig, fr, getProgram());
    CodePgm old;
 
    {
@@ -459,7 +461,7 @@ int QoreSignalManager::setHandler(int sig, const ResolvedCallReferenceNode *fr, 
       }
 
       // add to the signal mask for signal thread if not already there
-      if (!already_set && sig != QORE_STATUS_SIGNAL) {
+      if (!already_set) {
          //printd(5, "adding signal %d to mask\n", sig);
          sigaddset(&mask, sig);
          reload();
@@ -474,6 +476,7 @@ int QoreSignalManager::setHandler(int sig, const ResolvedCallReferenceNode *fr, 
 }
 
 int QoreSignalManager::removeHandler(int sig, ExceptionSink *xsink) {
+   //printd(5, "QoreSignalManager::removeHandler(sig: %d)\n", sig);
    CodePgm old;
 
    {
@@ -492,10 +495,8 @@ int QoreSignalManager::removeHandler(int sig, ExceptionSink *xsink) {
          return 0;
 
       // remove from the signal mask for sigwait
-      if (sig != QORE_STATUS_SIGNAL) {
-         sigdelset(&mask, sig);
-         reload();
-      }
+      sigdelset(&mask, sig);
+      reload();
 
       //printd(5, "removing handler for signal %d\n", sig);
 
