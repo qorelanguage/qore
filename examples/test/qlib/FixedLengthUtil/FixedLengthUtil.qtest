@@ -90,7 +90,7 @@ nothing sub testRoutine() {
 	i2.next();
 	i2.getValue();
 }
-unit.exception(\testRoutine(), list(), "redundant line specifications", "FIXED-LENGTH-UTIL-NON-MATCHING-TYPE", "\\QA format specifier has multiple line types of the same length. You need to provide your own identifyType() method.");
+unit.exception(\testRoutine(), list(), "redundant line specifications", "FIXED-LENGTH-UTIL-NON-MATCHING-TYPE", "\\QA format specifier has multiple line types of the same length. You need to provide your own identifyTypeImpl() method.");
 
 # Writer
 global_options = (

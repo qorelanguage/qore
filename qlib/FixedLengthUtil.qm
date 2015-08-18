@@ -50,7 +50,7 @@ module FixedLengthUtil {
     The %FixedLengthUtil module provides functionality for parsing files with fixed length lines.
 
     To use this module, use \c "%requires FixedLengthUtil" in your code.
-    
+
     All the public symbols in the module are defined in the FixedLengthUtil namespace.
 
     Currently the module provides the following classes:
@@ -134,7 +134,7 @@ hash global_options = (
 
 FixedLengthFileIterator i(file, specs, global_options);
 while(i.next()) {
-	operation_with_hash(i.getValue())
+        operation_with_hash(i.getValue())
 }
     @endcode
 
@@ -199,15 +199,14 @@ public class FixedLengthUtil::FixedLengthAbstractIterator inherits TextUtil::Abs
 
         # Determine line lengths of each spec, for use by the default identifyType() method. We do this by building a reverse length -> type table.
         m_line_lengths = hash();
-        foreach string k in (m_specs.keys()) {
+        foreach string k in (m_specs.keyIterator()) {
             int len = 0;
-            foreach string c in (m_specs{k}.keys()) {
-                if (m_specs{k}{c}{"length"} == NOTHING) {
-                    throw "FIXED-LENGTH-UTIL-INVALID-SPEC", sprintf("Length missing for field %s", c);
-                }
-                len += m_specs{k}{c}{"length"};
+            foreach string c in (m_specs{k}.keyIterator()) {
+                if (!m_specs{k}{c}.length)
+                    throw "FIXED-LENGTH-UTIL-INVALID-SPEC", sprintf("Length missing for field %y", c);
+                len += m_specs{k}{c}.length;
             }
-            if (m_line_lengths{len} != NOTHING) {
+            if (m_line_lengths{len}) {
                 # If any two type line lengths are not unique, dump the table entirely and break out. The default identifyType() will take care of the rest.
                 m_line_lengths = hash();
                 break;
@@ -229,14 +228,13 @@ my hash $h = $i.getValue();
     *hash getValue() {
         *string line = getLine();
 
-        if (!line) {
-            return NOTHING;
-        }
+        if (!line)
+            return;
 
         hash result = hash();
 
         string type = identifyType(line);
-        result{"type"} = type;
+        result.type = type;
         if (!type || !m_specs{type}) {
         }
         if (!checkTransition(m_state, type)) {
@@ -244,56 +242,62 @@ my hash $h = $i.getValue();
         }
         m_state = type;
         int pos = 0;
-        foreach string col in (m_specs{type}.keys()) {
+        foreach string col in (m_specs{type}.keyIterator()) {
             hash field = m_specs{type}{col};
             if (!field.timezone) {
                 field.timezone = m_opts.timezone;
             }
-            result{"record"}{col} = transform(line.substr(pos, field.length), field);
+            result.record{col} = transform(line.substr(pos, field.length), field);
             pos += field.length;
         }
         return result;
     }
 
-	#! Validate and prepare global fixed-length options
-	/**
-	@param opts Options passed during class instatiation.
-	*/
+    #! Validate and prepare global fixed-length options
+    /**
+        @param opts Options passed during class instatiation.
+    */
     private *hash checkOptions(*hash opts) { # put special options here
         return opts;
     }
 
-	#! Identify a fixed-length line type using a second method %identifyTypeImpl, that may be overridden if necessary
-	/**
-	@param s Input line to be identified
-	*/
+    #! Identify a fixed-length line type using a second method %identifyTypeImpl, that may be overridden if necessary
+    /**
+        @param s Input line to be identified
+
+        @throw FIXED-LENGTH-UTIL-NON-MATCHING-TYPE input line cannot be matched to a known record
+    */
     string identifyType(string s) {
         *string type = identifyTypeImpl(s);
-        if (!type || !inlist(type, m_specs.keys())) {
+        if (!type || !m_specs.hasKey(type))
             throw "FIXED-LENGTH-UTIL-NON-MATCHING-TYPE", sprintf("Line identified to be of type that is not present in ths spec '%s'", s);
-        }
         return type;
     }
 
-	#! Identify a fixed-length line type, given the raw line string. This method performs a lookup to a precalculated table based on line lengths (see @constructor). In case a different criteria is needed, eg. when two line types in a spec have the same length, this methods needs to be overriden, and will throw an exception, because the precalcualted m_line_lenghts mapping will be empty.
-	/**
-	@param s Input line to be identified
-	*/
+    #! Identify a fixed-length line type, given the raw line string. This method performs a lookup to a precalculated table based on line lengths (see @constructor). In case a different criteria is needed, eg. when two line types in a spec have the same length, this methods needs to be overriden, and will throw an exception, because the precalcualted m_line_lenghts mapping will be empty.
+    /**
+        @param s Input line to be identified
+
+        @return the record name or @ref nothing if the input cannot be matched
+
+        @throw FIXED-LENGTH-UTIL-NON-MATCHING-TYPE input line cannot be matched to a known record or the input line's length does not match the expected length
+    */
     *string identifyTypeImpl(string s) {
-        if (!m_line_lengths) { # this happens only if it was emptied because lengths of various types were not unique - see how m_line_lengths was constructed
-            throw "FIXED-LENGTH-UTIL-NON-MATCHING-TYPE", sprintf("A format specifier has multiple line types of the same length. You need to provide your own identifyType() method. Type: %s", s);
-        }
-        if (!m_line_lengths.hasKey(s.length())) {
-            throw "FIXED-LENGTH-UTIL-NON-MATCHING_TYPE", sprintf("Line of unexpected length found '%s'", s);
-        }
-        return m_line_lengths{s.length()};
+        if (!m_line_lengths) # this happens only if it was emptied because lengths of various types were not unique - see how m_line_lengths was constructed
+            throw "FIXED-LENGTH-UTIL-NON-MATCHING-TYPE", sprintf("A format specifier has multiple line types of the same length. You need to provide your own identifyTypeImpl() method. Type: %s", s);
+
+        *string rv = m_line_lengths{s.length()};
+        if (!rv)
+            throw "FIXED-LENGTH-UTIL-NON-MATCHING-TYPE", sprintf("Line of unexpected length found '%s'", s);
+
+        return rv;
     }
 
-	#! A verification function to be called for each line. This method can be overriden to achieve a begin-to-end validation of the whole input file.
-	/**
-	@param from Type of previous line being processed
-	@param to Type of the current line being processed
-	*/
+    #! A verification function to be called for each line. This method can be overriden to achieve a begin-to-end validation of the whole input file.
+    /**
+        @param from Type of previous line being processed
+        @param to Type of the current line being processed
+    */
     bool checkTransition(*string from, *string to) {
         return True;
     }
@@ -416,10 +420,10 @@ public class FixedLengthUtil::FixedLengthAbstractWriter inherits TextUtil::Abstr
         return m_linescount;
     }
 
-	#! Formats a single line from hash of columns
-	/**
-	@param line Hash of the line columns to be formatted
-	*/
+        #! Formats a single line from hash of columns
+        /**
+        @param line Hash of the line columns to be formatted
+        */
     string formatLine(hash line) {
         string type = line{"type"};
         string result = "";
@@ -454,11 +458,11 @@ public class FixedLengthUtil::FixedLengthAbstractWriter inherits TextUtil::Abstr
         return result;
     }
 
-	#! A verification function to be called for each line. This method can be overriden to achieve a begin-to-end validation of the whole input file.
-	/**
-	@param from Type of previous line being processed
-	@param to Type of the current line being processed
-	*/
+        #! A verification function to be called for each line. This method can be overriden to achieve a begin-to-end validation of the whole input file.
+        /**
+        @param from Type of previous line being processed
+        @param to Type of the current line being processed
+        */
     bool checkTransition(*string from, *string to) {
         return True;
     }
@@ -471,7 +475,7 @@ public class FixedLengthUtil::FixedLengthFileWriter inherits FixedLengthUtil::Fi
         string file;
         File m_file();
     }
-    
+
     #! Instantiates the FixedLengthFileWriter object
     /**
     @param f file to write
