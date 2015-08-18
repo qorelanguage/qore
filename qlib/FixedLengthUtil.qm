@@ -202,6 +202,9 @@ public class FixedLengthUtil::FixedLengthAbstractIterator inherits TextUtil::Abs
         foreach string k in (m_specs.keys()) {
             int len = 0;
             foreach string c in (m_specs{k}.keys()) {
+                if (m_specs{k}{c}{"length"} == NOTHING) {
+                    throw "FIXED-LENGTH-UTIL-INVALID-SPEC", sprintf("Length missing for field %s", c);
+                }
                 len += m_specs{k}{c}{"length"};
             }
             if (m_line_lengths{len} != NOTHING) {
