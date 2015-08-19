@@ -98,5 +98,11 @@ doxygen/lang/*.dox
 # Darwin symbol dirs
 *.dSYM/
 
+# Eclipse
+.autotools
+.cproject
+.project
+.settings/
+
 # do not ignore the following directories (matched by patterns above)
 !examples/test/qore/
