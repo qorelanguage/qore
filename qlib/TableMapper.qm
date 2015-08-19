@@ -81,12 +81,12 @@ const DataMap = (
     If this map is applied in the following way:
     @code
 Table table(ds, "order_table");
-InboundTableMapper map(table, DataMap);
+InboundTableMapper map1(table, DataMap);
 {
-    on_success map.commit();
-    on_error map.rollback();
+    on_success map1.commit();
+    on_error map1.rollback();
     # apply the map and insert the mapped data for each input record
-    map map.insertRowNoCommit($1), input;
+    map map1.insertRowNoCommit($1), input;
 }
 printf("%d record%s inserted\n", map.getCount(), map.getCount() == 1 ? "" : "s");
     @endcode
