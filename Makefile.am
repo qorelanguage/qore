@@ -227,6 +227,7 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_SSLCertificate.qpp \
 	lib/QC_SSLPrivateKey.qpp \
 	lib/QC_ThreadPool.qpp \
+	lib/QC_TreeMap.qpp \
 	lib/Pseudo_QC_All.qpp \
 	lib/Pseudo_QC_Nothing.qpp \
 	lib/Pseudo_QC_Date.qpp \
@@ -557,6 +558,7 @@ noinst_HEADERS = \
 	include/qore/intern/QC_AutoWriteLock.h \
 	include/qore/intern/QC_AbstractSmartLock.h \
 	include/qore/intern/QC_TimeZone.h \
+	include/qore/intern/QC_TreeMap.h \
 	lib/getopt_long.h \
 	command-line.h
 

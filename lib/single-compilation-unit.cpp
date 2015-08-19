@@ -267,6 +267,7 @@
 #include "QC_TermIOS.cpp"
 #include "QC_AbstractSmartLock.cpp"
 #include "QC_TimeZone.cpp"
+#include "QC_TreeMap.cpp"
 
 #include "QorePseudoMethods.cpp"
 
