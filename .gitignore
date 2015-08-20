@@ -27,7 +27,7 @@ config.sub
 configure
 depcomp
 install-sh
-qore
+/qore
 qr
 qore.pc
 qore.spec
@@ -50,6 +50,7 @@ include/qore/intern/stamp-h1
 include/qore/intern/svn-revision.h
 include/qore/intern/unix-config.h
 include/qore/intern/unix-config.h.in
+include/qore/intern/git-revision.h
 
 # lib/
 lib/qpp
