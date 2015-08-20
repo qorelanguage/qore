@@ -104,5 +104,8 @@ doxygen/lang/*.dox
 .project
 .settings/
 
+# ignore cmake build directories
+build*/
+
 # do not ignore the following directories (matched by patterns above)
 !examples/test/qore/
