@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QC_TreeMap.qpp
- 
+  QC_TreeMap.h
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -29,45 +29,55 @@
   information.
 */
 
+#ifndef _QORE_QC_TREEMAP_H
+
+#define _QORE_QC_TREEMAP_H
+
 #include <qore/Qore.h>
-#include <qore/intern/QC_TreeMap.h>
+#include <map>
+#include <string>
 
-//! TODO
-/** TODO
-*/
-qclass TreeMap [arg=TreeMapData* tm];
+DLLEXPORT extern qore_classid_t CID_TREEMAP;
+DLLLOCAL extern QoreClass* QC_TREEMAP;
 
-//! TODO
-/** TODO
- */
-TreeMap::constructor() {
-   self->setPrivate(CID_TREEMAP, new TreeMapData());
-}
+DLLLOCAL QoreClass *initTreeMapClass(QoreNamespace& ns);
 
-//! TODO
-/** TODO
- */
-TreeMap::destructor() {
-   tm->deref(xsink);
-}
+class TreeMapData : public AbstractPrivateData {
 
-//! TODO
-/** TODO 
- */
-TreeMap::copy() {
-   xsink->raiseException("TREEMAP-COPY-ERROR", "objects of this class cannot be copied");
-}
+public:
+   DLLLOCAL TreeMapData() {
+   }
 
-//! TODO
-/** TODO 
- */
-nothing TreeMap::put(string key, any value) {
-   tm->put(key, value, xsink);
-}
+   DLLLOCAL virtual void deref(ExceptionSink* xsink) {
+      if (ROdereference()) {
+         for (Map::iterator i = data.begin(), e = data.end(); i != e; ++i) {
+            i->second->deref(xsink);
+         }
+         delete this;
+      }
+   }
 
-//! TODO
-/** TODO 
- */
-any TreeMap::get(string key) [flags=CONSTANT] {
-   return tm->get(key, xsink);
-}
+   DLLLOCAL void put(const QoreStringNode *key, const AbstractQoreNode *value, ExceptionSink *xsink) {
+      TempEncodingHelper keyStr(key, QCS_DEFAULT, xsink);
+      if (keyStr) {
+         data[keyStr->getBuffer()] = value->refSelf();
+      }
+   }
+
+   DLLLOCAL AbstractQoreNode *get(const QoreStringNode *key, ExceptionSink *xsink) const {
+      TempEncodingHelper keyStr(key, QCS_DEFAULT, xsink);
+
+//TODO implement actual prefix search
+      Map::const_iterator it = data.find(keyStr->getBuffer());
+      if (it == data.end()) {
+         return nothing();
+      }
+      return it->second->refSelf();
+   }
+
+private:
+   typedef std::map<std::string, AbstractQoreNode *> Map;
+   Map data;
+};
+
+#endif

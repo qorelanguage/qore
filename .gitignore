@@ -27,7 +27,7 @@ config.sub
 configure
 depcomp
 install-sh
-qore
+/qore
 qr
 qore.pc
 qore.spec
