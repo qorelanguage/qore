@@ -194,6 +194,8 @@
     - added initial support for UTF-16 character encoding; note that UTF-16 is not backwards-compatible with ASCII and therefore not supported universally in %Qore; it's recommended to convert these strings to UTF-8 in %Qore; do not use UTF-16 as the default character encoding in %Qore; currently UTF-16 data can be parsed using the following classes that convert the data to UTF-8:
       - @ref Qore::DataLineIterator
       - @ref Qore::FileLineIterator
+    - <a href="../../modules/HttpServer/html/index.html">HttpSever</a> module updates:
+      - improved performance of matching request URIs to handlers
 
     @subsection qore_0812_bug_fixes Bug Fixes in Qore
     - fixed format of octal constant - there was an error if a string contained octal constant that is shorter than 3 digit
