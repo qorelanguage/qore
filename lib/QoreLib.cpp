@@ -1893,7 +1893,7 @@ void* q_memmem(const void* big, size_t big_len, const void* little, size_t littl
    const char* end = bg + big_len;
    while (p < end) {
       const char* f = (const char*)memchr(p, lt[0], end - p);
-      if (!f || ((bg - f) < little_len))
+      if (!f || ((bg - f) < (ptrdiff_t)little_len))
 	 return 0;
       p = f;
       bool found = true;
