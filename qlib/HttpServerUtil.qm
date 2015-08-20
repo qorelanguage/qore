@@ -71,7 +71,7 @@ module HttpServerUtil {
 
     @section httpserverutil_relnotes HttpServerUtil Module Release Notes
 
-    @subsection http0311 HttpServerUtil 0.3.11
+    @subsection httputil0311 HttpServerUtil 0.3.11
     - initial version of the module
  */
 

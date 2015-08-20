@@ -128,6 +128,13 @@ log("started listener on %s", lh.desc);
     - new methods implemented in HttpServer:
       - HttpServer::setListenerLogOptions()
       - HttpServer::setListenerLogOptionsID()
+    - performance improvement of matching handlers to request URIs (not used for RegExp matching)
+    - changed the order of path-based handler matching:
+      - the old implementation selects the first (in order of their registration) handler whose path matches the request URI, regexp and path matching have the same priority
+      - the new implementation has two stages:
+        - first, handlers without regexp are considered - if there are some handler with their path matching the request, the one with the longest path is selected
+        - otherwise, the first (in order of their registration) handler with regexp that matches the request URI is chosen
+      - if no path matches the request, the same logic as before applies 
 
     @subsection http0310 HttpServer 0.3.10
     - if an error occurs receiving a message with chunked transfer encoding, send the response immediately before reading the rest of the chunked transfer
@@ -288,16 +295,11 @@ class HttpServer::HandlerInfo {
 
     #! called when matching a request; returns a code giving the match level; 0 = no match, 1 = only the Content-Type matches, 2 = special header matches, 3 = URL matches
     int matchRequest(hash hdr, int score) {
-        if (path && hdr.path) {
-            if (!isregex) {
-                if (hdr.path.equalPartialPath(path))
-                    return 3;
-            }
-            else {
-                if (regex(hdr.path, path))
-                    return 3;
-            }
+        if (path && hdr.path && isregex && regex(hdr.path, path)) {
+            return 3;
         }
+        # the case where isregex is False was already handled by HttpServer::HttpHandlerList::findHandler using TreeMap
+        # we get here only if the path does not match
 
         if (score >= 2)
             return 0;
@@ -318,6 +320,7 @@ class HttpServer::HandlerInfo {
 class HttpServer::HttpHandlerList {
     public {
         hash handlers;
+        TreeMap treeMap();
     }
 
     private static checkSpecialHeaders(reference sh) {
@@ -334,7 +337,11 @@ class HttpServer::HttpHandlerList {
         if (handlers{name})
             throw "SETHANDLER-ERROR", sprintf("HTTP request handler %y already exists", name);
 
-	handlers{name} = new HandlerInfo(name, obj, path, isregex, content, special_headers);
+        HandlerInfo handlerInfo = new HandlerInfo(name, obj, path, isregex, content, special_headers);
+        handlers{name} = handlerInfo;
+        if (!isregex && path) {
+            treeMap.put(path, handlerInfo);
+        }
     }
 
     # matches a handler to the request
@@ -342,11 +349,15 @@ class HttpServer::HttpHandlerList {
         if (!handlers)
             return;
 
-	# if there is only one handler and final is true, then return the only handler
-	if (finalv && handlers.size() == 1)
+        # if there is only one handler and final is true, then return the only handler
+        if (finalv && handlers.size() == 1)
             return handlers.firstValue();
 
-	# find a handler for the request
+        *HandlerInfo handlerInfo = treeMap.get(hdr.path);
+        if (handlerInfo)
+            return handlerInfo;
+
+        # find a handler for the request
         HandlerInfo rv;
 
         foreach HandlerInfo hi in (handlers.iterator()) {

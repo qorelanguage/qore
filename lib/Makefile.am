@@ -61,6 +61,7 @@ QORE_QPP_TARGETS = QC_Queue.cpp QC_Socket.cpp QC_ReadOnlyFile.cpp QC_File.cpp QC
 	QC_DataLineIterator.cpp \
 	QC_RangeIterator.cpp \
 	QC_ThreadPool.cpp \
+	QC_TreeMap.cpp \
 	QC_AbstractDatasource.cpp \
 	QC_Datasource.cpp QC_DatasourcePool.cpp QC_SQLStatement.cpp QC_Dir.cpp QC_Program.cpp \
 	QC_GetOpt.cpp QC_TermIOS.cpp QC_TimeZone.cpp QC_SSLCertificate.cpp QC_SSLPrivateKey.cpp \
