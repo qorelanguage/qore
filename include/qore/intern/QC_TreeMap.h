@@ -95,20 +95,14 @@ public:
       }
       std::string path(keyStr->getBuffer());
 
-      Map::const_iterator it = data.lower_bound(path);
-      if (it == data.end()) {
-         --it;
-      }
+      Map::const_iterator b = data.begin();
+      Map::const_iterator it = data.upper_bound(path);
 
       size_t prefixLen = getFirstPathSegmentLength(path);
-      while (!it->first.compare(0, prefixLen, path, 0, prefixLen)) {
+      while (it != b && !(--it)->first.compare(0, prefixLen, path, 0, prefixLen)) {
          if (isPathPrefix(it->first, path)) {
             return it->second->refSelf();
          }
-         if (it == data.begin()) {
-            break;
-         }
-         --it;
       }
       return 0;
    }
