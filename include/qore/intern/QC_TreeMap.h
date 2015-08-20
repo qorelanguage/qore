@@ -30,7 +30,6 @@
 */
 
 #ifndef _QORE_QC_TREEMAP_H
-
 #define _QORE_QC_TREEMAP_H
 
 #include <qore/Qore.h>
@@ -41,6 +40,23 @@ DLLEXPORT extern qore_classid_t CID_TREEMAP;
 DLLLOCAL extern QoreClass* QC_TREEMAP;
 
 DLLLOCAL QoreClass *initTreeMapClass(QoreNamespace& ns);
+
+static inline bool isPathEnd(char c) {
+   return c == '/' || c == '?';
+}
+
+static inline size_t getFirstPathSegmentLength(const std::string &path) {
+   size_t prefixLen = path.find_first_of("/?");
+   return prefixLen == std::string::npos ? path.length() : prefixLen;
+}
+
+static inline bool isPrefix(const std::string &prefix, const std::string &str) {
+   return str.length() >= prefix.length() && !str.compare(0, prefix.length(), prefix);
+}
+
+static inline bool isPathPrefix(const std::string &prefix, const std::string &path) {
+   return isPrefix(prefix, path) && (path.length() == prefix.length() || isPathEnd(path[prefix.length()]));
+}
 
 class TreeMapData : public AbstractPrivateData {
 
@@ -60,19 +76,41 @@ public:
    DLLLOCAL void put(const QoreStringNode *key, const AbstractQoreNode *value, ExceptionSink *xsink) {
       TempEncodingHelper keyStr(key, QCS_DEFAULT, xsink);
       if (keyStr) {
-         data[keyStr->getBuffer()] = value->refSelf();
+         Map::mapped_type &refToMap = data[keyStr->getBuffer()];
+         if (refToMap != 0) {
+            refToMap->deref(xsink);
+         }
+         refToMap = value->refSelf();
       }
    }
 
    DLLLOCAL AbstractQoreNode *get(const QoreStringNode *key, ExceptionSink *xsink) const {
-      TempEncodingHelper keyStr(key, QCS_DEFAULT, xsink);
-
-//TODO implement actual prefix search
-      Map::const_iterator it = data.find(keyStr->getBuffer());
-      if (it == data.end()) {
-         return nothing();
+      if (data.empty()) {
+         return 0;
       }
-      return it->second->refSelf();
+
+      TempEncodingHelper keyStr(key, QCS_DEFAULT, xsink);
+      if (!keyStr) {
+         return 0;
+      }
+      std::string path(keyStr->getBuffer());
+
+      Map::const_iterator it = data.lower_bound(path);
+      if (it == data.end()) {
+         --it;
+      }
+
+      size_t prefixLen = getFirstPathSegmentLength(path);
+      while (!it->first.compare(0, prefixLen, path, 0, prefixLen)) {
+         if (isPathPrefix(it->first, path)) {
+            return it->second->refSelf();
+         }
+         if (it == data.begin()) {
+            break;
+         }
+         --it;
+      }
+      return 0;
    }
 
 private:
