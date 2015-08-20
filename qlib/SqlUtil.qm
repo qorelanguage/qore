@@ -3706,11 +3706,7 @@ $c.clear();
 
         #! renames the given key; maintains the key order
         renameKey(string old_name, string new_name) {
-            hash nh;
-            foreach hash kh in (h.pairIterator())
-                nh{kh.key == old_name ? new_name : kh.key} = kh.value;
-
-            h = nh;
+            h = map {$1.key == old_name ? new_name : $1.key: $1.value}, h.pairIterator();
         }
 
         #! returns the hash contained by this object
@@ -5033,9 +5029,9 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
         */
         Qore::AbstractIterator getSourceConstraintIterator() {
             list l = ();
-            foreach hash sch in (sourceConstraints.pairIterator()) {
-                map l += ("fk": $1, "table": sch.key), sch.value.iterator();
-            }
+            HashIterator i(sourceConstraints);
+            while (i.next())
+                map l += ("fk": $1, "table": i.getKey()), i.getValue().iterator();
 
             return l.iterator();
         }
@@ -5047,14 +5043,16 @@ my AbstractConstraint $ix = $constraints.uk_jobs;
                 "enable": (),
                 );
 
-            foreach hash sch in (sourceConstraints.pairIterator()) {
+            HashIterator i(sourceConstraints);
+            while (i.next()) {
                 # make sure table actually exists before disabling constraints
-                Table t(ds, sch.key);
+                string key = i.getKey();
+                Table t(ds, key);
                 if (!t.checkExistence())
                     continue;
-                foreach AbstractForeignConstraint fk in (sch.value.iterator()) {
-                    ch.disable += fk.getDisableSql(sch.key);
-                    unshift ch.enable, fk.getEnableSql(sch.key, opts);
+                foreach AbstractForeignConstraint fk in (i.getValue().iterator()) {
+                    ch.disable += fk.getDisableSql(key);
+                    unshift ch.enable, fk.getEnableSql(key, opts);
                 }
             }
 
@@ -6611,22 +6609,26 @@ my list $l = $db.getAlignSql($schema_hash);
             if (tl) l += tl;
 
             # rename any sequences
-            foreach hash sh in (schema_hash.sequence_map.pairIterator()) {
-                if (sh.value.typeCode() != NT_STRING)
-                    throw "SCHEMA-DESCRIPTION-ERROR", sprintf("sequence_map %y value is not a string in the schema description hash; got type %y instead (%y)", sh.key, sh.value.type(), sh.value);
+            HashIterator i(schema_hash.sequence_map);
+            while (i.next()) {
+                string key = i.getKey();
+                any value = i.getValue();
+                if (value.typeCode() != NT_STRING)
+                    throw "SCHEMA-DESCRIPTION-ERROR", sprintf("sequence_map %y value is not a string in the schema description hash; got type %y instead (%y)", key, value.type(), value);
 
-                *AbstractSequence seq = getSequence(sh.key);
+                *AbstractSequence seq = getSequence(key);
                 if (seq) {
-                    l += AbstractDatabase::doCallback(opt, seq.getRenameSql(sh.value), AC_Rename, "sequence", sh.key, NOTHING, sh.value);
+                    l += AbstractDatabase::doCallback(opt, seq.getRenameSql(value), AC_Rename, "sequence", key, NOTHING, value);
                     # remove sequence from list since we know it exists
-                    remove schema_hash.sequences{sh.value};
+                    remove schema_hash.sequences{value};
                 }
             }
 
             # create any missing sequences
-            foreach string name in (schema_hash.sequences.keyIterator()) {
-                hash sh = schema_hash.sequences{name};
-
+            i = new HashIterator(schema_hash.sequences);
+            while (i.next()) {
+                string name = i.getKey();
+                hash sh = i.getValue();
                 validateOptionsIntern("SEQUENCE-DESCRIPTION-ERROR", getSequenceDescriptionOptions(), \sh);
 
                 # see if sequence exists
@@ -6792,19 +6794,22 @@ my list $l = $db.getDropSchemaSql($schema_hash);
             # rename objects
             reference fmap = \schema_hash{type + "_map"};
             AbstractDatabase::checkDriverOptions(\fmap, drv);
-            foreach hash fh in (fmap.pairIterator()) {
-                if (fh.value.typeCode() != NT_STRING)
-                    throw "SCHEMA-DESCRIPTION-ERROR", sprintf("%s %y value is not a string in the schema description hash; got type %y instead (%y)", type + "_map", fh.key, fh.value.type(), fh.value);
+            HashIterator i(fmap);
+            while (i.next()) {
+                string key = i.getKey();
+                any value = i.getValue();
+                if (value.typeCode() != NT_STRING)
+                    throw "SCHEMA-DESCRIPTION-ERROR", sprintf("%s %y value is not a string in the schema description hash; got type %y instead (%y)", type + "_map", key, value.type(), value);
 
-                *AbstractFunction f = get(fh.key);
+                *AbstractFunction f = get(key);
                 if (f) {
-                    list tl = AbstractDatabase::doCallback(opt, f.getRenameSql(fh.value), AC_Rename, type, fh.key, NOTHING, fh.value);
+                    list tl = AbstractDatabase::doCallback(opt, f.getRenameSql(value), AC_Rename, type, key, NOTHING, value);
                     if (tl)
                         l += tl;
 
                     # add to function cache
-                    f.setName(fh.value);
-                    code_cache{fh.value} = f;
+                    f.setName(value);
+                    code_cache{value} = f;
                 }
             }
 
@@ -13044,9 +13049,11 @@ $table.insertNoCommi($row);
             # value list
             list vl = ();
 
-            foreach hash rh in (row.pairIterator()) {
+            HashIterator i(row);
+            while (i.next()) {
+                string key = i.getKey();
+                any v = i.getValue();
                 string ph = "%v";
-                any v = rh.value;
                 if (v.typeCode() == NT_LIST)
                     v = v[0];
                 if (v."_iop".typeCode() == NT_STRING) {
@@ -13068,7 +13075,7 @@ $table.insertNoCommi($row);
                     }
 
                     if (cmd.code)
-                        v = cmd.code(rh.key, v);
+                        v = cmd.code(key, v);
                     if (cmd.immediate) {
                         # make sure only identifiers are included here since the string is inserted directly into the query
                         if (v =~ /[^a-z\._0-9]/i)
@@ -13083,7 +13090,7 @@ $table.insertNoCommi($row);
                     continue;
                 }
                 phl += ph;
-                push vl, rh.value;
+                push vl, i.getValue();
             }
 
             return (
@@ -14266,12 +14273,15 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 if (jh.jcols) {
                     if (jh.jcols.typeCode() != NT_HASH)
                         throw "SELECT-ERROR", sprintf("%s: join clause error; expecting a hash assigned to the \"jcols\" key; got %y instead", getDesc(), jh.jcols.type());
-                    foreach hash jmh in (jh.jcols.pairIterator()) {
-                        if (!jt.columns.hasKey(jmh.key))
-                            throw "SELECT-ERROR", sprintf("%s: cannot join on unknown column %y.%y; known columns: %y", getDesc(), jt.getSqlName(), jmh.key, jt.columns.keys());
-                        if (!t.describe().hasKey(jmh.value))
-                            throw "SELECT-ERROR", sprintf("%s: cannot join on unknown column %y.%y; known columns: %y", getDesc(), t.getSqlName(), jmh.value, t.columns.keys());
-                        jel += sprintf("%s.%s = %s.%s", jtn, jmh.key, an, jmh.value);
+                    HashIterator i(jh.jcols);
+                    while (i.next()) {
+                        string key = i.getKey();
+                        string value = i.getValue();
+                        if (!jt.columns.hasKey(key))
+                            throw "SELECT-ERROR", sprintf("%s: cannot join on unknown column %y.%y; known columns: %y", getDesc(), jt.getSqlName(), key, jt.columns.keys());
+                        if (!t.describe().hasKey(value))
+                            throw "SELECT-ERROR", sprintf("%s: cannot join on unknown column %y.%y; known columns: %y", getDesc(), t.getSqlName(), value, t.columns.keys());
+                        jel += sprintf("%s.%s = %s.%s", jtn, key, an, value);
                     }
                 }
                 else {
@@ -14343,14 +14353,17 @@ my string $sql = $table.getSelectSql($sh, \$args);
 
                 list hl = ();
 
-                foreach hash hh in (qh.having.pairIterator()) {
-                    if (hh.value.typeCode() != NT_LIST)
-                        throw "SELECT-ERROR", sprintf("%s: expecting a list argument to the \"having\" condition for column %y; got type %y instead (value: %y)", getDesc(), hh.key, hh.value.type(), hh.value);
-                    if (hh.value[0].typeCode() != NT_STRING)
-                        throw "SELECT-ERROR", sprintf("%s: expecting a string argument to the \"having\" condition in the first position giving the column operator code for column %y; got type %y instead (value: %y)", getDesc(), hh.key, hh.value[0].type(), hh.value[0]);
+                HashIterator i(qh.having);
+                while (i.next()) {
+                    string key = i.getKey();
+                    any value = i.getValue();
+                    if (value.typeCode() != NT_LIST)
+                        throw "SELECT-ERROR", sprintf("%s: expecting a list argument to the \"having\" condition for column %y; got type %y instead (value: %y)", getDesc(), key, value.type(), value);
+                    if (value[0].typeCode() != NT_STRING)
+                        throw "SELECT-ERROR", sprintf("%s: expecting a string argument to the \"having\" condition in the first position giving the column operator code for column %y; got type %y instead (value: %y)", getDesc(), key, value[0].type(), value[0]);
 
-                    string hstr = doColumnOperatorIntern(hh.value[0], NOTHING, getColumnExpressionIntern(hh.key, jch, boolean(qh.join), ch), cm, jch, boolean(qh.join), ch);
-                    hl += doWhereExpressionIntern(hstr, hh.value[1], \args, jch, boolean(qh.join), ch);
+                    string hstr = doColumnOperatorIntern(value[0], NOTHING, getColumnExpressionIntern(key, jch, boolean(qh.join), ch), cm, jch, boolean(qh.join), ch);
+                    hl += doWhereExpressionIntern(hstr, value[1], \args, jch, boolean(qh.join), ch);
                 }
                 if (hl)
                     sql += " having " + (foldl $1 + " and " + $2, hl);
@@ -14512,13 +14525,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
             if (!cond)
                 return;
 
-            list wl = ();
-            foreach hash h in (cond.pairIterator()) {
-                string cn = cprefix ? sprintf("%s.%s", cprefix, h.key) : getColumnNameIntern(h.key, jch, join, ch);
-                wl += doWhereExpressionIntern(cn, h.value, \args, jch, join, ch);
-            }
-
-            return wl;
+            return map doWhereExpressionIntern(cprefix ? sprintf("%s.%s", cprefix, $1.key) : getColumnNameIntern($1.key, jch, join, ch), $1.value, \args, jch, join, ch), cond.pairIterator();
         }
 
         private string doWhereExpressionIntern(string cn, any we, reference args, *hash jch, bool join = False, *hash ch) {
@@ -14684,13 +14691,16 @@ my int $ucnt = $table.updateNoCommit(("id": $id), ("name": $name));
             list args;
 
             list sl = ();
-            foreach hash h in (set.pairIterator()) {
-                string exp = sprintf("%s = ", getColumnSqlName(h.key));
-                if (h.value.typeCode() == NT_HASH)
-                    exp += getUpdateExpression(h.key, h.value);
+            HashIterator i(set);
+            while (i.next()) {
+                string key = i.getKey();
+                any value = i.getValue();
+                string exp = sprintf("%s = ", getColumnSqlName(key));
+                if (value.typeCode() == NT_HASH)
+                    exp += getUpdateExpression(key, value);
                 else {
                     exp += "%v";
-                    args += h.value;
+                    args += value;
                 }
                 sl += exp;
             }
@@ -15443,58 +15453,64 @@ my list $l = $table.getAlignSql($table2);
             bool uixc = uniqueIndexCreatesConstraintImpl();
 
             # process column_map: rename columns
-            foreach hash rh in (opt.column_map.pairIterator()) {
-                if (columns.hasKey(rh.key)) {
-                    #printf("%s rename %s -> %s cols: %y\n", name, rh.key, rh.value, columns.keys());
-                    AbstractColumn c = columns{rh.key};
-                    l += AbstractDatabase::doCallback(opt, c.getRenameSql(self, rh.value), AbstractDatabase::AC_Rename, "column", c.name, name, rh.value);
-                    columns.renameKey(rh.key, rh.value);
-                    c.name = rh.value;
+            HashIterator i(opt.column_map);
+            while (i.next()) {
+                string key = i.getKey();
+                if (!columns.hasKey(key))
+                    continue;
+                string value = i.getValue();
+                #printf("%s rename %s -> %s cols: %y\n", name, key, value, columns.keys());
+                AbstractColumn c = columns{key};
+                l += AbstractDatabase::doCallback(opt, c.getRenameSql(self, value), AbstractDatabase::AC_Rename, "column", c.name, name, value);
+                columns.renameKey(key, value);
+                c.name = value;
 
-                    # rename column in indexes
-                    foreach AbstractIndex ix in (indexes.iterator()) {
-                        if (ix.columns.hasKey(rh.key)) {
-                            #printf("%s.%s: col %y %N\n", getName(), ix.name, rh.key, ix.columns);
-                            AbstractColumn rc = ix.columns{rh.key};
-                            rc.name = rh.value;
-                            ix.columns.renameKey(rh.key, rh.value);
+                # rename column in indexes
+                foreach AbstractIndex ix in (indexes.iterator()) {
+                    if (ix.columns.hasKey(key)) {
+                        #printf("%s.%s: col %y %N\n", getName(), ix.name, key, ix.columns);
+                        AbstractColumn rc = ix.columns{key};
+                        rc.name = value;
+                        ix.columns.renameKey(key, value);
+                    }
+                }
+                # rename column in pk
+                if (primaryKey.hasKey(key)) {
+                    AbstractColumn rc = primaryKey{key};
+                    rc.name = value;
+                    primaryKey.renameKey(key, value);
+                }
+                # rename column in unique constraints
+                foreach AbstractConstraint ct in (constraints.iterator()) {
+                    if (ct instanceof AbstractUniqueConstraint) {
+                        AbstractUniqueConstraint uk = ct;
+                        if (uk.hasKey(key)) {
+                            AbstractColumn rc = uk{key};
+                            rc.name = value;
+                            uk.renameKey(key, value);
                         }
                     }
-                    # rename column in pk
-                    if (primaryKey.hasKey(rh.key)) {
-                        AbstractColumn rc = primaryKey{rh.key};
-                        rc.name = rh.value;
-                        primaryKey.renameKey(rh.key, rh.value);
-                    }
-                    # rename column in unique constraints
-                    foreach AbstractConstraint ct in (constraints.iterator()) {
-                        if (ct instanceof AbstractUniqueConstraint) {
-                            AbstractUniqueConstraint uk = ct;
-                            if (uk.hasKey(rh.key)) {
-                                AbstractColumn rc = uk{rh.key};
-                                rc.name = rh.value;
-                                uk.renameKey(rh.key, rh.value);
-                            }
-                        }
-                    }
-                    # rename column in foreign constraints
-                    foreach AbstractForeignConstraint fk in (foreignConstraints.iterator()) {
-                        if (fk.hasKey(rh.key)) {
-                            AbstractColumn rc = fk{rh.key};
-                            rc.name = rh.value;
-                            fk.renameKey(rh.key, rh.value);
-                        }
+                }
+                # rename column in foreign constraints
+                foreach AbstractForeignConstraint fk in (foreignConstraints.iterator()) {
+                    if (fk.hasKey(key)) {
+                        AbstractColumn rc = fk{key};
+                        rc.name = value;
+                        fk.renameKey(key, value);
                     }
                 }
             }
 
             # before modifying columns, rename indexes constraints and drop any excess indexes and constraints
             # process index_map: rename indexes
-            foreach hash rh in (opt.index_map.pairIterator()) {
-                if (indexes.hasKey(rh.key)) {
-                    AbstractIndex ix = indexes{rh.key};
-                    l += AbstractDatabase::doCallback(opt, ix.getRenameSql(getSqlName(), rh.value), AbstractDatabase::AC_Rename, "index", ix.name, name, rh.value);
-                    renameIndexUnlocked(ix, rh.value);
+            i = new HashIterator(opt.index_map);
+            while (i.next()) {
+                string key = i.getKey();
+                if (indexes.hasKey(key)) {
+                    AbstractIndex ix = indexes{key};
+                    string value = i.getValue();
+                    l += AbstractDatabase::doCallback(opt, ix.getRenameSql(getSqlName(), value), AbstractDatabase::AC_Rename, "index", ix.name, name, value);
+                    renameIndexUnlocked(ix, value);
                 }
             }
 
@@ -15551,23 +15567,25 @@ my list $l = $table.getAlignSql($table2);
             }
 
             # process constraint_map: rename constraints
-            foreach hash rh in (opt.constraint_map.pairIterator()) {
+            i = new HashIterator(opt.constraint_map);
+            while (i.next()) {
+                string key = i.getKey();
+                string value = i.getValue();
                 *AbstractConstraint c;
-
-                if (foreignConstraints.hasKey(rh.key)) {
-                    c = foreignConstraints{rh.key};
-                    foreignConstraints.renameKey(rh.key, rh.value);
+                if (foreignConstraints.hasKey(key)) {
+                    c = foreignConstraints{key};
+                    foreignConstraints.renameKey(key, value);
                 }
-                else if (constraints.hasKey(rh.key)) {
-                    c = constraints{rh.key};
-                    constraints.renameKey(rh.key, rh.value);
+                else if (constraints.hasKey(key)) {
+                    c = constraints{key};
+                    constraints.renameKey(key, value);
                 }
-                else if (!primaryKey.empty() && primaryKey.getName() == rh.key)
+                else if (!primaryKey.empty() && primaryKey.getName() == key)
                     c = primaryKey;
 
                 if (c) {
-                    l += AbstractDatabase::doCallback(opt, c.getRenameSql(getSqlName(), rh.value), AbstractDatabase::AC_Rename, "constraint", c.getName(), name, rh.value);
-                    c.rename(rh.value);
+                    l += AbstractDatabase::doCallback(opt, c.getRenameSql(getSqlName(), value), AbstractDatabase::AC_Rename, "constraint", c.getName(), name, value);
+                    c.rename(value);
                 }
             }
 
