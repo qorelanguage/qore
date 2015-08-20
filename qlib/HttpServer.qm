@@ -134,7 +134,7 @@ log("started listener on %s", lh.desc);
       - the new implementation has two stages:
         - first, handlers without regexp are considered - if there are some handler with their path matching the request, the one with the longest path is selected
         - otherwise, the first (in order of their registration) handler with regexp that matches the request URI is chosen
-      - if no path matches the request, the same logic as before applies 
+      - if no path matches the request, the same logic as before applies
 
     @subsection http0310 HttpServer 0.3.10
     - if an error occurs receiving a message with chunked transfer encoding, send the response immediately before reading the rest of the chunked transfer
@@ -354,8 +354,11 @@ class HttpServer::HttpHandlerList {
             return handlers.firstValue();
 
         *HandlerInfo handlerInfo = treeMap.get(hdr.path);
-        if (handlerInfo)
+        if (handlerInfo) {
+            # must set score to 3 to stop searching; a path match trumps all other matches
+            score = 3;
             return handlerInfo;
+        }
 
         # find a handler for the request
         HandlerInfo rv;
