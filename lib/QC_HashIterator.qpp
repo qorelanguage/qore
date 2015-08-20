@@ -197,8 +197,8 @@ any HashIterator::getValue() [flags=RET_VALUE_ONLY] {
    return i->getReferencedValue(xsink);
 }
 
-//! returns the current value of the current has key being iterated or throws an \c INVALID-ITERATOR exception if the iterator is invalid
-/** @return the current value of the current has key being iterated or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+//! returns the current value of the current hash key being iterated or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+/** @return the current value of the current hash key being iterated or throws an \c INVALID-ITERATOR exception if the iterator is invalid
 
     @par Example:
     @code
