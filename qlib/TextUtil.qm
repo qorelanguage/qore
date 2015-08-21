@@ -49,12 +49,21 @@ module TextUtil {
     The %TextUtil module provides functionality for parsing different kinds of files.
 
     To use this module, use \c "%requires TextUtil" in your code.
-    
+
     All the public symbols in the module are defined in the TextUtil namespace
 
     Currently the module provides the following classes:
     - @ref TextUtil::AbstractTextIterator "AbstractTextIterator": iterator class allowing different kind of data to be processed line by line on a record basis
     - @ref TextUtil::AbstractTextWriter "AbstractTextWriter": iterator class allowing writing different kind of data
+
+    @section textutilglobaloptions TextUtil Global Options
+
+    Valid options are:
+    - \c "timezone": a string giving a time zone region name or an integer offset in seconds east of UTC
+    - \c "ignore-empty": if @ref Qore::True "True" then ignore empty lines
+    - \c "encoding": the output encoding for strings parsed or returned
+    - \c "number_format": the default number format for \c "float" or \c "number" fields
+    - \c "date_format": the default date format for \c "date" fields
 
     @section textutil_relnotes Release Notes
 
@@ -78,18 +87,22 @@ public namespace TextUtil {
 #! structured line iterator for abstract data allowing efficient "pipelined" processing
 public class TextUtil::AbstractTextIterator {
     private {
-        hash m_opts; # encoding, eol, ignore-empty, timezone
+        *hash m_opts; # encoding, eol, ignore-empty, timezone
     }
 
     #! creates the AbstractTextIterator object
     /**
-    @param g global options
+        @param g global options; see @ref textutilglobaloptions for valid values
     */
-    constructor(*hash g) {
+    constructor(hash g) {
         m_opts = checkOptions(g);
     }
 
-#    abstract *string getValue();
+    #! creates the AbstractTextIterator object with default options
+    constructor() {
+    }
+
+    #abstract *string getValue();
 
     private *hash checkOptions(*hash opts) {
         string errname = 'RECORD-ITERATOR-ERROR';
@@ -174,14 +187,14 @@ public class TextUtil::AbstractTextIterator {
                     my *string fmt = type.format;
                     if (!fmt)
                         fmt = m_opts.date_format;
-                    
+
                     return tz ? tz.date(value, fmt) : date(value, fmt);
                 }
                 if (t != NT_DATE && tz)
                     value = date(value);
                 return tz ? tz.date(value) : date(value);
             }
-          default: {
+            default: {
               throw "FIELD-TYPE-ERROR", sprintf("output type %y not supported", type.type);
             }
         }
