@@ -98,7 +98,7 @@ public:
       size_t prefixLen = getFirstPathSegmentLength(path);
       while (it != b && !(--it)->first.compare(0, prefixLen, path, 0, prefixLen)) {
          if (isPathPrefix(it->first, path)) {
-            return it->second.getNodeCreateIfNeeded();
+            return it->second.getReferencedValue();
          }
       }
       return 0;

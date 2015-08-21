@@ -177,8 +177,6 @@ public:
    // converts pointers to efficient representations
    DLLEXPORT void sanitize();
 
-   DLLEXPORT AbstractQoreNode *getNodeCreateIfNeeded() const;
-
    DLLEXPORT QoreValue& operator=(const QoreValue& n);
 
    DLLEXPORT void clearNode();
