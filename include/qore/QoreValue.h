@@ -51,7 +51,7 @@ union qore_value_u {
    int64 i;
    double f;
    AbstractQoreNode* n;
-   void* p;
+//   void* p;
 };
 
 
@@ -157,6 +157,10 @@ public:
    // the QoreValue object takes the reference of the argument
    DLLEXPORT AbstractQoreNode* assign(AbstractQoreNode* n);
 
+   // the QoreValue object will increase the reference of n if necessary
+   //returns 0 or the previously held AbstractQoreNode*
+   DLLEXPORT AbstractQoreNode* assignAndSanitize(const AbstractQoreNode* n);
+
    DLLEXPORT AbstractQoreNode* assign(int64 n);
 
    DLLEXPORT AbstractQoreNode* assign(double n);
@@ -169,8 +173,10 @@ public:
    DLLEXPORT bool isEqualHard(const QoreValue v) const;
 
    // FIXME: remove with new API/ABI
-   // converts pointers to efficient reprensentations
+   // converts pointers to efficient representations
    DLLEXPORT void sanitize();
+
+   DLLEXPORT AbstractQoreNode *getNodeCreateIfNeeded() const;
 
    DLLEXPORT QoreValue& operator=(const QoreValue& n);
 
