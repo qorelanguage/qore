@@ -136,6 +136,7 @@ public:
    DLLEXPORT QoreValue(AbstractQoreNode* n);
 
    // the arg will be referenced for the assignment
+   // sanitizes n (increases the reference of n if necessary)
    DLLEXPORT QoreValue(const AbstractQoreNode* n);
 
    DLLEXPORT QoreValue(const QoreValue& old);

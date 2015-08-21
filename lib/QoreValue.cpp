@@ -53,7 +53,7 @@ QoreValue::QoreValue(AbstractQoreNode* n) : type(QV_Node) {
 }
 
 QoreValue::QoreValue(const AbstractQoreNode* n) : type(QV_Node) {
-   v.n = n ? n->refSelf() : 0;
+   assignAndSanitize(n);
 }
 
 QoreValue::QoreValue(const QoreValue& old): type(old.type) {
