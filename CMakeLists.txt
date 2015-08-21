@@ -39,6 +39,7 @@ include(GNUInstallDirs)
 #configure_file(${CMAKE_SOURCE_DIR}/include/qore/intern/unix-config.h.in
 #               ${CMAKE_BINARY_DIR}/include/qore/intern/unix-config.h)
 add_definitions(-DHAVE_UNIX_CONFIG_H)
+set(HAVE_SIGNAL_HANDLING true)
 #add_definitions(-DHAVE_GETOPT_H)
 #add_definitions(-DHAVE_STRCASESTR)
 
@@ -106,6 +107,7 @@ set(QPP_SRC_LIB
 	lib/QC_Socket.qpp 
 	lib/QC_TermIOS.qpp 
 	lib/QC_TimeZone.qpp 
+        lib/QC_TreeMap.qpp
 	lib/QC_SSLCertificate.qpp 
 	lib/QC_SSLPrivateKey.qpp 
 	lib/QC_ThreadPool.qpp 
@@ -149,6 +151,7 @@ set(QORE_CPP_SRC qore-single-compilation-unit.cpp)
 set(QR_CPP_SRC qr-single-compilation-unit.cpp)
 
 qore_find_pthreads()
+find_package(ICONV REQUIRED)
 find_package(BISON REQUIRED)
 find_package(FLEX 2.5.35 REQUIRED)
 find_package(OpenSSL REQUIRED)
@@ -163,11 +166,14 @@ create_git_revision()
 qore_openssl_checks()
 qore_mpfr_checks()
 
-
 qore_check_headers_cxx(fcntl.h inttypes.h netdb.h netinet/in.h stddef.h stdlib.h string.h strings.h sys/socket.h sys/time.h unistd.h execinfo.h cxxabi.h arpa/inet.h sys/socket.h sys/statvfs.h winsock2.h ws2tcpip.h glob.h sys/un.h termios.h netinet/tcp.h pwd.h sys/wait.h getopt.h stdint.h grp.h)
 
-set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES} Threads::Threads)
-qore_check_funcs(bzero floor gethostbyaddr gethostbyname gethostname gettimeofday memmove memset mkfifo putenv regcomp select socket setsockopt getsockopt strcasecmp strchr strdup strerror strspn strstr atoll strtol strtoll isblank localtime_r gmtime_r exp2 clock_gettime realloc timegm seteuid setegid setenv unsetenv round pthread_attr_getstacksize getpwuid_r getpwnam_r getgrgid_r getgrnam_r backtrace glob system inet_ntop inet_pton lstat fsync lchown chown setsid setuid mkfifo random kill getppid getgid getegid getuid geteuid setuid seteuid setgid setegid sleep usleep nanosleep readlink symlink access strcasestr strncasecmp setgroups getgroups realpath memmem)
+qore_search_libs(LIBQORE_LIBS setsockopt socket)
+qore_search_libs(LIBQORE_LIBS gethostbyname nsl)
+qore_search_libs(LIBQORE_LIBS clock_gettime rt)
+
+set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES} Threads::Threads ${LIBQORE_LIBS})
+qore_check_funcs(bzero floor gethostbyaddr gethostbyname gethostname gettimeofday memmove memset mkfifo putenv regcomp select socket setsockopt getsockopt strcasecmp strchr strdup strerror strspn strstr atoll strtol strtoll isblank localtime_r gmtime_r exp2 clock_gettime realloc timegm seteuid setegid setenv unsetenv round pthread_attr_getstacksize getpwuid_r getpwnam_r getgrgid_r getgrnam_r backtrace glob system inet_ntop inet_pton lstat fsync lchown chown setsid setuid mkfifo random kill getppid getgid getegid getuid geteuid setuid seteuid setgid setegid sleep usleep nanosleep readlink symlink access strcasestr strncasecmp setgroups getgroups realpath memmem strerror_r)
 unset(CMAKE_REQUIRED_LIBRARIES)
 
 qore_other_checks()
@@ -206,11 +212,11 @@ add_custom_target(BISON_GENERATED_FILES DEPENDS ${BISON_qoreparser_OUTPUTS})
 add_custom_target(FLEX_GENERATED_FILES DEPENDS ${FLEX_qorescanner_OUTPUTS})
 
 add_library(libqore SHARED ${CPP_SRC_LIB})
-add_dependencies(libqore qpp)
+add_dependencies(QPP_GENERATED_FILES qpp)
 add_dependencies(libqore QPP_GENERATED_FILES BISON_GENERATED_FILES FLEX_GENERATED_FILES)
 target_compile_definitions(libqore PUBLIC -D_QORE_LIB_INTERN)
-target_include_directories(libqore PUBLIC ${BZIP2_INCLUDE_DIR} ${MPFR_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${PCRE_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/lib)
-target_link_libraries(libqore Threads::Threads ${BZIP2_LIBRARIES} ${MPFR_LIBRARIES} ${OPENSSL_LIBRARIES} ${PCRE_LDFLAGS} ${ZLIB_LIBRARIES})
+target_include_directories(libqore PUBLIC ${BZIP2_INCLUDE_DIR} ${ICONV_INCLUDE_DIR} ${MPFR_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${PCRE_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/lib)
+target_link_libraries(libqore Threads::Threads ${BZIP2_LIBRARIES} ${ICONV_LIBRARY} ${MPFR_LIBRARIES} ${OPENSSL_LIBRARIES} ${PCRE_LDFLAGS} ${ZLIB_LIBRARIES})
 set_property(TARGET libqore PROPERTY OUTPUT_NAME qore)
 
 add_executable(qore ${QORE_CPP_SRC})
@@ -223,9 +229,9 @@ configure_file(${CMAKE_SOURCE_DIR}/cmake/unix-config.h.cmake
 configure_file(${CMAKE_SOURCE_DIR}/cmake/qore-version.h.cmake 
                ${CMAKE_BINARY_DIR}/include/qore/qore-version.h)
 configure_file(${CMAKE_SOURCE_DIR}/cmake/QoreConfigVersion.cmake.in
-               ${CMAKE_BINARY_DIR}/cmake/QoreConfigVersion.cmake)
+               ${CMAKE_BINARY_DIR}/cmake/QoreConfigVersion.cmake @ONLY)
 configure_file(${CMAKE_SOURCE_DIR}/cmake/QoreConfig.cmake.in
-               ${CMAKE_BINARY_DIR}/cmake/QoreConfig.cmake)
+               ${CMAKE_BINARY_DIR}/cmake/QoreConfig.cmake @ONLY)
 configure_file(${CMAKE_SOURCE_DIR}/qore.pc.in
                ${CMAKE_BINARY_DIR}/qore.pc)
 
