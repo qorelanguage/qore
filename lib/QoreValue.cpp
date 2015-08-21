@@ -53,7 +53,7 @@ QoreValue::QoreValue(AbstractQoreNode* n) : type(QV_Node) {
 }
 
 QoreValue::QoreValue(const AbstractQoreNode* n) : type(QV_Node) {
-   v.n = const_cast<AbstractQoreNode*>(n);
+   v.n = n ? n->refSelf() : 0;
 }
 
 QoreValue::QoreValue(const QoreValue& old): type(old.type) {
@@ -223,7 +223,7 @@ void QoreValue::clearNode() {
    if (type == QV_Node)
       v.n = 0;
 }
-   
+
 void QoreValue::discard(ExceptionSink* xsink) {
    if (type == QV_Node && v.n)
       v.n->deref(xsink);
@@ -260,7 +260,7 @@ QoreString* QoreValue::getAsString(bool& del, int format_offset, ExceptionSink* 
 	 assert(false);
 	 // no break;
    }
-   return 0;   
+   return 0;
 }
 
 AbstractQoreNode* QoreValue::getReferencedValue() const {
@@ -355,7 +355,7 @@ ValueOptionalRefHolder::~ValueOptionalRefHolder() {
 ValueEvalRefHolder::ValueEvalRefHolder(const AbstractQoreNode* exp, ExceptionSink* xs) : ValueOptionalRefHolder(xs) {
    if (!exp)
       return;
-   
+
    if (exp->hasValueApi()) {
       const ParseNode* pn = reinterpret_cast<const ParseNode*>(exp);
       v = pn->evalValue(needs_deref, xsink);

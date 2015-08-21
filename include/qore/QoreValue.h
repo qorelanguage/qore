@@ -118,7 +118,7 @@ struct QoreValue {
 
 protected:
    DLLEXPORT AbstractQoreNode* takeNodeIntern();
-   
+
 public:
    qore_value_u v;
    valtype_t type;
@@ -132,8 +132,10 @@ public:
 
    DLLEXPORT QoreValue(double f);
 
+   // the QoreValue object takes the reference of the argument
    DLLEXPORT QoreValue(AbstractQoreNode* n);
 
+   // the arg will be referenced for the assignment
    DLLEXPORT QoreValue(const AbstractQoreNode* n);
 
    DLLEXPORT QoreValue(const QoreValue& old);
@@ -147,17 +149,18 @@ public:
    DLLEXPORT double getAsFloat() const;
 
    DLLEXPORT QoreValue refSelf() const;
-   
+
    DLLEXPORT AbstractQoreNode* getInternalNode();
 
    DLLEXPORT const AbstractQoreNode* getInternalNode() const;
 
+   // the QoreValue object takes the reference of the argument
    DLLEXPORT AbstractQoreNode* assign(AbstractQoreNode* n);
-   
+
    DLLEXPORT AbstractQoreNode* assign(int64 n);
-   
+
    DLLEXPORT AbstractQoreNode* assign(double n);
-   
+
    DLLEXPORT AbstractQoreNode* assign(bool n);
 
    DLLEXPORT AbstractQoreNode* assignNothing();
@@ -168,11 +171,11 @@ public:
    // FIXME: remove with new API/ABI
    // converts pointers to efficient reprensentations
    DLLEXPORT void sanitize();
-   
+
    DLLEXPORT QoreValue& operator=(const QoreValue& n);
-   
+
    DLLEXPORT void clearNode();
-   
+
    DLLEXPORT void discard(ExceptionSink* xsink);
 
    DLLEXPORT int getAsString(QoreString& str, int format_offset, ExceptionSink *xsink) const;
@@ -211,7 +214,7 @@ public:
    DLLEXPORT const char* getTypeName() const;
 
    DLLEXPORT bool hasNode() const;
-   
+
    DLLEXPORT bool isNothing() const;
 
    DLLEXPORT bool isNull() const;
@@ -223,7 +226,7 @@ class ValueHolderBase {
 protected:
    QoreValue v;
    ExceptionSink* xsink;
-   
+
 public:
    DLLLOCAL ValueHolderBase(ExceptionSink* xs) : xsink(xs) {
    }
@@ -295,7 +298,7 @@ public:
          needs_deref = false;
       else
          rv->ref();
-      
+
       return rv;
    }
 
