@@ -47,7 +47,7 @@ module FixedLengthUtil {
 
     @section fixedlengthutilintro Introduction to the FixedLengthUtil Module
 
-    The %FixedLengthUtil module provides functionality for parsing files with fixed length lines.
+    The %FixedLengthUtil module provides functionality for parsing files with fixed length lines. This means that we have at least one line type and each line type is described as several data items with fixed length.
 
     To use this module, use \c "%requires FixedLengthUtil" in your code.
 
@@ -258,7 +258,7 @@ my hash $h = $i.getValue();
 
     #! Validate and prepare global fixed-length options
     /**
-        @param opts Options passed during class instatiation.
+        @param opts Options passed during class instantiation.
     */
     private *hash checkOptions(*hash opts) { # put special options here
         return opts;
@@ -267,6 +267,8 @@ my hash $h = $i.getValue();
     #! Identify a fixed-length line type using a second method %identifyTypeImpl, that may be overridden if necessary
     /**
         @param s Input line to be identified
+
+        Returns detected line type.
 
         @throw FIXED-LENGTH-UTIL-NON-MATCHING-TYPE input line cannot be matched to a known record
     */
