@@ -1,45 +1,60 @@
-#!/usr/bin/env qore
-# -*- mode: qore; indent-tabs-mode: nil -*-
+#!/usr/bin/env qr
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class NumbersTest
 
 %require-types
 %enable-all-warnings
-%requires UnitTest
-%exec-class App
 
-class App {
-    constructor() {
-        my UnitTest $unit();
+public class NumbersTest inherits QUnit::Test {
+    constructor() : Test("NumbersTest", "1.0") {
+        addTestCase("Test number to string conversions", \stringConversionTest(), NOTHING);
+        addTestCase("Test number rounding during string conversions", \roundingTest(), NOTHING);
 
-        $unit.cmp(string(10.2n), "10.2", "first number"); 
-        $unit.cmp(string(-10.2n), "-10.2", "second number"); 
-        $unit.cmp(string(1.000000000099999999n), "1.000000000099999999", "third number"); 
-        $unit.cmp(10.245n.toString(NF_Scientific), "1.0245e+01", "fourth number"); 
-        $unit.cmp((-10.245n).toString(NF_Scientific), "-1.0245e+01", "fifth number"); 
-        $unit.cmp(0.10245n.toString(NF_Scientific), "1.0245e-01", "sixth number"); 
-        $unit.cmp((-0.10245n).toString(NF_Scientific), "-1.0245e-01", "seventh number"); 
-        $unit.cmp(1.0245n.toString(NF_Scientific), "1.0245e+00", "sixth number"); 
-        $unit.cmp((-1.0245n).toString(NF_Scientific), "-1.0245e+00", "seventh number"); 
-        $unit.cmp(10.245n.toString(), "10.245", "eighth number"); 
-        $unit.cmp((-10.245n).toString(), "-10.245", "ninth number"); 
-        $unit.cmp(0.10245n.toString(), "0.10245", "tenth number"); 
-        $unit.cmp((-0.10245n).toString(), "-0.10245", "eleventh number"); 
-        $unit.cmp(1.0245n.toString(), "1.0245", "twelfth number"); 
-        $unit.cmp((-1.0245n).toString(), "-1.0245", "thirteenth number"); 
-        $unit.cmp(10.001999999999n.toString(), "10.001999999999", "fourteenth number"); 
-        $unit.cmp((-10.001999999999n).toString(), "-10.001999999999", "fifteenth number"); 
-        $unit.cmp(0.10001999999999n.toString(), "0.10001999999999", "sixteenth number"); 
-        $unit.cmp((-0.10001999999999n).toString(), "-0.10001999999999", "seventeenth number"); 
-        $unit.cmp(1.0001999999999n.toString(), "1.0001999999999", "eighteenth number"); 
-        $unit.cmp((-1.0001999999999n).toString(), "-1.0001999999999", "nineteenth number"); 
-        $unit.cmp(0.8n.toString(), "0.8", "number rounding 1");
-        $unit.cmp(0.8n.toString(NF_Scientific), "8e-01", "number rounding 2");
-        $unit.cmp((-0.8n).toString(), "-0.8", "number rounding 3");
-        $unit.cmp((-0.8n).toString(NF_Scientific), "-8e-01", "number rounding 4");
-        $unit.cmp((34.9n * 100).toString(), "3490", "number rounding 5");
-        $unit.cmp(1e50n.toString(), "100000000000000000000000000000000000000000000000000", "number rounding 5");
-        $unit.cmp((-1e50n).toString(), "-100000000000000000000000000000000000000000000000000", "number rounding 6");
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
 
+    string helperToString(any n, any param) { return n.toString(param); }
+
+    stringConversionTest() {
+        int i = 1;
+        testAssertion("conversion no. " + string(i++), \string(), (10.2n,), new TestResultValue("10.2"));
+        testAssertion("conversion no. " + string(i++), \string(), (-10.2n,), new TestResultValue("-10.2"));
+        testAssertion("conversion no. " + string(i++), \string(), (1.000000000099999999n,), new TestResultValue("1.000000000099999999"));
+
+        testAssertion("conversion no. " + string(i++), \helperToString(), (10.245n, NF_Scientific), new TestResultValue("1.0245e+01"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (-10.245n, NF_Scientific), new TestResultValue("-1.0245e+01"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (0.10245n, NF_Scientific), new TestResultValue("1.0245e-01"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (-0.10245n, NF_Scientific), new TestResultValue("-1.0245e-01"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (1.0245n, NF_Scientific), new TestResultValue("1.0245e+00"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (-1.0245n, NF_Scientific), new TestResultValue("-1.0245e+00"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (10.245n,), new TestResultValue("10.245"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (-10.245n,), new TestResultValue("-10.245"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (0.10245n,), new TestResultValue("0.10245"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (-0.10245n), new TestResultValue("-0.10245"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (1.0245n,), new TestResultValue("1.0245"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (-1.0245n), new TestResultValue("-1.0245"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (10.001999999999n,), new TestResultValue("10.001999999999"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (-10.001999999999n,), new TestResultValue("-10.001999999999"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (0.10001999999999n,), new TestResultValue("0.10001999999999"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (-0.10001999999999n,), new TestResultValue("-0.10001999999999"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (1.0001999999999n,), new TestResultValue("1.0001999999999"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (-1.0001999999999n,), new TestResultValue("-1.0001999999999"));
         # fixed in svn rev 6914
-        $unit.cmp(738.38.toNumber().toString(), 738.38.toString(), "float->number 1");
+        testAssertion("conversion no. " + string(i++), \helperToString(), (738.38.toNumber(),), new TestResultValue(helperToString(738.38)));
+    }
+
+    roundingTest() {
+        int i = 1;
+        testAssertion("rounding no. " + string(i++), \helperToString(), (0.8n,), new TestResultValue("0.8"));
+        testAssertion("rounding no. " + string(i++), \helperToString(), (0.8n, NF_Scientific), new TestResultValue("8e-01"));
+        testAssertion("rounding no. " + string(i++), \helperToString(), (-0.8n,), new TestResultValue("-0.8"));
+        testAssertion("rounding no. " + string(i++), \helperToString(), (-0.8n, NF_Scientific), new TestResultValue("-8e-01"));
+        testAssertion("rounding no. " + string(i++), \helperToString(), (34.9n * 100,), new TestResultValue("3490"));
+        testAssertion("rounding no. " + string(i++), \helperToString(), (1e50n,), new TestResultValue("100000000000000000000000000000000000000000000000000"));
+        testAssertion("rounding no. " + string(i++), \helperToString(), (-1e50n,), new TestResultValue("-100000000000000000000000000000000000000000000000000"));
+
     }
 }
