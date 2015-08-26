@@ -126,6 +126,8 @@
       - @ref Qore::xrange() and @ref Qore::RangeIterator::constructor() and <list>::rangeIterator() updated to take an optional value to return in the @ref Qore::RangeIterator::getValue() method
     - @ref Qore::FtpClient updates:
       - added @ref Qore::FtpClient::getMode()
+    - Performance improvements:
+      - @ref Qore::HashPairIterator and @ref Qore::ObjectPairIterator objects (returned by @ref <hash>::pairIterator() and @ref <object>::pairIterator(), respectively and the associated reverse iterators) have had their performance improved by approximately 70% by reusing the hash iterator object when possible
     - module directory handling changed
       - user modules are now stored in $prefix/share/qore-modules/$version
       - $prefix/share/qore-modules is also added to the module path
