@@ -116,6 +116,7 @@ module SqlUtil {
     - fixed a bug in the partition by/over operator where column names as given in the query argument hash were not properly recognized
     - implemented insert option support (see @ref AbstractTable::InsertOptions) with the \c "returning" clause in supported drivers
     - implemented support for late table resolution in joins to support executing SQL from serialized parameters
+    - improved error messages for common errors such as join errors
 
     @subsection sqlutilv1_1 SqlUtil v1.1
     - implemented new upsert strategy @ref SqlUtil::AbstractTable::UpsertInsertOnly
@@ -14453,7 +14454,6 @@ my string $sql = $table.getSelectSql($sh, \$args);
         }
 
         private string getColumnNameIntern(string cv, *hash jch, bool join, *hash ch) {
-            Columns cols;
             # remove any disposable unique prefix
             cv =~ s/^[0-9]+://;
 
@@ -14462,8 +14462,11 @@ my string $sql = $table.getSelectSql($sh, \$args);
             if (tp) {
                 if (!jch{tp})
                     throw "SELECT-ERROR", sprintf("%s: query references unknown alias %y in %y; known aliases in this query: %y", getDesc(), tp, cv, jch.keys());
-                cols = jch{tp}.describe();
+                # remove table alias from column name
                 splice cv, 0, tp.size() + 1;
+
+                if (cv != "*" && !jch{tp}.describe().hasKey(cv))
+                    throw "SELECT-ERROR", sprintf("%s: query references unknown column \"%s.%s\" (%y is aliased to table %y); known columns: %y", getDesc(), tp, cv, tp, jch{tp}.getSqlName(), jch{tp}.describe().keys());
             }
             else if (ch) {
                 if (!ch{cv})
@@ -14471,13 +14474,14 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 return cv;
             }
             else {
-                cols = columns;
                 tp = getSqlName();
+                if (cv != "*" && !columns.hasKey(cv))
+                    throw "SELECT-ERROR", sprintf("%s: query references unknown column \"%s.%s\"; known columns: %y", getDesc(), tp, cv, columns.keys());
             }
 
-            if (cv != "*" && !cols.hasKey(cv))
-                throw "SELECT-ERROR", sprintf("%s: query references unknown column %y.%y; known columns: %y", getDesc(), tp, cv, cols.keys());
+            # ensure that reserved words are properly quoted
             cv = getColumnSqlName(cv);
+
             return join ? sprintf("%s.%s", tp, cv) : cv;
         }
 
