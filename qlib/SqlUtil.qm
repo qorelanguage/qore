@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module SqlUtil {
-    version = "1.2";
+    version = "1.3";
     desc = "user module for working with SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -62,7 +62,6 @@ module SqlUtil {
     Major sections of this documentation:
     - @subpage sql_operations "SQL Operations": working with database data (finding, updating, inserting, deleting, merging data, etc)
     - @subpage schema_management "Schema Management": working schema definitions (creating, modifying, aligning tables, functions, types, triggers, etc)
-
     - @subpage dba_management "DBA Management": special database administrator tools
 
     The %SqlUtil module provides generic functionality and a framework for SQL operations and schema management, and in order
@@ -100,6 +99,17 @@ module SqlUtil {
 
     @section relnotes Release Notes
 
+    @subsection sqlutilv1_3 SqlUtil v1.3
+    - implemented insert option support (see @ref AbstractTable::InsertOptions) with the \c "returning" clause in supported drivers
+    - implemented support for late table resolution in joins to support executing SQL from serialized parameters
+    - improved error messages for common errors such as join errors
+    - implemented support for DBA actions (see @ref dba_management)
+    - fixed a bug with queries using a \a desc argument with the \a orderby query option with multiple sort columns; the \c "desc" string was added only to the last column but should have been added to all columns
+    - fixed a bug where foreign key constraints with supporting indexes were not tracked and therefore schema alignment on DBs that automatically create indexes for foreign key constraints would fail
+    - fixed a bug where driver-specific objects were not included when dropping a schema
+    - fixed a bug in subquery handling where bind-by-value arguments from the subquery were lost
+    - fixed a bug in the partition by/over operator where column names as given in the query argument hash were not properly recognized
+
     @subsection sqlutilv1_2 SqlUtil v1.2
     - added insert operator support; for example, for inserting with values from sequences
     - added new upsert constant maps: @ref SqlUtil::AbstractTable::UpsertStrategyMap "UpsertStrategyMap" and @ref SqlUtil::AbstractTable::UpsertStrategyDescriptionMap "UpsertStrategyDescriptionMap"
@@ -109,14 +119,6 @@ module SqlUtil {
     - added support for the \c forupdate @ref select_option_hash "select option"
     - fixed a bug in schema management where excessively verbose column aliases were used that caused errors when automatically updating columns with existing rows and new default values and non-null contraints with PostgreSQL databases
     - fixed a bug where select and row iterator operations could fail with certain select hash arguments without a \c "columns" entry but where column names were otherwise required
-    - fixed a bug with queries using a \a desc argument with the \a orderby query option with multiple sort columns; the \c "desc" string was added only to the last column but should have been added to all columns
-    - fixed a bug where foreign key constraints with supporting indexes were not tracked and therefore schema alignment on DBs that automatically create indexes for foreign key constraints would fail
-    - fixed a bug where driver-specific objects were not included when dropping a schema
-    - fixed a bug in subquery handling where bind-by-value arguments from the subquery were lost
-    - fixed a bug in the partition by/over operator where column names as given in the query argument hash were not properly recognized
-    - implemented insert option support (see @ref AbstractTable::InsertOptions) with the \c "returning" clause in supported drivers
-    - implemented support for late table resolution in joins to support executing SQL from serialized parameters
-    - improved error messages for common errors such as join errors
 
     @subsection sqlutilv1_1 SqlUtil v1.1
     - implemented new upsert strategy @ref SqlUtil::AbstractTable::UpsertInsertOnly
@@ -127,7 +129,6 @@ module SqlUtil {
     @subsection sqlutilv1_0 SqlUtil v1.0
     - initial release of the SqlUtil modules for schema management and SQL operations
 */
-
 /** @page sql_operations SQL Operations
 
     @tableofcontents
@@ -2734,7 +2735,7 @@ my *list $rows = $table.selectRows(("join": join_inner($table2)));
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
 
-        @since %SqlUtil 1.2
+        @since %SqlUtil 1.3
     */
     public hash sub join_inner(string ta, AbstractTable table, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_INNER, table, alias, jcols, cond, ta, opt);
@@ -2786,7 +2787,7 @@ my *list $rows = $table.selectRows(("join": join_inner($table2)));
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
 
-        @since %SqlUtil 1.2
+        @since %SqlUtil 1.3
     */
     public hash sub join_inner_alias(string ta, string table_name, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_INNER, table_name, alias, jcols, cond, ta, opt);
@@ -2860,7 +2861,7 @@ my *list $rows = $table.selectRows(("join": join_left($table2, "t2", NOTHING, ("
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
 
-        @since %SqlUtil 1.2
+        @since %SqlUtil 1.3
     */
     public hash sub join_left(string table_name, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_LEFT, table_name, alias, jcols, cond, NOTHING, opt);
@@ -2937,7 +2938,7 @@ my *list $rows = $table.selectRows(("join": join_left($table2, "t2", NOTHING, ("
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
 
-        @since %SqlUtil 1.2
+        @since %SqlUtil 1.3
     */
     public hash sub join_left_alias(string ta, string table_name, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_LEFT, table_name, alias, jcols, cond, ta, opt);
@@ -3011,7 +3012,7 @@ my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, (
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
 
-        @since %SqlUtil 1.2
+        @since %SqlUtil 1.3
     */
     public hash sub join_right(string table_name, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_RIGHT, table_name, alias, jcols, cond, NOTHING, opt);
@@ -3088,7 +3089,7 @@ my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, (
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
 
-        @since %SqlUtil 1.2
+        @since %SqlUtil 1.3
     */
     public hash sub join_right_alias(string ta, string table_name, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_RIGHT, table_name, alias, jcols, cond, ta, opt);
@@ -13102,7 +13103,7 @@ $table.insertNoCommi($row);
 
         #! returns @ref Qore::True "True" if the current database driver supports the \c "returning" clause in insert statements, @ref Qore::False "False" if not
         /** @return @ref Qore::True "True" if the current database driver supports the \c "returning" clause in insert statements, @ref Qore::False "False" if not
-            @since %SqlUtil 1.2
+            @since %SqlUtil 1.3
         */
         bool hasReturning() {
             return hasReturningImpl();
@@ -16090,7 +16091,7 @@ my *list $rows = $table.findAll($h);
         #! returns a descriptive string of the datasource (without the password) and the table name (with a possible qualifier for schema, etc)
         /** Used in exception descriptions
 
-            @since SqlUtil 1.2
+            @since SqlUtil 1.3
         */
         string getDesc() {
             return sprintf("%s: %s %s", AbstractSqlUtilBase::makeDatasourceDesc(ds), getBaseType(), getSqlName());

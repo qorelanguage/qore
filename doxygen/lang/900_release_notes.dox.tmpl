@@ -192,6 +192,7 @@
       - implemented the AbstractTable::getDesc() method and improved exception description messages
       - implemented support for late table resoluton in join arguments to enable joins from serialized parameters
       - improved error messages for common errors such as join errors
+      - implemented support for DBA management actions
     - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module updates:
       - implemented support for views for DML in the OracleTable class
     - added initial support for UTF-16 character encoding; note that UTF-16 is not backwards-compatible with ASCII and therefore not supported universally in %Qore; it's recommended to convert these strings to UTF-8 in %Qore; do not use UTF-16 as the default character encoding in %Qore; currently UTF-16 data can be parsed using the following classes that convert the data to UTF-8:
