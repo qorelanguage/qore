@@ -498,7 +498,7 @@ public class FixedLengthUtil::FixedLengthFileWriter inherits FixedLengthUtil::Fi
         @param line A hash to be writen to the file
     */
     write(hash line) {
-        m_file.write(formatLine($1) + m_opts.eol);
+        m_file.write(formatLine(line) + m_opts.eol);
     }
 
     #! Stream iterator into the resulting file

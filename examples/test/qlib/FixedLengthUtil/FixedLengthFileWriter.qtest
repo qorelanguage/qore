@@ -16,7 +16,7 @@ list data = (
     ("type": "type1", "record": ("col1" : 22222, "col2" : "gg")),
 );
 
-string data_text = "11111bb\ncddd31122014\n22222gg\n";
+string data_text = "11111bb\n11111bb\ncddd31122014\n22222gg\n";
 
 hash specs = (
     "type1" : (
@@ -52,6 +52,7 @@ hash global_options = (
 );
 
 FixedLengthFileWriter w(file, specs, global_options);
+w.write( ("type": "type1", "record": ("col1" : 11111, "col2" : "bb")) );
 w.write(data);
 
 File FR();
