@@ -134,7 +134,7 @@ public:
    // normal function call constructor
    DLLLOCAL FunctionCallNode(char* name, QoreListNode* a) : AbstractFunctionCallNode(NT_FUNCTION_CALL, a), func(0), pgm(0), c_str(name), finalized(false) {
    }
-      
+
    DLLLOCAL virtual ~FunctionCallNode() {
       printd(5, "FunctionCallNode::~FunctionCallNode(): func=%p c_str=%p (%s) args=%p\n", func, c_str, c_str ? c_str : "n/a", args);
       if (c_str)
@@ -283,7 +283,7 @@ public:
       if (c_str)
 	 free(c_str);
    }
- 
+
    using AbstractMethodCallNode::exec;
    DLLLOCAL AbstractQoreNode* exec(QoreObject* o, ExceptionSink* xsink) const {
       return AbstractMethodCallNode::exec(o, c_str, xsink);
@@ -309,11 +309,7 @@ public:
       return AbstractMethodCallNode::floatExec(o, c_str, xsink);
    }
 
-   DLLLOCAL AbstractQoreNode* execPseudo(const AbstractQoreNode* n, ExceptionSink* xsink) const;
-   DLLLOCAL int64 bigIntExecPseudo(const AbstractQoreNode* n, ExceptionSink* xsink) const;
-   DLLLOCAL int intExecPseudo(const AbstractQoreNode* n, ExceptionSink* xsink) const;
-   DLLLOCAL bool boolExecPseudo(const AbstractQoreNode* n, ExceptionSink* xsink) const;
-   DLLLOCAL double floatExecPseudo(const AbstractQoreNode* n, ExceptionSink* xsink) const;
+   DLLLOCAL QoreValue execPseudo(const AbstractQoreNode* n, ExceptionSink* xsink) const;
 
    DLLLOCAL virtual const char* getName() const {
       return c_str ? c_str : "copy";
@@ -363,7 +359,7 @@ public:
       assert(!pseudo);
       pseudo = true;
    }
-   
+
    DLLLOCAL bool isPseudo() const {
       return pseudo;
    }
@@ -442,7 +438,7 @@ public:
    DLLLOCAL const QoreMethod* getMethod() const {
       return method;
    }
-      
+
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink* xsink) const {
       str.sprintf("static method call %s::%s() (%p)", method->getClass()->getName(), method->getName(), this);
       return 0;
@@ -465,7 +461,7 @@ public:
    }
 
    DLLLOCAL AbstractQoreNode* makeReferenceNodeAndDeref();
-   
+
    DLLLOCAL static const char* getStaticTypeName() {
       return "static method call";
    }

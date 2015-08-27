@@ -1,10 +1,10 @@
 /*
   QoreAssignmentOperatorNode.cpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -37,7 +37,7 @@ QoreString QoreAssignmentOperatorNode::op_str("assignment operator expression");
 AbstractQoreNode* QoreAssignmentOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
    // turn off "reference ok" and "return value ignored" flags
    pflag &= ~(PF_RETURN_VALUE_IGNORED);
-  
+
    left = left->parseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, ti);
    //printd(5, "QoreAssignmentOperatorNode::parseInitImpl() this: %p left: %p '%s' nt: %d ti: %p '%s'\n", this, left, get_type_name(left), get_node_type(left), ti, ti->getName());
    checkLValue(left, pflag);

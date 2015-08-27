@@ -35,9 +35,9 @@
 #include <qore/intern/QoreObjectIntern.h>
 #include <qore/intern/QoreHashNodeIntern.h>
 
-qore_object_private::qore_object_private(QoreObject* n_obj, const QoreClass *oc, QoreProgram* p, QoreHashNode* n_data) : 
-   theclass(oc), status(OS_OK), 
-   privateData(0), data(n_data), pgm(p), system_object(!p), 
+qore_object_private::qore_object_private(QoreObject* n_obj, const QoreClass *oc, QoreProgram* p, QoreHashNode* n_data) :
+   theclass(oc), status(OS_OK),
+   privateData(0), data(n_data), pgm(p), system_object(!p),
    delete_blocker_run(false), in_destructor(false),
    recursive_ref_found(false),
    rscan(0),
@@ -87,7 +87,7 @@ void qore_object_private::merge(const QoreHashNode* h, AutoVLock& vl, ExceptionS
 	 // check member status
 	 if (checkMemberAccessGetTypeInfo(xsink, hi.getKey(), ti, !inclass))
 	    return;
-            
+
 	 // check type compatibility and perform type translations, if any
 	 ReferenceHolder<AbstractQoreNode> val(ti->acceptInputMember(hi.getKey(), hi.getReferencedValue(), xsink), xsink);
 	 if (*xsink)
@@ -183,31 +183,31 @@ void qore_object_private::takeMembers(QoreLValueGeneric& rv, LValueHelper& lvh, 
    }
 
    unsigned old_count = getObjectCount();
-   
+
    ConstListIterator li(l);
    while (li.next()) {
       QoreStringValueHelper mem(li.getValue(), QCS_DEFAULT, lvh.vl.xsink);
       if (*lvh.vl.xsink)
 	 return;
       const char* key = mem->getBuffer();
-	 
+
       const QoreTypeInfo* mti = 0;
       if (checkMemberAccessGetTypeInfo(lvh.vl.xsink, key, mti, check_access))
 	 return;
-      
+
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
       AbstractQoreNode* n = data->swapKeyValue(key, mti->getDefaultValue());
 #else
       AbstractQoreNode* n = data->swapKeyValue(key, 0);
 #endif
-	    
+
       // note that no exception can occur here
       rvh->setKeyValue(key, n, lvh.vl.xsink);
       assert(!*lvh.vl.xsink);
    }
 
    if (old_count && !getObjectCount())
-      lvh.setDelta(-1);   
+      lvh.setDelta(-1);
 }
 
 int qore_object_private::getLValue(const char* key, LValueHelper& lvh, bool internal, bool for_remove, ExceptionSink* xsink) const {
@@ -282,19 +282,19 @@ QoreObject::~QoreObject() {
 }
 
 const QoreClass* QoreObject::getClass() const {
-   return priv->theclass; 
+   return priv->theclass;
 }
 
 const char*QoreObject::getClassName() const {
-   return priv->theclass->getName(); 
+   return priv->theclass->getName();
 }
 
-int QoreObject::getStatus() const { 
-   return priv->status; 
+int QoreObject::getStatus() const {
+   return priv->status;
 }
 
 bool QoreObject::isValid() const {
-   return priv->status == OS_OK; 
+   return priv->status == OS_OK;
 }
 
 QoreProgram* QoreObject::getProgram() const {
@@ -328,7 +328,7 @@ AbstractQoreNode *QoreObject::evalBuiltinMethodWithPrivateData(const QoreMethod 
    ReferenceHolder<AbstractPrivateData> pd(getReferencedPrivateData(meth->getClass()->getIDForMethod(), xsink), xsink);
 
    if (pd)
-      return meth->evalImpl(this, *pd, args, xsink);
+      return meth->evalImpl(this, *pd, args, xsink).takeNode();
 
    //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this: %p (%s) pd: %p, call: %s::%s(), class ID: %d, method class ID: %d\n", this, priv->theclass->getName(), *pd, method.getClass()->getName(), method.getName(), method.getClass()->getID(), method.getClass()->getIDForMethod());
    check_meth_eval(priv->theclass, method.getName(), method.getClass(), xsink);
@@ -339,8 +339,10 @@ int64 QoreObject::bigIntEvalBuiltinMethodWithPrivateData(const QoreMethod &metho
    // get referenced object
    ReferenceHolder<AbstractPrivateData> pd(getReferencedPrivateData(meth->getClass()->getIDForMethod(), xsink), xsink);
 
-   if (pd)
-      return meth->bigIntEvalImpl(this, *pd, args, xsink);
+   if (pd) {
+      ValueHolder rv(meth->evalImpl(this, *pd, args, xsink), xsink);
+      return rv->getAsBigInt();
+   }
 
    //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this: %p (%s) pd: %p, call: %s::%s(), class ID: %d, method class ID: %d\n", this, priv->theclass->getName(), *pd, method.getClass()->getName(), method.getName(), method.getClass()->getID(), method.getClass()->getIDForMethod());
    check_meth_eval(priv->theclass, method.getName(), method.getClass(), xsink);
@@ -351,8 +353,10 @@ int QoreObject::intEvalBuiltinMethodWithPrivateData(const QoreMethod &method, co
    // get referenced object
    ReferenceHolder<AbstractPrivateData> pd(getReferencedPrivateData(meth->getClass()->getIDForMethod(), xsink), xsink);
 
-   if (pd)
-      return meth->intEvalImpl(this, *pd, args, xsink);
+   if (pd) {
+      ValueHolder rv(meth->evalImpl(this, *pd, args, xsink), xsink);
+      return (int)rv->getAsBigInt();
+   }
 
    //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this: %p (%s) pd: %p, call: %s::%s(), class ID: %d, method class ID: %d\n", this, priv->theclass->getName(), *pd, method.getClass()->getName(), method.getName(), method.getClass()->getID(), method.getClass()->getIDForMethod());
    check_meth_eval(priv->theclass, method.getName(), method.getClass(), xsink);
@@ -363,8 +367,10 @@ bool QoreObject::boolEvalBuiltinMethodWithPrivateData(const QoreMethod &method, 
    // get referenced object
    ReferenceHolder<AbstractPrivateData> pd(getReferencedPrivateData(meth->getClass()->getIDForMethod(), xsink), xsink);
 
-   if (pd)
-      return meth->boolEvalImpl(this, *pd, args, xsink);
+   if (pd) {
+      ValueHolder rv(meth->evalImpl(this, *pd, args, xsink), xsink);
+      return rv->getAsBool();
+   }
 
    //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this: %p (%s) pd: %p, call: %s::%s(), class ID: %d, method class ID: %d\n", this, priv->theclass->getName(), *pd, method.getClass()->getName(), method.getName(), method.getClass()->getID(), method.getClass()->getIDForMethod());
    check_meth_eval(priv->theclass, method.getName(), method.getClass(), xsink);
@@ -375,8 +381,10 @@ double QoreObject::floatEvalBuiltinMethodWithPrivateData(const QoreMethod &metho
    // get referenced object
    ReferenceHolder<AbstractPrivateData> pd(getReferencedPrivateData(meth->getClass()->getIDForMethod(), xsink), xsink);
 
-   if (pd)
-      return meth->floatEvalImpl(this, *pd, args, xsink);
+   if (pd) {
+      ValueHolder rv(meth->evalImpl(this, *pd, args, xsink), xsink);
+      return rv->getAsFloat();
+   }
 
    //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this: %p (%s) pd: %p, call: %s::%s(), class ID: %d, method class ID: %d\n", this, priv->theclass->getName(), *pd, method.getClass()->getName(), method.getName(), method.getClass()->getID(), method.getClass()->getIDForMethod());
    check_meth_eval(priv->theclass, method.getName(), method.getClass(), xsink);
@@ -636,7 +644,7 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 
 	       if (!rc)
 		  return;
-	       
+
 	       if (rc == -1) {
 		  printd(QRO_LVL, "QoreObject::customDeref() this: %p '%s' invalid rset, recalculating\n", this, getClassName());
 		  recalc = true;
@@ -678,7 +686,7 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 	    return;
 	 }
       }
-      
+
       priv->in_destructor = true;
 
       //printd(5, "QoreObject::derefImpl() class: %s this: %p going out of scope\n", getClassName(), this);
@@ -755,7 +763,7 @@ void QoreObject::deleteMemberValue(const char *key, ExceptionSink* xsink) {
 	 makeAccessDeletedObjectException(xsink, key, priv->theclass->getName());
 	 return;
       }
-      
+
       v = priv->data->takeKeyValue(key);
    }
 
@@ -942,7 +950,7 @@ AbstractQoreNode **QoreObject::getExistingValuePtr(const char *mem, AutoVLock *v
    return rv;
 }
 
-AbstractPrivateData *QoreObject::getReferencedPrivateData(qore_classid_t key, ExceptionSink* xsink) const { 
+AbstractPrivateData *QoreObject::getReferencedPrivateData(qore_classid_t key, ExceptionSink* xsink) const {
    QoreSafeVarRWReadLocker sl(priv->rml);
 
    if (priv->status == OS_DELETED || !priv->privateData) {
@@ -963,7 +971,7 @@ AbstractPrivateData *QoreObject::getAndClearPrivateData(qore_classid_t key, Exce
 }
 
 // called only during constructor execution, therefore no need for locking
-void QoreObject::setPrivate(qore_classid_t key, AbstractPrivateData* pd) { 
+void QoreObject::setPrivate(qore_classid_t key, AbstractPrivateData* pd) {
    priv->setPrivate(key, pd);
 }
 
@@ -983,7 +991,7 @@ void QoreObject::addPrivateDataToString(QoreString* str, ExceptionSink* xsink) c
 
 void QoreObject::defaultSystemDestructor(qore_classid_t classID, ExceptionSink* xsink) {
    AbstractPrivateData *pd = getAndClearPrivateData(classID, xsink);
-   printd(5, "QoreObject::defaultSystemDestructor() this: %p class: %s private_data: %p\n", this, priv->theclass->getName(), pd); 
+   printd(5, "QoreObject::defaultSystemDestructor() this: %p class: %s private_data: %p\n", this, priv->theclass->getName(), pd);
    if (pd)
       pd->deref(xsink);
 }
@@ -1015,7 +1023,7 @@ int QoreObject::getAsString(QoreString& str, int foff, ExceptionSink* xsink) con
       if (!h->empty()) {
 	 str.concat(": ");
 	 ConstHashIterator hi(*h);
-      
+
 	 while (hi.next()) {
 	    str.sprintf("%s: ", hi.getKey());
 	    const AbstractQoreNode *n = hi.getValue();
@@ -1027,7 +1035,7 @@ int QoreObject::getAsString(QoreString& str, int foff, ExceptionSink* xsink) con
 	 }
       }
       str.concat('}');
-      return 0;      
+      return 0;
    }
 
    str.sprintf("class %s: ", priv->theclass->getName());
@@ -1196,12 +1204,12 @@ bool ObjectRSetHelper::removeInvalidate(ObjectRSet* ors, int tid) {
 
    {
       QoreAutoRWReadLocker al(ors->rwl);
-      
+
       if (!ors->active())
 	 return false;
 
       // first grab all rsection locks
-      for (obj_set_t::iterator ri = ors->begin(), re = ors->end(); ri != re; ++ri) {		     
+      for (obj_set_t::iterator ri = ors->begin(), re = ors->end(); ri != re; ++ri) {
 	 // if we already have the rsection lock, then ignore; already processed (either in fomap or tr_out)
 	 if ((*ri)->priv->rml.hasRSectionLock(tid))
 	    continue;
@@ -1227,7 +1235,7 @@ bool ObjectRSetHelper::removeInvalidate(ObjectRSet* ors, int tid) {
 	    deccnt();
 	    continue;
 	 }
-      
+
 	 rovec.push_back(*ri);
       }
    }
@@ -1239,7 +1247,7 @@ bool ObjectRSetHelper::removeInvalidate(ObjectRSet* ors, int tid) {
    for (unsigned i = 0; i < rovec.size(); ++i) {
       assert(rovec[i]->priv->rml.hasRSectionLock());
       assert(rovec[i]->priv->rset == ors);
-      
+
       if (rovec[i]->priv->status == OS_OK)
 	 tr_out.insert(rovec[i]);
    }
@@ -1386,7 +1394,7 @@ bool ObjectRSetHelper::checkIntern(QoreObject& obj) {
 	    }
 
 	    // see if any parent of the current object is already in the same recursive cycle, if so, we have a new chain (quick comparison first)
-	    for (int i = ovec.size() - 1; i >= 0; --i) {	       
+	    for (int i = ovec.size() - 1; i >= 0; --i) {
 	       if (fi->second.rset == ovec[i]->second.rset) {
 		  printd(QRO_LVL, " + recursive obj %p '%s' already finalized, cyclic ancestor %p '%s' in current cycle\n", &obj, obj.getClassName(), ovec[i]->first, ovec[i]->first->getClassName());
 
@@ -1395,7 +1403,7 @@ bool ObjectRSetHelper::checkIntern(QoreObject& obj) {
 	    }
 
 	    // see if any parent of the current object is already in a recursive cycle to be joined, if so, we have a new chain	(slower comparison second)
-	    for (int i = ovec.size() - 1; i >= 0; --i) {	       
+	    for (int i = ovec.size() - 1; i >= 0; --i) {
 	       if (fi->second.rset->find((ovec[i])->first) != fi->second.rset->end()) {
 		  printd(QRO_LVL, " + recursive obj %p '%s' already finalized, cyclic ancestor %p '%s' in current cycle\n", &obj, obj.getClassName(), ovec[i]->first, ovec[i]->first->getClassName());
 
@@ -1528,7 +1536,7 @@ ObjectRSetHelper::ObjectRSetHelper(QoreObject& obj) {
 #endif
    if (q_disable_gc)
       return;
-   
+
    printd(QRO_LVL, "ObjectRSetHelper::ObjectRSetHelper() this: %p (%p) ENTER\n", this, &obj);
 
    ObjectRScanHelper rsh(*obj.priv);
@@ -1561,7 +1569,7 @@ void ObjectRSetHelper::commit(QoreObject& obj) {
 #endif
 
    // invalidate rsets
-   for (rs_set_t::iterator i = tr_invalidate.begin(), e = tr_invalidate.end(); i != e; ++i) {      
+   for (rs_set_t::iterator i = tr_invalidate.begin(), e = tr_invalidate.end(); i != e; ++i) {
       (*i)->invalidate();
    }
 
@@ -1659,7 +1667,7 @@ int ObjectRSet::canDelete(int ref_copy, int rcount) {
 
    if (q_disable_gc)
       return 0;
-   
+
    if (!valid)
       return -1;
    if (in_del)

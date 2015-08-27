@@ -340,6 +340,9 @@ public:
    //! adds a builtin method with extended information; additional functional domain info, return and parameter type info
    DLLEXPORT void addMethodExtended3(const char* n_name, q_method_double_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
 
+   //! adds a builtin method with extended information; additional functional domain info, return and parameter type info
+   //DLLEXPORT void addMethodExtended4(const char* n_name, q_method_n_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
+
    //! adds an unimplemented abstract method variant to the class with extended information; with return and parameter type info
    DLLEXPORT void addAbstractMethodVariantExtended3(const char* n_name, bool priv = false, int64 n_flags = QC_NO_FLAGS, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
 
@@ -347,7 +350,7 @@ public:
    /**
       @param n_name the name of the method, must be unique in the class
       @param meth the method to be added
-      @param priv if true then the method will be added as a private method	  
+      @param priv if true then the method will be added as a private method
    */
    DLLEXPORT void addStaticMethod(const char* n_name, q_func_t meth, bool priv = false);
 
@@ -390,6 +393,9 @@ public:
 
    //! adds a builtin static method with extended information; additional functional domain info, return and parameter type info
    DLLEXPORT void addStaticMethodExtended3(const char* n_name, q_func_double_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
+
+   //! adds a builtin static method with extended information; additional functional domain info, return and parameter type info
+   //DLLEXPORT void addStaticMethodExtended4(const char* n_name, q_func_n_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
 
    //! sets the builtin destructor method for the class
    /** you only need to implement destructor methods if the destructor should destroy the object
@@ -539,14 +545,14 @@ public:
    DLLEXPORT void setDeleteBlocker(q_delete_blocker_t m);
 
    //! returns true if the member is private
-   /** 
+   /**
        @param str the member name to check
        @return true if the member is private
    */
    DLLEXPORT bool isPrivateMember(const char* str) const;
 
    //! returns true if the member is private or public
-   /** 
+   /**
        @param str the member name to check
        @param priv true if the member is private, false if public
        @return true if the member is private
@@ -708,7 +714,7 @@ public:
    DLLEXPORT void addDefaultBuiltinBaseClass(QoreClass* qc, QoreListNode* xargs = 0);
 
    //! sets "virtual" base class for a class, meaning that the base class data is appropriate for use in the subclass builtin methods
-   /** this method adds a base class placeholder for a subclass - where the subclass' private data 
+   /** this method adds a base class placeholder for a subclass - where the subclass' private data
        object is actually a subclass of the parent class and all methods are virtual, so the
        base class' constructor, destructor, and copy constructor will never be run and the base
        class methods will be passed a pointer to the subclass' data

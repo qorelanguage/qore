@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   ql_object.qpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -38,7 +38,7 @@
 //@{
 
 //! Returns a list of strings of the names of the methods of the class of the object passed as a parameter
-/** 
+/**
     @param obj an object of the class to get the method list from
 
     @return a list of strings of the names of the methods of the class of the object passed as a parameter; returns all methods in the class, both private and public but does not return inherited methods
@@ -50,13 +50,13 @@ list getMethodList(object obj) [flags=CONSTANT,DEPRECATED] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing getMethodList() [flags=RUNTIME_NOOP,DEPRECATED] {
 }
 
 //! Returns a list of strings of the names of the methods of the class of the object passed as a parameter
-/** 
+/**
     @param obj an object of the class to get the method list from
 
     @return a list of strings of the names of the methods of the class of the object passed as a parameter; returns all methods in the class, both private and public but does not return inherited methods
@@ -73,7 +73,7 @@ list get_method_list(object obj) [flags=CONSTANT] {
 }
 
 //! Calls a method of an object, passing the remainder of the arguments to the function as arguments to the method
-/** 
+/**
     @param obj the object to use for the call
     @param method the method to call
     @param ... any additional arguments to the method
@@ -96,7 +96,7 @@ my any $result = callObjectMethod($obj, "method", $arg1, $arg2);
  */
 any callObjectMethod(object obj, string method, ...) [flags=DEPRECATED] {
    ReferenceHolder<QoreListNode> call_args(xsink);
-   
+
    // if there are arguments to pass
    if (num_args(args) > 2) {
       // create argument list by copying current list
@@ -109,13 +109,13 @@ any callObjectMethod(object obj, string method, ...) [flags=DEPRECATED] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing callObjectMethod() [flags=RUNTIME_NOOP,DEPRECATED] {
 }
 
 //! Calls a method of an object, passing the remainder of the arguments to the function as arguments to the method
-/** 
+/**
     @param obj the object to use for the call
     @param method the method to call
     @param ... any additional arguments to the method
@@ -138,7 +138,7 @@ my any $result = call_object_method($obj, "method", $arg1, $arg2);
 */
 any call_object_method(object obj, string method, ...) {
    ReferenceHolder<QoreListNode> call_args(xsink);
-   
+
    // if there are arguments to pass
    if (num_args(args) > 2) {
       // create argument list by copying current list
@@ -151,7 +151,7 @@ any call_object_method(object obj, string method, ...) {
 }
 
 //! Calls a method of an object, using the optional third argument as the argument list to the method
-/** 
+/**
     @param obj the object to use for the call
     @param method the method to call
     @param varg any additional arguments to the method
@@ -173,13 +173,13 @@ any callObjectMethodArgs(object obj, string method, *softlist varg) [flags=DEPRE
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing callObjectMethodArgs() [flags=RUNTIME_NOOP,DEPRECATED] {
 }
 
 //! Calls a method of an object, using the optional third argument as the argument list to the method
-/** 
+/**
     @param obj the object to use for the call
     @param method the method to call
     @param varg any additional arguments to the method
@@ -223,7 +223,7 @@ any call_pseudo(any val, string meth, ...) {
    ReferenceHolder<QoreListNode> nargs(xsink);
    if (args->size() > 2)
       nargs = args->copyListFrom(2);
-   return pseudo_classes_eval(val, meth->getBuffer(), *nargs, xsink);
+   return pseudo_classes_eval(val, meth->getBuffer(), *nargs, xsink).takeNode();
 }
 
 //! calls a pseudo-method on the given value with arguments given as a list
@@ -241,6 +241,6 @@ any call_pseudo(any val, string meth, ...) {
     @since %Qore 0.8.8
  */
 any call_pseudo_args(any val, string meth, *softlist argv) {
-   return pseudo_classes_eval(val, meth->getBuffer(), argv, xsink);
+   return pseudo_classes_eval(val, meth->getBuffer(), argv, xsink).takeNode();
 }
 //@}
