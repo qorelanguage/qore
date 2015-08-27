@@ -58,7 +58,7 @@ module OracleSqlUtil {
 */
 
 /** @mainpage OracleSqlUtil Module
-    
+
     @tableofcontents
 
     @section oraclesqlutilintro OracleSqlUtil Module Introduction
@@ -67,7 +67,7 @@ module OracleSqlUtil {
 
     Usually this module is loaded on demand from the SqlUtil module, however to use this module
     directly, use \c "%requires OracleSqlUtil" in your code.
-    
+
     All the public symbols in the module are defined in the OracleSqlUtil namespace
 
     @note This module requires the <a href="http://qore.org/qore-modules/14-oracle-module">oracle</a> binary module for communication with Oracle databases
@@ -94,7 +94,7 @@ $ds.vselectRows("select * from schema.table where type = %v order by type offset
 
     @subsection ora_in_operator IN Operator on Oracle
 
-    In order to avoid dynamic SQL and better manage the server's shared pool (in particular, the number of parsed statements), the %OracleSqlUtil 
+    In order to avoid dynamic SQL and better manage the server's shared pool (in particular, the number of parsed statements), the %OracleSqlUtil
     module uses bind by value with the SQL \c IN operator.
 
     For example, the following query:
@@ -117,8 +117,8 @@ my *hash $q = $ds.select("select * from schema.table where col1 in (select colum
     There universal collections are limited to 32767 elements. And \c SYS.ODCIVARCHAR2LIST element size is \c VARCHAR2(4000).
 
     @subsection ora_partitioning_select Partition Support in Selects
-    
-    It's possible to select from a particular partition of a table with %OracleSqlUtil; 
+
+    It's possible to select from a particular partition of a table with %OracleSqlUtil;
     @ref OracleSqlUtil::OracleTable::OracleSelectOptions "OracleSelectOptions" defines the \c "partition" key which can be added to a
     @ref select_option_hash "select option hash" to specify the partition to select from as in the following example:
     @code
@@ -165,7 +165,7 @@ my *list $rows = $ds.vselectRows("select * from schema.table inner join schema.t
     |@ref SqlUtil::NUMERIC|\c number
     |@ref SqlUtil::VARCHAR|\c varchar2
 
-    To use other types, use the \c "native_type" @ref SqlUtil::AbstractTable::ColumnDescOptions "column description option" with the 
+    To use other types, use the \c "native_type" @ref SqlUtil::AbstractTable::ColumnDescOptions "column description option" with the
     native Oracle type name instead (under the \c "driver" and \c "oracle" keys for schemas supporting multiple databases).
 
     @subsection ora_other_objects Additional Object Types Supported
@@ -176,7 +176,7 @@ my *list $rows = $ds.vselectRows("select * from schema.table inner join schema.t
     - @ref ora_types "types"
 
     @subsection ora_materialized_views Materialized Views
-    
+
     The @ref schema_desc_hash takes an optional key, \c "materialized_views" that allows materialized views in Oracle schemas to be managed along with other objects.
 
     The \c "materialized_views" should be assigned to a hash, each key name is the name of the materialized view, and the values are hashes with the
@@ -260,6 +260,7 @@ my hash $schema = (
     - implemented support for the \c "returning" clause as an insert option
     - implemented support for views for DML in the @ref OracleSqlUtil::OracleTable class
     - implemented @ref OracleSqlUtil::OracleTable::getBaseType()
+    - implemented support for Oracle pseudocolumns in queries
 
     @subsection v11 OracleSqlUtil v1.1
     - fixed selects with "limit" but no "offset"
@@ -313,7 +314,7 @@ my list $l = $col.getAddColumnSql($t);
             @param t the AbstractTable object to modify
          */
         list getAddColumnSql(AbstractTable t) {
-	    list l += sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql(t));	    
+	    list l += sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql(t));
 	    if (comment)
 		l += sprintf("comment on column %s.%s is %s", t.getSqlName(), name, t.getSqlValue(comment));
             return l;
@@ -474,7 +475,7 @@ my string $str = $col.getRenameSql($t, "new_name");
 
         constructor(string n, string n_src, bool e = True) : AbstractCheckConstraint(n, n_src) {
             enabled = e;
-        }        
+        }
 
         string getCreateSql(string table_name, *hash opt) {
             return sprintf("alter table %s add constraint %s check (%s)", table_name, name, src);
@@ -523,7 +524,7 @@ my any $v = $c.name;
             @throw KEY-ERROR the given key does not exist in the contained hash
 
             @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
-            
+
             @see @ref memberGate_methods
         */
         OracleColumn memberGate(string k) {
@@ -614,7 +615,7 @@ my any $v = $c.name;
             @throw KEY-ERROR the given key does not exist in the contained hash
 
             @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
-            
+
             @see @ref memberGate_methods
         */
         OracleColumn memberGate(string k) {
@@ -693,7 +694,7 @@ my any $v = $c.name;
             return sprintf("rename %s to %s", name, new_name);
         }
     }
-    
+
     #! represents an Oracle view
     public class OracleView inherits SqlUtil::AbstractView {
         public {
@@ -1072,7 +1073,6 @@ my any $v = $c.name;
                 "varchar2": True,
                 "delete": True,
                 "long": True,
-                "rowid": True,
                 "view": True,
                 "desc": True,
                 "maxextents": True,
@@ -1147,7 +1147,7 @@ my any $v = $c.name;
                 return;
             return new OracleSequence(name, row.min_value, row.increment_by, row.max_value > 9000000000000000000n ? NOTHING : row.max_value);
         }
-        
+
         private *AbstractView getViewImpl(string name) {
             string schema;
             getSchemaName(\name, \schema);
@@ -1246,7 +1246,7 @@ my any $v = $c.name;
 
                 return l;
             }
-            
+
             # create packages
             list tl = alignCodeUnlocked("package", schema_hash, \getPackage(), \makePackageFromDescription(), opt, Type::Hash);
             if (tl) l += tl;
@@ -1320,7 +1320,7 @@ my any $v = $c.name;
             checkSource(type, name, \src);
             return src;
         }
-        
+
         private checkSource(string type, string name, reference src) {
             # remove whitespace from the beginning and end of the string
             trim src;
@@ -1334,10 +1334,10 @@ my any $v = $c.name;
         list listSynonyms() {
             return getListIntern("SYNONYM");
         }
-        
+
         #! returns an iterator listing the string synonym names in the database
         ListIterator synonymIterator() {
-            return listSynonyms().iterator();            
+            return listSynonyms().iterator();
         }
 
         #! returns a list of string type names in the database
@@ -1347,14 +1347,14 @@ my any $v = $c.name;
 
         #! returns an iterator listing the string type names in the database
         ListIterator typeIterator() {
-            return listTypes().iterator();            
+            return listTypes().iterator();
         }
-        
+
         #! returns a list of string package names in the database
         list listPackages() {
             return getListIntern("PACKAGE");
         }
-        
+
         #! returns an iterator listing the string package names in the database
         ListIterator packageIterator() {
             return listPackages().iterator();
@@ -1396,7 +1396,7 @@ my any $v = $c.name;
         private list listViewsImpl() {
             return getListIntern("VIEW");
         }
-        
+
         private list getListIntern(string type) {
             return getListIntern(ds.select("select object_name from user_objects where object_type = %v", type).object_name);
         }
@@ -1452,7 +1452,7 @@ my any $v = $c.name;
         private bool supportsSequencesImpl() {
             return True;
         }
-        
+
         #! returns @ref Qore::True "True" if the database supports named types
         private bool supportsTypesImpl() {
             return True;
@@ -1766,7 +1766,7 @@ my any $v = $c.name;
             const OracleAlignTableOptions = AbstractTable::AlignTableOptions + OracleTableCreationOptions;
 
             #! Oracle select options
-            /** This constant extends @ref SqlUtil::AbstractTable::SelectOptions with the following options as returned by 
+            /** This constant extends @ref SqlUtil::AbstractTable::SelectOptions with the following options as returned by
                 @ref OracleSqlUtil::OracleTable::getSelectOptions():
                 - \c partition: the partition name to use in a query (see @ref ora_partitioning_select)
             */
@@ -1816,10 +1816,10 @@ my any $v = $c.name;
                             case NT_FLOAT:
                             case NT_NUMBER:
                             case NT_INT:
-                                args += bindOracleCollection("SYS.ODCINUMBERLIST", arg);                                
+                                args += bindOracleCollection("SYS.ODCINUMBERLIST", arg);
                                 break;
                             default:
-                                args += bindOracleCollection("SYS.ODCIVARCHAR2LIST", arg);                                
+                                args += bindOracleCollection("SYS.ODCIVARCHAR2LIST", arg);
                         }
 
                         return cn + " in (select column_value from table(%v))";
@@ -1893,6 +1893,15 @@ my any $v = $c.name;
                     },
                 ),
                 );
+
+            #! a hash of valid pseudocolumns
+            const OraclePseudoColumnHash = (
+                "rowid": True,
+                "rownum": True,
+                "object_id": True,
+                "object_value": True,
+                "ora_rowscn": True,
+                );
         }
 
         private {
@@ -1904,7 +1913,7 @@ my any $v = $c.name;
 
 	    # is the table read only?
             bool readonly;
-	    
+
 	    # table comment
             *string comment;
 
@@ -2034,7 +2043,7 @@ my any $v = $c.name;
                     throw "TABLE-ERROR", sprintf("table %y or synonym %y does not exist or is not accessible to this user (%s)", name, name, getDBString());
                 pub = True;
             }
-            
+
             # update the table name if necessary
             string orig_name = name;
             if (name.upr() != row.table_name) {
@@ -2042,7 +2051,7 @@ my any $v = $c.name;
                 if (!native_case)
                     name = name.lwr();
             }
-            
+
             if (row.db_link) {
                 dblink = row.db_link;
 
@@ -2115,8 +2124,8 @@ my any $v = $c.name;
             return OracleSelectOptions;
         }
 
-        private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh, *hash jch, bool join = False, *hash ch) {
-            AbstractTable::getSelectWhereSqlUnlocked(\sql, \args, qh, jch, join, ch);
+        private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh, *hash jch, bool join = False, *hash ch, *hash psch) {
+            AbstractTable::getSelectWhereSqlUnlocked(\sql, \args, qh, jch, join, ch, psch);
             # Oracle 12c+ supports limit (fetch) and offset
             if (ora_major >= 12)
                 return;
@@ -2203,7 +2212,7 @@ my any $v = $c.name;
 
             hash rv;
             foreach hash row in (qh.contextIterator()) {
-                #if (row.column_name == "TAX_AMOUNT") 
+                #if (row.column_name == "TAX_AMOUNT")
                 #    printf("DBG: %y\n", row);
                 *hash th = OraTypeMap.(row.data_type.lwr());
                 int size = row.data_type == "NUMBER" && row.data_precision ? row.data_precision : row.data_length;
@@ -2219,7 +2228,7 @@ my any $v = $c.name;
                     case "BLOB":
                     case "CLOB": size = 0; break;
                 }
-                
+
                 # set default numeric precision to 0 if not given
                 if (row.data_precision === NULL && row.data_type == "NUMBER") {
                     row.data_precision = 0;
@@ -2242,7 +2251,7 @@ my any $v = $c.name;
                     char_used = False;
 
                 OracleColumn c;
-                if (row.data_precision || row.data_type == "number") 
+                if (row.data_precision || row.data_type == "number")
                     c = new OracleNumberColumn(row.column_name, row.data_type, th.qore, row.data_precision, nullable, row.data_default, row.comments ? row.comments : NOTHING, row.data_length, row.data_scale);
                 else
                     c = new OracleColumn(row.column_name, row.data_type, th.qore, size, nullable, row.data_default, row.comments ? row.comments : NOTHING, th.is_char, row.char_used == "C", row.data_length);
@@ -2309,14 +2318,14 @@ my any $v = $c.name;
                     else
                         ih{row.index_name}{row.column_name} = columns{row.column_name};
                 }
-                
+
                 foreach hash row in (qh.contextIterator()) {
                     if (!native_case)
                         map row.$1 = row.$1.lwr(), ("index_name", "tablespace_name", "constraint_name"), row.$1;
 
                     # skip system indexes
                     if (!ih{row.index_name})
-                        continue;                    
+                        continue;
                     rv.(row.index_name) = new OracleIndex(row.index_name, row.uniqueness == "UNIQUE", ih{row.index_name}, row.index_type, row.tablespace_name);
                     if (row.constraint_name) {
                         *AbstractUniqueConstraint uk = findUniqueConstraintUnlocked(row.constraint_name);
@@ -2388,7 +2397,7 @@ my any $v = $c.name;
                     row.constraint_name = row.constraint_name.lwr();
                 rv.(row.constraint_name) = new OracleCheckConstraint(row.constraint_name, row.search_condition, row.status == "ENABLED");
             }
-            
+
             Constraints c(rv);
 
             # now get unique constraints
@@ -2405,7 +2414,7 @@ my any $v = $c.name;
                 }
                 ch.add(row.column_name, columns{row.column_name});
             }
-            
+
             # add unique constraints to constraint hash
             map c.add($1.key, $1.value), rv.pairIterator();
 
@@ -2555,6 +2564,11 @@ my any $v = $c.name;
             return OracleIopMap;
         }
 
+        #! returns a hash of valid pseudocolumns
+        private *hash getPseudoColumnHash() {
+            return OraclePseudoColumnHash;
+        }
+
         #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
         private *string getSqlValueImpl(any v) {
             switch (v.typeCode()) {
@@ -2602,7 +2616,7 @@ my any $v = $c.name;
             # cannot use merge where only the join columns are present
             if (!updc)
                 return getUpsertInsertOnly(cols, row);
-            
+
             string sql = sprintf("merge into %s t using dual on (", getSqlName());
             sql += foldl $1 + " and " + $2, (map sprintf("%s=%v", $1), getColumnSqlNames(cols.keys()));
             sql += sprintf(") when not matched then insert (");
@@ -2613,17 +2627,17 @@ my any $v = $c.name;
 
             # get update columns
             sql += (foldl $1 + "," + $2, (map sprintf("%s=%v", $1), getColumnSqlNames(updc)));
-            
+
             #printf("sql: %s\n", sql);
-            
+
             return int sub (hash crow) {
-                list args = crow.(cols.keys()).values() + crow.values() + crow{updc}.values();                
+                list args = crow.(cols.keys()).values() + crow.values() + crow{updc}.values();
                 #on_error printf("SQL: %s args: %y\n", sql, args);
                 ds.vexec(sql, args);
                 return UR_Verified;
             };
         }
-        
+
         #! returns @ref Qore::True "True" because the oracle driver supports array binds / bulk DML operations
         bool hasArrayBind() {
             return True;
@@ -2639,7 +2653,7 @@ my any $v = $c.name;
                 args += c.qore_type ?* Type::String;
             }
             sql += sprintf(" returning %s into %s", (foldl $1 + "," + $2, l), (foldl $1 + "," + $2, (map ":" + $1, l)));
-            
+
             return execData(opt, sql, args);
         }
 
@@ -2666,7 +2680,7 @@ my any $v = $c.name;
         }
 
         #! db-specific copy actions
-        private copyImpl(AbstractTable old) {            
+        private copyImpl(AbstractTable old) {
         }
     }
 }

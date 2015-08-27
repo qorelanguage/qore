@@ -104,6 +104,7 @@ module SqlUtil {
     - implemented support for late table resolution in joins to support executing SQL from serialized parameters
     - improved error messages for common errors such as join errors
     - implemented support for DBA actions (see @ref dba_management)
+    - implemented support for driver-dependent pseudocolumns
     - fixed a bug with queries using a \a desc argument with the \a orderby query option with multiple sort columns; the \c "desc" string was added only to the last column but should have been added to all columns
     - fixed a bug where foreign key constraints with supporting indexes were not tracked and therefore schema alignment on DBs that automatically create indexes for foreign key constraints would fail
     - fixed a bug where driver-specific objects were not included when dropping a schema
@@ -14148,6 +14149,9 @@ my string $sql = $table.getSelectSql($sh, \$args);
         }
 
         string getSelectSqlUnlockedIntern(*hash qh, string from, reference args, *hash ch, *hash opt) {
+            # get pseudo-column hash
+            *hash psch = getPseudoColumnHash();
+
             if (qh.offset) {
                 if (!qh.orderby) {
                     # use primary key by default
@@ -14187,7 +14191,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 foreach any cv in (qh.columns) {
                     switch (cv.typeCode()) {
                         case NT_STRING: {
-                            string cn = getColumnNameIntern(cv, jch, boolean(qh.join), ch);
+                            string cn = getColumnNameIntern(cv, jch, boolean(qh.join), ch, psch);
                             if (qh.superquery)
                                 mch{cv} = True;
                             ce += cn;
@@ -14320,24 +14324,24 @@ my string $sql = $table.getSelectSql($sh, \$args);
 
                 # process any additional join conditions
                 if (jh.cond)
-                    jel += jt.getWhereClauseIntern(jh.cond, \args, an);
+                    jel += jt.getWhereClauseIntern(jh.cond, \args, an, NOTHING, NOTHING, NOTHING, psch);
 
                 sql += sprintf(" %s join %s%s on (%s)", JopMap{jh.jop}, t.getSelectSqlName(jh.opt), jh.alias ? (" " + jh.alias) : "", (foldl $1 + " and " + $2, jel));
             }
 
-            getSelectWhereSqlUnlocked(\sql, \args, qh, jch, boolean(qh.join), ch);
+            getSelectWhereSqlUnlocked(\sql, \args, qh, jch, boolean(qh.join), ch, psch);
 
             if (qh.groupby) {
                 list ce = ();
                 foreach any cv in (qh.groupby) {
                     switch (cv.typeCode()) {
                         case NT_STRING: {
-                            ce += getColumnNameIntern(cv, jch, boolean(qh.join), ch);
+                            ce += getColumnNameIntern(cv, jch, boolean(qh.join), ch, psch);
                             break;
                         }
 
                         case NT_HASH: {
-                            ce += doColumnOperatorIntern(cv, jch, boolean(qh.join), ch);
+                            ce += doColumnOperatorIntern(cv, jch, boolean(qh.join), ch, psch);
                             break;
                         }
 
@@ -14416,11 +14420,11 @@ my string $sql = $table.getSelectSql($sh, \$args);
             throw "SELECT-ERROR", sprintf("%s: column operator hash %y has an invalid \"column\" key; expecting a string column specification or a column operator description hash", getDesc(), cvc);
         }
 
-        private string doColumnOperatorIntern(hash cvc, *hash jch, bool join, *hash ch) {
-            return doColumnOperatorIntern(cvc.cop, cvc.arg, (cvc.column ? getColumnExpressionIntern(cvc.column, jch, join, ch) : NOTHING), getColumnOperatorMap(), jch, join, ch);
+        private string doColumnOperatorIntern(hash cvc, *hash jch, bool join, *hash ch, *hash psch) {
+            return doColumnOperatorIntern(cvc.cop, cvc.arg, (cvc.column ? getColumnExpressionIntern(cvc.column, jch, join, ch) : NOTHING), getColumnOperatorMap(), jch, join, ch, psch);
         }
 
-        private string doColumnOperatorIntern(any cop, any arg, *string cve, hash cm, *hash jch, bool join, *hash ch) {
+        private string doColumnOperatorIntern(any cop, any arg, *string cve, hash cm, *hash jch, bool join, *hash ch, *hash psch) {
             if (cop.typeCode() != NT_STRING)
                 throw "SELECT-ERROR", sprintf("%s: invalid column operator code %y; use column operator functions to create valid column specifications with supported column operators", getDesc(), cop);
 
@@ -14444,7 +14448,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 if (!cmd.argoptional || arg) {
                     if (arg.typeCode() != NT_STRING)
                         throw "SELECT-ERROR", sprintf("%s: expecting a string column designation for column operator %y; got type %y instead", getDesc(), cop, arg.type());
-                    arg = getColumnNameIntern(arg, jch, join, ch);
+                    arg = getColumnNameIntern(arg, jch, join, ch, psch);
                 }
             }
 
@@ -14454,7 +14458,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
             return cmd.code(cve, arg);
         }
 
-        private string getColumnNameIntern(string cv, *hash jch, bool join, *hash ch) {
+        private string getColumnNameIntern(string cv, *hash jch, bool join, *hash ch, *hash psch) {
             # remove any disposable unique prefix
             cv =~ s/^[0-9]+://;
 
@@ -14466,17 +14470,17 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 # remove table alias from column name
                 splice cv, 0, tp.size() + 1;
 
-                if (cv != "*" && !jch{tp}.describe().hasKey(cv))
+                if (cv != "*" && !jch{tp}.describe().hasKey(cv) && !psch{cv})
                     throw "SELECT-ERROR", sprintf("%s: query references unknown column \"%s.%s\" (%y is aliased to table %y); known columns: %y", getDesc(), tp, cv, tp, jch{tp}.getSqlName(), jch{tp}.describe().keys());
             }
             else if (ch) {
-                if (!ch{cv})
+                if (!ch{cv} && !psch{cv})
                     throw "SELECT-ERROR", sprintf("%s: query references unknown column %y; known columns from subquery: %y", getDesc(), cv, ch.keys());
                 return cv;
             }
             else {
                 tp = getSqlName();
-                if (cv != "*" && !columns.hasKey(cv))
+                if (cv != "*" && !columns.hasKey(cv) && !psch{cv})
                     throw "SELECT-ERROR", sprintf("%s: query references unknown column \"%s.%s\"; known columns: %y", getDesc(), tp, cv, columns.keys());
             }
 
@@ -14486,30 +14490,30 @@ my string $sql = $table.getSelectSql($sh, \$args);
             return join ? sprintf("%s.%s", tp, cv) : cv;
         }
 
-        private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh, *hash jch, bool join = False, *hash ch) {
+        private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh, *hash jch, bool join = False, *hash ch, *hash psch) {
             if (qh."where")
-                sql += getWhereClauseUnlocked(qh."where", \args, NOTHING, jch, join, ch);
+                sql += getWhereClauseUnlocked(qh."where", \args, NOTHING, jch, join, ch, psch);
         }
 
         private *string getWhereClause(*hash cond, reference args, *string cprefix, *hash jch, bool join = False) {
             l.lock();
             on_exit l.unlock();
-            return getWhereClauseUnlocked(cond, \args, cprefix, jch, join);
+            return getWhereClauseUnlocked(cond, \args, cprefix, jch, join, NOTHING, getPseudoColumnHash());
         }
 
         private *string getWhereClause(list cond, reference args, *string cprefix, *hash jch, bool join = False) {
             l.lock();
             on_exit l.unlock();
-            return getWhereClauseUnlocked(cond, \args, cprefix, jch, join);
+            return getWhereClauseUnlocked(cond, \args, cprefix, jch, join, NOTHING, getPseudoColumnHash());
         }
 
-        private *string getWhereClauseUnlocked(list cond, reference args, *string cprefix, *hash jch, bool join = False, *hash pch) {
+        private *string getWhereClauseUnlocked(list cond, reference args, *string cprefix, *hash jch, bool join = False, *hash pch, *hash psch) {
             getColumnsUnlocked();
             list al = ();
             if (!exists args)
                 args = ();
             foreach hash ch in (cond) {
-                *list wl = getWhereClauseIntern(ch, \args, cprefix, jch, join, pch);
+                *list wl = getWhereClauseIntern(ch, \args, cprefix, jch, join, pch, psch);
                 if (wl)
                     al += "(" + (foldl $1 + " and " + $2, wl) + ")";
             }
@@ -14517,20 +14521,20 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 return " where " + (foldl $1 + " or " + $2, al);
         }
 
-        private *string getWhereClauseUnlocked(*hash cond, reference args, *string cprefix, *hash jch, bool join = False, *hash pch) {
+        private *string getWhereClauseUnlocked(*hash cond, reference args, *string cprefix, *hash jch, bool join = False, *hash pch, *hash psch) {
             getColumnsUnlocked();
             if (!exists args)
                 args = ();
-            *list wl = getWhereClauseIntern(cond, \args, cprefix, jch, join, pch);
+            *list wl = getWhereClauseIntern(cond, \args, cprefix, jch, join, pch, psch);
             if (wl)
                 return " where " + (foldl $1 + " and " + $2, wl);
         }
 
-        private *list getWhereClauseIntern(*hash cond, reference args, *string cprefix, *hash jch, bool join = False, *hash ch) {
+        private *list getWhereClauseIntern(*hash cond, reference args, *string cprefix, *hash jch, bool join = False, *hash ch, *hash psch) {
             if (!cond)
                 return;
 
-            return map doWhereExpressionIntern(cprefix ? sprintf("%s.%s", cprefix, $1.key) : getColumnNameIntern($1.key, jch, join, ch), $1.value, \args, jch, join, ch), cond.pairIterator();
+            return map doWhereExpressionIntern(cprefix ? sprintf("%s.%s", cprefix, $1.key) : getColumnNameIntern($1.key, jch, join, ch, psch), $1.value, \args, jch, join, ch), cond.pairIterator();
         }
 
         private string doWhereExpressionIntern(string cn, any we, reference args, *hash jch, bool join = False, *hash ch) {
@@ -16265,6 +16269,12 @@ my *list $rows = $table.findAll($h);
         */
         private hash getUpdateOperatorMap() {
             return getColumnOperatorMap().(DefaultUopMap.keys());
+        }
+
+        #! returns a hash of valid pseudocolumns
+        /** override in subclasses to return driver-specific pseudocolumns; by default this method returns @ref nothing
+        */
+        private *hash getPseudoColumnHash() {
         }
 
         private string getCreateTableSqlUnlocked(*hash opt) {
