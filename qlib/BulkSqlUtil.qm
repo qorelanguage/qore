@@ -36,7 +36,7 @@
 
 # use SqlUtil
 %requires(reexport) SqlUtil
-    
+
 module BulkSqlUtil {
     version = "1.0";
     desc = "user module performing bulk DML operations with SqlUtil";
@@ -85,7 +85,7 @@ public namespace BulkSqlUtil {
         To use this class's API, queue data in the form of a hash (a single row or a set of rows) or a list of rows
         by calling the queueData() method.\n\n
         The queueData() method queues data to be written to the database; the queue is flush()ed
-        automatically when \c block_size rows have been queued.  
+        automatically when \c block_size rows have been queued.
 
         @par Flushing and Discarding Data
         Each call to flush() (whether implicit or explicit) will cause a single call to be made to
@@ -142,7 +142,7 @@ on_error ds.rollback();
 
             #! bulk operation block size
             softint block_size;
-            
+
             #! buffer for bulk operations
             hash hbuf;
 
@@ -193,7 +193,7 @@ on_error ds.rollback();
         #! common constructor initialization
         private init(*hash opts) {
             block_size = opts.block_size ?? OptionDefaults.block_size;
-                
+
             if (block_size < 1)
                 throw "BULK-SQL-OPERATION-ERROR", sprintf("the block_size option is set to %d; this value must be >= 1", block_size);
 
@@ -233,7 +233,7 @@ on_error ds.rollback();
             @note
             - each hash passed to this method must always have the same keys in the same order, otherwise the results are unpredictable
             - make sure to call flush() before committing the transaction or discard() before rolling back the transaction or destroying the object when using this method
-            - flush() or discard() needs to be executed individually for each bulk operation object used in the block whereas the DB transaction needs to be committed or rolled back once per datasource 
+            - flush() or discard() needs to be executed individually for each bulk operation object used in the block whereas the DB transaction needs to be committed or rolled back once per datasource
 
             @see
             - flush()
@@ -257,7 +257,7 @@ on_error ds.rollback();
                     flushIntern();
                 }
             }
-            
+
             map hbuf{$1.key} += $1.value, data.pairIterator();
             # return nothing if nothing needs to be flushed
             if (hbuf.firstValue().size() < block_size)
@@ -295,7 +295,7 @@ on_error ds.rollback();
             @note
             - each hash passed to this method must always have the same keys in the same order, otherwise the results are unpredictable
             - make sure to call flush() before committing the transaction or discard() before rolling back the transaction or destroying the object when using this method
-            - flush() or discard() needs to be executed individually for each bulk operation object used in the block whereas the DB transaction needs to be committed or rolled back once per datasource 
+            - flush() or discard() needs to be executed individually for each bulk operation object used in the block whereas the DB transaction needs to be committed or rolled back once per datasource
 
             @see
             - flush()
@@ -304,7 +304,7 @@ on_error ds.rollback();
         queueData(list l) {
             if (l.empty())
                 return;
-            
+
             # prepare buffer hash if necessary
             if (!hbuf)
                 map hbuf.$1 = (), l[0].keyIterator();
@@ -321,7 +321,7 @@ on_error ds.rollback();
                     # add row data to block buffer
                     map hbuf.$1 += row.$1, hbuf.keyIterator();
                 }
-                
+
                 flushIntern();
             }
 
@@ -363,7 +363,7 @@ on_error ds.rollback();
 
             @note
             - make sure to call flush() before committing the transaction or discard() before rolling back the transaction or destroying the object when using this method
-            - flush() or discard() needs to be executed individually for each bulk operation object used in the block whereas the DB transaction needs to be committed or rolled back once per datasource 
+            - flush() or discard() needs to be executed individually for each bulk operation object used in the block whereas the DB transaction needs to be committed or rolled back once per datasource
 
             @see
             - queueData()
@@ -412,7 +412,7 @@ on_error ds.rollback();
 
             @note
             - make sure to call flush() before committing the transaction or discard() before rolling back the transaction or destroying the object when using this method
-            - flush() or discard() needs to be executed individually for each bulk operation object used in the block whereas the DB transaction needs to be committed or rolled back once per datasource 
+            - flush() or discard() needs to be executed individually for each bulk operation object used in the block whereas the DB transaction needs to be committed or rolled back once per datasource
 
             @see
             - queueData()
@@ -465,7 +465,7 @@ on_error ds.rollback();
         To use this class, queue data in the form of a hash (a single row or a set of rows) or a list of rows
         by calling the queueData() method.\n\n
         The queueData() method queues data to be written to the database; the queue is flush()ed
-        automatically when \c block_size rows have been queued.  
+        automatically when \c block_size rows have been queued.
 
         @par Flushing and Discarding Data
         Each call to flush() (whether implicit or explicit) will cause a single call to be made to
@@ -515,7 +515,7 @@ on_error ds.rollback();
         /** @param target the target table object
             @param opts an optional hash of options for the object as follows:
             - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-style arguments
-            - \c block_size: the number of rows executed at once (default: 500)
+            - \c "block_size": the number of rows executed at once (default: 500)
         */
         constructor(SqlUtil::Table target, *hash opts) : AbstractBulkOperation("insert", target, opts) {
         }
@@ -523,7 +523,8 @@ on_error ds.rollback();
         #! creates the object from the supplied arguments
         /** @param target the target table object
             @param opts an optional hash of options for the object as follows:
-            - \c block_size: the number of rows executed at once (default: 500)
+            - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-style arguments
+            - \c "block_size": the number of rows executed at once (default: 500)
         */
         constructor(SqlUtil::AbstractTable target, *hash opts) : AbstractBulkOperation("insert", target, opts) {
         }
@@ -552,7 +553,7 @@ on_error ds.rollback();
         To use this class, queue data in the form of a hash (a single row or a set of rows) or a list of rows
         by calling the queueData() method.\n\n
         The queueData() method queues data to be written to the database; the queue is flush()ed
-        automatically when \c block_size rows have been queued.  
+        automatically when \c block_size rows have been queued.
 
         @par Flushing and Discarding Data
         Each call to flush() (whether implicit or explicit) will cause a single call to be made to
