@@ -105,6 +105,7 @@ module SqlUtil {
     - improved error messages for common errors such as join errors
     - implemented support for DBA actions (see @ref dba_management)
     - implemented support for driver-dependent pseudocolumns
+    - implemented per-column support for the \c "desc" keyword in orderby expressions
     - fixed a bug with queries using a \a desc argument with the \a orderby query option with multiple sort columns; the \c "desc" string was added only to the last column but should have been added to all columns
     - fixed a bug where foreign key constraints with supporting indexes were not tracked and therefore schema alignment on DBs that automatically create indexes for foreign key constraints would fail
     - fixed a bug where driver-specific objects were not included when dropping a schema
@@ -394,6 +395,7 @@ my *list $rows = $table.selectRows(("where": ("account_type": "CUSTOMER"), "orde
     @endcode
     This option is a list of the following values:
     - a simple string giving a column name; ex: \c "name"
+    - a simple string with a column name preceded by a \c "-" sign; ex: \c "-name", meaning that that column should be sorted in descending order
     - a string giving a table or table alias and a column name in dot notation (for use with @ref select_option_join "joins"); ex: \c "q.name"
     @note
     - By using the @ref select_option_offset "offset option" the results will be automatically ordered according to the primary key of the table
@@ -406,6 +408,8 @@ my *list $rows = $table.selectRows(("where": ("account_type": "CUSTOMER"), "orde
     @endcode
     If the value of this key is @ref Qore::True "True" and results are ordered (either due to the @ref select_option_orderby "orderby option" or due to implicit ordering by the primary key due to the use of the @ref select_option_offset "offset option"), then results will be sorted in descending order.\n\n
     Otherwise, ordered results are returned in ascending order by default.
+
+    @note per-column descending options can be given by prepending a \c "-" character to the column name in the @ref select_option_orderby "orderby option list"
 
     @anchor select_option_limit
     @par Select Option "limit"
@@ -14376,6 +14380,13 @@ my string $sql = $table.getSelectSql($sh, \$args);
             }
 
             if (qh.orderby) {
+                # process minuses to generate the "orderbydesc" keys
+                foreach string k in (\qh.orderby) {
+                    if (k =~ /^-/) {
+                        k = k.substr(1);
+                        qh.orderbydesc{k} = True;
+                    }
+                }
                 if (qh.offset || qh.limit) {
                     if (!matchAnyUnique(qh.orderby))
                         throw "SELECT-ERROR", sprintf("%s: 'orderby': %y with 'offset' = %d, 'limit' = %d does not match any unique constraint", getDesc(), qh.orderby, qh.offset, qh.limit);
@@ -14591,7 +14602,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
         private doSelectOrderBySqlUnlocked(reference sql, reference args, *hash qh, *hash jch, *hash ch) {
             list ce = getOrderByListUnlocked(qh, jch, ch);
 
-            sql += " order by " + (foldl $1 + "," + $2, (map $1 + (qh.desc ? " desc" : ""), ce));
+            sql += " order by " + (foldl $1 + "," + $2, (map $1 + (qh.desc || qh.orderbydesc.$1 ? " desc" : ""), ce));
         }
 
         #! deletes rows in the table matching the condition and returns the count of rows deleted; the transaction is committed if successful, if an error occurs then it is rolled back
