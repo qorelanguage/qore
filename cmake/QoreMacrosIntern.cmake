@@ -25,8 +25,7 @@ macro(qore_check_headers_cxx)
         string(REPLACE "." "_" include_file_ ${include_file})
 	string(REPLACE "/" "_" _include_file_ ${include_file_})
 	string(TOUPPER ${_include_file_} upper_include_file_)
-	string(CONCAT have_var "HAVE_" ${upper_include_file_})
-	check_include_file_cxx(${include_file} ${have_var})
+	check_include_file_cxx(${include_file} "HAVE_${upper_include_file_}")
 #	string(CONCAT file_output ${file_output} "\n#cmakedefine " ${have_var})
     endforeach()
 #    file(WRITE ${CMAKE_BINARY_DIR}/header_defines.txt ${file_output})
@@ -44,8 +43,7 @@ macro(qore_check_funcs)
 
     foreach (FUNCTION_TO_CHECK ${_FUNCS_UNPARSED_ARGUMENTS})
         string(TOUPPER ${FUNCTION_TO_CHECK} UPPER_FUNCTION_TO_CHECK)
-	string(CONCAT HAVE_VAR "HAVE_" ${UPPER_FUNCTION_TO_CHECK})
-	check_function_exists(${FUNCTION_TO_CHECK} ${HAVE_VAR})
+	check_function_exists(${FUNCTION_TO_CHECK} "HAVE_${UPPER_FUNCTION_TO_CHECK}")
 #	string(CONCAT file_output ${file_output} "\n#cmakedefine " ${HAVE_VAR})
     endforeach()
 #    file(WRITE ${CMAKE_BINARY_DIR}/funcs_defines.txt ${file_output})
@@ -298,7 +296,7 @@ if (NOT EXISTS ${CMAKE_SOURCE_DIR}/include/qore/intern/git-revision.h)
                        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 		       OUTPUT_VARIABLE GIT_REV OUTPUT_STRIP_TRAILING_WHITESPACE)
        string(CONCAT GIT_REV_FILE_OUTPUT "#define BUILD \"" ${GIT_REV} "\"")
-       file(WRITE ${CMAKE_BINARY_DIR}/include/qore/intern/git-revision.h ${GIT_REV_FILE_OUTPUT})
+       file(WRITE ${CMAKE_BINARY_DIR}/include/qore/intern/git-revision.h "#define BUILD \"${GIT_REV}\"")
    else()
        message(FATAL_ERROR "Git is needed to generate git-revision.h")
    endif()
@@ -570,4 +568,36 @@ configure_file(${CMAKE_SOURCE_DIR}/cmake/stl_slist.in
 
 unset(CMAKE_REQUIRED_QUIET)
 
+endmacro()
+
+macro(qore_func_strerror_r)
+cmake_push_check_state(RESET)
+set(CMAKE_REQUIRED_QUIET true)
+message(STATUS "Looking for strerror_r")
+check_cxx_symbol_exists(strerror_r string.h HAVE_DECL_STRERROR_R)
+if(HAVE_DECL_STRERROR_R)
+   check_function_exists(strerror_r HAVE_STRERROR_R)
+   if(HAVE_STRERROR_R)
+      message(STATUS "Looking for strerror_r - found")
+      message(STATUS "Checking the return type of strerror_r")
+      check_cxx_source_compiles("
+      #include <string.h>
+      int main(void) {
+      char strbuf[100];
+      char *retbuf = NULL;
+      retbuf = strerror_r(0, strbuf, sizeof(strbuf));
+      return 0;
+      }" STRERROR_R_CHAR_P)
+      if(STRERROR_R_CHAR_P)
+         message(STATUS "Checking the return type of strerror_r - char*")
+      else()
+         message(STATUS "Checking the return type of strerror_r - int")
+      endif()
+   else()
+      message(STATUS "Looking for strerror_r - not found")
+   endif()
+else()
+   message(STATUS "Looking for strerror_r - not found")
+endif()
+cmake_pop_check_state()
 endmacro()

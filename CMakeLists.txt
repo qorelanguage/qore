@@ -173,9 +173,10 @@ qore_search_libs(LIBQORE_LIBS gethostbyname nsl)
 qore_search_libs(LIBQORE_LIBS clock_gettime rt)
 
 set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES} Threads::Threads ${LIBQORE_LIBS})
-qore_check_funcs(bzero floor gethostbyaddr gethostbyname gethostname gettimeofday memmove memset mkfifo putenv regcomp select socket setsockopt getsockopt strcasecmp strchr strdup strerror strspn strstr atoll strtol strtoll isblank localtime_r gmtime_r exp2 clock_gettime realloc timegm seteuid setegid setenv unsetenv round pthread_attr_getstacksize getpwuid_r getpwnam_r getgrgid_r getgrnam_r backtrace glob system inet_ntop inet_pton lstat fsync lchown chown setsid setuid mkfifo random kill getppid getgid getegid getuid geteuid setuid seteuid setgid setegid sleep usleep nanosleep readlink symlink access strcasestr strncasecmp setgroups getgroups realpath memmem strerror_r)
+qore_check_funcs(bzero floor gethostbyaddr gethostbyname gethostname gettimeofday memmove memset mkfifo putenv regcomp select socket setsockopt getsockopt strcasecmp strchr strdup strerror strspn strstr atoll strtol strtoll isblank localtime_r gmtime_r exp2 clock_gettime realloc timegm seteuid setegid setenv unsetenv round pthread_attr_getstacksize getpwuid_r getpwnam_r getgrgid_r getgrnam_r backtrace glob system inet_ntop inet_pton lstat fsync lchown chown setsid setuid mkfifo random kill getppid getgid getegid getuid geteuid setuid seteuid setgid setegid sleep usleep nanosleep readlink symlink access strcasestr strncasecmp setgroups getgroups realpath memmem)
 unset(CMAKE_REQUIRED_LIBRARIES)
 
+qore_func_strerror_r()
 qore_other_checks()
 qore_gethost_checks()
 qore_stl_hash_map(include/qore/hash_map_include.h)
@@ -248,7 +249,12 @@ install(DIRECTORY include/qore
         DESTINATION ${CMAKE_INSTALL_FULL_INCLUDEDIR}
         PATTERN intern EXCLUDE
         PATTERN minitest.hpp EXCLUDE
-        PATTERN macros-none.h EXCLUDE)
+        PATTERN macros-none.h EXCLUDE
+        PATTERN hash_map_include.h EXCLUDE
+        PATTERN slist_include.h EXCLUDE
+        PATTERN qore-version.h EXCLUDE)
+install(FILES ${CMAKE_BINARY_DIR}/include/qore/qore-version.h
+        DESTINATION ${CMAKE_INSTALL_FULL_INCLUDEDIR}/qore)
 install(FILES qore.1
         DESTINATION ${CMAKE_INSTALL_FULL_MANDIR}/man1)
 install(DIRECTORY qlib/
