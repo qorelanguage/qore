@@ -47,7 +47,7 @@ module FixedLengthUtil {
 
     @section fixedlengthutilintro Introduction to the FixedLengthUtil Module
 
-    The %FixedLengthUtil module provides functionality for parsing files with fixed length lines.
+    The %FixedLengthUtil module provides functionality for parsing files with fixed length lines. This means that we have at least one line type and each line type is described as several data items with fixed length.
 
     To use this module, use \c "%requires FixedLengthUtil" in your code.
 
@@ -63,11 +63,13 @@ module FixedLengthUtil {
 
     @section fixedlenghtglobals Global Options
 
-    - encoding
-    - eol
-    - ignore-empty
-    - timezone
-    - file-flags - additional writer Open File Constants. O_WRONLY | O_CREAT are used by default. Use eg. \c O_EXCL to ensure not to overwrite the target
+    Valid options are:
+    - \c "timezone": a string giving a time zone region name or an integer offset in seconds east of UTC
+    - \c "ignore-empty": if @ref Qore::True "True" then ignore empty lines
+    - \c "encoding": the output encoding for strings parsed or returned
+    - \c "number_format": the default number format for \c "float" or \c "number" fields
+    - \c "date_format": the default date format for \c "date" fields
+    - \c "file-flags": additional writer Open File Constants. O_WRONLY | O_CREAT are used by default. Use eg. \c O_EXCL to ensure not to overwrite the target or \c O_TRUNC to replace any existing file
 
     @section fixedlengthspec Specification Hash
 
@@ -81,7 +83,7 @@ module FixedLengthUtil {
     @subsection fixedlengthspecrow Row Specification hash
 
     |!Key|!Type|!Description
-    | \c length|integer|a size of the column
+    | \c length|integer|the size of the field in bytes
     | \c type|string|a type of the data bound to the column @res fixedlengthspectypes
     | \c format|string|a date mask if is the \type of value "date"
     | \c timezone|string|override global timezone for current "date" column
@@ -186,12 +188,14 @@ public class FixedLengthUtil::FixedLengthAbstractIterator inherits TextUtil::Abs
         hash m_specs;
         hash m_line_lengths;
         string m_state;
+        #! hash of conflicting records; key = record length, value = list of conflicting record names
+        hash m_conflicts;
     }
 
     #! Instantiates the FixedLengthAbstractIterator object
     /**
-    @param h Fixed-length line specification
-    @param g Global options
+        @param h Fixed-length line specification
+        @param g Global options; see @ref fixedlengthglobals for valid values
     */
     constructor(hash h, *hash g) : TextUtil::AbstractTextIterator(g{("encoding", "eol", "ignore-empty", "ignore-empty", "timezone", "number_format", "date_format")}) {
         m_specs           = h;
@@ -206,12 +210,11 @@ public class FixedLengthUtil::FixedLengthAbstractIterator inherits TextUtil::Abs
                     throw "FIXED-LENGTH-UTIL-INVALID-SPEC", sprintf("Length missing for field %y", c);
                 len += m_specs{k}{c}.length;
             }
-            if (m_line_lengths{len}) {
-                # If any two type line lengths are not unique, dump the table entirely and break out. The default identifyType() will take care of the rest.
-                m_line_lengths = hash();
-                break;
-            }
-            m_line_lengths{len} = k;
+            # If any two type line lengths are not unique, save the conflicting length so that only conflicting records must be identified
+            if (m_line_lengths{len})
+                m_conflicts{len} += (k,);
+            else
+                m_line_lengths{len} = k;
         }
     }
 
@@ -255,7 +258,7 @@ my hash $h = $i.getValue();
 
     #! Validate and prepare global fixed-length options
     /**
-        @param opts Options passed during class instatiation.
+        @param opts Options passed during class instantiation.
     */
     private *hash checkOptions(*hash opts) { # put special options here
         return opts;
@@ -264,6 +267,8 @@ my hash $h = $i.getValue();
     #! Identify a fixed-length line type using a second method %identifyTypeImpl, that may be overridden if necessary
     /**
         @param s Input line to be identified
+
+        Returns detected line type.
 
         @throw FIXED-LENGTH-UTIL-NON-MATCHING-TYPE input line cannot be matched to a known record
     */
@@ -274,7 +279,7 @@ my hash $h = $i.getValue();
         return type;
     }
 
-    #! Identify a fixed-length line type, given the raw line string. This method performs a lookup to a precalculated table based on line lengths (see @constructor). In case a different criteria is needed, eg. when two line types in a spec have the same length, this methods needs to be overriden, and will throw an exception, because the precalcualted m_line_lenghts mapping will be empty.
+    #! Identify a fixed-length line type, given the raw line string. This method performs a lookup to a precalculated table based on line lengths (see constructor()). In case a different criteria is needed, eg. when two line types in a spec have the same length, this methods needs to be overriden, and will throw an exception, because the precalcualted mapping will be empty.
     /**
         @param s Input line to be identified
 
@@ -283,12 +288,12 @@ my hash $h = $i.getValue();
         @throw FIXED-LENGTH-UTIL-NON-MATCHING-TYPE input line cannot be matched to a known record or the input line's length does not match the expected length
     */
     *string identifyTypeImpl(string s) {
-        if (!m_line_lengths) # this happens only if it was emptied because lengths of various types were not unique - see how m_line_lengths was constructed
-            throw "FIXED-LENGTH-UTIL-NON-MATCHING-TYPE", sprintf("A format specifier has multiple line types of the same length. You need to provide your own identifyTypeImpl() method. Type: %s", s);
+        if (m_conflicts{s.size()})
+            throw "FIXED-LENGTH-UTIL-NON-MATCHING-TYPE", sprintf("Line with byte length %d was not automatically matched since the following records have this length: %y; you need to provide your own identifyTypeImpl() method (record: %s)", s.size(), m_conflicts{s.size()}, s);
 
-        *string rv = m_line_lengths{s.length()};
+        *string rv = m_line_lengths{s.size()};
         if (!rv)
-            throw "FIXED-LENGTH-UTIL-NON-MATCHING-TYPE", sprintf("Line of unexpected length found '%s'", s);
+            throw "FIXED-LENGTH-UTIL-NON-MATCHING-TYPE", sprintf("Line of unexpected length %d found; known lengths: %y (record: %s)", s.size(), (map $1.toInt(), m_line_lengths.keyIterator()), s);
 
         return rv;
     }
@@ -311,9 +316,9 @@ public class FixedLengthUtil::FixedLengthFileIterator inherits FixedLengthUtil::
 
     #! Instantiates the FixedLengthFileIterator object.
     /**
-    @param f File to read
-    @param h Fixed-length line specification
-    @param g Global options
+        @param f File to read
+        @param h Fixed-length line specification
+        @param g Global options; see @ref fixedlengthglobals for valid values
     */
     constructor(string f, hash h, *hash g) : FixedLengthUtil::FixedLengthAbstractIterator(h, g), FileLineIterator(f, g.encoding.typeCode() == NT_STRING ? g.encoding : NOTHING, g.eol.typeCode() == NT_STRING ? g.eol : NOTHING) {
         file  = f;
@@ -355,9 +360,9 @@ public class FixedLengthUtil::FixedLengthDataIterator inherits FixedLengthUtil::
 
     #! Instantiates the FixedLengthFileIterator object
     /**
-    @param r String to process
-    @param h Fixed-length line specification
-    @param g Global options
+        @param r String to process
+        @param h Fixed-length line specification
+        @param g Global options; see @ref fixedlengthglobals for valid values
     */
     constructor(string r, hash h, *hash g) : FixedLengthUtil::FixedLengthAbstractIterator(h, g), DataLineIterator(r, g.eol.typeCode() == NT_STRING ? g.eol : NOTHING, g.trim.typeCode() == NT_BOOLEAN ? g.trim : NOTHING) {
         data  = r;
@@ -390,8 +395,8 @@ public class FixedLengthUtil::FixedLengthAbstractWriter inherits TextUtil::Abstr
 
     #! creates the FixedLengthAbstractWriter object
     /**
-    @param h Fixed-length line specification
-    @param g Global options
+        @param h Fixed-length line specification
+        @param g Global options
     */
     constructor(hash h, *hash g) : TextUtil::AbstractTextWriter(hash() + (g.eol ? ("eol" : g.eol) : hash())) {
         m_specs           = h;
@@ -478,9 +483,9 @@ public class FixedLengthUtil::FixedLengthFileWriter inherits FixedLengthUtil::Fi
 
     #! Instantiates the FixedLengthFileWriter object
     /**
-    @param f file to write
-    @param h Fixed-length line specification
-    @param g Global options
+        @param f file to write
+        @param h Fixed-length line specification
+        @param g Global options
     */
     constructor(string f, hash h, *hash g) : FixedLengthUtil::FixedLengthAbstractWriter(h, g)  {
         file  = f;
@@ -493,7 +498,7 @@ public class FixedLengthUtil::FixedLengthFileWriter inherits FixedLengthUtil::Fi
         @param line A hash to be writen to the file
     */
     write(hash line) {
-        m_file.write(formatLine($1) + m_opts.eol);
+        m_file.write(formatLine(line) + m_opts.eol);
     }
 
     #! Stream iterator into the resulting file
@@ -518,8 +523,8 @@ public class FixedLengthUtil::FixedLengthFileWriter inherits FixedLengthUtil::Fi
 public class FixedLengthUtil::FixedLengthDataWriter inherits FixedLengthUtil::FixedLengthAbstractWriter {
     #! Instantiates the FixedLengthDataWriter object.
     /**
-    @param h Fixed-length line specification
-    @param g Global formatting options.
+        @param h Fixed-length line specification
+        @param g Global formatting options.
     */
     constructor(hash h, *hash g) : FixedLengthUtil::FixedLengthAbstractWriter(h, g) {
     }

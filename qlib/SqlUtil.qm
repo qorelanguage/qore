@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module SqlUtil {
-    version = "1.2";
+    version = "1.3";
     desc = "user module for working with SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -62,7 +62,6 @@ module SqlUtil {
     Major sections of this documentation:
     - @subpage sql_operations "SQL Operations": working with database data (finding, updating, inserting, deleting, merging data, etc)
     - @subpage schema_management "Schema Management": working schema definitions (creating, modifying, aligning tables, functions, types, triggers, etc)
-
     - @subpage dba_management "DBA Management": special database administrator tools
 
     The %SqlUtil module provides generic functionality and a framework for SQL operations and schema management, and in order
@@ -100,6 +99,19 @@ module SqlUtil {
 
     @section relnotes Release Notes
 
+    @subsection sqlutilv1_3 SqlUtil v1.3
+    - implemented insert option support (see @ref AbstractTable::InsertOptions) with the \c "returning" clause in supported drivers
+    - implemented support for late table resolution in joins to support executing SQL from serialized parameters
+    - improved error messages for common errors such as join errors
+    - implemented support for DBA actions (see @ref dba_management)
+    - implemented support for driver-dependent pseudocolumns
+    - implemented per-column support for the \c "desc" keyword in orderby expressions
+    - fixed a bug with queries using a \a desc argument with the \a orderby query option with multiple sort columns; the \c "desc" string was added only to the last column but should have been added to all columns
+    - fixed a bug where foreign key constraints with supporting indexes were not tracked and therefore schema alignment on DBs that automatically create indexes for foreign key constraints would fail
+    - fixed a bug where driver-specific objects were not included when dropping a schema
+    - fixed a bug in subquery handling where bind-by-value arguments from the subquery were lost
+    - fixed a bug in the partition by/over operator where column names as given in the query argument hash were not properly recognized
+
     @subsection sqlutilv1_2 SqlUtil v1.2
     - added insert operator support; for example, for inserting with values from sequences
     - added new upsert constant maps: @ref SqlUtil::AbstractTable::UpsertStrategyMap "UpsertStrategyMap" and @ref SqlUtil::AbstractTable::UpsertStrategyDescriptionMap "UpsertStrategyDescriptionMap"
@@ -109,13 +121,6 @@ module SqlUtil {
     - added support for the \c forupdate @ref select_option_hash "select option"
     - fixed a bug in schema management where excessively verbose column aliases were used that caused errors when automatically updating columns with existing rows and new default values and non-null contraints with PostgreSQL databases
     - fixed a bug where select and row iterator operations could fail with certain select hash arguments without a \c "columns" entry but where column names were otherwise required
-    - fixed a bug with queries using a \a desc argument with the \a orderby query option with multiple sort columns; the \c "desc" string was added only to the last column but should have been added to all columns
-    - fixed a bug where foreign key constraints with supporting indexes were not tracked and therefore schema alignment on DBs that automatically create indexes for foreign key constraints would fail
-    - fixed a bug where driver-specific objects were not included when dropping a schema
-    - fixed a bug in subquery handling where bind-by-value arguments from the subquery were lost
-    - fixed a bug in the partition by/over operator where column names as given in the query argument hash were not properly recognized
-    - implemented insert option support (see @ref AbstractTable::InsertOptions) with the \c "returning" clause in supported drivers
-    - implemented support for late table resolution in joins to support executing SQL from serialized parameters
 
     @subsection sqlutilv1_1 SqlUtil v1.1
     - implemented new upsert strategy @ref SqlUtil::AbstractTable::UpsertInsertOnly
@@ -126,7 +131,6 @@ module SqlUtil {
     @subsection sqlutilv1_0 SqlUtil v1.0
     - initial release of the SqlUtil modules for schema management and SQL operations
 */
-
 /** @page sql_operations SQL Operations
 
     @tableofcontents
@@ -391,6 +395,7 @@ my *list $rows = $table.selectRows(("where": ("account_type": "CUSTOMER"), "orde
     @endcode
     This option is a list of the following values:
     - a simple string giving a column name; ex: \c "name"
+    - a simple string with a column name preceded by a \c "-" sign; ex: \c "-name", meaning that that column should be sorted in descending order
     - a string giving a table or table alias and a column name in dot notation (for use with @ref select_option_join "joins"); ex: \c "q.name"
     @note
     - By using the @ref select_option_offset "offset option" the results will be automatically ordered according to the primary key of the table
@@ -403,6 +408,8 @@ my *list $rows = $table.selectRows(("where": ("account_type": "CUSTOMER"), "orde
     @endcode
     If the value of this key is @ref Qore::True "True" and results are ordered (either due to the @ref select_option_orderby "orderby option" or due to implicit ordering by the primary key due to the use of the @ref select_option_offset "offset option"), then results will be sorted in descending order.\n\n
     Otherwise, ordered results are returned in ascending order by default.
+
+    @note per-column descending options can be given by prepending a \c "-" character to the column name in the @ref select_option_orderby "orderby option list"
 
     @anchor select_option_limit
     @par Select Option "limit"
@@ -2733,7 +2740,7 @@ my *list $rows = $table.selectRows(("join": join_inner($table2)));
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
 
-        @since %SqlUtil 1.2
+        @since %SqlUtil 1.3
     */
     public hash sub join_inner(string ta, AbstractTable table, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_INNER, table, alias, jcols, cond, ta, opt);
@@ -2785,7 +2792,7 @@ my *list $rows = $table.selectRows(("join": join_inner($table2)));
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
 
-        @since %SqlUtil 1.2
+        @since %SqlUtil 1.3
     */
     public hash sub join_inner_alias(string ta, string table_name, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_INNER, table_name, alias, jcols, cond, ta, opt);
@@ -2859,7 +2866,7 @@ my *list $rows = $table.selectRows(("join": join_left($table2, "t2", NOTHING, ("
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
 
-        @since %SqlUtil 1.2
+        @since %SqlUtil 1.3
     */
     public hash sub join_left(string table_name, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_LEFT, table_name, alias, jcols, cond, NOTHING, opt);
@@ -2936,7 +2943,7 @@ my *list $rows = $table.selectRows(("join": join_left($table2, "t2", NOTHING, ("
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
 
-        @since %SqlUtil 1.2
+        @since %SqlUtil 1.3
     */
     public hash sub join_left_alias(string ta, string table_name, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_LEFT, table_name, alias, jcols, cond, ta, opt);
@@ -3010,7 +3017,7 @@ my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, (
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
 
-        @since %SqlUtil 1.2
+        @since %SqlUtil 1.3
     */
     public hash sub join_right(string table_name, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_RIGHT, table_name, alias, jcols, cond, NOTHING, opt);
@@ -3087,7 +3094,7 @@ my *list $rows = $table.selectRows(("join": join_right($table2, "t2", NOTHING, (
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
 
-        @since %SqlUtil 1.2
+        @since %SqlUtil 1.3
     */
     public hash sub join_right_alias(string ta, string table_name, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_RIGHT, table_name, alias, jcols, cond, ta, opt);
@@ -13101,7 +13108,7 @@ $table.insertNoCommi($row);
 
         #! returns @ref Qore::True "True" if the current database driver supports the \c "returning" clause in insert statements, @ref Qore::False "False" if not
         /** @return @ref Qore::True "True" if the current database driver supports the \c "returning" clause in insert statements, @ref Qore::False "False" if not
-            @since %SqlUtil 1.2
+            @since %SqlUtil 1.3
         */
         bool hasReturning() {
             return hasReturningImpl();
@@ -14146,6 +14153,9 @@ my string $sql = $table.getSelectSql($sh, \$args);
         }
 
         string getSelectSqlUnlockedIntern(*hash qh, string from, reference args, *hash ch, *hash opt) {
+            # get pseudo-column hash
+            *hash psch = getPseudoColumnHash();
+
             if (qh.offset) {
                 if (!qh.orderby) {
                     # use primary key by default
@@ -14185,7 +14195,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 foreach any cv in (qh.columns) {
                     switch (cv.typeCode()) {
                         case NT_STRING: {
-                            string cn = getColumnNameIntern(cv, jch, boolean(qh.join), ch);
+                            string cn = getColumnNameIntern(cv, jch, boolean(qh.join), ch, psch);
                             if (qh.superquery)
                                 mch{cv} = True;
                             ce += cn;
@@ -14318,24 +14328,24 @@ my string $sql = $table.getSelectSql($sh, \$args);
 
                 # process any additional join conditions
                 if (jh.cond)
-                    jel += jt.getWhereClauseIntern(jh.cond, \args, an);
+                    jel += jt.getWhereClauseIntern(jh.cond, \args, an, NOTHING, NOTHING, NOTHING, psch);
 
                 sql += sprintf(" %s join %s%s on (%s)", JopMap{jh.jop}, t.getSelectSqlName(jh.opt), jh.alias ? (" " + jh.alias) : "", (foldl $1 + " and " + $2, jel));
             }
 
-            getSelectWhereSqlUnlocked(\sql, \args, qh, jch, boolean(qh.join), ch);
+            getSelectWhereSqlUnlocked(\sql, \args, qh, jch, boolean(qh.join), ch, psch);
 
             if (qh.groupby) {
                 list ce = ();
                 foreach any cv in (qh.groupby) {
                     switch (cv.typeCode()) {
                         case NT_STRING: {
-                            ce += getColumnNameIntern(cv, jch, boolean(qh.join), ch);
+                            ce += getColumnNameIntern(cv, jch, boolean(qh.join), ch, psch);
                             break;
                         }
 
                         case NT_HASH: {
-                            ce += doColumnOperatorIntern(cv, jch, boolean(qh.join), ch);
+                            ce += doColumnOperatorIntern(cv, jch, boolean(qh.join), ch, psch);
                             break;
                         }
 
@@ -14370,6 +14380,13 @@ my string $sql = $table.getSelectSql($sh, \$args);
             }
 
             if (qh.orderby) {
+                # process minuses to generate the "orderbydesc" keys
+                foreach string k in (\qh.orderby) {
+                    if (k =~ /^-/) {
+                        k = k.substr(1);
+                        qh.orderbydesc{k} = True;
+                    }
+                }
                 if (qh.offset || qh.limit) {
                     if (!matchAnyUnique(qh.orderby))
                         throw "SELECT-ERROR", sprintf("%s: 'orderby': %y with 'offset' = %d, 'limit' = %d does not match any unique constraint", getDesc(), qh.orderby, qh.offset, qh.limit);
@@ -14414,11 +14431,11 @@ my string $sql = $table.getSelectSql($sh, \$args);
             throw "SELECT-ERROR", sprintf("%s: column operator hash %y has an invalid \"column\" key; expecting a string column specification or a column operator description hash", getDesc(), cvc);
         }
 
-        private string doColumnOperatorIntern(hash cvc, *hash jch, bool join, *hash ch) {
-            return doColumnOperatorIntern(cvc.cop, cvc.arg, (cvc.column ? getColumnExpressionIntern(cvc.column, jch, join, ch) : NOTHING), getColumnOperatorMap(), jch, join, ch);
+        private string doColumnOperatorIntern(hash cvc, *hash jch, bool join, *hash ch, *hash psch) {
+            return doColumnOperatorIntern(cvc.cop, cvc.arg, (cvc.column ? getColumnExpressionIntern(cvc.column, jch, join, ch) : NOTHING), getColumnOperatorMap(), jch, join, ch, psch);
         }
 
-        private string doColumnOperatorIntern(any cop, any arg, *string cve, hash cm, *hash jch, bool join, *hash ch) {
+        private string doColumnOperatorIntern(any cop, any arg, *string cve, hash cm, *hash jch, bool join, *hash ch, *hash psch) {
             if (cop.typeCode() != NT_STRING)
                 throw "SELECT-ERROR", sprintf("%s: invalid column operator code %y; use column operator functions to create valid column specifications with supported column operators", getDesc(), cop);
 
@@ -14442,7 +14459,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 if (!cmd.argoptional || arg) {
                     if (arg.typeCode() != NT_STRING)
                         throw "SELECT-ERROR", sprintf("%s: expecting a string column designation for column operator %y; got type %y instead", getDesc(), cop, arg.type());
-                    arg = getColumnNameIntern(arg, jch, join, ch);
+                    arg = getColumnNameIntern(arg, jch, join, ch, psch);
                 }
             }
 
@@ -14452,8 +14469,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
             return cmd.code(cve, arg);
         }
 
-        private string getColumnNameIntern(string cv, *hash jch, bool join, *hash ch) {
-            Columns cols;
+        private string getColumnNameIntern(string cv, *hash jch, bool join, *hash ch, *hash psch) {
             # remove any disposable unique prefix
             cv =~ s/^[0-9]+://;
 
@@ -14462,49 +14478,53 @@ my string $sql = $table.getSelectSql($sh, \$args);
             if (tp) {
                 if (!jch{tp})
                     throw "SELECT-ERROR", sprintf("%s: query references unknown alias %y in %y; known aliases in this query: %y", getDesc(), tp, cv, jch.keys());
-                cols = jch{tp}.describe();
+                # remove table alias from column name
                 splice cv, 0, tp.size() + 1;
+
+                if (cv != "*" && !jch{tp}.describe().hasKey(cv) && !psch{cv})
+                    throw "SELECT-ERROR", sprintf("%s: query references unknown column \"%s.%s\" (%y is aliased to table %y); known columns: %y", getDesc(), tp, cv, tp, jch{tp}.getSqlName(), jch{tp}.describe().keys());
             }
             else if (ch) {
-                if (!ch{cv})
+                if (!ch{cv} && !psch{cv})
                     throw "SELECT-ERROR", sprintf("%s: query references unknown column %y; known columns from subquery: %y", getDesc(), cv, ch.keys());
                 return cv;
             }
             else {
-                cols = columns;
                 tp = getSqlName();
+                if (cv != "*" && !columns.hasKey(cv) && !psch{cv})
+                    throw "SELECT-ERROR", sprintf("%s: query references unknown column \"%s.%s\"; known columns: %y", getDesc(), tp, cv, columns.keys());
             }
 
-            if (cv != "*" && !cols.hasKey(cv))
-                throw "SELECT-ERROR", sprintf("%s: query references unknown column %y.%y; known columns: %y", getDesc(), tp, cv, cols.keys());
+            # ensure that reserved words are properly quoted
             cv = getColumnSqlName(cv);
+
             return join ? sprintf("%s.%s", tp, cv) : cv;
         }
 
-        private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh, *hash jch, bool join = False, *hash ch) {
+        private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh, *hash jch, bool join = False, *hash ch, *hash psch) {
             if (qh."where")
-                sql += getWhereClauseUnlocked(qh."where", \args, NOTHING, jch, join, ch);
+                sql += getWhereClauseUnlocked(qh."where", \args, NOTHING, jch, join, ch, psch);
         }
 
         private *string getWhereClause(*hash cond, reference args, *string cprefix, *hash jch, bool join = False) {
             l.lock();
             on_exit l.unlock();
-            return getWhereClauseUnlocked(cond, \args, cprefix, jch, join);
+            return getWhereClauseUnlocked(cond, \args, cprefix, jch, join, NOTHING, getPseudoColumnHash());
         }
 
         private *string getWhereClause(list cond, reference args, *string cprefix, *hash jch, bool join = False) {
             l.lock();
             on_exit l.unlock();
-            return getWhereClauseUnlocked(cond, \args, cprefix, jch, join);
+            return getWhereClauseUnlocked(cond, \args, cprefix, jch, join, NOTHING, getPseudoColumnHash());
         }
 
-        private *string getWhereClauseUnlocked(list cond, reference args, *string cprefix, *hash jch, bool join = False, *hash pch) {
+        private *string getWhereClauseUnlocked(list cond, reference args, *string cprefix, *hash jch, bool join = False, *hash pch, *hash psch) {
             getColumnsUnlocked();
             list al = ();
             if (!exists args)
                 args = ();
             foreach hash ch in (cond) {
-                *list wl = getWhereClauseIntern(ch, \args, cprefix, jch, join, pch);
+                *list wl = getWhereClauseIntern(ch, \args, cprefix, jch, join, pch, psch);
                 if (wl)
                     al += "(" + (foldl $1 + " and " + $2, wl) + ")";
             }
@@ -14512,20 +14532,20 @@ my string $sql = $table.getSelectSql($sh, \$args);
                 return " where " + (foldl $1 + " or " + $2, al);
         }
 
-        private *string getWhereClauseUnlocked(*hash cond, reference args, *string cprefix, *hash jch, bool join = False, *hash pch) {
+        private *string getWhereClauseUnlocked(*hash cond, reference args, *string cprefix, *hash jch, bool join = False, *hash pch, *hash psch) {
             getColumnsUnlocked();
             if (!exists args)
                 args = ();
-            *list wl = getWhereClauseIntern(cond, \args, cprefix, jch, join, pch);
+            *list wl = getWhereClauseIntern(cond, \args, cprefix, jch, join, pch, psch);
             if (wl)
                 return " where " + (foldl $1 + " and " + $2, wl);
         }
 
-        private *list getWhereClauseIntern(*hash cond, reference args, *string cprefix, *hash jch, bool join = False, *hash ch) {
+        private *list getWhereClauseIntern(*hash cond, reference args, *string cprefix, *hash jch, bool join = False, *hash ch, *hash psch) {
             if (!cond)
                 return;
 
-            return map doWhereExpressionIntern(cprefix ? sprintf("%s.%s", cprefix, $1.key) : getColumnNameIntern($1.key, jch, join, ch), $1.value, \args, jch, join, ch), cond.pairIterator();
+            return map doWhereExpressionIntern(cprefix ? sprintf("%s.%s", cprefix, $1.key) : getColumnNameIntern($1.key, jch, join, ch, psch), $1.value, \args, jch, join, ch), cond.pairIterator();
         }
 
         private string doWhereExpressionIntern(string cn, any we, reference args, *hash jch, bool join = False, *hash ch) {
@@ -14582,7 +14602,7 @@ my string $sql = $table.getSelectSql($sh, \$args);
         private doSelectOrderBySqlUnlocked(reference sql, reference args, *hash qh, *hash jch, *hash ch) {
             list ce = getOrderByListUnlocked(qh, jch, ch);
 
-            sql += " order by " + (foldl $1 + "," + $2, (map $1 + (qh.desc ? " desc" : ""), ce));
+            sql += " order by " + (foldl $1 + "," + $2, (map $1 + (qh.desc || qh.orderbydesc.$1 ? " desc" : ""), ce));
         }
 
         #! deletes rows in the table matching the condition and returns the count of rows deleted; the transaction is committed if successful, if an error occurs then it is rolled back
@@ -16086,7 +16106,7 @@ my *list $rows = $table.findAll($h);
         #! returns a descriptive string of the datasource (without the password) and the table name (with a possible qualifier for schema, etc)
         /** Used in exception descriptions
 
-            @since SqlUtil 1.2
+            @since SqlUtil 1.3
         */
         string getDesc() {
             return sprintf("%s: %s %s", AbstractSqlUtilBase::makeDatasourceDesc(ds), getBaseType(), getSqlName());
@@ -16260,6 +16280,12 @@ my *list $rows = $table.findAll($h);
         */
         private hash getUpdateOperatorMap() {
             return getColumnOperatorMap().(DefaultUopMap.keys());
+        }
+
+        #! returns a hash of valid pseudocolumns
+        /** override in subclasses to return driver-specific pseudocolumns; by default this method returns @ref nothing
+        */
+        private *hash getPseudoColumnHash() {
         }
 
         private string getCreateTableSqlUnlocked(*hash opt) {

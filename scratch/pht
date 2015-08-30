@@ -1,0 +1,20 @@
+#!/usr/bin/env qr
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%requires uuid
+
+softint size = shift ARGV ?? 1000000;
+
+hash h;
+
+date start = now_us();
+
+# create a large hash
+for (int i = 0; i < size; ++i)
+    h{UUID::get()} = True;
+
+printf("%d entries created in: %y\n", h.size(), now_us() - start);
+
+start = now_us();
+list l = map $1.key, h.pairIterator();
+printf("# -> iteration: %d\t%d\n", h.size(), (now_us() - start).durationMicroseconds());

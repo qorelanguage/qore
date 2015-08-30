@@ -133,6 +133,7 @@ class QoreMethod;
 class QoreBuiltinMethod;
 class QoreClass;
 class QoreTypeInfo;
+struct QoreValue;
 
 //! functor template for calling free() on pointers
 template <typename T> struct free_ptr : std::unary_function <T*, void> {
@@ -212,7 +213,7 @@ public:
    }
 };
 
-//! vector of type information for parameter lists 
+//! vector of type information for parameter lists
 typedef std::vector<const QoreTypeInfo*> type_vec_t;
 
 //! vector of value information for default argument lists
@@ -229,6 +230,13 @@ typedef long long int64;
     @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
     @return the return value of the function (can be 0)
  */
+typedef QoreValue (*q_func_n_t)(const QoreListNode* args, ExceptionSink* xsink);
+
+//! the type used for builtin function signatures
+/** @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
+    @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
+    @return the return value of the function (can be 0)
+ */
 typedef AbstractQoreNode* (*q_func_t)(const QoreListNode* args, ExceptionSink* xsink);
 
 //! the type used for builtin function signatures returning an integer value
@@ -239,6 +247,15 @@ typedef bool (*q_func_bool_t)(const QoreListNode* args, ExceptionSink* xsink);
 
 //! the type used for builtin function signatures returning an double value
 typedef double (*q_func_double_t)(const QoreListNode* args, ExceptionSink* xsink);
+
+//! the new type used for builtin QoreClass method signatures
+/** @param self the QoreObject that the function is being executed on
+    @param private_data the object's private data representing the state of the object
+    @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
+    @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
+    @return the return value of the function (can be 0)
+ */
+typedef QoreValue (*q_method_n_t)(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, ExceptionSink* xsink);
 
 //! the type used for builtin QoreClass method signatures
 /** @param self the QoreObject that the function is being executed on
@@ -428,7 +445,7 @@ typedef void (*q_copy2_t)(const QoreClass& thisclass, QoreObject* self, QoreObje
 typedef void (*q_copy3_t)(const QoreClass& thisclass, const void* ptr, QoreObject* self, QoreObject* old, AbstractPrivateData* private_data, ExceptionSink* xsink);
 
 //! the typed used for QoreClass deleteBlocker signatures
-/** 
+/**
     @param self the QoreObject that the function is being executed on
     @param private_data the object's private data representing the state of the object for the current builtin class
     @return false if the object may be deleted normally, true if the deletion should be suppressed

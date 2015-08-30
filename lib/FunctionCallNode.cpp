@@ -61,7 +61,7 @@ int64 AbstractMethodCallNode::bigIntExec(QoreObject* o, const char* c_str, Excep
    if (qc && (o->getClass() == qc || o->getClass() == method->getClass())) {
       //printd(5, "AbstractMethodCallNode::exec() using parse info for %s::%s() qc: %s\n", method->getClassName(), method->getName(), qc->getName());
       assert(method);
-      return variant 
+      return variant
 	 ? method->bigIntEvalNormalVariant(o, reinterpret_cast<const QoreExternalMethodVariant*>(variant), args, xsink)
 	 : qore_method_private::bigIntEval(*method, o, args, xsink);
    }
@@ -74,7 +74,7 @@ int AbstractMethodCallNode::intExec(QoreObject* o, const char* c_str, ExceptionS
    if (qc && (o->getClass() == qc || o->getClass() == method->getClass())) {
       //printd(5, "AbstractMethodCallNode::intExec() using parse info for %s::%s() qc: %s\n", method->getClassName(), method->getName(), qc->getName());
       assert(method);
-      return variant 
+      return variant
 	 ? method->intEvalNormalVariant(o, reinterpret_cast<const QoreExternalMethodVariant*>(variant), args, xsink)
 	 : qore_method_private::intEval(*method, o, args, xsink);
    }
@@ -87,7 +87,7 @@ bool AbstractMethodCallNode::boolExec(QoreObject* o, const char* c_str, Exceptio
    if (qc && (o->getClass() == qc || o->getClass() == method->getClass())) {
       //printd(5, "AbstractMethodCallNode::boolExec() using parse info for %s::%s() qc: %s\n", method->getClassName(), method->getName(), qc->getName());
       assert(method);
-      return variant 
+      return variant
 	 ? method->boolEvalNormalVariant(o, reinterpret_cast<const QoreExternalMethodVariant*>(variant), args, xsink)
 	 : qore_method_private::boolEval(*method, o, args, xsink);
    }
@@ -100,7 +100,7 @@ double AbstractMethodCallNode::floatExec(QoreObject* o, const char* c_str, Excep
    if (qc && (o->getClass() == qc || o->getClass() == method->getClass())) {
       //printd(5, "AbstractMethodCallNode::floatExec() using parse info for %s::%s() qc: %s\n", method->getClassName(), method->getName(), qc->getName());
       assert(method);
-      return variant 
+      return variant
 	 ? method->floatEvalNormalVariant(o, reinterpret_cast<const QoreExternalMethodVariant*>(variant), args, xsink)
 	 : qore_method_private::floatEval(*method, o, args, xsink);
    }
@@ -150,7 +150,7 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation& loc, LocalVar*
 
       // turn off reference ok and retval ignored flags
       int n_pflag = pflag & ~(PF_RETURN_VALUE_IGNORED);
-      
+
       update_parse_location(loc);
       // loop through all args
       for (unsigned i = 0; i < num_args; ++i) {
@@ -178,7 +178,7 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation& loc, LocalVar*
          qore_class_private::parseInit(*const_cast<QoreClass*>(qc));
       else
          func->parseInit();
-   
+
       // find variant
       variant = func->parseFindVariant(loc, argTypeInfo);
 
@@ -356,7 +356,7 @@ AbstractQoreNode* FunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag, in
       LocalVar* id = find_local_var(c_str, in_closure);
       if (id) {
          VarRefNode* vrn = new VarRefNode(takeName(), id, in_closure);
-	 CallReferenceCallNode* crcn = new CallReferenceCallNode(vrn, take_args());	 
+	 CallReferenceCallNode* crcn = new CallReferenceCallNode(vrn, take_args());
 	 deref();
 	 return crcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
       }
@@ -385,7 +385,7 @@ AbstractQoreNode* FunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag, in
       }
 
       if (n) {
-	 CallReferenceCallNode* crcn = new CallReferenceCallNode(n, take_args());	 
+	 CallReferenceCallNode* crcn = new CallReferenceCallNode(n, take_args());
 	 deref();
 	 return crcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
       }
@@ -439,7 +439,7 @@ AbstractQoreNode* FunctionCallNode::parseInitCall(LocalVar* oflag, int pflag, in
    }
 
    if (n) {
-      CallReferenceCallNode* crcn = new CallReferenceCallNode(n, take_args());	 
+      CallReferenceCallNode* crcn = new CallReferenceCallNode(n, take_args());
       deref();
       return crcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
    }
@@ -451,7 +451,7 @@ AbstractQoreNode* FunctionCallNode::parseInitCall(LocalVar* oflag, int pflag, in
 
    if (func)
       parseInitFinalizedCall(oflag, pflag, lvids, returnTypeInfo);
-      
+
    return this;
 }
 
@@ -474,14 +474,14 @@ AbstractQoreNode* ScopedObjectCallNode::parseInitImpl(LocalVar* oflag, int pflag
    if (name) {
       assert(!oc);
       // find object class
-      if ((oc = qore_root_ns_private::parseFindScopedClass(loc, *name))) {	 
+      if ((oc = qore_root_ns_private::parseFindScopedClass(loc, *name))) {
 	 // check if parse options allow access to this class
 	 int64 cflags = oc->getDomain();
 	 if (cflags && qore_program_private::parseAddDomain(getProgram(), cflags))
 	    parseException("ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", oc->getName());
 	 // check if the class has pending changes and is used in a constant initialization expression
 	 if (pflag & PF_CONST_EXPRESSION && qore_class_private::parseHasPendingChanges(*oc))
-	    parseException("ILLEGAL-CLASS-INSTANTIATION", "cannot instantiate '%s' class for assignment in a constant expression in the parse initialization phase when the class has uncommitted changes", oc->getName());	    
+	    parseException("ILLEGAL-CLASS-INSTANTIATION", "cannot instantiate '%s' class for assignment in a constant expression in the parse initialization phase when the class has uncommitted changes", oc->getName());
       }
       delete name;
       name = 0;
@@ -517,53 +517,17 @@ AbstractQoreNode* ScopedObjectCallNode::parseInitImpl(LocalVar* oflag, int pflag
    }
 
    //printd(5, "ScopedObjectCallNode::parseInitImpl() this: %p class: %s (%p) constructor: %p function: %p variant: %p\n", this, oc->getName(), oc, constructor, constructor ? constructor->getFunction() : 0, variant);
-      
+
    return this;
 }
 
-AbstractQoreNode* MethodCallNode::execPseudo(const AbstractQoreNode* n, ExceptionSink *xsink) const {
+QoreValue MethodCallNode::execPseudo(const AbstractQoreNode* n, ExceptionSink *xsink) const {
    //printd(5, "MethodCallNode::execPseudo() %s::%s() variant: %p\n", qc->getName(), method->getName(), variant);
    // if n is nothing make sure and use the "<nothing>" class with a dynamic method lookup
    if (is_nothing(n) && qc != QC_PSEUDONOTHING)
       return qore_class_private::evalPseudoMethod(QC_PSEUDONOTHING, n, method->getName(), args, xsink);
    else
       return qore_class_private::evalPseudoMethod(qc, method, variant, n, args, xsink);
-}
-
-int64 MethodCallNode::bigIntExecPseudo(const AbstractQoreNode* n, ExceptionSink *xsink) const {
-   //printd(5, "MethodCallNode::execPseudo() %s::%s() variant: %p\n", qc->getName(), method->getName(), variant);
-   // if n is nothing make sure and use the "<nothing>" class with a dynamic method lookup
-   if (is_nothing(n) && qc != QC_PSEUDONOTHING)
-      return qore_class_private::bigIntEvalPseudoMethod(QC_PSEUDONOTHING, n, method->getName(), args, xsink);
-   else
-      return qore_class_private::bigIntEvalPseudoMethod(qc, method, variant, n, args, xsink);
-}
-
-int MethodCallNode::intExecPseudo(const AbstractQoreNode* n, ExceptionSink *xsink) const {
-   //printd(5, "MethodCallNode::execPseudo() %s::%s() variant: %p\n", qc->getName(), method->getName(), variant);
-   // if n is nothing make sure and use the "<nothing>" class with a dynamic method lookup
-   if (is_nothing(n) && qc != QC_PSEUDONOTHING)
-      return qore_class_private::intEvalPseudoMethod(QC_PSEUDONOTHING, n, method->getName(), args, xsink);
-   else
-      return qore_class_private::intEvalPseudoMethod(qc, method, variant, n, args, xsink);
-}
-
-bool MethodCallNode::boolExecPseudo(const AbstractQoreNode* n, ExceptionSink *xsink) const {
-   //printd(5, "MethodCallNode::execPseudo() %s::%s() variant: %p\n", qc->getName(), method->getName(), variant);
-   // if n is nothing make sure and use the "<nothing>" class with a dynamic method lookup
-   if (is_nothing(n) && qc != QC_PSEUDONOTHING)
-      return qore_class_private::boolEvalPseudoMethod(QC_PSEUDONOTHING, n, method->getName(), args, xsink);
-   else
-      return qore_class_private::boolEvalPseudoMethod(qc, method, variant, n, args, xsink);
-}
-
-double MethodCallNode::floatExecPseudo(const AbstractQoreNode* n, ExceptionSink *xsink) const {
-   //printd(5, "MethodCallNode::execPseudo() %s::%s() variant: %p\n", qc->getName(), method->getName(), variant);
-   // if n is nothing make sure and use the "<nothing>" class with a dynamic method lookup
-   if (is_nothing(n) && qc != QC_PSEUDONOTHING)
-      return qore_class_private::floatEvalPseudoMethod(QC_PSEUDONOTHING, n, method->getName(), args, xsink);
-   else
-      return qore_class_private::floatEvalPseudoMethod(qc, method, variant, n, args, xsink);
 }
 
 AbstractQoreNode* StaticMethodCallNode::makeReferenceNodeAndDeref() {
@@ -619,7 +583,7 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
          n = qore_root_ns_private::parseFindReferencedConstantValue(*scope, typeInfo, false);
 
       if (n) {
-	 CallReferenceCallNode* crcn = new CallReferenceCallNode(n, takeArgs());	 
+	 CallReferenceCallNode* crcn = new CallReferenceCallNode(n, takeArgs());
 	 deref();
 	 return crcn->parseInit(oflag, pflag, lvids, typeInfo);
       }
@@ -663,4 +627,3 @@ QoreValue StaticMethodCallNode::evalValueImpl(bool& needs_deref, ExceptionSink *
    // FIXME: implement rv as QoreValue
    return qore_method_private::eval(*method, 0, args, xsink);
 }
-

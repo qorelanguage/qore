@@ -52,8 +52,35 @@ QoreValue::QoreValue(AbstractQoreNode* n) : type(QV_Node) {
    v.n = n;
 }
 
-QoreValue::QoreValue(const AbstractQoreNode* n) : type(QV_Node) {
-   assignAndSanitize(n);
+QoreValue::QoreValue(const AbstractQoreNode* n) {
+   switch (get_node_type(n)) {
+      case NT_NOTHING: {
+	 type = QV_Node;
+	 v.n = 0;
+	 break;
+      }
+      case NT_INT: {
+	 type = QV_Int;
+	 v.i = reinterpret_cast<const QoreBigIntNode*>(n)->val;
+	 break;
+      }
+      case NT_FLOAT: {
+	 type = QV_Float;
+	 v.f = reinterpret_cast<const QoreFloatNode*>(v.n)->f;
+	 break;
+      }
+      case NT_BOOLEAN: {
+	 type = QV_Bool;
+	 v.b = reinterpret_cast<const QoreBoolNode*>(v.n)->getValue();
+	 break;
+      }
+      default: {
+	 type = QV_Node;
+	 // n cannot be 0 here because we covered the NT_NOTHING case above
+	 v.n = n->refSelf();
+	 break;
+      }
+   }
 }
 
 QoreValue::QoreValue(const QoreValue& old): type(old.type) {
@@ -146,12 +173,11 @@ AbstractQoreNode* QoreValue::assign(AbstractQoreNode* n) {
 
 AbstractQoreNode* QoreValue::assignAndSanitize(const AbstractQoreNode* n) {
    AbstractQoreNode* rv = takeIfNode();
-   if (!n || n->getType() == NT_NOTHING) {
-      type = QV_Node;
-      v.n = 0;
-      return rv;
-   }
-   switch (n->getType()) {
+   switch (get_node_type(n)) {
+      case NT_NOTHING:
+	 type = QV_Node;
+	 v.n = 0;
+	 break;
       case NT_INT:
          type = QV_Int;
          v.i = reinterpret_cast<const QoreBigIntNode*>(n)->val;
@@ -247,14 +273,11 @@ void QoreValue::sanitize() {
    }
 }
 
-void QoreValue::clearNode() {
-   if (type == QV_Node)
-      v.n = 0;
-}
-
 void QoreValue::discard(ExceptionSink* xsink) {
-   if (type == QV_Node && v.n)
+   if (type == QV_Node && v.n) {
       v.n->deref(xsink);
+      v.n = 0;
+   }
 }
 
 int QoreValue::getAsString(QoreString& str, int format_offset, ExceptionSink *xsink) const {

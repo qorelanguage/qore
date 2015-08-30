@@ -54,63 +54,65 @@ union qore_value_u {
 //   void* p;
 };
 
-
 namespace detail {
+   //! used in QoreValue::get()
+   template<typename Type>
+   struct QoreValueCastHelper {
+      typedef Type * Result;
 
-template<typename Type>
-struct QoreValueCastHelper {
-    typedef Type * Result;
+      template<typename QV>
+      static Result cast(QV *qv, valtype_t type) {
+         assert(type == QV_Node);
+         assert(dynamic_cast<Result>(qv->v.n));
+         return reinterpret_cast<Result>(qv->v.n);
+      }
+   };
 
-    template<typename QV>
-    static Result cast(QV *qv, valtype_t type) {
-       assert(type == QV_Node);
-       assert(dynamic_cast<Result>(qv->v.n));
-       return reinterpret_cast<Result>(qv->v.n);
-    }
-};
+   //! used in QoreValue::get()
+   template<>
+   struct QoreValueCastHelper<bool> {
+      typedef bool Result;
 
-template<>
-struct QoreValueCastHelper<bool> {
-    typedef bool Result;
+      template<typename QV>
+      static bool cast(QV *qv, valtype_t type) {
+         return qv->getAsBool();
+      }
+   };
 
-    template<typename QV>
-    static bool cast(QV *qv, valtype_t type) {
-       return qv->getAsBool();
-    }
-};
+   //! used in QoreValue::get()
+   template<>
+   struct QoreValueCastHelper<double> {
+      typedef double Result;
 
-template<>
-struct QoreValueCastHelper<double> {
-    typedef double Result;
+      template<typename QV>
+      static double cast(QV *qv, valtype_t type) {
+         return qv->getAsFloat();
+      }
+   };
 
-    template<typename QV>
-    static double cast(QV *qv, valtype_t type) {
-        return qv->getAsFloat();
-    }
-};
+   //! used in QoreValue::get()
+   template<>
+   struct QoreValueCastHelper<int64> {
+      typedef int64 Result;
 
-template<>
-struct QoreValueCastHelper<int64> {
-    typedef int64 Result;
+      template<typename QV>
+      static double cast(QV *qv, valtype_t type) {
+         return qv->getAsBigInt();
+      }
+   };
 
-    template<typename QV>
-    static double cast(QV *qv, valtype_t type) {
-        return qv->getAsBigInt();
-    }
-};
+   /*
+   template<>
+   struct QoreValueCastHelper<int> {
+      typedef int Result;
 
-template<>
-struct QoreValueCastHelper<int> {
-    typedef int Result;
-
-    template<typename QV>
-    static int cast(QV *qv, valtype_t type) {
-        return qv->getAsBigInt();
-    }
-};
-
+      template<typename QV>
+      static int cast(QV *qv, valtype_t type) {
+         return qv->getAsBigInt();
+      }
+   };
+   */
 } // namespace detail
-
 
 struct QoreValue {
    friend class ValueEvalRefHolder;
@@ -136,7 +138,9 @@ public:
    DLLEXPORT QoreValue(AbstractQoreNode* n);
 
    // the arg will be referenced for the assignment
-   // sanitizes n (increases the reference of n if necessary)
+   // sanitizes n (increases the reference of n if necessary) - meaning:
+   // if possible, the value is converted to an immediate value in place
+   // (int, float, or bool), otherwise the arg will be referenced for the assignment
    DLLEXPORT QoreValue(const AbstractQoreNode* n);
 
    DLLEXPORT QoreValue(const QoreValue& old);
@@ -179,14 +183,16 @@ public:
 
    DLLEXPORT QoreValue& operator=(const QoreValue& n);
 
-   DLLEXPORT void clearNode();
-
+   // dereferences any contained AbstractQoreNode pointer and sets to 0; does not modify immediate values
    DLLEXPORT void discard(ExceptionSink* xsink);
 
    DLLEXPORT int getAsString(QoreString& str, int format_offset, ExceptionSink *xsink) const;
 
    DLLEXPORT QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
 
+   //! returns a pointer to an object of the given class; takes the pointer from the object; the caller owns the reference returned
+   /** will assert() in debug mode if the object does not contain a value of the requested type or if type != QV_Node
+    */
    template<typename T>
    DLLLOCAL T* take() {
       assert(type == QV_Node);
@@ -206,24 +212,31 @@ public:
       return detail::QoreValueCastHelper<const T>::cast(this, type);
    }
 
-
-
+   //! returns a referenced AbstractQoreNode pointer; leaving the "this" untouched; the caller owns the reference returned
    DLLEXPORT AbstractQoreNode* getReferencedValue() const;
 
+   //! returns a referenced AbstractQoreNode pointer leaving "this" empty (value is taken from "this"); the caller owns the reference returned
    DLLEXPORT AbstractQoreNode* takeNode();
 
+   //! returns a referenced AbstractQoreNode pointer only if the contained value is an AbstractQoreNode pointer, in which case "this" is left empty (the value is taken from "this"); returns 0 if the object does not contain an AbstractQoreNode pointer (type != QV_Node)
    DLLEXPORT AbstractQoreNode* takeIfNode();
 
+   //! returns the type of value contained
    DLLEXPORT qore_type_t getType() const;
 
+   //! returns a string type description of the value contained (ex: "nothing" for a null AbstractQoreNode pointer)
    DLLEXPORT const char* getTypeName() const;
 
+   //! returns true if the object contains a non-null AbstractQoreNode pointer (ie type == QV_Node && v.n is not 0)
    DLLEXPORT bool hasNode() const;
 
+   //! returns true if the object contains NOTHING
    DLLEXPORT bool isNothing() const;
 
+   //! returns true if the object contains NULL
    DLLEXPORT bool isNull() const;
 
+   //! returns true if the object contains NOTHING or NULL
    DLLEXPORT bool isNullOrNothing() const;
 };
 

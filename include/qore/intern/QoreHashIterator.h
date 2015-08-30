@@ -36,6 +36,9 @@
 // the c++ object
 class QoreHashIterator : public QoreIteratorBase, public ConstHashIterator {
 protected:
+   // reusable hash for pair iterator performance enhancement; provides an approx 70% speed improvement
+   mutable QoreHashNode* pairHash;
+
    DLLLOCAL virtual ~QoreHashIterator() {
    }
 
@@ -47,17 +50,17 @@ protected:
       return 0;
    }
 
-   DLLLOCAL QoreHashIterator(QoreHashNode* h) : ConstHashIterator(h) {
+   DLLLOCAL QoreHashIterator(QoreHashNode* h) : ConstHashIterator(h), pairHash(0) {
    }
 
 public:
-   DLLLOCAL QoreHashIterator(const QoreHashNode* h) : ConstHashIterator(h->hashRefSelf()) {
+   DLLLOCAL QoreHashIterator(const QoreHashNode* h) : ConstHashIterator(h->hashRefSelf()), pairHash(0) {
    }
 
-   DLLLOCAL QoreHashIterator() : ConstHashIterator(0) {
+   DLLLOCAL QoreHashIterator() : ConstHashIterator(0), pairHash(0) {
    }
 
-   DLLLOCAL QoreHashIterator(const QoreHashIterator& old) : ConstHashIterator(*this) {
+   DLLLOCAL QoreHashIterator(const QoreHashIterator& old) : ConstHashIterator(*this), pairHash(0) {
    }
 
    using AbstractPrivateData::deref;
@@ -84,10 +87,16 @@ public:
    DLLLOCAL QoreHashNode* getReferencedValuePair(ExceptionSink* xsink) const {
       if (checkPtr(xsink))
          return 0;
-      QoreHashNode* h = new QoreHashNode;
-      h->setKeyValue("key", new QoreStringNode(ConstHashIterator::getKey()), 0);
-      h->setKeyValue("value", ConstHashIterator::getReferencedValue(), 0);
-      return h;
+      // create or re-use the pair hash if possible
+      if (!pairHash)
+         pairHash = new QoreHashNode;
+      else if (!pairHash->is_unique()) {
+         pairHash->deref(xsink);
+         pairHash = new QoreHashNode;
+      }
+      pairHash->setKeyValue("key", new QoreStringNode(ConstHashIterator::getKey()), xsink);
+      pairHash->setKeyValue("value", ConstHashIterator::getReferencedValue(), xsink);
+      return pairHash->hashRefSelf();
    }
 
    DLLLOCAL QoreStringNode* getKey(ExceptionSink* xsink) const {

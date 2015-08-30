@@ -1,3 +1,4 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QorePseudoMethods.h
 
@@ -34,11 +35,7 @@
 
 DLLLOCAL void pseudo_classes_init();
 DLLLOCAL void pseudo_classes_del();
-DLLLOCAL AbstractQoreNode *pseudo_classes_eval(const AbstractQoreNode *n, const char *name, const QoreListNode *args, ExceptionSink *xsink);
-DLLLOCAL int64 pseudo_classes_int64_eval(const AbstractQoreNode *n, const char *name, const QoreListNode *args, ExceptionSink *xsink);
-DLLLOCAL int pseudo_classes_int_eval(const AbstractQoreNode *n, const char *name, const QoreListNode *args, ExceptionSink *xsink);
-DLLLOCAL bool pseudo_classes_bool_eval(const AbstractQoreNode *n, const char *name, const QoreListNode *args, ExceptionSink *xsink);
-DLLLOCAL double pseudo_classes_double_eval(const AbstractQoreNode *n, const char *name, const QoreListNode *args, ExceptionSink *xsink);
+DLLLOCAL QoreValue pseudo_classes_eval(const AbstractQoreNode *n, const char *name, const QoreListNode *args, ExceptionSink *xsink);
 DLLLOCAL const QoreMethod *pseudo_classes_find_method(qore_type_t t, const char *mname, QoreClass *&qc);
 DLLLOCAL const QoreMethod *pseudo_classes_find_method(const QoreTypeInfo *typeInfo, const char *mname, QoreClass *&qc, bool &possible_match);
 

@@ -117,24 +117,8 @@ static QoreClass* pseudo_get_class(const AbstractQoreNode *n) {
    return pseudo_get_class(get_node_type(n));
 }
 
-AbstractQoreNode *pseudo_classes_eval(const AbstractQoreNode *n, const char *name, const QoreListNode *args, ExceptionSink *xsink) {
+QoreValue pseudo_classes_eval(const AbstractQoreNode *n, const char *name, const QoreListNode *args, ExceptionSink *xsink) {
    return qore_class_private::evalPseudoMethod(pseudo_get_class(n), n, name, args, xsink);
-}
-
-int64 pseudo_classes_int64_eval(const AbstractQoreNode *n, const char *name, const QoreListNode *args, ExceptionSink *xsink) {
-   return qore_class_private::bigIntEvalPseudoMethod(pseudo_get_class(n), n, name, args, xsink);
-}
-
-int pseudo_classes_int_eval(const AbstractQoreNode *n, const char *name, const QoreListNode *args, ExceptionSink *xsink) {
-   return qore_class_private::intEvalPseudoMethod(pseudo_get_class(n), n, name, args, xsink);
-}
-
-bool pseudo_classes_bool_eval(const AbstractQoreNode *n, const char *name, const QoreListNode *args, ExceptionSink *xsink) {
-   return qore_class_private::boolEvalPseudoMethod(pseudo_get_class(n), n, name, args, xsink);
-}
-
-double pseudo_classes_double_eval(const AbstractQoreNode *n, const char *name, const QoreListNode *args, ExceptionSink *xsink) {
-   return qore_class_private::floatEvalPseudoMethod(pseudo_get_class(n), n, name, args, xsink);
 }
 
 const QoreMethod* pseudo_classes_find_method(qore_type_t t, const char *mname, QoreClass* &qc) {
