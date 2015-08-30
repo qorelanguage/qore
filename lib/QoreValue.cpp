@@ -171,6 +171,33 @@ AbstractQoreNode* QoreValue::assign(AbstractQoreNode* n) {
    return rv;
 }
 
+AbstractQoreNode* QoreValue::assignAndSanitize(const AbstractQoreNode* n) {
+   AbstractQoreNode* rv = takeIfNode();
+   switch (get_node_type(n)) {
+      case NT_NOTHING:
+	 type = QV_Node;
+	 v.n = 0;
+	 break;
+      case NT_INT:
+         type = QV_Int;
+         v.i = reinterpret_cast<const QoreBigIntNode*>(n)->val;
+         break;
+      case NT_FLOAT:
+         type = QV_Float;
+         v.f = reinterpret_cast<const QoreFloatNode*>(n)->f;
+         break;
+      case NT_BOOLEAN:
+         type = QV_Bool;
+         v.b = reinterpret_cast<const QoreBoolNode*>(n)->getValue();
+         break;
+      default:
+         type = QV_Node;
+         v.n = n->refSelf();
+         break;
+   }
+   return rv;
+}
+
 AbstractQoreNode* QoreValue::assign(int64 n) {
    AbstractQoreNode* rv = takeIfNode();
    type = QV_Int;

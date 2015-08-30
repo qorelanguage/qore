@@ -67,7 +67,7 @@ public:
    DLLLOCAL virtual void deref(ExceptionSink* xsink) {
       if (ROdereference()) {
          for (Map::iterator i = data.begin(), e = data.end(); i != e; ++i) {
-            i->second->deref(xsink);
+            i->second.discard(xsink);
          }
          delete this;
       }
@@ -77,10 +77,7 @@ public:
       TempEncodingHelper keyStr(key, QCS_DEFAULT, xsink);
       if (keyStr) {
          Map::mapped_type &refToMap = data[keyStr->getBuffer()];
-         if (refToMap != 0) {
-            refToMap->deref(xsink);
-         }
-         refToMap = value->refSelf();
+         ::discard(refToMap.assignAndSanitize(value), xsink);
       }
    }
 
@@ -101,14 +98,14 @@ public:
       size_t prefixLen = getFirstPathSegmentLength(path);
       while (it != b && !(--it)->first.compare(0, prefixLen, path, 0, prefixLen)) {
          if (isPathPrefix(it->first, path)) {
-            return it->second->refSelf();
+            return it->second.getReferencedValue();
          }
       }
       return 0;
    }
 
 private:
-   typedef std::map<std::string, AbstractQoreNode *> Map;
+   typedef std::map<std::string, QoreValue> Map;
    Map data;
 };
 
