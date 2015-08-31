@@ -1,15 +1,21 @@
 #!/usr/bin/env qr
 
+%requires ../../../../qlib/QUnit.qm
+
 %require-types
 %enable-all-warnings
 
-%requires UnitTest
+%exec-class FloorTest
 
-%exec-class App
+public class FloorTest inherits QUnit::Test {
+    constructor() : Test("FloorTest", "1.0", \ARGV) {
+        addTestCase("Skipped test", \testFloor(), NOTHING);
 
-class App {
-    constructor() {
-	UnitTest unit();
-        unit.cmp(floor(3.7), 3.0, "floor()");
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    testFloor() {
+        testAssertion("test floor", \floor(), (3.7,), new TestResultValue(3.0));
     }
 }
