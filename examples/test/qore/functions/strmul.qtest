@@ -1,20 +1,29 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
+
 %require-types
 %enable-all-warnings
-%requires UnitTest
 %allow-bare-refs
-%exec-class App
 
-class App {
-    constructor() {
-        my UnitTest unit();
-	unit.cmp(strmul("%s,", 3, 1), '%s,%s,%s', 'truncate');
-        unit.cmp(strmul("%s,", 3, 0), '%s,%s,%s,', 'no truncate');
-        unit.cmp(strmul("xxx", 1), 'xxx', 'repeat 1 time');
-        unit.cmp(strmul("xxx", 1, 3), '', 'remove all chars');
-        unit.exception(\strmul(), ("xxx", 1, 4), 'remove more chars than exists -> exception', 'STRMUL-ERROR', '\QOffset (4) is greater than string length (3)');
-        unit.exception(\strmul(), ("xxx", 0), 'repeat 0 times -> exception', 'STRMUL-ERROR', "has to be > 0; value: 0"); # TODO: better is to return empty string
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class StrmulTest
+
+public class StrmulTest inherits QUnit::Test {
+    constructor() : Test("StrmulTest", "1.0") {
+        addTestCase("Exercise strmul()", \strmulTestMethod(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    strmulTestMethod() {
+        testAssertion("truncate", \strmul(), ("%s,", 3, 1), new TestResultValue("%s,%s,%s"));
+        testAssertion("no truncate", \strmul(), ("%s,", 3, 0), new TestResultValue("%s,%s,%s,"));
+        testAssertion("repeat 1 time", \strmul(), ("xxx", 1), new TestResultValue("xxx"));
+        testAssertion("remove all chars", \strmul(), ("xxx", 1, 3), new TestResultValue(""));
+
+        testAssertion("remove more chars than exists", \strmul(), ("xxx", 1, 4), new TestResultExceptionDetail("STRMUL-ERROR", "Offset (4) is greater than string length (3)"));
+        testAssertion("repeat 0 times", \strmul(), ("xxx", 0), new TestResultExceptionRegexp("STRMUL-ERROR", "has to be > 0; value: 0")); # TODO: better is to return empty string
     }
 }
-
 

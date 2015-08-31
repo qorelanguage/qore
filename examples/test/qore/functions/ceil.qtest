@@ -1,15 +1,21 @@
 #!/usr/bin/env qr
 %require-types
-
 %enable-all-warnings
 
-%requires UnitTest
+%requires ../../../../qlib/QUnit.qm
 
-%exec-class App
+%exec-class CeilTest
 
-class App {
-    constructor() {
-	UnitTest unit();
-        unit.cmp(ceil(2.7), 3.0, "ceil()");
+public class CeilTest inherits QUnit::Test {
+    constructor() : Test("CeilTest", "1.0") {
+        addTestCase("What this method is testing", \testMethod(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    testMethod() {
+        testAssertion("ceil() call", \ceil(), (2.7,), new TestResultValue(3.0));
     }
 }
+

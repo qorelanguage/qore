@@ -1,8 +1,21 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
 %require-types
 %enable-all-warnings
-%requires UnitTest
 
-my UnitTest $unit();
+%requires ../../../../qlib/QUnit.qm
 
-$unit.cmp(type(1), "integer", "type()");
+%exec-class TypeTest
+
+public class TypeTest inherits QUnit::Test {
+    constructor() : Test("TypeTest", "1.0") {
+        addTestCase("Exercise type()", \typeTestMethod(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    typeTestMethod() {
+        testAssertion("type()", \type(), (1,), new TestResultValue("integer"));
+    }
+}
+

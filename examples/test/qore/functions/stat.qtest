@@ -1,17 +1,26 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
 %require-types
 %enable-all-warnings
-%requires UnitTest
-%exec-class App
+%requires ../../../../qlib/QUnit.qm
 
-class App {
-    constructor() {
-        my UnitTest $unit();
-        if (PlatformOS != "Windows") {
-            $unit.cmp(stat(get_script_path())[1], hstat(get_script_path()).inode, "stat() and hstat()");
-            $unit.cmp(hstat(get_script_path()).type, "REGULAR", "hstat()");
+%exec-class StatTest
+
+public class StatTest inherits QUnit::Test {
+    constructor() : Test("StatTest", "1.0") {
+        addTestCase("Basic use of stat()", \statTestMethod(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    statTestMethod() {
+        if (PlatformOS == "Windows") {
+            testSkip("Windows");
         }
+
+        hash h = testAssertion("hstat()", \hstat(), (get_script_path(),), new TestResultPartialHashMatch(("type": "REGULAR")));
+
+        testAssertion("stat()", \stat(), (get_script_path(),), new TestResultValue((h.dev, h.inode, h.mode, h.nlink, h.uid, h.gid, h.rdev, h.size, h.atime, h.mtime, h.ctime, h.blksize, h.blocks)));
     }
 }
-
 

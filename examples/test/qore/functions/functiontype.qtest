@@ -1,13 +1,27 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
 %require-types
 %enable-all-warnings
-%requires UnitTest
 
-my UnitTest $unit();
+%requires ../../../../qlib/QUnit.qm
 
-$unit.cmp(functionType("simple_shift"), "user", "functionType() user");
-$unit.cmp(functionType("printf"), "builtin", "functionType() builtin");
+%exec-class FunctionTypeTest
 
+# Function to test against
 any sub simple_shift() {
-    return shift $argv;
+    return shift argv;
 }
+
+public class FunctionTypeTest inherits QUnit::Test {
+    constructor() : Test("FunctionTypeTest", "1.0") {
+        addTestCase("What this method is testing", \functionTypeTestMethod(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    functionTypeTestMethod() {
+        testAssertion("functionType() user", \functionType(), ("simple_shift",), new TestResultValue("user"));
+        testAssertion("functionType() builtin", \functionType(), ("printf",), new TestResultValue("builtin"));
+    }
+}
+

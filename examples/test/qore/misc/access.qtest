@@ -3,13 +3,13 @@
 
 %require-types
 %enable-all-warnings
-%requires UnitTest
+%requires ../../../../qlib/QUnit.qm
 
-UnitTest unit();
+%exec-class AccessTest
 
-test();
-
-const Code = "
+public class AccessTest inherits QUnit::Test {
+    private {
+        const Code = "
 class B {
     private string t(int i) {return \"int\";}
     string t(string str) {return \"string\";}
@@ -75,56 +75,65 @@ class TestInheritB {
 }
 ";
 
-const Class2 = "class TestInheritAB inherits TestInheritA, TestInheritB {}";
-const Class3 = "class TestInheritBA inherits TestInheritB, TestInheritA {}";
+        const Class2 = "class TestInheritAB inherits TestInheritA, TestInheritB {}";
+        const Class3 = "class TestInheritBA inherits TestInheritB, TestInheritA {}";
+    }
 
-sub test() {
-    Program p(PO_NEW_STYLE);
-    p.parse(Code, "access");
+    constructor() : Test("AccessTest", "1.0") {
+        addTestCase("Test class access", \accessTestMethod(), NOTHING);
 
-    # this must fail: B::t(int) is private
-    unit.exception(sub() {p.callFunction("t1");}, "cannot call private variant", "negative-private-method-access-1", 'ILLEGAL-CALL');
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
 
-    unit.cmp(p.callFunction("t2"), "string", "private-method-access-1");
+    accessTestMethod() {
+        Program p(PO_NEW_STYLE);
+        p.parse(Code, "access");
 
-    # this must fail: B::t(int) is private and also B is privately-inherited
-    unit.exception(sub() {p.callFunction("t3");}, "method of a privately-inherited class", "negative-private-method-access-2", 'BASE-CLASS-IS-PRIVATE');
+        # this must fail: B::t(int) is private
+        testAssertion("negative-private-method-access-1", \p.callFunction(), ("t1",), new TestResultExceptionRegexp('ILLEGAL-CALL', "cannot call private variant"));
 
-    # this must fail: B::t(string) is a method of a privately-inherited class
-    unit.exception(sub() {p.callFunction("t4");}, "method of a privately-inherited class", "negative-private-method-access-3", 'BASE-CLASS-IS-PRIVATE');
+        testAssertion("private-method-access-1", \p.callFunction(), ("t2",), new TestResultValue("string"));
 
-    unit.cmp(p.callFunction("t5"), "int", "private-method-access-2");
-    unit.cmp(p.callFunction("t6"), "string", "private-method-access-3");
+        # this must fail: B::t(int) is private and also B is privately-inherited
+        testAssertion("negative-private-method-access-2", \p.callFunction(), ("t3",), new TestResultExceptionRegexp('BASE-CLASS-IS-PRIVATE', "method of a privately-inherited class"));
 
-    unit.cmp(p.callFunction("t7"), "int", "private-method-access-4");
-    unit.cmp(p.callFunction("t8"), "string", "private-method-access-5");
+        # this must fail: B::t(string) is a method of a privately-inherited class
+        testAssertion("negative-private-method-access-3", \p.callFunction(), ("t4",), new TestResultExceptionRegexp('BASE-CLASS-IS-PRIVATE', "method of a privately-inherited class"));
 
-    unit.cmp(p.callFunction("t9"), "int", "private-method-access-6");
-    unit.cmp(p.callFunction("t10"), "string", "private-method-access-7");
+        testAssertion("private-method-access-2", \p.callFunction(), ("t5",), new TestResultValue("int"));
+        testAssertion("private-method-access-3", \p.callFunction(), ("t6",), new TestResultValue("string"));
 
-    unit.cmp(p.callFunction("t11"), "none", "private-method-access-8");
-    unit.cmp(p.callFunction("t12"), "none", "private-method-access-9");
+        testAssertion("private-method-access-4", \p.callFunction(), ("t7",), new TestResultValue("int"));
+        testAssertion("private-method-access-5", \p.callFunction(), ("t8",), new TestResultValue("string"));
 
-    unit.cmp(p.callFunction("t13"), "none", "private-method-access-10");
+        testAssertion("private-method-access-6", \p.callFunction(), ("t9",), new TestResultValue("int"));
+        testAssertion("private-method-access-7", \p.callFunction(), ("t10",), new TestResultValue("string"));
 
-    # this must fail: C::x() is private
-    unit.exception(sub() {p.callFunction("t14");}, "is private and cannot be accessed externally", "negative-private-method-access-8", 'METHOD-IS-PRIVATE');
+        testAssertion("private-method-access-8", \p.callFunction(), ("t11",), new TestResultValue("none"));
+        testAssertion("private-method-access-9", \p.callFunction(), ("t12",), new TestResultValue("none"));
 
-    unit.cmp(p.callFunction("t15")(), "none", "private-method-access-11");
+        testAssertion("private-method-access-10", \p.callFunction(), ("t13",), new TestResultValue("none"));
 
-    # this must fail when calling the call reference with an integer and succeed when calling with a string arg
-    unit.exception(sub() {p.callFunction("t16_17")(1);}, "cannot call private variant", "negative-private-method-access-9", 'ILLEGAL-CALL');
+        # this must fail: C::x() is private
+        testAssertion("negative-private-method-access-8", \p.callFunction(), ("t14",), new TestResultExceptionRegexp('METHOD-IS-PRIVATE', "is private and cannot be accessed externally"));
 
-    unit.cmp(p.callFunction("t16_17")("str"), "string", "private-method-access-12");
+        testAssertion("private-method-access-11", string sub () { return p.callFunction("t15")(); }, NOTHING, new TestResultValue("none"));
 
-    # this must fail because B is privately inherited in D
-    unit.exception(sub() {p.callFunction("t18");}, "cannot create a call reference", "negative-private-method-access-10", 'ILLEGAL-CALL-REFERENCE');
+        # this must fail when calling the call reference with an integer and succeed when calling with a string arg
+        testAssertion("negative-private-method-access-9", string sub () { return p.callFunction("t16_17")(1); }, NOTHING, new TestResultExceptionRegexp('ILLEGAL-CALL', "cannot call private variant"));
 
-    # this must fail at parse time because B::t() is privately inherited in D, therefore it should not be possible to take a reference to the method of the privately-inherited class
-    unit.exception(sub() {p.parse("code sub test() { D t(); return \\t.t(); }", "test");}, "is private in this context", "negative-private-method-access-11", 'PARSE-ERROR');
+        testAssertion("private-method-access-12", string sub () { return p.callFunction("t16_17")("str"); }, NOTHING, new TestResultValue("string"));
 
-    # check inheritance
-    p.parse(Class1, "class-1");
-    unit.exception(sub() {p.parse(Class2, "test");}, "cannot be combined with class", "negative-inheritance-1", 'PARSE-ERROR');
-    unit.exception(sub() {p.parse(Class3, "test");}, "cannot be combined with class", "negative-inheritance-2", 'PARSE-ERROR');
+        # this must fail because B is privately inherited in D
+        testAssertion("negative-private-method-access-10", \p.callFunction(), ("t18",), new TestResultExceptionRegexp('ILLEGAL-CALL-REFERENCE', "cannot create a call reference"));
+
+        # this must fail at parse time because B::t() is privately inherited in D, therefore it should not be possible to take a reference to the method of the privately-inherited class
+        testAssertion("negative-private-method-access-11", \p.parse(), ("code sub test() { D t(); return \\t.t(); }", "test"), new TestResultExceptionRegexp('PARSE-ERROR', "is private in this context"));
+
+        # check inheritance
+        p.parse(Class1, "class-1");
+        testAssertion("negative-inheritance-1", \p.parse(), (Class2, "test"), new TestResultExceptionRegexp('PARSE-ERROR', "cannot be combined with class"));
+        testAssertion("negative-inheritance-2", \p.parse(), (Class3, "test"), new TestResultExceptionRegexp('PARSE-ERROR', "cannot be combined with class"));
+    }
 }

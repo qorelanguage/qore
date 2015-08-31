@@ -1,11 +1,24 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
 %require-types
 %enable-all-warnings
-%requires UnitTest
 
-my UnitTest $unit();
+%requires ../../../../qlib/QUnit.qm
 
-my string $str1 = "&<>\"";
-my string $str2 = "&amp;&lt;&gt;&quot;";
-$unit.cmp(html_encode($str1), $str2, "html_encode()");
-$unit.cmp(html_decode($str2), $str1, "html_decode()");
+%exec-class HtmlEncodeTest
+
+public class HtmlEncodeTest inherits QUnit::Test {
+    constructor() : Test("HtmlEncodeTest", "1.0") {
+        addTestCase("What this method is testing", \htmlEncodeTestMethod(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    htmlEncodeTestMethod() {
+        string str1 = "&<>\"";
+        string str2 = "&amp;&lt;&gt;&quot;";
+
+        testAssertion("html_encode()", \html_encode(), (str1,), new TestResultValue(str2));
+        testAssertion("html_decode()", \html_decode(), (str2,), new TestResultValue(str1));
+    }
+}

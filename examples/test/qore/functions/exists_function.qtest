@@ -1,12 +1,26 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
 %require-types
 %enable-all-warnings
-%requires UnitTest
 
-my UnitTest $unit();
+%requires ../../../../qlib/QUnit.qm
 
-$unit.cmp(existsFunction("simple_shift"), True, "existsFunction()");
+%exec-class ExistsFunctionTest
 
+# The function we test for
 any sub simple_shift() {
-    return shift $argv;
+    return shift argv;
 }
+
+public class ExistsFunctionTest inherits QUnit::Test {
+    constructor() : Test("ExistsFunctionTest", "1.0") {
+        addTestCase("Simple existsFunction() test", \existsFunctionTestMethod(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    existsFunctionTestMethod() {
+        testAssertion("existsFunction() call", \existsFunction(), ("simple_shift",));
+    }
+}
+

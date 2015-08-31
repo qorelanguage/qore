@@ -1,82 +1,105 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
+
 %require-types
 %enable-all-warnings
-%requires UnitTest
+%requires ../../../../qlib/QUnit.qm
+
+# Need for tmp_location()
 %requires Util
+
 %requires ../../../../qlib/CsvUtil.qm
 
-my UnitTest $t();
+%exec-class CsvSampleTest
 
-# 1) prepare test file names and its content
-my string $str = "website,origin,name,image,mod_data,id
+public class CsvSampleTest inherits QUnit::Test {
+    private {
+        string str = "website,origin,name,image,mod_data,id
 http://www.myspace.com/alcestmusic,FR,Alcest,alcest.jpg,2013-01-31T13:20:51,345
 http://www.amorphis.net/,FI,Amorphis,amorphis.jpg,2012-10-15T23:08:04,384
 http://www.anthrax.com/,US,Anthrax,anthrax.jpg,2012-12-29T14:02:53,395
 ";
-my string $rfile = tmp_location() + "/test.csv";
-my File $f = new File();
-$f.open($rfile, O_WRONLY | O_CREAT);
-$f.write($str);
-$f.close();
+        string rfile = tmp_location() + "/test.csv";
+        File f = new File();
 
-my string $wdir = tmp_location();
-my string $wfile1 = $wdir + "/file1.csv";
-my string $wfile2 = $wdir + "/file2.csv";
+        string wfile1;
+        string wfile2;
+        string wdir;
+    }
 
-# 2a) test match
-my hash $iterator_opts = (
-    "header-lines" : 1,
-    "header-names" : True,
-    "verify-columns" : True,
-    "fields" : (
-	"mod_data" : (
-            "type" : "date",
-            "format" : "YYYY-MM-DDTHH:mm:SS", 
-        ),
-	"id" : "int",
-    ),
-);
+    constructor() : Test("CsvSampleTest", "1.0") {
+        addTestCase("Csv Example test", \csvExampleTest(), NOTHING);
 
-my hash $write_opts = (
-    "date-format" : "YYYY/MM/DD",
-);
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
 
-my CsvFileIterator $it1($rfile, $iterator_opts);
-my CsvFileWriter $fw1($wfile2, $write_opts);
-my CsvStringWriter $sw1($write_opts);
+    setUp() {
+        f.open(rfile, O_WRONLY | O_CREAT);
+        f.write(str);
+        f.close();
 
-# TODO: refactor following lines
-my list $headers = ('website', 'origin', 'name', 'image', 'mod_data', 'id');
-$fw1.writeLine($headers);
-$sw1.writeLine($headers);
-while ($it1.next()) {
-    my hash $value = $it1.getValue();
-    my list $list = ($value.website, $value.origin, $value.name, $value.image, format_date("YYYY-MM-DDTHH:mm:SS", $value.mod_data), $value.id);
-    $fw1.writeLine($list);
-    $sw1.writeLine($list);
+        wdir = tmp_location();
+        wfile1 = wdir + "/file1.csv";
+        wfile2 = wdir + "/file2.csv";
+    }
+
+    tearDown() {
+        unlink(rfile);
+        unlink(wfile1);
+        unlink(wfile2);
+    }
+
+    csvExampleTest() {
+        hash iterator_opts = (
+            "header-lines" : 1,
+            "header-names" : True,
+            "verify-columns" : True,
+            "fields" : (
+            	"mod_data" : (
+                    "type" : "date",
+                    "format" : "YYYY-MM-DDTHH:mm:SS", 
+                ),
+            	"id" : "int",
+            ),
+        );
+
+        hash write_opts = (
+            "date-format" : "YYYY/MM/DD",
+        );
+
+        CsvFileIterator it1(rfile, iterator_opts);
+        CsvFileWriter fw1(wfile2, write_opts);
+        CsvStringWriter sw1(write_opts);
+
+        list headers = ('website', 'origin', 'name', 'image', 'mod_data', 'id');
+        fw1.writeLine(headers);
+        sw1.writeLine(headers);
+        while (it1.next()) {
+            hash value = it1.getValue();
+            list list = (value.website, value.origin, value.name, value.image, format_date("YYYY-MM-DDTHH:mm:SS", value.mod_data), value.id);
+            fw1.writeLine(list);
+            sw1.writeLine(list);
+        }
+
+        File f1();
+        f1.open2(rfile);
+        testAssertion("case1: CsvFileWriter and CsvStringWriter results match", \f1.read(), (-1,), new TestResultValue(sw1.getContent()));
+
+        write_opts.headers = it1.getHeaders();
+
+        CsvFileIterator it2(rfile, iterator_opts);
+        CsvFileIterator it21(rfile, iterator_opts);
+        CsvFileWriter fw2(wfile2, write_opts);
+        CsvStringWriter sw2(write_opts);
+
+        fw2.write(it2);
+        sw2.write(it21);
+
+        File f2();
+        f2.open2(wfile2);
+
+        testAssertion("case2: CsvFileWriter and CsvStringWriter results match", \f2.read(), (-1,), new TestResultValue(sw2.getContent()));
+    }
 }
 
-my File $f1();
-$f1.open2($rfile);
-$t.cmp($f1.read(-1), $sw1.getContent(), 'case1: CsvFileWriter and CsvStringWriter result match');
 
-# 2b) test match
-$write_opts.headers = $it1.getHeaders();
-
-my CsvFileIterator $it2($rfile, $iterator_opts);
-my CsvFileIterator $it21($rfile, $iterator_opts);
-my CsvFileWriter $fw2($wfile2, $write_opts);
-my CsvStringWriter $sw2($write_opts);
-
-$fw2.write($it2);
-$sw2.write($it21);
-
-my File $f2();
-$f2.open2($wfile2);
-
-$t.cmp($f2.read(-1), $sw2.getContent(), 'case2: CsvFileWriter and CsvStringWriter result match');
-
-# 3) cleanup
-unlink($rfile);
-unlink($wfile1);
-unlink($wfile2);
