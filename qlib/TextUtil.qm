@@ -153,21 +153,23 @@ public class TextUtil::AbstractTextIterator {
 
             case NOTHING:
             case "string": {
-                if (value.typeCode() == NT_STRING)
+                if (value.typeCode() == NT_STRING) {
+                    trim value;
                     return m_opts.encoding ? convert_encoding(value, m_opts.encoding) : value;
+                }
                 return string(value);
             }
 
             case "float": {
                 if (value.typeCode() == NT_STRING) {
-                    my *string nf = type.format ? type.format : m_opts.number_format;
+                    *string nf = type.format ? type.format : m_opts.number_format;
                     return nf ? parse_float(value, nf) : float(value);
                 }
                 return float(value);
             }
             case "number": {
                 if (value.typeCode() == NT_STRING) {
-                    my *string nf = type.format ? type.format : m_opts.number_format;
+                    *string nf = type.format ? type.format : m_opts.number_format;
                     return nf ? parse_number(value, nf) : number(value);
                 }
                 return number(value);
@@ -176,15 +178,15 @@ public class TextUtil::AbstractTextIterator {
                 if (value.empty()) {
                     return 1970-01-01;
                 }
-                my TimeZone tz;
+                TimeZone tz;
                 if (type.timezone)
                     tz = new TimeZone(type.timezone);
                 else if (m_opts.timezone)
                     tz = m_opts.timezone;
 
-                my int t = value.typeCode();
+                int t = value.typeCode();
                 if (t == NT_STRING) {
-                    my *string fmt = type.format;
+                    *string fmt = type.format;
                     if (!fmt)
                         fmt = m_opts.date_format;
 

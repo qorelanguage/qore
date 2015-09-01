@@ -61,7 +61,7 @@ module FixedLengthUtil {
     - @ref FixedLengthUtil::FixedLengthFileWriter "FixedLengthFileWriter": Fixed length line writer into a file
     - @ref FixedLengthUtil::FixedLengthDataWriter "FixedLengthDataWriter": Fixed length line writer into a variable
 
-    @section fixedlenghtglobals Global Options
+    @section fixedlengthglobals Global Options
 
     Valid options are:
     - \c "timezone": a string giving a time zone region name or an integer offset in seconds east of UTC
@@ -194,12 +194,12 @@ public class FixedLengthUtil::FixedLengthAbstractIterator inherits TextUtil::Abs
 
     #! Instantiates the FixedLengthAbstractIterator object
     /**
-        @param h Fixed-length line specification
-        @param g Global options; see @ref fixedlengthglobals for valid values
+        @param spec Fixed-length line specification; see @ref fixedlengthspec for more information
+        @param opts Global options; see @ref fixedlengthglobals for more information
     */
-    constructor(hash h, *hash g) : TextUtil::AbstractTextIterator(g{("encoding", "eol", "ignore-empty", "ignore-empty", "timezone", "number_format", "date_format")}) {
-        m_specs           = h;
-        m_opts            = m_opts + checkOptions(g);
+    constructor(hash spec, *hash opts) : TextUtil::AbstractTextIterator(opts.("encoding", "eol", "ignore-empty", "ignore-empty", "timezone", "number_format", "date_format")) {
+        m_specs           = spec;
+        m_opts            += checkOptions(opts);
 
         # Determine line lengths of each spec, for use by the default identifyType() method. We do this by building a reverse length -> type table.
         m_line_lengths = hash();
@@ -226,7 +226,9 @@ public class FixedLengthUtil::FixedLengthAbstractIterator inherits TextUtil::Abs
 my hash $h = $i.getValue();
         @endcode
 
-        @return The current record as a hash
+        @return The current record as a hash with the following keys:
+        - \c "type": a string giving the record type name
+        - \c "record": a hash giving the parsed record data
     */
     *hash getValue() {
         *string line = getLine();
@@ -310,18 +312,15 @@ my hash $h = $i.getValue();
 
 #! Structured line iterator for fixed-length line files allowing efficient "pipelined" processing.
 public class FixedLengthUtil::FixedLengthFileIterator inherits FixedLengthUtil::FixedLengthAbstractIterator, Qore::FileLineIterator {
-    private {
-        string file;
-    }
-
     #! Instantiates the FixedLengthFileIterator object.
     /**
-        @param f File to read
-        @param h Fixed-length line specification
-        @param g Global options; see @ref fixedlengthglobals for valid values
+        @param file_name File path to read
+        @param spec Fixed-length line specification; see @ref fixedlengthspec for more information
+        @param opts Global options; see @ref fixedlengthglobals for more information
     */
-    constructor(string f, hash h, *hash g) : FixedLengthUtil::FixedLengthAbstractIterator(h, g), FileLineIterator(f, g.encoding.typeCode() == NT_STRING ? g.encoding : NOTHING, g.eol.typeCode() == NT_STRING ? g.eol : NOTHING) {
-        file  = f;
+    constructor(string file_name, hash spec, *hash opts) : FixedLengthUtil::FixedLengthAbstractIterator(spec, opts), FileLineIterator(file_name, opts.encoding.typeCode() == NT_STRING ? opts.encoding : NOTHING, opts.eol.typeCode() == NT_STRING ? opts.eol : NOTHING) {
+        # do not convert every string to the same encoding
+        m_opts.input_encoding = remove m_opts.encoding;
     }
 
     #! returns a line
@@ -472,7 +471,6 @@ public class FixedLengthUtil::FixedLengthAbstractWriter inherits TextUtil::Abstr
         return True;
     }
 }
-
 
 #! Writer for fixed-length-line files
 public class FixedLengthUtil::FixedLengthFileWriter inherits FixedLengthUtil::FixedLengthAbstractWriter {
