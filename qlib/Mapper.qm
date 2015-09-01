@@ -887,7 +887,7 @@ Mapper mapv(DataMap);
         private error(string fmt) {
             string err = vsprintf(fmt, argv);
             if (name)
-                err = sprintf("%y mapper: %s", name, err);
+                err = sprintf("mapper %y: %s", name, err);
             throw "MAP-ERROR", err;
         }
 

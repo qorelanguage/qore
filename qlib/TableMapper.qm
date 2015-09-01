@@ -755,12 +755,12 @@ on_error $table_mapper.rollback();
 
         #! prepends the datasource description to the error string and calls Mapper::error()
         private error(string fmt) {
-            Mapper::error(vsprintf(sprintf("datasource %s: ", table.getDatasourceDesc()) + fmt, argv));
+            Mapper::error(vsprintf(sprintf("datasource %y: ", table.getDatasourceDesc()) + fmt, argv));
         }
 
         #! prepends the datasource description to the error description and calls Mapper::error2()
         private error2(string ex, string fmt) {
-            Mapper::error2(ex, vsprintf(sprintf("datasource %s: ", table.getDatasourceDesc()) + fmt, argv));
+            Mapper::error2(ex, vsprintf(sprintf("datasource %y: ", table.getDatasourceDesc()) + fmt, argv));
         }
     }
 
