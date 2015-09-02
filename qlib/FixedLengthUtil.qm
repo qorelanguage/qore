@@ -73,28 +73,59 @@ module FixedLengthUtil {
 
     @section fixedlengthspec Specification Hash
 
-    Fixed length specification hash is in form:
-    - rowtype 1
-        - row hash
-    - rowtype 2
-        - row hash
-    - ...
+    Fixed length specification hash is in the form of a hash, where each hash key is the name of a record, and each value
+    is a @ref fixedlengthspecrecordhash "record description hash" describing the record; see the following example:
+    @code
+# the following spec is suitable for input and output
+const Specs = (
+    "header": (
+        "flow_type": ("length": 3, "type": "string"),
+        "record_type": ("length": 3, "type": "int", "padding_char": "0"),
+        "number_of_records": ("length": 8, "type": "int", "padding_char": "0"),
+    ),
+    "line": (
+        "flow_type": ("length": 3, "type": "string"),
+        "record_type": ("length": 3, "type": "int", "padding_char": "0"),
+        "processing_id": ("length": 10, "type": "int", "padding_char": "0"),
+        "processing_name": ("length": 10, "type": "string"),
+        "po_number": ("length": 10, "type": "int", "padding_char": "0"),
+    ),
+    "trailer": (
+        "flow_type": ("length": 3, "type": "string"),
+        "record_type": ("length": 3, "type": "int", "padding_char": "0"),
+        "number_of_records": ("length": 8, "type": "int", "padding_char": "0"),
+    ),
+);
+    @endcode
 
-    @subsection fixedlengthspecrow Row Specification hash
+    In the example above, \c "header", \c "line", and \c "trailer" are record names, and the values of each key are @ref fixedlengthspecrecordhash "record description hashes".
+
+    @subsection fixedlengthspecrecordhash Record Description Hash
+
+    Each record will have a number of fields described in the record description hash.  The record description hash keys
+    represent the names of the fields, and the values are @ref fixedlengthspecrow "field specification hashes".
+
+    In the \c "header" record in the example above, the fields are \c "flow_type", \c "record_type",
+    and \c "number_of_records", and the values of each of those keys are @ref fixedlengthspecrow "field specification hashes"
+    for the given fields.
+
+    @subsection fixedlengthspecrow Field Specification Hash
+
+    The field specification hash has the following format:
 
     |!Key|!Type|!Description
     | \c length|integer|the size of the field in bytes
-    | \c type|string|a type of the data bound to the column @res fixedlengthspectypes
-    | \c format|string|a date mask if is the \type of value "date"
+    | \c type|string|the type of data bound to the column @ref fixedlengthspectypes
+    | \c format|string|a date mask if the \a type of the field is \c "date"
     | \c timezone|string|override global timezone for current "date" column
     | \c padding|string|set padding of the column "left" (default) or "right". Used in writers
     | \c padding_char|string|a string with size 1 to use for \c padding. Default \c " " (space). Used in writers
 
-    @subsection fixedlengthspectypes Row Data Types
+    @subsection fixedlengthspectypes Field Data Types
 
-    - string
-    - int
-    - date
+    - \c "string"
+    - \c "int"
+    - \c "date"
 
     @section fixedlengthformat Fixed Length Data Format
 
@@ -108,21 +139,20 @@ module FixedLengthUtil {
 
     <b>Example of reading:</b>
     @code
-#!/usr/bin/env qore
+#!/usr/bin/env qr
 
-%new-style
 %requires FixedLengthUtil
 
 hash specs = (
     "type1" : (
-        "col1": ( "length": 5, "type": "int"),
-        "col2": ( "length": 2, "type": "string"),
+        "col1": ("length": 5, "type": "int"),
+        "col2": ("length": 2, "type": "string"),
     ),
-    "type2" : (
-        "col3": ( "length": 1, "type": "string"),
-        "col4": ( "length": 3, "type": "string"),
-        "col5": ( "length": 8, "type": "date", "format" : "DDMMYYYY",
-            # "timezone" : "Europe/Prague", # use global if omitted
+    "type2": (
+        "col3": ("length": 1, "type": "string"),
+        "col4": ("length": 3, "type": "string"),
+        "col5": ("length": 8, "type": "date", "format": "DDMMYYYY",
+        # "timezone" : "Europe/Prague", # use global if omitted
         ),
     ),
 );
@@ -142,9 +172,8 @@ while(i.next()) {
 
     <b>Example of writing:</b>
     @code
-#!/usr/bin/env qore
+#!/usr/bin/env qr
 
-%new-style
 %requires FixedLengthUtil
 
 list data = (
@@ -311,6 +340,39 @@ my hash $h = $i.getValue();
 }
 
 #! Structured line iterator for fixed-length line files allowing efficient "pipelined" processing.
+/**
+    @par Example:
+    @code
+#!/usr/bin/env qr
+
+%requires FixedLengthUtil
+
+hash specs = (
+    "type1" : (
+        "col1": ("length": 5, "type": "int"),
+        "col2": ("length": 2, "type": "string"),
+    ),
+    "type2" : (
+        "col3": ("length": 1, "type": "string"),
+        "col4": ("length": 3, "type": "string"),
+        "col5": ("length": 8, "type": "date", "format": "DDMMYYYY",
+        #"timezone": "Europe/Prague", # use global if omitted
+        ),
+    ),
+);
+
+hash global_options = (
+    "encoding"     : "UTF-8",
+    "eol"          : "\n",
+    "ignore-empty" : True,
+    "timezone"     : "Europe/Prague", # used if not in some date column specification
+);
+
+FixedLengthFileIterator i(file, specs, global_options);
+# output all records
+map printf("%y\n", $1), i;
+    @endcode
+*/
 public class FixedLengthUtil::FixedLengthFileIterator inherits FixedLengthUtil::FixedLengthAbstractIterator, Qore::FileLineIterator {
     #! Instantiates the FixedLengthFileIterator object.
     /**
@@ -360,7 +422,7 @@ public class FixedLengthUtil::FixedLengthDataIterator inherits FixedLengthUtil::
     #! Instantiates the FixedLengthFileIterator object
     /**
         @param r String to process
-        @param h Fixed-length line specification
+        @param h Fixed-length line specification; see @ref fixedlengthspec for more information
         @param g Global options; see @ref fixedlengthglobals for valid values
     */
     constructor(string r, hash h, *hash g) : FixedLengthUtil::FixedLengthAbstractIterator(h, g), DataLineIterator(r, g.eol.typeCode() == NT_STRING ? g.eol : NOTHING, g.trim.typeCode() == NT_BOOLEAN ? g.trim : NOTHING) {
@@ -394,16 +456,16 @@ public class FixedLengthUtil::FixedLengthAbstractWriter inherits TextUtil::Abstr
 
     #! creates the FixedLengthAbstractWriter object
     /**
-        @param h Fixed-length line specification
-        @param g Global options
+        @param specs Fixed-length line specification; see @ref fixedlengthspec for more information
+        @param opts Global options; see @ref fixedlengthglobals for valid values
     */
-    constructor(hash h, *hash g) : TextUtil::AbstractTextWriter(hash() + (g.eol ? ("eol" : g.eol) : hash())) {
-        m_specs           = h;
-        delete g.eol;
-        m_opts            = m_opts + checkOptions(g);
+    constructor(hash specs, *hash opts) : TextUtil::AbstractTextWriter((opts.eol ? ("eol": opts.eol) : {})) {
+        m_specs = specs;
+        delete opts.eol;
+        m_opts = m_opts + checkOptions(opts);
 
         # validate padding options
-        HashIterator hit(h);
+        HashIterator hit(specs);
         while (hit.next()) {
             HashIterator cit(hit.getValue());
             while (cit.next()) {
@@ -424,18 +486,27 @@ public class FixedLengthUtil::FixedLengthAbstractWriter inherits TextUtil::Abstr
         return m_linescount;
     }
 
-        #! Formats a single line from hash of columns
-        /**
-        @param line Hash of the line columns to be formatted
-        */
+    #! Formats a single line from a hash describing the record type and its contents
+    /**
+        @param line a hash describing the record to be formatted; the hash must have the following keys:
+        - \c "type": a string giving the record type (must be defined in @ref fixedlengthspec given in the constructor)
+        - \c "record": a hash giving the input record to be rendered (with keys as defined in the @ref fixedlengthspecrecordhash for the record identified by the \a type argument)
+
+        @throw INVALID-RECORD record name (\a type key in the record hash) not recognized
+        @throw FIELD-INPUT-ERROR the input value is too large to render into the output field
+        @throw RECORD-TRANSITION-ERROR a record transition error occurred; an invalid record sequence was given in the input data
+    */
     string formatLine(hash line) {
         string type = line{"type"};
+        if (!m_specs{type})
+            throw "INVALID-RECORD", sprintf("unknown record type %y; valid records: %y", type, m_specs.keys());
+
         string result = "";
         foreach string column in (m_specs{type}.keyIterator()) {
             string value = string(line{"record"}{column});
             # Validate
             if (value.length() > m_specs{type}{column}{"length"}) {
-                throw "FIXED-LENGTH-UTIL-NON-MATCHING-TYPE", sprintf("Value too large to pack into column: %s", column);
+                throw "FIELD-INPUT-ERROR", sprintf("Value too large to pack into column: %s", column);
             }
             # Justify to the right.
             int spacingsize = abs(value.length() - m_specs{type}{column}{"length"});
@@ -455,7 +526,7 @@ public class FixedLengthUtil::FixedLengthAbstractWriter inherits TextUtil::Abstr
         }
 
         if (!checkTransition(m_state, type)) {
-            throw "FIXED-LENGTH-UTIL-INVALID-TRANSITION", sprintf("State '%s' cannot follow state '%s' for line '%s'", (type ?? "<START>"), (m_state ?? "<START>"), result);
+            throw "RECORD-TRANSITION-ERROR", sprintf("State '%s' cannot follow state '%s' for line '%s'", (type ?? "<START>"), (m_state ?? "<START>"), result);
         }
         m_state = type;
         m_linescount++;
@@ -472,7 +543,41 @@ public class FixedLengthUtil::FixedLengthAbstractWriter inherits TextUtil::Abstr
     }
 }
 
-#! Writer for fixed-length-line files
+#! Writer for fixed-length-line output files
+/** @par Example:
+    @code
+#!/usr/bin/env qr
+
+%requires FixedLengthUtil
+
+list data = (
+    ("type": "type1", "record": {"col1" : 11111, "col2" : "bb"}),
+    ("type": "type2", "record": {"col3" : "c", "col4" : "ddd", "col5" : "31122014"}),
+    ("type": "type1", "record": {"col1" : 22222, "col2" : "gg"}),
+);
+
+hash specs = (
+    "type1" : (
+        "col1": ("length": 5, "type": "int"),
+        "col2": ("length": 2, "type": "string"),
+    ),
+    "type2" : (
+        "col3" : ("length": 1, "type": "string"),
+        "col4" : ("length" : 3, "type": "string"),
+        "col5" : ("length" : 8, "type": "date", "format": "DDMMYYYY", "timezone" : "Europe/Prague"),
+    ),
+);
+
+hash global_options = (
+    "eol" : "\n",
+);
+
+FixedLengthFileWriter w(file, specs, global_options);
+w.write(data);
+    @endcode
+
+    @see FixedLengthDataWriter
+*/
 public class FixedLengthUtil::FixedLengthFileWriter inherits FixedLengthUtil::FixedLengthAbstractWriter {
     private {
         string file;
@@ -481,63 +586,208 @@ public class FixedLengthUtil::FixedLengthFileWriter inherits FixedLengthUtil::Fi
 
     #! Instantiates the FixedLengthFileWriter object
     /**
-        @param f file to write
-        @param h Fixed-length line specification
-        @param g Global options
+        @param file_name the output file path
+        @param specs Fixed-length line specification; see @ref fixedlengthspec for more information
+        @param opts Global options; see @ref fixedlengthglobals for valid values
     */
-    constructor(string f, hash h, *hash g) : FixedLengthUtil::FixedLengthAbstractWriter(h, g)  {
-        file  = f;
+    constructor(string file_name, hash specs, *hash opts) : FixedLengthUtil::FixedLengthAbstractWriter(specs, opts)  {
+        file = file_name;
         m_opts.eol = m_opts.eol ?? "\n";
         m_file.open2(file, O_WRONLY | O_CREAT | m_opts."file-flags");
     }
 
-    #! Stream one hash into the resulting file
-    /**
-        @param line A hash to be writen to the file
+    #! Renders a single line for a single input record hash to the output file
+    /** @par Example:
+        @code
+const Spec = (
+    "header": (
+        "flow_type": ("length": 3, "type": "string"),
+        "record_type": ("length": 3, "type": "int", "padding_char": "0"),
+        "number_of_records": ("length": 8, "type": "int", "padding_char": "0"),
+    ),
+);
+hash hh = (
+    "type": "header",
+    "record": (
+        "flow_type": "WTS",
+        "record_type": "950",
+        "number_of_records": 1,
+     ),
+);
+FixedLengthFileWriter header(Spec);
+header.write(hh);
+        @endcode
+
+        @param line A hash representing input data to be writen to the file; the hash must have the following keys:
+        - \c "type": a string giving the record type (must be defined in @ref fixedlengthspec given in the constructor)
+        - \c "record": a hash giving the input record to be rendered (with keys as defined in the @ref fixedlengthspecrecordhash for the record identified by the \a type argument)
+
+        @throw INVALID-RECORD record name (\a type key in the record hash) not recognized
+        @throw FIELD-INPUT-ERROR the input value is too large to render into the output field
+        @throw RECORD-TRANSITION-ERROR a record transition error occurred; an invalid record sequence was given in the input data
     */
     write(hash line) {
         m_file.write(formatLine(line) + m_opts.eol);
     }
 
-    #! Stream iterator into the resulting file
-    /**
-        @param lines A list of line data to add to the file.
+    #! iterates the input records and writes rendered versions of all input records to the file
+    /** @par Example:
+        @code
+FixedLengthFileWriter header(output_file, Spec);
+header.write(i);
+        @endcode
+
+        @param lines An iterator to stream input records; each iterator value must be a hash with the following keys:
+        - \c "type": a string giving the record type (must be defined in @ref fixedlengthspec given in the constructor)
+        - \c "record": a hash giving the input record to be rendered (with keys as defined in the @ref fixedlengthspecrecordhash for the record identified by the \a type argument)
+
+        @throw INVALID-RECORD record name (\a type key in the record hash) not recognized
+        @throw FIELD-INPUT-ERROR the input value is too large to render into the output field
+        @throw RECORD-TRANSITION-ERROR a record transition error occurred; an invalid record sequence was given in the input data
     */
     write(list lines) {
         map m_file.write(formatLine($1) + m_opts.eol), lines;
     }
 
-    #! Stream iterator into the resulting file
-    /**
-        @param iterator An iterator to stream data into file.
+    #! iterates the input records and writes rendered versions of all input records to the file
+    /** @par Example:
+        @code
+FixedLengthFileWriter header(output_file, Spec);
+header.write(i);
+        @endcode
+
+        @param lines An iterator to stream input records; each iterator value must be a hash with the following keys:
+        - \c "type": a string giving the record type (must be defined in @ref fixedlengthspec given in the constructor)
+        - \c "record": a hash giving the input record to be rendered (with keys as defined in the @ref fixedlengthspecrecordhash for the record identified by the \a type argument)
+
+        @throw INVALID-RECORD record name (\a type key in the record hash) not recognized
+        @throw FIELD-INPUT-ERROR the input value is too large to render into the output field
+        @throw RECORD-TRANSITION-ERROR a record transition error occurred; an invalid record sequence was given in the input data
     */
     write(Qore::AbstractIterator lines) {
         map m_file.write(formatLine($1) + m_opts.eol), lines;
     }
 }
 
-
 #! Writer class for fixed-length-line data
+/** @par Example:
+    @code
+const Spec = (
+    "header": (
+        "flow_type": ("length": 3, "type": "string"),
+        "record_type": ("length": 3, "type": "int", "padding_char": "0"),
+        "number_of_records": ("length": 8, "type": "int", "padding_char": "0"),
+    ),
+    "line": (
+        "flow_type": ("length": 3, "type": "string"),
+        "record_type": ("length": 3, "type": "int", "padding_char": "0"),
+        "processing_id": ("length": 10, "type": "int", "padding_char": "0"),
+        "processing_name": ("length": 10, "type": "string"),
+        "po_number": ("length": 10, "type": "int", "padding_char": "0"),
+    ),
+    "trailer": (
+        "flow_type": ("length": 3, "type": "string"),
+        "record_type": ("length": 3, "type": "int", "padding_char": "0"),
+        "number_of_records": ("length": 8, "type": "int", "padding_char": "0"),
+    ),
+);
+FixedLengthDataWriter header(Spec);
+AbstractIterator i = get_record_iterator();
+string data = header.write(i);
+    @endcode
+
+    @see FixedLengthFileWriter
+*/
 public class FixedLengthUtil::FixedLengthDataWriter inherits FixedLengthUtil::FixedLengthAbstractWriter {
     #! Instantiates the FixedLengthDataWriter object.
     /**
-        @param h Fixed-length line specification
-        @param g Global formatting options.
+        @param specs Fixed-length line specification; see @ref fixedlengthspec for more information
+        @param opts Global formatting options; see @ref fixedlengthglobals for valid values
     */
-    constructor(hash h, *hash g) : FixedLengthUtil::FixedLengthAbstractWriter(h, g) {
+    constructor(hash specs, *hash opts) : FixedLengthUtil::FixedLengthAbstractWriter(specs, opts) {
     }
 
-    #! Stream iterator into the resulting string.
-    /**
-    @param iterator An iterator to stream data into string.
+    #! iterates the input records and returns a string corresponding to the rendered versions of all input records
+    /** @par Example:
+        @code
+FixedLengthDataWriter header(Spec);
+string file = header.write(input_list);
+        @endcode
+
+        @param lines An iterator to stream input records; each iterator value must be a hash with the following keys:
+        - \c "type": a string giving the record type (must be defined in @ref fixedlengthspec given in the constructor)
+        - \c "record": a hash giving the input record to be rendered (with keys as defined in the @ref fixedlengthspecrecordhash for the record identified by the \a type argument)
+
+        @return the rendered string for all input records
+
+        @throw INVALID-RECORD record name (\a type key in the record hash) not recognized
+        @throw FIELD-INPUT-ERROR the input value is too large to render into the output field
+        @throw RECORD-TRANSITION-ERROR a record transition error occurred; an invalid record sequence was given in the input data
     */
     string write(list lines) {
         string result = "";
+        string eol = m_opts.eol ? m_opts.eol : "\n";
+        map result += formatLine($1) + eol, lines;
+        return result;
+    }
 
-        foreach hash item in (lines) {
-            result += formatLine(item) + (m_opts.eol ? m_opts.eol : "\n");
-        }
+    #! Return a single line for a single input record hash
+    /** @par Example:
+        @code
+const Spec = (
+    "header": (
+        "flow_type": ("length": 3, "type": "string"),
+        "record_type": ("length": 3, "type": "int", "padding_char": "0"),
+        "number_of_records": ("length": 8, "type": "int", "padding_char": "0"),
+    ),
+);
+hash hh = (
+    "type": "header",
+    "record": (
+        "flow_type": "WTS",
+        "record_type": "950",
+        "number_of_records": 1,
+     ),
+);
+FixedLengthDataWriter header(Spec);
+string line = header.write(hh);
+        @endcode
 
+        @param line A hash representing input data to be rendered as a string; the hash must have the following keys:
+        - \c "type": a string giving the record type (must be defined in @ref fixedlengthspec given in the constructor)
+        - \c "record": a hash giving the input record to be rendered (with keys as defined in the @ref fixedlengthspecrecordhash for the record identified by the \a type argument)
+
+        @return a single line for a single input record hash
+
+        @throw INVALID-RECORD record name (\a type key in the record hash) not recognized
+        @throw FIELD-INPUT-ERROR the input value is too large to render into the output field
+        @throw RECORD-TRANSITION-ERROR a record transition error occurred; an invalid record sequence was given in the input data
+    */
+    string write(hash line) {
+        return formatLine(line) + (m_opts.eol ? m_opts.eol : "\n");
+    }
+
+    #! iterates the input records and returns a string corresponding to the rendered versions of all input records
+    /** @par Example:
+        @code
+FixedLengthDataWriter header(Spec);
+string file = header.write(i);
+        @endcode
+
+        @param lines An iterator to stream input records; each iterator value must be a hash with the following keys:
+        - \c "type": a string giving the record type (must be defined in @ref fixedlengthspec given in the constructor)
+        - \c "record": a hash giving the input record to be rendered (with keys as defined in the @ref fixedlengthspecrecordhash for the record identified by the \a type argument)
+
+        @return the rendered string for all input records
+
+        @throw INVALID-RECORD record name (\a type key in the record hash) not recognized
+        @throw FIELD-INPUT-ERROR the input value is too large to render into the output field
+        @throw RECORD-TRANSITION-ERROR a record transition error occurred; an invalid record sequence was given in the input data
+    */
+    string write(Qore::AbstractIterator lines) {
+        string result = "";
+        string eol = m_opts.eol ? m_opts.eol : "\n";
+        map result += formatLine($1) + eol, lines;
         return result;
     }
 }
