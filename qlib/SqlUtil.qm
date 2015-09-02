@@ -14381,8 +14381,8 @@ my string $sql = $table.getSelectSql($sh, \$args);
 
             if (qh.orderby) {
                 # process minuses to generate the "orderbydesc" keys
-                foreach string k in (\qh.orderby) {
-                    if (k =~ /^-/) {
+                foreach any k in (\qh.orderby) {
+                    if (k.typeCode() == NT_STRING && k =~ /^-/) {
                         k = k.substr(1);
                         qh.orderbydesc{k} = True;
                     }
