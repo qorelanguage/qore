@@ -532,8 +532,6 @@ public class FixedLengthUtil::FixedLengthAbstractWriter inherits TextUtil::Abstr
         m_state = type;
         ++m_linescount;
 
-        printf("result length: %d target: %d\n",result.length(),(foldl $1 + $2, (map $1.length, m_specs{type}.iterator())));
-
         return result;
     }
 
