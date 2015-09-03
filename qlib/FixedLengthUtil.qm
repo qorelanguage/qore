@@ -115,11 +115,11 @@ const Specs = (
 
     |!Key|!Type|!Description
     | \c length|integer|the size of the field in bytes
-    | \c type|string|the type of data bound to the column @ref fixedlengthspectypes
+    | \c type|string|the type of data bound to the field @ref fixedlengthspectypes
     | \c format|string|a date mask if the \a type of the field is \c "date"
-    | \c timezone|string|override global timezone for current "date" column
-    | \c padding|string|set padding of the column "left" (default) or "right". Used in writers
-    | \c padding_char|string|a string with size 1 to use for \c padding. Default \c " " (space). Used in writers
+    | \c timezone|string|override global timezone for current "date" field
+    | \c padding|string|set padding of the field "left" (default) or "right"; used only in writers; if not given then the default padding depends on the field's \a type: \c "int" fields get left padding (right justification) and all others get right padding (left justification)
+    | \c padding_char|string|a string with size 1 to use for \c padding. Default \c " " (space). Used only in writers
 
     @subsection fixedlengthspectypes Field Data Types
 
@@ -131,7 +131,7 @@ const Specs = (
 
     Input and output data are formatted in a hash with two mandatory keys:
     - \c type - a string with name of the type
-    - \c record - a hash with line data in column - value map
+    - \c record - a hash with line data in field - value map
 
     @code
     ("type": "type1", "record": {"col1" : 11111, "col2" : "bb"}),
@@ -161,7 +161,7 @@ hash global_options = (
     "encoding"     : "UTF-8",
     "eol"          : "\n",
     "ignore-empty" : True,
-    "timezone"     : "Europe/Prague", # used if not in some date column specification
+    "timezone"     : "Europe/Prague", # used if not in some date field specification
 );
 
 FixedLengthFileIterator i(file, specs, global_options);
@@ -365,7 +365,7 @@ hash global_options = (
     "encoding"     : "UTF-8",
     "eol"          : "\n",
     "ignore-empty" : True,
-    "timezone"     : "Europe/Prague", # used if not in some date column specification
+    "timezone"     : "Europe/Prague", # used if not in some date field specification
 );
 
 FixedLengthFileIterator i(file, specs, global_options);
@@ -469,13 +469,14 @@ public class FixedLengthUtil::FixedLengthAbstractWriter inherits TextUtil::Abstr
         while (hit.next()) {
             HashIterator cit(hit.getValue());
             while (cit.next()) {
-                if (cit.getValue(){"padding"} && cit.getValue(){"padding"} != "left" && cit.getValue(){"padding"} != "right") {
-                    throw "FIXED-LENGTH-UTIL-PADDING-ERROR", sprintf("Row type: %s; Column: %s; Key: padding; value must be 'left' or 'right'. Got: %s",
-                                                                     hit.getKey(), cit.getKey(), cit.getValue(){"padding"});
+                if (cit.getValue(){"padding"}) {
+                    if (cit.getValue(){"padding"} != "left" && cit.getValue(){"padding"} != "right")
+                        throw "FIXED-LENGTH-UTIL-PADDING-ERROR", sprintf("record type: %s; field: %s; Key: padding; value must be 'left' or 'right'. Got: %s",
+                                                                         hit.getKey(), cit.getKey(), cit.getValue(){"padding"});
                 }
-                if (cit.getValue(){"padding_char"} && cit.getValue(){"padding_char"}.size() != 1) {
-                    throw "FIXED-LENGTH-UTIL-PADDING-ERROR", sprintf("Row type: %s; Column: %s; Key: padding; value must have size 1. Got: %d",
-                                                                     hit.getKey(), cit.getKey(), cit.getValue(){"padding_char"}.size());
+                if (cit.getValue(){"padding_char"} && cit.getValue(){"padding_char"}.length() != 1) {
+                    throw "FIXED-LENGTH-UTIL-PADDING-ERROR", sprintf("record type: %s; field: %s; Key: padding; value must have a character length of 1; got: %d instead",
+                                                                     hit.getKey(), cit.getKey(), cit.getValue(){"padding_char"}.length());
                 }
             }
         }
@@ -502,24 +503,24 @@ public class FixedLengthUtil::FixedLengthAbstractWriter inherits TextUtil::Abstr
             throw "INVALID-RECORD", sprintf("unknown record type %y; valid records: %y", type, m_specs.keys());
 
         string result = "";
-        foreach string column in (m_specs{type}.keyIterator()) {
-            string value = string(line{"record"}{column});
+        foreach string field in (m_specs{type}.keyIterator()) {
+            # field description
+            hash fh = m_specs{type}{field};
+
+            string value = string(line.record{field});
+            int len = value.length();
             # Validate
-            if (value.length() > m_specs{type}{column}{"length"}) {
-                throw "FIELD-INPUT-ERROR", sprintf("Value too large to pack into column: %s", column);
-            }
-            # Justify to the right.
-            int spacingsize = abs(value.length() - m_specs{type}{column}{"length"});
-            string spacing;
+            if (len > fh.length)
+                throw "FIELD-INPUT-ERROR", sprintf("Value too large to pack into field: %s", field);
+            # do output justification
+            int spacingsize = fh.length - len;
             if (spacingsize) {
+                string spacing = strmul(fh.padding_char ?? " ", spacingsize);
 
-                string s = m_specs{type}{column}{"padding_char"} ?? " ";
-                spacing = strmul(s, spacingsize);
-
-                if (m_specs{type}{column}{"padding"} == "right")
-                    result += value + spacing;
-                else
+                if (fh.padding == "left" || (!fh.padding && fh.type == "int"))
                     result += spacing + value;
+                else
+                    result += value + spacing;
             }
             else
                 result += value;
@@ -529,15 +530,18 @@ public class FixedLengthUtil::FixedLengthAbstractWriter inherits TextUtil::Abstr
             throw "RECORD-TRANSITION-ERROR", sprintf("State '%s' cannot follow state '%s' for line '%s'", (type ?? "<START>"), (m_state ?? "<START>"), result);
         }
         m_state = type;
-        m_linescount++;
+        ++m_linescount;
+
+        printf("result length: %d target: %d\n",result.length(),(foldl $1 + $2, (map $1.length, m_specs{type}.iterator())));
+
         return result;
     }
 
-        #! A verification function to be called for each line. This method can be overriden to achieve a begin-to-end validation of the whole input file.
-        /**
+    #! A verification function to be called for each line. This method can be overriden to achieve a begin-to-end validation of the whole input file.
+    /**
         @param from Type of previous line being processed
         @param to Type of the current line being processed
-        */
+    */
     bool checkTransition(*string from, *string to) {
         return True;
     }
