@@ -64,11 +64,11 @@ QoreValue::QoreValue(const AbstractQoreNode* n) {
 	 return;
       case NT_FLOAT:
 	 type = QV_Float;
-	 v.f = reinterpret_cast<const QoreFloatNode*>(v.n)->f;
+	 v.f = reinterpret_cast<const QoreFloatNode*>(n)->f;
 	 return;
       case NT_BOOLEAN:
 	 type = QV_Bool;
-	 v.b = reinterpret_cast<const QoreBoolNode*>(v.n)->getValue();
+	 v.b = reinterpret_cast<const QoreBoolNode*>(n)->getValue();
 	 return;
    }
    type = QV_Node;

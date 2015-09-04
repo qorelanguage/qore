@@ -368,9 +368,7 @@ bool QoreHashNode::compareSoft(const QoreHashNode* h, ExceptionSink* xsink) cons
       if (j == h->priv->hm.end())
          return 1;
 
-      //printf("QoreHashNode::compareSoft() key: %s mv: %p %d %s ov: %p %d %s\n", hi.getKey(), hi.getValue(), get_node_type(hi.getValue()), get_type_name(hi.getValue()), (*j->second)->node, get_node_type((*j->second)->node), get_type_name((*j->second)->node));
       if (q_compare_soft(hi.getValue(), (*j->second)->node, xsink))
-	 //if (::compareSoft(hi.getValue(), (*j->second)->node, xsink))
          return 1;
    }
    return 0;

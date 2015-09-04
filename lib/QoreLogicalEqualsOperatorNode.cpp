@@ -84,8 +84,6 @@ bool QoreLogicalEqualsOperatorNode::softEqual(const QoreValue left, const QoreVa
    qore_type_t rt = right.getType();
 
    //printf("QoreLogicalEqualsOperatorNode::softEqual() lt: %d rt: %d (%d %s)\n", lt, rt, right.type, right.getTypeName());
-   //if (right.type == QV_Bool)
-   //   printf("QoreLogicalEqualsOperatorNode::softEqual() rt bool: %d\n", right.v.b);
 
    if (lt == NT_STRING) {
       const QoreStringNode* l = left.get<const QoreStringNode>();
