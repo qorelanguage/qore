@@ -93,7 +93,7 @@ int QoreStringNode::getAsIntImpl() const {
 }
 
 int64 QoreStringNode::getAsBigIntImpl() const {
-   return strtoll(getBuffer(), 0, 10);   
+   return strtoll(getBuffer(), 0, 10);
 }
 
 double QoreStringNode::getAsFloatImpl() const {
@@ -134,7 +134,7 @@ QoreString *QoreStringNode::getStringRepresentation(bool &del) const {
    del = false;
    return const_cast<QoreStringNode *>(this);
 }
- 
+
 QoreStringNode *QoreStringNode::convertEncoding(const QoreEncoding *nccs, ExceptionSink *xsink) const {
    printd(5, "QoreStringNode::convertEncoding() from '%s' to '%s'\n", getEncoding()->getCode(), nccs->getCode());
 
@@ -365,7 +365,7 @@ QoreString* QoreNodeAsStringHelper::giveString() {
       return 0;
    if (!del)
       return str->copy();
-   
+
    QoreString* rv = str;
    del = false;
    str = 0;

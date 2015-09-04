@@ -1,10 +1,10 @@
 /*
   QoreLogicalEqualsOperatorNode.cpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -83,6 +83,10 @@ bool QoreLogicalEqualsOperatorNode::softEqual(const QoreValue left, const QoreVa
    qore_type_t lt = left.getType();
    qore_type_t rt = right.getType();
 
+   //printf("QoreLogicalEqualsOperatorNode::softEqual() lt: %d rt: %d (%d %s)\n", lt, rt, right.type, right.getTypeName());
+   //if (right.type == QV_Bool)
+   //   printf("QoreLogicalEqualsOperatorNode::softEqual() rt bool: %d\n", right.v.b);
+
    if (lt == NT_STRING) {
       const QoreStringNode* l = left.get<const QoreStringNode>();
       if (rt == NT_STRING)
@@ -90,6 +94,7 @@ bool QoreLogicalEqualsOperatorNode::softEqual(const QoreValue left, const QoreVa
       QoreStringValueHelper r(right, l->getEncoding(), xsink);
       if (*xsink)
 	 return false;
+      //printf("QoreLogicalEqualsOperatorNode::softEqual() l: '%s' converted r: '%s'\n", l->getBuffer(), r->getBuffer());
       return l->equal(*r);
    }
 
@@ -130,7 +135,7 @@ bool QoreLogicalEqualsOperatorNode::softEqual(const QoreValue left, const QoreVa
 	    return right.get<const QoreNumberNode>()->compare(**ln) == 0;
 	 }
       }
-   } 
+   }
 
    if (lt == NT_FLOAT || rt == NT_FLOAT)
       return left.getAsFloat() == right.getAsFloat();
@@ -151,7 +156,7 @@ bool QoreLogicalEqualsOperatorNode::softEqual(const QoreValue left, const QoreVa
    if (!ln) ln = &Nothing;
    const AbstractQoreNode* rn = right.getInternalNode();
    if (!rn) rn = &Nothing;
-   
+
    return ln->is_equal_soft(rn, xsink);
 }
 

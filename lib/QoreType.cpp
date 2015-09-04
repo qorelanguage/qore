@@ -65,7 +65,7 @@ qore_type_t get_next_type_id() {
 }
 
 // 0 = equal, 1 = not equal
-bool compareHard(const AbstractQoreNode *l, const AbstractQoreNode *r, ExceptionSink *xsink) {
+bool compareHard(const AbstractQoreNode* l, const AbstractQoreNode* r, ExceptionSink *xsink) {
    if (is_nothing(l)) {
       if (is_nothing(r))
          return 0;
@@ -81,15 +81,19 @@ bool compareHard(const AbstractQoreNode *l, const AbstractQoreNode *r, Exception
 
 // this function calls the operator function that will
 // convert values to do the conversion
-// 0 = equal, 1 = not equal
-bool compareSoft(const AbstractQoreNode *l, const AbstractQoreNode *r, ExceptionSink *xsink) {
+// false = equal, true = not equal
+bool compareSoft(const AbstractQoreNode* l, const AbstractQoreNode* r, ExceptionSink *xsink) {
    return !QoreLogicalEqualsOperatorNode::softEqual(l, r, xsink);
 }
 
-QoreTypeInfoHelper::QoreTypeInfoHelper(const char *n_tname) : typeInfo(new ExternalTypeInfo(n_tname, *this)) {
+bool q_compare_soft(const QoreValue l, const QoreValue r, ExceptionSink *xsink) {
+   return !QoreLogicalEqualsOperatorNode::softEqual(l, r, xsink);
 }
 
-QoreTypeInfoHelper::QoreTypeInfoHelper(qore_type_t id, const char *n_tname) : typeInfo(new ExternalTypeInfo(id, n_tname, *this)) {
+QoreTypeInfoHelper::QoreTypeInfoHelper(const char* n_tname) : typeInfo(new ExternalTypeInfo(n_tname, *this)) {
+}
+
+QoreTypeInfoHelper::QoreTypeInfoHelper(qore_type_t id, const char* n_tname) : typeInfo(new ExternalTypeInfo(id, n_tname, *this)) {
    add_to_type_map(id, typeInfo);
 }
 
@@ -102,11 +106,11 @@ void QoreTypeInfoHelper::assign(qore_type_t id) {
    add_to_type_map(id, typeInfo);
 }
 
-const QoreTypeInfo *QoreTypeInfoHelper::getTypeInfo() const {
+const QoreTypeInfo* QoreTypeInfoHelper::getTypeInfo() const {
    return typeInfo;
 }
 
-void QoreTypeInfoHelper::addAcceptsType(const QoreTypeInfo *n_typeInfo) {
+void QoreTypeInfoHelper::addAcceptsType(const QoreTypeInfo* n_typeInfo) {
    typeInfo->addAcceptsType(n_typeInfo);
 }
 
@@ -131,11 +135,11 @@ bool QoreTypeInfoHelper::acceptInputImpl(QoreValue& n, ExceptionSink *xsink) con
    return false;
 }
 
-int QoreTypeInfoHelper::doAcceptError(bool priv_error, bool obj, int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
+int QoreTypeInfoHelper::doAcceptError(bool priv_error, bool obj, int param_num, const char* param_name, AbstractQoreNode* n, ExceptionSink *xsink) const {
    return typeInfo->doAcceptError(priv_error, obj, param_num, param_name, n, xsink);
 }
 
-AbstractQoreClassTypeInfoHelper::AbstractQoreClassTypeInfoHelper(const char *name, int n_domain) : QoreTypeInfoHelper(new ExternalTypeInfo(*this)), qc(new QoreClass(name, n_domain, typeInfo)) {
+AbstractQoreClassTypeInfoHelper::AbstractQoreClassTypeInfoHelper(const char* name, int n_domain) : QoreTypeInfoHelper(new ExternalTypeInfo(*this)), qc(new QoreClass(name, n_domain, typeInfo)) {
    typeInfo->assign(qc);
    //printd(5, "AbstractQoreClassTypeInfoHelper::AbstractQoreClassTypeInfoHelper() this=%p typeInfo=%p\n", this, typeInfo);
 }
@@ -144,8 +148,8 @@ AbstractQoreClassTypeInfoHelper::~AbstractQoreClassTypeInfoHelper() {
    delete qc;
 }
 
-QoreClass *AbstractQoreClassTypeInfoHelper::getClass() {
-   QoreClass *rv = qc;
+QoreClass* AbstractQoreClassTypeInfoHelper::getClass() {
+   QoreClass* rv = qc;
    qc = 0;
    return rv;
 }
@@ -154,26 +158,26 @@ bool AbstractQoreClassTypeInfoHelper::hasClass() const {
    return qc;
 }
 
-int testObjectClassAccess(const QoreObject *obj, const QoreClass *shouldbeclass) {
+int testObjectClassAccess(const QoreObject* obj, const QoreClass* shouldbeclass) {
    return qore_class_private::runtimeCheckCompatibleClass(*shouldbeclass, *(obj->getClass()));
 }
 
-const QoreClass *typeInfoGetUniqueReturnClass(const QoreTypeInfo *typeInfo) {
+const QoreClass* typeInfoGetUniqueReturnClass(const QoreTypeInfo* typeInfo) {
    return typeInfo->getUniqueReturnClass();
 }
 
-qore_type_result_e typeInfoAcceptsType(const QoreTypeInfo *typeInfo, const QoreTypeInfo *otherTypeInfo) {
+qore_type_result_e typeInfoAcceptsType(const QoreTypeInfo* typeInfo, const QoreTypeInfo* otherTypeInfo) {
    return typeInfo->parseAccepts(otherTypeInfo);
 }
 
-qore_type_result_e typeInfoReturnsType(const QoreTypeInfo *typeInfo, const QoreTypeInfo *otherTypeInfo) {
+qore_type_result_e typeInfoReturnsType(const QoreTypeInfo* typeInfo, const QoreTypeInfo* otherTypeInfo) {
    return otherTypeInfo->parseAccepts(typeInfo);
 }
 
-bool typeInfoHasType(const QoreTypeInfo *typeInfo) {
+bool typeInfoHasType(const QoreTypeInfo* typeInfo) {
    return typeInfo->hasType();
 }
 
-const char *typeInfoGetName(const QoreTypeInfo *typeInfo) {
+const char* typeInfoGetName(const QoreTypeInfo* typeInfo) {
    return typeInfo->getName();
 }

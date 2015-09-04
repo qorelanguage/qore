@@ -1,7 +1,7 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QoreType.h
-  
+
   Qore Programming Language
 
   Copyright (C) 2003 - 2015 David Nichols
@@ -47,25 +47,25 @@ DLLEXPORT extern QoreBigIntNode* Zero;
 DLLEXPORT extern QoreFloatNode* ZeroFloat;
 DLLEXPORT extern QoreNumberNode* ZeroNumber, * InfinityNumber, * NaNumber, * piNumber;
 
-DLLEXPORT extern QoreString NothingTypeString, NullTypeString, TrueString, 
+DLLEXPORT extern QoreString NothingTypeString, NullTypeString, TrueString,
    FalseString, EmptyHashString, EmptyListString;
 
 class QoreTypeInfo;
 DLLEXPORT extern const QoreTypeInfo* anyTypeInfo,
-   *bigIntTypeInfo, 
-   *floatTypeInfo, 
-   *boolTypeInfo, 
-   *stringTypeInfo, 
-   *binaryTypeInfo, 
-   *dateTypeInfo, 
-   *objectTypeInfo, 
-   *hashTypeInfo, 
-   *listTypeInfo, 
-   *nothingTypeInfo, 
-   *nullTypeInfo, 
+   *bigIntTypeInfo,
+   *floatTypeInfo,
+   *boolTypeInfo,
+   *stringTypeInfo,
+   *binaryTypeInfo,
+   *dateTypeInfo,
+   *objectTypeInfo,
+   *hashTypeInfo,
+   *listTypeInfo,
+   *nothingTypeInfo,
+   *nullTypeInfo,
    *numberTypeInfo,
    *runTimeClosureTypeInfo,
-   *callReferenceTypeInfo, 
+   *callReferenceTypeInfo,
    *referenceTypeInfo,
    *userReferenceTypeInfo,
    *codeTypeInfo,              // either closure or callref
@@ -81,8 +81,8 @@ DLLEXPORT extern const QoreTypeInfo* anyTypeInfo,
    *timeoutTypeInfo,           // accepts int or date and returns int giving timeout in milliseconds
    *bigIntOrFloatTypeInfo,     // accepts int or float and returns the same
 
-   *bigIntOrNothingTypeInfo, 
-   *floatOrNothingTypeInfo, 
+   *bigIntOrNothingTypeInfo,
+   *floatOrNothingTypeInfo,
    *numberOrNothingTypeInfo,
    *stringOrNothingTypeInfo,
    *boolOrNothingTypeInfo,
@@ -111,6 +111,8 @@ DLLEXPORT qore_type_t get_next_type_id();
 DLLEXPORT bool compareHard(const AbstractQoreNode* l, const AbstractQoreNode* r, ExceptionSink* xsink);
 //! true = not equal, false = equal
 DLLEXPORT bool compareSoft(const AbstractQoreNode* l, const AbstractQoreNode* r, ExceptionSink* xsink);
+//! true = not equal, false = equal
+DLLEXPORT bool q_compare_soft(const QoreValue l, const QoreValue r, ExceptionSink* xsink);
 
 static inline AbstractQoreNode* boolean_false() {
    return &False;

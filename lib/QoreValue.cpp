@@ -54,33 +54,26 @@ QoreValue::QoreValue(AbstractQoreNode* n) : type(QV_Node) {
 
 QoreValue::QoreValue(const AbstractQoreNode* n) {
    switch (get_node_type(n)) {
-      case NT_NOTHING: {
+      case NT_NOTHING:
 	 type = QV_Node;
 	 v.n = 0;
-	 break;
-      }
-      case NT_INT: {
+	 return;
+      case NT_INT:
 	 type = QV_Int;
 	 v.i = reinterpret_cast<const QoreBigIntNode*>(n)->val;
-	 break;
-      }
-      case NT_FLOAT: {
+	 return;
+      case NT_FLOAT:
 	 type = QV_Float;
 	 v.f = reinterpret_cast<const QoreFloatNode*>(v.n)->f;
-	 break;
-      }
-      case NT_BOOLEAN: {
+	 return;
+      case NT_BOOLEAN:
 	 type = QV_Bool;
 	 v.b = reinterpret_cast<const QoreBoolNode*>(v.n)->getValue();
-	 break;
-      }
-      default: {
-	 type = QV_Node;
-	 // n cannot be 0 here because we covered the NT_NOTHING case above
-	 v.n = n->refSelf();
-	 break;
-      }
+	 return;
    }
+   type = QV_Node;
+   // n cannot be 0 here because we covered the NT_NOTHING case above
+   v.n = n->refSelf();
 }
 
 QoreValue::QoreValue(const QoreValue& old): type(old.type) {
