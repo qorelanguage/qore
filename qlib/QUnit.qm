@@ -127,6 +127,9 @@ public class QUnit::TestResultValue inherits QUnit::AbstractTestResult {
         if (value.typeCode() == NT_BOOLEAN) {
             throw "TESTING-EXCEPTION", "Cannot instantiate TestResultValue using a boolean value";
         }
+        # treat NULL as NOTHING
+        if (value === NULL)
+            return;
         m_value = value;
     }
 
