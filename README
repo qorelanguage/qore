@@ -60,8 +60,7 @@ examples/:
  * requires zlib & bzlib headers and libraries
  * requires mpfr (and gmp) for the arbitrary-precision numeric support
  * optionally support for XML, Oracle, MySQL, PostgreSQL, Sybase, MS SQL
-   Server, ncurses, OpenGL, GLUT, QT4, TIBCO Rendezvous and AE Adapters, SSH2,
-   Bea Tuxedo and more can be built (see README-MODULES for details)
+   Server, SSH2 and more can be built (see README-MODULES for details)
  * XML support has been removed as of Qore 0.8.1+; use the "xml" module
    instead
 
