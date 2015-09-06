@@ -2,7 +2,7 @@
 *** COMPILING and INSTALLING QORE FROM SOURCE ***
 *************************************************
 
-see README-SVN to lean how to build qore from svn sources
+see README-GIT to lean how to build qore from svn sources
 see README-WINDOWS for info specific to the windows builds
 
 Build Requirements
@@ -80,7 +80,7 @@ Various distributions have been tested: FC3-8, Gentoo, Ubuntu, ARCH, etc
 *) FreeBSD:
 building from source - for FreeBSD up to 9.1: flex has to be installed from ports
 as long as all the prerequisite libraries are installed, the configure script should set up Qore for building and installing on FreeBSD without the need for any particular configure options or environment variables
-note that there is a freebsd port of Qore available (http://www.freebsd.org/cgi/cvsweb.cgi/ports/lang/qore) also
+note that there is a freebsd port of Qore available (http://www.freebsd.org/cgi/cvsweb.cgi/ports/lang/qore)
 
 *) Darwin - OS/X
 One of the main development platforms for Qore.  There are no particular issues on newer version of OS/X (10.5+), just make sure you have the prerequisite libraries and header files available - this applies to PCRE on newer versions of OS/X.  On older versions (10.4 and earlier), you'll also need to ensure that you have at least libtool 1.5.10 when building from svn, get it from fink/macports/brew as you like.
@@ -92,17 +92,13 @@ Note that on Solaris x86 when making a 64-bit build I had to use libtool 1.5.22,
 Also note that qore requires a relatively new version of the SunPro compiler (CC), Sun Studio 11 and 12 work fine, whereas SunPro 5.5 does not.
 
 *) HP-UX
-HP-UX builds are finally working with g++ (tested 4.1.1 and 4.2.0), however the configure script include a hack to libtool to get the modules to link dynamic libraries with static libaries and to prohibit -ldl from being automatically included in the link lines.  I am using HP-UX 11.23 (v2) on PA-RISC.
+Qore supported HP-UX in the past, but it has not been tested for a few years.
+Itanium should be supported better than PA-RISC.
 With aCC, PA-RISC 2.0 32-bit binaries are produced in 32-bit mode, with --enable-64-bit, PA-RISC 2.0 64-bit binaries are produced
 With g++, PA-RISC 1.1 32-bit binaries are produced in 32-bit mode, with --enable-64-bit, PA-RISC 2.0 64-bit binaries are produced
-Qore now uses strtoimax() as a replacement for strtoll() on HP-UX.
-Currently there is no fast atomic reference count support on PA-RISC platforms.
-when compiling on Itanium 64-bit binaries are produced by default
-Note that as of qore 0.8.0, building with aCC A.03.90 (for HP-UX PA-RISC 11.23) failed; unfortunately I don't have access to a newer OS and compiler combination to try
-Note that I have not made an HP-UX build for quite some time now.
 
 *) Windows
-As of 0.8.3, a fully functional version of Qore can now be build for Windows; see README-WINDOWS for more information
+A fully functional version of Qore can now be build for Windows; see README-WINDOWS for more information
 
 CPU Support
 -----------
@@ -113,6 +109,4 @@ The cache invalidation optimization is not safe on platforms without an atomic r
 
 Modules
 -------
-On platforms that support building shared libraries, binary modules are stored in a subdirectory named "qore-modules" of the library directoy.
-Binary modules are installed with the extension *.qmod
-Note that binary modules are (as of version 0.7.0 of qore) delivered separately from the qore library, see the file README-MODULES for more information.
+Note that binary modules are delivered separately from the qore library, see the file README-MODULES for more information.

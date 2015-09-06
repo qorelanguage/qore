@@ -9,37 +9,37 @@ refer to the following files/locations for specific information:
 README-LICENSE:
   read about Qore's open-source software licenses
 
-README-SVN: 
-  learn how to build qore from svn sources
+README-GIT:
+  learn how to build qore from git sources
 
-README-MODULES: 
+README-MODULES:
   information about qore modules (delivered separately from the qore library)
 
-WHATISQORE: 
+WHATISQORE:
   general description of the Qore programming language
 
-RELEASE-NOTES: 
+RELEASE-NOTES:
   release notes, known issues, etc - however see the following URL for full
   release notes online:
   	  http://qore.org/manual/current/lang/html/release_notes.html
 
-BUILDING: 
+BUILDING:
   information on how to build and install qore from sources - some quick
   information below
 
-docs/qore.html: 
+docs/qore.html:
   Qore Programming Language Reference Manual built from the docbook sources
   (docbook sources are only in svn at the moment).
 
-docs/library/html/index.html: 
+docs/library/html/index.html:
   API documentation for qore's public API (built during the build process if
   you have doxygen)
 
-test/: 
+test/:
   test scripts.  test/test.q is the main regression test script; testing is
   not yet automated as a part of the build...
 
-examples/: 
+examples/:
   many example Qore scripts/programs.
 
 
@@ -52,7 +52,7 @@ examples/:
  * requires POSIX threading support
  * requires at least flex 2.5.31 (older distributions have flex 2.5.4, flex
    2.5.37 recommended) in order to compile the multithreaded parser; you can
-   get this version at: 
+   get this version at:
       http://sourceforge.net/projects/flex
  * requires pcre headers and libraries for perl5-compatible regex support;
    POSIX regex support is no longer used
