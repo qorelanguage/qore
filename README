@@ -27,9 +27,8 @@ BUILDING:
   information on how to build and install qore from sources - some quick
   information below
 
-docs/qore.html:
-  Qore Programming Language Reference Manual built from the docbook sources
-  (docbook sources are only in svn at the moment).
+docs/lang/html:
+  Qore reference manual (built during the build process if you have doxygen)
 
 docs/library/html/index.html:
   API documentation for qore's public API (built during the build process if
