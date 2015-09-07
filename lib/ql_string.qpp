@@ -1858,7 +1858,7 @@ my number $n = parse_number("1.150.200,55", ".,");
     @endcode
 
     @param str the string to parse
-    @param the format of the number in the string, consisting of two characters, the first for the thousands separator, the second for the decimal point (ex: \c ".," for amny European locales)
+    @param fmt the format of the number in the string, consisting of two characters, the first for the thousands separator, the second for the decimal point (ex: \c ".," for many European locales)
 
     @return the number value represented by the string
 
@@ -1883,7 +1883,7 @@ my number $n = parse_number("1.150.200,55", ".,");
     @endcode
 
     @param str the string to parse
-    @param the format of the number in the string, consisting of two characters, the first for the thousands separator, the second for the decimal point (ex: \c ".," for amny European locales)
+    @param fmt the format of the number in the string, consisting of two characters, the first for the thousands separator, the second for the decimal point (ex: \c ".," for many European locales)
 
     @return the number value represented by the string
 
