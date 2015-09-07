@@ -69,7 +69,7 @@ module FixedLengthUtil {
     - \c "encoding": the output encoding for strings parsed or returned
     - \c "number_format": the default number format for \c "float" or \c "number" fields
     - \c "date_format": the default date format for \c "date" fields
-    - \c "file-flags": additional writer Open File Constants. O_WRONLY | O_CREAT are used by default. Use eg. \c O_EXCL to ensure not to overwrite the target or \c O_TRUNC to replace any existing file
+    - \c "file-flags": additional writer @ref file_open_constants; @ref Qore::O_WRONLY | @ref Qore::O_CREAT are used by default. Use eg. @ref Qore::O_EXCL to ensure not to overwrite the target or @ref Qore::O_TRUNC to replace any existing file
 
     @section fixedlengthspec Specification Hash
 
@@ -161,12 +161,12 @@ hash global_options = (
     "encoding"     : "UTF-8",
     "eol"          : "\n",
     "ignore-empty" : True,
-    "timezone"     : "Europe/Prague", # used if not in some date field specification
+    "timezone"     : "Europe/Prague", # used if not overridden in a date field specification
 );
 
 FixedLengthFileIterator i(file, specs, global_options);
-while(i.next()) {
-        operation_with_hash(i.getValue())
+while (i.next()) {
+    operation_with_hash(i.getValue())
 }
     @endcode
 
@@ -365,7 +365,7 @@ hash global_options = (
     "encoding"     : "UTF-8",
     "eol"          : "\n",
     "ignore-empty" : True,
-    "timezone"     : "Europe/Prague", # used if not in some date field specification
+    "timezone"     : "Europe/Prague", # used if not overridden in a date field specification
 );
 
 FixedLengthFileIterator i(file, specs, global_options);
@@ -408,6 +408,36 @@ public class FixedLengthUtil::FixedLengthFileIterator inherits FixedLengthUtil::
 }
 
 #! Structured line iterator for fixed-length line strings allowing efficient "pipelined" processing.
+/**
+    @par Example:
+    @code
+hash specs = (
+    "type1" : (
+        "col1": ("length": 5, "type": "int"),
+        "col2": ("length": 2, "type": "string"),
+    ),
+    "type2": (
+        "col3": ("length": 1, "type": "string"),
+        "col4": ("length": 3, "type": "string"),
+        "col5": ("length": 8, "type": "date", "format": "DDMMYYYY",
+        # "timezone" : "Europe/Prague", # use global if omitted
+        ),
+    ),
+);
+
+hash global_options = (
+    "encoding"     : "UTF-8",
+    "eol"          : "\n",
+    "ignore-empty" : True,
+    "timezone"     : "Europe/Prague", # used if not overridden in a date field specification
+);
+
+FixedLengthDataIterator i(string, specs, global_options);
+while (i.next()) {
+    operation_with_hash(i.getValue())
+}
+    @endcode
+*/
 public class FixedLengthUtil::FixedLengthDataIterator inherits FixedLengthUtil::FixedLengthAbstractIterator, Qore::DataLineIterator {
     private {
         int position;
@@ -420,13 +450,41 @@ public class FixedLengthUtil::FixedLengthDataIterator inherits FixedLengthUtil::
     }
 
     #! Instantiates the FixedLengthFileIterator object
-    /**
-        @param r String to process
-        @param h Fixed-length line specification; see @ref fixedlengthspec for more information
-        @param g Global options; see @ref fixedlengthglobals for valid values
+    /** @par Example:
+        @code
+hash specs = (
+    "type1" : (
+        "col1": ("length": 5, "type": "int"),
+        "col2": ("length": 2, "type": "string"),
+    ),
+    "type2": (
+        "col3": ("length": 1, "type": "string"),
+        "col4": ("length": 3, "type": "string"),
+        "col5": ("length": 8, "type": "date", "format": "DDMMYYYY",
+        # "timezone" : "Europe/Prague", # use global if omitted
+        ),
+    ),
+);
+
+hash global_options = (
+    "encoding"     : "UTF-8",
+    "eol"          : "\n",
+    "ignore-empty" : True,
+    "timezone"     : "Europe/Prague", # used if not overridden in a date field specification
+);
+
+FixedLengthDataIterator i(string, specs, global_options);
+while (i.next()) {
+    operation_with_hash(i.getValue())
+}
+        @endcode
+
+        @param input_data The input string to process
+        @param spec Fixed-length line specification; see @ref fixedlengthspec for more information
+        @param opts Global options; see @ref fixedlengthglobals for valid values
     */
-    constructor(string r, hash h, *hash g) : FixedLengthUtil::FixedLengthAbstractIterator(h, g), DataLineIterator(r, g.eol.typeCode() == NT_STRING ? g.eol : NOTHING, g.trim.typeCode() == NT_BOOLEAN ? g.trim : NOTHING) {
-        data  = r;
+    constructor(string input_data, hash spec, *hash opts) : FixedLengthUtil::FixedLengthAbstractIterator(spec, opts), DataLineIterator(input_data, opts.eol.typeCode() == NT_STRING ? opts.eol : NOTHING, opts.trim.typeCode() == NT_BOOLEAN ? opts.trim : NOTHING) {
+        data  = input_data;
     }
 
     #! Moves the current line / record position to the next line / record; returns @ref False if there are no more lines to iterate
