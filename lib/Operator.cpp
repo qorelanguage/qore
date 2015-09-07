@@ -47,15 +47,15 @@ DLLLOCAL OperatorList oplist;
 DLLLOCAL extern const QoreTypeInfo* bigIntFloatOrNumberTypeInfo, * floatOrNumberTypeInfo;
 
 // the standard, system-default operator pointers
-Operator *OP_BIN_AND, *OP_BIN_OR, *OP_BIN_NOT, *OP_BIN_XOR, *OP_MINUS, *OP_PLUS, 
-   *OP_MULT, *OP_DIV, *OP_SHIFT_LEFT, *OP_SHIFT_RIGHT, 
-   *OP_LOG_CMP, 
+Operator *OP_BIN_AND, *OP_BIN_OR, *OP_BIN_NOT, *OP_BIN_XOR, *OP_MINUS, *OP_PLUS,
+   *OP_MULT, *OP_SHIFT_LEFT, *OP_SHIFT_RIGHT,
+   *OP_LOG_CMP,
    *OP_LIST_REF, *OP_OBJECT_REF, *OP_ELEMENTS, *OP_KEYS,
    *OP_SHIFT, *OP_POP, *OP_PUSH,
-   *OP_UNSHIFT, *OP_REGEX_SUBST, *OP_LIST_ASSIGNMENT, 
-   *OP_REGEX_TRANS, *OP_REGEX_EXTRACT, 
-   *OP_CHOMP, *OP_TRIM, *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT, 
-   *OP_LOG_GT, *OP_LOG_EQ, *OP_LOG_NE, *OP_LOG_LE, *OP_LOG_GE, 
+   *OP_UNSHIFT, *OP_REGEX_SUBST, *OP_LIST_ASSIGNMENT,
+   *OP_REGEX_TRANS, *OP_REGEX_EXTRACT,
+   *OP_CHOMP, *OP_TRIM, *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT,
+   *OP_LOG_GT, *OP_LOG_EQ, *OP_LOG_NE, *OP_LOG_LE, *OP_LOG_GE,
    *OP_ABSOLUTE_EQ, *OP_ABSOLUTE_NE, *OP_REGEX_MATCH, *OP_REGEX_NMATCH,
    *OP_EXISTS, *OP_INSTANCEOF, *OP_FOLDR, *OP_FOLDL,
    *OP_SELECT;
@@ -152,27 +152,27 @@ static bool op_log_ge_float(double left, double right) {
    return left >= right;
 }
 
-static bool op_log_eq_string(const QoreString *left, const QoreString *right, ExceptionSink* xsink) {
+static bool op_log_eq_string(const QoreString* left, const QoreString* right, ExceptionSink* xsink) {
    return !left->compareSoft(right, xsink);
 }
 
-static bool op_log_gt_string(const QoreString *left, const QoreString *right, ExceptionSink* xsink) {
+static bool op_log_gt_string(const QoreString* left, const QoreString* right, ExceptionSink* xsink) {
    return left->compare(right) > 0;
 }
 
-static bool op_log_ge_string(const QoreString *left, const QoreString *right, ExceptionSink* xsink) {
+static bool op_log_ge_string(const QoreString* left, const QoreString* right, ExceptionSink* xsink) {
    return right->compare(left) >= 0;
 }
 
-static bool op_log_lt_string(const QoreString *left, const QoreString *right, ExceptionSink* xsink) {
+static bool op_log_lt_string(const QoreString* left, const QoreString* right, ExceptionSink* xsink) {
    return left->compare(right) < 0;
 }
 
-static bool op_log_le_string(const QoreString *left, const QoreString *right, ExceptionSink* xsink) {
+static bool op_log_le_string(const QoreString* left, const QoreString* right, ExceptionSink* xsink) {
    return left->compare(right) <= 0;
 }
 
-static bool op_log_ne_string(const QoreString *left, const QoreString *right, ExceptionSink* xsink) {
+static bool op_log_ne_string(const QoreString* left, const QoreString* right, ExceptionSink* xsink) {
    return left->compareSoft(right, xsink);
 }
 
@@ -188,10 +188,10 @@ static bool op_absolute_log_eq(const AbstractQoreNode* left, const AbstractQoreN
    if (is_nothing(*lnp)) {
       if (is_nothing(*rnp))
 	 return true;
-      else 
+      else
 	 return false;
    }
-   
+
    if (is_nothing(*rnp))
       return false;
 
@@ -202,17 +202,17 @@ static bool op_absolute_log_neq(const AbstractQoreNode* left, const AbstractQore
    return !op_absolute_log_eq(left, right, xsink);
 }
 
-static bool op_regex_match(const QoreString *left, const QoreRegexNode* right, ExceptionSink* xsink) {
+static bool op_regex_match(const QoreString* left, const QoreRegexNode* right, ExceptionSink* xsink) {
    return right->exec(left, xsink);
 }
 
-static bool op_regex_nmatch(const QoreString *left, const QoreRegexNode* right, ExceptionSink* xsink) {
+static bool op_regex_nmatch(const QoreString* left, const QoreRegexNode* right, ExceptionSink* xsink) {
    return !right->exec(left, xsink);
 }
 
 // takes all arguments unevaluated so logic short-circuiting can happen
 static bool op_log_or(const AbstractQoreNode* left, const AbstractQoreNode* right, ExceptionSink* xsink) {
-   bool l = left->boolEval(xsink);   
+   bool l = left->boolEval(xsink);
    if (*xsink)
       return false;
 
@@ -387,14 +387,6 @@ static int64 op_multiply_bigint(int64 left, int64 right) {
    return left * right;
 }
 
-static int64 op_divide_bigint(int64 left, int64 right, ExceptionSink* xsink) {
-   if (!right) {
-      xsink->raiseException("DIVISION-BY-ZERO", "division by zero in integer expression");
-      return 0;
-   }
-   return left / right;
-}
-
 static DateTimeNode* op_minus_date(const DateTimeNode* left, const DateTimeNode* right) {
     return left->subtractBy(right);
 }
@@ -413,14 +405,6 @@ static double op_plus_float(double left, double right) {
 
 static double op_multiply_float(double left, double right) {
    return left * right;
-}
-
-static double op_divide_float(double left, double right, ExceptionSink* xsink) {
-   if (!right) {
-      xsink->raiseException("DIVISION-BY-ZERO", "division by zero in floating-point expression");
-      return 0.0;
-   }
-   return left / right;
 }
 
 static bool op_log_lt_number(const QoreNumberNode* left, const QoreNumberNode* right) {
@@ -463,23 +447,19 @@ static QoreNumberNode* op_multiply_number(const QoreNumberNode* left, const Qore
    return left->doMultiply(*right);
 }
 
-static QoreNumberNode* op_divide_number(const QoreNumberNode* left, const QoreNumberNode* right, ExceptionSink* xsink) {
-   return left->doDivideBy(*right, xsink);
-}
-
-static QoreStringNode* op_plus_string(const QoreString *left, const QoreString *right, ExceptionSink* xsink) {
+static QoreStringNode* op_plus_string(const QoreString* left, const QoreString* right, ExceptionSink* xsink) {
    QoreStringNodeHolder str(new QoreStringNode(*left));
    //printd(5, "op_plus_string() (%d) %p \"%s\" + (%d) %p \"%s\"\n", left->strlen(), left->getBuffer(), left->getBuffer(), right->strlen(), right->getBuffer(), right->getBuffer());
    //printd(5, "op_plus_string() str= (%d) %p \"%s\"\n", str->strlen(), str->getBuffer(), str->getBuffer());
    str->concat(right, xsink);
    if (*xsink)
       return 0;
-   
+
    printd(5, "op_plus_string() result=\"%s\"\n", str->getBuffer());
    return str.release();
 }
 
-static int64 op_cmp_string(const QoreString *left, const QoreString *right, ExceptionSink* xsink) {
+static int64 op_cmp_string(const QoreString* left, const QoreString* right, ExceptionSink* xsink) {
    return (int64)left->compare(right);
 }
 
@@ -497,7 +477,7 @@ static int64 op_elements(const AbstractQoreNode* left, const AbstractQoreNode* n
       return reinterpret_cast<const QoreStringNode*>(*np)->length();
 
    if (ltype == NT_HASH)
-      return reinterpret_cast<const QoreHashNode*>(*np)->size();	 
+      return reinterpret_cast<const QoreHashNode*>(*np)->size();
 
    if (ltype == NT_OBJECT)
       return reinterpret_cast<const QoreObject *>(*np)->size(xsink);
@@ -508,7 +488,7 @@ static int64 op_elements(const AbstractQoreNode* left, const AbstractQoreNode* n
    return 0;
 }
 
-static QoreListNode* get_keys(const AbstractQoreNode* p, ExceptionSink* xsink) {   
+static QoreListNode* get_keys(const AbstractQoreNode* p, ExceptionSink* xsink) {
    if (!p)
       return 0;
 
@@ -642,7 +622,7 @@ static AbstractQoreNode* op_object_ref(const AbstractQoreNode* left, const Abstr
       }
 
       QoreStringNodeValueHelper key(*mem);
-      return h->evalKeyValue(*key, xsink);      
+      return h->evalKeyValue(*key, xsink);
    }
    if (op->getType() != NT_OBJECT)
       return 0;
@@ -665,7 +645,7 @@ static AbstractQoreNode* op_object_ref(const AbstractQoreNode* left, const Abstr
 static AbstractQoreNode* op_list_assignment(const AbstractQoreNode* n_left, const AbstractQoreNode* right, bool ref_rv, ExceptionSink* xsink) {
    assert(n_left && n_left->getType() == NT_LIST);
    const QoreListNode* left = reinterpret_cast<const QoreListNode*>(n_left);
-   
+
    /* assign new value, this value gets referenced with the
       eval(xsink) call, so there's no need to reference it again
       for the variable assignment - however it does need to be
@@ -755,7 +735,7 @@ static AbstractQoreNode* op_plus_hash_object(const AbstractQoreNode* left, const
       r->mergeDataToHash(*rv, xsink);
       if (*xsink)
 	 return 0;
-      
+
       return rv.release();
    }
 
@@ -774,11 +754,11 @@ static AbstractQoreNode* op_plus_object_hash(const AbstractQoreNode* left, const
       ReferenceHolder<QoreHashNode> h(l->copyData(xsink), xsink);
       if (*xsink)
 	 return 0;
-      
+
       h->merge(rh, xsink);
       if (*xsink)
 	 return 0;
-      
+
       return h.release();
    }
 
@@ -803,10 +783,10 @@ static AbstractQoreNode* op_plus_binary_binary(const AbstractQoreNode* left, con
 static int64 op_cmp_double(double left, double right) {
    if (left < right)
        return -1;
-       
+
    if (left == right)
       return 0;
-       
+
    return 1;
 }
 
@@ -966,7 +946,7 @@ static int64 op_chomp(const AbstractQoreNode* arg, const AbstractQoreNode* x, Ex
    if (vtype == NT_STRING)
       return reinterpret_cast<QoreStringNode*>(val.getValue())->chomp();
 
-   int64 count = 0;   
+   int64 count = 0;
 
    if (vtype == NT_LIST) {
       QoreListNode* l = reinterpret_cast<QoreListNode*>(val.getValue());
@@ -980,7 +960,7 @@ static int64 op_chomp(const AbstractQoreNode* arg, const AbstractQoreNode* x, Ex
 	    QoreStringNode* vs = reinterpret_cast<QoreStringNode*>(*v);
 	    count += vs->chomp();
 	 }
-      }      
+      }
       return count;
    }
 
@@ -1002,7 +982,7 @@ static int64 op_chomp(const AbstractQoreNode* arg, const AbstractQoreNode* x, Ex
 
 static AbstractQoreNode* op_trim(const AbstractQoreNode* arg, const AbstractQoreNode* x, bool ref_rv, ExceptionSink* xsink) {
    //QORE_TRACE("op_trim()");
-   
+
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper val(arg, xsink);
    if (!val)
@@ -1011,7 +991,7 @@ static AbstractQoreNode* op_trim(const AbstractQoreNode* arg, const AbstractQore
    qore_type_t vtype = val.getType();
    if (vtype != NT_LIST && vtype != NT_STRING && vtype != NT_HASH)
       return 0;
-   
+
    // note that no exception can happen here
    val.ensureUnique();
    assert(!*xsink);
@@ -1032,7 +1012,7 @@ static AbstractQoreNode* op_trim(const AbstractQoreNode* arg, const AbstractQore
 	    QoreStringNode* vs = reinterpret_cast<QoreStringNode*>(*v);
 	    vs->trim();
 	 }
-      }      
+      }
    }
    else { // is a hash
       QoreHashNode* vh = reinterpret_cast<QoreHashNode*>(val.getValue());
@@ -1268,7 +1248,7 @@ static AbstractQoreNode* op_select(const AbstractQoreNode* arg_exp, const Abstra
    return rv.release();
 }
 
-static QoreHashNode* op_minus_hash_string(const QoreHashNode* h, const QoreString *s, ExceptionSink* xsink) {
+static QoreHashNode* op_minus_hash_string(const QoreHashNode* h, const QoreString* s, ExceptionSink* xsink) {
    ReferenceHolder<QoreHashNode> nh(h->copy(), xsink);
    nh->removeKey(s, xsink);
    if (*xsink)
@@ -1283,7 +1263,7 @@ static QoreHashNode* op_minus_hash_list(const QoreHashNode* h, const QoreListNod
    ConstListIterator li(l);
    while (li.next()) {
       QoreStringValueHelper val(li.getValue());
-      
+
       x->removeKey(*val, xsink);
       if (*xsink)
 	 return 0;
@@ -1291,7 +1271,7 @@ static QoreHashNode* op_minus_hash_list(const QoreHashNode* h, const QoreListNod
    return x.release();
 }
 
-static AbstractQoreNode* op_regex_extract(const QoreString *left, const QoreRegexNode* right, ExceptionSink* xsink) {
+static AbstractQoreNode* op_regex_extract(const QoreString* left, const QoreRegexNode* right, ExceptionSink* xsink) {
    return right->extractSubstrings(left, xsink);
 }
 
@@ -1322,7 +1302,7 @@ static AbstractQoreNode* get_node_type(const AbstractQoreNode* n, qore_type_t t)
       n->getDateTimeRepresentation(*dt);
       return dt;
    }
-   
+
    if (t == NT_LIST) {
       QoreListNode* l = new QoreListNode();
       l->push(n ? n->refSelf() : 0);
@@ -1515,14 +1495,6 @@ QoreValue IntIntOperatorFunction::eval(const AbstractQoreNode* left, const Abstr
    return op_func(left->getAsBigInt(), right->getAsBigInt());
 }
 
-QoreValue DivideIntOperatorFunction::eval(const AbstractQoreNode* left, const AbstractQoreNode* right, bool ref_rv, int args, ExceptionSink* xsink) const {
-   // these functions can have no side effects
-   if (!ref_rv)
-      return QoreValue();
-
-   return op_func(left->getAsBigInt(), right->getAsBigInt(), xsink);
-}
-
 QoreValue BoolFloatOperatorFunction::eval(const AbstractQoreNode* left, const AbstractQoreNode* right, bool ref_rv, int args, ExceptionSink* xsink) const {
    // these functions can have no side effects
    if (!ref_rv)
@@ -1537,14 +1509,6 @@ QoreValue FloatFloatOperatorFunction::eval(const AbstractQoreNode* left, const A
       return QoreValue();
 
    return op_func(left->getAsFloat(), right->getAsFloat());
-}
-
-QoreValue DivideFloatOperatorFunction::eval(const AbstractQoreNode* left, const AbstractQoreNode* right, bool ref_rv, int args, ExceptionSink* xsink) const {
-   // these functions can have no side effects
-   if (!ref_rv)
-      return QoreValue();
-
-   return op_func(left->getAsFloat(), right->getAsFloat(), xsink);
 }
 
 QoreValue CompareFloatOperatorFunction::eval(const AbstractQoreNode* left, const AbstractQoreNode* right, bool ref_rv, int args, ExceptionSink* xsink) const {
@@ -1565,8 +1529,8 @@ QoreValue CompareDateOperatorFunction::eval(const AbstractQoreNode* left, const 
    if (!ref_rv)
       return QoreValue();
 
-   DateTimeValueHelper l(left);   
-   DateTimeValueHelper r(right);   
+   DateTimeValueHelper l(left);
+   DateTimeValueHelper r(right);
 
    return (int64)DateTime::compareDates(*l, *r);
 }
@@ -1595,7 +1559,7 @@ QoreValue BoolStrRegexOperatorFunction::eval(const AbstractQoreNode* left, const
 
 QoreValue BigIntStrStrOperatorFunction::eval(const AbstractQoreNode* left, const AbstractQoreNode* right, bool ref_rv, int args, ExceptionSink* xsink) const {
    QoreStringValueHelper l(left);
-   
+
    if (args == 1)
       return op_func(*l, 0, xsink);
 
@@ -2160,7 +2124,7 @@ static AbstractQoreNode* check_op_plus(QoreTreeNode* tree, LocalVar* oflag, int 
    return tree;
 }
 
-// set the return value for op_multiply (*) - also used for op_divide
+// set the return value for op_multiply (*)
 static AbstractQoreNode* check_op_multiply(QoreTreeNode* tree, LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& returnTypeInfo, const char* name, const char* desc) {
    const QoreTypeInfo *leftTypeInfo = 0;
    tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
@@ -2564,12 +2528,6 @@ void OperatorList::init() {
    OP_MULT->addFunction(op_multiply_number);
    OP_MULT->addFunction(op_multiply_float);
    OP_MULT->addFunction(op_multiply_bigint);
-
-   // return value is the same as with *
-   OP_DIV = add(new Operator(2, "/", "divide", 1, false, false, check_op_multiply));
-   OP_DIV->addFunction(op_divide_number);
-   OP_DIV->addFunction(op_divide_float);
-   OP_DIV->addFunction(op_divide_bigint);
 
    OP_SHIFT_LEFT = add(new Operator(2, "<<", "shift-left", 1, false, false, check_op_returns_integer));
    OP_SHIFT_LEFT->addFunction(op_shift_left_int);

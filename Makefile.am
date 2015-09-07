@@ -499,6 +499,7 @@ noinst_HEADERS = \
 	include/qore/intern/QoreLogicalGreaterThanOperatorNode.h \
 	include/qore/intern/QoreLogicalLessThanOrEqualsOperatorNode.h \
 	include/qore/intern/QoreLogicalGreaterThanOrEqualsOperatorNode.h \
+	include/qore/intern/QoreDivisionOperatorNode.h \
 	include/qore/intern/QoreBinaryLValueOperatorNode.h \
 	include/qore/intern/QoreQuestionMarkOperatorNode.h \
 	include/qore/intern/QoreNullCoalescingOperatorNode.h \

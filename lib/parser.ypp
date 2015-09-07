@@ -55,7 +55,7 @@
 #include <qore/intern/GlobalVariableList.h>
 #include <qore/intern/QoreNamespaceIntern.h>
 #include <qore/intern/QoreParseHashNode.h>
-    
+
 #include "parser.hpp"
 
 #include <qore/intern/QoreClassIntern.h>
@@ -88,7 +88,7 @@ class HashElement {
 public:
    AbstractQoreNode* key;
    AbstractQoreNode* value;
- 
+
    DLLLOCAL HashElement(AbstractQoreNode* k, AbstractQoreNode* v) : key(k), value(v) {
       //traceout("HashElement::HashElement()");
    }
@@ -269,7 +269,7 @@ struct GVarSingleDecl : public GVarDecl {
 
       delete this;
       return gv;
-   }   
+   }
 };
 
 struct GVarListDecl : public GVarDecl {
@@ -500,14 +500,14 @@ static AbstractQoreNode* parse_hash_map(QoreParseHashNode* exp, QoreListNode* l)
    assert(l && (l->size() == 1 || l->size() == 2));
    ReferenceHolder<> exph(exp, 0);
    ReferenceHolder<> lh(l, 0);
-   
+
    // check hash expression
    size_t len = exp->size();
    if (len != 1) {
       parse_error("invalid initial argument to hash map operator, expected a single key value pair; got %d hash elements instead", len);
       return &True;
    }
-   
+
    if (l->size() == 1) {
       AbstractQoreNode* iter = l->shift();
       return new QoreHashMapOperatorNode(exp->takeFirstKeyNode(), exp->takeFirstValueNode(), iter);
@@ -695,7 +695,7 @@ public:
    } u;
 
    DLLLOCAL MemberInfo(char* n, QoreMemberInfo* mi) : name(n), type(MI_Member)  {
-      u.memberInfo = mi; 
+      u.memberInfo = mi;
       if (!mi->parseHasTypeInfo() && parse_check_parse_option(PO_REQUIRE_TYPES))
 	 parse_error("member '%s' declared without type information, but parse options require type information for all declarations", name);
    }
@@ -744,7 +744,7 @@ struct ClassVarInfo : public MemberInfo {
    DLLLOCAL ClassVarInfo(char* n, QoreVarInfo* vi) {
       name = n;
       type = MI_Var;
-      u.varInfo = vi; 
+      u.varInfo = vi;
       if (!vi->parseHasTypeInfo() && parse_check_parse_option(PO_REQUIRE_TYPES))
 	 parse_error("class static variable '%s' declared without type information, but parse options require type information for all declarations", name);
    }
@@ -769,7 +769,7 @@ protected:
    ConstantList cmap;
    // for new class static variables
    QoreVarMap vmap;
-   
+
    DLLLOCAL MemberList() : cmap((qore_class_private*)0) {
    }
 
@@ -819,7 +819,7 @@ public:
 	    parse_error("constant declaration collides with static class variable declaration '%s'", member->name);
             delete member;
 	    return -1;
-	 }	 
+	 }
 
 	 // add new constant to list
 	 cmap.parseAdd(member->name, member->takeExp());
@@ -1042,7 +1042,7 @@ static bool needsEval(AbstractQoreNode* n) {
       }
       return false;
    }
-   
+
    if (ntype == NT_TREE) {
       QoreTreeNode* tree = reinterpret_cast<QoreTreeNode*>(n);
 
@@ -1225,7 +1225,7 @@ static qore_var_t get_var_type() {
    ContextModList* cmods;
    ContextMod *cmod;
    class HashElement* hashelement;
-   QoreFunction* userfunc;	
+   QoreFunction* userfunc;
    struct MethodNode* methodnode;
    class MemberList* memberlist;
    QoreClass* qoreclass;
@@ -1534,7 +1534,7 @@ top_level_command:
 	   qore_program_private::addStatement(*(getProgram()), $2);
         }
         | top_namespace_decl {
-           qore_root_ns_private::parseAddNamespace($1); 
+           qore_root_ns_private::parseAddNamespace($1);
 	   // see if ns declaration is legal
 	   if (parse_check_parse_option(PO_NO_NAMESPACE_DEFS))
 	      parse_error("illegal namespace definition \"%s\" (conflicts with parse option NO_NAMESPACE_DEFINITION)", $1->getName());
@@ -1684,8 +1684,8 @@ namespace_decl:
         | gvardecl ';' {
            $$ = new NSNode($1);
         }
-	| top_namespace_decl { 
-	   $$ = new NSNode($1); 
+	| top_namespace_decl {
+	   $$ = new NSNode($1);
 	   // see if ns declaration is legal
 	   if (parse_check_parse_option(PO_NO_NAMESPACE_DEFS))
 	      parse_error("illegal namespace definition \"%s\" (conflicts with parse option NO_NAMESPACE_DEFINITION)", $1->getName());
@@ -1694,21 +1694,21 @@ namespace_decl:
            $$ = new NSNode($1);
         }
 
-unscoped_const_decl: 
-	TOK_CONST IDENTIFIER '=' exp ';' { 
-	   $$ = new ConstNode($2, $4); 
+unscoped_const_decl:
+	TOK_CONST IDENTIFIER '=' exp ';' {
+	   $$ = new ConstNode($2, $4);
 	}
-        | TOK_PUBLIC TOK_CONST IDENTIFIER '=' exp ';' { 
-	   $$ = new ConstNode($3, $5, true); 
+        | TOK_PUBLIC TOK_CONST IDENTIFIER '=' exp ';' {
+	   $$ = new ConstNode($3, $5, true);
 	}
         ;
 
 scoped_const_decl:
 	TOK_CONST SCOPED_REF '=' exp ';' {
-	   $$ = new ConstNode($2, $4); 
+	   $$ = new ConstNode($2, $4);
 	}
         | TOK_PUBLIC TOK_CONST SCOPED_REF '=' exp ';' {
-	   $$ = new ConstNode($3, $5, true); 
+	   $$ = new ConstNode($3, $5, true);
 	}
         ;
 
@@ -1739,8 +1739,8 @@ statements:
         { $1->addStatement($2); $$ = $1; }
 	;
 
-optname: 
-	/* empty */ 
+optname:
+	/* empty */
         { $$ = 0; }
         | IDENTIFIER { $$ = $1; }
         ;
@@ -1797,7 +1797,7 @@ statement:
         | TOK_CONTEXT optname '(' exp ')' context_mods statement_or_block {
 	   $$ = new ContextStatement(@1.first_line, @7.last_line, $2, $4, $6, $7);
         }
-	| TOK_IF '(' exp ')' statement_or_block %prec IFX {	
+	| TOK_IF '(' exp ')' statement_or_block %prec IFX {
 	   $$ = new IfStatement(@1.first_line, @5.last_line, $3, $5);
 	}
         | TOK_IF '(' exp ')' statement_or_block TOK_ELSE statement_or_block {
@@ -1821,7 +1821,7 @@ statement:
 	   if (parse_check_parse_option(PO_NO_THREAD_CONTROL))
 	      parse_error("illegal use of \"thread_exit\" (conflicts with parse option NO_THREAD_CONTROL)");
 
-	   $$ = new ThreadExitStatement(@1.first_line, @1.last_line); 
+	   $$ = new ThreadExitStatement(@1.first_line, @1.last_line);
 	}
         | TOK_BREAK ';' {
 	  $$ = new BreakStatement(@1.first_line, @1.last_line);
@@ -1834,14 +1834,14 @@ statement:
 	;
 
 context_mods:
-	// empty 
+	// empty
         { $$ = 0; }
-        | context_mods context_mod { 
-	   if (!$1) 
-	      $$ = new ContextModList($2); 
-	   else { 
-	      $1->addContextMod($2); 
-	      $$ = $1; 
+        | context_mods context_mod {
+	   if (!$1)
+	      $$ = new ContextModList($2);
+	   else {
+	      $1->addContextMod($2);
+	      $$ = $1;
 	   }
 	}
 	;
@@ -1991,7 +1991,7 @@ try_statement:
         TOK_TRY statement_or_block TOK_CATCH '(' myexp ')' statement_or_block {
 	   char* param = 0;
 	   if ($5) {
-	      if ($5->getType() == NT_VARREF) 
+	      if ($5->getType() == NT_VARREF)
 		 param = reinterpret_cast<VarRefNode*>($5)->takeName();
 	      else if ($5->getType() == NT_BAREWORD) {
 		 param = reinterpret_cast<BarewordNode*>($5)->takeString();
@@ -2093,7 +2093,7 @@ superclass:
 	;
 
 class_attributes:
-        inline_methoddef { 
+        inline_methoddef {
            $$ = new QoreClass;
 	   $1->addAndDelete($$);
 	}
@@ -2112,18 +2112,18 @@ class_attributes:
 	   $$->parseAddPublicConstant($1->getName(), $1->takeValue());
 	   delete $1;
 	}
-	| class_attributes inline_methoddef { 
+	| class_attributes inline_methoddef {
 	   $2->addAndDelete($1);
-	   $$ = $1; 
+	   $$ = $1;
 	}
-	| class_attributes private_member_list { 
+	| class_attributes private_member_list {
 	   $2->mergePrivate($1);
 	   $$ = $1;
 	   delete $2;
 	}
 	| class_attributes public_member_list {
 	   $2->mergePublic($1);
-	   $$ = $1; 
+	   $$ = $1;
 	   delete $2;
 	}
         | class_attributes unscoped_const_decl {
@@ -2190,7 +2190,7 @@ public_member_list:
 	}
         ;
 
-classvardecl: 
+classvardecl:
 	TOK_STATIC uncqtypedef IDENTIFIER ';' {
 	   $$ = new ClassVarInfo($3, new QoreVarInfo(@2.first_line, @3.last_line, $2->getTypeInfo(), $2->getParseTypeInfo()));
 	   delete $2;
@@ -2220,7 +2220,7 @@ classvardecl:
 	   delete $2;
 	}
 
-member2: 
+member2:
         qtypedef SELF_REF ';' {
 	   int fl = $1 ? @1.first_line : @2.first_line;
 	   $$ = new MemberInfo($2, new QoreMemberInfo(fl, @2.last_line, $1->getTypeInfo(), $1->getParseTypeInfo()));
@@ -2373,7 +2373,7 @@ inline_methoddef:
            }
 	   RetTypeInfo* rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
 	   delete $2;
-	   
+
 	   checkMethod($3, $6, rt);
 
 	   $$ = new MethodNode($3, newMethodVariant($3, $1, @4.first_line, @4.last_line, $4, $6, rt, $7, $1 & OFM_DEPRECATED), $1 & OFM_STATIC);
@@ -2483,7 +2483,7 @@ method_modifiers:
         | method_modifiers method_modifier {
 	   if (($1 | $2) == $1)
 	      parse_error("modifier given twice");
-	   $$ = $1 | $2; 
+	   $$ = $1 | $2;
 	}
         ;
 
@@ -2534,8 +2534,8 @@ sub_def:
 	   int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
 	   if ($1 & OFM_DEPRECATED)
 	      flags |= QC_DEPRECATED;
-           
-	   $$ = new ParseUserFunction($3, new UserFunctionVariant($7, @4.first_line, @4.last_line, $4, $6, $1 & OFM_SYNCED, flags)); 
+
+	   $$ = new ParseUserFunction($3, new UserFunctionVariant($7, @4.first_line, @4.last_line, $4, $6, $1 & OFM_SYNCED, flags));
            if ($1 & OFM_PUBLIC)
               $$->setPublic();
 	}
@@ -2549,7 +2549,7 @@ sub_def:
 	   RetTypeInfo* rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
 	   delete $2;
 
-	   $$ = new ParseUserFunction($4, new UserFunctionVariant($7, @5.first_line, @5.last_line, $5, rt, $1 & OFM_SYNCED, flags)); 
+	   $$ = new ParseUserFunction($4, new UserFunctionVariant($7, @5.first_line, @5.last_line, $5, rt, $1 & OFM_SYNCED, flags));
            if ($1 & OFM_PUBLIC)
               $$->setPublic();
 	}
@@ -2575,8 +2575,8 @@ scoped_sub_def:
 	   int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
 	   if ($1 & OFM_DEPRECATED)
 	      flags |= QC_DEPRECATED;
-           
-	   $$ = new ParseScopedUserFunction($3, new UserFunctionVariant($8, @5.first_line, @5.last_line, $5, $7, $1 & OFM_SYNCED, flags)); 
+
+	   $$ = new ParseScopedUserFunction($3, new UserFunctionVariant($8, @5.first_line, @5.last_line, $5, $7, $1 & OFM_SYNCED, flags));
            if ($1 & OFM_PUBLIC)
               $$->setPublic();
 	}
@@ -2590,7 +2590,7 @@ scoped_sub_def:
 	   RetTypeInfo* rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
 	   delete $2;
 
-	   $$ = new ParseScopedUserFunction($4, new UserFunctionVariant($8, @6.first_line, @6.last_line, $6, rt, $1 & OFM_SYNCED, flags)); 
+	   $$ = new ParseScopedUserFunction($4, new UserFunctionVariant($8, @6.first_line, @6.last_line, $6, rt, $1 & OFM_SYNCED, flags));
            if ($1 & OFM_PUBLIC)
               $$->setPublic();
 	}
@@ -2601,7 +2601,7 @@ list:
         { $$ = splice_expressions($1, $3); }
         | exp ',' {
 	   QoreListNode* l;
-	   if ($1 && $1->getType() == NT_LIST) 
+	   if ($1 && $1->getType() == NT_LIST)
 	      l = reinterpret_cast<QoreListNode*>($1);
 	   else {
 	      l = new QoreListNode;
@@ -2768,7 +2768,7 @@ exp:    scalar
         | TOK_CONTEXT_ROW
         { $$ = new ContextRowNode; }
         | COMPLEX_CONTEXT_REF
-        { $$ = new ComplexContextrefNode($1); } 
+        { $$ = new ComplexContextrefNode($1); }
         | TOK_FIND exp TOK_IN exp TOK_WHERE '(' exp ')'
         { $$ = new FindNode($2, $4, $7); }
 	| exp PLUS_EQUALS exp {
@@ -2835,7 +2835,7 @@ exp:    scalar
 	   }
 	}
 	| TOK_SHIFT exp {
-	   $$ = new QoreTreeNode($2, OP_SHIFT, 0); 
+	   $$ = new QoreTreeNode($2, OP_SHIFT, 0);
 	}
         | TOK_PUSH exp {  // push lvalue-list, element
 	   QoreListNode* l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode*>($2) : 0;
@@ -2850,13 +2850,13 @@ exp:    scalar
 	   }
 	}
         | TOK_POP exp {
-	   $$ = new QoreTreeNode($2, OP_POP, 0); 
+	   $$ = new QoreTreeNode($2, OP_POP, 0);
 	}
 	| TOK_CHOMP exp {
-	   $$ = new QoreTreeNode($2, OP_CHOMP, 0); 
+	   $$ = new QoreTreeNode($2, OP_CHOMP, 0);
 	}
 	| TOK_TRIM exp {
-	   $$ = new QoreTreeNode($2, OP_TRIM, 0); 
+	   $$ = new QoreTreeNode($2, OP_TRIM, 0);
 	}
         | TOK_SPLICE exp {  // splice lvalue-list, offset, [length, list]
 	   QoreListNode* l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode*>($2) : 0;
@@ -2899,14 +2899,14 @@ exp:    scalar
 	   }
 	}
         | TOK_MAP exp {
-	   pop_ignore_numeric_argv_ref();           
+	   pop_ignore_numeric_argv_ref();
            QoreListNode* l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode*>($2) : 0;
 	   int len = l ? (int)l->size() : 0;
            if (!l || len < 2 || len > 3) {
 	      parse_error("invalid arguments to map operator, expected: 2 or 3 element list (code expression, list argument, [select expression]), got: '%s'", get_type_name($2));
 	      $$ = makeErrorTree($2, 0);
            }
-           else {              
+           else {
               // get first expression from list
               AbstractQoreNode* exp = l->shift();
               qore_type_t t = get_node_type(exp);
@@ -2973,7 +2973,7 @@ exp:    scalar
         { //$$ = new QoreTreeNode($1, OP_QUESTION_MARK, make_list($3, $5));
            $$ = new QoreQuestionMarkOperatorNode($1, $3, $5);
         }
-        
+
         | P_INCREMENT exp {  // pre-increment
            $$ = new QorePreIncrementOperatorNode($2);
         }
@@ -2987,7 +2987,7 @@ exp:    scalar
            $$ = new QorePostDecrementOperatorNode($1);
         }
 	| exp '(' myexp ')' {
-	   //printd(5, "1=%s (%p), 3=%s (%p)\n", $1->getTypeName(), $1, $3 ? $3->getTypeName() : "n/a", $3); 
+	   //printd(5, "1=%s (%p), 3=%s (%p)\n", $1->getTypeName(), $1, $3 ? $3->getTypeName() : "n/a", $3);
 	   qore_type_t t = get_node_type($1);
 	   if (t == NT_BAREWORD) {
 	      BarewordNode* b = reinterpret_cast<BarewordNode*>($1);
@@ -3016,7 +3016,7 @@ exp:    scalar
 	   }
 	   else {
 	      QoreTreeNode* tree;
-	      
+
 	      if (t == NT_TREE) {
 		 tree = reinterpret_cast<QoreTreeNode*>($1);
 		 if (!(tree->getOp() == OP_OBJECT_REF && tree->right && tree->right->getType() == NT_STRING))
@@ -3031,11 +3031,11 @@ exp:    scalar
 		 QoreStringNode* str = reinterpret_cast<QoreStringNode*>(tree->right);
 		 char* cstr = str->giveBuffer();
 		 str->deref();
-		 
+
 		 //printd(5, "method call to %s: tree=%s, args=%p %s\n", cstr, tree->left->getTypeName(), $3, $3 ? $3->getTypeName() : "n/a");
 
 		 MethodCallNode* mc = new MethodCallNode(cstr, makeArgs($3));
-                 
+
                  // destroy the tree and create a new operator object
                  assert(tree->is_unique());
                  AbstractQoreNode* l = tree->left;
@@ -3078,7 +3078,7 @@ exp:    scalar
         }
         | SELF_REF
 	{
-	   $$ = new SelfVarrefNode($1, @1.first_line, @1.last_line); 
+	   $$ = new SelfVarrefNode($1, @1.first_line, @1.last_line);
 	   if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
 	      parse_error("reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $1);
 	}
@@ -3116,9 +3116,9 @@ exp:    scalar
         | exp '+' exp		     { $$ = new QoreTreeNode($1, OP_PLUS, $3); }
         | exp '-' exp		     { $$ = new QoreTreeNode($1, OP_MINUS, $3); }
         | exp '%' exp		     { $$ = new QoreModulaOperatorNode($1, $3); }
-        | exp '/' exp		     { $$ = new QoreTreeNode($1, OP_DIV, $3); }
+        | exp '/' exp		     { $$ = new QoreDivisionOperatorNode($1, $3); }
         | exp '*' exp		     { $$ = new QoreTreeNode($1, OP_MULT, $3); }
-        | '-' exp %prec NEG	     { 
+        | '-' exp %prec NEG	     {
 	   // FIXME: need to expand constant expression checking to determine
 	   //        if the expression can throw an exception at run-time
 	   // first check for constant expressions
@@ -3187,7 +3187,7 @@ exp:    scalar
         | exp DOT_KW_IDENTIFIER {
 	   $$ = new QoreTreeNode($1, OP_OBJECT_REF, $2);
 	}
-	| '(' exp ')' { 
+	| '(' exp ')' {
 	   $$ = $2;
 	   if ($2) {
               switch ($2->getType()) {
@@ -3233,7 +3233,7 @@ exp:    scalar
 	      flags |= QC_DEPRECATED;
 	   $$ = new QoreClosureParseNode(new UserClosureFunction($7, @5.first_line, @5.last_line, $5, rt, $1 | OFM_SYNCED, flags));
 	}
-        | IMPLICIT_ARG_REF { 
+        | IMPLICIT_ARG_REF {
 	   $$ = $1;
 	   inc_numeric_argv_ref();
 	}
@@ -3268,5 +3268,5 @@ scalar:
         | DATETIME    { $$ = $1; }
         | NUMBER      { $$ = $1; }
 	;
-        
+
 %%

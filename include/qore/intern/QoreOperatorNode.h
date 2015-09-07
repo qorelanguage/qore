@@ -56,7 +56,7 @@ public:
       ref_rv = false;
       ignoreReturnValueImpl();
    }
-   
+
    DLLLOCAL virtual bool hasEffect() const = 0;
 
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
@@ -198,7 +198,7 @@ protected:
       for (unsigned i = 0; i < N; ++i)
          if (e[i]) e[i]->deref(0);
    }
-   
+
 public:
    DLLLOCAL QoreNOperatorNodeBase(AbstractQoreNode* a0, ...) {
       e[0] = a0;
@@ -254,6 +254,7 @@ public:
 #include <qore/intern/QoreLogicalGreaterThanOrEqualsOperatorNode.h>
 #include <qore/intern/QoreLogicalGreaterThanOperatorNode.h>
 #include <qore/intern/QoreLogicalLessThanOrEqualsOperatorNode.h>
+#include <qore/intern/QoreDivisionOperatorNode.h>
 #include <qore/intern/QoreQuestionMarkOperatorNode.h>
 #include <qore/intern/QoreMapOperatorNode.h>
 #include <qore/intern/QoreMapSelectOperatorNode.h>

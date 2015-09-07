@@ -96,7 +96,7 @@ struct qore_number_private_intern {
    }
 
    DLLLOCAL static void do_divide_by_zero(ExceptionSink* xsink) {
-      xsink->raiseException("DIVISION-BY-ZERO", "division by zero error in numeric operatior");
+      xsink->raiseException("DIVISION-BY-ZERO", "division by zero error in numeric operator");
    }
 
    DLLLOCAL static void checkFlags(ExceptionSink* xsink) {

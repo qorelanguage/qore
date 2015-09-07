@@ -1,118 +1,137 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
+
 %require-types
 %enable-all-warnings
-%requires UnitTest
 
-my UnitTest $unit();
+%requires ../../../../qlib/QUnit.qm
 
-my int $a = 1;
-$unit.cmp($a, 1, "variable assignment");
-$a += 3;
-$unit.cmp($a, 4, "integer += operator");
-$a -= 2;
-$unit.cmp($a, 2, "integer -= operator");
-$a |= 1;
-$unit.cmp($a, 3, "|= operator");
-$a &= 1;
-$unit.cmp($a, 1, "&= operator");
-$a *= 10;
-$unit.cmp($a, 10, "integer *= operator");
-my float $f = $a;
-$f *= 2.2;
-$unit.cmp($f, 22.0, "first float *= operator");
-$f *= 2;
-$unit.cmp($f, 44.0, "second float *= operator");
-$f /= 4.4;
-$unit.cmp($f, 10.0, "float /= operator");
-$a = 10;
-$a /= 2;
-$unit.cmp($a, 5, "integer /= operator");
-$unit.cmp(4 / 2, 2, "first / operator");
-$a = 0xfdb4902a;
-$a ^= 0xbf40e848;
-$unit.cmp($a, 0x42f47862, "^= xor equals operator");
-$a <<= 2;
-$unit.cmp($a, 0x10bd1e188, "<<= shift-left-equals operator");
-$a >>= 3;
-$unit.cmp($a, 0x217a3c31, ">>= shift-right-equals operator");
-$a = 1;
-$unit.cmp($a++, 1, "pre post-increment (++) operator");
-$unit.cmp($a, 2, "post post-increment (++) operator");
-$unit.cmp($a--, 2, "pre post-decrement (--) operator");
-$unit.cmp($a, 1, "post post-decrement (--) operator");
-$unit.cmp(++$a, 2, "pre-increment (++) operator");
-$unit.cmp(--$a, 1, "pre-decrement (--) operator");
+%exec-class Test
 
-my string $astr = "hello" + " there";
-$unit.cmp($astr, "hello there", "string concatenation");
-$astr += " gee";
-$unit.cmp($astr, "hello there gee", "string plus equals");
+class Test inherits QUnit::Test {
+    constructor() : QUnit::Test("operators", "1.0", \ARGV) {
+        addTestCase("basic operator tests", \basicTests());
+        set_return_value(main());
+    }
 
-$f = 1.0;
-$f += 1.2;
-$unit.cmp($f, 2.2, "float += operator");
-$f -= 1.1;
-$unit.cmp($f, 1.1, "float -= operator");
-$f = 5.5 * 2.0;
-$unit.cmp($f, 11.0, "float * operator");
+    basicTests() {
 
-$unit.cmp(now() > (now() - 1D), True, "date > operator");
-$unit.cmp(now() >= (now() - 1h), True, "date >= operator");
-$unit.cmp((now() - 1m) < now(), True, "date < operator");
-$unit.cmp((now() - 1M) <= now(), True, "date <= operator");
+	int a = 1;
+	testAssertionValue("variable assignment", a, 1);
+	a += 3;
+	testAssertionValue("integer += operator", a, 4);
+	a -= 2;
+	testAssertionValue("integer -= operator", a, 2);
+	a |= 1;
+	testAssertionValue("|= operator", a, 3);
+	a &= 1;
+	testAssertionValue("&= operator", a, 1);
+	a *= 10;
+	testAssertionValue("integer *= operator", a, 10);
+	float f = a;
+	f *= 2.2;
+	testAssertionValue("first float *= operator", f, 22.0);
+	f *= 2;
+	testAssertionValue("second float *= operator", f, 44.0);
+	f /= 4.4;
+	testAssertionValue("float /= operator", f, 10.0);
+	a = 10;
+	a /= 2;
+	testAssertionValue("integer /= operator", a, 5);
+	testAssertionValue("first / operator", 4 / 2, 2);
+	a = 0xfdb4902a;
+	a ^= 0xbf40e848;
+	testAssertionValue("^= xor equals operator", a, 0x42f47862);
+	a <<= 2;
+	testAssertionValue("<<= shift-left-equals operator", a, 0x10bd1e188);
+	a >>= 3;
+	testAssertionValue(">>= shift-right-equals operator", a, 0x217a3c31);
+	a = 1;
+	testAssertionValue("pre post-increment (++) operator", a++, 1);
+	testAssertionValue("post post-increment (++) operator", a, 2);
+	testAssertionValue("pre post-decrement (--) operator", a--, 2);
+	testAssertionValue("post post-decrement (--) operator", a, 1);
+	testAssertionValue("pre-increment (++) operator", ++a, 2);
+	testAssertionValue("pre-decrement (--) operator", --a, 1);
 
-my date $bt = my date $at = now();
-$unit.cmp($at, $bt, "date == operator");
-$at = 2004-02-28-12:00:00;
-$at += 1D;
-$unit.cmp($at, 2004-02-29-12:00:00, "first date += operator");
-$at -= (3h + 5m);
-$unit.cmp($at, 2004-02-29-08:55:00, "second date += operator");
+	string astr = "hello" + " there";
+	testAssertionValue("string concatenation", astr, "hello there");
+	astr += " gee";
+	testAssertionValue("string plus equals", astr, "hello there gee");
 
-my any $ni += 3.2;
-$unit.cmp($ni, 3.2, "float +=, lhs NOTHING");
-delete $ni;
-$ni += "hello";
-$unit.cmp($ni, "hello", "string +=, lhs NOTHING");
-delete $ni;
-$ni -= 4.5;
-$unit.cmp($ni, -4.5, "float -=, lhs NOTHING");
-delete $ni;
-$ni -= 4;
-$unit.cmp($ni, -4, "integer -=, lhs NOTHING");
-# some array and hash tests in separate functions
+	f = 1.0;
+	f += 1.2;
+	testAssertionValue("float += operator", f, 2.2);
+	f -= 1.1;
+	testAssertionValue("float -= operator", f, 1.1);
+	f = 5.5 * 2.0;
+	testAssertionValue("float * operator", f, 11.0);
 
-# get function closure with bound local variable (multiply by 2)
-my code $c = map_closure(2);
+	testAssertionValue("date > operator", now() > (now() - 1D), True);
+	testAssertionValue("date >= operator", now() >= (now() - 1h), True);
+	testAssertionValue("date < operator", (now() - 1m) < now(), True);
+	testAssertionValue("date <= operator", (now() - 1M) <= now(), True);
 
-# map function to list
-$unit.cmp((map $c($1), (1, 2, 3)), (2, 4, 6), "map operator using closure");
+	date bt = date at = now();
+	testAssertionValue("date == operator", at, bt);
+	at = 2004-02-28-12:00:00;
+	at += 1D;
+	testAssertionValue("first date += operator", at, 2004-02-29-12:00:00);
+	at -= (3h + 5m);
+	testAssertionValue("second date += operator", at, 2004-02-29-08:55:00);
 
-# map immediate expression to list
-$unit.cmp((map $1 * 2, (1, 2, 3)), (2, 4, 6), "map operator using expression");
+	any ni += 3.2;
+	testAssertionValue("float +=, lhs NOTHING", ni, 3.2);
+	delete ni;
+	ni += "hello";
+	testAssertionValue("string +=, lhs NOTHING", ni, "hello");
+	delete ni;
+	ni -= 4.5;
+	testAssertionValue("float -=, lhs NOTHING", ni, -4.5);
+	delete ni;
+	ni -= 4;
+	testAssertionValue("integer -=, lhs NOTHING", ni, -4);
+	# some array and hash tests in separate functions
 
-# map function to list with optional select code as expression
-$unit.cmp((map $c($1), (1, 2, 3), $1 > 1), (4, 6), "map operator using closure with optional select expression");
+	# get function closure with bound local variable (multiply by 2)
+	code c = mapClosure(2);
 
-# select all elements from list greater than 1 with expression
-$unit.cmp((select (1, 2, 3), $1 > 1), (2, 3), "select operator with expression");
+	# map function to list
+	testAssertionValue("map operator using closure", (map c($1), (1, 2, 3)), (2, 4, 6));
 
-# create a sinple closure to subtract the second argument from the first
-$c = any sub(any $x, any $y) { return $x - $y; };
+	# map immediate expression to list
+	testAssertionValue("map operator using expression", (map $1 * 2, (1, 2, 3)), (2, 4, 6));
 
-# left fold function on list using closure
-$unit.cmp((foldl $c($1, $2), (2, 3, 4)), -5, "foldl operator with closure");
+	# map function to list with optional select code as expression
+	testAssertionValue("map operator using closure with optional select expression", (map c($1), (1, 2, 3), $1 > 1), (4, 6));
 
-# left fold function on list using expression
-$unit.cmp((foldl $1 - $2, (2, 3, 4)), -5, "foldl operator with expression");
+	# select all elements from list greater than 1 with expression
+	testAssertionValue("select operator with expression", (select (1, 2, 3), $1 > 1), (2, 3));
 
-# right fold function on list using immediate closure
-$unit.cmp((foldr $c($1, $2), (2, 3, 4)), -1, "foldr operator with closure");
+	# create a sinple closure to subtract the second argument from the first
+	c = any sub(any x, any y) { return x - y; };
 
-# right fold function on list using expression and implicit arguments
-$unit.cmp((foldr $1 - $2, (2, 3, 4)), -1, "foldr operator with expression");
+	# left fold function on list using closure
+	testAssertionValue("foldl operator with closure", (foldl c($1, $2), (2, 3, 4)), -5);
 
-my hash $h = ("test" : 1, "two" : 2.0, "three" : "three", "four" : False );
-$unit.cmp(remove $h.two, 2.0, "first remove operator");
+	# left fold function on list using expression
+	testAssertionValue("foldl operator with expression", (foldl $1 - $2, (2, 3, 4)), -5);
 
-code sub map_closure(any $v) { return any sub(any $v1) { return $v * $v1; }; }
+	# right fold function on list using immediate closure
+	testAssertionValue("foldr operator with closure", (foldr c($1, $2), (2, 3, 4)), -1);
+
+	# right fold function on list using expression and implicit arguments
+	testAssertionValue("foldr operator with expression", (foldr $1 - $2, (2, 3, 4)), -1);
+
+	hash h = ("test" : 1, "two" : 2.0, "three" : "three", "four" : False );
+	testAssertionValue("first remove operator", remove h.two, 2.0);
+
+	testAssertion("int div by zero", any sub () {int i = 0; return 1 / i;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
+	testAssertion("float div by zero", any sub () {float f = 0; return 1 / f;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
+	testAssertion("numeric div by zero", any sub () {number n = 0n; return 1 / n;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
+	testAssertion("div by zero", any sub () {any n; return 1 / n;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
+    }
+
+    static code mapClosure(any v) {
+	return any sub(any v1) { return v * v1; };
+    }
+}

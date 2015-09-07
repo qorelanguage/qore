@@ -186,6 +186,7 @@
 #include "QoreIntPreDecrementOperatorNode.cpp"
 #include "QoreLogicalLessThanOperatorNode.cpp"
 #include "QoreLogicalGreaterThanOperatorNode.cpp"
+#include "QoreDivisionOperatorNode.cpp"
 #include "QoreMapOperatorNode.cpp"
 #include "QoreMapSelectOperatorNode.cpp"
 #include "QoreHashMapOperatorNode.cpp"
@@ -289,4 +290,3 @@
 #ifdef DEBUG
 #include "ql_debug.cpp"
 #endif
-
