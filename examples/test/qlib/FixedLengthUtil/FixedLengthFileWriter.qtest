@@ -1,62 +1,74 @@
 #!/usr/bin/env qr
+
 %require-types
 %enable-all-warnings
-%requires UnitTest
-%requires Util
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/FixedLengthUtil.qm
 
-UnitTest unit();
+%exec-class Test
 
-string file = tmp_location() + "/file.fll";
-unlink(file);
+class Test inherits QUnit::Test {
+    public {
+	const Data1 = ("type": "type1", "record": ("col1" : 11111, "col2" : "bb"));
 
-list data = (
-    ("type": "type1", "record": ("col1" : 11111, "col2" : "bb")),
-    ("type": "type2", "record": ("col3" : "c", "col4" : "ddd", "col5" : "31122014")),
-    ("type": "type1", "record": ("col1" : 22222, "col2" : "gg")),
-);
+	const Data2 = (
+	    ("type": "type1", "record": ("col1" : 11111, "col2" : "bb")),
+	    ("type": "type2", "record": ("col3" : "c", "col4" : "ddd", "col5" : "31122014")),
+	    ("type": "type1", "record": ("col1" : 22222, "col2" : "gg")),
+	    );
 
-string data_text = "11111bb\n11111bb\ncddd31122014\n22222gg\n";
+	const DataText = "11111bb\n11111bb\ncddd31122014\n22222gg\n";
 
-hash specs = (
-    "type1" : (
-        "col1" : (
-            "length" : 5,
-            "type"   : "int"
-        ),
-        "col2" : (
-            "length" : 2,
-            "type"   : "string",
-        ),
-    ),
-    "type2" : (
-        "col3" : (
-            "length" : 1,
-            "type"   : "string",
-        ),
-        "col4" : (
-            "length" : 3,
-            "type"   : "string",
-        ),
-        "col5" : (
-            "length"   : 8,
-            "type"     : "date",
-            "format"   : "DDMMYYYY",
-            "timezone" : "Europe/Prague",
-        ),
-    ),
-);
+	const Specs = (
+	    "type1" : (
+		"col1" : (
+		    "length" : 5,
+		    "type"   : "int"
+		),
+		"col2" : (
+		    "length" : 2,
+		    "type"   : "string",
+		),
+	    ),
+	    "type2" : (
+		"col3" : (
+		    "length" : 1,
+		    "type"   : "string",
+		),
+		"col4" : (
+		    "length" : 3,
+		    "type"   : "string",
+		),
+		"col5" : (
+		    "length"   : 8,
+		    "type"     : "date",
+		    "format"   : "DDMMYYYY",
+		    "timezone" : "Europe/Prague",
+		),
+	    ),
+	    );
 
-hash global_options = (
-    "eol" : "\n",
-);
+	const GlobalOptions = (
+	    "eol": "\n",
+	    "file_flags": O_CREAT | O_WRONLY | O_TRUNC,
+	    );
+    }
 
-FixedLengthFileWriter w(file, specs, global_options);
-w.write( ("type": "type1", "record": ("col1" : 11111, "col2" : "bb")) );
-w.write(data);
+    constructor() : QUnit::Test("FixedLengthFileWriter", "1.0", \ARGV) {
+	addTestCase("FixedLengthFileWriter basic tests", \basicTests());
+        set_return_value(main());
+    }
 
-File FR();
-FR.open2(file);
-unit.cmp(FR.read(-1), data_text, 'file content check');
+    basicTests() {
+	string file = tmp_location() + "/file.fll";
 
-unlink(file);
+	FixedLengthFileWriter w(file, Specs, GlobalOptions);
+	on_exit unlink(file);
+	w.write(Data1);
+	w.write(Data2);
+
+	testAssertionValue("file content check", ReadOnlyFile::readTextFile(file), DataText);
+    }
+}

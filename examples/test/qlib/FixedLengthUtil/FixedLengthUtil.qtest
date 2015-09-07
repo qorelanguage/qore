@@ -1,124 +1,132 @@
 #!/usr/bin/env qr
+
 %require-types
 %enable-all-warnings
-%requires UnitTest
+
+%requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/FixedLengthUtil.qm
 
-UnitTest unit();
+%exec-class Test
 
-string strdata = "11111  bb\ncddd31122014\n22222gggg\n";
+class Test inherits QUnit::Test {
+    public {
+	const StrData = "11111bb  \ncddd31122014\n22222gggg\n";
 
-hash specs = (
-    "type1" : (
-        "col1" : (
-            "length" : 5,
-            "type"   : "int",
-        ),
-        "col2" : (
-            "length" : 4,
-            "type"   : "string",
-        ),
-    ),
-    "type2" : (
-        "col3" : (
-            "length" : 1,
-            "type"   : "string",
-        ),
-        "col4" : (
-            "length" : 3,
-            "type"   : "string",
-        ),
-        "col5" : (
-            "length"   : 8,
-            "type"     : "date",
-            "format"   : "DDMMYYYY",
-            # "timezone" : "Europe/Prague", # use global if omitted
-        ),
-    ),
-);
+	const Specs = (
+	    "type1" : (
+		"col1" : (
+		    "length" : 5,
+		    "type"   : "int",
+		),
+		"col2" : (
+		    "length" : 4,
+		    "type"   : "string",
+		),
+	    ),
+	    "type2" : (
+		"col3" : (
+		    "length" : 1,
+		    "type"   : "string",
+		),
+		"col4" : (
+		    "length" : 3,
+		    "type"   : "string",
+		),
+		"col5" : (
+		    "length"   : 8,
+		    "type"     : "date",
+		    "format"   : "DDMMYYYY",
+		    # "timezone" : "Europe/Prague", # use global if omitted
+		),
+	    ),
+	    );
 
-list hashdata = (
-    ("type": "type1", "record": ("col1" : 11111, "col2" : "  bb")),
-    ("type": "type2", "record": ("col3" : "c", "col4" : "ddd", "col5" : 2014-12-31)),
-    ("type": "type1", "record": ("col1" : 22222, "col2" : "gggg")),
-);
+	# Incorrect use
+	const RedundantSpecs = (
+	    "type1" : (
+		"col1" : (
+		    "length" : 5,
+		    "type"   : "int",
+		),
+		"col2" : (
+		    "length" : 4,
+		    "type"   : "string",
+		),
+	    ),
+	    "type2" : (
+		"col1" : (
+		    "length" : 5,
+		    "type"   : "int",
+		),
+		"col2" : (
+		    "length" : 4,
+		    "type"   : "string",
+		),
+	    ),
+	    );
 
-hash global_options;
+	const HashData = (
+	    ("type": "type1", "record": ("col1": 11111, "col2": "bb")),
+	    ("type": "type2", "record": ("col3": "c", "col4": "ddd", "col5": 2014-12-31)),
+	    ("type": "type1", "record": ("col1": 22222, "col2": "gggg")),
+	    );
 
-global_options = (
-    "encoding"     : "UTF-8",
-    "eol"          : "\n",
-    "ignore-empty" : True,
-    "timezone"     : "Europe/Prague", # used if not in some date column specification
-);
+	const GlobalOptions = (
+	    "encoding"     : "UTF-8",
+	    "eol"          : "\n",
+	    "ignore_empty" : True,
+	    "timezone"     : "Europe/Prague", # used if not in some date column specification
+	    );
 
-FixedLengthDataIterator i(strdata, specs, global_options);
-unit.cmp(i.next(), True, "line 1 present");
-unit.cmp(i.getValue(), hashdata[0], "line 1 content check");
-unit.cmp(i.next(), True, "line 2 present");
-unit.cmp(i.getValue(), hashdata[1], "line 2 content check");
-unit.cmp(i.next(), True, "line 3 present");
-unit.cmp(i.getValue(), hashdata[2], "line 3 content check");
-unit.cmp(i.next(), False, "line 4 is not there");
+	# Writer
+	const GlobalWriterOptions = (
+	    "eol" : "\n",
+	    );
 
-# Incorrect use
-hash redundant_specs = (
-    "type1" : (
-        "col1" : (
-            "length" : 5,
-            "type"   : "int",
-        ),
-        "col2" : (
-            "length" : 4,
-            "type"   : "string",
-        ),
-    ),
-    "type2" : (
-        "col1" : (
-            "length" : 5,
-            "type"   : "int",
-        ),
-        "col2" : (
-            "length" : 4,
-            "type"   : "string",
-        ),
-    ),
-);
+	# padding test
+	const PADDING_STR = "aXXXX0000aa0000    a\n";
 
-FixedLengthDataIterator i2(strdata, redundant_specs, global_options);
-nothing sub testRoutine() {
-	i2.next();
-	i2.getValue();
+	const PADDING_SPEC = (
+	    "r1" : (
+		"c1": ( "length": 5, "type": "string", "padding_char": "X"),
+		"c2": ( "length": 5, "type": "string", "padding": "left", "padding_char": "0"),
+		"c3": ( "length": 5, "type": "string", "padding": "right", "padding_char": "0"),
+		"c4": ( "length": 5, "type": "string", "padding": "left", "padding_char": " "),
+	    )
+	    );
+
+	const PADDING_DATA = (
+	    ("type": "r1", "record": ("c1": "a", "c2": "a", "c3": "a", "c4": "a")),
+	    );
+    }
+
+    constructor() : QUnit::Test("FixedLengthUtil", "1.0", \ARGV) {
+	addTestCase("FixedLengthUtil basic tests", \basicTests());
+        set_return_value(main());
+    }
+
+    basicTests() {
+	FixedLengthDataIterator i(StrData, Specs, GlobalOptions);
+	testAssertionValue("line 1 present", i.next(), True);
+	testAssertionValue("line 1 content check", i.getValue(), HashData[0]);
+	testAssertionValue("line 2 present", i.next(), True);
+	testAssertionValue("line 2 content check", i.getValue(), HashData[1]);
+	testAssertionValue("line 3 present", i.next(), True);
+	testAssertionValue("line 3 content check", i.getValue(), HashData[2]);
+	testAssertionValue("line 4 is not there", i.next(), False);
+
+	FixedLengthDataIterator i2(StrData, RedundantSpecs, GlobalOptions);
+
+	code test_closure = sub () {
+	    i2.next();
+	    i2.getValue();
+	};
+	testAssertion("Line with byte length", test_closure, NOTHING, new TestResultExceptionType("FIXED-LENGTH-UTIL-NON-MATCHING-TYPE"));
+
+	FixedLengthDataWriter w(Specs, GlobalWriterOptions);
+	testAssertionValue("file content check", w.write(HashData), StrData);
+
+	FixedLengthDataWriter pw(PADDING_SPEC);
+	testAssertionValue("file content check - padding", pw.write(PADDING_DATA), PADDING_STR);
+    }
 }
-unit.exception(\testRoutine(), list(), "redundant line specifications", "FIXED-LENGTH-UTIL-NON-MATCHING-TYPE", "Line with byte length");
-
-# Writer
-global_options = (
-    "eol" : "\n",
-);
-
-#FIXME(zbehan): date export is broken
-hashdata[1]{"record"}{"col5"} = "31122014";
-
-FixedLengthDataWriter w(specs, global_options);
-unit.cmp(w.write(hashdata), strdata, 'file content check');
-
-
-# padding test
-const PADDING_STR = "XXXXa0000aa0000    a\n";
-
-const PADDING_SPEC = (
-        "r1" : (
-            "c1" : ( "length" : 5, "type" : "string", "padding_char" : "X"),
-            "c2" : ( "length" : 5, "type" : "string", "padding" : "left", "padding_char" : "0"),
-            "c3" : ( "length" : 5, "type" : "string", "padding" : "right", "padding_char" : "0"),
-            "c4" : ( "length" : 5, "type" : "string", "padding" : "left", "padding_char" : " "),
-        )
-    );
-
-const PADDING_DATA = (
-    ("type": "r1", "record": ("c1" : "a", "c2" : "a", "c3" : "a", "c4" : "a")),
-);
-
-FixedLengthDataWriter pw(PADDING_SPEC);
-unit.cmp(pw.write(PADDING_DATA), PADDING_STR, 'file content check - padding');

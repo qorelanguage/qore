@@ -1,76 +1,87 @@
 #!/usr/bin/env qr
+
 %require-types
 %enable-all-warnings
-%requires UnitTest
-%requires Util
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/FixedLengthUtil.qm
 
-UnitTest unit();
+%exec-class Test
 
-string file = tmp_location() + "/file.fll";
-unlink(file);
+class Test inherits QUnit::Test {
+    public {
+	const Data = (
+	    ("type": "type1", "record": ("col1" : 11111, "col2" : "bb")),
+	    ("type": "type2", "record": ("col3" : "c", "col4" : "ddd", "col5" : "31122014")),
+	    ("type": "type1", "record": ("col1" : 22222, "col2" : "gg")),
+	    );
 
-list data = (
-    ("type": "type1", "record": ("col1" : 11111, "col2" : "bb")),
-    ("type": "type2", "record": ("col3" : "c", "col4" : "ddd", "col5" : "31122014")),
-    ("type": "type1", "record": ("col1" : 22222, "col2" : "gg")),
-);
+	const DataText = "11111bb\ncddd31122014\n22222gg\n";
 
-string data_text = "11111bb\ncddd31122014\n22222gg\n";
+	const Specs = (
+	    "type1" : (
+		"col1" : (
+		    "length" : 5,
+		    "type"   : "int"
+		),
+		"col2" : (
+		    "length" : 2,
+		    "type"   : "string",
+		),
+	    ),
+	    "type2" : (
+		"col3" : (
+		    "length" : 1,
+		    "type"   : "string",
+		),
+		"col4" : (
+		    "length" : 3,
+		    "type"   : "string",
+		),
+		"col5" : (
+		    "length"   : 8,
+		    "type"     : "date",
+		    "format"   : "DDMMYYYY",
+		    "timezone" : "Europe/Prague",
+		),
+	    ),
+	    );
 
-hash specs = (
-    "type1" : (
-        "col1" : (
-            "length" : 5,
-            "type"   : "int"
-        ),
-        "col2" : (
-            "length" : 2,
-            "type"   : "string",
-        ),
-    ),
-    "type2" : (
-        "col3" : (
-            "length" : 1,
-            "type"   : "string",
-        ),
-        "col4" : (
-            "length" : 3,
-            "type"   : "string",
-        ),
-        "col5" : (
-            "length"   : 8,
-            "type"     : "date",
-            "format"   : "DDMMYYYY",
-            "timezone" : "Europe/Prague",
-        ),
-    ),
-);
+	const GlobalOptions = (
+	    "eol" : "\n",
+	    "file_flags": O_CREAT | O_WRONLY | O_TRUNC,
+	    );
+    }
 
-hash global_options = (
-    "eol" : "\n",
-);
+    constructor() : QUnit::Test("transition_check_writer", "1.0", \ARGV) {
+	addTestCase("transition check writer", \check());
+        set_return_value(main());
+    }
 
-MyFixedLengthDataWriter1 w1(specs, global_options);
-unit.cmp(w1.write(data), data_text, 'file content check');
+    check() {
+	string file = tmp_location() + "/file.fll";
 
-MyFixedLengthDataWriter2 w2(specs, global_options);
-code wr = sub (list d) {
-    w2.write(d);
-};
-unit.exception(wr, list(data), 'invalid transition', 'FIXED-LENGTH-UTIL-INVALID-TRANSITION', "State 'type1' cannot follow state '<START>' for line '11111bb'");
+	MyFixedLengthDataWriter1 w1(Specs, GlobalOptions);
+	on_exit unlink(file);
+	testAssertion("file content check", \w1.write(), (Data,), new TestResultValue(DataText));
 
-unlink(file);
-
+	MyFixedLengthDataWriter2 w2(Specs, GlobalOptions);
+	code wr = sub (list d) {
+	    w2.write(d);
+	};
+	testAssertion("record transition negative test", wr, (Data,), new TestResultExceptionType("RECORD-TRANSITION-ERROR"));
+    }
+}
 
 public class MyFixedLengthDataWriter1 inherits FixedLengthUtil::FixedLengthDataWriter {
     constructor(hash h, *hash g) : FixedLengthUtil::FixedLengthDataWriter(h, g) {
     }
 
     bool checkTransition(*string from, *string to) {
-        if (   (from == 'type1' && to == 'type2')
-            || (from == NOTHING && to == 'type1')
-            || (from == 'type2' && to == 'type1')) {
+        if (   (from == "type1" && to == "type2")
+            || (from == NOTHING && to == "type1")
+            || (from == "type2" && to == "type1")) {
             return True;
         }
 
@@ -83,8 +94,8 @@ public class MyFixedLengthDataWriter2 inherits FixedLengthUtil::FixedLengthDataW
     }
 
     bool checkTransition(*string from, *string to) {
-        if (   (from == 'type1' && to == 'type2')
-            || (from == 'type2' && to == 'type1')) {
+        if (   (from == "type1" && to == "type2")
+            || (from == "type2" && to == "type1")) {
             return True;
         }
 

@@ -59,11 +59,11 @@ module TextUtil {
     @section textutilglobaloptions TextUtil Global Options
 
     Valid options are:
-    - \c "timezone": a string giving a time zone region name or an integer offset in seconds east of UTC
-    - \c "ignore-empty": if @ref Qore::True "True" then ignore empty lines
+    - \c "date_format": the default date format for \c "date" fields (see @ref date_formatting for the value in this case)
     - \c "encoding": the output encoding for strings parsed or returned
-    - \c "number_format": the default number format for \c "float" or \c "number" fields
-    - \c "date_format": the default date format for \c "date" fields
+    - \c "ignore_empty": if @ref Qore::True "True" then ignore empty lines
+    - \c "number_format": the default number format for \c "float" or \c "number" fields (see @ref Qore::parse_number() and @ref Qore::parse_float() for the value in these cases)
+    - \c "timezone": a string giving a time zone region name or an integer offset in seconds east of UTC
 
     @section textutil_relnotes Release Notes
 
@@ -87,7 +87,7 @@ public namespace TextUtil {
 #! structured line iterator for abstract data allowing efficient "pipelined" processing
 public class TextUtil::AbstractTextIterator {
     private {
-        *hash m_opts; # encoding, eol, ignore-empty, timezone
+        *hash m_opts; # encoding, eol, ignore_empty, timezone, etc
     }
 
     #! creates the AbstractTextIterator object
@@ -123,8 +123,8 @@ public class TextUtil::AbstractTextIterator {
                     opts.timezone = new TimeZone(opts.timezone);
                     break;
                 }
-                case "ignore-empty": {
-                    opts."ignore-empty" = boolean(opts."ignore-empty");
+                case "ignore_empty": {
+                    opts.ignore_empty = boolean(opts.ignore_empty);
                     break;
                 }
                 case "encoding": {
