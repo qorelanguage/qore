@@ -124,9 +124,6 @@ public class QUnit::TestResultFailure inherits QUnit::AbstractTestResult {
 #! Class representing any non-boolean value
 public class QUnit::TestResultValue inherits QUnit::AbstractTestResult {
     constructor(any value) : AbstractTestResult("Value") {
-        if (value.typeCode() == NT_BOOLEAN) {
-            throw "TESTING-EXCEPTION", "Cannot instantiate TestResultValue using a boolean value";
-        }
         # treat NULL as NOTHING
         if (value === NULL)
             return;
@@ -703,9 +700,16 @@ addTestCase(obj);
      * @param expectedValue the expected value
      *
      * @return the \a value argument
+     *
+     * @note make sure and use testAssertion() for any calls that could throw an exception
      */
     public any testAssertionValue(string name, any value, any expectedValue) {
-        return testAssertion(name, any sub () {return value;}, NOTHING, new TestResultValue(expectedValue));
+        *TestCase tc = get_thread_data("tc");
+        # increment assertion count
+        tc.incAssertions();
+        ++num_asserts;
+
+        return testAssertionIntern(tc, name, new TestResultValue(value), new TestResultValue(expectedValue), value);
     }
 
     #! Tests for a single assertion and returns the value
@@ -747,8 +751,12 @@ addTestCase(obj);
             }
         }
 
-        if (!expectedResult.equals(result)) {
-            throw "TEST-EXCEPTION", printUnexpectedData(expectedResult.toString(), result.toString()), name;
+        return testAssertionIntern(tc, name, result, expectedResult, ret);
+     }
+
+     private any testAssertionIntern(TestCase tc, string name, QUnit::AbstractTestResult actualResult, QUnit::AbstractTestResult expectedResult, any ret) {
+        if (!expectedResult.equals(actualResult)) {
+            throw "TEST-EXCEPTION", printUnexpectedData(expectedResult.toString(), actualResult.toString()), name;
         }
         else {
             tc.incAssertionsOk();
