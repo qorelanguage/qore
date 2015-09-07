@@ -143,9 +143,13 @@ public class QUnit::TestResultValue inherits QUnit::AbstractTestResult {
 #! Class representing Exception of a particular type
 public class QUnit::TestResultExceptionType inherits QUnit::AbstractTestResult {
     public {
-       string m_exceptionType;
+        #! corresponds to the \c "err" key of an @ref exception_hash "exception hash"
+        string m_exceptionType;
     }
 
+    #! creates the object from the exception arguments
+    /** @param exceptionType corresponds to the \c "err" key of an @ref exception_hash "exception hash"
+    */
     constructor(string exceptionType) : AbstractTestResult("Exception") {
         m_exceptionType = exceptionType;
     }
@@ -166,6 +170,7 @@ public class QUnit::TestResultExceptionType inherits QUnit::AbstractTestResult {
         return True;
     }
 
+    #! returns a string describing the exception type
     public string toString() {
         return sprintf("Exception: %s", m_exceptionType);
     }
@@ -177,6 +182,10 @@ public class QUnit::TestResultExceptionDetail inherits QUnit::TestResultExceptio
         string m_exceptionDetail;
     }
 
+    #! creates the object from the exception arguments
+    /** @param exceptionType corresponds to the \c "err" key of an @ref exception_hash "exception hash"
+        @param exceptionDetail corresponds to the \c "desc" key of an @ref exception_hash "exception hash"
+    */
     constructor(string exceptionType, string exceptionDetail) : TestResultExceptionType(exceptionType, "Detail")  {
         m_exceptionDetail = exceptionDetail;
     }
