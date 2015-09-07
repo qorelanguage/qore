@@ -126,7 +126,7 @@ class Test inherits QUnit::Test {
 	testAssertionValue("first remove operator", remove h.two, 2.0);
 
 	testAssertion("int div by zero", any sub () {int i = 0; return 1 / i;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
-	testAssertion("float div by zero", any sub () {float f = 0; return 1 / f;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
+	testAssertion("float div by zero", any sub () {float n = 0; return 1 / n;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
 	testAssertion("numeric div by zero", any sub () {number n = 0n; return 1 / n;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
 	testAssertion("div by zero", any sub () {any n; return 1 / n;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
     }
