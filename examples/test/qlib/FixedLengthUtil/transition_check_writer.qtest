@@ -79,7 +79,7 @@ public class MyFixedLengthDataWriter1 inherits FixedLengthUtil::FixedLengthDataW
     }
 
     bool checkTransition(*string from, *string to) {
-        if (   (from == "type1" && to == "type2")
+        if ((from == "type1" && to == "type2")
             || (from == NOTHING && to == "type1")
             || (from == "type2" && to == "type1")) {
             return True;
@@ -94,7 +94,7 @@ public class MyFixedLengthDataWriter2 inherits FixedLengthUtil::FixedLengthDataW
     }
 
     bool checkTransition(*string from, *string to) {
-        if (   (from == "type1" && to == "type2")
+        if ((from == "type1" && to == "type2")
             || (from == "type2" && to == "type1")) {
             return True;
         }
