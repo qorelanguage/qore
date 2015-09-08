@@ -31,11 +31,11 @@
 #include <qore/Qore.h>
 
 ThreadSafeLocalVarRuntimeEnvironmentHelper::ThreadSafeLocalVarRuntimeEnvironmentHelper(const QoreClosureBase* current) : prev(thread_set_runtime_closure_env(current)) {
-   printd(0, "ThreadSafeLocalVarRuntimeEnvironmentHelper::ThreadSafeLocalVarRuntimeEnvironmentHelper() prev: %p current: %p\n", prev, current);
+   //printd(5, "ThreadSafeLocalVarRuntimeEnvironmentHelper::ThreadSafeLocalVarRuntimeEnvironmentHelper() prev: %p current: %p\n", prev, current);
 }
 
 ThreadSafeLocalVarRuntimeEnvironmentHelper::~ThreadSafeLocalVarRuntimeEnvironmentHelper() {
-   printd(0, "ThreadSafeLocalVarRuntimeEnvironmentHelper::~ThreadSafeLocalVarRuntimeEnvironmentHelper() prev: %p\n", prev);
+   //printd(5, "ThreadSafeLocalVarRuntimeEnvironmentHelper::~ThreadSafeLocalVarRuntimeEnvironmentHelper() prev: %p\n", prev);
    thread_set_runtime_closure_env(prev);
 }
 
@@ -43,7 +43,7 @@ ThreadSafeLocalVarRuntimeEnvironment::ThreadSafeLocalVarRuntimeEnvironment(const
    //printd(5, "ThreadSafeLocalVarRuntimeEnvironment::ThreadSafeLocalVarRuntimeEnvironment() this: %p vlist: %p size: %d\n", this, vlist, vlist->size());
    for (lvar_set_t::const_iterator i = vlist->begin(), e = vlist->end(); i != e; ++i) {
       ClosureVarValue* cvar = thread_find_closure_var((*i)->getName());
-      printd(0, "ThreadSafeLocalVarRuntimeEnvironment::ThreadSafeLocalVarRuntimeEnvironment() this: %p '%s' i: %p cvar: %p val: %s\n", this, (*i)->getName(), *i, cvar, cvar->val.getTypeName());
+      //printd(5, "ThreadSafeLocalVarRuntimeEnvironment::ThreadSafeLocalVarRuntimeEnvironment() this: %p '%s' i: %p cvar: %p val: %s\n", this, (*i)->getName(), *i, cvar, cvar->val.getTypeName());
       cmap[*i] = cvar;
       cvvset.insert(cvar);
       cvar->ref();
@@ -57,7 +57,7 @@ ThreadSafeLocalVarRuntimeEnvironment::~ThreadSafeLocalVarRuntimeEnvironment() {
 }
 
 ClosureVarValue* ThreadSafeLocalVarRuntimeEnvironment::find(const LocalVar* id) const {
-   printd(0, "ThreadSafeLocalVarRuntimeEnvironment::find(%p '%s') this: %p\n", id, id->getName(), this);
+   //printd(5, "ThreadSafeLocalVarRuntimeEnvironment::find(%p '%s') this: %p\n", id, id->getName(), this);
    cvar_map_t::const_iterator i = cmap.find(id);
    assert(i != cmap.end());
    return i->second;
@@ -85,6 +85,7 @@ bool QoreClosureNode::derefImpl(ExceptionSink* xsink) {
 }
 
 QoreValue QoreClosureNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
+   CVecInstantiator cvi(cvec, xsink);
    return closure->exec(*this, pgm, args, 0, xsink);
 }
 
@@ -94,13 +95,6 @@ bool QoreClosureNode::getAsBoolImpl() const {
    if (pgm && runtime_check_parse_option(PO_STRICT_BOOLEAN_EVAL))
       return false;
    return true;
-}
-
-QoreObjectClosureNode::QoreObjectClosureNode(QoreObject* n_obj, const QoreClosureParseNode* n_closure) : QoreClosureBase(n_closure), obj(n_obj) {
-   obj->tRef();
-}
-
-QoreObjectClosureNode::~QoreObjectClosureNode() {
 }
 
 bool QoreObjectClosureNode::derefImpl(ExceptionSink* xsink) {
@@ -113,5 +107,6 @@ bool QoreObjectClosureNode::derefImpl(ExceptionSink* xsink) {
 }
 
 QoreValue QoreObjectClosureNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
+   CVecInstantiator cvi(cvec, xsink);
    return closure->exec(*this, 0, args, obj, xsink);
 }

@@ -198,7 +198,7 @@ public:
    }
 #endif
 
-   DLLLOCAL void ref() {
+   DLLLOCAL void ref() const {
       //printd(5, "ClosureVarValue::ref() this: %p refs: %d -> %d val: %s\n", this, references, references + 1, val.getTypeName());
       ROreference(); 
    }
@@ -208,6 +208,11 @@ public:
    DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove) const;
    DLLLOCAL void remove(LValueRemoveHelper& lvrh);
 
+   DLLLOCAL ClosureVarValue* refSelf() const {
+      ref();
+      return const_cast<ClosureVarValue*>(this);
+   }
+   
    // sets the current variable to finalized, sets the value to 0, and returns the value held (for dereferencing outside the lock)
    DLLLOCAL AbstractQoreNode* finalize() {
       QoreSafeVarRWWriteLocker sl(this);

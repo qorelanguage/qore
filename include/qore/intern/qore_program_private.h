@@ -163,8 +163,8 @@ public:
 
 class ThreadClosureVariableStack : public ThreadLocalData<ClosureVarValue*> {
 private:
-   DLLLOCAL void instantiate(ClosureVarValue* cvar) {
-      printd(0, "ThreadClosureVariableStack::instantiate(%p = '%s') this: %p pgm: %p\n", cvar->id, cvar->id, this, getProgram());
+   DLLLOCAL void instantiateIntern(ClosureVarValue* cvar) {
+      //printd(5, "ThreadClosureVariableStack::instantiateIntern(%p = '%s') this: %p pgm: %p\n", cvar->id, cvar->id, this, getProgram());
 
       if (curr->pos == QORE_THREAD_STACK_BLOCK) {
 	 if (curr->next)
@@ -177,7 +177,7 @@ private:
       }
       curr->var[curr->pos++] = cvar;
    }
-
+   
 public:
    // marks all variables as finalized on the stack
    DLLLOCAL void finalize(arg_vec_t*& cl) {
@@ -200,10 +200,14 @@ public:
 
    DLLLOCAL ClosureVarValue* instantiate(const char* id, const QoreTypeInfo* typeInfo, QoreValue& nval) {
       ClosureVarValue* cvar = new ClosureVarValue(id, typeInfo, nval);
-      instantiate(cvar);
+      instantiateIntern(cvar);
       return cvar;
    }
 
+   DLLLOCAL void instantiate(ClosureVarValue* cvar) {
+      instantiateIntern(cvar);
+   }
+   
    DLLLOCAL void uninstantiate(ExceptionSink* xsink) {
 #if 0
       if (!curr->pos)
@@ -221,16 +225,16 @@ public:
       }
       curr->var[--curr->pos]->deref(xsink);
    }
-
+   
    DLLLOCAL ClosureVarValue* find(const char* id) {
-      printd(0, "ThreadClosureVariableStack::find() this: %p id: %p\n", this, id);
+      printd(5, "ThreadClosureVariableStack::find() this: %p id: %p\n", this, id);
       Block* w = curr;
       while (true) {
-	 int p = w->pos;
-	 while (p) {
-	    printd(0, "ThreadClosureVariableStack::find(%p '%s') this: %p checking %p '%s' skip: %d\n", id, id, this, w->var[p - 1]->id, w->var[p - 1]->id, w->var[p - 1]->skip);
+         int p = w->pos;
+         while (p) {
+	    printd(5, "ThreadClosureVariableStack::find(%p '%s') this: %p checking %p '%s' skip: %d\n", id, id, this, w->var[p - 1]->id, w->var[p - 1]->id, w->var[p - 1]->skip);
 	    if (w->var[--p]->id == id && !w->var[p]->skip) {
-	       printd(0, "ThreadClosureVariableStack::find(%p '%s') this: %p returning: %p\n", id, id, this, w->var[p]);
+	       printd(5, "ThreadClosureVariableStack::find(%p '%s') this: %p returning: %p\n", id, id, this, w->var[p]);
 	       return w->var[p];
 	    }
 	 }
@@ -249,6 +253,23 @@ public:
       }
       // to avoid a warning on most compilers - note that this generates a warning on recent versions of aCC!
       return 0;
+   }
+      
+   DLLLOCAL cvv_vec_t* getAll() const {
+      cvv_vec_t* cv = 0;
+      Block* w = curr;
+      while (w) {
+         int p = w->pos;
+         while (p) {
+            --p;
+            if (!cv)
+               cv = new cvv_vec_t;
+            cv->push_back(w->var[p]->refSelf());
+	 }
+	 w = w->prev;
+      }
+      //printd(5, "ThreadClosureVariableStack::getAll() this: %p cv: %p size: %d\n", this, cv, cv ? cv->size() : 0);
+      return cv;
    }
 };
 

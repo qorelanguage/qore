@@ -423,11 +423,15 @@ DLLLOCAL void thread_set_closure_parse_env(ClosureParseEnvironment* cenv);
 DLLLOCAL ClosureParseEnvironment* thread_get_closure_parse_env();
 
 DLLLOCAL ClosureVarValue* thread_instantiate_closure_var(const char* id, const QoreTypeInfo* typeInfo, QoreValue& nval);
+DLLLOCAL void thread_instantiate_closure_var(ClosureVarValue* cvar);
 DLLLOCAL void thread_uninstantiate_closure_var(ExceptionSink* xsink);
 DLLLOCAL ClosureVarValue* thread_find_closure_var(const char* id);
 
 DLLLOCAL ClosureVarValue* thread_get_runtime_closure_var(const LocalVar* id);
 DLLLOCAL const QoreClosureBase* thread_set_runtime_closure_env(const QoreClosureBase* current);
+
+typedef std::vector<ClosureVarValue*> cvv_vec_t;
+DLLLOCAL cvv_vec_t* thread_get_all_closure_vars();
 
 DLLLOCAL int get_implicit_element();
 DLLLOCAL int save_implicit_element(int n_element);
@@ -538,8 +542,6 @@ public:
 
    DLLLOCAL const qore_class_private* getClass() const;
 };
-
-struct ClosureVarValue;
 
 class lvalue_ref {
 public:

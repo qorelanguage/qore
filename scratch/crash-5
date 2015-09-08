@@ -4,9 +4,9 @@
 any sub f() {
     int a = 8;
     background sub () {
-        printf("%y\n", a);
+        printf("1: %y\n", a);
         sub() {
-            printf("%y\n", a);
+            printf("2: %y\n", a);
         }();
     }();
 }
