@@ -14,7 +14,6 @@ class Test inherits QUnit::Test {
     }
 
     basicTests() {
-
 	int a = 1;
 	testAssertionValue("variable assignment", a, 1);
 	a += 3;

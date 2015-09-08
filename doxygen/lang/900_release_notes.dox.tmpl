@@ -330,6 +330,7 @@
    - fixed a bug in BinaryNode::clear() where the internal pointer was freed but not set to 0 leading to a subsequent crash when the object is destroyed; affected HTTPClient chunked reads of binary data when used with a callback
    - fixed a bug where the runtime exception location could be reported in the wrong location
    - fixed a bug where the bzip2 library can request a buffer size that could not be handled by the bzip2 library which is not handled by qore and causes a crash while decompressing certain input
+   - fixed a bug handling closure-bound local variables when closures are created in the background operator expression that caused a core dump
 
     @section qore_0811 Qore 0.8.11
 

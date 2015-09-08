@@ -1,30 +1,62 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
+
 %require-types
 %enable-all-warnings
-%requires UnitTest
-%exec-class App
 
-class App {
-    constructor() {
-        my UnitTest $unit();
+%requires ../../../../qlib/QUnit.qm
 
-        my int $i = 0;
-        background delete $i;
-        background remove $i;
+%exec-class Test
+
+class Test inherits QUnit::Test {
+    constructor() : QUnit::Test("background", "1.0", \ARGV) {
+        addTestCase("background operator tests", \basicTests());
+        set_return_value(main());
+    }
+
+    basicTests() {
+	Counter cnt();
+        int i = 0;
+
+	code c = sub () {
+	    delete i;
+	    cnt.dec();
+	};
+
+	cnt.inc();
+	testAssertion("delete local var in background", c, NOTHING, new TestResultValue());
+	cnt.waitForZero();
+
+	c = sub () {
+	    remove i;
+	    cnt.dec();
+	};
+
+	cnt.inc();
+	testAssertion("remove local var in background", c, NOTHING, new TestResultValue());
+	cnt.waitForZero();
 
         # do negative tests
-        my Program $p();
-        try {
-            $p.parse("my int $i; background ($i *= 10);background ($i /= 10);background ($i -= 10);background ($i += 10);background ($i %= 10);background ($i >>= 10);background ($i <<= 10);background ++$i;background $i++;background --$i;background $i--;my string $str;background splice $str, 0;background extract $str, 0;", "bg");
-            $unit.cmp(False, True, "background negative");
-        }
-        catch (*hash $ex) {
-            # count exceptions
-            while ($ex) {
-                ++$i;
-                $ex = $ex.next;
-            }
-            $unit.cmp($i, 13, "background negative");
-        }
+	c = sub () {
+	    Program p();
+	    p.parse("int i; background (i *= 10);background (i /= 10);background (i -= 10);background (i += 10);background (i %= 10);background (i >>= 10);background (i <<= 10);background ++i;background i++;background --i;background i--;string str;background splice str, 0;background extract str, 0;", "bg");
+	};
+
+	*hash ex = testAssertion("background negative test", c, NOTHING, new TestResultExceptionType("PARSE-EXCEPTION"));
+
+	# count exceptions
+	while (ex) {
+	    ++i;
+	    ex = ex.next;
+	}
+	testAssertionValue("background negative count", i, 13);
+
+	cnt.inc();
+	testAssertion("create closure with bound local var in background exp", sub () {Test::f(cnt);}, NOTHING, new TestResultValue());
+	cnt.waitForZero();
+    }
+
+    static any f(Counter cnt) {
+	int a = 8;
+	background sub () {++a; cnt.dec();}();
     }
 }

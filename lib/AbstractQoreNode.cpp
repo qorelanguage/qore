@@ -521,6 +521,10 @@ AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, Exceptio
       return crlr_smcall_copy(reinterpret_cast<const StaticMethodCallNode*>(n), xsink);
    else if (ntype == NT_PARSEREFERENCE)
       return reinterpret_cast<const ParseReferenceNode*>(n)->evalToIntermediate(xsink);
+   // ensure closures are evaluated in the parent thread so closure-bound local vars can be found and bound before
+   // launching the background thread (fixes https://github.com/qorelanguage/qore/issues/12)
+   else if (ntype == NT_CLOSURE)
+      return n->eval(xsink);
 
    return n->refSelf();
 }

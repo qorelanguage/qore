@@ -758,6 +758,7 @@ addTestCase(obj);
                 result = new QUnit::TestResultFailure(e.desc);
             } else {
                 result = new QUnit::TestResultExceptionDetail(e.err, e.desc);
+                ret = e;
             }
         }
 
