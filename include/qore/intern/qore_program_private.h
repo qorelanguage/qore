@@ -164,7 +164,7 @@ public:
 class ThreadClosureVariableStack : public ThreadLocalData<ClosureVarValue*> {
 private:
    DLLLOCAL void instantiate(ClosureVarValue* cvar) {
-      //printd(5, "ThreadClosureVariableStack::instantiate(%p = '%s') this: %p pgm: %p\n", cvar->id, cvar->id, this, getProgram());
+      printd(0, "ThreadClosureVariableStack::instantiate(%p = '%s') this: %p pgm: %p\n", cvar->id, cvar->id, this, getProgram());
 
       if (curr->pos == QORE_THREAD_STACK_BLOCK) {
 	 if (curr->next)
@@ -223,24 +223,24 @@ public:
    }
 
    DLLLOCAL ClosureVarValue* find(const char* id) {
-      //printd(5, "ThreadClosureVariableStack::find() this: %p id: %p\n", this, id);
+      printd(0, "ThreadClosureVariableStack::find() this: %p id: %p\n", this, id);
       Block* w = curr;
       while (true) {
 	 int p = w->pos;
 	 while (p) {
-	    //printd(5, "ThreadClosureVariableStack::find(%p '%s') this: %p checking %p '%s' skip: %d\n", id, id, this, w->var[p - 1]->id, w->var[p - 1]->id, w->var[p - 1]->skip);
+	    printd(0, "ThreadClosureVariableStack::find(%p '%s') this: %p checking %p '%s' skip: %d\n", id, id, this, w->var[p - 1]->id, w->var[p - 1]->id, w->var[p - 1]->skip);
 	    if (w->var[--p]->id == id && !w->var[p]->skip) {
-	       //printd(5, "ThreadClosureVariableStack::find(%p '%s') this: %p returning: %p\n", id, id, this, w->var[p]);
+	       printd(0, "ThreadClosureVariableStack::find(%p '%s') this: %p returning: %p\n", id, id, this, w->var[p]);
 	       return w->var[p];
 	    }
 	 }
 	 w = w->prev;
 #ifdef DEBUG
 	 if (!w) {
-	    //printd(5, "ThreadClosureVariableStack::find() this: %p no closure-bound local variable '%s' (%p) on stack (pgm: %p) p: %d curr->prev: %p\n", this, id, id, getProgram(), p, curr->prev);
+	    printd(0, "ThreadClosureVariableStack::find() this: %p no closure-bound local variable '%s' (%p) on stack (pgm: %p) p: %d curr->prev: %p\n", this, id, id, getProgram(), p, curr->prev);
             p = curr->pos - 1;
             while (p >= 0) {
-               //printd(5, "var p: %d: %s (%p) (skip: %d)\n", p, curr->var[p]->id, curr->var[p]->id, curr->var[p]->skip);
+               printd(0, "var p: %d: %s (%p) (skip: %d)\n", p, curr->var[p]->id, curr->var[p]->id, curr->var[p]->skip);
                --p;
             }
          }
@@ -395,7 +395,7 @@ public:
 
    // return value for use with %exec-class
    AbstractQoreNode* exec_class_rv;
-   
+
    // public object that owns this private implementation
    QoreProgram* pgm;
 
@@ -406,7 +406,7 @@ public:
         exceptions_raised(0), ptid(0), pwo(n_parse_options), dom(0), pend_dom(0), thread_local_storage(0), twaiting(0),
         thr_init(0), exec_class_rv(0), pgm(n_pgm) {
       //printd(5, "qore_program_private_base::qore_program_private_base() this: %p pgm: %p po: "QLLD"\n", this, pgm, n_parse_options);
-      
+
       if (p_pgm)
 	 setParent(p_pgm, n_parse_options);
       else {
@@ -1496,11 +1496,11 @@ public:
    DLLLOCAL void runtimeImportSystemApi(ExceptionSink* xsink);
 
    DLLLOCAL void doThreadInit(ExceptionSink* xsink);
-   
+
    DLLLOCAL static void doThreadInit(QoreProgram& pgm, ExceptionSink* xsink) {
       pgm.priv->doThreadInit(xsink);
    }
-   
+
    DLLLOCAL static int setReturnValue(QoreProgram& pgm, AbstractQoreNode* val, ExceptionSink* xsink) {
       ReferenceHolder<> rv(val, xsink);
       if (!pgm.priv->exec_class) {
@@ -1511,7 +1511,7 @@ public:
       pgm.priv->exec_class_rv = rv.release();
       return 0;
    }
-   
+
    // called when starting a new thread before the new thread is started, to avoid race conditions
    DLLLOCAL static int preregisterNewThread(QoreProgram& pgm, ExceptionSink* xsink) {
       return pgm.priv->preregisterNewThread(xsink);

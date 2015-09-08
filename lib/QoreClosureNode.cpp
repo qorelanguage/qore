@@ -1,6 +1,6 @@
 /*
   QoreClosureNode.cpp
-   
+
   Qore Programming Language
 
   Copyright (C) 2003 - 2015 David Nichols
@@ -31,10 +31,11 @@
 #include <qore/Qore.h>
 
 ThreadSafeLocalVarRuntimeEnvironmentHelper::ThreadSafeLocalVarRuntimeEnvironmentHelper(const QoreClosureBase* current) : prev(thread_set_runtime_closure_env(current)) {
-   //printd(5, "ThreadSafeLocalVarRuntimeEnvironmentHelper::ThreadSafeLocalVarRuntimeEnvironmentHelper() prev: %p current: %p\n", prev, current);
+   printd(0, "ThreadSafeLocalVarRuntimeEnvironmentHelper::ThreadSafeLocalVarRuntimeEnvironmentHelper() prev: %p current: %p\n", prev, current);
 }
-   
+
 ThreadSafeLocalVarRuntimeEnvironmentHelper::~ThreadSafeLocalVarRuntimeEnvironmentHelper() {
+   printd(0, "ThreadSafeLocalVarRuntimeEnvironmentHelper::~ThreadSafeLocalVarRuntimeEnvironmentHelper() prev: %p\n", prev);
    thread_set_runtime_closure_env(prev);
 }
 
@@ -42,7 +43,7 @@ ThreadSafeLocalVarRuntimeEnvironment::ThreadSafeLocalVarRuntimeEnvironment(const
    //printd(5, "ThreadSafeLocalVarRuntimeEnvironment::ThreadSafeLocalVarRuntimeEnvironment() this: %p vlist: %p size: %d\n", this, vlist, vlist->size());
    for (lvar_set_t::const_iterator i = vlist->begin(), e = vlist->end(); i != e; ++i) {
       ClosureVarValue* cvar = thread_find_closure_var((*i)->getName());
-      //printd(5, "ThreadSafeLocalVarRuntimeEnvironment::ThreadSafeLocalVarRuntimeEnvironment() this: %p '%s' i: %p cvar: %p val: %s\n", this, (*i)->getName(), *i, cvar, cvar->val.getTypeName());
+      printd(0, "ThreadSafeLocalVarRuntimeEnvironment::ThreadSafeLocalVarRuntimeEnvironment() this: %p '%s' i: %p cvar: %p val: %s\n", this, (*i)->getName(), *i, cvar, cvar->val.getTypeName());
       cmap[*i] = cvar;
       cvvset.insert(cvar);
       cvar->ref();
@@ -56,7 +57,7 @@ ThreadSafeLocalVarRuntimeEnvironment::~ThreadSafeLocalVarRuntimeEnvironment() {
 }
 
 ClosureVarValue* ThreadSafeLocalVarRuntimeEnvironment::find(const LocalVar* id) const {
-   //printd(5, "ThreadSafeLocalVarRuntimeEnvironment::find(%p '%s') this: %p\n", id, id->getName(), this);
+   printd(0, "ThreadSafeLocalVarRuntimeEnvironment::find(%p '%s') this: %p\n", id, id->getName(), this);
    cvar_map_t::const_iterator i = cmap.find(id);
    assert(i != cmap.end());
    return i->second;
@@ -70,7 +71,7 @@ void ThreadSafeLocalVarRuntimeEnvironment::del(ExceptionSink* xsink) {
    //printd(5, "ThreadSafeLocalVarRuntimeEnvironment::del() this: %p\n", this);
    for (cvar_map_t::iterator i = cmap.begin(), e = cmap.end(); i != e; ++i)
       i->second->deref(xsink);
-   
+
 #ifdef DEBUG
    cmap.clear();
    cvvset.clear();

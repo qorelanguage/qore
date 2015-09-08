@@ -31,7 +31,7 @@
 
 #ifndef _QORE_QORECLOSUREPARSENODE_H
 
-#define _QORE_QORECLOSUREPARSENODE_H 
+#define _QORE_QORECLOSUREPARSENODE_H
 
 #include <qore/intern/ParseNode.h>
 
@@ -99,6 +99,9 @@ public:
    }
 
    DLLLOCAL bool isLambda() const { return lambda; }
+
+   // called when present in a background statement
+   //DLLLOCAL QoreClosureBase* partialEvalBackground(ExceptionSink* xsink) const;
 
    DLLLOCAL AbstractQoreNode* exec(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject* self, ExceptionSink* xsink) const;
 
