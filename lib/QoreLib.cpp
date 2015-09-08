@@ -1320,9 +1320,9 @@ void q_strerror(QoreString &str, int err) {
 
    str.allocate(str.strlen() + STRERR_BUFSIZE);
    // ignore strerror() error message
-#if defined(_GNU_SOURCE) && defined(LINUX)
-   // we can't help but get this version because some of the Linux
-   // header files define _GNU_SOURCE for us :-(
+#ifdef STRERROR_R_CHAR_P
+   // we can't help but get this version because g++ needs and defines
+   // _GNU_SOURCE for us on linux (GLIBC) systems :-(
    str.concat(strerror_r(err, (char* )(str.getBuffer() + str.strlen()), STRERR_BUFSIZE));
 #else
    // use portable XSI version of strerror_r()
