@@ -51,12 +51,21 @@ class Test inherits QUnit::Test {
 	testAssertionValue("background negative count", i, 13);
 
 	cnt.inc();
-	testAssertion("create closure with bound local var in background exp", sub () {Test::f(cnt);}, NOTHING, new TestResultValue());
+	testAssertion("create closure with bound local var in background exp", sub () {Test::f1(cnt);}, NOTHING, new TestResultValue());
+	cnt.waitForZero();
+
+	cnt.inc();
+	testAssertion("create complex closure in background exp", sub () {Test::f2(cnt);}, NOTHING, new TestResultValue());
 	cnt.waitForZero();
     }
 
-    static any f(Counter cnt) {
+    static any f1(Counter cnt) {
 	int a = 8;
 	background sub () {++a; cnt.dec();}();
+    }
+
+    static any f2(Counter cnt) {
+	int a = 8;
+	background sub () {++a; sub() {++a; cnt.dec();}();}();
     }
 }

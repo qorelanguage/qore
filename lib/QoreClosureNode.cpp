@@ -1,6 +1,6 @@
 /*
   QoreClosureNode.cpp
-   
+
   Qore Programming Language
 
   Copyright (C) 2003 - 2015 David Nichols
@@ -33,8 +33,9 @@
 ThreadSafeLocalVarRuntimeEnvironmentHelper::ThreadSafeLocalVarRuntimeEnvironmentHelper(const QoreClosureBase* current) : prev(thread_set_runtime_closure_env(current)) {
    //printd(5, "ThreadSafeLocalVarRuntimeEnvironmentHelper::ThreadSafeLocalVarRuntimeEnvironmentHelper() prev: %p current: %p\n", prev, current);
 }
-   
+
 ThreadSafeLocalVarRuntimeEnvironmentHelper::~ThreadSafeLocalVarRuntimeEnvironmentHelper() {
+   //printd(5, "ThreadSafeLocalVarRuntimeEnvironmentHelper::~ThreadSafeLocalVarRuntimeEnvironmentHelper() prev: %p\n", prev);
    thread_set_runtime_closure_env(prev);
 }
 
@@ -70,7 +71,7 @@ void ThreadSafeLocalVarRuntimeEnvironment::del(ExceptionSink* xsink) {
    //printd(5, "ThreadSafeLocalVarRuntimeEnvironment::del() this: %p\n", this);
    for (cvar_map_t::iterator i = cmap.begin(), e = cmap.end(); i != e; ++i)
       i->second->deref(xsink);
-   
+
 #ifdef DEBUG
    cmap.clear();
    cvvset.clear();
@@ -84,6 +85,7 @@ bool QoreClosureNode::derefImpl(ExceptionSink* xsink) {
 }
 
 QoreValue QoreClosureNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
+   CVecInstantiator cvi(cvec, xsink);
    return closure->exec(*this, pgm, args, 0, xsink);
 }
 
@@ -93,13 +95,6 @@ bool QoreClosureNode::getAsBoolImpl() const {
    if (pgm && runtime_check_parse_option(PO_STRICT_BOOLEAN_EVAL))
       return false;
    return true;
-}
-
-QoreObjectClosureNode::QoreObjectClosureNode(QoreObject* n_obj, const QoreClosureParseNode* n_closure) : QoreClosureBase(n_closure), obj(n_obj) {
-   obj->tRef();
-}
-
-QoreObjectClosureNode::~QoreObjectClosureNode() {
 }
 
 bool QoreObjectClosureNode::derefImpl(ExceptionSink* xsink) {
@@ -112,5 +107,6 @@ bool QoreObjectClosureNode::derefImpl(ExceptionSink* xsink) {
 }
 
 QoreValue QoreObjectClosureNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
+   CVecInstantiator cvi(cvec, xsink);
    return closure->exec(*this, 0, args, obj, xsink);
 }

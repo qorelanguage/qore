@@ -839,6 +839,10 @@ ClosureVarValue* thread_instantiate_closure_var(const char* n_id, const QoreType
    return thread_data.get()->tlpd->cvstack.instantiate(n_id, typeInfo, nval);
 }
 
+void thread_instantiate_closure_var(ClosureVarValue* cvar) {
+   return thread_data.get()->tlpd->cvstack.instantiate(cvar);
+}
+
 void thread_uninstantiate_closure_var(ExceptionSink* xsink) {
    thread_data.get()->tlpd->cvstack.uninstantiate(xsink);
 }
@@ -852,6 +856,10 @@ const QoreClosureBase* thread_set_runtime_closure_env(const QoreClosureBase* cur
    const QoreClosureBase* rv = td->closure_rt_env;
    td->closure_rt_env = current;
    return rv;
+}
+
+cvv_vec_t* thread_get_all_closure_vars() {
+   return thread_data.get()->tlpd->cvstack.getAll();
 }
 
 void thread_set_closure_parse_env(ClosureParseEnvironment* cenv) {

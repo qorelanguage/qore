@@ -31,7 +31,7 @@
 
 #ifndef _QORE_QORECLOSUREPARSENODE_H
 
-#define _QORE_QORECLOSUREPARSENODE_H 
+#define _QORE_QORECLOSUREPARSENODE_H
 
 #include <qore/intern/ParseNode.h>
 
@@ -70,6 +70,7 @@ class QoreClosureNode;
 class QoreObjectClosureNode;
 
 class QoreClosureParseNode : public ParseNode {
+   friend class QoreClosureParseNodeBackground;
 private:
    UserClosureFunction* uf;
    bool lambda, in_method;
@@ -102,12 +103,67 @@ public:
 
    DLLLOCAL AbstractQoreNode* exec(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject* self, ExceptionSink* xsink) const;
 
+   DLLLOCAL QoreClosureBase* evalBackground(ExceptionSink* xsink) const;
+
    DLLLOCAL const lvar_set_t* getVList() const {
       return uf->getVList();
    }
 
    DLLLOCAL UserClosureFunction* getFunction() const {
       return uf;
+   }
+
+   DLLLOCAL QoreClosureParseNode* refSelf() const {
+      ref();
+      return const_cast<QoreClosureParseNode*>(this);
+   }
+};
+
+class QoreClosureParseNodeBackground : public ParseNode {
+protected:
+   QoreClosureParseNode* closure;
+   mutable cvv_vec_t* cvec;
+
+   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+      assert(false);
+      return this;
+   }
+
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+
+   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+      return runTimeClosureTypeInfo;
+   }
+   
+public:
+   DLLLOCAL QoreClosureParseNodeBackground(QoreClosureParseNode* c) : ParseNode(NT_CLOSURE), closure(c), cvec(thread_get_all_closure_vars()) {
+   }
+   DLLLOCAL ~QoreClosureParseNodeBackground() {
+      assert(!cvec);
+      assert(!closure);
+   }
+   DLLLOCAL virtual void deref(ExceptionSink* xsink) {
+      if (ROdereference()) {
+         if (cvec) {
+            for (cvv_vec_t::iterator i = cvec->begin(), e = cvec->end(); i != e; ++i)
+               (*i)->deref(xsink);
+            delete cvec;
+         }
+         closure->deref();
+#ifdef DEBUG
+         cvec = 0;
+         closure = 0;
+#endif
+      }
+   }
+   DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
+      return closure->getAsString(str, foff, xsink);
+   }
+   DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const {
+      return closure->getAsString(del, foff, xsink);
+   }
+   DLLLOCAL virtual const char* getTypeName() const {
+      return closure->getTypeName();
    }
 };
 

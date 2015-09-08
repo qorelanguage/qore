@@ -72,7 +72,13 @@ const char* QoreClosureParseNode::getTypeName() const {
    return getStaticTypeName();
 }
 
-AbstractQoreNode* QoreClosureParseNode::exec(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject* self, ExceptionSink* xsink) const {   
+AbstractQoreNode* QoreClosureParseNode::exec(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject* self, ExceptionSink* xsink) const {
    return uf->evalClosure(closure_base, pgm, args, self, xsink);
 }
 
+QoreClosureBase* QoreClosureParseNode::evalBackground(ExceptionSink* xsink) const {
+   cvv_vec_t* cvv = thread_get_all_closure_vars();
+   return in_method
+      ? (QoreClosureBase*)new QoreObjectClosureNode(runtime_get_stack_object(), this, cvv)
+      : (QoreClosureBase*)new QoreClosureNode(this, cvv);
+}

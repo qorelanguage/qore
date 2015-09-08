@@ -524,8 +524,8 @@ AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, Exceptio
    // ensure closures are evaluated in the parent thread so closure-bound local vars can be found and bound before
    // launching the background thread (fixes https://github.com/qorelanguage/qore/issues/12)
    else if (ntype == NT_CLOSURE)
-      return n->eval(xsink);
-
+      return reinterpret_cast<const QoreClosureParseNode*>(n)->evalBackground(xsink);
+   
    return n->refSelf();
 }
 
