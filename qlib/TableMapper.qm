@@ -497,11 +497,14 @@ InboundTableMapper mapper(table, DbMapper);
                 h += rh;
 
             Mapper::logOutput(h);
+            if (rowcode) {
+                rowcode(h);
+            }
             return h;
         }
 
-        #! sets a @ref closure "closure" or @ref call_reference "call reference" that will be called when bulk data has been flushed to the database and all output data is available; must accept a hash argument that represents the data written to the database including any output arguments
-        /** @param rowc a @ref closure "closure" or @ref call_reference "call reference" that will be called when bulk data has been flushed to the database and all output data is available; must accept a hash argument that represents the data written to the database including any output arguments
+        #! sets a @ref closure "closure" or @ref call_reference "call reference" that will be called when data has been sent to the database and all output data is available; must accept a hash argument that represents the data written to the database including any output arguments. This code will be reset, once the transaction is commited.
+        /** @param rowc a @ref closure "closure" or @ref call_reference "call reference" that will be called when data has been sent to the database and all output data is available; must accept a hash argument that represents the data written to the database including any output arguments
         */
         setRowCode(*code rowc) {
             rowcode = rowc;
@@ -576,10 +579,7 @@ on_error $table_mapper.rollback();
         */
         private *hash queueBatchRowIntern(hash rec) {
             if (insert_block == 1) {
-                hash h = insertRowNoCommit(rec);
-                if (rowcode)
-                    rowcode(h);
-                return h;
+                return insertRowNoCommit(rec);
             }
 
             hash h = mapDataIntern(rec);
