@@ -140,6 +140,40 @@ public class QUnit::TestResultValue inherits QUnit::AbstractTestResult {
     }
 }
 
+#! Class representing a partial match of a hash value. Common keys have to be identical.
+public class QUnit::TestResultPartialHashMatch inherits QUnit::AbstractTestResult {
+    constructor(hash value) : AbstractTestResult("PartialHashMatch") {
+        if (value == NULL)
+            return;
+        m_value = value;
+    }
+
+    public bool equals(QUnit::AbstractTestResult r) {
+        # Check type
+        if (r.m_type == "Value") {
+            # For Value results, only match against hashes. The other make no sense.
+            if (r.m_value.typeCode() != NT_HASH) {
+                return False;
+            }
+        } else if (!r.m_type == "PartialHashMatch") {
+            return False;
+        }
+        # All keys from this hash must be present in r and match.
+        foreach string key in (m_value.keyIterator()) {
+            if (!r.m_value.hasKey(key))
+                return False;
+
+            if (r.m_value{key} != m_value{key})
+                return False;
+        }
+        return True;
+    }
+
+    public string toString() {
+        return sprintf("Partial Hash match: %N", m_value);
+    }
+}
+
 #! Class representing Exception of a particular type
 public class QUnit::TestResultExceptionType inherits QUnit::AbstractTestResult {
     public {

@@ -13,6 +13,7 @@ public class ResultsTest inherits QUnit::Test {
         # Tests for TestResult* classes
         addTestCase("Boolean results comparisons", \testBoolResults(), NOTHING);
         addTestCase("Value result type comparisons", \testValueResults(), NOTHING);
+        addTestCase("Partial hash match type comparisons", \testPartialHashResult(), NOTHING);
         addTestCase("Exception results comparisons", \testExceptionResults(), NOTHING);
         # Misc functionality
         addTestCase("Verify the testAssertion() method", \testAssertions(), NOTHING);
@@ -71,6 +72,37 @@ public class ResultsTest inherits QUnit::Test {
         # Hashes are unordered
         testAssertion("hash ordering", \h.equals(), (new QUnit::TestResultValue((3:4,1:2)),));
         testAssertion("hash ordering failure", \h.equals(), (new QUnit::TestResultValue((1:2)),), RESULT_FAILURE);
+    }
+
+    testPartialHashResult() {
+        code returnHash = sub (hash h) { return h; };
+
+        hash testHash = (
+            "a" : "b",
+            "c" : "d"
+        );
+
+        QUnit::TestResultPartialHashMatch expectedResult;
+        QUnit::TestResultValue actualResult(testHash);
+        # Match items
+        # Match "a"
+        testAssertion("partial hash match 1", returnHash, (testHash), new QUnit::TestResultPartialHashMatch(("a" : "b")));
+        # Match "c"
+        testAssertion("partial hash match 2", returnHash, (testHash), new QUnit::TestResultPartialHashMatch(("c": "d")));
+        # Match all
+        testAssertion("partial hash match 3", returnHash, (testHash), new QUnit::TestResultPartialHashMatch(testHash));
+        # Match in a different way
+        expectedResult = new QUnit::TestResultPartialHashMatch(("a": "b"));
+        testAssertion("partial hash match 4", \expectedResult.equals(), (actualResult));
+        # No match items
+        # Match has keys that the input has not
+        expectedResult = new QUnit::TestResultPartialHashMatch(("d": "x"));
+        testAssertion("partial hash no match 1", \expectedResult.equals(), (actualResult), RESULT_FAILURE);
+        # Values of a key don't match
+        expectedResult = new QUnit::TestResultPartialHashMatch(("a": "x"));
+        testAssertion("partial hash no match 2", \expectedResult.equals(), (actualResult), RESULT_FAILURE);
+        # Match against wrong type
+        testAssertion("partial hash no match 3", \expectedResult.equals(), (new TestResultValue("1234"),), RESULT_FAILURE);
     }
 
     testExceptionResults() {
