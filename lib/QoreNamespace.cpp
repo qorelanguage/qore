@@ -148,16 +148,12 @@ DLLLOCAL void init_RangeIterator_functions(QoreNamespace& ns);
 GVEntryBase::GVEntryBase(char* n, const QoreTypeInfo* typeInfo, QoreParseTypeInfo* parseTypeInfo) :
    name(new NamedScope(n)),
    var(typeInfo ? new Var(name->getIdentifier(), typeInfo) : new Var(name->getIdentifier(), parseTypeInfo)) {
-   printd(0, "GVEntryBase::GVEntryBase() name: %p %s var: %p\n", name, n, var);
 }
 
 void GVEntryBase::clear() {
-   printd(0, "GVEntryBase::~GVEntryBase name: %p %s var: %p\n", name, name->ostr, var);
    delete name;
-   if (var) {
-      printd(0, "GVEntryBase::~GVEntryBase var: %p %d -> %d\n", var, var->reference_count(), var->reference_count() - 1);
+   if (var)
       var->deref(0);
-   }
 }
 
 QoreNamespace::QoreNamespace(const char* n) : priv(new qore_ns_private(this, n)) {
