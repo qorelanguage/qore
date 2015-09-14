@@ -130,14 +130,14 @@ ParseOptionMaps::ParseOptionMaps() {
 
 QoreHashNode* ParseOptionMaps::getCodeToStringMap() const {
    QoreHashNode* h = new QoreHashNode;
-   
+
    QoreString key;
    for (pomap_t::const_iterator i = pomap.begin(), e = pomap.end(); i != e; ++i) {
       key.clear();
       key.sprintf(QLLD, i->first);
       h->setKeyValue(key.c_str(), new QoreStringNode(i->second), 0);
    }
-   
+
    return h;
 }
 
@@ -163,7 +163,7 @@ void qore_program_private_base::setDefines() {
    }
 }
 
-void qore_program_private_base::startThread(ExceptionSink& xsink) {   
+void qore_program_private_base::startThread(ExceptionSink& xsink) {
    if (!thread_local_storage->get())
       thread_local_storage->set(new QoreHashNode);
 }
@@ -189,7 +189,7 @@ void qore_program_private::doThreadInit(ExceptionSink* xsink) {
 
 // returns true if there was already a thread init closure set, false if not
 bool qore_program_private::setThreadInit(const ResolvedCallReferenceNode* n_thr_init, ExceptionSink* xsink) {
-   // check 
+   // check
    ReferenceHolder<ResolvedCallReferenceNode> old(xsink);
    {
       AutoLocker al(tlock);
@@ -235,7 +235,7 @@ void qore_program_private_base::newProgram() {
    dmap["QorePlatformCPU"] = new QoreStringNode(TARGET_ARCH);
    dmap["QorePlatformOS"] = new QoreStringNode(TARGET_OS);
 
-#ifdef _Q_WINDOWS 
+#ifdef _Q_WINDOWS
    dmap["Windows"] = &True;
 #else
    dmap["Unix"] = &True;
@@ -284,7 +284,7 @@ void qore_program_private_base::setParent(QoreProgram* p_pgm, int64 n_parse_opti
 
    // inherit parent's thread local storage key
    thread_local_storage = p_pgm->priv->thread_local_storage;
-      
+
    {
       // make sure no parsing is running in the parent while we copy namespaces
       ProgramRuntimeParseAccessHelper rah(0, p_pgm);
@@ -292,10 +292,10 @@ void qore_program_private_base::setParent(QoreProgram* p_pgm, int64 n_parse_opti
       RootNS = qore_root_ns_private::copy(*p_pgm->priv->RootNS, n_parse_options);
    }
    QoreNS = RootNS->rootGetQoreNamespace();
-      
+
    // copy parent feature list
    p_pgm->priv->featureList.populate(&featureList);
-      
+
    // copy top-level local variables in case any are referenced in static methods in the parent program (static methods are executed in the child's space)
    const LVList* lvl = p_pgm->priv->sb.getLVList();
    if (lvl)
@@ -310,7 +310,7 @@ void qore_program_private::internParseRollback() {
    // delete pending changes to namespaces
    qore_root_ns_private::parseRollback(*RootNS);
 
-   // delete pending statements 
+   // delete pending statements
    sb.parseRollback();
 
    // roll back pending domain
@@ -370,7 +370,7 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
 	 AutoLocker al(tlock);
 	 pgm_data_map.clear();
 	 tclear = 0;
-	    
+
 	 if (twaiting)
 	    tcond.broadcast();
       }
@@ -392,7 +392,12 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
       // clear any exec-class return value
       discard(exec_class_rv, xsink);
       exec_class_rv = 0;
-      
+
+      // delete code
+      // method call can be repeated
+      sb.del();
+      //printd(5, "QoreProgram::~QoreProgram() this: %p deleting root ns %p\n", this, RootNS);
+
       // clear program location
       update_runtime_location(QoreProgramLocation());
    }
@@ -421,7 +426,7 @@ int qore_program_private::internParseCommit() {
    // FIXME: remove this when all parseInit code sets the location manually (remove calls to update_parse_location in parseInit code)
    SaveParseLocationHelper plh;
 
-   // if the first stage of parsing has already failed, 
+   // if the first stage of parsing has already failed,
    // then don't go forward
    if (!parseSink->isEvent()) {
       // initialize new statements second (for "our" and "my" declarations)
@@ -430,7 +435,7 @@ int qore_program_private::internParseCommit() {
 
       printd(5, "QoreProgram::internParseCommit() this: %p RootNS: %p\n", pgm, RootNS);
    }
-	 
+
    // if a parse exception has occurred, then back out all new
    // changes to the QoreProgram atomically
    int rc;
@@ -537,7 +542,7 @@ void qore_program_private::importClass(ExceptionSink* xsink, qore_program_privat
       xsink->raiseException("CLASS-IMPORT-ERROR", "cannot import class \"%s\" with the injection flag set in a Program object without PO_ALLOW_INJECTION set", path);
       return;
    }
-   
+
    const qore_ns_private* vns = 0;
    const QoreClass* c;
    {
@@ -584,7 +589,7 @@ void qore_program_private::importFunction(ExceptionSink* xsink, QoreFunction* u,
       qore_root_ns_private::runtimeImportFunction(*RootNS, xsink, *tns, u, nscope.getIdentifier());
       return;
    }
-   
+
    // find/create target namespace based on source namespace
    QoreNamespace* tns = oldns.root ? RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, oldns);
    //printd(5, "qore_program_private::importFunction() this: %p tns: %p '%s' oldns: '%s' RootNS: %p %s\n", this, tns, tns->getName(), oldns.name.c_str(), RootNS, RootNS->getName());
@@ -616,7 +621,7 @@ void qore_program_private::exportGlobalVariable(const char* vname, bool readonly
    ProgramRuntimeParseContextHelper pch(xsink, tpgm.pgm);
    if (*xsink)
       return;
-   
+
    // find/create target namespace based on source namespace
    QoreNamespace* tns = vns->root ? tpgm.RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*tpgm.RootNS, *vns);
    //printd(5, "qore_program_private::exportGlobalVariable() this: %p vname: '%s' ro: %d vns: %p '%s::' RootNS: %p '%s::'\n", this, vname, readonly, vns, vns->name.c_str(), RootNS, RootNS->getName());
@@ -637,6 +642,12 @@ void qore_program_private::del(ExceptionSink* xsink) {
       base_object = false;
    }
 
+   // delete defines
+   for (dmap_t::iterator i = dmap.begin(), e = dmap.end(); i != e; ++i)
+      discard(i->second, xsink);
+   dmap.clear();
+
+   assert(RootNS);
    // have to delete global variables first because of destructors.
    // method call can be repeated
    qore_root_ns_private::clearData(*RootNS, xsink);
@@ -644,17 +655,13 @@ void qore_program_private::del(ExceptionSink* xsink) {
    // delete all global variables, class static vars and constants
    RootNS->deleteData(xsink);
 
-   // delete defines
-   for (dmap_t::iterator i = dmap.begin(), e = dmap.end(); i != e; ++i)
-      discard(i->second, xsink);
-   dmap.clear();
+   delete RootNS;
+   RootNS = 0;
 
+   // delete all root code
    // method call can be repeated
    sb.del();
    //printd(5, "QoreProgram::~QoreProgram() this: %p deleting root ns %p\n", this, RootNS);
-
-   delete RootNS;
-   RootNS = 0;
 }
 
 QoreProgram::~QoreProgram() {
@@ -700,41 +707,41 @@ ExceptionSink* QoreProgram::getParseExceptionSink() {
 }
 
 int QoreProgram::setWarningMask(int wm) {
-   if (!(priv->pwo.parse_options & PO_LOCK_WARNINGS)) { 
-      priv->pwo.warn_mask = wm; 
+   if (!(priv->pwo.parse_options & PO_LOCK_WARNINGS)) {
+      priv->pwo.warn_mask = wm;
       return 0;
    }
    return -1;
 }
 
 // returns 0 for success, -1 for error
-int QoreProgram::enableWarning(int code) { 
+int QoreProgram::enableWarning(int code) {
    if (!(priv->pwo.parse_options & PO_LOCK_WARNINGS)) {
-      priv->pwo.warn_mask |= code; 
-      return 0; 
-   } 
-   return -1; 
+      priv->pwo.warn_mask |= code;
+      return 0;
+   }
+   return -1;
 }
 
 // returns 0 for success, -1 for error
-int QoreProgram::disableWarning(int code) { 
+int QoreProgram::disableWarning(int code) {
    if (!(priv->pwo.parse_options & PO_LOCK_WARNINGS)) {
-      priv->pwo.warn_mask &= ~code; 
-      return 0; 
-   } 
-   return -1; 
+      priv->pwo.warn_mask &= ~code;
+      return 0;
+   }
+   return -1;
 }
 
 RootQoreNamespace* QoreProgram::getRootNS() const {
-   return priv->RootNS; 
+   return priv->RootNS;
 }
 
-int QoreProgram::getParseOptions() const { 
-   return (int)priv->pwo.parse_options; 
+int QoreProgram::getParseOptions() const {
+   return (int)priv->pwo.parse_options;
 }
 
-int64 QoreProgram::getParseOptions64() const { 
-   return priv->pwo.parse_options; 
+int64 QoreProgram::getParseOptions64() const {
+   return priv->pwo.parse_options;
 }
 
 QoreListNode* QoreProgram::getUserFunctionList() {
@@ -756,8 +763,8 @@ void QoreProgram::waitForTerminationAndDeref(ExceptionSink* xsink) {
    deref(xsink);
 }
 
-void QoreProgram::lockOptions() { 
-   priv->po_locked = true; 
+void QoreProgram::lockOptions() {
+   priv->po_locked = true;
 }
 
 // setExecClass() NOTE: string passed here will copied
@@ -783,11 +790,11 @@ void QoreProgram::depDeref(ExceptionSink* xsink) {
 }
 
 bool QoreProgram::checkWarning(int code) const {
-   return priv->warnSink && (code & priv->pwo.warn_mask); 
+   return priv->warnSink && (code & priv->pwo.warn_mask);
 }
 
-int QoreProgram::getWarningMask() const { 
-   return priv->warnSink ? priv->pwo.warn_mask : 0; 
+int QoreProgram::getWarningMask() const {
+   return priv->warnSink ? priv->pwo.warn_mask : 0;
 }
 
 bool QoreProgram::existsFunction(const char* name) {
@@ -936,7 +943,7 @@ AbstractQoreNode* QoreProgram::callFunction(const char* name, const QoreListNode
 	 return 0;
       qf = qore_root_ns_private::runtimeFindFunction(*priv->RootNS, name, ns);
    }
-   
+
    if (!qf) {
       xsink->raiseException("NO-FUNCTION", "function name '%s' does not exist", name);
       return 0;
@@ -981,7 +988,7 @@ void QoreProgram::runClass(const char* classname, ExceptionSink* xsink) {
 
    ProgramThreadCountContextHelper tch(xsink, this, true);
    if (!*xsink)
-      discard(qc->execConstructor(0, xsink), xsink); 
+      discard(qc->execConstructor(0, xsink), xsink);
 }
 
 void QoreProgram::parseFileAndRunClass(const char* filename, const char* classname) {
@@ -1039,7 +1046,7 @@ void QoreProgram::parseFileAndRun(const char* filename) {
 
 void QoreProgram::parseAndRun(FILE* fp, const char* name) {
    ExceptionSink xsink;
-   
+
    if (priv->exec_class && priv->exec_class_name.empty())
       xsink.raiseException("EXEC-CLASS-ERROR", "class name required if executing from stdin");
    else {
@@ -1113,7 +1120,7 @@ QoreValue QoreProgram::getGlobalVariableVal(const char* var, bool& found) const 
       found = false;
       return QoreValue();
    }
-   found = true;   
+   found = true;
    return v->eval();
 }
 
@@ -1193,7 +1200,7 @@ AbstractQoreNode* qore_parse_get_define_value(const char* str, QoreString& arg, 
       ++p;
    }
 
-   p = arg.getBuffer();   
+   p = arg.getBuffer();
    if (flt)
       return new QoreFloatNode(atof(p));
    return new QoreBigIntNode(strtoll(p, 0, 10));

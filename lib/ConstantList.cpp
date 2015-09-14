@@ -1,10 +1,10 @@
 /*
   ConstantList.cpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -43,11 +43,13 @@ const char* ClassNs::getName() const {
 }
 #endif
 
+#if 0
+// currently not used
 /* the following functions find all objects that are directly reachable by a resolved
-   constant value and dereference the QoreProgram object that the object has 
+   constant value and dereference the QoreProgram object that the object has
    referenced (as long as its the same QoreProgram object that owns the constant)
    in order to break the circular reference
-*/ 
+*/
 static void check_constant_cycle(QoreProgram* pgm, AbstractQoreNode* n);
 
 static void check_constant_cycle_list(QoreProgram* pgm, QoreListNode* l) {
@@ -69,6 +71,7 @@ static void check_constant_cycle(QoreProgram* pgm, AbstractQoreNode* n) {
    else if (t == NT_HASH)
       check_constant_cycle_hash(pgm, reinterpret_cast<QoreHashNode*>(n));
 }
+#endif
 
 ConstantEntry::ConstantEntry(const char* n, AbstractQoreNode* v, const QoreTypeInfo* ti, bool n_pub, bool n_init, bool n_builtin)
    : saved_node(0), loc(ParseLocation), name(n), typeInfo(ti), node(v), in_init(false), pub(n_pub), init(n_init), builtin(n_builtin)  {
@@ -77,7 +80,7 @@ ConstantEntry::ConstantEntry(const char* n, AbstractQoreNode* v, const QoreTypeI
       pwo = qore_program_private::getParseWarnOptions(pgm);
 }
 
-ConstantEntry::ConstantEntry(const ConstantEntry& old) : 
+ConstantEntry::ConstantEntry(const ConstantEntry& old) :
    saved_node(old.saved_node ? old.saved_node->refSelf() : 0), loc(old.loc), pwo(old.pwo), name(old.name),
    typeInfo(old.typeInfo), node(old.node ? old.node->refSelf() : 0),
    in_init(false), pub(old.builtin), init(true), builtin(old.builtin) {
@@ -102,7 +105,7 @@ int ConstantEntry::scanValue(const AbstractQoreNode* n) const {
 		return -1;
 	 return 0;
       }
-	 
+
       // could have any value and could change at runtime
       case NT_OBJECT:
       case NT_FUNCREF:
@@ -113,7 +116,7 @@ int ConstantEntry::scanValue(const AbstractQoreNode* n) const {
 }
 
 void ConstantEntry::del(QoreListNode& l) {
-   //printd(5, "ConstantEntry::del(l) this: %p '%s' node: %p (%d) %s %d\n", this, name.c_str(), node, get_node_type(node), get_type_name(node), node->reference_count());
+   //printd(5, "ConstantEntry::del(l) this: %p '%s' node: %p (%d) %s %d (saved_node: %p)\n", this, name.c_str(), node, get_node_type(node), get_type_name(node), node->reference_count(), saved_node);
    if (saved_node) {
       node->deref(0);
       l.push(saved_node);
@@ -222,7 +225,7 @@ int ConstantEntry::parseInit(ClassNs ptr) {
 	 }
 	 else {
 	    typeInfo = getTypeInfoForValue(node);
-	    check_constant_cycle(pgm, node); // address circular refs: pgm->const->pgm
+	    //check_constant_cycle(pgm, node); // address circular refs: pgm->const->pgm
 	 }
       }
       else {
@@ -262,7 +265,7 @@ ConstantList::ConstantList(const ConstantList& old, int64 po, ClassNs p) : ptr(p
 	 if (po & PO_NO_INHERIT_SYSTEM_CONSTANTS && i->second->isSystem())
 	    continue;
       }
-      
+
       ConstantEntry* ce = new ConstantEntry(*(i->second));
 
       last = cnemap.insert(last, cnemap_t::value_type(ce->getName(), ce));
@@ -299,7 +302,7 @@ void ConstantList::clear(QoreListNode& l) {
    for (cnemap_t::iterator i = cnemap.begin(), e = cnemap.end(); i != e; ++i) {
       if (!i->second)
          continue;
-      printd(5, "ConstantList::clear(l: %p) this: %p clearing %s type %s refs %d\n", &l, this, i->first, get_type_name(i->second->node), i->second->node ? i->second->node->reference_count() : 0);
+      //printd(5, "ConstantList::clear(l: %p) this: %p clearing %s type %s refs %d\n", &l, this, i->first, get_type_name(i->second->node), i->second->node ? i->second->node->reference_count() : 0);
       i->second->del(l);
    }
 
@@ -393,7 +396,7 @@ int ConstantList::importSystemConstants(const ConstantList& src, ExceptionSink* 
 	 xsink->raiseException("IMPORT-SYSTEM-API-ERROR", "cannot import system constant %s due to an existing constant with the same name in the target namespace", i->first);
 	 return -1;
       }
-      
+
       ConstantEntry* n = new ConstantEntry(*i->second);
       cnemap[n->getName()] = n;
    }
@@ -408,7 +411,7 @@ void ConstantList::assimilate(ConstantList& n) {
       cnemap[i->first] = i->second;
       i->second = 0;
    }
-   
+
    n.parseDeleteAll();
 }
 
@@ -456,7 +459,7 @@ int ConstantList::checkDup(const char* name, ConstantList& committed, ConstantLi
       parse_error("%s constant \"%s\" has already been added to class \"%s\" as a %s constant", privpub(priv), name, cname, privpub(!priv));
       return -1;
    }
-   
+
    return 0;
 }
 

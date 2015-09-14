@@ -34,9 +34,9 @@
 
 #include <set>
 
-enum qore_var_t { 
-   VT_UNRESOLVED = 1, 
-   VT_LOCAL      = 2, 
+enum qore_var_t {
+   VT_UNRESOLVED = 1,
+   VT_LOCAL      = 2,
    VT_GLOBAL     = 3,
    VT_CLOSURE    = 4,
    VT_LOCAL_TS   = 5,  // thread-safe variables, not closure-bound
@@ -96,10 +96,10 @@ class LValueHelper;
 class LValueRemoveHelper;
 
 // structure for global variables
-class Var : public QoreReferenceCounter {
+class Var : protected QoreReferenceCounter {
 private:
    const QoreProgramLocation loc;      // location of the initial definition
-   unsigned char type;              
+   unsigned char type;
    QoreLValue<qore_gvar_ref_u> val;
    std::string name;
    mutable QoreVarRWLock rwl;
@@ -171,6 +171,7 @@ public:
    }
 
    DLLLOCAL bool isImported() const;
+
    DLLLOCAL void deref(ExceptionSink* xsink);
 
    DLLLOCAL QoreValue eval() const;
@@ -230,7 +231,7 @@ public:
       }
 
       typeInfo = n_typeInfo;
-         
+
       assert(!val.removeNode(true));
    }
 
@@ -239,7 +240,7 @@ public:
          return;
 
       if (parseTypeInfo) {
-         typeInfo = parseTypeInfo->resolveAndDelete(loc);         
+         typeInfo = parseTypeInfo->resolveAndDelete(loc);
          parseTypeInfo = 0;
 
          val.set(typeInfo);
@@ -441,7 +442,7 @@ public:
       assert(!val);
       v = ptr;
       typeInfo = ti;
-         
+
       before = get_container_obj(*ptr);
    }
 
@@ -476,7 +477,7 @@ public:
    }
 
    DLLLOCAL QoreValue getReferencedValue() const;
-   
+
    DLLLOCAL AbstractQoreNode* getReferencedNodeValue() const;
 
    // only call after calling checkType() to ensure the type is correct and cannot be optimized
@@ -573,7 +574,7 @@ public:
    DLLLOCAL int assignBigInt(int64 v, const char* desc = "<lvalue>");
    DLLLOCAL int assignFloat(double v, const char* desc = "<lvalue>");
    */
-   
+
    DLLLOCAL AbstractQoreNode* removeNode(bool for_del);
    DLLLOCAL QoreValue remove();
 
@@ -623,7 +624,7 @@ public:
 
    DLLLOCAL AbstractQoreNode* removeNode();
    DLLLOCAL QoreValue remove();
-   
+
    DLLLOCAL void deleteLValue();
 };
 

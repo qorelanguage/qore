@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   CallReferenceNode.h
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -102,7 +102,7 @@ public:
 };
 
 class StaticMethodCallReferenceNode : public LocalStaticMethodCallReferenceNode {
-protected:   
+protected:
    QoreProgram* pgm;
 
    DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink);
@@ -140,8 +140,8 @@ public:
 
 class MethodCallReferenceNode : public LocalMethodCallReferenceNode {
 protected:
-   QoreProgram* pgm;
-   
+   QoreObject* obj;
+
    DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink);
 
 public:
@@ -188,7 +188,7 @@ public:
 class FunctionCallReferenceNode : public LocalFunctionCallReferenceNode {
 protected:
    QoreProgram* pgm;
-   
+
    DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink);
 
 public:
@@ -226,7 +226,7 @@ private:
    const qore_class_private* qc;
 
    DLLLOCAL virtual ~RunTimeObjectMethodReferenceNode();
-   
+
 public:
    DLLLOCAL RunTimeObjectMethodReferenceNode(QoreObject* n_obj, const char* n_method);
    DLLLOCAL virtual QoreValue execValue(const QoreListNode* args, ExceptionSink* xsink) const;

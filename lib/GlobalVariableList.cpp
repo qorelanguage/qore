@@ -1,12 +1,12 @@
 /*
   GlobalVariableList.cpp
- 
+
   Program QoreObject Definition
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -39,7 +39,7 @@ GlobalVariableList::GlobalVariableList(const GlobalVariableList& old, int64 po) 
    // don't inherit any global vars if the appropriate flag is not already set
    if ((po & PO_NO_INHERIT_GLOBAL_VARS))
       return;
-   
+
    map_var_t::iterator last = vmap.begin();
    for (map_var_t::const_iterator i = old.vmap.begin(), e = old.vmap.end(); i != e; ++i) {
       //printd(5, "GlobalVariableList::GlobalVariableList() this: %p v: %p '%s' pub: %d\n", this, i->second, i->second->getName(), i->second->isPublic());
@@ -70,14 +70,14 @@ Var* GlobalVariableList::import(Var* v, ExceptionSink* xsink, bool readonly) {
 
    Var* var = new Var(v, readonly);
    pending_vmap[var->getName()] = var;
-   
+
    printd(5, "GlobalVariableList::import(): reference to %s (%p) added\n", v->getName(), var);
    return var;
 }
 
 // sets all non-imported variables to NULL (dereferences contents if any)
 void GlobalVariableList::clearAll(ExceptionSink* xsink) {
-   //printd(5, "GlobalVariableList::clear_all() this=%p (size=%d)\n", this, vmap.size());
+   //printd(5, "GlobalVariableList::clear_all() this: %p (size: %d)\n", this, vmap.size());
    for (map_var_t::iterator i = vmap.begin(), e = vmap.end(); i != e; ++i) {
       i->second->clearLocal(xsink);
    }
@@ -97,7 +97,7 @@ Var* GlobalVariableList::runtimeCreateVar(const char* name, const QoreTypeInfo* 
 
    Var* var = new Var(name, typeInfo);
    vmap[var->getName()] = var;
-   
+
    printd(5, "GlobalVariableList::runtimeCreateVar(): %s (%p) added (resolved type %s)\n", name, var, typeInfo->getName());
    return var;
 }
@@ -107,8 +107,8 @@ Var* GlobalVariableList::parseCreatePendingVar(const char* name, const QoreTypeI
 
    Var* var = new Var(name, typeInfo);
    pending_vmap[var->getName()] = var;
-   
-   printd(5, "GlobalVariableList::parseCreatePendingVar(): %s (%p) added (resolved type %s)\n", name, var, typeInfo->getName());
+
+   //printd(5, "GlobalVariableList::parseCreatePendingVar(): %s (%p) added (resolved type %s)\n", name, var, typeInfo->getName());
    return var;
 }
 
@@ -145,6 +145,7 @@ void GlobalVariableList::parseCommit() {
 }
 
 void GlobalVariableList::parseRollback() {
+   //printd(5, "GlobalVariableList::parseRollback() this: %p\n", this);
    for (map_var_t::iterator i = pending_vmap.begin(), e = pending_vmap.end(); i != e; ++i)
       i->second->deref(0);
    pending_vmap.clear();
@@ -152,10 +153,10 @@ void GlobalVariableList::parseRollback() {
 
 QoreListNode *GlobalVariableList::getVarList() const {
    QoreListNode *l = new QoreListNode();
-   
+
    for (map_var_t::const_iterator i = vmap.begin(); i != vmap.end(); i++)
       l->push(new QoreStringNode(i->first));
-   
+
    return l;
 }
 
@@ -163,4 +164,3 @@ void GlobalVariableList::parseAdd(Var* v) {
    assert(!parseFindVar(v->getName()));
    pending_vmap[v->getName()] = v;
 }
-

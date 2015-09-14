@@ -420,7 +420,7 @@ nothing set_signal_handler(softint signal, code f) [dom=PROCESS] {
 }
 
 //! Removes a signal handler and returns the signal handling state to the default
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_SIGNAL_HANDLING
 
@@ -454,7 +454,7 @@ nothing remove_signal_handler(softint signal) [dom=PROCESS] {
  */
 //@{
 //! Calls a function and returns the return value, passing the remaining arguments after the function name to the function
-/** 
+/**
     @param name The name of the function to call
     @param ... Any optional arguments to the function
 
@@ -480,7 +480,7 @@ any call_function(string name, ...) {
 }
 
 //! Calls the given @ref call_reference "call reference" or @ref closure "closure" and returns the result, passing the remaining arguments to the @ref call_reference "call reference" or @ref closure "closure"
-/** 
+/**
     @param f The @ref call_reference "call reference" or @ref closure "closure"
     @param ... Any optional arguments to the @ref call_reference "call reference" or @ref closure "closure"
 
@@ -501,7 +501,7 @@ any call_function(code f, ...) {
 }
 
 //! Calls a function and returns the return value, using the optional second argument as a list of arguments for the function
-/** 
+/**
     @param name The name of the function to call
     @param vargs Optionally a single argument to the function or a list of arguments to the function
 
@@ -522,7 +522,7 @@ any call_function_args(string name, *softlist vargs) {
 }
 
 //! Calls the given @ref call_reference "call reference" or @ref closure "closure" and returns the result, using the optional second argument as a list of arguments to the @ref call_reference "call reference" or @ref closure "closure"
-/** 
+/**
     @param f The @ref call_reference "call reference" or @ref closure "closure"
     @param vargs Optionally a single argument to the @ref call_reference "call reference" or @ref closure "closure" or a list of arguments to the @ref call_reference "call reference" or @ref closure "closure"
 
@@ -538,7 +538,7 @@ any call_function_args(code f, *softlist vargs) {
 }
 
 //! Calls a function and returns the return value, passing the remaining arguments after the function name to the builtin function
-/** 
+/**
     @param name The name of the builtin function to call
     @param ... Any optional arguments to the function
 
@@ -570,7 +570,7 @@ any call_builtin_function(string name, ...) {
 }
 
 //! Calls a function and returns the return value, using the optional second argument as a list of arguments for the function
-/** 
+/**
     @param name The name of the builtin function to call
     @param vargs Optionally a single argument to the function or a list of arguments to the function
 
@@ -637,7 +637,7 @@ bool existsFunction(code[doc] c) [flags=NOOP,DEPRECATED] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing existsFunction() [flags=RUNTIME_NOOP,DEPRECATED] {
 }
@@ -672,7 +672,7 @@ bool exists_function(code[doc] c) [flags=NOOP] {
 }
 
 //! Returns \c "builtin" (for a builtin function), \c "user" (for a user function), or @ref nothing (if the function cannot be found) according to the function name passed
-/** 
+/**
     @param name The function name to check
     @return \c "builtin" (for a builtin function), \c "user" (for a user function), or @ref nothing (if the function cannot be found) according to the function name passed
 
@@ -688,13 +688,13 @@ bool exists_function(code[doc] c) [flags=NOOP] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing functionType() [flags=RUNTIME_NOOP,DEPRECATED] {
 }
 
 //! Returns \c "builtin" (for a builtin function), \c "user" (for a user function), or @ref nothing (if the function cannot be found) according to the function name passed
-/** 
+/**
     @param name The function name to check
     @return \c "builtin" (for a builtin function), \c "user" (for a user function), or @ref nothing (if the function cannot be found) according to the function name passed
 
@@ -731,7 +731,7 @@ string html_encode(string str) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing html_encode() [flags=RUNTIME_NOOP] {
 }
@@ -753,7 +753,7 @@ string html_decode(string str) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing html_decode() [flags=RUNTIME_NOOP] {
 }
@@ -771,7 +771,7 @@ string get_default_encoding() {
 }
 
 //! Adds the text passed to the current program's code, tagged with the given label
-/** 
+/**
     @param code the string of %Qore source code to parse; the parsed code will be added to the current program
     @param label a label identifying the code or the code's source
     @param warning_mask An optional warning mask; see @ref warning_constants for values to combine by binary-or; if this arguments is 0 or not given then no warnings will be checked or issued and the return value will always be @ref nothing
@@ -811,13 +811,13 @@ parse($code, $filename);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing parse() [flags=RUNTIME_NOOP;dom=EMBEDDED_LOGIC,IN_MODULE] {
 }
 
 //! Returns the class name of the object passed
-/** 
+/**
     @param obj the object to get the class name of
     @return the class name of the object passed
 
@@ -828,13 +828,13 @@ string getClassName(object obj) [flags=CONSTANT,DEPRECATED] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing getClassName() [flags=RUNTIME_NOOP,DEPRECATED] {
 }
 
 //! Returns the class name of the object passed
-/** 
+/**
     @param obj the object to get the class name of
     @return the class name of the object passed
 
@@ -911,16 +911,16 @@ my *hash $hash = parseURL($url_string);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing parseURL() [flags=RUNTIME_NOOP] {
 }
 
 //! Executes a process and returns a string of the output (stdout only)
-/** 
+/**
     @param cmd The shell command to executed as a subprocess
     @param rc an optional reference to an integer to return the return code of the process
-    
+
     @return The stdout of the shell command that was executed
 
     @par Example:
@@ -951,7 +951,7 @@ string backquote(string cmd, *reference rc) [dom=EXTERNAL_PROCESS] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing backquote() [flags=RUNTIME_NOOP;dom=EXTERNAL_PROCESS] {
 }
@@ -999,7 +999,7 @@ string makeBase64String(binary bin, softint maxlinelen = -1) [flags=CONSTANT,DEP
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing makeBase64String() [flags=RUNTIME_NOOP,DEPRECATED] {
 }
@@ -1072,7 +1072,7 @@ binary parseBase64String(string str) [flags=RET_VALUE_ONLY,DEPRECATED] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing parseBase64String() [flags=RUNTIME_NOOP,DEPRECATED] {
 }
@@ -1125,7 +1125,7 @@ string parseBase64StringToString(string str, *string encoding) [flags=RET_VALUE_
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing parseBase64StringToString() [flags=RUNTIME_NOOP,DEPRECATED] {
 }
@@ -1306,13 +1306,13 @@ list hash_values(hash h) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing hash_values() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns @ref True if the given key exists in the hash (does not necessarily have to have a value assigned); exceptions are only raised if string encoding errors are encountered
-/** 
+/**
     @param h the hash to check
     @param key the key name to check; this value will be converted to the @ref default_encoding "default character encoding" to check the hash
 
@@ -1332,7 +1332,7 @@ bool has_key(hash h, string key) {
 }
 
 //! Returns @ref True if the given key exists in the object (does not necessarily have to have a value assigned); exceptions are only raised if string encoding errors are encountered or in case of object access errors.
-/** 
+/**
     @par Example:
     @code
 my bool $b = has_key($obj, "key");
@@ -1349,7 +1349,7 @@ bool has_key(object obj, string key) {
 }
 
 //! Returns the byte value at the given byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
-/** 
+/**
     @param str the string data to process
     @param offset the byte offset of the data to retrieve (the first value is at offset 0)
 
@@ -1370,11 +1370,11 @@ my *int $byte = get_byte($str, 2); # returns the third byte of the string
    if (offset >= size || offset < 0)
       return 0;
 
-   return new QoreBigIntNode(ptr[offset]);  
+   return new QoreBigIntNode(ptr[offset]);
 }
 
 //! Returns the byte value at the given byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
-/** 
+/**
     @param b the data to process
     @param offset the byte offset of the data to retrieve (the first value is at offset 0)
 
@@ -1395,11 +1395,11 @@ my *int $byte = get_byte($bin, 2); # returns the third byte of the binary object
    if (offset >= size || offset < 0)
       return 0;
 
-   return new QoreBigIntNode(ptr[offset]);  
+   return new QoreBigIntNode(ptr[offset]);
 }
 
 //! Returns the byte value at the given byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
-/** 
+/**
     @param str the string data to process
     @param offset the byte offset of the data to retrieve (the first value is at offset 0)
 
@@ -1417,17 +1417,17 @@ my *int $byte = get_byte($bin, 2); # returns the third byte of the binary object
    if (offset >= size || offset < 0)
       return 0;
 
-   return new QoreBigIntNode(ptr[offset]);  
+   return new QoreBigIntNode(ptr[offset]);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing getByte() [flags=RUNTIME_NOOP,DEPRECATED] {
 }
 
 //! Returns the byte value at the given byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
-/** 
+/**
     @param b the data to process
     @param offset the byte offset of the data to retrieve (the first value is at offset 0)
 
@@ -1445,7 +1445,7 @@ nothing getByte() [flags=RUNTIME_NOOP,DEPRECATED] {
    if (offset >= size || offset < 0)
       return 0;
 
-   return new QoreBigIntNode(ptr[offset]);  
+   return new QoreBigIntNode(ptr[offset]);
 }
 
 //! Returns the 16-bit integer value at the given 2-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1606,7 +1606,7 @@ my *int $val = get_word_32($bin, 2); # returns the third 4-byte (32-bit) value i
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing getWord32() [flags=RUNTIME_NOOP,DEPRECATED] {
 }
@@ -1921,7 +1921,7 @@ list splice(list l, softint start, softint len, *softlist nlist) {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing splice() [flags=RUNTIME_NOOP] {
 }
@@ -1963,7 +1963,7 @@ string makeHexString(binary bin) [flags=CONSTANT,DEPRECATED] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing makeHexString() [flags=RUNTIME_NOOP,DEPRECATED] {
 }
@@ -2032,7 +2032,7 @@ binary parseHexString(string hexstr) [flags=RET_VALUE_ONLY,DEPRECATED] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing parseHexString() [flags=RUNTIME_NOOP,DEPRECATED] {
 }
@@ -2104,7 +2104,7 @@ int hextoint(string str) {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing hextoint() [flags=RUNTIME_NOOP] {
 }
@@ -2112,14 +2112,14 @@ nothing hextoint() [flags=RUNTIME_NOOP] {
 //! parses a string representing a number in a configurable base and returns the integer
 /** @param num a string representing a number
     @param base the base of the number
-    
+
     @return the integer represented by the string and the base
 
     @par Example:
     @code
 my int $i = strtoint("41", 8);
     @endcode
-    
+
     @throw STRTOINT-ERROR cannot parse string; unsupported base, etc
 */
 int strtoint(string num, softint base = 10) {
@@ -2131,7 +2131,7 @@ int strtoint(string num, softint base = 10) {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing strtoint() [flags=RUNTIME_NOOP] {
 }
@@ -2150,7 +2150,7 @@ load_module("mysql");
 
     @throw LOAD-MODULE-ERROR module cannot be loaded: API incompatibility, module defines symbols already defined in the target object, etc
 
-    @see 
+    @see
     - get_module_hash()
     - get_feature_list()
 
@@ -2161,7 +2161,7 @@ nothing load_module(string name) [dom=MODULES] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing load_module() [flags=RUNTIME_NOOP;dom=MODULES] {
 }
@@ -2186,7 +2186,7 @@ nothing load_user_module_with_program(string name, !Qore::Program[QoreProgram] p
 }
 
 //! Reloads an already-loaded %Qore module subject to code injection at run-time into %Qore; the module's code is not imported into the current Program object
-/** 
+/**
     @param name a feature name for an already-loaded module
 
     @par Example:
@@ -2200,7 +2200,7 @@ reload_module("FixedLengthUtil");
     - unlike load_module(), this function does not cause the given module's code to be loaded in the current Program object
     - in case the given feature has not been loaded or has already been loaded and was not subject to code injection, this call is silently ignored
 
-    @see 
+    @see
     - load_module()
 
     @since %Qore 0.8.12
@@ -2233,14 +2233,14 @@ string decode_url(string url) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing decode_url() [flags=RUNTIME_NOOP] {
 }
 
 //! Encodes URLs by substituting \c '%%' characters with \c '%25', spaces (\c ' ') with \c '%20', and non-ascii characters by percent-encoded representations
 /** @param url a URL string to encode
-    @param encode_all if @ref Qore::True "True", then in addition to \c '%%', spaces (\c ' '), and non-ascii characters the following reserved characters (according to <a href="http://tools.ietf.org/html/rfc3986">RFC 3986</a> are also encoded: \c '!', \c '*', \c '\'', \c '(', \c ')', \c ';', \c ':', \c '@', \c '&', \c '=', \c '+', \c '$', \c ',', \c '/', \c '?', \c '#', \c '[', \c ']' 
+    @param encode_all if @ref Qore::True "True", then in addition to \c '%%', spaces (\c ' '), and non-ascii characters the following reserved characters (according to <a href="http://tools.ietf.org/html/rfc3986">RFC 3986</a> are also encoded: \c '!', \c '*', \c '\'', \c '(', \c ')', \c ';', \c ':', \c '@', \c '&', \c '=', \c '+', \c '$', \c ',', \c '/', \c '?', \c '#', \c '[', \c ']'
 
     @return the URL string with encoded according to the arguments
 
@@ -2450,7 +2450,7 @@ hash get_qore_library_info() [flags=CONSTANT] {
 
    h->setKeyValue("PlatformOS", new QoreStringNode(qore_target_os), xsink);
    h->setKeyValue("PlatformCPU", new QoreStringNode(qore_target_arch), xsink);
-   h->setKeyValue("VersionString", new QoreStringNode(qore_version_string), xsink);   
+   h->setKeyValue("VersionString", new QoreStringNode(qore_version_string), xsink);
    h->setKeyValue("VersionMajor", new QoreBigIntNode(qore_version_major), xsink);
    h->setKeyValue("VersionMinor", new QoreBigIntNode(qore_version_minor), xsink);
    h->setKeyValue("VersionSub", new QoreBigIntNode(qore_version_sub), xsink);

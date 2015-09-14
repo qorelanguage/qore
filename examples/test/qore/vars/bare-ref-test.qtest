@@ -61,9 +61,9 @@ public class BarerefTest inherits QUnit::Test {
     	testAssertion("arg test 2", func, ("True", 2001-01-01), new TestResultValue(("True", 2001-01-01)));
 
         # FIXME: Crashes Qore
-#    	testAssertion("arg test 3", \BarerefTest::argTest(), ("2", False), new TestResultValue(("2", False)));
-#    	func = \BarerefTest::argTest();
-#    	testAssertion("arg test 4", func, ("True", 2001-01-01), new TestResultValue(("True", 2001-01-01)));
+    	testAssertion("arg test 3", \BarerefTest::argTest(), ("2", False), new TestResultValue(("2", False)));
+    	func = \BarerefTest::argTest();
+    	testAssertion("arg test 4", func, ("True", 2001-01-01), new TestResultValue(("True", 2001-01-01)));
 
     	testAssertion("scope 1", mclosure, NOTHING, new TestResultValue( "BarerefTest::mclosure member"));
     	func = mclosure;
@@ -101,7 +101,7 @@ public class BarerefTest inherits QUnit::Test {
     	func = Ns::vclosure;
     	testAssertion("scope 18", func, NOTHING, new TestResultValue( "Ns var vclosure"));
     }
-    
+
     lvarTest() {
     	my int a = 1;
     	my b = "1";
@@ -119,6 +119,5 @@ public class BarerefTest inherits QUnit::Test {
     	testAssertionValue("var test 8", b2, "eight");
     	testAssertionValue("var test 9", c2, "hello");
     }
-    
-}
 
+}

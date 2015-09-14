@@ -15,7 +15,7 @@ int sub t(any $a) {
 }
 
 sub class_test_Program() {
-    my string $func = "namespace ITest { const val = 1.0; class X; } $gv2 = 123; int sub t2(int $a) { return $a + 2; } int sub et(int $a) { return t($a); } string sub tot() { return getClassName($to); } Queue sub getObject() { return new Queue(); } X sub get_x() { return new X(); } sub deleteException() { $ro.getData(0); delete $ro; } bool sub check_ro() { return exists $ro; }";
+    my string $func = "namespace ITest { const val = 1.0; class X; } $gv2 = 123; int sub t2(int $a) { return $a + 2; } int sub et(int $a) { return t($a); } string sub tot() { return get_class_name($to); } Queue sub getObject() { return new Queue(); } X sub get_x() { return new X(); } sub deleteException() { $ro.getData(0); delete $ro; } bool sub check_ro() { return exists $ro; }";
 
     my string $pf = "newfunc();";
     my string $nf = "bool sub newfunc() { return True; }";
@@ -23,7 +23,7 @@ sub class_test_Program() {
     my Program $a();
     $a.parsePending($pf, "pending test part1", 0);
     $a.parsePending($nf, "pending test part2", 0);
-    $a.parseCommit();    
+    $a.parseCommit();
     $a.importFunction("t");
     $a.importGlobalVariable("to");
     $a.importGlobalVariable("ro", True);
@@ -42,12 +42,12 @@ sub class_test_Program() {
 	$unit.cmp($ex.err, "ACCESS-ERROR", "Program::importGlobalVariable() readonly");
 
     $unit.cmp($a.callFunction("check_ro"), True, "delete read-only");
-    
+
     my Queue $o = $a.callFunction("getObject");
     my object $ox = $a.callFunction("get_x");
     delete $a;
-    $unit.cmp(getClassName($o), "Queue", "builtin class returned from deleted subprogram object");
-    $unit.cmp(getClassName($ox), "X", "user class returned from deleted subprogram object");
+    $unit.cmp(get_class_name($o), "Queue", "builtin class returned from deleted subprogram object");
+    $unit.cmp(get_class_name($ox), "X", "user class returned from deleted subprogram object");
 
     # test for incorrect parse location when processing constants after a commit
     $a = new Program();

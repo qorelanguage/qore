@@ -31,7 +31,7 @@
 
 #ifndef _QORE_QORECLOSURENODE_H
 
-#define _QORE_QORECLOSURENODE_H 
+#define _QORE_QORECLOSURENODE_H
 
 #include <qore/intern/QoreObjectIntern.h>
 
@@ -39,9 +39,9 @@
 
 class CVecInstantiator {
 protected:
-   cvv_vec_t* cvec; 
+   cvv_vec_t* cvec;
    ExceptionSink* xsink;
-   
+
 public:
    DLLLOCAL CVecInstantiator(cvv_vec_t* cv, ExceptionSink* xs) : cvec(cv), xsink(xs) {
       if (!cvec)
@@ -63,7 +63,7 @@ class QoreClosureBase : public ResolvedCallReferenceNode {
 protected:
    const QoreClosureParseNode* closure;
    mutable ThreadSafeLocalVarRuntimeEnvironment closure_env;
-   cvv_vec_t* cvec; 
+   cvv_vec_t* cvec;
 
    DLLLOCAL void del(ExceptionSink* xsink) {
       closure_env.del(xsink);
@@ -100,7 +100,7 @@ public:
 
    DLLLOCAL static const char* getStaticTypeName() {
       return "closure";
-   }      
+   }
 
    DLLLOCAL virtual QoreFunction* getFunction() {
       return closure->getFunction();
@@ -116,7 +116,7 @@ private:
 
 protected:
    DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink);
-      
+
 public:
    DLLLOCAL QoreClosureNode(const QoreClosureParseNode* n_closure, cvv_vec_t* cv = 0) : QoreClosureBase(n_closure, cv), pgm(::getProgram()) {
       pgm->depRef();
@@ -124,7 +124,7 @@ public:
 
    DLLLOCAL virtual ~QoreClosureNode() {
    }
-   
+
    DLLLOCAL virtual QoreValue execValue(const QoreListNode* args, ExceptionSink* xsink) const;
 
    DLLLOCAL virtual QoreProgram* getProgram() const {

@@ -525,7 +525,7 @@ AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, Exceptio
    // launching the background thread (fixes https://github.com/qorelanguage/qore/issues/12)
    else if (ntype == NT_CLOSURE)
       return reinterpret_cast<const QoreClosureParseNode*>(n)->evalBackground(xsink);
-   
+
    return n->refSelf();
 }
 

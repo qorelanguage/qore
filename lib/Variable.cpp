@@ -151,7 +151,9 @@ double Var::floatEval() const {
 }
 */
 
+static void do_break() {}
 void Var::deref(ExceptionSink* xsink) {
+   //printd(5, "Var::deref() this: %p '%s' %d -> %d\n", this, getName(), reference_count(), reference_count() - 1);
    if (ROdereference()) {
       del(xsink);
       delete this;
@@ -522,7 +524,7 @@ double LValueHelper::getAsFloat() const {
 int LValueHelper::assign(QoreValue n, const char* desc) {
    if (n.type == QV_Node && n.v.n == &Nothing)
       n.v.n = 0;
-   
+
    // check type for assignment
    typeInfo->acceptAssignment(desc, n, vl.xsink);
    if (*vl.xsink) {
@@ -541,7 +543,7 @@ int LValueHelper::assign(QoreValue n, const char* desc) {
       saveTemp(val->assign(n));
       return 0;
    }
-   
+
    //printd(5, "LValueHelper::assign() this: %p saving old value: %p '%s'\n", this, *v, get_type_name(*v));
    saveTemp(*v);
    *v = n.takeNode();
@@ -1100,11 +1102,11 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
 	    QoreStringValueHelper mem(li.getValue(), QCS_DEFAULT, xsink);
 	    if (*xsink)
 	       return;
-	    
+
 	    AbstractQoreNode* n = h->takeKeyValue(mem->getBuffer());
 	    if (*xsink)
 	       return;
-	    
+
 	    // note that no exception can occur here
 	    rvh->setKeyValue(mem->getBuffer(), n, xsink);
 	    assert(!*xsink);

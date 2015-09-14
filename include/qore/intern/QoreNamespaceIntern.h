@@ -84,9 +84,11 @@ struct GVList : public std::vector<T> {
       std::vector<T>::clear();
    }
 
+   /*
    DLLLOCAL void assimilate(GVList<T>& l) {
 
    }
+   */
 };
 
 typedef GVList<GVEntryBase> gvblist_t;
@@ -984,10 +986,12 @@ protected:
       pend_cnmap.clear();
       pend_clmap.clear();
 
-      // must delete global vars
+      // must delete unassigned global vars
+      /*
       for (varmap_t::iterator i = pend_varmap.begin(), e = pend_varmap.end(); i != e; ++i)
          if (i->second.obj)
             i->second.obj->deref(0);
+      */
       pend_varmap.clear();
       pend_nsmap.clear();
 
