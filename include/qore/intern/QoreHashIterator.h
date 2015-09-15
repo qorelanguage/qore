@@ -40,6 +40,8 @@ protected:
    mutable QoreHashNode* pairHash;
 
    DLLLOCAL virtual ~QoreHashIterator() {
+      assert(!pairHash);
+      assert(!h);
    }
 
    DLLLOCAL int checkPtr(ExceptionSink* xsink) const {
@@ -66,8 +68,18 @@ public:
    using AbstractPrivateData::deref;
    DLLLOCAL virtual void deref(ExceptionSink* xsink) {
       if (ROdereference()) {
-         if (h)
+         if (h) {
             const_cast<QoreHashNode*>(h)->deref(xsink);
+#ifdef DEBUG
+            h = 0;
+#endif
+         }
+         if (pairHash) {
+            pairHash->deref(xsink);
+#ifdef DEBUG
+            pairHash = 0;
+#endif
+         }
          delete this;
       }
    }
