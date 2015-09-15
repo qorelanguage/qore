@@ -238,11 +238,14 @@ public:
    DLLLOCAL AbstractMethodCallNode(const AbstractMethodCallNode &old, QoreListNode* n_args) : AbstractFunctionCallNode(old, n_args), qc(old.qc), method(old.method) {
    }
 
+   DLLLOCAL QoreValue exec(QoreObject* o, const char* cstr, ExceptionSink* xsink) const;
+   /*
    DLLLOCAL AbstractQoreNode* exec(QoreObject* o, const char* cstr, ExceptionSink* xsink) const;
    DLLLOCAL int64 bigIntExec(QoreObject* o, const char* cstr, ExceptionSink* xsink) const;
    DLLLOCAL int intExec(QoreObject* o, const char* cstr, ExceptionSink* xsink) const;
    DLLLOCAL bool boolExec(QoreObject* o, const char* cstr, ExceptionSink* xsink) const;
    DLLLOCAL double floatExec(QoreObject* o, const char* cstr, ExceptionSink* xsink) const;
+   */
 
    DLLLOCAL const QoreClass* getClass() const {
       return qc;
@@ -285,6 +288,11 @@ public:
    }
 
    using AbstractMethodCallNode::exec;
+   DLLLOCAL QoreValue exec(QoreObject* o, ExceptionSink* xsink) const {
+      return AbstractMethodCallNode::exec(o, c_str, xsink);
+   }
+   /*
+   using AbstractMethodCallNode::exec;
    DLLLOCAL AbstractQoreNode* exec(QoreObject* o, ExceptionSink* xsink) const {
       return AbstractMethodCallNode::exec(o, c_str, xsink);
    }
@@ -308,6 +316,7 @@ public:
    DLLLOCAL double floatExec(QoreObject* o, ExceptionSink* xsink) const {
       return AbstractMethodCallNode::floatExec(o, c_str, xsink);
    }
+   */
 
    DLLLOCAL QoreValue execPseudo(const AbstractQoreNode* n, ExceptionSink* xsink) const;
 

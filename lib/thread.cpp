@@ -1362,14 +1362,14 @@ ArgvContextHelper::~ArgvContextHelper() {
    //printd(5, "ArgvContextHelper::~ArgvContextHelper() setting argv: %p\n", old_argv);
 }
 
-SingleArgvContextHelper::SingleArgvContextHelper(const AbstractQoreNode* val, ExceptionSink* n_xsink) : xsink(n_xsink) {
+SingleArgvContextHelper::SingleArgvContextHelper(const QoreValue val, ExceptionSink* n_xsink) : xsink(n_xsink) {
    //printd(5, "SingleArgvContextHelper::SingleArgvContextHelper() this: %p arg: %p (%s)\n", this, val, val ? val->getTypeName() : 0);
    ThreadData* td  = thread_data.get();
    old_argv = td->current_implicit_arg;
    QoreListNode* argv;
-   if (!is_nothing(val)) {
+   if (!val.isNothing()) {
       argv = new QoreListNode;
-      argv->push(val->refSelf());
+      argv->push(val.getReferencedValue());
    }
    else
       argv = 0;

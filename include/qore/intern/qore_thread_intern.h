@@ -755,7 +755,7 @@ private:
    ExceptionSink* xsink;
 
 public:
-   DLLLOCAL SingleArgvContextHelper(const AbstractQoreNode* val, ExceptionSink* n_xsink);
+   DLLLOCAL SingleArgvContextHelper(const QoreValue val, ExceptionSink* n_xsink);
    // calls deref(xsink) on list in destructor
    DLLLOCAL ~SingleArgvContextHelper();
 };

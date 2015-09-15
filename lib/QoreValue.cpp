@@ -391,6 +391,13 @@ AbstractQoreNode* ValueHolder::getReferencedValue() {
    return v.takeNode();
 }
 
+QoreValue ValueHolder::takeReferencedValue() {
+   //printd(5, "ValueHolder::takeReferencedValue() %s\n", v.getTypeName());
+   if (v.type == QV_Node)
+      return v.takeNodeIntern();
+   return v;
+}
+
 ValueOptionalRefHolder::~ValueOptionalRefHolder() {
    if (needs_deref)
       discard(v.getInternalNode(), xsink);

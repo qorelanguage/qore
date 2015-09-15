@@ -1,10 +1,10 @@
 /*
   QoreMapOperatorNode.cpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
-  
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -47,7 +47,7 @@ int QoreMapOperatorNode::getAsString(QoreString &str, int foff, ExceptionSink *x
 
 AbstractQoreNode* QoreMapOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    assert(!typeInfo);
-   
+
    pflag &= ~PF_RETURN_VALUE_IGNORED;
 
    // check iterated expression
@@ -58,7 +58,7 @@ AbstractQoreNode* QoreMapOperatorNode::parseInitImpl(LocalVar *oflag, int pflag,
    const QoreTypeInfo* iteratorTypeInfo = 0;
    right = right->parseInit(oflag, pflag, lvids, iteratorTypeInfo);
 
-   // FIXME: if iterator is a list or an iterator, then the return type is a list, otherwise it's the return type of the iterated expression   
+   // FIXME: if iterator is a list or an iterator, then the return type is a list, otherwise it's the return type of the iterated expression
 
    return this;
 }
@@ -85,7 +85,7 @@ QoreValue QoreMapOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* x
       ReferenceHolder<> argv_val(marg.getReferencedValue(), xsink);
       SingleArgvContextHelper argv_helper(*argv_val, xsink);
       ValueEvalRefHolder val(left, xsink);
-      return *xsink ? QoreValue() : val.takeValue(needs_deref);       
+      return *xsink ? QoreValue() : val.takeValue(needs_deref);
    }
 
    ReferenceHolder<QoreListNode> rv(ref_rv ? new QoreListNode : 0, xsink);
@@ -122,7 +122,8 @@ QoreValue QoreMapOperatorNode::mapIterator(AbstractIteratorHelper& h, ExceptionS
       ImplicitElementHelper eh(i++);
 
       // check if value can be mapped
-      ReferenceHolder<> iv(h.getValue(xsink), xsink);
+      ValueHolder iv(h.getValue(xsink), xsink);
+      //ReferenceHolder<> iv(h.getValue(xsink), xsink);
       if (*xsink)
          return QoreValue();
       SingleArgvContextHelper argv_helper(*iv, xsink);
@@ -133,6 +134,6 @@ QoreValue QoreMapOperatorNode::mapIterator(AbstractIteratorHelper& h, ExceptionS
       if (ref_rv)
 	 rv->push(val.getReferencedValue());
    }
-   
+
    return rv.release();
 }

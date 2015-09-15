@@ -178,12 +178,6 @@ public:
    /** @return true if all overloaded variants of a methods are private, false if at least one variant is public (including pending uncommitted variants)
     */
    DLLLOCAL bool parseIsPrivate() const;
-
-   DLLLOCAL AbstractQoreNode* evalNormalVariant(QoreObject* self, const QoreExternalMethodVariant* ev, const QoreListNode* args, ExceptionSink* xsink) const;
-   DLLLOCAL int64 bigIntEvalNormalVariant(QoreObject* self, const QoreExternalMethodVariant* ev, const QoreListNode* args, ExceptionSink* xsink) const;
-   DLLLOCAL int intEvalNormalVariant(QoreObject* self, const QoreExternalMethodVariant* ev, const QoreListNode* args, ExceptionSink* xsink) const;
-   DLLLOCAL bool boolEvalNormalVariant(QoreObject* self, const QoreExternalMethodVariant* ev, const QoreListNode* args, ExceptionSink* xsink) const;
-   DLLLOCAL double floatEvalNormalVariant(QoreObject* self, const QoreExternalMethodVariant* ev, const QoreListNode* args, ExceptionSink* xsink) const;
 };
 
 //! defines a Qore-language class
@@ -216,7 +210,7 @@ private:
 
    DLLLOCAL void insertMethod(QoreMethod* o);
    DLLLOCAL void insertStaticMethod(QoreMethod* o);
-   DLLLOCAL AbstractQoreNode* evalMethodGate(QoreObject* self, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const;
+   DLLLOCAL QoreValue evalMethodGate(QoreObject* self, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const;
    DLLLOCAL const QoreMethod* parseResolveSelfMethodIntern(const char* nme);
 
    //! evaluates a method on an object and returns the result
@@ -229,14 +223,17 @@ private:
        @param xsink Qore-language exception information is added here
        @return the value returned by the method, can be 0
    */
+   DLLLOCAL QoreValue evalMethod(QoreObject* self, const char* method_name, const QoreListNode* args, ExceptionSink* xsink) const;
+   /*
    DLLLOCAL AbstractQoreNode* evalMethod(QoreObject* self, const char* method_name, const QoreListNode* args, ExceptionSink* xsink) const;
    DLLLOCAL int64 bigIntEvalMethod(QoreObject* self, const char* method_name, const QoreListNode* args, ExceptionSink* xsink) const;
    DLLLOCAL int intEvalMethod(QoreObject* self, const char* method_name, const QoreListNode* args, ExceptionSink* xsink) const;
    DLLLOCAL bool boolEvalMethod(QoreObject* self, const char* method_name, const QoreListNode* args, ExceptionSink* xsink) const;
    DLLLOCAL double floatEvalMethod(QoreObject* self, const char* method_name, const QoreListNode* args, ExceptionSink* xsink) const;
+   */
 
    // This function must only be called from QoreObject
-   DLLLOCAL AbstractQoreNode* evalMemberGate(QoreObject* self, const QoreString *nme, ExceptionSink* xsink) const;
+   DLLLOCAL QoreValue evalMemberGate(QoreObject* self, const QoreString *nme, ExceptionSink* xsink) const;
    // This function must only be called from QoreObject
    DLLLOCAL void execMemberNotification(QoreObject* self, const char* mem, ExceptionSink* xsink) const;
    // This function must only be called from QoreObject and BCList

@@ -1,10 +1,10 @@
 /*
   ForEachStatement.cpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -85,7 +85,7 @@ int ForEachStatement::execImpl(AbstractQoreNode** return_value, ExceptionSink* x
 	 LValueHelper n(var, xsink);
 	 if (!n)
 	    break;
-	 
+
 	 // assign variable to current value in list
 	 if (n.assign(l_tlist ? l_tlist->get_referenced_entry(i) : tlist.release()))
 	    break;
@@ -93,13 +93,13 @@ int ForEachStatement::execImpl(AbstractQoreNode** return_value, ExceptionSink* x
 
       // set offset in thread-local data for "$#"
       ImplicitElementHelper eh(l_tlist ? (int)i : 0);
-      
+
       // execute "foreach" body
       if (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || *xsink) {
 	 rc = 0;
 	 break;
       }
-      
+
       if (rc == RC_RETURN)
 	 break;
       else if (rc == RC_CONTINUE)
@@ -155,7 +155,7 @@ int ForEachStatement::execKeys(AbstractQoreNode** return_value, ExceptionSink* x
 	 LValueHelper n(var, xsink);
 	 if (!n)
 	    break;
-	 
+
 	 // assign variable to current key value in list
 	 if (n.assign(new QoreStringNode(hi.getKey())))
 	    break;
@@ -163,13 +163,13 @@ int ForEachStatement::execKeys(AbstractQoreNode** return_value, ExceptionSink* x
 
       // set offset in thread-local data for "$#"
       ImplicitElementHelper eh(i++);
-      
+
       // execute "foreach" body
       if (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || *xsink) {
 	 rc = 0;
 	 break;
       }
-      
+
       if (rc == RC_RETURN)
 	 break;
       else if (rc == RC_CONTINUE)
@@ -221,7 +221,7 @@ int ForEachStatement::execRef(AbstractQoreNode** return_value, ExceptionSink* xs
 
       // set offset in thread-local data for "$#"
       ImplicitElementHelper eh(l_tlist ? (int)i : 0);
-            
+
       // execute "for" body
       rc = code->execImpl(return_value, xsink);
       if (*xsink)
@@ -237,7 +237,7 @@ int ForEachStatement::execRef(AbstractQoreNode** return_value, ExceptionSink* xs
 	 reinterpret_cast<QoreListNode*>(*ln)->push(nv);
       else
 	 ln = nv;
-      
+
       if (rc == RC_BREAK) {
 	 // assign remaining values to list unchanged
 	 if (l_tlist)
@@ -247,13 +247,13 @@ int ForEachStatement::execRef(AbstractQoreNode** return_value, ExceptionSink* xs
 	 rc = 0;
 	 break;
       }
-      
+
       if (rc == RC_RETURN)
 	 break;
       else if (rc == RC_CONTINUE)
 	 rc = 0;
       i++;
-      
+
       // break out of loop if appropriate
       if (!l_tlist || i == l_tlist->size())
 	 break;
@@ -263,7 +263,7 @@ int ForEachStatement::execRef(AbstractQoreNode** return_value, ExceptionSink* xs
    LValueHelper val(**vr, xsink);
    if (!val)
       return 0;
-   
+
    if (val.assign(ln.release()))
       return 0;
 
@@ -284,7 +284,8 @@ int ForEachStatement::execIterator(AbstractIteratorHelper& aih, AbstractQoreNode
          break;
 
       // get next argument value
-      ReferenceHolder<AbstractQoreNode> arg(aih.getValue(xsink), xsink);
+      ValueHolder arg(aih.getValue(xsink), xsink);
+      //ReferenceHolder<AbstractQoreNode> arg(aih.getValue(xsink), xsink);
       if (*xsink)
          return 0;
 
@@ -294,7 +295,7 @@ int ForEachStatement::execIterator(AbstractIteratorHelper& aih, AbstractQoreNode
             break;
 
          // assign variable to current value in list
-         if (n.assign(arg.release()))
+         if (n.assign(arg.takeReferencedValue()))
             break;
       }
 
@@ -322,7 +323,7 @@ int ForEachStatement::parseInitImpl(LocalVar *oflag, int pflag) {
 
    // turn off top-level flag for statement vars
    pflag &= (~PF_TOP_LEVEL);
-   
+
    const QoreTypeInfo *argTypeInfo = 0;
    if (var)
       var = var->parseInit(oflag, pflag, lvids, argTypeInfo);
@@ -337,8 +338,8 @@ int ForEachStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    }
    if (code)
       code->parseInitImpl(oflag, pflag);
-   
-   // save local variables 
+
+   // save local variables
    if (lvids)
       lvars = new LVList(lvids);
 

@@ -115,6 +115,7 @@ namespace detail {
 } // namespace detail
 
 struct QoreValue {
+   friend class ValueHolder;
    friend class ValueEvalRefHolder;
    template<typename> friend struct detail::QoreValueCastHelper;
 
@@ -269,7 +270,11 @@ public:
 
    DLLEXPORT ~ValueHolder();
 
+   //! returns a referenced AbstractQoreNode ptr; caller owns the referenced; the current object is left empty
    DLLEXPORT AbstractQoreNode* getReferencedValue();
+
+   //! returns a QoreValue object and leaves the current object empty; the caller owns any referenced contained in the return value
+   DLLEXPORT QoreValue takeReferencedValue();
 
    DLLLOCAL QoreValue& operator=(QoreValue nv) {
       v.discard(xsink);

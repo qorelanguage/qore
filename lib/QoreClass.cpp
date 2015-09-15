@@ -42,6 +42,15 @@
 // global class ID sequence
 DLLLOCAL Sequence classIDSeq(1);
 
+DLLLOCAL QoreValue qore_method_private::evalNormalVariant(QoreObject* self, const QoreExternalMethodVariant* ev, const QoreListNode* args, ExceptionSink* xsink) const {
+   const AbstractQoreFunctionVariant* variant = reinterpret_cast<const AbstractQoreFunctionVariant*>(ev);
+
+   CodeEvaluationHelper ceh(xsink, getFunction(), variant, getName(), args, variant->className());
+   if (*xsink) return QoreValue();
+
+   return METHV_const(variant)->evalMethod(self, ceh, xsink);
+}
+
 void qore_method_private::parseInit() {
    assert(!static_flag);
 
@@ -1174,7 +1183,7 @@ void qore_class_private::addBuiltinConstructor(BuiltinConstructorVariantBase* va
       insertBuiltinMethod(nm, true);
    }
    else {
-      nm = const_cast<QoreMethod* >(constructor);
+      nm = const_cast<QoreMethod*>(constructor);
    }
 
    // set the pointer from the variant back to the owning method
@@ -1874,7 +1883,7 @@ bool QoreClass::hasAbstract() const {
 }
 
 const QoreMethod* QoreClass::parseGetConstructor() const {
-   const_cast<QoreClass* >(this)->priv->initialize();
+   const_cast<QoreClass*>(this)->priv->initialize();
    if (priv->constructor)
       return priv->constructor;
    return priv->parseFindLocalMethod("constructor");
@@ -2342,51 +2351,6 @@ const QoreClass* QoreClass::getClass(const QoreClass& qc, bool& cpriv) const {
    return priv->getClassIntern(*(qc.priv), cpriv);
 }
 
-AbstractQoreNode* QoreMethod::evalNormalVariant(QoreObject* self, const QoreExternalMethodVariant* ev, const QoreListNode* args, ExceptionSink* xsink) const {
-   const AbstractQoreFunctionVariant* variant = reinterpret_cast<const AbstractQoreFunctionVariant* >(ev);
-
-   CodeEvaluationHelper ceh(xsink, getFunction(), variant, getName(), args, variant->className());
-   if (*xsink) return 0;
-
-   return METHV_const(variant)->evalMethod(self, ceh, xsink);
-}
-
-int64 QoreMethod::bigIntEvalNormalVariant(QoreObject* self, const QoreExternalMethodVariant* ev, const QoreListNode* args, ExceptionSink* xsink) const {
-   const AbstractQoreFunctionVariant* variant = reinterpret_cast<const AbstractQoreFunctionVariant* >(ev);
-
-   CodeEvaluationHelper ceh(xsink, getFunction(), variant, getName(), args, variant->className());
-   if (*xsink) return 0;
-
-   return METHV_const(variant)->bigIntEvalMethod(self, ceh, xsink);
-}
-
-int QoreMethod::intEvalNormalVariant(QoreObject* self, const QoreExternalMethodVariant* ev, const QoreListNode* args, ExceptionSink* xsink) const {
-   const AbstractQoreFunctionVariant* variant = reinterpret_cast<const AbstractQoreFunctionVariant* >(ev);
-
-   CodeEvaluationHelper ceh(xsink, getFunction(), variant, getName(), args, variant->className());
-   if (*xsink) return 0;
-
-   return METHV_const(variant)->intEvalMethod(self, ceh, xsink);
-}
-
-bool QoreMethod::boolEvalNormalVariant(QoreObject* self, const QoreExternalMethodVariant* ev, const QoreListNode* args, ExceptionSink* xsink) const {
-   const AbstractQoreFunctionVariant* variant = reinterpret_cast<const AbstractQoreFunctionVariant* >(ev);
-
-   CodeEvaluationHelper ceh(xsink, getFunction(), variant, getName(), args, variant->className());
-   if (*xsink) return 0;
-
-   return METHV_const(variant)->boolEvalMethod(self, ceh, xsink);
-}
-
-double QoreMethod::floatEvalNormalVariant(QoreObject* self, const QoreExternalMethodVariant* ev, const QoreListNode* args, ExceptionSink* xsink) const {
-   const AbstractQoreFunctionVariant* variant = reinterpret_cast<const AbstractQoreFunctionVariant* >(ev);
-
-   CodeEvaluationHelper ceh(xsink, getFunction(), variant, getName(), args, variant->className());
-   if (*xsink) return 0;
-
-   return METHV_const(variant)->floatEvalMethod(self, ceh, xsink);
-}
-
 bool QoreMethod::existsVariant(const type_vec_t &paramTypeInfo) const {
    return priv->func->existsVariant(paramTypeInfo);
 }
@@ -2461,21 +2425,21 @@ const QoreMethod* qore_class_private::getMethodForEval(const char* nme, QoreProg
    return w;
 }
 
-AbstractQoreNode* QoreClass::evalMethod(QoreObject* self, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {
+QoreValue QoreClass::evalMethod(QoreObject* self, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {
    QORE_TRACE("QoreClass::evalMethod()");
    assert(self);
 
    if (!strcmp(nme, "copy")) {
       if (args) {
          xsink->raiseException("COPY-ERROR", "while calling %s::copy(): it is illegal to pass arguments to copy methods", self->getClassName());
-         return 0;
+         return QoreValue();
       }
       return execCopy(self, xsink);
    }
 
    const QoreMethod* w = priv->getMethodForEval(nme, self->getProgram(), xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    if (w)
       return qore_method_private::eval(*w, self, args, xsink);
@@ -2489,110 +2453,10 @@ AbstractQoreNode* QoreClass::evalMethod(QoreObject* self, const char* nme, const
       return evalMethodGate(self, nme, args, xsink);
 
    xsink->raiseException("METHOD-DOES-NOT-EXIST", "no method %s::%s() has been defined and no pseudo-method <object>::%s() is available", self->getClassName(), nme, nme);
-   return 0;
+   return QoreValue();
 }
 
-int64 QoreClass::bigIntEvalMethod(QoreObject* self, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {
-   QORE_TRACE("QoreClass::bigIntEvalMethod()");
-
-   if (!strcmp(nme, "copy")) {
-      discard(execCopy(self, xsink), xsink);
-      return 0;
-   }
-
-   const QoreMethod* w = priv->getMethodForEval(nme, self->getProgram(), xsink);
-   if (*xsink)
-      return 0;
-
-   if (!w) {
-      if (priv->methodGate && !priv->methodGate->inMethod(self)) { // call methodGate with unknown method name and arguments
-	 ReferenceHolder<AbstractQoreNode> rv(evalMethodGate(self, nme, args, xsink), xsink);
-	 return (*xsink || !rv) ? 0 : rv->getAsBigInt();
-      }
-
-      ValueHolder rv(pseudo_classes_eval(self, nme, args, xsink), xsink);
-      return rv->getAsBigInt();
-   }
-
-   return qore_method_private::bigIntEval(*w, self, args, xsink);
-}
-
-int QoreClass::intEvalMethod(QoreObject* self, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {
-   QORE_TRACE("QoreClass::intEvalMethod()");
-
-   if (!strcmp(nme, "copy")) {
-      discard(execCopy(self, xsink), xsink);
-      return 0;
-   }
-
-   const QoreMethod* w = priv->getMethodForEval(nme, self->getProgram(), xsink);
-   if (*xsink)
-      return 0;
-
-   if (!w) {
-      if (priv->methodGate && !priv->methodGate->inMethod(self)) { // call methodGate with unknown method name and arguments
-	 ReferenceHolder<AbstractQoreNode> rv(evalMethodGate(self, nme, args, xsink), xsink);
-	 return (*xsink || !rv) ? 0 : rv->getAsInt();
-      }
-
-      ValueHolder rv(pseudo_classes_eval(self, nme, args, xsink), xsink);
-      return (int)rv->getAsBigInt();
-   }
-
-   return qore_method_private::intEval(*w, self, args, xsink);
-}
-
-bool QoreClass::boolEvalMethod(QoreObject* self, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {
-   QORE_TRACE("QoreClass::boolEvalMethod()");
-
-   if (!strcmp(nme, "copy")) {
-      discard(execCopy(self, xsink), xsink);
-      return false;
-   }
-
-   const QoreMethod* w = priv->getMethodForEval(nme, self->getProgram(), xsink);
-   if (*xsink)
-      return false;
-
-   if (!w) {
-      if (priv->methodGate && !priv->methodGate->inMethod(self)) { // call methodGate with unknown method name and arguments
-	 ReferenceHolder<AbstractQoreNode> rv(evalMethodGate(self, nme, args, xsink), xsink);
-	 return (*xsink || !rv) ? false : rv->getAsBool();
-      }
-
-      ValueHolder rv(pseudo_classes_eval(self, nme, args, xsink), xsink);
-      return rv->getAsBool();
-   }
-
-   return qore_method_private::boolEval(*w, self, args, xsink);
-}
-
-double QoreClass::floatEvalMethod(QoreObject* self, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {
-   QORE_TRACE("QoreClass::floatEvalMethod()");
-
-   if (!strcmp(nme, "copy")) {
-      discard(execCopy(self, xsink), xsink);
-      return 0.0;
-   }
-
-   const QoreMethod* w = priv->getMethodForEval(nme, self->getProgram(), xsink);
-   if (*xsink)
-      return 0.0;
-
-   if (!w) {
-      if (priv->methodGate && !priv->methodGate->inMethod(self)) { // call methodGate with unknown method name and arguments
-	 ReferenceHolder<AbstractQoreNode> rv(evalMethodGate(self, nme, args, xsink), xsink);
-	 return (*xsink || !rv) ? 0.0 : rv->getAsFloat();
-      }
-
-      ValueHolder rv(pseudo_classes_eval(self, nme, args, xsink), xsink);
-      return rv->getAsFloat();
-   }
-
-   return qore_method_private::floatEval(*w, self, args, xsink);
-}
-
-AbstractQoreNode* QoreClass::evalMethodGate(QoreObject* self, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {
+QoreValue QoreClass::evalMethodGate(QoreObject* self, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {
    printd(5, "QoreClass::evalMethodGate() method: %s args: %p\n", nme, args);
 
    ReferenceHolder<QoreListNode> args_holder(xsink);
@@ -2604,10 +2468,10 @@ AbstractQoreNode* QoreClass::evalMethodGate(QoreObject* self, const char* nme, c
       else
 	 args_holder = args->copy();
       if (*xsink)
-	 return 0;
+	 return QoreValue();
    }
    else
-      args_holder = new QoreListNode();
+      args_holder = new QoreListNode;
 
    args_holder->insert(new QoreStringNode(nme));
 
@@ -2624,13 +2488,13 @@ bool QoreClass::isPrivateMember(const char* str) const {
    return false;
 }
 
-AbstractQoreNode* QoreClass::evalMemberGate(QoreObject* self, const QoreString *nme, ExceptionSink* xsink) const {
+QoreValue QoreClass::evalMemberGate(QoreObject* self, const QoreString *nme, ExceptionSink* xsink) const {
    assert(nme && nme->getEncoding() == QCS_DEFAULT);
 
    printd(5, "QoreClass::evalMemberGate() member: %s\n", nme->getBuffer());
    // do not run memberGate method if we are already in it...
    if (!priv->memberGate || priv->memberGate->inMethod(self))
-      return 0;
+      return QoreValue();
 
    ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
    args->push(new QoreStringNode(*nme));
@@ -2875,7 +2739,7 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
    }
 
    bool m_priv = false;
-   QoreMethod* m = const_cast<QoreMethod* >(!n_static ? parseFindMethod(mname, m_priv) : parseFindStaticMethod(mname, m_priv));
+   QoreMethod* m = const_cast<QoreMethod*>(!n_static ? parseFindMethod(mname, m_priv) : parseFindStaticMethod(mname, m_priv));
    if (!n_static && m && (dst || cpy || methGate || memGate || hasMemberNotification)) {
       parseException("ILLEGAL-METHOD-OVERLOAD", "a %s::%s() method has already been defined; cannot overload %s methods", tname, mname, mname);
       return -1;
@@ -4056,104 +3920,24 @@ void DestructorMethodFunction::evalDestructor(const QoreClass& thisclass, QoreOb
 }
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-AbstractQoreNode* NormalMethodFunction::evalMethod(const AbstractQoreFunctionVariant* variant, QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const {
+QoreValue NormalMethodFunction::evalMethod(const AbstractQoreFunctionVariant* variant, QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const {
    bool had_variant = (bool)variant;
    const char* mname = getName();
    CodeEvaluationHelper ceh(xsink, this, variant, mname, args, getClassName());
-   if (*xsink) return 0;
+   if (*xsink) return QoreValue();
 
    const MethodVariant* mv = METHV_const(variant);
    if (mv->isAbstract()) {
       xsink->raiseException("ABSTRACT-VARIANT-ERROR", "cannot call abstract variant %s::%s(%s) directly", getClassName(), mname, mv->getSignature()->getSignatureText());
-      return 0;
+      return QoreValue();
    }
    //printd(5, "NormalMethodFunction::evalMethod() %s::%s(%s) (self: %s) variant: %p, mv: %p priv: %d access: %d (%p %s)\n",getClassName(), mname, mv->getSignature()->getSignatureText(), self->getClass()->getName(), variant, mv, mv->isPrivate(), qore_class_private::runtimeCheckPrivateClassAccess(*mv->getClass()), runtime_get_class(), runtime_get_class() ? runtime_get_class()->name.c_str() : "n/a");
    if (!had_variant && mv->isPrivate() && !qore_class_private::runtimeCheckPrivateClassAccess(*mv->getClass())) {
       xsink->raiseException("ILLEGAL-CALL", "cannot call private variant %s::%s(%s) from outside the class", getClassName(), mname, mv->getSignature()->getSignatureText());
-      return 0;
+      return QoreValue();
    }
 
    return mv->evalMethod(self, ceh, xsink);
-}
-
-// if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-int64 NormalMethodFunction::bigIntEvalMethod(const AbstractQoreFunctionVariant* variant, QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const {
-   bool had_variant = (bool)variant;
-   const char* mname = getName();
-   CodeEvaluationHelper ceh(xsink, this, variant, mname, args, getClassName());
-   if (*xsink) return 0;
-
-   const MethodVariant* mv = METHV_const(variant);
-   if (mv->isAbstract()) {
-      xsink->raiseException("ABSTRACT-VARIANT-ERROR", "cannot call abstract variant %s::%s(%s) directly", getClassName(), mname, mv->getSignature()->getSignatureText());
-      return 0;
-   }
-   if (!had_variant && mv->isPrivate() && !qore_class_private::runtimeCheckCompatibleClass(*mv->getClass(), *self->getClass())) {
-      xsink->raiseException("ILLEGAL-CALL", "cannot call private variant %s::%s(%s) from outside the class", getClassName(), mname, mv->getSignature()->getSignatureText());
-      return 0;
-   }
-
-   return METHV_const(variant)->bigIntEvalMethod(self, ceh, xsink);
-}
-
-// if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-int NormalMethodFunction::intEvalMethod(const AbstractQoreFunctionVariant* variant, QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const {
-   bool had_variant = (bool)variant;
-   const char* mname = getName();
-   CodeEvaluationHelper ceh(xsink, this, variant, mname, args, getClassName());
-   if (*xsink) return 0;
-
-   const MethodVariant* mv = METHV_const(variant);
-   if (mv->isAbstract()) {
-      xsink->raiseException("ABSTRACT-VARIANT-ERROR", "cannot call abstract variant %s::%s(%s) directly", getClassName(), mname, mv->getSignature()->getSignatureText());
-      return 0;
-   }
-   if (!had_variant && mv->isPrivate() && !qore_class_private::runtimeCheckCompatibleClass(*mv->getClass(), *self->getClass())) {
-      xsink->raiseException("ILLEGAL-CALL", "cannot call private variant %s::%s(%s) from outside the class", getClassName(), mname, mv->getSignature()->getSignatureText());
-      return 0;
-   }
-
-   return METHV_const(variant)->intEvalMethod(self, ceh, xsink);
-}
-
-// if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-bool NormalMethodFunction::boolEvalMethod(const AbstractQoreFunctionVariant* variant, QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const {
-   bool had_variant = (bool)variant;
-   const char* mname = getName();
-   CodeEvaluationHelper ceh(xsink, this, variant, mname, args, getClassName());
-   if (*xsink) return 0;
-
-   const MethodVariant* mv = METHV_const(variant);
-   if (mv->isAbstract()) {
-      xsink->raiseException("ABSTRACT-VARIANT-ERROR", "cannot call abstract variant %s::%s(%s) directly", getClassName(), mname, mv->getSignature()->getSignatureText());
-      return 0;
-   }
-   if (!had_variant && mv->isPrivate() && !qore_class_private::runtimeCheckCompatibleClass(*mv->getClass(), *self->getClass())) {
-      xsink->raiseException("ILLEGAL-CALL", "cannot call private variant %s::%s(%s) from outside the class", getClassName(), mname, mv->getSignature()->getSignatureText());
-      return 0;
-   }
-
-   return METHV_const(variant)->boolEvalMethod(self, ceh, xsink);
-}
-
-// if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-double NormalMethodFunction::floatEvalMethod(const AbstractQoreFunctionVariant* variant, QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const {
-   bool had_variant = (bool)variant;
-   const char* mname = getName();
-   CodeEvaluationHelper ceh(xsink, this, variant, mname, args, getClassName());
-   if (*xsink) return 0;
-
-   const MethodVariant* mv = METHV_const(variant);
-   if (mv->isAbstract()) {
-      xsink->raiseException("ABSTRACT-VARIANT-ERROR", "cannot call abstract variant %s::%s(%s) directly", getClassName(), mname, mv->getSignature()->getSignatureText());
-      return 0;
-   }
-   if (!had_variant && mv->isPrivate() && !qore_class_private::runtimeCheckCompatibleClass(*mv->getClass(), *self->getClass())) {
-      xsink->raiseException("ILLEGAL-CALL", "cannot call private variant %s::%s(%s) from outside the class", getClassName(), mname, mv->getSignature()->getSignatureText());
-      return 0;
-   }
-
-   return METHV_const(variant)->floatEvalMethod(self, ceh, xsink);
 }
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
@@ -4167,48 +3951,12 @@ QoreValue NormalMethodFunction::evalPseudoMethod(const AbstractQoreFunctionVaria
 }
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-AbstractQoreNode* StaticMethodFunction::evalMethod(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, ExceptionSink* xsink) const {
+QoreValue StaticMethodFunction::evalMethod(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, ExceptionSink* xsink) const {
    const char* mname = getName();
    CodeEvaluationHelper ceh(xsink, this, variant, mname, args, getClassName());
-   if (*xsink) return 0;
+   if (*xsink) return QoreValue();
 
    return METHV_const(variant)->evalMethod(0, ceh, xsink);
-}
-
-// if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-int64 StaticMethodFunction::bigIntEvalMethod(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, ExceptionSink* xsink) const {
-   const char* mname = getName();
-   CodeEvaluationHelper ceh(xsink, this, variant, mname, args, getClassName());
-   if (*xsink) return 0;
-
-   return METHV_const(variant)->bigIntEvalMethod(0, ceh, xsink);
-}
-
-// if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-int StaticMethodFunction::intEvalMethod(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, ExceptionSink* xsink) const {
-   const char* mname = getName();
-   CodeEvaluationHelper ceh(xsink, this, variant, mname, args, getClassName());
-   if (*xsink) return 0;
-
-   return METHV_const(variant)->intEvalMethod(0, ceh, xsink);
-}
-
-// if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-bool StaticMethodFunction::boolEvalMethod(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, ExceptionSink* xsink) const {
-   const char* mname = getName();
-   CodeEvaluationHelper ceh(xsink, this, variant, mname, args, getClassName());
-   if (*xsink) return 0;
-
-   return METHV_const(variant)->boolEvalMethod(0, ceh, xsink);
-}
-
-// if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-double StaticMethodFunction::floatEvalMethod(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, ExceptionSink* xsink) const {
-   const char* mname = getName();
-   CodeEvaluationHelper ceh(xsink, this, variant, mname, args, getClassName());
-   if (*xsink) return 0;
-
-   return METHV_const(variant)->floatEvalMethod(0, ceh, xsink);
 }
 
 const qore_class_private* MethodVariantBase::getClassPriv() const {
@@ -4225,33 +3973,6 @@ QoreValue BuiltinNormalMethodVariantBase::evalPseudoMethod(const AbstractQoreNod
    CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), 0, xsink);
    return evalImpl(NULL, (AbstractPrivateData*)n, ceh.getArgs(), xsink);
 }
-
-/*
-AbstractQoreNode* BuiltinNormalMethodVariantBase::evalPseudoMethod(const AbstractQoreNode* n, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
-   CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), 0, xsink);
-   return evalImpl(NULL, (AbstractPrivateData*)n, ceh.getArgs(), xsink);
-}
-
-int64 BuiltinNormalMethodVariantBase::bigIntEvalPseudoMethod(const AbstractQoreNode* n, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
-   CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), 0, xsink);
-   return bigIntEvalImpl(NULL, (AbstractPrivateData*)n, ceh.getArgs(), xsink);
-}
-
-int BuiltinNormalMethodVariantBase::intEvalPseudoMethod(const AbstractQoreNode* n, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
-   CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), 0, xsink);
-   return intEvalImpl(NULL, (AbstractPrivateData*)n, ceh.getArgs(), xsink);
-}
-
-bool BuiltinNormalMethodVariantBase::boolEvalPseudoMethod(const AbstractQoreNode* n, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
-   CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), 0, xsink);
-   return boolEvalImpl(NULL, (AbstractPrivateData*)n, ceh.getArgs(), xsink);
-}
-
-double BuiltinNormalMethodVariantBase::floatEvalPseudoMethod(const AbstractQoreNode* n, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
-   CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), 0, xsink);
-   return floatEvalImpl(NULL, (AbstractPrivateData*)n, ceh.getArgs(), xsink);
-}
-*/
 
 class qmi_priv {
 public:

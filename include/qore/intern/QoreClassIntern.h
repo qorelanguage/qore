@@ -254,23 +254,7 @@ class MethodVariant : public MethodVariantBase {
 public:
    DLLLOCAL MethodVariant(bool n_priv_flag, bool n_final, int64 n_flags, bool n_is_user = false, bool is_abstract = false) : MethodVariantBase(n_priv_flag, n_final, n_flags, n_is_user, is_abstract) {
    }
-   DLLLOCAL virtual AbstractQoreNode* evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const = 0;
-   DLLLOCAL virtual int64 bigIntEvalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-      ReferenceHolder<AbstractQoreNode> rv(evalMethod(self, ceh, xsink), xsink);
-      return rv ? rv->getAsBigInt() : 0;
-   }
-   DLLLOCAL virtual int intEvalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-      ReferenceHolder<AbstractQoreNode> rv(evalMethod(self, ceh, xsink), xsink);
-      return rv ? rv->getAsInt() : 0;
-   }
-   DLLLOCAL virtual bool boolEvalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-      ReferenceHolder<AbstractQoreNode> rv(evalMethod(self, ceh, xsink), xsink);
-      return rv ? rv->getAsBool() : false;
-   }
-   DLLLOCAL virtual double floatEvalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-      ReferenceHolder<AbstractQoreNode> rv(evalMethod(self, ceh, xsink), xsink);
-      return rv ? rv->getAsFloat() : 0.0;
-   }
+   DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const = 0;
    DLLLOCAL virtual QoreValue evalPseudoMethod(const AbstractQoreNode* n, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
       assert(false);
       return QoreValue();
@@ -350,7 +334,7 @@ public:
          f->parseCheckDuplicateSignatureCommitted(&signature);
    }
 
-   DLLLOCAL virtual AbstractQoreNode* evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
+   DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
       return eval(qmethod->getName(), &ceh, self, xsink, getClassPriv());
    }
 };
@@ -470,9 +454,9 @@ public:
       abstract = true;
    }
 
-   DLLLOCAL virtual AbstractQoreNode* evalMethod(QoreObject* self, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
+   DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
       assert(false);
-      return 0;
+      return QoreValue();
    }
 };
 
@@ -480,58 +464,15 @@ class BuiltinNormalMethodVariantBase : public BuiltinMethodVariant {
 public:
    DLLLOCAL BuiltinNormalMethodVariantBase(bool n_priv_flag, bool n_final, int64 n_flags, int64 n_functionality, const QoreTypeInfo* n_returnTypeInfo, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names) {}
 
-   DLLLOCAL virtual AbstractQoreNode* evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
+   DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
       CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), self, xsink);
 
       return self->evalBuiltinMethodWithPrivateData(*qmethod, this, ceh.getArgs(), xsink);
    }
 
-   DLLLOCAL virtual int64 bigIntEvalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-      CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), self, xsink);
-
-      return self->bigIntEvalBuiltinMethodWithPrivateData(*qmethod, this, ceh.getArgs(), xsink);
-   }
-
-   DLLLOCAL virtual int intEvalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-      CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), self, xsink);
-
-      return self->intEvalBuiltinMethodWithPrivateData(*qmethod, this, ceh.getArgs(), xsink);
-   }
-
-   DLLLOCAL virtual bool boolEvalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-      CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), self, xsink);
-
-      return self->boolEvalBuiltinMethodWithPrivateData(*qmethod, this, ceh.getArgs(), xsink);
-   }
-
-   DLLLOCAL virtual double floatEvalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-      CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), self, xsink);
-
-      return self->floatEvalBuiltinMethodWithPrivateData(*qmethod, this, ceh.getArgs(), xsink);
-   }
-
    DLLLOCAL virtual QoreValue evalPseudoMethod(const AbstractQoreNode* n, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const;
 
    DLLLOCAL virtual QoreValue evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, ExceptionSink* xsink) const = 0;
-   /*
-   DLLLOCAL virtual AbstractQoreNode* evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, ExceptionSink* xsink) const = 0;
-   DLLLOCAL virtual int64 bigIntEvalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, ExceptionSink* xsink) const {
-      ReferenceHolder<AbstractQoreNode> rv(evalImpl(self, private_data, args, xsink), xsink);
-      return rv ? rv->getAsBigInt() : 0;
-   }
-   DLLLOCAL virtual int intEvalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, ExceptionSink* xsink) const {
-      ReferenceHolder<AbstractQoreNode> rv(evalImpl(self, private_data, args, xsink), xsink);
-      return rv ? rv->getAsInt() : 0;
-   }
-   DLLLOCAL virtual bool boolEvalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, ExceptionSink* xsink) const {
-      ReferenceHolder<AbstractQoreNode> rv(evalImpl(self, private_data, args, xsink), xsink);
-      return rv ? rv->getAsBool() : false;
-   }
-   DLLLOCAL virtual double floatEvalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, ExceptionSink* xsink) const {
-      ReferenceHolder<AbstractQoreNode> rv(evalImpl(self, private_data, args, xsink), xsink);
-      return rv ? rv->getAsFloat() : 0.0;
-   }
-   */
 };
 
 class BuiltinNormalMethodVariant : public BuiltinNormalMethodVariantBase {
@@ -544,11 +485,6 @@ public:
    DLLLOCAL virtual QoreValue evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, ExceptionSink* xsink) const {
       return method(self, private_data, args, xsink);
    }
-   /*
-   DLLLOCAL virtual AbstractQoreNode* evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, ExceptionSink* xsink) const {
-      return method(self, private_data, args, xsink);
-   }
-   */
 };
 
 template <typename F>
@@ -559,20 +495,6 @@ protected:
 public:
    DLLLOCAL BuiltinNormalMethodTypeVariantBase(F m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinNormalMethodVariantBase(n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), method(m) {
    }
-   /*
-   DLLLOCAL virtual int64 bigIntEvalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, ExceptionSink* xsink) const {
-      return (int64)method(self, private_data, args, xsink);
-   }
-   DLLLOCAL virtual int intEvalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, ExceptionSink* xsink) const {
-      return (int)method(self, private_data, args, xsink);
-   }
-   DLLLOCAL virtual bool boolEvalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, ExceptionSink* xsink) const {
-      return (bool)method(self, private_data, args, xsink);
-   }
-   DLLLOCAL virtual double floatEvalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, ExceptionSink* xsink) const {
-      return (double)method(self, private_data, args, xsink);
-   }
-   */
 };
 
 template <typename B, typename F>
@@ -583,12 +505,6 @@ public:
    DLLLOCAL virtual QoreValue evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, ExceptionSink* xsink) const {
       return BuiltinNormalMethodTypeVariantBase<F>::method(self, private_data, args, xsink);
    }
-   /*
-   DLLLOCAL virtual AbstractQoreNode* evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, ExceptionSink* xsink) const {
-      B rv = BuiltinNormalMethodTypeVariantBase<F>::method(self, private_data, args, xsink);
-      return *xsink ? 0 : new Q(rv);
-   }
-   */
 };
 
 typedef BuiltinNormalMethodTypeVariant<int64, q_method_int64_t> BuiltinNormalMethodBigIntVariant;
@@ -629,7 +545,7 @@ public:
    DLLLOCAL BuiltinStaticMethodVariant(q_func_t m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), static_method(m) {
    }
 
-   DLLLOCAL virtual AbstractQoreNode* evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
+   DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
       CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), ClassObj(getClassPriv()), xsink);
 
       return static_method(ceh.getArgs(), xsink);
@@ -644,54 +560,21 @@ protected:
 public:
    DLLLOCAL BuiltinStaticMethodTypeVariantBase(F m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), static_method(m) {
    }
-   DLLLOCAL virtual int64 bigIntEvalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-      CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), ClassObj(getClassPriv()), xsink);
-
-      return (int64)static_method(ceh.getArgs(), xsink);
-   }
-
-   DLLLOCAL virtual int intEvalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-      CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), ClassObj(getClassPriv()), xsink);
-
-      return (int)static_method(ceh.getArgs(), xsink);
-   }
-
-   DLLLOCAL virtual bool boolEvalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-      CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), ClassObj(getClassPriv()), xsink);
-
-      return (bool)static_method(ceh.getArgs(), xsink);
-   }
-
-   DLLLOCAL virtual double floatEvalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-      CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), ClassObj(getClassPriv()), xsink);
-
-      return (double)static_method(ceh.getArgs(), xsink);
-   }
 };
 
-template <typename B, typename F, class Q>
+template <typename F>
 class BuiltinStaticMethodTypeVariant : public BuiltinStaticMethodTypeVariantBase<F> {
 public:
    DLLLOCAL BuiltinStaticMethodTypeVariant(F m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinStaticMethodTypeVariantBase<F>(m, n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names) {
    }
-   DLLLOCAL virtual AbstractQoreNode* evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-      B rv = BuiltinStaticMethodTypeVariantBase<F>::static_method(ceh.getArgs(), xsink);
-      return *xsink ? 0 : new Q(rv);
+   DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
+      return BuiltinStaticMethodTypeVariantBase<F>::static_method(ceh.getArgs(), xsink);
    }
 };
 
-typedef BuiltinStaticMethodTypeVariant<int64, q_func_int64_t, QoreBigIntNode> BuiltinStaticMethodBigIntVariant;
-typedef BuiltinStaticMethodTypeVariant<double, q_func_double_t, QoreFloatNode> BuiltinStaticMethodFloatVariant;
-
-class BuiltinStaticMethodBoolVariant : public BuiltinStaticMethodTypeVariantBase<q_func_bool_t> {
-public:
-   DLLLOCAL BuiltinStaticMethodBoolVariant(q_func_bool_t m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinStaticMethodTypeVariantBase<q_func_bool_t>(m, n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names) {
-   }
-   DLLLOCAL virtual AbstractQoreNode* evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-      bool rv = BuiltinStaticMethodTypeVariantBase<q_func_bool_t>::static_method(ceh.getArgs(), xsink);
-      return *xsink ? 0 : get_bool_node(rv);
-   }
-};
+typedef BuiltinStaticMethodTypeVariant<q_func_int64_t> BuiltinStaticMethodBigIntVariant;
+typedef BuiltinStaticMethodTypeVariant<q_func_double_t> BuiltinStaticMethodFloatVariant;
+typedef BuiltinStaticMethodTypeVariant<q_func_bool_t> BuiltinStaticMethodBoolVariant;
 
 class BuiltinStaticMethod2Variant : public BuiltinMethodVariant {
 protected:
@@ -700,7 +583,7 @@ protected:
 public:
    DLLLOCAL BuiltinStaticMethod2Variant(q_static_method2_t m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), static_method(m) {
    }
-   DLLLOCAL AbstractQoreNode* evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
+   DLLLOCAL QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
       CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), ClassObj(getClassPriv()), xsink);
 
       return static_method(*qmethod, ceh.getArgs(), xsink);
@@ -715,7 +598,7 @@ protected:
 public:
    DLLLOCAL BuiltinStaticMethod3Variant(const void* n_ptr, q_static_method3_t m, bool n_priv_flag, bool n_final, int64 n_flags, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), static_method(m), ptr(n_ptr) {
    }
-   DLLLOCAL AbstractQoreNode* evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
+   DLLLOCAL QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
       CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), ClassObj(getClassPriv()), xsink);
 
       return static_method(*qmethod, signature.getTypeList(), ptr, ceh.getArgs(), xsink);
@@ -925,11 +808,7 @@ public:
    }
 
    // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-   DLLLOCAL AbstractQoreNode* evalMethod(const AbstractQoreFunctionVariant* variant, QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const;
-   DLLLOCAL int64 bigIntEvalMethod(const AbstractQoreFunctionVariant* variant, QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const;
-   DLLLOCAL int intEvalMethod(const AbstractQoreFunctionVariant* variant, QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const;
-   DLLLOCAL bool boolEvalMethod(const AbstractQoreFunctionVariant* variant, QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const;
-   DLLLOCAL double floatEvalMethod(const AbstractQoreFunctionVariant* variant, QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const;
+   DLLLOCAL QoreValue evalMethod(const AbstractQoreFunctionVariant* variant, QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const;
 
    // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
    DLLLOCAL QoreValue evalPseudoMethod(const AbstractQoreFunctionVariant* variant, const AbstractQoreNode* n, const QoreListNode* args, ExceptionSink* xsink) const;
@@ -947,11 +826,7 @@ public:
    DLLLOCAL virtual ~StaticMethodFunction() {
    }
    // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-   DLLLOCAL AbstractQoreNode* evalMethod(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, ExceptionSink* xsink) const;
-   DLLLOCAL int64 bigIntEvalMethod(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, ExceptionSink* xsink) const;
-   DLLLOCAL int intEvalMethod(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, ExceptionSink* xsink) const;
-   DLLLOCAL bool boolEvalMethod(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, ExceptionSink* xsink) const;
-   DLLLOCAL double floatEvalMethod(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, ExceptionSink* xsink) const;
+   DLLLOCAL QoreValue evalMethod(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, ExceptionSink* xsink) const;
 };
 
 #define SMETHF(f) (reinterpret_cast<StaticMethodFunction*>(f))
@@ -3133,44 +3008,12 @@ public:
       BSYSCONB(func)->eval(*parent_class, self, code, args);
    }
 
-   DLLLOCAL AbstractQoreNode* eval(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const {
+   DLLLOCAL QoreValue eval(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const {
       if (!static_flag) {
          assert(self);
          return NMETHF(func)->evalMethod(0, self, args, xsink);
       }
       return SMETHF(func)->evalMethod(0, args, xsink);
-   }
-
-   DLLLOCAL int64 bigIntEval(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const {
-      if (!static_flag) {
-         assert(self);
-         return NMETHF(func)->bigIntEvalMethod(0, self, args, xsink);
-      }
-      return SMETHF(func)->bigIntEvalMethod(0, args, xsink);
-   }
-
-   DLLLOCAL int intEval(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const {
-      if (!static_flag) {
-         assert(self);
-         return NMETHF(func)->intEvalMethod(0, self, args, xsink);
-      }
-      return SMETHF(func)->intEvalMethod(0, args, xsink);
-   }
-
-   DLLLOCAL bool boolEval(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const {
-      if (!static_flag) {
-         assert(self);
-         return NMETHF(func)->boolEvalMethod(0, self, args, xsink);
-      }
-      return SMETHF(func)->boolEvalMethod(0, args, xsink);
-   }
-
-   DLLLOCAL double floatEval(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const {
-      if (!static_flag) {
-         assert(self);
-         return NMETHF(func)->floatEvalMethod(0, self, args, xsink);
-      }
-      return SMETHF(func)->floatEvalMethod(0, args, xsink);
    }
 
    DLLLOCAL QoreValue evalPseudoMethod(const AbstractQoreFunctionVariant* variant, const AbstractQoreNode* n, const QoreListNode* args, ExceptionSink* xsink) const {
@@ -3183,28 +3026,18 @@ public:
       return rv;
    }
 
+   DLLLOCAL QoreValue evalNormalVariant(QoreObject* self, const QoreExternalMethodVariant* ev, const QoreListNode* args, ExceptionSink* xsink) const;
+
+   DLLLOCAL static QoreValue evalNormalVariant(const QoreMethod& m, QoreObject* self, const QoreExternalMethodVariant* ev, const QoreListNode* args, ExceptionSink* xsink) {
+      return m.priv->evalNormalVariant(self, ev, args, xsink);
+   }
+
    DLLLOCAL static QoreValue evalPseudoMethod(const QoreMethod* m, const AbstractQoreFunctionVariant* variant, const AbstractQoreNode* n, const QoreListNode* args, ExceptionSink* xsink) {
       return m->priv->evalPseudoMethod(variant, n, args, xsink);
    }
 
-   DLLLOCAL static AbstractQoreNode* eval(const QoreMethod& m, QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) {
+   DLLLOCAL static QoreValue eval(const QoreMethod& m, QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) {
       return m.priv->eval(self, args, xsink);
-   }
-
-   DLLLOCAL static int64 bigIntEval(const QoreMethod& m, QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) {
-      return m.priv->bigIntEval(self, args, xsink);
-   }
-
-   DLLLOCAL static int intEval(const QoreMethod& m, QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) {
-      return m.priv->intEval(self, args, xsink);
-   }
-
-   DLLLOCAL static bool boolEval(const QoreMethod& m, QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) {
-      return m.priv->boolEval(self, args, xsink);
-   }
-
-   DLLLOCAL static double floatEval(const QoreMethod& m, QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) {
-      return m.priv->floatEval(self, args, xsink);
    }
 };
 
