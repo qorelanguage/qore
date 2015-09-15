@@ -82,8 +82,7 @@ QoreValue QoreMapOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* x
 	 return QoreValue();
 
       // FIXME: inefficient
-      ReferenceHolder<> argv_val(marg.getReferencedValue(), xsink);
-      SingleArgvContextHelper argv_helper(*argv_val, xsink);
+      SingleArgvContextHelper argv_helper(marg.getReferencedValue(), xsink);
       ValueEvalRefHolder val(left, xsink);
       return *xsink ? QoreValue() : val.takeValue(needs_deref);
    }
@@ -93,9 +92,8 @@ QoreValue QoreMapOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* x
    while (li.next()) {
       // set offset in thread-local data for "$#"
       ImplicitElementHelper eh(li.index());
-      const AbstractQoreNode* elem = li.getValue();
       // check if value can be mapped
-      SingleArgvContextHelper argv_helper(elem, xsink);
+      SingleArgvContextHelper argv_helper(li.getReferencedValue(), xsink);
 
       ValueEvalRefHolder val(left, xsink);
       if (*xsink)
@@ -126,7 +124,7 @@ QoreValue QoreMapOperatorNode::mapIterator(AbstractIteratorHelper& h, ExceptionS
       //ReferenceHolder<> iv(h.getValue(xsink), xsink);
       if (*xsink)
          return QoreValue();
-      SingleArgvContextHelper argv_helper(*iv, xsink);
+      SingleArgvContextHelper argv_helper(iv.takeReferencedValue(), xsink);
       //printd(5, "op_map() e[0]=%p (%d %s)\n", e[0], e[0]->getType(), e[0]->getTypeName());
       ValueEvalRefHolder val(left, xsink);
       if (*xsink)

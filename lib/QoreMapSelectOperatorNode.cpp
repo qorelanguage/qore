@@ -85,8 +85,7 @@ QoreValue QoreMapSelectOperatorNode::evalValueImpl(bool &needs_deref, ExceptionS
       if (t == NT_NOTHING)
 	 return QoreValue();
 
-      ReferenceHolder<> argv_val(marg.getReferencedValue(), xsink);
-      SingleArgvContextHelper argv_helper(*argv_val, xsink);
+      SingleArgvContextHelper argv_helper(marg.getReferencedValue(), xsink);
 
       // check if value can be mapped
       ValueEvalRefHolder result(e[2], xsink);
@@ -104,9 +103,8 @@ QoreValue QoreMapSelectOperatorNode::evalValueImpl(bool &needs_deref, ExceptionS
    while (li.next()) {
       // set offset in thread-local data for "$#"
       ImplicitElementHelper eh(li.index());
-      const AbstractQoreNode* elem = li.getValue();
       // check if value can be mapped
-      SingleArgvContextHelper argv_helper(elem, xsink);
+      SingleArgvContextHelper argv_helper(li.getReferencedValue(), xsink);
       ValueEvalRefHolder result(e[2], xsink);
       if (*xsink)
          return QoreValue();
@@ -141,7 +139,7 @@ QoreValue QoreMapSelectOperatorNode::mapSelectIterator(AbstractIteratorHelper& h
       //ReferenceHolder<> iv(h.getValue(xsink), xsink);
       if (*xsink)
          return QoreValue();
-      SingleArgvContextHelper argv_helper(*iv, xsink);
+      SingleArgvContextHelper argv_helper(iv.takeReferencedValue(), xsink);
       ValueEvalRefHolder result(e[2], xsink);
       if (*xsink)
          return QoreValue();

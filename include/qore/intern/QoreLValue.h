@@ -167,7 +167,7 @@ public:
          default: assert(false);
          // no break
       }
-      return false;      
+      return false;
    }
 */
 
@@ -201,20 +201,20 @@ public:
       }
       return 0;
    }
-   
+
    DLLLOCAL bool isContainer() const {
       if (!assigned || type != QV_Node || !v.n)
          return false;
 
       return is_container(v.n);
-   }      
+   }
 
    DLLLOCAL bool isObjectContainer() const {
       if (!assigned || type != QV_Node || !v.n)
          return false;
 
       return get_container_obj(v.n);
-   }      
+   }
 
    DLLLOCAL AbstractQoreNode* getReferencedContainerValue() const {
       if (!assigned)
@@ -277,7 +277,7 @@ public:
       return 0;
    }
    */
-   
+
    DLLLOCAL void discard(ExceptionSink* xsink) {
       if (!assigned)
          return;
@@ -324,7 +324,8 @@ public:
       reset();
    }
 
-   // FIXME: destructive for "val": rename function?
+   // NOTE: destructive for "val":
+   // FIXME: rename function?
    DLLLOCAL AbstractQoreNode* assign(QoreValue& val) {
       if (fixed_type) {
          if (!assigned)
@@ -340,12 +341,8 @@ public:
       }
 
       AbstractQoreNode* rv;
-      if (assigned) {
-         if (type == QV_Node)
-            rv = v.n;
-         else
-            rv = 0;
-      }
+      if (assigned)
+         rv = (type == QV_Node) ? v.n : 0;
       else {
          assigned = true;
          rv = 0;
@@ -564,7 +561,7 @@ public:
       if (fixed_type) {
          if (!assigned)
             assigned = true;
-      
+
          switch (type) {
             case QV_Bool: {
                if (n) {
@@ -732,7 +729,7 @@ public:
             default: assert(false);
                // no break
          }
-      return NT_NOTHING;      
+      return NT_NOTHING;
    }
 
    DLLLOCAL const char* getTypeName() const {
@@ -802,7 +799,7 @@ public:
                return v.i = i;
             }
             return v.i += i;
-            
+
             // to avoid warnings about missing enum values
          default:
             assert(false);
@@ -1195,7 +1192,7 @@ public:
 	 default:
 	    assert(false);
             // no break
-      }      
+      }
 
       return 0;
    }
@@ -1226,12 +1223,12 @@ public:
                return v.i = 1;
             }
 	    return ++v.i;
-	    
+
 	 // to avoid warnings about missing enum values
 	 default:
 	    assert(false);
             // no break
-      }      
+      }
 
       return 0;
    }
@@ -1271,7 +1268,7 @@ public:
 	 default:
 	    assert(false);
             // no break
-      }      
+      }
 
       return 0;
    }
@@ -1307,7 +1304,7 @@ public:
 	 default:
 	    assert(false);
             // no break
-      }      
+      }
       return 0;
    }
 
@@ -1474,7 +1471,7 @@ public:
 	 default:
 	    assert(false);
             // no break
-      }      
+      }
 
       return 0;
    }
@@ -1508,7 +1505,7 @@ public:
 	 default:
 	    assert(false);
             // no break
-      }      
+      }
 
       return 0;
    }
@@ -1559,4 +1556,3 @@ public:
 typedef QoreLValue<> QoreLValueGeneric;
 
 #endif
-

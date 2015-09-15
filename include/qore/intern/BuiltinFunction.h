@@ -111,7 +111,7 @@ public:
    // the following defines the pure virtual functions that are common to all builtin variants
    COMMON_BUILTIN_VARIANT_FUNCTIONS
 
-   DLLLOCAL virtual AbstractQoreNode *evalFunction(const char *name, CodeEvaluationHelper &ceh, ExceptionSink *xsink) const {
+   DLLLOCAL virtual QoreValue evalFunction(const char *name, CodeEvaluationHelper &ceh, ExceptionSink *xsink) const {
       CodeContextHelper cch(name, 0, xsink);
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
       // push call on call stack in debugging mode
@@ -122,7 +122,7 @@ public:
    }
 };
 
-template <typename B, typename F, class Q>
+template <typename B, typename F>
 class BuiltinFunctionTypeVariant : public AbstractQoreFunctionVariant, public BuiltinFunctionVariantBase {
 protected:
    F func;
@@ -135,15 +135,8 @@ public:
    // the following defines the pure virtual functions that are common to all builtin variants
    COMMON_BUILTIN_VARIANT_FUNCTIONS
 
-   DLLLOCAL virtual AbstractQoreNode *evalFunction(const char *name, CodeEvaluationHelper &ceh, ExceptionSink *xsink) const {
-      CodeContextHelper cch(name, 0, xsink);
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-      // push call on call stack in debugging mode
-      CallStackHelper csh(name, CT_BUILTIN, 0, xsink);
-#endif
-
-      B rv = func(ceh.getArgs(), xsink);
-      return *xsink ? 0 : new Q(rv);
+   DLLLOCAL virtual QoreValue evalFunction(const char *name, CodeEvaluationHelper &ceh, ExceptionSink *xsink) const {
+      return evalNativeFunction(name, ceh, xsink);
    }
 
    DLLLOCAL B evalNativeFunction(const char *name, CodeEvaluationHelper &ceh, ExceptionSink *xsink) const {
@@ -156,6 +149,7 @@ public:
       return func(ceh.getArgs(), xsink);
    }
 
+   /*
    DLLLOCAL virtual int64 bigIntEvalFunction(const char *name, CodeEvaluationHelper &ceh, ExceptionSink *xsink) const {
       return (int64)evalNativeFunction(name, ceh, xsink);
    }
@@ -171,59 +165,11 @@ public:
    DLLLOCAL virtual double floatEvalFunction(const char *name, CodeEvaluationHelper &ceh, ExceptionSink *xsink) const {
       return (double)evalNativeFunction(name, ceh, xsink);
    }
+   */
 };
 
-typedef BuiltinFunctionTypeVariant<int64, q_func_int64_t, QoreBigIntNode> BuiltinFunctionBigIntVariant;
-typedef BuiltinFunctionTypeVariant<double, q_func_double_t, QoreFloatNode> BuiltinFunctionFloatVariant;
-
-class BuiltinFunctionBoolVariant : public AbstractQoreFunctionVariant, public BuiltinFunctionVariantBase {
-protected:
-   q_func_bool_t func;
-
-public:
-   DLLLOCAL BuiltinFunctionBoolVariant(q_func_bool_t m, int64 n_flags, int64 n_functionality, const QoreTypeInfo *n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) :
-      AbstractQoreFunctionVariant(n_flags), BuiltinFunctionVariantBase(n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), func(m) {
-   }
-
-   // the following defines the pure virtual functions that are common to all builtin variants
-   COMMON_BUILTIN_VARIANT_FUNCTIONS
-
-   DLLLOCAL virtual AbstractQoreNode *evalFunction(const char *name, CodeEvaluationHelper &ceh, ExceptionSink *xsink) const {
-      CodeContextHelper cch(name, 0, xsink);
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-      // push call on call stack in debugging mode
-      CallStackHelper csh(name, CT_BUILTIN, 0, xsink);
-#endif
-
-      bool rv = func(ceh.getArgs(), xsink);
-      return *xsink ? 0 : get_bool_node(rv);
-   }
-
-   DLLLOCAL bool evalNativeFunction(const char *name, CodeEvaluationHelper &ceh, ExceptionSink *xsink) const {
-      CodeContextHelper cch(name, 0, xsink);
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-      // push call on call stack in debugging mode
-      CallStackHelper csh(name, CT_BUILTIN, 0, xsink);
-#endif
-
-      return func(ceh.getArgs(), xsink);
-   }
-
-   DLLLOCAL virtual int64 bigIntEvalFunction(const char *name, CodeEvaluationHelper &ceh, ExceptionSink *xsink) const {
-      return (int64)evalNativeFunction(name, ceh, xsink);
-   }
-
-   DLLLOCAL virtual int intEvalFunction(const char *name, CodeEvaluationHelper &ceh, ExceptionSink *xsink) const {
-      return (int)evalNativeFunction(name, ceh, xsink);
-   }
-
-   DLLLOCAL virtual bool boolEvalFunction(const char *name, CodeEvaluationHelper &ceh, ExceptionSink *xsink) const {
-      return (bool)evalNativeFunction(name, ceh, xsink);
-   }
-
-   DLLLOCAL virtual double floatEvalFunction(const char *name, CodeEvaluationHelper &ceh, ExceptionSink *xsink) const {
-      return (double)evalNativeFunction(name, ceh, xsink);
-   }
-};
+typedef BuiltinFunctionTypeVariant<int64, q_func_int64_t> BuiltinFunctionBigIntVariant;
+typedef BuiltinFunctionTypeVariant<double, q_func_double_t> BuiltinFunctionFloatVariant;
+typedef BuiltinFunctionTypeVariant<bool, q_func_bool_t> BuiltinFunctionBoolVariant;
 
 #endif // _QORE_BUILTIN_FUNCTION

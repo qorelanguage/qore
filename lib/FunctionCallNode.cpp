@@ -53,33 +53,33 @@ QoreValue AbstractMethodCallNode::exec(QoreObject* o, const char* c_str, Excepti
 	 : qore_method_private::eval(*method, o, args, xsink);
    }
    //printd(5, "AbstractMethodCallNode::exec() calling QoreObject::evalMethod() for %s::%s()\n", o->getClassName(), c_str);
-   return o->evalMethod(c_str, args, xsink);
+   return o->evalMethodValue(c_str, args, xsink);
 }
 
-static void invalid_access(QoreFunction *func) {
+static void invalid_access(QoreFunction* func) {
    // func will always be non-zero with builtin functions
    const char* class_name = func->className();
    parse_error("parse options do not allow access to builtin %s '%s%s%s()'", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
 }
 
-static void warn_retval_ignored(const QoreProgramLocation& loc, QoreFunction *func) {
+static void warn_retval_ignored(const QoreProgramLocation& loc, QoreFunction* func) {
    const char* class_name = func->className();
    qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_RETURN_VALUE_IGNORED, "RETURN-VALUE-IGNORED", "call to %s %s%s%s() does not have any side effects and the return value is ignored; to disable this warning, use '%%disable-warning return-value-ignored' in your code", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
 }
 
-static void warn_deprecated(const QoreProgramLocation& loc, QoreFunction *func) {
+static void warn_deprecated(const QoreProgramLocation& loc, QoreFunction* func) {
    const char* class_name = func->className();
    qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_DEPRECATED, "DEPRECATED", "call to deprecated %s %s%s%s(); to disable this warning, use '%%disable-warning deprecated' in your code", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
 }
 
-static void check_flags(const QoreProgramLocation& loc, QoreFunction *func, int64 flags, int64 pflag) {
+static void check_flags(const QoreProgramLocation& loc, QoreFunction* func, int64 flags, int64 pflag) {
    if ((pflag & PF_RETURN_VALUE_IGNORED) && ((flags & QC_CONSTANT) == QC_CONSTANT))
       warn_retval_ignored(loc, func);
    if (flags & QC_DEPRECATED)
       warn_deprecated(loc, func);
 }
 
-int FunctionCallBase::parseArgsVariant(const QoreProgramLocation& loc, LocalVar* oflag, int pflag, QoreFunction *func, const QoreTypeInfo*& returnTypeInfo) {
+int FunctionCallBase::parseArgsVariant(const QoreProgramLocation& loc, LocalVar* oflag, int pflag, QoreFunction* func, const QoreTypeInfo*& returnTypeInfo) {
    // number of local variables declared in arguments
    int lvids = 0;
 
@@ -199,7 +199,7 @@ QoreValue SelfFunctionCallNode::evalValueImpl(bool& needs_deref, ExceptionSink* 
       return exec(self, ns.ostr, xsink);
 
    assert(method);
-   return self->evalMethod(*method, args, xsink);
+   return self->evalMethodValue(*method, args, xsink);
 }
 
 void SelfFunctionCallNode::parseInitCall(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
@@ -245,10 +245,10 @@ int SelfFunctionCallNode::getAsString(QoreString& str, int foff, ExceptionSink* 
    return 0;
 }
 
-// if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *SelfFunctionCallNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
+// if del is true, then the returned QoreString*  should be deleted, if false, then it must not be
+QoreString* SelfFunctionCallNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
    del = true;
-   QoreString *rv = new QoreString();
+   QoreString* rv = new QoreString();
    getAsString(*rv, foff, xsink);
    return rv;
 }
@@ -273,10 +273,10 @@ int FunctionCallNode::getAsString(QoreString& str, int foff, ExceptionSink* xsin
    return 0;
 }
 
-// if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *FunctionCallNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
+// if del is true, then the returned QoreString*  should be deleted, if false, then it must not be
+QoreString* FunctionCallNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
    del = true;
-   QoreString *rv = new QoreString();
+   QoreString* rv = new QoreString();
    getAsString(*rv, foff, xsink);
    return rv;
 }
@@ -348,7 +348,7 @@ AbstractQoreNode* FunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag, in
 	    sfcn = new SelfFunctionCallNode(takeName(), 0);
 	 }
 	 else {
-	    const QoreMethod *m = qore_class_private::parseFindSelfMethod(const_cast<QoreClass* >(qc), c_str);
+	    const QoreMethod *m = qore_class_private::parseFindSelfMethod(const_cast<QoreClass*>(qc), c_str);
 	    if (m)
 	       sfcn = new SelfFunctionCallNode(takeName(), take_args(), m);
 	 }
@@ -406,7 +406,7 @@ AbstractQoreNode* FunctionCallNode::parseInitCall(LocalVar* oflag, int pflag, in
 void FunctionCallNode::parseInitFinalizedCall(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
    assert(!returnTypeInfo);
    assert(func);
-   lvids += parseArgs(oflag, pflag, const_cast<QoreFunction *>(func), returnTypeInfo);
+   lvids += parseArgs(oflag, pflag, const_cast<QoreFunction*>(func), returnTypeInfo);
 }
 
 AbstractQoreNode* FunctionCallNode::makeReferenceNodeAndDerefImpl() {

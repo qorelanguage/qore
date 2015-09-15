@@ -532,8 +532,9 @@ static QoreStringNode* getNoopError(const QoreFunction* func, const QoreFunction
 	 // get actual value and include in warning
 	 ExceptionSink xsink;
 	 CodeEvaluationHelper ceh(&xsink, func, variant, "noop-dummy");
-	 ReferenceHolder<AbstractQoreNode> v(variant->evalFunction(func->getName(), ceh, 0), 0);
-	 if (is_nothing(*v))
+	 ValueHolder v(variant->evalFunction(func->getName(), ceh, 0), 0);
+	 //ReferenceHolder<AbstractQoreNode> v(variant->evalFunction(func->getName(), ceh, 0), 0);
+	 if (v->isNothing())
 	    desc->concat("NOTHING");
 	 else {
 	    QoreNodeAsStringHelper vs(*v, FMT_NONE, 0);
@@ -1143,63 +1144,23 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
 }
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL, then it is identified at run time
-AbstractQoreNode* QoreFunction::evalFunction(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, QoreProgram *pgm, ExceptionSink* xsink) const {
+QoreValue QoreFunction::evalFunction(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, QoreProgram *pgm, ExceptionSink* xsink) const {
    const char* fname = getName();
    CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
-   if (*xsink) return 0;
+   if (*xsink) return QoreValue();
 
    ProgramThreadCountContextHelper tch(xsink, pgm, true);
-   if (*xsink) return 0;
+   if (*xsink) return QoreValue();
    return variant->evalFunction(fname, ceh, xsink);
-}
-
-int64 QoreFunction::bigIntEvalFunction(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, QoreProgram *pgm, ExceptionSink* xsink) const {
-   const char* fname = getName();
-   CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
-   if (*xsink) return 0;
-
-   ProgramThreadCountContextHelper tch(xsink, pgm, true);
-   if (*xsink) return 0;
-   return variant->bigIntEvalFunction(fname, ceh, xsink);
-}
-
-int QoreFunction::intEvalFunction(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, QoreProgram *pgm, ExceptionSink* xsink) const {
-   const char* fname = getName();
-   CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
-   if (*xsink) return 0;
-
-   ProgramThreadCountContextHelper tch(xsink, pgm, true);
-   if (*xsink) return 0;
-   return variant->intEvalFunction(fname, ceh, xsink);
-}
-
-bool QoreFunction::boolEvalFunction(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, QoreProgram *pgm, ExceptionSink* xsink) const {
-   const char* fname = getName();
-   CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
-   if (*xsink) return 0;
-
-   ProgramThreadCountContextHelper tch(xsink, pgm, true);
-   if (*xsink) return 0;
-   return variant->boolEvalFunction(fname, ceh, xsink);
-}
-
-double QoreFunction::floatEvalFunction(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, QoreProgram *pgm, ExceptionSink* xsink) const {
-   const char* fname = getName();
-   CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
-   if (*xsink) return 0;
-
-   ProgramThreadCountContextHelper tch(xsink, pgm, true);
-   if (*xsink) return 0;
-   return variant->floatEvalFunction(fname, ceh, xsink);
 }
 
 // finds a variant and checks variant capabilities against current
 // program parse options
-AbstractQoreNode* QoreFunction::evalDynamic(const QoreListNode* args, ExceptionSink* xsink) const {
+QoreValue QoreFunction::evalDynamic(const QoreListNode* args, ExceptionSink* xsink) const {
    const char* fname = getName();
    const AbstractQoreFunctionVariant* variant = 0;
    CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
-   if (*xsink) return 0;
+   if (*xsink) return QoreValue();
 
    return variant->evalFunction(fname, ceh, xsink);
 }

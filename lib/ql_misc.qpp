@@ -566,7 +566,7 @@ any call_builtin_function(string name, ...) {
    if (num_args(args) > 1)
       vargs = args->copyListFrom(1);
 
-   return f->evalDynamic(*vargs, xsink);
+   return f->evalDynamic(*vargs, xsink).takeNode();
 }
 
 //! Calls a function and returns the return value, using the optional second argument as a list of arguments for the function
@@ -593,7 +593,7 @@ any call_builtin_function_args(string name, *softlist vargs) {
    if (!f)
       return 0;
 
-   return f->evalDynamic(vargs, xsink);
+   return f->evalDynamic(vargs, xsink).takeNode();
 }
 
 //! A function performing the same role as the @ref exists "exists operator"

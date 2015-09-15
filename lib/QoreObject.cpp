@@ -328,7 +328,7 @@ QoreValue QoreObject::evalBuiltinMethodWithPrivateData(const QoreMethod& method,
    ReferenceHolder<AbstractPrivateData> pd(getReferencedPrivateData(meth->getClass()->getIDForMethod(), xsink), xsink);
 
    if (pd)
-      return meth->evalImpl(this, *pd, args, xsink).takeNode();
+      return meth->evalImpl(this, *pd, args, xsink);
 
    //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this: %p (%s) pd: %p, call: %s::%s(), class ID: %d, method class ID: %d\n", this, priv->theclass->getName(), *pd, method.getClass()->getName(), method.getName(), method.getClass()->getID(), method.getClass()->getIDForMethod());
    check_meth_eval(priv->theclass, method.getName(), method.getClass(), xsink);

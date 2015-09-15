@@ -1,7 +1,7 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   ParseNode.h
-  
+
   Qore Programming Language
 
   Copyright (C) 2003 - 2015 David Nichols
@@ -129,7 +129,7 @@ public:
    }
 };
 
-// these objects will never be copied or referenced therefore they can have 
+// these objects will never be copied or referenced therefore they can have
 // public destructors - the deref() functions just call "delete this;"
 class ParseNoEvalNode : public ParseNode {
 private:

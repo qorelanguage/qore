@@ -2448,7 +2448,7 @@ QoreValue QoreClass::evalMethod(QoreObject* self, const char* nme, const QoreLis
    QoreClass* qc = 0;
    w = pseudo_classes_find_method(NT_OBJECT, nme, qc);
    if (w)
-      return qore_method_private::evalPseudoMethod(w, 0, self, args, xsink).takeNode();
+      return qore_method_private::evalPseudoMethod(w, 0, self, args, xsink);
    else if (priv->methodGate && !priv->methodGate->inMethod(self)) // call methodGate with unknown method name and arguments
       return evalMethodGate(self, nme, args, xsink);
 
