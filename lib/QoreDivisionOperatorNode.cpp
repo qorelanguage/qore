@@ -96,12 +96,12 @@ AbstractQoreNode* QoreDivisionOperatorNode::parseInitIntern(const char* name, Lo
 
 QoreValue QoreDivisionOperatorNode::floatDivision(ExceptionSink* xsink) const {
    double l = left->floatEval(xsink);
-   if (*xsink) return false;
+   if (*xsink) return QoreValue();
    double r = right->floatEval(xsink);
-   if (*xsink) return false;
+   if (*xsink) QoreValue();
    if (!r) {
       xsink->raiseException("DIVISION-BY-ZERO", "division by zero found in floating-point expression");
-      return this;
+      return QoreValue();
    }
 
    return l / r;
@@ -109,12 +109,12 @@ QoreValue QoreDivisionOperatorNode::floatDivision(ExceptionSink* xsink) const {
 
 QoreValue QoreDivisionOperatorNode::bigIntDivision(ExceptionSink* xsink) const {
    int64 l = left->bigIntEval(xsink);
-   if (*xsink) return false;
+   if (*xsink) return QoreValue();
    int64 r = right->bigIntEval(xsink);
-   if (*xsink) return false;
+   if (*xsink) return QoreValue();
    if (!r) {
       xsink->raiseException("DIVISION-BY-ZERO", "division by zero found in integer expression");
-      return this;
+      return QoreValue();
    }
 
    return l / r;
