@@ -1,8 +1,8 @@
 /*
   ReturnStatement.cpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
@@ -32,18 +32,20 @@
 #include <qore/intern/ReturnStatement.h>
 #include <qore/intern/qore_program_private.h>
 
-int ReturnStatement::execImpl(AbstractQoreNode** return_value, ExceptionSink* xsink) {
-   if (exp)
-      (*return_value) = exp->eval(xsink);
+int ReturnStatement::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
+   if (exp) {
+      return_value = exp->eval(xsink);
+      return_value.sanitize();
+   }
 
    if (!*xsink) {
       const QoreTypeInfo* returnTypeInfo = getReturnTypeInfo();
-      *return_value = returnTypeInfo->acceptAssignment("<return statement>", *return_value, xsink);
+      returnTypeInfo->acceptAssignment("<return statement>", return_value, xsink);
    }
 
    if (*xsink) {
-      discard(*return_value, xsink);
-      (*return_value) = 0;
+      return_value.discard(xsink);
+      return_value.clear();
    }
 
    return RC_RETURN;
@@ -67,7 +69,7 @@ int ReturnStatement::parseInitImpl(LocalVar* oflag, int pflag) {
       // check if a warning should be generated, if require-types is not set and it is a class-special method
       const QoreClass *qc = getParseClass();
       const char* fname = get_parse_code();
-      if (!parse_check_parse_option(PO_REQUIRE_TYPES) && qc && 
+      if (!parse_check_parse_option(PO_REQUIRE_TYPES) && qc &&
 	  (!strcmp(fname, "constructor") || !strcmp(fname, "copy") || !strcmp(fname, "destructor"))) {
 	 QoreStringNode* desc = new QoreStringNode;
 	 desc->sprintf("the return statement for %s::%s() returns ", qc->getName(), fname);

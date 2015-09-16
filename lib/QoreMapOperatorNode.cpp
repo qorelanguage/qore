@@ -124,7 +124,7 @@ QoreValue QoreMapOperatorNode::mapIterator(AbstractIteratorHelper& h, ExceptionS
       //ReferenceHolder<> iv(h.getValue(xsink), xsink);
       if (*xsink)
          return QoreValue();
-      SingleArgvContextHelper argv_helper(iv.takeReferencedValue(), xsink);
+      SingleArgvContextHelper argv_helper(iv.release(), xsink);
       //printd(5, "op_map() e[0]=%p (%d %s)\n", e[0], e[0]->getType(), e[0]->getTypeName());
       ValueEvalRefHolder val(left, xsink);
       if (*xsink)

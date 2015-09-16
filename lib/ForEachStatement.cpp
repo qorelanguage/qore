@@ -45,7 +45,7 @@ ForEachStatement::~ForEachStatement() {
    delete lvars;
 }
 
-int ForEachStatement::execImpl(AbstractQoreNode** return_value, ExceptionSink* xsink) {
+int ForEachStatement::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
    if (is_ref)
       return execRef(return_value, xsink);
 
@@ -114,7 +114,7 @@ int ForEachStatement::execImpl(AbstractQoreNode** return_value, ExceptionSink* x
 }
 
 // specialization for foreach ... in (keys <hash>) {}
-int ForEachStatement::execKeys(AbstractQoreNode** return_value, ExceptionSink* xsink) {
+int ForEachStatement::execKeys(QoreValue& return_value, ExceptionSink* xsink) {
    // instantiate local variables
    LVListInstantiator lvi(lvars, xsink);
 
@@ -179,7 +179,7 @@ int ForEachStatement::execKeys(AbstractQoreNode** return_value, ExceptionSink* x
    return rc;
 }
 
-int ForEachStatement::execRef(AbstractQoreNode** return_value, ExceptionSink* xsink) {
+int ForEachStatement::execRef(QoreValue& return_value, ExceptionSink* xsink) {
    int rc = 0;
 
    // instantiate local variables
@@ -270,7 +270,7 @@ int ForEachStatement::execRef(AbstractQoreNode** return_value, ExceptionSink* xs
    return rc;
 }
 
-int ForEachStatement::execIterator(AbstractIteratorHelper& aih, AbstractQoreNode** return_value, ExceptionSink* xsink) {
+int ForEachStatement::execIterator(AbstractIteratorHelper& aih, QoreValue& return_value, ExceptionSink* xsink) {
    // execute "foreach" body
    unsigned i = 0;
 
@@ -295,7 +295,7 @@ int ForEachStatement::execIterator(AbstractIteratorHelper& aih, AbstractQoreNode
             break;
 
          // assign variable to current value in list
-         if (n.assign(arg.takeReferencedValue()))
+         if (n.assign(arg.release()))
             break;
       }
 

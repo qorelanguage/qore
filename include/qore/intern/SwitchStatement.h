@@ -39,7 +39,7 @@
 class CaseNode {
 private:
    DLLLOCAL virtual bool isCaseNodeImpl() const;
-   
+
 public:
    AbstractQoreNode* val;
    StatementBlock* code;
@@ -61,7 +61,7 @@ private:
    CaseNode* deflt;
 
    DLLLOCAL virtual int parseInitImpl(LocalVar* oflag, int pflag = 0);
-   DLLLOCAL virtual int execImpl(AbstractQoreNode** return_value, ExceptionSink* xsink);
+   DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink);
 
 public:
     LVList *lvars;

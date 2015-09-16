@@ -1,10 +1,10 @@
 /*
   IfStatement.cpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -47,25 +47,25 @@ IfStatement::~IfStatement() {
 }
 
 // only executed by Statement::exec()
-int IfStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) {
+int IfStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
    int rc = 0;
-   
+
    // instantiate local variables
    LVListInstantiator lvi(lvars, xsink);
-   
+
    if (cond->boolEval(xsink)) {
       if (!xsink->isEvent() && if_code)
 	 rc = if_code->execImpl(return_value, xsink);
    }
    else if (else_code)
       rc = else_code->execImpl(return_value, xsink);
-   
+
    return rc;
 }
 
 int IfStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    int lvids = 0;
-   
+
    // turn off top-level flag for statement vars
    pflag &= (~PF_TOP_LEVEL);
 

@@ -174,7 +174,7 @@ QoreValue QoreHashMapSelectOperatorNode::mapIterator(AbstractIteratorHelper& h, 
          return QoreValue();
 
       // check if value can be mapped
-      SingleArgvContextHelper argv_helper(iv.takeReferencedValue(), xsink);
+      SingleArgvContextHelper argv_helper(iv.release(), xsink);
 
       ValueEvalRefHolder result(e[3], xsink);
       if (*xsink)

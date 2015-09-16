@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
  SummarizeStatement.h
- 
+
  Qore Programming Language
- 
+
  Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -36,12 +36,12 @@
 #include "ContextStatement.h"
 
 class SummarizeStatement : public ContextStatement {
-   DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
+   DLLLOCAL virtual int execImpl(QoreValue& return_value, class ExceptionSink *xsink);
    DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
 
 public:
    class AbstractQoreNode *summarize;
-      
+
    DLLLOCAL SummarizeStatement(int start_line, int end_line, char *n, class AbstractQoreNode *expr, class ContextModList *cm, class StatementBlock *cd, class AbstractQoreNode *summ_exp = NULL) : ContextStatement(start_line, end_line, n, expr, cm, cd), summarize(summ_exp) {
    }
    DLLLOCAL virtual ~SummarizeStatement() {

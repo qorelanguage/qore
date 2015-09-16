@@ -379,7 +379,7 @@ public:
       if (constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))
 	 return;
 
-      discard(evalIntern(uveh.getArgv(), self, xsink), xsink);
+      evalIntern(uveh.getArgv(), self, xsink).discard(xsink);
    }
 
    DLLLOCAL virtual void parseInit(QoreFunction* f);
@@ -417,7 +417,7 @@ public:
       assert(!signature.numParams());
       assert(!signature.getReturnTypeInfo() || signature.getReturnTypeInfo() == nothingTypeInfo);
       ProgramThreadCountContextHelper pch(xsink, pgm, true);
-      discard(eval("destructor", 0, self, xsink, getClassPriv()), xsink);
+      eval("destructor", 0, self, xsink, getClassPriv()).discard(xsink);
    }
 };
 

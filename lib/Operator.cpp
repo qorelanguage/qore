@@ -1196,7 +1196,7 @@ static AbstractQoreNode* op_select_iterator(const AbstractQoreNode* select, Abst
       //ReferenceHolder<> iv(h.getValue(xsink), xsink);
       if (*xsink)
          return 0;
-      SingleArgvContextHelper argv_helper(iv.takeReferencedValue(), xsink);
+      SingleArgvContextHelper argv_helper(iv.release(), xsink);
       if (*xsink)
          return 0;
       b = select->boolEval(xsink);

@@ -139,7 +139,7 @@ QoreValue QoreMapSelectOperatorNode::mapSelectIterator(AbstractIteratorHelper& h
       //ReferenceHolder<> iv(h.getValue(xsink), xsink);
       if (*xsink)
          return QoreValue();
-      SingleArgvContextHelper argv_helper(iv.takeReferencedValue(), xsink);
+      SingleArgvContextHelper argv_helper(iv.release(), xsink);
       ValueEvalRefHolder result(e[2], xsink);
       if (*xsink)
          return QoreValue();

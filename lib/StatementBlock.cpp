@@ -56,7 +56,7 @@ protected:
    const QoreProgramLocation* loc;
    bool block_start;
    bool top_level;
-   
+
 public:
    LocalVar* lvar;
    VNode* next;
@@ -163,9 +163,9 @@ VariableBlockHelper::~VariableBlockHelper() {
    //printd(5, "VariableBlockHelper::~VariableBlockHelper() this=%p got %p\n", this, vnode->lvar);
 }
 
-AbstractQoreNode* StatementBlock::exec(ExceptionSink* xsink) {
-   AbstractQoreNode* return_value = 0;
-   execImpl(&return_value, xsink);
+QoreValue StatementBlock::exec(ExceptionSink* xsink) {
+   QoreValue return_value;
+   execImpl(return_value, xsink);
    return return_value;
 }
 
@@ -189,21 +189,21 @@ void StatementBlock::del() {
       delete *i;
 
    statement_list.clear();
-   
+
    if (lvars) {
       delete lvars;
       lvars = 0;
    }
 }
 
-int StatementBlock::execImpl(AbstractQoreNode** return_value, ExceptionSink* xsink) {
+int StatementBlock::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
    // instantiate local variables
    LVListInstantiator lvi(lvars, xsink);
 
    return execIntern(return_value, xsink);
 }
 
-int StatementBlock::execIntern(AbstractQoreNode** return_value, ExceptionSink* xsink) {
+int StatementBlock::execIntern(QoreValue& return_value, ExceptionSink* xsink) {
    QORE_TRACE("StatementBlock::execImpl()");
    int rc = 0;
 
@@ -215,7 +215,7 @@ int StatementBlock::execIntern(AbstractQoreNode** return_value, ExceptionSink* x
    // push "on block exit" iterator if necessary
    if (obe)
       pushBlock(on_block_exit_list.end());
-   
+
    // execute block
    for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(); i != e; ++i)
       if ((rc = (*i)->exec(return_value, xsink)) || xsink->isEvent())
@@ -298,7 +298,7 @@ LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const
          }
       }
    }
-   
+
    //printd(5, "push_local_var(): pushing var %s\n", name);
    new VNode(lv, &loc, n_refs, top_level);
    return lv;
@@ -385,7 +385,7 @@ int StatementBlock::parseInitImpl(LocalVar* oflag, int pflag) {
    printd(4, "StatementBlock::parseInitImpl(b=%p, oflag=%p)\n", this, oflag);
 
    BlockStartHelper bsh;
-   
+
    int lvids = parseInitIntern(oflag, pflag & ~PF_TOP_LEVEL, statement_list.end());
 
    // this call will pop all local vars off the stack
@@ -442,7 +442,7 @@ void StatementBlock::parseInitConstructor(const QoreTypeInfo* typeInfo, UserVari
 
    UserParamListLocalVarHelper ph(uvb, typeInfo);
 
-   // if there is a base constructor list, resolve all classes and 
+   // if there is a base constructor list, resolve all classes and
    // ensure that all classes referenced are base classes of this class
    if (bcal) {
       // ensure that parse flags are set before initializing
@@ -492,7 +492,7 @@ void TopLevelStatementBlock::parseInit(int64 po) {
       for (int i = 0; i < lvids; ++i)
 	 pop_local_var();
    }
-   
+
    // now initialize root namespace and functions before local variables are popped off the stack
    qore_root_ns_private::parseInit();
 
@@ -517,8 +517,7 @@ void TopLevelStatementBlock::parseInit(int64 po) {
    return;
 }
 
-int TopLevelStatementBlock::execImpl(AbstractQoreNode** return_value, ExceptionSink* xsink) {
+int TopLevelStatementBlock::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
    // do not instantiate local vars here; they are instantiated by the QoreProgram object for each thread
    return execIntern(return_value, xsink);
 }
-

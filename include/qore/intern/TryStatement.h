@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
  TryStatement.h
- 
+
  Qore Programming Language
- 
+
  Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -42,10 +42,10 @@ public:
    //class StatementBlock *finally;
    char *param;
    LocalVar *id;
-      
-   DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
+
+   DLLLOCAL virtual int execImpl(QoreValue& return_value, class ExceptionSink *xsink);
    DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
-   
+
 public:
    DLLLOCAL TryStatement(int start_line, int end_line, class StatementBlock *t, class StatementBlock *c, char *p);
    DLLLOCAL virtual ~TryStatement();

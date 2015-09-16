@@ -138,10 +138,10 @@ public:
    // the QoreValue object takes the reference of the argument
    DLLEXPORT QoreValue(AbstractQoreNode* n);
 
-   // the arg will be referenced for the assignment
+   // does not reference n for any assignment
    // sanitizes n (increases the reference of n if necessary) - meaning:
    // if possible, the value is converted to an immediate value in place
-   // (int, float, or bool), otherwise the arg will be referenced for the assignment
+   // (int, float, or bool)
    DLLEXPORT QoreValue(const AbstractQoreNode* n);
 
    DLLEXPORT QoreValue(const QoreValue& old);
@@ -184,8 +184,11 @@ public:
 
    DLLEXPORT QoreValue& operator=(const QoreValue& n);
 
-   // dereferences any contained AbstractQoreNode pointer and sets to 0; does not modify immediate values
+   // dereferences any contained AbstractQoreNode pointer and sets to 0; does not modify other values
    DLLEXPORT void discard(ExceptionSink* xsink);
+
+   //! unconditionalls set the QoreValue to NOTHING (does not dereference any possible contained AbstractQoreNode ptr)
+   DLLEXPORT void clear();
 
    DLLEXPORT int getAsString(QoreString& str, int format_offset, ExceptionSink *xsink) const;
 
@@ -274,7 +277,7 @@ public:
    DLLEXPORT AbstractQoreNode* getReferencedValue();
 
    //! returns a QoreValue object and leaves the current object empty; the caller owns any referenced contained in the return value
-   DLLEXPORT QoreValue takeReferencedValue();
+   DLLEXPORT QoreValue release();
 
    DLLLOCAL QoreValue& operator=(QoreValue nv) {
       v.discard(xsink);

@@ -72,8 +72,7 @@ QoreValue::QoreValue(const AbstractQoreNode* n) {
 	 return;
    }
    type = QV_Node;
-   // n cannot be 0 here because we covered the NT_NOTHING case above
-   v.n = n->refSelf();
+   v.n = const_cast<AbstractQoreNode*>(n);
 }
 
 QoreValue::QoreValue(const QoreValue& old): type(old.type) {
@@ -273,6 +272,13 @@ void QoreValue::discard(ExceptionSink* xsink) {
    }
 }
 
+void QoreValue::clear() {
+   if (type != QV_Node)
+      type = QV_Node;
+   if (v.n)
+      v.n = 0;
+}
+
 int QoreValue::getAsString(QoreString& str, int format_offset, ExceptionSink *xsink) const {
    if (isNothing()) {
       str.concat(format_offset == FMT_YAML_SHORT ? &YamlNullString : &NothingTypeString);
@@ -391,7 +397,7 @@ AbstractQoreNode* ValueHolder::getReferencedValue() {
    return v.takeNode();
 }
 
-QoreValue ValueHolder::takeReferencedValue() {
+QoreValue ValueHolder::release() {
    //printd(5, "ValueHolder::takeReferencedValue() %s\n", v.getTypeName());
    if (v.type == QV_Node)
       return v.takeNodeIntern();

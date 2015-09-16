@@ -1266,8 +1266,8 @@ int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreLi
    return 0;
 }
 
-AbstractQoreNode* UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &argv, QoreObject *self, ExceptionSink* xsink) const {
-   AbstractQoreNode* val = 0;
+QoreValue UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &argv, QoreObject *self, ExceptionSink* xsink) const {
+   QoreValue val;
    if (statements) {
       if (signature.selfid) {
 	 assert(self);
@@ -1304,28 +1304,28 @@ AbstractQoreNode* UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &arg
 
    // if return value is NOTHING; make sure it's valid; maybe there wasn't a return statement
    // only check if there isn't an active exception
-   if (!*xsink && !val) {
+   if (!*xsink && val.isNothing()) {
       const QoreTypeInfo* rt = signature.getReturnTypeInfo();
 
       // check return type
-      val = rt->acceptAssignment("<block return>", val, xsink);
+      rt->acceptAssignment("<block return>", val, xsink);
    }
 
    return val;
 }
 
 // primary function for executing user code
-AbstractQoreNode* UserVariantBase::eval(const char* name, CodeEvaluationHelper *ceh, QoreObject *self, ExceptionSink* xsink, const qore_class_private* qc) const {
+QoreValue UserVariantBase::eval(const char* name, CodeEvaluationHelper *ceh, QoreObject *self, ExceptionSink* xsink, const qore_class_private* qc) const {
    QORE_TRACE("UserVariantBase::eval()");
    //printd(5, "UserVariantBase::eval() this: %p '%s()' args: %p (size: %d) self: %p class: %p '%s'\n", this, name, ceh ? ceh->getArgs() : 0, ceh && ceh->getArgs() ? ceh->getArgs()->size() : 0, self, qc, qc ? qc->name.c_str() : "n/a");
 
    // if pgm is 0 or == the current pgm, then ProgramThreadCountContextHelper does nothing
    ProgramThreadCountContextHelper tch(xsink, pgm, true);
-   if (*xsink) return 0;
+   if (*xsink) return QoreValue();
 
    UserVariantExecHelper uveh(this, ceh, xsink);
    if (!uveh)
-      return 0;
+      return QoreValue();
 
    ClassObj cobj;
    if (self)
@@ -1671,7 +1671,7 @@ void QoreFunction::parseInit() {
    }
 }
 
-AbstractQoreNode* UserClosureFunction::evalClosure(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject *self, ExceptionSink* xsink) const {
+QoreValue UserClosureFunction::evalClosure(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject *self, ExceptionSink* xsink) const {
    // closures cannot be overloaded
    assert(vlist.singular());
 
@@ -1680,11 +1680,11 @@ AbstractQoreNode* UserClosureFunction::evalClosure(const QoreClosureBase& closur
    // setup call, save runtime position
    CodeEvaluationHelper ceh(xsink, this, variant, "<anonymous closure>", args, 0, CT_USER);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    ProgramThreadCountContextHelper tch(xsink, pgm, true);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    ThreadSafeLocalVarRuntimeEnvironmentHelper ch(&closure_base);
 
