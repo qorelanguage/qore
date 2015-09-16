@@ -470,14 +470,14 @@ Mapper mapv(DataMap);
             if (fh.name) {
                 if (fh.struct)
                     error("output field %y has both 'name' (%y) and 'struct' (%y) values; only one can be given to identify the input field", getFieldName(k), fh.name, fh.struct);
-                if (input && !fh.constant && !fh.code)
+                if (input && !exists fh.constant && !fh.code)
                     checkInputField(k, fh.name);
                 if (!allow_dot && fh.name =~ /\./)
                     fh.struct = (remove fh.name).split(".");
             }
-            else if (!fh.struct && input && !fh.constant && !fh.code)
+            else if (!fh.struct && input && !exists fh.constant && !fh.code)
                 checkInputField(k, k);
-            if (fh.constant) {
+            if (exists fh.constant) {
                 *list cl = map $1, fh.keys(){ConstantConflictList};
                 if (cl)
                     error("output field %y has a \"constant\" key giving a constant output value and also the following conflicting keys: %y", getFieldName(k), cl);
@@ -494,7 +494,7 @@ Mapper mapv(DataMap);
                         if (input)
                             checkInputField(k, fh.name);
                     }
-                    else if (input && !fh.constant && !fh.code)
+                    else if (input && !exists fh.constant && !fh.code)
                         checkInputField(k, (foldl $1 + "." + $2, fh.struct));
                     break;
                 }
