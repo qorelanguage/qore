@@ -154,6 +154,9 @@ on_error ds.rollback();
 
             #! operation name
             string opname;
+
+            #! list of "returning" columns
+            list ret_args = ();
         }
 
         #! creates the object from the supplied arguments
@@ -242,7 +245,10 @@ on_error ds.rollback();
         queueData(hash data) {
             # prepare buffer hash if necessary
             if (!hbuf)
-                map hbuf.$1 = (), data.keyIterator();
+                setupInitialRow(data);
+
+            # remove "returning" arguments
+            data -= ret_args;
 
             # if we are working with bulk data where the row count would cause the buffer limit to be exceeded
             if (data.firstValue().typeCode() == NT_LIST) {
@@ -307,7 +313,7 @@ on_error ds.rollback();
 
             # prepare buffer hash if necessary
             if (!hbuf)
-                map hbuf.$1 = (), l[0].keyIterator();
+                setupInitialRow(l[0]);
 
             # if we are working with bulk data where the row count would cause the buffer limit to be exceeded
             while (True) {
@@ -336,6 +342,11 @@ on_error ds.rollback();
 
             # return all target data
             flushIntern();
+        }
+
+        #! sets up the block buffer given the initial template row for inserting
+        setupInitialRow(hash row) {
+            map hbuf.$1 = (), row.keyIterator();
         }
 
         #! flushes any remaining batched data to the database; this method should always be called before committing the transaction or destroying the object
@@ -509,6 +520,12 @@ on_error ds.rollback();
         private {
             #! statement for DML
             SQLStatement stmt;
+
+            #! per-row @ref closure or @ref call_reference for inserts
+            *code rowcode;
+
+            #! hash of "returning" arguments
+            hash static_ret_expr;
         }
 
         #! creates the object from the supplied arguments
@@ -516,6 +533,7 @@ on_error ds.rollback();
             @param opts an optional hash of options for the object as follows:
             - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-style arguments
             - \c "block_size": the number of rows executed at once (default: 500)
+            - \c "row_code": a per-row @ref closure or @ref call_reference for batch inserts; this must take a single hash argument and will be called for every row after a bulk insert
         */
         constructor(SqlUtil::Table target, *hash opts) : AbstractBulkOperation("insert", target, opts) {
         }
@@ -529,20 +547,46 @@ on_error ds.rollback();
         constructor(SqlUtil::AbstractTable target, *hash opts) : AbstractBulkOperation("insert", target, opts) {
         }
 
+        #! common constructor initialization
+        private init(*hash opts) {
+            if (opts.rowcode)
+                rowcode = rowcode;
+            AbstractBulkOperation::init(opts);
+        }
+
+        #! sets up support for "returning" insert options for any possible rowcode member
+        setupInitialRow(hash row) {
+            foreach hash h in (row.pairIterator()) {
+                if (h.value.typeCode() == NT_HASH) {
+                    ret_args += h.key;
+                    static_ret_expr.(h.key) = h.value;
+                    # remove the hash from the row
+                    delete row.(h.key);
+                }
+            }
+            AbstractBulkOperation::setupInitialRow(row);
+        }
+
         #! inserts internally-queued queued data in the database wuith bulk DML operations
         private flushImpl() {
+            *hash rh;
             if (!stmt) {
                 string sql;
                 # insert the data
-                table.insertNoCommit(hbuf, \sql);
+                rh = table.insertNoCommit(hbuf + static_ret_expr, \sql, ("returning": ret_args));
                 # create the statement for future inserts
                 stmt = new SQLStatement(table.getDatasource());
                 stmt.prepare(sql);
-                return;
+            }
+            else {
+                # execute the SQLStatement on the args
+                stmt.execArgs(hbuf.values());
+                rh = stmt.getOutput();
             }
 
-            # execute the SQLStatement on the args
-            stmt.execArgs(hbuf.values());
+            # call rowcode if it exists
+            if (rowcode)
+                map rowcode($1), (hbuf + rh).contextIterator();
         }
     }
 
