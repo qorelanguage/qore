@@ -211,16 +211,27 @@ w.write(data);
 */
 
 #! The FixedLengthUtil namespace contains all the definitions in the FixedLengthUtil module
-public namespace FixedLengthUtil;
+public namespace FixedLengthUtil {
+    #! Unix end of line character sequence (for new OS X too)
+    public const EOL_UNIX = "\n";
+    #! MS DOS/Windows end of line character sequence
+    public const EOL_WIN = "\r\n";
+    #! Old (pre-OSX) Macintosh end of line character sequence
+    public const EOL_MACINTOSH = "\r";
+
+    # helper list of end of line values
+    const EOLS = (EOL_UNIX, EOL_WIN, EOL_MACINTOSH);
+}
 
 #! Structured line iterator for abstract data allowing efficient "pipelined" processing
-public class FixedLengthUtil::FixedLengthAbstractIterator inherits TextUtil::AbstractTextIterator {
+public class FixedLengthUtil::FixedLengthAbstractIterator {
     private {
         hash m_specs;
         hash m_line_lengths;
         string m_state;
         #! hash of conflicting records; key = record length, value = list of conflicting record names
         hash m_conflicts;
+        *hash m_opts; # encoding, eol, ignore_empty, timezone, etc
     }
 
     #! Instantiates the FixedLengthAbstractIterator object
@@ -228,7 +239,7 @@ public class FixedLengthUtil::FixedLengthAbstractIterator inherits TextUtil::Abs
         @param spec Fixed-length line specification; see @ref fixedlengthspec for more information
         @param opts Global options; see @ref fixedlengthglobals for more information
     */
-    constructor(hash spec, *hash opts) : TextUtil::AbstractTextIterator(opts.("encoding", "eol", "ignore_empty", "ignore_empty", "timezone", "number_format", "date_format")) {
+    constructor(hash spec, *hash opts) {
         m_specs           = spec;
         m_opts            += checkOptions(opts);
 
@@ -287,11 +298,105 @@ my hash $h = $i.getValue();
         return result;
     }
 
+    any transform(any value, hash type) {
+        switch (type.type) {
+            case "int": {
+                return int(value);
+            }
+
+            case NOTHING:
+            case "string": {
+                if (value.typeCode() == NT_STRING) {
+                    trim value;
+                    return m_opts.encoding ? convert_encoding(value, m_opts.encoding) : value;
+                }
+                return string(value);
+            }
+
+            case "float": {
+                if (value.typeCode() == NT_STRING) {
+                    *string nf = type.format ? type.format : m_opts.number_format;
+                    return nf ? parse_float(value, nf) : float(value);
+                }
+                return float(value);
+            }
+            case "number": {
+                if (value.typeCode() == NT_STRING) {
+                    *string nf = type.format ? type.format : m_opts.number_format;
+                    return nf ? parse_number(value, nf) : number(value);
+                }
+                return number(value);
+            }
+            case "date": {
+                if (value.empty()) {
+                    return 1970-01-01;
+                }
+                TimeZone tz;
+                if (type.timezone)
+                    tz = type.timezone.type() == "object" ? type.timezone : new TimeZone(type.timezone);
+                else if (m_opts.timezone)
+                    tz = m_opts.timezone;
+
+                int t = value.typeCode();
+                if (t == NT_STRING) {
+                    *string fmt = type.format;
+                    if (!fmt)
+                        fmt = m_opts.date_format;
+
+                    return tz ? tz.date(value, fmt) : date(value, fmt);
+                }
+                if (t != NT_DATE && tz)
+                    value = date(value);
+                return tz ? tz.date(value) : date(value);
+            }
+            default: {
+              throw "FIELD-TYPE-ERROR", sprintf("output type %y not supported", type.type);
+            }
+        }
+    }
+
     #! Validate and prepare global fixed-length options
     /**
         @param opts Options passed during class instantiation.
     */
-    private *hash checkOptions(*hash opts) { # put special options here
+    private *hash checkOptions(*hash opts) {
+        string errname = 'RECORD-ITERATOR-ERROR';
+
+        foreach my hash i in (opts.pairIterator()) {
+            switch (i.key) {
+                case "eol": {
+                    if (i.value.typeCode() != NT_STRING) {
+                        throw errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
+                    }
+                    if (!inlist(i.value, EOLS)) {
+                        throw errname, sprintf("expecting a known end of line value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
+                    }
+                    opts.eol = i.value;
+                    break;
+                }
+                case "timezone": {
+                    opts.timezone = new TimeZone(opts.timezone);
+                    break;
+                }
+                case "ignore_empty": {
+                    opts.ignore_empty = boolean(opts.ignore_empty);
+                    break;
+                }
+                case "encoding": {
+                    # TODO: check encoding name here
+                    break;
+                }
+                case "number_format": {
+                    # TODO: check here
+                    break;
+                }
+                case "date_format": {
+                    # TODO: check here
+                    break;
+                }
+            }
+        }
+
         return opts;
     }
 
@@ -538,6 +643,27 @@ public class FixedLengthUtil::FixedLengthAbstractWriter inherits TextUtil::Abstr
                 }
             }
         }
+    }
+
+    private *hash checkOptions(*hash opts) {
+        string errname = 'RECORD-WRITER-ERROR';
+
+        foreach my hash i in (opts.pairIterator()) {
+            switch (i.key) {
+                case "eol": {
+                    if (i.value.typeCode() != NT_STRING) {
+                        throw errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
+                    }
+                    if (!inlist(i.value, EOLS)) {
+                        throw errname, sprintf("expecting a known end of line value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
+                    }
+                    opts.eol = i.value;
+                    break;
+                }
+            }
+        }
+
+        return opts;
     }
 
     #! get processed lines count
