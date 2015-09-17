@@ -366,7 +366,7 @@ int SSLSocketHelper::accept(const char* mname, int timeout_ms, ExceptionSink* xs
       while (true) {
 	 rc = SSL_accept(ssl);
 
-	 if (rc == -1 && !(rc == doSSLUpgradeNonBlockingIO(rc, mname, timeout_ms, "SSL_accept", closed, xsink))) {
+	 if (rc == -1 && !(rc = doSSLUpgradeNonBlockingIO(rc, mname, timeout_ms, "SSL_accept", closed, xsink))) {
 	    if (closed)
 	       break;
 	    continue;
@@ -532,7 +532,7 @@ int SSLSocketHelper::doSSLRW(const char* mname, void* buf, int size, int timeout
          int err = SSL_get_error(ssl, rc);
 
          if (err == SSL_ERROR_WANT_READ) {
-            if (!qs.isDataAvailable(timeout_ms, mname, xsink)) {
+            if (!qs.isSocketDataAvailable(timeout_ms, mname, xsink)) {
                if (xsink) {
 		  if (*xsink)
 		     return -1;
@@ -611,7 +611,7 @@ int SSLSocketHelper::doSSLUpgradeNonBlockingIO(int rc, const char* mname, int ti
    int err = SSL_get_error(ssl, rc);
 
    if (err == SSL_ERROR_WANT_READ) {
-      if (qs.isDataAvailable(timeout_ms, mname, xsink))
+      if (qs.isSocketDataAvailable(timeout_ms, mname, xsink))
 	 return 0;
 
       if (*xsink)

@@ -826,10 +826,14 @@ struct qore_socket_private {
       return rc;
    }
 
+   DLLLOCAL bool isSocketDataAvailable(int timeout_ms, const char* mname, ExceptionSink* xsink) {
+      return select(timeout_ms, true, mname, xsink);
+   }
+
    DLLLOCAL bool isDataAvailable(int timeout_ms, const char* mname, ExceptionSink* xsink) {
       if (buflen)
 	 return true;
-      return select(timeout_ms, true, mname, xsink);
+      return isSocketDataAvailable(timeout_ms, mname, xsink);
    }
 
    DLLLOCAL bool isWriteFinished(int timeout_ms, const char* mname, ExceptionSink* xsink) {
