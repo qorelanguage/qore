@@ -60,7 +60,6 @@ public class BarerefTest inherits QUnit::Test {
     	func = \argTest();
     	testAssertion("arg test 2", func, ("True", 2001-01-01), new TestResultValue(("True", 2001-01-01)));
 
-        # FIXME: Crashes Qore
     	testAssertion("arg test 3", \BarerefTest::argTest(), ("2", False), new TestResultValue(("2", False)));
     	func = \BarerefTest::argTest();
     	testAssertion("arg test 4", func, ("True", 2001-01-01), new TestResultValue(("True", 2001-01-01)));
