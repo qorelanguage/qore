@@ -194,6 +194,7 @@ public namespace TableMapper {
             const OptionKeys = Mapper::OptionKeys + (
                 "unstable_input": sprintf("if this is set to True then a slower insert method will be used that verifies each input row; if False an optimized insert method is used (additionally bulk inserts are possible) but all input hashes must have the same keys in the same order; default: %y", OptionDefaults.unstable_input),
                 "insert_block": sprintf("the row block size used when bulk DML / batch inserts are used; default: %y", OptionDefaults.insert_block),
+                "rowcode": "a closure or call reference taking a single hash argument representing the row values inserted plus any output values generated in the insert (such as sequence values, for example)",
                 );
 
             #! default option values
@@ -257,8 +258,11 @@ InboundTableMapper mapper(table, DbMapper);
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
             - \c "unstable_input": set this option to @ref Qore::True "True" (default @ref Qore::False "False") if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow() or insertRowNoCommit(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
             - \c "insert_block": for DB drivers supporting bulk DML (for use with the queueBatchRow(), flush(), and discard() methods), the number of rows inserted at once (default: 500, only used when \c "unstable_input" is @ref Qore::False "False") and bulk inserts are supported in the table object; see @ref tablemapper_bulk_insert_api for more information
+            - \c "rowcode": a per-row @ref closure or @ref call_reference for batch inserts; this must take a single hash argument and will be called for every row after a bulk insert; the hash argument representing the row inserted will also contain any output values if applicable
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
+
+            @see setRowCode()
         */
         constructor(SqlUtil::Table target, hash mapv, *hash opts) {
             table = target.getTable();
@@ -290,9 +294,13 @@ InboundTableMapper mapper(table, DbMapper);
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
             - \c "unstable_input": set this option to @ref Qore::True "True" (default @ref Qore::False "False") if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow() or insertRowNoCommit(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
             - \c "insert_block": for DB drivers supporting bulk DML (for use with the queueBatchRow(), flush(), and discard() methods), the number of rows inserted at once (default: 500, only used when \c "unstable_input" is @ref Qore::False "False") and bulk inserts are supported in the table object; see @ref tablemapper_bulk_insert_api for more information
+            - \c "rowcode": a per-row @ref closure or @ref call_reference for batch inserts; this must take a single hash argument and will be called for every row after a bulk insert; the hash argument representing the row inserted will also contain any output values if applicable
+
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
             @throw TABLE-ERROR the table includes a column using an unknown native data type
+
+            @see setRowCode()
         */
         constructor(SqlUtil::AbstractTable target, hash mapv, *hash opts) {
             table = target;
@@ -354,6 +362,10 @@ InboundTableMapper mapper(table, DbMapper);
             # unconditionally set insert_block = 1 if the driver does not support bulk DML
             if (!table.hasArrayBind())
                 insert_block = 1;
+
+            # set any per-row closure/call reference
+            if (opts.rowcode)
+                rowcode = opts.rowcode;
 
             # check map for logical errors
             checkMap();
@@ -504,7 +516,17 @@ InboundTableMapper mapper(table, DbMapper);
         }
 
         #! sets a @ref closure "closure" or @ref call_reference "call reference" that will be called when data has been sent to the database and all output data is available; must accept a hash argument that represents the data written to the database including any output arguments. This code will be reset, once the transaction is commited.
-        /** @param rowc a @ref closure "closure" or @ref call_reference "call reference" that will be called when data has been sent to the database and all output data is available; must accept a hash argument that represents the data written to the database including any output arguments
+        /** @par Example:
+            @code
+code rowcode = sub (hash row) {
+    # process row data
+};
+table_mapper.setRowCode(rowcode);
+            @endcode
+
+            @param rowc a @ref closure "closure" or @ref call_reference "call reference" that will be called when data has been sent to the database and all output data is available; must accept a hash argument that represents the data written to the database including any output arguments
+
+            @note the per-row @ref closure "closure" or @ref call_reference "call reference" can also be set by using the \c "rowcode" option in the constructor()
         */
         setRowCode(*code rowc) {
             rowcode = rowc;
@@ -513,13 +535,13 @@ InboundTableMapper mapper(table, DbMapper);
         #! inserts a row (or a set of rows, in case a hash of lists is passed) into the block buffer based on a mapped input record; the block buffer is flushed to the DB if the buffer size reaches the limit defined by the \c "insert_block" option; does not commit the transaction
         /** @par Example:
             @code
-on_success $table_mapper.commit();
-on_error $table_mapper.rollback();
+on_success table_mapper.commit();
+on_error table_mapper.rollback();
 {
-    on_success $table_mapper.flush();
-    on_error $table_mapper.discard();
+    on_success table_mapper.flush();
+    on_error table_mapper.discard();
 
-    map $table_mapper.queueBatchRow($1), $data.iterator();
+    map table_mapper.queueBatchRow($1), data.iterator();
 }
             @endcode
 
@@ -601,13 +623,13 @@ on_error $table_mapper.rollback();
         #! flushes any remaining batched data to the database; this method should always be called before committing the transaction or destroying the object
         /** @par Example:
             @code
-on_success $table_mapper.commit();
-on_error $table_mapper.rollback();
+on_success table_mapper.commit();
+on_error table_mapper.rollback();
 {
-    on_success $table_mapper.flush();
-    on_error $table_mapper.discard();
+    on_success table_mapper.flush();
+    on_error table_mapper.discard();
 
-    map $table_mapper.queueBatchRow($1), $data.iterator();
+    map table_mapper.queueBatchRow($1), data.iterator();
 }
             @endcode
 
@@ -630,13 +652,13 @@ on_error $table_mapper.rollback();
         #! discards any buffered batched data; this method should be called after using the batch APIs (queueBatchRow()) and an error occurs
         /** @par Example:
             @code
-on_success $table_mapper.commit();
-on_error $table_mapper.rollback();
+on_success table_mapper.commit();
+on_error table_mapper.rollback();
 {
-    on_success $table_mapper.flush();
-    on_error $table_mapper.discard();
+    on_success table_mapper.flush();
+    on_error table_mapper.discard();
 
-    map $table_mapper.queueBatchRow($1), $data.iterator();
+    map table_mapper.queueBatchRow($1), data.iterator();
 }
             @endcode
 
