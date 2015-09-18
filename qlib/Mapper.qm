@@ -702,7 +702,7 @@ Mapper mapv(DataMap);
 
                 # get source record value
                 any v;
-                if (m.constant)
+                if (exists m.constant)
                     v = m.constant;
                 else if (m.struct) {
                     # get the value
