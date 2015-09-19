@@ -225,17 +225,22 @@ typedef std::vector<std::string> name_vec_t;
 //! 64bit integer type, cannot use int64_t here since it breaks the API on some 64-bit systems due to equivalence between long int and int
 typedef long long int64;
 
-//! the type used for builtin function signatures
-/** @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
-    @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
-    @return the return value of the function (can be 0)
- */
-typedef QoreValue (*q_func_n_t)(const QoreListNode* args, ExceptionSink* xsink);
+//! runtime code execution flags
+typedef uint64_t q_rt_flags_t;
 
 //! the type used for builtin function signatures
 /** @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
     @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
-    @return the return value of the function (can be 0)
+
+    @return the return value of the function; the caller owns any reference returned in the return value
+ */
+typedef QoreValue (*q_func_n_t)(const QoreListNode* args, q_rt_flags_t flags, ExceptionSink* xsink);
+
+//! the type used for builtin function signatures
+/** @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
+    @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
+
+    @return the return value of the function (can be 0); the caller owns any reference returned in the return value
  */
 typedef AbstractQoreNode* (*q_func_t)(const QoreListNode* args, ExceptionSink* xsink);
 
@@ -253,16 +258,18 @@ typedef double (*q_func_double_t)(const QoreListNode* args, ExceptionSink* xsink
     @param private_data the object's private data representing the state of the object
     @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
     @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
-    @return the return value of the function (can be 0)
+
+    @return the return value of the function (can be 0); the caller owns any reference returned in the return value
  */
-typedef QoreValue (*q_method_n_t)(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, ExceptionSink* xsink);
+typedef QoreValue (*q_method_n_t)(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, q_rt_flags_t flags, ExceptionSink* xsink);
 
 //! the type used for builtin QoreClass method signatures
 /** @param self the QoreObject that the function is being executed on
     @param private_data the object's private data representing the state of the object
     @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
     @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
-    @return the return value of the function (can be 0)
+
+    @return the return value of the function (can be 0); the caller owns any reference returned in the return value
  */
 typedef AbstractQoreNode* (*q_method_t)(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, ExceptionSink* xsink);
 
@@ -271,6 +278,7 @@ typedef AbstractQoreNode* (*q_method_t)(QoreObject* self, AbstractPrivateData* p
     @param private_data the object's private data representing the state of the object
     @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
     @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
+
     @return the integer return value of the function
  */
 typedef int64 (*q_method_int64_t)(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, ExceptionSink* xsink);
@@ -280,6 +288,7 @@ typedef int64 (*q_method_int64_t)(QoreObject* self, AbstractPrivateData* private
     @param private_data the object's private data representing the state of the object
     @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
     @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
+
     @return the integer return value of the function
  */
 typedef int (*q_method_int_t)(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, ExceptionSink* xsink);
@@ -289,6 +298,7 @@ typedef int (*q_method_int_t)(QoreObject* self, AbstractPrivateData* private_dat
     @param private_data the object's private data representing the state of the object
     @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
     @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
+
     @return the integer return value of the function
  */
 typedef bool (*q_method_bool_t)(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, ExceptionSink* xsink);
@@ -298,6 +308,7 @@ typedef bool (*q_method_bool_t)(QoreObject* self, AbstractPrivateData* private_d
     @param private_data the object's private data representing the state of the object
     @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
     @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
+
     @return the integer return value of the function
  */
 typedef double (*q_method_double_t)(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, ExceptionSink* xsink);
@@ -308,7 +319,8 @@ typedef double (*q_method_double_t)(QoreObject* self, AbstractPrivateData* priva
     @param private_data the object's private data representing the state of the object
     @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
     @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
-    @return the return value of the function (can be 0)
+
+    @return the return value of the function (can be 0); the caller owns any reference returned in the return value
  */
 typedef AbstractQoreNode* (*q_method2_t)(const QoreMethod& method, QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, ExceptionSink* xsink);
 
@@ -320,7 +332,8 @@ typedef AbstractQoreNode* (*q_method2_t)(const QoreMethod& method, QoreObject* s
     @param private_data the object's private data representing the state of the object
     @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
     @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
-    @return the return value of the function (can be 0)
+
+    @return the return value of the function (can be 0); the caller owns any reference returned in the return value
  */
 typedef AbstractQoreNode* (*q_method3_t)(const QoreMethod& method, const type_vec_t& typeList, const void* ptr, QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, ExceptionSink* xsink);
 
@@ -328,7 +341,8 @@ typedef AbstractQoreNode* (*q_method3_t)(const QoreMethod& method, const type_ve
 /** @param method a constant reference to the QoreMethod being called
     @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
     @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
-    @return the return value of the function (can be 0)
+
+    @return the return value of the function (can be 0); the caller owns any reference returned in the return value
  */
 typedef AbstractQoreNode* (*q_static_method2_t)(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink);
 
@@ -338,7 +352,8 @@ typedef AbstractQoreNode* (*q_static_method2_t)(const QoreMethod& method, const 
     @param ptr a pointer to user-defined member set when the variant is added to the method
     @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
     @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
-    @return the return value of the function (can be 0)
+
+    @return the return value of the function (can be 0); the caller owns any reference returned in the return value
  */
 typedef AbstractQoreNode* (*q_static_method3_t)(const QoreMethod& method, const type_vec_t& typeList, const void* ptr, const QoreListNode* args, ExceptionSink* xsink);
 

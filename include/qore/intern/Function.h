@@ -258,6 +258,7 @@ protected:
    QoreListNodeEvalOptionalRefHolder tmp;
    const QoreTypeInfo* returnTypeInfo; // saved return type info
    QoreProgram* pgm; // program used when evaluated (to find stacks for references)
+   q_rt_flags_t rtflags; // runtime flags
 
 public:
    // saves current program location in case there's an exception
@@ -288,6 +289,9 @@ public:
    }
    DLLLOCAL void restorePosition() const {
       update_runtime_location(loc);
+   }
+   DLLLOCAL q_rt_flags_t getRuntimeFlags() const {
+      return rtflags;
    }
 };
 

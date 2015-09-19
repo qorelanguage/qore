@@ -8,7 +8,7 @@
 
   namespaces are children of a program object.  there is a parse
   lock per program object to ensure that objects are added (or backed out)
-  atomically per program object.  All the objects referenced here should 
+  atomically per program object.  All the objects referenced here should
   be safe to read & copied at all times.  They will only be deleted when the
   program object is deleted (except the pending structures, which will be
   deleted any time there is a parse error, together with all other
@@ -134,12 +134,12 @@ public:
       @see QoreHashNode
       @see QoreListNode
       @return a hash of all constants in the namespace, the hash keys are the constant names and the values are the values of the constants
-   */      
+   */
    DLLEXPORT QoreHashNode *getConstantInfo() const;
 
    //! returns a hash giving information about the definitions in the namespace
    /** the return value has the following keys: "constants", "classes", and "subnamespaces"
-       having as values the result of calling QoreNamespace::getConstantInfo(), 
+       having as values the result of calling QoreNamespace::getConstantInfo(),
        QoreNamespace::getClassInfo(), and a hash of subnamespace names having as values
        the result of calling this function on each, respectively.
        @return a hash giving information about the definitions in the namespace
@@ -202,12 +202,19 @@ public:
    //! this function must be called before the QoreNamespace object is deleted or a crash could result due if constants and/or class static vars contain objects
    DLLEXPORT void deleteData(ExceptionSink *xsink);
 
+   // adds a function variant
+   DLLEXPORT void addBuiltinVariant(const char* name, q_func_n_t f, int64 code_flags = QC_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, unsigned num_params = 0, ...);
+
+   // @deprecated superceded by value version
    DLLEXPORT void addBuiltinVariant(const char* name, q_func_t f, int64 code_flags = QC_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, unsigned num_params = 0, ...);
 
+   // @deprecated superceded by value version
    DLLEXPORT void addBuiltinVariant(const char* name, q_func_int64_t f, int64 code_flags = QC_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, unsigned num_params = 0, ...);
 
+   // @deprecated superceded by value version
    DLLEXPORT void addBuiltinVariant(const char* name, q_func_double_t f, int64 code_flags = QC_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, unsigned num_params = 0, ...);
 
+   // @deprecated superceded by value version
    DLLEXPORT void addBuiltinVariant(const char* name, q_func_bool_t f, int64 code_flags = QC_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, unsigned num_params = 0, ...);
 };
 
@@ -223,14 +230,14 @@ class RootQoreNamespace : public QoreNamespace {
 
 private:
    DLLLOCAL RootQoreNamespace(class qore_root_ns_private* p);
-   
+
 protected:
    // private implementation
    class qore_root_ns_private* rpriv;
 
 public:
    //! returns a pointer to the QoreNamespace for the "Qore" namespace
-   /** 
+   /**
        @return a pointer to the QoreNamespace for the "Qore" namespace; do not delete the object returned
    */
    DLLEXPORT QoreNamespace *rootGetQoreNamespace() const;

@@ -599,13 +599,7 @@ public:
       @param xsink if an error occurs, the Qore-language exception information will be added here
    */
    DLLLOCAL QoreValue evalBuiltinMethodWithPrivateData(const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreListNode* args, ExceptionSink* xsink);
-   /*
-   DLLLOCAL AbstractQoreNode* evalBuiltinMethodWithPrivateData(const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreListNode* args, ExceptionSink* xsink);
-   DLLLOCAL int64 bigIntEvalBuiltinMethodWithPrivateData(const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreListNode* args, ExceptionSink* xsink);
-   DLLLOCAL int intEvalBuiltinMethodWithPrivateData(const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreListNode* args, ExceptionSink* xsink);
-   DLLLOCAL bool boolEvalBuiltinMethodWithPrivateData(const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreListNode* args, ExceptionSink* xsink);
-   DLLLOCAL double floatEvalBuiltinMethodWithPrivateData(const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreListNode* args, ExceptionSink* xsink);
-   */
+
    //! called on the old object (this) to acquire private data, copy method called with pointer to "self" (new copy)
    DLLLOCAL void evalCopyMethodWithPrivateData(const QoreClass &thisclass, const BuiltinCopyVariantBase* meth, QoreObject* self, ExceptionSink* xsink);
 

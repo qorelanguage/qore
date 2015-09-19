@@ -464,53 +464,43 @@ class BuiltinNormalMethodVariantBase : public BuiltinMethodVariant {
 public:
    DLLLOCAL BuiltinNormalMethodVariantBase(bool n_priv_flag, bool n_final, int64 n_flags, int64 n_functionality, const QoreTypeInfo* n_returnTypeInfo, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names) {}
 
-   DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-      CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), self, xsink);
-
-      return self->evalBuiltinMethodWithPrivateData(*qmethod, this, ceh.getArgs(), xsink);
-   }
+   DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const;
 
    DLLLOCAL virtual QoreValue evalPseudoMethod(const AbstractQoreNode* n, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const;
 
-   DLLLOCAL virtual QoreValue evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, ExceptionSink* xsink) const = 0;
-};
-
-class BuiltinNormalMethodVariant : public BuiltinNormalMethodVariantBase {
-protected:
-   q_method_t method;
-
-public:
-   DLLLOCAL BuiltinNormalMethodVariant(q_method_t m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinNormalMethodVariantBase(n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), method(m) {
-   }
-   DLLLOCAL virtual QoreValue evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, ExceptionSink* xsink) const {
-      return method(self, private_data, args, xsink);
-   }
+   DLLLOCAL virtual QoreValue evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) const = 0;
 };
 
 template <typename F>
-class BuiltinNormalMethodTypeVariantBase : public BuiltinNormalMethodVariantBase {
+class BuiltinNormalMethodVariantTemplate : public BuiltinNormalMethodVariantBase {
 protected:
    F method;
 
 public:
-   DLLLOCAL BuiltinNormalMethodTypeVariantBase(F m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinNormalMethodVariantBase(n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), method(m) {
+   DLLLOCAL BuiltinNormalMethodVariantTemplate(F m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinNormalMethodVariantBase(n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), method(m) {
+   }
+   DLLLOCAL virtual QoreValue evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) const {
+      return method(self, private_data, args, xsink);
    }
 };
 
-template <typename B, typename F>
-class BuiltinNormalMethodTypeVariant : public BuiltinNormalMethodTypeVariantBase<F> {
+typedef BuiltinNormalMethodVariantTemplate<q_method_t> BuiltinNormalMethodVariant;
+typedef BuiltinNormalMethodVariantTemplate<q_method_int64_t> BuiltinNormalMethodBigIntVariant;
+typedef BuiltinNormalMethodVariantTemplate<q_method_int_t> BuiltinNormalMethodIntVariant;
+typedef BuiltinNormalMethodVariantTemplate<q_method_double_t> BuiltinNormalMethodFloatVariant;
+typedef BuiltinNormalMethodVariantTemplate<q_method_bool_t> BuiltinNormalMethodBoolVariant;
+
+class BuiltinNormalMethodValueVariant : public BuiltinNormalMethodVariantBase {
+protected:
+   q_method_n_t method;
+
 public:
-   DLLLOCAL BuiltinNormalMethodTypeVariant(F m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinNormalMethodTypeVariantBase<F>(m, n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names) {
+   DLLLOCAL BuiltinNormalMethodValueVariant(q_method_n_t m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinNormalMethodVariantBase(n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), method(m) {
    }
-   DLLLOCAL virtual QoreValue evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, ExceptionSink* xsink) const {
-      return BuiltinNormalMethodTypeVariantBase<F>::method(self, private_data, args, xsink);
+   DLLLOCAL virtual QoreValue evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) const {
+      return method(self, private_data, args, rtflags, xsink);
    }
 };
-
-typedef BuiltinNormalMethodTypeVariant<int64, q_method_int64_t> BuiltinNormalMethodBigIntVariant;
-typedef BuiltinNormalMethodTypeVariant<int, q_method_int_t> BuiltinNormalMethodIntVariant;
-typedef BuiltinNormalMethodTypeVariant<double, q_method_double_t> BuiltinNormalMethodFloatVariant;
-typedef BuiltinNormalMethodTypeVariant<bool, q_method_bool_t> BuiltinNormalMethodBoolVariant;
 
 class BuiltinNormalMethod2Variant : public BuiltinNormalMethodVariantBase {
 protected:
@@ -519,7 +509,7 @@ protected:
 public:
    DLLLOCAL BuiltinNormalMethod2Variant(q_method2_t m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinNormalMethodVariantBase(n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), method(m) {
    }
-   DLLLOCAL virtual QoreValue evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, ExceptionSink* xsink) const {
+   DLLLOCAL virtual QoreValue evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) const {
       return method(*qmethod, self, private_data, args, xsink);
    }
 };
@@ -532,7 +522,7 @@ protected:
 public:
    DLLLOCAL BuiltinNormalMethod3Variant(const void* n_ptr, q_method3_t m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinNormalMethodVariantBase(n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), method(m), ptr(n_ptr) {
    }
-   DLLLOCAL virtual QoreValue evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, ExceptionSink* xsink) const {
+   DLLLOCAL virtual QoreValue evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) const {
       return method(*qmethod, signature.getTypeList(), ptr, self, private_data, args, xsink);
    }
 };

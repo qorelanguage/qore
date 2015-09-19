@@ -83,7 +83,7 @@ bool AbstractQoreFunctionVariant::hasBody() const {
 }
 
 CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, const char* n_class_name, qore_call_t n_ct, bool is_copy)
-   : ct(n_ct), name(n_name), xsink(n_xsink), class_name(n_class_name), loc(RunTimeLocation), tmp(n_xsink), returnTypeInfo((const QoreTypeInfo* )-1), pgm(getProgram()) {
+   : ct(n_ct), name(n_name), xsink(n_xsink), class_name(n_class_name), loc(RunTimeLocation), tmp(n_xsink), returnTypeInfo((const QoreTypeInfo* )-1), pgm(getProgram()), rtflags(0) {
    tmp.assignEval(args);
 
    if (*xsink)

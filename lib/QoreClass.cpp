@@ -34,6 +34,7 @@
 #include <qore/intern/ConstantList.h>
 #include <qore/intern/qore_program_private.h>
 #include <qore/intern/ql_crypto.h>
+#include <qore/intern/QoreObjectIntern.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -3969,9 +3970,14 @@ const char* MethodVariantBase::getAbstractSignature() {
    return asig.c_str();
 }
 
+QoreValue BuiltinNormalMethodVariantBase::evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
+   CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), self, xsink);
+   return qore_object_private::evalBuiltinMethodWithPrivateData(*self, *qmethod, this, ceh.getArgs(), ceh.getRuntimeFlags(), xsink);
+}
+
 QoreValue BuiltinNormalMethodVariantBase::evalPseudoMethod(const AbstractQoreNode* n, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
    CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), 0, xsink);
-   return evalImpl(NULL, (AbstractPrivateData*)n, ceh.getArgs(), xsink);
+   return evalImpl(NULL, (AbstractPrivateData*)n, ceh.getArgs(), ceh.getRuntimeFlags(), xsink);
 }
 
 class qmi_priv {

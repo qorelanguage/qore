@@ -536,7 +536,6 @@ class qore_object_private {
 public:
    const QoreClass* theclass;
    int status;
-   //mutable QoreRWLock rwl;
 
    // read-write lock with special rsection handling
    mutable RSectionLock rml;
@@ -965,6 +964,14 @@ public:
    DLLLOCAL AbstractPrivateData* getAndRemovePrivateData(qore_classid_t key, ExceptionSink* xsink) {
       QoreSafeVarRWWriteLocker sl(rml);
       return privateData ? privateData->getAndRemovePtr(key) : 0;
+   }
+
+   DLLLOCAL AbstractPrivateData* getReferencedPrivateData(qore_classid_t key, ExceptionSink* xsink) const;
+
+   DLLLOCAL QoreValue evalBuiltinMethodWithPrivateData(const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
+
+   DLLLOCAL static QoreValue evalBuiltinMethodWithPrivateData(QoreObject& obj, const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
+      return obj.priv->evalBuiltinMethodWithPrivateData(method, meth, args, rtflags, xsink);
    }
 
    DLLLOCAL static qore_object_private* get(QoreObject& obj) {

@@ -242,6 +242,39 @@ int qore_object_private::getLValue(const char* key, LValueHelper& lvh, bool inte
    return 0;
 }
 
+// helper function for QoreObject::evalBuiltinMethodWithPrivateData() variations
+static void check_meth_eval(const QoreClass* cls, const char* mname, const QoreClass* mclass, ExceptionSink* xsink) {
+   if (!xsink->isException()) {
+      if (cls == mclass)
+	 xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() cannot be executed because the object has already been deleted", cls->getName(), mname);
+      else
+	 xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() (base class of '%s') cannot be executed because the object has already been deleted", mclass->getName(), mname, cls->getName());
+   }
+}
+
+QoreValue qore_object_private::evalBuiltinMethodWithPrivateData(const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
+   // get referenced object
+   ReferenceHolder<AbstractPrivateData> pd(getReferencedPrivateData(meth->getClass()->getIDForMethod(), xsink), xsink);
+
+   if (pd)
+      return meth->evalImpl(obj, *pd, args, rtflags, xsink);
+
+   //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this: %p (%s) pd: %p, call: %s::%s(), class ID: %d, method class ID: %d\n", this, priv->theclass->getName(), *pd, method.getClass()->getName(), method.getName(), method.getClass()->getID(), method.getClass()->getIDForMethod());
+   check_meth_eval(theclass, method.getName(), method.getClass(), xsink);
+   return QoreValue();
+}
+
+AbstractPrivateData* qore_object_private::getReferencedPrivateData(qore_classid_t key, ExceptionSink* xsink) const {
+   QoreSafeVarRWReadLocker sl(rml);
+
+   if (status == OS_DELETED || !privateData) {
+      makeAccessDeletedObjectException(xsink, theclass->getName());
+      return 0;
+   }
+
+   return privateData->getReferencedPrivateData(key);
+}
+
 void QoreObject::externalDelete(qore_classid_t key, ExceptionSink* xsink) {
    {
       QoreAutoVarRWWriteLocker al(priv->rml);
@@ -311,28 +344,6 @@ void QoreObject::tRef() const {
 
 void QoreObject::tDeref() {
    priv->tDeref();
-}
-
-// helper function for QoreObject::evalBuiltinMethodWithPrivateData() variations
-static void check_meth_eval(const QoreClass* cls, const char* mname, const QoreClass* mclass, ExceptionSink* xsink) {
-   if (!xsink->isException()) {
-      if (cls == mclass)
-	 xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() cannot be executed because the object has already been deleted", cls->getName(), mname);
-      else
-	 xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() (base class of '%s') cannot be executed because the object has already been deleted", mclass->getName(), mname, cls->getName());
-   }
-}
-
-QoreValue QoreObject::evalBuiltinMethodWithPrivateData(const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreListNode* args, ExceptionSink* xsink) {
-   // get referenced object
-   ReferenceHolder<AbstractPrivateData> pd(getReferencedPrivateData(meth->getClass()->getIDForMethod(), xsink), xsink);
-
-   if (pd)
-      return meth->evalImpl(this, *pd, args, xsink);
-
-   //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this: %p (%s) pd: %p, call: %s::%s(), class ID: %d, method class ID: %d\n", this, priv->theclass->getName(), *pd, method.getClass()->getName(), method.getName(), method.getClass()->getID(), method.getClass()->getIDForMethod());
-   check_meth_eval(priv->theclass, method.getName(), method.getClass(), xsink);
-   return QoreValue();
 }
 
 void QoreObject::evalCopyMethodWithPrivateData(const QoreClass &thisclass, const BuiltinCopyVariantBase* meth, QoreObject* self, ExceptionSink* xsink) {
@@ -923,14 +934,7 @@ AbstractQoreNode** QoreObject::getExistingValuePtr(const char* mem, AutoVLock *v
 }
 
 AbstractPrivateData* QoreObject::getReferencedPrivateData(qore_classid_t key, ExceptionSink* xsink) const {
-   QoreSafeVarRWReadLocker sl(priv->rml);
-
-   if (priv->status == OS_DELETED || !priv->privateData) {
-      makeAccessDeletedObjectException(xsink, getClassName());
-      return 0;
-   }
-
-   return priv->privateData->getReferencedPrivateData(key);
+   return priv->getReferencedPrivateData(key, xsink);
 }
 
 AbstractPrivateData* QoreObject::getAndClearPrivateData(qore_classid_t key, ExceptionSink* xsink) {
