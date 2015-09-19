@@ -527,12 +527,13 @@ public:
    }
 };
 
-class BuiltinStaticMethodVariant : public BuiltinMethodVariant {
+template <typename F>
+class BuiltinStaticMethodVariantTemplate : public BuiltinMethodVariant {
 protected:
-   q_func_t static_method;
+   F static_method;
 
 public:
-   DLLLOCAL BuiltinStaticMethodVariant(q_func_t m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), static_method(m) {
+   DLLLOCAL BuiltinStaticMethodVariantTemplate(F m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), static_method(m) {
    }
 
    DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
@@ -542,30 +543,27 @@ public:
    }
 };
 
-template <typename F>
-class BuiltinStaticMethodTypeVariantBase : public BuiltinMethodVariant {
+typedef BuiltinStaticMethodVariantTemplate<q_func_t> BuiltinStaticMethodVariant;
+typedef BuiltinStaticMethodVariantTemplate<q_func_int64_t> BuiltinStaticMethodBigIntVariant;
+typedef BuiltinStaticMethodVariantTemplate<q_func_double_t> BuiltinStaticMethodFloatVariant;
+typedef BuiltinStaticMethodVariantTemplate<q_func_bool_t> BuiltinStaticMethodBoolVariant;
+
+class BuiltinStaticMethodValueVariant : public BuiltinMethodVariant {
 protected:
-   F static_method;
+   q_func_n_t static_method;
 
 public:
-   DLLLOCAL BuiltinStaticMethodTypeVariantBase(F m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), static_method(m) {
+   DLLLOCAL BuiltinStaticMethodValueVariant(q_func_n_t m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), static_method(m) {
    }
-};
 
-template <typename F>
-class BuiltinStaticMethodTypeVariant : public BuiltinStaticMethodTypeVariantBase<F> {
-public:
-   DLLLOCAL BuiltinStaticMethodTypeVariant(F m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinStaticMethodTypeVariantBase<F>(m, n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names) {
-   }
    DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-      return BuiltinStaticMethodTypeVariantBase<F>::static_method(ceh.getArgs(), xsink);
+      CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), ClassObj(getClassPriv()), xsink);
+
+      return static_method(ceh.getArgs(), ceh.getRuntimeFlags(), xsink);
    }
 };
 
-typedef BuiltinStaticMethodTypeVariant<q_func_int64_t> BuiltinStaticMethodBigIntVariant;
-typedef BuiltinStaticMethodTypeVariant<q_func_double_t> BuiltinStaticMethodFloatVariant;
-typedef BuiltinStaticMethodTypeVariant<q_func_bool_t> BuiltinStaticMethodBoolVariant;
-
+// FIXME: deprecated
 class BuiltinStaticMethod2Variant : public BuiltinMethodVariant {
 protected:
    q_static_method2_t static_method;
@@ -580,6 +578,7 @@ public:
    }
 };
 
+// FIXME: deprecated
 class BuiltinStaticMethod3Variant : public BuiltinMethodVariant {
 protected:
    q_static_method3_t static_method;
