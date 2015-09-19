@@ -133,6 +133,12 @@ public:
 
    DLLEXPORT QoreValue(int i);
 
+   DLLEXPORT QoreValue(unsigned int i);
+
+   DLLEXPORT QoreValue(long i);
+
+   DLLEXPORT QoreValue(unsigned long i);
+
    DLLEXPORT QoreValue(int64 i);
 
    DLLEXPORT QoreValue(double f);

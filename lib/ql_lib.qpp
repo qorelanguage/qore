@@ -83,13 +83,11 @@ extern bool threads_initialized;
 AbstractQoreNode* missing_function_error(const char* func, ExceptionSink* xsink) {
    QoreString have(func);
    have.toupr();
-   xsink->raiseException("MISSING-FEATURE-ERROR", "this system does not implement %s(); for maximum portability use the constant Option::HAVE_%s to check if this function is implemented before calling", func, have.getBuffer());
-   return 0;
+   return xsink->raiseException("MISSING-FEATURE-ERROR", "this system does not implement %s(); for maximum portability use the constant Option::HAVE_%s to check if this function is implemented before calling", func, have.getBuffer());
 }
 
 AbstractQoreNode* missing_function_error(const char* func, const char* opt, ExceptionSink* xsink) {
-   xsink->raiseException("MISSING-FEATURE-ERROR", "this system does not implement %s(); for maximum portability use the constant Option::HAVE_%s to check if this function is implemented before calling", func, opt);
-   return 0;
+   return xsink->raiseException("MISSING-FEATURE-ERROR", "this system does not implement %s(); for maximum portability use the constant Option::HAVE_%s to check if this function is implemented before calling", func, opt);
 }
 
 #ifdef DEBUG_X
@@ -100,9 +98,8 @@ static AbstractQoreNode* runQoreTests(const QoreListNode* args, ExceptionSink* x
       return 0;
    }
 
-   xsink->raiseException("A Qore test failed", "Qore test in file %s, line %d threw an exception.",
-			 res.failed_test_file, res.failed_test_line);
-   return 0;
+   return xsink->raiseException("A Qore test failed", "Qore test in file %s, line %d threw an exception.",
+                                res.failed_test_file, res.failed_test_line);
 }
 
 static AbstractQoreNode* runRecentQoreTests(const QoreListNode* args, ExceptionSink* xsink) {
@@ -112,9 +109,8 @@ static AbstractQoreNode* runRecentQoreTests(const QoreListNode* args, ExceptionS
       return 0;
    }
 
-   xsink->raiseException("A Qore test failed", "Qore test in file %s, line %d threw an exception.",
-			 res.failed_test_file, res.failed_test_line);
-   return 0;
+   return xsink->raiseException("A Qore test failed", "Qore test in file %s, line %d threw an exception.",
+                                res.failed_test_file, res.failed_test_line);
 }
 namespace {
 TEST() {
@@ -240,8 +236,7 @@ int system(string command) [dom=EXTERNAL_PROCESS] {
 #elif defined(HAVE_SYSTEM)
    return system(command->getBuffer());
 #else
-   missing_function_error("system", xsink);
-   return 0;
+   return missing_function_error("system", xsink);
 #endif
 }
 
@@ -266,8 +261,7 @@ int getuid() [dom=EXTERNAL_INFO] {
 #ifdef HAVE_GETUID
    return getuid();
 #else
-   missing_function_error("getuid", "UNIX_USERMGT", xsink);
-   return 0;
+   return missing_function_error("getuid", "UNIX_USERMGT", xsink);
 #endif
 }
 
@@ -286,8 +280,7 @@ int geteuid() [dom=EXTERNAL_INFO] {
 #ifdef HAVE_GETEUID
    return getuid();
 #else
-   missing_function_error("geteuid", "UNIX_USERMGT", xsink);
-   return 0;
+   return missing_function_error("geteuid", "UNIX_USERMGT", xsink);
 #endif
 }
 
@@ -306,8 +299,7 @@ int getgid() [dom=EXTERNAL_INFO] {
 #ifdef HAVE_GETGID
    return getgid();
 #else
-   missing_function_error("getgid", "UNIX_USERMGT", xsink);
-   return 0;
+   return missing_function_error("getgid", "UNIX_USERMGT", xsink);
 #endif
 }
 
@@ -326,8 +318,7 @@ int getegid() [dom=EXTERNAL_INFO] {
 #ifdef HAVE_GETEGID
    return getgid();
 #else
-   missing_function_error("getegid", "UNIX_USERMGT", xsink);
-   return 0;
+   return missing_function_error("getegid", "UNIX_USERMGT", xsink);
 #endif
 }
 
@@ -349,10 +340,8 @@ list getgroups() [dom=EXTERNAL_INFO] {
    gid_t l[MAX_GIDS];
 
    int n = getgroups(MAX_GIDS, l);
-   if (n == -1) {
-      xsink->raiseErrnoException("GETGROUPS-ERROR", errno, "error calling getgroups()");
-      return 0;
-   }
+   if (n == -1)
+      return xsink->raiseErrnoException("GETGROUPS-ERROR", errno, "error calling getgroups()");
 
    QoreListNode* rv = new QoreListNode;
    for (int i = 0; i < n; ++i)
@@ -376,10 +365,10 @@ setgroups($l);
 
     @since %Qore 0.8.11.1
 */
-setgroups(softlist gids) [dom=PROCESS] {
+nothing setgroups(softlist gids) [dom=PROCESS] {
 #ifdef HAVE_SETGROUPS
    if (gids->empty())
-      return 0;
+      return QoreValue();
 
 #ifdef HAVE_LOCAL_VARIADIC_ARRAYS_X
    gid_t l[gids->size()];
@@ -387,7 +376,7 @@ setgroups(softlist gids) [dom=PROCESS] {
    gid_t* l = (gid_t*)malloc(sizeof(gid_t) * gids->size());
    if (!l) {
       xsink->outOfMemory();
-      return 0;
+      return QoreValue();
    }
    ON_BLOCK_EXIT(free, l);
 #endif
@@ -499,8 +488,7 @@ int getppid() [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
 #ifdef HAVE_GETPPID
    return getppid();
 #else
-   missing_function_error("getppid", xsink);
-   return 0;
+   return missing_function_error("getppid", xsink);
 #endif
 }
 
@@ -536,17 +524,13 @@ int fork() [dom=PROCESS] {
 #else
 #define QORE_THREAD_LIMIT 1
 #endif
-   if (thread_list.getNumThreads() > (unsigned)(QORE_THREAD_LIMIT)) {
-      xsink->raiseException("ILLEGAL-FORK", "cannot fork() when other threads are running");
-      return 0;
-   }
+   if (thread_list.getNumThreads() > (unsigned)(QORE_THREAD_LIMIT))
+      return xsink->raiseException("ILLEGAL-FORK", "cannot fork() when other threads are running");
 
 #ifdef HAVE_SIGNAL_HANDLING
    // we may not fork from within a signal handler
-   if (QSM.thread_running && gettid() == QSM.gettid()) {
-      xsink->raiseException("ILLEGAL-FORK", "cannot fork() within a signal handler");
-      return 0;
-   }
+   if (QSM.thread_running && gettid() == QSM.gettid())
+      return xsink->raiseException("ILLEGAL-FORK", "cannot fork() within a signal handler");
 
    // stop signal handling thread and make sure it can't be restarted until fork is done
    QSM.preFork();
@@ -562,8 +546,7 @@ int fork() [dom=PROCESS] {
 
    return pid;
 #else
-   missing_function_error("fork", xsink);
-   return 0;
+   return missing_function_error("fork", xsink);
 #endif
 }
 
@@ -589,8 +572,7 @@ int kill(softint pid, softint sig = SIGHUP) [dom=EXTERNAL_PROCESS] {
 #ifdef HAVE_KILL
    return kill(pid, sig);
 #else
-   missing_function_error("kill", xsink);
-   return 0;
+   return missing_function_error("kill", xsink);
 #endif
 }
 
@@ -637,7 +619,7 @@ nothing srand(softint seed) [dom=PROCESS] {
 #else
    srand((int)seed);
 #endif
-   return 0;
+   return QoreValue();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -657,10 +639,8 @@ my string $host = gethostname();
 string gethostname() [flags=CONSTANT;dom=EXTERNAL_INFO] {
    char buf[HOSTNAMEBUFSIZE + 1];
 
-   if (gethostname(buf, HOSTNAMEBUFSIZE)) {
-      xsink->raiseErrnoException("GETHOSTNAME-ERROR", errno, "gethostname() failed");
-      return 0;
-   }
+   if (gethostname(buf, HOSTNAMEBUFSIZE))
+      return xsink->raiseErrnoException("GETHOSTNAME-ERROR", errno, "gethostname() failed");
    return new QoreStringNode(buf);
 }
 
@@ -775,8 +755,7 @@ int setuid(softint uid) [dom=PROCESS] {
 #ifdef HAVE_SETUID
    return setuid((int)uid);
 #else
-   missing_function_error("setuid", "UNIX_USERMGT", xsink);
-   return 0;
+   return missing_function_error("setuid", "UNIX_USERMGT", xsink);
 #endif
 }
 
@@ -798,8 +777,7 @@ int seteuid(softint uid) [dom=PROCESS] {
 #ifdef HAVE_SETEUID
    return seteuid((int)uid);
 #else
-   missing_function_error("seteuid", xsink);
-   return 0;
+   return missing_function_error("seteuid", xsink);
 #endif
 }
 
@@ -821,8 +799,7 @@ int setgid(softint gid) [dom=PROCESS] {
 #ifdef HAVE_SETGID
    return setgid((int)gid);
 #else
-   missing_function_error("setgid", "UNIX_USERMGT", xsink);
-   return 0;
+   return missing_function_error("setgid", "UNIX_USERMGT", xsink);
 #endif
 }
 
@@ -844,8 +821,7 @@ int setegid(softint gid) [dom=PROCESS] {
 #ifdef HAVE_SETEGID
    return setegid((int)gid);
 #else
-   missing_function_error("setegid", xsink);
-   return 0;
+   return missing_function_error("setegid", xsink);
 #endif
 }
 
@@ -864,8 +840,7 @@ int setsid() [dom=PROCESS] {
 #ifdef HAVE_SETSID
    return setsid();
 #else
-   missing_function_error("setsid", xsink);
-   return 0;
+   return missing_function_error("setsid", xsink);
 #endif
 }
 
@@ -1022,6 +997,5 @@ nothing close_all_fd(*softbool strd) [dom=PROCESS] {
 #else
    missing_function_error("close_all_fd", xsink);
 #endif // HAVE_UNISTD
-   return 0;
 }
 //@}

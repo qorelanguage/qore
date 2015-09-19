@@ -1,7 +1,7 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   ql_pwd.qpp
-  
+
   Qore Programming Language
 
   Copyright (C) 2003 - 2015 David Nichols
@@ -60,13 +60,13 @@
  */
 //@{
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing getpwuid() [flags=RUNTIME_NOOP;dom=EXTERNAL_INFO] {
 }
 
 //! Returns a @ref password_info_hash "password information hash" representing the user information for the user ID passed, or, if the user ID does not exist @ref nothing is returned
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_UNIX_USERMGT
 
@@ -85,13 +85,12 @@ my *hash $hash = getpwuid(0);
 #ifdef HAVE_PWD_H
    return q_getpwuid(uid);
 #else
-   missing_function_error("getpwuid", "UNIX_USERMGT", xsink);
-   return 0;
+   return missing_function_error("getpwuid", "UNIX_USERMGT", xsink);
 #endif
 }
 
 //! Returns a @ref password_info_hash "password information hash" representing the user information for the user ID passed, or, if the user ID does not exist, a \c GETPWUID2-ERROR exception is thrown
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_UNIX_USERMGT
 
@@ -120,13 +119,12 @@ hash getpwuid2(softint uid) [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
    }
    return h;
 #else
-   missing_function_error("getpwuid2", "UNIX_USERMGT", xsink);
-   return 0;
+   return missing_function_error("getpwuid2", "UNIX_USERMGT", xsink);
 #endif
 }
 
 //! Returns a @ref password_info_hash "password information hash" representing the user information for the user name passed, or, if the user does not exist @ref nothing is returned
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_UNIX_USERMGT
 
@@ -145,13 +143,12 @@ hash getpwnam(string name) [flags=CONSTANT;dom=EXTERNAL_INFO] {
 #ifdef HAVE_PWD_H
    return q_getpwnam(name->getBuffer());
 #else
-   missing_function_error("getpwnam", "UNIX_USERMGT", xsink);
-   return 0;
+   return missing_function_error("getpwnam", "UNIX_USERMGT", xsink);
 #endif
 }
 
 //! Returns a @ref password_info_hash "password information hash" representing the user information for the user name passed, or, if the user does not exist, a \c GETPWNAM2-ERROR exception is thrown
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_UNIX_USERMGT
 
@@ -180,13 +177,12 @@ hash getpwnam2(string name) [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
    }
    return h;
 #else
-   missing_function_error("getpwnam2", "UNIX_USERMGT", xsink);
-   return 0;
+   return missing_function_error("getpwnam2", "UNIX_USERMGT", xsink);
 #endif
 }
 
 //! Returns a @ref group_info_hash "group information hash" representing the group information for the group ID passed, or, if the group ID does not exist @ref nothing is returned
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_UNIX_USERMGT
 
@@ -205,13 +201,12 @@ my *hash $hash = getgrgid(0);
 #ifdef HAVE_PWD_H
    return q_getgrgid(gid);
 #else
-   missing_function_error("getgrgid", "UNIX_USERMGT", xsink);
-   return 0;
+   return missing_function_error("getgrgid", "UNIX_USERMGT", xsink);
 #endif
 }
 
 //! Returns a @ref group_info_hash "group information hash" representing the group information for the group ID passed, or, if the group ID does not exist, a \c GETGRGID2-ERROR exception is thrown
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_UNIX_USERMGT
 
@@ -240,13 +235,12 @@ hash getgrgid2(softint gid) [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
    }
    return h;
 #else
-   missing_function_error("getgrgid2", "UNIX_USERMGT", xsink);
-   return 0;
+   return missing_function_error("getgrgid2", "UNIX_USERMGT", xsink);
 #endif
 }
 
 //! Returns a @ref group_info_hash "group information hash" representing the group information for the group name passed, or, if the group does not exist @ref nothing is returned
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_UNIX_USERMGT
 
@@ -265,13 +259,12 @@ my *hash $hash = getgrnam("root");
 #ifdef HAVE_PWD_H
    return q_getgrnam(name->getBuffer());
 #else
-   missing_function_error("getgrnam", "UNIX_USERMGT", xsink);
-   return 0;
+   return missing_function_error("getgrnam", "UNIX_USERMGT", xsink);
 #endif
 }
 
 //! Returns a @ref group_info_hash "group information hash" representing the group information for the group name passed, or, if the group does not exist, a \c GETGRNAM2-ERROR exception is thrown
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_UNIX_USERMGT
 
@@ -300,8 +293,7 @@ hash getgrnam2(string name) [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
    }
    return h;
 #else
-   missing_function_error("getgrnam2", "UNIX_USERMGT", xsink);
-   return 0;
+   return missing_function_error("getgrnam2", "UNIX_USERMGT", xsink);
 #endif
 }
 //@}
@@ -326,10 +318,8 @@ string getusername() [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
    ReferenceHolder<QoreHashNode> h(q_getpwuid(geteuid()), xsink);
    if (!h) {
       if (!errno)
-         xsink->raiseException("GET-USERNAME-ERROR", "failed to retrieve information for UID %d", geteuid());
-      else
-         xsink->raiseErrnoException("GET-USERNAME-ERROR", errno, "failed to retrieve information for UID %d", geteuid());
-      return 0;
+         return xsink->raiseException("GET-USERNAME-ERROR", "failed to retrieve information for UID %d", geteuid());
+      return xsink->raiseErrnoException("GET-USERNAME-ERROR", errno, "failed to retrieve information for UID %d", geteuid());
    }
    return h->getReferencedKeyValue("pw_name");
 #else
@@ -352,14 +342,13 @@ string getusername() [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
          desc->concat(ebuf);
       }
 
-      xsink->raiseException("GET-USERNAME-ERROR", desc);
-      return 0;
+      return xsink->raiseException("GET-USERNAME-ERROR", desc);
    }
    name->terminate(size);
    return name.release();
 #else
 #error need getusername() support for this platform
 #endif
-#endif   
+#endif
 }
 //@}

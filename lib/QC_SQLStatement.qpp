@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QC_SQLStatement.qpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -147,7 +147,7 @@ SQLStatement::constructor(DatasourcePool[DatasourcePool] dsp) {
 }
 
 //! Closes the statement if it is open and destroys the object
-/** 
+/**
     @par Example:
     @code
 delete $stmt;
@@ -159,7 +159,7 @@ SQLStatement::destructor() {
 }
 
 //! Throws an exception; objects of this class cannot be copied
-/** 
+/**
     @throw SQLSTATEMENT-COPY-ERROR SQLStatement objects cannot be copied
  */
 SQLStatement::copy() {
@@ -192,7 +192,7 @@ nothing SQLStatement::prepare(string sql, ...) {
 /** The statement is actually only prepared when used for the first time, this is so that SQLStatement objects created with DatasourcePool objects use the DatasourcePool more efficiently, as many drivers require the actual DB API prepare call to be made on the same connection as the connection the statement will be executed on as well.
 
     @note This method does not parse the SQL string for placeholders and bind by value tokens (<tt>%%v</tt>); for a version of this method that does parse the SQL string for placeholders and bind by value tokens, see SQLStatement::prepare().
-    
+
     @param sql The SQL string to prepare for execution on the DB server
 
     @par Example:
@@ -225,7 +225,7 @@ foreach my hash $h in ($l) {
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare()
-    
+
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information
 
     @see SQLStatement::bindArgs(), SQLStatement::bindPlaceholders(), SQLStatement::bindPlaceholdersArgs(), SQLStatement::bindValues(), and SQLStatement::bindValuesArgs()
@@ -256,7 +256,7 @@ foreach my hash $h in ($l) {
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare()
-    
+
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information
 
     @see SQLStatement::bind(), SQLStatement::bindPlaceholders(), SQLStatement::bindPlaceholdersArgs(), SQLStatement::bindValues(), and SQLStatement::bindValuesArgs()
@@ -285,7 +285,7 @@ my date $d = $stmt.getOutput().sd;
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare()
-    
+
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information
 
     @see SQLStatement::bind(), SQLStatement::bindArgs(), SQLStatement::bindPlaceholdersArgs(), SQLStatement::bindValues(), and SQLStatement::bindValuesArgs()
@@ -315,7 +315,7 @@ my date $d = $stmt.getOutput().sd;
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare()
-    
+
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information
 
     @see SQLStatement::bind(), SQLStatement::bindArgs(), SQLStatement::bindPlaceholders(), SQLStatement::bindValues(), and SQLStatement::bindValuesArgs()
@@ -345,7 +345,7 @@ foreach my hash $h in ($l) {
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare()
-    
+
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information
 
     @see SQLStatement::bind(), SQLStatement::bindArgs(), SQLStatement::bindPlaceholders(), SQLStatement::bindPlaceholdersArgs(), and SQLStatement::bindValuesArgs().
@@ -376,7 +376,7 @@ foreach my hash $h in ($l) {
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare()
-    
+
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information
  */
 nothing SQLStatement::bindValuesArgs(softlist vargs) {
@@ -405,7 +405,7 @@ foreach my hash $h in ($l) {
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare()
-    
+
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed; see the relevant DBI driver docs for more information
 
     @see SQLStatement::execArgs()
@@ -437,7 +437,7 @@ foreach my hash $h in ($l) {
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
-    
+
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed; see the relevant DBI driver docs for more information
 
     @see SQLStatement::exec()
@@ -519,7 +519,7 @@ nothing SQLStatement::define() {
 }
 
 //! Closes the statement if it is open, however this method does not release the connection or transaction lock
-/** 
+/**
     @par Example:
     @code
 $stmt.close();
@@ -530,7 +530,7 @@ nothing SQLStatement::close() {
 }
 
 //! Commits the transaction, releases the connection or the transaction lock according to the object used in the SQLStatement::constructor(), and closes the SQLStatement
-/** 
+/**
     @par Example:
     @code
 $stmt.commit();
@@ -543,7 +543,7 @@ nothing SQLStatement::commit() {
 }
 
 //! Closes the SQLStatement, performs a transaction rollback, and releases the connection or the transaction lock according to the object used in the SQLStatement::constructor(), and closes the SQLStatement
-/** 
+/**
     @par Example:
     @code
 $stmt.rollback();
@@ -556,7 +556,7 @@ nothing SQLStatement::rollback() {
 }
 
 //! Manually starts a transaction and allocates a connection or grabs the transaction lock according to the object used in the SQLStatement::constructor()
-/** 
+/**
     @par Example:
     @code
 $stmt.beginTransaction();
@@ -760,21 +760,17 @@ while ($stmt.next()) {
 any SQLStatement::memberGate(string key) [flags=RET_VALUE_ONLY] {
    ReferenceHolder<QoreHashNode> h(stmt->fetchRow(xsink), xsink);
    if (*xsink)
-      return 0;
-   if (!h) {
-      xsink->raiseException("SQLSTATEMENT-ITERATION-ERROR", "Cannot dereference statement iteration context to get current '%s' column value; make sure and call SQLStatement::next() before trying to dereference the current row being iterated", key->getBuffer());
-      return 0;
-   }
+      return QoreValue();
+   if (!h)
+      return xsink->raiseException("SQLSTATEMENT-ITERATION-ERROR", "Cannot dereference statement iteration context to get current '%s' column value; make sure and call SQLStatement::next() before trying to dereference the current row being iterated", key->getBuffer());
 
    bool exists = false;
    const AbstractQoreNode* rv = h->getKeyValueExistence(key, exists, xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
-   if (!exists) {
-      xsink->raiseException("SQLSTATEMENT-COLUMN-ERROR", "The given column name ('%s') does not exist in the current row data", key->getBuffer());
-      return 0;
-   }
+   if (!exists)
+      return xsink->raiseException("SQLSTATEMENT-COLUMN-ERROR", "The given column name ('%s') does not exist in the current row data", key->getBuffer());
 
-   return rv ? rv->refSelf() : 0;
+   return rv ? rv->refSelf() : QoreValue();
 }

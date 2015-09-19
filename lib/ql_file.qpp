@@ -385,7 +385,7 @@ bool is_executable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
    int rc;
 
    if ((rc = stat(path->getBuffer(), &sbuf)))
-      return 0;
+      return QoreValue();
 
    if (sbuf.st_mode & S_IXOTH
        || (geteuid() == sbuf.st_uid && (sbuf.st_mode & S_IXUSR))
@@ -394,8 +394,7 @@ bool is_executable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 
    return false;
 #else
-   missing_function_error("is_executable", xsink);
-   return false;
+   return missing_function_error("is_executable", xsink);
 #endif
 }
 
@@ -415,22 +414,18 @@ rename("/tmp/myfile", "/tmp/myfile.txt");
     @note Some operating systems do not allow moving files between filesystems (ex Solaris)
  */
 nothing rename(string old_path, string new_path) [dom=FILESYSTEM] {
-   if (old_path->empty()) {
-      xsink->raiseException("RENAME-ERROR", "empty path to current file name given as first argument");
-      return 0;
-   }
+   if (old_path->empty())
+      return xsink->raiseException("RENAME-ERROR", "empty path to current file name given as first argument");
 
    // new file name
-   if (new_path->empty()) {
-      xsink->raiseException("RENAME-ERROR", "empty new file path given as second argument");
-      return 0;
-   }
+   if (new_path->empty())
+      return xsink->raiseException("RENAME-ERROR", "empty new file path given as second argument");
 
    int rc = rename(old_path->getBuffer(), new_path->getBuffer());
    if (rc)
       xsink->raiseErrnoException("RENAME-ERROR", errno, "rename('%s', '%s') failed", old_path->getBuffer(), new_path->getBuffer());
 
-   return 0;
+   return QoreValue();
 }
 
 //! Returns a hash of filesystem status values for the file or directory path passed
@@ -452,12 +447,11 @@ my *hash $h = statvfs("/tmp")
 #ifdef HAVE_SYS_STATVFS_H
    struct statvfs vfs;
    if (statvfs(path->getBuffer(), &vfs))
-      return 0;
+      return QoreValue();
 
    return statvfs_to_hash(vfs);
 #else
-   missing_function_error("statvfs", xsink);
-   return 0;
+   return missing_function_error("statvfs", xsink);
 #endif
 }
 
@@ -480,7 +474,7 @@ if (!exists $l)
 *list stat(string path) [dom=FILESYSTEM] {
    struct stat sbuf;
    if (stat(path->getBuffer(), &sbuf))
-      return 0;
+      return QoreValue();
 
    return stat_to_list(sbuf);
 }
@@ -515,7 +509,7 @@ if (!exists $l)
 #else
    if (stat(path->getBuffer(), &sbuf))
 #endif
-      return 0;
+      return QoreValue();
 
    return stat_to_list(sbuf);
 }
@@ -545,7 +539,7 @@ if (!exists $h)
 *hash hstat(string path) [dom=FILESYSTEM] {
    struct stat sbuf;
    if (stat(path->getBuffer(), &sbuf))
-      return 0;
+      return QoreValue();
 
    return stat_to_hash(sbuf);
 }
@@ -579,7 +573,7 @@ if (!exists $h)
 #else
    if (stat(path->getBuffer(), &sbuf))
 #endif
-      return 0;
+      return QoreValue();
 
    return stat_to_hash(sbuf);
 }
@@ -607,7 +601,7 @@ if (!exists $gl)
    glob_t globbuf;
    if (glob(glob_str->getBuffer(), 0, 0, &globbuf)) {
       globfree(&globbuf);
-      return 0;
+      return QoreValue();
    }
 
    QoreListNode *l = new QoreListNode;
@@ -765,10 +759,9 @@ my string $cwd = getcwd2();
 */
 string getcwd2() [flags=RET_VALUE_ONLY;dom=FILESYSTEM,EXTERNAL_INFO] {
    SimpleRefHolder<QoreStringNode> rv(new QoreStringNode);
-   if (q_getcwd(**rv)) {
-      xsink->raiseErrnoException("GETCWD2-ERROR", errno, "getcwd() failed");
-      return 0;
-   }
+   if (q_getcwd(**rv))
+      return xsink->raiseErrnoException("GETCWD2-ERROR", errno, "getcwd() failed");
+
    return rv.release();
 }
 
@@ -791,8 +784,7 @@ int mkfifo(string path, softint mode = 0600) [dom=FILESYSTEM] {
 #ifdef HAVE_MKFIFO
    return mkfifo(path->getBuffer(), mode);
 #else
-   missing_function_error("mkfifo", "UNIX_FILEMGT", xsink);
-   return 0;
+   return missing_function_error("mkfifo", "UNIX_FILEMGT", xsink);
 #endif
 }
 
@@ -818,8 +810,7 @@ int chown(string path, softint owner = -1, softint group = -1) [dom=FILESYSTEM] 
 #ifdef HAVE_CHOWN
    return chown(path->getBuffer(), (uid_t)owner, (uid_t)group);
 #else
-   missing_function_error("chown", "UNIX_FILEMGT", xsink);
-   return 0;
+   return missing_function_error("chown", "UNIX_FILEMGT", xsink);
 #endif
 }
 
@@ -845,8 +836,7 @@ int lchown(string path, softint uid = -1, softint gid = -1) [dom=FILESYSTEM] {
 #ifdef HAVE_LCHOWN
    return lchown(path->getBuffer(), (uid_t)uid, (uid_t)gid);
 #else
-   missing_function_error("lchown", "UNIX_FILEMGT", xsink);
-   return 0;
+   return missing_function_error("lchown", "UNIX_FILEMGT", xsink);
 #endif
 }
 
@@ -869,16 +859,13 @@ string readlink(string path) [dom=FILESYSTEM] {
 #ifdef HAVE_READLINK
    char buf[QORE_PATH_MAX + 1];
    qore_offset_t len = readlink(path->getBuffer(), buf, QORE_PATH_MAX);
-   if (len < 0) {
-      xsink->raiseErrnoException("READLINK-ERROR", errno, "readlink('%s') failed", path->getBuffer());
-      return 0;
-   }
+   if (len < 0)
+      return xsink->raiseErrnoException("READLINK-ERROR", errno, "readlink('%s') failed", path->getBuffer());
    assert(len <= QORE_PATH_MAX);
    buf[len] = '\0';
    return new QoreStringNode(buf);
 #else
-   missing_function_error("readlink", "UNIX_FILEMGT", xsink);
-   return 0;
+   return missing_function_error("readlink", "UNIX_FILEMGT", xsink);
 #endif
 }
 
@@ -903,25 +890,20 @@ symlink("/tmp/temporary-dir", "/users/oracle/install");
  */
 nothing symlink(string old_path, string new_path) [dom=FILESYSTEM] {
 #ifdef HAVE_SYMLINK
-   if (old_path->empty()) {
-      xsink->raiseException("SYMLINK-ERROR", "empty path to current file name given as first argument");
-      return 0;
-   }
+   if (old_path->empty())
+      return xsink->raiseException("SYMLINK-ERROR", "empty path to current file name given as first argument");
 
    // new file name
-   if (new_path->empty()) {
-      xsink->raiseException("SYMLINK-ERROR", "empty new file path given as second argument");
-      return 0;
-   }
+   if (new_path->empty())
+      return xsink->raiseException("SYMLINK-ERROR", "empty new file path given as second argument");
 
    int rc = symlink(old_path->getBuffer(), new_path->getBuffer());
    if (rc)
       xsink->raiseErrnoException("SYMLINK-ERROR", errno, "symlink('%s', '%s') failed", old_path->getBuffer(), new_path->getBuffer());
 
-   return 0;
+   return QoreValue();
 #else
-   missing_function_error("symlink", "UNIX_FILEMGT", xsink);
-   return 0;
+   return missing_function_error("symlink", "UNIX_FILEMGT", xsink);
 #endif
 }
 

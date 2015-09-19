@@ -945,10 +945,8 @@ int DatasourcePool::getErrorTimeout() [flags=CONSTANT] {
 nothing DatasourcePool::setEventQueue(Qore::Thread::Queue[Queue] queue, any arg) {
    ReferenceHolder<Queue> q(queue, xsink);
 
-   if (queue->getMax() != -1) {
-      xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Datasource object if used; use a Queue object with no maximum size for datasource event monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
-      return 0;
-   }
+   if (queue->getMax() != -1)
+      return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Datasource object if used; use a Queue object with no maximum size for datasource event monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
 
    ds->setEventQueue(q.release(), arg ? arg->refSelf() : 0, xsink);
 }

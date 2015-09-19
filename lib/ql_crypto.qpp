@@ -1,7 +1,7 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   ql_crypto.qpp
-  
+
   Qore Programming Language
 
   Copyright (C) 2003 - 2015 David Nichols
@@ -79,7 +79,7 @@ private:
 	 keylen[n - 1] = str->strlen();
 	 return;
       }
-	 
+
       const BinaryNode *b = reinterpret_cast<const BinaryNode *>(pt);
       key[n - 1] = (unsigned char *)b->getPtr();
       keylen[n - 1] = b->size();
@@ -102,7 +102,7 @@ private:
 	 iv = (unsigned char *)str->getBuffer();
 	 return 0;
       }
-      
+
       assert(pt->getType() == NT_BINARY);
       const BinaryNode *b = reinterpret_cast<const BinaryNode *>(pt);
       if (b->size() < 8) {
@@ -203,7 +203,7 @@ public:
 
 /*
    DLLLOCAL int setDESKey(int n, ExceptionSink *xsink) {
-      // force odd parity 
+      // force odd parity
       //DES_set_odd_parity((DES_cblock *)key[n]);
       // populate the schedule structure
       //DES_set_key_unchecked((DES_cblock *)key[n], schedule);
@@ -213,8 +213,8 @@ public:
 */
 };
 
-void missing_openssl_feature(const char *f, ExceptionSink *xsink) {
-   xsink->raiseException("MISSING-FEATURE-ERROR", "the openssl library version that qore was compiled with did not support the %s algorithm; for maximum portability, check Option::HAVE_%s before calling this function", f, f);
+AbstractQoreNode* missing_openssl_feature(const char *f, ExceptionSink *xsink) {
+   return xsink->raiseException("MISSING-FEATURE-ERROR", "the openssl library version that qore was compiled with did not support the %s algorithm; for maximum portability, check Option::HAVE_%s before calling this function", f, f);
 }
 
 //! @qppinit: SimpleRefHolder<BinaryNode> DefaultIV(new BinaryNode); DefaultIV->append(def_iv, 8);
@@ -268,7 +268,7 @@ binary des_random_key() [flags=CONSTANT] [flags=CONSTANT] {
    DES_random_key(db);
    return new BinaryNode(db, sizeof(DES_cblock));
 }
- 
+
 //! Encrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for the <a href="http://www.counterpane.com/blowfish.html">blowfish algorithm</a>
 /** @param data the data to be encrypted
     @param key a variable-length key (recommended 16 bytes or more)
@@ -289,7 +289,7 @@ binary blowfish_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::
 
    if (ch.setSingleKey("BLOWFISH-ENCRYPT-PARAM-ERROR", args, xsink)
        || ch.doCipher(EVP_bf_cbc(), "blowfish", QCRYPTO_ENCRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 }
@@ -314,7 +314,7 @@ binary blowfish_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore
 
    if (ch.setSingleKey("BLOWFISH-DECRYPT-PARAM-ERROR", args, xsink)
        || ch.doCipher(EVP_bf_cbc(), "blowfish", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 }
@@ -342,7 +342,7 @@ string blowfish_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc]
 
    if (ch.setSingleKey("BLOWFISH-DECRYPT-PARAM-ERROR", args, xsink, true)
        || ch.doCipher(EVP_bf_cbc(), "blowfish", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getString();
 }
@@ -366,10 +366,10 @@ my binary $bin = des_encrypt_cbc($data, $key);
 binary des_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
-   if (ch.setSingleKey("DES-ENCRYPT-PARAM-ERROR", args, xsink) 
+   if (ch.setSingleKey("DES-ENCRYPT-PARAM-ERROR", args, xsink)
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 8, xsink)
        || ch.doCipher(EVP_des_cbc(), "DES", QCRYPTO_ENCRYPT, xsink))
-	    return 0;
+	    return QoreValue();
 
    return ch.getBinary();
 }
@@ -393,10 +393,10 @@ my binary $bin = des_decrypt_cbc($data, $key);
 binary des_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
-   if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink) 
+   if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink)
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 8, xsink)
        || ch.doCipher(EVP_des_cbc(), "DES", QCRYPTO_DECRYPT, xsink))
-	    return 0;
+	    return QoreValue();
 
    return ch.getBinary();
 }
@@ -423,10 +423,10 @@ my string $bin = des_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
 string des_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV, *string[doc] encoding) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
-   if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink, true) 
+   if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink, true)
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 8, xsink)
        || ch.doCipher(EVP_des_cbc(), "DES", QCRYPTO_DECRYPT, xsink))
-	    return 0;
+	    return QoreValue();
 
    return ch.getString();
 }
@@ -450,10 +450,10 @@ my binary $bin = des_ede_encrypt_cbc($data, $key);
 binary des_ede_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
-   if (ch.setSingleKey("DES-ENCRYPT-PARAM-ERROR", args, xsink) 
+   if (ch.setSingleKey("DES-ENCRYPT-PARAM-ERROR", args, xsink)
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 16, xsink)
        || ch.doCipher(EVP_des_ede_cbc(), "DES", QCRYPTO_ENCRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 }
@@ -477,10 +477,10 @@ my binary $bin = des_ede_decrypt_cbc($data, $key);
 binary des_ede_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
-   if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink) 
+   if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink)
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 16, xsink)
        || ch.doCipher(EVP_des_ede_cbc(), "DES", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 }
@@ -507,10 +507,10 @@ my string $bin = des_ede_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1
 string des_ede_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV, *string[doc] encoding) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
-   if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink, true) 
+   if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink, true)
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 16, xsink)
        || ch.doCipher(EVP_des_ede_cbc(), "DES", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getString();
 }
@@ -534,10 +534,10 @@ my binary $bin = des_ede3_encrypt_cbc($data, $key);
 binary des_ede3_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
-   if (ch.setSingleKey("DES-ENCRYPT-PARAM-ERROR", args, xsink) 
+   if (ch.setSingleKey("DES-ENCRYPT-PARAM-ERROR", args, xsink)
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 24, xsink)
        || ch.doCipher(EVP_des_ede3_cbc(), "DES", QCRYPTO_ENCRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 }
@@ -561,10 +561,10 @@ my binary $bin = des_ede3_decrypt_cbc($data, $key);
 binary des_ede3_decrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
-   if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink) 
+   if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink)
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 24, xsink)
        || ch.doCipher(EVP_des_ede3_cbc(), "DES", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 }
@@ -591,10 +591,10 @@ my string $bin = des_ede3_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-
 string des_ede3_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV, *string[doc] encoding) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
-   if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink, true) 
+   if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink, true)
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 24, xsink)
        || ch.doCipher(EVP_des_ede3_cbc(), "DES", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getString();
 }
@@ -618,10 +618,10 @@ my binary $bin = desx_encrypt_cbc($data, $key);
 binary desx_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
-   if (ch.setSingleKey("DESX-ENCRYPT-PARAM-ERROR", args, xsink) 
+   if (ch.setSingleKey("DESX-ENCRYPT-PARAM-ERROR", args, xsink)
        || ch.checkKeyLen("DESX-KEY-ERROR", 0, 24, xsink)
        || ch.doCipher(EVP_desx_cbc(), "DESX", QCRYPTO_ENCRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 }
@@ -645,10 +645,10 @@ my binary $bin = desx_decrypt_cbc($data, $key);
 binary desx_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
-   if (ch.setSingleKey("DESX-DECRYPT-PARAM-ERROR", args, xsink) 
+   if (ch.setSingleKey("DESX-DECRYPT-PARAM-ERROR", args, xsink)
        || ch.checkKeyLen("DESX-KEY-ERROR", 0, 24, xsink)
        || ch.doCipher(EVP_desx_cbc(), "DESX", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 }
@@ -678,7 +678,7 @@ string desx_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv 
    if (ch.setSingleKey("DESX-DECRYPT-PARAM-ERROR", args, xsink, true)
        || ch.checkKeyLen("DESX-KEY-ERROR", 0, 24, xsink)
        || ch.doCipher(EVP_desx_cbc(), "DESX", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getString();
 }
@@ -703,7 +703,7 @@ binary rc4_encrypt(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV
 
    if (ch.setSingleKey("RC4-ENCRYPT-PARAM-ERROR", args, xsink)
        || ch.doCipher(EVP_rc4(), "rc4", QCRYPTO_ENCRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 }
@@ -728,7 +728,7 @@ binary rc4_decrypt(binary[doc] data, data[doc] key, data[doc] iv = Qore::Default
 
    if (ch.setSingleKey("RC4-DECRYPT-PARAM-ERROR", args, xsink)
        || ch.doCipher(EVP_rc4(), "rc4", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 }
@@ -756,7 +756,7 @@ string rc4_decrypt_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qor
 
    if (ch.setSingleKey("RC4-DECRYPT-PARAM-ERROR", args, xsink, true)
        || ch.doCipher(EVP_rc4(), "rc4", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getString();
 }
@@ -781,7 +781,7 @@ binary rc2_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::Defau
 
    if (ch.setSingleKey("RC2-ENCRYPT-PARAM-ERROR", args, xsink)
        || ch.doCipher(EVP_rc2_cbc(), "rc2", QCRYPTO_ENCRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 }
@@ -806,7 +806,7 @@ binary rc2_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::Def
 
    if (ch.setSingleKey("RC2-DECRYPT-PARAM-ERROR", args, xsink)
        || ch.doCipher(EVP_rc2_cbc(), "rc2", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 }
@@ -834,7 +834,7 @@ string rc2_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv =
 
    if (ch.setSingleKey("RC2-DECRYPT-PARAM-ERROR", args, xsink, true)
        || ch.doCipher(EVP_rc2_cbc(), "rc2", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getString();
 }
@@ -859,7 +859,7 @@ binary cast5_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::Def
 
    if (ch.setSingleKey("CAST5-ENCRYPT-PARAM-ERROR", args, xsink)
        || ch.doCipher(EVP_cast5_cbc(), "CAST5", QCRYPTO_ENCRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 }
@@ -884,7 +884,7 @@ binary cast5_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::D
 
    if (ch.setSingleKey("CAST5-DECRYPT-PARAM-ERROR", args, xsink)
        || ch.doCipher(EVP_cast5_cbc(), "CAST5", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 }
@@ -912,7 +912,7 @@ string cast5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv
 
    if (ch.setSingleKey("CAST5-DECRYPT-PARAM-ERROR", args, xsink, true)
        || ch.doCipher(EVP_cast5_cbc(), "CAST5", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getString();
 }
@@ -941,12 +941,11 @@ binary rc5_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::Defau
 
    if (ch.setSingleKey("RC5-ENCRYPT-PARAM-ERROR", args, xsink)
        || ch.doCipher(EVP_rc5_32_12_16_cbc(), "rc5", QCRYPTO_ENCRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 #else
-   missing_openssl_feature("RC5", xsink);
-   return 0;
+   return missing_openssl_feature("RC5", xsink);
 #endif
 }
 
@@ -974,12 +973,11 @@ binary rc5_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::Def
 
    if (ch.setSingleKey("RC5-DECRYPT-PARAM-ERROR", args, xsink)
        || ch.doCipher(EVP_rc5_32_12_16_cbc(), "rc5", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 #else
-   missing_openssl_feature("RC5", xsink);
-   return 0;
+   return missing_openssl_feature("RC5", xsink);
 #endif
 }
 
@@ -1010,12 +1008,11 @@ string rc5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv =
 
    if (ch.setSingleKey("RC5-DECRYPT-PARAM-ERROR", args, xsink, true)
        || ch.doCipher(EVP_rc5_32_12_16_cbc(), "rc5", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getString();
 #else
-   missing_openssl_feature("RC5", xsink);
-   return 0;
+   return missing_openssl_feature("RC5", xsink);
 #endif
 }
 
@@ -1043,7 +1040,7 @@ string rc5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv =
 //@{
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MD2_(cryptography)">MD2 message digest</a> of the supplied argument as a hex string
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_MD2
 
@@ -1064,17 +1061,16 @@ string MD2(data[doc] data) {
 #if !defined(OPENSSL_NO_MD2) && !defined(NO_MD2)
    DigestHelper dh(args);
    if (dh.doDigest(MD2_ERR, EVP_md2(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
-   missing_openssl_feature("MD2", xsink);
-   return 0;
+   return missing_openssl_feature("MD2", xsink);
 #endif
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MD4">MD4 message digest</a> of the supplied argument as a hex string
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a hex string of the digest (ex: \c "866437cb7a794bce2b727acc0362ee27")
@@ -1091,13 +1087,13 @@ my string $str = MD4("hello"); # returns "866437cb7a794bce2b727acc0362ee27"
 string MD4(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(MD4_ERR, EVP_md4(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MD5">MD5 message digest</a> of the supplied argument as a hex string
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a hex string of the digest (ex: \c "5d41402abc4b2a76b9719d911017c592")
@@ -1118,7 +1114,7 @@ my string $str = MD5("hello"); # returns "5d41402abc4b2a76b9719d911017c592"
 string MD5(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(MD5_ERR, EVP_md5(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }
@@ -1142,13 +1138,13 @@ my string $str = SHA("hello"); returns "ac62a630ca850b4ea07eda664eaecf9480843152
 string SHA(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(SHA_ERR, EVP_sha(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/SHA-1">SHA1</a> message digest of the supplied argument as a hex string
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a hex string of the digest (ex: \c "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d")
@@ -1167,13 +1163,13 @@ my string $str = SHA1("hello"); # "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
 string SHA1(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(SHA1_ERR, EVP_sha1(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }
 
 //! Returns the SHA-224 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a hex string
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_SHA224
 
@@ -1196,17 +1192,16 @@ string SHA224(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA224_ERR, EVP_sha224(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
-   missing_openssl_feature("SHA224", xsink);
-   return 0;
+   return missing_openssl_feature("SHA224", xsink);
 #endif
 }
 
 //! Returns the SHA-256 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a hex string
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_SHA256
 
@@ -1229,17 +1224,16 @@ string SHA256(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA256_ERR, EVP_sha256(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
-   missing_openssl_feature("SHA256", xsink);
-   return 0;
+   return missing_openssl_feature("SHA256", xsink);
 #endif
 }
 
 //! Returns the SHA-384 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a hex string
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_SHA384
 
@@ -1262,17 +1256,16 @@ string SHA384(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA384_ERR, EVP_sha384(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
-   missing_openssl_feature("SHA384", xsink);
-   return 0;
+   return missing_openssl_feature("SHA384", xsink);
 #endif
 }
 
 //! Returns the SHA-512 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a hex string
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_SHA512
 
@@ -1295,17 +1288,16 @@ string SHA512(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA512_ERR, EVP_sha512(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
-   missing_openssl_feature("SHA512", xsink);
-   return 0;
+   return missing_openssl_feature("SHA512", xsink);
 #endif
 }
 
 //! Returns the DSS message digest (based on SHA-0 and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>) of the supplied argument as a hex string
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a hex string of the digest (ex: \c "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d")
@@ -1324,13 +1316,13 @@ my string $str = DSS("hello"); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea943
 string DSS(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(DSS_ERR, EVP_dss(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }
 
 //! Returns the DSS1 message digest (based on <a href="http://en.wikipedia.org/wiki/SHA-1">SHA1</a> and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>) of the supplied argument as a hex string
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a hex string of the digest (ex: \c "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d")
@@ -1349,13 +1341,13 @@ my string $str = DSS1("hello"); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea94
 string DSS1(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(DSS1_ERR, EVP_dss1(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MDC2">MDC2 message digest</a> of the supplied argument as a hex string
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_MDC2
 
@@ -1376,17 +1368,16 @@ string MDC2(data[doc] data) [flags=RET_VALUE_ONLY] {
 #ifndef OPENSSL_NO_MDC2
    DigestHelper dh(args);
    if (dh.doDigest(MDC2_ERR, EVP_mdc2(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
-   missing_openssl_feature("MDC2", xsink);
-   return 0;
+   return missing_openssl_feature("MDC2", xsink);
 #endif
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/RIPEMD">RIPEMD message digest</a> of the supplied argument as a hex string
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a hex string of the digest (ex: \c "108f07b8382412612c048d07d13f814118445acd")
@@ -1403,13 +1394,13 @@ my string $str = RIPEMD160("hello"); # returns "108f07b8382412612c048d07d13f8141
 string RIPEMD160(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(RIPEMD160_ERR, EVP_ripemd160(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MD2_(cryptography)">MD2 message digest</a> of the supplied argument as binary object
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_MD2
 
@@ -1430,17 +1421,16 @@ binary MD2_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_MD2) && !defined(NO_MD2)
    DigestHelper dh(args);
    if (dh.doDigest(MD2_ERR, EVP_md2(), xsink))
-      return 0;
-   
+      return QoreValue();
+
    return dh.getBinary();
 #else
-   missing_openssl_feature("MD2", xsink);
-   return 0;
+   return missing_openssl_feature("MD2", xsink);
 #endif
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MD4">MD4 message digest</a> of the supplied argument as a binary object
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a binary object of the digest
@@ -1457,13 +1447,13 @@ my binary $bin = MD4_bin("hello");
 binary MD4_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(MD4_ERR, EVP_md4(), xsink))
-      return 0;
-   
+      return QoreValue();
+
    return dh.getBinary();
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MD5">MD5 message digest</a> of the supplied argument as a binary object
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a binary object of the digest
@@ -1480,8 +1470,8 @@ my binary $bin = MD5_bin("hello");
 binary MD5_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(MD5_ERR, EVP_md5(), xsink))
-      return 0;
-   
+      return QoreValue();
+
    return dh.getBinary();
 }
 
@@ -1504,13 +1494,13 @@ my binary $bin = SHA_bin("hello");
 binary SHA_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(SHA_ERR, EVP_sha(), xsink))
-      return 0;
-   
+      return QoreValue();
+
    return dh.getBinary();
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/SHA-1">SHA1</a> message digest of the supplied argument as a binary object
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a binary object of the digest
@@ -1527,13 +1517,13 @@ my binary $bin = SHA1_bin("hello");
 binary SHA1_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(SHA1_ERR, EVP_sha1(), xsink))
-      return 0;
-   
+      return QoreValue();
+
    return dh.getBinary();
 }
 
 //! Returns the SHA-224 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary object
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_SHA224
 
@@ -1554,17 +1544,16 @@ binary SHA224_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA224_ERR, EVP_sha224(), xsink))
-      return 0;
-   
+      return QoreValue();
+
    return dh.getBinary();
 #else
-   missing_openssl_feature("SHA224", xsink);
-   return 0;
+   return missing_openssl_feature("SHA224", xsink);
 #endif
 }
 
 //! Returns the SHA-256 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary object
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_SHA256
 
@@ -1585,17 +1574,16 @@ binary SHA256_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA256_ERR, EVP_sha256(), xsink))
-      return 0;
-   
+      return QoreValue();
+
    return dh.getBinary();
 #else
-   missing_openssl_feature("SHA256", xsink);
-   return 0;
+   return missing_openssl_feature("SHA256", xsink);
 #endif
 }
 
 //! Returns the SHA-384 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary object
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_SHA384
 
@@ -1616,17 +1604,16 @@ binary SHA384_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA384_ERR, EVP_sha384(), xsink))
-      return 0;
-   
+      return QoreValue();
+
    return dh.getBinary();
 #else
-   missing_openssl_feature("SHA384", xsink);
-   return 0;
+   return missing_openssl_feature("SHA384", xsink);
 #endif
 }
 
 //! Returns the SHA-512 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary object
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_SHA512
 
@@ -1647,17 +1634,16 @@ binary SHA512_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA512_ERR, EVP_sha512(), xsink))
-      return 0;
-   
+      return QoreValue();
+
    return dh.getBinary();
 #else
-   missing_openssl_feature("SHA512", xsink);
-   return 0;
+   return missing_openssl_feature("SHA512", xsink);
 #endif
 }
 
 //! Returns the DSS message digest (based on SHA-0 and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>) of the supplied argument as a binary object
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a binary object of the digest
@@ -1676,13 +1662,13 @@ my binary $bin = DSS_bin("hello");
 binary DSS_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(DSS_ERR, EVP_dss(), xsink))
-      return 0;
-   
+      return QoreValue();
+
    return dh.getBinary();
 }
 
 //! Returns the DSS1 message digest (based on SHA-0 and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>) of the supplied argument as a binary object
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a binary object of the digest
@@ -1701,13 +1687,13 @@ my binary $bin = DSS1_bin("hello");
 binary DSS1_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(DSS1_ERR, EVP_dss1(), xsink))
-      return 0;
-   
+      return QoreValue();
+
    return dh.getBinary();
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MDC2">MDC2 message digest</a> of the supplied argument as a binary object
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_MDC2
 
@@ -1728,17 +1714,16 @@ binary MDC2_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #ifndef OPENSSL_NO_MDC2
    DigestHelper dh(args);
    if (dh.doDigest(MDC2_ERR, EVP_mdc2(), xsink))
-      return 0;
-   
+      return QoreValue();
+
    return dh.getBinary();
 #else
-   missing_openssl_feature("MDC2", xsink);
-   return 0;
+   return missing_openssl_feature("MDC2", xsink);
 #endif
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/RIPEMD">RIPEMD message digest</a> of the supplied argument as a binary object
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a binary object of the digest
@@ -1755,8 +1740,8 @@ my binary $bin = RIPEMD160_bin("hello");
 binary RIPEMD160_binary(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(RIPEMD160_ERR, EVP_ripemd160(), xsink))
-      return 0;
-   
+      return QoreValue();
+
    return dh.getBinary();
 }
 
@@ -1785,7 +1770,7 @@ binary RIPEMD160_binary(data[doc] data) [flags=RET_VALUE_ONLY] {
  */
 //@{
 //! Returns the <a href="http://en.wikipedia.org/wiki/MD2_(cryptography)">MD2</a> based HMAC of the supplied argument as a hex string
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_MD2
 
@@ -1808,18 +1793,17 @@ string MD2_hmac(data[doc] data, string key) {
 #if !defined(OPENSSL_NO_MD2) && !defined(NO_MD2)
    HMACHelper dh(args);
    if (dh.doHMAC("MD2-HMAC-ERROR", EVP_md2(), key, xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
    (void)key;
-   missing_openssl_feature("MD2", xsink);
-   return 0;
+   return missing_openssl_feature("MD2", xsink);
 #endif
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MD4">MD4</a> based HMAC of the supplied argument as a hex string
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
     @param key a secret passphrase/key
 
@@ -1836,13 +1820,13 @@ my string $str = MD4_hmac("Hello There This is a Test - 1234567890", "a key");
 string MD4_hmac(data[doc] data, string key) {
    HMACHelper dh(args);
    if (dh.doHMAC("MD4-HMAC-ERROR", EVP_md4(), key, xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MD5">MD5</a> based HMAC of the supplied argument as a hex string
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
     @param key a secret passphrase/key
 
@@ -1861,13 +1845,13 @@ my string $str = MD5_hmac("Hello There This is a Test - 1234567890", "a key");
 string MD5_hmac(data[doc] data, string key) {
    HMACHelper dh(args);
    if (dh.doHMAC("MD5-HMAC-ERROR", EVP_md5(), key, xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA</a> based HMAC of the supplied argument as a hex string
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
     @param key a secret passphrase/key
 
@@ -1886,13 +1870,13 @@ my string $str = SHA_hmac("Hello There This is a Test - 1234567890", "a key");
 string SHA_hmac(data[doc] data, string key) {
    HMACHelper dh(args);
    if (dh.doHMAC("SHA-HMAC-ERROR", EVP_sha(), key, xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA1</a> based HMAC of the supplied argument as a hex string
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
     @param key a secret passphrase/key
 
@@ -1911,13 +1895,13 @@ my string $str = SHA1_hmac("Hello There This is a Test - 1234567890", "a key");
 string SHA1_hmac(data[doc] data, string key) {
    HMACHelper dh(args);
    if (dh.doHMAC("SHA1-HMAC-ERROR", EVP_sha1(), key, xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA224</a> based HMAC of the supplied argument as a hex string
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_SHA224
 
@@ -1939,18 +1923,17 @@ string SHA224_hmac(data[doc] data, string key) {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
    HMACHelper dh(args);
    if (dh.doHMAC("SHA224-HMAC-ERROR", EVP_sha224(), key, xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
    (void)key;
-   missing_openssl_feature("SHA224", xsink);
-   return 0;
+   return missing_openssl_feature("SHA224", xsink);
 #endif
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA256</a> based HMAC of the supplied argument as a hex string
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_SHA256
 
@@ -1971,18 +1954,17 @@ string SHA256_hmac(data[doc] data, string key) {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
    HMACHelper dh(args);
    if (dh.doHMAC("SHA256-HMAC-ERROR", EVP_sha256(), key, xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
    (void)key;
-   missing_openssl_feature("SHA256", xsink);
-   return 0;
+   return missing_openssl_feature("SHA256", xsink);
 #endif
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA384</a> based HMAC of the supplied argument as a hex string
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_SHA384
 
@@ -2003,18 +1985,17 @@ string SHA384_hmac(data[doc] data, string key) {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
    HMACHelper dh(args);
    if (dh.doHMAC("SHA384-HMAC-ERROR", EVP_sha384(), key, xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
    (void)key;
-   missing_openssl_feature("SHA384", xsink);
-   return 0;
+   return missing_openssl_feature("SHA384", xsink);
 #endif
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA512</a> based HMAC of the supplied argument as a hex string
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_SHA512
 
@@ -2035,18 +2016,17 @@ string SHA512_hmac(data[doc] data, string key) {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
    HMACHelper dh(args);
    if (dh.doHMAC("SHA512-HMAC-ERROR", EVP_sha512(), key, xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
    (void)key;
-   missing_openssl_feature("SHA512", xsink);
-   return 0;
+   return missing_openssl_feature("SHA512", xsink);
 #endif
 }
 
 //! Returns the DSS (SHA-0 and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>) based HMAC of the supplied argument as a hex string
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
     @param key a secret passphrase/key
 
@@ -2065,13 +2045,13 @@ my string $str = DSS_hmac("Hello There This is a Test - 1234567890", "a key");
 string DSS_hmac(data[doc] data, string key) {
    HMACHelper dh(args);
    if (dh.doHMAC("DSS-HMAC-ERROR", EVP_dss(), key, xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }
 
 //! Returns the DSS1 (SHA-1 and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>) based HMAC of the supplied argument as a hex string
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
     @param key a secret passphrase/key
 
@@ -2090,13 +2070,13 @@ my string $str = DSS1_hmac("Hello There This is a Test - 1234567890", "a key");
 string DSS1_hmac(data[doc] data, string key) {
    HMACHelper dh(args);
    if (dh.doHMAC("DSS1-HMAC-ERROR", EVP_dss1(), key, xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MDC2">MDC2</a> based HMAC of the supplied argument as a hex string
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
     @param key a secret passphrase/key
 
@@ -2114,18 +2094,17 @@ string MDC2_hmac(data[doc] data, string key) {
 #ifndef OPENSSL_NO_MDC2
    HMACHelper dh(args);
    if (dh.doHMAC("MDC2-HMAC-ERROR", EVP_mdc2(), key, xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
    (void)key;
-   missing_openssl_feature("MDC2", xsink);
-   return 0;
+   return missing_openssl_feature("MDC2", xsink);
 #endif
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/RIPEMD">RIPEMD</a> based HMAC of the supplied argument as a hex string
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
     @param key a secret passphrase/key
 
@@ -2142,7 +2121,7 @@ my string $str = RIPEMD160_hmac("Hello There This is a Test - 1234567890", "a ke
 string RIPEMD160_hmac(data[doc] data, string key) {
    HMACHelper dh(args);
    if (dh.doHMAC("RIPEMD160-HMAC-ERROR", EVP_ripemd160(), key, xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }

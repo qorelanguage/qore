@@ -48,6 +48,18 @@ QoreValue::QoreValue(int i) : type(QV_Int) {
    v.i = i;
 }
 
+QoreValue::QoreValue(unsigned int i) : type(QV_Int) {
+   v.i = i;
+}
+
+QoreValue::QoreValue(long i) : type(QV_Int) {
+   v.i = i;
+}
+
+QoreValue::QoreValue(unsigned long i) : type(QV_Int) {
+   v.i = i;
+}
+
 QoreValue::QoreValue(double f) : type(QV_Float) {
    v.f = f;
 }

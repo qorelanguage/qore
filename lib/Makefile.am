@@ -66,11 +66,11 @@ QORE_QPP_TARGETS = QC_Queue.cpp QC_Socket.cpp QC_ReadOnlyFile.cpp QC_File.cpp QC
 	QC_Datasource.cpp QC_DatasourcePool.cpp QC_SQLStatement.cpp QC_Dir.cpp QC_Program.cpp \
 	QC_GetOpt.cpp QC_TermIOS.cpp QC_TimeZone.cpp QC_SSLCertificate.cpp QC_SSLPrivateKey.cpp \
 	ql_misc.cpp ql_compression.cpp ql_thread.cpp ql_crypto.cpp ql_lib.cpp ql_file.cpp \
-	ql_string.cpp ql_time.cpp ql_math.cpp ql_list.cpp ql_type.cpp ql_pwd.cpp ql_object.cpp \
-	ql_env.cpp ql_dbi.cpp ql_context.cpp \
+	ql_string.cpp ql_time.cpp ql_math.cpp ql_list.cpp ql_pwd.cpp ql_object.cpp \
+	ql_dbi.cpp ql_context.cpp ql_env.cpp ql_type.cpp \
 	qc_option.cpp qc_errno.cpp qc_qore.cpp
 
-QorePseudoMethods.cpp: $(QORE_PSEUDO_SRC) $(QORE_QPP_TARGETS)
+QorePseudoMethods.cpp: $(QORE_PSEUDO_SRC)
 
 QORE_GENERATED_SOURCES = $(QORE_QPP_TARGETS) #parser.cpp parser.hpp scanner.cpp
 
@@ -80,8 +80,8 @@ QORE_ALL_SRC = $(QORE_GENERATED_SOURCES) $(QORE_PSEUDO_SRC)
 
 QORE_ALL_QPP_SRC = $(subst cpp,qpp,$(QORE_QPP_TARGETS) $(QORE_PSEUDO_SRC))
 
-$(QORE_QPP_TARGETS) $(QORE_PSEUDO_SRC): %.cpp: %.qpp
-	$(QPP) $< -o $@
+$(QORE_QPP_TARGETS) $(QORE_PSEUDO_SRC): %.cpp: %.qpp qpp
+	$(QPP) -V $< -o $@
 
 CLEANFILES = $(QORE_ALL_SRC)
 

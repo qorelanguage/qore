@@ -199,7 +199,7 @@ while ($i.next()) {
  */
 hash HashListIterator::getValue() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-      return 0;
+      return QoreValue();
    return i->getRow(xsink);
 }
 
@@ -221,7 +221,7 @@ while ($i.next()) {
  */
 hash HashListIterator::getRow() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-      return 0;
+      return QoreValue();
    return i->getRow(xsink);
 }
 
@@ -292,7 +292,7 @@ while ($i.next()) {
  */
 any HashListIterator::memberGate(string key) [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-      return 0;
+      return QoreValue();
 
    return i->getReferencedKeyValue(key->getBuffer(), xsink);
 }
@@ -317,7 +317,7 @@ while ($i.next()) {
  */
 any HashListIterator::getKeyValue(string key) [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-      return 0;
+      return QoreValue();
 
    return i->getReferencedKeyValue(key->getBuffer(), xsink);
 }
@@ -347,7 +347,6 @@ $i.reset();
  */
 HashListIterator::reset() {
    if (i->check(xsink))
-       return 0;
+       return QoreValue();
    i->reset();
 }
-

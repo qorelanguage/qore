@@ -125,7 +125,7 @@ static void ds_constructor_hash(const QoreHashNode* opts, QoreObject* self, Queu
 /** @defgroup database_driver_constants Database Driver Constants
     These are contants that stand for database driver names known to Qore
 */
-//@{ 
+//@{
 //! for the \c "oracle" driver
 const DSOracle = "oracle";
 
@@ -158,7 +158,7 @@ const DSDB2 = "db2";
 /** @defgroup dbi_capabilities DBI Capability Constants
     These are contants that define the meaning of bits in the capability mask such as returned by Datasource::getCapabilities()
 */
-//@{ 
+//@{
 //! Indicates that the DBI driver supports time zones in times
 const DBI_CAP_TIME_ZONE_SUPPORT = DBI_CAP_TIME_ZONE_SUPPORT;
 
@@ -324,10 +324,10 @@ Datasource::constructor(string driver, *string user, *string pass, *string db, *
 
    if (encoding && !encoding->empty())
       ds->setPendingDBEncoding(encoding->getBuffer());
-   
+
    if (host && !host->empty())
       ds->setPendingHostName(host->getBuffer());
-   
+
    if (port) {
       if (port < 0) {
 	 xsink->raiseException(DSC_ERR, "port value must be zero (meaning use the default port) or positive (value given: %d)", port);
@@ -394,12 +394,12 @@ my Datasource $db(("type": DSPGSQL, "user": "username", "pass": "password", "db"
     @throw DATASOURCE-CONSTRUCTOR-ERROR missing or invalid \c "driver" key, other key name not assigned to a string; port value is \<= 0
     @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
  */
-Datasource::constructor(hash opts, *Qore::Thread::Queue[Queue] queue, any arg) {   
+Datasource::constructor(hash opts, *Qore::Thread::Queue[Queue] queue, any arg) {
    ds_constructor_hash(opts, self, queue, arg, xsink);
 }
 
 //! Closes the datasource if it's open (if any operations are in progress, will block until the operations complete) and destroys the object
-/** 
+/**
     @par Example:
     @code
 delete $db;
@@ -413,7 +413,7 @@ Datasource::destructor() {
 }
 
 //! Creates a new Datasource object with the same driver as the original and copies of all the connection parameters
-/** 
+/**
     @par Example:
     @code
 my Datasource $new_ds = $ds.copy();
@@ -440,7 +440,7 @@ nothing Datasource::open() {
 }
 
 //! Closes the connection to the database; if any actions are in progress on the database, the close call will block until the actions complete. If any errors are encountered, an exception is raised
-/** 
+/**
     @par Example:
     @code
 $db.close();
@@ -455,7 +455,7 @@ nothing Datasource::close() {
 }
 
 //! Commits the current transaction and releases the @ref transaction_lock "transaction lock"
-/** 
+/**
     @par Example:
     @code
 $db.commit();
@@ -470,7 +470,7 @@ nothing Datasource::commit() {
 }
 
 //! Rolls the current transaction back and releases the @ref transaction_lock "transaction lock"
-/** 
+/**
     @par Example:
     @code
 $db.rollback();
@@ -554,7 +554,7 @@ any Datasource::vexec(string sql, *softlist vargs) {
 
 //! Grabs the transaction lock (if autocommit is disabled) and executes an %SQL command on the server and returns either the row count (for example, for updates and inserts) or the data retrieved (for example, if a stored procedure is executed that returns values)
 /** This method does not do any variable binding, so it's useful for example for DDL statements etc
-    
+
     @par Warning:
     Using this method to execute pure dynamic %SQL many times with different %SQL strings (as opposed to using the same string and binding by value instead of dynamic %SQL) can affect application performance by prohibiting the efficient usage of the DB server's statement cache. See DB server documentation for variable binding and the %SQL statement cache for more information.
 
@@ -632,7 +632,7 @@ my *hash $h = $db.selectRow("select * from example_table where id = 1");
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
     @throw DBI-SELECT-ROW-ERROR more than 1 row retrieved from the server
 
-    @note see the documentation for the DBI driver being used for additional possible exceptions    
+    @note see the documentation for the DBI driver being used for additional possible exceptions
  */
 *hash Datasource::selectRow(string sql, ...) {
    ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
@@ -723,7 +723,7 @@ my *hash $h = $db.vselectRow("select * from example_table where id = %v and type
 
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
 
-    @note see the documentation for the DBI driver being used for additional possible exceptions    
+    @note see the documentation for the DBI driver being used for additional possible exceptions
 
     @see Datasource::selectRow()
  */
@@ -786,7 +786,7 @@ my *hash $h = $db.describe("select * from example_table where id = 1");
 
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
 
-    @note see the documentation for the DBI driver being used for additional possible exceptions    
+    @note see the documentation for the DBI driver being used for additional possible exceptions
 
     @since %Qore 0.8.9
  */
@@ -815,7 +815,7 @@ nothing Datasource::beginTransaction() {
 }
 
 //! Closes and reopens the Datasource
-/** 
+/**
     @par Example:
     @code
 $db.reset();
@@ -823,7 +823,7 @@ $db.reset();
 
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
 
-    @note see the documentation for the DBI driver being used for additional possible exceptions    
+    @note see the documentation for the DBI driver being used for additional possible exceptions
  */
 nothing Datasource::reset() {
    ds->reset(xsink);
@@ -1120,7 +1120,7 @@ my any $ver = $db.getServerVersion();
 
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
 
-    @note see the documentation for the DBI driver being used for additional possible exceptions    
+    @note see the documentation for the DBI driver being used for additional possible exceptions
  */
 any Datasource::getServerVersion() {
    return ds->getServerVersion(xsink);
@@ -1134,7 +1134,7 @@ any Datasource::getServerVersion() {
 my any $ver = $db.getClientVersion();
     @endcode
 
-    @note see the documentation for the DBI driver being used for possible exceptions    
+    @note see the documentation for the DBI driver being used for possible exceptions
  */
 any Datasource::getClientVersion() {
    return ds->getClientVersion(xsink);
@@ -1261,7 +1261,7 @@ string Datasource::getConfigString() [flags=CONSTANT] {
 }
 
 //! Sets a queue object for DBI events on the datasource
-/** 
+/**
     @param queue the @ref Qore::Thread::Queue "Queue" object to receive datasource events; note that the @ref Qore::Thread::Queue "Queue" passed cannot have any maximum size set or a \c QUEUE-ERROR will be thrown; passing @ref nothing will clear any event queue
     @param arg an argument to be included in the \c arg key of datasource events
 
@@ -1272,19 +1272,16 @@ string Datasource::getConfigString() [flags=CONSTANT] {
 nothing Datasource::setEventQueue(Qore::Thread::Queue[Queue] queue, any arg) {
    ReferenceHolder<Queue> q(queue, xsink);
 
-   if (queue->getMax() != -1) {
-      xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Datasource object if used; use a Queue object with no maximum size for datasource event monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
-      return 0;
-   }
+   if (queue->getMax() != -1)
+      return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Datasource object if used; use a Queue object with no maximum size for datasource event monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
 
    ds->setEventQueue(q.release(), arg ? arg->refSelf() : 0, xsink);
 }
 
 //! Clears the queue object for DBI events on the datasource
-/** 
+/**
     @since %Qore 0.8.9
  */
 nothing Datasource::clearEventQueue() {
    ds->setEventQueue(0, 0, xsink);
 }
-

@@ -44,7 +44,7 @@ protected:
    bool trim;
    bool convert_to_utf8;
    const QoreEncoding* enc;
-   
+
    DLLLOCAL ~DataLineIterator() {
       if (data)
          data->deref();
@@ -59,7 +59,7 @@ protected:
          return false;
 
       const char* ptr = data->getBuffer() + offset;
-      
+
       // find end of line
       if (eol) {
          if (convert_to_utf8) {
@@ -86,7 +86,7 @@ protected:
                   // update encoding and skip BOM
                   enc = QCS_UTF16LE;
                   //printd(5, "DataLineIterator::getLine() skipping BOM, updated encoding to UTF16-LE\n");
-                  continue;                  
+                  continue;
                }
                line->concatUnicode(c);
                if (c == bytes[pos]) {
@@ -198,15 +198,15 @@ protected:
                   // update encoding and skip BOM
                   enc = QCS_UTF16LE;
                   //printd(5, "DataLineIterator::getLine() skipping BOM, updated encoding to UTF16-LE\n");
-                  continue;                  
+                  continue;
                }
                line->concatUnicode(c);
             }
             else
-               line->concat((char)c);            
+               line->concat((char)c);
          }
       }
-      
+
       return true;
    }
 
@@ -278,11 +278,11 @@ public:
    DLLLOCAL int64 getPos() const {
       return offset;
    }
-   
+
    DLLLOCAL const QoreEncoding* getEncoding() const {
       return enc->isAsciiCompat() ? enc : QCS_UTF8;
    }
-   
+
    DLLLOCAL virtual void deref() {
       if (ROdereference())
          delete this;
@@ -476,6 +476,6 @@ $i.reset();
  */
 DataLineIterator::reset() {
    if (i->check(xsink))
-       return 0;
+      return QoreValue();
    i->reset();
 }

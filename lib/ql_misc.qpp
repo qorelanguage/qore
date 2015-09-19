@@ -407,16 +407,13 @@ set_signal_handler(SIGINT, \signal_handler());
 */
 nothing set_signal_handler(softint signal, code f) [dom=PROCESS] {
 #ifdef HAVE_SIGNAL_HANDLING
-   if (!signal || signal > QORE_SIGNAL_MAX) {
-      xsink->raiseException("SET-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
-      return 0;
-   }
+   if (!signal || signal > QORE_SIGNAL_MAX)
+      return xsink->raiseException("SET-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
 
    QSM.setHandler(signal, f, xsink);
 #else
-   xsink->raiseException("MISSING-FEATURE-ERROR", "this platform does not support signal handling, therefore the set_signal_handler() and remove_signal_handler() functions are not available in Qore; for maximum portability, use the constant Option::HAVE_SIGNAL_HANDLING to check if this function is implemented before calling");
+   return xsink->raiseException("MISSING-FEATURE-ERROR", "this platform does not support signal handling, therefore the set_signal_handler() and remove_signal_handler() functions are not available in Qore; for maximum portability, use the constant Option::HAVE_SIGNAL_HANDLING to check if this function is implemented before calling");
 #endif
-   return 0;
 }
 
 //! Removes a signal handler and returns the signal handling state to the default
@@ -437,15 +434,12 @@ remove_signal_handler(SIGINT);
 */
 nothing remove_signal_handler(softint signal) [dom=PROCESS] {
 #ifdef HAVE_SIGNAL_HANDLING
-   if (!signal || signal > QORE_SIGNAL_MAX) {
-      xsink->raiseException("REMOVE-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
-      return 0;
-   }
+   if (!signal || signal > QORE_SIGNAL_MAX)
+      return xsink->raiseException("REMOVE-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
    QSM.removeHandler(signal, xsink);
 #else
-   xsink->raiseException("MISSING-FEATURE-ERROR", "this platform does not support signal handling, therefore the set_signal_handler() and remove_signal_handler() functions are not available in Qore; for maximum portability, use the constant Option::HAVE_SIGNAL_HANDLING to check if this function is implemented before calling");
+   return xsink->raiseException("MISSING-FEATURE-ERROR", "this platform does not support signal handling, therefore the set_signal_handler() and remove_signal_handler() functions are not available in Qore; for maximum portability, use the constant Option::HAVE_SIGNAL_HANDLING to check if this function is implemented before calling");
 #endif
-   return 0;
 }
 //@}
 
@@ -559,7 +553,7 @@ my any $result = call_builtin_function("func_name", $arg1, $arg2);
 any call_builtin_function(string name, ...) {
    const QoreFunction* f = get_builtin_func(name, xsink);
    if (!f)
-      return 0;
+      return QoreValue();
 
    ReferenceHolder<QoreListNode> vargs(xsink);
    // if there are arguments to pass, create argument list by copying current list
@@ -591,7 +585,7 @@ my any $result = call_builtin_function_args("func_name", ($arg1, $arg2));
 any call_builtin_function_args(string name, *softlist vargs) {
    const QoreFunction* f = get_builtin_func(name, xsink);
    if (!f)
-      return 0;
+      return QoreValue();
 
    return f->evalDynamic(vargs, xsink).takeNode();
 }
@@ -682,7 +676,7 @@ bool exists_function(code[doc] c) [flags=NOOP] {
    const qore_ns_private* ns;
    const QoreFunction* f = qore_root_ns_private::runtimeFindFunction(*(getRootNS()), name->getBuffer(), ns);
    if (!f)
-      return 0;
+      return QoreValue();
 
    return new QoreStringNode(f->hasBuiltin() ? "builtin" : "user");
 }
@@ -709,7 +703,7 @@ my *string $type = function_type("print");
    const qore_ns_private* ns;
    const QoreFunction* f = qore_root_ns_private::runtimeFindFunction(*(getRootNS()), name->getBuffer(), ns);
    if (!f)
-      return 0;
+      return QoreValue();
 
    return new QoreStringNode(f->hasBuiltin() ? "builtin" : "user");
 }
@@ -801,7 +795,7 @@ parse($code, $filename);
       ExceptionSink wsink;
       getProgram()->parse(code, &nlabel, xsink, &wsink, warning_mask, source, offset);
       if (!wsink.isException())
-         return 0;
+         return QoreValue();
 
       QoreException* e = wsink.catchException();
       return e->makeExceptionObjectAndDelete(xsink);
@@ -876,10 +870,8 @@ my hash $hash = parse_url($url_string);
 */
 hash parse_url(string url, bool keep_brackets = False) {
    QoreURL qurl(url, keep_brackets);
-   if (!qurl.isValid()) {
-      xsink->raiseException("PARSE-URL-ERROR", "URL '%s' cannot be parsed", url->getBuffer());
-      return 0;
-   }
+   if (!qurl.isValid())
+      return xsink->raiseException("PARSE-URL-ERROR", "URL '%s' cannot be parsed", url->getBuffer());
 
    return qurl.getHash();
 }
@@ -943,7 +935,7 @@ string backquote(string cmd, *reference rc) [dom=EXTERNAL_PROCESS] {
    if (!*xsink && rc) {
       QoreTypeSafeReferenceHelper rh(rc, xsink);
       if (!rh)
-         return 0;
+         return QoreValue();
 
       rh.assign((int64)prc);
    }
@@ -1368,9 +1360,9 @@ my *int $byte = get_byte($str, 2); # returns the third byte of the string
    int size = str->strlen();
 
    if (offset >= size || offset < 0)
-      return 0;
+      return QoreValue();
 
-   return new QoreBigIntNode(ptr[offset]);
+   return ptr[offset];
 }
 
 //! Returns the byte value at the given byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1393,9 +1385,9 @@ my *int $byte = get_byte($bin, 2); # returns the third byte of the binary object
    int size = b->size();
 
    if (offset >= size || offset < 0)
-      return 0;
+      return QoreValue();
 
-   return new QoreBigIntNode(ptr[offset]);
+   return ptr[offset];
 }
 
 //! Returns the byte value at the given byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1415,9 +1407,9 @@ my *int $byte = get_byte($bin, 2); # returns the third byte of the binary object
    int size = str->strlen();
 
    if (offset >= size || offset < 0)
-      return 0;
+      return QoreValue();
 
-   return new QoreBigIntNode(ptr[offset]);
+   return ptr[offset];
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -1443,9 +1435,9 @@ nothing getByte() [flags=RUNTIME_NOOP,DEPRECATED] {
    int size = b->size();
 
    if (offset >= size || offset < 0)
-      return 0;
+      return QoreValue();
 
-   return new QoreBigIntNode(ptr[offset]);
+   return ptr[offset];
 }
 
 //! Returns the 16-bit integer value at the given 2-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1468,10 +1460,9 @@ my *int $val = get_word_16($str, 2); # returns the third 2-byte (16-bit) value i
    int size = str->strlen();
 
    if (offset >= (size - 1) || offset < 0)
-      return 0;
+      return QoreValue();
 
-   short val = ntohs(*((unsigned short *)&ptr[offset]));
-   return new QoreBigIntNode(val);
+   return ntohs(*((unsigned short*)&ptr[offset]));
 }
 
 //! Returns the 16-bit integer value at the given 2-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1494,11 +1485,9 @@ my *int $val = get_word_16($bin, 2); # returns the third 2-byte (16-bit) value i
    int size = b->size();
 
    if (offset >= (size - 1) || offset < 0)
-      return 0;
+      return QoreValue();
 
-   short val = ntohs(*((unsigned short *)&ptr[offset]));
-
-   return new QoreBigIntNode(val);
+   return ntohs(*((unsigned short*)&ptr[offset]));
 }
 
 //! Returns the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1523,10 +1512,9 @@ my *int $val = get_word_32($str, 4); # returns the third 4-byte (32-bit) value i
    int size = str->strlen();
 
    if (offset >= (size - 3) || offset < 0)
-      return 0;
+      return QoreValue();
 
-   int64 val = ntohl(*((unsigned int *)&ptr[offset]));
-   return new QoreBigIntNode(val);
+   return ntohl(*((unsigned int*)&ptr[offset]));
 }
 
 //! Returns the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1551,11 +1539,9 @@ my *int $val = get_word_32($bin, 2); # returns the third 4-byte (32-bit) value i
    int size = b->size();
 
    if (offset >= (size - 3) || offset < 0)
-      return 0;
+      return QoreValue();
 
-   int64 val = ntohl(*((unsigned int *)&ptr[offset]));
-
-   return new QoreBigIntNode(val);
+   return ntohl(*((unsigned int*)&ptr[offset]));
 }
 
 //! Returns the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1575,10 +1561,9 @@ my *int $val = get_word_32($bin, 2); # returns the third 4-byte (32-bit) value i
    int size = str->strlen();
 
    if (offset >= (size - 3) || offset < 0)
-      return 0;
+      return QoreValue();
 
-   int64 val = ntohl(*((unsigned int *)&ptr[offset]));
-   return new QoreBigIntNode(val);
+   return ntohl(*((unsigned int *)&ptr[offset]));
 }
 
 //! Returns the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1598,11 +1583,9 @@ my *int $val = get_word_32($bin, 2); # returns the third 4-byte (32-bit) value i
    int size = b->size();
 
    if (offset >= (size - 3) || offset < 0)
-      return 0;
+      return QoreValue();
 
-   int64 val = ntohl(*((unsigned int *)&ptr[offset]));
-
-   return new QoreBigIntNode(val);
+   return (int64)ntohl(*((unsigned int *)&ptr[offset]));
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -1631,10 +1614,9 @@ my *int $val = get_word_64($str, 4); # returns the third 8-byte (64-bit) value i
    int size = str->strlen();
 
    if (offset >= (size - 7) || offset < 0)
-      return 0;
+      return QoreValue();
 
-   int64 val = MSBi8(*((int64 *)&ptr[offset]));
-   return new QoreBigIntNode(val);
+   return (int64)MSBi8(*((int64 *)&ptr[offset]));
 }
 
 //! Returns the 64-bit integer value at the given 8-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1657,11 +1639,9 @@ my *int $val = get_word_64($bin, 2); # returns the third 8-byte (64-bit) value i
    int size = b->size();
 
    if (offset >= (size - 7) || offset < 0)
-      return 0;
+      return QoreValue();
 
-   int64 val = MSBi8(*((int64 *)&ptr[offset]));
-
-   return new QoreBigIntNode(val);
+   return (int64)MSBi8(*((int64 *)&ptr[offset]));
 }
 
 //! Returns the 16-bit integer value at the given 2-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1684,10 +1664,9 @@ my *int $val = get_word_16_lsb($str, 2); # returns the third 2-byte (16-bit) val
    int size = str->strlen();
 
    if (offset >= (size - 1) || offset < 0)
-      return 0;
+      return QoreValue();
 
-   short val = LSBi2(*((unsigned short *)&ptr[offset]));
-   return new QoreBigIntNode(val);
+   return (int64)LSBi2(*((unsigned short *)&ptr[offset]));
 }
 
 //! Returns the 16-bit integer value at the given 2-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1710,10 +1689,9 @@ my *int $val = get_word_16_lsb($bin, 2); # returns the third 2-byte (16-bit) val
    int size = b->size();
 
    if (offset >= (size - 1) || offset < 0)
-      return 0;
+      return QoreValue();
 
-   short val = LSBi2(*((unsigned short *)&ptr[offset]));
-   return new QoreBigIntNode(val);
+   return (int64)LSBi2(*((unsigned short *)&ptr[offset]));
 }
 
 //! Returns the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1738,10 +1716,9 @@ my *int $val = get_word_32_lsb($str, 4); # returns the third 4-byte (32-bit) val
    int size = str->strlen();
 
    if (offset >= (size - 3) || offset < 0)
-      return 0;
+      return QoreValue();
 
-   int64 val = LSBi4(*((unsigned int *)&ptr[offset]));
-   return new QoreBigIntNode(val);
+   return (int64)LSBi4(*((unsigned int *)&ptr[offset]));
 }
 
 //! Returns the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1764,11 +1741,9 @@ my *int $val = get_word_32_lsb($bin, 2); # returns the third 4-byte (32-bit) val
    int size = b->size();
 
    if (offset >= (size - 3) || offset < 0)
-      return 0;
+      return QoreValue();
 
-   int64 val = LSBi4(*((unsigned int *)&ptr[offset]));
-
-   return new QoreBigIntNode(val);
+   return (int64)LSBi4(*((unsigned int *)&ptr[offset]));
 }
 
 //! Returns the 64-bit integer value at the given 8-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1791,10 +1766,9 @@ my *int $val = get_word_64_lsb($str, 4); # returns the third 8-byte (64-bit) val
    int size = str->strlen();
 
    if (offset >= (size - 7) || offset < 0)
-      return 0;
+      return QoreValue();
 
-   int64 val = LSBi8(*((int64 *)&ptr[offset]));
-   return new QoreBigIntNode(val);
+   return (int64)LSBi8(*((int64 *)&ptr[offset]));
 }
 
 //! Returns the 64-bit integer value at the given 8-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1817,10 +1791,9 @@ my *int $val = get_word_64_lsb($bin, 2); # returns the third 8-byte (64-bit) val
    int size = b->size();
 
    if (offset >= (size - 7) || offset < 0)
-      return 0;
+      return QoreValue();
 
-   int64 val = LSBi8(*((int64 *)&ptr[offset]));
-   return new QoreBigIntNode(val);
+   return (int64)LSBi8(*((int64 *)&ptr[offset]));
 }
 
 //! This function always returns an empty string \c ""

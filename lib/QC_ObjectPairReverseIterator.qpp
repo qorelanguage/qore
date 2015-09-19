@@ -123,6 +123,6 @@ foreach my hash $h in (new ObjectPairReverseIterator($obj))
  */
 string ObjectPairReverseIterator::getValue() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-      return 0;
+      return QoreValue();
    return i->getReferencedValuePair(xsink);
 }

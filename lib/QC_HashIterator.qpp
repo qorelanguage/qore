@@ -193,7 +193,7 @@ while ($i.next()) {
  */
 any HashIterator::getValue() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-      return 0;
+      return QoreValue();
    return i->getReferencedValue(xsink);
 }
 
@@ -214,7 +214,7 @@ while ($i.next()) {
  */
 any HashIterator::getKeyValue() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-      return 0;
+      return QoreValue();
    return i->getReferencedKeyValue(xsink);
 }
 
@@ -235,7 +235,7 @@ while ($i.next()) {
  */
 hash HashIterator::getValuePair() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-      return 0;
+      return QoreValue();
    return i->getReferencedValuePair(xsink);
 }
 
@@ -254,7 +254,7 @@ while ($i.next()) {
  */
 string HashIterator::getKey() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-      return 0;
+      return QoreValue();
    return i->getKey(xsink);
 }
 
@@ -283,6 +283,6 @@ $i.reset();
  */
 HashIterator::reset() {
    if (i->check(xsink))
-       return 0;
+       return QoreValue();
    i->reset();
 }

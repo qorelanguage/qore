@@ -36,12 +36,12 @@
 #include <ctype.h>
 
 //! Methods in this pseudo-class can be executed on @ref string "strings"
-/** 
+/**
  */
 qclass <string> [arg=const QoreStringNode* str;vparent=<value>];
 
 //! Returns Qore::NT_STRING
-/** 
+/**
     @return Qore::NT_STRING
 
     @par Example:
@@ -58,7 +58,7 @@ int <string>::typeCode() [flags=CONSTANT] {
 }
 
 //! Returns the number of bytes in the string (not including the terminating null character (\c '\0')
-/** 
+/**
     @return the number of bytes in the string (not including the terminating null character (\c '\0')
 
     @par Example:
@@ -77,7 +77,7 @@ int <string>::strlen() [flags=CONSTANT] {
 }
 
 //! Returns the number of bytes in the string (not including the terminating null character (\c '\0')
-/** 
+/**
     @return the number of bytes in the string (not including the terminating null character (\c '\0')
 
     @par Example:
@@ -89,7 +89,7 @@ my int $len = $str.size();
     - this operation is always executed in constant time (ie <i>O(1)</i>) because the string's byte length is always stored with the string
     - equivalent to <string>::strlen() and @ref Qore::strlen(softstring)
 
-    @see 
+    @see
     - <string>::sizep()
     - <string>::length()
 */
@@ -98,7 +98,7 @@ int <string>::size() [flags=CONSTANT] {
 }
 
 //! Returns the number of characters in the string; may not be equal to the byte length (returned by <string>::strlen() and <string>::size()) for @ref character_encoding "multi-byte character encodings"
-/** 
+/**
     @return the number of characters in the string; may not be equal to the byte length (returned by <string>::strlen() and <string>::size()) for @ref character_encoding "multi-byte character encodings"
 
     @par Example:
@@ -133,7 +133,7 @@ bool <string>::empty() [flags=CONSTANT] {
 }
 
 //! Returns the name of the string's @ref character_encoding "character encoding"
-/** 
+/**
     @return the name of the string's @ref character_encoding "character encoding"
 
     @par Example:
@@ -171,7 +171,7 @@ printf("%y", "PŘÍLIŠ ŽLUŤOUČKÝ KŮŇ ÚPĚL ĎÁBELSKÉ ÓDY".lwr());
 string <string>::lwr() [flags=CONSTANT] {
    SimpleRefHolder<QoreStringNode> rv(new QoreStringNode(str->getEncoding()));
    if (do_tolower(*(*rv), *str, xsink))
-      return 0;
+      return QoreValue();
 
    return rv.release();
 }
@@ -200,7 +200,7 @@ printf("%y", "příliš žluťoučký kůň úpěl ďábelské ódy".upr());
 string <string>::upr() [flags=CONSTANT] {
    SimpleRefHolder<QoreStringNode> rv(new QoreStringNode(str->getEncoding()));
    if (do_toupper(*(*rv), *str, xsink))
-      return 0;
+      return QoreValue();
 
    return rv.release();
 }
@@ -384,7 +384,7 @@ list <string>::split(string sep, bool with_separator = False) [flags=RET_VALUE_O
    // convert pattern encoding to string if necessary
    TempEncodingHelper temp(sep, str->getEncoding(), xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    return split_intern(temp->getBuffer(), temp->strlen(), str->getBuffer(), str->strlen(), str->getEncoding(), with_separator);
 }
@@ -444,7 +444,7 @@ my bool $b = "hello".regex("^hel"); # returns True
 bool <string>::regex(string regex, int options = 0) [flags=RET_VALUE_ONLY] {
    QoreRegexNode qr(*regex, options, xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    return qr.exec(str, xsink);
 }
@@ -478,7 +478,7 @@ my *list $rv = $str.regexExtract("(\\w+):(\\w+)");
 *list <string>::regexExtract(string regex, int options = 0) [flags=RET_VALUE_ONLY] {
    QoreRegexNode qr(*regex, options, xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    return qr.extractSubstrings(str, xsink);
 }
@@ -508,7 +508,7 @@ my string $str = "hello".toMD5(); # returns "5d41402abc4b2a76b9719d911017c592"
 string <string>::toMD5() [flags=RET_VALUE_ONLY] {
    DigestHelper dh(*str);
    if (dh.doDigest(MD5_ERR, EVP_md5(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }
@@ -536,7 +536,7 @@ my string $str = "hello".toSHA1(); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9ae
 string <string>::toSHA1() [flags=RET_VALUE_ONLY] {
    DigestHelper dh(*str);
    if (dh.doDigest(SHA1_ERR, EVP_sha1(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }
@@ -568,12 +568,12 @@ string <string>::toSHA224() [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(*str);
    if (dh.doDigest(SHA224_ERR, EVP_sha224(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
    missing_openssl_feature("SHA224", xsink);
-   return 0;
+   return QoreValue();
 #endif
 }
 
@@ -604,12 +604,12 @@ string <string>::toSHA256() [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(*str);
    if (dh.doDigest(SHA256_ERR, EVP_sha256(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
    missing_openssl_feature("SHA256", xsink);
-   return 0;
+   return QoreValue();
 #endif
 }
 
@@ -640,12 +640,12 @@ string <string>::toSHA384() [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(*str);
    if (dh.doDigest(SHA384_ERR, EVP_sha384(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
    missing_openssl_feature("SHA384", xsink);
-   return 0;
+   return QoreValue();
 #endif
 }
 
@@ -676,12 +676,12 @@ string <string>::toSHA512() [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(*str);
    if (dh.doDigest(SHA512_ERR, EVP_sha512(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
    missing_openssl_feature("SHA512", xsink);
-   return 0;
+   return QoreValue();
 #endif
 }
 
@@ -773,7 +773,7 @@ int <string>::comparePartial(string ostr) [flags=RET_VALUE_ONLY] {
    // convert pattern encoding to string if necessary
    TempEncodingHelper temp(ostr, str->getEncoding(), xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    int rc = strncmp(str->getBuffer(), temp->getBuffer(), temp->size());
    return !rc ? 0 : (rc < 0 ? -1 : 1);
@@ -829,7 +829,7 @@ printf("%y\n", $s.unaccent()); # result: "prilis zlutoucky kun upel dabelske ody
 string <string>::unaccent() [flags=RET_VALUE_ONLY] {
    SimpleRefHolder<QoreStringNode> rv(new QoreStringNode(str->getEncoding()));
    if (do_unaccent(*(*rv), *str, xsink))
-      return 0;
+      return QoreValue();
 
    return rv.release();
 }
@@ -878,7 +878,7 @@ my *string $line = $string.getLine($pos);
  */
 *string <string>::getLine(int offset = 0, *string eol, bool trim = True, *reference size) [flags=CONSTANT] {
    if (str->empty())
-      return 0;
+      return QoreValue();
 
    if (offset < 0) {
       offset = str->size() + offset;
@@ -886,16 +886,16 @@ my *string $line = $string.getLine($pos);
          offset = 0;
    }
    else if (offset >= (int64)str->size())
-      return 0;
+      return QoreValue();
 
    TempEncodingHelper eolstr;
    if (eol) {
       eolstr.set(eol, str->getEncoding(), xsink);
       if (*xsink)
-         return 0;
+         return QoreValue();
 
       if (eolstr->size() > str->size())
-         return 0;
+         return QoreValue();
    }
 
    int64 strsize = 0;
@@ -947,10 +947,10 @@ my *string $line = $string.getLine($pos);
    if (size) {
       QoreTypeSafeReferenceHelper r(size, xsink);
       if (!r)
-         return 0;
+         return QoreValue();
 
       if (r.assign(new QoreBigIntNode(strsize), xsink))
-         return 0;
+         return QoreValue();
    }
 
    return rv.release();

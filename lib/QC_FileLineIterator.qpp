@@ -395,7 +395,6 @@ $i.reset();
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 FileLineIterator::reset() {
-   if (i->check(xsink))
-       return 0;
-   i->reset();
+   if (!i->check(xsink))
+      i->reset();
 }

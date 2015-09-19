@@ -49,7 +49,7 @@
 
     iter 0: hash: (column1 : 1, column2 : "a")
     iter 1: hash: (column1 : 2, column2 : "b")
-    @endcode 
+    @endcode
 
     @note
     - In general, the ListHashIterator class is not designed to be accessed from multiple threads; it was created without locking for
@@ -187,7 +187,7 @@ while ($i.next()) {
  */
 hash ListHashIterator::getValue() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-      return 0;
+      return QoreValue();
    return i->getRow(xsink);
 }
 
@@ -208,7 +208,7 @@ while ($i.next()) {
  */
 hash ListHashIterator::getRow() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-      return 0;
+      return QoreValue();
    return i->getRow(xsink);
 }
 
@@ -278,7 +278,7 @@ while ($i.next()) {
  */
 any ListHashIterator::memberGate(string key) [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-      return 0;
+      return QoreValue();
 
    return i->getReferencedKeyValue(key->getBuffer(), xsink);
 }
@@ -302,7 +302,7 @@ while ($i.next()) {
  */
 any ListHashIterator::getKeyValue(string key) [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-      return 0;
+      return QoreValue();
 
    return i->getReferencedKeyValue(key->getBuffer(), xsink);
 }
@@ -332,6 +332,6 @@ $i.reset();
  */
 ListHashIterator::reset() {
    if (i->check(xsink))
-       return 0;
+       return QoreValue();
    i->reset();
 }

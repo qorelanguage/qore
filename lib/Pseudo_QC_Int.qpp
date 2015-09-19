@@ -33,12 +33,12 @@
 #include <qore/intern/qore_number_private.h>
 
 //! Methods in this pseudo-class can be executed on @ref integer "integer values"
-/** 
+/**
  */
 qclass <int> [arg=const QoreBigIntNode* i;vparent=<value>];
 
 //! Returns Qore::NT_INT
-/** 
+/**
     @return Qore::NT_INT
 
     @par Example:
@@ -55,7 +55,7 @@ int <int>::typeCode() [flags=CONSTANT] {
 }
 
 //! Returns @ref True if the int is non-zero, @ref False if zero
-/** 
+/**
     @return @ref True if the int is non-zero, @ref False if zero
 
     @par Example:
@@ -161,20 +161,16 @@ binary <int>::encodeMsb(int size = 4) [flags=RET_VALUE_ONLY] {
    switch (size) {
       case 1: {
          unsigned char c = i->val;
-         if (i->val != c) {
-            xsink->raiseException("SIZE-ERROR", "the integer value called with <int>::encodeMsb(size=1) ("QLLD") is too large to fit in 1 byte", i->val);
-            return 0;
-         }
+         if (i->val != c)
+            return xsink->raiseException("SIZE-ERROR", "the integer value called with <int>::encodeMsb(size=1) ("QLLD") is too large to fit in 1 byte", i->val);
          b->append((void*)&c, 1);
          break;
       }
 
       case 2: {
          uint16_t num = i->val;
-         if (i->val != num) {
-            xsink->raiseException("SIZE-ERROR", "the integer value called with <int>::encodeMsb(size=2) ("QLLD") is too large to fit in 2 bytes", i->val);
-            return 0;
-         }
+         if (i->val != num)
+            return xsink->raiseException("SIZE-ERROR", "the integer value called with <int>::encodeMsb(size=2) ("QLLD") is too large to fit in 2 bytes", i->val);
          num = htons(num);
          b->append((void*)&num, 2);
          break;
@@ -182,10 +178,8 @@ binary <int>::encodeMsb(int size = 4) [flags=RET_VALUE_ONLY] {
 
       case 4: {
          uint32_t num = i->val;
-         if (i->val != num) {
-            xsink->raiseException("SIZE-ERROR", "the integer value called with <int>::encodeMsb(size=4) ("QLLD") is too large to fit in 4 bytes", i->val);
-            return 0;
-         }
+         if (i->val != num)
+            return xsink->raiseException("SIZE-ERROR", "the integer value called with <int>::encodeMsb(size=4) ("QLLD") is too large to fit in 4 bytes", i->val);
          num = htonl(num);
          b->append((void*)&num, 4);
          break;
@@ -198,8 +192,7 @@ binary <int>::encodeMsb(int size = 4) [flags=RET_VALUE_ONLY] {
       }
 
       default:
-         xsink->raiseException("SIZE-ERROR", "the size given to <int>::encodeMsb("QLLD") is not 1, 2, 4, or 8", size);
-         return 0;
+         return xsink->raiseException("SIZE-ERROR", "the size given to <int>::encodeMsb("QLLD") is not 1, 2, 4, or 8", size);
    }
    return b.release();
 }
@@ -223,20 +216,16 @@ binary <int>::encodeLsb(int size = 4) [flags=RET_VALUE_ONLY] {
    switch (size) {
       case 1: {
          unsigned char c = i->val;
-         if (i->val != c) {
-            xsink->raiseException("SIZE-ERROR", "the integer value called with <int>::encodeLsb(size=1) ("QLLD") is too large to fit in 1 byte", i->val);
-            return 0;
-         }
+         if (i->val != c)
+            return xsink->raiseException("SIZE-ERROR", "the integer value called with <int>::encodeLsb(size=1) ("QLLD") is too large to fit in 1 byte", i->val);
          b->append((void*)&c, 1);
          break;
       }
 
       case 2: {
          uint16_t num = i->val;
-         if (i->val != num) {
-            xsink->raiseException("SIZE-ERROR", "the integer value called with <int>::encodeLsb(size=2) ("QLLD") is too large to fit in 2 bytes", i->val);
-            return 0;
-         }
+         if (i->val != num)
+            return xsink->raiseException("SIZE-ERROR", "the integer value called with <int>::encodeLsb(size=2) ("QLLD") is too large to fit in 2 bytes", i->val);
          num = i2LSB(num);
          b->append((void*)&num, 2);
          break;
@@ -244,10 +233,8 @@ binary <int>::encodeLsb(int size = 4) [flags=RET_VALUE_ONLY] {
 
       case 4: {
          uint32_t num = i->val;
-         if (i->val != num) {
-            xsink->raiseException("SIZE-ERROR", "the integer value called with <int>::encodeLsb(size=4) ("QLLD") is too large to fit in 4 bytes", i->val);
-            return 0;
-         }
+         if (i->val != num)
+            return xsink->raiseException("SIZE-ERROR", "the integer value called with <int>::encodeLsb(size=4) ("QLLD") is too large to fit in 4 bytes", i->val);
          num = i4LSB(num);
          b->append((void*)&num, 4);
          break;
@@ -260,8 +247,7 @@ binary <int>::encodeLsb(int size = 4) [flags=RET_VALUE_ONLY] {
       }
 
       default:
-         xsink->raiseException("SIZE-ERROR", "the size given to <int>::encodeLsb("QLLD") is not 1, 2, 4, or 8", size);
-         return 0;
+         return xsink->raiseException("SIZE-ERROR", "the size given to <int>::encodeLsb("QLLD") is not 1, 2, 4, or 8", size);
    }
    return b.release();
 }

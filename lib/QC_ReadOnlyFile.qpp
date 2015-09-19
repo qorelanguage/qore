@@ -261,7 +261,7 @@ catch (hash $ex) {
  */
 nothing ReadOnlyFile::open(string path, *string encoding) {
    if (check_terminal_io(self, "ReadOnlyFile::open", xsink))
-      return 0;
+      return QoreValue();
 
    const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : f->getEncoding();
    if (f->open(path->getBuffer(), O_RDONLY, 0, qe))
@@ -284,7 +284,7 @@ if ($f.close())
  */
 int ReadOnlyFile::close() {
    if (check_terminal_io(self, "ReadOnlyFile::close", xsink))
-      return 0;
+      return QoreValue();
 
    return f->close();
 }
@@ -318,12 +318,10 @@ my *string $data = $f.read(-1); # read an entire text file into a variable
  */
 *string ReadOnlyFile::read(softint size, timeout timeout_ms = -1) {
    if (check_terminal_io(self, "ReadOnlyFile::read", xsink))
-      return 0;
+      return QoreValue();
 
-   if (!size) {
-      xsink->raiseException("READONLYFILE-READ-PARAMETER-ERROR", "expecting non-zero size as first parameter of ReadOnlyFile::read()");
-      return 0;
-   }
+   if (!size)
+      return xsink->raiseException("READONLYFILE-READ-PARAMETER-ERROR", "expecting non-zero size as first parameter of ReadOnlyFile::read()");
 
    return f->read((qore_offset_t)size, timeout_ms, xsink);
 }
@@ -344,11 +342,11 @@ my *int $i = $f.readu1();
  */
 *int ReadOnlyFile::readu1() {
    if (check_terminal_io(self, "ReadOnlyFile::readu1", xsink))
-      return 0;
+      return QoreValue();
 
    unsigned char c;
    if (f->readu1(&c, xsink))
-      return 0;
+      return QoreValue();
    return new QoreBigIntNode(c);
 }
 
@@ -368,11 +366,11 @@ my *int $i = $f.readu2();
  */
 *int ReadOnlyFile::readu2() {
    if (check_terminal_io(self, "ReadOnlyFile::readu2", xsink))
-      return 0;
+      return QoreValue();
 
    unsigned short s;
    if (f->readu2(&s, xsink))
-      return 0;
+      return QoreValue();
    return new QoreBigIntNode(s);
 }
 
@@ -392,11 +390,11 @@ my *int $i = $f.readu4();
  */
 *int ReadOnlyFile::readu4() {
    if (check_terminal_io(self, "ReadOnlyFile::readu4", xsink))
-      return 0;
+      return QoreValue();
 
    unsigned int i;
    if (f->readu4(&i, xsink))
-      return 0;
+      return QoreValue();
    return new QoreBigIntNode(i);
 }
 
@@ -416,11 +414,11 @@ my *int $i = $f.readu2LSB();
  */
 *int ReadOnlyFile::readu2LSB() {
    if (check_terminal_io(self, "ReadOnlyFile::readu2LSB", xsink))
-      return 0;
+      return QoreValue();
 
    unsigned short s;
    if (f->readu2LSB(&s, xsink))
-      return 0;
+      return QoreValue();
 
    return new QoreBigIntNode(s);
 }
@@ -441,11 +439,11 @@ my *int $i = $f.readu4LSB();
  */
 *int ReadOnlyFile::readu4LSB() {
    if (check_terminal_io(self, "ReadOnlyFile::readu4LSB", xsink))
-      return 0;
+      return QoreValue();
 
    unsigned int i;
    if (f->readu4LSB(&i, xsink))
-      return 0;
+      return QoreValue();
 
    return new QoreBigIntNode(i);
 }
@@ -466,11 +464,11 @@ my *int $i = $f.readi1();
  */
 *int ReadOnlyFile::readi1() {
    if (check_terminal_io(self, "ReadOnlyFile::readi1", xsink))
-      return 0;
+      return QoreValue();
 
    char c;
    if (f->readi1(&c, xsink))
-      return 0;
+      return QoreValue();
    return new QoreBigIntNode(c);
 }
 
@@ -490,11 +488,11 @@ my *int $i = $f.readi2();
  */
 *int ReadOnlyFile::readi2() {
    if (check_terminal_io(self, "ReadOnlyFile::readi2", xsink))
-      return 0;
+      return QoreValue();
 
    short s;
    if (f->readi2(&s, xsink))
-      return 0;
+      return QoreValue();
    return new QoreBigIntNode(s);
 }
 
@@ -514,11 +512,11 @@ my *int $i = $f.readi4();
  */
 *int ReadOnlyFile::readi4() {
    if (check_terminal_io(self, "ReadOnlyFile::readi4", xsink))
-      return 0;
+      return QoreValue();
 
    int i;
    if (f->readi4(&i, xsink))
-      return 0;
+      return QoreValue();
    return new QoreBigIntNode(i);
 }
 
@@ -538,11 +536,11 @@ my *int $i = $f.readi8();
  */
 *int ReadOnlyFile::readi8() {
    if (check_terminal_io(self, "ReadOnlyFile::readi8", xsink))
-      return 0;
+      return QoreValue();
 
    int64 i;
    if (f->readi8(&i, xsink))
-      return 0;
+      return QoreValue();
 
    return new QoreBigIntNode(i);
 }
@@ -563,11 +561,11 @@ my *int $i = $f.readi2LSB();
  */
 *int ReadOnlyFile::readi2LSB() {
    if (check_terminal_io(self, "ReadOnlyFile::readi2LSB", xsink))
-      return 0;
+      return QoreValue();
 
    short s;
    if (f->readi2LSB(&s, xsink))
-      return 0;
+      return QoreValue();
 
    return new QoreBigIntNode(s);
 }
@@ -588,11 +586,11 @@ my *int $i = $f.readi4LSB();
  */
 *int ReadOnlyFile::readi4LSB() {
    if (check_terminal_io(self, "ReadOnlyFile::readi4LSB", xsink))
-      return 0;
+      return QoreValue();
 
    int i;
    if (f->readi4LSB(&i, xsink))
-      return 0;
+      return QoreValue();
    return new QoreBigIntNode(i);
 }
 
@@ -612,11 +610,11 @@ my *int $i = $f.readi8LSB();
  */
 *int ReadOnlyFile::readi8LSB() {
    if (check_terminal_io(self, "ReadOnlyFile::readi8LSB", xsink))
-      return 0;
+      return QoreValue();
 
    int64 i;
    if (f->readi8LSB(&i, xsink))
-      return 0;
+      return QoreValue();
    return new QoreBigIntNode(i);
 }
 
@@ -649,12 +647,10 @@ my *binary $data = $f.readBinary(-1); # read an entire file into a variable
  */
 *binary ReadOnlyFile::readBinary(softint size, timeout timeout_ms = -1) {
    if (check_terminal_io(self, "ReadOnlyFile::readBinary", xsink))
-      return 0;
+      return QoreValue();
 
-   if (!size) {
-      xsink->raiseException("READONLYFILE-READ-BINARY-PARAMETER-ERROR", "expecting size as first parameter of File::readBinary()");
-      return 0;
-   }
+   if (!size)
+      return xsink->raiseException("READONLYFILE-READ-BINARY-PARAMETER-ERROR", "expecting size as first parameter of File::readBinary()");
 
    return f->readBinary((qore_offset_t)size, timeout_ms, xsink);
 }
@@ -687,7 +683,7 @@ while (exists (my *string $line = $f.readLine(False))) {
  */
 *string ReadOnlyFile::readLine(bool incl_eol = True, *string eol) {
    if (check_terminal_io(self, "ReadOnlyFile::readLine", xsink))
-      return 0;
+      return QoreValue();
 
    if (eol && eol->empty())
       eol = 0;
@@ -707,7 +703,7 @@ $f.setEncoding("ISO-8859-1");
  */
 nothing ReadOnlyFile::setEncoding(*string encoding) {
    if (check_terminal_io(self, "ReadOnlyFile::setEncoding", xsink))
-      return 0;
+      return QoreValue();
 
    const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
    f->setEncoding(qe);
@@ -741,7 +737,7 @@ $f.setPos(0); # go to the beginning of the file
  */
 int ReadOnlyFile::setPos(int pos = 0) {
    if (check_terminal_io(self, "ReadOnlyFile::setPos", xsink))
-      return 0;
+      return QoreValue();
 
    return f->setPos(pos);
 }
@@ -760,7 +756,7 @@ my int $pos = $f.getPos();
  */
 int ReadOnlyFile::getPos() [flags=RET_VALUE_ONLY] {
    if (check_terminal_io(self, "ReadOnlyFile::getPos", xsink))
-      return 0;
+      return QoreValue();
 
    return f->getPos();
 }
@@ -781,7 +777,7 @@ my *string $str = $f.getchar();
  */
 *string ReadOnlyFile::getchar() {
    if (check_terminal_io(self, "ReadOnlyFile::getchar", xsink))
-      return 0;
+      return QoreValue();
 
    return f->getchar(xsink);
 }
@@ -803,7 +799,7 @@ if (!isDataAvailable(30s))
  */
 bool ReadOnlyFile::isDataAvailable(timeout timeout_ms = 0) [flags=RET_VALUE_ONLY] {
    if (check_terminal_io(self, "ReadOnlyFile::isDataAvailable", xsink))
-      return 0;
+      return QoreValue();
 
    return f->isDataAvailable(timeout_ms, xsink);
 }
@@ -824,16 +820,13 @@ $f.setEventQueue($queue);
 nothing ReadOnlyFile::setEventQueue(Qore::Thread::Queue[Queue] queue) {
    ReferenceHolder<Queue> q(queue, xsink);
    if (check_terminal_io(self, "ReadOnlyFile::setEventQueue", xsink))
-      return 0;
+      return QoreValue();
 
-   if (queue->getMax() != -1) {
-      xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the File object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
-      return 0;
-   }
+   if (queue->getMax() != -1)
+      return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the File object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
 
    // pass reference from QoreObject::getReferencedPrivateData() to function
    f->setEventQueue(q.release(), xsink);
-   return 0;
 }
 
 //! Removes any @ref Qore::Thread::Queue "Queue" object from the %ReadOnlyFile object so that @ref file_events "file events" are no longer added to the @ref Qore::Thread::Queue "Queue"
@@ -848,10 +841,9 @@ $f.setEventQueue();
  */
 nothing ReadOnlyFile::setEventQueue() {
    if (check_terminal_io(self, "ReadOnlyFile::setEventQueue", xsink))
-      return 0;
+      return QoreValue();
 
    f->setEventQueue(0, xsink);
-   return 0;
 }
 
 //! Returns a @ref stat_list about the file's status or throws an exception if any errors occur
@@ -873,7 +865,7 @@ my int $mode = $file.stat()[2];
  */
 list ReadOnlyFile::stat() {
    if (check_terminal_io(self, "ReadOnlyFile::stat", xsink))
-      return 0;
+      return QoreValue();
 
    return f->stat(xsink);
 }
@@ -897,7 +889,7 @@ my hash $h = $file.hstat();
  */
 hash ReadOnlyFile::hstat() {
    if (check_terminal_io(self, "ReadOnlyFile::hstat", xsink))
-      return 0;
+      return QoreValue();
 
    return f->hstat(xsink);
 }
@@ -922,7 +914,7 @@ my hash $h = $file.statvfs();
 hash ReadOnlyFile::statvfs() {
 #ifdef HAVE_SYS_STATVFS_H
    if (check_terminal_io(self, "ReadOnlyFile::statvfs", xsink))
-      return 0;
+      return QoreValue();
 
    return f->statvfs(xsink);
 #else
@@ -975,7 +967,7 @@ my *string $fn = $f.getFileName();
     @code
 my string $data = File::readTextFile($path);
     @endcode
-    
+
     @param path the path of the file to retrieve
     @param encoding the name of the @ref character_encoding "character encoding" for the string returned; if this argument is not given, then the @ref default_encoding "default character encoding" is assumed
 
@@ -989,7 +981,7 @@ static string ReadOnlyFile::readTextFile(string path, *string encoding) [dom=FIL
    QoreFile qf;
 
    if (qf.open2(xsink, path->getBuffer(), O_RDONLY, 0777, qe))
-      return 0;
+      return QoreValue();
 
    return qf.read(-1, xsink);
 }
@@ -999,7 +991,7 @@ static string ReadOnlyFile::readTextFile(string path, *string encoding) [dom=FIL
     @code
 my binary $data = File::readBinaryFile($path);
     @endcode
-    
+
     @param path the path of the file to retrieve
 
     @return the contents of a binary file as a binary object
@@ -1010,7 +1002,7 @@ static binary ReadOnlyFile::readBinaryFile(string path) [dom=FILESYSTEM] {
    QoreFile qf;
 
    if (qf.open2(xsink, path->getBuffer()))
-      return 0;
+      return QoreValue();
 
    return qf.readBinary(-1, xsink);
 }

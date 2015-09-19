@@ -89,7 +89,7 @@ const Closure = "closure";
 //@{
 
 //! Converts the argument to a boolean value
-/** 
+/**
     @param arg the argument to convert to a boolean
 
     @return the boolean value corresponding to the argument
@@ -106,7 +106,7 @@ bool boolean(any arg) [flags=CONSTANT] {
 }
 
 //! Converts the argument to an integer value
-/** 
+/**
     @param str the string to convert to an integer
     @param base the base of the integer in the string; this value must be 0 or 2 - 36 inclusive or an \c INVALID-BASE exception will be thrown
 
@@ -122,10 +122,8 @@ my int $i = int("fabc9", 16);
     @since %Qore 0.8.5, this variant with the \a base argument is supported
 */
 int int(string str, softint base) [flags=RET_VALUE_ONLY] {
-   if (base < 0 || base == 1 || base > 36) {
-      xsink->raiseException("INVALID-BASE", "base "QLLD" is invalid; base must be 0 or 2 - 36 inclusive", base);
-      return 0;
-   }
+   if (base < 0 || base == 1 || base > 36)
+      return xsink->raiseException("INVALID-BASE", "base "QLLD" is invalid; base must be 0 or 2 - 36 inclusive", base);
    return strtoll(str->getBuffer(), 0, (int)base);
 }
 
@@ -154,7 +152,7 @@ int int() [flags=CONSTANT] {
 }
 
 //! Converts the argument to a floating-point (float) value
-/** 
+/**
     @param f the argument to convert to a float
 
     @return the float value corresponding to the argument
@@ -202,7 +200,7 @@ number number() [flags=CONSTANT] {
 }
 
 //! Converts the argument to a string
-/** 
+/**
     @param str the argument to convert to a string
     @param enc the encoding of the string returned
 
@@ -314,7 +312,7 @@ hash hash(object obj) [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns a hash by taking even numbered list elements (starting with 0) and converting them to strings for the hash keys, and the odd numbered elements following the keys as the key value
-/** 
+/**
     @param l the list to process in a manner similar to perl's hash initialization
 
     @return a hash by taking even numbered list elements (starting with 0) and converting them to strings for the hash keys, and the odd numbered elements following the keys as the key value
@@ -332,7 +330,7 @@ hash hash(list l) [flags=RET_VALUE_ONLY] {
       QoreStringValueHelper str(li.getValue());
       h->setKeyValue(str->getBuffer(), li.next() ? li.getReferencedValue() : 0, xsink);
       if (*xsink)
-	 return 0;
+	 return QoreValue();
    }
    return h.release();
 }
@@ -362,9 +360,9 @@ hash hash(list keys, list values) [flags=RET_VALUE_ONLY] {
 	 valid = vi.next();
 
       QoreStringValueHelper str(ki.getValue());
-      h->setKeyValue(str->getBuffer(), valid ? vi.getReferencedValue() : 0, xsink);      
+      h->setKeyValue(str->getBuffer(), valid ? vi.getReferencedValue() : 0, xsink);
       if (*xsink)
-	 return 0;
+	 return QoreValue();
    }
 
    return h.release();
@@ -393,7 +391,7 @@ hash hash() [flags=CONSTANT] {
 }
 
 //! Returns a string giving the data type of the argument passed; see @ref string_type_constants for the values returned by this function
-/** 
+/**
     @param arg the argument to check
 
     @return a string giving the data type of the argument passed; see @ref string_type_constants for the values returned by this function
@@ -414,7 +412,7 @@ string type(any arg) [flags=CONSTANT] {
 }
 
 //! Returns a string giving the data type of the argument passed; see @ref string_type_constants for the values returned by this function
-/** 
+/**
     @param arg the argument to check
 
     @return a string giving the data type of the argument passed; see @ref string_type_constants for the values returned by this function
@@ -433,7 +431,7 @@ string typename(any arg) [flags=CONSTANT] {
 }
 
 //! Returns a string created from the binary data passed, taking an optional second argument giving the string encoding; if no second argument is passed then the @ref default_encoding "default character encoding" is assumed
-/** 
+/**
     @param b the binary object to convert directly to a string
     @param encoding the character encoding tag for the string return value; if not present, the @ref default_encoding "default character encoding" is assumed
 

@@ -138,6 +138,6 @@ $i.reset();
  */
 SingleValueIterator::reset() {
    if (i->check(xsink))
-       return 0;
+       return QoreValue();
    i->reset();
 }

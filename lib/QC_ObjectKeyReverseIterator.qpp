@@ -122,6 +122,6 @@ while ($i.next())
  */
 string ObjectKeyReverseIterator::getValue() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-      return 0;
+      return QoreValue();
    return i->getKey(xsink);
 }

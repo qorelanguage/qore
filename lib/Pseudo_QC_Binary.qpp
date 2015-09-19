@@ -32,12 +32,12 @@
 #include <qore/Qore.h>
 
 //! Methods in this pseudo-class can be executed on @ref binary "binary values"
-/** 
+/**
  */
 qclass <binary> [arg=const BinaryNode* b;vparent=<value>];
 
 //! Returns Qore::NT_BINARY
-/** 
+/**
     @return Qore::NT_BINARY
 
     @par Example:
@@ -54,7 +54,7 @@ int <binary>::typeCode() [flags=CONSTANT] {
 }
 
 //! Returns the number of bytes in the binary object
-/** 
+/**
     @return the number of bytes in the binary object
 
     @par Example:
@@ -144,7 +144,7 @@ my string $str = binary("hello").toMD5(); # returns "5d41402abc4b2a76b9719d91101
 string <binary>::toMD5() [flags=RET_VALUE_ONLY] {
    DigestHelper dh(*b);
    if (dh.doDigest(MD5_ERR, EVP_md5(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }
@@ -172,7 +172,7 @@ my string $str = binary("hello").toSHA1(); # returns "aaf4c61ddcc5e8a2dabede0f3b
 string <binary>::toSHA1() [flags=RET_VALUE_ONLY] {
    DigestHelper dh(*b);
    if (dh.doDigest(SHA1_ERR, EVP_sha1(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }
@@ -204,12 +204,12 @@ string <binary>::toSHA224() [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(*b);
    if (dh.doDigest(SHA224_ERR, EVP_sha224(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
    missing_openssl_feature("SHA224", xsink);
-   return 0;
+   return QoreValue();
 #endif
 }
 
@@ -240,12 +240,12 @@ string <binary>::toSHA256() [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(*b);
    if (dh.doDigest(SHA256_ERR, EVP_sha256(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
    missing_openssl_feature("SHA256", xsink);
-   return 0;
+   return QoreValue();
 #endif
 }
 
@@ -276,12 +276,12 @@ string <binary>::toSHA384() [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(*b);
    if (dh.doDigest(SHA384_ERR, EVP_sha384(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
    missing_openssl_feature("SHA384", xsink);
-   return 0;
+   return QoreValue();
 #endif
 }
 
@@ -312,12 +312,12 @@ string <binary>::toSHA512() [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(*b);
    if (dh.doDigest(SHA512_ERR, EVP_sha512(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
    missing_openssl_feature("SHA512", xsink);
-   return 0;
+   return QoreValue();
 #endif
 }
 
