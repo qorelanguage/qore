@@ -44,6 +44,10 @@ QoreValue::QoreValue(int64 i) : type(QV_Int) {
    v.i = i;
 }
 
+QoreValue::QoreValue(int i) : type(QV_Int) {
+   v.i = i;
+}
+
 QoreValue::QoreValue(double f) : type(QV_Float) {
    v.f = f;
 }

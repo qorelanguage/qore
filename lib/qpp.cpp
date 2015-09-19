@@ -5,9 +5,9 @@
   Qore Pre-Processor
 
   Qore Programming Language
-  
+
   Copyright (C) 2003 - 2015 David Nichols
-  
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -62,6 +62,7 @@ const char usage_str[] = "usage: %s [options] <input file(s)...>\n" \
    " -h, --help             this help text\n" \
    " -o, --output=arg       cpp output file name\n" \
    " -t, --table=arg        process the given file for doxygen tables (|!...)\n" \
+   " -V, --value            use the QoreValue API\n" \
    " -v, --verbose          increases verbosity level\n";
 
 static const option pgm_opts[] = {
@@ -70,6 +71,7 @@ static const option pgm_opts[] = {
    {"output", required_argument, NULL, 'o'},
    {"table", required_argument, NULL, 't'},
    {"verbose", optional_argument, NULL, 'v'},
+   {"value", no_argument, NULL, 'V'},
    {NULL, 0, NULL, 0}
 };
 
@@ -95,6 +97,9 @@ std::string pn;
 
 // extra c++ initialization string
 std::string initcode;
+
+// global "use QoreValue" flag
+bool use_value = false;
 
 // code attribute type
 typedef unsigned int attr_t;
@@ -186,7 +191,7 @@ static void error(const char *fmt, ...) {
       if (!rc)
          break;
    }
-   
+
    fprintf(stderr, "%s: ERROR: ", pn.c_str());
    fputs(buf.c_str(), stderr);
    //fflush(stderr);
@@ -203,7 +208,7 @@ static void warning(const char *fmt, ...) {
       if (!rc)
          break;
    }
-   
+
    fprintf(stderr, "%s: WARNING: ", pn.c_str());
    fputs(buf.c_str(), stderr);
    //fflush(stderr);
@@ -223,7 +228,7 @@ static void log(LogLevel ll, const char *fmt, ...) {
       if (!rc)
          break;
    }
-   
+
    fprintf(stderr, "%s: ", pn.c_str());
    if (ll == LL_DEBUG)
       fputs("DEBUG: ", stdout);
@@ -277,7 +282,7 @@ static int get_dox_comment(const char* fileName, unsigned& lineNumber, std::stri
          error("%s:%d: premature EOF reading doxygen comment\n", fileName, lineNumber);
          return -1;
       }
-      
+
       if (buf.compare(0, 3, "/**")) {
          error("%s:%d: missing block comment marker '/**' in line following //! comment (str='%s' buf='%s')\n", fileName, lineNumber, str.c_str(), buf.c_str());
          return -1;
@@ -494,7 +499,7 @@ int parse_params_and_flags(const char* fileName, unsigned& lineNumber, strmap_t&
             std::string param(pl[xi], i + 1);
             trim(type);
             trim(param);
-               
+
             std::string val;
             // see if there is a default value
             i = param.find('=');
@@ -516,7 +521,7 @@ int parse_params_and_flags(const char* fileName, unsigned& lineNumber, strmap_t&
                }
                type.erase(type.size() - 1);
                qore = type.c_str() + i + 1;
-               type.erase(i);                  
+               type.erase(i);
             }
 
             log(LL_DEBUG, "+ %s() param %d type '%s' name '%s' default value '%s'\n", dn.c_str(), xi, type.c_str(), param.c_str(), val.c_str());
@@ -616,7 +621,7 @@ static int get_qore_type(const std::string &qt, std::string &cppt) {
       cppt = "nothingTypeInfo";
       return 0;
    }
-   
+
    strmap_t::iterator i = tmap.find(qt);
    if (i == tmap.end()) {
       // assume a Qore object of the given class
@@ -673,7 +678,7 @@ int read_until_close(const char* fileName, unsigned& lineNumber, std::string& st
          line_comment = false;
          continue;
       }
-         
+
       if (line_comment)
          continue;
 
@@ -834,7 +839,7 @@ static int get_qore_value(const std::string &qv, std::string &v, const char *cna
          return 0;
       }
    }
-   
+
    int t = get_val_type(qv);
    switch (t) {
       case T_RELDATE: {
@@ -944,7 +949,7 @@ static int get_qore_value(const std::string &qv, std::string &v, const char *cna
 
          strlist_t l;
          get_string_list2(l, hv, ',');
-         
+
          for (unsigned i = 0; i < l.size(); ++i) {
             std::string& str = l[i];
             trim(str);
@@ -961,7 +966,7 @@ static int get_qore_value(const std::string &qv, std::string &v, const char *cna
                error("hash key is empty\n");
                return -1;
             }
-         
+
             if (key[0] == '"') {
                if (key[key.size() - 1] != '"') {
                   error("missing end quote in hash key '%s'\n", key.c_str());
@@ -1178,7 +1183,7 @@ static int serialize_dox_comment(FILE* fp, std::string &buf, const strlist_t& do
 
          doRow(sl, tstr);
          i = j + 1;
-            
+
          // find next EOL
          j = buf.find('\n', i);
          if (j == std::string::npos)
@@ -1200,7 +1205,7 @@ static int serialize_dox_comment(FILE* fp, std::string &buf, const strlist_t& do
       buf.replace(start, end - start, tstr);
    }
 
-   start = 0;   
+   start = 0;
    if (!flags.empty()) {
       start = find_start(buf);
       if (start == std::string::npos) {
@@ -1486,7 +1491,7 @@ protected:
                fputs(p.type.c_str() + 1, fp);
             else
                fputs(p.type.c_str(), fp);
-               
+
             fprintf(fp, " %s", p.name.c_str());
             if (!p.val.empty()) {
                std::string qv;
@@ -1539,6 +1544,9 @@ protected:
    }
 
    const char *getReturnType() const {
+      if (use_value)
+         return "QoreValue";
+
       switch (rt) {
          case RT_OBJ:
             return "QoreObject*";
@@ -1561,7 +1569,7 @@ protected:
          fputs(tstr.c_str() + 1, fp);
          return;
       }
-      
+
       size_t i = tstr.find('*');
       if (i == std::string::npos) {
          fputs(tstr.c_str(), fp);
@@ -1574,6 +1582,8 @@ protected:
    }
 
    const char *getFunctionType() const {
+      if (use_value)
+         return "q_func_n_t";
       switch (rt) {
          case RT_INT:
             return "q_func_int64_t";
@@ -1614,7 +1624,7 @@ protected:
 
 public:
    CodeBase(const std::string& fn, const std::string &n_name, attr_t n_attr, const paramlist_t &n_params,
-            const std::string &n_docs, const std::string &n_return_type, 
+            const std::string &n_docs, const std::string &n_return_type,
             const strlist_t& n_flags, const strlist_t& n_dom, const std::string &n_code,
             unsigned n_line, bool n_doconly) : fileName(fn), name(n_name), vname(name), docs(n_docs), return_type(n_return_type),
                                                code(n_code), flags(n_flags), dom(n_dom), attr(n_attr),
@@ -1662,9 +1672,9 @@ protected:
 
 public:
    FunctionGroupElement(const char* fn, const std::string &n_name, attr_t n_attr, const paramlist_t &n_params,
-                        const std::string &n_docs, const std::string &n_return_type, 
+                        const std::string &n_docs, const std::string &n_return_type,
                         const strlist_t& n_flags, const strlist_t& n_dom, const std::string &n_code,
-                        unsigned n_line, bool n_doconly) 
+                        unsigned n_line, bool n_doconly)
       : CodeBase(fn, n_name, n_attr, n_params, n_docs, n_return_type, n_flags, n_dom, n_code, n_line, n_doconly) {
    }
 
@@ -1680,7 +1690,7 @@ public:
       output_file(fp, code);
 
       if (!has_return)
-         fprintf(fp, "\n   return 0;");
+         fprintf(fp, "\n   return %s;", use_value ? "QoreValue()" : "0");
 
       fputs("\n}\n\n", fp);
       return 0;
@@ -1697,9 +1707,9 @@ public:
       if (get_qore_type(return_type, cppt))
          return -1;
 
-      fprintf(fp, "   ns.addBuiltinVariant(\"%s\", (%s)f_%s, ", 
+      fprintf(fp, "   ns.addBuiltinVariant(\"%s\", (%s)f_%s, ",
               name.c_str(),
-              getFunctionType(), 
+              getFunctionType(),
               vname.c_str());
 
       flags_output_cpp(fp, flags, attr & QCA_USES_EXTRA_ARGS);
@@ -1717,7 +1727,7 @@ public:
 
    int serializeDox(FILE *fp) {
       serialize_dox_comment(fp, docs, dom, flags);
-      
+
       serializeQoreCppType(fp, return_type);
       fprintf(fp, " %s(", name.c_str());
 
@@ -1812,7 +1822,7 @@ protected:
          if (!line.compare(0, 4, "//@{"))
             break;
       }
-      
+
       return 0;
    }
 
@@ -1914,7 +1924,7 @@ public:
                valid = false;
                return;
             }
-            
+
             if (!ns.empty()) {
                error("%s:%d: duplicate namespace declaration\n", fileName, lineNumber);
                valid = false;
@@ -2265,7 +2275,7 @@ public:
    virtual int serializeDox(FILE *fp) {
       //return serialize_dox_comment(fp, buf);
       return 0;
-   }   
+   }
 };
 
 class Method : public CodeBase {
@@ -2299,8 +2309,8 @@ protected:
       fputc('\n', fp);
       serializeQoreConstructorPrototypeComment(fp, cname, 3);
 
-      fprintf(fp, "   QC_%s->setConstructorExtended3(%s_%s, %s, ", 
-              UC, 
+      fprintf(fp, "   QC_%s->setConstructorExtended3(%s_%s, %s, ",
+              UC,
               cname, vname.c_str(),
               attr & QCA_PRIVATE ? "true" : "false");
       flags_output_cpp(fp, flags, attr & QCA_USES_EXTRA_ARGS);
@@ -2311,7 +2321,7 @@ protected:
          return -1;
 
       fputs(");\n", fp);
-      
+
       return 0;
    }
 
@@ -2354,6 +2364,9 @@ protected:
    }
 
    const char *getMethodType() const {
+      if (use_value)
+         return "q_method_n_t";
+
       switch (rt) {
          case RT_INT:
             return "q_method_int64_t";
@@ -2368,7 +2381,7 @@ protected:
 
 public:
    Method(const std::string& fn, const std::string &n_name, attr_t n_attr, const paramlist_t &n_params,
-          const std::string &n_docs, const std::string &n_return_type, 
+          const std::string &n_docs, const std::string &n_return_type,
           const strlist_t& n_flags, const strlist_t& n_dom, const std::string &n_code,
           unsigned n_line, bool n_doconly) : CodeBase(fn, n_name, n_attr, n_params, n_docs, n_return_type,
                                                       n_flags, n_dom, n_code, n_line, n_doconly) {
@@ -2408,7 +2421,7 @@ public:
       output_file(fp, code);
 
       if (!has_return)
-         fprintf(fp, "\n   return 0;");
+         fprintf(fp, "\n   return %s;", use_value ? "QoreValue()" : "0");
 
       fputs("\n}\n\n", fp);
    }
@@ -2438,8 +2451,11 @@ public:
       if (attr & QCA_ABSTRACT)
          fprintf(fp, "addAbstractMethodVariantExtended3(\"%s\", %s, ", name.c_str(), attr & QCA_PRIVATE ? "true" : "false");
       else
-         fprintf(fp, "addMethodExtended3(\"%s\", (%s)%s_%s, %s, ", name.c_str(),
-               getMethodType(), cname, vname.c_str(),
+         fprintf(fp, "%s(\"%s\", (%s)%s_%s, %s, ",
+                 use_value ? "addMethod" : "addMethodExtended3",
+                 name.c_str(),
+                 getMethodType(),
+                 cname, vname.c_str(),
                attr & QCA_PRIVATE ? "true" : "false");
       flags_output_cpp(fp, flags, attr & QCA_USES_EXTRA_ARGS);
       fputs(", ", fp);
@@ -2471,7 +2487,7 @@ public:
       output_file(fp, code);
 
       if (!has_return)
-         fprintf(fp, "\n   return 0;");
+         fprintf(fp, "\n   return %s;", use_value ? "QoreValue()" : "0");
 
       fputs("\n}\n\n", fp);
    }
@@ -2490,9 +2506,9 @@ public:
       if (get_qore_type(return_type, cppt))
          return -1;
 
-      fprintf(fp, "   QC_%s->addStaticMethodExtended3(\"%s\", (%s)static_%s_%s, %s, ", UC, 
+      fprintf(fp, "   QC_%s->addStaticMethodExtended3(\"%s\", (%s)static_%s_%s, %s, ", UC,
               name.c_str(),
-              getFunctionType(), 
+              getFunctionType(),
               cname, vname.c_str(),
               attr & QCA_PRIVATE ? "true" : "false");
       flags_output_cpp(fp, flags, attr & QCA_USES_EXTRA_ARGS);
@@ -2515,7 +2531,7 @@ public:
          fputs("\npublic:\n", fp);
 
       serialize_dox_comment(fp, docs, dom, flags);
-      
+
       //fputs("   ", fp);
       if (attr & QCA_STATIC)
          fputs("static ", fp);
@@ -2604,7 +2620,7 @@ public:
          if (i->first == "flags") {
             strlist_t l;
             get_string_list(l, i->second);
-            
+
             for (unsigned i = 0; i < l.size(); ++i) {
                if (l[i] == "unsetPublicMemberFlag") {
                   upm = true;
@@ -2793,7 +2809,7 @@ public:
       // set system constructor if any
       if (!scons.empty())
          fprintf(fp, "\n   // set system constructor\n   QC_%s->setSystemConstructor(%s);\n", UC.c_str(), scons.c_str());
-      
+
       // output public members if any
       if (!public_members.empty()) {
          fputs("\n   // public members\n", fp);
@@ -2838,7 +2854,7 @@ public:
          fprintf(fp, "//! %s namespace\nnamespace %s {\n", ns.c_str(), ns.c_str());
 
       serialize_dox_comment(fp, doc, dom);
-      
+
       size_t nl = name.size();
       if (name[0] == '<' && name[nl - 1] == '>') {
          std::string nn = "zzz8";
@@ -2867,7 +2883,7 @@ public:
       }
 
       fputs(" {\n", fp);
-      
+
       for (mmap_t::const_iterator i = normal_mmap.begin(), e = normal_mmap.end(); i != e; ++i)
          i->second->serializeDox(fp);
 
@@ -2880,7 +2896,7 @@ public:
 
       fputs("};\n", fp);
       return 0;
-   }   
+   }
 };
 
 typedef std::map<std::string, ClassElement *> cemap_t;
@@ -2890,7 +2906,7 @@ typedef std::vector<AbstractElement *> source_t;
 class Code {
 protected:
    const char *fileName;
-   std::string cppFileName, 
+   std::string cppFileName,
       doxFileName,
       rootName;
    // argument to fopen()
@@ -2899,7 +2915,7 @@ protected:
    unsigned lineNumber;
    source_t source;
    cemap_t cemap;
-   bool valid, 
+   bool valid,
       has_class; // has at least 1 class element
 
    void checkBuf(std::string &buf) {
@@ -2948,7 +2964,7 @@ protected:
             if (groups.add(new Group(str, fp, fileName, lineNumber))) {
                rc = -1;
                break;
-            }            
+            }
             continue;
          }
 
@@ -2956,7 +2972,7 @@ protected:
             if (!str.compare(0, 14, "//! @qppinit: ")) {
                str.erase(0, 14);
                log(LL_DEBUG, "got qppinit: %s", str.c_str());
-               
+
                initcode += str;
                continue;
             }
@@ -3141,7 +3157,7 @@ protected:
          return -1;
       }
       ++p;
-      
+
       strmap_t flags;
       paramlist_t params;
 
@@ -3156,10 +3172,10 @@ protected:
    }
 
 public:
-   Code(const char *fn, const std::string &ofn, const std::string &dfn, 
-        bool cpp_append = false, bool dox_append = false) : fileName(fn), 
-                                                            cpp_open_flag(cpp_append ? "a" : "w"), 
-                                                            dox_open_flag(dox_append ? "a" : "w"), 
+   Code(const char *fn, const std::string &ofn, const std::string &dfn,
+        bool cpp_append = false, bool dox_append = false) : fileName(fn),
+                                                            cpp_open_flag(cpp_append ? "a" : "w"),
+                                                            dox_open_flag(dox_append ? "a" : "w"),
                                                             lineNumber(0),
                                                             valid(true), has_class(false) {
       std::string base;
@@ -3169,7 +3185,7 @@ public:
       base = basename((char*)bnc.c_str());
       bnc = fn;
       dir = dirname((char*)bnc.c_str());
-      
+
       if (base.size() > 4 && !strcmp(base.c_str() + base.size() - 4, ".qpp"))
          base.erase(base.size() - 4);
       else {
@@ -3211,7 +3227,7 @@ public:
             return -1;
          }
       }
-      
+
       if (groups.serializeFunctionCpp(fp, rootName.c_str())) {
          fclose(fp);
          return -1;
@@ -3272,7 +3288,7 @@ int do_table_file() {
       int c = fgetc(ifp);
       if (c == EOF)
          break;
-      
+
       buf += c;
    }
    fclose(ifp);
@@ -3459,7 +3475,7 @@ void init() {
    dmap["EMBEDDED_LOGIC"] = "PO_NO_EMBEDDED_LOGIC";
 
    dnmap["INJECTION"] = "PO_ALLOW_INJECTION";
-   
+
    // initialize code flag set
    fset.insert("NO_FLAGS");
    fset.insert("NOOP");
@@ -3468,7 +3484,7 @@ void init() {
    fset.insert("DEPRECATED");
    fset.insert("RET_VALUE_ONLY");
    fset.insert("RUNTIME_NOOP");
-   fset.insert("CONSTANT");   
+   fset.insert("CONSTANT");
 }
 
 void usage() {
@@ -3480,7 +3496,7 @@ void process_command_line(int &argc, char **&argv) {
    pn = basename(argv[0]);
 
    int ch;
-   while ((ch = getopt_long(argc, argv, "d:ho:t:v:", pgm_opts, NULL)) != -1) {
+   while ((ch = getopt_long(argc, argv, "d:ho:t:v:V", pgm_opts, NULL)) != -1) {
       //log(LL_INFO, "ch=%c optarg=%p (%s)\n", ch, optarg, optarg ? optarg : "(null)");
 
       switch (ch) {
@@ -3504,6 +3520,10 @@ void process_command_line(int &argc, char **&argv) {
                opts.verbose = strtoll(optarg, NULL, 10);
             else
                ++opts.verbose;
+
+         case 'V':
+            use_value = true;
+            break;
       }
    }
 
@@ -3523,7 +3543,7 @@ void process_command_line(int &argc, char **&argv) {
    else if (!opts.table_fn.empty()) {
       error("table file name must not be given along with an input file list\n");
       usage();
-   }      
+   }
 }
 
 int main(int argc, char *argv[]) {
