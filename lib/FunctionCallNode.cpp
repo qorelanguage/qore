@@ -102,7 +102,8 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation& loc, LocalVar*
       update_parse_location(loc);
       // loop through all args
       for (unsigned i = 0; i < num_args; ++i) {
-	 AbstractQoreNode* *n = args->get_entry_ptr(i);
+	 //QoreValue& n = args->getEntryReference(i);
+	 AbstractQoreNode** n = args->get_entry_ptr(i);
 	 assert(*n);
 	 argTypeInfo.push_back(0);
 	 //printd(5, "FunctionCallBase::parseArgsVariant() this: %p (%s) oflag: %p pflag: %d func: %p i: %d/%d arg: %p (%d %s)\n", this, func ? func->getName() : "n/a", oflag, pflag, func, i, num_args, *n, (*n)->getType(), (*n)->getTypeName());
@@ -304,7 +305,7 @@ AbstractQoreNode* FunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag, in
       LocalVar* id = find_local_var(c_str, in_closure);
       if (id) {
          VarRefNode* vrn = new VarRefNode(takeName(), id, in_closure);
-	 CallReferenceCallNode* crcn = new CallReferenceCallNode(vrn, take_args());
+	 CallReferenceCallNode* crcn = new CallReferenceCallNode(vrn, takeArgs());
 	 deref();
 	 return crcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
       }
@@ -333,7 +334,7 @@ AbstractQoreNode* FunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag, in
       }
 
       if (n) {
-	 CallReferenceCallNode* crcn = new CallReferenceCallNode(n, take_args());
+	 CallReferenceCallNode* crcn = new CallReferenceCallNode(n, takeArgs());
 	 deref();
 	 return crcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
       }
@@ -350,7 +351,7 @@ AbstractQoreNode* FunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag, in
 	 else {
 	    const QoreMethod *m = qore_class_private::parseFindSelfMethod(const_cast<QoreClass*>(qc), c_str);
 	    if (m)
-	       sfcn = new SelfFunctionCallNode(takeName(), take_args(), m);
+	       sfcn = new SelfFunctionCallNode(takeName(), takeArgs(), m);
 	 }
 	 if (sfcn) {
 	    deref();
@@ -387,7 +388,7 @@ AbstractQoreNode* FunctionCallNode::parseInitCall(LocalVar* oflag, int pflag, in
    }
 
    if (n) {
-      CallReferenceCallNode* crcn = new CallReferenceCallNode(n, take_args());
+      CallReferenceCallNode* crcn = new CallReferenceCallNode(n, takeArgs());
       deref();
       return crcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
    }
@@ -467,6 +468,10 @@ AbstractQoreNode* ScopedObjectCallNode::parseInitImpl(LocalVar* oflag, int pflag
    //printd(5, "ScopedObjectCallNode::parseInitImpl() this: %p class: %s (%p) constructor: %p function: %p variant: %p\n", this, oc->getName(), oc, constructor, constructor ? constructor->getFunction() : 0, variant);
 
    return this;
+}
+
+QoreValue ScopedObjectCallNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+   return qore_class_private::execConstructor(*oc, variant, args, xsink);
 }
 
 QoreValue MethodCallNode::execPseudo(const AbstractQoreNode* n, ExceptionSink* xsink) const {

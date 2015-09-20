@@ -37,10 +37,19 @@
 
 typedef ReferenceHolder<QoreValueList> safe_qorevaluelist_t;
 
-static QoreValueList* do_args(const QoreValue& e1, const QoreValue& e2) {
+/*
+static QoreValueList* do_value_args(const QoreValue& e1, const QoreValue& e2) {
    QoreValueList* l = new QoreValueList;
    l->push(e1.refSelf());
    l->push(e2.refSelf());
+   return l;
+}
+*/
+
+static QoreListNode* do_args(const QoreValue& e1, const QoreValue& e2) {
+   QoreListNode* l = new QoreListNode;
+   l->push(e1.getReferencedValue());
+   l->push(e2.getReferencedValue());
    return l;
 }
 
@@ -277,6 +286,8 @@ private:
       }
    }
 
+   DLLLOCAL void evalIntern(const QoreListNode* exp);
+
    //! will create a unique list so the list can be edited
    DLLLOCAL void editIntern() {
       if (!val) {
@@ -322,6 +333,12 @@ public:
 
    //! assigns a new value by executing the given list and dereference flag to this object, dereferences the old object if necessary
    DLLLOCAL void assignEval(const QoreValueList* exp) {
+      discardIntern();
+      evalIntern(exp);
+   }
+
+   //! assigns a new value by executing the given list and dereference flag to this object, dereferences the old object if necessary
+   DLLLOCAL void assignEval(const QoreListNode* exp) {
       discardIntern();
       evalIntern(exp);
    }

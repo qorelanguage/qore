@@ -125,7 +125,7 @@ public:
    DLLLOCAL virtual ~QoreClosureNode() {
    }
 
-   DLLLOCAL virtual QoreValue execValue(const QoreValueList* args, ExceptionSink* xsink) const;
+   DLLLOCAL virtual QoreValue execValue(const QoreListNode* args, ExceptionSink* xsink) const;
 
    DLLLOCAL virtual QoreProgram* getProgram() const {
       return pgm;
@@ -181,7 +181,7 @@ public:
    DLLLOCAL ~QoreObjectClosureNode() {
    }
 
-   DLLLOCAL virtual QoreValue execValue(const QoreValueList* args, ExceptionSink* xsink) const;
+   DLLLOCAL virtual QoreValue execValue(const QoreListNode* args, ExceptionSink* xsink) const;
 
    DLLLOCAL virtual QoreProgram* getProgram() const {
       return obj->getProgram();

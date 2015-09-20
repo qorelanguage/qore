@@ -63,7 +63,7 @@ namespace detail {
       template<typename QV>
       static Result cast(QV *qv, valtype_t type) {
          assert(type == QV_Node);
-         assert(dynamic_cast<Result>(qv->v.n));
+         assert(!qv->v.n || dynamic_cast<Result>(qv->v.n));
          return reinterpret_cast<Result>(qv->v.n);
       }
    };
@@ -100,18 +100,6 @@ namespace detail {
          return qv->getAsBigInt();
       }
    };
-
-   /*
-   template<>
-   struct QoreValueCastHelper<int> {
-      typedef int Result;
-
-      template<typename QV>
-      static int cast(QV *qv, valtype_t type) {
-         return qv->getAsBigInt();
-      }
-   };
-   */
 } // namespace detail
 
 struct QoreValue {

@@ -123,6 +123,7 @@ protected:
    }
 
    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
       return variant ? variant->parseGetReturnTypeInfo() : (func ? const_cast<QoreFunction*>(func)->parseGetUniqueReturnTypeInfo() : 0);
    }
@@ -173,7 +174,7 @@ public:
    }
 
    // FIXME: delete when unresolved function call node implemented properly
-   DLLLOCAL QoreListNode* take_args() {
+   DLLLOCAL QoreListNode* takeArgs() {
       QoreListNode* rv = args;
       args = 0;
       return rv;

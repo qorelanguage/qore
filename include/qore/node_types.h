@@ -38,7 +38,7 @@
  */
 
 // qore global system type constants
-// value types must come first to support the operator matrix optimization 
+// value types must come first to support the operator matrix optimization
 const qore_type_t NT_NOTHING            = 0;  //!< type value for QoreNothingNode
 const qore_type_t NT_INT                = 1;  //!< type value for QoreBigIntNode
 const qore_type_t NT_FLOAT              = 2;  //!< type value for QoreFloatNode
@@ -84,10 +84,11 @@ const qore_type_t NT_PARSEREFERENCE     = 41; //!< type value for ParseReference
 const qore_type_t NT_BACKQUOTE          = 42; //!< type value for BackquoteNode
 const qore_type_t NT_RTCONSTREF         = 43; //!< type value for RuntimeConstantRefNode
 const qore_type_t NT_PARSE_HASH         = 44; //!< type value for QoreParseHashNode
-const qore_type_t NT_VALUE_LIST         = 45; //!< type value for QoreValueList (will replace QoreListNode)
+const qore_type_t NT_PARSE_LIST         = 45; //!< type value for QoreParseList
+const qore_type_t NT_VALUE_LIST         = 46; //!< type value for QoreValueList (will replace QoreListNode)
 
 //! number of types implemented in the Qore library
-#define QORE_NUM_TYPES 45
+#define QORE_NUM_TYPES 46
 
 //! number of simple value types (not containers)
 #define NUM_SIMPLE_TYPES 8

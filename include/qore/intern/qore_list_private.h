@@ -32,6 +32,17 @@
 #ifndef _QORE_QORELISTPRIVATE_H
 #define _QORE_QORELISTPRIVATE_H
 
+typedef ReferenceHolder<QoreListNode> safe_qorelist_t;
+
+static QoreListNode* do_args(AbstractQoreNode* e1, AbstractQoreNode* e2) {
+   QoreListNode* l = new QoreListNode;
+   e1->ref();
+   l->push(e1);
+   e2->ref();
+   l->push(e2);
+   return l;
+}
+
 struct qore_list_private {
    AbstractQoreNode** entry;
    qore_size_t length;

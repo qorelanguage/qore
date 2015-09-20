@@ -257,7 +257,7 @@ protected:
    ExceptionSink* xsink;
    const char* class_name;
    QoreProgramLocation loc;
-   QoreListNodeEvalOptionalRefHolder tmp;
+   QoreValueListEvalOptionalRefHolder tmp;
    const QoreTypeInfo* returnTypeInfo; // saved return type info
    QoreProgram* pgm; // program used when evaluated (to find stacks for references)
    q_rt_flags_t rtflags; // runtime flags
@@ -267,53 +267,6 @@ public:
    DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args = 0, const char* n_class_name = 0, qore_call_t n_ct = CT_UNUSED, bool is_copy = false);
 
    DLLLOCAL ~CodeEvaluationHelper();
-
-   DLLLOCAL void setReturnTypeInfo(const QoreTypeInfo* n_returnTypeInfo) {
-      returnTypeInfo = saveReturnTypeInfo(n_returnTypeInfo);
-   }
-   // once this is set, exception information will be raised in the destructor if an exception has been raised
-   DLLLOCAL void setCallType(qore_call_t n_ct) {
-      ct = n_ct;
-   }
-   DLLLOCAL int processDefaultArgs(const QoreFunction* func, const AbstractQoreFunctionVariant* variant, bool check_args, bool is_copy = false);
-
-   DLLLOCAL void setArgs(QoreListNode* n_args) {
-      assert(!*tmp);
-      tmp.assign(true, n_args);
-   }
-
-   DLLLOCAL const QoreListNode* getArgs() const {
-      return *tmp;
-   }
-   // returns the QoreProgram object where the call originated
-   DLLLOCAL QoreProgram* getSourceProgram() const {
-      return pgm;
-   }
-   DLLLOCAL void restorePosition() const {
-      update_runtime_location(loc);
-   }
-   DLLLOCAL q_rt_flags_t getRuntimeFlags() const {
-      return rtflags;
-   }
-};
-
-class CodeEvaluationValueHelper {
-protected:
-   qore_call_t ct;
-   const char* name;
-   ExceptionSink* xsink;
-   const char* class_name;
-   QoreProgramLocation loc;
-   QoreValueListEvalOptionalRefHolder tmp;
-   const QoreTypeInfo* returnTypeInfo; // saved return type info
-   QoreProgram* pgm; // program used when evaluated (to find stacks for references)
-   q_rt_flags_t rtflags; // runtime flags
-
-public:
-   // saves current program location in case there's an exception
-   DLLLOCAL CodeEvaluationValueHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreValueList* args = 0, const char* n_class_name = 0, qore_call_t n_ct = CT_UNUSED, bool is_copy = false);
-
-   DLLLOCAL ~CodeEvaluationValueHelper();
 
    DLLLOCAL void setReturnTypeInfo(const QoreTypeInfo* n_returnTypeInfo) {
       returnTypeInfo = saveReturnTypeInfo(n_returnTypeInfo);
@@ -939,9 +892,6 @@ public:
    DLLLOCAL bool existsVariant(const type_vec_t& paramTypeInfo) const;
 
    // find variant at runtime
-   // if only_user is set, then no exception is raised if the user variant is not found
-   DLLLOCAL const AbstractQoreFunctionVariant* findVariant(const QoreListNode* args, bool only_user, ExceptionSink* xsink) const;
-
    DLLLOCAL const AbstractQoreFunctionVariant* findVariant(const QoreValueList* args, bool only_user, ExceptionSink* xsink) const;
 
    DLLLOCAL const AbstractQoreFunctionVariant* runtimeFindVariant(const type_vec_t& argTypeList, bool only_user = false) const;

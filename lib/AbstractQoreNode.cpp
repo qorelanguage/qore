@@ -407,6 +407,16 @@ static inline QoreListNode* crlr_list_copy(const QoreListNode* n, ExceptionSink*
    return l.release();
 }
 
+static inline QoreValueList* crlr_list_copy(const QoreValueList* n, ExceptionSink* xsink) {
+   ReferenceHolder<QoreValueList> l(new QoreValueList, xsink);
+   for (unsigned i = 0; i < n->size(); i++) {
+      l->push(copy_value_and_resolve_lvar_refs(n->retrieveEntry(i), xsink));
+      if (*xsink)
+	 return 0;
+   }
+   return l.release();
+}
+
 static inline AbstractQoreNode* crlr_hash_copy(const QoreHashNode* n, ExceptionSink* xsink) {
    ReferenceHolder<QoreHashNode> h(new QoreHashNode(true), xsink);
    ConstHashIterator hi(n);
@@ -424,13 +434,17 @@ static inline AbstractQoreNode* crlr_tree_copy(const QoreTreeNode* n, ExceptionS
 }
 
 static inline AbstractQoreNode* crlr_selfcall_copy(const SelfFunctionCallNode* n, ExceptionSink* xsink) {
-   QoreListNode* na = n->getArgs() ? crlr_list_copy(n->getArgs(), xsink) : 0;
+   QoreListNode* na = const_cast<QoreListNode*>(n->getArgs());
+   if (na)
+      na = crlr_list_copy(na, xsink);
 
    return new SelfFunctionCallNode(*n, na);
 }
 
 static inline AbstractQoreNode* crlr_fcall_copy(const FunctionCallNode* n, ExceptionSink* xsink) {
-   QoreListNode* na = n->getArgs() ? crlr_list_copy(n->getArgs(), xsink) : 0;
+   QoreListNode* na = const_cast<QoreListNode*>(n->getArgs());
+   if (na)
+      na = crlr_list_copy(na, xsink);
 
    return new FunctionCallNode(n->getFunction(), na, n->getProgram());
 }
@@ -486,6 +500,12 @@ static AbstractQoreNode* eval_notnull(const AbstractQoreNode* n, ExceptionSink* 
       return 0;
 
    return exp ? exp.release() : nothing();
+}
+
+QoreValue copy_value_and_resolve_lvar_refs(QoreValue& n, ExceptionSink* xsink) {
+   if (!n.hasNode())
+      return n;
+   return copy_and_resolve_lvar_refs(n.getInternalNode(), xsink);
 }
 
 AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, ExceptionSink* xsink) {

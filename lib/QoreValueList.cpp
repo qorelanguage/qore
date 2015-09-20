@@ -30,6 +30,7 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/qore_value_list_private.h>
+#include <qore/intern/qore_list_private.h>
 #include <qore/intern/Operator.h>
 
 #include <stdlib.h>
@@ -79,7 +80,7 @@ int qore_value_list_private::mergesort(const ResolvedCallReferenceNode* fr, bool
       QoreValue& rv = r->entry[ri];
       int rc;
       if (fr) {
-	 safe_qorevaluelist_t args(do_args(lv, rv), xsink);
+	 safe_qorelist_t args(do_args(lv, rv), xsink);
 	 ValueHolder result(fr->execValue(*args, xsink), xsink);
 	 if (*xsink)
 	    return -1;
@@ -118,7 +119,7 @@ int qore_value_list_private::qsort(const ResolvedCallReferenceNode* fr, size_t l
       while (true) {
 	 int rc;
 	 if (fr) {
-	    safe_qorevaluelist_t args(do_args(entry[right], pivot), xsink);
+	    safe_qorelist_t args(do_args(entry[right], pivot), xsink);
 	    ValueHolder rv(fr->execValue(*args, xsink), xsink);
 	    if (*xsink)
 	       return -1;
@@ -146,7 +147,7 @@ int qore_value_list_private::qsort(const ResolvedCallReferenceNode* fr, size_t l
       while (true) {
 	 int rc;
 	 if (fr) {
-	    safe_qorevaluelist_t args(do_args(entry[left], pivot), xsink);
+	    safe_qorelist_t args(do_args(entry[left], pivot), xsink);
 	    ValueHolder rv(fr->execValue(*args, xsink), xsink);
 	    if (*xsink)
 	       return -1;
@@ -562,7 +563,7 @@ QoreValue QoreValueList::minValue(const ResolvedCallReferenceNode* fr, Exception
    for (size_t i = 1; i < priv->length; ++i) {
       QoreValue v = priv->entry[i];
 
-      safe_qorevaluelist_t args(do_args(v, rv), xsink);
+      safe_qorelist_t args(do_args(v, rv), xsink);
       ValueHolder result(fr->execValue(*args, xsink), xsink);
       if (*xsink)
 	 return QoreValue();
@@ -580,7 +581,7 @@ QoreValue QoreValueList::maxValue(const ResolvedCallReferenceNode* fr, Exception
    for (size_t i = 1; i < priv->length; ++i) {
       QoreValue v = priv->entry[i];
 
-      safe_qorevaluelist_t args(do_args(v, rv), xsink);
+      safe_qorelist_t args(do_args(v, rv), xsink);
       ValueHolder result(fr->execValue(*args, xsink), xsink);
       if (*xsink)
 	 return QoreValue();
@@ -678,6 +679,18 @@ bool QoreValueList::getAsBoolImpl() const {
    return !empty();
 }
 
+QoreListNode* QoreValueList::getOldList() const {
+   if (empty())
+      return 0;
+
+   QoreListNode* rv = new QoreListNode;
+   for (size_t i = 1; i < priv->length; ++i) {
+      QoreValue v = priv->entry[i];
+      rv->push(v.getReferencedValue());
+   }
+   return rv;
+}
+
 ValueListIterator::ValueListIterator(QoreValueList* lst, size_t n_pos) : l(lst) {
    set(n_pos);
 }
@@ -723,7 +736,7 @@ QoreValue ValueListIterator::getValue() const {
 }
 
 QoreValue ValueListIterator::getReferencedValue() const {
-   l->retrieveEntry(pos).refSelf();
+   return l->retrieveEntry(pos).refSelf();
 }
 
 QoreValue* ValueListIterator::getValueReference() const {
@@ -857,4 +870,27 @@ QoreValue QoreValueList::takeExists(ptrdiff_t offset) {
    QoreValue rv = *ptr;
    *ptr = QoreValue();
    return rv;
+}
+
+void QoreValueListEvalOptionalRefHolder::evalIntern(const QoreListNode* exp) {
+   if (!exp || exp->empty()) {
+      val = 0;
+      needs_deref = false;
+      return;
+   }
+   val = new QoreValueList;
+   ConstListIterator li(exp);
+   while (li.next()) {
+      const AbstractQoreNode* v = li.getValue();
+      qore_type_t t = get_node_type(v);
+      if (t < NUM_SIMPLE_TYPES) {
+	 QoreValue qv(v);
+	 qv.sanitize();
+	 val->push(qv);
+	 continue;
+      }
+      val->push(v->evalValue(xsink));
+      if (*xsink)
+	 return;
+   }
 }

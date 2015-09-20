@@ -49,6 +49,7 @@ protected:
    bool parse_init : 1;
 
    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) = 0;
+
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const = 0;
 
    DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink* xsink) const {

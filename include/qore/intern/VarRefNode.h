@@ -133,7 +133,7 @@ public:
          setClosureIntern();
       else
          type = VT_LOCAL;
-   }      
+   }
 
    DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
@@ -173,7 +173,7 @@ public:
 
    //DLLLOCAL VarRefNode* isOptimized(const QoreTypeInfo*& typeInfo) const;
    DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove) const;
-   
+
    DLLLOCAL bool isRef() const {
       if (type == VT_LOCAL)
          return ref.id->isRef();
@@ -189,8 +189,8 @@ public:
    DLLLOCAL const char* getName() const { return name.ostr; }
    // called when a list of variables is declared
    DLLLOCAL void makeLocal() {
-      assert(type != VT_GLOBAL); 
-      type = VT_LOCAL; 
+      assert(type != VT_GLOBAL);
+      type = VT_LOCAL;
       new_decl = true;
       ref.id = 0;
    }
@@ -245,7 +245,7 @@ protected:
 
    DLLLOCAL VarRefDeclNode(const QoreProgramLocation& nloc, char* n, qore_var_t t, const QoreTypeInfo* n_typeInfo, QoreParseTypeInfo* n_parseTypeInfo, bool n_has_effect) :
       VarRefNode(nloc, n, t, n_has_effect), parseTypeInfo(n_parseTypeInfo), typeInfo(n_typeInfo) {
-      //printd(5, "VarRefDeclNode::VarRefDeclNode() typeInfo=%p %s type=%d (%s)\n", typeInfo, n, n_qt, getBuiltinTypeName(n_qt));
+      //printd(5, "VarRefDeclNode::VarRefDeclNode() typeInfo: %p %s type: %d (%s)\n", typeInfo, n, n_qt, getBuiltinTypeName(n_qt));
    }
 
    DLLLOCAL VarRefDeclNode(char* n, Var* var, const QoreTypeInfo* n_typeInfo, QoreParseTypeInfo* n_parseTypeInfo) :
@@ -261,31 +261,31 @@ protected:
 public:
    DLLLOCAL VarRefDeclNode(int sl, int el, char* n, qore_var_t t, const QoreTypeInfo* n_typeInfo) :
       VarRefNode(sl, el, n, t), parseTypeInfo(0), typeInfo(n_typeInfo) {
-      //printd(5, "VarRefDeclNode::VarRefDeclNode() typeInfo=%p %s type=%d (%s)\n", typeInfo, n, n_qt, getBuiltinTypeName(n_qt));
+      //printd(5, "VarRefDeclNode::VarRefDeclNode() typeInfo: %p %s type: %d (%s)\n", typeInfo, n, n_qt, getBuiltinTypeName(n_qt));
    }
 
    // takes over ownership of class_name
    DLLLOCAL VarRefDeclNode(int sl, int el, char* n, qore_var_t t, char* class_name) :
       VarRefNode(sl, el, n, t), parseTypeInfo(new QoreParseTypeInfo(class_name)), typeInfo(0) {
-      //printd(5, "VarRefDeclNode::VarRefDeclNode() this=%p typeInfo=%p %s type=%d class=%s\n", this, typeInfo, n, type, class_name);
+      //printd(5, "VarRefDeclNode::VarRefDeclNode() this: %p typeInfo: %p %s type: %d class: %s\n", this, typeInfo, n, type, class_name);
    }
 
    // takes over ownership of QoreParseTypeInfo ptr
    DLLLOCAL VarRefDeclNode(int sl, int el, char* n, qore_var_t t, QoreParseTypeInfo* n_parseTypeInfo) :
       VarRefNode(sl, el, n, t), parseTypeInfo(n_parseTypeInfo), typeInfo(0) {
-      //printd(5, "VarRefDeclNode::VarRefDeclNode() this=%p typeInfo=%p %s type=%d class=%s\n", this, typeInfo, n, type, class_name);
+      //printd(5, "VarRefDeclNode::VarRefDeclNode() this: %p typeInfo: %p %s type: %d class: %s\n", this, typeInfo, n, type, class_name);
    }
 
    // takes over ownership of QoreParseTypeInfo ptr
    DLLLOCAL VarRefDeclNode(int sl, int el, char* n, qore_var_t t, const QoreTypeInfo* n_typeInfo, QoreParseTypeInfo* n_parseTypeInfo) :
       VarRefNode(sl, el, n, t), parseTypeInfo(n_parseTypeInfo), typeInfo(n_typeInfo) {
-      //printd(5, "VarRefDeclNode::VarRefDeclNode() typeInfo=%p %s type=%d (%s)\n", typeInfo, n, n_qt, getBuiltinTypeName(n_qt));
+      //printd(5, "VarRefDeclNode::VarRefDeclNode() typeInfo: %p %s type: %d (%s)\n", typeInfo, n, n_qt, getBuiltinTypeName(n_qt));
    }
 
    DLLLOCAL ~VarRefDeclNode() {
       delete parseTypeInfo;
    }
-   DLLLOCAL virtual bool parseIsDecl() const { 
+   DLLLOCAL virtual bool parseIsDecl() const {
       return true;
    }
    DLLLOCAL virtual bool isDecl() const {
@@ -295,7 +295,7 @@ public:
    // for checking for new object calls
    DLLLOCAL virtual AbstractQoreNode* makeNewCall(AbstractQoreNode* args);
 
-   DLLLOCAL QoreParseTypeInfo* takeParseTypeInfo() { 
+   DLLLOCAL QoreParseTypeInfo* takeParseTypeInfo() {
       QoreParseTypeInfo* ti = parseTypeInfo;
       parseTypeInfo = 0;
       return ti;
@@ -378,7 +378,7 @@ public:
 
    /*
    DLLLOCAL virtual ~VarRefNewObjectNode() {
-      //printd(5, "VarRefNewObjectNode::~VarRefNewObjectNode() this=%p (%s)\n", this, getName());
+      //printd(5, "VarRefNewObjectNode::~VarRefNewObjectNode() this: %p (%s)\n", this, getName());
    }
    */
 

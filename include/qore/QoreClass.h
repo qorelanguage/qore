@@ -224,13 +224,6 @@ private:
        @return the value returned by the method, can be 0
    */
    DLLLOCAL QoreValue evalMethod(QoreObject* self, const char* method_name, const QoreListNode* args, ExceptionSink* xsink) const;
-   /*
-   DLLLOCAL AbstractQoreNode* evalMethod(QoreObject* self, const char* method_name, const QoreListNode* args, ExceptionSink* xsink) const;
-   DLLLOCAL int64 bigIntEvalMethod(QoreObject* self, const char* method_name, const QoreListNode* args, ExceptionSink* xsink) const;
-   DLLLOCAL int intEvalMethod(QoreObject* self, const char* method_name, const QoreListNode* args, ExceptionSink* xsink) const;
-   DLLLOCAL bool boolEvalMethod(QoreObject* self, const char* method_name, const QoreListNode* args, ExceptionSink* xsink) const;
-   DLLLOCAL double floatEvalMethod(QoreObject* self, const char* method_name, const QoreListNode* args, ExceptionSink* xsink) const;
-   */
 
    // This function must only be called from QoreObject
    DLLLOCAL QoreValue evalMemberGate(QoreObject* self, const QoreString *nme, ExceptionSink* xsink) const;
@@ -631,7 +624,10 @@ public:
    /** if a Qore-language exception occurs, 0 is returned.
        @param args the arguments for the method
        @param xsink Qore-language exception information is added here
+
        @return the object created
+
+       @deprecated use execConstructor(const QoreValueList*, ExceptionSink*) instead
    */
    DLLEXPORT QoreObject* execConstructor(const QoreListNode* args, ExceptionSink* xsink) const;
 
@@ -913,7 +909,6 @@ public:
    DLLLOCAL bool runtimeHasPublicMembersInHierarchy() const;
    // returns true if the class has one or more parent classes
    DLLLOCAL bool hasParentClass() const;
-   DLLLOCAL QoreObject* execConstructor(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, ExceptionSink* xsink) const;
    DLLLOCAL bool hasPrivateCopyMethod() const;
    // returns the status including the pending variant (if any)
    DLLLOCAL bool parseHasPrivateCopyMethod() const;

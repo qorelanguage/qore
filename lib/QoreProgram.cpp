@@ -956,7 +956,7 @@ AbstractQoreNode* QoreProgram::callFunction(const char* name, const QoreListNode
    AbstractQoreNode* rv = !*xsink ? fc->eval(xsink) : 0;
 
    // let caller delete function arguments if necessary
-   fc->take_args();
+   fc->takeArgs();
 
    return rv;
 }

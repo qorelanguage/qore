@@ -134,6 +134,7 @@ class QoreBuiltinMethod;
 class QoreClass;
 class QoreTypeInfo;
 struct QoreValue;
+class QoreValueList;
 
 //! functor template for calling free() on pointers
 template <typename T> struct free_ptr : std::unary_function <T*, void> {
@@ -234,7 +235,7 @@ typedef uint64_t q_rt_flags_t;
 
     @return the return value of the function; the caller owns any reference returned in the return value
  */
-typedef QoreValue (*q_func_n_t)(const QoreListNode* args, q_rt_flags_t flags, ExceptionSink* xsink);
+typedef QoreValue (*q_func_n_t)(const QoreValueList* args, q_rt_flags_t flags, ExceptionSink* xsink);
 
 //! the type used for builtin function signatures
 /** @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
@@ -261,7 +262,7 @@ typedef double (*q_func_double_t)(const QoreListNode* args, ExceptionSink* xsink
 
     @return the return value of the function (can be 0); the caller owns any reference returned in the return value
  */
-typedef QoreValue (*q_method_n_t)(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, q_rt_flags_t flags, ExceptionSink* xsink);
+typedef QoreValue (*q_method_n_t)(QoreObject* self, AbstractPrivateData* private_data, const QoreValueList* args, q_rt_flags_t flags, ExceptionSink* xsink);
 
 //! the type used for builtin QoreClass method signatures
 /** @param self the QoreObject that the function is being executed on

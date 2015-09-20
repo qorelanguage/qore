@@ -1283,13 +1283,13 @@ int64 q_epoch_ns(int &ns) {
    return ts.tv_sec;
 }
 
-QoreListNode* makeArgs(AbstractQoreNode* arg) {
+QoreListNode* make_args(AbstractQoreNode* arg) {
    if (!arg)
       return 0;
 
    QoreListNode* l;
    if (arg->getType() == NT_LIST) {
-      l = reinterpret_cast<QoreListNode* >(arg);
+      l = reinterpret_cast<QoreListNode*>(arg);
       if (!l->isFinalized())
          return l;
    }
@@ -1308,7 +1308,7 @@ const char* check_hash_key(const QoreHashNode* h, const char* key, const char* e
       xsink->raiseException(err, "'%s' key is not type 'string' but is type '%s'", key, get_type_name(p));
       return 0;
    }
-   return reinterpret_cast<const QoreStringNode* >(p)->getBuffer();
+   return reinterpret_cast<const QoreStringNode*>(p)->getBuffer();
 }
 
 void q_strerror(QoreString &str, int err) {
@@ -1371,7 +1371,7 @@ int check_lvalue(AbstractQoreNode* node, bool assignment) {
       return 0;
 
    if (ntype == NT_TREE) {
-      const QoreTreeNode* t = reinterpret_cast<const QoreTreeNode* >(node);
+      const QoreTreeNode* t = reinterpret_cast<const QoreTreeNode*>(node);
       if (t->getOp() == OP_LIST_REF || t->getOp() == OP_OBJECT_REF)
 	 return check_lvalue(t->left);
       else

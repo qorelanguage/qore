@@ -996,7 +996,7 @@ static AbstractQoreNode* process_dot(AbstractQoreNode* l, AbstractQoreNode* r) {
       FunctionCallNode* f = reinterpret_cast<FunctionCallNode*>(r);
       assert(!f->getFunction());
       if (!f->isFinalized()) {
-         MethodCallNode* m = new MethodCallNode(f->takeName(), f->take_args());
+         MethodCallNode* m = new MethodCallNode(f->takeName(), f->takeArgs());
          f->deref();
 
          return new QoreDotEvalOperatorNode(l, m);
@@ -1769,7 +1769,7 @@ statement:
 	   NamedScope *ns = new NamedScope($1);
 	   assert(ns->size() > 1);
 	   printd(5, "statement: parsing static method call: %s() size=%d\n", ns->ostr, ns->size());
-	   $$ = new ExpressionStatement(@1.first_line, @1.last_line, new StaticMethodCallNode(ns, makeArgs($3)));
+	   $$ = new ExpressionStatement(@1.first_line, @1.last_line, new StaticMethodCallNode(ns, make_args($3)));
 	}
         | try_statement
         { $$ = $1; }
@@ -2213,7 +2213,7 @@ classvardecl:
 	   if (t)
 	      parse_error("cannot call constructor for non-class base type '%s'", t->getName());
 	   else
-	      new_call = new ScopedObjectCallNode(new NamedScope(strdup($2->getClassName())), makeArgs($5));
+	      new_call = new ScopedObjectCallNode(new NamedScope(strdup($2->getClassName())), make_args($5));
 
 	   $$ = new ClassVarInfo($3, new QoreVarInfo(@2.first_line, @5.last_line, $2->getTypeInfo(), $2->getParseTypeInfo(), new_call));
 
@@ -2245,7 +2245,7 @@ member2:
 	   else if (t)
 	      parse_error("cannot call constructor for non-class base type '%s'", t->getName());
 	   else
-	      new_call = new ScopedObjectCallNode(new NamedScope(strdup($1->getClassName())), makeArgs($4));
+	      new_call = new ScopedObjectCallNode(new NamedScope(strdup($1->getClassName())), make_args($4));
 
 	   $$ = new MemberInfo($2, new QoreMemberInfo(fl, @4.last_line, $1->getTypeInfo(), $1->getParseTypeInfo(), new_call));
 
@@ -2277,7 +2277,7 @@ member2:
 	   else if (t)
 	      parse_error("cannot call constructor for non-class base type '%s'", t->getName());
 	   else
-	      new_call = new ScopedObjectCallNode(new NamedScope(strdup($1->getClassName())), makeArgs($4));
+	      new_call = new ScopedObjectCallNode(new NamedScope(strdup($1->getClassName())), make_args($4));
 
 	   $$ = new MemberInfo($2, new QoreMemberInfo(fl, @4.last_line, $1->getTypeInfo(), $1->getParseTypeInfo(), new_call));
 
@@ -2464,10 +2464,10 @@ base_constructors:
 
 base_constructor:
         IDENTIFIER '(' myexp ')' {
-	   $$ = new BCANode($1, makeArgs($3));
+	   $$ = new BCANode($1, make_args($3));
 	}
 	| SCOPED_REF '(' myexp ')' {
-	   $$ = new BCANode(new NamedScope($1), makeArgs($3));
+	   $$ = new BCANode(new NamedScope($1), make_args($3));
 	}
 	;
 
@@ -2995,7 +2995,7 @@ exp:    scalar
 	      char* str = b->takeString();
 	      b->deref();
 	      printd(5, "parsing call %s() args=%p %s\n", str, $3, $3 ? $3->getTypeName() : "n/a");
-	      $$ = new FunctionCallNode(str, makeArgs($3));
+	      $$ = new FunctionCallNode(str, make_args($3));
 	   }
 	   else if (t == NT_CONSTANT) {
 	      ScopedRefNode* c = reinterpret_cast<ScopedRefNode*>($1);
@@ -3004,7 +3004,7 @@ exp:    scalar
 	      c->deref();
 	      assert(ns->size() > 1);
 	      printd(5, "parsing scoped call (static method, new object call, or program function call) %s()\n", ns->ostr);
-	      $$ = new StaticMethodCallNode(ns, makeArgs($3));
+	      $$ = new StaticMethodCallNode(ns, make_args($3));
 	   }
 	   else if (t == NT_SELF_VARREF) {
 	      SelfVarrefNode* v = reinterpret_cast<SelfVarrefNode*>($1);
@@ -3012,7 +3012,7 @@ exp:    scalar
 	      char* str = v->takeString();
 	      v->deref();
 	      printd(5, "parsing in-object method call %s()\n", str);
-	      $$ = new SelfFunctionCallNode(str, makeArgs($3));
+	      $$ = new SelfFunctionCallNode(str, make_args($3));
 	   }
 	   else {
 	      QoreTreeNode* tree;
@@ -3034,7 +3034,7 @@ exp:    scalar
 
 		 //printd(5, "method call to %s: tree=%s, args=%p %s\n", cstr, tree->left->getTypeName(), $3, $3 ? $3->getTypeName() : "n/a");
 
-		 MethodCallNode* mc = new MethodCallNode(cstr, makeArgs($3));
+		 MethodCallNode* mc = new MethodCallNode(cstr, make_args($3));
 
                  // destroy the tree and create a new operator object
                  assert(tree->is_unique());
@@ -3059,7 +3059,7 @@ exp:    scalar
 		    }
 		 }
 		 if (!$$) {
-		    $$ = new CallReferenceCallNode($1, makeArgs($3));
+		    $$ = new CallReferenceCallNode($1, make_args($3));
 		    printd(5, "made new CallReferenceCallNode: %p exp=%p %s\n", $$, $1, get_type_name($1));
 		 }
 	      }
@@ -3070,11 +3070,11 @@ exp:    scalar
 	   if (!strcmp($1->getIdentifier(), "copy"))
 	      parse_error("illegal call to base class copy method '%s'", $1->ostr);
 
-	   $$ = new SelfFunctionCallNode($1, makeArgs($3));
+	   $$ = new SelfFunctionCallNode($1, make_args($3));
 	}
         | KW_IDENTIFIER_OPENPAREN myexp ')' {
 	   printd(5, "parsing call %s()\n", $1);
-	   $$ = new FunctionCallNode($1, makeArgs($2));
+	   $$ = new FunctionCallNode($1, make_args($2));
         }
         | SELF_REF
 	{
@@ -3157,12 +3157,12 @@ exp:    scalar
 	   }
 	}
 	| TOK_NEW IDENTIFIER '(' myexp ')' {
-	   $$ = new ScopedObjectCallNode(new NamedScope($2), makeArgs($4));
+	   $$ = new ScopedObjectCallNode(new NamedScope($2), make_args($4));
 	   if (parse_check_parse_option(PO_NO_NEW))
 	      parse_error("illegal use of the 'new' operator (conflicts with parse option NO_NEW)");
         }
 	| TOK_NEW SCOPED_REF '(' myexp ')' {
-	   $$ = new ScopedObjectCallNode(new NamedScope($2), makeArgs($4));
+	   $$ = new ScopedObjectCallNode(new NamedScope($2), make_args($4));
 	   if (parse_check_parse_option(PO_NO_NEW))
 	      parse_error("illegal use of the 'new' operator (conflicts with parse option NO_NEW)");
         }

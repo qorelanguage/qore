@@ -376,6 +376,11 @@ public:
    */
    DLLEXPORT QoreValueList* extract(ptrdiff_t offset, ptrdiff_t length, const QoreValue l, ExceptionSink* xsink);
 
+   //! returns a QoreListNode object corresponding to the current list
+   /** FIXME: remove
+    */
+   DLLLOCAL QoreListNode* getOldList() const;
+
    //! returns the number of elements in the list
    /** return the number of elements in the list
     */

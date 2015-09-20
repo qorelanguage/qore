@@ -402,9 +402,10 @@ DLLLOCAL BinaryNode* parseHex(const char* buf, int len);
 DLLLOCAL void print_node(FILE* fp, const AbstractQoreNode* node);
 DLLLOCAL void delete_global_variables();
 DLLLOCAL void init_lib_intern(char* env[]);
-DLLLOCAL QoreListNode* makeArgs(AbstractQoreNode* arg);
+DLLLOCAL QoreListNode* make_args(AbstractQoreNode* arg);
 
 DLLLOCAL AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, ExceptionSink* xsink);
+DLLLOCAL QoreValue copy_value_and_resolve_lvar_refs(const QoreValue n, ExceptionSink* xsink);
 
 DLLLOCAL void init_qore_types();
 DLLLOCAL void delete_qore_types();
@@ -828,4 +829,3 @@ DLLLOCAL qore_size_t q_UTF16BE_get_char_len(const char* p, qore_size_t valid_len
 DLLLOCAL qore_size_t q_UTF16LE_get_char_len(const char* p, qore_size_t len);
 
 #endif
-

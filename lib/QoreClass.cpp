@@ -2514,7 +2514,8 @@ void QoreClass::execMemberNotification(QoreObject* self, const char* mem, Except
    discard(self->evalMethod(*priv->memberNotification, *args, xsink), xsink);
 }
 
-QoreObject* QoreClass::execConstructor(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, ExceptionSink* xsink) const {
+/*
+QoreObject* QoreClass::execConstructor(const AbstractQoreFunctionVariant* variant, const QoreValueList* args, ExceptionSink* xsink) const {
 #ifdef QORE_MANAGE_STACK
    if (check_stack(xsink))
       return 0;
@@ -2522,6 +2523,12 @@ QoreObject* QoreClass::execConstructor(const AbstractQoreFunctionVariant* varian
    return priv->execConstructor(variant, args, xsink);
 }
 
+QoreObject* QoreClass::execConstructor(const QoreValueList* args, ExceptionSink* xsink) const {
+   return priv->execConstructor(0, args, xsink);
+}
+*/
+
+// FIXME: remove
 QoreObject* QoreClass::execConstructor(const QoreListNode* args, ExceptionSink* xsink) const {
    return priv->execConstructor(0, args, xsink);
 }
@@ -3856,7 +3863,7 @@ void UserCopyVariant::evalCopy(const QoreClass& thisclass, QoreObject* self, Qor
    // there can only be max 1 param
    assert(signature.numParams() <= 1);
 
-   QoreListNode* args = new QoreListNode;
+   QoreValueList* args = new QoreValueList;
    args->push(self->refSelf());
    ceh.setArgs(args);
 

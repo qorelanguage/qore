@@ -468,7 +468,7 @@ public:
 
    DLLLOCAL virtual QoreValue evalPseudoMethod(const AbstractQoreNode* n, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const;
 
-   DLLLOCAL virtual QoreValue evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) const = 0;
+   DLLLOCAL virtual QoreValue evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) const = 0;
 };
 
 template <typename F>
@@ -479,8 +479,9 @@ protected:
 public:
    DLLLOCAL BuiltinNormalMethodVariantTemplate(F m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinNormalMethodVariantBase(n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), method(m) {
    }
-   DLLLOCAL virtual QoreValue evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) const {
-      return method(self, private_data, args, xsink);
+   DLLLOCAL virtual QoreValue evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) const {
+      ReferenceHolder<QoreListNode> l(args ? args->getOldList() : 0, xsink);
+      return method(self, private_data, *l, xsink);
    }
 };
 
@@ -497,7 +498,7 @@ protected:
 public:
    DLLLOCAL BuiltinNormalMethodValueVariant(q_method_n_t m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinNormalMethodVariantBase(n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), method(m) {
    }
-   DLLLOCAL virtual QoreValue evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) const {
+   DLLLOCAL virtual QoreValue evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) const {
       return method(self, private_data, args, rtflags, xsink);
    }
 };
@@ -509,8 +510,9 @@ protected:
 public:
    DLLLOCAL BuiltinNormalMethod2Variant(q_method2_t m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinNormalMethodVariantBase(n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), method(m) {
    }
-   DLLLOCAL virtual QoreValue evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) const {
-      return method(*qmethod, self, private_data, args, xsink);
+   DLLLOCAL virtual QoreValue evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) const {
+      ReferenceHolder<QoreListNode> l(args ? args->getOldList() : 0, xsink);
+      return method(*qmethod, self, private_data, *l, xsink);
    }
 };
 
@@ -522,8 +524,9 @@ protected:
 public:
    DLLLOCAL BuiltinNormalMethod3Variant(const void* n_ptr, q_method3_t m, bool n_priv_flag, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinNormalMethodVariantBase(n_priv_flag, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), method(m), ptr(n_ptr) {
    }
-   DLLLOCAL virtual QoreValue evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) const {
-      return method(*qmethod, signature.getTypeList(), ptr, self, private_data, args, xsink);
+   DLLLOCAL virtual QoreValue evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) const {
+      ReferenceHolder<QoreListNode> l(args ? args->getOldList() : 0, xsink);
+      return method(*qmethod, signature.getTypeList(), ptr, self, private_data, *l, xsink);
    }
 };
 
@@ -538,8 +541,9 @@ public:
 
    DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
       CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), ClassObj(getClassPriv()), xsink);
-
-      return static_method(ceh.getArgs(), xsink);
+      const QoreValueList* args = ceh.getArgs();
+      ReferenceHolder<QoreListNode> l(args ? args->getOldList() : 0, xsink);
+      return static_method(*l, xsink);
    }
 };
 
@@ -573,8 +577,9 @@ public:
    }
    DLLLOCAL QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
       CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), ClassObj(getClassPriv()), xsink);
-
-      return static_method(*qmethod, ceh.getArgs(), xsink);
+      const QoreValueList* args = ceh.getArgs();
+      ReferenceHolder<QoreListNode> l(args ? args->getOldList() : 0, xsink);
+      return static_method(*qmethod, *l, xsink);
    }
 };
 
@@ -589,8 +594,9 @@ public:
    }
    DLLLOCAL QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
       CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), ClassObj(getClassPriv()), xsink);
-
-      return static_method(*qmethod, signature.getTypeList(), ptr, ceh.getArgs(), xsink);
+      const QoreValueList* args = ceh.getArgs();
+      ReferenceHolder<QoreListNode> l(args ? args->getOldList() : 0, xsink);
+      return static_method(*qmethod, signature.getTypeList(), ptr, *l, xsink);
    }
 };
 
@@ -626,7 +632,9 @@ public:
       if (constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))
 	 return;
 
-      constructor(self, ceh.getArgs(), xsink);
+      const QoreValueList* args = ceh.getArgs();
+      ReferenceHolder<QoreListNode> l(args ? args->getOldList() : 0, xsink);
+      constructor(self, *l, xsink);
    }
 };
 
@@ -648,7 +656,9 @@ public:
       if (constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))
 	 return;
 
-      constructor(thisclass, self, ceh.getArgs(), xsink);
+      const QoreValueList* args = ceh.getArgs();
+      ReferenceHolder<QoreListNode> l(args ? args->getOldList() : 0, xsink);
+      constructor(thisclass, self, *l, xsink);
    }
 };
 
@@ -671,7 +681,9 @@ public:
       if (constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))
 	 return;
 
-      constructor(thisclass, signature.getTypeList(), ptr, self, ceh.getArgs(), xsink);
+      const QoreValueList* args = ceh.getArgs();
+      ReferenceHolder<QoreListNode> l(args ? args->getOldList() : 0, xsink);
+      constructor(thisclass, signature.getTypeList(), ptr, self, *l, xsink);
    }
 };
 
@@ -2662,6 +2674,10 @@ public:
 
    // static methods
    //DLLLOCAL static
+
+   DLLLOCAL static QoreObject* execConstructor(const QoreClass& qc, const AbstractQoreFunctionVariant* variant, const QoreListNode* args, ExceptionSink* xsink) {
+      return qc.priv->execConstructor(variant, args, xsink);
+   }
 
    DLLLOCAL static bool injected(const QoreClass& qc) {
       return qc.priv->inject;

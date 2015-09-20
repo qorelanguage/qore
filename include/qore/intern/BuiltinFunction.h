@@ -119,7 +119,9 @@ public:
       CallStackHelper csh(name, CT_BUILTIN, 0, xsink);
 #endif
 
-      return func(ceh.getArgs(), xsink);
+      const QoreValueList* l = ceh.getArgs();
+      ReferenceHolder<QoreListNode> arg_holder(l ? l->getOldList() : 0, xsink);
+      return func(*arg_holder, xsink);
    }
 };
 
@@ -127,7 +129,6 @@ typedef BuiltinFunctionVariantTemplate<q_func_t> BuiltinFunctionVariant;
 typedef BuiltinFunctionVariantTemplate<q_func_int64_t> BuiltinFunctionBigIntVariant;
 typedef BuiltinFunctionVariantTemplate<q_func_double_t> BuiltinFunctionFloatVariant;
 typedef BuiltinFunctionVariantTemplate<q_func_bool_t> BuiltinFunctionBoolVariant;
-
 
 class BuiltinFunctionValueVariant : public AbstractQoreFunctionVariant, public BuiltinFunctionVariantBase {
 protected:
