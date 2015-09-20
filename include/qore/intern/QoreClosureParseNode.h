@@ -101,7 +101,7 @@ public:
 
    DLLLOCAL bool isLambda() const { return lambda; }
 
-   DLLLOCAL QoreValue exec(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject* self, ExceptionSink* xsink) const;
+   DLLLOCAL QoreValue exec(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreValueList* args, QoreObject* self, ExceptionSink* xsink) const;
 
    DLLLOCAL QoreClosureBase* evalBackground(ExceptionSink* xsink) const;
 

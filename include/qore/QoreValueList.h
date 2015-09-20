@@ -42,8 +42,9 @@ class ResolvedCallReferenceNode;
    it is both a value type and can hold parse expressions as well (in which case it needs to be evaluated)
    the first element in the list is element 0
  */
-class QoreValueList : public AbstractQoreNode {   
+class QoreValueList : public AbstractQoreNode {
    friend struct qore_value_list_private;
+   friend class QoreValueListEvalOptionalRefHolder;
 
 private:
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
@@ -54,9 +55,9 @@ private:
 
 protected:
    //! this structure holds the private implementation for the type
-   /** therefore changes to the implementation will not affect the C++ ABI 
+   /** therefore changes to the implementation will not affect the C++ ABI
     */
-   struct qore_value_list_private *priv;
+   struct qore_value_list_private* priv;
 
    //! the destructor is protected so it cannot be called directly
    /** use the deref(ExceptionSink) function to release the reference count
@@ -67,7 +68,7 @@ protected:
 
    //! dereferences all elements of the list
    /** The ExceptionSink argument is needed for those types that could throw
-       an exception when they are deleted (ex: QoreObject) - which could be 
+       an exception when they are deleted (ex: QoreObject) - which could be
        contained in the list
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @return true if the object can be deleted, false if not (externally-managed)
@@ -100,7 +101,11 @@ protected:
    DLLLOCAL virtual double floatEvalImpl(ExceptionSink* xsink) const;
 
 public:
+   //! creates an empty list
    DLLEXPORT QoreValueList();
+
+   //! FIXME: remove
+   DLLEXPORT QoreValueList(const QoreListNode* l);
 
    //! returns false unless perl-boolean-evaluation is enabled, in which case it returns false only when empty
    /** @return false unless perl-boolean-evaluation is enabled, in which case it returns false only when empty
@@ -114,7 +119,7 @@ public:
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @return -1 for exception raised, 0 = OK
    */
-   DLLEXPORT int getAsString(QoreString &str, int foff, ExceptionSink* xsink) const;
+   DLLEXPORT int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
 
    //! returns a QoreString giving the verbose string representation of the List (including all contained values)
    /** used for %n and %N printf formatting
@@ -124,7 +129,7 @@ public:
        NOTE: Use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
        @see QoreNodeAsStringHelper
    */
-   DLLEXPORT QoreString* getAsString(bool &del, int foff, ExceptionSink* xsink) const;
+   DLLEXPORT QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
 
    //! returns true if the list contains parse expressions and therefore needs evaluation to return a value, false if not
    //DLLEXPORT virtual bool needs_eval() const;
@@ -187,16 +192,6 @@ public:
    */
    DLLEXPORT QoreValue* getExistingEntryPtr(size_t index);
 
-   //! sets the value of a list element
-   /**
-      if there is a value there already, it is dereferenced (hence "xsink" is needed to
-      catch any exceptions)
-      @param index the index of the element (first element is index 0)
-      @param val the value to set, must be already referenced for the assignment (or 0)
-      @param xsink if an error occurs, the Qore-language exception information will be added here
-   */
-   DLLEXPORT void setEntry(size_t index, QoreValue val, ExceptionSink* xsink);
-
    DLLEXPORT void push(QoreValue val);
    DLLEXPORT void insert(QoreValue val);
 
@@ -214,17 +209,9 @@ public:
    //! appends the elements of "list" to this list
    DLLEXPORT void merge(const QoreValueList* list);
 
-   /**
-      @param index the index of the element (first element is index 0)
-      @param xsink if an error occurs, the Qore-language exception information will be added here
-
-      @note cannot be used when reference count > 1
-   */
-   //DLLEXPORT void popEntry(size_t index, ExceptionSink* xsink);
-
    //! evaluates the list and returns a value (or 0)
    /** return value requires a deref(xsink)
-       if the list does not require evaluation then "refSelf()" is used to 
+       if the list does not require evaluation then "refSelf()" is used to
        return the same object with an incremented reference count
        NOTE: if the object requires evaluation and there is an exception, 0 will be returned
        @param xsink if an error occurs, the Qore-language exception information will be added here
@@ -233,13 +220,13 @@ public:
 
    //! optionally evaluates the list
    /** return value requires a deref(xsink) if needs_deref is true
-       NOTE: if the list requires evaluation and there is an exception, 0 will be returned
-       NOTE: do not use this function directly, use the QoreValueListEvalOptionalRefHolder class instead
-       @param needs_deref this is an output parameter, if needs_deref is true then the value returned must be dereferenced	  
+
+       @param needs_deref this is an output parameter, if needs_deref is true then the value returned must be dereferenced
        @param xsink if an error occurs, the Qore-language exception information will be added here
-       @see QoreValueListEvalOptionalRefHolder
+
+       @note if the list requires evaluation and there is an exception, 0 will be returned
    */
-   DLLEXPORT QoreValueList* evalList(bool &needs_deref, ExceptionSink* xsink) const;
+   DLLEXPORT QoreValueList* evalList(bool& needs_deref, ExceptionSink* xsink) const;
 
    //! performs a deep copy of the list and returns the new list
    DLLEXPORT QoreValueList* copy() const;
@@ -251,52 +238,52 @@ public:
    DLLEXPORT QoreValueList* copyListFrom(size_t index) const;
 
    //! returns a new list based on quicksorting the source list ("this")
-   /** "soft" comparisons are made using OP_LOG_LT, meaning that the list can be made up of 
+   /** "soft" comparisons are made using OP_LOG_LT, meaning that the list can be made up of
        different data types and still be sorted
    */
    DLLEXPORT QoreValueList* sort(ExceptionSink* xsink) const;
 
    //! returns a new list based on quicksorting the source list ("this") using the passed function reference to determine lexical order
-   /** 
+   /**
        @param fr the function reference to be executed for each comparison to give lexical order to the elements
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
    DLLEXPORT QoreValueList* sort(const ResolvedCallReferenceNode* fr, ExceptionSink* xsink) const;
 
    //! returns a new list based on executing mergesort on the source list ("this")
-   /** "soft" comparisons are made using OP_LOG_LT, meaning that the list can be made up of 
+   /** "soft" comparisons are made using OP_LOG_LT, meaning that the list can be made up of
        different data types and still be sorted
    */
    DLLEXPORT QoreValueList* sortStable(ExceptionSink* xsink) const;
 
    //! returns a new list based on executing mergesort on the source list ("this") using the passed function reference to determine lexical order
-   /** 
+   /**
        @param fr the function reference to be executed for each comparison to give lexical order to the elements
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
    DLLEXPORT QoreValueList* sortStable(const ResolvedCallReferenceNode* fr, ExceptionSink* xsink) const;
 
    //! returns a new list based on quicksorting the source list ("this") in descending order
-   /** "soft" comparisons are made using OP_LOG_LT, meaning that the list can be made up of 
+   /** "soft" comparisons are made using OP_LOG_LT, meaning that the list can be made up of
        different data types and still be sorted
    */
    DLLEXPORT QoreValueList* sortDescending(ExceptionSink* xsink) const;
 
    //! returns a new list based on quicksorting the source list ("this") in descending order, using the passed function reference to determine lexical order
-   /** 
+   /**
        @param fr the function reference to be executed for each comparison to give lexical order to the elements
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
    DLLEXPORT QoreValueList* sortDescending(const ResolvedCallReferenceNode* fr, ExceptionSink* xsink) const;
 
    //! returns a new list based on executing mergesort on the source list ("this") in descending order
-   /** "soft" comparisons are made using OP_LOG_LT, meaning that the list can be made up of 
+   /** "soft" comparisons are made using OP_LOG_LT, meaning that the list can be made up of
        different data types and still be sorted
    */
    DLLEXPORT QoreValueList* sortDescendingStable(ExceptionSink* xsink) const;
 
    //! returns a new list based on executing mergesort on the source list ("this") in descending order, using the passed function reference to determine lexical order
-   /** 
+   /**
        @param fr the function reference to be executed for each comparison to give lexical order to the elements
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
@@ -315,14 +302,14 @@ public:
    DLLEXPORT QoreValue maxValue(ExceptionSink* xsink) const;
 
    //! returns the element having the lowest value (determined by calling the function reference passed to give lexical order)
-   /** 
+   /**
        @param fr the function reference to be executed for each comparison to give lexical order to the elements
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
    DLLEXPORT QoreValue minValue(const ResolvedCallReferenceNode* fr, ExceptionSink* xsink) const;
 
    //! returns the element having the highest value (determined by calling the function reference passed to give lexical order)
-   /** 
+   /**
        @param fr the function reference to be executed for each comparison to give lexical order to the elements
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
@@ -446,8 +433,8 @@ protected:
    ptrdiff_t pos;
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL void *operator new(size_t); 
-   
+   DLLLOCAL void *operator new(size_t);
+
 public:
    //! initializes the iterator to the position given or, if omitted, just before the first element
    /** @param lst the list to iterate
@@ -619,115 +606,6 @@ public:
 
    //! resets the iterator to its initial state
    DLLEXPORT void reset();
-};
-
-//! For use on the stack only: manages result of the optional evaluation of a QoreValueList
-class QoreValueListEvalOptionalRefHolder {
-private:
-   QoreValueList* val;
-   ExceptionSink* xsink;
-   bool needs_deref;
-
-   DLLLOCAL void discard_intern() {
-      if (needs_deref && val)
-         val->deref(xsink);
-   }
-
-   DLLLOCAL void eval_intern(const QoreValueList* exp) {
-      if (exp)
-         val = exp->evalList(needs_deref, xsink);
-      else {
-         val = 0;
-         needs_deref = false;
-      }
-   }
-
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL QoreValueListEvalOptionalRefHolder(const QoreValueListEvalOptionalRefHolder&);
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL QoreValueListEvalOptionalRefHolder& operator=(const QoreValueListEvalOptionalRefHolder&);
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL void *operator new(size_t);
-
-public:
-   //! initializes an empty object and saves the ExceptionSink object
-   DLLLOCAL QoreValueListEvalOptionalRefHolder(ExceptionSink* n_xsink) : xsink(n_xsink) {
-      needs_deref = false;
-      val = 0;
-   }
-
-   //! performs an optional evaluation of the list (sets the dereference flag)
-   DLLLOCAL QoreValueListEvalOptionalRefHolder(const QoreValueList* exp, ExceptionSink* n_xsink) : xsink(n_xsink) {
-      eval_intern(exp);
-   }
-
-   //! clears the object (dereferences the old object if necessary)
-   DLLLOCAL ~QoreValueListEvalOptionalRefHolder() {
-      discard_intern();
-   }
-
-   //! clears the object (dereferences the old object if necessary)
-   DLLLOCAL void discard() {
-      discard_intern();
-      needs_deref = false;
-      val = 0;
-   }
-
-   //! assigns a new value by executing the given list and dereference flag to this object, dereferences the old object if necessary
-   DLLLOCAL void assignEval(const QoreValueList* exp) {
-      discard_intern();
-      eval_intern(exp);
-   }
-
-   //! assigns a new value and dereference flag to this object, dereferences the old object if necessary
-   DLLLOCAL void assign(bool n_needs_deref, QoreValueList* n_val) {
-      discard_intern();
-      needs_deref = n_needs_deref;
-      val = n_val;
-   }
-
-   //! returns true if the object contains a temporary (evaluated) value that needs a dereference
-   DLLLOCAL bool needsDeref() const {
-      return needs_deref;
-   }
-
-   //! returns a referenced value - the caller will own the reference
-   /**
-      The list is referenced if necessary (if it was a temporary value)
-      @return the list value, where the caller will own the reference count
-   */
-   DLLLOCAL QoreValueList* getReferencedValue() {
-      if (needs_deref)
-         needs_deref = false;
-      else if (val)
-         val->ref();
-      return val;
-   }
-
-   //! will create a unique list so the list can be edited
-   DLLLOCAL void edit() {
-      if (!val) {
-         val = new QoreValueList;
-         needs_deref = true;
-      }
-      else if (!needs_deref || !val->is_unique()) {
-         val = val->copy();
-         needs_deref = true;
-      }
-   }
-
-   //! returns a pointer to the QoreValueList object being managed
-   /**
-      if you need a referenced value, use getReferencedValue()
-      @return a pointer to the QoreValueList object being managed (or 0 if none)
-   */
-   DLLLOCAL const QoreValueList* operator->() const { return val; }
-
-   //! returns a pointer to the QoreValueList object being managed
-   DLLLOCAL const QoreValueList* operator*() const { return val; }
-
-   //! returns true if a QoreValueList object pointer is being managed, false if the pointer is 0
-   DLLLOCAL operator bool() const { return val != 0; }
 };
 
 #endif

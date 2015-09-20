@@ -262,8 +262,8 @@ libqore_la_SOURCES = \
 	QoreHttpClientObject.cpp \
 	QoreValue.cpp \
 	xxhash.cpp \
-	minitest.cpp
-#	QoreValueList.cpp
+	minitest.cpp \
+	QoreValueList.cpp
 
 if COND_SIGNAL_HANDLING
 libqore_la_SOURCES += QoreSignal.cpp

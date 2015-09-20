@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   CallReferenceNode.h
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -138,7 +138,7 @@ public:
        @param xsink any Qore-language exception thrown (and not handled) will be added here
        @return a pointer to an AbstractQoreNode, the caller owns the reference count returned (can also be 0)
    */
-   DLLLOCAL virtual QoreValue execValue(const QoreListNode* args, ExceptionSink* xsink) const = 0;
+   DLLLOCAL virtual QoreValue execValue(const QoreValueList* args, ExceptionSink* xsink) const = 0;
 
    //! returns a pointer to the QoreProgram object associated with this reference (can be 0)
    /** this function is not exported in the library's public interface

@@ -586,6 +586,18 @@ public:
       return parseAcceptsType(t, t == NT_INT);
    }
 
+   DLLLOCAL qore_type_result_e runtimeAcceptsValue(const QoreValue n) const {
+      if (!hasType() || accepts_all)
+         return QTI_AMBIGUOUS;
+
+      qore_type_t t = n.getType();
+
+      if (t == NT_OBJECT)
+         return runtimeAcceptsClass(n.get<const QoreObject>()->getClass());
+
+      return parseAcceptsType(t, t == NT_INT);
+   }
+
    DLLLOCAL qore_type_result_e parseAccepts(const QoreTypeInfo* typeInfo) const {
       // set to true because value is ignored and can short-circuit logic in parseAcceptsMult() if called
       bool may_not_match = true;
@@ -745,6 +757,24 @@ public:
          }
       }
       return QoreValue();
+   }
+
+   // quick function to tell if the argument may be subject to an input filter for this type
+   DLLLOCAL bool mayRequireFilter(const QoreValue& n) const {
+      if (!hasType() || !input_filter)
+         return false;
+
+      qore_type_t nt = n.getType();
+      if (nt == NT_OBJECT && qc)
+         return qc->getID() == n.get<const QoreObject>()->getClass()->getID() ? false : true;
+
+      // only set n_is_int = true if our 'is_int' is true
+      // only perform the dynamic cast if the type is external
+      bool n_is_int = (is_int && nt == NT_INT) ? true : false;
+      if (n_is_int)
+         return qt == nt ? false : true;
+
+      return matchTypeIntern(nt, false) == QTI_IDENT ? false : true;
    }
 
    // quick function to tell if the argument may be subject to an input filter for this type

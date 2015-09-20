@@ -72,7 +72,7 @@ const char* QoreClosureParseNode::getTypeName() const {
    return getStaticTypeName();
 }
 
-QoreValue QoreClosureParseNode::exec(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject* self, ExceptionSink* xsink) const {
+QoreValue QoreClosureParseNode::exec(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreValueList* args, QoreObject* self, ExceptionSink* xsink) const {
    return uf->evalClosure(closure_base, pgm, args, self, xsink);
 }
 

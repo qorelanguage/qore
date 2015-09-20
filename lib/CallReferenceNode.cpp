@@ -361,7 +361,7 @@ RunTimeResolvedMethodReferenceNode::~RunTimeResolvedMethodReferenceNode() {
    obj->tDeref();
 }
 
-QoreValue RunTimeResolvedMethodReferenceNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
+QoreValue RunTimeResolvedMethodReferenceNode::execValue(const QoreValueList* args, ExceptionSink* xsink) const {
    OptionalClassObjSubstitutionHelper osh(qc);
    return qore_method_private::eval(*method, obj, args, xsink);
 }
@@ -385,7 +385,7 @@ RunTimeObjectMethodReferenceNode::~RunTimeObjectMethodReferenceNode() {
    obj->tDeref();
 }
 
-QoreValue RunTimeObjectMethodReferenceNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
+QoreValue RunTimeObjectMethodReferenceNode::execValue(const QoreValueList* args, ExceptionSink* xsink) const {
    //printd(5, "RunTimeObjectMethodReferenceNode::exec() this: %p obj: %p %s::%s() qc: %p (%s)\n", this, obj, obj->getClassName(), method.c_str(), qc, qc ? qc->name.c_str() : "n/a");
    OptionalClassObjSubstitutionHelper osh(qc);
    return obj->evalMethod(method.c_str(), args, xsink);
@@ -440,7 +440,7 @@ AbstractQoreNode* LocalStaticMethodCallReferenceNode::evalImpl(bool& needs_deref
    return new StaticMethodCallReferenceNode(method, ::getProgram());
 }
 
-QoreValue LocalStaticMethodCallReferenceNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
+QoreValue LocalStaticMethodCallReferenceNode::execValue(const QoreValueList* args, ExceptionSink* xsink) const {
    return qore_method_private::eval(*method, 0, args, xsink);
 }
 
@@ -460,7 +460,7 @@ AbstractQoreNode* LocalMethodCallReferenceNode::evalImpl(bool& needs_deref, Exce
    return new MethodCallReferenceNode(method, ::getProgram());
 }
 
-QoreValue LocalMethodCallReferenceNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
+QoreValue LocalMethodCallReferenceNode::execValue(const QoreValueList* args, ExceptionSink* xsink) const {
    return qore_method_private::eval(*method, runtime_get_stack_object(), args, xsink);
 }
 
@@ -486,7 +486,7 @@ bool StaticMethodCallReferenceNode::derefImpl(ExceptionSink* xsink) {
    return true;
 }
 
-QoreValue StaticMethodCallReferenceNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
+QoreValue StaticMethodCallReferenceNode::execValue(const QoreValueList* args, ExceptionSink* xsink) const {
    // do not set pgm context here before evaluating args
    return qore_method_private::eval(*method, 0, args, xsink);
 }
@@ -504,7 +504,7 @@ bool MethodCallReferenceNode::derefImpl(ExceptionSink* xsink) {
    return true;
 }
 
-QoreValue MethodCallReferenceNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
+QoreValue MethodCallReferenceNode::execValue(const QoreValueList* args, ExceptionSink* xsink) const {
    return qore_method_private::eval(*method, obj, args, xsink);
 }
 
@@ -577,7 +577,7 @@ AbstractQoreNode* LocalFunctionCallReferenceNode::evalImpl(bool& needs_deref, Ex
    return new FunctionCallReferenceNode(uf, ::getProgram());
 }
 
-QoreValue LocalFunctionCallReferenceNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
+QoreValue LocalFunctionCallReferenceNode::execValue(const QoreValueList* args, ExceptionSink* xsink) const {
    return uf->evalFunction(0, args, 0, xsink);
 }
 
@@ -593,7 +593,7 @@ bool FunctionCallReferenceNode::derefImpl(ExceptionSink* xsink) {
    return true;
 }
 
-QoreValue FunctionCallReferenceNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
+QoreValue FunctionCallReferenceNode::execValue(const QoreValueList* args, ExceptionSink* xsink) const {
    return uf->evalFunction(0, args, pgm, xsink);
 }
 
