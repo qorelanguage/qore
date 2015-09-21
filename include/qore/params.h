@@ -406,10 +406,13 @@ static QoreValue get_hard_value_param(const QoreValueList* n, qore_size_t i) {
 //! returns a QoreObject* from a hard typed object param
 #define HARD_QORE_VALUE_OBJECT(list, i) const_cast<QoreObject*>(get_hard_value_param(list, i).get<const QoreObject>())
 
-// destructively sets up an object pointer; caller owns the pointer
+//! sets up an object pointer
+#define HARD_QORE_VALUE_OBJ_DATA(vname, Type, list, i, cid, dname, cname, xsink) HARD_QORE_VALUE_PARAM(obj_##vname, const QoreObject, list, i); Type* vname = reinterpret_cast<Type*>(obj_##vname->getReferencedPrivateData(cid, xsink)); if (!vname && !*xsink) xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot complete call setup to %s() because parameter %d (<class %s>) has already been deleted", cname, i + 1, dname)
+
+//! destructively sets up an object pointer; caller owns the pointer
 #define TAKE_HARD_QORE_VALUE_OBJ_DATA(vname, Type, list, i, cid, dname, cname, xsink) HARD_QORE_VALUE_PARAM(obj_##vname, const QoreObject, list, i); Type* vname = reinterpret_cast<Type*>(const_cast<QoreObject*>(obj_##vname)->getAndClearPrivateData(cid, xsink)); if (!vname && !*xsink) xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot complete call setup to %s() because parameter %d (<class %s>) has already been deleted", cname, i + 1, dname); else if (vname) const_cast<QoreObject*>(obj_##vname)->doDelete(xsink)
 
-// sets up an object pointer
+//! sets up an object pointer
 #define HARD_QORE_VALUE_OBJ_OR_NOTHING_DATA(vname, Type, list, i, cid, xsink) HARD_QORE_VALUE_OR_NOTHING_PARAM(obj_##vname, const QoreObject, list, i); Type* vname = obj_##vname ? reinterpret_cast<Type*>(obj_##vname->getReferencedPrivateData(cid, xsink)) : 0;
 
 static inline const QoreEncoding* get_hard_qore_value_encoding_param(const QoreValueList* n, qore_size_t i) {

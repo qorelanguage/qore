@@ -37,16 +37,17 @@
 
 #include <pthread.h>
 #include <qore/intern/QC_TimeZone.h>
+
 extern QoreClass* QC_TIMEZONE;
 
-static void delete_thread_data_intern(const QoreListNode *args, ExceptionSink *xsink) {
+static void delete_thread_data_intern(const QoreValueList* args, ExceptionSink* xsink) {
    // get thread data hash
    QoreHashNode *data = getProgram()->getThreadData();
 
    // iterate through arguments and delete each key
    for (unsigned i = 0; i < args->size(); i++) {
-      const AbstractQoreNode *p = get_param(args, i);
-      if (p) {
+      QoreValue p = get_param_value(args, i);
+      if (!p.isNothing()) {
          QoreStringValueHelper t(p, QCS_DEFAULT, xsink);
 	 if (*xsink)
 	    break;
@@ -58,7 +59,7 @@ static void delete_thread_data_intern(const QoreListNode *args, ExceptionSink *x
    }
 }
 
-static QoreHashNode *remove_thread_data_intern(const QoreListNode *args, ExceptionSink *xsink) {
+static QoreHashNode *remove_thread_data_intern(const QoreValueList* args, ExceptionSink* xsink) {
    // get thread data hash
    QoreHashNode *data = getProgram()->getThreadData();
 
@@ -66,8 +67,49 @@ static QoreHashNode *remove_thread_data_intern(const QoreListNode *args, Excepti
 
    // iterate through arguments and remove each key
    for (unsigned i = 0; i < args->size(); i++) {
-      const AbstractQoreNode *p = get_param(args, i);
-      if (p) {
+      QoreValue p = get_param_value(args, i);
+      if (!p.isNothing()) {
+         QoreStringValueHelper t(p, QCS_DEFAULT, xsink);
+	 if (*xsink)
+	    break;
+
+	 rv->setKeyValue(*t, data->takeKeyValue((*t)->getBuffer()), xsink);
+	 assert(!*xsink);
+      }
+   }
+
+   return rv;
+}
+
+static void delete_thread_data_intern(const QoreListNode* args, ExceptionSink* xsink) {
+   // get thread data hash
+   QoreHashNode *data = getProgram()->getThreadData();
+
+   // iterate through arguments and delete each key
+   for (unsigned i = 0; i < args->size(); i++) {
+      const AbstractQoreNode* p = get_param(args, i);
+      if (!is_nothing(p)) {
+         QoreStringValueHelper t(p, QCS_DEFAULT, xsink);
+	 if (*xsink)
+	    break;
+
+         data->deleteKey(*t, xsink);
+         if (*xsink)
+            break;
+      }
+   }
+}
+
+static QoreHashNode *remove_thread_data_intern(const QoreListNode* args, ExceptionSink* xsink) {
+   // get thread data hash
+   QoreHashNode *data = getProgram()->getThreadData();
+
+   QoreHashNode* rv = new QoreHashNode;
+
+   // iterate through arguments and remove each key
+   for (unsigned i = 0; i < args->size(); i++) {
+      const AbstractQoreNode* p = get_param(args, i);
+      if (!is_nothing(p)) {
          QoreStringValueHelper t(p, QCS_DEFAULT, xsink);
 	 if (*xsink)
 	    break;
@@ -158,7 +200,7 @@ save_thread_data("key1", $value);
 */
 nothing save_thread_data(string key, any value) [dom=THREAD_CONTROL] {
    QoreHashNode* data = getProgram()->getThreadData();
-   data->setKeyValue(key, value ? value->refSelf() : 0, xsink);
+   data->setKeyValue(key, value.getReferencedValue(), xsink);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments

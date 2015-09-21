@@ -105,7 +105,7 @@ public:
    DLLEXPORT QoreValueList();
 
    //! FIXME: remove
-   DLLEXPORT QoreValueList(const QoreListNode* l);
+   DLLEXPORT explicit QoreValueList(const QoreListNode* l);
 
    //! returns false unless perl-boolean-evaluation is enabled, in which case it returns false only when empty
    /** @return false unless perl-boolean-evaluation is enabled, in which case it returns false only when empty
@@ -381,6 +381,11 @@ public:
     */
    DLLLOCAL QoreListNode* getOldList() const;
 
+   //! returns a QoreListNode object corresponding to the current list starting from a given offset
+   /** FIXME: remove
+    */
+   DLLLOCAL QoreListNode* getOldList(size_t start) const;
+
    //! returns the number of elements in the list
    /** return the number of elements in the list
     */
@@ -416,7 +421,7 @@ typedef ReferenceHolder<QoreValueList> QoreValueListHolder;
 /**
    @code
    // iterate forward through the list
-   ListIterator li(l);
+   ValueListIterator li(l);
    while (li.next()) {
       QoreStringValueHelper str(li.getValue());
       printf("%d: '%s'\n", li.index(), str->getBuffer());
@@ -424,13 +429,13 @@ typedef ReferenceHolder<QoreValueList> QoreValueListHolder;
    @endcode
    @code
    // iterate backwards through the list
-   ListIterator li(l);
+   ValueListIterator li(l);
    while (li.prev()) {
       QoreStringValueHelper str(li.getValue());
       printf("%d: '%s'\n", li.index(), str->getBuffer());
    }
    @endcode
-   @see ConstListIterator
+   @see ConstValueListIterator
 */
 class ValueListIterator {
 protected:

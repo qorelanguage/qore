@@ -684,7 +684,19 @@ QoreListNode* QoreValueList::getOldList() const {
       return 0;
 
    QoreListNode* rv = new QoreListNode;
-   for (size_t i = 1; i < priv->length; ++i) {
+   for (size_t i = 0; i < priv->length; ++i) {
+      QoreValue v = priv->entry[i];
+      rv->push(v.getReferencedValue());
+   }
+   return rv;
+}
+
+QoreListNode* QoreValueList::getOldList(size_t start) const {
+   if (start >= priv->length)
+      return 0;
+
+   QoreListNode* rv = new QoreListNode;
+   for (size_t i = start; i < priv->length; ++i) {
       QoreValue v = priv->entry[i];
       rv->push(v.getReferencedValue());
    }

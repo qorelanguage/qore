@@ -234,6 +234,25 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
    return l.release();
 }
 
+QoreStringNode* join_intern(const QoreStringNode* p0, const QoreValueList* l, int offset, ExceptionSink* xsink) {
+   SimpleRefHolder<QoreStringNode> str(new QoreStringNode(p0->getEncoding()));
+
+   for (unsigned i = offset; i < l->size(); i++) {
+      QoreValue p = l->retrieveEntry(i);
+      if (!p.isNothing()) {
+	 QoreStringValueHelper t(p, p0->getEncoding(), xsink);
+	 if (*xsink)
+	    return 0;
+
+	 str->concat(*t);
+      }
+      if (i < (l->size() - 1))
+	 str->concat(p0);
+   }
+
+   return str.release();
+}
+
 QoreStringNode* join_intern(const QoreStringNode* p0, const QoreListNode* l, int offset, ExceptionSink* xsink) {
    SimpleRefHolder<QoreStringNode> str(new QoreStringNode(p0->getEncoding()));
 
@@ -1571,7 +1590,7 @@ nothing print(...) [dom=TERMINAL_IO] {
       return QoreValue();
 
    for (unsigned i = 0; i < args->size(); i++)
-      print_node(stdout, get_param(args, i));
+      print_node(stdout, get_param_value(args, i));
 }
 
 //! Returns a formatted string based on a @ref string_formatting "format string" and other arguments; enforces field widths on arguments larger than the given field width
@@ -1837,11 +1856,12 @@ bool parse_boolean(string str) [flags=CONSTANT] {
 my bool $b = parse_boolean($i);
     @endcode
 
+    @param val the value to convert to a boolean
+
     @return the first value passed as a boolean
  */
-bool parse_boolean(...) [flags=CONSTANT] {
-   const AbstractQoreNode* p = get_param(args, 0);
-   return p ? p->getAsBool() : false;
+bool parse_boolean(any val) [flags=CONSTANT] {
+   return val.getAsBool();
 }
 
 //! returns a number corresponding to the string and the argument, giving the format

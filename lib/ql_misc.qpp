@@ -468,7 +468,7 @@ any call_function(string name, ...) {
    ReferenceHolder<QoreListNode> vargs(xsink);
    // if there are arguments to pass, create argument list by copying current list
    if (num_args(args) > 1)
-      vargs = args->copyListFrom(1);
+      vargs = args->getOldList(1);
 
    return getProgram()->callFunction(name->getBuffer(), *vargs, xsink);
 }
@@ -489,7 +489,7 @@ any call_function(code f, ...) {
    ReferenceHolder<QoreListNode> vargs(xsink);
    // if there are arguments to pass, create argument list by copying current list
    if (num_args(args) > 1)
-      vargs = args->copyListFrom(1);
+      vargs = args->getOldList(1);
 
    return f->execValue(*vargs, xsink).takeNode();
 }
@@ -558,7 +558,7 @@ any call_builtin_function(string name, ...) {
    ReferenceHolder<QoreListNode> vargs(xsink);
    // if there are arguments to pass, create argument list by copying current list
    if (num_args(args) > 1)
-      vargs = args->copyListFrom(1);
+      vargs = args->getOldList(1);
 
    return f->evalDynamic(*vargs, xsink).takeNode();
 }
@@ -603,7 +603,7 @@ my bool $b = exists($val);
 bool exists(...) [flags=CONSTANT] {
    // to emulate the exists operator, we must return True if more than one argument is passed
    // as this will appear to be a list to the exists operator, which is different from NOTHING
-   return (num_args(args) <= 1) ? !is_nothing(get_param(args, 0)) : true;
+   return (num_args(args) <= 1) ? !get_param_value(args, 0).isNothing() : true;
 }
 
 //! Returns @ref True if the function exists in the current program's function name space
@@ -2470,7 +2470,7 @@ set_return_value(1);
     @since %Qore 0.8.12
  */
 set_return_value(any val) [dom=PROCESS] {
-   qore_program_private::setReturnValue(*getProgram(), val ? val->refSelf() : 0, xsink);
+   qore_program_private::setReturnValue(*getProgram(), val.getReferencedValue(), xsink);
 }
 
 //! returns a descriptive string for an exception location; the \c source and \c offset information will also be included in the string returned if present in the @ref exception_hash "exception hash" argument

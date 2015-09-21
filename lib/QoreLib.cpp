@@ -454,7 +454,7 @@ FeatureList::~FeatureList() {
 }
 
 // if type = 0 then field widths are soft limits, otherwise they are hard
-static int process_opt(QoreString *cstr, char* param, const AbstractQoreNode* node, int type, int *taken, ExceptionSink* xsink) {
+static int process_opt(QoreString *cstr, char* param, QoreValue qv, int type, int *taken, ExceptionSink* xsink) {
    char* str = param;
    int opts = 0;
    int width = -1;
@@ -463,12 +463,12 @@ static int process_opt(QoreString *cstr, char* param, const AbstractQoreNode* no
    char fmt[20], *f;
    QoreString tbuf(cstr->getEncoding());
 
-   printd(5, "process_opt(): param: %s type: %d node: %p node->getType(): %s refs: %d\n",
-	  param, type, node, node ? node->getTypeName() : "(null)", node ? node->reference_count() : -1);
-   qore_type_t t = get_node_type(node);
+   printd(5, "process_opt(): param: %s type: %d qv->getType(): %s refs: %d\n",
+	  param, type, qv.getTypeName(), qv.hasNode() ? qv.getInternalNode()->reference_count() : -1);
+   qore_type_t t = qv.getType();
 #ifdef DEBUG
    if (t == NT_STRING) {
-      const QoreStringNode* nstr = reinterpret_cast<const QoreStringNode*>(node);
+      const QoreStringNode* nstr = qv.get<const QoreStringNode>();
       printd(5, "process_opt() %p (%d) \"%s\"\n", nstr->getBuffer(), nstr->strlen(), nstr->getBuffer());
    }
 #endif
@@ -499,7 +499,7 @@ static int process_opt(QoreString *cstr, char* param, const AbstractQoreNode* no
    char p = *param;
    switch (*param) {
       case 's': {
-	 QoreStringValueHelper astr(node);
+	 QoreStringValueHelper astr(qv);
 
 	 length = astr->strlen();
 	 if ((width != -1) && (length > width) && !type)
@@ -555,7 +555,7 @@ static int process_opt(QoreString *cstr, char* param, const AbstractQoreNode* no
 #endif
 	 *(f++) = p; // 'd', etc;
 	 *f = '\0';
-         int64 val = !node ? 0 : node->getAsBigInt();
+         int64 val = qv.getAsBigInt();
 	 tbuf.sprintf(fmt, val);
 	 if (type && (width != -1))
 	    tbuf.terminate(width);
@@ -591,12 +591,12 @@ static int process_opt(QoreString *cstr, char* param, const AbstractQoreNode* no
 	    *(f++) = QORE_MPFR_SPRINTF_ARG;
             *(f++) = *param; // a|A|e|E|f|F|g|G
             *f = '\0';
-            qore_number_private::sprintf(*reinterpret_cast<const QoreNumberNode*>(node), tbuf, fmt);
+            qore_number_private::sprintf(*qv.get<const QoreNumberNode>(), tbuf, fmt);
 	 }
 	 else {
 	    *(f++) = *param; // a|A|e|E|f|F|g|G
 	    *f = '\0';
-	    double val = !node ? 0.0 : node->getAsFloat();
+	    double val = qv.getAsFloat();
 	    tbuf.sprintf(fmt, val);
 	    //printd(5, "fmt: '%s' val: %f\n", fmt, val);
 	 }
@@ -606,14 +606,14 @@ static int process_opt(QoreString *cstr, char* param, const AbstractQoreNode* no
       }
       case 'n':
       case 'N': {
-	 QoreNodeAsStringHelper t(node, *param == 'N'
+	 QoreNodeAsStringHelper t(qv, *param == 'N'
 				  ? (width == -1 ? FMT_NORMAL : width)
 				  : FMT_NONE, xsink);
 	 tbuf.concat(*t, xsink);
 	 break;
       }
       case 'y': {
-	 QoreNodeAsStringHelper t(node, FMT_YAML_SHORT, xsink);
+	 QoreNodeAsStringHelper t(qv, FMT_YAML_SHORT, xsink);
 	 tbuf.concat(*t, xsink);
 	 break;
       }
@@ -709,13 +709,94 @@ QoreStringNode* q_vsprintf(const QoreListNode* params, int field, int offset, Ex
    return buf.release();
 }
 
+QoreStringNode* q_sprintf(const QoreValueList* params, int field, int offset, ExceptionSink* xsink) {
+   unsigned i, j, l;
+
+   QoreValue pv = get_param_value(params, offset);
+   if (pv.getType() != NT_STRING)
+      return new QoreStringNode;
+
+   const QoreStringNode* p = pv.get<QoreStringNode>();
+
+   SimpleRefHolder<QoreStringNode> buf(new QoreStringNode(p->getEncoding()));
+
+   j = 1 + offset;
+
+   const char* pstr = p->getBuffer();
+   l = p->strlen();
+   for (i = 0; i < l; i++) {
+      int taken = 1;
+      if ((pstr[i] == '%') && (j < params->size())) {
+	 pv = get_param_value(params, j++);
+	 i += process_opt(*buf, (char*)&pstr[i], pv, field, &taken, xsink);
+	 if (*xsink)
+	    return 0;
+	 if (!taken)
+	    j--;
+      }
+      else {
+	 buf->concat(pstr[i]);
+	 if (pstr[i] == '%' && pstr[i+1] == '%')
+	     ++i;
+      }
+   }
+
+   return buf.release();
+}
+
+QoreStringNode* q_vsprintf(const QoreValueList* params, int field, int offset, ExceptionSink* xsink) {
+   QoreValue pv = get_param_value(params, offset);
+   if (pv.getType() != NT_STRING)
+      return new QoreStringNode;
+
+   const QoreStringNode* fmt = pv.get<QoreStringNode>();
+
+   pv = get_param_value(params, offset + 1);
+   const QoreListNode* arg_list = pv.getType() == NT_LIST ? pv.get<const QoreListNode>() : 0;
+
+   SimpleRefHolder<QoreStringNode> buf(new QoreStringNode(fmt->getEncoding()));
+   unsigned j = 0;
+
+   const char* pstr = fmt->getBuffer();
+   size_t l = fmt->strlen();
+   for (unsigned i = 0; i < l; i++) {
+      int taken = 1;
+      bool havearg = false;
+
+      if ((pstr[i] == '%')) {
+	 if (!pv.isNothing()) {
+	    if (arg_list && j < arg_list->size()) {
+	       havearg = true;
+	       pv = get_param(arg_list, j);
+	    }
+	    else if (!j)
+	       havearg = true;
+	 }
+      }
+      if (havearg) {
+	 ++j;
+	 i += process_opt(*buf, (char*)&pstr[i], pv, field, &taken, xsink);
+	 if (*xsink)
+	    return 0;
+	 if (!taken)
+	    --j;
+      }
+      else {
+	 buf->concat(pstr[i]);
+	 if (pstr[i] == '%' && pstr[i+1] == '%')
+             ++i;
+      }
+   }
+   return buf.release();
+}
+
 static void concatASCII(QoreString &str, unsigned char c) {
    str.sprintf("ascii %03d", c);
    if (c >= 32 || c < 127)
       str.sprintf(" ('%c')", c);
 }
 
-static inline char getBase64Value(const char* buf, qore_size_t &offset, bool end_ok, ExceptionSink* xsink) {
+static char getBase64Value(const char* buf, qore_size_t &offset, bool end_ok, ExceptionSink* xsink) {
    while (buf[offset] == '\n' || buf[offset] == '\r')
       ++offset;
 
@@ -918,9 +999,9 @@ char* make_class_name(const char* str) {
    return cn;
 }
 
-void print_node(FILE* fp, const AbstractQoreNode* node) {
-   printd(5, "print_node() node: %p (%s)\n", node, node ? node->getTypeName() : "(null)");
-   QoreStringValueHelper str(node);
+void print_node(FILE* fp, const QoreValue qv) {
+   printd(5, "print_node() node: %s\n", qv.getTypeName());
+   QoreStringValueHelper str(qv);
    fputs(str->getBuffer(), fp);
 }
 

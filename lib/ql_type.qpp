@@ -102,7 +102,7 @@ my bool $b = boolean(1); # returns True
     @note this function behaves differently when @ref strict-bool-eval "%strict-bool-eval" is set
 */
 bool boolean(any arg) [flags=CONSTANT] {
-   return arg ? arg->getAsBool() : false;
+   return arg.getAsBool();
 }
 
 //! Converts the argument to an integer value
@@ -285,12 +285,12 @@ my list $l = list(1, 2, 3, 4);
 list list(...) [flags=CONSTANT] {
    QoreListNode *l;
    if (num_args(args) > 1)
-      l = args->copy();
+      l = args->getOldList();
    else {
       l = new QoreListNode;
-      const AbstractQoreNode *p0 = get_param(args, 0);
-      if (p0)
-	 l->push(p0->refSelf());
+      QoreValue p0 = get_param_value(args, 0);
+      if (!p0.isNothing())
+	 l->push(p0.getReferencedValue());
    }
    return l;
 }
@@ -408,7 +408,7 @@ my string $type = type($v);
     @see pseudo-method <value>::typeCode()
 */
 string type(any arg) [flags=CONSTANT] {
-   return new QoreStringNode(arg ? arg->getTypeName() : "nothing");
+   return new QoreStringNode(arg.getTypeName());
 }
 
 //! Returns a string giving the data type of the argument passed; see @ref string_type_constants for the values returned by this function
@@ -427,7 +427,7 @@ my string $type = typename($v);
     - It is faster and more efficient to use <value>::typeCode() for comparing data types
 */
 string typename(any arg) [flags=CONSTANT] {
-   return new QoreStringNode(arg ? arg->getTypeName() : "nothing");
+   return new QoreStringNode(arg.getTypeName());
 }
 
 //! Returns a string created from the binary data passed, taking an optional second argument giving the string encoding; if no second argument is passed then the @ref default_encoding "default character encoding" is assumed
@@ -446,6 +446,6 @@ string binary_to_string(binary b, *string encoding) [flags=CONSTANT] {
    const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
    if (!b->size())
       return new QoreStringNode(qe);
-   return new QoreStringNode((const char *)b->getPtr(), b->size(), qe);
+   return new QoreStringNode((const char*)b->getPtr(), b->size(), qe);
 }
 //@}
