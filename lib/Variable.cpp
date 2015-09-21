@@ -151,7 +151,6 @@ double Var::floatEval() const {
 }
 */
 
-static void do_break() {}
 void Var::deref(ExceptionSink* xsink) {
    //printd(5, "Var::deref() this: %p '%s' %d -> %d\n", this, getName(), reference_count(), reference_count() - 1);
    if (ROdereference()) {
