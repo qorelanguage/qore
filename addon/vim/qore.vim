@@ -95,7 +95,6 @@ syn match qStr "\'.\{-}\'"
 
 syn keyword qTodo contained TODO FIXME XXX NOTE
 syn match qComment "#.*$" contains=qTodo
-syn match qComment "/\*.*\*/" contains=celTodo
 syn region qCommentBlock start="/\*" end="\*/"
 
 hi def link qTodo          Todo
