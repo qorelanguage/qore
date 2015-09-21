@@ -3,7 +3,7 @@
 " Maintainer: Adrián Lachata
 
 " Qore statements
-syn keyword qStat public private final inherits abstract self static  
+syn keyword qStat public private final inherits abstract self static namespace 
 syn keyword qStat if else foreach in my our while do for switch continue break
 syn keyword qStat case const return returns sub
 syn keyword qStat try catch throw rethrow thread_exit context summarize 
