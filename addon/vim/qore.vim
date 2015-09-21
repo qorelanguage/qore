@@ -90,7 +90,8 @@ syn match qNum '\<[-+]\d\+\.\d*\>'
 
 syn keyword qBool True False
 
-syn match qStr "\".*\""
+syn match qStr "\".\{-}\""
+syn match qStr "\'.\{-}\'"
 
 syn keyword qTodo contained TODO FIXME XXX NOTE
 syn match qComment "#.*$" contains=qTodo
