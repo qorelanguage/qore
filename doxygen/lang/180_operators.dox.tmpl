@@ -159,7 +159,7 @@
     |!Argument|!Processing
     |\a hash_or_object_expression|This expression must evaluate to a hash or an object; if not, then the operator returns no value
     |\a expression|- @ref list "list": if the expression evaluates to a list, then a slice of the hash or object is returned as a hash containing keys given in the list that are present in the hash or object. If the key as given in the list (converted to a string if necessary) is not present in the hash or object, then it is also not present in the hash returned; of none of the given keys exist in the hash, an empty hash is returned.\n- anything other than @ref list "list": the expression is converted to a string (if necessary); the value of the hash key corresponding to this string will be returned; if the key or member does not exist, then no value is returned
-    
+
     @throw PRIVATE-MEMBER Attempt to access a private member outside the class
     @throw METHOD-DOES-NOT-EXIST Attempt to access a method not defined for this class
     @throw METHOD-IS-PRIVATE Attempt to access a private method from outside the class
@@ -385,7 +385,7 @@ my hash $nh = remove $h.("a", "b", "c");
 
     This operator does not throw any exceptions, however exception could be thrown in an object's destructor if it goes out of scope due to the action of this operator.
 
-    <hr> 
+    <hr>
     @section cast Cast Operator (cast<>())
 
     @par Synopsis
@@ -825,7 +825,7 @@ foreach my string $key in (keys $hash)
     |@ref number_type "number"|Gives the result of dividing its arguments; @ref integer "ints" and @ref float "floats" are converted to @ref number "numbers" if at least one of the arguments is a @ref number "number"
     |@ref float_type "float"|Gives the result of dividing its arguments; @ref integer "ints" are converted to @ref float "floats" if at least one of the arguments is a @ref float "float"
     |@ref int_type "int"|Gives the result of dividing its arguments
-    |any other type|Converts argument to a @ref number "number" and performs the division
+    |any other type|Converts argument to a @ref float_type "float" and performs the division
 
     @throw DIVISION-BY-ZERO division by zero error
 
@@ -1197,15 +1197,15 @@ if ($x >= $y)
     @par Example
     @code
 switch ($x <=> $y) {
-    case -1: 
+    case -1:
         print("$x is less than $y\n");
         break;
 
-    case 0: 
+    case 0:
         print("$x is equal to $y\n");
         break;
 
-    case 1: 
+    case 1:
         print("$x is greater than $y\n");
         break;
 }
@@ -1411,7 +1411,7 @@ $list =~ x/(.*)\.(.*)/;
 
     This operator does not throw any exceptions.
 
-    <hr> 
+    <hr>
     @section bitwise_or_operator Bitwise/Binary Or Operator (|)
 
     @par Synopsis
@@ -1529,7 +1529,7 @@ if ($x || $y)
     Evaluates the first operand and checks for a value (i. e. not @ref nothing or @ref null).  If it evaluates to a value, then the value of the first operand is returned, otherwise the second operand is evaluated and returned.  When chained, the first argument with a value is returned.
 
     @par Syntax
-    \a expression1 ?? \a expression2 
+    \a expression1 ?? \a expression2
 
     @par Return Type
     @ref any_type "any"
@@ -1553,7 +1553,7 @@ if ($x || $y)
     Evaluates the first operand and checks for a value (@ref Qore::True "True" or @ref Qore::False "False"). If it evaluates to @ref Qore::True "True", then the value of the first operand is returned, otherwise the second operand is evaluated and returned.  When chained, the first argument with a value is returned.
 
     @par Syntax
-    \a expression1 ?* \a expression2 
+    \a expression1 ?* \a expression2
 
     @par Return Type
     @ref any_type "any"

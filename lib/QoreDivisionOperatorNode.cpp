@@ -86,6 +86,8 @@ AbstractQoreNode* QoreDivisionOperatorNode::parseInitIntern(const char* name, Lo
 	 pfunc = &QoreDivisionOperatorNode::bigIntDivision;
 	 typeInfo = bigIntTypeInfo;
       }
+      else
+	 typeInfo = floatTypeInfo;
    }
 
    if (typeInfo)
@@ -145,16 +147,7 @@ QoreValue QoreDivisionOperatorNode::doDivision(QoreValue lh, QoreValue rh, Excep
       return ln->doDivideBy(*rh.get<const QoreNumberNode>(), xsink);
    }
 
-   if (lt == NT_FLOAT || rt == NT_FLOAT) {
-      double r = rh.getAsFloat();
-      if (!r) {
-	 xsink->raiseException("DIVISION-BY-ZERO", "division by zero found in floating-point expression");
-	 return QoreValue();
-      }
-      return lh.getAsFloat() / r;
-   }
-
-   if (lt == NT_INT || rt == NT_INT) {
+   if (lt == NT_INT && rt == NT_INT) {
       int64 r = rh.getAsBigInt();
       if (!r) {
 	 xsink->raiseException("DIVISION-BY-ZERO", "division by zero found in integer expression");
