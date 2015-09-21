@@ -11,7 +11,7 @@ syn keyword qStat synchronized subcontext deprecated by
 syn keyword qStat on_exit on_success on_error 
 
 " Qore types
-syn keyword qTyp int float number bool string date binary hast list object
+syn keyword qTyp int float number bool string date binary hash list object
 syn keyword qTyp class null nothing timeout softint softfloat softnumber softbool
 syn keyword qTyp softstring softdate softlist data code reference any
 
