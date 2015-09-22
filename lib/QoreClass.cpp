@@ -3097,11 +3097,26 @@ void QoreClass::addStaticMethodExtendedList(const char* nme, q_func_t m, bool pr
    priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethodVariant(m, priv_flag, false, n_flags, n_domain, n_returnTypeInfo, n_typeList, n_defaultArgList));
 }
 
+void QoreClass::addConstructor(q_constructor_n_t m, bool priv_flag, int64 n_flags, int64 n_domain, unsigned num_params, ...) {
+   type_vec_t typeList;
+   arg_vec_t defaultArgList;
+   name_vec_t nameList;
+   if (num_params) {
+      va_list args;
+      va_start(args, num_params);
+      qore_process_params(num_params, typeList, defaultArgList, nameList, args);
+      va_end(args);
+   }
+   priv->addBuiltinConstructor(new BuiltinConstructorValueVariant(m, priv_flag, n_flags, n_domain, typeList, defaultArgList, nameList));
+}
+
 // sets a builtin function as constructor - no duplicate checking is made
+// deprecated
 void QoreClass::setConstructor(q_constructor_t m) {
    priv->addBuiltinConstructor(new BuiltinConstructorVariant(m, false));
 }
 
+// deprecated
 void QoreClass::setConstructorExtended(q_constructor_t m, bool priv_flag, int64 n_flags, int64 n_domain, unsigned num_params, ...) {
    type_vec_t typeList;
    arg_vec_t defaultArgList;
@@ -3114,6 +3129,7 @@ void QoreClass::setConstructorExtended(q_constructor_t m, bool priv_flag, int64 
    priv->addBuiltinConstructor(new BuiltinConstructorVariant(m, priv_flag, n_flags, n_domain, typeList, defaultArgList));
 }
 
+// deprecated
 void QoreClass::setConstructorExtended3(q_constructor_t m, bool priv_flag, int64 n_flags, int64 n_domain, unsigned num_params, ...) {
    type_vec_t typeList;
    arg_vec_t defaultArgList;
@@ -3127,15 +3143,18 @@ void QoreClass::setConstructorExtended3(q_constructor_t m, bool priv_flag, int64
    priv->addBuiltinConstructor(new BuiltinConstructorVariant(m, priv_flag, n_flags, n_domain, typeList, defaultArgList, nameList));
 }
 
+// deprecated
 void QoreClass::setConstructorExtendedList(q_constructor_t m, bool priv_flag, int64 n_flags, int64 n_domain, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList) {
    priv->addBuiltinConstructor(new BuiltinConstructorVariant(m, priv_flag, n_flags, n_domain, n_typeList, n_defaultArgList));
 }
 
 // sets a builtin function as constructor - no duplicate checking is made
+// deprecated
 void QoreClass::setConstructor2(q_constructor2_t m) {
    priv->addBuiltinConstructor(new BuiltinConstructor2Variant(m, false));
 }
 
+// deprecated
 void QoreClass::setConstructorExtended2(q_constructor2_t m, bool priv_flag, int64 n_flags, int64 n_domain, unsigned num_params, ...) {
    type_vec_t typeList;
    arg_vec_t defaultArgList;
@@ -3148,10 +3167,12 @@ void QoreClass::setConstructorExtended2(q_constructor2_t m, bool priv_flag, int6
    priv->addBuiltinConstructor(new BuiltinConstructor2Variant(m, priv_flag, n_flags, n_domain, typeList, defaultArgList));
 }
 
+// deprecated
 void QoreClass::setConstructorExtendedList2(q_constructor2_t m, bool priv_flag, int64 n_flags, int64 n_domain, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList) {
    priv->addBuiltinConstructor(new BuiltinConstructor2Variant(m, priv_flag, n_flags, n_domain, n_typeList, n_defaultArgList));
 }
 
+// deprecated
 void QoreClass::setConstructorExtendedList3(const void *ptr, q_constructor3_t m, bool priv_flag, int64 n_flags, int64 n_domain, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList) {
    priv->addBuiltinConstructor(new BuiltinConstructor3Variant(ptr, m, priv_flag, n_flags, n_domain, n_typeList, n_defaultArgList));
 }

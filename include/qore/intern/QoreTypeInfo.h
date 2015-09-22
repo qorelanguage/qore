@@ -574,6 +574,7 @@ public:
       return qc->getID() == n_qc->getID();
    }
 
+   /*
    DLLLOCAL qore_type_result_e runtimeAcceptsValue(const AbstractQoreNode* n) const {
       if (!hasType() || accepts_all)
          return QTI_AMBIGUOUS;
@@ -585,6 +586,7 @@ public:
 
       return parseAcceptsType(t, t == NT_INT);
    }
+   */
 
    DLLLOCAL qore_type_result_e runtimeAcceptsValue(const QoreValue n) const {
       if (!hasType() || accepts_all)

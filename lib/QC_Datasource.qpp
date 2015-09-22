@@ -48,10 +48,7 @@ static int ds_set_options(ManagedDatasource* ds, const QoreHashNode* opts, Excep
    return 0;
 }
 
-static void ds_constructor_hash(const QoreHashNode* opts, QoreObject* self, Queue* queue, const AbstractQoreNode* arg, ExceptionSink* xsink) {
-   if (arg && !queue)
-      arg = 0;
-
+static void ds_constructor_hash(const QoreHashNode* opts, QoreObject* self, Queue* queue, const QoreValue& arg, ExceptionSink* xsink) {
    ReferenceHolder<Queue> q(queue, xsink);
 
    const char *str = check_hash_key(opts, "type", DSC_ERR, xsink);
@@ -117,7 +114,7 @@ static void ds_constructor_hash(const QoreHashNode* opts, QoreObject* self, Queu
    }
 
    if (queue)
-      ds->setEventQueue(q.release(), arg ? arg->refSelf() : 0, xsink);
+      ds->setEventQueue(q.release(), arg.getReferencedValue(), xsink);
 
    self->setPrivate(CID_DATASOURCE, ds.release());
 }
@@ -301,9 +298,6 @@ Datasource::constructor(string driver, *string user, *string pass, *string db, *
       return;
    }
 
-   if (arg && !queue)
-      arg = 0;
-
    DBIDriver *db_driver = DBI.find(driver->getBuffer(), xsink);
    if (!db_driver) {
       if (!*xsink)
@@ -340,7 +334,7 @@ Datasource::constructor(string driver, *string user, *string pass, *string db, *
       ds_set_options(*ds, options, xsink);
 
    if (queue)
-      ds->setEventQueue(q.release(), arg ? arg->refSelf() : 0, xsink);
+      ds->setEventQueue(q.release(), arg.getReferencedValue(), xsink);
 
    self->setPrivate(CID_DATASOURCE, ds.release());
 }
@@ -1275,7 +1269,7 @@ nothing Datasource::setEventQueue(Qore::Thread::Queue[Queue] queue, any arg) {
    if (queue->getMax() != -1)
       return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Datasource object if used; use a Queue object with no maximum size for datasource event monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
 
-   ds->setEventQueue(q.release(), arg ? arg->refSelf() : 0, xsink);
+   ds->setEventQueue(q.release(), arg.getReferencedValue(), xsink);
 }
 
 //! Clears the queue object for DBI events on the datasource

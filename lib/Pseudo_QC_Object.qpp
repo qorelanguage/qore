@@ -43,7 +43,7 @@ extern QoreClass* QC_OBJECTPAIRITERATOR;
 //! Methods in this pseudo-class can be executed on @ref object "objects"
 /**
  */
-qclass <object> [arg=QoreObject* obj = v.get<QoreObject>();vparent=<value>];
+qclass <object> [arg=QoreObject* obj = const_cast<QoreObject*>(v.get<QoreObject>());vparent=<value>];
 
 //! Returns Qore::NT_OBJECT
 /**

@@ -614,6 +614,28 @@ public:
    }
 };
 
+class BuiltinConstructorValueVariant : public BuiltinConstructorVariantBase {
+protected:
+   q_constructor_n_t constructor;
+
+public:
+   DLLLOCAL BuiltinConstructorValueVariant(q_constructor_n_t m, bool n_priv_flag, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinConstructorVariantBase(n_priv_flag, n_flags, n_functionality, n_typeList, n_defaultArgList, n_names), constructor(m) {
+   }
+
+   DLLLOCAL virtual void evalConstructor(const QoreClass& thisclass, QoreObject* self, CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
+      CodeContextHelper cch("constructor", self, xsink);
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+      // push call on call stack
+      CallStackHelper csh("constructor", CT_BUILTIN, self, xsink);
+#endif
+
+      if (constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))
+	 return;
+
+      constructor(self, ceh.getArgs(), xsink);
+   }
+};
+
 class BuiltinConstructorVariant : public BuiltinConstructorVariantBase {
 protected:
    q_constructor_t constructor;

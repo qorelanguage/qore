@@ -162,7 +162,7 @@ public:
    // the QoreValue object will increase the reference of n if necessary
    //returns 0 or the previously held AbstractQoreNode*
    // FIXME: remove with new API/ABI
-   DLLEXPORT AbstractQoreNode* assignAndSanitize(const AbstractQoreNode* n);
+   DLLEXPORT AbstractQoreNode* assignAndSanitize(const QoreValue n);
 
    DLLEXPORT AbstractQoreNode* assign(int64 n);
 

@@ -78,10 +78,12 @@ struct qore_value_list_private {
          return;
       }
       // make larger
-      if (num >= allocated) {
-         size_t d = num >> 2;
-         allocated = num + (d < LIST_PAD ? LIST_PAD : d);
-         entry = (QoreValue*)realloc(entry, sizeof(QoreValue*) * allocated);
+      if (num >= length) {
+         if (num >= allocated) {
+            size_t d = num >> 2;
+            allocated = num + (d < LIST_PAD ? LIST_PAD : d);
+            entry = (QoreValue*)realloc(entry, sizeof(QoreValue) * allocated);
+         }
          zeroEntries(length, num);
       }
       length = num;

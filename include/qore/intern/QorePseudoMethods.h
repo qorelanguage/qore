@@ -39,9 +39,7 @@ DLLLOCAL QoreValue pseudo_classes_eval(const QoreValue n, const char* name, cons
 DLLLOCAL const QoreMethod* pseudo_classes_find_method(qore_type_t t, const char* mname, QoreClass*& qc);
 DLLLOCAL const QoreMethod* pseudo_classes_find_method(const QoreTypeInfo* typeInfo, const char* mname, QoreClass*& qc, bool& possible_match);
 
-/*
 #define NODE_ARRAY_LEN (NT_NUMBER + 1)
-DLLLOCAL extern QoreBigIntNode* Node_NT_Array[NODE_ARRAY_LEN];
-*/
+//DLLLOCAL extern QoreBigIntNode* Node_NT_Array[NODE_ARRAY_LEN];
 
 #endif

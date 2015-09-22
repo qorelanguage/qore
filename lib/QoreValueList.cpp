@@ -895,14 +895,15 @@ void QoreValueListEvalOptionalRefHolder::evalIntern(const QoreListNode* exp) {
    while (li.next()) {
       const AbstractQoreNode* v = li.getValue();
       qore_type_t t = get_node_type(v);
-      if (t < NUM_SIMPLE_TYPES) {
-	 QoreValue qv(v);
-	 qv.sanitize();
-	 val->push(qv);
+      if (t < NUM_SIMPLE_TYPES || exp->is_value()) {
+	 QoreValue qv;
+	 qv.assignAndSanitize(v);
+	 val->push(qv.refSelf());
 	 continue;
       }
       val->push(v->evalValue(xsink));
       if (*xsink)
 	 return;
    }
+   assert(val->size() == exp->size());
 }

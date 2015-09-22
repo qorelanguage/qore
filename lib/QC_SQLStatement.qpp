@@ -183,7 +183,7 @@ nothing SQLStatement::prepare(string sql, ...) {
    ReferenceHolder<QoreListNode> l(xsink);
 
    if (num_args(args) > 1)
-      l = args->copyListFrom(1);
+      l = args->getOldList(1);
 
    stmt->prepare(*sql, *l, xsink);
 }
@@ -231,7 +231,8 @@ foreach my hash $h in ($l) {
     @see SQLStatement::bindArgs(), SQLStatement::bindPlaceholders(), SQLStatement::bindPlaceholdersArgs(), SQLStatement::bindValues(), and SQLStatement::bindValuesArgs()
  */
 nothing SQLStatement::bind(...) {
-   stmt->bind(*args, xsink);
+   ReferenceHolder<QoreListNode> l(args ? args->getOldList() : 0, xsink);
+   stmt->bind(**l, xsink);
 }
 
 //! Binds placeholder buffer specifications and values given as a list in the single argument to the method to buffers defined in SQLStatement::prepare()
@@ -291,7 +292,8 @@ my date $d = $stmt.getOutput().sd;
     @see SQLStatement::bind(), SQLStatement::bindArgs(), SQLStatement::bindPlaceholdersArgs(), SQLStatement::bindValues(), and SQLStatement::bindValuesArgs()
  */
 nothing SQLStatement::bindPlaceholders(...) {
-   stmt->bindPlaceholders(*args, xsink);
+   ReferenceHolder<QoreListNode> l(args ? args->getOldList() : 0, xsink);
+   stmt->bindPlaceholders(**l, xsink);
 }
 
 //! Binds placeholder buffer specifications given as a list in the single argument to the method to buffers defined in SQLStatement::prepare()
@@ -351,7 +353,8 @@ foreach my hash $h in ($l) {
     @see SQLStatement::bind(), SQLStatement::bindArgs(), SQLStatement::bindPlaceholders(), SQLStatement::bindPlaceholdersArgs(), and SQLStatement::bindValuesArgs().
  */
 nothing SQLStatement::bindValues(...) {
-   stmt->bindValues(*args, xsink);
+   ReferenceHolder<QoreListNode> l(args ? args->getOldList() : 0, xsink);
+   stmt->bindValues(**l, xsink);
 }
 
 //! Binds values to value buffer specifications given as a list in the single argument to the method to value buffers defined in SQLStatement::prepare()
@@ -411,7 +414,8 @@ foreach my hash $h in ($l) {
     @see SQLStatement::execArgs()
  */
 nothing SQLStatement::exec(...) {
-   stmt->exec(args, xsink);
+   ReferenceHolder<QoreListNode> l(args ? args->getOldList() : 0, xsink);
+   stmt->exec(*l, xsink);
 }
 
 //! Executes the bound statement with any bound buffers, also optionally allows binding placeholder buffer specifications and values given as a list in the single argument to the method to buffers defined in SQLStatement::prepare()

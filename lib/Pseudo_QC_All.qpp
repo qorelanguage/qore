@@ -62,7 +62,7 @@ switch ($v.typeCode()) {
     @endcode
  */
 int <value>::typeCode() [flags=CONSTANT] {
-   return n.getType();
+   return v.getType();
 }
 
 //! Returns the string type for the value
@@ -77,7 +77,7 @@ my string $t = $n.type();
     @note It is faster and more efficient to use <value>::typeCode() for comparing data types
 */
 string <value>::type() [flags=CONSTANT] {
-   return new QoreStringNode(n.getTypeName());
+   return new QoreStringNode(v.getTypeName());
 }
 
 //! Returns @ref True; this method will be reimplemented in container types where it may return @ref False
@@ -219,7 +219,7 @@ int <value>::lsize() [flags=CONSTANT] {
     @since %Qore 0.8.6
 */
 string <value>::toString() [flags=CONSTANT] {
-   QoreStringNodeValueHelper str(n);
+   QoreStringNodeValueHelper str(v);
    return str.getReferencedValue();
 }
 
@@ -231,7 +231,7 @@ string <value>::toString() [flags=CONSTANT] {
     @since %Qore 0.8.6
 */
 int <value>::toInt() [flags=CONSTANT] {
-   return n->getAsBigInt();
+   return v.getAsBigInt();
 }
 
 //! Returns the floating-point representation of the value; the default is 0.0
@@ -242,7 +242,7 @@ int <value>::toInt() [flags=CONSTANT] {
     @since %Qore 0.8.6
 */
 float <value>::toFloat() [flags=CONSTANT] {
-   return n->getAsFloat();
+   return v.getAsFloat();
 }
 
 //! Returns the boolean representation of the value; the default is @ref False
@@ -253,7 +253,7 @@ float <value>::toFloat() [flags=CONSTANT] {
     @since %Qore 0.8.6
 */
 bool <value>::toBool() [flags=CONSTANT] {
-   return n->getAsBool();
+   return v.getAsBool();
 }
 
 //! Returns the arbitrary-precision numeric representation of the value; the default is 0
@@ -264,7 +264,7 @@ bool <value>::toBool() [flags=CONSTANT] {
     @since %Qore 0.8.8
 */
 number <value>::toNumber() [flags=CONSTANT] {
-   return QoreNumberNode::toNumber(n);
+   return QoreNumberNode::toNumber(v);
 }
 
 //! Returns an iterator object for the value; the default iterator object returned is @ref Qore::SingleValueIterator "SingleValueIterator"

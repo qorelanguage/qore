@@ -2,9 +2,9 @@
 /* @file QC_Queue.qpp Queue class definition
 
   Qore Programming Language
-  
+
   Copyright (C) 2003 - 2015 David Nichols
-  
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -37,7 +37,7 @@
     In this case when the %Queue is full, adding new elements to the %Queue will block until the %Queue shrinks below the maximum size.
     All read and write methods to %Queue also take timeout values; if a timeout occurs a \c QUEUE-TIMEOUT exception is thrown.
 
-    @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option   
+    @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option
  */
 qclass Queue [dom=THREAD_CLASS; arg=Queue *q; ns=Qore::Thread];
 
@@ -91,7 +91,7 @@ Queue::copy() {
  */
 nothing Queue::push(any arg, timeout timeout_ms = 0) {
    bool to;
-   q->push(xsink, arg, timeout_ms, &to);
+   q->push(xsink, arg.getReferencedValue(), timeout_ms, &to);
    if (to)
       xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout_ms);
 }
@@ -110,7 +110,7 @@ nothing Queue::push(any arg, timeout timeout_ms = 0) {
  */
 nothing Queue::insert(any arg, timeout timeout_ms = 0) {
    bool to;
-   q->insert(xsink, arg, timeout_ms, &to);
+   q->insert(xsink, arg.getReferencedValue(), timeout_ms, &to);
    if (to)
       xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout_ms);
 }
@@ -119,7 +119,7 @@ nothing Queue::insert(any arg, timeout timeout_ms = 0) {
 /** @par Example:
     <code>my any $data = $queue.get();</code>
 
-    @param timeout_ms a timeout value to wait for data to become available on the queue; integers are interpreted as milliseconds; relative date/time values are interpreted literally with a maximum resolution of milliseconds.  Values <= 0 mean do not timeout.  If a non-zero timeout argument is passed, and no data is available in the timeout period, a \c "QUEUE-TIMEOUT" exception is thrown.  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until data is available on the queue. 
+    @param timeout_ms a timeout value to wait for data to become available on the queue; integers are interpreted as milliseconds; relative date/time values are interpreted literally with a maximum resolution of milliseconds.  Values <= 0 mean do not timeout.  If a non-zero timeout argument is passed, and no data is available in the timeout period, a \c "QUEUE-TIMEOUT" exception is thrown.  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until data is available on the queue.
 
     @return the first entry on the queue
 
@@ -147,7 +147,7 @@ any Queue::get(timeout timeout_ms = 0) {
 /** @par Example:
     <code>my any $data = $queue.pop();</code>
 
-    @param timeout_ms a timeout value to wait for data to become available on the queue; integers are interpreted as milliseconds; relative date/time values are interpreted literally with a maximum resolution of milliseconds.  Values <= 0 mean do not timeout.  If a non-zero timeout argument is passed, and no data is available in the timeout period, a \c "QUEUE-TIMEOUT" exception is thrown.  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until data is available on the queue. 
+    @param timeout_ms a timeout value to wait for data to become available on the queue; integers are interpreted as milliseconds; relative date/time values are interpreted literally with a maximum resolution of milliseconds.  Values <= 0 mean do not timeout.  If a non-zero timeout argument is passed, and no data is available in the timeout period, a \c "QUEUE-TIMEOUT" exception is thrown.  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until data is available on the queue.
 
     @return the last entry on the queue
 
@@ -226,7 +226,7 @@ int Queue::max() [flags=CONSTANT] {
     <code>my int $waiting = $queue.numWaiting();</code>
 
     @return the number of threads currently blocked on this queue for reading
-    
+
     @see Queue::getWriteWaiting()
  */
 int Queue::getWaiting() [flags=CONSTANT] {
@@ -240,9 +240,9 @@ int Queue::getWaiting() [flags=CONSTANT] {
     <code>my int $waiting = $queue.numReadWaiting();</code>
 
     @return the number of threads currently blocked on this queue for reading
-    
+
     @see Queue::getWriteWaiting()
-    
+
     @since %Qore 0.8.4
  */
 int Queue::getReadWaiting() [flags=CONSTANT] {
@@ -254,9 +254,9 @@ int Queue::getReadWaiting() [flags=CONSTANT] {
     <code>my int $waiting = $queue.getWriteWaiting();</code>
 
     @return the number of threads currently blocked on this queue for writing
-    
+
     @see Queue::getReadWaiting()
-    
+
     @since %Qore 0.8.4
  */
 int Queue::getWriteWaiting() [flags=CONSTANT] {

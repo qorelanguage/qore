@@ -795,7 +795,7 @@ any Program::callFunction(string name, ...) {
 
    ReferenceHolder<QoreListNode> vargs(xsink);
    if (args->size() > 1)
-      vargs = args->copyListFrom(1);
+      vargs = args->getOldList(1);
 
    return p->callFunction(tmp->getBuffer(), *vargs, xsink);
 }
@@ -1242,7 +1242,7 @@ $pgm.define("PRODUCTION", True);
 nothing Program::define(string def, any val) {
    TempEncodingHelper t(def, QCS_DEFAULT, xsink);
    if (t)
-      qore_program_private::runTimeDefine(p, t->getBuffer(), val ? val->refSelf() : 0, xsink);
+      qore_program_private::runTimeDefine(p, t->getBuffer(), val.getReferencedValue(), xsink);
 }
 
 //! Unsets a @ref conditional_parsing "parse define" for the current Program

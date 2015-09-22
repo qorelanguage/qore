@@ -3,11 +3,11 @@
   Datasource.h
 
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   The Datasource class provides the low-level interface to Qore DBI drivers.
-  
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -62,11 +62,11 @@ private:
 
    //! this helper method shares code for exec() and execRaw() methods
    DLLLOCAL AbstractQoreNode* exec_internal(bool doBind, const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink);
-      
+
 protected:
    //! frees all connection values
    DLLEXPORT void freeConnectionValues();
-      
+
    //! copies pending values to current values
    DLLEXPORT void setConnectionValues();
 
@@ -316,14 +316,14 @@ public:
    DLLEXPORT AbstractQoreNode* execRaw(const QoreString* query_str, ExceptionSink* xsink);
 
    //! executes SQL that returns a result set and then returns a hash description of the result set
-   /** 
+   /**
        @param query_str the query to execute
        @param args this argument is ignored
        @param xsink if an error occurs, the Qore-language exception information will be added here
 
        @since %Qore 0.8.9
     */
-   DLLEXPORT QoreHashNode* describe(const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink);   
+   DLLEXPORT QoreHashNode* describe(const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink);
 
    //! commits the current transaction to the database
    /** Calls the DBI driver's "commit" method.
@@ -453,7 +453,7 @@ public:
    //! returns the connection aborted status
    /** @return the connection aborted status
     */
-   DLLEXPORT bool wasConnectionAborted() const;	  
+   DLLEXPORT bool wasConnectionAborted() const;
 
    //! called from subclasses when releasing the transaction lock
    /** Calls the DBI driver's "commit" method if autocommit is enabled and the current connection was not lost and the driver requires a commit
@@ -487,6 +487,17 @@ public:
        @param xsink if any errors are raised (invalid option, etc), the exception info is raised here
 
        @return -1 for error (exception raised), 0 for OK
+    */
+   DLLEXPORT int setOption(const char* opt, const QoreValue val, ExceptionSink* xsink);
+
+   //! sets an option for the datasource
+   /** @param opt the option to set
+       @param val the value to set
+       @param xsink if any errors are raised (invalid option, etc), the exception info is raised here
+
+       @return -1 for error (exception raised), 0 for OK
+
+       @deprecated use setOption(const char*, const QoreValue, ExceptionSink*);
     */
    DLLEXPORT int setOption(const char* opt, const AbstractQoreNode* val, ExceptionSink* xsink);
 
@@ -524,7 +535,7 @@ public:
    DLLEXPORT QoreStringNode* getConfigString() const;
 
    //! sets an event queue for datasource events
-   /** 
+   /**
        @since %Qore 0.8.9
    */
    DLLEXPORT void setEventQueue(Queue* q, AbstractQoreNode* arg, ExceptionSink* xsink);
@@ -536,4 +547,3 @@ public:
 };
 
 #endif // _QORE_DATASOURCE_H
-

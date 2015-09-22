@@ -591,6 +591,7 @@ const AbstractQoreFunctionVariant* QoreFunction::findVariant(const QoreValueList
 		  rc = QTI_IGNORE;
 	       else {
 		  rc = t->runtimeAcceptsValue(n);
+		  //printd(5, "QoreFunction::findVariant() this: %p %s(%s) i: %d param: %s arg: %s rc: %d\n", this, getName(), sig->getSignatureText(), pi, t->getName(), n.getTypeName(), rc);
 		  if (rc == QTI_NOT_EQUAL) {
 		     ok = false;
 		     break;

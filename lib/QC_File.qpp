@@ -63,7 +63,7 @@ QoreFile* QoreFileHelper::operator->() const {
    return reinterpret_cast<File*>(ptr);
 }
 
-static void FILE_system_constructor(QoreObject *self, int fd, va_list args) {
+static void FILE_system_constructor(QoreObject* self, int fd, va_list args) {
    //printd(5, "FILE_system_constructor() self=%p, descriptor=%d\n", self, fd);
    File* f = new File(QCS_DEFAULT);
    f->makeSpecial(fd);
@@ -71,19 +71,19 @@ static void FILE_system_constructor(QoreObject *self, int fd, va_list args) {
 }
 
 #ifdef HAVE_STRUCT_FLOCK
-static int lock_intern(struct flock &fl, const QoreListNode *args, ExceptionSink *xsink) {
-   fl.l_type = (short)HARD_QORE_INT(args, 0);
-   fl.l_start = (off_t)HARD_QORE_INT(args, 1);
-   fl.l_len = (off_t)HARD_QORE_INT(args, 2);
+static int lock_intern(struct flock& fl, const QoreValueList* args, ExceptionSink* xsink) {
+   fl.l_type = (short)HARD_QORE_VALUE_INT(args, 0);
+   fl.l_start = (off_t)HARD_QORE_VALUE_INT(args, 1);
+   fl.l_len = (off_t)HARD_QORE_VALUE_INT(args, 2);
    if (fl.l_len < 0) {
       xsink->raiseException("FILE-LOCK-ERROR", "length of locked area cannot be negative (value passed=%d)", fl.l_len);
       return -1;
    }
-   fl.l_whence = (short)HARD_QORE_INT(args, 3);
+   fl.l_whence = (short)HARD_QORE_VALUE_INT(args, 3);
    return 0;
 }
 #else
-static int file_lock_error(const char *f, ExceptionSink *xsink) {
+static int file_lock_error(const char* f, ExceptionSink* xsink) {
    xsink->raiseException("MISSING-FEATURE-ERROR", "this platform does not support UNIX-style file locking with fnctl(), therefore the File::%s() method is not available; for maximum portability, check Option::HAVE_FILE_LOCKING before calling this method", f);
    return 0;
 }
@@ -98,7 +98,7 @@ static int file_lock_error(const char *f, ExceptionSink *xsink) {
 #endif
 #endif
 
-AbstractQoreNode *missing_method_error(const char *meth, const char *feat, ExceptionSink *xsink) {
+AbstractQoreNode* missing_method_error(const char* meth, const char* feat, ExceptionSink* xsink) {
    xsink->raiseException("MISSING-FEATURE-ERROR", "the %s() method is not available on this build; for maximum portability, check Option::HAVE_%s before calling this method", meth, feat);
    return 0;
 }

@@ -2404,8 +2404,8 @@ protected:
       fputc('\n', fp);
       serializeQoreConstructorPrototypeComment(fp, cname, 3);
 
-      fprintf(fp, "   QC_%s->setConstructorExtended3(%s_%s, %s, ",
-              UC,
+      fprintf(fp, "   QC_%s->%s(%s_%s, %s, ",
+              UC, use_value ? "addConstructor" : "setConstructorExtended3",
               cname, vname.c_str(),
               attr & QCA_PRIVATE ? "true" : "false");
       flags_output_cpp(fp, flags, attr & QCA_USES_EXTRA_ARGS);

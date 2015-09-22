@@ -40,10 +40,13 @@ protected:
    bool validp;
 
 public:
-   DLLLOCAL SingleValueIterator(const QoreValue v) : val(v->refSelf()), validp(false) {
+   DLLLOCAL SingleValueIterator() : validp(false) {
    }
 
-   DLLLOCAL SingleValueIterator(const SingleValueIterator& old) : val(old.val->refSelf()), validp(old.validp) {
+   DLLLOCAL SingleValueIterator(const QoreValue v) : val(v.refSelf()), validp(false) {
+   }
+
+   DLLLOCAL SingleValueIterator(const SingleValueIterator& old) : val(old.val.refSelf()), validp(old.validp) {
    }
 
    DLLLOCAL bool next() {
@@ -76,8 +79,7 @@ public:
    using AbstractPrivateData::deref;
    DLLLOCAL virtual void deref(ExceptionSink* xsink) {
       if (ROdereference()) {
-         if (val)
-            val->deref(xsink);
+         val.discard(xsink);
          delete this;
       }
    }

@@ -501,28 +501,47 @@ public:
    */
    DLLEXPORT void setDestructor3(const void* ptr, q_destructor3_t m);
 
+   //! sets the constructor method with extended information; can set a private constructor, set additional functional domain info, and parameter type info (or adds an overloaded variant)
+   DLLEXPORT void addConstructor(q_constructor_n_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, unsigned num_params = 0, ...);
+
    //! sets the builtin constructor method for the class (or adds an overloaded variant)
    /**
       @param m the constructor method
+
+      @deprecated use addConstructor(q_constructor_n_t, bool priv, int64, int64, unsigned, ...) instead
    */
    DLLEXPORT void setConstructor(q_constructor_t m);
 
    //! sets the constructor method with extended information; can set a private constructor, set additional functional domain info, and parameter type info (or adds an overloaded variant)
+   /*
+      @deprecated use addConstructor(q_constructor_n_t, bool priv, int64, int64, unsigned, ...) instead
+   */
    DLLEXPORT void setConstructorExtended(q_constructor_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, unsigned num_params = 0, ...);
 
    //! sets the constructor method with extended information; can set a private constructor, set additional functional domain info, and parameter type info from lists (or adds an overloaded variant)
+   /*
+      @deprecated use addConstructor(q_constructor_n_t, bool priv, int64, int64, unsigned, ...) instead
+   */
    DLLEXPORT void setConstructorExtendedList(q_constructor_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const type_vec_t& n_typeList = type_vec_t(), const arg_vec_t& defaultArgList = arg_vec_t());
 
    //! sets the builtin constructor method for the class using the new calling convention (or adds an overloaded variant)
    /**
       @param m the constructor method
+
+      @deprecated use addConstructor(q_constructor_n_t, bool priv, int64, int64, unsigned, ...) instead
    */
    DLLEXPORT void setConstructor2(q_constructor2_t m);
 
    //! sets the constructor method using the new calling convention with extended information; can set a private constructor, set additional functional domain info, and parameter type info (or adds an overloaded variant)
+   /*
+      @deprecated use addConstructor(q_constructor_n_t, bool priv, int64, int64, unsigned, ...) instead
+   */
    DLLEXPORT void setConstructorExtended2(q_constructor2_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, unsigned num_params = 0, ...);
 
    //! sets the constructor method using the new calling convention with extended information; can set a private constructor, set additional functional domain info, and parameter type info from lists (or adds an overloaded variant)
+   /*
+      @deprecated use addConstructor(q_constructor_n_t, bool priv, int64, int64, unsigned, ...) instead
+   */
    DLLEXPORT void setConstructorExtendedList2(q_constructor2_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const type_vec_t& n_typeList = type_vec_t(), const arg_vec_t& defaultArgList = arg_vec_t());
 
    //! sets the constructor method using the new calling convention with extended information; can set a private constructor, set additional functional domain info, and parameter type info from lists (or adds an overloaded variant)
@@ -533,10 +552,15 @@ public:
        @param n_domain the functional domain of the class to be used to enforce functional restrictions within a Program object
        @param n_typeList a list of type information for parameters to the variant
        @param defaultArgList a list of default arguments to each parameter
+
+      @deprecated use addConstructor(q_constructor_n_t, bool priv, int64, int64, unsigned, ...) instead
     */
    DLLEXPORT void setConstructorExtendedList3(const void* ptr, q_constructor3_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const type_vec_t& n_typeList = type_vec_t(), const arg_vec_t& defaultArgList = arg_vec_t());
 
    //! sets the constructor method with extended information; can set a private constructor, set additional functional domain info, and parameter type info (or adds an overloaded variant)
+   /*
+      @deprecated use addConstructor(q_constructor_n_t, bool priv, int64, int64, unsigned, ...) instead
+   */
    DLLEXPORT void setConstructorExtended3(q_constructor_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, unsigned num_params = 0, ...);
 
    //! sets the builtin constructor for system objects (ex: used as constant values)

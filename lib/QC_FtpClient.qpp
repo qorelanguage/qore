@@ -970,7 +970,7 @@ nothing FtpClient::setWarningQueue(int warning_ms, int warning_bs, Queue[Queue] 
    if (queue->getMax() != -1)
       return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Socket object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
    // pass reference from QoreObject::getReferencedPrivateData() to function
-   f->setWarningQueue(xsink, warning_ms, warning_bs, q.release(), arg ? arg->refSelf() : 0, min_ms);
+   f->setWarningQueue(xsink, warning_ms, warning_bs, q.release(), arg.getReferencedValue(), min_ms);
 }
 
 //! Returns performance statistics for the socket
