@@ -763,19 +763,20 @@ QoreStringNode* q_vsprintf(const QoreValueList* params, int field, int offset, E
       int taken = 1;
       bool havearg = false;
 
+      QoreValue cv;
+
       if ((pstr[i] == '%')) {
 	 if (!pv.isNothing()) {
-	    if (arg_list && j < arg_list->size()) {
-	       havearg = true;
-	       pv = get_param(arg_list, j);
-	    }
+	    havearg = true;
+	    if (arg_list && j < arg_list->size())
+	       cv = get_param(arg_list, j);
 	    else if (!j)
-	       havearg = true;
+	       cv = pv;
 	 }
       }
       if (havearg) {
 	 ++j;
-	 i += process_opt(*buf, (char*)&pstr[i], pv, field, &taken, xsink);
+	 i += process_opt(*buf, (char*)&pstr[i], cv, field, &taken, xsink);
 	 if (*xsink)
 	    return 0;
 	 if (!taken)

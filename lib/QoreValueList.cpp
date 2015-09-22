@@ -896,7 +896,7 @@ void QoreValueListEvalOptionalRefHolder::evalIntern(const QoreListNode* exp) {
    ConstListIterator li(exp);
    while (li.next()) {
       const AbstractQoreNode* v = li.getValue();
-      if (!v || v->is_value()) {
+      if (!v || v->is_value() || v->getType() == NT_REFERENCE) {
 	 QoreValue qv;
 	 qv.assignAndSanitize(v);
 	 val->push(qv.refSelf());
