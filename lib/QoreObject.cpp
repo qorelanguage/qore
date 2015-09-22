@@ -1169,6 +1169,9 @@ bool ObjectRSetHelper::checkIntern(AbstractQoreNode* n) {
 
 	 return false;
       }
+
+      case NT_VALUE_LIST:
+	 assert(false);
    }
 
    return false;

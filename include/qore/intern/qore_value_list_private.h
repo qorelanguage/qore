@@ -307,13 +307,11 @@ private:
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreValueListEvalOptionalRefHolder& operator=(const QoreValueListEvalOptionalRefHolder&);
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL void *operator new(size_t);
+   DLLLOCAL void* operator new(size_t);
 
 public:
    //! initializes an empty object and saves the ExceptionSink object
-   DLLLOCAL QoreValueListEvalOptionalRefHolder(ExceptionSink* n_xsink) : xsink(n_xsink) {
-      needs_deref = false;
-      val = 0;
+   DLLLOCAL QoreValueListEvalOptionalRefHolder(ExceptionSink* n_xsink) : val(0), xsink(n_xsink), needs_deref(false) {
    }
 
    //! performs an optional evaluation of the list (sets the dereference flag)

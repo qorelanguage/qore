@@ -549,56 +549,6 @@ int LValueHelper::assign(QoreValue n, const char* desc) {
    return 0;
 }
 
-/*
-int LValueHelper::assignBigInt(int64 va, const char* desc) {
-   // check type for assignment
-   if (!typeInfo->parseAccepts(bigIntTypeInfo)) {
-      typeInfo->doAcceptError(false, false, -1, desc, Zero, vl.xsink);
-      return -1;
-   }
-
-   // type compatibility must have been checked at parse time
-   if (val) {
-      saveTemp(val->assign(va));
-      return 0;
-   }
-
-   AbstractQoreNode* n = typeInfo->acceptAssignment(desc, new QoreBigIntNode(va), vl.xsink);
-   if (*vl.xsink) {
-      saveTemp(n);
-      return -1;
-   }
-
-   saveTemp(*v);
-   *v = n;
-   return 0;
-}
-
-int LValueHelper::assignFloat(double va, const char* desc) {
-   // check type for assignment
-   if (!typeInfo->parseAccepts(floatTypeInfo)) {
-      typeInfo->doAcceptError(false, false, -1, desc, ZeroFloat, vl.xsink);
-      return -1;
-   }
-
-   // type compatibility must have been checked at parse time
-   if (val) {
-      saveTemp(val->assign(va));
-      return 0;
-   }
-
-   AbstractQoreNode* n = typeInfo->acceptAssignment(desc, new QoreFloatNode(va), vl.xsink);
-   if (*vl.xsink) {
-      saveTemp(n);
-      return -1;
-   }
-
-   saveTemp(*v);
-   *v = n;
-   return 0;
-}
-*/
-
 int64 LValueHelper::plusEqualsBigInt(int64 va, const char* desc) {
    if (val)
       return val->plusEqualsBigInt(va, getTempRef());

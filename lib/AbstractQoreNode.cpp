@@ -524,26 +524,35 @@ AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, Exceptio
 
    if (ntype == NT_OPERATOR)
       return reinterpret_cast<const QoreOperatorNode*>(n)->copyBackground(xsink);
-   else if (ntype == NT_SELF_CALL)
+
+   if (ntype == NT_SELF_CALL)
       return crlr_selfcall_copy(reinterpret_cast<const SelfFunctionCallNode*>(n), xsink);
-   else if (ntype == NT_FUNCTION_CALL || ntype == NT_PROGRAM_FUNC_CALL)
+
+   if (ntype == NT_FUNCTION_CALL || ntype == NT_PROGRAM_FUNC_CALL)
       return crlr_fcall_copy(reinterpret_cast<const FunctionCallNode*>(n), xsink);
+
    // must make sure to return a value here or it could cause a segfault - parse expressions expect non-NULL values for the operands
-   else if (ntype == NT_FIND)
+   if (ntype == NT_FIND)
       return eval_notnull(n, xsink);
-   else if (ntype == NT_VARREF && reinterpret_cast<const VarRefNode*>(n)->getType() != VT_GLOBAL)
+
+   if (ntype == NT_VARREF && reinterpret_cast<const VarRefNode*>(n)->getType() != VT_GLOBAL)
       return eval_notnull(n, xsink);
-   else if (ntype == NT_FUNCREFCALL)
+
+   if (ntype == NT_FUNCREFCALL)
       return call_ref_call_copy(reinterpret_cast<const CallReferenceCallNode*>(n), xsink);
-   else if (ntype == NT_METHOD_CALL)
+
+   if (ntype == NT_METHOD_CALL)
       return crlr_mcall_copy(reinterpret_cast<const MethodCallNode*>(n), xsink);
-   else if (ntype == NT_STATIC_METHOD_CALL)
+
+   if (ntype == NT_STATIC_METHOD_CALL)
       return crlr_smcall_copy(reinterpret_cast<const StaticMethodCallNode*>(n), xsink);
-   else if (ntype == NT_PARSEREFERENCE)
+
+   if (ntype == NT_PARSEREFERENCE)
       return reinterpret_cast<const ParseReferenceNode*>(n)->evalToIntermediate(xsink);
+
    // ensure closures are evaluated in the parent thread so closure-bound local vars can be found and bound before
    // launching the background thread (fixes https://github.com/qorelanguage/qore/issues/12)
-   else if (ntype == NT_CLOSURE)
+   if (ntype == NT_CLOSURE)
       return reinterpret_cast<const QoreClosureParseNode*>(n)->evalBackground(xsink);
 
    return n->refSelf();
@@ -599,6 +608,8 @@ bool is_container(const AbstractQoreNode* n) {
       case NT_LIST:
       case NT_HASH:
 	 return true;
+      case NT_VALUE_LIST:
+	 assert(false);
    }
    return false;
 }
@@ -611,6 +622,7 @@ bool get_container_obj(const AbstractQoreNode* n) {
       case NT_LIST: return qore_list_private::getObjectCount(*static_cast<const QoreListNode*>(n)) ? true : false;
       case NT_HASH: return qore_hash_private::getObjectCount(*static_cast<const QoreHashNode*>(n)) ? true : false;
       case NT_OBJECT: return true;
+      case NT_VALUE_LIST: assert(false); return qore_value_list_private::getObjectCount(*static_cast<const QoreValueList*>(n)) ? true : false;
    }
 
    return false;
@@ -622,6 +634,7 @@ void inc_container_obj(const AbstractQoreNode* n, int dt) {
       case NT_LIST: qore_list_private::incObjectCount(*static_cast<const QoreListNode*>(n), dt); break;
       case NT_HASH: qore_hash_private::incObjectCount(*static_cast<const QoreHashNode*>(n), dt); break;
       case NT_OBJECT: qore_object_private::incObjectCount(*static_cast<const QoreObject*>(n), dt); break;
+      case NT_VALUE_LIST: assert(false); qore_value_list_private::incObjectCount(*static_cast<const QoreValueList*>(n), dt); break;
       default: assert(false);
    }
 }

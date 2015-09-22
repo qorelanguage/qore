@@ -34,7 +34,7 @@
 //! Methods in this pseudo-class can be executed on @ref closure "closures"
 /**
  */
-qclass <closure> [arg=const QoreClosureNode* c = v.get<QoreClosureNode>();vparent=<callref>];
+qclass <closure> [arg=const ResolvedCallReferenceNode* c = v.get<ResolvedCallReferenceNode>();vparent=<callref>];
 
 //! Returns Qore::NT_CLOSURE
 /**

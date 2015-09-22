@@ -891,11 +891,12 @@ void QoreValueListEvalOptionalRefHolder::evalIntern(const QoreListNode* exp) {
       return;
    }
    val = new QoreValueList;
+   needs_deref = true;
+
    ConstListIterator li(exp);
    while (li.next()) {
       const AbstractQoreNode* v = li.getValue();
-      qore_type_t t = get_node_type(v);
-      if (t < NUM_SIMPLE_TYPES || exp->is_value()) {
+      if (!v || v->is_value()) {
 	 QoreValue qv;
 	 qv.assignAndSanitize(v);
 	 val->push(qv.refSelf());
