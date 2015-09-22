@@ -525,7 +525,7 @@ my int $rows = $db.exec("insert into table (varchar_col, timestamp_col, blob_col
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
 any Datasource::exec(string sql, ...) {
-   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
+   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->getOldList(1) : 0), xsink);
    return ds->exec(sql, *argl, xsink);
 }
 
@@ -608,7 +608,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
     - @ref context
  */
 any Datasource::select(string sql, ...) {
-   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
+   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->getOldList(1) : 0), xsink);
    return ds->select(sql, *argl, xsink);
 }
 
@@ -635,7 +635,7 @@ my *hash $h = $db.selectRow("select * from example_table where id = 1");
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
 *hash Datasource::selectRow(string sql, ...) {
-   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
+   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->getOldList(1) : 0), xsink);
    return ds->selectRow(sql, *argl, xsink);
 }
 
@@ -667,7 +667,7 @@ my *list $list = $db.selectRows("select * from example_table");
     @see Datasource::select()
  */
 any Datasource::selectRows(string sql, ...) {
-   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
+   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->getOldList(1) : 0), xsink);
    return ds->selectRows(sql, *argl, xsink);
 }
 
@@ -791,7 +791,7 @@ my *hash $h = $db.describe("select * from example_table where id = 1");
     @since %Qore 0.8.9
  */
 *hash Datasource::describe(string sql, ...) {
-   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
+   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->getOldList(1) : 0), xsink);
    return ds->describe(sql, *argl, xsink);
 }
 

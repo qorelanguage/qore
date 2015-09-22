@@ -3433,7 +3433,7 @@ int qore_class_private::checkExistingVarMember(const char* dname, const QoreMemb
    return 0;
 }
 
-QoreValue qore_class_private::evalPseudoMethod(const AbstractQoreNode* n, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {
+QoreValue qore_class_private::evalPseudoMethod(const QoreValue n, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {
    QORE_TRACE("qore_class_private::evalPseudoMethod()");
 
    const QoreMethod* m = runtimeFindPseudoMethod(n, nme, xsink);
@@ -3445,7 +3445,7 @@ QoreValue qore_class_private::evalPseudoMethod(const AbstractQoreNode* n, const 
    return qore_method_private::evalPseudoMethod(m, 0, n, args, xsink);
 }
 
-QoreValue qore_class_private::evalPseudoMethod(const QoreMethod* m, const AbstractQoreFunctionVariant* variant, const AbstractQoreNode* n, const QoreListNode* args, ExceptionSink* xsink) const {
+QoreValue qore_class_private::evalPseudoMethod(const QoreMethod* m, const AbstractQoreFunctionVariant* variant, const QoreValue n, const QoreListNode* args, ExceptionSink* xsink) const {
    return qore_method_private::evalPseudoMethod(m, variant, n, args, xsink);
 }
 
@@ -4000,7 +4000,7 @@ QoreValue NormalMethodFunction::evalMethod(const AbstractQoreFunctionVariant* va
 }
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-QoreValue NormalMethodFunction::evalPseudoMethod(const AbstractQoreFunctionVariant* variant, const AbstractQoreNode* n, const QoreListNode* args, ExceptionSink* xsink) const {
+QoreValue NormalMethodFunction::evalPseudoMethod(const AbstractQoreFunctionVariant* variant, const QoreValue n, const QoreListNode* args, ExceptionSink* xsink) const {
    const char* mname = getName();
    CodeEvaluationHelper ceh(xsink, this, variant, mname, args, getClassName());
    if (*xsink)
@@ -4033,9 +4033,9 @@ QoreValue BuiltinNormalMethodVariantBase::evalMethod(QoreObject* self, CodeEvalu
    return qore_object_private::evalBuiltinMethodWithPrivateData(*self, *qmethod, this, ceh.getArgs(), ceh.getRuntimeFlags(), xsink);
 }
 
-QoreValue BuiltinNormalMethodVariantBase::evalPseudoMethod(const AbstractQoreNode* n, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
+QoreValue BuiltinNormalMethodVariantBase::evalPseudoMethod(const QoreValue n, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
    CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), 0, xsink);
-   return evalImpl(NULL, (AbstractPrivateData*)n, ceh.getArgs(), ceh.getRuntimeFlags(), xsink);
+   return evalImpl(NULL, (AbstractPrivateData*)&n, ceh.getArgs(), ceh.getRuntimeFlags(), xsink);
 }
 
 class qmi_priv {

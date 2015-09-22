@@ -340,7 +340,7 @@ my int $rows = $db.exec("insert into table (varchar_col, timestamp_col, blob_col
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
 any DatasourcePool::exec(string sql, ...) {
-   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->copyListFrom(1) : 0, xsink);
+   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->getOldList(1) : 0, xsink);
    return ds->exec(sql, *vargs, xsink);
 }
 
@@ -417,7 +417,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
     - @ref context
  */
 any DatasourcePool::select(string sql, ...) {
-   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->copyListFrom(1) : 0, xsink);
+   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->getOldList(1) : 0, xsink);
    return ds->select(sql, *vargs, xsink);
 }
 
@@ -443,7 +443,7 @@ my *hash $h = $db.selectRow("select * from example_table where id = 1");
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
 any DatasourcePool::selectRow(string sql, ...) {
-   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->copyListFrom(1) : 0, xsink);
+   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->getOldList(1) : 0, xsink);
    return ds->selectRow(sql, *vargs, xsink);
 }
 
@@ -471,7 +471,7 @@ my *list $list = $db.selectRows("select * from example_table");
     @see DatasourcePool::select()
  */
 any DatasourcePool::selectRows(string sql, ...) {
-   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->copyListFrom(1) : 0, xsink);
+   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->getOldList(1) : 0, xsink);
    return ds->selectRows(sql, *vargs, xsink);
 }
 

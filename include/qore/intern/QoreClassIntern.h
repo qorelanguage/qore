@@ -255,7 +255,7 @@ public:
    DLLLOCAL MethodVariant(bool n_priv_flag, bool n_final, int64 n_flags, bool n_is_user = false, bool is_abstract = false) : MethodVariantBase(n_priv_flag, n_final, n_flags, n_is_user, is_abstract) {
    }
    DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const = 0;
-   DLLLOCAL virtual QoreValue evalPseudoMethod(const AbstractQoreNode* n, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
+   DLLLOCAL virtual QoreValue evalPseudoMethod(const QoreValue n, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
       assert(false);
       return QoreValue();
    }
@@ -466,7 +466,7 @@ public:
 
    DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const;
 
-   DLLLOCAL virtual QoreValue evalPseudoMethod(const AbstractQoreNode* n, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const;
+   DLLLOCAL virtual QoreValue evalPseudoMethod(const QoreValue n, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const;
 
    DLLLOCAL virtual QoreValue evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) const = 0;
 };
@@ -812,7 +812,7 @@ public:
    DLLLOCAL QoreValue evalMethod(const AbstractQoreFunctionVariant* variant, QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const;
 
    // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-   DLLLOCAL QoreValue evalPseudoMethod(const AbstractQoreFunctionVariant* variant, const AbstractQoreNode* n, const QoreListNode* args, ExceptionSink* xsink) const;
+   DLLLOCAL QoreValue evalPseudoMethod(const AbstractQoreFunctionVariant* variant, const QoreValue n, const QoreListNode* args, ExceptionSink* xsink) const;
 };
 
 #define NMETHF(f) (reinterpret_cast<NormalMethodFunction*>(f))
@@ -2532,9 +2532,9 @@ public:
    DLLLOCAL void parseRollback();
    DLLLOCAL int addUserMethod(const char* mname, MethodVariantBase* f, bool n_static);
 
-   DLLLOCAL QoreValue evalPseudoMethod(const AbstractQoreNode* n, const char* name, const QoreListNode* args, ExceptionSink* xsink) const;
+   DLLLOCAL QoreValue evalPseudoMethod(const QoreValue n, const char* name, const QoreListNode* args, ExceptionSink* xsink) const;
 
-   DLLLOCAL QoreValue evalPseudoMethod(const QoreMethod* m, const AbstractQoreFunctionVariant* variant, const AbstractQoreNode* n, const QoreListNode* args, ExceptionSink* xsink) const;
+   DLLLOCAL QoreValue evalPseudoMethod(const QoreMethod* m, const AbstractQoreFunctionVariant* variant, const QoreValue n, const QoreListNode* args, ExceptionSink* xsink) const;
 
    DLLLOCAL const QoreMethod* parseResolveSelfMethodIntern(const char* nme) {
       const QoreMethod* m = parseFindLocalMethod(nme);
@@ -2548,19 +2548,19 @@ public:
       return m;
    }
 
-   const QoreMethod* runtimeFindPseudoMethod(const AbstractQoreNode* n, const char* nme, ExceptionSink* xsink) const {
+   const QoreMethod* runtimeFindPseudoMethod(const QoreValue n, const char* nme, ExceptionSink* xsink) const {
       const QoreMethod* w;
       bool priv_flag = false;
 
       if (!(w = runtimeFindCommittedMethod(nme, priv_flag))) {
-         qore_type_t t = get_node_type(n);
+         qore_type_t t = n.getType();
          // throw an exception
          if (t == NT_OBJECT) {
-            const char* cname = reinterpret_cast<const QoreObject*>(n)->getClassName();
+            const char* cname = n.get<const QoreObject>()->getClassName();
             xsink->raiseException("METHOD-DOES-NOT-EXIST", "no method %s::%s() has been defined and no pseudo-method %s::%s() is available", cname, nme, name.c_str(), nme);
          }
          else
-            xsink->raiseException("PSEUDO-METHOD-DOES-NOT-EXIST", "no pseudo method <%s>::%s() has been defined", get_type_name(n), nme);
+            xsink->raiseException("PSEUDO-METHOD-DOES-NOT-EXIST", "no pseudo method <%s>::%s() has been defined", n.getTypeName(), nme);
          return 0;
       }
 
@@ -2871,11 +2871,11 @@ public:
       return qc->priv->parseFindAnyMethodIntern(mname, priv);
    }
 
-   DLLLOCAL static QoreValue evalPseudoMethod(const QoreClass* qc, const AbstractQoreNode* n, const char* name, const QoreListNode* args, ExceptionSink* xsink) {
+   DLLLOCAL static QoreValue evalPseudoMethod(const QoreClass* qc, const QoreValue n, const char* name, const QoreListNode* args, ExceptionSink* xsink) {
       return qc->priv->evalPseudoMethod(n, name, args, xsink);
    }
 
-   DLLLOCAL static QoreValue evalPseudoMethod(const QoreClass* qc, const QoreMethod* m, const AbstractQoreFunctionVariant* variant, const AbstractQoreNode* n, const QoreListNode* args, ExceptionSink* xsink) {
+   DLLLOCAL static QoreValue evalPseudoMethod(const QoreClass* qc, const QoreMethod* m, const AbstractQoreFunctionVariant* variant, const QoreValue n, const QoreListNode* args, ExceptionSink* xsink) {
       return qc->priv->evalPseudoMethod(m, variant, n, args, xsink);
    }
 
@@ -3021,7 +3021,7 @@ public:
       return SMETHF(func)->evalMethod(0, args, xsink);
    }
 
-   DLLLOCAL QoreValue evalPseudoMethod(const AbstractQoreFunctionVariant* variant, const AbstractQoreNode* n, const QoreListNode* args, ExceptionSink* xsink) const {
+   DLLLOCAL QoreValue evalPseudoMethod(const AbstractQoreFunctionVariant* variant, const QoreValue n, const QoreListNode* args, ExceptionSink* xsink) const {
       QORE_TRACE("qore_method_private::evalPseudoMethod()");
 
       assert(!static_flag);
@@ -3037,7 +3037,7 @@ public:
       return m.priv->evalNormalVariant(self, ev, args, xsink);
    }
 
-   DLLLOCAL static QoreValue evalPseudoMethod(const QoreMethod* m, const AbstractQoreFunctionVariant* variant, const AbstractQoreNode* n, const QoreListNode* args, ExceptionSink* xsink) {
+   DLLLOCAL static QoreValue evalPseudoMethod(const QoreMethod* m, const AbstractQoreFunctionVariant* variant, const QoreValue n, const QoreListNode* args, ExceptionSink* xsink) {
       return m->priv->evalPseudoMethod(variant, n, args, xsink);
    }
 

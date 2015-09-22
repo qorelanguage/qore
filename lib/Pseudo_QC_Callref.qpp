@@ -32,12 +32,12 @@
 #include <qore/Qore.h>
 
 //! Methods in this pseudo-class can be executed on @ref call_reference "call references"
-/** 
+/**
  */
-qclass <callref> [arg=const ResolvedCallReferenceNode* c;vparent=<value>];
+qclass <callref> [arg=const ResolvedCallReferenceNode* c = v.get<ResolvedCallReferenceNode>();vparent=<value>];
 
 //! Returns Qore::NT_CALLREF
-/** 
+/**
     @par Example:
     @code
 switch ($c.typeCode()) {

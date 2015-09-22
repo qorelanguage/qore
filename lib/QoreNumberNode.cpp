@@ -510,22 +510,27 @@ unsigned QoreNumberNode::getPrec() const {
    return priv->getPrec();
 }
 
-QoreNumberNode* QoreNumberNode::toNumber(const AbstractQoreNode* n) {
-   qore_type_t t = get_node_type(n);
+QoreNumberNode* QoreNumberNode::toNumber(const QoreValue n) {
+   qore_type_t t = n.getType();
 
    if (t == NT_NUMBER)
-      return reinterpret_cast<const QoreNumberNode*>(n)->numberRefSelf();
+      return n.get<const QoreNumberNode>()->numberRefSelf();
 
    if (t == NT_FLOAT)
-      return new QoreNumberNode(reinterpret_cast<const QoreFloatNode*>(n)->f);
+      return new QoreNumberNode(n.getAsFloat());
 
    if (t == NT_STRING)
-      return new QoreNumberNode(reinterpret_cast<const QoreStringNode*>(n)->getBuffer());
+      return new QoreNumberNode(n.get<const QoreStringNode>()->getBuffer());
 
-   if (t == NT_INT || (t > QORE_NUM_TYPES && dynamic_cast<const QoreBigIntNode*>(n)))
-      return new QoreNumberNode(reinterpret_cast<const QoreBigIntNode*>(n)->val);
+   if (t == NT_INT)
+      return new QoreNumberNode(n.getAsBigInt());
 
-   return new QoreNumberNode(n ? n->getAsFloat() : 0.0);
+   return new QoreNumberNode(n.getAsFloat());
+}
+
+QoreNumberNode* QoreNumberNode::toNumber(const AbstractQoreNode* n) {
+   QoreValue v(n);
+   return toNumber(v);
 }
 
 bool QoreNumberNode::nan() const {

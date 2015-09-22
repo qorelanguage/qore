@@ -41,12 +41,12 @@ extern QoreClass* QC_HASHKEYITERATOR;
 extern QoreClass* QC_HASHPAIRITERATOR;
 
 //! Methods in this pseudo-class can be executed on @ref hash "hash values"
-/** 
+/**
  */
-qclass <hash> [arg=const QoreHashNode* h;vparent=<value>];
+qclass <hash> [arg=const QoreHashNode* h = v.get<QoreHashNode>();vparent=<value>];
 
 //! Returns Qore::NT_HASH
-/** 
+/**
     @return Qore::NT_HASH
 
     @par Example:
@@ -65,7 +65,7 @@ int <hash>::typeCode() [flags=CONSTANT] {
 }
 
 //! Returns a list of key names of the hash
-/** 
+/**
     @return a list of key names of the hash
 
     @par Example:
@@ -82,7 +82,7 @@ list <hash>::keys() [flags=CONSTANT] {
 }
 
 //! Returns a list of values of the hash
-/** 
+/**
     @return a list of values of the hash
 
     @par Example:
@@ -93,7 +93,7 @@ my list $l = $h.values();
     @note
     - equivalent to hash_values()
     - this pseudo-method is also implemented in Qore::zzz8nothingzzz9, so it's safe to use where the value could be a hash or @ref nothing (ex: @ref hash_or_nothing_type "*hash")
-    
+
     @see <hash>::keys()
  */
 list <hash>::values() [flags=CONSTANT] {
@@ -107,7 +107,7 @@ list <hash>::values() [flags=CONSTANT] {
 }
 
 //! Returns the first key name in the hash or @ref nothing if the hash has no keys
-/** 
+/**
     @return the first key name in the hash or @ref nothing if the hash has no keys
 
     @par Example:
@@ -125,7 +125,7 @@ my *string $n = $h.firstKey();
 }
 
 //! Returns the value assigned to the first key in the hash if any or @ref nothing if the hash has no keys
-/** 
+/**
     @return the value assigned to the first key in the hash if any or @ref nothing if the hash has no keys
 
     @par Example:
@@ -143,7 +143,7 @@ any <hash>::firstValue() [flags=CONSTANT] {
 }
 
 //! Returns the last key name in the hash or @ref nothing if the hash has no keys
-/** 
+/**
     @return the last key name in the hash or @ref nothing if the hash has no keys
 
     @par Example:
@@ -161,7 +161,7 @@ my *string $n = $h.lastKey();
 }
 
 //! Returns the value assigned to the last key in the hash if any or @ref nothing if the hash has no keys
-/** 
+/**
     @return the value assigned to the last key in the hash if any or @ref nothing if the hash has no keys
 
     @par Example:
@@ -179,7 +179,7 @@ any <hash>::lastValue() [flags=CONSTANT] {
 }
 
 //! Returns @ref True if the key exists in the hash (may or may not be assigned a value), @ref False if not
-/** 
+/**
     @param key the key name to check
 
     @return @ref True if the key exists in the hash (may or may not be assigned a value), @ref False if not
@@ -202,7 +202,7 @@ bool <hash>::hasKey(softstring key) [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns @ref True if the key exists and is assigned to a value, @ref False if not
-/** 
+/**
     @param key the key name to check
 
     @return @ref True if the key exists and is assigned to a value, @ref False if not
@@ -225,7 +225,7 @@ bool <hash>::hasKeyValue(softstring key) [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns @ref True if the hash has no keys, @ref False if it does
-/** 
+/**
     @return @ref True if the hash has no keys, @ref False if it does
 
     @par Example:

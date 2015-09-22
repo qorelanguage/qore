@@ -36,18 +36,18 @@
 // the c++ object
 class SingleValueIterator : public QoreIteratorBase {
 protected:
-   AbstractQoreNode* val;
+   QoreValue val;
    bool validp;
 
 public:
-   DLLLOCAL SingleValueIterator(const AbstractQoreNode* v) : val(!is_nothing(v) ? v->refSelf() : 0), validp(false) {
+   DLLLOCAL SingleValueIterator(const QoreValue v) : val(v->refSelf()), validp(false) {
    }
 
-   DLLLOCAL SingleValueIterator(const SingleValueIterator& old) : val(old.val ? old.val->refSelf() : 0), validp(old.validp) {
+   DLLLOCAL SingleValueIterator(const SingleValueIterator& old) : val(old.val->refSelf()), validp(old.validp) {
    }
 
    DLLLOCAL bool next() {
-      if (!val)
+      if (val.isNothing())
          return false;
       return (validp = !validp);
    }
@@ -61,7 +61,7 @@ public:
    }
 
    DLLLOCAL AbstractQoreNode* getValue() {
-      return val ? val->refSelf() : 0;
+      return val.getReferencedValue();
    }
 
    DLLLOCAL bool valid() const {

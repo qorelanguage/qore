@@ -35,7 +35,7 @@
 //! Methods in this pseudo-class can be executed on @ref date "date/time value types"
 /**
  */
-qclass <date> [arg=const DateTimeNode *dt;vparent=<value>];
+qclass <date> [arg=const DateTimeNode *dt = v.get<DateTimeNode>();vparent=<value>];
 
 //! Returns Qore::NT_DATE
 /**
@@ -633,4 +633,3 @@ string <date>::isoWeekString() [flags=CONSTANT] {
    str->sprintf("%04d-W%02d-%d", year, week, day);
    return str;
 }
-

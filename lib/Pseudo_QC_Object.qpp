@@ -41,12 +41,12 @@ extern QoreClass* QC_OBJECTKEYITERATOR;
 extern QoreClass* QC_OBJECTPAIRITERATOR;
 
 //! Methods in this pseudo-class can be executed on @ref object "objects"
-/** 
+/**
  */
-qclass <object> [arg=QoreObject* obj;vparent=<value>];
+qclass <object> [arg=QoreObject* obj = v.get<QoreObject>();vparent=<value>];
 
 //! Returns Qore::NT_OBJECT
-/** 
+/**
     @return Qore::NT_OBJECT
 
     @par Example:
@@ -63,7 +63,7 @@ int <object>::typeCode() [flags=CONSTANT] {
 }
 
 //! Returns a list of member names of the object; if called from outside the object, only public members are returned
-/** 
+/**
     @return a list of member names of the object; if called from outside the object, only public members are returned
 
     @par Example:
@@ -76,7 +76,7 @@ list <object>::keys() [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns the first member name in the object or @ref nothing if the object has no members; if called from outside the object, the first public member name is returned (if any)
-/** 
+/**
     @return the first member name in the object or @ref nothing if the object has no members; if called from outside the object, the first public member name is returned (if any)
 
     @par Example:
@@ -91,7 +91,7 @@ my *string $n = $o.firstKey();
 }
 
 //! Returns the last member name in the object or @ref nothing if the object has no members; if called from outside the object, the last public member name is returned (if any)
-/** 
+/**
     @return the last member name in the object or @ref nothing if the object has no members; if called from outside the object, the last public member name is returned (if any)
 
     @par Example:
@@ -120,7 +120,7 @@ bool <object>::empty() [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns the number of members in the object, public and private
-/** 
+/**
     @return the number of members in the object, public and private
 
     @par Example:
@@ -135,7 +135,7 @@ int <object>::size() [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns the class name of the object
-/** 
+/**
     @return the class name of the object
 
     @par Example:
@@ -150,7 +150,7 @@ string <object>::className() [flags=CONSTANT] {
 }
 
 //! Returns @ref True if the object is a system object (ie a constant object like @ref stdin, etc), @ref False if not
-/** 
+/**
     @return @ref True if the object is a system object (ie a constant object like @ref stdin, etc), @ref False if not
 
     @par Example:

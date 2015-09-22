@@ -40,7 +40,7 @@ extern QoreClass* QC_RANGEITERATOR;
 //! Methods in this pseudo-class can be executed on @ref list "lists"
 /**
  */
-qclass <list> [arg=const QoreListNode* l;vparent=<value>];
+qclass <list> [arg=const QoreListNode* l = v.get<const QoreListNode>();vparent=<value>];
 
 //! Returns Qore::NT_LIST
 /**

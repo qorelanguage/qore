@@ -395,7 +395,7 @@ static int missing_value_error(const char* fileName, unsigned lineNumber, const 
 static int add_element(const char* fileName, unsigned lineNumber, const std::string& propstr, strmap_t& props, size_t start, size_t end) {
    size_t eq = propstr.find('=', start);
    if (eq == std::string::npos || eq >= end)
-      return missing_value_error(fileName, lineNumber, propstr);
+      return 0;
    while (start < eq && propstr[start] == ' ')
       ++start;
    if (start == eq) {
@@ -2370,6 +2370,8 @@ public:
 
 class Method : public CodeBase {
 protected:
+   std::string pseudo_arg;
+
    void serializeCppConstructor(FILE* fp, const char* cname) const {
       serializeQoreConstructorPrototypeComment(fp, cname);
       if (use_value)
@@ -2476,8 +2478,10 @@ public:
    Method(const std::string& fn, const std::string& n_name, attr_t n_attr, const paramlist_t& n_params,
           const std::string& n_docs, const std::string& n_return_type,
           const strlist_t& n_flags, const strlist_t& n_dom, const std::string& n_code,
-          unsigned n_line, bool n_doconly) : CodeBase(fn, n_name, n_attr, n_params, n_docs, n_return_type,
+          unsigned n_line, bool n_doconly, const char* n_pseudo_arg) : CodeBase(fn, n_name, n_attr, n_params, n_docs, n_return_type,
                                                       n_flags, n_dom, n_code, n_line, n_doconly) {
+      if (n_pseudo_arg)
+         pseudo_arg = n_pseudo_arg;
       //printf("Method::Method() %s:%d '%s'\n", fn.c_str(), line, name.c_str());
    }
 
@@ -2513,6 +2517,8 @@ public:
       else
          fprintf(fp, "static %s %s_%s(QoreObject* self, %s, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {\n", getReturnType(), cname, vname.c_str(), arg);
       serializeArgs(fp, cname);
+      if (!pseudo_arg.empty())
+         fprintf(fp, "   %s;\n", pseudo_arg.c_str());
       fprintf(fp, "# %d \"%s\"\n", line, fileName.c_str());
       output_file(fp, code);
 
@@ -2793,7 +2799,7 @@ public:
          valid = false;
       }
 
-      if (arg.empty()) {
+      if (arg.empty() && !is_pseudo) {
          valid = false;
          error("class '%s' has no 'arg' property\n", name.c_str());
       }
@@ -2845,9 +2851,14 @@ public:
 
       //log(LL_INFO, "+ method %s::%s() attr: 0x%x (static: %d)\n", name.c_str(), mname.c_str(), attr, attr & QCA_STATIC);
 
+      if (attr & QCA_STATIC && is_pseudo) {
+         error("pseudo class '%s' cannot define static method '%s'\n", name.c_str(), mname.c_str());
+         return -1;
+      }
+
       mmap_t& mmap = (attr & QCA_STATIC) ? static_mmap : normal_mmap;
 
-      Method* m = new Method(fileName, mname, attr, params, doc, return_type, cf, dom, code, line, doconly);
+      Method* m = new Method(fileName, mname, attr, params, doc, return_type, cf, dom, code, line, doconly, is_pseudo ? arg.c_str() : 0);
       mmap.insert(mmap_t::value_type(mname, m));
       return !*m;
    }
@@ -2876,7 +2887,7 @@ public:
       fprintf(fp, "qore_classid_t CID_%s;\nQoreClass* QC_%s;\n\n", UC.c_str(), UC.c_str());
 
       for (mmap_t::const_iterator i = normal_mmap.begin(), e = normal_mmap.end(); i != e; ++i) {
-         i->second->serializeNormalCppMethod(fp, lname.c_str(), arg.c_str());
+         i->second->serializeNormalCppMethod(fp, lname.c_str(), is_pseudo ? "const QoreValue& v" : arg.c_str());
       }
 
       for (mmap_t::const_iterator i = static_mmap.begin(), e = static_mmap.end(); i != e; ++i) {
