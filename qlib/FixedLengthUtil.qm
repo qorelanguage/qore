@@ -25,7 +25,6 @@
 # minimum required Qore version
 %requires qore >= 0.8.12
 %requires Util
-%requires TextUtil
 %require-types
 %enable-all-warnings
 %new-style
@@ -610,11 +609,12 @@ while (i.next()) {
 }
 
 #! Structured abstract writer for fixed-length lines
-public class FixedLengthUtil::FixedLengthAbstractWriter inherits TextUtil::AbstractTextWriter {
+public class FixedLengthUtil::FixedLengthAbstractWriter {
     private {
         hash m_specs;
         string m_state;
         int m_linescount = 0;
+        hash m_opts = {};
     }
 
     #! creates the FixedLengthAbstractWriter object
@@ -622,7 +622,7 @@ public class FixedLengthUtil::FixedLengthAbstractWriter inherits TextUtil::Abstr
         @param specs Fixed-length line specification; see @ref fixedlengthspec for more information
         @param opts Global options; see @ref fixedlengthglobals for valid values
     */
-    constructor(hash specs, *hash opts) : TextUtil::AbstractTextWriter((opts.eol ? ("eol": opts.eol) : {})) {
+    constructor(hash specs, *hash opts) {
         m_specs = specs;
         delete opts.eol;
         m_opts = m_opts + checkOptions(opts);
