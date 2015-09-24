@@ -1010,6 +1010,15 @@ else
     CPPFLAGS="$CPPFLAGS $QORE_LIB_CPPFLAGS $OPENSSL_CPPFLAGS"
     LIBS="$LIBS $QORE_LIB_LDFLAGS $OPENSSL_LDFLAGS"
 
+    # check for SHA-0 algorithm
+    AC_MSG_CHECKING([for SHA0 in openssl])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM(
+    [[#include <openssl/evp.h>]],
+    [[const EVP_MD *evp = EVP_sha();]])],
+       [AC_MSG_RESULT([found])
+        AC_DEFINE([HAVE_OPENSSL_SHA], 1, [define if the sha0 algorithm is available in openssl])],
+       [AC_MSG_RESULT([not found])])
+
     # check for SHA512 algorithm
     AC_MSG_CHECKING([for SHA224, SHA256, SHA384, SHA512 in openssl])
     AC_LINK_IFELSE([AC_LANG_PROGRAM(

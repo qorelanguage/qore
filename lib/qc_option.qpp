@@ -147,6 +147,12 @@
 #define QORE_CONST_HAVE_STRUCT_FLOCK 0
 #endif
 
+#ifdef HAVE_OPENSSL_SHA
+#define QORE_CONST_HAVE_SHA 1
+#else
+#define QORE_CONST_HAVE_SHA 0
+#endif
+
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
 #define QORE_CONST_HAVE_SHA256 1
 #else
@@ -292,6 +298,9 @@ const HAVE_FILE_LOCKING = bool(QORE_CONST_HAVE_STRUCT_FLOCK);
 
 //! Indicates if the %Qore library supports deterministic garbage collection for managing circular references between objects
 const HAVE_DETERMINISTIC_GC = bool(1);
+
+//! Indicates if the openssl library used to build the qore library supported the SHA0 algorithm and therefore if the SHA() and SHA_bin() functions are available
+const HAVE_SHA = bool(QORE_CONST_HAVE_SHA);
 
 //! Indicates if the openssl library used to build the qore library supported the SHA224 algorithm and therefore if the SHA224() and SHA224_bin() functions are available
 const HAVE_SHA224 = bool(QORE_CONST_HAVE_SHA256);

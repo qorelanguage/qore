@@ -117,6 +117,7 @@
 /* OpenSSL */
 
 #cmakedefine HAVE_OPENSSL_SHA512
+#cmakedefine HAVE_OPENSSL_SHA
 #cmakedefine HAVE_OPENSSL_CONST
 #cmakedefine NEED_SSL_CTX_NEW_CONST
 #cmakedefine HAVE_OPENSSL_HMAC_RV

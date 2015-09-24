@@ -1140,11 +1140,16 @@ my string $str = SHA("hello"); returns "ac62a630ca850b4ea07eda664eaecf9480843152
     @see SHA_bin()
  */
 string SHA(data[doc] data) [flags=RET_VALUE_ONLY] {
+#ifdef HAVE_OPENSSL_SHA
    DigestHelper dh(args);
    if (dh.doDigest(SHA_ERR, EVP_sha(), xsink))
       return 0;
 
    return dh.getString();
+#else
+   missing_openssl_feature("SHA", xsink);
+   return 0;
+#endif
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/SHA-1">SHA1</a> message digest of the supplied argument as a hex string
@@ -1502,11 +1507,16 @@ my binary $bin = SHA_bin("hello");
     @see SHA()
  */
 binary SHA_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
+#ifdef HAVE_OPENSSL_SHA
    DigestHelper dh(args);
    if (dh.doDigest(SHA_ERR, EVP_sha(), xsink))
       return 0;
    
    return dh.getBinary();
+#else
+   missing_openssl_feature("SHA", xsink);
+   return 0;
+#endif
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/SHA-1">SHA1</a> message digest of the supplied argument as a binary object
@@ -1884,11 +1894,17 @@ my string $str = SHA_hmac("Hello There This is a Test - 1234567890", "a key");
     @throw SHA-HMAC-ERROR error calculating digest (should not normally happen)
  */
 string SHA_hmac(data[doc] data, string key) {
+#ifdef HAVE_OPENSSL_SHA
    HMACHelper dh(args);
    if (dh.doHMAC("SHA-HMAC-ERROR", EVP_sha(), key, xsink))
       return 0;
 
    return dh.getString();
+#else
+   (void)key;
+   missing_openssl_feature("SHA", xsink);
+   return 0;
+#endif
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA1</a> based HMAC of the supplied argument as a hex string

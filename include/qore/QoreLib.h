@@ -383,6 +383,8 @@ DLLEXPORT const char* tz_get_region_name(const AbstractQoreZoneInfo* tz);
 #define QORE_OPT_RUNTIME_STACK_TRACE     "runtime stack tracing"
 //! option: library debugging
 #define QORE_OPT_LIBRARY_DEBUGGING       "library debugging"
+//! option: ssh0 algorithm supported (depends on openssl used to compile qore)
+#define QORE_OPT_SHA                     "openssl sha"
 //! option: ssh224 algorithm supported (depends on openssl used to compile qore)
 #define QORE_OPT_SHA224                  "openssl sha224"
 //! option: ssh256 algorithm supported (depends on openssl used to compile qore) 

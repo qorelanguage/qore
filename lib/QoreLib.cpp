@@ -213,6 +213,15 @@ const qore_option_s qore_option_list_l[] = {
      QO_OPTION,
      true
    },
+   { QORE_OPT_SHA,
+     "HAVE_SHA",
+     QO_ALGORITHM,
+#ifdef HAVE_OPENSSL_SHA
+     true
+#else
+     false
+#endif
+   },
    { QORE_OPT_SHA224,
      "HAVE_SSH224",
      QO_ALGORITHM,
