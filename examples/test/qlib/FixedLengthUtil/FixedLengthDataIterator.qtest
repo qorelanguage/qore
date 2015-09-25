@@ -4,7 +4,6 @@
 %enable-all-warnings
 
 %requires ../../../../qlib/QUnit.qm
-%requires ../../../../qlib/TextUtil.qm
 %requires ../../../../qlib/FixedLengthUtil.qm
 
 %exec-class Test

@@ -161,6 +161,10 @@ typedef std::vector<Param> paramlist_t;
 
 #define BUFSIZE 1024
 
+static bool idchar(const char c) {
+   return isalnum(c) || c == '_';
+}
+
 static int my_vsprintf(std::string& buf, const char* fmt, va_list args) {
    if (buf.size() < BUFSIZE)
       buf.resize(BUFSIZE);
@@ -2371,6 +2375,7 @@ public:
 class Method : public CodeBase {
 protected:
    std::string pseudo_arg;
+   std::string pseudo_var;
 
    void serializeCppConstructor(FILE* fp, const char* cname) const {
       serializeQoreConstructorPrototypeComment(fp, cname);
@@ -2480,8 +2485,41 @@ public:
           const strlist_t& n_flags, const strlist_t& n_dom, const std::string& n_code,
           unsigned n_line, bool n_doconly, const char* n_pseudo_arg) : CodeBase(fn, n_name, n_attr, n_params, n_docs, n_return_type,
                                                       n_flags, n_dom, n_code, n_line, n_doconly) {
-      if (n_pseudo_arg)
+      if (n_pseudo_arg && n_pseudo_arg[0]) {
          pseudo_arg = n_pseudo_arg;
+         int i = pseudo_arg.find('=');
+         if (i != std::string::npos) {
+            bool valid = true;
+            --i;
+            bool found = false;
+            size_t end = 0;
+            while (true) {
+               if (!i) {
+                  valid = false;
+                  break;
+               }
+               if (found) {
+                  if (pseudo_arg[i] == ' ' || pseudo_arg[i] == '*') {
+                     ++i;
+                     break;
+                  }
+               }
+               else if (pseudo_arg[i] != ' ') {
+                  end = i + 1;
+                  found = true;
+               }
+               --i;
+            }
+
+            if (!valid) {
+               error("cannot find pseudo var name in '%s'\n", pseudo_arg.c_str());
+               exit(1);
+            }
+
+            pseudo_var = pseudo_arg.substr(i, end - i);
+            //printf("Method::Method() %s:%d '%s' pseudo_arg: '%s' pseudo_var: '%s'\n", fn.c_str(), line, name.c_str(), pseudo_arg.c_str(), pseudo_var.c_str());
+         }
+      }
       //printf("Method::Method() %s:%d '%s'\n", fn.c_str(), line, name.c_str());
    }
 
@@ -2517,9 +2555,29 @@ public:
       else
          fprintf(fp, "static %s %s_%s(QoreObject* self, %s, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {\n", getReturnType(), cname, vname.c_str(), arg);
       serializeArgs(fp, cname);
-      if (!pseudo_arg.empty())
-         fprintf(fp, "   %s;\n", pseudo_arg.c_str());
-      fprintf(fp, "# %d \"%s\"\n", line, fileName.c_str());
+      if (!pseudo_arg.empty()) {
+         bool found = false;
+         // see if the pseudo arg is referenced
+         size_t i = 0;
+         //printf("code: %s var: %s\n", code.c_str(), pseudo_var.c_str());
+         while (true) {
+            i = code.find(pseudo_var, i);
+            if (i == std::string::npos)
+               break;
+            //printf("testing %c and %c (%s)\n", code[i - 1], code[i + pseudo_var.size()], pseudo_var.c_str());
+            if ((!i || !idchar(code[i - 1])) &&
+                ((i + pseudo_var.size() == code.size()) || !idchar(code[i + pseudo_var.size()]))) {
+               found = true;
+               break;
+            }
+            ++i;
+            if (i == code.size())
+               break;
+         }
+         if (found)
+            fprintf(fp, "   %s;\n", pseudo_arg.c_str());
+      }
+      fprintf(fp, "# %d \"%s\"\n   ", line, fileName.c_str());
       output_file(fp, code);
 
       if (!has_return)
