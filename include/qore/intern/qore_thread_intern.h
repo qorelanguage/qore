@@ -418,6 +418,7 @@ DLLLOCAL void advanceOnBlockExit();
 
 DLLLOCAL LocalVarValue* thread_instantiate_lvar();
 DLLLOCAL void thread_uninstantiate_lvar(ExceptionSink* xsink);
+DLLLOCAL void thread_uninstantiate_self();
 
 DLLLOCAL void thread_set_closure_parse_env(ClosureParseEnvironment* cenv);
 DLLLOCAL ClosureParseEnvironment* thread_get_closure_parse_env();
@@ -588,6 +589,7 @@ private:
    const char* old_code;
    ClassObj old;
    ExceptionSink* xsink;
+   bool do_ref;
 
 public:
    DLLLOCAL CodeContextHelper(const char* code, ClassObj obj, ExceptionSink* xs);
@@ -784,7 +786,7 @@ public:
    CallNode* next, *prev;
 
    DLLLOCAL CallNode(const char* f, int t, ClassObj o);
-   DLLLOCAL void objectDeref(ExceptionSink* xsink);
+   //DLLLOCAL void objectDeref(ExceptionSink* xsink);
    DLLLOCAL QoreHashNode* getInfo() const;
 };
 

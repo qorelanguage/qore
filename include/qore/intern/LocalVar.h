@@ -121,7 +121,7 @@ public:
          return 0;
 
       finalized = true;
-      
+
       return val.removeNode(true);
    }
 };
@@ -141,8 +141,8 @@ struct SkipHelper {
 
 class LocalVarValue : public VarValueBase {
 public:
-   DLLLOCAL void set(const char* n_id, const QoreTypeInfo* typeInfo, QoreValue nval) {
-      //printd(5, "LocalVarValue::set() this: %p id: '%s' type: '%s' code: %d\n", this, n_id, typeInfo->getName(), nval.getType());
+   DLLLOCAL void set(const char* n_id, const QoreTypeInfo* typeInfo, QoreValue nval, bool static_assignment = false) {
+      //printd(5, "LocalVarValue::set() this: %p id: '%s' type: '%s' code: %d static_assignment: %d\n", this, n_id, typeInfo->getName(), nval.getType(), static_assignment);
       assert(!finalized);
       skip = false;
       id = n_id;
@@ -152,11 +152,15 @@ public:
 
       // no exception is possible here as there was no previous value
       // also since only basic value types could be returned, no exceptions can occur with the value passed either
-      discard(val.assignInitial(nval), 0);
+      discard(val.assignAssumeInitial(nval, static_assignment), 0);
    }
 
    DLLLOCAL void uninstantiate(ExceptionSink* xsink) {
       del(xsink);
+   }
+
+   DLLLOCAL void uninstantiateSelf() {
+      val.unassignIgnore();
    }
 
    DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove) const;
@@ -189,7 +193,7 @@ public:
 
       //printd(5, "ClosureVarValue::ClosureVarValue() this: %p pgm: %p val: %s\n", this, getProgram(), nval.getTypeName());
       // also since only basic value types could be returned, no exceptions can occur with the value passed either
-      discard(val.assignInitial(nval), 0);
+      discard(val.assignAssumeInitial(nval), 0);
    }
 
 #if 0
@@ -200,7 +204,7 @@ public:
 
    DLLLOCAL void ref() const {
       //printd(5, "ClosureVarValue::ref() this: %p refs: %d -> %d val: %s\n", this, references, references + 1, val.getTypeName());
-      ROreference(); 
+      ROreference();
    }
 
    DLLLOCAL void deref(ExceptionSink* xsink);
@@ -212,7 +216,7 @@ public:
       ref();
       return const_cast<ClosureVarValue*>(this);
    }
-   
+
    // sets the current variable to finalized, sets the value to 0, and returns the value held (for dereferencing outside the lock)
    DLLLOCAL AbstractQoreNode* finalize() {
       QoreSafeVarRWWriteLocker sl(this);
@@ -282,10 +286,11 @@ public:
          thread_instantiate_closure_var(name.c_str(), typeInfo, nval);
    }
 
-   DLLLOCAL void instantiate_object(QoreObject* value) const {
-      //printd(5, "LocalVar::instantiate_object(%p) this=%p '%s'\n", value, this, name.c_str());
-      instantiate(value);
-      value->ref();
+   DLLLOCAL void instantiateSelf(QoreObject* value) const {
+      //printd(5, "LocalVar::instantiateSelf(%p) this: %p '%s'\n", value, this, name.c_str());
+      assert(!closure_use);
+      LocalVarValue* val = thread_instantiate_lvar();
+      val->set(name.c_str(), typeInfo, value, true);
    }
 
    DLLLOCAL void uninstantiate(ExceptionSink* xsink) const  {
@@ -295,6 +300,11 @@ public:
          thread_uninstantiate_lvar(xsink);
       else
          thread_uninstantiate_closure_var(xsink);
+   }
+
+   DLLLOCAL void uninstantiateSelf() const  {
+      assert(!closure_use);
+      thread_uninstantiate_self();
    }
 
    DLLLOCAL QoreValue evalValue(bool& needs_deref, ExceptionSink* xsink) const {
@@ -319,7 +329,7 @@ public:
       closure_use = true;
    }
 
-   DLLLOCAL bool closureUse() const { 
+   DLLLOCAL bool closureUse() const {
       return closure_use;
    }
 

@@ -576,7 +576,7 @@ public:
    */
 
    DLLLOCAL AbstractQoreNode* removeNode(bool for_del);
-   DLLLOCAL QoreValue remove();
+   DLLLOCAL QoreValue remove(bool& static_assignment);
 
    DLLLOCAL void setDelta(int dt) {
       assert(!rdt);
@@ -589,7 +589,7 @@ private:
    // not implemented
    DLLLOCAL LValueRemoveHelper(const LValueRemoveHelper&);
    DLLLOCAL LValueRemoveHelper& operator=(const LValueRemoveHelper&);
-   DLLLOCAL void *operator new(size_t);
+   DLLLOCAL void* operator new(size_t);
 
 protected:
    ExceptionSink* xsink;
@@ -623,7 +623,7 @@ public:
    }
 
    DLLLOCAL AbstractQoreNode* removeNode();
-   DLLLOCAL QoreValue remove();
+   DLLLOCAL QoreValue remove(bool& static_assignment);
 
    DLLLOCAL void deleteLValue();
 };

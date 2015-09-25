@@ -1264,7 +1264,7 @@ QoreValue UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &argv, QoreO
    if (statements) {
       if (signature.selfid) {
 	 assert(self);
-         signature.selfid->instantiate_object(self);
+         signature.selfid->instantiateSelf(self);
       }
 
       // instantiate argv and push id on stack
@@ -1289,7 +1289,7 @@ QoreValue UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &argv, QoreO
 
       // if self then uninstantiate
       if (signature.selfid)
-         signature.selfid->uninstantiate(xsink);
+         signature.selfid->uninstantiateSelf();
    }
    else {
       argv = 0; // dereference argv now

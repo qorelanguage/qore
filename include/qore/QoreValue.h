@@ -150,6 +150,8 @@ public:
 
    DLLEXPORT double getAsFloat() const;
 
+   DLLEXPORT void ref() const;
+
    DLLEXPORT QoreValue refSelf() const;
 
    DLLEXPORT AbstractQoreNode* getInternalNode();
@@ -306,6 +308,17 @@ public:
 
    //! returns true if the value is temporary (needs dereferencing)
    DLLLOCAL bool isTemp() const { return needs_deref; }
+
+   //! sets needs_deref = false
+   DLLLOCAL void setTemp() {
+      assert(needs_deref);
+      needs_deref = false;
+   }
+
+   //! returns true if holding an AbstractQoreNode reference
+   DLLLOCAL operator bool() const {
+      return v.type == QV_Node && v.v.n;
+   }
 };
 
 class ValueEvalRefHolder : public ValueOptionalRefHolder {

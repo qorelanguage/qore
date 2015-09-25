@@ -1592,12 +1592,11 @@ public:
 
 struct SelfInstantiatorHelper {
    LocalVar* selfid;
-   ExceptionSink* xsink;
-   DLLLOCAL SelfInstantiatorHelper(LocalVar* n_selfid, QoreObject* self, ExceptionSink* n_xsink) : selfid(n_selfid), xsink(n_xsink) {
-      selfid->instantiate_object(self);
+   DLLLOCAL SelfInstantiatorHelper(LocalVar* n_selfid, QoreObject* self) : selfid(n_selfid) {
+      selfid->instantiateSelf(self);
    }
    DLLLOCAL ~SelfInstantiatorHelper() {
-      selfid->uninstantiate(xsink);
+      selfid->uninstantiateSelf();
    }
 };
 

@@ -970,6 +970,17 @@ public:
 
    DLLLOCAL QoreValue evalBuiltinMethodWithPrivateData(const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
 
+   /*
+   DLLLOCAL static bool hackId(const QoreObject& obj) {
+      if (!obj.priv->data)
+         return false;
+      const AbstractQoreNode* n = obj.priv->data->getKeyValue("name");
+      if (n && n->getType() == NT_STRING && strstr(reinterpret_cast<const QoreStringNode*>(n)->getBuffer(), "http-test"))
+         return true;
+      return false;
+   }
+   */
+
    DLLLOCAL static QoreValue evalBuiltinMethodWithPrivateData(QoreObject& obj, const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
       return obj.priv->evalBuiltinMethodWithPrivateData(method, meth, args, rtflags, xsink);
    }

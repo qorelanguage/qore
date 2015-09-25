@@ -539,7 +539,7 @@ int LValueHelper::assign(QoreValue n, const char* desc) {
    }
 
    if (val) {
-      saveTemp(val->assign(n));
+      saveTemp(val->assignAssume(n));
       return 0;
    }
 
@@ -909,9 +909,10 @@ AbstractQoreNode* LValueHelper::removeNode(bool for_del) {
    return rv;
 }
 
-QoreValue LValueHelper::remove() {
+QoreValue LValueHelper::remove(bool& static_assignment) {
+   assert(!static_assignment);
    if (val)
-      return val->remove();
+      return val->remove(static_assignment);
 
    AbstractQoreNode* rv = *v;
    *v = 0;
@@ -933,18 +934,23 @@ AbstractQoreNode* LValueRemoveHelper::removeNode() {
    return rv.removeNode(for_del);
 }
 
-QoreValue LValueRemoveHelper::remove() {
+QoreValue LValueRemoveHelper::remove(bool& static_assignment) {
    assert(!*xsink);
-   return rv.remove();
+   return rv.remove(static_assignment);
 }
 
 void LValueRemoveHelper::deleteLValue() {
    assert(!*xsink);
    assert(for_del);
 
-   ValueHolder v(remove(), xsink);
-   if (!v)
+   bool static_assignment = false;
+   ValueOptionalRefHolder v(remove(static_assignment), true, xsink);
+   if (!v) {
+      assert(!static_assignment);
       return;
+   }
+   if (static_assignment)
+      v.setTemp();
 
    qore_type_t t = v->getType();
    if (t != NT_OBJECT)
@@ -995,22 +1001,11 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
       if (!lvhb)
 	 return;
 
-      QoreValue tmp = lvhb.remove();
-      rv.assignInitial(tmp);
-      /*
-      int offset = tree->right->integerEval(xsink);
-      if (*xsink)
-         return;
-
-      LValueHelper lvhb(tree->left, xsink, true);
-      if (!lvhb || lvhb.getType() != NT_LIST)
-         return;
-
-      lvhb.ensureUnique();
-      QoreListNode* l = reinterpret_cast<QoreListNode*>(lvhb.getValue());
-      // take the value if it exists
-      rv.assignInitial(l->takeExists(offset));
-      */
+      bool static_assignment = false;
+      QoreValue tmp = lvhb.remove(static_assignment);
+      if (static_assignment)
+	 tmp.ref();
+      rv.assignAssumeInitial(tmp);
       return;
    }
    assert(tree->getOp() == OP_OBJECT_REF);

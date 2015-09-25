@@ -870,7 +870,7 @@ const QoreMethod* qore_class_private::findLocalCommittedStaticMethod(const char*
 }
 
 int qore_class_private::initMembers(QoreObject& o, ExceptionSink* xsink) const {
-   SelfInstantiatorHelper sih(&selfid, &o, xsink);
+   SelfInstantiatorHelper sih(&selfid, &o);
 
    for (member_map_t::const_iterator i = members.begin(), e = members.end(); i != e; ++i) {
       if (i->second) {

@@ -61,8 +61,10 @@ protected:
 
    DLLLOCAL void reset() {
       assert(!assigned || type != QV_Node || !v.n);
-      if (assigned)
+      if (assigned) {
          assigned = false;
+         assert(!static_assignment);
+      }
    }
 
 public:
@@ -71,14 +73,18 @@ public:
    bool fixed_type : 1;
    bool assigned : 1;
 
-   DLLLOCAL QoreLValue() : type(QV_Node), fixed_type(false), assigned(false) {
+   // true if the assigned value was not referenced for the assignment
+   // and therefore should not be dereferenced
+   bool static_assignment : 1;
+
+   DLLLOCAL QoreLValue() : type(QV_Node), fixed_type(false), assigned(false), static_assignment(false) {
 #ifdef DEBUG
       v.n = 0;
 #endif
       reset();
    }
 
-   DLLLOCAL QoreLValue(valtype_t t) : type(t), fixed_type(t != QV_Node), assigned(false) {
+   DLLLOCAL QoreLValue(valtype_t t) : type(t), fixed_type(t != QV_Node), assigned(false), static_assignment(false) {
 #ifdef DEBUG
       if (t == QV_Node)
          v.n = 0;
@@ -87,14 +93,14 @@ public:
    }
 
    // fixed_type is assigned in set()
-   DLLLOCAL QoreLValue(const QoreTypeInfo* typeInfo) : assigned(false) {
+   DLLLOCAL QoreLValue(const QoreTypeInfo* typeInfo) : assigned(false), static_assignment(false) {
 #ifdef DEBUG
       type = QV_Bool;
 #endif
       set(typeInfo);
    }
 
-   DLLLOCAL QoreLValue(const QoreLValue<U>& old) : type(old.type), fixed_type(old.fixed_type), assigned(old.assigned) {
+   DLLLOCAL QoreLValue(const QoreLValue<U>& old) : type(old.type), fixed_type(old.fixed_type), assigned(old.assigned), static_assignment(false) {
       if (!assigned)
          return;
       switch (old.type) {
@@ -127,6 +133,7 @@ public:
          return QoreValue();
 
       assigned = false;
+      assert(!static_assignment);
 
       switch (type) {
          case QV_Bool: return QoreValue(v.b);
@@ -325,8 +332,7 @@ public:
    }
 
    // NOTE: destructive for "val":
-   // FIXME: rename function?
-   DLLLOCAL AbstractQoreNode* assign(QoreValue& val) {
+   DLLLOCAL AbstractQoreNode* assignAssume(QoreValue& val) {
       if (fixed_type) {
          if (!assigned)
             assigned = true;
@@ -459,6 +465,10 @@ public:
       assert(!assigned);
       assigned = true;
       type = n.type;
+      if (n.static_assignment) {
+         static_assignment = n.static_assignment;
+         n.static_assignment = false;
+      }
       switch (n.type) {
          case QV_Bool: v.b = n.v.b; n.v.b = val.v.b; break;
          case QV_Int: v.i = n.v.i; n.v.i = val.v.i; break;
@@ -476,6 +486,10 @@ public:
          return;
       assigned = true;
       type = n.type;
+      if (n.static_assignment) {
+         static_assignment = n.static_assignment;
+         n.static_assignment = false;
+      }
       switch (n.type) {
          case QV_Bool: v.b = n.v.b; n.v.b = false; break;
          case QV_Int: v.i = n.v.i; n.v.i = 0; break;
@@ -487,10 +501,15 @@ public:
    }
 #endif
 
-   // FIXME: destructive for "n": rename function?
-   DLLLOCAL AbstractQoreNode* assignInitial(QoreValue& n) {
+   // note: destructive for "n"
+   // returns any AbstractQoreNode no longer needed (because it was converted to a base type)
+   DLLLOCAL AbstractQoreNode* assignAssumeInitial(QoreValue& n, bool is_static_assignment = false) {
       assert(!assigned);
-      return assign(n);
+      assert(!static_assignment);
+      //printd(5, "QoreLValue::assignAssumeInitial() this: %p n: %s sa: %d\n", this, n.getTypeName(), is_static_assignment);
+      if (is_static_assignment)
+         static_assignment = true;
+      return assignAssume(n);
    }
 
    DLLLOCAL void assignInitial(bool n) {
@@ -1510,10 +1529,16 @@ public:
       return 0;
    }
 
-   DLLLOCAL QoreValue remove() {
+   DLLLOCAL QoreValue remove(bool& was_static_assignment) {
+      assert(!was_static_assignment);
+
       if (!assigned)
          return QoreValue();
       assigned = false;
+      if (static_assignment) {
+         static_assignment = false;
+         was_static_assignment = true;
+      }
 
       switch (type) {
          case QV_Bool:
@@ -1531,10 +1556,20 @@ public:
       return QoreValue();
    }
 
+   // ignore any current value and sets the lvalue to unassigned
+   DLLLOCAL void unassignIgnore() {
+      if (assigned) {
+         assigned = false;
+         if (static_assignment)
+            static_assignment = false;
+      }
+   }
+
    DLLLOCAL AbstractQoreNode* removeNode(bool for_del) {
       if (!assigned)
          return 0;
       assigned = false;
+      assert(!static_assignment);
 
       switch (type) {
          case QV_Bool:

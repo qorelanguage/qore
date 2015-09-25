@@ -162,9 +162,13 @@ AbstractQoreNode* QoreValue::getInternalNode() {
    return type == QV_Node ? v.n : 0;
 }
 
-QoreValue QoreValue::refSelf() const {
+void QoreValue::ref() const {
    if (type == QV_Node && v.n)
       v.n->ref();
+}
+
+QoreValue QoreValue::refSelf() const {
+   ref();
    return const_cast<QoreValue&>(*this);
 }
 
