@@ -287,14 +287,6 @@ my hash $h = $i.getValue();
         return result;
     }
 
-    #! Validate and prepare global fixed-length options
-    /**
-        @param opts Options passed during class instantiation.
-    */
-    private *hash checkOptions(*hash opts) { # put special options here
-        return opts;
-    }
-
     #! Identify a fixed-length line type using a second method %identifyTypeImpl, that may be overridden if necessary
     /**
         @param input_line Input line to be identified

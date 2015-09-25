@@ -272,10 +272,7 @@ void LValueHelper::saveTemp(AbstractQoreNode* n) {
 void LValueHelper::setValue(QoreLValueGeneric& nv) {
    assert(!v);
    assert(!val);
-   if (!nv.optimized())
-      v = nv.getContainerValuePtr();
-   else
-      val = &nv;
+   val = &nv;
 }
 
 static int var_type_err(const QoreTypeInfo* typeInfo, const char* type, ExceptionSink* xsink) {
@@ -297,13 +294,16 @@ int LValueHelper::doListLValue(const QoreTreeNode* tree, bool for_remove) {
    if (doLValue(tree->left, for_remove))
       return -1;
 
+   /*
    if (!isNode())
       return for_remove ? -1 : var_type_err(typeInfo, "list", vl.xsink);
+   */
+
 
    QoreListNode* l;
-   if (get_node_type(*v) == NT_LIST) {
+   if (getType() == NT_LIST) {
       ensureUnique();
-      l = reinterpret_cast<QoreListNode*>(*v);
+      l = reinterpret_cast<QoreListNode*>(getValue());
 
       ocvec.push_back(ObjCountRec(l));
    }
@@ -318,8 +318,8 @@ int LValueHelper::doListLValue(const QoreTreeNode* tree, bool for_remove) {
 
       // save the old value for dereferencing outside any locks that may have been acquired
       //printd(5, "LValueHelper::doListLValue() this: %p saving old value: %p '%s'\n", this, vp, get_type_name(vp));
-      saveTemp(*v);
-      *v = l = new QoreListNode;
+      saveTemp(getValue());
+      assignIntern((l = new QoreListNode));
       ocvec.push_back(ObjCountRec(l));
    }
 
@@ -340,19 +340,21 @@ int LValueHelper::doHashObjLValue(const QoreTreeNode* tree, bool for_remove) {
    if (doLValue(tree->left, for_remove))
       return -1;
 
+   /*
    if (!isNode())
       return for_remove ? -1 : var_type_err(typeInfo, "hash", vl.xsink);
+   */
 
-   qore_type_t t = get_node_type(*v);
-   QoreObject* o = t == NT_OBJECT ? reinterpret_cast<QoreObject*>(*v) : 0;
+   qore_type_t t = getType();
+   QoreObject* o = t == NT_OBJECT ? reinterpret_cast<QoreObject*>(getValue()) : 0;
    QoreHashNode* h = 0;
 
-   //printd(5, "LValueHelper::doHashObjLValue() h: %p v: %p ('%s', refs: %d)\n", h, v, v ? v->getTypeName() : "(null)", v ? v->reference_count() : 0);
+   //printd(5, "LValueHelper::doHashObjLValue() h: %p v: %p ('%s', refs: %d)\n", h, getTypeName(), getValue() ? getValue()->reference_count() : 0);
 
    if (!o) {
       if (t == NT_HASH) {
          ensureUnique();
-         h = reinterpret_cast<QoreHashNode*>(*v);
+         h = reinterpret_cast<QoreHashNode*>(getValue());
 
 	 ocvec.push_back(ObjCountRec(h));
       }
@@ -366,8 +368,8 @@ int LValueHelper::doHashObjLValue(const QoreTreeNode* tree, bool for_remove) {
             return var_type_err(typeInfo, "hash", vl.xsink);
 
          //printd(5, "LValueHelper::doHashObjLValue() this: %p saving value to dereference before making hash: %p '%s'\n", this, vp, get_type_name(vp));
-         saveTemp(*v);
-         *v = h = new QoreHashNode;
+         saveTemp(getValue());
+         assignIntern((h = new QoreHashNode));
 
 	 ocvec.push_back(ObjCountRec(h));
       }
@@ -461,9 +463,13 @@ int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
       printd(0, "LValueHelper::doLValue() val: %s %d\n", val->getTypeName(), val->getType());
 #endif
 
-   if (v && *v && (*v)->getType() == NT_REFERENCE) {
-      const ReferenceNode* ref = reinterpret_cast<const ReferenceNode*>(*v);
-      v = 0;
+   AbstractQoreNode* current_value = getValue();
+   if (current_value && current_value->getType() == NT_REFERENCE) {
+      const ReferenceNode* ref = reinterpret_cast<const ReferenceNode*>(current_value);
+      if (val)
+	 val = 0;
+      if (v)
+	 v = 0;
       return doLValue(ref, for_remove);
    }
 
@@ -491,18 +497,6 @@ AbstractQoreNode* LValueHelper::getReferencedNodeValue() const {
       return val->getReferencedNodeValue();
 
    return *v ? (*v)->refSelf() : 0;
-}
-
-const qore_type_t LValueHelper::getType() const {
-   if (val)
-      return val->getType();
-   return get_node_type(*v);
-}
-
-const char* LValueHelper::getTypeName() const {
-   if (val)
-      return val->getTypeName();
-   return get_type_name(*v);
 }
 
 int64 LValueHelper::getAsBigInt() const {
@@ -549,9 +543,54 @@ int LValueHelper::assign(QoreValue n, const char* desc) {
    return 0;
 }
 
+int LValueHelper::makeInt(const char* desc) {
+   assert(val);
+   if (val->isInt())
+      return 0;
+
+   if (typeInfo && !typeInfo->parseAccepts(bigIntTypeInfo)) {
+      typeInfo->doTypeException(0, desc, bigIntTypeInfo->getName(), vl.xsink);
+      return -1;
+   }
+
+   saveTemp(val->makeInt());
+   return 0;
+}
+
+int LValueHelper::makeFloat(const char* desc) {
+   assert(val);
+   if (val->isFloat())
+      return 0;
+
+   if (typeInfo && !typeInfo->parseAccepts(floatTypeInfo)) {
+      typeInfo->doTypeException(0, desc, floatTypeInfo->getName(), vl.xsink);
+      return -1;
+   }
+
+   saveTemp(val->makeFloat());
+   return 0;
+}
+
+int LValueHelper::makeNumber(const char* desc) {
+   assert(val);
+   if (val->getType() == NT_NUMBER)
+      return 0;
+
+   if (typeInfo && !typeInfo->parseAccepts(numberTypeInfo)) {
+      typeInfo->doTypeException(0, desc, numberTypeInfo->getName(), vl.xsink);
+      return -1;
+   }
+
+   saveTemp(val->makeNumber());
+   return 0;
+}
+
 int64 LValueHelper::plusEqualsBigInt(int64 va, const char* desc) {
-   if (val)
+   if (val) {
+      if (makeInt(desc))
+	 return 0;
       return val->plusEqualsBigInt(va, getTempRef());
+   }
 
    // increment current value
    QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
@@ -562,8 +601,11 @@ int64 LValueHelper::plusEqualsBigInt(int64 va, const char* desc) {
 }
 
 int64 LValueHelper::minusEqualsBigInt(int64 va, const char* desc) {
-   if (val)
+   if (val) {
+      if (makeInt(desc))
+	 return 0;
       return val->minusEqualsBigInt(va, getTempRef());
+   }
 
    // increment current value
    QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
@@ -574,8 +616,11 @@ int64 LValueHelper::minusEqualsBigInt(int64 va, const char* desc) {
 }
 
 int64 LValueHelper::multiplyEqualsBigInt(int64 va, const char* desc) {
-   if (val)
+   if (val) {
+      if (makeInt(desc))
+	 return 0;
       return val->multiplyEqualsBigInt(va, getTempRef());
+   }
 
    // increment current value
    QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
@@ -588,8 +633,11 @@ int64 LValueHelper::multiplyEqualsBigInt(int64 va, const char* desc) {
 int64 LValueHelper::divideEqualsBigInt(int64 va, const char* desc) {
    assert(va);
 
-   if (val)
+   if (val) {
+      if (makeInt(desc))
+	 return 0;
       return val->divideEqualsBigInt(va, getTempRef());
+   }
 
    // increment current value
    QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
@@ -600,8 +648,11 @@ int64 LValueHelper::divideEqualsBigInt(int64 va, const char* desc) {
 }
 
 int64 LValueHelper::orEqualsBigInt(int64 va, const char* desc) {
-   if (val)
+   if (val) {
+      if (makeInt(desc))
+	 return 0;
       return val->orEqualsBigInt(va, getTempRef());
+   }
 
    // increment current value
    QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
@@ -612,8 +663,11 @@ int64 LValueHelper::orEqualsBigInt(int64 va, const char* desc) {
 }
 
 int64 LValueHelper::xorEqualsBigInt(int64 va, const char* desc) {
-   if (val)
+   if (val) {
+      if (makeInt(desc))
+	 return 0;
       return val->xorEqualsBigInt(va, getTempRef());
+   }
 
    // increment current value
    QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
@@ -624,8 +678,11 @@ int64 LValueHelper::xorEqualsBigInt(int64 va, const char* desc) {
 }
 
 int64 LValueHelper::modulaEqualsBigInt(int64 va, const char* desc) {
-   if (val)
+   if (val) {
+      if (makeInt(desc))
+	 return 0;
       return val->modulaEqualsBigInt(va, getTempRef());
+   }
 
    // increment current value
    QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
@@ -636,8 +693,11 @@ int64 LValueHelper::modulaEqualsBigInt(int64 va, const char* desc) {
 }
 
 int64 LValueHelper::andEqualsBigInt(int64 va, const char* desc) {
-   if (val)
+   if (val) {
+      if (makeInt(desc))
+	 return 0;
       return val->andEqualsBigInt(va, getTempRef());
+   }
 
    // increment current value
    QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
@@ -648,8 +708,11 @@ int64 LValueHelper::andEqualsBigInt(int64 va, const char* desc) {
 }
 
 int64 LValueHelper::shiftLeftEqualsBigInt(int64 va, const char* desc) {
-   if (val)
+   if (val) {
+      if (makeInt(desc))
+	 return 0;
       return val->shiftLeftEqualsBigInt(va, getTempRef());
+   }
 
    // increment current value
    QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
@@ -660,8 +723,11 @@ int64 LValueHelper::shiftLeftEqualsBigInt(int64 va, const char* desc) {
 }
 
 int64 LValueHelper::shiftRightEqualsBigInt(int64 va, const char* desc) {
-   if (val)
+   if (val) {
+      if (makeInt(desc))
+	 return 0;
       return val->shiftRightEqualsBigInt(va, getTempRef());
+   }
 
    // increment current value
    QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
@@ -672,8 +738,11 @@ int64 LValueHelper::shiftRightEqualsBigInt(int64 va, const char* desc) {
 }
 
 int64 LValueHelper::preIncrementBigInt(const char* desc) {
-   if (val)
+   if (val) {
+      if (makeInt(desc))
+	 return 0;
       return val->preIncrementBigInt(getTempRef());
+   }
 
    // increment current value
    QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
@@ -683,8 +752,11 @@ int64 LValueHelper::preIncrementBigInt(const char* desc) {
 }
 
 int64 LValueHelper::preDecrementBigInt(const char* desc) {
-   if (val)
+   if (val) {
+      if (makeInt(desc))
+	 return 0;
       return val->preDecrementBigInt(getTempRef());
+   }
 
    // increment current value
    QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
@@ -694,8 +766,11 @@ int64 LValueHelper::preDecrementBigInt(const char* desc) {
 }
 
 int64 LValueHelper::postIncrementBigInt(const char* desc) {
-   if (val)
+   if (val) {
+      if (makeInt(desc))
+	 return 0;
       return val->postIncrementBigInt(getTempRef());
+   }
 
    // increment current value
    QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
@@ -705,8 +780,11 @@ int64 LValueHelper::postIncrementBigInt(const char* desc) {
 }
 
 int64 LValueHelper::postDecrementBigInt(const char* desc) {
-   if (val)
+   if (val) {
+      if (makeInt(desc))
+	 return 0;
       return val->postDecrementBigInt(getTempRef());
+   }
 
    // increment current value
    QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
@@ -716,8 +794,11 @@ int64 LValueHelper::postDecrementBigInt(const char* desc) {
 }
 
 double LValueHelper::preIncrementFloat(const char* desc) {
-   if (val)
+   if (val) {
+      if (!makeFloat(desc))
+	 return 0;
       return val->preIncrementFloat(getTempRef());
+   }
 
    // increment current value
    QoreFloatNode* f = ensureUnique<QoreFloatNode, double, NT_FLOAT>(floatTypeInfo, desc);
@@ -727,8 +808,11 @@ double LValueHelper::preIncrementFloat(const char* desc) {
 }
 
 double LValueHelper::preDecrementFloat(const char* desc) {
-   if (val)
+   if (val) {
+      if (makeFloat(desc))
+	 return 0;
       return val->preDecrementFloat(getTempRef());
+   }
 
    // increment current value
    QoreFloatNode* f = ensureUnique<QoreFloatNode, double, NT_FLOAT>(floatTypeInfo, desc);
@@ -738,8 +822,11 @@ double LValueHelper::preDecrementFloat(const char* desc) {
 }
 
 double LValueHelper::postIncrementFloat(const char* desc) {
-   if (val)
+   if (val) {
+      if (makeFloat(desc))
+	 return 0;
       return val->postIncrementFloat(getTempRef());
+   }
 
    // increment current value
    QoreFloatNode* f = ensureUnique<QoreFloatNode, double, NT_FLOAT>(floatTypeInfo, desc);
@@ -749,8 +836,11 @@ double LValueHelper::postIncrementFloat(const char* desc) {
 }
 
 double LValueHelper::postDecrementFloat(const char* desc) {
-   if (val)
+   if (val) {
+      if (makeFloat(desc))
+	 return 0;
       return val->postDecrementFloat(getTempRef());
+   }
 
    // increment current value
    QoreFloatNode* f = ensureUnique<QoreFloatNode, double, NT_FLOAT>(floatTypeInfo, desc);
@@ -760,8 +850,11 @@ double LValueHelper::postDecrementFloat(const char* desc) {
 }
 
 double LValueHelper::plusEqualsFloat(double va, const char* desc) {
-   if (val)
+   if (val) {
+      if (makeFloat(desc))
+	 return 0;
       return val->plusEqualsFloat(va, getTempRef());
+   }
 
    // increment current value
    QoreFloatNode* f = ensureUnique<QoreFloatNode, double, NT_FLOAT>(floatTypeInfo, desc);
@@ -772,8 +865,11 @@ double LValueHelper::plusEqualsFloat(double va, const char* desc) {
 }
 
 double LValueHelper::minusEqualsFloat(double va, const char* desc) {
-   if (val)
+   if (val) {
+      if (makeFloat(desc))
+	 return 0;
       return val->minusEqualsFloat(va, getTempRef());
+   }
 
    // increment current value
    QoreFloatNode* f = ensureUnique<QoreFloatNode, double, NT_FLOAT>(floatTypeInfo, desc);
@@ -785,10 +881,8 @@ double LValueHelper::minusEqualsFloat(double va, const char* desc) {
 
 double LValueHelper::multiplyEqualsFloat(double va, const char* desc) {
    if (val) {
-      if (val->getType() != NT_FLOAT) {
-         typeInfo->doTypeException(0, desc, floatTypeInfo->getName(), vl.xsink);
-         return 0.0;
-      }
+      if (makeFloat(desc))
+	 return 0;
       return val->multiplyEqualsFloat(va, getTempRef());
    }
 
@@ -803,10 +897,8 @@ double LValueHelper::multiplyEqualsFloat(double va, const char* desc) {
 double LValueHelper::divideEqualsFloat(double va, const char* desc) {
    assert(va);
    if (val) {
-      if (val->getType() != NT_FLOAT) {
-         typeInfo->doTypeException(0, desc, floatTypeInfo->getName(), vl.xsink);
-         return 0.0;
-      }
+      if (makeFloat(desc))
+	 return 0;
       return val->divideEqualsFloat(va, getTempRef());
    }
 

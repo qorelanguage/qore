@@ -178,11 +178,10 @@ QoreTypeSafeReferenceHelper::operator bool() const {
    return *priv;
 }
 
-qore_type_t QoreTypeSafeReferenceHelper::getType() const { 
+qore_type_t QoreTypeSafeReferenceHelper::getType() const {
    return priv->getType();
 }
 
-const char* QoreTypeSafeReferenceHelper::getTypeName() const { 
+const char* QoreTypeSafeReferenceHelper::getTypeName() const {
    return priv->getTypeName();
 }
-
