@@ -161,7 +161,7 @@ public:
          next->prev = prev;
       }
       if (prev) {
-         assert(prev->next = this);
+         assert(prev->next == this);
          prev->next = next;
       }
    }
