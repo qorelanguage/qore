@@ -10463,7 +10463,7 @@ my Triggers $trig = $table.getTriggers();
             /** In addition to any @ref SqlDataCallbackOptions, the following keys can be set for this option:
                 - \c returning: a list of \c "returning" columns
 
-                @note using \c "returning" with a database that does not support this clause will cause an exception to be thrown; see @ref SqlUtil::Table::hasReturning()
+                @note using \c "returning" with a database that does not support this clause will cause an exception to be thrown; see @ref SqlUtil::AbstractTable::hasReturning()
             */
             const InsertOptions = SqlDataCallbackOptions + (
                 "returning": "softstringlist",

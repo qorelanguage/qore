@@ -154,6 +154,9 @@ on_error ds.rollback();
 
             #! operation name
             string opname;
+
+            #! list of "returning" columns
+            list ret_args = ();
         }
 
         #! creates the object from the supplied arguments
@@ -228,10 +231,11 @@ on_error ds.rollback();
 }
             @endcode
 
-            @param data the input record or record set in case a hash of lists is passed
+            @param data the input record or record set in case a hash of lists is passed; each hash represents a row (keys are column names and values are column values); when inserting, @ref sql_iop_funcs can also be used
 
             @note
-            - each hash passed to this method must always have the same keys in the same order, otherwise the results are unpredictable
+            - the first row passed is taken as a template row; every other row must always have the same keys in the same order, otherwise the results are unpredictable
+            - if any @ref sql_iop_funcs are used, then they are assumed to be identical in every row
             - make sure to call flush() before committing the transaction or discard() before rolling back the transaction or destroying the object when using this method
             - flush() or discard() needs to be executed individually for each bulk operation object used in the block whereas the DB transaction needs to be committed or rolled back once per datasource
 
@@ -242,7 +246,10 @@ on_error ds.rollback();
         queueData(hash data) {
             # prepare buffer hash if necessary
             if (!hbuf)
-                map hbuf.$1 = (), data.keyIterator();
+                setupInitialRow(data);
+
+            # remove "returning" arguments
+            data -= ret_args;
 
             # if we are working with bulk data where the row count would cause the buffer limit to be exceeded
             if (data.firstValue().typeCode() == NT_LIST) {
@@ -290,10 +297,11 @@ on_error ds.rollback();
 }
             @endcode
 
-            @param data a list of hashes representing the input row data
+            @param data a list of hashes representing the input row data; each hash represents a row (keys are column names and values are column values); when inserting, @ref sql_iop_funcs can also be used
 
             @note
-            - each hash passed to this method must always have the same keys in the same order, otherwise the results are unpredictable
+            - the first row passed is taken as a template row; every other row must always have the same keys in the same order, otherwise the results are unpredictable
+            - if any @ref sql_iop_funcs are used, then they are assumed to be identical in every row
             - make sure to call flush() before committing the transaction or discard() before rolling back the transaction or destroying the object when using this method
             - flush() or discard() needs to be executed individually for each bulk operation object used in the block whereas the DB transaction needs to be committed or rolled back once per datasource
 
@@ -307,7 +315,7 @@ on_error ds.rollback();
 
             # prepare buffer hash if necessary
             if (!hbuf)
-                map hbuf.$1 = (), l[0].keyIterator();
+                setupInitialRow(l[0]);
 
             # if we are working with bulk data where the row count would cause the buffer limit to be exceeded
             while (True) {
@@ -336,6 +344,11 @@ on_error ds.rollback();
 
             # return all target data
             flushIntern();
+        }
+
+        #! sets up the block buffer given the initial template row for inserting
+        private setupInitialRow(hash row) {
+            map hbuf.$1 = (), row.keyIterator();
         }
 
         #! flushes any remaining batched data to the database; this method should always be called before committing the transaction or destroying the object
@@ -467,6 +480,15 @@ on_error ds.rollback();
         The queueData() method queues data to be written to the database; the queue is flush()ed
         automatically when \c block_size rows have been queued.
 
+        @par Retrieving Data From Inserts
+        It is possible to use @ref sql_iop_funcs in the hashes submitted with queueData(); in this case the
+        BulkInsertOperation class assumes that every row has the same operations as in the first row.
+        Output data can then be processed by using the \c rowcode option in the constructor() or by calling
+        setRowCode().\n\n
+        In case @ref sql_iop_funcs are used and a \c rowcode option is set, then the SQL DML query for inserts
+        is creating using the \c "returning" @ref SqlUtil::AbstractTable::InsertOptions "insert option", therefore
+        the DBI driver in this case must support this option as well.
+
         @par Flushing and Discarding Data
         Each call to flush() (whether implicit or explicit) will cause a single call to be made to
         the dataserver; all queued rows are sent in a single bulk DML call, which allows for efficient
@@ -509,6 +531,12 @@ on_error ds.rollback();
         private {
             #! statement for DML
             SQLStatement stmt;
+
+            #! per-row @ref closure or @ref call_reference for inserts
+            *code rowcode;
+
+            #! hash of "returning" arguments
+            hash static_ret_expr;
         }
 
         #! creates the object from the supplied arguments
@@ -516,6 +544,9 @@ on_error ds.rollback();
             @param opts an optional hash of options for the object as follows:
             - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-style arguments
             - \c "block_size": the number of rows executed at once (default: 500)
+            - \c "rowcode": a per-row @ref closure or @ref call_reference for batch inserts; this must take a single hash argument and will be called for every row after a bulk insert; the hash argument representing the row inserted will also contain any output values if applicable (for example if @ref sql_iop_funcs are used in the row hashes submitted to queueData())
+
+            @see setRowCode()
         */
         constructor(SqlUtil::Table target, *hash opts) : AbstractBulkOperation("insert", target, opts) {
         }
@@ -525,24 +556,91 @@ on_error ds.rollback();
             @param opts an optional hash of options for the object as follows:
             - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-style arguments
             - \c "block_size": the number of rows executed at once (default: 500)
+            - \c "rowcode": a per-row @ref closure or @ref call_reference for batch inserts; this must take a single hash argument and will be called for every row after a bulk insert; the hash argument representing the row inserted will also contain any output values if applicable (for example if @ref sql_iop_funcs are used in the row hashes submitted to queueData())
+
+            @see setRowCode()
         */
         constructor(SqlUtil::AbstractTable target, *hash opts) : AbstractBulkOperation("insert", target, opts) {
         }
 
+        #! sets a @ref closure "closure" or @ref call_reference "call reference" that will be called when data has been sent to the database and all output data is available; must accept a hash argument that represents the data written to the database including any output arguments. This code will be reset, once the transaction is commited.
+        /** @par Example:
+            @code
+# single commit and rollback
+on_success ds.commit();
+on_error ds.rollback();
+code rowcode = sub (hash row) {
+    # process row data
+};
+inserter.setRowCode(rowcode);
+{
+    # each operation needs to be flushed or discarded individually
+    on_success inserter.flush();
+    on_error inserter.discard();
+
+    # data is queued and flushed automatically when the buffer is full
+    map inserter.queueData($1), data.iterator();
+}
+            @endcode
+
+            @param rowc a @ref closure "closure" or @ref call_reference "call reference" that will be called when data has been sent to the database and all output data is available; must accept a hash argument that represents the data written to the database including any output arguments
+
+            @note
+            - the per-row @ref closure "closure" or @ref call_reference "call reference" can also be set by using the \c "rowcode" option in the constructor()
+            - if this method is not called before the first row is queued then output values will not be retrieved; the initial query is built when the template row is queued and output values are only retrieved if a \c rowcode @ref closure "closure" or @ref call_reference "call reference" is set beforehand
+        */
+        setRowCode(*code rowc) {
+            rowcode = rowc;
+        }
+
+        #! common constructor initialization
+        private init(*hash opts) {
+            if (opts.rowcode)
+                rowcode = opts.rowcode;
+            AbstractBulkOperation::init(opts);
+        }
+
+        #! sets up support for "returning" insert options for any possible rowcode member
+        private setupInitialRow(hash row) {
+            foreach hash h in (row.pairIterator()) {
+                if (h.value.typeCode() == NT_HASH) {
+                    ret_args += h.key;
+                    static_ret_expr.(h.key) = h.value;
+                    # remove the hash from the row
+                    delete row.(h.key);
+                }
+            }
+            AbstractBulkOperation::setupInitialRow(row);
+        }
+
         #! inserts internally-queued queued data in the database wuith bulk DML operations
+        /**
+            This method sets up the SQL DML query used for inserts when row is queued.
+            Output values are only retrieved if @ref sql_iops_funcs are used and a
+            \c rowcode @ref closure "closure" or @ref call_reference "call reference"
+            has been set beforehand in the constructor() or by calling setRowCode() and
+            the underlying DBI driver supports the \c "returning"
+            @ref SqlUtil::AbstractTable::InsertOptions "insert option".
+        */
         private flushImpl() {
+            *hash rh;
             if (!stmt) {
                 string sql;
                 # insert the data
-                table.insertNoCommit(hbuf, \sql);
+                rh = table.insertNoCommit(hbuf + static_ret_expr, \sql, rowcode ? ("returning": ret_args) : NOTHING);
                 # create the statement for future inserts
                 stmt = new SQLStatement(table.getDatasource());
                 stmt.prepare(sql);
-                return;
+            }
+            else {
+                # execute the SQLStatement on the args
+                stmt.execArgs(hbuf.values());
+                rh = stmt.getOutput();
             }
 
-            # execute the SQLStatement on the args
-            stmt.execArgs(hbuf.values());
+            # call rowcode if it exists
+            if (rowcode)
+                map rowcode($1), (hbuf + rh).contextIterator();
         }
     }
 
