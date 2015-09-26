@@ -667,7 +667,6 @@ public:
          default: assert(false);
          // no break
       }
-      n.assigned = false;
    }
 #else
    DLLLOCAL void assignSetTakeInitial(QoreLValue<U>& n) {
