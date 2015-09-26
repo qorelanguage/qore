@@ -10732,8 +10732,11 @@ map printf("unique constraint %s\n", $1.getName()), $table.getUniqueConstraintIt
             @return an iterator for all unique constraints on the table (including the primary key if any)
         */
         Qore::AbstractIterator getUniqueConstraintIterator() {
-            l.lock();
-            on_exit l.unlock();
+            bool lck = !l.lockOwner();
+            if (lck)
+                l.lock();
+            on_exit if (lck)
+                l.unlock();
 
             if (!manual) {
                 getPrimaryKeyUnlocked();
@@ -10952,7 +10955,7 @@ $table.rename("new_name");
             l.lock();
             on_exit l.unlock();
 
-            execSql(sql = getRenameSqlImpl(name, new_name));
+            execSql(sql = getRenameSqlImpl(new_name));
             doRenameIntern(new_name, table_cache);
         }
 
