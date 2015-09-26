@@ -363,7 +363,7 @@ typedef AbstractQoreNode* (*q_static_method3_t)(const QoreMethod& method, const 
     @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
     @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
  */
-typedef void (*q_constructor_n_t)(QoreObject* self, const QoreValueList* args, ExceptionSink* xsink);
+typedef void (*q_constructor_n_t)(QoreObject* self, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
 
 //! the type used for builtin QoreClass constructor method signatures
 /** @param self the QoreObject that the function is being executed on

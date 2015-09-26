@@ -632,7 +632,7 @@ public:
       if (constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))
 	 return;
 
-      constructor(self, ceh.getArgs(), xsink);
+      constructor(self, ceh.getArgs(), ceh.getRuntimeFlags(), xsink);
    }
 };
 

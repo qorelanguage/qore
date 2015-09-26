@@ -2380,7 +2380,7 @@ protected:
    void serializeCppConstructor(FILE* fp, const char* cname) const {
       serializeQoreConstructorPrototypeComment(fp, cname);
       if (use_value)
-         fprintf(fp, "static void %s_%s(QoreObject* self, const QoreValueList* args, ExceptionSink* xsink) {\n", cname, vname.c_str());
+         fprintf(fp, "static void %s_%s(QoreObject* self, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {\n", cname, vname.c_str());
       else
          fprintf(fp, "static void %s_%s(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) {\n", cname, vname.c_str());
       serializeArgs(fp, cname, false);
