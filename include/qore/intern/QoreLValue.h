@@ -458,7 +458,6 @@ public:
 
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
    DLLLOCAL void assignSetInitialSwap(QoreLValue<U>& n, QoreValue& val) {
-      assert(!assigned || type != QV_Node || !v.n);
       assert(!assigned);
       assigned = true;
       type = n.type;
@@ -470,10 +469,10 @@ public:
          default: assert(false);
          // no break
       }
+      n.assigned = false;
    }
 #else
    DLLLOCAL void assignSetTakeInitial(QoreLValue<U>& n) {
-      assert(!assigned || type != QV_Node || !v.n);
       assert(!assigned);
       if (!n.assigned)
          return;
@@ -487,6 +486,7 @@ public:
          default: assert(false);
          // no break
       }
+      n.assigned = false;
    }
 #endif
 

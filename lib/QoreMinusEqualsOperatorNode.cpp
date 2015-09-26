@@ -1,10 +1,10 @@
 /*
   QoreMinusEqualsOperatorNode.cpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -32,7 +32,7 @@
 
 QoreString QoreMinusEqualsOperatorNode::op_str("-= operator expression");
 
-AbstractQoreNode *QoreMinusEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) { 
+AbstractQoreNode *QoreMinusEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    // turn off "reference ok" and "return value ignored" flags
    pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
@@ -47,7 +47,7 @@ AbstractQoreNode *QoreMinusEqualsOperatorNode::parseInitImpl(LocalVar *oflag, in
        && !ti->isType(NT_FLOAT)
        && !ti->isType(NT_NUMBER)
        && !ti->isType(NT_DATE)) {
-      // if the lhs type is not one of the above types, 
+      // if the lhs type is not one of the above types,
       // there are 2 possibilities: the lvalue has no value, in which
       // case it takes the value of the right side, or if it's anything else it's
       // converted to an integer, so we just check if it can be assigned an
@@ -77,9 +77,11 @@ QoreValue QoreMinusEqualsOperatorNode::evalValueImpl(bool &needs_deref, Exceptio
 
    if (new_right->isNothing())
       return needs_deref ? v.getReferencedValue() : QoreValue();
-   
+
    // do float minus-equals if left side is a float
    qore_type_t vtype = v.getType();
+
+   //printd(5, "QoreMinusEqualsOperatorNode::evalValueImpl() vtype: %d rtype: %d\n", vtype, new_right->getType());
 
    if (vtype == NT_NOTHING) {
       // see if the lvalue has a default type
@@ -107,7 +109,8 @@ QoreValue QoreMinusEqualsOperatorNode::evalValueImpl(bool &needs_deref, Exceptio
 	 return ref_rv ? v.getReferencedValue() : QoreValue();
       }
    }
-   else if (vtype == NT_FLOAT)
+
+   if (vtype == NT_FLOAT)
       return v.minusEqualsFloat(new_right->getAsFloat());
    else if (vtype == NT_NUMBER) {
       // FIXME: could be more efficient
@@ -129,7 +132,7 @@ QoreValue QoreMinusEqualsOperatorNode::evalValueImpl(bool &needs_deref, Exceptio
 	    ConstListIterator li(nrl);
 	    while (li.next()) {
 	       QoreStringValueHelper val(li.getValue());
-	       
+
 	       vh->removeKey(*val, xsink);
 	       if (*xsink)
 		  return QoreValue();
@@ -151,7 +154,7 @@ QoreValue QoreMinusEqualsOperatorNode::evalValueImpl(bool &needs_deref, Exceptio
 	    ConstListIterator li(nrl);
 	    while (li.next()) {
 	       QoreStringValueHelper val(li.getValue());
-	       
+
 	       o->removeMember(*val, xsink);
 	       if (*xsink)
 		  return QoreValue();

@@ -1,4 +1,5 @@
 #!/usr/bin/env qr
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
 %require-types
 %enable-all-warnings
@@ -23,7 +24,7 @@ class Test inherits QUnit::Test {
 	};
 
 	cnt.inc();
-	testAssertion("delete local var in background", c, NOTHING, new TestResultValue());
+	testNullAssertion("delete local var in background", c);
 	cnt.waitForZero();
 
 	c = sub () {
@@ -32,13 +33,25 @@ class Test inherits QUnit::Test {
 	};
 
 	cnt.inc();
-	testAssertion("remove local var in background", c, NOTHING, new TestResultValue());
+	testNullAssertion("remove local var in background", c);
 	cnt.waitForZero();
 
         # do negative tests
 	c = sub () {
-	    Program p();
-	    p.parse("int i; background (i *= 10);background (i /= 10);background (i -= 10);background (i += 10);background (i %= 10);background (i >>= 10);background (i <<= 10);background ++i;background i++;background --i;background i--;string str;background splice str, 0;background extract str, 0;", "bg");
+	    Program p(PO_NEW_STYLE);
+	    p.parse("int i;background (i *= 10); #1
+background (i /= 10); #2
+background (i -= 10); #3
+background (i += 10); #4
+background (i %= 10); #5
+background (i >>= 10); #6
+background (i <<= 10); #7
+background ++i; #8
+background i++; #9
+background --i; #10
+background i--; #11
+string str;background splice str, 0; #12
+background extract str, 0; #13", "bg");
 	};
 
 	*hash ex = testAssertion("background negative test", c, NOTHING, new TestResultExceptionType("PARSE-EXCEPTION"));

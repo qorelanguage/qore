@@ -1,18 +1,19 @@
 #!/usr/bin/env qr
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
 %require-types
 %enable-all-warnings
-%allow-bare-refs
 %requires Util
 
 %requires ../../../../qlib/QUnit.qm
 
 %exec-class SystemCallTest
 
-public class SystemCallTest inherits QUnit::Test {
+class SystemCallTest inherits QUnit::Test {
     constructor() : Test("SystemCallTest", "1.0") {
-        addTestCase("What this method is testing", \testMethod(), NOTHING);
+        addTestCase("system() test", \testMethod());
 
-        # Return for compatibility with test harness that checks return value.
+        # Return for compatibility with test harness that checks return value
         set_return_value(main());
     }
 
@@ -22,13 +23,9 @@ public class SystemCallTest inherits QUnit::Test {
 %endif
         string file = tmp_location() + "/output";
 
-        system("echo -n OUTPUT > " + file);
+        testAssertion("system() call", \system(), "/bin/echo -n OUTPUT > " + file, 0);
+        on_exit unlink(file);
 
-        File f1();
-        f1.open2(file);
-
-        testAssertion("echo cmd verify", \f1.read(), (-1,), new TestResultValue("OUTPUT"));
-
-        unlink(file);
+        testAssertionValue("echo cmd verify", ReadOnlyFile::readTextFile(file), "OUTPUT");
     }
 }
