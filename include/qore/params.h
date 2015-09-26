@@ -51,6 +51,14 @@ static inline unsigned num_args(const QoreListNode* n) {
 /** @param n a pointer to the argument list
     @return the number of arguments passed to the function
  */
+static inline unsigned num_args(const QoreValueList* n) {
+   return n ? (unsigned)n->size() : 0;
+}
+
+//! returns the number of arguments passed to the function
+/** @param n a pointer to the argument list
+    @return the number of arguments passed to the function
+ */
 static inline unsigned num_params(const QoreListNode* n) {
    return n ? (unsigned)n->size() : 0;
 }
@@ -332,6 +340,83 @@ static inline void HARD_QORE_DATA(const QoreListNode* n, qore_size_t i, const vo
 //! returns the QoreEncoding corresponding to the string passed or a default encoding
 static inline const QoreEncoding* get_hard_qore_encoding_param(const QoreListNode* n, qore_size_t i) {
    HARD_QORE_PARAM(str, const QoreStringNode, n, i);
+   return QEM.findCreate(str);
+}
+
+//! returns the argument in the position given or 0 if there is none
+/**
+   @param n a pointer to the argument list
+   @param i the offset in the list to test (first element is offset 0)
+   @return the argument in the position given or 0 if there is none
+ */
+static inline QoreValue get_param_value(const QoreValueList* n, qore_size_t i) {
+   return n ? n->retrieveEntry(i) : QoreValue();
+}
+
+//! returns the given type for hard typed parameters
+template <typename T>
+static inline T* get_hard_value_or_nothing_param(const QoreValueList* n, qore_size_t i) {
+   assert(n);
+   return n->retrieveEntry(i).get<T>();
+}
+
+//! returns the given type for hard typed parameters
+static QoreValue get_hard_value_param(const QoreValueList* n, qore_size_t i) {
+   assert(n);
+   assert(n->size() > i);
+   return n->retrieveEntry(i);
+}
+
+//! returns a hard typed parameter
+#define HARD_QORE_VALUE_OR_NOTHING_PARAM(name, Type, list, i) Type* name = get_hard_value_or_nothing_param<Type>(list, i)
+
+//! returns a hard typed parameter
+#define HARD_QORE_VALUE_PARAM(name, Type, list, i) Type* name = get_hard_value_param(list, i).get<Type>()
+
+//! returns an int64 from a hard typed int param
+#define HARD_QORE_VALUE_INT(list, i) get_hard_value_param(list, i).getAsBigInt()
+
+//! returns a double from a hard typed float param
+#define HARD_QORE_VALUE_FLOAT(list, i) get_hard_value_param(list, i).getAsFloat()
+
+//! returns a const QoreNumberNode* from a hard typed number or softnumber param
+#define HARD_QORE_VALUE_NUMBER(list, i) get_hard_value_param(list, i).get<const QoreNumberNode>()
+
+//! returns a bool from a hard typed bool param
+#define HARD_QORE_VALUE_BOOL(list, i) get_hard_value_param(list, i).getAsBool()
+
+//! returns a const QoreStringNode* from a hard typed string param
+#define HARD_QORE_VALUE_STRING(list, i) get_hard_value_param(list, i).get<const QoreStringNode>()
+
+//! returns a const DateTimeNode* from a hard typed date param
+#define HARD_QORE_VALUE_DATE(list, i) get_hard_value_param(list, i).get<const DateTimeNode>()
+
+//! returns a const BinaryNode* from a hard typed binary param
+#define HARD_QORE_VALUE_BINARY(list, i) get_hard_value_param(list, i).get<const BinaryNode>()
+
+//! returns a const QoreListNode* from a hard typed list param
+#define HARD_QORE_VALUE_LIST(list, i) get_hard_value_param(list, i).get<const QoreListNode>()
+
+//! returns a const QoreHashNode* from a hard typed hash param
+#define HARD_QORE_VALUE_HASH(list, i) get_hard_value_param(list, i).get<const QoreHashNode>()
+
+//! returns a const QoreHashNode* from a hard typed hash param
+#define HARD_QORE_VALUE_REF(list, i) get_hard_value_param(list, i).get<const ReferenceNode>()
+
+//! returns a QoreObject* from a hard typed object param
+#define HARD_QORE_VALUE_OBJECT(list, i) const_cast<QoreObject*>(get_hard_value_param(list, i).get<const QoreObject>())
+
+//! sets up an object pointer
+#define HARD_QORE_VALUE_OBJ_DATA(vname, Type, list, i, cid, dname, cname, xsink) HARD_QORE_VALUE_PARAM(obj_##vname, const QoreObject, list, i); Type* vname = reinterpret_cast<Type*>(obj_##vname->getReferencedPrivateData(cid, xsink)); if (!vname && !*xsink) xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot complete call setup to %s() because parameter %d (<class %s>) has already been deleted", cname, i + 1, dname)
+
+//! destructively sets up an object pointer; caller owns the pointer
+#define TAKE_HARD_QORE_VALUE_OBJ_DATA(vname, Type, list, i, cid, dname, cname, xsink) HARD_QORE_VALUE_PARAM(obj_##vname, const QoreObject, list, i); Type* vname = reinterpret_cast<Type*>(const_cast<QoreObject*>(obj_##vname)->getAndClearPrivateData(cid, xsink)); if (!vname && !*xsink) xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot complete call setup to %s() because parameter %d (<class %s>) has already been deleted", cname, i + 1, dname); else if (vname) const_cast<QoreObject*>(obj_##vname)->doDelete(xsink)
+
+//! sets up an object pointer
+#define HARD_QORE_VALUE_OBJ_OR_NOTHING_DATA(vname, Type, list, i, cid, xsink) HARD_QORE_VALUE_OR_NOTHING_PARAM(obj_##vname, const QoreObject, list, i); Type* vname = obj_##vname ? reinterpret_cast<Type*>(obj_##vname->getReferencedPrivateData(cid, xsink)) : 0;
+
+static inline const QoreEncoding* get_hard_qore_value_encoding_param(const QoreValueList* n, qore_size_t i) {
+   HARD_QORE_VALUE_PARAM(str, const QoreStringNode, n, i);
    return QEM.findCreate(str);
 }
 

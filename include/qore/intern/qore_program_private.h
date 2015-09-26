@@ -124,6 +124,16 @@ public:
    }
 
    DLLLOCAL void uninstantiate(ExceptionSink* xsink) {
+      uninstantiateIntern();
+      curr->var[curr->pos].uninstantiate(xsink);
+   }
+
+   DLLLOCAL void uninstantiateSelf() {
+      uninstantiateIntern();
+      curr->var[curr->pos].uninstantiateSelf();
+   }
+
+   DLLLOCAL void uninstantiateIntern() {
       if (!curr->pos) {
 	 if (curr->next) {
 	    //printf("this %p: del curr: %p, curr->next: %p\n", this, curr, curr->next);
@@ -132,7 +142,7 @@ public:
 	 }
 	 curr = curr->prev;
       }
-      curr->var[--curr->pos].uninstantiate(xsink);
+      --curr->pos;
    }
 
    DLLLOCAL LocalVarValue* find(const char* id) {
@@ -177,7 +187,7 @@ private:
       }
       curr->var[curr->pos++] = cvar;
    }
-   
+
 public:
    // marks all variables as finalized on the stack
    DLLLOCAL void finalize(arg_vec_t*& cl) {
@@ -207,7 +217,7 @@ public:
    DLLLOCAL void instantiate(ClosureVarValue* cvar) {
       instantiateIntern(cvar);
    }
-   
+
    DLLLOCAL void uninstantiate(ExceptionSink* xsink) {
 #if 0
       if (!curr->pos)
@@ -225,7 +235,7 @@ public:
       }
       curr->var[--curr->pos]->deref(xsink);
    }
-   
+
    DLLLOCAL ClosureVarValue* find(const char* id) {
       printd(5, "ThreadClosureVariableStack::find() this: %p id: %p\n", this, id);
       Block* w = curr;
@@ -254,7 +264,7 @@ public:
       // to avoid a warning on most compilers - note that this generates a warning on recent versions of aCC!
       return 0;
    }
-      
+
    DLLLOCAL cvv_vec_t* getAll() const {
       cvv_vec_t* cv = 0;
       Block* w = curr;

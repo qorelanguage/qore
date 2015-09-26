@@ -698,6 +698,14 @@ QoreHashNode* QoreNamespace::getInfo() const {
    return h;
 }
 
+void QoreNamespace::addBuiltinVariant(const char* name, q_func_n_t f, int64 code_flags, int64 functional_domain, const QoreTypeInfo* returnTypeInfo, unsigned num_params, ...) {
+   va_list args;
+   va_start(args, num_params);
+   priv->addBuiltinVariant<q_func_n_t, BuiltinFunctionValueVariant>(name, f, code_flags, functional_domain, returnTypeInfo, num_params, args);
+   va_end(args);
+}
+
+// FIXME: deprecated
 void QoreNamespace::addBuiltinVariant(const char* name, q_func_t f, int64 code_flags, int64 functional_domain, const QoreTypeInfo* returnTypeInfo, unsigned num_params, ...) {
    va_list args;
    va_start(args, num_params);
@@ -705,6 +713,7 @@ void QoreNamespace::addBuiltinVariant(const char* name, q_func_t f, int64 code_f
    va_end(args);
 }
 
+// FIXME: deprecated
 void QoreNamespace::addBuiltinVariant(const char* name, q_func_int64_t f, int64 code_flags, int64 functional_domain, const QoreTypeInfo* returnTypeInfo, unsigned num_params, ...) {
    va_list args;
    va_start(args, num_params);
@@ -712,6 +721,7 @@ void QoreNamespace::addBuiltinVariant(const char* name, q_func_int64_t f, int64 
    va_end(args);
 }
 
+// FIXME: deprecated
 void QoreNamespace::addBuiltinVariant(const char* name, q_func_double_t f, int64 code_flags, int64 functional_domain, const QoreTypeInfo* returnTypeInfo, unsigned num_params, ...) {
    va_list args;
    va_start(args, num_params);
@@ -719,6 +729,7 @@ void QoreNamespace::addBuiltinVariant(const char* name, q_func_double_t f, int64
    va_end(args);
 }
 
+// FIXME: deprecated
 void QoreNamespace::addBuiltinVariant(const char* name, q_func_bool_t f, int64 code_flags, int64 functional_domain, const QoreTypeInfo* returnTypeInfo, unsigned num_params, ...) {
    va_list args;
    va_start(args, num_params);

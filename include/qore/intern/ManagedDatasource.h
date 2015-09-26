@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
  ManagedDatasource.h
- 
+
  Qore Programming Language
- 
+
  Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -29,9 +29,9 @@
   information.
 */
 
-/* 
+/*
  FIXME: when raising an timeout exception there is a race condition
- getting the TID of the thread holding the lock, because the lock 
+ getting the TID of the thread holding the lock, because the lock
  could have been released after the ::enter() call fails... but it's
  only cosmetic (for the exception text)
  */
@@ -75,7 +75,7 @@ protected:
    DLLLOCAL void releaseLockIntern();
    DLLLOCAL void forceReleaseLockIntern();
    DLLLOCAL void finish_transaction();
-   
+
 protected:
    DLLLOCAL virtual ~ManagedDatasource() {
    }
@@ -124,7 +124,7 @@ public:
    DLLLOCAL bool beginTransaction(ExceptionSink* xsink);
 
    using Datasource::setAutoCommit;
-   DLLLOCAL void setAutoCommit(bool ac, ExceptionSink* xsink);   
+   DLLLOCAL void setAutoCommit(bool ac, ExceptionSink* xsink);
 
    using Datasource::copy;
    DLLLOCAL ManagedDatasource* copy();
@@ -142,7 +142,7 @@ public:
    }
 
    DLLLOCAL QoreHashNode* getOptionHash(ExceptionSink* xsink);
-   DLLLOCAL int setOption(const char* opt, const AbstractQoreNode* val, ExceptionSink* xsink);
+   DLLLOCAL int setOption(const char* opt, const QoreValue val, ExceptionSink* xsink);
    DLLLOCAL AbstractQoreNode* getOption(const char* opt, ExceptionSink* xsink);
 
    // functions supporting DatasourceStatementHelper
@@ -180,13 +180,13 @@ protected:
    char cmd;
 
 public:
-   DLLLOCAL DatasourceActionHelper(ManagedDatasource& n_ds, ExceptionSink* xsink, char n_cmd = DAH_NOCHANGE) : 
+   DLLLOCAL DatasourceActionHelper(ManagedDatasource& n_ds, ExceptionSink* xsink, char n_cmd = DAH_NOCHANGE) :
       ds(n_ds), ok(!ds.startDBAction(xsink, new_transaction)), cmd(n_cmd) {
    }
    DLLLOCAL ~DatasourceActionHelper() {
       if (ok) {
          // FIXME: check connection aborted handling if exec could have been executed after connection reset
-         if (ds.wasConnectionAborted() 
+         if (ds.wasConnectionAborted()
              || (new_transaction && ((cmd == DAH_NOCHANGE) || !ds.isInTransaction())))
             cmd = DAH_RELEASE;
 	 ds.endDBAction(cmd, new_transaction);
@@ -195,7 +195,7 @@ public:
 
    DLLLOCAL bool newTransaction() const { return new_transaction; }
 
-   DLLLOCAL operator bool() const { return ok; }   
+   DLLLOCAL operator bool() const { return ok; }
 };
 
 class DatasourceLockHelper {

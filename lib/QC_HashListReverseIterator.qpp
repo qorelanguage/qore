@@ -213,7 +213,7 @@ while ($i.next()) {
  */
 any HashListReverseIterator::memberGate(string key) [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-      return 0;
+      return QoreValue();
 
    return i->getReferencedKeyValue(key->getBuffer(), xsink);
 }

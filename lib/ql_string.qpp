@@ -234,6 +234,25 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
    return l.release();
 }
 
+QoreStringNode* join_intern(const QoreStringNode* p0, const QoreValueList* l, int offset, ExceptionSink* xsink) {
+   SimpleRefHolder<QoreStringNode> str(new QoreStringNode(p0->getEncoding()));
+
+   for (unsigned i = offset; i < l->size(); i++) {
+      QoreValue p = l->retrieveEntry(i);
+      if (!p.isNothing()) {
+	 QoreStringValueHelper t(p, p0->getEncoding(), xsink);
+	 if (*xsink)
+	    return 0;
+
+	 str->concat(*t);
+      }
+      if (i < (l->size() - 1))
+	 str->concat(p0);
+   }
+
+   return str.release();
+}
+
 QoreStringNode* join_intern(const QoreStringNode* p0, const QoreListNode* l, int offset, ExceptionSink* xsink) {
    SimpleRefHolder<QoreStringNode> str(new QoreStringNode(p0->getEncoding()));
 
@@ -543,7 +562,7 @@ my string $lwr = tolower($str);
 string tolower(string str) [flags=CONSTANT] {
    SimpleRefHolder<QoreStringNode> rv(new QoreStringNode(str->getEncoding()));
    if (do_tolower(*(*rv), *str, xsink))
-      return 0;
+      return QoreValue();
 
    return rv.release();
 }
@@ -579,7 +598,7 @@ my string $upr = toupper($str);
 string toupper(string str) [flags=CONSTANT] {
    SimpleRefHolder<QoreStringNode> rv(new QoreStringNode(str->getEncoding()));
    if (do_toupper(*(*rv), *str, xsink))
-      return 0;
+      return QoreValue();
 
    return rv.release();
 }
@@ -926,7 +945,7 @@ list split(string sep, string str, bool with_separator = False) [flags=RET_VALUE
    // convert pattern encoding to string if necessary
    TempEncodingHelper temp(sep, str->getEncoding(), xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    return split_intern(temp->getBuffer(), temp->strlen(), str->getBuffer(), str->strlen(), str->getEncoding(), with_separator);
 }
@@ -1077,7 +1096,7 @@ my bool $b = regex("hello", "^hel"); # returns True
 bool regex(string str, string regex, int options = 0) [flags=RET_VALUE_ONLY] {
    QoreRegexNode qr(*regex, options, xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    return qr.exec(str, xsink);
 }
@@ -1136,7 +1155,7 @@ string regex_subst(string str, string regex, string subst, int options = 0) [fla
 
    RegexSubstNode qrs(regex, (int)options, xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    if (global)
       qrs.setGlobal();
@@ -1176,7 +1195,7 @@ my *list $rv = regex_extract("ns:element", "(\\w+):(\\w+)");
 *list regex_extract(string str, string regex, int options = 0) [flags=RET_VALUE_ONLY] {
    QoreRegexNode qr(*regex, options, xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    return qr.extractSubstrings(str, xsink);
 }
@@ -1213,14 +1232,14 @@ string replace(string str, string source, string target, int start = 0, int end 
 
    TempEncodingHelper t1(source, ccs, xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    if (t1->empty() || !end || (end > 0 && end < start))
       return str->refSelf();
 
    TempEncodingHelper t2(target, ccs, xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    QoreStringNode* nstr = new QoreStringNode(ccs);
 
@@ -1234,7 +1253,7 @@ string replace(string str, string source, string target, int start = 0, int end 
       qore_size_t i = ccs->getByteLen(cstr, cn, start, xsink);
       cstr = cn;
       if (*xsink || (i == str->size()))
-         return 0;
+         return QoreValue();
 
       cstr += i;
    }
@@ -1244,7 +1263,7 @@ string replace(string str, string source, string target, int start = 0, int end 
       qore_size_t i = ccs->getByteLen(cstr, cn, end, xsink);
       cstr = cn;
       if (*xsink || i == str->size())
-         return 0;
+         return QoreValue();
 
       cstr += i;
    }
@@ -1352,11 +1371,11 @@ chomp(\$str);
 *string chomp(reference str) {
    QoreTypeSafeReferenceHelper ref(str, xsink);
    if (!ref || ref.getType() != NT_STRING)
-      return 0;
+      return QoreValue();
 
    QoreStringNode* rv = reinterpret_cast<QoreStringNode* >(ref.getUnique(xsink));
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    rv->chomp();
    return rv->refSelf();
@@ -1410,11 +1429,11 @@ trim(\$str);
 *string trim(reference str, *string chars) {
    QoreTypeSafeReferenceHelper ref(str, xsink);
    if (!ref || ref.getType() != NT_STRING)
-      return 0;
+      return QoreValue();
 
    QoreStringNode* rv = reinterpret_cast<QoreStringNode* >(ref.getUnique(xsink));
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    const char* tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
    rv->trim(tchars);
@@ -1449,7 +1468,7 @@ string trunc_str(softstring str, softint len, *string encoding) [flags=RET_VALUE
 
    TempEncodingHelper tmp(str, enc, xsink);
    if (!tmp)
-      return 0;
+      return QoreValue();
 
    if (tmp->strlen() <= (qore_size_t)len) {
       len = tmp->strlen();
@@ -1487,15 +1506,11 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s,%s"
     @throw STRMUL-ERROR \a offset is < 0 or \a smul < 1
  */
 string strmul(softstring str, softint smul, *softint offset) [flags=RET_VALUE_ONLY] {
-   if (offset < 0) {
-      xsink->raiseException("STRMUL-ERROR", "Offset argument has to be >= 0; value: "QSD, offset);
-      return 0;
-   }
+   if (offset < 0)
+      return xsink->raiseException("STRMUL-ERROR", "Offset argument has to be >= 0; value: "QSD, offset);
 
-   if (smul < 1) {
-      xsink->raiseException("STRMUL-ERROR", "Multiple argument has to be > 0; value: "QSD, smul);
-      return 0;
-   }
+   if (smul < 1)
+      return xsink->raiseException("STRMUL-ERROR", "Multiple argument has to be > 0; value: "QSD, smul);
 
    QoreStringNodeHolder ret(new QoreStringNode(str));
    while (smul != 1) {
@@ -1504,13 +1519,11 @@ string strmul(softstring str, softint smul, *softint offset) [flags=RET_VALUE_ON
    }
 
    if (offset) {
-      if (offset > (int64)ret->length()) {
-         xsink->raiseException("STRMUL-ERROR", "Offset ("QLLD") is greater than string length (%d)", offset, ret->length());
-         return 0;
-      }
+      if (offset > (int64)ret->length())
+         return xsink->raiseException("STRMUL-ERROR", "Offset ("QLLD") is greater than string length (%d)", offset, ret->length());
       ret->splice(ret->length() - offset, xsink);
       if (*xsink)
-         return 0;
+         return QoreValue();
    }
 
    return ret.release();
@@ -1574,11 +1587,10 @@ print("hello\n");
  */
 nothing print(...) [dom=TERMINAL_IO] {
    if (!args)
-      return 0;
+      return QoreValue();
 
    for (unsigned i = 0; i < args->size(); i++)
-      print_node(stdout, get_param(args, i));
-   return 0;
+      print_node(stdout, get_param_value(args, i));
 }
 
 //! Returns a formatted string based on a @ref string_formatting "format string" and other arguments; enforces field widths on arguments larger than the given field width
@@ -1844,11 +1856,12 @@ bool parse_boolean(string str) [flags=CONSTANT] {
 my bool $b = parse_boolean($i);
     @endcode
 
+    @param val the value to convert to a boolean
+
     @return the first value passed as a boolean
  */
-bool parse_boolean(...) [flags=CONSTANT] {
-   const AbstractQoreNode* p = get_param(args, 0);
-   return p ? p->getAsBool() : false;
+bool parse_boolean(any val) [flags=CONSTANT] {
+   return val.getAsBool();
 }
 
 //! returns a number corresponding to the string and the argument, giving the format
@@ -1867,11 +1880,11 @@ my number $n = parse_number("1.150.200,55", ".,");
 number parse_number(string str, string fmt) [flags=RET_VALUE_ONLY] {
    TempEncodingHelper tfmt(fmt, str->getEncoding(), xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    QoreString tmp(*str);
    if (fix_num(tmp, **tfmt, xsink))
-      return 0;
+      return QoreValue();
 
    return new QoreNumberNode(tmp.getBuffer());
 }
@@ -1892,11 +1905,11 @@ my number $n = parse_number("1.150.200,55", ".,");
 float parse_float(string str, string fmt) [flags=RET_VALUE_ONLY] {
    TempEncodingHelper tfmt(fmt, str->getEncoding(), xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    QoreString tmp(*str);
    if (fix_num(tmp, **tfmt, xsink))
-      return 0;
+      return QoreValue();
 
    return strtod(tmp.getBuffer(), 0);
 }

@@ -42,6 +42,9 @@ QoreRWLock thread_stack_lock;
 #endif
 
 CallNode::CallNode(const char *f, int t, ClassObj o) : func(f), loc(RunTimeLocation), type(t), obj(o) {
+   // we do not reference the object here, because the object is already referenced by CodeContextHelper
+   // which is always used with this class
+   /*
    QoreObject *qo = o.getObj();
    if (qo) {
       qo->ref();
@@ -49,8 +52,10 @@ CallNode::CallNode(const char *f, int t, ClassObj o) : func(f), loc(RunTimeLocat
       printd(5, "CallNode::CallNode() pushing class=%p '%s' (name=%p) obj=%p\n", qo->getClass(), qo->getClass()->getName(), qo->getClass()->getName(), qo);
 #endif
    }
+   */
 }
 
+/*
 void CallNode::objectDeref(ExceptionSink *xsink) {
    QoreObject *qo = obj.getObj();
    if (qo) {
@@ -59,6 +64,7 @@ void CallNode::objectDeref(ExceptionSink *xsink) {
       qo->deref(xsink);
    }
 }
+*/
 
 QoreHashNode* CallNode::getInfo() const {
    QoreHashNode* h = new QoreHashNode;
@@ -124,7 +130,7 @@ void CallStack::pop(ExceptionSink *xsink) {
       if (tail)
 	 tail->next = 0;
    }
-   c->objectDeref(xsink);
+   //c->objectDeref(xsink);
 }
 
 QoreListNode *CallStack::getCallStack() const {

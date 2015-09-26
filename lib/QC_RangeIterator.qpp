@@ -148,7 +148,7 @@ while ($i.next()) {
  */
 any RangeIterator::getValue() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-       return 0;
+       return QoreValue();
    return i->getValue(xsink);
 }
 
@@ -180,7 +180,7 @@ foreach my int $i in ($r)
  */
 RangeIterator::reset() {
    if (i->check(xsink))
-       return 0;
+       return QoreValue();
    i->reset();
 }
 
@@ -246,7 +246,7 @@ xrange(10, -10, 5); # 10, 5, 0, -5, -10
 RangeIterator xrange(int start, int stop, int step = 1, any val) [flags=RET_VALUE_ONLY] {
    ReferenceHolder<RangeIterator> r(new RangeIterator(start, stop, step, val, xsink), xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    return new QoreObject(QC_RANGEITERATOR, 0, r.release());
 }
@@ -276,7 +276,7 @@ xrange(-3); # 0, -1, -2, -3
 RangeIterator xrange(int stop, any val) [flags=CONSTANT] {
    ReferenceHolder<RangeIterator> r(new RangeIterator(0, stop, 1, val, xsink), xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    return new QoreObject(QC_RANGEITERATOR, 0, r.release());
 }

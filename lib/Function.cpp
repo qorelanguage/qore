@@ -31,6 +31,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/QoreClassIntern.h>
 #include <qore/intern/qore_program_private.h>
+#include <qore/intern/qore_list_private.h>
 
 #include <stdio.h>
 #include <ctype.h>
@@ -82,8 +83,35 @@ bool AbstractQoreFunctionVariant::hasBody() const {
    return is_user ? getUserVariantBase()->hasBody() : true;
 }
 
+static void do_call_name(QoreString &desc, const QoreFunction* func) {
+   const char* class_name = func->className();
+   if (class_name)
+      desc.sprintf("%s::", class_name);
+   desc.sprintf("%s(", func->getName());
+}
+
+static void add_args(QoreStringNode &desc, const QoreValueList* args) {
+   if (!args || !args->size())
+      return;
+
+   for (unsigned i = 0; i < args->size(); ++i) {
+      const QoreValue n = args->retrieveEntry(i);
+      if (n.isNothing())
+	 desc.concat("NOTHING");
+      else {
+	 qore_type_t t = n.getType();
+	 if (t == NT_OBJECT)
+	    desc.concat(n.get<const QoreObject>()->getClassName());
+	 else
+	    desc.concat(n.getTypeName());
+      }
+      if (i != (args->size() - 1))
+	 desc.concat(", ");
+   }
+}
+
 CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, const char* n_class_name, qore_call_t n_ct, bool is_copy)
-   : ct(n_ct), name(n_name), xsink(n_xsink), class_name(n_class_name), loc(RunTimeLocation), tmp(n_xsink), returnTypeInfo((const QoreTypeInfo* )-1), pgm(getProgram()) {
+   : ct(n_ct), name(n_name), xsink(n_xsink), class_name(n_class_name), loc(RunTimeLocation), tmp(n_xsink), returnTypeInfo((const QoreTypeInfo* )-1), pgm(getProgram()), rtflags(0) {
    tmp.assignEval(args);
 
    if (*xsink)
@@ -107,75 +135,41 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
 }
 
 CodeEvaluationHelper::~CodeEvaluationHelper() {
-   if (returnTypeInfo != (const QoreTypeInfo* )-1)
+   if (returnTypeInfo != (const QoreTypeInfo*)-1)
       saveReturnTypeInfo(returnTypeInfo);
    if (ct != CT_UNUSED && xsink->isException())
       qore_es_private::addStackInfo(*xsink, ct, class_name, name, loc);
 }
 
-static void do_call_name(QoreString &desc, const QoreFunction* func) {
-   const char* class_name = func->className();
-   if (class_name)
-      desc.sprintf("%s::", class_name);
-   desc.sprintf("%s(", func->getName());
-}
-
-static void addArgs(QoreStringNode &desc, const QoreListNode* args) {
-   if (!args || !args->size())
-      return;
-
-   for (unsigned i = 0; i < args->size(); ++i) {
-      const AbstractQoreNode* n = args->retrieve_entry(i);
-      if (is_nothing(n))
-	 desc.concat("NOTHING");
-      else {
-	 qore_type_t t = n ? n->getType() : NT_NOTHING;
-	 if (t == NT_OBJECT)
-	    desc.concat(reinterpret_cast<const QoreObject*>(n)->getClassName());
-	 else
-	    desc.concat(n->getTypeName());
-      }
-      if (i != (args->size() - 1))
-	 desc.concat(", ");
-   }
-}
-
 int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const AbstractQoreFunctionVariant* variant, bool check_args, bool is_copy) {
-   bool edit_done = false;
-
    // get default argument list of variant
    AbstractFunctionSignature* sig = variant->getSignature();
-   const arg_vec_t &defaultArgList = sig->getDefaultArgList();
-   const type_vec_t &typeList = sig->getTypeList();
+   const arg_vec_t& defaultArgList = sig->getDefaultArgList();
+   const type_vec_t& typeList = sig->getTypeList();
 
    unsigned max = QORE_MAX(defaultArgList.size(), typeList.size());
    for (unsigned i = 0; i < max; ++i) {
-      if (i < defaultArgList.size() && defaultArgList[i] && (!tmp || is_nothing(tmp->retrieve_entry(i)))) {
-	 // edit the current argument list
-	 if (!edit_done) {
-	    tmp.edit();
-	    edit_done = true;
-	 }
-
-	 AbstractQoreNode** p = const_cast<QoreListNode*>(*tmp)->get_entry_ptr(i);
-	 *p = defaultArgList[i]->eval(xsink);
+      if (i < defaultArgList.size() && defaultArgList[i] && (!tmp || tmp->retrieveEntry(i).isNothing())) {
+	 QoreValue& p = tmp.getEntryReference(i);
+	 p = defaultArgList[i]->evalValue(xsink);
 	 if (*xsink)
 	    return -1;
 
 	 // process default argument with accepting type's filter if necessary
 	 const QoreTypeInfo* paramTypeInfo = sig->getParamTypeInfo(i);
-	 if (paramTypeInfo->mayRequireFilter(*p)) {
-	    *p = paramTypeInfo->acceptInputParam(i, sig->getName(i), *p, xsink);
+	 if (paramTypeInfo->mayRequireFilter(p)) {
+	    paramTypeInfo->acceptInputParam(i, sig->getName(i), p, xsink);
 	    if (*xsink)
 	       return -1;
 	 }
       }
       else if (i < typeList.size()) {
-	 const AbstractQoreNode* n = tmp ? tmp->retrieve_entry(i) : 0;
+	 QoreValue n;
+	 if (tmp)
+	    n = tmp->retrieveEntry(i);
 
-	 if (is_copy && !i && !n) {
+	 if (is_copy && !i && n.isNothing())
 	    continue;
-	 }
 
 	 const QoreTypeInfo* paramTypeInfo = sig->getParamTypeInfo(i);
 	 if (!paramTypeInfo)
@@ -183,14 +177,8 @@ int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const Abs
 
 	 // test for change or incompatibility
 	 if (check_args || paramTypeInfo->mayRequireFilter(n)) {
-	    if (!edit_done) {
-	       // edit the current argument list
-	       tmp.edit();
-	       edit_done = true;
-	    }
-
-	    AbstractQoreNode** p = const_cast<QoreListNode*>(*tmp)->get_entry_ptr(i);
-	    *p = paramTypeInfo->acceptInputParam(i, sig->getName(i), *p, xsink);
+	    QoreValue& p = tmp.getEntryReference(i);
+	    paramTypeInfo->acceptInputParam(i, sig->getName(i), p, xsink);
 	    if (*xsink)
 	       return -1;
 	 }
@@ -198,7 +186,7 @@ int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const Abs
    }
 
    // check for excess args exception
-   unsigned nargs = tmp ? tmp->size() : 0;
+   unsigned nargs = tmp.size();
    if (!nargs)
       return 0;
    unsigned nparams = sig->numParams();
@@ -211,14 +199,14 @@ if (nargs > nparams && (runtime_get_parse_options() & (PO_REQUIRE_TYPES | PO_STR
       if (!(flags & QC_USES_EXTRA_ARGS)) {
 	 for (unsigned i = nparams; i < nargs; ++i) {
 	    //printd(5, "processDefaultArgs() %s arg %d nothing: %d\n", func->getName(), i, is_nothing(tmp->retrieve_entry(i)));
-	    if (!is_nothing(tmp->retrieve_entry(i))) {
+	    if (!tmp->retrieveEntry(i).isNothing()) {
 	       QoreStringNode* desc = new QoreStringNode("call to ");
 	       do_call_name(*desc, func);
 	       if (nparams)
 		  desc->concat(sig->getSignatureText());
 	       desc->concat(") made as ");
 	       do_call_name(*desc, func);
-	       addArgs(*desc, *tmp);
+	       add_args(*desc, *tmp);
 	       unsigned diff = nargs - nparams;
 	       desc->sprintf(") with %d excess argument%s, which is an error when PO_REQUIRE_TYPES or PO_STRICT_ARGS is set", diff, diff == 1 ? "" : "s");
 	       xsink->raiseException("CALL-WITH-TYPE-ERRORS", desc);
@@ -496,7 +484,7 @@ void UserSignature::resolve() {
    parseTypeList.clear();
 }
 
-bool QoreFunction::existsVariant(const type_vec_t &paramTypeInfo) const {
+bool QoreFunction::existsVariant(const type_vec_t& paramTypeInfo) const {
    for (vlist_t::const_iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
       AbstractFunctionSignature* sig = (*i)->getSignature();
       assert(sig);
@@ -532,8 +520,9 @@ static QoreStringNode* getNoopError(const QoreFunction* func, const QoreFunction
 	 // get actual value and include in warning
 	 ExceptionSink xsink;
 	 CodeEvaluationHelper ceh(&xsink, func, variant, "noop-dummy");
-	 ReferenceHolder<AbstractQoreNode> v(variant->evalFunction(func->getName(), ceh, 0), 0);
-	 if (is_nothing(*v))
+	 ValueHolder v(variant->evalFunction(func->getName(), ceh, 0), 0);
+	 //ReferenceHolder<AbstractQoreNode> v(variant->evalFunction(func->getName(), ceh, 0), 0);
+	 if (v->isNothing())
 	    desc->concat("NOTHING");
 	 else {
 	    QoreNodeAsStringHelper vs(*v, FMT_NONE, 0);
@@ -547,7 +536,7 @@ static QoreStringNode* getNoopError(const QoreFunction* func, const QoreFunction
 }
 
 // finds a variant at runtime
-const AbstractQoreFunctionVariant* QoreFunction::findVariant(const QoreListNode* args, bool only_user, ExceptionSink* xsink) const {
+const AbstractQoreFunctionVariant* QoreFunction::findVariant(const QoreValueList* args, bool only_user, ExceptionSink* xsink) const {
    int match = -1;
    const AbstractQoreFunctionVariant* variant = 0;
 
@@ -591,15 +580,18 @@ const AbstractQoreFunctionVariant* QoreFunction::findVariant(const QoreListNode*
 	    bool ok = true;
 	    for (unsigned pi = 0; pi < sig->numParams(); ++pi) {
 	       const QoreTypeInfo* t = sig->getParamTypeInfo(pi);
-	       const AbstractQoreNode* n = args ? args->retrieve_entry(pi) : 0;
+	       QoreValue n;
+	       if (args)
+		  n = args->retrieveEntry(pi);
 
-	       //printd(5, "QoreFunction::findVariant() this: %p %s(%s) i: %d param: %s arg: %s\n", this, getName(), sig->getSignatureText(), pi, t->getName(), get_type_name(n));
+	       //printd(5, "QoreFunction::findVariant() this: %p %s(%s) i: %d param: %s arg: %s\n", this, getName(), sig->getSignatureText(), pi, t->getName(), n.typeName(n));
 
 	       int rc;
-	       if (is_nothing(n) && sig->hasDefaultArg(pi))
+	       if (n.isNothing() && sig->hasDefaultArg(pi))
 		  rc = QTI_IGNORE;
 	       else {
 		  rc = t->runtimeAcceptsValue(n);
+		  //printd(5, "QoreFunction::findVariant() this: %p %s(%s) i: %d param: %s arg: %s rc: %d\n", this, getName(), sig->getSignatureText(), pi, t->getName(), n.getTypeName(), rc);
 		  if (rc == QTI_NOT_EQUAL) {
 		     ok = false;
 		     break;
@@ -632,7 +624,7 @@ const AbstractQoreFunctionVariant* QoreFunction::findVariant(const QoreListNode*
       if (class_name)
 	 desc->sprintf("%s::", class_name);
       desc->sprintf("%s(", getName());
-      addArgs(*desc, args);
+      add_args(*desc, args);
       desc->concat(") can be found; the following variants were tested:");
 
       // add variants tested
@@ -696,7 +688,7 @@ static AbstractQoreFunctionVariant* doSingleVariantTypeException(const QoreProgr
 }
 
 // finds a variant at runtime
-const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(const type_vec_t &argTypeInfo, bool only_user) const {
+const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(const type_vec_t& argTypeInfo, bool only_user) const {
    // the number of parameters * 2 matched to arguments (compatible but not perfect match = 1, perfect match = 2)
    int match = -1;
    // pointer to the variant matched
@@ -772,7 +764,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(const type_v
    return variant;
 }
 
-static void do_call_str(QoreString &desc, const QoreFunction* func, const type_vec_t &argTypeInfo) {
+static void do_call_str(QoreString &desc, const QoreFunction* func, const type_vec_t& argTypeInfo) {
    unsigned num_args = argTypeInfo.size();
    do_call_name(desc, func);
    if (num_args)
@@ -784,7 +776,7 @@ static void do_call_str(QoreString &desc, const QoreFunction* func, const type_v
    desc.concat(')');
 }
 
-static void warn_excess_args(QoreFunction* func, const type_vec_t &argTypeInfo, AbstractFunctionSignature* sig) {
+static void warn_excess_args(QoreFunction* func, const type_vec_t& argTypeInfo, AbstractFunctionSignature* sig) {
    unsigned nargs = argTypeInfo.size();
    unsigned nparams = sig->numParams();
 
@@ -811,7 +803,7 @@ static void warn_excess_args(QoreFunction* func, const type_vec_t &argTypeInfo, 
 }
 
 // finds a variant at parse time
-const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProgramLocation& loc, const type_vec_t &argTypeInfo) {
+const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProgramLocation& loc, const type_vec_t& argTypeInfo) {
    // the number of parameters * 2 matched to arguments (compatible but not perfect match = 1, perfect match = 2)
    int match = -1;
    // the number of possible matches at runtime (due to missing types at parse time); number of parameters
@@ -1143,63 +1135,23 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
 }
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL, then it is identified at run time
-AbstractQoreNode* QoreFunction::evalFunction(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, QoreProgram *pgm, ExceptionSink* xsink) const {
+QoreValue QoreFunction::evalFunction(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, QoreProgram *pgm, ExceptionSink* xsink) const {
    const char* fname = getName();
    CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
-   if (*xsink) return 0;
+   if (*xsink) return QoreValue();
 
    ProgramThreadCountContextHelper tch(xsink, pgm, true);
-   if (*xsink) return 0;
+   if (*xsink) return QoreValue();
    return variant->evalFunction(fname, ceh, xsink);
-}
-
-int64 QoreFunction::bigIntEvalFunction(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, QoreProgram *pgm, ExceptionSink* xsink) const {
-   const char* fname = getName();
-   CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
-   if (*xsink) return 0;
-
-   ProgramThreadCountContextHelper tch(xsink, pgm, true);
-   if (*xsink) return 0;
-   return variant->bigIntEvalFunction(fname, ceh, xsink);
-}
-
-int QoreFunction::intEvalFunction(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, QoreProgram *pgm, ExceptionSink* xsink) const {
-   const char* fname = getName();
-   CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
-   if (*xsink) return 0;
-
-   ProgramThreadCountContextHelper tch(xsink, pgm, true);
-   if (*xsink) return 0;
-   return variant->intEvalFunction(fname, ceh, xsink);
-}
-
-bool QoreFunction::boolEvalFunction(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, QoreProgram *pgm, ExceptionSink* xsink) const {
-   const char* fname = getName();
-   CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
-   if (*xsink) return 0;
-
-   ProgramThreadCountContextHelper tch(xsink, pgm, true);
-   if (*xsink) return 0;
-   return variant->boolEvalFunction(fname, ceh, xsink);
-}
-
-double QoreFunction::floatEvalFunction(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, QoreProgram *pgm, ExceptionSink* xsink) const {
-   const char* fname = getName();
-   CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
-   if (*xsink) return 0;
-
-   ProgramThreadCountContextHelper tch(xsink, pgm, true);
-   if (*xsink) return 0;
-   return variant->floatEvalFunction(fname, ceh, xsink);
 }
 
 // finds a variant and checks variant capabilities against current
 // program parse options
-AbstractQoreNode* QoreFunction::evalDynamic(const QoreListNode* args, ExceptionSink* xsink) const {
+QoreValue QoreFunction::evalDynamic(const QoreListNode* args, ExceptionSink* xsink) const {
    const char* fname = getName();
    const AbstractQoreFunctionVariant* variant = 0;
    CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
-   if (*xsink) return 0;
+   if (*xsink) return QoreValue();
 
    return variant->evalFunction(fname, ceh, xsink);
 }
@@ -1270,15 +1222,16 @@ void UserVariantBase::parseInitPopLocalVars() {
 
 // instantiates arguments and sets up the argv variable
 int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreListNode> &argv, ExceptionSink* xsink) const {
-   const QoreListNode* args = ceh ? ceh->getArgs() : 0;
+   const QoreValueList* args = ceh ? ceh->getArgs() : 0;
    unsigned num_args = args ? args->size() : 0;
    // instantiate local vars from param list
    unsigned num_params = signature.numParams();
 
    for (unsigned i = 0; i < num_params; ++i) {
-      AbstractQoreNode* np = args ? const_cast<AbstractQoreNode*>(args->retrieve_entry(i)) : 0;
+      QoreValue np = args ? const_cast<QoreValueList*>(args)->retrieveEntry(i) : 0;
+      //AbstractQoreNode* np = args ? const_cast<AbstractQoreNode*>(args->retrieve_entry(i)) : 0;
       //printd(5, "UserVariantBase::setupCall() eval %d: instantiating param lvar %p ('%s') (exp nt: %d %p '%s')\n", i, signature.lv[i], signature.lv[i]->getName(), get_node_type(np), np, get_type_name(np));
-      signature.lv[i]->instantiate(np ? np->refSelf() : 0);
+      signature.lv[i]->instantiate(np.refSelf());
 
       // the above if block will only instantiate the local variable if no
       // exceptions have occured. therefore here we cleanup the rest
@@ -1297,20 +1250,21 @@ int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreLi
 
       for (unsigned i = 0; i < (num_args - num_params); i++) {
 	 // here we try to take the reference from args if possible
-	 AbstractQoreNode* n = args ? const_cast<AbstractQoreNode*>(args->get_referenced_entry(i + num_params)) : 0;
-	 argv->push(n);
+	 QoreValue n = args ? const_cast<QoreValueList*>(args)->retrieveEntry(i + num_params) : 0;
+	 //AbstractQoreNode* n = args ? const_cast<AbstractQoreNode*>(args->get_referenced_entry(i + num_params)) : 0;
+	 argv->push(n.getReferencedValue());
       }
    }
 
    return 0;
 }
 
-AbstractQoreNode* UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &argv, QoreObject *self, ExceptionSink* xsink) const {
-   AbstractQoreNode* val = 0;
+QoreValue UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &argv, QoreObject *self, ExceptionSink* xsink) const {
+   QoreValue val;
    if (statements) {
       if (signature.selfid) {
 	 assert(self);
-         signature.selfid->instantiate_object(self);
+         signature.selfid->instantiateSelf(self);
       }
 
       // instantiate argv and push id on stack
@@ -1335,7 +1289,7 @@ AbstractQoreNode* UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &arg
 
       // if self then uninstantiate
       if (signature.selfid)
-         signature.selfid->uninstantiate(xsink);
+         signature.selfid->uninstantiateSelf();
    }
    else {
       argv = 0; // dereference argv now
@@ -1343,28 +1297,28 @@ AbstractQoreNode* UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &arg
 
    // if return value is NOTHING; make sure it's valid; maybe there wasn't a return statement
    // only check if there isn't an active exception
-   if (!*xsink && !val) {
+   if (!*xsink && val.isNothing()) {
       const QoreTypeInfo* rt = signature.getReturnTypeInfo();
 
       // check return type
-      val = rt->acceptAssignment("<block return>", val, xsink);
+      rt->acceptAssignment("<block return>", val, xsink);
    }
 
    return val;
 }
 
 // primary function for executing user code
-AbstractQoreNode* UserVariantBase::eval(const char* name, CodeEvaluationHelper *ceh, QoreObject *self, ExceptionSink* xsink, const qore_class_private* qc) const {
+QoreValue UserVariantBase::eval(const char* name, CodeEvaluationHelper *ceh, QoreObject *self, ExceptionSink* xsink, const qore_class_private* qc) const {
    QORE_TRACE("UserVariantBase::eval()");
    //printd(5, "UserVariantBase::eval() this: %p '%s()' args: %p (size: %d) self: %p class: %p '%s'\n", this, name, ceh ? ceh->getArgs() : 0, ceh && ceh->getArgs() ? ceh->getArgs()->size() : 0, self, qc, qc ? qc->name.c_str() : "n/a");
 
    // if pgm is 0 or == the current pgm, then ProgramThreadCountContextHelper does nothing
    ProgramThreadCountContextHelper tch(xsink, pgm, true);
-   if (*xsink) return 0;
+   if (*xsink) return QoreValue();
 
    UserVariantExecHelper uveh(this, ceh, xsink);
    if (!uveh)
-      return 0;
+      return QoreValue();
 
    ClassObj cobj;
    if (self)
@@ -1710,7 +1664,7 @@ void QoreFunction::parseInit() {
    }
 }
 
-AbstractQoreNode* UserClosureFunction::evalClosure(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject *self, ExceptionSink* xsink) const {
+QoreValue UserClosureFunction::evalClosure(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject *self, ExceptionSink* xsink) const {
    // closures cannot be overloaded
    assert(vlist.singular());
 
@@ -1719,11 +1673,11 @@ AbstractQoreNode* UserClosureFunction::evalClosure(const QoreClosureBase& closur
    // setup call, save runtime position
    CodeEvaluationHelper ceh(xsink, this, variant, "<anonymous closure>", args, 0, CT_USER);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    ProgramThreadCountContextHelper tch(xsink, pgm, true);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    ThreadSafeLocalVarRuntimeEnvironmentHelper ch(&closure_base);
 

@@ -112,13 +112,8 @@ static QoreClass* pseudo_get_class(qore_type_t t) {
    return QC_PSEUDOVALUE;
 }
 
-// return the pseudo class for the given node
-static QoreClass* pseudo_get_class(const AbstractQoreNode *n) {
-   return pseudo_get_class(get_node_type(n));
-}
-
-QoreValue pseudo_classes_eval(const AbstractQoreNode *n, const char *name, const QoreListNode *args, ExceptionSink *xsink) {
-   return qore_class_private::evalPseudoMethod(pseudo_get_class(n), n, name, args, xsink);
+QoreValue pseudo_classes_eval(const QoreValue n, const char *name, const QoreListNode *args, ExceptionSink *xsink) {
+   return qore_class_private::evalPseudoMethod(pseudo_get_class(n.getType()), n, name, args, xsink);
 }
 
 const QoreMethod* pseudo_classes_find_method(qore_type_t t, const char *mname, QoreClass* &qc) {

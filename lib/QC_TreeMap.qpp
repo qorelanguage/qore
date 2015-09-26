@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QC_TreeMap.qpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -59,7 +59,7 @@ qclass TreeMap [arg=TreeMapData* tm];
 /** Creates an empty TreeMap container.
  */
 TreeMap::constructor() {
-   self->setPrivate(CID_TREEMAP, new TreeMapData());
+   self->setPrivate(CID_TREEMAP, new TreeMapData);
 }
 
 //! Releases any resource held by the instance
@@ -78,7 +78,7 @@ TreeMap::copy() {
 }
 
 //! Puts the mapping of \c path to \c value into the container.
-/** 
+/**
     @param path the path to which \c value will be mapped
     @param value the value to put into the TreeMap
  */

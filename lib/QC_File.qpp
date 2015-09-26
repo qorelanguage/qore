@@ -63,7 +63,7 @@ QoreFile* QoreFileHelper::operator->() const {
    return reinterpret_cast<File*>(ptr);
 }
 
-static void FILE_system_constructor(QoreObject *self, int fd, va_list args) {
+static void FILE_system_constructor(QoreObject* self, int fd, va_list args) {
    //printd(5, "FILE_system_constructor() self=%p, descriptor=%d\n", self, fd);
    File* f = new File(QCS_DEFAULT);
    f->makeSpecial(fd);
@@ -71,19 +71,19 @@ static void FILE_system_constructor(QoreObject *self, int fd, va_list args) {
 }
 
 #ifdef HAVE_STRUCT_FLOCK
-static int lock_intern(struct flock &fl, const QoreListNode *args, ExceptionSink *xsink) {
-   fl.l_type = (short)HARD_QORE_INT(args, 0);
-   fl.l_start = (off_t)HARD_QORE_INT(args, 1);
-   fl.l_len = (off_t)HARD_QORE_INT(args, 2);
+static int lock_intern(struct flock& fl, const QoreValueList* args, ExceptionSink* xsink) {
+   fl.l_type = (short)HARD_QORE_VALUE_INT(args, 0);
+   fl.l_start = (off_t)HARD_QORE_VALUE_INT(args, 1);
+   fl.l_len = (off_t)HARD_QORE_VALUE_INT(args, 2);
    if (fl.l_len < 0) {
       xsink->raiseException("FILE-LOCK-ERROR", "length of locked area cannot be negative (value passed=%d)", fl.l_len);
       return -1;
    }
-   fl.l_whence = (short)HARD_QORE_INT(args, 3);
+   fl.l_whence = (short)HARD_QORE_VALUE_INT(args, 3);
    return 0;
 }
 #else
-static int file_lock_error(const char *f, ExceptionSink *xsink) {
+static int file_lock_error(const char* f, ExceptionSink* xsink) {
    xsink->raiseException("MISSING-FEATURE-ERROR", "this platform does not support UNIX-style file locking with fnctl(), therefore the File::%s() method is not available; for maximum portability, check Option::HAVE_FILE_LOCKING before calling this method", f);
    return 0;
 }
@@ -98,7 +98,7 @@ static int file_lock_error(const char *f, ExceptionSink *xsink) {
 #endif
 #endif
 
-AbstractQoreNode *missing_method_error(const char *meth, const char *feat, ExceptionSink *xsink) {
+AbstractQoreNode* missing_method_error(const char* meth, const char* feat, ExceptionSink* xsink) {
    xsink->raiseException("MISSING-FEATURE-ERROR", "the %s() method is not available on this build; for maximum portability, check Option::HAVE_%s before calling this method", meth, feat);
    return 0;
 }
@@ -106,7 +106,7 @@ AbstractQoreNode *missing_method_error(const char *meth, const char *feat, Excep
 /** @defgroup file_open_constants File Open Constants
     These are the possible values that can be or'ed together when calling File::open() or File::open2()
 */
-//@{ 
+//@{
 //! Mask for access modes (O_RDONLY|O_WRONLY|O_RDWR)
 const O_ACCMODE = O_ACCMODE;
 //! Open the file in append mode (append on each write)
@@ -168,7 +168,7 @@ const O_NOFOLLOW = O_NOFOLLOW;
 
     @note These contants are set to 0 on platforms where HAVE_FILE_LOCKING is @ref False (such as native Windows ports)
 */
-//@{ 
+//@{
 //! Use for read-only locking
 const F_RDLCK = F_RDLCK;
 //! Use for exclusive write locking
@@ -288,7 +288,7 @@ if ($f.open($fn, O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1"))
  */
 int File::open(string path, softint flags = O_RDONLY, softint mode = 0666, *string encoding) {
    if (check_terminal_io(self, "File::open", xsink))
-      return 0;
+      return QoreValue();
 
    const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : f->getEncoding();
    return f->open(path->getBuffer(), flags, mode, qe);
@@ -329,7 +329,7 @@ catch (hash $ex) {
  */
 nothing File::open2(string path, softint flags = O_RDONLY, softint mode = 0666, *string encoding) {
    if (check_terminal_io(self, "File::open2", xsink))
-      return 0;
+      return QoreValue();
 
    const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : f->getEncoding();
    f->open2(xsink, path->getBuffer(), flags, mode, qe);
@@ -348,7 +348,7 @@ if ($f.sync())
  */
 int File::sync() {
    if (check_terminal_io(self, "File::sync", xsink))
-      return 0;
+      return QoreValue();
 
    return f->sync();
 }
@@ -373,7 +373,7 @@ $f.write($data);
  */
 int File::write(binary data) {
    if (check_terminal_io(self, "File::write", xsink))
-      return 0;
+      return QoreValue();
 
    return f->write(data, xsink);
 }
@@ -401,7 +401,7 @@ $f.write($data);
  */
 int File::write(string data) {
    if (check_terminal_io(self, "File::write", xsink))
-      return 0;
+      return QoreValue();
 
    return f->write(data, xsink);
 }
@@ -429,7 +429,7 @@ $f.print($data);
  */
 int File::print(string data) {
    if (check_terminal_io(self, "File::print", xsink))
-      return 0;
+      return QoreValue();
 
    return f->write(data, xsink);
 }
@@ -454,7 +454,7 @@ $f.writei1($val);
  */
 int File::writei1(int c) {
    if (check_terminal_io(self, "File::writei1", xsink))
-      return 0;
+      return QoreValue();
 
    return f->writei1(c, xsink);
 }
@@ -479,7 +479,7 @@ $f.writei2($val);
  */
 int File::writei2(int s) {
    if (check_terminal_io(self, "File::writei2", xsink))
-      return 0;
+      return QoreValue();
 
    return f->writei2(s, xsink);
 }
@@ -504,7 +504,7 @@ $f.writei4($val);
  */
 int File::writei4(int i) {
    if (check_terminal_io(self, "File::writei4", xsink))
-      return 0;
+      return QoreValue();
 
    return f->writei4(i, xsink);
 }
@@ -529,7 +529,7 @@ $f.writei8($val);
  */
 int File::writei8(int i) {
    if (check_terminal_io(self, "File::writei8", xsink))
-      return 0;
+      return QoreValue();
 
    return f->writei8(i, xsink);
 }
@@ -554,7 +554,7 @@ $f.writei2LSB($val);
  */
 int File::writei2LSB(int s) {
    if (check_terminal_io(self, "File::writei2LSB", xsink))
-      return 0;
+      return QoreValue();
 
    return f->writei2LSB(s, xsink);
 }
@@ -579,7 +579,7 @@ $f.writei4LSB($val);
  */
 int File::writei4LSB(int i) {
    if (check_terminal_io(self, "File::writei4LSB", xsink))
-      return 0;
+      return QoreValue();
 
    return f->writei4LSB(i, xsink);
 }
@@ -604,7 +604,7 @@ $f.writei8LSB($val);
  */
 int File::writei8LSB(int i) {
    if (check_terminal_io(self, "File::writei8LSB", xsink))
-      return 0;
+      return QoreValue();
 
    return f->writei8LSB(i, xsink);
 }
@@ -633,11 +633,11 @@ $f.printf("%5s\n", "hello there"); # outputs "hello there\n", exceeding field wi
  */
 int File::printf(string[doc] fmt, ...) {
    if (check_terminal_io(self, "File::printf", xsink))
-      return 0;
+      return QoreValue();
 
    QoreStringNodeHolder str(q_sprintf(args, 0, 0, xsink));
    if (!str)
-      return 0;
+      return QoreValue();
 
    return f->write(*str, xsink);
 }
@@ -674,11 +674,11 @@ $f.vprintf("%5s: %d\n", ("hello there", 2)); # outputs "hello there: 2\n", excee
  */
 int File::vprintf(string[doc] fmt, any[doc] fmt_args) {
    if (check_terminal_io(self, "File::vprintf", xsink))
-      return 0;
+      return QoreValue();
 
    QoreStringNodeHolder str(q_vsprintf(args, 0, 0, xsink));
    if (!str)
-      return 0;
+      return QoreValue();
 
    return f->write(*str, xsink);
 }
@@ -714,11 +714,11 @@ $f.f_printf("%5s\n", "hello there"); # outputs "hello\n", enforcing the field wi
  */
 int File::f_printf(string[doc] fmt, ...) {
    if (check_terminal_io(self, "File::f_printf", xsink))
-      return 0;
+      return QoreValue();
 
    QoreStringNodeHolder str(q_sprintf(args, 1, 0, xsink));
    if (!str)
-      return 0;
+      return QoreValue();
 
    return f->write(*str, xsink);
 }
@@ -755,11 +755,11 @@ $f.f_vprintf("%5s: %d\n", ("hello there", 2)); # outputs "hello: 2\n", enforcing
  */
 int File::f_vprintf(string[doc] fmt, any[doc] fmt_args) {
    if (check_terminal_io(self, "File::f_vprintf", xsink))
-      return 0;
+      return QoreValue();
 
    QoreStringNodeHolder str(q_vsprintf(args, 1, 0, xsink));
    if (!str)
-      return 0;
+      return QoreValue();
 
    return f->write(*str, xsink);
 }
@@ -779,7 +779,7 @@ int File::f_vprintf() [flags=RUNTIME_NOOP] {
  */
 nothing File::setCharset(*string encoding) {
    if (check_terminal_io(self, "File::setCharset", xsink))
-      return 0;
+      return QoreValue();
 
    const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
    f->setEncoding(qe);
@@ -828,15 +828,15 @@ $f.lock(F_UNLCK);
 int File::lock(softint[doc] type = F_RDLCK, softint[doc] start = 0, softint[doc] len = 0, softint[doc] whence = SEEK_SET) {
 #ifdef HAVE_STRUCT_FLOCK
    if (check_terminal_io(self, "lock", xsink))
-      return 0;
+      return QoreValue();
 
    struct flock fl;
    if (lock_intern(fl, args, xsink))
-      return 0;
+      return QoreValue();
    return f->lock(fl, xsink);
 #else
    file_lock_error("lock", xsink);
-   return 0;
+   return QoreValue();
 #endif
 }
 
@@ -872,17 +872,17 @@ $f.lockBlocking(F_UNLCK);
 nothing File::lockBlocking(softint[doc] type = F_RDLCK, softint[doc] start = 0, softint[doc] len = 0, softint[doc] whence = SEEK_SET) {
 #ifdef HAVE_STRUCT_FLOCK
    if (check_terminal_io(self, "File::lockBlocking", xsink))
-      return 0;
+      return QoreValue();
 
    struct flock fl;
    if (lock_intern(fl, args, xsink))
-      return 0;
+      return QoreValue();
 
    f->lockBlocking(fl, xsink);
-   return 0;
+   return QoreValue();
 #else
    file_lock_error("lockBlocking", xsink);
-   return 0;
+   return QoreValue();
 #endif
 }
 
@@ -895,7 +895,7 @@ nothing File::lockBlocking(softint[doc] type = F_RDLCK, softint[doc] start = 0, 
 my hash $hash = $f.getLockInfo();
     @endcode
 
-    @return a hash with the following keys: 
+    @return a hash with the following keys:
     - \c start: starting byte of the lock
     - \c len: the length in bytes of the locked region
     - \c pid: the PID of the process holding the lock
@@ -909,11 +909,11 @@ my hash $hash = $f.getLockInfo();
 hash File::getLockInfo() [flags=RET_VALUE_ONLY] {
 #ifdef HAVE_STRUCT_FLOCK
    if (check_terminal_io(self, "File::getLockInfo", xsink))
-      return 0;
+      return QoreValue();
 
    struct flock fl;
    if (f->getLockInfo(fl, xsink))
-      return 0;
+      return QoreValue();
 
    QoreHashNode *h = new QoreHashNode;
    h->setKeyValue("start", new QoreBigIntNode(fl.l_start), xsink);
@@ -925,7 +925,7 @@ hash File::getLockInfo() [flags=RET_VALUE_ONLY] {
    return h;
 #else
    file_lock_error("getLockInfo", xsink);
-   return 0;
+   return QoreValue();
 #endif
 }
 
@@ -948,10 +948,10 @@ $f.chown(0, 0);
 nothing File::chown(softint uid, softint gid = -1) {
 #ifdef HAVE_CHOWN
    if (check_terminal_io(self, "File::chown", xsink))
-      return 0;
+      return QoreValue();
 
    f->chown( (uid_t)uid, (gid_t)gid, xsink);
-   return 0;
+   return QoreValue();
 #else
    return missing_method_error("File::chown", "UNIX_FILEMGT", xsink);
 #endif
@@ -980,10 +980,10 @@ nothing File::getTerminalAttributes(TermIOS[QoreTermIOS] termios) {
 #ifdef HAVE_TERMIOS_H
    ReferenceHolder<QoreTermIOS> holder(termios, xsink);
    if (check_terminal_io(self, "File::getTerminalAttributes", xsink))
-      return 0;
+      return QoreValue();
 
    f->getTerminalAttributes(termios, xsink);
-   return 0;
+   return QoreValue();
 #else
    return missing_method_error("File::getTerminalAttributes", "TERMIOS", xsink);
 #endif
@@ -1010,12 +1010,12 @@ my TermIOS $termios = stdin.getTerminalAttributes();
 TermIOS File::getTerminalAttributes() {
 #ifdef HAVE_TERMIOS_H
    if (check_terminal_io(self, "File::getTerminalAttributes", xsink))
-      return 0;
+      return QoreValue();
 
    ReferenceHolder<QoreTermIOS> holder(new QoreTermIOS, xsink);
    f->getTerminalAttributes(*holder, xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
    return new QoreObject(QC_TERMIOS, getProgram(), holder.release());
 #else
    return (QoreObject*)missing_method_error("File::getTerminalAttributes", "TERMIOS", xsink);
@@ -1044,7 +1044,7 @@ $termios.setCC(VTIME, 0);
 stdin.setTerminalAttributes(TCSADRAIN, $termios);
     @endcode
 
-    @param action a binary or'ed value of the following actions: 
+    @param action a binary or'ed value of the following actions:
     - @ref Qore::TCSANOW "TCSANOW": the change occurs immediately
     - @ref Qore::TCSADRAIN "TCSADRAIN": the change occurs after all output written to the %File has been transmitted to the terminal
     - @ref Qore::TCSAFLUSH "TCSAFLUSH": the change occurs after all output written to the %File has been transmitted to the terminal
@@ -1060,10 +1060,10 @@ nothing File::setTerminalAttributes(softint action = TCSANOW, TermIOS[QoreTermIO
 #ifdef HAVE_TERMIOS_H
    ReferenceHolder<QoreTermIOS> holder(termios, xsink);
    if (check_terminal_io(self, "File::setTerminalAttributes", xsink))
-      return 0;
+      return QoreValue();
 
    f->setTerminalAttributes(action, termios, xsink);
-   return 0;
+   return QoreValue();
 #else
    return missing_method_error("File::setTerminalAttributes", "TERMIOS", xsink);
 #endif
@@ -1088,10 +1088,8 @@ my int $mode = File::stat($path)[2];
  */
 static list File::stat(string path) [dom=FILESYSTEM] {
    struct stat sbuf;
-   if (stat(path->getBuffer(), &sbuf)) {
-      xsink->raiseErrnoException("FILE-STAT-ERROR", errno, "stat() command failed");
-      return 0;
-   }
+   if (stat(path->getBuffer(), &sbuf))
+      return xsink->raiseErrnoException("FILE-STAT-ERROR", errno, "stat() command failed");
 
    return stat_to_list(sbuf);
 }
@@ -1121,10 +1119,7 @@ static list File::lstat(string path) [dom=FILESYSTEM] {
 #else
    if (stat(path->getBuffer(), &sbuf))
 #endif
-   {
-      xsink->raiseErrnoException("FILE-LSTAT-ERROR", errno, "lstat() command failed");
-      return 0;
-   }
+      return xsink->raiseErrnoException("FILE-LSTAT-ERROR", errno, "lstat() command failed");
 
    return stat_to_list(sbuf);
 }
@@ -1148,10 +1143,8 @@ my hash $h = File::hstat($path);
  */
 static hash File::hstat(string path) [dom=FILESYSTEM] {
    struct stat sbuf;
-   if (stat(path->getBuffer(), &sbuf)) {
-      xsink->raiseErrnoException("FILE-HSTAT-ERROR", errno, "stat() command failed");
-      return 0;
-   }
+   if (stat(path->getBuffer(), &sbuf))
+      return xsink->raiseErrnoException("FILE-HSTAT-ERROR", errno, "stat() command failed");
 
    return stat_to_hash(sbuf);
 }
@@ -1180,10 +1173,7 @@ static hash File::hlstat(string path) [dom=FILESYSTEM] {
 #else
    if (stat(path->getBuffer(), &sbuf))
 #endif
-   {
-      xsink->raiseErrnoException("FILE-HLSTAT-ERROR", errno, "lstat() command failed");
-      return 0;
-   }
+      return xsink->raiseErrnoException("FILE-HLSTAT-ERROR", errno, "lstat() command failed");
 
    return stat_to_hash(sbuf);
 }
@@ -1208,14 +1198,12 @@ my hash $h = File::statvfs($path);
 static hash File::statvfs(string path) [dom=FILESYSTEM] {
 #ifdef HAVE_SYS_STATVFS_H
    struct statvfs vfs;
-   if (statvfs(path->getBuffer(), &vfs)) {
-      xsink->raiseErrnoException("FILE-STATVFS-ERROR", errno, "statvfs() call failed");
-      return 0;
-   }
+   if (statvfs(path->getBuffer(), &vfs))
+      return xsink->raiseErrnoException("FILE-STATVFS-ERROR", errno, "statvfs() call failed");
 
    return statvfs_to_hash(vfs);
 #else
    file_lock_error("statvfs", xsink);
-   return 0;
+   return QoreValue();
 #endif
 }

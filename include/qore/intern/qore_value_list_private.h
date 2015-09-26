@@ -32,12 +32,24 @@
 #ifndef _QORE_QOREVALUELISTPRIVATE_H
 #define _QORE_QOREVALUELISTPRIVATE_H
 
+#define LIST_BLOCK 20
+#define LIST_PAD   15
+
 typedef ReferenceHolder<QoreValueList> safe_qorevaluelist_t;
 
-static inline QoreValueList* do_args(const QoreValue& e1, const QoreValue& e2) {
+/*
+static QoreValueList* do_value_args(const QoreValue& e1, const QoreValue& e2) {
    QoreValueList* l = new QoreValueList;
    l->push(e1.refSelf());
    l->push(e2.refSelf());
+   return l;
+}
+*/
+
+static QoreListNode* do_args(const QoreValue& e1, const QoreValue& e2) {
+   QoreListNode* l = new QoreListNode;
+   l->push(e1.getReferencedValue());
+   l->push(e2.getReferencedValue());
    return l;
 }
 
@@ -66,10 +78,12 @@ struct qore_value_list_private {
          return;
       }
       // make larger
-      if (num >= allocated) {
-         size_t d = num >> 2;
-         allocated = num + (d < LIST_PAD ? LIST_PAD : d);
-         entry = (QoreValue*)realloc(entry, sizeof(QoreValue*) * allocated);
+      if (num >= length) {
+         if (num >= allocated) {
+            size_t d = num >> 2;
+            allocated = num + (d < LIST_PAD ? LIST_PAD : d);
+            entry = (QoreValue*)realloc(entry, sizeof(QoreValue) * allocated);
+         }
          zeroEntries(length, num);
       }
       length = num;
@@ -89,7 +103,7 @@ struct qore_value_list_private {
          rv = new QoreValueList;
       rv->push(v);
    }
-   
+
    DLLLOCAL size_t checkOffset(ptrdiff_t offset) {
       if (offset < 0) {
          offset = length + offset;
@@ -205,7 +219,7 @@ struct qore_value_list_private {
       if (val.hasNode() && get_container_obj(val.v.n))
          incObjectCount(1);
    }
-   
+
    DLLLOCAL QoreValue getAndClear(size_t i) {
       if (i >= length)
          return QoreValue();
@@ -230,148 +244,13 @@ struct qore_value_list_private {
    }
 
    // mergesort for controlled and interruptible sorts (stable)
-   DLLLOCAL int mergesort(const ResolvedCallReferenceNode* fr, bool ascending, ExceptionSink* xsink) {
-      //printd(5, "List::mergesort() ENTER this: %p, pgm: %p, f: %p length: %d\n", this, pgm, f, length);
-   
-      if (length <= 1)
-         return 0;
-
-      // separate list into two equal-sized lists
-      ReferenceHolder<QoreValueList> left(new QoreValueList, xsink);
-      ReferenceHolder<QoreValueList> right(new QoreValueList, xsink);
-      qore_value_list_private* l = left->priv;
-      qore_value_list_private* r = right->priv;
-      size_t mid = length / 2;
-      {
-         size_t i = 0;
-         for (; i < mid; i++)
-            l->push(entry[i]);
-         for (; i < length; i++)
-            r->push(entry[i]);
-      }
-
-      // set length to 0 - the temporary lists own the entry references now
-      length = 0;
-
-      // mergesort the two lists
-      if (l->mergesort(fr, ascending, xsink) || r->mergesort(fr, ascending, xsink))
-         return -1;
-
-      // merge the resulting lists
-      // use offsets and StackList::getAndClear() to avoid moving a lot of memory around
-      size_t li = 0, ri = 0;
-      while ((li < l->length) && (ri < r->length)) {
-         QoreValue& lv = l->entry[li];
-         QoreValue& rv = r->entry[ri];
-         int rc;
-         if (fr) {
-            safe_qorevaluelist_t args(do_args(lv, rv), xsink);
-            ValueHolder result(fr->execValue(*args, xsink), xsink);
-            if (*xsink)
-               return -1;
-            rc = (int)result->getAsBigInt();
-         }
-         else {
-            ValueHolder result(OP_LOG_CMP->eval(lv, rv, true, 2, xsink), xsink);
-            if (*xsink)
-               return -1;
-            rc = (int)result->getAsBigInt();
-         }
-         if ((ascending && rc <= 0)
-             || (!ascending && rc > 0))
-            push(l->getAndClear(li++));
-         else
-            push(r->getAndClear(ri++));
-      }
-
-      // only one list will have entries left...
-      while (li < l->length)
-         push(l->getAndClear(li++));
-      while (ri < r->length)
-         push(r->getAndClear(ri++));
-
-      //printd(5, "List::mergesort() EXIT this: %p, length: %d\n", this, length);
-
-      return 0;
-   }
+   DLLLOCAL int mergesort(const ResolvedCallReferenceNode* fr, bool ascending, ExceptionSink* xsink);
 
    // quicksort for controlled and interruptible sorts (unstable)
    // I am so smart that I did not comment this code
    // and now I don't know how it works anymore
-   DLLLOCAL int qsort(const ResolvedCallReferenceNode* fr, size_t left, size_t right, bool ascending, ExceptionSink* xsink) {
-      size_t l_hold = left;
-      size_t r_hold = right;
-      QoreValue pivot = entry[left];
+   DLLLOCAL int qsort(const ResolvedCallReferenceNode* fr, size_t left, size_t right, bool ascending, ExceptionSink* xsink);
 
-      while (left < right) {
-         while (true) {
-            int rc;
-            if (fr) {
-               safe_qorevaluelist_t args(do_args(entry[right], pivot), xsink);
-               ValueHolder rv(fr->execValue(*args, xsink), xsink);
-               if (*xsink)
-                  return -1;
-               rc = (int)rv->getAsBigInt();
-            }
-            else {
-               ValueHolder rv(OP_LOG_CMP->eval(entry[right], pivot, true, 2, xsink), xsink);
-               if (*xsink)
-                  return -1;
-               rc = (int)rv->getAsBigInt();
-            }
-            if ((left < right)
-                && ((rc >= 0 && ascending)
-                    || (rc < 0 && !ascending)))
-               --right;
-            else
-               break;
-         }
-
-         if (left != right) {
-            entry[left] = entry[right];
-            ++left;
-         }
-
-         while (true) {
-            int rc;
-            if (fr) {
-               safe_qorevaluelist_t args(do_args(entry[left], pivot), xsink);
-               ValueHolder rv(fr->execValue(*args, xsink), xsink);
-               if (*xsink)
-                  return -1;
-               rc = (int)rv->getAsBigInt();
-            }
-            else {
-               ValueHolder rv(OP_LOG_CMP->eval(entry[left], pivot, true, 2, xsink), xsink);
-               if (*xsink)
-                  return -1;
-               rc = (int)rv->getAsBigInt();
-            }
-            if ((left < right) 
-                && ((rc <= 0 && ascending)
-                    || (rc > 0 && !ascending)))
-               ++left;
-            else
-               break;
-         }
-      
-         if (left != right) {
-            entry[right] = entry[left];
-            --right;
-         }
-      }
-      entry[left] = pivot;
-      size_t t_left = left;
-      left = l_hold;
-      right = r_hold;
-      int rc = 0;
-      if (left < t_left)
-         rc = qsort(fr, left, t_left - 1, ascending, xsink);
-      if (!rc && right > t_left)
-         rc = qsort(fr, t_left + 1, right, ascending, xsink);
-      return rc;
-   }
-   
    DLLLOCAL void incObjectCount(int dt) {
       assert(dt);
       assert(obj_count || (dt > 0));
@@ -386,6 +265,130 @@ struct qore_value_list_private {
    DLLLOCAL static void incObjectCount(const QoreValueList& l, int dt) {
       l.priv->incObjectCount(dt);
    }
+};
+
+//! For use on the stack only: manages result of the optional evaluation of a QoreValueList
+class QoreValueListEvalOptionalRefHolder {
+private:
+   QoreValueList* val;
+   ExceptionSink* xsink;
+   bool needs_deref;
+
+   DLLLOCAL void discardIntern() {
+      if (needs_deref && val)
+         val->deref(xsink);
+   }
+
+   DLLLOCAL void evalIntern(const QoreValueList* exp) {
+      if (exp)
+         val = exp->evalList(needs_deref, xsink);
+      else {
+         val = 0;
+         needs_deref = false;
+      }
+   }
+
+   DLLLOCAL void evalIntern(const QoreListNode* exp);
+
+   //! will create a unique list so the list can be edited
+   DLLLOCAL void editIntern() {
+      if (!val) {
+         val = new QoreValueList;
+         needs_deref = true;
+      }
+      else if (!needs_deref || !val->is_unique()) {
+         val = val->copy();
+         needs_deref = true;
+      }
+   }
+
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL QoreValueListEvalOptionalRefHolder(const QoreValueListEvalOptionalRefHolder&);
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL QoreValueListEvalOptionalRefHolder& operator=(const QoreValueListEvalOptionalRefHolder&);
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL void* operator new(size_t);
+
+public:
+   //! initializes an empty object and saves the ExceptionSink object
+   DLLLOCAL QoreValueListEvalOptionalRefHolder(ExceptionSink* n_xsink) : val(0), xsink(n_xsink), needs_deref(false) {
+   }
+
+   //! performs an optional evaluation of the list (sets the dereference flag)
+   DLLLOCAL QoreValueListEvalOptionalRefHolder(const QoreValueList* exp, ExceptionSink* n_xsink) : xsink(n_xsink) {
+      evalIntern(exp);
+   }
+
+   //! clears the object (dereferences the old object if necessary)
+   DLLLOCAL ~QoreValueListEvalOptionalRefHolder() {
+      discardIntern();
+   }
+
+   //! clears the object (dereferences the old object if necessary)
+   DLLLOCAL void discard() {
+      discardIntern();
+      needs_deref = false;
+      val = 0;
+   }
+
+   //! assigns a new value by executing the given list and dereference flag to this object, dereferences the old object if necessary
+   DLLLOCAL void assignEval(const QoreValueList* exp) {
+      discardIntern();
+      evalIntern(exp);
+   }
+
+   //! assigns a new value by executing the given list and dereference flag to this object, dereferences the old object if necessary
+   DLLLOCAL void assignEval(const QoreListNode* exp) {
+      discardIntern();
+      evalIntern(exp);
+   }
+
+   //! assigns a new value and dereference flag to this object, dereferences the old object if necessary
+   DLLLOCAL void assign(bool n_needs_deref, QoreValueList* n_val) {
+      discardIntern();
+      needs_deref = n_needs_deref;
+      val = n_val;
+   }
+
+   //! returns true if the object contains a temporary (evaluated) value that needs a dereference
+   DLLLOCAL bool needsDeref() const {
+      return needs_deref;
+   }
+
+   //! returns a referenced value - the caller will own the reference
+   /**
+      The list is referenced if necessary (if it was a temporary value)
+      @return the list value, where the caller will own the reference count
+   */
+   DLLLOCAL QoreValueList* getReferencedValue() {
+      if (needs_deref)
+         needs_deref = false;
+      else if (val)
+         val->ref();
+      return val;
+   }
+
+   DLLLOCAL QoreValue& getEntryReference(size_t index) {
+      editIntern();
+      return val->getEntryReference(index);
+   }
+
+   DLLLOCAL size_t size() const {
+      return val ? val->size() : 0;
+   }
+
+   //! returns a pointer to the QoreValueList object being managed
+   /**
+      if you need a referenced value, use getReferencedValue()
+      @return a pointer to the QoreValueList object being managed (or 0 if none)
+   */
+   DLLLOCAL const QoreValueList* operator->() const { return val; }
+
+   //! returns a pointer to the QoreValueList object being managed
+   DLLLOCAL const QoreValueList* operator*() const { return val; }
+
+   //! returns true if a QoreValueList object pointer is being managed, false if the pointer is 0
+   DLLLOCAL operator bool() const { return val != 0; }
 };
 
 #endif

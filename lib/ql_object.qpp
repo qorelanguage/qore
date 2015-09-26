@@ -100,7 +100,7 @@ any callObjectMethod(object obj, string method, ...) [flags=DEPRECATED] {
    // if there are arguments to pass
    if (num_args(args) > 2) {
       // create argument list by copying current list
-      call_args = args->copyListFrom(2);
+      call_args = args->getOldList(2);
    }
 
    // make sure method call is internal (allows access to private methods) if this function was called internally
@@ -142,7 +142,7 @@ any call_object_method(object obj, string method, ...) {
    // if there are arguments to pass
    if (num_args(args) > 2) {
       // create argument list by copying current list
-      call_args = args->copyListFrom(2);
+      call_args = args->getOldList(2);
    }
 
    // make sure method call is internal (allows access to private methods) if this function was called internally
@@ -222,7 +222,7 @@ any call_object_method_args(object obj, string method, *softlist varg) {
 any call_pseudo(any val, string meth, ...) {
    ReferenceHolder<QoreListNode> nargs(xsink);
    if (args->size() > 2)
-      nargs = args->copyListFrom(2);
+      nargs = args->getOldList(2);
    return pseudo_classes_eval(val, meth->getBuffer(), *nargs, xsink).takeNode();
 }
 

@@ -830,6 +830,11 @@ void thread_uninstantiate_lvar(ExceptionSink* xsink) {
    td->tlpd->lvstack.uninstantiate(xsink);
 }
 
+void thread_uninstantiate_self() {
+   ThreadData* td = thread_data.get();
+   td->tlpd->lvstack.uninstantiateSelf();
+}
+
 LocalVarValue* thread_find_lvar(const char* id) {
    ThreadData* td = thread_data.get();
    return td->tlpd->lvstack.find(id);
@@ -1328,8 +1333,13 @@ CodeContextHelper::CodeContextHelper(const char* code, ClassObj obj, ExceptionSi
    xsink = xs;
 
    QoreObject* o = obj.getObj();
-   if (o)
+   if (o && o != old.getObj()) {
       o->ref();
+      do_ref = true;
+   }
+   else
+      do_ref = false;
+
    td->current_code = code;
    td->current_classobj = obj;
    //printd(5, "CodeContextHelper::CodeContextHelper(code: '%s', {cls: %p, obj: %p}) this: %p td: %p, old_code: %s, old {cls: %p, obj: %p}\n", code ? code : "null", obj.getClass(), obj.getObj(), this, td, old_code ? old_code : "null", old.getClass(), old.getObj());
@@ -1338,9 +1348,11 @@ CodeContextHelper::CodeContextHelper(const char* code, ClassObj obj, ExceptionSi
 CodeContextHelper::~CodeContextHelper() {
    ThreadData* td  = thread_data.get();
 
-   QoreObject* o = td->current_classobj.getObj();
-   if (o)
+   if (do_ref) {
+      QoreObject* o = td->current_classobj.getObj();
+      assert(o);
       o->deref(xsink);
+   }
 
    //printd(5, "CodeContextHelper::~CodeContextHelper() this: %p td: %p current=(code: %s, {cls: %p, obj: %p}) restoring code: %s, {cls: %p, obj: %p}\n", this, td, td->current_code ? td->current_code : "null", td->current_classobj.getClass(), o, old_code ? old_code : "null", old.getClass(), old.getObj());
    td->current_code = old_code;
@@ -1362,14 +1374,14 @@ ArgvContextHelper::~ArgvContextHelper() {
    //printd(5, "ArgvContextHelper::~ArgvContextHelper() setting argv: %p\n", old_argv);
 }
 
-SingleArgvContextHelper::SingleArgvContextHelper(const AbstractQoreNode* val, ExceptionSink* n_xsink) : xsink(n_xsink) {
+SingleArgvContextHelper::SingleArgvContextHelper(QoreValue val, ExceptionSink* n_xsink) : xsink(n_xsink) {
    //printd(5, "SingleArgvContextHelper::SingleArgvContextHelper() this: %p arg: %p (%s)\n", this, val, val ? val->getTypeName() : 0);
    ThreadData* td  = thread_data.get();
    old_argv = td->current_implicit_arg;
    QoreListNode* argv;
-   if (!is_nothing(val)) {
+   if (!val.isNothing()) {
       argv = new QoreListNode;
-      argv->push(val->refSelf());
+      argv->push(val.takeNode());
    }
    else
       argv = 0;

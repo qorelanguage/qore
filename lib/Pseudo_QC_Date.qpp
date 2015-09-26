@@ -33,12 +33,12 @@
 #include <qore/intern/QC_TimeZone.h>
 
 //! Methods in this pseudo-class can be executed on @ref date "date/time value types"
-/** 
+/**
  */
-qclass <date> [arg=const DateTimeNode *dt;vparent=<value>];
+qclass <date> [arg=const DateTimeNode *dt = v.get<DateTimeNode>();vparent=<value>];
 
 //! Returns Qore::NT_DATE
-/** 
+/**
     @return Qore::NT_DATE
 
     @par Example:
@@ -55,7 +55,7 @@ int <date>::typeCode() {
 }
 
 //! Returns @ref True if the date is an @ref absolute_dates "absolute date/time value"
-/** 
+/**
     @return @ref True if the date is an @ref absolute_dates "absolute date/time value"
 
     @par Example:
@@ -68,7 +68,7 @@ bool <date>::absolute() {
 }
 
 //! Returns @ref True if the date is a @ref relative_dates "relative date/time value"
-/** 
+/**
     @return @ref True if the date is a @ref relative_dates "relative date/time value"
 
     @par Example:
@@ -81,7 +81,7 @@ bool <date>::relative() {
 }
 
 //! Returns an integer corresponding to the literal year value in the date (does not calculate a duration)
-/** 
+/**
     @return an integer corresponding to the literal year value in the date (does not calculate a duration)
 
     @par Example:
@@ -96,7 +96,7 @@ int <date>::years() [flags=CONSTANT] {
 }
 
 //! Returns an integer corresponding to the literal month value in the date (does not calculate a duration)
-/** 
+/**
     The date value can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date.
 
     @return an integer corresponding to the literal month value in the date (does not calculate a duration)
@@ -113,7 +113,7 @@ int <date>::months() [flags=CONSTANT] {
 }
 
 //! Returns an integer corresponding to the literal day value in the date (does not calculate a duration)
-/** 
+/**
     The date value can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date.
 
     @return an integer corresponding to the literal day value in the date (does not calculate a duration)
@@ -130,7 +130,7 @@ int <date>::days() [flags=CONSTANT] {
 }
 
 //! Returns an integer corresponding to the literal hour value in the date (does not calculate a duration)
-/** 
+/**
     The date value can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date.
 
     @return an integer corresponding to the literal hour value in the date (does not calculate a duration)
@@ -147,7 +147,7 @@ int <date>::hours() [flags=CONSTANT] {
 }
 
 //! Returns an integer corresponding to the literal minute value in the date (does not calculate a duration)
-/** 
+/**
     The date value can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date.
 
     @return an integer corresponding to the literal minute value in the date (does not calculate a duration)
@@ -164,7 +164,7 @@ int <date>::minutes() [flags=CONSTANT] {
 }
 
 //! Returns an integer corresponding to the literal second value in the date (does not calculate a duration)
-/** 
+/**
     The date value can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date.
 
     @return an integer corresponding to the literal second value in the date (does not calculate a duration)
@@ -183,7 +183,7 @@ int <date>::seconds() [flags=CONSTANT] {
 }
 
 //! Returns an integer corresponding to the literal millisecond value in the date (does not calculate a duration)
-/** 
+/**
     The date value can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date.
 
     @return an integer corresponding to the literal millisecond value in the date (does not calculate a duration)
@@ -202,7 +202,7 @@ int <date>::milliseconds() [flags=CONSTANT] {
 }
 
 //! Returns an integer corresponding to the literal microsecond value in the date (does not calculate a duration)
-/** 
+/**
     The date value can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date.
 
     @return an integer corresponding to the literal microsecond value in the date (does not calculate a duration)
@@ -337,7 +337,7 @@ float <date>::durationSecondsFloat() [flags=CONSTANT] {
 }
 
 //! Returns a formatted string for the date value
-/** 
+/**
     @param format a string giving the format for the date; see @ref date_formatting for more information about this string
 
     @return a formatted string for a date argument passed
@@ -358,7 +358,7 @@ string <date>::format(string format) [flags=CONSTANT] {
 }
 
 //! Returns @ref True if the current date/time value is currently in daylight savings time
-/** 
+/**
     @return @ref True if the current date/time value is currently in daylight savings time; always returns @ref False for @ref relative_dates "relative date/time values"
 
     @par Example:
@@ -374,7 +374,7 @@ bool <date>::isDst() [flags=CONSTANT] {
 }
 
 //! Returns a Qore::TimeZone object for the time zone of the date/time value; returns @ref nothing for @ref relative_dates "relative date/time values"
-/** 
+/**
     @return a Qore::TimeZone object for the time zone of the date/time value; returns @ref nothing for @ref relative_dates "relative date/time values"
 
     @par Example:
@@ -387,7 +387,7 @@ my *TimeZone $zone = $d.zone();
 }
 
 //! Returns the name of the current time zone for the current @ref absolute_dates "absolute date/time value" (ex: \c "CEST" for Central European Summer Time for a time during summer time or \c "CET" for Central European Time for the same time zone while daylight savings time is not active) or a UTC offset (like \c "+01") or \c "UTC" or @ref nothing for @ref relative_dates "relative date/time values"
-/** 
+/**
     @return the name of the current time zone for the current @ref absolute_dates "absolute date/time value" (ex: \c "CEST" for Central European Summer Time for a time during summer time or \c "CET" for Central European Time for the same time zone while daylight savings time is not active) or a UTC offset (like \c "+01") or \c "UTC" or @ref nothing for @ref relative_dates "relative date/time values"
 
     @par Example:
@@ -397,7 +397,7 @@ my *string $zn = $d.currentZoneName();
  */
 *string <date>::currentZoneName() [flags=CONSTANT] {
    if (dt->isRelative())
-      return 0;
+      return QoreValue();
 
    bool is_dst;
    const char *zone_name;
@@ -407,7 +407,7 @@ my *string $zn = $d.currentZoneName();
 }
 
 //! Returns the time zone offset for the current time in seconds east of UTC or -1 for @ref relative_dates "relative date/time values"
-/** 
+/**
     @return the time zone offset for the current time in seconds east of UTC or -1 for @ref relative_dates "relative date/time values"
 
     @par Example:
@@ -482,13 +482,13 @@ date <date>::midnight() [flags=CONSTANT] {
    return rv;
 }
 
-//! Returns the number of seconds since the start of the epoch (1970-01-01Z) for the current date for @ref absolute_dates "absolute date/time values"; returns 0 for @ref relative_dates "relative date/time values" 
+//! Returns the number of seconds since the start of the epoch (1970-01-01Z) for the current date for @ref absolute_dates "absolute date/time values"; returns 0 for @ref relative_dates "relative date/time values"
 /** @par Example:
     @code
 my int $secs = $d.getEpochSeconds();
     @endcode
 
-    @return the number of seconds since the start of the epoch (1970-01-01Z) for the current date for @ref absolute_dates "absolute date/time values"; returns 0 for @ref relative_dates "relative date/time values" 
+    @return the number of seconds since the start of the epoch (1970-01-01Z) for the current date for @ref absolute_dates "absolute date/time values"; returns 0 for @ref relative_dates "relative date/time values"
 
     @since %Qore 0.8.8
  */
@@ -496,7 +496,7 @@ int <date>::getEpochSeconds() [flags=CONSTANT] {
    return dt->isAbsolute() ? dt->getEpochSecondsUTC() : 0;
 }
 
-//! Returns the number of seconds since the start of the epoch (1970-01-01) for the current date in the local time zone for @ref absolute_dates "absolute date/time values"; returns 0 for @ref relative_dates "relative date/time values" 
+//! Returns the number of seconds since the start of the epoch (1970-01-01) for the current date in the local time zone for @ref absolute_dates "absolute date/time values"; returns 0 for @ref relative_dates "relative date/time values"
 /** @par Example:
     @code
 my int $secs = $d.getEpochSecondsLocalTime();
@@ -527,7 +527,7 @@ hash <date>::info() [flags=CONSTANT] {
 }
 
 //! Returns an integer representing the ordinal day number in the year (corresponding to the <a href="http://en.wikipedia.org/wiki/ISO_8601#Ordinal_dates">ISO-8601 day number</a>) for the @ref absolute_dates "absolute date" value
-/** 
+/**
     @return an integer representing the ordinal day number in the year (corresponding to the <a href="http://en.wikipedia.org/wiki/ISO_8601#Ordinal_dates">ISO-8601 day number</a>) for the @ref absolute_dates "absolute date" value; if a @ref relative_dates "relative date" value is used, then this method will return 0
 
     @par Example:
@@ -544,7 +544,7 @@ int <date>::dayNumber() [flags=CONSTANT] {
 }
 
 //! Returns an integer representing the day of the week for the @ref absolute_dates "absolute date" value (0=Sunday, 6=Saturday)
-/** 
+/**
     @return an integer representing the day of the week for the @ref absolute_dates "absolute date" value (0=Sunday, 6=Saturday); if a @ref relative_dates "relative date" value is used, then this method will return 0
 
     @par Example:
@@ -563,7 +563,7 @@ int <date>::dayOfWeek() [flags=CONSTANT] {
 }
 
 //! Returns an integer representing the ISO-8601 day of the week for the @ref absolute_dates "absolute date" value (1=Monday, 7=Sunday)
-/** 
+/**
     @return an integer representing the day of the week for the @ref absolute_dates "absolute date" passed (1=Monday, 7=Sunday); if a @ref relative_dates "relative date" value is used, then this method will return 7
 
     @par Example:
@@ -612,7 +612,7 @@ hash <date>::isoWeekHash() [flags=CONSTANT] {
 }
 
 //! Returns a string representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" (ex: 2006-01-01 = "2005-W52-7")
-/** 
+/**
     @return a string representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" (ex: 2006-01-01 = "2005-W52-7"); if a @ref relative_dates "relative date" value is used, then this method will return \c "1970-W01-1"
 
     @par Example:
@@ -633,4 +633,3 @@ string <date>::isoWeekString() [flags=CONSTANT] {
    str->sprintf("%04d-W%02d-%d", year, week, day);
    return str;
 }
-

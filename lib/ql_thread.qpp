@@ -37,16 +37,17 @@
 
 #include <pthread.h>
 #include <qore/intern/QC_TimeZone.h>
+
 extern QoreClass* QC_TIMEZONE;
 
-static void delete_thread_data_intern(const QoreListNode *args, ExceptionSink *xsink) {
+static void delete_thread_data_intern(const QoreValueList* args, ExceptionSink* xsink) {
    // get thread data hash
    QoreHashNode *data = getProgram()->getThreadData();
-      
+
    // iterate through arguments and delete each key
    for (unsigned i = 0; i < args->size(); i++) {
-      const AbstractQoreNode *p = get_param(args, i);
-      if (p) {
+      QoreValue p = get_param_value(args, i);
+      if (!p.isNothing()) {
          QoreStringValueHelper t(p, QCS_DEFAULT, xsink);
 	 if (*xsink)
 	    break;
@@ -58,16 +59,57 @@ static void delete_thread_data_intern(const QoreListNode *args, ExceptionSink *x
    }
 }
 
-static QoreHashNode *remove_thread_data_intern(const QoreListNode *args, ExceptionSink *xsink) {
+static QoreHashNode *remove_thread_data_intern(const QoreValueList* args, ExceptionSink* xsink) {
    // get thread data hash
    QoreHashNode *data = getProgram()->getThreadData();
-      
+
    QoreHashNode* rv = new QoreHashNode;
 
    // iterate through arguments and remove each key
    for (unsigned i = 0; i < args->size(); i++) {
-      const AbstractQoreNode *p = get_param(args, i);
-      if (p) {
+      QoreValue p = get_param_value(args, i);
+      if (!p.isNothing()) {
+         QoreStringValueHelper t(p, QCS_DEFAULT, xsink);
+	 if (*xsink)
+	    break;
+
+	 rv->setKeyValue(*t, data->takeKeyValue((*t)->getBuffer()), xsink);
+	 assert(!*xsink);
+      }
+   }
+
+   return rv;
+}
+
+static void delete_thread_data_intern(const QoreListNode* args, ExceptionSink* xsink) {
+   // get thread data hash
+   QoreHashNode *data = getProgram()->getThreadData();
+
+   // iterate through arguments and delete each key
+   for (unsigned i = 0; i < args->size(); i++) {
+      const AbstractQoreNode* p = get_param(args, i);
+      if (!is_nothing(p)) {
+         QoreStringValueHelper t(p, QCS_DEFAULT, xsink);
+	 if (*xsink)
+	    break;
+
+         data->deleteKey(*t, xsink);
+         if (*xsink)
+            break;
+      }
+   }
+}
+
+static QoreHashNode *remove_thread_data_intern(const QoreListNode* args, ExceptionSink* xsink) {
+   // get thread data hash
+   QoreHashNode *data = getProgram()->getThreadData();
+
+   QoreHashNode* rv = new QoreHashNode;
+
+   // iterate through arguments and remove each key
+   for (unsigned i = 0; i < args->size(); i++) {
+      const AbstractQoreNode* p = get_param(args, i);
+      if (!is_nothing(p)) {
          QoreStringValueHelper t(p, QCS_DEFAULT, xsink);
 	 if (*xsink)
 	    break;
@@ -85,7 +127,7 @@ static QoreHashNode *remove_thread_data_intern(const QoreListNode *args, Excepti
  */
 //@{
 //! Returns the %Qore thread ID (TID) of the current thread
-/** 
+/**
     @return the %Qore thread ID (TID) of the current thread
 
     @par Example:
@@ -100,7 +142,7 @@ int gettid() [flags=RET_VALUE_ONLY;dom=THREAD_INFO] {
 }
 
 //! Returns the current number of threads in the process (not including the special @ref signal_handling "signal handling thread")
-/** 
+/**
     @return the current number of threads in the process (not including the special @ref signal_handling "signal handling thread")
 
     @par Example:
@@ -158,17 +200,17 @@ save_thread_data("key1", $value);
 */
 nothing save_thread_data(string key, any value) [dom=THREAD_CONTROL] {
    QoreHashNode* data = getProgram()->getThreadData();
-   data->setKeyValue(key, value ? value->refSelf() : 0, xsink);
+   data->setKeyValue(key, value.getReferencedValue(), xsink);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing save_thread_data() [dom=THREAD_CONTROL;flags=RUNTIME_NOOP] {
 }
 
 //! Deletes the data associated to one or more keys in the thread-local data hash; if the data is an object, then it is destroyed
-/** 
+/**
     @param ... Deletes the data associated to one or more keys in the thread-local data hash corresponding to each string argument in the top-level argument list; arguments are converted to strings if necessary
 
     @par Example:
@@ -183,11 +225,10 @@ delete_thread_data("key1", "key2");
 nothing delete_thread_data(...) [dom=THREAD_CONTROL] {
    if (num_args(args))
       delete_thread_data_intern(args, xsink);
-   return 0;
 }
 
 //! Deletes the data associated to one or more keys in the thread-local data hash; if the data is an object, then it is destroyed
-/** 
+/**
     @param l a list of key names for deleting keys in the thread-local data hash; values are converted to strings if necessary
 
     @par Example:
@@ -204,7 +245,7 @@ nothing delete_thread_data(list l) [dom=THREAD_CONTROL] {
 }
 
 //! Removes the data associated to one or more keys in the thread-local data hash and returns the data removed
-/** 
+/**
     @param ... the key names should be given directly in the argument list with this variant.  If the given hash keys do not exist in the thread-local data hash, then the given key in the return value will have no value assigned
 
     @return a hash of the data removed or @ref nothing if no arguments were passed to the function
@@ -221,7 +262,7 @@ my hash $h = remove_thread_data("filename");
 }
 
 //! Removes the data associated to one or more keys in the thread-local data hash from a literal list passed as the first argument and returns the data removed
-/** 
+/**
     @param l a list of key names to remove from the thread-local data hash.  If the given hash keys do not exist in the thread-local data hash, then the given key in the return value will have no value assigned
 
     @return a hash of the data removed
@@ -238,7 +279,7 @@ hash remove_thread_data(list l) [dom=THREAD_CONTROL] {
 }
 
 //! Deletes all keys in the thread-local data hash
-/** 
+/**
     @par Example:
     @code
 delete_all_thread_data();
@@ -251,7 +292,7 @@ nothing delete_all_thread_data() [dom=THREAD_CONTROL] {
 }
 
 //! Returns the value of the thread-local data attached to the key passed
-/** 
+/**
     @return the value of the thread-local data attached to the key passed
 
     @par Example:
@@ -264,19 +305,19 @@ my any $data = get_thread_data("key1");
 any get_thread_data(string key) [flags=RET_VALUE_ONLY;dom=THREAD_CONTROL,THREAD_INFO] {
    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
    if (!tmp)
-      return 0;
+      return QoreValue();
    const QoreHashNode* h = getProgram()->getThreadData();
    return h->getReferencedKeyValue(tmp->getBuffer());
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing get_thread_data() [dom=THREAD_CONTROL,THREAD_INFO;flags=RUNTIME_NOOP] {
 }
 
 //! Returns the entire thread-local data hash
-/** 
+/**
     @return the entire thread-local data hash
 
     @par Example:
@@ -292,7 +333,7 @@ hash get_all_thread_data() [flags=RET_VALUE_ONLY;dom=THREAD_CONTROL,THREAD_INFO]
 }
 
 //! Returns a hash of call stacks keyed by each TID (thread ID)
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_RUNTIME_THREAD_STACK_TRACE
 
@@ -304,13 +345,12 @@ hash getAllThreadCallStacks() [dom=THREAD_CONTROL,THREAD_INFO;flags=DEPRECATED] 
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
    return getAllCallStacks();
 #else
-   xsink->raiseException("MISSING-FEATURE-ERROR", "this version of the Qore library was built without support for runtime thread stack tracing; check Qore::Option::HAVE_RUNTIME_THREAD_STACK_TRACE before calling");
-   return 0;
+   return xsink->raiseException("MISSING-FEATURE-ERROR", "this version of the Qore library was built without support for runtime thread stack tracing; check Qore::Option::HAVE_RUNTIME_THREAD_STACK_TRACE before calling");
 #endif
 }
 
 //! Returns a hash of call stacks keyed by each TID (thread ID)
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_RUNTIME_THREAD_STACK_TRACE
 
@@ -336,8 +376,7 @@ hash get_all_thread_call_stacks() [dom=THREAD_CONTROL,THREAD_INFO] {
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
    return getAllCallStacks();
 #else
-   xsink->raiseException("MISSING-FEATURE-ERROR", "this version of the Qore library was built without support for runtime thread stack tracing; check Qore::Option::HAVE_RUNTIME_THREAD_STACK_TRACE before calling");
-   return 0;
+   return xsink->raiseException("MISSING-FEATURE-ERROR", "this version of the Qore library was built without support for runtime thread stack tracing; check Qore::Option::HAVE_RUNTIME_THREAD_STACK_TRACE before calling");
 #endif
 }
 
@@ -386,7 +425,7 @@ nothing throw_thread_resource_exceptions() [dom=THREAD_CONTROL] {
 }
 
 //! Immediately runs all thread resource cleanup routines for the current thread for thread resources created since the last call to mark_thread_resources() and throws all associated exceptions
-/** 
+/**
     When exceptions are thrown by this function, thread-local resources are also cleaned up at the same time.
 
     @return @ref True if there are additional thread resource marks to process, @ref False if there are no more
@@ -407,7 +446,7 @@ catch ($ex) {
 }
     @endcode
 
-    @see 
+    @see
     - throw_thread_resource_exceptions()
     - mark_thread_resources()
 
@@ -418,7 +457,7 @@ bool throw_thread_resource_exceptions_to_mark() [dom=THREAD_CONTROL] {
 }
 
 //! Marks thread resources so that any thread resources left allocated after this call will be cleaned up when throw_thread_resource_exceptions_to_mark() is called
-/** 
+/**
     When exceptions are thrown by this function, thread-local resources are also cleaned up at the same time.
 
     @par Example:
@@ -529,7 +568,7 @@ on_exit set_thread_tz($tz);
    bool set;
    const AbstractQoreZoneInfo* tz = get_thread_tz(set);
    if (!set)
-      return 0;
+      return QoreValue();
    return new QoreObject(QC_TIMEZONE, 0, new TimeZoneData(tz));
 }
 //@}

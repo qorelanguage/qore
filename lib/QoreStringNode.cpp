@@ -36,6 +36,32 @@
 
 #include <stdarg.h>
 
+/*
+#include <map>
+class StrSet {
+   typedef std::set<QoreStringNode*> strset_t;
+   strset_t st;
+
+public:
+   DLLLOCAL StrSet() {
+   }
+   DLLLOCAL ~StrSet() {
+      for (strset_t::iterator i = st.begin(), e = st.end(); i != e; ++i)
+	 printf("STR: '%s'\n", (*i)->getBuffer());
+   }
+   DLLLOCAL void add(QoreStringNode* str) {
+      st.insert(str);
+   }
+   DLLLOCAL void del(QoreStringNode* str) {
+      strset_t::iterator i = st.find(str);
+      assert(i != st.end());
+      st.erase(i);
+   }
+};
+
+static StrSet sset;
+*/
+
 QoreStringNodeMaker::QoreStringNodeMaker(const char* fmt, ...) {
    va_list args;
 
@@ -49,42 +75,54 @@ QoreStringNodeMaker::QoreStringNodeMaker(const char* fmt, ...) {
 }
 
 QoreStringNode::QoreStringNode() : SimpleValueQoreNode(NT_STRING) {
+   //sset.add(this);
 }
 
 QoreStringNode::~QoreStringNode() {
+   //sset.del(this);
 }
 
 QoreStringNode::QoreStringNode(const char *str, const QoreEncoding *enc) : SimpleValueQoreNode(NT_STRING), QoreString(str, enc) {
+   //sset.add(this);
 }
 
 // copies str
 QoreStringNode::QoreStringNode(const QoreString &str) : SimpleValueQoreNode(NT_STRING), QoreString(str) {
+   //sset.add(this);
 }
 
 // copies str
 QoreStringNode::QoreStringNode(const QoreStringNode &str) : SimpleValueQoreNode(NT_STRING), QoreString(str) {
+   //sset.add(this);
 }
 
 // copies str
 QoreStringNode::QoreStringNode(const std::string &str, const QoreEncoding *enc) : SimpleValueQoreNode(NT_STRING), QoreString(str, enc) {
+   //sset.add(this);
 }
 
 QoreStringNode::QoreStringNode(char c) : SimpleValueQoreNode(NT_STRING), QoreString(c) {
+   //sset.add(this);
 }
 
 QoreStringNode::QoreStringNode(const BinaryNode *b) : SimpleValueQoreNode(NT_STRING), QoreString(b) {
+   //sset.add(this);
 }
 
 QoreStringNode::QoreStringNode(const BinaryNode* b, qore_size_t maxlinelen) : SimpleValueQoreNode(NT_STRING), QoreString(b, maxlinelen) {
+   //sset.add(this);
 }
 
 QoreStringNode::QoreStringNode(struct qore_string_private *p) : SimpleValueQoreNode(NT_STRING), QoreString(p) {
+   //sset.add(this);
 }
 
 QoreStringNode::QoreStringNode(char *nbuf, qore_size_t nlen, qore_size_t nallocated, const QoreEncoding *enc) : SimpleValueQoreNode(NT_STRING), QoreString(nbuf, nlen, nallocated, enc) {
+   //sset.add(this);
 }
 
 QoreStringNode::QoreStringNode(const char *str, qore_size_t len, const QoreEncoding *new_qorecharset) : SimpleValueQoreNode(NT_STRING), QoreString(str, len, new_qorecharset) {
+   //sset.add(this);
 }
 
 // virtual function

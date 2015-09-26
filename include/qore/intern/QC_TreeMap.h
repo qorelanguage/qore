@@ -73,11 +73,11 @@ public:
       }
    }
 
-   DLLLOCAL void put(const QoreStringNode *key, const AbstractQoreNode *value, ExceptionSink *xsink) {
+   DLLLOCAL void put(const QoreStringNode *key, const QoreValue value, ExceptionSink *xsink) {
       TempEncodingHelper keyStr(key, QCS_DEFAULT, xsink);
       if (keyStr) {
          Map::mapped_type &refToMap = data[keyStr->getBuffer()];
-         ::discard(refToMap.assignAndSanitize(value), xsink);
+         ::discard(refToMap.assignAndSanitize(value.refSelf()), xsink);
       }
    }
 

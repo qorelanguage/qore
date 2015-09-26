@@ -6,7 +6,8 @@
 main();
 
 const Opts = (
-    "help": "h,help",
+    "rename": "r,rename-vars",
+    "help":   "h,help",
     );
 
 const ReservedWords = (
@@ -27,10 +28,16 @@ const ReservedWords = (
 );
 
 sub usage() {
-    printf("%s: [options] input-file
- -h,--help       this help text
+    printf("%s: [options] input-file [output-file]
+ -r,--rename-vars  rename local vars to avoid collisions with class members
+ -h,--help         this help text
 ", get_script_name());
     exit(0);
+}
+
+sub error(string fmt) {
+    stderr.vprintf(get_script_name() + ": ERROR: " + fmt + "\n", argv);
+    exit(1);
 }
 
 sub main() {
@@ -40,15 +47,26 @@ sub main() {
     if (o.help || !ARGV[0])
         usage();
 
-    if (ARGV[0] == "-")
-        ARGV[0] = "/dev/stdin";
+    string ofn = ARGV[1] ?? ARGV[0] ?? "-";
+    File of;
+    if (ofn == "-")
+        of = stdout;
+    else {
+        of = new File();
+        of.open2(ofn + ".tmp", O_CREAT | O_WRONLY | O_TRUNC);
+    }
 
-    /*
-    File of();
-    of.open(ARGV[2], O_CREAT | O_WRONLY | O_TRUNC);
-    */
+    string ifn = ARGV[0] ?? "-";
+    if (ifn == "-")
+        ifn = "/dev/stdin";
 
-    FileLineIterator li(ARGV[0]);
+    on_success if (ofn)
+        rename(ofn + ".tmp", ofn);
+
+    on_error if (ofn)
+        unlink(ofn + ".tmp");
+
+    FileLineIterator li(ifn);
 
     while (li.next()) {
         string str = li.getValue();
@@ -74,7 +92,11 @@ sub main() {
             }
 
             # remove dollar signs on vars
-            str =~ s/\$([a-z][a-z0-9_]*)/v_$1/ig;
+            if (o.rename)
+                str =~ s/\$([a-z][a-z0-9_]*)/v_$1/ig;
+            else
+                str =~ s/\$([a-z][a-z0-9_]*)/$1/ig;
+
             # this uses a trick: only even number of "s means that it is a var - otherwise it could be $ inside the string (ok, this is not very rigorous but what we can do without tokenizer)
             #str =~ s/\A(?:[^"]*"[^"]*"[^"]*)\$([a-z][a-z0-9_]*)/v_$1/ig;
 
@@ -85,10 +107,10 @@ sub main() {
             # remove dollar signs on class method calls
             str =~ s/\$\.([a-z][a-z0-9_]*\()/$1/ig;
 
-            # remove and rename class vars adding a suffix "c"
+            # remove dollar signs and rename class vars
             str =~ s/\$\.([a-z][a-z0-9_]*)/$1/ig;
         }
 
-        printf("%s\n", str);
+        of.printf("%s\n", str);
     }
 }

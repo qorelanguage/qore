@@ -2,7 +2,7 @@
   QoreSocket.cpp
 
   Socket Class for IPv4, IPv6 and UNIX domain sockets with SSL support
-  
+
   Qore Programming Language
 
   Copyright (C) 2003 - 2015 David Nichols
@@ -56,7 +56,7 @@ void se_closed(const char* mname, ExceptionSink* xsink) {
    xsink->raiseException("SOCKET-CLOSED", "error in Socket::%s(): remote end closed the connection", mname);
 }
 
-#ifdef _Q_WINDOWS 
+#ifdef _Q_WINDOWS
 int sock_get_raw_error() {
    return WSAGetLastError();
 }
@@ -334,10 +334,10 @@ int SSLSocketHelper::connect(const char* mname, int timeout_ms, ExceptionSink* x
 	       break;
 	    continue;
 	 }
-	    
+
 	 break;
       }
-	 
+
       if (!closed && qs.set_non_blocking(false, xsink))
 	 return qs.close_and_exit();
    }
@@ -378,7 +378,7 @@ int SSLSocketHelper::accept(const char* mname, int timeout_ms, ExceptionSink* xs
       if (!closed && qs.set_non_blocking(false, xsink))
 	 return qs.close_and_exit();
    }
-   else 
+   else
       rc = SSL_accept(ssl);
 
    if (rc <= 0) {
@@ -388,7 +388,7 @@ int SSLSocketHelper::accept(const char* mname, int timeout_ms, ExceptionSink* xs
       assert(*xsink);
       return -1;
    }
-   
+
    return 0;
 }
 
@@ -426,12 +426,12 @@ X509* SSLSocketHelper::getPeerCertificate() const {
    return SSL_get_peer_certificate(ssl);
 }
 
-long SSLSocketHelper::verifyPeerCertificate() const {	 
+long SSLSocketHelper::verifyPeerCertificate() const {
    X509* cert = SSL_get_peer_certificate(ssl);
-   
+
    if (!cert)
       return -1;
-   
+
    long rc = SSL_get_verify_result(ssl);
    X509_free(cert);
    return rc;
@@ -636,7 +636,7 @@ int SSLSocketHelper::doSSLUpgradeNonBlockingIO(int rc, const char* mname, int ti
 	    xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported an EOF condition that violates the SSL protocol while calling %s()", mname, ssl_func);
 	 else if (rc == -1) {
 	    xsink->raiseErrnoException("SOCKET-SSL-ERROR", sock_get_error(), "error in Socket::%s(): the openssl library reported an I/O error while calling %s()", mname, ssl_func);
-	    
+
 #ifdef ECONNRESET
 	    // close the socket if connection reset received
 	    // do not access "this" after the connection is closed since the SSLSocketHelper has been deleted
@@ -650,7 +650,7 @@ int SSLSocketHelper::doSSLUpgradeNonBlockingIO(int rc, const char* mname, int ti
 
       return !*xsink ? 0 : QSE_SSL_ERR;
    }
-   
+
    //printd(5, "SSLSocketHelper::doSSLNonBlockingIO(buf: %p, size: %d, to: %d) rc: %d err: %d\n", buf, size, timeout_ms, rc, err);
    // always throw an exception if an error occurs while writing
    if (!sslError(xsink, closed, mname, ssl_func, true))
@@ -707,7 +707,7 @@ bool SSLSocketHelper::sslError(ExceptionSink* xsink, bool& closed, const char* m
 #endif
       }
    } while ((e = ERR_get_error()));
-   
+
    return *xsink || closed;
 }
 
@@ -735,7 +735,7 @@ void PrivateQoreSocketThroughputHelper::finalize(int64 bytes) {
    if (bytes <= 0)
       return;
 
-   if (send) 
+   if (send)
       sock->tp_bytes_sent += bytes;
    else
       sock->tp_bytes_recv += bytes;
@@ -788,10 +788,10 @@ int QoreSocket::close() {
 int QoreSocket::shutdown() {
    int rc;
    if (priv->sock != QORE_INVALID_SOCKET)
-      rc = ::shutdown(priv->sock, SHUTDOWN_ARG); 
-   else 
-      rc = 0; 
-   
+      rc = ::shutdown(priv->sock, SHUTDOWN_ARG);
+   else
+      rc = 0;
+
    return rc;
 }
 
@@ -804,19 +804,19 @@ int QoreSocket::shutdownSSL(ExceptionSink* xsink) {
 }
 
 int QoreSocket::getSocket() const {
-   return priv->sock; 
+   return priv->sock;
 }
 
 const QoreEncoding* QoreSocket::getEncoding() const {
-   return priv->enc; 
+   return priv->enc;
 }
 
-void QoreSocket::setEncoding(const QoreEncoding* id) { 
-   priv->enc = id; 
-} 
+void QoreSocket::setEncoding(const QoreEncoding* id) {
+   priv->enc = id;
+}
 
-bool QoreSocket::isOpen() const { 
-   return (bool)(priv->sock != QORE_INVALID_SOCKET); 
+bool QoreSocket::isOpen() const {
+   return (bool)(priv->sock != QORE_INVALID_SOCKET);
 }
 
 const char* QoreSocket::getSSLCipherName() const {
@@ -887,7 +887,7 @@ int QoreSocket::connect(const char* name, int timeout_ms, ExceptionSink* xsink) 
 	 //printd(5, "QoreSocket::connect(%s, %s) [ipv6]\n", host.getBuffer() + 1, service.getBuffer());
 	 rc = priv->connectINET(host.getBuffer() + 1, service.getBuffer(), timeout_ms, xsink, AF_INET6);
       }
-      else 
+      else
 	 rc = priv->connectINET(host.getBuffer(), service.getBuffer(), timeout_ms, xsink);
    }
    else {
@@ -921,7 +921,7 @@ int QoreSocket::connectSSL(const char* name, int timeout_ms, X509* cert, EVP_PKE
 	 //printd(5, "QoreSocket::connect(%s, %s) [ipv6]\n", host.getBuffer() + 1, service.getBuffer());
 	 rc = connectINET2SSL(host.getBuffer() + 1, service.getBuffer(), AF_INET6, SOCK_STREAM, 0, timeout_ms, cert, pkey, xsink);
       }
-      else 
+      else
 	 rc = connectINET2SSL(host.getBuffer(), service.getBuffer(), AF_UNSPEC, SOCK_STREAM, 0, timeout_ms, cert, pkey, xsink);
    }
    else {
@@ -1550,7 +1550,7 @@ int QoreSocket::bind(const struct sockaddr *addr, int size) {
       return -1;
 
    if ((::bind(priv->sock, addr, size)) == QORE_SOCKET_ERROR) {
-#ifdef _Q_WINDOWS 
+#ifdef _Q_WINDOWS
       // set errno from windows error
       sock_get_error();
 #endif
@@ -1560,7 +1560,7 @@ int QoreSocket::bind(const struct sockaddr *addr, int size) {
    // set port number to unknown
    priv->port = -1;
    //printd(5, "QoreSocket::bind(interface, port) returning 0 (success)\n");
-   return 0;   
+   return 0;
 }
 
 int QoreSocket::bind(int family, const struct sockaddr *addr, int size, int sock_type, int protocol) {
@@ -1576,7 +1576,7 @@ int QoreSocket::bind(int family, const struct sockaddr *addr, int size, int sock
       return -1;
 
    if ((::bind(priv->sock, addr, size)) == -1) {
-#ifdef _Q_WINDOWS 
+#ifdef _Q_WINDOWS
       // set errno from windows error
       sock_get_error();
 #endif
@@ -1587,7 +1587,7 @@ int QoreSocket::bind(int family, const struct sockaddr *addr, int size, int sock
    int prt = q_get_port_from_addr(addr);
    priv->port = prt ? prt : -1;
    //printd(5, "QoreSocket::bind(interface, port) returning 0 (success)\n");
-   return 0;   
+   return 0;
 }
 
 // find out what port we're connected to
@@ -1620,7 +1620,7 @@ QoreSocket* QoreSocket::acceptSSL(SocketSource* source, X509* cert, EVP_PKEY* pk
       delete s;
       return 0;
    }
-   
+
    return s;
 }
 
@@ -1788,7 +1788,7 @@ void QoreSocket::clearWarningQueue(ExceptionSink* xsink) {
 void QoreSocket::setWarningQueue(ExceptionSink* xsink, int64 warning_ms, int64 warning_bs, Queue* wq, AbstractQoreNode* arg, int64 min_ms) {
    priv->setWarningQueue(xsink, warning_ms, warning_bs, wq, arg, min_ms);
 }
-   
+
 QoreHashNode* QoreSocket::getUsageInfo() const {
    return priv->getUsageInfo();
 }

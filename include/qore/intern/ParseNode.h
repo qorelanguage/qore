@@ -1,7 +1,7 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   ParseNode.h
-  
+
   Qore Programming Language
 
   Copyright (C) 2003 - 2015 David Nichols
@@ -49,6 +49,7 @@ protected:
    bool parse_init : 1;
 
    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) = 0;
+
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const = 0;
 
    DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink* xsink) const {
@@ -129,7 +130,7 @@ public:
    }
 };
 
-// these objects will never be copied or referenced therefore they can have 
+// these objects will never be copied or referenced therefore they can have
 // public destructors - the deref() functions just call "delete this;"
 class ParseNoEvalNode : public ParseNode {
 private:

@@ -639,7 +639,8 @@ static AbstractQoreNode* op_object_ref(const AbstractQoreNode* left, const Abstr
    }
 
    QoreStringNodeValueHelper key(*mem);
-   return o->evalMember(*key, xsink);
+   ValueHolder rv(o->evalMember(*key, xsink), xsink);
+   return *xsink ? 0 : rv.getReferencedValue();
 }
 
 static AbstractQoreNode* op_list_assignment(const AbstractQoreNode* n_left, const AbstractQoreNode* right, bool ref_rv, ExceptionSink* xsink) {
@@ -1046,7 +1047,8 @@ static AbstractQoreNode* op_fold_iterator(const AbstractQoreNode* left, Abstract
       return 0;
 
    // get first argument value
-   ReferenceHolder<AbstractQoreNode> result(h.getValue(xsink), xsink);
+   ValueHolder result(h.getValue(xsink), xsink);
+   //ReferenceHolder<AbstractQoreNode> result(h.getValue(xsink), xsink);
    if (*xsink)
       return 0;
 
@@ -1058,21 +1060,22 @@ static AbstractQoreNode* op_fold_iterator(const AbstractQoreNode* left, Abstract
          break;
 
       // get next argument value
-      ReferenceHolder<AbstractQoreNode> arg(h.getValue(xsink), xsink);
+      ValueHolder arg(h.getValue(xsink), xsink);
+      //ReferenceHolder<AbstractQoreNode> arg(h.getValue(xsink), xsink);
       if (*xsink)
          return 0;
 
       // create argument list for fold expression
       QoreListNode* args = new QoreListNode;
-      args->push(result.release());
-      args->push(arg.release());
+      args->push(result.getReferencedValue());
+      args->push(arg.getReferencedValue());
       ArgvContextHelper argv_helper(args, xsink);
       result = left->eval(xsink);
       if (*xsink)
          return 0;
    }
 
-   return result.release();
+   return result.getReferencedValue();
 }
 
 static AbstractQoreNode* op_foldl(const AbstractQoreNode* left, const AbstractQoreNode* arg_exp, bool ref_rv, ExceptionSink* xsink) {
@@ -1189,10 +1192,11 @@ static AbstractQoreNode* op_select_iterator(const AbstractQoreNode* select, Abst
       // set offset in thread-local data for "$#"
       ImplicitElementHelper eh(i++);
 
-      ReferenceHolder<> iv(h.getValue(xsink), xsink);
+      ValueHolder iv(h.getValue(xsink), xsink);
+      //ReferenceHolder<> iv(h.getValue(xsink), xsink);
       if (*xsink)
          return 0;
-      SingleArgvContextHelper argv_helper(*iv, xsink);
+      SingleArgvContextHelper argv_helper(iv.release(), xsink);
       if (*xsink)
          return 0;
       b = select->boolEval(xsink);
@@ -1200,10 +1204,11 @@ static AbstractQoreNode* op_select_iterator(const AbstractQoreNode* select, Abst
          return 0;
       if (b) {
          // get next argument value
-         ReferenceHolder<AbstractQoreNode> arg(h.getValue(xsink), xsink);
+	 ValueHolder arg(h.getValue(xsink), xsink);
+         //ReferenceHolder<AbstractQoreNode> arg(h.getValue(xsink), xsink);
          if (*xsink)
             return 0;
-         rv->push(arg.release());
+         rv->push(arg.getReferencedValue());
       }
    }
    return rv.release();
@@ -1225,7 +1230,7 @@ static AbstractQoreNode* op_select(const AbstractQoreNode* arg_exp, const Abstra
          if (h)
             return op_select_iterator(select, h, ref_rv, xsink);
       }
-      SingleArgvContextHelper argv_helper(*arg, xsink);
+      SingleArgvContextHelper argv_helper(arg.getReferencedValue(), xsink);
       bool b = select->boolEval(xsink);
       if (*xsink)
          return 0;
@@ -1233,12 +1238,12 @@ static AbstractQoreNode* op_select(const AbstractQoreNode* arg_exp, const Abstra
       return b ? arg.getReferencedValue() : 0;
    }
 
-   ReferenceHolder<QoreListNode> rv(new QoreListNode(), xsink);
+   ReferenceHolder<QoreListNode> rv(new QoreListNode, xsink);
    ConstListIterator li(reinterpret_cast<const QoreListNode*>(*arg));
    while (li.next()) {
       // set offset in thread-local data for "$#"
       ImplicitElementHelper eh(li.index());
-      SingleArgvContextHelper argv_helper(li.getValue(), xsink);
+      SingleArgvContextHelper argv_helper(li.getReferencedValue(), xsink);
       bool b = select->boolEval(xsink);
       if (*xsink)
 	 return 0;

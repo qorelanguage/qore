@@ -925,7 +925,7 @@ AbstractQoreNode* QoreProgram::runTopLevel(ExceptionSink* xsink) {
    ProgramThreadCountContextHelper tch(xsink, this, true);
    if (*xsink)
       return 0;
-   return priv->sb.exec(xsink);
+   return priv->sb.exec(xsink).takeNode();
 }
 
 AbstractQoreNode* QoreProgram::callFunction(const char* name, const QoreListNode* args, ExceptionSink* xsink) {
@@ -956,7 +956,7 @@ AbstractQoreNode* QoreProgram::callFunction(const char* name, const QoreListNode
    AbstractQoreNode* rv = !*xsink ? fc->eval(xsink) : 0;
 
    // let caller delete function arguments if necessary
-   fc->take_args();
+   fc->takeArgs();
 
    return rv;
 }

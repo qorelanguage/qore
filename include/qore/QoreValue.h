@@ -63,7 +63,7 @@ namespace detail {
       template<typename QV>
       static Result cast(QV *qv, valtype_t type) {
          assert(type == QV_Node);
-         assert(dynamic_cast<Result>(qv->v.n));
+         assert(!qv->v.n || dynamic_cast<Result>(qv->v.n));
          return reinterpret_cast<Result>(qv->v.n);
       }
    };
@@ -100,21 +100,10 @@ namespace detail {
          return qv->getAsBigInt();
       }
    };
-
-   /*
-   template<>
-   struct QoreValueCastHelper<int> {
-      typedef int Result;
-
-      template<typename QV>
-      static int cast(QV *qv, valtype_t type) {
-         return qv->getAsBigInt();
-      }
-   };
-   */
 } // namespace detail
 
 struct QoreValue {
+   friend class ValueHolder;
    friend class ValueEvalRefHolder;
    template<typename> friend struct detail::QoreValueCastHelper;
 
@@ -130,6 +119,14 @@ public:
 
    DLLEXPORT QoreValue(bool b);
 
+   DLLEXPORT QoreValue(int i);
+
+   DLLEXPORT QoreValue(unsigned int i);
+
+   DLLEXPORT QoreValue(long i);
+
+   DLLEXPORT QoreValue(unsigned long i);
+
    DLLEXPORT QoreValue(int64 i);
 
    DLLEXPORT QoreValue(double f);
@@ -137,10 +134,10 @@ public:
    // the QoreValue object takes the reference of the argument
    DLLEXPORT QoreValue(AbstractQoreNode* n);
 
-   // the arg will be referenced for the assignment
+   // does not reference n for any assignment
    // sanitizes n (increases the reference of n if necessary) - meaning:
    // if possible, the value is converted to an immediate value in place
-   // (int, float, or bool), otherwise the arg will be referenced for the assignment
+   // (int, float, or bool)
    DLLEXPORT QoreValue(const AbstractQoreNode* n);
 
    DLLEXPORT QoreValue(const QoreValue& old);
@@ -153,6 +150,8 @@ public:
 
    DLLEXPORT double getAsFloat() const;
 
+   DLLEXPORT void ref() const;
+
    DLLEXPORT QoreValue refSelf() const;
 
    DLLEXPORT AbstractQoreNode* getInternalNode();
@@ -164,7 +163,8 @@ public:
 
    // the QoreValue object will increase the reference of n if necessary
    //returns 0 or the previously held AbstractQoreNode*
-   DLLEXPORT AbstractQoreNode* assignAndSanitize(const AbstractQoreNode* n);
+   // FIXME: remove with new API/ABI
+   DLLEXPORT AbstractQoreNode* assignAndSanitize(const QoreValue n);
 
    DLLEXPORT AbstractQoreNode* assign(int64 n);
 
@@ -183,8 +183,11 @@ public:
 
    DLLEXPORT QoreValue& operator=(const QoreValue& n);
 
-   // dereferences any contained AbstractQoreNode pointer and sets to 0; does not modify immediate values
+   // dereferences any contained AbstractQoreNode pointer and sets to 0; does not modify other values
    DLLEXPORT void discard(ExceptionSink* xsink);
+
+   //! unconditionalls set the QoreValue to NOTHING (does not dereference any possible contained AbstractQoreNode ptr)
+   DLLEXPORT void clear();
 
    DLLEXPORT int getAsString(QoreString& str, int format_offset, ExceptionSink *xsink) const;
 
@@ -269,7 +272,11 @@ public:
 
    DLLEXPORT ~ValueHolder();
 
+   //! returns a referenced AbstractQoreNode ptr; caller owns the referenced; the current object is left empty
    DLLEXPORT AbstractQoreNode* getReferencedValue();
+
+   //! returns a QoreValue object and leaves the current object empty; the caller owns any referenced contained in the return value
+   DLLEXPORT QoreValue release();
 
    DLLLOCAL QoreValue& operator=(QoreValue nv) {
       v.discard(xsink);
@@ -301,6 +308,17 @@ public:
 
    //! returns true if the value is temporary (needs dereferencing)
    DLLLOCAL bool isTemp() const { return needs_deref; }
+
+   //! sets needs_deref = false
+   DLLLOCAL void setTemp() {
+      assert(needs_deref);
+      needs_deref = false;
+   }
+
+   //! returns true if holding an AbstractQoreNode reference
+   DLLLOCAL operator bool() const {
+      return v.type == QV_Node && v.v.n;
+   }
 };
 
 class ValueEvalRefHolder : public ValueOptionalRefHolder {

@@ -350,6 +350,7 @@ private:
 protected:
    template <class T, typename t, int nt>
    DLLLOCAL T* ensureUnique(const QoreTypeInfo* typeTypeInfo, const char* desc) {
+      assert(v);
       if (nt == get_node_type(*v)) {
          if (!(*v)->is_unique()) {
             //printd(5, "LValueHelper::ensureUnique() this: %p saving old value: %p '%s'\n", this, *v, get_type_name(*v));
@@ -376,8 +377,19 @@ protected:
       return reinterpret_cast<T*>(*v);
    }
 
+   DLLLOCAL void assignIntern(AbstractQoreNode* n) {
+      if (val)
+         val->assign(n);
+      else
+         *v = n;
+   }
+
    DLLLOCAL int doListLValue(const QoreTreeNode* tree, bool for_remove);
    DLLLOCAL int doHashObjLValue(const QoreTreeNode* tree, bool for_remove);
+
+   DLLLOCAL int makeInt(const char* desc);
+   DLLLOCAL int makeFloat(const char* desc);
+   DLLLOCAL int makeNumber(const char* desc);
 
 public:
    AutoVLock vl;
@@ -438,8 +450,12 @@ public:
    }
 
    DLLLOCAL void resetPtr(AbstractQoreNode** ptr, const QoreTypeInfo* ti = 0) {
-      assert(v);
-      assert(!val);
+      if (val) {
+         assert(!v);
+         val = 0;
+      }
+      else
+         assert(v);
       v = ptr;
       typeInfo = ti;
 
@@ -447,7 +463,8 @@ public:
    }
 
    DLLLOCAL void clearPtr() {
-      assert(v);
+      if (val)
+         val = 0;
       v = 0;
       typeInfo = 0;
       before = 0;
@@ -458,15 +475,28 @@ public:
    }
 
    DLLLOCAL bool isOptimized() const {
-      return (bool)val;
+      return val && val->optimized();
    }
 
    DLLLOCAL const QoreTypeInfo* getTypeInfo() const {
       return typeInfo;
    }
 
-   DLLLOCAL const qore_type_t getType() const;
-   DLLLOCAL const char* getTypeName() const;
+   DLLLOCAL qore_type_t getType() const {
+      return val ? val->getType() : get_node_type(*v);
+   }
+
+   DLLLOCAL AbstractQoreNode* getValue() {
+      return val ? val->getInternalNode() : *v;
+   }
+
+   DLLLOCAL const AbstractQoreNode* getValue() const {
+      return val ? val->getInternalNode() : *v;
+   }
+
+   DLLLOCAL const char* getTypeName() const {
+      return val ? val->getTypeName() : get_type_name(*v);
+   }
 
    DLLLOCAL bool checkType(const qore_type_t t) const {
       return getType() == t;
@@ -480,29 +510,16 @@ public:
 
    DLLLOCAL AbstractQoreNode* getReferencedNodeValue() const;
 
-   // only call after calling checkType() to ensure the type is correct and cannot be optimized
-   // FIXME: port operators to LValueHelper instead and remove this function
-   DLLLOCAL AbstractQoreNode* getValue() {
-      assert(*v);
-      return *v;
-   }
-
-   // only call after calling checkType() to ensure the type is correct and cannot be optimized
-   // FIXME: port operators to LValueHelper instead and remove this function
-   DLLLOCAL const AbstractQoreNode* getValue() const {
-      assert(*v);
-      return *v;
-   }
-
    // only call if there is a value in place
    // FIXME: port operators to LValueHelper instead and remove this function
    DLLLOCAL void ensureUnique() {
-      assert((*v) && (*v)->getType() != NT_OBJECT);
+      AbstractQoreNode* current_value = getValue();
+      assert(current_value && current_value->getType() != NT_OBJECT);
 
-      if (!(*v)->is_unique()) {
+      if (!current_value->is_unique()) {
          //printd(5, "LValueHelper::ensureUnique() this: %p saving old value: %p '%s'\n", this, *v, get_type_name(*v));
-         AbstractQoreNode* old = (*v);
-         (*v) = (*v)->realCopy();
+         AbstractQoreNode* old = current_value;
+         assignIntern(current_value->realCopy());
          saveTemp(old);
       }
    }
@@ -545,15 +562,22 @@ public:
    DLLLOCAL QoreNumberNode* postDecrementNumber(bool ref_rv, const char* desc = "<lvalue>");
 
    DLLLOCAL QoreNumberNode* ensureUniqueNumber(const char* desc = "<lvalue>") {
+      AbstractQoreNode** p;
       if (val) {
-         typeInfo->doTypeException(0, desc, numberTypeInfo->getName(), vl.xsink);
-         return 0;
+         if (makeNumber(desc))
+            return 0;
+         p = &val->v.n;
+      }
+      else {
+         assert(v);
+         p = v;
       }
 
-      if (get_node_type(*v) == NT_NUMBER) {
-         if (!(*v)->is_unique()) {
-            AbstractQoreNode* old = (*v);
-            (*v) = (*v)->realCopy();
+      // if we converted from val above, then we already have a QoreNumberNode
+      if (get_node_type(*p) == NT_NUMBER) {
+         if (!(*p)->is_unique()) {
+            AbstractQoreNode* old = (*p);
+            (*p) = (*p)->realCopy();
             saveTemp(old);
          }
       }
@@ -563,10 +587,10 @@ public:
             return 0;
          }
 
-         saveTemp(*v);
-         *v = new QoreNumberNode(*v);
+         saveTemp(*p);
+         *p = new QoreNumberNode(*p);
       }
-      return reinterpret_cast<QoreNumberNode*>(*v);
+      return reinterpret_cast<QoreNumberNode*>(*p);
    }
 
    DLLLOCAL int assign(QoreValue val, const char* desc = "<lvalue>");
@@ -576,7 +600,7 @@ public:
    */
 
    DLLLOCAL AbstractQoreNode* removeNode(bool for_del);
-   DLLLOCAL QoreValue remove();
+   DLLLOCAL QoreValue remove(bool& static_assignment);
 
    DLLLOCAL void setDelta(int dt) {
       assert(!rdt);
@@ -589,7 +613,7 @@ private:
    // not implemented
    DLLLOCAL LValueRemoveHelper(const LValueRemoveHelper&);
    DLLLOCAL LValueRemoveHelper& operator=(const LValueRemoveHelper&);
-   DLLLOCAL void *operator new(size_t);
+   DLLLOCAL void* operator new(size_t);
 
 protected:
    ExceptionSink* xsink;
@@ -623,7 +647,7 @@ public:
    }
 
    DLLLOCAL AbstractQoreNode* removeNode();
-   DLLLOCAL QoreValue remove();
+   DLLLOCAL QoreValue remove(bool& static_assignment);
 
    DLLLOCAL void deleteLValue();
 };

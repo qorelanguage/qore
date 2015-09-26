@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   ForEachStatement.h
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -44,13 +44,13 @@ private:
    LVList* lvars;
    bool is_ref,
       is_keys;
-   
-   DLLLOCAL int execRef(AbstractQoreNode** return_value, ExceptionSink* xsink);
-   DLLLOCAL int execKeys(AbstractQoreNode** return_value, ExceptionSink* xsink);
-   DLLLOCAL int execIterator(AbstractIteratorHelper& aih, AbstractQoreNode** return_value, ExceptionSink* xsink);
-   DLLLOCAL virtual int execImpl(AbstractQoreNode** return_value, ExceptionSink* xsink);
+
+   DLLLOCAL int execRef(QoreValue& return_value, ExceptionSink* xsink);
+   DLLLOCAL int execKeys(QoreValue& return_value, ExceptionSink* xsink);
+   DLLLOCAL int execIterator(AbstractIteratorHelper& aih, QoreValue& return_value, ExceptionSink* xsink);
+   DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink);
    DLLLOCAL virtual int parseInitImpl(LocalVar* oflag, int pflag = 0);
-   
+
 public:
    DLLLOCAL ForEachStatement(int start_line, int end_line, AbstractQoreNode* v, AbstractQoreNode* l, StatementBlock* cd);
    DLLLOCAL virtual ~ForEachStatement();

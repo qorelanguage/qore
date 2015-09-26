@@ -44,6 +44,22 @@ QoreValue::QoreValue(int64 i) : type(QV_Int) {
    v.i = i;
 }
 
+QoreValue::QoreValue(int i) : type(QV_Int) {
+   v.i = i;
+}
+
+QoreValue::QoreValue(unsigned int i) : type(QV_Int) {
+   v.i = i;
+}
+
+QoreValue::QoreValue(long i) : type(QV_Int) {
+   v.i = i;
+}
+
+QoreValue::QoreValue(unsigned long i) : type(QV_Int) {
+   v.i = i;
+}
+
 QoreValue::QoreValue(double f) : type(QV_Float) {
    v.f = f;
 }
@@ -72,8 +88,7 @@ QoreValue::QoreValue(const AbstractQoreNode* n) {
 	 return;
    }
    type = QV_Node;
-   // n cannot be 0 here because we covered the NT_NOTHING case above
-   v.n = n->refSelf();
+   v.n = const_cast<AbstractQoreNode*>(n);
 }
 
 QoreValue::QoreValue(const QoreValue& old): type(old.type) {
@@ -147,9 +162,13 @@ AbstractQoreNode* QoreValue::getInternalNode() {
    return type == QV_Node ? v.n : 0;
 }
 
-QoreValue QoreValue::refSelf() const {
+void QoreValue::ref() const {
    if (type == QV_Node && v.n)
       v.n->ref();
+}
+
+QoreValue QoreValue::refSelf() const {
+   ref();
    return const_cast<QoreValue&>(*this);
 }
 
@@ -164,28 +183,28 @@ AbstractQoreNode* QoreValue::assign(AbstractQoreNode* n) {
    return rv;
 }
 
-AbstractQoreNode* QoreValue::assignAndSanitize(const AbstractQoreNode* n) {
+AbstractQoreNode* QoreValue::assignAndSanitize(const QoreValue n) {
    AbstractQoreNode* rv = takeIfNode();
-   switch (get_node_type(n)) {
+   switch (n.getType()) {
       case NT_NOTHING:
 	 type = QV_Node;
 	 v.n = 0;
 	 break;
       case NT_INT:
          type = QV_Int;
-         v.i = reinterpret_cast<const QoreBigIntNode*>(n)->val;
+         v.i = n.getAsBigInt();
          break;
       case NT_FLOAT:
          type = QV_Float;
-         v.f = reinterpret_cast<const QoreFloatNode*>(n)->f;
+         v.f = n.getAsFloat();
          break;
       case NT_BOOLEAN:
          type = QV_Bool;
-         v.b = reinterpret_cast<const QoreBoolNode*>(n)->getValue();
+         v.b = n.getAsBool();
          break;
       default:
          type = QV_Node;
-         v.n = n->refSelf();
+         v.n = n.v.n;
          break;
    }
    return rv;
@@ -271,6 +290,13 @@ void QoreValue::discard(ExceptionSink* xsink) {
       v.n->deref(xsink);
       v.n = 0;
    }
+}
+
+void QoreValue::clear() {
+   if (type != QV_Node)
+      type = QV_Node;
+   if (v.n)
+      v.n = 0;
 }
 
 int QoreValue::getAsString(QoreString& str, int format_offset, ExceptionSink *xsink) const {
@@ -389,6 +415,13 @@ ValueHolder::~ValueHolder() {
 
 AbstractQoreNode* ValueHolder::getReferencedValue() {
    return v.takeNode();
+}
+
+QoreValue ValueHolder::release() {
+   //printd(5, "ValueHolder::takeReferencedValue() %s\n", v.getTypeName());
+   if (v.type == QV_Node)
+      return v.takeNodeIntern();
+   return v;
 }
 
 ValueOptionalRefHolder::~ValueOptionalRefHolder() {

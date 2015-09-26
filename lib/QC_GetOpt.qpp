@@ -129,8 +129,7 @@ static AbstractQoreNode *GETOPT_parse2_intern(ReferenceHolder<QoreHashNode> &rv,
       return rv.release();
 
    const QoreStringNode *err = reinterpret_cast<const QoreStringNode *>(l->retrieve_entry(0));
-   xsink->raiseException("GETOPT-ERROR", err->stringRefSelf());
-   return 0;
+   return xsink->raiseException("GETOPT-ERROR", err->stringRefSelf());
 }
 
 static AbstractQoreNode *GETOPT_parse3_intern(ReferenceHolder<QoreHashNode> &rv, ExceptionSink *xsink) {
@@ -307,14 +306,14 @@ if (exists $o."_ERRORS_") {
 hash GetOpt::parse(reference pgm_args) {
    QoreTypeSafeReferenceHelper ref(pgm_args, xsink);
    if (!ref)
-      return 0;
+      return QoreValue();
 
    if (ref.getType() != NT_LIST)
       return new QoreHashNode;
 
    QoreListNode *l = reinterpret_cast<QoreListNode *>(ref.getUnique(xsink));
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    return g->parse(l, true, xsink);
 }
@@ -367,17 +366,17 @@ catch ($ex) {
 hash GetOpt::parse2(reference pgm_args) {
    QoreTypeSafeReferenceHelper ref(pgm_args, xsink);
    if (!ref)
-      return 0;
+      return QoreValue();
 
    if (ref.getType() != NT_LIST)
       return new QoreHashNode;
 
    QoreListNode *l = reinterpret_cast<QoreListNode *>(ref.getUnique(xsink));
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    ReferenceHolder<QoreHashNode> rv(g->parse(l, true, xsink), xsink);
-   return *xsink ? 0 : GETOPT_parse2_intern(rv, xsink);
+   return *xsink ? QoreValue() : GETOPT_parse2_intern(rv, xsink);
 }
 
 //! Parses the parameter list according to the option hash passed to the constructor
@@ -424,14 +423,14 @@ my hash $o = $getopt.parse3(\$ARGV);
 hash GetOpt::parse3(reference pgm_args) [dom=PROCESS] {
    QoreTypeSafeReferenceHelper ref(pgm_args, xsink);
    if (!ref)
-      return 0;
+      return QoreValue();
 
    if (ref.getType() != NT_LIST)
       return new QoreHashNode;
 
    QoreListNode *l = reinterpret_cast<QoreListNode *>(ref.getUnique(xsink));
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    ReferenceHolder<QoreHashNode> rv(g->parse(l, true, xsink), xsink);
    return *xsink ? 0 : GETOPT_parse3_intern(rv, xsink);

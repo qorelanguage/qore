@@ -61,8 +61,10 @@ protected:
 
    DLLLOCAL void reset() {
       assert(!assigned || type != QV_Node || !v.n);
-      if (assigned)
+      if (assigned) {
          assigned = false;
+         assert(!static_assignment);
+      }
    }
 
 public:
@@ -71,14 +73,18 @@ public:
    bool fixed_type : 1;
    bool assigned : 1;
 
-   DLLLOCAL QoreLValue() : type(QV_Node), fixed_type(false), assigned(false) {
+   // true if the assigned value was not referenced for the assignment
+   // and therefore should not be dereferenced
+   bool static_assignment : 1;
+
+   DLLLOCAL QoreLValue() : type(QV_Node), fixed_type(false), assigned(false), static_assignment(false) {
 #ifdef DEBUG
       v.n = 0;
 #endif
       reset();
    }
 
-   DLLLOCAL QoreLValue(valtype_t t) : type(t), fixed_type(t != QV_Node), assigned(false) {
+   DLLLOCAL QoreLValue(valtype_t t) : type(t), fixed_type(t != QV_Node), assigned(false), static_assignment(false) {
 #ifdef DEBUG
       if (t == QV_Node)
          v.n = 0;
@@ -87,14 +93,14 @@ public:
    }
 
    // fixed_type is assigned in set()
-   DLLLOCAL QoreLValue(const QoreTypeInfo* typeInfo) : assigned(false) {
+   DLLLOCAL QoreLValue(const QoreTypeInfo* typeInfo) : assigned(false), static_assignment(false) {
 #ifdef DEBUG
       type = QV_Bool;
 #endif
       set(typeInfo);
    }
 
-   DLLLOCAL QoreLValue(const QoreLValue<U>& old) : type(old.type), fixed_type(old.fixed_type), assigned(old.assigned) {
+   DLLLOCAL QoreLValue(const QoreLValue<U>& old) : type(old.type), fixed_type(old.fixed_type), assigned(old.assigned), static_assignment(false) {
       if (!assigned)
          return;
       switch (old.type) {
@@ -118,8 +124,199 @@ public:
    }
 
    DLLLOCAL bool optimized() const {
-      //return type != QV_Node && type != QV_Ref;
-      return fixed_type;
+      return type != QV_Node && type != QV_Ref;
+   }
+
+   DLLLOCAL const char* getFixedTypeName() const {
+      if (!fixed_type)
+         return "any";
+      switch (type) {
+         case QV_Int: return "int";
+         case QV_Float: return "float";
+         case QV_Bool: return "bool";
+         default:
+            assert(false);
+      }
+   }
+
+   DLLLOCAL bool isInt() {
+      if (!assigned) {
+         if (type != QV_Int) {
+            if (fixed_type)
+               return false;
+         }
+         else
+            type = QV_Int;
+         assigned = true;
+         v.i = 0;
+         return true;
+      }
+      if (type == QV_Int)
+         return true;
+      if (type == QV_Node && v.n && v.n->getType() == NT_INT) {
+         int64 i = reinterpret_cast<QoreBigIntNode*>(v.n)->val;
+         v.n->deref(0);
+         v.i = i;
+         type = QV_Int;
+         return true;
+      }
+      return false;
+   }
+
+   DLLLOCAL bool isFloat() {
+      if (!assigned) {
+         if (type != QV_Float) {
+            if (fixed_type)
+               return false;
+         }
+         else
+            type = QV_Float;
+         assigned = true;
+         v.f = 0.0;
+         return true;
+      }
+      if (type == QV_Float)
+         return true;
+      if (type == QV_Node && v.n && v.n->getType() == NT_FLOAT) {
+         double f = reinterpret_cast<QoreFloatNode*>(v.n)->f;
+         v.n->deref(0);
+         v.f = f;
+         type = QV_Float;
+         return true;
+      }
+      return false;
+   }
+
+   DLLLOCAL AbstractQoreNode* makeInt() {
+      assert(!fixed_type || type == QV_Int);
+      if (!assigned) {
+         assigned = true;
+         if (!type)
+            type = QV_Int;
+         v.i = 0;
+         return 0;
+      }
+      switch (type) {
+         case QV_Float: {
+            int64 i = v.f;
+            v.i = i;
+            type = QV_Int;
+            return 0;
+         }
+
+         case QV_Bool: {
+            int64 i = v.b;
+            v.i = i;
+            type = QV_Int;
+            return 0;
+         }
+
+         case QV_Node: {
+            int64 i = v.n ? v.n->getAsBigInt() : 0;
+            AbstractQoreNode* rv = v.n;
+            v.i = i;
+            type = QV_Int;
+            return rv;
+         }
+
+         case QV_Int:
+            break;
+
+         default:
+            assert(false);
+      }
+
+      return 0;
+   }
+
+   DLLLOCAL AbstractQoreNode* makeFloat() {
+      assert(!fixed_type || type == QV_Float);
+      if (!assigned) {
+         assigned = true;
+         if (!type)
+            type = QV_Float;
+         v.f = 0.0;
+         return 0;
+      }
+      switch (type) {
+         case QV_Int: {
+            double f = v.i;
+            v.f = f;
+            type = QV_Float;
+            return 0;
+         }
+
+         case QV_Bool: {
+            double f = v.b;
+            v.f = f;
+            type = QV_Float;
+            return 0;
+         }
+
+         case QV_Node: {
+            double f = v.n ? v.n->getAsFloat() : 0.0;
+            AbstractQoreNode* rv = v.n;
+            v.f = f;
+            type = QV_Float;
+            return rv;
+         }
+
+         case QV_Float:
+            break;
+
+         default:
+            assert(false);
+      }
+
+      return 0;
+   }
+
+   DLLLOCAL AbstractQoreNode* makeNumber() {
+      assert(!fixed_type);
+      if (!assigned) {
+         assigned = true;
+         if (!type)
+            type = QV_Node;
+         v.n = new QoreNumberNode;
+         return 0;
+      }
+      switch (type) {
+         case QV_Int: {
+            QoreNumberNode* n = new QoreNumberNode(v.i);
+            v.n = n;
+            type = QV_Node;
+            return 0;
+         }
+
+         case QV_Float: {
+            QoreNumberNode* n = new QoreNumberNode(v.f);
+            v.n = n;
+            type = QV_Node;
+            return 0;
+         }
+
+         case QV_Bool: {
+            QoreNumberNode* n = new QoreNumberNode((int64)v.b);
+            v.n = n;
+            type = QV_Node;
+            return 0;
+         }
+
+         case QV_Node: {
+            if (v.n && v.n->getType() == NT_NUMBER)
+               return 0;
+            QoreNumberNode* n = new QoreNumberNode(v.n);
+            AbstractQoreNode* rv = v.n;
+            v.n = n;
+            type = QV_Node;
+            return rv;
+         }
+
+         default:
+            assert(false);
+      }
+
+      return 0;
    }
 
    DLLLOCAL QoreValue takeValue() {
@@ -127,6 +324,7 @@ public:
          return QoreValue();
 
       assigned = false;
+      assert(!static_assignment);
 
       switch (type) {
          case QV_Bool: return QoreValue(v.b);
@@ -167,7 +365,7 @@ public:
          default: assert(false);
          // no break
       }
-      return false;      
+      return false;
    }
 */
 
@@ -201,20 +399,20 @@ public:
       }
       return 0;
    }
-   
+
    DLLLOCAL bool isContainer() const {
       if (!assigned || type != QV_Node || !v.n)
          return false;
 
       return is_container(v.n);
-   }      
+   }
 
    DLLLOCAL bool isObjectContainer() const {
       if (!assigned || type != QV_Node || !v.n)
          return false;
 
       return get_container_obj(v.n);
-   }      
+   }
 
    DLLLOCAL AbstractQoreNode* getReferencedContainerValue() const {
       if (!assigned)
@@ -277,7 +475,7 @@ public:
       return 0;
    }
    */
-   
+
    DLLLOCAL void discard(ExceptionSink* xsink) {
       if (!assigned)
          return;
@@ -324,8 +522,8 @@ public:
       reset();
    }
 
-   // FIXME: destructive for "val": rename function?
-   DLLLOCAL AbstractQoreNode* assign(QoreValue& val) {
+   // NOTE: destructive for "val":
+   DLLLOCAL AbstractQoreNode* assignAssume(QoreValue& val) {
       if (fixed_type) {
          if (!assigned)
             assigned = true;
@@ -340,12 +538,8 @@ public:
       }
 
       AbstractQoreNode* rv;
-      if (assigned) {
-         if (type == QV_Node)
-            rv = v.n;
-         else
-            rv = 0;
-      }
+      if (assigned)
+         rv = (type == QV_Node) ? v.n : 0;
       else {
          assigned = true;
          rv = 0;
@@ -461,6 +655,10 @@ public:
       assert(!assigned);
       assigned = true;
       type = n.type;
+      if (n.static_assignment) {
+         static_assignment = n.static_assignment;
+         n.static_assignment = false;
+      }
       switch (n.type) {
          case QV_Bool: v.b = n.v.b; n.v.b = val.v.b; break;
          case QV_Int: v.i = n.v.i; n.v.i = val.v.i; break;
@@ -477,6 +675,10 @@ public:
          return;
       assigned = true;
       type = n.type;
+      if (n.static_assignment) {
+         static_assignment = n.static_assignment;
+         n.static_assignment = false;
+      }
       switch (n.type) {
          case QV_Bool: v.b = n.v.b; n.v.b = false; break;
          case QV_Int: v.i = n.v.i; n.v.i = 0; break;
@@ -489,10 +691,15 @@ public:
    }
 #endif
 
-   // FIXME: destructive for "n": rename function?
-   DLLLOCAL AbstractQoreNode* assignInitial(QoreValue& n) {
+   // note: destructive for "n"
+   // returns any AbstractQoreNode no longer needed (because it was converted to a base type)
+   DLLLOCAL AbstractQoreNode* assignAssumeInitial(QoreValue& n, bool is_static_assignment = false) {
       assert(!assigned);
-      return assign(n);
+      assert(!static_assignment);
+      //printd(5, "QoreLValue::assignAssumeInitial() this: %p n: %s sa: %d\n", this, n.getTypeName(), is_static_assignment);
+      if (is_static_assignment)
+         static_assignment = true;
+      return assignAssume(n);
    }
 
    DLLLOCAL void assignInitial(bool n) {
@@ -563,7 +770,7 @@ public:
       if (fixed_type) {
          if (!assigned)
             assigned = true;
-      
+
          switch (type) {
             case QV_Bool: {
                if (n) {
@@ -731,7 +938,7 @@ public:
             default: assert(false);
                // no break
          }
-      return NT_NOTHING;      
+      return NT_NOTHING;
    }
 
    DLLLOCAL const char* getTypeName() const {
@@ -763,10 +970,12 @@ public:
       return 0;
    }
 
+   /*
    DLLLOCAL AbstractQoreNode** getContainerValuePtr() {
       if (!fixed_type) {
-         if (type != QV_Node)
+         if (type != QV_Node) {
             type = QV_Node;
+         }
          if (!assigned) {
             assigned = true;
             v.n = 0;
@@ -775,10 +984,11 @@ public:
       }
       return 0;
    }
+   */
 
    // lvalue operations
    DLLLOCAL int64 plusEqualsBigInt(int64 i, AbstractQoreNode*& old) {
-      assert(fixed_type);
+      assert(type == QV_Int);
 
       switch (type) {
 #if 0
@@ -801,7 +1011,7 @@ public:
                return v.i = i;
             }
             return v.i += i;
-            
+
             // to avoid warnings about missing enum values
          default:
             assert(false);
@@ -812,7 +1022,7 @@ public:
    }
 
    DLLLOCAL double plusEqualsFloat(double f, AbstractQoreNode*& old) {
-      assert(fixed_type);
+      assert(type == QV_Float);
 
       switch (type) {
 #if 0
@@ -846,7 +1056,7 @@ public:
    }
 
    DLLLOCAL int64 minusEqualsBigInt(int64 i, AbstractQoreNode*& old) {
-      assert(fixed_type);
+      assert(type == QV_Int);
 
       switch (type) {
 #if 0
@@ -880,7 +1090,7 @@ public:
    }
 
    DLLLOCAL double minusEqualsFloat(double f, AbstractQoreNode*& old) {
-      assert(fixed_type);
+      assert(type == QV_Float);
 
       switch (type) {
 #if 0
@@ -914,7 +1124,7 @@ public:
    }
 
    DLLLOCAL int64 orEqualsBigInt(int64 i, AbstractQoreNode*& old) {
-      assert(fixed_type);
+      assert(type == QV_Int);
 
       switch (type) {
 #if 0
@@ -948,7 +1158,7 @@ public:
    }
 
    DLLLOCAL int64 andEqualsBigInt(int64 i, AbstractQoreNode*& old) {
-      assert(fixed_type);
+      assert(type == QV_Int);
 
       switch (type) {
 #if 0
@@ -981,7 +1191,7 @@ public:
    }
 
    DLLLOCAL int64 modulaEqualsBigInt(int64 i, AbstractQoreNode*& old) {
-      assert(fixed_type);
+      assert(type == QV_Int);
 
       switch (type) {
 #if 0
@@ -1009,7 +1219,7 @@ public:
    }
 
    DLLLOCAL int64 multiplyEqualsBigInt(int64 i, AbstractQoreNode*& old) {
-      assert(fixed_type);
+      assert(type == QV_Int);
 
       switch (type) {
 #if 0
@@ -1038,7 +1248,7 @@ public:
    }
 
    DLLLOCAL int64 divideEqualsBigInt(int64 i, AbstractQoreNode*& old) {
-      assert(fixed_type);
+      assert(type == QV_Int);
       assert(i);
 
       switch (type) {
@@ -1068,7 +1278,7 @@ public:
    }
 
    DLLLOCAL int64 xorEqualsBigInt(int64 i, AbstractQoreNode*& old) {
-      assert(fixed_type);
+      assert(type == QV_Int);
 
       switch (type) {
 #if 0
@@ -1097,7 +1307,7 @@ public:
    }
 
    DLLLOCAL int64 shiftLeftEqualsBigInt(int64 i, AbstractQoreNode*& old) {
-      assert(fixed_type);
+      assert(type == QV_Int);
 
       switch (type) {
 #if 0
@@ -1126,7 +1336,7 @@ public:
    }
 
    DLLLOCAL int64 shiftRightEqualsBigInt(int64 i, AbstractQoreNode*& old) {
-      assert(fixed_type);
+      assert(type == QV_Int);
 
       switch (type) {
 #if 0
@@ -1155,7 +1365,7 @@ public:
    }
 
    DLLLOCAL int64 postIncrementBigInt(AbstractQoreNode*& old) {
-      assert(fixed_type);
+      assert(type == QV_Int);
 
       switch (type) {
 #if 0
@@ -1194,13 +1404,13 @@ public:
 	 default:
 	    assert(false);
             // no break
-      }      
+      }
 
       return 0;
    }
 
    DLLLOCAL int64 preIncrementBigInt(AbstractQoreNode*& old) {
-      assert(fixed_type);
+      assert(type == QV_Int);
 
       switch (type) {
 #if 0
@@ -1225,18 +1435,18 @@ public:
                return v.i = 1;
             }
 	    return ++v.i;
-	    
+
 	 // to avoid warnings about missing enum values
 	 default:
 	    assert(false);
             // no break
-      }      
+      }
 
       return 0;
    }
 
    DLLLOCAL int64 postDecrementBigInt(AbstractQoreNode*& old) {
-      assert(fixed_type);
+      assert(type == QV_Int);
 
       switch (type) {
 #if 0
@@ -1270,13 +1480,13 @@ public:
 	 default:
 	    assert(false);
             // no break
-      }      
+      }
 
       return 0;
    }
 
    DLLLOCAL int64 preDecrementBigInt(AbstractQoreNode*& old) {
-      assert(fixed_type);
+      assert(type == QV_Int);
 
       switch (type) {
 #if 0
@@ -1306,12 +1516,12 @@ public:
 	 default:
 	    assert(false);
             // no break
-      }      
+      }
       return 0;
    }
 
    DLLLOCAL double postIncrementFloat(AbstractQoreNode*& old) {
-      assert(fixed_type);
+      assert(type == QV_Float);
 
       switch (type) {
 #if 0
@@ -1347,7 +1557,7 @@ public:
    }
 
    DLLLOCAL double preIncrementFloat(AbstractQoreNode*& old) {
-      assert(fixed_type);
+      assert(type == QV_Float);
 
       switch (type) {
 #if 0
@@ -1379,7 +1589,7 @@ public:
    }
 
    DLLLOCAL double postDecrementFloat(AbstractQoreNode*& old) {
-      assert(fixed_type);
+      assert(type == QV_Float);
 
       switch (type) {
 #if 0
@@ -1415,7 +1625,7 @@ public:
    }
 
    DLLLOCAL double preDecrementFloat(AbstractQoreNode*& old) {
-      assert(fixed_type);
+      assert(type == QV_Float);
 
       switch (type) {
 #if 0
@@ -1446,7 +1656,7 @@ public:
    }
 
    DLLLOCAL double multiplyEqualsFloat(double f, AbstractQoreNode*& old) {
-      assert(fixed_type);
+      assert(type == QV_Float);
 
       switch (type) {
 #if 0
@@ -1473,13 +1683,13 @@ public:
 	 default:
 	    assert(false);
             // no break
-      }      
+      }
 
       return 0;
    }
 
    DLLLOCAL double divideEqualsFloat(double f, AbstractQoreNode*& old) {
-      assert(fixed_type);
+      assert(type == QV_Float);
       assert(f);
 
       switch (type) {
@@ -1507,15 +1717,21 @@ public:
 	 default:
 	    assert(false);
             // no break
-      }      
+      }
 
       return 0;
    }
 
-   DLLLOCAL QoreValue remove() {
+   DLLLOCAL QoreValue remove(bool& was_static_assignment) {
+      assert(!was_static_assignment);
+
       if (!assigned)
          return QoreValue();
       assigned = false;
+      if (static_assignment) {
+         static_assignment = false;
+         was_static_assignment = true;
+      }
 
       switch (type) {
          case QV_Bool:
@@ -1533,10 +1749,20 @@ public:
       return QoreValue();
    }
 
+   // ignore any current value and sets the lvalue to unassigned
+   DLLLOCAL void unassignIgnore() {
+      if (assigned) {
+         assigned = false;
+         if (static_assignment)
+            static_assignment = false;
+      }
+   }
+
    DLLLOCAL AbstractQoreNode* removeNode(bool for_del) {
       if (!assigned)
          return 0;
       assigned = false;
+      assert(!static_assignment);
 
       switch (type) {
          case QV_Bool:
@@ -1558,4 +1784,3 @@ public:
 typedef QoreLValue<> QoreLValueGeneric;
 
 #endif
-

@@ -40,7 +40,7 @@ AbstractStatement::AbstractStatement(int sline, int eline) : loc(sline, eline) {
       pwo = qore_program_private::getParseWarnOptions(pgm);
 }
 
-int AbstractStatement::exec(AbstractQoreNode **return_value, ExceptionSink *xsink) {
+int AbstractStatement::exec(QoreValue& return_value, ExceptionSink *xsink) {
    printd(1, "AbstractStatement::exec() this: %p file: %s line: %d\n", this, loc.file, loc.start_line);
    QoreProgramLocationHelper l(loc);
 

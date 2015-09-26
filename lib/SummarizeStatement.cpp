@@ -1,10 +1,10 @@
 /*
   ContextStatement.cpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -32,7 +32,7 @@
 #include <qore/intern/SummarizeStatement.h>
 #include <qore/intern/StatementBlock.h>
 
-int SummarizeStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) {
+int SummarizeStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
    int rc = 0;
    Context *context;
    AbstractQoreNode *sort = sort_ascending ? sort_ascending : sort_descending;
@@ -40,10 +40,10 @@ int SummarizeStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink 
 
    // instantiate local variables
    LVListInstantiator lvi(lvars, xsink);
-      
+
    // create the context
    context = new Context(name, xsink, exp, where_exp, sort_type, sort, summarize);
-   
+
    // execute the statements
    if (code) {
       if (context->max_group_pos && !xsink->isEvent())
@@ -59,18 +59,18 @@ int SummarizeStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink 
 	 }
 	    while (!xsink->isEvent() && context->next_summary());
    }
-   
+
    // destroy the context
    context->deref(xsink);
-   
+
    return rc;
 }
 
 int SummarizeStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    QORE_TRACE("SummarizeStatement::parseInit()");
-   
+
    int lvids = 0;
-   
+
    // turn off top-level flag for statement vars
    pflag &= (~PF_TOP_LEVEL);
 
@@ -79,7 +79,7 @@ int SummarizeStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    // initialize context expression
    if (exp)
       exp = exp->parseInit(oflag, pflag, lvids, argTypeInfo);
-   
+
    // need to push something on the stack even if the context is not named
    push_cvar(name);
 
@@ -99,15 +99,15 @@ int SummarizeStatement::parseInitImpl(LocalVar *oflag, int pflag) {
       argTypeInfo = 0;
       summarize = summarize->parseInit(oflag, pflag, lvids, argTypeInfo);
    }
-      
+
    // initialize statement block
    if (code)
       code->parseInitImpl(oflag, pflag);
-   
+
    // save local variables
    if (lvars)
       lvars = new LVList(lvids);
-   
+
    pop_cvar();
 
    return 0;

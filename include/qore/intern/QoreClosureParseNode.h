@@ -101,7 +101,7 @@ public:
 
    DLLLOCAL bool isLambda() const { return lambda; }
 
-   DLLLOCAL AbstractQoreNode* exec(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject* self, ExceptionSink* xsink) const;
+   DLLLOCAL QoreValue exec(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject* self, ExceptionSink* xsink) const;
 
    DLLLOCAL QoreClosureBase* evalBackground(ExceptionSink* xsink) const;
 
@@ -134,7 +134,7 @@ protected:
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
       return runTimeClosureTypeInfo;
    }
-   
+
 public:
    DLLLOCAL QoreClosureParseNodeBackground(QoreClosureParseNode* c) : ParseNode(NT_CLOSURE), closure(c), cvec(thread_get_all_closure_vars()) {
    }

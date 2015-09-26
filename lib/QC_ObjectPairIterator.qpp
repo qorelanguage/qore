@@ -117,6 +117,6 @@ map printf("%s: %y\n", $1.key, $1.value), $object.pairIterator();
  */
 hash ObjectPairIterator::getValue() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-      return 0;
+      return QoreValue();
    return i->getReferencedValuePair(xsink);
 }

@@ -1,10 +1,10 @@
 /*
   ForStatement.cpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -46,23 +46,23 @@ ForStatement::~ForStatement() {
    delete lvars;
 }
 
-int ForStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) {
+int ForStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
    int rc = 0;
-   
+
    // instantiate local variables
    LVListInstantiator lvi(lvars, xsink);
-   
+
    // evaluate assignment expression and discard results if any
    if (assignment)
       assignment->bigIntEval(xsink);
-   
+
    // execute "for" body
    while (!xsink->isEvent()) {
       // check conditional expression, exit "for" loop if condition is
       // false
       if (cond && (!cond->boolEval(xsink) || xsink->isEvent()))
 	 break;
-      
+
       // otherwise, execute "for" body
       if (code && (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || xsink->isEvent())) {
 	 rc = 0;
@@ -72,12 +72,12 @@ int ForStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink
 	 break;
       else if (rc == RC_CONTINUE)
 	 rc = 0;
-      
+
       // evaluate iterator expression and discard results if any
       if (iterator)
 	 iterator->bigIntEval(xsink);
    }
-   
+
    return rc;
 }
 
@@ -105,7 +105,7 @@ int ForStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    }
    if (code)
       code->parseInitImpl(oflag, pflag);
-   
+
    // save local variables
    if (lvids)
       lvars = new LVList(lvids);

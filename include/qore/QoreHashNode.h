@@ -43,7 +43,7 @@ class LocalVar;
 /**
    it is both a value type and can hold parse expressions as well (in which case it needs to be evaluated)
    This type also maintains the insertion order as well as offering a hash-based lookup of string keys.
-   The insertion order of keys is maintained in order to support consistent serialization and 
+   The insertion order of keys is maintained in order to support consistent serialization and
    deserialization to and from XML, JSON, YAML, etc
  */
 class QoreHashNode : public AbstractQoreNode {
@@ -59,7 +59,7 @@ class QoreHashNode : public AbstractQoreNode {
 private:
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreHashNode(const QoreHashNode&);
-      
+
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreHashNode& operator=(const QoreHashNode&);
 
@@ -69,7 +69,7 @@ protected:
 
    //! dereferences all elements of the hash
    /** The ExceptionSink argument is needed for those types that could throw
-       an exception when they are deleted (ex: QoreObject) - which could be 
+       an exception when they are deleted (ex: QoreObject) - which could be
        contained in the hash
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @return true if the object can be deleted, false if not (externally-managed)
@@ -99,7 +99,7 @@ protected:
 
    //! always returns 0.0
    DLLLOCAL virtual double floatEvalImpl(ExceptionSink* xsink) const;
- 
+
    //! deletes the object, cannot be called directly (use deref(ExceptionSink*) instead)
    /** @see AbstractQoreNode::deref()
        @see QoreHashNode::derefImpl()
@@ -176,14 +176,14 @@ public:
 
    //! returns the value of the key (assumed to be in QCS_DEFAULT) if it exists and sets "exists" accordingly
    /** @param key the key to return the value for
-       @param exists output parameter: if true the key exists, if false the key does not exists (in this case the return value will always be 0)
+       @param exists output parameter: if true the key exists, if false the key does not exist (in this case the return value will always be 0)
        @return the value of the key
    */
    DLLEXPORT AbstractQoreNode* getKeyValueExistence(const char* key, bool &exists);
 
    //! returns the value of the key (assumed to be in QCS_DEFAULT) if it exists and sets "exists" accordingly
    /** @param key the key to return the value for
-       @param exists output parameter: if true the key exists, if false the key does not exists (in this case the return value will always be 0)
+       @param exists output parameter: if true the key exists, if false the key does not exist (in this case the return value will always be 0)
        @return the value of the key
    */
    DLLEXPORT const AbstractQoreNode* getKeyValueExistence(const char* key, bool &exists) const;
@@ -192,8 +192,8 @@ public:
    /** Converts "key" to the default character encoding (QCS_DEFAULT) if necessary.
        An exception could be thrown if the character encoding conversion fails.
        @param key the key to return the value for
-       @param exists output parameter: if true the key exists, if false the key does not exists (in this case the return value will always be 0)
-       @param xsink if an error occurs, the Qore-language exception information will be added here	  
+       @param exists output parameter: if true the key exists, if false the key does not exist (in this case the return value will always be 0)
+       @param xsink if an error occurs, the Qore-language exception information will be added here
        @return the value of the key
    */
    DLLEXPORT AbstractQoreNode* getKeyValueExistence(const QoreString* key, bool &exists, ExceptionSink* xsink);
@@ -202,8 +202,8 @@ public:
    /** Converts "key" to the default character encoding (QCS_DEFAULT) if necessary.
        An exception could be thrown if the character encoding conversion fails.
        @param key the key to return the value for
-       @param exists output parameter: if true the key exists, if false the key does not exists (in this case the return value will always be 0)
-       @param xsink if an error occurs, the Qore-language exception information will be added here	  
+       @param exists output parameter: if true the key exists, if false the key does not exist (in this case the return value will always be 0)
+       @param xsink if an error occurs, the Qore-language exception information will be added here
        @return the value of the key
    */
    DLLEXPORT const AbstractQoreNode* getKeyValueExistence(const QoreString* key, bool &exists, ExceptionSink* xsink) const;
@@ -212,7 +212,7 @@ public:
    /** Converts "key" to the default character encoding (QCS_DEFAULT) if necessary.
        An exception could be thrown if the character encoding conversion fails.
        @param key the key to return the value for
-       @param xsink if an error occurs, the Qore-language exception information will be added here	  
+       @param xsink if an error occurs, the Qore-language exception information will be added here
        @return the value of the key
    */
    DLLEXPORT AbstractQoreNode* getKeyValue(const QoreString* key, ExceptionSink* xsink);
@@ -221,7 +221,7 @@ public:
    /** Converts "key" to the default character encoding (QCS_DEFAULT) if necessary.
        An exception could be thrown if the character encoding conversion fails.
        @param key the key to return the value for
-       @param xsink if an error occurs, the Qore-language exception information will be added here	  
+       @param xsink if an error occurs, the Qore-language exception information will be added here
        @return the value of the key
    */
    DLLEXPORT AbstractQoreNode* getKeyValue(const QoreString& key, ExceptionSink* xsink);
@@ -230,7 +230,7 @@ public:
    /** Converts "key" to the default character encoding (QCS_DEFAULT) if necessary.
        An exception could be thrown if the character encoding conversion fails.
        @param key the key to return the value for
-       @param xsink if an error occurs, the Qore-language exception information will be added here	  
+       @param xsink if an error occurs, the Qore-language exception information will be added here
        @return the value of the key
    */
    DLLEXPORT const AbstractQoreNode* getKeyValue(const QoreString* key, ExceptionSink* xsink) const;
@@ -271,7 +271,7 @@ public:
        An exception could be thrown if the character encoding conversion fails.
        The key hash entry is created if it does not already exist.
        @param key the key to return the pointer to the value pointer for
-       @param xsink if an error occurs, the Qore-language exception information will be added here	  
+       @param xsink if an error occurs, the Qore-language exception information will be added here
        @return a pointer to a pointer of the value of the key
        @deprecated use HashAssignmentHelper instead; using this function could result in a memory leak
    */
@@ -289,7 +289,7 @@ public:
    /** Converts "key" to the default character encoding (QCS_DEFAULT) if necessary.
        An exception could be thrown if the character encoding conversion fails.
        @param key the key to return the pointer to the value pointer for
-       @param xsink if an error occurs, the Qore-language exception information will be added here	  
+       @param xsink if an error occurs, the Qore-language exception information will be added here
        @return a pointer to a pointer of the value of the key, only if the key already exists, otherwise 0 is returned
        @deprecated use HashAssignmentHelper instead; using this function could result in a memory leak
    */
@@ -306,7 +306,7 @@ public:
    /** Note that all keys and values of the QoreHashNode "h" are copied to this hash, values are referenced as necessary for the assigment to "this".
        Qore-language exceptions could be thrown if the hash keys in "this" are overwritten with new values and the old value is an object that goes out of scope when dereferenced.
        @param h the QoreHashNode to use to merge all keys to "this"
-       @param xsink if an error occurs, the Qore-language exception information will be added here	  
+       @param xsink if an error occurs, the Qore-language exception information will be added here
    */
    DLLEXPORT void merge(const QoreHashNode* h, ExceptionSink* xsink);
 
@@ -314,7 +314,7 @@ public:
    /** A Qore-language exception could be thrown converting the key string's encoding to QCS_DEFAULT, or if the given key has a current value and it's a QoreObject that goes out of scope when dereferenced (the object's destructor could throw an exception); if an exception is thrown due to encoding conversion issues (and therefore the assignment is not made) then the value to be assigned is dereferenced automatically
        @param key the key to set the value for
        @param value the value to assign to the key, must be already referenced for the assignment
-       @param xsink if an error occurs, the Qore-language exception information will be added here	  
+       @param xsink if an error occurs, the Qore-language exception information will be added here
        @note the assignment is made even if an exception occurs when dereferencing the old value
    */
    DLLEXPORT void setKeyValue(const QoreString* key, AbstractQoreNode* value, ExceptionSink* xsink);
@@ -323,7 +323,7 @@ public:
    /** A Qore-language exception could be thrown converting the key string's encoding to QCS_DEFAULT, or if the given key has a current value and it's a QoreObject that goes out of scope when dereferenced (the object's destructor could throw an exception); if an exception is thrown due to encoding conversion issues (and therefore the assignment is not made) then the value to be assigned is dereferenced automatically
        @param key the key to set the value for
        @param value the value to assign to the key, must be already referenced for the assignment
-       @param xsink if an error occurs, the Qore-language exception information will be added here	  
+       @param xsink if an error occurs, the Qore-language exception information will be added here
        @note the assignment is made even if an exception occurs when dereferencing the old value
    */
    DLLEXPORT void setKeyValue(const QoreString& key, AbstractQoreNode* value, ExceptionSink* xsink);
@@ -332,7 +332,7 @@ public:
    /** A Qore-language exception could be thrown if the given key has a current value and it's a QoreObject that goes out of scope when dereferenced (the object's destructor could throw an exception).
        @param key the key to set the value for (assumed to be in QCS_DEFAULT encoding)
        @param value the value to assign to the key, must be already referenced for the assignment
-       @param xsink if an error occurs, the Qore-language exception information will be added here	  
+       @param xsink if an error occurs, the Qore-language exception information will be added here
        @note the assignment is made even if an exception occurs when dereferencing the old value
    */
    DLLEXPORT void setKeyValue(const char* key, AbstractQoreNode* value, ExceptionSink* xsink);
@@ -357,7 +357,7 @@ public:
    //! sets the value of "key" to "value" and returns the old value (0 if not present or if already 0), caller owns any reference count returned
    /** A Qore-language exception could be thrown converting the key string's encoding to QCS_DEFAULT; if an exception is thrown and the value is not assigned, then the value to be assigned is dereferenced automatically
        @param key the key to set the value for (assumed to be in QCS_DEFAULT encoding)
-       @param value the value to assign to the key, must be already referenced for the assignment 
+       @param value the value to assign to the key, must be already referenced for the assignment
        @param xsink if an error occurs, the Qore-language exception information will be added here (currently no exceptions can be raised with this version of qore)
        @return the old value of the key (0 if not present or if the old value was already 0), caller owns any reference count returned
    */
@@ -438,7 +438,7 @@ public:
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
    DLLEXPORT void removeKey(const QoreString* key, ExceptionSink* xsink);
-      
+
    //! removes the given key from the hash and derefences its value, if any
    /** A Qore-language exception could occur when dereferencing the contained value
        @param key the key of the value to delete, must be in QCS_DEFAULT encoding
@@ -526,7 +526,7 @@ public:
 
    //! initializes the iterator with the passed hash
    DLLEXPORT HashIterator(QoreHashNode& h);
-   
+
    //! Destroys the iterator
    DLLEXPORT ~HashIterator();
 
@@ -555,7 +555,7 @@ public:
    DLLEXPORT AbstractQoreNode* takeValueAndDelete();
 
    //! deletes the key from the hash and dereferences the value
-   /** the pointer is moved to the previous element (or before the beginning) 
+   /** the pointer is moved to the previous element (or before the beginning)
        so that the next call to next() will put the pointer on the element after
        the one being deleted
    */
@@ -800,7 +800,7 @@ public:
 
    //! assigns a value to the hash key, dereferences any old value, assumes that the value is already referenced for the assignment
    /** a Qore-language exception could be raised when the existing value is dereferenced
-       (i.e. if it's an object that goes out of scope and the destructor raises an 
+       (i.e. if it's an object that goes out of scope and the destructor raises an
        exception, for example)
     */
    DLLLOCAL void assign(AbstractQoreNode* v, ExceptionSink* xsink);

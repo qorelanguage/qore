@@ -335,7 +335,7 @@ protected:
       clear();
       //printd(6, "ObjectRSet::invalidateIntern() this: %p\n", this);
    }
-   
+
 public:
    QoreRWLock rwl;
 
@@ -363,7 +363,7 @@ public:
       }
       if (del)
          delete this;
-   }   
+   }
 
    DLLLOCAL void invalidate() {
       QoreAutoRWWriteLocker al(rwl);
@@ -468,7 +468,7 @@ struct RSetStat {
 class ObjectRSetHelper {
 private:
    DLLLOCAL ObjectRSetHelper(const ObjectRSetHelper&);
-   
+
 protected:
    typedef std::map<QoreObject*, RSetStat> omap_t;
    // map of all objects scanned to rset (rset = finalized, 0 = not finalized, in current list)
@@ -480,7 +480,7 @@ protected:
 
    // list of ObjectRSet objects to be invalidated when the transaction is committed
    rs_set_t tr_invalidate;
-   
+
    // set of QoreObjects not participating in any recursive set
    obj_set_t tr_out;
 
@@ -536,7 +536,6 @@ class qore_object_private {
 public:
    const QoreClass* theclass;
    int status;
-   //mutable QoreRWLock rwl;
 
    // read-write lock with special rsection handling
    mutable RSectionLock rml;
@@ -553,7 +552,7 @@ public:
 
    QoreThreadLock rlck;
    QoreCondition rdone; // recursive scan done flag
-   
+
    int rscan,   // TID flag for starting a recursive scan
       rcount,   // the number of unique recursive references to this object
       rwaiting, // the number of threads waiting for a scan of this object
@@ -690,10 +689,11 @@ public:
 	    ConstListIterator mgli(*mgl);
 	    while (mgli.next()) {
 	       const QoreStringNode* k = reinterpret_cast<const QoreStringNode*>(mgli.getValue());
-	       AbstractQoreNode* n = theclass->evalMemberGate(obj, k, xsink);
+               ValueHolder n(theclass->evalMemberGate(obj, k, xsink), xsink);
+	       //AbstractQoreNode* n = theclass->evalMemberGate(obj, k, xsink);
 	       if (*xsink)
 	          return 0;
-	       rv->setKeyValue(k->getBuffer(), n, xsink);
+	       rv->setKeyValue(k->getBuffer(), n.getReferencedValue(), xsink);
 	    }
 	 }
 	 return rv.release();
@@ -965,7 +965,26 @@ public:
       QoreSafeVarRWWriteLocker sl(rml);
       return privateData ? privateData->getAndRemovePtr(key) : 0;
    }
-   
+
+   DLLLOCAL AbstractPrivateData* getReferencedPrivateData(qore_classid_t key, ExceptionSink* xsink) const;
+
+   DLLLOCAL QoreValue evalBuiltinMethodWithPrivateData(const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
+
+   /*
+   DLLLOCAL static bool hackId(const QoreObject& obj) {
+      if (!obj.priv->data)
+         return false;
+      const AbstractQoreNode* n = obj.priv->data->getKeyValue("name");
+      if (n && n->getType() == NT_STRING && strstr(reinterpret_cast<const QoreStringNode*>(n)->getBuffer(), "http-test"))
+         return true;
+      return false;
+   }
+   */
+
+   DLLLOCAL static QoreValue evalBuiltinMethodWithPrivateData(QoreObject& obj, const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
+      return obj.priv->evalBuiltinMethodWithPrivateData(method, meth, args, rtflags, xsink);
+   }
+
    DLLLOCAL static qore_object_private* get(QoreObject& obj) {
       return obj.priv;
    }

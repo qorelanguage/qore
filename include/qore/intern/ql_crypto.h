@@ -73,15 +73,15 @@ protected:
       input_len = b.size();
    }
 
-   DLLLOCAL void setInput(const AbstractQoreNode* pt) {
-      if (pt->getType() == NT_STRING)
-         setInput(*reinterpret_cast<const QoreStringNode*>(pt));
+   DLLLOCAL void setInput(const QoreValue pt) {
+      if (pt.getType() == NT_STRING)
+         setInput(*pt.get<const QoreStringNode>());
       else {
-         assert(pt->getType() == NT_BINARY);
-         setInput(*reinterpret_cast<const BinaryNode*>(pt));
+         assert(pt.getType() == NT_BINARY);
+         setInput(*pt.get<const BinaryNode>());
       }
    }
-   
+
 public:
    DLLLOCAL unsigned int size() const {
       return md_len;
@@ -113,8 +113,14 @@ public:
 
 class DigestHelper : public BaseHelper {
 public:
+   /*
    DLLLOCAL DigestHelper(const QoreListNode* params) {
       setInput(get_param(params, 0));
+   }
+   */
+
+   DLLLOCAL DigestHelper(const QoreValueList* params) {
+      setInput(get_param_value(params, 0));
    }
 
    DLLLOCAL DigestHelper(const QoreString& str) {
@@ -133,7 +139,7 @@ public:
    DLLLOCAL int doDigest(const char* err, const EVP_MD* md, ExceptionSink* xsink = 0) {
       EVP_MD_CTX mdctx;
       EVP_MD_CTX_init(&mdctx);
-	 
+
       EVP_DigestInit_ex(&mdctx, md, 0);
 
       if (!EVP_DigestUpdate(&mdctx, input, input_len) || !EVP_DigestFinal_ex(&mdctx, md_value, &md_len)) {
@@ -146,15 +152,21 @@ public:
       EVP_MD_CTX_cleanup(&mdctx);
       return 0;
    }
-   
+
 };
 
 class HMACHelper : public BaseHelper {
 
 public:
+   /*
     DLLLOCAL HMACHelper(const QoreListNode* params) {
         setInput(get_param(params, 0));
     }
+   */
+
+   DLLLOCAL HMACHelper(const QoreValueList* params) {
+      setInput(get_param_value(params, 0));
+   }
 
     DLLLOCAL HMACHelper(const QoreStringNode& str) {
         setInput(str);
@@ -193,7 +205,7 @@ public:
         HMAC_Update(&ctx, input, input_len);
         HMAC_Final(&ctx, md_value, &md_len);
 #endif
-    
+
         HMAC_CTX_cleanup(&ctx);
         return 0;
     }

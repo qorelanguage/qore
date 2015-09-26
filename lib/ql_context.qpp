@@ -32,20 +32,20 @@
 #include <qore/Qore.h>
 #include <qore/intern/Context.h>
 
-static void cx_err(const char* func, ExceptionSink* xsink) {
-   xsink->raiseException("CONTEXT-ERROR", "function %s() called without a current data iteration context", func);
+static AbstractQoreNode* cx_err(const char* func, ExceptionSink* xsink) {
+   return xsink->raiseException("CONTEXT-ERROR", "function %s() called without a current data iteration context", func);
 }
 
 /** @defgroup context_functions Context Functions
 */
 //@{
 //! Returns the current value of the given column while iterating a @ref context "context statement"
-/** 
+/**
     @param key the column name to return the value for
 
     @return the current value of the given column while iterating a @ref context "context statement"
 
-    @par Example: 
+    @par Example:
     @code
 context ($ds.select($sql)) {
     my any $val = cx_value("column1");
@@ -59,23 +59,21 @@ context ($ds.select($sql)) {
  */
 any cx_value(string key) [flags=RET_VALUE_ONLY] {
    Context* c = get_context_stack();
-   if (!c) {
-      cx_err("cx_value", xsink);
-      return 0;
-   }
+   if (!c)
+      return cx_err("cx_value", xsink);
 
    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
    if (!tmp)
-      return 0;
+      return QoreValue();
 
    return c->evalValue(tmp->getBuffer(), xsink);
 }
 
 //! Returns @ref True if currently iterating the first element in a @ref context "context statement", @ref False if not
-/** 
+/**
     @return @ref True if currently iterating the first element in a @ref context "context statement", @ref False if not
 
-    @par Example: 
+    @par Example:
     @code
 context ($ds.select($sql)) {
     if (cx_first())
@@ -89,19 +87,17 @@ context ($ds.select($sql)) {
  */
 bool cx_first() [flags=RET_VALUE_ONLY] {
    Context* c = get_context_stack();
-   if (!c) {
-      cx_err("cx_first", xsink);
-      return 0;
-   }
+   if (!c)
+      return cx_err("cx_first", xsink);
 
    return c->isFirst();
 }
 
 //! Returns @ref True if currently iterating the last element in a @ref context "context statement", @ref False if not
-/** 
+/**
     @return @ref True if currently iterating the last element in a @ref context "context statement", @ref False if not
 
-    @par Example: 
+    @par Example:
     @code
 context ($ds.select($sql)) {
     if (cx_last())
@@ -115,19 +111,17 @@ context ($ds.select($sql)) {
  */
 bool cx_last() [flags=RET_VALUE_ONLY] {
    Context* c = get_context_stack();
-   if (!c) {
-      cx_err("cx_last", xsink);
-      return 0;
-   }
+   if (!c)
+      return cx_err("cx_last", xsink);
 
    return c->isLast();
 }
 
 //! Returns the current row number within the active @ref context "context statement" (starting from 0)
-/** 
+/**
     @return the current row number within the active @ref context "context statement" (starting from 0)
 
-    @par Example: 
+    @par Example:
     @code
 context ($ds.select($sql)) {
     printf("row %d/%d:\n", cx_pos(), cx_total());
@@ -140,19 +134,17 @@ context ($ds.select($sql)) {
  */
 int cx_pos() [flags=RET_VALUE_ONLY] {
    Context* c = get_context_stack();
-   if (!c) {
-      cx_err("cx_pos", xsink);
-      return 0;
-   }
+   if (!c)
+      return cx_err("cx_pos", xsink);
 
    return c->getPos();
 }
 
 //! Returns the total number of rows within the active @ref context "context statement"
-/** 
+/**
     @return the total number of rows within the active @ref context "context statement"
 
-    @par Example: 
+    @par Example:
     @code
 context ($ds.select($sql)) {
     printf("row %d/%d:\n", cx_total(), cx_total());
@@ -165,10 +157,8 @@ context ($ds.select($sql)) {
  */
 int cx_total() [flags=RET_VALUE_ONLY] {
    Context* c = get_context_stack();
-   if (!c) {
-      cx_err("cx_total", xsink);
-      return 0;
-   }
+   if (!c)
+      return cx_err("cx_total", xsink);
 
    return c->getTotal();
 }

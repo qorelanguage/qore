@@ -35,9 +35,9 @@
 extern QoreClass* QC_SINGLEVALUEITERATOR;
 
 //! Methods in this pseudo-class are available to be executed on any value type (even @ref nothing); this is the root class for all pseudo-classes
-/** 
+/**
  */
-qclass <value> [arg=const AbstractQoreNode* n];
+qclass <value> [];
 
 //! Returns the type code for the value
 /** This method is recommended over <value>::type() or the type(any) or typename(any) functions for comparing data types as it is much faster and more efficient than the other alternatives (which work with string values instead of integer codes).
@@ -59,14 +59,14 @@ switch ($v.typeCode()) {
         printf("%y: is something else entirely\n", $v);
 	break;
 }
-    @endcode    
+    @endcode
  */
 int <value>::typeCode() [flags=CONSTANT] {
-   return get_node_type(n);
+   return v.getType();
 }
 
 //! Returns the string type for the value
-/** 
+/**
     @return the string type for the value; see @ref string_type_constants for possible return values for each type
 
     @par Example:
@@ -77,7 +77,7 @@ my string $t = $n.type();
     @note It is faster and more efficient to use <value>::typeCode() for comparing data types
 */
 string <value>::type() [flags=CONSTANT] {
-   return new QoreStringNode(n ? n->getTypeName() : "nothing");
+   return new QoreStringNode(v.getTypeName());
 }
 
 //! Returns @ref True; this method will be reimplemented in container types where it may return @ref False
@@ -219,7 +219,7 @@ int <value>::lsize() [flags=CONSTANT] {
     @since %Qore 0.8.6
 */
 string <value>::toString() [flags=CONSTANT] {
-   QoreStringNodeValueHelper str(n);
+   QoreStringNodeValueHelper str(v);
    return str.getReferencedValue();
 }
 
@@ -231,7 +231,7 @@ string <value>::toString() [flags=CONSTANT] {
     @since %Qore 0.8.6
 */
 int <value>::toInt() [flags=CONSTANT] {
-   return n ? n->getAsBigInt() : 0;
+   return v.getAsBigInt();
 }
 
 //! Returns the floating-point representation of the value; the default is 0.0
@@ -242,7 +242,7 @@ int <value>::toInt() [flags=CONSTANT] {
     @since %Qore 0.8.6
 */
 float <value>::toFloat() [flags=CONSTANT] {
-   return n ? n->getAsFloat() : 0.0;
+   return v.getAsFloat();
 }
 
 //! Returns the boolean representation of the value; the default is @ref False
@@ -253,7 +253,7 @@ float <value>::toFloat() [flags=CONSTANT] {
     @since %Qore 0.8.6
 */
 bool <value>::toBool() [flags=CONSTANT] {
-   return n ? n->getAsBool() : false;
+   return v.getAsBool();
 }
 
 //! Returns the arbitrary-precision numeric representation of the value; the default is 0
@@ -264,7 +264,7 @@ bool <value>::toBool() [flags=CONSTANT] {
     @since %Qore 0.8.8
 */
 number <value>::toNumber() [flags=CONSTANT] {
-   return QoreNumberNode::toNumber(n);
+   return QoreNumberNode::toNumber(v);
 }
 
 //! Returns an iterator object for the value; the default iterator object returned is @ref Qore::SingleValueIterator "SingleValueIterator"
@@ -278,7 +278,7 @@ map printf("+ %y\n", $1), $v.iterator();
     @since %Qore 0.8.6
  */
 AbstractIterator <value>::iterator() [flags=CONSTANT] {
-   return new QoreObject(QC_SINGLEVALUEITERATOR, 0, new SingleValueIterator(n));
+   return new QoreObject(QC_SINGLEVALUEITERATOR, 0, new SingleValueIterator(v));
 }
 
 //! Returns @ref True if the type can return a non-zero size (@ref True for containers including @ref binary "binary objects" and @ref string "strings", @ref False for everything else)
@@ -291,4 +291,3 @@ AbstractIterator <value>::iterator() [flags=CONSTANT] {
 bool <value>::sizep() [flags=CONSTANT] {
    return false;
 }
-

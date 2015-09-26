@@ -45,10 +45,10 @@ private:
    bool m_increasing;
    bool m_valid;
 
-   AbstractQoreNode* val;
+   QoreValue val;
 
 public:
-   DLLLOCAL RangeIterator(int64 start, int64 stop, int64 step, const AbstractQoreNode* v, ExceptionSink* xsink)
+   DLLLOCAL RangeIterator(int64 start, int64 stop, int64 step, const QoreValue v, ExceptionSink* xsink)
       : QoreIteratorBase(),
         m_start(start),
         m_stop(stop),
@@ -56,7 +56,7 @@ public:
         m_position(-1),
         m_increasing(start<stop),
         m_valid(false),
-        val((v && step >= 0) ? v->refSelf() : 0) {
+        val((!v.isNothing() && step >= 0) ? v.refSelf() : QoreValue()) {
       if (step < 1) {
          xsink->raiseException("RANGEITERATOR-ERROR", "Value of the 'step' argument has to be greater than 0 (value passed: %d)", step);
       }
@@ -65,20 +65,15 @@ public:
    DLLLOCAL RangeIterator(const RangeIterator& old)
       : m_start(old.m_start), m_stop(old.m_stop), m_step(old.m_step),
         m_position(old.m_position), m_increasing(old.m_increasing),
-        m_valid(old.m_valid), val(old.val ? old.val->refSelf() : 0) {
+        m_valid(old.m_valid), val(old.val.refSelf()) {
    }
 
    DLLLOCAL virtual ~RangeIterator() {
-      assert(!val);
+      assert(!val.hasNode());
    }
 
    DLLLOCAL void destructor(ExceptionSink* xsink) {
-      if (val) {
-         val->deref(xsink);
-#ifdef DEBUG
-         val = 0;
-#endif
-      }
+      val.discard(xsink);
    }
 
    DLLLOCAL bool next() {
@@ -98,9 +93,9 @@ public:
          xsink->raiseException("INVALID-ITERATOR", "the %s is not pointing at a valid element; make sure %s::next() returns True before calling this method", getName(), getName());
          return 0;
       }
-      
+
       int64 rv = calculateCurrent();
-      return val ? val->refSelf() : new QoreBigIntNode(rv);
+      return !val.isNothing() ? val.getReferencedValue() : new QoreBigIntNode(rv);
    }
 
    DLLLOCAL void reset() {

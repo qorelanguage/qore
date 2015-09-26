@@ -96,8 +96,9 @@ doxygen/lang/*.dox
 # compiled emacs lisp
 *.elc
 
-# Darwin symbol dirs
+# Darwin files
 *.dSYM/
+.DS_Store
 
 # Eclipse
 .autotools

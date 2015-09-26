@@ -77,7 +77,7 @@
 qclass FtpClient [dom=NETWORK; arg=QoreFtpClientClass* f];
 
 //! Creates an empty FtpClient object
-/** 
+/**
     @par Example:
     @code
 my FtpClient $ftp();
@@ -109,7 +109,7 @@ FtpClient::constructor(string url) {
 }
 
 //! Throws an exception to prevent copying of objects this class
-/** 
+/**
     @throw FTPCLIENT-COPY-ERROR FtpClient objects cannot be copied
  */
 FtpClient::copy() {
@@ -117,7 +117,7 @@ FtpClient::copy() {
 }
 
 //! Disconnects any remote connection and destroys the object
-/** 
+/**
     @par Events:
     @ref EVENT_CHANNEL_CLOSED, @ref EVENT_DELETED
 
@@ -190,7 +190,7 @@ my *string $str = $ftp.list();
 }
 
 //! Returns a list of files from the FTP server in the server's long format for the given path or @ref nothing if the path cannot be found
-/** 
+/**
     @param path The path or filename (or filename filter) to list (ex: \c "/tmp/*.txt")
 
     @return a list of files from the FTP server in the server's long format for the given path or @ref nothing if the path cannot be found
@@ -311,7 +311,7 @@ $ftp.put("/tmp/file-1.txt", "file.txt");
     @endcode
 
     @throw FTP-RECEIVE-ERROR Incomplete message received on control port
-    @throw FTP-FILE-OPEN-ERROR Could not open local file for reading 
+    @throw FTP-FILE-OPEN-ERROR Could not open local file for reading
     @throw FTP-FILE-PUT-ERROR Could not determine file size of local file (stat() failed)
     @throw FTP-PUT-ERROR An error occurred while sending the file
 
@@ -494,7 +494,7 @@ $ftp.mkdir("tmp");
     @throw FTP-RECEIVE-ERROR Incomplete message received on control port
     @throw FTP-MKDIR-ERROR FTP server returned an error to the \c MKD command
 
-    @note see FtpClient::connect() for additional exceptions that could be thrown when connections are implicitly established    
+    @note see FtpClient::connect() for additional exceptions that could be thrown when connections are implicitly established
  */
 nothing FtpClient::mkdir(string remote_path) {
    f->mkdir(remote_path->getBuffer(), xsink);
@@ -514,7 +514,7 @@ $ftp.rmdir("tmp");
     @throw FTP-RECEIVE-ERROR Incomplete message received on control port
     @throw FTP-RMDIR-ERROR FTP server returned an error to the \c RMD command
 
-    @note see FtpClient::connect() for additional exceptions that could be thrown when connections are implicitly established    
+    @note see FtpClient::connect() for additional exceptions that could be thrown when connections are implicitly established
  */
 nothing FtpClient::rmdir(string remote_path) {
    f->rmdir(remote_path->getBuffer(), xsink);
@@ -545,7 +545,7 @@ nothing FtpClient::setPassword(string pass) {
 }
 
 //! Sets the hostname or address to use to connect to for the next connection
-/** 
+/**
     @param host the hostname or address to use to connect to for the next connection
 
     @par Example:
@@ -592,7 +592,7 @@ nothing FtpClient::setURL(string url) {
 }
 
 //! Returns the current username value or @ref nothing if none is set
-/** 
+/**
     @return the current username value that will be used for the next connection or @ref nothing if none is set
 
     @par Example:
@@ -606,7 +606,7 @@ my *string $user = $ftp.getUserName();
 }
 
 //! Returns the current password value or @ref nothing if none is set
-/** 
+/**
     @return the current password value that will be used for the next connection or @ref nothing if none is set
 
     @par Example:
@@ -620,7 +620,7 @@ my *string $pass = $ftp.getPassword();
 }
 
 //! Returns the current hostname value or @ref nothing if none is set
-/** 
+/**
     @return the current hostname value that will be used for the next connection or @ref nothing if none is set
 
     @par Example:
@@ -634,7 +634,7 @@ my *string $host = $ftp.getHostName();
 }
 
 //! Retrieves the current connection port value for this object
-/** 
+/**
     @return the current port value that will be used for the next connection
 
     @par Example:
@@ -647,7 +647,7 @@ int FtpClient::getPort() {
 }
 
 //! Retrieves the current connection URL string for this object
-/** 
+/**
     @return the current connection URL string for this object
 
     @par Example:
@@ -675,7 +675,7 @@ nothing FtpClient::setSecure(bool secure = True) {
 }
 
 //! Make a non-encrypted connection to the server on the next connect
-/** 
+/**
     @par Example:
     @code
 $ftp.setInsecure();
@@ -689,7 +689,7 @@ nothing FtpClient::setInsecure() {
 }
 
 //! Make a non-encrypted data connection to the server on the next connect even if the control connection is secure
-/** 
+/**
     @par Example:
     @code
 $ftp.setSecure();
@@ -716,7 +716,7 @@ bool FtpClient::isSecure() [flags=CONSTANT] {
 }
 
 //! Returns @ref True if the data connections are secure TLS/SSL connections, @ref False if not
-/** 
+/**
     @return @ref True if the data connections are secure TLS/SSL connections, @ref False if not
 
     @par Example:
@@ -772,7 +772,7 @@ if ($ftp.isSecure() && (my *string $str = $ftp.verifyPeerCertificate())) {
 }
 
 //! Sets the object to automatically try to negotiate the data connections in \c EPSV, \c PASV, and \c PORT modes, in that order
-/** 
+/**
     @par Example:
     @code
 $ftp.setModeAuto();
@@ -783,7 +783,7 @@ nothing FtpClient::setModeAuto() {
 }
 
 //! Sets the object to only try to make data connections using \c EPSV (<a href="http://tools.ietf.org/html/rfc2428">RFC-2428</a> extended passive) mode
-/** 
+/**
     @par Example:
     @code
 $ftp.setModeEPSV();
@@ -794,7 +794,7 @@ nothing FtpClient::setModeEPSV() {
 }
 
 //! Sets the object to only try to make data connections using \c PASV (<a href="http://tools.ietf.org/html/rfc959">RFC-959</a> passive) mode
-/** 
+/**
     @par Example:
     @code
 $ftp.setModePASV();
@@ -805,7 +805,7 @@ nothing FtpClient::setModePASV() {
 }
 
 //! Sets the object to only try to make data connections using \c PORT mode
-/** 
+/**
     @par Example:
     @code
 $ftp.setModePORT();
@@ -828,7 +828,7 @@ string FtpClient::getMode() [flags=CONSTANT] {
 }
 
 //! Clears any Queue object that may be set on the FtpClient object so that @ref event_handling "I/O events" are no longer captured on the object on either the data or control connections
-/** 
+/**
     @par Example:
     @code
 $ftp.setEventQueue();
@@ -852,16 +852,14 @@ $ftp.setEventQueue($queue);
  */
 nothing FtpClient::setEventQueue(Qore::Thread::Queue[Queue] queue) {
    ReferenceHolder<Queue> q(queue, xsink);
-   if (queue->getMax() != -1) {
-      xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the FtpClient object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
-      return 0;
-   }
+   if (queue->getMax() != -1)
+      return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the FtpClient object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
    // pass reference from QoreObject::getReferencedPrivateData() to function
    f->setEventQueue(q.release(), xsink);
 }
 
 //! Clears any Queue object that may be set on the FtpClient object so that @ref event_handling "I/O events" are no longer captured on the object on the data connection
-/** 
+/**
     @par Example:
     @code
 $ftp.setDataEventQueue();
@@ -885,16 +883,14 @@ $ftp.setDataEventQueue($queue);
  */
 nothing FtpClient::setDataEventQueue(Qore::Thread::Queue[Queue] queue) {
    ReferenceHolder<Queue> q(queue, xsink);
-   if (queue->getMax() != -1) {
-      xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the FtpClient object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
-      return 0;
-   }
+   if (queue->getMax() != -1)
+      return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the FtpClient object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
    // pass reference from QoreObject::getReferencedPrivateData() to function
    f->setDataEventQueue(q.release(), xsink);
 }
 
 //! Clears any Queue object that may be set on the FtpClient object so that @ref event_handling "I/O events" are no longer captured on the object on the control connection
-/** 
+/**
     @par Example:
     @code
 $ftp.setControlEventQueue();
@@ -918,10 +914,8 @@ $ftp.setControlEventQueue($queue);
  */
 nothing FtpClient::setControlEventQueue(Qore::Thread::Queue[Queue] queue) {
    ReferenceHolder<Queue> q(queue, xsink);
-   if (queue->getMax() != -1) {
-      xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the FtpClient object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
-      return 0;
-   }
+   if (queue->getMax() != -1)
+      return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the FtpClient object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
    // pass reference from QoreObject::getReferencedPrivateData() to function
    f->setControlEventQueue(q.release(), xsink);
 }
@@ -950,8 +944,8 @@ $ftp.setWarningQueue(5000, 5000, $queue, "socket-1");
     - \c "type": a string with the constant value \c "SOCKET-OPERATION-WARNING"
     - \c "operation": a string giving the operation that caused the warning (ex: \c "connect")
     - \c "us": an integer giving the number of microseconds for the operation
-    - \c "timeout": an integer giving the warning threshold in microseconds 
-    - \c "arg": if any \c "arg" argument is passed to the @ref Qore::FtpClient::setWarningQueue() "FtpClient::setWarningQueue()" method, it will be included in the warning hash here 
+    - \c "timeout": an integer giving the warning threshold in microseconds
+    - \c "arg": if any \c "arg" argument is passed to the @ref Qore::FtpClient::setWarningQueue() "FtpClient::setWarningQueue()" method, it will be included in the warning hash here
     @param warning_bs value in bytes per second; if any call has performance below this threshold, a socket warning is placed on the warning queue with the following keys:
     - \c "type": a string with the constant value \c "SOCKET-THROUGHPUT-WARNING"
     - \c "dir": either \c "send" or \c "recv" depending on the direction of the data flow
@@ -959,7 +953,7 @@ $ftp.setWarningQueue(5000, 5000, $queue, "socket-1");
     - \c "us": an integer giving the number of microseconds for the operation
     - \c "bytes_sec": a float giving the transfer speed in bytes per second
     - \c "threshold": an integer giving the warning threshold in bytes per second
-    - \c "arg": if any \c "arg" argument is passed to the @ref Qore::FtpClient::setWarningQueue() "FtpClient::setWarningQueue()" method, it will be included in the warning hash here 
+    - \c "arg": if any \c "arg" argument is passed to the @ref Qore::FtpClient::setWarningQueue() "FtpClient::setWarningQueue()" method, it will be included in the warning hash here
     @param queue the @ref Qore::Thread::Queue "Queue" object to receive warning events
     @param arg an optional argument to be placed in the \c "arg" key in each warning hash (could be used to identify the socket for example)
     @param min_ms the minimum transfer time with a resolution of milliseconds for a transfer to be eligible for triggering a warning; transfers that take less than this period of time are not eligible for raising a warning
@@ -973,12 +967,10 @@ $ftp.setWarningQueue(5000, 5000, $queue, "socket-1");
  */
 nothing FtpClient::setWarningQueue(int warning_ms, int warning_bs, Queue[Queue] queue, any arg, timeout min_ms = 1s) {
    ReferenceHolder<Queue> q(queue, xsink);
-   if (queue->getMax() != -1) {
-      xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Socket object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
-      return 0;
-   }
+   if (queue->getMax() != -1)
+      return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Socket object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
    // pass reference from QoreObject::getReferencedPrivateData() to function
-   f->setWarningQueue(xsink, warning_ms, warning_bs, q.release(), arg ? arg->refSelf() : 0, min_ms);
+   f->setWarningQueue(xsink, warning_ms, warning_bs, q.release(), arg.getReferencedValue(), min_ms);
 }
 
 //! Returns performance statistics for the socket

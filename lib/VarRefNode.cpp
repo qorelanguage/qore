@@ -109,7 +109,7 @@ QoreValue VarRefNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) con
    if (n && n->getType() == NT_REFERENCE) {
       ReferenceNode* r = reinterpret_cast<ReferenceNode*>(n);
       bool nd;
-      QoreValue nv = r->evalValue(nd, xsink);      
+      QoreValue nv = r->evalValue(nd, xsink);
       if (needs_deref)
 	 discard(v.getInternalNode(), xsink);
       needs_deref = nd;
@@ -149,7 +149,7 @@ AbstractQoreNode* VarRefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvi
    // this expression returns nothing if it's a new local variable
    // so if we're not assigning we return nothingTypeInfo as the
    // return type
-   if (!is_assignment && new_decl) { 
+   if (!is_assignment && new_decl) {
       assert(!outTypeInfo);
       outTypeInfo = nothingTypeInfo;
    }
@@ -163,7 +163,7 @@ VarRefNewObjectNode* VarRefNode::globalMakeNewCall(AbstractQoreNode* args) {
    assert(type == VT_GLOBAL);
    if (ref.var->hasTypeInfo()) {
       QoreParseTypeInfo* pti = ref.var->copyParseTypeInfo();
-      VarRefNewObjectNode* rv = new VarRefNewObjectNode(takeName(), ref.var, makeArgs(args), pti ? 0 : ref.var->getTypeInfo(), pti);
+      VarRefNewObjectNode* rv = new VarRefNewObjectNode(takeName(), ref.var, make_args(args), pti ? 0 : ref.var->getTypeInfo(), pti);
       deref();
       return rv;
    }
@@ -250,14 +250,14 @@ AbstractQoreNode* VarRefDeclNode::parseInitImpl(LocalVar *oflag, int pflag, int 
 
 // for checking for new object calls
 AbstractQoreNode* VarRefDeclNode::makeNewCall(AbstractQoreNode* args) {
-   VarRefNewObjectNode* rv = new VarRefNewObjectNode(loc, takeName(), typeInfo, takeParseTypeInfo(), makeArgs(args), type);
+   VarRefNewObjectNode* rv = new VarRefNewObjectNode(loc, takeName(), typeInfo, takeParseTypeInfo(), make_args(args), type);
    deref();
    return rv;
 }
 
 void VarRefDeclNode::makeGlobal() {
    // could be tagged as local if allow-bare-refs is enabled
-   assert(type == VT_UNRESOLVED || (type == VT_LOCAL && parse_check_parse_option(PO_ALLOW_BARE_REFS))); 
+   assert(type == VT_UNRESOLVED || (type == VT_LOCAL && parse_check_parse_option(PO_ALLOW_BARE_REFS)));
 
    type = VT_GLOBAL;
    if (parseTypeInfo)
@@ -310,7 +310,7 @@ AbstractQoreNode* VarRefNewObjectNode::parseInitImpl(LocalVar *oflag, int pflag,
 
 QoreValue VarRefNewObjectNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    assert(typeInfo->getUniqueReturnClass());
-   ReferenceHolder<QoreObject> obj(typeInfo->getUniqueReturnClass()->execConstructor(variant, args, xsink), xsink);
+   ReferenceHolder<QoreObject> obj(qore_class_private::execConstructor(*typeInfo->getUniqueReturnClass(), variant, args, xsink), xsink);
    if (*xsink)
       return QoreValue();
 

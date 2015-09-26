@@ -254,6 +254,9 @@ public:
    //! returns the representation of the value as a number if possible (otherwise returns 0), caller owns the reference returned
    DLLEXPORT static QoreNumberNode* toNumber(const AbstractQoreNode* v);
 
+   //! returns the representation of the value as a number if possible (otherwise returns 0), caller owns the reference returned
+   DLLEXPORT static QoreNumberNode* toNumber(const QoreValue v);
+
    //! returns the type name (useful in templates)
    /**
       @return the type name as a c string

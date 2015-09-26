@@ -1,8 +1,8 @@
 /*
   TryStatement.cpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
@@ -63,42 +63,41 @@ TryStatement::~TryStatement() {
    //delete finally;
 }
 
-int TryStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) {
-   AbstractQoreNode *trv = 0;
-   
+int TryStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
+   ValueHolder trv(xsink);
+
    QORE_TRACE("TryStatement::execImpl()");
    int rc = 0;
    if (try_block)
-      rc = try_block->execImpl(&trv, xsink);
-   
+      rc = try_block->execImpl(*trv, xsink);
+
    QoreException* except = xsink->catchException();
    if (except) {
       printd(5, "TryStatement::execImpl() entering catch handler, e=%p\n", except);
-      
+
       if (catch_block) {
 	 CatchExceptionHelper ceh(except);
-	 
-	 if (param)	 // instantiate exception information parameter
+
+	 // instantiate exception information parameter
+	 if (param)
 	    id->instantiate(except->makeExceptionObject());
-	 
-	 rc = catch_block->execImpl(&trv, xsink);
-	 
+
+	 rc = catch_block->execImpl(*trv, xsink);
+
 	 // uninstantiate extra args
 	 if (param)
 	    id->uninstantiate(xsink);
       }
       else
 	 rc = 0;
-      
+
       // delete exception chain
       except->del(xsink);
    }
 
-   if (trv) {
-      if (*return_value) // NOTE: return value overridden in the catch block!
-	 trv->deref(xsink);
-      else
-	 *return_value = trv;
+   if (!trv->isNothing()) {
+      if (return_value.isNothing())
+	 return_value = trv.release();
    }
 
    return rc;
@@ -110,7 +109,7 @@ int TryStatement::parseInitImpl(LocalVar *oflag, int pflag) {
 
    if (try_block)
       try_block->parseInitImpl(oflag, pflag);
-   
+
    // prepare catch block and params
    if (param) {
       // push as if the variable is already referenced so no warning will be emitted
@@ -120,11 +119,11 @@ int TryStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    }
    else
       id = 0;
-   
+
    // initialize code block
    if (catch_block)
       catch_block->parseInitImpl(oflag, pflag | PF_RETHROW_OK);
-   
+
    // pop local param from stack
    if (param)
       pop_local_var();

@@ -1,13 +1,13 @@
 /*
   Datasource.cpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   NOTE that 2 copies of connection values are kept in case
   the values are changed while a connection is in use
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -85,20 +85,20 @@ int Datasource::getCapabilities() const {
    return qore_dbi_private::get(*priv->dsl)->getCaps();
 }
 
-bool Datasource::isInTransaction() const { 
-   return priv->in_transaction; 
+bool Datasource::isInTransaction() const {
+   return priv->in_transaction;
 }
 
-bool Datasource::activeTransaction() const { 
-   return priv->active_transaction; 
+bool Datasource::activeTransaction() const {
+   return priv->active_transaction;
 }
 
-bool Datasource::getAutoCommit() const { 
+bool Datasource::getAutoCommit() const {
    return priv->autocommit;
 }
 
-bool Datasource::isOpen() const { 
-   return priv->isopen; 
+bool Datasource::isOpen() const {
+   return priv->isopen;
 }
 
 Datasource* Datasource::copy() const {
@@ -167,7 +167,7 @@ AbstractQoreNode* Datasource::exec_internal(bool doBind, const QoreString* query
 
    if (priv->autocommit)
       qore_dbi_private::get(*priv->dsl)->autoCommit(this, xsink);
-   else 
+   else
       priv->statementExecuted(*xsink, xsink);
 
    return rv;
@@ -248,11 +248,11 @@ int Datasource::rollback(ExceptionSink* xsink) {
 
 int Datasource::open(ExceptionSink* xsink) {
    int rc;
-   
+
    if (!priv->isopen) {
       // copy pending connection values to connection values
       setConnectionValues();
-      
+
       priv->connection_aborted = false;
 
       rc = qore_dbi_private::get(*priv->dsl)->init(this, xsink);
@@ -263,7 +263,7 @@ int Datasource::open(ExceptionSink* xsink) {
    }
    else
       rc = 0;
-   
+
    return rc;
 }
 
@@ -294,10 +294,10 @@ void Datasource::reset(ExceptionSink* xsink) {
       // close the Datasource
       qore_dbi_private::get(*priv->dsl)->close(this);
       priv->isopen = false;
-      
+
       // open the connection
       open(xsink);
-      
+
       // close any open transaction(s)
       priv->in_transaction = false;
       priv->active_transaction = false;
@@ -442,6 +442,14 @@ AbstractQoreNode* Datasource::getClientVersion(ExceptionSink* xsink) const {
 
 QoreHashNode* Datasource::getOptionHash() const {
    return priv->getOptionHash();
+}
+
+int Datasource::setOption(const char* opt, const QoreValue v, ExceptionSink* xsink) {
+   ReferenceHolder<> val(v.getReferencedValue(), xsink);
+   // maintain a copy of the option internally
+   priv->setOption(opt, *val, xsink);
+   // only set options in private data if private data is already set
+   return priv->private_data ? qore_dbi_private::get(*priv->dsl)->opt_set(this, opt, *val, xsink) : 0;
 }
 
 int Datasource::setOption(const char* opt, const AbstractQoreNode* val, ExceptionSink* xsink) {

@@ -64,7 +64,7 @@ Dir::constructor(*string encoding) {
 }
 
 //! Creates a new directory object with the same character encoding specification and the same path as the original
-/** 
+/**
     @par Example:
     @code
 my Dir $nd = $dir.copy();
@@ -74,7 +74,7 @@ Dir::copy() {
    SimpleRefHolder<Dir> nd(new Dir(xsink, *d));
    if (*xsink)
       return;
-  
+
    self->setPrivate(CID_DIR, nd.release());
 }
 
@@ -124,7 +124,7 @@ if (!$d.exists())
     @endcode
  */
 bool Dir::exists() {
-   return !d->checkPath(); 
+   return !d->checkPath();
 }
 
 //! Creates the directory tree the Dir object points to, if it does not exist
@@ -202,7 +202,7 @@ catch (hash $ex) {
 nothing Dir::chown(int uid) {
 #ifdef HAVE_CHOWN
     d->chown((uid_t)uid, (gid_t)-1, xsink);
-   return 0;
+    return QoreValue();
 #else
    return missing_method_error("Dir::chown", "UNIX_FILEMGT", xsink);
 #endif
@@ -241,7 +241,7 @@ nothing Dir::chown(string username) {
       xsink->raiseException("DIR-CHOWN-PARAMETER-ERROR", "no userid found for user '%s'", username->getBuffer());
    else
       d->chown(uid, (gid_t)-1, xsink);
-   return 0;
+   return QoreValue();
 #else
    return missing_method_error("Dir::chown", "UNIX_FILEMGT", xsink);
 #endif
@@ -272,7 +272,7 @@ catch (hash $ex) {
 nothing Dir::chgrp(int gid) {
 #ifdef HAVE_CHOWN
    d->chown((uid_t)-1, (gid_t)gid, xsink);
-   return 0;
+   return QoreValue();
 #else
    return missing_method_error("Dir::chgrp", "UNIX_FILEMGT", xsink);
 #endif
@@ -311,7 +311,7 @@ nothing Dir::chgrp(string groupname) {
       xsink->raiseException("DIR-CHGRP-PARAMETER-ERROR", "no groupid found for group '%s'", groupname->getBuffer());
    else
       d->chown((uid_t)-1, gid, xsink);
-   return 0;
+   return QoreValue();
 #else
    return missing_method_error("Dir::chgrp", "UNIX_FILEMGT", xsink);
 #endif
@@ -576,11 +576,9 @@ my File $f = $d.openFile("myfile.txt", O_CREAT|O_WRONLY, 0644, "utf-8");
     @note see File::open2() for additional exceptions that can be thrown opening the file
  */
 File Dir::openFile(string filename, int flags = O_RDONLY, int mode = 0666, *string encoding) {
-   if (strchr(filename->getBuffer(), QORE_DIR_SEP)) {
-      xsink->raiseException("DIR-OPENFILE-PARAMETER-ERROR", "only filenames without path (i.e. without '%c' characters) are allowed", QORE_DIR_SEP);
-      return 0;
-   }
-  
+   if (strchr(filename->getBuffer(), QORE_DIR_SEP))
+      return xsink->raiseException("DIR-OPENFILE-PARAMETER-ERROR", "only filenames without path (i.e. without '%c' characters) are allowed", QORE_DIR_SEP);
+
    const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
 
    // open the file with exception
@@ -589,7 +587,7 @@ File Dir::openFile(string filename, int flags = O_RDONLY, int mode = 0666, *stri
 
    if (f->open2(xsink, path.c_str(), flags, mode, qe)) {
       assert(*xsink);
-      return 0;
+      return QoreValue();
    }
 
    // create the QoreObject and set the File object as private data of the class tagged with the CID_FILE class ID
@@ -611,13 +609,11 @@ my Dir $sd = $d.openDir("mysubdir");
  */
 Dir Dir::openDir(string subdir, *string encoding) {
    // check if there is a path delimiter in
-   if (strchr(subdir->getBuffer(), QORE_DIR_SEP)) {
-      xsink->raiseException("DIR-OPENDIR-PARAMETER-ERROR", "only direct directory names without path (i.e. without '%c' characters) are allowed", QORE_DIR_SEP);
-      return 0;
-   }
+   if (strchr(subdir->getBuffer(), QORE_DIR_SEP))
+      return xsink->raiseException("DIR-OPENDIR-PARAMETER-ERROR", "only direct directory names without path (i.e. without '%c' characters) are allowed", QORE_DIR_SEP);
 
    const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : d->getEncoding();
-   ReferenceHolder<Dir> dc(new Dir(xsink, qe, d->getPath(subdir->getBuffer()).c_str()), xsink);   
+   ReferenceHolder<Dir> dc(new Dir(xsink, qe, d->getPath(subdir->getBuffer()).c_str()), xsink);
    // create the qoreObject and set the Dir object as private data of the class tagged with the CID_DIR class ID
    return new QoreObject(QC_DIR, getProgram(), dc.release());
 }
@@ -647,17 +643,13 @@ catch (hash $ex) {
  */
 bool Dir::removeFile(string file) {
    // check if there is a path delimiter in
-   if (strchr(file->getBuffer(), QORE_DIR_SEP)) {
-      xsink->raiseException("DIR-REMOVEFILE-PARAMETER-ERROR", "only filenames without path (i.e. without '%c' characters) are allowed", QORE_DIR_SEP);
-      return 0;
-   }
+   if (strchr(file->getBuffer(), QORE_DIR_SEP))
+      return xsink->raiseException("DIR-REMOVEFILE-PARAMETER-ERROR", "only filenames without path (i.e. without '%c' characters) are allowed", QORE_DIR_SEP);
 
    std::string path = d->getPath(file->getBuffer());
    errno = 0; // clear errno flag
-   if (unlink(path.c_str()) && errno != ENOENT) {
-      xsink->raiseErrnoException("DIR-REMOVEFILE-FAILURE", errno, "error removing file '%s'", file->getBuffer());
-      return 0;
-   }
+   if (unlink(path.c_str()) && errno != ENOENT)
+      return xsink->raiseErrnoException("DIR-REMOVEFILE-FAILURE", errno, "error removing file '%s'", file->getBuffer());
 
    // if an errno was set it must be ENOENT at this point.
    // so we return that no file is removed

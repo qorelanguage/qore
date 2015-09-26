@@ -66,7 +66,7 @@ public:
 
     iter 1: hash: (column1 : 2, column2 : "b")
     iter 0: hash: (column1 : 1, column2 : "a")
-    @endcode 
+    @endcode
 
     @note
     - In general, the ListHashReverseIterator class is not designed to be accessed from multiple threads; it was created without locking for
@@ -197,7 +197,7 @@ while ($i.next()) {
  */
 any ListHashReverseIterator::memberGate(string key) [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-      return 0;
+      return QoreValue();
 
    return i->getReferencedKeyValue(key->getBuffer(), xsink);
 }

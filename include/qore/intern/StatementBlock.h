@@ -34,7 +34,7 @@
 #define _QORE_STATEMENT_BLOCK_H
 
 #include <qore/intern/AbstractStatement.h>
-#include <qore/safe_dslist> 
+#include <qore/safe_dslist>
 
 #include <set>
 #include <vector>
@@ -115,7 +115,7 @@ protected:
    DLLLOCAL bool hasLastReturn(AbstractStatement* as);
    DLLLOCAL void parseCheckReturn();
 
-   DLLLOCAL int execIntern(AbstractQoreNode** return_value, ExceptionSink* xsink);
+   DLLLOCAL int execIntern(QoreValue& return_value, ExceptionSink* xsink);
 
    DLLLOCAL StatementBlock() : AbstractStatement(-1, -1), lvars(0) {
    }
@@ -133,7 +133,7 @@ public:
       del();
    }
 
-   DLLLOCAL virtual int execImpl(AbstractQoreNode** return_value, ExceptionSink* xsink);
+   DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink);
    DLLLOCAL virtual int parseInitImpl(LocalVar* oflag, int pflag = 0);
 
    DLLLOCAL void del();
@@ -141,14 +141,14 @@ public:
    DLLLOCAL void addStatement(AbstractStatement* s);
 
    using AbstractStatement::exec;
-   DLLLOCAL AbstractQoreNode* exec(ExceptionSink* xsink);
+   DLLLOCAL QoreValue exec(ExceptionSink* xsink);
 
    using AbstractStatement::parseInit;
    DLLLOCAL void parseInit(UserVariantBase* uvb);
 
    // initialize methods
-   DLLLOCAL void parseInitMethod(const QoreTypeInfo* typeInfo, UserVariantBase* uvb); 
-   DLLLOCAL void parseInitConstructor(const QoreTypeInfo* typeInfo, UserVariantBase* uvb, BCAList* bcal, BCList* bcl); 
+   DLLLOCAL void parseInitMethod(const QoreTypeInfo* typeInfo, UserVariantBase* uvb);
+   DLLLOCAL void parseInitConstructor(const QoreTypeInfo* typeInfo, UserVariantBase* uvb, BCAList* bcal, BCList* bcl);
 
    // initialize closure blocks
    DLLLOCAL void parseInitClosure(UserVariantBase* uvb, const QoreTypeInfo* classTypeInfo, lvar_set_t *vlist);
@@ -181,7 +181,7 @@ protected:
    statement_list_t::iterator hwm;
    // true only the first time parseInit() is called
    bool first;
-   
+
 public:
    DLLLOCAL TopLevelStatementBlock() : hwm(statement_list.end()), first(true) {
    }
@@ -211,7 +211,7 @@ public:
    }
 
    // local vars are not instantiated here because they are instantiated by the QoreProgram object
-   DLLLOCAL virtual int execImpl(AbstractQoreNode** return_value, ExceptionSink* xsink);
+   DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink);
 
    // assign inherited local var list from parent program
    DLLLOCAL void assignLocalVars(const LVList* lvl) {

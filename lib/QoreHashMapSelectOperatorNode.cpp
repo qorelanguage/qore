@@ -1,10 +1,10 @@
 /*
   QoreHashMapSelectOperatorNode.cpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 Qore Technologies, sro
-  
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -45,10 +45,10 @@ int QoreHashMapSelectOperatorNode::getAsString(QoreString &str, int foff, Except
    return 0;
 }
 
-AbstractQoreNode* QoreHashMapSelectOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, 
+AbstractQoreNode* QoreHashMapSelectOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids,
                                                          const QoreTypeInfo *&typeInfo) {
    assert(!typeInfo);
-   
+
    pflag &= ~PF_RETURN_VALUE_IGNORED;
 
    // check iterated expression
@@ -66,7 +66,7 @@ AbstractQoreNode* QoreHashMapSelectOperatorNode::parseInitImpl(LocalVar *oflag, 
    // check iteratorTypeInfo expression
    const QoreTypeInfo* selectTypeInfo = 0;
    e[3] = e[3]->parseInit(oflag, pflag, lvids, selectTypeInfo);
-   
+
    return this;
 }
 
@@ -74,14 +74,14 @@ QoreValue QoreHashMapSelectOperatorNode::evalValueImpl(bool& needs_deref, Except
    ValueEvalRefHolder arg_lst(e[2], xsink);
    if (*xsink || arg_lst->isNothing())
       return QoreValue();
-   
+
    qore_type_t arglst_type = arg_lst->getType();
    assert(arglst_type != NT_NOTHING);
    ReferenceHolder<QoreHashNode> ret_val(ref_rv ? new QoreHashNode : 0, xsink);
    if (NT_LIST != arglst_type) { // Single value
       // check if it's an AbstractIterator object
       if (NT_OBJECT == arglst_type) {
-         AbstractIteratorHelper h(xsink, "hmap operator select", 
+         AbstractIteratorHelper h(xsink, "hmap operator select",
 				  const_cast<QoreObject*>(arg_lst->get<const QoreObject>()));
          if (*xsink)
 	    return QoreValue();
@@ -91,9 +91,8 @@ QoreValue QoreHashMapSelectOperatorNode::evalValueImpl(bool& needs_deref, Except
 	 // passed iterator
       }
 
-      // check if value can be mapped     
-      ReferenceHolder<> arg_ival(arg_lst.getReferencedValue(), xsink);
-      SingleArgvContextHelper argv_helper(*arg_ival, xsink);
+      // check if value can be mapped
+      SingleArgvContextHelper argv_helper(arg_lst.getReferencedValue(), xsink);
       ValueEvalRefHolder result(e[3], xsink);
       if (*xsink || !result->getAsBool())
 	 return QoreValue();
@@ -110,7 +109,7 @@ QoreValue QoreHashMapSelectOperatorNode::evalValueImpl(bool& needs_deref, Except
       QoreStringValueHelper str_util(*arg_key, QCS_DEFAULT, xsink);
       if (*xsink)
 	 return QoreValue();
-      
+
       // Insert key-Value pair to the hash
       ret_val->setKeyValue(str_util->getBuffer(), arg_val.getReferencedValue(), xsink);
    }
@@ -118,8 +117,8 @@ QoreValue QoreHashMapSelectOperatorNode::evalValueImpl(bool& needs_deref, Except
       ConstListIterator li(arg_lst->get<const QoreListNode>());
       while (li.next()) {
          // set offset in thread-local data for "$#"
-         ImplicitElementHelper eh(li.index()); 
-         SingleArgvContextHelper argv_helper(li.getValue(), xsink);
+         ImplicitElementHelper eh(li.index());
+         SingleArgvContextHelper argv_helper(li.getReferencedValue(), xsink);
 
 	 ValueEvalRefHolder result(e[3], xsink);
 	 if (*xsink)
@@ -127,7 +126,7 @@ QoreValue QoreHashMapSelectOperatorNode::evalValueImpl(bool& needs_deref, Except
 
 	 if (!result->getAsBool())
 	    continue;
-        
+
 	 {
 	    ValueEvalRefHolder ekey(e[0], xsink);
 	    if (*xsink)
@@ -137,7 +136,7 @@ QoreValue QoreHashMapSelectOperatorNode::evalValueImpl(bool& needs_deref, Except
 	    QoreStringValueHelper key(*ekey, QCS_DEFAULT, xsink);
 	    if (*xsink)
 	       return QoreValue();
-	    
+
 	    ValueEvalRefHolder val(e[1], xsink);
 	    if (*xsink)
 	       return QoreValue();
@@ -170,17 +169,17 @@ QoreValue QoreHashMapSelectOperatorNode::mapIterator(AbstractIteratorHelper& h, 
 
       ImplicitElementHelper eh(i++);
 
-      ReferenceHolder<> iv(h.getValue(xsink), xsink);
+      ValueHolder iv(h.getValue(xsink), xsink);
       if (*xsink)
          return QoreValue();
 
       // check if value can be mapped
-      SingleArgvContextHelper argv_helper(*iv, xsink);
+      SingleArgvContextHelper argv_helper(iv.release(), xsink);
 
       ValueEvalRefHolder result(e[3], xsink);
       if (*xsink)
 	 return QoreValue();
-      
+
       if (!result->getAsBool())
 	 continue;
 
@@ -188,16 +187,16 @@ QoreValue QoreHashMapSelectOperatorNode::mapIterator(AbstractIteratorHelper& h, 
 	 ValueEvalRefHolder ekey(e[0], xsink);
 	 if (*xsink)
 	    return QoreValue();
-	 
+
 	 // we have to convert to a string in the default encoding to use a hash key
 	 QoreStringValueHelper key(*ekey, QCS_DEFAULT, xsink);
 	 if (*xsink)
 	    return QoreValue();
-	 
+
 	 ValueEvalRefHolder val(e[1], xsink);
 	 if (*xsink)
 	    return QoreValue();
-	 
+
 	 if (ref_rv)
 	    rv->setKeyValue(key->getBuffer(), val.getReferencedValue(), xsink);
       }
@@ -205,6 +204,6 @@ QoreValue QoreHashMapSelectOperatorNode::mapIterator(AbstractIteratorHelper& h, 
       if (*xsink)
 	 return QoreValue();
    }
-   
+
    return rv.release();
 }

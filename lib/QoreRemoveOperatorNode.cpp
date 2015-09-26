@@ -1,8 +1,8 @@
 /*
   QoreRemoveOperatorNode.cpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
@@ -47,7 +47,13 @@ QoreValue QoreRemoveOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink
    LValueRemoveHelper lvrh(exp, xsink, false);
    if (!lvrh)
       return QoreValue();
-   return lvrh.remove();
+
+   bool static_assignment = false;
+   QoreValue rv = lvrh.remove(static_assignment);
+   assert(needs_deref);
+   if (static_assignment)
+      needs_deref = false;
+   return rv;
 }
 
 AbstractQoreNode *QoreRemoveOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {

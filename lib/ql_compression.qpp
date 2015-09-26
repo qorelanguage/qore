@@ -651,10 +651,8 @@ my binary $bin = compress($str_data);
     @throw ZLIB-ERROR zlib returned an error while processing
 */
 binary compress(string str, int level = Z_DEFAULT_COMPRESSION) {
-   if ((level < 1 && level != -1) || level > 9) {
-      xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 1 - 9 or -1 (value passed: %d)", level);
-      return 0;
-   }
+   if ((level < 1 && level != -1) || level > 9)
+      return xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 1 - 9 or -1 (value passed: %d)", level);
 
    if (!str->strlen())
       return new BinaryNode;
@@ -679,10 +677,8 @@ my binary $bin = compress($bin_data);
     @throw ZLIB-ERROR zlib returned an error while processing
 */
 binary compress(binary bin, int level = Z_DEFAULT_COMPRESSION) {
-   if ((level < 1 && level != -1) || level > 9) {
-      xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 1 - 9 or -1 (value passed: %d)", level);
-      return 0;
-   }
+   if ((level < 1 && level != -1) || level > 9)
+      return xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 1 - 9 or -1 (value passed: %d)", level);
 
    if (!bin->size())
       return new BinaryNode;
@@ -760,10 +756,8 @@ my binary $data = bzip($str);
     @throw ZLIB-ERROR The zlib library returned an error during processing (should not normally happen during compression)
 */
 binary gzip(string str, int level = Z_DEFAULT_COMPRESSION) {
-   if (!level || level > 9) {
-      xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 0 - 9 (value passed: %d)", level);
-      return 0;
-   }
+   if (!level || level > 9)
+      return xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 0 - 9 (value passed: %d)", level);
 
    if (!str->strlen())
       return new BinaryNode;
@@ -787,10 +781,8 @@ my binary $data = gzip($bin);
     @throw ZLIB-ERROR The zlib library returned an error during processing (should not normally happen during compression)
 */
 binary gzip(binary bin, int level = Z_DEFAULT_COMPRESSION) {
-   if (!level || level > 9) {
-      xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 0 - 9 (value passed: %d)", level);
-      return 0;
-   }
+   if (!level || level > 9)
+      return xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 0 - 9 (value passed: %d)", level);
 
    if (!bin->size())
       return new BinaryNode;
@@ -865,10 +857,8 @@ my binary $bin = compress($data);
     @throw BZIP2-COMPRESS-ERROR the bzip2 library returned an error during processing
 */
 binary bzip2(binary bin, softint level = BZ2_DEFAULT_COMPRESSION) {
-   if (!level || level > 9) {
-      xsink->raiseException("BZLIB2-LEVEL-ERROR", "level must be between 1 - 9 (value passed: %d)", level);
-      return 0;
-   }
+   if (!level || level > 9)
+      return xsink->raiseException("BZLIB2-LEVEL-ERROR", "level must be between 1 - 9 (value passed: %d)", level);
 
    return qore_bzip2(bin->getPtr(), bin->size(), level, xsink);
 }
@@ -890,10 +880,8 @@ my binary $bin = compress($str);
     @throw BZIP2-COMPRESS-ERROR the bzip2 library returned an error during processing
 */
 binary bzip2(string str, softint level = BZ2_DEFAULT_COMPRESSION) {
-   if (!level || level > 9) {
-      xsink->raiseException("BZLIB2-LEVEL-ERROR", "level must be between 1 - 9 (value passed: %d)", level);
-      return 0;
-   }
+   if (!level || level > 9)
+      return xsink->raiseException("BZLIB2-LEVEL-ERROR", "level must be between 1 - 9 (value passed: %d)", level);
 
    return qore_bzip2(str->getBuffer(), str->strlen(), level, xsink);
 }
