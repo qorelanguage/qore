@@ -118,8 +118,10 @@ QoreValue QoreMinusEqualsOperatorNode::evalValueImpl(bool &needs_deref, Exceptio
       v.minusEqualsNumber(*ra, "<-= operator>");
    }
    else if (vtype == NT_DATE) {
-      DateTimeValueHelper date(*new_right);
-      v.assign(reinterpret_cast<DateTimeNode*>(v.getValue())->subtractBy(*date));
+      // get a relative date-time value
+      DateTime date(*new_right);
+      //DateTimeValueHelper date(*new_right);
+      v.assign(reinterpret_cast<DateTimeNode*>(v.getValue())->subtractBy(date));
    }
    else if (vtype == NT_HASH) {
       if (new_right->getType() != NT_HASH && new_right->getType() != NT_OBJECT) {

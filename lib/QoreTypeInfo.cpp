@@ -1,10 +1,10 @@
 /*
   QoreTypeInfo.cpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
-  
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -66,9 +66,9 @@ const QoreTypeInfo* anyTypeInfo = &staticAnyTypeInfo,
    *nullTypeInfo = &staticNullTypeInfo,
    *runTimeClosureTypeInfo = &staticRunTimeClosureTypeInfo,
    *callReferenceTypeInfo = &staticCallReferenceTypeInfo,
-   
+
    // assigned in init_qore_types()
-   *bigIntOrNothingTypeInfo = 0, 
+   *bigIntOrNothingTypeInfo = 0,
    *stringOrNothingTypeInfo = 0,
    *boolOrNothingTypeInfo = 0,
    *binaryOrNothingTypeInfo = 0,
@@ -167,7 +167,7 @@ const QoreTypeInfo* floatOrNumberTypeInfo = &staticFloatOrNumberTypeInfo;
 QoreListNode* emptyList;
 QoreHashNode* emptyHash;
 QoreStringNode* NullString;
-DateTimeNode* ZeroDate;
+DateTimeNode* ZeroDate, * OneDate;
 QoreBigIntNode* Zero;
 QoreFloatNode* ZeroFloat;
 QoreNumberNode* ZeroNumber, * NaNumber, * InfinityNumber, * piNumber;
@@ -215,6 +215,7 @@ void init_qore_types() {
    // initialize global default values
    NullString     = new QoreStringNode;
    ZeroDate       = DateTimeNode::makeAbsolute(0, 0, 0);
+   OneDate        = DateTimeNode::makeAbsolute(0, 0, 0, 0, 0, 1);
    Zero           = new QoreBigIntNode;
    ZeroFloat      = new QoreFloatNode;
    ZeroNumber     = new QoreNumberNode;
@@ -238,7 +239,7 @@ void init_qore_types() {
    def_val_map[NT_NOTHING] = &Nothing;
 
    // static "or nothing" reference types
-   bigIntOrNothingTypeInfo    = new OrNothingTypeInfo(staticBigIntTypeInfo, "int"); 
+   bigIntOrNothingTypeInfo    = new OrNothingTypeInfo(staticBigIntTypeInfo, "int");
    stringOrNothingTypeInfo    = new OrNothingTypeInfo(staticStringTypeInfo, "string");
    boolOrNothingTypeInfo      = new OrNothingTypeInfo(staticBoolTypeInfo, "bool");
    binaryOrNothingTypeInfo    = new OrNothingTypeInfo(staticBinaryTypeInfo, "binary");
@@ -295,12 +296,13 @@ void delete_qore_types() {
    ZeroNumber->deref();
    ZeroFloat->deref();
    Zero->deref();
+   OneDate->deref();
    ZeroDate->deref();
    emptyList->deref(0);
    emptyHash->deref(0);
 
    // delete global typeinfo structures
-   delete bigIntOrNothingTypeInfo; 
+   delete bigIntOrNothingTypeInfo;
    delete stringOrNothingTypeInfo;
    delete boolOrNothingTypeInfo;
    delete binaryOrNothingTypeInfo;
@@ -400,7 +402,7 @@ int QoreTypeInfo::runtimeAcceptInputIntern(bool &priv_error, AbstractQoreNode* n
       // inherited in the input argument's class
       if (qore_class_private::runtimeCheckPrivateClassAccess(*qc))
 	 return 0;
-      
+
       priv_error = true;
    }
 
@@ -447,7 +449,7 @@ int QoreTypeInfo::runtimeAcceptInputIntern(bool &priv_error, QoreValue& n) const
       // inherited in the input argument's class
       if (qore_class_private::runtimeCheckPrivateClassAccess(*qc))
 	 return 0;
-      
+
       priv_error = true;
    }
 
@@ -597,7 +599,7 @@ bool QoreTypeInfo::isOutputIdentical(const QoreTypeInfo* typeInfo) const {
 qore_type_result_e QoreTypeInfo::matchClassIntern(const QoreClass* n_qc) const {
    if (qt == NT_ALL)
       return QTI_AMBIGUOUS;
-   
+
    if (qt != NT_OBJECT)
       return QTI_NOT_EQUAL;
 
@@ -693,7 +695,7 @@ bool OrNothingTypeInfo::acceptInputImpl(QoreValue& n, ExceptionSink *xsink) cons
       discard(n.assign((AbstractQoreNode*)0), xsink);
       return true;
    }
-   
+
    if (qc) {
       if (t != NT_OBJECT)
 	 return false;

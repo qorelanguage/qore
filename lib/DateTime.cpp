@@ -67,6 +67,12 @@ DateTime::DateTime(const AbstractQoreZoneInfo* zone, const char* str) : priv(new
    priv->setAbsoluteDate(str, zone);
 }
 
+DateTime::DateTime(const AbstractQoreZoneInfo* zone, const QoreValue v) : priv(new qore_date_private(zone, v)) {
+}
+
+DateTime::DateTime(const QoreValue v) : priv(new qore_date_private(v)) {
+}
+
 DateTime::~DateTime() {
    delete priv;
 }
@@ -168,17 +174,17 @@ int64 DateTime::getEpochSeconds() const {
    return priv->getEpochSeconds();
 }
 
-// get the number of seconds before or after January 1, 1970 (UNIX epoch) 
+// get the number of seconds before or after January 1, 1970 (UNIX epoch)
 int64 DateTime::getEpochSecondsUTC() const {
    return priv->getEpochSecondsUTC();
 }
 
-// get the number of milliseconds before or after January 1, 1970 (UNIX epoch) 
+// get the number of milliseconds before or after January 1, 1970 (UNIX epoch)
 int64 DateTime::getEpochMillisecondsUTC() const {
    return priv->getEpochMillisecondsUTC();
 }
 
-// get the number of microseconds before or after January 1, 1970 (UNIX epoch) 
+// get the number of microseconds before or after January 1, 1970 (UNIX epoch)
 int64 DateTime::getEpochMicrosecondsUTC() const {
    return priv->getEpochMicrosecondsUTC();
 }
@@ -201,7 +207,7 @@ void DateTime::getISOWeek(int& yr, int& week, int& wday) const {
 // static method
 DateTime* DateTime::getDateFromISOWeek(int year, int week, int day, ExceptionSink* xsink) {
    std::auto_ptr<DateTime> rv(new DateTime);
-   if (qore_date_private::getDateFromISOWeek(*rv->priv, year, week, day, xsink)) 
+   if (qore_date_private::getDateFromISOWeek(*rv->priv, year, week, day, xsink))
       return 0;
    return rv.release();
 }
@@ -265,28 +271,40 @@ bool DateTime::isEqual(const DateTime* dt) const {
    return priv->isEqual(*dt->priv);
 }
 
+bool DateTime::isEqual(const DateTime& dt) const {
+   return priv->isEqual(*dt.priv);
+}
+
 DateTime* DateTime::add(const DateTime* dt) const {
+   return add(*dt);
+}
+
+DateTime* DateTime::add(const DateTime& dt) const {
    DateTime* rv;
    if (isRelative()) {
-      rv = new DateTime(*dt);
+      rv = new DateTime(dt);
       rv->priv->add(*priv);
    }
    else {
       rv = new DateTime(*this);
-      rv->priv->add(*dt->priv);
+      rv->priv->add(dt.priv);
    }
    return rv;
 }
 
 DateTime* DateTime::subtractBy(const DateTime* dt) const {
+   return subtractBy(*dt);
+}
+
+DateTime* DateTime::subtractBy(const DateTime& dt) const {
    DateTime* rv;
    if (isRelative()) {
-      rv = new DateTime(*dt);
+      rv = new DateTime(dt);
       rv->priv->subtractBy(*priv);
    }
    else {
       rv = new DateTime(*this);
-      rv->priv->subtractBy(*dt->priv);
+      rv->priv->subtractBy(*dt.priv);
    }
    return rv;
 }
@@ -341,6 +359,16 @@ DateTime* DateTime::makeAbsoluteLocal(const AbstractQoreZoneInfo* zone, int64 se
 
 DateTime* DateTime::makeRelative(int y, int mo, int d, int h, int mi, int s, int u) {
    return new DateTime(new qore_date_private(y, mo, d, h, mi, s, u, true));
+}
+
+DateTime* DateTime::makeRelativeFromSeconds(int64 s, int u) {
+   int h = s / 3600;
+   if (h)
+      s -= (h * 3600);
+   int m = s / 60;
+   if (m)
+      s -= (m * 60);
+   return new DateTime(new qore_date_private(0, 0, 0, h, m, s, u, true));
 }
 
 const AbstractQoreZoneInfo* DateTime::getZone() const {

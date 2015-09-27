@@ -1,10 +1,10 @@
 /*
   QorePlusEqualsOperatorNode.cpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -32,7 +32,7 @@
 
 QoreString QorePlusEqualsOperatorNode::op_str("+= operator expression");
 
-AbstractQoreNode *QorePlusEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) { 
+AbstractQoreNode *QorePlusEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    // turn off "reference ok" and "return value ignored" flags
    pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
@@ -50,7 +50,7 @@ AbstractQoreNode *QorePlusEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int
        && !ti->isType(NT_NUMBER)
        && !ti->isType(NT_DATE)
        && !ti->isType(NT_BINARY)) {
-      // if the lhs type is not one of the above types, 
+      // if the lhs type is not one of the above types,
       // there are 2 possibilities: the lvalue has no value, in which
       // case it takes the value of the right side, or if it's anything else it's
       // converted to an integer, so we just check if it can be assigned an
@@ -96,7 +96,7 @@ QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, Exception
 	 // assign rhs to lhs (take reference for plusequals)
 	 if (v.assign(new_right.getReferencedValue()))
 	    return QoreValue();
-	 
+
 	 // v has been assigned to a value by this point
 	 // reference return value
 	 return ref_rv ? v.getReferencedValue() : QoreValue();
@@ -146,8 +146,9 @@ QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, Exception
    }
    else if (vtype == NT_DATE) {
       if (!new_right->isNullOrNothing()) {
-	 DateTimeValueHelper date(*new_right);
-	 v.assign(reinterpret_cast<DateTimeNode*>(v.getValue())->add(*date));
+	 // gets a relative date/time value from the value
+	 DateTime date(*new_right);
+	 v.assign(reinterpret_cast<DateTimeNode*>(v.getValue())->add(date));
       }
    }
    else if (vtype == NT_BINARY) {
