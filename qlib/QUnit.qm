@@ -338,13 +338,16 @@ public class QUnit::TestCase {
         catch (hash e) {
             hash loc = e.callstack[0];
             if (e.err =~ /TEST-.*EXCEPTION/) {
-                *string assertion_name = e.arg;
+                *string assertion_name = e.arg.name;
+                *string pos = e.arg.pos;
                 if (e.err == "TEST-SKIPPED-EXCEPTION") {
-                    string pos = get_ex_pos(e);
+                    if (!pos)
+                        pos = get_ex_pos(e);
                     string txt = sprintf("Skip %srequested", assertion_name ? sprintf("of %y ", assertion_name) : NOTHING);
                     test.addTestResult(self, TestReporter::TEST_SKIPPED, "Skip requested", pos, e.desc);
                 } else if (e.err == "TEST-EXCEPTION") {
-                    string pos = get_ex_pos(e);
+                    if (!pos)
+                        pos = get_ex_pos(e);
                     string txt = sprintf("Assertion %sfailure", assertion_name ? sprintf("%y ", assertion_name) : NOTHING);
                     test.addTestResult(self, TestReporter::TEST_FAILURE, txt, pos, e.desc);
                 }
@@ -911,6 +914,7 @@ testAssertionValue("date > operator", now() > (now() - 1D), True);
         tc.incAssertions();
         ++num_asserts;
 
+        *string pos;
         AbstractTestResult result;
         any ret;
         try {
@@ -930,17 +934,18 @@ testAssertionValue("date > operator", now() > (now() - 1D), True);
                 # Since boolean can contain no detail, we abuse Exceptions this way to annotate a simple failure.
                 result = new QUnit::TestResultFailure(e.desc);
             } else {
+                pos = get_ex_pos(e);
                 result = new QUnit::TestResultExceptionDetail(e.err, e.desc);
                 ret = e;
             }
         }
 
-        return testAssertionIntern(tc, name, result, expectedResult, ret);
+        return testAssertionIntern(tc, name, result, expectedResult, ret, pos);
      }
 
-     private any testAssertionIntern(TestCase tc, string name, QUnit::AbstractTestResult actualResult, QUnit::AbstractTestResult expectedResult, any ret) {
+     private any testAssertionIntern(TestCase tc, string name, QUnit::AbstractTestResult actualResult, QUnit::AbstractTestResult expectedResult, any ret, *string pos) {
         if (!expectedResult.equals(actualResult)) {
-            throw "TEST-EXCEPTION", printUnexpectedData(expectedResult.toString(), actualResult.toString()), name;
+            throw "TEST-EXCEPTION", printUnexpectedData(expectedResult.toString(), actualResult.toString()), ("name": name, "pos": pos);
         }
         else {
             tc.incAssertionsOk();
