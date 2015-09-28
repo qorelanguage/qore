@@ -1,0 +1,8 @@
+USAGE:
+To use vim command :set syntax=qore, please copy qore.vim to syntax directory in vim directory or if you don't have root access then copy it to ~/.vim/syntax/ directory.
+
+AUTODECET file type
+Please put two lines below into filetype.vim in vim directory.
+
+" Qore
+au BufNewFile,BufRead *.q,*.qclass,*.qfd,*.qconstant,*.qsd,*.qjob  setf qore
