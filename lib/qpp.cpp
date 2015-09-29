@@ -1778,7 +1778,7 @@ public:
       if (use_value)
          fprintf(fp, "static %s f_%s(const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {\n", getReturnType(), vname.c_str());
       else
-         fprintf(fp, "static %s f_%s(const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {\n", getReturnType(), vname.c_str());
+         fprintf(fp, "static %s f_%s(const QoreListNode* args, ExceptionSink* xsink) {\n", getReturnType(), vname.c_str());
       serializeArgs(fp);
       fprintf(fp, "# %d \"%s\"\n", line, fileName.c_str());
       output_file(fp, code);
@@ -2553,7 +2553,7 @@ public:
       if (use_value)
          fprintf(fp, "static %s %s_%s(QoreObject* self, %s, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {\n", getReturnType(), cname, vname.c_str(), arg);
       else
-         fprintf(fp, "static %s %s_%s(QoreObject* self, %s, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {\n", getReturnType(), cname, vname.c_str(), arg);
+         fprintf(fp, "static %s %s_%s(QoreObject* self, %s, const QoreListNode* args, ExceptionSink* xsink) {\n", getReturnType(), cname, vname.c_str(), arg);
       serializeArgs(fp, cname);
       if (!pseudo_arg.empty()) {
          bool found = false;
@@ -2644,7 +2644,7 @@ public:
       if (use_value)
          fprintf(fp, "static %s static_%s_%s(const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {\n", getReturnType(), cname, vname.c_str());
       else
-         fprintf(fp, "static %s static_%s_%s(const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {\n", getReturnType(), cname, vname.c_str());
+         fprintf(fp, "static %s static_%s_%s(const QoreListNode* args, ExceptionSink* xsink) {\n", getReturnType(), cname, vname.c_str());
       serializeArgs(fp, cname);
       fprintf(fp, "# %d \"%s\"\n", line, fileName.c_str());
       output_file(fp, code);
