@@ -122,15 +122,12 @@ void CallStack::push(CallNode *c) {
 
 void CallStack::pop(ExceptionSink *xsink) {
    QORE_TRACE("CallStack::pop()");
-   CallNode *c;
    {
       QoreAutoRWReadLocker l(thread_stack_lock);
-      c = tail;
       tail = tail->prev;
       if (tail)
 	 tail->next = 0;
    }
-   //c->objectDeref(xsink);
 }
 
 QoreListNode *CallStack::getCallStack() const {
