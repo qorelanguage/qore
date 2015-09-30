@@ -183,8 +183,8 @@ bool <object>::val() [flags=RET_VALUE_ONLY] {
 // bool <object>::hasKey(softstring $key) [flags=RET_VALUE_ONLY] {}
 // bool <object>::hasKeyValue(softstring $key) [flags=RET_VALUE_ONLY] {}
 
-//! Returns an @ref Qore::ObjectIterator "ObjectIterator" object for the hash
-/** @return an @ref Qore::ObjectIterator "ObjectIterator" object for the hash
+//! Returns an @ref Qore::ObjectIterator "ObjectIterator" object for the object's members
+/** @return an @ref Qore::ObjectIterator "ObjectIterator" object for the object's members
 
     @par Example:
     @code
@@ -197,8 +197,8 @@ AbstractIterator <object>::iterator() [flags=CONSTANT] {
    return new QoreObject(QC_OBJECTITERATOR, 0, new QoreObjectIterator(obj));
 }
 
-//! Returns a @ref Qore::ObjectKeyIterator "ObjectKeyIterator" object for the hash
-/** @return a @ref Qore::ObjectKeyIterator "ObjectKeyIterator" object for the hash
+//! Returns a @ref Qore::ObjectKeyIterator "ObjectKeyIterator" object for the object, iterating the object's members
+/** @return a @ref Qore::ObjectKeyIterator "ObjectKeyIterator" object for the object, iterating the object's members
 
     @par Example:
     @code
@@ -211,8 +211,8 @@ ObjectKeyIterator <object>::keyIterator() [flags=CONSTANT] {
    return new QoreObject(QC_OBJECTKEYITERATOR, 0, new QoreObjectIterator(obj));
 }
 
-//! Returns a @ref Qore::ObjectPairIterator "ObjectPairIterator" object for the hash
-/** @return a @ref Qore::ObjectPairIterator "ObjectPairIterator" object for the hash
+//! Returns a @ref Qore::ObjectPairIterator "ObjectPairIterator" object for the object's members
+/** @return a @ref Qore::ObjectPairIterator "ObjectPairIterator" object for the object's members
 
     @par Example:
     @code
