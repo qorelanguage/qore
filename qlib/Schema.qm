@@ -72,6 +72,7 @@ module Schema {
     - fixed @ref Schema::AbstractSchema::combineOptions() "AbstractSchema::combineOptions()" to accept NOTHING as well as a valid option hash
     - fixed a bug with <i>"insert-only reference data"</i> with the verbose option; the upsert strategy was changed to \c UpsertSelectFirst which means that insert-only reference data could also be updated
     - added the following public functions:
+      - Schema::c_char()
       - Schema::c_date()
       - Schema::c_int()
       - Schema::c_number()
@@ -137,6 +138,34 @@ public namespace Schema {
     public hash sub c_varchar(int size, string comment) {
         return (
             "qore_type": SqlUtil::VARCHAR,
+            "size": size,
+            "comment": comment,
+            )
+            ;
+    }
+
+    #! returns a column hash for a \c CHAR column
+    /** @param size the size of the column
+        @param notnull @ref Qore::True "True" for a <tt>NOT NULL</tt> constraint on the column
+        @param comment an optional comment for the column
+     */
+    public hash sub c_char(int size, bool notnull = False, *string comment) {
+        return (
+            "qore_type": SqlUtil::CHAR,
+            "size": size,
+            "comment": comment,
+            )
+            + (notnull ? ("notnull": True) : NOTHING)
+            ;
+    }
+
+    #! returns a column hash for a \c CHAR column
+    /** @param size the size of the column
+        @param comment the comment for the column
+     */
+    public hash sub c_char(int size, string comment) {
+        return (
+            "qore_type": SqlUtil::CHAR,
             "size": size,
             "comment": comment,
             )
