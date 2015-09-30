@@ -38,21 +38,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-bool qore_ds_private::statementExecuted(int rc, ExceptionSink* xsink) {
+void qore_ds_private::statementExecuted(int rc, ExceptionSink* xsink) {
+   // we always assume we are in a transaction after executing a transaction-relevant statement
    if (!in_transaction) {
-      if (!rc) {
-         assert(!active_transaction);
-         in_transaction = true;
-         active_transaction = true;
-         return true;
-      }
-      else
-         qore_dbi_private::get(*dsl)->abortTransactionStart(ds, xsink);
-   }
-   else if (!rc && !active_transaction) {
+      assert(!active_transaction);
+      in_transaction = true;
       active_transaction = true;
+      return;
    }
-   return false;
+   else if (!rc && !active_transaction)
+      active_transaction = true;
 }
 
 Datasource::Datasource(DBIDriver* ndsl) : priv(new qore_ds_private(this, ndsl)) {

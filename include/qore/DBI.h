@@ -68,7 +68,7 @@
 #define QDBI_METHOD_COMMIT                    6
 #define QDBI_METHOD_ROLLBACK                  7
 #define QDBI_METHOD_BEGIN_TRANSACTION         8
-#define QDBI_METHOD_ABORT_TRANSACTION_START   9
+#define QDBI_METHOD_ABORT_TRANSACTION_START   9 //!< @deprected this is no longer called / used as of Qore 0.8.12
 #define QDBI_METHOD_GET_SERVER_VERSION       10
 #define QDBI_METHOD_GET_CLIENT_VERSION       11
 #define QDBI_METHOD_EXECRAW                  12
@@ -113,7 +113,7 @@ class QoreHashNode;
 class QoreNamespace;
 class SQLStatement;
 
-// DBI method signatures - note that only get_client_version uses a "const Datasource" 
+// DBI method signatures - note that only get_client_version uses a "const Datasource"
 // the others do not so that automatic reconnects can be supported (which will normally
 // require writing to the Datasource)
 
@@ -132,7 +132,7 @@ typedef int (*q_dbi_open_t)(Datasource* ds, ExceptionSink* xsink);
 typedef int (*q_dbi_close_t)(Datasource* ds);
 
 //! signature for the DBI "select" method - must be defined in each DBI driver
-/** 
+/**
     @param ds the Datasource for the connection
     @param str the SQL string to execute, may not be in the encoding of the Datasource
     @param args arguments for placeholders or DBI formatting codes in the SQL string
@@ -142,7 +142,7 @@ typedef int (*q_dbi_close_t)(Datasource* ds);
 typedef AbstractQoreNode* (*q_dbi_select_t)(Datasource* ds, const QoreString* str, const QoreListNode* args, ExceptionSink* xsink);
 
 //! signature for the DBI "selectRows" method - must be defined in each DBI driver
-/** 
+/**
     @param ds the Datasource for the connection
     @param str the SQL string to execute, may not be in the encoding of the Datasource
     @param args arguments for placeholders or DBI formatting codes in the SQL string
@@ -163,7 +163,7 @@ typedef AbstractQoreNode* (*q_dbi_select_rows_t)(Datasource* ds, const QoreStrin
 typedef QoreHashNode* (*q_dbi_select_row_t)(Datasource* ds, const QoreString* str, const QoreListNode* args, ExceptionSink* xsink);
 
 //! signature for the DBI "execSQL" method - must be defined in each DBI driver
-/** 
+/**
     @param ds the Datasource for the connection
     @param str the SQL string to execute, may not be in the encoding of the Datasource
     @param args arguments for placeholders or DBI formatting codes in the SQL string
@@ -182,7 +182,7 @@ typedef AbstractQoreNode* (*q_dbi_exec_t)(Datasource* ds, const QoreString* str,
 typedef AbstractQoreNode* (*q_dbi_execraw_t)(Datasource* ds, const QoreString* str, ExceptionSink* xsink);
 
 //! signature for the DBI "commit" method - must be defined in each DBI driver
-/** 
+/**
     @param ds the Datasource for the connection
     @param xsink if any errors occur, error information should be added to this object
     @return 0 for OK, non-zero for error
@@ -190,15 +190,15 @@ typedef AbstractQoreNode* (*q_dbi_execraw_t)(Datasource* ds, const QoreString* s
 typedef int (*q_dbi_commit_t)(Datasource* ds, ExceptionSink* xsink);
 
 //! signature for the DBI "rollback" method - must be defined in each DBI driver
-/** 
+/**
     @param ds the Datasource for the connection
     @param xsink if any errors occur, error information should be added to this object
     @return 0 for OK, non-zero for error
 */
 typedef int (*q_dbi_rollback_t)(Datasource* ds, ExceptionSink* xsink);
 
-//! signature for the DBI "begin_transaction" method, should only be defined for drivers needing this to explicitly start a transaction 
-/** 
+//! signature for the DBI "begin_transaction" method, should only be defined for drivers needing this to explicitly start a transaction
+/**
     @param ds the Datasource for the connection
     @param xsink if any errors occur, error information should be added to this object
     @return 0 for OK, non-zero for error
@@ -210,11 +210,13 @@ typedef int (*q_dbi_begin_transaction_t)(Datasource* ds, ExceptionSink* xsink);
     @param ds the Datasource for the connection
     @param xsink if any errors occur, error information should be added to this object
     @return 0 for OK, non-zero for error
+
+    @deprecated do not define, no longer used as of Qore 0.8.12
 */
 typedef int (*q_dbi_abort_transaction_start_t)(Datasource* ds, ExceptionSink* xsink);
 
 //! signature for the "get_server_version" method
-/** 
+/**
     @param ds the Datasource for the connection
     @param xsink if any errors occur, error information should be added to this object
     @return a value describing the server's version
@@ -222,7 +224,7 @@ typedef int (*q_dbi_abort_transaction_start_t)(Datasource* ds, ExceptionSink* xs
 typedef AbstractQoreNode* (*q_dbi_get_server_version_t)(Datasource* ds, ExceptionSink* xsink);
 
 //! signature for the "get_client_version" method
-/** 
+/**
     @param ds the Datasource for the connection
     @param xsink if any errors occur, error information should be added to this object
     @return a value describing the client's version
@@ -276,7 +278,7 @@ typedef int (*q_dbi_option_set_t)(Datasource* ds, const char* opt, const Abstrac
 typedef AbstractQoreNode* (*q_dbi_option_get_t)(const Datasource* ds, const char* opt);
 
 //! signature for the DBI "describe" method
-/** 
+/**
     @param ds the Datasource for the connection
     @param str the SQL string to execute, may not be in the encoding of the Datasource, must return a result set to be described
     @param args arguments for placeholders or DBI formatting codes in the SQL string
@@ -350,7 +352,7 @@ public:
 
 //! this class provides the internal link to the database driver for Qore's DBI layer
 /**
-   most of these functions are not exported; the Datasource class should be used 
+   most of these functions are not exported; the Datasource class should be used
    instead of using the DBIDriver class directly
    @see Datasource
 */
@@ -425,7 +427,7 @@ public:
    DLLEXPORT DBIDriver* find(const char* name) const;
 
    //! finds a driver, will try to load the driver using the ModuleManager if no such driver is already present
-   /** 
+   /**
        @param name the name of the driver to find (or load)
        @param xsink Qore-language exceptions saved here if any occur
 
