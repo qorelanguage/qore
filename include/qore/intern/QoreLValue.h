@@ -198,14 +198,14 @@ public:
       }
       switch (type) {
          case QV_Float: {
-            int64 i = v.f;
+            int64 i = (int64)v.f;
             v.i = i;
             type = QV_Int;
             return 0;
          }
 
          case QV_Bool: {
-            int64 i = v.b;
+            int64 i = (int64)v.b;
             v.i = i;
             type = QV_Int;
             return 0;
