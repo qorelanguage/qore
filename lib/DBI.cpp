@@ -99,6 +99,7 @@ void qore_dbi_method_list::add(int code, q_dbi_open_t method) {
 	  || code == QDBI_METHOD_COMMIT
 	  || code == QDBI_METHOD_ROLLBACK
 	  || code == QDBI_METHOD_BEGIN_TRANSACTION
+	  || code == QDBI_METHOD_ABORT_TRANSACTION_START
       );
    assert(priv->l.find(code) == priv->l.end());
    priv->l[code] = (void*)method;
@@ -394,6 +395,9 @@ qore_dbi_private::qore_dbi_private(const char* nme, const qore_dbi_mlist_private
             break;
 
 #ifdef DEBUG
+	 // ignore unsupported method
+	 case QDBI_METHOD_ABORT_TRANSACTION_START:
+	    break;
          default:
             assert(false);
 #endif
