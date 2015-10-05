@@ -5,4 +5,4 @@ AUTODECET file type
 Please put two lines below into filetype.vim in vim directory.
 
 " Qore
-au BufNewFile,BufRead *.q,*.qm,*.qclass,*.qfd,*.qconstant,*.qsd,*.qjob  setf qore
+au BufNewFile,BufRead *.q,*.qm,*.qclass,*.qfd,*.qconstant,*.qsd,*.qjob,*.qtest  setf qore
