@@ -576,6 +576,8 @@ public:
       return 0;
    }
 
+   DLLLOCAL int concatUnicode(unsigned code);
+
    DLLLOCAL int concatDecodeUriIntern(ExceptionSink* xsink, const qore_string_private& str, bool detect_query = false);
 
    DLLLOCAL int concatEncodeUriRequest(ExceptionSink* xsink, const qore_string_private& str);
@@ -583,6 +585,7 @@ public:
    DLLLOCAL unsigned int getUnicodePointFromBytePos(qore_size_t offset, unsigned& len, ExceptionSink* xsink) const;
 
    DLLLOCAL int concatEncode(ExceptionSink* xsink, const QoreString& str, unsigned code = CE_XHTML);
+   DLLLOCAL int concatDecode(ExceptionSink* xsink, const QoreString& str, unsigned code = CD_ALL);
 
    DLLLOCAL int allocate(unsigned requested_size) {
       if ((unsigned)allocated >= requested_size)

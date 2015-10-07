@@ -58,6 +58,22 @@ class BinaryNode;
 #define CE_ALL (CE_XHTML | CE_NONASCII)
 //@}
 
+//! @defgroup StringConcatDecoding String Concatenation Decoding Codes
+/**
+ */
+//@{
+//! code for decoding HTML entities
+#define CD_HTML (1 << 0)
+//! code for decoding XML entities
+#define CD_XML  (1 << 1)
+//! code for decoding numeric character references to symbols
+#define CD_NUM_REF (1 << 2)
+//! code for decoding XHTML entities
+#define CD_XHTML (CD_HTML | CD_XML)
+//! code for decoding everything
+#define CD_ALL (CD_XHTML | CD_NUM_REF)
+//@}
+
 //! Qore's string type supported by the QoreEncoding class
 /** A QoreString is implemented by a char pointer, a byte length, and a QoreEncoding pointer.
     For the equivalent Qore parse tree/value type, see QoreStringNode
@@ -167,24 +183,53 @@ public:
    //! concatenates a string and encodes it according to the encoding argument passed
    /** @param xsink Qore-language exceptions (in this case character encoding conversion errors) are raised here
        @param str the source string for the concatenation; it is converted to the target character encoding (of 'this') unless CE_NONASCII is given in the \a code argument
-       @param code an encoding bitfield argument; see @ref StringConcatEncoding
+       @param code an encoding bitfield argument; see @ref StringConcatEncoding for more information
 
        @return -1 if a Qore-language exception was thrown, 0 if not
+
+       @see concatDecode()
 
        @since %Qore 0.8.12
     */
    DLLEXPORT int concatEncode(ExceptionSink* xsink, const QoreString& str, unsigned code = CE_XHTML);
 
+   //! concatenates a string and decodes HTML, XML, and numeric character references as per the supplied arguments
+   /** @param xsink Qore-language exceptions (in this case character encoding conversion errors) are raised here
+       @param str the string to concentenate; it is converted to the target character encoding (of 'this') unless CD_NUM_REF is given in the \a code argument
+       @param code a decoding bitfield arguments; see @ref StringConcatDecoding for more information
+
+       @return -1 if a Qore-language exception was thrown, 0 if not
+
+       @note if the target character encoding of 'this' cannot support the decoded symbol, the character reference is not decoded but rather concatenated as-is
+
+       @see concatEncode()
+
+       @since %Qore 0.8.12
+    */
+   DLLEXPORT int concatDecode(ExceptionSink* xsink, const QoreString& str, unsigned code = CD_ALL);
+
    //! concatenates HTML-encoded version of the c-string passed
+   /**
+       @deprecated does not do any character encoding conversions; use concatEncode() instead
+    */
    DLLEXPORT void concatAndHTMLEncode(const char* str);
 
    //! concatenates HTML-decoded version of the c-string passed
+   /**
+       @deprecated does not do any character encoding conversions; use concatDecode() instead
+    */
    DLLEXPORT void concatAndHTMLDecode(const QoreString* str);
 
    //! concatenates HTML-decoded version of the c-string passed with the given length
+   /**
+       @deprecated does not do any character encoding conversions; use concatDecode() instead
+    */
    DLLEXPORT void concatAndHTMLDecode(const char* str, size_t slen);
 
    //! concatenates HTML-decoded version of the c-string passed
+   /**
+       @deprecated does not do any character encoding conversions; use concatDecode() instead
+    */
    DLLEXPORT void concatAndHTMLDecode(const char* str);
 
    //! concatenates a URL-decoded version of the c-string passed

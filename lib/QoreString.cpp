@@ -760,6 +760,108 @@ int qore_string_private::concatEncode(ExceptionSink* xsink, const QoreString& st
    return 0;
 }
 
+int qore_string_private::concatDecode(ExceptionSink* xsink, const QoreString& str, unsigned code) {
+   // if it's not a null string
+   if (!str.priv->len)
+      return 0;
+
+   // if no decoding should be done, then just concat normally
+   if (!code) {
+      concat(&str, xsink);
+      return *xsink ? -1 : 0;
+   }
+
+   const QoreEncoding* enc = getEncoding();
+
+   TempEncodingHelper cstr(str, enc, xsink);
+   if (!cstr)
+      return -1;
+
+   qore_string_private* p = cstr->priv;
+   //printd(5, "qore_string_private::concatDecode() p: %p '%s' len: %d\n", p, p->buf, p->len);
+
+   // decode all entity references
+   bool dall = (code & CD_XHTML) == CD_XHTML;
+
+   // try to avoid reallocations inside the loop
+   allocate(len + p->len + 1);
+   for (qore_size_t i = 0; i < p->len; ++i) {
+      // see if we are dealing with a non-ascii character
+      const char* s = p->buf + i;
+      if (*s != '&') {
+         concat(*s);
+         continue;
+      }
+      // concatenate translated character
+      // check for unicode character references
+      if ((*(s + 1) == '#')) {
+	 if (code & CD_NUM_REF) {
+	    s += 2;
+	    // find end of character sequence
+	    const char* e = strchr(s, ';');
+	    // if not found or the number is too big, then don't try to decode it
+	    if (e && (e - s) < 8) {
+	       unsigned code;
+	       if (*s == 'x')
+		  code = strtoul(s + 1, 0, 16);
+	       else
+		  code = strtoul(s, 0, 10);
+
+	       if (!concatUnicode(code)) {
+		  i = e - p->buf;
+		  continue;
+	       }
+	       // error occurred, so back out
+	       s -= 2;
+	    }
+	 }
+      }
+      else if (isascii(*(s + 1)) && (code & CD_XHTML)) {
+         s += 1;
+         // find end of character sequence
+         const char* e = strchr(s, ';');
+         // if not found or the number is too big, then don't try to decode it
+         if (e && (e - s) < 16) {
+            // find unicode code point
+            std::string entity(s, e - s);
+            //printd(0, "entity: %s\n", entity.c_str());
+            emap_t::iterator it = emap.find(entity);
+            if (it != emap.end()) {
+	       bool ok = dall;
+	       // if XML only
+	       if (!ok && !(code & CD_HTML))
+		  ok = it->second < 0x80;
+	       // if HTML only
+	       else if (!ok && !(code & CD_XML))
+		  ok = it->second != 0x27;
+	       else
+		  ok = true;
+	       if (ok && !concatUnicode(it->second)) {
+		  i = e - p->buf;
+		  continue;
+	       }
+	    }
+         }
+         // not found or error occurred concatenating char, so back out
+         s -= 1;
+      }
+
+      // concatentate ASCII characters directly
+      if ((unsigned char)(*s) < 0x80) {
+	 concat(*s);
+	 continue;
+      }
+      // concatenate character as a single unit
+      size_t cl = enc->getByteLen(s, p->buf + p->len, 1, xsink);
+      if (*xsink)
+	 return -1;
+      concat_intern(s, cl);
+      i += cl - 1;
+   }
+
+   return 0;
+}
+
 int qore_string_private::concat(const QoreString* str, ExceptionSink* xsink) {
    //printd(5, "concat() buf='%s' str='%s'\n", buf, str->priv->buf);
    // if it's not a null string
@@ -776,6 +878,27 @@ int qore_string_private::concat(const QoreString* str, ExceptionSink* xsink) {
    memcpy(buf + len, cstr->priv->buf, cstr->priv->len);
    len += cstr->priv->len;
    buf[len] = '\0';
+   return 0;
+}
+
+int qore_string_private::concatUnicode(unsigned code) {
+   if (getEncoding() == QCS_UTF8) {
+      concatUTF8FromUnicode(code);
+      return 0;
+   }
+   QoreString tmp(QCS_UTF8);
+   tmp.priv->concatUTF8FromUnicode(code);
+
+   ExceptionSink xsink;
+
+   TempString ns(tmp.convertEncoding(getEncoding(), &xsink));
+   if (xsink) {
+      // ignore exceptions
+      xsink.clear();
+      return -1;
+   }
+
+   concat(ns);
    return 0;
 }
 
@@ -1580,6 +1703,10 @@ void QoreString::concatHex(const char* binbuf, qore_size_t size) {
 
 int QoreString::concatEncode(ExceptionSink* xsink, const QoreString& str, unsigned code) {
    return priv->concatEncode(xsink, str, code);
+}
+
+int QoreString::concatDecode(ExceptionSink* xsink, const QoreString& str, unsigned code) {
+   return priv->concatDecode(xsink, str, code);
 }
 
 void QoreString::concatAndHTMLEncode(const QoreString* str, ExceptionSink* xsink) {
@@ -2457,24 +2584,7 @@ int QoreString::concatUnicode(unsigned code, ExceptionSink* xsink) {
 }
 
 int QoreString::concatUnicode(unsigned code) {
-   if (priv->getEncoding() == QCS_UTF8) {
-      priv->concatUTF8FromUnicode(code);
-      return 0;
-   }
-   QoreString tmp(QCS_UTF8);
-   tmp.priv->concatUTF8FromUnicode(code);
-
-   ExceptionSink xsink;
-
-   TempString ns(tmp.convertEncoding(priv->getEncoding(), &xsink));
-   if (xsink) {
-      // ignore exceptions
-      xsink.clear();
-      return -1;
-   }
-
-   concat(ns);
-   return 0;
+   return priv->concatUnicode(code);
 }
 
 void QoreString::concatUTF8FromUnicode(unsigned code) {
