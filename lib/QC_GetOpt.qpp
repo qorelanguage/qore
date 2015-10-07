@@ -34,9 +34,9 @@
 
 #include <string.h>
 
-static inline int process_type(const char *key, int &attributes, char *opt, qore_type_t &at, ExceptionSink *xsink) {
+static inline int process_type(const char* key, int& attributes, char* opt, qore_type_t& at, ExceptionSink* xsink) {
    assert(at == -1);
-   const char *type_name = 0;
+   const char* type_name = 0;
    // get type
    switch (*opt) {
       case 's':
@@ -120,27 +120,27 @@ static inline int process_type(const char *key, int &attributes, char *opt, qore
    return -1;
 }
 
-static AbstractQoreNode *GETOPT_parse2_intern(ReferenceHolder<QoreHashNode> &rv, ExceptionSink *xsink) {
+static AbstractQoreNode* GETOPT_parse2_intern(ReferenceHolder<QoreHashNode>& rv, ExceptionSink* xsink) {
    assert(rv);
 
    // check for _ERRORS_ key
-   const QoreListNode *l = reinterpret_cast<const QoreListNode *>(rv->getKeyValue("_ERRORS_"));
+   const QoreListNode* l = reinterpret_cast<const QoreListNode*>(rv->getKeyValue("_ERRORS_"));
    if (!l)
       return rv.release();
 
-   const QoreStringNode *err = reinterpret_cast<const QoreStringNode *>(l->retrieve_entry(0));
+   const QoreStringNode* err = reinterpret_cast<const QoreStringNode*>(l->retrieve_entry(0));
    return xsink->raiseException("GETOPT-ERROR", err->stringRefSelf());
 }
 
-static AbstractQoreNode *GETOPT_parse3_intern(ReferenceHolder<QoreHashNode> &rv, ExceptionSink *xsink) {
+static AbstractQoreNode* GETOPT_parse3_intern(ReferenceHolder<QoreHashNode>& rv, ExceptionSink* xsink) {
    assert(rv);
 
    // check for _ERRORS_ key
-   const QoreListNode *l = reinterpret_cast<const QoreListNode *>(rv->getKeyValue("_ERRORS_"));
+   const QoreListNode* l = reinterpret_cast<const QoreListNode*>(rv->getKeyValue("_ERRORS_"));
    if (!l)
       return rv.release();
 
-   const QoreStringNode *err = reinterpret_cast<const QoreStringNode *>(l->retrieve_entry(0));
+   const QoreStringNode* err = reinterpret_cast<const QoreStringNode*>(l->retrieve_entry(0));
    const QoreStringNode* sn = getProgram()->getScriptName();
    if (sn)
       fprintf(stderr, "%s: ", sn->getBuffer());
@@ -196,13 +196,13 @@ GetOpt::constructor(hash options) {
 	 break;
       }
 
-      const AbstractQoreNode *v = hi.getValue();
+      const AbstractQoreNode* v = hi.getValue();
       if (get_node_type(v) != NT_STRING) {
 	 xsink->raiseException("GETOPT-PARAMETER-ERROR", "value of option key '%s' is not a string (%s)", k, get_type_name(v));
 	 break;
       }
 
-      const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(v);
+      const QoreStringNode* str = reinterpret_cast<const QoreStringNode*>(v);
 
       qore_type_t at = -1;
       const char *long_opt = 0;
@@ -311,7 +311,7 @@ hash GetOpt::parse(reference pgm_args) {
    if (ref.getType() != NT_LIST)
       return new QoreHashNode;
 
-   QoreListNode *l = reinterpret_cast<QoreListNode *>(ref.getUnique(xsink));
+   QoreListNode* l = reinterpret_cast<QoreListNode*>(ref.getUnique(xsink));
    if (*xsink)
       return QoreValue();
 
@@ -338,7 +338,7 @@ if (exists $o."_ERRORS_") {
     @see GetOpt::parse2() for a similar method that throws an exception instead of putting error information in the \c "_ERRORS_" key of the hash value returned
  */
 hash GetOpt::parse(softlist pgm_args) {
-   return g->parse(const_cast<QoreListNode *>(pgm_args), false, xsink);
+   return g->parse(const_cast<QoreListNode*>(pgm_args), false, xsink);
 }
 
 //! Parses the parameter list according to the option hash passed to the constructor
@@ -371,7 +371,7 @@ hash GetOpt::parse2(reference pgm_args) {
    if (ref.getType() != NT_LIST)
       return new QoreHashNode;
 
-   QoreListNode *l = reinterpret_cast<QoreListNode *>(ref.getUnique(xsink));
+   QoreListNode* l = reinterpret_cast<QoreListNode*>(ref.getUnique(xsink));
    if (*xsink)
       return QoreValue();
 
@@ -402,7 +402,7 @@ catch ($ex) {
     @see GetOpt::parse() for a similar method that puts error information in the \c "_ERRORS_" key of the hash value returned instead of throwing an exception
  */
 hash GetOpt::parse2(softlist pgm_args) {
-   ReferenceHolder<QoreHashNode> rv(g->parse(const_cast<QoreListNode *>(pgm_args), false, xsink), xsink);
+   ReferenceHolder<QoreHashNode> rv(g->parse(const_cast<QoreListNode*>(pgm_args), false, xsink), xsink);
    return *xsink ? 0 : GETOPT_parse2_intern(rv, xsink);
 }
 
@@ -428,7 +428,7 @@ hash GetOpt::parse3(reference pgm_args) [dom=PROCESS] {
    if (ref.getType() != NT_LIST)
       return new QoreHashNode;
 
-   QoreListNode *l = reinterpret_cast<QoreListNode *>(ref.getUnique(xsink));
+   QoreListNode* l = reinterpret_cast<QoreListNode*>(ref.getUnique(xsink));
    if (*xsink)
       return QoreValue();
 
@@ -453,6 +453,6 @@ my hash $o = $getopt.parse3($ARGV);
     - GetOpt::parse2() for a similar method that throws exceptions instead of exiting the program
  */
 hash GetOpt::parse3(softlist pgm_args) [dom=PROCESS] {
-   ReferenceHolder<QoreHashNode> rv(g->parse(const_cast<QoreListNode *>(pgm_args), false, xsink), xsink);
+   ReferenceHolder<QoreHashNode> rv(g->parse(const_cast<QoreListNode*>(pgm_args), false, xsink), xsink);
    return *xsink ? 0 : GETOPT_parse3_intern(rv, xsink);
 }
