@@ -719,9 +719,9 @@ my string $str = html_encode("<hello>"); # returns "&lt;hello&gt;"
     @endcode
 */
 string html_encode(string str) [flags=CONSTANT] {
-   QoreStringNode* ns = new QoreStringNode(str->getEncoding());
-   ns->concatAndHTMLEncode(str->getBuffer());
-   return ns;
+   QoreStringNodeHolder ns(new QoreStringNode(str->getEncoding()));
+   ns->concatAndHTMLEncode(str, xsink);
+   return *xsink ? 0 : ns.release();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments

@@ -32,7 +32,7 @@
 */
 
 #ifndef QORE_QORE_STRING_PRIVATE_H
-#define QORE_QORE_STRING_PRIVATE_H 
+#define QORE_QORE_STRING_PRIVATE_H
 
 #define MAX_INT_STRING_LEN     48
 #define MAX_BIGINT_STRING_LEN  48
@@ -210,12 +210,12 @@ public:
          return -1;
 
       qore_offset_t ind = index_simple(buf + pos, needle->getBuffer());
-      if (ind != -1) {         
+      if (ind != -1) {
          ind = getEncoding()->getCharPos(buf, buf + pos + ind, xsink);
          if (*xsink)
             return -1;
       }
-   
+
       return ind;
    }
 
@@ -254,7 +254,7 @@ public:
          if (pos < 0)
             return -1;
       }
-      
+
       while (pos != -1) {
          if (!strncmp(haystack + pos, needle, nlen))
             return pos;
@@ -293,7 +293,7 @@ public:
                return -1;
          }
 
-         return rindex_simple(buf, len, needle->getBuffer(), needle->strlen(), pos);      
+         return rindex_simple(buf, len, needle->getBuffer(), needle->strlen(), pos);
       }
 
       // do multi-byte rindex
@@ -311,29 +311,29 @@ public:
          if (*xsink)
             return 0;
       }
-      
+
       return ind;
    }
 
    DLLLOCAL qore_offset_t brindex(const QoreString &needle, qore_offset_t pos) const {
       return brindex(needle.getBuffer(), needle.strlen(), pos);
    }
-   
+
    DLLLOCAL qore_offset_t brindex(const std::string &needle, qore_offset_t pos) const {
       return brindex(needle.c_str(), needle.size(), pos);
    }
-   
+
    DLLLOCAL qore_offset_t brindex(const char *needle, qore_size_t needle_len, qore_offset_t pos) const {
       if (needle_len + pos > len)
          return -1;
-      
+
       if (pos < 0)
          pos = len + pos;
-      
+
       if (pos < 0)
          return -1;
-      
-      return rindex_simple(buf, len, needle, needle_len, pos);      
+
+      return rindex_simple(buf, len, needle, needle_len, pos);
    }
 
    DLLLOCAL bool isDataPrintableAscii() const {
@@ -475,7 +475,7 @@ public:
 
    DLLLOCAL void concat(const qore_string_private* str) {
       assert(!str || (str->charset == charset) || !str->charset);
-      
+
       // if it's not a null string
       if (str && str->len) {
          // if priv->buffer needs to be resized
@@ -505,6 +505,8 @@ public:
       }
    }
 
+   DLLLOCAL int concat(const QoreString* str, ExceptionSink* xsink);
+
    // return 0 for success
    DLLLOCAL int vsprintf(const char *fmt, va_list args) {
       size_t fmtlen = ::strlen(fmt);
@@ -516,10 +518,10 @@ public:
       }
       // set free buffer size
       qore_offset_t free = allocated - len;
-      
+
       // copy formatted string to buffer
       int i = ::vsnprintf(buf + len, free, fmt, args);
-      
+
 #ifdef HPUX
       // vsnprintf failed but didn't tell us how big the buffer should be
       if (i < 0) {
@@ -571,17 +573,36 @@ public:
       if (*xsink)
          return -1;
       concat(ns->priv);
-      return 0;   
+      return 0;
    }
 
    DLLLOCAL int concatDecodeUriIntern(ExceptionSink* xsink, const qore_string_private& str, bool detect_query = false);
 
    DLLLOCAL int concatEncodeUriRequest(ExceptionSink* xsink, const qore_string_private& str);
 
-   DLLLOCAL const QoreEncoding* getEncoding() const {  
-      return charset ? charset : QCS_USASCII; 
+   DLLLOCAL unsigned int getUnicodePointFromBytePos(qore_size_t offset, unsigned& len, ExceptionSink* xsink) const;
+
+   DLLLOCAL int concatEncode(ExceptionSink* xsink, const QoreString& str, unsigned code = CE_XHTML);
+
+   DLLLOCAL int allocate(unsigned requested_size) {
+      if ((unsigned)allocated >= requested_size)
+         return 0;
+      requested_size = (requested_size / 16 + 1) * 16; // fill complete cache line
+      char* aux = (char*)realloc(buf, requested_size * sizeof(char));
+      if (!aux) {
+         assert(false);
+         // FIXME: std::bad_alloc() should be thrown here;
+         return -1;
+      }
+      buf = aux;
+      allocated = requested_size;
+      return 0;
    }
-   
+
+   DLLLOCAL const QoreEncoding* getEncoding() const {
+      return charset ? charset : QCS_USASCII;
+   }
+
    DLLLOCAL static int getHex(const char*& p) {
       if (*p == '%' && isxdigit(*(p + 1)) && isxdigit(*(p + 2))) {
          char x[3] = { *(p + 1), *(p + 2), '\0' };
@@ -590,6 +611,8 @@ public:
       }
       return -1;
    }
+
+   DLLLOCAL static int convert_encoding_intern(const char* src, qore_size_t src_len, const QoreEncoding* from, QoreString& targ, const QoreEncoding* nccs, ExceptionSink* xsink);
 };
 
 #endif

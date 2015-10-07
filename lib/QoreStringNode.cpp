@@ -185,7 +185,7 @@ QoreStringNode *QoreStringNode::convertEncoding(const QoreEncoding *nccs, Except
 
    QoreStringNode *targ = new QoreStringNode(nccs);
 
-   if (convert_encoding_intern(priv->buf, priv->len, priv->charset, *targ, nccs, xsink)) {
+   if (qore_string_private::convert_encoding_intern(priv->buf, priv->len, priv->charset, *targ, nccs, xsink)) {
       targ->deref();
       return 0;
    }
@@ -194,7 +194,7 @@ QoreStringNode *QoreStringNode::convertEncoding(const QoreEncoding *nccs, Except
 
 // DLLLOCAL constructor
 QoreStringNode::QoreStringNode(const char *str, const QoreEncoding *from, const QoreEncoding *to, ExceptionSink *xsink) : SimpleValueQoreNode(NT_STRING), QoreString(to) {
-   convert_encoding_intern(str, ::strlen(str), from, *this, to, xsink);
+   qore_string_private::convert_encoding_intern(str, ::strlen(str), from, *this, to, xsink);
 }
 
 // static function
