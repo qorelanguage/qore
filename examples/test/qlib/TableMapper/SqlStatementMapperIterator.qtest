@@ -1,0 +1,72 @@
+#!/usr/bin/env qr
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%requires ../../../../qlib/TableMapper.qm
+%requires SqlUtil
+
+%exec-class Main
+
+/*
+create table sqlstatement_iterator_mapper ( a number, b number );
+insert into sqlstatement_iterator_mapper values ( 1, 1 );
+insert into sqlstatement_iterator_mapper values ( 1, 2 );
+commit;
+*/
+
+const DBCONN = "oracle:omquser/omquser@xbox";
+
+const TABLE = "sqlstatement_iterator_mapper";
+
+const SELECT_HASH = (
+        "columns" : ("a", "b"),
+        "where" : ( "a" : 1 ),
+    );
+
+const MAPV = (
+        "mapped_a": "a",
+        "mapped_b": "b",
+        "created_c" : ( "code": *string sub (*any v, hash rec) { return sprintf("%n - %n", rec.a, rec.b); } ),
+        "constant_d" : ( "constant" : 1 ),
+    );
+
+const OUTPUT = (
+        ("mapped_a":1, "mapped_b" : 1, "created_c" : "1 - 1", "constant_d" : 1),
+        ("mapped_a":1, "mapped_b" : 2, "created_c" : "1 - 2", "constant_d" : 1),
+    );
+
+
+class Main inherits QUnit::Test {
+    private {
+        SqlUtil::AbstractTable m_table;
+    }
+
+    constructor() : Test("SqlStatementMapperIterator", "1.0") {
+        m_table = new SqlUtil::Table(DBCONN, TABLE).getTable();
+
+        addTestCase("SqlStatementMapperIterator mapData()", \testMapData(), NOTHING);
+        set_return_value(main());
+    }
+
+    destructor() {
+        m_table.rollback();
+    }
+
+    testMapData() {
+        SqlStatementMapperIterator m(m_table, SELECT_HASH, MAPV);
+
+        int i = 0;
+        while (m.next()) {
+            hash row = m.getValue();
+            testAssertion(sprintf("Row verification: %d", i), \equals(), (row, OUTPUT[i]));
+            i++;
+        }
+
+        testAssertion("Verify item count", \equals(), (m.getCount(), 2));
+    }
+}

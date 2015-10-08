@@ -1044,4 +1044,59 @@ InboundTableMapperIterator i(input, mapper);
             return mapc.getDatasource();
         }
     }
+
+
+    #! provides a hash iterator based on a mapper object and an SQLStatement or SqlUtil select hash
+    public class SqlStatementMapperIterator inherits Mapper::AbstractMapperIterator {
+        public {
+        }
+
+        private {
+            #! data mapper
+            Mapper::Mapper m_mapper;
+        }
+
+        #! creates the iterator from the arguments passed
+        /** @param table SqlUtil::AbstractTable as a base for select hash \c sh
+            @param sh a SqlUtil select hash (columns/joins/wheres...)
+            @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
+
+            @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
+         */
+        constructor(SqlUtil::AbstractTable table, hash sh, hash mapv, *hash opts)
+            : Mapper::AbstractMapperIterator(table.getRowIterator(sh))
+        {
+            m_mapper = new Mapper(mapv, opts);
+        }
+
+        #! creates the iterator from the arguments passed
+        /** @param stmt already constructed SQLStatement object
+            @param map the mapper to transform the data
+        */
+        constructor(SQLStatement stmt, hash mapv, *hash opts)
+            : Mapper::AbstractMapperIterator(stmt)
+        {
+            m_mapper = new Mapper(mapv, opts);
+        }
+
+        #! returns the current row transformed with the mapper
+        hash getValue() {
+            return m_mapper.mapData(i.getValue());
+        }
+
+        #! returns the internal record count
+        /** @see resetCount()
+        */
+        int getCount() {
+            return m_mapper.getCount();
+        }
+
+        #! resets the internal record count
+        /** @see getCount()
+        */
+        resetCount() {
+            m_mapper.resetCount();
+        }
+    }
 }
