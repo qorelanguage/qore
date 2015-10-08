@@ -146,12 +146,24 @@
 #cmakedefine HAVE_QORE_SLIST
 #cmakedefine HAVE_UNORDERED_MAP
 
+/* CPU:s */
+#cmakedefine CPU_X86_64
+#cmakedefine SPARC
+
+/* OS:s */
+#cmakedefine SOLARIS
+#cmakedefine DARWIN
+
 /* the rest */
+#cmakedefine NEED_DLFCN_WRAPPER
+#cmakedefine NEED_ICONV_TRANSLIT
 #cmakedefine HAVE_LOCAL_VARIADIC_ARRAYS
 #cmakedefine HAVE_NAMESPACES
 #cmakedefine HAVE_STRUCT_FLOCK
 #cmakedefine HAVE_GCC_VISIBILITY
 #cmakedefine HAVE_SIGNAL_HANDLING
+
+#cmakedefine ZONEINFO_LOCATION "@ZONEINFO_LOCATION@"
 
 #define PACKAGE_VERSION "@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_SUB@"
 #define VERSION "@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_SUB@"

@@ -203,3 +203,21 @@ MACRO (QORE_CONFIG_INFO)
     MESSAGE(STATUS "FLags reldeb: ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
     MESSAGE(STATUS "-----------------------------")
 ENDMACRO (QORE_CONFIG_INFO)
+
+#
+# Find Pthreads.
+# Uses FindThreads with pthreads preference to look for pthreads.
+# Cmake generation will break if pthreads are not found.
+# For variables and targets defined by this, see docs for FindThreads. 
+#
+macro(QORE_FIND_PTHREADS)
+set(CMAKE_THREAD_PREFER_PTHREAD ON)
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+if(CMAKE_USE_PTHREADS_INIT)
+    message(STATUS "Found POSIX Threads: TRUE")
+else(CMAKE_USE_PTHREADS_INIT)
+    message(STATUS "Found POSIX Threads: FALSE")
+    message(FATAL_ERROR "POSIX threads do not seem to be supported on this platform, aborting")
+endif()
+endmacro(QORE_FIND_PTHREADS)

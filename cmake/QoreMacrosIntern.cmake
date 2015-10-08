@@ -7,6 +7,7 @@
 include(CheckCSourceCompiles)
 include(CheckCXXCompilerFlag)
 include(CheckCXXSourceCompiles)
+include(CheckCXXSourceRuns)
 include(CheckCXXSymbolExists)
 include(CheckFunctionExists)
 include(CheckIncludeFileCXX)
@@ -61,14 +62,14 @@ function(qore_search_libs _list_to_append_lib_to _function)
     set(CMAKE_REQUIRED_QUIET true)
     set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES})
     check_function_exists(${_function} FUNCTION_FOUND)
-    if (FUNCTION_FOUND)
+    if(FUNCTION_FOUND)
         message(STATUS "Found ${_function} in the implicitly linked libs")
     else()
         set(FUNCTIONNOTFOUND true)
-        foreach (_lib ${_LIBS_UNPARSED_ARGUMENTS})
+        foreach(_lib ${_LIBS_UNPARSED_ARGUMENTS})
 	    find_library(_library_found NAMES ${_lib})
 	    
-	    if (NOT _library_found EQUAL "_library_found-NOTFOUND")
+	    if(_library_found)
 	        set(CMAKE_REQUIRED_LIBRARIES ${_library_found})
 		check_function_exists(${_function} FUNCTION_FOUND_IN_${_lib})
 		if (FUNCTION_FOUND_IN_${_lib})
@@ -81,7 +82,7 @@ function(qore_search_libs _list_to_append_lib_to _function)
 		unset(_library_found)
 	    endif()
 	endforeach()
-        if (FUNCTIONNOTFOUND)
+        if(FUNCTIONNOTFOUND)
 	    message(STATUS "${_function} could not be found in ${_LIBS_UNPARSED_ARGUMENTS} or the implicity linked libs")
 	endif()
     endif()
@@ -165,21 +166,6 @@ unset(CMAKE_REQUIRED_LIBRARIES)
 endmacro()
 
 
-
-macro(qore_find_pthreads)
-set(CMAKE_THREAD_PREFER_PTHREAD ON)
-set(THREADS_PREFER_PTHREAD_FLAG ON)
-find_package(Threads REQUIRED)
-if(CMAKE_USE_PTHREADS_INIT)
-    message(STATUS "Found POSIX Threads: TRUE")
-else(CMAKE_USE_PTHREADS_INIT)
-    message(STATUS "Found POSIX Threads: FALSE")
-    message(FATAL_ERROR "POSIX threads do not seem to be supported on this platform, aborting")
-endif()
-endmacro()
-
-
-
 macro(qore_gethost_checks)
 
 check_cxx_symbol_exists(gethostbyaddr_r netdb.h HAVE_GETHOSTBYADDR_R)
@@ -253,7 +239,6 @@ HAVE_GETHOSTBYNAME_R_RETURN_INT)
 endif(HAVE_GETHOSTBYNAME_R)
 
 endmacro()
-
 
 
 macro(qore_other_checks)
@@ -572,7 +557,7 @@ unset(CMAKE_REQUIRED_QUIET)
 endmacro()
 
 macro(qore_func_strerror_r)
-cmake_push_check_state(RESET)
+set(CMAKE_REQUIRED_QUIET_STRERROR_R_SAVE ${CMAKE_REQUIRED_QUIET})
 set(CMAKE_REQUIRED_QUIET true)
 message(STATUS "Looking for strerror_r")
 check_cxx_symbol_exists(strerror_r string.h HAVE_DECL_STRERROR_R)
@@ -600,5 +585,87 @@ if(HAVE_DECL_STRERROR_R)
 else()
    message(STATUS "Looking for strerror_r - not found")
 endif()
-cmake_pop_check_state()
+set(CMAKE_REQUIRED_QUIET ${CMAKE_REQUIRED_QUIET_STRERROR_R_SAVE})
 endmacro()
+
+macro(qore_cpu_checks)
+if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "amd64")
+   set(CPU_X86_64 true)
+endif()
+if(CMAKE_SYSTEM_PROCESSOR STREQUAL "sparc")
+   set(SPARC true)
+endif()
+endmacro(qore_cpu_checks)
+
+macro(qore_iconv_translit_check)
+if(ICONV_TRANSLIT)
+   set(NEED_ICONV_TRANSLIT true)
+else()
+   cmake_push_check_state(RESET)
+   set(CMAKE_REQUIRED_INCLUDES ${ICONV_INCLUDE_DIR})
+   set(CMAKE_REQUIRED_LIBRARIES ${ICONV_LIBRARY})
+   check_cxx_source_runs("
+      #include <iconv.h>
+      int main(void){
+      iconv_t cd;
+      cd = iconv_open(\"ISO8859-1//TRANSLIT\",\"ISO8859-1\");
+      if(cd == -1)
+        return 1;
+      iconv_close(cd);
+      return 0; }
+   " NEED_ICONV_TRANSLIT)
+endif()
+cmake_pop_check_state()
+endmacro(qore_iconv_translit_check)
+
+macro(qore_os_checks)
+if(CMAKE_SYSTEM_NAME STREQUAL "SunOS")
+   set(QORE_CPPFLAGS -D_POSIX_C_SOURCE=199506L -D_XPG4_2 -D_XPG5 -D__EXTENSIONS__)
+   set(ZONEINFO_LOCATION "/usr/share/lib/zoneinfo")
+   set(SOLARIS true)
+   #use libumem if available
+   find_library(LIBUMEM NAMES umem libumem)
+   if(LIBUMEM)
+      check_include_file_cxx(umem.h HAVE_UMEM_H)
+      if(HAVE_UMEM_H)
+         set(LIBQORE_LIBS ${LIBUMEM} ${LIBQORE_LIBS})
+      endif()
+   endif()
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+   set(QORE_CPPFLAGS -D_APPLE_C_SOURCE -D_DARWIN_C_SOURCE)
+   set(DARWIN true)
+   #look for libtbbmalloc
+   find_library(LIBTBBMALLOC NAMES tbbmalloc libtbbmalloc)
+   if(LIBTBBMALLOC)
+      set(LIBQORE_LIBS ${LIBTBBMALLOC} ${LIBQORE_LIBS})
+   endif()
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "HP-UX")
+   set(QORE_CPPFLAGS -D_XOPEN_SOURCE_EXTENDED)
+   set(NEED_ENVIRON_LOCK true)
+   set(HPUX true)
+   if(CMAKE_CXX_COMPILER_ID STREQUAL "HP")
+      list(APPEND QORE_CPPFLAGS -D_HPUX_SOURCE -D__STDC_EXT__ -D_RWSTD_MULTI_THREAD)
+   endif()
+endif()
+
+add_definitions(${QORE_CPPFLAGS})
+set(CMAKE_REQUIRED_DEFINITIONS ${QORE_CPP_FLAGS})
+endmacro()
+
+# make sure dlfcn.h header file can be parsed without 'extern "C" {}'
+function(qore_dlcpp_check)
+set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_DL_LIBS})
+check_cxx_source_compiles("
+   #include <dlfcn.h>
+   int main(void){
+   dlopen(\"tmp.dll\", RTLD_LAZY|RTLD_GLOBAL);
+   return 0;
+   }" DONT_NEED_DLFCN_WRAPPER)
+if(NOT DEFINED DONT_NEED_DLFCN_WRAPPER)
+   set(NEED_DLFCN_WRAPPER true PARENT_SCOPE)
+endif()
+endfunction()

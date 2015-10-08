@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 2.8.3)
 
 project(qore-language)
 
+option(ICONV_TRANSLIT
+"Force //Translit to iconv encoding to do transliteration, if OFF it is tested for"
+OFF)
+
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 8)
 set(VERSION_SUB 12)
@@ -17,9 +21,11 @@ else ()
 endif ()
 
 execute_process(COMMAND ${CMAKE_SOURCE_DIR}/cmake/get-define.sh QORE_MODULE_API_MAJOR ${CMAKE_SOURCE_DIR}/include/qore/ModuleManager.h
-                OUTPUT_VARIABLE MODULE_API_MAJOR)
+                OUTPUT_VARIABLE MODULE_API_MAJOR 
+                OUTPUT_STRIP_TRAILING_WHITESPACE)
 execute_process(COMMAND ${CMAKE_SOURCE_DIR}/cmake/get-define.sh QORE_MODULE_API_MINOR ${CMAKE_SOURCE_DIR}/include/qore/ModuleManager.h
-                OUTPUT_VARIABLE MODULE_API_MINOR)
+                OUTPUT_VARIABLE MODULE_API_MINOR 
+                OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 include("${CMAKE_SOURCE_DIR}/cmake/QoreMacros.cmake")
 include("${CMAKE_SOURCE_DIR}/cmake/QoreMacrosIntern.cmake")
@@ -44,7 +50,9 @@ set(HAVE_SIGNAL_HANDLING true)
 #add_definitions(-DHAVE_STRCASESTR)
 
 set(prefix ${CMAKE_INSTALL_PREFIX})
-set(includedir ${CMAKE_INSTALL_FULL_INCLUDEDIR}/qore)
+set(exec_prefix ${CMAKE_INSTALL_PREFIX})
+set(myprefix ${CMAKE_INSTALL_PREFIX})
+set(includedir ${CMAKE_INSTALL_FULL_INCLUDEDIR})
 set(libdir ${CMAKE_INSTALL_FULL_LIBDIR})
 set(MODULE_DIR ${CMAKE_INSTALL_FULL_LIBDIR}/qore-modules)
 set(MODULE_VER_DIR ${CMAKE_INSTALL_FULL_LIBDIR}/qore-modules/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB})
@@ -163,6 +171,8 @@ pkg_check_modules(PCRE REQUIRED libpcre)
 
 create_git_revision()
 
+qore_os_checks()
+qore_iconv_translit_check()
 qore_openssl_checks()
 qore_mpfr_checks()
 
@@ -174,13 +184,15 @@ qore_search_libs(LIBQORE_LIBS clock_gettime rt)
 
 set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES} Threads::Threads ${LIBQORE_LIBS})
 qore_check_funcs(bzero floor gethostbyaddr gethostbyname gethostname gettimeofday memmove memset mkfifo putenv regcomp select socket setsockopt getsockopt strcasecmp strchr strdup strerror strspn strstr atoll strtol strtoll isblank localtime_r gmtime_r exp2 clock_gettime realloc timegm seteuid setegid setenv unsetenv round pthread_attr_getstacksize getpwuid_r getpwnam_r getgrgid_r getgrnam_r backtrace glob system inet_ntop inet_pton lstat fsync lchown chown setsid setuid mkfifo random kill getppid getgid getegid getuid geteuid setuid seteuid setgid setegid sleep usleep nanosleep readlink symlink access strcasestr strncasecmp setgroups getgroups realpath memmem)
+qore_func_strerror_r()
 unset(CMAKE_REQUIRED_LIBRARIES)
 
-qore_func_strerror_r()
 qore_other_checks()
+qore_dlcpp_check()
 qore_gethost_checks()
 qore_stl_hash_map(include/qore/hash_map_include.h)
 qore_stl_slist(include/qore/slist_include.h)
+qore_cpu_checks()
 
 execute_process(COMMAND uname -a OUTPUT_VARIABLE QORE_BUILD_HOST OUTPUT_STRIP_TRAILING_WHITESPACE)
 if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
@@ -217,7 +229,7 @@ add_dependencies(QPP_GENERATED_FILES qpp)
 add_dependencies(libqore QPP_GENERATED_FILES BISON_GENERATED_FILES FLEX_GENERATED_FILES)
 target_compile_definitions(libqore PUBLIC -D_QORE_LIB_INTERN)
 target_include_directories(libqore PUBLIC ${BZIP2_INCLUDE_DIR} ${ICONV_INCLUDE_DIR} ${MPFR_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${PCRE_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/lib)
-target_link_libraries(libqore Threads::Threads ${BZIP2_LIBRARIES} ${ICONV_LIBRARY} ${MPFR_LIBRARIES} ${OPENSSL_LIBRARIES} ${PCRE_LDFLAGS} ${ZLIB_LIBRARIES})
+target_link_libraries(libqore Threads::Threads ${BZIP2_LIBRARIES} ${CMAKE_DL_LIBS} ${ICONV_LIBRARY} ${MPFR_LIBRARIES} ${OPENSSL_LIBRARIES} ${PCRE_LDFLAGS} ${ZLIB_LIBRARIES})
 set_property(TARGET libqore PROPERTY OUTPUT_NAME qore)
 
 add_executable(qore ${QORE_CPP_SRC})
