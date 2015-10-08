@@ -1264,7 +1264,7 @@ fi
 AC_MSG_CHECKING([for gcc visibility support])
 if test "$GXX" = "yes"; then
    gcc_version=`$CXX -dumpversion`
-   if test "$gcc_version" \> "4"; then
+   if test "$gcc_version" > "4"; then
       AC_DEFINE(HAVE_GCC_VISIBILITY, 1, if compiling with g++ and visibility support is available)
       AC_MSG_RESULT([yes, $CXX $gcc_version])
       # turn off strict aliasing for g++
