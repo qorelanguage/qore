@@ -46,6 +46,7 @@
 #include <sys/time.h>
 #include <strings.h>
 #include <errno.h>
+#include <sys/param.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <limits.h>
@@ -1914,7 +1915,7 @@ int q_get_mode(const QoreString& path) {
 
 int q_realpath(const QoreString& path, QoreString& rv, ExceptionSink* xsink) {
 #ifdef HAVE_REALPATH
-#ifdef SOLARIS
+#if defined(SOLARIS) || (defined(__NetBSD_Version__) && (__NetBSD_Version__ < 601000000))
    char buf[PATH_MAX];
    char* p = realpath(path.getBuffer(), buf);
 #else
@@ -1925,7 +1926,7 @@ int q_realpath(const QoreString& path, QoreString& rv, ExceptionSink* xsink) {
 	 xsink->raiseErrnoException("REALPATH-ERROR", errno, "error calling realpath()");
       return -1;
    }
-#ifdef SOLARIS
+#if defined(SOLARIS) || (defined(__NetBSD_Version__) && (__NetBSD_Version__ < 601000000))
    rv.set(buf);
 #else
    rv.takeAndTerminate(p, strlen(p));
