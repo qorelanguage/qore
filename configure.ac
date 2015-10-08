@@ -1792,6 +1792,14 @@ fi
 AC_SUBST([MODULE_VER_DIR])
 AC_SUBST([USER_MODULE_VER_DIR])
 
+# cmake variables used in the cmake build, needed to make the cmake build configure QoreConfig.cmake correctly
+CMAKE_INSTALL_FULL_BINDIR="${myprefix}/bin"
+CMAKE_INSTALL_FULL_INCLUDEDIR="${myprefix}/include"
+CMAKE_INSTALL_FULL_LIBDIR="${myprefix}/lib${LIBSUFFIX}"
+AC_SUBST([CMAKE_INSTALL_FULL_BINDIR])
+AC_SUBST([CMAKE_INSTALL_FULL_INCLUDEDIR])
+AC_SUBST([CMAKE_INSTALL_FULL_LIBDIR])
+
 if test "$enable_profile" = yes; then
    QORE_LIB_CXXFLAGS="$QORE_LIB_CXXFLAGS -g -pg"
    QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -g -pg"
