@@ -170,6 +170,7 @@
         - HttpServer::getListenerLogOptionsID()
         - HttpServer::setListenerLogOptions()
         - HttpServer::setListenerLogOptionsID()
+      - improved performance matching request URIs to handlers
     - <a href="../../modules/Schema/html/index.html">Schema</a> module updates:
       - added the following public functions to make column definitions easier:
         - c_char()
@@ -202,8 +203,6 @@
     - added initial support for UTF-16 character encoding; note that UTF-16 is not backwards-compatible with ASCII and therefore not supported universally in %Qore; it's recommended to convert these strings to UTF-8 in %Qore; do not use UTF-16 as the default character encoding in %Qore; currently UTF-16 data can be parsed using the following classes that convert the data to UTF-8:
       - @ref Qore::DataLineIterator
       - @ref Qore::FileLineIterator
-    - <a href="../../modules/HttpServer/html/index.html">HttpSever</a> module updates:
-      - improved performance of matching request URIs to handlers
     - removed support for the C++ \c QDBI_METHOD_ABORT_TRANSACTION_START DBI method; transactions are always assumed to be in progress even if an exec call throws an exception in the first statement in a new transaction; this is necessary to handle bulk DML where a single statement can partially succeed and partially fail; the ABI remains unchanged; drivers that set this DBI method will no longer have it called because it's not necessary; in the upcoming API/ABI change this C++ DBI method will be removed entirely
 
     @subsection qore_0812_bug_fixes Bug Fixes in Qore
@@ -213,6 +212,7 @@
       - fixed a socket / connection performance problem with HTTPS listeners where the SSL connection was being negotiated inline with the accept instead of in the connection thread, thereby blocking new connections from being accepted
       - fixed bugs where URI strings were improperly encoded and decoded (also fixed in the <a href="../../modules/RestClient/html/index.html">RestClient</a> module)
       - fixed a bug in the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module where chunked sends were not received and decoded properly in all cases for handlers that did not explicitly handle chunked messages
+      - fixed a bug in HttpServer::addListener() with an integer argument; a UNIX socket was opened instead of a wildcard listener on the given port
     - <a href="../../modules/RestClient/html/index.html">RestClient</a> module fixes:
       - fixed bugs where URI strings were improperly encoded and decoded (also fixed in the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module)
       - fixed a bug where URI paths were sent as relative paths instead of absolute paths

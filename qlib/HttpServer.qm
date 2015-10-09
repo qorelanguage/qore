@@ -120,14 +120,14 @@ log("started listener on %s", lh.desc);
     @section http_relnotes HttpServer Module Release Notes
 
     @subsection http0311 HttpServer 0.3.11
-    - fixed a bug setting the response encoding in HttpServer::setReplyHeaders() where the Socket encoding was not set properly and therefore the encoding in the Content-Type in the response header did not necessarily match the encoding of the response
+    - fixed a bug setting the response encoding in @ref HttpServer::HttpServer::setReplyHeaders() where the Socket encoding was not set properly and therefore the encoding in the \c Content-Type in the response header did not necessarily match the encoding of the response
     - added support for private keys with passwords
     - added the @ref HttpServer::PermissiveAuthenticator "PermissiveAuthenticator" class
     - moved base code to the @ref httpserverutilintro "HttpServerUtil" module (imported with the \c reexport option) and santized APIs, made HttpListener class private/internal again
     - fixed a socket / connection performance problem with HTTPS listeners where the SSL connection was being negotiated inline with the accept instead of in the connection thread, thereby blocking new connections from being accepted
     - new methods implemented in HttpServer:
-      - HttpServer::setListenerLogOptions()
-      - HttpServer::setListenerLogOptionsID()
+      - @ref HttpServer::HttpServer::setListenerLogOptions()
+      - @ref HttpServer::HttpServer::setListenerLogOptionsID()
     - performance improvement of matching handlers to request URIs (not used for RegExp matching)
     - changed the order of path-based handler matching:
       - the old implementation selects the first (in order of their registration) handler whose path matches the request URI, regexp and path matching have the same priority
@@ -135,6 +135,7 @@ log("started listener on %s", lh.desc);
         - first, handlers without regexp are considered - if there are some handler with their path matching the request, the one with the longest path is selected
         - otherwise, the first (in order of their registration) handler with regexp that matches the request URI is chosen
       - if no path matches the request, the same logic as before applies
+    - fixed a bug in @ref HttpServer::HttpServer::addListener() with an integer argument; a UNIX socket was opened instead of a wildcard listener on the given port
 
     @subsection http0310 HttpServer 0.3.10
     - if an error occurs receiving a message with chunked transfer encoding, send the response immediately before reading the rest of the chunked transfer
@@ -710,6 +711,8 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         my (*string node, *string service);
         if (sock =~ /:\w+/)
             (node, service) = (sock =~ x/(.+):(\w+)/);
+        else if (sock =~ /^[0-9]+$/)
+            service = sock;
         else
             node = sock;
 
