@@ -1224,7 +1224,6 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         #printf("HttpServer::addListenerIntern() %y c=%y\n", sock, c.getCount());
         on_error c.dec();
 
-        printf("HS seqSessions: %y\n", seqSessions);
 	HttpListener l(self, id, seqSessions, node, service, cert, key, hi, logger, errorlogger, stopc, name, family);
 	listeners{id} = l;
         smap{sock} = id;
