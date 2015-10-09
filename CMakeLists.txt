@@ -246,7 +246,7 @@ configure_file(${CMAKE_SOURCE_DIR}/cmake/QoreConfigVersion.cmake.in
 configure_file(${CMAKE_SOURCE_DIR}/cmake/QoreConfig.cmake.in
                ${CMAKE_BINARY_DIR}/cmake/QoreConfig.cmake @ONLY)
 configure_file(${CMAKE_SOURCE_DIR}/qore.pc.in
-               ${CMAKE_BINARY_DIR}/qore.pc)
+               ${CMAKE_BINARY_DIR}/qore.pc @ONLY)
 
 install(PROGRAMS doxygen/qdx
         DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
