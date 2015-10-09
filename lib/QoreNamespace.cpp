@@ -907,7 +907,7 @@ int qore_root_ns_private::parseAddMethodToClassIntern(const NamedScope& scname, 
 AbstractQoreNode* qore_root_ns_private::parseResolveBarewordIntern(const QoreProgramLocation& loc, const char* bword, const QoreTypeInfo*& typeInfo) {
    QoreClass* pc = getParseClass();
 
-   //printd(5, "qore_root_ns_private::parseResolveBarewordIntern(%s) pc: %p (%s)\n", b->str, pc, pc ? pc->getName() : "<none>");
+   //printd(5, "qore_root_ns_private::parseResolveBarewordIntern() bword: %s pc: %p (%s)\n", bword, pc, pc ? pc->getName() : "<none>");
 
    bool abr = (bool)(parse_get_parse_options() & PO_ALLOW_BARE_REFS);
 
@@ -916,6 +916,7 @@ AbstractQoreNode* qore_root_ns_private::parseResolveBarewordIntern(const QorePro
       bool in_closure;
       LocalVar* id = find_local_var(bword, in_closure);
       if (id) {
+         //printd(5, "qore_root_ns_private::parseResolveBarewordIntern() %s is an lvar: %p\n", bword, id);
          typeInfo = id->getTypeInfo();
          return new VarRefNode(strdup(bword), id, in_closure);
       }

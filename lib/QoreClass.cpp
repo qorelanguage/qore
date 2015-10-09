@@ -795,7 +795,6 @@ int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
 
    {
       VariableBlockHelper vbh;
-      SelfLocalVarParseHelper slvph(&selfid);
 
       // initialize new static vars
       for (var_map_t::iterator i = pending_vars.begin(), e = pending_vars.end(); i != e; ++i) {
@@ -805,21 +804,25 @@ int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
 	    i->second->parseInit(i->first, true);
       }
 
-      // add committed members to signature
-      if (has_sig_changes) {
-	 for (member_map_t::iterator i = members.begin(), e = members.end(); i != e; ++i) {
-	    do_sig(csig, i);
-	 }
-      }
+      if ((has_sig_changes && !members.empty()) || !pending_members.empty()) {
+	 SelfLocalVarParseHelper slvph(&selfid);
 
-      // initialize new members
-      for (member_map_t::iterator i = pending_members.begin(), e = pending_members.end(); i != e; ++i) {
-	 if (has_sig_changes)
-	    do_sig(csig, i);
-	 if (i->second)
-	    i->second->parseInit(i->first, true);
-	 // check new members for conflicts in base classes
-	 parseCheckMemberInBaseClasses(i->first, i->second);
+	 // add committed members to signature
+	 if (has_sig_changes) {
+	    for (member_map_t::iterator i = members.begin(), e = members.end(); i != e; ++i) {
+	       do_sig(csig, i);
+	    }
+	 }
+
+	 // initialize new members
+	 for (member_map_t::iterator i = pending_members.begin(), e = pending_members.end(); i != e; ++i) {
+	    if (has_sig_changes)
+	       do_sig(csig, i);
+	    if (i->second)
+	       i->second->parseInit(i->first, true);
+	    // check new members for conflicts in base classes
+	    parseCheckMemberInBaseClasses(i->first, i->second);
+	 }
       }
    }
 
@@ -870,6 +873,11 @@ const QoreMethod* qore_class_private::findLocalCommittedStaticMethod(const char*
 }
 
 int qore_class_private::initMembers(QoreObject& o, ExceptionSink* xsink) const {
+   if (members.empty())
+      return 0;
+
+   // make sure the object context is set before evaluating members
+   CodeContextHelper cch("constructor", &o, xsink);
    SelfInstantiatorHelper sih(&selfid, &o);
 
    for (member_map_t::const_iterator i = members.begin(), e = members.end(); i != e; ++i) {
@@ -887,13 +895,10 @@ int qore_class_private::initMembers(QoreObject& o, ExceptionSink* xsink) const {
 	    *v = nv;
 	    val.release();
 	 }
-	 else {
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
+	 else
 	    *v = i->second->getTypeInfo()->getDefaultValue();
-#else
-	    *v = 0;
 #endif
-	 }
       }
    }
    return 0;
@@ -1325,11 +1330,11 @@ void BCANode::parseInit(BCList* bcl, const char* classname) {
 	 int lvids = 0;
 	 const QoreTypeInfo* argTypeInfo;
 	 if (m) {
-	    lvids = parseArgsVariant(loc, 0, 0, m->getFunction(), argTypeInfo);
+	    lvids = parseArgsVariant(loc, qore_class_private::getSelfId(*sclass), 0, m->getFunction(), argTypeInfo);
 	 }
 	 else {
 	    if (args)
-	       args = args->parseInitList(0, 0, lvids, argTypeInfo);
+	       args = args->parseInitList(qore_class_private::getSelfId(*sclass), 0, lvids, argTypeInfo);
 	 }
 	 if (lvids) {
 	    parse_error(loc, "illegal local variable declaration in base class constructor argument");
@@ -3873,7 +3878,7 @@ void UserConstructorVariant::parseInit(QoreFunction* f) {
 
    //printd(5, "UserConstructorVariant::parseInitConstructor() this: %p %s::constructor() params: %d\n", this, parent_class.getName(), signature.numParams());
    // must be called even if statements is NULL
-   statements->parseInitConstructor(parent_class.getTypeInfo(), this, bcal, qore_class_private::getBaseClassList(parent_class));
+   statements->parseInitConstructor(parent_class.getTypeInfo(), this, bcal, parent_class);
 
    // recheck types against committed types if necessary
    if (recheck)

@@ -2696,6 +2696,10 @@ public:
    // static methods
    //DLLLOCAL static
 
+   DLLLOCAL static LocalVar* getSelfId(const QoreClass& qc) {
+      return &qc.priv->selfid;
+   }
+
    DLLLOCAL static QoreObject* execConstructor(const QoreClass& qc, const AbstractQoreFunctionVariant* variant, const QoreListNode* args, ExceptionSink* xsink) {
       return qc.priv->execConstructor(variant, args, xsink);
    }

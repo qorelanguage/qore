@@ -435,8 +435,10 @@ void StatementBlock::parseInitMethod(const QoreTypeInfo* typeInfo, UserVariantBa
    parseCheckReturn();
 }
 
-void StatementBlock::parseInitConstructor(const QoreTypeInfo* typeInfo, UserVariantBase* uvb, BCAList* bcal, BCList* bcl) {
+void StatementBlock::parseInitConstructor(const QoreTypeInfo* typeInfo, UserVariantBase* uvb, BCAList* bcal, const QoreClass& cls) {
    QORE_TRACE("StatementBlock::parseInitConstructor");
+
+   BCList* bcl = qore_class_private::getBaseClassList(cls);
 
    VariableBlockHelper vbh;
 
@@ -455,7 +457,7 @@ void StatementBlock::parseInitConstructor(const QoreTypeInfo* typeInfo, UserVari
    }
 
    // initialize code block
-   parseInitImpl(uvb->getUserSignature()->selfid);
+   parseInitImpl(qore_class_private::getSelfId(cls));
 }
 
 void StatementBlock::parseInitClosure(UserVariantBase* uvb, const QoreTypeInfo* classTypeInfo, lvar_set_t* vlist) {

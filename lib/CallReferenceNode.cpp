@@ -317,7 +317,7 @@ QoreValue ParseSelfMethodReferenceNode::evalValueImpl(bool& needs_deref, Excepti
 AbstractQoreNode* ParseSelfMethodReferenceNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
    typeInfo = callReferenceTypeInfo;
    if (!oflag)
-      parse_error("reference to object member '%s' out of a class member function definition", method.c_str());
+      parse_error("reference to object member '%s' when not in an object context", method.c_str());
    else {
       assert(!method.empty());
       meth = qore_class_private::parseResolveSelfMethod(*(getParseClass()), method.c_str());
@@ -341,7 +341,7 @@ QoreValue ParseScopedSelfMethodReferenceNode::evalValueImpl(bool& needs_deref, E
 AbstractQoreNode* ParseScopedSelfMethodReferenceNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
    typeInfo = callReferenceTypeInfo;
    if (!oflag)
-      parse_error("reference to object member '%s' out of a class member function definition", method);
+      parse_error("reference to object member '%s' when not in an object context", method);
    else {
       method = qore_class_private::parseResolveSelfMethod(*(getParseClass()), nscope);
       delete nscope;

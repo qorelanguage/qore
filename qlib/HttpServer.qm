@@ -59,7 +59,7 @@ module HttpServer {
 
     All the public symbols in the module are defined in the HttpServer namespace.
 
-    The main classes is (see @ref httpserverutilintro HttpServerUtil for supporting definitions; note that the @ref httpserverutilintro HttpServerUtil module's definitions are also imported into @ref Qore::Program "Program" objects @ref requires "requiring" this module):
+    The main classes is (see @ref httpserverutilintro "HttpServerUtil" for supporting definitions; note that the @ref httpserverutilintro "HttpServerUtil" module's definitions are also imported into @ref Qore::Program "Program" objects @ref requires "requiring" this module):
     - @ref HttpServer::HttpServer "HttpServer": this class implements the main interface to the HTTP server provided by this module
 
     See also:
@@ -123,7 +123,7 @@ log("started listener on %s", lh.desc);
     - fixed a bug setting the response encoding in HttpServer::setReplyHeaders() where the Socket encoding was not set properly and therefore the encoding in the Content-Type in the response header did not necessarily match the encoding of the response
     - added support for private keys with passwords
     - added the @ref HttpServer::PermissiveAuthenticator "PermissiveAuthenticator" class
-    - moved base code to the HttpServerUtil module (imported with the \c reexport option) and santized APIs, made HttpListener class private/internal again
+    - moved base code to the @ref httpserverutilintro "HttpServerUtil" module (imported with the \c reexport option) and santized APIs, made HttpListener class private/internal again
     - fixed a socket / connection performance problem with HTTPS listeners where the SSL connection was being negotiated inline with the accept instead of in the connection thread, thereby blocking new connections from being accepted
     - new methods implemented in HttpServer:
       - HttpServer::setListenerLogOptions()
@@ -599,8 +599,8 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
     #! creates the HttpServer
     /** call @ref addListener() to add and start listeners
 
-        @param n_logfunc an optional closure or call reference that will be called with logging information
-        @param n_errlogfunc an optional closure or call reference that will be called with error information
+        @param n_logfunc an optional closure or call reference that will be called with logging information; must take an initial string with optional arguments; ex: @code code log = sub (string fmt) { vprintf(fmt, argv); }@endcode
+        @param n_errlogfunc an optional closure or call reference that will be called with error information; must take an initial string with optional arguments; ex: @code code errloglog = sub (string fmt) { vprintf(fmt, argv); }@endcode
         @param n_dbg if this parameter is set to @ref Qore::True "True", then additional information will be logged when errors occur
         @param n_name the name of the HTTP server as returned in the Server header (should be formatted according to RFC 2616 section 3.8 http://tools.ietf.org/html/rfc2616#section-3.8)
         @param n_hdr a hash of headers to return in every response by default; to clear the default send an empty hash as the argument here
@@ -1224,6 +1224,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         #printf("HttpServer::addListenerIntern() %y c=%y\n", sock, c.getCount());
         on_error c.dec();
 
+        printf("HS seqSessions: %y\n", seqSessions);
 	HttpListener l(self, id, seqSessions, node, service, cert, key, hi, logger, errorlogger, stopc, name, family);
 	listeners{id} = l;
         smap{sock} = id;

@@ -148,7 +148,7 @@ public:
 
    // initialize methods
    DLLLOCAL void parseInitMethod(const QoreTypeInfo* typeInfo, UserVariantBase* uvb);
-   DLLLOCAL void parseInitConstructor(const QoreTypeInfo* typeInfo, UserVariantBase* uvb, BCAList* bcal, BCList* bcl);
+   DLLLOCAL void parseInitConstructor(const QoreTypeInfo* typeInfo, UserVariantBase* uvb, BCAList* bcal, const QoreClass& cls);
 
    // initialize closure blocks
    DLLLOCAL void parseInitClosure(UserVariantBase* uvb, const QoreTypeInfo* classTypeInfo, lvar_set_t *vlist);
