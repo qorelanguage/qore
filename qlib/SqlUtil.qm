@@ -106,6 +106,7 @@ module SqlUtil {
     - implemented support for DBA actions (see @ref dba_management)
     - implemented support for driver-dependent pseudocolumns
     - implemented per-column support for the \c "desc" keyword in orderby expressions
+    - implemented support for \c "or" logic in @ref where_clauses
     - fixed a bug with queries using a \a desc argument with the \a orderby query option with multiple sort columns; the \c "desc" string was added only to the last column but should have been added to all columns
     - fixed a bug where foreign key constraints with supporting indexes were not tracked and therefore schema alignment on DBs that automatically create indexes for foreign key constraints would fail
     - fixed a bug where driver-specific objects were not included when dropping a schema
@@ -681,7 +682,9 @@ return ds.vexec("delete from schema.table where record_type = %v", ("OLD-CUSTOME
 
     @note the above list also applies to the corresponding @ref SqlUtil::AbstractTable methods
 
-    The where clause or condition hash is made of keys signifying the column names, and either a direct value meaning that the column value has to match exactly, or SQL operators can be given by using the appropriate operator function as the key value.  Each member of the where hash translates to an expression that is combined with \c "AND" in the SQL query; to combine expressions with \c "OR", then use a list of @ref select_option_hash "select option hashes", which will combine each @ref select_option_hash "select option hash" with \c "OR" as in @ref where_list "this example".
+    The where clause or condition hash is made of keys signifying the column names, and either a direct value meaning that the column value has to match exactly, or SQL operators can be given by using the appropriate operator function as the key value.  Each member of the where hash translates to an expression that is combined with \c "AND" in the SQL query; to combine expressions with \c "OR", there are two options:
+    - use the @ref SqlUtil::wop_or() function to combine where expressions with the \c "or" operator
+    - use a list of @ref select_option_hash "select option hashes", which will combine each @ref select_option_hash "select option hash" with \c "OR" as in @ref where_list "this example".
 
     The where condition hash has the following format:
     - each key gives a column name or a table/alias with column name in dot notation
@@ -3185,6 +3188,9 @@ int rows_updated = t.update(("permission_type": uop_lower()));
     */
     public const OP_NOT = "not";
 
+    #! to combine SQL expressions with \c "or" for use in @ref where_clauses
+    public const OP_OR = "or";
+
     #! a hash of valid operators for use in @ref where_clauses
     public const DefaultOpMap = (
         OP_LIKE: (
@@ -3288,6 +3294,11 @@ int rows_updated = t.update(("permission_type": uop_lower()));
                 return sprintf("%s = %s", cn, arg);
             },
         ),
+        OP_OR: (
+            "code": string sub (object t, string cn, any arg, reference args) {
+                return t.getOrClause(arg, \args);
+            },
+        ),
         );
     #@}
 
@@ -3309,6 +3320,7 @@ int rows_updated = t.update(("permission_type": uop_lower()));
         - op_clt(): for the \c "<" operator when comparingthe values of two columns
         - op_cne(): for the \c "!=" or \c "<>" operator when comparing the values of two columns
         - op_ceq(): for the \c "=" operator when comparing the values of two columns
+        - wop_or(): for combining SQL expressions with \c "or"
      */
     #@{
     #! returns a hash with \c op and \c arg keys
@@ -3583,6 +3595,20 @@ int rows_updated = t.update(("permission_type": uop_lower()));
     */
     public hash sub op_ceq(string arg) {
         return make_op(OP_CEQ, arg);
+    }
+
+    #! returns a hash with a fake \c "_OR_" column name; combines all hash elements in the argument with \c "or" logic for the SQL expressions for use in @ref where_clauses "where clauses" when comparing the values of two columns
+    /** @par Example:
+        @code
+*list rows = table.selectRows(("where": ("name": op_ceq("other_name")) + wop_or("type": "C", "expiration_date": op_ge(date))));
+        @endcode
+
+        @param h the hash of expressions to combine with \c "or" logic
+
+        @return a hash with a fake column name of \c "_OR_" with a where operation description hash for use in @ref where_clauses "where clauses"
+    */
+    public hash sub wop_or(hash h) {
+        return ("_OR_": make_op(OP_OR, h));
     }
     #@}
 
@@ -14474,6 +14500,9 @@ string sql = table.getSelectSql(sh, \args);
         }
 
         private string getColumnNameIntern(string cv, *hash jch, bool join, *hash ch, *hash psch) {
+            # return the name if it's a "technical name" (starts with "_")
+            if (cv =~ /^_/)
+                return cv;
             # remove any disposable unique prefix
             cv =~ s/^[0-9]+://;
 
@@ -14580,6 +14609,11 @@ string sql = table.getSelectSql(sh, \args);
                 return sprintf("%s is null", cn);
             args += we;
             return sprintf("%s = %v", cn);
+        }
+
+        string getOrClause(hash arg, reference args) {
+            *list wl = getWhereClauseIntern(arg, \args);
+            return wl ? ("(" + (foldl $1 + " or " + $2, wl) + ")") : "";
         }
 
         private list getOrderByListUnlocked(*hash qh, *hash jch, *hash ch) {
