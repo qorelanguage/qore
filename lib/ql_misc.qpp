@@ -190,6 +190,96 @@ static const char* tlist[] = { "OPTION", "ALGORITHM", "FUNCTION" };
 #define SIGXRES 0
 #endif
 
+/** @defgroup StringConcatEncoding String Concatenation Encoding Codes
+
+    @see <string>::getEncoded()
+
+    @since %Qore 0.8.12
+ */
+//@{
+//! code for encoding HTML 5 symbols as named character references
+/** encodes all HTML 5 symbols as <a href="http://www.w3.org/TR/html5/syntax.html#named-character-references">named character references</a>
+
+    @note to encode all non-ascii symbols as numeric character references as well, include @ref Qore::CE_NONASCII in the bitfield
+
+    @see @ref Qore::CD_HTML
+ */
+const CE_HTML = CE_HTML;
+//! code for encoding XML entities
+/** The following symbols are encoded:
+    - \c '\"': as \c "&quot;"
+    - \c "&": as \c "&amp;"
+    - \c "'": as \c "&apos;"
+    - \c "<": as \c "&lt;"
+    - \c ">": as \c "&gt;"
+
+    @note \c "'" / \c "&apos;" is the only character not included in @ref Qore::CE_HTML
+
+    @see @ref Qore::CD_XML
+ */
+const CE_XML = CE_XML;
+//! code for encoding all non-ASCII symbols as numeric character references
+/** using this code ensures that the resulting string has no non-ASCII characters
+
+    @see @ref Qore::CD_NUM_REF
+ */
+const CE_NONASCII = CE_NONASCII;
+//! code for encoding XHTML entities
+/** This code is a combination of @ref Qore::CE_HTML and @ref Qore::CE_XML
+
+    @see @ref Qore::CD_XHTML
+ */
+const CE_XHTML = CE_XHTML;
+//! code for encoding everything
+/** @see @ref Qore::CD_ALL
+ */
+const CE_ALL = CE_ALL;
+//@}
+
+/** @defgroup StringConcatDecoding String Concatenation Decoding Codes
+
+    @see <string>::getDecoded()
+
+    @since %Qore 0.8.12
+ */
+//@{
+//! code for decoding HTML 5 named character references to their native symbols
+/** decodes all HTML 5 <a href="http://www.w3.org/TR/html5/syntax.html#named-character-references">named character references</a> to their native symbols
+
+    @note to decode all numeric character references as well, include @ref Qore::CD_NUM_REF in the bitfield
+
+    @see @ref Qore::CE_HTML
+ */
+const CD_HTML = CD_HTML;
+//! code for decoding XML entities
+/** The following symbols are decoded:
+    - \c '\"': as \c "&quot;"
+    - \c "&": as \c "&amp;"
+    - \c "'": as \c "&apos;"
+    - \c "<": as \c "&lt;"
+    - \c ">": as \c "&gt;"
+
+    @note \c "'" / \c "&apos;" is the only character not included in @ref Qore::CD_HTML
+
+    @see @ref Qore::CE_XML
+ */
+const CD_XML = CD_XML;
+//! code for decoding numeric character references to symbols
+/** @see @ref CE_NONASCII
+ */
+const CD_NUM_REF = CD_NUM_REF;
+//! code for decoding XHTML named character references to symbols
+/** This code is a combination of @ref Qore::CD_HTML and @ref Qore::CD_XML
+
+    @see @ref Qore::CE_XHTML
+ */
+const CD_XHTML = CD_XHTML;
+//! code for decoding everything
+/** @see @ref Qore::CE_ALL
+ */
+const CD_ALL = CD_ALL;
+//@}
+
 /** @defgroup signal_constants Signal Constants
     Signal constants - if any of the constants in this section are not defined on the host; the constant's value will be 0
 */
@@ -717,11 +807,14 @@ my *string $type = function_type("print");
     @code
 my string $str = html_encode("<hello>"); # returns "&lt;hello&gt;"
     @endcode
+
+    @note equivalent to <string>::getEncode() with @ref Qore::CE_HTML
+
+    @see <string>::getEncode()
 */
 string html_encode(string str) [flags=CONSTANT] {
-   QoreStringNode* ns = new QoreStringNode(str->getEncoding());
-   ns->concatAndHTMLEncode(str->getBuffer());
-   return ns;
+   QoreStringNodeHolder rv(new QoreStringNode(str->getEncoding()));
+   return rv->concatEncode(xsink, *str, CE_HTML) ? 0 : rv.release();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -739,11 +832,14 @@ nothing html_encode() [flags=RUNTIME_NOOP] {
     @code
 my string $str = html_decode("&lt;hello&gt;"); # returns "<hello>"
     @endcode
+
+    @note equivalent to <string>::getDecode() with @ref Qore::CD_HTML
+
+    @see <string>::getDecode()
 */
 string html_decode(string str) [flags=CONSTANT] {
-   QoreStringNode* ns = new QoreStringNode(str->getEncoding());
-   ns->concatAndHTMLDecode(str);
-   return ns;
+   QoreStringNodeHolder rv(new QoreStringNode(str->getEncoding()));
+   return rv->concatDecode(xsink, *str, CD_HTML) ? 0 : rv.release();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments

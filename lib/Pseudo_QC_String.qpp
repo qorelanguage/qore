@@ -949,9 +949,43 @@ my *string $line = $string.getLine($pos);
       if (!r)
          return QoreValue();
 
-      if (r.assign(new QoreBigIntNode(strsize), xsink))
+      if (r.assign(strsize))
          return QoreValue();
    }
 
    return rv.release();
+}
+
+//! returns a string based on the string value with encodings as per the \a code argument
+/** @par
+    @code
+string ns = string.getEncoded(CE_XML);
+    @endcode
+
+    @param code an encoding bitfield argument; see @ref StringConcatEncoding for more information
+
+    @see <string>::getDecoded()
+
+    @since %Qore 0.8.12
+ */
+string <string>::getEncoded(int code = CE_XHTML) {
+   QoreStringNodeHolder rv(new QoreStringNode(str->getEncoding()));
+   return rv->concatEncode(xsink, *str, code) ? 0 : rv.release();
+}
+
+//! returns a string based on the string value, decoded as per the \a code argument
+/** @par
+    @code
+string ns = string.getDecoded(CE_XML);
+    @endcode
+
+    @param code a decoding bitfield argument; see @ref StringConcatDecoding for more information
+
+    @see <string>::getEncoded()
+
+    @since %Qore 0.8.12
+ */
+string <string>::getDecoded(int code = CD_ALL) {
+   QoreStringNodeHolder rv(new QoreStringNode(str->getEncoding()));
+   return rv->concatDecode(xsink, *str, code) ? 0 : rv.release();
 }

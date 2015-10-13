@@ -42,6 +42,8 @@
 
 #include <set>
 #include <memory>
+#include <string>
+#include <map>
 
 #ifdef DEBUG_TESTS
 #  include "tests/QoreString_tests.cpp"
@@ -59,14 +61,322 @@ struct code_table {
 // complete set of characters to percent-encode (RFC 3986 http://tools.ietf.org/html/rfc3986)
 static int_set_t url_reserved;
 
+// maps from entity strings to unicode code points
+typedef std::map<std::string, uint32_t> emap_t;
+// entity map from strings to unicode code points
+static emap_t emap;
+
+// maps from unicode code points to known entity references
+typedef std::map<uint32_t, std::string> smap_t;
+// entity map from unicode code points to strings
+static smap_t smap;
+
+struct unicode_entity {
+   // unicode code point for symbol
+   uint32_t symbol;
+   // entity string
+   std::string entity;
+};
+
+// contains the 252 character entities in HTML + &apos; for XML
+static const struct unicode_entity xhtml_entity_list[] = {
+   {34, "quot"},         // HTML 2.0: double quotation mark
+   {38, "amp"},          // HTML 2.0: ampersand
+   {39, "apos"},         // XHTML 1.0: apostrophe
+   {60, "lt"},           // HTML 2.0: less-than sign
+   {62, "gt"},           // HTML 2.0: greater-than sign
+   {160, "nbsp"},        // HTML 3.2: no-break space (non-breaking space)[d]
+   {161, "iexcl"},       // HTML 3.2: inverted exclamation mark
+   {162, "cent"},        // HTML 3.2: cent sign
+   {163, "pound"},       // HTML 3.2: pound sign
+   {164, "curren"},      // HTML 3.2: currency sign
+   {165, "yen"},         // HTML 3.2: yen sign (yuan sign)
+   {166, "brvbar"},      // HTML 3.2: broken bar (broken vertical bar)
+   {167, "sect"},        // HTML 3.2: section sign
+   {168, "uml"},         // HTML 3.2: diaeresis (spacing diaeresis); see Germanic umlaut
+   {169, "copy"},        // HTML 3.2: copyright symbol
+   {170, "ordf"},        // HTML 3.2: feminine ordinal indicator
+   {171, "laquo"},       // HTML 3.2: left-pointing double angle quotation mark (left pointing guillemet)
+   {172, "not"},         // HTML 3.2: not sign
+   {173, "shy"},         // HTML 3.2: soft hyphen (discretionary hyphen)
+   {174, "reg"},         // HTML 3.2: registered sign (registered trademark symbol)
+   {175, "macr"},        // HTML 3.2: macron (spacing macron, overline, APL overbar)
+   {176, "deg"},         // HTML 3.2: degree symbol
+   {177, "plusmn"},      // HTML 3.2: plus-minus sign (plus-or-minus sign)
+   {178, "sup2"},        // HTML 3.2: superscript two (superscript digit two, squared)
+   {179, "sup3"},        // HTML 3.2: superscript three (superscript digit three, cubed)
+   {180, "acute"},       // HTML 3.2: acute accent (spacing acute)
+   {181, "micro"},       // HTML 3.2: micro sign
+   {182, "para"},        // HTML 3.2: pilcrow sign (paragraph sign)
+   {183, "middot"},      // HTML 3.2: middle dot (Georgian comma, Greek middle dot)
+   {184, "cedil"},       // HTML 3.2: cedilla (spacing cedilla)
+   {185, "sup1"},        // HTML 3.2: superscript one (superscript digit one)
+   {186, "ordm"},        // HTML 3.2: masculine ordinal indicator
+   {187, "raquo"},       // HTML 3.2: right-pointing double angle quotation mark (right pointing guillemet)
+   {188, "frac14"},      // HTML 3.2: vulgar fraction one quarter (fraction one quarter)
+   {189, "frac12"},      // HTML 3.2: vulgar fraction one half (fraction one half)
+   {190, "frac34"},      // HTML 3.2: vulgar fraction three quarters (fraction three quarters)
+   {191, "iquest"},      // HTML 3.2: inverted question mark (turned question mark)
+   {192, "Agrave"},      // HTML 2.0: Latin capital letter A with grave accent (Latin capital letter A grave)
+   {193, "Aacute"},      // HTML 2.0: Latin capital letter A with acute accent
+   {194, "Acirc"},       // HTML 2.0: Latin capital letter A with circumflex
+   {195, "Atilde"},      // HTML 2.0: Latin capital letter A with tilde
+   {196, "Auml"},        // HTML 2.0: Latin capital letter A with diaeresis
+   {197, "Aring"},       // HTML 2.0: Latin capital letter A with ring above (Latin capital letter A ring)
+   {198, "AElig"},       // HTML 2.0: Latin capital letter AE (Latin capital ligature AE)
+   {199, "Ccedil"},      // HTML 2.0: Latin capital letter C with cedilla
+   {200, "Egrave"},      // HTML 2.0: Latin capital letter E with grave accent
+   {201, "Eacute"},      // HTML 2.0: Latin capital letter E with acute accent
+   {202, "Ecirc"},       // HTML 2.0: Latin capital letter E with circumflex
+   {203, "Euml"},        // HTML 2.0: Latin capital letter E with diaeresis
+   {204, "Igrave"},      // HTML 2.0: Latin capital letter I with grave accent
+   {205, "Iacute"},      // HTML 2.0: Latin capital letter I with acute accent
+   {206, "Icirc"},       // HTML 2.0: Latin capital letter I with circumflex
+   {207, "Iuml"},        // HTML 2.0: Latin capital letter I with diaeresis
+   {208, "ETH"},         // HTML 2.0: Latin capital letter Eth
+   {209, "Ntilde"},      // HTML 2.0: Latin capital letter N with tilde
+   {210, "Ograve"},      // HTML 2.0: Latin capital letter O with grave accent
+   {211, "Oacute"},      // HTML 2.0: Latin capital letter O with acute accent
+   {212, "Ocirc"},       // HTML 2.0: Latin capital letter O with circumflex
+   {213, "Otilde"},      // HTML 2.0: Latin capital letter O with tilde
+   {214, "Ouml"},        // HTML 2.0: Latin capital letter O with diaeresis
+   {215, "times"},       // HTML 3.2: multiplication sign
+   {216, "Oslash"},      // HTML 2.0: Latin capital letter O with stroke (Latin capital letter O slash)
+   {217, "Ugrave"},      // HTML 2.0: Latin capital letter U with grave accent
+   {218, "Uacute"},      // HTML 2.0: Latin capital letter U with acute accent
+   {219, "Ucirc"},       // HTML 2.0: Latin capital letter U with circumflex
+   {220, "Uuml"},        // HTML 2.0: Latin capital letter U with diaeresis
+   {221, "Yacute"},      // HTML 2.0: Latin capital letter Y with acute accent
+   {222, "THORN"},       // HTML 2.0: Latin capital letter THORN
+   {223, "szlig"},       // HTML 2.0: Latin small letter sharp s (ess-zed); see German Eszett
+   {224, "agrave"},      // HTML 2.0: Latin small letter a with grave accent
+   {225, "aacute"},      // HTML 2.0: Latin small letter a with acute accent
+   {226, "acirc"},       // HTML 2.0: Latin small letter a with circumflex
+   {227, "atilde"},      // HTML 2.0: Latin small letter a with tilde
+   {228, "auml"},        // HTML 2.0: Latin small letter a with diaeresis
+   {229, "aring"},       // HTML 2.0: Latin small letter a with ring above
+   {230, "aelig"},       // HTML 2.0: Latin small letter ae (Latin small ligature ae)
+   {231, "ccedil"},      // HTML 2.0: Latin small letter c with cedilla
+   {232, "egrave"},      // HTML 2.0: Latin small letter e with grave accent
+   {233, "eacute"},      // HTML 2.0: Latin small letter e with acute accent
+   {234, "ecirc"},       // HTML 2.0: Latin small letter e with circumflex
+   {235, "euml"},        // HTML 2.0: Latin small letter e with diaeresis
+   {236, "igrave"},      // HTML 2.0: Latin small letter i with grave accent
+   {237, "iacute"},      // HTML 2.0: Latin small letter i with acute accent
+   {238, "icirc"},       // HTML 2.0: Latin small letter i with circumflex
+   {239, "iuml"},        // HTML 2.0: Latin small letter i with diaeresis
+   {240, "eth"},         // HTML 2.0: Latin small letter eth
+   {241, "ntilde"},      // HTML 2.0: Latin small letter n with tilde
+   {242, "ograve"},      // HTML 2.0: Latin small letter o with grave accent
+   {243, "oacute"},      // HTML 2.0: Latin small letter o with acute accent
+   {244, "ocirc"},       // HTML 2.0: Latin small letter o with circumflex
+   {245, "otilde"},      // HTML 2.0: Latin small letter o with tilde
+   {246, "ouml"},        // HTML 2.0: Latin small letter o with diaeresis
+   {247, "divide"},      // HTML 3.2: division sign (obelus)
+   {248, "oslash"},      // HTML 2.0: Latin small letter o with stroke (Latin small letter o slash)
+   {249, "ugrave"},      // HTML 2.0: Latin small letter u with grave accent
+   {250, "uacute"},      // HTML 2.0: Latin small letter u with acute accent
+   {251, "ucirc"},       // HTML 2.0: Latin small letter u with circumflex
+   {252, "uuml"},        // HTML 2.0: Latin small letter u with diaeresis
+   {253, "yacute"},      // HTML 2.0: Latin small letter y with acute accent
+   {254, "thorn"},       // HTML 2.0: Latin small letter thorn
+   {255, "yuml"},        // HTML 2.0: Latin small letter y with diaeresis
+   {338, "OElig"},       // HTML 4.0: Latin capital ligature oe[e]
+   {339, "oelig"},       // HTML 4.0: Latin small ligature oe[e]
+   {352, "Scaron"},      // HTML 4.0: Latin capital letter s with caron
+   {353, "scaron"},      // HTML 4.0: Latin small letter s with caron
+   {376, "Yuml"},        // HTML 4.0: Latin capital letter y with diaeresis
+   {402, "fnof"},        // HTML 4.0: Latin small letter f with hook (function, florin)
+   {710, "circ"},        // HTML 4.0: modifier letter circumflex accent
+   {732, "tilde"},       // HTML 4.0: small tilde
+   {913, "Alpha"},       // HTML 4.0: Greek capital letter Alpha
+   {914, "Beta"},        // HTML 4.0: Greek capital letter Beta
+   {915, "Gamma"},       // HTML 4.0: Greek capital letter Gamma
+   {916, "Delta"},       // HTML 4.0: Greek capital letter Delta
+   {917, "Epsilon"},     // HTML 4.0: Greek capital letter Epsilon
+   {918, "Zeta"},        // HTML 4.0: Greek capital letter Zeta
+   {919, "Eta"},         // HTML 4.0: Greek capital letter Eta
+   {920, "Theta"},       // HTML 4.0: Greek capital letter Theta
+   {921, "Iota"},        // HTML 4.0: Greek capital letter Iota
+   {922, "Kappa"},       // HTML 4.0: Greek capital letter Kappa
+   {923, "Lambda"},      // HTML 4.0: Greek capital letter Lambda
+   {924, "Mu"},          // HTML 4.0: Greek capital letter Mu
+   {925, "Nu"},          // HTML 4.0: Greek capital letter Nu
+   {926, "Xi"},          // HTML 4.0: Greek capital letter Xi
+   {927, "Omicron"},     // HTML 4.0: Greek capital letter Omicron
+   {928, "Pi"},          // HTML 4.0: Greek capital letter Pi
+   {929, "Rho"},         // HTML 4.0: Greek capital letter Rho
+   {931, "Sigma"},       // HTML 4.0: Greek capital letter Sigma
+   {932, "Tau"},         // HTML 4.0: Greek capital letter Tau
+   {933, "Upsilon"},     // HTML 4.0: Greek capital letter Upsilon
+   {934, "Phi"},         // HTML 4.0: Greek capital letter Phi
+   {935, "Chi"},         // HTML 4.0: Greek capital letter Chi
+   {936, "Psi"},         // HTML 4.0: Greek capital letter Psi
+   {937, "Omega"},       // HTML 4.0: Greek capital letter Omega
+   {945, "alpha"},       // HTML 4.0: Greek small letter alpha
+   {946, "beta"},        // HTML 4.0: Greek small letter beta
+   {947, "gamma"},       // HTML 4.0: Greek small letter gamma
+   {948, "delta"},       // HTML 4.0: Greek small letter delta
+   {949, "epsilon"},     // HTML 4.0: Greek small letter epsilon
+   {950, "zeta"},        // HTML 4.0: Greek small letter zeta
+   {951, "eta"},         // HTML 4.0: Greek small letter eta
+   {952, "theta"},       // HTML 4.0: Greek small letter theta
+   {953, "iota"},        // HTML 4.0: Greek small letter iota
+   {954, "kappa"},       // HTML 4.0: Greek small letter kappa
+   {955, "lambda"},      // HTML 4.0: Greek small letter lambda
+   {956, "mu"},          // HTML 4.0: Greek small letter mu
+   {957, "nu"},          // HTML 4.0: Greek small letter nu
+   {958, "xi"},          // HTML 4.0: Greek small letter xi
+   {959, "omicron"},     // HTML 4.0: Greek small letter omicron
+   {960, "pi"},          // HTML 4.0: Greek small letter pi
+   {961, "rho"},         // HTML 4.0: Greek small letter rho
+   {962, "sigmaf"},      // HTML 4.0: Greek small letter final sigma
+   {963, "sigma"},       // HTML 4.0: Greek small letter sigma
+   {964, "tau"},         // HTML 4.0: Greek small letter tau
+   {965, "upsilon"},     // HTML 4.0: Greek small letter upsilon
+   {966, "phi"},         // HTML 4.0: Greek small letter phi
+   {967, "chi"},         // HTML 4.0: Greek small letter chi
+   {968, "psi"},         // HTML 4.0: Greek small letter psi
+   {969, "omega"},       // HTML 4.0: Greek small letter omega
+   {977, "thetasym"},    // HTML 4.0: Greek theta symbol
+   {978, "upsih"},       // HTML 4.0: Greek Upsilon with hook symbol
+   {982, "piv"},         // HTML 4.0: Greek pi symbol
+   {8194, "ensp"},       // HTML 4.0: en space[d]
+   {8195, "emsp"},       // HTML 4.0: em space[d]
+   {8201, "thinsp"},     // HTML 4.0: thin space[d]
+   {8204, "zwnj"},       // HTML 4.0: zero-width non-joiner
+   {8205, "zwj"},        // HTML 4.0: zero-width joiner
+   {8206, "lrm"},        // HTML 4.0: left-to-right mark
+   {8207, "rlm"},        // HTML 4.0: right-to-left mark
+   {8211, "ndash"},      // HTML 4.0: en dash
+   {8212, "mdash"},      // HTML 4.0: em dash
+   {8216, "lsquo"},      // HTML 4.0: left single quotation mark
+   {8217, "rsquo"},      // HTML 4.0: right single quotation mark
+   {8218, "sbquo"},      // HTML 4.0: single low-9 quotation mark
+   {8220, "ldquo"},      // HTML 4.0: left double quotation mark
+   {8221, "rdquo"},      // HTML 4.0: right double quotation mark
+   {8222, "bdquo"},      // HTML 4.0: double low-9 quotation mark
+   {8224, "dagger"},     // HTML 4.0: dagger, obelisk
+   {8225, "Dagger"},     // HTML 4.0: double dagger, double obelisk
+   {8226, "bull"},       // HTML 4.0: bullet (black small circle)[f]
+   {8230, "hellip"},     // HTML 4.0: horizontal ellipsis (three dot leader)
+   {8240, "permil"},     // HTML 4.0: per mille sign
+   {8242, "prime"},      // HTML 4.0: prime (minutes, feet)
+   {8243, "Prime"},      // HTML 4.0: double prime (seconds, inches)
+   {8249, "lsaquo"},     // HTML 4.0: single left-pointing angle quotation mark[g]
+   {8250, "rsaquo"},     // HTML 4.0: single right-pointing angle quotation mark[g]
+   {8254, "oline"},      // HTML 4.0: overline (spacing overscore)
+   {8260, "frasl"},      // HTML 4.0: fraction slash (solidus)
+   {8364, "euro"},       // HTML 4.0: euro sign
+   {8465, "image"},      // HTML 4.0: black-letter capital I (imaginary part)
+   {8472, "weierp"},     // HTML 4.0: script capital P (power set, Weierstrass p)
+   {8476, "real"},       // HTML 4.0: black-letter capital R (real part symbol)
+   {8482, "trade"},      // HTML 4.0: trademark symbol
+   {8501, "alefsym"},    // HTML 4.0: alef symbol (first transfinite cardinal)[h]
+   {8592, "larr"},       // HTML 4.0: leftwards arrow
+   {8593, "uarr"},       // HTML 4.0: upwards arrow
+   {8594, "rarr"},       // HTML 4.0: rightwards arrow
+   {8595, "darr"},       // HTML 4.0: downwards arrow
+   {8596, "harr"},       // HTML 4.0: left right arrow
+   {8629, "crarr"},      // HTML 4.0: downwards arrow with corner leftwards (carriage return)
+   {8656, "lArr"},       // HTML 4.0: leftwards double arrow[i]
+   {8657, "uArr"},       // HTML 4.0: upwards double arrow
+   {8658, "rArr"},       // HTML 4.0: rightwards double arrow[j]
+   {8659, "dArr"},       // HTML 4.0: downwards double arrow
+   {8660, "hArr"},       // HTML 4.0: left right double arrow
+   {8704, "forall"},     // HTML 4.0: for all
+   {8706, "part"},       // HTML 4.0: partial differential
+   {8707, "exist"},      // HTML 4.0: there exists
+   {8709, "empty"},      // HTML 4.0: empty set (null set); see also U+8960, ⌀
+   {8711, "nabla"},      // HTML 4.0: del or nabla (vector differential operator)
+   {8712, "isin"},       // HTML 4.0: element of
+   {8713, "notin"},      // HTML 4.0: not an element of
+   {8715, "ni"},         // HTML 4.0: contains as member
+   {8719, "prod"},       // HTML 4.0: n-ary product (product sign)[k]
+   {8721, "sum"},        // HTML 4.0: n-ary summation[l]
+   {8722, "minus"},      // HTML 4.0: minus sign
+   {8727, "lowast"},     // HTML 4.0: asterisk operator
+   {8730, "radic"},      // HTML 4.0: square root (radical sign)
+   {8733, "prop"},       // HTML 4.0: proportional to
+   {8734, "infin"},      // HTML 4.0: infinity
+   {8736, "ang"},        // HTML 4.0: angle
+   {8743, "and"},        // HTML 4.0: logical and (wedge)
+   {8744, "or"},         // HTML 4.0: logical or (vee)
+   {8745, "cap"},        // HTML 4.0: intersection (cap)
+   {8746, "cup"},        // HTML 4.0: union (cup)
+   {8747, "int"},        // HTML 4.0: integral
+   {8756, "there4"},     // HTML 4.0: therefore sign
+   {8764, "sim"},        // HTML 4.0: tilde operator (varies with, similar to)[m]
+   {8773, "cong"},       // HTML 4.0: congruent to
+   {8776, "asymp"},      // HTML 4.0: almost equal to (asymptotic to)
+   {8800, "ne"},         // HTML 4.0: not equal to
+   {8801, "equiv"},      // HTML 4.0: identical to; sometimes used for 'equivalent to'
+   {8804, "le"},         // HTML 4.0: less-than or equal to
+   {8805, "ge"},         // HTML 4.0: greater-than or equal to
+   {8834, "sub"},        // HTML 4.0: subset of
+   {8835, "sup"},        // HTML 4.0: superset of[n]
+   {8836, "nsub"},       // HTML 4.0: not a subset of
+   {8838, "sube"},       // HTML 4.0: subset of or equal to
+   {8839, "supe"},       // HTML 4.0: superset of or equal to
+   {8853, "oplus"},      // HTML 4.0: circled plus (direct sum)
+   {8855, "otimes"},     // HTML 4.0: circled times (vector product)
+   {8869, "perp"},       // HTML 4.0: up tack (orthogonal to, perpendicular)[o]
+   {8901, "sdot"},       // HTML 4.0: dot operator[p]
+   {8968, "lceil"},      // HTML 4.0: left ceiling (APL upstile)
+   {8969, "rceil"},      // HTML 4.0: right ceiling
+   {8970, "lfloor"},     // HTML 4.0: left floor (APL downstile)
+   {8971, "rfloor"},     // HTML 4.0: right floor
+   {9001, "lang"},       // HTML 4.0: left-pointing angle bracket (bra)[q]
+   {9002, "rang"},       // HTML 4.0: right-pointing angle bracket (ket)[r]
+   {9674, "loz"},        // HTML 4.0: lozenge
+   {9824, "spades"},     // HTML 4.0: black spade suit[f]
+   {9827, "clubs"},      // HTML 4.0: black club suit (shamrock)[f]
+   {9829, "hearts"},     // HTML 4.0: black heart suit (valentine)[f]
+   {9830, "diams"},      // HTML 4.0: black diamond suit[f]
+};
+
+#define HTML_ASCII(c) (c==34||c==38||c==60||c==62)
+#define XML_ASCII(c) (HTML_ASCII(c)||c==39)
+
+#define NUM_ENTITIES (sizeof(xhtml_entity_list) / sizeof (struct unicode_entity))
+
 static const struct code_table html_codes[] = {
    { '&', "&amp;", 5 },
    { '<', "&lt;", 4 },
    { '>', "&gt;", 4 },
-   { '"', "&quot;", 6 }
+   { '"', "&quot;", 6 },
 };
 
 #define NUM_HTML_CODES (sizeof(html_codes) / sizeof (struct code_table))
+
+class IconvHelper {
+private:
+   iconv_t c;
+
+public:
+   DLLLOCAL IconvHelper(const QoreEncoding* to, const QoreEncoding* from, ExceptionSink* xsink) {
+#ifdef NEED_ICONV_TRANSLIT
+      QoreString to_code((char*)to->getCode());
+      to_code.concat("//TRANSLIT");
+      c = iconv_open(to_code.getBuffer(), from->getCode());
+#else
+      c = iconv_open(to->getCode(), from->getCode());
+#endif
+      if (c == (iconv_t)-1) {
+	 if (errno == EINVAL)
+	    xsink->raiseException("ENCODING-CONVERSION-ERROR", "cannot convert from \"%s\" to \"%s\"", from->getCode(), to->getCode());
+	 else
+	    xsink->raiseErrnoException("ENCODING-CONVERSION-ERROR", errno, "unknown error converting from \"%s\" to \"%s\"", from->getCode(), to->getCode());
+      }
+   }
+   DLLLOCAL ~IconvHelper() {
+      if (c != (iconv_t)-1)
+	 iconv_close(c);
+   }
+   DLLLOCAL iconv_t operator*() {
+      return c;
+   }
+};
 
 void qore_string_init() {
    static int url_reserved_list[] = { '!', '*', '\'', '(', ')', ';', ':', '@', '&', '=', '+', '$', ',', '/', '?', '#', '[', ']' };
@@ -74,6 +384,32 @@ void qore_string_init() {
 
    for (unsigned i = 0; i < URLIST_SIZE; ++i)
       url_reserved.insert(url_reserved_list[i]);
+
+   for (unsigned i = 0; i < NUM_ENTITIES; ++i) {
+      assert(emap.find(xhtml_entity_list[i].entity) == emap.end());
+      emap[xhtml_entity_list[i].entity] = xhtml_entity_list[i].symbol;
+      assert(smap.find(xhtml_entity_list[i].symbol) == smap.end());
+      smap[xhtml_entity_list[i].symbol] = xhtml_entity_list[i].entity;
+   }
+}
+
+static unsigned get_unicode_from_utf8(const char* buf, unsigned bl) {
+   if (bl == 1)
+      return buf[0];
+
+   if (bl == 2)
+      return ((buf[0] & 0x1f) << 6)
+	 | (buf[1] & 0x3f);
+
+   if (bl == 3)
+      return ((buf[0] & 0x0f) << 12)
+	 | ((buf[1] & 0x3f) << 6)
+	 | (buf[2] & 0x3f);
+
+   return (((unsigned)(buf[0] & 0x07)) << 18)
+      | (((unsigned)(buf[1] & 0x3f)) << 12)
+      | ((((unsigned)buf[2] & 0x3f)) << 6)
+      | (((unsigned)buf[3] & 0x3f));
 }
 
 void qore_string_private::concatUTF8FromUnicode(unsigned code) {
@@ -269,6 +605,300 @@ int qore_string_private::concatEncodeUriRequest(ExceptionSink* xsink, const qore
       ++p;
    }
 
+   return 0;
+}
+
+// needed for platforms where the input buffer is defined as "const char"
+template<typename T>
+static inline size_t iconv_adapter (size_t (*iconv_f) (iconv_t, T, size_t *, char* *, size_t *), iconv_t handle, char* *inbuf, size_t *inavail, char* *outbuf, size_t *outavail) {
+   return (*iconv_f) (handle, (T) inbuf, inavail, outbuf, outavail);
+}
+
+// static function
+int qore_string_private::convert_encoding_intern(const char* src, qore_size_t src_len, const QoreEncoding* from, QoreString& targ, const QoreEncoding* nccs, ExceptionSink* xsink) {
+   assert(targ.priv->getEncoding() == nccs);
+   assert(targ.empty());
+
+   //printd(5, "qore_string_private::convert_encoding_intern() %s -> %s len: "QSD" src='%s'\n", from->getCode(), nccs->getCode(), src_len, src);
+
+   IconvHelper c(nccs, from, xsink);
+   if (*xsink)
+      return -1;
+
+   // now convert value
+   qore_size_t al = src_len + STR_CLASS_BLOCK;
+   targ.allocate(al + 1);
+   while (true) {
+      size_t ilen = src_len;
+      size_t olen = al;
+      char* ib = (char*)src;
+      char* ob = targ.priv->buf;
+      size_t rc = iconv_adapter(iconv, *c, &ib, &ilen, &ob, &olen);
+      if (rc == (size_t)-1) {
+	 switch (errno) {
+	    case EINVAL:
+	    case EILSEQ: {
+	       xsink->raiseException("ENCODING-CONVERSION-ERROR", "illegal character sequence found in input type \"%s\" (while converting to \"%s\")",
+				     from->getCode(), nccs->getCode());
+	       targ.clear();
+	       return -1;
+	    }
+	    case E2BIG:
+	       al += STR_CLASS_BLOCK;
+	       targ.allocate(al + 1);
+	       break;
+	    default: {
+	       xsink->raiseErrnoException("ENCODING-CONVERSION-ERROR", errno, "error converting from \"%s\" to \"%s\"",
+				     from->getCode(), nccs->getCode());
+	       targ.clear();
+	       return -1;
+	    }
+	 }
+      }
+      else {
+	 // terminate string
+	 targ.priv->buf[al - olen] = '\0';
+	 targ.priv->len = al - olen;
+	 break;
+      }
+   }
+   /*
+   // remove byte order markers at the beginning of UTF16 strings
+   if (nccs == QCS_UTF16 && targ.priv->len >= 2 && (signed char)targ.priv->buf[0] == -2 && (signed char)targ.priv->buf[1] == -1)
+      targ.splice_simple(0, 2);
+   */
+   return 0;
+}
+
+unsigned int qore_string_private::getUnicodePointFromBytePos(qore_size_t offset, unsigned& clen, ExceptionSink* xsink) const {
+   if (getEncoding() == QCS_UTF8) {
+      clen = QCS_UTF8->getByteLen(buf + offset, buf + len, 1, xsink);
+      if (*xsink)
+	 return 0;
+
+      return get_unicode_from_utf8(buf + offset, clen);
+   }
+
+   assert(!getEncoding()->isMultiByte());
+   clen = 1;
+   QoreString tmp(QCS_UTF8);
+   if (convert_encoding_intern(buf + offset, 1, getEncoding(), tmp, QCS_UTF8, xsink))
+      return 0;
+
+   qore_size_t bl = QCS_UTF8->getByteLen(tmp.priv->buf, tmp.priv->buf + tmp.priv->len, 1, xsink);
+   if (*xsink)
+      return 0;
+
+   return get_unicode_from_utf8(tmp.priv->buf, bl);
+}
+
+int qore_string_private::concatEncode(ExceptionSink* xsink, const QoreString& str, unsigned code) {
+   //printd(5, "qore_string_private::concatEncode() '%s' code: 0x%x\n", str.getBuffer(), code);
+
+   // if it's not a null string
+   if (!str.priv->len)
+      return 0;
+
+   // if no encoding should be done, then just concat normally
+   if (!code) {
+      concat(&str, xsink);
+      return *xsink ? -1 : 0;
+   }
+
+   qore_string_private* p = 0;
+   TempEncodingHelper cstr;
+
+   // convert encoding if we are not going to encode all non-ascii characters anyway
+   if (!(code & CE_NONASCII)) {
+      if (!cstr.set(&str, getEncoding(), xsink))
+	 return -1;
+      p = cstr->priv;
+   }
+   else
+      p = str.priv;
+
+   //printd(5, "qore_string_private::concatEncode() p: %p '%s' len: %d\n", p, p->buf, p->len);
+
+   allocate(len + p->len + p->len / 10 + 10); // avoid reallocations inside the loop, value guesstimated
+   for (qore_size_t i = 0; i < p->len; ++i) {
+      // see if we are dealing with a non-ascii character
+      const unsigned char c = p->buf[i];
+      if (c & 0x80) {
+	 unsigned len = 0;
+	 unsigned cp = p->getUnicodePointFromBytePos(i, len, xsink);
+	 if (*xsink)
+	    return -1;
+	 assert(len);
+	 assert(cp);
+	 // see if it's an known special character
+	 smap_t::iterator si = smap.find(cp);
+	 //printd(5, "qore_string_private::concatEncode() i: %u c: %u cp: %u len: %u found: %s (%s)\n", i, c, cp, len, si != smap.end() ? "true" : "false", getEncoding()->getCode());
+	 if (si != smap.end()) {
+	    sprintf("&%s;", si->second.c_str());
+	    i += len - 1;
+	    continue;
+	 }
+	 else if (code & CE_NONASCII) {
+	    // otherwise just output the character entity
+	    sprintf("&#%u;", cp);
+	    i += len - 1;
+	    continue;
+	 }
+      }
+      else if (((code & CE_HTML) && HTML_ASCII(c))
+	       || ((code & CE_XML) && XML_ASCII(c))) {
+	 smap_t::iterator it = smap.find(c);
+	 assert(it != smap.end());
+	 concat('&');
+	 concat(it->second.c_str());
+	 concat(';');
+	 continue;
+      }
+
+      concat(p->buf[i]);
+   }
+   return 0;
+}
+
+int qore_string_private::concatDecode(ExceptionSink* xsink, const QoreString& str, unsigned code) {
+   // if it's not a null string
+   if (!str.priv->len)
+      return 0;
+
+   // if no decoding should be done, then just concat normally
+   if (!code) {
+      concat(&str, xsink);
+      return *xsink ? -1 : 0;
+   }
+
+   const QoreEncoding* enc = getEncoding();
+
+   TempEncodingHelper cstr(str, enc, xsink);
+   if (!cstr)
+      return -1;
+
+   qore_string_private* p = cstr->priv;
+   //printd(5, "qore_string_private::concatDecode() p: %p '%s' len: %d\n", p, p->buf, p->len);
+
+   // decode all entity references
+   bool dall = (code & CD_XHTML) == CD_XHTML;
+
+   // try to avoid reallocations inside the loop
+   allocate(len + p->len + 1);
+   for (qore_size_t i = 0; i < p->len; ++i) {
+      // see if we are dealing with a non-ascii character
+      const char* s = p->buf + i;
+      if (*s != '&') {
+         concat(*s);
+         continue;
+      }
+      // concatenate translated character
+      // check for unicode character references
+      if ((*(s + 1) == '#')) {
+	 if (code & CD_NUM_REF) {
+	    s += 2;
+	    // find end of character sequence
+	    const char* e = strchr(s, ';');
+	    // if not found or the number is too big, then don't try to decode it
+	    if (e && (e - s) < 8) {
+	       unsigned code;
+	       if (*s == 'x')
+		  code = strtoul(s + 1, 0, 16);
+	       else
+		  code = strtoul(s, 0, 10);
+
+	       if (!concatUnicode(code)) {
+		  i = e - p->buf;
+		  continue;
+	       }
+	       // error occurred, so back out
+	       s -= 2;
+	    }
+	 }
+      }
+      else if (isascii(*(s + 1)) && (code & CD_XHTML)) {
+         s += 1;
+         // find end of character sequence
+         const char* e = strchr(s, ';');
+         // if not found or the number is too big, then don't try to decode it
+         if (e && (e - s) < 16) {
+            // find unicode code point
+            std::string entity(s, e - s);
+            //printd(0, "entity: %s\n", entity.c_str());
+            emap_t::iterator it = emap.find(entity);
+            if (it != emap.end()) {
+	       bool ok = dall;
+	       // if XML only
+	       if (!ok && !(code & CD_HTML))
+		  ok = it->second < 0x80;
+	       // if HTML only
+	       else if (!ok && !(code & CD_XML))
+		  ok = it->second != 0x27;
+	       else
+		  ok = true;
+	       if (ok && !concatUnicode(it->second)) {
+		  i = e - p->buf;
+		  continue;
+	       }
+	    }
+         }
+         // not found or error occurred concatenating char, so back out
+         s -= 1;
+      }
+
+      // concatentate ASCII characters directly
+      if ((unsigned char)(*s) < 0x80) {
+	 concat(*s);
+	 continue;
+      }
+      // concatenate character as a single unit
+      size_t cl = enc->getByteLen(s, p->buf + p->len, 1, xsink);
+      if (*xsink)
+	 return -1;
+      concat_intern(s, cl);
+      i += cl - 1;
+   }
+
+   return 0;
+}
+
+int qore_string_private::concat(const QoreString* str, ExceptionSink* xsink) {
+   //printd(5, "concat() buf='%s' str='%s'\n", buf, str->priv->buf);
+   // if it's not a null string
+   if (!str || !str->priv->len)
+      return 0;
+
+   TempEncodingHelper cstr(str, getEncoding(), xsink);
+   if (*xsink)
+      return -1;
+
+   // if priv->buffer needs to be resized
+   check_char(cstr->priv->len + len + STR_CLASS_EXTRA);
+   // concatenate new string
+   memcpy(buf + len, cstr->priv->buf, cstr->priv->len);
+   len += cstr->priv->len;
+   buf[len] = '\0';
+   return 0;
+}
+
+int qore_string_private::concatUnicode(unsigned code) {
+   if (getEncoding() == QCS_UTF8) {
+      concatUTF8FromUnicode(code);
+      return 0;
+   }
+   QoreString tmp(QCS_UTF8);
+   tmp.priv->concatUTF8FromUnicode(code);
+
+   ExceptionSink xsink;
+
+   TempString ns(tmp.convertEncoding(getEncoding(), &xsink));
+   if (xsink) {
+      // ignore exceptions
+      xsink.clear();
+      return -1;
+   }
+
+   concat(ns);
    return 0;
 }
 
@@ -945,97 +1575,6 @@ qore_size_t QoreString::chomp() {
    return 0;
 }
 
-// needed for platforms where the input buffer is defined as "const char"
-template<typename T>
-static inline size_t iconv_adapter (size_t (*iconv_f) (iconv_t, T, size_t *, char* *, size_t *), iconv_t handle, char* *inbuf, size_t *inavail, char* *outbuf, size_t *outavail) {
-   return (*iconv_f) (handle, (T) inbuf, inavail, outbuf, outavail);
-}
-
-class IconvHelper {
-private:
-   iconv_t c;
-
-public:
-   DLLLOCAL IconvHelper(const QoreEncoding* to, const QoreEncoding* from, ExceptionSink* xsink) {
-#ifdef NEED_ICONV_TRANSLIT
-      QoreString to_code((char*)to->getCode());
-      to_code.concat("//TRANSLIT");
-      c = iconv_open(to_code.getBuffer(), from->getCode());
-#else
-      c = iconv_open(to->getCode(), from->getCode());
-#endif
-      if (c == (iconv_t)-1) {
-	 if (errno == EINVAL)
-	    xsink->raiseException("ENCODING-CONVERSION-ERROR", "cannot convert from \"%s\" to \"%s\"", from->getCode(), to->getCode());
-	 else
-	    xsink->raiseErrnoException("ENCODING-CONVERSION-ERROR", errno, "unknown error converting from \"%s\" to \"%s\"", from->getCode(), to->getCode());
-      }
-   }
-   DLLLOCAL ~IconvHelper() {
-      if (c != (iconv_t)-1)
-	 iconv_close(c);
-   }
-   DLLLOCAL iconv_t operator*() {
-      return c;
-   }
-};
-
-// static function
-int QoreString::convert_encoding_intern(const char* src, qore_size_t src_len, const QoreEncoding* from, QoreString& targ, const QoreEncoding* nccs, ExceptionSink* xsink) {
-   assert(targ.priv->getEncoding() == nccs);
-   assert(targ.empty());
-
-   //printd(5, "QoreString::convert_encoding_intern() %s -> %s len: "QSD" src='%s'\n", from->getCode(), nccs->getCode(), src_len, src);
-
-   IconvHelper c(nccs, from, xsink);
-   if (*xsink)
-      return -1;
-
-   // now convert value
-   qore_size_t al = src_len + STR_CLASS_BLOCK;
-   targ.allocate(al + 1);
-   while (true) {
-      size_t ilen = src_len;
-      size_t olen = al;
-      char* ib = (char*)src;
-      char* ob = targ.priv->buf;
-      size_t rc = iconv_adapter(iconv, *c, &ib, &ilen, &ob, &olen);
-      if (rc == (size_t)-1) {
-	 switch (errno) {
-	    case EINVAL:
-	    case EILSEQ: {
-	       xsink->raiseException("ENCODING-CONVERSION-ERROR", "illegal character sequence found in input type \"%s\" (while converting to \"%s\")",
-				     from->getCode(), nccs->getCode());
-	       targ.clear();
-	       return -1;
-	    }
-	    case E2BIG:
-	       al += STR_CLASS_BLOCK;
-	       targ.allocate(al + 1);
-	       break;
-	    default: {
-	       xsink->raiseErrnoException("ENCODING-CONVERSION-ERROR", errno, "error converting from \"%s\" to \"%s\"",
-				     from->getCode(), nccs->getCode());
-	       targ.clear();
-	       return -1;
-	    }
-	 }
-      }
-      else {
-	 // terminate string
-	 targ.priv->buf[al - olen] = '\0';
-	 targ.priv->len = al - olen;
-	 break;
-      }
-   }
-   /*
-   // remove byte order markers at the beginning of UTF16 strings
-   if (nccs == QCS_UTF16 && targ.priv->len >= 2 && (signed char)targ.priv->buf[0] == -2 && (signed char)targ.priv->buf[1] == -1)
-      targ.splice_simple(0, 2);
-   */
-   return 0;
-}
-
 QoreString* QoreString::convertEncoding(const QoreEncoding* nccs, ExceptionSink* xsink) const {
    printd(5, "QoreString::convertEncoding() from \"%s\" to \"%s\"\n", priv->getEncoding()->getCode(), nccs->getCode());
 
@@ -1045,7 +1584,7 @@ QoreString* QoreString::convertEncoding(const QoreEncoding* nccs, ExceptionSink*
    std::auto_ptr<QoreString> targ(new QoreString(nccs));
 
    if (priv->len) {
-      if (convert_encoding_intern(priv->buf, priv->len, priv->getEncoding(), *targ, nccs, xsink))
+      if (qore_string_private::convert_encoding_intern(priv->buf, priv->len, priv->getEncoding(), *targ, nccs, xsink))
 	 return 0;
 
       // remove BOM bytes (invisible non-breaking space) at the beginning of a string when converting to UTF-8
@@ -1162,30 +1701,16 @@ void QoreString::concatHex(const char* binbuf, qore_size_t size) {
    }
 }
 
-// FIXME: this is slow, each concatenated character gets terminated as well
+int QoreString::concatEncode(ExceptionSink* xsink, const QoreString& str, unsigned code) {
+   return priv->concatEncode(xsink, str, code);
+}
+
+int QoreString::concatDecode(ExceptionSink* xsink, const QoreString& str, unsigned code) {
+   return priv->concatDecode(xsink, str, code);
+}
+
 void QoreString::concatAndHTMLEncode(const QoreString* str, ExceptionSink* xsink) {
-   //printd(5, "QoreString::concatAndHTMLDecode() '%s'\n", str->getBuffer());
-
-   // if it's not a null string
-   if (str && str->priv->len) {
-      TempEncodingHelper cstr(str, priv->getEncoding(), xsink);
-      if (!cstr)
-	 return;
-
-      allocate(priv->len + cstr->priv->len + cstr->priv->len / 10 + 10); // avoid reallocations inside the loop, value guesstimated
-      for (qore_size_t i = 0; i < cstr->priv->len; i++) {
-	 // concatenate translated character
-	 qore_size_t j;
-	 for (j = 0; j < NUM_HTML_CODES; j++)
-	    if (cstr->priv->buf[i] == html_codes[j].symbol) {
-	       concat(html_codes[j].code);
-	       break;
-	    }
-	 // otherwise concatenate untranslated symbol
-	 if (j == NUM_HTML_CODES)
-	    concat(cstr->priv->buf[i]);
-      }
-   }
+   priv->concatEncode(xsink, str, CE_HTML);
 }
 
 // FIXME: this is slow, each concatenated character gets terminated as well
@@ -1207,16 +1732,9 @@ void QoreString::concatAndHTMLEncode(const char* str) {
 	    concat(str[i]);
 	 ++i;
       }
-      /*
-      // see if priv->buffer needs to be resized for '\0'
-      priv->check_char(priv->len);
-      // terminate string
-      priv->buf[priv->len] = '\0';
-      */
    }
 }
 
-// FIXME: this is slow, each concatenated character gets terminated as well
 void QoreString::concatAndHTMLDecode(const QoreString* str) {
    if (!str || !str->priv->len)
       return;
@@ -1229,6 +1747,7 @@ void QoreString::concatAndHTMLDecode(const char* str) {
       concatAndHTMLDecode(str, ::strlen(str));
 }
 
+// FIXME: this is slow, each concatenated character gets terminated as well
 void QoreString::concatAndHTMLDecode(const char* str, size_t slen) {
    if (!slen)
       return;
@@ -1265,27 +1784,25 @@ void QoreString::concatAndHTMLDecode(const char* str, size_t slen) {
 	    s -= 2;
 	 }
       }
-
-      bool matched = false;
-      for (qore_size_t j = 0; j < NUM_HTML_CODES; j++) {
-	 bool found = true;
-	 for (qore_size_t k = 1; k < html_codes[j].len; ++k) {
-	    if (s[k] != html_codes[j].code[k]) {
-	       found = false;
-	       break;
+      else if (isascii(*(s + 1))) {
+	 s += 1;
+	 // find end of character sequence
+	 const char* e = strchr(s, ';');
+	 // if not found or the number is too big, then don't try to decode it
+	 if (e && (e - s) < 16) {
+	    // find unicode code point
+	    std::string entity(s, e - s);
+	    //printd(0, "entity: %s\n", entity.c_str());
+	    emap_t::iterator it = emap.find(entity);
+	    if (it != emap.end() && !concatUnicode(it->second)) {
+	       i = e - str + 1;
+	       continue;
 	    }
 	 }
-	 if (found) {
-	    concat(html_codes[j].symbol);
-	    i += html_codes[j].len;
-	    matched = true;
-	    break;
-	 }
+	 // not found or error occurred concatenating char, so back out
+	 s -= 1;
       }
-      if (!matched) {
-	 //assert(false); // we should not abort with invalid HTML
-	 concat(str[i++]);
-      }
+      concat(str[i++]);
    }
 }
 
@@ -1417,20 +1934,7 @@ void QoreString::concat(const QoreString* str, qore_size_t size) {
 */
 
 void QoreString::concat(const QoreString* str, ExceptionSink* xsink) {
-   //printd(5, "concat() priv->buf='%s' str='%s'\n", priv->buf, str->priv->buf);
-   // if it's not a null string
-   if (str && str->priv->len) {
-      TempEncodingHelper cstr(str, priv->getEncoding(), xsink);
-      if (*xsink)
-         return;
-
-      // if priv->buffer needs to be resized
-      priv->check_char(cstr->priv->len + priv->len + STR_CLASS_EXTRA);
-      // concatenate new string
-      memcpy(priv->buf + priv->len, cstr->priv->buf, cstr->priv->len);
-      priv->len += cstr->priv->len;
-      priv->buf[priv->len] = '\0';
-   }
+   priv->concat(str, xsink);
 }
 
 void QoreString::concat(const QoreString* str, qore_size_t size, ExceptionSink* xsink) {
@@ -1995,18 +2499,7 @@ BinaryNode *QoreString::parseHex(ExceptionSink* xsink) const {
 }
 
 void QoreString::allocate(unsigned requested_size) {
-   if ((unsigned)priv->allocated >= requested_size) {
-      return;
-   }
-   requested_size = (requested_size / 16 + 1) * 16; // fill complete cache line
-   char* aux = (char*)realloc(priv->buf, requested_size  * sizeof(char));
-   if (!aux) {
-     assert(false);
-     // FIXME: std::bad_alloc() should be thrown here;
-     return;
-   }
-   priv->buf = aux;
-   priv->allocated = requested_size;
+   priv->allocate(requested_size);
 }
 
 const QoreEncoding* QoreString::getEncoding() const {
@@ -2091,47 +2584,11 @@ int QoreString::concatUnicode(unsigned code, ExceptionSink* xsink) {
 }
 
 int QoreString::concatUnicode(unsigned code) {
-   if (priv->getEncoding() == QCS_UTF8) {
-      priv->concatUTF8FromUnicode(code);
-      return 0;
-   }
-   QoreString tmp(QCS_UTF8);
-   tmp.priv->concatUTF8FromUnicode(code);
-
-   ExceptionSink xsink;
-
-   TempString ns(tmp.convertEncoding(priv->getEncoding(), &xsink));
-   if (xsink) {
-      // ignore exceptions
-      xsink.clear();
-      return -1;
-   }
-
-   concat(ns);
-   return 0;
+   return priv->concatUnicode(code);
 }
 
 void QoreString::concatUTF8FromUnicode(unsigned code) {
    priv->concatUTF8FromUnicode(code);
-}
-
-static unsigned get_unicode_from_utf8(const char* buf, unsigned bl) {
-   if (bl == 1)
-      return buf[0];
-
-   if (bl == 2)
-      return ((buf[0] & 0x1f) << 6)
-	 | (buf[1] & 0x3f);
-
-   if (bl == 3)
-      return ((buf[0] & 0x0f) << 12)
-	 | ((buf[1] & 0x3f) << 6)
-	 | (buf[2] & 0x3f);
-
-   return (((unsigned)(buf[0] & 0x07)) << 18)
-      | (((unsigned)(buf[1] & 0x3f)) << 12)
-      | ((((unsigned)buf[2] & 0x3f)) << 6)
-      | (((unsigned)buf[3] & 0x3f));
 }
 
 unsigned int QoreString::getUnicodePointFromUTF8(qore_offset_t offset) const {
@@ -2185,25 +2642,7 @@ unsigned int QoreString::getUnicodePoint(qore_offset_t offset, ExceptionSink* xs
 }
 
 unsigned int QoreString::getUnicodePointFromBytePos(qore_size_t offset, unsigned& len, ExceptionSink* xsink) const {
-   if (priv->getEncoding() == QCS_UTF8) {
-      len = QCS_UTF8->getByteLen(priv->buf + offset, priv->buf + priv->len, 1, xsink);
-      if (*xsink)
-	 return 0;
-
-      return get_unicode_from_utf8(priv->buf + offset, len);
-   }
-
-   assert(!priv->getEncoding()->isMultiByte());
-   len = 1;
-   QoreString tmp(QCS_UTF8);
-   if (convert_encoding_intern(priv->buf + offset, 1, priv->getEncoding(), tmp, QCS_UTF8, xsink))
-      return 0;
-
-   qore_size_t bl = QCS_UTF8->getByteLen(tmp.priv->buf, tmp.priv->buf + tmp.priv->len, 1, xsink);
-   if (*xsink)
-      return 0;
-
-   return get_unicode_from_utf8(tmp.priv->buf, bl);
+   return priv->getUnicodePointFromBytePos(offset, len, xsink);
 }
 
 QoreString* QoreString::reverse() const {
