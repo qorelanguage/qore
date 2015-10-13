@@ -7,15 +7,24 @@
 %exec-class TypeTest
 
 public class TypeTest inherits QUnit::Test {
-    constructor() : Test("TypeTest", "1.0") {
-        addTestCase("Exercise type()", \typeTestMethod(), NOTHING);
+    constructor() : Test("TypeTest", "1.1") {
+        addTestCase("Test type() function", \typeTestMethod(), NOTHING);
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
     }
 
     typeTestMethod() {
-        testAssertion("type()", \type(), (1,), new TestResultValue("integer"));
+        testAssertion("type() bool", \type(), (True,), "bool");
+        testAssertion("type() integer", \type(), (1,), "integer");
+        testAssertion("type() float", \type(), (3.14,), "float");
+        testAssertion("type() number", \type(), (13.37n,), "number");
+        testAssertion("type() date", \type(), (2012-02-17T19:05:54+01:00,), "date");
+        testAssertion("type() NULL", \type(), (NULL,), "NULL");
+        testAssertion("type() call-ref", \type(), (\type(),), "call reference");
+        testAssertion("type() closure", \type(), (sub(){my int x = 5;x++;},), "closure");
+        testAssertion("type() hash", \type(), ({},), "hash");
+        testAssertion("type() string", \type(), ("str",), "string");
     }
 }
 

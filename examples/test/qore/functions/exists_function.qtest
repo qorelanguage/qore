@@ -12,15 +12,17 @@ any sub simple_shift() {
 }
 
 public class ExistsFunctionTest inherits QUnit::Test {
-    constructor() : Test("ExistsFunctionTest", "1.0") {
-        addTestCase("Simple existsFunction() test", \existsFunctionTestMethod(), NOTHING);
+    constructor() : Test("ExistsFunctionTest", "1.1") {
+        addTestCase("exists_function() test", \existsFunctionTestMethod(), NOTHING);
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
     }
 
     existsFunctionTestMethod() {
-        testAssertion("existsFunction() call", \existsFunction(), ("simple_shift",));
+        testAssertion("exists_function() user function", \exists_function(), ("simple_shift",));
+        testAssertion("exists_function() builtin function", \exists_function(), ("printf",));
+        testAssertion("exists_function() non-existing", \exists_function(), ("abcdefgh_XYZ_123456789_1337",), new TestResultFailure());
     }
 }
 
