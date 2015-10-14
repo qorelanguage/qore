@@ -1,10 +1,15 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
+
+%require-types
+%enable-all-warnings
+%new-style
+
 %requires UnitTest
 
 # little script to test hash accesses on a large hash
 # by David Nichols
 
-my UnitTest $t();
+my UnitTest t();
 
 test_xrange(range(1), xrange(1), "xrange - basic test");
 test_xrange(range(2, 5), xrange(2, 5), "xrange - boundaries test");
@@ -14,10 +19,10 @@ test_xrange(range(0, 10, 5), xrange(0, 10, 5), "xrange - step from 0");
 test_xrange(range(-10, 10, 5), xrange(-10, 10, 5), "xrange - asc test");
 test_xrange(range(10, -10, 5), xrange(10, -10, 5), "xrange - descending step test");
 
-sub test_xrange(list $correct, RangeIterator $testing, string $message) {
-    my list $l;
-    foreach my int $i in ($testing)
-        push $l, $i;
+sub test_xrange(list correct, RangeIterator testing, string message) {
+    my list l;
+    foreach my int i in (testing)
+        push l, i;
 
-    $t.cmp($correct, $l, $message);
+    t.cmp(correct, l, message);
 }

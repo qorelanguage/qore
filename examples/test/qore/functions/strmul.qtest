@@ -2,7 +2,7 @@
 
 %require-types
 %enable-all-warnings
-%allow-bare-refs
+%new-style
 
 %requires ../../../../qlib/QUnit.qm
 

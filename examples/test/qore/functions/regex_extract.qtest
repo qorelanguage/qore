@@ -1,7 +1,8 @@
 #!/usr/bin/env qr
+
 %require-types
 %enable-all-warnings
-%allow-bare-refs
+%new-style
 
 %requires UnitTest
 %exec-class App

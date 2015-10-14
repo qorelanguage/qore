@@ -1,14 +1,17 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
+
 %require-types
 %enable-all-warnings
+%new-style
+
 %requires UnitTest
 
-my UnitTest $unit();
+my UnitTest unit();
 
-my hash $dh = ( "user"    : "user",
+my hash dh = ( "user"    : "user",
     "pass"    : "123pass@word",
     "db"      : "dbname",
     "charset" : "utf8",
     "host"    : "hostname" );
-my string $ds = "user/123pass@word@dbname(utf8)%hostname";
-$unit.cmp($dh, parseDatasource($ds), "first parseDatasource()"); 
+my string ds = "user/123pass@word@dbname(utf8)%hostname";
+unit.cmp(dh, parse_datasource(ds), "first parseDatasource()"); 

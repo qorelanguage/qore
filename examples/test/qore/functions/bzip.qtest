@@ -3,6 +3,7 @@
 
 %require-types
 %enable-all-warnings
+%new-style
 
 %exec-class Bzip2Test
 
