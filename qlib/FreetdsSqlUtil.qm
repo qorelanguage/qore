@@ -752,14 +752,14 @@ my any $v = $c.name;
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
         static any tryExecRaw(AbstractDatasource ds, string sql) {
-            ds.exec("save tran " + FREETDS_TempSavepoint);
+            ds.exec("save tran " + FreeTDS_TempSavepoint);
 
             any rv;
             try {
                 rv = ds.execRaw(sql);
             }
             catch (hash ex) {
-                ds.exec("rollback transaction " + FREETDS_TempSavepoint);
+                ds.exec("rollback transaction " + FreeTDS_TempSavepoint);
                 rethrow;
             }
             return rv;
@@ -952,10 +952,10 @@ my any $v = $c.name;
 
         private Columns describeImpl() {
             # get column descriptions
-            *hash qh = ds.select("select * from information_schema.columns where table_schema = %v and table_name = %v",
+            *hash qh = ds.select("select * from information_schema.columns where table_schema = %v and table_name = %v order by ordinal_position",
                                  schema, name);
             if (!qh.column_name)
-                throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y", name, dsdesc);
+                throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y", getSqlName(), dsdesc);
 
             hash rv;
             foreach hash row in (qh.contextIterator()) {
@@ -974,8 +974,8 @@ my any $v = $c.name;
                 FreetdsColumn c;
                 *string defval = row.column_default;
                 # normalize default value expressions
-                if (defval =~ /::bpchar$/)
-                    defval =~ s/::bpchar$//;
+                if (defval =~ /^\(\(.*\)\)$/)
+                    defval =~ s/^\(\((.*)\)\)$/$1/;
                 if (row.numeric_precision)
                     c = new FreetdsNumericColumn(row.column_name, row.data_type, th.qore, row.numeric_precision, row.is_nullable == "YES", defval, 0, row.numeric_scale);
                 else
@@ -998,7 +998,7 @@ my any $v = $c.name;
                 return new FreetdsPrimaryKey();
 
             #printf("FreetdsTable::getPrimaryKeyImpl(): %s: %N\n", getName(), qh);
-            hash rv = map {col: columns{col}}, qh.column_name;
+            hash rv = map {$1: columns.$1}, qh.column_name;
 
             return new FreetdsPrimaryKey(pkh.constraint_name, rv);
         }
@@ -1007,16 +1007,22 @@ my any $v = $c.name;
             hash rv;
 
             # get index descriptions
-            *hash qh = ds.select("select i.name as index_name, i.is_primary_key from sys.indexes i, sys.tables t, sys.schemas s where t.type_desc = 'USER_TABLE' and i.object_id = t.object_id and t.schema_id = s.schema_id and t.name = %v and s.name = %v", schema, name);
+            *hash qh = ds.select("select
+	t.name table_name, i.name index_name, i.is_unique, i.is_primary_key, c.name column_name
+from
+	sys.indexes i, sys.tables t, sys.schemas s, sys.index_columns ic, sys.columns c
+where
+	t.type_desc = 'USER_TABLE' and i.object_id = t.object_id and t.schema_id = s.schema_id
+	and t.object_id = ic.object_id and c.object_id = t.object_id and ic.column_id = c.column_id
+	and s.name = %v and t.name = %v order by i.name, ic.key_ordinal", schema, name);
 
             if (qh.index_name) {
                 hash ih;
                 foreach hash row in (qh.contextIterator()) {
                     if (!ih.(row.index_name)) {
                         ih.(row.index_name) = (
-                            "unique": row.indisunique,
-                            "filegroup": row.filegroup,
-                            "primary": row.indisprimary,
+                            "unique": row.is_unique,
+                            "primary": row.is_primary_key,
                         );
                     }
                     # send "blank" column for function index
@@ -1039,8 +1045,8 @@ my any $v = $c.name;
                         FreetdsUniqueConstraint uk = cast<FreetdsUniqueConstraint>(constraints{i.key});
                         if (uk.matchKeys(i.value.columns)) {
                             # set filegroup in constraint
-                            if (i.value.filegroup && !uk.getFilegroup())
-                                uk.setFilegroup(i.value.filegroup);
+                            if (i.value.filegroup && !uk.getTablespace())
+                                uk.setTablespace(i.value.filegroup);
                             continue;
                         }
                     }
@@ -1054,7 +1060,21 @@ my any $v = $c.name;
         private ForeignConstraints getForeignConstraintsImpl(*hash opts) {
             hash rv;
             # get foreign referential constraints
-            *hash qh = ds.select("select constraint_name, att2.attname source_column, cl.relname target_table, att.attname target_column from (select con1.conname constraint_name, generate_subscripts(con1.conkey, 1) AS rn, unnest(con1.conkey) parent, unnest(con1.confkey) child, con1.confrelid, con1.conrelid from pg_class cl join pg_namespace ns on cl.relnamespace = ns.oid join pg_constraint con1 on con1.conrelid = cl.oid where cl.relname = %v and ns.nspname = %v and con1.contype = 'f' order by conname, rn) con join pg_attribute att on att.attrelid = con.confrelid and att.attnum = con.child join pg_class cl on cl.oid = con.confrelid join pg_attribute att2 on att2.attrelid = con.conrelid and att2.attnum = con.parent order by att.attnum", name, schema);
+            *hash qh = ds.select("select tc.constraint_name, c1.column_name source_column, c2.column_name target_column
+from
+    information_schema.table_constraints tc,
+    information_schema.referential_constraints rc,
+    information_schema.key_column_usage c1,
+    information_schema.key_column_usage c2
+where
+	tc.table_schema = %v and tc.table_name = %v and tc.constraint_type = 'FOREIGN KEY'
+	and tc.constraint_catalog = rc.constraint_catalog and tc.constraint_name = rc.constraint_name
+	and rc.constraint_catalog = c1.constraint_catalog and rc.constraint_schema = c1.constraint_schema and rc.constraint_name = c1.constraint_name
+	and rc.unique_constraint_catalog = c2.constraint_catalog and rc.unique_constraint_schema = c2.constraint_schema and rc.unique_constraint_name = c2.constraint_name
+	and c2.ordinal_position = c1.ordinal_position
+order by
+	rc.constraint_name, c1.ordinal_position",
+                                 name, schema);
             if (qh.constraint_name) {
                 hash ch;
                 foreach hash row in (qh.contextIterator()) {
@@ -1077,15 +1097,24 @@ my any $v = $c.name;
 
         private Constraints getConstraintsImpl() {
             # get check constraints
-            *hash qh = ds.select("select c.conname as constraint_name, case when c.condeferrable = 'f' then 0 else 1 end as is_deferrable, case when c.condeferred = 'f' then 0 else 1 end as is_deferred, t.relname as table_name, array_to_string(c.conkey, ' ') as constraint_key, case confupdtype when 'a' then 'NO ACTION' when 'r' then 'RESTRICT' when 'c' then 'CASCADE' when 'n' then 'SET NULL' when 'd' then 'SET DEFAULT' end as on_update, case confdeltype when 'a' then 'NO ACTION' when 'r' then 'RESTRICT' when 'c' then 'CASCADE' when 'n' then 'SET NULL' when 'd' then 'SET DEFAULT' end as on_delete, case confmatchtype when 'u' then 'UNSPECIFIED' when 'f' then 'FULL' when 'p' then 'PARTIAL' end as match_type, t2.relname as references_table, array_to_string(c.confkey, ' ') as fk_constraint_key, consrc from pg_constraint c left join pg_class t on c.conrelid  = t.oid left join pg_class t2 on c.confrelid = t2.oid join pg_catalog.pg_namespace n on n.oid = t.relnamespace where c.contype = 'c' and n.nspname = %v and t.relname = %v", schema, name);
+            *hash qh;
             hash rv;
-            foreach hash row in (qh.contextIterator())
-                rv.(row.constraint_name) = new FreetdsCheckConstraint(row.constraint_name, row.consrc);
+            #foreach hash row in (qh.contextIterator())
+            #    rv.(row.constraint_name) = new FreetdsCheckConstraint(row.constraint_name, row.consrc);
 
             Constraints c = new Constraints(rv);
 
             # get unique constraints
-            qh = ds.select("select tc.constraint_name, kcu.column_name from information_schema.table_constraints tc join information_schema.key_column_usage kcu on (tc.table_schema = kcu.table_schema and tc.table_name = kcu.table_name and tc.constraint_name = kcu.constraint_name) where constraint_type = 'UNIQUE' and tc.table_schema = %v and tc.table_name = %v order by ordinal_position", schema, name);
+            qh = ds.select("select
+	tc.constraint_name, c1.column_name
+from
+	information_schema.table_constraints tc,
+	information_schema.key_column_usage c1
+where
+	tc.table_schema = 'dbo' and tc.table_name = 't1' and tc.constraint_type = 'UNIQUE'
+	and tc.constraint_catalog = c1.constraint_catalog and tc.constraint_schema = c1.constraint_schema and tc.constraint_name = c1.constraint_name
+order by
+	tc.constraint_name, c1.ordinal_position", schema, name);
             delete rv;
             foreach hash row in (qh.contextIterator()) {
                 reference ch = \rv.(row.constraint_name);
@@ -1101,51 +1130,7 @@ my any $v = $c.name;
         }
 
         private Triggers getTriggersImpl() {
-            hash rv;
-
-            # get trigger description
-            *hash qh = ds.select("select * from information_schema.triggers where event_object_schema = %v and event_object_table = %v", schema, name);
-
-            # list of trigger functions
-            list fl = ();
-            # map trigger function name -> trigger name
-            hash tfh;
-            foreach hash row in (qh.contextIterator()) {
-                *string f = (row.action_statement =~ x/EXECUTE PROCEDURE (\w+)\(\)$/)[0];
-                if (f) {
-                    fl += f;
-                    tfh{f} = row.trigger_name;
-                }
-
-                if (!native_case)
-                    map row.$1 = row.$1.lwr(), ("event_manipulation", "action_statement", "action_timing", "action_orientation");
-                if (rv{row.trigger_name}) {
-                    # add event to trigger
-                    *string px = (rv{row.trigger_name}.src =~ x/(.+) on/i)[0];
-                    if (!px)
-                        throw "FREETDS-TRIGGER-ERROR", sprintf("cannot find beginning of trigger source: %s", rv{row.trigger_name}.src);
-                    splice rv{row.trigger_name}.src, px.size(), 0, " or " + row.event_manipulation;
-                    continue;
-                }
-
-                string src = sprintf("%s %s on %s for each %s %s", row.action_timing, row.event_manipulation, name, row.action_orientation, row.action_statement);
-                rv{row.trigger_name} = new FreetdsTrigger(row.trigger_name, src);
-            }
-
-            if (fl) {
-                hash fh;
-                # also get trigger functions
-                qh = ds.select("select p.proname, t1.typname return_type, a.rolname procedure_owner, l.lanname lang, prosrc body, pg_catalog.pg_get_functiondef(proname::regproc) hdr, pg_catalog.pg_get_function_arguments(proname::regproc) args, case provolatile when 'i' then 'IMMUTABLE' when 's' then 'STABLE' when 'v' then 'VOLATILE' end stability from pg_proc p left join pg_type t1 on p.prorettype = t1.oid left join pg_authid a on p.proowner = a.oid left join pg_language l on p.prolang = l.oid where proname in (%s)", (foldl $1 + "," + $2, (map sprintf("'%s'", $1), fl)));
-
-                # create trigger function map
-                map fh{$1.proname + "()"} = FreetdsDatabase::processFunction($1 + ("trigger_name": tfh{$1.proname}), native_case), qh.contextIterator();
-
-                triggerFunctions = new Functions(fh);
-            }
-
-            #printf("gTI triggerFunctions: %N\n", triggerFunctions);
-
-            return new Triggers(rv);
+            return new Triggers();
         }
 
         #! returns a string that can be used to create the table in the database
@@ -1163,49 +1148,9 @@ my any $v = $c.name;
         }
 
         private *list getCreateMiscSqlImpl(*hash opt, bool cache) {
-            if (cache) {
-                getColumnsUnlocked();
-                getTriggersUnlocked();
-            }
-
-            list l = map AbstractDatabase::doCallback(opt, sprintf("comment on column %s.%s is '%s'", name, $1.name, $1.comment), AbstractDatabase::AC_Add, "column comment", $1.name, name), columns.iterator(), $1.comment;
-
-            if (!opt.omit_trigger_functions && !triggerFunctions.empty()) {
-                map l += AbstractDatabase::doCallback(opt, $1.getCreateSql(opt), AbstractDatabase::AC_Create, "trigger function", $1.name, name), triggerFunctions.iterator();
-            }
-
-            #printf("gCMSI triggerFunctions: %N\n", triggerFunctions);
-            return l;
         }
 
         private *list getAlignSqlImpl(AbstractTable table, *hash opt) {
-            FreetdsTable t = cast<FreetdsTable>(table);
-
-            list l = ();
-            # check for trigger functions in the template that are not present or different in the current table
-            foreach AbstractFunction f in (t.triggerFunctions.iterator()) {
-                if (!triggerFunctions.hasKey(f.name)) {
-                    # create trigger function
-                    l += AbstractDatabase::doCallback(opt, f.getCreateSql(opt), AbstractDatabase::AC_Create, "trigger function", f.name, name);
-                }
-                else if (!f.equal(triggerFunctions{f.name})) {
-                    # replace current trigger function
-                    l += AbstractDatabase::doCallback(opt, f.getCreateSql(opt + ("replace": True)), AbstractDatabase::AC_Recreate, "trigger function", f.name, name);
-                }
-            }
-
-            # check for trigger functions not in the template and drop them
-            foreach FreetdsTriggerFunction f in (triggerFunctions.iterator()) {
-                if (!t.triggerFunctions.hasKey(f.name)) {
-                    if (triggers{f.trigger}) {
-                        l += AbstractDatabase::doCallback(opt, triggers{f.trigger}.getDropSql(name), AbstractDatabase::AC_Drop, "trigger", f.trigger, name);
-                        triggers.take(f.trigger);
-                    }
-                    l += AbstractDatabase::doCallback(opt, f.getDropSql(), AbstractDatabase::AC_Drop, "trigger function", f.name, name);
-                }
-            }
-
-            return l ? l : NOTHING;
         }
 
         #! returns a string that can be used to create the table in the database
@@ -1214,7 +1159,7 @@ my any $v = $c.name;
         }
 
         private string getRenameSqlImpl(string new_name) {
-            return sprintf("alter table %s rename to %s", getSqlName(), new_name);
+            return sprintf("exec cp_name '%s', '%s'", getSqlName(), new_name);
         }
 
         private AbstractColumn addColumnImpl(string cname, hash opt, bool nullable = True) {
@@ -1250,15 +1195,15 @@ my any $v = $c.name;
 
         private bool tryInsertImpl(string sql, hash row) {
             ds.exec("begin");
-            ds.exec("savepoint " + FreetdsDatabase::FREETDS_TempSavepoint);
+            ds.exec("savepoint " + FreetdsDatabase::FreeTDS_TempSavepoint);
 
             try {
                 ds.vexec(sql, row.values());
-                ds.exec("release savepoint " + FreetdsDatabase::FREETDS_TempSavepoint);
+                ds.exec("release savepoint " + FreetdsDatabase::FreeTDS_TempSavepoint);
             }
             catch (hash ex) {
                 if (ex.desc =~ /duplicate key value/) {
-                    ds.exec("rollback to savepoint " + FreetdsDatabase::FREETDS_TempSavepoint);
+                    ds.exec("rollback to savepoint " + FreetdsDatabase::FreeTDS_TempSavepoint);
                     return False;
                 }
                 rethrow;
@@ -1295,33 +1240,14 @@ my any $v = $c.name;
         }
 
         private bool emptyImpl() {
-            return triggerFunctions.empty();
+            return True;
         }
 
         #! clears FreeTDS-specific table information
         private clearImpl() {
-            delete triggerFunctions;
-        }
-
-        private softlist getDropSqlImpl() {
-            getTriggers();
-            list l = ();
-            l += sprintf("drop table %s", getSqlName());
-            map l += $1.getDropSql(), triggerFunctions.iterator();
-            return l;
         }
 
         private setupTableImpl(hash desc, *hash opt) {
-            # add trigger functions to table
-            AbstractDatabase::checkDriverOptions(\desc.functions, ds.getDriverName());
-
-            foreach string fn in (desc.functions.keyIterator()) {
-                if (desc.functions{fn}.typeCode() != NT_STRING)
-                    throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to function key %y is not a string giving the function source code, got type %y instead (%y)", name, fn, desc.functions{fn}.type(), desc.functions{fn});
-
-                string src = desc.functions{fn};
-                addTriggerFunctionUnlocked(fn, src, fn);
-            }
         }
 
         #! returns @ref Qore::True "True" if the database links constraints to indexes (ie dropping the constraint drops the index, etc)
@@ -1331,32 +1257,22 @@ my any $v = $c.name;
 
         #! returns @ref Qore::True "True" if the database automatically creates a unique constraint when a unique index is created (ex: mysql)
         private bool uniqueIndexCreatesConstraintImpl() {
-            return False;
+            return True;
         }
 
-        #! returns @ref Qore::True "True" if the database support filegroups
+        #! returns @ref Qore::True "True" if the database support tablespaces
         private bool supportsTablespacesImpl() {
-            return True;
+            return False;
         }
 
         #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
         private doSelectLimitOnlyUnlockedImpl(reference sql, reference args, *hash qh) {
-           sql += " limit %v";
-           args += qh.limit;
+            throw "UNIMPLEMENTED", "limit not yet implemented";
         }
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
         private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch) {
-            doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch);
-            if (qh.limit) {
-                sql += " limit %v";
-                args += qh.limit;
-            }
-
-            if (qh.offset) {
-                sql += " offset %v";
-                args += qh.offset;
-            }
+            throw "UNIMPLEMENTED", "offset not yet implemented";
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
@@ -1371,8 +1287,6 @@ my any $v = $c.name;
 
         #! db-specific copy actions
         private copyImpl(AbstractTable old) {
-            if (triggerFunctions)
-                triggerFunctions = triggerFunctions.copy();
         }
 
         private *hash doReturningImpl(hash opt, reference sql, list args) {
@@ -1380,11 +1294,13 @@ my any $v = $c.name;
             foreach softstring k in (opt.returning) {
                 *FreetdsColumn c = columns{k};
                 if (!c)
-                    throw "COLUMN-ERROR", sprintf("%s.%s is not a valid column for the \"returning\" clause (valid columns: %y)", name, k, columns.keys());
+                    throw "COLUMN-ERROR", sprintf("%s.%s is not a valid column for the \"returning\" option (valid columns: %y)", name, k, columns.keys());
                 l += k;
                 args += c.qore_type ?* Type::String;
             }
-            sql += sprintf(" returning %s", (foldl $1 + "," + $2, l));
+            if (l) {
+                throw "UNIMPLEMENTED", "output not yet implemented";
+            }
 
             *hash h = execData(opt, sql, args);
             return h ? map {$1.key: $1.value[0]}, h.pairIterator() : h;
