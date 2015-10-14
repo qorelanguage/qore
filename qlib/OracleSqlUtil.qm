@@ -1777,7 +1777,7 @@ my any $v = $c.name;
             #! where operator specializations for Oracle
             const OracleOpMap = DefaultOpMap + (
                 OP_IN: (
-                    "code": string sub (object t, string cn, softlist arg, reference args) {
+                    "code": string sub (object t, string cn, softlist arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
 %ifndef NO_ORACLE
                         # Qorus bug #989 SqlUtil: oracle op_in can fail in large amount of input elements
                         # There is no support for CLOBs in WHERE clause in Oracle at all.

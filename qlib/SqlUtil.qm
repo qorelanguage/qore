@@ -3194,37 +3194,37 @@ int rows_updated = t.update(("permission_type": uop_lower()));
     #! a hash of valid operators for use in @ref where_clauses
     public const DefaultOpMap = (
         OP_LIKE: (
-            "code": string sub (object t, string cn, any arg, reference args) {
+            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 args += arg;
                 return sprintf("%s like %v", cn);
             },
         ),
         OP_LT: (
-            "code": string sub (object t, string cn, any arg, reference args) {
+            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 args += arg;
                 return sprintf("%s < %v", cn);
             },
         ),
         OP_LE: (
-            "code": string sub (object t, string cn, any arg, reference args) {
+            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 args += arg;
                 return sprintf("%s <= %v", cn);
             },
         ),
         OP_GT: (
-            "code": string sub (object t, string cn, any arg, reference args) {
+            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 args += arg;
                 return sprintf("%s > %v", cn);
             },
         ),
         OP_GE: (
-            "code": string sub (object t, string cn, any arg, reference args) {
+            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 args += arg;
                 return sprintf("%s >= %v", cn);
             },
         ),
         OP_NE: (
-            "code": string sub (object t, string cn, any arg, reference args) {
+            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 if (arg === NULL || !exists arg)
                     return sprintf("%s is not null", cn);
                 args += arg;
@@ -3232,7 +3232,7 @@ int rows_updated = t.update(("permission_type": uop_lower()));
             },
         ),
         OP_EQ: (
-            "code": string sub (object t, string cn, any arg, reference args) {
+            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 if (arg === NULL || !exists arg)
                     return sprintf("%s is null", cn);
                 args += arg;
@@ -3240,63 +3240,63 @@ int rows_updated = t.update(("permission_type": uop_lower()));
             },
         ),
         OP_BETWEEN: (
-            "code": string sub (object t, string cn, any arg, reference args) {
+            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 args += arg[0];
                 args += arg[1];
                 return sprintf("%s between %v and %v", cn);
             },
         ),
         OP_IN: (
-            "code": string sub (object t, string cn, any arg, reference args) {
+            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 *string ins = (foldl $1 + "," + $2, (map t.getSqlValue($1), arg));
                 return ins ? sprintf("%s in (%s)", cn, ins) : "1 != 1";
             },
         ),
         OP_NOT: (
             "recursive": True,
-            "code": string sub (object t, string cn, any arg, reference args) {
+            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 return sprintf("not (%s)", cn);
             },
         ),
         OP_CLT: (
             "argcolumn": True,
-            "code": string sub (object t, string cn, any arg, reference args) {
+            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 return sprintf("%s < %s", cn, arg);
             },
         ),
         OP_CLE: (
             "argcolumn": True,
-            "code": string sub (object t, string cn, any arg, reference args) {
+            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 return sprintf("%s <= %s", cn, arg);
             },
         ),
         OP_CGT: (
             "argcolumn": True,
-            "code": string sub (object t, string cn, any arg, reference args) {
+            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 return sprintf("%s > %s", cn, arg);
             },
         ),
         OP_CGE: (
             "argcolumn": True,
-            "code": string sub (object t, string cn, any arg, reference args) {
+            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 return sprintf("%s >= %s", cn, arg);
             },
         ),
         OP_CNE: (
             "argcolumn": True,
-            "code": string sub (object t, string cn, any arg, reference args) {
+            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 return sprintf("%s != %s", cn, arg);
             },
         ),
         OP_CEQ: (
             "argcolumn": True,
-            "code": string sub (object t, string cn, string arg, reference args) {
+            "code": string sub (object t, string cn, string arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 return sprintf("%s = %s", cn, arg);
             },
         ),
         OP_OR: (
-            "code": string sub (object t, string cn, any arg, reference args) {
-                return t.getOrClause(arg, \args);
+            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+                return t.getOrClause(arg, \args, jch, join, ch, psch);
             },
         ),
         );
@@ -14578,10 +14578,10 @@ string sql = table.getSelectSql(sh, \args);
             if (!cond)
                 return;
 
-            return map doWhereExpressionIntern(cprefix ? sprintf("%s.%s", cprefix, $1.key) : getColumnNameIntern($1.key, jch, join, ch, psch), $1.value, \args, jch, join, ch), cond.pairIterator();
+            return map doWhereExpressionIntern(cprefix ? sprintf("%s.%s", cprefix, $1.key) : getColumnNameIntern($1.key, jch, join, ch, psch), $1.value, \args, jch, join, ch, psch), cond.pairIterator();
         }
 
-        private string doWhereExpressionIntern(string cn, any we, reference args, *hash jch, bool join = False, *hash ch) {
+        private string doWhereExpressionIntern(string cn, any we, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
             int wt = we.typeCode();
             if (wt == NT_HASH) {
                 if (!we.op)
@@ -14594,16 +14594,16 @@ string sql = table.getSelectSql(sh, \args);
                     throw "WHERE-ERROR", sprintf("%s: operator hash for key %y has unknown operator %y: expecting one of: %y (operator hash: %y)", getDesc(), cn, we.op, wm.keys(), we);
 
                 if (cmd.recursive) {
-                    cn = doWhereExpressionIntern(cn, we.arg, \args, jch, join, ch);
+                    cn = doWhereExpressionIntern(cn, we.arg, \args, jch, join, ch, psch);
                     delete we.arg;
                 }
                 else if (cmd.argcolumn) {
                     if (!we.arg || we.arg.typeCode() != NT_STRING)
                         throw "WHERE-ERROR", sprintf("%s: operator hash for key %y expects a string column name; got type %y instead", getDesc(), cn, we.arg.type());
-                    we.arg = getColumnNameIntern(we.arg, jch, join, ch);
+                    we.arg = getColumnNameIntern(we.arg, jch, join, ch, psch);
                 }
 
-                return cmd.code(self, cn, we.arg, \args);
+                return cmd.code(self, cn, we.arg, \args, jch, join, ch, psch);
             }
             if (we === NULL || !exists we)
                 return sprintf("%s is null", cn);
@@ -14611,8 +14611,8 @@ string sql = table.getSelectSql(sh, \args);
             return sprintf("%s = %v", cn);
         }
 
-        string getOrClause(hash arg, reference args) {
-            *list wl = getWhereClauseIntern(arg, \args);
+        string getOrClause(hash arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            *list wl = getWhereClauseIntern(arg, \args, NOTHING, jch, join, ch, psch);
             return wl ? ("(" + (foldl $1 + " or " + $2, wl) + ")") : "";
         }
 
