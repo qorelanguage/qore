@@ -68,6 +68,7 @@ module SqlUtil {
     to use the %SqlUtil module with a particular database, a driver-specific module has to be available as well.
 
     Currently the following driver-specific modules are available:
+    - <a href="../../FreetdsSqlUtil/html/index.html">FreetdsSqlUtil</a>: for working with MS SQL Server and Sybase databases through the <a href="https://github.com/qorelanguage/module-sybase">freetds DBI driver</a>
     - <a href="../../MysqlSqlUtil/html/index.html">MysqlSqlUtil</a>: for working with MySQL databases
     - <a href="../../OracleSqlUtil/html/index.html">OracleSqlUtil</a>: for working with Oracle databases
     - <a href="../../PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a>: for working with PostgreSQL databases
