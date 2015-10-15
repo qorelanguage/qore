@@ -3,7 +3,7 @@
     @tableofcontents
 
     @section mod_overview Module Overview
-    
+
     %Qore modules allow the %Qore language to be extended at run-time.
 
     To load a module at parse time (normally required for most modules), use the @ref requires "%requires" or @ref try-module "%try-module" parse directive. If the named feature is not already present in %Qore, %Qore looks for a module with this name in the directories listed in the \c QORE_MODULE_DIR environment variable (see @ref environment_variables).
@@ -23,6 +23,7 @@
     |user|<a href="../../modules/BulkSqlUtil/html/index.html">BulkSqlUtil</a>|Provides APIs based on <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> for executing bulk DML operations
     |user|<a href="../../modules/CsvUtil/html/index.html">CsvUtil</a>|Provides code to help parse CSV or other structured text files and also to easily generate such files
     |user|<a href="../../modules/FixedLengthUtil/html/index.html">FixedLengthUtil</a>|Provides code to help parse data in format of fixed length lines records
+    |user|<a href="../../modules/FreetdsSqlUtil/html/index.html">FreetdsSqlUtil</a>|Provides a high-level DB-independent API for working with MS SQL Server and Sybase database objects; loaded automatically by the <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module when working with the <a href="https://github.com/qorelanguage/module-sybase">freetds DBI driver</a> for automated schema management, programmatic DB access, schema and data synchronization, and more
     |user|<a href="../../modules/HttpServer/html/index.html">HttpServer</a>|Provides a multi-threaded HTTP server and request handler APIs; provides the infrastructure for server-side HTTP services
     |user|<a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a>|Provides base definitions for handler classes integrating with the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
     |user|<a href="../../modules/MailMessage/html/index.html">MailMessage</a>|Provides supporting classes for the <a href="../../modules/Pop3Client/html/index.html">Pop3Client</a> and <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> modules; mail message serialization and deserialization, attachment handling
@@ -81,7 +82,7 @@
     @section binary_modules Binary Modules
 
     Binary modules are written in C++ and delivered in binary form. They must conform to the %Qore Module API and have the file extension \c "*.qmod". Binary modules normally depend on other shared libraries and therefore can only be loaded if the libraries they require are present on the system and can be found in the library path.
-    
+
     Binary modules are merged into @ref Qore::Program "Program" objects in the same way as the static system namespace objects are imported.  It is possible to import a binary module and be able to use only part of its functionality, for example, if the importing @ref Qore::Program "Program" cannot access the filesystem, and the module has functions that access the filesystem, only the functions that access the filesystem will not be available.  In user modules, the functional domain is set on the module level and not on the individual function or method level as with builtin objects, so user modules are either completely imported or not at all.
 
     Please note that as of version 0.7.0 onwards, the source code for binary modules has been split from the main %Qore library source code into separate projects; see <a href="http://www.qore.org">%Qore's home page</a> for more information.
@@ -111,7 +112,7 @@
     @subsection user_module_declarations User Module Declarations
 
     User modules are declared with a special syntax in %Qore:
-    
+
     <b>User Module Declaration Syntax</b>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<b><tt>module</tt></b> <i>name</i> <tt>{</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<tt><b>version</b> = &quot;</tt><i>version string</i><tt>&quot;;</tt>\n
@@ -231,7 +232,7 @@ public namespace Bar {
     Therefore when using a module that provides services in its own threads (such as, for example, the
     <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module), it's important to make sure that the application
     object does not go out of scope while non-static method call references to the application object are needed by active threads
-    inthe user module (for example, non-static method call references passed as callbacks to the 
+    inthe user module (for example, non-static method call references passed as callbacks to the
     <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module, etc).
 
     This also applies to call references to non-static methods passed to set_signal_handler().
