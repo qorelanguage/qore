@@ -343,6 +343,11 @@ my string $str = $col.getRenameSql($t, "new_name");
             delete index;
         }
 
+        #! adds index options onto the sql creation string
+        getIndexSql(reference sql, string name, *hash opts) {
+            sql += sprintf(" (%s)", (foldl $1 + ", " + $2, keyIterator()));
+        }
+
         #! returns an iterator for keys iterating a list of string key names
         abstract AbstractIterator keyIterator();
     }
@@ -450,6 +455,7 @@ my any $v = $c.name;
         #! returns a string that can be used to create the constraint
         string getCreateSql(string table_name, *hash opts) {
             string sql = sprintf("alter table %s add constraint %s primary key", table_name, name);
+            getIndexSql(\sql, name, opts);
             return sql;
         }
 
@@ -573,6 +579,9 @@ my any $v = $c.name;
     #! provides the FreeTDS-specific implementation of the AbstractDatabase interface
     public class FreetdsDatabase inherits SqlUtil::AbstractDatabase {
         public {
+            #! sybase flag
+            bool is_sybase;
+
             #! FreeTDS-specific schema description keys
             const FreetdsSchemaDescriptionOptions = AbstractDatabase::SchemaDescriptionOptions;
 
@@ -583,6 +592,7 @@ my any $v = $c.name;
         }
 
         constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
+            is_sybase = FreetdsDatabase::isSybase(ds);
         }
 
         private list featuresImpl() {
@@ -634,7 +644,8 @@ my any $v = $c.name;
 
         #! returns a list of string table names in the database
         private softlist listTablesImpl() {
-            return ds.select("select table_name from information_schema.tables").table_name;
+            return ds.select("select name from sysobjects where type = %v", "U").name;
+            #return ds.select("select table_name from information_schema.tables").table_name;
         }
 
         #! returns a list of string function names in the database
@@ -658,7 +669,8 @@ my any $v = $c.name;
         }
 
         private list listViewsImpl() {
-            return ds.select("select table_name from information_schema.views").table_name;
+            return ds.select("select name from sysobjects where type = %v", "V").name;
+            #return ds.select("select table_name from information_schema.views").table_name;
         }
 
         #! returns a string that can be used to create the schema in the database
@@ -666,9 +678,14 @@ my any $v = $c.name;
             return FreetdsDatabase::getCreateSql(l);
         }
 
+        #! returns @ref True if the DB is a Sybase database
+        static bool isSybase(AbstractDatasource ds) {
+            return ds.getServerVersion() =~ /Adaptive Server/;
+        }
+
         #! returns a string that can be used to create the schema in the database
         static string getCreateSql(list l) {
-            return !l ? "" : foldl $1 + "\n" + $2, (map sprintf("%s%s", $1, $1 =~ /(;|\$)$/ ? "" : ";"), l);
+            return !l ? "" : foldl $1 + "\n" + $2, l;
         }
 
         #! returns driver-specific options to the base abstract class
@@ -769,6 +786,9 @@ my any $v = $c.name;
     #! provides the FreeTDS-specific implementation of the SqlUtil::AbstractTable interface
     public class FreetdsTable inherits SqlUtil::AbstractTable {
         public {
+            #! sybase flag
+            bool is_sybase;
+
             #! maps postgresql type names to type configurations
             const FreetdsTypeMap = (
                 "numeric": ("qore": Type::Number, "size": SZ_NUM,),
@@ -885,6 +905,7 @@ my any $v = $c.name;
         }
 
         constructor(AbstractDatasource nds, string nname, *hash opts) : AbstractTable(nds, nname, opts) {
+            is_sybase = FreetdsDatabase::isSybase(ds);
             # see if there is a schema in the name
             parse_schema_name(nname, \schema, \name);
         }
@@ -944,13 +965,58 @@ my any $v = $c.name;
         }
 
         private bool checkExistenceImpl() {
-            *hash qh = ds.selectRow("select * from information_schema.tables where table_schema = %v and table_name = %v", schema, name);
+            *hash qh = ds.selectRow("select name from sysobjects where type = %v and name = %v", "U", name);
+            #*hash qh = ds.selectRow("select * from information_schema.tables where table_schema = %v and table_name = %v", schema, name);
             if (qh)
                 return inDb = True;
             return False;
         }
 
         private Columns describeImpl() {
+            return is_sybase ? describeSybaseImpl() : describeMssqlImpl();
+        }
+
+        private Columns describeSybaseImpl() {
+            # get column descriptions
+            *hash qh = ds.select("select
+	sc.name column_name, t.name data_type, sc.prec numeric_precision, sc.scale numeric_scale, sc.length, substring(cm.text, 10, 500) column_default,
+        case sc.status & 0x8 when 0x8 then 'YES' else 'NO' end is_nullable
+from
+	syscolumns sc
+	join sysobjects so on (sc.id = so.id)
+	left join systypes t on (/*sc.type = t.type and */sc.usertype = t.usertype)
+	left join syscomments cm on (cm.id = case when sc.cdefault = 0 then sc.computedcol else sc.cdefault end)
+where
+	so.name = %v", name);
+            if (!qh.column_name)
+                throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y", getSqlName(), dsdesc);
+
+            hash rv;
+            foreach hash row in (qh.contextIterator()) {
+                *hash th = FreetdsTypeMap.(row.data_type);
+                softint size = row.length;
+                switch (th.qore) {
+                    case Type::Int:
+                    case Type::Float: {
+                        size = 0;
+                        break;
+                    }
+                }
+
+                FreetdsColumn c;
+                *string defval = row.column_default;
+                if (row.numeric_precision)
+                    c = new FreetdsNumericColumn(row.column_name, row.data_type, th.qore, row.numeric_precision, row.is_nullable == "YES", defval, 0, row.numeric_scale);
+                else
+                    c = new FreetdsColumn(row.column_name, row.data_type, th.qore, exists size ? size : 0, row.is_nullable == "YES", defval, row.length);
+
+                rv.(row.column_name) = c;
+            }
+
+            return new Columns(rv);
+        }
+
+        private Columns describeMssqlImpl() {
             # get column descriptions
             *hash qh = ds.select("select * from information_schema.columns where table_schema = %v and table_name = %v order by ordinal_position",
                                  schema, name);
@@ -988,6 +1054,54 @@ my any $v = $c.name;
         }
 
         private FreetdsPrimaryKey getPrimaryKeyImpl() {
+            return is_sybase ? getPrimaryKeySybaseImpl() : getPrimaryKeyMssqlImpl();
+        }
+
+        private FreetdsPrimaryKey getPrimaryKeySybaseImpl() {
+            *hash pkh = ds.selectRow("select
+	object_name(i.id) table_name, i.indid, i.keycnt,
+	-- i.status & 2048,
+	i.name constraint_name, i.id,
+	case (i.status2 & 512) when 512 then 'YES' else 'NO' END is_clustered, --this identifies pkey constrained clustered indexes
+	index_col(object_name(i.id),i.indid,1) col1,
+	index_col(object_name(i.id),i.indid,2) col2,
+	index_col(object_name(i.id),i.indid,3) col3,
+	index_col(object_name(i.id),i.indid,4) col4,
+	index_col(object_name(i.id),i.indid,5) col5,
+	index_col(object_name(i.id),i.indid,6) col6,
+	index_col(object_name(i.id),i.indid,7) col7,
+	index_col(object_name(i.id),i.indid,8) col8,
+	index_col(object_name(i.id),i.indid,9) col9,
+	index_col(object_name(i.id),i.indid,10) col10,
+	index_col(object_name(i.id),i.indid,11) col11,
+	index_col(object_name(i.id),i.indid,12) col12,
+	index_col(object_name(i.id),i.indid,13) col13,
+	index_col(object_name(i.id),i.indid,14) col14,
+	index_col(object_name(i.id),i.indid,15) col15,
+	index_col(object_name(i.id),i.indid,16) col16,
+	s.name segment_name
+from sysindexes i
+	inner join sysobjects o on (o.id = i.id)
+	inner join syssegments s on (i.segment = s.segment)
+where
+	o.type = 'U'
+	and i.indid between 1 and 254
+	and o.uid = 1
+	and (((i.status2 & 3) > 0)
+		 or charindex(convert(varchar,i.id),i.name) > 0)
+    and object_name(i.id) = %v", name);
+            if (!pkh.constraint_name)
+                return new FreetdsPrimaryKey();
+
+            hash rv;
+            for (int i = 1; i <= pkh.keycnt; ++i) {
+                string key = pkh{"col" + i};
+                rv{key} = columns{key};
+            }
+            return new FreetdsPrimaryKey(pkh.constraint_name, rv);
+        }
+
+        private FreetdsPrimaryKey getPrimaryKeyMssqlImpl() {
             *hash pkh = ds.selectRow("select * from information_schema.table_constraints where table_schema = %v and table_name = %v and constraint_type = 'PRIMARY KEY'", schema, name);
             if (!pkh.constraint_name)
                 return new FreetdsPrimaryKey();
@@ -1004,6 +1118,14 @@ my any $v = $c.name;
         }
 
         private Indexes getIndexesImpl() {
+            return is_sybase ? getIndexesSybaseImpl() : getIndexesMssqlImpl();
+        }
+
+        private Indexes getIndexesSybaseImpl() {
+            return new Indexes();
+        }
+
+        private Indexes getIndexesMssqlImpl() {
             hash rv;
 
             # get index descriptions
@@ -1058,6 +1180,14 @@ where
         }
 
         private ForeignConstraints getForeignConstraintsImpl(*hash opts) {
+            return is_sybase ? getForeignConstraintsSybaseImpl() : getForeignConstraintsMssqlImpl();
+        }
+
+        private ForeignConstraints getForeignConstraintsSybaseImpl() {
+            return new ForeignConstraints();
+        }
+
+        private ForeignConstraints getForeignConstraintsMssqlImpl() {
             hash rv;
             # get foreign referential constraints
             *hash qh = ds.select("select tc.constraint_name, c1.column_name source_column, c2.column_name target_column
@@ -1096,6 +1226,14 @@ order by
         }
 
         private Constraints getConstraintsImpl() {
+            return is_sybase ? getConstraintsSybaseImpl() : getConstraintsMssqlImpl();
+        }
+
+        private Constraints getConstraintsSybaseImpl() {
+            return new Constraints();
+        }
+
+        private Constraints getConstraintsMssqlImpl() {
             # get check constraints
             *hash qh;
             hash rv;
@@ -1111,7 +1249,7 @@ from
 	information_schema.table_constraints tc,
 	information_schema.key_column_usage c1
 where
-	tc.table_schema = 'dbo' and tc.table_name = 't1' and tc.constraint_type = 'UNIQUE'
+	tc.table_schema = %v and tc.table_name = %v and tc.constraint_type = 'UNIQUE'
 	and tc.constraint_catalog = c1.constraint_catalog and tc.constraint_schema = c1.constraint_schema and tc.constraint_name = c1.constraint_name
 order by
 	tc.constraint_name, c1.ordinal_position", schema, name);
