@@ -415,6 +415,12 @@ static QoreValue get_hard_value_param(const QoreValueList* n, qore_size_t i) {
 //! sets up an object pointer
 #define HARD_QORE_VALUE_OBJ_OR_NOTHING_DATA(vname, Type, list, i, cid, xsink) HARD_QORE_VALUE_OR_NOTHING_PARAM(obj_##vname, const QoreObject, list, i); Type* vname = obj_##vname ? reinterpret_cast<Type*>(obj_##vname->getReferencedPrivateData(cid, xsink)) : 0;
 
+//! returns the QoreEncoding corresponding to the string passed or a default encoding
+static inline const QoreEncoding* get_value_encoding_param(const QoreValueList* n, qore_size_t i, const QoreEncoding* def = QCS_DEFAULT) {
+   const QoreStringNode* str = HARD_QORE_VALUE_STRING(n, i);
+   return str ? QEM.findCreate(str) : def;
+}
+
 static inline const QoreEncoding* get_hard_qore_value_encoding_param(const QoreValueList* n, qore_size_t i) {
    HARD_QORE_VALUE_PARAM(str, const QoreStringNode, n, i);
    return QEM.findCreate(str);
