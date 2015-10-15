@@ -206,7 +206,7 @@ public namespace FreetdsSqlUtil {
         }
 
         #! creates the column from the supplied arguments
-        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, softint bs) : AbstractColumn(n, nt, qt, sz, nul, dv) {
+        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs) : AbstractColumn(n, nt, qt, sz, nul, dv, cm) {
             byte_size = bs;
         }
 
@@ -298,7 +298,7 @@ my string $str = $col.getRenameSql($t, "new_name");
     #! represents a FreeTDS-specific numeric column
     public class FreetdsNumericColumn inherits FreetdsColumn, SqlUtil::NumericColumnInfo {
         #! creates the column from the supplied arguments
-        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, softint bs, softint n_scale) : FreetdsColumn(n, nt, qt, sz, nul, dv, bs), NumericColumnInfo(n_scale) {
+        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs, softint n_scale) : FreetdsColumn(n, nt, qt, sz, nul, dv, cm, bs), NumericColumnInfo(n_scale) {
         }
 
         #! returns a string giving the native type of the column
@@ -1006,9 +1006,9 @@ where
                 FreetdsColumn c;
                 *string defval = row.column_default;
                 if (row.numeric_precision)
-                    c = new FreetdsNumericColumn(row.column_name, row.data_type, th.qore, row.numeric_precision, row.is_nullable == "YES", defval, 0, row.numeric_scale);
+                    c = new FreetdsNumericColumn(row.column_name, row.data_type, th.qore, row.numeric_precision, row.is_nullable == "YES", defval, NOTHING, 0, row.numeric_scale);
                 else
-                    c = new FreetdsColumn(row.column_name, row.data_type, th.qore, exists size ? size : 0, row.is_nullable == "YES", defval, row.length);
+                    c = new FreetdsColumn(row.column_name, row.data_type, th.qore, exists size ? size : 0, row.is_nullable == "YES", defval, NOTHING, row.length);
 
                 rv.(row.column_name) = c;
             }
@@ -1043,9 +1043,9 @@ where
                 if (defval =~ /^\(\(.*\)\)$/)
                     defval =~ s/^\(\((.*)\)\)$/$1/;
                 if (row.numeric_precision)
-                    c = new FreetdsNumericColumn(row.column_name, row.data_type, th.qore, row.numeric_precision, row.is_nullable == "YES", defval, 0, row.numeric_scale);
+                    c = new FreetdsNumericColumn(row.column_name, row.data_type, th.qore, row.numeric_precision, row.is_nullable == "YES", defval, NOTHING, 0, row.numeric_scale);
                 else
-                    c = new FreetdsColumn(row.column_name, row.data_type, th.qore, exists size ? size : 0, row.is_nullable == "YES", defval, row.character_octet_length);
+                    c = new FreetdsColumn(row.column_name, row.data_type, th.qore, exists size ? size : 0, row.is_nullable == "YES", defval, NOTHING, row.character_octet_length);
 
                 rv.(row.column_name) = c;
             }
