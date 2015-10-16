@@ -1,22 +1,22 @@
 #!/usr/bin/env qr
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-%exec-class Test
+%require-types
+%enable-all-warnings
+%new-style
 
 %requires ../../../../../qlib/QUnit.qm
 
-%require-types
-%require-our
-%enable-all-warnings
+%exec-class Test
 
 class Test inherits QUnit::Test {
     private {
-	const DataList = (
-	    "a2ps-4.13-1332.1.x86_64",
-	    "a2ps-devel-4.13-1332.1.x86_64",
-	    "aaa_base-11.3-7.2.x86_64",
+        const DataList = (
+            "a2ps-4.13-1332.1.x86_64",
+            "a2ps-devel-4.13-1332.1.x86_64",
+            "aaa_base-11.3-7.2.x86_64",
             "příliš žluťoučký kůň úpěl ďábelské ódy",
-	    );
+        );
 
         const DataListUtf16 = map convert_encoding($1, "utf16"), DataList;
     }
@@ -47,7 +47,7 @@ class Test inherits QUnit::Test {
     }
 
     doTestsExplicit(string eol) {
-	string data = foldl $1 + eol + $2, DataList;
+        string data = foldl $1 + eol + $2, DataList;
         DataLineIterator di(data, eol);
         doTestsIntern(data, di);
     }
