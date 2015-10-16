@@ -2,7 +2,10 @@
 
 %require-our
 %enable-all-warnings
+%old-style
+
 %requires UnitTest
+
 %exec-class thread_object_test
 
 const opts = 
@@ -12,9 +15,9 @@ const opts =
 class thread_object_test {
     constructor() {
         my UnitTest $t();
-	$.process_command_line();
-	new CounterTest($.threads, $.iters, $t);
-	new QueueTest($.threads, $.iters, $t);
+        $.process_command_line();
+        new CounterTest($.threads, $.iters, $t);
+        new QueueTest($.threads, $.iters, $t);
         new ThreadTest($.threads, $.iters, $t);
     }
 
@@ -38,88 +41,88 @@ class thread_object_test {
         if ($.o.help)
             $.usage();
 
-	$.iters = int(shift $ARGV);
-	if (!$.iters)
-	    $.iters = 2000;
-	$.threads = int(shift $ARGV);
-	if (!$.threads)
-	    $.threads = 5;
+        $.iters = int(shift $ARGV);
+        if (!$.iters)
+            $.iters = 2000;
+        $.threads = int(shift $ARGV);
+        if (!$.threads)
+            $.threads = 5;
     }
 }
 
 class CounterTest {
     constructor(int $threads, int $iters, UnitTest $t) {
-	$.threads = $threads;
-	$.iters = $iters;
-	$.obj.key.500.hello = 0;
+        $.threads = $threads;
+        $.iters = $iters;
+        $.obj.key.500.hello = 0;
 
-	$.c = new Counter();
-	$.do_threads();
-	$.c.waitForZero();
+        $.c = new Counter();
+        $.do_threads();
+        $.c.waitForZero();
         $t.ok(!$.obj.key.500.hello, "counter");
     }
 
     private do_threads() {
-	while ($.threads--) {
-	    $.c.inc();
-	    background $.add();
-	    $.c.inc();
-	    background $.subtract();
-	}
+        while ($.threads--) {
+            $.c.inc();
+            background $.add();
+            $.c.inc();
+            background $.subtract();
+        }
     }
 
     private add() {
-	for (my int $i = 0; $i < $.iters; $i++)
-	    $.obj.key.500.hello++;
-	$.c.dec();
+        for (my int $i = 0; $i < $.iters; $i++)
+            $.obj.key.500.hello++;
+        $.c.dec();
     }
 
     private subtract() {
-	for (my int $i = 0; $i < $.iters; $i++)
-	    $.obj.key.500.hello--;
-	$.c.dec();
+        for (my int $i = 0; $i < $.iters; $i++)
+            $.obj.key.500.hello--;
+        $.c.dec();
     }
 }
 
 class QueueTest {
     constructor(softint $threads, softint $iters, UnitTest $t) {
-	$.q = new Queue();
-	$.x = new Counter();
-	
-	for (my int $i; $i < $threads; $i++) {
-	    $.x.inc();
-	    background $.qt($threads, $iters);
-	}
-	my int $c = $threads * $iters;
-	while ($c--)
-	    if (rand() % 2)
-	        $.q.pop();
-	    else
-		$.q.get();
+        $.q = new Queue();
+        $.x = new Counter();
+        
+        for (my int $i; $i < $threads; $i++) {
+            $.x.inc();
+            background $.qt($threads, $iters);
+        }
+        my int $c = $threads * $iters;
+        while ($c--)
+            if (rand() % 2)
+                $.q.pop();
+            else
+                $.q.get();
 
-	$.x.waitForZero();
+        $.x.waitForZero();
         $t.ok(!$.q.size(), "queue");
     }
 
     private qt(int $threads, int $iters) {
-	for (my $i; $i < $iters; $i++)
-	    $.q.push(sprintf("tid-%d-%d", gettid(), $i));
-	$.x.dec();
+        for (my $i; $i < $iters; $i++)
+            $.q.push(sprintf("tid-%d-%d", gettid(), $i));
+        $.x.dec();
     }
 }
 
 class ThreadTest inherits Mutex {
     constructor(softint $threads, softint $iters, UnitTest $t) {
-	$.iters = $iters;
+        $.iters = $iters;
         $.drw = new RWLock();
         $.g   = new Gate();
         $.c   = new Counter();
         while ($threads) {
-	    $.c.inc();
-	    background $.worker();
+            $.c.inc();
+            background $.worker();
             $threads--;
         }
-	$.c.waitForZero();
+        $.c.waitForZero();
         $t.ok(True, "thread object tests");
     }
     getData(list $list) {
@@ -203,7 +206,7 @@ class ThreadTest inherits Mutex {
                 continue;
             }
         }
-	$.c.dec();
+        $.c.dec();
     }
 }
 
