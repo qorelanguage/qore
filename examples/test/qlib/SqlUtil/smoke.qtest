@@ -3,31 +3,33 @@
 
 %require-types
 %enable-all-warnings
-%requires UnitTest
-%requires ../../../../qlib/SqlUtil.qm
-%require-types
+%new-style
 
-my UnitTest $t();
+%requires UnitTest
+
+%requires ../../../../qlib/SqlUtil.qm
+
+my UnitTest t();
 
 # {{{ create test db
 
 # get datasource connect string
-my *string $connstr;
+my *string connstr;
 do {
-    $connstr = shift $ARGV;
-} while ($connstr[0] == '-');
+    connstr = shift ARGV;
+} while (connstr[0] == '-');
 
-if (!$connstr) {
-    $connstr = $ENV.QORE_DB_CONNSTR;
-    if (!$connstr) {
-        my string $hn = gethostname();
-        switch ($hn) {
-            case /^star/: $connstr = "oracle:omquser/omquser@star"; break;
-            case /^quark/: $connstr = "oracle:omquser/omquser@el7"; break;
+if (!connstr) {
+    connstr = ENV.QORE_DB_CONNSTR;
+    if (!connstr) {
+        my string hn = gethostname();
+        switch (hn) {
+            case /^star/: connstr = "oracle:omquser/omquser@star"; break;
+            case /^quark/: connstr = "oracle:omquser/omquser@el7"; break;
             case /^el6/:
             case /^el5/:
             case /^manatee/:
-            case /^xbox/: $connstr = "oracle:omquser/omquser@xbox"; break;
+            case /^xbox/: connstr = "oracle:omquser/omquser@xbox"; break;
             default: {
                 stderr.printf("cannot detect DB connect string from hostname and QORE_DB_CONNSTR environment variable not set; cannot run SqlUtil tests\n");
                 return;
@@ -36,17 +38,17 @@ if (!$connstr) {
     }
 }
 
-my Datasource $ds;
+my Datasource ds;
 try {
-    $ds = new Datasource($connstr);
-    $ds.open();
+    ds = new Datasource(connstr);
+    ds.open();
 }
-catch (hash $ex) {
-    stderr.printf("cannot connect to %y; skipping SqlUtil tests\n", $connstr);
+catch (hash ex) {
+    stderr.printf("cannot connect to %y; skipping SqlUtil tests\n", connstr);
     return;
 }
 
-my Database $db($ds);
+my Database db(ds);
 
 const TEST_SCHEMA = (
     "tables"    : TEST_SCHEMA_TABLES,
@@ -71,7 +73,7 @@ const T_SOME_TABLE = (
     )
 );
 
-my hash $opts = (
+my hash opts = (
     "info_callback"         : \infoCallback(),
     "sql_callback"          : \sqlCallback(),
     "sql_callback_executed" : True,
@@ -81,58 +83,58 @@ my hash $opts = (
 # {{{ smoke tests
 
 # CREATE TABLE test
-$db.dropTableIfExists(TEST_TABLE_NAME);
-$db.getAlignSql(TEST_SCHEMA, $opts);
-my Table $table($connstr, TEST_TABLE_NAME);
-$t.ok($table.checkExistence(), "create table: existence of 3-columned table checked");
+db.dropTableIfExists(TEST_TABLE_NAME);
+db.getAlignSql(TEST_SCHEMA, opts);
+my Table table(connstr, TEST_TABLE_NAME);
+t.ok(table.checkExistence(), "create table: existence of 3-columned table checked");
 
 # INSERT test
-$table.insert(("id": 1, "col_a": "A1", "col_b" : "B1"));
-$table.insert(("id": 2, "col_a": "A2", "col_b" : "B2"));
-$t.cmp($table.rowCount(), 2, "insert: 2 rows inserted");
+table.insert(("id": 1, "col_a": "A1", "col_b" : "B1"));
+table.insert(("id": 2, "col_a": "A2", "col_b" : "B2"));
+t.cmp(table.rowCount(), 2, "insert: 2 rows inserted");
 
 # SELECT test
-my hash $data = $table.select();
-$t.cmp($data, ("id" : (1, 2), 'col_a' : ('A1', 'A2'), 'col_b' : ('B1', 'B2')), 'select: data checked');
-$t.cmp($data.id[2], NOTHING, "select: row 2, not exists");
+my hash data = table.select();
+t.cmp(data, ("id" : (1, 2), 'col_a' : ('A1', 'A2'), 'col_b' : ('B1', 'B2')), 'select: data checked');
+t.cmp(data.id[2], NOTHING, "select: row 2, not exists");
 
 # UPDATE test
-$table.update(("col_b" : "new B2"), ("id" : 2));
-$data = $table.selectRow(("where" : ("id" : 2)));
-$t.cmp($data.col_b, 'new B2', "update: new value checked");
+table.update(("col_b" : "new B2"), ("id" : 2));
+data = table.selectRow(("where" : ("id" : 2)));
+t.cmp(data.col_b, 'new B2', "update: new value checked");
 
 # DELETE test
-$table.del(("id" : 2));
-$t.cmp($table.rowCount(), 1, "delete: we have only row rest");
-$data = $table.select(("where" : ("id" : 2)));
-$t.cmp(elements $data.id, 0, "delete: no rows with removed id found");
+table.del(("id" : 2));
+t.cmp(table.rowCount(), 1, "delete: we have only row rest");
+data = table.select(("where" : ("id" : 2)));
+t.cmp(elements data.id, 0, "delete: no rows with removed id found");
 
 # DROP TABLE test
-$db.dropTableIfExists(TEST_TABLE_NAME);
-my Table $removed_table($connstr, TEST_TABLE_NAME);
-$t.ok(!$removed_table.checkExistence(), "drop table: no table found");
+db.dropTableIfExists(TEST_TABLE_NAME);
+my Table removed_table(connstr, TEST_TABLE_NAME);
+t.ok(!removed_table.checkExistence(), "drop table: no table found");
 
 # }}}
 
 # {{{ infoCallback # TODO: move to module
 
-sub infoCallback(string $str, int $ac, string $type, string $name, *string $tab, *string $new_name, *string $i) {
-    if ($ac != AbstractDatabase::AC_Unchanged) {
-        printf("INFO> %s\n", $str);
+sub infoCallback(string str, int ac, string type, string name, *string tab, *string new_name, *string i) {
+    if (ac != AbstractDatabase::AC_Unchanged) {
+        printf("INFO> %s\n", str);
     }
 }
 
 # }}}
 # {{{ sqlCallback # TODO: move to module
 
-sub sqlCallback(string $sql) {
-    if ($opts.verbose) {
-        printf("EXEC> %s\n", $sql);
+sub sqlCallback(string sql) {
+    if (opts.verbose) {
+        printf("EXEC> %s\n", sql);
     }
     try {
-        $ds.execRaw($sql);
+        ds.execRaw(sql);
     }
-    catch ($ex) {
+    catch (ex) {
         rethrow;
     }
 }
