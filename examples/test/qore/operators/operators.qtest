@@ -3,6 +3,7 @@
 
 %require-types
 %enable-all-warnings
+%new-style
 
 %requires ../../../../qlib/QUnit.qm
 
@@ -15,123 +16,123 @@ class Test inherits QUnit::Test {
     }
 
     basicTests() {
-	int a = 1;
-	testAssertionValue("variable assignment", a, 1);
-	a += 3;
-	testAssertionValue("integer += operator", a, 4);
-	a -= 2;
-	testAssertionValue("integer -= operator", a, 2);
-	a |= 1;
-	testAssertionValue("|= operator", a, 3);
-	a &= 1;
-	testAssertionValue("&= operator", a, 1);
-	a *= 10;
-	testAssertionValue("integer *= operator", a, 10);
-	float f = a;
-	f *= 2.2;
-	testAssertionValue("first float *= operator", f, 22.0);
-	f *= 2;
-	testAssertionValue("second float *= operator", f, 44.0);
-	f /= 4.4;
-	testAssertionValue("float /= operator", f, 10.0);
-	a = 10;
-	a /= 2;
-	testAssertionValue("integer /= operator", a, 5);
-	testAssertionValue("first / operator", 4 / 2, 2);
-	a = 0xfdb4902a;
-	a ^= 0xbf40e848;
-	testAssertionValue("^= xor equals operator", a, 0x42f47862);
-	a <<= 2;
-	testAssertionValue("<<= shift-left-equals operator", a, 0x10bd1e188);
-	a >>= 3;
-	testAssertionValue(">>= shift-right-equals operator", a, 0x217a3c31);
-	a = 1;
-	testAssertionValue("pre post-increment (++) operator", a++, 1);
-	testAssertionValue("post post-increment (++) operator", a, 2);
-	testAssertionValue("pre post-decrement (--) operator", a--, 2);
-	testAssertionValue("post post-decrement (--) operator", a, 1);
-	testAssertionValue("pre-increment (++) operator", ++a, 2);
-	testAssertionValue("pre-decrement (--) operator", --a, 1);
+        int a = 1;
+        testAssertionValue("variable assignment", a, 1);
+        a += 3;
+        testAssertionValue("integer += operator", a, 4);
+        a -= 2;
+        testAssertionValue("integer -= operator", a, 2);
+        a |= 1;
+        testAssertionValue("|= operator", a, 3);
+        a &= 1;
+        testAssertionValue("&= operator", a, 1);
+        a *= 10;
+        testAssertionValue("integer *= operator", a, 10);
+        float f = a;
+        f *= 2.2;
+        testAssertionValue("first float *= operator", f, 22.0);
+        f *= 2;
+        testAssertionValue("second float *= operator", f, 44.0);
+        f /= 4.4;
+        testAssertionValue("float /= operator", f, 10.0);
+        a = 10;
+        a /= 2;
+        testAssertionValue("integer /= operator", a, 5);
+        testAssertionValue("first / operator", 4 / 2, 2);
+        a = 0xfdb4902a;
+        a ^= 0xbf40e848;
+        testAssertionValue("^= xor equals operator", a, 0x42f47862);
+        a <<= 2;
+        testAssertionValue("<<= shift-left-equals operator", a, 0x10bd1e188);
+        a >>= 3;
+        testAssertionValue(">>= shift-right-equals operator", a, 0x217a3c31);
+        a = 1;
+        testAssertionValue("pre post-increment (++) operator", a++, 1);
+        testAssertionValue("post post-increment (++) operator", a, 2);
+        testAssertionValue("pre post-decrement (--) operator", a--, 2);
+        testAssertionValue("post post-decrement (--) operator", a, 1);
+        testAssertionValue("pre-increment (++) operator", ++a, 2);
+        testAssertionValue("pre-decrement (--) operator", --a, 1);
 
-	string astr = "hello" + " there";
-	testAssertionValue("string concatenation", astr, "hello there");
-	astr += " gee";
-	testAssertionValue("string plus equals", astr, "hello there gee");
+        string astr = "hello" + " there";
+        testAssertionValue("string concatenation", astr, "hello there");
+        astr += " gee";
+        testAssertionValue("string plus equals", astr, "hello there gee");
 
-	f = 1.0;
-	f += 1.2;
-	testAssertionValue("float += operator", f, 2.2);
-	f -= 1.1;
-	testAssertionValue("float -= operator", f, 1.1);
-	f = 5.5 * 2.0;
-	testAssertionValue("float * operator", f, 11.0);
+        f = 1.0;
+        f += 1.2;
+        testAssertionValue("float += operator", f, 2.2);
+        f -= 1.1;
+        testAssertionValue("float -= operator", f, 1.1);
+        f = 5.5 * 2.0;
+        testAssertionValue("float * operator", f, 11.0);
 
-	testAssertionValue("date > operator", now() > (now() - 1D), True);
-	testAssertionValue("date >= operator", now() >= (now() - 1h), True);
-	testAssertionValue("date < operator", (now() - 1m) < now(), True);
-	testAssertionValue("date <= operator", (now() - 1M) <= now(), True);
+        testAssertionValue("date > operator", now() > (now() - 1D), True);
+        testAssertionValue("date >= operator", now() >= (now() - 1h), True);
+        testAssertionValue("date < operator", (now() - 1m) < now(), True);
+        testAssertionValue("date <= operator", (now() - 1M) <= now(), True);
 
-	date bt = date at = now();
-	testAssertionValue("date == operator", at, bt);
-	at = 2004-02-28-12:00:00;
-	at += 1D;
-	testAssertionValue("first date += operator", at, 2004-02-29-12:00:00);
-	at -= (3h + 5m);
-	testAssertionValue("second date += operator", at, 2004-02-29-08:55:00);
+        date bt = date at = now();
+        testAssertionValue("date == operator", at, bt);
+        at = 2004-02-28-12:00:00;
+        at += 1D;
+        testAssertionValue("first date += operator", at, 2004-02-29-12:00:00);
+        at -= (3h + 5m);
+        testAssertionValue("second date += operator", at, 2004-02-29-08:55:00);
 
-	any ni += 3.2;
-	testAssertionValue("float +=, lhs NOTHING", ni, 3.2);
-	delete ni;
-	ni += "hello";
-	testAssertionValue("string +=, lhs NOTHING", ni, "hello");
-	delete ni;
-	ni -= 4.5;
-	testAssertionValue("float -=, lhs NOTHING", ni, -4.5);
-	delete ni;
-	ni -= 4;
-	testAssertionValue("integer -=, lhs NOTHING", ni, -4);
-	# some array and hash tests in separate functions
+        any ni += 3.2;
+        testAssertionValue("float +=, lhs NOTHING", ni, 3.2);
+        delete ni;
+        ni += "hello";
+        testAssertionValue("string +=, lhs NOTHING", ni, "hello");
+        delete ni;
+        ni -= 4.5;
+        testAssertionValue("float -=, lhs NOTHING", ni, -4.5);
+        delete ni;
+        ni -= 4;
+        testAssertionValue("integer -=, lhs NOTHING", ni, -4);
+        # some array and hash tests in separate functions
 
-	# get function closure with bound local variable (multiply by 2)
-	code c = mapClosure(2);
+        # get function closure with bound local variable (multiply by 2)
+        code c = mapClosure(2);
 
-	# map function to list
-	testAssertionValue("map operator using closure", (map c($1), (1, 2, 3)), (2, 4, 6));
+        # map function to list
+        testAssertionValue("map operator using closure", (map c($1), (1, 2, 3)), (2, 4, 6));
 
-	# map immediate expression to list
-	testAssertionValue("map operator using expression", (map $1 * 2, (1, 2, 3)), (2, 4, 6));
+        # map immediate expression to list
+        testAssertionValue("map operator using expression", (map $1 * 2, (1, 2, 3)), (2, 4, 6));
 
-	# map function to list with optional select code as expression
-	testAssertionValue("map operator using closure with optional select expression", (map c($1), (1, 2, 3), $1 > 1), (4, 6));
+        # map function to list with optional select code as expression
+        testAssertionValue("map operator using closure with optional select expression", (map c($1), (1, 2, 3), $1 > 1), (4, 6));
 
-	# select all elements from list greater than 1 with expression
-	testAssertionValue("select operator with expression", (select (1, 2, 3), $1 > 1), (2, 3));
+        # select all elements from list greater than 1 with expression
+        testAssertionValue("select operator with expression", (select (1, 2, 3), $1 > 1), (2, 3));
 
-	# create a sinple closure to subtract the second argument from the first
-	c = any sub(any x, any y) { return x - y; };
+        # create a sinple closure to subtract the second argument from the first
+        c = any sub(any x, any y) { return x - y; };
 
-	# left fold function on list using closure
-	testAssertionValue("foldl operator with closure", (foldl c($1, $2), (2, 3, 4)), -5);
+        # left fold function on list using closure
+        testAssertionValue("foldl operator with closure", (foldl c($1, $2), (2, 3, 4)), -5);
 
-	# left fold function on list using expression
-	testAssertionValue("foldl operator with expression", (foldl $1 - $2, (2, 3, 4)), -5);
+        # left fold function on list using expression
+        testAssertionValue("foldl operator with expression", (foldl $1 - $2, (2, 3, 4)), -5);
 
-	# right fold function on list using immediate closure
-	testAssertionValue("foldr operator with closure", (foldr c($1, $2), (2, 3, 4)), -1);
+        # right fold function on list using immediate closure
+        testAssertionValue("foldr operator with closure", (foldr c($1, $2), (2, 3, 4)), -1);
 
-	# right fold function on list using expression and implicit arguments
-	testAssertionValue("foldr operator with expression", (foldr $1 - $2, (2, 3, 4)), -1);
+        # right fold function on list using expression and implicit arguments
+        testAssertionValue("foldr operator with expression", (foldr $1 - $2, (2, 3, 4)), -1);
 
-	hash h = ("test" : 1, "two" : 2.0, "three" : "three", "four" : False );
-	testAssertionValue("first remove operator", remove h.two, 2.0);
+        hash h = ("test" : 1, "two" : 2.0, "three" : "three", "four" : False );
+        testAssertionValue("first remove operator", remove h.two, 2.0);
 
-	testAssertion("int div by zero", any sub () {int i = 0; return 1 / i;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
-	testAssertion("float div by zero", any sub () {float n = 0; return 1 / n;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
-	testAssertion("numeric div by zero", any sub () {number n = 0n; return 1 / n;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
-	testAssertion("div by zero", any sub () {any n; return 1 / n;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
+        testAssertion("int div by zero", any sub () {int i = 0; return 1 / i;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
+        testAssertion("float div by zero", any sub () {float n = 0; return 1 / n;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
+        testAssertion("numeric div by zero", any sub () {number n = 0n; return 1 / n;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
+        testAssertion("div by zero", any sub () {any n; return 1 / n;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
     }
 
     static code mapClosure(any v) {
-	return any sub(any v1) { return v * v1; };
+        return any sub(any v1) { return v * v1; };
     }
 }
