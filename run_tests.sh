@@ -43,7 +43,7 @@ else
 fi
 
 # Search for tests in the test directory.
-TESTS=$( find ./test/ -name "*.qtest" )
+TESTS=$( find ./examples/test/ -name "*.qtest" )
 FAILED_TESTS=""
 
 TEST_COUNT=$( echo $TESTS | wc -w )
