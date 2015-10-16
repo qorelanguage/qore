@@ -3,6 +3,8 @@
 
 %require-types
 %enable-all-warnings
+%new-style
+
 %requires ../../../../qlib/QUnit.qm
 
 %exec-class AccessTest

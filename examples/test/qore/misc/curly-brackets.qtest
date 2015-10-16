@@ -3,6 +3,8 @@
 
 %require-types
 %enable-all-warnings
+%new-style
+
 %requires UnitTest
 
 namespace None {}

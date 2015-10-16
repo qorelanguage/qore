@@ -1,6 +1,9 @@
 #!/usr/bin/env qore
+
 %require-types
 %enable-all-warnings
+%old-style
+
 %requires UnitTest
 
 my UnitTest $unit();
@@ -76,24 +79,19 @@ class Test inherits Socket {
         int $.b;
     }
     public {
-	list $.data;
-	hash $.t;
-	int $.x;
-        any $.key;
-        any $.unique;
-        any $.new;
-        any $.barn;
-        any $.asd;
+        list $.data;
+        hash $.t;
+        int $.x;
     }
 
     constructor(any $a, any $b, any $c) {
-	$.a = 1;
-	$.b = 2;
+        $.a = 1;
+        $.b = 2;
         $.data = ($a, $b, $c);
     }
     any getData(int $elem) {
-	if (exists $elem)
-	    return $.data[$elem];
+        if (exists $elem)
+            return $.data[$elem];
         return $.data;
     }
     string methodGate(string $m) {
@@ -103,14 +101,14 @@ class Test inherits Socket {
         return "memberGate-" + $m;
     }
     memberNotification(string $m) {
-	$.t.$m = $self.$m;
+        $.t.$m = $self.$m;
     }
     code closure(any $x) {
-	my int $a = 1;
-	# return a closure encapsulating the state of the object
-	return string sub (any $y) {
-	    return sprintf("%s-%n-%n-%n", $.data[1], $x, $y, ++$a);
-	};
+        my int $a = 1;
+        # return a closure encapsulating the state of the object
+        return string sub (any $y) {
+            return sprintf("%s-%n-%n-%n", $.data[1], $x, $y, ++$a);
+        };
     }
     any argTest() {
         return $argv;

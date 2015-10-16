@@ -1,6 +1,9 @@
 #!/usr/bin/env qore
+
+%require-types
 %enable-all-warnings
-%disable-warning undeclared-var
+%old-style
+
 %requires UnitTest
 
 # Examples of qore regular expressions
@@ -18,9 +21,9 @@ my UnitTest $unit();
 
 ## A (modern) RE is one(!) or more non-empty(!) branches, separated  by '|'.
 ## It matches anything that matches one of the branches.
-$t = 'Branches';          # text
-$s = 'abc';               # string
-$p = 'a|z';               # pattern
+our string $t = 'Branches';          # text
+our string $s = 'abc';               # string
+our string $p = 'a|z';               # pattern
 $unit.ok($s =~ /a|z/, $t + ' ' + $s + ": '" + $s + "' =~ /" + $p + "'");
 $s = 'qrs';
 $unit.ok($s !~ /a|z/, $t + ' ' + $s + ": '" + $s + "' !~ /" + $p + "'");

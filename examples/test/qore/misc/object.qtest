@@ -3,27 +3,29 @@
 
 %require-our
 %enable-all-warnings
+%old-style
+
 %requires UnitTest
 
 my UnitTest $unit();
 
-our $calls_constructor = 0;
-our $calls_destructor  = 0;
-our $calls_hello  = 0;
+our int $calls_constructor = 0;
+our int $calls_destructor  = 0;
+our int $calls_hello  = 0;
 
 class Test {
     constructor($a) {
-	$.data = $a;
+        $.data = $a;
         $calls_constructor++;
     }
     destructor() {
         $calls_destructor++;
     }
     getData() {
-	return $.data;
+        return $.data;
     }
     getType() {
-	return getClassName($self);
+        return get_class_name($self);
     }
     private p1() {
     }
@@ -38,11 +40,11 @@ Test::hello() {
     $calls_hello++;
 }
 
-sub et($t) {
+sub et(Test $t) {
     $t.a = "123";
 }
 
-our $t = new Test(1);
+our Test $t = new Test(1);
 $unit.cmp($calls_constructor, 1, 'constructor called');
 (new Test(3)).hello();
 $unit.cmp($calls_constructor, 2, 'constructor called');
@@ -59,7 +61,7 @@ const Methods = ('p2', 'getData', 'hello', 'destructor', 'getType', 'p1', 'const
 #$unit.cmp(getMethodList($t), Methods, 'got method list');
 
 # test each method separately
-my list $ml = getMethodList($t);
+my list $ml = get_method_list($t);
 $unit.cmp(Methods.size(), $ml.size(), "method list size");
 map $unit.cmp(True, inlist_hard($1, Methods), "method list " + $1), $ml;
 
