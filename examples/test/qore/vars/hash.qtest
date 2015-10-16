@@ -1,153 +1,159 @@
 #!/usr/bin/env qore
+
+%require-types
+%enable-all-warnings
+%new-style
+
 %requires UnitTest
+
 %exec-class TestHash
 
 class TestHash {
     constructor () {
-        my UnitTest $unit();
+        my UnitTest unit();
         # hash tests
-        my hash $b = ( "test" : 1, "gee" : 2, "well" : "string" );
-        $unit.cmp($b.gee, 2, "object dereference");
-        $unit.cmp(elements $b, 3, "elements operator on hash before delete");
-        delete $b{"gee"};
-        $unit.cmp(elements $b, 2, "elements operator on hash after delete");
-        $b{"test"} = "there";
-        my hash $d{"gee"}[25] = "I hope it works";
-        $unit.cmp($b.test, "there", "hash dereference after assignment");
-        $unit.cmp($b.test, "there", "object dereference after assignment");
-        $unit.cmp($b{"geez"}, NOTHING, "non-existent object dereference");
-        $unit.cmp(int($d.gee[25]), 0, "hash dereference of list element");
-        $unit.cmp($d{"gee"}[25], "I hope it works", "dereference of list member of hash");
-        my hash $c = ( "hi" : "there", "gee" : "whillakers" );
-        $d = $c;
-        $unit.cmp($d == $c, True, "hash comparison");
-        $unit.cmp($d.gee, "whillakers", "hash dereference after entire hash assignment");
-        $c{"gee"} = "roo";
-        $unit.cmp($c{"gee"}, "roo", "original hash dereference after assignment to member of copied hash");
-        $unit.cmp($d.gee, "whillakers", "hash dereference of member of copied hash");
-        $d = ( "gee" : test1(), "howdy" : test2());
-        $unit.cmp($d.gee, 1, "hash dereference with evaluation");
-        $unit.cmp(hash_return(){"gee"}, "whiz", "simple hash return and dereference");
-        $unit.cmp(hash_return(){"num"}, 1, "hash return with function element result and dereference");
-        $unit.cmp(hash_return("hi there"){"var"}, "hi there", "hash return with local variable result and dereference");
+        my hash b = ( "test" : 1, "gee" : 2, "well" : "string" );
+        unit.cmp(b.gee, 2, "object dereference");
+        unit.cmp(elements b, 3, "elements operator on hash before delete");
+        delete b{"gee"};
+        unit.cmp(elements b, 2, "elements operator on hash after delete");
+        b{"test"} = "there";
+        my hash d{"gee"}[25] = "I hope it works";
+        unit.cmp(b.test, "there", "hash dereference after assignment");
+        unit.cmp(b.test, "there", "object dereference after assignment");
+        unit.cmp(b{"geez"}, NOTHING, "non-existent object dereference");
+        unit.cmp(int(d.gee[25]), 0, "hash dereference of list element");
+        unit.cmp(d{"gee"}[25], "I hope it works", "dereference of list member of hash");
+        my hash c = ( "hi" : "there", "gee" : "whillakers" );
+        d = c;
+        unit.cmp(d == c, True, "hash comparison");
+        unit.cmp(d.gee, "whillakers", "hash dereference after entire hash assignment");
+        c{"gee"} = "roo";
+        unit.cmp(c{"gee"}, "roo", "original hash dereference after assignment to member of copied hash");
+        unit.cmp(d.gee, "whillakers", "hash dereference of member of copied hash");
+        d = ( "gee" : test1(), "howdy" : test2());
+        unit.cmp(d.gee, 1, "hash dereference with evaluation");
+        unit.cmp(hash_return(){"gee"}, "whiz", "simple hash return and dereference");
+        unit.cmp(hash_return(){"num"}, 1, "hash return with function element result and dereference");
+        unit.cmp(hash_return("hi there"){"var"}, "hi there", "hash return with local variable result and dereference");
 
-        $a = ( "key" : 1, "unique" : 100, "asd" : "dasd" );
-        $b = ( "key" : 3, "new" : 45, "barn" : "door" );
-        $c = $a + $b;
-        $unit.cmp($c.key, 3, "hash plus operator element override");
-        $unit.cmp($c."new", 45, "hash plus operator new element");
-        $unit.cmp($c.unique, 100, "hash plus operator unchanged element");
-        $a += $b;
-        $unit.cmp($a.key, 3, "hash plus equals operator element override");
-        $unit.cmp($a."new", 45, "hash plus equals operator new element");
-        $unit.cmp($a.unique, 100, "hash plus equals operator unchanged element");
+        my hash a = ( "key" : 1, "unique" : 100, "asd" : "dasd" );
+        b = ( "key" : 3, "tnew" : 45, "barn" : "door" );
+        c = a + b;
+        unit.cmp(c.key, 3, "hash plus operator element override");
+        unit.cmp(c."tnew", 45, "hash plus operator new element");
+        unit.cmp(c.unique, 100, "hash plus operator unchanged element");
+        a += b;
+        unit.cmp(a.key, 3, "hash plus equals operator element override");
+        unit.cmp(a."tnew", 45, "hash plus equals operator new element");
+        unit.cmp(a.unique, 100, "hash plus equals operator unchanged element");
 
         # test hash slice creation
-        $unit.cmp($a.("unique", "new"), ("unique" : 100, "new" : 45), "hash slice creation");
+        unit.cmp(a.("unique", "tnew"), ("unique" : 100, "tnew" : 45), "hash slice creation");
 
-        my Test $ot(1, "two", 3.0);
-        $ot += $a;
-        $unit.cmp($ot.("unique", "new"), ("unique" : 100, "new" : 45), "hash slice creation from object");
+        my Test ot(1, "two", 3.0);
+        ot += a;
+        unit.cmp(ot.("unique", "tnew"), ("unique" : 100, "tnew" : 45), "hash slice creation from object");
 
         # use the foreach ... in (keys <hash>) specialization
-        my int $cnt = 0;
-        foreach my string $k in (keys $c) {
+        my int cnt = 0;
+        foreach my string k in (keys c) {
             # to avoid unused local var warning
-            delete $k;
-            ++$cnt;
+            delete k;
+            ++cnt;
         }
-        $unit.cmp($cnt, 5, "foreach hash keys specialization");
+        unit.cmp(cnt, 5, "foreach hash keys specialization");
         # do pseudo-method tests
-        $unit.cmp($c.firstKey(), "key", "<hash>.firstKey()");
-        $unit.cmp($c.lastKey(), "barn", "<hash>.lastKey()");
-        $unit.cmp($c.size(), 5, "<hash>.size()");
+        unit.cmp(c.firstKey(), "key", "<hash>.firstKey()");
+        unit.cmp(c.lastKey(), "barn", "<hash>.lastKey()");
+        unit.cmp(c.size(), 5, "<hash>.size()");
 
-        my hash $nch = $c.("key", "barn");
-        foreach my hash $hi in ($nch.pairIterator()) {
+        my hash nch = c.("key", "barn");
+        foreach my hash hi in (nch.pairIterator()) {
             if (!$#)
-                $unit.cmp($hi.key, "key", "HashIterator::first()");
+                unit.cmp(hi.key, "key", "HashIterator::first()");
             else if ($# == 4)
-                $unit.cmp($hi.key, "barn", "HashIterator::last()");
+                unit.cmp(hi.key, "barn", "HashIterator::last()");
         }
 
-        my HashPairReverseIterator $hi($nch);
-        foreach my hash $hiv in ($hi) {
+        my HashPairReverseIterator hi(nch);
+        foreach my hash hiv in (hi) {
             if ($# == 4)
-                $unit.cmp($hiv.key, "key", "HashReverseIterator::last()");
+                unit.cmp(hiv.key, "key", "HashReverseIterator::last()");
             else if (!$#)
-                $unit.cmp($hiv.key, "barn", "HashReverseIterator::first()");
+                unit.cmp(hiv.key, "barn", "HashReverseIterator::first()");
         }
-        $unit.cmp($hi.valid(), False, "HashReverseIterator::valid()");
+        unit.cmp(hi.valid(), False, "HashReverseIterator::valid()");
         # restart iterator
-        $unit.cmp($hi.next(), True, "HashReverseIterator::next()");
-        $unit.cmp($hi.getKey(), "barn", "HashReverseIterator::getKey()");
-        $hi.reset();
-        $unit.cmp($hi.valid(), False, "HashReverseIterator::valid() after reset");
+        unit.cmp(hi.next(), True, "HashReverseIterator::next()");
+        unit.cmp(hi.getKey(), "barn", "HashReverseIterator::getKey()");
+        hi.reset();
+        unit.cmp(hi.valid(), False, "HashReverseIterator::valid() after reset");
 
-        # delete 3 keys from the $c hash
-        $b = $c - "new" - "barn" - "asd";
-        $unit.cmp($b, ( "key" : 3, "unique" : 100 ), "hash minus operator"); 
-        $b = $c - ("new", "barn", "asd");
-        $unit.cmp($b, ( "key" : 3, "unique" : 100 ), "hash minus operator with list argument"); 
-        $b -= "unique";
-        $unit.cmp($b, ( "key" : 3 ), "hash minus-equals operator"); 
-        $c -= ( "new", "barn" );
-        $unit.cmp($c, ( "key": 3, "unique" : 100, "asd" : "dasd" ), "hash minus-equals operator with list argument");
-        my hash $nh += ( "new-hash" : 1 );
-        $unit.cmp($nh, ( "new-hash" : 1 ), "hash plus-equals, lhs NOTHING");
+        # delete 3 keys from the c hash
+        b = c - "tnew" - "barn" - "asd";
+        unit.cmp(b, ( "key" : 3, "unique" : 100 ), "hash minus operator"); 
+        b = c - ("tnew", "barn", "asd");
+        unit.cmp(b, ( "key" : 3, "unique" : 100 ), "hash minus operator with list argument"); 
+        b -= "unique";
+        unit.cmp(b, ( "key" : 3 ), "hash minus-equals operator"); 
+        c -= ( "tnew", "barn" );
+        unit.cmp(c, ( "key": 3, "unique" : 100, "asd" : "dasd" ), "hash minus-equals operator with list argument");
+        my hash nh += ( "new-hash" : 1 );
+        unit.cmp(nh, ( "new-hash" : 1 ), "hash plus-equals, lhs NOTHING");
     }
 }
 
-hash sub hash_return(any $var) {
+hash sub hash_return(any var) {
     return ( "gee" : "whiz", 
 	     "num" : test1(),
-	     "var" : $var );
+	     "var" : var );
 }
 int sub test1() { return 1;} int sub test2() { return 2; } 
 
 class Test inherits Socket {
     private {
-        int $.a;
-        int $.b;
+        int a;
+        int b;
     }
     public {
-	list $.data;
-	hash $.t;
-	int $.x;
-        any $.key;
-        any $.unique;
-        any $.new;
-        any $.barn;
-        any $.asd;
+        list data;
+        hash t;
+        int x;
+        any key;
+        any unique;
+        any tnew;
+        any barn;
+        any asd;
     }
 
-    constructor(any $a, any $b, any $c) {
-	$.a = 1;
-	$.b = 2;
-        $.data = ($a, $b, $c);
+    constructor(any a, any b, any c) {
+        a = 1;
+        b = 2;
+        data = (a, b, c);
     }
-    any getData(int $elem) {
-	if (exists $elem)
-	    return $.data[$elem];
-        return $.data;
+    any getData(int elem) {
+        if (exists elem)
+            return data[elem];
+        return data;
     }
-    string methodGate(string $m) {
-        return $m;
+    string methodGate(string m) {
+        return m;
     }
-    string memberGate(string $m) {
-        return "memberGate-" + $m;
+    string memberGate(string m) {
+        return "memberGate-" + m;
     }
-    memberNotification(string $m) {
-	$.t.$m = $self.$m;
+    memberNotification(string m) {
+        t.m = self.m;
     }
-    code closure(any $x) {
-	my int $a = 1;
-	# return a closure encapsulating the state of the object
-	return string sub (any $y) {
-	    return sprintf("%s-%n-%n-%n", $.data[1], $x, $y, ++$a);
-	};
+    code closure(any x) {
+        my int a = 1;
+        # return a closure encapsulating the state of the object
+        return string sub (any y) {
+            return sprintf("%s-%n-%n-%n", data[1], x, y, ++a);
+        };
     }
     any argTest() {
-        return $argv;
+        return argv;
     }
 }

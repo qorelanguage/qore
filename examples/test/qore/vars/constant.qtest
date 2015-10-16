@@ -1,9 +1,12 @@
 #!/usr/bin/env qore
+
 %require-types
 %enable-all-warnings
+%new-style
+
 %requires UnitTest
 
-my UnitTest $unit();
+my UnitTest unit();
 
 const a = "key";
 const b = 1.0;
@@ -41,9 +44,9 @@ namespace NTest {
     const Type::hithere = 1;
 
     class C {
-	const a = 1;
-	static int t1() { return 1; }
-	static int t2() { return Type::i; }
+        const a = 1;
+        static int t1() { return 1; }
+        static int t2() { return Type::i; }
     }
 
     int sub d1() { return 1; }
@@ -56,15 +59,15 @@ namespace NTest {
     class T1;
 
     sub test() {
-        $unit.cmp(t1, "hello", "1st namespace constant resolution");
-        $unit.cmp(Type::i, 1, "2nd namespace constant resolution");
-        $unit.cmp(Type::hithere, 1, "3rd namespace constant resolution");
-        $unit.cmp(C::a, 1, "class constant resolution in namespace context");
-        $unit.cmp(C::t1(), 1, "static method resolution in namespace context");
-        $unit.cmp(C::t2(), 1, "constant resolution in namespace context in class code");
-        $unit.cmp(d1(), 1, "first function resolution in namespace context");
-        $unit.cmp(d2(), 1, "second function resolution in namespace context");
-        $unit.cmp(H.a, 1, "hash key constant resolution in namespace context");
+        unit.cmp(t1, "hello", "1st namespace constant resolution");
+        unit.cmp(Type::i, 1, "2nd namespace constant resolution");
+        unit.cmp(Type::hithere, 1, "3rd namespace constant resolution");
+        unit.cmp(C::a, 1, "class constant resolution in namespace context");
+        unit.cmp(C::t1(), 1, "static method resolution in namespace context");
+        unit.cmp(C::t2(), 1, "constant resolution in namespace context in class code");
+        unit.cmp(d1(), 1, "first function resolution in namespace context");
+        unit.cmp(d2(), 1, "second function resolution in namespace context");
+        unit.cmp(H.a, 1, "hash key constant resolution in namespace context");
     }
 }
 
@@ -76,11 +79,11 @@ const NTest::Type::val1 = 1;
 
 const Qore::myconst = 1;
 
-$unit.cmp(i, 1, "simple constant");
-$unit.cmp(type(Type::val1), "integer", "first namespace constant");
-$unit.cmp(Qore::myconst, NTest::Type::val1, "second namespace constant");
-$unit.cmp(NTest::Type::i, 1, "third namespace constant"); 
-$unit.cmp(chash{b}, (1, 2, 3), "indirect constant");
-$unit.cmp(exp, 3, "evaluated constant");
-$unit.cmp(hexp2, (1, 2, 3), "evaluated constant hash");
+unit.cmp(i, 1, "simple constant");
+unit.cmp(type(Type::val1), "integer", "first namespace constant");
+unit.cmp(Qore::myconst, NTest::Type::val1, "second namespace constant");
+unit.cmp(NTest::Type::i, 1, "third namespace constant"); 
+unit.cmp(chash{b}, (1, 2, 3), "indirect constant");
+unit.cmp(exp, 3, "evaluated constant");
+unit.cmp(hexp2, (1, 2, 3), "evaluated constant hash");
 NTest::test();

@@ -20,13 +20,13 @@ public class BarerefTest inherits QUnit::Test {
     }
 
     public {
-    	static string var1 = "var1";
-    	mem1 = "mem1";
-      	string mem2 = "mem2";
+        static string var1 = "var1";
+        mem1 = "mem1";
+        string mem2 = "mem2";
 
-    	code mclosure = sub () { return "BarerefTest::mclosure member"; };
-    	static vclosure = sub () { return "BarerefTest::vclosure var"; };
-    	const closure = sub () { return "BarerefTest::closure const"; };
+        code mclosure = sub () { return "BarerefTest::mclosure member"; };
+        static vclosure = sub () { return "BarerefTest::vclosure var"; };
+        const closure = sub () { return "BarerefTest::closure const"; };
     }
 
     constructor() : Test("BarerefTest", "1.0") {
@@ -38,85 +38,85 @@ public class BarerefTest inherits QUnit::Test {
     }
 
     argTest(string str, any) {
-    	return (str, any);
+        return (str, any);
     }
     static t1() {
-    	return "t1";
+        return "t1";
     }
 
     closuresTest() {
-    	Ns::vclosure = sub () { return "Ns var vclosure"; };
-    	our code ::vclosure = sub () { return "global var vclosure"; };
+        Ns::vclosure = sub () { return "Ns var vclosure"; };
+        our code ::vclosure = sub () { return "global var vclosure"; };
 
-    	testAssertion( "static method call 1", \t1(), NOTHING, new TestResultValue( "t1"));
-    	my code func = \t1();
-    	testAssertion( "static method call 2", func, NOTHING, new TestResultValue( "t1"));
+        testAssertion( "static method call 1", \t1(), NOTHING, new TestResultValue( "t1"));
+        my code func = \t1();
+        testAssertion( "static method call 2", func, NOTHING, new TestResultValue( "t1"));
 
-    	testAssertion( "static method call 3", \BarerefTest::t1(), NOTHING, new TestResultValue( "t1"));
-    	func = \BarerefTest::t1();
-    	testAssertion( "static method call 4", func, NOTHING, new TestResultValue( "t1"));
+        testAssertion( "static method call 3", \BarerefTest::t1(), NOTHING, new TestResultValue( "t1"));
+        func = \BarerefTest::t1();
+        testAssertion( "static method call 4", func, NOTHING, new TestResultValue( "t1"));
 
-    	testAssertion("arg test 1", \argTest(), ("2", False), new TestResultValue(("2", False)));
-    	func = \argTest();
-    	testAssertion("arg test 2", func, ("True", 2001-01-01), new TestResultValue(("True", 2001-01-01)));
+        testAssertion("arg test 1", \argTest(), ("2", False), new TestResultValue(("2", False)));
+        func = \argTest();
+        testAssertion("arg test 2", func, ("True", 2001-01-01), new TestResultValue(("True", 2001-01-01)));
 
-    	testAssertion("arg test 3", \BarerefTest::argTest(), ("2", False), new TestResultValue(("2", False)));
-    	func = \BarerefTest::argTest();
-    	testAssertion("arg test 4", func, ("True", 2001-01-01), new TestResultValue(("True", 2001-01-01)));
+        testAssertion("arg test 3", \BarerefTest::argTest(), ("2", False), new TestResultValue(("2", False)));
+        func = \BarerefTest::argTest();
+        testAssertion("arg test 4", func, ("True", 2001-01-01), new TestResultValue(("True", 2001-01-01)));
 
-    	testAssertion("scope 1", mclosure, NOTHING, new TestResultValue( "BarerefTest::mclosure member"));
-    	func = mclosure;
-    	testAssertion("scope 2", func, NOTHING, new TestResultValue( "BarerefTest::mclosure member"));
+        testAssertion("scope 1", mclosure, NOTHING, new TestResultValue( "BarerefTest::mclosure member"));
+        func = mclosure;
+        testAssertion("scope 2", func, NOTHING, new TestResultValue( "BarerefTest::mclosure member"));
 
-    	testAssertion("scope 3", ::mclosure, NOTHING, new TestResultValue( "global const mclosure"));
-    	func = ::mclosure;
-    	testAssertion("scope 4", func, NOTHING, new TestResultValue( "global const mclosure"));
+        testAssertion("scope 3", ::mclosure, NOTHING, new TestResultValue( "global const mclosure"));
+        func = ::mclosure;
+        testAssertion("scope 4", func, NOTHING, new TestResultValue( "global const mclosure"));
 
-    	testAssertion("scope 5", closure, NOTHING, new TestResultValue( "BarerefTest::closure const"));
-    	func = closure;
-    	testAssertion("scope 6", func, NOTHING, new TestResultValue( "BarerefTest::closure const"));
+        testAssertion("scope 5", closure, NOTHING, new TestResultValue( "BarerefTest::closure const"));
+        func = closure;
+        testAssertion("scope 6", func, NOTHING, new TestResultValue( "BarerefTest::closure const"));
 
-    	testAssertion("scope 7", BarerefTest::closure, NOTHING, new TestResultValue( "BarerefTest::closure const"));
-    	func = BarerefTest::closure;
-    	testAssertion("scope 8", func, NOTHING, new TestResultValue( "BarerefTest::closure const"));
+        testAssertion("scope 7", BarerefTest::closure, NOTHING, new TestResultValue( "BarerefTest::closure const"));
+        func = BarerefTest::closure;
+        testAssertion("scope 8", func, NOTHING, new TestResultValue( "BarerefTest::closure const"));
 
-    	testAssertion("scope 9", ::closure, NOTHING, new TestResultValue( "global const closure"));
-    	func = ::closure;
-    	testAssertion("scope 10", func, NOTHING, new TestResultValue( "global const closure"));
+        testAssertion("scope 9", ::closure, NOTHING, new TestResultValue( "global const closure"));
+        func = ::closure;
+        testAssertion("scope 10", func, NOTHING, new TestResultValue( "global const closure"));
 
-    	testAssertion("scope 11", vclosure, NOTHING, new TestResultValue( "BarerefTest::vclosure var"));
-    	func = vclosure;
-    	testAssertion("scope 12", func, NOTHING, new TestResultValue( "BarerefTest::vclosure var"));
+        testAssertion("scope 11", vclosure, NOTHING, new TestResultValue( "BarerefTest::vclosure var"));
+        func = vclosure;
+        testAssertion("scope 12", func, NOTHING, new TestResultValue( "BarerefTest::vclosure var"));
 
-    	testAssertion("scope 13", BarerefTest::vclosure, NOTHING, new TestResultValue( "BarerefTest::vclosure var"));
-    	func = BarerefTest::vclosure;
-    	testAssertion("scope 14", func, NOTHING, new TestResultValue( "BarerefTest::vclosure var"));
+        testAssertion("scope 13", BarerefTest::vclosure, NOTHING, new TestResultValue( "BarerefTest::vclosure var"));
+        func = BarerefTest::vclosure;
+        testAssertion("scope 14", func, NOTHING, new TestResultValue( "BarerefTest::vclosure var"));
 
-    	testAssertion("scope 15", ::vclosure, NOTHING, new TestResultValue( "global var vclosure"));
-    	func = ::vclosure;
-    	testAssertion("scope 16", func, NOTHING, new TestResultValue( "global var vclosure"));
+        testAssertion("scope 15", ::vclosure, NOTHING, new TestResultValue( "global var vclosure"));
+        func = ::vclosure;
+        testAssertion("scope 16", func, NOTHING, new TestResultValue( "global var vclosure"));
 
-    	testAssertion("scope 17", Ns::vclosure, NOTHING, new TestResultValue( "Ns var vclosure"));
-    	func = Ns::vclosure;
-    	testAssertion("scope 18", func, NOTHING, new TestResultValue( "Ns var vclosure"));
+        testAssertion("scope 17", Ns::vclosure, NOTHING, new TestResultValue( "Ns var vclosure"));
+        func = Ns::vclosure;
+        testAssertion("scope 18", func, NOTHING, new TestResultValue( "Ns var vclosure"));
     }
 
     lvarTest() {
-    	my int a = 1;
-    	my b = "1";
-    	our c = 2.1;
+        my int a = 1;
+        my b = "1";
+        our c = 2.1;
    	    my (int a1, string b1, c1) = (2, "four", "hi");
-    	our (int a2, string b2, c2) = (4, "eight", "hello");
+        our (int a2, string b2, c2) = (4, "eight", "hello");
 
-    	testAssertionValue("var test 1", a, 1);
-    	testAssertionValue("var test 2", b, "1");
-    	testAssertionValue("var test 3", c, 2.1);
-    	testAssertionValue("var test 4", a1, 2);
-    	testAssertionValue("var test 5", b1, "four");
-    	testAssertionValue("var test 6", c1, "hi");
-    	testAssertionValue("var test 7", a2, 4);
-    	testAssertionValue("var test 8", b2, "eight");
-    	testAssertionValue("var test 9", c2, "hello");
+        testAssertionValue("var test 1", a, 1);
+        testAssertionValue("var test 2", b, "1");
+        testAssertionValue("var test 3", c, 2.1);
+        testAssertionValue("var test 4", a1, 2);
+        testAssertionValue("var test 5", b1, "four");
+        testAssertionValue("var test 6", c1, "hi");
+        testAssertionValue("var test 7", a2, 4);
+        testAssertionValue("var test 8", b2, "eight");
+        testAssertionValue("var test 9", c2, "hello");
     }
 
 }

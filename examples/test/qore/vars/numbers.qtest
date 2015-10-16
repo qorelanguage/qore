@@ -1,11 +1,12 @@
 #!/usr/bin/env qr
 
+%require-types
+%enable-all-warnings
+%new-style
+
 %requires ../../../../qlib/QUnit.qm
 
 %exec-class NumbersTest
-
-%require-types
-%enable-all-warnings
 
 public class NumbersTest inherits QUnit::Test {
     constructor() : Test("NumbersTest", "1.0") {
