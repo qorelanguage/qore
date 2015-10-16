@@ -1,24 +1,27 @@
 #!/usr/bin/env qore 
+
 %require-types
 %enable-all-warnings
+%new-style
+
 %requires Util
 %requires UnitTest
 
-my UnitTest $t();
+my UnitTest t();
 
 %ifndef Windows
-my string $tmp = tmp_location();
-my string $file = $tmp + '/iso-8859-1.txt';
-my string $str = "Öffentl. Körperschaft/\n\n";
+my string tmp = tmp_location();
+my string file = tmp + '/iso-8859-1.txt';
+my string str = "Öffentl. Körperschaft/\n\n";
 
-my File $f = new File("ISO-8859-1");
-$f.open($file, O_WRONLY | O_CREAT);
-$f.write($str);
-$f.close();
+my File f = new File("ISO-8859-1");
+f.open(file, O_WRONLY | O_CREAT);
+f.write(str);
+f.close();
 
-my string $content = backquote('cat ' + $file);
-$content = force_encoding($content, "iso-8859-1");
-$t.cmp($content, $str, 'file content check');
+my string content = backquote('cat ' + file);
+content = force_encoding(content, "iso-8859-1");
+t.cmp(content, str, 'file content check');
 
-unlink($file);
+unlink(file);
 %endif
