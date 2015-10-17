@@ -5,7 +5,7 @@
   Qore Programming Language
 
   Copyright (C) 2006 - 2015 Qore Technologies, sro
-  
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -56,16 +56,15 @@ public:
    DLLLOCAL ~DBActionHelper() {
       if (!valid)
          return;
-      
+
       /* release the Datasource if:
          1) the connection was lost (exception already raised)
-         2) the Datasource was acquired for this call, and:
-            2a) an exception was raised, or
-            2b) the command was NONE, meaning, leave the Datasource in the same state it was before the call
+         2) the Datasource was acquired for this call, and
+              the command was NOCHGANGE, meaning, leave the Datasource in the same state it was before the call
        */
-      if (stmt.priv->ds->wasConnectionAborted() || (nt && (*xsink || cmd == DAH_NOCHANGE)))
+      if (stmt.priv->ds->wasConnectionAborted() || (nt && (cmd == DAH_NOCHANGE)))
          cmd = DAH_RELEASE;
-      
+
       // call end action with the command
       stmt.priv->ds = stmt.dsh->helperEndAction(cmd, nt, xsink);
 
@@ -87,7 +86,7 @@ void QoreSQLStatement::init(DatasourceStatementHelper* n_dsh) {
 
 int QoreSQLStatement::checkStatus(ExceptionSink* xsink, DBActionHelper& dba, int stat, const char* action) {
    //printd(5, "QoreSQLStatement::checkStatus() this: %p stat: %d status: %d action: '%s' ssize: %d\n", this, stat, status, action, ssize);
-   
+
    if (stat != status) {
       if (stat == STMT_IDLE)
          return closeIntern(xsink);
@@ -187,7 +186,7 @@ int QoreSQLStatement::prepareIntern(ExceptionSink* xsink) {
 int QoreSQLStatement::prepare(const QoreString& n_str, const QoreListNode* args, ExceptionSink* xsink) {
    DBActionHelper dba(*this, xsink);
    if (!dba)
-      return -1;   
+      return -1;
 
    if (checkStatus(xsink, dba, STMT_IDLE, "prepare"))
       return -1;
