@@ -4753,6 +4753,11 @@ list l = col.getModifySql(t, newcol);
             return remove h{k};
         }
 
+        #! tries to remove the given key from the contained hash and returns the value if it exists
+        *AbstractIndex tryTake(string k) {
+            return remove h{k};
+        }
+
         #! returns the AbstractIndex object corresponding to the key given or throws a KEY-ERROR exception
         /** @par Example:
             @code
@@ -15607,20 +15612,21 @@ list l = table.getAlignSql(table2);
                         }
                         # see if the index is supporting a constraint that has to be dropped first
                         *AbstractColumnSupportingConstraint csc = ix.getSupportingConstraint();
-                        if (csc && !constraintsLinkedToIndexesImpl()) {
+                        if (csc && constraintsLinkedToIndexesImpl()) {
                             code rmv;
                             AbstractConstraint c = findDropConstraintUnlocked(csc.getName(), \rmv);
 
                             l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "constraint", c.getName(), name);
                             rmv();
                         }
-                        l += AbstractDatabase::doCallback(opt, ix.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "index", ix.name, name);
+                        else
+                            l += AbstractDatabase::doCallback(opt, ix.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "index", ix.name, name);
                         if (uixc) {
                             *AbstractUniqueConstraint c = ix.getSupportingConstraint();
                             if (c && constraints.hasKey(c.getName()))
                                 constraints.take(c.getName());
                         }
-                        indexes.take(ix.name);
+                        indexes.tryTake(ix.name);
                     }
                 }
             }
