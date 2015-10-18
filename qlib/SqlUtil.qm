@@ -15703,15 +15703,30 @@ list l = table.getAlignSql(table2);
 
             # see if we need to drop the primary key
             if (!t.primaryKey.empty()) {
-                if (!primaryKey.empty() && !primaryKey.equal(t.primaryKey)) {
-                    # see if pk has the same definition but a different name; if so, it will be renamed later
-                    if (primaryKey.getName() == t.primaryKey.getName() || primaryKey.matchKeys(t.primaryKey)) {
-                        #printf("pk1: %N\nXXXXXXX\npk2: %N\n", primaryKey, t.primaryKey);
-                        l += AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "primary key", t.primaryKey.getName(), name);
-                        if (constraintsLinkedToIndexesImpl() && indexes.hasKey(primaryKey.getName()))
-                            t.primaryKey.clearIndex();
-                        delete primaryKey;
+                if (!primaryKey.empty()) {
+                    if (!primaryKey.equal(t.primaryKey)) {
+                        # see if pk has the same definition but a different name; if so, it will be renamed later
+                        if (primaryKey.getName() == t.primaryKey.getName() || primaryKey.matchKeys(t.primaryKey)) {
+                            #printf("pk1: %N\nXXXXXXX\npk2: %N\n", primaryKey, t.primaryKey);
+                            l += AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "primary key", t.primaryKey.getName(), name);
+                            # clear supporting constraint from index in the template since we've dropped the PK constraint
+                            *string pk_index = t.primaryKey.getIndex();
+                            if (t.indexes.hasKey(pk_index))
+                                t.indexes{pk_index}.setSupportingConstraint();
+			    if (constraintsLinkedToIndexesImpl() && indexes.hasKey(primaryKey.getName()))
+                                t.primaryKey.clearIndex();
+                            
+                            delete primaryKey;
+                        }
                     }
+                }
+                else {
+                    # there is no PK in the table, so we have to remove the link from the index to the PK in the template
+                    *string pk_index = t.primaryKey.getIndex();
+                    if (t.indexes.hasKey(pk_index))
+                        t.indexes{pk_index}.setSupportingConstraint();
+                    if (constraintsLinkedToIndexesImpl() && indexes.hasKey(t.primaryKey.getName()))
+                        t.primaryKey.clearIndex();
                 }
             }
             else if (!primaryKey.empty()) {
