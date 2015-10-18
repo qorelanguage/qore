@@ -98,7 +98,7 @@ module SqlUtil {
       - @ref dba_statistics
       - @ref dba_space_management
 
-    @section relnotes Release Notes
+    @section sqlutil_relnotes Release Notes for the SqlUtil Module
 
     @subsection sqlutilv1_3 SqlUtil v1.3
     - implemented insert option support (see @ref AbstractTable::InsertOptions) with the \c "returning" clause in supported drivers
@@ -113,6 +113,7 @@ module SqlUtil {
     - fixed a bug where driver-specific objects were not included when dropping a schema
     - fixed a bug in subquery handling where bind-by-value arguments from the subquery were lost
     - fixed a bug in the partition by/over operator where column names as given in the query argument hash were not properly recognized
+    - fixed a bug in schema alignment; when aligning a schema and an index supporting a PK constraint is introduced in the new schema, the alignment would fail when a constraint is attempted to be disabled that doesn't exist
 
     @subsection sqlutilv1_2 SqlUtil v1.2
     - added insert operator support; for example, for inserting with values from sequences
@@ -15715,7 +15716,7 @@ list l = table.getAlignSql(table2);
                                 t.indexes{pk_index}.setSupportingConstraint();
 			    if (constraintsLinkedToIndexesImpl() && indexes.hasKey(primaryKey.getName()))
                                 t.primaryKey.clearIndex();
-                            
+
                             delete primaryKey;
                         }
                     }
