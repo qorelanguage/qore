@@ -225,6 +225,9 @@ add_custom_target(BISON_GENERATED_FILES DEPENDS ${BISON_qoreparser_OUTPUTS})
 add_custom_target(FLEX_GENERATED_FILES DEPENDS ${FLEX_qorescanner_OUTPUTS})
 
 add_library(libqore SHARED ${CPP_SRC_LIB})
+if (APPLE)
+    set_target_properties(libqore PROPERTIES INSTALL_NAME_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
+endif (APPLE)
 add_dependencies(QPP_GENERATED_FILES qpp)
 add_dependencies(libqore QPP_GENERATED_FILES BISON_GENERATED_FILES FLEX_GENERATED_FILES)
 target_compile_definitions(libqore PUBLIC -D_QORE_LIB_INTERN)
@@ -272,5 +275,5 @@ install(FILES qore.1
 install(DIRECTORY qlib/
         DESTINATION ${USER_MODULE_VER_DIR})
 
-message(WARNING "CXX ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES}")
+message(STATUS "CXX ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES}")
 message(WARNING "Please do not use cmake for production/real builds. Cmake support is experimental and it does not contant all required setup")
