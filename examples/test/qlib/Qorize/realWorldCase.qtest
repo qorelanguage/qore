@@ -1,12 +1,12 @@
 #!/usr/bin/env qr
 
-%requires ../../../../qlib/QUnit.qm
-
 %require-types
 %enable-all-warnings
+%new-style
 
 %requires xml
 
+%requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Qorize.qm
 
 %exec-class QorizeRealWorldTest

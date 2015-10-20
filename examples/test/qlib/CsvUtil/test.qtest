@@ -2,12 +2,13 @@
 
 %require-types
 %enable-all-warnings
+%new-style
+
 %requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/CsvUtil.qm
 
 # Need for tmp_location()
 %requires Util
-
-%requires ../../../../qlib/CsvUtil.qm
 
 %exec-class CsvSampleTest
 

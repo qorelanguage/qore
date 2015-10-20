@@ -1,9 +1,10 @@
 #!/usr/bin/env qr
+
 %require-types
 %enable-all-warnings
+%new-style
 
 %requires ../../../../qlib/QUnit.qm
-
 %requires ../../../../qlib/Diff.qm
 
 %exec-class DiffTest

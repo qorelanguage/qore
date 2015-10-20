@@ -1,11 +1,11 @@
 #!/usr/bin/env qr
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-%requires ../../../../qlib/QUnit.qm
-
 %require-types
 %enable-all-warnings
+%new-style
 
+%requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Mapper.qm
 
 %exec-class MapperTest
