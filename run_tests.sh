@@ -13,12 +13,12 @@ TEST_OUTPUT_FORMAT=""
 PRINT_TEXT=1
 
 # Handle command-line arguments.
-if [ "$#" == "0" ]; then
+if [ "$#" -eq "0" ]; then
     TEST_OUTPUT_FORMAT=""
-elif [ "$#" == "1" ]; then
-    if [ "$1" == "-v" ]; then
+elif [ "$#" -eq "1" ]; then
+    if [ "$1" -eq "-v" ]; then
         TEST_OUTPUT_FORMAT="--format=plain"
-    elif [ "$1" == "-j" ]; then
+    elif [ "$1" -eq "-j" ]; then
         TEST_OUTPUT_FORMAT="--format=junit"
         PRINT_TEXT=0
     else
@@ -62,21 +62,21 @@ for test in $TESTS; do
     # Run single test.
     $QORE $test $TEST_OUTPUT_FORMAT
     
-    if [ "$?" == "0" ]; then
-        ((PASSED_TEST_COUNT++))
+    if [ "$?" -eq "0" ]; then
+        PASSED_TEST_COUNT=$((PASSED_TEST_COUNT+1))
     else
-        ((FAILED_TEST_COUNT++))
+        FAILED_TEST_COUNT=$((FAILED_TEST_COUNT+1))
         FAILED_TESTS="$FAILED_TESTS $test"
     fi
-    
-    ((i++))
+
+    i=$((i+1))
     if [ $PRINT_TEXT -eq 1 ]; then echo "-------------------------------------"; echo; fi
 done
 
 # Print test summary.
 if [ $PRINT_TEXT -eq 1 ]; then
     TESTING_RESULT=""
-    if [ "$FAILED_TEST_COUNT" == "0" ]; then
+    if [ "$FAILED_TEST_COUNT" -eq "0" ]; then
         TESTING_RESULT="Success."
     else
         TESTING_RESULT="Failure."
