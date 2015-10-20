@@ -1,5 +1,9 @@
 #!/usr/bin/env qr
 
+%require-types
+%enable-all-warnings
+%new-style
+
 %requires ../../qlib/QUnit.qm
 
 #%include ./_MODULE_TO_TEST_
