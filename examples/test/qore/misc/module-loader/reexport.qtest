@@ -1,13 +1,15 @@
 #!/usr/bin/env qr
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
+%require-types
+%enable-all-warnings
+%new-style
+
 %requires ../../../../../qlib/QUnit.qm
 
 %requires ./ReExportTest.qm
 #/;
 
-%require-types
-%enable-all-warnings
 %exec-class ReExportTest
 
 class ReExportTest inherits Test {

@@ -3,9 +3,12 @@
 
 %require-types
 %enable-all-warnings
-%requires UnitTest
+%new-style
+
 %allow-injection
 %no-child-restrictions
+
+%requires UnitTest
 
 our UnitTest unit();
 
