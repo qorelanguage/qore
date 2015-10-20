@@ -110,6 +110,12 @@ MACRO (QORE_BINARY_MODULE _module_name _version)
     # this line breaks jhbuild "chroot": install( TARGETS ${_module_name} DESTINATION ${QORE_MODULES_DIR})
     install( TARGETS ${_module_name} DESTINATION ${QORE_MODULES_DIR})
 
+    if (APPLE)
+        # TODO/FIXME: @Niclas: please verify if it's correct
+        # It should allow to use full path in the module refernce itself. otool -L /path/to/module.qmod, 1st line.
+        set_target_properties(${_module_name} PROPERTIES INSTALL_NAME_DIR ${QORE_MODULES_DIR})
+    endif (APPLE)
+
 
     # uninstall
     if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in")
