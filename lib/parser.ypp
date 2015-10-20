@@ -1133,13 +1133,13 @@ public:
    // static flag
    bool static_flag;
 
-   DLLLOCAL inline MethodNode(char* mname, MethodVariantBase *v, bool n_static) : name(mname), m(v), static_flag(n_static) {
+   DLLLOCAL MethodNode(char* mname, MethodVariantBase *v, bool n_static) : name(mname), m(v), static_flag(n_static) {
    }
-   DLLLOCAL inline ~MethodNode() {
+   DLLLOCAL ~MethodNode() {
       free(name);
       delete m;
    }
-   DLLLOCAL inline void addAndDelete(QoreClass* qc) {
+   DLLLOCAL void addAndDelete(QoreClass* qc) {
       qore_class_private::addUserMethod(*qc, name, m, static_flag);
       m = 0;
       delete this;
@@ -1158,6 +1158,9 @@ static AbstractQoreNode* is_rewritable_op(AbstractQoreNode* n) {
 }
 
 static AbstractQoreNode* checkRewriteList(QoreListNode* l) {
+   if (!parse_check_parse_option(PO_BROKEN_LIST_PARSING))
+      return l;
+
    // rewrite expression if it's a list without parentheses and
    // the first expression has one of the following operators:
    // =, +=, -=

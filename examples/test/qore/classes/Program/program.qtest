@@ -23,7 +23,7 @@ sub class_test_Program() {
     my string pf = "newfunc();";
     my string nf = "bool sub newfunc() { return True; }";
 
-    my Program a();
+    my Program a(PO_NEW_STYLE);
     a.parsePending(pf, "pending test part1", 0);
     a.parsePending(nf, "pending test part2", 0);
     a.parseCommit();
@@ -53,7 +53,7 @@ sub class_test_Program() {
     unit.cmp(get_class_name(ox), "X", "user class returned from deleted subprogram object");
 
     # test for incorrect parse location when processing constants after a commit
-    a = new Program();
+    a = new Program(PO_NEW_STYLE);
     a.parse("sub x() {}", "lib");
     my *hash h = a.parse("const X1 = 'a'; const X2 = 'a'; const h = (X1: 1, X2: 2);", "warn", WARN_ALL);
     unit.cmp(h.file, "<run-time-loaded: warn>", "constant parse location");
@@ -78,7 +78,7 @@ sub class_test_Program() {
     unit.cmp(1, p1.callFunction("checkT", o2), "first cross-Program class");
     unit.cmp(1, p2.callFunction("checkT", o2), "second cross-Program class");
 
-    my Program p4();
+    my Program p4(PO_NEW_STYLE);
     try {
         p4.parse("error", "error", 0, "source", 10);
         unit.cmp(True, False, "exception source & offset");

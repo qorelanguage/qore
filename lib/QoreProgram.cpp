@@ -126,6 +126,7 @@ ParseOptionMaps::ParseOptionMaps() {
       doMap(PO_ALLOW_INJECTION, "PO_ALLOW_INJECTION");
       doMap(PO_NO_INHERIT_SYSTEM_CONSTANTS, "PO_NO_INHERIT_SYSTEM_CONSTANTS");
       doMap(PO_NO_INHERIT_USER_CONSTANTS, "PO_NO_INHERIT_USER_CONSTANTS");
+      doMap(PO_BROKEN_LIST_PARSING, "PO_BROKEN_LIST_PARSING");
 }
 
 QoreHashNode* ParseOptionMaps::getCodeToStringMap() const {

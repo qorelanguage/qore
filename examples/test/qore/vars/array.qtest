@@ -1,4 +1,4 @@
-#!/usr/bin/env qore 
+#!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
 %require-types
@@ -14,10 +14,10 @@ class TestArray {
         my UnitTest unit();
         my (list a, list b, list c, list d);
 
-        a = 1, 2, 3, 4, 5;
+        a = (1, 2, 3, 4, 5);
         unit.cmp(elements a, 5, "elements operator");
         unit.cmp(a[1], 2, "single-dimensional list dereference");
-        b = 1, 2, (3, 4, 5), 6, 7;
+        b = (1, 2, (3, 4, 5), 6, 7);
         unit.cmp(b[2][1], 4, "multi-dimensional list dereference");
         delete b;
         unit.cmp(b[2][1], NOTHING, "multi-dimensional list dereference after delete operator");
@@ -31,9 +31,9 @@ class TestArray {
         unit.cmp(a[1][500], NOTHING, "non-existent element deference");
         unit.cmp(int(c[10].testing), 0, "hash list element dereference");
         unit.cmp(c[10]{"testing"}, "well then", "hash element in list dereference");
-        d = test1(), test2();
+        d = (test1(), test2());
         unit.cmp(d[1], 2, "list element dereference with evaluation");
-        b = a = 1, 2, 3;
+        b = a = (1, 2, 3);
         delete a[2];
         unit.cmp(a[2] != b[2], True, "shared list element comparison after delete");
         a[1][1] = 3;
@@ -43,8 +43,8 @@ class TestArray {
         unit.cmp(list_return()[0], 1, "simple list return and deref(e)");
         unit.cmp(list_return()[1], 2, "list return with function element result and deref(e)");
         unit.cmp(list_return("gee")[2], "gee", "list return with local variable result and deref(e)");
-        a = 1, 2, 3;
-        a += 4, 5, 6;
+        a = (1, 2, 3);
+        a += (4, 5, 6);
         unit.cmp(a[3], 4, "first list list plus-equals concatenation");
         a += 7;
         unit.cmp(a[6], 7, "list element plus-equals concatenation");
@@ -52,13 +52,13 @@ class TestArray {
         unit.cmp(a[7], 8, "second list list plus-equals concatenation");
         a = (1, 2, 3) + (4, 5, 6);
         unit.cmp(a[3], 4, "first list list plus operator concatenation");
-        a = 1, 2, 3;
-        b = 4, 5, 6;
+        a = (1, 2, 3);
+        b = (4, 5, 6);
         c = a + b;
         unit.cmp(c[4], 5, "second list list plus operator concatenation");
-        my list l1 = ( 3, 2, 4, 1, 6, 5 );
-        my list l2 = ( "one", "two", "three", "four", "five", "six" );
-        my list hl = 
+        my list l1 = (3, 2, 4, 1, 6, 5);
+        my list l2 = ("one", "two", "three", "four", "five", "six");
+        my list hl =
             ( ( "key1" : 8, "key2" : "two" ),
               ( "key1" : 2, "key2" : "seven" ),
               ( "key1" : 7, "key2" : "six" ),
@@ -68,7 +68,7 @@ class TestArray {
               ( "key1" : 3, "key2" : "five" ),
               ( "key1" : 5, "key2" : "nine" ),
               ( "key1" : 4, "key2" : "one" ) );
-        my list sorted_hl = 
+        my list sorted_hl =
             ( ( "key1" : 1, "key2" : "eight" ),
               ( "key1" : 2, "key2" : "seven" ),
               ( "key1" : 3, "key2" : "five" ),
@@ -78,7 +78,7 @@ class TestArray {
               ( "key1" : 7, "key2" : "six" ),
               ( "key1" : 8, "key2" : "two" ),
               ( "key1" : 9, "key2" : "three" ) );
-        my list stable_sorted_hl = 
+        my list stable_sorted_hl =
             ( ( "key1" : 1, "key2" : "eight" ),
               ( "key1" : 2, "key2" : "seven" ),
               ( "key1" : 3, "key2" : "five" ),
@@ -174,7 +174,7 @@ class TestArray {
         unit.cmp(astr[2], "l", "string element dereference");
         my binary bin = binary(astr);
         unit.cmp(bin[4], ord("o"), "binary byte dereference");
-        
+
         # range tests
         unit.cmp(range(1), (0, 1,), "range - basic test");
         unit.cmp(range(2, 5), (2, 3, 4, 5), "range - boundaries test");
@@ -226,4 +226,4 @@ int sub test1() {
 
 int sub test2() {
     return 2;
-} 
+}

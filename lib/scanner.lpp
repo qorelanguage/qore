@@ -28,12 +28,12 @@
   licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
   information.
 
-  Flex scanner: 
-    no string length limits, 
-    no include file depth limits, 
+  Flex scanner:
+    no string length limits,
+    no include file depth limits,
     thread-safe
 
-  requires flex 2.5.31 or better (2.5.37+ recommended, 2.5.4 will not work) 
+  requires flex 2.5.31 or better (2.5.37+ recommended, 2.5.4 will not work)
   so a thread-safe scanner can be generated
 
   see: http://flex.sourceforge.net/
@@ -136,7 +136,7 @@ static const char* get_last_word(const char* str) {
    assert(l);
 
    const char* e = str + l - 2;
-   
+
    while (e != str && *e != ' ' && *e != '\t' && *e != '\r' && *e != '\n')
       --e;
 
@@ -162,7 +162,7 @@ static void scanner_process_path(QoreString& npath, char* ip) {
     // 2: remove the paths that don't exist
     char* lp, *p;
     p = lp = ip;
-    
+
     while (true) {
 #ifdef _Q_WINDOWS
        // do not assume ':' separates paths on windows if it's the second character in a path
@@ -226,7 +226,7 @@ static void scanner_process_path(QoreString& npath, char* ip) {
 		   tpath.replace(0, 0, sp);
 		}
 	     }
-	     
+
              //printd(5, "set_include_path() trying '%s'\n", sp);
              // add to path list if the directory exists
              if (!stat(sp, &sb)) {
@@ -301,7 +301,7 @@ static QoreString* get_include_file_name(char* file) {
    rv = findFileInEnvPath(file, "QORE_INCLUDE_DIR");
    if (!rv) {
        const char* pp = getProgram()->parseGetIncludePath();
-       if (pp) 
+       if (pp)
 	   rv = findFileInPath(file, pp);
        if (!rv)
 	   rv = new QoreString(file);
@@ -457,7 +457,7 @@ static void parse_time(const char* &p, int &hour, int &minute, int &second, int 
 	    ++len;
 	    ++p;
 	 }
-	 
+
 	 // adjust to microseconds
 	 while (len < 6) {
 	    us *= 10;
@@ -629,7 +629,7 @@ static void qore_parse_define(const char* pstr) {
       if (!ok)
 	 return;
    }
- 
+
    qore_program_private::parseDefine(getProgram(), QoreProgramLocation(ParseLocation), str.getBuffer(), v);
 }
 
@@ -723,6 +723,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%old-style{WS}*$                       getProgram()->parseDisableParseOptions(PO_NEW_STYLE);
 ^%perl-bool-eval{WS}*$                  getProgram()->parseDisableParseOptions(PO_STRICT_BOOLEAN_EVAL);
 ^%strict-bool-eval{WS}*$                getProgram()->parseSetParseOptions(PO_STRICT_BOOLEAN_EVAL);
+^%broken-list-parsing{WS}*$   		getProgram()->parseSetParseOptions(PO_BROKEN_LIST_PARSING);
 ^%push-parse-options{WS}*$              push_parse_options();
 ^%append-include-path{WS}+              BEGIN(append_path_state);
 <append_path_state>[^\t\n\r]+           {
@@ -739,11 +740,11 @@ RTIME           PT(-?[0-9]+[HMSu])+
 					   parse_set_time_zone(yytext);
 					   BEGIN(INITIAL);
                                         }
-^%enable-all-warnings{WS}*$             { 
+^%enable-all-warnings{WS}*$             {
                                            if (getProgram()->setWarningMask(-1))
 					      qore_program_private::makeParseWarning(getProgram(), QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot enable all warnings");
 			                }
-^%disable-all-warnings{WS}*$            { 
+^%disable-all-warnings{WS}*$            {
                                            if (getProgram()->setWarningMask(0))
 					      qore_program_private::makeParseWarning(getProgram(), QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot disable all warnings");
 			                }
@@ -959,7 +960,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 					      }
 					      else {
 						 BEGIN(p_skip_to_endif);
-					      }                                           
+					      }
                                         }
 <p_skip_to_endif>{
    ^%endif{WS}*$                        {
@@ -1031,7 +1032,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 					   TempString fname(get_include_file_name(yytext));
 					   const char* fn = fname->getBuffer();
 					   // remove enclosing quotes if any
-					   if (fname->strlen() 
+					   if (fname->strlen()
 					       && ((fn[0] == '\"' && fn[fname->strlen() - 1] == '\"')
 						   || (fn[0] == '\'' && fn[fname->strlen() - 1] == '\''))) {
 					      fname->trim(fn[0]);
@@ -1068,7 +1069,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 						 else {
 						    FILE *save_yyin = yyin;
 						    yyin = fopen(fn, "r");
-						    
+
 						    if (!yyin) {
 						       parse_error("cannot open include file \"%s\"", fn);
 						       yyin = save_yyin;
@@ -1098,12 +1099,12 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                            int token_lenght = strlen(yytext);
                                            int val;
                                            if (token_lenght == 4) {
-                                              val = ascii_to_octal(*(yytext + 3)) 
+                                              val = ascii_to_octal(*(yytext + 3))
 						 + (8 * ascii_to_octal(*(yytext + 2)))
 						 + (64 * ascii_to_octal(*(yytext + 1)));
                                            }
                                            else if (token_lenght == 3) {
-                                              val = ascii_to_octal(*(yytext + 2)) 
+                                              val = ascii_to_octal(*(yytext + 2))
 						 + (8 * ascii_to_octal(*(yytext + 1)));
                                            }
                                            else { // here token_lenght == 2
@@ -1133,8 +1134,8 @@ RTIME           PT(-?[0-9]+[HMSu])+
 					      c = yyinput(yyscanner);
 					   } while (isRegexSubstModifier(yylval->RegexSubst, c));
 					   unput(c);
-					   BEGIN(INITIAL); 
-					   yylval->RegexSubst->parse(); 
+					   BEGIN(INITIAL);
+					   yylval->RegexSubst->parse();
 					   return REGEX_SUBST;
                                         }
       \n				{
@@ -1163,8 +1164,8 @@ RTIME           PT(-?[0-9]+[HMSu])+
 <regex_trans2>{
       -                                 yylval->RegexTrans->setTargetRange();
       \/				{
-					   BEGIN(INITIAL); 
-					   yylval->RegexTrans->finishTarget(); 
+					   BEGIN(INITIAL);
+					   yylval->RegexTrans->finishTarget();
 					   return REGEX_TRANS;
                                         }
       \n				yylval->RegexTrans->concatTarget('\n');
@@ -1208,8 +1209,8 @@ RTIME           PT(-?[0-9]+[HMSu])+
 					      c = yyinput(yyscanner);
 					   } while (isRegexModifier(yylval->Regex, c));
 					   unput(c);
-					   BEGIN(INITIAL); 
-					   yylval->Regex->parse(); 
+					   BEGIN(INITIAL);
+					   yylval->Regex->parse();
 					   return REGEX;
                                         }
       \n				yylval->Regex->concat('\n');
@@ -1229,8 +1230,8 @@ RTIME           PT(-?[0-9]+[HMSu])+
 					      c = yyinput(yyscanner);
 					   } while (isRegexExtractModifier(yylval->Regex, c));
 					   unput(c);
-					   BEGIN(INITIAL); 
-					   yylval->Regex->parse(); 
+					   BEGIN(INITIAL);
+					   yylval->Regex->parse();
 					   return REGEX_EXTRACT;
                                         }
       \n				yylval->Regex->concat('\n');
@@ -1502,7 +1503,7 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
 						    c = yyinput(yyscanner);
 						 }
 						 while (c == '*');
-						 if (c == '/') 
+						 if (c == '/')
 						    break;
 					      }
 					      if (c == EOF) {
@@ -1516,13 +1517,13 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
    s\/                                  yylval->RegexSubst = new RegexSubstNode(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_subst1);
    x\/                                  yylval->Regex      = new QoreRegexNode();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_extract_state);
    tr\/                                 yylval->RegexTrans = new RegexTransNode(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_trans1);
-   m\/                                  yylval->Regex      = new QoreRegexNode();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state); 
+   m\/                                  yylval->Regex      = new QoreRegexNode();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
    \/                                   yylval->Regex      = new QoreRegexNode();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
    {WSNL}+                              /* ignore whitespace */
    [^sxmt\/]                            parse_error("missing regular expression after =~"); BEGIN(INITIAL);
 }
 <regex_negative_universe>{
-   m\/                                  yylval->Regex      = new QoreRegexNode();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state); 
+   m\/                                  yylval->Regex      = new QoreRegexNode();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
    \/                                   yylval->Regex      = new QoreRegexNode();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
    {WSNL}+                              /* ignore whitespace */
    [^m\/]                               parse_error("missing regular expression after !~"); BEGIN(INITIAL);

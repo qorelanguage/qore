@@ -8,13 +8,14 @@
 
     <b>Parse Directives</b>
     |!Directive|!Description
-    |@ref allow-bare-refs "%allow-bare-refs"|Prohibits the use of the \c "$" character in variable names, method calls, and object member references. This makes %Qore scripts appear superficially more like C++ or Java programs.<br><br>This parse option is set by default with @ref new-style "%new-style".<br><br>Name resolution is made in the following order when this option is set: local variables, class constants and static class vars (when parsing in class code), global variables, and (non-class) constants.<br><br>Note that @ref implicit_arguments "implicit arguments" are still referenced with the \c "$" character even when this parse option is set; see also @ref require-dollar "%require-dollar" <br><br>Since %Qore 0.8.1 
+    |@ref allow-bare-refs "%allow-bare-refs"|Prohibits the use of the \c "$" character in variable names, method calls, and object member references. This makes %Qore scripts appear superficially more like C++ or Java programs.<br><br>This parse option is set by default with @ref new-style "%new-style".<br><br>Name resolution is made in the following order when this option is set: local variables, class constants and static class vars (when parsing in class code), global variables, and (non-class) constants.<br><br>Note that @ref implicit_arguments "implicit arguments" are still referenced with the \c "$" character even when this parse option is set; see also @ref require-dollar "%require-dollar" <br><br>Since %Qore 0.8.1
     |@ref allow-injection "%allow-injection"|Allows code and dependency injections into the given @ref Qore::Program "Program" object
     |@ref append-include-path "%append-include-path"|Appends the given directories to qore's include path; also performs environment variable substitution
     |@ref append-module-path "%append-module-path"|Appends the given directories to qore's module path; also performs environment variable substitution <br><br>Since %Qore 0.8.6
     |@ref assume-global "%assume-global"|Resets the default %Qore behavior of assuming global variable scope when variables are first referenced if no @ref my "my" or @ref our "our" is present; use after @ref assume-local "%assume-local" to reset the default parsing behavior.<br><br>This parse option is also set with @ref old-style "%old-style" <br><br>Since %Qore 0.8.4
     |@ref assume-local "%assume-local"|Assume local variable scope when variables are first referenced if no @ref my "my" or @ref our "our" is present. When used with @ref allow-bare-refs "%allow-bare-refs", local variables without @ref my "my" must be declared with a data type restriction (can be @ref any_type "any").<br><br>This parse option is set by default with @ref new-style "%new-style"; see also @ref assume-global "%assume-global" <br><br>Since %Qore 0.8.1
-    |@ref define "%define"|Creates and optionally sets a value for a @ref conditional_parsing "parse define" <br><br>Since %Qore 0.8.3
+    |@ref broken-list-parsing "%broken-list-parsing"|Use old pre-0.8.12 broken list parsing where certain lists without parentheses would be rewritten to make top-level statements like <tt>list l = 1, 2, 3;</tt> valid
+|@ref define "%define"|Creates and optionally sets a value for a @ref conditional_parsing "parse define" <br><br>Since %Qore 0.8.3
     |@ref disable-all-warnings "%disable-all-warnings"|Turns off all @ref warnings "warnings"
     |@ref disable-warning "%disable-warning" <em>@ref warnings "warning-code"</em>|Disables the named @ref warnings "warning" until @ref enable-warning "%enable-warning" is encountered with the same code or @ref enable-all-warnings "%enable-all-warnings" is encountered
     |@ref else "%else"|Allows for parsing an alternate block when used with the @ref ifdef "%ifdef" or @ref ifndef "%ifndef" parse directives (for @ref conditional_parsing "conditional parsing based on parse defines") <br><br>Since %Qore 0.8.3
@@ -81,7 +82,7 @@
 
     @par Description:
     Prohibits the use of the \c "$" character in variable names, method calls, and object member references. This makes %Qore scripts appear superficially more like C++ or Java programs. This parse option is set by default with @ref new-style "%new-style" and is the opposite of @ref require-dollar "%require-dollar".\n\n
-    Name resolution is made in the following order when this option is set: 
+    Name resolution is made in the following order when this option is set:
     - @ref variable_declarations "local variables"
     - @ref class_constants "class constants" (when parsing in class code)
     - @ref static_class_variables "static class variables" (when parsing in class code)
@@ -130,7 +131,7 @@
     n/a
 
     @par Description:
-    Appends the given directories to qore's include path; also performs environment variable substitution.  Only directories that exist and 
+    Appends the given directories to qore's include path; also performs environment variable substitution.  Only directories that exist and
     are readable are added to the include path.
 
     @see @ref append-module-path "%append-module-path"
@@ -148,7 +149,7 @@
     n/a
 
     @par Description:
-    Appends the given directories to qore's module path; also performs environment variable substitution.  Only directories that exist and 
+    Appends the given directories to qore's module path; also performs environment variable substitution.  Only directories that exist and
     are readable are added to the module path.
 
     @since %Qore 0.8.6
@@ -194,6 +195,23 @@
     @see @ref assume-global "%assume-global"
 
     <hr>
+    @section broken-list-parsing %broken-list-parsing
+
+    @par Parse Directive:
+    <tt>%%broken-list-parsing/tt>
+
+    @par Command Line:
+    <tt>-</tt><tt>-broken-list-parsing</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_BROKEN_LIST_PARSING
+
+    @par Description:
+    Use old pre-0.8.12 broken list parsing where certain lists without parentheses would be rewritten to make top-level statements like <tt>list l = 1, 2, 3;</tt> valid.
+
+    @since %Qore 0.8.12
+
+    <hr>
     @section define %define
 
     @par Parse Directive:
@@ -224,7 +242,7 @@
 
     @par Description:
     Disables all warnings while parsing. See @ref warnings for more information.
- 
+
     <hr>
     @section disable-warning %disable-warning
 
@@ -975,7 +993,7 @@
 
     <hr>
     @section perl-bool-eval %perl-bool-eval
-    
+
     @par Parse Directive:
     <tt>%%perl-bool-eval</tt>
 
@@ -1026,7 +1044,7 @@ if ($str)
     <hr>
     @section require-dollar %require-dollar
 
-    @par Parse Directive:    
+    @par Parse Directive:
     <tt>%%require-dollar</tt>
 
     @par Command Line:
@@ -1150,7 +1168,7 @@ if ($str)
 
     <hr>
     @section strict-bool-eval %strict-bool-eval
-    
+
     @par Parse Directive:
     <tt>%%strict-bool-eval</tt>
 
@@ -1159,7 +1177,7 @@ if ($str)
 
     @par Parse Option Constant:
     @ref Qore::PO_STRICT_BOOLEAN_EVAL
-    
+
     @par Description:
     When set, this option enables qore's default strict mathematic boolean evaluation, where any value converted to 0 is @ref Qore::False "False" and otherwise it's is @ref Qore::True "True".\n\n
     This option takes effect at runtime.\n\n
