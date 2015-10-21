@@ -1,50 +1,49 @@
-Qore README
+# Qore
 
-author: David Nichols <david@qore.org>
-updated: 2015-09-06
+[![Build Status](https://hq.qoretechnologies.com/jenkins/buildStatus/icon?job=qore)](https://hq.qoretechnologies.com/jenkins/job/qore/)
 
+## Files
 This document contains some general information on the Qore language.  Please
 refer to the following files/locations for specific information:
 
-README-LICENSE:
-  read about Qore's open-source software licenses
+### ABOUT:
+  General description of the Qore programming language.
+  
+### BUILDING:
+  Information on how to build and install qore from sources - some quick
+  information below.
 
-README-GIT:
-  learn how to build qore from git sources
+### README-LICENSE:
+  Read about Qore's open-source software licenses.
 
-README-MODULES:
-  information about qore modules (delivered separately from the qore library)
+### README-GIT:
+  Learn how to build qore from git sources.
 
-WHATISQORE:
-  general description of the Qore programming language
+### README-MODULES:
+  Information about qore modules (delivered separately from the qore library).
 
-RELEASE-NOTES:
-  release notes, known issues, etc - however see the following URL for full
+### RELEASE-NOTES:
+  Release notes, known issues, etc - however see the following URL for full
   release notes online:
   	  http://qore.org/manual/current/lang/html/release_notes.html
 
-BUILDING:
-  information on how to build and install qore from sources - some quick
-  information below
+### docs/lang/html:
+  Qore reference manual (built during the build process if you have doxygen).
 
-docs/lang/html:
-  Qore reference manual (built during the build process if you have doxygen)
-
-docs/library/html/index.html:
+### docs/library/html/index.html:
   API documentation for qore's public API (built during the build process if
-  you have doxygen)
+  you have doxygen).
 
-test/:
-  test scripts.  test/test.q is the main regression test script; testing is
+### examples/:
+  Many example Qore scripts/programs.
+
+### examples/test/:
+  Qore test scripts. run_tests.sh is the main regression test script. Testing is
   not yet automated as a part of the build...
 
-examples/:
-  many example Qore scripts/programs.
 
+## Quick Build Info
 
-************************
-*** Quick Build Info ***
-************************
  * only UNIX-like platforms are currently supported (although Windows binaries
    can be built with mxe, and theoretically qore could be built directly on a
    Windows host)
@@ -64,9 +63,8 @@ examples/:
    instead
 
 
-***************
-*** HISTORY ***
-***************
+## History
+
 Qore was originally designed to facilitate embedding integration logic in a
 workflow/technical order management system (the system is called Qorus
 Integration Engine).
