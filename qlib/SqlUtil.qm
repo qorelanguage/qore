@@ -15724,7 +15724,7 @@ list l = table.getAlignSql(table2);
                 else {
                     # there is no PK in the table, so we have to remove the link from the index to the PK in the template
                     *string pk_index = t.primaryKey.getIndex();
-                    if (t.indexes.hasKey(pk_index))
+                    if (t.indexes && t.indexes.hasKey(pk_index))
                         t.indexes{pk_index}.setSupportingConstraint();
                     if (constraintsLinkedToIndexesImpl() && indexes.hasKey(t.primaryKey.getName()))
                         t.primaryKey.clearIndex();
