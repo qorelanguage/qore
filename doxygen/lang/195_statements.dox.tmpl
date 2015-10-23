@@ -91,7 +91,7 @@ for (my int $i = 0; $i < 10; $i++)
 
     @par Description
     If \a expression does not evaluate to a list, then the variable will be assigned the value of the expression evaluation and the statement will only execute one time. Otherwise the variable will be assigned to each value of the list and the statement will be called once for each value.\n\n
-    If \a expression evaluates to an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class, the <b><tt>foreach</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()", and the alues assigned to the iterator variable on each iteration are the container values returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()".
+    If \a expression evaluates to an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class, the <b><tt>foreach</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()", and the values assigned to the iterator variable on each iteration are the container values returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()".
     If \a expression evalutes to @ref nothing (no value); then the loop is not executed at all.
 
     @par Example
@@ -313,7 +313,7 @@ Skips the rest of a loop and jumps right to the evaluation of the iteration expr
     <em>@ref expressions "where_expression"</em>\n
     An optional <b><tt>where</tt></b> expression may be given, in which case for each row in the hash, the expression will be executed, and if the where expression evaluates to @ref Qore::True "True", the row will be iterated in the context loop. If this expression evaluates to @ref Qore::False "False", then the row will not be iterated. This option is given so the programmer can create multiple views of a single data structure (such as a query result set) in memory rather than build different data structures by hand (or retrieve the data multiple times from a database).\n\n
     <em>@ref expressions "sort_expression"</em>\n
-    An optional <tt><b>sortBy</b></tt> by expression may also be given. In this case, the expression will be evaluated for each row of the query given, and then the result set will be sorted in ascending order by the results of the expressions according to the resulting type of the evaluated expression (i.e. if the result of the evaluation of the expression gives a string, then string order is used to sort, if the result of the evaluation is an integer, then integer order is used, etc).\n\n
+    An optional <tt><b>sortBy</b></tt> expression may also be given. In this case, the expression will be evaluated for each row of the query given, and then the result set will be sorted in ascending order by the results of the expressions according to the resulting type of the evaluated expression (i.e. if the result of the evaluation of the expression gives a string, then string order is used to sort, if the result of the evaluation is an integer, then integer order is used, etc).\n\n
     <em>@ref expressions "sort_descending_expression"</em>\n
     Another optional modifier to the <tt><b>context</b></tt> statement that behaves the same as above except that the results are sorted in descending order.
 
@@ -340,7 +340,7 @@ sortBy (%effective_start_date) {
     @section summarize summarize Statements
 
     @par Synopsis
-    <tt><b>summarize</b></tt> statements are like context statements with one important difference: results sets are grouped by a by expression, and the statement is executed only once per discrete by expression result. This statement is designed to be used with the @ref subcontext "subcontext statement".
+    <tt><b>summarize</b></tt> statements are like context statements with one important difference: results sets are grouped by a <tt><b>by</b></tt> expression, and the statement is executed only once per discrete <tt><b>by</b></tt> expression result. This statement is designed to be used with the @ref subcontext "subcontext statement".
 
     @par Syntax
     <tt><b>summarize</b></tt> <tt>(</tt><em>@ref expressions "data_expression"</em><tt>) \b by (</tt><em>@ref expressions "by_expression"</em><tt>)</tt>\n
@@ -496,7 +496,7 @@ my string $name = getName();@endcode
     @section on_error on_error Statements
 
     @par Synopsis
-    Queues a statement or statement block for execution when the block is exited in the case that no exception is active. Used often in conjunction with the @ref on_success "on_success statement" and related to the @ref on_exit "on_exit statement".
+    Queues a statement or statement block for execution when the block is exited in the case that an exception is active. Used often in conjunction with the @ref on_success "on_success statement" and related to the @ref on_exit "on_exit statement".
 
     @par Syntax
     <tt><b>on_error</b></tt>\n

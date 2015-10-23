@@ -104,7 +104,7 @@ softstring MyNamespace::MyClass::myMethod(softint $i) {
 
     @anchor abstract
     @par Abstract Methods
-    Methods declared with the <tt><b>abstract</b></tt> keyword define methods interfaces that must be defined in child classes for the class to be instantiated.  Methods defining the declared interfaces in child classes must define exactly the same paramters in order for the abstract method to match, but the return type of the concrete method in the child class has to simply be compatible with the return type of the abstract method in the parent class.\n\n
+    Methods declared with the <tt><b>abstract</b></tt> keyword define methods interfaces that must be defined in child classes for the class to be instantiated.  Methods defining the declared interfaces in child classes must define exactly the same parameters in order for the abstract method to match, but the return type of the concrete method in the child class has to simply be compatible with the return type of the abstract method in the parent class.\n\n
     Classes with undefined abstract methods cannot be instantiated.  Abstract methods cannot have a method body; an abstract method's declaration must be terminated with a semicolon (\c ";").\n\n
     The <tt><b>abstract</b></tt> keyword can only be used in abstract method declaration; the use of this keyword with a method declaration with a method body will cause a parse exception to be thrown.
 
@@ -169,7 +169,7 @@ class Test {
 }
     @endcode
 
-    @note Static class variables cannot have the same same as class constants.
+    @note Static class variables cannot have the same name as class constants.
 
     @section class_members Class Members
 
@@ -179,7 +179,7 @@ class Test {
 
     @anchor private_members
     @par Private Members
-    Members declared <b><tt>pivate</tt></b> can only be accessed within the class hierarchy; trying to access private members form outside the class hierarchy will result in either a parse or runtime exception, depending on when the illegal acceess is caught.
+    Members declared <b><tt>private</tt></b> can only be accessed within the class hierarchy; trying to access private members form outside the class hierarchy will result in either a parse or runtime exception, depending on when the illegal acceess is caught.
 
     @par Class Member References
     When defining a class, members of instantiated objects are referred to with a special syntax as follows:\n

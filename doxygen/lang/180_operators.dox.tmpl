@@ -123,7 +123,7 @@
     <b>Arguments Processed by {}</b>
     |!Argument|!Processing
     |\a container_expression|This expression must evaluate to a @ref hash "hash" or an @ref object "object"; if not, the operator returns no value (@ref nothing)
-    |\a expression|- @ref list "list": if the expression evaluates to a list, then a slice of the hash or object is returned as a hash containing keys given in the list that are present in the hash or object. If the key as given in the list (converted to a string if necessary) is not present in the hash or object, then it is also not present in the hash returned; of none of the given keys exist in the hash, an empty hash is returned.\n- anything other than @ref list "list": the expression is converted to a string (if necessary); the value of the hash key corresponding to this string will be returned; if the key or member does not exist, then no value is returned
+    |\a expression|- @ref list "list": if the expression evaluates to a list, then a slice of the hash or object is returned as a hash containing keys given in the list that are present in the hash or object. If the key as given in the list (converted to a string if necessary) is not present in the hash or object, then it is also not present in the hash returned; if none of the given keys exist in the hash, an empty hash is returned.\n- anything other than @ref list "list": the expression is converted to a string (if necessary); the value of the hash key corresponding to this string will be returned; if the key or member does not exist, then no value is returned
 
     @throw PRIVATE-MEMBER Attempt to access a private member outside the class
 
@@ -158,7 +158,7 @@
     <b>Arguments Processed by . (hash key or object member expression dereference)</b>
     |!Argument|!Processing
     |\a hash_or_object_expression|This expression must evaluate to a hash or an object; if not, then the operator returns no value
-    |\a expression|- @ref list "list": if the expression evaluates to a list, then a slice of the hash or object is returned as a hash containing keys given in the list that are present in the hash or object. If the key as given in the list (converted to a string if necessary) is not present in the hash or object, then it is also not present in the hash returned; of none of the given keys exist in the hash, an empty hash is returned.\n- anything other than @ref list "list": the expression is converted to a string (if necessary); the value of the hash key corresponding to this string will be returned; if the key or member does not exist, then no value is returned
+    |\a expression|- @ref list "list": if the expression evaluates to a list, then a slice of the hash or object is returned as a hash containing keys given in the list that are present in the hash or object. If the key as given in the list (converted to a string if necessary) is not present in the hash or object, then it is also not present in the hash returned; if none of the given keys exist in the hash, an empty hash is returned.\n- anything other than @ref list "list": the expression is converted to a string (if necessary); the value of the hash key corresponding to this string will be returned; if the key or member does not exist, then no value is returned
 
     @throw PRIVATE-MEMBER Attempt to access a private member outside the class
     @throw METHOD-DOES-NOT-EXIST Attempt to access a method not defined for this class
@@ -1428,7 +1428,7 @@ $list =~ x/(.*)\.(.*)/;
 
     <b>Arguments Processed by |</b>
     |!Argument|!Processing
-    |@ref int_type "int"|Gives the result of the binary (bitwise) OR operation between \a expression1 and \a expression2 (ex: <tt>0xb001 | 0xfea = 0xbfeb</tt>); operands are converted to integers if necessary
+    |@ref int_type "int"|Gives the result of the binary (bitwise) OR operation between \a expression1 and \a expression2 (ex: <tt>0xb001 \| 0xfea = 0xbfeb</tt>); operands are converted to integers if necessary
 
     This operator does not throw any exceptions.
 

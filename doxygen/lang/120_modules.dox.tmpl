@@ -232,7 +232,7 @@ public namespace Bar {
     Therefore when using a module that provides services in its own threads (such as, for example, the
     <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module), it's important to make sure that the application
     object does not go out of scope while non-static method call references to the application object are needed by active threads
-    inthe user module (for example, non-static method call references passed as callbacks to the
+    in the user module (for example, non-static method call references passed as callbacks to the
     <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module, etc).
 
     This also applies to call references to non-static methods passed to set_signal_handler().
