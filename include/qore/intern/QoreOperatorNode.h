@@ -182,7 +182,7 @@ public:
    DLLLOCAL void checkLValue(AbstractQoreNode* exp, int pflag, bool assignment = true) {
       if (exp) {
          if (check_lvalue(exp, assignment))
-            parse_error("expecing lvalue for %s, got '%s' instead", getTypeName(), exp->getTypeName());
+            parse_error("expecting lvalue for %s, got '%s' instead", getTypeName(), exp->getTypeName());
          else if ((pflag & PF_BACKGROUND) && exp && exp->getType() == NT_VARREF && reinterpret_cast<const VarRefNode*>(exp)->getType() == VT_LOCAL)
             parse_error("illegal local variable modification with the background operator in %s", getTypeName());
       }

@@ -280,7 +280,7 @@ LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const
 		  QoreStringNode* desc = new QoreStringNodeMaker("local variable '%s' was already declared in the same block", name);
 		  if (avs) {
 		     vnode->appendLocation(*desc);
-		     parseException(loc, "PARSE-ERRPR", desc);
+		     parseException(loc, "PARSE-ERROR", desc);
 		  }
 		  else {
 		     vnode->appendLocation(*desc);

@@ -1912,7 +1912,7 @@ static AbstractQoreNode* check_op_list_assignment(QoreTreeNode* tree, LocalVar* 
       AbstractQoreNode* v = li.parseInit(prototypeInfo);
 
       if (v && check_lvalue(v))
-	 parse_error("expecing lvalue in position %d of left-hand-side list in list assignment, got '%s' instead", li.index() + 1, v->getTypeName());
+	 parse_error("expecting lvalue in position %d of left-hand-side list in list assignment, got '%s' instead", li.index() + 1, v->getTypeName());
 
       // check for illegal assignment to $self
       if (oflag)
