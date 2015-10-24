@@ -403,6 +403,13 @@ const PO_NO_SYSTEM_API = PO_NO_SYSTEM_API;
     @since %Qore 0.8.12
  */
 const PO_NO_API = PO_NO_API;
+
+//! allows for old pre-%Qore 0.8.12 broken list rewriting in the parser
+/** @see @ref broken-list-parsing
+
+    @since %Qore 0.8.12
+*/
+const PO_BROKEN_LIST_PARSING = PO_BROKEN_LIST_PARSING;
 //@}
 
 /** @defgroup warning_constants Warning Constants
