@@ -339,10 +339,11 @@
       - fixed problems with signal handling in child processes on UNIXes: @ref Qore::system() "system()" now always performs a \c fork(2), enables all signals, and calls <tt>execl("/bin/sh", "sh", "-c", </tt><i>command</i><tt>, 0)</tt> in the child process (on UNIX systems; on Windows, system(3) is used directly as before)
     - fixed a race condition in the @ref Qore::SQL::DatasourcePool "DatasourcePool" class when opening new datasources after a connection error in the first datasource which could cause a crash.  Now the first datasource is no longer a "special" datasource used for configuration information; configuration information is contained in a separate object which serves as an internal Datasource factory
     - fixed a problem where \c SIGCHLD was blocked by default which caused deadlocks when spawning child processes that in turn waited on grandchild processes - now %Qore no longer blocks \c SIGCHLD on UNIX platforms
-   - fixed a bug in BinaryNode::clear() where the internal pointer was freed but not set to 0 leading to a subsequent crash when the object is destroyed; affected HTTPClient chunked reads of binary data when used with a callback
-   - fixed a bug where the runtime exception location could be reported in the wrong location
-   - fixed a bug where the bzip2 library can request a buffer size that could not be handled by the bzip2 library which is not handled by qore and causes a crash while decompressing certain input
-   - fixed a bug handling closure-bound local variables when closures are created in the background operator expression that caused a core dump
+    - fixed a bug in BinaryNode::clear() where the internal pointer was freed but not set to 0 leading to a subsequent crash when the object is destroyed; affected HTTPClient chunked reads of binary data when used with a callback
+    - fixed a bug where the runtime exception location could be reported in the wrong location
+    - fixed a bug where the bzip2 library can request a buffer size that could not be handled by the bzip2 library which is not handled by qore and causes a crash while decompressing certain input
+    - fixed a bug handling closure-bound local variables when closures are created in the background operator expression that caused a core dump
+    - fixed the precedence of the @ref assignment_operator "assignment operator (=)"; now the precedence of this operator is the same as the other assignment operators (@ref plus_equals_operator "+=", @ref minus_equals_operator "-=", @ref multiply_equals_operator "*=", and @ref divide_equals_operator "/=", etc); this does not break any code, but does align %Qore with other programming languages (such as C, among others) and allows for expressions such as @code a = b += 2@endcode to be correctly parsed
 
     @section qore_0811 Qore 0.8.11
 

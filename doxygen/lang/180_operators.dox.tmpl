@@ -70,16 +70,16 @@
     |@ref foldr "foldr"|\c 19|@ref foldr "fold right to left operator"|@code foldr $closure($1 - $2), $list@endcode
     |@ref select "select"|\c 19|@ref select "select elements from list operator"|@code select $list, $1 > 1@endcode
     |@ref assignment_operator "="|\c 20|@ref assignment_operator "assignment operator"|@code $var = 1@endcode
-    |@ref plus_equals_operator "+="|\c 21|@ref plus_equals_operator "plus-equals (add-to) operator"|@code $var += 5@endcode
-    |@ref minus_equals_operator "-="|\c 21|@ref minus_equals_operator "minus-equals (subtract-from) operator"|@code $var -= 5@endcode
-    |@ref and_equals_operator "&="|\c 21|@ref and_equals_operator "and-equals operator"|@code $var &= 0x2000@endcode
-    |@ref or_equals_operator "|="|\c 21|@ref or_equals_operator "or-equals operator"|@code $var |= 0x2000@endcode
-    |@ref modula_equals_operator "%="|\c 21|@ref modula_equals_operator "modula-equals operator"|@code $var %= 100@endcode
-    |@ref multiply_equals_operator "*="|\c 21|@ref multiply_equals_operator "multiply-equals operator"|@code $var *= 10@endcode
-    |@ref divide_equals_operator "/="|\c 21|@ref divide_equals_operator "divide-equals operator"|@code $var /= 10@endcode
-    |@ref xor_equals_operator "^="|\c 21|@ref xor_equals_operator "xor-equals operator"|@code $var ^= 0x2000@endcode
-    |@ref shift_left_equals_operator "<<="|\c 21|@ref shift_left_equals_operator "shift-left-equals operator"|@code $var <<= 0x2000@endcode
-    |@ref shift_right_equals_operator ">>="|\c 21|@ref shift_right_equals_operator "shift-right-equals operator"|@code $var >>= 0x2000@endcode
+    |@ref plus_equals_operator "+="|\c 20|@ref plus_equals_operator "plus-equals (add-to) operator"|@code $var += 5@endcode
+    |@ref minus_equals_operator "-="|\c 20|@ref minus_equals_operator "minus-equals (subtract-from) operator"|@code $var -= 5@endcode
+    |@ref and_equals_operator "&="|\c 20|@ref and_equals_operator "and-equals operator"|@code $var &= 0x2000@endcode
+    |@ref or_equals_operator "|="|\c 20|@ref or_equals_operator "or-equals operator"|@code $var |= 0x2000@endcode
+    |@ref modula_equals_operator "%="|\c 20|@ref modula_equals_operator "modula-equals operator"|@code $var %= 100@endcode
+    |@ref multiply_equals_operator "*="|\c 20|@ref multiply_equals_operator "multiply-equals operator"|@code $var *= 10@endcode
+    |@ref divide_equals_operator "/="|\c 20|@ref divide_equals_operator "divide-equals operator"|@code $var /= 10@endcode
+    |@ref xor_equals_operator "^="|\c 20|@ref xor_equals_operator "xor-equals operator"|@code $var ^= 0x2000@endcode
+    |@ref shift_left_equals_operator "<<="|\c 20|@ref shift_left_equals_operator "shift-left-equals operator"|@code $var <<= 0x2000@endcode
+    |@ref shift_right_equals_operator ">>="|\c 20|@ref shift_right_equals_operator "shift-right-equals operator"|@code $var >>= 0x2000@endcode
 
     @note All %Qore operators perform thread-atomic actions with respect to the immediate arguments of the operator. If the operators are used in a complex expression, the entire expression is not thread-atomic unless explicit user-level locking is used. For example: <tt>$a += 5</tt> is a thread-atomic action, but <tt>$a += $b--</tt> is not atomic, but rather made up of two atomic actions.\n\n
     When an operator taking more than one argument is used with arguments of different data types, %Qore automatically converts one or both data types to a data type supported by the operator in order to evaluate the result, according to the precedence lists given for each operator. That is; when an operator operates on mixed types, the types listed first in the following sections have precedence over types listed farther down in the lists. The result type will always be equal to the final operation type after any conversions due to type precedence per operator. If no type of either argument matches a supported data type for the operator, both types will be converted to the highest precedence data type for the operator and then the operator will evaluate the result. For explicit type conversion, please see the boolean(), string(), date(), int(), float(), etc functions.
