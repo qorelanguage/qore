@@ -12,7 +12,7 @@
     - greatly improved support on Windows
 
     @subsection qore_0812_compatibility Changes That Can Affect Backwards-Compatibility
-    - fixed broken list parsing; in previous releases, %Qore's parser re-wrote lists without parentheses used as top-level statements with certain assignment operators (@ref assignment_operator "=", @ref plus_equals_operator "+=", @ref minus_equals_operator "-=", @ref multiply_equals_operator "*=", and @ref divide_equals_operator "/=", but not with others) so that statements like <tt>list l = 1, 2, 3;</tt> were valid assignments.   Due to operator precedence, such statements should normally be interpreted as <tt>(list l = 1), 2, 3;</tt>, which is not a valid expression.  Not only were the rules applied with only some assignment operators, but such lists were only rewritten if used as top-level statements, therefore the rules were applied inconsistenctly depending on where the expression was located in the parse tree.  As of %Qore 0.8.12, these inconsistencies have been eliminated by default from %Qore; all lists are processed according to the precendence rules defined in @ref operators.  This could break old code that relied on the old, broken behavior.  To get the old behavior, use the @ref broken-list-parsing parse directive.
+    - fixed broken list parsing; in previous releases, %Qore's parser re-wrote lists without parentheses used as top-level statements with certain assignment operators (@ref assignment_operator "=", @ref plus_equals_operator "+=", @ref minus_equals_operator "-=", @ref multiply_equals_operator "*=", and @ref divide_equals_operator "/=", but not with others) so that statements like <tt>list l = 1, 2, 3;</tt> were valid assignments.   Due to operator precedence, such statements should normally be interpreted as <tt>(list l = 1), 2, 3;</tt>, which is not a valid expression.  Not only were the rules applied with only some assignment operators, but such lists were only rewritten if used as top-level statements, therefore the rules were applied inconsistenctly depending on where the expression was located in the parse tree.  As of %Qore 0.8.12, these inconsistencies have been eliminated by default from %Qore; all lists are processed according to the precedence rules defined in @ref operators.  This could break old code that relied on the old, broken behavior.  To get the old behavior, use the @ref broken-list-parsing parse directive.
 
     @subsection qore_0812_new_features New Features in Qore
     - new \c qr binary that assumes @ref new-style "%new-style" with %Qore code to make it easier to write programs in @ref new-style "%new-style"
@@ -55,6 +55,7 @@
       - @ref Qore::Platform
       - @ref Qore::ParseOptionCodeMap
       - @ref Qore::ParseOptionStringMap
+      - @ref Qore::PO_BROKEN_LIST_PARSING
       - @ref Qore::PO_NO_INHERIT_SYSTEM_CONSTANTS
       - @ref Qore::PO_NO_INHERIT_USER_CONSTANTS
       - @ref Qore::PO_NO_API
@@ -324,7 +325,7 @@
     - fixed a bug validating return values in method evaluation that could lead to a qore crash
     - fixed a bug in the @ref requires "%requires" directive when applied to builtin features where code to manage user module dependencies was inappropriately applied
     - fixed a bug nesting 3 levels or more of parse conditionals (@ref ifdef "%ifdef" and @ref ifndef "%ifndef") where the conditional parse state could be lost (and an assertion was made in debug mode)
-    - fixed a bug where ==, >, and < operators applied type precendence incorrectly when applying optimizations at parse time in relation to arbitrary-precision numeric values
+    - fixed a bug where ==, >, and < operators applied type precedence incorrectly when applying optimizations at parse time in relation to arbitrary-precision numeric values
     - fixed a static memory leak in the parser handling out of line method declarations
     - fixed a bug in handling socket disconnection errors in SSL operations where the SSL helper object was deleted and then used causing a crash
     - fixed a bug where @ref deprecated and @ref return-value-ignored warnings were reported at the incorrect source location
