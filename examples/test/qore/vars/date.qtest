@@ -159,7 +159,7 @@ unit.cmp(ni.getValue(), 2012-01-01, "SingleValueIterator::getValue() (copy)");
 unit.cmp(ni.next(), False, "SingleValueIterator::next() (copy)");
 unit.cmp(ni.valid(), False, "SingleValueIterator::valid() (copy)");
 
-sub test_date(date d, int y, int w, int day, int n, reference i) {
+sub test_date(date d, int y, int w, int day, int n, reference ri) {
     my string str = sprintf("%04d-W%02d-%d", y, w, day);
     my hash h = ( "year" : y, "week" : w, "day" : day );
     my date d1;
@@ -169,14 +169,14 @@ sub test_date(date d, int y, int w, int day, int n, reference i) {
     else
         d1 = d;
 
-    unit.cmp(d1,                                  date(int(d)),    "date conversion " + i);
-    unit.cmp(get_iso_week_string(d),              str,             "getISOWeekString() " + i);
-    unit.cmp(get_iso_week_hash(d),                h,               "getISOWeekHash() " + i);
-    unit.cmp(get_iso_day_of_week(d),              day,             "getDayOfWeek() " + i);
-    unit.cmp(get_day_number(d),                   n,               "getDayNumber() " + i);
-    unit.cmp(get_date_from_iso_week(y, w, day), get_midnight(d), "getDateFromISOWeek() " + i);
+    unit.cmp(d1,                                  date(int(d)),    "date conversion " + ri);
+    unit.cmp(get_iso_week_string(d),              str,             "getISOWeekString() " + ri);
+    unit.cmp(get_iso_week_hash(d),                h,               "getISOWeekHash() " + ri);
+    unit.cmp(get_iso_day_of_week(d),              day,             "getDayOfWeek() " + ri);
+    unit.cmp(get_day_number(d),                   n,               "getDayNumber() " + ri);
+    unit.cmp(get_date_from_iso_week(y, w, day), get_midnight(d), "getDateFromISOWeek() " + ri);
     # not all architectures support the timegm() system call
     #if (d >= 1970-01-01 && d < 2038-01-19)
-	#unit.cmp(timegm(d), int(d), "qore epoch conversion " + i);
-    i++;
+	#unit.cmp(timegm(d), int(d), "qore epoch conversion " + ri);
+    ri++;
 }

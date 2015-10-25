@@ -76,6 +76,7 @@
 #define PO_ALLOW_INJECTION                  (1LL << 36)  //!< allow code injection
 #define PO_NO_INHERIT_USER_CONSTANTS        (1LL << 37)  //!< do not inherit user constants from the parent into the new program's space
 #define PO_NO_INHERIT_SYSTEM_CONSTANTS      (1LL << 38)  //!< do not inherit system constants from the parent into the new program's space
+#define PO_BROKEN_LIST_PARSING              (1LL << 39)  //!< allow for old pre-%Qore 0.8.12 broken list rewriting in the parser
 
 // aliases for old defines
 #define PO_NO_SYSTEM_FUNC_VARIANTS          PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS
@@ -98,7 +99,7 @@
 #define PO_NO_EXTERNAL_ACCESS         (PO_NO_PROCESS_CONTROL|PO_NO_NETWORK|PO_NO_FILESYSTEM|PO_NO_DATABASE|PO_NO_EXTERNAL_INFO|PO_NO_EXTERNAL_PROCESS|PO_NO_MODULES)
 
 //! prohibits all terminal and file I/O and GUI operations
-#define PO_NO_IO                      (PO_NO_GUI|PO_NO_TERMINAL_IO|PO_NO_FILESYSTEM|PO_NO_NETWORK|PO_NO_DATABASE) 
+#define PO_NO_IO                      (PO_NO_GUI|PO_NO_TERMINAL_IO|PO_NO_FILESYSTEM|PO_NO_NETWORK|PO_NO_DATABASE)
 
 //! most restrictive access - can just execute logic, no I/O, no threading, no external access
 #define PO_LOCKDOWN                   (PO_NO_EXTERNAL_ACCESS|PO_NO_THREADS|PO_NO_IO)
@@ -110,7 +111,7 @@
 #define PO_POSITIVE_OPTIONS           (PO_NO_CHILD_PO_RESTRICTIONS|PO_ALLOW_INJECTION)
 
 //! mask of options that have no effect on code access or code safety
-#define PO_FREE_OPTIONS               (PO_ALLOW_BARE_REFS|PO_ASSUME_LOCAL|PO_STRICT_BOOLEAN_EVAL)
+#define PO_FREE_OPTIONS               (PO_ALLOW_BARE_REFS|PO_ASSUME_LOCAL|PO_STRICT_BOOLEAN_EVAL|PO_BROKEN_LIST_PARSING)
 
 //! mask of options that affect the way a child Program inherits user code from the parent
 #define PO_USER_INHERITANCE_OPTIONS   (PO_NO_INHERIT_USER_CLASSES|PO_NO_INHERIT_USER_FUNC_VARIANTS|PO_NO_INHERIT_GLOBAL_VARS|PO_NO_INHERIT_USER_CONSTANTS)

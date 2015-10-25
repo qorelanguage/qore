@@ -21,7 +21,7 @@ sub thread() {
 background thread();
 ";
 
-my Program a();
+my Program a(PO_NEW_STYLE);
 a.parse(prog, "prog");
 a.run();
 sleep(2);

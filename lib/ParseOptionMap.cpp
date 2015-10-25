@@ -1,10 +1,10 @@
 /*
   ParseOptionMap.cpp
- 
+
   Qore Programming language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -80,6 +80,7 @@ void ParseOptionMap::static_init() {
    DO_MAP("no-api",                   PO_NO_API);
    DO_MAP("no-user-constants",        PO_NO_INHERIT_USER_CONSTANTS);
    DO_MAP("no-system-constants",      PO_NO_INHERIT_SYSTEM_CONSTANTS);
+   DO_MAP("broken-list-parsing",      PO_BROKEN_LIST_PARSING);
 }
 
 int ParseOptionMap::find_code(const char *name) {

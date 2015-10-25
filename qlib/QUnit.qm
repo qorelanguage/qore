@@ -59,6 +59,7 @@ module QUnit {
     - initial version of module
 */
 
+#! the main namespace for all public definitions in the %QUnit module
 public namespace QUnit;
 
 #! An abstract class representing test result interface
