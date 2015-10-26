@@ -79,7 +79,7 @@ esac
 SHLIB_SUFFIX=so
 #echo host_os=${host_os}
 case "${host_os}" in
-     *linux*)   AC_DEFINE(NEED_ICONV_TRANSLIT, 1, Define to 1 if //TRANSLIT should be added to the destination character set code) 
+     *linux*)   AC_DEFINE(NEED_ICONV_TRANSLIT, 1, Define to 1 if //TRANSLIT should be added to the destination character set code)
 		SHLIB_SUFFIX=so
 		;;
      *solaris*) # set compile flags for Solaris
@@ -120,7 +120,7 @@ case "${host_os}" in
 		   CXXFLAGS="$CXXFLAGS -AA"
 		   CPPFLAGS="$CPPFLAGS -D_HPUX_SOURCE -D__STDC_EXT__ -D_RWSTD_MULTI_THREAD"
 		fi
-		CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE_EXTENDED"		
+		CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE_EXTENDED"
 		AC_DEFINE(HPUX, 1, if compiling on HP-UX)
 		AC_DEFINE(NEED_ENVIRON_LOCK, 1, [if the environment operations need explicit locking])
 		hpux=yes
@@ -266,10 +266,10 @@ if test "$enable_64bit" = "auto"; then
    # turn on 64-bit by default if compiling on a 64-bit platform
    case "${host_cpu}" in
        *64*)
-                 enable_64bit=yes 
+                 enable_64bit=yes
                  ;;
        s390x)
-                 enable_64bit=yes 
+                 enable_64bit=yes
                  ;;
        *)        case "${host_os}" in
                      darwin*)   mv=`uname -r|cut -f1 -d.`
@@ -522,7 +522,7 @@ find_zlib() {
     	    fi
 	    ZLIB_LDFLAGS="$ZLIB_LDFLAGS -lz"
 	    with_zlib_libs="$lib"
-    	elif test -f "$lib/libz.a"; then	
+    	elif test -f "$lib/libz.a"; then
 	    if test "$mingw" = yes -a "$make_dll" = yes; then
 	    	ZLIB_LDFLAGS="-Wl,$lib/libz.a"
 	    else
@@ -589,7 +589,7 @@ find_mpfr() {
     	    fi
 	    MPFR_LDFLAGS="$MPFR_LDFLAGS -lmpfr"
 	    with_mpfr_libs="$lib"
-    	elif test -f "$lib/libmpfr.a"; then	
+    	elif test -f "$lib/libmpfr.a"; then
 	    if test "$mingw" = yes -a "$make_dll" = yes; then
 	    	MPFR_LDFLAGS="-Wl,$lib/libmpfr.a"
 	    else
@@ -888,7 +888,7 @@ find_bz2lib() {
 AC_ARG_WITH([bz2lib-dir],
   [AS_HELP_STRING([--with-bz2lib-dir@<:@=DIR@:>@],
                   [bz2lib directory])],
-  [if test ! -d "${with_bz2lib_dir}"; then AC_MSG_ERROR(bad value ${with_bz2lib_dir} for --with-bz2lib-dir); unset with_bz2lib_dir; fi], 
+  [if test ! -d "${with_bz2lib_dir}"; then AC_MSG_ERROR(bad value ${with_bz2lib_dir} for --with-bz2lib-dir); unset with_bz2lib_dir; fi],
   [with_bz2lib_dir="$BZ2_DIR"])
 
 AC_MSG_CHECKING([for bz2lib libraries and header files])
@@ -992,7 +992,7 @@ find_openssl() {
 AC_ARG_WITH([openssl-dir],
   [AS_HELP_STRING([--with-openssl-dir@<:@=DIR@:>@],
                   [openssl directory])],
-  [if test ! -d "${with_openssl_dir}"; then AC_MSG_ERROR(bad value ${with_openssl_dir} for --with-openssl-dir); unset with_openssl_dir; fi], 
+  [if test ! -d "${with_openssl_dir}"; then AC_MSG_ERROR(bad value ${with_openssl_dir} for --with-openssl-dir); unset with_openssl_dir; fi],
   [with_openssl_dir="$OPENSSL_DIR"])
 
 AC_MSG_CHECKING([for openssl libraries and header files])
@@ -1121,7 +1121,7 @@ find_dl() {
 AC_ARG_WITH([dl-dir],
   [AS_HELP_STRING([--with-dl-dir@<:@=DIR@:>@],
                   [dl directory])],
-  [if test ! -d "${with_dl_dir}"; then AC_MSG_ERROR(bad value ${with_dl_dir} for --with-dl-dir); unset with_dl_dir; fi], 
+  [if test ! -d "${with_dl_dir}"; then AC_MSG_ERROR(bad value ${with_dl_dir} for --with-dl-dir); unset with_dl_dir; fi],
   [with_dl_dir="$DL_DIR"])
 
 find_lib() {
@@ -1196,7 +1196,7 @@ for clib in $need_libs; do
     done
     if test -z "$LIB_LDFLAGS"; then
        AC_MSG_ERROR([cannot find the $clib library which is needed to compile Qore for the target platform ($OS)])
-    fi    
+    fi
 done
 
 AC_ARG_ENABLE([profile],
@@ -1263,8 +1263,8 @@ fi
 # check for gcc visibility support
 AC_MSG_CHECKING([for gcc visibility support])
 if test "$GXX" = "yes"; then
-   gcc_version=`$CXX -dumpversion`
-   if test "$gcc_version" > "4"; then
+   gcc_version=`$CXX -dumpversion|cut -f1 -d.`
+   if test "$gcc_version" -ge "4"; then
       AC_DEFINE(HAVE_GCC_VISIBILITY, 1, if compiling with g++ and visibility support is available)
       AC_MSG_RESULT([yes, $CXX $gcc_version])
       # turn off strict aliasing for g++
@@ -1277,7 +1277,7 @@ else
 fi
 
 # checks for how to build threads
-if test "$mingw" != yes; then 
+if test "$mingw" != yes; then
    ACX_PTHREAD
    if test "$acx_pthread_ok" = "no"; then
       AC_MSG_ERROR(POSIX threads do not seem to be supported on this platform, aborting)
@@ -1330,7 +1330,7 @@ if test "$cross_compiling" != "yes" -a -n "`echo $CXX|grep clang`"; then
       }
    };
    u u;
-   int i = 100;   
+   int i = 100;
    u.setPtr(&i);
    exit(&i == u.getPtr());
    ]])],
@@ -1380,9 +1380,9 @@ fi
 if test "$ac_cv_header_fcntl_h" = yes; then
    AC_MSG_CHECKING([for struct flock in fcntl.h])
    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-   [[#include <fcntl.h>]], [[struct flock fl;]])], 
+   [[#include <fcntl.h>]], [[struct flock fl;]])],
       [AC_MSG_RESULT(yes)
-       AC_DEFINE(HAVE_STRUCT_FLOCK, 1, [Define to 1 if you have struct flock in fcntl.h])], 
+       AC_DEFINE(HAVE_STRUCT_FLOCK, 1, [Define to 1 if you have struct flock in fcntl.h])],
       [AC_MSG_RESULT(no)])
 fi
 
@@ -1447,7 +1447,7 @@ AC_FUNC_STRTOD
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([bzero floor gethostbyaddr gethostbyname gethostname gettimeofday memmove memset mkfifo putenv regcomp select socket setsockopt getsockopt strcasecmp strchr strdup strerror strspn strstr atoll strtol strtoll isblank localtime_r gmtime_r exp2 clock_gettime realloc timegm seteuid setegid setenv unsetenv round pthread_attr_getstacksize getpwuid_r getpwnam_r getgrgid_r getgrnam_r backtrace glob system inet_ntop inet_pton lstat fsync lchown chown setsid setuid mkfifo random kill getppid getgid getegid getuid geteuid setuid seteuid setgid setegid sleep usleep nanosleep readlink symlink access strcasestr strncasecmp setgroups getgroups realpath memmem])
 
-# some systems have internal gethostby*_r in libc but don't hide the 
+# some systems have internal gethostby*_r in libc but don't hide the
 # symbols, so we look if they are declared before checking in the libraries
 AC_CHECK_DECLS([gethostbyaddr_r, gethostbyname_r],[],[],[[#include <netdb.h>]])
 if test "$ac_cv_have_decl_gethostbyaddr_r" = "yes"; then
@@ -1460,9 +1460,9 @@ fi
 # try to find strtoimax on HPUX
 AC_MSG_CHECKING([for strtoimax])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-[[#include <inttypes.h>]], [[strtoimax("10", NULL, 10);]])], 
+[[#include <inttypes.h>]], [[strtoimax("10", NULL, 10);]])],
    [AC_MSG_RESULT(yes)
-    AC_DEFINE(HAVE_STRTOIMAX, 1, [Define to 1 if you have strtoimax])], 
+    AC_DEFINE(HAVE_STRTOIMAX, 1, [Define to 1 if you have strtoimax])],
    [AC_MSG_RESULT(no)])
 
 # Check definition of gethostbyaddr_r (glibc2 defines this with 8 arguments)
@@ -1592,7 +1592,7 @@ if test "$enable_optimization" = "yes"; then
 	   # remove -g with Solaris CC as it reduces optimization levels
 	   CXXFLAGS="`echo $CXXFLAGS| sed s/-g//` -xO5" # Solaris CC
 	fi
-    elif test -n "`echo $CXX|grep aCC`"; then 
+    elif test -n "`echo $CXX|grep aCC`"; then
         # only add optimizations if not there already
 	if test -z "`echo $CXXFLAGS|grep -e +O`"; then
 	   # remove -g with HP-UX aCC as it reduces optimization levels
@@ -1624,7 +1624,7 @@ if test "$darwin" = "yes"; then
         AC_MSG_RESULT([found])
         AC_DEFINE([HAVE_TBBMALLOC], 1, [define if libtbbmalloc])],
        [AC_MSG_RESULT([not found])])
-       
+
     if test "$LIBTBB_FOUND" = "1"; then
       QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -ltbbmalloc"
     fi
@@ -1695,7 +1695,7 @@ if test ! -f qore.spec; then
    else
        ln -s qore.spec-multi qore.spec
    fi
-fi  
+fi
 
 # get module API version to set pkglibdir
 MODULE_API_MAJOR=`grep QORE_MODULE_API_MAJOR include/qore/ModuleManager.h|cut -f3 -d\ `
