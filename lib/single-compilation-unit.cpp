@@ -193,6 +193,8 @@
 #include "QoreHashMapSelectOperatorNode.cpp"
 #include "QoreNullCoalescingOperatorNode.cpp"
 #include "QoreValueCoalescingOperatorNode.cpp"
+#include "QoreChompOperatorNode.cpp"
+#include "QoreTrimOperatorNode.cpp"
 #include "QoreValue.cpp"
 #include "ql_thread.cpp"
 #include "ql_time.cpp"

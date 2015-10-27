@@ -258,10 +258,11 @@ public:
 #include <qore/intern/QoreQuestionMarkOperatorNode.h>
 #include <qore/intern/QoreMapOperatorNode.h>
 #include <qore/intern/QoreMapSelectOperatorNode.h>
-
 #include <qore/intern/QoreHashMapOperatorNode.h>
 #include <qore/intern/QoreHashMapSelectOperatorNode.h>
 #include <qore/intern/QoreNullCoalescingOperatorNode.h>
 #include <qore/intern/QoreValueCoalescingOperatorNode.h>
+#include <qore/intern/QoreChompOperatorNode.h>
+#include <qore/intern/QoreTrimOperatorNode.h>
 
 #endif

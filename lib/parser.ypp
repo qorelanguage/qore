@@ -2855,10 +2855,10 @@ exp:    scalar
 	   $$ = new QoreTreeNode($2, OP_POP, 0);
 	}
 	| TOK_CHOMP exp {
-	   $$ = new QoreTreeNode($2, OP_CHOMP, 0);
+           $$ = new QoreChompOperatorNode($2);
 	}
 	| TOK_TRIM exp {
-	   $$ = new QoreTreeNode($2, OP_TRIM, 0);
+           $$ = new QoreTrimOperatorNode($2);
 	}
         | TOK_SPLICE exp {  // splice lvalue-list, offset, [length, list]
 	   QoreListNode* l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode*>($2) : 0;

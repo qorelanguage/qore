@@ -257,6 +257,8 @@ libqore_la_SOURCES = \
 	QoreHashMapSelectOperatorNode.cpp \
 	QoreNullCoalescingOperatorNode.cpp \
 	QoreValueCoalescingOperatorNode.cpp \
+	QoreChompOperatorNode.cpp \
+	QoreTrimOperatorNode.cpp \
 	QorePseudoMethods.cpp \
 	QoreHTTPClient.cpp \
 	QoreHttpClientObject.cpp \

@@ -408,6 +408,8 @@ noinst_HEADERS = \
 	include/qore/intern/QoreMapSelectOperatorNode.h \
 	include/qore/intern/QoreHashMapOperatorNode.h \
 	include/qore/intern/QoreHashMapSelectOperatorNode.h \
+	include/qore/intern/QoreChompOperatorNode.h \
+	include/qore/intern/QoreTrimOperatorNode.h \
 	include/qore/intern/QorePseudoMethods.h \
 	include/qore/intern/QoreHashIterator.h \
 	include/qore/intern/QoreListIterator.h \
