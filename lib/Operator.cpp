@@ -54,7 +54,7 @@ Operator *OP_BIN_AND, *OP_BIN_OR, *OP_BIN_NOT, *OP_BIN_XOR, *OP_MINUS, *OP_PLUS,
    *OP_SHIFT, *OP_POP, *OP_PUSH,
    *OP_UNSHIFT, *OP_REGEX_SUBST, *OP_LIST_ASSIGNMENT,
    *OP_REGEX_TRANS, *OP_REGEX_EXTRACT,
-   *OP_CHOMP, *OP_TRIM, *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT,
+   *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT,
    *OP_LOG_GT, *OP_LOG_EQ, *OP_LOG_NE, *OP_LOG_LE, *OP_LOG_GE,
    *OP_ABSOLUTE_EQ, *OP_ABSOLUTE_NE, *OP_REGEX_MATCH, *OP_REGEX_NMATCH,
    *OP_EXISTS, *OP_INSTANCEOF, *OP_FOLDR, *OP_FOLDL,
@@ -926,114 +926,6 @@ static AbstractQoreNode* op_push(const AbstractQoreNode* left, const AbstractQor
    l->push(value.getReferencedValue());
    // reference for return value
    return ref_rv ? l->refSelf() : 0;
-}
-
-static int64 op_chomp(const AbstractQoreNode* arg, const AbstractQoreNode* x, ExceptionSink* xsink) {
-   //QORE_TRACE("op_chomp()");
-
-   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-   LValueHelper val(arg, xsink);
-   if (!val)
-      return 0;
-
-   qore_type_t vtype = val.getType();
-   if (vtype != NT_LIST && vtype != NT_STRING && vtype != NT_HASH)
-      return 0;
-
-   // note that no exception can happen here
-   val.ensureUnique();
-   assert(!*xsink);
-
-   if (vtype == NT_STRING)
-      return reinterpret_cast<QoreStringNode*>(val.getValue())->chomp();
-
-   int64 count = 0;
-
-   if (vtype == NT_LIST) {
-      QoreListNode* l = reinterpret_cast<QoreListNode*>(val.getValue());
-      ListIterator li(l);
-      while (li.next()) {
-	 AbstractQoreNode** v = li.getValuePtr();
-	 if (*v && (*v)->getType() == NT_STRING) {
-	    // note that no exception can happen here
-	    ensure_unique(v, xsink);
-	    assert(!*xsink);
-	    QoreStringNode* vs = reinterpret_cast<QoreStringNode*>(*v);
-	    count += vs->chomp();
-	 }
-      }
-      return count;
-   }
-
-   // must be a hash
-   QoreHashNode* vh = reinterpret_cast<QoreHashNode*>(val.getValue());
-   HashIterator hi(vh);
-   while (hi.next()) {
-      AbstractQoreNode** v = hi.getValuePtr();
-      if (*v && (*v)->getType() == NT_STRING) {
-	 // note that no exception can happen here
-	 ensure_unique(v, xsink);
-	 assert(!*xsink);
-	 QoreStringNode* vs = reinterpret_cast<QoreStringNode*>(*v);
-	 count += vs->chomp();
-      }
-   }
-   return count;
-}
-
-static AbstractQoreNode* op_trim(const AbstractQoreNode* arg, const AbstractQoreNode* x, bool ref_rv, ExceptionSink* xsink) {
-   //QORE_TRACE("op_trim()");
-
-   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-   LValueHelper val(arg, xsink);
-   if (!val)
-      return 0;
-
-   qore_type_t vtype = val.getType();
-   if (vtype != NT_LIST && vtype != NT_STRING && vtype != NT_HASH)
-      return 0;
-
-   // note that no exception can happen here
-   val.ensureUnique();
-   assert(!*xsink);
-
-   if (vtype == NT_STRING) {
-      QoreStringNode* vs = reinterpret_cast<QoreStringNode*>(val.getValue());
-      vs->trim();
-   }
-   else if (vtype == NT_LIST) {
-      QoreListNode* l = reinterpret_cast<QoreListNode*>(val.getValue());
-      ListIterator li(l);
-      while (li.next()) {
-	 AbstractQoreNode** v = li.getValuePtr();
-	 if (*v && (*v)->getType() == NT_STRING) {
-	    // note that no exception can happen here
-	    ensure_unique(v, xsink);
-	    assert(!*xsink);
-	    QoreStringNode* vs = reinterpret_cast<QoreStringNode*>(*v);
-	    vs->trim();
-	 }
-      }
-   }
-   else { // is a hash
-      QoreHashNode* vh = reinterpret_cast<QoreHashNode*>(val.getValue());
-      HashIterator hi(vh);
-      while (hi.next()) {
-	 AbstractQoreNode** v = hi.getValuePtr();
-	 if (*v && (*v)->getType() == NT_STRING) {
-	    // note that no exception can happen here
-	    assert(!*xsink);
-	    ensure_unique(v, xsink);
-	    QoreStringNode* vs = reinterpret_cast<QoreStringNode*>(*v);
-	    vs->trim();
-	 }
-      }
-   }
-
-   // reference for return value
-   if (!ref_rv)
-      return 0;
-   return val.getReferencedNodeValue();
 }
 
 static AbstractQoreNode* op_fold_iterator(const AbstractQoreNode* left, AbstractIteratorHelper& h, bool ref_rv, ExceptionSink* xsink) {
@@ -2383,29 +2275,6 @@ static AbstractQoreNode* check_op_lvalue_string(QoreTreeNode* tree, LocalVar* of
    return tree;
 }
 
-static AbstractQoreNode* check_op_chomp_trim(QoreTreeNode* tree, LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& returnTypeInfo, const char* name, const char* descr) {
-   const QoreTypeInfo *leftTypeInfo = 0;
-   tree->leftParseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, leftTypeInfo);
-
-   assert(!tree->right);
-
-   if (leftTypeInfo->hasType()
-       && !leftTypeInfo->parseAcceptsReturns(NT_STRING)
-       && !leftTypeInfo->parseAcceptsReturns(NT_LIST)
-       && !leftTypeInfo->parseAcceptsReturns(NT_HASH)) {
-      QoreStringNode* desc = new QoreStringNode("the lvalue expression with the ");
-      desc->sprintf("%s operator is ", name);
-      leftTypeInfo->getThisType(*desc);
-      desc->sprintf(", therefore this operation will have no effect on the lvalue and will always return NOTHING; this operator only works on strings, lists, and hashes");
-      qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
-      returnTypeInfo = nothingTypeInfo;
-   }
-   else
-      returnTypeInfo = bigIntTypeInfo;
-
-   return tree;
-}
-
 // registers the system operators and system operator functions
 void OperatorList::init() {
    QORE_TRACE("OperatorList::init()");
@@ -2575,12 +2444,6 @@ void OperatorList::init() {
    // can return a list or NOTHING
    OP_REGEX_EXTRACT = add(new Operator(2, "regular expression subpattern extraction", "regular expression subpattern extraction", 0, false));
    OP_REGEX_EXTRACT->addFunction(op_regex_extract);
-
-   OP_CHOMP = add(new Operator(1, "chomp", "chomp EOL marker from lvalue", 0, true, true, check_op_chomp_trim));
-   OP_CHOMP->addFunction(NT_ALL, NT_NONE, op_chomp);
-
-   OP_TRIM = add(new Operator(1, "trim", "trim characters from an lvalue", 0, true, true, check_op_chomp_trim));
-   OP_TRIM->addFunction(NT_ALL, NT_NONE, op_trim);
 
    OP_FOLDL = add(new Operator(2, "foldl", "left fold expression", 0, true, false));
    OP_FOLDL->addFunction(NT_ALL, NT_ALL, op_foldl);
