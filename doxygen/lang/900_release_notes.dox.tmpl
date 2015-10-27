@@ -268,7 +268,7 @@
     - fixed a memory leak in classes with multiple inheritance and base classes that are inherited multiple times with member initialization
     - fixed a bug in the @ref include "%include" and @ref append-module-path "%append-module-path" parse directives where relative paths were not calculated from the script's directory but instead were calculated from the current working directory, causing such paths to fail
     - fixed a bug in @ref Qore::get_qore_library_info() that could cause a crash due to treating the \a Build attribute as a string when it was an integer
-    - fixed a bug in the divide-equals (/=) operator where an exception was not thrown when an operand of zero with arbitrary-precision numeric arguments is used
+    - fixed a bug in the @ref divide_equals_operator "divide-equals (/=) operator" where an exception was not thrown when an operand of zero with arbitrary-precision numeric arguments is used
     - fixed a bug where the connection mode would be reset for every connection in the @ref Qore::FtpClient class
     - fixed a bug in the @ref Qore::FtpClient class where connection problems in the data channel when executing certain FTP commands could cause a crash due to missing error checking
     - fixed a bug in Qore's internal strcasestr() function on platforms that do not support this function (ex: Solaris) that could result in a crash
@@ -321,7 +321,7 @@
       - on UNIX to return a value for the current permissions the program is running under
     - fixed a bug in @ref Qore::regex_extract() and in the @ref regex_extract_operator where the result buffer was not resized when it was too small, limiting regular expressions to nine subpatterns; the maximum has been raised to between 90 and 100 before an exception is raised (since the subpattern buffer is allocated on the stack, we need to enforce a limit)
     - fixed a bug with the @ref cast "cast<>() operator where compatible classes were not recognized at runtime that would otherwise be recognized correctly without the cast
-    - fixed the return type in @ref Qore::getcwd() to @ref "string_or_nothing" "*string"
+    - fixed the return type in @ref Qore::getcwd() to @ref string_or_nothing_type "*string"
     - fixed a bug in the @ref return "return statement" where the runtime return type was used at parse time which did not work when parsing embedded code
     - fixed a bug validating return values in method evaluation that could lead to a qore crash
     - fixed a bug in the @ref requires "%requires" directive when applied to builtin features where code to manage user module dependencies was inappropriately applied
@@ -345,6 +345,7 @@
     - fixed a bug where the bzip2 library can request a buffer size that could not be handled by the bzip2 library which is not handled by qore and causes a crash while decompressing certain input
     - fixed a bug handling closure-bound local variables when closures are created in the background operator expression that caused a core dump
     - fixed the precedence of the @ref assignment_operator "assignment operator (=)"; now the precedence of this operator is the same as the other assignment operators (@ref plus_equals_operator "+=", @ref minus_equals_operator "-=", @ref multiply_equals_operator "*=", and @ref divide_equals_operator "/=", etc); this does not break any code, but does align %Qore with other programming languages (such as C, among others) and allows for expressions such as @code a = b += 2@endcode to be correctly parsed
+    - fixed a parse-time bug in the @ref trim "trim operator" where the operator's return type was incorrectly returned as @ref int_type "int" instead of the type of the lvalue
 
     @section qore_0811 Qore 0.8.11
 
