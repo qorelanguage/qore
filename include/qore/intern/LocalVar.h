@@ -288,9 +288,14 @@ public:
 
    DLLLOCAL void instantiateSelf(QoreObject* value) const {
       //printd(5, "LocalVar::instantiateSelf(%p) this: %p '%s'\n", value, this, name.c_str());
-      assert(!closure_use);
-      LocalVarValue* val = thread_instantiate_lvar();
-      val->set(name.c_str(), typeInfo, value, true);
+      if (!closure_use) {
+         LocalVarValue* val = thread_instantiate_lvar();
+         val->set(name.c_str(), typeInfo, value, true);
+      }
+      else {
+         QoreValue val(value->refSelf());
+         thread_instantiate_closure_var(name.c_str(), typeInfo, val);
+      }
    }
 
    DLLLOCAL void uninstantiate(ExceptionSink* xsink) const  {
@@ -303,8 +308,10 @@ public:
    }
 
    DLLLOCAL void uninstantiateSelf() const  {
-      assert(!closure_use);
-      thread_uninstantiate_self();
+      if (!closure_use)
+         thread_uninstantiate_self();
+      else // cannot go out of scope here, so no destructor can be run, so we pass a NULL ExceptionSink ptr
+         thread_uninstantiate_closure_var(0);
    }
 
    DLLLOCAL QoreValue evalValue(bool& needs_deref, ExceptionSink* xsink) const {
