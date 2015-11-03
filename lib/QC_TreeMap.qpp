@@ -81,6 +81,8 @@ TreeMap::copy() {
 /**
     @param path the path to which \c value will be mapped
     @param value the value to put into the TreeMap
+
+    @see TreeMap::remove()
  */
 nothing TreeMap::put(string path, any value) {
    tm->put(path, value, xsink);
@@ -91,6 +93,26 @@ nothing TreeMap::put(string path, any value) {
     @param path the path to lookup
     @return the value pointed to by the longest prefix of \c path or NOTHING if no such mapping exists
  */
-any TreeMap::get(string path) [flags=CONSTANT] {
+any TreeMap::get(string path) [flags=RET_VALUE_ONLY] {
    return tm->get(path, xsink);
+}
+
+//! Removes a value from the TreeMap and returns the value removed
+/** The \c path must be an exact match
+
+    @param path the path to remove
+
+    @return the value removed from the TreeMap or @ref nothing if no exact match was found
+
+    @see TreeMap::put()
+*/
+any TreeMap::take(string path) {
+   return tm->take(path, xsink);
+}
+
+//! Retrieves the entire TreeMap as a hash; returns @ref nothing if the TreeMap is empty
+/** @return the entire TreeMap as a hash or returns @ref nothing if the TreeMap is empty
+ */
+*hash TreeMap::getAll() [flags=CONSTANT] {
+   return tm->getAll();
 }

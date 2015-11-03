@@ -76,20 +76,24 @@ public:
    DLLLOCAL void put(const QoreStringNode *key, const QoreValue value, ExceptionSink *xsink) {
       TempEncodingHelper keyStr(key, QCS_DEFAULT, xsink);
       if (keyStr) {
+         QoreAutoRWWriteLocker al(rwl);
+
          Map::mapped_type &refToMap = data[keyStr->getBuffer()];
          ::discard(refToMap.assignAndSanitize(value.refSelf()), xsink);
       }
    }
 
    DLLLOCAL AbstractQoreNode *get(const QoreStringNode *key, ExceptionSink *xsink) const {
-      if (data.empty()) {
-         return 0;
-      }
-
       TempEncodingHelper keyStr(key, QCS_DEFAULT, xsink);
       if (!keyStr) {
          return 0;
       }
+
+      QoreAutoRWReadLocker al(rwl);
+      if (data.empty()) {
+         return 0;
+      }
+
       std::string path(keyStr->getBuffer());
 
       Map::const_iterator b = data.begin();
@@ -104,9 +108,38 @@ public:
       return 0;
    }
 
+   DLLLOCAL QoreHashNode *getAll() const {
+      QoreAutoRWReadLocker al(rwl);
+
+      if (data.empty())
+         return 0;
+
+      QoreHashNode* h = new QoreHashNode;
+      for (Map::const_iterator i = data.begin(), e = data.end(); i != e; ++i)
+         h->setKeyValue(i->first.c_str(), i->second.getReferencedValue(), 0);
+      return h;
+   }
+
+   DLLLOCAL AbstractQoreNode *take(const QoreStringNode *key, ExceptionSink *xsink) {
+      TempEncodingHelper keyStr(key, QCS_DEFAULT, xsink);
+      if (!keyStr) {
+         return 0;
+      }
+
+      QoreAutoRWWriteLocker al(rwl);
+      Map::iterator i = data.find(keyStr->getBuffer());
+      if (i == data.end())
+         return 0;
+
+      AbstractQoreNode *rv = i->second.takeNode();
+      data.erase(i);
+      return rv;
+   }
+
 private:
    typedef std::map<std::string, QoreValue> Map;
    Map data;
+   mutable QoreRWLock rwl;
 };
 
 #endif
