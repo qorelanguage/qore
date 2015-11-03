@@ -346,6 +346,7 @@
     - fixed a bug handling closure-bound local variables when closures are created in the background operator expression that caused a core dump
     - fixed the precedence of the @ref assignment_operator "assignment operator (=)"; now the precedence of this operator is the same as the other assignment operators (@ref plus_equals_operator "+=", @ref minus_equals_operator "-=", @ref multiply_equals_operator "*=", and @ref divide_equals_operator "/=", etc); this does not break any code, but does align %Qore with other programming languages (such as C, among others) and allows for expressions such as @code a = b += 2@endcode to be correctly parsed
     - fixed a parse-time bug in the @ref trim "trim operator" where the operator's return type was incorrectly returned as @ref int_type "int" instead of the type of the lvalue
+    - fixed a bug initializing object members with a closure that refers to \a self
 
     @section qore_0811 Qore 0.8.11
 
