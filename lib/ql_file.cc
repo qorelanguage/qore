@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ Copyright 2003 - 2009 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -21,147 +21,136 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/ql_file.h>
+#include <qore/intern/ql_file.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
-static class QoreNode *check_stat(unsigned code, class QoreNode *params, ExceptionSink *xsink)
-{
-   QoreNode *p0 = test_param(params, NT_STRING, 0);
+static AbstractQoreNode *check_stat(unsigned code, const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *p0 = test_string_param(params, 0);
 
    if (!p0)
-      return NULL;
+      return 0;
 
    struct stat sbuf;
    int rc;
    
-   if ((rc = stat(p0->val.String->getBuffer(), &sbuf)))
-      return NULL;
+   if ((rc = stat(p0->getBuffer(), &sbuf)))
+      return 0;
 
    return (sbuf.st_mode & S_IFMT) == code ? boolean_true() : boolean_false();
 }
 
-static class QoreNode *check_lstat(unsigned code, class QoreNode *params, ExceptionSink *xsink)
-{
-   QoreNode *p0;
-   if (!(p0 = test_param(params, NT_STRING, 0)))
-      return NULL;
+static AbstractQoreNode *check_lstat(unsigned code, const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *p0;
+   if (!(p0 = test_string_param(params, 0)))
+      return 0;
    
    struct stat sbuf;
    int rc;
    
-   if ((rc = lstat(p0->val.String->getBuffer(), &sbuf)))
-      return NULL;
+   if ((rc = lstat(p0->getBuffer(), &sbuf)))
+      return 0;
    
    return (sbuf.st_mode & S_IFMT) == code ? boolean_true() : boolean_false();
 }
 
-static class QoreNode *f_is_file(class QoreNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_is_file(const QoreListNode *params, ExceptionSink *xsink) {
    return check_stat(S_IFREG, params, xsink);
 }
 
-static class QoreNode *f_is_dir(class QoreNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_is_dir(const QoreListNode *params, ExceptionSink *xsink) {
    return check_stat(S_IFDIR, params, xsink);
 }
 
-static class QoreNode *f_is_socket(class QoreNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_is_socket(const QoreListNode *params, ExceptionSink *xsink) {
    return check_stat(S_IFSOCK, params, xsink);
 }
 
-static class QoreNode *f_is_pipe(class QoreNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_is_pipe(const QoreListNode *params, ExceptionSink *xsink) {
    return check_stat(S_IFIFO, params, xsink);
 }
 
-static class QoreNode *f_is_cdev(class QoreNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_is_cdev(const QoreListNode *params, ExceptionSink *xsink) {
    return check_stat(S_IFCHR, params, xsink);
 }
 
-static class QoreNode *f_is_bdev(class QoreNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_is_bdev(const QoreListNode *params, ExceptionSink *xsink) {
    return check_stat(S_IFBLK, params, xsink);
 }
 
-static class QoreNode *f_is_dev(class QoreNode *params, ExceptionSink *xsink)
-{
-   QoreNode *p0;
-   if (!(p0 = test_param(params, NT_STRING, 0)))
-      return NULL;
+static AbstractQoreNode *f_is_dev(const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *p0;
+   if (!(p0 = test_string_param(params, 0)))
+      return 0;
    
    struct stat sbuf;
    int rc;
    
-   if ((rc = lstat(p0->val.String->getBuffer(), &sbuf)))
-      return NULL;
+   if ((rc = lstat(p0->getBuffer(), &sbuf)))
+      return 0;
    
    return ((sbuf.st_mode & S_IFMT) == S_IFCHR)
 	   || ((sbuf.st_mode & S_IFMT) == S_IFBLK)
 	  ? boolean_true() : boolean_false();
 }
 
-static class QoreNode *f_is_link(class QoreNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_is_link(const QoreListNode *params, ExceptionSink *xsink) {
    return check_lstat(S_IFLNK, params, xsink);
 }
 
-static class QoreNode *f_is_readable(class QoreNode *params, ExceptionSink *xsink)
-{
-   QoreNode *p0;
-   if (!(p0 = test_param(params, NT_STRING, 0)))
-      return NULL;
+static AbstractQoreNode *f_is_readable(const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *p0;
+   if (!(p0 = test_string_param(params, 0)))
+      return 0;
    
    struct stat sbuf;
    int rc;
    
-   if ((rc = stat(p0->val.String->getBuffer(), &sbuf)))
-      return NULL;
+   if ((rc = stat(p0->getBuffer(), &sbuf)))
+      return 0;
    
-   if (sbuf.st_mode & S_IROTH 
-       || (geteuid() == sbuf.st_uid && (sbuf.st_mode & S_IRUSR)) 
+   uid_t euid = geteuid();
+   if (!euid || sbuf.st_mode & S_IROTH 
+       || (euid      == sbuf.st_uid && (sbuf.st_mode & S_IRUSR)) 
        || (getegid() == sbuf.st_gid && (sbuf.st_mode & S_IRGRP)))
       return boolean_true();
    
    return boolean_false();
 }
 
-static class QoreNode *f_is_writeable(class QoreNode *params, ExceptionSink *xsink)
-{
-   QoreNode *p0;
-   if (!(p0 = test_param(params, NT_STRING, 0)))
-      return NULL;
+static AbstractQoreNode *f_is_writable(const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *p0;
+   if (!(p0 = test_string_param(params, 0)))
+      return 0;
    
-   tracein("f_stat()");
+   QORE_TRACE("f_stat()");
    struct stat sbuf;
    int rc;
    
-   if ((rc = stat(p0->val.String->getBuffer(), &sbuf)))
-      return NULL;
+   if ((rc = stat(p0->getBuffer(), &sbuf)))
+      return 0;
    
-   if (sbuf.st_mode & S_IWOTH 
-       || (geteuid() == sbuf.st_uid && (sbuf.st_mode & S_IWUSR)) 
+   uid_t euid = geteuid();
+   if (!euid || sbuf.st_mode & S_IWOTH 
+       || (euid      == sbuf.st_uid && (sbuf.st_mode & S_IWUSR)) 
        || (getegid() == sbuf.st_gid && (sbuf.st_mode & S_IWGRP)))
       return boolean_true();
    
    return boolean_false();
 }
 
-static class QoreNode *f_is_executable(class QoreNode *params, ExceptionSink *xsink)
-{
-   QoreNode *p0;
-   if (!(p0 = test_param(params, NT_STRING, 0)))
-      return NULL;
+static AbstractQoreNode *f_is_executable(const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *p0;
+   if (!(p0 = test_string_param(params, 0)))
+      return 0;
    
    struct stat sbuf;
    int rc;
    
-   if ((rc = stat(p0->val.String->getBuffer(), &sbuf)))
-      return NULL;
+   if ((rc = stat(p0->getBuffer(), &sbuf)))
+      return 0;
    
    if (sbuf.st_mode & S_IXOTH 
        || (geteuid() == sbuf.st_uid && (sbuf.st_mode & S_IXUSR)) 
@@ -171,8 +160,29 @@ static class QoreNode *f_is_executable(class QoreNode *params, ExceptionSink *xs
    return boolean_false();
 }
 
-void init_file_functions()
-{
+static AbstractQoreNode *f_rename(const QoreListNode *params, ExceptionSink *xsink) {
+   // old file name
+   const QoreStringNode *p0 = test_string_param(params, 0);
+   if (p0 || !p0->strlen()) {
+      xsink->raiseException("RENAME-ERROR", "missing path to current file name as first argument");
+      return 0;
+   }
+
+   // new file name
+   const QoreStringNode *p1 = test_string_param(params, 1);
+   if (p1 || !p1->strlen()) {
+      xsink->raiseException("RENAME-ERROR", "missing new file path as second argument");
+      return 0;
+   }
+
+   int rc = rename(p0->getBuffer(), p1->getBuffer());
+   if (rc)
+      xsink->raiseException("RENAME-ERROR", strerror(errno));
+
+   return 0;
+}
+
+void init_file_functions() {
    // register builtin functions in this file
    builtinFunctions.add("is_file", f_is_file, QDOM_FILESYSTEM);
    builtinFunctions.add("is_dir", f_is_dir, QDOM_FILESYSTEM);
@@ -183,6 +193,11 @@ void init_file_functions()
    builtinFunctions.add("is_bdev", f_is_bdev, QDOM_FILESYSTEM);
    builtinFunctions.add("is_link", f_is_link, QDOM_FILESYSTEM);
    builtinFunctions.add("is_readable", f_is_readable, QDOM_FILESYSTEM);
-   builtinFunctions.add("is_writeable", f_is_writeable, QDOM_FILESYSTEM);
+   builtinFunctions.add("is_writable", f_is_writable, QDOM_FILESYSTEM);
+   // backwards-compatible misspelling of "writable" :-)
+   builtinFunctions.add("is_writeable", f_is_writable, QDOM_FILESYSTEM);
    builtinFunctions.add("is_executable", f_is_executable, QDOM_FILESYSTEM);
+
+   builtinFunctions.add("rename", f_rename, QDOM_FILESYSTEM);
+
 }

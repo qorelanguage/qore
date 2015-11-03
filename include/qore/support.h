@@ -32,7 +32,10 @@ DLLEXPORT char *remove_trailing_blanks(char *str);
 
 // we supply debugging function also for non-debugging builds as library entry points
 // in case a debugging-enabled binary is linked against a non-debugging-enabled lib
+
+//! do not call this function directly, use the macro QORE_TRACE()
 DLLEXPORT void trace_function(int code, const char *funcname);
+//! do not call this function directly, use the macro printd()
 DLLEXPORT int print_debug(int level, const char *fmt, ...);
 
 DLLEXPORT extern int qore_trace;
@@ -42,35 +45,28 @@ DLLEXPORT extern int debug;
 #define TRACE_OUT  2
 
 #ifdef DEBUG
+//! a macro for printing debugging statements; when "DEBUG" is not defined, the function call to print_debug() not be included in the compiled output
 #define printd print_debug
 
-#define tracein(a) trace_function(TRACE_IN, a)
-#define traceout(a) trace_function(TRACE_OUT, a)
+//! a macro for tracing, when "DEBUG" is not defined, the function call to trace_function() will not be included in the compiled output
+#define QORE_TRACE(a) { trace_function(TRACE_IN, a); ON_BLOCK_EXIT(trace_function, TRACE_OUT, a); }
 
 #else
 #ifdef __GNUC__
+//! a macro for printing debugging statements; when "DEBUG" is not defined, the function call not be included in the compiled output
 #define printd(args...)
-#define tracein(args...)
-#define traceout(args...)
+//! a macro for tracing, when "DEBUG" is not defined, the function call to trace_function() will not be included in the compiled output
+#define QORE_TRACE(args...)
 #else
+//! a macro for printing debugging statements; when "DEBUG" is not defined, the function call not be included in the compiled output
 #define printd(args, ...)
-#define tracein(x)
-#define traceout(x)
+//! a macro for tracing, when "DEBUG" is not defined, the function call to trace_function() will not be included in the compiled output
+#define QORE_TRACE(x)
 #endif
 #endif
 
-#ifndef HAVE_ISBLANK
+#if !defined(HAVE_ISBLANK) && !defined(isblank)
 #define isblank(a) ((a) == ' ' || (a) == '\t')
 #endif
-
-#ifdef _QORE_LIB_INTERN
-
-// the following functions are only referenced from C++ source
-DLLLOCAL void parse_error(int sline, int eline, const char *fmt, ...);
-DLLLOCAL void parse_error(const char *fmt, ...);
-DLLLOCAL void parseException(const char *err, const char *fmt, ...);
-DLLLOCAL class QoreString *findFileInEnvPath(const char *file, const char *varname);
-
-#endif // _QORE_LIB_INTERN
 
 #endif

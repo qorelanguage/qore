@@ -3,7 +3,7 @@
 
   Qore Programming language
 
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2009 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -22,25 +22,26 @@
 
 #include <qore/Qore.h>
 
-#include <qore/ql_io.h>
-#include <qore/ql_time.h>
-#include <qore/ql_lib.h>
-#include <qore/ql_math.h>
-#include <qore/ql_type.h>
-#include <qore/ql_env.h>
-#include <qore/ql_string.h>
-#include <qore/ql_pwd.h>
-#include <qore/ql_misc.h>
-#include <qore/ql_list.h>
-#include <qore/ql_xml.h>
-#include <qore/ql_json.h>
-#include <qore/ql_thread.h>
-#include <qore/ql_crypto.h>
-#include <qore/ql_object.h>
-#include <qore/ql_file.h>
+#include <qore/intern/ql_io.h>
+#include <qore/intern/ql_time.h>
+#include <qore/intern/ql_lib.h>
+#include <qore/intern/ql_math.h>
+#include <qore/intern/ql_type.h>
+#include <qore/intern/ql_env.h>
+#include <qore/intern/ql_string.h>
+#include <qore/intern/ql_pwd.h>
+#include <qore/intern/ql_misc.h>
+#include <qore/intern/ql_list.h>
+#include <qore/intern/ql_xml.h>
+#include <qore/intern/ql_json.h>
+#include <qore/intern/ql_thread.h>
+#include <qore/intern/ql_crypto.h>
+#include <qore/intern/ql_object.h>
+#include <qore/intern/ql_file.h>
+#include <qore/intern/ql_bzip.h>
 
 #ifdef DEBUG
-#include <qore/ql_debug.h>
+#include <qore/intern/ql_debug.h>
 #endif // DEBUG
 
 #include <string.h>
@@ -48,7 +49,7 @@
 
 bool BuiltinFunctionList::init_done = false;
 hm_bf_t BuiltinFunctionList::hm;
-class LockedObject BuiltinFunctionList::mutex;
+class QoreThreadLock BuiltinFunctionList::mutex;
 class BuiltinFunctionList builtinFunctions;
 
 BuiltinFunctionList::BuiltinFunctionList()
@@ -60,7 +61,7 @@ BuiltinFunctionList::~BuiltinFunctionList()
 //   assert(hm.empty());
 }
 
-void BuiltinFunctionList::add(const char *name, class QoreNode *(*f)(class QoreNode *, class ExceptionSink *xsink), int typ)
+void BuiltinFunctionList::add(const char *name, q_func_t f, int typ)
 {
    if (init_done)
    {
@@ -77,8 +78,8 @@ void BuiltinFunctionList::add(const char *name, class QoreNode *(*f)(class QoreN
 void BuiltinFunctionList::clear()
 {
    //printd(5, "BuiltinFunctionList::~BuiltinFunctionList() this=%08p\n", this);
-   hm_bf_t::iterator i;
-   while ((i = hm.begin()) != hm.end())
+   hm_bf_t::iterator i = hm.begin();
+   while (i != hm.end())
    {
       //printd(5, "BuiltinFunctionList::~BuiltinFunctionList() deleting '%s()'\n", i->first);
       // char *c = (char *)i->first; - was used for deleting the cloned function name
@@ -89,14 +90,16 @@ void BuiltinFunctionList::clear()
       // erase hash entry
       hm.erase(i);
 
+      i = hm.begin();
+
       // delete name
       // free(c); - uncomment if the names are cloned, uncomment the 'c' declaration above too
    }
 }
 
-class BuiltinFunction *BuiltinFunctionList::find(const char *name)
+const BuiltinFunction *BuiltinFunctionList::find(const char *name)
 {
-   class BuiltinFunction *rv = NULL;
+   const BuiltinFunction *rv = 0;
    if (init_done)
       mutex.lock();
    hm_bf_t::iterator i = hm.find(name);
@@ -114,7 +117,7 @@ inline int BuiltinFunctionList::size()
 
 void BuiltinFunctionList::init()
 {
-   tracein("BuiltinFunctionList::init()");
+   QORE_TRACE("BuiltinFunctionList::init()");
 
    init_string_functions();
    init_io_functions();
@@ -133,10 +136,11 @@ void BuiltinFunctionList::init()
    init_crypto_functions();
    init_object_functions();
    init_file_functions();
+   init_bzip_functions();
 #ifdef DEBUG
    init_debug_functions();
 #endif
    init_done = true;
 
-   traceout("BuiltinFunctionList::init()");
+
 }

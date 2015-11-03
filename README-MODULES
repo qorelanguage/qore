@@ -1,0 +1,53 @@
+As of version 0.7.0, qore modules are now delivered separately from the qore library.
+
+Currently the following modules are available (note the svn URLs point to the current development source):
+* oracle
+Oracle database driver
+source: https://qore.svn.sourceforge.net/svnroot/qore/module-oracle/trunk
+
+* pgsql
+PostgreSQL database driver
+source: https://qore.svn.sourceforge.net/svnroot/qore/module-pgsql/trunk
+
+* sybase and freetds
+Sybase and freetds database drivers (built from the same source)
+Note the "freetds" module was formerly called "mssql" in previous versions of qore
+source: https://qore.svn.sourceforge.net/svnroot/qore/module-sybase/trunk
+
+* tibrv
+TIBCO Rendezvous(R) module
+source: https://qore.svn.sourceforge.net/svnroot/qore/module-tibrv/trunk
+
+* tibae
+TIBCO ActiveEnterprise(TM) module
+source: https://qore.svn.sourceforge.net/svnroot/qore/module-tibae/trunk
+
+* tuxedo
+Bea Tuxedo module
+source: https://qore.svn.sourceforge.net/svnroot/qore/module-tuxedo/trunk
+
+* ncurses
+ncurses module
+source: https://qore.svn.sourceforge.net/svnroot/qore/module-ncurses/trunk
+
+* qt modules (qt-core, qt-gui, qt-svn, qt-opengl, etc)
+QT4 modules
+source: https://qore.svn.sourceforge.net/svnroot/qore/module-qt/trunk
+
+* opengl
+opengl module
+source: https://qore.svn.sourceforge.net/svnroot/qore/module-opengl/trunk
+
+* glut
+GLUT module
+source: https://qore.svn.sourceforge.net/svnroot/qore/module-glut/trunk
+
+* asn1
+ASN.1 module
+source: https://qore.svn.sourceforge.net/svnroot/qore/module-asn1/trunk
+
+* xmlsec
+xml security (xmlenc and xmldsig) module
+source: https://qore.svn.sourceforge.net/svnroot/qore/module-xmlsec/trunk
+
+

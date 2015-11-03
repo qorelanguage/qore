@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2009 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -23,6 +23,7 @@
 #include <qore/Qore.h>
 
 #include <qore/DBI.h>
+#include <qore/intern/QoreSignal.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -46,8 +47,11 @@ int qore_trace = 0;
 int debug = 0;
 int qore_library_options = QLO_NONE;
 
-void qore_init(char *def_charset, bool show_module_errors, int n_qore_library_options)
-{
+qore_license_t qore_license;
+
+void qore_init(qore_license_t license, const char *def_charset, bool show_module_errors, int n_qore_library_options) {
+   qore_license = license;
+
    qore_library_options = n_qore_library_options;
 
    // initialize libxml2 library
@@ -57,18 +61,17 @@ void qore_init(char *def_charset, bool show_module_errors, int n_qore_library_op
    SSL_load_error_strings();
    OpenSSL_add_all_algorithms();
    SSL_library_init();
-   // FIXME: seed PRNG or add function to do the same
 
    // init threading infrastructure
    init_qore_threads();
 
-   initENV(environ);
+   init_lib_intern(environ);
 
    // initialize charset encoding support
    QEM.init(def_charset);
 
    // create default type values
-   QTM.init();
+   init_qore_types();
 
    // set up core operators
    oplist.init();
@@ -94,9 +97,6 @@ void qore_cleanup()
    // now free memory
    delete_global_variables();
 
-   // delete threading infrastructure
-   delete_qore_threads();
-
    // clear the list before modules are unloaded
    builtinFunctions.clear();
 
@@ -104,7 +104,10 @@ void qore_cleanup()
    MM.cleanup();
 
    // delete default type values
-   QTM.del();
+   delete_qore_types();
+
+   // delete threading infrastructure
+   delete_qore_threads();
 
    // cleanup openssl library
    EVP_cleanup();

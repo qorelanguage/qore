@@ -1,22 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" 
-"/opt/local/share/xml/docbook-xml/4.3/docbookx.dtd"
+"/usr/share/sgml/docbook/xml-dtd-4.5-1.0-38.fc9/docbookx.dtd"
 [
   <!ENTITY bookinfo         SYSTEM "bookinfo.docbook">
   <!ENTITY introduction     SYSTEM "introduction.docbook">
   <!ENTITY language         SYSTEM "language.docbook">
+  <!ENTITY operators        SYSTEM "operators.docbook">
   <!ENTITY function_lib     SYSTEM "function_lib.docbook">
   <!ENTITY class_lib        SYSTEM "class_lib.docbook">
-  <!ENTITY modules          SYSTEM "modules.docbook">
-  <!ENTITY ncurses_module   SYSTEM "ncurses_module.docbook">
-  <!ENTITY tibrv_module     SYSTEM "tibrv_module.docbook">
-  <!ENTITY tibae_module     SYSTEM "tibae_module.docbook">
-  <!ENTITY oracle_module    SYSTEM "oracle_module.docbook">
-  <!ENTITY mysql_module     SYSTEM "mysql_module.docbook">
-  <!ENTITY pgsql_module     SYSTEM "pgsql_module.docbook">
-  <!ENTITY sybase_module    SYSTEM "sybase_module.docbook">
-  <!ENTITY mssql_module     SYSTEM "mssql_module.docbook">
-  <!ENTITY tuxedo_module    SYSTEM "tuxedo_module.docbook">
   <!ENTITY command_line     SYSTEM "command_line.docbook">
   <!ENTITY parse_directives SYSTEM "parse_directives.docbook">
   <!ENTITY warnings         SYSTEM "warnings.docbook">
@@ -27,7 +18,7 @@
 ]>
 
 <!-- 
-"/usr/share/sgml/docbook/xml-dtd-4.4-1.0-30.1/docbookx.dtd"
+"/opt/local/share/xml/docbook-xml/4.3/docbookx.dtd"
 -->
 
 <book>
@@ -36,7 +27,6 @@
 &language;
 &function_lib;
 &class_lib;
-&modules;
 &command_line;
 &parse_directives;
 &warnings;

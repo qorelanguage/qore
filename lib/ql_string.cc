@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2009 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,68 +21,52 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/ql_string.h>
-#include <qore/QoreRegex.h>
-#include <qore/RegexSubst.h>
+#include <qore/intern/ql_string.h>
 
 #include <stdlib.h>
 #include <string.h>
 
 // retuns number of characters in a string
-static class QoreNode *f_length(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_length(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *temp, *p0;
+   const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
    int l;
 
-   if (p0->type == NT_BINARY)
-      l = p0->val.bin->size();
+   if (p0->getType() == NT_BINARY)
+      l = (reinterpret_cast<const BinaryNode *>(p0))->size();
    else
    {
-      if (p0->type == NT_STRING)
-	 temp = p0;
-      else
-	 temp = p0->convert(NT_STRING);
-      l = temp->val.String->length();
-      if (temp != p0)
-	 temp->deref(xsink);
+      QoreStringValueHelper temp(p0);
+      l = temp->length();
    }
-   return new QoreNode((int64)l);
+   return new QoreBigIntNode(l);
 }
 
 // retuns number of bytes in a string
-static class QoreNode *f_strlen(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_strlen(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *rv, *temp, *p0;
+   const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
-   rv = new QoreNode(NT_INT);
-
-   if (p0->type == NT_STRING)
-      temp = p0;
-   else
-      temp = p0->convert(NT_STRING);
-   rv->val.intval = temp->val.String->strlen();
-   if (temp != p0)
-      temp->deref(xsink);
-   return rv;
+   QoreStringValueHelper temp(p0);
+   return new QoreBigIntNode(temp->strlen());
 }
 
-static class QoreNode *f_tolower(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_tolower(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
-   char *p;
+   const QoreStringNode *p0;
 
-   if (!(p0 = test_param(params, NT_STRING, 0)))
-      return NULL;
+   if (!(p0 = test_string_param(params, 0)))
+      return 0;
 
-   QoreNode *rv = new QoreNode(new QoreString(p0->val.String));
-   p = (char *)rv->val.String->getBuffer();
+   QoreStringNode *rv = p0->copy();
+   char *p = (char *)rv->getBuffer();
    while (*p)
    {
       *p = tolower(*p);
@@ -91,19 +75,15 @@ static class QoreNode *f_tolower(class QoreNode *params, ExceptionSink *xsink)
    return rv;
 }
 
-static class QoreNode *f_toupper(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_toupper(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
-   char *p;
+   const QoreStringNode *p0;
 
-   if (!(p0 = test_param(params, NT_STRING, 0)))
-      return NULL;
+   if (!(p0 = test_string_param(params, 0)))
+      return 0;
 
-   QoreNode *rv = new QoreNode(new QoreString(p0->val.String));
-   printd(5, "f_toupper() p0->val.String=%08p (buf=%08p) rv->val.String=%08p (buf=%08p)\n",
-	  p0->val.String, p0->val.String->getBuffer(),
-	  rv->val.String, rv->val.String->getBuffer());
-   p = (char *)rv->val.String->getBuffer();
+   QoreStringNode *rv = p0->copy();
+   char *p = (char *)rv->getBuffer();
    while (*p)
    {
       *p = toupper(*p);
@@ -113,37 +93,18 @@ static class QoreNode *f_toupper(class QoreNode *params, ExceptionSink *xsink)
 }
 
 // syntax substr(string, start[, length]) - note 1st character is 0, not 1
-static class QoreNode *f_substr(class QoreNode *params, ExceptionSink *xsink)
-{
-   class QoreNode *temp, *p0, *p1, *p2, *rv;
-   class QoreString *ns;
+static AbstractQoreNode *f_substr(const QoreListNode *params, ExceptionSink *xsink) {
+   const AbstractQoreNode *p0, *p1;
 
-   tracein("f_substr()");
-   if (!(p0 = get_param(params, 0)) ||
-       !(p1 = get_param(params, 1)))
-   {
-      traceout("f_substr()");
-      return NULL;
-   }
-   if (p0->type == NT_STRING)
-      temp = p0;
-   else
-   {
-      //printd(5, "f_substr() node->type=%s\n", p0 ? p0->type->getName() : "(null)");
-      temp = p0->convert(NT_STRING);
-   }
+   if (is_nothing(p0 = get_param(params, 0)) || is_nothing(p1 = get_param(params, 1)))
+      return 0;
+
+   QoreStringNodeValueHelper temp(p0);
+   const AbstractQoreNode *p2;
    if ((p2 = get_param(params, 2)))
-      ns = temp->val.String->substr(p1->getAsInt(), p2->getAsInt());
-   else
-      ns = temp->val.String->substr(p1->getAsInt());
-   if (temp != p0)
-      temp->deref(xsink);
-   if (ns)
-      rv = new QoreNode(ns);
-   else
-      rv = NULL;
-   traceout("f_substr()");
-   return rv;
+      return temp->substr(p1->getAsInt(), p2->getAsInt(), xsink);
+
+   return temp->substr(p1->getAsInt(), xsink);
 }
 
 static inline int index_intern(const char *haystack, const char *needle, int pos = 0)
@@ -159,73 +120,65 @@ static inline int index_intern(const char *haystack, const char *needle, int pos
  * of substring within string, optionally starting at position if available
  * returns -1 if not found
  */
-static class QoreNode *f_index(class QoreNode *params, ExceptionSink *xsink)
-{
-   class QoreNode *t0, *t1, *p0, *p1, *p2;
+static AbstractQoreNode *f_index(const QoreListNode *params, ExceptionSink *xsink) {
+   const AbstractQoreNode *p0, *p1, *p2;
 
    if (!(p0 = get_param(params, 0)) ||
        !(p1 = get_param(params, 1)))
-      return new QoreNode((int64)-1);
+      return new QoreBigIntNode(-1);
 
-   t0 = (p0->type == NT_STRING) ? p0 : p0->convert(NT_STRING);
-   t1 = (p1->type == NT_STRING) ? p1 : p1->convert(NT_STRING);
+   QoreStringValueHelper hs(p0);
+   QoreStringValueHelper t1(p1);
 
    p2 = get_param(params, 2);
    int pos = p2 ? p2->getAsInt() : 0;
 
-   class QoreString *hs = t0->val.String;
-
    int ind;
-   if (p0 != t0 || !hs->getEncoding()->isMultiByte())
-   {
-      if (pos >= hs->strlen())
-	 ind = -1;
-      else
-      {
+   if (!hs->getEncoding()->isMultiByte()) {
+      if (pos < 0) {
+	 pos = hs->strlen() + pos;
 	 if (pos < 0)
-	 {
-	    pos = hs->strlen() + pos;
-	    if (pos < 0)
-	       pos = 0;
-	 }
-	 ind = index_intern(hs->getBuffer(), t1->val.String->getBuffer(), pos);
+	    pos = 0;
+	 ind = index_intern(hs->getBuffer(), t1->getBuffer(), pos);
+      }
+      else {
+	 if ((qore_size_t)pos >= hs->strlen())
+	    ind = -1;
+	 else
+	    ind = index_intern(hs->getBuffer(), t1->getBuffer(), pos);
       }
    }
-   else // do multibyte index()
-   {
-      int start;
-      if (pos < 0)
-      {
+   else { // do multibyte index()
+      qore_size_t start;
+      if (pos < 0) {
 	 pos = hs->length() + pos;
 	 if (pos < 0)
 	    pos = 0;
       }
-      if (pos)
-      {
-	 start = hs->getEncoding()->getByteLen(hs->getBuffer(), pos);
+      if (pos) {
+	 start = hs->getEncoding()->getByteLen(hs->getBuffer(), hs->getBuffer() + hs->strlen(), pos, xsink);
+	 if (*xsink)
+	    return 0;
 	 if (start == hs->strlen())
 	    ind = -1;
 	 else
 	    ind = 0;
       }
-      else
-      {
+      else {
 	 ind = 0;
 	 start = 0;
       }
-      if (ind != -1)
-      {
-	 ind = index_intern(hs->getBuffer() + start, t1->val.String->getBuffer());
-	 if (ind != -1)
-	    ind = hs->getEncoding()->getCharPos(hs->getBuffer(), hs->getBuffer() + start + ind);
+      if (ind != -1) {
+	 ind = index_intern(hs->getBuffer() + start, t1->getBuffer());
+	 if (ind != -1) {
+	    ind = hs->getEncoding()->getCharPos(hs->getBuffer(), hs->getBuffer() + start + ind, xsink);
+	    if (*xsink)
+	       return 0;
+	 }
       }
    }
    
-   if (t0 != p0)
-      t0->deref(xsink);
-   if (t1 != p1)
-      t1->deref(xsink);
-   return new QoreNode((int64)ind);
+   return new QoreBigIntNode(ind);
 }
 
 /* bindex(string, substring [, position])
@@ -234,41 +187,35 @@ static class QoreNode *f_index(class QoreNode *params, ExceptionSink *xsink)
  * returns -1 if not found
  * see index() for the character position
  */
-static class QoreNode *f_bindex(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_bindex(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *t0, *t1, *p0, *p1, *p2;
+   const AbstractQoreNode *p0, *p1, *p2;
 
    if (!(p0 = get_param(params, 0)) ||
        !(p1 = get_param(params, 1)))
-      return new QoreNode((int64)-1);
+      return new QoreBigIntNode(-1);
 
-   t0 = (p0->type == NT_STRING) ? p0 : p0->convert(NT_STRING);
-   t1 = (p1->type == NT_STRING) ? p1 : p1->convert(NT_STRING);
+   QoreStringValueHelper hs(p0);
+   QoreStringValueHelper t1(p1);
 
    p2 = get_param(params, 2);
    int pos = p2 ? p2->getAsInt() : 0;
 
-   class QoreString *hs = t0->val.String;
    int ind;
-   if (pos >= hs->strlen())
-      ind = -1;
-   else
-   {
+   if (pos < 0) {
+      pos = hs->strlen() + pos;
       if (pos < 0)
-      {
-	 pos = hs->strlen() + pos;
-	 if (pos < 0)
-	    pos = 0;
-      }
-
-      ind = index_intern(hs->getBuffer(), t1->val.String->getBuffer(), pos);
+	 pos = 0;
+      ind = index_intern(hs->getBuffer(), t1->getBuffer(), pos);
    }
-   
-   if (t0 != p0)
-      t0->deref(xsink);
-   if (t1 != p1)
-      t1->deref(xsink);
-   return new QoreNode((int64)ind);
+   else {
+      if ((qore_size_t)pos >= hs->strlen())
+	 ind = -1;
+      else
+	 ind = index_intern(hs->getBuffer(), t1->getBuffer(), pos);
+   }
+
+   return new QoreBigIntNode(ind);
 }
 
 // finds the last occurrence of needle in haystack at or before position pos
@@ -296,17 +243,16 @@ static inline int rindex_intern(const char *haystack, int hlen, const char *need
  * returns the index position in bytes (starting with 0) of the first occurrence
  * of substring within string, searching from the end of the string
  */
-static class QoreNode *f_brindex(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_brindex(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *t0, *t1, *p0, *p1, *p2;
+   const AbstractQoreNode *p0, *p1, *p2;
  
    if (!(p0 = get_param(params, 0)) || !(p1 = get_param(params, 1)))
-      return new QoreNode((int64)-1);
+      return new QoreBigIntNode(-1);
 
-   t0 = (p0->type == NT_STRING) ? p0 : p0->convert(NT_STRING);
-   t1 = (p1->type == NT_STRING) ? p1 : p1->convert(NT_STRING);
+   QoreStringValueHelper hs(p0);
+   QoreStringValueHelper t1(p1);
 
-   class QoreString *hs = t0->val.String;
    p2 = get_param(params, 2);
    int pos = p2 ? p2->getAsInt() : hs->strlen() - 1;
 
@@ -316,33 +262,27 @@ static class QoreNode *f_brindex(class QoreNode *params, ExceptionSink *xsink)
    if (pos < 0)
       ind = -1;
    else
-      ind = rindex_intern(hs->getBuffer(), hs->strlen(), t1->val.String->getBuffer(), t1->val.String->strlen(), pos);      
+      ind = rindex_intern(hs->getBuffer(), hs->strlen(), t1->getBuffer(), t1->strlen(), pos);      
    
-   if (t0 != p0)
-      t0->deref(xsink);
-   if (t1 != p1)
-      t1->deref(xsink);
-   return new QoreNode((int64)ind);
+   return new QoreBigIntNode(ind);
 }
 
 // syntax: rindex(string, substring, [pos])
-static class QoreNode *f_rindex(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_rindex(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *t0, *t1, *p0, *p1, *p2;
+   const AbstractQoreNode *p0, *p1, *p2;
 
    if (!(p0 = get_param(params, 0)) || !(p1 = get_param(params, 1)))
-      return new QoreNode((int64)-1);
+      return new QoreBigIntNode(-1);
 
-   t0 = (p0->type == NT_STRING) ? p0 : p0->convert(NT_STRING);
-   t1 = (p1->type == NT_STRING) ? p1 : p1->convert(NT_STRING);
+   QoreStringValueHelper hs(p0);
+   QoreStringValueHelper t1(p1);
+
    p2 = get_param(params, 2);
-
    int pos = p2 ? p2->getAsInt() : -1;
 
-   class QoreString *hs = t0->val.String;
-
    int ind;
-   if (p0 != t0 || !hs->getEncoding()->isMultiByte())
+   if (!hs->getEncoding()->isMultiByte())
    {
       if (pos == -1)
 	 pos = hs->strlen() - 1;
@@ -351,10 +291,9 @@ static class QoreNode *f_rindex(class QoreNode *params, ExceptionSink *xsink)
       if (pos < 0)
 	 ind = -1;
       else
-	 ind = rindex_intern(hs->getBuffer(), hs->strlen(), t1->val.String->getBuffer(), t1->val.String->strlen(), pos);      
+	 ind = rindex_intern(hs->getBuffer(), hs->strlen(), t1->getBuffer(), t1->strlen(), pos);      
    }
-   else // do multi-byte rindex
-   {
+   else { // do multi-byte rindex
       int l = hs->length();
       if (pos == -1)
 	 pos = l - 1;
@@ -362,146 +301,225 @@ static class QoreNode *f_rindex(class QoreNode *params, ExceptionSink *xsink)
 	 pos = l + pos;
       if (pos < 0)
 	 ind = -1;
-      else
-      {
+      else {
 	 // calculate byte position from character position
-	 if (pos)
-	    pos = hs->getEncoding()->getByteLen(hs->getBuffer(), pos);
+	 if (pos) {
+	    pos = hs->getEncoding()->getByteLen(hs->getBuffer(), hs->getBuffer() + hs->strlen(), pos, xsink);
+	    if (*xsink)
+	       return 0;
+	 }
 	 // get byte rindex position
-	 ind = rindex_intern(hs->getBuffer(), hs->strlen(), t1->val.String->getBuffer(), t1->val.String->strlen(), pos);
+	 ind = rindex_intern(hs->getBuffer(), hs->strlen(), t1->getBuffer(), t1->strlen(), pos);
 	 // calculate character position from byte position
-	 if (ind && ind != -1)
-	    ind = hs->getEncoding()->getCharPos(hs->getBuffer(), hs->getBuffer() + ind);
+	 if (ind && ind != -1) {
+	    ind = hs->getEncoding()->getCharPos(hs->getBuffer(), hs->getBuffer() + ind, xsink);
+	    if (*xsink)
+	       return 0;
+	 }
       }
    }
 
-   if (t0 != p0)
-      t0->deref(xsink);
-   if (t1 != p1)
-      t1->deref(xsink);
-   return new QoreNode((int64)ind);
+   return new QoreBigIntNode(ind);
 }
 
 // syntax: ord(string, [offset = 0])
 // note that ord() only works on byte offsets and gives byte values
-static class QoreNode *f_ord(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_ord(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *temp, *p0;
+   const AbstractQoreNode *p0;
    
    if (!(p0 = get_param(params, 0)))
-      return NULL;
-
-   temp = (p0->type == NT_STRING) ? p0 : p0->convert(NT_STRING);
-
-   if (!temp->val.String->strlen())
-   {
-      if (temp != p0)
-	 temp->deref(xsink);
-      return NULL;
-   }
-
-   class QoreString *str = temp->val.String;
+      return 0;
    
-   class QoreNode *p1 = get_param(params, 1);
-   int offset = p1 ? p1->getAsInt() : 0;
+   QoreStringValueHelper str(p0);
 
-   if (offset >= str->strlen() || offset < 0)
-   {
-      if (temp != p0)
-	 temp->deref(xsink);
-       return NULL;
-   }
+   if (!str->strlen())
+      return 0;
 
-   int c = (unsigned char)str->getBuffer()[offset];
-   if (temp != p0)
-      temp->deref(xsink);
-   return new QoreNode((int64)c);
+   const AbstractQoreNode *p1 = get_param(params, 1);
+   qore_size_t offset = p1 ? p1->getAsBigInt() : 0;
+
+   if (offset >= str->strlen())
+       return 0;
+
+   return new QoreBigIntNode((str->getBuffer()[offset]));
 }
 
-static class QoreNode *f_chr(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_chr(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0;
+   const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
+   
+   return new QoreStringNode((char)p0->getAsInt());
+}
 
-   return new QoreNode(new QoreString((char)p0->getAsInt()));
+static inline const char *memstr(const char *str, const char *pattern, qore_size_t pl, qore_size_t len) {
+   while (true) {
+      const char *p = (const char *)memchr(str, pattern[0], len);
+      if (!p)
+	 return 0;
+
+      //printd(5, "memstr() pattern=%s str=%p p=%p len=%d pl=%d remaining=%d (%c %c %c)\n", pattern, str, p, len, pl, len-(p-str), p[1], p[2], p[3]);
+
+      // if there is not enough string left for the pattern, then return
+      if ((len - (p - str)) < pl)
+	 return 0;
+
+      bool found = true;
+      for (qore_size_t i = 1; i < pl; ++i) {
+	 if (pattern[i] != p[i]) {
+	    len -= (p - str + 1);
+	    str = p + 1;
+	    found = false;
+	    break;
+	 }
+      }
+      if (!found)
+	 continue;
+     
+      // found
+      //printd(5, "memstr() got it! p=%p\n", p);
+      return p;
+   }
+   return 0;
 }
 
 // syntax: split(pattern, string);
-static class QoreNode *f_split(class QoreNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_split(const QoreListNode *params, ExceptionSink *xsink) {
    const char *str, *pattern;
-   QoreNode *p0, *p1;
+   const AbstractQoreNode *p0 = get_param(params, 0);
+   
+   // pattern length, string length
+   qore_size_t pl, sl;
 
-   if (!(p0 = test_param(params, NT_STRING, 0)) ||
-       !(p1 = test_param(params, NT_STRING, 1)))
-      return new QoreNode(new List());
-   pattern = p0->val.String->getBuffer();
-   str = p1->val.String->getBuffer();
-   printd(5, "in f_split(\"%s\", \"%s\")\n", pattern, str);
-   class List *l = new List();
-   while (const char *p = strstr(str, pattern))
-   {
-      //printd(5, "str=%08p p=%08p \"%s\" \"%s\"\n", str, p, str, pattern);
-      l->push(new QoreNode(new QoreString(str, p - str, p1->val.String->getEncoding())));
-      str = p + strlen(pattern);
+   // to be used if necessary to convert string arguments
+   TempEncodingHelper temp;
+
+   // to be sued when saving a string
+   const QoreEncoding *enc = 0;
+
+   if (p0 && p0->getType() == NT_STRING) {
+      const QoreStringNode *s0 = reinterpret_cast<const QoreStringNode *>(p0);
+      const QoreStringNode *s1 = test_string_param(params, 1);
+
+      if (!s1)
+	 return new QoreListNode();
+
+      // convert pattern encoding to string if necessary
+      temp.set(s0, s1->getEncoding(), xsink);
+      if (*xsink)
+	 return 0;
+
+      pattern = temp->getBuffer();
+      pl = temp->strlen();
+
+      str = s1->getBuffer();
+      sl = s1->strlen();
+      enc = s1->getEncoding();
    }
-   // add last field
-   if (*str)
-      l->push(new QoreNode(new QoreString(str, p1->val.String->getEncoding())));
-   return new QoreNode(l);
+   else {
+      if (!p0 || p0->getType() != NT_BINARY)
+	 return new QoreListNode();
+
+      const BinaryNode *b0 = reinterpret_cast<const BinaryNode *>(p0);
+      const BinaryNode *b1 = test_binary_param(params, 1);
+
+      if (!b1)
+	 return new QoreListNode();
+
+      pattern = (const char*)b0->getPtr();
+      pl = b0->size();
+
+      str = (const char*)b1->getPtr();
+      sl = b1->size();
+   }
+
+   QoreListNode *l = new QoreListNode();
+   const char *ostr = str;
+   while (const char *p = memstr(str, pattern, pl, sl - (str - ostr))) {
+      //printd(5, "str=%08p p=%08p \"%s\" \"%s\"\n", str, p, str, pattern);
+      if (enc)
+	 l->push(new QoreStringNode(str, p - str, enc));
+      else {
+	 BinaryNode *b = new BinaryNode();
+	 b->append(str, p - str);
+	 l->push(b);
+      }
+      str = p + pl;
+   }
+   //printd(5, "f_split() str=%p %d remaining=%d\n", str, *str, sl - (str - ostr));
+   // add last field if there is data remaining
+   if (sl - (str - ostr)) {
+      if (enc) 
+	 l->push(new QoreStringNode(str, sl - (str - ostr), enc));
+      else {
+	 BinaryNode *b = new BinaryNode();
+	 b->append(str, sl - (str - ostr));
+	 l->push(b);
+      }
+   }
+   return l;
 }
 
-static class QoreNode *f_get_encoding(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_get_encoding(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   const QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
-      return NULL;
-   return new QoreNode(new QoreString(p0->val.String->getEncoding()->getCode()));
+      return 0;
+   return new QoreStringNode(p0->getEncoding()->getCode());
 }
 
 // usage: convert_encoding(string, new_encoding);
-static class QoreNode *f_convert_encoding(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_convert_encoding(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0, *p1;
-   if (!(p0 = test_param(params, NT_STRING, 0)) ||
-       !(p1 = test_param(params, NT_STRING, 1)))
-      return NULL;
-   QoreString *ns = p0->val.String->convertEncoding(QEM.findCreate(p1->val.String), xsink);
-   if (ns)
-      return new QoreNode(ns);
-   return NULL;
+   const QoreStringNode *p0, *p1;
+   if (!(p0 = test_string_param(params, 0)) ||
+       !(p1 = test_string_param(params, 1)))
+      return 0;
+
+   return p0->convertEncoding(QEM.findCreate(p1), xsink);
 }
 
-static class QoreNode *f_regex(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_force_encoding(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0, *p1, *p2;
-   if (!(p0 = test_param(params, NT_STRING, 0)) ||
-       !(p1 = test_param(params, NT_STRING, 1)))
-      return NULL;
+   const QoreStringNode *p0, *p1;
+   if (!(p0 = test_string_param(params, 0)) ||
+       !(p1 = test_string_param(params, 1)))
+      return 0;
 
-   p2 = get_param(params, 2);
+   return new QoreStringNode(p0->getBuffer(), p0->strlen(), QEM.findCreate(p1));
+}
+
+static AbstractQoreNode *f_regex(const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *p0, *p1;
+   if (!(p0 = test_string_param(params, 0)) ||
+       !(p1 = test_string_param(params, 1)))
+       return 0;
+   
+   const AbstractQoreNode *p2 = get_param(params, 2);
    int options = p2 ? p2->getAsInt() : 0;
 
-   QoreRegex qr(p1->val.String, options, xsink);
-   if (xsink->isEvent())
-      return NULL;
+   QoreRegexNode qr(p1, options, xsink);
+   if (*xsink)
+      return 0;
 
-   return new QoreNode(qr.exec(p0->val.String, xsink));
+   return get_bool_node(qr.exec(p0, xsink));
 }
 
 // syntax: regex_subst(string, pattern, substitution_pattern, options)
-static class QoreNode *f_regex_subst(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_regex_subst(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0, *p1, *p2, *p3;
-   if (!(p0 = test_param(params, NT_STRING, 0)) ||
-       !(p1 = test_param(params, NT_STRING, 1)) ||
-       !(p2 = test_param(params, NT_STRING, 2)))
-      return NULL;
+   const QoreStringNode *p0, *p1, *p2;
+   if (!(p0 = test_string_param(params, 0)) ||
+       !(p1 = test_string_param(params, 1)) ||
+       !(p2 = test_string_param(params, 2)))
+       return 0;
 
-   p3 = get_param(params, 3);
+   const AbstractQoreNode *p3 = get_param(params, 3);
    int64 options = p3 ? p3->getAsBigInt() : 0;
+
    bool global;
    if (options & QRE_GLOBAL)
    {
@@ -511,55 +529,55 @@ static class QoreNode *f_regex_subst(class QoreNode *params, ExceptionSink *xsin
    else
       global = false;
 
-   class RegexSubst qrs(p1->val.String, options, xsink);
-   if (xsink->isEvent())
-      return NULL;
+   RegexSubstNode qrs(p1, options, xsink);
+   if (*xsink)
+      return 0;
 
    if (global)
       qrs.setGlobal();
-   return new QoreNode(qrs.exec(p0->val.String, p2->val.String, xsink));
+   return qrs.exec(p0, p2, xsink);
 }
 
-static class QoreNode *f_regex_extract(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_regex_extract(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0, *p1, *p2;
-   if (!(p0 = test_param(params, NT_STRING, 0)) ||
-       !(p1 = test_param(params, NT_STRING, 1)))
-      return NULL;
+   const QoreStringNode *p0, *p1;
+   if (!(p0 = test_string_param(params, 0)) ||
+       !(p1 = test_string_param(params, 1)))
+      return 0;
    
-   p2 = get_param(params, 2);
+   const AbstractQoreNode *p2 = get_param(params, 2);
    int options = p2 ? p2->getAsInt() : 0;
    
-   QoreRegex qr(p1->val.String, options, xsink);
-   if (xsink->isEvent())
-      return NULL;
+   QoreRegexNode qr(p1, options, xsink);
+   if (*xsink)
+      return 0;
    
-   return new QoreNode(qr.extractSubstrings(p0->val.String, xsink));
+   return qr.extractSubstrings(p0, xsink);
 }
 
 // usage: replace(string, substring, new substring)
-static class QoreNode *f_replace(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_replace(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0, *p1, *p2;
-   if (!(p0 = test_param(params, NT_STRING, 0)) ||
-       !(p1 = test_param(params, NT_STRING, 1)) ||
-       !(p2 = test_param(params, NT_STRING, 2)))
-      return NULL;
+   const QoreStringNode *p0, *p1, *p2;
+   if (!(p0 = test_string_param(params, 0)) ||
+       !(p1 = test_string_param(params, 1)) ||
+       !(p2 = test_string_param(params, 2)))
+      return 0;
 
-   class QoreEncoding *ccs = p0->val.String->getEncoding();
+   const QoreEncoding *ccs = p0->getEncoding();
 
-   TempEncodingHelper t1(p1->val.String, ccs, xsink);
+   TempEncodingHelper t1(p1, ccs, xsink);
    if (*xsink)
       return 0;
 
-   TempEncodingHelper t2(p2->val.String, ccs, xsink);
+   TempEncodingHelper t2(p2, ccs, xsink);
    if (*xsink)
       return 0;
 
-   QoreString *nstr = new QoreString(ccs);   
+   QoreStringNode *nstr = new QoreStringNode(ccs);   
 
    const char *str, *pattern;
-   str = p0->val.String->getBuffer();
+   str = p0->getBuffer();
    pattern = t1->getBuffer();
    int plen = strlen(pattern);
 
@@ -575,117 +593,110 @@ static class QoreNode *f_replace(class QoreNode *params, ExceptionSink *xsink)
    // add last field
    if (*str)
       nstr->concat(str);
-
-   return new QoreNode(nstr);
+   
+   return nstr;
 }
 
 // perl-style join function
-static class QoreNode *f_join(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_join(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0 = test_param(params, NT_STRING, 0);
+   const QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
    
-   int n = num_params(params);
+   unsigned n = num_params(params);
    if (n < 2)
-      return NULL;
+      return 0;
 
-   class QoreNode *p1 = test_param(params, NT_LIST, 1);
-   class List *l;
-   if (n == 2 && p1)
-   {
+   const QoreListNode *l = test_list_param(params, 1);
+   if (n == 2 && l)
       n = 0;
-      l = p1->val.list;
-   }
    else
    {
       n = 1;
-      l = params->val.list;
+      l = params;
    }
-   class QoreString *str = new QoreString();
-   for (int i = n; i < l->size(); i++)
-   {
-      class QoreNode *p = l->retrieve_entry(i);
+
+   QoreStringNode *str = new QoreStringNode();
+
+   for (unsigned i = n; i < l->size(); i++) {
+      const AbstractQoreNode *p = l->retrieve_entry(i);
       if (p)
       {
-	 class QoreNode *t;
-	 if (p->type != NT_STRING)
-	    t = p->convert(NT_STRING);
-	 else
-	    t = p;
-	 
-	 str->concat(t->val.String);
-	 if (t != p)
-	    t->deref(xsink);
+	 QoreStringValueHelper t(p);	 
+	 str->concat(*t);
       }
       if (i < (l->size() - 1))
-	 str->concat(p0->val.String);
+	 str->concat(p0);
    }
-   return new QoreNode(str);
+   return str;
 }
 
-static class QoreNode *f_chomp(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_chomp(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p = get_param(params, 0);   
+   const AbstractQoreNode *p = get_param(params, 0);   
    if (!p)
       return 0;
 
-   if (p->type == NT_STRING)
-   {
-      class QoreString *str = p->val.String->copy();
+   qore_type_t ptype = p->getType();
+   if (ptype == NT_STRING) {
+      const QoreStringNode *pstr = reinterpret_cast<const QoreStringNode *>(p);
+      QoreStringNode *str = pstr->copy();
       str->chomp();
-      return new QoreNode(str);
-   }
-   else if (p->type == NT_REFERENCE)
-   {
-      class AutoVLock vl;
-      class QoreNode **vp = get_var_value_ptr(p->val.lvexp, &vl, xsink);
-      if (*xsink || !(*vp) || (*vp)->type != NT_STRING)
-	 return 0;
-      if (!(*vp)->is_unique())
-      {
-	 QoreNode *old = *vp;
-	 (*vp) = old->realCopy(xsink); // exception is not possible here because it's a string
-	 old->deref(xsink);           // nor here
-      }
-      (*vp)->val.String->chomp();
-      (*vp)->ref();
-      return *vp;
-   }
-   return 0;
+      return str;
+   } 
+
+   if (ptype != NT_REFERENCE)
+      return 0;
+
+   const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(p);
+
+   AutoVLock vl(xsink);
+   ReferenceHelper ref(r, vl, xsink);
+   if (!ref || ref.getType() != NT_STRING)
+      return 0;
+
+   QoreStringNode *str = reinterpret_cast<QoreStringNode *>(ref.getUnique(xsink));
+   if (*xsink)
+      return 0;
+
+   str->chomp();
+   return str->refSelf();
 }
 
-static class QoreNode *f_trim(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_trim(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0 = get_param(params, 0);   
+   const AbstractQoreNode *p0 = get_param(params, 0);   
    if (!p0)
       return 0;
-   class QoreNode *p1 = test_param(params, NT_STRING, 1);
-   const char *chars = p1 ? p1->val.String->getBuffer() : 0;
+   const QoreStringNode *p1 = test_string_param(params, 1);
+   const char *chars = p1 ? p1->getBuffer() : 0;
 
-   if (p0->type == NT_STRING)
-   {
-      class QoreString *str = p0->val.String->copy();
+   qore_type_t p0_type = p0->getType();
+
+   if (p0_type == NT_STRING) {
+      const QoreStringNode *pstr = reinterpret_cast<const QoreStringNode *>(p0);
+      QoreStringNode *str = pstr->copy();
       str->trim(chars);
-      return new QoreNode(str);
+      return str;
    }
-   else if (p0->type == NT_REFERENCE)
-   {
-      class AutoVLock vl;
-      class QoreNode **vp = get_var_value_ptr(p0->val.lvexp, &vl, xsink);
-      if (*xsink || !(*vp) || (*vp)->type != NT_STRING)
-	 return 0;
-      if (!(*vp)->is_unique())
-      {
-	 QoreNode *old = *vp;
-	 (*vp) = old->realCopy(xsink); // exception is not possible here because it's a string
-	 old->deref(xsink);           // nor here
-      }
-      (*vp)->val.String->trim(chars);
-      (*vp)->ref();
-      return *vp;
-   }
-   return 0;
+
+   if (p0_type != NT_REFERENCE)
+      return 0;
+
+   const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(p0);
+
+   AutoVLock vl(xsink);
+   ReferenceHelper ref(r, vl, xsink);
+   if (!ref || ref.getType() != NT_STRING)
+      return 0;
+
+   QoreStringNode *str = reinterpret_cast<QoreStringNode *>(ref.getUnique(xsink));
+   if (*xsink)
+      return 0;
+
+   str->trim(chars);
+   return str->refSelf();
 }
 
 void init_string_functions()
@@ -704,6 +715,7 @@ void init_string_functions()
    builtinFunctions.add("split", f_split);
    builtinFunctions.add("get_encoding", f_get_encoding);
    builtinFunctions.add("convert_encoding", f_convert_encoding);
+   builtinFunctions.add("force_encoding", f_force_encoding);
    builtinFunctions.add("regex", f_regex);
    builtinFunctions.add("regex_subst", f_regex_subst);
    builtinFunctions.add("regex_extract", f_regex_extract);

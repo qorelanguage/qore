@@ -21,25 +21,27 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/CaseNodeWithOperator.h>
-#include <qore/CaseNodeRegex.h>
+#include <qore/intern/SwitchStatement.h>
+#include <qore/intern/StatementBlock.h>
+#include <qore/intern/CaseNodeWithOperator.h>
+#include <qore/intern/CaseNodeRegex.h>
 #include <qore/minitest.hpp>
 
-#ifdef DEBUG
+#ifdef DEBUG_TESTS
 #  include "tests/SwitchStatementWithOperators_tests.cc"
 #endif
 
-CaseNode::CaseNode(class QoreNode *v, class StatementBlock *c)
+CaseNode::CaseNode(AbstractQoreNode *v, class StatementBlock *c)
 {
    val = v;
    code = c;
-   next = NULL;
+   next = 0;
 }
 
 CaseNode::~CaseNode()
 {
    if (val)
-      val->deref(NULL);
+      val->deref(0);
    if (code)
       delete code;
 }
@@ -49,7 +51,7 @@ bool CaseNode::isCaseNodeImpl() const
    return true;
 }
 
-bool CaseNode::matches(QoreNode* lhs_value, class ExceptionSink *xsink) {
+bool CaseNode::matches(AbstractQoreNode* lhs_value, ExceptionSink *xsink) {
    return !compareHard(lhs_value, val, xsink); // the ! is because of compareHard() semantics
 }
 
@@ -72,12 +74,12 @@ SwitchStatement::~SwitchStatement()
       head = w;
    }
    if (sexp)
-      sexp->deref(NULL);
+      sexp->deref(0);
    if (lvars)
       delete lvars;
 }
 
-void SwitchStatement::setSwitch(class QoreNode *s)
+void SwitchStatement::setSwitch(AbstractQoreNode *s)
 {
    sexp = s;
 }
@@ -97,22 +99,17 @@ void SwitchStatement::addCase(class CaseNode *c)
    }
 }
 
-int SwitchStatement::execImpl(class QoreNode **return_value, class ExceptionSink *xsink)
-{
-   int i, rc = 0;
+int SwitchStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) {
+   int rc = 0;
    
-   tracein("SwitchStatement::execImpl()");
    // instantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      instantiateLVar(lvars->ids[i], NULL);
+   LVListInstantiator lvi(lvars, xsink);
    
-   class QoreNode *se = sexp->eval(xsink);
-   if (!xsink->isEvent())
-   {
+   AbstractQoreNode *se = sexp->eval(xsink);
+   if (!xsink->isEvent()) {
       // find match
-      class CaseNode *w = head;
-      while (w)
-      {
+      CaseNode *w = head;
+      while (w) {
 	 if (w->matches(se, xsink))
 	    break;
 	 w = w->next;
@@ -120,8 +117,7 @@ int SwitchStatement::execImpl(class QoreNode **return_value, class ExceptionSink
       if (!w && deflt)
 	 w = deflt;
       
-      while (w && !rc && !xsink->isEvent())
-      {
+      while (w && !rc && !xsink->isEvent()) {
 	 if (w->code)
 	    rc = w->code->execImpl(return_value, xsink);
 	 
@@ -134,32 +130,24 @@ int SwitchStatement::execImpl(class QoreNode **return_value, class ExceptionSink
    if (se)
       se->deref(xsink);
    
-   // uninstantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      uninstantiateLVar(xsink);
-   
-   traceout("SwitchStatement::execImpl()");
    return rc;
 }
 
-int SwitchStatement::parseInitImpl(lvh_t oflag, int pflag)
-{
+int SwitchStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    int lvids = 0;
    
    lvids += process_node(&sexp, oflag, pflag);
    
-   class CaseNode *w = head;
-   class ExceptionSink xsink;
-   while (w)
-   {
-      if (w->val)
-      {
-	 getRootNS()->parseInitConstantValue(&w->val, 0);
-	 
+   CaseNode *w = head;
+   ExceptionSink xsink;
+   while (w) {
+      if (w->val) {
+	 process_node(&w->val, oflag, pflag);
+	 //printd(5, "SwitchStatement::parseInit() this=%p case exp: %p %s\n", this, w->val, w->val ? w->val->getTypeName() : "n/a");
+
 	 // check for duplicate values
-	 class CaseNode *cw = head;
-	 while (cw != w)
-	 {
+	 CaseNode *cw = head;
+	 while (cw != w) {
             // Check only the simple case blocks (case 1: ...),
             // not those with relational operators. Could be changed later to provide more checking.
 	    // note that no exception can be raised here as the case node values are parse values
@@ -181,33 +169,24 @@ int SwitchStatement::parseInitImpl(lvh_t oflag, int pflag)
    return 0;
 }
 
-bool CaseNodeWithOperator::isCaseNodeImpl() const
-{
+bool CaseNodeWithOperator::isCaseNodeImpl() const {
   return false;
 }
 
-//-----------------------------------------------------------------------------
-bool CaseNodeWithOperator::matches(QoreNode* lhs_value, class ExceptionSink *xsink)
-{
+bool CaseNodeWithOperator::matches(AbstractQoreNode* lhs_value, ExceptionSink *xsink) {
    return m_operator->bool_eval(lhs_value, val, xsink);
 }
 
-bool CaseNodeRegex::matches(QoreNode *lhs_value, class ExceptionSink *xsink)
-{
-   QoreNodeTypeHelper str(lhs_value, NT_STRING, xsink);
-   if (!str)
-      return false;
+bool CaseNodeRegex::matches(AbstractQoreNode *lhs_value, ExceptionSink *xsink) {
+   QoreStringValueHelper str(lhs_value);
    
-   return re->exec((*str)->val.String, xsink);
+   return re->exec(*str, xsink);
 }
 
-bool CaseNodeNegRegex::matches(QoreNode *lhs_value, class ExceptionSink *xsink)
-{   
-   QoreNodeTypeHelper str(lhs_value, NT_STRING, xsink);
-   if (!str)
-      return false;
+bool CaseNodeNegRegex::matches(AbstractQoreNode *lhs_value, ExceptionSink *xsink) {
+   QoreStringValueHelper str(lhs_value);
    
-   return !re->exec((*str)->val.String, xsink);
+   return !re->exec(*str, xsink);
 }
 
 // EOF

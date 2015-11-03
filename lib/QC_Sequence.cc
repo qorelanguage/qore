@@ -3,7 +3,7 @@
   
   Qore Programming Language
   
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2009 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,14 +21,14 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QC_Sequence.h>
+#include <qore/intern/QC_Sequence.h>
 
-int CID_SEQUENCE;
+qore_classid_t CID_SEQUENCE;
 
-static void SEQUENCE_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void SEQUENCE_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    int start;
-   class QoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
    if (p0)
       start = p0->getAsInt();
    else
@@ -36,24 +36,24 @@ static void SEQUENCE_constructor(class Object *self, class QoreNode *params, Exc
    self->setPrivate(CID_SEQUENCE, new QoreSequence(start));
 }
 
-static void SEQUENCE_copy(class Object *self, class Object *old, class QoreSequence *s, class ExceptionSink *xsink)
+static void SEQUENCE_copy(QoreObject *self, QoreObject *old, class QoreSequence *s, ExceptionSink *xsink)
 {
    self->setPrivate(CID_SEQUENCE, new QoreSequence(s->getCurrent()));
 }
 
-static class QoreNode *SEQUENCE_next(class Object *self, class QoreSequence *s, class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *SEQUENCE_next(QoreObject *self, class QoreSequence *s, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)s->next());
+   return new QoreBigIntNode(s->next());
 }
 
-static class QoreNode *SEQUENCE_getCurrent(class Object *self, class QoreSequence *s, class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *SEQUENCE_getCurrent(QoreObject *self, class QoreSequence *s, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)s->getCurrent()); 
+   return new QoreBigIntNode(s->getCurrent()); 
 }
 
 class QoreClass *initSequenceClass()
 {
-   tracein("initSequenceClass()");
+   QORE_TRACE("initSequenceClass()");
 
    // note that this class does not block therefore has no QDOM_THREAD
    class QoreClass *QC_SEQUENCE = new QoreClass("Sequence");
@@ -63,6 +63,6 @@ class QoreClass *initSequenceClass()
    QC_SEQUENCE->addMethod("next",          (q_method_t)SEQUENCE_next);
    QC_SEQUENCE->addMethod("getCurrent",    (q_method_t)SEQUENCE_getCurrent);
 
-   traceout("initSequenceClass()");
+
    return QC_SEQUENCE;
 }

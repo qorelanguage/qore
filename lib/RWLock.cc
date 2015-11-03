@@ -7,7 +7,7 @@
  
  Qore Programming Language
  
- Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ Copyright 2003 - 2009 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -26,37 +26,102 @@
 
 
 #include <qore/Qore.h>
-#include <qore/RWLock.h>
-#include <qore/QoreSignal.h>
+#include <qore/intern/RWLock.h>
 
 #include <assert.h>
 
-RWLock::RWLock(bool p) : readRequests(0), prefer_writers(p), num_readers(0)
-{
+RWLock::RWLock(bool p) : readRequests(0), prefer_writers(p), num_readers(0) {
 }
 
 #ifdef DEBUG
-RWLock::~RWLock()
-{
-   assert(!tmap.size());
+RWLock::~RWLock() {
+   assert(tmap.empty());
+   assert(cmap.empty());
 }
 #endif
 
-int RWLock::numReaders()
-{
+int RWLock::numReaders() {
    return num_readers;
 }
 
-int RWLock::grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink, int timeout_ms)
-{
+int RWLock::externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, int timeout_ms) {
+   // make sure this TID owns the lock
+   if (mtid == tid) { // in write lock
+      // insert into cond map
+      cond_map_t::iterator i = cmap.find(cond);
+      if (i == cmap.end())
+	 i = cmap.insert(std::make_pair(cond, 1)).first;
+      else
+	 ++(i->second);
+
+      // save vlock
+      VLock *nvl = vl;
+
+      // release lock
+      release_intern();
+      
+      // wait for condition
+      int rc = timeout_ms ? cond->wait(&asl_lock, timeout_ms) : cond->wait(&asl_lock);
+
+      // decrement cond count and delete from map if 0
+      if (!--(i->second))
+	 cmap.erase(i);
+
+      // reacquire the lock
+      if (grabImpl(mtid, nvl, xsink))
+	 return -1;
+
+      grab_intern(mtid, nvl);
+      return rc;
+   }
+
+   if (tid == Lock_Deleted) {
+      xsink->raiseException("LOCK-ERROR", "TID %d trying to wait on %s object, but it has been deleted in another thread", mtid, getName());
+      return -1;
+   }
+
+   tid_map_t::iterator i = tmap.find(mtid);
+   if (i == tmap.end()) {
+      xsink->raiseException("LOCK-ERROR", "TID %d trying to wait on %s object while not holding either the read or write lock", mtid, getName());
+      return -1;
+   }
+
+   // in read lock
+   // insert into cond map
+   cond_map_t::iterator ci = cmap.find(cond);
+   if (ci == cmap.end())
+      ci = cmap.insert(std::make_pair(cond, 1)).first;
+   else
+      ++(ci->second);
+
+   // save vlock
+   VLock *nvl = vmap[mtid];
+
+   // release lock
+   release_read_lock_intern(i);
+      
+   // wait for condition
+   int rc = timeout_ms ? cond->wait(&asl_lock, timeout_ms) : cond->wait(&asl_lock);
+
+   // decrement cond count and delete from map if 0
+   if (!--(ci->second))
+      cmap.erase(ci);
+
+   // reacquire the lock
+   if (grab_read_lock_intern(mtid, nvl, 0, xsink)) {
+      return -1;
+   }
+
+   return rc;
+}
+
+int RWLock::grabImpl(int mtid, class VLock *nvl, ExceptionSink *xsink, int timeout_ms) {
    // check for errors
-   if (tid == mtid)
-   {
+   if (tid == mtid) {
       xsink->raiseException("LOCK-ERROR", "TID %d tried to grab the write lock twice", tid);
       return -1;
    }
-   while (tid >= 0 || (tid == Lock_Unlocked && num_readers))
-   {
+   while (tid >= 0 || (tid == Lock_Unlocked && num_readers)) {
       ++waiting;
       int rc;
       // if the write lock is grabbed, send vl (only one thread owns the lock)
@@ -68,33 +133,28 @@ int RWLock::grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink, int
       if (rc)
 	 return -1;
    }
-   if (tid == Lock_Deleted)
-   {
+   if (tid == Lock_Deleted) {
       xsink->raiseException("LOCK-ERROR", "The %s object has been deleted in another thread", getName());
       return -1;
    }
    return 0;
 }
 
-void RWLock::signalAllImpl()
-{
+void RWLock::signalAllImpl() {
    if (waiting)
       asl_cond.broadcast();
    if (readRequests)
       read.broadcast();
 }
 
-void RWLock::signalImpl()
-{
-   if (prefer_writers)
-   {
+void RWLock::signalImpl() {
+   if (prefer_writers) {
       if (waiting)
 	 asl_cond.signal();
       else if (readRequests)
 	 read.broadcast();
    }
-   else
-   {
+   else {
       if (readRequests)
 	 read.broadcast();
       else if (waiting)
@@ -102,8 +162,16 @@ void RWLock::signalImpl()
    }
 }
 
-void RWLock::destructorImpl(class ExceptionSink *xsink)
-{
+void RWLock::destructorImpl(ExceptionSink *xsink) {
+   cond_map_t::iterator i = cmap.begin(), e = cmap.end();
+   if (i != e) {
+      xsink->raiseException("RWLOCK-ERROR", "%s object deleted in TID %d while one or more Condition variables were waiting on it",
+                            getName(), gettid());
+      // wake up all condition variables waiting on this mutex
+      for (; i != e; i++)
+         i->first->broadcast();
+   }
+
    if (num_readers)
       asl_cond.broadcast();
 
@@ -118,10 +186,8 @@ void RWLock::destructorImpl(class ExceptionSink *xsink)
 }
 
 // return value 0 = last read lock for this thread released
-int RWLock::cleanup_read_lock_intern(tid_map_t::iterator i)
-{
-   if (!--(i->second))
-   {
+int RWLock::cleanup_read_lock_intern(tid_map_t::iterator i) {
+   if (!--(i->second)) {
       vlock_map_t::iterator vi = vmap.find(i->first);
       // pop the lock from this thread's lock list
       vi->second->pop((AbstractSmartLock *)this);
@@ -129,17 +195,15 @@ int RWLock::cleanup_read_lock_intern(tid_map_t::iterator i)
       // remove map entries for this thread
       tmap.erase(i);
       vmap.erase(vi);
-      assert((tmap.size() && num_readers) || (!tmap.size() && !num_readers));
+      assert((!tmap.empty() && num_readers) || (tmap.empty() && !num_readers));
       return 0;
    }
    return -1;
 }
 
 // internal use only - releases read and write locks
-int RWLock::releaseImpl()
-{
-   if (num_readers)
-   {
+int RWLock::releaseImpl() {
+   if (num_readers) {
       // signal writers if any are waiting
       if (!--num_readers && waiting)
 	 asl_cond.signal();
@@ -153,19 +217,16 @@ int RWLock::releaseImpl()
 	 cleanup_read_lock_intern(ti);
       return -1;
    }
-   else if (tid >= 0)
-   {
+   else if (tid >= 0) {
       return 0;
    }
    return -1;
 }
 
 // thread exited holding the lock: remove whatever lock was locked
-void RWLock::cleanupImpl()
-{
+void RWLock::cleanupImpl() {
    // if it was a read lock
-   if (num_readers)
-   {
+   if (num_readers) {
       int mtid = gettid();
       // remove reader for this thread
       vlock_map_t::iterator vi = vmap.find(mtid);
@@ -190,10 +251,9 @@ void RWLock::cleanupImpl()
       
       // erase thread map entry
       tmap.erase(ti);
-      assert((tmap.size() && num_readers) || (!tmap.size() && !num_readers));
+      assert((!tmap.empty() && num_readers) || (tmap.empty() && !num_readers));
    }
-   else if (tid >= 0)  // if it was the write lock
-   {
+   else if (tid >= 0) { // if it was the write lock
       // this thread must own the lock
       assert(tid == gettid());
       // mark lock as unlocked
@@ -202,27 +262,23 @@ void RWLock::cleanupImpl()
       // delete entry from the thread lock list
       vl->pop(this);
       
-      vl = NULL;
+      vl = 0;
       // wake up sleeping thread(s)
       signalImpl();
    }
 }
 
-int RWLock::releaseImpl(class ExceptionSink *xsink)
-{
+int RWLock::releaseImpl(ExceptionSink *xsink) {
    int mtid = gettid();
-   if (tid == Lock_Deleted)
-   {
+   if (tid == Lock_Deleted) {
       xsink->raiseException("LOCK-ERROR", "The %s object has been deleted in another thread", getName());
       return -1;
    }
-   if (tid == Lock_Unlocked)
-   {
+   if (tid == Lock_Unlocked) {
       xsink->raiseException("LOCK-ERROR", "TID %d called %s::writeUnlock() while not holding the write lock", mtid, getName());
       return -1;
    }
-   if (tid != mtid)
-   {
+   if (tid != mtid) {
       // use getName() here so it can be safely inherited
       xsink->raiseException("LOCK-ERROR", "%s::writeUnlock() called by TID %d while the write lock is held by TID %d", getName(), mtid, tid);
       return -1;
@@ -230,51 +286,52 @@ int RWLock::releaseImpl(class ExceptionSink *xsink)
    return 0;
 }
 
-int RWLock::tryGrabImpl(int mtid, class VLock *nvl)
-{
+int RWLock::tryGrabImpl(int mtid, class VLock *nvl) {
    if (tid != Lock_Unlocked || num_readers)
       return -1;
 
    return 0;
 }
 
-void RWLock::mark_read_lock_intern(int mtid, class VLock *nvl)
-{
+void RWLock::set_initial_read_lock_intern(int mtid, VLock *nvl) {
+   // only set these values the first time the lock is acquired
+   tmap[mtid] = 1;
+   vmap[mtid] = nvl;
+   // now register that we have grabbed this lock with the thread list
+   nvl->push((AbstractSmartLock *)this);
+   // register the thread resource
+   set_thread_resource((AbstractThreadResource *)this);
+}
+
+void RWLock::mark_read_lock_intern(int mtid, VLock *nvl) {
    ++num_readers;
    
    // add read lock to thread and vlock maps
    // (do not set vl, set in vmap instead)
    tid_map_t::iterator i = tmap.find(mtid);
    if (i == tmap.end())
-   {
-      // only set these values the first time the lock is acquired
-      tmap[mtid] = 1;
-      vmap[mtid] = nvl;
-      // now register that we have grabbed this lock with the thread list
-      nvl->push((AbstractSmartLock *)this);
-      // register the thread resource
-      set_thread_resource((AbstractThreadResource *)this);
-   }
+      set_initial_read_lock_intern(mtid, nvl);
    else // increment lock count otherwise
       ++(i->second);
 }
 
-int RWLock::readLock(class ExceptionSink *xsink, int timeout_ms)
-{
+int RWLock::readLock(ExceptionSink *xsink, int timeout_ms) {
    int mtid = gettid();
-   class VLock *nvl = getVLock();
+   VLock *nvl = getVLock();
    SafeLocker sl(&asl_lock);
 
-   if (tid == mtid)
-   {
+   if (tid == mtid) {
       xsink->raiseException("LOCK-ERROR", "TID %d called %s::readLock() while holding the write lock", mtid, getName());
       return -1;
    }
 
-   if (tid >= 0)
-   {
-      do
-      {
+   return grab_read_lock_intern(mtid, nvl, timeout_ms, xsink);
+}
+
+// assumes the write lock is not grabbed by this thread
+int RWLock::grab_read_lock_intern(int mtid, VLock *nvl, int timeout_ms, ExceptionSink *xsink) {
+   if (tid >= 0) {
+      do {
 	 ++readRequests;
 	 int rc;
 	 rc = nvl->waitOn((AbstractSmartLock *)this, &read, vl, xsink, timeout_ms);
@@ -283,24 +340,18 @@ int RWLock::readLock(class ExceptionSink *xsink, int timeout_ms)
 	    return -1;
       } while (tid >= 0);
 
-      if (tid == Lock_Deleted)
-      {
+      if (tid == Lock_Deleted) {
 	 xsink->raiseException("LOCK-ERROR", "The %s object has been deleted in another thread", getName());
 	 return -1;
       }
       ++num_readers;
 
       // we know that this thread was not in the read lock because the write lock was grabbed before
-      tmap[mtid] = 1;
-      vmap[mtid] = nvl;
-      // register the thread resource
-      set_thread_resource((AbstractThreadResource *)this);
-      nvl->push((AbstractSmartLock *)this);
+      set_initial_read_lock_intern(mtid, nvl);
       return 0;
    }
 
-   if (tid == Lock_Deleted)
-   {
+   if (tid == Lock_Deleted) {
       xsink->raiseException("LOCK-ERROR", "The %s object has been deleted in another thread", getName());
       return -1;
    }
@@ -311,29 +362,7 @@ int RWLock::readLock(class ExceptionSink *xsink, int timeout_ms)
    return 0;
 }
 
-int RWLock::readUnlock(class ExceptionSink *xsink)
-{
-   int mtid = gettid();
-   AutoLocker al(&asl_lock);
-   if (tid == mtid)
-   {
-      xsink->raiseException("LOCK-ERROR", "TID %d called %s::readUnlock() while holding the write lock", mtid, getName());
-      return -1;
-   }
-
-   if (tid == Lock_Deleted)
-   {
-      xsink->raiseException("LOCK-ERROR", "The %s object has been deleted in another thread", getName());
-      return -1;
-   }
-
-   tid_map_t::iterator i = tmap.find(mtid);
-   if (i == tmap.end())
-   {
-      xsink->raiseException("LOCK-ERROR", "TID %d called %s::readUnlock() while not holding the read lock", mtid, getName());
-      return -1;
-   }
-   
+void RWLock::release_read_lock_intern(tid_map_t::iterator i) {
    // signal writers if any are waiting
    if (!--num_readers && waiting)
       asl_cond.signal();
@@ -341,11 +370,32 @@ int RWLock::readUnlock(class ExceptionSink *xsink)
    // if this thread has released it's last read lock, then remove the thread resource
    if (!cleanup_read_lock_intern(i))
       remove_thread_resource((AbstractThreadResource *)this);
+}
+
+int RWLock::readUnlock(ExceptionSink *xsink) {
+   int mtid = gettid();
+   AutoLocker al(&asl_lock);
+   if (tid == mtid) {
+      xsink->raiseException("LOCK-ERROR", "TID %d called %s::readUnlock() while holding the write lock", mtid, getName());
+      return -1;
+   }
+
+   if (tid == Lock_Deleted) {
+      xsink->raiseException("LOCK-ERROR", "The %s object has been deleted in another thread", getName());
+      return -1;
+   }
+
+   tid_map_t::iterator i = tmap.find(mtid);
+   if (i == tmap.end()) {
+      xsink->raiseException("LOCK-ERROR", "TID %d called %s::readUnlock() while not holding the read lock", mtid, getName());
+      return -1;
+   }
+
+   release_read_lock_intern(i);
    return 0;
 }
 
-int RWLock::tryReadLock()
-{
+int RWLock::tryReadLock() {
    AutoLocker al(&asl_lock);
    if (tid != Lock_Unlocked)
       return -1;
@@ -355,14 +405,12 @@ int RWLock::tryReadLock()
    return 0;
 }
 
-
 // while holding the write lock changes it to a read lock
 // and wakes up any blocked readers
 // not sure if this function should be allowed if the object
 // prefers writers
 /*
-void RWLock::writeToRead()
-{
+void RWLock::writeToRead() {
    AutoLocker al(&asl_lock);
    XXX
    if (readRequests)

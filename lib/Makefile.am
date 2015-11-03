@@ -1,7 +1,12 @@
 libdir = ${exec_prefix}/lib${LIBSUFFIX}
-pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
+pkglibdir = $(libdir)/$(mypkglibdir)
 
 SUBDIRS =
+
+BUILT_SOURCES = dummy
+
+dummy:
+	$(top_srcdir)/next_build.sh
 
 INCLUDES = -I$(top_srcdir)/include
 AM_YFLAGS = -d
@@ -21,10 +26,29 @@ libqore_la_SOURCES = \
 	parser.yy \
 	scanner.ll \
 	Operator.cc \
-	Tree.cc \
-	ClassRef.cc \
-	ScopedObjectCall.cc \
-	QoreNode.cc \
+	QoreTreeNode.cc \
+	BarewordNode.cc \
+	SelfVarrefNode.cc \
+	BackquoteNode.cc \
+	ContextrefNode.cc \
+	ComplexContextrefNode.cc \
+	ContextRowNode.cc \
+	VarRefNode.cc \
+	FunctionCallNode.cc \
+	ReferenceNode.cc \
+	ConstantNode.cc \
+	ClassRefNode.cc \
+	ScopedObjectCallNode.cc \
+	AbstractQoreNode.cc \
+	QoreStringNode.cc \
+	DateTimeNode.cc \
+	QoreHashNode.cc \
+	BinaryNode.cc \
+	QoreBigIntNode.cc \
+	QoreBoolNode.cc \
+	QoreFloatNode.cc \
+	QoreNullNode.cc \
+	QoreNothingNode.cc \
 	Function.cc \
 	BuiltinFunctionList.cc \
 	UserFunctionList.cc \
@@ -51,31 +75,33 @@ libqore_la_SOURCES = \
 	QoreSignal.cc \
 	QoreType.cc \
 	ModuleManager.cc \
-	Exception.cc \
+	QoreException.cc \
+	ExceptionSink.cc \
 	QoreClass.cc \
 	Context.cc \
-	Find.cc \
+	FindNode.cc \
 	charset.cc \
 	QoreProgram.cc \
-	Namespace.cc \
+	QoreNamespace.cc \
 	QoreNet.cc \
 	QoreURL.cc \
 	QoreFile.cc \
+	QoreDir.cc \
 	QoreSocket.cc \
 	DateTime.cc \
 	QoreLib.cc \
 	QoreString.cc \
-	Hash.cc \
-	Object.cc \
-	List.cc \
+	QoreObject.cc \
+	QoreListNode.cc \
 	qore-main.cc \
 	QoreGetOpt.cc \
-	FtpClient.cc \
+	QoreFtpClient.cc \
 	DBI.cc \
 	Datasource.cc \
 	DatasourcePool.cc \
 	ManagedDatasource.cc \
-	StringList.cc \
+	ReferenceArgumentHelper.cc \
+	ReferenceHelper.cc \
 	ConstantList.cc \
 	QoreClassList.cc \
 	ThreadResourceList.cc \
@@ -93,31 +119,20 @@ libqore_la_SOURCES = \
 	mySocket.cc \
 	QoreCondition.cc \
 	QoreQueue.cc \
-	QoreRegex.cc \
+	QoreRegexNode.cc \
 	QoreRegexBase.cc \
-	RegexSubst.cc \
-	RegexTrans.cc \
+	RegexSubstNode.cc \
+	RegexTransNode.cc \
 	Sequence.cc \
-	ReferenceObject.cc \
-	Environment.cc \
+	QoreReferenceCounter.cc \
+	SystemEnvironment.cc \
 	SmartMutex.cc \
 	QoreCounter.cc \
-	FunctionReference.cc \
+	CallReferenceNode.cc \
+	QoreClosureParseNode.cc \
+	QoreClosureNode.cc \
+	QoreImplicitArgumentNode.cc \
 	ParseOptionMap.cc \
-	QT_NOTHING.cc \
-	QT_bigint.cc \
-	QT_float.cc \
-	QT_string.cc \
-	QT_date.cc \
-	QT_boolean.cc \
-	QT_NULL.cc \
-	QT_binary.cc \
-	QT_list.cc \
-	QT_hash.cc \
-	QT_object.cc \
-	QT_backquote.cc \
-	QT_context.cc \
-	QT_varref.cc \
 	ql_thread.cc \
 	ql_io.cc \
 	ql_time.cc \
@@ -134,9 +149,11 @@ libqore_la_SOURCES = \
 	ql_crypto.cc \
 	ql_object.cc \
 	ql_file.cc \
+	ql_bzip.cc \
 	QC_Socket.cc \
 	QC_Program.cc \
 	QC_File.cc \
+	QC_Dir.cc \
 	QC_GetOpt.cc \
 	QC_FtpClient.cc \
 	QC_Datasource.cc \
@@ -157,62 +174,40 @@ libqore_la_SOURCES = \
 	QC_AutoGate.cc \
 	QC_AutoReadLock.cc \
 	QC_AutoWriteLock.cc \
+	QC_TermIOS.cc \
+	QC_XmlDoc.cc \
+	QC_XmlNode.cc \
+	QC_XmlReader.cc \
 	QoreHTTPClient.cc \
 	minitest.cc
-	//inline_printf.cc
 
 if COND_DEBUG
-libqore_la_SOURCES += ql_debug.cc CallStack.cc
+libqore_la_SOURCES += ql_debug.cc
 endif
-
-endif
-
-libqore_la_LDFLAGS = -version-info 3:4:0 -no-undefined ${LIBXML2_LDFLAGS} $(PCRE_LDFLAGS) $(OPENSSL_LDFLAGS) $(ZLIB_LDFLAGS) $(LDFLAGS) -lm
-libqore_la_LIBADD = ${PTHREAD_LIBS} ${OTHER_LIBS}
-AM_CPPFLAGS = -D_QORE_LIB_INTERN -DMODULE_DIR=\"$(pkglibdir)\" $(PCRE_CPPFLAGS) $(OPENSSL_CPPFLAGS) $(LIBXML2_CPPFLAGS)
-AM_CXXFLAGS = ${PTHREAD_CFLAGS}
-
-if COND_DEBUG
-BUILD_TYPE=dev
-endif
-
-if COND_PROFILE
-BUILD_TYPE=prof
-AM_CXXFLAGS += -g -pg
-libqore_la_LDFLAGS += -g -pg
-else
-if COND_DEBUG
-AM_CXXFLAGS += -g
-libqore_la_LDFLAGS += -g
-else
-BUILD_TYPE=prod
-##qore_LDFLAGS=-s
+if COND_STACK_TRACE
+libqore_la_SOURCES += CallStack.cc
 endif
 endif
 
-if COND_MONOLITHIC
-if COND_TIBRV
-libqore_la_LIBADD += ../modules/TIBCO/libtibrv.la
+if COND_SOLARIS_CC_X86_64
+libqore_la_SOURCES += sunpro-x86_64.s
 endif
-if COND_TIBAE
-libqore_la_LIBADD += ../modules/TIBCO/libtibae.la
+if COND_SOLARIS_CC_I386
+libqore_la_SOURCES += sunpro-i386.s
 endif
-if COND_ORACLE
-libqore_la_LIBADD += ../modules/oracle/liboracle.la
+if COND_SOLARIS_CC_SPARC32
+libqore_la_SOURCES += sunpro-sparc32.s
 endif
-if COND_MYSQL
-libqore_la_LIBADD += ../modules/mysql/libmysql.la
+#if COND_SOLARIS_CC_SPARC64
+#libqore_la_SOURCES += sunpro-sparc64.s
+#endif
+if COND_HPUX_ACC_PARISC32
+libqore_la_SOURCES += acc-parisc32.s
 endif
-if COND_NCURSES
-libqore_la_LIBADD += ../modules/ncurses/libncurses.la
+if COND_HPUX_ACC_64BIT_IA64
+libqore_la_SOURCES += acc-64bit-ia64.s
 endif
-if COND_TUXEDO
-libqore_la_LIBADD += ../modules/Tuxedo/libtuxedo.la
-endif
-if COND_SYBASE
-libqore_la_LIBADD += ../modules/sybase/libsybase.la
-endif
-if COND_PGSQL
-libqore_la_LIBADD += ../modules/pgsql/libpgsql.la
-endif
-endif
+
+libqore_la_LDFLAGS = -version-info 8:1:3 -no-undefined ${QORE_LIB_LDFLAGS}
+AM_CPPFLAGS = ${QORE_LIB_CPPFLAGS}
+AM_CXXFLAGS = ${QORE_LIB_CXXFLAGS}

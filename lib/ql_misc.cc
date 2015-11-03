@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2009 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,15 +21,14 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/ql_misc.h>
-#include <qore/QT_backquote.h>
-#include <qore/ssl_constants.h>
-#include <qore/QoreURL.h>
-#include <qore/QoreSignal.h>
+#include <qore/intern/ql_misc.h>
+#include <qore/intern/ssl_constants.h>
+#include <qore/intern/QoreSignal.h>
 
 #include <string.h>
 #include <zlib.h>
 #include <time.h>
+#include <errno.h>
 
 #ifdef HAVE_GZ_HEADER
 class qore_gz_header : public gz_header
@@ -37,7 +36,7 @@ class qore_gz_header : public gz_header
       DLLLOCAL qore_gz_header(bool n_text, char *n_name, char *n_comment)
       {
 	 text = n_text;
-	 time = ::time(NULL);
+	 time = ::time(0);
 	 xflags = 0;
 	 os = 3; // always set to UNIX
 	 extra = Z_NULL;
@@ -53,261 +52,309 @@ class qore_gz_header : public gz_header
 };
 #endif
 
-static class QoreNode *f_call_function(class QoreNode *params, ExceptionSink *xsink)
-{
-   QoreNode *args = NULL, *p0;
-
-   p0 = get_param(params, 0);
-   if (!p0 || (p0->type != NT_FUNCREF && p0->type != NT_STRING))
-   {
-      xsink->raiseException("CALL-FUNCTION-PARAMETER-ERROR",
-			    "invalid argument passed to call_function(), first argument must be either function name or call reference");
-      return NULL;
-   }
-
-   // if there are arguments to pass, create argument list by copying current list
-   if (num_params(params) > 1)
-      args = new QoreNode(params->val.list->copyListFrom(1));
-
-   class QoreNode *rv;
-   if (p0->type == NT_STRING)
-      rv = getProgram()->callFunction(p0->val.String->getBuffer(), args, xsink);
-   else
-      rv = p0->val.funcref->exec(args, xsink);
-      
-   if (args)
-      args->deref(xsink);
-
-   return rv;
-}
-
-static class QoreNode *f_call_function_args(class QoreNode *params, ExceptionSink *xsink)
-{
-   class QoreNode *p0, *p1, *args;
-
-   p0 = get_param(params, 0);
-   if (!p0 || (p0->type != NT_FUNCREF && p0->type != NT_STRING))
-   {
-      xsink->raiseException("CALL-FUNCTION-ARGS-PARAMETER-ERROR",
-			    "invalid argument passed to call_function_args(), first argument must be either function name or call reference");
-      return NULL;
+static AbstractQoreNode *f_call_function(const QoreListNode *params, ExceptionSink *xsink) {
+   const AbstractQoreNode *p0 = get_param(params, 0);
+   qore_type_t p0_type = p0 ? p0->getType() : 0;
+   if (p0_type != NT_FUNCREF && p0_type != NT_RUNTIME_CLOSURE && p0_type != NT_STRING) {
+      xsink->raiseException("CALL-FUNCTION-PARAMETER-ERROR", "invalid argument passed to call_function(), first argument must be either function name or call reference");
+      return 0;
    }
    
-   p1 = get_param(params, 1);
-   if (p1 && p1->type == NT_LIST)
-      args = p1;
-   else if (p1)
-   {
-      args = new QoreNode(new List());
-      // we borrow the reference for the new list
-      args->val.list->push(p1);
+   ReferenceHolder<QoreListNode> args(xsink);
+   // if there are arguments to pass, create argument list by copying current list
+   if (num_params(params) > 1)
+      args = params->copyListFrom(1);
+
+   if (p0_type == NT_STRING) {
+      const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p0);
+      return getProgram()->callFunction(str->getBuffer(), *args, xsink);
    }
-   else
-      args = NULL;
 
-   class QoreNode *rv;
-   if (p0->type == NT_STRING)
-      rv = getProgram()->callFunction(p0->val.String->getBuffer(), args, xsink);
-   else
-      rv = p0->val.funcref->exec(args, xsink);
+   // must be a call reference
+   return reinterpret_cast<const ResolvedCallReferenceNode *>(p0)->exec(*args, xsink);
+}
 
-   if (p1 != args)
-   {
+static AbstractQoreNode *f_call_function_args(const QoreListNode *params, ExceptionSink *xsink) {
+   const AbstractQoreNode *p0 = get_param(params, 0);
+   qore_type_t p0_type = p0 ? p0->getType() : 0;
+   if (p0_type != NT_FUNCREF && p0_type != NT_RUNTIME_CLOSURE && p0_type != NT_STRING) {
+      xsink->raiseException("CALL-FUNCTION-ARGS-PARAMETER-ERROR",
+			    "invalid argument passed to call_function_args(), first argument must be either function name or call reference");
+      return 0;
+   }
+   
+   const AbstractQoreNode *p1 = get_param(params, 1);
+
+   QoreListNode *args = const_cast<QoreListNode *>(dynamic_cast<const QoreListNode *>(p1));
+   if (!args && p1) {
+      args = new QoreListNode();
+      // we borrow the reference for the new list
+      args->push(const_cast<AbstractQoreNode *>(p1));
+   }
+
+   AbstractQoreNode *rv;
+   if (p0_type == NT_STRING)
+      rv = getProgram()->callFunction((reinterpret_cast<const QoreStringNode *>(p0))->getBuffer(), args, xsink);
+   else
+      rv = reinterpret_cast<const ResolvedCallReferenceNode *>(p0)->exec(args, xsink);
+
+   if (p1 != args) {
       // we remove the element from the list without dereferencing
-      args->val.list->shift();
+      args->shift();
       args->deref(xsink);
    }
 
    return rv;
 }
 
-static class QoreNode *f_existsFunction(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_call_builtin_function(const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *p0 = test_string_param(params, 0);
+   if (!p0 || !p0->strlen()) {
+      xsink->raiseException("CALL-BUILTIN-FUNCTION-ERROR", "expecting a string as the first argument to call_builtin_function()");
+      return 0;
+   }
+
+   const BuiltinFunction *f = BuiltinFunctionList::find(p0->getBuffer());
+   if (!f) {
+      xsink->raiseException("NO-FUNCTION", "cannot find any builtin function '%s()'", p0->getBuffer());
+      return 0;
+   }
+
+   // check access
+   if (f->getType() & getProgram()->getParseOptions()) {
+      xsink->raiseException("INVALID-FUNCTION-ACCESS", "parse options do not allow access to builtin function '%s()'", p0->getBuffer());
+      return 0;
+   }
+
+   ReferenceHolder<QoreListNode> args(xsink);
+   // if there are arguments to pass, create argument list by copying current list
+   if (num_params(params) > 1)
+      args = params->copyListFrom(1);
+
+   return f->eval(*args, xsink);
+}
+
+static AbstractQoreNode *f_call_builtin_function_args(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = get_param(params, 0);
+   const QoreStringNode *p0 = test_string_param(params, 0);
+   if (!p0 || !p0->strlen()) {
+      xsink->raiseException("CALL-BUILTIN-FUNCTION-ARGS-ERROR", "expecting a string as the first argument to call_builtin_function_args()");
+      return 0;
+   }
+
+   const BuiltinFunction *f = BuiltinFunctionList::find(p0->getBuffer());
+   if (!f) {
+      xsink->raiseException("NO-FUNCTION", "cannot find any builtin function '%s()'", p0->getBuffer());
+      return 0;
+   }
+
+   // check access
+   if (f->getType() & getProgram()->getParseOptions()) {
+      xsink->raiseException("INVALID-FUNCTION-ACCESS", "parse options do not allow access to builtin function '%s()'", p0->getBuffer());
+      return 0;
+   }
+
+   const AbstractQoreNode *p1 = get_param(params, 1);
+
+   QoreListNode *args = (p1 && p1->getType() == NT_LIST) ? const_cast<QoreListNode *>(reinterpret_cast<const QoreListNode *>(p1)) : 0;
+   if (!args && p1) {
+      args = new QoreListNode();
+      // we borrow the reference (if any, could be 0) for the new list
+      args->push(const_cast<AbstractQoreNode *>(p1));
+   }
+
+   AbstractQoreNode *rv = f->eval(args, xsink);
+
+   if (p1 != args) {
+      // we remove the element from the list without dereferencing
+      args->shift();
+      args->deref(xsink);
+   }
+
+   return rv;
+}
+
+static AbstractQoreNode *f_exists(const QoreListNode *params, ExceptionSink *xsink)
+{
+   // to emulate the exists operator, we must return True if more than one argument is passed
+   // as this will appear to be a list to the exists operator, which is different from NOTHING
+   int np = num_params(params);
+   if (np <= 1)
+      return get_bool_node(!is_nothing(get_param(params, 0)));
+   return &True;
+}
+
+static AbstractQoreNode *f_existsFunction(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p0 = get_param(params, 0);
+
+   qore_type_t p0_type = p0 ? p0->getType() : 0;
    // always return true if the argument is a call reference
-   if (p0 && p0->type == NT_FUNCREF)
+   if (p0_type == NT_FUNCREF || p0_type == NT_RUNTIME_CLOSURE)
       return boolean_true();
-   if (!p0 || p0->type != NT_STRING)
+   if (p0_type != NT_STRING)
       return 0;
 
-   if (getProgram()->existsFunction(p0->val.String->getBuffer()))
+   const char *str = reinterpret_cast<const QoreStringNode *>(p0)->getBuffer();
+   if (getProgram()->existsFunction(str))
       return boolean_true();
-   if (builtinFunctions.find(p0->val.String->getBuffer()))
+   if (builtinFunctions.find(str))
       return boolean_true();
    return boolean_false();
 }
 
 // FIXME: should probably return constants
-static class QoreNode *f_functionType(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_functionType(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
-   if (!(p0 = test_param(params, NT_STRING, 0)))
-      return NULL;
+   const QoreStringNode *p0;
+   if (!(p0 = test_string_param(params, 0)))
+      return 0;
 
-   if (getProgram()->existsFunction(p0->val.String->getBuffer()))
-      return new QoreNode("user");
-   if (builtinFunctions.find(p0->val.String->getBuffer()))
-      return new QoreNode("builtin");
-   return NULL;
+   if (getProgram()->existsFunction(p0->getBuffer()))
+      return new QoreStringNode("user");
+   if (builtinFunctions.find(p0->getBuffer()))
+      return new QoreStringNode("builtin");
+   return 0;
 }
 
-static class QoreNode *f_html_encode(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_html_encode(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
+   const QoreStringNode *p0;
+   if (!(p0 = test_string_param(params, 0)))
+      return 0;
 
-   if (!(p0 = test_param(params, NT_STRING, 0)))
-      return NULL;
-
-   class QoreString *ns = new QoreString(p0->val.String->getEncoding());
-   ns->concatAndHTMLEncode(p0->val.String->getBuffer());
-   return new QoreNode(ns);
+   QoreStringNode *ns = new QoreStringNode(p0->getEncoding());
+   ns->concatAndHTMLEncode(p0->getBuffer());
+   return ns;
 }
 
-static class QoreNode *f_html_decode(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_html_decode(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
+   const QoreStringNode *p0;
+   if (!(p0 = test_string_param(params, 0)))
+      return 0;
 
-   if (!(p0 = test_param(params, NT_STRING, 0)))
-      return NULL;
+   QoreStringNode *ns = new QoreStringNode(p0->getEncoding());
+   ns->concatAndHTMLDecode(p0);
 
-   QoreString *ns = new QoreString(p0->val.String->getEncoding());
-   ns->concatAndHTMLDecode(p0->val.String);
-
-   return new QoreNode(ns);
+   return ns;
 }
 
-static class QoreNode *f_get_default_encoding(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_get_default_encoding(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(QCS_DEFAULT->getCode());
+   return new QoreStringNode(QCS_DEFAULT->getCode());
 }
 
-class QoreNode *f_parse(class QoreNode *params, ExceptionSink *xsink)
+AbstractQoreNode *f_parse(const QoreListNode *params, ExceptionSink *xsink)
 {
-   tracein("f_parse()");
+   const QoreStringNode *p0, *p1;
 
-   QoreNode *p0, *p1;
+   if (!(p0 = test_string_param(params, 0)) ||
+       !(p1 = test_string_param(params, 1)))
+      return 0;
 
-   if (!(p0 = test_param(params, NT_STRING, 0)) ||
-       !(p1 = test_param(params, NT_STRING, 1)))
-   {
-      traceout("f_parse()");
-      return NULL;
-   }
    QoreProgram *pgm = getProgram();
-
-   pgm->parse(p0->val.String, p1->val.String, xsink);
-
-   traceout("f_parse()");
-   return NULL;
+   pgm->parse(p0, p1, xsink);
+   return 0;
 }
 
-static class QoreNode *f_getClassName(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_getClassName(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_OBJECT, 0);
+   QoreObject *p0 = test_object_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
-   return new QoreNode(p0->val.object->getClass()->getName());
+   return new QoreStringNode(p0->getClass()->getName());
 }
 
-static class QoreNode *f_parseURL(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_parseURL(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   const QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
-   QoreURL url(p0->val.String);
+   QoreURL url(p0);
    if (url.isValid())
-      return new QoreNode(url.getHash());
+      return url.getHash();
 
-   return NULL;
+   return 0;
 }
 
-static class QoreNode *f_backquote(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_backquote(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   const QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
-   return backquoteEval(p0->val.String->getBuffer(), xsink);
+   return backquoteEval(p0->getBuffer(), xsink);
 }
 
-static class QoreNode *f_makeBase64String(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_makeBase64String(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
-   if (p0->type == NT_BINARY)
-      return new QoreNode(new QoreString(p0->val.bin));
-
-   if (p0->type != NT_STRING)
-      return NULL;
-
-   class QoreString *str = new QoreString();
-   str->concatBase64(p0->val.String);
-   return new QoreNode(str);
-}
-
-static class QoreNode *f_parseBase64String(class QoreNode *params, ExceptionSink *xsink)
-{
-   QoreNode *p0 = test_param(params, NT_STRING, 0);
-   if (!p0)
-      return NULL;
-
-   class BinaryObject *b = p0->val.String->parseBase64(xsink);
-   if (xsink->isEvent())
-      return NULL;
-   return new QoreNode(b);
-}
-
-static class QoreNode *f_parseBase64StringToString(class QoreNode *params, ExceptionSink *xsink)
-{
-   QoreNode *p0 = test_param(params, NT_STRING, 0);
-   if (!p0)
-      return NULL;
-
-   class QoreString *str = p0->val.String->parseBase64ToString(xsink);
-   if (xsink->isEvent())
-      return NULL;
-   return new QoreNode(str);
-}
-
-static class QoreNode *f_getModuleList(class QoreNode *params, ExceptionSink *xsink)
-{
-   List *l = MM.getModuleList();
-   if (l)
-      return new QoreNode(l);
-   return NULL;
-}
-
-static class QoreNode *f_getFeatureList(class QoreNode *params, ExceptionSink *xsink)
-{
-   return new QoreNode(getProgram()->getFeatureList());
-}
-
-static class QoreNode *f_hash_values(class QoreNode *params, ExceptionSink *xsink)
-{
-   QoreNode *p0 = test_param(params, NT_HASH, 0);
-   if (!p0)
-      return NULL;
-
-   class List *l = new List();
-   class HashIterator hi(p0->val.hash);
-   while (hi.next() && !xsink->isEvent())
-      l->push(hi.eval(xsink));
-
-   if (xsink->isEvent())
    {
-      l->derefAndDelete(xsink);
-      return NULL;
+      const BinaryNode *b = dynamic_cast<const BinaryNode *>(p0);
+      if (b)
+	 return new QoreStringNode(b);
    }
-   return new QoreNode(l);
+
+   const QoreStringNode *pstr = dynamic_cast<const QoreStringNode *>(p0);
+   if (!pstr)
+      return 0;
+
+   QoreStringNode *str = new QoreStringNode();
+   str->concatBase64(pstr);
+   return str;
 }
 
-void do_zlib_exception(int rc, char *func, class ExceptionSink *xsink)
+static AbstractQoreNode *f_parseBase64String(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreString *desc = new QoreString();
+   const QoreStringNode *p0 = test_string_param(params, 0);
+   if (!p0)
+      return 0;
+
+   return p0->parseBase64(xsink);
+}
+
+static AbstractQoreNode *f_parseBase64StringToString(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const QoreStringNode *p0 = test_string_param(params, 0);
+   if (!p0)
+      return 0;
+
+   return p0->parseBase64ToString(xsink);
+}
+
+static AbstractQoreNode *f_getModuleList(const QoreListNode *params, ExceptionSink *xsink)
+{
+   return MM.getModuleList();
+}
+
+static AbstractQoreNode *f_getFeatureList(const QoreListNode *params, ExceptionSink *xsink)
+{
+   return getProgram()->getFeatureList();
+}
+
+static AbstractQoreNode *f_hash_values(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const QoreHashNode *p0 = test_hash_param(params, 0);
+   if (!p0)
+      return 0;
+
+   QoreListNode *l = new QoreListNode();
+   ConstHashIterator hi(p0);
+   while (hi.next())
+      l->push(hi.getReferencedValue());
+
+   return l;
+}
+
+void do_zlib_exception(int rc, const char *func, ExceptionSink *xsink)
+{
+   QoreStringNode *desc = new QoreStringNode();
    desc->sprintf("%s(): ", func);
    switch (rc)
    {
@@ -342,21 +389,21 @@ void do_zlib_exception(int rc, char *func, class ExceptionSink *xsink)
    xsink->raiseException("ZLIB-ERROR", desc);
 }
 
-void do_deflate_end(z_stream *c_stream, class ExceptionSink *xsink)
+void do_deflate_end(z_stream *c_stream, ExceptionSink *xsink)
 {
    int rc = deflateEnd(c_stream);
    if (rc != Z_OK)
       do_zlib_exception(rc, "deflateEnd", xsink);
 }
 
-void do_inflate_end(z_stream *d_stream, class ExceptionSink *xsink)
+void do_inflate_end(z_stream *d_stream, ExceptionSink *xsink)
 {
    int rc = inflateEnd(d_stream);
    if (rc != Z_OK)
       do_zlib_exception(rc, "inflateEnd", xsink);
 }
 
-class BinaryObject *qore_deflate(const void *ptr, unsigned long len, int level, ExceptionSink *xsink)
+BinaryNode *qore_deflate(const void *ptr, unsigned long len, int level, ExceptionSink *xsink)
 {
    z_stream c_stream; // compression stream
    c_stream.zalloc = Z_NULL;
@@ -367,7 +414,7 @@ class BinaryObject *qore_deflate(const void *ptr, unsigned long len, int level, 
    if (rc != Z_OK)
    {
       do_zlib_exception(rc, "deflateInit", xsink);
-      return NULL;
+      return 0;
    }
 
    ON_BLOCK_EXIT(do_deflate_end, &c_stream, xsink);
@@ -388,7 +435,7 @@ class BinaryObject *qore_deflate(const void *ptr, unsigned long len, int level, 
       {
          free(buf);
          do_zlib_exception(rc, "deflate", xsink);
-	 return NULL;
+	 return 0;
       }
       
       if (!c_stream.avail_out)
@@ -412,7 +459,7 @@ class BinaryObject *qore_deflate(const void *ptr, unsigned long len, int level, 
       {
          free(buf);
          do_zlib_exception(rc, "deflate", xsink);
-	 return NULL;
+	 return 0;
       }
       // resize buffer
       int new_space = 2; //((len / 3) + 100);
@@ -425,21 +472,19 @@ class BinaryObject *qore_deflate(const void *ptr, unsigned long len, int level, 
    }
 
    //printd(5, "deflate() buf=%08p, bsize=%d, avail_out=%d, size=%d, next_out=%08p\n", buf, bsize, c_stream.avail_out, bsize - c_stream.avail_out, c_stream.next_out);
-   return new BinaryObject(buf, bsize - c_stream.avail_out);
+   return new BinaryNode(buf, bsize - c_stream.avail_out);
 }
 
-class QoreString *qore_inflate_to_string(class BinaryObject *b, class QoreEncoding *enc, class ExceptionSink *xsink)
-{
+QoreStringNode *qore_inflate_to_string(const BinaryNode *b, const QoreEncoding *enc, ExceptionSink *xsink) {
    z_stream d_stream; // decompression stream
    d_stream.zalloc = Z_NULL;
    d_stream.zfree = Z_NULL;
    d_stream.opaque = Z_NULL;
 
    int rc = inflateInit(&d_stream);
-   if (rc != Z_OK)
-   {
+   if (rc != Z_OK) {
       do_zlib_exception(rc, "inflateInit", xsink);
-      return NULL;
+      return 0;
    }
 
    ON_BLOCK_EXIT(do_inflate_end, &d_stream, xsink);
@@ -455,40 +500,32 @@ class QoreString *qore_inflate_to_string(class BinaryObject *b, class QoreEncodi
    d_stream.avail_in = b->size();
    d_stream.avail_out = bsize;
 
-   while (true)
-   {
+   while (true) {
       rc = inflate(&d_stream, Z_NO_FLUSH);
       if (rc == Z_STREAM_END)
 	 break;
-      if (rc == Z_BUF_ERROR)
-      {
+      if (rc == Z_BUF_ERROR) {
 	 int new_space = ((len * 3) + 100);
 	 bsize += new_space;
 	 d_stream.avail_out += new_space;
 	 buf = realloc(buf, bsize);
 	 d_stream.next_out = ((Bytef *)buf) + d_stream.total_out;
       }
-      else if (rc != Z_OK)
-      {
+      else if (rc != Z_OK) {
 	 free(buf);
 	 do_zlib_exception(rc, "inflate", xsink);
-	 return NULL;
+	 return 0;
       }
    }
 
-   class QoreString *str = new QoreString(enc);
    // how much data was decompressed
    len = bsize - d_stream.avail_out;
-   // add closing \0 if necessary
-   if (((char *)buf)[len - 1])
-      str->takeAndTerminate((char *)buf, len);
-   else // otherwise take string and set length
-      str->take((char *)buf, len - 1);
 
-   return str;
+   // create and return the string
+   return new QoreStringNode((char *)buf, len, len, enc);
 }
 
-class BinaryObject *qore_inflate_to_binary(class BinaryObject *b, class ExceptionSink *xsink)
+BinaryNode *qore_inflate_to_binary(const BinaryNode *b, ExceptionSink *xsink)
 {
    z_stream d_stream; // decompression stream
    d_stream.zalloc = Z_NULL;
@@ -499,7 +536,7 @@ class BinaryObject *qore_inflate_to_binary(class BinaryObject *b, class Exceptio
    if (rc != Z_OK)
    {
       do_zlib_exception(rc, "inflateInit", xsink);
-      return NULL;
+      return 0;
    }
 
    ON_BLOCK_EXIT(do_inflate_end, &d_stream, xsink);
@@ -532,14 +569,14 @@ class BinaryObject *qore_inflate_to_binary(class BinaryObject *b, class Exceptio
       {
 	 free(buf);
 	 do_zlib_exception(rc, "inflate", xsink);
-	 return NULL;
+	 return 0;
       }
    }
    
-   return new BinaryObject(buf, bsize - d_stream.avail_out);
+   return new BinaryNode(buf, bsize - d_stream.avail_out);
 }
 
-class BinaryObject *qore_gzip(const void *ptr, unsigned long len, int level, ExceptionSink *xsink)
+BinaryNode *qore_gzip(const void *ptr, unsigned long len, int level, ExceptionSink *xsink)
 {
    z_stream c_stream; // compression stream
    c_stream.zalloc = Z_NULL;
@@ -552,7 +589,7 @@ class BinaryObject *qore_gzip(const void *ptr, unsigned long len, int level, Exc
    if (rc != Z_OK)
    {
       do_zlib_exception(rc, "deflateInit2", xsink);
-      return NULL;
+      return 0;
    }
 
    ON_BLOCK_EXIT(do_deflate_end, &c_stream, xsink);
@@ -571,7 +608,7 @@ class BinaryObject *qore_gzip(const void *ptr, unsigned long len, int level, Exc
       {
 	 free(buf);
 	 do_zlib_exception(rc, "deflate", xsink);
-	 return NULL;
+	 return 0;
       }
 
       if (!c_stream.avail_out)
@@ -596,7 +633,7 @@ class BinaryObject *qore_gzip(const void *ptr, unsigned long len, int level, Exc
       {
 	 free(buf);
 	 do_zlib_exception(rc, "deflate", xsink);
-	 return NULL;
+	 return 0;
       }
       // resize buffer
       int new_space = 2; //((len / 3) + 100);
@@ -609,11 +646,10 @@ class BinaryObject *qore_gzip(const void *ptr, unsigned long len, int level, Exc
    }
 
    //printd(5, "deflate() buf=%08p, bsize=%d, avail_out=%d, size=%d, next_out=%08p\n", buf, bsize, c_stream.avail_out, bsize - c_stream.avail_out, c_stream.next_out);
-   return new BinaryObject(buf, bsize - c_stream.avail_out);
+   return new BinaryNode(buf, bsize - c_stream.avail_out);
 }
 
-class QoreString *qore_gunzip_to_string(class BinaryObject *bin, class QoreEncoding *enc, ExceptionSink *xsink)
-{
+QoreStringNode *qore_gunzip_to_string(const BinaryNode *bin, const QoreEncoding *enc, ExceptionSink *xsink) {
    z_stream d_stream; // decompression stream
    d_stream.zalloc = Z_NULL;
    d_stream.zfree = Z_NULL;
@@ -623,10 +659,9 @@ class QoreString *qore_gunzip_to_string(class BinaryObject *bin, class QoreEncod
    d_stream.avail_in = bin->size();
 
    int rc = inflateInit2(&d_stream, 47);
-   if (rc != Z_OK)
-   {
+   if (rc != Z_OK) {
       do_zlib_exception(rc, "inflateInit2", xsink);
-      return NULL;
+      return 0;
    }
 
    ON_BLOCK_EXIT(do_inflate_end, &d_stream, xsink);
@@ -640,40 +675,32 @@ class QoreString *qore_gunzip_to_string(class BinaryObject *bin, class QoreEncod
    d_stream.next_out = (Bytef *)buf;
    d_stream.avail_out = bsize;
 
-   while (true)
-   {
+   while (true) {
       rc = inflate(&d_stream, Z_NO_FLUSH);
       if (rc == Z_STREAM_END)
 	 break;
-      if (rc == Z_BUF_ERROR)
-      {
+      if (rc == Z_BUF_ERROR) {
 	 int new_space = ((len * 3) + 100);
 	 bsize += new_space;
 	 d_stream.avail_out += new_space;
 	 buf = realloc(buf, bsize);
 	 d_stream.next_out = ((Bytef *)buf) + d_stream.total_out;
       }
-      else if (rc != Z_OK)
-      {
+      else if (rc != Z_OK) {
 	 free(buf);
 	 do_zlib_exception(rc, "inflate", xsink);
-	 return NULL;
+	 return 0;
       }
    }
 
-   class QoreString *str = new QoreString(enc);
    // how much data was decompressed
    len = bsize - d_stream.avail_out;
-   // add closing \0 if necessary
-   if (((char *)buf)[len - 1])
-      str->takeAndTerminate((char *)buf, len);
-   else // otherwise take string and set length
-      str->take((char *)buf, len - 1);
 
-   return str;
+   // create and return the string
+   return new QoreStringNode((char *)buf, len, len, enc);
 }
 
-class BinaryObject *qore_gunzip_to_binary(class BinaryObject *bin, ExceptionSink *xsink)
+BinaryNode *qore_gunzip_to_binary(const BinaryNode *bin, ExceptionSink *xsink)
 {
    z_stream d_stream; // decompression stream
    d_stream.zalloc = Z_NULL;
@@ -687,7 +714,7 @@ class BinaryObject *qore_gunzip_to_binary(class BinaryObject *bin, ExceptionSink
    if (rc != Z_OK)
    {
       do_zlib_exception(rc, "inflateInit2", xsink);
-      return NULL;
+      return 0;
    }
 
    ON_BLOCK_EXIT(do_inflate_end, &d_stream, xsink);
@@ -718,269 +745,303 @@ class BinaryObject *qore_gunzip_to_binary(class BinaryObject *bin, ExceptionSink
       {
 	 free(buf);
 	 do_zlib_exception(rc, "inflate", xsink);
-	 return NULL;
+	 return 0;
       }
    }
    
-   return new BinaryObject(buf, bsize - d_stream.avail_out);
+   return new BinaryNode(buf, bsize - d_stream.avail_out);
 }
 
-static class QoreNode *f_compress(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_compress(const QoreListNode *params, ExceptionSink *xsink)
 {
    // need a string or binary argument
-   QoreNode *p0 = get_param(params, 0);
-   if (!p0)
-      return NULL;
+   const AbstractQoreNode *p0 = get_param(params, 0);
+   if (is_nothing(p0))
+      return 0;
 
-   QoreNode *p1 = get_param(params, 1);
+   const AbstractQoreNode *p1 = get_param(params, 1);
    int level = p1 ? p1->getAsInt() : Z_DEFAULT_COMPRESSION;
 
    if (!level || level > 9)
    {
       xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 0 - 9 (value passed: %d)", level);
-      return NULL;
+      return 0;
    }
 
    const void *ptr;
    unsigned long len;
-   if (p0->type == NT_STRING)
+   if (p0->getType() == NT_STRING)
    {
-      ptr = p0->val.String->getBuffer();
-      len = p0->val.String->strlen();
+      const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p0);
+      ptr = str->getBuffer();
+      len = str->strlen();
    }
-   else if (p0->type == NT_BINARY)
+   else if (p0->getType() == NT_BINARY)
    {
-      ptr = p0->val.bin->getPtr();
-      len = p0->val.bin->size();
+      const BinaryNode *b = reinterpret_cast<const BinaryNode *>(p0);
+      ptr = b->getPtr();
+      len = b->size();
    }
    else
-      return NULL;
+      return 0;
 
    if (!ptr || !len)
-      return NULL;
+      return 0;
 
-   class BinaryObject *b = qore_deflate(ptr, len, level, xsink);
-   return b ? new QoreNode(b) : NULL;
+   return qore_deflate(ptr, len, level, xsink);
 }
 
 // syntax: uncompress_to_string(binary object, [encoding of new string])
-static class QoreNode *f_uncompress_to_string(class QoreNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_uncompress_to_string(const QoreListNode *params, ExceptionSink *xsink) {
    // need binary argument
-   QoreNode *p0 = test_param(params, NT_BINARY, 0);
+   const BinaryNode *p0 = test_binary_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
-   QoreEncoding *ccsid;
-   QoreNode *p1 = test_param(params, NT_STRING, 1);
-   ccsid = p1 ? QEM.findCreate(p1->val.String) : QCS_DEFAULT;
+   const QoreEncoding *ccsid;
+   const QoreStringNode *p1 = test_string_param(params, 1);
+   ccsid = p1 ? QEM.findCreate(p1) : QCS_DEFAULT;
 
-   class QoreString *str = qore_inflate_to_string(p0->val.bin, ccsid, xsink);
-   return str ? new QoreNode(str) : NULL;
+   return qore_inflate_to_string(p0, ccsid, xsink);
 }
 
 // syntax: uncompress_to_binary(binary object)
-static class QoreNode *f_uncompress_to_binary(class QoreNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_uncompress_to_binary(const QoreListNode *params, ExceptionSink *xsink) {
    // need binary argument
-   QoreNode *p0 = test_param(params, NT_BINARY, 0);
+   const BinaryNode *p0 = test_binary_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
-   class BinaryObject *b = qore_inflate_to_binary(p0->val.bin, xsink);
-   return b ? new QoreNode(b) : NULL;
+   return qore_inflate_to_binary(p0, xsink);
 }
 
-static class QoreNode *f_gzip(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_gzip(const QoreListNode *params, ExceptionSink *xsink)
 {
    // need a string or binary argument
-   QoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
-   QoreNode *p1 = get_param(params, 1);
+   const AbstractQoreNode *p1 = get_param(params, 1);
    int level = p1 ? p1->getAsInt() : Z_DEFAULT_COMPRESSION;
 
    if (!level || level > 9)
    {
       xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 1 - 9 (value passed: %d)", level);
-      return NULL;
+      return 0;
    }
 
    const void *ptr;
    unsigned long len;
-   if (p0->type == NT_STRING)
+   if (p0->getType() == NT_STRING)
    {
-      ptr = p0->val.String->getBuffer();
-      len = p0->val.String->strlen();
+      const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p0);
+      ptr = str->getBuffer();
+      len = str->strlen();
    }
-   else if (p0->type == NT_BINARY)
+   else if (p0->getType() == NT_BINARY)
    {
-      ptr = p0->val.bin->getPtr();
-      len = p0->val.bin->size();
+      const BinaryNode *b = reinterpret_cast<const BinaryNode *>(p0);
+      ptr = b->getPtr();
+      len = b->size();
    }
    else
-      return NULL;
+      return 0;
 
    if (!ptr || !len)
-      return NULL;
+      return 0;
 
-   class BinaryObject *b = qore_gzip(ptr, len, level, xsink);
-   return b ? new QoreNode(b) : NULL;
+   return qore_gzip(ptr, len, level, xsink);
 }
 
 // syntax: gunzip_to_string(binary object, [encoding of new string])
-static class QoreNode *f_gunzip_to_string(class QoreNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_gunzip_to_string(const QoreListNode *params, ExceptionSink *xsink) {
    // need binary argument
-   QoreNode *p0 = test_param(params, NT_BINARY, 0);
+   const BinaryNode *p0 = test_binary_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
-   QoreEncoding *ccsid;
-   QoreNode *p1 = test_param(params, NT_STRING, 1);
-   ccsid = p1 ? QEM.findCreate(p1->val.String) : QCS_DEFAULT;
+   const QoreEncoding *ccsid;
+   const QoreStringNode *p1 = test_string_param(params, 1);
+   ccsid = p1 ? QEM.findCreate(p1) : QCS_DEFAULT;
 
-   class QoreString *str = qore_gunzip_to_string(p0->val.bin, ccsid, xsink);
-   return str ? new QoreNode(str) : NULL;
+   return qore_gunzip_to_string(p0, ccsid, xsink);
 }
 
 // syntax: gunzip_to_binary(binary object)
-static class QoreNode *f_gunzip_to_binary(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_gunzip_to_binary(const QoreListNode *params, ExceptionSink *xsink)
 {
    // need binary argument
-   QoreNode *p0 = test_param(params, NT_BINARY, 0);
+   const BinaryNode *p0 = test_binary_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
-   class BinaryObject *b = qore_gunzip_to_binary(p0->val.bin, xsink);
-   return b ? new QoreNode(b) : NULL;
+   return qore_gunzip_to_binary(p0, xsink);
 }
 
-static class QoreNode *f_getByte(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_getByte(const QoreListNode *params, ExceptionSink *xsink)
 {
    // need binary argument
-   QoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
    unsigned char *ptr;
    int size;
-   if (p0->type == NT_BINARY)
+   if (p0->getType() == NT_BINARY)
    {
-      ptr = (unsigned char *)p0->val.bin->getPtr();
-      size = p0->val.bin->size();
+      const BinaryNode *b = reinterpret_cast<const BinaryNode *>(p0);
+      ptr = (unsigned char *)b->getPtr();
+      size = b->size();
    }
-   else if (p0->type == NT_STRING)
+   else if (p0->getType() == NT_STRING)
    {
-      ptr = (unsigned char *)p0->val.String->getBuffer();
-      size = p0->val.String->strlen();
+      const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p0);
+      ptr = (unsigned char *)str->getBuffer();
+      size = str->strlen();
    }
    else
-      return NULL;
-   QoreNode *p1 = get_param(params, 1);
+      return 0;
+
+   const AbstractQoreNode *p1 = get_param(params, 1);
    int offset = p1 ? p1->getAsInt() : 0;
    if (!ptr || offset >= size || offset < 0)
-      return NULL;
+      return 0;
 
-   return new QoreNode((int64)ptr[offset]);  
+   return new QoreBigIntNode(ptr[offset]);  
+}
+
+static AbstractQoreNode *f_getWord32(const QoreListNode *params, ExceptionSink *xsink)
+{
+   // need binary argument
+   const AbstractQoreNode *p0 = get_param(params, 0);
+   if (!p0)
+      return 0;
+   unsigned char *ptr;
+   int size;
+   if (p0->getType() == NT_BINARY)
+   {
+      const BinaryNode *b = reinterpret_cast<const BinaryNode *>(p0);
+      ptr = (unsigned char *)b->getPtr();
+      size = b->size();
+   }
+   else if (p0->getType() == NT_STRING)
+   {
+      const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p0);
+      ptr = (unsigned char *)str->getBuffer();
+      size = str->strlen();
+   }
+   else
+      return 0;
+
+   const AbstractQoreNode *p1 = get_param(params, 1);
+   int offset = p1 ? p1->getAsInt() : 0;
+   offset *= 4;
+
+   if (!ptr || offset >= size || offset < 0)
+      return 0;
+
+   int64 val = *((unsigned int *)&ptr[offset]);
+   //<< 24 + ptr[offset + 1] << 16 + ptr[offset + 2] << 8 + ptr[offset + 3];
+
+   return new QoreBigIntNode(val);
 }
 
 // same as splice operator, but operates on a copy of the list
-static class QoreNode *f_splice(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_splice(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
    if (!p0)
-      return NULL;
-   QoreNode *p1, *p2, *p3, *rv;
+      return 0;
+
+   const AbstractQoreNode *p1, *p2;
    p1 = get_param(params, 1);
    p2 = get_param(params, 2);
-   p3 = get_param(params, 3);
+
+   const QoreStringNode *p3 = test_string_param(params, 3);
    int start = p1->getAsInt();
-   if (p0->type == NT_LIST)
-   {
-      List *l = p0->val.list->copyList();
 
-      if (is_nothing(p3))
-	 if (is_nothing(p2))
-	    l->splice(start, xsink);
-	 else
-	    l->splice(start, p2->getAsInt(), xsink);
-      else
-	 l->splice(start, p2->getAsInt(), p3, xsink);
-      rv = new QoreNode(l);
-   }
-   else if (p0->type == NT_STRING)
-   {
-      QoreString *str = p0->val.String->copy();
+   qore_type_t p0_type = p0->getType();
 
-      if (!p3 || p3->type != NT_STRING)
+   if (p0_type == NT_STRING) {
+      const QoreStringNode *pstr = reinterpret_cast<const QoreStringNode *>(p0);
+      QoreStringNodeHolder str(pstr->copy());
+      
+      if (!p3)
 	 if (is_nothing(p2))
 	    str->splice(start, xsink);
 	 else
 	    str->splice(start, p2->getAsInt(), xsink);
       else
 	 str->splice(start, p2->getAsInt(), p3, xsink);
-      rv = new QoreNode(str);
+      
+      return *xsink ? 0 : str.release();
    }
-   else
-      return NULL;
 
-   if (xsink->isEvent())
-   {
-      rv->deref(xsink);
-      return NULL;
-   }
-   return rv;
+   if (p0_type != NT_LIST)
+      return 0;
+
+   const QoreListNode *lst = reinterpret_cast<const QoreListNode *>(p0);
+   ReferenceHolder<QoreListNode> l(lst->copy(), xsink);
+
+   if (!p3)
+      if (is_nothing(p2))
+	 l->splice(start, xsink);
+      else
+	 l->splice(start, p2->getAsInt(), xsink);
+   else
+      l->splice(start, p2->getAsInt(), p3, xsink);
+   
+   if (*xsink)
+      return 0;
+
+   return l.release();
 }
 
-static class QoreNode *f_makeHexString(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_makeHexString(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = get_param(params, 0);
-   if (!p0 || (p0->type != NT_BINARY && p0->type != NT_STRING))
-      return NULL;
+   const AbstractQoreNode *p0 = get_param(params, 0);
+   if (!p0 || (p0->getType() != NT_BINARY && p0->getType() != NT_STRING))
+      return 0;
 
-   class QoreString *str = new QoreString();
-   if (p0->type == NT_STRING)
-     str->concatHex(p0->val.String);
+   QoreStringNode *str = new QoreStringNode();
+   if (p0->getType() == NT_STRING)
+      str->concatHex(reinterpret_cast<const QoreStringNode *>(p0));
    else
-     str->concatHex(p0->val.bin);
-   return new QoreNode(str);
+      str->concatHex(reinterpret_cast<const BinaryNode *>(p0));
+   return str;
 }
 
-static class QoreNode *f_parseHexString(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_parseHexString(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   const QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
-   class BinaryObject *b = p0->val.String->parseHex(xsink);
-   if (!b)
-      return NULL;
-   return new QoreNode(b);
+   return p0->parseHex(xsink);
 }
 
 // takes a hex string like "6d4f84e0" (with or without leading x or 0x) and returns the corresponding base-10 integer
-static class QoreNode *f_hextoint(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_hextoint(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   const QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
-   if (!p0->val.String->strlen())
+   if (!p0->strlen())
       return zero();
 
    int64 rc = 0;
    int64 pow = 0;
-   const char *buf = p0->val.String->getBuffer();
+   const char *buf = p0->getBuffer();
    if (*buf == '0' && *(buf + 1) == 'x')
       buf += 2;
    else if (*buf == 'x')
       buf++;
-   for (const char *p = p0->val.String->strlen() + buf - 1; p >= buf; p--)
+   for (const char *p = p0->strlen() + buf - 1; p >= buf; p--)
    {
       int n = get_nibble(*p, xsink);
       if (xsink->isException())
-	 return NULL;
+	 return 0;
       if (!pow)
       {
 	 rc = n;
@@ -992,73 +1053,71 @@ static class QoreNode *f_hextoint(class QoreNode *params, ExceptionSink *xsink)
 	 pow *= 16;
       }
    }
-   return new QoreNode(rc);
+   return new QoreBigIntNode(rc);
 }
 
 // parses a string representing a number in a configurable base and returns the integer
-static class QoreNode *f_strtoint(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_strtoint(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   const QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
    
-   QoreNode *p1 = get_param(params, 1);
+   const AbstractQoreNode *p1 = get_param(params, 1);
    int base = p1 ? p1->getAsInt() : 10;
 
-   return new QoreNode(strtoll(p0->val.String->getBuffer(), NULL, base));
+   return new QoreBigIntNode(strtoll(p0->getBuffer(), 0, base));
 }
 
-static class QoreNode *f_load_module(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_load_module(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   const QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
-   MM.runTimeLoadModule(p0->val.String->getBuffer(), xsink);
-   return NULL;
+   MM.runTimeLoadModule(p0->getBuffer(), xsink);
+   return 0;
 }
 
-static class QoreNode *f_set_signal_handler(class QoreNode *params, ExceptionSink *xsink)
-{
-   QoreNode *p0 = get_param(params, 0);
-   int signal = p0 ? p0->getAsInt() : 0;
-   if (!signal || signal > QORE_SIGNAL_MAX)
-   {
+static AbstractQoreNode *f_set_signal_handler(const QoreListNode *params, ExceptionSink *xsink) {
+   const AbstractQoreNode *p = get_param(params, 0);
+   int signal = p ? p->getAsInt() : 0;
+   if (!signal || signal > QORE_SIGNAL_MAX) {
       xsink->raiseException("SET-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
-      return NULL;
+      return 0;
    }
-   QoreNode *p1 = test_param(params, NT_FUNCREF, 1);
-   if (!p1)
-   {
-      xsink->raiseException("SET-SIGNAL-HANDLER-ERROR", "expecting call reference as second argument to set_signal_handler()");
-      return NULL;
+
+   const ResolvedCallReferenceNode *p1 = test_callref_param(params, 1);
+   if (!p1) {
+      xsink->raiseException("SET-SIGNAL-HANDLER-ERROR", "expecting call reference or a closure as second argument to set_signal_handler()");
+      return 0;
    }
-   QoreSignalManager::setHandler(signal, p1->val.funcref, xsink);
-   return NULL;
+   QoreSignalManager::setHandler(signal, p1, xsink);
+   return 0;
 }
 
-static class QoreNode *f_remove_signal_handler(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_remove_signal_handler(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
    int signal = p0 ? p0->getAsInt() : 0;
    if (!signal || signal > QORE_SIGNAL_MAX)
    {
       xsink->raiseException("REMOVE-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
-      return NULL;
+      return 0;
    }
    QoreSignalManager::removeHandler(signal, xsink);
-   return NULL;
+   return 0;
 }
 
 // returns a string with percent-encodings substituted for characters
-static class QoreNode *f_decode_url(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_decode_url(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = test_param(params, NT_STRING, 0);
-   if (!p || !p->val.String->strlen())
+   const QoreStringNode *p = test_string_param(params, 0);
+   if (!p || !p->strlen())
       return 0;
 
-   const char *c = p->val.String->getBuffer();
-   QoreString *str = new QoreString(p->val.String->getEncoding());
+   const char *c = p->getBuffer();
+   QoreStringNode *str = new QoreStringNode(p->getEncoding());
    while (*c) {
       if (*c == '%' && isxdigit(*(c + 1)) && isxdigit(*(c + 2))) {
 	 char x[3] = { *(c + 1), *(c + 2), '\0' };
@@ -1070,15 +1129,64 @@ static class QoreNode *f_decode_url(class QoreNode *params, ExceptionSink *xsink
       str->concat(*c);
       c++;
    }
-   return new QoreNode(str);
+   return str;
 }
 
-void init_misc_functions()
-{
+static AbstractQoreNode *f_get_script_path(const QoreListNode *params, ExceptionSink *xsink) {
+   return getProgram()->getScriptPath();
+}
+
+static AbstractQoreNode *f_get_script_dir(const QoreListNode *params, ExceptionSink *xsink) {
+   return getProgram()->getScriptDir();
+}
+
+static AbstractQoreNode *f_get_script_name(const QoreListNode *params, ExceptionSink *xsink) {
+   return getProgram()->getScriptName();
+}
+
+static AbstractQoreNode *f_get_qore_option_list(const QoreListNode *params, ExceptionSink *xsink) {
+   static const char *tlist[] = { "OPTION", "ALGORITHM", "FUNCTION" };
+   QoreListNode *l = new QoreListNode;
+
+   for (unsigned j = 0; j < qore_option_list_size; ++j) {
+      QoreHashNode *h = new QoreHashNode;
+      h->setKeyValue("option", new QoreStringNode(qore_option_list[j].option), xsink);
+      h->setKeyValue("constant", new QoreStringNode(qore_option_list[j].constant), xsink);
+      h->setKeyValue("type", new QoreStringNode(tlist[qore_option_list[j].type]), xsink);
+      h->setKeyValue("value", get_bool_node(qore_option_list[j].value), xsink);
+      l->push(h);
+   }
+   return l;
+}
+
+static AbstractQoreNode *f_get_qore_library_info(const QoreListNode *params, ExceptionSink *xsink) {
+   QoreHashNode *h = new QoreHashNode;
+
+   h->setKeyValue("PlatformOS", new QoreStringNode(qore_target_os), xsink);
+   h->setKeyValue("PlatformCPU", new QoreStringNode(qore_target_arch), xsink);
+   h->setKeyValue("VersionString", new QoreStringNode(qore_version_string), xsink);   
+   h->setKeyValue("VersionMajor", new QoreBigIntNode(qore_version_major), xsink);
+   h->setKeyValue("VersionMinor", new QoreBigIntNode(qore_version_minor), xsink);
+   h->setKeyValue("VersionSub", new QoreBigIntNode(qore_version_sub), xsink);
+   h->setKeyValue("Build", new QoreStringNode(qore_build_number), xsink);
+   h->setKeyValue("ModuleDir", new QoreStringNode(qore_module_dir), xsink);
+
+   h->setKeyValue("BuildHost", new QoreStringNode(qore_build_host), xsink);
+   h->setKeyValue("Compiler", new QoreStringNode(qore_cplusplus_compiler), xsink);
+   h->setKeyValue("CFLAGS", new QoreStringNode(qore_cflags), xsink);
+   h->setKeyValue("LDFLAGS", new QoreStringNode(qore_ldflags), xsink);
+
+   return h;
+}
+
+void init_misc_functions() {
    // register builtin functions in this file
    builtinFunctions.add("parse", f_parse);
    builtinFunctions.add("call_function", f_call_function);
    builtinFunctions.add("call_function_args", f_call_function_args);
+   builtinFunctions.add("call_builtin_function", f_call_builtin_function);
+   builtinFunctions.add("call_builtin_function_args", f_call_builtin_function_args);
+   builtinFunctions.add("exists", f_exists);
    builtinFunctions.add("existsFunction", f_existsFunction);
    builtinFunctions.add("functionType", f_functionType);
    builtinFunctions.add("html_encode", f_html_encode);
@@ -1103,6 +1211,7 @@ void init_misc_functions()
    builtinFunctions.add("gunzip_to_string", f_gunzip_to_string);
    builtinFunctions.add("gunzip_to_binary", f_gunzip_to_binary);
    builtinFunctions.add("getByte", f_getByte);
+   builtinFunctions.add("getWord32", f_getWord32);
    builtinFunctions.add("splice", f_splice);
    builtinFunctions.add("hextoint", f_hextoint);
    builtinFunctions.add("strtoint", f_strtoint);
@@ -1110,6 +1219,11 @@ void init_misc_functions()
    builtinFunctions.add("set_signal_handler", f_set_signal_handler, QDOM_PROCESS);
    builtinFunctions.add("remove_signal_handler", f_remove_signal_handler, QDOM_PROCESS);
    builtinFunctions.add("decode_url", f_decode_url);
+   builtinFunctions.add("get_script_name", f_get_script_name);
+   builtinFunctions.add("get_script_dir", f_get_script_dir);
+   builtinFunctions.add("get_script_path", f_get_script_path);
+   builtinFunctions.add("get_qore_option_list", f_get_qore_option_list);
+   builtinFunctions.add("get_qore_library_info", f_get_qore_library_info);
    
    // deprecated with stupid capitalization
    builtinFunctions.add("hexToInt", f_hextoint);

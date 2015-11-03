@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ Copyright 2003 - 2009 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -21,51 +21,42 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/ThrowStatement.h>
+#include <qore/intern/ThrowStatement.h>
 
-ThrowStatement::ThrowStatement(int start_line, int end_line, class QoreNode *v) : AbstractStatement(start_line, end_line)
+ThrowStatement::ThrowStatement(int start_line, int end_line, AbstractQoreNode *v) : AbstractStatement(start_line, end_line)
 {
    if (!v)
    {
-      args = NULL;
+      args = 0;
       return;
    }
-   if (v->type == NT_LIST)
-   {
-      // take list
-      args = v;
-      return;
+   args = dynamic_cast<QoreListNode *>(v);
+   if (!args) {
+      args = new QoreListNode(v->needs_eval());
+      args->push(v);
    }
-   class List *l = new List(1);
-   l->push(v);
-   args = new QoreNode(l);
 }
 
 ThrowStatement::~ThrowStatement()
 {
    if (args)
-      args->deref(NULL);
+      args->deref(0);
 }
 
-int ThrowStatement::execImpl(class QoreNode **return_value, ExceptionSink *xsink)
+int ThrowStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
 {
-   class QoreNode *a;
-   if (args)
-      a = args->eval(xsink);
-   else
-      a = NULL;
+   QoreListNodeEvalOptionalRefHolder a(args, xsink);
+   if (*xsink)
+      return 0;
    
-   xsink->raiseException(a);
-   if (a)
-      a->deref(NULL);
-
+   xsink->raiseException(*a);
    return 0;
 }
 
-int ThrowStatement::parseInitImpl(lvh_t oflag, int pflag)
+int ThrowStatement::parseInitImpl(LocalVar *oflag, int pflag)
 {
    if (args)
-      return process_node(&args, oflag, pflag);
+      return process_list_node(&args, oflag, pflag);
    return 0;
 }
 

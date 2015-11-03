@@ -3,7 +3,7 @@
   
   Qore Programming Language
 
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2009 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,46 +21,40 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/ql_env.h>
+#include <qore/intern/ql_env.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 
-static class QoreNode *f_getenv(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_getenv(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
+   const QoreStringNode *p0;
 
-   if (!(p0 = test_param(params, NT_STRING, 0)))
-      return NULL;
-
-   class QoreString *str = Env.get(p0->val.String->getBuffer());
-   return str ? new QoreNode(str) : NULL;
-}
-
-static class QoreNode *f_setenv(class QoreNode *params, ExceptionSink *xsink)
-{
-   class QoreNode *p0, *p1, *t;
+   if (!(p0 = test_string_param(params, 0)))
+      return 0;
    
-   if (!(p0 = test_param(params, NT_STRING, 0))
-       || !(p1 = get_param(params, 1)))
-      return NULL;
-   if (p1->type != NT_STRING)
-      t = p1->convert(NT_STRING);
-   else
-      t = p1;
-
-   int rc = Env.set(p0->val.String->getBuffer(), t->val.String->getBuffer());
-   if (t != p1)
-      t->deref(xsink);
-   return new QoreNode((int64)rc);
+   return SysEnv.getAsStringNode(p0->getBuffer());
 }
 
-static class QoreNode *f_unsetenv(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_setenv(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
-   if (!(p0 = test_param(params, NT_STRING, 0)))
-      return NULL;
-   return new QoreNode((int64)Env.unset(p0->val.String->getBuffer()));
+   const QoreStringNode *p0;
+   const AbstractQoreNode *p1;
+   
+   if (!(p0 = test_string_param(params, 0))
+       || is_nothing((p1 = get_param(params, 1))))
+      return 0;
+
+   QoreStringValueHelper t(p1);
+   return new QoreBigIntNode(SysEnv.set(p0->getBuffer(), t->getBuffer()));
+}
+
+static AbstractQoreNode *f_unsetenv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const QoreStringNode *p0;
+   if (!(p0 = test_string_param(params, 0)))
+      return 0;
+   return new QoreBigIntNode(SysEnv.unset(p0->getBuffer()));
 }
 
 void init_env_functions()

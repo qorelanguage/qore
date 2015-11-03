@@ -6,60 +6,59 @@
   <sect1 id="Qore_Introduction">
     <title>Introduction to the Qore Programming Language</title>
 
-    <para>The Qore programming language is a powerful, high-performance, thread-capable, object-oriented, database-integrated, embeddable weakly-typed language with procedural and object-oriented features designed for anything from quick scripting to complex multithreaded, network-aware application development to embedded application scripting.  By design, it is particularly suited to the rapid implementation of sophisticated interfaces in an enterprise environment.</para>
+    <para>The Qore programming language is a powerful, thread-capable, embeddable weakly-typed language with procedural and object-oriented features designed for anything from quick scripting to complex multithreaded, network-aware application development to embedded application scripting.  Qore was initially designed to facilitate the rapid implementation of sophisticated interfaces in embedded code in an enterprise environment, and has since grown into a general-purpose language as well.</para>
 
-    <para>It features extensive database and XML integration into the syntax, functions, data structures, and operators of the language, enabling the development of sophisticated programs using the Qore Programming Language.</para>
+    <para>Qore exports a C++ API to allow programs or libraries to embed Qore code; this manual documents Qore's user-level features, for more information about Qore's C++ API, see the <ulink url="http://www.qoretechnologies.com/qore">Qore's home page</ulink>.</para>
 
-    <para>Flexible character set encoding support is also built-in to Qore strings, and automatic character set encoding conversions are supported, enabling correct behavior for interfacing systems with different character set encoding requirements (see <link linkend='Qore_Strings_and_Character_Set_Encoding'>Qore Strings and Character Set Encoding</link>).</para>
+    <para>Qore features database, XML, and JSON integration into the syntax, functions, data structures, and operators of the language.</para>
+
+    <para>Flexible character encoding support is also built-in to Qore strings, and automatic character encoding conversions are supported, enabling correct behavior when working in an environment with mixed character encoding requirements (see <link linkend='Qore_Strings_and_Character_Encoding'>Qore Strings and Character Encoding</link>).</para>
 
     <para>Qore includes the following design points:</para>
 
     <itemizedlist mark='bullet'>
       <listitem>
+	<para>Support for Embedded Logic</para>
+
+	<para>Qore was designed to support embedding logic in applications; this also applies to applications written in Qore as well as applications using the Qore library's public C++ API.  By using the <link linkend="Qore_Program_Class">Program</link> class, discrete objects can be created and destroyed at will containing embedded code to extend or modify the behavior of your application in user-defined ways.  The <link linkend="Qore_Program_Class">Program</link> class allows the capabilities of embedded code to be arbitrarily <link linkend="Parse_Options">restricted</link> as well.</para>
+      </listitem>
+
+      <listitem>
+	<para>Thread Safety and SMP Scalability</para>
+
+	<para>All elements of Qore are thread-safe, and the language in general has been designed with SMP scalability in mind.  The internal design and implementation of Qore favors multithreaded performance over single-threaded performance, so multithreaded Qore programs can count on an efficient and stable execution platform, and do not have to limit themselves to a subset of Qore's functionality (see <link linkend='Threading'>Threading</link>).  Additionally, Qore includes optimizations designed to reduce the number of SMP cache invalidations that provide a substantial performance boost on SMP machines.</para>
+	<para>Qore supports deadlock detection in complex locking scenarios and will throw an exception rather than allow an operation to be performed that would cause a deadlock.  Furthermore, Qore's threading primitives detect threading errors and throw exceptions in these cases as well.</para>
+      </listitem>
+
+      <listitem>
 	<para>Database Integration and DBI Layer</para>
 
-	<para>Retrieving, comparing, and manipulating data in a consistent manner from heterogenous database types is made possible by Qore's built-in database integration. Qore was designed with a database independent interfacing (DBI) layer, providing a standard interface for Qore programs to access any database supported by a Qore DBI driver (see the <link linkend='Qore::SQL::Datasource_Class'>Datasource Class</link>). Currently <link linkend="oracle_Module">Oracle</link>, <link linkend="mysql_Module">MySQL</link>, <link linkend="pgsql_Module">PostgreSQL</link>, <link linkend="sybase_Module">Sybase</link>, and <link linkend="mssql_Module">MS SQL Server</link> drivers are available for Qore.</para>
+	<para>Retrieving, comparing, and manipulating data in a consistent manner from heterogenous database types is made possible by Qore's built-in database integration. Qore was designed with a database independent interfacing (DBI) layer, providing a standard interface for Qore programs to access any database supported by a Qore DBI driver (see the <link linkend="Datasource_Class">Datasource Class</link>).</para>
 
       </listitem>
-    </itemizedlist>
 
-    <itemizedlist mark='bullet'>
       <listitem>
 	<para>XML and JSON Integration</para>
 	
 	<para>Qore uses the libxml2 library to provide fast and efficient XML functionality. Qore's XML integration enables serialization from Qore data structures to XML strings and deserialization from XML strings to Qore data structures, making it trivial to work with data in XML format (see <link linkend="XML_Integration">XML Integration</link>).  Qore provides <link linkend="JSON_Functions">JSON</link> and <link linkend="JsonRpcClient_Class">JSON-RPC</link> integration as well.</para>
       </listitem>
-    </itemizedlist>
 
-    <itemizedlist mark='bullet'>
-      <listitem>
-	<para>Thread Safety and SMP Scalability</para>
-
-	<para>All elements of Qore are thread-safe, and the language in general has been designed with SMP scalability in mind.  The internal design and implementation of Qore favors multithreaded performance over single-threaded performance, so multithreaded Qore programs can count on an efficient and stable execution platform, and do not have to limit themselves to a subset of Qore's functionality (see <link linkend='Threading'>Threading</link>).  Recent efforts to reduce the number of SMP cache invalidations have resulted in a dramtic performance increase on SMP machines while maintaining 100% code and API compatibility as well.</para>
-	<para>Qore supports deadlock detection in complex locking scenarios and will throw an exception rather than allow an operation to be performed that would cause a deadlock.  Furthermore, Qore's threading primitives detect threading errors and throw exceptions in these cases as well.</para>
-      </listitem>
-    </itemizedlist>
-
-
-    <itemizedlist mark='bullet'>
       <listitem>
 	<para>Function and Class Library</para>
 	
-	<para>Qore features growing builtin function and class libraries covering areas such as: POSIX-compliant command-line parsing (ex: <link linkend='Qore::GetOpt_Class'>GetOpt Class</link>), <link linkend="XML_Functions">XML</link> and <link linkend="JSON_Functions">JSON</link> serialization/deserialization, <link linkend="Cryptographic_Functions">strong encryption</link> and <link linkend="Digest_Functions">digest calculation</link>, thread synchronization (ex: <link linkend='Qore::Thread::Queue_Class'>Queue Class</link>, <link linkend='Qore::Thread::Mutex_Class'>Mutex Class</link>, <link linkend='Qore::Thread::Condition_Class'>Condition Class</link>, etc), working with files (<link linkend="Qore_File_Class">File class</link>), socket, HTTP, and higher-level protocol communication (<link linkend='Qore_Socket_Class'>Socket</link>, <link linkend='HTTPClient_Class'>HTTPClient</link>, <link linkend='XmlRpcClient_Class'>XmlRpcClient</link>,  <link linkend='JsonRpcClient_Class'>JsonRpcClient</link>, <link linkend="Qore_FtpClient_Class">FtpClient</link> classes, optionally with TLS/SSL encryption), database communication with transaction management (<link linkend="Qore::SQL::Datasource_Class">Datasource Class</link>), communication with FTP and FTPS servers (<link linkend="Qore_FtpClient_Class">FtpClient Class</link>), support for dynamic embedded application logic (<link linkend="Qore_Program_Class">Program Class</link>), as well as <link linkend="tibrv_Module">TIBCO Rendezvous</link>, <link linkend="tibae_Module">TIBCO Adapters</link>, <link linkend="Tuxedo_Module">Tuxedo</link> integration, and more.</para>
+	<para>Qore's basic functionality covers areas such as: POSIX-compliant command-line parsing (ex: <link linkend='GetOpt_Class'>GetOpt Class</link>), <link linkend="XML_Functions">XML</link> and <link linkend="JSON_Functions">JSON</link> serialization/deserialization, <link linkend="Cryptographic_Functions">strong encryption</link> and <link linkend="Digest_Functions">digest calculation</link>, thread synchronization (ex: <link linkend='Queue_Class'>Queue Class</link>, <link linkend="Mutex_Class">Mutex Class</link>, <link linkend='Condition_Class'>Condition Class</link>, etc), working with files (<link linkend="File_Class">File class</link>), socket, HTTP, and higher-level protocol communication (<link linkend='Socket_Class'>Socket</link>, <link linkend='HTTPClient_Class'>HTTPClient</link>, <link linkend='XmlRpcClient_Class'>XmlRpcClient</link>,  <link linkend='JsonRpcClient_Class'>JsonRpcClient</link>, <link linkend="FtpClient_Class">FtpClient</link> classes, optionally with TLS/SSL encryption), support for dynamic embedded application logic (<link linkend="Qore_Program_Class">Program Class</link>).  Additionally, Qore's functionality is extended with modules delivered separately from the Qore library (see <ulink url="http://www.qoretechnologies.com/qore">Qore's home page</ulink> for more information.</para>
       </listitem>
-    </itemizedlist>
 
-    <itemizedlist mark='bullet'>
       <listitem>
-	<para>Intuitive Syntax</para>
+	<para>Logical Syntax</para>
 
-	<para>The Qore syntax is intuitive, allowing new programmers to rapidly come up to speed in the language and be productive quicker than with comparable languages. The language features some of the best features from C++ (ex: <link linkend="Class_Inheritance">multiple inheritance</link>, <link linkend="Exception_Handling">exception handling</link>), Java (ex: the <link linkend="Private_and_Synchronized_Methods"><command>synchronized</command></link> keyword, the <link linkend="Instanceof_Operator"><command>instanceof</command></link> operator, object implementation), and Perl (ex: the <link linkend="foreach_Statements"><command>foreach</command> statement</link>, <link linkend="Splice_Operator"><command>splice</command></link>, <link linkend="Push_Operator"><command>push</command></link>, <link linkend="Pop_Operator"><command>pop</command></link>, <link linkend="Chomp_Operator"><command>chomp</command></link>, <link linkend="Splice_Operator"><command>splice</command></link> operators, etc), some borrowed from the <ulink url="http://www.digitalmars.com/d">D Programming Language</ulink>, such as <link linkend='on_exit_Statements'>on_exit</link>, <link linkend='on_success_Statements'>on_success</link>, and <link linkend='on_error_Statements'>on_error</link> statements (providing exception-aware functionality similar to <code>scope(exit), scope(failure)</code>, etc in D, allowing exception-aware cleanup code to be placed next to the code requiring cleanup), and with enhancements unique to Qore.  Due to the simple yet powerful syntax, Qore code is clear, self-documenting, and easy to maintain, even for programs written by others.</para>
+	<para>Qore syntax is similar to other programming languages, allowing new programmers to rapidly come up to speed in Qore. Qore borrows features from languages such as: C++ (ex: <link linkend="Class_Inheritance">multiple inheritance</link>, <link linkend="Exception_Handling">exception handling</link>, <link linkend="Static_Methods">static methods</link>), Java (ex: the <link linkend="Private_and_Synchronized_Methods"><command>synchronized</command></link> keyword, the <link linkend="Instanceof_Operator"><command>instanceof</command></link> operator, <link linkend="Objects">object</link> and <link linkend="Classes">class</link> implementation), Perl (ex: the <link linkend="foreach_Statements"><command>foreach</command> statement</link>, <link linkend="Splice_Operator"><command>splice</command></link>, <link linkend="Push_Operator"><command>push</command></link>, <link linkend="Pop_Operator"><command>pop</command></link>, <link linkend="Chomp_Operator"><command>chomp</command></link>, <link linkend="Splice_Operator"><command>splice</command></link> operators, <link linkend="Regular_Expressions">perl5-compatible regular expressions</link>, and more), the <ulink url="http://www.digitalmars.com/d">D Programming Language</ulink> (the <link linkend='on_exit_Statements'>on_exit</link>, <link linkend='on_success_Statements'>on_success</link>, and <link linkend='on_error_Statements'>on_error</link> statements provide exception-aware functionality similar to <code>scope(exit), scope(failure)</code>, allowing exception-aware cleanup code to be placed next to the code requiring cleanup), and others, also with many features unique to Qore.  Furthermore, Qore supports <link linkend="closures">closures</link> (including binding local variables in the closure in a way that is safe to use even in multithreaded contexts) and features for advanced list processing (<link linkend="Map_Operator"><command>map</command></link>, <link linkend="Foldl_Operator"><command>foldl</command></link>, <link linkend="Foldr_Operator"><command>foldr</command></link>, and <link linkend="Select_Operator"><command>select</command></link>).</para>
 
-	<para>Qore's intelligent <link linkend="Operators">operators</link> are designed to produce the expected results for the programmer even when data types are mixed, a feature meant to further flatten the learning curve for new programmers.</para>
+	<para>Qore's <link linkend="Operators">operators</link> are designed to produce the expected results for the programmer even when data types are mixed, a feature meant to further flatten the learning curve for new programmers.</para>
       </listitem>
     </itemizedlist>
 
-    <para>Simple or complex interfaces involving data extraction and manipulation from multiple Oracle and MySQL databases and/or multiple applications connected with a TIBCO bus can be developed quickly and easily with Qore, particularly in comparison with Java, Perl, or C/C++. Furthermore, solutions based on Qore are transparent and easily maintainable, bringing advantages for the developer and end-user alike.</para>
+    <para>Simple or complex interfaces involving data extraction and manipulation from multiple Oracle, MySQL, PostgreSQL and other databases and/or multiple applications connected with a supported messaging bus or through lightweight web service protocols bus can be developed quickly and easily with Qore, particularly in comparison with Java, Perl, or C/C++. Furthermore, solutions based on Qore are transparent and easily maintainable, bringing advantages for the developer and end-user alike.</para>
 
     <para>Additionally, Qore is thoroughly tested with valgrind on Linux and dbx on Solaris for memory leaks and memory errors.  While it is possible that there are bugs in some less tested code paths, every effort is made to eliminate all bugs before each new release, particularly memory bugs and race conditions, in order to ensure that Qore releases are of the highest possible quality.</para>
 

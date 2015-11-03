@@ -18,31 +18,27 @@ Qore is highly threadable and has been designed to favor multi-threaded performa
 
 Qore features exception handling similar to C++'s or Java's, but adapted for a weakly-typed language.
 
-Qore is designed to facilitate dynamic/embeddable program logic.
+Qore is designed to facilitate dynamic/embeddable program logic where capabilities of the embedded logic units can be arbitrarily restricted, with particular emphasis on use in multithreaded contexts.
 
 Qore includes built-in date operators & date arithmetic (eg: $a = now() - 1D - 5m will assign $a to the date and time one day and 5 minutes ago).
 
-By defining methodGate() and memberGate() methods, the programmer can redirect accesses to non-existant members and methods and react in any way desired.
+Qore's object-oriented support implements inheritance (polymorphism, with multiple inheritance and private inheritance), private members (data encapsulation), static members and support for dynamically extending functionality through special "memberGate", "methodGate", and "memberNotification" methods.  methodGate() and memberGate() methods allow accesses to non-existant members and methods to be transparently redirected in any way desired; the memberNotification() method allows objects to automatically react to external changes in public member states.
+
+Support for exception-safe programming is facilitated with the on_exit, ex_error, and on_success statements, allowing code to be queued to be executed optionally depending on the exception status when the local block is exited, which allows programmers to place cleanup code right next to the code requiring the cleanup (instead of phyiscally separated and possibly in many nested blocks using try/catch - however please note that try/catch blocks are also supported by qore).
 
 Qore has built-in national character set support based on the C library's iconv functions and supports both implicit and explicit character set conversions.  For example, if a Datasource object is assigned the "UTF-8" character set, but a File object has "ISO-8859-1" character set, any data written to the database from the File object will be automatically converted implicitly to the "UTF-8" character set without any intervention necessary by the programmer.
 
-Qore has Oracl (oracle), MySQL (mysql), PostgreSQL (pgsql), Sybase (sybase), and FreeTDS (mssql) drivers, making it easy to write scripts/programs to manipulate data in different types of databases.  Furthermore the Datasource class offers an interface and constructs that facilitate database-independent development.
+Qore's db modules (delivered separately) make it easy to write scripts/programs to manipulate data in different types of databases.
+Furthermore the Datasource class offers an interface and constructs that facilitate database-independent development.
 
 Qore has libxml2 integration, allowing simple, automatic, and transparent serialization/deserialization to/from XML data to/from Qore data structures.
 
 Qore has JSON and JSON-RPC integration, supporting transparent serialization/deserialization to/from JSON data to/from Qore data structures.
 
-Qore has Socket, HTTPClient, XmlRpcClient, JsonRpcClient, and FtpClient modules (all supporting optional TLS/SSL encryption) for easy communication with various protocols.
+Qore has Socket, HTTPClient, XmlRpcClient, JsonRpcClient, and FtpClient classes (all supporting optional TLS/SSL encryption) for easy communication with various protocols.
 
 Qore uses the PCRE library to provide Perl-compatible regular expression support.
 
-Qore has TIBCO Adapters ("tibae" module) and direct Rendezvous ("tibrv" module) integration, making it very easy to write scripts/programs making use of TIBCO messaging.  Serializing/deserializing to/from TIBCO messages and to/from Qore data structures is simple, automatic, and transparent to the programmer.
-
-Qore has a "tuxedo" module, providing a qore-language Tuxedo client API.
-
-On the future roadmap:
-* add optional strong typing to the language + strongly typed data structures
-* add integration with other messaging technologies
 
 How does Qore compare to other programming languages?
 -----------------------------------------------------
@@ -53,16 +49,17 @@ Qore's syntax superficially appears to be a mixture of C and perl with some uniq
 * Qore is a weakly-typed scripting language
 * Qore variable references begin with a dollar sign "$". (ex: $value is a valid variable in both perl and Qore)
 * In Qore, subroutines are declared with the word "sub"
-* Qore and perl share many statements (like for, foreach, while, do, if, etc)
+* Qore and perl share many statements (ex: for, foreach, while, do, if, etc)
 * Qore and perl share many basic operators
 * Qore and perl both use double-precision floating point numbers
-* Qore uses PCRE (www.pcre.org) to provide perl-compatible regular expression support
+* Qore uses PCRE (www.pcre.org) to provide perl5-compatible regular expression support
+* Qore and perl support closures that encapsulate the state of local variables at a higher lexical level than the closure and accessed within the closure.  Qore has the advantage of supporting closures in a thread-safe way; even local variables accessed within the closure are thread-safe
 
 (Some) differences from perl
 * Qore has a clean and powerful threading model, built-in from the start by design
 * Qore has clean object-oriented features, built-in from the start by design
 * Qore has native UTF-8 support (qore's substr(), string splice, index(), etc work on character offsets, not byte offsets according to the character encoding used for the string), perl's wide character support is not as transparent - for example, 'printf("%s\n", substr("ä", 0, 1));' will output an invalid character in perl, but work properly in Qore using UTF-8 variable-width characters
-* Qore tends to avoid syntactic shortcuts and require more verbose expressions than perl; Qore has a much smaller grammar than perl, and no default variables (no $_, etc); Qore has "if" statements, but no "unless"; etc
+* Qore tends to avoid syntactic shortcuts and require more verbose expressions than perl; Qore has a much smaller grammar than perl; ex: Qore has "if" statements, but no "unless"; etc
 * A Qore variable can be of any type, whereas in perl the type of variable also depends on the name
 	perl: @array = (1, "two"); %hash = ( "a", 1, "b", 2);   $scalar = 3.0;
 	Qore: $array = (1, "two"); $hash = ( "a" : 1, "b" : 2); $scalar = 3.0;
@@ -77,7 +74,6 @@ Qore's syntax superficially appears to be a mixture of C and perl with some uniq
 * Qore uses 64-bit integers by default
 * Qore's operators can change lvalues without references, in Qore a function can change an lvalue only if a reference is passed
 * there is currently no generic equivalent to perl's references.  It is only possible to pass values by reference in Qore if the subroutine includes a local variable argument list
-* Qore does not support enclosures or lamba functions, however Qore's Program class provides a powerful mechanism for embedding logic in a program or even for self-modifying programs
 * Qore does not support variable substitution from regular expressions, in qore you need to construct the regex strings manually and use the regex() or regex_subst() functions
-* Qore does not yet support signal handling; this is planned for a future release (before 1.0)
+* Qore supports safe signal handling as well
 * Qore supports subpattern extraction from a regular expression when the x// operator is used (i.e. $list = "xmlns:wsdl" =~ x/(\w+):(\w+)/ will result in $list = ("xmlns", "wsdl") ) whereas perl uses the $1, $2, ... automatic variables

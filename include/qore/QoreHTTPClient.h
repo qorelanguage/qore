@@ -20,148 +20,292 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef QORE_HTTP_FILE_H_
-#define QORE_HTTP_FILE_H_
+#ifndef QORE_HTTP_CLIENT_H_
+#define QORE_HTTP_CLIENT_H_
 
 #include <qore/common.h>
 #include <qore/AbstractPrivateData.h>
-#include <qore/LockedObject.h>
+#include <qore/QoreThreadLock.h>
 #include <qore/QoreSocket.h>
 
-#include <string>
-#include <map>
-#include <set>
+#define HTTPCLIENT_DEFAULT_PORT 80                 //!< the default port number to use
+#define HTTPCLIENT_DEFAULT_HOST "localhost"        //!< the default host name to use
 
-// ssl-enabled protocols are stored as negative numbers, non-ssl as positive
-#define make_protocol(a, b) ((a) * ((b) ? -1 : 1))
-#define get_port(a) ((a) * (((a) < 0) ? -1 : 1))
-#define get_ssl(a) ((a) * (((a) < 0) ? true : false))
+#define HTTPCLIENT_DEFAULT_TIMEOUT 300000          //!< the default connection and response packet timeout to use (300,000 ms = 5m)
 
-#define HTTPCLIENT_DEFAULT_PORT 80
-#define HTTPCLIENT_DEFAULT_HOST "localhost"
+#define HTTPCLIENT_DEFAULT_MAX_REDIRECTS 5         //!< maximum number of HTTP redirects allowed
 
-// set default timeout to 5 minutes (300,000 ms)
-#define HTTPCLIENT_DEFAULT_TIMEOUT 300000
+class Queue;
 
-// set default maximum number of redirections
-#define HTTPCLIENT_DEFAULT_MAX_REDIRECTS 5
-
-// protocol map class to recognize user-defined protocols (mostly useful for derived classes)
-typedef std::map<std::string, int> prot_map_t;
-typedef std::set<const char *, ltcstrcase> ccharcase_set_t;
-typedef std::set<std::string, ltstrcase> strcase_set_t;
-typedef std::map<std::string, std::string> header_map_t;
-
-class SafeHash : public Hash
-{
-      // none of these operators/methods are implemented - here to make sure they are not used
-      DLLLOCAL void *operator new(size_t); 
-      DLLLOCAL SafeHash(bool i);
-      DLLLOCAL void deleteAndDeref(class ExceptionSink *xsink);
-
-   public:
-      DLLLOCAL SafeHash()
-      {
-      }
-      DLLLOCAL ~SafeHash()
-      {
-	 dereference(NULL);
-      }
-};
-
-class QoreHTTPClient : public AbstractPrivateData, public LockedObject
-{
+//! provides a way to communicate with HTTP servers using Qore data structures
+/** thread-safe, uses QoreSocket for socket communication
+ */
+class QoreHTTPClient : public AbstractPrivateData {
    private:
-      DLLLOCAL static ccharcase_set_t method_set;
-      DLLLOCAL static strcase_set_t header_ignore;
-   
-      // are we using http 1.1 or 1.0?
-      bool http11;
-      prot_map_t prot_map;
-
-      bool ssl, proxy_ssl;
-      int port, proxy_port, default_port, max_redirects;
-      std::string host, path, username, password;
-      std::string proxy_host, proxy_path, proxy_username, proxy_password;
-      std::string default_path;
-      int timeout;
-      std::string socketpath;
-      bool connected;
-      QoreSocket m_socket;
+      //! private implementation of the class
+      struct qore_qtc_private *priv;
       
       // returns -1 if an exception was thrown, 0 for OK
-      DLLEXPORT int set_url_unlocked(const char *url, class ExceptionSink *xsink);
+      DLLLOCAL  int set_url_unlocked(const char *url, ExceptionSink *xsink);
       // returns -1 if an exception was thrown, 0 for OK
-      DLLEXPORT int set_proxy_url_unlocked(const char *url, class ExceptionSink *xsink);
-      // returns -1 if an exception was thrown, 0 for OK
-      DLLLOCAL int connect_unlocked(class ExceptionSink *xsink);
-      DLLLOCAL void disconnect_unlocked();
-      DLLLOCAL class QoreNode *send_internal(const char *meth, const char *mpath, class Hash *headers, const void *data, unsigned size, bool getbody, class ExceptionSink *xsink);
+      DLLLOCAL int set_proxy_url_unlocked(const char *url, ExceptionSink *xsink);
+      DLLLOCAL QoreHashNode *send_internal(const char *meth, const char *mpath, const QoreHashNode *headers, const void *data, unsigned size, bool getbody, QoreHashNode *info, ExceptionSink *xsink, bool suppress_content_length = false);
       DLLLOCAL void setSocketPath();
-      DLLLOCAL const char *getMsgPath(const char *mpath, class QoreString &pstr);
-      DLLLOCAL class QoreNode *getResponseHeader(const char *meth, const char *mpath, class Hash &nh, const void *data, unsigned size, int &code, class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *getHostHeaderValue();
+      DLLLOCAL const char *getMsgPath(const char *mpath, QoreString &pstr);
+      DLLLOCAL QoreHashNode *getResponseHeader(const char *meth, const char *mpath, const QoreHashNode &nh, const void *data, unsigned size, int &code, bool suppress_content_length, ExceptionSink *xsink);
+      DLLLOCAL AbstractQoreNode *getHostHeaderValue();
 
-   protected:
-      DLLLOCAL virtual ~QoreHTTPClient();
-      
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+      DLLLOCAL QoreHTTPClient(const QoreHTTPClient&);
+
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+      DLLLOCAL QoreHTTPClient& operator=(const QoreHTTPClient&);
+
+  protected:
+      DLLEXPORT void lock();
+      DLLEXPORT void unlock();
+
    public:
-      header_map_t default_headers;
+      //! creates the QoreHTTPClient object
+      DLLEXPORT QoreHTTPClient();
+
+      //! destroys the object and frees all associated memory
+      DLLEXPORT virtual ~QoreHTTPClient();
+
+      //! set options with a hash, returns -1 if an exception was thrown, 0 for OK
+      /** options are:
+	  - protocols: a hash where each key is a protocol name and the value must be set to a integer giving a port number or a hash having the following keys:
+	    - port: giving the port number
+	    - ssl: giving a boolean true or false value
+	  - max_redirects: sets the max_redirects option
+	  - default_port: sets the default port number
+	  - proxy: sets the proxy URL
+	  - url: sets the default connection URL
+	  - default_path: sets the default path
+	  - timeout: sets the connection or response packet timeout value in milliseconds
+	  - http_version: either "1.0" or "1.1" to set the default HTTP version to use
+	  - connect_timeout: an integer giving the timeout value for new socket connections in milliseconds
+	  @note this function is unlocked and designed only to be called with the constructor
+	  @param opts the options to set for the object
+	  @param xsink if an error occurs, the Qore-language exception information will be added here	  
+	  @return -1 if an exception was thrown, 0 for OK
+       */
+      DLLEXPORT int setOptions(const QoreHashNode *opts, ExceptionSink* xsink);
+
+      //! sets the default port
+      /** useful for c++ derived classes
+       */
+      DLLEXPORT void setDefaultPort(int prt);
+
+      //! sets the default path
+      /** useful for c++ derived classes
+       */
+      DLLEXPORT void setDefaultPath(const char *pth);
+
+      //! adds a protocol
+      /** useful for c++ derived classes
+       */
+      DLLEXPORT void addProtocol(const char *prot, int port, bool ssl = false);
+
+      //! sets the connection and response packet timeout value in milliseconds
+      DLLEXPORT void setTimeout(int to);
+
+      //! returns the connection and response packet timeout value in milliseconds
+      DLLEXPORT int getTimeout() const;
+
+      //! sets the default encoding for the object
+      DLLEXPORT void setEncoding(const QoreEncoding *qe);
+
+      //! returns the default encoding for the object
+      DLLEXPORT const QoreEncoding *getEncoding() const;
+      
+      //! sets the http version from a string
+      /**
+	 @param version either "1.0" or "1.1"
+	 @param xsink if an error occurs, the Qore-language exception information will be added here	  
+	 @return -1 if an exception was thrown, 0 for OK
+      */
+      DLLEXPORT int setHTTPVersion(const char* version, ExceptionSink* xsink);
+
+      //! returns the http version as a string (either "1.0" or "1.1")
+      /**
+	 @return the http version as a string (either "1.0" or "1.1")
+       */
+      DLLEXPORT const char* getHTTPVersion() const;
+
+      //! sets or clears HTTP 1.1 protocol compliance
+      /**
+	 @param h11 if true sets HTTP 1.1 protocol compliance, if false set 1.0
+       */
+      DLLEXPORT void setHTTP11(bool h11);
+
+      //! returns true if HTTP 1.1 protocol compliance has been set
+      DLLEXPORT bool isHTTP11() const;
+
+      //! sets the connection URL
+      /** @param url the URL to use for connection parameters
+	  @param xsink if an error occurs, the Qore-language exception information will be added here	  
+	  @return -1 if an exception was thrown, 0 for OK
+       */
+      DLLEXPORT int setURL(const char *url, ExceptionSink *xsink);
+
+      //! returns the connection parameters as a URL, caller owns the reference count returned
+      /**
+	 @return the connection parameters as a URL, caller owns the reference count returned
+      */
+      DLLEXPORT QoreStringNode *getURL();
+
+      //! sets the proxy URL
+      /** @param proxy the URL to use for connection to the proxy
+	  @param xsink if an error occurs, the Qore-language exception information will be added here	  
+	  @return -1 if an exception was thrown, 0 for OK
+       */
+      DLLEXPORT int setProxyURL(const char *proxy, ExceptionSink *xsink);
+
+      //! returns the proxy connection parameters as a URL (or 0 if there is none), caller owns the reference count returned
+      /**
+	 @return the proxy connection parameters as a URL, caller owns the reference count returned
+      */
+      DLLEXPORT QoreStringNode *getProxyURL();
+
+      //! clears the proxy URL
+      DLLEXPORT void clearProxyURL();
+
+      //! sets the SSL flag for use in the next connection
+      DLLEXPORT void setSecure(bool is_secure);
+
+      //! returns the SSL connection parameter flag
+      DLLEXPORT bool isSecure() const;
+
+      //! sets the SSL flag for use in the next connection to the proxy
+      DLLEXPORT void setProxySecure(bool is_secure);
+
+      //! returns the SSL proxy connection parameter flag
+      DLLEXPORT bool isProxySecure() const;
+
+      //! sets the max_redirects option
+      DLLEXPORT void setMaxRedirects(int max);
+
+      //! returns the value of the max_redirects option
+      DLLEXPORT int getMaxRedirects() const;
+
+      //! returns the peer certificate verification code if an SSL connection is in progress
+      DLLEXPORT long verifyPeerCertificate();
+
+      //! returns the name of the SSL Cipher for the currently-connected control connection, or 0 if there is none
+      /**
+	 @return the name of the SSL Cipher for the currently-connected control connection, or 0 if there is none
+       */
+      DLLEXPORT const char *getSSLCipherName();
+
+      //! returns the version string of the SSL Cipher for the currently-connected control connection, or 0 if there is none
+      /**
+	 @return the version string of the SSL Cipher for the currently-connected control connection, or 0 if there is none
+       */
+      DLLEXPORT const char *getSSLCipherVersion();
+
+      //! opens a connection and returns a code giving the result
+      /** @return -1 if an exception was thrown, 0 for OK
+       */
+      DLLEXPORT int connect(ExceptionSink *xsink);
+
+      //! disconnects from the remote server
+      DLLEXPORT void disconnect();
+      
+      //! sends a message to the remote server and returns the entire response as a hash, caller owns the QoreHashNode reference returned
+      /** possible errors: method not recognized, redirection errors, socket communication errors, timeout errors
+	  @param meth the HTTP method name to send
+	  @param path the path string to send in the header
+	  @param headers a hash of headers to add to the message
+	  @param data optional data to send (may be 0)
+	  @param size the byte length of the data to send (if this is 0 then no data is sent)
+	  @param getbody if true then a body will be read even if there is no "Content-Length:" header
+	  @param info if not 0 then additional information about the HTTP communication will be added to the hash (key-value pairs), keys "headers", and optionally "redirect-#", "redirect-message-#" (where # is substituted with the redirect sequence number), and "chunked" (boolean, present only if the response was chunked)
+	  @param xsink if an error occurs, the Qore-language exception information will be added here	  
+	  @return the entire response as a hash, caller owns the QoreHashNode reference returned (0 if there was an error)
+       */
+      DLLEXPORT QoreHashNode *send(const char *meth, const char *path, const QoreHashNode *headers, const void *data, unsigned size, bool getbody, QoreHashNode *info, ExceptionSink *xsink);
+
+      //! sends an HTTP "GET" method and returns the value of the message body returned, the caller owns the AbstractQoreNode reference returned
+      /** if you need to get all the headers received, then use QoreHTTPClient::send() instead
+	  @param path the path string to send in the header
+	  @param headers a hash of headers to add to the message
+	  @param info if not 0 then additional information about the HTTP communication will be added to the hash (key-value pairs), keys "headers", and optionally "redirect-#", "redirect-message-#" (where # is substituted with the redirect sequence number), and "chunked" (boolean, present only if the response was chunked)
+	  @param xsink if an error occurs, the Qore-language exception information will be added here	  
+	  @return the body of the response message, caller owns the QoreHashNode reference returned (0 if there was an error or no body returned)
+       */
+      DLLEXPORT AbstractQoreNode *get(const char *path, const QoreHashNode *headers, QoreHashNode *info, ExceptionSink *xsink);
+
+      //! sends an HTTP "HEAD" method and returns the headers returned, the caller owns the QoreHashNode reference returned
+      /** @param path the path string to send in the header
+	  @param headers a hash of headers to add to the message
+	  @param info if not 0 then additional information about the HTTP communication will be added to the hash (key-value pairs), keys "headers", and optionally "redirect-#", "redirect-message-#" (where # is substituted with the redirect sequence number), and "chunked" (boolean, present only if the response was chunked)
+	  @param xsink if an error occurs, the Qore-language exception information will be added here	  
+	  @return the entire response as a hash, caller owns the QoreHashNode reference returned (0 if there was an error)
+       */
+      DLLEXPORT QoreHashNode *head(const char *path, const QoreHashNode *headers, QoreHashNode *info, ExceptionSink *xsink);
+
+      //! sends an HTTP "POST" message to the remote server and returns the message body of the response, caller owns the AbstractQoreNode reference returned
+      /** possible errors: method not recognized, redirection errors, socket communication errors, timeout errors
+	  @param path the path string to send in the header
+	  @param headers a hash of headers to add to the message
+	  @param data optional data to send (should not be 0 for a POST)
+	  @param size the byte length of the data to send (if this is 0 then no data is sent)
+	  @param info if not 0 then additional information about the HTTP communication will be added to the hash (key-value pairs), keys "headers", and optionally "redirect-#", "redirect-message-#" (where # is substituted with the redirect sequence number), and "chunked" (boolean, present only if the response was chunked)
+	  @param xsink if an error occurs, the Qore-language exception information will be added here	  
+	  @return the body of the response message, caller owns the QoreHashNode reference returned (0 if there was an error or no body returned)
+       */
+      DLLEXPORT AbstractQoreNode *post(const char *path, const QoreHashNode *headers, const void *data, unsigned size, QoreHashNode *info, ExceptionSink *xsink);
+
+      //! sets the value of a default header to send with every outgoing message
+      /**
+	 @param header the name of the header to send
+	 @param val the string value to use in the HTTP header
+       */
+      DLLEXPORT void setDefaultHeaderValue(const char *header, const char *val);
+
+      //! decrements the reference count and deletes the object when it reaches 0
+      /**
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+      */
+      DLLEXPORT virtual void deref(ExceptionSink *xsink);
+
+      //! sets the connect timeout in ms
+      /**
+	 @param ms connect timeout in ms
+      **/
+      DLLEXPORT void setConnectTimeout(int ms);
+
+      //! returns the connect timeout in ms, negative numbers mean no timeout
+      /**
+	 @return the connect timeout in ms, negative numbers mean no timeout
+      **/
+      DLLEXPORT int getConnectTimeout() const;
+
+      //! sets the TCP_NODELAY flag on the object
+      /**
+	 This function will try to set the TCP_NODELAY flag immediately if the
+	 socket is connected, otherwise will it set a flag and the TCP_NODELAY
+	 option will be set on the next connection.  If an error occurs
+	 setting TCP_NODELAY on a connected socket, then this function will
+	 return a non-zero value, and errno will be set
+	 @param nodelay 0=turn off TCP_NODELAY, non-zero=turn on TCP_NODELAY
+	 @return 0=OK, non-zero means an error occured, errno is set
+       */
+      DLLEXPORT int setNoDelay(bool nodelay);
+
+      //! returns the value of the TCP_NODELAY flag on the object
+      DLLEXPORT bool getNoDelay() const;
+
+      //! returns the connection status of the object
+      DLLEXPORT bool isConnected() const;
 
       DLLLOCAL static void static_init();
 
-      DLLEXPORT QoreHTTPClient();
-      // set options with a hash, returns -1 if an exception was thrown, 0 for OK
-      // NOTE: this function is unlocked and designed only to be called with the constructor
-      DLLEXPORT int setOptions(Hash* opts, ExceptionSink* xsink);
-      // useful for c++ derived classes
-      DLLEXPORT void setDefaultPort(int prt);
-      // useful for c++ derived classes
-      DLLEXPORT void setDefaultPath(const char *pth);
-      // useful for c++ derived classes
-      DLLEXPORT void addProtocol(const char *prot, int port, bool ssl = false);
+      //! sets the event queue (not part of the library's pubilc API), must be already referenced before call
+      DLLLOCAL void setEventQueue(Queue *cbq, ExceptionSink *xsink);
 
-      DLLEXPORT void setTimeout(int to);
-      DLLEXPORT int getTimeout() const;
-
-      DLLEXPORT void setEncoding(class QoreEncoding *qe);
-      DLLEXPORT class QoreEncoding *getEncoding() const;
-
-      // returns -1 if an exception was thrown, 0 for OK
-      DLLEXPORT int setHTTPVersion(const char* version, ExceptionSink* xsink);
-      DLLEXPORT const char* getHTTPVersion() const;
-      DLLEXPORT void setHTTP11(bool h11);
-      DLLEXPORT bool isHTTP11() const;
-
-      // returns -1 if an exception was thrown, 0 for OK
-      DLLEXPORT int setURL(const char *url, class ExceptionSink *xsink);
-      DLLEXPORT class QoreString *getURL();
-
-      DLLEXPORT int setProxyURL(const char *proxy, class ExceptionSink *xsink);
-      DLLEXPORT class QoreString *getProxyURL();
-      DLLEXPORT void clearProxyURL();
-
-      DLLEXPORT void setSecure(bool is_secure);
-      DLLEXPORT bool isSecure() const;
-
-      DLLEXPORT void setProxySecure(bool is_secure);
-      DLLEXPORT bool isProxySecure() const;
-
-      DLLEXPORT void setMaxRedirects(int max);
-      DLLEXPORT int getMaxRedirects() const;
-
-      DLLEXPORT long verifyPeerCertificate();
-      DLLEXPORT const char* getSSLCipherName();
-      DLLEXPORT const char* getSSLCipherVersion();
-      
-      // returns -1 if an exception was thrown, 0 for OK
-      DLLEXPORT int connect(class ExceptionSink *xsink);
-      DLLEXPORT void disconnect();
-
-      DLLEXPORT class QoreNode *send(const char *meth, const char *path, class Hash *headers, const void *data, unsigned size, bool getbody, class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *get(const char *path, class Hash *headers, class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *head(const char *path, class Hash *headers, class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *post(const char *path, class Hash *headers, const void *data, unsigned size, class ExceptionSink *xsink);
+      DLLLOCAL void cleanup(ExceptionSink *xsink);
 };
 
 #endif 

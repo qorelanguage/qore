@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ Copyright 2003 - 2009 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -21,11 +21,49 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/VLock.h>
+#include <qore/AutoVLock.h>
 
 #include <assert.h>
 
-AutoVLock::AutoVLock()
+#include <vector>
+#include <string>
+
+struct qore_obj_notification_s {
+      QoreObject *obj;
+      std::string member;
+
+      DLLLOCAL qore_obj_notification_s(QoreObject *o, const char *m) : obj(o), member(m) {}
+};
+
+typedef std::vector<qore_obj_notification_s> qore_notify_list_t;
+
+struct qore_avl_private {
+      qore_notify_list_t *notify_list;
+
+      DLLLOCAL qore_avl_private() : notify_list(0)
+      {
+      }
+      DLLLOCAL ~qore_avl_private()
+      {
+	 if (notify_list)
+	    delete notify_list;
+      }
+      DLLLOCAL void add(QoreObject *obj, const char *mem)
+      {
+	 //printd(5, "qore_avl_private::add(%08x, '%s')\n", obj, mem);
+	 if (!notify_list)
+	    notify_list = new qore_notify_list_t;
+	 else {
+	    for (qore_notify_list_t::iterator i = notify_list->begin(), e = notify_list->end(); i != e; ++i)
+	       if ((*notify_list)[0].obj == obj && (*notify_list)[0].member != mem)
+		  return;
+	 }
+
+	 notify_list->push_back(qore_obj_notification_s(obj, mem));
+      }
+};
+
+AutoVLock::AutoVLock(ExceptionSink *n_xsink) : m(0), o(0), xsink(n_xsink), priv(0)
 {
    //printd(5, "AutoVLock::AutoVLock() this=%08p\n", this);
 }
@@ -34,29 +72,61 @@ AutoVLock::~AutoVLock()
 {
    //printd(5, "AutoVLock::~AutoVLock() this=%08p size=%d\n", this, size());
    del();
+   if (priv && priv->notify_list) {
+      ExceptionSink xsink2;
+      
+      for (qore_notify_list_t::iterator i = priv->notify_list->begin(), e = priv->notify_list->end(); i != e; ++i) {
+	 // run member notifications regardless of exception status
+	 //printd(5, "posting notification to object %08p, member %s\n", i->obj, i->member.c_str());
+	 i->obj->execMemberNotification(i->member.c_str(), &xsink2);
+      }
+      xsink->assimilate(&xsink2);
+   }
+
+   delete priv;
 }
 
 void AutoVLock::del()
 {
-   //printd(5, "AutoVLock::del() this=%08p size=%d\n", this, size());
-
-   abstract_lock_list_t::iterator i;
-   while ((i = begin()) != end())
-   {
-      //printd(5, "AutoVLock::del() this=%08p releasing=%08p\n", this, *i);
-      (*i)->release();
-      erase(i);
+   if (m) {
+      m->unlock();
+      m = 0;
+      if (o) {
+	 o->tDeref();
+	 o = 0;
+      }
    }
+   assert(!o);
 }
 
-void AutoVLock::push(class AbstractSmartLock *p)
+void AutoVLock::set(QoreThreadLock *n_m)
 {
-   //printd(5, "AutoVLock::push(%08p) this=%08p\n", p, this);
-   push_back(p);
+   assert(!m);
+   m = n_m;
 }
 
-int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, class ExceptionSink *xsink, int timeout_ms)
-{
+void AutoVLock::set(QoreObject *n_o, QoreThreadLock *n_m) {
+   assert(!m);
+   o = n_o;
+   m = n_m;
+}
+
+QoreThreadLock *AutoVLock::get() {
+   return m;
+}
+
+void AutoVLock::addMemberNotification(QoreObject *obj, const char *member) {
+   // ignore member notifications for updates made within the class
+   if (obj == getStackObject() || !obj->hasMemberNotification())
+      return;
+
+   if (!priv)
+      priv = new qore_avl_private;
+
+   priv->add(obj, member);
+}
+
+int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, ExceptionSink *xsink, int timeout_ms) {
    waiting_on = asl;
    
    int rc = 0;
@@ -80,12 +150,12 @@ int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, class ExceptionSink *xsink,
       //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p regrabbed lock\n", this, asl);
    }
    
-   waiting_on = NULL;
+   waiting_on = 0;
    
    return rc;
 }
 
-int VLock::waitOn(AbstractSmartLock *asl, QoreCondition *cond, VLock *vl, class ExceptionSink *xsink, int timeout_ms)
+int VLock::waitOn(AbstractSmartLock *asl, QoreCondition *cond, VLock *vl, ExceptionSink *xsink, int timeout_ms)
 {
    waiting_on = asl;
 
@@ -110,12 +180,12 @@ int VLock::waitOn(AbstractSmartLock *asl, QoreCondition *cond, VLock *vl, class 
       //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p regrabbed lock\n", this, asl);
    }
 
-   waiting_on = NULL;
+   waiting_on = 0;
    
    return rc;
 }
 
-int VLock::waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, class ExceptionSink *xsink, int timeout_ms)
+int VLock::waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, ExceptionSink *xsink, int timeout_ms)
 {
    waiting_on = asl;
 
@@ -144,7 +214,7 @@ int VLock::waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, class ExceptionSink
       //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p regrabbed lock\n", this, asl);
    }
 
-   waiting_on = NULL;
+   waiting_on = 0;
 
    return rc;
 }
@@ -152,7 +222,7 @@ int VLock::waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, class ExceptionSink
 #ifdef DEBUG
 void VLock::show(class VLock *vl) const
 {
-   //printd(0, "VLock::show() this=%08p, vl=%08p vl->waiting_on=%08p (in this=%08p)\n", this, vl, vl ? vl->waiting_on : NULL, vl ? find(vl->waiting_on) : NULL);
+   //printd(0, "VLock::show() this=%08p, vl=%08p vl->waiting_on=%08p (in this=%08p)\n", this, vl, vl ? vl->waiting_on : 0, vl ? find(vl->waiting_on) : 0);
 }
 #endif
 
@@ -197,5 +267,5 @@ class AbstractSmartLock *VLock::find(class AbstractSmartLock *g) const
    for (abstract_lock_list_t::const_iterator i = begin(), e = end(); i != e; ++i)
       if (*i == g)
 	 return g;
-   return NULL;
+   return 0;
 }

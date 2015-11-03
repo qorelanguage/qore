@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ Copyright 2003 - 2009 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -21,20 +21,20 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/IfStatement.h>
-#include <qore/Variable.h>
+#include <qore/intern/IfStatement.h>
+#include <qore/intern/StatementBlock.h>
 
-IfStatement::IfStatement(int start_line, int end_line, class QoreNode *c, class StatementBlock *i, class StatementBlock *e) : AbstractStatement(start_line, end_line)
+IfStatement::IfStatement(int start_line, int end_line, AbstractQoreNode *c, class StatementBlock *i, class StatementBlock *e) : AbstractStatement(start_line, end_line)
 {
    cond = c;
    if_code = i;
    else_code = e;
-   lvars = NULL;
+   lvars = 0;
 }
 
 IfStatement::~IfStatement()
 {
-   cond->deref(NULL);
+   cond->deref(0);
    if (if_code)
       delete if_code;
    if (else_code)
@@ -44,14 +44,12 @@ IfStatement::~IfStatement()
 }
 
 // only executed by Statement::exec()
-int IfStatement::execImpl(class QoreNode **return_value, class ExceptionSink *xsink)
+int IfStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
 {
-   int i, rc = 0;
+   int rc = 0;
    
-   tracein("IfStatement::exec()");
    // instantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      instantiateLVar(lvars->ids[i], NULL);
+   LVListInstantiator lvi(lvars, xsink);
    
    if (cond->boolEval(xsink))
    {
@@ -61,14 +59,10 @@ int IfStatement::execImpl(class QoreNode **return_value, class ExceptionSink *xs
    else if (else_code)
       rc = else_code->execImpl(return_value, xsink);
    
-   // uninstantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      uninstantiateLVar(xsink);
-   traceout("IfStatement::exec()");
    return rc;
 }
 
-int IfStatement::parseInitImpl(lvh_t oflag, int pflag)
+int IfStatement::parseInitImpl(LocalVar *oflag, int pflag)
 {
    int lvids = 0;
    

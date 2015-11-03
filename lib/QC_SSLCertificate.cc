@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2009 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,113 +21,131 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QC_SSLCertificate.h>
+#include <qore/intern/QC_SSLCertificate.h>
 
-DLLEXPORT int CID_SSLCERTIFICATE;
+DLLEXPORT qore_classid_t CID_SSLCERTIFICATE;
 
 /*
-void createSSLCertificateObject(class Object *self, X509 *cert)
+void createSSLCertificateObject(QoreObject *self, X509 *cert)
 {
    self->setPrivate(CID_SSLCERTIFICATE, new QoreSSLCertificate(cert));
 }
 */
 
-// syntax: SSLCertificate(filename)
-static void SSLCERT_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+// syntax: SSLCertificate(filename|binary)
+static void SSLCERT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0 = get_param(params, 0);
-   if (!p0 || p0->type != NT_STRING)
-   {
-      xsink->raiseException("SSLCERTIFICATE-CONSTRUCTOR-ERROR", "expecting file name as argument");
-      return;
+   const AbstractQoreNode *p0 = get_param(params, 0);
+   if (p0) {
+      qore_type_t t = p0->getType();
+      if (t == NT_STRING) {
+	 const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p0);
+	 // FIXME: this is not a good API!
+	 // if strlen < 200 then we assume it's a filename to remain backward compatible with the old API
+	 if (str->strlen() < 200) {
+	    // FIXME: this class should not read file - we have to check the parse option PO_NO_FILESYSTEM at runtime
+	    if (getProgram()->getParseOptions() & PO_NO_FILESYSTEM) {
+	       xsink->raiseException("INVALID-FILESYSTEM-ACCESS", "passing a filename to SSLCertificate::constructor() violates parse option NO-FILESYSTEM");
+	       return;
+	    }
+
+	    SimpleRefHolder<QoreSSLCertificate> qc(new QoreSSLCertificate(str->getBuffer(), xsink));
+	    if (!*xsink)
+	       self->setPrivate(CID_SSLCERTIFICATE, qc.release());
+	    return;
+	 }
+
+	 // create assuming a certificate in PEM format
+	 SimpleRefHolder<QoreSSLCertificate> qc(new QoreSSLCertificate(str, xsink));
+	 if (!*xsink)
+	    self->setPrivate(CID_SSLCERTIFICATE, qc.release());
+	 return;
+      }
+
+      if (t == NT_BINARY) {
+	 SimpleRefHolder<QoreSSLCertificate> qc(new QoreSSLCertificate(reinterpret_cast<const BinaryNode *>(p0), xsink));
+	 if (!*xsink)
+	    self->setPrivate(CID_SSLCERTIFICATE, qc.release());	    
+	 return;
+      }
    }
-   
-   QoreSSLCertificate *qc = new QoreSSLCertificate(p0->val.String->getBuffer(), xsink);
-   if (xsink->isEvent())
-      qc->deref();
-   else
-      self->setPrivate(CID_SSLCERTIFICATE, qc);
+
+   xsink->raiseException("SSLCERTIFICATE-CONSTRUCTOR-ERROR", "expecting file name or binary object in DER format as sole argument to SLLCertificate::constructor");
 }
 
-static void SSLCERT_copy(class Object *self, class Object *old, class QoreSSLCertificate *s, ExceptionSink *xsink)
+static void SSLCERT_copy(QoreObject *self, QoreObject *old, QoreSSLCertificate *s, ExceptionSink *xsink)
 {
    xsink->raiseException("SSLCERTIFICATE-COPY-ERROR", "SSLCertificate objects cannot be copied");
 }
 
-static QoreNode *SSLCERT_getPEM(class Object *self, class QoreSSLCertificate *s, class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *SSLCERT_getPEM(QoreObject *self, QoreSSLCertificate *s, const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreString *ps = s->getPEM(xsink);
-   if (ps)
-      return new QoreNode(ps);
-
-   return NULL;
+   return s->getPEM(xsink);
 }
 
-static QoreNode *SSLCERT_getInfo(class Object *self, class QoreSSLCertificate *s, class QoreNode *params, ExceptionSink *xsink)
-{
-   return new QoreNode(s->getInfo());
+static AbstractQoreNode *SSLCERT_getInfo(QoreObject *self, QoreSSLCertificate *s, const QoreListNode *params, ExceptionSink *xsink) {
+   return s->getInfo();
 }
 
-static QoreNode *SSLCERT_getSignature(class Object *self, class QoreSSLCertificate *s, class QoreNode *params, ExceptionSink *xsink)
-{
-   return new QoreNode(s->getSignature());
+static AbstractQoreNode *SSLCERT_getSignature(QoreObject *self, QoreSSLCertificate *s, const QoreListNode *params, ExceptionSink *xsink) {
+   return s->getSignature();
 }
 
-static QoreNode *SSLCERT_getSignatureType(class Object *self, class QoreSSLCertificate *s, class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *SSLCERT_getSignatureType(QoreObject *self, QoreSSLCertificate *s, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(s->getSignatureType());
+   return s->getSignatureType();
 }
 
-static QoreNode *SSLCERT_getPublicKey(class Object *self, class QoreSSLCertificate *s, class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *SSLCERT_getPublicKey(QoreObject *self, QoreSSLCertificate *s, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(s->getPublicKey());
+   return s->getPublicKey();
 }
 
-static QoreNode *SSLCERT_getPublicKeyAlgorithm(class Object *self, class QoreSSLCertificate *s, class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *SSLCERT_getPublicKeyAlgorithm(QoreObject *self, QoreSSLCertificate *s, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(s->getPublicKeyAlgorithm());
+   return s->getPublicKeyAlgorithm();
 }
 
-static QoreNode *SSLCERT_getSubjectHash(class Object *self, class QoreSSLCertificate *s, class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *SSLCERT_getSubjectHash(QoreObject *self, QoreSSLCertificate *s, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(s->getSubjectHash());
+   return s->getSubjectHash();
 }
 
-static QoreNode *SSLCERT_getIssuerHash(class Object *self, class QoreSSLCertificate *s, class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *SSLCERT_getIssuerHash(QoreObject *self, QoreSSLCertificate *s, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(s->getIssuerHash());
+   return s->getIssuerHash();
 }
 
-static QoreNode *SSLCERT_getSerialNumber(class Object *self, class QoreSSLCertificate *s, class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *SSLCERT_getSerialNumber(QoreObject *self, QoreSSLCertificate *s, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(s->getSerialNumber());
+   return new QoreBigIntNode(s->getSerialNumber());
 }
 
-static QoreNode *SSLCERT_getVersion(class Object *self, class QoreSSLCertificate *s, class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *SSLCERT_getVersion(QoreObject *self, QoreSSLCertificate *s, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(s->getVersion());
+   return new QoreBigIntNode(s->getVersion());
 }
 
-static QoreNode *SSLCERT_getPurposeHash(class Object *self, class QoreSSLCertificate *s, class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *SSLCERT_getPurposeHash(QoreObject *self, QoreSSLCertificate *s, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(s->getPurposeHash());
+   return s->getPurposeHash();
 }
 
-static QoreNode *SSLCERT_getNotBeforeDate(class Object *self, class QoreSSLCertificate *s, class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *SSLCERT_getNotBeforeDate(QoreObject *self, QoreSSLCertificate *s, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(s->getNotBeforeDate());
+   return s->getNotBeforeDate();
 }
 
-static QoreNode *SSLCERT_getNotAfterDate(class Object *self, class QoreSSLCertificate *s, class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *SSLCERT_getNotAfterDate(QoreObject *self, QoreSSLCertificate *s, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(s->getNotAfterDate());
+   return s->getNotAfterDate();
 }
 
-class QoreClass *initSSLCertificateClass()
+QoreClass *initSSLCertificateClass()
 {
-   tracein("initSSLCertificateClass()");
+   QORE_TRACE("initSSLCertificateClass()");
 
-   class QoreClass *QC_SSLCERTIFICATE = new QoreClass("SSLCertificate");
+   QoreClass *QC_SSLCERTIFICATE = new QoreClass("SSLCertificate");
    CID_SSLCERTIFICATE = QC_SSLCERTIFICATE->getID();
    QC_SSLCERTIFICATE->setConstructor(SSLCERT_constructor);
    QC_SSLCERTIFICATE->setCopy((q_copy_t)SSLCERT_copy);
@@ -145,6 +163,5 @@ class QoreClass *initSSLCertificateClass()
    QC_SSLCERTIFICATE->addMethod("getNotBeforeDate",      (q_method_t)SSLCERT_getNotBeforeDate);
    QC_SSLCERTIFICATE->addMethod("getNotAfterDate",       (q_method_t)SSLCERT_getNotAfterDate);
 
-   traceout("initSSLCertificateClass()");
    return QC_SSLCERTIFICATE;
 }

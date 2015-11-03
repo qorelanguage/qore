@@ -1,56 +1,1155 @@
-RELEASE NOTES for qore v0.6.2.4 - v0.6.2
+RELEASE NOTES for qore v0.7.8
 
-0.6.2.4 is a bugfix release from 0.6.2.3
-        * fixed a bug where a local variable declared as an immediate call reference call would cause a run-time core dump
-	* fixed a memory leak the use of Object::evalData() when an exception occurs
-	* fixed a memory error in QoreString::addch()
+release summary: 19 bug fixes from 0.7.7 plus a single enhancement
 
-0.6.2.3 is a bugfix release from 0.6.2.2
-	* compression of strings no longer includes the trailing null (broke XML-RPC and JSON-RPC communication over the HTTP server with compression with some browsers)
-	* do not throw an exception with sort*() functions when the argument is not a list - just return the argument
-	* fixed local and global variable destruction order (was reversed until now)
-	* fixed proxy URL reporting in Qore HTTPClient::getProxyURL() (was reporting the target port instead of the proxy port)
-	* corrected erroneous printd() debugging statement in Operator.cc (only affected debugging builds)
-	* fixed tibae, ncurses, pgsql, tibrv, and tuxedo module namespace handling for subprogram objects - when more than one subprogram object requested one of these 
-	  features, and it was not originally present in the parent Program object, a memory leak and erroneous behavior would result (mostly spurious exceptions)
-	* ensure that argument list is unique before modifying in QoreClass::evalMethodGate() (could cause erroneous behavior with methodGate methods in some circumstances)
-	* fixed a potential rare memory leak in exception handling related to QoreNode reference count managemnt in Operator.cc 
-	* fixed rethrow statement parsing to throw a parse exception when a rethrow statement is outside of a catch block (before would cause a run-time core dump)
-	* fixed Datasource class not to mark a Datasource as in a transaction if an exception occurs in the first statement of an implicit transaction
-        * fixed integer divide by zero, missing "else" could cause a run-time division by zero error
-	* fixed a memory leak in the "replace()" function if an exception occurs converting string encodings
-	* fixed a memory leak in the "parseBase64ToString()" function
-	* fixed a crashing bug in exception handling in a JSON generation helper function in lib/ql_json.cc
-        * fixed	a memory leak in the FtpClient class constructor
-        * fixed	a bug where the	string returned by QoreString::reverse() could be tagged with the wrong encoding under some circumstances
-        * fixed a bug where the HashIterator::takeValueAndDelete() function would leave the map entry in the Hash which could cause a crash later
-        * fixed a memory leak in exception handling in FtpClient::list()
-        * fixed	a memory leak in exception handling in object_MakeString()
-        * fixed	2 off-by-one bugs with string concatentation in	the QoreString class
-        * fixed	get*BigInt() time functions to return int64 instead of int
-        * fixed	a memory leak in QoreHTTPClient processing 100 responses
-        * fixed	a bug in the ? : operator where	immediate list values could be returned improperly (only the first element could be erroneously returned under some conditions)
-        * fixed a potentially crashing bug in makeFormattedXMLRPCCallStringArgs()
-        * eliminated spurious double exceptions	in rare	cases with list operators in Operator.cc 
-        * fixed	a bug in the "tibae" module where instantiating a sequence while giving an explicit class name skipped type checking that could result in a crash
-        * fixed a bug in QoreHTTPClient processing the protocol parameter as an integer port number
-        * fixed	a bug in regex_subst() (in RegexSubst::parseRT()) that would cause a run-time crash if a regular-expression parse exception were encountered at run-time
+* BUG FIX: fixed a bug processing arguments to in-object method calls in the
+      	   background operator
+* BUG FIX: fixed a bug processing arguments to static method calls in the
+      	   background operator
+* BUG FIX: fixed a bug where the File class would reset the encoding given in
+           the constructor on ::open*()
+* BUG FIX: fixed a bug where if local variables were used in a reference 
+           expression with the background operator, whenever the reference
+           was accessed in the called code a crash would result
+* BUG FIX: eliminated string parsing in block comments, fixed a bug where the
+           parser was not terminated at EOF in a block comment
+* BUG FIX: check for PO_NO_FILESYSTEM in FtpClient::put()
+* BUG FIX: fixed a cosmetic bug in exception string in FtpClient::get()
+* BUG FIX: fixed a bug in SSLCertificate::getSignature()
+* BUG FIX: fixed a bug in SSLCertificate::getInfo()
+* BUG FIX: fixed CANNOT-PROVIDE-FEATURE exception text
+* BUG FIX: fixed getpwnam() to use q_getgrnam() and correct a thread and
+           functional error in QC_Dir.cc
+* BUG FIX: fixed non-thread-safe usage of getpwnam() in QC_Dir.cc
+* BUG FIX: fixed adding virtual private data to classes with multiple virtual
+           base classes
+* BUG FIX: fixed Socket::recv() and Socket::recvBinary() when reading all data
+           available on the socket when the remote ends closes the connection
+           in an orderly way
+* BUG FIX: fixed parsing negative numbers in json strings
+* BUG FIX: fixed limited XML node size
+* BUG FIX: fixed a memory bug in the context statement when an exception
+           occurs in the context expression
+* BUG FIX: fixed a memory bug in the binary += operation; if the operand for
+           BinaryNode::append() is equal to the current buffer, a crash would
+           result
+* BUG FIX: fixed some bugs processing arguments in the XmlReader class
+* enhancement: added a QoreSocket::recvBinary() function to receive all data
+               available on the socket (with an optional initial timeout 
+	       value) and return it as a binary object; if 
+	       Socket::recvBinary() is called with buffer-size <= 0, then this
+	       variant is used
+
+
+***********************
+*** LANGUAGE ISSUES ***
+***********************
+
+Thread Stacks Overrun
+---------------------
+*) BUG: on platforms without the new "stack guard" implementation
+When the thread stack space is exhausted, the program will simply crash.
+Qore is heavily threaded and uses the stack often to save thread state, so a
+program like: 'sub a() { a(); } a();' will cause a core dump fairly quickly if
+the stack guard option is not available for the platform in question.
+
+Note that it is very easy to add a "stack guard" implementation for a new CPU;
+there has to be a way to retrieve the value of the current stack pointer
+register; this is normally a trivial operation.
+
+The following platforms are *not* vulnerable (because they have assembly stack
+guard implementations - also note that "stack guard" support does not depend
+on the operating system but rather on the CPU and the compiler and the
+assembler used - for example on HP-UX pa-risc gcc and aCC can use different,
+incompatible assemblers):
+  + i386 (gcc, SunPro CC)
+  + x86_64 (gcc, SunPro CC)
+  + powerpc - 32-bit only (gcc)
+  + sparc - 32-bit only (gcc, SunPro CC)
+  + itanium - 64bit only (gcc, aCC)
+  + pa-risc - 32-bit only (gcc, aCC)
+
+Out of Memory Errors
+--------------------
+*) BUG: out of memory conditions are not handled with the c++ new
+operator... I need a good solution for that.  Generally the Qore program will
+crash if the new operator cannot allocate the memory it needs, however work
+has begun on handling out of memory errors starting in v0.5.2.
+
+Object Comparisons
+------------------
+Note that the comparison operator == (and ===) will only report True if the
+two objects are the same object - future versions of Qore will support a
+mechanism to allow objects to implement their own handling for operators like
+these.
+
+References, Copying, Passing by Value
+-------------------------------------
+Unlike some other languages requiring garbage collection, Qore uses a
+deterministic reference-counted architecture for memory management.  When the
+references on a value node reach 0, that object is deleted.  When arguments to
+a function or method are passed by value, internally, for all value types
+other than an object (instantiation of a Qore class), the reference count is
+atomically incremented and the same value node is passed to the function or
+method.  In this case, if that value node is changed, then the value is copied
+and the changes are made to the copy.  So, for all value node types other than
+objects, a copy-on-write approach is used.  However objects are always passed
+by reference.  There is always only one copy of each object unless the object
+is explicitly copied.  In this sense, Qore acts like Java as far as I am aware
+(actually, like Java, a copy of a reference is passed when an object is passed
+as the argument to another function).
+
+
+Parsing
+-------
+*) Note that there is a parse lock on each program object.  Parsing on a
+   single program object is single-threaded.  However, the reentrant parser is
+   able to support simultaneous parsing on different program objects.
+
+*) Parsing is atomic; it is executed in 2 stages - 1) parse to pending data
+   structures, and 2) commit the pending data structures to the Qore Program
+   object.  References are resolved in the second stage, which allows flexible
+   referencing of functions, constants, classes, etc before they are declared.
+   Any parse errors at any stage will cause all the uncomitted parsing to be
+   rolled back.  The Qore Program class allows the programmer control over the
+   2 stages of parsing with the Program::parsePending(),
+   Program::parseCommit(), and Program::parseRollback() methods.
+
+
+*********************
+*** SQL Subsystem ***
+*********************
+
+*) NOTE that there is a transaction thread lock (mutex) on the Datasource
+ class (above the DBI driver level) that is automatically enabled if
+ autocommit is off on the Datasource; this transaction thread lock prohibits
+ two or more threads from being in a transaction at the same time on the same
+ datasource.  To best use this feature when starting a transaction with a
+ Datasource::select() (like a "select for update"), call
+ Datasource::beginTransaction() before the "select for update"; this will grab
+ the transaction lock manually.  You notify qore that the transaction has
+ completed by calling Datasource::commit() or Datasource::rollback().  Note
+ that this must be done in the same thread that started the transaction.
+ Currently there is no way in qore to execute SQL in separate threads
+ simultaneously on the same datasource if autocommit is off and one of the
+ threads has started a transaction (either by calling
+ Datasource::beginTransaction() or Datasource::exec()).  This is because	
+ normally a Datasource represents a single socket-based connection to a 
+ database server.  
+ Also note that transaction locks in the Datasource class and connection 
+ allocations in the DatasourcePool class are tracked as thread resources using
+ Qore's thread resource management infrastructure (so if the thread exits
+ without releasing the resource, an exception is thrown and the resouce is
+ automatically released).
+
+
+**************************************
+*** Current and Future Development ***
+**************************************
+
+Qore is being continuously developed and is making progress towards the 1.0
+release.
+
+There is no defined roadmap for 1.0; this milestone will be declared when the
+time feels right (typical of open-source projects).
+
+Version 0.7.0 brings qore a lot closer to the 1.0 release; one main set of
+features that may be added before then are hooks for debugging, tracing,
+breakpoints, etc.
+
+
+*********************
+*** General Notes ***
+*********************
+
+Threading
+---------
+Qore was designed to favor multithreaded performance over single-threaded
+performance.  Due to this reason Qore programs should be very scalable on SMP
+systems.
+
+Memory Cleanliness
+------------------
+Qore has been thoroughly reviewed with valgrind (on Linux) and dbx (on
+Solaris) for memory errors.  There are no known static or dynamic memory leaks
+in qore at this time.  However, see below on handling out of memory
+conditions.
+
+The new features have not been as extensively tested, and there is some danger
+of memory leaks with exception handling, as not every code path has been
+explicitly tested.
+
+Stability & Bugs
+----------------
+NOTE that while qore is version 0.7.*, this does not indicate a lack of
+stability.  The qore language is in heavy commercial use and must absolutely
+remain stable and without memory leaks.
+
+However not all code paths are as well tested as others; there are certainly
+unknown bugs out there.  
+
+
+---------------------
+RELEASE NOTES HISTORY
+---------------------
+
+*****************************
+RELEASE NOTES for qore v0.7.7
+*****************************
+
+release summary: 15 bug fixes from 0.7.6
+
+* BUG FIX: fixed a bug where taking a slice from an object could return
+           private members when called outside the class (backported from
+	   trunk)
+* BUG FIX: fixed a bug making a hash slice where the character encoding was
+           not ensured to be QCS_DEFAULT before trying to match key names
+           (backported from trunk)
+* BUG FIX: fixed a bug returning the last builtin data type ID; affects qore
+      	   modules that implement new builtin types (ex qt module, qt4 module)
+* BUG FIX: fixed a reference counting bug in callObjectMethodArgs() that could
+           lead to a crash if a list is passed as the 3rd argument
+* BUG FIX: fixed a bug executing builtin functions if an exception is raised
+           when evaluating the arguments (the function was erroneously 
+	   executed)
+* BUG FIX: fixed a bug in the FtpClient class that caused the connection to
+           never get established
+* BUG FIX: fixed a bug when a builtin class tries to access private data of an
+           object that's already been deleted; now an appropriate exception is
+           thrown; previously it would silently fail
+* BUG FIX: fixed examples/WSDL.qc de/serializing "int" and "short" from
+           negative numbers
+* BUG FIX: removed an extraneous reference and dereference in objects when
+           launching new threads in objects (slightly better performance
+	   launching new threads in objects)
+* BUG FIX: fixed a rare race condition in object constructors when an object
+           launches threads in the object and then the constructor throws an
+           exception afterwards
+* BUG FIX: fixed handling in the Datasource and DatasourcePool classes when
+           auto-reconnects fail (connection aborted handling) - now the
+           Datasource class tags the connection as aborted and closes the
+           connection when Datasource::connectionAborted() is called by the 
+	   DBI drivers, and the DatasourcePool class correctly returns the 
+           Datasource to the pool.  Additionally, the Datasource class will
+	   not execute any action on the Datasource once the connection has
+	   been aborted.  The flag is cleared when the connection is opened
+	   again.
+* BUG FIX: fixed memory leaks in parse exceptions with static method call
+           references (backported from 0.8.0/trunk)
+* BUG FIX: detected erroneous variable list declarations like:
+           our (my $x, ...) or my (our $x) and throw a parse exception
+           (backported from 0.8.0/trunk)
+* BUG FIX: fixed a harmless bug in TempEncodingHelper to remove a message from
+           valgrind (backported from 0.8.0/trunk)
+* BUG FIX: fixed memory bug in CryptoHelper - removed unnecessary and incorrect
+           string termination code (backported from 0.8.0/trunk)
+
+
+*****************************
+RELEASE NOTES for qore v0.7.6
+*****************************
+
+release summary: 34 bug fixes and major new features over 0.7.5
+
+*) BUG FIX: updated is_writable() and is_readable() to always return True if
+       	    called by effective UID 0 (root)
+*) BUG FIX: fixed a race condition in deleting objects by marking objects
+            atomically as inside destructor
+*) BUG FIX: updated sleep() to continue sleeping for the remaining time if
+            interrupted by a signal
+*) BUG FIX: changed decompression routines to a string to preserve binary 
+            data, especially trailing nulls
+*) BUG FIX: fixed C++ QoreString constructor when taking ownership of a string
+            buffer to ensure that the buffer is null terminated when the
+            allocated buffer is exactly equal to the string length
+*) BUG FIX: fixed scanner to ignore quoted text in comments (i.e. "*/" will be
+       	    ignored)
+*) BUG FIX: updated the Socket class implementation to retry connect(), 
+       	    accept(), recv(), send(), and select() (Socket::isDataAvailable(),
+	    Socket::connect() with timeout, etc) if interrupted by a signal
+*) BUG FIX: updated the File class implementation to retry read(), write() and
+       	    fcntl() with F_SETLKW (File::lockBlocking()) if interrupted by a
+	    signal
+*) BUG FIX: fixed set_signal_handler() to accept a closure as per the
+       	    documentation
+*) BUG FIX: fixed internal C++ library function test_funcref_param() to return
+       	    a value for call references and closures
+*) BUG FIX: fixed broken access to private members of an object outside the
+            class; before it was possible to delete and reassign private
+	    members from outside the class which should have been illegal
+*) BUG FIX: fixed a crashing bug in the File::open2() method
+*) BUG FIX: fixed class method registration so that static method names and
+            non-static method names have independent namespaces (i.e. a static
+	    method may now have the same name as a non-static method).  Static
+	    methods may still be called with normaly method call syntax,
+	    however if there is a non-static method with the same name, then it
+	    will be called instead.
+*) BUG FIX: when an HTTP header is received more than once, return all values
+            as a list under the header name in the resulting hash
+*) BUG FIX: fixed a potential race condition that could cause a crash in very
+            rare circumstances in internal C++ QoreClass::numMethods() and
+	    QoreClass::numStaticMethod() functions; to make a crash a program
+	    would have to be running and parsing new code into the program in
+	    a separate thread as well; this is explicitly supported by Qore,
+	    but very rarely done
+*) BUG FIX: fixed an XML-RPC parsing bug caused by a side-effect in a 
+            debugging statement
+*) BUG FIX: fixed a bug setting the character encoding in strings produced 
+            with makeXMLFragment() and makeFormattedXMLFragment() when the
+	    default character encoding is not UTF8
+*) BUG FIX: fixed concatentation of strings with embedded nulls
+*) BUG FIX: fixed split() to work on strings with embedded nulls
+*) BUG FIX: fixed method resolution for in-object method calls when the target
+            method is static
+*) BUG FIX: fixed a crash in parsing when a class with no parent classes
+            references a base class method of an existing class
+*) BUG FIX: fixed static method calls at the top level of a program
+*) BUG FIX: fixed type comparisons with new qore types implemented in external
+            modules
+*) BUG FIX: fixed configure to ensure compiling in 32-bit mode on Darwin/OSX if
+            32-bit mode is selected
+*) BUG FIX: fixed configure to assume 64-bit mode by default on Darwin 10 (OSX
+            Snow Leopard)
+*) BUG FIX: fixed $ARGV and $QORE_ARGV variables to always be of type list
+            as according to the documentation
+*) BUG FIX: fixed Socket::connect() with timeout (affects all classes using
+            sockets for communication
+*) BUG FIX: fixed DatasourcePool handling when a driver-handled auto-reconnect
+            fails (previously would cause a crash)
+*) BUG FIX: added QDOM_TERMINAL_IO to TermIOS class (previously this class
+            would be available even if PO_NO_TERMINAL_IO was in force)
+*) BUG FIX: fixed a bug parsing XML-RPC array data with empty value elements;
+       	    i.e.: <value/>
+*) BUG FIX: fixed a bug waiting on a Condition variable when thread read lock
+            is held by multiple threads (for RWLock)
+*) BUG FIX: fixed a bug calculating the time offset for waiting on a Condition
+            object
+*) BUG FIX: fixed millisecond formatting using "ms" with format_date()
+*) BUG FIX: fixed a crashing bug when a Condition object waits on a RWLock with
+       	    the read lock held
+*) BUG FIX: fixed a bug setting the exception location when throwing thread
+       	    resource exceptions when shutting down the qore library
+*) NEW FEATURE: added XmlDoc, XmlReader, and XmlNode classes for more robust
+       		XML parsing and document iteration
+*) NEW FEATURE: added support for validation with RelaxNG schemas: new 
+                functions: parseXMLWithRelaxNG() and 
+		parseXMLAsDataWithRelaxNG() as well as new method:
+		XmlDoc::validateRelaxNG()
+*) NEW FEATURE: added a new binary_to_string() function to convert a binary 
+                object directly to a string type
+*) NEW FEATURE: implemented binary object concatentation with the + and +=
+                operators
+*) NEW FEATURE: the -= operator now operates on objects (with string and list
+                operands) like it does with hashes
+*) NEW FEATURE: added static method TermIOS::getWindowSize() to get the 
+                current terminal window size (rows and columns)
+*) NEW FEATURE: new C++ APIs are available supporting a generic calling
+             	convention to facilitate the development of the new Qt4 module
+		using libsmoke; the latest module API is now 0.8
+*) NEW FEATURE: added the HTTPClient::isConnected() method
+*) NEW FEATURE: added the rename() function to rename or move files
+*) NEW FEATURE: case expressions now support the == operator for soft 
+                comparisons
+*) NEW FEATURE: updated split() to work on binary objects just like on 
+                strings, but will return a list of binary objects split by the
+		marker
+*) BUILD CHANGE: minimum libxml2 version required for compiling and linking is
+                 now 2.6.0
+
+
+*****************************
+RELEASE NOTES for qore v0.7.5
+*****************************
+
+release summary: 4 bug fixes and minor new features over 0.7.4
+
+*) BUG FIX: Datasource::close() would assert() in debug mode and do nothing in
+            non-debug mode
+*) BUG FIX: fixed a deadlock in running class destructor code when a member is
+       	    deleted that is itself an object, and that object's destructor
+	    references the parent object
+*) BUG FIX: fixed a bug in the "qore" binary reporting the library's latest
+       	    module API version (was using the compiled value and not the value
+	    from the library)
+*) BUG FIX: fixed a bug in the HTTPClient class where the connection was not
+            flagged as closed when an error occurred that indicated that the
+            client had closed the connection
+*) added a ModuleDir key to the hash output of get_qore_library_info()
+*) added an optional port number to datasources (i.e.: 
+   driver:user/pass@db(encoding)%host:port, updated:
+   + Datasource::constructor(): added support for a port argument
+   + Datasource::setPort(): new method
+   + Datasource::getPort(): new method
+   + DatasourcePool::constructor(): added support for a port argument
+   + DatasourcePool::getPort(): new method
+   + parseDatasource(): modified to parse the port if present
+*) updated module API to 0.7 supporting DBI drivers with port as a 
+   configuration option
+*) updated the %include directive to always search the directory of the
+   currently-executing script first if known when looking for files without an
+   absolute path
+*) added the C++ API function QoerObject::externalDelete() to handle the
+   situation when object private data is deleted externally (needed by the QT
+   modules)
+*) improved error messages in the scanner when trying to %include something
+   that's not a regular file
+
+
+*****************************
+RELEASE NOTES for qore v0.7.4
+*****************************
+
+release summary: qore 0.7.4 contains minor feature improvements over 0.7.3 and
+                 twenty-two bug fixes
+
+*) BUG FIX: fixed localtime() when called with no argument to return the
+   current date and time as per documentation
+*) BUG FIX: fixed a race condition that could cause a deadlock when calling
+   pthread_join() when Qore code calls "exit()" when multiple threads are
+   running
+*) BUG FIX: fixed the Dir::listFiles() method; the mask used would not filter
+   out directories
+*) BUG FIX: fixed crashes in the File class due to unsigned data type being
+   used and the comparison (< 0) that signaled an error always failed; the
+   crash would happen when a non-File object was read
+*) BUG FIX: fixed outputting recursive data structures with the %n and %N 
+   printf format specifiers (would otherwise result in a crash - for example,
+   when an object contains a list that also contains the object, etc)
+*) BUG FIX: fixed object access deadlock scenarios
+*) BUG FIX: fixed the "-" operator with: hash-string and hash-list (also
+   hash-=string and hash-=list) to remove the value(s) from the hash, not call
+   the delete operator
+*) BUG FIX: NULL values are serialized as "null" JSON values
+*) BUG FIX: fixed parsing of a corner case of marginally valid XML-RPC
+*) BUG FIX: fixed XML-RPC serialization to handle NOTHING (no value) and NULL
+   identically
+*) BUG FIX: fixed XML-RPC serialization to never output an empty <param/>
+   element, as it could potentially break some implementations (the XML-RPC
+   spec is not very clear on this).  Note: we send empty value elements:
+   <value/> when serializing NOTHING or NULL, which may not be correct either
+*) BUG FIX: do not assume that a trailing null should terminate the string when
+   reading string data from files; include the trailing null in the string
+*) BUG FIX: fixed a bug parsing base64 strings when newlines and/or linefeeds
+   trailed the base64-encoded data
+*) BUG FIX: fixed outputting '%%' as '%' in *printf*() functions
+*) BUG FIX: fixed a bug parsing hashes where the hash key was given as a
+   constant
+*) BUG FIX: fixed a bug in the delete operator where shared data was being
+   updated in place instead of copied and then updated
+*) BUG FIX: fixed some race conditions that could cause deadlocks with the
+   getAllThreadCallStacks() function (not normally enabled by default)
+*) BUG FIX: ignore '\n' and '\r' when parsing base64-encoded strings
+*) BUG FIX: fixed a crashing bug when trying to copy member elements of a 
+   deleted object
+*) BUG FIX: fixed the foreach statement when used with a reference and the 
+   break statement is used
+*) BUG FIX: fixed a rare reference dependency bug where system classes were 
+   being destroyed while still referenced in user code
+*) BUG FIX: fixed %= with a modula operand of 0 to set the lvalue to 0
+   (previously the expression was ignored if the modula operand was 0)
+*) added the abilty for a Condition variable to wait on RWLock objects as well
+   as Mutex objects
+*) dereferencing a hash or object with a list will return a slice of the hash
+   or object as a hash: ex: $hash.("key1", "key2")
+*) allow %include parse directives to quote the file names (ignore leading and
+   trailing quotes around the file name)
+*) new Socket class methods:
+   + Socket::isWriteFinished(<timeout_ms>): for future support for 
+     non-blocking writes
+   + Socket::setNoDelay(<boolean>): to set the TCP_NODELAY option
+   + Socket::getNoDelay(): returns value of the TCP_NODELAY option
+*) new functions to allow for explicitly specifying the encoding when
+   serializing XML-RPC strings:
+   + makeXMLRPCCallStringWithEncoding()
+   + makeXMLRPCCallStringArgsWithEncoding()
+   + makeXMLRPCResponseStringWithEncoding()
+   + makeXMLRPCFaultResponseStringWithEncoding()
+   + makeFormattedXMLRPCCallStringWithEncoding()
+   + makeFormattedXMLRPCCallStringArgsWithEncoding()
+   + makeFormattedXMLRPCResponseStringWithEncoding()
+   + makeFormattedXMLRPCFaultResponseStringWithEncoding()
+*) added new HTTPClient methods for manipulating the TCP_NODELAY setting:
+   + HTTPClient::setNoDelay()
+   + HTTPClient::getNoDelay()
+*) now the XmlRpcClient and JsonRpcClient constructors accept an optional
+   second argument that, when True, will inhibit the immediate connection
+   attempt on the socket and instead allow the socket connections to be either
+   manually established or established on demand with the first request
+
+
+*****************************
+RELEASE NOTES for qore v0.7.3
+*****************************
+
+release summary: qore 0.7.3 contains minor feature improvements over 0.7.2 and
+                 five bug fixes
+
+*) Socket::connect() takes an optional timeout value
+*) HTTPClient::constructor() options takes a new option: connect_timeout
+   (usable with the XmlRpcClient and JsonRpcClient classes as well)
+*) SOAP support updated in examples directory: SoapClient.qc, SoapHandler.qc,
+   HTTPServer.qc, WSDL.qc
+*) added is_writable() function as a correctly-spelled alias for
+   is_writeable()
+*) fixed and documented getcwd() function
+*) added new functions parseXMLAsData() and parseXMLAsDataWithSchema()
+*) BUG FIX: fixed a bug in the binary() function when converting binary
+   strings to binary type when the strings had embedded nulls
+*) BUG FIX: fixed a crashing bug in the handling of GLIBC gethostbyname_r()
+   failures; contrary to the documentation, the return value is 0 even when
+   the function fails
+*) BUG FIX: fixed some erroneous builds on powerpc where processor-specific
+   features were not built properly
+*) BUG FIX: fixed a bug handling GLIBC gethostbyaddr_r() failures; contrary to
+   the documentation, the return value is 0 even when the function fails
+*) BUG FIX: fixed a bug doing math on negative units of relative dates;
+   invalid dates would be returned
+
+
+*****************************
+RELEASE NOTES for qore v0.7.2
+*****************************
+
+release summary: qore 0.7.2 is a bugfix release from 0.7.1
+
+* several bug fixes (including 8 crashing bugs), including packaging fixes
+* support for timeouts in Socket::connect*() methods
+* terminal attribute support, TermIOS class, new constants
+* non-blocking read support for the File class
+* event support for File class
+
+------------------------------------------------------------------------------
+* several bug fixes (including 8 crashing bugs), including packaging fixes
+CRASH FIX: fixed a crashing bug in the map operator when the list operand is
+           not a list
+
+CRASH FIX: fixed a crashing bug in the parser with parse errors
+
+CRASH FIX: fixed crash when pthread_create fails in thread.cc, thanks to
+           Dmytro Milinevskyy for the info and patch
+
+CRASH FIX: fixed a race condition with getAllThreadCallStacks() (only affected
+       	   debugging builds)
+
+CRASH FIX: fixed a bug where thread-local variables (as top-level local
+           variables of a Program) were not being instantiated when another
+	   Program called a function in a Program with such variables
+
+CRASH FIX: fixed an issue where proper locking was not done to DBI drivers and
+           more than one call could be issued to a connection at one time, 
+	   causing crashes
+
+CRASH FIX: fixed a crashing bug in the %= operator when the operand is 0
+
+CRASH FIX: fixed a crashing bug in the map with select operator when the map
+      	   expression is 0
+
+fix to allow references to be used in closure and call reference calls
+
+implemented an optimization to map to efficiently handle the case when no
+return value is used
+
+spec file fixes; 0.7.1 spec file was badly broken
+
+fixed configure.ac to account for linkable libraries in /lib - would cause
+configure to fail before
+
+* support for timeouts in Socket::connect*() methods
+added optional timeout parameters in ms to:
+      Socket::connect()
+      Socket::connectINET()
+      Socket::connectSSL()
+      Socket::connectINETSSL()
+
+see updated documentation for details
+
+* terminal attribute support, TermIOS class, new constants
+new methods:
+    File::setTerminalAttributes(action, TermIOS);
+    File::getTerminalAttributes(TermIOS);
+
+new class:
+    TermIOS
+
+* non-blocking read support for the File class
+new method:
+    File::isDataAvailable()
+
+the following methods now take optional timeout values in milliseconds:
+    File::read()
+    File::readBinary()
+
+* event support for File class
+new method:
+    File::setEventQueue()
+
+new events:
+    QORE_EVENT_OPEN_FILE
+    QORE_EVENT_FILE_OPENED
+    QORE_EVENT_DATA_READ
+    QORE_EVENT_DATA_WRITTEN
+
+new event source:
+    SOURCE_FILE
+
+
+*******************************
+RELEASE SUMMARY for qore v0.7.1
+*******************************
+
+release summary: qore 0.7.1 is a bugfix release from 0.7.0
+
+release overview:
+*) bug fixes
+*) new ABI 5.0, problems were found with ABI 4.0
+*) packaging and build updated to support building universal binaries on
+   Darwin
+*) support for atomic operations in 64bit builds with itanium processors
+*) support for stack guard including RSE monitoring in 64-bit builds on
+   itanium processors
+*) default module dir change, module handling updated
+*) network event notification support
+*) implemented the ability to specify qore, module, and feature version
+   requirements
+*) misc additions
+
+------------------------------------------------------------------------------
+*) bug fixes
+a bug in the != operator for strings was fixed; != would return True for
+strings with different encodings but otherwise equal content; this has been
+fixed to return False
+
+fixed a bug in QoreString::set()
+
+fixed 2 crashing bugs in the "-" operator: the operator functions were
+expecting certain arguments but the operator code was making partial matches
+and sending other types to the functions.  Added the abilty for an operator
+function to require an exact argument match for both arguments.
+
+fixed evaluation of nonsensical arguments with the "-" and "+" operators; now
+this will return NOTHING instead of nonsense.
+
+fixed a crashing bug in the FtpClient class; the FtpClient class was not
+usable in Qore 0.7.0
+
+fixed a parsing bug with the switch statement when a case value using a
+constant was not resolved caused a crash (affected debug builds only)
+
+fixed parsing XML-RPC arrays when the first element is empty (would previously
+generate an exception even though the XML was valid)
+
+mostly fixed signal handling on Darwin, however for some reason it looks like
+signal handling after a fork() on Leopard (OS/X 10.5, Darwin 9.5) is broken. I
+haven't figured out why.
+
+fixed a setting the URL in the HTTPClient class with only a path if a hostname
+is already set
+
+fixed a bug setting the URL in parseURL()
+
+fixed a bug parsing the Content-Type in the HTTPClient class
+
+fixed Queue::copy() to copy the elements in the original Queue instead of
+returning an empty object
+
+fixed the problem where exit() caused a random segmentation fault when other
+threads were active by doing the following:
+   +) all threads started with joinable status PTHREAD_CREATE_JOINABLE,
+      threads call pthread_detach() before exiting
+   +) implemented a new function, qore_exit_process() to be called instead of
+      exit() that calls pthread_cancel() on each thread (except the calling
+      thread) and then pthread_join() on that thread
+   +) added a call to pthread_testcancel() in AbstractStatement::exec()
+
+fixed a bug in an internal API in QoreHTTPClient where the wrong type was
+passed
+
+fixed bugs in JsonRpcClient and XmlRpcClient where a new connection was
+established with each request
+
+fixed a bug in the HTTPClient where a new connection was established for each
+request even if the connection was already open and Keep-Alive was set
+
+fixed socket handling on HPUX 64/bit builds where the header files declare
+socklen_t to be 8 bytes wide, but the libraries expect a pointer to a 32-bit
+value
+
+fixed getAllThreadCallStacks() (only enabled with debugging builds and with
+the explicit configure option: --enable-runtime-thread-stack-trace because it
+has a performance penalty) by requiring all threads to grab a read lock
+before updating the thread stack, and getAllThreadCallStacks() to grab a write
+lock before reading all threads' call stacks.  This function was not
+thread-safe before now.
+
+SOAP improvements in example code in the examples/ directory:
+     WSDL.qc, SoapHandler.qc, SoapClient.qc, HTTPServer.qc
+soap 1.2 is handled better, namespace handling improvements
+
+*) new ABI 5.0, problems were found with ABI 4.0
+The 4.0 ABI was supposed to be fixed for a while; hopefully version 5.0 will
+last a little longer :-)
+
+The multi-byte character support was defective; it could lead to reading from
+outside the buffer, so functions in QoreEncoding.h were updated.
+
+Also it turns out that an array is not the same as a pointer to the array
+type; and the array size of global objects is somehow part of the ABI.
+
+Changing any of these arrays (including character arrays) caused ABI issues,
+which was really a bad situation.
+
+The following symbols are now pointers (all except the last are in Qore.h, the
+last is in QoreProgram.h):
+
+DLLEXPORT extern const char *qore_version_string;
+DLLEXPORT extern const char *qore_target_os;
+DLLEXPORT extern const char *qore_target_arch;
+DLLEXPORT extern const char *qore_module_dir;
+DLLEXPORT extern const char *qore_cplusplus_compiler;
+DLLEXPORT extern const char *qore_cflags;
+DLLEXPORT extern const char *qore_ldflags;
+DLLEXPORT extern const char *qore_build_host;
+DLLEXPORT extern const char **qore_warnings;
+
+The old definitions were:
+DLLEXPORT extern const char qore_version_string[];
+DLLEXPORT extern const char qore_target_os[];
+DLLEXPORT extern const char qore_target_arch[];
+DLLEXPORT extern const char qore_module_dir[];
+DLLEXPORT extern const char qore_cplusplus_compiler[];
+DLLEXPORT extern const char qore_cflags[];
+DLLEXPORT extern const char qore_ldflags[];
+DLLEXPORT extern const char qore_build_host[];
+DLLEXPORT extern const char *qore_warnings[];
+
+Note that module API 0.4 (supported by qore 0.7.0) is not supported
+
+*) packaging and build updated to support building universal binaries on
+Darwin Qore header files and build were updated to support building Universal
+binaries by using cpp macros to select the right inline assembly code or
+defines for atomic operation and stack guard support in the macros-*.h header
+files.
+
+*) support for atomic operations in 64bit builds with itanium processors
+supported with g++ and aCC, 64-bit builds only
+Note that if you built qore 0.7.0 for 64bit itanium previously, the ABI now
+will be completely incompatible with this version due to atomic operation
+support, therefore all modules will have to be rebuilt with the new header
+files.
+
+*) support for stack guard including RSE monitoring in 64-bit builds on
+   itanium processors
+RSE = Register Stack Engine: the itanium has basically 2 stacks, a normal
+stack and a register stack; qore now will throw an exception before either
+stack will overflow.
+
+*) default module dir change, module handling updated
+the default module directory is $libdir/qore-modules; all modules should be
+stored in this directory from now on.  Modules are also expected to append the
+module api supported to the file name (i.e.: module-api-0.5.qmod).
+
+Qore has been updated to support multiple module APIs; when loading a feature,
+the corresponding module name will be searched with the module api tag in
+descending order, if not found then the filename without a module api will be
+searched.
+
+*) network event notification support
+you can now add an event queue (Queue object) to the Socket, HTTPClient,
+FtpClient, XmlRpcClient, and JsonRpcClient classes.
+
+Currently the Socket, HTTPClient, and FtpClient classes all post events to the
+event queue, if one is set.
+
+The events allow for more detailed reporting of the technical events occurring
+during network operations that are abstracted to a relatively high level
+through the previously-listed classes.
+
+The events supported are:
+  EVENT_PACKET_READ
+  EVENT_PACKET_SENT
+  EVENT_HTTP_CONTENT_LENGTH
+  EVENT_HTTP_CHUNKED_START
+  EVENT_HTTP_CHUNKED_END
+  EVENT_HTTP_REDIRECT
+  EVENT_CHANNEL_CLOSED
+  EVENT_DELETED
+  EVENT_FTP_SEND_MESSAGE
+  EVENT_FTP_MESSAGE_RECEIVED
+  EVENT_HOSTNAME_LOOKUP
+  EVENT_HOSTNAME_RESOLVED
+  EVENT_HTTP_SEND_MESSAGE
+  EVENT_HTTP_MESSAGE_RECEIVED
+  EVENT_HTTP_FOOTERS_RECEIVED
+  EVENT_HTTP_CHUNKED_DATA_RECEIVED
+  EVENT_HTTP_CHUNK_SIZE
+  EVENT_CONNECTING
+  EVENT_CONNECTED
+  EVENT_START_SSL
+  EVENT_SSL_ESTABLISHED
+
+For most events posted to the event Queue, associated detailed information is
+posted to the queue along with the event type a listed above; for example when
+the EVENT_HTTP_CONTENT_LENGTH event is posted, the number of bytes given in the
+content-length header is also posted.
+
+See the Qore 0.7.1 documentation for more information; see examples/qget for an
+example of a qore script using this new functionality (for example, run
+examples/qget -v <url> to see all network events as a URL is retrieved).
+
+*) implemented the ability to specify qore, module, and feature version
+   requirements
+
+you can now use:
+
+  %requires <module> OP <version>
+
+where OP is one of <, <=, =, >=, >
+
+for example: 
+
+  %requires oracle >= 1.0.1
+
+also a special feature "qore" was implemented to give a requirement for the
+qore library, for example: 
+
+  %requires qore >= 0.7.1 
+
+*) misc additions
+added AF_UNIX and AF_LOCAL constants (which are actually interchangable)
+
+
+*******************************
+RELEASE SUMMARY for qore v0.7.0
+*******************************
+
+NOTE: modules are now delivered separately from the qore library, see the file
+      README-MODULES for more information
+NOTE: for platform-specific notes and build instructions, please see the file
+      BUILD
+
+qore 0.7.0 is a major release with major new features - please see compatibility
+warnings beflow.
+
+release overview:
+*) COMPATIBILITY WARNING: local variables declared with "my" at the top-level
+   are now global thread-local variables
+*) COMPATIBILITY WARNING: qore command-line options changed, 3 seldomly-used
+   short options removed
+*) all modules are delivered separately now from the library, see README-MODULES
+   for more information
+*) stable ABI and API, cleaned-up public header files, development packages
+*) library may be used under the GPL or LGPL (enforced with license tagging on
+   library and module initialization)
+*) documented public API (with doxygen), documentation packages
+*) complete reimplementation of the type and operator subsystems
+*) reimplemented variable and object locking, no more possibility of nested
+   locks and deadlocks
+*) major performance and memory usage improvements
+*) support for closures and encapsulating the state of local variables in the
+   closure
+*) some (quasi) functional programming support: new operators: map, foldr, 
+   foldl, select
+*) new implicit argument references: $$ (entire argument list), $1, $2, ...
+*) new special object method: "memberNotification()", called when members are
+   updated externally to the class
+*) "static" class methods are now supported
+*) dereference string characters and binary bytes with [] operator
+*) new qt-core, qt-gui, qt-opengl, qt-svg, opengl, glut, asn1, and xmlsec 
+   modules (delivered separately, see the file README-MODULES for more 
+   information)
+*) bz2 compressed data support (compression and decompression)
+*) file locking support in the File class (based on fcntl())
+*) support for SHA224, SHA256, SHA384, and SHA512 digest algorithms
+*) 64-bit builds are the default on x86_64 CPUs
+*) module dependencies
+*) XML improvements, some XSD support
+*) thread stack overrun protection on some platforms
+*) build option support and constants
+*) initial SOAP support included as user code
+*) lots of bug fixes, new functions, new clases, class improvements, etc
+
+*) COMPATIBILITY WARNING: local variables declared with "my" at the top-level
+   are now global thread-local variables
+This can be considered a bug fix as Qore was updated to match documented
+behavior.  However, in order to implement this, a new restriction was added to
+declaring local variables at the top-level: they can only be declared in the
+first parsing call in a Program object.  That is; if you try to declare a new
+top-level local variable with "my" in a Program object that already contains
+code, a parse exception will be raised.
+
+*) COMPATIBILITY WARNING: qore command-line options changed, 3 seldomly-used
+   short options removed
+The following short options were removed: 
+ -C: corresponding to "--no-class-defs"
+ -J: corresponding to "--no-constant-defs"
+ -X: corresponding to "--no-thread-classes" (this short option was reused for a
+     new option: --eval=arg)
+
+The respective long options are still available.
+
+Some new command-line options were added:
+ --module-dir
+ --module-api
+ -X, --eval=arg
+
+Also the -V, --version output gives much more information about the qore build.
+
+*) all modules are delivered separately now from the library, see README-MODULES
+   for more information
+due to the fact that Qore now has a stable and documented API, and that the
+number of qore modules is growing, modules have been separated from the qore
+library and are now delivered separately.  See the file README-MODULES for more
+information.
+
+*) stable ABI and API, cleaned-up public header files, development packages
+Finally Qore is useful for what it was designed to be in the first place: for
+embedding code in arbitrary applications.  
+
+With a public, stable, and documented API, qore can be used by anyone that wants
+to support logic embedding in their application.
+
+Relevant classes exported by the Qore API now have private implementations,
+separating the interface from the implementation.
+"const correctness" has been liberally applied to the API as well.
+Modules may now be packaged and delivered separately from Qore.
+
+Development packages (rpms) are now available as well.
+
+*) library may be used under the GPL or LGPL 
+With this release, the qore library may be used under either the GPL or LGPL
+licenses.  
+
+When calling qore_init() to initialize the library, you have to pass a license
+argument.
+
+When the qore library is initialized with the LGPL license, no licenses tagged
+as requiring the GPL license can be loaded.
+
+*) documented public API (with doxygen), documentation packages
+The Qore API documentation is generated with doxygen directly from the Qore
+header files.
+
+Documentation packages (rpms) are now available as well.
+
+*) complete reimplementation of the type and operator subsystems
+The internal type and operator subsystems have been streamlined and improved for
+this release.
+
+*) reimplemented variable and object locking, no more possibility of nested
+   locks and deadlocks
+Internal locking in Qore was simplified by eliminating nested locks and the
+possibility of deadlocking based on internal locks.
+
+*) major performance and memory usage improvements
+Performance of Qore code has been significantly improved for this release.
+Additionally, the qore library uses less memory than in previous versions.
+
+*) support for closures and encapsulating the state of local variables in the
+   closure
+Closures are now supported, ex:
+
+my $a = sub () { return $x + $y * 3; };
+
+the local variable $a can be returned as a return value of a function or called
+like a call reference.  If the closure references local variables from outside
+the closure's scope, when the closure is created the values of those variables
+are encapsulated in the closure and can be used normally.  Such encapsulated
+local variables can also be used in other threads (normally Qore local variables
+are local to the thread they are declared in).
+
+*) some (quasi) functional programming support: new operators: map, foldr,
+   foldl, select
+These operators provide advanced and efficient list processing functionality to
+Qore.
+
+  +) map: "maps" an expression onto a list and returns a list of the results of
+     evaluting the expression on each element of the list
+  +) foldr and foldl: "fold" an expression on a list, evaluting each new element
+     of the list with the result of the last evaluation and the new element
+  +) select: creates a new list from a list
+
+*) new implicit argument references: $$ (entire argument list), $1, $2, ...
+Implicit arguments are used primary with the new list operators (map, foldr,
+foldl, and select), but can also be used in functions now as well.
+
+*) new special object method: "memberNotification()", called when members are
+   updated externally to the class
+Objects can now be notified if public members are modified from outside the
+object's scope by declaring a new special method: "memberNotification()"
+
+*) "static" class methods are now supported
+Static class methods are not associated with an object; they are like regular
+functions attached to a class.
+Static methods may also be private.
+
+This allows programmers to write more efficient object-oriented programs and
+also addresses some Qore programmers' desire to put functions in namespaces
+(functions cannot be declared in a Qore namespace).
+
+*) dereference string characters and binary bytes with [] operator
+To get a single character of a string, the [] operator may be used, similar to
+how it's used with lists.
+To get the value of a byte, the [] operator may be used as well.
+
+Note that the [] operator when used in an lvalue expression will always convert
+its argument to a list
+(i.e. $string[1] = "a" or $binary[1] = 0x1f will not work yet - assuming $string
+is a string and $binary is a binary)
+
+*) new modules: qt-core, qt-gui, qt-opengl, qt-svg, opengl, glut, asn1, and 
+   xmlsec
+QT modules are based on QT4
+all modules are now delivered separately from the qore library, see the file
+README-MODULES for more information
+
+*) bz2 compressed data support (compression and decompression)
+libbz2 is now required to run qore, and bz2 includes are required to build qore
+new functions provided: bzip2(), bunzip2_to_binary(), bunzip2_to_string() 
+
+*) improvements to the File class 
+file locking support in the File class (based on fcntl()), more
+new File class members:
+  +) File::lock()
+  +) File::lockBlocking()
+  +) File::getLockInfo()
+  +) File::chown()
+
+*) support for SHA224, SHA256, SHA384, and SHA512 digest algorithms
+if Qore is built with an appropriate version of openssl, support for these new
+digest algorithms is supplied through the following functions:
+  +) SHA224()
+  +) SHA224_bin()
+  +) SHA256()
+  +) SHA256_bin()
+  +) SHA384()
+  +) SHA384_bin()
+  +) SHA512()
+  +) SHA512_bin()
+
+*) 64-bit builds are the default on x86_64 CPUs on Linux
+the configure script will automatically set the build to a 64-bit target if the
+CPU is detected to be x86_64 on Linux
+note that on Solaris x86_64 you still have to manually add --enable-64bit to
+configure
+
+*) XML improvements, XSD support
+  +) parseXMLWithSchema() - new function supports parsing an XML string based on
+     an XSD schema
+  +) improved XML generation, top-level elements may now have attributes
+  +) improved XML parse error reporting, more details are included and context
+     is now reported in the exception strings
+
+*) thread stack overrun protection on some platforms
+there is a new "stack guard" implementation that will cause an exception to be
+thrown when a thread runs out of stack space (instead of crashing the entire
+process, which is what happened previously).
+
+The "stack guard" implementation simply determines the stack size for the thread
+and then checks the stack pointer before each Qore statement is executed to see
+if if passes a threshold.  
+
+If the threshold has been breached, the statement is not executed and an
+exception is raised instead.
+
+See the new test in test/stack-test.q for an example.
+
+Stack guard availability depends on the compiler and CPU used to build qore; so
+far there are tested implementations on:
+  + i386 (gcc, SunPro CC), x86_64 (gcc, SunPro CC), 32-bit powerpc (gcc), 
+    32-bit sparc (gcc, SunPro CC), 32-bit pa-risc (gcc, HP aCC)
+
+Other platforms will still crash when the thread's stack is overrun.
+
+*) build option support
+now qore has constants that will tell you which options are available in the
+library.
+
+Furthermore all functions are now available for parsing; but functions without
+an implementation will throw an exception (in previous versions of qore parse
+exceptions would be raised due to missing functions, which meant that it was not
+possible to build portable programs that could optionally use these functions if
+available).
+
+You can check the option constants before running the function.
+Optional functions are: 
+  +) round()                                                   (depends on C library support, missing on Solaris 8 for example)
+  +) timegm()                                                  (depends on C library support, missing on Solaris for example)
+  +) setegid()                                                 (depends on C library support)
+  +) seteuid()                                                 (depends on C library support)
+  +) parseXMLWithSchema()                                      (depends on libxml2 support)
+  +) all SHA224*(), SHA256*(), SHA384*(), SHA512*() functions  (depends on openssl support)
+  +) all MDC2*() functions                                     (depends on openssl support)
+  +) all RC5*() functions                                      (depends on openssl support)
+
+The new constants are all in the Option namespaace:
+  +) HAVE_ATOMIC_OPERATIONS
+  +) HAVE_STACK_GUARD
+  +) HAVE_RUNTIME_THREAD_STACK_TRACE
+  +) HAVE_ROUND
+  +) HAVE_TIMEGM
+  +) HAVE_SETEUID
+  +) HAVE_SETEGID
+  +) HAVE_PARSEXMLWITHSCHEMA
+  +) HAVE_SHA224
+  +) HAVE_SHA256
+  +) HAVE_SHA224
+  +) HAVE_SHA256
+  +) HAVE_SHA384
+  +) HAVE_SHA512
+  +) HAVE_SHA384
+  +) HAVE_SHA512
+  +) HAVE_MDC2
+  +) HAVE_RC5
+
+you can see what options qore has now by typing "qore -V" as well from the 
+command-line.
+
+*) initial SOAP support included as user code
+see new files: examples/WSDL.qc examples/SoapClient.qc examples/SoapHandler.qc
+
+*) bug fixes, new functions, class improvements
+  +) Qore revision tag now reflects the svn version used to make the build
+     (instead of a meaningless private build number that was different on each
+     machine).
+  +) new "Dir" class for manipulating and traversing directories (by Wolfgang 
+     Ritzinger)
+  +) inlist() and inlist_hard() functions for checking if a value is in a list
+  +) HTTPClient now understand bzip content encoding
+  +) new chown(), lchown(), call_builtin_function(),
+     call_builtin_function_args(), force_encoding(), get_script_path(),
+     get_script_name() functions
+  +) parseURL() fixes and improvements
+  +) new Program restrictions: PO_NO_TERMINAL_IO and PO_NO_GUI
+  +) "-" operator updated: hash - list and hash -= list now work to delete
+     multiple hash keys in a single (atomic) expression
+  +) SSLCertificate::getPublicKey() now returns the public key in DER format
+     (before it returned an unusable binary object(
+  +) major updates to internal object and class code to allow for c++ class
+     hierarchies to be properly reflected as Qore class hierarchies (used
+     extensively by the qt modules, for example)
+  +) qore -V now gives verbose information about the build and library options
+
+
+**********************************************
+RELEASE SUMMARY for qore v0.6.2.1 and v0.6.2.2
+**********************************************
 
 0.6.2.2 contains one additional bugfix from 0.6.2.1:
-	* fixed an XML parsing bug with multiple out-of-order keys that could cause a crash
+        * fixed an XML parsing bug with multiple out-of-order keys that could cause a crash
 
 0.6.2.1 is a bug-fix release from 0.6.2.  The following bugs were fixed in 0.6.2.1:
-	* fixed a bug where null values could be inserted into the parse tree with certain invalid expressions (causing a subsequent segfault)
-	* fixed a bug in HTTPClient::head() where the message body was erroneously attempted to be read
-	* fixed a thread resource tracking bug in the DatasourcePool class that could cause a crash
-	* fixed a bug with implicit conversions from Qore type boolean to Qore type string (caused memory corruption)
-	* fixed a bug in QoreString::parseBase64ToString() that set an invalid internal string length marker
-	* added a "decode_url()" function to replace percent encodings in URL strings with the characters encoded
-	* updated HTTPClient to automatically encode space characters in the path as %20
+        * fixed a bug where null values could be inserted into the parse tree with certain invalid expressions (causing a subsequent segfault)
+        * fixed a bug in HTTPClient::head() where the message body was erroneously attempted to be read
+        * fixed a thread resource tracking bug in the DatasourcePool class that could cause a crash
+        * fixed a bug with implicit conversions from Qore type boolean to Qore type string (caused memory corruption)
+        * fixed a bug in QoreString::parseBase64ToString() that set an invalid internal string length marker
+        * added a "decode_url()" function to replace percent encodings in URL strings with the characters encoded
+        * updated HTTPClient to automatically encode space characters in the path as %20
 
-The rest of thie document describes the release notes as of release 0.6.2
 
-NOTE: for platform-specific notes and build instructions, please see the file BUILD
+*******************************
+RELEASE SUMMARY for qore v0.6.2
+*******************************
 
 RELEASE SUMMARY: major new features (see compatibility warnings below)
 	*) 3 new DBI drivers, PostgreSQL, Sybase, and FreeTDS ("pgsql", "sybase", "mssql")
@@ -435,113 +1534,6 @@ many corrections were made
 see CHANGELOG for details
 
 
-***********************
-*** LANGUAGE ISSUES ***
-***********************
-
-Out of Memory Errors
---------------------
-*) BUG: out of memory conditions are not handled with the c++ new operator... I need a good solution for that.  Generally the Qore program will crash if the new operator cannot allocate the memory it needs, however work has begun on handling out of memory errors starting in v0.5.2
-
-References, Copying, Passing by Value
--------------------------------------
-Unlike some other languages requiring garbage collection, Qore uses a deterministic reference-counted architecture for memory management.  When the references on a value node reach 0, that object is deleted.  When arguments to a function or method are passed by value, internally, for all value types other than an object (instantiation of a Qore class), the reference count is atomically incremented and the same value node is passed to the function or method.  In this case, if that value node is changed, then the value is copied and the changes are made to the copy.  So, for all value node types other than objects, a copy-on-write approach is used.  However objects are always passed by reference.  There is always only one copy of each object unless the object is explicitly copied.  In this sense, Qore acts like Java as far as I am aware.
-
-Parsing
--------
-*) Note that there is a parse lock on each program object.  Parsing on a single program object is single-threaded.  However, the reentrant parser is able to support simultaneous parsing on different program objects.
-*) Parsing happens in 2 stages - 1) parse to pending data structures, and 2) commit the pending data structures to the Qore Program object.  References are resolved in the second stage, which allows flexible referencing of functions, constants, classes, etc before they are declared.  Any parse errors at any stage will cause all the uncomitted parsing to be rolled back.  The Qore Program class allows the programmer control over the 2 stages of parsing with the Program::parsePending(), Program::parseCommit(), and Program::parseRollback() methods.
-
-
-**************************
-*** MODULE INFORMATION ***
-**************************
-
-TIBRV
------
-The "tibrv" module provides direct TIBCO Rendezvous support, allowing qore programs to send and receive Rendezvous messages directly.
-* Linux: supported on 32-bit and 64-bit builds of qore
-* Solaris: supported on 32-bit builds (FIXME: add 64-bit solaris build support)
-* OS X: supported on 32-bit builds
-
-TIBAE
------
-The "tibae" module provides TIBCO Adapter support; it allows qore programs to send and receive messages to and from TIBCO Adapters (or implement a TIBCO Adapter in qore) based on an external repository.  
-The TibcoAdapter class is provided by this module.  Note that Qore must be built with the compiler required by the TIBCO Adapter SDK in order for the "tibae" module to be built.
-Note that previous versions of these release notes stated that it was not possible to make an adapter that sent synchronous replies - this is incorrect, just set the subject to the replySubject key of the incoming message hash which should be an inbox (point-to-point) subject name.
-* Linux: I use the SDK version 5.3.2 that requires g++ 3.2 (this also fixes a lot of bugs compared to SDK 4.1.* including some big memory leaks).  All other versions I've found for Linux require g++ 2.96, which is an unsupported RedHat-only version.   Note that at the time of this writing, there is no TIBCO Adapter SDK support for x86_64 Linux
-* Solaris: qore must be compiled with the SunPro CC compiler in order to be able to use the "tibae" module.   
-* OS X: There is finally Rendezvous support for OS X, so hopefully they will support the Adapter SDK in the next version
-
-TUXEDO
-------
-The "tuxedo" module provides a qore-language interface to Tuxedo functionality.  It is supported on all platforms where the Tuxedo SDK is available.
-
-ORACLE
-------
-The "oracle" DBI driver has been well tested and is in heavy production use.
-*) transaction management is supported
-*) automatic transparent character set conversion is supported when necessary
-*) threading support
-*) it's possible to call functions and procedures
-*) all NUMBER fields are loaded as strings in selects in order to not lose any data.  Qore would need an arbitrary-precision Number type in order handle this case better.
-*) it's possible to bind and retrieve *LOB values
-
-MYSQL
------
-The "mysql" DBI driver has not been as extensively tested as the Oracle driver, but now supports all features of the Oracle driver except stored procedure execution.
-*) transaction management is supported
-*) automatic transparent character set conversion is supported when necessary
-*) threading support
-*) stored procedure support with direct binding and retrieving values
-
-NCURSES
--------
-experimental: provides the "Panel" and "Window" classes along with many functions and constants - see test/ncurses.q and examples/hanio.q and examples/worms.q for more information. 
-
-
-*********************
-*** SQL Subsystem ***
-*********************
-
-*) NOTE that there is a transaction lock on the Datasource class (above the DBI driver level) that is automatically enabled if autocommit is off on the Datasource that prohibits two or more threads from being in a transaction at the same time on the same datasource.  To best use this feature when starting a transaction with a Datasource::select() (like a "select for update"), call Datasource::beginTransaction() before the "select for update".  You notify qore that the transaction has completed by calling Datasource::commit() or Datasource::rollback().  Note that this must be done in the same thread that started the transaction.  Currently there is no way in qore to execute SQL in separate threads simultaneously on the same datasource if autocommit is off and one of the threads has started a transaction (either by calling Datasource::beginTransaction() or Datasource::exec()).
-*) NOTE the Datasource::describe() method should not be used until the design and implementation are reworked.  This method has been disabled in the top-level Qore class for the time being.
-*) autocommits should probably be moved to the Datasource class to make DBI driver implementation a little easier
-
-
-**************************************
-*** Current and Future Development ***
-**************************************
-
-The file docs/roadmap.html contains line-by-line feature information.  Generally, qore should hit version 1.0 when:
-*) the bugs listed in this file are resolved
-*) have more robust DBI drivers (PostgresSQL, Sybase should be added)
-*) binding and fetching has been implemented with explicit APIs so Qore programs can handle data sets larger than available memory
-*) signal-handling support has been implemented (for UNIX platforms at least)
-
-
-*********************
-*** General Notes ***
-*********************
-
-Threading
----------
-Qore was designed to favor multithreaded performance over single-threaded performance.  Due to this reason Qore programs should be very scalable on SMP systems.
-
-Memory Cleanliness
-------------------
-Qore has been thoroughly reviewed with valgrind (on Linux) and dbx (on Solaris) for memory errors.  There are no known static or dynamic memory leaks in qore at this time.  However, see below on handling out of memory conditions.
-The new features have not been as extensively tested, and there is some danger of memory leaks with exception handling, as not every code path has been explicitly tested.
-
-Stability & Bugs
-----------------
-NOTE that while qore is version 0.6.*, this does not indicate a lack of stability.  The qore language is in heavy commercial use and must absolutely remain stable and without memory leaks.
-However not all code paths are as well tested as others; there are certainly unknown bugs out there.  
-
----------------------
-RELEASE NOTES HISTORY
----------------------
-
 *******************************
 RELEASE SUMMARY for qore v0.6.1
 *******************************
@@ -842,7 +1834,7 @@ will return ( "name" : "Smith" )
 mixed elements and text can now be serialized and deserialized without data loss (except whitespace is still not retained) - for example, now it's possible to deserialize (parse) a docbook xml file and then reserialize it (generate the XML from the Qore data structure) without losing information (this was not possible with previous versions of qore).
 
 *) 64-bit build support on x86_64 (AMD64, etc)
-native 64-bit binaries can now be built on Linux x86_64 - the build system has been modified to be able to correctly find paths and set directory names for 64-bit libraries if the --enable-64bit configure option is used.  By default 32-bit builds are made unless the --enable-64bit option is passed to configure.
+native 64-bit binaries can now be built on Linux x86_64 - the build system has been modified to be able to correctly find paths and set directory names for 64-bit libraries if the --enable-64bit configure option is used.  By default 64-bit builds are made on x86_64 CPUs unless the --disable-64bit option is passed to the configure script
 
 *) %requires error reporting improved
 if any requested features cannot be loaded, then only exceptions related to missing features will be reported.  this avoids possibly hundreds (or more) exceptions in large programs where features cannot be loaded (i.e. unresolved classes, functions, etc)

@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ Copyright 2003 - 2009 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -21,15 +21,15 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/QC_AutoLock.h>
+#include <qore/intern/QC_AutoLock.h>
 
-int CID_AUTOLOCK;
+qore_classid_t CID_AUTOLOCK;
 
-static void AL_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void AL_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p = test_param(params, NT_OBJECT, 0);
-   SmartMutex *m = p ? (SmartMutex *)p->val.object->getReferencedPrivateData(CID_MUTEX, xsink) : NULL;
-   if (xsink->isException())
+   QoreObject *p = test_object_param(params, 0);
+   SmartMutex *m = p ? (SmartMutex *)p->getReferencedPrivateData(CID_MUTEX, xsink) : 0;
+   if (*xsink)
       return;
 
    if (!m)
@@ -45,37 +45,37 @@ static void AL_constructor(class Object *self, class QoreNode *params, Exception
       self->setPrivate(CID_AUTOLOCK, qsl);
 }
 
-static void AL_destructor(class Object *self, class QoreAutoLock *al, ExceptionSink *xsink)
+static void AL_destructor(QoreObject *self, class QoreAutoLock *al, ExceptionSink *xsink)
 {
    al->destructor(xsink);
    al->deref(xsink);
 }
 
-static void AL_copy(class Object *self, class Object *old, class QoreAutoLock *m, ExceptionSink *xsink)
+static void AL_copy(QoreObject *self, QoreObject *old, class QoreAutoLock *m, ExceptionSink *xsink)
 {
    xsink->raiseException("AUTOLOCK-COPY-ERROR", "objects of this class cannot be copied");
 }
 
-static class QoreNode *AL_lock(class Object *self, class QoreAutoLock *m, class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *AL_lock(QoreObject *self, class QoreAutoLock *m, const QoreListNode *params, ExceptionSink *xsink)
 {
    m->lock(xsink);
-   return NULL;
+   return 0;
 }
 
-static class QoreNode *AL_trylock(class Object *self, class QoreAutoLock *m, class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *AL_trylock(QoreObject *self, class QoreAutoLock *m, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)m->trylock()); 
+   return new QoreBigIntNode(m->trylock()); 
 }
 
-static class QoreNode *AL_unlock(class Object *self, class QoreAutoLock *m, class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *AL_unlock(QoreObject *self, class QoreAutoLock *m, const QoreListNode *params, ExceptionSink *xsink)
 {
    m->unlock(xsink);
-   return NULL;
+   return 0;
 }
 
 class QoreClass *initAutoLockClass()
 {
-   tracein("initAutoLockClass()");
+   QORE_TRACE("initAutoLockClass()");
    
    class QoreClass *QC_AutoLock = new QoreClass("AutoLock", QDOM_THREAD_CLASS);
    CID_AUTOLOCK = QC_AutoLock->getID();
@@ -86,6 +86,6 @@ class QoreClass *initAutoLockClass()
    QC_AutoLock->addMethod("trylock",       (q_method_t)AL_trylock);
    QC_AutoLock->addMethod("unlock",        (q_method_t)AL_unlock);
    
-   traceout("initAutoLockClass()");
+
    return QC_AutoLock;
 }

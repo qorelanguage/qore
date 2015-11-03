@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ Copyright 2003 - 2009 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -21,8 +21,9 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/UserFunctionList.h>
-#include <qore/Function.h>
+#include <qore/intern/UserFunctionList.h>
+#include <qore/intern/Function.h>
+#include <qore/intern/StatementBlock.h>
 
 UserFunctionList::~UserFunctionList()
 {
@@ -32,25 +33,26 @@ UserFunctionList::~UserFunctionList()
 
 void UserFunctionList::del()
 {
-   hm_uf_t::iterator i;
-   while ((i = fmap.begin()) != fmap.end())
+   hm_uf_t::iterator i = fmap.begin();
+   while (i != fmap.end())
    {
       class UserFunction *uf = i->second;
       fmap.erase(i);
+      i = fmap.begin();
       uf->deref();
    }
 }
 
 void UserFunctionList::add(class UserFunction *func)
 {
-   tracein("UserFunctionList::add()");
+   QORE_TRACE("UserFunctionList::add()");
    
    if (find(func->getName()))
       parse_error("user function '%s' has already been defined", func->getName());
    else
       pmap[func->getName()] = func;
    
-   traceout("UserFunctionList::add()");
+
 }
 
 class UserFunction *UserFunctionList::find(const char *name)
@@ -66,29 +68,29 @@ class UserFunction *UserFunctionList::find(const char *name)
       return i->second;
    
    //printd(5, "UserFunctionList::find(%s) returning %08p\n", name, w);
-   return NULL;
+   return 0;
 }
 
-class List *UserFunctionList::getList()
+QoreListNode *UserFunctionList::getList()
 {
-   tracein("UserFunctionList::getList()");
+   QORE_TRACE("UserFunctionList::getList()");
    
-   class List *l = new List();
+   QoreListNode *l = new QoreListNode();
    hm_uf_t::iterator i = fmap.begin();
    while (i != fmap.end())
    {
-      l->push(new QoreNode(i->first));      
+      l->push(new QoreStringNode(i->first));      
       i++;
    }
    
-   traceout("UserFunctionList::getList()");
+
    return l;
 }
 
 // unlocked
 void UserFunctionList::parseInit()
 {
-   tracein("UserFunctionList::parseInit()");
+   QORE_TRACE("UserFunctionList::parseInit()");
    
    hm_uf_t::iterator i = pmap.begin();
    while (i != pmap.end())
@@ -98,30 +100,32 @@ void UserFunctionList::parseInit()
       i++;
    }
    
-   traceout("UserFunctionList::parseInit()");
+
 }
 
 // unlocked
 void UserFunctionList::parseCommit()
 {
-   hm_uf_t::iterator i;
-   while ((i = pmap.begin()) != pmap.end())
+   hm_uf_t::iterator i = pmap.begin();
+   while (i != pmap.end())
    {
       fmap[i->first] = i->second;
       pmap.erase(i);
+      i = pmap.begin();
    }
 }
 
 // unlocked
 void UserFunctionList::parseRollback()
 {
-   tracein("UserFunctionList::parseRollback()");
-   hm_uf_t::iterator i;
-   while ((i = pmap.begin()) != pmap.end())
+   QORE_TRACE("UserFunctionList::parseRollback()");
+   hm_uf_t::iterator i = pmap.begin();
+   while (i != pmap.end())
    {
       class UserFunction *uf = i->second;
       pmap.erase(i);
       uf->deref();
+      i = pmap.begin();
    }
-   traceout("UserFunctionList::parseRollback()");
+
 }

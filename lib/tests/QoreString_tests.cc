@@ -14,10 +14,10 @@ TEST()
 
 TEST()
 {
-  printf("testing QoreString::QoreString(BinaryObject*)\n");
-  BinaryObject b1;
+  printf("testing QoreString::QoreString(BinaryNode*)\n");
+  BinaryNode b1;
   void* p = malloc(100);
-  BinaryObject b2(p, 100);
+  BinaryNode b2(p, 100);
   QoreString s1(&b1);
   QoreString s2(&b2);
 }

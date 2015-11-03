@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2009 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -25,108 +25,47 @@
 #ifndef _QORE_QORE_THREAD_H
 #define _QORE_QORE_THREAD_H
 
-#include <qore/LockedObject.h>
+/** @file qore_thread.h
+    Provides definitions relative to threading in Qore.
+ */
 
 #include <stdio.h>
 #include <pthread.h>
 
-// FIXME: move to config.h or something like that
-// not more than this number of threads can be running at the same time
-#ifndef MAX_QORE_THREADS
-#define MAX_QORE_THREADS 0x1000
-#endif
-
-#define CT_USER      0
-#define CT_BUILTIN   1
-#define CT_NEWTHREAD 2
-#define CT_RETHROW   3
-
-// pointer to a qore thread destructor function
+//! pointer to a qore thread destructor function
 typedef void (*qtdest_t)(void *);
-// pointer to a qore thread resource destructor function
+
+//! pointer to a qore thread resource destructor function
 typedef void (*qtrdest_t)(void *, class ExceptionSink *);
 
-DLLEXPORT extern class Operator *OP_BACKGROUND;
+//! returns true if the current thread is a valid qore thread; it is not safe to call most Qore functions unless the thread is registered with Qore
+DLLEXPORT bool is_valid_qore_thread();
 
+//! returns the current TID number
 DLLEXPORT int gettid();
-DLLEXPORT extern class ThreadCleanupList tclist;
 
-// for thread resource handling
+//! returns the current QoreProgram
+DLLEXPORT class QoreProgram *getProgram();
+
+//! save a resource against a thread for thread resource handling
+/** @param atr a pointer to the thread resource to save
+ */
 DLLEXPORT void set_thread_resource(class AbstractThreadResource *atr);
+
+//! remove the resource from the thread resource list for the current thread
+/** @param atr a pointer to the thread resource to remove
+    @return 0 if successful (resource was found and removed), -1 if the resource was not found
+ */
 DLLEXPORT int remove_thread_resource(class AbstractThreadResource *atr);
 
-DLLLOCAL void purge_thread_resources(class ExceptionSink *xsink);
-DLLLOCAL void beginParsing(char *file, void *ps = NULL);
-DLLLOCAL void *endParsing();
-DLLLOCAL class Context *get_context_stack();
-DLLLOCAL void update_context_stack(Context *cstack);
-DLLLOCAL void get_pgm_counter(int &start_line, int &end_line);
-DLLLOCAL const char *get_pgm_file();
-DLLLOCAL void update_pgm_counter_pgm_file(int start_line, int end_line, const char *f);
-DLLLOCAL void get_parse_location(int &start_line, int &end_line);
-DLLLOCAL const char *get_parse_file();
-DLLLOCAL void update_parse_location(int start_line, int end_line);
-DLLLOCAL void update_parse_location(int start_line, int end_line, const char *f);
-DLLLOCAL bool inMethod(const char *name, class Object *o);
-DLLLOCAL void pushProgram(class QoreProgram *pgm);
-DLLLOCAL void popProgram();
-DLLLOCAL class QoreProgram *getProgram();
-DLLLOCAL class RootNamespace *getRootNS();
-DLLLOCAL int getParseOptions();
-DLLLOCAL void updateCVarStack(class CVNode *ncvs);
-DLLLOCAL class CVNode *getCVarStack();
-DLLLOCAL void updateVStack(class VNode *nvs);
-DLLLOCAL class VNode *getVStack();
-DLLLOCAL class Object *getStackObject();
-DLLLOCAL void setParseClass(class QoreClass *c);
-DLLLOCAL class QoreClass *getParseClass();
-DLLLOCAL void substituteObjectIfEqual(class Object *o);
-DLLLOCAL class Object *substituteObject(class Object *o);
-DLLLOCAL void catchSaveException(class Exception *e);
-DLLLOCAL class Exception *catchGetException();
-DLLLOCAL class VLock *getVLock();
-
-DLLLOCAL class LVar *thread_instantiate_lvar();
-DLLLOCAL void thread_uninstantiate_lvar(class ExceptionSink *xsink);
-DLLLOCAL class LVar *thread_find_lvar(lvh_t id);
-
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-DLLLOCAL void pushCall(const char *f, int type, class Object *o = NULL);
-DLLLOCAL void popCall(class ExceptionSink *xsink);
-DLLLOCAL class CallStack *getCallStack();
-DLLLOCAL class List *getCallStackList();
-#else
-#ifdef __GNUC__
-#define pushCall(args...)
-#else
-#define pushCall(args, ...)
-#endif
-#define popCall(x)
-#endif
-
-// acquires a TID and thread entry, returns -1 if not successful
-DLLLOCAL int get_thread_entry();
-// acquires TID 0 and sets up the signal thread entry, always returns 0
-DLLLOCAL int get_signal_thread_entry();
-DLLLOCAL void delete_thread_data();
-DLLLOCAL void register_thread(int tid, pthread_t ptid, class QoreProgram *pgm);
-DLLLOCAL void deregister_thread(int tid);
-DLLLOCAL void deregister_signal_thread();
-
-// called when a StatementBlock has "on block exit" blocks
-DLLLOCAL void pushBlock(block_list_t::iterator i);
-// called when a StatementBlock has "on block exit" blocks
-DLLLOCAL block_list_t::iterator popBlock();
-// called by each "on_block_exit" statement to activate it's code for the block exit
-DLLLOCAL void advanceOnBlockExit();
-
-DLLLOCAL extern pthread_attr_t ta_default;
-
-// for object implementation
-DLLLOCAL class Object *getStackObject();
-// for methods that behave differently when called within the method itself
-DLLLOCAL bool inMethod(const char *name, class Object *o);
-
+//! list of functions to be run when a thread ends; required for some external libraries that require explicit cleanup when a thread terminates
+/** this list is not locked and therefore the ThreadCleanupList::push() and 
+    ThreadCleanupList::pop() functions must only be called in module initialization
+    and module deletion.  However this list is implemented in such a way that thread
+    cleanup list execution may be safely called interally while push() is being
+    executed in a module initialization function, for example.
+    @note this is a global object and not an attribute of a thread
+ */
 class ThreadCleanupList {
    private:
       static class ThreadCleanupNode *head;
@@ -136,53 +75,19 @@ class ThreadCleanupList {
       DLLLOCAL ~ThreadCleanupList();
       DLLLOCAL void exec();
 
+      //! must only be called in the module initialization function
+      /** @param func the cleanup function to be run whenever a thread ends
+	  @param arg the argument to the function (can be 0)
+       */
       DLLEXPORT void push(qtdest_t func, void *arg);
-      DLLEXPORT void pop(int exec = 0);
+
+      //! must only be called in the module destructor/deletion function
+      /** @param exec if true the cleanup function will be executed immediately, if false it will not
+       */
+      DLLEXPORT void pop(bool exec = true);
 };
 
-class CodeContextHelper {
-   private:
-      const char *old_code;
-      class Object *old_obj;
-      class ExceptionSink *xsink;
-	 
-   public:
-      DLLLOCAL CodeContextHelper(const char *code = NULL, class Object *obj = NULL, class ExceptionSink *xs = NULL);
-      DLLLOCAL ~CodeContextHelper();
-};
-
-class ObjectSubstitutionHelper {
-   private:
-      class Object *old_obj;
-   
-   public:
-      DLLLOCAL ObjectSubstitutionHelper(class Object *obj);
-      DLLLOCAL ~ObjectSubstitutionHelper();
-};
-
-class ProgramContextHelper {
-   private:
-      class QoreProgram *old_pgm;
-      bool restore;
-   
-   public:
-      DLLLOCAL ProgramContextHelper(class QoreProgram *pgm);
-      DLLLOCAL ~ProgramContextHelper();
-};
-
-class ArgvContextHelper {
-   private:
-      lvh_t old_argvid;
-   
-   public:
-      DLLLOCAL ArgvContextHelper(lvh_t argvid);
-      DLLLOCAL ~ArgvContextHelper();
-};
-
-DLLLOCAL void init_qore_threads();
-DLLLOCAL class Namespace *get_thread_ns();
-DLLLOCAL void delete_qore_threads();
-DLLLOCAL class List *get_thread_list();
-DLLLOCAL class Hash *getAllCallStacks();
+//! the interface to the thread cleanup list
+DLLEXPORT extern ThreadCleanupList tclist;
 
 #endif  // ifndef _QORE_THREAD_H

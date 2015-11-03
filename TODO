@@ -1,34 +1,73 @@
-see docs/roadmap.html
-
+* fix parse directives to ignore comments after them
+* fix strange problem with unknown parse directives (i.e. %warnings-as-errors)
+* make sure exit() will exit - may need to interrupt threads (ex: thread waiting on accept() will not exit)
+* document Datasource::getAutoCommit()
+* fix crash on exit() with running threads on Darwin <- CANNOT REPRODUCE
+* implement function class hierarchies for returning different types (bool, int64, double, node)
+* add $# for list element offset in list operators (map, select)
+* add warning for duplicate hash keys
+* optimize object method calls from the same object to avoid the reference and dereference
+* fix broken callstacks - only reports for calls since the try statement
+* implement warning for local variables that are not referenced/used
+* implement auto-reconnect for pgsql (possibly not needed?)
+* implement a mechanism for a thread to sleep until another thread terminates (join)
+* implement optimized foreach statement for hash key iteration
+* implement find_key operator, taking a regular expression to find a key in a hash
+* implement split operator taking regular expression
+* tag functions if they have no effect except returning a value so if the value is not used at the top level a warning may be emitted
+* add "constant" flag to functions, to allow execution in constant expressions
+* add support for ranges [2..9]
+* add context functions
+* track include files, make sure they are only included once
+* add argument info to functions, throw errors if arguments are not correct (add parse-time argument checks)
+* have QoreStringNode::getAsString() return a standard empty string ("") when possible (also should not be reference counted)
+* remove QoreNothingNode and use 0 everywhere instead
+* add API compatibility info to to module data
 * implement a way to declare public class members (so typos with class members can be caught)
-* implement a way to modify table names in queries (support table name prefixes, for example)
 * implement default argument values
 * update round() to allow the specification of significant digits
-* implement support for builtin methodGate methods, custom DBI Datasource method extensions
+* implement support for builtin methodGate methods, custom DBI Datasource method extensions (can already do this)
 * implement public_instanceof operator
-* implement -,-= with hash, list of strings to remove lists of hash keys
-* Implement auto-reconnect for mssql and other drivers (mysql has it already)
-* implement a mechanism for a thread to sleep until another thread terminates (join)
 * add support for special ::toString() method to serialize an object to a string (very useful for debugging)
-* add support for ranges [2..9] and dereferencing strings with []
 * add support for break and continue arguments to affect outer loops
 * add error code to exceptions for XML-RPC fault reporting
-* add context functions
 * allow customizable QORE_INCLUDE_DIR searches
-* track include files, make sure they are only included once
-* add argument info to functions, throw errors if arguments are not correct
-* add parse-time argument checks (instead of just run-time exceptions)
-* add "constant" flag to functions, to allow execution in constant expressions
-* implement GZFile class
+* implement GZFile and BZFile classes
 
 docs:
+* add links to HTTPClient::connect() text
+* update tibae module docs regarding function class, can be hash lookup or direct class string
 * document thread resource tracking
-* expand on call references
 * add examples for modules
 * write ncurses module documentation
 * document optimizations
 
+done 0.7.4:
+* fix signal handling after fork()
+* fix crash with printing recursive data structures
+
 done:
+* auto-reconnect for sybase, oracle, mysql
+
+done 0.7.0:
+* make ThreadResourceList private
+* implemented license tagging and checking for the qore library and modules
+* implemented auto-reconnect for oracle
+* change get/test_*params() to return const values
+* make QoreHashNode implementation private
+* change getExistingVarValue to take a ReferenceHolder argument instead of a temporary QoreNode * arg
+* implement bool_eval(), etc for VarRefNode
+* make it so that there is only ever one Nothing and Null object
+* eliminate needs_eval() and is_value() as virtual functions, including bitfield bools (when reimplementing QoreType as an 20-bit integer)
+* implement -,-= with hash, list of strings to remove lists of hash keys
+* update Operator.cc ex: op_plus_eq: use getAsFloat() on evaluated argument instead of convert()
+* migrate to "pimpl" approach for exported classes in qore library
+* fix QoreSocket.cc to replace spaces with %20 in paths
+* fix qt QShortcut to work on dynamic slots by saving the slot and calling the slot when the shortcut's signal is raised
+* added support for dereferencing strings with []
+* implement a way to modify table names in queries (support table name prefixes, for example)
+
+done in previous releases:
 * update QoreString::trim*() functions to trim all whitespace, and not just blanks, with an optional character array giving the character to trim
 * fix +=, -= to use the rhs type if the lhs is NOTHING
 * fix signal thread to be a special thread with a special thread list entry

@@ -3,7 +3,7 @@
   
   Qore Programming Language
 
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2009 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -27,12 +27,12 @@
 #include <openssl/ssl.h>
 #include <openssl/x509v3.h>
 
-class QoreSSLBase
-{
-  public:
-   static class Hash *X509_NAME_to_hash(X509_NAME *n);
-   static class DateTime *ASN1_TIME_to_DateTime(ASN1_STRING *t);
-   static class QoreString *ASN1_OBJECT_to_QoreString(ASN1_OBJECT *o);
+//! offers static functions to help with translating openssl data structures to Qore data structures
+class QoreSSLBase {
+   public:
+      DLLEXPORT static QoreHashNode *X509_NAME_to_hash(X509_NAME *n);
+      DLLEXPORT static DateTimeNode *ASN1_TIME_to_DateTime(ASN1_STRING *t);
+      DLLEXPORT static QoreStringNode *ASN1_OBJECT_to_QoreStringNode(ASN1_OBJECT *o);
 };
 
 #endif // _QORE_CLASS_SSLBASE_H

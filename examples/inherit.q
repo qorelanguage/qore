@@ -52,27 +52,41 @@ class Base1 {
     # declare some private members
     private $.base1, $.x;
 
-    constructor($a)
-    {
+    constructor($a) {
 	printf("Base1::constructor(%n)\n", $a);
 	$.a = $a;
     }
-    destructor()
-    {
+
+    destructor() {
 	printf("Base1::destructor() (%n)\n", $.a);
     }
-    copy()
-    {
+
+    copy() {
 	printf("Base1::copy() (%n)\n", $.a);
 	$.a = $.a + "-copy";
     }
-    hello()
-    {
-	printf("Base1 hello (%n)\n", $.a);
+
+    hello() {
+	# note that here to call method "subclass()" in a derived class, we have
+	# to use $self.subclass() instead of $.subclass(), because calls like 
+	# "$.subclass()" are resolved at parse time (which would resolve to run
+	# Base::subclass(), which is not what we want), but "$self.subclass()"
+	# is resolved at run-time, and so will run the "subclass" method in the
+	# derived class
+	printf("Base1 hello (%n, derived class %n)\n", $.a, $self.subclass());
     }
-    Base1($a)
-    {
+
+    # note that "Base1" here is just a regular method, the constructor
+    # is always named "constructor"
+    Base1($a) {
 	printf("Base1::Base1() (%n) %n\n", $.a, $a);
+    }
+
+    # "static" functions are not associated with an object; they are
+    # like regular functions and can be called outside the class (if
+    # they are not private)
+    static test() {
+	printf("Base1::test() static function\n");
     }
 }
 
@@ -81,26 +95,24 @@ class Base2 {
     # declare some private members
     private $.base2, $.y;
 
-    constructor($a)
-    {
+    constructor($a) {
 	printf("Base2::constructor(%n)\n", $a);
 	$.b = $a;
     }
-    copy()
-    {
+    copy() {
 	printf("Base2::copy() (%n)\n", $.b);
 	$.b = $.b + "-copy"; 
     }
-    destructor()
-    {
+    destructor() {
 	printf("Base2::destructor() (%n)\n", $.b);
     }
-    hello()
-    {
+    hello() {
 	printf("Base2 hello (%n)\n", $.b);
     }
-    Base2($a)
-    {
+
+    # note that "Base2" here is just a regular method, the constructor
+    # is always named "constructor"
+    Base2($a) {
 	printf("Base2::Base2() (%n) %n\n", $.b, $a);
     }
 }
@@ -113,28 +125,28 @@ class Mid::Mid inherits Base1, Base2
     # declare some private members
     private $.mid, $.z;
 
-    constructor($m) : Base1("Mid->Base1-" + $m), Base2("Mid->Base2-" + $m)
-    {
+    constructor($m) : Base1("Mid->Base1-" + $m), Base2("Mid->Base2-" + $m) {
 	printf("Mid::constructor(%n)\n", $m);
 	$.m = $m;
     }
-    copy()
-    {
+    copy() {
 	printf("Mid::copy() (%n)\n", $.m);
 	$.m = $.m + "-copy";
     }
-    destructor()
-    {
+    destructor() {
 	printf("Mid::destructor() (%n)\n", $.m);
     }
-    hello()
-    {
+    hello() {
 	Base1::$.hello();
 	Base2::$.hello();
 	printf("Mid hello (%n)\n", $.m);
     }
-    Mid($a)
-    {
+    subclass() {
+        return "Mid";
+    }
+    # note that "Mid" here is just a regular method, the constructor
+    # is always named "constructor"
+    Mid($a) {
 	$.Base1("Mid");
 	$.Base2("Mid");
 	printf("Mid::Mid() (%n) %n\n", $.m, $a);
@@ -146,25 +158,25 @@ class Mid::Mid inherits Base1, Base2
 # private members of this class: $.base1, $.base2, $.x, $.y, $.z
 class Final inherits Mid::Mid, Base1, Base2;
 
-Final::constructor($a) : Mid("Final->Mid-" + $a), Base1("Final->Base1-" + $a)
-{
+Final::constructor($a) : Mid("Final->Mid-" + $a), Base1("Final->Base1-" + $a) {
     printf("Final::constructor(%n)\n", $a);
     $.f = $a;
 }
 
-Final::copy()
-{
+Final::copy() {
     printf("Final::copy() (%n)\n", $.f);
     $.f = $.f + "-copy";
 }
 
-Final::destructor()
-{
+Final::destructor() {
     printf("Final::destructor() (%n)\n", $.f);
 }
 
-Final::hello()
-{
+Final::subclass() {
+    return "Final";
+}
+
+Final::hello() {
     # here we make a copy of ourselves and print out the result
     my $x = $.copy();
     printf("x=%N\n", $x);

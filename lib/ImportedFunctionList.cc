@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ Copyright 2003 - 2009 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -21,12 +21,11 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/ImportedFunctionList.h>
-#include <qore/Function.h>
+#include <qore/intern/ImportedFunctionList.h>
 
 #include <string.h>
 
-ImportedFunctionNode::ImportedFunctionNode(class QoreProgram *p, class UserFunction *u)
+ImportedFunctionNode::ImportedFunctionNode(QoreProgram *p, class UserFunction *u)
 {
    pgm = p;
    func = u;
@@ -47,14 +46,14 @@ ImportedFunctionList::~ImportedFunctionList()
    }
 }
 
-void ImportedFunctionList::add(class QoreProgram *pgm, class UserFunction *func)
+void ImportedFunctionList::add(QoreProgram *pgm, class UserFunction *func)
 {
-   tracein("ImportedFunctionList::add()");
+   QORE_TRACE("ImportedFunctionList::add()");
    
    ImportedFunctionNode *n = new ImportedFunctionNode(pgm, func);
    insert(std::make_pair(func->getName(), n));
    
-   traceout("ImportedFunctionList::add()");
+
 }
 
 class ImportedFunctionNode *ImportedFunctionList::findNode(const char *name) const
@@ -65,7 +64,7 @@ class ImportedFunctionNode *ImportedFunctionList::findNode(const char *name) con
    if (i != end())
       return i->second;
 
-   return NULL;
+   return 0;
 }
 
 class UserFunction *ImportedFunctionList::find(const char *name) const
@@ -76,5 +75,5 @@ class UserFunction *ImportedFunctionList::find(const char *name) const
    if (i != end())
       return i->second->func;
 
-   return NULL;
+   return 0;
 }

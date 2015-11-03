@@ -3,7 +3,7 @@
  
  Qore Programming language
  
- Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ Copyright 2003 - 2009 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -56,12 +56,14 @@ void ParseOptionMap::static_init()
    DO_MAP("no-network",               PO_NO_NETWORK);
    DO_MAP("no-filesystem",            PO_NO_FILESYSTEM);
    DO_MAP("no-database",              PO_NO_DATABASE);
+   DO_MAP("no-gui",                   PO_NO_GUI);
+   DO_MAP("no-terminal-io",           PO_NO_TERMINAL_IO);
 }
 
 int ParseOptionMap::find_code(const char *name)
 {
    opt_map_t::iterator i = map.find(name);
-   printf("find_code(%s) returning %d\n", name, i == map.end() ? -1 : i->second);
+   //printd(5, "find_code(%s) returning %08x\n", name, i == map.end() ? -1 : i->second);
    return (i == map.end() ? -1 : i->second);
 }
 

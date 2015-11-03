@@ -3,7 +3,7 @@
 
   Qore Programming Language
   
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2009 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,57 +21,57 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QC_Mutex.h>
-#include <qore/QC_Condition.h>
+#include <qore/intern/QC_Mutex.h>
+#include <qore/intern/QC_Condition.h>
 
-int CID_MUTEX;
+qore_classid_t CID_MUTEX;
 
-static void MUTEX_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void MUTEX_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_MUTEX, new SmartMutex());
 }
 
-static void MUTEX_destructor(class Object *self, class SmartMutex *m, ExceptionSink *xsink)
+static void MUTEX_destructor(QoreObject *self, class SmartMutex *m, ExceptionSink *xsink)
 {
    m->destructor(xsink);
    m->deref(xsink);
 }
 
-static void MUTEX_copy(class Object *self, class Object *old, class SmartMutex *m, ExceptionSink *xsink)
+static void MUTEX_copy(QoreObject *self, QoreObject *old, SmartMutex *m, ExceptionSink *xsink)
 {
    self->setPrivate(CID_MUTEX, new SmartMutex());
 }
 
-static class QoreNode *MUTEX_lock(class Object *self, class SmartMutex *m, class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *MUTEX_lock(QoreObject *self, class SmartMutex *m, const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    // we only return a return value if we have a timeout, otherwise we save allocating a QoreNode
    if (!is_nothing(p))
    {
       int timeout_ms = getMsZeroInt(p);
       int rc = m->grab(xsink, timeout_ms);
       if (!*xsink)
-	 return new QoreNode((int64)rc);
+	 return new QoreBigIntNode(rc);
    }
    else
       m->grab(xsink);
-   return NULL;
+   return 0;
 }
 
-static class QoreNode *MUTEX_trylock(class Object *self, class SmartMutex *m, class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *MUTEX_trylock(QoreObject *self, class SmartMutex *m, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)m->tryGrab()); 
+   return new QoreBigIntNode(m->tryGrab()); 
 }
 
-static class QoreNode *MUTEX_unlock(class Object *self, class SmartMutex *m, class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *MUTEX_unlock(QoreObject *self, class SmartMutex *m, const QoreListNode *params, ExceptionSink *xsink)
 {
    m->release(xsink);
-   return NULL;
+   return 0;
 }
 
 class QoreClass *initMutexClass()
 {
-   tracein("initMutexClass()");
+   QORE_TRACE("initMutexClass()");
 
    class QoreClass *QC_MUTEX = new QoreClass("Mutex", QDOM_THREAD_CLASS);
    CID_MUTEX = QC_MUTEX->getID();
@@ -82,6 +82,6 @@ class QoreClass *initMutexClass()
    QC_MUTEX->addMethod("trylock",       (q_method_t)MUTEX_trylock);
    QC_MUTEX->addMethod("unlock",        (q_method_t)MUTEX_unlock);
 
-   traceout("initMutexClass()");
+
    return QC_MUTEX;
 }

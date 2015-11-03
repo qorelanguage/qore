@@ -71,7 +71,10 @@ $h = ( "name" : ( "Arnie", "Sylvia", "Carol" ),
 printf("Carol was born on %n\n", find %dob in $h where (%name == "Carol"));
 
 # shift pulls off the first element of a list
-printf("shifted element=%n, list=%n\n", shift $l, $l);
+printf("shifted element=%n, list=%n\n", ($elem = shift $l), $l);
+
+# unshift inserts an element at the beginning of a list
+printf("unshift back on list=%n\n", unshift $l, $elem);
 
 # the "exists" operator can tell you if a value exists
 # NOTE: exists <expr> is the same as <expr> == NOTHING
@@ -106,3 +109,37 @@ printf("%s", `ls -l *.q`);
 # note that the function backquote() does the same thing but allows an expression
 # to be used to give the shell command to execute.  Also the system() function 
 # executes external programs, but does not return the output
+
+# closures allow functions to be used as first-class values and encapsulate the
+# state of and provide a persistent binding to local variables referenced from
+# within the closure code
+sub get_mult_closure($x)
+{
+    # return a closure that multiplies the argument by the argument passed to
+    # this function, incrementing it each time; local variable $x is bound 
+    # persistently in the closure
+    return sub($y) { return $x++ * $y; };
+}
+
+$c = get_mult_closure(2);
+printf("closure example: multiply 2 * 2 = %d\n", $c(2));
+printf("closure example: multiply 3 * 2 = %d\n", $c(2));
+
+# more list operations: map an expression on a list and return the result
+$l = (1, 2, 3, 4, 5, 6, 7, 8);
+# here we reference implicit argument in the map expression - the current
+# list value will be $1
+printf("map example: %n\n", map $1 * 2, $l);
+
+# here will recursively apply an operation to a list, using the result of
+# each computation to apply to the next element in the list, left-to-right
+# note the implicit arguments $1 and $2: $1 = the left-hand side, $2 = the
+# right-hand side.  We use the non-associative operator subtraction to 
+# demonstrate the difference in outcomes between the 2 fold operators
+printf("foldl example: %n\n", foldl $1 - $2, $l);
+# now from right to left
+printf("foldr example: %n\n", foldr $1 - $2, $l);
+
+# to retrieve a subset of a list based on certain criteria, use the select
+# operator as follows:
+printf("select even numbers from list: %n\n", select $l, !($1 % 2));

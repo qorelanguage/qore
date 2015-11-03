@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2009 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -28,44 +28,17 @@
 
 #include <qore/common.h>
 
+// note: hash-map functionality has been removed for now pending redesign of the data structures
+//       and implementation of an appropriate hashing algorithm
+
 #include <map>
 
-typedef std::map<const char*, class Var *, class ltstr> map_var_t;
-
-#ifdef HAVE_QORE_HASH_MAP
-
-#include <qore/hash_map_include.h>
-
-#include <strings.h>
-#include <string.h>
-
-#include <string>
-
-class eqstr
-{
-   public:
-      bool operator()(const char* s1, const char* s2) const
-      {
-         return !strcmp(s1, s2);
-      }
-};
-
-typedef hash_map<const char*, class QoreNode *, hash<const char *>, class eqstr> hm_qn_t;
-typedef hash_map<const char*, class HashMember *, hash<const char *>, class eqstr> hm_hm_t;
-typedef hash_map<const char*, class Method *, hash<const char *>, class eqstr> hm_method_t;
-typedef hash_map<const char*, class BuiltinFunction *, hash<const char *>, class eqstr> hm_bf_t;
-typedef hash_map<const char*, class QoreClass *, hash<const char *>, class eqstr> hm_qc_t;
-typedef hash_map<const char*, class UserFunction *, hash<const char *>, class eqstr> hm_uf_t;
-
-#else // HAVE_QORE_HASH_MAP
-
-typedef std::map<const char*, class QoreNode *, class ltstr> hm_qn_t;
-typedef std::map<const char*, class HashMember *, class ltstr> hm_hm_t;
-typedef std::map<const char*, class Method *, class ltstr> hm_method_t;
-typedef std::map<const char*, class BuiltinFunction *, class ltstr> hm_bf_t;
-typedef std::map<const char*, class QoreClass *, class ltstr> hm_qc_t;
-typedef std::map<const char*, class UserFunction *, class ltstr> hm_uf_t;
-
-#endif // HAVE_QORE_HASH_MAP
+typedef std::map<const char*,  class Var *,               class ltstr> map_var_t;
+typedef std::map<const char*,  class AbstractQoreNode *,  class ltstr> hm_qn_t;
+typedef std::map<const char*,  class HashMember *,        class ltstr> hm_hm_t;
+typedef std::map<const char*,  class QoreMethod *,        class ltstr> hm_method_t;
+typedef std::map<const char*,  class BuiltinFunction *,   class ltstr> hm_bf_t;
+typedef std::map<const char*,  class QoreClass *,         class ltstr> hm_qc_t;
+typedef std::map<const char*,  class UserFunction *,      class ltstr> hm_uf_t;
 
 #endif // _QORE_HASH_MAP_H

@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ Copyright 2003 - 2009 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -21,15 +21,15 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/QC_AutoWriteLock.h>
+#include <qore/intern/QC_AutoWriteLock.h>
 
-int CID_AUTOWRITELOCK;
+qore_classid_t CID_AUTOWRITELOCK;
 
-static void AWL_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void AWL_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p = test_param(params, NT_OBJECT, 0);
-   RWLock *rwl = p ? (RWLock *)p->val.object->getReferencedPrivateData(CID_RWLOCK, xsink) : NULL;
-   if (xsink->isException())
+   QoreObject *p = test_object_param(params, 0);
+   RWLock *rwl = p ? (RWLock *)p->getReferencedPrivateData(CID_RWLOCK, xsink) : 0;
+   if (*xsink)
       return;
 
    if (!rwl)
@@ -45,20 +45,20 @@ static void AWL_constructor(class Object *self, class QoreNode *params, Exceptio
       self->setPrivate(CID_AUTOWRITELOCK, arwl);
 }
 
-static void AWL_destructor(class Object *self, class QoreAutoWriteLock *arwl, ExceptionSink *xsink)
+static void AWL_destructor(QoreObject *self, class QoreAutoWriteLock *arwl, ExceptionSink *xsink)
 {
    arwl->destructor(xsink);
    arwl->deref(xsink);
 }
 
-static void AWL_copy(class Object *self, class Object *old, class QoreAutoWriteLock *m, ExceptionSink *xsink)
+static void AWL_copy(QoreObject *self, QoreObject *old, class QoreAutoWriteLock *m, ExceptionSink *xsink)
 {
    xsink->raiseException("AUTOWRITELOCK-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 class QoreClass *initAutoWriteLockClass()
 {
-   tracein("initAutoWriteLockClass()");
+   QORE_TRACE("initAutoWriteLockClass()");
    
    class QoreClass *QC_AutoWriteLock = new QoreClass("AutoWriteLock", QDOM_THREAD_CLASS);
    CID_AUTOWRITELOCK = QC_AutoWriteLock->getID();
@@ -66,6 +66,6 @@ class QoreClass *initAutoWriteLockClass()
    QC_AutoWriteLock->setDestructor((q_destructor_t)AWL_destructor);
    QC_AutoWriteLock->setCopy((q_copy_t)AWL_copy);
    
-   traceout("initAutoWriteLockClass()");
+
    return QC_AutoWriteLock;
 }

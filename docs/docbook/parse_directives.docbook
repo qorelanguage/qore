@@ -61,7 +61,7 @@
 	</row>
 	<row>
 	  <entry><para><link linkend="no-database"><code>%no-database</code></link></para></entry>
-	  <entry><para>Disallows access to database functionality (for example the <link linkend="Qore::SQL::Datasource_Class">Datasource class</link>.  Equivalent to parse option <code>PO_NO_DATABASE</code> and the <code>--no-database</code> command-line option.</para></entry>
+	  <entry><para>Disallows access to database functionality (for example the <link linkend="Datasource_Class">Datasource class</link>.  Equivalent to parse option <code>PO_NO_DATABASE</code> and the <code>--no-database</code> command-line option.</para></entry>
 	</row>
 	<row>
 	  <entry><para><link linkend="no-external-process"><code>%no-external-process</code></link></para></entry>
@@ -74,6 +74,10 @@
 	<row>
 	  <entry><para><link linkend="no-global-vars"><code>%no-global-vars</code></link></para></entry>
 	  <entry><para>Disallows the use of global variables.  Equivalent to parse option <code>PO_NO_GLOBAL_VARS</code> and the <code>--no-global-vars</code> command-line option.</para></entry>
+	</row>
+	<row>
+	  <entry><para><link linkend="no-gui"><code>%no-gui</code></link></para></entry>
+	  <entry><para>Disallows functionality that draws graphics to the display.  Equivalent to parse option <code>PO_NO_GUI</code> and the <code>-pno-gui</code> command-line option.</para></entry>
 	</row>
 	<row>
 	  <entry><para><link linkend="no-namespace-defs"><code>%no-namespace-defs</code></link></para></entry>
@@ -95,6 +99,12 @@
 	  <entry><para><link linkend="no-subroutine-defs"><code>%no-subroutine-defs</code></link></para></entry>
 	  <entry><para>Disallows subroutine (function) definitions.  Equivalent to parse option <code>PO_NO_SUBROUTINE_DEFS</code> and the <code>--no-subroutine-defs</code> command-line option.</para></entry>
 	</row>
+
+	<row>
+	  <entry><para><link linkend="no-terminal-io"><code>%no-terminal-io</code></link></para></entry>
+	  <entry><para>Disallows access to terminal I/O (see <link linkend="no-terminal-io"><code>%no-terminal-io</code></link> for a list of features not available with this parse option).  Equivalent to parse option <code>PO_NO_TERMINAL_IO</code> and the <code>-pno-terminal-io</code> command-line option.</para></entry>
+	</row>
+
 	<row>
 	  <entry><para><link linkend="no-thread-classes"><code>%no-thread-classes</code></link></para></entry>
 	  <entry><para>Disallows access to thread classes (see <link linkend="no-thread-classes"><code>%no-thread-classes</code></link> for a list of features not available with this parse option).  Equivalent to parse option <code>PO_NO_THREAD_CLASSES</code> and the <code>--no-thread-classes</code> command-line option.</para></entry>
@@ -116,8 +126,9 @@
 	  <entry><para>Requires global variables to be declared with <command>our</command> prior to use (like perl's <code>use strict vars</code> pragma).  Equivalent to parse option <code>PO_REQUIRE_OUR</code> and the <code>--require-our</code> command-line option.</para></entry>
 	</row>
 	<row>
-	  <entry><para><link linkend="requires"><code>%requires</code></link> <replaceable>feature</replaceable></para></entry>
-	  <entry><para>If the named feature is not already present in Qore, then the <code>QORE_MODULE_DIR</code> environment variable is used to provide a list of directories to seach for a module with the same name (<replaceable>feature</replaceable><code>.qmod</code>).  If the module is not found, then the qore default module directory is checked.  This directive must be used to load modules providing parse support (i.e. modules providing classes, constants, functions, etc that are resolved at parse time).  See also <link linkend="load_module">load_module()</link> for a run-time module loading.</para></entry>
+	  <entry><para><link linkend="requires"><code>%requires</code></link> <replaceable>feature [&lt;|&lt;=|=|&gt;=|&gt; &lt;version&gt;]</replaceable></para></entry>
+	  <entry><para>If the named feature is not already present in Qore, then the <code>QORE_MODULE_DIR</code> environment variable is used to provide a list of directories to seach for a module with the same name (<replaceable>feature</replaceable><code>.qmod</code>).  If the module is not found, then the qore default module directory is checked.  This directive must be used to load modules providing parse support (i.e. modules providing classes, constants, functions, etc that are resolved at parse time).  If version information is provided, then it is compared with the module's version information, and if it does not match a parse exception is raised.  See also <link linkend="load_module">load_module()</link> for a run-time module loading.</para>
+</entry>
 	</row>
       </tbody>
     </tgroup>
@@ -297,7 +308,7 @@
       <varlistentry>
 	<term>Description</term>
 	<listitem>
-	  <para>Includes a file to be parsed.</para>
+	  <para>Includes a file to be parsed.  If the path is not absolute (i.e. starting with '/'), then files are searched first in the directory of the currently-executing script (if known), then in each path in the environment variable <code>QORE_INCLUDE_DIR</code>.</para>
 	</listitem>
       </varlistentry>
     </variablelist>
@@ -401,7 +412,7 @@
       <varlistentry>
 	<term>Command-Line</term>
 	<listitem>
-	  <para><code>--no-class-defs, -C</code></para>
+	  <para><code>--no-class-defs</code></para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -430,7 +441,7 @@
       <varlistentry>
 	<term>Command-Line</term>
 	<listitem>
-	  <para><code>--no-constant-defs, -J</code></para>
+	  <para><code>--no-constant-defs</code></para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -471,7 +482,7 @@
       <varlistentry>
 	<term>Description</term>
 	<listitem>
-	  <para>Disallows access to database functionality.  Currently this means that access to the <link linkend="Qore::SQL::Datasource_Class">Datasource</link> and <link linkend="DatasourcePool_Class">DatasourcePool</link> classes is restricted.</para>
+	  <para>Disallows access to database functionality.  Currently this means that access to the <link linkend="Datasource_Class">Datasource</link> and <link linkend="DatasourcePool_Class">DatasourcePool</link> classes is restricted.</para>
 	</listitem>
       </varlistentry>
     </variablelist>
@@ -578,36 +589,64 @@
 	      </thead>
 	      <tbody>
 		<row>
-		  <entry><para><link linkend="Qore_File_Class">File</link> class</para></entry>
+		  <entry><para><link linkend="Dir_Class">Dir</link> class</para></entry>
+		  <entry><para>The Dir class is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="File_Class">File</link> class</para></entry>
 		  <entry><para>The File class is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="is_file">is_file()</link></para></entry>
-		  <entry><para>The is_file() function is not available.</para></entry>
+		  <entry><para><link linkend="chdir">chdir()</link></para></entry>
+		  <entry><para>The chdir() function is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="is_dir">is_dir()</link></para></entry>
-		  <entry><para>The is_dir() function is not available.</para></entry>
+		  <entry><para><link linkend="chmod">chmod()</link></para></entry>
+		  <entry><para>The chmod() function is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="is_socket">is_socket()</link></para></entry>
-		  <entry><para>The is_socket() function is not available.</para></entry>
+		  <entry><para><link linkend="chown">chown()</link></para></entry>
+		  <entry><para>The chown() function is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="is_pipe">is_pipe()</link></para></entry>
-		  <entry><para>The is_pipe() function is not available.</para></entry>
+		  <entry><para><link linkend="glob">glob()</link></para></entry>
+		  <entry><para>The glob() function is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="is_dev">is_dev()</link></para></entry>
-		  <entry><para>The is_dev() function is not available.</para></entry>
+		  <entry><para><link linkend="hlstat">hlstat()</link></para></entry>
+		  <entry><para>The hlstat() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="hstat">hstat()</link></para></entry>
+		  <entry><para>The hstat() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="is_bdev">is_cdev()</link></para></entry>
+		  <entry><para>The is_cdev() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="is_cdev">is_bdev()</link></para></entry>
 		  <entry><para>The is_bdev() function is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="is_bdev">is_cdev()</link></para></entry>
-		  <entry><para>The is_cdev() function is not available.</para></entry>
+		  <entry><para><link linkend="is_dev">is_dev()</link></para></entry>
+		  <entry><para>The is_dev() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="is_executable">is_executable()</link></para></entry>
+		  <entry><para>The is_executable() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="is_dir">is_dir()</link></para></entry>
+		  <entry><para>The is_dir() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="is_file">is_file()</link></para></entry>
+		  <entry><para>The is_file() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="is_pipe">is_pipe()</link></para></entry>
+		  <entry><para>The is_pipe() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="is_link">is_link()</link></para></entry>
@@ -618,56 +657,24 @@
 		  <entry><para>The is_readable() function is not available.</para></entry>
 		</row>
 		<row>
+		  <entry><para><link linkend="is_socket">is_socket()</link></para></entry>
+		  <entry><para>The is_socket() function is not available.</para></entry>
+		</row>
+		<row>
 		  <entry><para><link linkend="is_writeable">is_writeable()</link></para></entry>
 		  <entry><para>The is_writeable() function is not available.</para></entry>
-		</row>
-		<row>
-		  <entry><para><link linkend="is_executable">is_executable()</link></para></entry>
-		  <entry><para>The is_executable() function is not available.</para></entry>
-		</row>
-		<row>
-		  <entry><para><link linkend="stat">stat()</link></para></entry>
-		  <entry><para>The stat() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="lstat">lstat()</link></para></entry>
 		  <entry><para>The lstat() function is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="hstat">hstat()</link></para></entry>
-		  <entry><para>The hstat() function is not available.</para></entry>
-		</row>
-		<row>
-		  <entry><para><link linkend="hlstat">hlstat()</link></para></entry>
-		  <entry><para>The hlstat() function is not available.</para></entry>
-		</row>
-		<row>
-		  <entry><para><link linkend="glob">glob()</link></para></entry>
-		  <entry><para>The glob() function is not available.</para></entry>
-		</row>
-		<row>
-		  <entry><para><link linkend="unlink">unlink()</link></para></entry>
-		  <entry><para>The unlink() function is not available.</para></entry>
-		</row>
-		<row>
-		  <entry><para><link linkend="umask">umask()</link></para></entry>
-		  <entry><para>The umask() function is not available.</para></entry>
-		</row>
-		<row>
 		  <entry><para><link linkend="mkdir">mkdir()</link></para></entry>
 		  <entry><para>The mkdir() function is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="rmdir">rmdir()</link></para></entry>
-		  <entry><para>The rmdir() function is not available.</para></entry>
-		</row>
-		<row>
-		  <entry><para><link linkend="chmod">chmod()</link></para></entry>
-		  <entry><para>The chdir() function is not available.</para></entry>
-		</row>
-		<row>
-		  <entry><para><link linkend="chdir">chdir()</link></para></entry>
-		  <entry><para>The chdir() function is not available.</para></entry>
+		  <entry><para><link linkend="mkfifo">mkfifo()</link></para></entry>
+		  <entry><para>The mkfifo() function is not available.</para></entry>
 		</row>
 <!--
 		<row>
@@ -676,8 +683,20 @@
 		</row>
 -->
 		<row>
-		  <entry><para><link linkend="mkfifo">mkfifo()</link></para></entry>
-		  <entry><para>The mkfifo() function is not available.</para></entry>
+		  <entry><para><link linkend="rmdir">rmdir()</link></para></entry>
+		  <entry><para>The rmdir() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="stat">stat()</link></para></entry>
+		  <entry><para>The stat() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="umask">umask()</link></para></entry>
+		  <entry><para>The umask() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="unlink">unlink()</link></para></entry>
+		  <entry><para>The unlink() function is not available.</para></entry>
 		</row>
 	      </tbody>
 	    </tgroup>
@@ -687,7 +706,6 @@
       </varlistentry>
     </variablelist>
   </sect2>
-
 
   <sect2 id="no-global-vars">
     <title>no-global-vars</title>
@@ -718,6 +736,37 @@
       </varlistentry>
     </variablelist>
   </sect2>
+
+  <sect2 id="no-gui">
+    <title>no-gui</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%no-gui</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--no-gui, --set-parse-option=no-gui, -pno-gui</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para><code>PO_NO_GUI</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Disallows the use of functionality that draws graphics to the display (this functionality is not implemented in the qore library; only implemented in modules).</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+
   <sect2 id="no-namespace-defs">
     <title>no-namespace-defs</title>
     <variablelist>
@@ -785,7 +834,7 @@
 	      </thead>
 	      <tbody>
 		<row>
-		  <entry><para><link linkend="Qore_FtpClient_Class">FtpClient</link> class</para></entry>
+		  <entry><para><link linkend="FtpClient_Class">FtpClient</link> class</para></entry>
 		  <entry><para>The FtpClient class is not available.</para></entry>
 		</row>
 		<row>
@@ -801,7 +850,7 @@
 		  <entry><para>The JsonRpcClient class is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="Qore_Socket_Class">Socket</link> class</para></entry>
+		  <entry><para><link linkend="Socket_Class">Socket</link> class</para></entry>
 		  <entry><para>The Socket class is not available.</para></entry>
 		</row>
 	      </tbody>
@@ -878,20 +927,8 @@
 	      </thead>
 	      <tbody>
 		<row>
-		  <entry><para><link linkend="exit">exit()</link></para></entry>
-		  <entry><para>The exit() function is not available.</para></entry>
-		</row>
-		<row>
 		  <entry><para><link linkend="abort">abort()</link></para></entry>
 		  <entry><para>The abort() function is not available.</para></entry>
-		</row>
-		<row>
-		  <entry><para><link linkend="sleep">sleep()</link></para></entry>
-		  <entry><para>The sleep() function is not available.</para></entry>
-		</row>
-		<row>
-		  <entry><para><link linkend="usleep">usleep()</link></para></entry>
-		  <entry><para>The usleep() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="fork">fork()</link></para></entry>
@@ -902,12 +939,40 @@
 		  <entry><para>The exec() function is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="set_signal_handler">set_signal_handler()</link></para></entry>
-		  <entry><para>The set_signal_handler() function is not available.</para></entry>
+		  <entry><para><link linkend="exit">exit()</link></para></entry>
+		  <entry><para>The exit() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="remove_signal_handler">remove_signal_handler()</link></para></entry>
 		  <entry><para>The remove_signal_handler() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="set_signal_handler">set_signal_handler()</link></para></entry>
+		  <entry><para>The set_signal_handler() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="setegid">setegid()</link></para></entry>
+		  <entry><para>The setegid() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="seteuid">seteuid()</link></para></entry>
+		  <entry><para>The seteuid() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="setgid">setgid()</link></para></entry>
+		  <entry><para>The setgid() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="setuid">setuid()</link></para></entry>
+		  <entry><para>The setuid() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="sleep">sleep()</link></para></entry>
+		  <entry><para>The sleep() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="usleep">usleep()</link></para></entry>
+		  <entry><para>The usleep() function is not available.</para></entry>
 		</row>
 	      </tbody>
 	    </tgroup>
@@ -946,6 +1011,82 @@
       </varlistentry>
     </variablelist>
   </sect2>
+
+  <sect2 id="no-terminal-io">
+    <title>no-terminal-io</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%no-terminal-io</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--no-terminal-io, --set-parse-option=no-terminal-io, -pno-terminal-io</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para><code>PO_NO_TERMINAL_IO</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Disallows access to terminal input and output.</para>
+	  <table>
+	    <title>Unavailable Features with no-terminal-io</title>
+	    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	      <thead>
+		<row>
+		  <entry><para>Feature/Function</para></entry>
+		  <entry><para>Description</para></entry>
+		</row>
+	      </thead>
+	      <tbody>
+		<row>
+		  <entry><para><link linkend="flush">flush()</link></para></entry>
+		  <entry><para>The flush() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="f_printf">f_printf()</link></para></entry>
+		  <entry><para>The f_printf() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="printf">print()</link></para></entry>
+		  <entry><para>The print() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="printf">printf()</link></para></entry>
+		  <entry><para>The printf() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="vprintf">vprintf()</link></para></entry>
+		  <entry><para>The vprintf() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="stdin_constant">stdin</link></para></entry>
+		  <entry><para>The stdin constant is not accessible.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="stdout_constant">stdout</link></para></entry>
+		  <entry><para>The stdout constant is not accessible.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="stderr_constant">stderr</link></para></entry>
+		  <entry><para>The stderr constant is not accessible.</para></entry>
+		</row>
+	      </tbody>
+	    </tgroup>
+	  </table>  
+
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
   <sect2 id="no-thread-classes">
     <title>no-thread-classes</title>
     <variablelist>
@@ -958,7 +1099,7 @@
       <varlistentry>
 	<term>Command-Line</term>
 	<listitem>
-	  <para><code>--no-thread-classes, -X</code></para>
+	  <para><code>--no-thread-classes</code></para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -982,39 +1123,39 @@
 	      </thead>
 	      <tbody>
 		<row>
-		  <entry><para><link linkend="Qore::Thread::AutoGate_Class">AutoGate</link> class</para></entry>
+		  <entry><para><link linkend="AutoGate_Class">AutoGate</link> class</para></entry>
 		  <entry><para>The AutoGate class is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="Qore::Thread::AutoLock_Class">AutoLock</link> class</para></entry>
+		  <entry><para><link linkend="AutoLock_Class">AutoLock</link> class</para></entry>
 		  <entry><para>The AutoLock class is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="Qore::Thread::AutoReadLock_Class">AutoReadLock</link> class</para></entry>
+		  <entry><para><link linkend="AutoReadLock_Class">AutoReadLock</link> class</para></entry>
 		  <entry><para>The AutoReadLock class is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="Qore::Thread::AutoWriteLock_Class">AutoWriteLock</link> class</para></entry>
+		  <entry><para><link linkend="AutoWriteLock_Class">AutoWriteLock</link> class</para></entry>
 		  <entry><para>The AutoWriteLock class is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="Qore::Thread::Condition_Class">Condition</link> class</para></entry>
+		  <entry><para><link linkend="Condition_Class">Condition</link> class</para></entry>
 		  <entry><para>The Condition class is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="Qore::Thread::Counter_Class">Counter</link> class</para></entry>
+		  <entry><para><link linkend="Counter_Class">Counter</link> class</para></entry>
 		  <entry><para>The Counter class is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="Qore::Thread::Mutex_Class">Mutex</link> class</para></entry>
+		  <entry><para><link linkend="Mutex_Class">Mutex</link> class</para></entry>
 		  <entry><para>The Mutex class is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="Qore::Thread::Queue_Class">Queue</link> class</para></entry>
+		  <entry><para><link linkend="Queue_Class">Queue</link> class</para></entry>
 		  <entry><para>The Queue class is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="Qore::Thread::RWLock_Class">RWLock</link> class</para></entry>
+		  <entry><para><link linkend="RWLock_Class">RWLock</link> class</para></entry>
 		  <entry><para>The RWLock class is not available.</para></entry>
 		</row>
 	      </tbody>
@@ -1216,6 +1357,11 @@
 	<term>Description</term>
 	<listitem>
 	  <para>Loads a Qore module immediately.  The parse directive can be used to load a module during parsing, and the command-line version can be used to load a module before parsing.</para>
+	  <para>From Qore 0.7.1, you can specify a comparison operator (one of &lt; &lt;=, =, &gt;=, or &gt;) and version information after the module name as well.  Version numbers are compared via integer comparisons of each element, where elements are separated by a '.'.  If one of the versions does not have as many elements as another, the missing elements are assumed to be '0' (i.e. version &quot;1.0&quot; compared with version &quot;1.0.1&quot; will be exteneded to &quot;1.0.0&quot;).</para>
+	  <para>For example:</para>
+	  <programlisting>%requires oracle >= 1.0.1</programlisting>
+	  <para>This will load the oracle module if it is at least version 1.0.1.</para>
+	  <para>Note that there is one special feature name: &quot;qore&quot;.  This pseudo-feature can be used to check the minimum qore version; if this feature is requested with version information, then the Qore library's version information is used for the version number comparison.</para>
 	</listitem>
       </varlistentry>
     </variablelist>

@@ -3,7 +3,7 @@
 
   Qore Programming Language
   
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2009 David Nichols
   
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,40 +21,39 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QC_Queue.h>
+#include <qore/intern/QC_Queue.h>
 
-int CID_QUEUE;
+qore_classid_t CID_QUEUE;
 
-static void QUEUE_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
-{
+static void QUEUE_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
    self->setPrivate(CID_QUEUE, new Queue());
 }
 
-static void QUEUE_destructor(class Object *self, class Queue *tq, ExceptionSink *xsink)
-{
+static void QUEUE_destructor(QoreObject *self, Queue *tq, ExceptionSink *xsink) {
    tq->destructor(xsink);
    tq->deref(xsink);
 }
 
-static void QUEUE_copy(class Object *self, class Object *old, class Queue *tq, ExceptionSink *xsink)
-{
-   self->setPrivate(CID_QUEUE, new Queue());
+static void QUEUE_copy(QoreObject *self, QoreObject *old, Queue *tq, ExceptionSink *xsink) {
+   self->setPrivate(CID_QUEUE, new Queue(*tq));
 }
 
-static class QoreNode *QUEUE_push(class Object *self, class Queue *tq, class QoreNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *QUEUE_push(QoreObject *self, Queue *tq, const QoreListNode *params, ExceptionSink *xsink) {
    tq->push(get_param(params, 0));
-   return NULL;
+   return 0;
+}
+
+static AbstractQoreNode *QUEUE_insert(QoreObject *self, Queue *tq, const QoreListNode *params, ExceptionSink *xsink) {
+   tq->insert(get_param(params, 0));
+   return 0;
 }
 
 // can't use shift because it's a reserved word
-static class QoreNode *QUEUE_get(class Object *self, class Queue *tq, class QoreNode *params, ExceptionSink *xsink)
-{
-   QoreNode *rv;
+static AbstractQoreNode *QUEUE_get(QoreObject *self, Queue *tq, const QoreListNode *params, ExceptionSink *xsink) {
+   AbstractQoreNode *rv;
 
    int timeout = getMsZeroInt(get_param(params, 0));
-   if (timeout)
-   {
+   if (timeout) {
       bool to;
       rv = tq->shift(xsink, timeout, &to);
       if (to)
@@ -66,13 +65,11 @@ static class QoreNode *QUEUE_get(class Object *self, class Queue *tq, class Qore
    return rv;
 }
 
-static class QoreNode *QUEUE_pop(class Object *self, class Queue *tq, class QoreNode *params, ExceptionSink *xsink)
-{
-   QoreNode *rv;
+static AbstractQoreNode *QUEUE_pop(QoreObject *self, Queue *tq, const QoreListNode *params, ExceptionSink *xsink) {
+   AbstractQoreNode *rv;
 
    int timeout = getMsZeroInt(get_param(params, 0));
-   if (timeout)
-   {
+   if (timeout) {
       bool to;
       rv = tq->pop(xsink, timeout, &to);
       if (to)
@@ -84,31 +81,28 @@ static class QoreNode *QUEUE_pop(class Object *self, class Queue *tq, class Qore
    return rv;
 }
 
-static class QoreNode *QUEUE_size(class Object *self, class Queue *tq, class QoreNode *params, ExceptionSink *xsink)
-{
-   return new QoreNode((int64)tq->size());
+static AbstractQoreNode *QUEUE_size(QoreObject *self, Queue *tq, const QoreListNode *params, ExceptionSink *xsink) {
+   return new QoreBigIntNode(tq->size());
 }
 
-static class QoreNode *QUEUE_getWaiting(class Object *self, class Queue *q, class QoreNode *params, ExceptionSink *xsink)
-{
-   return new QoreNode((int64)q->getWaiting());
+static AbstractQoreNode *QUEUE_getWaiting(QoreObject *self, Queue *q, const QoreListNode *params, ExceptionSink *xsink) {
+   return new QoreBigIntNode(q->getWaiting());
 }
 
-class QoreClass *initQueueClass()
-{
-   tracein("initQueueClass()");
+QoreClass *initQueueClass() {
+   QORE_TRACE("initQueueClass()");
 
-   class QoreClass *QC_QUEUE = new QoreClass("Queue", QDOM_THREAD_CLASS);
+   QoreClass *QC_QUEUE = new QoreClass("Queue", QDOM_THREAD_CLASS);
    CID_QUEUE = QC_QUEUE->getID();
    QC_QUEUE->setConstructor(QUEUE_constructor);
    QC_QUEUE->setDestructor((q_destructor_t)QUEUE_destructor);
    QC_QUEUE->setCopy((q_copy_t)QUEUE_copy);
    QC_QUEUE->addMethod("push",          (q_method_t)QUEUE_push);
+   QC_QUEUE->addMethod("insert",        (q_method_t)QUEUE_insert);
    QC_QUEUE->addMethod("get",           (q_method_t)QUEUE_get);
    QC_QUEUE->addMethod("pop",           (q_method_t)QUEUE_pop);
    QC_QUEUE->addMethod("size",          (q_method_t)QUEUE_size);
    QC_QUEUE->addMethod("getWaiting",    (q_method_t)QUEUE_getWaiting);
 
-   traceout("initQueueClass()");
    return QC_QUEUE;
 }

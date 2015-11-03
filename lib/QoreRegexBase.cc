@@ -1,11 +1,11 @@
 /*
- QoreRegexBase.h
+ QoreRegexBase.cc
  
  regular expression substitution node definition
  
  Qore Programming Language
  
- Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ Copyright 2003 - 2009 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -23,7 +23,7 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/QoreRegexBase.h>
+#include <qore/intern/QoreRegexBase.h>
 
 void QoreRegexBase::setCaseInsensitive()
 {

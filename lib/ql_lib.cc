@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2009 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,8 +21,9 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/ql_lib.h>
-#include <qore/ExecArgList.h>
+#include <qore/intern/ql_lib.h>
+#include <qore/intern/ExecArgList.h>
+#include <qore/intern/QoreSignal.h>
 #include <qore/minitest.hpp>
 
 #include <errno.h>
@@ -37,72 +38,66 @@
 #include <time.h>
 #include <glob.h>
 
-#ifdef DEBUG
+#ifdef DEBUG_TESTS
 // Unsorted unit tests are put here
 #  include "tests/ReferenceHolder_tests.cc"
 #endif
 
-static class QoreNode *f_exit(class QoreNode *params, ExceptionSink *xsink)
-{
-   class QoreNode *p0;
+static AbstractQoreNode *f_exit(const QoreListNode *params, ExceptionSink *xsink) {
+   const AbstractQoreNode *p0 = get_param(params, 0);
 
-   if (!(p0 = get_param(params, 0)))
-      exit(0);
+   qore_exit_process(p0 ? p0->getAsInt() : 0);
 
-   exit(p0->getAsInt());
-   return NULL;
+   return 0;   // to avoid warning
 }
 
-static class QoreNode *f_abort(class QoreNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_abort(const QoreListNode *params, ExceptionSink *xsink) {
    abort();
-   return NULL;
+   return 0;
 }
 
-static class QoreNode *f_exec(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_exec(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
+   const QoreStringNode *p0;
 
-   if (!(p0 = test_param(params, NT_STRING, 0)))
-      return NULL;
+   if (!(p0 = test_string_param(params, 0)))
+      return 0;
 
-   class ExecArgList args(p0->val.String->getBuffer());
+   class ExecArgList args(p0->getBuffer());
    execvp(args.getFile(), args.getArgs());
    
    xsink->raiseException("EXEC-ERROR", "execvp() failed with error code %d", errno);
-   return NULL;
+   return 0;
 }
 
 // executes a command and returns exit status
-static class QoreNode *f_system(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_system(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
+   const QoreStringNode *p0;
 
-   if (!(p0 = test_param(params, NT_STRING, 0)))
-      return NULL;
+   if (!(p0 = test_string_param(params, 0)))
+      return 0;
 
    int rc;
    // use system() if shell meta-characters are found
-   if (strchrs(p0->val.String->getBuffer(), "*?><"))
+   if (strchrs(p0->getBuffer(), "*?><;"))
    {
       QoreString c;
-      c.sprintf("/bin/sh -c \"%s\"", p0->val.String->getBuffer());
+      c.sprintf("/bin/sh -c \"%s\"", p0->getBuffer());
       rc = system(c.getBuffer());
    }
    else // otherwise fork and exec
    {
       pid_t pid;
-      if (!(pid = fork()))
-      {
-	 class ExecArgList args(p0->val.String->getBuffer());
+      if (!(pid = fork())) {
+	 ExecArgList args(p0->getBuffer());
 	 execvp(args.getFile(), args.getArgs());
 	 printf("execvp() failed with error code %d: %s\n", errno, strerror(errno));
-	 exit(-1);
+	 qore_exit_process(-1);
       }
       if (pid == -1)
 	 rc = -1;
-      else
-      {
+      else {
 	 int status;
 	 wait(&status);
 	 if (WIFEXITED(status))
@@ -111,89 +106,88 @@ static class QoreNode *f_system(class QoreNode *params, ExceptionSink *xsink)
 	    rc = -1;
       }
    }
-   return new QoreNode((int64)rc);
+   return new QoreBigIntNode(rc);
 }
 
-static class QoreNode *f_getuid(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_getuid(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)getuid());
+   return new QoreBigIntNode(getuid());
 }
 
-static class QoreNode *f_geteuid(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_geteuid(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)getuid());
+   return new QoreBigIntNode(getuid());
 }
 
-static class QoreNode *f_getgid(class QoreNode *params, ExceptionSink *xsink)
-{
-   return new QoreNode((int64)getgid());
+static AbstractQoreNode *f_getgid(const QoreListNode *params, ExceptionSink *xsink) {
+   return new QoreBigIntNode(getgid());
 }
 
-static class QoreNode *f_getegid(class QoreNode *params, ExceptionSink *xsink)
-{
-   return new QoreNode((int64)getgid());
+static AbstractQoreNode *f_getegid(const QoreListNode *params, ExceptionSink *xsink) {
+   return new QoreBigIntNode(getgid());
 }
 
-static class QoreNode *f_sleep(class QoreNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_sleep(const QoreListNode *params, ExceptionSink *xsink) {
    int timeout = getSecZeroInt(get_param(params, 0));
    if (!timeout)
-      return NULL;
+      return 0;
+
+   while (true) {
+      timeout = sleep(timeout);
+      if (!timeout)
+	 return new QoreBigIntNode(0);
+   }
    
-   return new QoreNode((int64)sleep(timeout));
+   return 0;
 }
 
-static class QoreNode *f_usleep(class QoreNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_usleep(const QoreListNode *params, ExceptionSink *xsink) {
    int timeout = getMicroSecZeroInt(get_param(params, 0));
    if (!timeout)
-      return NULL;
+      return 0;
 
-   return new QoreNode((int64)usleep(timeout));
+   return new QoreBigIntNode(usleep(timeout));
 }
 
-static class QoreNode *f_getpid(class QoreNode *params, ExceptionSink *xsink)
-{
-   return new QoreNode((int64)getpid());
+static AbstractQoreNode *f_getpid(const QoreListNode *params, ExceptionSink *xsink) {
+   return new QoreBigIntNode(getpid());
 }
 
-static class QoreNode *f_getppid(class QoreNode *params, ExceptionSink *xsink)
-{
-   return new QoreNode((int64)getppid());   
+static AbstractQoreNode *f_getppid(const QoreListNode *params, ExceptionSink *xsink) {
+   return new QoreBigIntNode(getppid());   
 }
 
 extern int num_threads;
-static class QoreNode *f_fork(class QoreNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_fork(const QoreListNode *params, ExceptionSink *xsink) {
    int sh = (QoreSignalManager::thread_running ? 1 : 0);
-   if (num_threads > (1 + sh))
-   {   
+   if (num_threads > (1 + sh)) {   
       xsink->raiseException("ILLEGAL-FORK", "cannot fork() when other threads are running");
-      return NULL;
+      return 0;
    }
 
    // we may not fork from within a signal handler
-   if (sh && gettid() == QoreSignalManager::gettid())
-   {
+   if (sh && gettid() == QoreSignalManager::gettid()) {
       xsink->raiseException("ILLEGAL-FORK", "cannot fork() within a signal handler");
-      return NULL;
+      return 0;
    }
    
    // stop signal handling thread and make sure it can't be restarted until fork is done
    QoreSignalManager::pre_fork_block_and_stop();
+
    //printd(5, "stopped signal thread, about to fork pid %d\n", getpid()); fflush(stdout);
    int pid = fork();
-   class QoreNode *rv = new QoreNode((int64)pid);
+
    // release signal handler lock
    QoreSignalManager::post_fork_unblock_and_start(!pid, xsink);
-   return rv;
+
+   return new QoreBigIntNode(pid);
 }
 
-static class QoreNode *f_kill(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_kill(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0, *p1;
+   const AbstractQoreNode *p0, *p1;
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
    int sig, pid;
 
@@ -201,75 +195,69 @@ static class QoreNode *f_kill(class QoreNode *params, ExceptionSink *xsink)
    if ((p1 = get_param(params, 1)))
       sig = p1->getAsInt();
    else sig = SIGHUP;
-   return new QoreNode((int64)kill(pid, sig));
+   return new QoreBigIntNode(kill(pid, sig));
 }
 
 /*
-static class QoreNode *f_wait(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_wait(const QoreListNode *params, ExceptionSink *xsink)
 {
 }
 
-static class QoreNode *f_waitpid(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_waitpid(const QoreListNode *params, ExceptionSink *xsink)
 {
 }
 */
 
-static List *map_sbuf_to_list(struct stat *sbuf)
+static QoreListNode *map_sbuf_to_list(struct stat *sbuf)
 {
-   List *l = new List();
+   QoreListNode *l = new QoreListNode();
 
-   l->push(new QoreNode((int64)sbuf->st_dev));
-   l->push(new QoreNode((int64)sbuf->st_ino));
-   l->push(new QoreNode((int64)sbuf->st_mode));
-   l->push(new QoreNode((int64)sbuf->st_nlink));
-   l->push(new QoreNode((int64)sbuf->st_uid));
-   l->push(new QoreNode((int64)sbuf->st_gid));
-   l->push(new QoreNode((int64)sbuf->st_rdev));
-   l->push(new QoreNode((int64)sbuf->st_size));
+   // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
+   l->push(new QoreBigIntNode((int64)sbuf->st_dev));
+   l->push(new QoreBigIntNode(sbuf->st_ino));
+   l->push(new QoreBigIntNode(sbuf->st_mode));
+   l->push(new QoreBigIntNode(sbuf->st_nlink));
+   l->push(new QoreBigIntNode(sbuf->st_uid));
+   l->push(new QoreBigIntNode(sbuf->st_gid));
+   // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
+   l->push(new QoreBigIntNode((int64)sbuf->st_rdev));
+   l->push(new QoreBigIntNode(sbuf->st_size));
    
    struct tm tms;
-   DateTime *adt = new DateTime(q_localtime(&sbuf->st_atime, &tms));
-   l->push(new QoreNode(adt));
+   l->push(new DateTimeNode(q_localtime(&sbuf->st_atime, &tms)));
+   l->push(new DateTimeNode(q_localtime(&sbuf->st_mtime, &tms)));
+   l->push(new DateTimeNode(q_localtime(&sbuf->st_ctime, &tms)));
 
-   DateTime *mdt = new DateTime(q_localtime(&sbuf->st_mtime, &tms));
-   l->push(new QoreNode(mdt));
-
-   DateTime *cdt = new DateTime(q_localtime(&sbuf->st_ctime, &tms));
-   l->push(new QoreNode(cdt));
-
-   l->push(new QoreNode((int64)sbuf->st_blksize));
-   l->push(new QoreNode((int64)sbuf->st_blocks));
+   l->push(new QoreBigIntNode(sbuf->st_blksize));
+   l->push(new QoreBigIntNode(sbuf->st_blocks));
 
    return l;
 }
 
-static class Hash *map_sbuf_to_hash(struct stat *sbuf)
+static QoreHashNode *map_sbuf_to_hash(struct stat *sbuf)
 {
-   Hash *h = new Hash();
+   QoreHashNode *h = new QoreHashNode();
 
-   h->setKeyValue("dev",     new QoreNode((int64)sbuf->st_dev), NULL);
-   h->setKeyValue("inode",   new QoreNode((int64)sbuf->st_ino), NULL);
-   h->setKeyValue("mode",    new QoreNode((int64)sbuf->st_mode), NULL);
-   h->setKeyValue("nlink",   new QoreNode((int64)sbuf->st_nlink), NULL);
-   h->setKeyValue("uid",     new QoreNode((int64)sbuf->st_uid), NULL);
-   h->setKeyValue("gid",     new QoreNode((int64)sbuf->st_gid), NULL);
-   h->setKeyValue("rdev",    new QoreNode((int64)sbuf->st_rdev), NULL);
-   h->setKeyValue("size",    new QoreNode((int64)sbuf->st_size), NULL);
+   // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
+   h->setKeyValue("dev",     new QoreBigIntNode((int64)sbuf->st_dev), 0);
+   h->setKeyValue("inode",   new QoreBigIntNode(sbuf->st_ino), 0);
+   h->setKeyValue("mode",    new QoreBigIntNode(sbuf->st_mode), 0);
+   h->setKeyValue("nlink",   new QoreBigIntNode(sbuf->st_nlink), 0);
+   h->setKeyValue("uid",     new QoreBigIntNode(sbuf->st_uid), 0);
+   h->setKeyValue("gid",     new QoreBigIntNode(sbuf->st_gid), 0);
+   // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
+   h->setKeyValue("rdev",    new QoreBigIntNode((int64)sbuf->st_rdev), 0);
+   h->setKeyValue("size",    new QoreBigIntNode(sbuf->st_size), 0);
    
    struct tm tms;
-   DateTime *adt = new DateTime(q_localtime(&sbuf->st_atime, &tms));
-   h->setKeyValue("atime",   new QoreNode(adt), NULL);
+   h->setKeyValue("atime",   new DateTimeNode(q_localtime(&sbuf->st_atime, &tms)), 0);
+   h->setKeyValue("mtime",   new DateTimeNode(q_localtime(&sbuf->st_mtime, &tms)), 0);
+   h->setKeyValue("ctime",   new DateTimeNode(q_localtime(&sbuf->st_ctime, &tms)), 0);
 
-   DateTime *mdt = new DateTime(q_localtime(&sbuf->st_mtime, &tms));
-   h->setKeyValue("mtime",   new QoreNode(mdt), NULL);
+   h->setKeyValue("blksize", new QoreBigIntNode(sbuf->st_blksize), 0);
+   h->setKeyValue("blocks",  new QoreBigIntNode(sbuf->st_blocks), 0);
 
-   DateTime *cdt = new DateTime(q_localtime(&sbuf->st_ctime, &tms));
-   h->setKeyValue("ctime",   new QoreNode(cdt), NULL);
-
-   h->setKeyValue("blksize", new QoreNode((int64)sbuf->st_blksize), NULL);
-   h->setKeyValue("blocks",  new QoreNode((int64)sbuf->st_blocks), NULL);
-
-   char *type;
+   const char *type;
    if (S_ISBLK(sbuf->st_mode))
       type = "BLOCK-DEVICE";
    else if (S_ISDIR(sbuf->st_mode))
@@ -289,393 +277,459 @@ static class Hash *map_sbuf_to_hash(struct stat *sbuf)
    else
       type = "UNKNOWN";
 
-   h->setKeyValue("type",  new QoreNode(type), NULL);
+   h->setKeyValue("type",  new QoreStringNode(type), 0);
    return h;
 }
 
-static class QoreNode *f_stat(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_stat(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
-   if (!(p0 = test_param(params, NT_STRING, 0)))
-      return NULL;
+   const QoreStringNode *p0;
+   if (!(p0 = test_string_param(params, 0)))
+      return 0;
 
-   tracein("f_stat()");
+   QORE_TRACE("f_stat()");
    struct stat sbuf;
    int rc;
 
-   if ((rc = stat(p0->val.String->getBuffer(), &sbuf)))
-      return NULL;
+   if ((rc = stat(p0->getBuffer(), &sbuf)))
+      return 0;
 
-   traceout("f_stat()");
-   return new QoreNode(map_sbuf_to_list(&sbuf));
+
+   return map_sbuf_to_list(&sbuf);
 }
 
-static class QoreNode *f_lstat(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_lstat(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
-   if (!(p0 = test_param(params, NT_STRING, 0)))
-      return NULL;
+   const QoreStringNode *p0;
+   if (!(p0 = test_string_param(params, 0)))
+      return 0;
 
-   tracein("f_lstat()");
+   QORE_TRACE("f_lstat()");
    struct stat sbuf;
    int rc;
 
-   if ((rc = lstat(p0->val.String->getBuffer(), &sbuf)))
-      return NULL;
+   if ((rc = lstat(p0->getBuffer(), &sbuf)))
+      return 0;
 
-   traceout("f_lstat()");
-   return new QoreNode(map_sbuf_to_list(&sbuf));
+
+   return map_sbuf_to_list(&sbuf);
 }
 
-static class QoreNode *f_hstat(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_hstat(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
-   if (!(p0 = test_param(params, NT_STRING, 0)))
-      return NULL;
+   const QoreStringNode *p0;
+   if (!(p0 = test_string_param(params, 0)))
+      return 0;
 
-   tracein("f_hstat()");
+   QORE_TRACE("f_hstat()");
    struct stat sbuf;
    int rc;
 
-   if ((rc = stat(p0->val.String->getBuffer(), &sbuf)))
-      return NULL;
+   if ((rc = stat(p0->getBuffer(), &sbuf)))
+      return 0;
 
-   traceout("f_hstat()");
-   return new QoreNode(map_sbuf_to_hash(&sbuf));
+
+   return map_sbuf_to_hash(&sbuf);
 }
 
-static class QoreNode *f_hlstat(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_hlstat(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
-   if (!(p0 = test_param(params, NT_STRING, 0)))
-      return NULL;
+   const QoreStringNode *p0;
+   if (!(p0 = test_string_param(params, 0)))
+      return 0;
 
-   tracein("f_hlstat()");
+   QORE_TRACE("f_hlstat()");
    struct stat sbuf;
    int rc;
 
-   if ((rc = lstat(p0->val.String->getBuffer(), &sbuf)))
-      return NULL;
+   if ((rc = lstat(p0->getBuffer(), &sbuf)))
+      return 0;
 
-   traceout("f_hstat()");
-   return new QoreNode(map_sbuf_to_hash(&sbuf));
+
+   return map_sbuf_to_hash(&sbuf);
 }
 
-static class QoreNode *f_glob(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_glob(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
-   if (!(p0 = test_param(params, NT_STRING, 0)))
-      return NULL;
+   const QoreStringNode *p0;
+   if (!(p0 = test_string_param(params, 0)))
+      return 0;
 
    glob_t globbuf;
-   if (glob(p0->val.String->getBuffer(), 0, NULL, &globbuf))
+   if (glob(p0->getBuffer(), 0, 0, &globbuf))
    {
       globfree(&globbuf);
-      return NULL;
+      return 0;
    }
 
-   List *l = new List();
+   QoreListNode *l = new QoreListNode();
    for (int i = 0; i < (int)globbuf.gl_pathc; i++)
-      l->push(new QoreNode(globbuf.gl_pathv[i]));
+      l->push(new QoreStringNode(globbuf.gl_pathv[i]));
    
    globfree(&globbuf);
-   return new QoreNode(l);
+   return l;
 }
 
-static class QoreNode *f_unlink(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_unlink(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
-   if (!(p0 = test_param(params, NT_STRING, 0)))
-      return NULL;
+   const QoreStringNode *p0;
+   if (!(p0 = test_string_param(params, 0)))
+      return 0;
 
-   return new QoreNode((int64)unlink(p0->val.String->getBuffer()));
+   return new QoreBigIntNode(unlink(p0->getBuffer()));
 }
 
-static class QoreNode *f_umask(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_umask(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
+   const AbstractQoreNode *p0;
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
    
-   return new QoreNode((int64)umask(p0->getAsInt()));
+   return new QoreBigIntNode(umask(p0->getAsInt()));
 }
 
-static class QoreNode *f_rand(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_rand(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)random());
+   // return a random 64-bit integer by calling random() twice
+   return new QoreBigIntNode(random() + (((int64)random()) << 32));
 }
 
-static class QoreNode *f_srand(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_srand(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
+   const AbstractQoreNode *p0;
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
    
    srandom(p0->getAsInt());
-   return NULL;
+   return 0;
 }
 
-static class QoreNode *f_gethostname(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_gethostname(const QoreListNode *params, ExceptionSink *xsink)
 {
    char buf[HOSTNAMEBUFSIZE + 1];
 
    if (gethostname(buf, HOSTNAMEBUFSIZE))
-      return NULL;
-   return new QoreNode(buf);
+      return 0;
+   return new QoreStringNode(buf);
 }
 
-static class QoreNode *f_errno(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_errno(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)errno);
+   return new QoreBigIntNode(errno);
 }
 
 
-static class QoreNode *f_strerror(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_strerror(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 #ifdef NEED_STRERROR_R
 #define STRERR_BUFSIZE 512
    char buf[STRERR_BUFSIZE];
    if (strerror_r(p0->getAsInt(), buf, STRERR_BUFSIZE))
-      return NULL;
-   return new QoreNode(buf);
+      return 0;
+   return new QoreStringNode(buf);
 #else
-   return new QoreNode(strerror(p0->getAsInt()));
+   return new QoreStringNode(strerror(p0->getAsInt()));
 #endif
 }
 
-static class QoreNode *f_basename(class QoreNode *params, ExceptionSink *xsink)
-{
-   QoreNode *p0 = test_param(params, NT_STRING, 0);
+static AbstractQoreNode *f_basename(const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
-   class QoreString *str = new QoreString();
-   str->take(q_basename(p0->val.String->getBuffer()), p0->val.String->getEncoding());
-   return new QoreNode(str);
+   char *p = q_basename(p0->getBuffer());
+   int len = strlen(p);
+   return new QoreStringNode(p, len, len + 1, p0->getEncoding());
 }
 
-static class QoreNode *f_mkdir(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_dirname(const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *p0 = test_string_param(params, 0);
+   if (!p0)
+      return 0;
+
+   char *p = q_dirname(p0->getBuffer());
+   int len = strlen(p);
+   return new QoreStringNode(p, len, len + 1, p0->getEncoding());
+}
+
+static AbstractQoreNode *f_mkdir(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   const QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
    {
       xsink->raiseException("MKDIR-PARAMETER-ERROR", "expecting string as first parameter of mkdir");
-      return NULL;
+      return 0;
    }
 
    int mode;
-   QoreNode *p1 = get_param(params, 1);
+   const AbstractQoreNode *p1 = get_param(params, 1);
    if (p1)
       mode = p1->getAsInt();
    else
       mode = 0777;
 
-   return new QoreNode((int64)mkdir(p0->val.String->getBuffer(), mode));
+   return new QoreBigIntNode(mkdir(p0->getBuffer(), mode));
 }
 
-static class QoreNode *f_rmdir(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_rmdir(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   const QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
    {
       xsink->raiseException("RMDIR-PARAMETER-ERROR", "expecting string as first parameter of rmdir");
-      return NULL;
+      return 0;
    }
 
-   return new QoreNode((int64)rmdir(p0->val.String->getBuffer()));
+   return new QoreBigIntNode(rmdir(p0->getBuffer()));
 }
 
 // usage: chmod(path, mode)
-static class QoreNode *f_chmod(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_chmod(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   const QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
    {
       xsink->raiseException("CHMOD-PARAMETER-ERROR", "expecting string as first parameter of chmod");
-      return NULL;
+      return 0;
    }
 
-   QoreNode *p1 = get_param(params, 1);
+   const AbstractQoreNode *p1 = get_param(params, 1);
    if (!p1)
    {
       xsink->raiseException("CHMOD-PARAMETER-ERROR", "expecting mode as second parameter of chmod");
-      return NULL;
+      return 0;
    }
 
-   return new QoreNode((int64)chmod(p0->val.String->getBuffer(), p1->getAsInt()));
+   return new QoreBigIntNode(chmod(p0->getBuffer(), p1->getAsInt()));
 }
 
-static class QoreNode *f_chdir(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_chdir(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   const QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
    {
       xsink->raiseException("CHDIR-PARAMETER-ERROR", "expecting string as first parameter of chdir");
-      return NULL;
+      return 0;
    }
 
-   return new QoreNode((int64)chdir(p0->val.String->getBuffer()));
+   return new QoreBigIntNode(chdir(p0->getBuffer()));
 }
 
+static AbstractQoreNode *f_getcwd(const QoreListNode *params, ExceptionSink *xsink) {
+   int bs = 512;
+   char *buf = (char *)malloc(sizeof(char) * bs);
+ 
+   while (true) {
+      char *b = getcwd(buf, bs);
+      if (!b) {
+	  if (errno == ERANGE) {
+	      bs *= 2;
+	      buf = (char *)q_realloc(buf, sizeof(char) * bs);
+	      if (!buf) {
+		  xsink->outOfMemory();
+		  return 0;
+	      }	  
+	      continue;
+	  }
+	  // simple return NOTHING here if there was an error
+	  return 0;
+      }
+      break;
+   }
+
+   return new QoreStringNode(buf, strlen(buf), bs, QCS_DEFAULT);
+}
 
 /*
 // need an easier to use function here
 // usage: mknod(path, mode)
-static class QoreNode *f_mknod(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_mknod(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   const QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
    {
       xsink->raiseException("MKNOD-PARAMETER-ERROR", "expecting string as first parameter of mknod");
-      return NULL;
+      return 0;
    }
 
-   QoreNode *p1 = get_param(params, 1);
-   if (!p1)
+   const AbstractQoreNode *p1 = get_param(params, 1);
+   if (is_nothing(p1))
    {
       xsink->raiseException("MKNOD-PARAMETER-ERROR", "expecting mode as second parameter of mknod");
-      return NULL;
+      return 0;
    }
 
-   QoreNode *p2 = get_param(params, 2);
-   if (!p2)
+   const AbstractQoreNode *p2 = get_param(params, 2);
+   if (is_nothing(p2))
    {
       xsink->raiseException("MKNOD-PARAMETER-ERROR", "expecting device as second parameter of mknod");
-      return NULL;
+      return 0;
    }
 
-   return new QoreNode((int64)mknod(p0->val.String->getBuffer(), p1->getAsInt(), p2->getAsInt()));
+   return new QoreBigIntNode(mknod(p0->getBuffer(), p1->getAsInt(), p2->getAsInt()));
 }
 */
 
-static class QoreNode *f_mkfifo(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_mkfifo(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0, *p1;
+   const QoreStringNode *p0;
+   if (!(p0 = test_string_param(params, 0)))
+      return 0;
 
-   if (!(p0 = test_param(params, NT_STRING, 0)))
-      return NULL;
-
-   const char *fn = p0->val.String->getBuffer();
+   const char *fn = p0->getBuffer();
    int mode;
 
-   p1 = test_param(params, NT_INT, 1);
-   if (p1)
-      mode = p1->val.intval;
-   else
-      mode = 0600;
+   const AbstractQoreNode *p1;
+   p1 = get_param(params, 1);
+   mode = p1 ? p1->getAsInt() : 0600;
 
-   return new QoreNode(NT_INT, mkfifo(fn, mode));
+   return new QoreBigIntNode(mkfifo(fn, mode));
 }
 
-static class QoreNode *f_setuid(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_setuid(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
 
    if (is_nothing(p0))
    {
       xsink->raiseException("SETUID-ERROR", "missing user ID");
-      return NULL;
+      return 0;
    }
 
-   return new QoreNode((int64)setuid(p0->getAsInt()));
+   return new QoreBigIntNode(setuid(p0->getAsInt()));
 }
 
+static AbstractQoreNode *f_seteuid(const QoreListNode *params, ExceptionSink *xsink) {
 #ifdef HAVE_SETEUID
-static class QoreNode *f_seteuid(class QoreNode *params, ExceptionSink *xsink)
-{
-   QoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
    
-   if (is_nothing(p0))
-   {
+   if (is_nothing(p0)) {
       xsink->raiseException("SETEUID-ERROR", "missing user ID");
-      return NULL;
+      return 0;
    }
    
-   return new QoreNode((int64)seteuid(p0->getAsInt()));
-}
+   return new QoreBigIntNode(seteuid(p0->getAsInt()));
+#else
+   xsink->raiseException("MISSING-FEATURE-ERROR", "this system does not implement seteuid(); for maximum portability use the constant Option::HAVE_SETEUID to check if this function is implemented before calling");
+   return 0;
 #endif
+}
 
-static class QoreNode *f_setgid(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_setgid(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
    
    if (is_nothing(p0))
    {
       xsink->raiseException("SETGID-ERROR", "missing group ID");
-      return NULL;
+      return 0;
    }
    
-   return new QoreNode((int64)setgid(p0->getAsInt()));
+   return new QoreBigIntNode(setgid(p0->getAsInt()));
 }
 
+static AbstractQoreNode *f_setegid(const QoreListNode *params, ExceptionSink *xsink) {
 #ifdef HAVE_SETEGID
-static class QoreNode *f_setegid(class QoreNode *params, ExceptionSink *xsink)
-{
-   QoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
    
-   if (is_nothing(p0))
-   {
+   if (is_nothing(p0)) {
       xsink->raiseException("SETEGID-ERROR", "missing group ID");
-      return NULL;
+      return 0;
    }
    
-   return new QoreNode((int64)setegid(p0->getAsInt()));
-}
+   return new QoreBigIntNode(setegid(p0->getAsInt()));
+#else
+   xsink->raiseException("MISSING-FEATURE-ERROR", "this system does not implement setegid(); for maximum portability use the constant Option::HAVE_SETEGID to check if this function is implemented before calling");
+   return 0;
 #endif
-
-static class QoreNode *f_gethostbyname(class QoreNode *params, ExceptionSink *xsink)
-{
-   QoreNode *p = test_param(params, NT_STRING, 0);
-   if (!p)
-      return NULL;
-
-   class QoreString *str = q_gethostbyname_to_string(p->val.String->getBuffer());
-   return str ? new QoreNode(str) : 0;
 }
 
-static class QoreNode *f_gethostbyaddr(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_setsid(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_STRING, 0);
-   if (!p0)
-      return NULL;
+    return new QoreBigIntNode(setsid());
+}
 
-   QoreNode *p1 = get_param(params, 1);
+static AbstractQoreNode *f_gethostbyname(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const QoreStringNode *p = test_string_param(params, 0);
+   if (!p)
+      return 0;
+
+   return q_gethostbyname_to_string(p->getBuffer());
+}
+
+static AbstractQoreNode *f_gethostbyaddr(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const QoreStringNode *p0 = test_string_param(params, 0);
+   if (!p0)
+      return 0;
+
+   const AbstractQoreNode *p1 = get_param(params, 1);
    int type = p1 ? p1->getAsInt() : 0;
    if (!type) type = AF_INET;
 
-   class QoreString *str = q_gethostbyaddr_to_string(xsink, p0->val.String->getBuffer(), type);
-   return str ? new QoreNode(str) : 0;
+   return q_gethostbyaddr_to_string(xsink, p0->getBuffer(), type);
 }
 
-static class QoreNode *f_gethostbyname_long(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_gethostbyname_long(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = test_param(params, NT_STRING, 0);
+   const QoreStringNode *p = test_string_param(params, 0);
    if (!p)
-      return NULL;
+      return 0;
 
-   class Hash *h = q_gethostbyname_to_hash(p->val.String->getBuffer());
-   return h ? new QoreNode(h) : 0;
+   return q_gethostbyname_to_hash(p->getBuffer());
 }
 
-static class QoreNode *f_gethostbyaddr_long(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_gethostbyaddr_long(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   const QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
-   QoreNode *p1 = get_param(params, 1);
+   const AbstractQoreNode *p1 = get_param(params, 1);
    int type = p1 ? p1->getAsInt() : 0;
    if (!type) type = AF_INET;
 
-   class Hash *h = q_gethostbyaddr_to_hash(xsink, p0->val.String->getBuffer(), type);
-   return h ? new QoreNode(h) : 0;
+   return q_gethostbyaddr_to_hash(xsink, p0->getBuffer(), type);
+}
+
+//int chown (const char *path, uid_t owner, gid_t group);
+static AbstractQoreNode *f_chown(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   if (!p || p->getType() != NT_STRING) {
+      xsink->raiseException("CHOWN-PARAM-ERROR", "expecting a string as first argument to chown()");
+      return 0;
+   }
+   const char *path = reinterpret_cast<const QoreStringNode *>(p)->getBuffer();
+   p = get_param(params, 1);
+   uid_t owner = (uid_t)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   gid_t group = (gid_t)(p ? p->getAsInt() : 0);
+   return new QoreBigIntNode(chown(path, owner, group));
+}
+
+//int lchown (const char *path, uid_t owner, gid_t group);
+static AbstractQoreNode *f_lchown(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   if (!p || p->getType() != NT_STRING) {
+      xsink->raiseException("LCHOWN-PARAM-ERROR", "expecting a string as first argument to lchown()");
+      return 0;
+   }
+   const char *path = reinterpret_cast<const QoreStringNode *>(p)->getBuffer();
+   p = get_param(params, 1);
+   uid_t owner = (uid_t)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   gid_t group = (gid_t)(p ? p->getAsInt() : 0);
+   return new QoreBigIntNode(lchown(path, owner, group));
 }
 
 #ifdef DEBUG
-static QoreNode* runQoreTests(QoreNode* params, ExceptionSink* xsink)
+static AbstractQoreNode* runQoreTests(const QoreListNode *params, ExceptionSink *xsink)
 {
    minitest::result res = minitest::execute_all_tests();
    if (res.all_tests_succeeded) {
@@ -688,7 +742,7 @@ static QoreNode* runQoreTests(QoreNode* params, ExceptionSink* xsink)
    return 0;
 }
 
-static QoreNode* runRecentQoreTests(QoreNode* params, ExceptionSink* xsink)
+static AbstractQoreNode* runRecentQoreTests(const QoreListNode *params, ExceptionSink *xsink)
 {
    minitest::result res = minitest::test_last_changed_files(3); // 3 last modified files
    if (res.all_tests_succeeded) {
@@ -737,6 +791,7 @@ void init_lib_functions()
    builtinFunctions.add("errno",       f_errno);
    builtinFunctions.add("strerror",    f_strerror);
    builtinFunctions.add("basename",    f_basename);
+   builtinFunctions.add("dirname",     f_dirname);
    builtinFunctions.add("mkdir",       f_mkdir, QDOM_FILESYSTEM);
    builtinFunctions.add("rmdir",       f_rmdir, QDOM_FILESYSTEM);
    builtinFunctions.add("chmod",       f_chmod, QDOM_FILESYSTEM);
@@ -746,18 +801,20 @@ void init_lib_functions()
    builtinFunctions.add("hstat",       f_hstat, QDOM_FILESYSTEM);
    builtinFunctions.add("hlstat",      f_hlstat, QDOM_FILESYSTEM);
    builtinFunctions.add("exec",        f_exec, QDOM_EXTERNAL_PROCESS | QDOM_PROCESS);
-   builtinFunctions.add("setuid",      f_setuid);
-   builtinFunctions.add("setgid",      f_setgid);
-#ifdef HAVE_SETEUID
-   builtinFunctions.add("seteuid",     f_seteuid);
-#endif
-#ifdef HAVE_SETEGID
-   builtinFunctions.add("setegid",     f_setegid);
-#endif
+   builtinFunctions.add("setuid",      f_setuid, QDOM_PROCESS);
+   builtinFunctions.add("setgid",      f_setgid, QDOM_PROCESS);
+   builtinFunctions.add("seteuid",     f_seteuid, QDOM_PROCESS);
+   builtinFunctions.add("setegid",     f_setegid, QDOM_PROCESS);
+   builtinFunctions.add("setsid",      f_setsid, QDOM_PROCESS);
    builtinFunctions.add("gethostbyname",       f_gethostbyname);
    builtinFunctions.add("gethostbyaddr",       f_gethostbyaddr);
    builtinFunctions.add("gethostbyname_long",  f_gethostbyname_long);
    builtinFunctions.add("gethostbyaddr_long",  f_gethostbyaddr_long);
+
+   builtinFunctions.add("getcwd",      f_getcwd, QDOM_FILESYSTEM);
+
+   builtinFunctions.add("chown",       f_chown, QDOM_FILESYSTEM);
+   builtinFunctions.add("lchown",      f_lchown, QDOM_FILESYSTEM);
 
 #ifdef DEBUG
    builtinFunctions.add("runQoreTests", runQoreTests);

@@ -1,6 +1,7 @@
 #ifndef SCOPEGUARD_H_
 #define SCOPEGUARD_H_
 
+//! templated class for ScopeGuard to hold a c++ reference
 template <class T>
 class RefHolder
 {
@@ -22,6 +23,7 @@ inline RefHolder<T> ByRef(T& t)
     return RefHolder<T>(t);
 }
 
+//! scope guard class
 class ScopeGuardImplBase
 {
     ScopeGuardImplBase& operator =(const ScopeGuardImplBase&);
@@ -62,6 +64,7 @@ public:
 
 typedef const ScopeGuardImplBase& ScopeGuard;
 
+//! scope guard class
 template <typename F>
 class ScopeGuardImpl0 : public ScopeGuardImplBase
 {
@@ -85,12 +88,14 @@ protected:
     F fun_;
 };
 
+//! scope guard class
 template <typename F> 
 inline ScopeGuardImpl0<F> MakeGuard(F fun)
 {
     return ScopeGuardImpl0<F>::MakeGuard(fun);
 }
 
+//! scope guard class
 template <typename F, typename P1>
 class ScopeGuardImpl1 : public ScopeGuardImplBase
 {
@@ -115,12 +120,14 @@ protected:
     const P1 p1_;
 };
 
+//! scope guard class
 template <typename F, typename P1> 
 inline ScopeGuardImpl1<F, P1> MakeGuard(F fun, P1 p1)
 {
     return ScopeGuardImpl1<F, P1>::MakeGuard(fun, p1);
 }
 
+//! scope guard class
 template <typename F, typename P1, typename P2>
 class ScopeGuardImpl2: public ScopeGuardImplBase
 {
@@ -146,12 +153,14 @@ protected:
     const P2 p2_;
 };
 
+//! scope guard class
 template <typename F, typename P1, typename P2>
 inline ScopeGuardImpl2<F, P1, P2> MakeGuard(F fun, P1 p1, P2 p2)
 {
     return ScopeGuardImpl2<F, P1, P2>::MakeGuard(fun, p1, p2);
 }
 
+//! scope guard class
 template <typename F, typename P1, typename P2, typename P3>
 class ScopeGuardImpl3 : public ScopeGuardImplBase
 {
@@ -186,6 +195,7 @@ inline ScopeGuardImpl3<F, P1, P2, P3> MakeGuard(F fun, P1 p1, P2 p2, P3 p3)
 
 //************************************************************
 
+//! scope guard class
 template <class Obj, typename MemFun>
 class ObjScopeGuardImpl0 : public ScopeGuardImplBase
 {
@@ -215,6 +225,7 @@ inline ObjScopeGuardImpl0<Obj, MemFun> MakeObjGuard(Obj& obj, MemFun memFun)
     return ObjScopeGuardImpl0<Obj, MemFun>::MakeObjGuard(obj, memFun);
 }
 
+//! scope guard class
 template <class Obj, typename MemFun, typename P1>
 class ObjScopeGuardImpl1 : public ScopeGuardImplBase
 {
@@ -245,6 +256,7 @@ inline ObjScopeGuardImpl1<Obj, MemFun, P1> MakeObjGuard(Obj& obj, MemFun memFun,
     return ObjScopeGuardImpl1<Obj, MemFun, P1>::MakeObjGuard(obj, memFun, p1);
 }
 
+//! scope guard class
 template <class Obj, typename MemFun, typename P1, typename P2>
 class ObjScopeGuardImpl2 : public ScopeGuardImplBase
 {

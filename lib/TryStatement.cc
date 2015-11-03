@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ Copyright 2003 - 2009 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,8 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/TryStatement.h>
+#include <qore/intern/TryStatement.h>
+#include <qore/intern/StatementBlock.h>
 
 TryStatement::TryStatement(int start_line, int end_line, class StatementBlock *t, class StatementBlock *c, char *p) : AbstractStatement(start_line, end_line)
 {
@@ -43,22 +44,22 @@ TryStatement::~TryStatement()
    //delete finally;
 }
 
-int TryStatement::execImpl(class QoreNode **return_value, class ExceptionSink *xsink)
+int TryStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
 {
-   QoreNode *trv = NULL;
+   AbstractQoreNode *trv = 0;
    
-   tracein("TryStatement::execImpl()");
+   QORE_TRACE("TryStatement::execImpl()");
    int rc = 0;
    if (try_block)
       rc = try_block->execImpl(&trv, xsink);
    
    /*
     // if thread_exit has been executed
-    if (except == (Exception *)1)
+    if (except == (QoreException *)1)
     return rc;
     */
    
-   class Exception *except = xsink->catchException();
+   class QoreException *except = xsink->catchException();
    if (except)
    {
       printd(5, "TryStatement::execImpl() entering catch handler, e=%08p\n", except);
@@ -69,13 +70,13 @@ int TryStatement::execImpl(class QoreNode **return_value, class ExceptionSink *x
 	 catchSaveException(except);
 	 
 	 if (param)	 // instantiate exception information parameter
-	    instantiateLVar(id, except->makeExceptionObject());
+	    id->instantiate(except->makeExceptionObject());
 	 
 	 rc = catch_block->execImpl(&trv, xsink);
 	 
 	 // uninstantiate extra args
 	 if (param)
-	    uninstantiateLVar(xsink);
+	    id->uninstantiate(xsink);
       }
       else
 	 rc = 0;
@@ -90,16 +91,17 @@ int TryStatement::execImpl(class QoreNode **return_value, class ExceptionSink *x
        rc = finally->execImpl(return_value, xsink);
     }
     */
-   if (trv)
+   if (trv) {
       if (*return_value) // NOTE: return value overridden in the catch block!
 	 trv->deref(xsink);
       else
 	 *return_value = trv;
-   traceout("TryStatement::execImpl()");
+   }
+
    return rc;
 }
 
-int TryStatement::parseInitImpl(lvh_t oflag, int pflag)
+int TryStatement::parseInitImpl(LocalVar *oflag, int pflag)
 {
    if (try_block)
       try_block->parseInitImpl(oflag, pflag);
@@ -111,7 +113,7 @@ int TryStatement::parseInitImpl(lvh_t oflag, int pflag)
       printd(3, "TryStatement::parseInitImpl() reg. local var %s (id=%08p)\n", param, id);
    }
    else
-      id = NULL;
+      id = 0;
    
    // initialize code block
    if (catch_block)

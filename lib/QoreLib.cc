@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2005 David Nichols
+  Copyright 2003 - 2009 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,35 +21,58 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QoreLib.h>
-#include <qore/StringList.h>
+#include <qore/intern/svn-revision.h>
 
 #include <string.h>
+#include <pwd.h>
+#include <grp.h>
 
-DLLEXPORT class featureList qoreFeatureList;
+FeatureList qoreFeatureList;
+
+#define cpp_str(s) #s
+#define cpp_xstr(s) cpp_str(s)
 
 // global library variables
-DLLEXPORT char qore_version_string[] = VERSION_STRING;
-DLLEXPORT int qore_version_major     = VERSION_MAJOR;
-DLLEXPORT int qore_version_minor     = VERSION_MINOR;
-DLLEXPORT int qore_version_sub       = VERSION_SUB;
-DLLEXPORT int qore_build_number      = BUILD;
-DLLEXPORT int qore_target_bits       = TARGET_BITS;
-DLLEXPORT char qore_target_os[]      = TARGET_OS;
-DLLEXPORT char qore_target_arch[]    = TARGET_ARCH;
+const char *qore_version_string      = VERSION "-" cpp_xstr(BUILD);
+int qore_version_major               = VERSION_MAJOR;
+int qore_version_minor               = VERSION_MINOR;
+int qore_version_sub                 = VERSION_SUB;
+int qore_build_number                = BUILD;
+int qore_target_bits                 = TARGET_BITS;
+const char *qore_target_os           = TARGET_OS;
+const char *qore_target_arch         = TARGET_ARCH;
+const char *qore_module_dir          = MODULE_DIR;
+const char *qore_cplusplus_compiler  = QORE_LIB_CXX;
+const char *qore_cflags              = QORE_LIB_CFLAGS;
+const char *qore_ldflags             = QORE_LIB_LDFLAGS;
+const char *qore_build_host          = QORE_BUILD_HOST;
 
-DLLLOCAL class List *ARGV = NULL;
-DLLLOCAL class List *QORE_ARGV = NULL;
+DLLLOCAL QoreListNode *ARGV = 0;
+DLLLOCAL QoreListNode *QORE_ARGV = 0;
 
 #ifndef HAVE_LOCALTIME_R
-DLLLOCAL class LockedObject lck_localtime;
+DLLLOCAL QoreThreadLock lck_localtime;
 #endif
 
 #ifndef HAVE_GMTIME_R
-DLLLOCAL class LockedObject lck_gmtime;
+DLLLOCAL QoreThreadLock lck_gmtime;
 #endif
 
-DLLLOCAL char table64[64] = {
+#if defined(HAVE_GETPWUID_R) || defined(HAVE_GETPWNAM_R)
+static long pwsize = 0;
+#else
+// for the getpwuid() and getpwnam() functions
+static QoreThreadLock lck_passwd;
+#endif
+
+#if defined(HAVE_GETGRGID_R) || defined(HAVE_GETGRNAM_R)
+static long grsize = 0;
+#else
+// for the getgrgid() and getgrnam() functions
+static QoreThreadLock lck_group;
+#endif
+
+char table64[64] = {
    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 
    'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 
    'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 
@@ -59,8 +82,160 @@ DLLLOCAL char table64[64] = {
    'w', 'x', 'y', 'z', '0', '1', '2', '3',
    '4', '5', '6', '7', '8', '9', '+', '/' };
 
-static inline int get_number(char **param)
-{
+const qore_option_s qore_option_list_l[] = {
+   { QORE_OPT_ATOMIC_OPERATIONS,
+     "HAVE_ATOMIC_OPERATIONS",
+     QO_OPTION,
+#ifdef HAVE_ATOMIC_MACROS
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_STACK_GUARD,
+     "HAVE_STACK_GUARD",
+     QO_OPTION,
+#ifdef HAVE_CHECK_STACK_POS
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_LIBRARY_DEBUGGING,
+     "HAVE_LIBRARY_DEBUGGING",
+     QO_OPTION,
+#ifdef DEBUG
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_RUNTIME_STACK_TRACE,
+     "HAVE_RUNTIME_THREAD_STACK_TRACE",
+     QO_OPTION,
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_SHA224,
+     "HAVE_SSH224",
+     QO_ALGORITHM,
+#if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_SHA256,
+     "HAVE_SSH256",
+     QO_ALGORITHM,
+#if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_SHA384,
+     "HAVE_SSH384",
+     QO_ALGORITHM,
+#if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_SHA512,
+     "HAVE_SSH512",
+     QO_ALGORITHM,
+#if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_MDC2,
+     "HAVE_MDC2",
+     QO_ALGORITHM,
+#ifndef OPENSSL_NO_MDC2
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_RC5,
+     "HAVE_RC5",
+     QO_ALGORITHM,
+#ifndef OPENSSL_NO_RC5
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_FUNC_ROUND,
+     "HAVE_ROUND",
+     QO_FUNCTION,
+#ifdef HAVE_ROUND
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_FUNC_TIMEGM,
+     "HAVE_TIMEGM",
+     QO_FUNCTION,
+#ifdef HAVE_TIMEGM
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_FUNC_SETEUID,
+     "HAVE_SETEUID",
+     QO_FUNCTION,
+#ifdef HAVE_SETEUID
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_FUNC_SETEGID,
+     "HAVE_SETEGID",
+     QO_FUNCTION,
+#ifdef HAVE_SETEGID
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_FUNC_PARSEXMLWITHSCHEMA,
+     "HAVE_PARSEXMLWITHSCHEMA",
+     QO_FUNCTION,
+#ifdef HAVE_XMLTEXTREADERSETSCHEMA
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_FUNC_PARSEXMLWITHRELAXNG,
+     "HAVE_PARSEXMLWITHRELAXNG",
+     QO_FUNCTION,
+#ifdef HAVE_XMLTEXTREADERRELAXNGSETSCHEMA
+     true
+#else
+     false
+#endif
+   },
+};
+
+const qore_option_s *qore_option_list = qore_option_list_l;
+
+#define QORE_OPTION_LIST_SIZE (sizeof(qore_option_list_l) / sizeof(qore_option_s))
+
+size_t qore_option_list_size = QORE_OPTION_LIST_SIZE;
+
+static inline int get_number(char **param) {
    int i, num; 
    
    i = strspn((*param), "0123456789");
@@ -75,73 +250,55 @@ static inline int get_number(char **param)
 #define P_SPACE_FILL        4
 #define P_ZERO_FILL         8
 
-featureList::featureList()
-{
-   // register default features
-   push_back(strdup("sql"));
-   push_back(strdup("threads"));
-   push_back(strdup("xml"));
+bool qore_has_debug() {
 #ifdef DEBUG
-   push_back(strdup("debug"));
-#endif
-#ifdef QORE_MONOLITHIC
-# ifdef NCURSES
-   push_back(strdup("ncurses"));
-# endif
-# ifdef ORACLE
-   push_back(strdup("oracle"));
-# endif
-# ifdef QORE_MYSQL
-   push_back(strdup("mysql"));
-# endif
-# ifdef TIBRV
-   push_back(strdup("tibrv"));
-# endif
-# ifdef TIBAE
-   push_back(strdup("tibae"));
-# endif
-# ifdef TUXEDO
-   push_back(strdup("tuxedo"));
-# endif
-# ifdef SYBASE
-   push_back(strdup("sybase"));
-# endif
-# ifdef FREETDS
-   push_back(strdup("freetds"));
-# endif
+   return true;
+#else
+   return false;
 #endif
 }
 
-featureList::~featureList()
-{
-   featureList::iterator i;
-   while ((i = begin()) != end())
-   {
-      free((char *)*i);
-      erase(i);
-   }
+FeatureList::FeatureList() {
+   // register default features
+   push_back("sql");
+   push_back("threads");
+   push_back("xml");
+#ifdef DEBUG
+   push_back("debug");
+#endif
+}
+
+FeatureList::~FeatureList() {
 }
 
 // if type = 0 then field widths are soft limits, otherwise they are hard
-static int process_opt(QoreString *cstr, char *param, class QoreNode *node, int type, int *taken, class ExceptionSink *xsink)
-{
+static int process_opt(QoreString *cstr, char *param, const AbstractQoreNode *node, int type, int *taken, ExceptionSink *xsink) {
    char *str = param;
    int opts = 0;
    int width = -1;
    int decimals = -1;
-   class QoreNode *arg = node;
    int length;
    char fmt[20], *f;
    QoreString tbuf(cstr->getEncoding());
 
-   printd(3, "process_opt(): param=%s type=%d node=%08p node->type=%s refs=%d\n",
-	  param, type, node, node ? node->type->getName() : "(null)", node ? node->reference_count() : -1);
-   if (node && node->type == NT_STRING)
-      printd(4, "process_opt() %08p (%d) \"%s\"\n",
-	     node->val.String->getBuffer(), node->val.String->strlen(), node->val.String->getBuffer());
+   printd(5, "process_opt(): param=%s type=%d node=%08p node->getType()=%s refs=%d\n",
+	  param, type, node, node ? node->getTypeName() : "(null)", node ? node->reference_count() : -1);
+#ifdef DEBUG
+   if (node && node->getType() == NT_STRING) {
+      const QoreStringNode *nstr = reinterpret_cast<const QoreStringNode *>(node);
+      printd(5, "process_opt() %08p (%d) \"%s\"\n", nstr->getBuffer(), nstr->strlen(), nstr->getBuffer());
+   }
+#endif
+
+   // if it's just '%%' then output a single '%' and do not process arguments
+   if (param[1] == '%') {
+      cstr->concat('%');
+      *taken = 0;
+      return 1;
+   }
+
   loop:
-   switch (*(++param))
-   {
+   switch (*(++param)) {
       case '-': opts |= P_JUSTIFY_LEFT; goto loop;
       case '+': opts |= P_INCLUDE_PLUS; goto loop;
       case ' ': opts |= P_SPACE_FILL; opts &= ~P_ZERO_FILL; goto loop;
@@ -149,8 +306,7 @@ static int process_opt(QoreString *cstr, char *param, class QoreNode *node, int 
    }
    if (isdigit(*param))
       width = get_number(&param);
-   if ((*param) == '.')
-   {
+   if ((*param) == '.') {
       param++;
       decimals = get_number(&param);
    }
@@ -158,55 +314,45 @@ static int process_opt(QoreString *cstr, char *param, class QoreNode *node, int 
       decimals = 0;
 
    char p = *param;
-   switch (*param)
-   {
-      case 's':
-	 if (!node)
-	    arg = null_string();
-	 else if (node->type != NT_STRING)
-	    arg = node->convert(NT_STRING);
-	 length = arg->val.String->strlen();
+   switch (*param) {
+      case 's': {
+	 QoreStringValueHelper astr(node);
+
+	 length = astr->strlen();
 	 if ((width != -1) && (length > width) && !type)
 	    width = length;
-	 if ((width != -1) && (length > width))
-	 {
-	    tbuf.concat(arg->val.String, width, xsink);
+	 if ((width != -1) && (length > width)) {
+	    tbuf.concat(*astr, width, xsink); // string encodings are converted here if necessary
 	 }
-	 else
-	 {
-	    if ((width != -1) && (opts & P_JUSTIFY_LEFT))
-	    {
-	       tbuf.concat(arg->val.String, xsink);
-	       while (width > length)
-	       {
+	 else {
+	    if ((width != -1) && (opts & P_JUSTIFY_LEFT)) {
+	       tbuf.concat(*astr, xsink);
+	       while (width > length) {
 		  tbuf.concat(' ');
 		  width--;
 	       }
 	    }
-	    else
-	    {
-	       while (width > length)
-	       {
+	    else {
+	       while (width > length) {
 		  tbuf.concat(' ');
 		  width--;
 	       }
-	       tbuf.concat(arg->val.String, xsink);
+	       tbuf.concat(*astr, xsink);
 	    }
 	 }
 	 break;
+      }
       case 'p':
 	 p = 'x';
       case 'd':
       case 'o':
       case 'x':
-      case 'X':
-      {
+      case 'X': {
 	 int64 val;
 	 if (!node)
 	    val = 0;
 	 else
 	    val = node->getAsBigInt();
-	 // printd(5, "int arg=%lld\n", arg->val.intval);
 	 // recreate the sprintf format argument
 	 f = fmt;
 	 *(f++) = '%';
@@ -214,8 +360,7 @@ static int process_opt(QoreString *cstr, char *param, class QoreNode *node, int 
 	    *(f++) = '-';
 	 if (opts & P_INCLUDE_PLUS)
 	    *(f++) = '+';
-	 if (width != -1)
-	 {
+	 if (width != -1) {
 	    if (opts & P_SPACE_FILL)
 	       *(f++) = ' ';
 	    else if (opts & P_ZERO_FILL)
@@ -232,8 +377,7 @@ static int process_opt(QoreString *cstr, char *param, class QoreNode *node, int 
 	 break;
       }
       case 'f':
-      case 'e':
-      {
+      case 'e': {
 	 double val;
 	 if (!node)
 	    val = 0.0;
@@ -246,16 +390,14 @@ static int process_opt(QoreString *cstr, char *param, class QoreNode *node, int 
 	    *(f++) = '-';
 	 if (opts & P_INCLUDE_PLUS)
 	    *(f++) = '+';
-	 if (width != -1)
-	 {
+	 if (width != -1) {
 	    if (opts & P_SPACE_FILL)
 	       *(f++) = ' ';
 	    else if (opts & P_ZERO_FILL)
 	       *(f++) = '0';
 	    f += sprintf(f, "%d", width);
 	 }
-	 if (decimals != -1)
-	 {
+	 if (decimals != -1) {
 	    *(f++) = '.';
 	    f += sprintf(f, "%d", decimals);
 	 }
@@ -267,182 +409,203 @@ static int process_opt(QoreString *cstr, char *param, class QoreNode *node, int 
 	 break;
       }
       case 'n':
-      case 'N':
-      {
-	 QoreString *t = node->getAsString(*param == 'N' 
-					   ? (width == -1 ? FMT_NORMAL : width) 
-					   : FMT_NONE, xsink);
-	 tbuf.concat(t);
-	 delete t;
+      case 'N': {
+	 QoreNodeAsStringHelper t(node, *param == 'N' 
+				  ? (width == -1 ? FMT_NORMAL : width) 
+				  : FMT_NONE, xsink);
+	 tbuf.concat(*t);
 	 break;
       }
       default:
-	 // if the format argument is not understood, then print it in its entirety
+	 // if the format argument is not understood, then make sure and just consume the '%' char
 	 tbuf.concat('%');
-	 tbuf.concat(*param);
+	 param = str;
 	 *taken = 0;
    }
-   if (arg != node)
-      arg->deref(NULL);
 
    cstr->concat(&tbuf, xsink);
    return (int)(param - str);
 }
 
-class QoreString *q_sprintf(class QoreNode *params, int field, int offset, class ExceptionSink *xsink)
-{
-   int i, j, l;
-   QoreNode *p;
+QoreStringNode *q_sprintf(const QoreListNode *params, int field, int offset, ExceptionSink *xsink) {
+   unsigned i, j, l;
+   const QoreStringNode *p;
 
-   if (!(p = test_param(params, NT_STRING, offset)))
-      return new QoreString();
+   if (!(p = test_string_param(params, offset)))
+      return new QoreStringNode();
 
-   QoreString *buf = new QoreString(p->val.String->getEncoding());
+   SimpleRefHolder<QoreStringNode> buf(new QoreStringNode(p->getEncoding()));
 
    j = 1 + offset;
-   l = strlen(p->val.String->getBuffer());
-   for (i = 0; i < l; i++)
-   {
+
+   const char *pstr = p->getBuffer();
+   l = strlen(pstr);
+   for (i = 0; i < l; i++) {
       int taken = 1;
-      if ((p->val.String->getBuffer()[i] == '%') 
-	  && (j < params->val.list->size()))
-      {
-	 i += process_opt(buf, (char *)&p->val.String->getBuffer()[i], 
-			  get_param(params, j++), field, &taken, xsink);
+      if ((pstr[i] == '%') && (j < params->size())) {
+	 const AbstractQoreNode *node = get_param(params, j++);
+	 i += process_opt(*buf, (char *)&pstr[i], node, field, &taken, xsink);	 
+	 if (*xsink)
+	    return 0;
 	 if (!taken)
 	    j--;
       }
-      else
-	 buf->concat(p->val.String->getBuffer()[i]);
+      else {
+	 buf->concat(pstr[i]);
+	 if (pstr[i] == '%' && pstr[i+1] == '%')
+	     ++i;
+      }
    }
 
-   return buf;
+   return buf.release();
 }
 
-class QoreString *q_vsprintf(class QoreNode *params, int field, int offset, class ExceptionSink *xsink)
-{
-   class QoreNode *fmt, *args;
+QoreStringNode *q_vsprintf(const QoreListNode *params, int field, int offset, ExceptionSink *xsink) {
+   const QoreStringNode *fmt;
+   const AbstractQoreNode *args;
 
-   if (!(fmt = test_param(params, NT_STRING, offset)))
-      return new QoreString();
+   if (!(fmt = test_string_param(params, offset)))
+      return new QoreStringNode();
 
    args = get_param(params, offset + 1);
+   const QoreListNode *arg_list = dynamic_cast<const QoreListNode *>(args);
 
-   QoreString *buf = new QoreString(fmt->val.String->getEncoding());
-   int j = 0;
-   int l = fmt->val.String->strlen();
-   for (int i = 0; i < l; i++)
-   {
+   SimpleRefHolder<QoreStringNode> buf(new QoreStringNode(fmt->getEncoding()));
+   unsigned j = 0;
+   unsigned l = fmt->strlen();
+   for (unsigned i = 0; i < l; i++) {
       int taken = 1;
       bool havearg = false;
-      class QoreNode *arg = NULL;
+      const AbstractQoreNode *arg = 0;
 
-      if ((fmt->val.String->getBuffer()[i] == '%'))
-      {
-	 if (args)
-	 {
-	    if (args->type == NT_LIST
-		&& j < args->val.list->size())
-	    {
+      if ((fmt->getBuffer()[i] == '%')) {
+	 if (args) {
+	    if (arg_list && j < arg_list->size()) {
 	       havearg = true;
-	       arg = get_param(args, j);
+	       arg = get_param(arg_list, j);
 	    }
-	    else if (!j)
-	    {
+	    else if (!j) {
 	       arg = args;
 	       havearg = true;
 	    }
 	    j++;
 	 }
       }
-      if (havearg)
-      {
-	 i += process_opt(buf, (char *)&fmt->val.String->getBuffer()[i], 
-			  arg, field, &taken, xsink);
+      if (havearg) {
+	 i += process_opt(*buf, (char *)&fmt->getBuffer()[i], arg, field, &taken, xsink);
+	 if (*xsink)
+	    return 0;
 	 if (!taken)
 	    j--;
       }
       else
-	 buf->concat(fmt->val.String->getBuffer()[i]);
+	 buf->concat(fmt->getBuffer()[i]);
    }
-   return buf;
+   return buf.release();
 }
 
-// FIXME: SLOW! make a lookup table for characters to value
-static inline char getBase64Value(char c, class ExceptionSink *xsink)
-{
-   for (int i = 0; i < 64; i++)
-      if (table64[i] == c)
-	 return i;
-   xsink->raiseException("BASE64-PARSE-ERROR", "'%c' is an invalid base64 character.", c);
+static void concatASCII(QoreString &str, unsigned char c) {
+   str.sprintf("ascii %03d", c);
+   if (c >= 32 || c < 127)
+      str.sprintf(" ('%c')", c);
+}
+
+static inline char getBase64Value(const char *buf, qore_size_t &offset, bool end_ok, ExceptionSink *xsink) {
+   while (buf[offset] == '\n' || buf[offset] == '\r')
+      ++offset;
+
+   char c = buf[offset];
+
+   if (c >= 'A' && c <= 'Z')
+      return c - 'A';
+   if (c >= 'a' && c <= 'z')
+      return c - 'a' + 26;
+   if (c >= '0' && c <= '9')
+      return c - '0' + 52;
+   if (c == '+')
+      return 62;
+   if (c == '/')
+      return 63;
+
+   if (!c) {
+      if (!end_ok)
+	 xsink->raiseException("BASE64-PARSE-ERROR", "premature end of base64 string at string byte offset %d", offset);
+   }
+   else {
+      QoreStringNode *desc = new QoreStringNode;
+      concatASCII(*desc, c);
+      desc->concat(" is an invalid base64 character");
+      xsink->raiseException("BASE64-PARSE-ERROR", desc);
+   }
    return -1;
 }
 
-class BinaryObject *parseBase64(const char *buf, int len, class ExceptionSink *xsink)
-{
+// see: RFC-1421: http://www.ietf.org/rfc/rfc1421.txt and RFC-2045: http://www.ietf.org/rfc/rfc2045.txt
+BinaryNode *parseBase64(const char *buf, int len, ExceptionSink *xsink) {
    char *binbuf = (char *)malloc(sizeof(char) * (len + 3));
    int blen = 0;
 
-   int pos = 0;
-   while (pos < len)
-   {
+   qore_size_t pos = 0;
+   while (pos < (qore_size_t)len) {
       // add first 6 bits
-      char b = getBase64Value(buf[pos], xsink);
-      if (xsink->isEvent())
-      {
+      char b = getBase64Value(buf, pos, true, xsink);
+      if (xsink->isEvent()) {
          free(binbuf);
-         return NULL;
+         return 0;
       }
+      // if we've reached the end of the string here, then exit the loop
+      if (!buf[pos])
+	 break;
+
       // get second 6 bits
-      char c = getBase64Value(buf[pos + 1], xsink);
-      if (xsink->isEvent())
-      {
+      ++pos;
+      char c = getBase64Value(buf, pos, false, xsink);
+      if (xsink->isEvent()) {
          free(binbuf);
-         return NULL;
+         return 0;
       }
       // do first byte (1st char=upper 6 bits, 2nd char=lower 2)
       binbuf[blen++] = (b << 2) | (c >> 4);
 
       // check special cases
-      if (buf[pos + 2] == '=')
+      ++pos;
+      if (buf[pos] == '=')
          break;
 
       // low 4 bits from 2nd char become high 4 bits of next value
       b = (c & 15) << 4;
       
       // get third 6 bits
-      c = getBase64Value(buf[pos + 2], xsink);
-      if (xsink->isEvent())
-      {
+      c = getBase64Value(buf, pos, false, xsink);
+      if (xsink->isEvent()) {
          free(binbuf);
-         return NULL;
+         return 0;
       }
       // do second byte (2nd char=upper 4 bits, 3rd char=lower 4 bits)
       binbuf[blen++] = b | (c >> 2);
 
       // check special cases
-      if (buf[pos + 3] == '=')
+      ++pos;
+      if (buf[pos] == '=')
          break;
 
       // low 2 bits from 3rd char become high 2 bits of next value
       b = (c & 3) << 6;
 
       // get fourth 6 bits
-      c = getBase64Value(buf[pos + 3], xsink);
-      if (xsink->isEvent())
-      {
+      c = getBase64Value(buf, pos, false, xsink);
+      if (xsink->isEvent()) {
          free(binbuf);
-         return NULL;
+         return 0;
       }
 
       binbuf[blen++] = b | c;
-      pos += 4;
+      ++pos;
    }
-   return new BinaryObject(binbuf, blen);
+   return new BinaryNode(binbuf, blen);
 }
 
-int get_nibble(char c, class ExceptionSink *xsink)
-{
+int get_nibble(char c, ExceptionSink *xsink) {
    if (isdigit(c))
       return c - 48;
    if (c >= 'A' && c <= 'F')
@@ -454,44 +617,38 @@ int get_nibble(char c, class ExceptionSink *xsink)
    return -1;
 }
 
-class BinaryObject *parseHex(const char *buf, int len, class ExceptionSink *xsink)
-{
+BinaryNode *parseHex(const char *buf, int len, ExceptionSink *xsink) {
    if (!len)
-      return new BinaryObject();
+      return new BinaryNode();
 
-   if ((len / 2) * 2 != len)
-   {
+   if ((len / 2) * 2 != len) {
       xsink->raiseException("PARSE-HEX-ERROR", "cannot parse an odd number of hex digits (%d digit%s)", len, len == 1 ? "" : "s");
-      return NULL;
+      return 0;
    }
 
    char *binbuf = (char *)malloc(sizeof(char) * (len / 2));
    int blen = 0;
 
    const char *end = buf + len;
-   while (buf < end)
-   {
+   while (buf < end) {
       int b = get_nibble(*buf, xsink);
-      if (b < 0)
-      {
+      if (b < 0) {
 	 free(binbuf);
-	 return NULL;
+	 return 0;
       }
       buf++;
       int l = get_nibble(*buf, xsink);
-      if (l < 0)
-      {
+      if (l < 0) {
 	 free(binbuf);
-	 return NULL;
+	 return 0;
       }
       buf++;
       binbuf[blen++] = b << 4 | l;
    }
-   return new BinaryObject(binbuf, blen);
+   return new BinaryNode(binbuf, blen);
 }
 
-static inline int parse_get_nibble(char c)
-{
+static inline int parse_get_nibble(char c) {
    if (isdigit(c))
       return c - 48;
    if (c >= 'A' && c <= 'F')
@@ -505,55 +662,48 @@ static inline int parse_get_nibble(char c)
 
 
 // for use while parsing - parses a null-terminated string and raises parse exceptions for errors
-class BinaryObject *parseHex(const char *buf, int len)
-{
+BinaryNode *parseHex(const char *buf, int len) {
    if (!buf || !(*buf))
-      return new BinaryObject();
+      return new BinaryNode();
 
    char *binbuf = (char *)malloc(sizeof(char) * (len / 2));
    int blen = 0;
 
    const char *end = buf + len;
-   while (buf < end)
-   {
+   while (buf < end) {
       int b = parse_get_nibble(*buf);
-      if (b < 0)
-      {
+      if (b < 0) {
 	 free(binbuf);
-	 return NULL;
+	 return 0;
       }
       buf++;
 #if 0
       // this can never happen; the parser guarantees an even number of digits
-      if (!(*buf))
-      {
+      if (!(*buf)) {
 	 free(binbuf);
 	 parseError("PARSE-HEX-ERROR", "cannot parse an odd number of hex digits (%d digit%s)", len, len == 1 ? "" : "s");
-	 return NULL;
+	 return 0;
       }
 #endif
 
       int l = parse_get_nibble(*buf);
-      if (l < 0)
-      {
+      if (l < 0) {
 	 free(binbuf);
-	 return NULL;
+	 return 0;
       }
       buf++;
       binbuf[blen++] = b << 4 | l;
    }
-   return new BinaryObject(binbuf, blen);
+   return new BinaryNode(binbuf, blen);
 }
 
-char *make_class_name(const char *str)
-{
+char *make_class_name(const char *str) {
    char *cn = q_basename(str);
    char *p = strrchr(cn, '.');
    if (p && p != cn)
       *p = '\0';
    p = cn;
-   while (*p)
-   {
+   while (*p) {
       if (*p == '-')
 	 *p = '_';
       p++;
@@ -561,72 +711,65 @@ char *make_class_name(const char *str)
    return cn;
 }
 
-void print_node(FILE *fp, class QoreNode *node)
-{
-   class QoreNode *n_node;
-
-   printd(5, "print_node() node=%08p (%s)\n", node, node ? node->type->getName() : "(null)");
-   if (!node)
-      return;
-   if (node->type != NT_STRING)
-   {
-      n_node = node->convert(NT_STRING);
-      fputs(n_node->val.String->getBuffer(), fp);
-      n_node->deref(NULL);
-      return;
-   }
-   fputs(node->val.String->getBuffer(), fp);
+void print_node(FILE *fp, const AbstractQoreNode *node) {
+   printd(5, "print_node() node=%08p (%s)\n", node, node ? node->getTypeName() : "(null)");
+   QoreStringValueHelper str(node);
+   fputs(str->getBuffer(), fp);
 }
 
-void qore_setup_argv(int pos, int argc, char *argv[])
-{
-   ARGV = new List();
-   QORE_ARGV = new List();
+void qore_setup_argv(int pos, int argc, char *argv[]) {
+   ARGV = new QoreListNode();
+   QORE_ARGV = new QoreListNode();
    int end = argc - pos;
-   for (int i = 0; i < argc; i++)
-   {
+   for (int i = 0; i < argc; i++) {
       if (i < end)
-	 ARGV->push(new QoreNode(argv[i + pos]));
-      QORE_ARGV->push(new QoreNode(argv[i]));
+	 ARGV->push(new QoreStringNode(argv[i + pos]));
+      QORE_ARGV->push(new QoreStringNode(argv[i]));
    }
 }
 
-void initENV(char *env[])
-{
+void init_lib_intern(char *env[]) {
    // set up environment hash
    int i = 0;
-   ENV = new Hash();
-   while (env[i])
-   {
+   ENV = new QoreHashNode();
+   while (env[i]) {
       char *p;
 
-      if ((p = strchr(env[i], '=')))
-      {
+      if ((p = strchr(env[i], '='))) {
 	 char save = *p;
 	 *p = '\0';
-	 ENV->setKeyValue(env[i], new QoreNode(p + 1), NULL);
+	 ENV->setKeyValue(env[i], new QoreStringNode(p + 1), 0);
 	 //printd(5, "creating $ENV{\"%s\"} = \"%s\"\n", env[i], p + 1);
 	 *p = save;
       }
       i++;
    }
-   //traceout("initProgramGlobalVars()");
+
+   // other misc initialization
+#if defined(HAVE_GETPWUID_R) || defined(HAVE_GETPWNAM_R)
+   pwsize = sysconf(_SC_GETPW_R_SIZE_MAX);
+   if (pwsize == -1)
+      pwsize = 4096; // more than enough?
+#endif
+#if defined(HAVE_GETGRGID_R) || defined(HAVE_GETGRNAM_R)
+   grsize = sysconf(_SC_GETGR_R_SIZE_MAX);
+   if (grsize == -1)
+      grsize = 4096; // more than enough?
+#endif
 }
 
-void delete_global_variables()
-{
-   tracein("delete_global_variables()");
+void delete_global_variables() {
+   QORE_TRACE("delete_global_variables()");
    if (QORE_ARGV)
-      QORE_ARGV->derefAndDelete(NULL);
+      QORE_ARGV->deref(0);
    if (ARGV)
-      ARGV->derefAndDelete(NULL);
+      ARGV->deref(0);
    if (ENV)
-      ENV->derefAndDelete(NULL);
-   traceout("delete_global_variables()");
+      ENV->deref(0);
+
 }
 
-struct tm *q_localtime(const time_t *clock, struct tm *tms)
-{
+struct tm *q_localtime(const time_t *clock, struct tm *tms) {
 #ifdef HAVE_LOCALTIME_R
    localtime_r(clock, tms);
 #else
@@ -638,8 +781,7 @@ struct tm *q_localtime(const time_t *clock, struct tm *tms)
    return tms;
 }
 
-struct tm *q_gmtime(const time_t *clock, struct tm *tms)
-{
+struct tm *q_gmtime(const time_t *clock, struct tm *tms) {
 #ifdef HAVE_GMTIME_R
    gmtime_r(clock, tms);
 #else
@@ -652,8 +794,7 @@ struct tm *q_gmtime(const time_t *clock, struct tm *tms)
 }
 
 // thread-safe basename function (resulting pointer must be free()ed)
-char *q_basename(const char *path)
-{
+char *q_basename(const char *path) {
    const char *p = strrchr(path, '/');
    if (!p)
       return strdup(path);
@@ -661,8 +802,7 @@ char *q_basename(const char *path)
 }
 
 // returns a pointer within the same string
-char *q_basenameptr(const char *path)
-{
+char *q_basenameptr(const char *path) {
    const char *p = strrchr(path, '/');
    if (!p)
       return (char *)path;
@@ -670,11 +810,9 @@ char *q_basenameptr(const char *path)
 }
 
 // thread-safe basename function (resulting pointer must be free()ed)
-char *q_dirname(const char *path)
-{
+char *q_dirname(const char *path) {
    const char *p = strrchr(path, '/');
-   if (!p || p == path)
-   {
+   if (!p || p == path) {
       char *x = (char *)malloc(sizeof(char) * 2);
       x[0] = !p ? '.' : '/';
       x[1] = '\0';
@@ -686,14 +824,168 @@ char *q_dirname(const char *path)
    return x;
 }
 
-class FunctionReference *getFunctionReference(class QoreString *str, class ExceptionSink *xsink)
-{
-   class QoreProgram *pgm = getProgram();
-   class UserFunction *f = pgm->findUserFunction(str->getBuffer());
-   if (!f)
-   {
-      xsink->raiseException("NO-SUCH-FUNCTION", "callback function '%s()' does not exist", str->getBuffer());
-      return NULL;
-   }
-   return new FunctionReference(f, pgm);
+void *q_realloc(void *ptr, size_t size) {
+   void *p = realloc(ptr, size);
+   if (!p)
+      free(ptr);
+   return p;
 }
+
+static inline void assign_hv(QoreHashNode *h, const char *key, char *val) {
+   h->setKeyValue(key, new QoreStringNode(val), 0);
+}
+
+static inline void assign_hv(QoreHashNode *h, const char *key, int val) {
+   h->setKeyValue(key, new QoreBigIntNode(val), 0);
+}
+
+static QoreHashNode *pwd2hash(const struct passwd &pw) {
+   QoreHashNode *h = new QoreHashNode;
+   // assign values
+   assign_hv(h, "pw_name", pw.pw_name);
+   assign_hv(h, "pw_passwd", pw.pw_passwd);
+   assign_hv(h, "pw_gecos", pw.pw_gecos);
+   assign_hv(h, "pw_dir", pw.pw_dir);
+   assign_hv(h, "pw_shell", pw.pw_shell);
+   assign_hv(h, "pw_uid", pw.pw_uid);
+   assign_hv(h, "pw_gid", pw.pw_gid);
+   return h;
+}
+
+QoreHashNode *q_getpwuid(uid_t uid) {
+   struct passwd *pw;
+#ifdef HAVE_GETPWUID_R
+   struct passwd pw_rec;
+   char *buf = (char *)malloc(pwsize * sizeof(char));
+   ON_BLOCK_EXIT(free, buf);
+   int rc = getpwuid_r(uid, &pw_rec, buf, pwsize, &pw);
+   if (rc)
+      errno = rc;
+#else
+   AutoLocker al(&lck_passwd);
+   pw = getpwuid(uid);
+#endif
+   return !pw ? 0 : pwd2hash(*pw);
+}
+
+QoreHashNode *q_getpwnam(const char *name) {
+   struct passwd *pw;
+#ifdef HAVE_GETPWNAM_R
+   struct passwd pw_rec;
+   char *buf = (char *)malloc(pwsize * sizeof(char));
+   ON_BLOCK_EXIT(free, buf);
+   int rc = getpwnam_r(name, &pw_rec, buf, pwsize, &pw);
+   if (rc)
+      errno = rc;
+#else
+   AutoLocker al(&lck_passwd);
+   pw = getpwnam(name);
+#endif
+   return !pw ? 0 : pwd2hash(*pw);
+}
+
+int q_uname2uid(const char *name, uid_t &uid) {
+   struct passwd *pw;
+#ifdef HAVE_GETPWNAM_R
+   struct passwd pw_rec;
+   char *buf = (char *)malloc(pwsize * sizeof(char));
+   ON_BLOCK_EXIT(free, buf);
+   int rc = getpwnam_r(name, &pw_rec, buf, pwsize, &pw);
+   if (!rc)
+      uid = pw_rec.pw_uid;
+   return rc;
+#else
+   AutoLocker al(&lck_passwd);
+   pw = getpwnam(name);
+   if (!pw)
+      return errno;
+   uid = pw->pw_uid;
+   return 0;
+#endif
+}
+
+static QoreHashNode *gr2hash(struct group &gr) {
+   QoreHashNode *h = new QoreHashNode;
+   // assign values
+   assign_hv(h, "gr_name", gr.gr_name);
+   assign_hv(h, "gr_passwd", gr.gr_passwd);
+   assign_hv(h, "gr_gid", gr.gr_gid);
+
+   QoreListNode *l = new QoreListNode;
+   for (char **p = gr.gr_mem; *p; ++p)
+      l->push(new QoreStringNode(*p));
+
+   h->setKeyValue("gr_mem", l, 0);
+   return h;
+}
+
+QoreHashNode *q_getgrgid(gid_t gid) {
+   struct group *gr;
+#ifdef HAVE_GETGRGID_R
+   struct group gr_rec;
+   char *buf = (char *)malloc(grsize * sizeof(char));
+   ON_BLOCK_EXIT(free, buf);
+   int rc = getgrgid_r(gid, &gr_rec, buf, grsize, &gr);
+   if (rc)
+      errno = rc;
+#else
+   AutoLocker al(&lck_group);
+   gr = getgrgid(gid);
+#endif
+   return !gr ? 0 : gr2hash(*gr);
+}
+
+QoreHashNode *q_getgrnam(const char *name) {
+   struct group *gr;
+#ifdef HAVE_GETGRNAM_R
+   struct group gr_rec;
+   char *buf = (char *)malloc(grsize * sizeof(char));
+   ON_BLOCK_EXIT(free, buf);
+   int rc = getgrnam_r(name, &gr_rec, buf, grsize, &gr);
+   if (rc)
+      errno = rc;
+#else
+   AutoLocker al(&lck_group);
+   gr = getgrnam(name);
+#endif
+   return !gr ? 0 : gr2hash(*gr);
+}
+
+int q_gname2gid(const char *name, gid_t &gid) {
+   struct group *gr;
+#ifdef HAVE_GETGRNAM_R
+   struct group gr_rec;
+   char *buf = (char *)malloc(grsize * sizeof(char));
+   ON_BLOCK_EXIT(free, buf);
+   int rc = getgrnam_r(name, &gr_rec, buf, grsize, &gr);
+   if (!rc)
+      gid = gr_rec.gr_gid;
+   return rc;
+#else
+   AutoLocker al(&lck_group);
+   gr = getgrnam(name);
+   if (!gr)
+      return errno;
+   gid = gr->gr_gid;
+   return 0;
+#endif
+}
+
+ResolvedCallReferenceNode *getCallReference(const QoreString *str, ExceptionSink *xsink) {
+   QoreProgram *pgm = getProgram();
+   UserFunction *f = pgm->findUserFunction(str->getBuffer());
+   if (!f) {
+      xsink->raiseException("NO-SUCH-FUNCTION", "callback function '%s()' does not exist", str->getBuffer());
+      return 0;
+   }
+   return new UserCallReferenceNode(f, pgm);
+}
+
+qore_license_t qore_get_license() {
+   return qore_license;
+}
+
+long long q_atoll(const char *str) {
+   return atoll(str);
+}
+

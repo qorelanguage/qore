@@ -1,0 +1,62 @@
+/** @page embedding Embedding Qore Code
+    @section embedding Embedding Qore Code
+
+    @subsection initializing_and_closing_library Initializing and Closing the Qore Library
+
+    The first step is to initialize the library.  To do this, call qore_init() as follows (note that this function can only be called once and must be called before any other functionality of the Qore library is used):
+
+    @code
+    // qore_init() called using the library under the GPL license, appropriate for a GPL program
+    // qore_init() optionally takes several other arguments as well - initializes the openssl and libxml2 libraries as well
+    qore_init(QL_GPL);
+    @endcode
+
+    When your program terminates, you should call qore_cleanup() as follows:
+
+    @code
+    qore_cleanup();
+    @endcode
+
+    @subsection parsing_and_running Parsing and Running Qore Code
+    
+    First you should declare a variable of type ExceptionSink to capture and manage Qore exceptions (declare an additional variable if you want to capture and manage warnings when parsing Qore code):
+
+    @code
+    ExceptionSink xsink, wsink;
+    @endcode
+
+    Then you can use the QoreProgramHelper class to manage QoreProgram objects.  The QoreProgramHelper class contains a QoreProgram object and calls QoreProgram::waitForTerminationAndDeref() in the destructor.  The constructor takes a pointer to an ExceptionSink object, so make sure that the ExceptionSink object has at least as long a scope as the QoreProgramHelper object, as follows:
+
+    @code
+    ExceptionSink xsink, wsink;
+    {
+       // creates and manages a QoreProgram object
+       QoreProgramHelper pgm(&xsink);
+       // ... rest of code here
+    }
+    @endcode
+
+    Then the QoreProgramHelper object can be used like a QoreProgram object.  For example, to parse a file named "test.q" and run it, do the following:
+
+    @code
+    ExceptionSink xsink, wsink;
+    {
+       // creates and manages a QoreProgram object
+       QoreProgramHelper pgm(&xsink);
+
+       pgm->parseFile("test.q", &xsink, &wsink, QP_WARN_ALL);
+
+       // display any warnings immediately
+       wsink.handleWarnings();
+
+       // execute program if there were no parse exceptions
+       if (!xsink)
+          pgm->run(&xsink);
+    }
+    // display any exceptions on stdout
+    xsink.handleExceptions();
+    @endcode
+
+    There are many functions for parsing and running Qore code; see the QoreProgram class documentation for more information.
+
+*/

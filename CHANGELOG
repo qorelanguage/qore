@@ -1,177 +1,1657 @@
+2010.05.18: David Nichols
+	 * fixed a memory bug in an exception string in the socket class
+	   (backported from trunk)
+
+2010.05.10: David Nichols
+	 * updated hash(hash) to return the hash argument
+
+2010.04.20: David Nichols
+	 * updated bitop code from trunk	 
+
+2010.04.19: David Nichols
+	 * fixed some bugs processing arguments in the XmlReader class
+	   (backported from trunk)
+
+2010.04.12: David Nichols
+	 * fixed a memory bug in the context statement when an exception
+	   occurs in the context expression (backported from trunk)
+	 * fixed a memory bug in the binary += operation; if the operand for
+	   BinaryNode::append() is equal to the current buffer, a crash would
+	   result (backported from trunk)
+
+2010.04.07: Petr Vanek
+	 * fixed limited XML node size. Backport from trunk.
+
+2010.04.06: David Nichols
+	 * fixed parsing negative numbers in json strings (backported from
+	   trunk)
+
+2010.04.04: David Nichols
+	 * fixed Socket::recv() and Socket::recvBinary() when reading all data
+	   available on the socket when the remote ends closes the connection
+	   in an orderly way (backported from trunk)
+
+2010.03.26: David Nichols
+	 * fixed adding virtual private data to classes with multiple virtual
+	   base classes (backported from trunk)
+
+2010.03.25: David Nichols
+	 * fixed non-thread-safe usage of getpwnam() in QC_Dir.cc (backported
+           from trunk/0.8.0)
+	 * fixed getpwnam() to use q_getgrnam() and correct a thread and
+	   functional error in QC_Dir.cc (backported from trunk)
+
+2010.03.23: David Nichols
+	 * added a QoreSocket::recvBinary() function to receive all data
+	   available on the socket (with an optional initial timeout value)
+	   and return it as a binary object; if Socket::recvBinary() is called
+	   with buffer-size <= 0, then this variant is used (backported from
+           trunk/0.8.0)
+
+2010.03.12: David Nichols
+	 * fixed CANNOT-PROVIDE-FEATURE exception text (backported from
+	   trunk/0.8.0)
+
+2010.03.10: David Nichols
+	 * fixed a bug in SSLCertificate::getInfo() (backported from
+	   trunk/0.8.0)
+	 * fixed a bug in SSLCertificate::getSignature() (backported from
+	   trunk/0.8.0)
+	 * fixed a cosmetic bug in exception string in FtpClient::get()
+	 * check for PO_NO_FILESYSTEM in FtpClient::put() (backported from
+	   trunk/0.8.0)
+
+2010.03.03: David Nichols
+         * eliminated string parsing in block comments, fixed a bug where the
+           parser was not terminated at EOF in a block comment (backported
+	   from trunk/0.8.0)
+
+2010.02.16: David Nichols
+         * fixed a bug where if local variables were used in a reference 
+           expression with the background operator, whenever the reference
+           was accessed in the called code a crash would result (backported
+	   from trunk/0.8.0)
+
+2010.02.04: David Nichols
+	* fixed a bug where the File class would reset the encoding given in
+	  the constructor on ::open*() (backported from trunk)
+
+2010.01.26: David Nichols
+	* fixed a bug processing arguments to in-object method calls in the
+	  background operator (backported from trunk/0.8.0)
+	* fixed a bug processing arguments to static method calls in the
+	  background operator (backported from trunk/0.8.0)
+
+*** v0.7.7 RELEASE *** 
+
+2009.12.02: David Nichols
+	* fixed a bug where taking a slice from an object could return private
+	  members when called outside the class (backported from trunk)
+	* fixed a bug making a hash slice where the character encoding was not
+	  ensured to be QCS_DEFAULT before trying to match key names
+	  (backported from trunk)
+
+2009.11.30: David Nichols
+	* fixed a bug returning the last builtin data type ID (backported from
+	  trunk)
+
+2009.11.25: David Nichols
+        * fixed memory bug in CryptoHelper - removed unnecessary and incorrect
+          string termination code (backported from trunk)
+        * fixed a harmless bug in TempEncodingHelper to remove a message from
+          valgrind (although this bug could cause no harm) (backported from
+	  trunk)
+
+2009.11.20: David Nichols
+	* detected erroneous variable list declarations like:
+	  our (my $x, ...) or my (our $x) and throw a parse exception
+	  (backported from trunk)
+	* fixed memory leaks in parse exceptions with static method call
+	  references (backported from trunk)
+
+2009.12.18: David Nichols
+        * fixed handling in the Datasource and DatasourcePool classes when
+          auto-reconnects fail (connection aborted handling) - now the
+          Datasource class tags the connection as aborted and closes the
+          connection when Datasource::connectionAborted() is called by the DBI
+          drivers, and the DatasourcePool class correctly returns the 
+          Datasource to the pool.  Additionally, the Datasource class will not
+          execute any action on the Datasource once the connection has been
+          aborted.  The flag is cleared when the connection is opened again.
+
+2009.12.15: David Nichols
+	* fixed a rare race condition in object constructors when an object
+	  launches threads in the object and then the constructor throws an
+	  exception afterwards
+	* removed an extraneous reference and dereference in objects when
+	  launching new threads in objects
+
+2009.12.14: David Nichols
+	* fixed examples/WSDL.qc de/serializing "int" and "short" from
+	  negative numbers
+	* minor documentation fixes
+
+2009.11.10: David Nichols
+	* fixed a bug when a builtin class tries to access private data of an
+	  object that's already been deleted; now an appropriate exception is
+	  thrown
+
+2009.11.08: David Nichols
+	* fixed a bug in the FtpClient class that caused the connection to
+	  never get established
+
+2009.11.06: David Nichols
+	* fixed a reference counting bug in callObjectMethodArgs() that could
+	  lead to a crash if a list is passed as the 3rd argument
+	* fixed a bug executing builtin functions if an exception is raised
+	  when evaluating the arguments
+
+*** v0.7.6 RELEASE *** 
+
+2009.11.02: David Nichols
+	* fixed marking objects as in the destructor to be after checking for
+	  a delete blocker in the class
+	* updated is_writable() and is_readable() to always return True if
+	  called by effective UID 0 (root)
+
+2009.10.31: David Nichols
+	* changed decompression routines to a string to preserve binary data,
+	  especially trailing nulls
+	* fixed C++ QoreString constructor when taking ownership of a string
+	  buffer to ensure that the buffer is null terminated when the 
+	  allocated buffer is exactly equal to the string length
+	* updated split() to work on binary objects just like on strings, but
+	  will return a list of binary objects split by the marker
+	* updated sleep() to continue sleeping for the remaining time if
+	  interrupted by a signal
+
+2009.10.30: David Nichols
+	* use gnutar to package releases on darwin to avoid picking up useless
+	  resource files
+
+2009.10.26: David Nichols
+	* fixed a race condition in deleting objects by marking objects
+	  atomically as inside destructor
+
+2009.10.21: David Nichols
+	* fixed scanner to ignore quoted text in comments (i.e. "*/" will be
+	  ignored
+
+2009.10.20: David Nichols
+	* fixed set_signal_handler() to accept a closure as per documentation
+	* fixed internal C++ library function test_funcref_param() to return a
+	  value for call references and closures
+	* updated socket code to retry connect(), accept(), recv(), and send()
+	  if interrupted by a signal
+	* updated file code to retry read(), write() and fcntl() with F_SETLKW
+	  if interrupted by a signal
+	* updated select() in socket and file code to retry if interrupted by
+	  a signal
+
+2009.10.16: David Nichols
+	* fixed broken access to private members of an object outside the
+	  class; before it was possible to delete and reassign private members
+	  from outside the class which should have been illegal
+
+2009.10.12: David Nichols
+	* updated XmlReader methods to throw exceptions on XML parsing errors
+	  to be consistent with other methods
+	* updated sending HTTP headers to send a single header multiple times
+	  if the value is a list
+        * fixed a typo in the C++ code in the File::open2() method that could
+	  cause a crash
+
+2009.10.10: David Nichols
+	* fixed compiling on systems without xmlTextReaderSchemaValidate()
+
+2009.10.09: David Nichols
+	* implemented case == <exp> for soft matches in case expressions
+
+2009.10.08: David Nichols
+	* updated internal XML APIs; updated XmlReader class; documented
+	  XmlReader class
+	* if an HTTP header is received more than once, then make the value a
+	  list in the hash returned
+	* documented decode_url()
+	* added information about informational headers returned by
+	  QoreSocket::readHTTPHeader()
+
+2009.10.06: David Nichols
+	* fixed a potential race condition in calling QoreClass::numMethods()
+	  and QoreClass::numStaticMethods() (C++ functions)
+	* added QoreClass::numUserMethods() and
+	  QoreClass::numStaticUserMethods() (C++ functions)
+	* fixed an XML-RPC parsing bug due to a side-effect in a debugging 
+	  statement
+	* added XML node type constants and NodeTypeMap constant hash
+
+2009.10.05: David Nichols
+	* updated configure to check for more required features of libxml2
+	* updated configure to check for minimum libxml2 version 2.6.0
+
+2009.10.04: David Nichols
+	* fixed a bug setting the character encoding in strings produced with
+	  makeXMLFragment() and makeFormattedXMLFragment() when the default
+	  character encoding is not UTF8
+	* more XML cleanups and added XmlReader class
+	* implemented parseXMLWithRelaxNG() and parseXMLAsDataWithRelaxNG()
+	* implemented XmlDoc::validateRelaxNG() and XmlDoc::ValidateSchema()
+	* implemented many XmlReader methods
+	* implemented HAVE_PARSEXMLWITHRELAXNG constant and Qore library
+	  option; added configure checks for new libxml2 options
+
+2009.10.03: David Nichols
+	* added support for system objects using the new object method calling
+	  convention
+	* reorganized and cleaned up internal XML code
+	* added XmlDoc and XmlNode classes with initial XPath support
+
+2009.09.30: David Nichols
+	* implemented adding informational headers when receiving HTTP 
+	  messages: _qore_orig_content_type (for the original content-type line
+	  before processing), _qore_multipart (if the content-type line 
+	  indicates a multipart message), _qore_multipart_boundary (for the
+	  multipart boundary string), _qore_multipart_start (if there is a
+	  start= value in the content-type string)
+	* fixed concatenation of binary strings
+	* fixed split() to work on binary data
+
+2009.09.24: David Nichols
+	* added binary_to_string() function
+	* implemented binary concatentation support in the += and + operators
+
+2009.09.23: David Nichols
+	* fixed method resolution for in-object method calls when the target
+	  method is static
+	* fixed crash in parsing when a class with no parent classes
+	  references a base class method of an existing class
+
+2009.09.22: David Nichols
+	* updated -= operator to operate on objects in the same manner as
+	  hashes
+
+2009.09.21: David Nichols
+	* made it so that static methods can be called with normal method call
+	  syntax again to maintain backwards compatibility with previous
+	  versions of Qore
+	* updated configure to select 64-bit compile mode by default on Darwin
+	  10 or higher with i386
+
+2009.09.17: David Nichols
+	* renamed PRWLock to QoreRWLock and made it a public class
+
+2009.09.16: David Nichols
+	* fixed static method calls at the top level of a program
+
+2009.09.15: David Nichols
+	* fixed class implementation so that static and non-static methods
+	  have indepedent name lists; so that a class can now implement a non-
+	  static and a static method with the same name
+
+2009.09.10: David Nichols
+	* fixed type comparisons with external types
+
+2009.09.08: David Nichols
+	* fixed configure to ensure compiling in 32-bit mode on Darwin/OSX if
+	  32-bit mode is selected
+	* added missing documentation for FtpClient::getAsBinary() and
+	  FtpClient::getAsString()
+
+2009.09.02: David Nichols
+	* added support for new generic destructor calling convention
+
+2009.08.28: David Nichols
+	* added rename() function to rename or move files
+	* updated documentation
+
+2009.08.26: David Nichols
+	* added HTTPClient::isConnected() method
+
+2009.08.24: Petr Vanek
+	* fixed ARGV and QORE_ARGV init to avoid behaving like <NOTHING>
+
+2009.08.23: David Nichols
+	* added new copy constructor calling convention that includes a
+	  constant reference to the QoreClass being instantiated
+
+2009.08.21: David Nichols
+	* added new constructor calling convention that includes a constant
+	  reference to the QoreClass being instantiated
+
+2009.08.18: David Nichols
+	* fixed Socket::connect() with timeout
+	* added new generic calling convention for builtin class methods with
+	  a const pointer to the QoreMethod being called
+	* fixed DatasourcePool class handling of database disconnections when
+	  automatic reconnect fails
+
+2009.07.20: David Nichols
+	* added static method TermIOS::getWindowSize() to get the current size
+	  of the terminal; returns a hash with "rows" and "columns" keys
+	* bug fix: added QDOM_TERMINAL_IO to TermIOS class
+
+2009.07.16: David Nichols
+	* fixed a bug parsing XML-RPC array data with empty value elements;
+	  i.e.: <value/>
+
+2009.07.15: David Nichols
+	* fixed a bug waiting on a Condition variable when thread read lock
+	  is held by multiple threads (for RWLock)
+	* fixed a bug calculating the time offset for waiting on a Condition
+	  object
+
+2009.07.14: David Nichols
+	* fixed millisecond formatting with format_date()
+	* fixed a crashing bug when a Condition object waits on a RWLock with
+	  the read lock held
+	* fixed a bug setting the exception location when throwing thread
+	  resource exceptions when shutting down the qore library; the bug
+	  fix is to clear the program location first
+
+*** v0.7.5 RELEASE *** 
+
+2009.07.13: David Nichols
+	* added assert()s to catch the error where object private data is
+	  saved with a 0 value
+	* fixed a bug in the HTTPClient class where the connection was not
+	  flagged as closed when an error occurred that indicated that the
+	  client had closed the connection
+
+2009.07.01: David Nichols
+	* fixed a bug in Datasource::close(); with debugging enabled, it would
+	  trigger an assert, without debugging, would do nothing at all
+	* added the module directory as the "ModuleDir" key to the hash output
+	  of get_qore_library_info() 
+
+2009.06.25: David Nichols
+	* added an optional port number to datasources, that DBI drivers can
+	  use if they support module API 0.7 or above; modified the
+	  parseDatasource() function to support parsing port numbers;
+	  added or modified the following methods to existing classes:
+	  + Datasource::constructor(): added support for a port argument
+	  + Datasource::setPort(): new method
+	  + Datasource::getPort(): new method
+	  + DatasourcePool::constructor(): added support for a port argument
+	  + DatasourcePool::getPort(): new method
+
+2009.06.24: David Nichols
+	* fixed another deadlock in running destructors where a member is
+	  deleted that is an object, where that object's destructor references
+	  the parent object
+
+2009.06.23: David Nichols
+	* always check current directory of script first when looking for
+	  %include files if the path is not absolute
+	* fixed a deadlock when an object deletes a member and the member
+	  tries to access the parent object in the member's destructor
+	* fixed a bug reporting the latest module API version; should use
+	  library value instead of reporting the value from the header file
+	* updated module API to 0.7, updated library version to 5.2, added
+	  new QoreObject::externalDelete() function to handle the situation
+	  when object private data is deleted externally
+
+2009.06.22: David Nichols
+	* added checks to the scanner to give better error messages when
+	  trying to include a directory or other non-file
+
+*** v0.7.4 RELEASE *** 
+
+2009.06.08: David Nichols
+	* added new HTTPClient methods for manipulating the TCP_NODELAY
+	  setting:
+	  + HTTPClient::setNoDelay()
+   	  + HTTPClient::getNoDelay()
+	* now the XmlRpcClient and JsonRpcClient constructors accept an
+	  optional second argument that, when True, will inhibit the immediate
+	  connection attempt on the socket and instead allow the socket
+	  connections to be either manually established or established on
+	  demand with the first request
+
+2009.06.04: David Nichols
+	* fixed %= with a modula operand of 0 to set the lvalue to 0
+
+2009.06.01: David Nichols
+	* fixed exception strings when datasource modules cannot be loaded
+
+2009.05.12: David Nichols
+	* fixed localtime() and no argument to return the current date and
+	  time as documented
+	* implemented now_ms() to return the current date and time to the
+	  millisecond resolution
+
+2009.05.11: David Nichols
+	* fixed XML-RPC serialization to serialize integers outside the 
+	  allowed 32-bit data range as <string> instead of <i4>
+
+2009.05.08: David Nichols
+	* fixed a race condition that could cause a deadlock when calling
+	  pthread_join() when Qore code calls "exit()" when multiple threads
+	  are running
+	* implemented the following new Socket methods:
+	  + Socket::isWriteFinished(<timeout_ms>): for non-blocking writes
+	  + Socket::setNoDelay(<boolean>): to set TCP_NODELAY
+	  + Socket::getNoDelay(): returns value of TCP_NODELAY
+
+2009.05.07: David Nichols
+	* fixed signal handling after a fork(), was completely disabled due to
+	  a bug in the signal manager class
+	* implemented the following functions to allow for explicitly
+	  specifying the encoding when serializing XML-RPC strings:
+	  + makeXMLRPCCallStringWithEncoding()
+	  + makeXMLRPCCallStringArgsWithEncoding()
+	  + makeXMLRPCResponseStringWithEncoding()
+	  + makeXMLRPCFaultResponseStringWithEncoding()
+	  + makeFormattedXMLRPCCallStringWithEncoding()
+	  + makeFormattedXMLRPCCallStringArgsWithEncoding()
+	  + makeFormattedXMLRPCResponseStringWithEncoding()
+	  + makeFormattedXMLRPCFaultResponseStringWithEncoding()
+
+2009.05.01: David Nichols
+	* fixed the Dir::listFiles() method with g++3.* (at least); the mask
+	  used would not filter out directories
+
+2009.04.30: David Nichols
+	* fixed crashes in the File class due to unsigned data type being used
+	  and the comparison (< 0) that signaled an error always failed
+
+2009.04.28: David Nichols
+	* fixed outputting recursive data structures (would otherwise result
+	  in a crash)
+	* fixed object access deadlock scenarios
+
+2009.04.17: David Nichols
+	* fixed the "-" operator with: hash-string and hash-list also
+	  hash-=string and hash-=list to remove the value(s) from the hash,
+	  not call the delete operator
+
+2009.04.15: David Nichols
+	* allow %include parse directives to quote the file names (ignore 
+	  quotes)
+	* NULL values are serialized as "null" JSON values
+	* fixed parsing of a corner case of marginally valid XML-RPC
+	* fixed XML-RPC serialization to handle NOTHING (no value) and NULL
+	  identically
+	* fixed XML-RPC serialization to never output an empty <param/>
+	  element, as it could potentially break some implementations (the
+	  XML-RPC spec is not very clear on this; it is not written like an
+	  RFC, for example.  Also we send empty value elements: <value/> when
+	  serializing NOTHING or NULL, which may not be correct either
+
+2009.04.14: David Nichols
+	* do not assume that a trailing null should terminate the string when
+	  reading string data from files; include the trailing null in the
+	  string
+	* dereferencing a hash or object with a list will return a slice of
+	  the hash or object as a hash
+
+2009.04.13: David Nichols
+	* fixed a bug parsing base64 strings when newlines and/or linefeeds
+	  trailed the base64-encoded data
+
+2009.04.08: David Nichols
+	* fixed outputting '%%' as '%' in *printf*() when no arguments are
+	  left to process
+
+2009.04.06: David Nichols
+	* fixed a bug outputting '%' characters ('%%' now works properly to
+	  output a single '%' character)
+
+2009.03.31: David Nichols
+	* fixed a bug parsing hashes where the hash key was given as a
+	  constant
+
+2009.03.24: David Nichols
+	* fixed a write bug where shared data was being updated in place 
+	  instead of copied and then updated
+
+2009.03.20: David Nichols
+	* added the abilty for a Condition variable to wait on RWLock objects
+	  as well as Mutex objects
+
+2009.03.11: David Nichols
+	* reversed order of lock acquisition when returning call stack
+	  infomation for all threads
+	* made sure to dereference the call stack object outside the call
+	  stack lock in order to avoid nested locking
+
+2009.03.09: David Nichols
+	* ignore '\n' and '\r' when parsing base64-encoded strings
+
+2009.03.04: David Nichols
+	* fixed a crashing bug when trying to copy member elements of a 
+	  deleted object
+	* fixed the foreach statement when used with a reference and the break
+	  statement is used
+	* fixed a rare reference dependency bug where system classes were 
+	  being destroyed while still referenced in user code
+
+*** v0.7.3 RELEASE *** 
+
+2009.02.03: David Nichols
+	* fixed a bug doing math on negative units of relative dates; invalid
+	  dates would be returned
+
+2009.02.02: David Nichols
+	* fixed a bug in the handling of GLIBC gethostbyaddr_r() failures; 
+	  (actually the bug appears to be in GLIBC) it would cause the
+	  function to return a value with invalid addresses
+
+2009.02.01: David Nichols
+	* fixed a bug compiling on powerpcs; sometimes the __ppc macro was not
+	  defined and so atomic operations and stack guard was not built;
+	  fixed to check for __ppc__ as well
+
+2009.01.29: David Nichols
+	* added %append-include-path parse directive to append include dirs
+	  to a program object while parsing, also supports environment
+	  variable substitution
+	* changed QoreString::replace() to be based on
+	  QoreString::splice_simple()
+	* added documentation for the getcwd() function
+	* tagged getcwd() with QDOM_FILESYSTEM
+
+2009.01.28: David Nichols
+	* corrected is_writeable() to is_writable() and made an alias to
+	  is_writeable() for backwards-compatibility
+	* fixed broken implementation of (undocumented) getcwd() function
+
+2009.01.22: David Nichols
+	* fixed a crashing bug in the handling of GLIBC gethostbyname_r()
+	  failures
+
+2009.01.19: David Nichols
+	* updated copyright statements to reflect 2009
+
+2009.01.13: David Nichols
+	* fixed a bug in the binary() function when converting binary strings
+	  to binary type when the strings had embedded nulls
+
+2009.01.06: David Nichols
+	* corrected example code in ReferenceHelper.h
+
+2008.12.27: David Nichols
+	* added C++ QoreHTTPClient::setConnectTimeout() and
+	  QoreHTTPClient::getConnectTimeout() functions
+	* added Qore HTTPClient::setConnectTimeout() and
+	  HTTPClient::getConnectTimeout() methods
+	* updated examples/SoapClient.qc to 0.1.2 - added support for passing
+	  options to the HTTPClient constructor
+	* updated examples/HTTPServer.qc and examples/SoapHandler.qc: minor
+	  SOAP fixes
+	* updated documentation for new functionality
+
+2008.12.13: David Nichols
+	* fixed content-type checking in examples/HTTPServer.qc for handler
+	  match algorithm
+
+2008.12.12: David Nichols
+	* added parseXMLAsData() and parseXMLAsDataWithSchema() functions
+	* updated examples/WSDL.qc to use parseXMLAsData() instead of 
+	  parseXML(), also fixed XSD date serialization and deserialization
+	* updated examples/SoapClient.qc to accept a WebService object as the
+	  argument to the "wsdl" option key in the SoapClient::constructor()
+	  method
+
 2008.12.03: David Nichols
-	* fixed a crashing bug with %= and the operand is 0 (ported from qore
-	  0.7.2)
+	* updated release to 0.7.3, lib to 5.1.1
+
+*** v0.7.2 RELEASE *** 
+
+2008.12.03: David Nichols
+	* fixed a crashing bug in the %= operator when the operand is 0
+	* fixed a crashing bug in the map with select operator when the map
+	  expression is 0
+	* added operator regression testing script: test/optest.q
+
+2008.12.02: David Nichols
+	* fixed a crashing bug in the map operator when the list operand is
+	  not a list
+
+2008.11.30: David Nichols
+	* updated --module-api to display the lowest compatible API and added
+	  --latest-module-api to show the latest module API version
+	* added optional timeout parameters in ms to:
+	    Socket::connect()
+	    Socket::connectINET()
+	    Socket::connectSSL()
+	    Socket::connectINETSSL()
+	    File::read()
+	    File::readBinary()
+
+2008.11.28: David Nichols
+	* added new File methods: 
+	    File::isDataAvailable(timeout_ms)
+	    File::setTerminalAttributes(action, TermIOS);
+	    File::getTerminalAttributes(TermIOS);
+	* added terminal attribute and action constants
+
+2008.11.27: David Nichols
+	* started adding new APIs to QoreFile for non-blocking I/O
+	* more TermIOS fixes, functionality
+	* updated library to 5.1, module api to 0.6, compatibility with 0.5
+
+2008.11.26: David Nichols
+	* fix to allow references to be used in closure and call reference
+	  calls
+	* implemented an optimization to map to efficiently handle the case
+	  when no return value is used
+	* spec file fixes
+	* started adding TermIOS class to Qore to control terminal attributes
+
+2008.11.24: David Nichols
+	* fixed a crashing bug in the parser with parse errors
+
+2008.11.23: David Nichols
+	* updated library to 5.0.1
+	* fixed spec file
+	* some minor corrections to configure.ac
 
 2008.11.21: David Nichols
-	* added read-write lock to call stack access and creation as ported
-	  from qore 0.7.*
- 	* fixed configure to properly detect the situation when linkable
-	  libraries are in /lib
-	* fixed an issue where proper locking was not done to DBI drivers and
-	  more than one call could be issued to a connection at one time,
-	  causing crashes
+	* updated release to 0.7.2
+	* fixed configure.ac to account for libraries in /lib - would cause
+	  configure to fail before
+	* fixed crash when pthread_create fails in thread.cc, thanks to
+	  Dmytro Milinevskyy for the info and patch
+        * fixed an issue where proper locking was not done to DBI drivers and
+          more than one call could be issued to a connection at one time,
+          causing crashes
+	* fixed a race condition with getAllThreadCallStacks()
+	* fixed a bug where thread-local variables (as top-level local
+	  variables of a Program) were not being instantiated when another
+	  Program called a fuction in a Program with such variables
+
+*** v0.7.1 RELEASE *** 
+
+2008.11.18: David Nichols
+	* fixed socket handling on HPUX 64-bit builds where the header files
+	  declare socklen_t to be 8 bytes wide, but the libraries expect a 
+	  pointer to a 32-bit value
+	* fixed getAllThreadCallStacks() (only enabled with debugging builds
+	  and with the explicit configure option: 
+	  --enable-runtime-thread-stack-trace because it has a performance
+	  penalty) by requiring all threads to grab a read lock before updating
+	  the thread stack, and getAllThreadCallStacks() to grab a write lock
+	  before reading all threads' call stacks.  This function was not
+	  thread-safe before now.
+
+2008.11.12: David Nichols
+	* fixed a bug in QoreHTTPClient passing a StackHash as a QoreHashNode
+	* fixed bugs in JsonRpcClient and XmlRpcClient where a new connection
+	  was established with each request
+	* fixed a bug in the HTTPClient where a new connection was established
+	  for each request even if the connection was already open and
+	  Keep-Alive was set
+
+2008.11.11: David Nichols
+	* added initial event documentation
+	* added AF_UNIX and AF_LOCAL constants
+	* updated Queue::copy() to copy the elements of the original Queue
+	* updated threading to fix the problem with exit() causing a random
+	  seg fault when other threads were active as follows: all threads
+	  started with joinable status PTHREAD_CREATE_JOINABLE, threads call
+	  pthread_detach() before exiting; implemented a new function,
+	  qore_exit_process() to be called instead of exit() that calls
+	  pthread_cancel() on each thread (except the calling thread) and then
+	  pthread_join(), added a call to pthread_testcancel() in
+	  AbstractStatement::exec()
+	* updated event documentation
+
+2008.11.10: David Nichols
+	* fixed a bug parsing the content type in QoreHTTPClient
+
+2008.11.09: David Nichols
+	* added object ID to socket event hashes
+	* added new socket events for connecting and SSL negotiation
+	* updated socket-test.q to use new event framework if -e or 
+	  --show-events is given on the command line
+	* fixed a bug setting the URL in parseURL()
+
+2008.11.08: David Nichols
+	* updated QoreSocket API to use qore_offset_t and qore_size_t where
+	  appropriate instead of "int"
+	* fixed some bugs in QoreSocket::send(int fd, qore_offset_t size)
+	* updated QoreFile API to use qore_offset_t and qore_size_t where
+	  appropriate instead of "int"
+
+2008.11.06: David Nichols
+	* fixed a setting the URL in the HTTPClient class with only a path if a
+	  hostname is already set
+
+2008.11.05: David Nichols
+	* fixed a memory error parsing expressions with the map operator
+	* event subsystem fixes and improvements, FtpClient event support
+	* implemented module and feature version requirements; you can now use:
+	  %requires <module> OP <version>, where OP is one of <, <=, =, >=, >,
+	  for example: %requires oracle >= 1.0.1
+	  also a special feature "qore" was implemented to give a requirement
+	  for the qore library, ex: %requires qore >= 0.7.1 
+
+2008.11.04: David Nichols
+	* fixed a bug in QoreString::set()
+ 	* fixed 2 crashing bugs in Operator.cc with the "-" operator: the
+	  operator functions were expecting certain arguments but the operator
+	  code was making partial matches and sending other types to the
+	  functions.  Added the abilty for an operator function to require an
+	  exact argument match for both arguments.
+	* added the possibilty to define a default function that returns
+	  NOTHING if no partial match is made to any operator functions so
+	  that nonsensical results are not returned (i.e. before change:
+	  NOTHING - NOTHING produced: "<time: 0 seconds>", after change, this
+	  produces "NOTHING")
+
+2008.11.03: David Nichols
+	* fixed a crashing bug in the FtpClient class
+	* fixed a parsing bug with the switch statement when a case value using
+	  a constant was not resolved caused a crash: affected debug mode only
+
+2008.10.30: David Nichols
+	* updated module handling: modules are now checked for having the
+	  module api appended to their name in descending order; i.e. if qore
+	  supports module-apis 0.5 and 0.4, and a program requests feature
+	  "x", qore will look for x-api-0.5.qmod, then x-api-0.4.qmod, and
+	  then finally x.qmod in each of the module directories
+	* default module directory changed to $libdir/qore-modules in order to
+	  avoid creating a new directory for each minor change in the
+	  supported api
+
+2008.10.29: David Nichols
+	* fixed parsing XML-RPC arrays when the first element is empty
+	* added the xml string as the optional exception argument for many
+	  exceptions in XML parsing
+
+2008.10.22: David Nichols
+	* implemented support for multiple module APIs
+        * updated ABI to 5.0, module-api to 0.5, declared module compatilibity
+	  for module api 0.4
+	* implemented support for atomic operations on itanium with aCC and g++
+	  for 64-bit builds
+	* implemented support for stack guard on itanium including monitoring
+	  the ia64 RSE (Register Stack Engine) - 64bit ia64 builds only
+	* added initial callback and event queue support to the Socket and
+	  HTTPClient classes
+	* fixed *printf() formatting with unrecognized format specifiers
+	* added more callback support to HTTPClient
+
+2008.10.20: David Nichols
+	* updated assembly macro includes to allow for Universal builds
+	* added a new option for library debugging
+	* removed the HPUX socklen hack
+
+2008.10.17: David Nichols
+	* added QORE_VERSION_CODE to qore-version.h
+	* updated next_build.sh to run with /bin/sh instead of /bin/bash
+	* fixed a bug in string != - was returning True when the strings were
+	  equal but had different character encodings
+
+2008.10.16: David Nichols
+        * updated library version
+	* added new function to QoreEncoding to get maximum character width
+	  for multi-byte character enodings
+
+2008.10.15: David Nichols
+	* WSDL.qc: fixed SOAP anyType serialization, fixed late resolution of 
+	  element types
+
+2008.10.09: David Nichols
+	* HPUX itanium compile fixes in configure
+
+2008.10.07: David Nichols
+	* added bison to spec file for BuildRequires
+
+*** v0.7.0 RELEASE *** 
+
+2008.10.02: David Nichols
+	* fixed a bug processing local variable declarations in a call
+	  reference call
+	* added a new virtual function for parse initialization to
+	  AbstractQoreNode; last ABI change before 0.7.0 release
+	* updated parser and other code to allow call references to be 
+	  present in constant expressions (not at the top level, however) and
+	  as case values
+	* fixed a bug in user function call reference comparisons
+
+2008.09.30: David Nichols
+	* fixed modula operator to return 0 if right side is 0; before would
+	  cause an arithmetic exception and the program would crash
+
+2008.09.26: David Nichols
+	* soap and wsdl fixes and http updates
+	* corrected documentation for the "find" expression
+
+2008.09.23: David Nichols
+	* added Program::getGlobalVariable()
+
+2008.09.22: David Nichols
+	* made QoreDir class private to the library
+
+2008.09.19: David Nichols
+	* fixed SSLCertificate to assume a file name if the string argument is
+	  less than 200 characters, otherwise assume a PEM-encoded certificate
+	* fixed SSLCertificate::getPublicKey() to return the DER-encoded public
+	  key for the certificate, instead of the internal openssl data
+
+2008.09.16: David Nichols
+	* documentation updates and corrections
+	* updated hash() to make a hash from a list and from an object's members
+
+2008.09.15: David Nichols
+	* updated qore option and option documentation
+	* added a new constructor to QoreSSLCertificate
+	* updated SSLCertificate and SSLPrivateKey to check for parse option
+	  PO_NO_FILESYSTEM when creating the objects from a filename
+	* added get_qore_option_list() and get_qore_library_info() functions
+
+2008.09.13: David Nichols
+	* doubled default stack guard to 8KB to avoid crashes on Linux i386 in
+	  background threads
+
+2008.09.12: David Nichols
+	* enabled atomic operations and stack guard for solaris i386
+	* fixed optional functions and options in ql_crypto.cc
+	* put all options into "Option" namespace
+	* updated build to work with openssl 0.9.7
+	* added library options, reworked configure and build, added compile and
+	  link information symbols to library, added verbose information about
+	  options and build to "qore -V"
+	* fixed stack guard for linux x86_64
+	* added test/stack-test.q to test stack guard
+	* removed need for openssl headers to be available when including
+	  <qore/Qore.h>
+	* implemented atomic operation and stack guard support for sparc32
+
+2008.09.11: David Nichols
+	* enabled atomic operations on SPARC with gcc
+	* enabled stack monitoring on SPARC with gcc
+	* enabled atomic reference counting and stack guard for solaris x86_64
+	  with SunPro CC
+
+2008.09.10: David Nichols
+	* added call_builtin_function() and call_builtin_function_args()
+	  functions
+	* initial patch for fixing crashes based on stack growth overruns
+	* fixed default stack size detection to use a more portable method
+	* fixed stack size detection for powerpc
 
 2008.09.09: David Nichols
-	* added --enable-runtime-thread-stack-trace to configure
+	* removed ncurses documentation (added to ncurses module project)
+	* removed opengl documentation (added to opengl module project)
+	* removed glut documentation (added to glut module project)
+	* removed qt documentation (added to qt module project)
+	* fixed global scope of top-level local variables
 
-2008.08.22: David Nichols
-	* fixed a bug in an exception string in the Mutex class that could
-	  cause a core dump
+2008.09.08: David Nichols
+	* updated ManagedDatasource class to no longer require a connection to
+	  the server to execute the getClientVersion DBI method
+	* implemented force_encoding() function
+	* fixed a bug in ManagedDatasource::selectRow()
+	* fixed character encoding detection in HTTPClient response header
+	  parsing
+	* removed sybase documentation (added to sybase module project)
+	* removed mysql documentation (added to mysql module project)
+
+2008.09.07: David Nichols
+	* removed pgsql documentation (added to pgsql module project)
+
+2008.09.06: David Nichols
+	* removed tibrv documentation (added to tibrv module project)
+	* removed oracle documentation (added to oracle module project)
+
+2008.09.05: David Nichols
+	* removed tuxedo documentation (added to tuxedo module project)
+	* removed tibae documentation (added to tibae module project)
+
+2008.09.04: David Nichols
+	* implemented a much more efficient algorithm for parsing base64 strings
+	* improved base64 string parsing exceptions
+	* removed unsafe QoreProgram::setScriptDir() function
+	* added safe QoreProgram::setScriptPath() function
+	* added Qore Program methods: Program::getScriptPath() and 
+	  Program::getScriptName()
+	* changed Program::setScriptDir() to safe Program::setScriptPath()
+	* added get_script_path() and get_script_name() functions and
+	  associated documentation
+
+2008.09.03: David Nichols
+	* updated docs and inherit.q example regarding how to call derived class
+	  methods from a base class (use $self.method() instead of $.method())
+	* removed tuxedo module to separate project
+	  (https://qore.svn.sourceforge.net/svnroot/qore/module-tuxedo)
+	* removed ncurses module to separate project
+	  (https://qore.svn.sourceforge.net/svnroot/qore/module-ncurses)
+	* fixed build to make pthread detection mandatory
+	* removed tibrv module to separate project
+	  (https://qore.svn.sourceforge.net/svnroot/qore/module-tibrv)
+	* removed tibae module to separate project
+	  (https://qore.svn.sourceforge.net/svnroot/qore/module-tibae)
+	* removed sybase module to separate project
+	  (https://qore.svn.sourceforge.net/svnroot/qore/module-sybase)
+	* removed pgsql module to separate project
+	  (https://qore.svn.sourceforge.net/svnroot/qore/module-pgsql)
+	* removed mysql module to separate project
+	  (https://qore.svn.sourceforge.net/svnroot/qore/module-mysql)
+
+2008.09.02: David Nichols
+	* moved qt modules to separate project
+	  (https://qore.svn.sourceforge.net/svnroot/qore/module-qt)
+	* module directory changed to $libdir/qore-module-api-$(ver) where
+	  $(ver) is the module API version (currently 0.4)
+
+2008.09.01: David Nichols
+	* started moving modules into separate projects
+	* moved glut and opengl modules into separate projects
+	  (https://qore.svn.sourceforge.net/svnroot/qore/module-opengl)
+	  (https://qore.svn.sourceforge.net/svnroot/qore/module-glut)
+	* fixed a memory leak in exception handling in the HTTPClient class
+	* fixed "info" reference handling in the HTTPClient class
+
+2008.08.28: David Nichols
+	* updated [] operator to dereference binaries and return the byte value
+	  at the given location 
+
+2008.08.27: David Nichols
+	* removed internal macros tracein() and traceout() and replaced with a
+	  single QORE_TRACE() macro that uses ON_BLOCK_EXIT() to do the traceout()
+	* made config headers private
+	* made svn-revision header private
+
+2008.08.26: David Nichols
+	* added BinaryNode::prepend() method
+
+2008.08.25: David Nichols
+	* updated rand() to return a random 64-bit integer by calling random()
+	  twice; once for each 32-bit portion of the return value
+
+2008.08.21: David Nichols
+	* finally fixed object scope/reference bug (only appeared in rare
+	  cases)
+
+2008.08.19: David Nichols
+	* fixed freetds compile with newer versions (removed hack to use private
+	  data structures to set locale with older versions)
+	* removed obsolete references to .build file
+	* updated default exception handler to show TID
+
+2008.08.18: David Nichols
+	* added --module-dir command-line option to print out the qore module
+	  directory
+	* exported qore_module_dir symbol to give the module directory location
+
+2008.08.15: David Nichols
+	* fixed ModuleManager to assume a file name if a '/' character appears
+	  anywhere in the string
+	* updated SSLCertificate::constructor() to accept a binary object
+
+2008.08.13: David Nichols
+	* added configure check for xmlTextReaderSetSchema() to disable
+	  parseXMLWithSchema() if this function is not present in libxml2
+	* enhanced QoreSSLCertificate class, exported most functions
 
 2008.08.12: David Nichols
-	* fixed constant resolution to only increment the recursive count
-	  when a constant is recursively defined
+	* removed badly-implemented verifyXMLWithSchema(), need to implement
+	  XSDSchema class
+	* added test for parseXMLWithSchema() to test/test.q
+	* fixed HTTPClient to read body on error responses if present and
+	  include in the "arg" key in the exception hash
+	* fixed constant resolution to only increment the recursive counter when
+	  recursivey resolving a constant
+	* fixed constant expression evaluation
+	* updated the QoreURL class to correctly parse strings that give only a
+	  path
+
+2008.08.11: David Nichols
+	* fixed inlist() and inlist_hard() to return False unconditionally if
+	  the second argument is NOTHING
+	* improved XML generation; top-level elements may now have attributes
+	* improved XML parse error reporting; detailed information about errors
+	  is now included in the exception text
+	* added parseXMLWithSchema() and validateXMLWithSchema() functions to
+	  allow XML to be parsed and validated against an XSD schema
+
+2008.08.10: David Nichols
+	* fixed build to use subversion revision for BUILD tag
+
+2008.08.07: David Nichols
+	* fixed resolution of private static methods from within a subclass
+
+2008.08.06: David Nichols
+	* made QoreDir class thread-safe, fixed directory and file filtering
+	* made QoreFile class thread-safe
+	* removed synchronous class tagging because the implementation was very
+	  inefficient
+
+2008.07.13: David Nichols
+        * new functions: inlist() and inlist_hard()
+	* implemented tagging classes as "synchronous" to allow builtin classes
+	  to have automatic thread locks on all methods (except constructors)
+	* removed explicit locking from the Socket class (tagged as synchronous)
+	* tagged the File and Dir classes as synchronous classes to ensure
+	  proper locking
+
+2008.06.26: David Nichols
+        * initial glut module documentation
+
+2008.06.20: David Nichols
+	* initial opengl module documentation - unfortunately not very good
+	  quality at the moment
+
+2008.06.18: David Nichols
+	* fixed out-of-line method definition parsing
+
+2008.06.17: David Nichols
+	* major documenation updates
+	* illegal accesses to private static methods now throw an exception at
+	  parse time instead of at run time
+
+2008.06.12: David Nichols
+	* added doxygen support to configure.ac and Makefile.am
+	* initial (untested) updates to spec file
+
+2008.06.11: David Nichols
+	* added class prefix in exception text when an exception occurs in a
+	  static method
+
+2008.06.10: David Nichols
+	* implemented static class methods
+	* updated all QT static methods to belong to the relevant class as 
+	  static methods instead of being added as regular functions prefixed
+	  by the class name
+
+2008.06.09: David Nichols
+	* configure and compile fixes for Sun Studio CC
+	* started adding infrastructure changes to allow for "static" class
+	   methods
+
+2008.06.05: David Nichols
+	* warning fixes for g++ 4.3
+	* enabled 64-bit builds by default on x86_64 CPUs
+
+2008.06.03: David Nichols
+	* compile fixes for Solaris and SunPro CC
+
+2008.06.02: David Nichols
+	* split the qt module into qt-gui and qt-core
+
+2008.05.29: David Nichols
+	* split svg functionality out of the qt module into the new qt-svg
+	  module
+
+2008.05.28: David Nichols
+	* started spliting up the qt module into sub-modules: qt-opengl is now
+	  dependent on the qt module; the majority of the functionality of the
+	  qt module is now implemented in a shared library so that symbols can
+	  be automatically shared in submodules (like qt-opengl)
+
+2008.05.27: David Nichols
+	* implemented auto-reconnect for the oracle DBI driver
+	* improved library support for DBI drivers supporting auto-reconnect
+	  when a server connection is lost and the driver is not in a
+	  transaction
+
+2008.05.23: David Nichols
+	* removed suport in the scanner for using some keywords as function and
+	  methods names as it broke code that should be correct
+
+2008.05.22: David Nichols
+	* implemented support for a select code expression as an optional third
+	  argument for the new fmap operator to filter which elements are
+	  included in the resulting list
+	* implemented support for $$, $1, $2, ... expressions as references to
+	  implied arguments
+	* changed implementation of fmap, foldl, foldr to use implied arguments
+	  rather than take code references/closures as this is a much more
+	  efficient and concise syntax
+	* implemented comparison functions for runtime code references and
+	  closures
+	* implemented select operator to select elements from a list
+	* implemented a workaround in the parser to allow keywords to be used as
+	  bareword hash keys or object members (i.e. "$hash.keys" is now a legal
+	  expression)
+	* renamed fmap to map
+	* updated map operator's optional select expression to operate on the 
+	  list before mapping instead of after
+
+2008.05.20: David Nichols
+	* ensure that closures can be used anywhere call references can be used
+	* implemented "fmap" operator to map a call reference or closure on a
+	  list and return the result
+	* implemented "foldr" (right fold) and "foldl" (left fold) operators to
+	  fold a closure or call reference on a list (meaning apply the code
+	  recursively from right to left (foldr) or left to right (foldl) and
+	  return the result
+	* disabled hash_map and unordered_map for internal data structures as
+	  all strings were "const char *" and no hash function for this data
+	  type was supplied (have to either switch to std::string and duplicate
+	  memory or write a hash function for const char *)
+
+2008.05.19: David Nichols
+	* added support for closures to qore.  qore closures encapsulate the
+	  state of local variables accessed within the closure; closures created
+	  in objects also encapsulate the state of (and prolong the scope of)
+	  the object where the closure was created.  Added closure tests to
+	  test/test.q
+	* added memberNotification method tests to test/test.q
+
+2008.05.13: David Nichols
+	* reimplemented global variable and object locking to be much more
+	  efficient; eliminated nested locks and instead use a "lock-handoff"
+	  implementation where the nested object is referenced, then the
+	  containing object's lock is released, then the nested object is
+	  accessed, then the nested object's reference count is decremented.
+	* rearranged execution order to avoid running any code while an
+	  lvalue lock is held
+
+2008.05.07: David Nichols
+	* updated QoreClass, QoreMethod, and QoreObject to funnel all method
+	  calls through the QoreObject class
+
+2008.05.05: Wolfgang Ritzinger
+	* created Dir class
+
+2008.05.05: David Nichols
+	* updated scanner to allow "exists" to be a valid function or method
+	  name
+
+2008.04.28: David Nichols
+	* implemented a maximum HTTP header size of 16K so malicious messages
+	  cannot fill up all available memory
+
+2008.04.26: David Nichols
+	* added SHA224(), SHA256(), SHA384(), SHA512() digest functions (as well
+	  as related *_bin() functions)
+
+2008.04.24: David Nichols
+	* fixed a design issue with Qore objects; once the destructor starts
+	  executing, no other threads can access the object
+
+2008.04.23: David Nichols
+	* rewrote the ForEachStatement execution code to be more efficient and
+	  use LValueHelper
+	* implemented support for memberNotification methods
+	* qt: added memberNotification methods to QStyleOption* classes to
+	  automatically retrieve and set option values when Qore members are
+	  read or set
+	* added support for bzip2 content-encoding to HTTPClient
+
+2008.04.22: David Nichols
+	* renamed all instances of "FunctionReference" to "CallReference"
+	* corrected a design issue with ReferenceHelper; it must take an
+	  AutoVLock argument and not provide its own, as otherwise every
+	  instance of ReferenceHelper would have its own AutoVLock structure,
+	  which would be inefficient
+	* started to implement LValueHelper to make LValue updates safer and
+	  more controlled and to put the infrastructure in place so that
+	  support for memberNotification methods can be implemented
+
+2008.04.21: David Nichols
+	* added QoreHashNode::empty() and QoreListNode::empty() functions
+	* implemented module dependencies, added "opengl" as a dependency of the
+	  "glut" module
+	* added ability to save the script directory to the QoreProgram class
+	* added the get_script_dir() function to get the script directory
+	* added the Program::getScriptDir() and Program::setScriptDir() methods
+	* use the new get_script_dir() function in qt example scripts to find
+	  resources when the scripts are not started in the same directory of
+	  the script
+
+2008.04.19: David Nichols
+	* added a public QoreFile::preallocate() method (c++ class)
+
+2008.04.18: David Nichols
+	* qt: QGraphicsItem infrastructure additions, fixes, other new classes
+
+2008.04.17: David Nichols
+	* added bzip functionality to library: bzip2(), bunzip2_to_string() and
+	  bunzip2_to_binary() functions and tests in test/test.q
+
+2008.04.16: David Nichols
+	* qt: new classes, fixes, made dragging the cannon's barrel in the
+	  tutorial.q example program finally work properly
+
+2008.04.15: David Nichols
+	* opengl: added new example "atlantis.q"
+
+2008.04.10: David Nichols
+	* added chown() and lchown() functions
+	* added File::lock() method based on flock
+	* added File::chown() method based on fchown()
+	* opengl: added examples/opengl/opengl-logo.q 
+
+2008.04.09: David Nichols
+	* glut: added mappings for the entire glut API from glut.h
+
+2008.04.08: David Nichols
+	* glut: started adding glut module
+	* opengl: added gears.q example of classic 3 spinning gears
+	* opengl: renamed old slow gears example to gears2.q
+	* opengl: added mprph3d.q script
+
+2008.04.07: David Nichols
+	* opengl: started adding opengl module
+
+2008.04.01: David Nichols
+	* qt: QLayout fixes, QLayoutItem and other new classes added
+
+2008.03.31: David Nichols
+	* qt: bug fixes
+	* qt: added QStackedLayout class
+	* qt: started adding GL support
+
+2008.03.26: David Nichols
+	* qt: massive updates to ensure correct object lifecycle management and
+	  to move QObject subclass implementations into templated classes from
+	  messy include files
+	* updated Qore's object subsystem to allow objects to postpone deletion
+	  when going out of scope if the private data is managed externally to
+	  qore and the object must remain valid for the lifetime of the private
+	  data
+
+2008.03.22: David Nichols
+	* qt: implemented new classes, bug fixes
+	* qt: added findfiles.q and standarddialogs.q examples
+	* eliminated QoreObject::ref() function (already implemented in
+	  AbstractQoreNode base class)
+
+2008.03.21: David Nichols
+	* implemented the ReferenceHelper class to provide a safe way to
+	  access and manipulate reference arguments passed to builtin functions
+	  and methods
+
+2008.03.20: David Nichols
+	* fixed some bugs in the mysql driver related to new API changes
+	* eliminated the "auto_commit" DBI method (commit will be executed
+	  automatically in the auto_commit context for drivers that do not have
+	  a begin_transaction method, meaning that it has implicit transaction
+	  support
+
+2008.03.11: David Nichols
+	* API and doxygen updates
+	* implemented QoreProgramHelper class
+
+2008.03.04: David Nichols
+	* make QoreHashNode implementation private
+	* more doxygen and API updates
+	* implemented qore_size_t and qore_offset_t types
+
+2008.02.28: David Nichols
+	* unimplemented thread-key-based local variable lookups as there are
+	  only a very limited number of thread keys available on Linux and Mac
+	  :-(
+
+2008.02.27: David Nichols
+	* implemented new local variable handling for performance reasons
+
+2008.02.26: David Nichols
+	* implemented PO_NOTERMINAL_IO restriction to prohibit terminal I/O
+	* started changing defines to enums and documenting them
+	* simplified system constructor execution for QoreClass
+
+2008.02.25: David Nichols
+	* more performance-related API changes
+	* split QoreBoolNode into QoreBoolTrueNode and QoreBoolFalseNode, made
+	  them unique in the library (there will only ever be one of each)
+	* removed the QoreType class, node type is now a code (qore_type_t)
+	* packed type and boolean bits into less than 2 bytes in 
+	  AbstractQoreNode
+
+2008.02.22: David Nichols
+	* more API and doxygen updates
+	* performance-related API changes
+
+2008.02.17: David Nichols
+	* more API and doxygen updates
+	* changed BinaryNode to use unsigned long as the length instead of
+	  unsigned
 
 2008.02.14: David Nichols
-	* fixed a memory leak the use of Object::evalData() when an exception
-	  occurs (backported from 0.7.0/trunk)
-	* fixed a memory error in QoreString::addch() (backported from 
-	  0.7.0/trunk)
+	* more API docs as doxygen comments in header files
+	* eliminated QoreHash, QoreHashNode is the only hash implementation now
+
+2008.02.13: David Nichols
+	* started adding API documentation for doxygen to header files
 
 2008.02.09: David Nichols
 	* fixed a bug where a local variable declared as an immediate call 
-	  reference call would cause a run-time core dump
+          reference call would cause a run-time core dump
 
-*** v0.6.2.3 RELEASE ***
+2008.02.04: David Nichols
+	* more "const" correctness changes
 
 2008.02.02: David Nichols
-	* fixed a bug in regex_subst() (in RegexSubst::parseRT()) that would
-	  cause a run-time crash if a regular-expression parse exception were
-	  encountered at run-time (backported from 0.7.0/trunk)
+	* renamed QoreNode to AbstractQoreNode
+	* more "const" fixes, preparing to make get_params() and test_*params()
+          functions return const pointers
+
+2008.01.31: David Nichols
+	* QoreNode is now an abstract base class
+
+2008.01.29: David Nichols
+	* implemented QoreFloatNode as QoreNode subclass for flating-point
+	  values
+	* implemented QoreNullNode and QoreNothingNode as QoreNode subclasses
+	* implemented many parse types as QoreNode subclasses
 
 2008.01.28: David Nichols
-	* fixed a bug in QoreHTTPClient processing the protocol parameter as an
-	  integer port number (backported from 0.7.0/trunk)
+	* BinaryObject implemented as QoreNode subclass
+	* QoreList renamed to QoreListNode
+	* BinaryObject renamed to BinaryNode
+	* implemented QoreBigIntNode as QoreNode subclass for 64-bit integer 
+	  type
+	* implemented QoreBoolNode as QoreNode subclass for boolean values
+
+2008.01.27: David Nichols
+	* QoreObject implemented as QoreNode subclass
 
 2008.01.24: David Nichols
-	* fixed a bug in the "tibae" module where instantiating a sequence while
-	  giving an explicit class name skipped type checking that could result
-	  in a crash (backported from 0.7.0/trunk)
+	* QoreList implemented as QoreNode subclass
 
 2008.01.23: David Nichols
-	* fixed a bug in the ? : operator where immediate list values could be
-	  returned improperly (only the first element could be erroneously
-	  returned under some conditions) (backported from 0.7.0/trunk)
-	* fixed a potentially crashing bug in 
-	  makeFormattedXMLRPCCallStringArgs() (backported from 0.7.0/trunk)
-	* eliminated spurious double exceptions in rare cases with list 
-	  operators in Operator.cc (backported from 0.7.0/trunk)
-
-2008.01.21: David Nichols
-	* fixed a memory leak in QoreHTTPClient.cc processing 100 responses
-	  (backported from 0.7.0/trunk)
+	* QoreHashNode created as QoreNode subclass
+	* almost all QoreType functions removed
 
 2008.01.15: David Nichols
-	* fixed 2 off-by-one bugs with string concatentation in the QoreString
-	  class (backported from 0.7.0/trunk)
-	* fixed get*BigInt() time functions to return int64 instead of int
-	  (backported from 0.7.0/trunk)
+	* DateTimeNode created as QoreNode subclass
+	* bugfixes related to new API and type system changes
 
-2008.01.13: David Nichols
-	* fixed a memory leak in exception handling in object_MakeString()
-	  (backported from 0.7.0/trunk)
+2008.01.14: David Nichols
+	* first part of new type system implementation: QoreNode is being split
+	  into subclasses; at the end of the migration, it will be an abstract
+	  class.  QoreStringNode is the first subclass.  Operator implementation
+	  has been reworked and is much more efficient with data type 
+	  conversions.  More classes have been added for managing resources. 
+	  Many bugs were fixed as well (fixes also ported to 0.6.2 branch)
+	* do not set visibility to hidden by default with g++ because it hides 
+	  RTTI symbols, all symbols are tagged for visibility in the library's
+	  header files anyway
 
-2008.01.10: David Nichols
-	* fixed a bug where the string encoding returned by 
-	  QoreString::reverse() was in the default encoding even if the old and
-	  new strings are actually in a different encoding (backported from
-	  0.7.0/trunk)
-	* fixed a bug where the HashIterator::takeValueAndDelete() function 
-	  would leave the map entry in the Hash which could cause a crash later
-	  (backported from 0.7.0/trunk)
-	* fixed a memory leak in exception handling in FtpClient::list()
-	  (backported from 0.7.0/trunk)
+2007.12.24: David Nichols
+	* fixed integer divide by zero, missing "else" could cause a run-time
+	  divide by zero error
 
-2007.12.31: David Nichols
-	* fixed a crashing bug in exception handling in a JSON generation helper
-	  function in lib/ql_json.cc 
-	* fixed a memory leak in the FtpClient class constructor
-
-2007.12.28: David Nichols
-	* fixed a memory leak in the "replace()" function if an exception occurs
-	  in converting string encodings
-	* fixed a memory leak in the "parseBase64ToString()" function 
-
-2007.20.24: David Nichols
-        * fixed integer divide by zero, missing "else" could cause a run-time
-          divide by zero error
+2007.12.21: David Nichols
+	* more fixes for "const correctness"
 
 2007.12.20: David Nichols
-        * fixed a bug in the Datasource class where an exception in the first
-          statement of an implicit transaction would erroneously grab the
-          transaction lock (fix backported from trunk/0.7.0)
+	* fixed a bug in the Datasource class where an exception in the first 
+	  statement of an implicit transaction would erroneously grab the 
+	  transaction lock
+	* added DatasourcePool::inTransaction() and Datasource::inTransaction()
+	  methods
 
 2007.12.19: David Nichols
-	* fixed RethrowStatement::parseInit() to throw an exception if the
-	  statement is not valid (i.e. is outside of a catch block)
+	* updated QoreSignalManager to respect library option 
+	  QLO_DISABLE_SIGNAL_HANDLING
+	* fixed RethrowStatement::parseInit() to throw an exception if the 
+	  statement is not valid
 
 2007.12.17: David Nichols
-	* fixed a potential rare memory leak in exception handling in 
-	  Operator.cc (3 places) (backported from trunk/0.7.0)
-	* ensure that argument list is unique before modifying in 
-	  QoreClass::evalMethodGate() (backported from trunk/0.7.0)
+        * implemented hash - list and hash -= list operators to delete multiple
+	  hash keys in one expression
+        * fixed a potential rare memory leak in exception handling in 
+	  Operator.cc (3 places)
+        * ensure that argument list is unique before modifying in 
+          QoreClass::evalMethodGate()
+        * more SMP cache sync optimizations by eliminating atomic reference
+	  operations where possible by applying QoreNodeEvalOptionalRefHolder
+
+2007.12.16: David Nichols
+	* more major API updates for const correctness
+
+2007.12.15: David Nichols
+	* implemented QoreNodeEvalOptionalRefHolder class as an exception-safe
+	  and memory-clean way to handle QoreNode evaluations with optional 
+	  derefs
+	* API updates
 
 2007.12.13: David Nichols
-	* fixed tibae namespace handling for subprogram objects (backported from
-	  trunk/0.7.0)
-	* fixed ncurses, pgsql, tibrv, and tuxedo module namespace handling for 
-	  subprogram objects (backported from trunk/0.7.0)
-	* corrected erroneous printd() debugging statement in Operator.cc
-	  (backported from trunk/0.7.0)
+	* fixed tibae namespace handling for subprogram objects
+	* fixed ncurses, pgsql, tibrv, tuxedo, and qt module namespace handling
+	  for subprogram objects
+	* updated feature list handling, streamlined data structures
+	* made QoreList implementation private
+	* more header file cleanups
+	* made QoreSocket implementation private
+	* made QoreString implementation private
+	* made QoreURL implemenation private
+
+2007.12.10: David Nichols
+	* made some more QoreMethod functions public
+	* fixed includes in tuxedo.cc
+
+2007.12.09: David Nichols
+	* made QoreHTTPClient implementation private
+	* made QoreFile.h a public header file, made implementation private
 
 2007.12.08: David Nichols
-	* fixed proxy URL reporting in Qore HTTPClient::getProxyURL() (was
-	  reporting the target port instead of the proxy port)
+	* more header file cleanups
+	* made Namespace implmentation private 
+	* renamed Namespace, RootNamespace, and NamespaceList to QoreNamespace,
+	  RootQoreNamespace, and QoreNamespaceList to avoid name clashes
+	* made QoreException and ExceptionSink implementations private
+
+2007.12.07: David Nichols
+	* made DBI class and structure implementations private
+	* made QoreProgram ("Program" class) implementation private
+
+2007.12.06: David Nichols
+	* made ReferenceObject implementation private (pimpl)
+	* made QoreClass and Method implementations private (pimpl)
+	* renamed Method to QoreMethod to avoid potential name clashes
+	* made QoreObject class implementation private (pimpl)
+	* started moving internal Qore library header files to the "intern"
+	  subdirectory
+	* made DateTime implementation private (pimpl)
+
+2007.12.05: David Nichols
+	* renamed Hash to QoreHash, Object to QoreObject, and Exception to 
+	  QoreException to avoid potential clashes with other code
+
+2007.12.04: David Nichols
+	* qt: new classes, fixes 
+	* fixed a massive memory leak in parsing due to new string parsing
+	  change
+
+2007.12.01: David Nichols
+	* qt: new example "extension.q", new classes
+
+2007.11.30: David Nichols
+	* qt: new example "configdialog.q", new classes
+
+2007.11.29: David Nichols
+	* qt: new example "systray.q"
+	* qt: event handling improvements
+	* qt: new example "classwizard.q"
+	* qt: new classes and QDialog improvements
+
+2007.11.27: David Nichols
+	* qt: new example program "screenshot.q"
+	* qt: new methods, constants, implemented QDesktopWidget class
+
+2007.11.26: David Nichols
+	* qt: fixed QPen constructor PenStyle argument processing
+	* qt: new example program "wiggly.q"
+	* qt: new example program "windowflags.q"
 
 2007.11.25: David Nichols
-        * fixed local and global variable destruction order (backported from 
-	  0.7.0)
+	* qt: event handling fixes
+	* qt: new example: "tooltips.q"
+
+2007.11.22: David Nichols
+	* renamed class "List" to "QoreList" to avoid name clashes
+	* fixed destruction order for local variables
+	* fixed destruction order for global variables
+	* qt: many bugfixes, some QObject event handling
+	* qt: new "tetrix.q" example
+
+2007.11.21: David Nichols
+	* qt: more various bugfixes
+
+2007.11.20: David Nichols
+	* qt: bugfixes and updates to make new style.q example file mostly work
+
+2007.11.19: David Nichols
+        * qt: fix initialization order in qt.cc regarding qstyleoptions
+
+2007.11.17: David Nichols
+	* do not send the default "Content-Type" header when there is no data
 
 2007.11.14: David Nichols
-	* do not throw an exception with sort*() when first argument is not a
-	  list; instead just return the first argument
+        * do not throw an exception with sort*() when first argument is	not a
+          list; instead just return the first argument
 
 2007.10.28: David Nichols
 	* do not include the trailing null when compressing strings with gzip or
-	  deflate methods, in particular this causes problems with browsers and
-	  XML-RPC or JSON-RPC HTTP payloads
+          deflate methods, in particular this causes problems with browsers and
+          XML-RPC or JSON-RPC HTTP payloads
 
-*** v0.6.2.2 RELEASE ***
+2007.10.26: David Nichols
+	* qt: QStyle support fixes, styles.q example updates
 
 2007.10.16: David Nichols
-	* fixed a memory bug in XML parsing with multiple out-of-order keys
-	  (backported from 0.7.0)
+        * fixed a memory bug in XML parsing with multiple out-of-order keys
 
-*** v0.6.2.1 RELEASE ***
+2007.10.14: David Nichols
+	* qt: new classes, fixes
+	* updated parser to accept consecutive quoted strings and automatically
+	  concatenate them together instead of throwing a parse exception
+
+2007.10.01: David Nichols
+	* qt: enabled QStyle to be subclassed and extended in Qore
+
+2007.09.28: David Nichols
+	* qt: new sliders.q and spinboxes.q examples, new classes, constants, 
+	  fixes
+
+2007.09.27: David Nichols
+	* qt: fixes, new constants, new scribble.q example 
+
+2007.09.26: David Nichols
+	* qt: fixed QValidator, lineedits.q example working
+	* qt: fixes, new qt example: movieplayer.q (run from example directory
+	  so icons can be loaded)
 
 2007.09.25: David Nichols
 	* fixed a memory bug in QoreString::parseBase64ToString()
+	* qt: new classes, mostly-implemented lineedits.q example
 
 2007.09.24: David Nichols
-        * fixed a stupid memory bug in QoreString when instantiating from a
-          boolean argument
+	* fixed a stupid memory bug in QoreString when instantiating from a
+	  boolean argument
+
+2007.09.22: David Nichols
+	* qt: bug fixes, all qt examples now work again with new module code
+	  (including imageviewer.q finally)
+
+2007.09.21: David Nichols
+	* qt: bug fixes, new classes, partially-complete icons.q example support
+	* qt: changes/fixes to allow the icons.q example to run
+	* qt: changes/fixes, added imageviewer.q example (at this point it will
+	  crash when you try to scale the image, printing doesn't work)
+
+2007.09.19: David Nichols
+	* qt: fixed QMenu::addAction() to work with dynamic methods
+
+2007.09.18: David Nichols
+	* qt: all widget events implemented, new classes, constants, etc,
+	  improved qore <-> qt type handling, charactermap example partially
+	  implemented
+	* qt: improved widget event handling, fixed some bugs
+	* qt: added groupbox example, bug fixes
+	* qt: preparing for icons example, more fixes, more classes, etc
+
+2007.09.08: David Nichols
+	* qt: better QVariant handling, QVariants are now mapped to and from 
+	  Qore types automatically
+
+2007.09.07: David Nichols
+	* qt: added calendarwidget example, new classes, etc
+
+2007.09.05: David Nichols
+	* qt: map QObject to Qore Object using QObject properties
+	* qt: new classes, methods, constants, etc
+	* qt: added calculator example
+
+2007.09.04: David Nichols
+	* qt: implemented support for dynamic signals and slots for QShortcut
+	* qt: added qt examples directory, added analogclock.q example
+
+2007.09.03: David Nichols
+	* qt: major qt-code-gen.q improvements, added new classes
 
 2007.08.28: David Nichols
-        * implemented decode_url() to decode URL escape encodings (backported
-	  from trunk/0.7.0 branch)
-        * updated HTTPClient to automatically encode space (' ') characters as
-          '%20' in the path before sending (backported from trunk/0.7.0 branch)
+	* implemented decode_url() to decode URL escape encodings
+	* updated HTTPClient to automatically encode space (' ') characters as 
+	  '%20' in the path before sending
+
+2007.08.27: David Nichols
+	* qt: updated to tutorial/example 13, made PenStyle a unique Qore type
+	* qt: updated to tutorial/example 14, added new classes, enums,
+	  implemented better event handling for QWidget classes
+
+2007.08.14: David Nichols
+	* qt: new classes, updates
+
+2007.07.31: David Nichols
+	* qt: new classes, support for emitting signals from qore code, example
+	  and Qore qt support updated to tutorial 8
+
+2007.07.30: David Nichols
+	* qt: implemented dynamic signal and slot qore<->qt glue layer with
+	  support for a limited number of c-style data types
+	* qt: qore wrapper objects have the same lifetime as qt objects unless
+	  explicitly deleted
 
 2006.07.26: David Nichols
-	* fixed a thread resource management bug in the DatasourcePool class
-	  (thread resource errors would cause a crash) (backported from 
-	  trunk/0.7.0 branch)
+	* ported a thread resource management fix from the qore 0.6.2 branch for
+	  the DatasourcePool class
+
+2006.07.24: David Nichols
+	* added supoprt for builtin virtual base classes in builtin class
+	  hierarchies
+	* removed metaclass tagging for object private data
+	* qt: reworked class inheritance model based on new virtual base class
+	  support
+	* qt: removed explicit deletion code from wrapper objects, qt library
+	  handles deletions when the objects are no longer referenced
+
+2006.07.22: David Nichols
+	* qt: new class hierarchy infrastructure support to better model QT's
+	  class hierarchy, function templates, etc
+	* metaclass support for Qore objects
+	* qt: more classes, more methods, constants, etc
+
+2006.07.20: David Nichols
+	* qt: added QFont class stub
+	* qt: added initial Qobject_connect() and SIGNAL and SLOT support
 
 2006.07.19: David Nichols
         * fixed a bug in HTTPClient::head(), was erroneously trying to read the
-          message body (backported from trunk/0.7.0 branch)
+	  message body
+	* started adding qt4 module
+	* ensure there is only one instance of QApplication at any one time
 
-2006.07.17:
-        * fixed a bug where null values could be inserted into the parse tree
-          causing a core dump (i.e.: "hello"[1] - this is not yet legal, support
-          for this will be implemented in this release, but before this bug fix
-          a core dump would result) (backported from trunk/0.7.0 branch)
-	* updated release to 0.6.2.1
+2006.07.17: David Nichols
+	* implemented %s in queries to allow for direct string insertion
+	  (without any escaping) to facilitate support for table name prefixes,
+	  etc
+	* updated library version to 4-0-1
+ 	* updated version number to 0.7.0
+	* updated module API to 0.4 (need to add compatibility info)
+	* updated spec file for library version 3.1.0
+	* fixed a bug where null values could be inserted into the parse tree
+	  causing a core dump (i.e.: "hello"[1] - this is not yet legal, support
+	  for this will be implemented in this release, but before this bug fix
+	  a core dump would result)
+	* implemented string position dereferences with the list dereference 
+	  operator "[]"
+	* implemented File::open2() method that throws an exception if the file
+	  cannot be opened
+	* updated documentation to reflect 0.7.0 version number
+
+*** v0.6.2 RELEASE *** 
+
+2006.06.22: David Nichols
+	* updated qore's system() to use system() if ";" is found in the string
+	  (added ';' to the shell meta-character list)
 
 2006.06.14: David Nichols
 	* minor documentation corrections

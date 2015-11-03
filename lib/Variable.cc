@@ -3,7 +3,7 @@
 
   Qore programming language
 
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2009 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -29,950 +29,634 @@
 #include <assert.h>
 
 // global environment hash
-class Hash *ENV;
+QoreHashNode *ENV;
 
 #include <qore/QoreType.h>
 
-Var::Var(const char *nme, QoreNode *val)
-{
-   type = GV_VALUE;
-   v.val.value = val;
-   v.val.name = strdup(nme);
-   //next = NULL;
+VarStackPointerHelper::VarStackPointerHelper(LocalVarValue *v) : orig(v) {
+   v->skip = true;
 }
 
-Var::Var(class Var *ref, bool ro)
-{
-   type = GV_IMPORT;
+VarStackPointerHelper::~VarStackPointerHelper() {
+   orig->skip = false;
+}
+
+VarStackPointerClosureHelper::VarStackPointerClosureHelper(ClosureVarValue *v) : orig(v) {
+   v->skip = true;
+}
+
+VarStackPointerClosureHelper::~VarStackPointerClosureHelper() {
+   orig->skip = false;
+}
+
+Var::Var(const char *n_name, AbstractQoreNode *val) : type(GV_VALUE), name(n_name) {
+   v.val.value = val;
+}
+
+Var::Var(class Var *ref, bool ro) : type(GV_IMPORT), name(ref->name) {
    v.ivar.refptr = ref;
    v.ivar.readonly = ro;
    ref->ROreference();
-   //next = NULL;
 }
 
-void Var::del(class ExceptionSink *xsink)
-{
-   if (type == GV_IMPORT)
-   {
-      printd(5, "Var::~Var() refptr=%08p\n", v.ivar.refptr);
+void Var::del(ExceptionSink *xsink) {
+   if (type == GV_IMPORT) {
+      printd(4, "Var::~Var() refptr=%p\n", v.ivar.refptr);
       v.ivar.refptr->deref(xsink);
       // clear type so no further deleting will be done
    }
-   else
-   {
-      printd(5, "Var::~Var() name=%s value=%08p type=%s refs=%d\n", v.val.name,
-	     v.val.value, v.val.value ? v.val.value->type->getName() : "null", 
+   else {
+      printd(4, "Var::~Var() name=%s value=%p type=%s refs=%d\n", name.c_str(),
+	     v.val.value, v.val.value ? v.val.value->getTypeName() : "null", 
 	     v.val.value ? v.val.value->reference_count() : 0);
  
-      free(v.val.name);
-#ifdef DEBUG
-      v.val.name = NULL;
-#endif
       if (v.val.value)
 	 v.val.value->deref(xsink);
       // clear type so no further deleting will be done
    }
 }
 
-bool Var::isImported() const
-{
+bool Var::isImported() const {
    return type == GV_IMPORT;
 }
 
-const char *Var::getName() const
-{
-   if (type == GV_IMPORT)
-      return v.ivar.refptr->getName();
-   return v.val.name;
+const char *Var::getName() const {
+   return name.c_str();
 }
 
-/*
-class QoreNode *Var::getValue()
-{
-   if (refptr)
-      return refptr->getValue();
-   return value;
-}
-*/
+AbstractQoreNode *Var::evalIntern(ExceptionSink *xsink) {
+   if (type == GV_IMPORT) {
+      // perform lock handoff
+      m.unlock();
+      v.ivar.refptr->m.lock();
 
-class QoreNode *Var::eval(class ExceptionSink *xsink)
-{
-   class QoreNode *rv;
-
-   if (gate.enter(xsink) < 0)
-      return NULL;
-   if (type == GV_IMPORT)
-      rv = v.ivar.refptr->eval(xsink);
-   else
-   {
-      rv = v.val.value;
-      if (rv)
-	 rv->ref();
-      //printd(5, "Var::eval() this=%08p val=%08p (%s)\n", this, rv, rv ? rv->type->getName() : "(null)");
+      return v.ivar.refptr->evalIntern(xsink);
    }
-   gate.exit();
+
+   AbstractQoreNode *rv = v.val.value;
+   if (rv)
+      rv->ref();
+   //printd(5, "Var::eval() this=%p val=%p (%s)\n", this, rv, rv ? rv->getTypeName() : "(null)");
+
+   m.unlock();
    return rv;
 }
 
-// note: the caller must exit the gate!
-class QoreNode **Var::getValuePtr(class AutoVLock *vl, class ExceptionSink *xsink)
-{
-   if (gate.enter(xsink) < 0)
-      return NULL;
+AbstractQoreNode *Var::eval(ExceptionSink *xsink) {
+   m.lock();
 
-   if (type == GV_IMPORT)
-   {
-      if (v.ivar.readonly)
-      {
-	 gate.exit();
-	 xsink->raiseException("ACCESS-ERROR", "attempt to write to read-only variable $%s", v.ivar.refptr->getName());
-	 return NULL;
-      }
-      class QoreNode **rv = v.ivar.refptr->getValuePtr(vl, xsink);
-      gate.exit();
-      return rv;
-   }
-   vl->push(&gate);
-   return &v.val.value;
+   return evalIntern(xsink);
 }
 
-// note: the caller must exit the gate!
-class QoreNode *Var::getValue(class AutoVLock *vl, class ExceptionSink *xsink)
-{
-   if (gate.enter(xsink) < 0)
-      return NULL;
+// note: unlocking the lock is managed with the AutoVLock object
+AbstractQoreNode **Var::getValuePtrIntern(AutoVLock *vl, ExceptionSink *xsink) const {
+   if (type == GV_IMPORT) {
+      if (v.ivar.readonly) {
+	 m.unlock();
+	 xsink->raiseException("ACCESS-ERROR", "attempt to write to read-only imported variable $%s", v.ivar.refptr->getName());
+	 return 0;
+      }
 
-   if (type == GV_IMPORT)
-   {
-      class QoreNode *rv = v.ivar.refptr->getValue(vl, xsink);
-      gate.exit();
-      return rv;
+      // perform lock handoff
+      m.unlock();
+      v.ivar.refptr->m.lock();
+
+      return v.ivar.refptr->getValuePtrIntern(vl, xsink);
    }
-   vl->push(&gate);
+
+   vl->set(&m);
+   return const_cast<AbstractQoreNode **>(&v.val.value);
+}
+
+// note: unlocking the lock is managed with the AutoVLock object
+AbstractQoreNode **Var::getValuePtr(AutoVLock *vl, ExceptionSink *xsink) const {
+   m.lock();
+
+   return getValuePtrIntern(vl, xsink);
+}
+
+// note: unlocking the lock is managed with the AutoVLock object
+AbstractQoreNode *Var::getValueIntern(AutoVLock *vl) {
+   if (type == GV_IMPORT) {
+      // perform lock handoff
+      m.unlock();
+      v.ivar.refptr->m.lock();
+
+      return v.ivar.refptr->getValueIntern(vl);
+   }
+
+   vl->set(&m);
    return v.val.value;
 }
 
-void Var::setValue(class QoreNode *val, class ExceptionSink *xsink)
-{
-   if (type == GV_IMPORT)
-   {
-      if (v.ivar.readonly)
-      {
-	 xsink->raiseException("ACCESS-ERROR", "attempt to write to read-only variable $%s", v.ivar.refptr->getName());
+// note: unlocking the lock is managed with the AutoVLock object
+const AbstractQoreNode *Var::getValueIntern(AutoVLock *vl) const {
+   if (type == GV_IMPORT) {
+      // perform lock handoff
+      m.unlock();
+      v.ivar.refptr->m.lock();
+
+      return v.ivar.refptr->getValueIntern(vl);
+   }
+
+   vl->set(&m);
+   return v.val.value;
+}
+
+// note: unlocking the lock is managed with the AutoVLock object
+AbstractQoreNode *Var::getValue(AutoVLock *vl) {
+   m.lock();
+
+   return getValueIntern(vl);
+}
+
+AbstractQoreNode *Var::getReferencedValue() const {
+   AutoVLock vl(0);
+
+   AbstractQoreNode *rv;
+   { 
+      m.lock();
+
+      rv = (AbstractQoreNode *)getValueIntern(&vl);
+      if (rv) rv->ref();
+   }
+   return rv;
+}
+
+void Var::setValueIntern(AbstractQoreNode *val, ExceptionSink *xsink) {
+   if (type == GV_IMPORT) {
+      if (v.ivar.readonly) {
+	 m.unlock();
+	 xsink->raiseException("ACCESS-ERROR", "attempt to write to read-only variable $%s", getName());
 	 return;
       }
-      if (gate.enter(xsink) < 0)
-	 return;
-      v.ivar.refptr->setValue(val, xsink);
-      gate.exit();
+
+      // perform lock handoff
+      m.unlock();
+      v.ivar.refptr->m.lock();
+
+      v.ivar.refptr->setValueIntern(val, xsink);
       return;
    }
 
-   if (gate.enter(xsink) < 0)
-      return;
    if (v.val.value)
       v.val.value->deref(xsink);
    v.val.value = val;
-   gate.exit();
+
+   m.unlock();
 }
 
-void Var::makeReference(class Var *pvar, class ExceptionSink *xsink, bool ro)
-{
-   if (gate.enter(xsink) < 0)
-      return;
+void Var::setValue(AbstractQoreNode *val, ExceptionSink *xsink) {
+   m.lock();
+
+   setValueIntern(val, xsink);
+}
+
+void Var::makeReference(Var *pvar, ExceptionSink *xsink, bool ro) {
+   assert(name == pvar->name);
+
+   AutoLocker al(m);
+
    if (type == GV_IMPORT)
       v.ivar.refptr->deref(xsink);
-   else
-   {
+   else {
       if (v.val.value)
 	 v.val.value->deref(xsink);
-      free(v.val.name);
+
+      type = GV_IMPORT;
    }
-   type = GV_IMPORT;
+
    v.ivar.refptr = pvar;
    v.ivar.readonly = ro;
    pvar->ROreference();
-   gate.exit();
 }
 
-void Var::deref(class ExceptionSink *xsink)
-{
-   if (ROdereference())
-   {
+void Var::deref(ExceptionSink *xsink) {
+   if (ROdereference()) {
       del(xsink);
       delete this;
    }
 }
 
-/*
-LVar::LVar(lvh_t nid, QoreNode *nvalue) 
-{
-   id = nid; 
-   value = nvalue; 
-   vexp = NULL;
-   obj = NULL;
-}
-
-LVar::LVar(lvh_t nid, QoreNode *ve, class Object *o) 
-{
-   id = nid; 
-   value = NULL;
-   vexp = ve;
-   obj = o;
-   if (o)
-      o->tRef();
-}
-*/
-
-void LVar::set(lvh_t nid, QoreNode *nvalue) 
-{
-   id = nid; 
-   value = nvalue; 
-   vexp = NULL;
-   obj = NULL;
-}
-
-void LVar::set(lvh_t nid, QoreNode *ve, class Object *o) 
-{
-   id = nid; 
-   value = NULL;
-   vexp = ve;
-   obj = o;
-   if (o)
-      o->tRef();
-}
-
-class QoreNode *LVar::evalReference(class ExceptionSink *xsink)
-{
-   class QoreNode *rv;
-   ObjectSubstitutionHelper osh(obj);
-   // mask the ID in case it's a recursive reference
-   lvh_t save = id;
-   id = NULL;
-   rv = vexp->eval(xsink);
-   //printd(5, "LVar::eval() this=%08p obj=%08p (%s) reference expression %08p (%s) evaluated to %08p (%s)\n", this, obj, obj ? obj->getClass()->name : "NULL", vexp, vexp->type->getName(), rv, rv ? rv->type->getName() : "NULL");
-   id = save;
-   return rv;
-}
-
-class QoreNode *LVar::eval(class ExceptionSink *xsink)
-{
-   if (vexp)
-      return evalReference(xsink);
-   else
-      return value ? value->RefSelf() : NULL;
-}
-
-class QoreNode *LVar::eval(bool &needs_deref, class ExceptionSink *xsink)
-{
-   class QoreNode *rv;
-
-   if (vexp)
-   {
-      needs_deref = true;
-      rv = evalReference(xsink);
-   }
-   else
-   {
-      needs_deref = false;
-      rv = value;
-   }
-   
-   return rv;
-}
-
-class QoreNode **LVar::getValuePtr(class AutoVLock *vl, class ExceptionSink *xsink)
-{
-   if (vexp)
-   {
-      // mask the ID in case it's a recursive reference
-      lvh_t save = id;
-      id = NULL;
-      class QoreNode **rv;
-      if (obj)
-      {
-	 ObjectSubstitutionHelper osh(obj);
-	 rv = get_var_value_ptr(vexp, vl, xsink);
-      }
-      else
-	 rv = get_var_value_ptr(vexp, vl, xsink);
-      id = save;
-      return rv;
-   }
-   return &value;
-}
-
-class QoreNode *LVar::getValue(class AutoVLock *vl, class ExceptionSink *xsink)
-{
-   if (vexp)
-   {
-      // mask the ID in case it's a recursive reference
-      lvh_t save = id;
-      id = NULL;
-      class QoreNode *rv;
-      if (obj)
-      {
-	 ObjectSubstitutionHelper osh(obj);
-	 rv = getNoEvalVarValue(vexp, vl, xsink);
-      }
-      else
-	 rv = getNoEvalVarValue(vexp, vl, xsink);
-      id = save;
-      return rv;
-   }
-   return value;
-}
-
-void LVar::setValue(class QoreNode *val, class ExceptionSink *xsink)
-{
-   if (vexp)
-   {
-      ObjectSubstitutionHelper osh(obj);
-      AutoVLock vl;
-
-      // mask the ID in case it's a recursive reference
-      lvh_t save = id;
-      id = NULL;
-      QoreNode **valp = get_var_value_ptr(vexp, &vl, xsink);
-      id = save;
-
-      if (!xsink->isEvent())
-      {
-	 discard(*valp, xsink);
-	 *valp = val;
-	 vl.del();
-      }
-      else
-      {
-	 vl.del();
-	 discard(val, xsink);
-      }
-   }
-   else 
-   {
-      if (value)
-	 value->deref(xsink);
-      value = val;
-   }
-}
-
-void LVar::deref(ExceptionSink *xsink)
-{
-   // if there is a reference expression, decrement the reference counter
-   if (vexp)
-   {
-      vexp->deref(xsink);
-      if (obj)
-	 obj->tDeref();
-   }
-   else
-      discard(value, xsink);
-   //delete this;
-}
-
-VarRef::VarRef(char *nme, int typ)
-{
-   name = nme;
-   type = typ;
-}
-
-VarRef::~VarRef()
-{
-   if (name)
-   {
-      printd(3, "VarRef::~VarRef() deleting variable reference %08p %s\n", name, name);
-      free(name);
-   }
-}
-
-void VarRef::resolve()
-{
-   lvh_t id;
-   if ((id = find_local_var(name)))
-   {
-      type = VT_LOCAL;
-      ref.id = id;
-      printd(5, "VarRef::resolve(): local var %s resolved (id=%08p)\n", name, ref.id);
-   }
-   else
-   {
-      ref.var = getProgram()->checkVar(name);
-      type = VT_GLOBAL;
-      printd(5, "VarRef::resolve(): global var %s resolved (var=%08p)\n", name, ref.var);
-   }
-}
-
-// returns 0 for OK, 1 for would be a new variable
-int VarRef::resolveExisting()
-{
-   lvh_t id;
-   if ((id = find_local_var(name)))
-   {
-      type = VT_LOCAL;
-      ref.id = id;
-      printd(5, "VarRef::resolveExisting(): local var %s resolved (id=%08p)\n", name, ref.id);
-      return 0;
-   }
-   
-   ref.var = getProgram()->findVar(name);
-   type = VT_GLOBAL;
-   printd(5, "VarRef::resolveExisting(): global var %s resolved (var=%08p)\n", name, ref.var);
-   return !ref.var;
-}
-
-VarRef *VarRef::copy()
-{
-   class VarRef *v = new VarRef();
-   memcpy(v, this, sizeof(class VarRef));
-   v->name = strdup(name);
-   return v;
-}
-
-class QoreNode *VarRef::eval(class ExceptionSink *xsink)
-{
-   if (type == VT_LOCAL)
-   {
-      printd(5, "VarRef::eval() lvar %08p (%s)\n", ref.id, ref.id);
-      return find_lvar(ref.id)->eval(xsink);
-   }
-   printd(5, "VarRef::eval() global var=%08p\n", ref.var);
-   return ref.var->eval(xsink);
-}
-
-class QoreNode *VarRef::eval(bool &needs_deref, class ExceptionSink *xsink)
-{
-   if (type == VT_LOCAL)
-      return find_lvar(ref.id)->eval(needs_deref, xsink);
-   needs_deref = true;
-   return ref.var->eval(xsink);
-}
-
-class QoreNode **VarRef::getValuePtr(class AutoVLock *vl, class ExceptionSink *xsink)
-{
-   if (type == VT_LOCAL)
-      return find_lvar(ref.id)->getValuePtr(vl, xsink);
-   return ref.var->getValuePtr(vl, xsink);
-}
-
-class QoreNode *VarRef::getValue(class AutoVLock *vl, class ExceptionSink *xsink)
-{
-   if (type == VT_LOCAL)
-      return find_lvar(ref.id)->getValue(vl, xsink);
-   return ref.var->getValue(vl, xsink);
-}
-
-void VarRef::setValue(class QoreNode *val, class ExceptionSink *xsink)
-{
-   if (type == VT_LOCAL)
-      find_lvar(ref.id)->setValue(val, xsink);
-   else
-      ref.var->setValue(val, xsink);
-}
-
-static inline class QoreNode **do_list_val_ptr(Tree *tree, class AutoVLock *vlp, ExceptionSink *xsink)
-{
+static AbstractQoreNode **do_list_val_ptr(const QoreTreeNode *tree, AutoVLock *vlp, ExceptionSink *xsink) {
    // first get index
    int ind = tree->right->integerEval(xsink);
    if (xsink->isEvent())
-      return NULL;
-   if (ind < 0)
-   {
+      return 0;
+   if (ind < 0) {
       xsink->raiseException("NEGATIVE-LIST-INDEX", "list index %d is invalid (index must evaluate to a non-negative integer)", ind);
-      return NULL;
+      return 0;
    }
 
    // now get left hand side
-   QoreNode **val = get_var_value_ptr(tree->left, vlp, xsink);
+   AbstractQoreNode **val = get_var_value_ptr(tree->left, vlp, xsink);
    if (xsink->isEvent())
-      return NULL;
+      return 0;
 
    // if the variable's value is not already a list, then make it one
-   // printd(0, "index=%d val=%08p (%s)\n", ind, *val, *val ? (*val)->type->getName() : "(null)");
+   // printd(0, "index=%d val=%p (%s)\n", ind, *val, *val ? (*val)->getTypeName() : "(null)");
+   QoreListNode *l;
    if (!(*val))
-   {
-      (*val) = new QoreNode(NT_LIST);
-      (*val)->val.list = new List();
+      l = new QoreListNode();
+   else {
+      if ((*val)->getType() != NT_LIST) {
+	 (*val)->deref(xsink);
+	 l = new QoreListNode();
+      }
+      else { 
+	 if ((*val)->reference_count() > 1) { // otherwise if it's a list and the reference_count > 1, then duplicate it
+	    l = reinterpret_cast<QoreListNode *>(*val);
+	    QoreListNode *old = l;
+	    l = l->copy();
+	    old->deref(xsink);
+	 }
+	 else
+	    l = reinterpret_cast<QoreListNode *>(*val);
+      }
    }
-   else if ((*val)->type != NT_LIST)
-   {
-      (*val)->deref(xsink);
-      (*val) = new QoreNode(NT_LIST);
-      (*val)->val.list = new List();
-   }
-   else if ((*val)->reference_count() > 1) // otherwise if it's a list and the reference_count > 1, then duplicate it
-   {
-      QoreNode *old = (*val);
-      (*val) = (*val)->realCopy(xsink);
-      old->deref(xsink);
-   }
+   (*val) = l;
 
-   return (*val)->val.list->get_entry_ptr(ind);
+   return l->get_entry_ptr(ind);
 }
 
 // for objects and hashes
-static inline class QoreNode **do_object_val_ptr(Tree *tree, class AutoVLock *vlp, ExceptionSink *xsink)
-{
-   class QoreNode *member;
+static AbstractQoreNode **do_object_val_ptr(const QoreTreeNode *tree, AutoVLock *vlp, ExceptionSink *xsink) {
+   QoreNodeEvalOptionalRefHolder member(tree->right, xsink);
+   if (*xsink)
+      return 0;
 
-   if (!(member = tree->right->eval(xsink)))
-      member = null_string();
-   else if (member->type != NT_STRING)
-   {
-      class QoreNode *nm = member->convert(NT_STRING);
-      member->deref(xsink);
-      member = nm;
-   }
+   QoreStringValueHelper mem(*member, QCS_DEFAULT, xsink);
+   if (*xsink)
+      return 0;
 
-   QoreNode **val = get_var_value_ptr(tree->left, vlp, xsink);
-   if (xsink->isEvent())
-   {
-      member->deref(xsink);
-      return NULL;
-   }
+   AbstractQoreNode **val = get_var_value_ptr(tree->left, vlp, xsink);
+   if (*xsink)
+      return 0;
+
+   QoreHashNode *h = (*val && (*val)->getType() == NT_HASH) ? reinterpret_cast<QoreHashNode *>(*val) : 0;
+   QoreObject *o = 0;
+
+   //printd(0, "do_object_val_ptr() h=%p val=%p (%s, refs=%d)\n", h, *val, *val ? (*val)->getTypeName() : "(null)", *val ? (*val)->reference_count() : 0);
 
    // if the variable's value is not already a hash or an object, then make it a hash
-   //printd(0, "index=%d val=%08p (%s)\n", ind, *val, *val ? (*val)->type->getName() : "(null)");
-   if (!(*val))
-      (*val) = new QoreNode(new Hash());
-   else if ((*val)->type != NT_OBJECT && (*val)->type != NT_HASH)
-   {
-      (*val)->deref(xsink);
-      (*val) = new QoreNode(new Hash());
-   }
-   // otherwise if the reference_count > 1, then duplicate it.
-   else if ((*val)->reference_count() > 1)
-   {
-      QoreNode *old = (*val);
-      (*val) = (*val)->realCopy(xsink);
-      old->deref(xsink);
-   }
-
-   class QoreNode **rv;
-   if ((*val)->type == NT_HASH)
-   {
-      //printd(0, "do_object_val_ptr() def=%s member %s \"%s\"\n", QCS_DEFAULT->getCode(), member->val.String->getEncoding()->getCode(), member->val.String->getBuffer());
-      rv = (*val)->val.hash->getKeyValuePtr(member->val.String, xsink);
-   }
-   else
-   {
-      // if object has been deleted, then dereference, make into a hash, and get hash pointer
-      if (!(rv = (*val)->val.object->getMemberValuePtr(member->val.String, vlp, xsink)))
-      {
-	 if (xsink->isException())
-	    rv = NULL;
-	 else
-	 {
-	    (*val)->deref(xsink);
-	    (*val) = new QoreNode(new Hash());
-	    rv = (*val)->val.hash->getKeyValuePtr(member->val.String, xsink);
-	 }
+   if (h) {
+      if (h->reference_count() > 1) {
+	 // otherwise if the reference_count > 1 (and it's not an object), then duplicate it.
+	 QoreHashNode *o = h;
+	 h = h->copy();
+	 o->deref(xsink);
+	 (*val) = h;
       }
    }
-   //printd(5, "do_object_val_ptr() member=%s\n", member->val.String->getBuffer());
-   member->deref(xsink);
-
-   return rv;
-}
-
-// this function will change the lvalue to the right type if needed (used for assignments)
-class QoreNode **get_var_value_ptr(class QoreNode *n, class AutoVLock *vlp, class ExceptionSink *xsink)
-{
-   //printd(5, "get_var_value_ptr(%08p) %s\n", n, n->type->getName());
-   if (n->type == NT_VARREF)
-   {
-      //printd(5, "get_var_value_ptr(): vref=%s (%08p)\n", n->val.vref->name, n->val.vref);
-      return n->val.vref->getValuePtr(vlp, xsink);
+   else {
+      o = (*val && (*val)->getType() == NT_OBJECT) ? reinterpret_cast<QoreObject *>(*val) : 0;
+      if (!o) {
+	 if (*val)
+	    (*val)->deref(xsink);
+	 h = new QoreHashNode();
+	 (*val) = h;
+      }
    }
-   else if (n->type == NT_SELF_VARREF)
-   {
-      // need to check for deleted objects
-      // note that getStackObject() is guaranteed to return a value here (self varref is only valid in a method)
-      QoreNode **rv = getStackObject()->getMemberValuePtr(n->val.c_str, vlp, xsink);
-      if (!rv && !xsink->isException())
-	 xsink->raiseException("OBJECT-ALREADY-DELETED", "write attempted to member \"%s\" in an already-deleted object", n->val.c_str);
+
+   if (h) {
+      //printd(0, "do_object_val_ptr() def=%s member %s \"%s\"\n", QCS_DEFAULT->getCode(), mem->getEncoding()->getCode(), mem->getBuffer());
+      return h->getKeyValuePtr(mem->getBuffer());
+   }
+
+   //printd(5, "do_object_val_ptr() member=%s\n", mem->getBuffer());
+
+   AbstractQoreNode **rv;
+   // if object has been deleted, then dereference, make into a hash, and get hash pointer
+   if ((rv = o->getMemberValuePtr(mem->getBuffer(), vlp, xsink))) {
+      vlp->addMemberNotification(o, mem->getBuffer());
       return rv;
    }
 
-   // it's a tree
-   if (n->val.tree->op == OP_LIST_REF)
-      return do_list_val_ptr(n->val.tree, vlp, xsink);
-   return do_object_val_ptr(n->val.tree, vlp, xsink);
+   if (*xsink)
+      return 0;
+
+   (*val)->deref(xsink);
+   h = new QoreHashNode();
+   (*val) = h; 
+   return h->getKeyValuePtr(mem->getBuffer());
+}
+
+// this function will change the lvalue to the right type if needed (used for assignments)
+AbstractQoreNode **get_var_value_ptr(const AbstractQoreNode *n, AutoVLock *vlp, ExceptionSink *xsink) {
+   qore_type_t ntype = n->getType();
+   //printd(0, "get_var_value_ptr(%p) %s\n", n, n->getTypeName());
+   if (ntype == NT_VARREF) {
+      const VarRefNode *v = reinterpret_cast<const VarRefNode *>(n);
+      //printd(5, "get_var_value_ptr(): vref=%s (%p)\n", v->name, v);
+      return v->getValuePtr(vlp, xsink);
+   }
+   else if (ntype == NT_SELF_VARREF) {
+      const SelfVarrefNode *v = reinterpret_cast<const SelfVarrefNode *>(n);
+      // need to check for deleted objects
+      // note that getStackObject() is guaranteed to return a value here (self varref is only valid in a method)
+      AbstractQoreNode **rv = getStackObject()->getMemberValuePtr(v->str, vlp, xsink);
+      if (!rv && !xsink->isException())
+	 xsink->raiseException("OBJECT-ALREADY-DELETED", "write attempted to member \"%s\" in an already-deleted object", v->str);
+      return rv;
+   }
+
+   // it must be a tree
+   const QoreTreeNode *tree = reinterpret_cast<const QoreTreeNode *>(n);
+   if (tree->op == OP_LIST_REF)
+      return do_list_val_ptr(tree, vlp, xsink);
+   return do_object_val_ptr(tree, vlp, xsink);
 }
 
 // finds value of partially evaluated lvalue expressions (for use with references)
 // will not do any evaluations, however, because local variables could hold imported
 // object references, exceptions could be thrown
-class QoreNode *getNoEvalVarValue(class QoreNode *n, class AutoVLock *vl, class ExceptionSink *xsink)
-{
-   printd(5, "getNoEvalVarValue(%08p) %s\n", n, n->type->getName());
-   if (n->type == NT_VARREF)
-      return n->val.vref->getValue(vl, xsink);
+AbstractQoreNode *getNoEvalVarValue(AbstractQoreNode *n, AutoVLock *vl, ExceptionSink *xsink) {
+   printd(5, "getNoEvalVarValue(%p) %s\n", n, n->getTypeName());
+   if (n->getType() == NT_VARREF)
+      return reinterpret_cast<VarRefNode *>(n)->getValue(vl, xsink);
 
-   if (n->type == NT_SELF_VARREF)
-      return getStackObject()->getMemberValueNoMethod(n->val.c_str, vl, xsink);
+   if (n->getType() == NT_SELF_VARREF)
+      return getStackObject()->getMemberValueNoMethod(reinterpret_cast<SelfVarrefNode *>(n)->str, vl, xsink);
 
    // it's a variable reference tree
-   class QoreNode *val = getNoEvalVarValue(n->val.tree->left, vl, xsink);
+   QoreTreeNode *tree = reinterpret_cast<QoreTreeNode *>(n);
+   AbstractQoreNode *val = getNoEvalVarValue(tree->left, vl, xsink);
    if (!val)
-      return NULL;
+      return 0;
 
    // if it's a list reference
-   if (n->val.tree->op == OP_LIST_REF)
-   {
-      // if it's not a list then return NULL
-      if (val->type != NT_LIST)
-	 return NULL;
+   if (tree->op == OP_LIST_REF) {
+      if (val->getType() != NT_LIST)
+	 return 0;
+      // if it's not a list then return 0
+      QoreListNode *l = reinterpret_cast<QoreListNode *>(val);
       
       // otherwise return value
       int i;
-      if (n->val.tree->right)
-	 i = n->val.tree->right->getAsInt();
+      if (tree->right)
+	 i = tree->right->getAsInt();
       else
 	 i = 0;
-      return val->val.list->retrieve_entry(i);
+      return l->retrieve_entry(i);
    }
       
    // it's an object reference
-   // if not an object or a hash, return NULL
-   if (val->type != NT_OBJECT && val->type != NT_HASH)
-      return NULL;
+   // if not an object or a hash, return 0
+   QoreHashNode *h = val->getType() == NT_HASH ? reinterpret_cast<QoreHashNode *>(val) : 0;
+   QoreObject *o;
+   if (!h)
+      o = val->getType() == NT_OBJECT ? reinterpret_cast<QoreObject *>(val) : 0;
+   else
+      o = 0;
+   if (!o && !h)
+      return 0;
       
    // otherwise get member name
-   if (!n->val.tree->right)
-   {
-      if (val->type == NT_HASH)
-	 return val->val.hash->getKeyValue("");
-      return val->val.object->getMemberValueNoMethod("", vl, xsink);
-   }
-   
-   if (n->val.tree->right->type == NT_STRING)
-   {
-      if (val->type == NT_HASH)
-	 return val->val.hash->getKeyValue(n->val.tree->right->val.String, xsink);
-      return val->val.object->getMemberValueNoMethod(n->val.tree->right->val.String, vl, xsink);
-   }
-   
-   class QoreNode *nm = n->val.tree->right->convert(NT_STRING);
-   
-   class QoreNode *rv;
-   if (val->type == NT_HASH)
-      rv = val->val.hash->getKeyValue(nm->val.String, xsink);
-   else
-      rv = val->val.object->getMemberValueNoMethod(nm->val.String, vl, xsink);
-   nm->deref(xsink);
-   
-   return rv;
+   QoreStringValueHelper key(tree->right, QCS_DEFAULT, xsink);
+   if (*xsink)
+      return 0;
+
+   if (h)
+      return h->getKeyValue(key->getBuffer());
+   return o->getMemberValueNoMethod(key->getBuffer(), vl, xsink);
 }
 
 // finds object value pointers without making any changes to the referenced structures
 // will *not* execute memberGate methods
-class QoreNode *getExistingVarValue(class QoreNode *n, ExceptionSink *xsink, class AutoVLock *vl, class QoreNode **pt)
-{
-   printd(5, "getExistingVarValue(%08p) %s\n", n, n->type->getName());
-   if (n->type == NT_VARREF)
-      return n->val.vref->getValue(vl, xsink);
+AbstractQoreNode *getExistingVarValue(const AbstractQoreNode *n, ExceptionSink *xsink, AutoVLock *vl, ReferenceHolder<AbstractQoreNode> &pt) {
+   printd(5, "getExistingVarValue(%p) %s\n", n, n->getTypeName());
+   qore_type_t ntype = n->getType();
+   if (ntype == NT_VARREF)
+      return reinterpret_cast<const VarRefNode *>(n)->getValue(vl, xsink);
 
-   if (n->type == NT_SELF_VARREF)
-      return getStackObject()->getMemberValueNoMethod(n->val.c_str, vl, xsink);
+   if (ntype == NT_SELF_VARREF)
+      return getStackObject()->getMemberValueNoMethod(reinterpret_cast<const SelfVarrefNode *>(n)->str, vl, xsink);
 
    // it's a variable reference tree
-   if (n->type == NT_TREE && (n->val.tree->op == OP_LIST_REF || n->val.tree->op == OP_OBJECT_REF))
-   {
-      class QoreNode *val = getExistingVarValue(n->val.tree->left, xsink, vl, pt);
+   const QoreTreeNode *tree = ntype == NT_TREE ? reinterpret_cast<const QoreTreeNode *>(n) : 0;
+   if (tree && (tree->op == OP_LIST_REF || tree->op == OP_OBJECT_REF)) {
+      AbstractQoreNode *val = getExistingVarValue(tree->left, xsink, vl, pt);
       if (!val)
-	 return NULL;
+	 return 0;
 
       // if it's a list reference
-      if (n->val.tree->op == OP_LIST_REF)
-      {
-	 // if it's not a list then return NULL
-	 if (val->type != NT_LIST)
-	    return NULL;
+      if (tree->op == OP_LIST_REF) {
+	 // if it's not a list then return 0
+	 if (val->getType() != NT_LIST)
+	    return 0;
 
 	 // otherwise return value
-	 return val->val.list->retrieve_entry(n->val.tree->right->integerEval(xsink));
+	 return reinterpret_cast<QoreListNode *>(val)->retrieve_entry(tree->right->integerEval(xsink));
       }
       
       // if it's an object reference
-      if (n->val.tree->op == OP_OBJECT_REF)
-      {
-	 // if not an object or a hash, return NULL
-	 if (val->type != NT_OBJECT && val->type != NT_HASH)
-	    return NULL;
+      if (tree->op == OP_OBJECT_REF) {
+	 QoreHashNode *h = val->getType() == NT_HASH ? reinterpret_cast<QoreHashNode *>(val) : 0;
+	 QoreObject *o;
+	 if (!h)
+	    o = val->getType() == NT_OBJECT ? reinterpret_cast<QoreObject *>(val) : 0;
+	 else
+	    o = 0;
+
+	 // if not an object or a hash, return 0
+	 if (!o && !h)
+	    return 0;
 	 
 	 // otherwise evaluate member
-	 class QoreNode *member;
-	 if (!(member = n->val.tree->right->eval(xsink)))
-	    member = null_string();
-	 else if (member->type != NT_STRING)
-	 {
-	    class QoreNode *nm = member->convert(NT_STRING);
-	    member->deref(xsink);
-	    member = nm;
-	 }
-	 
-	 class QoreNode *rv;
-	 if (val->type == NT_HASH)
-	    rv = val->val.hash->getKeyValue(member->val.String, xsink);
-	 else
-	    rv = val->val.object->getMemberValueNoMethod(member->val.String, vl, xsink);
-	 member->deref(xsink);
-	 
-	 //traceout("getExistingVarValue()");
-	 return rv;
+	 QoreNodeEvalOptionalRefHolder member(tree->right, xsink);
+	 if (*xsink)
+	    return 0;
+
+	 QoreStringValueHelper mem(*member, QCS_DEFAULT, xsink);
+	 if (*xsink)
+	    return 0;
+
+	 return h ? h->getKeyValue(mem->getBuffer()) : o->getMemberValueNoMethod(mem->getBuffer(), vl, xsink);
       }
    }
    
    // otherwise need to evaluate
-   class QoreNode *t = n->eval(xsink);
-   if (xsink->isEvent())
-   {
-      if (t)
-	 (t)->deref(xsink);
-      return NULL;
-   }
+   ReferenceHolder<AbstractQoreNode> t(n->eval(xsink), xsink);
+   if (*xsink)
+      return 0;
 
-   *pt = t;
-   return t;
+   pt = t.release();
+   return *pt;
 }
 
-// needed for deletes
-static class QoreNode **getUniqueExistingVarValuePtr(class QoreNode *n, ExceptionSink *xsink, class AutoVLock *vl, class QoreNode **pt)
-{
-   printd(5, "getUniqueExistingVarValuePtr(%08p) %s\n", n, n->type->getName());
-   if (n->type == NT_VARREF)
-      return n->val.vref->getValuePtr(vl, xsink);
+static AbstractQoreNode **check_unique(AbstractQoreNode **p, ExceptionSink *xsink) {
+   if (p && *p && (*p)->reference_count() > 1 && (*p)->getType() != NT_OBJECT) {
+      AbstractQoreNode *op = *p;
+      *p = (*p)->realCopy();
+      op->deref(xsink);
+   }
+   return p;
+}
 
-   // getStackObjecT() will always return a value here (self refs are only legal in methods)
-   if (n->type == NT_SELF_VARREF)
-      return getStackObject()->getExistingValuePtr(n->val.c_str, vl, xsink);
+// only returns a value ptr if the expression points to an already-existing value
+// (i.e. does not create entries anywhere)
+// needed for deletes
+static AbstractQoreNode **getUniqueExistingVarValuePtr(AbstractQoreNode *n, ExceptionSink *xsink, AutoVLock *vl) {
+   printd(5, "getUniqueExistingVarValuePtr(%p) %s\n", n, n->getTypeName());
+   qore_type_t ntype = n->getType();
+   if (ntype == NT_VARREF)
+      return check_unique(reinterpret_cast<VarRefNode *>(n)->getValuePtr(vl, xsink), xsink);
+
+   // getStackObject() will always return a value here (self refs are only legal in methods)
+   if (ntype == NT_SELF_VARREF) {
+      QoreObject *obj = getStackObject();
+      return check_unique(obj->getExistingValuePtr(reinterpret_cast<SelfVarrefNode *>(n)->str, vl, xsink), xsink);
+   }
 
    // it's a variable reference tree
-   if (n->type == NT_TREE && (n->val.tree->op == OP_LIST_REF || n->val.tree->op == OP_OBJECT_REF))
-   {
-      class QoreNode **val = getUniqueExistingVarValuePtr(n->val.tree->left, xsink, vl, pt);
-      if (!val || !(*val))
-         return NULL;
+   QoreTreeNode *tree = ntype == NT_TREE ? reinterpret_cast<QoreTreeNode *>(n) : 0;
 
-      // get a unique object if necessary
-      if ((*val)->reference_count() > 1)
-      {
-	 QoreNode *cp = (*val)->realCopy(xsink);
-	 (*val)->deref(xsink);
-	 (*val) = cp;
-	 if (xsink->isEvent())
-	    return NULL;
-      }
+   assert(tree && (tree->op == OP_LIST_REF || tree->op == OP_OBJECT_REF));
 
-      // if it's a list reference
-      if (n->val.tree->op == OP_LIST_REF)
-      {
-         // if it's not a list then return NULL
-         if ((*val)->type != NT_LIST)
-            return NULL;
+   AbstractQoreNode **val = getUniqueExistingVarValuePtr(tree->left, xsink, vl);
+   if (!val || !(*val))
+      return 0;
 
-         // otherwise return value
-         return (*val)->val.list->getExistingEntryPtr(n->val.tree->right->integerEval(xsink));
-      }
-      
-      // if it's an object reference
-      if (n->val.tree->op == OP_OBJECT_REF)
-      {
-         // if not an object or a hash, return NULL
-         if ((*val)->type != NT_OBJECT && (*val)->type != NT_HASH)
-            return NULL;
-         
-         // otherwise evaluate member
-         class QoreNode *member;
-         if (!(member = n->val.tree->right->eval(xsink)))
-            member = null_string();
-         else if (member->type != NT_STRING)
-         {
-            class QoreNode *nm = member->convert(NT_STRING);
-            member->deref(xsink);
-            member = nm;
-         }
-         
-         class QoreNode **rv;
-         if ((*val)->type == NT_HASH)
-            rv = (*val)->val.hash->getExistingValuePtr(member->val.String, xsink);
-         else
-            rv = (*val)->val.object->getExistingValuePtr(member->val.String, vl, xsink);
-         member->deref(xsink);
-         
-         //traceout("getUniqueExistingVarValuePtr()");
-         return rv;
-      }
+   // if it's a list reference
+   if (tree->op == OP_LIST_REF) {
+      if ((*val)->getType() != NT_LIST)  // if it's not a list then return 0
+	 return 0;
+      // otherwise return value
+      return check_unique(reinterpret_cast<QoreListNode *>(*val)->getExistingEntryPtr(tree->right->integerEval(xsink)), xsink);
    }
    
-   // otherwise need to evaluate
-   class QoreNode *t = n->eval(xsink);
-   if (xsink->isEvent())
-   {
-      if (t)
-         (t)->deref(xsink);
-      return NULL;
-   }
+   QoreHashNode *h = (*val)->getType() == NT_HASH   ? reinterpret_cast<QoreHashNode *>(*val) : 0;
+   QoreObject *o   = (*val)->getType() == NT_OBJECT ? reinterpret_cast<QoreObject *>(*val)   : 0;
+   
+   // must be an object reference
+   // if not an object or a hash, return 0
+   if (!o && !h)
+      return 0;
+   
+   // otherwise evaluate member
+   QoreNodeEvalOptionalRefHolder member(tree->right, xsink);
+   if (*xsink)
+      return 0;
+   
+   QoreStringValueHelper mem(*member, QCS_DEFAULT, xsink);
+   if (*xsink)
+      return 0;
 
-   *pt = t;
-   return pt;
+   if (h)
+      return check_unique(h->getExistingValuePtr(mem->getBuffer()), xsink);
+
+   AbstractQoreNode **rv = check_unique(o->getExistingValuePtr(mem->getBuffer(), vl, xsink), xsink);
+   if (rv)
+      vl->addMemberNotification(o, mem->getBuffer());
+
+   return rv;
 }
 
-void delete_var_node(class QoreNode *lvalue, ExceptionSink *xsink)
-{
-   class AutoVLock vl;
-   class QoreNode **val;
+void delete_var_node(AbstractQoreNode *lvalue, ExceptionSink *xsink) {
+   AutoVLock vl(xsink);
+   AbstractQoreNode **val;
+   
+   qore_type_t lvtype = lvalue->getType();
 
-   //tracein("delete_var_node()");
-
-   // if the node is a variable reference, then find value
-   // ptr, dereference it, and return
-   if (lvalue->type == NT_VARREF)
-   {
-      val = lvalue->val.vref->getValuePtr(&vl, xsink);
-      if (val && *val)
-      {
-	 printd(5, "delete_var_node() setting ptr %08p (val=%08p) to NULL\n", val, (*val));
-	 if ((*val)->type == NT_OBJECT)
-	 {
-	    if ((*val)->val.object->isSystemObject())
+   // if the node is a variable reference, then find value ptr, dereference it, and return
+   if (lvtype == NT_VARREF) {
+      val = reinterpret_cast<VarRefNode *>(lvalue)->getValuePtr(&vl, xsink);
+      if (val && *val) {
+	 printd(5, "delete_var_node() setting ptr %p (val=%p) to NULL\n", val, (*val));
+	 if ((*val)->getType() == NT_OBJECT) {
+	    QoreObject *o = reinterpret_cast<QoreObject *>(*val);
+	    if (o->isSystemObject())
 	       xsink->raiseException("SYSTEM-OBJECT-ERROR", "you cannot delete a system constant object");
-	    else
-	    {
-	       QoreNode *n = (*val);
-	       (*val) = NULL;
+	    else {
+	       (*val) = 0;
 	       vl.del();
-	       n->val.object->doDelete(xsink);
-	       n->deref(xsink);
+	       o->doDelete(xsink);
+	       o->deref(xsink);
 	    }
 	 }
-	 else
-	 {
+	 else {
 	    (*val)->deref(xsink);
-	    *val = NULL;
+	    *val = 0;
 	 }
       }
       return;
    }
 
    // delete key if exists and resize hash if necessary
-   if (lvalue->type == NT_SELF_VARREF)
-   {
-      getStackObject()->deleteMemberValue(lvalue->val.c_str, xsink);
+   if (lvtype == NT_SELF_VARREF) {
+      getStackObject()->deleteMemberValue(reinterpret_cast<SelfVarrefNode *>(lvalue)->str, xsink);
       return;
    }
+
+   // must be a tree
+   QoreTreeNode *tree = reinterpret_cast<QoreTreeNode *>(lvalue);
 
    // otherwise it is a list or object (hash) reference
-   // find variable ptr, exit if doesn't exist anyway
-   //val = get_var_value_ptr(lvalue->val.tree->left, vl, xsink);
-   val = getUniqueExistingVarValuePtr(lvalue->val.tree->left, xsink, &vl, NULL);
 
-   if (!val || !(*val) || xsink->isEvent())
-      return;
-
-   // if it's a list reference, see if the reference exists
-   // if so, then delete it; if it's the last element in the
-   // list, then resize the list...
-   if (lvalue->val.tree->op == OP_LIST_REF)
-   {
-      // if it's not a list then return
-      if ((*val)->type != NT_LIST)
+   // if it's a list reference, see if the reference exists, if so, then delete it;
+   // if it's the last element in the list, then resize the list...
+   if (tree->op == OP_LIST_REF) {
+      int offset = tree->right->integerEval(xsink);
+      if (*xsink)
 	 return;
-      // delete the value if it exists and resize the list if necessary
-      if ((*val)->reference_count() > 1)
-      {
-	 QoreNode *s = *val;
-	 *val = (*val)->realCopy(xsink);
-	 s->deref(xsink);
-      }
-      (*val)->val.list->delete_entry(lvalue->val.tree->right->integerEval(xsink), xsink);
+
+      // find variable ptr, exit if doesn't exist anyway
+      val = getUniqueExistingVarValuePtr(tree->left, xsink, &vl);
+      
+      if (!val || !(*val) || (*val)->getType() != NT_LIST || *xsink)
+	 return;
+
+      QoreListNode *l = reinterpret_cast<QoreListNode *>(*val);
+      // delete the value if it exists
+      l->delete_entry(offset, xsink);
       return;
    }
+
+   // get the member name
+   QoreNodeEvalOptionalRefHolder member(tree->right, xsink);
+   if (*xsink)
+      return;
+
+   QoreStringValueHelper mem(*member, QCS_DEFAULT, xsink);
+   if (*xsink)
+      return;
+
+   // find variable ptr, exit if doesn't exist anyway
+   val = getUniqueExistingVarValuePtr(tree->left, xsink, &vl);
+      
+   if (!val || !(*val) || *xsink)
+      return;
+
+   QoreObject *o = (*val)->getType() == NT_OBJECT ? reinterpret_cast<QoreObject *>(*val) : 0;
 
    // otherwise if not a hash or object then exit
-   if ((*val)->type != NT_HASH && (*val)->type != NT_OBJECT)
+   if (o) {
+      // to avoid a deadlock in the case where an object is deleting a member
+      // and the member refers to the parent object in the member's
+      // destructor, we reference the object, free all locks, then
+      // delete the member, and then dereference the object
+
+      o->tRef();
+      vl.del();
+      o->deleteMemberValue(mem->getBuffer(), xsink);
+      vl.addMemberNotification(o, mem->getBuffer());
+      o->tDeref();
       return;
-
-   // otherwise get the member name
-   class QoreNode *member;
-   if (!(member = lvalue->val.tree->right->eval(xsink)))
-      member = null_string();
-   else if (member->type != NT_STRING)
-   {
-      class QoreNode *nm = member->convert(NT_STRING);
-      member->deref(xsink);
-      member = nm;
-   }
-
-   // get unique value if necessary
-   if ((*val)->reference_count() > 1)
-   {
-      QoreNode *s = *val;
-      *val = (*val)->realCopy(xsink);
-      s->deref(xsink);
    }
 
    // if it's a hash reference, then delete the key
-   if ((*val)->type == NT_HASH)
-      (*val)->val.hash->deleteKey(member->val.String, xsink);
-   else     // must be an object reference
-      (*val)->val.object->deleteMemberValue(member->val.String, xsink);
-
-   // release lock(s)
-   vl.del();
-
-   // dereference member node
-   member->deref(xsink);
-   
-   // traceout("delete_var_node()");
-}
-
-// pops local variable off stack
-void uninstantiateLVar(class ExceptionSink *xsink)
-{
-   thread_uninstantiate_lvar(xsink);
-}
-
-// pushes local variable on stack by value
-class LVar *instantiateLVar(lvh_t id, class QoreNode *value)
-{
-   printd(3, "instantiating lvar '%s' by value (val=%08p)\n", id, value);
-   // allocate new local variable structure
-   class LVar *lvar = thread_instantiate_lvar();
-   lvar->set(id, value);
-
-   return lvar;
-}
-
-class LVar *instantiateLVar(lvh_t id, class QoreNode *ve, class Object *o)
-{
-   printd(3, "instantiating lvar %08p '%s' by reference (ve=%08p, o=%08p)\n", id, id, ve, o);
-   // if we're instantiating the same variable recursively, then don't instantiate it at all
-   // allocate new local variable structure
-   class LVar *lvar = thread_instantiate_lvar();
-   lvar->set(id, ve, o);
-   return lvar;
-}
-
-#if 0
-static inline void show_lvstack()
-{
-   class LVar *lvar = get_thread_stack();
-
-   printd(0, "show_lvstack():\n");
-   while (lvar)
-   {
-      AutoVLock vl;
-      QoreNode *n = lvar->getValue(&vl, NULL);
-      printd(0, "\t%08p: \"%s\" value=%08p (type=%s)\n", lvar, lvar->id, n, n ? n->type->getName() : "<NOTHING>");
+   QoreHashNode *h = (*val)->getType() == NT_HASH ? reinterpret_cast<QoreHashNode *>(*val) : 0;
+   if (h) {
+      // 1: take the value from the hash
+      AbstractQoreNode *val = h->takeKeyValue(mem->getBuffer());
+      // 2: release all locks
       vl.del();
-      lvar = lvar->next;
+      // 3: perform any necessary deletes
+      if (val) {
+	 if (val->getType() == NT_OBJECT) {
+	    reinterpret_cast<QoreObject *>(val)->doDelete(xsink);
+	 }
+	 val->deref(xsink);
+      }
    }
-}
-#endif
-
-// find_lvar() finds local variables on the local variable stack
-class LVar *find_lvar(lvh_t id)
-{
-   return thread_find_lvar(id);
 }

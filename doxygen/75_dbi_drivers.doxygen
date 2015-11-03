@@ -1,0 +1,317 @@
+/** @page dbi_drivers Implementing Qore DBI Drivers
+
+    @section dbi_drivers Implementing Qore DBI Drivers
+
+   @subsection dbi_function_overview DBI Function Overview
+
+   To write a DBI driver, you have to provide implementations for the following functions supporting the Datasource class (listed by their function signatures):
+   - \ref dbi_open "open": opens the connection to the database
+   - \ref dbi_close "close": closes the connection to the database
+   - \ref dbi_select "select": executes a select statement and returns the result as a QoreHashNode (columns) of QoreListNode objects (rows)
+   - \ref dbi_select_rows "select_rows": executes a select statement and returns the result as a QoreListNode (rows) or QoreHashNode objects (columns and values)
+   - \ref dbi_exec "exec": executes arbitrary SQL on the connection and returns the result
+   - \ref dbi_commit "commit": commits a transaction
+   - \ref dbi_rollback "rollback": rolls back a transaction
+
+   For databases where transactions must be started explicitly (for example, with a "begin transaction" statement), the following two functions should be implemented (and must not be implemented for databases where transactions are started implicitly):
+   - \ref dbi_begin_transaction "begin_transaction()": explicitly starts a transaction (ex: executes a "begin transaction" statement)
+   - \ref dbi_abort_transaction_start "abort_transaction_start()": rolls back the transation, necessary for databases where an error in the first statement of a transaction where "begin_transaction" was implicitly executed by the Qore DBI subsystem requires a "rollback" statement to be executed in order to use the datasource further (ex: pgsql driver)
+
+   The following functions are always optional:
+   - \ref dbi_get_server_version "get_server_version()": returns the version of the server
+   - \ref dbi_get_client_version "get_client_version()": returns the version of the client library
+
+   More detail about each function is provided in the following sections.
+
+   These functions must be registered in the DBI subsystem by populating a qore_dbi_method_list structure with pointers to the methods and then calling DBIDriverList::registerDriver() on the \ref DBI object.  This should be done in the \c module_init() function as in the following example from the mysql driver:
+
+   @code
+   QoreStringNode *qore_mysql_module_init()
+   {
+      // initialize thread key to test for mysql_thread_init()
+      pthread_key_create(&ptk_mysql, NULL);
+      tclist.push(mysql_thread_cleanup, NULL);
+      my_init();
+      
+      // populate the method list structure with the method pointers
+      qore_dbi_method_list methods;
+      methods.add(QDBI_METHOD_OPEN,               qore_mysql_open_datasource);
+      methods.add(QDBI_METHOD_CLOSE,              qore_mysql_close_datasource);
+      methods.add(QDBI_METHOD_SELECT,             qore_mysql_select);
+      methods.add(QDBI_METHOD_SELECT_ROWS,        qore_mysql_select_rows);
+      methods.add(QDBI_METHOD_EXEC,               qore_mysql_exec);
+      methods.add(QDBI_METHOD_COMMIT,             qore_mysql_commit);
+      methods.add(QDBI_METHOD_ROLLBACK,           qore_mysql_rollback);
+      methods.add(QDBI_METHOD_GET_SERVER_VERSION, qore_mysql_get_server_version);
+      methods.add(QDBI_METHOD_GET_CLIENT_VERSION, qore_mysql_get_client_version);
+      
+      // register database functions with DBI subsystem
+      DBID_MYSQL = DBI.registerDriver("mysql", methods, mysql_caps);
+      
+      return 0;
+   }
+   @endcode
+   
+   @note Any functions requiring an open connection (\ref dbi_select "select", \ref dbi_select_rows "select_rows", \ref dbi_exec "exec", \ref dbi_commit "commit", \ref dbi_rollback "rollback", and \ref dbi_get_server_version "get_server_version") will have a connection opened implicitly before the call is executed by the Qore library.  Therefore any function requiring an open database connection can assume that the connection has already been established (and therefore that the private data representing the state of the connection is available).
+
+   @subsection dbi_open DBI Open Method
+
+   Function signature: \ref q_dbi_open_t
+
+   This method will be called whenever the connection to the database must be opened.  The connection parameters can be queried from the Datasource argument as follows:
+   - Datasource::getUsername() gives the username to use for the connection
+   - Datasource::getPassword() gives the password to use for the connection
+   - Datasource::getHostName() gives the host name to use for the connection
+   - Datasource::getDBName() gives the name of the database or schema
+   - Datasource::getDBEncoding() gives the name of the database-specific character encoding to use for the connection
+   
+   If Datasource::getDBEncoding() returns 0, then the character encoding for the connection should be set based on \ref QCS_DEFAULT.
+
+   Here is a connection example from the sybase driver:
+
+   @code
+   static int sybase_open(Datasource *ds, ExceptionSink *xsink)
+   {
+      // username is a required parameter
+      if (!ds->getUsername()) {
+         xsink->raiseException("DATASOURCE-MISSING-USERNAME", "Datasource has an empty username parameter");
+	 return -1;
+      }
+
+      // DB name is a required parameter
+      if (!ds->getDBName()) {
+         xsink->raiseException("DATASOURCE-MISSING-DBNAME", "Datasource has an empty dbname parameter");
+	 return -1;
+      }
+
+      // set the encoding for the connection
+      if (ds->getDBEncoding()) {
+         const QoreEncoding *enc = name_to_QoreEncoding(ds->getDBEncoding());
+	 ds->setQoreEncoding(enc);
+      } 
+      else {
+         const char *enc = QoreEncoding_to_SybaseName(QCS_DEFAULT);
+	 // if the encoding cannot be mapped, throw a Qore-language exception and return
+	 if (!enc) {
+	    xsink->raiseException("DBI:SYBASE:UNKNOWN-CHARACTER-SET", "cannot find the Sybase character encoding equivalent for '%s'", QCS_DEFAULT->getCode());
+	    return -1;
+	 }
+	 ds->setDBEncoding(enc);
+	 ds->setQoreEncoding(QCS_DEFAULT);
+      }
+  
+      // create the connection object
+      std::auto_ptr<connection> sc(new connection);
+  
+      // make the actual connection to the database
+      sc->init(ds->getUsername(), ds->getPassword() ? ds->getPassword() : "", ds->getDBName(), ds->getDBEncoding(), ds->getQoreEncoding(), xsink);
+      
+      // return with an error if it didn't work
+      if (*xsink)
+         return -1;
+
+      // set the private data
+      ds->setPrivateData(sc.release());
+
+      // return 0 for OK
+      return 0;
+   }
+   @endcode
+
+   If the connection is successfully established, then Datasource::setPrivateData() should be called to save the connection state and 0 should be returned.  This state will lated be retrieved in each DBI method with Datasource::getPrivateData().
+
+   If a connection cannot be established, then -1 should be returned and a Qore-language exception should be added to the ExceptionSink object.
+
+   Qore DBI drivers must initialize each connection manually to use transaction isolation level "read committed" if necessary when opening the connection.  For example the mysql driver does this for each connection as follows after opening a connection:
+
+   @code
+   // set transaction handling
+   if (mysql_query(db, "set transaction isolation level read committed")) {
+      xsink->raiseException("DBI:MYSQL:INIT-ERROR", (char *)mysql_error(db));
+      mysql_close(db);
+      return 0;
+   }   
+   @endcode
+
+   @subsection dbi_close DBI Close Method
+
+   Function signature: \ref q_dbi_close_t
+
+   This method should unconditionally close the connection to the database.  There is currently no facility for registering errors when closing a connection; the return value for this function is currently ignored.
+
+   This function must clear the private data structure by calling Datasource::setPrivateData() with the argument 0.  The private data structure should also be deleted here.
+
+   Here is the implementation of this function in the sybase driver:
+
+   @code
+   static int sybase_close(Datasource *ds)
+   {
+      connection* sc = (connection*)ds->getPrivateData();
+      ds->setPrivateData(0);
+      delete sc;
+
+      return 0;
+   }
+   @endcode
+
+   @subsection dbi_select DBI Select Method
+
+   Function signature: \ref q_dbi_select_t
+
+   This function must be capable of executing an SQL select against an open connection and returning the result as a QoreHashNode (the columns) of QoreListNode objects (the rows).  This is the minimum requirement for this function, but some Qore DBI drivers use the same implementation for this and the \ref dbi_exec exec method.  It depends on the database's API if it's possible or not.  Some database API's have a different functions for each operation.
+
+   Note that the SQL string passed as an argument may not be in the encoding required by the connection.  It is the resposibility of this function to convert the string to the proper encoding before passing it to the database's API for execution.
+
+   Furthermore, DBI placeholders and bind specifications must be processed as well before executing the query.  The following DBI-specific format codes can appear in the query string:
+   - \c %v means bind the corresponding argument by value
+   - \c :name means \c "name" is an output parameter and should be returned as an output value in an output hash (only valid for \ref dbi_exec exec)
+   - \c %s means include the string directly in the query as-is without any escaping (useful for table or database name prefixes)
+   - \c %d means interpret the corresponding argument as a number (either integer or float, depending on the type of the argument) and include directly in the string
+
+   If an Qore-language exceptions are thrown due to errors while processing the select request, 0 must be returned.
+
+   @subsection dbi_select_rows DBI SelectRows Method
+
+   Function signature: \ref q_dbi_select_rows_t
+
+   This function is the same as the \ref dbi_select "select" method, except that a QoreListNode (the rows) of QoreHashNode objects (the columns) should be returned.
+
+   This format is less efficient than the QoreHashNode or QoreListNode objects, but is easier to work with in some circumstances by Qore code.
+
+   @subsection dbi_exec DBI Exec Method
+
+   Function signature: \ref q_dbi_exec_t
+
+   This function is designed for executing \c insert or \c update statements or for executing stored procedures, functions, or other database code.  The same rules about placeholders and bind specifications apply as documented in the \ref dbi_select "select" method.
+
+   For \c insert and \c update statements, the number of affected rows should be returned as an integer.
+
+   For all other statements, a data structure appropriate to the action executed should be returned.
+
+   @subsection dbi_commit DBI Commit Method
+
+   Function signature: \ref q_dbi_commit_t
+
+   This function should commit any open transaction in the database.
+
+   Here is an example from the mysql driver (simplified for the example):
+
+   @code
+   static int qore_mysql_commit(Datasource *ds, ExceptionSink *xsink)
+   {
+      checkInit();
+      MySQLConnection *d_mysql =(MySQLConnection *)ds->getPrivateData();
+
+      // calls mysql_commit() on the connection
+      if (d_mysql->commit()) {
+         xsink->raiseException("DBI:MYSQL:COMMIT-ERROR", d_mysql->error());
+         return -1;
+      }
+      return 0;
+   }
+   @endcode
+
+   @note For databases having implicit transactions (i.e. a transaction is always in effect even without an explicit "begin transaction" statement), this method is executed after every statement when the Datasource object is in auto commit mode.
+
+   @subsection dbi_rollback DBI Rollback Method
+
+   Function signature: \ref q_dbi_rollback_t
+
+   This function should roll back any open transaction in the database.
+
+   Here is an example from the mysql driver (simplified for the example):
+
+   @code
+   static int qore_mysql_rollback(Datasource *ds, ExceptionSink *xsink)
+   {
+      checkInit();
+      MySQLConnection *d_mysql =(MySQLConnection *)ds->getPrivateData();
+
+      // calls mysql_rollback() on the connection
+      if (d_mysql->rollback()) {
+         xsink->raiseException("DBI:MYSQL:ROLLBACK-ERROR", d_mysql->error());
+	 return -1;
+      }
+      return 0;
+   }
+   @endcode
+
+   @subsection dbi_begin_transaction DBI BeginTransaction Method
+
+   Function signature: \ref q_dbi_begin_transaction_t
+
+   This function should only be implemented for datasources that require an explicit "begin transaction" statement to begin a transaction (such as the pgsql driver).
+
+   Here is an example from the pgsql driver:
+
+   @code
+   static int qore_pgsql_begin_transaction(class Datasource *ds, ExceptionSink *xsink)
+   {
+      QorePGConnection *pc = (QorePGConnection *)ds->getPrivateData();
+      // executes "begin" on the connection and returns the return value
+      return pc->begin_transaction(ds, xsink);
+   }
+   @endcode
+
+   @subsection dbi_abort_transaction_start DBI AbortTransactionStart Method
+
+   Function signature: \ref q_dbi_abort_transaction_start_t
+
+   This function is required for datasources that implement the \ref dbi_begin_transaction "begin_transaction" method, and if an error occurs as the first statement of after the  \ref dbi_begin_transaction "begin_transaction" method is implictly executed, a \ref dbi_rollback "rollback" call must immediately be made in order to continue to use the connection.
+
+   This method is implemented for the pgsql driver by aliasing it to the \ref dbi_rollback "rollback" function, for example.
+
+   @subsection dbi_get_server_version DBI GetServerVersion Method
+
+   Function signature: \ref q_dbi_get_server_version_t
+
+   This function should return version information for the database server.  As such it requires an active connection (which will be established by the Qore library before this function is called).
+
+   There is no pre-defined format for the output of this function.  Here is the implementation of this method for the oracle driver:
+
+   @code
+   #define VERSION_BUF_SIZE 512
+   static AbstractQoreNode *oracle_get_server_version(Datasource *ds, ExceptionSink *xsink)
+   {
+      // get private data structure for connection
+      OracleData *d_ora = (OracleData *)ds->getPrivateData();
+
+      // buffer for version information
+      char version_buf[VERSION_BUF_SIZE + 1];
+
+      // execute OCIServerVersion and check status code
+      ora_checkerr(d_ora->errhp, 
+                   OCIServerVersion(d_ora->svchp, d_ora->errhp, (OraText *)version_buf, VERSION_BUF_SIZE, OCI_HTYPE_SVCCTX),
+		   "oracle_get_server_version", ds, xsink);
+      if (*xsink)
+         return 0;
+   
+      return new QoreStringNode(version_buf);   
+   }
+   @endcode
+
+   @subsection dbi_get_client_version DBI GetClientVersion Method
+
+   Function signature: \ref q_dbi_get_client_version_t
+   
+   This function should return version information for the database client library in use, and therefore does not require an open connection to the database.
+
+   Like the \ref dbi_get_server_version "get_server_version" method, there is no pre-defined format for the output of this function.  Here is the implementation of this method for the oracle driver:
+
+   @code
+   static AbstractQoreNode *oracle_get_client_version(const Datasource *ds, ExceptionSink *xsink)
+   {
+      sword major, minor, update, patch, port_update;
+
+      OCIClientVersion(&major, &minor, &update, &patch, &port_update);
+
+      QoreHashNode *h = new QoreHashNode();
+      h->setKeyValue("major", new QoreBigIntNode(major), NULL);
+      h->setKeyValue("minor", new QoreBigIntNode(minor), NULL);
+      h->setKeyValue("update", new QoreBigIntNode(update), NULL);
+      h->setKeyValue("patch", new QoreBigIntNode(patch), NULL);
+      h->setKeyValue("port_update", new QoreBigIntNode(port_update), NULL);
+      return h;
+   }
+   @endcode
+ **/

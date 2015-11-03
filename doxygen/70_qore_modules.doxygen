@@ -1,0 +1,92 @@
+/** @page qore_modules Developing Qore Modules
+
+    @section module_dev Qore Module development
+
+    @subsection module_header Module Header Info
+
+    To develop a Qore module, several functions and several global variables must be declared in the module with public visibility so the module can be initialized and used by the Qore library.
+
+    The global variables are as follows:
+    - char \c qore_module_name[] - must give the name of the feature provided by the module.
+    - char \c qore_module_version[] - must give the version of the module
+    - char \c qore_module_description[] - a description of the module
+    - char \c qore_module_author[] - the author of the module
+    - char \c qore_module_url[] - a URL for the module
+    - int \c qore_module_api_major - must be assigned to \ref QORE_MODULE_API_MAJOR
+    - int \c qore_module_api_minor - must be assigned to \ref QORE_MODULE_API_MINOR
+    - \ref qore_license_t \c qore_module_license - must be assigned to either \ref QL_GPL or \ref QL_LGPL according to the license the module requires; if the module links with GPL code, then \ref QL_GPL must be used; otherwise if it is compatible with the LGPL then \ref QL_LGPL must be used
+
+    The functions are as follows:
+    - \ref qore_module_init_t \c qore_module_init - the module initialization function
+    - \ref qore_module_ns_init_t \c qore_module_ns_init - the module namespace delta functions
+    - \ref qore_module_delete_t \c qore_module_delete - the module deletion function
+
+    @note All variables and all functions are required, even if the functions are empty.
+
+    Here is an example:
+    @code
+    DLLEXPORT char qore_module_name[] = "ncurses";
+    DLLEXPORT char qore_module_version[] = "0.1";
+    DLLEXPORT char qore_module_description[] = "ncurses class module";
+    DLLEXPORT char qore_module_author[] = "David Nichols";
+    DLLEXPORT char qore_module_url[] = "http://qore.sourceforge.net";
+    DLLEXPORT int qore_module_api_major = QORE_MODULE_API_MAJOR;
+    DLLEXPORT int qore_module_api_minor = QORE_MODULE_API_MINOR;
+    DLLEXPORT qore_license_t qore_module_license = QL_LGPL;
+
+    DLLEXPORT qore_module_init_t qore_module_init = ncurses_module_init;
+    DLLEXPORT qore_module_ns_init_t qore_module_ns_init = ncurses_module_ns_init;
+    DLLEXPORT qore_module_delete_t qore_module_delete = ncurses_module_delete;
+    @endcode
+
+    Note that the module name (or the module's feature name) as given by \c qore_module_name is used to uniquely identify the feature provided by the module.  Therefore if a module is loaded that provides feature "widget" and another module also claims to provided feature "widget", the second module cannot be loaded in the Qore library after the first has been loaded due to the duplicate feature name.
+
+    The \c qore_module_api_major and \c qore_module_api_minor variables are used to determine if the module corresponds to the API (and ABI) of the Qore library trying to load it.
+
+    @subsection module_functions Module Functions
+
+    The module initialization function \c qore_module_init() will be run when the module is loaded by the Qore library.  If any errors occur when initializing the module, a description should be returned as a QoreString pointer (the library will own the pointer and delete it later).  If a non-zero pointer is returned by the \c qore_module_init() function, the feature will not be added to the Qore library and the module load will fail.
+
+    If the module provides any namespaces, classes or constants, they will be added on demand to QoreProgram objects by calling the module's \c qore_module_ns_init() function.  In this case, the namespace additions should be initialized in the \c qore_module_init() function and copies should be provisioned in the \c qore_module_ns_init() function.  In particular classes must not be created more than once, because a Qore class gets a unique ID assigned when it is created, and this ID must be unique in the entire Qore library.
+
+    Here are example functions from the ncurses module:
+
+    @code
+    // this is the reference namespace for the ncurses module
+    static QoreNamespace NCNS("NCurses");
+
+    // this function is called when the module is loaded
+    QoreStringNode *ncurses_module_init()
+    {
+       // the NCurses reference namespace is set up here
+       NCNS.addSystemClass(initWindowClass());
+       NCNS.addSystemClass(initPanelClass());
+
+       init_constants(&NCNS); // here constants are added to the NCurses namespace
+    
+       builtinFunctions.add("initscr",          f_initscr, QDOM_TERMINAL_IO);
+       builtinFunctions.add("printw",           f_printw, QDOM_TERMINAL_IO);
+       builtinFunctions.add("refresh",          f_refresh, QDOM_TERMINAL_IO);
+       //... more builtin functions are added
+
+       return 0;
+    }
+
+    // this function is called when the Qore library needs to provision the NCurses namespace 
+    // to a new QoreProgram object (or to a QoreProgram object that existed before the module
+    // was loaded by another QoreProgram object and then later requests the feature "ncurses")
+    void ncurses_module_ns_init(QoreNamespace *rns, QoreNamespace *qns)
+    {
+       // add the NCurses namespace as a subnamespace to the Qore namespace
+       qns->addInitialNamespace(NCNS.copy());
+    }
+
+    // this function is called when the module is deleted (when the qore library is closed)
+    // it should free all resources allocated in the module's initilization function
+    void ncurses_module_delete()
+    {
+       // calls endwin() if necessary
+       q_nc_init.close();
+    }
+    @endcode
+ */

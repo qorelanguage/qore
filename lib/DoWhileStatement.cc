@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ Copyright 2003 - 2009 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -21,16 +21,15 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/DoWhileStatement.h>
+#include <qore/intern/DoWhileStatement.h>
+#include <qore/intern/StatementBlock.h>
 
-int DoWhileStatement::execImpl(class QoreNode **return_value, class ExceptionSink *xsink)
+int DoWhileStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
 {
-   int i, rc = 0;
+   int rc = 0;
    
-   tracein("WhileStatement::execDoWhile()");
    // instantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      instantiateLVar(lvars->ids[i], NULL);
+   LVListInstantiator lvi(lvars, xsink);
    
    do
    {
@@ -45,16 +44,12 @@ int DoWhileStatement::execImpl(class QoreNode **return_value, class ExceptionSin
 	 rc = 0;
    } while (cond->boolEval(xsink) && !xsink->isEvent());
    
-   // uninstantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      uninstantiateLVar(xsink);
-   traceout("DoWhileStatement::execImpl()");
    return rc;
 }
 
 /* do ... while statements can have variables local to the statement
  * however, it doesn't do much good :-) */
-int DoWhileStatement::parseInitImpl(lvh_t oflag, int pflag)
+int DoWhileStatement::parseInitImpl(LocalVar *oflag, int pflag)
 {
    int lvids = 0;
    

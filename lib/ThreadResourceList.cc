@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2009 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -23,7 +23,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/ThreadResourceList.h>
+#include <qore/intern/ThreadResourceList.h>
 #include <qore/AbstractThreadResource.h>
 
 class ThreadResourceNode
@@ -33,14 +33,14 @@ class ThreadResourceNode
       class ThreadResourceNode *next, *prev;
       
       DLLLOCAL ThreadResourceNode(AbstractThreadResource *a);
-      DLLLOCAL void call(class ExceptionSink *xsink);
+      DLLLOCAL void call(ExceptionSink *xsink);
 };
 
-ThreadResourceNode::ThreadResourceNode(AbstractThreadResource *a) : atr(a), prev(NULL)
+ThreadResourceNode::ThreadResourceNode(AbstractThreadResource *a) : atr(a), prev(0)
 {
 }
 
-void ThreadResourceNode::call(class ExceptionSink *xsink)
+void ThreadResourceNode::call(ExceptionSink *xsink)
 {
    atr->cleanup(xsink);
    atr->deref();
@@ -48,7 +48,7 @@ void ThreadResourceNode::call(class ExceptionSink *xsink)
 
 ThreadResourceList::ThreadResourceList()
 {
-   head = NULL;
+   head = 0;
 }
 
 ThreadResourceList::~ThreadResourceList()
@@ -65,7 +65,7 @@ class ThreadResourceNode *ThreadResourceList::find(AbstractThreadResource *atr)
 	 return w;
       w = w->next;
    }
-   return NULL;
+   return 0;
 }
 
 /*
@@ -78,7 +78,7 @@ inline class ThreadResourceNode *ThreadResourceList::find(AbstractThreadResource
 	 return w;
       w = w->next;
    }
-   return NULL;
+   return 0;
 }
 */
 
@@ -128,7 +128,7 @@ void ThreadResourceList::removeIntern(class ThreadResourceNode *w)
    //printd(5, "removeIntern(%08p) done (head=%08p)\n", w, head);
 }
 
-void ThreadResourceList::purge(class ExceptionSink *xsink)
+void ThreadResourceList::purge(ExceptionSink *xsink)
 {
    class ThreadResourceNode *w = head;
    while (w)
@@ -138,7 +138,7 @@ void ThreadResourceList::purge(class ExceptionSink *xsink)
       delete w;
       w = n;
    }
-   head = NULL;
+   head = 0;
    //printd(5, "TRL::purge() done\n");
 }
 
@@ -160,7 +160,7 @@ int ThreadResourceList::remove(AbstractThreadResource *atr)
 // there must be only one of these
 void ThreadResourceList::remove(AbstractThreadResource *atr, int tid)
 {
-   AutoLocker al((LockedObject *)this);
+   AutoLocker al((QoreThreadLock *)this);
 
    //printd(0, "TRL::remove(atr=%08p, tid=%d) this=%08p, head=%08p\n", atr, tid, this, head);
    class ThreadResourceNode *w = head;

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) David Nichols 2003, 2004, 2005, 2006, 2007
+  Copyright David Nichols 2003 - 2009
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -25,40 +25,34 @@
     no include file depth limits, 
     thread-safe
 
-  requires flex 2.5.31 or better (2.5.33 recommended, 2.5.4 will not work) 
+  requires flex 2.5.31 or better (2.5.35 recommended, 2.5.4 will not work) 
   so a thread-safe scanner can be generated
 
-  see: http://lex.sourceforge.net/
+  see: http://flex.sourceforge.net/
 */
 
 #include <qore/Qore.h>
-#include <qore/common.h>
-#include <qore/ParserSupport.h>
-#include <qore/RegexSubst.h>
-#include <qore/RegexTrans.h>
-#include <qore/QoreRegex.h>
-#include <qore/QoreWarnings.h>
-#include <qore/NamedScope.h>
+#include <qore/intern/ParserSupport.h>
 
 #include "parser.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <ctype.h>
 
-QoreParserLocation::QoreParserLocation() : explicit_first(false), first_line(0)
-{
+QoreParserLocation::QoreParserLocation() : explicit_first(false), first_line(0) {
 }
 
-void QoreParserLocation::updatePosition(int f)
-{
-   if (!explicit_first)
-   {
+void QoreParserLocation::updatePosition(int f) {
+   if (!explicit_first) {
       first_line = f;
       update_parse_location(f, f);
    }
-   else
-   {
+   else {
       update_parse_location(first_line, f);
       explicit_first = false;
    }
@@ -69,59 +63,168 @@ void QoreParserLocation::updatePosition(int f)
 
 int yyparse(yyscan_t yyscanner);
 
-static inline class QoreString *getIncludeFileName(char *file)
-{
+// the return value of this function must be freed if non-0
+static char *trim(const char *str) {
+   while ((*str) == ' ' || (*str) == '\t')
+      str++;
+   // duplicate string
+   char *n = strdup(str);
+   // find end of string
+   int l = strlen(n);
+   if (l) {
+      char *e = n + l - 1;
+      while ((*e) == ' ' || (*e) == '\t')
+	 *(e--) = '\0';
+   }
+   if (!n[0]) {
+      free(n);
+      n = 0;
+   }
+   return n;
+}
+
+static QoreString *getIncludeFileName(char *file) {
    //printd(5, "getIncludeFileName(%s)\n", file);
    // FIXME: UNIX-specific
    if (file[0] == '/')
       return new QoreString(file);
 
    QoreString *rv;
+
+   // check in current directory of script first
+   const char *sp = getProgram()->parseGetScriptDir();
+   if (sp) {
+      rv = findFileInPath(file, sp);
+      if (rv)
+	 return rv;
+   }
+
    rv = findFileInEnvPath(file, "QORE_INCLUDE_DIR");
-   if (!rv)
-      rv = new QoreString(file);
+   if (!rv) {
+       const char *pp = getProgram()->parseGetIncludePath();
+       if (pp) 
+	   rv = findFileInPath(file, pp);
+       if (!rv)
+	   rv = new QoreString(file);
+   }
+
    return rv;
 }
 
-static inline char *remove_quotes(char *str)
-{
+void setIncludePath(const char *path) {
+    char *ip = trim(path);
+    if (!ip)
+	return;
+
+    QoreString npath; // for new path
+
+    // scan through paths and:
+    // 1: do environment variable substitution
+    // 2: remove the paths that don't exist
+    char *lp, *p;
+    p = lp = ip;
+    
+    while (true) {
+	if (*p == ':' || !*p) {
+	    // skip if at beginning of new path
+	    if (p != lp) {
+		QoreString tpath;
+		tpath.concat(lp, p - lp);
+		const char *sp = tpath.getBuffer();
+		//printd(5, "got path string: '%s'\n", sp);
+
+		const char *i, *spt;
+		spt = sp;
+
+		while ((i = strchr(spt, '$'))) {
+		    // find end of environment variable
+		    char *ep = (char *)++i;
+		    while (*ep && (*ep == '_' || isalnum(*ep)))
+			++ep;
+		    spt = i + 1;
+		    // perform variable substitution
+		    if (ep != i) {
+			char save = *ep;
+			*ep = '\0';
+			//printd(5, "found variable '$%s'\n", i);
+			TempString val(SystemEnvironment::get(i));
+			*ep = save;
+			if (val) {
+			    // replace with value
+			    int pos = i - sp;			    
+			    //printd(5, "got $%s = '%s' (replacing %d char(s))\n", i, val->getBuffer(), ep - i + 1);
+			    tpath.replace(pos - 1, ep - i + 1, *val);			    
+			    // re-assign sp in case it's changed
+			    int diff = pos + val->strlen();
+			    sp = tpath.getBuffer();
+			    spt = sp + diff;
+			    //printd(5, "new string = '%s' ('%s')\n", sp, spt);
+			}
+		    }
+		}
+		struct stat sb;
+	    
+		//printd(5, "trying '%s'\n", sp);
+		// add to path list if the directory exists
+		if (!stat(sp, &sb)) {
+		    //printd(5, "OK: adding '%s' to path list\n", sp);
+		    if (npath.strlen()) 
+			npath.concat(':');
+		    npath.concat(&tpath);
+		}
+
+		if (!*p)
+		    break;
+	    }
+	    lp = ++p;
+	    continue;
+	}
+
+	++p;
+    }
+    
+    //printd(5, "setting include path: '%s'\n", npath.getBuffer());
+    getProgram()->parseSetIncludePath(npath.getBuffer());
+
+    free(ip);
+}
+
+static inline char *remove_quotes(char *str) {
    str[strlen(str) - 1] = '\0';
    return str + 1;
 }
 
-static inline class DateTime *makeYears(int years)
-{
-   return new DateTime(years, 0, 0, 0, 0, 0, 0, true);
+static inline DateTimeNode *makeYears(int years) {
+   return new DateTimeNode(years, 0, 0, 0, 0, 0, 0, true);
 }
 
-static inline class DateTime *makeMonths(int months)
-{
-   return new DateTime(0, months, 0, 0, 0, 0, 0, true);
+static inline DateTimeNode *makeMonths(int months) {
+   return new DateTimeNode(0, months, 0, 0, 0, 0, 0, true);
 }
 
-static inline class DateTime *makeDays(int days)
+static inline DateTimeNode *makeDays(int days)
 {
-   return new DateTime(0, 0, days, 0, 0, 0, 0, true);
+   return new DateTimeNode(0, 0, days, 0, 0, 0, 0, true);
 }
 
-static inline class DateTime *makeHours(int hours)
+static inline DateTimeNode *makeHours(int hours)
 {
-   return new DateTime(0, 0, 0, hours, 0, 0, 0, true);
+   return new DateTimeNode(0, 0, 0, hours, 0, 0, 0, true);
 }
 
-static inline class DateTime *makeMinutes(int minutes)
+static inline DateTimeNode *makeMinutes(int minutes)
 {
-   return new DateTime(0, 0, 0, 0, minutes, 0, 0, true);
+   return new DateTimeNode(0, 0, 0, 0, minutes, 0, 0, true);
 }
 
-static inline class DateTime *makeSeconds(int seconds)
+static inline DateTimeNode *makeSeconds(int seconds)
 {
-   return new DateTime(0, 0, 0, 0, 0, seconds, 0, true);
+   return new DateTimeNode(0, 0, 0, 0, 0, seconds, 0, true);
 }
 
-static inline class DateTime *makeMilliseconds(int ms)
+static inline DateTimeNode *makeMilliseconds(int ms)
 {
-   return new DateTime(0, 0, 0, 0, 0, 0, ms, true);
+   return new DateTimeNode(0, 0, 0, 0, 0, 0, ms, true);
 }
 
 //2005-03-29-10:19:27
@@ -160,80 +263,57 @@ static inline void do_time_str(char *str)
    memmove(str+4, str+6, strlen(str+6) + 1);
 }
 
-static inline class DateTime *makeDateTime(char *str)
+static inline DateTimeNode *makeDateTime(char *str)
 {
    // move string to middle to form date string
    do_date_time_str(str);
    //printf("new date: %s\n", str + 3);
-   return new DateTime(str + 3);
+   return new DateTimeNode(str + 3);
 }
 
-static inline class DateTime *makeDate(char *str)
+static inline DateTimeNode *makeDate(char *str)
 {
    do_date_str(str);
    //printf("new date: %d:%s\n", strlen(str), str);
-   return new DateTime(str);
+   return new DateTimeNode(str);
 }
 
-static inline class DateTime *makeTime(char *str)
+static inline DateTimeNode *makeTime(char *str)
 {
    do_time_str(str);
    //printf("new time: %d:%s\n", strlen(str), str);
-   return new DateTime(str);
+   return new DateTimeNode(str);
 }
 
-static inline class DateTime *makeRelativeDateTime(char *str)
+static inline DateTimeNode *makeRelativeDateTime(char *str)
 {
    // move string to middle to form date string
    do_date_time_str(str);
    //printf("new date: %s\n", str + 3);
-   class DateTime *dt = new DateTime();
+   DateTimeNode *dt = new DateTimeNode();
    dt->setRelativeDate(str + 3);
    return dt;
 }
 
-static inline class DateTime *makeRelativeDate(char *str)
+static inline DateTimeNode *makeRelativeDate(char *str)
 {
    do_date_str(str);
    //printf("new date: %d:%s\n", strlen(str), str);
-   class DateTime *dt = new DateTime();
+   DateTimeNode *dt = new DateTimeNode();
    dt->setRelativeDate(str);
    return dt;
 }
 
-static inline class DateTime *makeRelativeTime(char *str)
+static inline DateTimeNode *makeRelativeTime(char *str)
 {
    do_time_str(str);
    //printf("new time: %d:%s\n", strlen(str), str);
-   class DateTime *dt = new DateTime();
+   DateTimeNode *dt = new DateTimeNode();
    dt->setRelativeDate(str);
    return dt;
 }
 
-static inline char *trim(char *str)
-{
-   while ((*str) == ' ' || (*str) == '\t')
-      str++;
-   // duplicate string
-   char *n = strdup(str);
-   // find end of string
-   int l = strlen(n);
-   if (l)
-   {
-      char *e = n + l - 1;
-      while ((*e) == ' ' || (*e) == '\t')
-	 *(e--) = '\0';
-   }
-   if (!n[0])
-   {
-      free(n);
-      n = NULL;
-   }
-   return n;
-}
-
-static inline bool isRegexModifier(class QoreRegex *qr, int c)
-{
+static inline bool isRegexModifier(QoreRegexNode *qr, int c) {
    if (c == 'i')
       qr->setCaseInsensitive();
    else if (c == 's')
@@ -247,8 +327,7 @@ static inline bool isRegexModifier(class QoreRegex *qr, int c)
    return true;
 }
 
-static inline bool isRegexSubstModifier(class RegexSubst *qr, int c)
-{
+static inline bool isRegexSubstModifier(RegexSubstNode *qr, int c) {
    if (c == 'g')
       qr->setGlobal();
    else if (c == 'i')
@@ -273,7 +352,7 @@ static inline bool isRegexSubstModifier(class RegexSubst *qr, int c)
 %option noyy_push_state
 %option noyy_pop_state
 
-%x str_state regex_state incl case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning
+%x str_state regex_state incl case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state
 
 HEX_DIGIT       [0-9A-Fa-f]
 HEX_CONST       0x{HEX_DIGIT}+
@@ -310,7 +389,14 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 ^%no-network{WS}*$                      getProgram()->parseSetParseOptions(PO_NO_NETWORK);
 ^%no-child-restrictions{WS}*$           getProgram()->parseSetParseOptions(PO_NO_CHILD_PO_RESTRICTIONS);
 ^%no-database{WS}*$                     getProgram()->parseSetParseOptions(PO_NO_DATABASE);
+^%no-gui{WS}*$                          getProgram()->parseSetParseOptions(PO_NO_GUI);
+^%no-terminal-io{WS}*$                  getProgram()->parseSetParseOptions(PO_NO_TERMINAL_IO);
 ^%require-our{WS}*$                     getProgram()->parseSetParseOptions(PO_REQUIRE_OUR);
+^%append-include-path{WS}+              BEGIN(append_path_state);
+<append_path_state>[^\t\n\r]+           {
+					   setIncludePath(yytext);
+					   BEGIN(INITIAL);
+                                        }
 ^%enable-all-warnings{WS}*$             { 
                                            if (getProgram()->setWarningMask(-1))
 					      getProgram()->makeParseWarning(QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot enable all warnings");
@@ -351,7 +437,7 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 <requires>[^\t\n\r]+                    {
                                            char *cn = trim(yytext);
 					   //printd(5, "scanner requesting feature: '%s'\n", cn);
-					   QoreString *err = MM.parseLoadModule(cn, getProgram());
+					   QoreStringNode *err = MM.parseLoadModule(cn, getProgram());
 					   if (err)
 					      getProgram()->cannotProvideFeature(err);
 					   free(cn);
@@ -371,27 +457,57 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 }
 <incl>{WS}*				// ignore white space
 <incl>[^\t\n\r]+			{
-                                           FILE *save_yyin = yyin;
-					   QoreString *fname = getIncludeFileName(yytext);
-					   yyin = fopen(fname->getBuffer(), "r");
-					   
-					   if (!yyin)
-					   {
-					      parse_error("cannot open include file \"%s\"", yytext);
-					      yyin = save_yyin;
+					   TempString fname(getIncludeFileName(yytext));
+					   const char *fn = fname->getBuffer();
+					   // remove enclosing quotes if any
+					   if (fname->strlen() 
+					       && ((fn[0] == '\"' && fn[fname->strlen() - 1] == '\"')
+						   || (fn[0] == '\'' && fn[fname->strlen() - 1] == '\''))) {
+					      fname->trim(fn[0]);
+					   }
+
+					   if (!fname->strlen()) {
+					      parse_error("missing argument to %%include", yytext);
 					      BEGIN(INITIAL);
 					   }
-					   else
-					   {
-					      // take string from buffer
-					      char *str = fname->giveBuffer();
-					      // save file name string in QoreProgram's list - the list now owns the string memory
-					      getProgram()->addFile(str);
-					      beginParsing(str, (void *)YY_CURRENT_BUFFER);
-					      yy_switch_to_buffer(yy_create_buffer(yyin, YY_BUF_SIZE, yyscanner), yyscanner);
-					      BEGIN(INITIAL);
+					   else {
+					      // re-get the buffer pointer
+					      fn = fname->getBuffer();
+					      // check if regular file
+					      struct stat sbuf;
+					      int rc = stat(fn, &sbuf);
+					      if (rc) {
+						 parse_error("stat() failed on include file: \"%s\": %s", fn, strerror(errno));
+						 BEGIN(INITIAL);
+					      }
+					      else {
+
+						 //printd(0, "%s: mode=%o, s_ifmt=%o, &=%o, reg=%o comp=%s\n", fname->getBuffer(), sbuf.st_mode, S_IFMT, sbuf.st_mode & S_IFMT, S_IFREG, (sbuf.st_mode & S_IFMT) != S_IFREG ? "true" : "false");
+						 if ((sbuf.st_mode & S_IFMT) != S_IFREG) {
+						    parse_error("cannot include \"%s\"; is not a regular file", fn);
+						    BEGIN(INITIAL);
+						 }
+						 else {
+						    FILE *save_yyin = yyin;
+						    yyin = fopen(fn, "r");
+						    
+						    if (!yyin) {
+						       parse_error("cannot open include file \"%s\"", fn);
+						       yyin = save_yyin;
+						       BEGIN(INITIAL);
+						    }
+						    else {
+						       // take string from buffer
+						       char *str = fname->giveBuffer();
+						       // save file name string in QoreProgram's list - the list now owns the string memory
+						       getProgram()->addFile(str);
+						       beginParsing(str, (void *)YY_CURRENT_BUFFER);
+						       yy_switch_to_buffer(yy_create_buffer(yyin, YY_BUF_SIZE, yyscanner), yyscanner);
+						       BEGIN(INITIAL);
+						    }
+						 }
+					      }
 					   }
-					   delete fname;
                                         }
 <<EOF>>                                 {
 					   // delete current buffer
@@ -408,7 +524,7 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 					   else
 					      yyterminate();
                                         }
-\"					yylval->String = new QoreString(); yylloc->setExplicitFirst(yylineno); BEGIN(str_state);
+\"					yylval->String = new QoreStringNode(); yylloc->setExplicitFirst(yylineno); BEGIN(str_state);
 <str_state>{
       \"				BEGIN(INITIAL); return QUOTED_WORD;
       \n				yylval->String->concat('\n');
@@ -599,7 +715,7 @@ by					return TOK_BY;
 switch                                  return TOK_SWITCH;
 case                                    BEGIN(case_state); return TOK_CASE;
 <case_state>{
-   \/                                   yylval->Regex = new QoreRegex(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
+   \/                                   yylval->Regex = new QoreRegexNode(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
    {WS}+                                /* ignore */
    [^\/]                                yyless(0); BEGIN(INITIAL);
 }
@@ -614,6 +730,16 @@ trim					return TOK_TRIM;
 on_exit 		 		return TOK_ON_EXIT;
 on_success				return TOK_ON_SUCCESS;
 on_error 				return TOK_ON_ERROR;
+map                                     return TOK_MAP;
+foldr                                   return TOK_FOLDR;
+foldl                                   return TOK_FOLDL;
+select                                  return TOK_SELECT;
+static                                  return TOK_STATIC;
+class\(                                 yylval->string = strdup("class"); return KW_IDENTIFIER_OPENPAREN;
+private\(                               yylval->string = strdup("private"); return KW_IDENTIFIER_OPENPAREN;
+new\(                                   yylval->string = strdup("new"); return KW_IDENTIFIER_OPENPAREN;
+delete\(                                yylval->string = strdup("delete"); return KW_IDENTIFIER_OPENPAREN;
+case\(                                  yylval->string = strdup("case"); return KW_IDENTIFIER_OPENPAREN;
 chomp\(                                 yylval->string = strdup("chomp"); return KW_IDENTIFIER_OPENPAREN;
 trim\(                                  yylval->string = strdup("trim"); return KW_IDENTIFIER_OPENPAREN;
 push\(                                  yylval->string = strdup("push"); return KW_IDENTIFIER_OPENPAREN;
@@ -621,6 +747,153 @@ pop\(                                   yylval->string = strdup("pop"); return K
 splice\(                                yylval->string = strdup("splice"); return KW_IDENTIFIER_OPENPAREN;
 shift\(                                 yylval->string = strdup("shift"); return KW_IDENTIFIER_OPENPAREN;
 unshift\(                               yylval->string = strdup("unshift"); return KW_IDENTIFIER_OPENPAREN;
+background\(	   			yylval->string = strdup("background"); return KW_IDENTIFIER_OPENPAREN;
+exists\(                                yylval->string = strdup("exists"); return KW_IDENTIFIER_OPENPAREN;
+map\(                                   yylval->string = strdup("map"); return KW_IDENTIFIER_OPENPAREN;
+foldr\(                                 yylval->string = strdup("foldr"); return KW_IDENTIFIER_OPENPAREN;
+foldl\(                                 yylval->string = strdup("foldl"); return KW_IDENTIFIER_OPENPAREN;
+select\(                                yylval->string = strdup("select"); return KW_IDENTIFIER_OPENPAREN;
+inherits\(                              yylval->string = strdup("inherits"); return KW_IDENTIFIER_OPENPAREN;
+default{WS}*\(                          yylval->string = strdup("default"); return KW_IDENTIFIER_OPENPAREN;
+static{WS}*\(                           yylval->string = strdup("static"); return KW_IDENTIFIER_OPENPAREN;
+\.new[^A-Za-z_0-9]                      {
+                                           yylval->String = new QoreStringNode("new"); 
+					   if (yytext[4])
+					      unput(yytext[4]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.private[^A-Za-z_0-9]                  {
+                                           yylval->String = new QoreStringNode("private"); 
+					   if (yytext[8])
+					      unput(yytext[8]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.class[^A-Za-z_0-9]                    {
+                                           yylval->String = new QoreStringNode("class"); 
+					   if (yytext[6])
+					      unput(yytext[6]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.elements[^A-Za-z_0-9]                 {
+                                           yylval->String = new QoreStringNode("elements"); 
+					   if (yytext[9])
+					      unput(yytext[9]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.delete[^A-Za-z_0-9]                   {
+                                           yylval->String = new QoreStringNode("delete"); 
+					   if (yytext[7])
+					      unput(yytext[7]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.case[^A-Za-z_0-9]                     {
+                                           yylval->String = new QoreStringNode("case"); 
+					   if (yytext[5])
+					      unput(yytext[5]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.default[^A-Za-z_0-9]                  {
+                                           yylval->String = new QoreStringNode("default"); 
+					   if (yytext[8])
+					      unput(yytext[8]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.map[^A-Za-z_0-9]                      {
+                                           yylval->String = new QoreStringNode("map"); 
+					   if (yytext[4])
+					      unput(yytext[4]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.select[^A-Za-z_0-9]                   {
+                                           yylval->String = new QoreStringNode("select"); 
+					   if (yytext[7])
+					      unput(yytext[7]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.keys[^A-Za-z_0-9]                     {
+                                           yylval->String = new QoreStringNode("keys"); 
+					   if (yytext[5])
+					      unput(yytext[5]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.chomp[^A-Za-z_0-9]                    {
+                                           yylval->String = new QoreStringNode("chomp"); 
+					   if (yytext[6])
+					      unput(yytext[6]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.trim[^A-Za-z_0-9]                     {
+                                           yylval->String = new QoreStringNode("trim"); 
+					   if (yytext[5])
+					      unput(yytext[5]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.push[^A-Za-z_0-9]                     {
+                                           yylval->String = new QoreStringNode("push"); 
+					   if (yytext[5])
+					      unput(yytext[5]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.pop[^A-Za-z_0-9]                      {
+                                           yylval->String = new QoreStringNode("pop"); 
+					   if (yytext[4])
+					      unput(yytext[4]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.splice[^A-Za-z_0-9]                   {
+                                           yylval->String = new QoreStringNode("splice"); 
+					   if (yytext[7])
+					      unput(yytext[7]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.shift[^A-Za-z_0-9]                    {
+                                           yylval->String = new QoreStringNode("shift"); 
+					   if (yytext[6])
+					      unput(yytext[6]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.unshift[^A-Za-z_0-9]                  {
+                                           yylval->String = new QoreStringNode("unshift"); 
+					   if (yytext[8])
+					      unput(yytext[8]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.background[^A-Za-z_0-9]               {
+                                           yylval->String = new QoreStringNode("background"); 
+					   if (yytext[11])
+					      unput(yytext[11]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.find[^A-Za-z_0-9]                     {
+                                           yylval->String = new QoreStringNode("find"); 
+					   if (yytext[5])
+					      unput(yytext[5]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.exists[^A-Za-z_0-9]                   {
+                                           yylval->String = new QoreStringNode("exists"); 
+					   if (yytext[7])
+					      unput(yytext[7]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.foldr[^A-Za-z_0-9]                    {
+                                           yylval->String = new QoreStringNode("foldr"); 
+					   if (yytext[6])
+					      unput(yytext[6]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.foldl[^A-Za-z_0-9]                    {
+                                           yylval->String = new QoreStringNode("foldl"); 
+					   if (yytext[6])
+					      unput(yytext[6]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.static[^A-Za-z_0-9]                   {
+                                           yylval->String = new QoreStringNode("static"); 
+					   if (yytext[7])
+					      unput(yytext[7]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
 {YEAR}-{MONTH}-{DAY}[T-]{HOUR}:{MSEC}:{MSEC}(\.{MS})?   yylval->datetime = makeDateTime(yytext); return DATETIME;
 {YEAR}-{MONTH}-{DAY}                    yylval->datetime = makeDate(yytext); return DATETIME;
 {HOUR}:{MSEC}:{MSEC}(\.{MS})?           yylval->datetime = makeTime(yytext); return DATETIME;
@@ -630,17 +903,17 @@ PT{D2}:{D2}:{D2}(\.{MS})?               yylval->datetime = makeRelativeTime(yyte
 P{D2}:{D2}:{D2}(\.{MS})?                yylval->datetime = makeRelativeTime(yytext+1); return DATETIME;
 ({WORD}::)+{WORD}                       yylval->string = strdup(yytext); return SCOPED_REF;
 ({WORD}::)+\$\.{WORD}                   yylval->nscope = new NamedScope(strdup(yytext)); yylval->nscope->fixBCCall(); return BASE_CLASS_CALL;
-{DIGIT}+"."{DIGIT}+			yylval->decimal = strtod(yytext, NULL); return QFLOAT;
-0[0-7]+				        yylval->integer = strtoll(yytext+1, NULL, 8); return INTEGER;
-{DIGIT}+				yylval->integer = strtoll(yytext, NULL, 10); return INTEGER;
-{DIGIT}+Y                               yylval->datetime = makeYears(strtol(yytext, NULL, 10));   return DATETIME;
-{DIGIT}+M                               yylval->datetime = makeMonths(strtol(yytext, NULL, 10));  return DATETIME;
-{DIGIT}+D                               yylval->datetime = makeDays(strtol(yytext, NULL, 10));    return DATETIME;
-{DIGIT}+h                               yylval->datetime = makeHours(strtol(yytext, NULL, 10));   return DATETIME;
-{DIGIT}+ms                              yylval->datetime = makeMilliseconds(strtol(yytext, NULL, 10)); return DATETIME;
-{DIGIT}+m                               yylval->datetime = makeMinutes(strtol(yytext, NULL, 10)); return DATETIME;
-{DIGIT}+s                               yylval->datetime = makeSeconds(strtol(yytext, NULL, 10)); return DATETIME;
-{HEX_CONST}				yylval->integer = strtoll(yytext, NULL, 16); return INTEGER;
+{DIGIT}+"."{DIGIT}+			yylval->decimal = strtod(yytext, 0); return QFLOAT;
+0[0-7]+				        yylval->integer = strtoll(yytext+1, 0, 8); return INTEGER;
+{DIGIT}+				yylval->integer = strtoll(yytext, 0, 10); return INTEGER;
+{DIGIT}+Y                               yylval->datetime = makeYears(strtol(yytext, 0, 10));   return DATETIME;
+{DIGIT}+M                               yylval->datetime = makeMonths(strtol(yytext, 0, 10));  return DATETIME;
+{DIGIT}+D                               yylval->datetime = makeDays(strtol(yytext, 0, 10));    return DATETIME;
+{DIGIT}+h                               yylval->datetime = makeHours(strtol(yytext, 0, 10));   return DATETIME;
+{DIGIT}+ms                              yylval->datetime = makeMilliseconds(strtol(yytext, 0, 10)); return DATETIME;
+{DIGIT}+m                               yylval->datetime = makeMinutes(strtol(yytext, 0, 10)); return DATETIME;
+{DIGIT}+s                               yylval->datetime = makeSeconds(strtol(yytext, 0, 10)); return DATETIME;
+{HEX_CONST}				yylval->integer = strtoll(yytext, 0, 16); return INTEGER;
 {BINARY}                                yylval->binary = parseHex(yytext + 1, strlen(yytext + 1) - 1); return BINARY;
 \$\.{WORD}                              yylval->string = strdup(yytext + 2); return SELF_REF;
 \${WORD}				yylval->string = strdup(yytext + 1); return VAR_REF;
@@ -649,7 +922,9 @@ P{D2}:{D2}:{D2}(\.{MS})?                yylval->datetime = makeRelativeTime(yyte
 \%{WORD}\:{WORD}                        yylval->string = strdup(yytext + 1); return COMPLEX_CONTEXT_REF;
 \%\%                                    return TOK_CONTEXT_ROW;
 \`[^`]*\`                               yylval->string = strdup(remove_quotes(yytext)); return BACKQUOTE;
-\'[^\']*\'				yylval->String = new QoreString(remove_quotes(yytext)); return QUOTED_WORD;
+\'[^\']*\'				yylval->String = new QoreStringNode(remove_quotes(yytext)); return QUOTED_WORD;
+\$\$                                    yylval->implicit_arg = new QoreImplicitArgumentNode(-1); return IMPLICIT_ARG_REF;
+\$[0-9][0-9]*                           yylval->implicit_arg = new QoreImplicitArgumentNode(strtol(yytext + 1, 0, 0)); return IMPLICIT_ARG_REF;
 \<{WS}*=				return LOGICAL_LE;
 \>{WS}*=				return LOGICAL_GE;
 \!{WS}*=				return LOGICAL_NE;
@@ -677,10 +952,8 @@ P{D2}:{D2}:{D2}(\.{MS})?                yylval->datetime = makeRelativeTime(yyte
 
 \/\*                                    {
                                            int c;
-					   while ((c = yyinput(yyscanner)))
-					   {
-					      if (c == '*')
-					      {
+					   while ((c = yyinput(yyscanner))) {
+					      if (c == '*') {
 						 do
 						    c = yyinput(yyscanner);
 						 while (c == '*');
@@ -692,17 +965,17 @@ P{D2}:{D2}:{D2}(\.{MS})?                yylval->datetime = makeRelativeTime(yyte
 					   }
                                         }
 <regex_googleplex>{
-   s\/                                  yylval->RegexSubst = new RegexSubst(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_subst1);
-   x\/                                  yylval->Regex      = new QoreRegex();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_extract_state);
-   tr\/                                 yylval->RegexTrans = new RegexTrans(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_trans1);
-   m\/                                  yylval->Regex      = new QoreRegex();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state); 
-   \/                                   yylval->Regex      = new QoreRegex();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
+   s\/                                  yylval->RegexSubst = new RegexSubstNode(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_subst1);
+   x\/                                  yylval->Regex      = new QoreRegexNode();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_extract_state);
+   tr\/                                 yylval->RegexTrans = new RegexTransNode(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_trans1);
+   m\/                                  yylval->Regex      = new QoreRegexNode();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state); 
+   \/                                   yylval->Regex      = new QoreRegexNode();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
    {WSNL}+                              /* ignore whitespace */
    [^sxmt\/]                            parse_error("missing regular expression after =~"); BEGIN(INITIAL);
 }
 <regex_negative_universe>{
-   m\/                                  yylval->Regex      = new QoreRegex();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state); 
-   \/                                   yylval->Regex      = new QoreRegex();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
+   m\/                                  yylval->Regex      = new QoreRegexNode();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state); 
+   \/                                   yylval->Regex      = new QoreRegexNode();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
    {WSNL}+                              /* ignore whitespace */
    [^m\/]                               parse_error("missing regular expression after !~"); BEGIN(INITIAL);
 }

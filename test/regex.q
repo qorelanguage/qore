@@ -9,15 +9,11 @@
 
 # TODO: check against http://www.opengroup.org/onlinepubs/007908799/xbd/re.html
 
-# regex in qore should follow POSIX 1003.2 'extended'
-# actual behaviour depends on the used (g)libc
+# regex in qore is based on PCRE (perl5 regular expressions)
 
 # The following examples are in the order of regex(7) of Debian/Sarge
 # Comments beginning with '##' are quotes from regex(7)
 
-## 1003.2 leaves some aspects of RE syntax and semantics open; 
-## '(!)' marks decisions  on these  aspects that may not be fully 
-## portable to other 1003.2 implementations.
 
 ## A (modern) RE is one(!) or more non-empty(!) branches, separated  by '|'.
 ## It matches anything that matches one of the branches.

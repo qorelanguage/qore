@@ -1,57 +1,51 @@
 /*
   Function.cc
 
-  Qore Programming language
+  Qore Programming Language
 
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2009 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
-  
+
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser General Public
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include <qore/Qore.h>
-#include <qore/Function.h>
-#include <qore/Operator.h>
-#include <qore/StatementBlock.h>
+#include <qore/intern/QoreClassIntern.h>
 
 #include <stdio.h>
 #include <ctype.h>
 #include <assert.h>
 
-static inline void param_error()
-{
+static inline void param_error() {
    parse_error("parameter list contains non-variable reference expressions.");
 }
 
-SelfFunctionCall::SelfFunctionCall(char *n) 
-{ 
-   ns = NULL;
+SelfFunctionCall::SelfFunctionCall(char *n) { 
+   ns = 0;
    name = n; 
-   func = NULL; 
+   func = 0; 
 }
 
-SelfFunctionCall::SelfFunctionCall(class NamedScope *n) 
-{ 
+SelfFunctionCall::SelfFunctionCall(class NamedScope *n) { 
    ns = n;
-   name = NULL; 
-   func = NULL; 
+   name = 0; 
+   func = 0; 
 }
 
-SelfFunctionCall::SelfFunctionCall(class Method *f) 
-{ 
-   ns = NULL;
-   name = NULL;
+SelfFunctionCall::SelfFunctionCall(const QoreMethod *f) { 
+   ns = 0;
+   name = 0;
    func = f; 
 }
 
@@ -77,19 +71,18 @@ class NamedScope *SelfFunctionCall::takeNScope()
    return rns;
 }
 
-class QoreNode *SelfFunctionCall::eval(class QoreNode *args, class ExceptionSink *xsink)
+AbstractQoreNode *SelfFunctionCall::eval(const QoreListNode *args, ExceptionSink *xsink) const
 {
-   class Object *self = getStackObject();
+   QoreObject *self = getStackObject();
    
    if (func)
-      return func->eval(self, args, xsink);
+      return self->evalMethod(*func, args, xsink);
    // otherwise exec copy method
    return self->getClass()->execCopy(self, xsink);
 }
 
 // called at parse time
-void SelfFunctionCall::resolve()
-{
+void SelfFunctionCall::resolve() {
 #ifdef DEBUG
    if (ns)
       printd(5, "SelfFunctionCall:resolve() resolving base class call '%s'\n", ns->ostr);
@@ -97,15 +90,13 @@ void SelfFunctionCall::resolve()
       printd(5, "SelfFunctionCall:resolve() resolving '%s'\n", name ? name : "(null)");
    assert(!func);
 #endif
-   if (name)
-   {
+   if (name) {
       // FIXME: warn if argument list passed (will be ignored)
 
-      // copy method calls will be recognized by func = NULL
-      if (!strcmp(name, "copy"))
-      {
+      // copy method calls will be recognized by func = 0
+      if (!strcmp(name, "copy")) {
 	 free(name);
-	 name = NULL;
+	 name = 0;
 	 printd(5, "SelfFunctionCall:resolve() resolved to copy constructor\n");
 	 return;
       }
@@ -113,238 +104,74 @@ void SelfFunctionCall::resolve()
    }
    else
       func = getParseClass()->resolveSelfMethod(ns);
-   if (func)
-   {
+   if (func) {
       printd(5, "SelfFunctionCall:resolve() resolved '%s' to %08p\n", func->getName(), func);
-      if (name)
-      {
+      if (name) {
 	 free(name);
-	 name = NULL;
+	 name = 0;
       }
-      else if (ns)
-      {
+      else if (ns) {
 	 delete ns;
-	 ns = NULL;
+	 ns = 0;
       }
    }
 }
 
-class QoreNode *ImportedFunctionCall::eval(class QoreNode *args, class ExceptionSink *xsink)
+AbstractQoreNode *ImportedFunctionCall::eval(const QoreListNode *args, ExceptionSink *xsink) const
 {
    // save current program location in case there's an exception
    const char *o_fn = get_pgm_file();
    int o_ln, o_eln;
    get_pgm_counter(o_ln, o_eln);
    
-   class QoreNode *rv = pgm->callFunction(func, args, xsink);
+   AbstractQoreNode *rv = pgm->callFunction(func, args, xsink);
 
    if (xsink->isException())
-      xsink->addStackInfo(CT_USER, NULL, func->getName(), o_fn, o_ln, o_eln);
+      xsink->addStackInfo(CT_USER, 0, func->getName(), o_fn, o_ln, o_eln);
    
    return rv;
 }
 
-FunctionCall::FunctionCall(class UserFunction *u, class QoreNode *a)
+
+Paramlist::Paramlist(AbstractQoreNode *params)
 {
-   type = FC_USER;
-   f.ufunc = u;
-   args = a;
-}
+   ReferenceHolder<AbstractQoreNode> param_holder(params, 0);
 
-FunctionCall::FunctionCall(class BuiltinFunction *b, class QoreNode *a)
-{
-   type = FC_BUILTIN;
-   f.bfunc = b;
-   args = a;
-}
-
-FunctionCall::FunctionCall(class QoreNode *a, char *name)
-{
-   printd(5, "FunctionCall::FunctionCall(a=%08p, name=%s) FC_SELF this=%08p\n", a, name, this);
-   type = FC_SELF;
-   f.sfunc = new SelfFunctionCall(name);
-   args = a;
-}
-
-FunctionCall::FunctionCall(class QoreNode *a, class NamedScope *n)
-{
-   printd(5, "FunctionCall::FunctionCall(a=%08p, n=%s) FC_SELF this=%08p\n", a, n->ostr, this);
-   type = FC_SELF;
-   f.sfunc = new SelfFunctionCall(n);
-   args = a;
-}
-
-FunctionCall::FunctionCall(class Method *m, class QoreNode *a)
-{
-   printd(5, "FunctionCall::FunctionCall(a=%08p, method=%08p %s) FC_SELF this=%08p\n", a, m, m->getName(), this);
-   type = FC_SELF;
-   f.sfunc = new SelfFunctionCall(m);
-   args = a;
-}
-
-FunctionCall::FunctionCall(char *name, class QoreNode *a)
-{
-   type = FC_UNRESOLVED;
-   f.c_str = name;
-   args = a;
-}
-
-FunctionCall::FunctionCall(class QoreProgram *p, class UserFunction *u, class QoreNode *a)
-{
-   type = FC_IMPORTED;
-   f.ifunc = new ImportedFunctionCall(p, u);
-   args = a;
-}
-
-FunctionCall::FunctionCall(char *n_c_str)
-{
-   type = FC_METHOD;
-   f.c_str = n_c_str;
-   args = NULL;
-}
-
-FunctionCall::~FunctionCall()
-{
-   printd(5, "FunctionCall::~FunctionCall(): type=%d args=%08p (%s)\n",
-	  type, args, (type == FC_UNRESOLVED && f.c_str) ? f.c_str : "(null)");
-
-   // there could be an object here in the case of a background expression
-   if (args)
-   {
-      ExceptionSink xsink;
-      args->deref(&xsink);
-   }
-
-   switch (type)
-   {
-      case FC_USER:
-      case FC_BUILTIN:
-	 break;
-      case FC_SELF:
-	 delete f.sfunc;
-	 break;
-      case FC_METHOD:
-      case FC_UNRESOLVED:
-	 if (f.c_str)
-	    free(f.c_str);
-	 break;
-      case FC_IMPORTED:
-	 delete f.ifunc;
-	 break;
-   }
-}
-
-char *FunctionCall::takeName()
-{
-   char *str = f.c_str;
-   f.c_str = 0;
-   return str;
-}
-
-void FunctionCall::parseMakeMethod()
-{
-   type = FC_METHOD;
-}
-
-// makes a "new" operator call from a function call
-class QoreNode *FunctionCall::parseMakeNewObject()
-{
-   class QoreNode *rv = new QoreNode(new NamedScope(f.c_str), args);
-   f.c_str = NULL;
-   args = NULL;
-   return rv;
-}
-
-class QoreNode *FunctionCall::eval(class ExceptionSink *xsink)
-{
-   switch (type)
-   {
-      case FC_USER:
-	 return f.ufunc->eval(args, NULL, xsink);
-      case FC_BUILTIN:
-	 return f.bfunc->eval(args, xsink);
-      case FC_SELF:
-	 return f.sfunc->eval(args, xsink);
-      case FC_IMPORTED:
-	 return f.ifunc->eval(args, xsink);
-   }
-
-   assert(false);
-   return NULL;
-}
-
-int FunctionCall::existsUserParam(int i) const
-{
-   if (type == FC_USER)
-      return f.ufunc->params->num_params > i;
-   if (type == FC_IMPORTED)
-      return f.ifunc->func->params->num_params > i;
-   return 1;
-}
-
-int FunctionCall::getType() const
-{
-   return type;
-}
-
-const char *FunctionCall::getName() const
-{
-   switch (type)
-   {
-      case FC_USER:
-	 return f.ufunc->getName();
-      case FC_BUILTIN:
-	 return f.bfunc->getName();
-      case FC_SELF:
-	 return f.sfunc->name;
-      case FC_IMPORTED:
-	 return f.ifunc->func->getName();
-      case FC_UNRESOLVED:
-      case FC_METHOD:
-	 return f.c_str ? f.c_str : (char *)"copy";
-   }
-   return NULL;   
-}
-
-Paramlist::Paramlist(class QoreNode *params)
-{
-   ids = NULL;
-   if (!params)
-   {
+   lv = 0;
+   if (!params) {
       num_params = 0;
-      names = NULL;
+      names = 0;
+      return;
    }
-   else if (params->type == NT_VARREF)
-   {
+
+   if (params->getType() == NT_VARREF) {
       num_params = 1;
       names = new char *[1];
-      names[0] = strdup(params->val.vref->name);
-      params->deref(NULL);
+      names[0] = strdup(reinterpret_cast<const VarRefNode *>(params)->name);
+      return;
    }
-   else if (params->type != NT_LIST)
-   {
+
+   if (params->getType() != NT_LIST) {
       param_error();
       num_params = 0;
-      names = NULL;
+      names = 0;
+      return;
    }
-   else
-   {
-      num_params = params->val.list->size();
-      names = new char *[params->val.list->size()];
-      for (int i = 0; i < params->val.list->size(); i++)
-      {
-         if (params->val.list->retrieve_entry(i)->type != NT_VARREF)
-         {
-            param_error();
-            num_params = 0;
-            delete [] names;
-            names = NULL;
-            break;
-         }
-         else
-            names[i] = strdup(params->val.list->retrieve_entry(i)->val.vref->name);
+
+   const QoreListNode *l = reinterpret_cast<const QoreListNode *>(params);
+
+   num_params = l->size();
+   names = new char *[num_params];
+   for (int i = 0; i < num_params; i++) {
+      if (l->retrieve_entry(i)->getType() != NT_VARREF) {
+	 param_error();
+	 num_params = 0;
+	 delete [] names;
+	 names = 0;
+	 break;
       }
-      params->deref(NULL);
+      else
+	 names[i] = strdup(reinterpret_cast<const VarRefNode *>(l->retrieve_entry(i))->name);
    }
 }
 
@@ -354,20 +181,20 @@ Paramlist::~Paramlist()
       free(names[i]);
    if (names)
       delete [] names;
-   if (ids)
-      delete [] ids;
+   if (lv)
+      delete [] lv;
 }
 
-UserFunction::UserFunction(char *nme, class Paramlist *parms, class StatementBlock *b, bool synced)
-{
+UserFunction::UserFunction(char *n_name, Paramlist *parms, StatementBlock *b, bool synced) {
+   printd(5, "UserFunction::UserFunction(%s) parms=%p b=%p synced=%d\n", n_name ? n_name : "null", parms, b, synced);
    synchronized = synced;
    if (synced)
       gate = new VRMutex();
 # ifdef DEBUG
    else
-      gate = NULL;
+      gate = 0;
 # endif
-   name = nme;
+   name = n_name;
    params = parms;
    statements = b;
 }
@@ -380,7 +207,8 @@ UserFunction::~UserFunction()
    delete params;
    if (statements)
       delete statements;
-   free(name);
+   if (name)
+      free(name);
 }
 
 void UserFunction::deref()
@@ -389,49 +217,99 @@ void UserFunction::deref()
       delete this;
 }
 
-BuiltinFunction::BuiltinFunction(const char *nme, q_func_t f, int typ)
-{
+BuiltinFunction::BuiltinFunction(const char *nme, q_func_t f, int typ) {
    type = typ;
    name = nme;
    code.func = f;
-   next = NULL;
+   next = 0;
 }
 
-BuiltinFunction::BuiltinFunction(const char *nme, q_method_t m, int typ)
-{
+BuiltinFunction::BuiltinFunction(const char *nme, q_static_method2_t f, int typ) {
+   type = typ;
+   name = nme;
+   code.static_method = f;
+   next = 0;
+}
+
+BuiltinFunction::BuiltinFunction(const char *nme, q_method_t m, int typ) {
    type = typ;
    name = nme;
    code.method = m;
-   next = NULL;
+   next = 0;
 }
 
-BuiltinFunction::BuiltinFunction(q_constructor_t m, int typ)
-{
+BuiltinFunction::BuiltinFunction(const char *nme, q_method2_t m, int typ) {
+   type = typ;
+   name = nme;
+   code.method2 = m;
+   next = 0;
+}
+
+BuiltinFunction::BuiltinFunction(q_constructor_t m, int typ) {
    type = typ;
    name = "constructor";
    code.constructor = m;
-   next = NULL;
+   next = 0;
 }
 
-BuiltinFunction::BuiltinFunction(q_destructor_t m, int typ)
-{
+BuiltinFunction::BuiltinFunction(q_constructor2_t m, int typ) {
+   type = typ;
+   name = "constructor";
+   code.constructor2 = m;
+   next = 0;
+}
+
+BuiltinFunction::BuiltinFunction(q_system_constructor_t m, int typ) {
+   type = typ;
+   name = "constructor";
+   code.system_constructor = m;
+   next = 0;
+}
+
+BuiltinFunction::BuiltinFunction(q_system_constructor2_t m, int typ) {
+   type = typ;
+   name = "constructor";
+   code.system_constructor2 = m;
+   next = 0;
+}
+
+BuiltinFunction::BuiltinFunction(q_destructor_t m, int typ) {
    type = typ;
    name = "destructor";
    code.destructor = m;
-   next = NULL;
+   next = 0;
 }
 
-BuiltinFunction::BuiltinFunction(q_copy_t m, int typ)
-{
+BuiltinFunction::BuiltinFunction(q_destructor2_t m, int typ) {
+   type = typ;
+   name = "destructor";
+   code.destructor2 = m;
+   next = 0;
+}
+
+BuiltinFunction::BuiltinFunction(q_copy_t m, int typ) {
    type = typ;
    name = "copy";
    code.copy = m;
-   next = NULL;
+   next = 0;
 }
 
-void BuiltinFunction::evalConstructor(class Object *self, class QoreNode *args, class BCList *bcl, class BCEAList *bceal, const char *class_name, class ExceptionSink *xsink)
-{
-   tracein("BuiltinFunction::evalConstructor()");
+BuiltinFunction::BuiltinFunction(q_copy2_t m, int typ) {
+   type = typ;
+   name = "copy";
+   code.copy2 = m;
+   next = 0;
+}
+
+BuiltinFunction::BuiltinFunction(q_delete_blocker_t m) {
+   type = QDOM_DEFAULT;
+   name = "(delete_blocker)";
+   code.delete_blocker = m;
+   next = 0;
+}
+
+void BuiltinFunction::evalConstructor(QoreObject *self, const QoreListNode *args, class BCList *bcl, class BCEAList *bceal, const char *class_name, ExceptionSink *xsink) const {
+   QORE_TRACE("BuiltinFunction::evalConstructor()");
 
    // save current program location in case there's an exception
    const char *o_fn = get_pgm_file();
@@ -439,35 +317,58 @@ void BuiltinFunction::evalConstructor(class Object *self, class QoreNode *args, 
    get_pgm_counter(o_ln, o_eln);
 
    CodeContextHelper cch("constructor", self, xsink);
+
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
    // push call on call stack
-   pushCall("constructor", CT_BUILTIN, self);
+   CallStackHelper csh("constructor", CT_BUILTIN, self, xsink);
+#endif
 
    if (bcl)
       bcl->execConstructorsWithArgs(self, bceal, xsink);
    
-   if (!xsink->isEvent())
-   {
+   if (!xsink->isEvent()) {
       code.constructor(self, args, xsink);
       if (xsink->isException())
 	 xsink->addStackInfo(CT_BUILTIN, class_name, "constructor", o_fn, o_ln, o_eln);
    }
-   
-   popCall(xsink);
-
-   traceout("BuiltinFunction::evalWithArgs()");
 }
 
-void BuiltinFunction::evalSystemConstructor(class Object *self, class QoreNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink)
-{
+void BuiltinFunction::evalConstructor2(const QoreClass &thisclass, QoreObject *self, const QoreListNode *args, class BCList *bcl, class BCEAList *bceal, const char *class_name, ExceptionSink *xsink) const {
+   QORE_TRACE("BuiltinFunction::evalConstructor2()");
+
+   // save current program location in case there's an exception
+   const char *o_fn = get_pgm_file();
+   int o_ln, o_eln;
+   get_pgm_counter(o_ln, o_eln);
+
+   CodeContextHelper cch("constructor", self, xsink);
+
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+   // push call on call stack
+   CallStackHelper csh("constructor", CT_BUILTIN, self, xsink);
+#endif
+
    if (bcl)
       bcl->execConstructorsWithArgs(self, bceal, xsink);
    
-   code.constructor(self, args, xsink);
+   if (!xsink->isEvent()) {
+      code.constructor2(thisclass, self, args, xsink);
+      if (xsink->isException())
+	 xsink->addStackInfo(CT_BUILTIN, class_name, "constructor", o_fn, o_ln, o_eln);
+   }
 }
 
-QoreNode *BuiltinFunction::evalWithArgs(class Object *self, class QoreNode *args, class ExceptionSink *xsink)
+void BuiltinFunction::evalSystemConstructor(const QoreClass &thisclass, bool new_calling_convention, QoreObject *self, int val, va_list args) const {
+   if (new_calling_convention)
+      code.system_constructor2(thisclass, self, val, args);
+   else
+      code.system_constructor(self, val, args);
+}
+
+/*
+AbstractQoreNode *BuiltinFunction::evalWithArgs(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const
 {
-   tracein("BuiltinFunction::evalWithArgs()");
+   QORE_TRACE("BuiltinFunction::evalWithArgs()");
    printd(2, "BuiltinFunction::evalWithArgs() calling builtin function \"%s\"\n", name);
 
    // save current program location in case there's an exception
@@ -475,45 +376,55 @@ QoreNode *BuiltinFunction::evalWithArgs(class Object *self, class QoreNode *args
    int o_ln, o_eln;
    get_pgm_counter(o_ln, o_eln);
 
-   QoreNode *rv;
+   AbstractQoreNode *rv;
    {
       CodeContextHelper cch(name, self, xsink);
-      // push call on call stack
-      pushCall(name, CT_BUILTIN, self);
+
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+      // push call on call stac
+      CallStackHelper csh(name, CT_BUILTIN, self, xsink);
+#endif
 
       rv = code.func(args, xsink);
-
-      popCall(xsink);
    }
    
    if (xsink->isException())
-      xsink->addStackInfo(CT_BUILTIN, self ? self->getClass()->getName() : NULL, name, o_fn, o_ln, o_eln);
+      xsink->addStackInfo(CT_BUILTIN, self ? self->getClassName() : 0, name, o_fn, o_ln, o_eln);
 
-   traceout("BuiltinFunction::evalWithArgs()");
    return rv;
 }
+*/
 
-QoreNode *BuiltinFunction::evalMethod(class Object *self, void *private_data, class QoreNode *args, class ExceptionSink *xsink)
-{
-   tracein("BuiltinFunction::evalMethod()");
-   printd(2, "BuiltinFunction::evalMethod() calling builtin function '%s' obj=%08p data=%08p\n", name, self, private_data);
-   
+AbstractQoreNode *BuiltinFunction::evalMethod(QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink) const {
+   printd(2, "BuiltinFunction::evalMethod() calling builtin func '%s' old calling convention obj=%08p data=%08p\n", name, self, private_data);
+
    CodeContextHelper cch(name, self, xsink);
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
    // push call on call stack in debugging mode
-   pushCall(name, CT_BUILTIN, self);
+   CallStackHelper csh(name, CT_BUILTIN, self, xsink);
+#endif
 
-   // note: exception stack trace is added at the level above
-   QoreNode *rv = code.method(self, private_data, args, xsink);
-
-   popCall(xsink);
-
-   traceout("BuiltinFunction::evalWithArgs()");
-   return rv;
+   // exception information added at the level above
+   // (program location must be saved before arguments are evaluated)
+   return code.method(self, private_data, args, xsink);
 }
 
-void BuiltinFunction::evalDestructor(class Object *self, void *private_data, const char *class_name, class ExceptionSink *xsink)
-{
-   tracein("BuiltinFunction::evalDestructor()");
+AbstractQoreNode *BuiltinFunction::evalMethod(const QoreMethod &method, QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink) const {
+   printd(2, "BuiltinFunction::evalMethod() calling builtin func '%s' new calling convention obj=%08p data=%08p\n", name, self, private_data);
+
+   CodeContextHelper cch(name, self, xsink);
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+   // push call on call stack in debugging mode
+   CallStackHelper csh(name, CT_BUILTIN, self, xsink);
+#endif
+
+   // exception information added at the level above
+   // (program location must be saved before arguments are evaluated)
+   return code.method2(method, self, private_data, args, xsink);
+}
+
+void BuiltinFunction::evalDestructor(const QoreClass &thisclass, QoreObject *self, AbstractPrivateData *private_data, const char *class_name, bool new_calling_convention, ExceptionSink *xsink) const {
+   QORE_TRACE("BuiltinFunction::evalDestructor()");
    
    // save current program location in case there's an exception
    const char *o_fn = get_pgm_file();
@@ -522,23 +433,23 @@ void BuiltinFunction::evalDestructor(class Object *self, void *private_data, con
 
    {
       CodeContextHelper cch("destructor", self, xsink);
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
       // push call on call stack
-      pushCall("destructor", CT_BUILTIN, self);
+      CallStackHelper csh("destructor", CT_BUILTIN, self, xsink);
+#endif
 
-      code.destructor(self, private_data, xsink);
-
-      popCall(xsink);
+      if (new_calling_convention)
+	 code.destructor2(thisclass, self, private_data, xsink);
+      else
+	 code.destructor(self, private_data, xsink);
    }
    
    if (xsink->isException())
       xsink->addStackInfo(CT_BUILTIN, class_name, "destructor", o_fn, o_ln, o_eln);
-   
-   traceout("BuiltinFunction::destructor()");
 }
 
-void BuiltinFunction::evalCopy(class Object *self, class Object *old, void *private_data, const char *class_name, class ExceptionSink *xsink)
-{
-   tracein("BuiltinFunction::evalCopy()");
+void BuiltinFunction::evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, AbstractPrivateData *private_data, bool new_calling_convention, ExceptionSink *xsink) const {
+   QORE_TRACE("BuiltinFunction::evalCopy()");
    
    // save current program location in case there's an exception
    const char *o_fn = get_pgm_file();
@@ -547,277 +458,294 @@ void BuiltinFunction::evalCopy(class Object *self, class Object *old, void *priv
    
    {
       CodeContextHelper cch("copy", self, xsink);
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
       // push call on call stack
-      pushCall("copy", CT_BUILTIN, self);
+      CallStackHelper csh("copy", CT_BUILTIN, self, xsink);
+#endif
 
-      code.copy(self, old, private_data, xsink);
-
-      popCall(xsink);
+      if (new_calling_convention)
+	 code.copy2(thisclass, self, old, private_data, xsink);
+      else
+	 code.copy(self, old, private_data, xsink);
    }
    
    if (xsink->isException())
-      xsink->addStackInfo(CT_BUILTIN, class_name, "copy", o_fn, o_ln, o_eln);
-   
-   traceout("BuiltinFunction::evalCopy()");
+      xsink->addStackInfo(CT_BUILTIN, thisclass.getName(), "copy", o_fn, o_ln, o_eln);
 }
 
-void BuiltinFunction::evalSystemDestructor(class Object *self, void *private_data, class ExceptionSink *xsink)
-{
-   code.destructor(self, private_data, xsink);
+bool BuiltinFunction::evalDeleteBlocker(QoreObject *self, AbstractPrivateData *private_data) const {
+   return code.delete_blocker(self, private_data);
 }
 
-QoreNode *BuiltinFunction::eval(QoreNode *args, ExceptionSink *xsink)
-{
-   class QoreNode *tmp, *rv;
+void BuiltinFunction::evalSystemDestructor(const QoreClass &thisclass, bool new_calling_convention, QoreObject *self, AbstractPrivateData *private_data, ExceptionSink *xsink) const {
+   if (new_calling_convention)
+      code.destructor2(thisclass, self, private_data, xsink);
+   else
+      code.destructor(self, private_data, xsink);
+}
+
+AbstractQoreNode *BuiltinFunction::evalStatic2(const QoreMethod &method, const QoreListNode *args, ExceptionSink *xsink) const {
+   AbstractQoreNode *rv;
    ExceptionSink newsink;
 
-   tracein("BuiltinFunction::eval(Node)");
-   printd(3, "BuiltinFunction::eval(Node) calling builtin function \"%s\"\n", name);
+   QORE_TRACE("BuiltinFunction::evalStatic2()");
+   printd(3, "BuiltinFunction::evalStatic2() calling builtin function \"%s\"\n", name);
    
-   //printd(5, "BuiltinFunction::eval(Node) args=%08p %s\n", args, args ? args->type->getName() : "(null)");
+   //printd(5, "BuiltinFunction::eval(Node) args=%08p %s\n", args, args ? args->getTypeName() : "(null)");
 
    // save current program location in case there's an exception
    const char *o_fn = get_pgm_file();
    int o_ln, o_eln;
    get_pgm_counter(o_ln, o_eln);
-   
-   if (args)
-      tmp = args->eval(&newsink);
-   else
-      tmp = NULL;
 
-   //printd(5, "BuiltinFunction::eval(Node) after eval tmp args=%08p %s\n", tmp, tmp ? tmp->type->getName() : "(null)");
+   QoreListNodeEvalOptionalRefHolder tmp(args, xsink);
+   if (*xsink)
+      return 0;
+
+   //printd(5, "BuiltinFunction::eval(Node) after eval tmp args=%08p %s\n", *tmp, *tmp ? *tmp->getTypeName() : "(null)");
 
    {
-      CodeContextHelper cch(name, NULL, xsink);
+      CodeContextHelper cch(name, 0, xsink);
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
       // push call on call stack
-      pushCall(name, CT_BUILTIN);
+      CallStackHelper csh(name, CT_BUILTIN, 0, xsink);
+#endif
 
       // execute the function if no new exception has happened
       // necessary only in the case of a builtin object destructor
       if (!newsink.isEvent())
-	 rv = code.func(tmp, xsink);
+	 rv = code.static_method(method, *tmp, xsink);
       else
-	 rv = NULL;
+	 rv = 0;
 
       xsink->assimilate(&newsink);
-
-      // pop call off call stack
-      popCall(xsink);
    }
 
-   discard(tmp, xsink);
+   if (xsink->isException())
+      xsink->addStackInfo(CT_BUILTIN, method.getClass()->getName(), name, o_fn, o_ln, o_eln);
+
+   return rv;
+}
+
+AbstractQoreNode *BuiltinFunction::eval(const QoreListNode *args, ExceptionSink *xsink, const char *class_name) const {
+   AbstractQoreNode *rv;
+   ExceptionSink newsink;
+
+   QORE_TRACE("BuiltinFunction::eval(Node)");
+   printd(3, "BuiltinFunction::eval(Node) calling builtin function \"%s\"\n", name);
+   
+   //printd(5, "BuiltinFunction::eval(Node) args=%08p %s\n", args, args ? args->getTypeName() : "(null)");
+
+   // save current program location in case there's an exception
+   const char *o_fn = get_pgm_file();
+   int o_ln, o_eln;
+   get_pgm_counter(o_ln, o_eln);
+
+   QoreListNodeEvalOptionalRefHolder tmp(args, xsink);
+   if (*xsink)
+      return 0;
+
+   //printd(5, "BuiltinFunction::eval(Node) after eval tmp args=%08p %s\n", *tmp, *tmp ? *tmp->getTypeName() : "(null)");
+
+   {
+      CodeContextHelper cch(name, 0, xsink);
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+      // push call on call stack
+      CallStackHelper csh(name, CT_BUILTIN, 0, xsink);
+#endif
+
+      // execute the function if no new exception has happened
+      // necessary only in the case of a builtin object destructor
+      if (!newsink.isEvent())
+	 rv = code.func(*tmp, xsink);
+      else
+	 rv = 0;
+
+      xsink->assimilate(&newsink);
+   }
 
    if (xsink->isException())
-      xsink->addStackInfo(CT_BUILTIN, NULL, name, o_fn, o_ln, o_eln);
-   
-   traceout("BuiltinFunction::eval(Node)");
+      xsink->addStackInfo(CT_BUILTIN, class_name ? class_name : 0, name, o_fn, o_ln, o_eln);
+
    return rv;
 }
 
 // calls a user function
-class QoreNode *UserFunction::eval(QoreNode *args, Object *self, class ExceptionSink *xsink, const char *class_name)
-{
-   tracein("UserFunction::eval()");
-   printd(2, "UserFunction::eval(): function='%s' args=%08p (size=%d)\n", name, args, args ? args->val.list->size() : 0);
+AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self, ExceptionSink *xsink, const char *class_name) const {
+   QORE_TRACE("UserFunction::eval()");
+   printd(5, "UserFunction::eval(): function='%s' args=%08p (size=%d)\n", getName(), args, args ? args->size() : 0);
 
    // save current program location in case there's an exception
    const char *o_fn = get_pgm_file();
    int o_ln, o_eln;
    get_pgm_counter(o_ln, o_eln);
-      
-   int i = 0;
-   class QoreNode *val = NULL;
-   int num_args, num_params;
 
-   if (args)
-      num_args = args->val.list->size();
-   else
-      num_args = 0;
-
+   int num_args = args ? args->size() : 0;
    // instantiate local vars from param list
-   num_params = params->num_params;
-   for (i = 0; i < num_params; i++)
-   {
-      QoreNode *n = args ? args->val.list->retrieve_entry(i) : NULL;
-      printd(4, "UserFunction::eval() %d: instantiating param lvar %d (%08p %s)\n", i, params->ids[i], n, n ? n->type->getName() : "(null)");
-      if (n)
-      {
-         if (n->type == NT_REFERENCE)
-         {
+   int num_params = params->num_params;
+   
+   ReferenceHolder<QoreListNode> argv(xsink);
+
+   for (int i = 0; i < num_params; i++) {
+      AbstractQoreNode *n = args ? const_cast<AbstractQoreNode *>(args->retrieve_entry(i)) : 0;
+      printd(4, "UserFunction::eval() eval %d: instantiating param lvar %s (id=%08p) (n=%08p %s)\n", i, params->lv[i], params->lv[i], n, n ? n->getTypeName() : "(null)");
+      if (n) {
+	 if (n->getType() == NT_REFERENCE) {
+	    const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(n);
 	    bool is_self_ref = false;
-            n = doPartialEval(n->val.lvexp, &is_self_ref, xsink);
+	    n = doPartialEval(r->getExpression(), &is_self_ref, xsink);
 	    //printd(5, "UserFunction::eval() ref self_ref=%d, self=%08p (%s) so=%08p (%s)\n", is_self_ref, self, self ? self->getClass()->name : "NULL", getStackObject(), getStackObject() ? getStackObject()->getClass()->name : "NULL");
-            if (!xsink->isEvent())
-	       instantiateLVar(params->ids[i], n, is_self_ref ? getStackObject() : NULL);
-         }
-         else
-         {
-            n = n->eval(xsink);
+	    if (!*xsink)
+	       params->lv[i]->instantiate(n, is_self_ref ? getStackObject() : 0);
+	 }
+	 else {
+	    n = n->eval(xsink);
 	    if (!xsink->isEvent())
-	       instantiateLVar(params->ids[i], n);
-         }
+	       params->lv[i]->instantiate(n);
+	 }
 	 // the above if block will only instantiate the local variable if no
 	 // exceptions have occurred. therefore here we do the cleanup the rest
 	 // of any already instantiated local variables if an exception does occur
-         if (xsink->isEvent())
-         {
-            if (n)
-               n->deref(xsink);
-            for (int j = i; j; j--)
-               uninstantiateLVar(xsink);
-            return NULL;
-         }
+	 if (*xsink) {
+	    if (n)
+	       n->deref(xsink);
+	    while (i)
+	       params->lv[--i]->uninstantiate(xsink);
+	    return 0;
+	 }
       }
       else
-         instantiateLVar(params->ids[i], NULL);
+	 params->lv[i]->instantiate(0);
    }
 
    // if there are more arguments than parameters
    printd(5, "UserFunction::eval() params=%d arg=%d\n", num_params, num_args);
-   class QoreNode *argv;
    
-   if (num_params < num_args)
-   {
-      List *l = new List();
+   if (num_params < num_args) {
+      argv = new QoreListNode();
       
-      for (i = 0; i < (num_args - num_params); i++)
-         if (args->val.list->retrieve_entry(i + num_params))
-         {
-            QoreNode *v = args->val.list->eval_entry(i + num_params, xsink);
-            if (xsink->isEvent())
-            {
-	       if (v)
-		  v->deref(xsink);
-               l->derefAndDelete(xsink);
-               // uninstantiate local vars from param list
-               for (int j = 0; j < num_params; j++)
-                  uninstantiateLVar(xsink);
-               return NULL;
-            }
-            l->push(v);
-         }
-         else
-            l->push(NULL);
-      argv = new QoreNode(l);
+      for (int i = 0; i < (num_args - num_params); i++) {
+	 AbstractQoreNode *v = args->eval_entry(i + num_params, xsink);
+	 argv->push(v);
+	 if (*xsink) {
+	    // uninstantiate local vars from param list
+	    for (int j = 0; j < num_params; j++)
+	       params->lv[j]->uninstantiate(xsink);
+	    return 0;
+	 }
+      }
    }
-   else
-      argv = NULL;
 
-   if (statements)
-   {
-      CodeContextHelper cch(name, self, xsink);
+   AbstractQoreNode *val = 0;
+   if (statements) {
+      CodeContextHelper cch(getName(), self, xsink);
 
-      pushCall(name, CT_USER, self);
-
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
       // push call on stack
+      CallStackHelper csh(getName(), CT_USER, self, xsink);
+#endif
+
       if (self)
-         self->instantiateLVar(params->selfid);
+         params->selfid->instantiate_object(self);
    
       // instantiate argv and push id on stack
-      instantiateLVar(params->argvid, argv);
+      params->argvid->instantiate(argv ? argv->refSelf() : 0);
 
       {
-	 ArgvContextHelper(params->argvid);
+	 ArgvContextHelper argv_helper(argv.release(), xsink);
 
 	 // enter gate if necessary
-	 if (!synchronized || (gate->enter(xsink) >= 0))
-	 {
+	 if (!synchronized || (gate->enter(xsink) >= 0)) {
 	    // execute function
 	    val = statements->exec(xsink);
-	    
+
 	    // exit gate if necessary
 	    if (synchronized)
 	       gate->exit();
-	 }	 
+	 }
       }
 
       // uninstantiate argv
-      uninstantiateLVar(xsink);
-
+      params->argvid->uninstantiate(xsink);
+	 
       // if self then uninstantiate
       if (self)
-	 self->uninstantiateLVar(xsink);
-
-      popCall(xsink);   
+         params->selfid->uninstantiate(xsink);
    }
    else
-      discard(argv, xsink);
+      argv = 0; // dereference argv now
 
-   if (num_params)
-   {
+   if (num_params) {
       printd(5, "UserFunction::eval() about to uninstantiate %d vars\n", params->num_params);
 
       // uninstantiate local vars from param list
-      for (i = 0; i < num_params; i++)
-	 uninstantiateLVar(xsink);
+      for (int i = 0; i < num_params; i++)
+	 params->lv[i]->uninstantiate(xsink);
    }
-   if (xsink->isException())
-      xsink->addStackInfo(CT_USER, self ? (class_name ? class_name : self->getClass()->getName()) : NULL, name, o_fn, o_ln, o_eln);
-   
-   traceout("UserFunction::eval()");
+
+   if (xsink->isException()) {
+      //printd(5, "UserFunction::eval() this=%08p '%s' addStackInfo() %s:%d\n", this, getName(), o_fn, o_ln);
+      xsink->addStackInfo(CT_USER, self ? (class_name ? class_name : self->getClassName()) : (class_name ? class_name : 0), getName(), o_fn, o_ln, o_eln);
+   }
+
    return val;
 }
 
 // this function will set up user copy constructor calls
-void UserFunction::evalCopy(Object *oold, Object *self, const char *class_name, ExceptionSink *xsink)
+void UserFunction::evalCopy(QoreObject *old, QoreObject *self, const char *class_name, ExceptionSink *xsink) const
 {
-   tracein("UserFunction::evalCopy()");
-   printd(2, "UserFunction::evalCopy(): function='%s', num_params=%d, oldobj=%08p\n", name, params->num_params, oold);
+   QORE_TRACE("UserFunction::evalCopy()");
+   printd(2, "UserFunction::evalCopy(): function='%s', num_params=%d, oldobj=%08p\n", getName(), params->num_params, old);
 
    // save current program location in case there's an exception
    const char *o_fn = get_pgm_file();
    int o_ln, o_eln;
    get_pgm_counter(o_ln, o_eln);
 
-   // create QoreNode for "old" for either param or argv list
-   oold->ref();
-   QoreNode *old = new QoreNode(oold);
-
    // instantiate local vars from param list
    for (int i = 0; i < params->num_params; i++)
    {
-      class QoreNode *n = (i ? NULL : old);
-      printd(5, "UserFunction::evalCopy(): instantiating param lvar %d (%08p)\n", i, params->ids[i], n);
-      instantiateLVar(params->ids[i], n);
+      QoreObject *n = (i ? 0 : old);
+      printd(5, "UserFunction::evalCopy(): instantiating param lvar %d (%08p)\n", i, params->lv[i], n);
+      params->lv[i]->instantiate(n ? n->refSelf() : 0);
    }
 
-   class QoreNode *argv;
+   ReferenceHolder<QoreListNode> argv(xsink);
 
    if (!params->num_params)
    {
-      List *l = new List();
-      l->push(old);
-      argv = new QoreNode(l);
+      argv = new QoreListNode();
+      old->ref();
+      argv->push(old);
    }
-   else
-      argv = NULL;
 
    if (statements)
    {
-      CodeContextHelper cch(name, self, xsink);
+      CodeContextHelper cch(getName(), self, xsink);
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
       // push call on stack
-      pushCall(name, CT_USER, self);
+      CallStackHelper csh(getName(), CT_USER, self, xsink);
+#endif
 
       // instantiate self
-      self->instantiateLVar(params->selfid);
+      params->selfid->instantiate_object(self);
    
       // instantiate argv and push id on stack (for shift)
-      instantiateLVar(params->argvid, argv);
+      params->argvid->instantiate(argv ? argv->refSelf() : 0);
+
       {
-	 ArgvContextHelper(params->argvid);
+	 ArgvContextHelper argv_helper(argv.release(), xsink);
+
 	 // execute function
 	 discard(statements->exec(xsink), xsink);
       }
-      uninstantiateLVar(xsink);
+
+      // uninstantiate argv
+      params->argvid->uninstantiate(xsink);
       
       // uninstantiate self
-      self->uninstantiateLVar(xsink);
-      
-      popCall(xsink);
+      params->selfid->uninstantiate(xsink);
    }
-   else
-      discard(argv, xsink);
 
    if (params->num_params)
    {
@@ -825,128 +753,108 @@ void UserFunction::evalCopy(Object *oold, Object *self, const char *class_name, 
 
       // uninstantiate local vars from param list
       for (int i = 0; i < params->num_params; i++)
-	 uninstantiateLVar(xsink);
+	 params->lv[i]->uninstantiate(xsink);
    }
    if (xsink->isException())
-      xsink->addStackInfo(CT_USER, class_name, name, o_fn, o_ln, o_eln);
-   
-   traceout("UserFunction::evalCopy()");
+      xsink->addStackInfo(CT_USER, class_name, getName(), o_fn, o_ln, o_eln);
 }
 
 // calls a user constructor method
-class QoreNode *UserFunction::evalConstructor(QoreNode *args, Object *self, class BCList *bcl, class BCEAList *bceal, const char *class_name, class ExceptionSink *xsink)
-{
-   tracein("UserFunction::evalConstructor()");
-   printd(2, "UserFunction::evalConstructor(): method='%s:%s' args=%08p (size=%d)\n", 
-          class_name, name, args, args ? args->val.list->size() : 0);
+AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreObject *self, class BCList *bcl, class BCEAList *bceal, const char *class_name, ExceptionSink *xsink) const {
+   QORE_TRACE("UserFunction::evalConstructor()");
+   printd(2, "UserFunction::evalConstructor(): method='%s:%s' args=%08p (size=%d)\n", class_name, getName(), args, args ? args->size() : 0);
 
    // save current program location in case there's an exception
    const char *o_fn = get_pgm_file();
    int o_ln, o_eln;
    get_pgm_counter(o_ln, o_eln);
    
-   int i = 0;
-   class QoreNode *val = NULL;
-   int num_args, num_params;
+   AbstractQoreNode *val = 0;
 
-   if (args)
-      num_args = args->val.list->size();
-   else
-      num_args = 0;
-
+   int num_args = args ? args->size() : 0;
    // instantiate local vars from param list
-   num_params = params->num_params;
-   for (i = 0; i < num_params; i++)
+   int num_params = params->num_params;
+
+   for (int i = 0; i < num_params; i++)
    {
-      QoreNode *n = args ? args->val.list->retrieve_entry(i) : NULL;
-      printd(4, "UserFunction::evalConstructor() %d: instantiating param lvar %d (%08p)\n", i, params->ids[i], n);
+      AbstractQoreNode *n = args ? const_cast<AbstractQoreNode *>(args->retrieve_entry(i)) : 0;
+      printd(4, "UserFunction::evalConstructor() eval %d: instantiating param lvar %d (%08p)\n", i, params->lv[i], n);
       if (n)
       {
-         if (n->type == NT_REFERENCE)
-         {
+	 if (n->getType() == NT_REFERENCE) {
+	    const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(n);
 	    bool is_self_ref = false;
-            n = doPartialEval(n->val.lvexp, &is_self_ref, xsink);
-            if (!xsink->isEvent())
-	       instantiateLVar(params->ids[i], n, is_self_ref ? getStackObject() : NULL);
-         }
-         else
-         {
-            n = n->eval(xsink);
+	    n = doPartialEval(r->getExpression(), &is_self_ref, xsink);
 	    if (!xsink->isEvent())
-	       instantiateLVar(params->ids[i], n);
-         }
+	       params->lv[i]->instantiate(n, is_self_ref ? getStackObject() : 0);
+	 }
+	 else
+	 {
+	    n = n->eval(xsink);
+	    if (!xsink->isEvent())
+	       params->lv[i]->instantiate(n);
+	 }
 	 // the above if block will only instantiate the local variable if no
 	 // exceptions have occurred. therefore here we do the cleanup the rest
 	 // of any already instantiated local variables if an exception does occur
-         if (xsink->isEvent())
-         {
-            if (n)
-               n->deref(xsink);
-            for (int j = i; j; j--)
-               uninstantiateLVar(xsink);
-	    traceout("UserFunction::evalConstructor()");
-            return NULL;
-         }
+	 if (xsink->isEvent())
+	 {
+	    if (n)
+	       n->deref(xsink);
+	    for (int j = i; j; j--)
+	       params->lv[j - 1]->uninstantiate(xsink);
+
+	    return 0;
+	 }
       }
       else
-         instantiateLVar(params->ids[i], NULL);
+	 params->lv[i]->instantiate(0);
    }
 
    // if there are more arguments than parameters
    printd(5, "UserFunction::evalConstructor() params=%d arg=%d\n", num_params, num_args);
-   class QoreNode *argv;
+   ReferenceHolder<QoreListNode> argv(xsink);
    
    if (num_params < num_args)
    {
-      List *l = new List();
-      
-      for (i = 0; i < (num_args - num_params); i++)
-         if (args->val.list->retrieve_entry(i + num_params))
-         {
-            QoreNode *v = args->val.list->eval_entry(i + num_params, xsink);
-            if (xsink->isEvent())
-            {
-	       if (v)
-		  v->deref(xsink);
-               l->derefAndDelete(xsink);
-               // uninstantiate local vars from param list
-               for (int j = 0; j < num_params; j++)
-                  uninstantiateLVar(xsink);
-               return NULL;
-            }
-            l->push(v);
-         }
-         else
-            l->push(NULL);
-      argv = new QoreNode(l);
-   }
-   else
-      argv = NULL;
+      argv = new QoreListNode();
 
-   // evaluate base class constructors (if any)
+      for (int i = 0; i < (num_args - num_params); i++) {
+	 AbstractQoreNode *v = args->eval_entry(i + num_params, xsink);
+	 argv->push(v);
+	 if (*xsink) {
+	    // uninstantiate local vars from param list
+	    for (int j = 0; j < num_params; j++)
+	       params->lv[j]->uninstantiate(xsink);
+	    return 0;
+	 }
+      }
+   }
+
+   // evaluate base constructors (if any)
    if (bcl)
       bcl->execConstructorsWithArgs(self, bceal, xsink);
 
-   if (!xsink->isEvent())
-   {
+   if (!xsink->isEvent()) {
       // switch to new program for imported objects
-      ProgramContextHelper pch(self->getProgram());
+      ProgramContextHelper pch(self->getProgram(), xsink);
  
       // execute constructor
-      if (statements)
-      {
-	 CodeContextHelper cch(name, self, xsink);
+      if (statements) {
+	 CodeContextHelper cch(getName(), self, xsink);
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 	 // push call on stack
-	 pushCall(name, CT_USER, self);
+	 CallStackHelper csh(getName(), CT_USER, self, xsink);
+#endif
 
 	 // instantiate "$self" variable
-	 self->instantiateLVar(params->selfid);
+         params->selfid->instantiate_object(self);
 	 
 	 // instantiate argv and push id on stack
-	 instantiateLVar(params->argvid, argv);
+	 params->argvid->instantiate(argv ? argv->refSelf() : 0);
 
 	 {
-	    ArgvContextHelper(params->argvid);
+	    ArgvContextHelper argv_helper(argv.release(), xsink);
 	    
 	    // enter gate if necessary
 	    if (!synchronized || (gate->enter(xsink) >= 0))
@@ -959,15 +867,15 @@ class QoreNode *UserFunction::evalConstructor(QoreNode *args, Object *self, clas
 		  gate->exit();
 	    }
 	 }
-	 uninstantiateLVar(xsink);
+
+	 // uninstantiate argv
+	 params->argvid->uninstantiate(xsink);
 	    
 	 // uninstantiate "$self" variable
-	 self->uninstantiateLVar(xsink);
-	 
-	 popCall(xsink);   
+         params->selfid->uninstantiate(xsink);
       }
       else
-	 discard(argv, xsink);
+	 argv = 0; // dereference argv now
    }
 
    if (num_params)
@@ -975,38 +883,36 @@ class QoreNode *UserFunction::evalConstructor(QoreNode *args, Object *self, clas
       printd(5, "UserFunction::evalConstructor() about to uninstantiate %d vars\n", params->num_params);
 
       // uninstantiate local vars from param list
-      for (i = 0; i < num_params; i++)
-	 uninstantiateLVar(xsink);
+      for (int i = 0; i < num_params; i++)
+	 params->lv[i]->uninstantiate(xsink);
    }
    if (xsink->isException())
-      xsink->addStackInfo(CT_USER, class_name, name, o_fn, o_ln, o_eln);
+      xsink->addStackInfo(CT_USER, class_name, getName(), o_fn, o_ln, o_eln);
    
-   traceout("UserFunction::evalConstructor()");
+
    return val;
 }
 
 // this will only be called with lvalue expressions
-class QoreNode *doPartialEval(class QoreNode *n, bool *is_self_ref, class ExceptionSink *xsink)
+AbstractQoreNode *doPartialEval(AbstractQoreNode *n, bool *is_self_ref, ExceptionSink *xsink)
 {
-   QoreNode *rv = NULL;
-   if (n->type == NT_TREE)
+   AbstractQoreNode *rv = 0;
+   qore_type_t ntype = n->getType();
+   if (ntype == NT_TREE)
    {
-      class QoreNode *nn = n->val.tree->right->eval(xsink);
-      if (xsink->isEvent())
-      {
-	 discard(nn, xsink);
-	 return NULL;
-      }
-      class Tree *t = new Tree(doPartialEval(n->val.tree->left, is_self_ref, xsink), n->val.tree->op, nn ? nn : nothing());
-      if (!t->left)
-	 delete t;
-      else
-	 rv = new QoreNode(t);
+      QoreTreeNode *tree = reinterpret_cast<QoreTreeNode *>(n);
+      ReferenceHolder<AbstractQoreNode> nn(tree->right->eval(xsink), xsink);
+      if (*xsink)
+	 return 0;
+
+      SimpleRefHolder<QoreTreeNode> t(new QoreTreeNode(doPartialEval(tree->left, is_self_ref, xsink), tree->op, nn ? nn.release() : nothing()));
+      if (t->left)
+	 rv = t.release();
    }
    else
    {
-      rv = n->RefSelf();
-      if (n->type == NT_SELF_VARREF)
+      rv = n->refSelf();
+      if (ntype == NT_SELF_VARREF)
 	 (*is_self_ref) = true;
    }
    return rv;

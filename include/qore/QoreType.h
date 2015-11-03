@@ -3,7 +3,7 @@
   
   Qore Programming Language
 
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2009 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -30,147 +30,49 @@
 #include <map>
 
 // global default values
-DLLEXPORT extern class QoreNode *False, *True, *Nothing, *Null, *Zero, *ZeroFloat, *NullString, 
-   *ZeroDate, *emptyList, *emptyHash;
+DLLEXPORT extern QoreListNode *emptyList;
+DLLEXPORT extern QoreHashNode *emptyHash;
+DLLEXPORT extern QoreStringNode *NullString;
+DLLEXPORT extern DateTimeNode *ZeroDate;
 
-typedef class QoreNode *(*no_arg_func_t)();
-typedef class QoreNode *(*single_arg_func_t)(class QoreNode *, class ExceptionSink *xsink);
-typedef class QoreNode *(*eval_opt_deref_func_t)(bool &, class QoreNode *, class ExceptionSink *xsink);
-typedef bool (*needs_eval_func_t)(class QoreNode *);
-typedef bool (*bool_eval_type_func_t)(class QoreNode *, class ExceptionSink *xsink);
-typedef int64 (*bigint_eval_type_func_t)(class QoreNode *, class ExceptionSink *xsink);
-typedef double (*float_eval_type_func_t)(class QoreNode *, class ExceptionSink *xsink);
-typedef class QoreNode *(*convert_func_t)(class QoreNode *, class ExceptionSink *xsink);
-typedef bool (*compare_func_t)(class QoreNode *, class QoreNode *, class ExceptionSink *xsink);
-typedef void (*delete_func_t)(class QoreNode *);
-typedef class QoreString *(*string_func_t)(class QoreNode *, int format, class ExceptionSink *xsink);
+DLLEXPORT extern QoreString NothingTypeString, NullTypeString, TrueString, 
+   FalseString, EmptyHashString, EmptyListString;
 
-#define QTM_USER_START   200
+DLLEXPORT qore_type_t get_next_type_id();
 
-// sort_compare -1 l < r, 0 l == r, 1 l > r
-// compare 0 l = r, 1 l != r
-class QoreType {
-   private:
-      const char *name;
-      needs_eval_func_t       f_needs_eval;
-      single_arg_func_t       f_eval;
-      eval_opt_deref_func_t   f_eval_opt_deref;
-      bool_eval_type_func_t   f_bool_eval;
-      bigint_eval_type_func_t f_bigint_eval;
-      float_eval_type_func_t  f_float_eval;
-      convert_func_t          f_convert_to;
-      no_arg_func_t           f_default_value;
-      single_arg_func_t       f_copy;
-      compare_func_t          f_compare;
-      delete_func_t           f_delete_contents;
-      string_func_t           f_make_string;
-      bool is_value;
-      bool is_container;
-      int  id;
+DLLLOCAL void init_qore_types();
+DLLLOCAL void delete_qore_types();
 
-   public:
-      // note that this method is not thread safe - should only be called in library or module initialization
-      DLLEXPORT QoreType(const char *            p_name, 
-			 needs_eval_func_t       p_needs_eval,
-			 single_arg_func_t       p_eval, 
-			 eval_opt_deref_func_t   p_eval_opt_deref,
-			 bool_eval_type_func_t	 p_bool_eval,
-			 bigint_eval_type_func_t p_bigint_eval,
-			 float_eval_type_func_t  p_float_eval,
-			 convert_func_t          p_convert_to, 
-			 no_arg_func_t           p_default_value,
-			 single_arg_func_t       p_copy,
-			 compare_func_t          p_compare,
-			 delete_func_t           p_delete_contents,
-			 string_func_t           p_make_string,
-			 bool   p_is_value, 
-			 bool   p_is_container);
-      DLLEXPORT int getID() const;
-      DLLEXPORT bool isValue() const;
-      DLLEXPORT const char *getName() const;
-      DLLEXPORT bool needs_eval(class QoreNode *n) const;
-      DLLEXPORT class QoreNode *eval(class QoreNode *n, class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *eval(bool &needs_deref, class QoreNode *n, class ExceptionSink *xsink);
-      DLLEXPORT bool bool_eval(class QoreNode *n, class ExceptionSink *xsink);
-      DLLEXPORT int64 bigint_eval(class QoreNode *n, class ExceptionSink *xsink);
-      DLLEXPORT double float_eval(class QoreNode *n, class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *copy(class QoreNode *n, class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *getDefaultValue();
-      DLLEXPORT class QoreNode *convertTo(class QoreNode *n, class ExceptionSink *xsink);
-      // compare = 0 means values are equal
-      DLLEXPORT bool compare(class QoreNode *n1, class QoreNode *n2, class ExceptionSink *xsink) const;
-      DLLEXPORT void deleteContents(class QoreNode *n);
-      DLLEXPORT class QoreString *getAsString(class QoreNode *n, int format, class ExceptionSink *xsink) const;
-};
+DLLEXPORT bool compareHard(const AbstractQoreNode *l, const AbstractQoreNode *r, class ExceptionSink *xsink);
+DLLEXPORT bool compareSoft(const AbstractQoreNode *l, const AbstractQoreNode *r, class ExceptionSink *xsink);
 
-typedef std::map<int, class QoreType *> qore_type_map_t;
-
-class QoreTypeManager : public qore_type_map_t
+static inline AbstractQoreNode *boolean_false()
 {
-   friend class QoreType;
-   
-   private:
-      DLLLOCAL static int lastid;
-      DLLLOCAL static QoreType *typelist[NUM_VALUE_TYPES];
-      
-   public:
-      DLLEXPORT void add(class QoreType *t);
-
-      DLLLOCAL QoreTypeManager();
-      DLLLOCAL ~QoreTypeManager();
-      DLLLOCAL static void init();
-      DLLLOCAL static void del();
-      DLLLOCAL class QoreType *find(int id);
-};
-
-DLLEXPORT extern class QoreTypeManager QTM;
-
-DLLEXPORT bool compareHard(QoreNode *l, QoreNode *r, class ExceptionSink *xsink);
-DLLEXPORT bool compareSoft(class QoreNode *node1, class QoreNode *node2, class ExceptionSink *xsink);
-
-static inline class QoreNode *nothing()
-{
-   Nothing->ref();
-   return Nothing;
+   return &False;
 }
 
-static inline class QoreNode *null()
+static inline AbstractQoreNode *boolean_true()
 {
-   Null->ref();
-   return Null;
+   return &True;
 }
 
-static inline class QoreNode *boolean_false()
+static inline class QoreBigIntNode *zero()
 {
-   False->ref();
-   return False;
+   return new QoreBigIntNode();
 }
 
-static inline class QoreNode *boolean_true()
+static inline class AbstractQoreNode *zero_float()
 {
-   True->ref();
-   return True;
+   return new QoreFloatNode(0.0);
 }
 
-static inline class QoreNode *zero()
-{
-   Zero->ref();
-   return Zero;
-}
-
-static inline class QoreNode *zero_float()
-{
-   ZeroFloat->ref();
-   return ZeroFloat;
-}
-
-static inline class QoreNode *zero_date()
+static inline DateTimeNode *zero_date()
 {
    ZeroDate->ref();
    return ZeroDate;
 }
 
-static inline class QoreNode *null_string()
+static inline class QoreStringNode *null_string()
 {
    NullString->ref();
    return NullString;

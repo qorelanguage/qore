@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ Copyright 2003 - 2009 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -21,33 +21,31 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/WhileStatement.h>
-#include <qore/Variable.h>
+#include <qore/intern/WhileStatement.h>
+#include <qore/intern/StatementBlock.h>
 
-WhileStatement::WhileStatement(int start_line, int end_line, class QoreNode *c, class StatementBlock *cd) : AbstractStatement(start_line, end_line)
+WhileStatement::WhileStatement(int start_line, int end_line, AbstractQoreNode *c, class StatementBlock *cd) : AbstractStatement(start_line, end_line)
 {
    cond = c;
    code = cd;
-   lvars = NULL;
+   lvars = 0;
 }
 
 WhileStatement::~WhileStatement()
 {
-   cond->deref(NULL);
+   cond->deref(0);
    if (code)
       delete code;
    if (lvars)
       delete lvars;
 }
 
-int WhileStatement::execImpl(class QoreNode **return_value, class ExceptionSink *xsink)
+int WhileStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
 {
-   int i, rc = 0;
+   int rc = 0;
    
-   tracein("WhileStatement::execWhileImpl()");
    // instantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      instantiateLVar(lvars->ids[i], NULL);
+   LVListInstantiator lvi(lvars, xsink);
    
    while (cond->boolEval(xsink) && !xsink->isEvent())
    {
@@ -61,14 +59,11 @@ int WhileStatement::execImpl(class QoreNode **return_value, class ExceptionSink 
       else if (rc == RC_CONTINUE)
 	 rc = 0;
    }
-   // uninstantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      uninstantiateLVar(xsink);
-   traceout("WhileStatement::execWhile()");
+
    return rc;
 }
 
-int WhileStatement::parseInitImpl(lvh_t oflag, int pflag)
+int WhileStatement::parseInitImpl(LocalVar *oflag, int pflag)
 {
    int lvids = 0;
    

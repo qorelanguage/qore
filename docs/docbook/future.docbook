@@ -3,22 +3,8 @@
 <chapter id="Appendix_D:_Future_Development">
   <title>Appendix D: Future Development</title>
 
-  <para>In general, Qore's main development target is to provide a stable, powerful, and efficient platform for developing complex programs.  Backwards compatibility is a very high priority, even for versions before 1.0, and "unrestricted" code (code not subect to parse restrictions) should remain highly compatible until 1.0 and byond.</para>
+  <para>In general, Qore's main development target is to provide a stable, powerful, and efficient platform for developing complex programs.  Backwards compatibility is a very high priority, even for versions before 1.0, and &quot;unrestricted&quot; code (code not subect to parse restrictions) should remain highly compatible until 1.0 and beyond.</para>
 
-  <para>Some changes planned for future releases:</para>
+  <para>There is no stable list of features that need to be there before the 1.0 release; Qore is getting better, cleaner, and more powerful with each release, so sooner or later 1.0 will happen.</para>
 
-  <itemizedlist mark='bullet'>
-    <listitem>
-      <para>add optional strong typing to the language + strongly typed data structures</para>
-    </listitem>
-    <listitem>
-      <para>add the capability to work with very large result sets that may be larger than available memory (Query class)</para>
-    </listitem>
-    <listitem>
-      <para>add more database drivers</para>
-    </listitem>
-    <listitem>
-      <para>add integration with other messaging systems</para>
-    </listitem>
-  </itemizedlist>
 </chapter>

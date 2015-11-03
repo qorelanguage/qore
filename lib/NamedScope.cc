@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ Copyright 2003 - 2009 David Nichols
  
  NamedScopes are children of a program object.  there is a parse
  lock per program object to ensure that objects are added (or backed out)
@@ -60,7 +60,7 @@ NamedScope::NamedScope(char *str)
 {
    allocated = 0;
    elements  = 0;
-   strlist = NULL;
+   strlist = 0;
    ostr = str;
    
    while (char *p = strstr(str, "::"))

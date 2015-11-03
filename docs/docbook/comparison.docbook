@@ -5,12 +5,12 @@
 
   <para>Qore's syntax superficially appears to be a mixture of C, Java and perl with some unique features to Qore (such as <command>context</command> statements, etc).</para>
 
-  <para>Because no independent comparison of Qore with other languages exists, I'll try to compare Qore to perl and Java as objectively as possible in this section (since I used these two languages to get ideas for the interface for Qore).</para>
+  <para>Because no independent comparison of Qore with other languages exists, I'll try to compare Qore to perl and Java as objectively as possible in this section (since I used these two languages to get ideas for the interface for Qore).  In my opinion, it's not really possible to make totally objective language comparison (particularly when the author of the language makes it!), but I'll do ma best anyway...</para>
 
   <sect1 id="Qore_and_perl">
     <title>Qore and perl</title>
 
-    <para>Qore is not perl; perl is a robust, mature, feature-full, and powerful language, and Qore is a new, young, and (compared to perl) relatively limited language and differs philosophically in some areas.</para>
+    <para>Firs of all, Qore is not perl; perl is a robust, mature, feature-full, and powerful language, and Qore is a new, young, and (compared to perl) relatively limited language and differs philosophically in some areas.</para>
 
     <para>(Some) similarities to perl:</para>
 
@@ -36,6 +36,9 @@
       <listitem>
         <para>Qore uses <ulink url="http://www.pcre.org">PCRE</ulink> to provide perl5-compatible regular expression support</para>
       </listitem>
+      <listitem>
+        <para>Qore and perl support closures that encapsulate the state of local variables accessed within the closure.  Qore additionally provides thread-safe access even to these &quot;persistent&quot; local variables, even when the closure is used in a multi-threaded context.</para>
+      </listitem>
     </itemizedlist>
 
     <para>(Some) differences from perl:</para>
@@ -51,7 +54,7 @@
         <para>Qore has transparent UTF-8 support (qore's <link linkend="substr">substr()</link>, string <link linkend="Splice_Operator">splice</link>, <link linkend="index">index()</link>, <link linkend="reverse">reverse()</link>, etc work on character offsets, not byte offsets according to the character encoding used for the string), perl's wide character support is not as transparent - for example, 'printf("%s\n", substr("ä", 0, 1));' will output an invalid character in perl, but work properly in Qore using UTF-8 variable-width characters</para>
       </listitem>
       <listitem>
-        <para>Qore tends to avoid syntactic shortcuts and require more verbose expressions than perl; Qore has a much smaller grammar than perl, and no default variables (no $_, etc); Qore has <command>if</command> statements, but no "unless"; etc</para>
+        <para>Qore tends to avoid syntactic shortcuts and require more verbose expressions than perl; Qore has a much smaller grammar than perl; Qore has <command>if</command> statements, but no "unless"; etc</para>
       </listitem>
       <listitem>
         <para>A Qore variable can be of any type, whereas in perl the type of variable also depends on the name</para>
@@ -98,10 +101,7 @@ $scalar = 3.0;</programlisting>
         <para>there is currently no generic equivalent to perl's references.  It is only possible to pass values by reference in Qore if the subroutine includes a local variable argument list</para>
       </listitem>
       <listitem>
-        <para>Qore does not support enclosures or lamba functions, however Qore's <link linkend="Qore_Program_Class">Program</link> class provides a powerful mechanism for embedding logic in a program (or even for self-modifying programs, if you really want to do that), and Qore's <link linkend="call_references">call references</link> allow expressions to be used to call functions or object methods (meaning that a call on a call reference pointing to an object method will be made in the context of a specific object) dynamically at run-time.</para>
-      </listitem>
-      <listitem>
-        <para>Qore features experimental support for <link linkend="signal_handling">safe signal handling</link> as well.</para>
+        <para>Qore features support for <link linkend="signal_handling">safe signal handling</link> as well.</para>
       </listitem>
     </itemizedlist>
 
@@ -162,7 +162,7 @@ $scalar = 3.0;</programlisting>
         <para>Java uses the <code>clone</code> method and a special interface to provide a mechanism to copy objects; qore uses the <code>copy()</code> method, which is run in the copy of the object after all members have been copied (although members that are objects get a new reference to the object, so it's not a deep copy -- basically Qore executed an equivalent of Java's <code>Object.clone()</code> call, and then allows the new object to make changes to the new data). Qore's <code>copy()</code> methods are inherited and run in the same order as <code>constructor()</code> methods in class hierarchies.</para>
       </listitem>
       <listitem>
-        <para>Java is based on byte code and requires classes to be compiled to byte code before they are run. Qore parses (very quickly) normal text data to an internal compiled representation which is executed; there is no byte code in qore (yet).</para>
+        <para>Java is based on byte code and requires classes to be compiled to byte code before they are run in a virtual machine. Qore parses (very quickly) normal text data to an internal compiled representation which is executed; no virtual machine is necessary (just the qore binary compiled for the target platform), and no formal byte code exists in Qore.</para>
       </listitem>
     </itemizedlist>
   </sect1>

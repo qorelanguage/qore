@@ -3,7 +3,7 @@
 
   Qore programming language
 
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2010 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -30,188 +30,27 @@
 
 class Templist {
 public:
-   class QoreNode *node;
+   AbstractQoreNode *node;
    int pos;
 };
 
 struct node_row_list_s {
-   class QoreNode *node;
+   AbstractQoreNode *node;
    int *row_list;
    int num_rows;
    int allocated;
 };
 
-ComplexContextRef::ComplexContextRef(char *str)
-{
-   char *c = strchr(str, ':');
-   *c = '\0';
-   name = strdup(str);
-   member = strdup(c + 1);
-   free(str);
-}
-
-ComplexContextRef::ComplexContextRef(char *n, char *m, int so)
-{
-   name = strdup(n);
-   member = strdup(m);
-   stack_offset = so;
-}
-
-ComplexContextRef::~ComplexContextRef()
-{ 
-   free(name); 
-   free(member); 
-}
-
-class ComplexContextRef *ComplexContextRef::copy()
-{
-   return new ComplexContextRef(name, member, stack_offset);
-}
-
-Context::~Context()
-{
-   tracein("Context::~Context()");
-
-   assert(get_context_stack());
-   update_context_stack(get_context_stack()->next);
-
-   if (name)
-      free(name);
-   if (master_row_list)
-   {
-      free(master_row_list);
-      if (group_values)
-      {
-	 int i;
-	 
-	 for (i = 0; i < max_group_pos; i++)
-	 {
-	    printd(5, "%d/%d: ", i, max_group_pos);
-	    group_values[i].node->deref(NULL);
-	    printd(5, "row_list=%08p (num_rows=%d, allocated=%d): ",
-		   group_values[i].row_list,
-		   group_values[i].num_rows,
-		   group_values[i].allocated);
-	    free(group_values[i].row_list);
-	    printd(5, "done\n");
-	 }
-	 free(group_values);
-      }
-   }
-   else if (row_list)
-      free(row_list);
-
-   traceout("Context::~Context()");
-}
-
-int Context::check_condition(class QoreNode *cond, class ExceptionSink *xsinkx)
-{
-   class QoreNode *val;
-   int rc;
-   
-   tracein("Context::check_condition()");
-   val = cond->eval(xsinkx);
-   if (xsinkx->isEvent())
-   {
-      if (val) val->deref(xsinkx);
-      return -1;
-   }
-   if (val)
-   {
-      rc = val->getAsInt();
-      val->deref(xsinkx);
-   }
-   else
-      rc = 0;
-   traceout("Context::check_condition()");
-   return rc;
-}
-
-void Context::deref(class ExceptionSink *xsink)
-{
-   if (!sub && value)
-      value->deref(xsink);
-   delete this;
-}
-
-class QoreNode *evalContextRef(char *key, class ExceptionSink *xsink)
-{
-   class Context *c = get_context_stack();
-   return c->evalValue(key, xsink);
-}
-
-class QoreNode *evalContextRow(class ExceptionSink *xsink)
-{
-   return get_context_stack()->getRow(xsink);
-}
-
-class QoreNode *Context::evalValue(char *field, class ExceptionSink *xsink)
-{
-   if (!value)
-      return NULL;
-
-   class QoreNode *v = value->val.hash->evalKeyExistence(field, xsink);
-   if (v == (QoreNode *)-1)
-   {
-      xsink->raiseException("CONTEXT-EXCEPTION", "\"%s\" is not a valid key for this context", field);
-      return NULL;
-   }
-   if (!v || v->type != NT_LIST)
-   {
-      if (v) v->deref(xsink);
-      return NULL;
-   }
-
-   QoreNode *rv = v->val.list->retrieve_entry(row_list[pos]);
-   if (rv) rv->ref();
-   //printd(5, "Context::evalValue(%s) this=%08p pos=%d rv=%08p %s %lld\n", field, this, pos, rv, rv ? rv->type->getName() : "none", rv && rv->type == NT_INT ? rv->val.intval : -1);
-   //printd(5, "Context::evalValue(%s) pos=%d, val=%s\n", field, pos, rv && rv->type == NT_STRING ? rv->val.String->getBuffer() : "?");
-   v->deref(xsink);
-   return rv;
-}
-
-class QoreNode *Context::getRow(class ExceptionSink *xsink)
-{
-   printd(5, "Context::getRow() value=%08p %s\n", value, value ? value->type->getName() : "NULL");
-   if (!value)
-      return NULL;
-
-   class Hash *h = new Hash();
-
-   class HashIterator hi(value->val.hash);
-   while (hi.next())
-   {
-      const char *key = hi.getKey();
-      //char *key = l->retrieve_entry(i)->val.String->getBuffer();
-      printd(5, "Context::getRow() key=%s\n", key);
-      // get list from hash
-      class QoreNode *v = hi.eval(xsink);
-      if (xsink->isEvent())
-      {
-	 h->derefAndDelete(xsink);
-	 return NULL;
-      }
-      // set key value to list entry
-      h->setKeyValue(key, v->val.list->eval_entry(row_list[pos], xsink), NULL);
-      v->deref(xsink);
-   }
-   
-   return new QoreNode(h);
-}
-
 #define ROW_BLOCK 40
-static inline int in_list(class QoreNode *node, struct node_row_list_s *nlist,
-			  int max, int row, ExceptionSink *xsink)
-{
+
+static inline int in_list(AbstractQoreNode *node, struct node_row_list_s *nlist, int max, int row, ExceptionSink *xsink) {
    int i;
 
    for (i = 0; i < max; i++)
-      if (!compareSoft(node, nlist[i].node, xsink))
-      {
+      if (!compareSoft(node, nlist[i].node, xsink)) {
 	 if (xsink->isEvent()) return 0;
 	 // resize array if necessary
-	 if (nlist[i].num_rows == nlist[i].allocated)
-	 {
+	 if (nlist[i].num_rows == nlist[i].allocated) {
 	    printd(5, "%d: old row_list: %08p\n", i, nlist[i].row_list);
 	    int d = nlist[i].allocated >> 2;
 	    nlist[i].allocated += (d > ROW_BLOCK ? d : ROW_BLOCK);
@@ -226,80 +65,8 @@ static inline int in_list(class QoreNode *node, struct node_row_list_s *nlist,
    return 0;
 }
 
-// to sort non-existing values last
-static inline int compare_templist(class Templist t1, class Templist t2)
-{
-   //printd(5, "t1.node=%08p pos=%d t2.node=%08p pos=%d\n", t1.node, t1.pos, t2.node, t2.pos);
-
-   if (is_nothing(t1.node))
-      return 0;
-   if (is_nothing(t2.node))
-      return 1;
-
-   ExceptionSink xsink;
-   int rc = (int)OP_LOG_LT->bool_eval(t1.node, t2.node, &xsink);
-
-   //printd(5, "t1.node->type=%s t2.node->type=%s\n", t1.node->type->getName(), t2.node->type->getName());
-   //   print_node(stderr, t1.node); printd(1," == "); print_node(stderr, t2.node);
-   //   printd(5, " result = %d\n", rc);
-   return rc;
-}
-
-void Context::Sort(class QoreNode *snode, int sort_type)
-{
-   int sense = 1, i;
-
-   tracein("Context::Sort()");
-      
-   printd(5, "sorting context (%d row(s)) (type=%d)\n", 
-	  //query->name,
-	  max_pos, sort_type);
-   Templist *list = new Templist[max_pos];
-   // NOTE: Solaris CC doesn't allow non-constant array sizes
-   //Templist list[max_pos];
-   // get list of results to be sorted
-   for (pos = 0; pos < max_pos; pos++)
-   {
-      list[pos].node = snode->eval(sort_xsink);
-      if (sort_xsink->isEvent())
-      {
-	 delete [] list;
-	 return;
-      }
-      printd(5, "Context::Sort() eval(): max=%d list[%d].node = %08p (refs=%d) pos=%d\n",
-	     max_pos, pos, list[pos].node ? list[pos].node : NULL,
-	     list[pos].node ? list[pos].node->reference_count() : 0,
-	     row_list[pos]);
-      list[pos].pos = row_list[pos];
-   }
-
-   // sort the list with STL sort
-   std::sort(list, list + max_pos, compare_templist);
-
-   // assign sorted row list and delete temporary results
-   if (sort_type == CM_SORT_DESCENDING)
-   {
-      i = max_pos - 1;
-      sense = -1;
-   }   
-   else
-      i = 0;
-   for (pos = 0; pos < max_pos; pos++)
-   {
-      row_list[pos] = list[i].pos;
-      printd(5, "Context::Sort() deref(): max=%d list[%d].node = %08p (refs=%d)\n",
-	     max_pos, i, list[i].node ? list[pos].node : NULL, 
-	     list[pos].node ? list[i].node->reference_count() : 0);
-      discard(list[i].node, sort_xsink);
-      i += sense;
-   }
-
-   delete [] list;
-   traceout("Context::Sort()");
-}
-
 /*
- * if exp == NULL, then it is a subcontext.  Calling with exp == NULL 
+ * if exp == 0, then it is a subcontext.  Calling with exp == 0 
  * should only be possible if there is a parent context, so no checks are
  * needed to see if there really is a parent context.
  * The code in summary contexts is only executed once for each discrete value,
@@ -310,37 +77,30 @@ void Context::Sort(class QoreNode *snode, int sort_type)
  * (for now)
  */
 
-Context::Context(char *nme, ExceptionSink *xsink, class QoreNode *exp, class QoreNode *cond, 
-		 int sort_type, class QoreNode *sort, class QoreNode *summary,
-		 int ignore_key)
-{
+Context::Context(char *nme, ExceptionSink *xsink, AbstractQoreNode *exp, AbstractQoreNode *cond, 
+		 int sort_type, AbstractQoreNode *sort, AbstractQoreNode *summary,
+		 int ignore_key) : value(0), master_row_list(0), row_list(0), group_values(0) {
    int allocated = 0;
    //int sense, lcolumn = -1, fcolumn = -1
-   //class Key *key = NULL;
+   //class Key *key = 0;
 
-   tracein("Context::Context()");
+   QORE_TRACE("Context::Context()");
    //e = ex;
    group_pos = max_group_pos = max_pos = pos = master_max_pos = 0;
-   row_list = NULL;
-   master_row_list = NULL;
-   group_values = NULL;
 
    sub = !exp;
    // set up initial row list and parameters
-   if (sub) // copy subcontext
-   {
+   if (sub) { // copy subcontext
       // push context on stack
       next = get_context_stack();
       update_context_stack(this);
 
-      name = next->name ? strdup(next->name) : NULL;
+      name = next->name ? strdup(next->name) : 0;
       value = next->value;
       max_pos = next->max_pos;
-      if (max_pos)
-      {
+      if (max_pos) {
 	 row_list = (int *)malloc(sizeof(int) * max_pos);
-	 if (!row_list)
-	 {
+	 if (!row_list) {
 	    xsink->outOfMemory();
 	    return;
 	 }
@@ -348,35 +108,30 @@ Context::Context(char *nme, ExceptionSink *xsink, class QoreNode *exp, class Qor
 	 printd(5, "Context::Context() subcontext: max_pos=%d row_list=%08p\n", max_pos, row_list);
       }
    }
-   else // copy object (query) list
-   {
-      name = nme ? strdup(nme) : NULL;
-      value = exp->eval(xsink);
+   else { // copy object (query) list
+      name = nme ? strdup(nme) : 0;
+      ReferenceHolder<AbstractQoreNode> rv(exp->eval(xsink), xsink);
 
       // push context on stack
       next = get_context_stack();
       update_context_stack(this);
 
+      if (*xsink)
+	 return;
+
+      value = dynamic_cast<QoreHashNode *>(*rv);
       if (!value)
 	 return;
-      if (xsink->isEvent() || value->type != NT_HASH)
-      {
-	 value->deref(xsink);
-	 value = NULL;
-	 return;
-      }
 
-      class QoreNode *fkv = value->val.hash->evalFirstKeyValue(xsink);
+      AbstractQoreNode *fkv = value->getFirstKeyValue();
 
-      if (fkv && fkv->type == NT_LIST)
-      {
-	 max_pos = fkv->val.list->size();
+      QoreListNode *l = dynamic_cast<QoreListNode *>(fkv);
+      if (l) {
+	 max_pos = l->size();
 	 row_list = (int *)malloc(sizeof(int) * max_pos);
 	 if (!row_list)
 	 {
 	    xsink->outOfMemory();
-	    if (fkv)
-	       fkv->deref(xsink);
 	    return;
 	 }
 
@@ -386,9 +141,8 @@ Context::Context(char *nme, ExceptionSink *xsink, class QoreNode *exp, class Qor
       }
       else
 	 max_pos = 0;
-
-      if (fkv)
-	 fkv->deref(xsink);
+      
+      rv.release();
    }
 
    printd(5, "Context::Context() %s max_pos=%d row_list=%08p\n", 
@@ -396,7 +150,7 @@ Context::Context(char *nme, ExceptionSink *xsink, class QoreNode *exp, class Qor
    // check for nested contexts
 /*
    if (!ignore_key && next && !sub &&
-       (key = find_key(query, NULL, next->query, NULL, &sense)))
+       (key = find_key(query, 0, next->query, 0, &sense)))
    {
       key->check(xsink);
       if (xsink->isEvent()) return;
@@ -488,13 +242,13 @@ Context::Context(char *nme, ExceptionSink *xsink, class QoreNode *exp, class Qor
 	 else
 	 {
 	    free(row_list);
-	    row_list = NULL;
+	    row_list = 0;
 	 }
       }
       if (master_row_list)
       {
 	 free(master_row_list);
-	 master_row_list = NULL;
+	 master_row_list = 0;
       }
    }
 
@@ -516,7 +270,7 @@ Context::Context(char *nme, ExceptionSink *xsink, class QoreNode *exp, class Qor
       // find unique values in summary node
       for (pos = 0; pos < master_max_pos; pos++)
       {
-	 class QoreNode *node;
+	 AbstractQoreNode *node;
 
 	 printd(5, "Context::Context() summary value %d/%d\n",
 		pos, master_max_pos);
@@ -575,11 +329,189 @@ Context::Context(char *nme, ExceptionSink *xsink, class QoreNode *exp, class Qor
    }
    pos = 0;
    printd(5, "Context::Context() max_pos = %d\n", max_pos);
-   traceout("Context::Context()");
+
 }
 
-int Context::next_summary()
-{
+Context::~Context() {
+   QORE_TRACE("Context::~Context()");
+
+   assert(get_context_stack());
+   update_context_stack(get_context_stack()->next);
+
+   if (name)
+      free(name);
+   if (master_row_list) {
+      free(master_row_list);
+      if (group_values) {
+	 int i;
+	 
+	 for (i = 0; i < max_group_pos; i++) {
+	    printd(5, "%d/%d: ", i, max_group_pos);
+	    group_values[i].node->deref(0);
+	    printd(5, "row_list=%08p (num_rows=%d, allocated=%d): ",
+		   group_values[i].row_list,
+		   group_values[i].num_rows,
+		   group_values[i].allocated);
+	    free(group_values[i].row_list);
+	    printd(5, "done\n");
+	 }
+	 free(group_values);
+      }
+   }
+   else if (row_list)
+      free(row_list);
+}
+
+int Context::check_condition(AbstractQoreNode *cond, ExceptionSink *xsinkx) {
+   AbstractQoreNode *val;
+   int rc;
+   
+   QORE_TRACE("Context::check_condition()");
+   val = cond->eval(xsinkx);
+   if (xsinkx->isEvent()) {
+      if (val) val->deref(xsinkx);
+      return -1;
+   }
+   if (val) {
+      rc = val->getAsInt();
+      val->deref(xsinkx);
+   }
+   else
+      rc = 0;
+
+   return rc;
+}
+
+void Context::deref(ExceptionSink *xsink) {
+   if (!sub && value)
+      value->deref(xsink);
+   delete this;
+}
+
+AbstractQoreNode *evalContextRef(char *key, ExceptionSink *xsink) {
+   class Context *c = get_context_stack();
+   return c->evalValue(key, xsink);
+}
+
+AbstractQoreNode *evalContextRow(ExceptionSink *xsink) {
+   return get_context_stack()->getRow(xsink);
+}
+
+AbstractQoreNode *Context::evalValue(char *field, ExceptionSink *xsink) {
+   if (!value)
+      return 0;
+
+   bool exists;
+   AbstractQoreNode *v = value->getReferencedKeyValue(field, exists);
+   if (!exists) {
+      xsink->raiseException("CONTEXT-EXCEPTION", "\"%s\" is not a valid key for this context", field);
+      return 0;
+   }
+   ReferenceHolder<AbstractQoreNode> val(v, xsink);
+   QoreListNode *l = dynamic_cast<QoreListNode *>(v);
+   if (!l)
+      return 0;
+
+   AbstractQoreNode *rv = l->retrieve_entry(row_list[pos]);
+   if (rv) rv->ref();
+   //printd(5, "Context::evalValue(%s) this=%08p pos=%d rv=%08p %s %lld\n", field, this, pos, rv, rv ? rv->getTypeName() : "none", rv && rv->getType() == NT_INT ? ((QoreBigIntNode *)rv)->val : -1);
+   //printd(5, "Context::evalValue(%s) pos=%d, val=%s\n", field, pos, rv && rv->getType() == NT_STRING ? rv->val.String->getBuffer() : "?");
+   return rv;
+}
+
+QoreHashNode *Context::getRow(ExceptionSink *xsink) {
+   printd(5, "Context::getRow() value=%08p %s\n", value, value ? value->getTypeName() : "NULL");
+   if (!value)
+      return 0;
+
+   ReferenceHolder<QoreHashNode> h(new QoreHashNode(), xsink);
+
+   HashIterator hi(value);
+   while (hi.next()) {
+      const char *key = hi.getKey();
+      printd(5, "Context::getRow() key=%s\n", key);
+      // get list from hash
+      ReferenceHolder<AbstractQoreNode> v(hi.getReferencedValue(), xsink);
+      assert(*v && v->getType() == NT_LIST);
+      // set key value to list entry
+      QoreListNode *l = reinterpret_cast<QoreListNode *>(*v);
+      h->setKeyValue(key, l->eval_entry(row_list[pos], xsink), 0);
+   }
+   
+   return h.release();
+}
+
+// to sort non-existing values last
+static inline int compare_templist(class Templist t1, class Templist t2) {
+   //printd(5, "t1.node=%08p pos=%d t2.node=%08p pos=%d\n", t1.node, t1.pos, t2.node, t2.pos);
+
+   if (is_nothing(t1.node))
+      return 0;
+   if (is_nothing(t2.node))
+      return 1;
+
+   ExceptionSink xsink;
+   int rc = (int)OP_LOG_LT->bool_eval(t1.node, t2.node, &xsink);
+
+   //printd(5, "t1.node->getType()=%s t2.node->getType()=%s\n", t1.node->getTypeName(), t2.node->getTypeName());
+   //   print_node(stderr, t1.node); printd(1," == "); print_node(stderr, t2.node);
+   //   printd(5, " result = %d\n", rc);
+   return rc;
+}
+
+void Context::Sort(AbstractQoreNode *snode, int sort_type) {
+   int sense = 1, i;
+
+   QORE_TRACE("Context::Sort()");
+      
+   printd(5, "sorting context (%d row(s)) (type=%d)\n", 
+	  //query->name,
+	  max_pos, sort_type);
+   Templist *list = new Templist[max_pos];
+   // NOTE: Solaris CC doesn't allow non-constant array sizes
+   //Templist list[max_pos];
+   // get list of results to be sorted
+   for (pos = 0; pos < max_pos; pos++)
+   {
+      list[pos].node = snode->eval(sort_xsink);
+      if (sort_xsink->isEvent())
+      {
+	 delete [] list;
+	 return;
+      }
+      printd(5, "Context::Sort() eval(): max=%d list[%d].node = %08p (refs=%d) pos=%d\n",
+	     max_pos, pos, list[pos].node ? list[pos].node : 0,
+	     list[pos].node ? list[pos].node->reference_count() : 0,
+	     row_list[pos]);
+      list[pos].pos = row_list[pos];
+   }
+
+   // sort the list with STL sort
+   std::sort(list, list + max_pos, compare_templist);
+
+   // assign sorted row list and delete temporary results
+   if (sort_type == CM_SORT_DESCENDING)
+   {
+      i = max_pos - 1;
+      sense = -1;
+   }   
+   else
+      i = 0;
+   for (pos = 0; pos < max_pos; pos++)
+   {
+      row_list[pos] = list[i].pos;
+      printd(5, "Context::Sort() deref(): max=%d list[%d].node = %08p (refs=%d)\n",
+	     max_pos, i, list[i].node ? list[pos].node : 0, 
+	     list[pos].node ? list[i].node->reference_count() : 0);
+      discard(list[i].node, sort_xsink);
+      i += sense;
+   }
+
+   delete [] list;
+
+}
+
+int Context::next_summary() {
    printd(5, "Context::next_summary() %08p %d/%d\n", this, group_pos, max_group_pos);
    group_pos++;
    if (group_pos == max_group_pos)
@@ -588,17 +520,3 @@ int Context::next_summary()
    row_list = group_values[group_pos].row_list;
    return 1;
 }
-
-class QoreNode *evalComplexContextRef(class ComplexContextRef *c, class ExceptionSink *xsink)
-{
-   int count = 0;
-
-   Context *cs = get_context_stack();
-   while (count != c->stack_offset)
-   {
-      count++;
-      cs = cs->next;
-   }
-   return cs->evalValue(c->member, xsink);
-}
-

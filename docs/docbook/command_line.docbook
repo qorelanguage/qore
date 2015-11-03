@@ -41,8 +41,8 @@
   </row>
   <row>
     <entry><para><code>--no-thread-classes</code></para></entry>
-    <entry><para><code>-X</code></para></entry>
-    <entry><para>Disallows access to thread classes (for example, the <link linkend="Qore::Thread::Mutex_Class">Thread::Mutex Class</link>, <link linkend="Qore::Thread::Gate_Class">Thread::Gate Class</link>, <link linkend="Qore::Thread::Queue_Class">Thread::Queue Class</link>, etc).  Equivalent to parse option <code>PO_NO_THREAD_CLASSES</code> and the <code>%no-thread-classes</code> directive.</para></entry>
+    <entry><para><code>n/a</code></para></entry>
+    <entry><para>Disallows access to thread classes (for example, the <link linkend="Mutex_Class">Thread::Mutex Class</link>, <link linkend="Gate_Class">Thread::Gate Class</link>, <link linkend="Queue_Class">Thread::Queue Class</link>, etc).  Equivalent to parse option <code>PO_NO_THREAD_CLASSES</code> and the <code>%no-thread-classes</code> directive.</para></entry>
   </row>
   <row>
     <entry><para><code>--no-threads</code></para></entry>
@@ -56,7 +56,7 @@
   </row>
   <row>
     <entry><para><code>--no-class-defs</code></para></entry>
-    <entry><para><code>-C</code></para></entry>
+    <entry><para><code>n/a</code></para></entry>
     <entry><para>Disallows class definitions.  Equivalent to <code>PO_NO_CLASS_DEFS</code> and the <code>%no-class-defs</code> directive.</para></entry>
   </row>
   <row>
@@ -81,7 +81,7 @@
   </row>
   <row>
     <entry><para><code>--no-constant-defs</code></para></entry>
-    <entry><para><code>-J</code></para></entry>
+    <entry><para><code>n/a</code></para></entry>
     <entry><para>Disallows constant definitions.  Equivalent to parse option <code>PO_NO_CONSTANT_DEFS</code> and the <code>%no-constant-defs</code> directive.</para></entry>
   </row>
   <row>
@@ -169,17 +169,17 @@
   <row>
     <entry><para><code>--charset=ARG</code></para></entry>
     <entry><para><code>-c</code></para></entry>
-    <entry><para>Sets the default character set for the program</para></entry>
+    <entry><para>Sets the default character encoding for the program</para></entry>
   </row>
   <row>
     <entry><para><code>--show-charset=ARG</code></para></entry>
     <entry><para></para></entry>
-    <entry><para>Shows a list of all known character sets</para></entry>
+    <entry><para>Shows a list of all known character encodings</para></entry>
   </row>
   <row>
     <entry><para><code>--show-aliases</code></para></entry>
     <entry><para></para></entry>
-    <entry><para>Shows a list of all known character set aliases</para></entry>
+    <entry><para>Shows a list of all known character encoding aliases</para></entry>
   </row>
   <row>
     <entry><para><code>--help</code></para></entry>

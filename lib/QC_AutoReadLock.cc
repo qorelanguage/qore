@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ Copyright 2003 - 2009 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -21,15 +21,15 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/QC_AutoReadLock.h>
+#include <qore/intern/QC_AutoReadLock.h>
 
-int CID_AUTOREADLOCK;
+qore_classid_t CID_AUTOREADLOCK;
 
-static void ARL_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void ARL_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p = test_param(params, NT_OBJECT, 0);
-   RWLock *rwl = p ? (RWLock *)p->val.object->getReferencedPrivateData(CID_RWLOCK, xsink) : NULL;
-   if (xsink->isException())
+   QoreObject *p = test_object_param(params, 0);
+   RWLock *rwl = p ? (RWLock *)p->getReferencedPrivateData(CID_RWLOCK, xsink) : 0;
+   if (*xsink)
       return;
 
    if (!rwl)
@@ -45,20 +45,20 @@ static void ARL_constructor(class Object *self, class QoreNode *params, Exceptio
       self->setPrivate(CID_AUTOREADLOCK, arwl);
 }
 
-static void ARL_destructor(class Object *self, class QoreAutoReadLock *arwl, ExceptionSink *xsink)
+static void ARL_destructor(QoreObject *self, class QoreAutoReadLock *arwl, ExceptionSink *xsink)
 {
    arwl->destructor(xsink);
    arwl->deref(xsink);
 }
 
-static void ARL_copy(class Object *self, class Object *old, class QoreAutoReadLock *m, ExceptionSink *xsink)
+static void ARL_copy(QoreObject *self, QoreObject *old, class QoreAutoReadLock *m, ExceptionSink *xsink)
 {
    xsink->raiseException("AUTOREADLOCK-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 class QoreClass *initAutoReadLockClass()
 {
-   tracein("initAutoReadLockClass()");
+   QORE_TRACE("initAutoReadLockClass()");
    
    class QoreClass *QC_AutoReadLock = new QoreClass("AutoReadLock", QDOM_THREAD_CLASS);
    CID_AUTOREADLOCK = QC_AutoReadLock->getID();
@@ -66,6 +66,6 @@ class QoreClass *initAutoReadLockClass()
    QC_AutoReadLock->setDestructor((q_destructor_t)ARL_destructor);
    QC_AutoReadLock->setCopy((q_copy_t)ARL_copy);
    
-   traceout("initAutoReadLockClass()");
+
    return QC_AutoReadLock;
 }

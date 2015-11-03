@@ -1,0 +1,173 @@
+/** @page qore_data Qore Data
+    @section handling_data Qore Data
+
+    All data value in Qore (and, in fact, all elements of Qore parse trees) are descended from AbstractQoreNode.
+
+    The following are the basic data types in Qore, implemented as C++ classes descended from AbstractQoreNode, and their type codes, accessed via AbstractQoreNode::getType():
+    - QoreBoolNode (\ref NT_BOOLEAN) for the boolean data type
+    - QoreBigIntNode (\ref NT_INT) for the 64-bit integer data type
+    - QoreFloatNode (\ref NT_FLOAT) for the double-precision floating-point type
+    - QoreStringNode (\ref NT_STRING) for the string data type
+    - DateTimeNode (\ref NT_DATE) for the date/time data type
+    - BinaryNode (\ref NT_BINARY) for the opaque binary data type
+    - QoreNothingNode (\ref NT_NOTHING) for a type signifying no value (also equivalent to 0!)
+    - QoreNullNode (\ref NT_NULL) for the SQL NULL data type
+    - QoreHashNode (\ref NT_HASH) for an associative array or hash data type
+    - QoreListNode (\ref NT_LIST) for a list or array data type
+    - QoreObject (\ref NT_OBJECT) for the data type representing the instantiation of a Qore class (QoreClass)
+
+    Additionally, the following classes are exposed in the library:
+    - ReferenceNode (\ref NT_REFERENCE)
+    - AbstractFunctionReferenceNode (\ref NT_FUNCREF)
+
+    @see node_types.h for a complete list of all type codes.
+
+    The fastest way to directly access data of a specific type is to use the non-virtual function AbstractQoreNode::getType() and then to do a reinterpret_cast to the appropriate type as follows:
+    
+    @code
+    if (node->getType() == NT_DATE) {
+       DateTimeNode *dt = reinterpret_cast<DateTimeNode *>(node);
+       // .. do something with dt
+    }
+    @endcode
+
+    This is faster than using dynamic_cast<> as follows (which is also a perfectly legal method for getting a pointer/testing the data type as well, just a little slower due to the dynamic_cast<>):
+
+    @code
+    DateTimeNode *dt = dynamic_cast<DateTimeNode *>(node);
+    if (dt) {
+       // do something with dt...
+    }
+    @endcode
+
+    @subsection simple_value_types Simple Value Types: QoreBigIntNode, QoreFloatNode, QoreStringNode, DateTimeNode, BinaryNode
+
+    The QoreBigIntNode (\ref NT_INT), QoreFloatNode (\ref NT_FLOAT), QoreStringNode (\ref NT_STRING), DateTimeNode (\ref NT_DATE), and BinaryNode (\ref NT_BINARY) classes are reference counted and can only be dynamically allocated.
+
+    They are all descendents of SimpleQoreNode, meaning that dereferencing their objects cannot cause a Qore-language exception to be thrown (hence all support the SimpleQoreNode::deref() function), therefore the SimpleRefHolder class can be used to manage temporary references to objects of these types.
+
+    For example:
+
+    @code
+    {
+       // here getQoreBigIntNode() returns a QoreBigIntNode value with an incremented reference count
+       SimpleRefHolder<QoreBigIntNode> qint(getQoreBigIntNode());
+       printf("the result is: %lld\n", qint->val);
+       // when qint goes out of scope, the reference count is decremented by calling SimpleQoreNode::deref()
+    }
+    @endcode
+
+    @subsection unique_value_types Unique Value Types: QoreBoolNode, QoreNullNode, QoreNothingNode
+
+    QoreBoolNode (\ref NT_BOOLEAN), QoreNullNode (\ref NT_NULL), and QoreNothingNode (\ref NT_NOTHING, but also equivalent to a 0 pointer, see the note below) are special classes in that they may not be directly instantiated with the new operator.  They are all represented by single non-reference-counted objects managed directly by the Qore library.  Each of these classes represents a type that has only one value, therefore as a memory and performance optimization, reference counting is disabled for their objects.  Actually in the case of QoreBoolNode the subclasses QoreBoolTrueNode and QoreBoolFalseNode have actual instantiations.
+
+    For the QoreBoolNode class, you can use these objects by referring to the global \ref True and \ref False objects, or by calling get_bool_node() as follows in the example function:
+
+    @code
+    static AbstractQoreNode *f_convert_first_argument_to_bool(const QoreListNode *params, ExceptionSink *xsink)
+    {
+       const AbstractQoreNode *p = get_param(params, 0);
+       return get_bool_node(p ? p->getAsBool() : false);
+    }
+    @endcode
+
+    Or, some even simpler functions:
+
+    @code
+    static AbstractQoreNode *f_return_true(const QoreListNode *params, ExceptionSink *xsink)
+    {
+       return &True; // QoreBoolNode objects are not reference counted (reference counting operations are ignored)
+    }
+
+    static AbstractQoreNode *f_return_false(const QoreListNode *params, ExceptionSink *xsink)
+    {
+       return &False; // QoreBoolNode objects are not reference counted (reference counting operations are ignored)
+    }
+    @endcode
+
+    Similarly, for QoreNullNode there is the global \ref Null object or the inline function null() that returns a pointer to this object.  The inline function is_null() can be used to test for a Qore SQL \ref Null value.
+
+    QoreNothingNode has the gobal \ref Nothing object and the inline function nothing() that returns a pointer to it as well.
+
+    @note that in Qore a C++ null pointer (0) is the same as \c NOTHING, therefore the inline function is_nothing() should always be used to test for \c NOTHING.  Therefore the following code is incorrect:
+
+    @code
+    // get_qore_value() returns an "AbstractQoreNode *"
+    AbstractQoreNode *p = get_qore_value();
+    if (!p) { // incorrect! NOTHING in Qore can be represented by a 0 or a pointer to the Nothing value
+    }
+    @endcode
+
+    The code should look like this instead:
+
+    @code
+    // get_qore_value() returns an "AbstractQoreNode *"
+    AbstractQoreNode *p = get_qore_value();
+    if (is_nothing(p)) { // correct test for nothing
+    }
+    @endcode   
+
+    @subsection container_types Container Value Types: QoreHashNode, QoreListNode, QoreObject
+
+    The QoreHashNode (\ref NT_HASH), QoreListNode (\ref NT_LIST), and QoreObject (\ref NT_OBJECT) classes define container types in Qore.  QoreObject objects in particular could throw an exception when dereferenced (if the object goes out of scope and its destructor is run, the destructor could throw an exception).  Because container types can hold any type, when they are deferenced it could cause a QoreObject to go out of scope, and therefore the possibility that a Qore-language exception could be thrown must be taken into consideration.  Therefore, to dereference these objects a pointer to an ExceptionSink object must be passed to AbstractQoreNode::deref().
+    
+    The ReferenceHolder class can be used to manage temporary reference counts as follows:
+
+    @code
+    {
+       // here a QoreHashNode value is returned with an incremented reference count
+       // note that xsink must be "ExceptionSink *"
+       ReferenceHolder<QoreHashNode> qhash(getQoreHashNode(), xsink);
+       printf("there are %ld elements in the hash\n", qhash->size());
+       // when qhash goes out of scope, the reference count is decremented
+    }
+    @endcode
+
+    @subsection qoreobject Object Value Type: QoreObject
+
+    QoreObject objects have node type \ref NT_OBJECT as returned by AbstractQoreNode::getType().
+
+    QoreObject is special in that the implementation for objects in Qore mirrors that of Java, in that objects are pased by reference when used as function or method arguments, unlike other types.  However, like Java, the reference to the object is passed, and not the variable, so, while an object passed as an argument to a function can be modified by that function (modifications are made to the original object), in order to write a swap method, for example, you would need to pass the variables by reference (or the lvalue expression by reference, as the case may be) to the swap function.  Unlike Java, Qore does support passing arguments by reference.
+
+    @subsection reference_arguments Handling Reference Arguments: ReferenceNode and ReferenceHelper
+
+    Handling lvalue references is more complicated, as access to global variables and object member references must be made under the appropriate thread locks.  However the ReferenceHelper class makes access to lvalue references much easier and takes care of all the locking and access to the lvalue expression.  With the ReferenceHelper class you can get the type of the lvalue expression's value, get a pointer to a node with a reference count of 1 for in-place modification, or assign a new value to the lvalue.
+
+    Here is an example of the use of ReferenceHelper:
+
+    @code
+    static AbstractQoreNode *f_chomp(const QoreListNode *params, ExceptionSink *xsink)
+    {
+       const AbstractQoreNode *p = get_param(params, 0);   
+       if (!p)
+          return 0;
+
+       qore_type_t ptype = p->getType();
+
+       // ... some code not relevant to this example removed 
+
+       // note that the function test_reference_param() can be used
+       // to test for a reference argument directly
+
+       if (ptype != NT_REFERENCE)
+          return 0;
+       
+       const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(p);
+       
+       // ReferenceHelper will take care of locking any objects that need to
+       // be locked for accessing the variable (if necessary).  The locks 
+       // are released when the ReferenceHelper object goes out of scope
+       AutoVLock vl(xsink);
+       ReferenceHelper ref(r, vl, xsink);
+       if (!ref || ref.getType() != NT_STRING)
+          return 0;
+       
+       QoreStringNode *str = reinterpret_cast<QoreStringNode *>(ref.getUnique(xsink));
+       if (*xsink)
+          return 0;
+       
+       str->chomp();
+       return str->refSelf();
+    }
+    @endcode
+*/

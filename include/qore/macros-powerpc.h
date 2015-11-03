@@ -1,7 +1,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2009 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,6 +21,9 @@
 #ifndef _QORE_CONFIG_MACHINE_MACROS_H
 
 #define _QORE_CONFIG_MACHINE_MACROS_H
+
+// only have support for 32-bit ppc for now
+#ifndef __ppc64
 
 #define HAVE_ATOMIC_MACROS
 
@@ -53,5 +56,16 @@ static inline int atomic_dec(int *v)
                 : "cc", "memory");
    return !t;
 }
+
+#define HAVE_CHECK_STACK_POS
+#define STACK_DIRECTION_DOWN 1
+
+static inline size_t get_stack_pos() {
+   size_t addr;
+   __asm("mr %0, r1" : "=r" (addr) );
+   return addr;
+}
+
+#endif
 
 #endif

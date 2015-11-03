@@ -1,73 +1,77 @@
 Qore README
 
 author: David Nichols <david_nichols@users.sourceforge.net>
-updated: 2007-05-24
+updated: 2008-09-02
 
-This document contains some general information on the Qore language.  Please refer to the following files/locations for specific information:
+This document contains some general information on the Qore language.  Please
+refer to the following files/locations for specific information:
 
-README-SVN
-----------
-read to learn how to build qore from svn sources
+README-SVN: 
+  learn how to build qore from svn sources
 
-WHATISQORE
-----------
-a general description of the Qore programming language
+README-MODULES: 
+  information about qore modules (delivered separately from the qore library)
 
-RELEASE-NOTES
--------------
-for release notes, known issues, etc
+WHATISQORE: 
+  general description of the Qore programming language
 
-BUILD
------
-for information on how to build and install qore from sources - some quick information here:
+RELEASE-NOTES: 
+  release notes, known issues, etc
+
+BUILD: 
+  information on how to build and install qore from sources - some quick
+  information below
+
+docs/qore.html: 
+  Qore Programming Language Reference Manual built from the docbook sources
+  (docbook sources are only in svn at the moment).
+
+docs/library/html/index.html: 
+  API documentation for qore's public API (built during the build process if
+  you have doxygen)
+
+test/: 
+  test scripts.  test/test.q is the main regression test script; testing is
+  not yet automated as a part of the build...
+
+examples/: 
+  many example Qore scripts/programs.
+
+
+************************
+*** Quick Build Info ***
+************************
  * only UNIX-like platforms are currently supported
  * requires POSIX threading support
- * requires at least flex 2.5.31 (many distributions have flex 2.5.4, flex 2.5.34 recommended) in order to compile the multithreaded parser; you can get this version at 
-	http://sourceforge.net/projects/flex
- * requires libxml2 headers and libraries; libxml2 support is no longer optional
- * requires pcre headers and libraries for perl5-compatible regex support; POSIX regex support is no longer used
+ * requires at least flex 2.5.31 (older distributions have flex 2.5.4, flex
+   2.5.35 recommended) in order to compile the multithreaded parser; you can
+   get this version at: 
+      http://sourceforge.net/projects/flex
+ * requires libxml2 headers and libraries; libxml2 support is no longer
+   optional
+ * requires pcre headers and libraries for perl5-compatible regex support;
+   POSIX regex support is no longer used
  * requires openssl headers and libraries
- * optionally support for Oracle, MySQL, PostgreSQL, Sybase, MS SQL Server, ncurses, TIBCO Rendezvous, TIBCO AE Adapters, and Bea Tuxedo can be built
-(see BUILD for details)
-
-docs/qore.html
----------------------------------------------
-The Qore Programming Language Reference Manual built from the docbook sources (docbook sources are only in svn at the moment).
-
-docs/roadmap.html
------------------
-An html page giving a list of planned features and their status.
-The most current version can be found on http://qore.sourceforge.net/roadmap.html
-
-test/
------
-some test scripts.  test/test.q is the main regression test script; testing is not yet automated...
-
-examples/
----------
-some example Qore scripts/programs.
+ * requires zlib & bzlib headers and libraries
+ * optionally support for Oracle, MySQL, PostgreSQL, Sybase, MS SQL Server,
+   ncurses, OpenGL, GLUT, QT4, TIBCO Rendezvous, TIBCO AE Adapters, and Bea 
+   Tuxedo can be built (see README-MODULES for details)
 
 
 ***************
 *** HISTORY ***
 ***************
-Qore development was originally sponsored by Hutchison 3G in Vienna, Austria in order to provide the logic engine for the Qorus Integration Engine (formerly OM/Qore Workflow/EAI System).
-Qore development is now sponsored by Qore Technologies s.r.o. in Prague, Czech Republic.
+Qore was originally designed to facilitate embedding integration logic in a
+workflow/technical order management system (the system is called Qorus
+Integration Engine).
 
-Qorus Integration Engine
-------------------------
-Qorus Integration Engine is a framework for the development and operation of reliable (fault-tolerant) interfaces supporting "Guaranteed Recoverability".
+The initial requirements for the language were: clean threading model, SMP
+scalability, efficient resource sharing, safe embedding of logic in automomous
+objects with restricted capabilities, good networking and lightweight (ex
+xml-rpc, json-rpc) web-service and other common protocol support, system
+stability and memory cleanliness.
 
-The system is a highly multi-threaded workflow and SOA platform where user (and some system) logic is run-time loaded/refreshed from a system database and executed in a controlled fashion in Qore Program objects with restricted capabilities by the system in order to support user-defined workflows and services.
+However, while qore was originally designed as an embedded application
+scripting library (and still excels at this task), it has evolved to be a
+fully-functional standalone language as well.
 
-Basically the qore language was developed in order to make it possible to write this application, however solutions to various challenges in the Qore language/library design were implemented in the most generic and flexible way possible in order to make qore as useful in as many contexts as possible.
-
-The requirements for the language were:
-*) clean threading model, SMP scalability
-*) efficient resource sharing
-*) support cleanly embedding logic in automomous objects with variable restricted capabilities (= Program class)
-*) good network/socket API (= Socket class)
-*) FTP, HTTP, XML, XML-RPC, JSON-RPC, TIBCO, Tuxedo, and database integration
-*) total system stability (particularly regarding race conditions) and memory cleanliness
-
-While qore excels as an embedded application scripting library, it has also been designed to be a fully-functional standalone language.

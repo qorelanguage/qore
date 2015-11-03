@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2009 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -23,129 +23,112 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/ql_thread.h>
+#include <qore/intern/ql_thread.h>
 
 #include <pthread.h>
 
-class QoreNode *f_gettid(class QoreNode *params, ExceptionSink *xsink)
-{
-   return new QoreNode(NT_INT, gettid());
+AbstractQoreNode *f_gettid(const QoreListNode *params, ExceptionSink *xsink) {
+   return new QoreBigIntNode(gettid());
 }
 
 extern int num_threads;
-class QoreNode *f_num_threads(class QoreNode *params, ExceptionSink *xsink)
-{
-   return new QoreNode(NT_INT, num_threads);
+AbstractQoreNode *f_num_threads(const QoreListNode *params, ExceptionSink *xsink) {
+   return new QoreBigIntNode(num_threads);
 }
 
-class QoreNode *f_thread_list(class QoreNode *params, ExceptionSink *xsink)
-{
-   return new QoreNode(get_thread_list());
+AbstractQoreNode *f_thread_list(const QoreListNode *params, ExceptionSink *xsink) {
+   return get_thread_list();
 }
 
-class QoreNode *f_save_thread_data(class QoreNode *params, ExceptionSink *xsink)
-{
-   QoreNode *p0 = get_param(params, 0);
-   if (!p0 || (p0->type != NT_HASH && p0->type != NT_STRING))
-      return NULL;
+AbstractQoreNode *f_save_thread_data(const QoreListNode *params, ExceptionSink *xsink) {
+   const AbstractQoreNode *p0 = get_param(params, 0);
+   if (!p0 || (p0->getType() != NT_HASH && p0->getType() != NT_STRING))
+      return 0;
 
-   Hash *data = getProgram()->getThreadData();
-   if (p0->type == NT_HASH)
-      data->merge(p0->val.hash, xsink);
-   else
-   {
-      QoreNode *p1 = get_param(params, 1);
-      if (p1)
-	 p1->RefSelf();
+   QoreHashNode *data = getProgram()->getThreadData();
+   if (p0->getType() == NT_HASH)
+      data->merge(reinterpret_cast<const QoreHashNode *>(p0), xsink);
+   else {
+      const AbstractQoreNode *p1 = get_param(params, 1);
 
-      data->setKeyValue(p0->val.String, p1, xsink);
+      data->setKeyValue(reinterpret_cast<const QoreStringNode *>(p0), p1 ? p1->refSelf() : 0, xsink);
    }
 
-   return NULL;
+   return 0;
 }
 
-class QoreNode *f_delete_thread_data(class QoreNode *params, ExceptionSink *xsink)
-{
-   if (num_params(params))
-   {
+AbstractQoreNode *f_delete_thread_data(const QoreListNode *params, ExceptionSink *xsink) {
+   if (num_params(params)) {
       // get thread data hash
-      Hash *data = getProgram()->getThreadData();
+      QoreHashNode *data = getProgram()->getThreadData();
       
       // iterate through arguments and delete each key
-      for (int i = 0; i < params->val.list->size(); i++)
-      {
-	 QoreNode *p = get_param(params, i);
-	 if (p)
-	 {
-	    if (p->type != NT_STRING)
-	    {
-	       QoreNode *t = p->convert(NT_STRING);
-	       data->deleteKey(t->val.String, xsink);
-	       t->deref(xsink);
-	    }
-	    else
-	       data->deleteKey(p->val.String, xsink);
-	    
-	    if (xsink->isEvent())
+      for (unsigned i = 0; i < params->size(); i++) {
+	 const AbstractQoreNode *p = get_param(params, i);
+	 if (p) {
+	    QoreStringValueHelper t(p);
+	    data->deleteKey(*t, xsink);
+	    if (*xsink)
 	       break;
 	 }
       }
    }
-   return NULL;
+   return 0;
 }
 
-class QoreNode *f_delete_all_thread_data(class QoreNode *params, ExceptionSink *xsink)
-{
-   // get thread data hash
-   Hash *data = getProgram()->getThreadData();
-
-   data->dereference(xsink);
-   return NULL;
-}
-
-class QoreNode *f_get_thread_data(class QoreNode *params, ExceptionSink *xsink)
-{
-   QoreNode *p0;
-
-   if (!(p0 = test_param(params, NT_STRING, 0)))
-      return NULL;
-   Hash *data = getProgram()->getThreadData();
-   QoreNode *v = data->getKeyValue(p0->val.String->getBuffer());
-   if (v)
-   {
-      v = v->eval(xsink);
-      if (xsink->isEvent())
-      {
-	 if (v)
-	    v->deref(xsink);
-	 return NULL;
+AbstractQoreNode *f_remove_thread_data(const QoreListNode *params, ExceptionSink *xsink) {
+   if (num_params(params)) {
+      // get thread data hash
+      QoreHashNode *data = getProgram()->getThreadData();
+      
+      // iterate through arguments and delete each key
+      for (unsigned i = 0; i < params->size(); i++) {
+	 const AbstractQoreNode *p = get_param(params, i);
+	 if (p) {
+	    QoreStringValueHelper t(p);
+	    data->removeKey(*t, xsink);
+	    if (*xsink)
+	       break;
+	 }
       }
    }
-   return v;
+   return 0;
 }
 
-class QoreNode *f_get_all_thread_data(class QoreNode *params, ExceptionSink *xsink)
-{
-   return new QoreNode(getProgram()->getThreadData()->copy());
+AbstractQoreNode *f_delete_all_thread_data(const QoreListNode *params, ExceptionSink *xsink) {
+   getProgram()->clearThreadData(xsink);
+   return 0;
 }
 
-class QoreNode *f_getAllThreadCallStacks(class QoreNode *params, ExceptionSink *xsink)
-{
+AbstractQoreNode *f_get_thread_data(const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *p0;
+
+   if (!(p0 = test_string_param(params, 0)))
+      return 0;
+   QoreHashNode *data = getProgram()->getThreadData();
+   AbstractQoreNode *v = data->getKeyValue(p0->getBuffer());
+   return v ? v->refSelf() : 0;
+}
+
+AbstractQoreNode *f_get_all_thread_data(const QoreListNode *params, ExceptionSink *xsink) {
+   return getProgram()->getThreadData()->copy();
+}
+
+AbstractQoreNode *f_getAllThreadCallStacks(const QoreListNode *params, ExceptionSink *xsink) {
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-   return new QoreNode(getAllCallStacks());
+   return getAllCallStacks();
 #else
-   return new QoreNode("getAllThreadCallStacks() not available without debugging");
+   xsink->raiseException("MISSING-FEATURE-ERROR", "this version of the Qore library was built without support for runtime thread stack tracing; check Qore::HAVE_RUNTIME_THREAD_STACK_TRACE before calling");
+   return 0;
 #endif
 }
 
-class QoreNode *f_throwThreadResourceExceptions(class QoreNode *params, ExceptionSink *xsink)
-{
+AbstractQoreNode *f_throwThreadResourceExceptions(const QoreListNode *params, ExceptionSink *xsink) {
    purge_thread_resources(xsink);
-   return NULL;
+   return 0;
 }
 
-void init_thread_functions()
-{
+void init_thread_functions() {
    builtinFunctions.add("gettid", f_gettid);
    builtinFunctions.add("num_threads", f_num_threads);
    builtinFunctions.add("thread_list", f_thread_list);
@@ -153,6 +136,7 @@ void init_thread_functions()
    builtinFunctions.add("get_all_thread_data", f_get_all_thread_data, QDOM_THREAD_CONTROL);
    builtinFunctions.add("save_thread_data", f_save_thread_data, QDOM_THREAD_CONTROL);
    builtinFunctions.add("delete_thread_data", f_delete_thread_data, QDOM_THREAD_CONTROL);
+   builtinFunctions.add("remove_thread_data", f_remove_thread_data, QDOM_THREAD_CONTROL);
    builtinFunctions.add("delete_all_thread_data", f_delete_all_thread_data, QDOM_THREAD_CONTROL);
    builtinFunctions.add("getAllThreadCallStacks", f_getAllThreadCallStacks, QDOM_THREAD_CONTROL);
    builtinFunctions.add("throwThreadResourceExceptions", f_throwThreadResourceExceptions, QDOM_THREAD_CONTROL);

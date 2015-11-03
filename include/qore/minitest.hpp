@@ -221,8 +221,6 @@ inline minitest::result execute_all_tests(bool random_shuffle_tests = true)
 // 
 inline minitest::result test_last_changed_files(unsigned test_max_N_changed_files)
 {
-    using namespace std;
-
     if (test_max_N_changed_files == 0) {
         return result(0); // success, sort of
     }
@@ -234,7 +232,7 @@ inline minitest::result test_last_changed_files(unsigned test_max_N_changed_file
 
     // get modification times for all files (just once per file
     // to avoid problems on slow drives)
-    typedef map<const char*, time_t, detail::ltstr> file2time_t;
+    typedef std::map<const char*, time_t, detail::ltstr> file2time_t;
     file2time_t file2time;
 
     for (all_tests_t::iterator it1 =  tests->begin(), end1 = tests->end(); it1 != end1; ++it1) 
@@ -257,7 +255,7 @@ inline minitest::result test_last_changed_files(unsigned test_max_N_changed_file
     }
 
     // sort files by last modification time, from latest
-    typedef map<time_t, vector<const char*>, std::greater<time_t> > time2files_t;
+    typedef std::map<time_t, std::vector<const char*>, std::greater<time_t> > time2files_t;
     time2files_t time2files;
 
     for (file2time_t::const_iterator it2 = file2time.begin(), end2 = file2time.end(); it2 != end2; ++it2) 
@@ -267,7 +265,7 @@ inline minitest::result test_last_changed_files(unsigned test_max_N_changed_file
     file2time.clear(); // no longer needed
     
     // extract proper number of files to be tested
-    vector<const char*> files;
+    std::vector<const char*> files;
     files.reserve(test_max_N_changed_files + 1);
     
     for (time2files_t::iterator it3 = time2files.begin(), end3 = time2files.end(); it3 != end3; ++it3) 
@@ -279,7 +277,7 @@ inline minitest::result test_last_changed_files(unsigned test_max_N_changed_file
     }
     time2files.clear(); // no longer needed
 
-    sort(files.begin(), files.end(), detail::ltstr());
+    std::sort(files.begin(), files.end(), detail::ltstr());
 
     // Go through all tests and if they are from recently 
     // changed file execute them.
@@ -287,7 +285,7 @@ inline minitest::result test_last_changed_files(unsigned test_max_N_changed_file
     unsigned count = 0;
     for (all_tests_t::const_iterator it4 = tests->begin(), end4 = tests->end(); it4 != end4; ++it4) 
     {
-        if (!binary_search(files.begin(), files.end(), it4->file, detail::ltstr())) {
+        if (!std::binary_search(files.begin(), files.end(), it4->file, detail::ltstr())) {
             continue;
         }
 

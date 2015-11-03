@@ -1,21 +1,9 @@
 /*
   safe_dslist
 
-  double-ended singly-linked list
-  reading in multiple threads is safe as long as writes (appends at the end) are locked
-
-  Why safe_dslist?
-  there doesn't seem to be any singly-linked list with constant-time inserts at the beginning and end
-  ("head" and "tail" pointers) meaning that if I want to use STL (or almost-STL) containers, then to get
-  this I have to use "list", which is wasteful of space (because it's doubly-linked) :-(
-  the safe_dslist defined below is a singly-linked list with constant time inserts at the beginning and
-  at the end.  Also it can be read multiple times during inserts (appends at the end of the list) - 
-  only inserts need to be atomic...
-  Only a subset of the list methods are defined.  
-
   Qore Programming Language
 
-  Copyright (C) 2003,2004,2005,2006 David Nichols
+  Copyright (C) 2003 - 2008 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -36,14 +24,13 @@
 
 #define _QORE_SAFE_DSLIST
 
-#include <qore/config.h>
-
 #include <stdlib.h>
 #include <string.h>
 
 #include <algorithm>
 #include <functional>
 
+//! defines a node in a safe_dslist
 template<typename T> struct _qore_list_node
 {
       typedef _qore_list_node self_t;
@@ -57,11 +44,12 @@ template<typename T> struct _qore_list_node
       }
       _qore_list_node(T d) 
       {
-	 next = NULL; 
+	 next = 0; 
 	 data = d; 
       }
 };
 
+//! defines an iterator for a safe_dslist
 template<typename T> struct _qore_list_iterator
 {
       typedef _qore_list_node<T> node_t;
@@ -76,7 +64,7 @@ template<typename T> struct _qore_list_iterator
       }
       _qore_list_iterator() 
       { 
-	 node = NULL; 
+	 node = 0; 
       }
       self_t operator++(int) 
       { 
@@ -103,6 +91,7 @@ template<typename T> struct _qore_list_iterator
       }
 };
 
+//! defines a const iterator for a safe_dslist
 template<typename T> struct _qore_list_const_iterator
 {
       typedef _qore_list_node<T> node_t;
@@ -117,7 +106,7 @@ template<typename T> struct _qore_list_const_iterator
       }
       _qore_list_const_iterator() 
       { 
-	 node = NULL; 
+	 node = 0; 
       }
       self_t operator++(int) 
       { 
@@ -144,6 +133,14 @@ template<typename T> struct _qore_list_const_iterator
       }
 };
 
+//! templated class for a double-ended singly-linked list that can be safely read from multiple threads without locking as long as writes are locked
+/**
+  Reading in multiple threads is safe as long as writes (appends at the end or beginning) are locked.  
+  Implements a singly-linked list with constant-time inserts at the beginning and end that
+  can be read in a multi-threaded context without locking.  Writes must be performed in a lock; however
+  this class does not provide any locking; locking must be provided and performed externally to the 
+  class.  Provides an STL-like interface.
+*/
 template<typename T> class safe_dslist
 {  
    public:
@@ -168,42 +165,57 @@ template<typename T> class safe_dslist
       node_t *head, *tail;
 
    public: 
-      safe_dslist() : head(NULL), tail(NULL) 
+      safe_dslist() : head(0), tail(0) 
       {
       }
       ~safe_dslist()
       {
 	 clear_intern();
       }
+      //! empties the list
       void clear()
       {
 	 clear_intern();
-	 head = tail = NULL;
+	 head = tail = 0;
       }
+
+      //! returns an iterator pointing to the first element of the list
       iterator begin()
       {
 	 return head;
       }
+
+      //! returns an iterator pointing one element from the end of the list
       iterator end()
       {
-	 return NULL;
+	 return 0;
       }
+
+      //! returns an iterator pointing to the first element of the list
       const_iterator begin() const
       {
 	 return head;
       }
+
+      //! returns an iterator pointing one element from the end of the list
       const_iterator end() const
       {
-	 return NULL;
+	 return 0;
       }
+
+      //! returns an iterator pointing to the last element in the list
       iterator last()
       {
 	 return tail;
       }
+
+      //! returns an iterator pointing to the last element in the list
       const_iterator last() const
       {
 	 return tail;
       }
+
+      //! returns an iterator either pointing to the element given if present in the list or pointing to one element from the end of the list if not
       iterator find(T data)
       {
 	 node_t *w = head;
@@ -213,8 +225,10 @@ template<typename T> class safe_dslist
 	       return w;
 	    w = w->next;
 	 }
-	 return NULL;
+	 return 0;
       }
+
+      //! returns an iterator either pointing to the element given if present in the list or pointing to one element from the end of the list if not
       const_iterator find(T data) const
       {
 	 node_t *w = head;
@@ -224,8 +238,10 @@ template<typename T> class safe_dslist
 	       return w;
 	    w = w->next;
 	 }
-	 return NULL;
+	 return 0;
       }
+
+      //! adds an element to the beginning of the list (constant time)
       void push_front(T data)
       {
 	 node_t *n = new node_t(data, head);
@@ -233,6 +249,8 @@ template<typename T> class safe_dslist
 	    tail = n;
 	 head = n;
       }
+
+      //! adds an element to the end of the list (constant time)
       void push_back(T data)
       {
 	 node_t *n = new node_t(data);
@@ -242,6 +260,8 @@ template<typename T> class safe_dslist
 	    head = n;
 	 tail = n;
       }
+
+      //! concatenates all elements of this list to the end of the list passed
       void populate(self_t &other)
       {
 	 iterator i = begin();
@@ -251,6 +271,8 @@ template<typename T> class safe_dslist
 	    i++;
 	 }
       }
+
+      //! concatenates all elements of this list to the end of the list passed
       void populate(self_t *other)
       {
 	 iterator i = begin();
@@ -260,17 +282,23 @@ template<typename T> class safe_dslist
 	    i++;
 	 }
       }
+
+      //! returns true if the list is empty
       bool empty() const
       {
 	 return !head;
       }
+
+      //! deletes the list element given by the iterator argument
+      /** only constant time for the first element in the list, otherwise is O(n), linear with the length of the list
+       */
       void erase(iterator i)
       {
 	 if (i.node == head)
 	 {
 	    head = i.node->next;
 	    if (!head)
-	       tail = NULL;
+	       tail = 0;
 	 }
 	 else
 	 {

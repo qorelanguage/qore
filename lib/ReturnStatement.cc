@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ Copyright 2003 - 2009 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -21,28 +21,28 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/ReturnStatement.h>
+#include <qore/intern/ReturnStatement.h>
 
-ReturnStatement::ReturnStatement(int start_line, int end_line, class QoreNode *v) : AbstractStatement(start_line, end_line)
+ReturnStatement::ReturnStatement(int start_line, int end_line, AbstractQoreNode *v) : AbstractStatement(start_line, end_line)
 {
    exp = v;
 }
 
 ReturnStatement::~ReturnStatement()
 {
-   // this should never be NULL, but in case the implementation changes...
+   // this should never be 0, but in case the implementation changes...
    if (exp)
-      exp->deref(NULL);
+      exp->deref(0);
 }
 
-int ReturnStatement::execImpl(class QoreNode **return_value, ExceptionSink *xsink)
+int ReturnStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
 {
    if (exp)
       (*return_value) = exp->eval(xsink);
    return RC_RETURN;
 }
 
-int ReturnStatement::parseInitImpl(lvh_t oflag, int pflag)
+int ReturnStatement::parseInitImpl(LocalVar *oflag, int pflag)
 {
    return exp ? process_node(&exp, oflag, pflag) : 0;
 }

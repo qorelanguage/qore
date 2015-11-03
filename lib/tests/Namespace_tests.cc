@@ -5,7 +5,7 @@ namespace Namespace_tests {
 
 TEST()
 {
-  Namespace ns("ns"); // checking that it "owns" itself
+  QoreNamespace ns("ns"); // checking that it "owns" itself
 }
 
 TEST()
@@ -20,15 +20,15 @@ TEST()
 
 TEST()
 {
-  // checking that Namespace + NamedScope work together
-  Namespace ns("ns");
+  // checking that QoreNamespace + NamedScope work together
+  QoreNamespace ns("ns");
   NamedScope scope(strdup("bbb"));
 
   ExceptionSink xsink;
-  Hash* h = new Hash;
-  h->setKeyValue("name", new QoreNode("value"), &xsink);
+  QoreHashNode* h = new QoreHashNode;
+  h->setKeyValue("name", new AbstractQoreNode("value"), &xsink);
   assert(!xsink);
-  QoreNode* n = new QoreNode(h);
+  AbstractQoreNode* n = new AbstractQoreNode(h);
 
   ns.addConstant(&scope, n);
 }
@@ -36,8 +36,8 @@ TEST()
 TEST()
 {
   // check that nesting of namespaces work
-  Namespace* inner = new Namespace("xyz");
-  Namespace outer("a");
+  QoreNamespace* inner = new QoreNamespace("xyz");
+  QoreNamespace outer("a");
   outer.addNamespace(inner);
 }
 

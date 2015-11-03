@@ -1,0 +1,32 @@
+/** @mainpage Programming with the Qore Library
+
+    @section introduction Introduction to the Qore Library
+
+    The Qore library is designed to facilitate dynamic embedding of code in applications.  The Qore library is thread-safe, and Qore code taking advantage of Qore's threading facilities is highly scalable on SMP machines.
+
+    Qore data is generally atomically referenced counted (with some exceptions for performance and memory usage reasons), and the library supplies some special classes and functions in order to reduce the number of atomic operations and avoid evaluations wherever possible.
+
+    @note The Qore library currently does not throw C++ exceptions; Qore-language exceptions are managed via the ExceptionSink class.
+
+    So far all public functions are documented.  In the Qore header files, functions preceded by \c DLLEXPORT are public functions, and those preceded by \c DLLLOCAL are private to the library (except where an inline implementation is given in a header file).  On system supporting symbol visibility within shared libraries, these functions are not accessible at all outside the library itself.  On other systems, these functions are available, but should not be used as they are not officially part of the library's public API and may be changed in subsequent releases that claim binary compatibility with the current library version.
+
+    Please see the sections below for information about how to embed Qore code in C++ programs, how to write Qore modules and DBI drivers, how to work with Qore data, and how to write Qore builtin functions and classes.
+
+    Generally Qore features design decisions to maximize performance (however there is still a lot of room for improvement!) at the cost of having a more complex API, and there is a lot of use of pointers (something C++ programmers don't typically like very much).  Additionally, reference counting is handled explicitly (and not with an approach like Boost's shared_ptr, for example), but there are helper classes to manage reference counting in a safe way, as well as classes to safely manage optional evaluation, etc.
+    
+    All code using the qore library should include the header file Qore.h as follows:
+
+    @code
+    #include <qore/Qore.h>
+    @endcode
+
+    See the following sections for more information:
+
+    - @subpage embedding
+    - @subpage qore_data
+    - @subpage builtin_functions
+    - @subpage class_implementation
+    - @subpage qore_modules
+    - @subpage dbi_drivers
+
+*/

@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ Copyright 2003 - 2010 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -21,52 +21,44 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/ContextStatement.h>
-#include <qore/Context.h>
-#include <qore/Variable.h>
+#include <qore/intern/ContextStatement.h>
+#include <qore/intern/StatementBlock.h>
 
-ContextMod::ContextMod(int t, class QoreNode *n)
-{
+ContextMod::ContextMod(int t, AbstractQoreNode *n) {
    type = t;
    c.exp = n;
 }
 
-ContextMod::~ContextMod()
-{
+ContextMod::~ContextMod() {
    if (c.exp)
-      c.exp->deref(NULL);
+      c.exp->deref(0);
 }
 
-ContextModList::ContextModList(ContextMod *cm)
-{
+ContextModList::ContextModList(ContextMod *cm) {
    push_back(cm);
 }
 
-ContextModList::~ContextModList()
-{
+ContextModList::~ContextModList() {
    cxtmod_list_t::iterator i;
-   while ((i = begin()) != end())
-   {
-      //printd(5, "CML::~CML() %d (%08p)\n", (*i)->type, (*i)->c.exp);
+   while ((i = begin()) != end()) {
+      //printd(5, "CML::~CML() %d (%08p)\n", (*i)->getType(), (*i)->c.exp);
       if (*i)
 	 delete *i;
       erase(i);
    }
 }
 
-void ContextModList::addContextMod(ContextMod *cm)
-{
+void ContextModList::addContextMod(ContextMod *cm) {
    push_back(cm);
-   //printd(5, "CML::CML() %d (%08p)\n", cm->type, cm->c.exp);
+   //printd(5, "CML::CML() %d (%08p)\n", cm->getType(), cm->c.exp);
 }
 
-ContextStatement::ContextStatement(int start_line, int end_line, char *n, class QoreNode *expr, class ContextModList *mods, class StatementBlock *cd) : AbstractStatement(start_line, end_line)
-{
+ContextStatement::ContextStatement(int start_line, int end_line, char *n, AbstractQoreNode *expr, class ContextModList *mods, class StatementBlock *cd) : AbstractStatement(start_line, end_line) {
    name = n;
    exp = expr;
    code = cd;
-   lvars = NULL;
-   where_exp = sort_ascending = sort_descending = NULL;
+   lvars = 0;
+   where_exp = sort_ascending = sort_descending = 0;
    if (mods)
    {
       for (cxtmod_list_t::iterator i = mods->begin(); i != mods->end(); i++)
@@ -77,7 +69,7 @@ ContextStatement::ContextStatement(int start_line, int end_line, char *n, class 
 	       if (!where_exp)
 	       {
 		  where_exp = (*i)->c.exp;
-		  (*i)->c.exp = NULL;
+		  (*i)->c.exp = 0;
 	       }
 	       else
 		  parseException("CONTEXT-PARSE-ERROR", "multiple where conditions found for context statement!");
@@ -86,7 +78,7 @@ ContextStatement::ContextStatement(int start_line, int end_line, char *n, class 
 	       if (!sort_ascending && !sort_descending)
 	       {
 		  sort_ascending = (*i)->c.exp;
-		  (*i)->c.exp = NULL;
+		  (*i)->c.exp = 0;
 	       }
 	       else
 		  parseException("CONTEXT-PARSE-ERROR", "multiple sort conditions found for context statement!");
@@ -95,7 +87,7 @@ ContextStatement::ContextStatement(int start_line, int end_line, char *n, class 
 	       if (!sort_descending && !sort_ascending)
 	       {
 		  sort_descending = (*i)->c.exp;
-		  (*i)->c.exp = NULL;
+		  (*i)->c.exp = 0;
 	       }
 	       else
 		  parseException("CONTEXT-PARSE-ERROR", "multiple sort conditions found for context statement!");
@@ -111,66 +103,52 @@ ContextStatement::~ContextStatement()
    if (name)
       free(name);
    if (exp)
-      exp->deref(NULL);
+      exp->deref(0);
    if (code)
       delete code;
    if (lvars)
       delete lvars;
    if (where_exp)
-      where_exp->deref(NULL);
+      where_exp->deref(0);
    if (sort_ascending)
-      sort_ascending->deref(NULL);
+      sort_ascending->deref(0);
    if (sort_descending)
-      sort_descending->deref(NULL);
+      sort_descending->deref(0);
 }
 
 // FIXME: local vars should only be instantiated if there is a non-null context
-int ContextStatement::execImpl(class QoreNode **return_value, class ExceptionSink *xsink)
+int ContextStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
 {
-   tracein("ContextStatement::exec()");
    int rc = 0;
-   int i;
-   class Context *context;
-   class QoreNode *sort = sort_ascending ? sort_ascending : sort_descending;
+   AbstractQoreNode *sort = sort_ascending ? sort_ascending : sort_descending;
    int sort_type = sort_ascending ? CM_SORT_ASCENDING : (sort_descending ? CM_SORT_DESCENDING : -1);
       
    // instantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      instantiateLVar(lvars->ids[i], NULL);
+   LVListInstantiator lvi(lvars, xsink);
    
    // create the context
-   context = new Context(name, xsink, exp, where_exp, sort_type, sort, NULL);
-   
+   ReferenceHolder<Context> context(new Context(name, xsink, exp, where_exp, sort_type, sort, 0), xsink);
+   if (*xsink || !code)
+      return rc;
+
    // execute the statements
-   if (code)
-      for (context->pos = 0; context->pos < context->max_pos && !xsink->isEvent(); context->pos++)
-      {
-	 printd(4, "ContextStatement::exec() iteration %d/%d\n", context->pos, context->max_pos);
-	 if (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || xsink->isEvent())
-	 {
-	    rc = 0;
-	    break;
-	 }
-	 else if (rc == RC_RETURN)
-	    break;
-	 else if (rc == RC_CONTINUE)
-	    rc = 0;
+   for (context->pos = 0; context->pos < context->max_pos && !xsink->isEvent(); context->pos++) {
+      printd(4, "ContextStatement::exec() iteration %d/%d\n", context->pos, context->max_pos);
+      if (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || *xsink) {
+	 rc = 0;
+	 break;
       }
+      else if (rc == RC_RETURN)
+	 break;
+      else if (rc == RC_CONTINUE)
+	 rc = 0;
+   }
 
-   // destroy the context
-   context->deref(xsink);
-
-   // uninstantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      uninstantiateLVar(xsink);
-   
-   traceout("ContextStatement::exec()");
    return rc;   
 }
 
-int ContextStatement::parseInitImpl(lvh_t oflag, int pflag)
-{
-   tracein("ContextStatement::parseInitImpl()");
+int ContextStatement::parseInitImpl(LocalVar *oflag, int pflag) {
+   QORE_TRACE("ContextStatement::parseInitImpl()");
    
    int lvids = 0;
    
@@ -199,6 +177,6 @@ int ContextStatement::parseInitImpl(lvh_t oflag, int pflag)
    lvars = new LVList(lvids);
    
    pop_cvar();
-   traceout("ContextStatement::parseInitImpl()");
+
    return 0;
 }

@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ Copyright 2003 - 2009 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -21,20 +21,18 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/SummarizeStatement.h>
+#include <qore/intern/SummarizeStatement.h>
+#include <qore/intern/StatementBlock.h>
 
-int SummarizeStatement::execImpl(class QoreNode **return_value, class ExceptionSink *xsink)
+int SummarizeStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
 {
-   tracein("ContextStatement::execSummary()");
    int rc = 0;
-   int i;
    class Context *context;
-   class QoreNode *sort = sort_ascending ? sort_ascending : sort_descending;
+   AbstractQoreNode *sort = sort_ascending ? sort_ascending : sort_descending;
    int sort_type = sort_ascending ? CM_SORT_ASCENDING : (sort_descending ? CM_SORT_DESCENDING : -1);
 
    // instantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      instantiateLVar(lvars->ids[i], NULL);
+   LVListInstantiator lvi(lvars, xsink);
       
    // create the context
    context = new Context(name, xsink, exp, where_exp, sort_type, sort, summarize);
@@ -61,16 +59,12 @@ int SummarizeStatement::execImpl(class QoreNode **return_value, class ExceptionS
    // destroy the context
    context->deref(xsink);
    
-   // uninstantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      uninstantiateLVar(xsink);
-   traceout("ContextStatement::execSummary()");
    return rc;
 }
 
-int SummarizeStatement::parseInitImpl(lvh_t oflag, int pflag)
+int SummarizeStatement::parseInitImpl(LocalVar *oflag, int pflag)
 {
-   tracein("SummarizeStatement::parseInit()");
+   QORE_TRACE("SummarizeStatement::parseInit()");
    
    int lvids = 0;
    
@@ -98,6 +92,6 @@ int SummarizeStatement::parseInitImpl(lvh_t oflag, int pflag)
    lvars = new LVList(lvids);
    
    pop_cvar();
-   traceout("SummarizeStatement::parseInit()");
+
    return 0;
 }

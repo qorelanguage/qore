@@ -20,13 +20,13 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/support.h>
+#include <qore/Qore.h>
+#include <qore/minitest.hpp>
+#include <qore/intern/QException.h>
 
 #include <assert.h>
 #include <string.h>
 #include <vector>
-#include <qore/minitest.hpp>
-#include "qore/QException.h"
 
 //------------------------------------------------------------------------------
 // pImpl for the main visible class
@@ -191,7 +191,7 @@ std::string QException::getAllDetails() const
   return result;
 }
 
-#ifdef DEBUG
+#ifdef DEBUG_TESTS
 #  include "tests/QException_tests.cc"
 #endif
 

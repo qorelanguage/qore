@@ -1,0 +1,167 @@
+/** @page builtin_functions Qore Builtin Functions
+    @section builtin_functions Qore Builtin Functions
+
+    To add a builtin function to the library, you have to call BuiltinFunctionList::add().  The BuiltinFunctionList class only contains static functions, but it can also be accessed through the global \c builtinFunctions object.
+
+    Builtin functions must have the following signature:
+
+    @code
+    // "testfunction()" ignores all arguments and returns the string "testing"
+    AbstractQoreNode *f_testfunction(const QoreListNode *params, ExceptionSink *xsink)
+    {
+       return new QoreStringNode("testing");
+    }
+    @endcode
+
+    Then the function can be added to the library's builtin function list with the following command:
+    @code
+    builtinFunctions.add("testfunction", f_testfunction);
+    @endcode
+
+    When adding a function that provides networking functionality, process control, filesystem access, threading functionality, or any other functionality that may potentially need to be restricted in QoreProgram objects, tag the function with one of the QDOM_* constants in Restrictions.h by including the domain constant as the third parameter to the BuiltinFunctionList::add() call.  If a function provides functionality that falls into more than one domain, then binary or them together as in the following example:
+
+    @code
+    // the exec() function provides access to external processes and also affects the current process
+    builtinFunctions.add("exec",        f_exec, QDOM_EXTERNAL_PROCESS | QDOM_PROCESS);
+    @endcode
+
+    @subsection handling_function_arguments Handling Function Arguments
+
+    Use the inline functions in params.h to access function arguments.  These are:
+    - num_params() - returns the number of arguments passed to the function
+    - get_param() - returns the argument in the position given or 0 if there is none
+
+    The following inline functions provide arguments of a specific type:
+    - test_binary_param() - returns a const BinaryNode pointer or 0
+    - test_string_param() - returns a const QoreStringNode pointer or 0
+    - test_object_param() - returns a QoreObject pointer or 0
+    - test_date_param() - returns a const DateTimeNode pointer or 0
+    - test_hash_param() - returns a const QoreHashNode pointer or 0
+    - test_list_param() - returns a const QoreListNode pointer or 0
+    - test_funcref_param() - returns a const ResolvedFunctionReferenceNode pointer or 0
+    - test_reference_param() - returns a const ReferenceNode pointer or 0
+    - test_nothing_param() - returns true if there is no value at the given position
+
+    Note that there are no functions for the integer (\ref NT_INT) and floating-point (\ref NT_FLOAT) types.  These values should be acquired as necessary using the AbstractQoreNode::getAsInt(), AbstractQoreNode::getAsBigInt(), and AbstractQoreNode::getAsFloat() functions to allow for transparent type conversion from other data types.
+
+    Here are some examples:
+
+    @code
+    AbstractQoreNode *f_testfunction(const QoreListNode *params, ExceptionSink *xsink)
+    {
+       // get the first integer argument
+       const AbstractQoreNode *p = get_param(params, 0);
+       int64 i = p ? p->getAsBigInt() : 0;
+       
+       // get the second floating-point argument
+       p = get_param(params, 1);
+       double f = p ? p->getAsFloat() : 0.0;
+
+       int64 rc = do_something(i, f);
+
+       // returns an integer value
+       return new QoreBigIntNode(rc);
+    }
+    @endcode
+
+    To use a string value, but accept conversion from other data types, use the QoreStringValueHelper class.  This class is best for getting QoreString values or simply getting a "char *" for the converted value.  The QoreStringValueHelper class also provides a constructor that allows the target character encoding to be specified (there is an example in the class documentation).  If you need a QoreStringNode (\ref NT_STRING) value, then use the QoreStringNodeValueHelper class instead.
+
+    Here is an example of interpreting a function argument as a string value using the QoreStringValueHelper class:
+
+    @code
+    AbstractQoreNode *f_testfunction(const QoreListNode *params, ExceptionSink *xsink)
+    {
+       // get a pointer to the first argument
+       const AbstractQoreNode *p = get_param(params, 0);
+       
+       // this will convert p to a string if necessary
+       QoreStringValueHelper str(p);
+
+       // call a function with the "const char *" to the string buffer of str
+       do_something(str->getBuffer());
+
+       return 0;
+    }
+    @endcode
+
+    To process arguments meant to be timeout values (or meant to specify a period of time) where an integer implies certain units (such as milliseconds or seconds) but also allow relative DateTimeNode (\ref NT_DATE) values to be processed, use the following functions:
+    - getSecZeroInt(const AbstractQoreNode *a)
+    - getSecZeroBigInt(const AbstractQoreNode *a)
+    - getSecMinusOneInt(const AbstractQoreNode *a)
+    - getSecMinusOneBigInt(const AbstractQoreNode *a)
+    - getMsZeroInt(const AbstractQoreNode *a)
+    - getMsZeroBigInt(const AbstractQoreNode *a)
+    - getMsMinusOneInt(const AbstractQoreNode *a)
+    - getMsMinusOneBigInt(const AbstractQoreNode *a)
+    - getMicroSecZeroInt(const AbstractQoreNode *a)
+
+    Each of the above functions returns an integer, assuming a certain unit for non DateTimeNode values, and also returns a default value if no argument was present (either 0 or -1). 
+
+    The following is an example of using getMsZeroInt():
+
+    @anchor MUTEX_lock
+    @code
+    static AbstractQoreNode *MUTEX_lock(QoreObject *self, SmartMutex *m, const QoreListNode *params, ExceptionSink *xsink)
+    {
+       // the the first argument
+       const AbstractQoreNode *p = get_param(params, 0);
+
+       // we only return a return value if we have a timeout, otherwise we save allocating a QoreBigIntNode
+       if (!is_nothing(p)) {
+          // get the timeout value in milliseconds from the argument
+          int timeout_ms = getMsZeroInt(p);
+	  // grab the lock with a timeout value
+	  int rc = m->grab(xsink, timeout_ms);
+	  // return the return code if there was no exception
+	  if (!*xsink)
+	     return new QoreBigIntNode(rc);
+       }
+       else // grab the lock unconditionally (without a timeout)
+          m->grab(xsink); 
+
+       return 0;
+    }
+    @endcode
+
+    @subsection function_return_value Function Return Value
+
+    Each Qore function should return a pointer to an AbstractQoreNode giving the return value of the function.  If the function does not return a value, then it should simply return 0 as follows:
+
+    @code
+    // "testfunction()" ignores all arguments and returns no value
+    AbstractQoreNode *f_testfunction(const QoreListNode *params, ExceptionSink *xsink)
+    {
+       return 0;
+    }
+    @endcode
+
+    Otherwise, the pointer's reference count will be owned by the caller of builtin function, so returning a descendent of AbstractQoreNode created with the C++ new operator is OK, otherwise you have to make sure that the value returned by the builtin function is referenced for the return.  In other words, returning AbstractQoreNode descendents that have an incremented reference count is OK, but, for example, to return an argument of the function as the return value of the function, you have to increment the reference count manually -- the easiest way to do this is to call AbstractQoreNode::refSelf() on the value to be returned, as in the following example:
+
+    @code
+    static AbstractQoreNode *f_return_first_argument(const QoreListNode *params, ExceptionSink *xsink)
+    {
+       const AbstractQoreNode *p = get_param(params, 0);
+       return p ? p->refSelf() : 0;
+    }
+    @endcode
+
+    See the section below on Handling Qore Data for more information.
+    
+    @subsection function_raising_exceptions Raising Exceptions in a Function
+
+    If your function raises an exception, then you must call ExceptionSink::raiseException() against the ExceptionSink argument to the function.  In the case that your function raises a Qore-language exception, the function must \b always return 0 as a return value.  The following is an example:
+
+    @code
+    static AbstractQoreNode *f_remove_signal_handler(const QoreListNode *params, ExceptionSink *xsink)
+    {
+       const AbstractQoreNode *p0 = get_param(params, 0);
+       int signal = p0 ? p0->getAsInt() : 0;
+       if (!signal || signal > QORE_SIGNAL_MAX) {
+          xsink->raiseException("REMOVE-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
+	  return 0;
+       }
+       QoreSignalManager::removeHandler(signal, xsink);
+       return 0;
+    }
+    @endcode
+*/

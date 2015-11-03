@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2009 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,29 +21,29 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QoreClassList.h>
+#include <qore/intern/QoreClassList.h>
+#include <qore/intern/QoreNamespaceList.h>
 #include <qore/minitest.hpp>
 
 #include <assert.h>
 
-#ifdef DEBUG
+#ifdef DEBUG_TESTS
 #  include "tests/QoreClassList_tests.cc"
 #endif
 
-void QoreClassList::deleteAll()
-{
-   hm_qc_t::iterator i;
-   while ((i = hm.begin()) != hm.end())
+void QoreClassList::deleteAll() {
+   hm_qc_t::iterator i = hm.begin();
+   while (i != hm.end()) {
       remove(i);
+      i = hm.begin();
+   }
 }
 
-QoreClassList::~QoreClassList()
-{
+QoreClassList::~QoreClassList() {
    deleteAll();
 }
 
-int QoreClassList::add(class QoreClass *oc)
-{
+int QoreClassList::add(QoreClass *oc) {
    printd(5, "QCL::add() this=%08p '%s' (%08p)\n", this, oc->getName(), oc);
 
    if (find(oc->getName()))
@@ -53,22 +53,18 @@ int QoreClassList::add(class QoreClass *oc)
    return 0;
 }
 
-class QoreClass *QoreClassList::find(const char *name)
-{
+QoreClass *QoreClassList::find(const char *name) {
    hm_qc_t::iterator i = hm.find(name);
    if (i != hm.end())
       return i->second;
-   return NULL;
+   return 0;
 }
 
-class QoreClass *QoreClassList::findChange(const char *name)
-{
+QoreClass *QoreClassList::findChange(const char *name) {
    hm_qc_t::iterator i = hm.find(name);
-   if (i != hm.end())
-   {
-      class QoreClass *nc;
-      if (!i->second->is_unique())
-      {
+   if (i != hm.end()) {
+      QoreClass *nc;
+      if (!i->second->is_unique()) {
 	 nc = i->second;
 	 hm.erase(i);
 	 nc = nc->copyAndDeref();
@@ -78,12 +74,11 @@ class QoreClass *QoreClassList::findChange(const char *name)
 	 nc = i->second;
       return nc;
    }
-   return NULL;
+   return 0;
 }
 
-class QoreClassList *QoreClassList::copy(int po)
-{
-   class QoreClassList *nocl = new QoreClassList();
+QoreClassList *QoreClassList::copy(int po) {
+   QoreClassList *nocl = new QoreClassList();
 
    for (hm_qc_t::iterator i = hm.begin(); i != hm.end(); i++)
       if ((!(po & PO_NO_SYSTEM_CLASSES) && i->second->isSystem())
@@ -92,37 +87,32 @@ class QoreClassList *QoreClassList::copy(int po)
    return nocl;
 }
 
-void QoreClassList::parseInit()
-{
+void QoreClassList::parseInit() {
    for (hm_qc_t::iterator i = hm.begin(); i != hm.end(); i++)
       i->second->parseInit();
 }
 
-void QoreClassList::parseRollback()
-{
+void QoreClassList::parseRollback() {
    for (hm_qc_t::iterator i = hm.begin(); i != hm.end(); i++)
       i->second->parseRollback();
 }
 
-void QoreClassList::parseCommit(class QoreClassList *l)
-{
+void QoreClassList::parseCommit(QoreClassList *l) {
    assimilate(l);
    for (hm_qc_t::iterator i = hm.begin(); i != hm.end(); i++)
       i->second->parseCommit();
 }
 
-void QoreClassList::reset()
-{
+void QoreClassList::reset() {
    deleteAll();
 }
 
-void QoreClassList::assimilate(class QoreClassList *n)
-{
-   hm_qc_t::iterator i;
-   while ((i = n->hm.begin()) != n->hm.end())
-   {
-      class QoreClass *nc = i->second;
+void QoreClassList::assimilate(QoreClassList *n) {
+   hm_qc_t::iterator i = n->hm.begin();
+   while (i != n->hm.end()) {
+      QoreClass *nc = i->second;
       n->hm.erase(i);      
+      i = n->hm.begin();
 
       assert(!find(nc->getName()));
       printd(5, "QoreClassList::assimilate() this=%08p adding=%08p (%s)\n", this, nc, nc->getName());
@@ -130,44 +120,37 @@ void QoreClassList::assimilate(class QoreClassList *n)
    }
 }
 
-void QoreClassList::assimilate(QoreClassList *n, QoreClassList *otherlist, class NamespaceList *nsl, class NamespaceList *pendNSL, const char *nsname)
-{
-   hm_qc_t::iterator i;
-   while ((i = n->hm.begin()) != n->hm.end())
-   {
-      if (otherlist->find(i->first))
-      {
+void QoreClassList::assimilate(QoreClassList *n, QoreClassList *otherlist, class QoreNamespaceList *nsl, class QoreNamespaceList *pendNSL, const char *nsname) {
+   hm_qc_t::iterator i = n->hm.begin();
+   while (i != n->hm.end()) {
+      if (otherlist->find(i->first)) {
 	 parse_error("class '%s' has already been defined in namespace '%s'", i->first, nsname);
 	 n->remove(i);
       }
-      else if (find(i->first))
-      {
+      else if (find(i->first)) {
 	 parse_error("class '%s' is already pending in namespace '%s'", i->first, nsname);
 	 n->remove(i);
       }
-      else if (nsl->find(i->first))
-      {
+      else if (nsl->find(i->first)) {
 	 parse_error("cannot add class '%s' to existing namespace '%s' because a subnamespace has already been defined with this name", i->first, nsname);
 	 n->remove(i);
       }
-      else if (pendNSL->find(i->first))
-      {
+      else if (pendNSL->find(i->first)) {
 	 parse_error("cannot add class '%s' to existing namespace '%s' because a pending subnamespace is already pending with this name", i->first, nsname);
 	 n->remove(i);
       }
-      else
-      {
+      else {
 	 // "move" data to new list
 	 hm[i->first] = i->second;
 	 n->hm.erase(i);
       }
+      i = n->hm.begin();
    }
 }
 
-class Hash *QoreClassList::getInfo()
-{
-   class Hash *h = new Hash();
+QoreHashNode *QoreClassList::getInfo() {
+   QoreHashNode *h = new QoreHashNode();
    for (hm_qc_t::iterator i = hm.begin(); i != hm.end(); i++)
-      h->setKeyValue(i->first, new QoreNode(i->second->getMethodList()), NULL);
+      h->setKeyValue(i->first, i->second->getMethodList(), 0);
    return h;
 }

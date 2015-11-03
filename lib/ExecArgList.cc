@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ Copyright 2003 - 2009 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,7 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/ExecArgList.h>
+#include <qore/intern/ExecArgList.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -56,7 +56,7 @@ ExecArgList::ExecArgList(const char *str)
 
    allocated = 0;
    len = 0;
-   arg = NULL;
+   arg = 0;
    char *start = (char *)tmp.getBuffer();
    char *p = start;
    int quote = 0;
@@ -87,7 +87,7 @@ ExecArgList::ExecArgList(const char *str)
    if (*start)
       addArg(getString(start, strlen(start)));
    // terminate list
-   addArg(NULL);
+   addArg(0);
 }
 
 ExecArgList::~ExecArgList()
@@ -105,7 +105,7 @@ char *ExecArgList::getFile()
 {
    if (len)
       return arg[0];
-   return NULL;
+   return 0;
 }
 
 char **ExecArgList::getArgs()

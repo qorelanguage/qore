@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <bookinfo>
-<title>Qore v0.6.2</title>
+<title>Qore v0.7.8</title>
 <subtitle>Programming Language Reference Manual</subtitle>
 <authorgroup>
 <author>
@@ -14,10 +14,66 @@
 </author>
 </authorgroup>
 
-<date>2 March 2007</date>
-<releaseinfo>V. 0.6.2</releaseinfo>
+<date>December 9 2009</date>
+<releaseinfo>v. 0.7.8</releaseinfo>
 
 <revhistory>
+
+<revision>
+  <revnumber>2.10</revnumber>
+  <date>December 9 2009</date>
+  <authorinitials>dn</authorinitials>
+  <revremark>Update to 0.7.8</revremark>
+</revision>
+
+<revision>
+  <revnumber>2.9</revnumber>
+  <date>6 November 2009</date>
+  <authorinitials>dn</authorinitials>
+  <revremark>Update to 0.7.7</revremark>
+</revision>
+
+<revision>
+  <revnumber>2.8</revnumber>
+  <date>13 July 2009</date>
+  <authorinitials>dn</authorinitials>
+  <revremark>Update to 0.7.6</revremark>
+</revision>
+
+<revision>
+  <revnumber>2.7</revnumber>
+  <date>22 June 2009</date>
+  <authorinitials>dn</authorinitials>
+  <revremark>Update to 0.7.5</revremark>
+</revision>
+
+<revision>
+  <revnumber>2.6</revnumber>
+  <date>4 April 2009</date>
+  <authorinitials>dn</authorinitials>
+  <revremark>Update to 0.7.4</revremark>
+</revision>
+
+<revision>
+  <revnumber>2.4</revnumber>
+  <date>3 December 2008</date>
+  <authorinitials>dn</authorinitials>
+  <revremark>Update to 0.7.2</revremark>
+</revision>
+
+<revision>
+  <revnumber>2.2</revnumber>
+  <date>6 November 2008</date>
+  <authorinitials>dn</authorinitials>
+  <revremark>Update to 0.7.1</revremark>
+</revision>
+
+<revision>
+  <revnumber>2.1</revnumber>
+  <date>17 July 2008</date>
+  <authorinitials>dn</authorinitials>
+  <revremark>Update to 0.7.0</revremark>
+</revision>
 
 <revision>
   <revnumber>2.0</revnumber>

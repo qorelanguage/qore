@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2009 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -31,13 +31,18 @@
 
 extern bool threads_initialized;
 
+#define QORE_SERIALIZE_DEBUGGING_OUTPUT 1
+
+#ifdef QORE_SERIALIZE_DEBUGGING_OUTPUT
+static QoreThreadLock debug_output_lock;
+#endif
+
 int printe(const char *fmt, ...)
 {
    va_list args;
    QoreString buf;
 
-   while (true)
-   {
+   while (true) {
       va_start(args, fmt);
       int rc = buf.vsprintf(fmt, args);
       va_end(args);
@@ -50,16 +55,14 @@ int printe(const char *fmt, ...)
    return 0;
 }
 
-int print_debug(int level, const char *fmt, ...)
-{
+int print_debug(int level, const char *fmt, ...) {
    if (level > debug)
       return 0;
 
    va_list args;
    QoreString buf;
 
-   while (true)
-   {
+   while (true) {
       va_start(args, fmt);
       int rc = buf.vsprintf(fmt, args);
       va_end(args);
@@ -67,8 +70,11 @@ int print_debug(int level, const char *fmt, ...)
 	 break;
    }
 
-   if (threads_initialized) fprintf(stderr, "TID %d: ", gettid());
-   fputs(buf.getBuffer(), stderr);
+#ifdef QORE_SERIALIZE_DEBUGGING_OUTPUT
+   AutoLocker al(debug_output_lock);
+#endif
+   int tid = (threads_initialized && is_valid_qore_thread()) ? gettid() : -1;
+   fprintf(stderr, "TID %d: %s", tid, buf.getBuffer());
    fflush(stderr);
    return 0;
 }
@@ -102,24 +108,22 @@ char *remove_trailing_blanks(char *str)
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 void showCallStack()
 {
-   List *callStack = getCallStackList();
+   QoreListNode *callStack = getCallStackList();
    int sl, el;
    get_pgm_counter(sl, el);
    if (sl == el)
       printf("terminated at %s:%d\n", get_pgm_file(), sl);
    else
       printf("terminated at %s:%d-%d\n", get_pgm_file(), sl, el);
-   if (callStack && callStack->size())
-   {
+   if (callStack && callStack->size()) {
       printe("call stack:\n");
-      for (int i = 0; i < callStack->size(); i++)
-      {
-         class Hash *h = callStack->retrieve_entry(i)->val.hash;
-         printe(" %2d: %s() (%s line %d, %s)\n", i + 1,
-                h->getKeyValue("function")->val.String->getBuffer(),
-                h->getKeyValue("file")->val.String->getBuffer(),
-                (int)h->getKeyValue("line")->val.intval,
-                h->getKeyValue("type")->val.String->getBuffer());
+      for (unsigned i = 0; i < callStack->size(); i++) {
+         QoreHashNode *h = reinterpret_cast<QoreHashNode *>(callStack->retrieve_entry(i));
+	 QoreStringNode *func = reinterpret_cast<QoreStringNode *>(h->getKeyValue("function"));
+	 QoreStringNode *file = reinterpret_cast<QoreStringNode *>(h->getKeyValue("file"));
+	 QoreStringNode *type = reinterpret_cast<QoreStringNode *>(h->getKeyValue("type"));
+         printe(" %2d: %s() (%s line %d, %s)\n", i + 1, func->getBuffer(), file->getBuffer(), 
+		(int)(reinterpret_cast<QoreBigIntNode *>(h->getKeyValue("line")))->val, type->getBuffer());
       }
    }
 }
@@ -129,9 +133,8 @@ void parse_error(const char *fmt, ...)
 {
    printd(5, "parse_error(\"%s\", ...) called\n", fmt);
 
-   class QoreString *desc = new QoreString();
-   while (true)
-   {
+   QoreStringNode *desc = new QoreStringNode();
+   while (true) {
       va_list args;
       va_start(args, fmt);
       int rc = desc->vsprintf(fmt, args);
@@ -146,9 +149,8 @@ void parse_error(int sline, int eline, const char *fmt, ...)
 {
    printd(5, "parse_error(sline, eline, \"%s\", ...) called\n", sline, eline, fmt);
 
-   class QoreString *desc = new QoreString();
-   while (true)
-   {
+   QoreStringNode *desc = new QoreStringNode();
+   while (true) {
       va_list args;
       va_start(args, fmt);
       int rc = desc->vsprintf(fmt, args);
@@ -163,9 +165,8 @@ void parseException(const char *err, const char *fmt, ...)
 {
    printd(5, "parseException(%s. '%s', ...) called\n", err, fmt);
 
-   class QoreString *desc = new QoreString();
-   while (true)
-   {
+   QoreStringNode *desc = new QoreStringNode();
+   while (true) {
       va_list args;
       va_start(args, fmt);
       int rc = desc->vsprintf(fmt, args);
@@ -189,8 +190,39 @@ static inline int tryIncludeDir(class QoreString *dir, const char *file)
 }
 
 // FIXME: this could be a lot more efficient
-class QoreString *findFileInEnvPath(const char *file, const char *varname)
-{
+QoreString *findFileInPath(const char *file, const char *path) {
+   // if path is empty, return null
+   if (!path || !path[0])
+      return 0;
+
+   // duplicate string for invasive searches
+   QoreString plist(path);
+   char *idir = (char *)plist.getBuffer();
+   //printd(5, "findFileInEnvPath() %s=%s\n", varname, idir);
+
+   // try each directory
+   while (char *p = strchr(idir, ':')) {
+      if (p != idir) {
+	 *p = '\0';
+	 TempString str(new QoreString(idir));
+	 if (tryIncludeDir(*str, file))
+	    return str.release();
+      }
+      idir = p + 1;
+   }
+
+   // try last directory
+   if (idir[0]) {
+      TempString str(new QoreString(idir));
+      if (tryIncludeDir(*str, file))
+	 return str.release();
+   }
+
+   return 0;
+}
+
+// FIXME: this could be a lot more efficient
+QoreString *findFileInEnvPath(const char *file, const char *varname) {
    //printd(5, "findFileInEnvPath(file=%s var=%s)\n", file, varname);
 
    // if the file is an absolute path, then return it
@@ -198,42 +230,9 @@ class QoreString *findFileInEnvPath(const char *file, const char *varname)
       return new QoreString(file);
 
    // get path from environment
-   class QoreString str;
-   if (Env.get(varname, &str))
-      return NULL;
-   char *idir = (char *)str.getBuffer();
+   QoreString str;
+   if (SysEnv.get(varname, str))
+      return 0;
 
-   // if path is empty, return null
-   if (!idir)
-      return NULL;
-
-   // duplicate string for invasive searches
-   QoreString plist(idir);
-   idir = (char *)plist.getBuffer();
-   //printd(5, "findFileInEnvPath() %s=%s\n", varname, idir);
-
-   // try each directory
-   while (char *p = strchr(idir, ':'))
-   {
-      if (p != idir)
-      {
-	 *p = '\0';
-	 QoreString *str = new QoreString(idir);
-	 if (tryIncludeDir(str, file))
-	    return str;
-	 delete str;
-      }
-      idir = p + 1;
-   }
-
-   // try last directory
-   if (idir[0])
-   {
-      QoreString *str = new QoreString(idir);
-      if (tryIncludeDir(str, file))
-	 return str;
-      delete str;
-   }
-
-   return NULL;
+   return findFileInPath(file, str.getBuffer());
 }

@@ -1,0 +1,3993 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+  <sect1 id="Operators">
+    <title>Operators</title>
+
+    <para>The following table lists all Qore operators in order of precedence, starting with the highest precedence. The lower the precedence number, the higher the precedence, therefore the operators with precedence level 1 ("{}", "[]", ".") have the highest precedence of all Qore operators.  The precedence levels in Qore are roughly equal to the precedence levels of C language operators (however note the important difference with the , operator as noted below). To explicitly specify the precedence for expression evaluation, use parentheses ().</para>
+
+<table><title>Operators</title>
+<tgroup cols='4' align='left' colsep='1' rowsep='1'>
+
+  <thead>
+  <row>
+    <entry><para>Operator</para></entry>
+    <entry><para>Prec.</para></entry>
+    <entry><para>Description</para></entry>
+    <entry><para>Example</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>``</para></entry>
+    <entry><para>1</para></entry>
+    <entry><para><link linkend='Backquote_Operator'>backquote/backtick operator</link></para></entry>
+    <entry><code>`ls -l`</code></entry>
+  </row>
+  <row>
+    <entry><para>{}</para></entry>
+    <entry><para>1</para></entry>
+    <entry><para><link linkend='Hash_Element_Expression_Dereference_Operator'>hash element or object member expression dereference operator</link></para></entry>
+    <entry><code>$hash{"na" + "me"}</code></entry>
+  </row>
+  <row>
+    <entry><para>.</para></entry>
+    <entry><para>1</para></entry>
+    <entry><para><link linkend='Hash_Element_Literal_Dereference_Operator'>hash element or object member literal dereference operator</link></para></entry>
+    <entry>
+      <para><code>$hash.name</code></para>
+      <para><code>$obj.method()</code></para>
+    </entry>
+  </row>
+  <row>
+    <entry><para>[]</para></entry>
+    <entry><para>1</para></entry>
+    <entry><para><link linkend='List_Dereference_Operator'>list element, string, and binary dereference operator</link></para></entry>
+    <entry><code>$list[1]</code></entry>
+  </row>
+  <row>
+    <entry><para>++</para></entry>
+    <entry><para>2</para></entry>
+    <entry><para><link linkend='Pre_Increment_Operator'>pre-increment operator</link>, <link linkend='Post_Increment_Operator'>post-increment operator</link></para></entry>
+    <entry><code>++$a, $a++</code></entry>
+  </row>
+  <row>
+    <entry><para>--</para></entry>
+    <entry><para>2</para></entry>
+    <entry><para><link linkend='Pre_Decrement_Operator'>pre-decrement operator</link>, <link linkend='Post_Decrement_Operator'>post-decrement operator</link></para></entry>
+    <entry><code>--$a, $a--</code></entry>
+  </row>
+  <row>
+    <entry><para><command>new</command></para></entry>
+    <entry><para>3</para></entry>
+    <entry><para><link linkend='New_Object_Operator'>class instantiation/new object operator</link></para></entry>
+    <entry><code><command>new</command> Socket()</code></entry>
+  </row>
+  <row>
+    <entry><para><command>background</command></para></entry>
+    <entry><para>3</para></entry>
+    <entry><para><link linkend='Background_Operator'>background/thread creation operator</link></para></entry>
+    <entry><code><command>background</command> mainThread()</code></entry>
+  </row>
+  <row>
+    <entry><para>!</para></entry>
+    <entry><para>4</para></entry>
+    <entry><para><link linkend='Logical_Not_Operator'>logical negation operator</link></para></entry>
+    <entry><code><command>if</command> (!($a &gt; 10)) ...</code></entry>
+  </row>
+  <row>
+    <entry><para>~</para></entry>
+    <entry><para>5</para></entry>
+    <entry><para><link linkend='Binary_Not_Operator'>binary not/bit inversion operator</link></para></entry>
+    <entry><code>$var = ~$var</code></entry>
+  </row>
+  <row>
+    <entry><para>- (unary minus)</para></entry>
+    <entry><para>6</para></entry>
+    <entry><para><link linkend='Unary_Minus_Operator'>unary minus operator</link></para></entry>
+    <entry><code>$var = -$var</code></entry>
+  </row>
+  <row>
+    <entry><para><command>shift</command></para></entry>
+    <entry><para>7</para></entry>
+    <entry><para><link linkend='Shift_Operator'>shift list element operator</link></para></entry>
+    <entry><code><command>shift</command> $list</code></entry>
+  </row>
+  <row>
+    <entry><para><command>pop</command></para></entry>
+    <entry><para>7</para></entry>
+    <entry><para><link linkend='Pop_Operator'>pop list element operator</link></para></entry>
+    <entry><code><command>pop</command> $list</code></entry>
+  </row>
+  <row>
+    <entry><para><command>chomp</command></para></entry>
+    <entry><para>7</para></entry>
+    <entry><para><link linkend='Chomp_Operator'>chomp end-of-line character operator</link></para></entry>
+    <entry><code><command>chomp</command> $string</code></entry>
+  </row>
+  <row>
+    <entry><para><command>trim</command></para></entry>
+    <entry><para>7</para></entry>
+    <entry><para><link linkend='Trim_Operator'>trim characters operator</link></para></entry>
+    <entry><code><command>trim</command> $string</code></entry>
+  </row>
+  <row>
+    <entry><para><command>map</command></para></entry>
+    <entry><para>7</para></entry>
+    <entry><para><link linkend='Map_Operator'>map operator</link></para></entry>
+    <entry><code><command>map</command> $closure($1), $list</code></entry>
+  </row>
+  <row>
+    <entry><para><command>foldl</command></para></entry>
+    <entry><para>7</para></entry>
+    <entry><para><link linkend='Foldl_Operator'>fold left to right operator</link></para></entry>
+    <entry><code><command>foldl</command> $closure($1 - $2), $list</code></entry>
+  </row>
+  <row>
+    <entry><para><command>foldr</command></para></entry>
+    <entry><para>7</para></entry>
+    <entry><para><link linkend='Foldr_Operator'>fold right to left operator</link></para></entry>
+    <entry><code><command>foldr</command> $closure($1 - $2), $list</code></entry>
+  </row>
+  <row>
+    <entry><para><command>select</command></para></entry>
+    <entry><para>7</para></entry>
+    <entry><para><link linkend='Select_Operator'>select elements from list operator</link></para></entry>
+    <entry><code><command>select</command> $list, $1 > 1</code></entry>
+  </row>
+  <row>
+    <entry><para><command>elements</command></para></entry>
+    <entry><para>8</para></entry>
+    <entry><para><link linkend='Elements_Operator'>number of elements operator (list, hash, string, binary)</link></para></entry>
+    <entry><code><command>elements</command> $list</code></entry>
+  </row>
+  <row>
+    <entry><para><command>keys</command></para></entry>
+    <entry><para>8</para></entry>
+    <entry><para><link linkend='Keys_Operator'>hash key list operator</link></para></entry>
+    <entry><code><command>keys</command> $hash</code></entry>
+  </row>
+  <row>
+    <entry><para>*</para></entry>
+    <entry><para>9</para></entry>
+    <entry><para><link linkend='Multiply_Operator'>arithmetic multiplication operator</link></para></entry>
+    <entry><code>$var = $a * 10</code></entry>
+  </row>
+  <row>
+    <entry><para>/</para></entry>
+    <entry><para>9</para></entry>
+    <entry><para><link linkend='Divide_Operator'>arithmetic division operator</link></para></entry>
+    <entry><code>$var = $a / 10</code></entry>
+  </row>
+  <row>
+    <entry><para>%</para></entry>
+    <entry><para>10</para></entry>
+    <entry><para><link linkend='Modula_Operator'>arithmetic modula operator</link></para></entry>
+    <entry><code>$var = $a % 10</code></entry>
+  </row>
+  <row>
+    <entry><para>+</para></entry>
+    <entry><para>11</para></entry>
+    <entry><para><link linkend='Plus_Operator'>plus operator: string, binary, list, and hash concatenation, integer and float addition</link></para></entry>
+    <entry>
+      <para><code>$a + 10</code></para>
+      <para><code>"hello" + "there"</code></para>
+      <para><code>$list + "new value"</code></para>
+      <para><code>$hash + ( "newkey" : 100 )</code></para>
+    </entry>
+  </row>
+  <row>
+    <entry><para>-</para></entry>
+    <entry><para>11</para></entry>
+    <entry><para><link linkend='Minus_Operator'>minus operator (arithmetic subtraction, hash key removal)</link></para></entry>
+    <entry><code>$a - 10</code></entry>
+  </row>
+  <row>
+    <entry><para>&gt;&gt;</para></entry>
+    <entry><para>12</para></entry>
+    <entry><para><link linkend='Shift_Right_Operator'>bitwise shift right operator</link></para></entry>
+    <entry><code>0xff00 &gt;&gt; 8</code></entry>
+  </row>
+  <row>
+    <entry><para>&lt;&lt;</para></entry>
+    <entry><para>12</para></entry>
+    <entry><para><link linkend='Shift_Left_Operator'>bitwise shift left operator</link></para></entry>
+    <entry><code>0xff00 &lt;&lt; 8</code></entry>
+  </row>
+  <row>
+    <entry><para><command>exists</command></para></entry>
+    <entry><para>13</para></entry>
+    <entry><para><link linkend='Exists_Operator'>exists value operator</link></para></entry>
+    <entry><code><command>exists</command> $var</code></entry>
+  </row>
+  <row>
+    <entry><para><command>instanceof</command></para></entry>
+    <entry><para>13</para></entry>
+    <entry><para><link linkend='Instanceof_Operator'>instanceof class operator</link></para></entry>
+    <entry><code><command>instanceof</command> Qore::Mutex</code></entry>
+  </row>
+  <row>
+    <entry><para>&lt;</para></entry>
+    <entry><para>14</para></entry>
+    <entry><para><link linkend='Less_Than_Operator'>Logical less than operator</link></para></entry>
+    <entry><code>$a &lt; 10</code></entry>
+  </row>
+  <row>
+    <entry><para>&gt;</para></entry>
+    <entry><para>14</para></entry>
+    <entry><para><link linkend='Greater_Than_Operator'>Logical greater than operator</link></para></entry>
+    <entry><code>$a &gt; 10</code></entry>
+  </row>
+  <row>
+    <entry><para>==</para></entry>
+    <entry><para>14</para></entry>
+    <entry><para><link linkend='Equals_Operator'>Logical equality operator</link></para></entry>
+    <entry><code>$a == 10</code></entry>
+  </row>
+  <row>
+    <entry><para>!=</para></entry>
+    <entry><para>14</para></entry>
+    <entry><para><link linkend='Not_Equals_Operator'>logical inequality operator</link></para></entry>
+    <entry><code>$a != 10</code></entry>
+  </row>
+  <row>
+    <entry><para>&lt;=</para></entry>
+    <entry><para>14</para></entry>
+    <entry><para><link linkend='Less_Than_Or_Equals_Operator'>Logical less then or equals operator</link></para></entry>
+    <entry><code>$a &lt;= 10</code></entry>
+  </row>
+  <row>
+    <entry><para>&gt;=</para></entry>
+    <entry><para>14</para></entry>
+    <entry><para><link linkend='Greater_Than_Or_Equals_Operator'>logical greater than or equals operator</link></para></entry>
+    <entry><code>$a &gt;= 10</code></entry>
+  </row>
+  <row>
+    <entry><para>&lt;=&gt;</para></entry>
+    <entry><para>14</para></entry>
+    <entry><para><link linkend='Comparison_Operator'>logical comparison operator</link></para></entry>
+    <entry><code>$a &lt;=&gt; $b</code></entry>
+  </row>
+  <row>
+    <entry><para>===</para></entry>
+    <entry><para>14</para></entry>
+    <entry><para><link linkend='Absolute_Equals_Operator'>absolute logical equality operator</link></para></entry>
+    <entry><code>$a === 10</code></entry>
+  </row>
+  <row>
+    <entry><para>!==</para></entry>
+    <entry><para>14</para></entry>
+    <entry><para><link linkend='Absolute_Not_Equals_Operator'>absolute logical inequality operator</link></para></entry>
+    <entry><code>$a !== 10</code></entry>
+  </row>
+  <row>
+    <entry><para>=~ //</para></entry>
+    <entry><para>14</para></entry>
+    <entry><para><link linkend='Regular_Expression_Match_Operator'>regular expression match operator</link></para></entry>
+    <entry><code>$a =~ /text/</code></entry>
+  </row>
+  <row>
+    <entry><para>!~ //</para></entry>
+    <entry><para>14</para></entry>
+    <entry><para><link linkend='Regular_Expression_No_Match_Operator'>regular expression no match operator</link></para></entry>
+    <entry><code>$a !~ /text/</code></entry>
+  </row>
+ <row>
+    <entry><para>=~ s///</para></entry>
+    <entry><para>14</para></entry>
+    <entry><para><link linkend='Regular_Expression_Substitution_Operator'>regular expression substitution operator</link></para></entry>
+    <entry><code>$a =~ s/text/text/</code></entry>
+  </row>
+ <row>
+    <entry><para>=~ x//</para></entry>
+    <entry><para>14</para></entry>
+    <entry><para><link linkend='Regular_Expression_Pattern_Extraction_Operator'>regular expression pattern extraction operator</link></para></entry>
+    <entry><code>$a =~ x/(\w+):(\w+)/</code></entry>
+  </row>
+ <row>
+    <entry><para>=~ tr</para></entry>
+    <entry><para>14</para></entry>
+    <entry><para><link linkend='Transliteration_Operator'>transliteration operator</link></para></entry>
+    <entry><code>$a =~ tr/src_chars/targ_chars/</code></entry>
+  </row>
+  <row>
+    <entry><para>&amp;</para></entry>
+    <entry><para>15</para></entry>
+    <entry><para><link linkend='Binary_And_Operator'>bitwise AND operator</link></para></entry>
+    <entry><code>$a &amp; 0xff</code></entry>
+  </row>
+  <row>
+    <entry><para>|</para></entry>
+    <entry><para>15</para></entry>
+    <entry><para><link linkend='Binary_Or_Operator'>bitwise OR operator</link></para></entry>
+    <entry><code>$a | 0xff</code></entry>
+  </row>
+  <row>
+    <entry><para>^</para></entry>
+    <entry><para>15</para></entry>
+    <entry><para><link linkend='Binary_Xor_Operator'>bitwise XOR operator</link></para></entry>
+    <entry><code>$a ^ 0xff</code></entry>
+  </row>
+  <row>
+    <entry><para>&amp;&amp;</para></entry>
+    <entry><para>16</para></entry>
+    <entry><para><link linkend='Logical_And_Operator'>logical AND operator</link></para></entry>
+    <entry><code>($a = 1) &amp;&amp; ($b &lt; 10)</code></entry>
+  </row>
+  <row>
+    <entry><para>||</para></entry>
+    <entry><para>16</para></entry>
+    <entry><para><link linkend='Logical_Or_Operator'>logical OR operator</link></para></entry>
+    <entry><code>($a = 1) || ($b &lt; 10)</code></entry>
+  </row>
+  <row>
+    <entry><para>? :</para></entry>
+    <entry><para>17</para></entry>
+    <entry><para><link linkend='Conditional_Operator'>conditional operator</link></para></entry>
+    <entry><code>$a == 2 ? "yes" : "no"</code></entry>
+  </row>
+  <row>
+    <entry><para>,</para></entry>
+    <entry><para>18</para></entry>
+    <entry><para><link linkend='Comma_Operator'>comma operator</link></para></entry>
+    <entry><code>1, 2, 3, 4, 5</code></entry>
+  </row>
+  <row>
+    <entry><para><command>unshift</command></para></entry>
+    <entry><para>19</para></entry>
+    <entry><para><link linkend='Unshift_Operator'>unshift list element operator</link></para></entry>
+    <entry><code><command>unshift</command> $list, $val</code></entry>
+  </row>
+  <row>
+    <entry><para><command>push</command></para></entry>
+    <entry><para>19</para></entry>
+    <entry><para><link linkend='Push_Operator'>push list element operator</link></para></entry>
+    <entry><code><command>push</command> $list, $val</code></entry>
+  </row>
+  <row>
+    <entry><para><command>splice</command></para></entry>
+    <entry><para>19</para></entry>
+    <entry><para><link linkend='Splice_Operator'>splice list or string operator</link></para></entry>
+    <entry><code><command>splice</command> $list, 2, 2, (1, 2, 3)</code></entry>
+  </row>
+  <row>
+    <entry><para>=</para></entry>
+    <entry><para>20</para></entry>
+    <entry><para><link linkend='Assignment_Operator'>assignment operator</link></para></entry>
+    <entry><code>$var = 1</code></entry>
+  </row>
+  <row>
+    <entry><para>+=</para></entry>
+    <entry><para>21</para></entry>
+    <entry><para><link linkend='Plus_Equals_Operator'>plus-equals (add-to) operator</link></para></entry>
+    <entry><code>$var += 5</code></entry>
+  </row>
+  <row>
+    <entry><para>-=</para></entry>
+    <entry><para>21</para></entry>
+    <entry><para><link linkend='Minus_Equals_Operator'>minus-equals (subtract-from) operator</link></para></entry>
+    <entry><code>$var -= 5</code></entry>
+  </row>
+  <row>
+    <entry><para>&amp;=</para></entry>
+    <entry><para>21</para></entry>
+    <entry><para><link linkend='And_Equals_Operator'>and-equals operator</link></para></entry>
+    <entry><code>$var &amp;= 0x2000</code></entry>
+  </row>
+  <row>
+    <entry><para>|=</para></entry>
+    <entry><para>21</para></entry>
+    <entry><para><link linkend='Or_Equals_Operator'>or-equals operator</link></para></entry>
+    <entry><code>$var |= 0x2000</code></entry>
+  </row>
+  <row>
+    <entry><para>%=</para></entry>
+    <entry><para>21</para></entry>
+    <entry><para><link linkend='Modula_Equals_Operator'>modula-equals operator</link></para></entry>
+    <entry><code>$var %= 100</code></entry>
+  </row>
+  <row>
+    <entry><para>*=</para></entry>
+    <entry><para>21</para></entry>
+    <entry><para><link linkend='Multiply_Equals_Operator'>multiply-equals operator</link></para></entry>
+    <entry><code>$var *= 10</code></entry>
+  </row>
+  <row>
+    <entry><para>/=</para></entry>
+    <entry><para>21</para></entry>
+    <entry><para><link linkend='Divide_Equals_Operator'>divide-equals operator</link></para></entry>
+    <entry><code>$var /= 10</code></entry>
+  </row>
+  <row>
+    <entry><para>^=</para></entry>
+    <entry><para>21</para></entry>
+    <entry><para><link linkend='Xor_Equals_Operator'>xor-equals operator</link></para></entry>
+    <entry><code>$var ^= 0x2000</code></entry>
+  </row>
+  <row>
+    <entry><para>&lt;&lt;=</para></entry>
+    <entry><para>21</para></entry>
+    <entry><para><link linkend='Shift_Left_Equals_Operator'>shift-left-equals operator</link></para></entry>
+    <entry><code>$var &lt;&lt;= 0x2000</code></entry>
+  </row>
+  <row>
+    <entry><para>&gt;&gt;=</para></entry>
+    <entry><para>21</para></entry>
+    <entry><para><link linkend='Shift_Right_Equals_Operator'>shift-right-equals operator</link></para></entry>
+    <entry><code>$var &gt;&gt;= 0x2000</code></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+<note>
+<para>All Qore operators perform thread-atomic actions with respect to the immediate arguments of the operator.  If the operators are used in a complex expression, the entire expression is not thread-atomic unless explicit user-level locking is used.  For example: <code>$a += 5</code> is a thread-atomic action, but <code>$a += $b--</code> is not atomic, but rather made up of two atomic actions.</para>
+</note>
+
+<note>
+  <para>When an operator taking more than one argument 
+  is used with arguments of different data types, Qore automatically converts one 
+  or both data types to a data type supported by the operator in order to evaluate 
+  the result, according to the precedence lists in the following section. That is; 
+  when an operator operates on mixed types, the types listed first in the 
+  following sections have precedence over types listed farther down in the lists. 
+  The result type will always be equal to the final operation type after any 
+  conversions due to type precedence per operator. If no type of either argument 
+  matches a supported data type for the operator, both types will be converted to 
+  the highest precedence data type for the operator and then the operator will 
+  evaluate the result. For explicit type conversion, please see the 
+  <link linkend="boolean">boolean()</link>, <link linkend="string">string()</link>, 
+  <link linkend="date">date()</link>, <link linkend="int">int()</link>, 
+  <link linkend="float">float()</link>, etc functions.</para>
+</note>
+
+<note>
+  <para>The Qore comma ',' operator has a higher precendece than the '=' operator, meaning that a statement like <code>$a = 1, 2, 3;</code> is possible without parentheses.  However, it means that a statment like <code>$a = func(1, 2, $b = 3, 4);</code> will probably not do what you want (it uses <code>$b</code> as the third argument which is assigned to the list <code>(3, 4)</code>); you must write <code>$a = func(1, 2, ($b = 3), 4);</code> to pass 4 arguments to the function <code>func</code>.</para>
+</note>
+
+<sect2 id="Backquote_Operator">
+  <title>Backquote Operator (``)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Executes the shell command in a separate process and returns the stdout as a string.  To perform the same action using a Qore expression, see the <link linkend="backquote">backquote() function</link>.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>`shell_command`</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$dirlisting = `ls -l`</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <informaltable>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><replaceable>shell_command</replaceable></para></entry>
+	  <entry><para>The shell command will be executed and the stdout is returned as a string.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </informaltable>
+
+  <table>
+    <title>Exceptions Thrown by ``</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>BACKQUOTE-ERROR</code></para></entry>
+	  <entry><para>An error occurred in fork() or creating the output pipe.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+</sect2>
+
+<sect2 id="Hash_Element_Expression_Dereference_Operator">
+  <title>Hash Element or Object Member Expression Dereference Operator ({})</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Retrieves the value of hash key or object member by evaulating an expression.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>container_expression{expression}</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>printf("%s\n", $hash{getName()});</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+
+  <table><title>Arguments Processed by {}</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>Argument</para></entry>
+	<entry><para>Processing</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para><replaceable>container_expression</replaceable></para></entry>
+	<entry><para>This expression must evaluate to a hash or an object. If not, then the operator returns no value.</para></entry>
+      </row>
+      <row>
+	<entry><para><replaceable>expression = list</replaceable></para></entry>
+	<entry><para>If the expression evaluates to a list, then a slice of the hash or object is returned as a hash containing keys given in the list that are present in the hash or object.  If the key as given in the list (converted to a string if necessary) is not present in the hash or object, then it is also not present in the hash returned.</para></entry>
+      </row>
+      <row>
+	<entry><para><replaceable>expression != list</replaceable></para></entry>
+	<entry><para>This expression is evaluated and converted to a string if necessary. The value of the hash key corresponding to this string will be returned. If the key or member does not exist, then no value is returned.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+
+  <table><title>Exceptions Thrown by {}</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>err</para></entry>
+	<entry><para>desc</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para><code>PRIVATE-MEMBER</code></para></entry>
+	<entry><para>Attempt to access a private member outside the class.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+</sect2>
+
+<sect2 id="Hash_Element_Literal_Dereference_Operator">
+  <title>Hash Element or Object Member Literal Dereference Operator (.)</title>
+
+    <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Retrieves the value of a hash key or object member using a literal identifier or an expression.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>container_expression.identifier</replaceable>
+<replaceable>container_expression.method_identifier([arguments...])</replaceable>
+<replaceable>container_expression.expression</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>printf("%s\n", $hash.name);</programlisting>
+	<programlisting>$obj.method("argument");</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments Processed by .</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      
+      <tbody>
+	<row>
+	  <entry><para><replaceable>container_expression</replaceable></para></entry>
+	  <entry><para>This expression must evaluate to a hash or an object. If not, then the operator returns no value.</para></entry>
+	</row>
+	<row>
+	  <entry><para><replaceable>identifier</replaceable></para></entry>
+	  <entry><para>The value of the hash key or object member corresponding to this identifier will be returned. If no such key exists, then no value is returned. In order to use hash keys that are not valid Qore identifiers, please use the {} operator.  If the member is a private member and access is made outside the class, a run-time exception will be thrown.</para></entry>
+	</row>
+	<row>
+	  <entry><para><replaceable>method_ídentifier</replaceable></para></entry>
+	  <entry><para>The container expression must evaluate to an object, or a run-time exception is thrown.  If the method does not exist in the class a run-time exception is thrown.  Otherwise the method is called with any optional arguments given.</para></entry>
+	</row>
+	<row>
+	  <entry><para><replaceable>expression = list</replaceable></para></entry>
+	  <entry><para>If the expression evaluates to a list, then a slice of the hash or object is returned as a hash containing keys given in the list that are present in the hash or object.  If the key as given in the list (converted to a string if necessary) is not present in the hash or object, then it is also not present in the hash returned.</para></entry>
+	</row>
+	<row>
+	  <entry><para><replaceable>expression != list</replaceable></para></entry>
+	  <entry><para>This expression is evaluated and converted to a string if necessary. The value of the hash key corresponding to this string will be returned. If the key or member does not exist, then no value is returned.</para></entry>
+	</row>
+
+      </tbody>
+    </tgroup>
+  </table>
+  
+  <table>
+    <title>Exceptions Thrown by .</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      
+      <tbody>
+	<row>
+	  <entry><para><code>PRIVATE-MEMBER</code></para></entry>
+	  <entry><para>Attempt to access a private member outside the class.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>METHOD-DOES-NOT-EXIST</code></para></entry>
+	  <entry><para>Attempt to access a method not defined for this class.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>METHOD-IS-PRIVATE</code></para></entry>
+	  <entry><para>Attempt to access a private method from outside the class.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>BASE-CLASS-IS-PRIVATE</code></para></entry>
+	  <entry><para>Attempt to access a method of a privately-inherited base class from outside the class.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>OBJECT-METHOD-EVAL-ON-NON-OBJECT</code></para></entry>
+	  <entry><para>Attempt to execute a method on a non-object.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+</sect2>
+<sect2 id="List_Dereference_Operator">
+  <title>List, String, and Binary Dereference Operator ([])</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Retrieves the value of a list element, the given character of a string, or the integer value of a byte for a binary object.  If the index value is not valid for the argument, NOTHING is returned.  Note that this operator only works as a list dereferencing operator in lvalue expressions; you cannot assign a character or a byte value to strings or binaries using this operator.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>list_expression[expression]</replaceable>
+<replaceable>string_expression[expression]</replaceable>
+<replaceable>binary_expression[expression]</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>printf("%s\n", $list[2]);
+printf("%s\n", $str[2]);
+printf("0x%x\n", $binary[2]);
+</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  
+  <table>
+    <title>Arguments Processed By []</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><replaceable>list_expression</replaceable></para></entry>
+	  <entry><para>If the expression evaluates to a list, then the offset_expression will be used to return the given element from the list.</para></entry>
+	</row>
+	<row>
+	  <entry><para><replaceable>string_expression</replaceable></para></entry>
+	  <entry><para>If the expression evaluates to a string, then the offset_expression will be used to return the given character from the list; note that multi-byte characters with UTF-8 are properly respected with this operator.</para></entry>
+	</row>
+	<row>
+	  <entry><para><replaceable>binary_expression</replaceable></para></entry>
+	  <entry><para>If the expression evaluates to a binary, then the offset_expression will be used to return the integer value of the byte given from the binary object.</para></entry>
+	</row>
+
+	<row>
+	  <entry><para><replaceable>expression</replaceable></para></entry>
+	  <entry><para>The expression is evaluated and converted to an integer if necessary. Then the value of the list element given is returned (elements start at position 0).</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <para>This operator does not throw any exceptions; if the first expression does not evaluate to either a list, string, or binary, then no value is returned.</para>
+</sect2>
+
+<sect2 id="Pre_Increment_Operator">
+  <title>Integer Pre-Increment Operator (++)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>increments an lvalue and returns the incremented value.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>++lvalue</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>++$i;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments Processed By Pre-Increment ++</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para>Integer</para></entry>
+	  <entry><para>First converts the value of <replaceable>lvalue</replaceable> to an integer if necessary, then increments the value and returns the result.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <para>This operator does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="Post_Increment_Operator">
+  <title>Integer Post-Increment Operator (++)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>increments an lvalue and returns the value before the increment.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>lvalue++</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$i++;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments Processed By Post-Increment ++</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para>Integer</para></entry>
+	  <entry><para>First converts the value of <replaceable>lvalue</replaceable> to an integer if necessary, then saves this value as the result, then increments the lvalue, then returns the saved original value of <replaceable>lvalue</replaceable> (after conversion to an integer if necessary)</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+  
+  <para>This operator does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="Pre_Decrement_Operator">
+  <title>Integer Pre-Decrement Operator (--)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>decrements an lvalue and returns the decremented value.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>--lvalue</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>--$i;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments Processed By Pre-Decrement --</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para>Integer</para></entry>
+	  <entry><para>First converts the value of <replaceable>lvalue</replaceable> to an integer if necessary, then decrements it and returns the result.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <para>This operator does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="Post_Decrement_Operator">
+  <title>Integer Post-Decrement Operator (--)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>decrements an lvalue and returns the value before the decrement.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>lvalue--</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$i--;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments Processed By Post-Decrement --</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para>Integer</para></entry>
+	  <entry><para>First converts the value of <replaceable>lvalue</replaceable> to an integer if necessary, then saves this value as the result, then decrements the lvalue, then returns the saved original value of <replaceable>lvalue</replaceable> (after conversion to an integer if necessary)</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+  
+  <para>This operator does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="New_Object_Operator">
+  <title>New Object Operator (new)</title>
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Creates an instance of a class by running the class' constructor on the new <link linkend="Qore_Class_List">class</link> (if any exists) and returns the new object.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><command>new</command> <replaceable>class_identifier(constructor_arguments ...)</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$obj = <command>new</command> Qore::Mutex();</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  <table>
+    <title>Arguments Processed By new</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><replaceable>class_identifier</replaceable></para></entry>
+	  <entry><para>The class_identifier must be an existing class name; if so, the operator instantiates an object of this class, executes the constructor for the class (if any exists, along with any base class constructors, if applicable) on the new object, and returns the object (for constructor execution order in an inherited class, see <link linkend='Class_Inheritance'>Class Inheritance</link>).  If an exception is thrown in the constructor, the object is deleted and NOTHING is returned.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+  <table>
+    <title>Exceptions Thrown by new</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para>depends on class/constructor</para></entry>
+	  <entry><para>See class documentation for possible exceptions.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+</sect2>
+
+<sect2 id="Background_Operator">
+  <title>Background Operator (background)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Start a background thread and return the TID (thread ID).</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><command>background</command> <replaceable>expression</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>background</command> startThread();</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments Processed By background</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><replaceable>expression</replaceable></para></entry>
+	  <entry>
+	    <para>The expression given as an argument will be executed in a new thread. The TID of the new thread will be returned as the return value of the operator. </para>      
+	  </entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+<note>
+  <para>Please note the following when using the background operator:</para>
+  <itemizedlist mark='bullet'>
+    <listitem>
+      <para>expressions that have no effect cannot be used with the background operator (a parse exception will be thrown)</para>
+    </listitem>
+    <listitem>
+      <para>it is illegal to make changes to a local variable anywhere in a background expression (a parse exception will be thrown)</para>
+    </listitem>
+    <listitem>
+      <para>local variables and <command>find</command> expressions are evaluated before the new thread is started and the result of the evaluation is used in the expression in the new thread.</para>
+    </listitem>
+    <listitem>
+      <para>it is not possible to pass local variables by reference anywhere in a background expression (a parse exception will be thrown)</para>
+    </listitem>
+  </itemizedlist>
+</note>
+
+  <table>
+    <title>Exceptions Thrown by background</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>THREAD-CREATION-FAILURE</code></para></entry>
+	  <entry><para>If the thread table is full or if the operating system returns an error while starting the thread, this exception is thrown.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+</sect2>
+<sect2 id="Logical_Not_Operator">
+  <title>Logical Not Operator (!)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Reverses the logical sense of an expression (True becomes False and False becomes True).</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting>!<replaceable>expression</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>if</command> (!<command>exists</command> $error_code)
+    do_something();</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments Processed By !</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><replaceable>expression</replaceable></para></entry>
+	  <entry><para>The expression is evaluated and converted to Boolean, if necessary. Then the value is logically reversed (True becomes False, False becomes True)</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <para>This operator does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="Binary_Not_Operator">
+  <title>Binary Not Operator (~)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>The value of each bit in an integer is reversed (0 becomes 1, 1 becomes 0).</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting>~<replaceable>expression</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$a = ~$b;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments Processed By ~</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><replaceable>expression</replaceable>: Integer</para></entry>
+	  <entry><para>Performs bitwise negation on its argument (ex: 666 &amp; ~27 = 640)</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <para>This operator does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="Unary_Minus_Operator">
+  <title>Unary Minus Operator (-)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Changes the sign of numeric values.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting>-<replaceable>expression</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$a = -$b;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments Processed By Unary Minus -</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><replaceable>expression</replaceable>: Float</para></entry>
+	  <entry><para>Gives the negative of its argument (ex: -(-1.1) = 1.1, -(1.1) = -1.1 </para></entry>
+	</row>
+	<row>
+	  <entry><para><replaceable>expression</replaceable>: Integer</para></entry>
+	  <entry><para>Gives the negative of its argument (ex: -(-1) = 1, -(1) = -1</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <para>This operator does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="Shift_Operator">
+  <title>Shift Operator (shift)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Removes the first element from a list and returns that element.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><command>shift</command> <replaceable>lvalue</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$a = <command>shift</command> $ARGV;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments Processed By shift</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><replaceable>lvalue</replaceable>: List</para></entry>
+	  <entry><para>Returns the first element of the list, and the list is modified by having the first element removed from the list.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <para>This operator does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="Pop_Operator">
+  <title>Pop Operator (pop)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Removes the last element from a list and returns that element.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><command>pop</command> <replaceable>lvalue</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$a = <command>pop</command> $list;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments Processed By pop</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><replaceable>lvalue</replaceable>: List</para></entry>
+	  <entry><para>Returns the last element of the list, and the list is modified, having the last element removed from the list.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <para>This operator does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="Chomp_Operator">
+  <title>Chomp Operator (chomp)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Removes the end-of-line marker(s) ('\n' or '\r\n') from a string, or each string element in a list, or each hash key value in a hash (if the value is a string) and returns the number of characters removed.</para><para>To perform this operation on a non-lvalue expression, see the <link linkend="chomp">chomp() function</link>.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><command>chomp</command> <replaceable>lvalue</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>chomp</command> $str;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments Processed By chomp</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><replaceable>lvalue</replaceable>: String</para></entry>
+	  <entry><para>Removes any EOL characters from a string and returns the number of characters removed.</para></entry>
+	</row>
+	<row>
+	  <entry><para><replaceable>lvalue</replaceable>: List</para></entry>
+	  <entry><para>Removes any EOL characters from each string element of the list passed and returns the number of characters removed.</para></entry>
+	</row>
+	<row>
+	  <entry><para><replaceable>lvalue</replaceable>: Hash</para></entry>
+	  <entry><para>Removes any EOL characters from each hash key's value (where the value is a string) and returns the number of characters removed.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <para>This operator does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="Trim_Operator">
+  <title>Trim Operator (trim)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Removes whitespace characters from the beginning and end of a string, or each string element in a list, or each hash key value in a hash (if the value is a string) and returns the value processed (string, list, or hash).</para>
+	<para>To perform this operation on a non-lvalue expression, see the <link linkend="trim">trim() function</link>.</para>
+	<para>The following whitespace characters are removed from the beginning and end of strings: ' ', '\n', '\r', '\t', '\v' (vertical tab, ASCII 11), and '\0' (null character).</para>  
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><command>trim</command> <replaceable>lvalue</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>trim</command> $str;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments Processed By trim</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><replaceable>lvalue</replaceable>: String</para></entry>
+	  <entry><para>Removes whitespace characters from the beginning and end of a string and returns the value processed.</para></entry>
+	</row>
+	<row>
+	  <entry><para><replaceable>lvalue</replaceable>: List</para></entry>
+	  <entry><para>Removes whitespace characters from the beginning and end of each string element of the list passed and returns the list.</para></entry>
+	</row>
+	<row>
+	  <entry><para><replaceable>lvalue</replaceable>: Hash</para></entry>
+	  <entry><para>Removes whitespace characters from the beginning and end of each string value of the hash passed and returns the hash.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <para>This operator does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="Map_Operator">
+  <title>Map Operator (map)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Executes (or maps) an expression on a list and returns the result.  An optional select expression can be given to filter elements out from the result list.</para>
+	<para>If the second argument is not a list, then <replaceable>map_expression</replaceable> is executed on the single value and the result is returned, and any select expression is ignored.</para>  
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><command>map</command> <replaceable>map_expression, list, [select_expression]</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting># returns (2, 4, 6)
+<command>map</command> $1 * 2, (1, 2, 3);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments Processed By map</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><replaceable>map_expression</replaceable></para></entry>
+	  <entry><para>The expression to map on the list; the <link linkend="Implicit_Arguments">implicit argument</link> $1 represents the current element being processed.</para></entry>
+	</row>
+	<row>
+	  <entry><para><replaceable>list</replaceable>: List</para></entry>
+	  <entry><para>The list to process.</para></entry>
+	</row>
+	<row>
+	  <entry><para><replaceable>[select_expression]</replaceable></para></entry>
+	  <entry><para>An optional expression than can be used to filter out elements of the list before the map expression is applied; if this expression evaluates to False on an element, then the element will be skipped and the map expression will not be applied on that element.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <para>This operator does not throw any exceptions (however note that exceptions could be thrown by expressions executed by this operator).</para>
+
+</sect2>
+
+<sect2 id="Foldl_Operator">
+  <title>Fold Left Operator (foldl)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Folds an operation on a list from left to right and returns the result.  The result of each individual operation is used as the first argument in the <command>foldl</command> expression for the next element in the list.  The first operation of the fold is made by executing the fold expression on the first and second elements of the list, from this point onwards, the result of each successive operation is used as the first argument for the next operation, the second argument being the next element in the list.</para>
+	<para>If the list expression does not evaluate to a list, then the evaluated argument is returned immediately with no processing by the fold expression.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><command>foldl</command> <replaceable>expression, list</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting># returns 5
+<command>foldl</command> $1 - $2, (10, 4, 1);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments Processed By foldl</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><replaceable>expression</replaceable></para></entry>
+	  <entry><para>The expression to fold on the list; the <link linkend="Implicit_Arguments">implicit argument</link> $1 represents the result of the last operation (or the first element in the list when beginning the fold), and $2 represents the next element of the list.</para></entry>
+	</row>
+	<row>
+	  <entry><para><replaceable>list</replaceable>: List</para></entry>
+	  <entry><para>The list to process.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <para>This operator does not throw any exceptions (however note that exceptions could be thrown by expressions executed by this operator).</para>
+
+</sect2>
+
+<sect2 id="Foldr_Operator">
+  <title>Fold Right Operator (foldr)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Folds an operation on a list from right to left and returns the result.  The result of each individual operation is used as the first argument in the <command>foldr</command> expression for the next element in the list in reverse order.  The first operation of the right fold is made by executing the fold expression on the last and penultimate elements of the list, from this point onwards, the result of each successive operation is used as the first argument for the next operation, the second argument being the next element in the list in reverse order.</para>  
+	<para>If the list expression does not evaluate to a list, then the evaluated argument is returned immediately with no processing by the fold expression.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><command>foldr</command> <replaceable>expression, list</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting># returns -13
+<command>foldr</command> $1 - $2, (10, 4, 1);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments Processed By foldr</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><replaceable>expression</replaceable></para></entry>
+	  <entry><para>The expression to fold on the list; the <link linkend="Implicit_Arguments">implicit argument</link> $1 represents the result of the last operation (or the last element in the list when beginning the fold), and $2 represents the next element of the list in reverse order.</para></entry>
+	</row>
+	<row>
+	  <entry><para><replaceable>list</replaceable>: List</para></entry>
+	  <entry><para>The list to process.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <para>This operator does not throw any exceptions (however note that exceptions could be thrown by expressions executed by this operator).</para>
+
+</sect2>
+
+<sect2 id="Select_Operator">
+  <title>Select From List Operator (select)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Selects elements from a list that meet the given criteria and returns the new list.</para>  
+	<para>If the list expression does not evaluate to a list, then the select expression is evaluated using the value of the list expression as an argument, if it evalutes to true, then the value is returned, otherwise, no value is returned.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><command>select</command> <replaceable>list, expression</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting># returns (2, 4, 6)
+<command>select</command> (1, 2, 3, 4, 5, 6), !($1 % 2);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments Processed By select</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><replaceable>list</replaceable>: List</para></entry>
+	  <entry><para>The list to process.</para></entry>
+	</row>
+	<row>
+	  <entry><para><replaceable>expression</replaceable></para></entry>
+	  <entry><para>The expression will be evaluated on each element of the list, the <link linkend="Implicit_Arguments">implicit argument</link> $1 represents current element of the list; only if the expression evaluates to True will the element appear in the result list.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <para>This operator does not throw any exceptions (however note that exceptions could be thrown by the expression executed by this operator).</para>
+
+</sect2>
+
+<sect2 id="Elements_Operator">
+  <title>Elements Operator (elements)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns the number of elements in a list, the number of keys in a hash, the number of characters (not bytes) in a string, or the number of bytes in a binary object.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><command>elements</command> <replaceable>expression</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$size = <command>elements</command> $list;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments Processed By keys</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para>List</para></entry>
+	  <entry><para>Returns the number of elements in the list.</para></entry>
+	</row>
+	<row>
+	  <entry><para>Hash</para></entry>
+	  <entry><para>Returns the number of keys in the hash.</para></entry>
+	</row>
+	<row>
+	  <entry><para>String</para></entry>
+	  <entry><para>Returns the number of characters in the string.</para></entry>
+	</row>
+	<row>
+	  <entry><para>Binary</para></entry>
+	  <entry><para>Returns the number of bytes in the binary object.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+  <para>This operator does not throw any exceptions.</para>
+</sect2>
+
+<sect2 id="Keys_Operator">
+  <title>Keys Operator (keys)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns a list representing the keys in a hash.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><command>keys</command> <replaceable>hash_expression</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>foreach</command> <command>my</command> $key <command>in</command> (<command>keys</command> $hash)
+    printf("%s = %s\n", $key, $hash.$key);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments Processed By keys</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><replaceable>hash_expression</replaceable></para></entry>
+	  <entry><para>Returns a list of strings giving the keys in <replaceable>hash_expression</replaceable>, which must evaluate to a hash.  If not, then no value is returned.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+  <para>This operator does not throw any exceptions.</para>
+</sect2>
+
+<sect2 id="Multiply_Operator">
+  <title>Multiply Operator (*)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Multiplies two arguments.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>expression1</replaceable> * <replaceable>expression2</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$value = $x * $y</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Argument Processing and Conversion Priorities for *</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para>Float</para></entry>
+	  <entry><para>Gives the result of multiplying its arguments.</para></entry>
+	</row>
+	<row>
+	  <entry><para>Integer</para></entry>
+	  <entry><para>Gives the result of multiplying its arguments.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <para>This operator does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="Divide_Operator">
+  <title>Divide Operator (/)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Divides a number by another.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>expression1</replaceable> / <replaceable>expression2</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$value = $x / $y;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  
+  <table>
+    <title>Argument Processing and Conversion Priorities for /</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para>Float</para></entry>
+	  <entry><para>Gives the result of dividing its arguments.</para></entry>
+	</row>
+	<row>
+	  <entry><para>Integer</para></entry>
+	  <entry><para>Gives the result of dividing its arguments.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <para>This operator does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="Modula_Operator">
+  <title>Modula Operator (%)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Gives the integer remainder after division of one number by another.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>expression1</replaceable> % <replaceable>expression2</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$mod = $x % $y;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments Processed By %</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para>Integer</para></entry>
+	  <entry><para>Gives <replaceable>expression1</replaceable> modula <replaceable>expression2</replaceable> (ex: 12 % 10 = 2).  Arguments are converted to integers if necessary.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <para>This operator does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="Plus_Operator">
+  <title>Plus (Addition and Concatentation) Operator (+)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Numeric addition, list, string, binary, and hash concatenation operator.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>expression1</replaceable> + <replaceable>expression2</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$a = 1 + 2;</programlisting>
+	<programlisting>$string = "hello" + "-there";</programlisting>	
+	<programlisting>$list = (1, 2) + ("three", "four", "five");</programlisting>
+	<programlisting>$hash = ( "key1" : 1, "key2" : 2) + ( "key3" : "three", "key4": "four");</programlisting>
+	<programlisting>$bin = $bin1 + $bin2;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Argument Processing and Conversion Priorities for +</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para>List</para></entry>
+	  <entry><para>Gives the result of concatenating its arguments, i.e. (1, 2) + (3, 4) = (1, 2, 3, 4)</para></entry>
+	</row>
+	<row>
+	  <entry><para>String</para></entry>
+	  <entry><para>Gives the result of concatenating its arguments.</para></entry>
+	</row>
+	<row>
+	  <entry><para>Date</para></entry>
+	  <entry><para>Gives the result of adding date/time values (see <link linkend='Date_Time_Arithmetic'>Date/Time Arithmetic</link>)</para></entry>
+	</row>
+	<row>
+	  <entry><para>Float</para></entry>
+	  <entry><para>Gives the result of adding its arguments.</para></entry>
+	</row>
+	<row>
+	  <entry><para>Integer</para></entry>
+	  <entry><para>Gives the result of adding its arguments.</para></entry>
+	</row>
+	<row>
+	  <entry><para>Hash</para></entry>
+	  <entry><para>Gives the result of concatenating/merging its arguments. Any common keys will be overwritten by the values in the second hash (<replaceable>expression2</replaceable>)</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <para>This operator does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="Minus_Operator">
+  <title>Minus Operator (-)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>With float or integer arguments, subtracts one number from another, however if the left-hand side is a hash, and the right-hand side is a string, then the hash key represented by the string will be removed from the hash.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>expression1</replaceable> - <replaceable>expression2</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$num = $x - $y;</programlisting>
+	<programlisting>$hash = $hash - "key";</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Argument Processing and Conversion Priorities for -</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para>Float</para></entry>
+	  <entry><para>arithmetic subtraction: <replaceable>expression1</replaceable> - <replaceable>expression2</replaceable></para></entry>
+	</row>
+	<row>
+	  <entry><para>Integer</para></entry>
+	  <entry><para>arithmetic subtraction: <replaceable>expression1</replaceable> - <replaceable>expression2</replaceable></para></entry>
+	</row>
+	<row>
+	  <entry><para>Hash - String</para></entry>
+	  <entry><para>hash key deletion: <replaceable>expression1</replaceable> - <replaceable>expression2</replaceable></para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <para>This operator does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="Shift_Right_Operator">
+  <title>Shift Right Operator (&gt;&gt;)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Shifts bits in an integer towards zero (divides an integer by a power of 2)</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>expression1</replaceable> &gt;&gt; <replaceable>expression2</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$a = $x &gt;&gt; $y;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table><title>Arguments Processed By &gt;&gt;</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>Argument</para></entry>
+	<entry><para>Processing</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para>Integer</para></entry>
+	<entry><para>Gives the result of shifting <replaceable>expression1</replaceable> right by <replaceable>expression2</replaceable> bits.  Arguments are converted to integers if necesssary.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+
+  <para>This operator does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="Shift_Left_Operator">
+  <title>Shift Left Operator (&lt;&lt;)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Shifts bits in an integer towards infinity (multiplies an integer by a power of 2)</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>expression1</replaceable> &lt;&lt; <replaceable>expression2</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$a = $x &lt;&lt; $y;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+<table><title>Arguments Processed By &lt;&lt;</title>
+<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+  <thead>
+  <row>
+    <entry><para>Argument</para></entry>
+    <entry><para>Processing</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>Integer</para></entry>
+    <entry><para>Gives the result of shifting <replaceable>expression1</replaceable> left by <replaceable>expression2</replaceable> bits.  Arguments are converted to integers if necessary.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+<para>This operator does not throw any exceptions.</para>
+
+</sect2>
+    <sect2 id="Instanceof_Operator">
+      <title>Class Instance Operator (instanceof)</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Tests if an expression is an instance of a class or not.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Syntax</term>
+	  <listitem>
+	    <programlisting><replaceable>expression</replaceable> <command>instanceof</command> <replaceable>class_specification</replaceable></programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>if</command> ($obj <command>instanceof</command> Qore::Mutex)
+    print("object is Mutex\n");</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+  <table><title>Arguments Processed By instanceof</title>
+<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+  <thead>
+  <row>
+    <entry><para>Argument</para></entry>
+    <entry><para>Processing</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para><replaceable>expression</replaceable></para></entry>
+    <entry><para>If <replaceable>expression</replaceable> is an instance of the named class, then the operator returns True, otherwise returns False.  The operator will return True if the class is a base class, also even if it is privately inherited.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+<para>This operator does not throw any exceptions.</para>
+
+</sect2>
+<sect2 id="Exists_Operator">
+  <title>Exists Operator (exists)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Tests if an expression represents a value or not.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><command>exists</command> <replaceable>expression</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>if</command> (<command>exists</command> $a)
+    printf("a = $n\n", $a);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+
+
+<table><title>Arguments Processed By exists</title>
+<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+  <thead>
+  <row>
+    <entry><para>Argument</para></entry>
+    <entry><para>Processing</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para><replaceable>expression</replaceable></para></entry>
+    <entry><para>If <replaceable>expression</replaceable> evaluates to a value, then the operator returns True, otherwise returns False.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+<para>This operator does not throw any exceptions.</para>
+
+</sect2>
+<sect2 id="Less_Than_Operator">
+  <title>Less Than Operator (&lt;)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Tests if a value is less than another; types are converted if necessary (ex: ("1" &lt; 2) is True).</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>expression1</replaceable> &lt; <replaceable>expression2</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>if</command> ($x &lt; $y)
+    printf("%n is less than %n\n", $x, $y);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+<table><title>Argument Processing and Conversion Priorities for &lt;</title>
+<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+  <thead>
+  <row>
+    <entry><para>Argument</para></entry>
+    <entry><para>Processing</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>Float</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is numerically less than <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+  </row>
+  <row>
+    <entry><para>Integer</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is numerically less than <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+  </row>
+  <row>
+    <entry><para>String</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> comes before <replaceable>expression2</replaceable> in string sort order, returns True, otherwise returns False</para></entry>
+  </row>
+  <row>
+    <entry><para>Date</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is before <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+<para>This operator does not throw any exceptions.</para>
+
+</sect2>
+<sect2 id="Greater_Than_Operator">
+  <title>Greater Than Operator (&gt;)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Tests if a value is greater than another; types are converted if necessary (ex: ("2" &gt; 1) is True).</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>expression1</replaceable> &gt; <replaceable>expression2</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>if</command> ($x &gt; $y)
+    printf("%n is less than %n\n", $x, $y);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+<programlisting><replaceable>expression1</replaceable> &gt; <replaceable>expression2</replaceable></programlisting>
+
+<table><title>Argument Processing and Conversion Priorities for &gt;</title>
+<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+  <thead>
+  <row>
+    <entry><para>Argument</para></entry>
+    <entry><para>Processing</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>Float</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is numerically greater than <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+  </row>
+  <row>
+    <entry><para>Integer</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is numerically greater than <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+  </row>
+  <row>
+    <entry><para>String</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> comes after <replaceable>expression2</replaceable> in string sort order, returns True, otherwise returns False</para></entry>
+  </row>
+  <row>
+    <entry><para>Date</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is after <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+<para>This operator does not throw any exceptions.</para>
+
+</sect2>
+<sect2 id="Equals_Operator">
+  <title>Equals Operator (==)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Tests if a value is equal to another; types are converted if necessary (ex: ("1" == 1) is True).  For absolute equals, where types must also be equal to return true, see the <link linkend="Absolute_Equals_Operator">Absolute Equals Operator (===)</link>.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>expression1</replaceable> == <replaceable>expression2</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>if</command> ($x == $y)
+    printf("%n is equal to %n\n", $x, $y);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+<table><title>Argument Processing and Conversion Priorities for ==</title>
+<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+  <thead>
+  <row>
+    <entry><para>Argument</para></entry>
+    <entry><para>Processing</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>String</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is equal to <replaceable>expression2</replaceable>, returns True, otherwise False</para></entry>
+  </row>
+  <row>
+    <entry><para>Float</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is equal to <replaceable>expression2</replaceable>, returns True, otherwise False</para></entry>
+  </row>
+  <row>
+    <entry><para>Integer</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is equal to <replaceable>expression2</replaceable>, returns True, otherwise False</para></entry>
+  </row>
+  <row>
+    <entry><para>Date</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is equal to <replaceable>expression2</replaceable>, returns True, otherwise False</para></entry>
+  </row>
+  <row>
+    <entry><para>List</para></entry>
+    <entry><para>If each element in the each list where order is relevant satisfies this operator, the operator returns True, otherwise it returns False</para></entry>
+  </row>
+  <row>
+    <entry><para>Hash</para></entry>
+    <entry><para>If each hash has the same keys and the value of each equal key in each hash satisfies this operator, the operator returns True, otherwise it returns False</para></entry>
+  </row>
+  <row>
+    <entry><para>Binary</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable>'s memory contents and size are equal to <replaceable>expression2</replaceable>'s, then returns True, otherwise False</para></entry>
+  </row>
+  <row>
+    <entry><para>Object</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is a reference to the same object as <replaceable>expression2</replaceable>, then returns True, otherwise False</para></entry>
+  </row>
+  <row>
+    <entry><para><command>NULL</command></para></entry>
+    <entry><para>If both expressions are <command>NULL</command>, returns True, otherwise returns False</para></entry>
+  </row>
+  <row>
+    <entry><para><command>NOTHING</command></para></entry>
+    <entry><para>If neither expression has a value, returns True, otherwise returns False</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+<para>This operator does not throw any exceptions.</para>
+
+</sect2>
+<sect2 id="Not_Equals_Operator">
+  <title>Not Equals Operator (!=)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Tests if a value is not equal to another; types are converted if necessary (ex: ("1" != 1) is False).</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>expression1</replaceable> != <replaceable>expression2</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>if</command> ($x != $y)
+    printf("%n is not equal to %n\n", $x, $y);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+<table><title>Argument Processing and Conversion Priorities for !=</title>
+<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+  <thead>
+  <row>
+    <entry><para>Argument</para></entry>
+    <entry><para>Processing</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>String</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is not equal to <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+  </row>
+  <row>
+    <entry><para>Float</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is not equal to <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+  </row>
+  <row>
+    <entry><para>Integer</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is not equal to <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+  </row>
+  <row>
+    <entry><para>Date</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is not equal to <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+  </row>
+  <row>
+    <entry><para>List</para></entry>
+    <entry><para>If any element in the each list compared where order is relevant satisfies this operator, the operator returns True, otherwise it returns False</para></entry>
+  </row>
+  <row>
+    <entry><para>Hash</para></entry>
+    <entry><para>If the hashes have different key sets, or the values of any equal key in each hash satisfies this operator, the operator returns True, otherwise it returns False</para></entry>
+  </row>
+  <row>
+    <entry><para>Binary</para></entry>
+    <entry><para>If either <replaceable>expression1</replaceable>'s memory contents and size are not equal to <replaceable>expression2</replaceable>'s, returns True, otherwise False.</para></entry>
+  </row>
+  <row>
+    <entry><para>Object</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is not a reference to the same object as <replaceable>expression2</replaceable>, then returns True, otherwise False.</para></entry>
+  </row>
+  <row>
+    <entry><para><command>NULL</command></para></entry>
+    <entry><para>If one expression is <command>NULL</command> and the other not, returns True, otherwise False.</para></entry>
+  </row>
+  <row>
+    <entry><para><command>NOTHING</command></para></entry>
+    <entry><para>If one of the expressions has a value, returns True, otherwise False.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+<para>This operator does not throw any exceptions.</para>
+
+</sect2>
+<sect2 id="Less_Than_Or_Equals_Operator">
+  <title>Less Than Or Equals Operator (&lt;=)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Tests if a value is less than or equals to another value; types are converted if necessary (ex: ("1" &lt;= 2) is True).</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>expression1</replaceable> &lt;= <replaceable>expression2</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>if</command> ($x &lt;= $y)
+    printf("%n is less than or equal to %n\n", $x, $y);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table><title>Argument Processing and Conversion Priorities for &lt;=</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>Argument</para></entry>
+	<entry><para>Processing</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para>Float</para></entry>
+	<entry><para>If <replaceable>expression1</replaceable> is numerically less than or equal to <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+      </row>
+      <row>
+	<entry><para>Integer</para></entry>
+	<entry><para>If <replaceable>expression1</replaceable> is numerically less than or equal to <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+      </row>
+      <row>
+	<entry><para>String</para></entry>
+	<entry><para>If <replaceable>expression1</replaceable> comes before in string sort order or is the same as <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+      </row>
+      <row>
+	<entry><para>Date</para></entry>
+	<entry><para>If <replaceable>expression1</replaceable> is before or is the same exact date and time as <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+
+  <para>This operator does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="Greater_Than_Or_Equals_Operator">
+  <title>Greater Than Or Equals Operator (>=)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Tests if a value is greater than or equals to another value; types are converted if necessary (ex: ("2" >= 1) is True).</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>expression1</replaceable> &gt;= <replaceable>expression2</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>if</command> ($x &gt;= $y)
+    printf("%n is greater than or equal to %n\n", $x, $y);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+<table><title>Argument Processing and Conversion Priorities for &gt;=</title>
+<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+  <thead>
+  <row>
+    <entry><para>Argument</para></entry>
+    <entry><para>Processing</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>Float</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is numerically greater than or equal to <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+  </row>
+  <row>
+    <entry><para>Integer</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is numerically greater than or equal to <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+  </row>
+  <row>
+    <entry><para>String</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> comes after in string sort order or is the same as <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+  </row>
+  <row>
+    <entry><para>Date</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is after or is the same exact date and time as <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+<para>This operator does not throw any exceptions.</para>
+
+</sect2>
+<sect2 id="Comparison_Operator">
+  <title>Comparison (&lt;=&gt;) Operator</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Tests if the left-hand value is less than, equal, or greater than the right-hand value; types are converted if necessary (ex: ("1" &lt;=&gt; 2) returns -1).</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>expression1</replaceable> &lt;=&gt; <replaceable>expression2</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>switch</command> ($x &lt;=&gt; $y)
+{
+    <command>case</command> -1: 
+        print("$x is less than $y\n");
+        <command>break</command>;
+
+    <command>case</command> 0: 
+        print("$x is equal to $y\n");
+        <command>break</command>;
+
+    <command>case</command> 1: 
+        print("$x is greater than $y\n");
+        <command>break</command>;
+}</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+
+
+<table><title>Argument Processing and Conversion Priorities for &lt;=&gt;</title>
+<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+  <thead>
+  <row>
+    <entry><para>Argument</para></entry>
+    <entry><para>Processing</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>String</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> comes after in string sort order as <replaceable>expression2</replaceable>, returns 1, otherwise if they are equal, returns 0, otherwise if <replaceable>expression1</replaceable> comes before <replaceable>expression2</replaceable>, returns -1</para></entry>
+  </row>
+  <row>
+    <entry><para>Float</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is numerically greater than <replaceable>expression2</replaceable>, returns 1, otherwise if they are equal returns 0, otherwise returns -1</para></entry>
+  </row>
+  <row>
+    <entry><para>Integer</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is numerically greater than <replaceable>expression2</replaceable>, returns 1, otherwise if they are equal returns 0, otherwise returns -1</para></entry>
+  </row>
+  <row>
+    <entry><para>Date</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is after <replaceable>expression2</replaceable>, returns 1, otherwise if they are equal returns 0, otherwise returns -1</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+<para>This operator does not throw any exceptions.</para>
+
+</sect2>
+<sect2 id="Absolute_Equals_Operator">
+  <title>Absolute Equals Operator (===)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Checks two values for equality without doing any data type conversions; if the types do not match, then the result is False.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>expression1</replaceable> === <replaceable>expression2</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>if</command> ($x === $y)
+    printf("%n is equal to %n and has the same data type as well\n", $x, $y);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+<table><title>Arguments Processed By ===</title>
+<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+  <thead>
+  <row>
+    <entry><para>Argument</para></entry>
+    <entry><para>Processing</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>All</para></entry>
+    <entry><para>This operator returns True only if the types and values of both sides of the operator are exactly equal, otherwise returns False. No type conversions are done.</para></entry>
+  </row>
+</tbody>
+</tgroup>
+</table>
+
+<para>This operator does not throw any exceptions.</para>
+
+</sect2>
+<sect2 id="Absolute_Not_Equals_Operator">
+  <title>Absolute Not Equals Operator (!==)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Checks two values for inequality without doing any data type conversions.  If the data types do not match, then returns True.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<para><replaceable>expression1</replaceable> !== <replaceable>expression2</replaceable></para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>if</command> ($x !== $y)
+    printf("%n is not equal to %n and may not have the data type as well\n", $x, $y);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+<table><title>Arguments Processed By !==</title>
+<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+  <thead>
+  <row>
+    <entry><para>Argument</para></entry>
+    <entry><para>Processing</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>All</para></entry>
+    <entry><para>This operator returns True if either the types or the values of the arguments are different, otherwise it retuns False. No type conversions are done.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+<para>This operator does not throw any exceptions.</para>
+
+</sect2>
+<sect2 id="Regular_Expression_Match_Operator">
+  <title>Regular Expression Match Operator (=~)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Checks for a regular expression match; returns True if the expression matches the string, False if not.  See <link linkend="Regular_Expression_Options">Regular Expression Options</link> for the meaning of the i, s, x, and m options after the regular expression.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>expression</replaceable> =~ [m]/<replaceable>regex</replaceable>/[isxm]</programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>if</command> ($str =~ /hello/)
+    printf("%s contains 'hello'\n", $str);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+<table><title>Arguments Processed By =~</title>
+<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+  <thead>
+  <row>
+    <entry><para>Argument</para></entry>
+    <entry><para>Processing</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>String</para></entry>
+    <entry><para>This operator returns True if the regular expression in <replaceable>regex</replaceable> matches the string in <replaceable>expression</replaceable>.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+<para>This operator does not throw any exceptions.</para>
+
+</sect2>
+<sect2 id="Regular_Expression_No_Match_Operator">
+  <title>Regular Expression No Match Operator (!~)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Checks for a regular expression non match; returns True if the expression does not match the string, False if it does.  See <link linkend="Regular_Expression_Options">Regular Expression Options</link> for the meaning of the i, s, x, and m options after the regular expression.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>expression</replaceable> !~ [m]/<replaceable>regex</replaceable>/[isxm]</programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>if</command> ($str !~ /hello/)
+    printf("%s does not contain 'hello'\n", $str);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments Processed By !~</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para>String</para></entry>
+	  <entry><para>This operator returns True if the regular expression in <replaceable>regex</replaceable> does not match the string in <replaceable>expression</replaceable>.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <para>This operator does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="Regular_Expression_Substitution_Operator">
+  <title>Regular Expression Substitution Operator</title>
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Looks for a regular expression match in a string, and, if found, substitutes the matched string with a new string.  Subpattern backreferences are supported in the target string, $1=first subpattern, $2=second subpattern, etc...  See <link linkend="Regular_Expression_Options">Regular Expression Options</link> for the meaning of the i, s, x, and m options after the regular expression.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>lvalue</replaceable> =~ s/<replaceable>regex_pattern</replaceable>/<replaceable>target_string</replaceable>/[isxmg]</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$str =~ s/hello/goodbye/i;</programlisting>
+	<programlisting>$str =~ s/(\w+) +(\w+)/$2, $1/;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table><title>Arguments Processed By =~ s///</title>
+<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+  <thead>
+  <row>
+    <entry><para>Argument</para></entry>
+    <entry><para>Processing</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>String</para></entry>
+    <entry><para>This operator substitutes text in the <replaceable>lvalue</replaceable> string if the regular expression matches.  Subpattern backreferences are supported in the target string, $1=first subpattern, $2=second subpattern, etc..</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+<para>This operator does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="Regular_Expression_Pattern_Extraction_Operator">
+  <title>Regular Expression Pattern Extraction Operator</title>
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Matches regular expression patterns (enclosed in parentheses) in a string and returns a list giving the text matched for each pattern.  If the regular expression does not match, then no value (NOTHING) is returned.  See <link linkend="Regular_Expression_Options">Regular Expression Options</link> for the meaning of the i, s, x, and m options after the regular expression.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>string</replaceable> =~ x/<replaceable>regex_with_patterns</replaceable>/[isxm]</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$list =~ x/(\w+):(\w+)/;</programlisting>
+	<programlisting>$list =~ x/(.*)\.(.*)/;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table><title>Arguments Processed By =~ x//</title>
+<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+  <thead>
+  <row>
+    <entry><para>Argument</para></entry>
+    <entry><para>Processing</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>String</para></entry>
+    <entry><para>This operator extracts strings from the <replaceable>string</replaceable> based on patterns enclosed in parentheses in the regular expression.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+<para>This operator does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="Transliteration_Operator">
+  <title>Transliteration Operator</title>
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Makes character substitutions in an lvalue; character ranges can also be used.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>lvalue</replaceable> =~ tr/<replaceable>source_chars</replaceable>/<replaceable>target_chars</replaceable>/</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$str =~ tr/a-z/A-Z/;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table><title>Arguments Processed By =~ tr//</title>
+<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+  <thead>
+  <row>
+    <entry><para>Argument</para></entry>
+    <entry><para>Processing</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>String</para></entry>
+    <entry><para>This operator substitutes characters in the <replaceable>lvalue</replaceable> string.  Note that if there are more characters in the source string than in the target string, then the last character in the target string will be used for any source matches where the source character position is greater than the target string.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+<para>This operator does not throw any exceptions.</para>
+
+</sect2>
+<sect2 id="Binary_And_Operator">
+  <title>Binary And Operator (&amp;)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Performs a bitwise (binary) AND operation on two integers.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>expression1</replaceable> &amp; <replaceable>expression2</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$a = $x &amp; $y;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table><title>Arguments Processed By &amp;</title>
+<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+  <thead>
+  <row>
+    <entry><para>Argument</para></entry>
+    <entry><para>Processing</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>Integer</para></entry>
+    <entry><para>Gives the result of the binary (bitwise) AND operation between <replaceable>expression1</replaceable> and <replaceable>expression2</replaceable> (ex: 0xffb2 &amp; 0xa1 = 0xa1)</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+<para>This operator does not throw any exceptions.</para>
+
+</sect2>
+<sect2 id="Binary_Or_Operator">
+  <title>Binary Or Operator (|)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Performs a bitwise (binary) OR operation on two integers.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>expression1</replaceable> | <replaceable>expression2</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$a = $x | $y;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments Processed By |</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para>Integer</para></entry>
+	  <entry><para>Gives the result of the binary (bitwise) OR operation between <replaceable>expression1</replaceable> and <replaceable>expression2</replaceable> (ex: 0xb001 | 0xfea = 0xbfeb)</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <para>This operator does not throw any exceptions.</para>
+
+</sect2>
+<sect2 id="Binary_Xor_Operator">
+  <title>Binary Xor Operator (^)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Performs a bitwise (binary) XOR operation on two integers.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>expression1</replaceable> ^ <replaceable>expression2</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$a = $x ^ $y;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+<table><title>Arguments Processed By ^</title>
+<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+  <thead>
+  <row>
+    <entry><para>Argument</para></entry>
+    <entry><para>Processing</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>Integer</para></entry>
+    <entry><para>Gives the result of the binary (bitwise) EXCLUSIVE OR operation between <replaceable>expression1</replaceable> and <replaceable>expression2</replaceable> (ex: 0xaef1 &amp; 0xfb32 = 
+      0x55c3)</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+<para>This operator does not throw any exceptions.</para>
+
+</sect2>
+<sect2 id="Logical_And_Operator">
+  <title>Logical And Operator (&amp;&amp;)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Checks to see if two expressions are True.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>expression1</replaceable> &amp;&amp; <replaceable>expression2</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>if</command> ($x &amp;&amp; $y)
+    printf("%n and %n are both True\n", $x, $y);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+<table><title>Arguments Processed By &amp;&amp;</title>
+<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+  <thead>
+  <row>
+    <entry><para>Argument</para></entry>
+    <entry><para>Processing</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>Integer</para></entry>
+    <entry><para>Returns True if both expressions are True, False if otherwise.  Logical short-circuiting is implemented; if <replaceable>expression1</replaceable> is False, then <replaceable>expression2</replaceable> is not evaluated, and the operator returns False.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+<para>This operator does not throw any exceptions.</para>
+
+</sect2>
+<sect2 id="Logical_Or_Operator">
+  <title>Logical Or Operator (||)</title>
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns True if either of the arguments are True.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>expression1</replaceable> || <replaceable>expression2</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>if</command> ($x || $y)
+    printf("either %n or %n or both are True\n", $x, $y);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+<table><title>Arguments Processed By ||</title>
+<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+  <thead>
+  <row>
+    <entry><para>Argument</para></entry>
+    <entry><para>Processing</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>Integer</para></entry>
+    <entry><para>Returns True if either or both expressions evaluate to True, False if otherwise.  Logical short-circuiting is implemented; if <replaceable>expression1</replaceable> is True, then <replaceable>expression2</replaceable> is not evaluated, and the operator returns True.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+<para>This operator does not throw any exceptions.</para>
+
+</sect2>
+<sect2 id="Conditional_Operator">
+  <title>Conditional Operator (? :)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Evaluates and returns the value of one of two expressions depending on the value of a conditional expression.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>expression ? if_true_expression : if_false_expression</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$a = ($z > 100 ? "Big" : "Small");</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table><title>Arguments Processed By ? :</title>
+<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+  <thead>
+  <row>
+    <entry><para>Argument</para></entry>
+    <entry><para>Processing</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>All</para></entry>
+    <entry><para>If <replaceable>expression</replaceable> is evaluated to be True, then the <replaceable>if_true_expression</replaceable> is evaluated and returned. Otherwise the <replaceable>if_false_expression</replaceable> is evaluated and returned.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+<para>This operator does not throw any exceptions.</para>
+
+</sect2>
+<sect2 id="Comma_Operator">
+  <title>Comma Operator (,)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Makes a list from more than one element.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>expression1, expression2</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$a = 1, 2, "three";</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+<table><title>Arguments Processed By ,</title>
+<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+  <thead>
+  <row>
+    <entry><para>Argument</para></entry>
+    <entry><para>Processing</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>All</para></entry>
+    <entry><para>The comma operator builds lists of arguments.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+<para>This operator does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="Unshift_Operator">
+  <title>Unshift Operator (unshift)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Inserts an element into the first position of a list and moves all other elements up one position.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><command>unshift</command> <replaceable>lvalue, expression</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>unshift</command> $list, "one";</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+<table><title>Arguments Processed By unshift</title>
+<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+  <thead>
+  <row>
+    <entry><para>Argument</para></entry>
+    <entry><para>Processing</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>All</para></entry>
+    <entry><para>Inserts the value of <replaceable>expression</replaceable> as the first element in the list given by <replaceable>lvalue</replaceable>.  All other elements in the list are moved forward.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+</sect2>
+
+<sect2 id="Push_Operator">
+  <title>Push Operator (push)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Adds one element to the end of a list.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><command>push</command> <replaceable>lvalue, expression</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>push</command> $list, "last";</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+<table><title>Arguments Processed By push</title>
+<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+  <thead>
+  <row>
+    <entry><para>Argument</para></entry>
+    <entry><para>Processing</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>All</para></entry>
+    <entry><para>Appends the value of the expression as the last element in the list given by <replaceable>lvalue</replaceable>.  If <replaceable>expression</replaceable> evaluates to a list, this list will be appended as the last element of <replaceable>lvalue</replaceable>.  To concatenate lists, use the <link linkend='Plus_Operator'>Plus Operator</link>.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+</sect2>
+
+<sect2 id="Splice_Operator">
+  <title>Splice Operator (splice)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Removes and optionally inserts elements in lists and strings.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><command>splice</command> <replaceable>lvalue, offset_expression, [length_expression, [substitution_expression]]</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>splice</command> $list, 2, 2;</programlisting>
+	<programlisting><command>splice</command> $string, 2, 2, "-text-";</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+
+  <para>Works on either strings or lists in a similar way; removes elements from a list or characters from a string and optionally inserts new ones.  If no <replaceable>length_expression</replaceable> is given, <command>splice</command> removes all elements/characters from the list or string starting at <replaceable>offset_expression</replaceable>) (list and string offsets begin at 0).  Otherwise, a number of elements/characters equal to <replaceable>length_expression</replaceable> is removed (or up to the end of the list/string if applicable).  If <replaceable>substitution_expression</replaceable> is present, then the removed elements/characters are substituted with the elements/string given by this expression.</para>
+
+  <para>Note that string splice takes character offsets, which may not be the same as byte offsets for multi-byte character encodings, such as UTF-8</para>
+  <table>
+    <title>Arguments Processed By splice</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><replaceable>lvalue</replaceable></para></entry>
+	  <entry><para>If the lvalue is a list, list elements are processed, otherwise, if it is a string, characters in the string are processed.  For any other data type, no action is taken.</para></entry>
+	</row>
+	<row>
+	  <entry><para><replaceable>offset_expression</replaceable></para></entry>
+	  <entry><para>The start element/character position for removing elements/characters from the list or string.</para></entry>
+	</row>
+	<row>
+	  <entry><para><replaceable>length_expression</replaceable></para></entry>
+	  <entry><para>The number of elements/characters to remove.  If this expression is not present, then all elements/characters from the offset to the end of the list/string are removed.  If this expression is present and evaluates to 0, no characters/elements are removed.</para></entry>
+	</row>
+	<row>
+	  <entry><para><replaceable>substitution_expression</replaceable></para></entry>
+	  <entry><para>For list splice, an optional element or list to substitute for the removed elements (to insert a list in a single element's position, make sure that the list to be inserted is the first and only element of another list used as the argument in this position; in other words, pass a list within a single-element list).  For string splice, an optional string to substitute for the removed characters.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+</sect2>
+
+<sect2 id="Assignment_Operator">
+  <title>Assignment Operator (=)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Assigns a value to an lvalue.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>lvalue</replaceable> = <replaceable>expression</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$a = 1;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table><title>Types Processed =</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>Argument</para></entry>
+	<entry><para>Processing</para></entry>
+      </row>
+    </thead>    
+    <tbody>
+      <row>
+	<entry><para>All</para></entry>
+	<entry><para>Assigns the value of <replaceable>expression</replaceable> to <replaceable>lvalue</replaceable>.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>  
+</sect2>
+
+<sect2 id="Plus_Equals_Operator">
+  <title>Plus Equals Operator (+=)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Increments and concatentates an lvalue with the value of an expression depending on the data type of the lvalue, unless the lvalue is NOTHING, in which case this operator acts like the assignment operator (simply assigns the value of the right hand side to the lvalue).</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>lvalue</replaceable> += <replaceable>expression</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$a += 10;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table><title>Arguments Processed By +=</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>Argument</para></entry>
+	<entry><para>Processing</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para><replaceable>lvalue</replaceable>: List</para></entry>
+	<entry><para>the expression will be evaluated and concatenated to the lvalue.  If expression is a list, the lists will be concatenated, to ensure adding a single element to a list, use the push operator (see <link linkend='Push_Operator'>Push Operator</link>).</para></entry>
+      </row>
+      <row>
+	<entry><para><replaceable>lvalue</replaceable>: Hash</para></entry>
+	<entry><para>the expression will be evaluated, and, if it is a hash or object, then it's members will be added to the lvalue, any duplicate elements in the lvalue will be overridden by elements in the expression.</para></entry>
+      </row>
+      <row>
+	<entry><para><replaceable>lvalue</replaceable>: String</para></entry>
+	<entry><para>the expression will be evaluated and converted to a string if necessary and concatenated to the lvalue.</para></entry>
+      </row>
+      <row>
+	<entry><para><replaceable>lvalue</replaceable>: Float</para></entry>
+	<entry><para>the expression will be evaluated and converted to a float if necessary and added to the lvalue.</para></entry>
+      </row>
+      <row>
+	<entry><para><replaceable>lvalue</replaceable>: Binary</para></entry>
+	<entry><para>the expression will be evaluated and converted to a string if necessary and added to the lvalue.</para></entry>
+      </row>
+      <row>
+	<entry><para><replaceable>lvalue</replaceable>: NOTHING</para></entry>
+	<entry><para>the lvalue will be assigned to the value of <replaceable>expression</replaceable>.</para></entry>
+      </row>
+      <row>
+	<entry><para><replaceable>lvalue</replaceable>: all others</para></entry>
+	<entry><para>the lvalue's type will be converted to an integer, and the expression will be evaluated and converted to an integer if necessary, and then the result will be added to the lvalue.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+</sect2>
+
+<sect2 id="Minus_Equals_Operator">
+  <title>Minus Equals Operator (-=)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>For a float or integer argument, decrements the value of an lvalue by the value of an expression.  However if the lvalue is a hash and the expression is a string, removes the key represented by the string from the hash.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>lvalue</replaceable> -= <replaceable>expression</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$a -= 10;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  <table><title>Arguments Processed By -=</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>Argument</para></entry>
+	<entry><para>Processing</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para><replaceable>lvalue</replaceable>: Float</para></entry>
+	<entry><para>the expression will be evaluated and converted to a float if necessary and subtracted from the lvalue</para></entry>
+      </row>
+      <row>
+	<entry><para><replaceable>lvalue</replaceable>: Hash, <replaceable>expression</replaceable>: String</para></entry>
+	<entry><para>the hash key represented by <replaceable>expression</replaceable> will be removed from the lvalue</para></entry>
+      </row>
+      <row>
+	<entry><para><replaceable>lvalue</replaceable>: NOTHING, <replaceable>expression</replaceable>: Float</para></entry>
+	<entry><para>the lvalue will be assigned to -<replaceable>expression</replaceable></para></entry>
+      </row>
+      <row>
+	<entry><para><replaceable>lvalue</replaceable>: all others</para></entry>
+	<entry><para>the lvalue's type will be converted to an integer, and the expression will be evaluated and converted to an integer if necessary, and then the result will be subtracted from the lvalue</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+</sect2>
+
+<sect2 id="And_Equals_Operator">
+  <title>And Equals Operator (&amp;=)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Performs a bitwise (binary) AND operation on an lvalue using the value of an expression.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>lvalue</replaceable> &amp;= <replaceable>expression</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$a &amp;= 0xfe;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table><title>Arguments Processed By &amp;=</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>Argument</para></entry>
+	<entry><para>Processing</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para>All</para></entry>
+	<entry><para>the lvalue's type will be converted to an integer if necessary, and the expression will be evaluated and converted to an integer as well if necessary, and then the result will be binary and'ed to the lvalue</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+</sect2>
+
+<sect2 id="Or_Equals_Operator">
+  <title>Or Equals Operator (|=)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Performs a bitwise (binary) OR operation on an lvalue using the value of an expression.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>lvalue</replaceable> |= <replaceable>expression</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$a |= 0xba;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  <table><title>Arguments Processed By |=</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>Argument</para></entry>
+	<entry><para>Processing</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para>All</para></entry>
+	<entry><para>the lvalue's type will be converted to an integer if necessary, and the expression will be evaluated and converted to an integer as well if necessary, and then the result will be binary or'ed to the lvalue</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+</sect2>
+
+<sect2 id="Modula_Equals_Operator">
+  <title>Modula Equals Operator (%=)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Performs a modula calculation on an lvalue using the value of an expression.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>lvalue</replaceable> %= <replaceable>expression</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$a %= 100;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  <table><title>Arguments Processed By %=</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>Argument</para></entry>
+	<entry><para>Processing</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para>All</para></entry>
+	<entry><para>the lvalue's type will be converted to an integer if necessary, and the expression will be evaluated and converted to an integer as well if necessary, and then the result will be used to divide the lvalue's value and the remainder will be saved to the lvalue</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+</sect2>
+
+<sect2 id="Multiply_Equals_Operator">
+  <title>Multiply Equals Operator (*=)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Performs a multiplication operation on an lvalue using the value of an expression.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>lvalue</replaceable> *= <replaceable>expression</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$a *= 10;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  <table><title>Arguments Processed By *=</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>Argument</para></entry>
+	<entry><para>Processing</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para>All</para></entry>
+	<entry><para>If either side of the operator is a float, the result will be a float as well.  Otherwise the result is an integer value.  The expression will be evaluated and multiplied by the lvalue, and the result will be saved to the lvalue.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+</sect2>
+
+<sect2 id="Divide_Equals_Operator">
+  <title>Divide Equals Operator (/=)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Performs a division operation on an lvalue using the value of an expression.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>lvalue</replaceable> /= <replaceable>expression</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$a /= 10;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  <table><title>Arguments Processed By *=</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>Argument</para></entry>
+	<entry><para>Processing</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para>All</para></entry>
+	<entry><para>If either side of the operator is a float, the result will be a float as well.  Otherwise the result is an integer value.  The expression will be evaluated and used to divide the lvalue, and the result will be saved to the lvalue.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+
+  <table>
+    <title>Exceptions Thrown by /*</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>DIVISION-BY-ZERO</code></para></entry>
+	  <entry><para>If the divisor expression evaluates to zero, this exception is thrown.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+</sect2>
+
+<sect2 id="Xor_Equals_Operator">
+  <title>Xor Equals Operator (^=)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Performs an exclusive-or operation on an lvalue using the value of an expression.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>lvalue</replaceable> ^= <replaceable>expression</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$a ^= 0xf9034ba7;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  <table><title>Arguments Processed By ^=</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>Argument</para></entry>
+	<entry><para>Processing</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para>All</para></entry>
+	<entry><para>Values are converted to integers if necessary.  The expression will be evaluated and exclusive-or'ed with the lvalue, and the result will be saved to the lvalue.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+</sect2>
+
+<sect2 id="Shift_Left_Equals_Operator">
+  <title>Shift Left Equals Operator (&lt;&lt;=)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Performs a shift-left operation on an lvalue using the value of an expression.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>lvalue</replaceable> &lt;&lt;= <replaceable>expression</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$a &lt;&lt;= 3;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  <table><title>Arguments Processed By &lt;&lt;=</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>Argument</para></entry>
+	<entry><para>Processing</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para>All</para></entry>
+	<entry><para>Values are converted to integers if necessary.  The expression will be evaluated and this value will determine how many bits the lvalue will be shifted left.  The result will be saved to the lvalue.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+</sect2>
+
+<sect2 id="Shift_Right_Equals_Operator">
+  <title>Shift Right Equals Operator (&gt;&gt;=)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Performs a shift-right operation on an lvalue using the value of an expression.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>lvalue</replaceable> &gt;&gt;= <replaceable>expression</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$a &gt;&gt;= 3;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  <table><title>Arguments Processed By &gt;&gt;=</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>Argument</para></entry>
+	<entry><para>Processing</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para>All</para></entry>
+	<entry><para>Values are converted to integers if necessary.  The expression will be evaluated and this value will determine how many bits the lvalue will be shifted right.  The result will be saved to the lvalue.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+</sect2>
+
+</sect1>

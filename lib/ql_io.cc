@@ -3,7 +3,7 @@
 
   Qore programming language
 
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2009 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/ql_io.h>
+#include <qore/intern/ql_io.h>
 
 #include <string.h>
 #include <stdio.h>
@@ -31,16 +31,14 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-static class QoreNode *f_print(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_print(const QoreListNode *params, ExceptionSink *xsink)
 {
-   int i;
-
    if (!params)
-      return NULL;
+      return 0;
 
-   for (i = 0; i < params->val.list->size(); i++)
+   for (unsigned i = 0; i < params->size(); i++)
       print_node(stdout, get_param(params, i));
-   return NULL;
+   return 0;
 }
 
 /* f_f_sprintf (f_sprintf) (field sprintf)
@@ -48,63 +46,63 @@ static class QoreNode *f_print(class QoreNode *params, ExceptionSink *xsink)
  * a hard limit that can't be broken: that is, the arguments output will be
  * truncated if they are larger than the width 
  */
-static class QoreNode *f_f_sprintf(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_f_sprintf(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(q_sprintf(params, 1, 0, xsink));
+   return q_sprintf(params, 1, 0, xsink);
 }
 
-static class QoreNode *f_sprintf(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_sprintf(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(q_sprintf(params, 0, 0, xsink));
+   return q_sprintf(params, 0, 0, xsink);
 }
 
-static class QoreNode *f_vsprintf(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_vsprintf(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(q_vsprintf(params, 0, 0, xsink));
+   return q_vsprintf(params, 0, 0, xsink);
 }
 
-static class QoreNode *f_f_printf(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_f_printf(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *node;
+   AbstractQoreNode *node;
 
    print_node(stdout, node = f_f_sprintf(params, xsink));
    return node;
 }
 
-static class QoreNode *f_printf(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_printf(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *node;
+   AbstractQoreNode *node;
 
-   tracein("f_printf()");
+   QORE_TRACE("f_printf()");
    print_node(stdout, node = f_sprintf(params, xsink)); 
-   traceout("f_printf()");
+
    return node;
 }
 
-static class QoreNode *f_vprintf(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_vprintf(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *node;
+   AbstractQoreNode *node;
 
-   tracein("f_vprintf()");
+   QORE_TRACE("f_vprintf()");
    print_node(stdout, node = f_vsprintf(params, xsink)); 
-   traceout("f_vprintf()");
+
    return node;
 }
 
-static class QoreNode *f_flush(class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_flush(const QoreListNode *params, ExceptionSink *xsink)
 {
    fflush(stdout);
-   return NULL;
+   return 0;
 }
 
 void init_io_functions()
 {
-   builtinFunctions.add("print", f_print);
+   builtinFunctions.add("print", f_print, QDOM_TERMINAL_IO);
    builtinFunctions.add("sprintf", f_sprintf);
-   builtinFunctions.add("printf", f_printf);
+   builtinFunctions.add("printf", f_printf, QDOM_TERMINAL_IO);
    builtinFunctions.add("f_sprintf", f_f_sprintf);
-   builtinFunctions.add("f_printf", f_f_printf);
-   builtinFunctions.add("vprintf", f_vprintf);
+   builtinFunctions.add("f_printf", f_f_printf, QDOM_TERMINAL_IO);
+   builtinFunctions.add("vprintf", f_vprintf, QDOM_TERMINAL_IO);
    builtinFunctions.add("vsprintf", f_vsprintf);
-   builtinFunctions.add("flush", f_flush);
+   builtinFunctions.add("flush", f_flush, QDOM_TERMINAL_IO);
 }

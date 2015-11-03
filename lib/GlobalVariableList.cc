@@ -1,11 +1,11 @@
 /*
  GlobalVariableList.cc
  
- Program Object Definition
+ Program QoreObject Definition
  
  Qore Programming Language
  
- Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ Copyright 2003 - 2009 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -23,8 +23,7 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/GlobalVariableList.h>
-#include <qore/Variable.h>
+#include <qore/intern/GlobalVariableList.h>
 
 #include <assert.h>
 
@@ -37,7 +36,7 @@ GlobalVariableList::~GlobalVariableList()
    assert(vmap.empty());
 }
 
-void GlobalVariableList::import(class Var *var, class ExceptionSink *xsink, bool readonly)
+void GlobalVariableList::import(class Var *var, ExceptionSink *xsink, bool readonly)
 {
    map_var_t::iterator i = vmap.find(var->getName());
    if (i == vmap.end())
@@ -52,7 +51,7 @@ void GlobalVariableList::import(class Var *var, class ExceptionSink *xsink, bool
 }
 
 // sets all non-imported variables to NULL (dereferences contents if any)
-void GlobalVariableList::clear_all(class ExceptionSink *xsink)
+void GlobalVariableList::clear_all(ExceptionSink *xsink)
 {
    //printd(5, "GlobalVariableList::clear_all() this=%08p (size=%d)\n", this, vmap.size());
    map_var_t::reverse_iterator i = vmap.rbegin();
@@ -62,7 +61,7 @@ void GlobalVariableList::clear_all(class ExceptionSink *xsink)
       if (!i->second->isImported())
       {
 	 printd(5, "GlobalVariableList::clear_all() clearing '%s' (%08p)\n", i->first, i->second);
-	 i->second->setValue(NULL, xsink);
+	 i->second->setValue(0, xsink);
       }
 #ifdef DEBUG
       else printd(5, "GlobalVariableList::clear_all() skipping imported var '%s' (%08p)\n", i->first, i->second);
@@ -71,7 +70,7 @@ void GlobalVariableList::clear_all(class ExceptionSink *xsink)
    }
 }
 
-void GlobalVariableList::delete_all(class ExceptionSink *xsink)
+void GlobalVariableList::delete_all(ExceptionSink *xsink)
 {
    map_var_t::iterator i;
    while ((i = vmap.end()) != vmap.begin())
@@ -101,18 +100,24 @@ class Var *GlobalVariableList::newVar(class Var *v, bool readonly)
    return var;
 }
 
-class Var *GlobalVariableList::findVar(const char *name)
-{
+Var *GlobalVariableList::findVar(const char *name) {
    map_var_t::iterator i = vmap.find(name);
    if (i != vmap.end())
       return i->second;
-   return NULL;
+   return 0;
+}
+
+const Var *GlobalVariableList::findVar(const char *name) const {
+   map_var_t::const_iterator i = vmap.find(name);
+   if (i != vmap.end())
+      return i->second;
+   return 0;
 }
 
 // used for resolving unflagged global variables
 class Var *GlobalVariableList::checkVar(const char *name, int *new_var)
 {
-   tracein("GlobalVariableList::checkVar()");
+   QORE_TRACE("GlobalVariableList::checkVar()");
    class Var *var;
    
    if (!(var = findVar(name)))
@@ -120,16 +125,16 @@ class Var *GlobalVariableList::checkVar(const char *name, int *new_var)
       *new_var = 1;
       var = newVar(name);
    }
-   traceout("GlobalVariableList::checkVar()");
+
    return var;
 }
 
-class List *GlobalVariableList::getVarList() const
+QoreListNode *GlobalVariableList::getVarList() const
 {
-   List *l = new List();
+   QoreListNode *l = new QoreListNode();
    
    for (map_var_t::const_iterator i = vmap.begin(); i != vmap.end(); i++)
-      l->push(new QoreNode(i->first));
+      l->push(new QoreStringNode(i->first));
    
    return l;
 }

@@ -3,7 +3,7 @@
 
   Qore Programming Language
   
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2009 David Nichols
   
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,63 +21,63 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QC_Gate.h>
+#include <qore/intern/QC_Gate.h>
 
 // rmutex class is depcreated and will be removed in the next major release
-int CID_GATE, CID_RMUTEX;
+qore_classid_t CID_GATE, CID_RMUTEX;
 
-static void GATE_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void GATE_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_GATE, new QoreGate());
 }
 
-static void GATE_destructor(class Object *self, class QoreGate *g, ExceptionSink *xsink)
+static void GATE_destructor(QoreObject *self, class QoreGate *g, ExceptionSink *xsink)
 {
    g->destructor(xsink);
    g->deref(xsink);
 }
 
-static void GATE_copy(class Object *self, class Object *old, class QoreGate *g, ExceptionSink *xsink)
+static void GATE_copy(QoreObject *self, QoreObject *old, class QoreGate *g, ExceptionSink *xsink)
 {
    self->setPrivate(CID_GATE, new QoreGate());
 }
 
-static class QoreNode *GATE_enter(class Object *self, class QoreGate *g, class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *GATE_enter(QoreObject *self, class QoreGate *g, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
 
    if (!is_nothing(p))
    {
       int timeout_ms = getMsZeroInt(p);
-      return new QoreNode((int64)g->grab(xsink, timeout_ms));
+      return new QoreBigIntNode(g->grab(xsink, timeout_ms));
    }
 
-   return new QoreNode((int64)g->grab(xsink));
+   return new QoreBigIntNode(g->grab(xsink));
 }
 
-static class QoreNode *GATE_exit(class Object *self, class QoreGate *g, class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *GATE_exit(QoreObject *self, class QoreGate *g, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)g->release(xsink));
+   return new QoreBigIntNode(g->release(xsink));
 }
 
-static class QoreNode *GATE_tryEnter(class Object *self, class QoreGate *g, class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *GATE_tryEnter(QoreObject *self, class QoreGate *g, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)g->tryGrab());
+   return new QoreBigIntNode(g->tryGrab());
 }
 
-static class QoreNode *GATE_numInside(class Object *self, class QoreGate *g, class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *GATE_numInside(QoreObject *self, class QoreGate *g, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)g->get_count());
+   return new QoreBigIntNode(g->get_count());
 }
 
-static class QoreNode *GATE_numWaiting(class Object *self, class QoreGate *g, class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *GATE_numWaiting(QoreObject *self, class QoreGate *g, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)g->get_waiting());
+   return new QoreBigIntNode(g->get_waiting());
 }
 
 class QoreClass *initGateClass()
 {
-   tracein("initGateClass()");
+   QORE_TRACE("initGateClass()");
 
    class QoreClass *QC_GATE = new QoreClass("Gate", QDOM_THREAD_CLASS);
    CID_GATE = QC_GATE->getID();
@@ -90,7 +90,7 @@ class QoreClass *initGateClass()
    QC_GATE->addMethod("numInside",     (q_method_t)GATE_numInside);
    QC_GATE->addMethod("numWaiting",    (q_method_t)GATE_numWaiting);
 
-   traceout("initGateClass()");
+
    return QC_GATE;
 }
 

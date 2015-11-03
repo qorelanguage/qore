@@ -3,7 +3,7 @@
 
   Qore Programming Language
   
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2009 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,45 +21,55 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QC_GetOpt.h>
+#include <qore/intern/QC_GetOpt.h>
 
 #include <string.h>
 
-int CID_GETOPT;
+qore_classid_t CID_GETOPT;
 
-static inline int process_type(const char *key, int &attributes, char *opt, class QoreType *&at, class ExceptionSink *xsink)
+static inline int process_type(const char *key, int &attributes, char *opt, qore_type_t &at, ExceptionSink *xsink)
 {
+   assert(at == -1);
+   const char *type_name = 0;
    // get type
    switch (*opt)
    {
       case 's':
 	 at = NT_STRING;
+	 type_name = QoreStringNode::getStaticTypeName();
 	 break;
       case 'i':
 	 at = NT_INT;
+	 type_name = QoreBigIntNode::getStaticTypeName();
 	 break;
       case 'f':
 	 at = NT_FLOAT;
+	 type_name = QoreFloatNode::getStaticTypeName();
 	 break;
       case 'b':
 	 at = NT_BOOLEAN;
+	 type_name = QoreBoolNode::getStaticTypeName();
 	 break;
       case 'd':
 	 at = NT_DATE;
+	 type_name = DateTimeNode::getStaticTypeName();
 	 break;
       case 'h':
 	 at = NT_HASH;
+	 type_name = QoreHashNode::getStaticTypeName();
 	 break;
       case '@':
 	 at = NT_STRING;
 	 attributes |= QGO_OPT_LIST;
+	 type_name = QoreStringNode::getStaticTypeName();
 	 break;
       case '+':
 	 at = NT_INT;
 	 attributes |= QGO_OPT_ADDITIVE;
+	 type_name = QoreBigIntNode::getStaticTypeName();
 	 break;
    }
-   if (!at)
+   if (at == -1)
    {
       xsink->raiseException("GETOPT-OPTION-ERROR", "type '%c' for key '%s' is unknown", *opt, key);
       return -1;
@@ -103,7 +113,7 @@ static inline int process_type(const char *key, int &attributes, char *opt, clas
       }
       if (at != NT_INT && at != NT_FLOAT)
       {
-	 xsink->raiseException("GETOPT-OPTION-ERROR", "additive attributes for type '%s' are not supported (option '%s')", at->getName(), key);
+	 xsink->raiseException("GETOPT-OPTION-ERROR", "additive attributes for type '%s' are not supported (option '%s')", type_name, key);
 	 return -1;
       }
       attributes |= QGO_OPT_ADDITIVE;
@@ -114,9 +124,9 @@ static inline int process_type(const char *key, int &attributes, char *opt, clas
    return -1;
 }
 
-static void GETOPT_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void GETOPT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_HASH, 0);
+   const QoreHashNode *p0 = test_hash_param(params, 0);
    if (!p0)
    {
       xsink->raiseException("GETOPT-PARAMETER-ERROR", "expecting hash as first argument to GetOpt::constructor()");
@@ -125,7 +135,7 @@ static void GETOPT_constructor(class Object *self, class QoreNode *params, Excep
 
    class GetOpt *g = new GetOpt();
 
-   class HashIterator hi(p0->val.hash);
+   ConstHashIterator hi(p0);
    class QoreString vstr;
    while (hi.next())
    {
@@ -136,20 +146,21 @@ static void GETOPT_constructor(class Object *self, class QoreNode *params, Excep
 	 break;
       }
 
-      class QoreNode *v = hi.getValue();
-      if (!v || v->type != NT_STRING)
+      const AbstractQoreNode *v = hi.getValue();
+      const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(v);
+      if (!str)
       {
-	 xsink->raiseException("GETOPT-PARAMETER-ERROR", "value of option key '%s' is not a string (%s)", k,
-			v ? v->type->getName() : "NOTHING");
+	 xsink->raiseException("GETOPT-PARAMETER-ERROR", "value of option key '%s' is not a string (%s)", k, v ? v->getTypeName() : "NOTHING");
 	 break;
       }
-      class QoreType *at = NULL;
-      char *long_opt = NULL, short_opt = '\0';
+      
+      qore_type_t at = -1;
+      char *long_opt = 0, short_opt = '\0';
       int attributes = QGO_OPT_NONE;
 
       // reset buffer
       vstr.clear();
-      vstr.concat(v->val.String->getBuffer());
+      vstr.concat(str->getBuffer());
       char *val = (char *)vstr.getBuffer();
 
       // get data type, if any
@@ -222,56 +233,64 @@ static void GETOPT_constructor(class Object *self, class QoreNode *params, Excep
       g->deref();
 }
 
-static void GETOPT_copy(class Object *self, class Object *old, class GetOpt *g, class ExceptionSink *xsink)
-{
+static void GETOPT_copy(QoreObject *self, QoreObject *old, GetOpt *g, ExceptionSink *xsink) {
    xsink->raiseException("GETOPT-COPY-ERROR", "copying GetOpt objects is not supported");
 }
 
-static class QoreNode *GETOPT_parse(class Object *self, class GetOpt *g, class QoreNode *params, ExceptionSink *xsink)
-{
-   QoreNode *p0 = get_param(params, 0);
+static QoreHashNode *GETOPT_parse(QoreObject *self, GetOpt *g, const QoreListNode *params, ExceptionSink *xsink) {
+   const AbstractQoreNode *p0 = get_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
-   class List *l;
-   class AutoVLock vl;
-   bool modify = false;
-   if (p0->type == NT_REFERENCE)
-   {
-      class QoreNode **vp = get_var_value_ptr(p0->val.lvexp, &vl, xsink);
-      if (xsink->isEvent() || !(*vp) || (*vp)->type != NT_LIST)
-	 return NULL;
-      if ((*vp)->reference_count() > 1)
-      {
-	 class QoreNode *n = (*vp)->realCopy(xsink);
-	 (*vp)->deref(xsink);
-	 (*vp) = n;
-      }
-      l = (*vp)->val.list;
-      modify = true;
+   QoreListNode *l;
+   if (p0->getType() == NT_REFERENCE) {
+      const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(p0);
+      AutoVLock vl(xsink);
+      ReferenceHelper ref(r, vl, xsink);
+      if (!ref)
+	 return 0;
+
+      if (ref.getType() != NT_LIST)
+	 return 0;
+
+      l = reinterpret_cast<QoreListNode *>(ref.getUnique(xsink));
+      if (*xsink)
+	 return 0;
+
+      return g->parse(l, true, xsink);
    }
-   else if (p0->type == NT_LIST)
-      l = p0->val.list;
-   else
-      return NULL;
+   else if (!(l = const_cast<QoreListNode *>(dynamic_cast<const QoreListNode *>(p0))))
+      return 0;
 
-   class Hash *h = g->parse(l, modify, xsink);
-   if (h)
-      return new QoreNode(h);
-
-   return NULL;
+   return g->parse(l, false, xsink);
 }
 
-class QoreClass *initGetOptClass()
-{
-   tracein("initGetOptClass()");
+static AbstractQoreNode *GETOPT_parse2(QoreObject *self, GetOpt *g, const QoreListNode *params, ExceptionSink *xsink) {
+   ReferenceHolder<QoreHashNode> rv(GETOPT_parse(self, g, params, xsink), xsink);
+   if (*xsink)
+      return 0;
 
-   class QoreClass *QC_GETOPT = new QoreClass("GetOpt");
+   if (!rv)
+      return 0;
+
+   // check for _ERRORS_ key
+   const QoreListNode *l = reinterpret_cast<const QoreListNode *>(rv->getKeyValue("_ERRORS_"));
+   if (!l)
+      return rv.release();
+   const QoreStringNode *err = reinterpret_cast<const QoreStringNode *>(l->retrieve_entry(0));
+   xsink->raiseException("GETOPT-ERROR", err->stringRefSelf());
+   return 0;
+}
+
+QoreClass *initGetOptClass() {
+   QORE_TRACE("initGetOptClass()");
+
+   QoreClass *QC_GETOPT = new QoreClass("GetOpt");
    CID_GETOPT = QC_GETOPT->getID();
    QC_GETOPT->setConstructor(GETOPT_constructor);
    QC_GETOPT->setCopy((q_copy_t)GETOPT_copy);
    QC_GETOPT->addMethod("parse",         (q_method_t)GETOPT_parse);
+   QC_GETOPT->addMethod("parse2",        (q_method_t)GETOPT_parse2);
 
-   traceout("initGetOptClass()");
    return QC_GETOPT;
 }

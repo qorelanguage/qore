@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2009 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -26,23 +26,36 @@
 
 #define _QORE_ABSTRACTPRIVATEDATA_H
 
-#include <qore/ReferenceObject.h>
+#include <qore/QoreReferenceCounter.h>
 
-class AbstractPrivateData : public ReferenceObject
+//! the base class for all data to be used as private data of Qore objects
+/** C++ constructor code for Qore classes must set private data of the class
+    against the class ID using QoreObject::setPrivate()
+ */
+class AbstractPrivateData : public QoreReferenceCounter
 {
    protected:
+      //! as these objects are reference counted, the destructor should be called only when the reference count = 0 and not manually
       DLLEXPORT virtual ~AbstractPrivateData() {}
 
    public:
+      //! increments the reference count of the object
       DLLEXPORT void ref()
       {
 	 ROreference();
       }
+
+      //! decrements the reference count of the object
+      /**
+	 @param xsink any Qore-language exception information is stored here
+       */
       DLLEXPORT virtual void deref(class ExceptionSink *xsink)
       {
 	 if (ROdereference())
 	    delete this;
       }
+
+      //! decrements the reference count of the object without the possibility of throwing a Qore-language exception
       DLLEXPORT virtual void deref()
       {
 	 if (ROdereference())
