@@ -14889,7 +14889,7 @@ my list $l = $table.getAlignSql($table2);
                             l += AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "primary key", t.primaryKey.getName(), name);
                             # clear supporting constraint from index in the template since we've dropped the PK constraint
                             *string pk_index = t.primaryKey.getIndex();
-                            if (t.indexes.hasKey(pk_index))
+                            if (pk_index && t.indexes.hasKey(pk_index))
                                 t.indexes{pk_index}.setSupportingConstraint();
 			    if (constraintsLinkedToIndexesImpl() && indexes.hasKey(primaryKey.getName()))
                                 t.primaryKey.clearIndex();
@@ -14901,7 +14901,7 @@ my list $l = $table.getAlignSql($table2);
                 else {
                     # there is no PK in the table, so we have to remove the link from the index to the PK in the template
                     *string pk_index = t.primaryKey.getIndex();
-                    if (t.indexes.hasKey(pk_index))
+		    if (pk_index && t.indexes.hasKey(pk_index))
                         t.indexes{pk_index}.setSupportingConstraint();
                     if (constraintsLinkedToIndexesImpl() && indexes.hasKey(t.primaryKey.getName()))
                         t.primaryKey.clearIndex();
