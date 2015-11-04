@@ -335,6 +335,9 @@ class HttpServer::HttpHandlerList {
 
     #! sets a request handler according to the arguments given
     setHandler(string name, string path, bool isregex = True, *softlist content, HttpServer::AbstractHttpRequestHandler obj, *softlist special_headers) {
+        # paths are passed without the leading "/", so they have to be like this in the treemap
+        if (path =~ /^\//)
+            path = path.substr(1);
         if (handlers{name})
             throw "SETHANDLER-ERROR", sprintf("HTTP request handler %y already exists", name);
 
@@ -422,6 +425,9 @@ class HttpServer::DynamicHttpHandlerList inherits HttpServer::HttpHandlerList {
 
     #! sets a dynamic request handler according to the arguments given
     setHandler(string name, string path, bool isregex, *softlist content_type, HttpServer::AbstractHttpRequestHandler obj, *softlist special_headers) {
+        # paths are passed without the leading "/", so they have to be like this in the treemap
+        if (path =~ /^\//)
+            path = path.substr(1);
         DynamicHandlerInfo dhi(name, obj, path, isregex, content_type, special_headers);
 
         dhl.writeLock();
@@ -431,6 +437,10 @@ class HttpServer::DynamicHttpHandlerList inherits HttpServer::HttpHandlerList {
             throw "SETHANDLER-ERROR", sprintf("dynamic HTTP request handler %y already exists (dynamic handlers: %y)", name, handlers.keys());
 
 	handlers{name} = dhi;
+
+        if (!isregex && path) {
+            treeMap.put(path, dhi);
+        }
     }
 
     #! remove dynamic handler
@@ -447,6 +457,10 @@ class HttpServer::DynamicHttpHandlerList inherits HttpServer::HttpHandlerList {
 
             # remove the handler from the list
             DynamicHandlerInfo dhi = remove handlers{name};
+
+            # remove handler from treemap if applicable
+            if (!dhi.isregex && exists dhi.path)
+                treeMap.take(dhi.path);
 
             # take a copy of a reference to the Counter
             c = dhi.counter;
