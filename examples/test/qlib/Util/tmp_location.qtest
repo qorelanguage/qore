@@ -1,11 +1,11 @@
 #!/usr/bin/env qr
 
+%requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 
 %require-types
 %enable-all-warnings
-
-%requires ../../../../qlib/Util.qm
+%new-style
 
 %exec-class TmpLocationTest
 
