@@ -347,8 +347,17 @@ public class QUnit::TestCase {
                     string txt = sprintf("Skip %srequested", assertion_name ? sprintf("of %y ", assertion_name) : NOTHING);
                     test.addTestResult(self, TestReporter::TEST_SKIPPED, "Skip requested", pos, e.desc);
                 } else if (e.err == "TEST-EXCEPTION") {
-                    if (!pos)
+                    if (!pos) {
                         pos = get_ex_pos(e);
+                        if (pos =~ /QUnit\.qm/) {
+                            foreach hash callSite in (e.callstack) {
+                                if (!(e.file =~ /QUNIT\.qm/)) {
+                                    pos = sprintf("%s:%d", callSite.file, callSite.line + callSite.offset);
+                                    break;
+                                }
+                            }
+                        }
+                    }
                     string txt = sprintf("Assertion %sfailure", assertion_name ? sprintf("%y ", assertion_name) : NOTHING);
                     test.addTestResult(self, TestReporter::TEST_FAILURE, txt, pos, e.desc);
                 }
@@ -729,20 +738,74 @@ addTestCase(obj);
             bool twoline = length(expected) + length(actual) > 40;
             result += sprintf("Expected%s %s%sActual %s", neg ? " Not Equal" : "", expected, twoline ? "\n" : ", ", actual);
         } else {
-            ListIterator it;
             result += sprintf("* Expected%s:", neg ? " Not Equal" : "");
             result += "\n\t--------------------\n";
             map result += sprintf("\t%s\n", $1), expectedLines;
             result += "\t--------------------\n";
-            result += "*   Actual:";
+            result += "* Actual:";
             result += "\n\t--------------------\n";
             if (neg)
                 result += "\t<same as above>\n";
             else
                 map result += sprintf("\t%s\n", $1), actualLines;
             result += "\t--------------------\n";
+            list details = ();
+            if (exp.typeCode() == NT_HASH && act.typeCode() == NT_HASH) {
+                compareHashes(exp, act, \details);
+            }
+            if (exp.typeCode() == NT_LIST && act.typeCode() == NT_LIST) {
+                compareLists(exp, act, \details);
+            }
+            if (details) {
+                result += "* Details:";
+                result += "\n\t--------------------\n";
+                map result += sprintf("\t%s\n", $1), details;
+                result += "\t--------------------\n";
+            }
         }
         return result;
+    }
+
+    private compare(any v1, any v2, reference out, string path) {
+        if (v1 !== v2) {
+            if (v1.typeCode() == NT_HASH && v2.typeCode() == NT_HASH) {
+                compareHashes(v1, v2, \out, path);
+            } else if (v1.typeCode() == NT_LIST && v2.typeCode() == NT_LIST) {
+                compareLists(v1, v2, \out, path);
+            } else {
+                out += sprintf("The values of %s differ:", path);
+                out += sprintf("    expected: %N (%s)", v1, v1.type());
+                out += sprintf("      actual: %N (%s)", v2, v2.type());
+            }
+        }
+    }
+
+    private compareHashes(hash h1, hash h2, reference out, string path = "") {
+        foreach string key in (h1.keyIterator()) {
+            if (h2.hasKey(key)) {
+                compare(h1{key}, h2{key}, \out, path + "." + key);
+            } else {
+                out += sprintf("Missing expected key %s.%s (with value %N)", path, key, h1{key});
+            }
+        }
+        foreach string key in (h2.keyIterator()) {
+            if (!h1.hasKey(key)) {
+                out += sprintf("Unexpected key %s.%s (with value %N)", path, key, h2{key});
+            }
+        }
+    }
+
+    private compareLists(list l1, list l2, reference out, string path = "") {
+        int len1 = elements l1;
+        int len2 = elements l2;
+
+        if (len1 != len2) {
+            out += sprintf("Different lengths of lists %s%s- expected: %d, actual: %s", path, path ? " " : "", len1, len2);
+        }
+
+        for (int i = 0; i < min(len1, len2); ++i) {
+            compare(l1[i], l2[i], \out, path + "[" + i + "]");
+        }
     }
 
 ######### Assertions & test control functions
@@ -767,7 +830,29 @@ testAssertionValue("date > operator", now() > (now() - 1D), True);
         tc.incAssertions();
         ++num_asserts;
 
-        return testAssertionIntern(tc, name, new TestResultValue(value), new TestResultValue(expectedValue), value);
+        if (value !== expectedValue) {
+            throw "TEST-EXCEPTION", printUnexpectedData(expectedValue, value), ("name": name, "pos": NOTHING);
+        } else {
+            tc.incAssertionsOk();
+            ++num_asserts_ok;
+            if (m_options.verbose > 1)
+                printf("+ OK: %y assertion %y\n", m_name, name);
+        }
+        return value;
+    }
+
+    #! Tests a value for equality to an expected value
+    /** @par Example:
+        @code
+assertEq(5, functionThatShouldReturnFive());
+        @endcode
+
+        @param expected the expected value
+        @param actual the value generated by the test
+        @param name the name or description of the assertion
+     */
+    public assertEq(any expected, any actual, any name = NOTHING) {
+        testAssertionValue(name ?? "", actual, expected);
     }
 
     #! Tests for a single assertion for a call returning no value (for example, to ensure that the call does not throw an exception)
@@ -942,9 +1027,9 @@ testAssertionValue("date > operator", now() > (now() - 1D), True);
         }
 
         return testAssertionIntern(tc, name, result, expectedResult, ret, pos);
-     }
+    }
 
-     private any testAssertionIntern(TestCase tc, string name, QUnit::AbstractTestResult actualResult, QUnit::AbstractTestResult expectedResult, any ret, *string pos) {
+    private any testAssertionIntern(TestCase tc, string name, QUnit::AbstractTestResult actualResult, QUnit::AbstractTestResult expectedResult, any ret, *string pos) {
         if (!expectedResult.equals(actualResult)) {
             throw "TEST-EXCEPTION", printUnexpectedData(expectedResult.toString(), actualResult.toString()), ("name": name, "pos": pos);
         }
