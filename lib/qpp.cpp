@@ -2487,7 +2487,7 @@ public:
                                                       n_flags, n_dom, n_code, n_line, n_doconly) {
       if (n_pseudo_arg && n_pseudo_arg[0]) {
          pseudo_arg = n_pseudo_arg;
-         int i = pseudo_arg.find('=');
+         std::string::size_type i = pseudo_arg.find('=');
          if (i != std::string::npos) {
             bool valid = true;
             --i;
@@ -2747,7 +2747,6 @@ protected:
    mmap_t normal_mmap,   // normal method map
       static_mmap;       // static method map
 
-   int64 flags;
    bool valid,
       upm,               // unset public member flag
       is_pseudo;
@@ -2909,7 +2908,7 @@ public:
 
       //log(LL_INFO, "+ method %s::%s() attr: 0x%x (static: %d)\n", name.c_str(), mname.c_str(), attr, attr & QCA_STATIC);
 
-      if (attr & QCA_STATIC && is_pseudo) {
+      if ((attr & QCA_STATIC) && is_pseudo) {
          error("pseudo class '%s' cannot define static method '%s'\n", name.c_str(), mname.c_str());
          return -1;
       }
@@ -3109,7 +3108,7 @@ protected:
    int parse() {
       FILE* fp = fopen(fileName, "r");
       if (!fp) {
-	 error("%s: %s\n", fileName, strerror(errno));
+         error("%s: %s\n", fileName, strerror(errno));
          return -1;
       }
 
@@ -3672,6 +3671,7 @@ void process_command_line(int& argc, char**& argv) {
       switch (ch) {
          case 'h':
             usage();
+            break;
 
          case 'd':
             opts.dox_fn = optarg;
@@ -3690,6 +3690,7 @@ void process_command_line(int& argc, char**& argv) {
                opts.verbose = strtoll(optarg, NULL, 10);
             else
                ++opts.verbose;
+            break;
 
          case 'V':
             use_value = true;
