@@ -213,7 +213,7 @@ int system(string command) [dom=EXTERNAL_PROCESS] {
       sigprocmask(SIG_SETMASK, &mask, 0);
 
       // exec pgm like system(): sh -c "command"
-      execl("/bin/sh", "sh", "-c", command->getBuffer(), 0);
+      execl("/bin/sh", "sh", "-c", command->getBuffer(), NULL);
       fprintf(stderr, "execvp() failed in child process for target '/bin/sh' with error code %d: %s\n", errno, strerror(errno));
       exit(-1);
       //qore_exit_process(-1);
