@@ -399,7 +399,11 @@ private:
    nvec_t tvec;
    lvid_set_t* lvid_set;
    ocvec_t ocvec;
+
+   // flag if the changed value was a container before the assignment
    bool before;
+
+   // recursive delta: change to recursive reference count
    int rdt;
 
    QoreObject* robj;
@@ -410,6 +414,9 @@ public:
 
    DLLLOCAL LValueHelper(const ReferenceNode& ref, ExceptionSink* xsink, bool for_remove = false);
    DLLLOCAL LValueHelper(const AbstractQoreNode* exp, ExceptionSink* xsink, bool for_remove = false);
+
+   // to scan objects after initialization
+   DLLLOCAL LValueHelper(QoreObject& obj, ExceptionSink* xsink);
 
    DLLLOCAL ~LValueHelper();
 
