@@ -872,7 +872,7 @@ const QoreMethod* qore_class_private::findLocalCommittedStaticMethod(const char*
    return m && !m->priv->func->committedEmpty() ? m : 0;
 }
 
-int qore_class_private::initMembers(QoreObject& o, ExceptionSink* xsink) const {
+int qore_class_private::initMembers(QoreObject& o, bool& need_scan, ExceptionSink* xsink) const {
    if (members.empty())
       return 0;
 
@@ -894,6 +894,13 @@ int qore_class_private::initMembers(QoreObject& o, ExceptionSink* xsink) const {
 	       return -1;
 	    *v = nv;
 	    val.release();
+	    if (get_container_obj(nv)) {
+	       qore_object_private::incObjectCount(o, 1);
+	       if (!need_scan)
+		  need_scan = true;
+	    }
+
+	    //printd(5, "qore_class_private::initMembers() '%s' obj: %d\n", i->first, get_container_obj(nv));
 	 }
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
 	 else
@@ -901,6 +908,7 @@ int qore_class_private::initMembers(QoreObject& o, ExceptionSink* xsink) const {
 #endif
       }
    }
+
    return 0;
 }
 
@@ -949,8 +957,16 @@ QoreObject* qore_class_private::execConstructor(const AbstractQoreFunctionVarian
 
    printd(5, "qore_class_private::execConstructor() class: %p %s::constructor() o: %p variant: %p\n", cls, name.c_str(), self, variant);
 
+   // if we made at least one assignment, then scan the object for recursive references after all assignments
+   bool need_scan = false;
+
    // instantiate members first
-   initMembers(*self, xsink);
+   initMembers(*self, need_scan, xsink);
+
+   // scan object for recursive references after all member assignments
+   if (need_scan) {
+      LValueHelper lvh(*self, xsink);
+   }
 
    if (!*xsink) {
       // it's possible for constructor = 0 and variant != 0, when a class is instantiated to initialize a constant

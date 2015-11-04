@@ -2335,7 +2335,7 @@ public:
       return scl ? scl->isPublicOrPrivateMember(mem, priv) : 0;
    }
 
-   DLLLOCAL int initMembers(QoreObject& o, ExceptionSink* xsink) const;
+   DLLLOCAL int initMembers(QoreObject& o, bool& need_scan, ExceptionSink* xsink) const;
 
    DLLLOCAL int initVar(const char* vname, QoreVarInfo& vi, ExceptionSink* xsink) const {
       if (vi.exp) {

@@ -190,32 +190,39 @@ LValueHelper::LValueHelper(const AbstractQoreNode* exp, ExceptionSink* xsink, bo
       doLValue(exp, for_remove);
 }
 
+// this constructor function is used to scan objects after initialization
+LValueHelper::LValueHelper(QoreObject& self, ExceptionSink* xsink) : vl(xsink), v(0), lvid_set(0), before(true), rdt(0), robj(&self), val(0), typeInfo(0) {
+   ocvec.push_back(ObjCountRec(&self));
+}
+
 LValueHelper::~LValueHelper() {
    bool obj_chg = before;
    bool obj_ref = false;
    if (!(*vl.xsink)) {
       // see if we have any object count changes
       if (!ocvec.empty()) {
-	 assert(v);
-	 if (rdt) {
-	    assert(*v);
-	    if (!obj_chg)
-	       obj_chg = true;
-	    inc_container_obj(ocvec[ocvec.size() - 1].con, rdt);
-	 }
-	 else {
-	    bool after = get_container_obj(*v);
-	    if (before) {
-	       // we have to assume that the objects have changed when before and after = true
-	       if (!obj_chg)
-	       obj_chg = true;
-	       if (!after)
-		  inc_container_obj(ocvec[ocvec.size() - 1].con, -1);
-	    }
-	    else if (after) {
+	 // v could be 0 if the constructor taking QoreObject& was used (to scan objects after initialization)
+	 if (v) {
+	    if (rdt) {
+	       assert(*v);
 	       if (!obj_chg)
 		  obj_chg = true;
-	       inc_container_obj(ocvec[ocvec.size() - 1].con, 1);
+	       inc_container_obj(ocvec[ocvec.size() - 1].con, rdt);
+	    }
+	    else {
+	       bool after = get_container_obj(*v);
+	       if (before) {
+		  // we have to assume that the objects have changed when before and after = true
+		  if (!obj_chg)
+		     obj_chg = true;
+		  if (!after)
+		     inc_container_obj(ocvec[ocvec.size() - 1].con, -1);
+	       }
+	       else if (after) {
+		  if (!obj_chg)
+		     obj_chg = true;
+		  inc_container_obj(ocvec[ocvec.size() - 1].con, 1);
+	       }
 	    }
 	 }
 
@@ -1048,7 +1055,7 @@ void LValueRemoveHelper::deleteLValue() {
    if (t != NT_OBJECT)
       return;
 
-   QoreObject* o = reinterpret_cast<QoreObject* >(v->getInternalNode());
+   QoreObject* o = reinterpret_cast<QoreObject*>(v->getInternalNode());
    if (o->isSystemObject()) {
       xsink->raiseException("SYSTEM-OBJECT-ERROR", "you cannot delete a system constant object");
       return;
@@ -1116,7 +1123,7 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
    if (t == NT_HASH)
       lvh.ensureUnique();
 
-   QoreObject* o = t == NT_OBJECT ? reinterpret_cast<QoreObject* >(lvh.getValue()) : 0;
+   QoreObject* o = t == NT_OBJECT ? reinterpret_cast<QoreObject*>(lvh.getValue()) : 0;
    QoreHashNode* h = !o && t == NT_HASH ? reinterpret_cast<QoreHashNode*>(lvh.getValue()) : 0;
    if (!o && !h)
       return;
