@@ -533,7 +533,7 @@ BinaryNode *QoreFile::readBinary(qore_offset_t size, int timeout_ms, ExceptionSi
       buf = priv->readBlock(size, timeout_ms, xsink);
    }
    if (!buf)
-      0;
+      return 0;
 
    return new BinaryNode(buf, size);
 }
