@@ -142,10 +142,10 @@ int QoreFile::preallocate(fstore_t &fs, ExceptionSink *xsink) {
 }
 #endif
 
-QoreStringNode *QoreFile::getFileName() const { 
+QoreStringNode *QoreFile::getFileName() const {
    AutoLocker al(priv->m);
 
-   return priv->filename.empty() ? 0 : new QoreStringNode(priv->filename.c_str()); 
+   return priv->filename.empty() ? 0 : new QoreStringNode(priv->filename.c_str());
 }
 
 std::string QoreFile::getFileNameStr() const {
@@ -170,41 +170,41 @@ const QoreEncoding *QoreFile::getEncoding() const {
 }
 
 #ifndef HAVE_FSYNC
-/* Emulate fsync on platforms which lack it, primarily Windows and 
-   cross-compilers like MinGW. 
- 
-   This is derived from sqlite3 sources and is in the public domain. 
- 
-   Written by Richard W.M. Jones <rjones.at.redhat.com> 
-*/ 
+/* Emulate fsync on platforms which lack it, primarily Windows and
+   cross-compilers like MinGW.
+
+   This is derived from sqlite3 sources and is in the public domain.
+
+   Written by Richard W.M. Jones <rjones.at.redhat.com>
+*/
 #ifdef _Q_WINDOWS
-int fsync (int fd) { 
-   HANDLE h = (HANDLE) _get_osfhandle (fd); 
-   DWORD err; 
- 
-   if (h == INVALID_HANDLE_VALUE) { 
-      errno = EBADF; 
-      return -1; 
+int fsync (int fd) {
+   HANDLE h = (HANDLE) _get_osfhandle (fd);
+   DWORD err;
+
+   if (h == INVALID_HANDLE_VALUE) {
+      errno = EBADF;
+      return -1;
    }
- 
-   if (!FlushFileBuffers (h)) { 
-      /* Translate some Windows errors into rough approximations of Unix 
-       * errors.  MSDN is useless as usual - in this case it doesn't 
-       * document the full range of errors. 
-       */ 
-      err = GetLastError(); 
-      switch (err) { 
-	 /* eg. Trying to fsync a tty. */ 
-	 case ERROR_INVALID_HANDLE: 
-	    errno = EINVAL; 
-	    break; 
- 
-	 default: 
-	    errno = EIO; 
-      } 
-      return -1; 
-   } 
-   return 0; 
+
+   if (!FlushFileBuffers (h)) {
+      /* Translate some Windows errors into rough approximations of Unix
+       * errors.  MSDN is useless as usual - in this case it doesn't
+       * document the full range of errors.
+       */
+      err = GetLastError();
+      switch (err) {
+	 /* eg. Trying to fsync a tty. */
+	 case ERROR_INVALID_HANDLE:
+	    errno = EINVAL;
+	    break;
+
+	 default:
+	    errno = EIO;
+      }
+      return -1;
+   }
+   return 0;
 }
 #else // windows
 #error no fsync() on this platform
@@ -245,7 +245,7 @@ int QoreFile::open2(ExceptionSink *xsink, const char *fn, int flags, int mode, c
    int rc;
    {
       AutoLocker al(priv->m);
-      
+
       rc = priv->open_intern(fn, flags, mode, cs);
    }
 
@@ -290,7 +290,7 @@ qore_size_t QoreFile::setPos(qore_size_t pos) {
 
    if (!priv->is_open)
       return -1;
-   
+
    return lseek(priv->fd, pos, SEEK_SET);
 }
 
@@ -374,10 +374,10 @@ int QoreFile::write(const void *data, qore_size_t len, ExceptionSink *xsink) {
 
    if (priv->check_write_open(xsink))
       return -1;
-   
+
    if (!len)
       return 0;
-   
+
    return priv->write(data, len, xsink);
 }
 
@@ -386,7 +386,7 @@ int QoreFile::write(const QoreString *str, ExceptionSink *xsink) {
 
    if (priv->check_write_open(xsink))
       return -1;
-   
+
    if (!str)
       return 0;
 
@@ -395,7 +395,7 @@ int QoreFile::write(const QoreString *str, ExceptionSink *xsink) {
       return -1;
 
    //printd(0, "QoreFile::write() str priv->charset=%s, priv->charset=%s\n", str->getEncoding()->code, priv->charset->code);
-   
+
    return priv->write(wstr->getBuffer(), wstr->strlen(), xsink);
 }
 
@@ -404,10 +404,10 @@ int QoreFile::write(const BinaryNode *b, ExceptionSink *xsink) {
 
    if (priv->check_write_open(xsink))
       return -1;
-   
+
    if (!b)
       return 0;
-   
+
    return priv->write(b->getPtr(), b->size(), xsink);
 }
 
@@ -440,10 +440,10 @@ QoreStringNode *QoreFile::read(qore_offset_t size, ExceptionSink *xsink) {
    char *buf;
    {
       AutoLocker al(priv->m);
-   
+
       if (priv->check_read_open(xsink))
 	 return 0;
-   
+
       buf = priv->readBlock(size, -1, xsink);
    }
    if (!buf)
@@ -488,12 +488,12 @@ BinaryNode *QoreFile::readBinary(qore_offset_t size, ExceptionSink *xsink) {
 
       if (priv->check_read_open(xsink))
 	 return 0;
-   
+
       buf = priv->readBlock(size, -1, xsink);
    }
    if (!buf)
       return 0;
-   
+
    return new BinaryNode(buf, size);
 }
 
@@ -504,10 +504,10 @@ QoreStringNode *QoreFile::read(qore_offset_t size, int timeout_ms, ExceptionSink
    char *buf;
    {
       AutoLocker al(priv->m);
-   
+
       if (priv->check_read_open(xsink))
 	 return 0;
-   
+
       buf = priv->readBlock(size, timeout_ms, xsink);
    }
    if (!buf)
@@ -529,12 +529,12 @@ BinaryNode *QoreFile::readBinary(qore_offset_t size, int timeout_ms, ExceptionSi
 
       if (priv->check_read_open(xsink))
 	 return 0;
-   
+
       buf = priv->readBlock(size, timeout_ms, xsink);
    }
    if (!buf)
-      return 0;
-   
+      0;
+
    return new BinaryNode(buf, size);
 }
 
@@ -562,7 +562,7 @@ int QoreFile::writei4(int i, ExceptionSink *xsink) {
 
    if (priv->check_write_open(xsink))
       return -1;
-   
+
    i = htonl(i);
    return priv->write((char *)&i, 4, xsink);
 }
@@ -572,7 +572,7 @@ int QoreFile::writei8(int64 i, ExceptionSink *xsink) {
 
    if (priv->check_write_open(xsink))
       return -1;
-   
+
    i = i8MSB(i);
    return priv->write((char *)&i, 4, xsink);
 }
@@ -582,7 +582,7 @@ int QoreFile::writei2LSB(short i, ExceptionSink *xsink) {
 
    if (priv->check_write_open(xsink))
       return -1;
-   
+
    i = i2LSB(i);
    return priv->write((char *)&i, 2, xsink);
 }
@@ -592,7 +592,7 @@ int QoreFile::writei4LSB(int i, ExceptionSink *xsink) {
 
    if (priv->check_write_open(xsink))
       return -1;
-   
+
    i = i4LSB(i);
    return priv->write((char *)&i, 4, xsink);
 }
@@ -602,7 +602,7 @@ int QoreFile::writei8LSB(int64 i, ExceptionSink *xsink) {
 
    if (priv->check_write_open(xsink))
       return -1;
-   
+
    i = i8LSB(i);
    return priv->write((char *)&i, 4, xsink);
 }
@@ -612,7 +612,7 @@ int QoreFile::readu1(unsigned char *val, ExceptionSink *xsink) {
 
    if (priv->check_read_open(xsink))
       return -1;
-   
+
    int rc = priv->read(val, 1);
    if (rc <= 0)
       return -1;
@@ -624,11 +624,11 @@ int QoreFile::readu2(unsigned short *val, ExceptionSink *xsink) {
 
    if (priv->check_read_open(xsink))
       return -1;
-   
+
    int rc = priv->read(val, 2);
    if (rc <= 0)
       return -1;
-   
+
    *val = ntohs(*val);
    return 0;
 }
@@ -638,11 +638,11 @@ int QoreFile::readu4(unsigned int *val, ExceptionSink *xsink) {
 
    if (priv->check_read_open(xsink))
       return -1;
-   
+
    int rc = priv->read(val, 4);
    if (rc <= 0)
       return -1;
-   
+
    *val = ntohl(*val);
    return 0;
 }
@@ -652,11 +652,11 @@ int QoreFile::readu2LSB(unsigned short *val, ExceptionSink *xsink) {
 
    if (priv->check_read_open(xsink))
       return -1;
-   
+
    int rc = priv->read(val, 2);
    if (rc <= 0)
       return -1;
-   
+
    *val = LSBi2(*val);
    return 0;
 }
@@ -666,11 +666,11 @@ int QoreFile::readu4LSB(unsigned int *val, ExceptionSink *xsink) {
 
    if (priv->check_read_open(xsink))
       return -1;
-   
+
    int rc = priv->read(val, 4);
    if (rc <= 0)
       return -1;
-   
+
    *val = LSBi4(*val);
    return 0;
 }
@@ -680,7 +680,7 @@ int QoreFile::readi1(char *val, ExceptionSink *xsink) {
 
    if (priv->check_read_open(xsink))
       return -1;
-      
+
    int rc = priv->read(val, 1);
    if (rc <= 0)
       return -1;
@@ -692,11 +692,11 @@ int QoreFile::readi2(short *val, ExceptionSink *xsink) {
 
    if (priv->check_read_open(xsink))
       return -1;
-      
+
    int rc = priv->read(val, 2);
    if (rc <= 0)
       return -1;
-   
+
    *val = ntohs(*val);
    return 0;
 }
@@ -707,11 +707,11 @@ int QoreFile::readi4(int *val, ExceptionSink *xsink)
 
    if (priv->check_read_open(xsink))
       return -1;
-   
+
    int rc = priv->read(val, 4);
    if (rc <= 0)
       return -1;
-   
+
    *val = ntohl(*val);
    return 0;
 }
@@ -722,11 +722,11 @@ int QoreFile::readi8(int64 *val, ExceptionSink *xsink)
 
    if (priv->check_read_open(xsink))
       return -1;
-   
+
    int rc = priv->read(val, 8);
    if (rc <= 0)
       return -1;
-   
+
    *val = MSBi8(*val);
    return 0;
 }
@@ -737,11 +737,11 @@ int QoreFile::readi2LSB(short *val, ExceptionSink *xsink)
 
    if (priv->check_read_open(xsink))
       return -1;
-   
+
    int rc = priv->read(val, 2);
    if (rc <= 0)
       return -1;
-   
+
    *val = LSBi2(*val);
    return 0;
 }
@@ -752,11 +752,11 @@ int QoreFile::readi4LSB(int *val, ExceptionSink *xsink)
 
    if (priv->check_read_open(xsink))
       return -1;
-   
+
    int rc = priv->read(val, 4);
    if (rc <= 0)
       return -1;
-   
+
    *val = LSBi4(*val);
    return 0;
 }
@@ -766,11 +766,11 @@ int QoreFile::readi8LSB(int64 *val, ExceptionSink *xsink) {
 
    if (priv->check_read_open(xsink))
       return -1;
-   
+
    int rc = priv->read(val, 8);
    if (rc <= 0)
       return -1;
-   
+
    *val = LSBi8(*val);
    return 0;
 }
