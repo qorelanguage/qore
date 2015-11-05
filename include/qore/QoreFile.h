@@ -420,7 +420,7 @@ public:
        @param size the number of bytes to read from the file, use -1 to read all data from the file
        @param xsink if an error occurs, the Qore-language exception info will be added here
 
-       @return the string read (caller owns the reference count returned) or 0 if an error occured of the file is empty
+       @return the string read (caller owns the reference count returned) or 0 if an error occured or the file is empty
 
        @note the string will be tagged with the file's default encoding
    */
