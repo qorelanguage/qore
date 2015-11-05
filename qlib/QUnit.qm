@@ -766,6 +766,11 @@ addTestCase(obj);
         return result;
     }
 
+    private string shorten(any value) {
+        string v = sprintf("%N", value);
+        return sprintf("%s (%s)", v.split("\n")[0], value.type());
+    }
+
     private compare(any v1, any v2, reference out, string path) {
         if (v1 !== v2) {
             if (v1.typeCode() == NT_HASH && v2.typeCode() == NT_HASH) {
@@ -774,8 +779,8 @@ addTestCase(obj);
                 compareLists(v1, v2, \out, path);
             } else {
                 out += sprintf("The values of %s differ:", path);
-                out += sprintf("    expected: %N (%s)", v1, v1.type());
-                out += sprintf("      actual: %N (%s)", v2, v2.type());
+                out += sprintf("    expected: %s", shorten(v1));
+                out += sprintf("      actual: %s", shorten(v2));
             }
         }
     }
