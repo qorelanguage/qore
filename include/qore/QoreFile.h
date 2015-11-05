@@ -7,7 +7,7 @@
   Qore Programming Language
 
   Copyright (C) 2003 - 2015 David Nichols
-  
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -43,11 +43,11 @@
 #include <string>
 
 /*
-  getchar from stdio.h(included via string on some platforms) 
+  getchar from stdio.h(included via string on some platforms)
   is allowed to be defined as a macro and this can cause
   problems here since the getchar mentioned in this file might
   get replaced, so we undefine it if it is defined.
-  Undefining getchar is safe since getchar must be defined as 
+  Undefining getchar is safe since getchar must be defined as
   a function, so the function is used if the macro is not available.
  */
 #ifdef getchar
@@ -73,7 +73,7 @@ protected:
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreFile& operator=(const QoreFile&);
-      
+
 public:
    //! creates the object and sets the default encoding
    DLLEXPORT QoreFile(const QoreEncoding *cs = QCS_DEFAULT);
@@ -91,7 +91,7 @@ public:
       @note for a version that raises a Qore-language exception when an error occurs opening the file, see QoreFile::open2()
       @see QoreFile::open2()
    */
-   DLLEXPORT int open(const char *fn, int flags = O_RDONLY, int mode = 0777, const QoreEncoding *cs = QCS_DEFAULT);      
+   DLLEXPORT int open(const char *fn, int flags = O_RDONLY, int mode = 0777, const QoreEncoding *cs = QCS_DEFAULT);
 
    //! opens the file and raises a Qore-language exception if an error occurs
    /**
@@ -104,7 +104,7 @@ public:
       @note for a version that does not raise a Qore exception when errors occur, see QoreFile::open2()
       @see QoreFile::open()
    */
-   DLLEXPORT int open2(ExceptionSink *xsink, const char *fn, int flags = O_RDONLY, int mode = 0777, const QoreEncoding *cs = QCS_DEFAULT);      
+   DLLEXPORT int open2(ExceptionSink *xsink, const char *fn, int flags = O_RDONLY, int mode = 0777, const QoreEncoding *cs = QCS_DEFAULT);
 
    //! closes the file
    /**
@@ -419,7 +419,9 @@ public:
    /** A Qore-language exception can be thrown if the file is not opened
        @param size the number of bytes to read from the file, use -1 to read all data from the file
        @param xsink if an error occurs, the Qore-language exception info will be added here
-       @return the string read (caller owns the reference count returned) or 0 if an error occured
+
+       @return the string read (caller owns the reference count returned) or 0 if an error occured or the file is empty
+
        @note the string will be tagged with the file's default encoding
    */
    DLLEXPORT QoreStringNode *read(qore_offset_t size, ExceptionSink *xsink);
@@ -438,7 +440,8 @@ public:
    /** A Qore-language exception can be thrown if the file is not opened
        @param size the number of bytes to read from the file, use -1 to read all data from the file
        @param xsink if an error occurs, the Qore-language exception info will be added here
-       @return the binary data read (caller owns the reference count returned) or 0 if an error occured
+
+       @return the binary data read (caller owns the reference count returned) or 0 if an error occured or the file is empty
    */
    DLLEXPORT BinaryNode *readBinary(qore_offset_t size, ExceptionSink *xsink);
 
