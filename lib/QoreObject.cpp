@@ -1163,6 +1163,7 @@ bool ObjectRSetHelper::checkIntern(AbstractQoreNode* n) {
 	 QoreHashNode* h = reinterpret_cast<QoreHashNode*>(n);
 	 HashIterator hi(h);
 	 while (hi.next()) {
+            assert(hi.getValue() != h);
 	    if (checkIntern(hi.getValue()))
 	       return true;
 	 }

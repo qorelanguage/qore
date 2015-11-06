@@ -350,6 +350,7 @@
     - fixed bugs in the documentation and return types of:
       - @ref Qore::ReadOnlyFile::readBinaryFile()
       - @ref Qore::ReadOnlyFile::readTextFile()
+    - fixed a bug in @ref Qore::GetOpt::parse(softlist), @ref Qore::GetOpt::parse2(softlist), and @ref Qore::GetOpt::parse3(softlist) where call-by-value and copy-on-write semantics were not enforced and a shared list argument could be modified
 
     @section qore_0811 Qore 0.8.11
 
