@@ -87,7 +87,7 @@ int qore_value_list_private::mergesort(const ResolvedCallReferenceNode* fr, bool
 	 rc = (int)result->getAsBigInt();
       }
       else {
-	 ValueHolder result(OP_LOG_CMP->eval(lv, rv, true, 2, xsink), xsink);
+	 ValueHolder result(OP_LOG_CMP->eval(lv, rv, true, xsink), xsink);
 	 if (*xsink)
 	    return -1;
 	 rc = (int)result->getAsBigInt();
@@ -126,7 +126,7 @@ int qore_value_list_private::qsort(const ResolvedCallReferenceNode* fr, size_t l
 	    rc = (int)rv->getAsBigInt();
 	 }
 	 else {
-	    ValueHolder rv(OP_LOG_CMP->eval(entry[right], pivot, true, 2, xsink), xsink);
+	    ValueHolder rv(OP_LOG_CMP->eval(entry[right], pivot, true, xsink), xsink);
 	    if (*xsink)
 	       return -1;
 	    rc = (int)rv->getAsBigInt();
@@ -154,7 +154,7 @@ int qore_value_list_private::qsort(const ResolvedCallReferenceNode* fr, size_t l
 	    rc = (int)rv->getAsBigInt();
 	 }
 	 else {
-	    ValueHolder rv(OP_LOG_CMP->eval(entry[left], pivot, true, 2, xsink), xsink);
+	    ValueHolder rv(OP_LOG_CMP->eval(entry[left], pivot, true, xsink), xsink);
 	    if (*xsink)
 	       return -1;
 	    rc = (int)rv->getAsBigInt();
