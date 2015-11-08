@@ -12,6 +12,7 @@
 class Test inherits QUnit::Test {
     constructor() : QUnit::Test("operators", "1.0", \ARGV) {
         addTestCase("basic operator tests", \basicTests());
+        addTestCase("lvalue tests", \lvalueTests());
         set_return_value(main());
     }
 
@@ -137,6 +138,16 @@ class Test inherits QUnit::Test {
             testAssertion("trim operator parse-time return value", \p.parse(), ("string sub test() {string str = \"a string \\n\"; string astr = trim str; return astr;}", "trim operator test"), new TestResultValue(NOTHING));
             testAssertionValue("trim operator", p.callFunction("test"), "a string");
         }
+    }
+
+    lvalueTests() {
+        # bug 88: lvalue reference-handling bug
+        hash h.a = 1;
+        h.b = h;
+        testAssertionValue("hash assignment", sprintf("%y", h), "{a: 1, b: {a: 1}}");
+        string str = "a";
+        h = (str: 1); h.b += h;
+        testAssertionValue("hash +=", sprintf("%y", h), "{a: 1, b: {a: 1}}");
     }
 
     static code mapClosure(any v) {
