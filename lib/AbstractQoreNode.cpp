@@ -63,16 +63,12 @@ AbstractQoreNode::~AbstractQoreNode() {
 
 /*
 bool test(const AbstractQoreNode* n) {
-   if (n->getType() == NT_OBJECT) {
-      const QoreObject* obj = reinterpret_cast<const QoreObject*>(n);
-      //return !strcmp(obj->getClassName(), "T");
-      return !strcmp(obj->getClassName(), "SharedLogFile") && qore_object_private::hackId(*obj);
-   }
-   return false;
+   return n->getType() == NT_HASH;
 }
 
 static void break_ref() {}
 */
+
 void AbstractQoreNode::ref() const {
 #ifdef DEBUG
    /*
@@ -81,6 +77,7 @@ void AbstractQoreNode::ref() const {
       break_ref();
    }
    */
+
 #if TRACK_REFS
    if (type == NT_OBJECT) {
       const QoreObject *o = reinterpret_cast<const QoreObject*>(this);
