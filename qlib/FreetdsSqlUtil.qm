@@ -997,6 +997,7 @@ where
                 softint size = row.length;
                 switch (th.qore) {
                     case Type::Int:
+                    case Type::Date:
                     case Type::Float: {
                         size = 0;
                         break;
