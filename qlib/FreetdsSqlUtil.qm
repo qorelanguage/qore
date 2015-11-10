@@ -252,23 +252,25 @@ my list $l = $col.getModifySql($t, $newcol);
             string nts = c.getNativeTypeString();
             if (getNativeTypeString() != nts) {
                 #printf("ME: %s\nDB: %s\n", nts, getNativeTypeString());
-                if (def_val !== c.def_val)
+                if (exists def_val && def_val !== c.def_val)
                     l += sprintf("alter table %s drop constraint dv_%s", t.getSqlName(), name);
 
-                l += sprintf("alter table %s alter %s type %s", t.getSqlName(), name, nts);
+                l += sprintf("alter table %s alter column %s %s %snull", t.getSqlName(), name, nts, c.nullable ? "" : "not ");
 
                 if (def_val !== c.def_val && exists c.def_val && c.def_val !== NULL)
-                    l += sprintf("alter table %s add constraint dv_%s default %s for column %s", t.getSqlName(), name, c.def_val, name);
+                    l += sprintf("alter table %s add constraint dv_%s default %s for %s", t.getSqlName(), name, c.def_val, name);
             }
-            else if (def_val !== c.def_val) {
-                #printf("L: %N\nXXXXXXXXXXXXXXX\nR: %N\n\n", self, c);
-                if (exists c.def_val && c.def_val !== NULL)
-                    l += sprintf("alter table %s add constraint dv_%s default %s for column %s", t.getSqlName(), name, c.def_val, name);
-                else
-                    l += sprintf("alter table %s drop constraint dv_%s", t.getSqlName(), name);
-            }
-            if (nullable != c.nullable) {
-                l += sprintf("alter table %s alter column %s %snull", t.getSqlName(), name, c.nullable ? "" : "not ");
+            else {
+                if (def_val !== c.def_val) {
+                    #printf("L: %N\nXXXXXXXXXXXXXXX\nR: %N\n\n", self, c);
+                    if (exists c.def_val && c.def_val !== NULL)
+                        l += sprintf("alter table %s add constraint dv_%s default %s for %s", t.getSqlName(), name, c.def_val, name);
+                    else
+                        l += sprintf("alter table %s drop constraint dv_%s", t.getSqlName(), name);
+                }
+                if (nullable != c.nullable) {
+                    l += sprintf("alter table %s alter column %s %s %snull", t.getSqlName(), name, nts, c.nullable ? "" : "not ");
+                }
             }
 
             return l;
