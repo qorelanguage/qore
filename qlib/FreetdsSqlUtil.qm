@@ -252,23 +252,25 @@ my list $l = $col.getModifySql($t, $newcol);
             string nts = c.getNativeTypeString();
             if (getNativeTypeString() != nts) {
                 #printf("ME: %s\nDB: %s\n", nts, getNativeTypeString());
-                if (def_val !== c.def_val)
+                if (exists def_val && def_val !== c.def_val)
                     l += sprintf("alter table %s drop constraint dv_%s", t.getSqlName(), name);
 
-                l += sprintf("alter table %s alter %s type %s", t.getSqlName(), name, nts);
+                l += sprintf("alter table %s alter column %s %s %snull", t.getSqlName(), name, nts, c.nullable ? "" : "not ");
 
                 if (def_val !== c.def_val && exists c.def_val && c.def_val !== NULL)
-                    l += sprintf("alter table %s add constraint dv_%s default %s for column %s", t.getSqlName(), name, c.def_val, name);
+                    l += sprintf("alter table %s add constraint dv_%s default %s for %s", t.getSqlName(), name, c.def_val, name);
             }
-            else if (def_val !== c.def_val) {
-                #printf("L: %N\nXXXXXXXXXXXXXXX\nR: %N\n\n", self, c);
-                if (exists c.def_val && c.def_val !== NULL)
-                    l += sprintf("alter table %s add constraint dv_%s default %s for column %s", t.getSqlName(), name, c.def_val, name);
-                else
-                    l += sprintf("alter table %s drop constraint dv_%s", t.getSqlName(), name);
-            }
-            if (nullable != c.nullable) {
-                l += sprintf("alter table %s alter column %s %snull", t.getSqlName(), name, c.nullable ? "" : "not ");
+            else {
+                if (def_val !== c.def_val) {
+                    #printf("L: %N\nXXXXXXXXXXXXXXX\nR: %N\n\n", self, c);
+                    if (exists c.def_val && c.def_val !== NULL)
+                        l += sprintf("alter table %s add constraint dv_%s default %s for %s", t.getSqlName(), name, c.def_val, name);
+                    else
+                        l += sprintf("alter table %s drop constraint dv_%s", t.getSqlName(), name);
+                }
+                if (nullable != c.nullable) {
+                    l += sprintf("alter table %s alter column %s %s %snull", t.getSqlName(), name, nts, c.nullable ? "" : "not ");
+                }
             }
 
             return l;
@@ -997,8 +999,8 @@ where
                 softint size = row.length;
                 switch (th.qore) {
                     case Type::Int:
-                    case Type::Date:
                     case Type::Float: {
+                        row.numeric_precision = 0;
                         size = 0;
                         break;
                     }
@@ -1028,11 +1030,10 @@ where
             foreach hash row in (qh.contextIterator()) {
                 *hash th = FreetdsTypeMap.(row.data_type);
                 softint size = row.character_maximum_length ? row.character_maximum_length : row.numeric_precision;
-                if (!size)
-                    size = row.datetime_precision;
                 switch (th.qore) {
                     case Type::Int:
                     case Type::Float: {
+                        row.numeric_precision = 0;
                         size = 0;
                         break;
                     }
@@ -1135,8 +1136,10 @@ where
 from
 	sys.indexes i, sys.tables t, sys.schemas s, sys.index_columns ic, sys.columns c
 where
-	t.type_desc = 'USER_TABLE' and i.object_id = t.object_id and t.schema_id = s.schema_id
+	t.type_desc = 'USER_TABLE' and i.object_id = t.object_id
+        and i.index_id = ic.index_id and t.schema_id = s.schema_id
 	and t.object_id = ic.object_id and c.object_id = t.object_id and ic.column_id = c.column_id
+        and i.name is not null and i.is_primary_key != 1
 	and s.name = %v and t.name = %v order by i.name, ic.key_ordinal", schema, name);
 
             if (qh.index_name) {
