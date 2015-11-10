@@ -997,8 +997,8 @@ where
                 softint size = row.length;
                 switch (th.qore) {
                     case Type::Int:
-                    case Type::Date:
                     case Type::Float: {
+                        row.numeric_precision = 0;
                         size = 0;
                         break;
                     }
@@ -1028,11 +1028,10 @@ where
             foreach hash row in (qh.contextIterator()) {
                 *hash th = FreetdsTypeMap.(row.data_type);
                 softint size = row.character_maximum_length ? row.character_maximum_length : row.numeric_precision;
-                if (!size)
-                    size = row.datetime_precision;
                 switch (th.qore) {
                     case Type::Int:
                     case Type::Float: {
+                        row.numeric_precision = 0;
                         size = 0;
                         break;
                     }
@@ -1135,8 +1134,10 @@ where
 from
 	sys.indexes i, sys.tables t, sys.schemas s, sys.index_columns ic, sys.columns c
 where
-	t.type_desc = 'USER_TABLE' and i.object_id = t.object_id and t.schema_id = s.schema_id
+	t.type_desc = 'USER_TABLE' and i.object_id = t.object_id
+        and i.index_id = ic.index_id and t.schema_id = s.schema_id
 	and t.object_id = ic.object_id and c.object_id = t.object_id and ic.column_id = c.column_id
+        and i.name is not null
 	and s.name = %v and t.name = %v order by i.name, ic.key_ordinal", schema, name);
 
             if (qh.index_name) {
