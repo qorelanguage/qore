@@ -1137,7 +1137,7 @@ where
 	t.type_desc = 'USER_TABLE' and i.object_id = t.object_id
         and i.index_id = ic.index_id and t.schema_id = s.schema_id
 	and t.object_id = ic.object_id and c.object_id = t.object_id and ic.column_id = c.column_id
-        and i.name is not null
+        and i.name is not null and i.is_primary_key != 1
 	and s.name = %v and t.name = %v order by i.name, ic.key_ordinal", schema, name);
 
             if (qh.index_name) {
