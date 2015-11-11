@@ -618,7 +618,7 @@ public class QUnit::TestReporter {
             push junit."testsuites"."testcase", testcase;
         }
 
-        printf("%s\n", make_xml(junit));
+        printf("%s\n", make_xml(junit, XGF_ADD_FORMATTING));
 %endif
     }
 
