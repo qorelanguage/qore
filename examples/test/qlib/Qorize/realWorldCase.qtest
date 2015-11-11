@@ -37,7 +37,7 @@ public class QorizeRealWorldTest inherits QUnit::Test {
         f.open2(fname);
 
         string xml = f.read(-1);
-        m_h = parseXMLAsData(xml);
+        m_h = parse_xml(xml, XPF_NONE);
     }
 
     testQorizeNewstyle() {
