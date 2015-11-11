@@ -171,6 +171,7 @@
       - implemented RestClient::getDefaultHeaders()
       - implemented RestClient::getSendEncoding()
       - implemented RestClient::setContentEncoding()
+      - when possible, REST bodies are decoded and stored in the \a info output argument when the HTTP server returns a status code < 100 or >= 300 to allow for error-handling in the client
     -  <a href="../../modules/WebUtil/html/index.html">WebUtil</a> module updates:
       - updated FileHandler::handleRequest() to allow for chunked sends
     - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module updates:
