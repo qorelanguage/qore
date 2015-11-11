@@ -665,7 +665,6 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
                 info."response-code" = h.status_code;
             }
             catch (hash ex) {
-                printf("decode_errors: %y ex: %y\n", decode_errors, ex);
                 if (ex.arg) {
                     info."response-code" = ex.arg.status_code;
                     if (decode_errors && ex.arg.body)
