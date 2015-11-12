@@ -31,8 +31,11 @@
 # enable all warnings
 %enable-all-warnings
 
+# assume local var scope, do not use "$" for vars, members, and method calls
+%new-style
+
 module WebSocketUtil {
-    version = "1.0";
+    version = "1.1";
     desc = "user module providing common client and server support for the WebSocket protocol";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -40,6 +43,9 @@ module WebSocketUtil {
 }
 
 /*  Version History
+    * 2013-10-04 v1.1: David Nichols <david@qore.org>
+      + converted to new-style
+
     * 2013-10-04 v1.0: David Nichols <david@qore.org>
       + the initial version of the WebSocketUtil module
 */
@@ -68,7 +74,7 @@ public namespace WebSocketUtil {
     public const WS_GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
     #! the final fragment in a message
-    public const WS_FIN = (1 << 7); 
+    public const WS_FIN = (1 << 7);
 
     /** @defgroup opcodes WebSocket OpCodes
      */
@@ -159,122 +165,122 @@ public namespace WebSocketUtil {
     #@}
 
     #! encodes a message for sending over a websocket socket
-    public binary sub ws_encode_message(data $msg, int $op = -1, *bool $masked) {
-	if ($op == -1)
-	    $op = $msg.typeCode() == NT_STRING ? WSOP_Text : WSOP_Binary;
+    public binary sub ws_encode_message(data msg, int op = -1, *bool masked) {
+	if (op == -1)
+	    op = msg.typeCode() == NT_STRING ? WSOP_Text : WSOP_Binary;
 
-        my *binary $mask;
-        if ($masked) {
+        *binary mask;
+        if (masked) {
             do {
-                $mask = (rand() % 2147483647).encodeMsb();
-            } while ($mask == <00000000>);
+                mask = (rand() % 2147483647).encodeMsb();
+            } while (mask == <00000000>);
         }
 
-	my binary $frame += chr(WS_FIN | $op);
-	
+	binary frame += chr(WS_FIN | op);
+
 	# encode frames with a message size < 126 directly in the second byte
-	switch ($msg.size()) {
+	switch (msg.size()) {
 	    case < 126: {
-		$frame += chr($msg.size() | ($masked ? 0x80 : 0));
+		frame += chr(msg.size() | (masked ? 0x80 : 0));
 		break;
 	    }
 	    case < 65536: {
-		$frame += chr(126 | ($masked ? 0x80 : 0));
-		$frame += $msg.size().encodeMsb(2);
+		frame += chr(126 | (masked ? 0x80 : 0));
+		frame += msg.size().encodeMsb(2);
 		break;
 	    }
   	    default: {
-	        $frame += chr(127 | ($masked ? 0x80 : 0));
-		$frame += $msg.size().encodeMsb(8);
+	        frame += chr(127 | (masked ? 0x80 : 0));
+		frame += msg.size().encodeMsb(8);
 	    }
 	}
 
-	if ($masked) {
-	    $frame += $mask;
-	    my binary $udata;
-	    if ($msg.typeCode() == NT_STRING)
-		$msg = binary($msg);
-	    for (my int $i = 0; $i < $msg.size(); ++$i)
-		$udata += chr(($msg[$i] ^ $mask[$i % 4]));
-	    $msg = $udata;
+	if (masked) {
+	    frame += mask;
+	    binary udata;
+	    if (msg.typeCode() == NT_STRING)
+		msg = binary(msg);
+	    for (int i = 0; i < msg.size(); ++i)
+		udata += chr((msg[i] ^ mask[i % 4]));
+	    msg = udata;
 	}
 
-	$frame += $msg;
-	
-	return $frame;
+	frame += msg;
+
+	return frame;
     }
 
     #! read and decode a message from a socket
     /** @par Example:
         @code
-my hash $h = ws_read_message($sock);
+hash h = ws_read_message(sock);
 	@endcode
 
 	@param sock the @ref Qore::Socket "Socket" object to receive the message
 	@param to an optional read timeout
-	
+
 	@return a hash with the following keys:
 	- \c op: the operation code (one of @ref opcodes)
 	- \c masked a boolean flag indicating if the message was masked or not
 	- \c msg: the message received; if a CLOSE opcode is received (see @ref WSOP_Close) then any close message is decoded and included here in text form
 	- \c close: the close code (one of @ref closecodes); only included if \a op is @ref WSOP_Close
     */
-    public hash sub ws_read_message(Socket $sock, *timeout $to) {
-	my int $b0 = $sock.recvu1($to);
+    public hash sub ws_read_message(Socket sock, *timeout to) {
+	int b0 = sock.recvu1(to);
 
 	# get opcode
-	my int $op = $b0 & 0xf;
-                    
+	int op = b0 & 0xf;
+
 	# get next byte
-	my int $b1 = $sock.recvu1();
-	my softbool $masked = $b1 & 0x80;
-	$b1 &= 0x7f;
-                    
-	my int $data_len;
-	if ($b1 < 126)
-	    $data_len = $b1;
-	else if ($b1 == 126)
-	    $data_len = $sock.recvu2();
+	int b1 = sock.recvu1();
+	softbool masked = b1 & 0x80;
+	b1 &= 0x7f;
+
+	int data_len;
+	if (b1 < 126)
+	    data_len = b1;
+	else if (b1 == 126)
+	    data_len = sock.recvu2();
 	else
-	    $data_len = $sock.recvi8();
-                    
-	my *binary $mask;
-	if ($masked) {
-	    $mask = $sock.recvBinary(4);
-	    #$.logDebug("mask: %s", $mask.toHex());
+	    data_len = sock.recvi8();
+
+	*binary mask;
+	if (masked) {
+	    mask = sock.recvBinary(4);
+	    #logDebug("mask: %s", mask.toHex());
 	}
 
-	my *data $data;
-	if ($data_len)
-	    $data = $sock.recvBinary($data_len);
-                    
+	*data data;
+	if (data_len)
+	    data = sock.recvBinary(data_len);
+
 	# unmask data if necessary
-	if ($mask) {
+	if (mask) {
 	    # unmasked data
-	    my binary $udata;
-	    for (my int $i = 0; $i < $data.size(); ++$i)
-		$udata += chr(($data[$i] ^ $mask[$i % 4]));
-	    $data = $udata;
+	    binary udata;
+	    for (int i = 0; i < data.size(); ++i)
+		udata += chr((data[i] ^ mask[i % 4]));
+	    data = udata;
 	}
 
-	my hash $h = (
-	    "op": $op,
-	    "masked": $masked,
+	hash h = (
+	    "op": op,
+	    "masked": masked,
 	    );
-	if ($h.op == WSOP_Close) {
-	    if ($data) {
-		$h.close = get_word_32($data, 0);
+	if (h.op == WSOP_Close) {
+	    if (data) {
+		h.close = get_word_32(data, 0);
 		# remove the first 4 bytes extracted above
-		splice $data, 0, 4;
-		my *string $txtmsg = $data ? $data.toString("utf8") : NOTHING;
-		$data = $txtmsg;
+		splice data, 0, 4;
+		*string txtmsg = data ? data.toString("utf8") : NOTHING;
+		data = txtmsg;
 	    }
 	}
-	else if ($op == WSOP_Text)
-	    $data = $data.toString($sock.getEncoding());
+	else if (op == WSOP_Text)
+	    data = data.toString(sock.getEncoding());
 
-	return $h + (
-	    "msg": $data,
+	return h + (
+	    "msg": data,
 	    );
     }
 }
