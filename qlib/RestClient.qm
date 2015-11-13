@@ -115,6 +115,7 @@ printf("%N\n", ans.body);
     - made \c "gzip" the default content encoding
     - added a compression threshold giving a minimum size for for applying content encoding on message bodies; small messages will be sent uncompressed
     - when possible, REST bodies are decoded and stored in the \a info output argument when the HTTP server returns a status code < 100 or >= 300 to allow for error-handling in the client
+    - fixed issues where multiple leading \c "/" chars were sometimes present in the request URI path
     - doc updates
 
     @subsection restclientv1_2 RestClient v1.2
@@ -604,8 +605,12 @@ hash ans = rest.post("/orders/1");
         private nothing preparePath(reference path) {
             # prepare path
             *string p = getConnectionPath();
-            if (p)
-                path = p + (path ? ("/" + path) : "");
+            # strip trailing "/" off the connection path
+            p =~ s/\/+$//;
+            # strip leading "/" off the given path
+            path =~ s/^\/+//;
+            if (p.val())
+                path = p + (exists path ? ("/" + path) : "");
             # ensure path is absolute
             if (path !~ /^\//)
                 splice path, 0, 0, "/";

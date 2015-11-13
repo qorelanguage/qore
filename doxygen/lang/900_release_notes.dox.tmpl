@@ -227,6 +227,7 @@
     - <a href="../../modules/RestClient/html/index.html">RestClient</a> module fixes:
       - fixed bugs where URI strings were improperly encoded and decoded (also fixed in the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module)
       - fixed a bug where URI paths were sent as relative paths instead of absolute paths
+      - fixed issues where multiple leading \c "/" chars were sometimes present in the request URI path
     - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module fixes:
       - fixed a bug where the \c "format" field option was not usable with fields assigned type \c "*date"
       - fixed the default field type as "*string" (from "string") to avoid parsing and outputting empty strings for missing input data
