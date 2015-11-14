@@ -8888,8 +8888,6 @@ table.insert(row);
 
             @return in case the \c "returning" @ref AbstractTable::InsertOptions "insert option" is used, a hash of return values is returned, otherwise @ref nothing is returned
 
-            @return in case the \c "returning" @ref AbstractTable::InsertOptions "insert option" is used, a hash of return values is returned, otherwise @ref nothing is returned
-
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
          */
         *hash insert(hash row, *hash opt) {
