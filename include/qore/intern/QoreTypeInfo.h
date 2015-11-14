@@ -447,8 +447,7 @@ protected:
       return 0;
    }
 
-   /*
-   DLLLOCAL static void getNodeType(QoreString& str, const QoreValue& n) {
+   DLLLOCAL static void getNodeType(QoreString& str, const QoreValue n) {
       qore_type_t nt = n.getType();
       if (nt == NT_NOTHING) {
 	 str.concat("no value");
@@ -458,20 +457,7 @@ protected:
 	 str.sprintf("type '%s'", n.getTypeName());
 	 return;
       }
-      str.sprintf("an object of class '%s'", reinterpret_cast<const QoreObject*>(n.getInternalNode())->getClassName());
-   }
-   */
-
-   DLLLOCAL static void getNodeType(QoreString& str, const AbstractQoreNode* n) {
-      if (is_nothing(n)) {
-         str.concat("no value");
-         return;
-      }
-      if (n->getType() != NT_OBJECT) {
-         str.sprintf("type '%s'", n->getTypeName());
-         return;
-      }
-      str.sprintf("an object of class '%s'", reinterpret_cast<const QoreObject*>(n)->getClassName());
+      str.sprintf("an object of class '%s'", n.get<const QoreObject>()->getClassName());
    }
 
    DLLLOCAL static void ptext(QoreString& str, int param_num, const char* param_name) {
@@ -902,7 +888,9 @@ public:
       QoreTypeInfo::ptext(*desc, param_num, param_name);
       desc->concat("expects ");
       getThisType(*desc);
-      desc->sprintf(", but got %s instead", n.getTypeName());
+      desc->concat(", but got ");
+      getNodeType(*desc, n);
+      desc->concat(" instead");
       xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
       return -1;
    }
