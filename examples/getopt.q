@@ -1,4 +1,4 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file getopt.q GetOpt example program
 
@@ -27,15 +27,12 @@
 %require-our
 %enable-all-warnings
 
-# do not use '$' symbols
-%new-style
-
 sub usage() {
     printf(
 "usage: %s [options]
   -s,--string=ARG  returns a list of strings in 'string'
   -i,--int=ARG     returns an added integer sum of the arguments in 'int'
-  -f,--float=ARG   returns a floating point value in 'float' 
+  -f,--float=ARG   returns a floating point value in 'float'
   -b,--bool=ARG    returns a boolean value in 'bool'
   -d,--date=ARG    returns a date value in 'date'
   -t               returns a boolean value in 'test'
@@ -44,12 +41,12 @@ sub usage() {
     exit(1);
 }
 
-const Opts = 
-    ( # --string,-s will give a list of strings 
-      "string"  : "string,s=s@",  
+const Opts =
+    ( # --string,-s will give a list of strings
+      "string"  : "string,s=s@",
       # --int,-i    will give an added integer sum of the arguments
       "int"     : "int,i=i+",
-      # --float,-f  will give a floating point value 
+      # --float,-f  will give a floating point value
       "float"   : "float,f=f",
       # --bool,-b   will give a boolean value
       "bool"    : "bool,b=b",

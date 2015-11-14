@@ -1,0 +1,30 @@
+#!/usr/bin/env qr
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class FunctionTypeTest
+
+# Function to test against
+any sub simple_shift() {
+    return shift argv;
+}
+
+public class FunctionTypeTest inherits QUnit::Test {
+    constructor() : Test("FunctionTypeTest", "1.1") {
+        addTestCase("function_type test", \functionTypeTestMethod(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    functionTypeTestMethod() {
+        testAssertion("function_type() user", \function_type(), ("simple_shift",), "user");
+        testAssertion("function_type() builtin", \function_type(), ("printf",), "builtin");
+        testAssertion("function_type() non-existing", \function_type(), ("abcdefgh_XYZ_123456789_1337",), new TestResultValue(NOTHING));
+    }
+}
+

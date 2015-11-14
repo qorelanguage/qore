@@ -1,0 +1,13 @@
+#!/usr/bin/env qr
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%requires UnitTest
+
+my UnitTest unit();
+
+if (PlatformOS != "Windows")
+   unit.cmp(`/bin/echo -n 1`, "1", "backquote");

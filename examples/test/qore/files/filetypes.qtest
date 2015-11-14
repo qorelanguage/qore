@@ -1,0 +1,25 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%requires UnitTest
+
+my UnitTest unit();
+
+# TODO: test results should be guaranteed
+if (PlatformOS != "Windows") {
+   unit.cmp(is_file("/"), False, "is_file()");
+   unit.cmp(is_executable("/bin/sh"), True, "is_executable()");
+   unit.cmp(is_dir("/"), True, "is_dir()");
+   unit.cmp(is_writeable(ENV.HOME), True, "is_writable()");
+   unit.cmp(is_readable(ENV.HOME), True, "is_readable()");
+   unit.cmp(is_dev("/dev/null"), True, "is_dev()");
+   unit.cmp(is_cdev("/dev/null"), True, "is_cdev()");
+   unit.cmp(is_bdev("/dev/null"), False, "is_bdev()");
+   unit.cmp(is_link("/"), False, "is_link()");
+   unit.cmp(is_socket("/"), False, "is_socket()");
+   unit.cmp(is_pipe("/"), False, "is_pipe()");
+}

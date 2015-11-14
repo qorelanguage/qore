@@ -3,7 +3,7 @@
 
   Qore programming language exception handling support
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -64,7 +64,7 @@ void QoreException::del(ExceptionSink *xsink) {
    }
    if (next)
       next->del(xsink);
-   
+
    delete this;
 }
 
@@ -129,12 +129,12 @@ void ExceptionSink::defaultExceptionHandler(QoreException* e) {
       if (cs->size()) {
 	 // find first non-rethrow element
 	 unsigned i = 0;
-	 
+
 	 QoreHashNode *h;
 	 while (true) {
-	    h = reinterpret_cast<QoreHashNode *>(cs->retrieve_entry(i));
-	    assert(h);	    
-	    if ((reinterpret_cast<QoreBigIntNode *>(h->getKeyValue("typecode")))->val != CT_RETHROW)
+	    h = reinterpret_cast<QoreHashNode*>(cs->retrieve_entry(i));
+	    assert(h);
+	    if ((reinterpret_cast<QoreBigIntNode*>(h->getKeyValue("typecode")))->val != CT_RETHROW)
 	       break;
 	    i++;
 	    if (i == cs->size())
@@ -143,8 +143,8 @@ void ExceptionSink::defaultExceptionHandler(QoreException* e) {
 
 	 if (i < cs->size()) {
 	    found = true;
-	    QoreStringNode *func = reinterpret_cast<QoreStringNode *>(h->getKeyValue("function"));
-	    QoreStringNode *type = reinterpret_cast<QoreStringNode *>(h->getKeyValue("type"));
+	    QoreStringNode *func = reinterpret_cast<QoreStringNode*>(h->getKeyValue("function"));
+	    QoreStringNode *type = reinterpret_cast<QoreStringNode*>(h->getKeyValue("type"));
 
 	    printe(" in %s() (%s:%d", func->getBuffer(), e->file.c_str(), e->start_line);
 
@@ -194,18 +194,17 @@ void ExceptionSink::defaultExceptionHandler(QoreException* e) {
 	 }
 	 printe("\n");
       }
-      
+
       if (e->type == ET_SYSTEM) {
-	 QoreStringNode* err = reinterpret_cast<QoreStringNode *>(e->err);
-	 QoreStringNode* desc = reinterpret_cast<QoreStringNode *>(e->desc);
+	 QoreStringNode* err = reinterpret_cast<QoreStringNode*>(e->err);
+	 QoreStringNode* desc = reinterpret_cast<QoreStringNode*>(e->desc);
 	 printe("%s: %s\n", err->getBuffer(), desc->getBuffer());
       }
       else {
 	 bool hdr = false;
-
 	 if (e->err) {
 	    if (e->err->getType() == NT_STRING) {
-	       QoreStringNode *err = reinterpret_cast<QoreStringNode *>(e->err);
+	       QoreStringNode *err = reinterpret_cast<QoreStringNode*>(e->err);
 	       printe("%s", err->getBuffer());
 	    }
 	    else {
@@ -216,23 +215,24 @@ void ExceptionSink::defaultExceptionHandler(QoreException* e) {
 	 }
 	 else
 	    printe("EXCEPTION");
-	 
+
 	 if (e->desc) {
 	    if (e->desc->getType() == NT_STRING) {
-	       QoreStringNode *desc = reinterpret_cast<QoreStringNode *>(e->desc);
+	       QoreStringNode *desc = reinterpret_cast<QoreStringNode*>(e->desc);
 	       printe("%s%s", hdr ? ", desc: " : ": ", desc->getBuffer());
 	    }
 	    else {
 	       QoreNodeAsStringHelper str(e->desc, FMT_NORMAL, &xsink);
 	       printe(", desc: %s", str->getBuffer());
-	       hdr = true;
+	       if (!hdr)
+		  hdr = true;
 	    }
 	 }
-	 
+
 	 if (e->arg) {
 	    if (e->arg->getType() == NT_STRING) {
-	       QoreStringNode *arg = reinterpret_cast<QoreStringNode *>(e->arg);
-	       printe("%s%s", hdr ? ", arg: " : "", arg->getBuffer());
+	       QoreStringNode *arg = reinterpret_cast<QoreStringNode*>(e->arg);
+	       printe("%s%s", hdr ? ", arg: " : ": ", arg->getBuffer());
 	    }
 	    else {
 	       QoreNodeAsStringHelper str (e->arg, FMT_NORMAL, &xsink);
@@ -276,7 +276,7 @@ void ExceptionSink::defaultExceptionHandler(QoreException* e) {
                      printe(" (source %s:%d)", srcs, offset + start_line);
 	       }
 	       else {
-	          QoreStringNode* fs = reinterpret_cast<QoreStringNode *>(h->getKeyValue("function"));
+	          QoreStringNode* fs = reinterpret_cast<QoreStringNode*>(h->getKeyValue("function"));
 		  printe("%s() (", fs->getBuffer());
 		  if (fns) {
 		     if (start_line == end_line) {
@@ -382,7 +382,7 @@ QoreHashNode *QoreException::getStackHash(int type, const char *class_name, cons
    str->concat(code);
 
    //printd(5, "QoreException::getStackHash() %s at %s:%d-%d src: %s+%d\n", str->getBuffer(), loc.file ? loc.file : "n/a", loc.start_line, loc.end_line, loc.source ? loc.source : "n/a", loc.offset);
-   
+
    h->setKeyValue("function", str, 0);
    h->setKeyValue("line",     new QoreBigIntNode(loc.start_line), 0);
    h->setKeyValue("endline",  new QoreBigIntNode(loc.end_line), 0);

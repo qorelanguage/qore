@@ -26,7 +26,7 @@
     |@ref timeout_type "timeout"|@ref integer, @ref date|@ref integer|Accepts @ref integer, @ref date and converts dates to an integer value representing milliseconds and returns the integer; incoming integers are assumed to represent milliseconds
     |@ref softint_type "softint"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null|@ref integer|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-integer values to an integer and returns the integer
     |@ref softfloat_type "softfloat"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null|@ref float|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-float values to a float and returns the new value
-    |@ref softnumber_type "softnumber"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null|@ref float|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-float values to a float and returns the new value
+    |@ref softnumber_type "softnumber"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null|@ref float|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-number values to a float and returns the new value
     |@ref softbool_type "softbool"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null|@ref boolean|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-boolean values to a boolean and returns the new value
     |@ref softstring_type "softstring"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null|@ref string|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-string values to a string and returns the new value
     |@ref softdate_type "softdate"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref date, @ref null|@ref date|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref date, and @ref null and converts non-date values to a date and returns the new value
@@ -36,6 +36,7 @@
     |@ref reference_type "reference"|@ref lvalue_references|the type the reference points to|Restricts values to references to lvalues
     |@ref int_or_nothing_type "*int"|@ref integer, @ref null, or @ref nothing|@ref integer or @ref nothing|Restricts values to %Qore's @ref integer or @ref nothing types; if @ref null is passed then @ref nothing is returned
     |@ref float_or_nothing_type "*float"|@ref float, @ref null, or @ref nothing|@ref float or @ref nothing|Restricts values to %Qore's @ref float or @ref nothing types; if @ref null is passed then @ref nothing is returned
+    |@ref number_or_nothing_type "*number"|@ref number, @ref null, or @ref nothing|@ref number or @ref number|Restricts values to %Qore's @ref number or @ref nothing types; if @ref null is passed then @ref nothing is returned
     |@ref bool_or_nothing_type "*bool"|@ref boolean, @ref null, or @ref nothing|@ref boolean or @ref nothing|Restricts values to %Qore's @ref boolean or @ref nothing types; if @ref null is passed then @ref nothing is returned
     |@ref string_or_nothing_type "*string"|@ref string, @ref null, or @ref nothing|@ref string or @ref nothing|Restricts values to %Qore's @ref string or @ref nothing types; if @ref null is passed then @ref nothing is returned
     |@ref date_or_nothing_type "*date"|@ref date, @ref null, or @ref nothing|@ref date or @ref nothing|Restricts values to %Qore's @ref date or @ref nothing type; values may be either absolute or relative date/time values; if @ref null is passed then @ref nothing is returned
@@ -180,7 +181,7 @@ hash sub foo(hash $h = ("foo": "bar", "x": 2)) {
 
     @par Example
     @code
-list sub foo(list $l = "foo", "bar")) {
+list sub foo(list $l = ("foo", "bar")) {
     return $l;
 }
     @endcode

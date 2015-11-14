@@ -1,0 +1,90 @@
+#!/usr/bin/env qr
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%requires ../../../../../qlib/Util.qm
+%requires ../../../../../qlib/QUnit.qm
+
+%exec-class FtpTest
+
+class FtpTest inherits FtpClient, QUnit::Test {
+    private {
+        # file on some public ftp
+        const Url = 'ftp://ftp.wa.co.za/pub/CPAN/index.html';
+
+        # FtpClient url
+        string url;
+
+        # path on remote host
+        string path;
+
+        # file on remote host
+        string file;
+
+        # valid flag
+        bool valid = True;
+    }
+
+    constructor() : Test("FtpClient Test", "1.0", \ARGV) {
+        # set valid flag; skip tests if no connection can be made
+        url = ARGV[0] ?? ENV.QORE_FTPTEST_URL ?? Url;
+
+        addTestCase("FtpClient class test case", \testFtpClient());
+        set_return_value(main());
+    }
+
+    setUp() {
+        hash h = parse_url(url);
+        if (!exists h.path) {
+            printf("url %y is missing a path to retrieve\n", url);
+            valid = False;
+            return;
+        }
+        if (!exists h.host) {
+            printf("url %y is missing the hostname\n", url);
+            valid = False;
+            return;
+        }
+
+        path = dirname(h.path);
+        file = basename(h.path);
+
+        setURL(url);
+    }
+
+    testFtpClient() {
+        if (!valid) {
+            testSkip("FtpClient object is not valid");
+            return;
+        }
+
+        testAssertion("FtpClient::connect()", \connect(), NOTHING, new TestResultValue(NOTHING));
+
+        string local_path = tmp_location() + '/ftptest';
+        unlink(local_path);
+
+        cwd(path);
+
+        testAssertion("FtpClient::get()", \get(), (file, local_path), new TestResultValue(NOTHING));
+
+        *list l = stat(local_path);
+        testAssertion("FtpClient::get() return value", int sub () {return l.typeCode();}, NOTHING, new TestResultValue(NT_LIST));
+
+        testAssertion("FtpClient mode-1", \notEquals(), (getMode(), "auto"));
+
+        disconnect();
+        unlink(local_path);
+
+        testAssertion("FtpClient mode-2", \getMode(), NOTHING, new TestResultValue("auto"));
+        setModePASV();
+
+        testAssertion("FtpClient::connect() PASV", \connect(), NOTHING, new TestResultValue(NOTHING));
+
+        testAssertion("FtpClient mode-3", \getMode(), NOTHING, new TestResultValue("pasv"));
+        disconnect();
+        testAssertion("FtpClient mode-4", \getMode(), NOTHING, new TestResultValue("pasv"));
+    }
+}

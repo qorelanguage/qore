@@ -1,0 +1,24 @@
+#!/usr/bin/env qr
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%exec-class SameTest
+
+public class SameTest inherits QUnit::Test {
+    constructor() : Test("SameTest", "1.0") {
+        addTestCase("Basic tests for the same() function", \testSameBasics(), NOTHING);
+        set_return_value(main());
+    }
+
+    testSameBasics() {
+        testAssertion("non-uniq number list", \same(), (list(1, 1),));
+        testAssertion("non-uniq string list", \same(), (list("a", "b", "a"),), RESULT_FAILURE);
+        testAssertion("non-uniq number list", \same(), (list(1, 1, 2),), RESULT_FAILURE);
+        testAssertion("uniq number list", \same(), (list("a", "a"),));
+    }
+}

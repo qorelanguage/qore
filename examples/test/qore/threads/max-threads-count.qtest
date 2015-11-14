@@ -1,0 +1,32 @@
+#!/usr/bin/env qr
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%requires UnitTest
+
+my UnitTest u();
+our Queue q();
+
+sub t() {
+    q.get();
+    q.push(1);
+}
+
+if (ENV.SKIP_MAX_THREAD_TEST) {
+    printf("skipping max thread test due to environment variable\n");
+    return;
+}
+
+try {
+    while (True) {
+        background t();
+    }
+}
+catch (ex) {
+    u.cmp(ex.err, 'THREAD-CREATION-FAILURE', 'found threads count limit');
+    q.push(1);
+}
+
+u.ok(num_threads() > 1, "number of threads is " + num_threads());

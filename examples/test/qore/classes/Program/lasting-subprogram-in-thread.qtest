@@ -1,0 +1,30 @@
+#!/usr/bin/env qore
+# this used to cause qore to crash...
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%requires UnitTest
+
+my UnitTest t();
+
+my string prog = "
+sub thread() {
+    # embedded program thread sleeping for 5 seconds
+    my int x = 5;
+    while (x--) {
+        sleep(1);
+    }
+}
+
+background thread();
+";
+
+my Program a(PO_NEW_STYLE);
+a.parse(prog, "prog");
+a.run();
+sleep(2);
+stdout.sync();
+delete a;
+t.ok(True, "main program didn't call delete while child was running in the background (no exception thrown)");

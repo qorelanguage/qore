@@ -1,0 +1,91 @@
+#!/usr/bin/env qore
+
+%require-types
+%old-style
+
+%requires UnitTest
+
+my UnitTest $t();
+
+
+my string $err  = '';
+my string $desc = '';
+my string $arg  = '';
+try  {
+    throw "testing", "123", "test";
+}
+catch ($ex) {
+    $err  = $ex.err;
+    $desc = $ex.desc;
+    $arg  = $ex.arg;
+}
+$t.cmp($err,  "testing", 'exception name');
+$t.cmp($desc, "123",     'exception desc');
+$t.cmp($arg,  "test",    'exception arg');
+
+
+$err  = '';
+$desc = '';
+my string $type  = '';
+try {
+    try {
+        throw "TEST-ERROR", "this is a test";
+    }
+    catch () {
+        rethrow;
+    }
+}
+catch ($ex) {
+    $err  = $ex.err;
+    $desc = $ex.desc;
+    $type = $ex.type;
+}
+$t.cmp($err,  "TEST-ERROR",     'exception name');
+$t.cmp($desc, "this is a test", 'exception desc');
+$t.cmp($type, "User",           'exception type');
+
+
+$err  = '';
+my string $err2  = '';
+my string $err3  = '';
+try {
+    try {
+        try {
+            printf("%s\n", $snope.refresh());
+        }
+        catch ($ex) {
+            $err = $ex.err;
+
+            try {
+                try {
+                    context gee ($gee) where (%foo == "gee")
+                        printf("%s\n", %sdfdas);
+                }
+                catch ($ex1) {
+                    $desc = shift $argv;
+                    printf("QORE %s Exception in line %d of file %s: %s: %s\n", 
+                        $ex1.type, $ex1.line, $ex1.file, $ex1.err, $ex1.desc);
+                    throw $snope.blah();
+                }		
+                throw $snope.sdfds();
+            }
+            catch ($ex2) {
+                $err2 = $ex2.err;
+                throw "TEST";
+            }
+        }
+    }
+    catch ($ex) {
+        $err3 = $ex.err;
+    }
+}
+catch ($ex) {
+    printf("QORE %s Exception in line %d of file %s: %s: %s\n", 
+        $ex.type, $ex.line, $ex.file, $ex.err, $ex.desc);
+    context ($gee) where (%whiz == "wdsf")
+        printf("%s\n", %dsfdf);
+}
+
+$t.cmp($err, "PSEUDO-METHOD-DOES-NOT-EXIST", 'exception error');
+$t.cmp($err2, "PSEUDO-METHOD-DOES-NOT-EXIST", 'exception error');
+$t.cmp($err3, "TEST", 'exception error');

@@ -1,0 +1,21 @@
+#!/usr/bin/env qr
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%requires UnitTest
+
+UnitTest unit();
+
+class Base {
+    string ok() {
+        return "ok";
+    }
+}
+
+class Child inherits private Base;
+
+Child c();
+unit.exception(sub () {Base b = cast<Base>(c); remove b;}, NOTHING, "neg-cast-1", "RUNTIME-CAST-ERROR");

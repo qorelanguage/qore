@@ -9,7 +9,7 @@
     |An immediate value|Qore values that can be expressed directly (see @ref basic_data_types and @ref container_data_types for more information)|@code True@endcode @code1.2@endcode @code "a string"@endcode @code 2005-10-27@endcode @code NULL@endcode @code NOTHING@endcode @code ("key" : $val)@endcode
     |A variable reference|@ref variables<br>see also @ref allow-bare-refs "%allow-bare-refs"|@code $var@endcode
     |A variable declaration|@ref variable_declarations, @ref variables<br>see also @ref assume-local "%assume-local"|@code my int $var@endcode
-    |An in-class object member reference|References to members of an object from within the class<br>see @ref class_members<br>see also allow-bare-refs "%allow-bare-refs"|@code $.member@endcode
+    |An in-class object member reference|References to members of an object from within the class<br>see @ref class_members also allow-bare-refs "%allow-bare-refs"|@code $.member@endcode
     |An lvalue assignment|Assigns a value to a lvalue (see @ref assignment_operator)|@code $var = 1@endcode @code ($a, $b, $c, $date) = (1, "two", 3.3, 2005-10-28)@endcode
     |A function call|Qore function calls (see @ref qore_functions)|@code calculate($var1, $var2, "string", 4)@endcode
     |A method call|Qore object method calls (see @ref object_method_calls)<br>see also @ref allow-bare-refs "%allow-bare-refs"|@code $object.method("argument")@endcode

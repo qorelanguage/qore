@@ -1,0 +1,17 @@
+#!/usr/bin/env qr
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%requires UnitTest
+
+my UnitTest unit();
+
+unit.cmp(fibonacci(10), 3628800, "recursive function");
+
+int sub fibonacci(int num) {
+    if (num == 2)
+        return 2;
+    return num * fibonacci(num - 1);
+}

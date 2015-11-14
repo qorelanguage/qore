@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -119,6 +119,9 @@
 //! defined because this version of Qore has the QL_MIT license enum value
 #define _QORE_HAS_QL_MIT 1
 
+//! defined because this version of Qore has the DateTime::addSecondsTo() API
+#define _QORE_HAS_DATETIME_ADD_SECONDS_TO 1
+
 // qore code flags
 #define QC_NO_FLAGS                 0   //! no flag
 #define QC_NOOP               (1 << 0)  //! this variant is a noop, meaning it returns a constant value with the given argument types
@@ -131,20 +134,30 @@
 // composite flags
 #define QC_CONSTANT (QC_CONSTANT_INTERN | QC_RET_VALUE_ONLY) //! code is safe to use in a constant expression (i.e. has no side effects, does not change internal state, cannot throw an exception under any circumstances, just returns a calculation based on its arguments)
 
+class BinaryNode;
+class QoreStringNode;
+class ExceptionSink;
+
 //! function to try and make a class name out of a file path, returns a new string that must be free()ed
-DLLEXPORT char *make_class_name(const char *fn);
+DLLEXPORT char* make_class_name(const char* fn);
 
 //! a string formatting function that works with Qore data structures
-DLLEXPORT QoreStringNode *q_sprintf(const class QoreListNode *params, int field, int offset, class ExceptionSink *xsink);
+DLLEXPORT QoreStringNode* q_sprintf(const QoreListNode* params, int field, int offset, ExceptionSink* xsink);
 
 //! a string formatting function that works with Qore data structures
-DLLEXPORT QoreStringNode *q_vsprintf(const class QoreListNode *params, int field, int offset, class ExceptionSink *xsink);
+DLLEXPORT QoreStringNode* q_vsprintf(const QoreListNode* params, int field, int offset, ExceptionSink* xsink);
+
+//! a string formatting function that works with Qore data structures
+DLLEXPORT QoreStringNode* q_sprintf(const QoreValueList* params, int field, int offset, ExceptionSink* xsink);
+
+//! a string formatting function that works with Qore data structures
+DLLEXPORT QoreStringNode* q_vsprintf(const QoreValueList* params, int field, int offset, ExceptionSink* xsink);
 
 //! thread-safe version of "localtime()"
-DLLEXPORT struct tm *q_localtime(const time_t *clock, struct tm *tms);
+DLLEXPORT struct tm* q_localtime(const time_t* clock, struct tm* tms);
 
 //! thread-safe version of "gmtime()"
-DLLEXPORT struct tm *q_gmtime(const time_t *clock, struct tm *tms);
+DLLEXPORT struct tm* q_gmtime(const time_t* clock, struct tm* tms);
 
 //! returns the seconds from the epoch
 DLLEXPORT int64 q_epoch();
@@ -156,29 +169,29 @@ DLLEXPORT int64 q_epoch_us(int &us);
 DLLEXPORT int64 q_epoch_ns(int &us);
 
 //! thread-safe basename function (resulting pointer must be free()ed)
-DLLEXPORT char *q_basename(const char *path);
+DLLEXPORT char* q_basename(const char* path);
 
 //! returns a pointer within the same string
-DLLEXPORT char *q_basenameptr(const char *path);
+DLLEXPORT char* q_basenameptr(const char* path);
 
 //! thread-safe dirname function (resulting pointer must be free()ed)
-DLLEXPORT char *q_dirname(const char *path);
+DLLEXPORT char* q_dirname(const char* path);
 
 //! frees memory if there is an allocation error
-DLLEXPORT void *q_realloc(void *ptr, size_t size);
+DLLEXPORT void* q_realloc(void* ptr, size_t size);
 
-#if (!defined _WIN32 && !defined __WIN32__) || defined __CYGWIN__
+#ifndef _Q_WINDOWS
 //! thread-safe version of getpwuid(): returns a Qore hash of the passwd information from the uid if possible, otherwise 0
-DLLEXPORT QoreHashNode *q_getpwuid(uid_t uid);
+DLLEXPORT QoreHashNode* q_getpwuid(uid_t uid);
 
 //! thread-safe version of getpwnam(): returns a Qore hash of the passwd information from the username if possible, otherwise 0
-DLLEXPORT QoreHashNode *q_getpwnam(const char *name);
+DLLEXPORT QoreHashNode* q_getpwnam(const char* name);
 
 //! thread-safe version of getgrgid(): returns a Qore hash of the group information from the gid if possible, otherwise 0
-DLLEXPORT QoreHashNode *q_getgrgid(uid_t uid);
+DLLEXPORT QoreHashNode* q_getgrgid(uid_t uid);
 
 //! thread-safe version of getgrnam(): returns a Qore hash of the group information from the group name if possible, otherwise 0
-DLLEXPORT QoreHashNode *q_getgrnam(const char *name);
+DLLEXPORT QoreHashNode* q_getgrnam(const char* name);
 
 //! thread-safe way to lookup a uid from a username
 /**
@@ -186,7 +199,7 @@ DLLEXPORT QoreHashNode *q_getgrnam(const char *name);
    @param uid the uid returned
    @return 0 for no error, non-zero is an error code like errno
  */
-int q_uname2uid(const char *name, uid_t &uid);
+int q_uname2uid(const char* name, uid_t &uid);
 
 //! thread-safe way to lookup a gid from a group name
 /**
@@ -194,11 +207,11 @@ int q_uname2uid(const char *name, uid_t &uid);
    @param gid the gid returned
    @return 0 for no error, non-zero is an error code like errno
  */
-int q_gname2gid(const char *name, gid_t &gid);
+int q_gname2gid(const char* name, gid_t &gid);
 #endif // ! windows
 
 //! sets up the Qore ARGV and QORE_ARGV values
-DLLEXPORT void qore_setup_argv(int pos, int argc, char *argv[]);
+DLLEXPORT void qore_setup_argv(int pos, int argc, char* argv[]);
 
 //! returns the license type that the library has been initialized under
 DLLEXPORT qore_license_t qore_get_license();
@@ -229,28 +242,28 @@ public:
 DLLEXPORT extern FeatureList qoreFeatureList;
 
 //! find one of any characters in a string
-static inline char *strchrs(const char *str, const char *chars) {
+static inline char* strchrs(const char* str, const char* chars) {
    while (*str) {
       if (strchr(chars, *str))
-	 return (char *)str;
+	 return (char* )str;
       str++;
    }
    return 0;
 }
 
 //! find a character in a string up to len
-static inline char *strnchr(const char *str, int len, char c) {
+static inline char* strnchr(const char* str, int len, char c) {
    int i = 0;
    while (i++ != len) {
       if (*str == c)
-	 return (char *)str;
+	 return (char* )str;
       ++str;
    }
    return 0;
 }
 
 //! convert a string to lower-case in place
-static inline void strtolower(char *str) {
+static inline void strtolower(char* str) {
    while (*(str)) {
       (*str) = tolower(*str);
       str++;
@@ -258,8 +271,8 @@ static inline void strtolower(char *str) {
 }
 
 //! convert a string to upper-case in place
-static inline char *strtoupper(char *str) {
-   char *p = str;
+static inline char* strtoupper(char* str) {
+   char* p = str;
    while (*(p)) {
       *p = toupper(*p);
       p++;
@@ -268,87 +281,83 @@ static inline char *strtoupper(char *str) {
 }
 
 //! for getting an integer number of seconds, with 0 as the default, from either a relative time value or an integer value
-DLLEXPORT int getSecZeroInt(const AbstractQoreNode *a);
+DLLEXPORT int getSecZeroInt(const AbstractQoreNode* a);
 
 //! for getting an integer number of seconds, with 0 as the default, from either a relative time value or an integer value
-DLLEXPORT int64 getSecZeroBigInt(const AbstractQoreNode *a);
+DLLEXPORT int64 getSecZeroBigInt(const AbstractQoreNode* a);
 
 //! for getting an integer number of seconds, with -1 as the default, from either a relative time value or an integer value
-DLLEXPORT int getSecMinusOneInt(const AbstractQoreNode *a);
+DLLEXPORT int getSecMinusOneInt(const AbstractQoreNode* a);
 
 //! for getting an integer number of seconds, with -1 as the default, from either a relative time value or an integer value
-DLLEXPORT int64 getSecMinusOneBigInt(const AbstractQoreNode *a);
+DLLEXPORT int64 getSecMinusOneBigInt(const AbstractQoreNode* a);
 
 //! for getting an integer number of milliseconds, with 0 as the default, from either a relative time value or an integer value
-DLLEXPORT int getMsZeroInt(const AbstractQoreNode *a);
+DLLEXPORT int getMsZeroInt(const AbstractQoreNode* a);
 
 //! for getting an integer number of milliseconds, with 0 as the default, from either a relative time value or an integer value
-DLLEXPORT int64 getMsZeroBigInt(const AbstractQoreNode *a);
+DLLEXPORT int64 getMsZeroBigInt(const AbstractQoreNode* a);
 
 //! for getting an integer number of milliseconds, with -1 as the default, from either a relative time value or an integer value
-DLLEXPORT int getMsMinusOneInt(const AbstractQoreNode *a);
+DLLEXPORT int getMsMinusOneInt(const AbstractQoreNode* a);
 
 //! for getting an integer number of milliseconds, with -1 as the default, from either a relative time value or an integer value
-DLLEXPORT int64 getMsMinusOneBigInt(const AbstractQoreNode *a);
+DLLEXPORT int64 getMsMinusOneBigInt(const AbstractQoreNode* a);
 
 //! for getting an integer number of microseconds, with 0 as the default, from either a relative time value or an integer value
-DLLEXPORT int getMicroSecZeroInt(const AbstractQoreNode *a);
+DLLEXPORT int getMicroSecZeroInt(const AbstractQoreNode* a);
 
 //! for getting an integer number of microseconds, with 0 as the default, from either a relative time value or an integer value
-DLLEXPORT int64 getMicroSecZeroInt64(const AbstractQoreNode *a);
+DLLEXPORT int64 getMicroSecZeroInt64(const AbstractQoreNode* a);
 
 //! to check if an AbstractQoreNode object is NOTHING
-static inline bool is_nothing(const AbstractQoreNode *n) {
+static inline bool is_nothing(const AbstractQoreNode* n) {
    if (!n || n->getType() == NT_NOTHING)
       return true;
-   
+
    return false;
 }
 
 //! to deref an AbstractQoreNode (when the pointer may be 0)
-static inline void discard(AbstractQoreNode *n, ExceptionSink *xsink) {
+static inline void discard(AbstractQoreNode* n, ExceptionSink* xsink) {
    if (n)
       n->deref(xsink);
 }
 
-static inline const char *get_type_name(const AbstractQoreNode *n) {
-   return n ? n->getTypeName() : "NOTHING";
+static inline const char* get_type_name(const AbstractQoreNode* n) {
+   return n ? n->getTypeName() : "nothing";
 }
 
-static inline qore_type_t get_node_type(const AbstractQoreNode *n) {
+static inline qore_type_t get_node_type(const AbstractQoreNode* n) {
    return n ? n->getType() : NT_NOTHING;
 }
-
-class BinaryNode;
-class QoreStringNode;
-class ExceptionSink;
 
 typedef QoreStringNode* (*qore_uncompress_to_string_t)(const BinaryNode* b, const QoreEncoding* enc, ExceptionSink* xsink);
 
 //! compresses data with the DEFLATE algorithm
-DLLEXPORT BinaryNode     *qore_deflate(void *ptr, unsigned long len, int level, ExceptionSink *xsink);
+DLLEXPORT BinaryNode* qore_deflate(void* ptr, unsigned long len, int level, ExceptionSink* xsink);
 //! decompresses data compressed with the DEFLATE algorithm to a string
-DLLEXPORT QoreStringNode *qore_inflate_to_string(const BinaryNode *b, const QoreEncoding *enc, ExceptionSink *xsink);
+DLLEXPORT QoreStringNode* qore_inflate_to_string(const BinaryNode* b, const QoreEncoding* enc, ExceptionSink* xsink);
 //! decompresses data compressed with the DEFLATE algorithm to a binary
-DLLEXPORT BinaryNode     *qore_inflate_to_binary(const BinaryNode *b, ExceptionSink *xsink);
+DLLEXPORT BinaryNode* qore_inflate_to_binary(const BinaryNode* b, ExceptionSink* xsink);
 //! gzips data
-DLLEXPORT BinaryNode     *qore_gzip(void *ptr, unsigned long len, int level, ExceptionSink *xsink);
+DLLEXPORT BinaryNode* qore_gzip(void* ptr, unsigned long len, int level, ExceptionSink* xsink);
 //! gunzips compressed data to a string
-DLLEXPORT QoreStringNode *qore_gunzip_to_string(const BinaryNode *bin, const QoreEncoding *enc, ExceptionSink *xsink);
+DLLEXPORT QoreStringNode* qore_gunzip_to_string(const BinaryNode* bin, const QoreEncoding* enc, ExceptionSink* xsink);
 //! gunzips compressed data to a binary
-DLLEXPORT BinaryNode     *qore_gunzip_to_binary(const BinaryNode *bin, ExceptionSink *xsink);
+DLLEXPORT BinaryNode* qore_gunzip_to_binary(const BinaryNode* bin, ExceptionSink* xsink);
 //! compresses data with bzip2
-DLLEXPORT BinaryNode     *qore_bzip2(void *ptr, unsigned long len, int level, ExceptionSink *xsink);
+DLLEXPORT BinaryNode* qore_bzip2(void* ptr, unsigned long len, int level, ExceptionSink* xsink);
 //! decompresses bzip2 data to a string
-DLLEXPORT QoreStringNode *qore_bunzip2_to_string(const BinaryNode *bin, const QoreEncoding *enc, ExceptionSink *xsink);
+DLLEXPORT QoreStringNode* qore_bunzip2_to_string(const BinaryNode* bin, const QoreEncoding* enc, ExceptionSink* xsink);
 //! decompresses bzip2 data to a binary
-DLLEXPORT BinaryNode     *qore_bunzip2_to_binary(const BinaryNode *bin, ExceptionSink *xsink);
+DLLEXPORT BinaryNode* qore_bunzip2_to_binary(const BinaryNode* bin, ExceptionSink* xsink);
 
 //! parses a string of base64-encoded data and returns a BinaryNode
-DLLEXPORT BinaryNode *parseBase64(const char *buf, int len, ExceptionSink *xsink);
+DLLEXPORT BinaryNode* parseBase64(const char* buf, int len, ExceptionSink* xsink);
 
 //! parses a string of hex characters and returns a BinaryNode
-DLLEXPORT BinaryNode *parseHex(const char *buf, int len, ExceptionSink *xsink);
+DLLEXPORT BinaryNode* parseHex(const char* buf, int len, ExceptionSink* xsink);
 
 class AbstractQoreZoneInfo;
 
@@ -364,7 +373,7 @@ DLLEXPORT const AbstractQoreZoneInfo* findCreateOffsetZone(int seconds_east);
 DLLEXPORT const AbstractQoreZoneInfo* find_create_timezone(const char* name, ExceptionSink* xsink);
 
 //! returns the UTC offset and local time zone name for the given time given as seconds from the epoch (1970-01-01Z)
-DLLEXPORT int tz_get_utc_offset(const AbstractQoreZoneInfo* tz, int64 epoch_offset, bool &is_dst, const char *&zone_name);
+DLLEXPORT int tz_get_utc_offset(const AbstractQoreZoneInfo* tz, int64 epoch_offset, bool &is_dst, const char* &zone_name);
 //! returns true if the zone has daylight savings time ever
 DLLEXPORT bool tz_has_dst(const AbstractQoreZoneInfo* tz);
 //! returns the reion name for the given time zone
@@ -380,9 +389,11 @@ DLLEXPORT const char* tz_get_region_name(const AbstractQoreZoneInfo* tz);
 #define QORE_OPT_RUNTIME_STACK_TRACE     "runtime stack tracing"
 //! option: library debugging
 #define QORE_OPT_LIBRARY_DEBUGGING       "library debugging"
+//! option: ssh0 algorithm supported (depends on openssl used to compile qore)
+#define QORE_OPT_SHA                     "openssl sha"
 //! option: ssh224 algorithm supported (depends on openssl used to compile qore)
 #define QORE_OPT_SHA224                  "openssl sha224"
-//! option: ssh256 algorithm supported (depends on openssl used to compile qore) 
+//! option: ssh256 algorithm supported (depends on openssl used to compile qore)
 #define QORE_OPT_SHA256                  "openssl sha256"
 //! option: ssh384 algorithm supported (depends on openssl used to compile qore)
 #define QORE_OPT_SHA384                  "openssl sha384"
@@ -402,6 +413,8 @@ DLLEXPORT const char* tz_get_region_name(const AbstractQoreZoneInfo* tz);
 #define QORE_OPT_UNIX_USERMGT            "unix user management"
 //! option: unix file management functions available
 #define QORE_OPT_UNIX_FILEMGT            "unix file management"
+//! options: deterministic garbage collection
+#define QORE_OPT_DETERMINISTIC_GC        "deterministic GC"
 //! option: round() function available
 #define QORE_OPT_FUNC_ROUND              "round()"
 //! option: timegm() function available
@@ -439,12 +452,12 @@ struct qore_option_s {
 };
 
 //! returns the error string as a QoreStringNode
-DLLEXPORT QoreStringNode *q_strerror(int errnum);
+DLLEXPORT QoreStringNode* q_strerror(int errnum);
 //! concatenates the error string to the given string
 DLLEXPORT void q_strerror(QoreString &str, int errnum);
 
 //! list of qore options
-DLLEXPORT extern const qore_option_s *qore_option_list;
+DLLEXPORT extern const qore_option_s* qore_option_list;
 //! number of elements in the option list
 DLLEXPORT extern size_t qore_option_list_size;
 
@@ -453,7 +466,7 @@ DLLEXPORT extern size_t qore_option_list_size;
     @param name module name taking ownership of managing the signal
     @return 0 for OK, non-zero for failed (error message)
  */
-DLLEXPORT QoreStringNode *qore_reassign_signal(int sig, const char *name);
+DLLEXPORT QoreStringNode* qore_reassign_signal(int sig, const char* name);
 
 //! macro to return the maximum of 2 numbers
 #define QORE_MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -475,10 +488,16 @@ DLLEXPORT QoreStringNode *qore_reassign_signal(int sig, const char *name);
 //! to set the time zone from the command line
 /** @note this function can only be called when a program exists
  */
-DLLEXPORT void parse_set_time_zone(const char *zone);
+DLLEXPORT void parse_set_time_zone(const char* zone);
 
 //! use this function instead of usleep(), as usleep() is not signal-safe on some platforms (ex: Solaris 8, 9)
 DLLEXPORT int qore_usleep(int64 usecs);
+
+//! this function will cause garbage collection to be disabled
+DLLEXPORT void qore_disable_gc();
+
+//! returns true if garbage collection is enabled, false if not
+DLLEXPORT bool qore_is_gc_enabled();
 
 //! platform-independent API that tells if the given path is readable by the current user
 DLLEXPORT bool q_path_is_readable(const char* path);
@@ -497,5 +516,26 @@ DLLEXPORT bool q_get_option_constant_value(const char* opt);
 
 //! concatenates UNIX-style permissions to perm and from mode and returns a string giving the file type
 DLLEXPORT const char* q_mode_to_perm(mode_t mode, QoreString& perm);
+
+//! returns the current working directory in the given string; -1 is returned if an error occurred, 0 = OK
+int q_getcwd(QoreString& cwd);
+
+//! returns true if the given string is an absolute path on UNIX systems
+DLLEXPORT bool q_absolute_path_unix(const char* path);
+
+//! returns true if the given string is an absolute path on Windows systems
+DLLEXPORT bool q_absolute_path_windows(const char* path);
+
+//! returns true if the given string is an absolute path on the current platform
+DLLEXPORT bool q_absolute_path(const char* path);
+
+//! normalizes the given path for the current platform in place (makes absolute, removes "." and "..")
+DLLEXPORT void q_normalize_path(QoreString& path, const char* cwd = 0);
+
+//! normalizes the given path and resolves any symlinks
+DLLEXPORT int q_realpath(const QoreString& path, QoreString& rv, ExceptionSink* xsink = 0);
+
+//! finds a memory sequence in a larger memory sequence
+DLLEXPORT void* q_memmem(const void* big, size_t big_len, const void* little, size_t little_len);
 
 #endif // _QORE_QORELIB_H

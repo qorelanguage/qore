@@ -4,7 +4,7 @@
  
   Qore Programming Language
  
-  Copyright (C) 2003 - 2013 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
  
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -41,27 +41,7 @@ protected:
    // pointer to optimized versions depending on arguments found at parse-time   
    eval_t pfunc;
 
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const {
-      bool rc = QoreLogicalGreaterThanOperatorNode::boolEvalImpl(xsink);
-      return *xsink ? 0 : get_bool_node(rc);
-   }
-
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-      needs_deref = false;
-      return QoreLogicalGreaterThanOperatorNode::evalImpl(xsink);
-   }
-
-   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const {
-      return QoreLogicalGreaterThanOperatorNode::boolEvalImpl(xsink);
-   }
-   DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const {
-      return QoreLogicalGreaterThanOperatorNode::boolEvalImpl(xsink);
-   }
-   DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const {
-      return QoreLogicalGreaterThanOperatorNode::boolEvalImpl(xsink);
-   }
-
-   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL QoreValue evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const;
 
    DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
       return parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
@@ -75,6 +55,8 @@ protected:
 public:
    DLLLOCAL QoreLogicalGreaterThanOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBoolBinaryOperatorNode(n_left, n_right), pfunc(0) {
    }
+
+   DLLLOCAL static bool doGreaterThan(QoreValue l, QoreValue r, ExceptionSink* xsink);
 };
 
 #endif

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2006 - 2014 Qore Technologies, sro
+  Copyright (C) 2006 - 2015 Qore Technologies, sro
   
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -39,21 +39,21 @@ SQLStatement::~SQLStatement() {
    delete priv;
 }
 
-void *SQLStatement::getPrivateData() const {
+void* SQLStatement::getPrivateData() const {
    return priv->data;
 }
 
-void *SQLStatement::takePrivateData() {
-   void *rv = priv->data;
+void* SQLStatement::takePrivateData() {
+   void* rv = priv->data;
    priv->data = 0;
    return rv;
 }
 
-void SQLStatement::setPrivateData(void *n_data) {
+void SQLStatement::setPrivateData(void* n_data) {
    assert(!priv->data || !n_data);
    priv->data = n_data;
 }
 
-Datasource *SQLStatement::getDatasource() const {
+Datasource* SQLStatement::getDatasource() const {
    return priv->ds;
 }

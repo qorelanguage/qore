@@ -16,15 +16,22 @@
 
     %Qore automatically converts data types when necessary when evaluating operators. The goal is to provide the expected result for the programmer without requiring the programmer to explicitly convert data types. Please see @ref operators for more information.
 
-    %Qore supports @ref signal_handling "signal handling" by executing %Qore-language signal handlers in special @ref signal_handling "single-handling thread".
+    %Qore supports @ref signal_handling "signal handling" by executing %Qore-language signal handlers in special @ref signal_handling "signal-handling thread".
 
-    UNIX operating systems allow an executable script to specify their interpreter. This is done by setting the first line in the program to a special string indicating the location of the %Qore binary. For the purposes of this document, the location for the %Qore binary is assumed to be \c /usr/bin/qore. The first line of %Qore scripts in this case should look as follows:
+    UNIX operating systems allow an executable script to specify their interpreter. This is done by setting the first line in the program to a special string indicating the location of the %Qore binary. For the purposes of this document, the location for the \c qore binary is assumed to be \c /usr/bin/qore, and the location ot the \c qr binary is assumed to be \c /usr/bin/qr. The first line of %Qore scripts in this case should look as follows:
 
     @code
 #!/usr/bin/qore
     @endcode
 
-    If another installation directory is used (such as \c /usr/local/bin), then the correct path must be reflected in the first line of the %Qore script.
+    or (to assume @ref new-style "%new-style"):
+
+    @code
+#!/usr/bin/qr
+    @endcode
+
+
+    If another installation directory is used (such as \c /usr/local/bin), then the correct path must be reflected in the first line of the %Qore script (ex: <tt>#!/usr/bin/env qr</tt>)
 
     %Qore convention dictates that %Qore script file names end with \c ".q".
 */

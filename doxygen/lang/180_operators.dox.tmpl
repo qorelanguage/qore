@@ -57,26 +57,29 @@
     |@ref logical_and_operator "&&"|\c 16|@ref logical_and_operator "logical AND operator"|@code ($a = 1) && ($b < 10)@endcode
     |@ref logical_or_operator "||"|\c 16|@ref logical_or_operator "logical OR operator"|@code ($a = 1) || ($b < 10)@endcode
     |@ref conditional_operator "? :"|\c 17|@ref conditional_operator "conditional operator"|@code $a == 2 ? "yes" : "no"@endcode
+    |@ref null_coalescing_operator "??"|\c 17|@ref null_coalescing_operator "null coalescing operator"|@code any var = $a ?? $b@endcode
+    |@ref value_coalescing_operator "?*"|\c 17|@ref value_coalescing_operator "value coalescing operator"|@code any var = $a ?* $b@endcode
     |@ref comma_operator ","|\c 18|@ref comma_operator "comma operator"|@code 1, 2, 3, 4, 5@endcode
     |@ref unshift "unshift"|\c 19|@ref unshift "unshift list element operator"|@code unshift $list, $val@endcode
     |@ref push "push"|\c 19|@ref push "push list element operator"|@code push $list, $val@endcode
     |@ref splice "splice"|\c 19|@ref splice "splice list or string operator"|@code splice $list, 2, 2, (1, 2, 3)@endcode
     |@ref extract "extract"|\c 19|@ref extract "extract list or string operator"|@code my $sublist = extract $list, 2, 2, (1, 2, 3)@endcode
     |@ref map "map"|\c 19|@ref map "map operator"|@code map $closure($1), $list@endcode
+    |@ref hmap "hash map"|\c 19|@ref hmap "hash map operator"|@code map {expr($1) : expr($1)}, $list@endcode
     |@ref foldl "foldl"|\c 19|@ref foldl "fold left to right operator"|@code foldl $closure($1 - $2), $list@endcode
     |@ref foldr "foldr"|\c 19|@ref foldr "fold right to left operator"|@code foldr $closure($1 - $2), $list@endcode
     |@ref select "select"|\c 19|@ref select "select elements from list operator"|@code select $list, $1 > 1@endcode
     |@ref assignment_operator "="|\c 20|@ref assignment_operator "assignment operator"|@code $var = 1@endcode
-    |@ref plus_equals_operator "+="|\c 21|@ref plus_equals_operator "plus-equals (add-to) operator"|@code $var += 5@endcode
-    |@ref minus_equals_operator "-="|\c 21|@ref minus_equals_operator "minus-equals (subtract-from) operator"|@code $var -= 5@endcode
-    |@ref and_equals_operator "&="|\c 21|@ref and_equals_operator "and-equals operator"|@code $var &= 0x2000@endcode
-    |@ref or_equals_operator "|="|\c 21|@ref or_equals_operator "or-equals operator"|@code $var |= 0x2000@endcode
-    |@ref modula_equals_operator "%="|\c 21|@ref modula_equals_operator "modula-equals operator"|@code $var %= 100@endcode
-    |@ref multiply_equals_operator "*="|\c 21|@ref multiply_equals_operator "multiply-equals operator"|@code $var *= 10@endcode
-    |@ref divide_equals_operator "/="|\c 21|@ref divide_equals_operator "divide-equals operator"|@code $var /= 10@endcode
-    |@ref xor_equals_operator "^="|\c 21|@ref xor_equals_operator "xor-equals operator"|@code $var ^= 0x2000@endcode
-    |@ref shift_left_equals_operator "<<="|\c 21|@ref shift_left_equals_operator "shift-left-equals operator"|@code $var <<= 0x2000@endcode
-    |@ref shift_right_equals_operator ">>="|\c 21|@ref shift_right_equals_operator "shift-right-equals operator"|@code $var >>= 0x2000@endcode
+    |@ref plus_equals_operator "+="|\c 20|@ref plus_equals_operator "plus-equals (add-to) operator"|@code $var += 5@endcode
+    |@ref minus_equals_operator "-="|\c 20|@ref minus_equals_operator "minus-equals (subtract-from) operator"|@code $var -= 5@endcode
+    |@ref and_equals_operator "&="|\c 20|@ref and_equals_operator "and-equals operator"|@code $var &= 0x2000@endcode
+    |@ref or_equals_operator "|="|\c 20|@ref or_equals_operator "or-equals operator"|@code $var |= 0x2000@endcode
+    |@ref modula_equals_operator "%="|\c 20|@ref modula_equals_operator "modula-equals operator"|@code $var %= 100@endcode
+    |@ref multiply_equals_operator "*="|\c 20|@ref multiply_equals_operator "multiply-equals operator"|@code $var *= 10@endcode
+    |@ref divide_equals_operator "/="|\c 20|@ref divide_equals_operator "divide-equals operator"|@code $var /= 10@endcode
+    |@ref xor_equals_operator "^="|\c 20|@ref xor_equals_operator "xor-equals operator"|@code $var ^= 0x2000@endcode
+    |@ref shift_left_equals_operator "<<="|\c 20|@ref shift_left_equals_operator "shift-left-equals operator"|@code $var <<= 0x2000@endcode
+    |@ref shift_right_equals_operator ">>="|\c 20|@ref shift_right_equals_operator "shift-right-equals operator"|@code $var >>= 0x2000@endcode
 
     @note All %Qore operators perform thread-atomic actions with respect to the immediate arguments of the operator. If the operators are used in a complex expression, the entire expression is not thread-atomic unless explicit user-level locking is used. For example: <tt>$a += 5</tt> is a thread-atomic action, but <tt>$a += $b--</tt> is not atomic, but rather made up of two atomic actions.\n\n
     When an operator taking more than one argument is used with arguments of different data types, %Qore automatically converts one or both data types to a data type supported by the operator in order to evaluate the result, according to the precedence lists given for each operator. That is; when an operator operates on mixed types, the types listed first in the following sections have precedence over types listed farther down in the lists. The result type will always be equal to the final operation type after any conversions due to type precedence per operator. If no type of either argument matches a supported data type for the operator, both types will be converted to the highest precedence data type for the operator and then the operator will evaluate the result. For explicit type conversion, please see the boolean(), string(), date(), int(), float(), etc functions.
@@ -120,7 +123,7 @@
     <b>Arguments Processed by {}</b>
     |!Argument|!Processing
     |\a container_expression|This expression must evaluate to a @ref hash "hash" or an @ref object "object"; if not, the operator returns no value (@ref nothing)
-    |\a expression|- @ref list "list": if the expression evaluates to a list, then a slice of the hash or object is returned as a hash containing keys given in the list that are present in the hash or object. If the key as given in the list (converted to a string if necessary) is not present in the hash or object, then it is also not present in the hash returned; of none of the given keys exist in the hash, an empty hash is returned.\n- anything other than @ref list "list": the expression is converted to a string (if necessary); the value of the hash key corresponding to this string will be returned; if the key or member does not exist, then no value is returned
+    |\a expression|- @ref list "list": if the expression evaluates to a list, then a slice of the hash or object is returned as a hash containing keys given in the list that are present in the hash or object. If the key as given in the list (converted to a string if necessary) is not present in the hash or object, then it is also not present in the hash returned; if none of the given keys exist in the hash, an empty hash is returned.\n- anything other than @ref list "list": the expression is converted to a string (if necessary); the value of the hash key corresponding to this string will be returned; if the key or member does not exist, then no value is returned
 
     @throw PRIVATE-MEMBER Attempt to access a private member outside the class
 
@@ -155,8 +158,8 @@
     <b>Arguments Processed by . (hash key or object member expression dereference)</b>
     |!Argument|!Processing
     |\a hash_or_object_expression|This expression must evaluate to a hash or an object; if not, then the operator returns no value
-    |\a expression|- @ref list "list": if the expression evaluates to a list, then a slice of the hash or object is returned as a hash containing keys given in the list that are present in the hash or object. If the key as given in the list (converted to a string if necessary) is not present in the hash or object, then it is also not present in the hash returned; of none of the given keys exist in the hash, an empty hash is returned.\n- anything other than @ref list "list": the expression is converted to a string (if necessary); the value of the hash key corresponding to this string will be returned; if the key or member does not exist, then no value is returned
-    
+    |\a expression|- @ref list "list": if the expression evaluates to a list, then a slice of the hash or object is returned as a hash containing keys given in the list that are present in the hash or object. If the key as given in the list (converted to a string if necessary) is not present in the hash or object, then it is also not present in the hash returned; if none of the given keys exist in the hash, an empty hash is returned.\n- anything other than @ref list "list": the expression is converted to a string (if necessary); the value of the hash key corresponding to this string will be returned; if the key or member does not exist, then no value is returned
+
     @throw PRIVATE-MEMBER Attempt to access a private member outside the class
     @throw METHOD-DOES-NOT-EXIST Attempt to access a method not defined for this class
     @throw METHOD-IS-PRIVATE Attempt to access a private method from outside the class
@@ -382,7 +385,7 @@ my hash $nh = remove $h.("a", "b", "c");
 
     This operator does not throw any exceptions, however exception could be thrown in an object's destructor if it goes out of scope due to the action of this operator.
 
-    <hr> 
+    <hr>
     @section cast Cast Operator (cast<>())
 
     @par Synopsis
@@ -567,8 +570,9 @@ if (!exists $error_code)
 
     @par Synopsis
     Executes (or maps) an expression on a list and returns the result. An optional select expression can be given to filter elements out from the result list.\n\n
+    If the first argument is a single element hash expression using curly brackets, then the @ref hmap "hash variant of the map operator" is used instead.\n\n
     If the second argument (\a list_expression) is an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class, the <b><tt>map</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()", and the implicit argument <tt>$1</tt> in the \a map_expression and any optional \a select_expression is the value returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()".\n\n
-    If the second argument is not a list or an object inheriting @ref Qore::AbstractIterator "AbstractIterator", then \a map_expression is executed on the single value and the result is returned, and any \a select_expression is ignored.\n\n
+    If the second argument is not a list or an object inheriting @ref Qore::AbstractIterator "AbstractIterator", then \a map_expression is executed on the single value and the result is returned (assuming that any \a select_expression accepts the value).\n\n
 
     @par Return Type
     @ref any_type "any"
@@ -588,13 +592,53 @@ map printf("%s\n", $1), $hash.keyIterator();
 
     <b>Arguments Processed by map</b>
     |!Argument|!Processing
-    |\a map_expression|The expression to map on the list; the implicit argument <tt>$1</tt> represents the current element being processed (or the object itself if the  <b><tt>map</tt></b> operator is iterating an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class).
+    |\a map_expression|The expression to map on the list; the implicit argument <tt>$1</tt> represents the current element being processed
     |\a list_expression|The data to process; if this is not a list then the \a map_expression is run on the single argument passed, unless the \a map_expression is an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class; in this case the <b><tt>map</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()"
     |<em>[select_expression]</em>|An optional expression than can be used to filter out elements of the list before the map expression is applied; if this expression evaluates to @ref Qore::False "False" on an element, then the element will be skipped and the \a map_expression will not be applied on that element.
 
     This operator does not throw any exceptions (however note that exceptions could be thrown by expressions executed by this operator).
 
+    @see @ref hmap for a variant of this operator that creates and returns a hash rather than a list
+
     @since %Qore 0.8.6.2 the map operator when used with an @ref Qore::AbstractIterator "AbstractIterator" object instantiates the value returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" instead of the iterator itself
+
+    <hr>
+    @section hmap Hash Map Operator (map)
+
+    @par Synopsis
+    This variant of the map operator builds a hash from a list or iterator argument and can be differentiated from the standard list @ref map "map" operator by the use of curly brackets in the initial expression; in this case the hash version of the map operator is used.  This operator executes (or maps) an expression on a list and returns the result in form of a hash. An optional select expression can be given to filter elements out from the result hash.\n\n
+    If the first argument is anything other than a single element hash expression using curly brackets, then the @ref map "list variant of the map operator" is used instead.\n\n
+    If the third argument (\a list_expression) is an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class, the <b><tt>map</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()", and the implicit argument <tt>$1</tt> in the \a map_expression and any optional \a select_expression is the value returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()".\n\n
+    If the third argument is not a list or an object inheriting @ref Qore::AbstractIterator "AbstractIterator", then \a map_expression is executed on the single value and the result is returned (assuming that any \a select_expression accepts the value).\n\n
+
+    @par Return Type
+    @ref hash in case of valid third expression, otherwise @ref nothing
+
+    @par Syntax
+    <tt><b>map</b></tt> {\a key_expression,  : \a value_expression},  <em>list_expression [, select_expression]</em>
+
+    @par Examples
+    @code
+my hash $h = map {$1 : $1 * 2}, (1, 2, 3);
+# returns: {"1": 2, "2": 4, "3": 6}
+    @endcode
+    @code
+my hash $h = map {$1 : $1 * 2}, (1, 2, 3), $1 > 1;
+# returns: {"2": 4, "3": 6}
+    @endcode
+
+    <b>Arguments Processed by the hash version of map</b>
+    |!Argument|!Processing
+    |\a key_expression|The expression to map on the list or iterator value which will result in the key for the current hash element; the implicit argument <tt>$1</tt> represents the current element being processed. The result of the expression is converted to a string to be used as the hash key for the current element
+    |\a value_expression|The expression to map on the list which will result in the value for the current hash element; the implicit argument <tt>$1</tt> represents the current element being processed
+    |\a list_expression|The data to process; if this is not a list then the \a map_expression is run on the single argument passed, unless the \a map_expression is an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class; in this case the <b><tt>map</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()"
+    |<em>[select_expression]</em>|An optional expression than can be used to filter out elements of the list before the map expression is applied; if this expression evaluates to @ref Qore::False "False" on an element, then the element will be skipped and the \a map_expression will not be applied on that element.
+
+    This operator does not throw any exceptions (however note that exceptions could be thrown by expressions executed by this operator).
+
+    @see @ref map for a variant of this operator that creates and returns a list
+
+    @since %Qore 0.8.12 this variant of the map operator exists which builds a hash from a list or iterator source
 
     <hr>
     @section foldl Fold Left Operator (foldl)
@@ -781,7 +825,7 @@ foreach my string $key in (keys $hash)
     |@ref number_type "number"|Gives the result of dividing its arguments; @ref integer "ints" and @ref float "floats" are converted to @ref number "numbers" if at least one of the arguments is a @ref number "number"
     |@ref float_type "float"|Gives the result of dividing its arguments; @ref integer "ints" are converted to @ref float "floats" if at least one of the arguments is a @ref float "float"
     |@ref int_type "int"|Gives the result of dividing its arguments
-    |any other type|Converts argument to a @ref number "number" and performs the division
+    |any other type|Converts argument to a @ref float_type "float" and performs the division
 
     @throw DIVISION-BY-ZERO division by zero error
 
@@ -1153,15 +1197,15 @@ if ($x >= $y)
     @par Example
     @code
 switch ($x <=> $y) {
-    case -1: 
+    case -1:
         print("$x is less than $y\n");
         break;
 
-    case 0: 
+    case 0:
         print("$x is equal to $y\n");
         break;
 
-    case 1: 
+    case 1:
         print("$x is greater than $y\n");
         break;
 }
@@ -1367,7 +1411,7 @@ $list =~ x/(.*)\.(.*)/;
 
     This operator does not throw any exceptions.
 
-    <hr> 
+    <hr>
     @section bitwise_or_operator Bitwise/Binary Or Operator (|)
 
     @par Synopsis
@@ -1384,7 +1428,7 @@ $list =~ x/(.*)\.(.*)/;
 
     <b>Arguments Processed by |</b>
     |!Argument|!Processing
-    |@ref int_type "int"|Gives the result of the binary (bitwise) OR operation between \a expression1 and \a expression2 (ex: <tt>0xb001 | 0xfea = 0xbfeb</tt>); operands are converted to integers if necessary
+    |@ref int_type "int"|Gives the result of the binary (bitwise) OR operation between \a expression1 and \a expression2 (ex: <tt>0xb001 \| 0xfea = 0xbfeb</tt>); operands are converted to integers if necessary
 
     This operator does not throw any exceptions.
 
@@ -1477,6 +1521,54 @@ if ($x || $y)
     |All|If \a expression is evaluated to be @ref Qore::True "True", then the \a if_true_expression is evaluated and returned. Otherwise the \a if_false_expression is evaluated and returned.
 
     This operator does not throw any exceptions.
+
+    <hr>
+    @section null_coalescing_operator Null Coalescing Operator (??)
+
+    @par Synopsis
+    Evaluates the first operand and checks for a value (i. e. not @ref nothing or @ref null).  If it evaluates to a value, then the value of the first operand is returned, otherwise the second operand is evaluated and returned.  When chained, the first argument with a value is returned.
+
+    @par Syntax
+    \a expression1 ?? \a expression2
+
+    @par Return Type
+    @ref any_type "any"
+
+    @par Example
+    @code $x = $a ?? $b ?? $c;@endcode
+
+    <b>Arguments Processed by ??</b>
+    |!Argument|!Processing
+    |All|If \a expression1 is evaluated to be @ref nothing or @ref null then the \a expession2 is evaluated and returned. Otherwise the value of \a expression1 is returned.
+
+    This operator does not throw any exceptions.
+
+    See also @ref value_coalescing_operator that works same except for operands are evaluated based on being @ref Qore::False "False" instead of being @ref nothing or @ref null.
+
+
+    <hr>
+    @section value_coalescing_operator Value Coalescing Operator (?*)
+
+    @par Synopsis
+    Evaluates the first operand and checks for a value (@ref Qore::True "True" or @ref Qore::False "False"). If it evaluates to @ref Qore::True "True", then the value of the first operand is returned, otherwise the second operand is evaluated and returned.  When chained, the first argument with a value is returned.
+
+    @par Syntax
+    \a expression1 ?* \a expression2
+
+    @par Return Type
+    @ref any_type "any"
+
+    @par Example
+    @code $x = $a ?* $b ?* $c;@endcode
+
+    <b>Arguments Processed by ?*</b>
+    |!Argument|!Processing
+    |All|If \a expression1 is evaluated to be @ref Qore::False "False" then the \a expession2 is evaluated and returned. Otherwise the value of \a expression1 is returned.
+
+    This operator does not throw any exceptions.
+
+    See also @ref null_coalescing_operator that works same except for operands are evaluated based on being @ref nothing or @ref null instead of being @ref Qore::False "False".
+
 
     <hr>
     @section comma_operator Comma Operator (,)

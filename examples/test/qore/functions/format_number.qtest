@@ -1,0 +1,23 @@
+#!/usr/bin/env qr
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class FormatNumberTest
+
+public class FormatNumberTest inherits QUnit::Test {
+    constructor() : Test("FormatNumberTest", "1.0") {
+        addTestCase("Simple format_number() exercise", \formatNumberTestMethod(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    formatNumberTestMethod() {
+        testAssertion("format_number()", \format_number(), (".,3", -48392093894.2349), new TestResultValue("-48.392.093.894,235"));
+    }
+}
+

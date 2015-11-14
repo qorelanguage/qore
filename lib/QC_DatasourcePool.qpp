@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -34,15 +34,14 @@
 
 #include <qore/intern/QC_DatasourcePool.h>
 
+extern QoreClass* QC_ABSTRACTDATASOURCE;
+
 #define DP_MIN 3
 #define DP_MAX 10
 
 static const char *DSPC_ERR = "DATASOURCEPOOL-CONSTRUCTOR-ERROR";
 
-static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, Queue* queue, const AbstractQoreNode* arg, ExceptionSink* xsink) {
-   if (arg && !queue)
-      arg = 0;
-
+static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, Queue* queue, const QoreValue& arg, ExceptionSink* xsink) {
    ReferenceHolder<Queue> q(queue, xsink);
 
    const char *str = check_hash_key(opts, "type", DSPC_ERR, xsink);
@@ -119,9 +118,11 @@ static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, Que
    if (!max)
       max = DP_MAX;
 
-   SimpleRefHolder<DatasourcePool> ds(new DatasourcePool(xsink, db_driver, user, pass, db, charset, host, min, max, port, oh, q.release(), arg ? arg->refSelf() : 0));
+   SimpleRefHolder<DatasourcePool> ds(new DatasourcePool(xsink, db_driver, user, pass, db, charset, host, min, max, port, oh, q.release(), arg.getReferencedValue()));
    if (!*xsink)
       self->setPrivate(CID_DATASOURCEPOOL, ds.release());
+   else
+      ds->destructor(xsink);
 }
 
 //! Provides transparent per-thread, per-transaction datasource connection pooling
@@ -204,17 +205,19 @@ DatasourcePool::constructor(string driver, *string user, *string pass, *string d
       xsink->raiseException(DSPC_ERR, "maximum connections must be >= min(%d) (value given: "QLLD")", min, max);
       return;
    }
-   
+
    if (port < 0) {
       xsink->raiseException(DSPC_ERR, "port value must be zero (meaning use the default port) or positive (value given: "QLLD")", port);
       return;
    }
 
    SimpleRefHolder<DatasourcePool> ds(new DatasourcePool(xsink, db_driver, user ? user->getBuffer() : 0, pass ? pass->getBuffer() : 0,
-							 db ? db->getBuffer() : 0, encoding ? encoding->getBuffer() : 0, host ? host->getBuffer() : 0, 
-							 min, max, port, 0, q.release(), arg ? arg->refSelf() : 0));
+							 db ? db->getBuffer() : 0, encoding ? encoding->getBuffer() : 0, host ? host->getBuffer() : 0,
+							 min, max, port, 0, q.release(), arg.getReferencedValue()));
    if (!*xsink)
       self->setPrivate(CID_DATASOURCEPOOL, ds.release());
+   else
+      ds->destructor(xsink);
 }
 
 //! Creates a DatasourcePool object from a single string giving all parameters that can be parsed by parse_datasource()
@@ -270,7 +273,7 @@ DatasourcePool::constructor(hash opts, *Qore::Thread::Queue[Queue] queue, any ar
 }
 
 //! Throws an exception if any transactions are in progress and returns immediately; the object is destroyed after any in-progress requests are completed
-/** 
+/**
     @par Example:
     @code
 delete $db;
@@ -284,7 +287,7 @@ DatasourcePool::destructor() {
 }
 
 //! Creates a new Datasource object with the same driver as the original and copies of all the connection parameters
-/** 
+/**
     @par Example:
     @code
 my DatasourcePool $new_dsp = $dsp.copy();
@@ -295,7 +298,7 @@ DatasourcePool::copy() {
 }
 
 //! Commits the current transaction and releases the connection to the pool
-/** 
+/**
     @par Example:
     @code
 $db.commit();
@@ -307,7 +310,7 @@ nothing DatasourcePool::commit() {
 }
 
 //! Rolls back the current transaction and releases the connection to the pool
-/** 
+/**
     @par Example:
     @code
 $db.rollback();
@@ -334,7 +337,7 @@ my int $rows = $db.exec("insert into table (varchar_col, timestamp_col, blob_col
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
 any DatasourcePool::exec(string sql, ...) {
-   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->copyListFrom(1) : 0, xsink);
+   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->getOldList(1) : 0, xsink);
    return ds->exec(sql, *vargs, xsink);
 }
 
@@ -361,7 +364,7 @@ any DatasourcePool::vexec(string sql, *softlist vargs) {
 
 //! Allocates a persistent connection to the current thread from the pool (if one has not already been allocated) and executes an %SQL command on the server and returns either the row count (for example, for updates and inserts) or the data retrieved (for example, if a stored procedure is executed that returns values)
 /** This method does not do any variable binding, so it's useful for example for DDL statements etc
-    
+
     @par Warning:
     Using this method to execute pure dynamic %SQL many times with different %SQL strings (as opposed to using the same string and binding by value instead of dynamic SQL) can affect application performance by prohibiting the efficient usage of the DB server's statement cache. See DB server documentation for variable binding and the %SQL statement cache for more information.
 
@@ -411,7 +414,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
     - @ref context
  */
 any DatasourcePool::select(string sql, ...) {
-   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->copyListFrom(1) : 0, xsink);
+   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->getOldList(1) : 0, xsink);
    return ds->select(sql, *vargs, xsink);
 }
 
@@ -434,10 +437,10 @@ my *hash $h = $db.selectRow("select * from example_table where id = 1");
 
     @throw DBI-SELECT-ROW-ERROR more than 1 row retrieved from the server
 
-    @note see the documentation for the DBI driver being used for additional possible exceptions    
+    @note see the documentation for the DBI driver being used for additional possible exceptions
  */
 any DatasourcePool::selectRow(string sql, ...) {
-   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->copyListFrom(1) : 0, xsink);
+   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->getOldList(1) : 0, xsink);
    return ds->selectRow(sql, *vargs, xsink);
 }
 
@@ -460,12 +463,12 @@ any DatasourcePool::selectRow(string sql, ...) {
 my *list $list = $db.selectRows("select * from example_table");
     @endcode
 
-    @note see the documentation for the DBI driver being used for additional possible exceptions    
+    @note see the documentation for the DBI driver being used for additional possible exceptions
 
     @see DatasourcePool::select()
  */
 any DatasourcePool::selectRows(string sql, ...) {
-   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->copyListFrom(1) : 0, xsink);
+   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->getOldList(1) : 0, xsink);
    return ds->selectRows(sql, *vargs, xsink);
 }
 
@@ -517,7 +520,7 @@ any DatasourcePool::vselect(string sql, *softlist vargs) {
 my *hash $h = $db.vselectRow("select * from example_table where id = %v and type = %v", $arg_list);
     @endcode
 
-    @note see the documentation for the DBI driver being used for additional possible exceptions    
+    @note see the documentation for the DBI driver being used for additional possible exceptions
 
     @see DatasourcePool::selectRow()
  */
@@ -546,7 +549,7 @@ any DatasourcePool::vselectRow(string sql, *softlist vargs) {
 my *list $list = $db.vselectRows("select * from example_table where id = %v and type = %v", $arg_list);
     @endcode
 
-    @note see the documentation for the DBI driver being used for additional possible exceptions    
+    @note see the documentation for the DBI driver being used for additional possible exceptions
 
     @see DatasourcePool::selectRows()
  */
@@ -556,7 +559,7 @@ any DatasourcePool::vselectRows(string sql, *softlist vargs) {
 
 //! Manually allocates a persistent connection from the pool to the calling thread
 /** This method should be called when a transaction will be started with a DatasourcePool::select() method (or DatasourcePool::vselect(), etc).
-    
+
     This method does not make any communication with the server to start a transaction; it only allocates a persistent connection to the current thread in %Qore.
 
     To release the connection, call DatasourcePool::commit() or DatasourcePool::rollback()
@@ -747,7 +750,7 @@ string DatasourcePool::toString() [flags=CONSTANT] {
 my any $ver = $db.getServerVersion();
     @endcode
 
-    @note see the documentation for the DBI driver being used for additional possible exceptions    
+    @note see the documentation for the DBI driver being used for additional possible exceptions
  */
 any DatasourcePool::getServerVersion() {
    return ds->getServerVersion(xsink);
@@ -761,7 +764,7 @@ any DatasourcePool::getServerVersion() {
 my any $ver = $db.getClientVersion();
     @endcode
 
-    @note see the documentation for the DBI driver being used for possible exceptions    
+    @note see the documentation for the DBI driver being used for possible exceptions
  */
 any DatasourcePool::getClientVersion() {
    return ds->getClientVersion(xsink);
@@ -874,7 +877,7 @@ $ds.setWarningCallback(5s, $cb);
     @since %Qore 0.8.9
 */
 DatasourcePool::setWarningCallback(timeout ms, code callback, any arg) {
-   ds->setWarningCallback(ms, callback->refRefSelf(), arg ? arg->refSelf() : 0, xsink);
+   ds->setWarningCallback(ms, callback->refRefSelf(), arg.getReferencedValue(), xsink);
 }
 
 //! Returns a hash with usage information about the DatasourcePool object
@@ -928,7 +931,7 @@ int DatasourcePool::getErrorTimeout() [flags=CONSTANT] {
 }
 
 //! Sets a queue object for DBI events on the pool
-/** 
+/**
     @param queue the @ref Qore::Thread::Queue "Queue" object to receive datasource events; note that the @ref Qore::Thread::Queue "Queue" passed cannot have any maximum size set or a \c QUEUE-ERROR will be thrown; passing @ref nothing will clear any event queue
     @param arg an argument to be included in the \c arg key of datasource events
 
@@ -939,18 +942,48 @@ int DatasourcePool::getErrorTimeout() [flags=CONSTANT] {
 nothing DatasourcePool::setEventQueue(Qore::Thread::Queue[Queue] queue, any arg) {
    ReferenceHolder<Queue> q(queue, xsink);
 
-   if (queue->getMax() != -1) {
-      xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Datasource object if used; use a Queue object with no maximum size for datasource event monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
-      return 0;
-   }
+   if (queue->getMax() != -1)
+      return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Datasource object if used; use a Queue object with no maximum size for datasource event monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
 
-   ds->setEventQueue(q.release(), arg ? arg->refSelf() : 0, xsink);
+   ds->setEventQueue(q.release(), arg.getReferencedValue(), xsink);
 }
 
 //! Clears the queue object for DBI events on the pool
-/** 
+/**
     @since %Qore 0.8.9
  */
 nothing DatasourcePool::clearEventQueue() {
    ds->setEventQueue(0, 0, xsink);
+}
+
+//! Returns an integer bitfield of DBI driver capabilities
+/** @return an integer bitfield of DBI driver capabilities; see @ref dbi_capabilities for the meaning of each bit
+
+    @par Example:
+    @code
+my int $caps = $pool.getCapabilities();
+if (!($caps & DBI_CAP_TRANSACTION_MANAGEMENT))
+    throw "DATASOURCE-ERROR", sprintf("DBI driver %y does not support transaction management", $db.getDriverName());
+    @endcode
+
+    @since %Qore 0.8.12
+*/
+int DatasourcePool::getCapabilities() [flags=CONSTANT] {
+   return ds->getCapabilities();
+}
+
+//! Returns a list of strings giving the capabilities of the current DBI driver
+/** @return a list of strings giving the capabilities of the current DBI driver
+
+    @par Example:
+    @code
+printf("driver %y has the following capabilities:\n", $db.getDriverName());
+foreach my string $cap in ($db.getCapabilityList())
+    printf("- %s\n", $cap);
+    @endcode
+
+    @since %Qore 0.8.12
+*/
+list DatasourcePool::getCapabilityList() [flags=CONSTANT] {
+   return ds->getCapabilityList();
 }

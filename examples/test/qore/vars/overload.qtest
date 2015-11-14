@@ -1,0 +1,43 @@
+#!/usr/bin/env qore
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%requires UnitTest
+
+%exec-class App
+
+class App {
+    constructor() {
+        my UnitTest unit();
+
+        unit.cmp(f_test(1), "integer", "first overload partial match");
+        unit.cmp(f_test(1.1), "float", "second overload partial match");
+        unit.cmp(f1_test(1), "float", "third overload partial match");
+        unit.cmp(f1_test(1.1), "float", "fourth overload partial match");
+        unit.cmp(f1_test("str"), "string", "fifth overload partial match");
+        my int i = 1;
+        unit.cmp(f_test(i), "integer", "first runtime overload partial match");
+        unit.cmp(f1_test(i), "float", "second runtime overload partial match");
+        my float fi = 1.1;
+        unit.cmp(f_test(fi), "float", "third runtime overload partial match");
+        unit.cmp(f1_test(fi), "float", "fourth runtime overload partial match");
+    }
+}
+
+string sub f1_test(string x) {
+    return type(x);
+}
+
+string sub f1_test(float x) {
+    return type(x);
+}
+
+string sub f_test(int x) {
+    return type(x);
+}
+
+string sub f_test(float x) {
+    return type(x);
+}

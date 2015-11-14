@@ -9,11 +9,13 @@
     <b>Parse Directives</b>
     |!Directive|!Description
     |@ref allow-bare-refs "%allow-bare-refs"|Prohibits the use of the \c "$" character in variable names, method calls, and object member references. This makes %Qore scripts appear superficially more like C++ or Java programs.<br><br>This parse option is set by default with @ref new-style "%new-style".<br><br>Name resolution is made in the following order when this option is set: local variables, class constants and static class vars (when parsing in class code), global variables, and (non-class) constants.<br><br>Note that @ref implicit_arguments "implicit arguments" are still referenced with the \c "$" character even when this parse option is set; see also @ref require-dollar "%require-dollar" <br><br>Since %Qore 0.8.1
+    |@ref allow-injection "%allow-injection"|Allows code and dependency injections into the given @ref Qore::Program "Program" object
     |@ref append-include-path "%append-include-path"|Appends the given directories to qore's include path; also performs environment variable substitution
     |@ref append-module-path "%append-module-path"|Appends the given directories to qore's module path; also performs environment variable substitution <br><br>Since %Qore 0.8.6
     |@ref assume-global "%assume-global"|Resets the default %Qore behavior of assuming global variable scope when variables are first referenced if no @ref my "my" or @ref our "our" is present; use after @ref assume-local "%assume-local" to reset the default parsing behavior.<br><br>This parse option is also set with @ref old-style "%old-style" <br><br>Since %Qore 0.8.4
     |@ref assume-local "%assume-local"|Assume local variable scope when variables are first referenced if no @ref my "my" or @ref our "our" is present. When used with @ref allow-bare-refs "%allow-bare-refs", local variables without @ref my "my" must be declared with a data type restriction (can be @ref any_type "any").<br><br>This parse option is set by default with @ref new-style "%new-style"; see also @ref assume-global "%assume-global" <br><br>Since %Qore 0.8.1
-    |@ref define "%define"|Creates and optionally sets a value for a @ref conditional_parsing "parse define" <br><br>Since %Qore 0.8.3
+    |@ref broken-list-parsing "%broken-list-parsing"|Use old pre-0.8.12 broken list parsing where certain lists without parentheses would be rewritten to make top-level statements like <tt>list l = 1, 2, 3;</tt> valid
+|@ref define "%define"|Creates and optionally sets a value for a @ref conditional_parsing "parse define" <br><br>Since %Qore 0.8.3
     |@ref disable-all-warnings "%disable-all-warnings"|Turns off all @ref warnings "warnings"
     |@ref disable-warning "%disable-warning" <em>@ref warnings "warning-code"</em>|Disables the named @ref warnings "warning" until @ref enable-warning "%enable-warning" is encountered with the same code or @ref enable-all-warnings "%enable-all-warnings" is encountered
     |@ref else "%else"|Allows for parsing an alternate block when used with the @ref ifdef "%ifdef" or @ref ifndef "%ifndef" parse directives (for @ref conditional_parsing "conditional parsing based on parse defines") <br><br>Since %Qore 0.8.3
@@ -60,7 +62,7 @@
     |@ref require-our "%require-our"|Requires global variables to be declared with @ref our "our" prior to use (like perl's <tt>use strict vars</tt> pragma); equivalent to parse option @ref Qore::PO_REQUIRE_OUR and the <tt>-</tt><tt>-require-our</tt> command line option
     |@ref require-prototypes "%require-prototypes"|Requires type declarations for all function and method parameters and return types. Variables and object members do not need to have type declarations; equivalent to parse option @ref Qore::PO_REQUIRE_PROTOTYPES and the <tt>-</tt><tt>-require-prototypes</tt> command line option <br><br>Since %Qore 0.8.0
     |@ref require-types "%require-types"|Requires type declarations for all function and method parameters, return types, variables, and object members; equivalent to parse option @ref Qore::PO_REQUIRE_TYPES and the <tt>-</tt><tt>-require-types</tt> command line option; also implies @ref strict-args "%strict-args" <br><br>Since %Qore 0.8.0
-    |@ref requires "%requires" <em>feature</em> <tt>[\<\|\<=\|=\|\>=\|\></tt> <em>version</em><tt>]</tt>|If the named feature is not already present in %Qore, then the \c QORE_MODULE_DIR environment variable is used to provide a list of directories to seach for a module with the same name (<em>feature</em><tt>[-api-</tt><em>x</em><tt>.</tt><em>y</em><tt>].qmod</tt> for binary modules or <em>feature</em><tt>.qm</tt> for user modules). If the module is not found, then the qore default module directory is checked.<br><br>This directive must be used to load modules providing parse support (i.e. modules providing classes, constants, functions, etc that are resolved at parse time).<br><br>If version information is provided, then it is compared with the module's version information, and if it does not match a parse exception is raised. <br><br>See also @ref Qore::load_module() for a function providing run-time module loading and @ref try-module "%try-module" for a similar parse directive that allows module loading errors to be handled at runtime
+    |@ref requires "%requires"<tt>[(reexport)] <em>feature</em> [\<\|\<=\|=\|\>=\|\> <em>version</em>]</tt>|If the named feature is not already present in %Qore, then the \c QORE_MODULE_DIR environment variable is used to provide a list of directories to seach for a module with the same name (<em>feature</em><tt>[-api-</tt><em>x</em><tt>.</tt><em>y</em><tt>].qmod</tt> for binary modules or <em>feature</em><tt>.qm</tt> for user modules). If the module is not found, then the qore default module directory is checked.<br><br>This directive must be used to load modules providing parse support (i.e. modules providing classes, constants, functions, etc that are resolved at parse time).<br><br>If version information is provided, then it is compared with the module's version information, and if it does not match a parse exception is raised. <br><br>See also @ref Qore::load_module() for a function providing run-time module loading and @ref try-module "%try-module" for a similar parse directive that allows module loading errors to be handled at runtime
     |@ref set-time-zone "%set-time-zone"|Sets the time zone for the current program from a UTC offset (with format \c "+/-[00[:00[:00]]"; \c ":" characters are optional) or a time zone region name (ex: \c "Europe/Prague") <br><br>Since %Qore 0.8.3
     |@ref strict-args "%strict-args"|Prohibits access to builtin functions and methods flagged with @ref RUNTIME_NOOP and also causes errors to be raised if excess arguments are given to functions that do not access excess arguments <br><br>Since %Qore 0.8.0
     |@ref strict-bool-eval "strict-bool-eval"|Sets qore's default strict mathematic boolean evaluation mode, where any value converted to 0 is @ref Qore::False "False" and otherwise it's is @ref Qore::True "True"; this was how qore behaved by default prior to v0.8.6. <br><br>Equivalent to parse option @ref Qore::PO_STRICT_BOOLEAN_EVAL and the <tt>-pstrict-bool-eval</tt> command line option. <br><br>See also @ref perl-bool-eval "%perl-bool-eval"<br><br>Since %Qore 0.8.6
@@ -73,14 +75,14 @@
     <tt>%%allow-bare-refs</tt>
 
     @par Command Line:
-    <tt>-</tt><tt>-allow-bare-refs, -B</tt>
+    <tt>--allow-bare-refs, -B</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_ALLOW_BARE_REFS
 
     @par Description:
     Prohibits the use of the \c "$" character in variable names, method calls, and object member references. This makes %Qore scripts appear superficially more like C++ or Java programs. This parse option is set by default with @ref new-style "%new-style" and is the opposite of @ref require-dollar "%require-dollar".\n\n
-    Name resolution is made in the following order when this option is set: 
+    Name resolution is made in the following order when this option is set:
     - @ref variable_declarations "local variables"
     - @ref class_constants "class constants" (when parsing in class code)
     - @ref static_class_variables "static class variables" (when parsing in class code)
@@ -91,6 +93,30 @@
     @since %Qore 0.8.1
 
     @see @ref require-dollar "%require-dollar"
+
+    <hr>
+    @section allow-injection %%allow-injection
+
+    @par Parse Directive:
+    <tt>%%allow-injection</tt>
+
+    @par Command Line:
+    <tt>-pallow-injection</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_ALLOW_INJECTION
+
+    @par Description:
+    Allows for code and dependency injections in the given @ref Qore::Program "Program" object.
+
+    @see
+    - @ref Qore::Program::importClass()
+    - @ref Qore::Program::importFunction()
+    - @ref Qore::Program::loadApplyToUserModule()
+    - @ref Qore::Program::loadUserModuleWithProgram()
+    - @ref Qore::load_user_module_with_program()
+
+    @since %Qore 0.8.12
 
     <hr>
     @section append-include-path %append-include-path
@@ -105,7 +131,7 @@
     n/a
 
     @par Description:
-    Appends the given directories to qore's include path; also performs environment variable substitution.  Only directories that exist and 
+    Appends the given directories to qore's include path; also performs environment variable substitution.  Only directories that exist and
     are readable are added to the include path.
 
     @see @ref append-module-path "%append-module-path"
@@ -123,7 +149,7 @@
     n/a
 
     @par Description:
-    Appends the given directories to qore's module path; also performs environment variable substitution.  Only directories that exist and 
+    Appends the given directories to qore's module path; also performs environment variable substitution.  Only directories that exist and
     are readable are added to the module path.
 
     @since %Qore 0.8.6
@@ -169,6 +195,23 @@
     @see @ref assume-global "%assume-global"
 
     <hr>
+    @section broken-list-parsing %broken-list-parsing
+
+    @par Parse Directive:
+    <tt>%%broken-list-parsing/tt>
+
+    @par Command Line:
+    <tt>-</tt><tt>-broken-list-parsing</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_BROKEN_LIST_PARSING
+
+    @par Description:
+    Use old pre-0.8.12 broken list parsing where certain lists without parentheses would be rewritten to make top-level statements like <tt>list l = 1, 2, 3;</tt> valid.
+
+    @since %Qore 0.8.12
+
+    <hr>
     @section define %define
 
     @par Parse Directive:
@@ -199,7 +242,7 @@
 
     @par Description:
     Disables all warnings while parsing. See @ref warnings for more information.
- 
+
     <hr>
     @section disable-warning %disable-warning
 
@@ -310,6 +353,8 @@
 
     @par Description:
     Executes the named class as the application class and turns on @ref no-top-level "%no-top-level" as well.
+
+    @see @ref Qore::set_return_value()
 
     <hr>
     @section ifdef %ifdef
@@ -948,7 +993,7 @@
 
     <hr>
     @section perl-bool-eval %perl-bool-eval
-    
+
     @par Parse Directive:
     <tt>%%perl-bool-eval</tt>
 
@@ -999,7 +1044,7 @@ if ($str)
     <hr>
     @section require-dollar %require-dollar
 
-    @par Parse Directive:    
+    @par Parse Directive:
     <tt>%%require-dollar</tt>
 
     @par Command Line:
@@ -1066,7 +1111,7 @@ if ($str)
     @section requires %requires
 
     @par Parse Directive:
-    <tt>%%requires</tt> <em>feature</em> <tt>[\<\|\<=\|=\|\>=\|\></tt> <em>version</em><tt>]</tt>
+    <tt>%%requires[(reexport)] <em>feature</em> [\<\|\<=\|=\|\>=\|\> <em>version</em>]</tt>
 
     @par Command Line:
     <tt>-</tt><tt>-load, -l</tt>
@@ -1075,13 +1120,18 @@ if ($str)
     n/a
 
     @par Description:
-    Loads a %Qore module immediately. The parse directive can be used to load a module during parsing, and the command line version can be used to load a module before parsing.\n\n
+    Loads a %Qore module immediately. The parse directive can be used to load a module during parsing, and the command line version can be used to load a module before parsing.  If the optional <tt><em>(reexport)</em></tt> option is used in a @ref user_modules "user module", then any modules loaded with this form of the <tt>%%requires</tt> parse directive will also be imported into the importing @ref Qore::Program "Program".\n\n
     From %Qore 0.7.1, you can specify a comparison operator (one of <tt>\<, \<=, =, \>=, or \></tt>) and version information after the module name as well. Version numbers are compared via integer comparisons of each element, where elements are separated by a \c ".". If one of the versions does not have as many elements as another, the missing elements are assumed to be \c "0" (i.e. version \c "1.0" compared with version \c "1.0.1" will be extended to \c "1.0.0").\n\n
     For example:\n
     @code
 %requires oracle >= 1.0.1
     @endcode \n
     This will load the oracle module if it is at least version 1.0.1.\n\n
+    For example:\n
+    @code
+%requires(reexport) Mime
+    @endcode \n
+    If this form is used in a @ref user_modules "user module", all public definitions from the <a href="../../modules/Mime/html/index.html">Mime</a> module would also be loaded into any @ref Qore::Program "Program" that requires the user module.\n\n
     Note that there is one special feature name: \c "qore". This pseudo-feature can be used to check the minimum %Qore version; if this feature is requested with version information, then the %Qore library's version information is used for the version number comparison.
 
     @see @ref try-module "%try-module" for a similar parse directive that allows module loading errors to be caught and handled at parse-time
@@ -1118,7 +1168,7 @@ if ($str)
 
     <hr>
     @section strict-bool-eval %strict-bool-eval
-    
+
     @par Parse Directive:
     <tt>%%strict-bool-eval</tt>
 
@@ -1127,7 +1177,7 @@ if ($str)
 
     @par Parse Option Constant:
     @ref Qore::PO_STRICT_BOOLEAN_EVAL
-    
+
     @par Description:
     When set, this option enables qore's default strict mathematic boolean evaluation, where any value converted to 0 is @ref Qore::False "False" and otherwise it's is @ref Qore::True "True".\n\n
     This option takes effect at runtime.\n\n
