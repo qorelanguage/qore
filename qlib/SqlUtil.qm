@@ -6699,11 +6699,11 @@ list l = db.getAlignSql(schema_hash);
             AbstractDatabase::checkDriverOptions(\schema_hash.tables, drv);
             foreach string name in (schema_hash.tables.keyIterator()) {
                 #printf("processing table %y\n", name);
-                Table t;
+                AbstractTable t;
                 if (opt.db_table_cache.hasKey(name))
                     t = opt.db_table_cache{name};
                 else {
-                    t = new Table(ds, name);
+                    t = (new Table(ds, name)).getTable();
                     # store in db_table_cache
                     opt.db_table_cache.add(name, t);
                 }
