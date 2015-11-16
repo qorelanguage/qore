@@ -1071,6 +1071,20 @@ InboundTableMapperIterator i(input, mapper);
         }
 
         #! creates the iterator from the arguments passed
+        /** @param table SqlUtil::Table as a base for select hash \c sh
+            @param sh a SqlUtil select hash (columns/joins/wheres...)
+            @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
+
+            @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
+         */
+        constructor(SqlUtil::Table table, hash sh, hash mapv, *hash opts)
+            : Mapper::AbstractMapperIterator(table.getRowIterator(sh))
+        {
+            m_mapper = new Mapper(mapv, opts);
+        }
+
+        #! creates the iterator from the arguments passed
         /** @param stmt already constructed SQLStatement object
             @param map the mapper to transform the data
         */
@@ -1098,5 +1112,120 @@ InboundTableMapperIterator i(input, mapper);
         resetCount() {
             m_mapper.resetCount();
         }
-    }
+    } # class SqlStatementMapperIterator
+
+    #! provides an inbound data mapper to a Table target
+    public class SqlStatementOutboundMapper inherits Mapper::Mapper {
+        public {
+            #! option keys for this object
+            const OptionKeys = Mapper::OptionKeys + (
+                    "select_block" : sprintf("the row block size used when bulk DML / batch inserts are used; default: %y", OptionDefaults.select_block),
+                );
+
+            #! default option values
+            const OptionDefaults = (
+                    "select_block": 500,
+                );
+        }
+
+        private {
+            #! the target table object
+            SqlUtil::AbstractTable m_table;
+            SQLStatement m_stmt;
+            *hash m_opts;
+            *hash m_sh;
+
+            int select_block;
+        }
+
+        #!
+        /**
+        */
+        constructor(SqlUtil::Table target, *hash sh, hash mapv, *hash opts) {
+            m_table = target.getTable();
+            init(mapv, opts, sh);
+        }
+
+        #!
+        /**
+
+        */
+        constructor(SqlUtil::AbstractTable target, *hash sh, hash mapv, *hash opts) {
+            m_table = target;
+            init(mapv, opts, sh);
+        }
+
+        #! common constructor initialization
+        private init(hash mapv, *hash opts, *hash sh) {
+            setup(mapv, opts);
+            m_sh = sh;
+            # check map for logical errors
+            checkMap();
+
+            # set options with defaults
+            map self{$1.key} = opts{$1.key} ?* $1.value, OptionDefaults.pairIterator();
+
+            m_opts = opts;
+
+            if (select_block < 1)
+                throw "MAP-ERROR", sprintf("the select_block option is set to %d; this value must be >= 1", select_block);
+
+            m_stmt = m_table.getRowIterator(m_sh);
+        }
+
+        #! returns a list of valid constructor options for this class (can be overridden in subclasses)
+        /** @return a list of valid constructor options for this class (can be overridden in subclasses)
+        */
+        hash optionKeys() {
+            return OptionKeys;
+        }
+
+        #! returns the table name
+        string getTableName() {
+            return m_table.getSqlName();
+        }
+
+        #! returns the underlying SqlUtil::AbstractTable object
+        SqlUtil::AbstractTable getTable() {
+            return m_table;
+        }
+
+        #! returns the @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object associated with this object
+        Qore::SQL::AbstractDatasource getDatasource() {
+            return m_table.getDatasource();
+        }
+
+        SqlStatementMapperIterator iterator() {
+            return new SqlStatementMapperIterator(m_stmt, mapc, m_opts);
+        }
+
+        *hash getData() {
+            *list tmp = mapAll(m_stmt.fetchRows(select_block));
+
+            if (tmp && tmp.size()) {
+                # make "context" structure
+                hash ret;
+                HashIterator it(tmp[0]);
+                while (it.next()) {
+                    ret{it.getKey()} = list();
+                }
+
+                ListIterator lit(tmp);
+                while (lit.next()) {
+                    HashIterator hit(lit.getValue());
+                    while (hit.next()) {
+                        push ret{hit.getKey()}, hit.getValue();
+                    }
+                }
+
+                return ret;
+            }
+        }
+
+        *list getDataRows() {
+            return mapAll(m_stmt.fetchRows(select_block));
+        }
+
+    } # SqlStatementOutboundMapper
+
 }
