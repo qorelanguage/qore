@@ -1170,7 +1170,8 @@ InboundTableMapperIterator i(input, mapper);
             if (select_block < 1)
                 throw "MAP-ERROR", sprintf("the select_block option is set to %d; this value must be >= 1", select_block);
 
-            m_stmt = m_table.getRowIterator(m_sh);
+            # moved to fetch methods because of potential Qorus runtime options
+            # m_stmt = m_table.getRowIterator(m_sh);
         }
 
         #! returns a list of valid constructor options for this class (can be overridden in subclasses)
@@ -1196,10 +1197,15 @@ InboundTableMapperIterator i(input, mapper);
         }
 
         SqlStatementMapperIterator iterator() {
+            if (!m_stmt)
+                m_stmt = m_table.getRowIterator(m_sh);
             return new SqlStatementMapperIterator(m_stmt, mapc, m_opts);
         }
 
         *hash getData() {
+            if (!m_stmt)
+                m_stmt = m_table.getRowIterator(m_sh);
+
             *list tmp = mapAll(m_stmt.fetchRows(select_block));
 
             if (tmp && tmp.size()) {
@@ -1223,6 +1229,9 @@ InboundTableMapperIterator i(input, mapper);
         }
 
         *list getDataRows() {
+            if (!m_stmt)
+                m_stmt = m_table.getRowIterator(m_sh);
+
             return mapAll(m_stmt.fetchRows(select_block));
         }
 
