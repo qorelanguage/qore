@@ -117,10 +117,15 @@ on_error ds.rollback();
 }
         @endcode
 
-        @note Wach bulk DML object must be manually flush()ed before committing or manually
-        discard()ed before rolling back to ensure that all data is managed properly in the same
-        transaction and to ensure that no exception is thrown in the destructor().
-        See the example above for more information.
+        @note
+        - Each bulk DML object must be manually flush()ed before committing or manually
+          discard()ed before rolling back to ensure that all data is managed properly in the same
+          transaction and to ensure that no exception is thrown in the destructor().
+          See the example above for more information.
+        - If the underlying driver does not support bulk operations, then such support is
+          emulated with single SQL operations; in such cases performance will be reduced.  Call
+          @ref SqlUtil::AbstractTable::hasArrayBind() to check at runtime if the driver supports
+          bulk SQL operations.
     */
     public class AbstractBulkOperation {
         public {
@@ -145,6 +150,9 @@ on_error ds.rollback();
 
             #! buffer for bulk operations
             hash hbuf;
+
+            #! "constant" row values; must be equal in all calls to queueData
+            hash cval;
 
             #! an optional info logging callback; must accept a sprintf()-style format specifier and optional arguments
             *code info_log;
@@ -202,10 +210,6 @@ on_error ds.rollback();
 
             if (opts.info_log)
                 info_log = opts.info_log;
-
-            # throw an exception if the driver does not support bulk DML
-            if (!table.hasArrayBind())
-                throw "BULK-SQL-OPERATION-ERROR", sprintf("the %y class cannot be used with %y because the underlying driver does not support bulk DML operations", self.className(), table.getDesc());
         }
 
         #! queues row data in the block buffer; the block buffer is flushed to the DB if the buffer size reaches the limit defined by the \c block_size option; does not commit the transaction
@@ -231,7 +235,7 @@ on_error ds.rollback();
 }
             @endcode
 
-            @param data the input record or record set in case a hash of lists is passed; each hash represents a row (keys are column names and values are column values); when inserting, @ref sql_iop_funcs can also be used
+            @param data the input record or record set in case a hash of lists is passed; each hash represents a row (keys are column names and values are column values); when inserting, @ref sql_iop_funcs can also be used.  If at least one hash value is a list, then any non-hash (indicating an @ref sql_iop_funcs "insert opertor hash") and non-list values will be assumed to be constant values for every row and therefore future calls of this method (and overloaded variants) will ignore any values given for such keys and use the values given in the first call.
 
             @note
             - the first row passed is taken as a template row; every other row must always have the same keys in the same order, otherwise the results are unpredictable
@@ -246,7 +250,7 @@ on_error ds.rollback();
         queueData(hash data) {
             # prepare buffer hash if necessary
             if (!hbuf)
-                setupInitialRow(data);
+                setupInitialRowColumns(data);
 
             # remove "returning" arguments
             data -= ret_args;
@@ -344,6 +348,24 @@ on_error ds.rollback();
 
             # return all target data
             flushIntern();
+        }
+
+        #! sets up the block buffer given the initial template hash of lists for inserting
+        private setupInitialRowColumns(hash row) {
+            # ensure we have at least one list of columns values
+            bool has_list;
+            foreach any val in (row.iterator()) {
+                if (val.typeCode() == NT_LIST) {
+                    has_list = True;
+                    break;
+                }
+            }
+
+            # do not include constant values in the template row
+            if (has_list)
+                map cval.$1 = remove row.$1, row.keyIterator(), row.$1.typeCode() != NT_LIST;
+
+            setupInitialRow(row);
         }
 
         #! sets up the block buffer given the initial template row for inserting
@@ -600,8 +622,19 @@ inserter.setRowCode(rowcode);
             AbstractBulkOperation::init(opts);
         }
 
+        #! sets up the block buffer given the initial template hash of lists for inserting
+        private setupInitialRowColumns(hash row) {
+            setupStaticRowValues(\row);
+            AbstractBulkOperation::setupInitialRowColumns(row);
+        }
+
         #! sets up support for "returning" insert options for any possible rowcode member
         private setupInitialRow(hash row) {
+            setupStaticRowValues(\row);
+            AbstractBulkOperation::setupInitialRow(row);
+        }
+
+        private setupStaticRowValues(reference row) {
             foreach hash h in (row.pairIterator()) {
                 if (h.value.typeCode() == NT_HASH) {
                     ret_args += h.key;
@@ -610,7 +643,6 @@ inserter.setRowCode(rowcode);
                     delete row.(h.key);
                 }
             }
-            AbstractBulkOperation::setupInitialRow(row);
         }
 
         #! inserts internally-queued queued data in the database wuith bulk DML operations
@@ -627,7 +659,7 @@ inserter.setRowCode(rowcode);
             if (!stmt) {
                 string sql;
                 # insert the data
-                rh = table.insertNoCommit(hbuf + static_ret_expr, \sql, rowcode ? ("returning": ret_args) : NOTHING);
+                rh = table.insertNoCommit(hbuf + cval + static_ret_expr, \sql, rowcode ? ("returning": ret_args) : NOTHING);
                 # create the statement for future inserts
                 stmt = new SQLStatement(table.getDatasource());
                 stmt.prepare(sql);
@@ -735,7 +767,7 @@ on_error ds.rollback();
         #! executes bulk DML upserts in the database with internally queued data
         private flushImpl() {
             if (!upsert)
-                upsert = table.getUpsertClosure(hbuf, upsert_strategy);
+                upsert = table.getUpsertClosure(hbuf + cval, upsert_strategy);
 
             # execute the SQLStatement on the args
             upsert(hbuf);
