@@ -1203,6 +1203,16 @@ InboundTableMapperIterator i(input, mapper);
             return m_table;
         }
 
+        #! commits the transaction and free the AbstractDatasource resource
+        commit() {
+            m_table.getDatasource().commit();
+        }
+
+        #! rollbacks the transaction and free the AbstractDatasource resource
+        rollback() {
+            m_table.getDatasource().rollback();
+        }
+
         #! returns the @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object associated with this object
         Qore::SQL::AbstractDatasource getDatasource() {
             return m_table.getDatasource();
