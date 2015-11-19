@@ -517,7 +517,7 @@ int SSLSocketHelper::doSSLRW(const char* mname, void* buf, int size, int timeout
    }
 
    // set non blocking
-   OptionalNonBlockingHelper(qs, true, xsink);
+   OptionalNonBlockingHelper nbh(qs, true, xsink);
    if (*xsink)
       return -1;
 
