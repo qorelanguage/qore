@@ -1067,7 +1067,7 @@ InboundTableMapperIterator i(input, mapper);
         constructor(SqlUtil::AbstractTable table, hash sh, hash mapv, *hash opts)
             : Mapper::AbstractMapperIterator(table.getRowIterator(sh))
         {
-            m_mapper = new Mapper(mapv, opts);
+            setup(mapv, opts);
         }
 
         #! creates the iterator from the arguments passed
@@ -1081,7 +1081,7 @@ InboundTableMapperIterator i(input, mapper);
         constructor(SqlUtil::Table table, hash sh, hash mapv, *hash opts)
             : Mapper::AbstractMapperIterator(table.getRowIterator(sh))
         {
-            m_mapper = new Mapper(mapv, opts);
+            setup(mapv, opts);
         }
 
         #! creates the iterator from the arguments passed
@@ -1091,7 +1091,19 @@ InboundTableMapperIterator i(input, mapper);
         constructor(Qore::SQL::SQLStatement stmt, hash mapv, *hash opts)
             : Mapper::AbstractMapperIterator(stmt)
         {
-            m_mapper = new Mapper(mapv, opts);
+            setup(mapv, opts);
+        }
+
+        private setup(hash mapv, *hash opts) {
+            # only Mapper options can be posted to the Mapper instance.
+            # But we re lucky - no more options needed in this iterator.
+            *hash o;
+            HashIterator it(opts);
+            while (it.next()) {
+                if (Mapper::OptionKeys.hasKey(it.getKey()))
+                    o{it.getKey()} = it.getValue();
+            }
+            m_mapper = new Mapper(mapv, o);
         }
 
         #! returns the current row transformed with the mapper
