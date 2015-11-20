@@ -78,6 +78,9 @@ module Schema {
       - Schema::c_number()
       - Schema::c_timestamp()
       - Schema::c_varchar()
+    - added the following public constants:
+      - Schema::C_NULL
+      - Schema::C_NNULL
 
     @subsection schema_v1_0 Schema Module v1.0
     - initial release
@@ -85,8 +88,14 @@ module Schema {
 
 #! this namespace contains all public definitions in the %Schema module
 public namespace Schema {
+
+    #! Helper constant for column hash functions with "NULL" constraint for better readability
+    public const C_NULL = False;
+    #! Helper constant for column hash functions with "NOT NULL" constraint for better readability
+    public const C_NNULL = True;
+
     #! returns a column hash for an \c INT column
-    /** @param notnull @ref Qore::True "True" for a <tt>NOT NULL</tt> constraint on the column
+    /** @param notnull @ref Qore::True "True" for a <tt>NOT NULL</tt> constraint on the column. See constants Schema::C_NULL and Schema::C_NNULL
         @param comment an optional comment for the column
 
         @note might be a numeric type if \c INT is not supported by the dataserver
@@ -118,7 +127,7 @@ public namespace Schema {
 
     #! returns a column hash for a \c VARCHAR column
     /** @param size the size of the column
-        @param notnull @ref Qore::True "True" for a <tt>NOT NULL</tt> constraint on the column
+        @param notnull @ref Qore::True "True" for a <tt>NOT NULL</tt> constraint on the column. See constants Schema::C_NULL and Schema::C_NNULL
         @param comment an optional comment for the column
      */
     public hash sub c_varchar(int size, bool notnull = False, *string comment) {
@@ -146,7 +155,7 @@ public namespace Schema {
 
     #! returns a column hash for a \c CHAR column
     /** @param size the size of the column
-        @param notnull @ref Qore::True "True" for a <tt>NOT NULL</tt> constraint on the column
+        @param notnull @ref Qore::True "True" for a <tt>NOT NULL</tt> constraint on the column. See constants Schema::C_NULL and Schema::C_NNULL
         @param comment an optional comment for the column
      */
     public hash sub c_char(int size, bool notnull = False, *string comment) {
@@ -173,7 +182,7 @@ public namespace Schema {
     }
 
     #! returns a column hash for a \c DATE column
-    /** @param notnull @ref Qore::True "True" for a <tt>NOT NULL</tt> constraint on the column
+    /** @param notnull @ref Qore::True "True" for a <tt>NOT NULL</tt> constraint on the column. See constants Schema::C_NULL and Schema::C_NNULL
         @param comment an optional comment for the column
 
         @see c_timestamp()
@@ -203,7 +212,7 @@ public namespace Schema {
     }
 
     #! returns a column hash for a \c TIMESTAMP column
-    /** @param notnull @ref Qore::True "True" for a <tt>NOT NULL</tt> constraint on the column
+    /** @param notnull @ref Qore::True "True" for a <tt>NOT NULL</tt> constraint on the column. See constants Schema::C_NULL and Schema::C_NNULL
         @param comment an optional comment for the column
 
         @see c_date()
@@ -232,7 +241,7 @@ public namespace Schema {
 
     #! returns a column hash for a \c NUMBER or \c NUMERIC column
     /** @param size the size of the column
-        @param notnull @ref Qore::True "True" for a <tt>NOT NULL</tt> constraint on the column
+        @param notnull @ref Qore::True "True" for a <tt>NOT NULL</tt> constraint on the column. See constants Schema::C_NULL and Schema::C_NNULL
         @param comment an optional comment for the column
 
         @see c_int()
@@ -985,10 +994,14 @@ public namespace Schema {
         #! combines option hashes into a single target option hash
 	static hash combineOptions(*hash h) {
 	    foreach *hash h1 in (argv) {
+                # h1 can be NOTHING which will fail with RUNTIME-TYPE-ERROR: <lvalue> expects type '*hash', but got type 'int' instead
+		if (!h1)
+                    continue;
 		map h{$1} = AbstractSchema::combineOptions(h{$1}, remove h1{$1}), h.keyIterator(), h1.hasKey($1);
 		h += h1;
 	    }
-	    return h;
+            # also the h can be NOTHING in case of no inputs
+	    return h ?? hash();
 	}
     }
 
