@@ -1,11 +1,13 @@
 #!/usr/bin/env qr
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-%requires ../../../../qlib/QUnit.qm
-
+%require-types
+%enable-all-warnings
 %new-style
 
-# allow child Program objects to have more liberal permissions than the parent
+%requires ../../../../qlib/QUnit.qm
+
+# Allow child Program objects to have more liberal permissions than the parent.
 %no-child-restrictions
 
 %exec-class MemberTest
