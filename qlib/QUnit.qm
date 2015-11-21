@@ -460,17 +460,24 @@ public class QUnit::TestReporter {
         const TEST_SKIPPED = 3;
     }
 
-    private usageIntern() {
-        printf("usage: %s [options]
- -h,--help         this help text
-    --format=type  output format [default: plainquiet]
-        Format descriptions:
-            plainquiet ... only print failed tests and a summary at the end
-            plain      ... print a status for each test performed
-            junit      ... print a junit xml output
- -v,--verbose      shorthand for --format=plain
- -q,--quiet        shorthand for --format=quietplain
-", get_script_name());
+    private printOption(string left, string right, int offset) {
+        printf(" %s", left);
+        int blanks = offset - left.size();
+        if (blanks > 0)
+            print(strmul(" ", blanks));
+        printf("%s\n", right);
+    }
+
+    private usageIntern(int offset = 19) {
+        printf("usage: %s [options]\n", get_script_name());
+        printOption("-h,--help", "this help text", offset);
+        printOption("   --format=type", "output format [default: plainquiet]", offset);
+        print("        Format descriptions:
+           plainquiet  only print failed tests and a summary at the end
+           plain       print a status for each test performed
+           junit       print a junit xml output\n");
+        printOption("-v,--verbose", "shorthand for --format=plain", offset);
+        printOption("-q,--quiet", "shorthand for --format=quietplain", offset);
     }
 
     private usage() {
