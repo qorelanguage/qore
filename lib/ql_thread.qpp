@@ -603,7 +603,7 @@ set_thread_resource($obj);
 
     @since %Qore 0.8.12
  */
-nothing set_thread_resource(AbstractThreadResource[AbstractQoreThreadResource] resource) {
+nothing set_thread_resource(AbstractThreadResource[AbstractQoreThreadResource] resource) [dom=THREAD_CONTROL] {
    ReferenceHolder<AbstractQoreThreadResource> holder(resource, xsink);
    set_thread_resource(resource);
 }
@@ -627,7 +627,7 @@ remove_thread_resource($obj);
 
     @since %Qore 0.8.12
  */
-bool remove_thread_resource(AbstractThreadResource[AbstractQoreThreadResource] resource) {
+bool remove_thread_resource(AbstractThreadResource[AbstractQoreThreadResource] resource) [dom=THREAD_CONTROL] {
    ReferenceHolder<AbstractQoreThreadResource> holder(resource, xsink);
    return remove_thread_resource(resource) ? false : true;
 }

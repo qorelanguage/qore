@@ -23,6 +23,7 @@ class TRS inherits AbstractThreadResource {
 class ThreadResourcesTest inherits QUnit::Test {
     constructor() : QUnit::Test("ThreadResourcesTest", "1.0") {
         addTestCase("thread resource tests", \threadResourcesTests());
+        addTestCase("thread resource sandboxing tests", \threadResourceSandboxingTests());
         set_return_value(main());
     }
 
@@ -47,6 +48,15 @@ class ThreadResourcesTest inherits QUnit::Test {
 
 	TRS trs();
 	set_thread_resource(trs);
+    }
+
+    threadResourceSandboxingTests() {
+	Program p(PO_NEW_STYLE | PO_NO_THREAD_CONTROL);
+	p.importClass("TR1");
+
+	# test sandbox violation
+	testAssertion("sandboxing-1", \p.parse(), ("sub t() {TR1 tr1(); set_thread_resource(tr1);}", "test-1"), new TestResultExceptionRegexp("PARSE-EXCEPTION", "set_thread_resource"));
+	testAssertion("sandboxing-2", \p.parse(), ("sub t() {TR1 tr1(); remove_thread_resource(tr1);}", "test-2"), new TestResultExceptionRegexp("PARSE-EXCEPTION", "remove_thread_resource"));
     }
 
     doCleanup() {
