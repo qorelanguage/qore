@@ -271,6 +271,7 @@
 #include "QC_AbstractSmartLock.cpp"
 #include "QC_TimeZone.cpp"
 #include "QC_TreeMap.cpp"
+#include "QC_AbstractThreadResource.cpp"
 
 #include "QorePseudoMethods.cpp"
 

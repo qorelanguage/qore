@@ -51,6 +51,10 @@
 	.
 	furthermore the following function can be used to reload injected modules with the non-injected version:
 	- @ref Qore::reload_module() "reload_module()"
+    - implemented support for user-defined thread-resource management, allowing %Qore code to safely manage resources associated to a particular thread:
+      - @ref Qore::Thread::AbstractThreadResource
+      - @ref Qore::Thread::remove_thread_resource()
+      - @ref Qore::Thread::set_thread_resource()
     - new constants:
       - @ref Qore::DirSep
       - @ref Qore::Platform
@@ -67,6 +71,7 @@
       - @ref StringConcatDecoding
     - new classes:
       - @ref Qore::DataLineIterator
+      - @ref Qore::Thread::AbstractThreadResource
     - other new methods:
       - @ref Qore::SQL::DatasourcePool::getCapabilities()
       - @ref Qore::SQL::DatasourcePool::getCapabilityList()
@@ -81,6 +86,8 @@
       - @ref Qore::realpath()
       - @ref Qore::set_return_value()
       - @ref Qore::setgroups()
+      - @ref Qore::Thread::remove_thread_resource()
+      - @ref Qore::Thread::set_thread_resource()
     - updated functions:
       - @ref Qore::string()
       - @ref Qore::parse_boolean()
