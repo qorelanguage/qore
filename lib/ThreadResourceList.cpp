@@ -66,7 +66,7 @@ void ThreadResourceList::purge(ExceptionSink* xsink) {
       atr->deref();
    }
 
-   //printd(5, "TRL::purge() this: %p done size: %d\n", this, trset.size());
+   //printd(5, "TRL::purge() this: %p done\n", this);
 }
 
 void breakit() {}
