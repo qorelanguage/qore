@@ -364,8 +364,9 @@ public class QUnit::TestCase {
                     pos = get_ex_pos(e);
                     if (pos =~ /QUnit\.qm/) {
                         foreach hash callSite in (e.callstack) {
-                            if (!(e.file =~ /QUNIT\.qm/)) {
-                                pos = sprintf("%s:%d", callSite.file, callSite.line + callSite.offset);
+                            if (callSite.file !~ /QUnit\.qm/) {
+                                string fn = regex_subst (callSite.file, "<run-time-loaded: (.*)>", "$1");
+                                pos = sprintf("%s:%d", fn, callSite.line + callSite.offset);
                                 break;
                             }
                         }
@@ -1267,7 +1268,7 @@ public class QUnit::DependencyInjectedTest inherits QUnit::Test {
             if (fl =~ /(\\|\s)qr\s*$/)
                 p.setParseOptions(PO_NEW_STYLE);
         }
-        p.parse(file_data, "self-replication");
+        p.parse(file_data, m_testedFile);
 
         return p.run() ?? 0;
     }
