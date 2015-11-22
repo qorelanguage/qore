@@ -158,7 +158,7 @@ public class QUnit::TestResultPartialHashMatch inherits QUnit::AbstractTestResul
     public bool equals(QUnit::AbstractTestResult r) {
         # Check type
         if (r.m_type == "Value") {
-            # For Value results, only match against hashes. The other make no sense.
+            # For Value results, only match against hashes. The others make no sense.
             if (r.m_value.typeCode() != NT_HASH) {
                 return False;
             }
@@ -433,7 +433,7 @@ public class QUnit::TestReporter {
 
         const RESULT_TYPE_DESCRIPTION = (
             TEST_SUCCESS : ("desc": "Success", "junittag" : NOTHING), # Success does not have a junit child tag
-            TEST_FAILURE : ("desc": "Failure", "junittag" : "failure"),
+            TEST_FAILURE : ("desc": "FAILURE", "junittag" : "failure"),
             TEST_ERROR   : ("desc": "ERROR", "junittag" : "error"),
             TEST_SKIPPED : ("desc": "Skipped", "junittag" : "skipped"),
         );
@@ -496,7 +496,7 @@ public class QUnit::TestReporter {
            plain       print a status for each test performed
            junit       print a junit xml output\n");
         printOption("-v,--verbose", "shorthand for --format=plain", offset);
-        printOption("-q,--quiet", "shorthand for --format=quietplain", offset);
+        printOption("-q,--quiet", "shorthand for --format=plainquiet", offset);
     }
 
     private usage() {
@@ -615,7 +615,7 @@ public class QUnit::TestReporter {
 
     private printJunitSummary() {
 %ifdef NO_XML
-        stderr.printf("No XML module found. Use --format=plain instead\n");
+        stderr.printf("No XML module found. Use --format=plain instead.\n");
         exit(1);
 %else
         hash junit;
@@ -1122,7 +1122,7 @@ assertEq(5, functionThatShouldReturnFive());
      */
     bool regexpMatches(string s, string regexp) {
         if (!s.regex(regexp)) {
-            throw "TEST-FAILED-EXCEPTION", sprintf("String does not match: \nString: %s\nRegexp: %s\n", s, regexp);
+            throw "TEST-FAILED-EXCEPTION", sprintf("String does not match:\nString: %s\nRegexp: %s\n", s, regexp);
         }
         return True;
     }
