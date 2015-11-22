@@ -1062,7 +1062,9 @@ assertEq(5, functionThatShouldReturnFive());
 
     private any testAssertionIntern(TestCase tc, string name, QUnit::AbstractTestResult actualResult, QUnit::AbstractTestResult expectedResult, any ret, *string pos) {
         if (!expectedResult.equals(actualResult)) {
-            throw "TEST-EXCEPTION", printUnexpectedData(expectedResult.toString(), actualResult.toString()), ("name": name, "pos": pos);
+            any exp = expectedResult instanceof TestResultValue ? expectedResult.m_value : expectedResult.toString();
+            any act = actualResult instanceof TestResultValue ? actualResult.m_value : actualResult.toString();
+            throw "TEST-EXCEPTION", printUnexpectedData (exp, act), ("name": name, "pos": pos);
         }
         else {
             tc.incAssertionsOk();
