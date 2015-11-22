@@ -37,7 +37,7 @@
 Sequence ThreadResourceList::seq;
 
 void ThreadResourceList::set(AbstractThreadResource* atr) {
-   //printd(5, "TRL::set(atr: %p)\n", atr);
+   //printd(5, "TRL::set() this: %p atr: %p\n", this, atr);
    assert(trset.find(atr) == trset.end());
 
    atr->ref();
@@ -45,23 +45,34 @@ void ThreadResourceList::set(AbstractThreadResource* atr) {
 }
 
 bool ThreadResourceList::check(AbstractThreadResource* atr) const {
-   //printd(5, "TRL::set(atr: %p)\n", atr);
+   //printd(5, "TRL::check(atr: %p)\n", atr);
    return trset.find(atr) != trset.end();
 }
 
 void ThreadResourceList::purge(ExceptionSink* xsink) {
-   for (trset_t::iterator i = trset.begin(), e = trset.end(); i != e; ++i) {
-      //printd(5, "TRL::purge() cleaning up atr: %p\n", *i);
-      (*i)->cleanup(xsink);
-      (*i)->deref();
-   }
-   trset.clear();
+   while (true) {
+      trset_t::iterator i = trset.begin();
+      if (i == trset.end())
+	  break;
 
-   //printd(5, "TRL::purge() done\n");
+      AbstractThreadResource* atr = *i;
+      //printd(5, "TRL::purge() this: %p cleaning up atr: %p\n", this, atr);
+      // we have to remove the thread resource from the list before running cleanup in case of user thread resources
+      // where the cleanup routine will cause the object to be deleted and therefore for remove_thread_resource() to
+      // be called which can result in a crash
+      trset.erase(i);
+
+      atr->cleanup(xsink);
+      atr->deref();
+   }
+
+   //printd(5, "TRL::purge() this: %p done size: %d\n", this, trset.size());
 }
 
+void breakit() {}
 int ThreadResourceList::remove(AbstractThreadResource* atr) {
-   //printd(5, "TRL::remove(atr: %p)\n", atr);
+   //printd(5, "TRL::remove() this: %p atr: %p\n", this, atr);
+   breakit();
 
    trset_t::iterator i = trset.find(atr);
    if (i == trset.end())

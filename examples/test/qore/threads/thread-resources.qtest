@@ -24,6 +24,10 @@ class ThreadResourcesTest inherits QUnit::Test {
     constructor() : QUnit::Test("ThreadResourcesTest", "1.0") {
         addTestCase("thread resource tests", \threadResourcesTests());
         addTestCase("thread resource sandboxing tests", \threadResourceSandboxingTests());
+
+	our TRS otrs();
+	set_thread_resource(otrs);
+
         set_return_value(main());
     }
 
