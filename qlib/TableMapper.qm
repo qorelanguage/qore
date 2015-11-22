@@ -1268,6 +1268,18 @@ InboundTableMapperIterator i(input, mapper);
             return m_table.getDatasource();
         }
 
+        #! returns a description of the input record based on the @ref Qore::SQLStatement decribe()
+        *hash getInputRecord() {
+            if (!m_stmt)
+                m_stmt = m_table.getRowIterator(m_sh);
+            HashIterator it(m_stmt.describe());
+            while (it.next()) {
+                hash c = it.getValue();
+                input{it.getKey().lwr()} = sprintf("%s: %s(%d)", c.name, c.native_type, c.maxsize);
+            }
+            return input;
+        }
+
         #! Get SqlStatementMapperIterator for easy line-by-line processing
         /** @return TableMapper::SqlStatementMapperIterator object
 

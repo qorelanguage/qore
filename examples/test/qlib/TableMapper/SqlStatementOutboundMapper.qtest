@@ -10,7 +10,7 @@
 %requires ../../../../qlib/SqlUtil.qm
 %requires ../../../../qlib/TableMapper.qm
 
-%exec-class Main
+#%exec-class Main
 
 # unused, but required for "select hash" argument
 const SELECT_HASH = (
@@ -61,6 +61,9 @@ class FakeSQLStatement inherits Qore::AbstractIterator {
     execArgs(list l) {}
     getOutput() {}
     getSQL() {}
+
+    *hash describe() {
+    }
 }
 
 # dummy datasource-like class for FakeAbstractTable
@@ -134,15 +137,24 @@ class FakeAbstractTable inherits SqlUtil::AbstractTable {
 }
 
 
-class Main inherits QUnit::Test {
+class Main inherits QUnit::DependencyInjectedTest {
 
-    constructor() : Test("SqlStatementOutboundMapper", "1.0") {
+    constructor() : DependencyInjectedTest("SqlStatementOutboundMapper", "1.0") {
 
         addTestCase("SqlStatementOutboundMapper iterator", \testIterator());
         addTestCase("SqlStatementOutboundMapper hash rows", \testHashRows());
         addTestCase("SqlStatementOutboundMapper context", \testContext());
 
+        setScriptPath(get_script_path());
         set_return_value(main());
+    }
+
+    performModuleInjections() {
+#        injectIntoModule("../../../../qlib/TableMapper.qm");
+    }
+
+    performInjections(Program p) {
+        p.importClass("FakeSQLStatement", "Qore::SQLStatement", True);
     }
 
     private testIterator() {
