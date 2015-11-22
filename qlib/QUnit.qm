@@ -1051,7 +1051,7 @@ assertEq(5, functionThatShouldReturnFive());
                 result = new QUnit::TestResultFailure(e.desc);
             } else {
                 pos = get_ex_pos(e);
-                result = new QUnit::TestResultExceptionDetail(e.err, e.desc);
+                result = exists e.desc ? new QUnit::TestResultExceptionDetail(e.err, e.desc) : new QUnit::TestResultExceptionType(e.err);
                 ret = e;
             }
         }

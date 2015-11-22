@@ -52,6 +52,7 @@
 #include <qore/intern/QC_AutoReadLock.h>
 #include <qore/intern/QC_AutoWriteLock.h>
 #include <qore/intern/QC_AbstractSmartLock.h>
+#include <qore/intern/QC_AbstractThreadResource.h>
 
 #include <pthread.h>
 #include <sys/time.h>
@@ -2120,6 +2121,8 @@ QoreNamespace* get_thread_ns(QoreNamespace &qorens) {
    Thread->addSystemClass(initAutoWriteLockClass(*Thread));
 
    Thread->addSystemClass(initThreadPoolClass(*Thread));
+
+   Thread->addSystemClass(initAbstractThreadResourceClass(*Thread));
 
    return Thread;
 }
