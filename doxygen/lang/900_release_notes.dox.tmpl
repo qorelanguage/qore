@@ -75,6 +75,8 @@
     - other new methods:
       - @ref Qore::SQL::DatasourcePool::getCapabilities()
       - @ref Qore::SQL::DatasourcePool::getCapabilityList()
+    - updated methods:
+      - @ref Qore::TimeZone::constructor() "TimeZone::constructor()": now accepts a path to the zoneinfo file if the @ref Qore::PO_NO_FILESYSTEM sandboxing restrictions is not set
     - new functions:
       - @ref Qore::decode_uri_request()
       - @ref Qore::encode_uri_request()
@@ -360,6 +362,7 @@
       - @ref Qore::ReadOnlyFile::readBinaryFile()
       - @ref Qore::ReadOnlyFile::readTextFile()
     - fixed a bug in @ref Qore::GetOpt::parse(softlist), @ref Qore::GetOpt::parse2(softlist), and @ref Qore::GetOpt::parse3(softlist) where call-by-value and copy-on-write semantics were not enforced and a shared list argument could be modified
+    - fixed a bug in zoneinfo file parsing where invalid bands with no UTC offset changes against the previous band could cause invalid date/time values to be displayed by Qore for dates on the invalid transition
 
     @section qore_0811 Qore 0.8.11
 
