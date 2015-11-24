@@ -44,8 +44,7 @@ include(GNUInstallDirs)
 #check_include_files("sys/param.h;sys/mount.h" HAVE_SYS_MOUNT_H)
 #configure_file(${CMAKE_SOURCE_DIR}/include/qore/intern/unix-config.h.in
 #               ${CMAKE_BINARY_DIR}/include/qore/intern/unix-config.h)
-add_definitions(-DHAVE_UNIX_CONFIG_H)
-set(HAVE_SIGNAL_HANDLING true)
+#add_definitions(-DHAVE_UNIX_CONFIG_H)
 #add_definitions(-DHAVE_GETOPT_H)
 #add_definitions(-DHAVE_STRCASESTR)
 
@@ -60,10 +59,11 @@ set(USER_MODULE_DIR ${CMAKE_INSTALL_FULL_DATADIR}/qore-modules)
 set(USER_MODULE_VER_DIR ${CMAKE_INSTALL_FULL_DATADIR}/qore-modules/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB})
 
 # libqore - unused for now
-set(CPP_SRC_LIB lib/single-compilation-unit.cpp )
+set(LIBQORE_CPP_SRC lib/single-compilation-unit.cpp )
 
-set(QPP_SRC_LIB
+set(LIBQORE_QPP_SRC
 	lib/QC_AbstractSmartLock.qpp
+	lib/QC_AbstractThreadResource.qpp
 	lib/QC_AutoGate.qpp
 	lib/QC_AutoLock.qpp
 	lib/QC_AutoReadLock.qpp
@@ -201,6 +201,10 @@ else()
    set(TARGET_BITS 32)
 endif()
 
+if(NOT DEFINED NO_SIGNAL_HANDLING)
+   set(HAVE_SIGNAL_HANDLING true)
+endif()
+
 bison_target(qoreparser lib/parser.ypp ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp)
 flex_target(qorescanner lib/scanner.lpp ${CMAKE_CURRENT_BINARY_DIR}/scanner.cpp)
 add_flex_bison_dependency(qorescanner qoreparser)
@@ -213,27 +217,32 @@ add_executable(qpp
     lib/qpp.cpp
     ${QPP_GETOPT_LONG_SRC}
 )
+target_compile_definitions(qpp PUBLIC HAVE_UNIX_CONFIG_H)
 # just fake qpp for macro
 set(QORE_QPP_EXECUTABLE ${CMAKE_BINARY_DIR}/qpp)
 target_link_libraries(qpp ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES})
 
 # libqore generators
-qore_wrap_qpp_value(QPP_CPP_SRC_LIB ${QPP_SRC_LIB})
+qore_wrap_qpp_value(LIBQORE_QPP_CPP_SRC ${LIBQORE_QPP_SRC})
 
-add_custom_target(QPP_GENERATED_FILES DEPENDS ${QPP_CPP_SRC_LIB})
+add_custom_target(QPP_GENERATED_FILES DEPENDS ${LIBQORE_QPP_CPP_SRC})
 add_custom_target(BISON_GENERATED_FILES DEPENDS ${BISON_qoreparser_OUTPUTS})
 add_custom_target(FLEX_GENERATED_FILES DEPENDS ${FLEX_qorescanner_OUTPUTS})
 
-add_library(libqore SHARED ${CPP_SRC_LIB})
+set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH true)
+
+add_library(libqore SHARED ${LIBQORE_CPP_SRC})
+add_dependencies(QPP_GENERATED_FILES qpp)
+add_dependencies(libqore QPP_GENERATED_FILES BISON_GENERATED_FILES FLEX_GENERATED_FILES)
+target_compile_definitions(libqore PUBLIC _QORE_LIB_INTERN HAVE_UNIX_CONFIG_H)
+target_include_directories(libqore PUBLIC ${BZIP2_INCLUDE_DIR} ${ICONV_INCLUDE_DIR} ${MPFR_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${PCRE_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/lib)
+target_link_libraries(libqore ${BZIP2_LIBRARIES} ${CMAKE_DL_LIBS} ${CMAKE_THREAD_LIBS_INIT} ${ICONV_LIBRARY} ${MPFR_LIBRARIES} ${OPENSSL_LIBRARIES} ${PCRE_LDFLAGS} ${ZLIB_LIBRARIES})
+set_target_properties(libqore PROPERTIES OUTPUT_NAME qore)
 if (APPLE)
     set_target_properties(libqore PROPERTIES INSTALL_NAME_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
 endif (APPLE)
-add_dependencies(QPP_GENERATED_FILES qpp)
-add_dependencies(libqore QPP_GENERATED_FILES BISON_GENERATED_FILES FLEX_GENERATED_FILES)
-target_compile_definitions(libqore PUBLIC -D_QORE_LIB_INTERN)
-target_include_directories(libqore PUBLIC ${BZIP2_INCLUDE_DIR} ${ICONV_INCLUDE_DIR} ${MPFR_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${PCRE_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/lib)
-target_link_libraries(libqore ${CMAKE_THREAD_LIBS_INIT} ${BZIP2_LIBRARIES} ${CMAKE_DL_LIBS} ${ICONV_LIBRARY} ${MPFR_LIBRARIES} ${OPENSSL_LIBRARIES} ${PCRE_LDFLAGS} ${ZLIB_LIBRARIES})
-set_property(TARGET libqore PROPERTY OUTPUT_NAME qore)
+
 
 add_executable(qore ${QORE_CPP_SRC})
 target_link_libraries(qore libqore)
