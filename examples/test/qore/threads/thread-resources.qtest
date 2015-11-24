@@ -15,8 +15,55 @@ class TR1 inherits AbstractThreadResource {
     }
 }
 
+# this class starts a thread in the constructor and sets itself as a thread resource
+# the actual resource is the background thread
+# cleanup() stops the background thread but does not throw an exception
 class TRS inherits AbstractThreadResource {
+    public {}
+
+    private {
+        Mutex m();
+        Condition cond();
+        Counter cnt();
+        bool exit;
+    }
+
+    constructor() {
+        start();
+    }
+
+    synchronized start() {
+        cnt.inc();
+	set_thread_resource(self);
+        on_error {
+            cnt.dec();
+            remove_thread_resource(self);
+        }
+        background waiter();
+    }
+
+    stop() {
+        {
+            m.lock();
+            on_exit m.unlock();
+            exit = True;
+            cond.signal();
+        }
+        cnt.waitForZero();
+        remove_thread_resource(self);
+    }
+
     cleanup() {
+        stop();
+    }
+
+    private waiter() {
+        on_exit cnt.dec();
+
+        m.lock();
+        on_exit m.unlock();
+        while (!exit)
+            cond.wait(m);
     }
 }
 
@@ -24,9 +71,6 @@ class ThreadResourcesTest inherits QUnit::Test {
     constructor() : QUnit::Test("ThreadResourcesTest", "1.0") {
         addTestCase("thread resource tests", \threadResourcesTests());
         addTestCase("thread resource sandboxing tests", \threadResourceSandboxingTests());
-
-	our TRS otrs();
-	set_thread_resource(otrs);
 
         set_return_value(main());
     }
@@ -50,8 +94,14 @@ class ThreadResourcesTest inherits QUnit::Test {
 
 	testAssertion("auto-cleanup-2", \doCleanup(), NOTHING, new TestResultExceptionType("TR1"));
 
+        # throw_thread_resource_exceptions() here just stops the background thread,
+        # but since TRS::cleanup() does not throw an exception, neither does throw_thread_resource_exceptions()
+        # despite the name
 	TRS trs();
-	set_thread_resource(trs);
+        testNullAssertion("no-exception-1", \throw_thread_resource_exceptions());
+
+    	our TRS otrs();
+        testNullAssertion("no-exception-2", \throw_thread_resource_exceptions());
     }
 
     threadResourceSandboxingTests() {

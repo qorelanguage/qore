@@ -389,6 +389,7 @@ hash get_all_thread_call_stacks() [dom=THREAD_CONTROL,THREAD_INFO] {
     When exceptions are thrown by this function, thread-local resources are also cleaned up at the same time.
 
     @see
+    - thread_resources
     - mark_thread_resources()
     - remove_thread_resource()
     - set_thread_resource()
@@ -419,7 +420,10 @@ catch ($ex) {
 }
     @endcode
 
+    @note may not throw an exception even if there are thread resources in place that get cleaned up in case the @ref Qore::Thread::AbstractThreadResource::cleanup() method performs the cleanup but does not throw an exception
+
     @see
+    - thread_resources
     - mark_thread_resources()
     - remove_thread_resource()
     - set_thread_resource()
@@ -454,7 +458,10 @@ catch ($ex) {
 }
     @endcode
 
+    @note may not throw an exception even if there are thread resources in place that get cleaned up in case the @ref Qore::Thread::AbstractThreadResource::cleanup() method performs the cleanup but does not throw an exception
+
     @see
+    - thread_resources
     - mark_thread_resources()
     - remove_thread_resource()
     - set_thread_resource()
@@ -489,6 +496,7 @@ catch ($ex) {
     @endcode
 
     @see
+    - thread_resources
     - remove_thread_resource()
     - set_thread_resource()
     - throw_thread_resource_exceptions()
@@ -595,6 +603,7 @@ set_thread_resource($obj);
     @param resource the thread resource to set
 
     @see
+    - thread_resources
     - mark_thread_resources()
     - remove_thread_resource()
     - throw_thread_resource_exceptions()
@@ -619,6 +628,7 @@ remove_thread_resource($obj);
     @return True if the resource was removed, False if not
 
     @see
+    - thread_resources
     - mark_thread_resources()
     - set_thread_resource()
     - throw_thread_resource_exceptions()
