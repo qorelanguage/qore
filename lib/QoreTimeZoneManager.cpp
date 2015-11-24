@@ -56,10 +56,12 @@
 #define QB(x) ((x) ? "true" : "false")
 
 QoreZoneInfo::QoreZoneInfo(QoreString &root, std::string &n_name, ExceptionSink *xsink) : AbstractQoreZoneInfo(n_name), first_pos(-1), valid(false), std_abbr(0) {
-   printd(5, "QoreZoneInfo::QoreZoneInfo() this=%p root=%s name=%s\n", this, root.getBuffer(), name.c_str());
+   printd(5, "QoreZoneInfo::QoreZoneInfo() this: %p root: %s name: %s\n", this, root.getBuffer(), name.c_str());
 
    std::string fn = root.getBuffer();
-   fn += "/" + name;
+   if (!fn.empty())
+      fn += "/";
+   fn += name;
 
    QoreFile f;
    if (f.open2(xsink, fn.c_str()))
@@ -108,7 +110,7 @@ QoreZoneInfo::QoreZoneInfo(QoreString &root, std::string &n_name, ExceptionSink 
    if (f.readu4(&tzh_charcnt, xsink))
       return;
 
-   printd(5, "QoreZoneInfo::QoreZoneInfo() tzh_ttisutccnt=%d tzh_ttisstdcnt=%d tzh_leapcnt=%d tzh_timecnt=%d tzh_typecnt=%d tzh_charcnt=%d\n", tzh_ttisutccnt, tzh_ttisstdcnt, tzh_leapcnt, tzh_timecnt, tzh_typecnt, tzh_charcnt);
+   printd(5, "QoreZoneInfo::QoreZoneInfo() tzh_ttisutccnt: %d tzh_ttisstdcnt: %d tzh_leapcnt: %d tzh_timecnt: %d tzh_typecnt: %d tzh_charcnt: %d\n", tzh_ttisutccnt, tzh_ttisstdcnt, tzh_leapcnt, tzh_timecnt, tzh_typecnt, tzh_charcnt);
 
    if (tzh_ttisutccnt > tzh_typecnt) {
       xsink->raiseException("TZINFO-ERROR", "tzh_ttisutccnt (%d) > tzh_typecnt (%d)", tzh_ttisutccnt, tzh_typecnt);
@@ -154,14 +156,14 @@ QoreZoneInfo::QoreZoneInfo(QoreString &root, std::string &n_name, ExceptionSink 
       if (f.readi4(&tti[i].utcoff, xsink))
 	 return;
 
-      //printd(5, "QoreZoneInfo::QoreZoneInfo() utcoff=%d\n", tti[i].utcoff);
+      //printd(5, "QoreZoneInfo::QoreZoneInfo() utcoff: %d\n", tti[i].utcoff);
 
       unsigned char c;
       if (f.readu1(&c, xsink))
 	 return;
 
       tti[i].isdst = c;
-      if (!has_dst && c)
+      if (c && !has_dst)
          has_dst = true;
 
       if (f.readu1(&c, xsink))
@@ -235,14 +237,22 @@ QoreZoneInfo::QoreZoneInfo(QoreString &root, std::string &n_name, ExceptionSink 
    for (unsigned i = tzh_ttisutccnt; i < tzh_typecnt; ++i)
       tti[i].isutc = false;
 
-   for (unsigned i = 0; i < tzh_typecnt; ++i) {
-      if (utcoff == -1 && !tti[i].isdst)
-         utcoff = tti[i].utcoff;
-      //printd(5, "QoreZoneInfo::QoreZoneInfo() tti[%d] %s: utcoff=%d isdst=%s isstd=%s isutc=%s\n", i, tti[i].abbr.c_str(), tti[i].utcoff, QB(tti[i].isdst), QB(tti[i].isstd), QB(tti[i].isutc));
+   // scan time bands from the end to get the default UTC offset for this zone
+   // if we start from the first, we'll get some historical offset which may be different than the modern offset
+   {
+      unsigned i = tzh_typecnt;
+      while (i) {
+         --i;
+         if (utcoff == -1 && !tti[i].isdst && tti[i].utcoff != -1) {
+            utcoff = tti[i].utcoff;
+            //printd(5, "QoreZoneInfo::QoreZoneInfo() tti[%d] %s: utcoff: %d isdst: %s isstd: %s isutc: %s\n", i, tti[i].abbr.c_str(), tti[i].utcoff, QB(tti[i].isdst), QB(tti[i].isstd), QB(tti[i].isutc));
+            break;
+         }
+      }
    }
 
 #if 0
-   for (unsigned i = 0; i < QoreDSTTransitions.size(); ++i) {
+   for (unsigned i = 0, e = QoreDSTTransitions.size(); i < e; ++i) {
       DateTime d((int64)QoreDSTTransitions[i].time);
       str.clear();
       d.format(str, "Dy Mon DD YYYY HH:mm:SS");
@@ -250,7 +260,7 @@ QoreZoneInfo::QoreZoneInfo(QoreString &root, std::string &n_name, ExceptionSink 
       DateTime local(d.getEpochSeconds() + trans.utcoff);
       QoreString lstr;
       local.format(lstr, "Dy Mon DD YYYY HH:mm:SS");
-      printd(0, "QoreZoneInfo::QoreZoneInfo() trans[%3d] time=%d %s UTC = %s %s isdst=%d isstd=%d isutc=%d utcoff=%d\n", i, QoreDSTTransitions[i].time, str.getBuffer(), lstr.getBuffer(), trans.abbr.c_str(), trans.isdst, trans.isstd, trans.isutc, trans.utcoff);
+      printd(0, "QoreZoneInfo::QoreZoneInfo() trans[%3d] time: %d %s UTC = %s %s isdst: %d isstd: %d isutc: %d utcoff: %d\n", i, QoreDSTTransitions[i].time, str.getBuffer(), lstr.getBuffer(), trans.abbr.c_str(), trans.isdst, trans.isstd, trans.isutc, trans.utcoff);
    }
 #endif
 
@@ -263,7 +273,7 @@ int QoreTimeZoneManager::process(const char *fn) {
    return processIntern(fn, &xsink);
 }
 
-const AbstractQoreZoneInfo *QoreTimeZoneManager::processFile(const char *fn, ExceptionSink *xsink) {
+const AbstractQoreZoneInfo *QoreTimeZoneManager::processFile(const char *fn, bool use_path, ExceptionSink *xsink) {
 #ifdef _Q_WINDOWS
    tzmap_t::iterator i = tzmap.find(fn);
    if (i != tzmap.end())
@@ -288,7 +298,7 @@ const AbstractQoreZoneInfo *QoreTimeZoneManager::processFile(const char *fn, Exc
    if (i != tzmap.end())
       return i->second;
 
-   std::auto_ptr<QoreZoneInfo> tzi(new QoreZoneInfo(root, name, xsink));
+   std::auto_ptr<QoreZoneInfo> tzi(new QoreZoneInfo(use_path ? *NullString : root, name, xsink));
    if (!*(tzi.get())) {
       //printd(1, "skipping %s/%s\n", root.getBuffer(), name.c_str());
       return 0;
@@ -315,10 +325,11 @@ int QoreTimeZoneManager::processIntern(const char *fn, ExceptionSink *xsink) {
    if ((sbuf.st_mode & S_IFMT) == S_IFDIR)
       return processDir(fn, xsink);
 
-   return processFile(fn, xsink) ? 0 : -1;
+   return processFile(fn, false, xsink) ? 0 : -1;
 }
 
 int QoreZoneInfo::getUTCOffsetImpl(int64 epoch_offset, bool &is_dst, const char *&zone_name) const {
+   //printf("QoreZoneInfo::getUTCOffsetImpl() epoch_offset: %lld first_pos: %d time: %lld\n", epoch_offset, first_pos, first_pos > 0 ? QoreDSTTransitions[first_pos - 1].time : -1ll);
    unsigned i = 0;
    if (first_pos > 0 && epoch_offset >= QoreDSTTransitions[first_pos - 1].time) {
       i = first_pos - 1;
@@ -328,7 +339,7 @@ int QoreZoneInfo::getUTCOffsetImpl(int64 epoch_offset, bool &is_dst, const char 
             zone_name = QoreDSTTransitions[i].trans->abbr.c_str();
             is_dst = QoreDSTTransitions[i].trans->isdst;
 
-            //printf("QoreZoneInfo::getUTCOffsetImpl(epoch=%lld) tt[<=]=%d tt[>]=%d zone_name=%s is_dst=%d utcoff=%d\n", epoch_offset, QoreDSTTransitions[i].time, QoreDSTTransitions[i + 1].time, zone_name, is_dst, QoreDSTTransitions[i].trans->utcoff);
+            //printf("QoreZoneInfo::getUTCOffsetImpl(epoch: %lld) tt[<=]: %d tt[>]: %d zone_name: %s is_dst: %d utcoff: %d\n", epoch_offset, QoreDSTTransitions[i].time, QoreDSTTransitions[i + 1].time, zone_name, is_dst, QoreDSTTransitions[i].trans->utcoff);
             return QoreDSTTransitions[i].trans->utcoff;
          }
          ++i;
@@ -337,7 +348,7 @@ int QoreZoneInfo::getUTCOffsetImpl(int64 epoch_offset, bool &is_dst, const char 
       is_dst = false;
       zone_name = std_abbr;
 
-      //printf("QoreZoneInfo::getUTCOffsetImpl(epoch=%lld) NOT FOUND zone_name=%s is_dst=%d utcoff=%d\n", epoch_offset, zone_name, is_dst, utcoff);
+      //printf("QoreZoneInfo::getUTCOffsetImpl(epoch: %lld) NOT FOUND zone_name: %s is_dst: %d utcoff: %d\n", epoch_offset, zone_name, is_dst, utcoff);
 
       return utcoff;
    }
@@ -348,7 +359,7 @@ int QoreZoneInfo::getUTCOffsetImpl(int64 epoch_offset, bool &is_dst, const char 
          zone_name = QoreDSTTransitions[i].trans->abbr.c_str();
          is_dst = QoreDSTTransitions[i].trans->isdst;
 
-         //printf("QoreZoneInfo::getUTCOffsetImpl(epoch=%lld) tt[<=]=%d tt[>]=%d zone_name=%s is_dst=%d utcoff=%d\n", epoch_offset, QoreDSTTransitions[i].time, QoreDSTTransitions[i + 1].time, zone_name, is_dst, QoreDSTTransitions[i].trans->utcoff);
+         //printf("QoreZoneInfo::getUTCOffsetImpl(epoch: %lld) i: %d tt[<=]: %d tt[>]: %d zone_name: %s is_dst: %d utcoff: %d\n", epoch_offset, i, QoreDSTTransitions[i].time, QoreDSTTransitions[i + 1].time, zone_name, is_dst, QoreDSTTransitions[i].trans->utcoff);
          return QoreDSTTransitions[i].trans->utcoff;
       }
       --i;
@@ -357,7 +368,7 @@ int QoreZoneInfo::getUTCOffsetImpl(int64 epoch_offset, bool &is_dst, const char 
    is_dst = false;
    zone_name = std_abbr;
 
-   //printf("QoreZoneInfo::getUTCOffsetImpl(epoch=%lld) NOT FOUND zone_name=%s is_dst=%d utcoff=%d\n", epoch_offset, zone_name, is_dst, utcoff);
+   //printf("QoreZoneInfo::getUTCOffsetImpl(epoch: %lld) NOT FOUND zone_name: %s is_dst: %d utcoff: %d\n", epoch_offset, zone_name, is_dst, utcoff);
 
    return utcoff;
 }
@@ -432,7 +443,7 @@ const QoreOffsetZoneInfo *QoreTimeZoneManager::findCreateOffsetZone(const char *
       }
    }
 
-   //printd(5, "QoreTimeZoneManager::findCreateOffsetZone(%s) secs=%d\n", offset, secs);
+   //printd(5, "QoreTimeZoneManager::findCreateOffsetZone(%s) secs: %d\n", offset, secs);
 
    // this is not an error; this is the UTC offset
    if (!secs)
@@ -457,7 +468,7 @@ const QoreOffsetZoneInfo *QoreTimeZoneManager::findCreateOffsetZone(const char *
    concatOffset(secs, tmp);
    QoreOffsetZoneInfo *ozi = new QoreOffsetZoneInfo(tmp.getBuffer(), secs);
    tzomap[secs] = ozi;
-   //printd(5, "QoreTimeZoneManager::findCreateOffsetZone(%s) secs=%d returning %p\n", offset, secs, ozi);
+   //printd(5, "QoreTimeZoneManager::findCreateOffsetZone(%s) secs: %d returning %p\n", offset, secs, ozi);
    return ozi;
 }
 
@@ -501,7 +512,7 @@ int QoreTimeZoneManager::setLocalTZ(std::string fname, AbstractQoreZoneInfo *tzi
    localtzname = fname;
    ++tzsize;
 
-   printd(1, "QoreTimeZoneManager::setLocalTZ() set zoneinfo from region: %s (%s has_dst=%d utcoff=%d)\n", fname.c_str(), tzi->getRegionName(), tzi->hasDST(), tzi->getUTCOffset());
+   printd(1, "QoreTimeZoneManager::setLocalTZ() set zoneinfo from region: %s (%s has_dst: %d utcoff: %d)\n", fname.c_str(), tzi->getRegionName(), tzi->hasDST(), tzi->getUTCOffset());
 
    return 0;
 }
@@ -1225,7 +1236,7 @@ QoreWindowsZoneInfo::QoreWindowsZoneInfo(const char *n_name, ExceptionSink *xsin
    QoreString sd, dd;
    wdate2str(tzi.StandardDate, sd);
    wdate2str(tzi.DaylightDate, dd);
-   printd(5, "QoreWindowsZoneInfo::QoreWindowsZoneInfo(%s) bias=%ld standardbias=%ld daylightbias=%ld standarddate=%s daylightdate=%s\n", n_name, tzi.Bias, tzi.StandardBias, tzi.DaylightBias, sd.getBuffer(), dd.getBuffer());
+   printd(5, "QoreWindowsZoneInfo::QoreWindowsZoneInfo(%s) bias: %ld standardbias: %ld daylightbias: %ld standarddate: %s daylightdate: %s\n", n_name, tzi.Bias, tzi.StandardBias, tzi.DaylightBias, sd.getBuffer(), dd.getBuffer());
 #endif
 
    // convert to seconds east
@@ -1258,7 +1269,7 @@ QoreWindowsZoneInfo::QoreWindowsZoneInfo(const char *n_name, ExceptionSink *xsin
       valid = false;
    }
 
-   //printd(5, "QoreWindowsZoneInfo::QoreWindowsZoneInfo(%s) utcoff=%d has_dst=%d dst_off=%d\n", n_name, utcoff, has_dst, dst_off);
+   //printd(5, "QoreWindowsZoneInfo::QoreWindowsZoneInfo(%s) utcoff: %d has_dst: %d dst_off: %d\n", n_name, utcoff, has_dst, dst_off);
 }
 
 int QoreWindowsZoneInfo::getUTCOffsetImpl(int64 epoch_offset, bool &is_dst, const char *&zone_name) const {
@@ -1299,7 +1310,7 @@ static int64 wget_trans_date(int year, SYSTEMTIME date, int utc_offset) {
 
    QoreString td;
    wdate2str(date, td);
-   //printf("wget_trans_date(year=%d, trans=%s, utc_offset=%d) day=%d (dow=%d, ld=%d)\n", year, td.getBuffer(), utc_offset, day, dow, ld);
+   //printf("wget_trans_date(year: %d, trans: %s, utc_offset: %d) day: %d (dow: %d, ld: %d)\n", year, td.getBuffer(), utc_offset, day, dow, ld);
 
    // get epoch offset for this date as UTC
    int64 rc = qore_date_info::getEpochSeconds(year, date.wMonth, day, date.wHour, date.wMinute, date.wSecond);
@@ -1466,7 +1477,13 @@ int QoreTimeZoneManager::readAll(ExceptionSink *xsink) {
 const AbstractQoreZoneInfo *QoreTimeZoneManager::findLoadRegion(const char *name, ExceptionSink *xsink) {
    QoreAutoRWWriteLocker al(rwl);
    // find or load region
-   return processFile(name, xsink);
+   return processFile(name, false, xsink);
+}
+
+const AbstractQoreZoneInfo *QoreTimeZoneManager::findLoadRegionFromPath(const char *name, ExceptionSink *xsink) {
+   QoreAutoRWWriteLocker al(rwl);
+   // find or load region
+   return processFile(name, true, xsink);
 }
 
 const AbstractQoreZoneInfo *findCreateOffsetZone(int seconds_east) {
