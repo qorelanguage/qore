@@ -87,9 +87,9 @@ x=null@endverbatim
 
     @section thread_resources Thread Resources
 
-    %Qore supports a concept called thread resources that are resources that belong to a particular thread and
-    that support cleanup of the resource in case the thread is exited without releasing the resource.  Examples
-    of thread resources are as follows:
+    %Qore supports a concept called thread resources; thread resources are resources that belong to a particular thread and
+    that require some sort of cleanup of the resource in case the thread is exited without releasing the resource.  Examples
+    of thread resources in %Qore are as follows:
     - @ref Qore::Thread::Mutex "Mutex": when a lock is acquired, the lock is tracked as a thread resource.  If the thread is exited without releasing the lock, the @ref Qore::Thread::Mutex "Mutex" thread resource cleanup routine is executed which releases the lock and throws a user-friendly exception explaining what happened.  When the lock is released, the thread resource is removed.
     - @ref Qore::Thread::RWLock "RWLock": read-write locks are treated as thread resources in the same way described for @ref Qore::Thread::Mutex "Mutex" locks
     - @ref Qore::Thread::Gate "Gate": gate locks are treated as thread resources in the same way described for @ref Qore::Thread::Mutex "Mutex" locks
@@ -97,7 +97,8 @@ x=null@endverbatim
     - @ref Qore::SQL::DatasourcePool "DatasourcePool": datasource allocations are handled as a thread resources; if a thread exits without releasing the connection, the @ref Qore::SQL::DatasourcePool "DatasourcePool" cleanup routine is executed; this will rollback the transaction (releasing the dtasource connection back to the pool) and throw an appropriate exception.
 
     User classes can implement their own thread resource handling by subclassing
-    @ref Qore::Thread::AbstractThreadResource "AbstractThreadResource"  and then calling:
+    @ref Qore::Thread::AbstractThreadResource "AbstractThreadResource"  (implementing custom cleanup code in the
+    @ref Qore::Thread::AbstractThreadResource::cleanup() "AbstractThreadResource::cleanup()" method) and then calling:
     - set_thread_resource(): to set the resource against the thread
     - remove_thread_resource(): to remove the resource from the thread
 
@@ -106,6 +107,8 @@ x=null@endverbatim
     The thread-resource cleanup functions are:
     - throw_thread_resource_exceptions(): runs thread-resource cleanup routines explicitly
     - throw_thread_resource_exceptions_to_mark(): runs thread-resource cleanup routines for all thread resources set since the last call to mark_thread_resources() explicitly
+
+    @see @ref Qore::Thread::AbstractThreadResource "AbstractThreadResource" for an example of custom thread resource handling
 
     @section deadlocks Deadlocks
 
