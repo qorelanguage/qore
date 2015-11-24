@@ -1,10 +1,10 @@
 /*
   DoWhileStatement.cpp
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2014 David Nichols
- 
+
+  Copyright (C) 2003 - 2015 David Nichols
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -32,12 +32,12 @@
 #include <qore/intern/DoWhileStatement.h>
 #include <qore/intern/StatementBlock.h>
 
-int DoWhileStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) {
+int DoWhileStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
    int rc = 0;
-   
+
    // instantiate local variables
    LVListInstantiator lvi(lvars, xsink);
-   
+
    do {
       if (code && (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || xsink->isEvent())) {
 	 rc = 0;
@@ -48,7 +48,7 @@ int DoWhileStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *x
       else if (rc == RC_CONTINUE)
 	 rc = 0;
    } while (cond->boolEval(xsink) && !xsink->isEvent());
-   
+
    return rc;
 }
 
@@ -66,7 +66,7 @@ int DoWhileStatement::parseInitImpl(LocalVar *oflag, int pflag) {
       const QoreTypeInfo *argTypeInfo = 0;
       cond = cond->parseInit(oflag, pflag, lvids, argTypeInfo);
    }
-   
+
    // save local variables
    if (lvids)
       lvars = new LVList(lvids);

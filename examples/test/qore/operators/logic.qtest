@@ -1,0 +1,41 @@
+#!/usr/bin/env qore
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%requires UnitTest
+
+my UnitTest unit();
+
+my any a = 1;
+my any b = 0;
+
+bool sub throw_exception() {
+    throw "LOGIC-ERROR", "lazy evaluation does not work";
+}
+
+unit.ok(a || throw_exception(), "lazy or");
+unit.ok(!(b && throw_exception()), "lazy and");
+unit.ok(a && 1, "test and");
+unit.ok(b || 1, "or");
+unit.cmp(b ? 0 : 1, 1, "first question-colon");
+unit.cmp(a ? 1 : 0, 1, "second question-colon");
+a = 1;
+b = "1";
+unit.cmp(a == b, True, "comparison with type conversion");
+unit.cmp(a === b, False, "absolute comparison");
+a = (1, 2, 3, 4);
+b = (1, 2, 3, 4);
+unit.cmp(a == b, True, "list comparison");
+delete b[3];
+unit.cmp(a == b, False, "list comparison after delete");
+a[3] = ("gee" : 1, "whillakers" : 2, "list" : ( 1, 2, "three" ));
+b[3] = a[3];
+unit.cmp(a == b, True, "complex list comparison");
+unit.cmp(a[3] == b[3], True, "hash comparison");
+unit.cmp(a[3] != b[3], False, "negative hash unequal comparison");
+a[3].chello = "hi";
+unit.cmp(a[3] == b[3], False, "negative hash comparison");
+unit.cmp(a[3] != b[3], True, "hash unequal comparison");
+

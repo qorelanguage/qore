@@ -75,7 +75,7 @@
 
     @par Example
     Here is an example of a for loop using a local variable:\n
-    @code 
+    @code
 for (my int $i = 0; $i < 10; $i++)
     print("%d\n", $i);@endcode
 
@@ -91,7 +91,7 @@ for (my int $i = 0; $i < 10; $i++)
 
     @par Description
     If \a expression does not evaluate to a list, then the variable will be assigned the value of the expression evaluation and the statement will only execute one time. Otherwise the variable will be assigned to each value of the list and the statement will be called once for each value.\n\n
-    If \a expression evaluates to an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class, the <b><tt>foreach</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()", and the alues assigned to the iterator variable on each iteration are the container values returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()".
+    If \a expression evaluates to an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class, the <b><tt>foreach</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()", and the values assigned to the iterator variable on each iteration are the container values returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()".
     If \a expression evalutes to @ref nothing (no value); then the loop is not executed at all.
 
     @par Example
@@ -106,7 +106,7 @@ foreach my string $str in (\$str_list)
     Here is an example of a foreach loop using an object derived from @ref Qore::AbstractIterator "AbstractIterator":\n
     @code
 my hash $h = ("a": 1, "b": 2);
-foreach my int $i in (new HashIterator($h, True))
+foreach my int $i in (new HashIterator($h))
     printf("%s = %y\n", $i.key, $i.value);
     @endcode
 
@@ -121,7 +121,7 @@ foreach my int $i in (new HashIterator($h, True))
     The %Qore switch statement is similar to the switch statement in C and C++, except that the case values can be any expression that does not need run-time evaluation and can also be expressions with simple relational operators or regular expressions using the switch value as an implied operand.
 
     @par Syntax
-    <tt><b>switch</b></tt> <tt>(</tt><em>@ref expressions "expression"</em><tt>) {</tt>\n 
+    <tt><b>switch</b></tt> <tt>(</tt><em>@ref expressions "expression"</em><tt>) {</tt>\n
     &nbsp;&nbsp;<tt><b>case</b></tt> <em>case_expression</em><tt>:</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "[statement(s)...]"</em>\n
     &nbsp;&nbsp;<tt>[\b default:</tt> \n
@@ -129,15 +129,15 @@ foreach my int $i in (new HashIterator($h, True))
     <tt>}</tt>
 
     @par Example
-    @code 
+    @code
 switch ($val) {
-    case < -1: 
+    case < -1:
         printf("less than -1\n");
 	break;
     case "string":
         printf("string\n");
 	break;
-    case > 2007-01-22T15:00:00: 
+    case > 2007-01-22T15:00:00:
         printf("greater than 2007-01-22 15:00:00\n");
 	break;
     case /abc/:
@@ -168,7 +168,7 @@ switch (1) {
     |<tt>\<</tt>|@ref logical_less_than_operator
     |<tt>\<=</tt>|@ref logical_less_than_or_equals_operator
     |<tt>==</tt>|@ref logical_equality_operator (with type conversions)
-    |<tt>~=</tt>|@ref regex_match_operator (in this case the regular expression may be optionally given without the operator)
+    |<tt>=~</tt>|@ref regex_match_operator (in this case the regular expression may be optionally given without the operator)
     |<tt>!~</tt>|@ref regex_no_match_operator
 
     <hr>
@@ -185,7 +185,7 @@ switch (1) {
 First the expression will be evaluated; if it evaluates to @ref Qore::True "True", then statement will be executed. If it evaluates to @ref Qore::False "False", the loop terminates.
 
     @par Example
-    @code 
+    @code
 my int $a = 1;
 while ($a < 10)
     $a++;@endcode
@@ -206,9 +206,9 @@ while ($a < 10)
     The difference between <tt><b>do</b></tt> <tt><b>while</b></tt> statements and @ref while "while statements" is that the <tt><b>do</b></tt> <tt><b>while</b></tt> statement evaluates its loop expression at the end of the loop, and therefore guarantees at least one iteration of the loop.
 
     @par Example
-    @code 
+    @code
 $a = 1;
-do 
+do
     $a++;
 while ($a < 10);@endcode
 
@@ -293,7 +293,7 @@ Skips the rest of a loop and jumps right to the evaluation of the iteration expr
 
     @par Description
     This statement will cause the current thread to stop executing immediately.
- 
+
     <hr>
     @section context context Statements
 
@@ -313,12 +313,12 @@ Skips the rest of a loop and jumps right to the evaluation of the iteration expr
     <em>@ref expressions "where_expression"</em>\n
     An optional <b><tt>where</tt></b> expression may be given, in which case for each row in the hash, the expression will be executed, and if the where expression evaluates to @ref Qore::True "True", the row will be iterated in the context loop. If this expression evaluates to @ref Qore::False "False", then the row will not be iterated. This option is given so the programmer can create multiple views of a single data structure (such as a query result set) in memory rather than build different data structures by hand (or retrieve the data multiple times from a database).\n\n
     <em>@ref expressions "sort_expression"</em>\n
-    An optional <tt><b>sortBy</b></tt> by expression may also be given. In this case, the expression will be evaluated for each row of the query given, and then the result set will be sorted in ascending order by the results of the expressions according to the resulting type of the evaluated expression (i.e. if the result of the evaluation of the expression gives a string, then string order is used to sort, if the result of the evaluation is an integer, then integer order is used, etc).\n\n
+    An optional <tt><b>sortBy</b></tt> expression may also be given. In this case, the expression will be evaluated for each row of the query given, and then the result set will be sorted in ascending order by the results of the expressions according to the resulting type of the evaluated expression (i.e. if the result of the evaluation of the expression gives a string, then string order is used to sort, if the result of the evaluation is an integer, then integer order is used, etc).\n\n
     <em>@ref expressions "sort_descending_expression"</em>\n
     Another optional modifier to the <tt><b>context</b></tt> statement that behaves the same as above except that the results are sorted in descending order.
 
     @par Example
-    @code 
+    @code
 # note that "%service_type" and "%effective_start_date" represent values
 # in the $service_history hash of arrays.
 context ($service_history) where (%service_type == "voice")
@@ -340,7 +340,7 @@ sortBy (%effective_start_date) {
     @section summarize summarize Statements
 
     @par Synopsis
-    <tt><b>summarize</b></tt> statements are like context statements with one important difference: results sets are grouped by a by expression, and the statement is executed only once per discrete by expression result. This statement is designed to be used with the @ref subcontext "subcontext statement".
+    <tt><b>summarize</b></tt> statements are like context statements with one important difference: results sets are grouped by a <tt><b>by</b></tt> expression, and the statement is executed only once per discrete <tt><b>by</b></tt> expression result. This statement is designed to be used with the @ref subcontext "subcontext statement".
 
     @par Syntax
     <tt><b>summarize</b></tt> <tt>(</tt><em>@ref expressions "data_expression"</em><tt>) \b by (</tt><em>@ref expressions "by_expression"</em><tt>)</tt>\n
@@ -355,14 +355,14 @@ sortBy (%effective_start_date) {
     The <tt><b>by</b></tt> expression is executed for each row in the data structure indicated. The set of unique results defines groups of result rows. For each group of result rows, each row having an identical result of the evaluation of the by expression, the statement is executed only once.
 
     @par Example
-    @code 
-# note that "%service_type" and "%effective_start_date" represent values 
+    @code
+# note that "%service_type" and "%effective_start_date" represent values
 # in the $services hash of arrays.
-summarize ($services) 
-    by (%effective_start_date) 
-    where (%service_type == "voice") 
+summarize ($services)
+    by (%effective_start_date)
+    where (%service_type == "voice")
     sortBy (%effective_start_date) {
-    printf("account has %d service(s) starting on %s\n", 
+    printf("account has %d service(s) starting on %s\n",
            context_rows(),
            format_date("YYYY-MM-DD HH:mm:SS", %effective_start_date));
 }@endcode
@@ -392,12 +392,12 @@ summarize ($services)
     The <tt><b>subcontext</b></tt> statement is used in conjunction with @ref summarize "summarize statements". When result rows of a query should be grouped, and then each row in the result set should be individually processed, the %Qore programmer should first use a @ref summarize "summarize statement", and then a <tt><b>subcontext</b></tt> statement. The @ref summarize "summarize statement" will group rows, and then the nested <tt><b>subcontext</b></tt> statement will iterate through each row in the current summary group.
 
     @par Example
-    @code 
-summarize ($services) 
-    by (%effective_start_date) 
-    where (%service_type == "voice") 
+    @code
+summarize ($services)
+    by (%effective_start_date)
+    where (%service_type == "voice")
     sortBy (%effective_start_date) {
-    printf("account has %d service(s) starting on %s\n", 
+    printf("account has %d service(s) starting on %s\n",
            context_rows(),
            format_date("YYYY-MM-DD HH:mm:SS", %effective_start_date));
     subcontext sortDescendingBy (%effective_end_date) {
@@ -426,12 +426,12 @@ summarize ($services)
     This statement causes execution of the current function, method, or program to returns to the caller, optionally with a return value.
 
     @par Example
-    @code 
+    @code
 string sub getName() {
    return "Barney";
 }
 my string $name = getName();@endcode
- 
+
     <hr>
     @section on_exit on_exit Statements
 
@@ -444,7 +444,7 @@ my string $name = getName();@endcode
 
     @par Description
     The <tt><b>on_exit</b></tt> statement provides a clean way to do exception-safe cleanup within %Qore code. Any single statment (or statement block) after the <tt><b>on_exit</b></tt> keyword will be executed when the current block exits (as long as the statement itself is reached when executing - <tt><b>on_exit</b></tt> statements that are never reached when executing will have no effect).\n\n
-    The position of the <tt><b>on_exit</b></tt> statement in the block is important, as the immediate effect of this statement is to queue its code for execution when the block is exited. Even if an exception is raised or a @ref return "return statement" is executed, any <tt><b>on_exit</b></tt> code that is queued will be executed. Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup.\n\n
+    The position of the <tt><b>on_exit</b></tt> statement in the block is important, as the immediate effect of this statement is to queue its code for execution when the block is exited, meaning that <tt><b>on_exit</b></tt> statements (along with <tt><b>on_success</b></tt> and <tt><b>on_error</b></tt> statements) are executed in reverse order respective their declaration when the local scope is exited for any reason, even due to an exception or a @ref return "return statement".  Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup.\n\n
     Note that if this statement is reached when executing in a loop, the <tt><b>on_exit</b></tt> code will be executed for each iteration of the loop.\n\n
     By using this statement, programmers ensure that necessary cleanup will be performed regardless of the exit status of the block (exception, @ref return "return", etc).
 
@@ -473,7 +473,7 @@ my string $name = getName();@endcode
 
     @par Description
     The <tt><b>on_success</b></tt> statement provides a clean way to do block-level cleanup within %Qore code in the case that no exception is thrown in the block. Any single statment (or statement block) after the <tt><b>on_success</b></tt> keyword will be executed when the current block exits as long as no unhandled exception has been thrown (and as long as the statement itself is reached when executing - <tt><b>on_success</b></tt> statements that are never reached when executing will have no effect).\n\n
-    The position of the <tt><b>on_success</b></tt> statement in the block is important, as the immediate effect of this statement is to queue its code for conditional execution when the block is exited. Even if a @ref return "return statement" is executed later in the block, any <tt><b>on_success</b></tt> code that is queued will be executed as long as there is no active (unhandled) exception. Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup, along with @ref on_error "on_error statements", which are executed in a manner similar to <tt><b>on_success</b></tt> statements, except <tt><b>on_error</b></tt> statements are only executed when there is an active exception when the block is exited.\n\n
+    The position of the <tt><b>on_success</b></tt> statement in the block is important, as the immediate effect of this statement is to queue its code for execution when the block is exited, meaning that <tt><b>on_success</b></tt> statements (along with <tt><b>on_exit</b></tt> and <tt><b>on_error</b></tt> statements) are executed in reverse order respective their declaration when the local scope is exited for any reason, even due to an exception or a @ref return "return statement".  Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup, along with @ref on_error "on_error statements", which are executed in a manner similar to <tt><b>on_success</b></tt> statements, except <tt><b>on_error</b></tt> statements are only executed when there is an active exception when the block is exited.\n\n
     Note that if this statement is reached when executing in a loop, the <tt><b>on_success</b></tt> code will be executed for each iteration of the loop (as long as there is no active exception).
 
     @par Example
@@ -489,14 +489,14 @@ my string $name = getName();@endcode
 
     return "OK";
 }
-# when the block exits. the transaction will be either committed or rolled back, 
+# when the block exits. the transaction will be either committed or rolled back,
 # depending on if an exception was raised or not@endcode
 
     <hr>
     @section on_error on_error Statements
 
     @par Synopsis
-    Queues a statement or statement block for execution when the block is exited in the case that no exception is active. Used often in conjunction with the @ref on_success "on_success statement" and related to the @ref on_exit "on_exit statement".
+    Queues a statement or statement block for execution when the block is exited in the case that an exception is active. Used often in conjunction with the @ref on_success "on_success statement" and related to the @ref on_exit "on_exit statement".
 
     @par Syntax
     <tt><b>on_error</b></tt>\n
@@ -504,7 +504,7 @@ my string $name = getName();@endcode
 
     @par Description
     The <tt><b>on_error</b></tt> statement provides a clean way to do block-level cleanup within %Qore code in the case that an exception is thrown in the block. Any single statment (or statement block) after the <tt><b>on_error</b></tt> keyword will be executed when the current block exits as long as an unhandled exception has been thrown (and as long as the statement itself is reached when executing - <tt><b>on_error</b></tt> statements that are never reached when executing will have no effect).\n\n
-    The position of the <tt><b>on_error</b></tt> statement in the block is important, as the immediate effect of this statement is to queue its code for conditional execution when the block is exited. Even if a @ref return "return statement" is executed later in the block, any <tt><b>on_error</b></tt> code that is queued will be executed as long as there is an active (unhandled) exception. Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup, along with @ref on_success "on_success statements", which are executed in a manner similar to <tt><b>on_error</b></tt> statements, except @ref on_success "on_success statements" are only executed when there is no active exception when the block is exited.\n\n
+    The position of the <tt><b>on_error</b></tt> statement in the block is important, as the immediate effect of this statement is to queue its code for execution when the block is exited, meaning that <tt><b>on_error</b></tt> statements (along with <tt><b>on_exit</b></tt> and <tt><b>on_error</b></tt> statements) are executed in reverse order respective their declaration when the local scope is exited for any reason, even due to an exception or a @ref return "return statement".  Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup, along with @ref on_success "on_success statements", which are executed in a manner similar to <tt><b>on_error</b></tt> statements, except @ref on_success "on_success statements" are only executed when there is no active exception when the block is exited.\n\n
     Note that the code in this statement can only be executed once in any block, as a block (even a block within a loop) can only exit the loop once with an active exception (in contrast to @ref on_success "on_success" and @ref on_exit "on_exit statements", which are executed for every iteration of a loop).
 
     @par Example
@@ -519,6 +519,6 @@ my string $name = getName();@endcode
 
     return "OK";
 }
-# when the block exits. the transaction will be either committed or rolled back, 
+# when the block exits. the transaction will be either committed or rolled back,
 # depending on if an exception was raised or not@endcode
 */

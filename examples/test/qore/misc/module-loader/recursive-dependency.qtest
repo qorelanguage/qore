@@ -1,0 +1,16 @@
+#!/usr/bin/env qr
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%requires UnitTest
+
+our UnitTest unit();
+
+test();
+
+sub test() {
+    unit.exception(sub() {load_module("./R1.qm");}, NOTHING, "module-recursive-1", 'LOAD-MODULE-ERROR', "cannot load user module");
+}

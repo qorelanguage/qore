@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,6 +32,8 @@
 #ifndef _QORE_QOREOPERATORNODE_H
 #define _QORE_QOREOPERATORNODE_H
 
+#include <stdarg.h>
+
 class QoreOperatorNode : public ParseNode {
 protected:
    bool ref_rv;
@@ -54,18 +56,18 @@ public:
       ref_rv = false;
       ignoreReturnValueImpl();
    }
-   
+
    DLLLOCAL virtual bool hasEffect() const = 0;
 
-   DLLLOCAL virtual QoreOperatorNode *copyBackground(ExceptionSink *xsink) const {
-      return const_cast<QoreOperatorNode *>(this);
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+      return const_cast<QoreOperatorNode* >(this);
    }
 };
 
 template <class T>
 class QoreSingleExpressionOperatorNode : public T {
 protected:
-   AbstractQoreNode *exp;
+   AbstractQoreNode* exp;
 
    DLLLOCAL ~QoreSingleExpressionOperatorNode() {
       if (exp)
@@ -73,18 +75,18 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreSingleExpressionOperatorNode(AbstractQoreNode *n_exp) : exp(n_exp) {
+   DLLLOCAL QoreSingleExpressionOperatorNode(AbstractQoreNode* n_exp) : exp(n_exp) {
    }
-   DLLLOCAL AbstractQoreNode *getExp() {
+   DLLLOCAL AbstractQoreNode* getExp() {
       return exp;
    }
-   DLLLOCAL const AbstractQoreNode *getExp() const {
+   DLLLOCAL const AbstractQoreNode* getExp() const {
       return exp;
    }
 
    template <class O>
-   DLLLOCAL QoreSingleExpressionOperatorNode *makeSpecialization() {
-      AbstractQoreNode *e = exp;
+   DLLLOCAL QoreSingleExpressionOperatorNode* makeSpecialization() {
+      AbstractQoreNode* e = exp;
       exp = 0;
       SimpleRefHolder<QoreSingleExpressionOperatorNode> del(this);
       O* rv = new O(e);
@@ -121,8 +123,8 @@ public:
       return rv;
    }
 
-   DLLLOCAL AbstractQoreNode* swapRight(AbstractQoreNode *n_right) {
-      AbstractQoreNode *old_r = right;
+   DLLLOCAL AbstractQoreNode* swapRight(AbstractQoreNode* n_right) {
+      AbstractQoreNode* old_r = right;
       right = n_right;
       return old_r;
    }
@@ -141,8 +143,22 @@ public:
    DLLLOCAL QoreBoolBinaryOperatorNode(AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(n_left, n_right) {
    }
 
-   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
       return boolTypeInfo;
+   }
+
+   DLLLOCAL virtual bool hasEffect() const {
+      return false;
+   }
+};
+
+class QoreIntBinaryOperatorNode : public QoreBinaryOperatorNode<> {
+public:
+   DLLLOCAL QoreIntBinaryOperatorNode(AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(n_left, n_right) {
+   }
+
+   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+      return bigIntTypeInfo;
    }
 
    DLLLOCAL virtual bool hasEffect() const {
@@ -166,34 +182,37 @@ public:
    DLLLOCAL void checkLValue(AbstractQoreNode* exp, int pflag, bool assignment = true) {
       if (exp) {
          if (check_lvalue(exp, assignment))
-            parse_error("expecing lvalue for %s, got '%s' instead", getTypeName(), exp->getTypeName());
+            parse_error("expecting lvalue for %s, got '%s' instead", getTypeName(), exp->getTypeName());
          else if ((pflag & PF_BACKGROUND) && exp && exp->getType() == NT_VARREF && reinterpret_cast<const VarRefNode*>(exp)->getType() == VT_LOCAL)
             parse_error("illegal local variable modification with the background operator in %s", getTypeName());
       }
    }
 };
 
-template <class T = QoreOperatorNode>
-class QoreTrinaryOperatorNode : public T {
+template <unsigned int N, class T = QoreOperatorNode>
+class QoreNOperatorNodeBase : public T {
 protected:
-   AbstractQoreNode* e[3];
+   AbstractQoreNode* e[N];
 
-public:
-   DLLLOCAL QoreTrinaryOperatorNode(AbstractQoreNode* e0, AbstractQoreNode* e1, AbstractQoreNode* e2) {
-      e[0] = e0;
-      e[1] = e1;
-      e[2] = e2;
-   }
-
-   DLLLOCAL ~QoreTrinaryOperatorNode() {
-      for (unsigned i = 0; i < 3; ++i)
+   DLLLOCAL virtual ~QoreNOperatorNodeBase() {
+      for (unsigned i = 0; i < N; ++i)
          if (e[i]) e[i]->deref(0);
    }
 
-   DLLLOCAL AbstractQoreNode* get(unsigned i) {
-      assert(i < 3);
-      return e[i];
+public:
+   DLLLOCAL QoreNOperatorNodeBase(AbstractQoreNode* a0, ...) {
+      e[0] = a0;
+      va_list ap;
+      va_start(ap, a0);
+      for (unsigned int i = 1; i < N; ++i)
+         e[i] = va_arg(ap, AbstractQoreNode*);
+      va_end(ap);
    }
+
+   DLLLOCAL AbstractQoreNode* get(unsigned i) {
+       assert(i < N);
+       return e[i];
+    }
 };
 
 // include operator headers
@@ -203,9 +222,11 @@ public:
 #include <qore/intern/QoreExtractOperatorNode.h>
 #include <qore/intern/QoreCastOperatorNode.h>
 #include <qore/intern/QoreUnaryMinusOperatorNode.h>
+#include <qore/intern/QoreLogicalNotOperatorNode.h>
 #include <qore/intern/QoreDotEvalOperatorNode.h>
 #include <qore/intern/QoreLogicalEqualsOperatorNode.h>
 #include <qore/intern/QoreLogicalNotEqualsOperatorNode.h>
+#include <qore/intern/QoreModulaOperatorNode.h>
 #include <qore/intern/QoreBinaryLValueOperatorNode.h>
 #include <qore/intern/QoreAssignmentOperatorNode.h>
 #include <qore/intern/QoreIntAssignmentOperatorNode.h>
@@ -233,6 +254,15 @@ public:
 #include <qore/intern/QoreLogicalGreaterThanOrEqualsOperatorNode.h>
 #include <qore/intern/QoreLogicalGreaterThanOperatorNode.h>
 #include <qore/intern/QoreLogicalLessThanOrEqualsOperatorNode.h>
+#include <qore/intern/QoreDivisionOperatorNode.h>
 #include <qore/intern/QoreQuestionMarkOperatorNode.h>
+#include <qore/intern/QoreMapOperatorNode.h>
+#include <qore/intern/QoreMapSelectOperatorNode.h>
+#include <qore/intern/QoreHashMapOperatorNode.h>
+#include <qore/intern/QoreHashMapSelectOperatorNode.h>
+#include <qore/intern/QoreNullCoalescingOperatorNode.h>
+#include <qore/intern/QoreValueCoalescingOperatorNode.h>
+#include <qore/intern/QoreChompOperatorNode.h>
+#include <qore/intern/QoreTrimOperatorNode.h>
 
 #endif

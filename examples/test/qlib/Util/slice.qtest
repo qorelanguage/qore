@@ -1,0 +1,25 @@
+#!/usr/bin/env qr
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%exec-class SliceTest
+
+public class SliceTest inherits QUnit::Test {
+    constructor() : Test("SliceTest", "1.0") {
+        addTestCase("Basic slice() tests", \testSliceBasic(), NOTHING);
+
+        set_return_value(main());
+    }
+
+    testSliceBasic() {
+        testAssertion("slice existing", \slice(), ((1, 2, 3, 4), (2, 3)), new TestResultValue((3, 4)));
+        testAssertion("slice nonexisting", \slice(), ((1, 2, 3, 4), (5, 6)), new TestResultValue(()));
+        testAssertion("slice nothing", \slice(), ((1, 2, 3, 4), ()), new TestResultValue(()));
+        testAssertion("slice empty", \slice(), ((), (2, 3)), new TestResultValue(()));
+    }
+}

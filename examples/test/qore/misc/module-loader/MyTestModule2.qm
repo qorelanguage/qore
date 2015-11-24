@@ -1,0 +1,12 @@
+
+%new-style
+
+module MyTestModule2 {
+    version = "0.1";
+    desc = "my test module";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+%requires Util

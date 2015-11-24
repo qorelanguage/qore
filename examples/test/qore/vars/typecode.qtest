@@ -1,0 +1,20 @@
+#!/usr/bin/env qore
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%requires UnitTest
+
+my UnitTest unit();
+
+unit.cmp(True.typeCode(), NT_BOOLEAN, "typeCode() bool");
+unit.cmp("foo".typeCode(), NT_STRING, "typeCode() string");
+unit.cmp(1.typeCode(), NT_INT, "typeCode() int");
+unit.cmp(1n.typeCode(), NT_NUMBER, "typeCode() number");
+unit.cmp(now().typeCode(), NT_DATE, "typeCode() date");
+unit.cmp(1.2.typeCode(), NT_FLOAT, "typeCode() float");
+unit.cmp((1,2,).typeCode(), NT_LIST, "typeCode() list");
+unit.cmp(("foo":1).typeCode(), NT_HASH, "typeCode() bool");
+unit.cmp(NULL.typeCode(), NT_NULL, "typeCode() NULL");
+unit.cmp(NOTHING.typeCode(), NT_NOTHING, "typeCode() NOTHING");

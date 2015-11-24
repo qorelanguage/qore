@@ -3,7 +3,7 @@
  
   Qore Programming Language
  
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -44,51 +44,30 @@ int QoreUnaryMinusOperatorNode::getAsString(QoreString &str, int foff, Exception
    return 0;
 }
 
-AbstractQoreNode *QoreUnaryMinusOperatorNode::evalImpl(ExceptionSink *xsink) const {
-   QoreNodeEvalOptionalRefHolder v(exp, xsink);
+QoreValue QoreUnaryMinusOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
+   ValueEvalRefHolder v(exp, xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
-   if (v) {
-      if (v->getType() == NT_NUMBER)
-         return reinterpret_cast<const QoreNumberNode*>(*v)->negate();
-      if (v->getType() == NT_FLOAT)
-	 return new QoreFloatNode(-reinterpret_cast<const QoreFloatNode*>(*v)->f);
-      if (v->getType() == NT_DATE)
-	 return reinterpret_cast<const DateTimeNode*>(*v)->unaryMinus();
-      if (v->getType() == NT_INT)
-	 return new QoreBigIntNode(-reinterpret_cast<const QoreBigIntNode*>(*v)->val);
-   }
-   // return zero
-   return Zero->refSelf();
-}
+   switch (v->getType()) {
+      case NT_NUMBER: {
+	 return v.takeReferencedNode<QoreNumberNode>()->negate();
+      }
 
-AbstractQoreNode *QoreUnaryMinusOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   QoreNodeEvalOptionalRefHolder v(exp, xsink);
-   if (*xsink)
-      return 0;
+      case NT_FLOAT: {
+	 return -(v->getAsFloat());
+      }
+	 
+      case NT_DATE: {
+	 return v->get<const DateTimeNode>()->unaryMinus();
+      }
 
-   if (v) {
-      if (v->getType() == NT_NUMBER) {
-	 needs_deref = true;
-         return reinterpret_cast<const QoreNumberNode*>(*v)->negate();
-      }
-      if (v->getType() == NT_FLOAT) {
-	 needs_deref = true;
-	 return new QoreFloatNode(-reinterpret_cast<const QoreFloatNode*>(*v)->f);
-      }
-      if (v->getType() == NT_DATE) {
-	 needs_deref = true;
-	 return reinterpret_cast<const DateTimeNode*>(*v)->unaryMinus();
-      }
-      if (v->getType() == NT_INT) {
-	 needs_deref = true;
-	 return new QoreBigIntNode(-reinterpret_cast<const QoreBigIntNode*>(*v)->val);
+      case NT_INT: {
+	 return -(v->getAsBigInt());
       }
    }
-   // return zero
-   needs_deref = false;
-   return Zero;
+
+   return QoreValue(0ll);
 }
 
 AbstractQoreNode *QoreUnaryMinusOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {

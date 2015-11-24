@@ -1,0 +1,15 @@
+#!/usr/bin/env qr
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+class T {
+    constructor() {
+        call_function_args(\T::t());
+    }
+
+    int t() {
+        print("hi\n");
+        return 1;
+    }
+}
+
+T t();

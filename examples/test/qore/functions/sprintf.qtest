@@ -1,0 +1,20 @@
+#!/usr/bin/env qr
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%requires UnitTest
+
+%exec-class App
+
+class App {
+    constructor() {
+        my UnitTest unit();
+        unit.cmp(sprintf("%04d-%.2f", 25, 101.239), "0025-101.24", "sprintf()");
+        unit.cmp(vsprintf("%04d-%.2f", (25, 101.239)), "0025-101.24", "vsprintf()");
+        unit.cmp(f_sprintf("%3s", "niña"), "niñ", "UTF-8 f_sprintf()");
+    }
+}
+
+

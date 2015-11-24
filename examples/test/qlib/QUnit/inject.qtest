@@ -1,0 +1,86 @@
+#!/usr/bin/env qr
+
+%requires ../../../../qlib/FixedLengthUtil.qm
+
+%include ../../../../qlib/QUnit.qm
+
+%exec-class DIJClass
+
+public class A {
+    constructor() {
+        throw "TEST-EXCEPTION", "This should never happen!";
+    }
+
+    public test() {
+        return False;
+    }
+}
+
+public class Aalt {
+    constructor() {
+    }
+
+    public test() {
+        return True;
+    }
+}
+
+public class B inherits A {
+    public test() {
+        return A::test();
+    }
+}
+
+public class FileLineIteratorFake {
+    constructor(string file_unused, *string h, *string g) {
+        throw "TEST-EXCEPTION", "this signifies that it actually works";
+    }
+
+    bool next() {
+        return False;
+    }
+
+    *string getValue() {
+        return "";
+    }
+}
+
+public class DIJClass inherits QUnit::DependencyInjectedTest {
+    constructor() : DependencyInjectedTest("Inject", "1.0") {
+        addTestCase("Directly instantiate injected classes", \testDirectlyInjectedClass(), NOTHING);
+        addTestCase("Instantiate classes with an injected ancestor", \testInheritedInjectedClass(), NOTHING);
+        addTestCase("Instantiate class from a module with injected ancestor", \testModuleInjectedClass(), NOTHING);
+
+        setScriptPath(get_script_path());
+        set_return_value(main());
+    }
+
+    performModuleInjections() {
+        injectIntoModule("../../../../qlib/FixedLengthUtil.qm");
+    }
+
+    performInjections(Program p) {
+        p.importClass("Aalt", "A", True);
+        p.importClass("FileLineIteratorFake", "Qore::FileLineIterator", True);
+    }
+
+    testDirectlyInjectedClass() {
+        A a();
+        testAssertion("run test", \a.test(), list());
+    }
+
+    testInheritedInjectedClass() {
+        B b();
+        testAssertion("run test", \b.test(), list());
+    }
+
+    createIterator() {
+        FixedLengthFileIterator it("", hash(), hash());
+        return True;
+    }
+
+    testModuleInjectedClass() {
+        # Since FileLineIterator tries to open a file in the constructor, this will succeed as soon as our constructor of FileLineIteratorFake is called
+        testAssertion("instantiate iterator", \createIterator(), list(), new QUnit::TestResultExceptionRegexp("TEST-EXCEPTION", "this signifies that it actually works"));
+    }
+}

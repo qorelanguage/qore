@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -193,12 +193,12 @@ while ($i.next()) {
  */
 any HashIterator::getValue() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-      return 0;
+      return QoreValue();
    return i->getReferencedValue(xsink);
 }
 
-//! returns the current value of the current has key being iterated or throws an \c INVALID-ITERATOR exception if the iterator is invalid
-/** @return the current value of the current has key being iterated or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+//! returns the current value of the current hash key being iterated or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+/** @return the current value of the current hash key being iterated or throws an \c INVALID-ITERATOR exception if the iterator is invalid
 
     @par Example:
     @code
@@ -214,7 +214,7 @@ while ($i.next()) {
  */
 any HashIterator::getKeyValue() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-      return 0;
+      return QoreValue();
    return i->getReferencedKeyValue(xsink);
 }
 
@@ -235,7 +235,7 @@ while ($i.next()) {
  */
 hash HashIterator::getValuePair() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-      return 0;
+      return QoreValue();
    return i->getReferencedValuePair(xsink);
 }
 
@@ -254,7 +254,7 @@ while ($i.next()) {
  */
 string HashIterator::getKey() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-      return 0;
+      return QoreValue();
    return i->getKey(xsink);
 }
 
@@ -283,6 +283,6 @@ $i.reset();
  */
 HashIterator::reset() {
    if (i->check(xsink))
-       return 0;
+       return QoreValue();
    i->reset();
 }

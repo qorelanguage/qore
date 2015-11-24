@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -89,7 +89,7 @@ const Closure = "closure";
 //@{
 
 //! Converts the argument to a boolean value
-/** 
+/**
     @param arg the argument to convert to a boolean
 
     @return the boolean value corresponding to the argument
@@ -102,11 +102,11 @@ my bool $b = boolean(1); # returns True
     @note this function behaves differently when @ref strict-bool-eval "%strict-bool-eval" is set
 */
 bool boolean(any arg) [flags=CONSTANT] {
-   return arg ? arg->getAsBool() : false;
+   return arg.getAsBool();
 }
 
 //! Converts the argument to an integer value
-/** 
+/**
     @param str the string to convert to an integer
     @param base the base of the integer in the string; this value must be 0 or 2 - 36 inclusive or an \c INVALID-BASE exception will be thrown
 
@@ -122,10 +122,8 @@ my int $i = int("fabc9", 16);
     @since %Qore 0.8.5, this variant with the \a base argument is supported
 */
 int int(string str, softint base) [flags=RET_VALUE_ONLY] {
-   if (base < 0 || base == 1 || base > 36) {
-      xsink->raiseException("INVALID-BASE", "base "QLLD" is invalid; base must be 0 or 2 - 36 inclusive", base);
-      return 0;
-   }
+   if (base < 0 || base == 1 || base > 36)
+      return xsink->raiseException("INVALID-BASE", "base "QLLD" is invalid; base must be 0 or 2 - 36 inclusive", base);
    return strtoll(str->getBuffer(), 0, (int)base);
 }
 
@@ -154,7 +152,7 @@ int int() [flags=CONSTANT] {
 }
 
 //! Converts the argument to a floating-point (float) value
-/** 
+/**
     @param f the argument to convert to a float
 
     @return the float value corresponding to the argument
@@ -202,17 +200,25 @@ number number() [flags=CONSTANT] {
 }
 
 //! Converts the argument to a string
-/** 
+/**
     @param str the argument to convert to a string
+    @param enc the encoding of the string returned
 
-    @return the string value corresponding to the argument
+    @return the string value corresponding to the argument(s)
 
     @par Example:
     @code
 my string $str = string(100);
     @endcode
+
+    @since the \c enc argument was added in %Qore 0.8.12
 */
-string string(softstring str) [flags=CONSTANT] {
+string string(softstring str, *string enc) [flags=CONSTANT] {
+   if (enc) {
+      const QoreEncoding* e = QEM.findCreate(enc->getBuffer());
+      if (e != str->getEncoding())
+         return str->convertEncoding(e, xsink);
+   }
    return str->refSelf();
 }
 
@@ -279,12 +285,12 @@ my list $l = list(1, 2, 3, 4);
 list list(...) [flags=CONSTANT] {
    QoreListNode *l;
    if (num_args(args) > 1)
-      l = args->copy();
+      l = args->getOldList();
    else {
       l = new QoreListNode;
-      const AbstractQoreNode *p0 = get_param(args, 0);
-      if (p0)
-	 l->push(p0->refSelf());
+      QoreValue p0 = get_param_value(args, 0);
+      if (!p0.isNothing())
+	 l->push(p0.getReferencedValue());
    }
    return l;
 }
@@ -306,7 +312,7 @@ hash hash(object obj) [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns a hash by taking even numbered list elements (starting with 0) and converting them to strings for the hash keys, and the odd numbered elements following the keys as the key value
-/** 
+/**
     @param l the list to process in a manner similar to perl's hash initialization
 
     @return a hash by taking even numbered list elements (starting with 0) and converting them to strings for the hash keys, and the odd numbered elements following the keys as the key value
@@ -324,7 +330,7 @@ hash hash(list l) [flags=RET_VALUE_ONLY] {
       QoreStringValueHelper str(li.getValue());
       h->setKeyValue(str->getBuffer(), li.next() ? li.getReferencedValue() : 0, xsink);
       if (*xsink)
-	 return 0;
+	 return QoreValue();
    }
    return h.release();
 }
@@ -339,7 +345,7 @@ hash hash(list l) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code
-my hash $h = list($keys, $values);
+my hash $h = hash($keys, $values);
     @endcode
 */
 hash hash(list keys, list values) [flags=RET_VALUE_ONLY] {
@@ -354,9 +360,9 @@ hash hash(list keys, list values) [flags=RET_VALUE_ONLY] {
 	 valid = vi.next();
 
       QoreStringValueHelper str(ki.getValue());
-      h->setKeyValue(str->getBuffer(), valid ? vi.getReferencedValue() : 0, xsink);      
+      h->setKeyValue(str->getBuffer(), valid ? vi.getReferencedValue() : 0, xsink);
       if (*xsink)
-	 return 0;
+	 return QoreValue();
    }
 
    return h.release();
@@ -385,7 +391,7 @@ hash hash() [flags=CONSTANT] {
 }
 
 //! Returns a string giving the data type of the argument passed; see @ref string_type_constants for the values returned by this function
-/** 
+/**
     @param arg the argument to check
 
     @return a string giving the data type of the argument passed; see @ref string_type_constants for the values returned by this function
@@ -402,11 +408,11 @@ my string $type = type($v);
     @see pseudo-method <value>::typeCode()
 */
 string type(any arg) [flags=CONSTANT] {
-   return new QoreStringNode(arg ? arg->getTypeName() : "nothing");
+   return new QoreStringNode(arg.getTypeName());
 }
 
 //! Returns a string giving the data type of the argument passed; see @ref string_type_constants for the values returned by this function
-/** 
+/**
     @param arg the argument to check
 
     @return a string giving the data type of the argument passed; see @ref string_type_constants for the values returned by this function
@@ -421,11 +427,11 @@ my string $type = typename($v);
     - It is faster and more efficient to use <value>::typeCode() for comparing data types
 */
 string typename(any arg) [flags=CONSTANT] {
-   return new QoreStringNode(arg ? arg->getTypeName() : "nothing");
+   return new QoreStringNode(arg.getTypeName());
 }
 
 //! Returns a string created from the binary data passed, taking an optional second argument giving the string encoding; if no second argument is passed then the @ref default_encoding "default character encoding" is assumed
-/** 
+/**
     @param b the binary object to convert directly to a string
     @param encoding the character encoding tag for the string return value; if not present, the @ref default_encoding "default character encoding" is assumed
 
@@ -440,6 +446,6 @@ string binary_to_string(binary b, *string encoding) [flags=CONSTANT] {
    const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
    if (!b->size())
       return new QoreStringNode(qe);
-   return new QoreStringNode((const char *)b->getPtr(), b->size(), qe);
+   return new QoreStringNode((const char*)b->getPtr(), b->size(), qe);
 }
 //@}
