@@ -231,7 +231,7 @@ add_custom_target(BISON_GENERATED_FILES DEPENDS ${BISON_qoreparser_OUTPUTS})
 add_custom_target(FLEX_GENERATED_FILES DEPENDS ${FLEX_qorescanner_OUTPUTS})
 
 set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH true)
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 add_library(libqore SHARED ${LIBQORE_CPP_SRC} ${LIBQORE_ASM_SRC})
 add_dependencies(QPP_GENERATED_FILES qpp)
@@ -249,6 +249,8 @@ add_executable(qore ${QORE_CPP_SRC})
 target_link_libraries(qore libqore)
 add_executable(qr ${QR_CPP_SRC})
 target_link_libraries(qr libqore)
+
+set_target_properties(qore qr PROPERTIES INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
 
 configure_file(${CMAKE_SOURCE_DIR}/cmake/unix-config.h.cmake
                ${CMAKE_BINARY_DIR}/include/qore/intern/unix-config.h)
