@@ -5,9 +5,24 @@
 %enable-all-warnings
 %new-style
 
-%requires UnitTest
+%requires ../../../../qlib/QUnit.qm
 
-my UnitTest unit();
+%exec-class BackquoteTest
 
-if (PlatformOS != "Windows")
-   unit.cmp(`/bin/echo -n 1`, "1", "backquote");
+class BackquoteTest inherits QUnit::Test {
+    constructor() : QUnit::Test("Backquote test", "1.0") {
+        addTestCase("Backquote test", \testBackquote());
+        set_return_value(main());
+    }
+
+    testBackquote() {
+        if (PlatformOS == "Windows")
+            testSkip("skipping because the test is being run on Windows");
+
+        assertEq("1", `/bin/echo -n 1`, "backquotes 1");
+        assertEq("Qore is great!", `/bin/echo -n "Qore is great!"`, "backquotes 2");
+        assertEq("Qore is great!", `/bin/echo -n Qore is great!`, "backquotes 3");
+        assertEq("1", backquote("/bin/echo -n 1"), "backquote function");
+    }
+}
+
