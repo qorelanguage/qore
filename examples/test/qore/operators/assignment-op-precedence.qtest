@@ -10,7 +10,7 @@
 %exec-class Test
 
 class Test inherits QUnit::Test {
-    constructor() : QUnit::Test("assignment-op-precedence.qtest", "1.0", \ARGV) {
+    constructor() : QUnit::Test("assignment operator precedence", "1.0", \ARGV) {
         addTestCase("basic case", \basicCase());
         set_return_value(main());
     }
