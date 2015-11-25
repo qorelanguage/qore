@@ -10,7 +10,7 @@
 class Bzip2Test inherits QUnit::Test {
     private {
         const uncompressed_string = "This is a long string xxxxxxxxxxxxxxxxxxxxxxxxxxxx";
-        const compressed_string_base64 = "QlpoOTFBWSZTWVOcyk4AAAMzgABAQAAEACDlnEAgACGo0yA/ShAAAYqyprq0Y5c8OFI7R8XckU4UJBTnMpOA";
+        const compressed_string_base64 = "QlpoMzFBWSZTWVOcyk4AAAMzgABAQAAEACDlnEAgACGo0yA/ShAAAYqyprq0Y5c8OFI7R8XckU4UJBTnMpOA";
 
         binary compressed;
         binary uncompressed;

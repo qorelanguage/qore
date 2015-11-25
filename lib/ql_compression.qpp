@@ -623,10 +623,10 @@ BinaryNode* qore_gunzip_to_binary(const BinaryNode* bin, ExceptionSink* xsink) {
 /** @defgroup compression_constants Compression Constants
  */
 //@{
-//! gives the default compression level for the compress() and gzip() functions, providing a tradeoff between compression speed and compression size
+//! gives the default compression level for the compress() and gzip() functions, providing a trade-off between compression speed and compression size
 const Z_DEFAULT_COMPRESSION = Z_DEFAULT_COMPRESSION;
 
-//! gives the default compression level for the bzip2() function, providing maximum compression (value: \c 9)
+//! gives the default compression level for the bzip2() function, providing a trade-off between compression speed and compression size (value: \c 3)
 const BZ2_DEFAULT_COMPRESSION = BZ2_DEFAULT_COMPRESSION;
 //@}
 
