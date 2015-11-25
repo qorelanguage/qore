@@ -2647,7 +2647,7 @@
 
 	* doxygen/lang/900_release_notes.dox.tmpl, examples/sqlutil,
 	  qlib/HttpServer.qm, qlib/SqlUtil.qm, qlib/WebSocketClient.qm:
-	  added initial support to SqlUtil for supressing triggers, foreign
+	  added initial support to SqlUtil for suppressing triggers, foreign
 	  constraints, and indexes when aligning and creating tables
 	  added initial (non-functional) support to the WebSocketClient
 	  module for connecting to a web socket server through a proxy
@@ -6435,7 +6435,7 @@
 2012-12-19 10:13  david_nichols
 
 	* include/qore/Qore.h, lib/QoreLib.cpp, lib/qore-main.cpp: added
-	  new library options for supressing openssl library initialization
+	  new library options for suppressing openssl library initialization
 	  and cleanup so that these actions can be performed externally or
 	  even by modules (in the case of openssl library cleanup) - in the
 	  last case to avoid a core dump on shutdown in case EVP_cleanup()
@@ -16482,7 +16482,7 @@
 
 2010-05-27 13:59  david_nichols
 
-	* examples/stmt.q: update to supress unreachable-code warning
+	* examples/stmt.q: update to suppress unreachable-code warning
 
 2010-05-27 13:47  david_nichols
 
@@ -17270,7 +17270,7 @@
 2010-04-21 10:40  david_nichols
 
 	* include/qore/intern/QoreTimeZoneManager.h,
-	  lib/CallReferenceNode.cpp: supressed debugging output, plugged
+	  lib/CallReferenceNode.cpp: suppressed debugging output, plugged
 	  memory leak created a few patches ago
 
 2010-04-21 09:12  david_nichols
@@ -21131,7 +21131,7 @@
 2009-09-30 11:32  david_nichols
 
 	* configure.ac: move NDEBUG definition to library CPP flags to
-	  supress assert()s in header files for non-debugging builds
+	  suppress assert()s in header files for non-debugging builds
 
 2009-09-30 10:58  david_nichols
 

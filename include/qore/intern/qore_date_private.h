@@ -191,7 +191,7 @@ struct qore_date_info {
       // or greater than the number of seconds in 4 regular years
       ly = epoch < SECS_AFTER_LD || epoch >= (SECS_PER_YEAR * 4);
 
-      //printd(5, "qore_date_info::get_epoch_year() after 4: epoch: %d (%d from %d) year base: %d (ily=%d)\n", epoch, d, SECS_IN_4_YEARS, mult * 400 + 2000 + yo, ly);
+      //printd(5, "qore_date_info::get_epoch_year() after 4: epoch: %d (%d from %d) year base: %d (ily: %d)\n", epoch, d, SECS_IN_4_YEARS, mult * 400 + 2000 + yo, ly);
 
       // get the number of 1-year periods
       d = epoch / SECS_PER_YEAR;
@@ -263,7 +263,7 @@ struct qore_date_info {
 
    // assumes UTC, returns seconds from 1970-01-01Z
    DLLLOCAL static int64 getEpochSeconds(int year, int month, int day) {
-      //printd(5, "qore_date_info::getEpochSeconds(year=%d, month=%d, day=%d) leap days from epoch: %d\n", year, month, day, leap_days_from_epoch(year, month));
+      //printd(5, "qore_date_info::getEpochSeconds(year: %d, month: %d, day: %d) leap days from epoch: %d\n", year, month, day, leap_days_from_epoch(year, month));
       if (month < 1)
          month = 1;
       else if (month > 12)
@@ -274,7 +274,7 @@ struct qore_date_info {
       // calculate seconds
       int64 epoch = (year - 1970) * SECS_PER_YEAR + (positive_months[month - 1] + day - 1 + leap_days_from_epoch(year, month)) * SECS_PER_DAY;
 
-      //printd(5, "qore_date_info::getEpochSeconds(year=%d, month=%d, day=%d) epoch=%lld (leap days from epoch=%d)\n", year, month, day, epoch, leap_days_from_epoch(year, month));
+      //printd(5, "qore_date_info::getEpochSeconds(year: %d, month: %d, day: %d) epoch: %lld (leap days from epoch: %d)\n", year, month, day, epoch, leap_days_from_epoch(year, month));
       return epoch;
    }
 
@@ -347,10 +347,10 @@ public:
       // leap year flag
       bool ly;
 
-      //printf("qore_simple_tm::set(seconds=%lld, my_us=%d)\n", seconds, my_us);
+      //printf("qore_simple_tm::set(seconds: %lld, my_us: %d)\n", seconds, my_us);
       qore_date_info::get_epoch_year(seconds, year, ly);
 
-      //printf("qore_simple_tm::set() seconds=%lld year=%d (day=%lld, new secs=%lld)\n", seconds, year, seconds / 86400, seconds % 86400);
+      //printf("qore_simple_tm::set() seconds: %lld year: %d (day: %lld, new secs: %lld)\n", seconds, year, seconds / 86400, seconds % 86400);
 
       day = (int)(seconds / SECS_PER_DAY);
       seconds %= SECS_PER_DAY;
@@ -394,7 +394,7 @@ struct qore_time_info : public qore_simple_tm {
       utcoffset = n_utcoffset;
       isdst = n_isdst;
       zone = n_zone;
-      //printf("qore_time_info::set(epoch=%lld n_us=%d n_utcoffset=%d n_isdst=%d, n_zname=%s, n_zone=%p)\n", epoch, n_us, n_utcoffset, n_isdst, n_zname, n_zone);
+      //printf("qore_time_info::set(epoch: %lld n_us: %d n_utcoffset: %d n_isdst: %d, n_zname: %s, n_zone: %p)\n", epoch, n_us, n_utcoffset, n_isdst, n_zname, n_zone);
       qore_simple_tm::set(epoch + utcoffset, n_us);
    }
 
@@ -440,7 +440,7 @@ struct qore_simple_tm2 : public qore_simple_tm {
       set(secs, my_us);
    }
    DLLLOCAL void setLiteral(int64 date, int usecs) {
-      //printd(5, "qore_simple_tm2::setLiteral(date=%lld, usecs=%d)\n", date, usecs);
+      //printd(5, "qore_simple_tm2::setLiteral(date: %lld, usecs: %d)\n", date, usecs);
 
       year = (int)(date / 10000000000ll);
       date -= year*  10000000000ll;
@@ -497,14 +497,17 @@ protected:
       // get standard time UTC offset
       int off = zone->getUTCOffset();
 
-      //printd(5, "qore_absolute_time::setLocalIntern() epoch: %lld -> %lld (%d)\n", epoch, epoch + off, off);
+      printd(5, "qore_absolute_time::setLocalIntern() epoch: %lld -> %lld (std off: %d)\n", epoch, epoch - off, off);
       epoch -= off;
 
       // now get actual UTC offset
       int aoff = zone->getUTCOffset(epoch);
-      //printd(5, "qore_absolute_time::setLocalIntern() epoch: %lld -> %lld (aoff=%d diff=%d)\n", epoch, epoch + aoff - off, aoff, aoff - off);
-      if (aoff != off)
+      if (aoff != off) {
+         printd(5, "qore_absolute_time::setLocalIntern() epoch: %lld -> %lld (aoff: %d diff: %d)\n", epoch, epoch - (aoff - off), aoff, aoff - off);
          epoch -= (aoff - off);
+      }
+
+      printd(5, "qore_absolute_time::setLocalIntern() epoch: %lld zone: %s\n", epoch, zone->getRegionName());
    }
 
    DLLLOCAL void setTM(qore_simple_tm2& tm, struct tm& tms, bool dst = false) const {
@@ -553,7 +556,7 @@ public:
 
       setLocalIntern(n_us);
 
-      //printd(5, "qore_absolute_time::set(zone=%p (%s) %04d-%02d-%02d %02d:%02d:%02d.%06d) epoch=%lld\n", zone, zone->getRegionName(), year, month, day, hour, minute, second, n_us, epoch);
+      //printd(5, "qore_absolute_time::set(zone: %p (%s) %04d-%02d-%02d %02d:%02d:%02d.%06d) epoch: %lld\n", zone, zone->getRegionName(), year, month, day, hour, minute, second, n_us, epoch);
    }
 
    DLLLOCAL void set(const qore_absolute_time& p) {
@@ -570,7 +573,7 @@ public:
 
    DLLLOCAL void setTime(int h, int m, int s, int usecs) {
       qore_simple_tm2 tm(epoch + zone->getUTCOffset(epoch), us);
-      //printd(5, "qore_absolute_time::setTime(h=%d, m=%d, s=%d, usecs=%d) %04d-%02d-%02d\n", h, m, s, usecs, tm.year, tm.month, tm.day);
+      //printd(5, "qore_absolute_time::setTime(h: %d, m: %d, s: %d, usecs: %d) %04d-%02d-%02d\n", h, m, s, usecs, tm.year, tm.month, tm.day);
 
       normalize_units2<int, int>(s, usecs, 1000000);
       normalize_units2<int, int>(m, s, 60);
@@ -595,7 +598,7 @@ public:
 
       // set local time from date
       epoch = qore_date_info::getEpochSeconds(tm.year, tm.month, tm.day, tm.hour, tm.minute, tm.second);
-      //printd(5, "qore_absolute_date::setLiteral(date=%lld, usecs=%d) epoch=%lld %04d-%02d-%02d %02d:%02d:%02d\n", date, usecs, epoch, tm.year, tm.month, tm.day, tm.hour, tm.minute, tm.second);
+      //printd(5, "qore_absolute_date::setLiteral(date: %lld, usecs: %d) epoch: %lld %04d-%02d-%02d %02d:%02d:%02d\n", date, usecs, epoch, tm.year, tm.month, tm.day, tm.hour, tm.minute, tm.second);
       setLocalIntern(usecs);
    }
 
@@ -619,7 +622,7 @@ public:
       const char* zname;
       bool isdst;
       int offset = zone->getUTCOffset(epoch, isdst, zname);
-      //printf("qore_absolute_time::get() epoch=%lld UTC offset=%d isdst=%d zname=%s\n", epoch, offset, isdst, zname);
+      //printf("qore_absolute_time::get() epoch: %lld UTC offset: %d isdst: %d zname: %s\n", epoch, offset, isdst, zname);
       info.set(epoch, us, offset, isdst, zname, zone);
    }
 
@@ -770,7 +773,7 @@ class qore_relative_time : public qore_simple_tm {
    friend class qore_absolute_time;
 protected:
    DLLLOCAL void normalize() {
-      //printd(5, "DT:cD() sec=%lld ms=%d\n", sec, ms);
+      //printd(5, "DT:cD() sec: %lld ms: %d\n", sec, ms);
 
       // normalize years from months
       normalize_units<int, int>(year, month, 12);

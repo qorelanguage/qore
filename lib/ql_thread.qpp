@@ -34,6 +34,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/ql_thread.h>
 #include <qore/intern/qore_program_private.h>
+#include <qore/intern/QC_AbstractThreadResource.h>
 
 #include <pthread.h>
 #include <qore/intern/QC_TimeZone.h>
@@ -388,8 +389,13 @@ hash get_all_thread_call_stacks() [dom=THREAD_CONTROL,THREAD_INFO] {
     When exceptions are thrown by this function, thread-local resources are also cleaned up at the same time.
 
     @see
+    - thread_resources
     - mark_thread_resources()
+    - remove_thread_resource()
+    - set_thread_resource()
+    - throw_thread_resource_exceptions()
     - throw_thread_resource_exceptions_to_mark()
+    - @ref Qore::Thread::AbstractThreadResource "AbstractThreadResource"
 
     @deprecated use throw_thread_resource_exceptions(); camel-case function names were deprecated in %Qore 0.8.12
 */
@@ -414,9 +420,15 @@ catch ($ex) {
 }
     @endcode
 
+    @note may not throw an exception even if there are thread resources in place that get cleaned up in case the @ref Qore::Thread::AbstractThreadResource::cleanup() method performs the cleanup but does not throw an exception
+
     @see
+    - thread_resources
     - mark_thread_resources()
+    - remove_thread_resource()
+    - set_thread_resource()
     - throw_thread_resource_exceptions_to_mark()
+    - @ref Qore::Thread::AbstractThreadResource "AbstractThreadResource"
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case throwThreadResourceExceptions()
 */
@@ -446,9 +458,15 @@ catch ($ex) {
 }
     @endcode
 
+    @note may not throw an exception even if there are thread resources in place that get cleaned up in case the @ref Qore::Thread::AbstractThreadResource::cleanup() method performs the cleanup but does not throw an exception
+
     @see
-    - throw_thread_resource_exceptions()
+    - thread_resources
     - mark_thread_resources()
+    - remove_thread_resource()
+    - set_thread_resource()
+    - throw_thread_resource_exceptions()
+    - @ref Qore::Thread::AbstractThreadResource "AbstractThreadResource"
 
     @since %Qore 0.8.4
  */
@@ -478,8 +496,12 @@ catch ($ex) {
     @endcode
 
     @see
+    - thread_resources
+    - remove_thread_resource()
+    - set_thread_resource()
     - throw_thread_resource_exceptions()
-    - mark_thread_resources()
+    - throw_thread_resource_exceptions_to_mark()
+    - @ref Qore::Thread::AbstractThreadResource "AbstractThreadResource"
 
     @since %Qore 0.8.4
  */
@@ -570,5 +592,53 @@ on_exit set_thread_tz($tz);
    if (!set)
       return QoreValue();
    return new QoreObject(QC_TIMEZONE, 0, new TimeZoneData(tz));
+}
+
+//! sets a thread resource for the current thread
+/** @par Example:
+    @code
+set_thread_resource($obj);
+    @endcode
+
+    @param resource the thread resource to set
+
+    @see
+    - thread_resources
+    - mark_thread_resources()
+    - remove_thread_resource()
+    - throw_thread_resource_exceptions()
+    - throw_thread_resource_exceptions_to_mark()
+    - @ref Qore::Thread::AbstractThreadResource "AbstractThreadResource"
+
+    @since %Qore 0.8.12
+ */
+nothing set_thread_resource(AbstractThreadResource[AbstractQoreThreadResource] resource) [dom=THREAD_CONTROL] {
+   ReferenceHolder<AbstractQoreThreadResource> holder(resource, xsink);
+   set_thread_resource(resource);
+}
+
+//! removes a thread resource from the current thread
+/** @par Example:
+    @code
+remove_thread_resource($obj);
+    @endcode
+
+    @param resource the thread resource to remove
+
+    @return True if the resource was removed, False if not
+
+    @see
+    - thread_resources
+    - mark_thread_resources()
+    - set_thread_resource()
+    - throw_thread_resource_exceptions()
+    - throw_thread_resource_exceptions_to_mark()
+    - @ref Qore::Thread::AbstractThreadResource "AbstractThreadResource"
+
+    @since %Qore 0.8.12
+ */
+bool remove_thread_resource(AbstractThreadResource[AbstractQoreThreadResource] resource) [dom=THREAD_CONTROL] {
+   ReferenceHolder<AbstractQoreThreadResource> holder(resource, xsink);
+   return remove_thread_resource(resource) ? false : true;
 }
 //@}

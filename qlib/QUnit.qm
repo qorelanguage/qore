@@ -305,8 +305,13 @@ public class QUnit::TestResultExceptionSubstring inherits QUnit::TestResultExcep
 #! Class containing the configuration for a test case
 public class QUnit::TestCase {
     private {
+        #! the name of the test case
         string m_name;
+
+        #! the body of the test case
         code m_code;
+
+        #! arguments to the above callable object
         *list m_args;
 
         #! number of assertions in current test case
@@ -316,12 +321,14 @@ public class QUnit::TestCase {
         int num_asserts_ok = 0;
     }
 
+    #! creates the TestCase object from the given arguments
     constructor(string name, code code, *softlist args) {
         m_name = name;
         m_code = code;
         m_args = args;
     }
 
+    #! runs the TestCase
     run(QUnit::Test test) {
         # Attempt to run the test function
         try {
@@ -337,39 +344,45 @@ public class QUnit::TestCase {
             test.addTestResult(self, TestReporter::TEST_SUCCESS);
         }
         catch (hash e) {
-            hash loc = e.callstack[0];
-            if (e.err =~ /TEST-.*EXCEPTION/) {
-                *string assertion_name = e.arg.name;
-                *string pos = e.arg.pos;
-                if (e.err == "TEST-SKIPPED-EXCEPTION") {
-                    if (!pos)
-                        pos = get_ex_pos(e);
-                    string txt = sprintf("Skip %srequested", assertion_name ? sprintf("of %y ", assertion_name) : NOTHING);
-                    test.addTestResult(self, TestReporter::TEST_SKIPPED, "Skip requested", pos, e.desc);
-                } else if (e.err == "TEST-EXCEPTION") {
-                    if (!pos) {
-                        pos = get_ex_pos(e);
-                        if (pos =~ /QUnit\.qm/) {
-                            foreach hash callSite in (e.callstack) {
-                                if (!(e.file =~ /QUNIT\.qm/)) {
-                                    pos = sprintf("%s:%d", callSite.file, callSite.line + callSite.offset);
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    string txt = sprintf("Assertion %sfailure", assertion_name ? sprintf("%y ", assertion_name) : NOTHING);
-                    test.addTestResult(self, TestReporter::TEST_FAILURE, txt, pos, e.desc);
-                }
-            } else {
-                # show little higher traceback record in this case
-                string pos = get_ex_pos(e);
-                string errtxt = sprintf("Unexpected exception: %s", e.err);
-                test.addTestResult(self, TestReporter::TEST_ERROR, errtxt, pos, get_exception_string(e));
-            }
+            checkException(test, e);
         }
     }
 
+    #! handles exceptions raised while running the TestCase
+    checkException(QUnit::Test test, hash e) {
+        hash loc = e.callstack[0];
+        if (e.err =~ /TEST-.*EXCEPTION/) {
+            *string assertion_name = e.arg.name;
+            *string pos = e.arg.pos;
+            if (e.err == "TEST-SKIPPED-EXCEPTION") {
+                if (!pos)
+                    pos = get_ex_pos(e);
+                string txt = sprintf("Skip %srequested", assertion_name ? sprintf("of %y ", assertion_name) : NOTHING);
+                test.addTestResult(self, TestReporter::TEST_SKIPPED, "Skip requested", pos, e.desc);
+            } else if (e.err == "TEST-EXCEPTION") {
+                if (!pos) {
+                    pos = get_ex_pos(e);
+                    if (pos =~ /QUnit\.qm/) {
+                        foreach hash callSite in (e.callstack) {
+                            if (!(e.file =~ /QUNIT\.qm/)) {
+                                pos = sprintf("%s:%d", callSite.file, callSite.line + callSite.offset);
+                                break;
+                            }
+                        }
+                    }
+                }
+                string txt = sprintf("Assertion %sfailure", assertion_name ? sprintf("%y ", assertion_name) : NOTHING);
+                test.addTestResult(self, TestReporter::TEST_FAILURE, txt, pos, e.desc);
+            }
+        } else {
+            # show little higher traceback record in this case
+            string pos = get_ex_pos(e);
+            string errtxt = sprintf("Unexpected exception: %s", e.err);
+            test.addTestResult(self, TestReporter::TEST_ERROR, errtxt, pos, get_exception_string(e));
+            }
+    }
+
+    #! returns the test case name
     string getName() {
         return m_name;
     }
@@ -396,6 +409,11 @@ public class QUnit::TestCase {
 
     restoreThread() {
         remove_thread_data("tc");
+    }
+
+    #! renames the test case
+    rename(string n_name) {
+        m_name = n_name;
     }
 }
 
@@ -460,17 +478,24 @@ public class QUnit::TestReporter {
         const TEST_SKIPPED = 3;
     }
 
-    private usageIntern() {
-        printf("usage: %s [options]
- -h,--help         this help text
-    --format=type  output format [default: plainquiet]
-        Format descriptions:
-            plainquiet ... only print failed tests and a summary at the end
-            plain      ... print a status for each test performed
-            junit      ... print a junit xml output
- -v,--verbose      shorthand for --format=plain
- -q,--quiet        shorthand for --format=quietplain
-", get_script_name());
+    private printOption(string left, string right, int offset) {
+        printf(" %s", left);
+        int blanks = offset - left.size();
+        if (blanks > 0)
+            print(strmul(" ", blanks));
+        printf("%s\n", right);
+    }
+
+    private usageIntern(int offset = 19) {
+        printf("usage: %s [options]\n", get_script_name());
+        printOption("-h,--help", "this help text", offset);
+        printOption("   --format=type", "output format [default: plainquiet]", offset);
+        print("        Format descriptions:
+           plainquiet  only print failed tests and a summary at the end
+           plain       print a status for each test performed
+           junit       print a junit xml output\n");
+        printOption("-v,--verbose", "shorthand for --format=plain", offset);
+        printOption("-q,--quiet", "shorthand for --format=quietplain", offset);
     }
 
     private usage() {
@@ -1026,7 +1051,7 @@ assertEq(5, functionThatShouldReturnFive());
                 result = new QUnit::TestResultFailure(e.desc);
             } else {
                 pos = get_ex_pos(e);
-                result = new QUnit::TestResultExceptionDetail(e.err, e.desc);
+                result = exists e.desc ? new QUnit::TestResultExceptionDetail(e.err, e.desc) : new QUnit::TestResultExceptionType(e.err);
                 ret = e;
             }
         }
@@ -1133,7 +1158,17 @@ assertEq(5, functionThatShouldReturnFive());
 
         printHeader();
 
-        globalSetUp();
+        # create initialization / shutdown test case
+        TestCase gtc("globalSetUp", sub () {});
+        gtc.setupThread();
+        on_exit gtc.restoreThread();
+
+        try {
+            globalSetUp();
+        }
+        catch (hash ex) {
+            gtc.checkException(self, ex);
+        }
 
         foreach TestCase tc in (testCases) {
             code tinit = sub () {tc.setupThread();};
@@ -1143,7 +1178,13 @@ assertEq(5, functionThatShouldReturnFive());
             tc.run(self);
         }
 
-        globalTearDown();
+        try {
+            gtc.rename("globalTearDown");
+            globalTearDown();
+        }
+        catch (hash ex) {
+            gtc.checkException(self, ex);
+        }
 
         printSummary();
         return errors();
