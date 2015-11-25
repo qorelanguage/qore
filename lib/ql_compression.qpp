@@ -49,7 +49,7 @@
 #endif
 
 #ifndef BZ2_DEFAULT_COMPRESSION
-#define BZ2_DEFAULT_COMPRESSION 9
+#define BZ2_DEFAULT_COMPRESSION 3
 #endif
 
 class qore_bz_stream : public bz_stream {
