@@ -105,6 +105,8 @@ class ThreadResourcesTest inherits QUnit::Test {
 
         # set a thread resource and then delete the object in a background thread
         set_thread_resource(trs);
+        # set it twice and make sure it's ignored
+        set_thread_resource(trs);
         Counter cnt(1);
         code del = sub () {
             delete trs;
@@ -112,7 +114,13 @@ class ThreadResourcesTest inherits QUnit::Test {
         };
         background del();
         cnt.waitForZero();
-        testNullAssertion("no-exception-2", \throw_thread_resource_exceptions());
+        testAssertion("no-exception-3", \throw_thread_resource_exceptions(), NOTHING, new TestResultExceptionType("OBJECT-ALREADY-DELETED"));
+
+        int i = 0;
+        code inc = sub () {++i;};
+        set_thread_resource(inc);
+        testNullAssertion("no-exception-4", \throw_thread_resource_exceptions());
+        assertEq(1, i);
     }
 
     threadResourceSandboxingTests() {

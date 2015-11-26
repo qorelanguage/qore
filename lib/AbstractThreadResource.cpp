@@ -1,6 +1,5 @@
-/* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ThreadResourceList.h
+  AbstractThreadResource.cpp
 
   Qore Programming Language
 
@@ -29,48 +28,11 @@
   information.
 */
 
-#ifndef _QORE_THREADRESOURCELIST_H
+#include <qore/Qore.h>
+#include <qore/AbstractThreadResource.h>
 
-#define _QORE_THREADRESOURCELIST_H
+AbstractThreadResource::AbstractThreadResource() {
+}
 
-#include <qore/intern/Sequence.h>
-
-#include <set>
-
-typedef std::set<AbstractThreadResource*> trset_t;
-typedef std::set<ResolvedCallReferenceNode*> crset_t;
-
-class ThreadResourceList {
-private:
-   static Sequence seq;
-   trset_t trset;
-   crset_t crset;
-
-public:
-   ThreadResourceList* prev;
-
-   DLLLOCAL ThreadResourceList(ThreadResourceList* p = 0) : prev(p) {
-   }
-
-   DLLLOCAL ~ThreadResourceList() {
-      assert(trset.empty());
-   }
-
-   DLLLOCAL void set(AbstractThreadResource* atr);
-   DLLLOCAL void set(const ResolvedCallReferenceNode* rcr);
-
-   DLLLOCAL bool check(AbstractThreadResource* atr) const;
-
-   // returns 0 if removed, -1 if not found
-   DLLLOCAL int remove(AbstractThreadResource* atr);
-   // returns 0 if removed, -1 if not found
-   DLLLOCAL int remove(const ResolvedCallReferenceNode* rcr, ExceptionSink* xsink);
-
-   DLLLOCAL void purge(ExceptionSink* xsink);
-
-   DLLLOCAL bool empty() const {
-      return trset.empty();
-   }
-};
-
-#endif
+AbstractThreadResource::~AbstractThreadResource() {
+}

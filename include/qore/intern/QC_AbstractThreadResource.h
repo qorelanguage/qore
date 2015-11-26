@@ -54,7 +54,6 @@ public:
    }
 
    DLLLOCAL virtual void cleanup(ExceptionSink* xsink) {
-
       obj.evalMethodValue("cleanup", 0, xsink).discard(xsink);
    }
 };

@@ -187,6 +187,7 @@ libqore_la_SOURCES = \
 	ConstantList.cpp \
 	QoreClassList.cpp \
 	ThreadResourceList.cpp \
+	AbstractThreadResource.cpp \
 	thread.cpp \
 	VRMutex.cpp \
 	VLock.cpp \
