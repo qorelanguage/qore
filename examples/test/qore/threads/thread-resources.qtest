@@ -114,13 +114,18 @@ class ThreadResourcesTest inherits QUnit::Test {
         };
         background del();
         cnt.waitForZero();
-        testAssertion("no-exception-3", \throw_thread_resource_exceptions(), NOTHING, new TestResultExceptionType("OBJECT-ALREADY-DELETED"));
+        testAssertion("exception-1", \throw_thread_resource_exceptions(), NOTHING, new TestResultExceptionType("OBJECT-ALREADY-DELETED"));
 
         int i = 0;
         code inc = sub () {++i;};
         set_thread_resource(inc);
-        testNullAssertion("no-exception-4", \throw_thread_resource_exceptions());
+        testNullAssertion("no-exception-3", \throw_thread_resource_exceptions());
         assertEq(1, i);
+
+        inc = sub (int d) {i += d;};
+        set_thread_resource(inc, 2);
+        testNullAssertion("no-exception-5", \throw_thread_resource_exceptions());
+        assertEq(3, i);
     }
 
     threadResourceSandboxingTests() {

@@ -93,7 +93,7 @@ DLLEXPORT bool check_thread_resource(AbstractThreadResource* atr);
 //! save a callable resource against a thread for thread resource handling
 /** @param rcr a pointer to a callable node for thread resource handling
  */
-DLLEXPORT void set_thread_resource(const ResolvedCallReferenceNode* rcr);
+DLLEXPORT void set_thread_resource(const ResolvedCallReferenceNode* rcr, QoreValue arg);
 
 //! remove the callable resource from the thread resource list for the current thread
 /** @param rcr a pointer to the thread resource to remove

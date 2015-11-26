@@ -645,7 +645,7 @@ bool remove_thread_resource(AbstractThreadResource[AbstractQoreThreadResource] r
 //! sets a callable thread resource for the current thread
 /** @par Example:
     @code
-set_thread_resource(\func());
+set_thread_resource(\func(), code);
     @endcode
 
     @param resource the callable thread resource to set
@@ -660,8 +660,8 @@ set_thread_resource(\func());
 
     @since %Qore 0.8.12
  */
-nothing set_thread_resource(code resource) [dom=THREAD_CONTROL] {
-   set_thread_resource(resource);
+nothing set_thread_resource(code resource, any arg) [dom=THREAD_CONTROL] {
+   set_thread_resource(resource, arg);
 }
 
 //! removes a callable thread resource from the current thread

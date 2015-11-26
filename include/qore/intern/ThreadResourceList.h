@@ -36,15 +36,16 @@
 #include <qore/intern/Sequence.h>
 
 #include <set>
+#include <map>
 
 typedef std::set<AbstractThreadResource*> trset_t;
-typedef std::set<ResolvedCallReferenceNode*> crset_t;
+typedef std::map<ResolvedCallReferenceNode*, AbstractQoreNode*> crmap_t;
 
 class ThreadResourceList {
 private:
    static Sequence seq;
    trset_t trset;
-   crset_t crset;
+   crmap_t crmap;
 
 public:
    ThreadResourceList* prev;
@@ -57,7 +58,7 @@ public:
    }
 
    DLLLOCAL void set(AbstractThreadResource* atr);
-   DLLLOCAL void set(const ResolvedCallReferenceNode* rcr);
+   DLLLOCAL void set(const ResolvedCallReferenceNode* rcr, QoreValue arg);
 
    DLLLOCAL bool check(AbstractThreadResource* atr) const;
 
