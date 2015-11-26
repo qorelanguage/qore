@@ -156,7 +156,7 @@ list: (2 elements)
     - \c "allow_dot": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then field names with \c "." characters do not imply a structured internal element lookup; in this case input field names may have \c "." characters in them, use the \c "struct" key to use structured internal element loopups (see @ref mapperkeys \c "struct" docs for more info)
     - \c "allow_output_dot": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then output field names with \c "." characters do not imply a structured/hash output element; in this case output field names may have \c "." characters in them
     - \c "date_format": gives the global format for converting a string to a date; see @ref date_formatting for the format of this string; this is applied to all fields of type \c "date" unless the field has a \c "date_format" value that overrides this global setting
-    - \c "enc": the output character encoding; if not present then \c "UTF-8" is assumed
+    - \c "encoding": the output character encoding; if not present then \c "UTF-8" is assumed
     - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-style arguments
     - \c "input": an optional hash describing the input records where each key is a possible input field name (where dot notation indicates a multi-level hash) and each value is a hash describing the field with the following optional keys:
       - \c "desc": this gives the description of the input field
@@ -213,7 +213,7 @@ public namespace Mapper {
             #! constructor option keys (can be extended by subclassing and reimplementing optionKeys())
             const OptionKeys = (
                 "date_format": "gives the default format for parsing dates from strings; ex: \"MM/DD/YYYY HH:mm:SS\"",
-                "enc": "gives the default output character encoding for string fields",
+                "encoding": "gives the default output character encoding for string fields",
                 "info_log": "a call reference / closure for informational logging",
                 "input": "a hash describing the input record",
                 "input_log": "a call reference / closure for input record logging",
@@ -265,7 +265,7 @@ public namespace Mapper {
             hash mapc;
 
             #! the output character encoding; if not given then the output encoding is assumed to be UTF-8
-            string enc = "utf-8";
+            string encoding = "utf-8";
 
             #! the optional name for the object (for example a table name); will be prepended to field names in error messages
             *string name;
@@ -398,8 +398,8 @@ Mapper mapv(DataMap);
                     error("unknown option key %y passed to %s::constructor(); recognized option keys: %y", getFieldName(k), self.className(), ck.keys());
             }
 
-            if (opts.enc)
-                enc = opts.enc;
+            if (opts.encoding)
+                encoding = opts.encoding;
 
             if (opts.allow_dot)
                 allow_dot = parse_boolean(opts.allow_dot);
@@ -746,7 +746,7 @@ Mapper mapv(DataMap);
                     if (m.trunc) {
                         if (info_log)
                             info_log("field %y = %y input length %d truncating to %d bytes", getFieldName(key), v, v.size(), m.maxlen);
-                        v = trunc_str(v, m.maxlen, enc);
+                        v = trunc_str(v, m.maxlen, encoding);
                     }
                     else
                         error2("STRING-TOO-LONG", "field %y = %y, input length %d exceeds maximum byte length %d for input row: %y", getFieldName(key), v, strlen(v), m.maxlen, rec);
@@ -875,7 +875,7 @@ Mapper mapv(DataMap);
                 }
                 case "string": {
                     if (v.typeCode() != NT_STRING)
-                        v = string(v, enc);
+                        v = string(v, encoding);
                     break;
                 }
             }
