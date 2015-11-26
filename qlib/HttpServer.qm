@@ -1360,7 +1360,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         else {
             # find a handler for the request
             *HandlerInfo hi;
-            int score;
+            int score = 0;
             if (!listener.handlers.empty()) {
                 hi = listener.handlers.findHandler(hdr, \score, True);
                 if (!hi) {
@@ -1870,7 +1870,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                 call_function(stopc, name);
             }
             catch (hash ex) {
-                serv.logError("%y (%s): error calling stop notification closure: %s: %s", name, socket_info.desc, ex.err, ex.desc);
+                serv.logError("%y (%s): error calling stop notification closure: %s: %s: %s", name, socket_info.desc, get_ex_pos(ex), ex.err, ex.desc);
             }
         }
     }
