@@ -113,6 +113,7 @@
 #include "ConstantList.cpp"
 #include "QoreClassList.cpp"
 #include "thread.cpp"
+#include "AbstractThreadResource.cpp"
 #include "ThreadResourceList.cpp"
 #include "VRMutex.cpp"
 #include "VLock.cpp"

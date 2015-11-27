@@ -50,9 +50,11 @@
  */
 class AbstractThreadResource : public AbstractPrivateData {
 public:
+   //! the constructor is currently empty
+   DLLEXPORT AbstractThreadResource();
+
    //! virtual destructor
-   DLLEXPORT virtual ~AbstractThreadResource() {
-   }
+   DLLEXPORT virtual ~AbstractThreadResource();
 
    //! this function is called when a thread terminates and a thread resource is still allocated to the thread
    virtual void cleanup(ExceptionSink* xsink) = 0;
