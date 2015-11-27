@@ -8,6 +8,7 @@
 %enable-all-warnings
 
 %requires ../../../../qlib/SqlUtil.qm
+%requires ../../../../qlib/Mapper.qm
 %requires ../../../../qlib/TableMapper.qm
 
 #%exec-class Main
@@ -52,7 +53,7 @@ class FakeSQLStatement inherits Qore::AbstractIterator {
         m_ix++;
         return ret;
     }
-    
+
     any fetchRows() {
         return OUTPUT;
     }
@@ -168,7 +169,7 @@ class Main inherits QUnit::DependencyInjectedTest {
             i++;
         }
     }
-    
+
     private testHashRows() {
         SqlStatementOutboundMapper m(new FakeAbstractTable(), SELECT_HASH, MAPV);
         *list l;

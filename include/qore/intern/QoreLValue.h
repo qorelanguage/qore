@@ -144,9 +144,8 @@ public:
          if (type != QV_Int) {
             if (fixed_type)
                return false;
-         }
-         else
             type = QV_Int;
+         }
          assigned = true;
          v.i = 0;
          return true;
@@ -168,9 +167,8 @@ public:
          if (type != QV_Float) {
             if (fixed_type)
                return false;
-         }
-         else
             type = QV_Float;
+         }
          assigned = true;
          v.f = 0.0;
          return true;
@@ -699,7 +697,7 @@ public:
       //printd(5, "QoreLValue::assignAssumeInitial() this: %p n: %s sa: %d\n", this, n.getTypeName(), is_static_assignment);
       if (is_static_assignment)
          static_assignment = true;
-      return assignAssume(n);
+      return n.isNothing() ? 0 : assignAssume(n);
    }
 
    DLLLOCAL void assignInitial(bool n) {
