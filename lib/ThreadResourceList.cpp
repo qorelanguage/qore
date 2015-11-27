@@ -38,10 +38,22 @@ Sequence ThreadResourceList::seq;
 
 void ThreadResourceList::set(AbstractThreadResource* atr) {
    //printd(5, "TRL::set() this: %p atr: %p\n", this, atr);
-   assert(trset.find(atr) == trset.end());
+   // ignore object if already set
+   if (trset.find(atr) != trset.end())
+      return;
 
    atr->ref();
    trset.insert(atr);
+}
+
+void ThreadResourceList::set(const ResolvedCallReferenceNode* rcr, QoreValue arg) {
+   //printd(5, "TRL::set() this: %p rcr: %p\n", this, rcr);
+   // ignore object if already set
+   crmap_t::iterator i = crmap.lower_bound(const_cast<ResolvedCallReferenceNode*>(rcr));
+   if (i != crmap.end() && i->first == rcr)
+      return;
+
+   crmap.insert(i, crmap_t::value_type(rcr->refRefSelf(), arg.getReferencedValue()));
 }
 
 bool ThreadResourceList::check(AbstractThreadResource* atr) const {
@@ -66,13 +78,32 @@ void ThreadResourceList::purge(ExceptionSink* xsink) {
       atr->deref();
    }
 
+   while (true) {
+      crmap_t::iterator i = crmap.begin();
+      if (i == crmap.end())
+	  break;
+
+      ResolvedCallReferenceNode* rcr = i->first;
+      AbstractQoreNode* arg = i->second;
+      //printd(5, "TRL::purge() this: %p cleaning up rcr: %p\n", this, rcr);
+      // we have to remove the thread resource from the list before running cleanup
+      crmap.erase(i);
+
+      ReferenceHolder<QoreListNode> args(xsink);
+      if (arg) {
+         args = new QoreListNode;
+         args->push(arg);
+      }
+
+      rcr->execValue(*args, xsink).discard(xsink);
+      rcr->deref(xsink);
+   }
+
    //printd(5, "TRL::purge() this: %p done\n", this);
 }
 
-void breakit() {}
 int ThreadResourceList::remove(AbstractThreadResource* atr) {
    //printd(5, "TRL::remove() this: %p atr: %p\n", this, atr);
-   breakit();
 
    trset_t::iterator i = trset.find(atr);
    if (i == trset.end())
@@ -80,5 +111,18 @@ int ThreadResourceList::remove(AbstractThreadResource* atr) {
 
    (*i)->deref();
    trset.erase(i);
+   return 0;
+}
+
+int ThreadResourceList::remove(const ResolvedCallReferenceNode* rcr, ExceptionSink* xsink) {
+   //printd(5, "TRL::remove() this: %p rcr: %p\n", this, rcr);
+
+   crmap_t::iterator i = crmap.find(const_cast<ResolvedCallReferenceNode*>(rcr));
+   if (i == crmap.end())
+      return -1;
+
+   i->first->deref(xsink);
+   discard(i->second, xsink);
+   crmap.erase(i);
    return 0;
 }

@@ -641,4 +641,50 @@ bool remove_thread_resource(AbstractThreadResource[AbstractQoreThreadResource] r
    ReferenceHolder<AbstractQoreThreadResource> holder(resource, xsink);
    return remove_thread_resource(resource) ? false : true;
 }
+
+//! sets a callable thread resource for the current thread
+/** @par Example:
+    @code
+set_thread_resource(\func(), code);
+    @endcode
+
+    @param resource the callable thread resource to set
+
+    @see
+    - thread_resources
+    - mark_thread_resources()
+    - remove_thread_resource()
+    - throw_thread_resource_exceptions()
+    - throw_thread_resource_exceptions_to_mark()
+    - @ref Qore::Thread::AbstractThreadResource "AbstractThreadResource"
+
+    @since %Qore 0.8.12
+ */
+nothing set_thread_resource(code resource, any arg) [dom=THREAD_CONTROL] {
+   set_thread_resource(resource, arg);
+}
+
+//! removes a callable thread resource from the current thread
+/** @par Example:
+    @code
+remove_thread_resource(\func());
+    @endcode
+
+    @param resource the callable thread resource to remove
+
+    @return True if the resource was removed, False if not
+
+    @see
+    - thread_resources
+    - mark_thread_resources()
+    - set_thread_resource()
+    - throw_thread_resource_exceptions()
+    - throw_thread_resource_exceptions_to_mark()
+    - @ref Qore::Thread::AbstractThreadResource "AbstractThreadResource"
+
+    @since %Qore 0.8.12
+ */
+bool remove_thread_resource(code resource) [dom=THREAD_CONTROL] {
+   return remove_thread_resource(resource, xsink) ? false : true;
+}
 //@}
