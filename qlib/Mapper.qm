@@ -597,7 +597,7 @@ Mapper mapv(DataMap);
         #! adds constant mappings after the object has been constructed; replaces any existing configuration for the given fields
         /** @param ch a configuration hash in form key - value
 
-        For example, runtime options can be useful in the following cases:
+        For example, constant options can be useful in the following cases:
             - storing one date/time value for all output hashes of the @ref Mapper::Mapper "Mapper"
             - using a value from a database sequence value for the lifetime of the @ref Mapper::Mapper "Mapper" object
             - grouping of the output data
@@ -608,14 +608,14 @@ hash mapv = (
     "foo" : ("constant" : "bar"),
     # ...
     "date_begin" : ("constant" : NOTHING), # a placeholder for "start_date".
-    "group" : ("constant": 0), # references runtime option "group_id"
+    "group" : ("constant": 0),             # provides a constant 0 value for "group_id"
 Mapper m(mapv);
 m.addConstantMapping( ("date_begin" : now()) ); # date_begin will be only
                                                 # one timestamp for object lifetime
-m.mapData(input1); # date_begin was set and group = 0
-m.addConstantMapping("group_id", 1); # runtime group_id changed. From now it will use 1
-m.mapData(input2); # date_begin is still the same as from beginning of processing,
-                   # but group is 1 now
+m.mapData(input1);                   # date_begin was set and group = 0
+m.addConstantMapping("group_id", 1); # constant group_id changed. From now it will use 1
+m.mapData(input2);                   # date_begin is still the same as from beginning of processing,
+                                     # but group is 1 now
         @endcode
          */
         addConstantMapping(hash ch) {
