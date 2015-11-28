@@ -196,12 +196,7 @@ list: (2 elements)
     - implemented the \c "input" option with input record validation
     - implemented the \c "output" option with output record validation
     - implemented the \c "info_log" option and removed the \c "trunc" option
-    - implemented the @ref Mapper::Mapper::addConstantMapping() "Mapper::addConstantMapping()" method
-    - added runtime option handling (@ref mapper_runtime_handling):
-      - \c "runtime" mapper option
-      - @ref Mapper::Mapper::getRuntime()
-      - @ref Mapper::Mapper::replaceRuntime()
-      - @ref Mapper::Mapper::setRuntime()
+    - implemented the @ref Mapper::Mapper::addConstantMapping() "Mapper::addConstantMapping()" methods
 
     @subsection mapperv1_0 Mapper v1.0
     - Initial release
@@ -743,9 +738,6 @@ m.mapData(input2); # date_begin is still the same as from beginning of processin
                 any v;
                 if (exists m.constant)
                     v = m.constant;
-                else if (m.runtime) {
-                    v = m_runtime{m.runtime}; # TODO/FIXME: throw an exception if it does not exist?
-                }
                 else if (m.struct) {
                     # get the value
                     v = rec;
