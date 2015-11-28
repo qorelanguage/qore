@@ -190,6 +190,8 @@
         - HttpServer::setListenerLogOptions()
         - HttpServer::setListenerLogOptionsID()
       - improved performance matching request URIs to handlers
+      - added the HttpServer::listenerStarted() method to allow for reporting when listeners are actually running since they are started asynchronously
+      - added the \c "ssl" key to the listener socket info hash
     - <a href="../../modules/Schema/html/index.html">Schema</a> module updates:
       - added the following public functions to make column definitions easier:
         - c_char()
