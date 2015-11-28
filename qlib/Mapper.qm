@@ -62,7 +62,7 @@ module Mapper {
     @section mapperexamples Mapper Examples
 
     The following is an example map hash with comments:
-    @code
+    @code{.py}
 const DataMap = (
     # output field: "id" mapper from the "Id" element of any "^attributes^" hash in the input record
     "id": "^attributes^.Id",
@@ -78,7 +78,7 @@ const DataMap = (
     @endcode
 
     If this map is applied to the following data in the following way:
-    @code
+    @code{.py}
 const MapInput = ((
     "^attributes^": ("Id": 1),
     "name": "John Smith",
@@ -185,34 +185,34 @@ list: (2 elements)
 
     @section mapper_runtime_handling Mapper Runtime Options
 
-    So called runtime options allow to use special type of values for mappers which
-    is valid for all lines currently processed.
+    Runtime options for @ref Mapper::Mapper "Mapper" objects allow the programmer to use values provided at runtime
+    in the @ref Mapper::Mapper "Mapper" output.
 
-    It can be useful for e.g.:
-        - storing one date/time value for all lines of the mapper
-        - database sequence value for lifetime of the mapper object
-        - grouping of data
+    For example, runtime options can be useful in the following cases:
+        - storing one date/time value for all output hashes of the @ref Mapper::Mapper "Mapper"
+        - using a value from a database sequence value for the lifetime of the @ref Mapper::Mapper "Mapper" object
+        - grouping of the output data
 
     Example:
-    @code
+    @code{.py}
 hash mapv = (
-    "foo" : ("constant" : "bar"),
+    "foo": ("constant": "bar"),
     # ...
-    "date_begin" : ("runtime" : "start_date"), # references runtime option "start_date"
-    "group" : ("runtime" : "group_id"), # references runtime option "group_id"
+    "date_begin": ("runtime": "start_date"), # references runtime option "start_date"
+    "group": ("runtime": "group_id"),        # references runtime option "group_id"
+);
 hash opts = (
-        "timezone" : "Europe/Prague",
-        # ...
-        "runtime" : ( "start_date" : now(), # set runtime option "start_date"
-                      "group_id" : 0, # set runtime option "group_id" to 0
-                    ),
-    );
-Mapper m(mapv, opts); # runtime options are active now
-m.mapData(input1); # output record hash date_begin = start_date = timestamp of the opts creation,
-                   # and group = 0
+    "timezone": "Europe/Prague",
+    # ...
+    "runtime": (
+        "start_date": now_us(), # set runtime option "start_date"
+        "group_id": 0,          # set runtime option "group_id" to 0
+    ),
+);
+Mapper m(mapv, opts);        # runtime options are active now
+m.mapData(input1);           # output record hash date_begin = start_date = timestamp of the opts creation and group = 0
 m.setRuntime("group_id", 1); # runtime group_id changed. From now it will use 1
-m.mapData(input2); # date_begin is still the same as from beginning of processing,
-                   # but group is 1 now
+m.mapData(input2);           # date_begin is still the same as from beginning of processing, but group is 1 now
     @endcode
 
 
@@ -232,6 +232,11 @@ m.mapData(input2); # date_begin is still the same as from beginning of processin
     - implemented the \c "output" option with output record validation
     - implemented the \c "info_log" option and removed the \c "trunc" option
     - implemented the @ref Mapper::Mapper::addConstantMapping() "Mapper::addConstantMapping()" method
+    - added runtime option handling (@ref mapper_runtime_handling):
+      - \c "runtime" mapper option
+      - @ref Mapper::Mapper::getRuntime()
+      - @ref Mapper::Mapper::replaceRuntime()
+      - @ref Mapper::Mapper::setRuntime()
 
     @subsection mapperv1_0 Mapper v1.0
     - Initial release
@@ -260,7 +265,7 @@ public namespace Mapper {
                 "output_log": "a call reference / closure for input record logging",
                 "timezone": "the default output timezone for date/time values",
                 "trunc_all": "if True then all output fields will be truncated to the maximum size if the input value exceeds the allowed width in bytes",
-                "runtime": "gives definitions of runtime options as a hash. See allso setRuntime()",
+                "runtime": "runtime options as a hash (see also setRuntime())",
                 );
 
             #! default known mapper hash field keys (can be extended by subclassing and reimplementing validKeys())
@@ -348,12 +353,14 @@ public namespace Mapper {
             int count = 0;
 
             #! current runtime values
+            /** @since Mapper 1.1
+             */
             *hash m_runtime;
         }
 
         #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
         /** @par Example:
-            @code
+            @code{.py}
 const DataMap = (
     # output field: "id" mapper from the "Id" element of any "^attributes^" hash in the input record
     "id": "^attributes^.Id",
@@ -643,22 +650,81 @@ Mapper mapv(DataMap);
             }
         }
 
-        #! set current runtime "key" to value "value"
-        /** @ref mapper_runtime_handling
+        #! set the @ref mapper_runtime_handling "runtime option" with \a "key" to value \a "value"
+        /**
             @param key a string with valid runtime key
             @param value anything passed to the current runtime \c key
+
+            @see
+            - @ref mapper_runtime_handling
+            - replaceRuntime()
+            - setRuntime()
+
+            @since %Mapper 1.1
          */
         setRuntime(string key, any value) {
             m_runtime{key} = value;
         }
 
-        #! get current runtime structure or value for a key
-        /** @ref mapper_runtime_handling
-            @param key an optional runtime key
-            @returns a runtime value if is key given, a full hash with no key
+        #! adds @ref mapper_runtime_handling "runtime options" to the current runtime option hash
+        /**
+            @param runtime a hash of runtime options to add to the current @ref mapper_runtime_handling "runtime option hash"
+
+            @see
+            - @ref mapper_runtime_handling
+            - replaceRuntime()
+            - setRuntime()
+
+            @since %Mapper 1.1
          */
-        any getRuntime(*string key) {
-            return exists key ? m_runtime{key} : m_runtime;
+        setRuntime(hash runtime) {
+            m_runtime += runtime;
+        }
+
+        #! replaces @ref mapper_runtime_handling "runtime options"
+        /**
+            @param runtime a hash of runtime options to use to replace the current @ref mapper_runtime_handling "runtime option hash"
+
+            @see
+            - @ref mapper_runtime_handling
+            - getRuntime()
+            - setRuntime()
+
+            @since %Mapper 1.1
+         */
+        replaceRuntime(*hash runtime) {
+            m_runtime = runtime;
+        }
+
+        #! get current @ref mapper_runtime_handling "runtime option" value for a key
+        /**
+            @param key the runtime option key
+            @returns a runtime value if the key exists in the current @ref mapper_runtime_handling "runtime option hash" and is set
+
+            @see
+            - @ref mapper_runtime_handling
+            - replaceRuntime()
+            - setRuntime()
+
+            @since %Mapper 1.1
+         */
+        any getRuntime(string key) {
+            return m_runtime{key};
+        }
+
+        #! get current @ref mapper_runtime_handling "runtime option hash"
+        /**
+            @returns the current @ref mapper_runtime_handling "runtime option hash" or @ref nothing if no runtime options are set
+
+            @see
+            - @ref mapper_runtime_handling
+            - replaceRuntime()
+            - setRuntime()
+
+            @since %Mapper 1.1
+         */
+        *hash getRuntime() {
+            return m_runtime;
         }
 
         #! adds constant mappings after the object has been constructed; replaces any existing configuration for the given fields
