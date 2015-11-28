@@ -1256,10 +1256,19 @@ InboundTableMapperIterator i(input, mapper);
             return m_table.getDatasource();
         }
 
+        private initStatement() {
+            string sql;
+            m_stmt = m_table.getRowIterator(m_sh, \sql);
+            if (info_log) {
+                info_log("Mapper: %s: %n", self.className(), sql);
+                info_log("Mapper: %s: binding: %y", self.className(), m_sh."where");
+            }
+        }
+
         #! returns a description of the input record based on the @ref Qore::SQLStatement decribe()
         *hash getInputRecord() {
             if (!m_stmt)
-                m_stmt = m_table.getRowIterator(m_sh);
+                initStatement();
             HashIterator it(m_stmt.describe());
             while (it.next()) {
                 hash c = it.getValue();
@@ -1276,7 +1285,7 @@ InboundTableMapperIterator i(input, mapper);
          */
         SqlStatementMapperIterator iterator() {
             if (!m_stmt)
-                m_stmt = m_table.getRowIterator(m_sh);
+                initStatement();
             return new SqlStatementMapperIterator(m_stmt, mapc, m_opts);
         }
 
@@ -1292,7 +1301,7 @@ InboundTableMapperIterator i(input, mapper);
          */
         *hash getData() {
             if (!m_stmt)
-                m_stmt = m_table.getRowIterator(m_sh);
+                initStatement();
 
             *list tmp = mapAll(m_stmt.fetchRows(select_block));
 
@@ -1327,7 +1336,7 @@ InboundTableMapperIterator i(input, mapper);
          */
         *list getDataRows() {
             if (!m_stmt)
-                m_stmt = m_table.getRowIterator(m_sh);
+                initStatement();
 
             return mapAll(m_stmt.fetchRows(select_block));
         }
