@@ -158,7 +158,7 @@ public class QUnit::TestResultPartialHashMatch inherits QUnit::AbstractTestResul
     public bool equals(QUnit::AbstractTestResult r) {
         # Check type
         if (r.m_type == "Value") {
-            # For Value results, only match against hashes. The other make no sense.
+            # For Value results, only match against hashes. The others make no sense.
             if (r.m_value.typeCode() != NT_HASH) {
                 return False;
             }
@@ -364,8 +364,9 @@ public class QUnit::TestCase {
                     pos = get_ex_pos(e);
                     if (pos =~ /QUnit\.qm/) {
                         foreach hash callSite in (e.callstack) {
-                            if (!(e.file =~ /QUNIT\.qm/)) {
-                                pos = sprintf("%s:%d", callSite.file, callSite.line + callSite.offset);
+                            if (callSite.file !~ /QUnit\.qm/) {
+                                string fn = regex_subst (callSite.file, "<run-time-loaded: (.*)>", "$1");
+                                pos = sprintf("%s:%d", fn, callSite.line + callSite.offset);
                                 break;
                             }
                         }
@@ -432,7 +433,7 @@ public class QUnit::TestReporter {
 
         const RESULT_TYPE_DESCRIPTION = (
             TEST_SUCCESS : ("desc": "Success", "junittag" : NOTHING), # Success does not have a junit child tag
-            TEST_FAILURE : ("desc": "Failure", "junittag" : "failure"),
+            TEST_FAILURE : ("desc": "FAILURE", "junittag" : "failure"),
             TEST_ERROR   : ("desc": "ERROR", "junittag" : "error"),
             TEST_SKIPPED : ("desc": "Skipped", "junittag" : "skipped"),
         );
@@ -495,7 +496,7 @@ public class QUnit::TestReporter {
            plain       print a status for each test performed
            junit       print a junit xml output\n");
         printOption("-v,--verbose", "shorthand for --format=plain", offset);
-        printOption("-q,--quiet", "shorthand for --format=quietplain", offset);
+        printOption("-q,--quiet", "shorthand for --format=plainquiet", offset);
     }
 
     private usage() {
@@ -614,7 +615,7 @@ public class QUnit::TestReporter {
 
     private printJunitSummary() {
 %ifdef NO_XML
-        stderr.printf("No XML module found. Use --format=plain instead\n");
+        stderr.printf("No XML module found. Use --format=plain instead.\n");
         exit(1);
 %else
         hash junit;
@@ -1061,7 +1062,9 @@ assertEq(5, functionThatShouldReturnFive());
 
     private any testAssertionIntern(TestCase tc, string name, QUnit::AbstractTestResult actualResult, QUnit::AbstractTestResult expectedResult, any ret, *string pos) {
         if (!expectedResult.equals(actualResult)) {
-            throw "TEST-EXCEPTION", printUnexpectedData(expectedResult.toString(), actualResult.toString()), ("name": name, "pos": pos);
+            any exp = expectedResult instanceof TestResultValue ? expectedResult.m_value : expectedResult.toString();
+            any act = actualResult instanceof TestResultValue ? actualResult.m_value : actualResult.toString();
+            throw "TEST-EXCEPTION", printUnexpectedData (exp, act), ("name": name, "pos": pos);
         }
         else {
             tc.incAssertionsOk();
@@ -1119,7 +1122,7 @@ assertEq(5, functionThatShouldReturnFive());
      */
     bool regexpMatches(string s, string regexp) {
         if (!s.regex(regexp)) {
-            throw "TEST-FAILED-EXCEPTION", sprintf("String does not match: \nString: %s\nRegexp: %s\n", s, regexp);
+            throw "TEST-FAILED-EXCEPTION", sprintf("String does not match:\nString: %s\nRegexp: %s\n", s, regexp);
         }
         return True;
     }
@@ -1267,7 +1270,7 @@ public class QUnit::DependencyInjectedTest inherits QUnit::Test {
             if (fl =~ /(\\|\s)qr\s*$/)
                 p.setParseOptions(PO_NEW_STYLE);
         }
-        p.parse(file_data, "self-replication");
+        p.parse(file_data, m_testedFile);
 
         return p.run() ?? 0;
     }

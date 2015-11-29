@@ -46,6 +46,11 @@ protected:
 
 public:
    DLLLOCAL AbstractQoreThreadResource(QoreObject& n_obj) : obj(n_obj) {
+      obj.tRef();
+   }
+
+   DLLLOCAL virtual ~AbstractQoreThreadResource() {
+      obj.tDeref();
    }
 
    DLLLOCAL virtual void cleanup(ExceptionSink* xsink) {

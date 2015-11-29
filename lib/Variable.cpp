@@ -557,6 +557,7 @@ int LValueHelper::makeInt(const char* desc) {
 
    if (typeInfo && !typeInfo->parseAccepts(bigIntTypeInfo)) {
       typeInfo->doTypeException(0, desc, bigIntTypeInfo->getName(), vl.xsink);
+      assert(*vl.xsink);
       return -1;
    }
 
@@ -776,6 +777,7 @@ int64 LValueHelper::postIncrementBigInt(const char* desc) {
    if (val) {
       if (makeInt(desc))
 	 return 0;
+      assert(val->isInt());
       return val->postIncrementBigInt(getTempRef());
    }
 
