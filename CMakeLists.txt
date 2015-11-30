@@ -27,6 +27,10 @@ execute_process(COMMAND ${CMAKE_SOURCE_DIR}/cmake/get-define.sh QORE_MODULE_API_
                 OUTPUT_VARIABLE MODULE_API_MINOR 
                 OUTPUT_STRIP_TRAILING_WHITESPACE)
 
+# simulate QoreConfig
+set(QORE_QDX_EXECUTABLE "${CMAKE_SOURCE_DIR}/doxygen/qdx")
+# simulate QoreConfig
+
 include("${CMAKE_SOURCE_DIR}/cmake/QoreMacros.cmake")
 include("${CMAKE_SOURCE_DIR}/cmake/QoreMacrosIntern.cmake")
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
@@ -53,11 +57,13 @@ set(exec_prefix ${CMAKE_INSTALL_PREFIX})
 set(myprefix ${CMAKE_INSTALL_PREFIX})
 set(includedir ${CMAKE_INSTALL_FULL_INCLUDEDIR})
 set(libdir ${CMAKE_INSTALL_FULL_LIBDIR})
-set(MODULE_DIR ${CMAKE_INSTALL_FULL_LIBDIR}/qore-modules)
-set(MODULE_VER_DIR ${CMAKE_INSTALL_FULL_LIBDIR}/qore-modules/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB})
-set(USER_MODULE_DIR ${CMAKE_INSTALL_FULL_DATADIR}/qore-modules)
-set(USER_MODULE_VER_DIR ${CMAKE_INSTALL_FULL_DATADIR}/qore-modules/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB})
+
 set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB})
+
+set(MODULE_DIR ${CMAKE_INSTALL_FULL_LIBDIR}/qore-modules)
+set(MODULE_VER_DIR ${MODULE_DIR}/${VERSION})
+set(QORE_USER_MODULES_DIR ${CMAKE_INSTALL_FULL_DATADIR}/qore-modules/)
+set(QORE_USER_MODULES_VER_DIR ${QORE_USER_MODULES}/${VERSION})
 
 # libqore - unused for now
 set(LIBQORE_CPP_SRC lib/single-compilation-unit.cpp )
@@ -153,6 +159,38 @@ set(LIBQORE_QPP_SRC
 	lib/qc_option.qpp
 	lib/qc_errno.qpp
 	lib/qc_qore.qpp
+)
+
+set(QMOD
+    qlib/BulkSqlUtil.qm
+    qlib/CsvUtil.qm
+    qlib/Diff.qm
+    qlib/FixedLengthUtil.qm
+    qlib/FreetdsSqlUtil.qm
+    qlib/HttpServer.qm
+    qlib/HttpServerUtil.qm
+    qlib/MailMessage.qm
+    qlib/Mapper.qm
+    qlib/Mime.qm
+    qlib/MysqlSqlUtil.qm
+    qlib/OracleSqlUtil.qm
+    qlib/PgsqlSqlUtil.qm
+    qlib/Pop3Client.qm
+    qlib/QUnit.qm
+    qlib/Qorize.qm
+    qlib/RestClient.qm
+    qlib/RestHandler.qm
+    qlib/Schema.qm
+    qlib/SmtpClient.qm
+    qlib/SqlUtil.qm
+    qlib/TableMapper.qm
+    qlib/TelnetClient.qm
+    qlib/UnitTest.qm
+    qlib/Util.qm
+    qlib/WebSocketClient.qm
+    qlib/WebSocketHandler.qm
+    qlib/WebSocketUtil.qm
+    qlib/WebUtil.qm
 )
 
 # qore interpreter
@@ -285,8 +323,45 @@ install(FILES ${CMAKE_BINARY_DIR}/include/qore/qore-version.h
         DESTINATION ${CMAKE_INSTALL_FULL_INCLUDEDIR}/qore)
 install(FILES qore.1
         DESTINATION ${CMAKE_INSTALL_FULL_MANDIR}/man1)
-install(DIRECTORY qlib/
-        DESTINATION ${USER_MODULE_VER_DIR})
+
+find_package(Doxygen)
+if (DOXYGEN_FOUND)
+    # documentation
+    configure_file(${CMAKE_SOURCE_DIR}/doxygen/footer_template.html ${CMAKE_BINARY_DIR}/doxygen/footer_template.html @ONLY)
+    add_custom_target(docs COMMENT "Generating API documentation")
+    add_dependencies(libqore docs)
+    # library
+    message(STATUS "Doxyfile for library")
+    configure_file(${CMAKE_SOURCE_DIR}/doxygen/lib/Doxyfile.in ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.lib @ONLY)
+    add_custom_target(docs-lib
+        ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.lib
+        COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/library/html/*.html
+        COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/library/html/search/*.html
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/docs/library/html
+        COMMENT "Generating API documentation with Doxygen for: lib" VERBATIM
+    )
+    add_dependencies(docs docs-lib)
+    # lang
+    message(STATUS "Doxyfile for lang")
+    configure_file(${CMAKE_SOURCE_DIR}/doxygen/lang/Doxyfile.in ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.lang @ONLY)
+    add_custom_target(docs-lang
+        ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.lang
+        COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/lang/html/*.html
+        COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/lang/html/search/*.html
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/docs/lang/html
+        COMMENT "Generating API documentation with Doxygen for: lang" VERBATIM
+    )
+    add_dependencies(docs docs-lang)
+endif (DOXYGEN_FOUND)
+# end of documentation
+
+# HACK: we need to simulate QORE_USER_MODULES_DIR as the versioned one
+#       for qore core qlib modules.
+# NOTE: anything below will be installed into versioned dirs!
+set(QORE_USER_MODULES_DIR ${QORE_USER_MODULES_VER_DIR})
+# modules must go after docs target - it’s depending on it
+qore_user_modules("${QMOD}")
+
 
 message(STATUS "CXX ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES}")
 message(WARNING "Please do not use cmake for production/real builds. Cmake support is experimental and it does not contant all required setup")

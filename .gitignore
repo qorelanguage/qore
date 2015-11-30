@@ -87,8 +87,9 @@ lib/scanner.cpp
 # Doxygen generated files
 docs
 *.dox.*
-Doxyfile*
 doxygen/lang/*.dox
+Doxyfile
+Doxyfile.???*
 *.tag
 
 # release pkgs
