@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -38,6 +38,7 @@
 #include <bzlib.h>
 
 #include <errno.h>
+#include <limits.h>
 
 #ifndef QORE_BZ2_WORK_FACTOR
 #define QORE_BZ2_WORK_FACTOR 30
@@ -48,7 +49,7 @@
 #endif
 
 #ifndef BZ2_DEFAULT_COMPRESSION
-#define BZ2_DEFAULT_COMPRESSION 9
+#define BZ2_DEFAULT_COMPRESSION 3
 #endif
 
 class qore_bz_stream : public bz_stream {
@@ -64,43 +65,43 @@ class qore_bz_compressor : public qore_bz_stream {
    bool ok;
 
 public:
-   DLLLOCAL qore_bz_compressor(int level, ExceptionSink *xsink) {
+   DLLLOCAL qore_bz_compressor(int level, ExceptionSink* xsink) {
       int rc = BZ2_bzCompressInit(this, level, QORE_BZ2_VERBOSITY, QORE_BZ2_WORK_FACTOR);
       ok = (rc == BZ_OK);
       if (!ok)
 	 xsink->raiseException("BZIP2-COMPRESS-ERROR", "code %d returned from BZ2_bzCompressInit()", rc);
    }
-   
+
    DLLLOCAL ~qore_bz_compressor() {
       if (ok)
 	 BZ2_bzCompressEnd(this);
    }
    DLLLOCAL operator bool() const { return ok; }
 
-   DLLLOCAL BinaryNode *compress(const void *ptr, unsigned long len, ExceptionSink *xsink) {
-      char *p = (char *)ptr;
-      
-      int bs = len >> 3;
+   DLLLOCAL BinaryNode* compress(const void* ptr, unsigned long len, ExceptionSink* xsink) {
+      char* p = (char*)ptr;
+
+      qore_size_t bs = len >> 3;
       if (!bs)
 	 bs = 1;
 
       next_in = p;
       avail_in = len;
 
-      SimpleRefHolder<BinaryNode> b(new BinaryNode());
+      SimpleRefHolder<BinaryNode> b(new BinaryNode);
 
       if (b->preallocate(bs)) {
 	 xsink->outOfMemory();
-	 return 0;      
+	 return 0;
       }
 
       while (true) {
 	 int64 done = (int64)total_out_lo32 + (((int64)total_out_hi32) << 32);
-	 next_out = ((char *)b->getPtr()) + done;
+	 next_out = ((char*)b->getPtr()) + done;
 	 avail_out = (unsigned)(bs - done);
 
 	 int rc = BZ2_bzCompress(this, BZ_FINISH);
-	 //printd(5, "bs=%d, done=%lld, avail_out=%d, rc=%d, total_out_lo32=%d, total_out_hi32 = %d\n", bs, done, avail_out, rc, total_out_lo32, total_out_hi32);
+	 //printd(5, "bs: %lld, done: %lld, avail_out: %d, rc: %d, total_out_lo32: %d, total_out_hi32 = %d\n", bs, done, avail_out, rc, total_out_lo32, total_out_hi32);
 	 if (rc == BZ_STREAM_END)
 	    break;
 	 if (rc != BZ_FINISH_OK) {
@@ -108,9 +109,15 @@ public:
 	    return 0;
 	 }
 	 bs *= 2;
+         // if we get over size of an int, then we have to abort, since avail_out is an unsigned_int
+         if ((bs - done) > UINT_MAX) {
+	    xsink->raiseException("BZIP2-COMPRESS-ERROR", "the bzip2 library requested a buffer that is too large to be handled by the API");
+	    return 0;
+         }
+
 	 if (b->preallocate(bs)) {
 	    xsink->outOfMemory();
-	    return 0;      
+	    return 0;
 	 }
       }
       b->setSize((int64)total_out_lo32 + (((int64)total_out_hi32) << 32));
@@ -123,7 +130,7 @@ class qore_bz_decompressor : public qore_bz_stream {
    bool ok;
 
 public:
-   DLLLOCAL qore_bz_decompressor(ExceptionSink *xsink) {
+   DLLLOCAL qore_bz_decompressor(ExceptionSink* xsink) {
       int rc = BZ2_bzDecompressInit(this, QORE_BZ2_VERBOSITY, 0);
       ok = (rc == BZ_OK);
       if (!ok)
@@ -136,28 +143,28 @@ public:
    }
    DLLLOCAL operator bool() const { return ok; }
 
-   DLLLOCAL BinaryNode *decompress(const void *ptr, unsigned long len, ExceptionSink *xsink) {
-      char *p = (char *)ptr;
+   DLLLOCAL BinaryNode* decompress(const void* ptr, unsigned long len, ExceptionSink* xsink) {
+      char* p = (char*)ptr;
 
-      int bs = len << 1;
+      qore_size_t bs = len << 1;
 
       next_in = p;
       avail_in = len;
 
-      SimpleRefHolder<BinaryNode> b(new BinaryNode());
+      SimpleRefHolder<BinaryNode> b(new BinaryNode);
 
       if (b->preallocate(bs)) {
 	 xsink->outOfMemory();
-	 return 0;      
+	 return 0;
       }
 
       while (true) {
 	 int64 done = (int64)total_out_lo32 + (((int64)total_out_hi32) << 32);
-	 next_out = ((char *)b->getPtr()) + done;
+	 next_out = ((char*)b->getPtr()) + done;
 	 avail_out = (unsigned)(bs - done);
 
 	 int rc = BZ2_bzDecompress(this);
-	 //printd(5, "bs=%d, done=%lld, avail_out=%d, rc=%d, total_out_lo32=%d, total_out_hi32 = %d\n", bs, done, avail_out, rc, total_out_lo32, total_out_hi32);
+	 //printd(5, "bs: %d, done: %lld, avail_out: %d, rc: %d, total_out_lo32: %d, total_out_hi32 = %d\n", bs, done, avail_out, rc, total_out_lo32, total_out_hi32);
 	 if (rc == BZ_STREAM_END)
 	    break;
 	 if (rc != BZ_OK) {
@@ -165,17 +172,23 @@ public:
 	    return 0;
 	 }
 	 bs *= 2;
+         // if we get over size of an int, then we have to abort, since avail_out is an unsigned_int
+         if ((bs - done) > UINT_MAX) {
+	    xsink->raiseException("BZIP2-DECOMPRESS-ERROR", "the bzip2 library requested a buffer that is too large to be handled by the API");
+	    return 0;
+         }
+
 	 if (b->preallocate(bs)) {
 	    xsink->outOfMemory();
-	    return 0;      
+	    return 0;
 	 }
       }
       b->setSize((int64)total_out_lo32 + (((int64)total_out_hi32) << 32));
-      
+
       return b.release();
    }
 
-   DLLLOCAL QoreStringNode *decompress_to_string(const void *ptr, unsigned long len, const QoreEncoding *enc, ExceptionSink *xsink) {
+   DLLLOCAL QoreStringNode* decompress_to_string(const void* ptr, unsigned long len, const QoreEncoding* enc, ExceptionSink* xsink) {
       static char np[] = {'\0'};
 
       SimpleRefHolder<BinaryNode> b(decompress(ptr, len, xsink));
@@ -187,11 +200,11 @@ public:
       // terminate the string
       b->append(np, 1);
 
-      return new QoreStringNode((char *)b->giveBuffer(), len, len + 1, enc);
+      return new QoreStringNode((char*)b->giveBuffer(), len, len + 1, enc);
    }
 };
 
-BinaryNode *qore_bzip2(const void *ptr, unsigned long len, int level, ExceptionSink *xsink) {
+BinaryNode* qore_bzip2(const void* ptr, unsigned long len, int level, ExceptionSink* xsink) {
    qore_bz_compressor c(level, xsink);
    if (!c)
       return 0;
@@ -199,7 +212,7 @@ BinaryNode *qore_bzip2(const void *ptr, unsigned long len, int level, ExceptionS
    return c.compress(ptr, len, xsink);
 }
 
-BinaryNode *qore_bunzip2_to_binary(const BinaryNode *b, ExceptionSink *xsink) {
+BinaryNode* qore_bunzip2_to_binary(const BinaryNode* b, ExceptionSink* xsink) {
    qore_bz_decompressor c(xsink);
    if (!c)
       return 0;
@@ -207,7 +220,7 @@ BinaryNode *qore_bunzip2_to_binary(const BinaryNode *b, ExceptionSink *xsink) {
    return c.decompress(b->getPtr(), b->size(), xsink);
 }
 
-QoreStringNode *qore_bunzip2_to_string(const BinaryNode *b, const QoreEncoding *enc, ExceptionSink *xsink) {
+QoreStringNode* qore_bunzip2_to_string(const BinaryNode* b, const QoreEncoding* enc, ExceptionSink* xsink) {
    qore_bz_decompressor c(xsink);
    if (!c)
       return 0;
@@ -217,7 +230,7 @@ QoreStringNode *qore_bunzip2_to_string(const BinaryNode *b, const QoreEncoding *
 
 #ifdef HAVE_GZ_HEADER
 class qore_gz_header : public gz_header {
-   DLLLOCAL qore_gz_header(bool n_text, char *n_name, char *n_comment) {
+   DLLLOCAL qore_gz_header(bool n_text, char* n_name, char* n_comment) {
       text = n_text;
       time = ::time(0);
       xflags = 0;
@@ -225,9 +238,9 @@ class qore_gz_header : public gz_header {
       extra = Z_NULL;
       extra_len = 0;
       extra_max = 0;
-      name = (Bytef *)n_name;
+      name = (Bytef*)n_name;
       name_max = 0;
-      comment = (Bytef *)n_comment;
+      comment = (Bytef*)n_comment;
       comm_max = 0;
       hcrc = 0;
       done = 0;
@@ -235,8 +248,8 @@ class qore_gz_header : public gz_header {
 };
 #endif
 
-static void do_zlib_exception(int rc, const char *func, ExceptionSink *xsink) {
-   QoreStringNode *desc = new QoreStringNode();
+static void do_zlib_exception(int rc, const char* func, ExceptionSink* xsink) {
+   QoreStringNode* desc = new QoreStringNode();
    desc->sprintf("%s(): ", func);
    switch (rc) {
       case Z_ERRNO:
@@ -270,38 +283,38 @@ static void do_zlib_exception(int rc, const char *func, ExceptionSink *xsink) {
    xsink->raiseException("ZLIB-ERROR", desc);
 }
 
-static void do_deflate_end(z_stream *c_stream, ExceptionSink *xsink) {
+static void do_deflate_end(z_stream* c_stream, ExceptionSink* xsink) {
    int rc = deflateEnd(c_stream);
    if (rc != Z_OK)
       do_zlib_exception(rc, "deflateEnd", xsink);
 }
 
-static void do_inflate_end(z_stream *d_stream, ExceptionSink *xsink) {
+static void do_inflate_end(z_stream* d_stream, ExceptionSink* xsink) {
    int rc = inflateEnd(d_stream);
    if (rc != Z_OK)
       do_zlib_exception(rc, "inflateEnd", xsink);
 }
 
-BinaryNode *qore_deflate(const void *ptr, unsigned long len, int level, ExceptionSink *xsink) {
+BinaryNode* qore_deflate(const void* ptr, unsigned long len, int level, ExceptionSink* xsink) {
    z_stream c_stream; // compression stream
    c_stream.zalloc = Z_NULL;
    c_stream.zfree = Z_NULL;
    c_stream.opaque = Z_NULL;
-   
-   int rc = deflateInit(&c_stream, level);   
+
+   int rc = deflateInit(&c_stream, level);
    if (rc != Z_OK) {
       do_zlib_exception(rc, "deflateInit", xsink);
       return 0;
    }
 
    ON_BLOCK_EXIT(do_deflate_end, &c_stream, xsink);
-   
+
    // allocate new buffer
    unsigned long bsize = len / 5 + 100;
-   void *buf = malloc(bsize);
-   
-   c_stream.next_in = (Bytef *)ptr;
-   c_stream.next_out = (Bytef *)buf;
+   void* buf = malloc(bsize);
+
+   c_stream.next_in = (Bytef*)ptr;
+   c_stream.next_out = (Bytef*)buf;
    c_stream.avail_in = len;
    c_stream.avail_out = bsize;
 
@@ -312,16 +325,16 @@ BinaryNode *qore_deflate(const void *ptr, unsigned long len, int level, Exceptio
          do_zlib_exception(rc, "deflate", xsink);
          return 0;
       }
-      
+
       if (!c_stream.avail_out) {
          int new_space = ((len / 3) + 100);
-         //printd(5, "deflate() Z_BUF_ERROR:1 bsize=%d->%d, new_space=%d avail_out=%d -> %d next_out=%p\n", bsize, bsize + new_space, new_space, c_stream.avail_out, c_stream.avail_out + new_space, c_stream.next_out);
+         //printd(5, "deflate() Z_BUF_ERROR:1 bsize: %d->%d, new_space: %d avail_out: %d -> %d next_out: %p\n", bsize, bsize + new_space, new_space, c_stream.avail_out, c_stream.avail_out + new_space, c_stream.next_out);
          bsize += new_space;
          c_stream.avail_out += new_space;
          buf = realloc(buf, bsize);
-         c_stream.next_out = ((Bytef *)buf) + c_stream.total_out;
+         c_stream.next_out = ((Bytef*)buf) + c_stream.total_out;
       }
-      //printd(5, "deflate() Z_BUF_ERROR:1 bsize=%d, avail_out=%d, next_out=%p\n", bsize, c_stream.avail_out, c_stream.next_out);
+      //printd(5, "deflate() Z_BUF_ERROR:1 bsize: %d, avail_out: %d, next_out: %p\n", bsize, c_stream.avail_out, c_stream.next_out);
    }
 
    while (true) {
@@ -335,19 +348,19 @@ BinaryNode *qore_deflate(const void *ptr, unsigned long len, int level, Exceptio
       }
       // resize buffer
       int new_space = 2; //((len / 3) + 100);
-      //printd(5, "deflate() Z_BUF_ERROR:2 bsize=%d->%d, new_space=%d avail_out=%d -> %d, next_out=%p\n", bsize, bsize + new_space, new_space, c_stream.avail_out, c_stream.avail_out + new_space, c_stream.next_out);
-      
+      //printd(5, "deflate() Z_BUF_ERROR:2 bsize: %d->%d, new_space: %d avail_out: %d -> %d, next_out: %p\n", bsize, bsize + new_space, new_space, c_stream.avail_out, c_stream.avail_out + new_space, c_stream.next_out);
+
       bsize += new_space;
       c_stream.avail_out += new_space;
       buf = realloc(buf, bsize);
-      c_stream.next_out = ((Bytef *)buf) + c_stream.total_out;
+      c_stream.next_out = ((Bytef*)buf) + c_stream.total_out;
    }
 
-   //printd(5, "deflate() buf=%p, bsize=%d, avail_out=%d, size=%d, next_out=%p\n", buf, bsize, c_stream.avail_out, bsize - c_stream.avail_out, c_stream.next_out);
+   //printd(5, "deflate() buf: %p, bsize: %d, avail_out: %d, size: %d, next_out: %p\n", buf, bsize, c_stream.avail_out, bsize - c_stream.avail_out, c_stream.next_out);
    return new BinaryNode(buf, bsize - c_stream.avail_out);
 }
 
-QoreStringNode *qore_inflate_to_string(const BinaryNode *b, const QoreEncoding *enc, ExceptionSink *xsink) {
+QoreStringNode* qore_inflate_to_string(const BinaryNode* b, const QoreEncoding* enc, ExceptionSink* xsink) {
    z_stream d_stream; // decompression stream
    d_stream.zalloc = Z_NULL;
    d_stream.zfree = Z_NULL;
@@ -360,15 +373,15 @@ QoreStringNode *qore_inflate_to_string(const BinaryNode *b, const QoreEncoding *
    }
 
    ON_BLOCK_EXIT(do_inflate_end, &d_stream, xsink);
-   
+
    int len = b->size();
 
    // allocate new buffer
    unsigned long bsize = len * 2 + 100;
-   void *buf = malloc(bsize);
-   
-   d_stream.next_in = (Bytef *)b->getPtr();
-   d_stream.next_out = (Bytef *)buf;
+   void* buf = malloc(bsize);
+
+   d_stream.next_in = (Bytef*)b->getPtr();
+   d_stream.next_out = (Bytef*)buf;
    d_stream.avail_in = b->size();
    d_stream.avail_out = bsize;
 
@@ -381,7 +394,7 @@ QoreStringNode *qore_inflate_to_string(const BinaryNode *b, const QoreEncoding *
          bsize += new_space;
          d_stream.avail_out += new_space;
          buf = realloc(buf, bsize);
-         d_stream.next_out = ((Bytef *)buf) + d_stream.total_out;
+         d_stream.next_out = ((Bytef*)buf) + d_stream.total_out;
       }
       else if (rc != Z_OK) {
          free(buf);
@@ -394,10 +407,10 @@ QoreStringNode *qore_inflate_to_string(const BinaryNode *b, const QoreEncoding *
    len = bsize - d_stream.avail_out;
 
    // create and return the string
-   return new QoreStringNode((char *)buf, len, len, enc);
+   return new QoreStringNode((char*)buf, len, len, enc);
 }
 
-BinaryNode *qore_inflate_to_binary(const BinaryNode *b, ExceptionSink *xsink) {
+BinaryNode* qore_inflate_to_binary(const BinaryNode* b, ExceptionSink* xsink) {
    z_stream d_stream; // decompression stream
    d_stream.zalloc = Z_NULL;
    d_stream.zfree = Z_NULL;
@@ -410,15 +423,15 @@ BinaryNode *qore_inflate_to_binary(const BinaryNode *b, ExceptionSink *xsink) {
    }
 
    ON_BLOCK_EXIT(do_inflate_end, &d_stream, xsink);
-   
+
    int len = b->size();
 
    // allocate new buffer
    unsigned long bsize = len * 2 + 100;
-   void *buf = malloc(bsize);
-   
-   d_stream.next_in = (Bytef *)b->getPtr();
-   d_stream.next_out = (Bytef *)buf;
+   void* buf = malloc(bsize);
+
+   d_stream.next_in = (Bytef*)b->getPtr();
+   d_stream.next_out = (Bytef*)buf;
    d_stream.avail_in = b->size();
    d_stream.avail_out = bsize;
 
@@ -431,7 +444,7 @@ BinaryNode *qore_inflate_to_binary(const BinaryNode *b, ExceptionSink *xsink) {
          bsize += new_space;
          d_stream.avail_out += new_space;
          buf = realloc(buf, bsize);
-         d_stream.next_out = ((Bytef *)buf) + d_stream.total_out;
+         d_stream.next_out = ((Bytef*)buf) + d_stream.total_out;
       }
       else if (rc != Z_OK) {
          free(buf);
@@ -439,31 +452,31 @@ BinaryNode *qore_inflate_to_binary(const BinaryNode *b, ExceptionSink *xsink) {
          return 0;
       }
    }
-   
+
    return new BinaryNode(buf, bsize - d_stream.avail_out);
 }
 
-BinaryNode *qore_gzip(const void *ptr, unsigned long len, int level, ExceptionSink *xsink) {
+BinaryNode* qore_gzip(const void* ptr, unsigned long len, int level, ExceptionSink* xsink) {
    z_stream c_stream; // compression stream
    c_stream.zalloc = Z_NULL;
    c_stream.zfree = Z_NULL;
    c_stream.opaque = Z_NULL;
-   c_stream.next_in = (Bytef *)ptr;
+   c_stream.next_in = (Bytef*)ptr;
    c_stream.avail_in = len;
 
-   int rc = deflateInit2(&c_stream, level, Z_DEFLATED, 31, 8,  Z_DEFAULT_STRATEGY);   
+   int rc = deflateInit2(&c_stream, level, Z_DEFLATED, 31, 8,  Z_DEFAULT_STRATEGY);
    if (rc != Z_OK) {
       do_zlib_exception(rc, "deflateInit2", xsink);
       return 0;
    }
 
    ON_BLOCK_EXIT(do_deflate_end, &c_stream, xsink);
-   
+
    // allocate new buffer
    unsigned long bsize = len / 5 + 100;
-   void *buf = malloc(bsize);
-   
-   c_stream.next_out = (Bytef *)buf;
+   void* buf = malloc(bsize);
+
+   c_stream.next_out = (Bytef*)buf;
    c_stream.avail_out = bsize;
 
    while (c_stream.avail_in) {
@@ -476,14 +489,14 @@ BinaryNode *qore_gzip(const void *ptr, unsigned long len, int level, ExceptionSi
 
       if (!c_stream.avail_out) {
          int new_space = ((len / 3) + 100);
-         //printd(5, "deflate() Z_BUF_ERROR:1 bsize=%d->%d, new_space=%d avail_out=%d -> %d next_out=%p\n", bsize, bsize + new_space, new_space, c_stream.avail_out, c_stream.avail_out + new_space, c_stream.next_out);
+         //printd(5, "deflate() Z_BUF_ERROR:1 bsize: %d->%d, new_space: %d avail_out: %d -> %d next_out: %p\n", bsize, bsize + new_space, new_space, c_stream.avail_out, c_stream.avail_out + new_space, c_stream.next_out);
 
          bsize += new_space;
          c_stream.avail_out += new_space;
          buf = realloc(buf, bsize);
-         c_stream.next_out = ((Bytef *)buf) + c_stream.total_out;
+         c_stream.next_out = ((Bytef*)buf) + c_stream.total_out;
       }
-      //printd(5, "deflate() Z_BUF_ERROR:1 bsize=%d, avail_out=%d, next_out=%p\n", bsize, c_stream.avail_out, c_stream.next_out);
+      //printd(5, "deflate() Z_BUF_ERROR:1 bsize: %d, avail_out: %d, next_out: %p\n", bsize, c_stream.avail_out, c_stream.next_out);
    }
 
    while (true) {
@@ -497,25 +510,25 @@ BinaryNode *qore_gzip(const void *ptr, unsigned long len, int level, ExceptionSi
       }
       // resize buffer
       int new_space = 2; //((len / 3) + 100);
-      //printd(5, "deflate() Z_BUF_ERROR:2 bsize=%d->%d, new_space=%d avail_out=%d -> %d, next_out=%p\n", bsize, bsize + new_space, new_space, c_stream.avail_out, c_stream.avail_out + new_space, c_stream.next_out);
+      //printd(5, "deflate() Z_BUF_ERROR:2 bsize: %d->%d, new_space: %d avail_out: %d -> %d, next_out: %p\n", bsize, bsize + new_space, new_space, c_stream.avail_out, c_stream.avail_out + new_space, c_stream.next_out);
 
       bsize += new_space;
       c_stream.avail_out += new_space;
       buf = realloc(buf, bsize);
-      c_stream.next_out = ((Bytef *)buf) + c_stream.total_out;
+      c_stream.next_out = ((Bytef*)buf) + c_stream.total_out;
    }
 
-   //printd(5, "deflate() buf=%p, bsize=%d, avail_out=%d, size=%d, next_out=%p\n", buf, bsize, c_stream.avail_out, bsize - c_stream.avail_out, c_stream.next_out);
+   //printd(5, "deflate() buf: %p, bsize: %d, avail_out: %d, size: %d, next_out: %p\n", buf, bsize, c_stream.avail_out, bsize - c_stream.avail_out, c_stream.next_out);
    return new BinaryNode(buf, bsize - c_stream.avail_out);
 }
 
-QoreStringNode *qore_gunzip_to_string(const BinaryNode *bin, const QoreEncoding *enc, ExceptionSink *xsink) {
+QoreStringNode* qore_gunzip_to_string(const BinaryNode* bin, const QoreEncoding* enc, ExceptionSink* xsink) {
    z_stream d_stream; // decompression stream
    d_stream.zalloc = Z_NULL;
    d_stream.zfree = Z_NULL;
    d_stream.opaque = Z_NULL;
 
-   d_stream.next_in = (Bytef *)bin->getPtr();
+   d_stream.next_in = (Bytef*)bin->getPtr();
    d_stream.avail_in = bin->size();
 
    int rc = inflateInit2(&d_stream, 47);
@@ -525,14 +538,14 @@ QoreStringNode *qore_gunzip_to_string(const BinaryNode *bin, const QoreEncoding 
    }
 
    ON_BLOCK_EXIT(do_inflate_end, &d_stream, xsink);
-   
+
    int len = bin->size();
 
    // allocate new buffer
    unsigned long bsize = len * 2 + 100;
-   void *buf = malloc(bsize);
-   
-   d_stream.next_out = (Bytef *)buf;
+   void* buf = malloc(bsize);
+
+   d_stream.next_out = (Bytef*)buf;
    d_stream.avail_out = bsize;
 
    while (true) {
@@ -544,7 +557,7 @@ QoreStringNode *qore_gunzip_to_string(const BinaryNode *bin, const QoreEncoding 
          bsize += new_space;
          d_stream.avail_out += new_space;
          buf = realloc(buf, bsize);
-         d_stream.next_out = ((Bytef *)buf) + d_stream.total_out;
+         d_stream.next_out = ((Bytef*)buf) + d_stream.total_out;
       }
       else if (rc != Z_OK) {
          free(buf);
@@ -557,16 +570,16 @@ QoreStringNode *qore_gunzip_to_string(const BinaryNode *bin, const QoreEncoding 
    len = bsize - d_stream.avail_out;
 
    // create and return the string
-   return new QoreStringNode((char *)buf, len, len, enc);
+   return new QoreStringNode((char*)buf, len, len, enc);
 }
 
-BinaryNode *qore_gunzip_to_binary(const BinaryNode *bin, ExceptionSink *xsink) {
+BinaryNode* qore_gunzip_to_binary(const BinaryNode* bin, ExceptionSink* xsink) {
    z_stream d_stream; // decompression stream
    d_stream.zalloc = Z_NULL;
    d_stream.zfree = Z_NULL;
    d_stream.opaque = Z_NULL;
 
-   d_stream.next_in = (Bytef *)bin->getPtr();
+   d_stream.next_in = (Bytef*)bin->getPtr();
    d_stream.avail_in = bin->size();
 
    int rc = inflateInit2(&d_stream, 47);
@@ -576,14 +589,14 @@ BinaryNode *qore_gunzip_to_binary(const BinaryNode *bin, ExceptionSink *xsink) {
    }
 
    ON_BLOCK_EXIT(do_inflate_end, &d_stream, xsink);
-   
+
    int len = bin->size();
 
    // allocate new buffer
    unsigned long bsize = len * 2 + 100;
-   void *buf = malloc(bsize);
-   
-   d_stream.next_out = (Bytef *)buf;
+   void* buf = malloc(bsize);
+
+   d_stream.next_out = (Bytef*)buf;
    d_stream.avail_out = bsize;
 
    while (true) {
@@ -595,7 +608,7 @@ BinaryNode *qore_gunzip_to_binary(const BinaryNode *bin, ExceptionSink *xsink) {
          bsize += new_space;
          d_stream.avail_out += new_space;
          buf = realloc(buf, bsize);
-         d_stream.next_out = ((Bytef *)buf) + d_stream.total_out;
+         d_stream.next_out = ((Bytef*)buf) + d_stream.total_out;
       }
       else if (rc != Z_OK) {
          free(buf);
@@ -603,17 +616,17 @@ BinaryNode *qore_gunzip_to_binary(const BinaryNode *bin, ExceptionSink *xsink) {
          return 0;
       }
    }
-   
+
    return new BinaryNode(buf, bsize - d_stream.avail_out);
 }
 
 /** @defgroup compression_constants Compression Constants
  */
 //@{
-//! gives the default compression level for the compress() and gzip() functions, providing a tradeoff between compression speed and compression size
+//! gives the default compression level for the compress() and gzip() functions, providing a trade-off between compression speed and compression size
 const Z_DEFAULT_COMPRESSION = Z_DEFAULT_COMPRESSION;
 
-//! gives the default compression level for the bzip2() function, providing maximum compression (value: \c 9)
+//! gives the default compression level for the bzip2() function, providing a trade-off between compression speed and compression size (value: \c 3)
 const BZ2_DEFAULT_COMPRESSION = BZ2_DEFAULT_COMPRESSION;
 //@}
 
@@ -638,14 +651,12 @@ my binary $bin = compress($str_data);
     @throw ZLIB-ERROR zlib returned an error while processing
 */
 binary compress(string str, int level = Z_DEFAULT_COMPRESSION) {
-   if ((level < 1 && level != -1) || level > 9) {
-      xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 1 - 9 or -1 (value passed: %d)", level);
-      return 0;
-   }
-   
+   if ((level < 1 && level != -1) || level > 9)
+      return xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 1 - 9 or -1 (value passed: %d)", level);
+
    if (!str->strlen())
       return new BinaryNode;
-   
+
    return qore_deflate(str->getBuffer(), str->strlen(), level, xsink);
 }
 
@@ -666,25 +677,23 @@ my binary $bin = compress($bin_data);
     @throw ZLIB-ERROR zlib returned an error while processing
 */
 binary compress(binary bin, int level = Z_DEFAULT_COMPRESSION) {
-   if ((level < 1 && level != -1) || level > 9) {
-      xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 1 - 9 or -1 (value passed: %d)", level);
-      return 0;
-   }
-   
+   if ((level < 1 && level != -1) || level > 9)
+      return xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 1 - 9 or -1 (value passed: %d)", level);
+
    if (!bin->size())
       return new BinaryNode;
-   
+
    return qore_deflate(bin->getPtr(), bin->size(), level, xsink);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing compress() [flags=RUNTIME_NOOP] {
 }
 
 //! Performs zlib-based decompression of data compressed by the "deflate" algorithm (<a href="http://www.ietf.org/rfc/rfc1951.txt">RFC 1951</a>) and returns a string of the decompressed data
-/** 
+/**
     @param bin the compressed data to decompress
     @param encoding the character encoding tag for the string return value; if not present, the @ref default_encoding "default character encoding" is assumed.
 
@@ -698,12 +707,12 @@ my string $str = uncompress_to_string($bin, "iso-8859-1");
     @throw ZLIB-ERROR The zlib library returned an error during processing (possibly due to corrupt input data)
 */
 string uncompress_to_string(binary bin, *string encoding) {
-   const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
+   const QoreEncoding* qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
    return qore_inflate_to_string(bin, qe, xsink);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing uncompress_to_string() [flags=RUNTIME_NOOP] {
 }
@@ -725,7 +734,7 @@ binary uncompress_to_binary(binary bin) {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing uncompress_to_binary() [flags=RUNTIME_NOOP] {
 }
@@ -747,19 +756,17 @@ my binary $data = bzip($str);
     @throw ZLIB-ERROR The zlib library returned an error during processing (should not normally happen during compression)
 */
 binary gzip(string str, int level = Z_DEFAULT_COMPRESSION) {
-   if (!level || level > 9) {
-      xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 0 - 9 (value passed: %d)", level);
-      return 0;
-   }
-   
+   if (!level || level > 9)
+      return xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 0 - 9 (value passed: %d)", level);
+
    if (!str->strlen())
       return new BinaryNode;
-   
+
    return qore_gzip(str->getBuffer(), str->strlen(), level, xsink);
 }
 
 //! Performs <a href="http://zlib.net/">zlib</a>-based "gzip" data compression (<a href="http://www.ietf.org/rfc/rfc1952.txt">RFC 1952</a>) and returns a binary object of the compressed data
-/** 
+/**
     @param bin the data to compress
     @param level the compression level, must be a value between 1 and 9 inclusive, 1 = the least compression (and taking the least memory), 9 = the most compression (using the most memory).  An invalid option passed to this argument will result in a \c ZLIB-LEVEL-ERROR exception being raised.
 
@@ -774,19 +781,17 @@ my binary $data = gzip($bin);
     @throw ZLIB-ERROR The zlib library returned an error during processing (should not normally happen during compression)
 */
 binary gzip(binary bin, int level = Z_DEFAULT_COMPRESSION) {
-   if (!level || level > 9) {
-      xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 0 - 9 (value passed: %d)", level);
-      return 0;
-   }
-   
+   if (!level || level > 9)
+      return xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 0 - 9 (value passed: %d)", level);
+
    if (!bin->size())
       return new BinaryNode;
-   
+
    return qore_gzip(bin->getPtr(), bin->size(), level, xsink);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing gzip() [flags=RUNTIME_NOOP] {
 }
@@ -805,12 +810,12 @@ my string $str = gunzip_to_string($bin, "iso-8859-1");
     @throw ZLIB-ERROR The zlib library returned an error during processing (possibly due to corrupt input data)
 */
 string gunzip_to_string(binary bin, *string encoding) {
-   const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
+   const QoreEncoding* qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
    return qore_gunzip_to_string(bin, qe, xsink);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing gunzip_to_string() [flags=RUNTIME_NOOP] {
 }
@@ -832,7 +837,7 @@ binary gunzip_to_binary(binary bin) {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing gunzip_to_binary() [flags=RUNTIME_NOOP] {
 }
@@ -852,10 +857,8 @@ my binary $bin = compress($data);
     @throw BZIP2-COMPRESS-ERROR the bzip2 library returned an error during processing
 */
 binary bzip2(binary bin, softint level = BZ2_DEFAULT_COMPRESSION) {
-   if (!level || level > 9) {
-      xsink->raiseException("BZLIB2-LEVEL-ERROR", "level must be between 1 - 9 (value passed: %d)", level);
-      return 0;
-   }
+   if (!level || level > 9)
+      return xsink->raiseException("BZLIB2-LEVEL-ERROR", "level must be between 1 - 9 (value passed: %d)", level);
 
    return qore_bzip2(bin->getPtr(), bin->size(), level, xsink);
 }
@@ -867,7 +870,7 @@ binary bzip2(binary bin, softint level = BZ2_DEFAULT_COMPRESSION) {
     @param level the compression level, must be a value between 1 and 9 inclusive, 1 = the least compression (and taking the least memory), 9 = the most compression (using the most memory).  An invalid option passed to this argument will result in a \c BZLIB2-LEVEL-ERROR exception being raised.
 
     @return the compressed data as a binary object
-    
+
     @par Example:
     @code
 my binary $bin = compress($str);
@@ -877,16 +880,14 @@ my binary $bin = compress($str);
     @throw BZIP2-COMPRESS-ERROR the bzip2 library returned an error during processing
 */
 binary bzip2(string str, softint level = BZ2_DEFAULT_COMPRESSION) {
-   if (!level || level > 9) {
-      xsink->raiseException("BZLIB2-LEVEL-ERROR", "level must be between 1 - 9 (value passed: %d)", level);
-      return 0;
-   }
+   if (!level || level > 9)
+      return xsink->raiseException("BZLIB2-LEVEL-ERROR", "level must be between 1 - 9 (value passed: %d)", level);
 
    return qore_bzip2(str->getBuffer(), str->strlen(), level, xsink);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
 */
 nothing bzip2() [flags=RUNTIME_NOOP] {
 }
@@ -908,7 +909,7 @@ binary bunzip2_to_binary(binary bin) {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
 */
 nothing bunzip2_to_binary() [flags=RUNTIME_NOOP] {
 }
@@ -927,12 +928,12 @@ my string $str = bunzip2_to_string($bzip2_string, "iso-8859-1");
     @throw BZIP2-DECOMPRESS-ERROR the bzip2 library returned an internal error during processing (possibly due to corrupt input data)
 */
 string bunzip2_to_string(binary bin, *string encoding) {
-   const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
+   const QoreEncoding* qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
    return qore_bunzip2_to_string(bin, qe, xsink);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
 */
 nothing bunzip2_to_string() [flags=RUNTIME_NOOP] {
 }

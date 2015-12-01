@@ -1,10 +1,10 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QC_TermIOS.qpp
-  
+
   Qore Programming Language
-  
-  Copyright (C) 2003 - 2014 David Nichols
+
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -57,7 +57,7 @@ const ECHO = ECHO;
 #ifndef ECHONL
 #define ECHONL 0
 #endif
-//! echo NL even if ECHO is off 
+//! echo NL even if ECHO is off
 const ECHONL = ECHONL;
 
 #ifndef ECHOPRT
@@ -123,20 +123,20 @@ const NOKERNINFO = NOKERNINFO;
 #ifndef PENDIN
 #define PENDIN 0
 #endif
-//! retype pending input (state) 
+//! retype pending input (state)
 const PENDIN = PENDIN;
 
 #ifndef NOFLSH
 #define NOFLSH 0
 #endif
 //! don't flush after interrupt
-const NOFLSH = NOFLSH; 
+const NOFLSH = NOFLSH;
 //@}
 
 /** @defgroup tattr_control_mode_constants Terminal Attribute Control Mode Constants
     If any of the constants in this group is not defined on the host system, then it will be assigned to 0 in Qore.
  */
-//@{ 
+//@{
 #ifndef CSIZE
 #define CSIZE 0
 #endif
@@ -243,7 +243,7 @@ const MDMBUF = MDMBUF;
 /** @defgroup tattr_output_mode_constants Terminal Attributes Output Mode Constants
     If any of the constants in this group is not defined on the host system, then it will be assigned to 0 in Qore.
  */
-//@{ 
+//@{
 #ifndef OPOST
 #define OPOST 0
 #endif
@@ -253,7 +253,7 @@ const OPOST = OPOST;
 #ifndef ONLCR
 #define ONLCR 0
 #endif
-//! map NL to CR-NL (ala CRMOD) 
+//! map NL to CR-NL (ala CRMOD)
 const ONLCR = ONLCR;
 
 #ifndef OXTABS
@@ -277,13 +277,13 @@ const OCRNL = OCRNL;
 #ifndef OLCUC
 #define OLCUC 0
 #endif
-//! 
+//!
 const OLCUC = OLCUC;
 
 #ifndef ONOCR
 #define ONOCR 0
 #endif
-//! no CR output at column 0 
+//! no CR output at column 0
 const ONOCR = ONOCR;
 
 #ifndef ONLRET
@@ -296,7 +296,7 @@ const ONLRET = ONLRET;
 /** @defgroup tattr_input_mode_constants Terminal Attributes Input Mode Constants
     If any of the constants in this group is not defined on the host system, then it will be assigned to 0 in Qore.
  */
-//@{ 
+//@{
 #ifndef IGNBRK
 #define IGNBRK 0
 #endif
@@ -378,14 +378,14 @@ const IMAXBEL = IMAXBEL;
 #ifndef IUCLC
 #define IUCLC 0
 #endif
-//! 
+//!
 const IUCLC = IUCLC;
 //@}
 
 /** @defgroup tattr_control_character_constants Terminal Attributes Control Character Constants
     If any of the constants in this group is not defined on the host system, then it will be assigned to 0 in Qore.
  */
-//@{ 
+//@{
 #ifndef VEOF
 #define VEOF 0
 #endif
@@ -504,7 +504,7 @@ const _POSIX_VDISABLE = _POSIX_VDISABLE;
 /** @defgroup tattr_term_setting_constants Terminal Attributes Terminal Setting Constants
     If any of the constants in this group is not defined on the host system, then it will be assigned to 0 in Qore.
  */
-//@{ 
+//@{
 #ifndef TCSANOW
 #define TCSANOW 0
 #endif
@@ -622,14 +622,13 @@ int TermIOS::getLFlag() {
 #ifdef HAVE_TERMIOS_H
    return s->get_lflag();
 #else
-   missing_method_error("TermIOS::getLFlag", "TERMIOS", xsink);
-   return 0;
+   return missing_method_error("TermIOS::getLFlag", "TERMIOS", xsink);
 #endif
 }
 
 //! Returns the @ref tattr_control_mode_constants "control mode flag" for the object
 /** @return the @ref tattr_control_mode_constants "control mode flag" for the object
-    
+
     @par Platform Availability:
     @ref Qore::Option::HAVE_TERMIOS
 
@@ -642,8 +641,7 @@ int TermIOS::getCFlag() {
 #ifdef HAVE_TERMIOS_H
    return s->get_cflag();
 #else
-   missing_method_error("TermIOS::getCFlag", "TERMIOS", xsink);
-   return 0;
+   return missing_method_error("TermIOS::getCFlag", "TERMIOS", xsink);
 #endif
 }
 
@@ -662,8 +660,7 @@ int TermIOS::getOFlag() {
 #ifdef HAVE_TERMIOS_H
    return s->get_oflag();
 #else
-   missing_method_error("TermIOS::getOFlag", "TERMIOS", xsink);
-   return 0;
+   return missing_method_error("TermIOS::getOFlag", "TERMIOS", xsink);
 #endif
 }
 
@@ -682,8 +679,7 @@ int TermIOS::getIFlag() {
 #ifdef HAVE_TERMIOS_H
    return s->get_iflag();
 #else
-   missing_method_error("TermIOS::getIFlag", "TERMIOS", xsink);
-   return 0;
+   return missing_method_error("TermIOS::getIFlag", "TERMIOS", xsink);
 #endif
 }
 
@@ -708,7 +704,7 @@ $termios.setLFlag($lflag);
 nothing TermIOS::setLFlag(softint flag) {
 #ifdef HAVE_TERMIOS_H
    s->set_lflag((int)flag);
-   return 0;
+   return QoreValue();
 #else
    return missing_method_error("TermIOS::setLFlag", "TERMIOS", xsink);
 #endif
@@ -731,7 +727,7 @@ $termios.setCFlag($cflag);
 nothing TermIOS::setCFlag(softint flag) {
 #ifdef HAVE_TERMIOS_H
    s->set_cflag((int)flag);
-   return 0;
+   return QoreValue();
 #else
    return missing_method_error("TermIOS::setCFlag", "TERMIOS", xsink);
 #endif
@@ -754,7 +750,7 @@ $termios.setOFlag($oflag);
 nothing TermIOS::setOFlag(softint flag) {
 #ifdef HAVE_TERMIOS_H
    s->set_oflag((int)flag);
-   return 0;
+   return QoreValue();
 #else
    return missing_method_error("TermIOS::setOFlag", "TERMIOS", xsink);
 #endif
@@ -777,7 +773,7 @@ $termios.setIFlag($iflag);
 nothing TermIOS::setIFlag(softint flag) {
 #ifdef HAVE_TERMIOS_H
    s->set_iflag((int)flag);
-   return 0;
+   return QoreValue();
 #else
    return missing_method_error("TermIOS::setIFlag", "TERMIOS", xsink);
 #endif
@@ -805,8 +801,7 @@ int TermIOS::getCC(softint cc) {
 #ifdef HAVE_TERMIOS_H
    return s->get_cc(cc, xsink);
 #else
-   missing_method_error("TermIOS::getCC", "TERMIOS", xsink);
-   return 0;
+   return missing_method_error("TermIOS::getCC", "TERMIOS", xsink);
 #endif
 }
 
@@ -831,7 +826,7 @@ $t.setCC(VTIME, 0);
 nothing TermIOS::setCC(softint offset, softint value) {
 #ifdef HAVE_TERMIOS_H
    s->set_cc(offset, (cc_t)value, xsink);
-   return 0;
+   return QoreValue();
 #else
    return missing_method_error("TermIOS::setCC", "TERMIOS", xsink);
 #endif
@@ -854,8 +849,7 @@ bool TermIOS::isEqual(Termios[QoreTermIOS] termios) [flags=CONSTANT] {
    return s->is_equal(termios);
 #else
    termios = 0;
-   missing_method_error("TermIOS::isEqual", "TERMIOS", xsink);
-   return 0;
+   return missing_method_error("TermIOS::isEqual", "TERMIOS", xsink);
 #endif
 }
 
@@ -876,14 +870,13 @@ static hash TermIOS::getWindowSize() [flags=RET_VALUE_ONLY; dom=TERMINAL_IO] {
    int rows, columns;
 
    if (QoreTermIOS::getWindowSize(rows, columns, xsink))
-      return 0;
+      return QoreValue();
 
    QoreHashNode *rv = new QoreHashNode;
    rv->setKeyValue("rows", new QoreBigIntNode(rows), xsink);
    rv->setKeyValue("columns", new QoreBigIntNode(columns), xsink);
    return rv;
 #else
-   missing_method_error("TermIOS::getWindowSize", "TERMIOS", xsink);
-   return 0;
+   return missing_method_error("TermIOS::getWindowSize", "TERMIOS", xsink);
 #endif
 }

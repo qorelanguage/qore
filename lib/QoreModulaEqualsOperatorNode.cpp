@@ -3,7 +3,7 @@
  
   Qore Programming Language
  
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
  
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -37,15 +37,21 @@ AbstractQoreNode *QoreModulaEqualsOperatorNode::parseInitImpl(LocalVar *oflag, i
    return this;
 }
 
-int64 QoreModulaEqualsOperatorNode::bigIntEvalImpl(ExceptionSink *xsink) const {
+QoreValue QoreModulaEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    int64 val = right->bigIntEval(xsink);
-   if (xsink->isEvent())
-      return 0;
+   if (*xsink)
+      return QoreValue();
 
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);
    if (!v)
-      return 0;
+      return QoreValue();
+
    // do not try to execute %= 0 or a runtime exception will occur
-   return val ? v.modulaEqualsBigInt(val, "<%= operator>") : v.assignBigInt(0, "<%= operator>");
+   if (!val) {
+      v.assign(0ll, "<%= operator>");
+      return 0ll;
+   }
+   
+   return v.modulaEqualsBigInt(val, "<%= operator>");
 }

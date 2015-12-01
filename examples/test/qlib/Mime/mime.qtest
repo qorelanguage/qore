@@ -1,0 +1,52 @@
+#!/usr/bin/env qr
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Mime.qm
+
+%exec-class MimeTest
+
+public class MimeTest inherits QUnit::Test {
+    private {
+        string testString = "This is a test: æéìœü";
+
+        string printableEncoded = "This is a test: =C3=A6=C3=A9=C3=AC=C5=93=C3=BC";
+        string base64Encoded = "VGhpcyBpcyBhIHRlc3Q6IMOmw6nDrMWTw7w=";
+        string headerWordQEncoded = "=?UTF-8?Q?This_is_a_test:_=C3=A6=C3=A9=C3=AC=C5=93=C3=BC?=";
+        string headerWordBEncoded = "=?UTF-8?B?VGhpcyBpcyBhIHRlc3Q6IMOmw6nDrMWTw7w=?=";
+    }
+
+    constructor() : Test("MimeTest", "1.0") {
+        addTestCase("Printable test", \printableTest(), NOTHING);
+        addTestCase("Base64 test", \base64Test(), NOTHING);
+        addTestCase("Header word q test", \wordQTest(), NOTHING);
+        addTestCase("Header word b test", \wordBTest(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    printableTest() {
+        testAssertion("encode", \mime_encode_quoted_printable(), (testString,), new TestResultValue(printableEncoded));
+        testAssertion("decode", \mime_decode_quoted_printable(), (printableEncoded,), new TestResultValue(testString));
+    }
+
+    base64Test() {
+        testAssertion("encode", \mime_encode_base64(), (testString,), new TestResultValue(base64Encoded));
+        testAssertion("decode", \mime_decode_base64_to_string(), (base64Encoded,), new TestResultValue(testString));
+    }
+
+    wordQTest() {
+        testAssertion("encode", \mime_encode_header_word_q(), (testString,), new TestResultValue(headerWordQEncoded));
+        testAssertion("decode", \mime_decode_header(), (headerWordQEncoded,), new TestResultValue(testString));
+    }
+
+    wordBTest() {
+        testAssertion("encode", \mime_encode_header_word_b(), (testString,), new TestResultValue(headerWordBEncoded));
+        testAssertion("decode", \mime_decode_header(), (headerWordBEncoded,), new TestResultValue(testString));
+    }
+}
+

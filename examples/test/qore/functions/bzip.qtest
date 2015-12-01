@@ -1,0 +1,50 @@
+#!/usr/bin/env qr
+%requires QUnit
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%exec-class Bzip2Test
+
+class Bzip2Test inherits QUnit::Test {
+    private {
+        const uncompressed_string = "This is a long string xxxxxxxxxxxxxxxxxxxxxxxxxxxx";
+        const compressed_string_base64 = "QlpoMzFBWSZTWVOcyk4AAAMzgABAQAAEACDlnEAgACGo0yA/ShAAAYqyprq0Y5c8OFI7R8XckU4UJBTnMpOA";
+
+        binary compressed;
+        binary uncompressed;
+
+        # Binary formatted as string. Has the ability to crash the underlying bzip2 library.
+        binary compressed_bad = binary("BZh91AY&SYwcUC^@^@^Có<80>^@^P^@@@^@^D^@ å<9c>@ ^@!©<90>Ð7©\n`^@^Z<85>^ZY<8f>-<97>ë^RS¬Igø»<92>)Â<84><83>»^Zª^X");
+    }
+
+    constructor() : Test("Bzip2Test", "1.0", \ARGV) {
+        addTestCase("bzip compression test", \testCompress(), NOTHING);
+        addTestCase("bzip decompression test", \testDecompress(), NOTHING);
+        addTestCase("bzip bad data decompression test", \testBad(), NOTHING);
+
+        compressed = parse_base64_string(compressed_string_base64);
+        uncompressed = binary(uncompressed_string);
+        #printf("%y\n", compressed);
+        #compressed = bzip2(uncompressed_string);
+        #printf("%y\n", compressed);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    testCompress() {
+        testAssertion("test compressing string", \bzip2(), (uncompressed_string,), new TestResultValue(compressed));
+        testAssertion("test compressing binary", \bzip2(), (uncompressed,), new TestResultValue(compressed));
+    }
+
+    testDecompress() {
+        testAssertion("test decompressing into string", \bunzip2_to_string(), (compressed,), new TestResultValue(uncompressed_string));
+        testAssertion("test decompressing into binary", \bunzip2_to_binary(), (compressed,), new TestResultValue(uncompressed));
+    }
+
+    testBad() {
+        testAssertion("test decompressing bad data", \bunzip2_to_binary(), (compressed_bad,), new TestResultExceptionType("BZIP2-DECOMPRESS-ERROR"));
+    }
+}

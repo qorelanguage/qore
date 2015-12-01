@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file RestHandler.qm Qore handler definition for the HttpServer module for exporting REST services
 
-/* RestHandler.qm Copyright (C) 2013 - 2014 Qore Technologies, sro
+/* RestHandler.qm Copyright (C) 2013 - 2015 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,15 +23,19 @@
 */
 
 # minimum qore version
-%requires qore >= 0.8.11
+%requires qore >= 0.8.12
 
+# use new-style
+%new-style
+    
 # require type definitions everywhere
 %require-types
 
 # enable all warnings
 %enable-all-warnings
 
-%requires HttpServer >= 0.3.7
+%requires Util
+%requires HttpServerUtil >= 0.3.11
 %requires Mime >= 1.3
 
 %try-module yaml
@@ -113,7 +117,7 @@ module RestHandler {
 
     In all cases, the signature for these methods looks like:
     @code
-    hash method(hash $cx, *hash $ah) {}
+    hash method(hash cx, *hash ah) {}
     @endcode
 
     The arguments passed to the REST action methods are as follows:
@@ -131,39 +135,39 @@ module RestHandler {
     @code
 class AbstractExampleInstanceBaseClass inherits AbstractRestClass {
     private {
-        hash $.h;
+        hash h;
     }
 
-    constructor(hash $n_h) {
-        $.h = $n_h;
+    constructor(hash n_h) {
+        h = n_h;
     }
 
-    hash get(hash $cx, *hash $ah) {
-        return RestHandler::makeResponse(200, $.h);
+    hash get(hash cx, *hash ah) {
+        return RestHandler::makeResponse(200, h);
     }
 
-    hash putChown(hash $cx, *hash $ah) {
-        if (!exists $cx.body.user && !exists $cx.body.group)
-            return RestHandler::make400("missing 'user' and/or 'group' parameters for chown(%y)", $.h.path);
-        my int $rc = chown($.h.path, $cx.body.user, $cx.body.group);
-        return $rc ? RestHandler::make400("ERROR chown(%y): %s", $.h.path, strerror()) : RestHandler::makeResponse(200, "OK");
+    hash putChown(hash cx, *hash ah) {
+        if (!exists cx.body.user && !exists cx.body.group)
+            return RestHandler::make400("missing 'user' and/or 'group' parameters for chown(%y)", h.path);
+        int rc = chown(h.path, cx.body.user, cx.body.group);
+        return rc ? RestHandler::make400("ERROR chown(%y): %s", h.path, strerror()) : RestHandler::makeResponse(200, "OK");
     }
 
-    hash putChmod(hash $cx, *hash $ah) {
-        if (!exists $cx.body.mode)
-            return RestHandler::make400("missing 'mode' parameter for chmod(%y)", $.h.path);        
-        my int $rc = chmod($.h.path, $cx.body.mode);
-        return $rc ? RestHandler::make400("ERROR chmod(%y): %s", $.h.path, strerror()) : RestHandler::makeResponse(200, "OK");
+    hash putChmod(hash cx, *hash ah) {
+        if (!exists cx.body.mode)
+            return RestHandler::make400("missing 'mode' parameter for chmod(%y)", h.path);        
+        int rc = chmod(h.path, cx.body.mode);
+        return rc ? RestHandler::make400("ERROR chmod(%y): %s", h.path, strerror()) : RestHandler::makeResponse(200, "OK");
     }
 
-    hash putRename(hash $cx, *hash $ah) {
-        if (!exists $cx.body.newPath)
-            return RestHandler::make400("missing 'newPath' parameter for rename(%y)", $.h.path);        
+    hash putRename(hash cx, *hash ah) {
+        if (!exists cx.body.newPath)
+            return RestHandler::make400("missing 'newPath' parameter for rename(%y)", h.path);        
         try {
-            rename($.h.path, $cx.body.newPath);
+            rename(h.path, cx.body.newPath);
         }
-        catch (hash $ex) {
-            return RestHandler::make400("rename (%y): %s: %s", $.h.path, $ex.err, $ex.desc);
+        catch (hash ex) {
+            return RestHandler::make400("rename (%y): %s: %s", h.path, ex.err, ex.desc);
         }
         return RestHandler::makeResponse(200, "OK");
     }
@@ -187,11 +191,11 @@ class AbstractExampleInstanceBaseClass inherits AbstractRestClass {
 class WorkflowOrderRestClass inherits AbstractRestClass {
     private {
         # this holds the information or state of the REST object
-        hash $.wf;
+        hash wf;
     }
 
-    constructor(hash $wf) {
-        $.wf = $wf;        
+    constructor(hash n_wf) {
+        wf = n_wf;
     }
 
     # the name of the REST object
@@ -200,41 +204,41 @@ class WorkflowOrderRestClass inherits AbstractRestClass {
     }
 
     # supports subclass requests by returning an object if the id is recognized
-    *AbstractRestClass subClass(softint $order_id, hash $cx, *hash $ah) {
-        my *hash $h = $sysinfo.getOrderInfo($wf.id, $order_id);
-        if ($h)
-            return new WorkflowOrderInstanceRestClass($h);
+    *AbstractRestClass subClass(softint order_id, hash cx, *hash ah) {
+        *hash h = sysinfo.getOrderInfo(wf.id, order_id);
+        if (h)
+            return new WorkflowOrderInstanceRestClass(h);
     }
 
     # supports \c GET requests on the object
-    hash get(hash $cx, *hash $ah) {
-        return RestHandler::makeResponse(200, $.wf);
+    hash get(hash cx, *hash ah) {
+        return RestHandler::makeResponse(200, wf);
     }
 }
 
 class WorkflowOrderInstanceRestClass inherits AbstractRestClass {
     private {
         # this holds the information or state of the REST object
-        hash $.oh;
+        hash oh;
     }
 
-    constructor(hash $oh) {
-        $.oh = $oh;
+    constructor(hash n_oh) {
+        oh = n_oh;
     }
 
     # the name of the REST object
     string name() {
-        return $.oh.order_instanceid;
+        return oh.order_instanceid;
     }
 
     # supports \c PUT requests where action=retry on the object
-    hash putRetry(hash $cx, *hash $ah) {
-        return RestHandler::makeResponse(200, $api.retryOrder($.oh.order_instanceid));
+    hash putRetry(hash cx, *hash ah) {
+        return RestHandler::makeResponse(200, api.retryOrder(oh.order_instanceid));
     }
 
     # supports \c GET requests on the object
-    hash get(hash $cx, *hash $ah) {
-        return RestHandler::makeResponse(200, $.oh);
+    hash get(hash cx, *hash ah) {
+        return RestHandler::makeResponse(200, oh);
     }
 }
     @endcode
@@ -249,7 +253,7 @@ class WorkflowOrderInstanceRestClass inherits AbstractRestClass {
 
     REST action methods have the following signature:
     @code
-    hash method(hash $cx, *hash $ah) {}
+    hash method(hash cx, *hash ah) {}
     @endcode
 
     In the usual case when only one of the above methods is used, then the argument information is copied to both places, making it easier for the %Qore REST implementation to handle arguments in a consistent way regardless of how they were passed.  This means arguments, including any \c action argument, can be passed in either the URI path as URI query arguments, or in the message body as a hash.
@@ -281,12 +285,12 @@ Content-Length: 36
     @endverbatim
 
     @par REST URI Arguments
-    REST URI arguments are available in the \a "$ah" argument to the method.  REST URI arguments are provided internally with the @ref HttpServer::parse_uri_query() "parse_uri_query" function.\n\n
-    If no URI query argument were provided in the request, then the \a "$ah" parameter is populated by the deserialized message body, if it is deserialized to a hash.
+    REST URI arguments are available in the \a "ah" argument to the method.  REST URI arguments are provided internally with the @ref HttpServer::parse_uri_query() "parse_uri_query" function.\n\n
+    If no URI query argument were provided in the request, then the \a "ah" parameter is populated by the deserialized message body, if it is deserialized to a hash.
 
     @par REST Message Body
-    The REST request message body is automatically deserialized and made available as \a "$cx.body" in REST action methods.\n\n
-    If no message body was included in the client request, then any parsed URI parameters are copied to \a "$cx.body".\n\n
+    The REST request message body is automatically deserialized and made available as \a "cx.body" in REST action methods.\n\n
+    If no message body was included in the client request, then any parsed URI parameters are copied to \a "cx.body".\n\n
     For requests with long or complex arguments should send arguments as message bodies and not as serialized URI query arguments.
 
     @section restexceptions Exception Handling in REST Calls
@@ -297,12 +301,13 @@ Content-Length: 36
 
     @section resthandler_relnotes RestHandler Release Notes
 
-    @subsection rh_v_1_1 RestHandler v1.1
+    @subsection rh_1_1 RestHandler v1.1
     - added support for the HTTP \c OPTIONS method
     - return an error if an unsupported HTTP method is used in a REST call
     - fixed a type error in the ah member of AbstractRestStreamRequestHandler
+    - fixed a bug where an error calling an internal nonexistent method would be reported with an incorrect error message
 
-    @subsection rh_v_1_0 RestHandler v1.0
+    @subsection rh_1_0 RestHandler v1.0
     - the initial version of the RestHandler module
 */
 
@@ -314,14 +319,14 @@ public namespace RestHandler {
 
         private {
             #! call argument hash
-            *hash $.ah;
+            *hash ah;
 
             #! headers to add in the response
-            hash $.rhdr;
+            hash rhdr;
         }
 
         #! creates the object with the given arguments
-        /** @param cx call context hash; this hash will have the following keys:
+        /** @param n_cx call context hash; this hash will have the following keys:
             - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
             - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
             - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
@@ -332,10 +337,10 @@ public namespace RestHandler {
             - \c hdr: a hash of header information as returned by @ref Qore::Socket::readHTTPHeader()
             - \c body: the deserialized message body
             - \c aih: a hash of \c "Accept" values
-            @param ah any URI arguments in the request
+            @param n_ah any URI arguments in the request
         */
-        constructor(hash $cx, *hash $ah) : AbstractStreamRequestHandler($cx) {
-            $.ah = $ah;
+        constructor(hash n_cx, *hash n_ah) : HttpServer::AbstractStreamRequestHandler(n_cx) {
+            ah = n_ah;
         }
 
         #! this method returns the response message description hash by calling getResponseHeaderMessageImpl()
@@ -349,24 +354,24 @@ public namespace RestHandler {
             @note this method is called after the message body has been received
         */
         hash getResponseHeaderMessage() {
-            my hash $h = AbstractStreamRequestHandler::$.getResponseHeaderMessage();
-            if ($h.code >= 200 && $h.code <= 300 && $.rhdr)
-                $h.hdr += $.rhdr;
-            return $h;
+            hash h = HttpServer::AbstractStreamRequestHandler::getResponseHeaderMessage();
+            if (h.code >= 200 && h.code <= 300 && rhdr)
+                h.hdr += rhdr;
+            return h;
         }
     }
 
     #! the base class for handling HTTP chunked requests and responses within the RestHandler infrastructure
     public class RestStreamRequest inherits HttpServer::AbstractStreamRequest {
         private {
-            RestHandler::AbstractRestStreamRequestHandler $.rsh;
-            bool $.deserialized;
+            RestHandler::AbstractRestStreamRequestHandler rsh;
+            bool deserialized;
         }
 
         #! creates the object with the given attributes
-        constructor(RestHandler::AbstractRestStreamRequestHandler $rsh, HttpListener $listener, AbstractHttpRequestHandler $handler, Socket $s, hash $cx, hash $hdr, any $body) : AbstractStreamRequest($listener, $handler, $s, $cx + (exists $body ? ("deserialized": True) : NOTHING), $hdr, $body) {
-            $.rsh = $rsh;
-            $.deserialized = exists $body;
+        constructor(RestHandler::AbstractRestStreamRequestHandler n_rsh, HttpServer::HttpListenerInterface listener, HttpServer::AbstractHttpRequestHandler handler, Socket s, hash cx, hash hdr, any body) : HttpServer::AbstractStreamRequest(listener, handler, s, cx + (exists body ? ("deserialized": True) : NOTHING), hdr, body) {
+            rsh = n_rsh;
+            deserialized = exists body;
         }
 
         # callback method for the response header; this calls @ref RestHandler::AbstractRestStreamRequestHandler::getResponseHeaderMessage() and returns the result
@@ -380,7 +385,7 @@ public namespace RestHandler {
             @note this method is called after the message body has been received
         */
         private hash getResponseHeaderMessageImpl() {
-            return $.rsh.getResponseHeaderMessage();
+            return rsh.getResponseHeaderMessage();
         }
 
         #! callback method for receiving chunked data; this calls @ref RestHandler::AbstractRestStreamRequestHandler::recv() with the argument
@@ -394,8 +399,8 @@ public namespace RestHandler {
             - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
             - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
         */
-        private nothing recvImpl(hash $v) {
-            $.rsh.recv($v);
+        private nothing recvImpl(hash v) {
+            rsh.recv(v);
         }
 
         #! callback method for sending chunked data; this calls @ref RestHandler::AbstractRestStreamRequestHandler::send() and returns the result
@@ -403,7 +408,7 @@ public namespace RestHandler {
             @return The chunked HTTP data to send; this method must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be returned or simply @ref nothing which will close the chunked message
         */
         private any sendImpl() {
-            return $.rsh.send();
+            return rsh.send();
         }
     }
 
@@ -434,90 +439,99 @@ public namespace RestHandler {
 
             @return an object corresponding to the \c name argument or @ref nothing if none can be matched
          */
-        *AbstractRestClass subClass(string $name, hash $cx, *hash $args) {
+        *AbstractRestClass subClass(string name, hash cx, *hash args) {
         }
 
         #! this method is called by the RestHandler class to match the right object with incoming requests
-        hash handleRequest(HttpListener $listener, RestHandler $rh, Socket $s, *list $cl, string $mn, hash $cx, *hash $args) {            
-            if (!$args && $cx.body.typeCode() == NT_HASH)
-                $args = $cx.body;
-            if ($cl) {
-                my string $cname = shift $cl;
-                my *AbstractRestClass $cls = $.subClass($cname, $cx, $args);
-                if (!$cls) {
-                    $rh.logDebug("REST DBG: class %y: unknown subclass %y: method %y args: %y", $.name(), $cname, $mn, $args);
-                    return $.unknownSubClassError($cname);
+        hash handleRequest(HttpListenerInterface listener, RestHandler rh, Socket s, *list cl, string mn, hash cx, *hash args) {            
+            if (!args && cx.body.typeCode() == NT_HASH)
+                args = cx.body;
+            if (cl) {
+                string cname = shift cl;
+                *AbstractRestClass cls = subClass(cname, cx, args);
+                if (!cls) {
+                    rh.logDebug("REST DBG: class %y: unknown subclass %y: method %y args: %y", name(), cname, mn, args);
+                    return unknownSubClassError(cname);
                 }
 
-                $rh.logDebug("REST DBG: class %y: dispatching to subclass %y: method %y args: %y", $.name(), $cname, $mn, $args);
-                return $cls.handleRequest($listener, $rh, $s, $cl, $mn, $cx, $args);
+                rh.logDebug("REST DBG: class %y: dispatching to subclass %y: method %y args: %y", name(), cname, mn, args);
+                return cls.handleRequest(listener, rh, s, cl, mn, cx, args);
             }
             
-            $rh.logDebug("REST DBG: class %y: dispatching method %y args: %y", $.name(), $mn, $args);
-            return $.dispatchStream($listener, $rh, $s, $mn, $args, $cx);
+            rh.logDebug("REST DBG: class %y: dispatching method %y args: %y", name(), mn, args);
+            return dispatchStream(listener, rh, s, mn, args, cx);
         }
 
         #! this method is called to dispatch streamed requests on the given object
-        private hash dispatchStream(HttpListener $listener, RestHandler $rh, Socket $s, string $mn, *hash $ah, hash $cx) {
-            my string $sn = "stream" + $mn[0].upr() + $mn.substr(1);
+        private hash dispatchStream(HttpListenerInterface listener, RestHandler rh, Socket s, string mn, *hash ah, hash cx) {
+            string sn = "stream" + mn[0].upr() + mn.substr(1);
             try {
-                $cx.socketobject = $s;
-                my AbstractRestStreamRequestHandler $rsh = callObjectMethodArgs($self, $sn, ($cx, $ah));
+                cx.socketobject = s;
+                AbstractRestStreamRequestHandler rsh = call_object_method_args(self, sn, (cx, ah));
 
-                my RestStreamRequest $req($rsh, $listener, $rh, $s, $cx, $cx.hdr, $cx.hdr."content-length" ? $cx.body : NOTHING);
-                return $req.handleRequest();
+                RestStreamRequest req(rsh, listener, rh, s, cx, cx.hdr, cx.hdr."content-length" ? cx.body : NOTHING);
+                return req.handleRequest();
             }
-            catch (hash $ex) {
-                if ($ex.err == "METHOD-DOES-NOT-EXIST") {
-                    if ($cx.hdr."transfer-encoding" == "chunked")
-                        $cx.body = $rh.getMessageBody($s, $cx.hdr, NOTHING);
+            catch (hash ex) {
+                if (ex.err == "METHOD-DOES-NOT-EXIST") {
+                    if (cx.hdr."transfer-encoding" == "chunked")
+                        cx.body = rh.getMessageBody(s, cx.hdr, NOTHING);
 
-                    return $.dispatch($rh, $mn, $ah, $cx);
+                    return dispatch(rh, mn, ah, cx);
                 }
-                my string $desc = !$cx.debug
-                    ? sprintf("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc)
-                    : get_exception_string($ex);
-                $rh.logDebug("REST DBG: class %y: stream method %y: %s", $.name(), $sn, $desc);
+                string desc = !cx.debug
+                    ? sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc)
+                    : get_exception_string(ex);
+                rh.logDebug("REST DBG: class %y: stream method %y: %s", name(), sn, desc);
                 rethrow;
             }
         }
 
         #! this method is called to dispatch requests on the given object
-        private hash dispatch(RestHandler $rh, string $mn, *hash $ah, hash $cx) {
+        private hash dispatch(RestHandler rh, string mn, *hash ah, hash cx) {
             try {
-                return callObjectMethodArgs($self, $mn, ($cx, $ah));
+                return call_object_method_args(self, mn, (cx, ah));
             }
-            catch (hash $ex) {
-                if ($ex.err == "METHOD-DOES-NOT-EXIST") {
-                    $rh.logError("DISPATCH-ERROR: cannot dispatch to unimplemented method %y: class %y, args: %y", $mn, $.name(), $ah);
+            catch (hash ex) {
+                if (ex.err == "METHOD-DOES-NOT-EXIST") {
+                    rh.logError("DISPATCH-ERROR: cannot dispatch to unimplemented method %y: class %y, args: %y", mn, name(), ah);
                     # see if alternate methods would work
-                    my list $hl = ();
-                    foreach my hash $mh in (RestHandler::Methods.pairIterator()) {
-                        my string $nmn = $mh.value + $cx.rest_method;
-                        if ($self.hasCallableMethod($nmn))
-                            $hl += $mh.key;
+                    list hl = ();
+                    # break flag
+                    bool brk;
+                    foreach hash mh in (RestHandler::Methods.pairIterator()) {
+                        string nmn = mh.value + cx.rest_method;
+                        if (self.hasCallableMethod(nmn)) {
+                            if (mh.key == cx.hdr.method) {
+                                brk = True;
+                                break;
+                            }
+                            hl += mh.key;
+                        }
                     }
-                    if (!$hl)
-                        return RestHandler::make501("REST class %y (%s) does not implement method %y", $.name(), $self.className(), $cx.orig_method ? $cx.orig_method : $mn);
+                    if (!brk) {
+                        if (!hl)
+                            return RestHandler::make501("REST class %y (%s) does not implement method %y", name(), self.className(), cx.orig_method ? cx.orig_method : mn);
  
-                    my string $ml = foldl $1 + "," + $2, $hl;
-                    my string $desc = sprintf("HTTP method %s is unimplemented in REST class %y (%s)", $cx.hdr.method, $.name(), $self.className());
-                    if ($cx.orig_method)
-                        $desc += sprintf(" REST method %y", $cx.orig_method);
-                    $desc += sprintf(", available methods: %s", $ml);
-                    return AbstractHttpRequestHandler::makeResponse(("Allow": $ml), 405, $desc);
+                        string ml = foldl $1 + "," + $2, hl;
+                        string desc = sprintf("HTTP method %s is unimplemented in REST class %y (%s)", cx.hdr.method, name(), self.className());
+                        if (cx.orig_method)
+                            desc += sprintf(" REST method %y", cx.orig_method);
+                        desc += sprintf(", available methods: %s", ml);
+                        return HttpServer::AbstractHttpRequestHandler::makeResponse(("Allow": ml), 405, desc);
+                    }
                 }
-                my string $desc = !$cx.debug
-                    ? sprintf("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc)
-                    : get_exception_string($ex);
-                $rh.logDebug("REST DBG: class %y: method %y: %s", $.name(), $mn, $desc);
+                string desc = !cx.debug
+                    ? sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc)
+                    : get_exception_string(ex);
+                rh.logDebug("REST DBG: class %y: method %y: %s", name(), mn, desc);
                 rethrow;
             }
         }
 
         #! throws a \c "REST-CLASS-ERROR" exception when a request tries to access an unknown subclass
-        private hash unknownSubClassError(string $name) {
-            throw "REST-CLASS-ERROR", sprintf("class %y has no subclass %y", $.name(), $name);
+        private hash unknownSubClassError(string n_name) {
+            throw "REST-CLASS-ERROR", sprintf("class %y has no subclass %y", name(), n_name);
         }
     }
 
@@ -575,23 +589,23 @@ public namespace RestHandler {
                 ),
 %endif
                 MimeTypeHtml: (
-                    "serialize": string sub (any $body) { return sprintf("<pre>%N</pre>", $body); },
+                    "serialize": string sub (any body) { return sprintf("<pre>%N</pre>", body); },
                 ),
                 );
         }
         
         private {
             #! class hash: name -> AbstractRestClass
-            hash $.ch;
+            hash ch;
 
             #! mutex lock
-            Mutex $.mx();
+            Mutex mx();
         }
 
-        #! create the object optionally with the given AbstractAuthenticator
-        /** @param auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
+        #! create the object optionally with the given HttpServer::AbstractAuthenticator
+        /** @param auth the authentication object to use to authenticate connections (see HttpServer::AbstractAuthenticator); if no HttpServer::AbstractAuthenticator object is passed, then by default no authentication will be required
          */
-        constructor(*AbstractAuthenticator $auth) : AbstractHttpRequestHandler($auth, True) {
+        constructor(*HttpServer::AbstractAuthenticator auth) : HttpServer::AbstractHttpRequestHandler(auth, True) {
         }
 
         #! returns the name of the root REST class
@@ -622,233 +636,238 @@ public namespace RestHandler {
             - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
             - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
          */
-        hash handleRequest(HttpListener $listener, Socket $s, hash $cx, hash $hdr, *data $b) {
-            #$.logDebug("REST DBG: cx: %N", $cx);
-            #$.logDebug("REST DBG: hdr: %N", $hdr);
-            if ($b)
-                $.logDebug("REST DBG: body: %s", $b.typeCode() == NT_STRING ? trim($b) : sprintf("%y", $b));
+        hash handleRequest(HttpListenerInterface listener, Socket s, hash cx, hash hdr, *data b) {
+            #logDebug("REST DBG: cx: %N", cx);
+            #logDebug("REST DBG: hdr: %N", hdr);
+            if (b)
+                logDebug("REST DBG: body: %s", b.typeCode() == NT_STRING ? trim(b) : sprintf("%y", b));
 
-            my any $body = $b;
+            any body = b;
             
             # get rest class name
-            my *string $path = $cx.url.path;
+            *string path = cx.url.path;
 
-            $.removeRootPath(\$path);
+            removeRootPath(\path);
 
             # get object and args
-            my hash $ah = $path ? parse_uri_query($path) : hash();
+            hash ah = path ? parse_uri_query(path) : {};
 
-            my *hash $args;
-            if ($ah.params) {
-                if ($ah.params.typeCode() != NT_HASH)
-                    return RestHandler::make400("cannot parse arguments in REST call %y, URI arguments must be key/value pairs with an 'action' key; got type %y instead (value: %y)", $path, $ah.params.type(), $ah.params);
-                $args = $ah.params;
+            *hash args;
+            if (ah.params) {
+                if (ah.params.typeCode() != NT_HASH)
+                    return RestHandler::make400("cannot parse arguments in REST call %y, URI arguments must be key/value pairs with an 'action' key; got type %y instead (value: %y)", path, ah.params.type(), ah.params);
+                args = ah.params;
             }
 
             # deserialize body according to Content-Type
-            if ($body) {
-                my *code $ds = MimeDataTypes.($hdr."content-type").deserialize;
-                if (!$ds) {
-                    $.requestDeserializationError($hdr, $cx, $body);
-                    return RestHandler::make501("cannot deserialize request body; content-type is: %y; types supported: %y; discarding request body: %y", $hdr."content-type", MimeDataTypes.keys(), $body);
+            if (body) {
+                *code ds = MimeDataTypes.(hdr."content-type").deserialize;
+                if (!ds) {
+                    requestDeserializationError(hdr, cx, body);
+                    return RestHandler::make501("cannot deserialize request body; content-type is: %y; types supported: %y; discarding request body: %y", hdr."content-type", MimeDataTypes.keys(), body);
                 }
 
-                $body = $ds($body);
+                body = ds(body);
             }
             else
-                $body = $args;
+                body = args;
 
             # reflect body in arguments if body is a hash
-            if ($body.typeCode() == NT_HASH)
-                map $args.$1 = $body.$1, $body.keyIterator(), !exists $args.$1;
- 
-            if (!Methods.($hdr.method))
-                return RestHandler::make400("unsupported HTTP method %y given in REST call %y", $hdr.method, $path);
+            if (body.typeCode() == NT_HASH)
+                map args.$1 = body.$1, body.keyIterator(), !exists args.$1;
+
+            if (!Methods.(hdr.method))
+                return RestHandler::make400("unsupported HTTP method %y given in REST call %y", hdr.method, path);
 
             # make method name
-            my string $mn;
-            if ($args.action) {
-                if ($args.action.typeCode() != NT_STRING)
-                    return RestHandler::make400("cannot parse arguments in REST call %y, the 'action' key is not assigned to a string; got %y instead", $path, $args.action.type());
-                $mn = $args.action;
-                $args -= "action";
+            string mn;
+            if (args.action) {
+                if (args.action.typeCode() != NT_STRING)
+                    return RestHandler::make400("cannot parse arguments in REST call %y, the 'action' key is not assigned to a string; got %y instead", path, args.action.type());
+                mn = args.action;
+                args -= "action";
                 # ensure first letter of the action is in upper case
-                $cx.orig_method = $mn;
-                splice $mn, 0, 1, $mn[0].upr();
-                $cx.rest_method = $mn;
-                $mn = Methods.($hdr.method) + $mn;
+                cx.orig_method = mn;
+                splice mn, 0, 1, mn[0].upr();
+                cx.rest_method = mn;
+                mn = Methods.(hdr.method) + mn;
             }
-            else if ($body.action) {
-                if ($body.action.typeCode() != NT_STRING)
-                    return RestHandler::make400("cannot parse arguments in REST call %y, the 'action' key is not assigned to a string; got %y instead", $path, $args.action.type());
-                $mn = $body.action;
-                $cx.orig_method = $mn;
+            else if (body.action) {
+                if (body.action.typeCode() != NT_STRING)
+                    return RestHandler::make400("cannot parse arguments in REST call %y, the 'action' key is not assigned to a string; got %y instead", path, args.action.type());
+                mn = body.action;
+                cx.orig_method = mn;
                 # ensure first letter of the action is in upper case
-                splice $mn, 0, 1, $mn[0].upr();
-                $cx.rest_method = $mn;
-                $mn = Methods.($hdr.method) + $mn;
+                splice mn, 0, 1, mn[0].upr();
+                cx.rest_method = mn;
+                mn = Methods.(hdr.method) + mn;
             }
             else
-                $mn = Methods.($hdr.method);
+                mn = Methods.(hdr.method);
 
-            $cx.rest_action_method = $mn;
+            cx.rest_action_method = mn;
 
             # remove leading slash from method name
-            if ($ah.method =~ /^\//)
-                splice $ah.method, 0, 1;
+            if (ah.method =~ /^\//)
+                splice ah.method, 0, 1;
             
             # get class chain
-            my *list $cl = $ah.method ? $ah.method.split("/") : NOTHING;
+            *list cl = ah.method ? ah.method.split("/") : NOTHING;
 
             # get initial class
-            my *string $cls = shift $cl;
+            *string cls = shift cl;
 
             # make a hash of "accept" values
-            my *string $astr = $hdr.accept;
-            my hash $aih;
-            if ($astr) {
-                $astr =~ s/;.*//;#/;
-                $astr =~ s/ +//g;
-                map $aih.$1 = True, $astr.split(",");
+            *string astr = hdr.accept;
+            hash aih;
+            if (astr) {
+                astr =~ s/;.*//;#/;
+                astr =~ s/ +//g;
+                map aih.$1 = True, astr.split(",");
             }
             else {
                 # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html: If no Accept header field is present, then it is assumed that the client accepts all media types
-                $aih."*/*" = True;
+                aih."*/*" = True;
             }
 
-            #$.logDebug("REST DBG: aih: %y", $aih);
+            #logDebug("REST DBG: aih: %y", aih);
 
             # set up context hash
-            $cx += ("hdr": $hdr, "body": $body, "aih": $aih);
+            cx += ("hdr": hdr, "body": body, "aih": aih);
 
-            my AbstractRestClass $rcls;
+            AbstractRestClass rcls;
 
-            if (!$cls)
-                $rcls = $self;
+            if (!cls)
+                rcls = self;
             else {
-                if (!$.ch{$cls}) {
-                    my *AbstractRestClass $c = $.subClass($cls, $cx, $args);
-                    if (!$c)
-                        return RestHandler::make400("unknown REST class %y in path %y (valid classes: %y)", $cls, $cx.url.path, $.ch.keys());
-                    $rcls = $c;
+                if (!ch{cls}) {
+                    *AbstractRestClass c = subClass(cls, cx, args);
+                    if (!c)
+                        return RestHandler::make400("unknown REST class %y in path %y (valid classes: %y)", cls, cx.url.path, ch.keys());
+                    rcls = c;
                 }
                 else
-                    $rcls = $.ch{$cls};
+                    rcls = ch{cls};
             }
 
             # check method
-            if (!Methods.($hdr.method))
-                return RestHandler::make501("cannot handle HTTP method %y; valid methods: %y", $hdr.method, Methods.keys());
+            if (!Methods.(hdr.method))
+                return RestHandler::make501("cannot handle HTTP method %y; valid methods: %y", hdr.method, Methods.keys());
             
             # handle call with class
-            my hash $rv;
+            hash rv;
             
             try {
-                $rv = $rcls.handleRequest($listener, $self, $s, $cl, $mn, $cx, $args);
+                rv = rcls.handleRequest(listener, self, s, cl, mn, cx, args);
             }
-            catch (hash $ex) {
-                my string $desc = !$cx.debug
-                    ? sprintf("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc)
-                    : get_exception_string($ex);
+            catch (hash ex) {
+                string desc = !cx.debug
+                    ? sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc)
+                    : get_exception_string(ex);
 
                 # if there is an exception, return a 409 Conflict error to the client with the exception information
-                $.logError($desc);
-                $rv = (
+                logError(desc);
+                rv = (
                     "code": 409,
-                    "body": $ex,
+                    "body": ex,
                     );
             }
 
-            #$.logDebug("DBG: rv: %y", $rv);
+            #logDebug("DBG: rv: %y", rv);
 
-            if (!$rv.reply_sent) {
+            if (!rv.reply_sent) {
                 # serialize response according to client's capabilities if necessary
-                my bool $encoded;
-                if ($rv.already_encoded)
-                    $encoded = True;
+                bool encoded;
+                if (rv.already_encoded)
+                    encoded = True;
 
                 # process Accept values in the order sent by the sender
-                if (!$encoded && !$rv.reply_sent) {
-                    my *code $ds;
-                    foreach my string $a in ($aih.keyIterator()) {
-                        $ds = MimeDataTypes.$a.serialize;
-                        if ($ds) {
-                            $rv.body = $ds($rv.body);
-                            $rv.hdr += ("Content-Type": $a);
+                if (!encoded && !rv.reply_sent) {
+                    *code ds;
+                    foreach string a in (aih.keyIterator()) {
+                        ds = MimeDataTypes{a}.serialize;
+                        if (ds) {
+                            rv.body = ds(rv.body);
+                            rv.hdr += ("Content-Type": a);
                             break;
                         }
                     }
 
                     # if still not encoded and the client accepts anything, encode with the first possible serialization method
-                    if (!$ds && $aih."*/*") {
-                        foreach my string $k in (MimeDataTypes.keyIterator()) {
-                            $ds = MimeDataTypes.$k.serialize;
-                            if ($ds) {
-                                $rv.body = $ds($rv.body);
-                                $rv.hdr += ("Content-Type": $k);
+                    if (!ds && aih."*/*") {
+                        foreach string k in (MimeDataTypes.keyIterator()) {
+                            ds = MimeDataTypes{k}.serialize;
+                            if (ds) {
+                                rv.body = ds(rv.body);
+                                rv.hdr += ("Content-Type": k);
                                 break;
                             }
                         }
-                        if (!$ds) {
-                            $.responseSerializationError($cx, $aih, $rv);
+                        if (!ds) {
+                            responseSerializationError(cx, aih, rv);
                             # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html: If an Accept header field is present, and if the server cannot send a response which is acceptable according to the combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.
-                            return RestHandler::makeResponse(406, "cannot serialize response; you claim to accept only: %y; types supported: %y; discarding response: %y", $aih.keys(), MimeDataTypes.keys(), $rv.body);
+                            return RestHandler::makeResponse(406, "cannot serialize response; you claim to accept only: %y; types supported: %y; discarding response: %y", aih.keys(), MimeDataTypes.keys(), rv.body);
                         }
                     }
                 }
 
-                $.logDebug("REST DBG: response serialization: %d %s (%d bytes)", $rv.code, $rv.hdr."Content-Type", $rv.body.size());
+                logDebug("REST DBG: response serialization: %d %s (%d bytes)", rv.code, rv.hdr."Content-Type", rv.body.size());
             }
 
-            #$.logDebug("REST DBG: rv: %N", $rv);
+            #logDebug("REST DBG: rv: %N", rv);
 
-            return $rv;
+            return rv;
         }
 
         #! default implementation is empty
-        removeRootPath(reference $path) {
+        removeRootPath(reference path) {
         }
         
         #! default implementation is empty
-        requestDeserializationError(hash $hdr, hash $cx, string $body) {
+        requestDeserializationError(hash hdr, hash cx, string body) {
         }
 
         #! default implementation is empty
-        responseSerializationError(hash $cx, *hash $aih, hash $rv) {
+        responseSerializationError(hash cx, *hash aih, hash rv) {
         }
 
         #! default implementation is empty; this method is called with informational log messages; reimplement in subclasses to provide for logging
-        logInfo(string $fmt) {
-            delete $argv;
+        logInfo(string fmt) {
+            delete argv;
         }
 
         #! default implementation is empty; this method is called with error log messages; reimplement in subclasses to provide for logging
-        logError(string $fmt) {
-            delete $argv;
+        logError(string fmt) {
+            delete argv;
         }
 
         #! default implementation is empty; this method is called with debug log messages; reimplement in subclasses to provide for logging
-        logDebug(string $fmt) {
-            delete $argv;
+        logDebug(string fmt) {
+            delete argv;
         }
 
         #! adds a REST class to the handler
-        addClass(AbstractRestClass $cls) {
-            $.mx.lock();
-            on_exit $.mx.unlock();
+        addClass(AbstractRestClass cls) {
+            mx.lock();
+            on_exit mx.unlock();
 
-            my string $name = $cls.name();
-            if ($.ch{$name})
-                throw "RETSHANDLER-ERROR", sprintf("class %y has already been registered with this handler", $name);
-            $.ch{$name} = $cls;
+            string name = cls.name();
+            if (ch{name})
+                throw "RETSHANDLER-ERROR", sprintf("class %y has already been registered with this handler", name);
+            ch{name} = cls;
         }
 
+        #! default get handler
+        hash get(hash cx, *hash ah) {
+            return RestHandler::makeResponse(200, ch.keys());
+        }
+        
         #! creates a hash for an HTTP response with the response code and a literal response message body
-        static hash makeResponse(int $code, any $body, *hash $hdr) {
+        static hash makeResponse(int code, any body, *hash hdr) {
             return (
-                "code": $code,
-                "body": $body,
-                "hdr": $hdr,
+                "code": code,
+                "body": body,
+                "hdr": hdr,
                 );
         }
     }

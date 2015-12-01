@@ -1,0 +1,33 @@
+#!/usr/bin/env qr
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%requires ../../qlib/QUnit.qm
+
+#%include ./_some_module_to_test
+
+%exec-class QUnitTest
+
+public class QUnitTest inherits QUnit::Test {
+    constructor() : Test("QUnitTest", "1.0") {
+        addTestCase("What this method is testing", \testMethod(), NOTHING);
+        addTestCase("Skipped test", \testSkipped(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    testMethod() {
+        # Test against success
+        testAssertion("success", \equals(), (True, True));
+        # Test against something else
+        testAssertion("failure", \equals(), (True, False), RESULT_FAILURE);
+    }
+
+    testSkipped() {
+        # Skip this test
+        testSkip("Because of the reason it skipped");
+    }
+}

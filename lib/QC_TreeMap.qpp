@@ -1,0 +1,118 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  QC_TreeMap.qpp
+
+  Qore Programming Language
+
+  Copyright (C) 2003 - 2015 David Nichols
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the "Software"),
+  to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+
+  Note that the Qore library is released under a choice of three open-source
+  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+  information.
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/QC_TreeMap.h>
+
+//! A container for efficient path prefix lookup.
+/** The primary use of this class is in HttpServer for matching request URIs to handlers.
+
+    Example:
+    @code
+TreeMap tm();
+
+tm.put("path/to/resource", handler1);
+tm.put("scripts", handler2);
+tm.put("scripts/special", handler3);
+
+tm.get("path/to/resource/x");           # returns handler1
+tm.get("path/to/resource?arg=1");       # returns handler1
+tm.get("path/to/res");                  # returns NOTHING
+tm.get("path/to/resourcex");            # returns NOTHING
+tm.get("path");                         # returns NOTHING
+
+tm.get("scripts/special/main.js");      # returns handler3
+tm.get("scripts/normal/main.js");       # returns handler2
+    @endcode
+*/
+qclass TreeMap [arg=TreeMapData* tm];
+
+//! Creates an empty TreeMap container
+/** Creates an empty TreeMap container.
+ */
+TreeMap::constructor() {
+   self->setPrivate(CID_TREEMAP, new TreeMapData);
+}
+
+//! Releases any resource held by the instance
+/** Releases any resource held by the instance.
+ */
+TreeMap::destructor() {
+   tm->deref(xsink);
+}
+
+//! Throws an exception; objects of this class cannot be copied
+/**
+    @throw TREEMAP-COPY-ERROR objects of this class cannot be copied
+ */
+TreeMap::copy() {
+   xsink->raiseException("TREEMAP-COPY-ERROR", "objects of this class cannot be copied");
+}
+
+//! Puts the mapping of \c path to \c value into the container.
+/**
+    @param path the path to which \c value will be mapped
+    @param value the value to put into the TreeMap
+
+    @see TreeMap::remove()
+ */
+nothing TreeMap::put(string path, any value) {
+   tm->put(path, value, xsink);
+}
+
+//! Retrieves a value from the TreeMap.
+/** Looks for an entry whose key is the longest prefix of \c path.
+    @param path the path to lookup
+    @return the value pointed to by the longest prefix of \c path or NOTHING if no such mapping exists
+ */
+any TreeMap::get(string path) [flags=RET_VALUE_ONLY] {
+   return tm->get(path, xsink);
+}
+
+//! Removes a value from the TreeMap and returns the value removed
+/** The \c path must be an exact match
+
+    @param path the path to remove
+
+    @return the value removed from the TreeMap or @ref nothing if no exact match was found
+
+    @see TreeMap::put()
+*/
+any TreeMap::take(string path) {
+   return tm->take(path, xsink);
+}
+
+//! Retrieves the entire TreeMap as a hash; returns @ref nothing if the TreeMap is empty
+/** @return the entire TreeMap as a hash or returns @ref nothing if the TreeMap is empty
+ */
+*hash TreeMap::getAll() [flags=CONSTANT] {
+   return tm->getAll();
+}

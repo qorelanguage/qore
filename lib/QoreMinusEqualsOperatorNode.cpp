@@ -1,10 +1,10 @@
 /*
   QoreMinusEqualsOperatorNode.cpp
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2014 David Nichols
- 
+
+  Copyright (C) 2003 - 2015 David Nichols
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -32,7 +32,7 @@
 
 QoreString QoreMinusEqualsOperatorNode::op_str("-= operator expression");
 
-AbstractQoreNode *QoreMinusEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) { 
+AbstractQoreNode *QoreMinusEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    // turn off "reference ok" and "return value ignored" flags
    pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
@@ -47,7 +47,7 @@ AbstractQoreNode *QoreMinusEqualsOperatorNode::parseInitImpl(LocalVar *oflag, in
        && !ti->isType(NT_FLOAT)
        && !ti->isType(NT_NUMBER)
        && !ti->isType(NT_DATE)) {
-      // if the lhs type is not one of the above types, 
+      // if the lhs type is not one of the above types,
       // there are 2 possibilities: the lvalue has no value, in which
       // case it takes the value of the right side, or if it's anything else it's
       // converted to an integer, so we just check if it can be assigned an
@@ -65,80 +65,79 @@ AbstractQoreNode *QoreMinusEqualsOperatorNode::parseInitImpl(LocalVar *oflag, in
    return this;
 }
 
-AbstractQoreNode *QoreMinusEqualsOperatorNode::evalImpl(ExceptionSink *xsink) const {
-   QoreNodeEvalOptionalRefHolder new_right(right, xsink);
+QoreValue QoreMinusEqualsOperatorNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
+   ValueEvalRefHolder new_right(right, xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);
    if (!v)
-      return 0;
+      return QoreValue();
 
-   if (is_nothing(*new_right)) {
-      return ref_rv ? v.getReferencedValue() : 0;
-   }
+   if (new_right->isNothing())
+      return needs_deref ? v.getReferencedValue() : QoreValue();
 
    // do float minus-equals if left side is a float
    qore_type_t vtype = v.getType();
 
+   //printd(5, "QoreMinusEqualsOperatorNode::evalValueImpl() vtype: %d rtype: %d\n", vtype, new_right->getType());
+
    if (vtype == NT_NOTHING) {
       // see if the lvalue has a default type
-      const QoreTypeInfo *typeInfo = v.getTypeInfo();
+      const QoreTypeInfo* typeInfo = v.getTypeInfo();
       if (typeInfo->hasDefaultValue()) {
 	 if (v.assign(typeInfo->getDefaultValue()))
-	    return 0;
+	    return QoreValue();
 	 vtype = v.getType();
       }
-      else if (new_right) {
+      else {
 	 if (new_right->getType() == NT_FLOAT) {
-	    const QoreFloatNode *f = reinterpret_cast<const QoreFloatNode *>(*new_right);
-	    v.assign(new QoreFloatNode(-f->f));
+	    v.assign(-new_right->getAsFloat());
 	 }
 	 else if (new_right->getType() == NT_NUMBER) {
-            const QoreNumberNode* num = reinterpret_cast<const QoreNumberNode*>(*new_right);
+            const QoreNumberNode* num = reinterpret_cast<const QoreNumberNode*>(new_right->getInternalNode());
             v.assign(num->negate());
          }
-	 else {
-	    // optimization to eliminate a virtual function call in the most common case
-	    int64 i = new_right->getAsBigInt();
-	    v.assign(new QoreBigIntNode(-i));
-	 }
+	 else
+	    v.assign(-new_right->getAsBigInt());
 
 	 if (*xsink)
-	    return 0;
+	    return QoreValue();
 
 	 // v has been assigned to a value by this point
-	 // reference return value
-	 return ref_rv ? v.getReferencedValue() : 0;
+	 return ref_rv ? v.getReferencedValue() : QoreValue();
       }
    }
 
-   if (vtype == NT_FLOAT) {
-      v.minusEqualsFloat(new_right->getAsFloat());
-   }
+   if (vtype == NT_FLOAT)
+      return v.minusEqualsFloat(new_right->getAsFloat());
    else if (vtype == NT_NUMBER) {
-      v.minusEqualsNumber(*new_right, "<-= operator>");
+      // FIXME: could be more efficient
+      ReferenceHolder<> ra(new_right.getReferencedValue(), xsink);
+      v.minusEqualsNumber(*ra, "<-= operator>");
    }
    else if (vtype == NT_DATE) {
-      DateTimeValueHelper date(*new_right);
-      v.assign(reinterpret_cast<DateTimeNode *>(v.getValue())->subtractBy(*date));
+      // get a relative date-time value
+      DateTime date(*new_right);
+      //DateTimeValueHelper date(*new_right);
+      v.assign(reinterpret_cast<DateTimeNode*>(v.getValue())->subtractBy(date));
    }
    else if (vtype == NT_HASH) {
       if (new_right->getType() != NT_HASH && new_right->getType() != NT_OBJECT) {
 	 v.ensureUnique();
-	 QoreHashNode *vh = reinterpret_cast<QoreHashNode *>(v.getValue());
+	 QoreHashNode* vh = reinterpret_cast<QoreHashNode*>(v.getValue());
 
-	 const QoreListNode *nrl = (new_right->getType() == NT_LIST) ? reinterpret_cast<const QoreListNode *>(*new_right) : 0;
+	 const QoreListNode* nrl = (new_right->getType() == NT_LIST) ? reinterpret_cast<const QoreListNode*>(new_right->getInternalNode()) : 0;
 	 if (nrl && nrl->size()) {
 	    // treat each element in the list as a string giving a key to delete
 	    ConstListIterator li(nrl);
 	    while (li.next()) {
 	       QoreStringValueHelper val(li.getValue());
-	       
+
 	       vh->removeKey(*val, xsink);
 	       if (*xsink)
-		  return 0;
+		  return QoreValue();
 	    }
 	 }
 	 else {
@@ -149,18 +148,18 @@ AbstractQoreNode *QoreMinusEqualsOperatorNode::evalImpl(ExceptionSink *xsink) co
    }
    else if (vtype == NT_OBJECT) {
       if (new_right->getType() != NT_HASH && new_right->getType() != NT_OBJECT) {
-	 QoreObject *o = reinterpret_cast<QoreObject *>(v.getValue());
+	 QoreObject *o = reinterpret_cast<QoreObject*>(v.getValue());
 
-	 const QoreListNode *nrl = (new_right->getType() == NT_LIST) ? reinterpret_cast<const QoreListNode *>(*new_right) : 0;
+	 const QoreListNode *nrl = (new_right->getType() == NT_LIST) ? reinterpret_cast<const QoreListNode *>(new_right->getInternalNode()) : 0;
 	 if (nrl && nrl->size()) {
 	    // treat each element in the list as a string giving a key to delete
 	    ConstListIterator li(nrl);
 	    while (li.next()) {
 	       QoreStringValueHelper val(li.getValue());
-	       
+
 	       o->removeMember(*val, xsink);
 	       if (*xsink)
-		  return 0;
+		  return QoreValue();
 	    }
 	 }
 	 else {
@@ -169,19 +168,13 @@ AbstractQoreNode *QoreMinusEqualsOperatorNode::evalImpl(ExceptionSink *xsink) co
 	 }
       }
    }
-   else { // do integer minus-equals
-      v.minusEqualsBigInt(new_right->getAsBigInt());
-   }
+   else // do integer minus-equals
+      return v.minusEqualsBigInt(new_right->getAsBigInt());
 
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    // here we know that v has a value
    // reference return value and return
-   return ref_rv ? v.getReferencedValue() : 0;
-}
-
-AbstractQoreNode *QoreMinusEqualsOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = ref_rv;
-   return QoreMinusEqualsOperatorNode::evalImpl(xsink);
+   return ref_rv ? v.getReferencedValue() : QoreValue();
 }

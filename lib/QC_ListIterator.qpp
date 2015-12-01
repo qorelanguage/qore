@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -182,7 +182,7 @@ while ($i.next()) {
  */
 any ListIterator::getValue() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-      return 0;
+      return QoreValue();
    return i->getReferencedValue(xsink);
 }
 
@@ -229,7 +229,7 @@ if (!$i.set($pos))
  */
 bool ListIterator::set(int pos) {
    if (i->check(xsink))
-      return false;
+      return QoreValue();
    return !i->set(pos);
 }
 
@@ -258,6 +258,6 @@ $i.reset();
  */
 ListIterator::reset() {
    if (i->check(xsink))
-       return 0;
+       return QoreValue();
    i->reset();
 }

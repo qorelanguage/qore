@@ -1,0 +1,64 @@
+#!/usr/bin/env qr
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Qorize.qm
+
+%exec-class QorizeTest
+
+public class QorizeTest inherits QUnit::Test {
+    private {
+        const OLDSTYLE = False;
+        const NEWSTYLE = True;
+
+        hash h1 = (
+            "key1" : "some string",
+            "key2" : 123,
+        );
+    }
+
+    constructor() : Test("QorizeTest", "1.0") {
+        addTestCase("Test Qorize", \qorizeTest(), NOTHING);
+        addTestCase("Named test Qorize", \namedTest(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    qorizeTest() {
+        testAssertion("bool in oldstyle", \qorize(), (True, "b", OLDSTYLE), new TestResultValue("my bool $b = True;"));
+        testAssertion("bool in newstyle", \qorize(), (True, "b", NEWSTYLE), new TestResultValue("bool b = True;"));
+        testAssertion("string in oldstyle", \qorize(), ("lorem ipsum", "str", OLDSTYLE), new TestResultValue("my string $str = \"lorem ipsum\";"));
+        testAssertion("string in newstyle", \qorize(), ("lorem ipsum", "str", NEWSTYLE), new TestResultValue("string str = \"lorem ipsum\";"));
+        testAssertion("escaped string in oldstyle", \qorize(), ('foo \n"bar"\n', "str", OLDSTYLE), new TestResultValue("my string $str = \"foo \\n\\\"bar\\\"\\n\";"));
+        testAssertion("float in oldstyle", \qorize(), (10.34, "f", OLDSTYLE), new TestResultValue("my float $f = 10.34;"));
+        testAssertion("float in newstyle", \qorize(), (10.34, "f", NEWSTYLE), new TestResultValue("float f = 10.34;"));
+        testAssertion("number in oldstyle", \qorize(), (5.23928173726123e50n, "n", OLDSTYLE), new TestResultValue("my number $n = 523928173726123000000000000000000000000000000000000n;"));
+        testAssertion("number in newstyle", \qorize(), (5.23928173726123e50n, "n", NEWSTYLE), new TestResultValue("number n = 523928173726123000000000000000000000000000000000000n;"));
+        testAssertion("date in oldstyle", \qorize(), (3h, "d", OLDSTYLE), new TestResultValue("my date $d = PT3H;"));
+        testAssertion("date in newstyle", \qorize(), (3h, "d", NEWSTYLE), new TestResultValue("date d = PT3H;"));
+        testAssertion("another date in oldstyle", \qorize(), (-1D, "d", OLDSTYLE), new TestResultValue("my date $d = P-1D;"));
+        testAssertion("another date in newstyle", \qorize(), (-1D, "d", NEWSTYLE), new TestResultValue("date d = P-1D;"));
+        testAssertion("binary in oldstyle", \qorize(), (binary("foo"), "b", OLDSTYLE), new TestResultValue("my binary $b = parseHexString(\"666f6f\");"));
+        testAssertion("binary in newstyle", \qorize(), (binary("foo"), "b", NEWSTYLE), new TestResultValue("binary b = parseHexString(\"666f6f\");"));
+    }
+
+    namedTest() {
+        string testResultString;
+        testResultString = 'my hash $name;
+$name."key1" = "some string";
+$name."key2" = 123;
+';
+        testAssertion("oldstyle", \qorizeNamed(), (h1, "name", OLDSTYLE), new TestResultValue(testResultString));
+
+        testResultString = 'hash name;
+name."key1" = "some string";
+name."key2" = 123;
+';
+        testAssertion("newstyle", \qorizeNamed(), (h1, "name", NEWSTYLE), new TestResultValue(testResultString));
+    }
+}
+
