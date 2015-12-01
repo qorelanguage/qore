@@ -1862,11 +1862,11 @@ namespace {
          {
             ta->run(&xsink);
 
-            // delete any thread data
-            thread_data.get()->del(&xsink);
-
             // cleanup thread resources
             purge_thread_resources(&xsink);
+
+            // delete any thread data
+            thread_data.get()->del(&xsink);
 
             xsink.handleExceptions();
 
@@ -1928,15 +1928,15 @@ namespace {
             if (rv)
                rv->deref(&xsink);
 
+            // cleanup thread resources
+            purge_thread_resources(&xsink);
+
             int tid = btp->tid;
             // dereference current Program object
             btp->del(&xsink);
 
             // delete any thread data
             thread_data.get()->del(&xsink);
-
-            // cleanup thread resources
-            purge_thread_resources(&xsink);
 
             xsink.handleExceptions();
 
