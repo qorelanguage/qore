@@ -1,7 +1,7 @@
 " Vim syntax file for Qore * mato [25-oct-2015]
 " Language:	Qore
 " Maintainer:	Martin Otto <martin@qore.org>
-" Last Change:	2015 Nov 27
+" Last Change:	2015 Nov 30
 
 if version < 600
   syntax clear
@@ -81,6 +81,7 @@ syn keyword qoreType code
 syn keyword qoreType data
 syn keyword qoreType hash
 syn keyword qoreType list softlist
+syn keyword qoreType nothing
 syn keyword qoreType object
 syn keyword qoreType reference
 
