@@ -1662,7 +1662,9 @@ if test "$windows" = yes; then
   USER_MODULE_DIR="${MODULE_DIR}"
 else
   MODULE_DIR="${myprefix}/lib${LIBSUFFIX}/${mypkglibdir}"
-  if test -n "echo ${datarootdir}|grep \$"; then
+  if test -z "${datarootdir}"; then
+     USER_MODULE_DIR="${prefix}/share/${mypkglibdir}"
+  elif test -n "echo ${datarootdir}|grep \$"; then
      USER_MODULE_DIR="`eval echo ${datarootdir}`/${mypkglibdir}"
   else
      USER_MODULE_DIR="${datarootdir}/${mypkglibdir}"
@@ -1681,7 +1683,9 @@ if test "$windows" = yes; then
   USER_MODULE_VER_DIR="${MODULE_DIR}"
 else
   MODULE_VER_DIR="${myprefix}/lib${LIBSUFFIX}/${mymodverdir}"
-  if test -n "echo ${datarootdir}|grep \$"; then
+  if test -z "${datarootdir}"; then
+     USER_MODULE_VER_DIR="${prefix}/share/${mymodverdir}"
+  elif test -n "echo ${datarootdir}|grep \$"; then
      USER_MODULE_VER_DIR="`eval echo ${datarootdir}`/${mymodverdir}"
   else
      USER_MODULE_VER_DIR="${datarootdir}/${mymodverdir}"
