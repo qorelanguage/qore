@@ -126,6 +126,9 @@ class ThreadResourcesTest inherits QUnit::Test {
         set_thread_resource(inc, 2);
         testNullAssertion("no-exception-5", \throw_thread_resource_exceptions());
         assertEq(3, i);
+
+        # make sure thread resource can be cleaned up automatically when threads are terminated
+        background sub () {TRS btrs(); set_thread_resource(btrs);}();
     }
 
     threadResourceSandboxingTests() {
