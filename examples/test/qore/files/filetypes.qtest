@@ -1,0 +1,35 @@
+#!/usr/bin/env qr
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class FiletypesTest
+
+class FiletypesTest inherits QUnit::Test {
+    constructor() : QUnit::Test("Filetypes test", "1.0") {
+        addTestCase("Test filetype functions", \testFiletypes());
+        set_return_value(main());
+    }
+
+    testFiletypes() {
+%ifdef Windows
+        testSkip("skipping because the test is being run on Windows");
+%endif
+
+        assertEq(False, is_file("/"), "is_file()");
+        assertEq(True, is_executable("/bin/sh"), "is_executable()");
+        assertEq(True, is_dir("/"), "is_dir()");
+        assertEq(True, is_writeable(ENV.HOME), "is_writable()");
+        assertEq(True, is_readable(ENV.HOME), "is_readable()");
+        assertEq(True, is_dev("/dev/null"), "is_dev()");
+        assertEq(True, is_cdev("/dev/null"), "is_cdev()");
+        assertEq(False, is_bdev("/dev/null"), "is_bdev()");
+        assertEq(False, is_link("/"), "is_link()");
+        assertEq(False, is_socket("/"), "is_socket()");
+        assertEq(False, is_pipe("/"), "is_pipe()");
+    }
+}

@@ -1,0 +1,145 @@
+#!/usr/bin/env qr
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class ThreadResourcesTest
+
+class TR1 inherits AbstractThreadResource {
+    cleanup() {
+	throw "TR1";
+    }
+}
+
+# this class starts a thread in the constructor and sets itself as a thread resource
+# the actual resource is the background thread
+# cleanup() stops the background thread but does not throw an exception
+class TRS inherits AbstractThreadResource {
+    public {}
+
+    private {
+        Mutex m();
+        Condition cond();
+        Counter cnt();
+        bool exit;
+    }
+
+    constructor() {
+        start();
+    }
+
+    synchronized start() {
+        cnt.inc();
+	set_thread_resource(self);
+        on_error {
+            cnt.dec();
+            remove_thread_resource(self);
+        }
+        background waiter();
+    }
+
+    stop() {
+        {
+            m.lock();
+            on_exit m.unlock();
+            exit = True;
+            cond.signal();
+        }
+        cnt.waitForZero();
+        remove_thread_resource(self);
+    }
+
+    cleanup() {
+        stop();
+    }
+
+    private waiter() {
+        on_exit cnt.dec();
+
+        m.lock();
+        on_exit m.unlock();
+        while (!exit)
+            cond.wait(m);
+    }
+}
+
+class ThreadResourcesTest inherits QUnit::Test {
+    constructor() : QUnit::Test("ThreadResourcesTest", "1.0") {
+        addTestCase("thread resource tests", \threadResourcesTests());
+        addTestCase("thread resource sandboxing tests", \threadResourceSandboxingTests());
+
+        set_return_value(main());
+    }
+
+    threadResourcesTests() {
+	TR1 tr1();
+
+	set_thread_resource(tr1);
+	testAssertion("cleanup-1", \throw_thread_resource_exceptions(), NOTHING, new TestResultExceptionType("TR1"));
+	testAssertionValue("remove-1", remove_thread_resource(tr1), False);
+
+	set_thread_resource(tr1);
+	mark_thread_resources();
+	testAssertionValue("cleanup-to-mark-neg-1", throw_thread_resource_exceptions_to_mark(), True);
+	testAssertionValue("remove-2", remove_thread_resource(tr1), True);
+
+	mark_thread_resources();
+	testAssertion("auto-cleanup-1", \doCleanup(), NOTHING, new TestResultExceptionType("TR1"));
+
+	testAssertionValue("cleanup-to-mark-neg-2", throw_thread_resource_exceptions_to_mark(), True);
+
+	testAssertion("auto-cleanup-2", \doCleanup(), NOTHING, new TestResultExceptionType("TR1"));
+
+        # throw_thread_resource_exceptions() here just stops the background thread,
+        # but since TRS::cleanup() does not throw an exception, neither does throw_thread_resource_exceptions()
+        # despite the name
+	TRS trs();
+        testNullAssertion("no-exception-1", \throw_thread_resource_exceptions());
+
+    	our TRS otrs();
+        testNullAssertion("no-exception-2", \throw_thread_resource_exceptions());
+
+        # set a thread resource and then delete the object in a background thread
+        set_thread_resource(trs);
+        # set it twice and make sure it's ignored
+        set_thread_resource(trs);
+        Counter cnt(1);
+        code del = sub () {
+            delete trs;
+            cnt.dec();
+        };
+        background del();
+        cnt.waitForZero();
+        testAssertion("exception-1", \throw_thread_resource_exceptions(), NOTHING, new TestResultExceptionType("OBJECT-ALREADY-DELETED"));
+
+        int i = 0;
+        code inc = sub () {++i;};
+        set_thread_resource(inc);
+        testNullAssertion("no-exception-3", \throw_thread_resource_exceptions());
+        assertEq(1, i);
+
+        inc = sub (int d) {i += d;};
+        set_thread_resource(inc, 2);
+        testNullAssertion("no-exception-5", \throw_thread_resource_exceptions());
+        assertEq(3, i);
+    }
+
+    threadResourceSandboxingTests() {
+	Program p(PO_NEW_STYLE | PO_NO_THREAD_CONTROL);
+	p.importClass("TR1");
+
+	# test sandbox violation
+	testAssertion("sandboxing-1", \p.parse(), ("sub t() {TR1 tr1(); set_thread_resource(tr1);}", "test-1"), new TestResultExceptionRegexp("PARSE-EXCEPTION", "set_thread_resource"));
+	testAssertion("sandboxing-2", \p.parse(), ("sub t() {TR1 tr1(); remove_thread_resource(tr1);}", "test-2"), new TestResultExceptionRegexp("PARSE-EXCEPTION", "remove_thread_resource"));
+    }
+
+    doCleanup() {
+	TR1 tr1();
+
+	set_thread_resource(tr1);
+    }
+}

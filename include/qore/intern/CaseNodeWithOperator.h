@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2006 - 2014 Qore Technologies
+  Copyright (C) 2006 - 2015 Qore Technologies
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -44,13 +44,15 @@
 class CaseNodeWithOperator : public CaseNode {
 private:
    DLLLOCAL virtual bool isCaseNodeImpl() const;
+
 private:
-   class Operator *m_operator;
+   class Operator* m_operator;
+
 public:
-   DLLLOCAL CaseNodeWithOperator(AbstractQoreNode* v, StatementBlock* c, Operator *op) : CaseNode(v, c), m_operator(op) {}
+   DLLLOCAL CaseNodeWithOperator(AbstractQoreNode* v, StatementBlock* c, Operator* op);
    DLLLOCAL ~CaseNodeWithOperator() {}
    
-   DLLLOCAL virtual bool matches(AbstractQoreNode* lhs_value, ExceptionSink *xsink);
+   DLLLOCAL virtual bool matches(AbstractQoreNode* lhs_value, ExceptionSink* xsink);
 };
 
 #endif

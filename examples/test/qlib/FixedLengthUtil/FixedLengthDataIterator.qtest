@@ -1,0 +1,68 @@
+#!/usr/bin/env qr
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/FixedLengthUtil.qm
+
+%exec-class Test
+
+class Test inherits QUnit::Test {
+    public {
+        const Data = "11111bb\ncddd31122014\n\n\n22222gg\n";
+
+        const Specs = (
+            "type1" : (
+                "col1" : (
+                    "length" : 5,
+                    "type"   : "int",
+                ),
+                "col2" : (
+                    "length" : 2,
+                    "type"   : "string",
+                ),
+            ),
+            "type2" : (
+                "col3" : (
+                    "length" : 1,
+                    "type"   : "string",
+                ),
+                "col4" : (
+                    "length" : 3,
+                    "type"   : "string",
+                ),
+                "col5" : (
+                    "length"   : 8,
+                    "type"     : "date",
+                    "format"   : "DDMMYYYY",
+                    # "timezone" : "Europe/Prague", # use global if omitted
+                ),
+            ),
+            );
+
+        const GlobalOptions = (
+            "encoding"     : "UTF-8",
+            "eol"          : "\n",
+            "ignore_empty" : True,
+            "timezone"     : "Europe/Prague", # used if not in some date column specification
+            );
+    }
+
+    constructor() : QUnit::Test("FixedLengthDataIterator", "1.0", \ARGV) {
+        addTestCase("FixedLengthDataIterator basic tests", \basicTests());
+        set_return_value(main());
+    }
+
+    basicTests() {
+        FixedLengthDataIterator i(Data, Specs, GlobalOptions);
+        testAssertionValue("line 1 is there", i.next(), True);
+        testAssertionValue("line 1 content check", i.getValue(), ("type": "type1", "record": ("col1": 11111, "col2": "bb")));
+        testAssertionValue("line 2 is there", i.next(), True);
+        testAssertionValue("line 2 content check", i.getValue(), ("type": "type2", "record": ("col3": "c", "col4": "ddd", "col5" : 2014-12-31)));
+        testAssertionValue("line 3 is there", i.next(), True);
+        testAssertionValue("line 3 content check", i.getValue(), ("type": "type1", "record": ("col1": 22222, "col2": "gg")));
+        testAssertionValue("line 4 is not there", i.next(), False);
+    }
+}

@@ -1,0 +1,49 @@
+#!/usr/bin/env qr
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class MaxThreadCountTest
+
+our Queue q;
+
+public class MaxThreadCountTest inherits QUnit::Test {
+    constructor() : Test("Max thread count test", "1.0") {
+        addTestCase("Test max thread count", \testMaxThreadCount(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    globalSetUp() {
+        q = new Queue();
+    }
+
+    t() {
+        q.get();
+        q.push(1);
+    }
+
+    testMaxThreadCount() {
+        if (ENV.SKIP_MAX_THREAD_TEST) {
+            testSkip("skipping max thread test due to environment variable");
+        }
+
+        try {
+            while (True) {
+                background t();
+            }
+        }
+        catch (ex) {
+            assertEq("THREAD-CREATION-FAILURE", ex.err, "found threads count limit");
+            q.push(1);
+        }
+
+        int nt = num_threads();
+        assertEq(True, (nt > 1), "number of threads is " + nt);
+    }
+}
+

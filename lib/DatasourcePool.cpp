@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -95,22 +95,22 @@ DatasourcePool::~DatasourcePool() {
 // common constructor code
 void DatasourcePool::init(ExceptionSink* xsink) {
    pool[0] = config.get();
-  
+
    // open connection to server
    pool[0]->open(xsink);
    if (*xsink)
       return;
    //printd(5, "DP::init() open %s: %p (%d)\n", ndsl->getName(), pool[0], xsink->isEvent());
-  
+
    // add to free list
    free_list.push_back(0);
-  
+
    while (++cmax < min) {
       pool[cmax] = config.get();
       // open connection to server
       pool[cmax]->open(xsink);
       if (*xsink)
-	 return;
+         return;
 
       //printd(5, "DP::init() open %s: %p (%d)\n", ndsl->getName(), pool[cmax], xsink->isEvent());
       // add to free list
@@ -298,7 +298,7 @@ int DatasourcePool::checkWait(int64 wait_total, ExceptionSink* xsink) {
    args->push(new QoreBigIntNode(wait_total));
    args->push(new QoreBigIntNode(tl_warning_ms));
    args->push(callback_arg ? callback_arg->refSelf() : 0);
-   discard(wc->exec(*args, xsink), xsink);
+   wc->execValue(*args, xsink).discard(xsink);
    return *xsink ? -1 : 0;
 }
 
@@ -636,4 +636,12 @@ void DatasourcePool::setEventQueue(Queue* q, AbstractQoreNode* arg, ExceptionSin
    }
 
    config.setQueue(q, arg, xsink);
+}
+
+QoreListNode* DatasourcePool::getCapabilityList() const {
+   return pool[0]->getCapabilityList();
+}
+
+int DatasourcePool::getCapabilities() const {
+   return pool[0]->getCapabilities();
 }

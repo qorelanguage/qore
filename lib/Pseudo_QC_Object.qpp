@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -34,13 +34,19 @@
 #include <qore/intern/QoreObjectIterator.h>
 #include <qore/intern/QoreClassIntern.h>
 
+extern QoreClass* QC_OBJECTITERATOR;
+extern QoreClass* QC_OBJECTKEYITERATOR;
+extern QoreClass* QC_OBJECTPAIRITERATOR;
+extern QoreClass* QC_OBJECTKEYITERATOR;
+extern QoreClass* QC_OBJECTPAIRITERATOR;
+
 //! Methods in this pseudo-class can be executed on @ref object "objects"
-/** 
+/**
  */
-qclass <object> [arg=QoreObject* obj;vparent=<value>];
+qclass <object> [arg=QoreObject* obj = const_cast<QoreObject*>(v.get<QoreObject>());vparent=<value>];
 
 //! Returns Qore::NT_OBJECT
-/** 
+/**
     @return Qore::NT_OBJECT
 
     @par Example:
@@ -57,7 +63,7 @@ int <object>::typeCode() [flags=CONSTANT] {
 }
 
 //! Returns a list of member names of the object; if called from outside the object, only public members are returned
-/** 
+/**
     @return a list of member names of the object; if called from outside the object, only public members are returned
 
     @par Example:
@@ -70,7 +76,7 @@ list <object>::keys() [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns the first member name in the object or @ref nothing if the object has no members; if called from outside the object, the first public member name is returned (if any)
-/** 
+/**
     @return the first member name in the object or @ref nothing if the object has no members; if called from outside the object, the first public member name is returned (if any)
 
     @par Example:
@@ -85,7 +91,7 @@ my *string $n = $o.firstKey();
 }
 
 //! Returns the last member name in the object or @ref nothing if the object has no members; if called from outside the object, the last public member name is returned (if any)
-/** 
+/**
     @return the last member name in the object or @ref nothing if the object has no members; if called from outside the object, the last public member name is returned (if any)
 
     @par Example:
@@ -114,7 +120,7 @@ bool <object>::empty() [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns the number of members in the object, public and private
-/** 
+/**
     @return the number of members in the object, public and private
 
     @par Example:
@@ -129,20 +135,22 @@ int <object>::size() [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns the class name of the object
-/** 
+/**
     @return the class name of the object
 
     @par Example:
     @code
 my string $cn = $o.className();
     @endcode
+
+    @note equivalent to get_class_name()
  */
 string <object>::className() [flags=CONSTANT] {
    return new QoreStringNode(obj->getClassName());
 }
 
 //! Returns @ref True if the object is a system object (ie a constant object like @ref stdin, etc), @ref False if not
-/** 
+/**
     @return @ref True if the object is a system object (ie a constant object like @ref stdin, etc), @ref False if not
 
     @par Example:
@@ -175,8 +183,8 @@ bool <object>::val() [flags=RET_VALUE_ONLY] {
 // bool <object>::hasKey(softstring $key) [flags=RET_VALUE_ONLY] {}
 // bool <object>::hasKeyValue(softstring $key) [flags=RET_VALUE_ONLY] {}
 
-//! Returns an @ref Qore::ObjectIterator "ObjectIterator" object for the hash
-/** @return an @ref Qore::ObjectIterator "ObjectIterator" object for the hash
+//! Returns an @ref Qore::ObjectIterator "ObjectIterator" object for the object's members
+/** @return an @ref Qore::ObjectIterator "ObjectIterator" object for the object's members
 
     @par Example:
     @code
@@ -189,8 +197,8 @@ AbstractIterator <object>::iterator() [flags=CONSTANT] {
    return new QoreObject(QC_OBJECTITERATOR, 0, new QoreObjectIterator(obj));
 }
 
-//! Returns a @ref Qore::ObjectKeyIterator "ObjectKeyIterator" object for the hash
-/** @return a @ref Qore::ObjectKeyIterator "ObjectKeyIterator" object for the hash
+//! Returns a @ref Qore::ObjectKeyIterator "ObjectKeyIterator" object for the object, iterating the object's members
+/** @return a @ref Qore::ObjectKeyIterator "ObjectKeyIterator" object for the object, iterating the object's members
 
     @par Example:
     @code
@@ -203,8 +211,8 @@ ObjectKeyIterator <object>::keyIterator() [flags=CONSTANT] {
    return new QoreObject(QC_OBJECTKEYITERATOR, 0, new QoreObjectIterator(obj));
 }
 
-//! Returns a @ref Qore::ObjectPairIterator "ObjectPairIterator" object for the hash
-/** @return a @ref Qore::ObjectPairIterator "ObjectPairIterator" object for the hash
+//! Returns a @ref Qore::ObjectPairIterator "ObjectPairIterator" object for the object's members
+/** @return a @ref Qore::ObjectPairIterator "ObjectPairIterator" object for the object's members
 
     @par Example:
     @code
@@ -237,7 +245,7 @@ my bool $b = $obj.hasCallableMethod("getStatus");
     @since %Qore 0.8.8
  */
 bool <object>::hasCallableMethod(string name) [flags=CONSTANT] {
-   return qore_class_private::hasCallableMethod(*(obj->getClass()), name->getBuffer());
+   return qore_class_private::runtimeHasCallableMethod(*(obj->getClass()), name->getBuffer());
 }
 
 //! Returns @ref Qore::True "True" if the given non-static method exists and is callable from the current context
@@ -260,7 +268,7 @@ my bool $b = $obj.hasCallableNormalMethod("getStatus");
     @since %Qore 0.8.8
  */
 bool <object>::hasCallableNormalMethod(string name) [flags=CONSTANT] {
-   return qore_class_private::hasCallableNormalMethod(*(obj->getClass()), name->getBuffer());
+   return qore_class_private::runtimeHasCallableNormalMethod(*(obj->getClass()), name->getBuffer());
 }
 
 //! Returns @ref Qore::True "True" if the given static method exists and is callable from the current context
@@ -282,7 +290,7 @@ my bool $b = $obj.hasCallableStaticMethod("getStatus");
     @since %Qore 0.8.8
  */
 bool <object>::hasCallableStaticMethod(string name) [flags=CONSTANT] {
-   return qore_class_private::hasCallableStaticMethod(*(obj->getClass()), name->getBuffer());
+   return qore_class_private::runtimeHasCallableStaticMethod(*(obj->getClass()), name->getBuffer());
 }
 
 //! Returns @ref True since objects can return a non-zero size
@@ -294,4 +302,17 @@ bool <object>::hasCallableStaticMethod(string name) [flags=CONSTANT] {
 */
 bool <object>::sizep() [flags=CONSTANT] {
    return true;
+}
+
+//! Return a unique string for the data independent of the content
+/** @return a unique string for the data independent of the content
+
+    @note an SHA1 hash is created with a random salt created when the %Qore library is initialized and the internal pointer address
+
+    @since %Qore 0.8.12
+ */
+string <object>::uniqueHash() [flags=CONSTANT] {
+   QoreStringNode* rv = new QoreStringNode;
+   qore_get_ptr_hash(*rv, obj);
+   return rv;
 }

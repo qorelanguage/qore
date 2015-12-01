@@ -1,0 +1,29 @@
+#!/usr/bin/env qr
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%exec-class TmpLocationTest
+
+public class TmpLocationTest inherits QUnit::Test {
+    constructor() : Test("TmpLocationTest", "1.0") {
+        addTestCase("Test presence of tmp_location()", \testTmpLocation(), NOTHING);
+
+        set_return_value(main());
+    }
+
+    bool haveLocation() {
+        if (tmp_location().length() > 0) {
+            return True;
+        }
+        return False;
+    }
+
+    testTmpLocation() {
+        testAssertion("have location", \haveLocation(), ());
+    }
+}

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,13 +31,15 @@
 
 #include <qore/Qore.h>
 
+#include <math.h>
+
 //! Methods in this pseudo-class can be executed on @ref float "floating-point values"
-/** 
+/**
  */
-qclass <float> [arg=const QoreFloatNode* f;vparent=<value>];
+qclass <float> [arg=double f = v.getAsFloat();vparent=<value>];
 
 //! Returns Qore::NT_FLOAT
-/** 
+/**
     @return Qore::NT_FLOAT
 
     @par Example:
@@ -54,7 +56,7 @@ int <float>::typeCode() [flags=CONSTANT] {
 }
 
 //! Returns @ref True if the float is non-zero, @ref False if zero
-/** 
+/**
     @return @ref True if the float is non-zero, @ref False if zero
 
     @par Example:
@@ -67,7 +69,7 @@ my bool $b = $f.val();
     - @ref strict-bool-eval "%strict-bool-eval"
 */
 bool <float>::val() [flags=CONSTANT] {
-   return (bool)f->f == 0.0 ? false : true;
+   return (bool)f == 0.0 ? false : true;
 }
 
 //! Returns @ref True because float values can be converted to integers
@@ -118,7 +120,7 @@ my string $nstr = $f.format(".,3"); # returns "-48.392.093.894,235"
     @since %Qore 0.8.6
  */
 string <float>::format(string fmt) [flags=CONSTANT] {
-   return format_float_intern(*fmt, f->f);
+   return format_float_intern(*fmt, f);
 }
 
 //! Returns -1 if the number is negative, 0 if it is zero, or 1 if it is positive
@@ -132,9 +134,9 @@ printf("sign: %d\n", $f.sign());
     @since %Qore 0.8.6
 */
 int <float>::sign() [flags=CONSTANT] {
-   if (!f->f)
+   if (!f)
       return 0;
-   return f->f > 0.0 ? 1 : -1;
+   return f > 0.0 ? 1 : -1;
 }
 
 //! Returns the absolute value of the number
@@ -150,5 +152,5 @@ $f = $f.abs();
     @since %Qore 0.8.8
 */
 float <float>::abs() [flags=CONSTANT] {
-   return fabs(f->f);
+   return fabs(f);
 }

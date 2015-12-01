@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,6 +30,8 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/QoreHashIterator.h>
+
+extern QoreClass* QC_HASHITERATOR;
 
 //! This class an iterator class for hashes
 /** Call HashReverseIterator::next() to iterate through the hash in reverse order; do not use the iterator if HashReverseIterator::next() returns @ref False.

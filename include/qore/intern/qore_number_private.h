@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -96,7 +96,7 @@ struct qore_number_private_intern {
    }
 
    DLLLOCAL static void do_divide_by_zero(ExceptionSink* xsink) {
-      xsink->raiseException("DIVISION-BY-ZERO", "division by zero error in numeric operatior");
+      xsink->raiseException("DIVISION-BY-ZERO", "division by zero error in numeric operator");
    }
 
    DLLLOCAL static void checkFlags(ExceptionSink* xsink) {

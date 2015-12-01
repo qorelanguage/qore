@@ -1,0 +1,35 @@
+#!/usr/bin/env qr
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%requires ../../qlib/QUnit.qm
+
+#%include ./_MODULE_TO_TEST_
+
+%exec-class MyTestClass
+
+public class MyTestClass inherits QUnit::DependencyInjectedTest {
+    constructor() : DependencyInjectedTest("MyTestClass", "1.0") {
+        addTestCase("Test something", \testMethod(), NOTHING);
+
+        # Mandatory for injected tests
+        setScriptPath(get_script_path());
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    nothing performModuleInjections() {
+        #injectIntoModule("_MODULE_TO_INJECT_INTO_(same as _MODULE_TO_TEST_?)");
+    }
+
+    nothing performInjections(Program p) {
+        #p.importClass("_class_to_inject_", "_class_to_inject_into_", True);
+    }
+
+    testMethod() {
+        # Same test style as in TestExample.qtest
+        testAssertion("success", \equals(), (True, True));
+    }
+}

@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -381,8 +381,18 @@ public:
    /**
       @see QoreProgram::parsePending()
       @see QoreProgram::parseCommit()
+
+      @deprecated use parseRollback(ExceptionSink*) instead; exceptions raised with this version cannot be caught
    */
    DLLEXPORT void parseRollback();
+
+   //! rolls back changes to the program object that were added with QoreProgram::parsePending()
+   /** a Qore-language exception could be raised if the parse lock could not be acquired (Program has running threads)
+
+       @see QoreProgram::parsePending()
+       @see QoreProgram::parseCommit()
+   */
+   DLLEXPORT int parseRollback(ExceptionSink* xsink);
 
    //! returns true if the given function exists as a user function, false if not
    DLLEXPORT bool existsFunction(const char* name);
@@ -394,7 +404,10 @@ public:
    */
    using AbstractPrivateData::deref;
    DLLEXPORT virtual void deref(ExceptionSink* xsink);
-
+   
+   //! references "this" and returns a non-const pointer to itself
+   DLLEXPORT QoreProgram* programRefSelf() const;
+   
    //! locks parse options so they may not be changed
    DLLEXPORT void lockOptions();
       
@@ -494,7 +507,7 @@ public:
 
    //! returns a list of all user functions in this program
    /**
-      @return a list of all user functions in this program
+      @return a list of all user functions in this program; returns 0 only if the Program is being destroyed, otherwise returns an empty list
    */
    DLLEXPORT QoreListNode* getUserFunctionList();
 
@@ -537,6 +550,13 @@ public:
    */
    DLLEXPORT AbstractQoreNode* getGlobalVariableValue(const char* var, bool &found) const;
 
+   //! returns the value of the global variable given (do not include the "$" symbol), the caller owns the reference count returned
+   /** @param var the variable name to return (do not include the "$" symbol)
+       @param found returns true if the variable exists, false if not
+       @return the value of the global variable given; if a non-zero pointer is returned, the caller owns the reference count returned
+   */
+   DLLEXPORT QoreValue getGlobalVariableVal(const char* var, bool &found) const;
+
    // retrieves the time zone setting for the program
    DLLEXPORT const AbstractQoreZoneInfo *currentTZ() const;
 
@@ -551,6 +571,8 @@ public:
 
    //! sets the time zone during parsing
    /** @param zone can be either a region name (ex: 'Europe/Prague') or a UTC offset in the format SDD[:DD[:DD]] where S is + or - and D is an integer 0 - 9; the ':' characters are optional
+
+       @note do not call this function if there are any running threads; a crash could result
     */
    DLLEXPORT void parseSetTimeZone(const char* zone);
 
@@ -581,7 +603,6 @@ public:
    // returns 0 if a "requires" exception has already occurred
    DLLLOCAL ExceptionSink* getParseExceptionSink();
 
-   DLLLOCAL QoreThreadLock* getParseLock();
    DLLLOCAL QoreHashNode* getThreadData();
    DLLLOCAL void depRef();
    DLLLOCAL void depDeref(ExceptionSink* xsink);
@@ -590,6 +611,11 @@ public:
    DLLLOCAL void parseSetIncludePath(const char* path);
    DLLLOCAL const char* parseGetIncludePath() const;
 
+   /* for run-time module loading; the parse lock must be grabbed
+      before loading new modules - note this should only be assigned
+      to an AutoLock or SafeLocker object!
+   */
+   DLLLOCAL QoreThreadLock *getParseLock();
    DLLLOCAL const LVList* getTopLevelLVList() const;
 
    //! returns the script directory, if known (0 if not), does not grab the parse lock, only to be called while parsing

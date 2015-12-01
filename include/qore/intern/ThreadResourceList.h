@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -36,13 +36,16 @@
 #include <qore/intern/Sequence.h>
 
 #include <set>
+#include <map>
 
 typedef std::set<AbstractThreadResource*> trset_t;
+typedef std::map<ResolvedCallReferenceNode*, AbstractQoreNode*> crmap_t;
 
 class ThreadResourceList {
 private:
    static Sequence seq;
    trset_t trset;
+   crmap_t crmap;
 
 public:
    ThreadResourceList* prev;
@@ -55,11 +58,14 @@ public:
    }
 
    DLLLOCAL void set(AbstractThreadResource* atr);
+   DLLLOCAL void set(const ResolvedCallReferenceNode* rcr, QoreValue arg);
 
    DLLLOCAL bool check(AbstractThreadResource* atr) const;
 
    // returns 0 if removed, -1 if not found
    DLLLOCAL int remove(AbstractThreadResource* atr);
+   // returns 0 if removed, -1 if not found
+   DLLLOCAL int remove(const ResolvedCallReferenceNode* rcr, ExceptionSink* xsink);
 
    DLLLOCAL void purge(ExceptionSink* xsink);
 

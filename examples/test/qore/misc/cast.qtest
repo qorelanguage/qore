@@ -1,0 +1,33 @@
+#!/usr/bin/env qr
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class CastingTest
+
+class Base {
+    string ok() {
+        return "ok";
+    }
+}
+
+class Child inherits private Base;
+
+class CastingTest inherits QUnit::Test {
+    constructor() : QUnit::Test("Casting test", "1.0") {
+        addTestCase("Test casting", \testCasting());
+        set_return_value(main());
+    }
+
+    testCasting() {
+        Child c();
+        
+        code func = sub() { Base b = cast<Base>(c); remove b; };
+
+        testAssertion("neg-cast-1", func, NOTHING, new TestResultExceptionType("RUNTIME-CAST-ERROR"));
+    }
+}

@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2006 - 2014 Qore Technologies
+  Copyright (C) 2006 - 2015 Qore Technologies
   
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -312,8 +312,8 @@ struct qore_httpclient_priv {
       // use default path if no path is set
       if (!mpath || !mpath[0])
 	 mpath = connection.path.empty() 
-	    ? (default_path.empty() ? "/" : (const char* )default_path.c_str()) 
-	    : (const char* )connection.path.c_str();
+	    ? (default_path.empty() ? "/" : (const char*)default_path.c_str()) 
+	    : (const char*)connection.path.c_str();
 
       if (proxy_connection.has_url()) {
          // create URL string for path for proxy
@@ -327,6 +327,7 @@ struct qore_httpclient_priv {
 	 if (mpath[0] != '/')
 	    pstr.concat('/');
       }
+
       // concat mpath to pstr, performing URL encoding
       const char* p = mpath;
       while (*p) {
@@ -338,7 +339,7 @@ struct qore_httpclient_priv {
 	    pstr.concat(*p);
 	 ++p;
       }
-      return (const char* )pstr.getBuffer();
+      return (const char*)pstr.getBuffer();
    }   
 
    DLLLOCAL QoreHashNode* send_internal(ExceptionSink* xsink, const char* mname, const char* meth, const char* mpath, const QoreHashNode* headers, const void* data, unsigned size, const ResolvedCallReferenceNode* send_callback, bool getbody, QoreHashNode* info, int timeout_ms, const ResolvedCallReferenceNode* recv_callback = 0, QoreObject* obj = 0);
@@ -816,7 +817,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
       timeout_ms = timeout;
 
    SafeLocker sl(msock->m);
-   Queue *cb_queue = msock->socket->getQueue();
+   Queue* cb_queue = msock->socket->getQueue();
 
    ReferenceHolder<QoreHashNode> nh(new QoreHashNode, xsink);
    bool keep_alive = true;

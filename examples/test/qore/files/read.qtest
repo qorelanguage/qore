@@ -1,0 +1,49 @@
+#!/usr/bin/env qr
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class ReadTest
+
+class ReadTest inherits QUnit::Test {
+    public {}
+
+    private {
+        const String = "content\nxxx";
+    }
+
+    constructor() : Test("Read Test", "1.0") {
+        addTestCase("readTest", \readTest());
+
+        set_return_value(main());
+    }
+
+    readTest() {
+        string file = tmp_location() + "/test";
+        File fw();
+
+        on_exit
+            unlink(file);
+
+        fw.open(file, O_WRONLY | O_CREAT);
+        fw.write(String);
+        fw.close();
+
+        ReadOnlyFile fr(file);
+        fr.setPos();
+        string s;
+        while (exists (*string line1 = fr.readLine())) {
+            s += line1;
+        }
+
+        testAssertionValue('end position check', fr.getPos(), 11);
+        testAssertionValue('read string check', s, String);
+        testAssertionValue('ReadOnlyFile::readTextFile() string check', ReadOnlyFile::readTextFile(file), String);
+        testAssertionValue('ReadOnlyFile::readTextFile() no value check', ReadOnlyFile::readTextFile(tmp_location()));
+    }
+}

@@ -1,7 +1,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -105,6 +105,7 @@
 #include "QoreString.cpp"
 #include "QoreObject.cpp"
 #include "QoreListNode.cpp"
+#include "QoreValueList.cpp"
 #include "qore-main.cpp"
 #include "QoreGetOpt.cpp"
 #include "QoreFtpClient.cpp"
@@ -112,9 +113,11 @@
 #include "ConstantList.cpp"
 #include "QoreClassList.cpp"
 #include "thread.cpp"
+#include "AbstractThreadResource.cpp"
 #include "ThreadResourceList.cpp"
 #include "VRMutex.cpp"
 #include "VLock.cpp"
+#include "QoreRWLock.cpp"
 #include "AbstractSmartLock.cpp"
 #include "SmartMutex.cpp"
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
@@ -156,8 +159,10 @@
 #include "QoreExtractOperatorNode.cpp"
 #include "QoreCastOperatorNode.cpp"
 #include "QoreUnaryMinusOperatorNode.cpp"
+#include "QoreLogicalNotOperatorNode.cpp"
 #include "QoreDotEvalOperatorNode.cpp"
 #include "QoreLogicalEqualsOperatorNode.cpp"
+#include "QoreModulaOperatorNode.cpp"
 #include "QoreAssignmentOperatorNode.cpp"
 #include "QoreIntAssignmentOperatorNode.cpp"
 #include "QorePlusEqualsOperatorNode.cpp"
@@ -182,6 +187,16 @@
 #include "QoreIntPreDecrementOperatorNode.cpp"
 #include "QoreLogicalLessThanOperatorNode.cpp"
 #include "QoreLogicalGreaterThanOperatorNode.cpp"
+#include "QoreDivisionOperatorNode.cpp"
+#include "QoreMapOperatorNode.cpp"
+#include "QoreMapSelectOperatorNode.cpp"
+#include "QoreHashMapOperatorNode.cpp"
+#include "QoreHashMapSelectOperatorNode.cpp"
+#include "QoreNullCoalescingOperatorNode.cpp"
+#include "QoreValueCoalescingOperatorNode.cpp"
+#include "QoreChompOperatorNode.cpp"
+#include "QoreTrimOperatorNode.cpp"
+#include "QoreValue.cpp"
 #include "ql_thread.cpp"
 #include "ql_time.cpp"
 #include "ql_lib.cpp"
@@ -231,6 +246,7 @@
 #include "QC_ObjectPairIterator.cpp"
 #include "QC_ObjectPairReverseIterator.cpp"
 #include "QC_FileLineIterator.cpp"
+#include "QC_DataLineIterator.cpp"
 #include "QC_SingleValueIterator.cpp"
 #include "QC_RangeIterator.cpp"
 #include "QC_ThreadPool.cpp"
@@ -255,6 +271,8 @@
 #include "QC_TermIOS.cpp"
 #include "QC_AbstractSmartLock.cpp"
 #include "QC_TimeZone.cpp"
+#include "QC_TreeMap.cpp"
+#include "QC_AbstractThreadResource.cpp"
 
 #include "QorePseudoMethods.cpp"
 
@@ -276,4 +294,3 @@
 #ifdef DEBUG
 #include "ql_debug.cpp"
 #endif
-

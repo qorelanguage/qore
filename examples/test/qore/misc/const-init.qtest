@@ -1,0 +1,30 @@
+#!/usr/bin/env qr
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%requires UnitTest
+
+UnitTest unit();
+
+Program p(PO_LOCKDOWN);
+
+string code = "
+class B {
+    abstract string getName();
+}
+
+class C inherits B {
+    string getName() { return 'C'; }
+}
+
+class D {
+    public {
+        const C = new C();
+    }
+}
+";
+
+unit.exception(sub () { p.parse(code, "test"); }, (), "constant initialization using class with uncommitted changes", 'ILLEGAL-CLASS-INSTANTIATION', "class");
