@@ -29,7 +29,7 @@ foreach my int i in (range(size - 1)) {
 }
 t.cmp(elements(l), size, "created list of " + size + " elements");
 my date start = now_us();
-my date interval_create = start - list_start; 
+my date interval_create = start - list_start;
 t.ok(interval_create < limit_time, "Create interval: " + interval_create + "s");
 
 # test insert
@@ -39,6 +39,8 @@ foreach my int i in (range(size - 1)) {
 my date search = now_us();
 my date interval_insert = search - start;
 t.ok(interval_insert < limit_time, "Inserts interval: " + interval_insert + "s");
+
+%disable-warning unreferenced-variable
 
 # test search
 search = now_us();
