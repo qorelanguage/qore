@@ -726,7 +726,7 @@ public class FixedLengthUtil::FixedLengthAbstractWriter {
             int len = value.length();
             # Validate
             if (len > fh.length)
-                throw "FIELD-INPUT-ERROR", sprintf("Value too large to pack into field: %s", field);
+                throw "FIELD-INPUT-ERROR", sprintf("Value %y (len %d) too large to pack into field: %s (len %d)", value, len, field, fh.length);
             # do output justification
             int spacingsize = fh.length - len;
             if (spacingsize) {
@@ -813,7 +813,7 @@ public class FixedLengthUtil::FixedLengthFileWriter inherits FixedLengthUtil::Fi
         m_file.open2(file, O_WRONLY | O_CREAT | m_opts.file_flags);
     }
 
-    #! Return the file name 
+    #! Return the file name
     string getFileName() {
         return file;
     }
