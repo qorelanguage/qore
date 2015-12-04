@@ -12,7 +12,7 @@
     - greatly improved support on Windows
 
     @subsection qore_0812_compatibility Changes That Can Affect Backwards-Compatibility
-    - fixed broken list parsing; in previous releases, %Qore's parser re-wrote lists without parentheses used as top-level statements with certain assignment operators (@ref assignment_operator "=", @ref plus_equals_operator "+=", @ref minus_equals_operator "-=", @ref multiply_equals_operator "*=", and @ref divide_equals_operator "/=", but not with others) so that statements like <tt>list l = 1, 2, 3;</tt> were valid assignments.   Due to operator precedence, such statements should normally be interpreted as <tt>(list l = 1), 2, 3;</tt>, which is not a valid expression.  Not only were the rules applied with only some assignment operators, but such lists were only rewritten if used as top-level statements, therefore the rules were applied inconsistenctly depending on where the expression was located in the parse tree.  As of %Qore 0.8.12, these inconsistencies have been eliminated by default from %Qore; all lists are processed according to the precedence rules defined in @ref operators.  This could break old code that relied on the old, broken behavior.  To get the old behavior, use the @ref broken-list-parsing parse directive.
+    - fixed broken list parsing; in previous releases, %Qore's parser re-wrote lists without parentheses used as top-level statements with certain assignment operators (@ref assignment_operator "=", @ref plus_equals_operator "+=", @ref minus_equals_operator "-=", @ref multiply_equals_operator "*=", and @ref divide_equals_operator "/=", but not with others) so that statements like <tt>list l = 1, 2, 3;</tt> were valid assignments.   Due to operator precedence, such statements should normally be interpreted as <tt>(list l = 1), 2, 3;</tt>, which is not a valid expression.  Not only were the rules applied with only some assignment operators, but such lists were only rewritten if used as top-level statements, therefore the rules were applied inconsistenctly depending on where the expression was located in the parse tree.  As of %Qore 0.8.12, these inconsistencies have been eliminated by default from %Qore; all lists are processed according to the precedence rules defined in @ref operators.  This could break old code that relied on the old, broken behavior.  To get the old behavior, use the @ref broken-list-parsing "%broken-list-parsing" parse directive.
     - the %Qore parser has been updated to no longer accept multi-character operators with whitespace bewtween them; it is believed that this was never used and simply caused the parser to be needlessly complicated and caused %Qore to be less compatible with other languages
 
     @subsection qore_0812_new_features New Features in Qore
@@ -51,6 +51,10 @@
 	.
 	furthermore the following function can be used to reload injected modules with the non-injected version:
 	- @ref Qore::reload_module() "reload_module()"
+    - implemented support for user-defined thread-resource management, allowing %Qore code to safely manage resources associated to a particular thread:
+      - @ref Qore::Thread::AbstractThreadResource
+      - @ref Qore::Thread::remove_thread_resource()
+      - @ref Qore::Thread::set_thread_resource()
     - new constants:
       - @ref Qore::DirSep
       - @ref Qore::Platform
@@ -67,9 +71,12 @@
       - @ref StringConcatDecoding
     - new classes:
       - @ref Qore::DataLineIterator
+      - @ref Qore::Thread::AbstractThreadResource
     - other new methods:
       - @ref Qore::SQL::DatasourcePool::getCapabilities()
       - @ref Qore::SQL::DatasourcePool::getCapabilityList()
+    - updated methods:
+      - @ref Qore::TimeZone::constructor() "TimeZone::constructor()": now accepts a path to the zoneinfo file if the @ref Qore::PO_NO_FILESYSTEM sandboxing restrictions is not set
     - new functions:
       - @ref Qore::decode_uri_request()
       - @ref Qore::encode_uri_request()
@@ -81,6 +88,8 @@
       - @ref Qore::realpath()
       - @ref Qore::set_return_value()
       - @ref Qore::setgroups()
+      - @ref Qore::Thread::remove_thread_resource()
+      - @ref Qore::Thread::set_thread_resource()
     - updated functions:
       - @ref Qore::string()
       - @ref Qore::parse_boolean()
@@ -181,6 +190,8 @@
         - HttpServer::setListenerLogOptions()
         - HttpServer::setListenerLogOptionsID()
       - improved performance matching request URIs to handlers
+      - added the HttpServer::listenerStarted() method to allow for reporting when listeners are actually running since they are started asynchronously
+      - added the \c "ssl" key to the listener socket info hash
     - <a href="../../modules/Schema/html/index.html">Schema</a> module updates:
       - added the following public functions to make column definitions easier:
         - c_char()
@@ -227,6 +238,7 @@
     - <a href="../../modules/RestClient/html/index.html">RestClient</a> module fixes:
       - fixed bugs where URI strings were improperly encoded and decoded (also fixed in the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module)
       - fixed a bug where URI paths were sent as relative paths instead of absolute paths
+      - fixed issues where multiple leading \c "/" chars were sometimes present in the request URI path
     - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module fixes:
       - fixed a bug where the \c "format" field option was not usable with fields assigned type \c "*date"
       - fixed the default field type as "*string" (from "string") to avoid parsing and outputting empty strings for missing input data
@@ -352,6 +364,7 @@
       - @ref Qore::ReadOnlyFile::readBinaryFile()
       - @ref Qore::ReadOnlyFile::readTextFile()
     - fixed a bug in @ref Qore::GetOpt::parse(softlist), @ref Qore::GetOpt::parse2(softlist), and @ref Qore::GetOpt::parse3(softlist) where call-by-value and copy-on-write semantics were not enforced and a shared list argument could be modified
+    - fixed a bug in zoneinfo file parsing where invalid bands with no UTC offset changes against the previous band could cause invalid date/time values to be displayed by Qore for dates on the invalid transition
 
     @section qore_0811 Qore 0.8.11
 

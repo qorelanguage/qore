@@ -332,7 +332,7 @@ class qdx {
             line =~ s/my //g;
             line =~ s/sub //;
 
-            # take public off namespace, class, constant and global variable declarations
+            # take "public" off namespace, class, constant and global variable declarations
             line =~ s/public[[:space:]]+(const|our|namespace|class)/$1/g;
 
             # remove regular expressions
@@ -404,8 +404,8 @@ class qdx {
             }
 
             # temporary string variable
-            *string xs = (line =~ x/^[[:space:]]*namespace[[:space:]]+(\w+(::\w+)?)/)[0];
-            if (xs.val()) {
+            (*string xs, *string sc) = (line =~ x/^[[:space:]]*namespace[[:space:]]+(\w+(?:::\w+)?)[[:space:]]*(\;)?/);
+            if (xs) {
                 if (!ns_name.empty()) {
                     nss += ns_name;
                     #throw "NS-ERROR", sprintf("current ns: %s; found nested ns: %s", ns_name, line);
@@ -418,6 +418,9 @@ class qdx {
 
                 if (line =~ /{/ && line !~ /}/)
                     ++nbc;
+
+                if (sc)
+                    line =~ s/;/ {}/;
 
                 of.print(line);
                 continue;

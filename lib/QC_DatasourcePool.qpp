@@ -126,28 +126,35 @@ static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, Que
 }
 
 //! Provides transparent per-thread, per-transaction datasource connection pooling
-/** In most cases, the %DatasourcePool class can be used as a drop-in replacement for the Datasource class with autocommit disabled; when a transaction begins, a datasource will be automatically assigned to the calling thread, and it will only be released when a commit or rollback is called on the object. If no datasource is available, the calling thread will block until a datasource comes available.
-
-    Note that the same principles apply to %SQL and database driver usage as with the Datasource class, see the Datasource class documentation for more information.
-
+/** @par Overview
+    In most cases, the %DatasourcePool class can be used as a drop-in replacement for the Datasource class with autocommit disabled; when a transaction begins, a datasource will be automatically assigned to the calling thread, and it will only be released when a commit or rollback is called on the object. If no datasource is available, the calling thread will block until a datasource comes available.\n\n
+    Note that the same principles apply to %SQL and database driver usage as with the Datasource class, see the @ref Qore::SQL::Datasource "Datasource" class documentation for more information.\n\n
     The %DatasourcePool class uses %Qore's thread resource tracking infrastructure to raise an exception if a thread terminates while a connection is allocated to it. If %Qore user code enters a transaction with a %DatasourcePool object and the thread terminates without closing the transaction (via DatasourcePool::commit() or DatasourcePool::rollback()), an exception will automatically be raised, the transaction will be rolled back, and the Datasource connection will be freed to the pool.
 
     @anchor datasourcepool_connection_allocations
-    <b>%DatasourcePool Connection Allocations</b>
-
+    @par DatasourcePool Connection Allocations
     The following methods allocate a persistent connection to the calling thread:
     - DatasourcePool::exec()
     - DatasourcePool::vexec()
     - DatasourcePool::execRaw()
     - DatasourcePool::beginTransaction()
+    .
+    The connection is released to the pool when DatasourcePool::commit() or DatasourcePool::rollback() are called (or in the case the thread terminates, in which case an exception is raised as well).\n\n
+    To begin a transaction with one of the select methods (for example, with \c "select for update"), call DatasourcePool::beginTransaction() first to manually dedicate a Datasource to the thread before calling the select method. Otherwise statements that should be in the same transaction may be executed in different connections.\n\n
+    Executing a %DatasourcePool method while not in a transaction is realized by allocating a temporary connection to the calling thread which is re-released when the method returns. No explicit commits are executed by the class, therefore it is an error to execute transaction-relevant commands without first calling DatasourcePool::exec(), DatasourcePool::vexec(), DatasourcePool::execRaw(), or DatasourcePool::beginTransaction().\n\n
+    Note that the @ref Qore::SQL::SQLStatement "SQLStatement" class also grabs allocates a persistent connection to the calling thread when executing if it is created using a %DatasourcePool object in the constructor; for more information see the @ref Qore::SQL::SQLStatement "SQLStatement" class documentation.
 
-    The connection is released to the pool when DatasourcePool::commit() or DatasourcePool::rollback() are called (or in the case the thread terminates, in which case an exception is raised as well).
-
-    To begin a transaction with one of the select methods (for example, with \c "select for update"), call DatasourcePool::beginTransaction() first to manually dedicate a Datasource to the thread before calling the select method. Otherwise statements that should be in the same transaction may be executed in different connections.
-
-    Executing a %DatasourcePool method while not in a transaction is realized by allocating a temporary connection to the calling thread which is re-released when the method returns. No explicit commits are executed by the class, therefore it is an error to execute transaction-relevant commands without first calling DatasourcePool::exec(), DatasourcePool::vexec(), DatasourcePool::execRaw(), or DatasourcePool::beginTransaction().
-
-    Note that the SQLStatement class also grabs allocates a persistent connection to the calling thread when executing if it is created using a %DatasourcePool object in the constructor; for more information see the SQLStatement class.
+    @par Thread Resource Handling
+    The DatasourcePool class manages connection allocations as a @ref thread_resources "thread resource"; if the
+    connection is not released with a call to @ref Qore::SQL::DatasourcePool::commit() "DatasourcePool::commit()"
+    or @ref Qore::SQL::DatasourcePool::rollback() "DatasourcePool::rollback()" when the
+    thread exits (or when @ref Qore::throw_thread_resource_exceptions() or
+    @ref Qore::throw_thread_resource_exceptions_to_mark() is called), the transaction is rolled back automatically
+    and a \c DATASOURCE-TRANSACTION-EXCEPTION exception is raised describing the situation.\n\n
+    Being an builtin class, the DatasourcePool class does not
+    inherit @ref Qore::Thread::AbstractThreadResource "AbstractThreadResource" explicitly as a part of the exported API,
+    and the internal @ref Qore::Thread::AbstractThreadResource::cleanup() "AbstractThreadResource::cleanup()" method
+    cannot be overridden or suppressed.
 
     @note This class is not available with the @ref PO_NO_DATABASE parse option
 
@@ -246,7 +253,7 @@ DatasourcePool::constructor(string desc, *Qore::Thread::Queue[Queue] queue, any 
    dsp_constructor_hash(*h, self, q.release(), arg, xsink);
 }
 
-//! Creates a Datasource object from a hash argument giving parameters for the constructor
+//! Creates a DatasourcePool object from a hash argument giving parameters for the constructor
 /** @param opts a hash giving parameters for the new datasource with the following possible keys (the \c "type" key is mandatory, also usable with the output of the parse_datasource() function):
     - \c type: (@ref string_or_nothing_type "*string") The name of the database driver to use; this key is mandatory; if not present, an exception will be raised. See @ref sql_constants for builtin constants for DBI drivers shipped with Qore, or see the DBI driver documentation to use an add-on driver (this string should be the name of the driver to be loaded)
     - \c user: (@ref string_or_nothing_type "*string") The user name for the new connection

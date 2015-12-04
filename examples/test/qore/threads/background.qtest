@@ -1,4 +1,5 @@
 #!/usr/bin/env qr
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
 %require-types
 %enable-all-warnings

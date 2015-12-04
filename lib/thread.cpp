@@ -52,6 +52,7 @@
 #include <qore/intern/QC_AutoReadLock.h>
 #include <qore/intern/QC_AutoWriteLock.h>
 #include <qore/intern/QC_AbstractSmartLock.h>
+#include <qore/intern/QC_AbstractThreadResource.h>
 
 #include <pthread.h>
 #include <sys/time.h>
@@ -902,6 +903,14 @@ int remove_thread_resource(AbstractThreadResource* atr) {
 bool check_thread_resource(AbstractThreadResource* atr) {
    ThreadData* td = thread_data.get();
    return td->trlist->check(atr);
+}
+
+void set_thread_resource(const ResolvedCallReferenceNode* rcr, QoreValue arg) {
+   thread_data.get()->trlist->set(rcr, arg);
+}
+
+int remove_thread_resource(const ResolvedCallReferenceNode* rcr, ExceptionSink* xsink) {
+   return thread_data.get()->trlist->remove(rcr, xsink);
 }
 
 void mark_thread_resources() {
@@ -1853,11 +1862,11 @@ namespace {
          {
             ta->run(&xsink);
 
-            // delete any thread data
-            thread_data.get()->del(&xsink);
-
             // cleanup thread resources
             purge_thread_resources(&xsink);
+
+            // delete any thread data
+            thread_data.get()->del(&xsink);
 
             xsink.handleExceptions();
 
@@ -1919,15 +1928,15 @@ namespace {
             if (rv)
                rv->deref(&xsink);
 
+            // cleanup thread resources
+            purge_thread_resources(&xsink);
+
             int tid = btp->tid;
             // dereference current Program object
             btp->del(&xsink);
 
             // delete any thread data
             thread_data.get()->del(&xsink);
-
-            // cleanup thread resources
-            purge_thread_resources(&xsink);
 
             xsink.handleExceptions();
 
@@ -2120,6 +2129,8 @@ QoreNamespace* get_thread_ns(QoreNamespace &qorens) {
    Thread->addSystemClass(initAutoWriteLockClass(*Thread));
 
    Thread->addSystemClass(initThreadPoolClass(*Thread));
+
+   Thread->addSystemClass(initAbstractThreadResourceClass(*Thread));
 
    return Thread;
 }

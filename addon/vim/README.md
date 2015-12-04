@@ -20,7 +20,7 @@ endif
 augroup filetypedetect
   " Qore and Qorus files
   au! BufRead,BufNewFile *.q,*.qm,*.qtest       setfiletype qore
-  au! BufRead,BufNewFile *.qc,*.qclass,*.qconn,*.qconst,*.qfd,*.qjob,*.ql,*.qrf,*.qsd,*.qsm,*.qwf       setfiletype qore
+  au! BufRead,BufNewFile *.qc,*.qclass,*.qconn,*.qconst,*.qfd,*.qjob,*.ql,*.qmapper,*.qrf,*.qsd,*.qsm,*.qwf       setfiletype qore
   au! BufRead,BufNewFile *.qpp                  setfiletype cpp
 augroup END
 ```

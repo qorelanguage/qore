@@ -314,7 +314,7 @@ void ExceptionSink::defaultExceptionHandler(QoreException* e) {
       if (e) {
 	 ++ecnt;
 	 if (ecnt == Q_MAX_EXCEPTIONS) {
-	    printe("*** maximum exception count reached (%d); supressing further output\n", ecnt);
+	    printe("*** maximum exception count reached (%d); suppressing further output\n", ecnt);
 	    break;
 	 }
 	 printe("chained exception:\n");

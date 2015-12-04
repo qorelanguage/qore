@@ -113,6 +113,7 @@
 #include "ConstantList.cpp"
 #include "QoreClassList.cpp"
 #include "thread.cpp"
+#include "AbstractThreadResource.cpp"
 #include "ThreadResourceList.cpp"
 #include "VRMutex.cpp"
 #include "VLock.cpp"
@@ -271,6 +272,7 @@
 #include "QC_AbstractSmartLock.cpp"
 #include "QC_TimeZone.cpp"
 #include "QC_TreeMap.cpp"
+#include "QC_AbstractThreadResource.cpp"
 
 #include "QorePseudoMethods.cpp"
 

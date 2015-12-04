@@ -1,15 +1,25 @@
-#!/usr/bin/env qore
+#!/usr/bin/env qr
 # this used to cause qore to crash...
 
 %require-types
 %enable-all-warnings
 %new-style
 
-%requires UnitTest
+%requires ../../../../../qlib/QUnit.qm
 
-my UnitTest t();
+# Allow child Program objects to have more liberal permissions than the parent.
+%no-child-restrictions
 
-my string prog = "
+%exec-class LastingSubprogramTest
+
+class LastingSubprogramTest inherits QUnit::Test {
+    constructor() : QUnit::Test("Lasting subprogram in thread test", "1.0") {
+        addTestCase("Lasting subprogram test", \testLastingSubprogram());
+        set_return_value(main());
+    }
+
+    testLastingSubprogram() {
+        string prog = "
 sub thread() {
     # embedded program thread sleeping for 5 seconds
     my int x = 5;
@@ -19,12 +29,14 @@ sub thread() {
 }
 
 background thread();
-";
+        ";
 
-my Program a(PO_NEW_STYLE);
-a.parse(prog, "prog");
-a.run();
-sleep(2);
-stdout.sync();
-delete a;
-t.ok(True, "main program didn't call delete while child was running in the background (no exception thrown)");
+        Program a(PO_NEW_STYLE);
+        a.parse(prog, "prog");
+        a.run();
+        sleep(2);
+        stdout.sync();
+        delete a;
+        assertEq(1, 1, "main program didn't call delete while child was running in the background (no exception thrown)");
+    }
+}

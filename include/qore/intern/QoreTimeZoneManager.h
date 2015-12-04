@@ -33,6 +33,8 @@
 
 #define QORE_TIMEZONEMANAGER_H
 
+#include <inttypes.h>
+
 #include <string>
 #include <vector>
 #include <map>
@@ -49,7 +51,7 @@ DLLLOCAL extern const char *STATIC_UTC;
 
 // transition info structure
 struct QoreTransitionInfo {
-   int         utcoff;  // UTC offset in seconds east (negative for west)
+   int32_t     utcoff;  // UTC offset in seconds east (negative for west)
    std::string abbr;    // time zone abbreviation (i.e. "EST")
    bool        isdst;   // is daylight standard time?
    bool        isstd;   // transition is standard time (true) or wall clock time (false)
@@ -262,10 +264,10 @@ protected:
    DLLLOCAL int processIntern(const char *fn, ExceptionSink *xsink);
    DLLLOCAL int process(const char *fn);
 
-   DLLLOCAL const AbstractQoreZoneInfo *processFile(const char *fn, ExceptionSink *xsink);
+   DLLLOCAL const AbstractQoreZoneInfo *processFile(const char *fn, bool use_path, ExceptionSink *xsink);
    DLLLOCAL int processDir(const char *d, ExceptionSink *xsink);
 
-   // to set the local time zone information from a file 
+   // to set the local time zone information from a file
    DLLLOCAL int setLocalTZ(std::string fname);
 
    DLLLOCAL int setLocalTZ(std::string fname, AbstractQoreZoneInfo *tzi);
@@ -311,7 +313,8 @@ public:
       return localtzname.empty() ? 0 : localtzname.c_str();
    }
 
-   DLLLOCAL const AbstractQoreZoneInfo *findLoadRegion(const char *name, ExceptionSink *xsink);
+   DLLLOCAL const AbstractQoreZoneInfo* findLoadRegion(const char* name, ExceptionSink* xsink);
+   DLLLOCAL const AbstractQoreZoneInfo* findLoadRegionFromPath(const char* name, ExceptionSink* xsink);
 };
 
 DLLLOCAL extern QoreTimeZoneManager QTZM;

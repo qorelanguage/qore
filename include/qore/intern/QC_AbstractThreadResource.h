@@ -29,35 +29,33 @@
   information.
 */
 
-#ifndef _QORE_ABSTRACTTHREADRESOURCE_H
+#ifndef _QORE_INTERN_ABSTRACTTHREADRESOURCE_H
 
-#define _QORE_ABSTRACTTHREADRESOURCE_H
+#define _QORE_INTERN_ABSTRACTTHREADRESOURCE_H
 
-#include <qore/AbstractPrivateData.h>
+#include <qore/AbstractThreadResource.h>
 
-//! base class for saving data using Qore's thread resource management system
-/** Thread resources are resources that are tied to a particular thread.  Qore provides the ability to
-    call the object's "cleanup()" function if the resource is still allocated to the thread when the
-    thread terminates.  For example, the Datasource transaction lock is implemented as a thread resource.
-    If the used does not commit or rollback an open transaction before the thread terminates,
-    ManagedDatasource::cleanup() is run, which will throw an exception, rollback the transaction, and
-    release the transaction lock.  When a thread commits or rolls back a transaction, the thread resource
-    is removed.
-    Use the set_thread_resource() to set and remove_thread_resource() to remove thread resources.
+DLLEXPORT extern qore_classid_t CID_ABSTRACTTHREADRESOURCE;
+DLLLOCAL extern QoreClass* QC_ABSTRACTTHREADRESOURCE;
+DLLLOCAL QoreClass* initAbstractThreadResourceClass(QoreNamespace& ns);
 
-    @see set_thread_resource()
-    @see remove_thread_resource()
- */
-class AbstractThreadResource : public AbstractPrivateData {
+//! this class is used by the AbstractThreadResource Qore class to execute the cleanup method
+class AbstractQoreThreadResource : public AbstractThreadResource {
+protected:
+   QoreObject& obj;
+
 public:
-   //! the constructor is currently empty
-   DLLEXPORT AbstractThreadResource();
+   DLLLOCAL AbstractQoreThreadResource(QoreObject& n_obj) : obj(n_obj) {
+      obj.tRef();
+   }
 
-   //! virtual destructor
-   DLLEXPORT virtual ~AbstractThreadResource();
+   DLLLOCAL virtual ~AbstractQoreThreadResource() {
+      obj.tDeref();
+   }
 
-   //! this function is called when a thread terminates and a thread resource is still allocated to the thread
-   virtual void cleanup(ExceptionSink* xsink) = 0;
+   DLLLOCAL virtual void cleanup(ExceptionSink* xsink) {
+      obj.evalMethodValue("cleanup", 0, xsink).discard(xsink);
+   }
 };
 
 #endif
