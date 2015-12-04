@@ -1167,10 +1167,14 @@ InboundTableMapperIterator i(input, mapper);
             *hash m_sh;
             # a select_block size. Taken from m_opts
             int select_block;
+
+            AbstractDatasource m_ds;
+            string m_sql;
+            *list m_sqlargs;
         }
 
         #! builds the object based on an optional hash providing field mappings, data constraints, and optionally custom mapping logic
-        /** The target table is also scanned using @ref sqlutilintro "SqlUtil" and column definitions are used to update the target record specification, also if there are any columns with NOT NULL constraints and no default value, mapping, or constant value, then a MAP-ERROR exception is thrown
+        /** The source statement is also scanned using @ref Qore::SQLStatement and column definitions are used to update the source record specification.
 
             @param source the source table object. A \c sh select hash is applied to this table
             @param sh a SqlUtil select hash
@@ -1178,7 +1182,7 @@ InboundTableMapperIterator i(input, mapper);
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
             - \c "select_block": for size of the batch returned from TableMapper::SqlStatementOutboundMapper::getData() or SqlStatementOutboundMapper::getDataRows()
 
-            @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
+            @throw MAP-ERROR
         */
         constructor(SqlUtil::Table source, *hash sh, hash mapv, *hash opts) {
             m_table = source.getTable();
@@ -1186,7 +1190,7 @@ InboundTableMapperIterator i(input, mapper);
         }
 
         #! builds the object based on an optional hash providing field mappings, data constraints, and optionally custom mapping logic
-        /** The target table is also scanned using @ref sqlutilintro "SqlUtil" and column definitions are used to update the target record specification, also if there are any columns with NOT NULL constraints and no default value, mapping, or constant value, then a MAP-ERROR exception is thrown
+        /** The source statement is also scanned using @ref Qore::SQLStatement and column definitions are used to update the source record specification.
 
             @param source the source table object. A \c sh select hash is applied to this table
             @param sh a SqlUtil select hash
@@ -1194,11 +1198,49 @@ InboundTableMapperIterator i(input, mapper);
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
             - \c "select_block": for size of the batch returned from TableMapper::SqlStatementOutboundMapper::getData() or SqlStatementOutboundMapper::getDataRows()
 
-            @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
+            @throw MAP-ERROR
         */
         constructor(SqlUtil::AbstractTable source, *hash sh, hash mapv, *hash opts) {
             m_table = source;
             init(mapv, opts, sh);
+        }
+
+        #! builds the obejct based on real SQL statement
+        /** The source statement is also scanned using @ref Qore::SQLStatement and column definitions are used to update the source record specification.
+
+            @param ds Qore::AbstractDatasource instance. Note that this object uses transaction lock for current thread.
+            @param sql a string with SQL statement. Variables binding is provided by \c sqlargs
+            @param sqlargs optional list with sql argumets/variables
+            @param mapv a optional hash providing overrides for the default 1:1 input to output field mappings; each hash key is the name in lower case of the output column in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
+            - \c "select_block": for size of the batch returned from TableMapper::SqlStatementOutboundMapper::getData() or SqlStatementOutboundMapper::getDataRows()
+
+        @par Example
+        @code{.py}
+%new-style
+%requires TableMapper
+
+Datasource ds("oracle:omq/omq@xbox");
+on_success ds.commit();
+on_error ds.rollback()
+
+hash MAPV = ("id" : "workflowid", "name" : True);
+SqlStatementOutboundMapper m(ds, "select * from workflows where workflowid = %v or workflowid = %v", (1,2), MAPV);
+printf("%N\n", m.getDataRows());
+# list: (2 elements)
+#  [0]=hash: (2 members)
+#    id : 1
+#    name : "ASYNC-TEST"
+#  [1]=hash: (2 members)
+#    id : 2
+#    name : "BUG-476-TEST"
+        @endcode
+        */
+        constructor(AbstractDatasource ds, string sql, *softlist sqlargs, hash mapv, *hash opts) {
+            m_ds = ds;
+            m_sql = sql;
+            m_sqlargs = sqlargs;
+            init(mapv, opts);
         }
 
         # common constructor initialization
@@ -1258,11 +1300,24 @@ InboundTableMapperIterator i(input, mapper);
 
         private initStatement() {
             string sql;
-            m_stmt = m_table.getRowIterator(m_sh, \sql);
-            if (info_log) {
-                info_log("Mapper: %s: %n", self.className(), sql);
-                info_log("Mapper: %s: binding: %y", self.className(), m_sh."where");
+            if (exists m_sh) {
+                m_stmt = m_table.getRowIterator(m_sh, \sql);
+                if (info_log) {
+                    info_log("Mapper: %s: %n", self.className(), sql);
+                    info_log("Mapper: %s: binding: %y", self.className(), m_sh."where");
+                }
             }
+            else if (exists m_sql) {
+                m_stmt = new SQLStatement(m_ds);
+                m_stmt.prepare(m_sql);
+                m_stmt.bindArgs(m_sqlargs);
+                if (info_log) {
+                    info_log("Mapper: %s: %n", self.className(), m_sql);
+                    info_log("Mapper: %s: binding: %y", self.className(), m_sqlargs);
+                }
+           }
+           else
+                throw "MAP-ERROR", "SqlStatementOutboundMapper does not get a select hash or raw sql statement";
         }
 
         #! returns a description of the input record based on the @ref Qore::SQLStatement decribe()
