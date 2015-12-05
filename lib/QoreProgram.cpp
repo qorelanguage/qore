@@ -338,6 +338,9 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
    }
 
    if (clr) {
+      // purge thread resources before clearing pgm
+      purge_pgm_thread_resources(pgm, xsink);
+
       //printd(5, "qore_program_private::waitForTerminationAndClear() this: %p clr: %d\n", this, clr);
       // delete all global variables, etc
       qore_root_ns_private::clearData(*RootNS, xsink);

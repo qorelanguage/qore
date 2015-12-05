@@ -93,6 +93,7 @@
 #include "charset.cpp"
 #include "unicode-charmaps.cpp"
 #include "QoreProgram.cpp"
+#include "QoreProgramHelper.cpp"
 #include "QoreNamespace.cpp"
 #include "QoreNet.cpp"
 #include "QoreURL.cpp"

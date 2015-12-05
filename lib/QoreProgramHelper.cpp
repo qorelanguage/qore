@@ -1,6 +1,7 @@
-/* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  AbstractThreadResource.h
+  QoreProgramHelper.cpp
+
+  QoreProgramHelper QoreObject Definition
 
   Qore Programming Language
 
@@ -29,37 +30,32 @@
   information.
 */
 
-#ifndef _QORE_INTERN_ABSTRACTTHREADRESOURCE_H
+#include <qore/Qore.h>
 
-#define _QORE_INTERN_ABSTRACTTHREADRESOURCE_H
+//! creates the QoreProgram object: DEPRECATED: use QoreProgramHelper(int64, ExceptionSink&) instead
+QoreProgramHelper::QoreProgramHelper(ExceptionSink& xs) : pgm(new QoreProgram), xsink(xs) {
+}
 
-#include <qore/AbstractThreadResource.h>
+//! creates the QoreProgram object and sets the parse options
+QoreProgramHelper::QoreProgramHelper(int64 parse_options, ExceptionSink& xs) : pgm(new QoreProgram(parse_options)), xsink(xs) {
+}
 
-DLLEXPORT extern qore_classid_t CID_ABSTRACTTHREADRESOURCE;
-DLLLOCAL extern QoreClass* QC_ABSTRACTTHREADRESOURCE;
-DLLLOCAL QoreClass* initAbstractThreadResourceClass(QoreNamespace& ns);
+//! waits until all background threads in the Qore library have terminated and until the QoreProgram object is done executing and then dereferences the object
+/** QoreProgram objects are deleted when there reference count reaches 0.
+ */
+QoreProgramHelper::~QoreProgramHelper() {
+   // waits for all background threads to execute
+   thread_counter.waitForZero(&xsink);
+   // waits for the current Program to terminate
+   pgm->waitForTerminationAndDeref(&xsink);
+}
 
-//! this class is used by the AbstractThreadResource Qore class to execute the cleanup method
-class AbstractQoreThreadResource : public AbstractThreadResource {
-protected:
-   QoreObject& obj;
+//! returns the QoreProgram object being managed
+QoreProgram* QoreProgramHelper::operator->() {
+   return pgm;
+}
 
-public:
-   DLLLOCAL AbstractQoreThreadResource(QoreObject& n_obj) : obj(n_obj) {
-      obj.tRef();
-   }
-
-   DLLLOCAL virtual ~AbstractQoreThreadResource() {
-      obj.tDeref();
-   }
-
-   DLLLOCAL virtual void cleanup(ExceptionSink* xsink) {
-      obj.evalMethodValue("cleanup", 0, xsink).discard(xsink);
-   }
-
-   DLLLOCAL virtual QoreProgram* getProgram() {
-      return obj.getProgram();
-   }
-};
-
-#endif
+//! returns the QoreProgram object being managed
+QoreProgram* QoreProgramHelper::operator*() {
+   return pgm;
+}
