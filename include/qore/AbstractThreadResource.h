@@ -58,6 +58,11 @@ public:
 
    //! this function is called when a thread terminates and a thread resource is still allocated to the thread
    virtual void cleanup(ExceptionSink* xsink) = 0;
+
+   //! this function is called when clearing thread resources for a particular Program when being destroyed
+   DLLLOCAL virtual QoreProgram* getProgram() {
+      return 0;
+   }
 };
 
 #endif

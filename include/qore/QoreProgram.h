@@ -112,10 +112,10 @@ private:
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreProgram& operator=(const QoreProgram&);
-      
+
 protected:
    //! the destructor is private in order to prohibit the object from being allocated on the stack
-   /** the destructor is run when the reference count reaches 0 
+   /** the destructor is run when the reference count reaches 0
     */
    DLLLOCAL virtual ~QoreProgram();
 
@@ -404,13 +404,13 @@ public:
    */
    using AbstractPrivateData::deref;
    DLLEXPORT virtual void deref(ExceptionSink* xsink);
-   
+
    //! references "this" and returns a non-const pointer to itself
    DLLEXPORT QoreProgram* programRefSelf() const;
-   
+
    //! locks parse options so they may not be changed
    DLLEXPORT void lockOptions();
-      
+
    //! sets the name of the application class to be executed (instantiated) instead of top-level code
    /** normally parse option PO_NO_TOP_LEVEL_STATEMENTS should be set as well
        @note the string passed here will copied
@@ -490,7 +490,7 @@ public:
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
    DLLEXPORT void disableParseOptions(int po, ExceptionSink* xsink);
-   
+
    //! turns off the parse options given in the passed mask and adds Qore-language exception information if an error occurs
    /**
       @param po the parse options to subtract from the parse option mask
@@ -527,12 +527,12 @@ public:
    /** @return the script file name, if known (0 if not)
     */
    DLLEXPORT QoreStringNode* getScriptName() const;
-      
+
    //! returns the script path (directory and name), if known (0 if not)
    /** @return the script path (directory and name), if known (0 if not)
     */
    DLLEXPORT QoreStringNode* getScriptPath() const;
-      
+
    //! returns the script directory, if known (0 if not)
    /** @return the script directory, if known (0 if not)
     */
@@ -637,28 +637,21 @@ private:
 
 public:
    //! creates the QoreProgram object: DEPRECATED: use QoreProgramHelper(int64, ExceptionSink&) instead
-   DLLLOCAL QoreProgramHelper(ExceptionSink& xs) : pgm(new QoreProgram), xsink(xs) {
-   }
+   DLLEXPORT QoreProgramHelper(ExceptionSink& xs);
 
    //! creates the QoreProgram object and sets the parse options
-   DLLLOCAL QoreProgramHelper(int64 parse_options, ExceptionSink& xs) : pgm(new QoreProgram(parse_options)), xsink(xs) {
-   }
+   DLLEXPORT QoreProgramHelper(int64 parse_options, ExceptionSink& xs);
 
    //! waits until all background threads in the Qore library have terminated and until the QoreProgram object is done executing and then dereferences the object
    /** QoreProgram objects are deleted when there reference count reaches 0.
     */
-   DLLLOCAL ~QoreProgramHelper() {
-      // waits for all background threads to execute
-      thread_counter.waitForZero(&xsink);
-      // waits for the current Program to terminate
-      pgm->waitForTerminationAndDeref(&xsink);
-   }
+   DLLEXPORT ~QoreProgramHelper();
 
    //! returns the QoreProgram object being managed
-   DLLLOCAL QoreProgram* operator->() { return pgm; }
+   DLLEXPORT QoreProgram* operator->();
 
    //! returns the QoreProgram object being managed
-   DLLLOCAL QoreProgram* operator*() { return pgm; }    
+   DLLEXPORT QoreProgram* operator*();
 };
 
 #endif  // _QORE_QOREPROGRAM_H

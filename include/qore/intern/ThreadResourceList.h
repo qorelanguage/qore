@@ -39,7 +39,16 @@
 #include <map>
 
 typedef std::set<AbstractThreadResource*> trset_t;
-typedef std::map<ResolvedCallReferenceNode*, AbstractQoreNode*> crmap_t;
+
+struct ArgPgm {
+   AbstractQoreNode* arg;
+   QoreProgram* pgm;
+
+   DLLLOCAL ArgPgm(AbstractQoreNode* n_arg, QoreProgram* n_pgm) : arg(n_arg), pgm(n_pgm) {
+   }
+};
+
+typedef std::map<ResolvedCallReferenceNode*, ArgPgm> crmap_t;
 
 class ThreadResourceList {
 private:
@@ -68,6 +77,10 @@ public:
    DLLLOCAL int remove(const ResolvedCallReferenceNode* rcr, ExceptionSink* xsink);
 
    DLLLOCAL void purge(ExceptionSink* xsink);
+
+   // purge thread resources tied to a particular Program (that's being destroyed)
+   // returns: -1 if there are still thread resources left, 0 = all thread resources purged
+   DLLLOCAL void purge(const QoreProgram* pgm, ExceptionSink* xsink);
 
    DLLLOCAL bool empty() const {
       return trset.empty();
