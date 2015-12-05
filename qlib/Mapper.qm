@@ -62,7 +62,7 @@ module Mapper {
     @section mapperexamples Mapper Examples
 
     The following is an example map hash with comments:
-    @code{.py}
+    @code
 const DataMap = (
     # output field: "id" mapper from the "Id" element of any "^attributes^" hash in the input record
     "id": "^attributes^.Id",
@@ -78,7 +78,7 @@ const DataMap = (
     @endcode
 
     If this map is applied to the following data in the following way:
-    @code{.py}
+    @code
 const MapInput = ((
     "^attributes^": ("Id": 1),
     "name": "John Smith",
@@ -142,6 +142,7 @@ list: (2 elements)
       - \c "maxlen": an integer giving the maximum output string field length in bytes
       - \c "name": the value of this key gives the name of the input field; only use this if the input record name is different than the output field name; note that if this value contains \c "." characters and the \a allow_dot option is not set (see @ref mapperoptions), then the value will be treated like \c "struct" (the \c "struct" key value will be created automatically); cannot be used with the \c "constant" key
       - \c "number_format": gives the format for converting an input string to a number; see @ref Qore::parse_number() for the format of this string; note that this also implies \c "type" = \c "number"
+      - \c "runtime": a reference to @ref mapper_runtime_handling current status. The value is key in the current runtime structure.
       - \c "struct": the value of this key gives the location of the input field in an input hash in dot notation, ex: \c "element.name" would look for the field's value in the \c "name" key of the \c "element" hash in the input record; cannot be used with the \c "constant" key; this option is only necessary in place of the "name" option if the \a allow_dot option is set, otherwise use \c "name" instead
       - \c "trunc": assign to boolean @ref Qore::True "True" if the field should be truncated if over the maximum field length; this key can only be set to @ref Qore::True "True" if the \c "maxlen" key is also given
       - \c "type": this gives the output field type, can be:
@@ -174,12 +175,46 @@ list: (2 elements)
         - \c "number": field accepts only numeric values (any non-numeric values on input will cause an exception to be thrown when mapping); numeric values are left in their original types, any other type is converted to a @ref number_type "arbitrary-precision numeric" value
         - \c "string": field accepts string values; in this case any other value will be converted to a string in the output
     - \c "output_log": an optional output data logging callback; must accept a hash giving the output data hash
+    - \c "runtime": an initial runtime structure for @ref mapper_runtime_handling
     - \c "timezone": an optional string or integer (giving seconds east of UTC) giving the time zone definition for output data (ex: \c "Europe/Prague"), if not set defaults to the current TimeZone (see @ref Qore::TimeZone::get())
     - \c "trunc_all": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then any field without a \c "trunc" key (see @ref mapperkeys \c "trunc" description) will automatically be truncated if a \c "maxlen" attribute is set for the field
 
     @note
     - if the \c "input" option is given, then only those defined fields can be referenced as input fields in the @ref mapperkeys "mapper hash"; all possible input fields should be defined here if this option is used
     - if the \c "output" option is given, then only those defined fields can be referenced as output fields, additionally the types given in the output definition cannot be overridden in the @ref mapperkeys "mapper hash"; all possible output fields should be defined here if this option is used
+
+    @section mapper_runtime_handling Mapper Runtime Options
+
+    Runtime options for @ref Mapper::Mapper "Mapper" objects allow the programmer to use values provided at runtime
+    in the @ref Mapper::Mapper "Mapper" output.
+
+    For example, runtime options can be useful in the following cases:
+        - storing one date/time value for all output hashes of the @ref Mapper::Mapper "Mapper"
+        - using a value from a database sequence value for the lifetime of the @ref Mapper::Mapper "Mapper" object
+        - grouping of the output data
+
+    @par Example:
+    @code{.py}
+hash mapv = (
+    "foo": ("constant": "bar"),
+     # ...
+    "date_begin": ("runtime": "start_date"), # references runtime option "start_date"
+    "group": ("runtime": "group_id"),        # references runtime option "group_id"
+);
+hash opts = (
+    "timezone": "Europe/Prague",
+    # ...
+    "runtime": (
+        "start_date": now_us(), # set runtime option "start_date"
+        "group_id": 0,          # set runtime option "group_id" to 0
+    ),
+);
+Mapper m(mapv, opts);        # runtime options are active now
+m.mapData(input1);           # output record hash date_begin = start_date = timestamp of the opts creation and group = 0
+m.setRuntime("group_id", 1); # runtime group_id changed. From now it will use 1
+m.mapData(input2);           # date_begin is still the same as from beginning of processing, but group is 1 now
+    @endcode
+
 
     @section mapperrelnotes Release Notes
 
@@ -197,6 +232,11 @@ list: (2 elements)
     - implemented the \c "output" option with output record validation
     - implemented the \c "info_log" option and removed the \c "trunc" option
     - implemented the @ref Mapper::Mapper::addConstantMapping() "Mapper::addConstantMapping()" methods
+    - added runtime option handling (@ref mapper_runtime_handling):
+      - \c "runtime" mapper option
+      - @ref Mapper::Mapper::getRuntime()
+      - @ref Mapper::Mapper::replaceRuntime()
+      - @ref Mapper::Mapper::setRuntime()
 
     @subsection mapperv1_0 Mapper v1.0
     - Initial release
@@ -224,7 +264,7 @@ public namespace Mapper {
                 "output": "a hash describing the output record",
                 "output_log": "a call reference / closure for input record logging",
                 "timezone": "the default output timezone for date/time values",
-                "trunc_all": "if True then all output fields will be truncated to the maximum size if the input value exceeds the allowed width in bytes",
+                "runtime": "runtime options as a hash (see also setRuntime(), replaceRuntime())",
                 );
 
             #! default known mapper hash field keys (can be extended by subclassing and reimplementing validKeys())
@@ -241,6 +281,7 @@ public namespace Mapper {
                 "type": True,
                 "date_format": True,
                 "number_format": True,
+                "runtime" : True,
                 );
 
             #! default known field types (can be extended by subclassing and reimplementing validTypes() and mapFieldType())
@@ -309,6 +350,11 @@ public namespace Mapper {
 
             #! count of records mapped
             int count = 0;
+
+            #! current runtime values
+            /** @since Mapper 1.1
+             */
+            *hash m_runtime;
         }
 
         #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
@@ -418,6 +464,15 @@ Mapper mapv(DataMap);
 
             if (opts.number_format)
                 number_format = opts.number_format;
+
+            # runtime options
+            if (opts.runtime) {
+                if (opts.runtime.typeCode() != NT_HASH) {
+                    error("input key 'runtime' passed to %s::constructor() assigned to type %y (value %y); expecting \"hash\"",
+                          self.className(), opts.runtime.type(), opts.runtime);
+                }
+                m_runtime = opts.runtime;
+            }
         }
 
         #! verifies the input map in the constructor
@@ -594,48 +649,66 @@ Mapper mapv(DataMap);
             }
         }
 
-        #! adds constant mappings after the object has been constructed; replaces any existing configuration for the given fields
-        /** @param ch a configuration hash in form key - value
+        #! set the @ref mapper_runtime_handling "runtime option" with \a "key" to value \a "value"
+        /**
+             @param key a string with valid runtime key
+             @param value anything passed to the current runtime \c key
 
-        For example, constant options can be useful in the following cases:
-            - storing one date/time value for all output hashes of the @ref Mapper::Mapper "Mapper"
-            - using a value from a database sequence value for the lifetime of the @ref Mapper::Mapper "Mapper" object
-            - grouping of the output data
+            @see
+            - @ref mapper_runtime_handling
+            - replaceRuntime()
+            - setRuntime()
 
-        @par Example:
-        @code{.py}
-hash mapv = (
-    "foo" : ("constant" : "bar"),
-    # ...
-    "date_begin" : ("constant" : NOTHING), # a placeholder for "start_date".
-    "group" : ("constant": 0),             # provides a constant 0 value for "group_id"
-Mapper m(mapv);
-m.addConstantMapping( ("date_begin" : now()) ); # date_begin will be only
-                                                # one timestamp for object lifetime
-m.mapData(input1);                   # date_begin was set and group = 0
-m.addConstantMapping("group_id", 1); # constant group_id changed. From now it will use 1
-m.mapData(input2);                   # date_begin is still the same as from beginning of processing,
-                                     # but group is 1 now
-        @endcode
+            @since %Mapper 1.1
          */
-        addConstantMapping(hash ch) {
-            foreach string k in (ch.keyIterator()) {
-                if (output && !output.hasKey(k))
-                    error("output field %y is not a defined output field; known output fields: %y", getFieldName(k), output.keys());
-                # delete keys in conflict with the "constant" key
-                delete mapc{k}{ConstantConflictList};
-                mapc{k}.constant = ch{k};
-            }
+        setRuntime(string key, any value) {
+            m_runtime{key} = value;
         }
 
-        #! adds constant mappings after the object has been constructed; replaces any existing configuration for the given field
-        /** @param key a mapping hash key name
-            @param value a new constant value for \c key
+        #! adds @ref mapper_runtime_handling "runtime options" to the current runtime option hash
+        /**
+            @param runtime a hash of runtime options to add to the current @ref mapper_runtime_handling "runtime option hash"
 
-            See an example in hash argument version of addConstantMapping()
+            @see
+            - @ref mapper_runtime_handling
+            - replaceRuntime()
+            - setRuntime()
+
+            @since %Mapper 1.1
          */
-        addConstantMapping(string key, any value) {
-            addConstantMapping( (key:value) );
+        setRuntime(hash runtime) {
+            m_runtime += runtime;
+        }
+
+        #! replaces @ref mapper_runtime_handling "runtime options"
+        /**
+            @param runtime a hash of runtime options to use to replace the current @ref mapper_runtime_handling "runtime option hash"
+
+            @see
+            - @ref mapper_runtime_handling
+            - getRuntime()
+            - setRuntime()
+
+            @since %Mapper 1.1
+         */
+        replaceRuntime(*hash runtime) {
+            m_runtime = runtime;
+        }
+
+        #! get current @ref mapper_runtime_handling "runtime option" value for a key
+        /**
+            @param key the runtime option key
+            @returns a runtime value if the key exists in the current @ref mapper_runtime_handling "runtime option hash" and is set
+
+            @see
+            - @ref mapper_runtime_handling
+            - replaceRuntime()
+            - setRuntime()
+
+            @since %Mapper 1.1
+         */
+        any getRuntime(string key) {
+            return m_runtime{key};
         }
 
         #! returns a descriptive name of the given field if possible, otherwise returns the field name itself
@@ -738,6 +811,9 @@ m.mapData(input2);                   # date_begin is still the same as from begi
                 any v;
                 if (exists m.constant)
                     v = m.constant;
+                else if (m.runtime) {
+                    v = m_runtime{m.runtime}; # TODO/FIXME: throw an exception if it does not exist?
+                }
                 else if (m.struct) {
                     # get the value
                     v = rec;

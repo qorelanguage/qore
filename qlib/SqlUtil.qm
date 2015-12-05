@@ -1885,6 +1885,11 @@ public namespace SqlUtil {
     */
     public const COP_AVG = "avg";
 
+    #! to return the sum value
+    /** @see cop_sum
+    */
+    public const COP_SUM = "sum";
+
     #! to return the row count
     /** @see cop_count
     */
@@ -2287,6 +2292,20 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     */
     public hash sub cop_avg(any column) {
         return make_cop(COP_AVG, column);
+    }
+
+    #! returns a hash for the \c "sum" operator; returns the total sum of a numeric column.
+    /** @par Example:
+        @code
+*list rows = table.selectRows(("columns": (cop_sum("quantity")), "where": ("order_type": "wholesale")));
+        @endcode
+
+        @param column the column specification for the column (string name or dot notation for use in joins)
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    public hash sub cop_sum(any column) {
+        return make_cop(COP_SUM, column);
     }
 
     #! returns a hash for the \c "count" operator; returns row counts

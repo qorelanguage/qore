@@ -1,3 +1,6 @@
+2014-12-03 11:36 temnoregg
+	* qlib/SqlUtil.qm: Added SUM operator: cop_sum
+
 2014-07-16 12:12  subik
 
 	* lib/QC_HTTPClient.qpp, lib/QoreHttpClientObject.cpp: HTTPClient:

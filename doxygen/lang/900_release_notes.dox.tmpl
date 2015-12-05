@@ -365,6 +365,7 @@
       - @ref Qore::ReadOnlyFile::readTextFile()
     - fixed a bug in @ref Qore::GetOpt::parse(softlist), @ref Qore::GetOpt::parse2(softlist), and @ref Qore::GetOpt::parse3(softlist) where call-by-value and copy-on-write semantics were not enforced and a shared list argument could be modified
     - fixed a bug in zoneinfo file parsing where invalid bands with no UTC offset changes against the previous band could cause invalid date/time values to be displayed by Qore for dates on the invalid transition
+    - fixed a bug where imported global variables (@ref Qore::Program::importGlobalVariable()) were added to the pending global variable list and therefore were removed if a parse exception occurred, hwoever the namespace indexes remained, which could lead to unexpected problems at runtime including a crash.  Additionally the pending global variable list was not checked which could lead to a memory leak if the a single global variable name is pending, imported, and then committed to the @ref Qore::Program "Program" object.
 
     @section qore_0811 Qore 0.8.11
 
