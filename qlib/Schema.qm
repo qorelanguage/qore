@@ -246,9 +246,27 @@ public namespace Schema {
 
         @see c_int()
      */
+    public hash sub c_number(int size, int scale, bool notnull = False, *string comment) {
+        return (
+            "qore_type": SqlUtil::NUMERIC,
+            "size": size,
+            "scale": scale,
+            "comment": comment,
+            )
+            + (notnull ? ("notnull": True) : NOTHING)
+            ;
+    }
+
+    #! returns a column hash for a \c NUMBER or \c NUMERIC column
+    /** @param size the size of the column
+        @param notnull @ref Qore::True "True" for a <tt>NOT NULL</tt> constraint on the column. See constants Schema::C_NULL and Schema::C_NOT_NULL
+        @param comment an optional comment for the column
+
+        @see c_int()
+     */
     public hash sub c_number(int size, bool notnull = False, *string comment) {
         return (
-            "qore_type": Type::Number,
+            "qore_type": SqlUtil::NUMERIC,
             "size": size,
             "comment": comment,
             )
@@ -264,7 +282,7 @@ public namespace Schema {
      */
     public hash sub c_number(int size, string comment) {
         return (
-            "qore_type": Type::Number,
+            "qore_type": SqlUtil::NUMERIC,
             "size": size,
             "comment": comment,
             )
