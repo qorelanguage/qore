@@ -139,7 +139,7 @@ public namespace RestClient {
     public class RestClient inherits Qore::HTTPClient {
         public {
             #! Data serialization support mapping codes to MIME types and de/serialization functions
-            const DataSerializationSupport = (
+            const DataSerializationSupport = {
 %ifndef NoJson
                 "json": (
                     "ct": MimeTypeJson,
@@ -158,7 +158,7 @@ public namespace RestClient {
                     "out": \makeXMLRPCValueString(),
                 ),
 %endif
-                );
+                };
 
 
 %ifndef NoYaml
@@ -175,7 +175,7 @@ public namespace RestClient {
 %endif
 
             #! Data deserialization support MIME types to codes and de/serialization functions
-            const DataDeserializationSupport = (
+            const DataDeserializationSupport = {
 %ifndef NoJson
                 MimeTypeJson: (
                     "code": "json",
@@ -190,7 +190,7 @@ public namespace RestClient {
                 MimeTypeXml: DeserializeXmlRpc,
                 MimeTypeXmlApp: DeserializeXmlRpc,
 %endif
-                );
+                };
 
             #! Accept header list
             const AcceptList = (
@@ -337,7 +337,7 @@ rest.setSerialization("yaml");
             if (!DataSerializationOptions{data})
                 throw "RESTCLIENT-ERROR", sprintf("data serialization option %y is unknown; valid options: %y", data, DataSerializationOptions.keys());
 
-            if (data == "auto")
+            if (data == "auto" && DataSerializationSupport)
                 data = DataSerializationSupport.firstKey();
             else if (!DataSerializationSupport{data})
                 throw "RESTCLIENT-ERROR", sprintf("data serialization option %y is not supported because the required module could not be loaded; currently supported options: %y", data, DataSerializationSupport.keys());
