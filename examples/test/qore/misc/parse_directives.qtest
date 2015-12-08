@@ -17,6 +17,7 @@ public class ParseDirectiveTest inherits QUnit::Test {
         addTestCase("missing arg to %append-module-path", \missingArgAppendModulePath(), NOTHING);
         addTestCase("missing arg to %set-time-zone", \missingArgSetTimeZone(), NOTHING);
         addTestCase("missing arg to %enable-warning", \missingArgEnableWarning(), NOTHING);
+        addTestCase("tab in arg", \tabInArg(), NOTHING);
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -33,14 +34,14 @@ public class ParseDirectiveTest inherits QUnit::Test {
         Program p();
         p.replaceParseOptions(PO_DEFAULT);
         assertThrows("PARSE-EXCEPTION", "missing argument to %append-module-path",
-            \p.parse(), ("%append-module-path\nprint();", ""));
+            \p.parse(), ("%append-module-path   \nprint();", ""));
     }
 
     missingArgSetTimeZone() {
         Program p();
         p.replaceParseOptions(PO_DEFAULT);
         assertThrows("PARSE-EXCEPTION", "missing argument to %set-time-zone",
-            \p.parse(), ("%set-time-zone\nprint();", ""));
+            \p.parse(), ("%set-time-zone\t   \nprint();", ""));
     }
 
     missingArgEnableWarning() {
@@ -48,5 +49,31 @@ public class ParseDirectiveTest inherits QUnit::Test {
         p.replaceParseOptions(PO_DEFAULT);
         assertThrows("PARSE-EXCEPTION", "missing argument to %enable-warning",
             \p.parse(), ("%enable-warning\nprint();", ""));
+    }
+
+    tabInArg() {
+        Program p();
+        p.replaceParseOptions(PO_DEFAULT);
+        p.parse("
+our $x = 0;
+our $y = 0;
+%append-include-path xxx\t++$x;
+++$y;
+%append-module-path xxx\t++$x;
+++$y;
+%enable-warning deprecated\t++$x;
+++$y;
+%disable-warning deprecated\t++$x;
+++$y;
+%ifdef xxx\t++$x;
+$y = 9;
+%endif
+%ifndef yyy\t++$x;
+++$y;
+%endif
+", "");
+        p.run();
+        assertEq(5, p.getGlobalVariable("y"));
+        assertEq(0, p.getGlobalVariable("x"));
     }
 }
