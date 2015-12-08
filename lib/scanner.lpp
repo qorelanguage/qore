@@ -898,14 +898,18 @@ RTIME           PT(-?[0-9]+[HMSu])+
 }
 ^%endtry{WS}*$                          parse_try_module_dec();
 ^%requires{WS}*$                        { parse_error("missing argument to %%requires"); }
-^%requires{WS}+                         BEGIN(requires);
+^%requires                              BEGIN(requires);
 <requires>[^\n\r]+                      {
                                            char* cn = trim_inplace(yytext);
-                                           bool reexport = false;
-                                           if (!check_reexport("requires", cn, reexport)) {
-                                              //printd(5, "scanner requesting feature: '%s'\n", cn);
-                                              QoreProgram* pgm = getProgram();
-                                              QMM.parseLoadModule(*(pgm->getParseExceptionSink()), cn, pgm, reexport);
+                                           if (!cn)
+                                              parse_error("missing argument to %%requires");
+                                           else {
+                                              bool reexport = false;
+                                              if (!check_reexport("requires", cn, reexport)) {
+                                                 //printd(5, "scanner requesting feature: '%s'\n", cn);
+                                                 QoreProgram* pgm = getProgram();
+                                                 QMM.parseLoadModule(*(pgm->getParseExceptionSink()), cn, pgm, reexport);
+                                              }
                                            }
                                            BEGIN(INITIAL);
                                         }
