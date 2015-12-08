@@ -725,16 +725,19 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%strict-bool-eval{WS}*$                getProgram()->parseSetParseOptions(PO_STRICT_BOOLEAN_EVAL);
 ^%broken-list-parsing{WS}*$             getProgram()->parseSetParseOptions(PO_BROKEN_LIST_PARSING);
 ^%push-parse-options{WS}*$              push_parse_options();
+^%append-include-path{WS}*$             { parse_error("missing argument to %%append-include-path"); }
 ^%append-include-path{WS}+              BEGIN(append_path_state);
 <append_path_state>[^\t\n\r]+           {
                                            set_include_path(yytext);
                                            BEGIN(INITIAL);
                                         }
+^%append-module-path{WS}*$              { parse_error("missing argument to %%append-module-path"); }
 ^%append-module-path{WS}+               BEGIN(append_module_state);
 <append_module_state>[^\t\n\r]+         {
                                            append_module_path(yytext);
                                            BEGIN(INITIAL);
                                         }
+^%set-time-zone{WS}*$                   { parse_error("missing argument to %%set-time-zone"); }
 ^%set-time-zone{WS}+                    BEGIN(set_zone);
 <set_zone>[^\t\n\r]+                    {
                                            parse_set_time_zone(yytext);
@@ -762,7 +765,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                            free(cn);
                                            BEGIN(INITIAL);
                                         }
-^%ensable-warning{WS}*$                 { parse_error("missing argument to %%enable-warning"); }
+^%enable-warning{WS}*$                  { parse_error("missing argument to %%enable-warning"); }
 ^%enable-warning{WS}+                   BEGIN(enable_warning);
 <enable_warning>[^\t\n\r]+              {
                                            char* cn = trim(yytext);
