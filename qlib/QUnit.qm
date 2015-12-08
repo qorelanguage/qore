@@ -920,27 +920,41 @@ assertThrows("DIVISION-BY-ZERO", "division by zero found in integer expression",
         @endcode
 
         @param expectedErr the expected exception type
-        @param expectedDesc the expected exception detail (desc field)
+        @param expectedDesc the expected exception detail (desc field), ignored if NOTHING
         @param theCode the code to execute
         @param args optional arguments to the code
      */
-    public assertThrows(string expectedErr, string expectedDesc, code theCode, *softlist args) {
+    public assertThrows(string expectedErr, *string expectedDesc, code theCode, *softlist args) {
         *TestCase tc = get_thread_data("tc");
         if (!tc)
             throw "TEST-ERROR", sprintf("cannot test assertion while not executing a test case; testAssertion() can only be called in code executed in a test case (added with %s::addTestCase())", self.className());
         tc.incAssertions();
         ++num_asserts;
 
-        string exp = sprintf("Exception: %s: Detail '%s'", expectedErr, expectedDesc);
+        string exp = sprintf("Exception: %s", expectedErr) + (expectedDesc ? sprintf(": Detail '%s'", expectedDesc) : "");
         try {
             call_function_args(theCode, args);
         } catch (e) {
-            if (e.err == expectedErr && e.desc == expectedDesc) {
+            if (e.err == expectedErr && (expectedDesc == NOTHING || e.desc == expectedDesc)) {
                 return;
             }
             throw "TEST-EXCEPTION", printUnexpectedData(exp, get_exception_string(e));
         }
         throw "TEST-EXCEPTION", sprintf("Expected %s was not thrown", exp);
+    }
+
+    #! Tests that a piece of code throws an exception
+    /** @par Example:
+        @code
+assertThrows("DIVISION-BY-ZERO", sub(int a) {print(5/a);}, 0);
+        @endcode
+
+        @param expectedErr the expected exception type
+        @param theCode the code to execute
+        @param args optional arguments to the code
+     */
+    public assertThrows(string expectedErr, code theCode, *softlist args) {
+        assertThrows(expectedErr, NOTHING, theCode, args);
     }
 
     #! Fails the test anconditionally

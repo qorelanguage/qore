@@ -643,6 +643,23 @@ static bool parse_is_defined(const char* pstr, bool def = true) {
    return qore_program_private::parseIsDefined(getProgram(), str.getBuffer());
 }
 
+static bool is_identifier(const char *str) {
+    if (!(getProgram()->getParseOptions64() & PO_REQUIRE_BARE_REFS)) {
+        if (*str++ != '$') {
+            return false;
+        }
+    }
+    if (!isalpha(*str) && *str != '_') {
+        return false;
+    }
+    while (*++str) {
+        if (!isalpha(*str) && !isdigit(*str) && *str != '_') {
+            return false;
+        }
+    }
+    return true;
+}
+
 #define DO_DOT_KW_IDENTIFIER(kw) { yylval->String = new QoreStringNode(kw); qore_size_t pos = yylval->String->size() + 1; if (yytext[pos]) unput(yytext[pos]); return DOT_KW_IDENTIFIER; }
 
 #define QORE_FLEX_DO_EOF { /* delete current buffer */ yy_delete_buffer(YY_CURRENT_BUFFER, yyscanner); \
@@ -779,8 +796,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                            BEGIN(INITIAL);
                                         }
 ^%exec-class{WS}*$                      { parse_error("missing argument to %%exec-class"); }
-^%exec-class{WS}*                       BEGIN(exec_class_state);
-^%try-module                            BEGIN(try_module);
+^%exec-class{WS}+                       BEGIN(exec_class_state);
+^%try-module{WS}*$                      { parse_error("missing argument to %%try-module"); }
+^%try-module{WS}+                       BEGIN(try_module);
 <try_module>[^\n\r]+                    {
                                            parse_try_module_inc();
                                            QoreString str(yytext);
@@ -791,24 +809,32 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                            QoreString var;
                                            bool ok = true;
                                            if (op) {
-                                              p = op + 1;
+                                              if (op != p) {
+                                                 parse_error("%%try-module not in format '%%try-module (%svarname) <module>'; extra text before '('; text given: '%%try-module %s'", require_dollar ? "$" : "", str.getBuffer());
+                                                 ok = false;
+                                              }
+                                              ++p;
                                               const char* cp = strchr(p, ')');
                                               if (!cp) {
-                                                 parse_error("%%try-module not in format '%%try-module (%svarname) <module>'; missing close parenthesis ')' after variable name; text given: '%%try-module %s'", require_dollar ? "%" : "", str.getBuffer());
+                                                 parse_error("%%try-module not in format '%%try-module (%svarname) <module>'; missing close parenthesis ')' after variable name; text given: '%%try-module %s'", require_dollar ? "$" : "", str.getBuffer());
                                                  ok = false;
                                               }
                                               else {
                                                  // get variable name
                                                  var.concat(p, cp - p);
-                                                 var.trim();
+                                                 var.trim("\t ");
 
                                                  if (var.empty()) {
-                                                    parse_error("%%try-module not in format '%%try-module (%svarname) <module>'; missing exception variable name; text given: '%%try-module %s'", require_dollar ? "%" : "", str.getBuffer());
+                                                    parse_error("%%try-module not in format '%%try-module (%svarname) <module>'; missing exception variable name; text given: '%%try-module %s'", require_dollar ? "$" : "", str.getBuffer());
                                                     ok = false;
                                                  }
                                                  else {
                                                     // remove preface from string leaving only the rest
                                                     str.replace(0, cp - str.getBuffer() + 1, (const char*)0);
+                                                    if (!is_identifier(var.getBuffer())) {
+                                                       parse_error("%%try-module not in format '%%try-module (%svarname) <module>'; invalid exception variable name; text given: '%%try-module %s'", require_dollar ? "$" : "", str.getBuffer());
+                                                       ok = false;
+                                                    }
                                                  }
                                               }
                                            }
@@ -822,7 +848,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                                  if (var.empty())
                                                     parse_error("%%try-module not in format %%try-module <module>; missing module name; text given: '%%try-module %s'", str.getBuffer());
                                                  else
-                                                    parse_error("%%try-module not in format %%try-module (%svarname) <module>; missing module name; text given: '%%try-module %s'", require_dollar ? "%" : "", str.getBuffer());
+                                                    parse_error("%%try-module not in format %%try-module (%svarname) <module>; missing module name; text given: '%%try-module %s'", require_dollar ? "$" : "", str.getBuffer());
                                                  BEGIN(INITIAL);
                                               }
                                               else {
@@ -871,18 +897,15 @@ RTIME           PT(-?[0-9]+[HMSu])+
    \n                                   // ignore
 }
 ^%endtry{WS}*$                          parse_try_module_dec();
-^%requires                              BEGIN(requires);
+^%requires{WS}*$                        { parse_error("missing argument to %%requires"); }
+^%requires{WS}+                         BEGIN(requires);
 <requires>[^\n\r]+                      {
                                            char* cn = trim_inplace(yytext);
-                                           if (!cn)
-                                              parse_error("missing argument to %%requires");
-                                           else {
-                                              bool reexport = false;
-                                              if (!check_reexport("requires", cn, reexport)) {
-                                                 //printd(5, "scanner requesting feature: '%s'\n", cn);
-                                                 QoreProgram* pgm = getProgram();
-                                                 QMM.parseLoadModule(*(pgm->getParseExceptionSink()), cn, pgm, reexport);
-                                              }
+                                           bool reexport = false;
+                                           if (!check_reexport("requires", cn, reexport)) {
+                                              //printd(5, "scanner requesting feature: '%s'\n", cn);
+                                              QoreProgram* pgm = getProgram();
+                                              QMM.parseLoadModule(*(pgm->getParseExceptionSink()), cn, pgm, reexport);
                                            }
                                            BEGIN(INITIAL);
                                         }
