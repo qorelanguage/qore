@@ -620,6 +620,7 @@ public class QUnit::TestReporter {
 %else
         hash junit;
         junit.testsuites."^attributes^" = (
+            "name" : m_name,
             "tests"  : testCount(),
             "errors" : errors(),
             "skipped" : skipped(),
@@ -630,7 +631,7 @@ public class QUnit::TestReporter {
         while (it.next()) {
             hash testcase;
 
-            testcase."^attributes^".name = it.getValue().msg;
+            testcase."^attributes^".name = it.getValue().testcase.getName();
             string errmsg = sprintf("%s at %s:\n%s", it.getValue().error, it.getValue().pos, it.getValue().detail);
 
             int status = it.getValue().result;
