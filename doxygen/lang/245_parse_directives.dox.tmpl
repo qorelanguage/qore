@@ -1011,7 +1011,7 @@
     Set to mimic perl's (and Python's) boolean evaluation; this is now the default (as of qore version 0.8.6); prior to this version, by default qore used @ref strict-bool-eval "strict mathematic boolean evaluation", where any value converted to 0 is @ref Qore::False "False" and otherwise it's is @ref Qore::True "True".\n\n
     As of %Qore 0.8.6+, <tt>%%perl-bool-eval</tt> is the default behavior and therefore only needs to be set if @ref strict-bool-eval "%strict-bool-eval" was set first.\n\n
     When this option is set, boolean evaluation follows the same rules as <value>::val(); for example:\n
-    @code
+    @code{.py}
 my string $str = "hello";
 if ($str)
     printf("string is: %y\n", $str);
@@ -1040,7 +1040,7 @@ if ($str)
     @par Description:
     Stores parse options so that they will be restored when the current file is done parsing; use in include files to ensure parse options are set appropriately for the file being parsed.\n\n
     For example:\n
-    @code
+    @code{.py}
 %push-parse-options
 %new-style
     @endcode
@@ -1127,12 +1127,12 @@ if ($str)
     Loads a %Qore module immediately. The parse directive can be used to load a module during parsing, and the command line version can be used to load a module before parsing.  If the optional <tt><em>(reexport)</em></tt> option is used in a @ref user_modules "user module", then any modules loaded with this form of the <tt>%%requires</tt> parse directive will also be imported into the importing @ref Qore::Program "Program".\n\n
     From %Qore 0.7.1, you can specify a comparison operator (one of <tt>\<, \<=, =, \>=, or \></tt>) and version information after the module name as well. Version numbers are compared via integer comparisons of each element, where elements are separated by a \c ".". If one of the versions does not have as many elements as another, the missing elements are assumed to be \c "0" (i.e. version \c "1.0" compared with version \c "1.0.1" will be extended to \c "1.0.0").\n\n
     For example:\n
-    @code
+    @code{.py}
 %requires oracle >= 1.0.1
     @endcode \n
     This will load the oracle module if it is at least version 1.0.1.\n\n
     For example:\n
-    @code
+    @code{.py}
 %requires(reexport) Mime
     @endcode \n
     If this form is used in a @ref user_modules "user module", all public definitions from the <a href="../../modules/Mime/html/index.html">Mime</a> module would also be loaded into any @ref Qore::Program "Program" that requires the user module.\n\n
@@ -1186,7 +1186,7 @@ if ($str)
     When set, this option enables qore's default strict mathematic boolean evaluation, where any value converted to 0 is @ref Qore::False "False" and otherwise it's is @ref Qore::True "True".\n\n
     This option takes effect at runtime.\n\n
     For example:\n
-    @code
+    @code{.py}
 my string $str = "hello";
 if ($str)
     printf("string is: %y\n", $str);
@@ -1216,7 +1216,7 @@ if ($str)
     Loads a %Qore module immediately; if an error occurs loading the module, then the @ref variable_declarations "variable" declared in parentheses after <tt>%%try-module</tt> is instantiated with the exception information, and the code up to the @ref endtry "%endtry" parse declaration is parsed into the program, allowing for the qore script/program to handle module loading errors at parse time for modules that must be loaded at parse time.\n\n
     A comparison operator (one of <tt>\<, \<=, =, \>=, or \></tt>) and version information can be optionally given after the module name as well. Version numbers are compared via integer comparisons of each element, where elements are separated by a \c ".". If one of the versions does not have as many elements as another, the missing elements are assumed to be \c "0" (i.e. version \c "1.0" compared with version \c "1.0.1" will be extended to \c "1.0.0").  Version errors are handled in the same was as any other module loading error.\n\n
     For example:\n
-    @code
+    @code{.py}
 %try-module($ex) some_module > 2.0
     printf("error loading module %y: %s: %s\n", $ex.arg, $ex.err, $ex.desc);
     exit(1);
@@ -1225,7 +1225,7 @@ if ($str)
     This will load the \c "some_module" module if it is at least version 2.0, and print an error message and exit gracefully if it cannot be loaded.\n\n
     The @ref variable_declarations "variable declaration" in parentheses is optional; use the variant without the exception variable in code where parse option @ref Qore::PO_NO_TOP_LEVEL_STATEMENTS "PO_NO_TOP_LEVEL_STATEMENTS" is set, for example.  In this case, for example, other parse options can be set before the @ref endtry "%endtry" directive.\n\n
     Here is an example without a @ref variable_declarations "variable declaration" in parentheses:\n
-    @code
+    @code{.py}
 %try-module some_module > 2.0
 %define DontHaveSomeModule
 %endtry
