@@ -144,21 +144,21 @@
     The <b><tt>public</tt></b> keyword also affects inheritance in child @ref Qore::Program "Program" objects as well as controlling exported symbols from user modules.
 
     The <b><tt>public</tt></b> keyword must be used with the following declarations in the module to export them:
-    - @ref qore_namespaces "namespaces": namespaces themselves must be declared <b><tt>public</tt></b> in order for any of their contents also to be exported (it is an error to try to declare public members of a module-private namespace). ex: @code
+    - @ref qore_namespaces "namespaces": namespaces themselves must be declared <b><tt>public</tt></b> in order for any of their contents also to be exported (it is an error to try to declare public members of a module-private namespace). ex: @code{.py}
 public namespace MyNamespace { ... }@endcode
-    - @ref qore_classes "classes": classes not declared <b><tt>public</tt></b> will not be exported; there is no way to export part of a class; either the entire class is exported or it is not. ex: @code
+    - @ref qore_classes "classes": classes not declared <b><tt>public</tt></b> will not be exported; there is no way to export part of a class; either the entire class is exported or it is not. ex: @code{.py}
 public MyNamespace {
     public MyClass { ... }
 }@endcode
-    - @ref constants "constants": constants must be declared <b><tt>public</tt></b> to be exported; ex: @code
+    - @ref constants "constants": constants must be declared <b><tt>public</tt></b> to be exported; ex: @code{.py}
 public namespace MyNamespace {
     public const MyConst = 100;
 }@endcode
-    - @ref qore_functions "functions": function variants must be declared <b><tt>public</tt></b> in order to be exported. ex: @code
+    - @ref qore_functions "functions": function variants must be declared <b><tt>public</tt></b> in order to be exported. ex: @code{.py}
 public MyNamespace {
     public int sub my_func() { ... }
 }@endcode
-    - @ref global_variables "global variables": only global variables declared <b><tt>public</tt></b> will be exported. ex: @code
+    - @ref global_variables "global variables": only global variables declared <b><tt>public</tt></b> will be exported. ex: @code{.py}
 public namespace MyNamespace {
     public our int $OurInt;
 }@endcode
@@ -170,7 +170,7 @@ public namespace MyNamespace {
     @subsection User Module Example
 
     Here is an example declaring user module \c "foo" version \c "1.0":
-    @code
+    @code{.py}
 module foo {
     version = "1.0";
     desc = "test module";
