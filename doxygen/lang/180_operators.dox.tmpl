@@ -21,6 +21,7 @@
     |@ref cast "cast<>()"|\c 3|@ref cast "cast<>() operator"|@code{.py} cast<SubClass>($var)@endcode
     |@ref logical_negation_operator "!"|\c 4|@ref logical_negation_operator "logical negation operator"|@code{.py} if (!($a > 10)) {}@endcode
     |@ref binary_not_operator "~"|\c 5|@ref binary_not_operator "binary not/bit inversion operator"|@code{.py} $var = ~$var@endcode
+    |@ref unary_plus_operator "- (unary plus)"|\c 6|@ref unary_plus_operator "unary plus operator"|@code $v{.py}ar = +$var@endcode
     |@ref unary_minus_operator "- (unary minus)"|\c 6|@ref unary_minus_operator "unary minus operator"|@code{.py} $var = -$var@endcode
     |@ref shift "shift"|\c 7|@ref shift "shift list element operator"|@code{.py} shift $list@endcode
     |@ref pop "pop"|\c 7|@ref pop "pop list element operator"|@code{.py} pop $list@endcode
@@ -462,15 +463,43 @@ if (!exists $error_code)
     -expression
 
     @par Return Type
-    @ref int_type "int" or @ref float_type "float"
+    @ref int_type "int", @ref number_type "number", @ref float_type "float" or @ref date_type "date"
 
     @par Example
     @code{.py} $a = -$b;@endcode
 
     <b>Arguments Processed by - (unary minus)</b>
     |!Argument|!Processing
-    |@ref float|Gives the negative of its argument as a @ref float (ex: <tt>-(-1.1) = 1.1, -(1.1) = -1.1</tt>
-    |@ref integer|Gives the negative of its argument as an @ref integer (ex: <tt>-(-1) = 1, -(1) = -1</tt>
+    |@ref float|Gives the negative of its argument as a @ref float, ex: <tt>-(-1.1) = 1.1, -(1.1) = -1.1</tt>
+    |@ref integer|Gives the negative of its argument as an @ref integer, ex: <tt>-(-1) = 1, -(1) = -1</tt>
+    |@ref number|Gives the negative of its argument as a @ref number, ex: <tt>-(-1.1n) = 1.1n, -(1.1n) = -1.1n</tt>
+    |@ref date|Gives the negative of its argument as a @ref date, ex: <tt>-(-1s) = 1s, -(1s) = -1s</tt>
+    |@ref other|Returns 0
+
+    This operator does not throw any exceptions
+
+    <hr>
+    @section unary_plus_operator Unary Plus Operator (+)
+
+    @par Synopsis
+    Does nothing with numeric values, converts others to 0.
+
+    @par Syntax
+    +expression
+
+    @par Return Type
+    @ref int_type "int", @ref number_type "number", @ref float_type "float" or @ref date_type "date"
+
+    @par Example
+    @code{.py} $a = +$b;@endcode
+
+    <b>Arguments Processed by + (unary minus)</b>
+    |!Argument|!Processing
+    |@ref float|Gives the negative of its argument as a @ref float, ex: <tt>+1.1 = 1.1</tt>
+    |@ref integer|Gives the negative of its argument as an @ref integer, ex: <tt>+1 = 1</tt>
+    |@ref number|Gives the negative of its argument as a @ref number, ex: <tt>+1.1n = 1.1n</tt>
+    |@ref date|Gives the negative of its argument as a @ref date, ex: <tt>+1s = 1s</tt>
+    |@ref other|Returns 0
 
     This operator does not throw any exceptions
 

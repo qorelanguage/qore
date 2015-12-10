@@ -226,6 +226,7 @@
       - @ref Qore::DataLineIterator
       - @ref Qore::FileLineIterator
     - removed support for the C++ \c QDBI_METHOD_ABORT_TRANSACTION_START DBI method; transactions are always assumed to be in progress even if an exec call throws an exception in the first statement in a new transaction; this is necessary to handle bulk DML where a single statement can partially succeed and partially fail; the ABI remains unchanged; drivers that set this DBI method will no longer have it called because it's not necessary; in the upcoming API/ABI change this C++ DBI method will be removed entirely
+    - added suport for unary plus
 
     @subsection qore_0812_bug_fixes Bug Fixes in Qore
     - fixed format of octal constant - there was an error if a string contained octal constant that is shorter than 3 digit
