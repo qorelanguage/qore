@@ -1,0 +1,44 @@
+#!/usr/bin/env qr
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%no-child-restrictions
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class UnaryPlusMinusTest
+
+public class UnaryPlusMinusTest inherits QUnit::Test {
+
+    constructor() : Test("UnaryPlusMinusTest", "1.0") {
+        addTestCase("unaryPlus", \unaryPlus(), NOTHING);
+        addTestCase("unaryMinus", \unaryMinus(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    unaryPlus() {
+        assertEq(4, +4);
+        assertEq(4.3, +4.3);
+        assertEq(4.1234567890123456789n, +4.1234567890123456789n);
+        assertEq(1s, +1s);
+        assertEq(0, +"string");
+        assertEq(0, +False);
+        assertEq(0, +hash());
+        assertEq(0, +{});
+    }
+
+    unaryMinus() {
+        assertEq(0-4, -4);
+        assertEq(0-4.3, -4.3);
+        assertEq(0-4.1234567890123456789n, -4.1234567890123456789n);
+#        assertEq(0s-1s, -1s);  broken - see issue #243
+        assertEq(0, -"string");
+        assertEq(0, -False);
+        assertEq(0, -hash());
+        assertEq(0, -{});
+    }
+}

@@ -1202,6 +1202,98 @@ static qore_var_t get_var_type() {
    return parse_check_parse_option(PO_ASSUME_LOCAL) ? VT_LOCAL : VT_UNRESOLVED;
 }
 
+static AbstractQoreNode* processAssignment(AbstractQoreNode* $1, AbstractQoreNode* $3) {
+   if ($1 && $1->getType() == NT_LIST) {
+      return new QoreTreeNode($1, OP_LIST_ASSIGNMENT, $3);
+   }
+   else {
+      return new QoreAssignmentOperatorNode($1, $3);
+   }
+   //print_tree($1, 0);
+}
+
+static AbstractQoreNode* processCall(AbstractQoreNode* $1, AbstractQoreNode* $3) {
+    AbstractQoreNode* $$;
+   //printd(5, "1=%s (%p), 3=%s (%p)\n", $1->getTypeName(), $1, $3 ? $3->getTypeName() : "n/a", $3);
+   qore_type_t t = get_node_type($1);
+   if (t == NT_BAREWORD) {
+      BarewordNode* b = reinterpret_cast<BarewordNode*>($1);
+      // take string from node and delete node
+      char* str = b->takeString();
+      b->deref();
+      printd(5, "parsing call %s() args=%p %s\n", str, $3, $3 ? $3->getTypeName() : "n/a");
+      $$ = new FunctionCallNode(str, make_args($3));
+   }
+   else if (t == NT_CONSTANT) {
+      ScopedRefNode* c = reinterpret_cast<ScopedRefNode*>($1);
+      // take NamedScope from node and delete node
+      NamedScope *ns = c->takeName();
+      c->deref();
+      assert(ns->size() > 1);
+      printd(5, "parsing scoped call (static method, new object call, or program function call) %s()\n", ns->ostr);
+      $$ = new StaticMethodCallNode(ns, make_args($3));
+   }
+   else if (t == NT_SELF_VARREF) {
+      SelfVarrefNode* v = reinterpret_cast<SelfVarrefNode*>($1);
+      // take string from node and delete node
+      char* str = v->takeString();
+      v->deref();
+      printd(5, "parsing in-object method call %s()\n", str);
+      $$ = new SelfFunctionCallNode(str, make_args($3));
+   }
+   else {
+      QoreTreeNode* tree;
+
+      if (t == NT_TREE) {
+     tree = reinterpret_cast<QoreTreeNode*>($1);
+     if (!(tree->getOp() == OP_OBJECT_REF && tree->right && tree->right->getType() == NT_STRING))
+        tree = 0;
+      }
+      else
+     tree = 0;
+
+      if (tree) {
+     // create an object method call node
+     // take the string
+     QoreStringNode* str = reinterpret_cast<QoreStringNode*>(tree->right);
+     char* cstr = str->giveBuffer();
+     str->deref();
+
+     //printd(5, "method call to %s: tree=%s, args=%p %s\n", cstr, tree->left->getTypeName(), $3, $3 ? $3->getTypeName() : "n/a");
+
+     MethodCallNode* mc = new MethodCallNode(cstr, make_args($3));
+
+             // destroy the tree and create a new operator object
+             assert(tree->is_unique());
+             AbstractQoreNode* l = tree->left;
+             tree->right = 0;
+             tree->left = 0;
+             tree->deref(0);
+
+     $$ = new QoreDotEvalOperatorNode(l, mc);
+      }
+      else {
+     $$ = 0;
+     if ($1 && $1->getType() == NT_VARREF) {
+        VarRefNode* r = reinterpret_cast<VarRefNode*>($1);
+        qore_var_t vartype = r->getType();
+
+        if (vartype != VT_UNRESOLVED) {
+           $$ = r->makeNewCall($3);
+           //printd(5, "makeNewCall(%p) returned %p (%s)\n", $3, $$, get_type_name($$));
+           if (!$$)
+          parseException("INVALID-CODE-REFERENCE-CALL", "%s variable '%s' declared as a function reference call", r->getType() == VT_GLOBAL ? "global" : "local", r->getName());
+        }
+     }
+     if (!$$) {
+        $$ = new CallReferenceCallNode($1, make_args($3));
+        printd(5, "made new CallReferenceCallNode: %p exp=%p %s\n", $$, $1, get_type_name($1));
+     }
+      }
+   }
+   return $$;
+}
+
 %}
 
 %pure-parser
@@ -1422,6 +1514,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %right TOK_ELEMENTS TOK_KEYS
 %nonassoc TOK_SHIFT TOK_POP TOK_CHOMP TOK_TRIM
 %left NEG		      // unary minus, defined for precedence
+%left UPLUS           // unary plus, defined for precedence
 %right '~' '\\'               // binary not, reference operator
 %left '!'		      // logical not
 %right TOK_BACKGROUND TOK_DELETE TOK_REMOVE QORE_CAST
@@ -1436,11 +1529,14 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %type <statement>      return_statement
 %type <statement>      try_statement
 %type <node>           exp
+%type <node>           exp_n
+%type <node>           exp_c
 %type <node>           myexp
 %type <node>           scalar
 %type <hash>           hash
 %type <hash>           alt_hash
 %type <list>           list
+%type <list>           list_n
 %type <String>         string
 %type <hashelement>    hash_element
 %type <cmods>          context_mods
@@ -1529,6 +1625,7 @@ top_level_command:
 	         qore_program_private::addStatement(*(getProgram()), $1);
 	   }
 	}
+        | '{' '}'
         | '{' statements '}' {
 	   // set line range
 	   $2->loc.start_line = @1.first_line;
@@ -1748,7 +1845,8 @@ optname:
         ;
 
 statement:
-	exp ';' {
+    ';' { $$ = new StatementBlock(@1.first_line, @1.last_line); }
+    | exp_n ';' {
 	   // if the expression has no effect and it's not a variable declaration
 	   qore_type_t t = $1 ? $1->getType() : 0;
 	   bool ok = false;
@@ -2615,6 +2713,23 @@ list:
         }
         ;
 
+list_n:
+    exp_n ',' exp
+        { $$ = splice_expressions($1, $3); }
+        | exp_n ',' {
+       QoreListNode* l;
+       if ($1 && $1->getType() == NT_LIST)
+          l = reinterpret_cast<QoreListNode*>($1);
+       else {
+          l = new QoreListNode;
+          l->push($1);
+          // parse_error("problem in parsing ',' in list: left side of comma is not a list (type: '%s')", $1 ? $1->getTypeName() : "NOTHING");
+          // so we don't insert null values in the parse tree
+       }
+       $$ = l;
+        }
+        ;
+
 hash:
         hash_element {
 	   $$ = new QoreParseHashNode;
@@ -2640,16 +2755,12 @@ alt_hash:
            $$ = $2;
         }
 
-exp:    scalar
+exp_c:  scalar
         { $$ = $1; }
         | BINARY
         { $$ = $1; }
-        | list
-        { $$ = $1; }
-	| '(' hash ')'
-	{ $$ = $2; }
-	| alt_hash
-	{ $$ = $1; }
+        | '(' hash ')'
+        { $$ = $2; }
         | SCOPED_REF
         { $$ = new ScopedRefNode($1); }
         | qtypedef VAR_REF {
@@ -2773,55 +2884,10 @@ exp:    scalar
         { $$ = new ComplexContextrefNode($1); }
         | TOK_FIND exp TOK_IN exp TOK_WHERE '(' exp ')'
         { $$ = new FindNode($2, $4, $7); }
-	| exp PLUS_EQUALS exp {
-           $$ = new QorePlusEqualsOperatorNode($1, $3);
-	}
-        | exp MINUS_EQUALS exp {
-           $$ = new QoreMinusEqualsOperatorNode($1, $3);
-	}
-        | exp AND_EQUALS exp {
-           $$ = new QoreAndEqualsOperatorNode($1, $3);
-	}
-        | exp OR_EQUALS exp {
-           $$ = new QoreOrEqualsOperatorNode($1, $3);
-	}
-        | exp MODULA_EQUALS exp {
-           $$ = new QoreModulaEqualsOperatorNode($1, $3);
-	}
-        | exp MULTIPLY_EQUALS exp {
-           $$ = new QoreMultiplyEqualsOperatorNode($1, $3);
-	}
-        | exp DIVIDE_EQUALS exp {
-           $$ = new QoreDivideEqualsOperatorNode($1, $3);
-	}
-        | exp XOR_EQUALS exp {
-           $$ = new QoreXorEqualsOperatorNode($1, $3);
-	}
-        | exp SHIFT_LEFT_EQUALS exp {
-           $$ = new QoreShiftLeftEqualsOperatorNode($1, $3);
-	}
-        | exp SHIFT_RIGHT_EQUALS exp {
-           $$ = new QoreShiftRightEqualsOperatorNode($1, $3);
-	}
-	| exp '=' exp {
-	   if ($1 && $1->getType() == NT_LIST) {
-	      $$ = new QoreTreeNode($1, OP_LIST_ASSIGNMENT, $3);
-	   }
-	   else {
-	      $$ = new QoreAssignmentOperatorNode($1, $3);
-	   }
-	   //print_tree($1, 0);
-	}
         | TOK_EXISTS exp
         { $$ = new QoreTreeNode($2, OP_EXISTS, 0); }
         | TOK_ELEMENTS exp
         { $$ = new QoreTreeNode($2, OP_ELEMENTS, 0); }
-        | exp TOK_INSTANCEOF IDENTIFIER {
-	   $$ = new QoreTreeNode($1, OP_INSTANCEOF, new ClassRefNode($3));
-	}
-        | exp TOK_INSTANCEOF SCOPED_REF {
-	   $$ = new QoreTreeNode($1, OP_INSTANCEOF, new ClassRefNode($3));
-	}
         | TOK_KEYS exp
         { $$ = new QoreTreeNode($2, OP_KEYS, 0); }
         | TOK_UNSHIFT exp {  // unshift list, element
@@ -2965,108 +3031,12 @@ exp:    scalar
 	      $2->deref(0);
 	   }
 	}
-        | exp NULL_COALESCING exp {
-           $$ = new QoreNullCoalescingOperatorNode($1, $3);
-        }
-        | exp VALUE_COALESCING exp {
-           $$ = new QoreValueCoalescingOperatorNode($1, $3);
-        }
-        | exp '?' exp ':' exp
-        { //$$ = new QoreTreeNode($1, OP_QUESTION_MARK, make_list($3, $5));
-           $$ = new QoreQuestionMarkOperatorNode($1, $3, $5);
-        }
-
         | P_INCREMENT exp {  // pre-increment
            $$ = new QorePreIncrementOperatorNode($2);
-        }
-        | exp P_INCREMENT {  // post-increment
-           $$ = new QorePostIncrementOperatorNode($1);
         }
         | P_DECREMENT exp {  // pre-decrement
            $$ = new QorePreDecrementOperatorNode($2);
         }
-        | exp P_DECREMENT {   // post-decrement
-           $$ = new QorePostDecrementOperatorNode($1);
-        }
-	| exp '(' myexp ')' {
-	   //printd(5, "1=%s (%p), 3=%s (%p)\n", $1->getTypeName(), $1, $3 ? $3->getTypeName() : "n/a", $3);
-	   qore_type_t t = get_node_type($1);
-	   if (t == NT_BAREWORD) {
-	      BarewordNode* b = reinterpret_cast<BarewordNode*>($1);
-	      // take string from node and delete node
-	      char* str = b->takeString();
-	      b->deref();
-	      printd(5, "parsing call %s() args=%p %s\n", str, $3, $3 ? $3->getTypeName() : "n/a");
-	      $$ = new FunctionCallNode(str, make_args($3));
-	   }
-	   else if (t == NT_CONSTANT) {
-	      ScopedRefNode* c = reinterpret_cast<ScopedRefNode*>($1);
-	      // take NamedScope from node and delete node
-	      NamedScope *ns = c->takeName();
-	      c->deref();
-	      assert(ns->size() > 1);
-	      printd(5, "parsing scoped call (static method, new object call, or program function call) %s()\n", ns->ostr);
-	      $$ = new StaticMethodCallNode(ns, make_args($3));
-	   }
-	   else if (t == NT_SELF_VARREF) {
-	      SelfVarrefNode* v = reinterpret_cast<SelfVarrefNode*>($1);
-	      // take string from node and delete node
-	      char* str = v->takeString();
-	      v->deref();
-	      printd(5, "parsing in-object method call %s()\n", str);
-	      $$ = new SelfFunctionCallNode(str, make_args($3));
-	   }
-	   else {
-	      QoreTreeNode* tree;
-
-	      if (t == NT_TREE) {
-		 tree = reinterpret_cast<QoreTreeNode*>($1);
-		 if (!(tree->getOp() == OP_OBJECT_REF && tree->right && tree->right->getType() == NT_STRING))
-		    tree = 0;
-	      }
-	      else
-		 tree = 0;
-
-	      if (tree) {
-		 // create an object method call node
-		 // take the string
-		 QoreStringNode* str = reinterpret_cast<QoreStringNode*>(tree->right);
-		 char* cstr = str->giveBuffer();
-		 str->deref();
-
-		 //printd(5, "method call to %s: tree=%s, args=%p %s\n", cstr, tree->left->getTypeName(), $3, $3 ? $3->getTypeName() : "n/a");
-
-		 MethodCallNode* mc = new MethodCallNode(cstr, make_args($3));
-
-                 // destroy the tree and create a new operator object
-                 assert(tree->is_unique());
-                 AbstractQoreNode* l = tree->left;
-                 tree->right = 0;
-                 tree->left = 0;
-                 tree->deref(0);
-
-		 $$ = new QoreDotEvalOperatorNode(l, mc);
-	      }
-	      else {
-		 $$ = 0;
-		 if ($1 && $1->getType() == NT_VARREF) {
-		    VarRefNode* r = reinterpret_cast<VarRefNode*>($1);
-		    qore_var_t vartype = r->getType();
-
-		    if (vartype != VT_UNRESOLVED) {
-		       $$ = r->makeNewCall($3);
-		       //printd(5, "makeNewCall(%p) returned %p (%s)\n", $3, $$, get_type_name($$));
-		       if (!$$)
-			  parseException("INVALID-CODE-REFERENCE-CALL", "%s variable '%s' declared as a function reference call", r->getType() == VT_GLOBAL ? "global" : "local", r->getName());
-		    }
-		 }
-		 if (!$$) {
-		    $$ = new CallReferenceCallNode($1, make_args($3));
-		    printd(5, "made new CallReferenceCallNode: %p exp=%p %s\n", $$, $1, get_type_name($1));
-		 }
-	      }
-	   }
-	}
         | BASE_CLASS_CALL '(' myexp ')' {
 	   printd(5, "parsing in-object base class method call %s()\n", $1->ostr);
 	   if (!strcmp($1->getIdentifier(), "copy"))
@@ -3084,48 +3054,16 @@ exp:    scalar
 	   if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
 	      parse_error("reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $1);
 	}
-        | exp LOGICAL_AND exp	     { $$ = new QoreTreeNode($1, OP_LOG_AND, $3); }
-        | exp LOGICAL_OR exp	     { $$ = new QoreTreeNode($1, OP_LOG_OR, $3); }
-        | exp '|' exp		     { $$ = new QoreTreeNode($1, OP_BIN_OR, $3); }
-        | exp '&' exp		     { $$ = new QoreTreeNode($1, OP_BIN_AND, $3); }
-        | exp '^' exp		     { $$ = new QoreTreeNode($1, OP_BIN_XOR, $3); }
-        | exp REGEX_MATCH REGEX {
-	   $$ = new QoreTreeNode($1, OP_REGEX_MATCH, $3);
-	}
-        | exp REGEX_NMATCH REGEX {
-	   $$ = new QoreTreeNode($1, OP_REGEX_NMATCH, $3);
-	}
-        | exp REGEX_MATCH REGEX_SUBST {
-	   //printf("REGEX_SUBST: '%s'\n", $3->getPattern()->getBuffer());
-	   $$ = new QoreTreeNode($1, OP_REGEX_SUBST, $3);
-	}
-        | exp REGEX_MATCH REGEX_TRANS {
-	   $$ = new QoreTreeNode($1, OP_REGEX_TRANS, $3);
-	}
-        | exp REGEX_MATCH REGEX_EXTRACT
-        { $$ = new QoreTreeNode($1, OP_REGEX_EXTRACT, $3); }
-        | exp '>' exp		     { $$ = new QoreLogicalGreaterThanOperatorNode($1, $3); }
-        | exp '<' exp                { $$ = new QoreLogicalLessThanOperatorNode($1, $3); }
-        | exp LOGICAL_CMP exp	     { $$ = new QoreTreeNode($1, OP_LOG_CMP, $3); }
-        | exp LOGICAL_EQ exp	     { $$ = new QoreLogicalEqualsOperatorNode($1, $3); }
-        | exp ABSOLUTE_EQ exp        { $$ = new QoreTreeNode($1, OP_ABSOLUTE_EQ, $3); }
-        | exp ABSOLUTE_NE exp        { $$ = new QoreTreeNode($1, OP_ABSOLUTE_NE, $3); }
-        | exp LOGICAL_NE exp	     { $$ = new QoreLogicalNotEqualsOperatorNode($1, $3); }
-        | exp LOGICAL_LE exp	     { $$ = new QoreLogicalLessThanOrEqualsOperatorNode($1, $3); }
-        | exp LOGICAL_GE exp	     { $$ = new QoreLogicalGreaterThanOrEqualsOperatorNode($1, $3); }
-        | exp SHIFT_LEFT exp	     { $$ = new QoreTreeNode($1, OP_SHIFT_LEFT, $3); }
-        | exp SHIFT_RIGHT exp	     { $$ = new QoreTreeNode($1, OP_SHIFT_RIGHT, $3); }
-        | exp '+' exp		     { $$ = new QoreTreeNode($1, OP_PLUS, $3); }
-        | exp '-' exp		     { $$ = new QoreTreeNode($1, OP_MINUS, $3); }
-        | exp '%' exp		     { $$ = new QoreModulaOperatorNode($1, $3); }
-        | exp '/' exp		     { $$ = new QoreDivisionOperatorNode($1, $3); }
-        | exp '*' exp		     { $$ = new QoreTreeNode($1, OP_MULT, $3); }
         | '-' exp %prec NEG	     {
 	   // FIXME: need to expand constant expression checking to determine
 	   //        if the expression can throw an exception at run-time
 	   // first check for constant expressions
 	   $$ = QoreUnaryMinusOperatorNode::makeNode($2);
 	}
+        | '+' exp %prec UPLUS
+        {
+            $$ = QoreUnaryMinusOperatorNode::makeNode(QoreUnaryMinusOperatorNode::makeNode($2));
+        }
         | '~' exp		     { $$ = new QoreTreeNode($2, OP_BIN_NOT, 0); }
         | '!' exp                    { $$ = new QoreLogicalNotOperatorNode($2); }
         | '\\' exp {
@@ -3181,14 +3119,6 @@ exp:    scalar
 	   if (parse_check_parse_option(PO_NO_EXTERNAL_PROCESS))
 	      parse_error("illegal use of backquote operator (conflicts with parse option NO_EXTERNAL_PROCESS)");
 	}
-        | exp '[' exp ']'            { $$ = new QoreTreeNode($1, OP_LIST_REF, $3); }
-        | exp '{' exp '}'            { $$ = new QoreTreeNode($1, OP_OBJECT_REF, $3); }
-        | exp '.' exp {
-	   $$ = process_dot($1, $3);
-	}
-        | exp DOT_KW_IDENTIFIER {
-	   $$ = new QoreTreeNode($1, OP_OBJECT_REF, $2);
-	}
 	| '(' exp ')' {
 	   $$ = $2;
 	   if ($2) {
@@ -3203,7 +3133,6 @@ exp:    scalar
            }
 	}
         | '(' ')' { QoreListNode* l = new QoreListNode; l->setFinalized(); $$ = l; }
-        | '{' '}' { $$ = new QoreHashNode; }
         | TOK_SUB '(' myexp ')' return_value block {
 	   int ar = get_pop_argv_ref();
 	   $$ = new QoreClosureParseNode(new UserClosureFunction($6, @3.first_line, @3.last_line, $3, $5, false, ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS));
@@ -3252,6 +3181,116 @@ exp:    scalar
            $$ = new QoreCastOperatorNode($1, $3);
 	}
 	;
+
+exp
+    : exp_c
+    | list                              { $$ = $1; }
+    | alt_hash                          { $$ = $1; }
+    | '{' '}'                           { $$ = new QoreHashNode; }
+    | exp PLUS_EQUALS exp               { $$ = new QorePlusEqualsOperatorNode($1, $3); }
+    | exp MINUS_EQUALS exp              { $$ = new QoreMinusEqualsOperatorNode($1, $3); }
+    | exp AND_EQUALS exp                { $$ = new QoreAndEqualsOperatorNode($1, $3); }
+    | exp OR_EQUALS exp                 { $$ = new QoreOrEqualsOperatorNode($1, $3); }
+    | exp MODULA_EQUALS exp             { $$ = new QoreModulaEqualsOperatorNode($1, $3); }
+    | exp MULTIPLY_EQUALS exp           { $$ = new QoreMultiplyEqualsOperatorNode($1, $3); }
+    | exp DIVIDE_EQUALS exp             { $$ = new QoreDivideEqualsOperatorNode($1, $3); }
+    | exp XOR_EQUALS exp                { $$ = new QoreXorEqualsOperatorNode($1, $3); }
+    | exp SHIFT_LEFT_EQUALS exp         { $$ = new QoreShiftLeftEqualsOperatorNode($1, $3); }
+    | exp SHIFT_RIGHT_EQUALS exp        { $$ = new QoreShiftRightEqualsOperatorNode($1, $3); }
+    | exp '=' exp                       { $$ = processAssignment($1, $3); }
+    | exp TOK_INSTANCEOF IDENTIFIER     { $$ = new QoreTreeNode($1, OP_INSTANCEOF, new ClassRefNode($3)); }
+    | exp TOK_INSTANCEOF SCOPED_REF     { $$ = new QoreTreeNode($1, OP_INSTANCEOF, new ClassRefNode($3)); }
+    | exp NULL_COALESCING exp           { $$ = new QoreNullCoalescingOperatorNode($1, $3); }
+    | exp VALUE_COALESCING exp          { $$ = new QoreValueCoalescingOperatorNode($1, $3); }
+    | exp '?' exp ':' exp               { $$ = new QoreQuestionMarkOperatorNode($1, $3, $5); }
+    | exp P_INCREMENT                   { $$ = new QorePostIncrementOperatorNode($1); } // post-increment
+    | exp P_DECREMENT                   { $$ = new QorePostDecrementOperatorNode($1); } // post-decrement
+    | exp '(' myexp ')'                 { $$ = processCall($1, $3); }
+    | exp LOGICAL_AND exp               { $$ = new QoreTreeNode($1, OP_LOG_AND, $3); }
+    | exp LOGICAL_OR exp                { $$ = new QoreTreeNode($1, OP_LOG_OR, $3); }
+    | exp '|' exp                       { $$ = new QoreTreeNode($1, OP_BIN_OR, $3); }
+    | exp '&' exp                       { $$ = new QoreTreeNode($1, OP_BIN_AND, $3); }
+    | exp '^' exp                       { $$ = new QoreTreeNode($1, OP_BIN_XOR, $3); }
+    | exp REGEX_MATCH REGEX             { $$ = new QoreTreeNode($1, OP_REGEX_MATCH, $3); }
+    | exp REGEX_NMATCH REGEX            { $$ = new QoreTreeNode($1, OP_REGEX_NMATCH, $3); }
+    | exp REGEX_MATCH REGEX_SUBST       { $$ = new QoreTreeNode($1, OP_REGEX_SUBST, $3); }
+    | exp REGEX_MATCH REGEX_TRANS       { $$ = new QoreTreeNode($1, OP_REGEX_TRANS, $3); }
+    | exp REGEX_MATCH REGEX_EXTRACT     { $$ = new QoreTreeNode($1, OP_REGEX_EXTRACT, $3); }
+    | exp '>' exp                       { $$ = new QoreLogicalGreaterThanOperatorNode($1, $3); }
+    | exp '<' exp                       { $$ = new QoreLogicalLessThanOperatorNode($1, $3); }
+    | exp LOGICAL_CMP exp               { $$ = new QoreTreeNode($1, OP_LOG_CMP, $3); }
+    | exp LOGICAL_EQ exp                { $$ = new QoreLogicalEqualsOperatorNode($1, $3); }
+    | exp ABSOLUTE_EQ exp               { $$ = new QoreTreeNode($1, OP_ABSOLUTE_EQ, $3); }
+    | exp ABSOLUTE_NE exp               { $$ = new QoreTreeNode($1, OP_ABSOLUTE_NE, $3); }
+    | exp LOGICAL_NE exp                { $$ = new QoreLogicalNotEqualsOperatorNode($1, $3); }
+    | exp LOGICAL_LE exp                { $$ = new QoreLogicalLessThanOrEqualsOperatorNode($1, $3); }
+    | exp LOGICAL_GE exp                { $$ = new QoreLogicalGreaterThanOrEqualsOperatorNode($1, $3); }
+    | exp SHIFT_LEFT exp                { $$ = new QoreTreeNode($1, OP_SHIFT_LEFT, $3); }
+    | exp SHIFT_RIGHT exp               { $$ = new QoreTreeNode($1, OP_SHIFT_RIGHT, $3); }
+    | exp '+' exp                       { $$ = new QoreTreeNode($1, OP_PLUS, $3); }
+    | exp '-' exp                       { $$ = new QoreTreeNode($1, OP_MINUS, $3); }
+    | exp '%' exp                       { $$ = new QoreModulaOperatorNode($1, $3); }
+    | exp '/' exp                       { $$ = new QoreDivisionOperatorNode($1, $3); }
+    | exp '*' exp                       { $$ = new QoreTreeNode($1, OP_MULT, $3); }
+    | exp '[' exp ']'                   { $$ = new QoreTreeNode($1, OP_LIST_REF, $3); }
+    | exp '{' exp '}'                   { $$ = new QoreTreeNode($1, OP_OBJECT_REF, $3); }
+    | exp '.' exp                       { $$ = process_dot($1, $3); }
+    | exp DOT_KW_IDENTIFIER             { $$ = new QoreTreeNode($1, OP_OBJECT_REF, $2); }
+    ;
+
+exp_n
+    : exp_c
+    | list_n                            { $$ = $1; }
+    | exp_n PLUS_EQUALS exp             { $$ = new QorePlusEqualsOperatorNode($1, $3); }
+    | exp_n MINUS_EQUALS exp            { $$ = new QoreMinusEqualsOperatorNode($1, $3); }
+    | exp_n AND_EQUALS exp              { $$ = new QoreAndEqualsOperatorNode($1, $3); }
+    | exp_n OR_EQUALS exp               { $$ = new QoreOrEqualsOperatorNode($1, $3); }
+    | exp_n MODULA_EQUALS exp           { $$ = new QoreModulaEqualsOperatorNode($1, $3); }
+    | exp_n MULTIPLY_EQUALS exp         { $$ = new QoreMultiplyEqualsOperatorNode($1, $3); }
+    | exp_n DIVIDE_EQUALS exp           { $$ = new QoreDivideEqualsOperatorNode($1, $3); }
+    | exp_n XOR_EQUALS exp              { $$ = new QoreXorEqualsOperatorNode($1, $3); }
+    | exp_n SHIFT_LEFT_EQUALS exp       { $$ = new QoreShiftLeftEqualsOperatorNode($1, $3); }
+    | exp_n SHIFT_RIGHT_EQUALS exp      { $$ = new QoreShiftRightEqualsOperatorNode($1, $3); }
+    | exp_n '=' exp                     { $$ = processAssignment($1, $3); }
+    | exp_n TOK_INSTANCEOF IDENTIFIER   { $$ = new QoreTreeNode($1, OP_INSTANCEOF, new ClassRefNode($3)); }
+    | exp_n TOK_INSTANCEOF SCOPED_REF   { $$ = new QoreTreeNode($1, OP_INSTANCEOF, new ClassRefNode($3)); }
+    | exp_n NULL_COALESCING exp         { $$ = new QoreNullCoalescingOperatorNode($1, $3); }
+    | exp_n VALUE_COALESCING exp        { $$ = new QoreValueCoalescingOperatorNode($1, $3); }
+    | exp_n '?' exp ':' exp             { $$ = new QoreQuestionMarkOperatorNode($1, $3, $5); }
+    | exp_n P_INCREMENT                 { $$ = new QorePostIncrementOperatorNode($1); } // post-increment
+    | exp_n P_DECREMENT                 { $$ = new QorePostDecrementOperatorNode($1); } // post-decrement
+    | exp_n '(' myexp ')'               { $$ = processCall($1, $3); }
+    | exp_n LOGICAL_AND exp             { $$ = new QoreTreeNode($1, OP_LOG_AND, $3); }
+    | exp_n LOGICAL_OR exp              { $$ = new QoreTreeNode($1, OP_LOG_OR, $3); }
+    | exp_n '|' exp                     { $$ = new QoreTreeNode($1, OP_BIN_OR, $3); }
+    | exp_n '&' exp                     { $$ = new QoreTreeNode($1, OP_BIN_AND, $3); }
+    | exp_n '^' exp                     { $$ = new QoreTreeNode($1, OP_BIN_XOR, $3); }
+    | exp_n REGEX_MATCH REGEX           { $$ = new QoreTreeNode($1, OP_REGEX_MATCH, $3); }
+    | exp_n REGEX_NMATCH REGEX          { $$ = new QoreTreeNode($1, OP_REGEX_NMATCH, $3); }
+    | exp_n REGEX_MATCH REGEX_SUBST     { $$ = new QoreTreeNode($1, OP_REGEX_SUBST, $3); }
+    | exp_n REGEX_MATCH REGEX_TRANS     { $$ = new QoreTreeNode($1, OP_REGEX_TRANS, $3); }
+    | exp_n REGEX_MATCH REGEX_EXTRACT   { $$ = new QoreTreeNode($1, OP_REGEX_EXTRACT, $3); }
+    | exp_n '>' exp                     { $$ = new QoreLogicalGreaterThanOperatorNode($1, $3); }
+    | exp_n '<' exp                     { $$ = new QoreLogicalLessThanOperatorNode($1, $3); }
+    | exp_n LOGICAL_CMP exp             { $$ = new QoreTreeNode($1, OP_LOG_CMP, $3); }
+    | exp_n LOGICAL_EQ exp              { $$ = new QoreLogicalEqualsOperatorNode($1, $3); }
+    | exp_n ABSOLUTE_EQ exp             { $$ = new QoreTreeNode($1, OP_ABSOLUTE_EQ, $3); }
+    | exp_n ABSOLUTE_NE exp             { $$ = new QoreTreeNode($1, OP_ABSOLUTE_NE, $3); }
+    | exp_n LOGICAL_NE exp              { $$ = new QoreLogicalNotEqualsOperatorNode($1, $3); }
+    | exp_n LOGICAL_LE exp              { $$ = new QoreLogicalLessThanOrEqualsOperatorNode($1, $3); }
+    | exp_n LOGICAL_GE exp              { $$ = new QoreLogicalGreaterThanOrEqualsOperatorNode($1, $3); }
+    | exp_n SHIFT_LEFT exp              { $$ = new QoreTreeNode($1, OP_SHIFT_LEFT, $3); }
+    | exp_n SHIFT_RIGHT exp             { $$ = new QoreTreeNode($1, OP_SHIFT_RIGHT, $3); }
+    | exp_n '+' exp                     { $$ = new QoreTreeNode($1, OP_PLUS, $3); }
+    | exp_n '-' exp                     { $$ = new QoreTreeNode($1, OP_MINUS, $3); }
+    | exp_n '%' exp                     { $$ = new QoreModulaOperatorNode($1, $3); }
+    | exp_n '/' exp                     { $$ = new QoreDivisionOperatorNode($1, $3); }
+    | exp_n '*' exp                     { $$ = new QoreTreeNode($1, OP_MULT, $3); }
+    | exp_n '[' exp ']'                 { $$ = new QoreTreeNode($1, OP_LIST_REF, $3); }
+    | exp_n '{' exp '}'                 { $$ = new QoreTreeNode($1, OP_OBJECT_REF, $3); }
+    | exp_n '.' exp                     { $$ = process_dot($1, $3); }
+    | exp_n DOT_KW_IDENTIFIER           { $$ = new QoreTreeNode($1, OP_OBJECT_REF, $2); }
+    ;
 
 string:
         QUOTED_WORD {
