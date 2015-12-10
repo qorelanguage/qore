@@ -1,7 +1,7 @@
 " Vim syntax file for Qore * mato [25-oct-2015]
 " Language:	Qore
 " Maintainer:	Martin Otto <martin@qore.org>
-" Last Change:	2015 Nov 30
+" Last Change:	2015 Dec 10
 
 if version < 600
   syntax clear
@@ -100,6 +100,7 @@ syn match qoreParseConditional	"^%ifdef\>"
 syn match qoreParseConditional	"^%ifndef\>"
 
 syn match qoreParseInclude "^%include\>"
+syn match qoreParseInclude "^%module-cmd\>"
 syn match qoreParseInclude "^%requires\>"
 syn match qoreParseInclude "^%try-module\>"
 
