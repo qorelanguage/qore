@@ -17,7 +17,7 @@ if [ $# -eq 0 ]; then
     TEST_OUTPUT_FORMAT=""
 elif [ $# -eq 1 ]; then
     if [ "$1" = "-v" ]; then
-        TEST_OUTPUT_FORMAT="--format=plain"
+        TEST_OUTPUT_FORMAT="-v"
     elif [ "$1" = "-j" ]; then
         TEST_OUTPUT_FORMAT="--format=junit"
         PRINT_TEXT=0

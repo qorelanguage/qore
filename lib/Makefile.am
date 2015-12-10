@@ -161,6 +161,7 @@ libqore_la_SOURCES = \
 	charset.cpp \
 	unicode-charmaps.cpp \
 	QoreProgram.cpp \
+	QoreProgramHelper.cpp \
 	QoreNamespace.cpp \
 	QoreNet.cpp \
 	QoreURL.cpp \

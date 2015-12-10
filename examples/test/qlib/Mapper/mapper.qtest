@@ -34,7 +34,7 @@ public class MapperTest inherits QUnit::Test {
             "sr0.sr1.^attributes^.type": ("name": "Type", "code": *string sub (*string v, hash rec) { return v ? v.lwr() : NOTHING;}, "default": "unknown"),
             "sr0.sr1.key1": ("constant": "key1"),
             "sr0.store_name": "StoreInfo.StoreName",
-            "runtimetest" : ("constant" : 1),
+            "runtimetest" : ("runtime" : "runtimetest"),
         );
 
         const MapInput = ((
@@ -124,7 +124,10 @@ public class MapperTest inherits QUnit::Test {
     }
 
     setUp() {
-        m_map = new Mapper(DataMap);
+        hash opts = (
+            "runtime" : ( "runtimetest" : 1 ),
+        );
+        m_map = new Mapper(DataMap, opts);
     }
 
 
@@ -141,10 +144,11 @@ public class MapperTest inherits QUnit::Test {
     }
 
     testMapperRuntime() {
+
         ListIterator it(MapInput);
         int ix = 0;
         while (it.next()) {
-            m_map.addConstantMapping(("runtimetest": ix));
+            m_map.setRuntime("runtimetest", ix);
             hash rec = m_map.mapData(it.getValue());
             hash orig = MapOutput[ix] + ("runtimetest" : ix);
             testAssertion(sprintf("runtime item: %d", ix), \equals(), (rec, orig));
