@@ -1,0 +1,28 @@
+#!/usr/bin/env qr
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%no-child-restrictions
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class UnderscoresTest
+
+public class UnderscoresTest inherits QUnit::Test {
+
+    constructor() : Test("UnderscoresTest", "1.0") {
+        addTestCase("undersores in identifiers ", \underscores(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    underscores() {
+        int _ = 1;
+        string _a_a_ = "a";
+        assertEq(1, _);
+        assertEq("a", _a_a_);
+    }
+}
