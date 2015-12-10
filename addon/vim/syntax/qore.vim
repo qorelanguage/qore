@@ -245,6 +245,10 @@ syn match qoreStringEscape '\\\(\\\|[bfnrt"]\|\o\{1,3}\)' contained display
 syn region qoreString start='"' skip='\\"' end='"' contains=qoreStringEscape,@Spell
 syn region qoreString start="'" end="'"
 
+syn match qoreRegexp "[mx]\?/.\{-}\\\@<!/[imsx]*"
+syn match qoreRegexp "s/.\{-}\\\@<!/.\{-}\\\@<!/[gimsx]*"
+syn match qoreRegexp "tr/.\{-}\\\@<!/.\{-}\\\@<!/"
+
 syn keyword qoreTodo TODO NOTE XXX FIXME DEBUG contained
 
 syn match qoreComment "#.*" contains=qoreTodo,qoreSpaceError,@Spell
@@ -270,6 +274,7 @@ if version >= 508 || !exists("did_qore_syn_inits")
   HiLink qoreConstant		Constant
   HiLink qoreBoolean		Boolean
   HiLink qoreDateTime		Constant
+  HiLink qoreRegexp		Constant
   HiLink qoreString		String
   HiLink qoreStringEscape	SpecialChar
 
