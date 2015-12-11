@@ -188,15 +188,8 @@ DateTimeNode* DateTimeNode::subtractBy(const DateTime& dt) const {
    if (!dt.hasValue())
       return refSelf();
 
-   DateTimeNode* rv;
-   if (isRelative()) {
-      rv = new DateTimeNode(dt);
-      rv->priv->subtractBy(*priv);
-   }
-   else {
-      rv = new DateTimeNode(*this);
-      rv->priv->subtractBy(*dt.priv);
-   }
+   DateTimeNode* rv = new DateTimeNode(*this);
+   rv->priv->subtractBy(*dt.priv);
    return rv;
 }
 

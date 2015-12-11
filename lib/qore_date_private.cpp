@@ -501,6 +501,15 @@ qore_relative_time &qore_relative_time::operator-=(const qore_relative_time &dt)
    return *this;
 }
 
+qore_relative_time &qore_relative_time::operator-=(const qore_absolute_time &dt) {
+   second -= dt.epoch;
+   us -= dt.us;
+
+   normalize();
+
+   return *this;
+}
+
 void qore_relative_time::set(const QoreValue v) {
    switch (v.type) {
       case QV_Bool: {
