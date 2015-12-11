@@ -388,7 +388,7 @@ static int64 op_multiply_bigint(int64 left, int64 right) {
 }
 
 static DateTimeNode* op_minus_date(const DateTimeNode* left, const DateTimeNode* right) {
-    return left->subtractBy(right);
+   return left->subtractBy(right);
 }
 
 static DateTimeNode* op_plus_date(const DateTimeNode* left, const DateTimeNode* right) {

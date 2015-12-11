@@ -19,6 +19,7 @@
     - new \c qr binary that assumes @ref new-style "%new-style" with %Qore code to make it easier to write programs in @ref new-style "%new-style"
     - Added the @ref value_coalescing_operator which checks first argument if it evaluates to @ref Qore::False "False" with @ref <value>::val() and if so assigns the second argument. The operator can be further chained; for example: @code{.py} expr1 ?* expr2 ?* expr3 @endcode
     - Added the @ref null_coalescing_operator which checks the first operand for @ref nothing or @ref null; if true returns the second argument. The operator can be further chained, in which case the first operand with a value is returned; ex: @code{.py} expr1 ?? expr2 ?? expr3 @endcode
+    - %Qore identifiers can now begin with an underscore character \c "_"; the following is now a valid (with @ref new-style "%new-style"): @code{.py}int _var = 1;@endcode
     - <a href="../../modules/FixedLengthUtil/html/index.html">FixedLengthUtil</a> module for handling fixed length line data added
     - <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a> module split from the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module containing supporting definitions for handler classes and other code interfacing with the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module; also:
       - added the PermissiveAuthenticator class
@@ -27,7 +28,7 @@
       - new syntax for an expression giving an empty hash: <tt>{}</tt>; for example: @code{.py} hash h = {};@endcode
       - new literal hash support: hashes can now be given as literal values as follows: @code{.py} (<key_expr>: <val_expr>, [...]) @endcode For example: @code{.py} return (get_key(): get_value()); @endcode in the past the keys in literal hashes had to be either a string or a constant; now any valid %Qore expression can be used to generate the hash keys at runtime
       - new hash syntax; hash elements can now be enclosed by curly brackets as well as regular parentheses; the version with curly brackets when used with the @ref hmap "map" operator results in the hash version of the map operator being used
-      - Added new @ref hmap "hash version of the map" operator to build a hash from a list or iterator expression; ex: @code{.py} hash h = map {$1, h2.$1}, $i; @endcode
+      - Added new @ref hmap "hash version of the map" operator to build a hash from a list or iterator expression; ex: @code{.py} hash h = map {$1, h2.$1}, i; @endcode
     - implemented support for loading user modules in a pre-defined @ref Qore::Program "Program" object (that can have a custom API) in the following new functions and methods:
       - @ref Qore::load_user_module_with_program() "load_user_module_with_program()"
       - @ref Qore::Program::loadApplyToPrivateUserModule() "Program::loadApplyToPrivateUserModule()"
@@ -369,6 +370,8 @@
     - fixed a bug where imported global variables (@ref Qore::Program::importGlobalVariable()) were added to the pending global variable list and therefore were removed if a parse exception occurred, hwoever the namespace indexes remained, which could lead to unexpected problems at runtime including a crash.  Additionally the pending global variable list was not checked which could lead to a memory leak if the a single global variable name is pending, imported, and then committed to the @ref Qore::Program "Program" object.
     - fixed memory errors managing program feature lists in the CharPtrList class by copying string memory instead of using sometimes temporary values in the list
     - fixed minor bugs with directive parsing, mostly related to error reporting
+    - fixed bugs in relative date arithmetic where operands were swapped with the @ref minus_operator "- operator" if the first operand was a @ref relative_dates "relative date/time value", additionally an operation with the @ref minus_operator "- operator" where the first operand is a @ref relative_dates "relative date" and the second operand is a @ref absolute_dates "absolute date" is now calculated using the @ref absolute_dates "absolute date"'s epoch offset (offset in seconds and microseconds from \c 1970-01-01Z), and a @ref relative_dates "relative date/time value" is produced
+    - fixed a bug normalizing the result of date arithmetic between hour and minute components of @ref relative_dates "relative date/time value"
 
     @section qore_0811 Qore 0.8.11
 
