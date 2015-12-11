@@ -784,7 +784,10 @@ protected:
       // no longer normalize days, as with DST not all days are 24 hours
 
       // normalize hours from seconds
-      normalize_units<int, int>(hour, second, 3600);
+      //normalize_units<int, int>(hour, second, 3600);
+
+      // normalize hours from minutes
+      normalize_units<int, int>(hour, minute, 60);
 
       // normalize minutes from seconds
       normalize_units<int, int>(minute, second, 60);
@@ -953,6 +956,7 @@ public:
 
    DLLLOCAL qore_relative_time& operator+=(const qore_relative_time& dt);
    DLLLOCAL qore_relative_time& operator-=(const qore_relative_time& dt);
+   DLLLOCAL qore_relative_time& operator-=(const qore_absolute_time& dt);
 
    DLLLOCAL void getAsString(QoreString& str) const {
       int f = 0;
@@ -1237,8 +1241,10 @@ public:
          return;
       }
 
-      assert(dt.relative);
-      d.rel -= dt.d.rel;
+      if (dt.relative)
+         d.rel -= dt.d.rel;
+      else
+         d.rel -= dt.d.abs;
    }
 
    DLLLOCAL void addSecondsTo(int64 secs, int us) {

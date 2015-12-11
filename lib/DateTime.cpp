@@ -297,15 +297,8 @@ DateTime* DateTime::subtractBy(const DateTime* dt) const {
 }
 
 DateTime* DateTime::subtractBy(const DateTime& dt) const {
-   DateTime* rv;
-   if (isRelative()) {
-      rv = new DateTime(dt);
-      rv->priv->subtractBy(*priv);
-   }
-   else {
-      rv = new DateTime(*this);
-      rv->priv->subtractBy(*dt.priv);
-   }
+   DateTime* rv = new DateTime(*this);
+   rv->priv->subtractBy(*dt.priv);
    return rv;
 }
 
