@@ -236,15 +236,15 @@ libqore_la_SOURCES = \
 	QoreIntPlusEqualsOperatorNode.cpp \
 	QoreMinusEqualsOperatorNode.cpp \
 	QoreIntMinusEqualsOperatorNode.cpp \
-    QoreOrEqualsOperatorNode.cpp \
-    QoreAndEqualsOperatorNode.cpp \
-    QoreModulaEqualsOperatorNode.cpp \
-    QoreMultiplyEqualsOperatorNode.cpp \
-    QoreDivideEqualsOperatorNode.cpp \
-    QoreDivisionOperatorNode.cpp \
-    QoreXorEqualsOperatorNode.cpp \
-    QoreShiftLeftEqualsOperatorNode.cpp \
-    QoreShiftRightEqualsOperatorNode.cpp \
+	QoreOrEqualsOperatorNode.cpp \
+	QoreAndEqualsOperatorNode.cpp \
+	QoreModulaEqualsOperatorNode.cpp \
+	QoreMultiplyEqualsOperatorNode.cpp \
+	QoreDivideEqualsOperatorNode.cpp \
+	QoreDivisionOperatorNode.cpp \
+	QoreXorEqualsOperatorNode.cpp \
+	QoreShiftLeftEqualsOperatorNode.cpp \
+	QoreShiftRightEqualsOperatorNode.cpp \
 	QorePostIncrementOperatorNode.cpp \
 	QorePostDecrementOperatorNode.cpp \
 	QorePreIncrementOperatorNode.cpp \
