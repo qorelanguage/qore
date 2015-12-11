@@ -912,11 +912,11 @@ while (i.next()) {
 
             @throw CSV<errname>ITER-ERROR in the case of incorrect options
          */
-        constructor(string errname, *hash opts) {
-            errname = sprintf("CSV%sWRITER-ERROR", errname);
+        constructor(string n_errname, *hash n_opts) {
+            errname = sprintf("CSV%sWRITER-ERROR", n_errname);
 
             # TODO/FIXME: shared with CsvFileIterator?
-            foreach hash i in (opts.pairIterator()) {
+            foreach hash i in (n_opts.pairIterator()) {
 
                 if (!exists Options.(i.key))
                     throw errname, sprintf("unknown option %y passed to CsvFileIterator::constructor() (valid options: %y)", i.key, Options.keys());
