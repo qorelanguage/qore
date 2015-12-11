@@ -908,8 +908,8 @@ while (i.next()) {
 
         #! creates the AbstractCsvWriter
         /**
-            @param errname a string to construct child class error message. For example: value 'FOO' will result in exception names 'CSVFOOWRITER-ERROR'
-            @param opts @ref csvwiter_options
+            @param n_errname a string to construct child class error message. For example: value 'FOO' will result in exception names 'CSVFOOWRITER-ERROR'
+            @param n_opts @ref csvwiter_options
 
             @throw CSV<errname>ITER-ERROR in the case of incorrect options
          */
@@ -917,8 +917,8 @@ while (i.next()) {
             errname = sprintf("CSV%sWRITER-ERROR", n_errname);
 
             # set headers automatically from field names if not set
-            if (opts.fields && !opts.headers)
-                opts.headers = opts.fields.keys();
+            if (n_opts.fields && !n_opts.headers)
+                n_opts.headers = n_opts.fields.keys();
 
             # TODO/FIXME: shared with CsvFileIterator?
             foreach hash i in (n_opts.pairIterator()) {
