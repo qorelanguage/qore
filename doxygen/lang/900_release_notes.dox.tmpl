@@ -19,6 +19,7 @@
     - new \c qr binary that assumes @ref new-style "%new-style" with %Qore code to make it easier to write programs in @ref new-style "%new-style"
     - Added the @ref value_coalescing_operator which checks first argument if it evaluates to @ref Qore::False "False" with @ref <value>::val() and if so assigns the second argument. The operator can be further chained; for example: @code{.py} expr1 ?* expr2 ?* expr3 @endcode
     - Added the @ref null_coalescing_operator which checks the first operand for @ref nothing or @ref null; if true returns the second argument. The operator can be further chained, in which case the first operand with a value is returned; ex: @code{.py} expr1 ?? expr2 ?? expr3 @endcode
+    - %Qore identifiers can now begin with an underscore character \c "_"; the following is now a valid (with @ref new-style "%new-style"): @code{.py}int _var = 1;@endcode
     - <a href="../../modules/FixedLengthUtil/html/index.html">FixedLengthUtil</a> module for handling fixed length line data added
     - <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a> module split from the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module containing supporting definitions for handler classes and other code interfacing with the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module; also:
       - added the PermissiveAuthenticator class
@@ -27,7 +28,7 @@
       - new syntax for an expression giving an empty hash: <tt>{}</tt>; for example: @code{.py} hash h = {};@endcode
       - new literal hash support: hashes can now be given as literal values as follows: @code{.py} (<key_expr>: <val_expr>, [...]) @endcode For example: @code{.py} return (get_key(): get_value()); @endcode in the past the keys in literal hashes had to be either a string or a constant; now any valid %Qore expression can be used to generate the hash keys at runtime
       - new hash syntax; hash elements can now be enclosed by curly brackets as well as regular parentheses; the version with curly brackets when used with the @ref hmap "map" operator results in the hash version of the map operator being used
-      - Added new @ref hmap "hash version of the map" operator to build a hash from a list or iterator expression; ex: @code{.py} hash h = map {$1, h2.$1}, $i; @endcode
+      - Added new @ref hmap "hash version of the map" operator to build a hash from a list or iterator expression; ex: @code{.py} hash h = map {$1, h2.$1}, i; @endcode
     - implemented support for loading user modules in a pre-defined @ref Qore::Program "Program" object (that can have a custom API) in the following new functions and methods:
       - @ref Qore::load_user_module_with_program() "load_user_module_with_program()"
       - @ref Qore::Program::loadApplyToPrivateUserModule() "Program::loadApplyToPrivateUserModule()"
