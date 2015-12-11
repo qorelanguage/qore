@@ -122,6 +122,7 @@ while (i.next())
     @subsection csvutil_v1_5 Version 1.5
     - bugfixed handling eol global option
     - converted to new-style
+    - if "headers" are not given in the @ref CsvUtil::AbstractCsvWriter::constructor() but "fields" are, then set the headers from the field descriptions automatically
 
     @subsection csvutil_v1_4 Version 1.4
     - fixed the \c "format" field option when used with \c "*date" field types
@@ -907,13 +908,17 @@ while (i.next()) {
 
         #! creates the AbstractCsvWriter
         /**
-            @param errname a string to construct child class error message. For example: value 'FOO' will result in exception names 'CSVFOOWRITER-ERROR'
-            @param opts @ref csvwiter_options
+            @param n_errname a string to construct child class error message. For example: value 'FOO' will result in exception names 'CSVFOOWRITER-ERROR'
+            @param n_opts @ref csvwiter_options
 
             @throw CSV<errname>ITER-ERROR in the case of incorrect options
          */
         constructor(string n_errname, *hash n_opts) {
             errname = sprintf("CSV%sWRITER-ERROR", n_errname);
+
+            # set headers automatically from field names if not set
+            if (n_opts.fields && !n_opts.headers)
+                n_opts.headers = n_opts.fields.keys();
 
             # TODO/FIXME: shared with CsvFileIterator?
             foreach hash i in (n_opts.pairIterator()) {
