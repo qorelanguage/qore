@@ -122,6 +122,7 @@ while (i.next())
     @subsection csvutil_v1_5 Version 1.5
     - bugfixed handling eol global option
     - converted to new-style
+    - if "headers" are not given in the @ref CsvUtil::AbstractCsvWriter::constructor() but "fields" are, then set the headers from the field descriptions automatically
 
     @subsection csvutil_v1_4 Version 1.4
     - fixed the \c "format" field option when used with \c "*date" field types
@@ -914,6 +915,10 @@ while (i.next()) {
          */
         constructor(string errname, *hash opts) {
             errname = sprintf("CSV%sWRITER-ERROR", errname);
+
+            # set headers automatically from field names if not set
+            if (opts.fields && !opts.headers)
+                opts.headers = opts.fields.keys();
 
             # TODO/FIXME: shared with CsvFileIterator?
             foreach hash i in (opts.pairIterator()) {
