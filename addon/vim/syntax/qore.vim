@@ -1,7 +1,7 @@
 " Vim syntax file for Qore * mato [25-oct-2015]
 " Language:	Qore
 " Maintainer:	Martin Otto <martin@qore.org>
-" Last Change:	2015 Dec 10
+" Last Change:	2015 Dec 12
 
 if version < 600
   syntax clear
@@ -221,7 +221,7 @@ endif
 
 syn region qoreBlock start="{" end="}" fold transparent
 
-syn match qoreIdentifier display "\$[A-Za-z][A-Za-z0-9_]*"
+syn match qoreIdentifier display "\$[A-Za-z_][A-Za-z0-9_]*"
 syn match qoreIdentifier display "\$\$\|\$[0-9]\+"
 syn match qoreIdentifier display "\$\."he=e-1
 syn match qoreIdentifier display "\$\#"
