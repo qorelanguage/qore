@@ -1,0 +1,75 @@
+#!/usr/bin/env qr
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class LogicTest
+
+bool sub throw_exception() {
+    throw "LOGIC-ERROR", "lazy evaluation does not work";
+}
+
+public class LogicTest inherits QUnit::Test {
+    constructor() : Test("LogicTest", "1.0") {
+        addTestCase("Lazy evaluation test", \testLazyEvaluation(), NOTHING);
+        addTestCase("And/or test", \testAndOr(), NOTHING);
+        addTestCase("Question-colon test", \testQuestionColon(), NOTHING);
+        addTestCase("Comparison test", \testComparison(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+    
+    testLazyEvaluation() {
+        int a = 1;
+        int b = 0;
+        
+        assertEq(True, (a || throw_exception()), "test lazy or");
+        assertEq(True, !(b && throw_exception()), "test lazy and");
+    }
+    
+    testAndOr() {
+        int a = 1;
+        int b = 0;
+        
+        assertEq(True, a && 1, "test and");
+        assertEq(True, b || 1, "test or");
+    }
+    
+    testQuestionColon() {
+        int a = 1;
+        int b = 0;
+        
+        assertEq(1, b ? 0 : 1);
+        assertEq(1, a ? 1 : 0);
+    }
+    
+    testComparison() {
+        any a = 1;
+        any b = "1";
+        
+        assertEq(True, a == b, "comparison with type conversion");
+        assertEq(False, a === b, "absolute comparison");
+        
+        a = (1, 2, 3, 4);
+        b = (1, 2, 3, 4);
+        assertEq(True, a == b, "list comparison");
+        
+        delete b[3];
+        assertEq(False, a == b, "list comparison after delete");
+        
+        a[3] = ("gee" : 1, "whillakers" : 2, "list" : ( 1, 2, "three" ));
+        b[3] = a[3];
+        assertEq(True, a == b, "complex list comparison");
+        assertEq(True, a[3] == b[3], "hash comparison");
+        assertEq(False, a[3] != b[3], "negative hash unequal comparison");
+        
+        a[3].chello = "hi";
+        assertEq(False, a[3] == b[3], "negative hash comparison");
+        assertEq(True, a[3] != b[3], "hash unequal comparison");
+    }
+}
+

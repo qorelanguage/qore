@@ -1,0 +1,133 @@
+#!/usr/bin/env qr
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/FixedLengthUtil.qm
+
+%exec-class Test
+
+class Test inherits QUnit::Test {
+    public {
+        const StrData = "11111bb  \ncddd31122014\n22222gggg\n";
+
+        const Specs = (
+            "type1" : (
+                "col1" : (
+                    "length" : 5,
+                    "type"   : "int",
+                ),
+                "col2" : (
+                    "length" : 4,
+                    "type"   : "string",
+                ),
+            ),
+            "type2" : (
+                "col3" : (
+                    "length" : 1,
+                    "type"   : "string",
+                ),
+                "col4" : (
+                    "length" : 3,
+                    "type"   : "string",
+                ),
+                "col5" : (
+                    "length"   : 8,
+                    "type"     : "date",
+                    "format"   : "DDMMYYYY",
+                    # "timezone" : "Europe/Prague", # use global if omitted
+                ),
+            ),
+            );
+
+        # Incorrect use
+        const RedundantSpecs = (
+            "type1" : (
+                "col1" : (
+                    "length" : 5,
+                    "type"   : "int",
+                ),
+                "col2" : (
+                    "length" : 4,
+                    "type"   : "string",
+                ),
+            ),
+            "type2" : (
+                "col1" : (
+                    "length" : 5,
+                    "type"   : "int",
+                ),
+                "col2" : (
+                    "length" : 4,
+                    "type"   : "string",
+                ),
+            ),
+            );
+
+        const HashData = (
+            ("type": "type1", "record": ("col1": 11111, "col2": "bb")),
+            ("type": "type2", "record": ("col3": "c", "col4": "ddd", "col5": 2014-12-31)),
+            ("type": "type1", "record": ("col1": 22222, "col2": "gggg")),
+            );
+
+        const GlobalOptions = (
+            "encoding"     : "UTF-8",
+            "eol"          : "\n",
+            "ignore_empty" : True,
+            "timezone"     : "Europe/Prague", # used if not in some date column specification
+            );
+
+        # Writer
+        const GlobalWriterOptions = (
+            "eol" : "\n",
+            );
+
+        # padding test
+        const PADDING_STR = "aXXXX0000aa0000    a\n";
+
+        const PADDING_SPEC = (
+            "r1" : (
+                "c1": ( "length": 5, "type": "string", "padding_char": "X"),
+                "c2": ( "length": 5, "type": "string", "padding": "left", "padding_char": "0"),
+                "c3": ( "length": 5, "type": "string", "padding": "right", "padding_char": "0"),
+                "c4": ( "length": 5, "type": "string", "padding": "left", "padding_char": " "),
+            )
+            );
+
+        const PADDING_DATA = (
+            ("type": "r1", "record": ("c1": "a", "c2": "a", "c3": "a", "c4": "a")),
+            );
+    }
+
+    constructor() : QUnit::Test("FixedLengthUtil", "1.0", \ARGV) {
+        addTestCase("FixedLengthUtil basic tests", \basicTests());
+        set_return_value(main());
+    }
+
+    basicTests() {
+        FixedLengthDataIterator i(StrData, Specs, GlobalOptions);
+        testAssertionValue("line 1 present", i.next(), True);
+        testAssertionValue("line 1 content check", i.getValue(), HashData[0]);
+        testAssertionValue("line 2 present", i.next(), True);
+        testAssertionValue("line 2 content check", i.getValue(), HashData[1]);
+        testAssertionValue("line 3 present", i.next(), True);
+        testAssertionValue("line 3 content check", i.getValue(), HashData[2]);
+        testAssertionValue("line 4 is not there", i.next(), False);
+
+        FixedLengthDataIterator i2(StrData, RedundantSpecs, GlobalOptions);
+
+        code test_closure = sub () {
+            i2.next();
+            i2.getValue();
+        };
+        testAssertion("Line with byte length", test_closure, NOTHING, new TestResultExceptionType("FIXED-LENGTH-UTIL-NON-MATCHING-TYPE"));
+
+        FixedLengthDataWriter w(Specs, GlobalWriterOptions);
+        testAssertionValue("file content check", w.write(HashData), StrData);
+
+        FixedLengthDataWriter pw(PADDING_SPEC);
+        testAssertionValue("file content check - padding", pw.write(PADDING_DATA), PADDING_STR);
+    }
+}

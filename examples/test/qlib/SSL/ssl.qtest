@@ -1,0 +1,79 @@
+#!/usr/bin/env qr
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class SSLTest
+
+public class SSLTest inherits QUnit::Test {
+    private {
+        const cert_pem = "-----BEGIN CERTIFICATE-----
+MIIDAjCCAqygAwIBAgIJALLMpB2Hc61YMA0GCSqGSIb3DQEBBQUAMIGKMQswCQYD
+VQQGEwJDWjEPMA0GA1UECBMGUHJhZ3VlMQ8wDQYDVQQHEwZQcmFndWUxIjAgBgNV
+BAoTGVFvcmUgUHJvZ3JhbW1pbmcgTGFuZ3VhZ2UxFjAUBgNVBAMTDURhdmlkIE5p
+Y2hvbHMxHTAbBgkqhkiG9w0BCQEWDmRhdmlkQHFvcmUub3JnMB4XDTEwMDMxMDE0
+MjcwN1oXDTExMDMxMDE0MjcwN1owgYoxCzAJBgNVBAYTAkNaMQ8wDQYDVQQIEwZQ
+cmFndWUxDzANBgNVBAcTBlByYWd1ZTEiMCAGA1UEChMZUW9yZSBQcm9ncmFtbWlu
+ZyBMYW5ndWFnZTEWMBQGA1UEAxMNRGF2aWQgTmljaG9sczEdMBsGCSqGSIb3DQEJ
+ARYOZGF2aWRAcW9yZS5vcmcwXDANBgkqhkiG9w0BAQEFAANLADBIAkEAxvP3j5yN
+/7BxHxSCaJLYAAeGFo93jVtulzIPu3ULH9rzSiO3EPYeUOEQtpe3ks0tUu75BVDY
+OxiRSD3iy99/pQIDAQABo4HyMIHvMB0GA1UdDgQWBBSV/JWX0QUgmL+5885yMjh8
+dS4T8DCBvwYDVR0jBIG3MIG0gBSV/JWX0QUgmL+5885yMjh8dS4T8KGBkKSBjTCB
+ijELMAkGA1UEBhMCQ1oxDzANBgNVBAgTBlByYWd1ZTEPMA0GA1UEBxMGUHJhZ3Vl
+MSIwIAYDVQQKExlRb3JlIFByb2dyYW1taW5nIExhbmd1YWdlMRYwFAYDVQQDEw1E
+YXZpZCBOaWNob2xzMR0wGwYJKoZIhvcNAQkBFg5kYXZpZEBxb3JlLm9yZ4IJALLM
+pB2Hc61YMAwGA1UdEwQFMAMBAf8wDQYJKoZIhvcNAQEFBQADQQAMZ6N0cjzTiaNx
+1Jyrp3Agcc71xt47xSle5j3kDb0D7dn+HvgaNfDIW7cmDJIsiYnhxdMyezct06WS
+IcewTtsR
+-----END CERTIFICATE-----";
+
+        # certificate signature (literal binary value)
+        const cert_sig = <0c67a374723cd389a371d49caba7702071cef5c6de3bc5295ee63de40dbd03edd9fe1ef81a35f0c85bb7260c922c8989e1c5d3327b372dd3a59221c7b04edb11>;
+
+        const key_pem = "-----BEGIN RSA PRIVATE KEY-----
+Proc-Type: 4,ENCRYPTED
+DEK-Info: BF-CBC,C73CE02812F598E4
+
+TTpTQq7DR2GUFrpjMVh1QzQDNp2lut/tEJlcPlX0qo7JxS8vm3N4+9Wmq3GCGdGZ
+3hs/bZ/aAZRxzDguxEV03Bxy+eqP2G/FyfpzesJL4m7bdr35P8ZKXn75PJbvDzhC
+7uZOH1UaLP/8OHJ8u2gK8skRF0kCtnOMLKBJYmVQFMgnFmiIMtYEtd4UitMTcxVo
+Ax1m2IeIo5j3FxQ58zo2SG15p/qj470pKQD/fiLLjhFv30L4jQdWidDido4SkL1f
+dFVXOpkauGI4IjM2+yAqaV1LFqV0FeRyaGxyyPC9HJow5idZ4wZQyplwA0bV9GuS
+cu/KPgDZez9wrlFeb+MGLQE7tw+jKum8OVSFAjF5NfQLF2mRHlccOImuy5RBXIVq
+fL7VyL/oGoUX4w4wwpUZlMlx3VqnXAoyf7NLQ50RD0M=
+-----END RSA PRIVATE KEY-----";
+
+        const key_pass = "qore";
+    }
+
+    constructor() : Test("SSLTest", "1.0") {
+        addTestCase("Test SSL certificates", \certTest(), NOTHING);
+        addTestCase("Test SSL private keys", \privateKeyTest(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    certTest() {
+        SSLCertificate cert(cert_pem);
+        testAssertion("SSLCertificate::getSignature()", \cert.getSignature(), NOTHING, new TestResultValue(cert_sig));
+        testAssertion("SSLCertificate::getInfo()", \cert.getInfo(), NOTHING, new TestResultPartialHashMatch(("subject": ("countryName": "CZ", "stateOrProvinceName": "Prague", "localityName": "Prague", "organizationName": "Qore Programming Language", "commonName": "David Nichols", "emailAddress": "david@qore.org"))));
+    }
+
+    privateKeyTest() {
+        int bitLength = 512;
+        int version = 1;
+        string type = "RSA";
+
+        SSLPrivateKey key(key_pem, key_pass);
+        testAssertion("SSLPrivateKey::getVersion()", \key.getVersion(), NOTHING, new TestResultValue(version));
+        testAssertion("SSLPrivateKey::getBitLength()", \key.getBitLength(), NOTHING, new TestResultValue(bitLength));
+        testAssertion("SSLPrivateKey::getType()", \key.getType(), NOTHING, new TestResultValue(type));
+        testAssertion("SSLPrivateKey::getInfo()", \key.getInfo(), NOTHING, new TestResultValue(("type" : type, "version" : version, "bitLength" : bitLength)));
+    }
+}
+
+

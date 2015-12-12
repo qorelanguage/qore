@@ -1,0 +1,33 @@
+#!/usr/bin/env qr
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%requires UnitTest
+
+our UnitTest t();
+
+t.cmploop(any sub (any a) {return a;}, (
+    (
+        "args" : list("\066"),
+        "cmp"  : "6",
+        "msg"  : "\\066 is 6",
+    ),
+    (
+        "args" : list("\866"),
+        "cmp"  : "866",
+        "msg"  : "\\866 is 866 - just escaped 8",
+    ),
+    (
+        "args" : list("\66"),
+        "cmp"  : "6",
+        "msg"  : "\\66 is 6",
+    ),
+    (
+        "args" : list("\668"),
+        "cmp"  : "68",
+        "msg"  : "\\66 and 8 is 68",
+    ),
+));

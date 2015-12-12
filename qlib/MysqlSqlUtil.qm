@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file MysqlSqlUtil.qm Qore user module for working with MySQL SQL data
 
-/*  MysqlSqlUtil.qm Copyright 2013 - 2014 Qore Technologies, sro
+/*  MysqlSqlUtil.qm Copyright 2013 - 2015 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.8.11
+%requires qore >= 0.8.12
 
 # requires the SqlUtil module
 %requires SqlUtil >= 1.0
@@ -171,7 +171,7 @@ public namespace MysqlSqlUtil {
         }
 
         string getAddSql(string name, string table_name, *hash opt) {
-            return sprintf("add constraint %s foreign key (%s) references %s (%s)", name, (foldl $1 + ", " + $2, columns.keys()), target.table, (foldl $1 + ", " + $2, target.columns.keys()));
+            return sprintf("add constraint %s foreign key (%s) references %s (%s)", name, (foldl $1 + ", " + $2, h.keys()), target.table, (foldl $1 + ", " + $2, target.columns.keys()));
         }
 
         #! returns a string that can be used to drop the foreign constraint from the database
@@ -590,6 +590,16 @@ begin
   update %s set id = last_insert_id(id + 1) where name = seq_name;
   return last_insert_id();
 end";
+
+            #! Options for computeStatistics()
+            const MysqlComputeStatisticsOptions = ComputeStatisticsOptions + (
+                "no-binlog"         : Type::Boolean,
+                );
+
+            #! Options for reclaimSpace()
+            const MysqlReclaimSpaceOptions = ReclaimSpaceOptions + (
+                "no-binlog"         : Type::Boolean,
+                );
         }
 
         private {
@@ -788,9 +798,24 @@ end";
             return MysqlSchemaDescriptionOptions;
         }
 
+        #! returns driver-specific options to the base abstract class
+        private hash getComputeStatisticsOptions() {
+            return MysqlComputeStatisticsOptions;
+        }
+
+        #! returns driver-specific options to the base abstract class
+        private hash getReclaimSpaceOptions() {
+            return MysqlReclaimSpaceOptions;
+        }
+
         #! returns the next value in the given sequence
         private softint getNextSequenceValueImpl(string name) {
             return seqds.selectRow("select nextval(%s)", name).nextval;
+        }
+
+        #! returns the last value issued for the given sequence in the current session
+        private softint getCurrentSequenceValueImpl(string name) {
+            throw "MYSQL-SEQUENCE-ERROR", "currval is not supported for emulated MySQL sequences";
         }
 
         #! returns @ref Qore::True "True" since we have a workaround implementation for sequences in MySQL
@@ -806,6 +831,37 @@ end";
         #! returns @ref Qore::True "True" if the database supports packages
         private bool supportsPackagesImpl() {
             return False;
+        }
+
+        #! rebuild index implementation. See @ref SqlUtil::AbstractDatabase::rebuildIndex()
+        private bool rebuildIndexImpl(string name, *hash options) {
+            throw "REBUILD-INDEX-ERROR", "MySQL does not support index rebuilding. Use reclaimSpace()";
+        }
+
+        #! compute statistics implementation. See @ref SqlUtil::AbstractDatabase::computeStatistics()
+        private computeStatisticsImpl(*hash options) {
+            string sql = "analyze ";
+            sql += options."no-binlog" ? "no_write_to_binlog " : "local ";
+            sql += "table ";
+
+            softlist tables = options.tables ? options.tables : listTables();
+
+            sql += sprintf("%s", tables.join(", "));
+
+            ds.select(sql);
+        }
+
+        #! reclaim space implementation. See @ref SqlUtil::AbstractDatabase::reclaimSpace()
+        private reclaimSpaceImpl(*hash options) {
+            string sql = "optimize ";
+            sql += options."no-binlog" ? "no_write_to_binlog " : "local ";
+            sql += "table ";
+
+            softlist tables = options.tables ? options.tables : listTables();
+
+            sql += sprintf("%s", tables.join(", "));
+
+            ds.select(sql);
         }
     }
 
@@ -1020,7 +1076,7 @@ end";
                     case "int":
                     case "bigint":
                     case "double":
-                    case "float": 
+                    case "float":
                     case /text$/:
                     case /blob$/: {
                         row.numeric_precision = 0;
@@ -1104,7 +1160,7 @@ end";
                     }
                     # send "blank" column for function index
                     if (row.column_name =~ /\(.*\)/ || !columns.hasKey(row.column_name))
-                        ih.(row.index_name).columns{row.column_name} = hash();
+                        ih.(row.index_name).columns{row.column_name} = {};
                     else
                         ih.(row.index_name).columns{row.column_name} = columns{row.column_name};
                 }
@@ -1154,7 +1210,7 @@ end";
             foreach hash row in (qh.contextIterator()) {
                 reference ch = \rv.(row.constraint_name);
                 if (!ch)
-                    ch = new MysqlUniqueConstraint(row.constraint_name, hash());
+                    ch = new MysqlUniqueConstraint(row.constraint_name, {});
                 ch.add(row.column_name, columns{row.column_name});
             }
             
@@ -1185,6 +1241,11 @@ end";
             sql += sprintf("\n) engine %s", engine);            
 
             return sql;
+        }
+
+        #! returns @ref Qore::False "False" because the mysql driver does not support array binds / bulk DML operations
+        bool hasArrayBind() {
+            return False;
         }
 
         private *list getCreateMiscSqlImpl(*hash opt, bool cache) {
@@ -1422,6 +1483,15 @@ my string $str = $table.getSqlValue($date);
                 sql += " offset %v";
                 args += qh.offset;
             }
+        }
+
+        private *hash doReturningImpl(hash opt, reference sql, list args) {
+            throw "RETURNING-ERROR", sprintf("table %s: the mysql driver does not support the returning clause in an insert statement", getSqlName());
+        }
+        
+        #! returns @ref Qore::True "True" if the current database driver supports the \c "returning" clause in insert statements, @ref Qore::False "False" if not
+        bool hasReturningImpl() {
+            return False;
         }
 
         #! db-specific copy actions

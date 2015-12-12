@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   ql_list.qpp
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2014 David Nichols
- 
+
+  Copyright (C) 2003 - 2015 David Nichols
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -33,15 +33,15 @@
 #include <qore/intern/ql_list.h>
 #include <qore/intern/qore_program_private.h>
 
-ResolvedCallReferenceNode *getCallReference(const QoreString *str, ExceptionSink *xsink) {
-   // ensure string is in default encoding                                                                                                                            
+ResolvedCallReferenceNode* getCallReference(const QoreString* str, ExceptionSink* xsink) {
+   // ensure string is in default encoding
    TempEncodingHelper tmp(str, QCS_DEFAULT, xsink);
    if (!tmp)
       return 0;
    return qore_program_private::runtimeGetCallReference(getProgram(), tmp->getBuffer(), xsink);
 }
 
-bool inlist_intern(const AbstractQoreNode *arg, const QoreListNode *l, ExceptionSink *xsink) {
+bool inlist_intern(const QoreValue arg, const QoreListNode* l, ExceptionSink* xsink) {
    ConstListIterator li(l);
    while (li.next()) {
       bool b = QoreLogicalEqualsOperatorNode::softEqual(arg, li.getValue(), xsink);
@@ -53,13 +53,13 @@ bool inlist_intern(const AbstractQoreNode *arg, const QoreListNode *l, Exception
    return false;
 }
 
-QoreListNode *range_intern(int64 start, int64 stop, int64 step, ExceptionSink *xsink) {
+QoreListNode* range_intern(int64 start, int64 stop, int64 step, ExceptionSink* xsink) {
     if (step < 1) {
         xsink->raiseException("RANGE-ERROR", "Value of the 'step' argument has to be greater than 0");
         return 0;
     }
 
-    QoreListNode *l = new QoreListNode();
+    QoreListNode* l = new QoreListNode;
     if (start < stop) {
         for (int64 i = start; i <= stop; i += step) {
             l->push(new QoreBigIntNode(i));
@@ -78,10 +78,10 @@ QoreListNode *range_intern(int64 start, int64 stop, int64 step, ExceptionSink *x
  */
 //@{
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
 */
 any sort(any arg) [flags=NOOP] {
-   return arg ? arg->refSelf() : 0;
+   return arg.getReferencedValue();
 }
 
 //! Performs an unstable sort in ascending order and returns the new list
@@ -106,7 +106,7 @@ list sort(list l) [flags=CONSTANT] {
 }
 
 //! Performs an unstable sort in ascending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
-/** 
+/**
     @par Example:
     @code
 my list $nl = sort($l, "my_sort_function");
@@ -128,7 +128,7 @@ list sort(list l, string func) [flags=RET_VALUE_ONLY] {
 }
 
 //! Performs an unstable sort in ascending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
-/** 
+/**
     @par Example:
     @code
 my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
@@ -150,10 +150,72 @@ list sort(list l, code f) [flags=RET_VALUE_ONLY] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
 */
-any sortDescending(any arg) [flags=NOOP] {
-   return arg ? arg->refSelf() : 0;
+any sortDescending(any arg) [flags=NOOP,DEPRECATED] {
+   return arg.getReferencedValue();
+}
+
+//! Performs an unstable sort in descending order and returns the new list
+/** This variant will only sort basic data types
+
+    @param l the list to sort
+
+    @return the sorted list
+
+    @see
+    - sort(list)
+    - sortDescendingStable(list)
+    - sortStable(list)
+
+    @deprecated use sort_descending(); camel-case function names were deprecated in %Qore 0.8.12
+*/
+list sortDescending(list l) [flags=CONSTANT,DEPRECATED] {
+   return l->sortDescending();
+}
+
+//! Performs an unstable sort in descending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
+/**
+    @param l the list to sort
+    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+
+    @return the sorted list
+
+    @see
+    - sortStable(list, string)
+    - sortDescendingStable(list, string)
+    - sort(list, string)
+
+    @deprecated use sort_descending(); camel-case function names were deprecated in %Qore 0.8.12
+*/
+list sortDescending(list l, string func) [flags=CONSTANT,DEPRECATED] {
+   ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
+   return !fr ? 0 : l->sortDescending(*fr, xsink);
+}
+
+//! Performs an unstable sort in descending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
+/**
+    @param l the list to sort
+    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data type in the list; the code must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+
+    @return the sorted list
+
+    @see
+    - sortStable(list, code)
+    - sortDescendingStable(list, code)
+    - sort(list, code)
+
+    @deprecated use sort_descending(); camel-case function names were deprecated in %Qore 0.8.12
+*/
+list sortDescending(list l, code f) [flags=RET_VALUE_ONLY,DEPRECATED] {
+   return l->sortDescending(f, xsink);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/**
+*/
+any sort_descending(any arg) [flags=NOOP] {
+   return arg.getReferencedValue();
 }
 
 //! Performs an unstable sort in descending order and returns the new list
@@ -161,7 +223,7 @@ any sortDescending(any arg) [flags=NOOP] {
 
     @par Example:
     @code
-my list $nl = sortDescending($l);
+my list $nl = sort_descending($l);
     @endcode
 
     @param l the list to sort
@@ -172,16 +234,18 @@ my list $nl = sortDescending($l);
     - sort(list)
     - sortDescendingStable(list)
     - sortStable(list)
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case sortDescending()
 */
-list sortDescending(list l) [flags=CONSTANT] {
+list sort_descending(list l) [flags=CONSTANT] {
    return l->sortDescending();
 }
 
 //! Performs an unstable sort in descending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
-/** 
+/**
     @par Example:
     @code
-my list $nl = sortDescending($l, "my_sort_function");
+my list $nl = sort_descending($l, "my_sort_function");
     @endcode
 
     @param l the list to sort
@@ -190,21 +254,23 @@ my list $nl = sortDescending($l, "my_sort_function");
     @return the sorted list
 
     @see
-    - sortStable(list, string)
-    - sortDescendingStable(list, string)
+    - sort_stable(list, string)
+    - sort_descendingStable(list, string)
     - sort(list, string)
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case sortDescending()
 */
-list sortDescending(list l, string func) [flags=CONSTANT] {
+list sort_descending(list l, string func) [flags=CONSTANT] {
    ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
    return !fr ? 0 : l->sortDescending(*fr, xsink);
 }
 
 //! Performs an unstable sort in descending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
-/** 
+/**
     @par Example:
     @code
 my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
-my list $nl = sortDescending($l, $sort_func);
+my list $nl = sort_descending($l, $sort_func);
     @endcode
 
     @param l the list to sort
@@ -213,49 +279,43 @@ my list $nl = sortDescending($l, $sort_func);
     @return the sorted list
 
     @see
-    - sortStable(list, code)
-    - sortDescendingStable(list, code)
+    - sort_stable(list, code)
+    - sort_descendingStable(list, code)
     - sort(list, code)
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case sortDescending()
 */
-list sortDescending(list l, code f) [flags=RET_VALUE_ONLY] {
+list sort_descending(list l, code f) [flags=RET_VALUE_ONLY] {
    return l->sortDescending(f, xsink);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
 */
-any sortStable(any arg) [flags=NOOP] {
-   return arg ? arg->refSelf() : 0;
+any sortStable(any arg) [flags=NOOP,DEPRECATED] {
+   return arg.getReferencedValue();
 }
 
 //! Performs a stable sort in ascending order and returns the new list
 /** This variant will only sort basic data types
-
-    @par Example:
-    @code
-my list $nl = sortStable($l);
-    @endcode
 
     @param l the list to sort
 
     @return the sorted list
 
     @see
-    - sort(list)
-    - sortDescendingStable(list)
-    - sortDescending(list)
+    - sort(list, string)
+    - sort_descending(list, string)
+    - sort_descending_stable(list, string)
+
+    @deprecated use sort_stable(); camel-case function names were deprecated in %Qore 0.8.12
 */
-list sortStable(list l) [flags=CONSTANT] {
+list sortStable(list l) [flags=CONSTANT,DEPRECATED] {
    return l->sortStable();
 }
 
 //! Performs a stable sort in ascending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
-/** 
-    @par Example:
-    @code
-my list $nl = sortStable($l, "my_sort_function");
-    @endcode
-
+/**
     @param l the list to sort
     @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
 
@@ -263,16 +323,18 @@ my list $nl = sortStable($l, "my_sort_function");
 
     @see
     - sort(list, string)
-    - sortDescendingStable(list, string)
-    - sortDescending(list, string)
+    - sort_descending(list, string)
+    - sort_descending_stable(list, string)
+
+    @deprecated use sort_stable(); camel-case function names were deprecated in %Qore 0.8.12
 */
-list sortStable(list l, string func) [flags=RET_VALUE_ONLY] {
+list sortStable(list l, string func) [flags=RET_VALUE_ONLY,DEPRECATED] {
    ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
    return !fr ? 0 : l->sortStable(*fr, xsink);
 }
 
 //! Performs a stable sort in ascending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
-/** 
+/**
     @par Example:
     @code
 my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
@@ -285,19 +347,99 @@ my list $nl = sortStable($l, $sort_func);
     @return the sorted list
 
     @see
-    - sort(list, code)
-    - sortDescendingStable(list, code)
-    - sortDescending(list, code)
+    - sort(list, string)
+    - sort_descending(list, string)
+    - sort_descending_stable(list, string)
+
+    @deprecated use sort_stable(); camel-case function names were deprecated in %Qore 0.8.12
 */
-list sortStable(list l, code f) [flags=RET_VALUE_ONLY] {
+list sortStable(list l, code f) [flags=RET_VALUE_ONLY,DEPRECATED] {
    return l->sortStable(f, xsink);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
 */
-any sortDescendingStable(any arg) [flags=NOOP] {
-   return arg ? arg->refSelf() : 0;
+any sort_stable(any arg) [flags=NOOP] {
+   return arg.getReferencedValue();
+}
+
+//! Performs a stable sort in ascending order and returns the new list
+/** This variant will only sort basic data types
+
+    @par Example:
+    @code
+my list $nl = sort_stable($l);
+    @endcode
+
+    @param l the list to sort
+
+    @return the sorted list
+
+    @see
+    - sort(list, string)
+    - sort_descending(list, string)
+    - sort_descending_stable(list, string)
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case sortStable()
+*/
+list sort_stable(list l) [flags=CONSTANT] {
+   return l->sortStable();
+}
+
+//! Performs a stable sort in ascending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
+/**
+    @par Example:
+    @code
+my list $nl = sort_stable($l, "my_sort_function");
+    @endcode
+
+    @param l the list to sort
+    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+
+    @return the sorted list
+
+    @see
+    - sort(list, string)
+    - sort_descending(list, string)
+    - sort_descending_stable(list, string)
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case sortStable()
+*/
+list sort_stable(list l, string func) [flags=RET_VALUE_ONLY] {
+   ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
+   return !fr ? 0 : l->sortStable(*fr, xsink);
+}
+
+//! Performs a stable sort in ascending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
+/**
+    @par Example:
+    @code
+my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
+my list $nl = sort_stable($l, $sort_func);
+    @endcode
+
+    @param l the list to sort
+    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data type in the list; the code must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+
+    @return the sorted list
+
+    @see
+    - sort(list, string)
+    - sort_descending(list, string)
+    - sort_descending_stable(list, string)
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case sortStable()
+*/
+list sort_stable(list l, code f) [flags=RET_VALUE_ONLY] {
+   return l->sortStable(f, xsink);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/**
+*/
+any sortDescendingStable(any arg) [flags=NOOP,DEPRECATED] {
+   return arg.getReferencedValue();
 }
 
 //! Performs a stable sort in descending order and returns the new list
@@ -313,16 +455,18 @@ my list $nl = sortDescendingStable($l);
     @return the sorted list
 
     @see
-    - sort(list)
-    - sortDescendingStable(list)
-    - sortStable(list)
+    - sort_stable(list, code)
+    - sort_descending_stable(list, code)
+    - sort(list, code)
+
+    @deprecated use sort_descending_stable(); camel-case function names were deprecated in %Qore 0.8.12
 */
-list sortDescendingStable(list l) [flags=CONSTANT] {
+list sortDescendingStable(list l) [flags=CONSTANT,DEPRECATED] {
    return l->sortDescendingStable();
 }
 
 //! Performs a stable sort in descending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
-/** 
+/**
     @par Example:
     @code
 my list $nl = sortDescending($l, "my_sort_function");
@@ -334,17 +478,19 @@ my list $nl = sortDescending($l, "my_sort_function");
     @return the sorted list
 
     @see
-    - sortStable(list, string)
-    - sortDescendingStable(list, string)
-    - sort(list, string)
+    - sort_stable(list, code)
+    - sort_descending_stable(list, code)
+    - sort(list, code)
+
+    @deprecated use sort_descending_stable(); camel-case function names were deprecated in %Qore 0.8.12
 */
-list sortDescendingStable(list l, string func) [flags=RET_VALUE_ONLY] {
+list sortDescendingStable(list l, string func) [flags=RET_VALUE_ONLY,DEPRECATED] {
    ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
    return !fr ? 0 : l->sortDescendingStable(*fr, xsink);
 }
 
 //! Performs a stable sort in descending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
-/** 
+/**
     @par Example:
     @code
 my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
@@ -357,11 +503,91 @@ my list $nl = sortDescending($l, $sort_func);
     @return the sorted list
 
     @see
-    - sortStable(list, code)
-    - sortDescendingStable(list, code)
+    - sort_stable(list, code)
+    - sort_descending_stable(list, code)
     - sort(list, code)
+
+    @deprecated use sort_descending_stable(); camel-case function names were deprecated in %Qore 0.8.12
 */
-list sortDescendingStable(list l, code f) [flags=RET_VALUE_ONLY] {
+list sortDescendingStable(list l, code f) [flags=RET_VALUE_ONLY,DEPRECATED] {
+   return l->sortDescendingStable(f, xsink);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/**
+*/
+any sort_descending_stable(any arg) [flags=NOOP] {
+   return arg.getReferencedValue();
+}
+
+//! Performs a stable sort in descending order and returns the new list
+/** This variant will only sort basic data types
+
+    @par Example:
+    @code
+my list $nl = sort_descending_stable($l);
+    @endcode
+
+    @param l the list to sort
+
+    @return the sorted list
+
+    @see
+    - sort_stable(list, code)
+    - sort_descending_stable(list, code)
+    - sort(list, code)
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case sortDescendingStable()
+*/
+list sort_descending_stable(list l) [flags=CONSTANT] {
+   return l->sortDescendingStable();
+}
+
+//! Performs a stable sort in descending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
+/**
+    @par Example:
+    @code
+my list $nl = sort_descending_stable($l, "my_sort_function");
+    @endcode
+
+    @param l the list to sort
+    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+
+    @return the sorted list
+
+    @see
+    - sort_stable(list, code)
+    - sort_descending_stable(list, code)
+    - sort(list, code)
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case sortDescendingStable()
+*/
+list sort_descending_stable(list l, string func) [flags=RET_VALUE_ONLY] {
+   ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
+   return !fr ? 0 : l->sortDescendingStable(*fr, xsink);
+}
+
+//! Performs a stable sort in descending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
+/**
+    @par Example:
+    @code
+my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
+my list $nl = sort_descending_stable($l, $sort_func);
+    @endcode
+
+    @param l the list to sort
+    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data type in the list; the code must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+
+    @return the sorted list
+
+    @see
+    - sort_stable(list, code)
+    - sort_descending_stable(list, code)
+    - sort(list, code)
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case sortDescendingStable()
+*/
+list sort_descending_stable(list l, code f) [flags=RET_VALUE_ONLY] {
    return l->sortDescendingStable(f, xsink);
 }
 
@@ -384,7 +610,7 @@ any min(list l) [flags=CONSTANT] {
 }
 
 //! Returns the minumum value in a list; accepts the name of a function to use to compare complex data types or to give a special sort order
-/** 
+/**
     @par Example:
     @code
 my any $v = min($l, "my_sort_function");
@@ -403,7 +629,7 @@ any min(list l, string func) [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns the minumum value in a list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to compare complex data types or to give a special sort order
-/** 
+/**
     @par Example:
     @code
 my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
@@ -436,7 +662,7 @@ my any $v = min($v1, $v2, $v3);
     @see max(...)
 */
 any min(...) [flags=CONSTANT] {
-   return args ? args->min() : 0;
+   return args ? args->minValue(xsink) : 0;
 }
 
 //! Returns the maximum value in a list
@@ -458,7 +684,7 @@ any max(list l) [flags=CONSTANT] {
 }
 
 //! Returns the maximum value in a list; accepts the name of a function to use to compare complex data types or to give a special sort order
-/** 
+/**
     @par Example:
     @code
 my any $v = max($l, "my_sort_function");
@@ -477,7 +703,7 @@ any max(list l, string func) [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns the maximum value in a list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to compare complex data types or to give a special sort order
-/** 
+/**
     @par Example:
     @code
 my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
@@ -510,17 +736,17 @@ my any $v = max($v1, $v2, $v3);
     @see min(...)
 */
 any max(...) [flags=CONSTANT] {
-   return args ? args->max() : 0;
+   return args ? args->maxValue(xsink) : 0;
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
 */
 nothing reverse() [flags=NOOP] {
 }
 
 //! Reverses a list and returns the new list
-/** 
+/**
     @par Example:
     @code
 my list $nl = reverse($l);
@@ -537,21 +763,21 @@ list reverse(list l) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
 */
 bool inlist() [flags=NOOP] {
    return false;
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
 */
 bool inlist(any[doc] arg, nothing[doc] x) [flags=NOOP] {
    return false;
 }
 
 //! Returns @ref True if the first argument is a member of the second argument list using soft comparisons (with implicit type conversions), @ref False if not
-/** 
+/**
     @par Example:
     @code
 if (inlist($str, $strlist))
@@ -570,21 +796,21 @@ bool inlist(any arg, softlist l) [flags=RET_VALUE_ONLY] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
 */
 bool inlist_hard() [flags=NOOP] {
    return false;
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
 */
 bool inlist_hard(any[doc] arg, nothing[doc] x) [flags=NOOP] {
    return false;
 }
 
 //! Returns @ref True if the first argument is a member of the second argument list using hard comparisons (without any implicit type conversions), @ref False if not
-/** 
+/**
     @par Example:
     @code
 if (inlist_hard($str, $strlist))
@@ -599,11 +825,11 @@ if (inlist_hard($str, $strlist))
     @see inlist(any, softlist)
 */
 bool inlist_hard(any arg, softlist l) [flags=RET_VALUE_ONLY] {
-   bool arg_is_nothing = is_nothing(arg);
+   bool arg_is_nothing = arg.isNothing();
 
    ConstListIterator li(l);
    while (li.next()) {
-      const AbstractQoreNode *lp = li.getValue();
+      const AbstractQoreNode* lp = li.getValue();
 
       bool b;
 
@@ -613,9 +839,9 @@ bool inlist_hard(any arg, softlist l) [flags=RET_VALUE_ONLY] {
       else if (arg_is_nothing)
 	 b = false;
       else {
-	 b = arg->is_equal_hard(lp, xsink);
+	 b = arg.isEqualHard(lp);
 	 if (*xsink)
-	    return 0;
+	    return QoreValue();
       }
 
       if (b)

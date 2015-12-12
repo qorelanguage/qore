@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 Qore Technologies s r.o.
+  Copyright (C) 2003 - 2015 Qore Technologies s r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -45,15 +45,18 @@ private:
    bool m_increasing;
    bool m_valid;
 
+   QoreValue val;
+
 public:
-   DLLLOCAL RangeIterator(int64 start, int64 stop, int64 step, ExceptionSink* xsink)
+   DLLLOCAL RangeIterator(int64 start, int64 stop, int64 step, const QoreValue v, ExceptionSink* xsink)
       : QoreIteratorBase(),
         m_start(start),
         m_stop(stop),
         m_step(step),
         m_position(-1),
         m_increasing(start<stop),
-        m_valid(false) {
+        m_valid(false),
+        val((!v.isNothing() && step >= 0) ? v.refSelf() : QoreValue()) {
       if (step < 1) {
          xsink->raiseException("RANGEITERATOR-ERROR", "Value of the 'step' argument has to be greater than 0 (value passed: %d)", step);
       }
@@ -62,7 +65,15 @@ public:
    DLLLOCAL RangeIterator(const RangeIterator& old)
       : m_start(old.m_start), m_stop(old.m_stop), m_step(old.m_step),
         m_position(old.m_position), m_increasing(old.m_increasing),
-        m_valid(old.m_valid) {
+        m_valid(old.m_valid), val(old.val.refSelf()) {
+   }
+
+   DLLLOCAL virtual ~RangeIterator() {
+      assert(!val.hasNode());
+   }
+
+   DLLLOCAL void destructor(ExceptionSink* xsink) {
+      val.discard(xsink);
    }
 
    DLLLOCAL bool next() {
@@ -82,7 +93,9 @@ public:
          xsink->raiseException("INVALID-ITERATOR", "the %s is not pointing at a valid element; make sure %s::next() returns True before calling this method", getName(), getName());
          return 0;
       }
-      return new QoreBigIntNode(calculateCurrent());
+
+      int64 rv = calculateCurrent();
+      return !val.isNothing() ? val.getReferencedValue() : new QoreBigIntNode(rv);
    }
 
    DLLLOCAL void reset() {

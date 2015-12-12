@@ -1,0 +1,134 @@
+#!/usr/bin/env qr
+
+%requires ../../../../../qlib/QUnit.qm
+
+%exec-class TreeMapTest
+%new-style
+
+public class TreeMapTest inherits QUnit::Test {
+
+    private {
+        TreeMap tm();
+    }
+
+    public {
+        hash objs = {};
+    }
+
+    constructor() : Test("TreeMap Test", "1.0") {
+        addTestCase("path prefix lookup works correctly", \testLookup());
+        addTestCase("left-most element in the tree is not ignored", \testFirst());
+        addTestCase("right-most element in the tree is not ignored", \testLast());
+        addTestCase("correct reference counting", \testRefCount());
+        addTestCase("take", \testTake());
+        addTestCase("getAll", \testGetAll());
+
+        set_return_value(main());
+    }
+
+    setUp() {
+        tm.put("def/g/hi", "5");
+        tm.put("abc", "1");
+        tm.put("def", "3");
+        tm.put("x/y", "6");
+        tm.put("d", "2");
+        tm.put("def/ghi", "4");
+    }
+
+    testLookup() {
+        testAssertion("short prefix", \equals(), (NOTHING, tm.get("de")));
+        testAssertion("long prefix", \equals(), (NOTHING, tm.get("defx")));
+        testAssertion("exact match", \equals(), ("3", tm.get("def")));
+        testAssertion("prefix match with slash", \equals(), ("3", tm.get("def/")));
+        testAssertion("prefix match with slash and path", \equals(), ("3", tm.get("def/x/y/z")));
+        testAssertion("partial match of a dir in the middle", \equals(), ("3", tm.get("def/g")));
+        testAssertion("double match selects the longer path", \equals(), ("4", tm.get("def/ghi")));
+        testAssertion("double match selects the longer path", \equals(), ("4", tm.get("def/ghi/xyz")));
+        testAssertion("second dir long prefix", \equals(), ("3", tm.get("def/ghij")));
+        testAssertion("third dir long prefix", \equals(), ("3", tm.get("def/g/hij")));
+        testAssertion("third dir short prefix", \equals(), ("3", tm.get("def/g/h")));
+        testAssertion("third level with question mark", \equals(), ("5", tm.get("def/g/hi?p=1")));
+    }
+
+    testFirst() {
+        testAssertion("exact match", \equals(), ("1", tm.get("abc")));
+        testAssertion("prefix match with slash", \equals(), ("1", tm.get("abc/def")));
+        testAssertion("prefix match with question mark", \equals(), ("1", tm.get("abc?def=1")));
+        testAssertion("prefix mismatch", \equals(), (NOTHING, tm.get("abd")));
+        testAssertion("prefix longer", \equals(), (NOTHING, tm.get("abcd")));
+        testAssertion("prefix shorter", \equals(), (NOTHING, tm.get("ab")));
+    }
+
+    testLast() {
+        testAssertion("exact match", \equals(), ("6", tm.get("x/y")));
+        testAssertion("prefix match with slash", \equals(), ("6", tm.get("x/y/z")));
+        testAssertion("prefix match with question mark", \equals(), ("6", tm.get("x/y?z=1")));
+        testAssertion("prefix mismatch", \equals(), (NOTHING, tm.get("x/z")));
+        testAssertion("prefix longer", \equals(), (NOTHING, tm.get("x/yz")));
+        testAssertion("prefix shorter", \equals(), (NOTHING, tm.get("x/")));
+    }
+
+    testRefCount() {
+        {
+            hash h;
+            {
+                TreeMap tm2();
+                {
+                    {
+                        MyObject o1("obj1", self);
+                        tm2.put("key", o1);
+                    }
+                    MyObject o2("obj2", self);
+                    MyObject o3("obj3", self);
+
+                    testAssertion("obj1 still exists", \equals(), (True, objs{"obj1"}));
+                    tm2.put("key", o2);
+                    testAssertion("obj1 has been destroyed", \equals(), (False, objs{"obj1"}));
+                    tm2.put("key", o3);
+                    h{"x"} = tm2.get("key");
+                    testAssertion("obj2 still exists", \equals(), (True, objs{"obj2"}));
+                }
+                testAssertion("obj2 has been destroyed", \equals(), (False, objs{"obj2"}));
+            }
+            testAssertion("obj3 still exists", \equals(), (True, objs{"obj3"}));
+        }
+        testAssertion("obj3 has been destroyed", \equals(), (False, objs{"obj3"}));
+    }
+
+    testTake() {
+        TreeMap tm();
+
+        tm.put("a", 1);
+        tm.put("b", 2);
+        testAssertionValue("get-1", tm.get("a"), 1);
+        testAssertionValue("get-2", tm.get("b"), 2);
+        testAssertionValue("get-3", tm.get("c"));
+        testAssertionValue("take-1", tm.take("a"), 1);
+        testAssertionValue("get-4", tm.get("a"));
+    }
+
+    testGetAll() {
+        TreeMap tm();
+
+        tm.put("a", 1);
+        tm.put("b", 2);
+        testAssertionValue("getAll", tm.getAll(), ("a": 1, "b": 2));
+    }
+}
+
+class MyObject {
+    private {
+        string name;
+        TreeMapTest treeMapTest;
+    }
+
+    constructor(string n, TreeMapTest tmt) {
+        name = n;
+        treeMapTest = tmt;
+        treeMapTest.objs{name} = True;
+    }
+
+    destructor() {
+        treeMapTest.objs{name} = False;
+    }
+}

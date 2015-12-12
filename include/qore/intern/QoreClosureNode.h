@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,107 +31,141 @@
 
 #ifndef _QORE_QORECLOSURENODE_H
 
-#define _QORE_QORECLOSURENODE_H 
+#define _QORE_QORECLOSURENODE_H
 
 #include <qore/intern/QoreObjectIntern.h>
 
 #include <map>
 
+class CVecInstantiator {
+protected:
+   cvv_vec_t* cvec;
+   ExceptionSink* xsink;
+
+public:
+   DLLLOCAL CVecInstantiator(cvv_vec_t* cv, ExceptionSink* xs) : cvec(cv), xsink(xs) {
+      if (!cvec)
+	 return;
+      for (cvv_vec_t::iterator i = cvec->begin(), e = cvec->end(); i != e; ++i)
+	 thread_instantiate_closure_var((*i)->refSelf());
+   }
+
+   DLLLOCAL ~CVecInstantiator() {
+      if (!cvec)
+         return;
+      // elements are dereferenced when uninstantiated
+      for (cvv_vec_t::iterator i = cvec->begin(), e = cvec->end(); i != e; ++i)
+	 thread_uninstantiate_closure_var(xsink);
+   }
+};
+
 class QoreClosureBase : public ResolvedCallReferenceNode {
 protected:
    const QoreClosureParseNode* closure;
-   bool pgm_ref;
+   mutable ThreadSafeLocalVarRuntimeEnvironment closure_env;
+   cvv_vec_t* cvec;
+
+   DLLLOCAL void del(ExceptionSink* xsink) {
+      closure_env.del(xsink);
+      if (cvec) {
+         for (cvv_vec_t::iterator i = cvec->begin(), e = cvec->end(); i != e; ++i)
+            (*i)->deref(xsink);
+         delete cvec;
+#ifdef DEBUG
+         cvec = 0;
+#endif
+      }
+   }
 
 public:
    //! constructor is not exported outside the library
-   DLLLOCAL QoreClosureBase(const QoreClosureParseNode *n_closure) : ResolvedCallReferenceNode(false, NT_RUNTIME_CLOSURE), closure(n_closure), pgm_ref(true) {
+   DLLLOCAL QoreClosureBase(const QoreClosureParseNode* n_closure, cvv_vec_t* cv) : ResolvedCallReferenceNode(false, NT_RUNTIME_CLOSURE), closure(n_closure), closure_env(n_closure->getVList()), cvec(cv) {
+      //printd(5, "QoreClosureBase::QoreClosureBase() this: %p closure: %p\n", this, closure);
       closure->ref();
    }
 
    DLLLOCAL ~QoreClosureBase() {
+      //printd(5, "QoreClosureBase::~QoreClosureBase() this: %p closure: %p\n", this, closure);
       const_cast<QoreClosureParseNode*>(closure)->deref();
+      assert(!cvec);
    }
-      
-   DLLLOCAL static const char *getStaticTypeName() {
-      return "closure";
-   }      
 
-   DLLLOCAL virtual QoreFunction *getFunction() {
+   DLLLOCAL ClosureVarValue* find(const LocalVar* id) const {
+      return closure_env.find(id);
+   }
+
+   DLLLOCAL bool hasVar(ClosureVarValue* cvv) const {
+      return closure_env.hasVar(cvv);
+   }
+
+   DLLLOCAL static const char* getStaticTypeName() {
+      return "closure";
+   }
+
+   DLLLOCAL virtual QoreFunction* getFunction() {
       return closure->getFunction();
    }
-
-   DLLLOCAL virtual void derefProgramCycle(QoreProgram *cpgm) = 0;
 };
 
 class QoreClosureNode : public QoreClosureBase {
 private:
-   mutable ThreadSafeLocalVarRuntimeEnvironment closure_env;
-   QoreProgram *pgm;
+   QoreProgram* pgm;
 
    DLLLOCAL QoreClosureNode(const QoreClosureNode&); // not implemented
    DLLLOCAL QoreClosureNode& operator=(const QoreClosureNode&); // not implemented
 
 protected:
    DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink);
-      
+
 public:
-   DLLLOCAL QoreClosureNode(const QoreClosureParseNode *n_closure) : QoreClosureBase(n_closure), closure_env(n_closure->getVList()), pgm(::getProgram()) {
+   DLLLOCAL QoreClosureNode(const QoreClosureParseNode* n_closure, cvv_vec_t* cv = 0) : QoreClosureBase(n_closure, cv), pgm(::getProgram()) {
       pgm->depRef();
    }
 
    DLLLOCAL virtual ~QoreClosureNode() {
    }
 
-   DLLLOCAL virtual AbstractQoreNode *exec(const QoreListNode *args, ExceptionSink* xsink) const;
+   DLLLOCAL virtual QoreValue execValue(const QoreListNode* args, ExceptionSink* xsink) const;
 
-   DLLLOCAL virtual QoreProgram *getProgram() const {
+   DLLLOCAL virtual QoreProgram* getProgram() const {
       return pgm;
    }
 
    //! returns false unless perl-boolean-evaluation is enabled, in which case it returns true
    /** @return false unless perl-boolean-evaluation is enabled, in which case it returns true
-    */
+   */
    DLLEXPORT virtual bool getAsBoolImpl() const;
 
-   DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink* xsink) const {
-      str.sprintf("function closure (%slambda, 0x%08p)", closure->isLambda() ? "" : "non-", this);
+   DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
+      str.sprintf("function closure (%slambda, %p)", closure->isLambda() ? "" : "non-", this);
       return 0;
    }
 
-   DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink* xsink) const {
+   DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const {
       del = true;
-      QoreString *rv = new QoreString();
+      QoreString* rv = new QoreString;
       getAsString(*rv, foff, xsink);
       return rv;
    }
 
-   DLLLOCAL virtual const char *getTypeName() const {
+   DLLLOCAL virtual const char* getTypeName() const {
       return getStaticTypeName();
    }
 
    DLLLOCAL bool isLambda() const { return closure->isLambda(); }
 
-   DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink* xsink) const {
+   DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode* v, ExceptionSink* xsink) const {
       return QoreClosureNode::is_equal_hard(v, xsink);
    }
 
-   DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink* xsink) const {
+   DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink) const {
       return v == this;
-   }
-
-   DLLLOCAL virtual void derefProgramCycle(QoreProgram *cpgm) {
-      if (pgm_ref) {
-         assert(cpgm == pgm);
-         pgm->depDeref(0);
-         pgm_ref = false;
-      }
    }
 };
 
 class QoreObjectClosureNode : public QoreClosureBase {
 private:
-   mutable ThreadSafeLocalVarRuntimeEnvironment closure_env;
-   QoreObject *obj;
+   QoreObject* obj;
 
    DLLLOCAL QoreObjectClosureNode(const QoreObjectClosureNode&); // not implemented
    DLLLOCAL QoreObjectClosureNode& operator=(const QoreObjectClosureNode&); // not implemented
@@ -140,45 +174,43 @@ protected:
    DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink);
 
 public:
-   DLLLOCAL QoreObjectClosureNode(QoreObject *n_obj, const QoreClosureParseNode *n_closure);
-   DLLLOCAL ~QoreObjectClosureNode();
-   DLLLOCAL virtual AbstractQoreNode *exec(const QoreListNode *args, ExceptionSink* xsink) const;
+   DLLLOCAL QoreObjectClosureNode(QoreObject* n_obj, const QoreClosureParseNode* n_closure, cvv_vec_t* cv = 0) : QoreClosureBase(n_closure, cv), obj(n_obj) {
+      obj->tRef();
+   }
 
-   DLLLOCAL virtual QoreProgram *getProgram() const {
+   DLLLOCAL ~QoreObjectClosureNode() {
+   }
+
+   DLLLOCAL virtual QoreValue execValue(const QoreListNode* args, ExceptionSink* xsink) const;
+
+   DLLLOCAL virtual QoreProgram* getProgram() const {
       return obj->getProgram();
    }
 
-   DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink* xsink) const {
-      str.sprintf("function closure (%slambda, in object of class '%s', 0x%08p)", closure->isLambda() ? "" : "non-", obj->getClassName(), this);
+   DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
+      str.sprintf("function closure (%slambda, in object of class '%s', %p)", closure->isLambda() ? "" : "non-", obj->getClassName(), this);
       return 0;
    }
 
-   DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink* xsink) const {
+   DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const {
       del = true;
-      QoreString *rv = new QoreString();
+      QoreString* rv = new QoreString();
       getAsString(*rv, foff, xsink);
       return rv;
    }
 
-   DLLLOCAL virtual const char *getTypeName() const {
+   DLLLOCAL virtual const char* getTypeName() const {
       return getStaticTypeName();
    }
 
    DLLLOCAL bool isLambda() const { return closure->isLambda(); }
 
-   DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink* xsink) const {
+   DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode* v, ExceptionSink* xsink) const {
       return QoreObjectClosureNode::is_equal_hard(v, xsink);
    }
 
-   DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink* xsink) const {
+   DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink) const {
       return v == this;
-   }
-
-   DLLLOCAL virtual void derefProgramCycle(QoreProgram *cpgm) {
-      if (pgm_ref) {
-         qore_object_private::derefProgramCycle(obj, cpgm);
-         pgm_ref = false;
-      }
    }
 };
 

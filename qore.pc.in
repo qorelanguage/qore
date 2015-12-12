@@ -7,6 +7,6 @@ Name: Qore
 Description: Qore programming language library
 URL: http://qore.org
 Version: @VERSION@
-Libs: -L@libdir@ -lqore
-Cflags: -I@includedir@
+Libs: -L${libdir} -lqore
+Cflags: -I${includedir}
 

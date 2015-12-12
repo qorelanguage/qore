@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -35,13 +35,16 @@
 // the read lock, reading all threads' stacks is performed in the write lock
 #include <qore/QoreRWLock.h>
 
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
 QoreRWLock *thread_stack_lock;
 #else
 QoreRWLock thread_stack_lock;
 #endif
 
 CallNode::CallNode(const char *f, int t, ClassObj o) : func(f), loc(RunTimeLocation), type(t), obj(o) {
+   // we do not reference the object here, because the object is already referenced by CodeContextHelper
+   // which is always used with this class
+   /*
    QoreObject *qo = o.getObj();
    if (qo) {
       qo->ref();
@@ -49,8 +52,10 @@ CallNode::CallNode(const char *f, int t, ClassObj o) : func(f), loc(RunTimeLocat
       printd(5, "CallNode::CallNode() pushing class=%p '%s' (name=%p) obj=%p\n", qo->getClass(), qo->getClass()->getName(), qo->getClass()->getName(), qo);
 #endif
    }
+   */
 }
 
+/*
 void CallNode::objectDeref(ExceptionSink *xsink) {
    QoreObject *qo = obj.getObj();
    if (qo) {
@@ -59,6 +64,7 @@ void CallNode::objectDeref(ExceptionSink *xsink) {
       qo->deref(xsink);
    }
 }
+*/
 
 QoreHashNode* CallNode::getInfo() const {
    QoreHashNode* h = new QoreHashNode;
@@ -116,15 +122,12 @@ void CallStack::push(CallNode *c) {
 
 void CallStack::pop(ExceptionSink *xsink) {
    QORE_TRACE("CallStack::pop()");
-   CallNode *c;
    {
       QoreAutoRWReadLocker l(thread_stack_lock);
-      c = tail;
       tail = tail->prev;
       if (tail)
 	 tail->next = 0;
    }
-   c->objectDeref(xsink);
 }
 
 QoreListNode *CallStack::getCallStack() const {

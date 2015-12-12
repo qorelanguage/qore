@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -36,13 +36,25 @@
 #include <qore/intern/Sequence.h>
 
 #include <set>
+#include <map>
 
 typedef std::set<AbstractThreadResource*> trset_t;
+
+struct ArgPgm {
+   AbstractQoreNode* arg;
+   QoreProgram* pgm;
+
+   DLLLOCAL ArgPgm(AbstractQoreNode* n_arg, QoreProgram* n_pgm) : arg(n_arg), pgm(n_pgm) {
+   }
+};
+
+typedef std::map<ResolvedCallReferenceNode*, ArgPgm> crmap_t;
 
 class ThreadResourceList {
 private:
    static Sequence seq;
    trset_t trset;
+   crmap_t crmap;
 
 public:
    ThreadResourceList* prev;
@@ -55,13 +67,20 @@ public:
    }
 
    DLLLOCAL void set(AbstractThreadResource* atr);
+   DLLLOCAL void set(const ResolvedCallReferenceNode* rcr, QoreValue arg);
 
    DLLLOCAL bool check(AbstractThreadResource* atr) const;
 
    // returns 0 if removed, -1 if not found
    DLLLOCAL int remove(AbstractThreadResource* atr);
+   // returns 0 if removed, -1 if not found
+   DLLLOCAL int remove(const ResolvedCallReferenceNode* rcr, ExceptionSink* xsink);
 
    DLLLOCAL void purge(ExceptionSink* xsink);
+
+   // purge thread resources tied to a particular Program (that's being destroyed)
+   // returns: -1 if there are still thread resources left, 0 = all thread resources purged
+   DLLLOCAL void purge(const QoreProgram* pgm, ExceptionSink* xsink);
 
    DLLLOCAL bool empty() const {
       return trset.empty();

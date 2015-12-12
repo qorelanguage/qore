@@ -1,0 +1,11 @@
+#!/usr/bin/env qr
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%requires UnitTest
+
+my UnitTest unit();
+
+unit.cmp(call_builtin_function("type", 1), Type::Int, "call_builtin_function()");

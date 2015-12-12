@@ -1,0 +1,481 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_DataLineIterator.qpp DataLineIterator class definition */
+/*
+  Qore Programming Language
+
+  Copyright (C) 2003 - 2015 David Nichols
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the "Software"),
+  to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+
+  Note that the Qore library is released under a choice of three open-source
+  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+  information.
+*/
+
+#include <qore/Qore.h>
+
+#include <string.h>
+#include <errno.h>
+
+class DataLineIterator : public QoreIteratorBase {
+protected:
+   QoreStringNode* line,
+      * eol,
+      * data;
+   size_t offset;
+   int64 num;
+   bool validp;
+   bool trim;
+   bool convert_to_utf8;
+   const QoreEncoding* enc;
+
+   DLLLOCAL ~DataLineIterator() {
+      if (data)
+         data->deref();
+      if (eol)
+         eol->deref();
+      if (line)
+         line->deref();
+   }
+
+   DLLLOCAL bool getLine(ExceptionSink* xsink) {
+      if (offset >= data->size())
+         return false;
+
+      const char* ptr = data->getBuffer() + offset;
+
+      // find end of line
+      if (eol) {
+         if (convert_to_utf8) {
+            const char* bytes = eol->getBuffer();
+            unsigned pos = 0;
+
+            while (true) {
+               int i = (int)enc->getCharLen(ptr, data->size() - offset);
+               if (i < 0) {
+                  // character encoding error
+                  xsink->raiseException("ENCODING-ERROR", "invalid bytes for character encoding '%s' found at offset "QLLD" in input data string", enc->getCode(), offset);
+                  return false;
+               }
+               int c = (int)enc->getUnicode(ptr);
+               offset += i;
+               ptr += i;
+               //printd(5, "DataLineIterator::getLine() i: %d c: %d (%s -> %s)\n", i, c, enc->getCode(), line->getEncoding()->getCode());
+               if (c == 0xfeff) {
+                  // skip BOM
+                  //printd(5, "DataLineIterator::getLine() skipping BOM\n");
+                  continue;
+               }
+               else if (c == 0xfffe && line->empty() && enc == QCS_UTF16) {
+                  // update encoding and skip BOM
+                  enc = QCS_UTF16LE;
+                  //printd(5, "DataLineIterator::getLine() skipping BOM, updated encoding to UTF16-LE\n");
+                  continue;
+               }
+               line->concatUnicode(c);
+               if (c == bytes[pos]) {
+                  ++pos;
+                  if (!bytes[pos]) {
+                     if (trim)
+                        line->terminate(line->strlen() - pos);
+                     break;
+                  }
+               }
+               else if (pos) {
+                  if (pos > 1) {
+                     unsigned ps = 1;
+                     while (ps < pos) {
+                        if (!strncmp(line->getBuffer() + ps, bytes, pos - ps)) {
+                           pos -= ps;
+                           break;
+                        }
+                        ++ps;
+                     }
+                     if (pos == ps)
+                        pos = 0;
+                  }
+                  else {
+                     // restart search if failed
+                     pos = 0;
+                  }
+               }
+               assert(offset <= data->size());
+               if (offset == data->size())
+                  break;
+            }
+         }
+         else {
+            const char* p = strstr(ptr, eol->getBuffer());
+            if (!p) {
+               line->concat(ptr);
+               if (line->empty())
+                  return false;
+               offset += line->strlen();
+            }
+            else {
+               line->concat(ptr, p - ptr + (!trim ? eol->strlen() : 0));
+               offset += p - ptr + eol->strlen();
+            }
+         }
+      }
+      else {
+         const char* p = ptr;
+         while (offset < data->size()) {
+            int c;
+            if (convert_to_utf8) {
+               int i = (int)enc->getCharLen(p, data->size() - offset);
+               if (i < 0) {
+                  // character encoding error
+                  xsink->raiseException("ENCODING-ERROR", "invalid bytes for character encoding '%s' found at offset "QLLD" in input data string", enc->getCode(), offset);
+                  return false;
+               }
+               c = (int)enc->getUnicode(p);
+               p += i;
+               offset += i;
+               //printd(5, "DataLineIterator::getLine() auto c: %d i: %d\n", c, i);
+            }
+            else {
+               c = *p;
+               ++p;
+               ++offset;
+            }
+            if (c == '\r') {
+               if (!trim)
+                  line->concat((char)c);
+               if (convert_to_utf8) {
+                  if (offset < data->size()) {
+                     int i = (int)enc->getCharLen(p, data->size() - offset);
+                     if (i < 0) {
+                        // character encoding error
+                        xsink->raiseException("ENCODING-ERROR", "invalid bytes for character encoding '%s' found at offset "QLLD" in input data string", enc->getCode(), offset);
+                        return false;
+                     }
+                     c = (int)enc->getUnicode(p);
+                     if (c == '\n') {
+                        p += i;
+                        offset += i;
+                        if (!trim)
+                           line->concat((char)c);
+                     }
+                  }
+               }
+               else if (*p == '\n') {
+                  ++p;
+                  ++offset;
+                  if (!trim)
+                     line->concat('\n');
+               }
+               break;
+            }
+            if (c == '\n') {
+               if (!trim)
+                  line->concat((char)c);
+               break;
+            }
+            if (convert_to_utf8) {
+               if (c == 0xfeff) {
+                  // skip BOM
+                  //printd(5, "DataLineIterator::getLine() skipping BOM\n");
+                  continue;
+               }
+               else if (c == 0xfffe && line->empty() && enc == QCS_UTF16) {
+                  // update encoding and skip BOM
+                  enc = QCS_UTF16LE;
+                  //printd(5, "DataLineIterator::getLine() skipping BOM, updated encoding to UTF16-LE\n");
+                  continue;
+               }
+               line->concatUnicode(c);
+            }
+            else
+               line->concat((char)c);
+         }
+      }
+
+      return true;
+   }
+
+public:
+   DLLLOCAL DataLineIterator(ExceptionSink* xsink, QoreStringNode *d, QoreStringNode* n_eol = 0, bool n_trim = true)
+      : line(new QoreStringNode(d->getEncoding()->isAsciiCompat() ? d->getEncoding() : QCS_UTF8)), eol(n_eol), data(d), offset(0), num(0), validp(false), trim(n_trim), convert_to_utf8(!d->getEncoding()->isAsciiCompat()), enc(d->getEncoding()) {
+   }
+
+   DLLLOCAL DataLineIterator(ExceptionSink* xsink, const DataLineIterator& old)
+      : line(new QoreStringNode(old.getEncoding())), eol(old.eol ? old.eol->stringRefSelf() : 0), data(old.data->stringRefSelf()), offset(0), num(old.num), validp(old.validp), trim(old.trim), convert_to_utf8(old.convert_to_utf8), enc(old.enc) {
+   }
+
+   DLLLOCAL bool next(ExceptionSink* xsink) {
+      // make sure and use a new string if the iterator was already valid
+      if (validp && !line->empty()) {
+         line->deref();
+         line = new QoreStringNode(enc->isAsciiCompat() ? enc : QCS_UTF8);
+      }
+      validp = getLine(xsink);
+      if (validp) {
+         // increment line number
+         ++num;
+      }
+      else {
+         // reset iterator
+         num = 0;
+         // reset position
+         offset = 0;
+      }
+      //printd(5, "DataLineIterator::next() this: %p line: %d offset: %lld validp: %d '%s'\n", this, num, offset, validp, line->getBuffer());
+      return validp;
+   }
+
+   DLLLOCAL int64 index() const {
+      return num;
+   }
+
+   DLLLOCAL QoreStringNode* getValue() {
+      assert(validp);
+      return line->stringRefSelf();
+   }
+
+   DLLLOCAL bool valid() const {
+      return validp;
+   }
+
+   DLLLOCAL int checkValid(ExceptionSink* xsink) const {
+      if (!validp) {
+         xsink->raiseException("ITERATOR-ERROR", "the %s is not pointing at a valid element; make sure %s::next() returns True before calling this method", getName(), getName());
+         return -1;
+      }
+      return 0;
+   }
+
+   DLLLOCAL void reset() {
+      if (validp) {
+         // reset line number
+         num = 0;
+         // mark as invalid
+         validp = false;
+         // reset line buffer
+         line->deref();
+         line = new QoreStringNode(enc->isAsciiCompat() ? enc : QCS_UTF8);
+         // reset position
+         offset = 0;
+      }
+   }
+
+   DLLLOCAL int64 getPos() const {
+      return offset;
+   }
+
+   DLLLOCAL const QoreEncoding* getEncoding() const {
+      return enc->isAsciiCompat() ? enc : QCS_UTF8;
+   }
+
+   DLLLOCAL virtual void deref() {
+      if (ROdereference())
+         delete this;
+   }
+
+   DLLLOCAL virtual const char* getName() const { return "DataLineIterator"; }
+};
+
+//! This class defines a line iterator for string data
+/** @since %Qore 0.8.12
+
+    @par Example: DataLineIterator basic usage
+    @code
+my string $str = "a2ps-4.13-1332.1.x86_64
+a2ps-devel-4.13-1332.1.x86_64
+aaa_base-11.3-7.2.x86_64";
+
+my DataLineIterator $it($str);
+while ($it.next()) {
+    printf("line %d = %n\n", $it.index(), $it.getValue());
+}
+
+line 1 = "a2ps-4.13-1332.1.x86_64"
+line 2 = "a2ps-devel-4.13-1332.1.x86_64"
+line 3 = "aaa_base-11.3-7.2.x86_64"
+    @endcode
+
+    @see @ref Qore::FileLineIterator
+ */
+qclass DataLineIterator [arg=DataLineIterator* i; ns=Qore; vparent=AbstractIterator];
+
+//! creates the DataLineIterator based on the string given
+/** @param string the string to iterate over; note that if this string is in a non-ascii-compatible character encoding, it will be converted to UTF-8 for processing in the constructor and the UTF-8 version of the string will be used for iterating in this object
+    @param eol the optional end of line character(s) to use to detect lines in the data; if this string is not passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n"; if this string is passed and has a different @ref character_encoding "character encoding" from this object's (as determined by the \c encoding parameter), then it will be converted to the DataLineIterator's @ref character_encoding "character encoding"
+    @param trim if @ref Qore::True "True" the string return values for the lines iterated will be trimmed of the eol bytes
+
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the eol argument has a different @ref character_encoding "character encoding" from the data's and an error occurs during encoding conversion
+ */
+DataLineIterator::constructor(string string, *string eol, bool trim = True) {
+   if (eol && eol->empty())
+      eol = 0;
+
+   // make sure that we use the same encoding for the EOL marker as with the input data
+   SimpleRefHolder<QoreStringNode> neol;
+   if (eol) {
+      const QoreEncoding* eol_enc = string->getEncoding()->isAsciiCompat() ? string->getEncoding() : QCS_UTF8;
+      neol = eol->convertEncoding(eol_enc, xsink);
+      if (*xsink)
+         return;
+   }
+
+   SimpleRefHolder<DataLineIterator> fli(new DataLineIterator(xsink, string->stringRefSelf(), neol.release(), trim));
+   if (*xsink)
+      return;
+
+   self->setPrivate(CID_DATALINEITERATOR, fli.release());
+}
+
+//! Creates a new DataLineIterator object, based on the same object being iterated in the original object
+/** @par Example:
+    @code
+my DataLineIterator $ni = $i.copy();
+    @endcode
+ */
+DataLineIterator::copy() {
+   SimpleRefHolder<DataLineIterator> fli(new DataLineIterator(xsink, *i));
+
+   if (!*xsink)
+      self->setPrivate(CID_DATALINEITERATOR, fli.release());
+}
+
+//! Moves the current position to the next line in the data; returns @ref False if there are no more lines to read; if the iterator is not pointing at a valid element before this call, the iterator will be positioned to the beginning of the data
+/** This method will return @ref True again after it returns @ref False once if data is not empty, otherwise it will always return @ref False
+    The iterator object should not be used after this method returns @ref False
+
+    @return @ref False if there are no more lines in the data (in which case the iterator object is invalid and should not be used); @ref True if successful (meaning that the iterator object is valid)
+
+    @par Example:
+    @code
+while ($i.next()) {
+    printf("line: %y\n", $i.getValue());
+}
+    @endcode
+
+    @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+ */
+bool DataLineIterator::next() {
+   if (i->check(xsink))
+      return false;
+   return i->next(xsink);
+}
+
+//! returns the current line in the data or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+/** @return the current line in the data or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+
+    @par Example:
+    @code
+while ($i.next()) {
+    printf("+ %y\n", $i.getValue());
+}
+    @endcode
+
+    @throw INVALID-ITERATOR the iterator is not pointing at a valid element
+    @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+
+    @see DataLineIterator::getLine()
+ */
+string DataLineIterator::getValue() [flags=RET_VALUE_ONLY] {
+   return i->checkValid(xsink) ? 0 : i->getValue();
+}
+
+//! returns the current line in the data or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+/** @return the current line in the data or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+
+    @par Example:
+    @code
+while ($i.next()) {
+    printf("+ %y\n", $i.getLine());
+}
+    @endcode
+
+    @throw INVALID-ITERATOR the iterator is not pointing at a valid element
+    @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+
+    @see DataLineIterator::getValue()
+ */
+string DataLineIterator::getLine() [flags=RET_VALUE_ONLY] {
+   return i->checkValid(xsink) ? 0 : i->getValue();
+}
+
+//! returns @ref Qore::True "True" if the iterator is currently pointing at a valid element, @ref Qore::False "False" if not
+/** @return @ref Qore::True "True" if the iterator is currently pointing at a valid element, @ref Qore::False "False" if not
+
+    @par Example:
+    @code
+if ($i.valid())
+    printf("current value: %y\n", $i.getValue());
+    @endcode
+ */
+bool DataLineIterator::valid() [flags=CONSTANT] {
+   return i->valid();
+}
+
+//! returns the current iterator line number in the data (the first line is line 1) or 0 if not pointing at a valid element
+/** @return the current iterator line number in the data (the first line is line 1) or 0 if not pointing at a valid element
+
+    @par Example:
+    @code
+while ($i.next()) {
+    printf("+ %d: %y\n", $i.index(), $i.getValue());
+}
+    @endcode
+ */
+int DataLineIterator::index() [flags=CONSTANT] {
+   return i->index();
+}
+
+//! Returns the @ref character_encoding "character encoding" for the %DataLineIterator
+/** @par Example:
+    @code
+my string $encoding = $f.getEncoding();
+    @endcode
+
+    @return the @ref character_encoding "character encoding" for the %DataLineIterator
+ */
+string DataLineIterator::getEncoding() [flags=CONSTANT] {
+   return new QoreStringNode(i->getEncoding()->getCode());
+}
+
+//! Returns the current data position as an integer giving the offset in bytes from the beginning of the data (starting from zero)
+/** @par Example:
+    @code
+my int $pos = $i.getPos();
+    @endcode
+
+    @return the current data position as an integer giving the offset in bytes from the beginning of the data (starting from zero)
+ */
+int DataLineIterator::getPos() [flags=RET_VALUE_ONLY] {
+   return i->getPos();
+}
+
+//! Reset the iterator instance to its initial state
+/** Reset the iterator instance to its initial state
+
+   @par Example
+   @code
+$i.reset();
+   @endcode
+
+    @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+ */
+DataLineIterator::reset() {
+   if (i->check(xsink))
+      return QoreValue();
+   i->reset();
+}

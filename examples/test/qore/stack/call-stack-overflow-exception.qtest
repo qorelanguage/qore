@@ -1,0 +1,37 @@
+#!/usr/bin/env qr
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class StackGuardTest
+
+public class StackGuardTest inherits QUnit::Test {
+    constructor() : Test("StackGuardTest", "1.0") {
+        addTestCase("Test overflowing the stack limit", \testInfiniteRecurse(), NOTHING);
+        addTestCase("Test two threads", \testRecurseWithBackground(), NOTHING);
+
+        set_return_value(main());
+    }
+
+    setUp() {
+        if (!Option::HAVE_STACK_GUARD) {
+            testSkip("Qore library was not built with stack protection support");
+        }
+    }
+
+    recurse() {
+        recurse();
+    }
+
+    testInfiniteRecurse() {
+        testAssertion("recurse infinitely", \recurse(), NOTHING, new QUnit::TestResultExceptionRegexp("STACK-LIMIT-EXCEEDED", "this thread's stack has exceeded the stack size limit"));
+    }
+
+    testRecurseWithBackground() {
+        background testInfiniteRecurse();
+        testInfiniteRecurse();
+    }
+}

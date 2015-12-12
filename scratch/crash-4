@@ -1,0 +1,8 @@
+#!/usr/bin/env qr
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+any sub f() {
+    int a = 8;
+    background sub () {printf("%y\n", a);}();
+}
+f();

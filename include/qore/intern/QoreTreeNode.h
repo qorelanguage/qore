@@ -4,7 +4,7 @@
  
   Qore Programming Language
  
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
  
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -40,15 +40,7 @@ protected:
 
    DLLLOCAL virtual ~QoreTreeNode();
 
-   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
-   DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const;
-   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
-   DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
-
-   // evalImpl(): return value requires a deref(xsink)
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
-
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
    DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
    DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
@@ -131,10 +123,14 @@ public:
    DLLLOCAL bool constArgs() {
       return left && left->is_value() && (op->numArgs() == 1 || (right && right->is_value()));
    }
-   DLLLOCAL AbstractQoreNode *evalSubst(const QoreTypeInfo *&rtTypeInfo) {
+
+   DLLLOCAL AbstractQoreNode* evalSubst(const QoreTypeInfo*& rtTypeInfo) {
       SimpleRefHolder<QoreTreeNode> rh(this);
       ExceptionSink xsink;
-      AbstractQoreNode *rv = op->eval(left, right, true, &xsink);
+
+      ValueEvalRefHolder v(this, &xsink);
+      assert(!xsink);
+      AbstractQoreNode* rv = v.getReferencedValue();
       rtTypeInfo = rv ? getTypeInfoForType(rv->getType()) : nothingTypeInfo;
       xsink.clear();
       return rv ? rv : nothing();

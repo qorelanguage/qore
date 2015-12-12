@@ -1,0 +1,166 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# @file Diff.qm Qore user module for generally useful routines
+
+/*  Diff.qm Copyright 2014 - 2015 Qore Technologies, sro
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# this module requires Qore 0.8.12 or better
+%requires qore >= 0.8.12
+%require-types
+%enable-all-warnings
+%new-style
+%requires Util
+
+module Diff {
+    version = "1.0";
+    desc    = "looking for differences between various data";
+    author  = "Jiri Vaclavik <jiri.vaclavik@qoretechnologies.com>";
+    url     = "http://qore.org";
+    license = "MIT";
+}
+
+/** @mainpage Diff Module
+
+    @tableofcontents
+
+    @section diffintro Diff Module Introduction
+
+    The %Diff module provides some routines for comparing data structures.
+
+    To use this module, use \c "%requires Diff" in your code.
+    
+    All the public symbols in the module are defined in the Util namespace
+
+    Functions:
+    - @ref Diff::diff()
+
+    @section diffrelnotes Release Notes
+
+    @subsection diff_1_0
+    - the initial version of the Diff module
+*/
+
+#! the Diff namespace contains all the objects in the Util module
+public namespace Diff {
+    #! returns differences in two lists
+    /** @par Example:
+        @code
+my list $diff = diff((1, 2, 3, 4), (2, 3, 5));
+        @endcode
+        @param softlist some list
+        @param softlist another list
+        */
+    public list sub diff(softlist old, softlist neww) {
+        list matrix = list();
+        int maxlen = 0;
+        int old_max;
+        int new_max;
+        if (!old.empty() && !neww.empty()) {
+            foreach int old_index in (xrange(0, old.size() - 1)) {
+                any old_value = old[old_index];
+                list nkeys = select xrange(0, neww.size() - 1), neww[$1] == old_value;
+                foreach int new_index in (nkeys) {
+                    matrix[old_index][new_index] = exists matrix[old_index - 1][new_index - 1] ? matrix[old_index - 1][new_index - 1] + 1 : 1;
+                    if (matrix[old_index][new_index] > maxlen) {
+                        maxlen = matrix[old_index][new_index];
+                        old_max = old_index + 1 - maxlen;
+                        new_max = new_index + 1 - maxlen;
+                    }
+                }
+            }
+        }
+        if (old.empty() && neww.empty()) {
+            return list();
+        }
+
+        if (maxlen == 0) {
+            return list(('d' : old, 'i' : neww));
+        }
+
+        list e1_old = slice(old, old_max != 0 ? range(0, old_max - 1) : list());
+        list e1_new = slice(neww, new_max != 0 ? range(0, new_max - 1) : list());
+        list e_eq   = slice(neww, maxlen > 0 ? range(new_max, new_max + maxlen - 1) : list());
+        list e2_old = slice(old, old.size() > old_max + maxlen ? range(old_max + maxlen, old.size() - 1) : list());
+        list e2_new = slice(neww, neww.size() > new_max + maxlen ? range(new_max + maxlen, neww.size() - 1) : list());
+        return 
+            diff(e1_old, e1_new)
+            + e_eq
+            + diff(e2_old, e2_new);
+    }
+
+    #! shows differences between two strings considering lines as elementary unit. This function clones standard unix diff
+    /** @par Example:
+        @code
+my string $diff = diff_text($str1, $str2);
+        @endcode
+        @param string some string
+        @param string another string
+        */
+    public string sub diff_text(string s1, string s2) {
+        list lines1 = split("\n", s1);
+        list lines2 = split("\n", s2);
+
+        list results = diff(lines1, lines2);
+        string diff = '';
+
+        int line1 = 1;
+        int line2 = 1;
+        foreach any line in (results) {
+            if (line.type() == 'hash') {
+                list insert = line.i;
+                list del = line.d;
+                if (insert.size() && del.size()) {
+                    diff += line_range(line2, line2 + del.size() - 1) + 'c' + line_range(line1, line1 + insert.size() - 1) + "\n";
+                }
+                else if (insert.size()) {
+                    diff += (line2 - 1) + "a" + line_range(line1, line1 + insert.size() - 1) + "\n";
+                }
+                else if (del.size()) {
+                    diff += line_range(line2, line2 + del.size() - 1) + "d" + (line1 - 1) + "\n";
+                }
+
+                if (del.size()) {
+                    diff += join("\n", map "< " + $1, del) + "\n";
+                }
+                if (insert.size() && del.size()) {
+                    diff += "---\n";
+                }
+                if (insert.size()) {
+                    diff += join("\n", map "> " + $1, insert) + "\n";
+                }
+                line1 += insert.size();
+                line2 += del.size();
+            }
+            else {
+                line1++;
+                line2++;
+            }
+        }
+        return diff;
+    }
+
+    string sub line_range(int from, int to) {
+        if (from == to) {
+            return string(from);
+        }
+        return from + ',' + to;
+    }
+}
