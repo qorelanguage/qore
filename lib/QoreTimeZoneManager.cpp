@@ -184,6 +184,8 @@ QoreZoneInfo::QoreZoneInfo(QoreString &root, std::string &n_name, ExceptionSink 
                printd(1, "QoreZoneInfo::QoreZoneInfo() skipping invalid transition [%d] at %d\n", i, t.time);
                QoreDSTTransitions.erase(di);
                di = prev;
+               if (i < first_pos)
+                 --first_pos;
             }
          }
          ++di;
