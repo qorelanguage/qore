@@ -183,7 +183,19 @@ class DateTest inherits QUnit::Test {
         assertEq(15, date1.minutes());
         assertEq(25, date1.seconds());
         assertEq(123456, date1.microseconds());
-    }
+
+        date1 = 1947-05-10T21:59:12.002341;
+        assertEq(21, date1.hours());
+        assertEq(59, date1.minutes());
+        assertEq(12, date1.seconds());
+        assertEq(2341, date1.microseconds());
+
+        date1 = 1947-05-10T23:59:12.002341;
+        assertEq(23, date1.hours());
+        assertEq(59, date1.minutes());
+        assertEq(12, date1.seconds());
+        assertEq(2341, date1.microseconds());
+}
 
     timeZoneTests() {
         testAssertionValue("UTC offset", (new TimeZone("Europe/Prague")).UTCOffset(), 3600);
