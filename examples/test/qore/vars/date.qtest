@@ -196,6 +196,9 @@ class DateTest inherits QUnit::Test {
         Program p(PO_NEW_STYLE | PO_NO_FILESYSTEM);
         p.parse("TimeZone sub test() {return new TimeZone(\"" + fn + "\");}", "test");
         testAssertion("zone path neg", \p.callFunction(), "test", new TestResultExceptionType("ILLEGAL-FILESYSTEM-ACCESS"));
+
+        # test for issue #259
+        assertEq(7200, new TimeZone("Europe/Vienna").date("1980-07-01").info().utc_secs_east);
     }
 
     testDate(date d, int y, int w, int day, int n, reference ri) {
