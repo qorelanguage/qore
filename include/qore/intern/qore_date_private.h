@@ -654,15 +654,24 @@ public:
    }
 
    DLLLOCAL int getHour() const {
-      return (int)(((epoch + zone->getUTCOffset(epoch)) % SECS_PER_DAY) / SECS_PER_HOUR);
+      int h = (int)(((epoch + zone->getUTCOffset(epoch)) % SECS_PER_DAY) / SECS_PER_HOUR);
+      if (h < 0)
+         h += 23;
+      return h;
    }
 
    DLLLOCAL int getMinute() const {
-      return (int)(((epoch + zone->getUTCOffset(epoch)) % SECS_PER_HOUR) / SECS_PER_MINUTE);
+      int m = (int)(((epoch + zone->getUTCOffset(epoch)) % SECS_PER_HOUR) / SECS_PER_MINUTE);
+      if (m < 0)
+         m += 59;
+      return m;
    }
 
    DLLLOCAL int getSecond() const {
-      return (int)((epoch + zone->getUTCOffset(epoch)) % SECS_PER_MINUTE);
+      int s = (int)((epoch + zone->getUTCOffset(epoch)) % SECS_PER_MINUTE);
+      if (s < 0)
+         s += 60;
+      return s;
    }
 
    DLLLOCAL int getMillisecond() const {
