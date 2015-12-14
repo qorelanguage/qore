@@ -2030,7 +2030,7 @@ int qore_class_private::parseCheckClassHierarchyMembers(const char* mname, const
       if (l_mi.priv != b_mi.priv) {
       // raise an exception only if parse exceptions are enabled
       if (getProgram()->getParseExceptionSink()) {
-	 qore_program_private::makeParseException(getProgram(), l_mi.loc, "PARSE-ERROR", new QoreStringNodeMaker("class '%s' cannot be combined with class '%s' in the same hierarchy because member '%s' is declared both %s and %s, respectively", l_mi.getClass(this)->name.c_str(), b_mi.getClass(&b_qc), mname, privpub(l_mi.priv), privpub(b_mi.priv)));
+	 qore_program_private::makeParseException(getProgram(), l_mi.loc, "PARSE-ERROR", new QoreStringNodeMaker("class '%s' cannot be combined with class '%s' in the same hierarchy because member '%s' is declared both %s and %s, respectively", l_mi.getClass(this)->name.c_str(), b_mi.getClass(&b_qc)->name.c_str(), mname, privpub(l_mi.priv), privpub(b_mi.priv)));
       }
       return -1;
    }
