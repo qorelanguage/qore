@@ -110,5 +110,8 @@ doxygen/lang/*.dox
 # ignore cmake build directories
 build*/
 
+# ignore fontconfig generated files
+fontconfig/
+
 # do not ignore the following directories (matched by patterns above)
 !examples/test/qore/
