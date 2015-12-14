@@ -531,6 +531,10 @@ Mapper mapv(DataMap);
                 if (!allow_dot && fh.name =~ /\./)
                     fh.struct = (remove fh.name).split(".");
             }
+            else if (fh.runtime) {
+                if (!m_runtime.hasKey(fh.runtime))
+                    error("output field %y requires unregistered runtime key %y", getFieldName(k), fh.runtime);
+            }
             else if (!fh.struct && input && !exists fh.constant && !fh.code)
                 checkInputField(k, k);
             if (exists fh.constant) {
