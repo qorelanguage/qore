@@ -170,7 +170,32 @@ class DateTest inherits QUnit::Test {
         testAssertionValue("SingleValueIterator::getValue() (copy)", ni.getValue(), 2012-01-01);
         testAssertionValue("SingleValueIterator::next() (copy)", ni.next(), False);
         testAssertionValue("SingleValueIterator::valid() (copy)", ni.valid(), False);
-    }
+
+        # time components for dates before the epoch must be returned correctly
+        date1 = 1969-12-31T20:15:25;
+        assertEq(20, date1.hours());
+        assertEq(15, date1.minutes());
+        assertEq(25, date1.seconds());
+        assertEq(0, date1.microseconds());
+
+        date1 = 1969-12-31T20:15:25.123456;
+        assertEq(20, date1.hours());
+        assertEq(15, date1.minutes());
+        assertEq(25, date1.seconds());
+        assertEq(123456, date1.microseconds());
+
+        date1 = 1947-05-10T21:59:12.002341;
+        assertEq(21, date1.hours());
+        assertEq(59, date1.minutes());
+        assertEq(12, date1.seconds());
+        assertEq(2341, date1.microseconds());
+
+        date1 = 1947-05-10T23:59:12.002341;
+        assertEq(23, date1.hours());
+        assertEq(59, date1.minutes());
+        assertEq(12, date1.seconds());
+        assertEq(2341, date1.microseconds());
+}
 
     timeZoneTests() {
         testAssertionValue("UTC offset", (new TimeZone("Europe/Prague")).UTCOffset(), 3600);

@@ -654,15 +654,39 @@ public:
    }
 
    DLLLOCAL int getHour() const {
-      return (int)(((epoch + zone->getUTCOffset(epoch)) % SECS_PER_DAY) / SECS_PER_HOUR);
+      if (epoch >= 0)
+         return (int)(((epoch + zone->getUTCOffset(epoch)) % SECS_PER_DAY) / SECS_PER_HOUR);
+
+      qore_time_info info;
+      const char* zname;
+      bool isdst;
+      int offset = zone->getUTCOffset(epoch, isdst, zname);
+      info.set(epoch, us, offset, isdst, zname, zone);
+      return info.hour;
    }
 
    DLLLOCAL int getMinute() const {
-      return (int)(((epoch + zone->getUTCOffset(epoch)) % SECS_PER_HOUR) / SECS_PER_MINUTE);
+      if (epoch >= 0)
+         return (int)(((epoch + zone->getUTCOffset(epoch)) % SECS_PER_HOUR) / SECS_PER_MINUTE);
+
+      qore_time_info info;
+      const char* zname;
+      bool isdst;
+      int offset = zone->getUTCOffset(epoch, isdst, zname);
+      info.set(epoch, us, offset, isdst, zname, zone);
+      return info.minute;
    }
 
    DLLLOCAL int getSecond() const {
-      return (int)((epoch + zone->getUTCOffset(epoch)) % SECS_PER_MINUTE);
+      if (epoch >= 0)
+         return ((epoch + zone->getUTCOffset(epoch)) % SECS_PER_MINUTE);
+
+      qore_time_info info;
+      const char* zname;
+      bool isdst;
+      int offset = zone->getUTCOffset(epoch, isdst, zname);
+      info.set(epoch, us, offset, isdst, zname, zone);
+      return info.second;
    }
 
    DLLLOCAL int getMillisecond() const {
