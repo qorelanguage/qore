@@ -1885,6 +1885,11 @@ public namespace SqlUtil {
     */
     public const COP_AVG = "avg";
 
+    #! to return the sum value
+    /** @see cop_sum
+    */
+    public const COP_SUM = "sum";
+
     #! to return the row count
     /** @see cop_count
     */
@@ -2287,6 +2292,20 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     */
     public hash sub cop_avg(any column) {
         return make_cop(COP_AVG, column);
+    }
+
+    #! returns a hash for the \c "sum" operator; returns the total sum of a numeric column.
+    /** @par Example:
+        @code
+*list rows = table.selectRows(("columns": (cop_sum("quantity")), "where": ("order_type": "wholesale")));
+        @endcode
+
+        @param column the column specification for the column (string name or dot notation for use in joins)
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    public hash sub cop_sum(any column) {
+        return make_cop(COP_SUM, column);
     }
 
     #! returns a hash for the \c "count" operator; returns row counts
@@ -6699,11 +6718,11 @@ list l = db.getAlignSql(schema_hash);
             AbstractDatabase::checkDriverOptions(\schema_hash.tables, drv);
             foreach string name in (schema_hash.tables.keyIterator()) {
                 #printf("processing table %y\n", name);
-                Table t;
+                AbstractTable t;
                 if (opt.db_table_cache.hasKey(name))
                     t = opt.db_table_cache{name};
                 else {
-                    t = new Table(ds, name);
+                    t = (new Table(ds, name)).getTable();
                     # store in db_table_cache
                     opt.db_table_cache.add(name, t);
                 }
@@ -8885,8 +8904,6 @@ table.insert(row);
 
             @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
             @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
-
-            @return in case the \c "returning" @ref AbstractTable::InsertOptions "insert option" is used, a hash of return values is returned, otherwise @ref nothing is returned
 
             @return in case the \c "returning" @ref AbstractTable::InsertOptions "insert option" is used, a hash of return values is returned, otherwise @ref nothing is returned
 

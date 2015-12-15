@@ -57,7 +57,7 @@ module PgsqlSqlUtil {
 
     Usually this module is loaded on demand from the SqlUtil module, however to use this module
     directly, use \c "%requires PgsqlSqlUtil" in your code.
-    
+
     All the public symbols in the module are defined in the PgsqlSqlUtil namespace
 
     @note This module requires the <a href="http://qore.org/qore-modules/15-pgsql-module">pgsql</a> binary module for communication with PostgreSQL databases
@@ -83,7 +83,7 @@ module PgsqlSqlUtil {
     |@ref SqlUtil::NUMERIC|\c numeric
     |@ref SqlUtil::VARCHAR|\c varchar
 
-    To use other types, use the \c "native_type" @ref SqlUtil::AbstractTable::ColumnDescOptions "column description option" with the 
+    To use other types, use the \c "native_type" @ref SqlUtil::AbstractTable::ColumnDescOptions "column description option" with the
     native PostgreSQL type name instead (under the \c "driver" and \c "pgsql" keys for schemas supporting multiple databases).
 
     @subsection pgsql_other_objects Additional Object Types Supported
@@ -126,7 +126,7 @@ my hash $schema = (
     value returned by <a href="http://www.postgresql.org/docs/9.2/static/functions-info.html">pg_catalog.pg_get_function_identity_arguments()</a>, which would be \c "update_queue(character varying queue)"
 
     @par Schema Management with Functions
-    There is some simple logic in the driver that attempts to reorder function definitions so that they match the format returned by 
+    There is some simple logic in the driver that attempts to reorder function definitions so that they match the format returned by
     <a href="http://www.postgresql.org/docs/9.2/static/functions-info.html">pg_catalog.pg_get_functiondef()</a>
     which requires the following string to follow the function name and arguments:
     - <tt><b>returns</b></tt> <i>type</i> <tt><b>language</b></tt> <i>lang</i> <tt><b>as $function$ </b></tt>
@@ -142,7 +142,7 @@ declare
 begin
   update queue_data set data = qdata, queue_data_status = 'R' where queuekey = qkey and queue_data_status = 'W';
   get diagnostics rowcount = row_count;
-  return rowcount;  
+  return rowcount;
 end;
 $function$
     @endcode
@@ -174,7 +174,7 @@ public namespace PgsqlSqlUtil {
     public PgsqlDatabase sub get_database(AbstractDatasource nds, *hash opts) {
 	return new PgsqlDatabase(nds, opts);
     }
-    
+
     sub parse_schema_name(string nname, reference schema, reference name) {
         *string sstr = (nname =~ x/^(\w+)\.\w+/)[0];
         if (sstr) {
@@ -272,7 +272,7 @@ public namespace PgsqlSqlUtil {
             #! the tablespace name of the index
             *string tablespace;
         }
-       
+
         #! creates the object from the arguments
         constructor(string n_name, bool n_unique, hash n_cols, *string n_tablespace) : AbstractIndex(n_name, n_unique, n_cols) {
             tablespace = n_tablespace;
@@ -383,7 +383,7 @@ my list $l = $col.getAddColumnSql($t);
             @param t the SqlUtil::AbstractTable object to modify
          */
         list getAddColumnSql(AbstractTable t) {
-	    list l += sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql(t));	    
+	    list l += sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql(t));
 	    if (comment)
 		l += sprintf("comment on column %s.%s is %s", t.getSqlName(), name, t.getSqlValue(comment));
             return l;
@@ -410,7 +410,7 @@ my list $l = $col.getModifySql($t, $newcol);
             string nts = c.getNativeTypeString();
             if (getNativeTypeString() != nts) {
                 #printf("ME: %s\nDB: %s\n", nts, getNativeTypeString());
-                # first drop any default value if it's changing 
+                # first drop any default value if it's changing
                 if (def_val !== c.def_val)
                     l += sprintf("alter table %s alter %s drop default", t.getSqlName(), name);
 
@@ -424,7 +424,7 @@ my list $l = $col.getModifySql($t, $newcol);
                 if (exists c.def_val && c.def_val !== NULL)
                     l += sprintf("alter table %s alter %s set default %s", t.getSqlName(), name, c.def_val);
                 else
-                    l += sprintf("alter table %s alter %s drop default", t.getSqlName(), name);                    
+                    l += sprintf("alter table %s alter %s drop default", t.getSqlName(), name);
             }
             if (nullable != c.nullable) {
                 l += sprintf("alter table %s alter %s %s not null", t.getSqlName(), name, c.nullable ? "drop" : "set");
@@ -466,7 +466,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         string getNativeTypeString() {
             switch (native_type) {
                 # do not return with numeric precision
-                case "bigint": 
+                case "bigint":
                 case "double precision":
                     return native_type;
             }
@@ -558,7 +558,7 @@ my any $v = $c.name;
             @throw KEY-ERROR the given key does not exist in the contained hash
 
             @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
-            
+
             @see @ref memberGate_methods
         */
         PgsqlColumn memberGate(string k) {
@@ -620,7 +620,7 @@ my any $v = $c.name;
             @throw KEY-ERROR the given key does not exist in the contained hash
 
             @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
-            
+
             @see @ref memberGate_methods
         */
         PgsqlColumn memberGate(string k) {
@@ -662,10 +662,10 @@ my any $v = $c.name;
             return sprintf("alter sequence %s rename to %s", name, new_name);
         }
     }
-    
+
     #! represents a PostgreSQL view
     public class PgsqlView inherits SqlUtil::AbstractView {
-    
+
         public {
             #! Owner of the view
             *string viewowner;
@@ -831,7 +831,7 @@ my any $v = $c.name;
             row = ds.selectRow("select * from %s", name);
             return new PgsqlSequence(name, row.start, row.increment, row.max == 9223372036854775807 ? NOTHING : row.max);
         }
-        
+
         private *AbstractView getViewImpl(string name) {
             string schema;
             parse_schema_name(name, \schema, \name);
@@ -861,7 +861,7 @@ my any $v = $c.name;
 
                *string tlang = (src =~ x/language (.*)$/i)[0];
                if (tlang) {
-                   src =~ s/language .*$//i; 
+                   src =~ s/language .*$//i;
                    src = regex_subst(src, " as ", " language " + tlang + " as ", RE_Caseless);
                }
                if (type)
@@ -993,7 +993,7 @@ my any $v = $c.name;
             if (opt.start) {
                 return l;
             }
-            
+
             list tl = dropSqlUnlocked("type", schema_hash, \getType(), \makeType(), opt, Type::String);
             if (tl) l += tl;
 
@@ -1027,7 +1027,7 @@ my any $v = $c.name;
                         throw "SCHEMA-DESCRIPTION-ERROR", sprintf("type %y value is not a string in the schema description hash; got type %y instead (%y)", name, schema_hash.types{name}.type(), schema_hash.types{name});
 
                     string src = schema_hash.types{name};
-                  
+
                     PgsqlType templateType(name, src);
 
                     # see if type exists
@@ -1064,8 +1064,8 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         */
         private list listFunctionsImpl() {
             *hash qh = ds.select("select n.nspname schema, p.proname name, pg_catalog.pg_get_function_result(p.oid) result_type, pg_catalog.pg_get_function_arguments(p.oid) args, case when p.proisagg then 'agg' when p.proiswindow then 'window' when p.prorettype = 'pg_catalog.trigger'::pg_catalog.regtype then 'trigger' else 'normal' end type from pg_catalog.pg_proc p left join pg_catalog.pg_namespace n ON n.oid = p.pronamespace where n.nspname ~ '^(public)$' order by 1, 2, 4");
-            
-            return map sprintf("%s(%s)", $1.name, $1.args), qh.contextIterator();            
+
+            return map sprintf("%s(%s)", $1.name, $1.args), qh.contextIterator();
         }
 
         #! since PostgreSQL only supports functions, this method is identical to listFunctionsImpl()
@@ -1251,6 +1251,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 "character": "char",
                 "timestamp without time zone": "timestamp",
                 "time without time zone": "time",
+                "double precision": "float",
                 );
 
             #! maps qore type names to postgresql type names
@@ -1347,7 +1348,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         private {
             #! tablespace name for the table, if known
             *string tablespace;
-         
+
             #! schema name for the table
             string schema;
 
@@ -1471,6 +1472,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                     case Type::Int:
                     case Type::Float: {
                         size = 0;
+                        row.numeric_precision = 0;
                         break;
                     }
                 }
@@ -1556,17 +1558,17 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
 
         private ForeignConstraints getForeignConstraintsImpl(*hash opts) {
             hash rv;
-            # get foreign referential constraints 
+            # get foreign referential constraints
             *hash qh = ds.select("select constraint_name, att2.attname source_column, cl.relname target_table, att.attname target_column from (select con1.conname constraint_name, generate_subscripts(con1.conkey, 1) AS rn, unnest(con1.conkey) parent, unnest(con1.confkey) child, con1.confrelid, con1.conrelid from pg_class cl join pg_namespace ns on cl.relnamespace = ns.oid join pg_constraint con1 on con1.conrelid = cl.oid where cl.relname = %v and ns.nspname = %v and con1.contype = 'f' order by conname, rn) con join pg_attribute att on att.attrelid = con.confrelid and att.attnum = con.child join pg_class cl on cl.oid = con.confrelid join pg_attribute att2 on att2.attrelid = con.conrelid and att2.attnum = con.parent order by att.attnum", name, schema);
             if (qh.constraint_name) {
                 hash ch;
                 foreach hash row in (qh.contextIterator()) {
-                    reference c = \ch.(row.constraint_name); 
+                    reference c = \ch.(row.constraint_name);
                     c.columns.(row.source_column) = columns{row.source_column};
                     c.target.table = row.target_table;
                     c.target.columns.(row.target_column) = True;
                 }
-                
+
                 foreach hash c in (ch.pairIterator()) {
                     # get a description of the target table's columns
                     Columns targ_columns = getReferencedTableColumnsUnlocked(c.value.target.table, opts.table_cache);
@@ -1596,7 +1598,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                     ch = new PgsqlUniqueConstraint(row.constraint_name, {}, row.status == "ENABLED");
                 ch.add(row.column_name, columns{row.column_name});
             }
-            
+
             # add unique constraints to constraint hash
             map c.add($1.key, $1.value), rv.pairIterator();
 
@@ -1619,7 +1621,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                     fl += f;
                     tfh{f} = row.trigger_name;
                 }
-                    
+
                 if (!native_case)
                     map row.$1 = row.$1.lwr(), ("event_manipulation", "action_statement", "action_timing", "action_orientation");
                 if (rv{row.trigger_name}) {
@@ -1754,7 +1756,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         private bool tryInsertImpl(string sql, hash row) {
             ds.exec("begin");
             ds.exec("savepoint " + PgsqlDatabase::PGSQL_TempSavepoint);
-            
+
             try {
                 ds.vexec(sql, row.values());
                 ds.exec("release savepoint " + PgsqlDatabase::PGSQL_TempSavepoint);
@@ -1813,7 +1815,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             map l += $1.getDropSql(), triggerFunctions.iterator();
             return l;
         }
-        
+
         private setupTableImpl(hash desc, *hash opt) {
             # add trigger functions to table
             AbstractDatabase::checkDriverOptions(\desc.functions, ds.getDriverName());
@@ -1873,7 +1875,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         }
 
         #! db-specific copy actions
-        private copyImpl(AbstractTable old) {            
+        private copyImpl(AbstractTable old) {
             if (triggerFunctions)
                 triggerFunctions = triggerFunctions.copy();
         }
@@ -1888,7 +1890,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 args += c.qore_type ?* Type::String;
             }
             sql += sprintf(" returning %s", (foldl $1 + "," + $2, l));
-            
+
             *hash h = execData(opt, sql, args);
             return h ? map {$1.key: $1.value[0]}, h.pairIterator() : h;
         }

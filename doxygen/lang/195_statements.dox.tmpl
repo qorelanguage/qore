@@ -8,35 +8,35 @@
 
     <b>%Qore Statements</b>
     |!Type|!Examples|!Reference
-    |An expression that changes an lvalue|@code $var = 1;@endcode @code $var += 5;@endcode @code $var[1].count++;@endcode @code shift $var.key[$i];@endcode|@ref expressions
-    |An expression with the @ref new "new operator"|@code new ObjectClass(1, 2, 3);@endcode|@ref new
-    |An expression with the @ref background "background operator"|@code background function();@endcode|@ref background
-    |A @ref call_reference "call reference" or @ref closure "closure" call|@code $call_reference($arg1, $arg2);@endcode|@ref call_reference, @ref closure
-    |A @ref object_method_call "method call"|@code $object.method(1, 2, 3);@endcode|@ref qore_classes
-    |An @ref if "if statement"|@code if ($var == 3) {}@endcode|@ref if
-    |An @ref if "if ... else" statement|@code if ($var == 3) {} else {}@endcode|@ref if
-    |A @ref while "while statement"|@code while ($var < 10) {}@endcode|@ref while
-    |A @ref do "do while statement"|@code do {} while (True);@endcode|@ref do
-    |A @ref for "for statement"|@code for (my int $i = 0; $i < 10; ++ $i) {}@endcode|@ref for
-    |A @ref foreach "foreach statement"|@code foreach my softint $i in ($list) {}@endcode|@ref foreach
-    |A @ref switch "switch statement"|@code switch ($var) { case =~ /error/: throw "ERROR", $var; default: printf("%s\n", $var); }@endcode|@ref switch
-    |A @ref return "return statement"|@code return $val;@endcode|@ref return
-    |A @ref variable_declarations "local variable declaration"|@code my string $var;@endcode @code my (int $a, string $b, bool $c);@endcode|@ref variables, @ref variable_declarations
-    |A @ref variable_declarations "global variable declaration"|@code our int $var;@endcode @code our (float $a, int $b, hash $c);@endcode|@ref variables, @ref variable_declarations
-    |A @ref function_calls "function call"|@code calculate($this, $that, $the_other);@endcode|@ref function_library
-    |A @ref continue "continue statement"|@code continue;@endcode|@ref continue
-    |A @ref break "break statement"|@code break;@endcode|@ref break
-    |A statement block|@code {}@endcode|zero or more statements enclosed in curly brackets
-    |A @ref throw "throw statement"|@code throw "ERROR", $description;@endcode|@ref throw
-    |A @ref try "try and catch statement"|@code try { func(); } catch (hash $ex) { printf("%s:%d: %s: %s\n", $ex.file, $ex.line, $ex.err, $ex.desc); }@endcode|@ref try
-    |A @ref rethrow "rethrow statement"|@code rethrow;@endcode|@ref rethrow
-    |A @ref thread_exit "thread_exit statement"|@code thread_exit;@endcode|@ref thread_exit
-    |A @ref context "context statement"|@code context top ($q) {}@endcode|@ref context
-    |A @ref summarize "summarize statement"|@code summarize ($q) by (%date) where (%id != NULL) {}@endcode|@ref summarize
-    |A @ref subcontext "subcontext statement"|@code subcontext where (%type == "INBOUND" ) {}@endcode|@ref subcontext
-    |An @ref on_exit "on_exit statement"|@code on_exit $l.unlock();@endcode|@ref on_exit
-    |An @ref on_success "on_success statement"|@code on_success $ds.commit();@endcode|@ref on_success
-    |An @ref on_error "on_error statement"|@code on_error $ds.rollback();@endcode|@ref on_error
+    |An expression that changes an lvalue|@code{.py} $var = 1;@endcode @code{.py} $var += 5;@endcode @code{.py} $var[1].count++;@endcode @code{.py} shift $var.key[$i];@endcode|@ref expressions
+    |An expression with the @ref new "new operator"|@code{.py} new ObjectClass(1, 2, 3);@endcode|@ref new
+    |An expression with the @ref background "background operator"|@code{.py} background function();@endcode|@ref background
+    |A @ref call_reference "call reference" or @ref closure "closure" call|@code{.py} $call_reference($arg1, $arg2);@endcode|@ref call_reference, @ref closure
+    |A @ref object_method_call "method call"|@code{.py} $object.method(1, 2, 3);@endcode|@ref qore_classes
+    |An @ref if "if statement"|@code{.py} if ($var == 3) {}@endcode|@ref if
+    |An @ref if "if ... else" statement|@code{.py} if ($var == 3) {} else {}@endcode|@ref if
+    |A @ref while "while statement"|@code{.py} while ($var < 10) {}@endcode|@ref while
+    |A @ref do "do while statement"|@code{.py} do {} while (True);@endcode|@ref do
+    |A @ref for "for statement"|@code{.py} for (my int $i = 0; $i < 10; ++ $i) {}@endcode|@ref for
+    |A @ref foreach "foreach statement"|@code{.py} foreach my softint $i in ($list) {}@endcode|@ref foreach
+    |A @ref switch "switch statement"|@code{.py} switch ($var) { case =~ /error/: throw "ERROR", $var; default: printf("%s\n", $var); }@endcode|@ref switch
+    |A @ref return "return statement"|@code{.py} return $val;@endcode|@ref return
+    |A @ref variable_declarations "local variable declaration"|@code{.py} my string $var;@endcode @code{.py} my (int $a, string $b, bool $c);@endcode|@ref variables, @ref variable_declarations
+    |A @ref variable_declarations "global variable declaration"|@code{.py} our int $var;@endcode @code{.py} our (float $a, int $b, hash $c);@endcode|@ref variables, @ref variable_declarations
+    |A @ref function_calls "function call"|@code{.py} calculate($this, $that, $the_other);@endcode|@ref function_library
+    |A @ref continue "continue statement"|@code{.py} continue;@endcode|@ref continue
+    |A @ref break "break statement"|@code{.py} break;@endcode|@ref break
+    |A statement block|@code{.py} {}@endcode|zero or more statements enclosed in curly brackets
+    |A @ref throw "throw statement"|@code{.py} throw "ERROR", $description;@endcode|@ref throw
+    |A @ref try "try and catch statement"|@code{.py} try { func(); } catch (hash $ex) { printf("%s:%d: %s: %s\n", $ex.file, $ex.line, $ex.err, $ex.desc); }@endcode|@ref try
+    |A @ref rethrow "rethrow statement"|@code{.py} rethrow;@endcode|@ref rethrow
+    |A @ref thread_exit "thread_exit statement"|@code{.py} thread_exit;@endcode|@ref thread_exit
+    |A @ref context "context statement"|@code{.py} context top ($q) {}@endcode|@ref context
+    |A @ref summarize "summarize statement"|@code{.py} summarize ($q) by (%date) where (%id != NULL) {}@endcode|@ref summarize
+    |A @ref subcontext "subcontext statement"|@code{.py} subcontext where (%type == "INBOUND" ) {}@endcode|@ref subcontext
+    |An @ref on_exit "on_exit statement"|@code{.py} on_exit $l.unlock();@endcode|@ref on_exit
+    |An @ref on_success "on_success statement"|@code{.py} on_success $ds.commit();@endcode|@ref on_success
+    |An @ref on_error "on_error statement"|@code{.py} on_error $ds.rollback();@endcode|@ref on_error
 
     <hr>
     @section if if and else Statements
@@ -75,7 +75,7 @@
 
     @par Example
     Here is an example of a for loop using a local variable:\n
-    @code 
+    @code{.py}
 for (my int $i = 0; $i < 10; $i++)
     print("%d\n", $i);@endcode
 
@@ -96,7 +96,7 @@ for (my int $i = 0; $i < 10; $i++)
 
     @par Example
     Here is an example of a foreach loop using a local variable:\n
-    @code
+    @code{.py}
 # if $str_list is a list of strings, this will remove all whitespace from the
 # strings; the reference in the list expression ensures that changes
 # to the iterator variable are written back to the list
@@ -104,7 +104,7 @@ foreach my string $str in (\$str_list)
     trim $str;
     @endcode
     Here is an example of a foreach loop using an object derived from @ref Qore::AbstractIterator "AbstractIterator":\n
-    @code
+    @code{.py}
 my hash $h = ("a": 1, "b": 2);
 foreach my int $i in (new HashIterator($h))
     printf("%s = %y\n", $i.key, $i.value);
@@ -121,7 +121,7 @@ foreach my int $i in (new HashIterator($h))
     The %Qore switch statement is similar to the switch statement in C and C++, except that the case values can be any expression that does not need run-time evaluation and can also be expressions with simple relational operators or regular expressions using the switch value as an implied operand.
 
     @par Syntax
-    <tt><b>switch</b></tt> <tt>(</tt><em>@ref expressions "expression"</em><tt>) {</tt>\n 
+    <tt><b>switch</b></tt> <tt>(</tt><em>@ref expressions "expression"</em><tt>) {</tt>\n
     &nbsp;&nbsp;<tt><b>case</b></tt> <em>case_expression</em><tt>:</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "[statement(s)...]"</em>\n
     &nbsp;&nbsp;<tt>[\b default:</tt> \n
@@ -129,15 +129,15 @@ foreach my int $i in (new HashIterator($h))
     <tt>}</tt>
 
     @par Example
-    @code 
+    @code{.py}
 switch ($val) {
-    case < -1: 
+    case < -1:
         printf("less than -1\n");
 	break;
     case "string":
         printf("string\n");
 	break;
-    case > 2007-01-22T15:00:00: 
+    case > 2007-01-22T15:00:00:
         printf("greater than 2007-01-22 15:00:00\n");
 	break;
     case /abc/:
@@ -152,7 +152,7 @@ switch ($val) {
     The first \a expression is evaluated and then compared to the value of each \a case_expression in declaration order until one of the \a case_expressions matches or is evaluated to @ref Qore::True "True". In this case all code up to a @ref break "break statement" is executed, at which time execution flow exits the <tt><b>switch</b></tt> statement.\n\n
     Unless relational operators are used, the comparisons are "hard" comparisons; no type conversions are done, so in order for a match to be made, both the value and types of the expressions must match exactly. When relational operators are used, the operators are executed exactly as they are in the rest of %Qore, so type conversions may be performed if nesessary.  The only exception to this is when both arguments are strings then a soft comparison is made in order to avoid the case that strings fail to match only because their encodings are different.\n\n
     To use soft comparisons, you must explicitly specify the soft equals operator as follows:\n
-    @code
+    @code{.py}
 switch (1) {
     case == "1": print("true\n"); break;
 }@endcode \n
@@ -168,7 +168,7 @@ switch (1) {
     |<tt>\<</tt>|@ref logical_less_than_operator
     |<tt>\<=</tt>|@ref logical_less_than_or_equals_operator
     |<tt>==</tt>|@ref logical_equality_operator (with type conversions)
-    |<tt>~=</tt>|@ref regex_match_operator (in this case the regular expression may be optionally given without the operator)
+    |<tt>=~</tt>|@ref regex_match_operator (in this case the regular expression may be optionally given without the operator)
     |<tt>!~</tt>|@ref regex_no_match_operator
 
     <hr>
@@ -185,7 +185,7 @@ switch (1) {
 First the expression will be evaluated; if it evaluates to @ref Qore::True "True", then statement will be executed. If it evaluates to @ref Qore::False "False", the loop terminates.
 
     @par Example
-    @code 
+    @code{.py}
 my int $a = 1;
 while ($a < 10)
     $a++;@endcode
@@ -206,9 +206,9 @@ while ($a < 10)
     The difference between <tt><b>do</b></tt> <tt><b>while</b></tt> statements and @ref while "while statements" is that the <tt><b>do</b></tt> <tt><b>while</b></tt> statement evaluates its loop expression at the end of the loop, and therefore guarantees at least one iteration of the loop.
 
     @par Example
-    @code 
+    @code{.py}
 $a = 1;
-do 
+do
     $a++;
 while ($a < 10);@endcode
 
@@ -293,7 +293,7 @@ Skips the rest of a loop and jumps right to the evaluation of the iteration expr
 
     @par Description
     This statement will cause the current thread to stop executing immediately.
- 
+
     <hr>
     @section context context Statements
 
@@ -318,7 +318,7 @@ Skips the rest of a loop and jumps right to the evaluation of the iteration expr
     Another optional modifier to the <tt><b>context</b></tt> statement that behaves the same as above except that the results are sorted in descending order.
 
     @par Example
-    @code 
+    @code{.py}
 # note that "%service_type" and "%effective_start_date" represent values
 # in the $service_history hash of arrays.
 context ($service_history) where (%service_type == "voice")
@@ -355,14 +355,14 @@ sortBy (%effective_start_date) {
     The <tt><b>by</b></tt> expression is executed for each row in the data structure indicated. The set of unique results defines groups of result rows. For each group of result rows, each row having an identical result of the evaluation of the by expression, the statement is executed only once.
 
     @par Example
-    @code 
-# note that "%service_type" and "%effective_start_date" represent values 
+    @code{.py}
+# note that "%service_type" and "%effective_start_date" represent values
 # in the $services hash of arrays.
-summarize ($services) 
-    by (%effective_start_date) 
-    where (%service_type == "voice") 
+summarize ($services)
+    by (%effective_start_date)
+    where (%service_type == "voice")
     sortBy (%effective_start_date) {
-    printf("account has %d service(s) starting on %s\n", 
+    printf("account has %d service(s) starting on %s\n",
            context_rows(),
            format_date("YYYY-MM-DD HH:mm:SS", %effective_start_date));
 }@endcode
@@ -392,12 +392,12 @@ summarize ($services)
     The <tt><b>subcontext</b></tt> statement is used in conjunction with @ref summarize "summarize statements". When result rows of a query should be grouped, and then each row in the result set should be individually processed, the %Qore programmer should first use a @ref summarize "summarize statement", and then a <tt><b>subcontext</b></tt> statement. The @ref summarize "summarize statement" will group rows, and then the nested <tt><b>subcontext</b></tt> statement will iterate through each row in the current summary group.
 
     @par Example
-    @code 
-summarize ($services) 
-    by (%effective_start_date) 
-    where (%service_type == "voice") 
+    @code{.py}
+summarize ($services)
+    by (%effective_start_date)
+    where (%service_type == "voice")
     sortBy (%effective_start_date) {
-    printf("account has %d service(s) starting on %s\n", 
+    printf("account has %d service(s) starting on %s\n",
            context_rows(),
            format_date("YYYY-MM-DD HH:mm:SS", %effective_start_date));
     subcontext sortDescendingBy (%effective_end_date) {
@@ -426,12 +426,12 @@ summarize ($services)
     This statement causes execution of the current function, method, or program to returns to the caller, optionally with a return value.
 
     @par Example
-    @code 
+    @code{.py}
 string sub getName() {
    return "Barney";
 }
 my string $name = getName();@endcode
- 
+
     <hr>
     @section on_exit on_exit Statements
 
@@ -444,12 +444,12 @@ my string $name = getName();@endcode
 
     @par Description
     The <tt><b>on_exit</b></tt> statement provides a clean way to do exception-safe cleanup within %Qore code. Any single statment (or statement block) after the <tt><b>on_exit</b></tt> keyword will be executed when the current block exits (as long as the statement itself is reached when executing - <tt><b>on_exit</b></tt> statements that are never reached when executing will have no effect).\n\n
-    The position of the <tt><b>on_exit</b></tt> statement in the block is important, as the immediate effect of this statement is to queue its code for execution when the block is exited. Even if an exception is raised or a @ref return "return statement" is executed, any <tt><b>on_exit</b></tt> code that is queued will be executed. Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup.\n\n
+    The position of the <tt><b>on_exit</b></tt> statement in the block is important, as the immediate effect of this statement is to queue its code for execution when the block is exited, meaning that <tt><b>on_exit</b></tt> statements (along with <tt><b>on_success</b></tt> and <tt><b>on_error</b></tt> statements) are executed in reverse order respective their declaration when the local scope is exited for any reason, even due to an exception or a @ref return "return statement".  Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup.\n\n
     Note that if this statement is reached when executing in a loop, the <tt><b>on_exit</b></tt> code will be executed for each iteration of the loop.\n\n
     By using this statement, programmers ensure that necessary cleanup will be performed regardless of the exit status of the block (exception, @ref return "return", etc).
 
     @par Example
-@code
+@code{.py}
 {
     $mutex.lock();
     # here we queue the unlock of the mutex when the block exits, even if an exception is thrown below
@@ -473,11 +473,11 @@ my string $name = getName();@endcode
 
     @par Description
     The <tt><b>on_success</b></tt> statement provides a clean way to do block-level cleanup within %Qore code in the case that no exception is thrown in the block. Any single statment (or statement block) after the <tt><b>on_success</b></tt> keyword will be executed when the current block exits as long as no unhandled exception has been thrown (and as long as the statement itself is reached when executing - <tt><b>on_success</b></tt> statements that are never reached when executing will have no effect).\n\n
-    The position of the <tt><b>on_success</b></tt> statement in the block is important, as the immediate effect of this statement is to queue its code for conditional execution when the block is exited. Even if a @ref return "return statement" is executed later in the block, any <tt><b>on_success</b></tt> code that is queued will be executed as long as there is no active (unhandled) exception. Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup, along with @ref on_error "on_error statements", which are executed in a manner similar to <tt><b>on_success</b></tt> statements, except <tt><b>on_error</b></tt> statements are only executed when there is an active exception when the block is exited.\n\n
+    The position of the <tt><b>on_success</b></tt> statement in the block is important, as the immediate effect of this statement is to queue its code for execution when the block is exited, meaning that <tt><b>on_success</b></tt> statements (along with <tt><b>on_exit</b></tt> and <tt><b>on_error</b></tt> statements) are executed in reverse order respective their declaration when the local scope is exited for any reason, even due to an exception or a @ref return "return statement".  Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup, along with @ref on_error "on_error statements", which are executed in a manner similar to <tt><b>on_success</b></tt> statements, except <tt><b>on_error</b></tt> statements are only executed when there is an active exception when the block is exited.\n\n
     Note that if this statement is reached when executing in a loop, the <tt><b>on_success</b></tt> code will be executed for each iteration of the loop (as long as there is no active exception).
 
     @par Example
-@code
+@code{.py}
 {
     $db.beginTransaction();
     # here we queue the commit in the case there are no errors
@@ -489,7 +489,7 @@ my string $name = getName();@endcode
 
     return "OK";
 }
-# when the block exits. the transaction will be either committed or rolled back, 
+# when the block exits. the transaction will be either committed or rolled back,
 # depending on if an exception was raised or not@endcode
 
     <hr>
@@ -504,11 +504,11 @@ my string $name = getName();@endcode
 
     @par Description
     The <tt><b>on_error</b></tt> statement provides a clean way to do block-level cleanup within %Qore code in the case that an exception is thrown in the block. Any single statment (or statement block) after the <tt><b>on_error</b></tt> keyword will be executed when the current block exits as long as an unhandled exception has been thrown (and as long as the statement itself is reached when executing - <tt><b>on_error</b></tt> statements that are never reached when executing will have no effect).\n\n
-    The position of the <tt><b>on_error</b></tt> statement in the block is important, as the immediate effect of this statement is to queue its code for conditional execution when the block is exited. Even if a @ref return "return statement" is executed later in the block, any <tt><b>on_error</b></tt> code that is queued will be executed as long as there is an active (unhandled) exception. Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup, along with @ref on_success "on_success statements", which are executed in a manner similar to <tt><b>on_error</b></tt> statements, except @ref on_success "on_success statements" are only executed when there is no active exception when the block is exited.\n\n
+    The position of the <tt><b>on_error</b></tt> statement in the block is important, as the immediate effect of this statement is to queue its code for execution when the block is exited, meaning that <tt><b>on_error</b></tt> statements (along with <tt><b>on_exit</b></tt> and <tt><b>on_error</b></tt> statements) are executed in reverse order respective their declaration when the local scope is exited for any reason, even due to an exception or a @ref return "return statement".  Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup, along with @ref on_success "on_success statements", which are executed in a manner similar to <tt><b>on_error</b></tt> statements, except @ref on_success "on_success statements" are only executed when there is no active exception when the block is exited.\n\n
     Note that the code in this statement can only be executed once in any block, as a block (even a block within a loop) can only exit the loop once with an active exception (in contrast to @ref on_success "on_success" and @ref on_exit "on_exit statements", which are executed for every iteration of a loop).
 
     @par Example
-@code{
+@code{.py}{
     $db.beginTransaction();
     # here we queue the commit in the case there are no errors
     on_success $db.commit();
@@ -519,6 +519,6 @@ my string $name = getName();@endcode
 
     return "OK";
 }
-# when the block exits. the transaction will be either committed or rolled back, 
+# when the block exits. the transaction will be either committed or rolled back,
 # depending on if an exception was raised or not@endcode
 */

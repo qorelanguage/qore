@@ -5,7 +5,7 @@
   Qore Programming Language
 
   Copyright (C) 2003 - 2015 David Nichols
-  
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -34,16 +34,12 @@
 #include <qore/intern/QC_AbstractSmartLock.h>
 
 //! The RWLock class implements a read-write thread lock
-/** This class inherits AbstractSmartLock, so it can be used by @ref Qore::Thread::Condition "Condition" objects, while using either the read lock or the write lock.
-
-    The RWLock class implements a read-write lock for efficient thread locking when write actions must be atomic and reads can be made in parallel if no write is in progress. When a thread holds the write lock, no other thread can grab the read or write lock. Multiple threads can hold the read lock at one time.
-
-    As with all %Qore threading primitives, this class supports deadlock detection and throws exceptions when threading errors are encountered (for example, trying to free the read lock while holding the write lock, etc).
-
-    This read-write lock favors readers, so the read lock can be safely acquired recursively.
-
-    See the @ref Qore::Thread::AutoReadLock "AutoReadLock" and the @ref Qore::Thread::AutoWriteLock "AutoWriteLock" classes for classes that assist in exception-safe RWLock locking.
-
+/** @par Overview
+    This class inherits AbstractSmartLock, so it can be used by @ref Qore::Thread::Condition "Condition" objects, while using either the read lock or the write lock.\n\n
+    The RWLock class implements a read-write lock for efficient thread locking when write actions must be atomic and reads can be made in parallel if no write is in progress. When a thread holds the write lock, no other thread can grab the read or write lock. Multiple threads can hold the read lock at one time.\n\n
+    As with all %Qore threading primitives, this class supports deadlock detection and throws exceptions when threading errors are encountered (for example, trying to free the read lock while holding the write lock, etc).\n\n
+    This read-write lock favors readers, so the read lock can be safely acquired recursively.\n\n
+    See the @ref Qore::Thread::AutoReadLock "AutoReadLock" and the @ref Qore::Thread::AutoWriteLock "AutoWriteLock" classes for classes that assist in exception-safe RWLock locking.\n\n
     Additionally, the @ref on_exit "on_exit statement" can provide exception-safe RWLock handling at the lexical block level as in the following example:
     @code
 {
@@ -56,12 +52,23 @@
 }
     @endcode
 
+    @par Thread Resource Handling
+    The RWLock class manages the lock as a @ref thread_resources "thread resource"; if the lock is not released when the
+    thread exits (or when @ref Qore::throw_thread_resource_exceptions() or
+    @ref Qore::throw_thread_resource_exceptions_to_mark() is called), the any read or write locks held are
+    released automatically and a
+    \c LOCK-ERROR exception is thrown describing the situation.\n\n
+    Being an builtin class, the RWLock class does not
+    inherit @ref Qore::Thread::AbstractThreadResource "AbstractThreadResource" explicitly as a part of the exported API,
+    and the internal @ref Qore::Thread::AbstractThreadResource::cleanup() "AbstractThreadResource::cleanup()" method
+    cannot be overridden or suppressed.
+
     @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option.
  */
 qclass RWLock [dom=THREAD_CLASS; arg=RWLock* rwl; ns=Qore::Thread; vparent=AbstractSmartLock];
 
 //! Creates the RWLock object
-/** 
+/**
     @par Example:
     @code
 my RWLock $rwl();
@@ -87,7 +94,7 @@ RWLock::destructor() {
 }
 
 //! Creates a new RWLock object, not based on the original
-/** 
+/**
     @par Example:
     @code
 my RWLock $new_rwl = $rwl.copy();
@@ -98,7 +105,7 @@ RWLock::copy() {
 }
 
 //! Acquires the read lock; blocks if the write lock is already acquired by another thread
-/** 
+/**
     @par Example:
     @code
 $rwl.readLock();
@@ -132,7 +139,7 @@ int RWLock::readLock(timeout timeout_ms) {
 }
 
 //! Decrements the read lock counter and releases the read lock if the counter is zero. If at least one thread is blocked trying to acquire the write lock and the read counter reaches zero, then one thread waiting on the write lock is woken up
-/** 
+/**
     @par Example:
     @code
 $rwl.readUnlock();
@@ -165,7 +172,7 @@ int RWLock::writeLock(timeout timeout_ms) {
 }
 
 //! Acquires the write lock; blocks if the read lock is already acquired by another thread
-/** 
+/**
     @par Example:
     @code
 $rwl.writeLock();
@@ -179,7 +186,7 @@ nothing RWLock::writeLock() {
 }
 
 //! Releases the write lock, if any readers are waiting, wakes up all readers, otherwise if any writers are waiting, then wakes one up
-/** 
+/**
     @par Example:
     @code
 $rwl.writeUnlock();
@@ -221,7 +228,7 @@ int RWLock::tryWriteLock() {
 }
 
 //! Returns the read lock count
-/** 
+/**
     @return the read lock count
 
     @par Example:

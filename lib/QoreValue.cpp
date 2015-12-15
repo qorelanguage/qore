@@ -442,6 +442,13 @@ ValueEvalRefHolder::ValueEvalRefHolder(const AbstractQoreNode* exp, ExceptionSin
    v = exp->eval(needs_deref, xsink);
 }
 
+void ValueEvalRefHolder::ensureReferencedValue() {
+   if (!needs_deref && v.type == QV_Node && v.v.n) {
+      v.v.n->ref();
+      needs_deref = true;
+   }
+}
+
 AbstractQoreNode* ValueEvalRefHolder::getReferencedValue() {
    if (v.type == QV_Node) {
       if (!needs_deref && v.v.n)

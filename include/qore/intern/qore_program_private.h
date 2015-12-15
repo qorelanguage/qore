@@ -56,16 +56,16 @@ public:
    }
 };
 
-class CharPtrList : public safe_dslist<const char*> {
+class CharPtrList : public safe_dslist<std::string> {
 public:
    // returns true for found, false for not found
    // FIXME: use STL find algorithm
    DLLLOCAL bool find(const char* str) const {
       const_iterator i = begin();
       while (i != end()) {
-	 if (!strcmp(*i, str))
+	 if (*i == str)
 	    return true;
-	 i++;
+	 ++i;
       }
 
       return false;

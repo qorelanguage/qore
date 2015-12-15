@@ -664,16 +664,16 @@ public:
    DLLLOCAL void addFunction(qore_type_t lt, qore_type_t rt, op_bigint_func_t f);
    DLLLOCAL void addFunction(qore_type_t lt, qore_type_t rt, op_float_func_t f);
 
-   DLLLOCAL QoreValue eval(const QoreValue l, const QoreValue r, bool ref_rv, int args, ExceptionSink* xsink) const {
+   DLLLOCAL QoreValue eval(const QoreValue l, const QoreValue r, bool ref_rv, ExceptionSink* xsink) const {
       ReferenceHolder<> lr(xsink);
       ReferenceHolder<> rr(xsink);
       if (l.type != QV_Node)
          lr = l.getReferencedValue();
       if (r.type != QV_Node)
          rr = r.getReferencedValue();
-      return eval(lr ? *lr : l.getInternalNode(), rr ? *rr : r.getInternalNode(), ref_rv, args, xsink);
+      return eval(lr ? *lr : l.getInternalNode(), rr ? *rr : r.getInternalNode(), ref_rv, xsink);
    }
-
+   
    DLLLOCAL QoreValue eval(const AbstractQoreNode* l, const AbstractQoreNode* r, bool ref_rv, ExceptionSink* xsink) const;
 
    DLLLOCAL const char* getName() const {

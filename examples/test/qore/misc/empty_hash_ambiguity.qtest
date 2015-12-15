@@ -1,0 +1,51 @@
+#!/usr/bin/env qr
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%no-child-restrictions
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class EmptyHashAmbiguityTest
+
+public class EmptyHashAmbiguityTest inherits QUnit::Test {
+
+    constructor() : Test("EmptyHashAmbiguityTest", "1.0") {
+        addTestCase("stmtVsExpr", \stmtVsExpr(), NOTHING);
+        addTestCase("binaryPlusMinus", \binaryPlusMinus(), NOTHING);
+        addTestCase("emptyBlockPreferred", \emptyBlockPreferred(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    stmtVsExpr() {
+        Program p();
+        p.replaceParseOptions(PO_DEFAULT);
+        p.parse("sub x($a) { if ($a) {} else return {}; }", "");
+        # {} is never a hash when a statement is expected
+    }
+
+    binaryPlusMinus() {
+        Program p();
+        p.replaceParseOptions(PO_DEFAULT);
+        p.parse("$a = {} + ('x': 5);", "");
+        p.parse("$b = {} - ('x': 5);", "");
+    }
+
+    emptyBlockPreferred() {
+        Program p();
+        p.replaceParseOptions(PO_DEFAULT);
+        p.parse("class C {}", "");
+        p.parse("on_exit {} ++ $a;", "");
+        p.parse("on_exit {} -- $b;", "");
+        p.parse("on_exit {} * C $c;", "");
+        p.parse("on_exit {} ($d) = 1;", "");
+        p.parse("on_exit {} {$e = 1;}", "");
+        assertThrows("PARSE-EXCEPTION",
+                "expecting lvalue for assignment operator expression, got 'unary minus operator expression' instead",
+                \p.parse(), ("on_exit {} - $f = 1;", ""));
+    }
+}

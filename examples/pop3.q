@@ -34,6 +34,7 @@
 %requires Pop3Client >= 1.0
 %requires MailMessage >= 1.0
 %requires Mime >= 1.0
+%requires Util
 
 class pop3 {
     private {
@@ -121,7 +122,10 @@ class pop3 {
 	    }
 	}
 	catch (hash ex) {
-	    printf("%s: %s\n", ex.err, ex.desc);
+            if (opt.verbose)
+                printf("%s\n", get_exception_string(ex));
+            else
+                printf("%s: %s: %s\n", get_ex_pos(ex), ex.err, ex.desc);
 	}
     }
 

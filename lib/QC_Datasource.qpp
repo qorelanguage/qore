@@ -209,54 +209,52 @@ const DBI_CAP_HAS_ARRAY_BIND = DBI_CAP_HAS_ARRAY_BIND;
 //@}
 
 //! This class provides the %Qore interface to databases
-/** This class provides the main direct interface to DBI drivers (along with the SQLStatement and DatasourcePool classes).
-
-    The %Datasource class will attempt to load any DBI driver that is not currently loaded in the constructor. For connection pooling support, see the DatasourcePool class.
-
-    %Datasource objects will implicitly call Datasource::open() if no connection has yet been established and a method is called requiring a connection to the database server. Therefore any method that requires communication with the database server can also throw any exception that the open method can throw.
-
-    Most %Qore DBI drivers allow "select" queries to be executed through the Datasource::exec() method, and allow %SQL commands (procedure calls, etc) to be executed through the Datasource::select() method, and some DBI drivers do not (depends on the underlying DB API). At any rate, the transaction lock is set when auto-commit is disabled and when the Datasource::exec() or Datasource::beginTransaction() methods are executed as documented above. Therefore executing a transaction relevant command through the Datasource::select() method while auto-commit mode is disabled and a transaction has not yet started will not result in the transaction lock being allocated to the current thread and therefore could cause transaction errors when sharing the %Datasource object between multiple threads.
-
-    Only databases with an existing %Qore DBI driver can be accessed through the %Datasource class.
-
-    All %Qore DBI drivers set new connections to use transaction isolation level \c "read committed".
-
-    The %Datasource class provides high-level, per-connection locking on requests at a level above the DBI drivers to ensure that the communication between clients and servers is properly serialized.
-
+/** @par Overview
+    This class provides the main direct interface to DBI drivers (along with the SQLStatement and DatasourcePool classes).\n\n
+    The %Datasource class will attempt to load any DBI driver that is not currently loaded in the constructor. For connection pooling support, see the DatasourcePool class.\n\n
+    %Datasource objects will implicitly call Datasource::open() if no connection has yet been established and a method is called requiring a connection to the database server. Therefore any method that requires communication with the database server can also throw any exception that the open method can throw.\n\n
+    Most %Qore DBI drivers allow "select" queries to be executed through the Datasource::exec() method, and allow %SQL commands (procedure calls, etc) to be executed through the Datasource::select() method, and some DBI drivers do not (depends on the underlying DB API). At any rate, the transaction lock is set when auto-commit is disabled and when the Datasource::exec() or Datasource::beginTransaction() methods are executed as documented above. Therefore executing a transaction relevant command through the Datasource::select() method while auto-commit mode is disabled and a transaction has not yet started will not result in the transaction lock being allocated to the current thread and therefore could cause transaction errors when sharing the %Datasource object between multiple threads.\n\n
+    Only databases with an existing %Qore DBI driver can be accessed through the %Datasource class.\n\n
+    All %Qore DBI drivers set new connections to use transaction isolation level \c "read committed".\n\n
+    The %Datasource class provides high-level, per-connection locking on requests at a level above the DBI drivers to ensure that the communication between clients and servers is properly serialized.\n\n
     %Datasource objects also have a default character encoding; all requests to the server will be made in this encoding, and all responses will be returned in the given encoding.  If no encoding is specifically given to the %Datasource object, the %Datasource object will use the @ref default_encoding.
 
     @anchor sql_binding
-    <b>%Datasource Binding By Value and By Placeholder</b>
-
-    All %Datasource methods accepting %SQL strings to execute understand a special syntax used in the query string to bind %Qore data by value and to specify placeholders for output variables (for example, when executing a stored procedure or database function). Placeholder binding is DBI driver specific, but binding by value is supported with the same syntax in all drivers. Additionally, the \c %%d numeric specifier is supported equally in all %Qore DBI drivers.
-
+    @par SQL Binding by Value and by Placeholder Overview
+    All %Datasource methods accepting %SQL strings to execute understand a special syntax used in the query string to bind %Qore data by value and to specify placeholders for output variables (for example, when executing a stored procedure or database function). Placeholder binding is DBI driver specific, but binding by value is supported with the same syntax in all drivers. Additionally, the \c %%d numeric specifier is supported equally in all %Qore DBI drivers.\n\n
     <b>%Datasource Format Specifiers</b>
     |!Format Specification|!Description
     |\c %%d|If any value other than @ref nothing or @ref null is given, then the value is converted to an integer and this value is substituted in the string at this position; if the value is @ref nothing or @ref null, then a literal \c "null" is substituted instead.
     |\c %%s|The argument is converted to a string and the string is inserted literally without any conversion or escape sequences in the string; this is useful for table or schema prefixes, etc
     |\c %%v|The argument is bound by value according to the DBI driver's implementation.
 
-    To bind %Qore data values directly in a binary format in an %SQL command, use <tt>%%v</tt> in the command string, and include the value as an argument after the string. Binding by value allows the DBI driver to take care of formatting the data properly for use in the query with the database server. When binding by value, strings do not need to be quoted, date/time values do not need special formatting, binary objects (with BLOB columns, for example) can be used directly in queries, etc.
-
+    @par SQL Binding Details
+    To bind %Qore data values directly in a binary format in an %SQL command, use <tt>%%v</tt> in the command string, and include the value as an argument after the string. Binding by value allows the DBI driver to take care of formatting the data properly for use in the query with the database server. When binding by value, strings do not need to be quoted, date/time values do not need special formatting, binary objects (with BLOB columns, for example) can be used directly in queries, etc.\n\n
     Here is an example:
     @code
 my int $rows = $db.exec("insert into table (varchar_col, timestamp_col, blob_col, numeric_col) values (%v, %v, %v, %d)", $string, now(), $binary, 100);
-    @endcode
-
-    When using dynamic SQL, to insert a numeric value or a literal \c "null" in a query, use \c %%d in the command string, and include the value as an argument after the string. If the value is @ref nothing or @ref null, a literal \c "null" will be written to the string; otherwise the argument is converted to an arbitrary-precision number or integer value if necessary and written to the string. This is useful for working with \c DECIMAL (\c NUMERIC, \c NUMBER) types in a database-independent way; for example PostgreSQL servers do not do type conversions to \c DECIMAL types when a string, integer, or float is bound by value, therefore to ensure that integral decimal values can be used in a database-independent way (with \c "null" substitution when no value is bound), a valid approach is to use the \c %%d code in the command string instead of \c %%v.  However please note that \c %%v is normally preferred to keep the server-side statement cache a manageable size, in the previous example using the int(), float(), or number() functions to convert string values before binding with \c %%v may be better.
-
+    @endcode \n
+    When using dynamic SQL, to insert a numeric value or a literal \c "null" in a query, use \c %%d in the command string, and include the value as an argument after the string. If the value is @ref nothing or @ref null, a literal \c "null" will be written to the string; otherwise the argument is converted to an arbitrary-precision number or integer value if necessary and written to the string. This is useful for working with \c DECIMAL (\c NUMERIC, \c NUMBER) types in a database-independent way; for example PostgreSQL servers do not do type conversions to \c DECIMAL types when a string, integer, or float is bound by value, therefore to ensure that integral decimal values can be used in a database-independent way (with \c "null" substitution when no value is bound), a valid approach is to use the \c %%d code in the command string instead of \c %%v.  However please note that \c %%v is normally preferred to keep the server-side statement cache a manageable size, in the previous example using the int(), float(), or number() functions to convert string values before binding with \c %%v may be better.\n\n
     For binding placeholders for output variables, write a unique name in the string and prefix it with a colon (ex: \c ":code"). In this case the method will return a hash of the output variables using the placeholder names as keys, but without the colon prefix. By default, a string type will be bound to the position. To bind other variable types to placeholder positions, include the type constant (see @ref sql_constants) as an argument after the command string. For BLOBs, use Binary, for CLOBs, use the string "clob" (constants will be provided in a future release). Not all DBI drivers require placeholder buffer specifications; see the documentation for the DBI driver in question for more information and examples regarding placeholder buffer specifications.
 
     @anchor transaction_lock
-    <b>%Datasource Transaction Locks</b>
+    @par Datasource Transaction Locks
+    %Datasource objects have an internal transaction lock which will be grabbed when the Datasource::exec(), Datasource::vexec() Datasource::execRaw(), or Datasource::beginTransaction() methods are executed and autocommit is not enabled. This enables a single datasource to be safely used for transaction management by several threads simultaneously. Note that an exception in a %Datasource method that would acquire the lock (such as the Datasource::exec() method) when it's not already held, will have the effect that the transaction lock is not acquired.\n\n
+    Any thread attempting to do transaction-relevant actions on a %Datasource with auto-commit disabled while a transaction is in progress by another thread will block until the thread currently executing a transaction executes the Datasource::commit() or Datasource::rollback() methods (or the %Datasource is deleted, reset, or closed, in which case the lock is released and an exception is raised as well).\n\n
+    There is a timeout associated with the transaction lock; if a thread waits for the transaction lock for more than the timeout period, then an exception will be raised in the waiting thread. The timeout value can be read and changed with the Datasource::getTransactionLockTimeout() and Datasource::setTransactionLockTimeout() methods, respectively. The default transaction lock timeout value is 120 seconds.\n\n
+    Note that the @ref Qore::SQL::SQLStatement "SQLStatement" class also grabs the transaction lock when executing if it is created using a %Datasource object in the constructor; for more information see the  @ref Qore::SQL::SQLStatement "SQLStatement" class documentation.
 
-    %Datasource objects have an internal transaction lock which will be grabbed when the Datasource::exec(), Datasource::vexec() Datasource::execRaw(), or Datasource::beginTransaction() methods are executed and autocommit is not enabled. This enables a single datasource to be safely used for transaction management by several threads simultaneously. Note that an exception in a %Datasource method that would acquire the lock (such as the Datasource::exec() method) when it's not already held, will have the effect that the transaction lock is not acquired.
-
-    Any thread attempting to do transaction-relevant actions on a %Datasource with auto-commit disabled while a transaction is in progress by another thread will block until the thread currently executing a transaction executes the Datasource::commit() or Datasource::rollback() methods (or the %Datasource is deleted, reset, or closed, in which case the lock is released and an exception is raised as well).
-
-    There is a timeout associated with the transaction lock; if a thread waits for the transaction lock for more than the timeout period, then an exception will be raised in the waiting thread. The timeout value can be read and changed with the Datasource::getTransactionLockTimeout() and Datasource::setTransactionLockTimeout() methods, respectively. The default transaction lock timeout value is 120 seconds.
-
-    Note that the SQLStatement class also grabs the transaction lock when executing if it is created using a %Datasource object in the constructor; for more information see the SQLStatement class.
+    @par Thread Resource Handling
+    The Datasource class manages the transaction lock as a @ref thread_resources "thread resource"; if the
+    transaction is not released with a call to @ref Qore::SQL::Datasource::commit() "Datasource::commit()"
+    or @ref Qore::SQL::Datasource::rollback() "Datasource::rollback()" when the
+    thread exits (or when @ref Qore::throw_thread_resource_exceptions() or
+    @ref Qore::throw_thread_resource_exceptions_to_mark() is called), the transaction is rolled back automatically
+    and a \c DATASOURCE-TRANSACTION-EXCEPTION exception is raised describing the situation.\n\n
+    Being an builtin class, the Datasource class does not
+    inherit @ref Qore::Thread::AbstractThreadResource "AbstractThreadResource" explicitly as a part of the exported API,
+    and the internal @ref Qore::Thread::AbstractThreadResource::cleanup() "AbstractThreadResource::cleanup()" method
+    cannot be overridden or suppressed.
 
     @note This class is not available with the @ref PO_NO_DATABASE parse option
 

@@ -60,6 +60,10 @@ class telnet {
 
 	# default poll interval
 	const PollInterval = 10ms;
+
+        TelnetClient telnet;
+        # thread counter
+        Counter cnt();
     }
 
     # no public members
@@ -85,7 +89,8 @@ class telnet {
 	    Term term();
 
 	    # create the telnet client object
-	    TelnetClient telnet(server, \log(), opt.verbose ? \log() : NOTHING);
+	    #TelnetClient telnet(server, \log(), opt.verbose ? \log() : NOTHING);
+	    telnet = new TelnetClient(server, \log(), opt.verbose ? \log() : NOTHING);
 
 	    # set a username for the connection, if any
 	    if (opt.user.val())
@@ -108,7 +113,9 @@ class telnet {
 	    }
 
 	    # we start a background thread for reading from the Telnet session
+            cnt.inc();
 	    background startReceive(telnet);
+            on_exit cnt.waitForZero();
 
 	    # while we read from stdin and write to the Telnet session in the current session
 	    while (!quit) {
@@ -121,6 +128,9 @@ class telnet {
 		    }
 		    telnet.sendTextData(c);
 		}
+
+                if (!telnet.isConnected())
+                    quit = True;
 	    }
 
             if (opt.verbose)
@@ -137,6 +147,7 @@ class telnet {
 
     # this method will read in data and print it to the screen
     private startReceive(TelnetClient telnet) {
+        on_exit cnt.dec();
 	while (!quit) {
 	    *string str = telnet.getAvailableData(PollInterval);
 	    # if the remote end closed the connection, then exit

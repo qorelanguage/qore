@@ -36,24 +36,33 @@
 #include <qore/AbstractPrivateData.h>
 
 //! base class for saving data using Qore's thread resource management system
-/** Thread resources are resources that are tied to a particular thread.  Qore provides the ability to 
+/** Thread resources are resources that are tied to a particular thread.  Qore provides the ability to
     call the object's "cleanup()" function if the resource is still allocated to the thread when the
     thread terminates.  For example, the Datasource transaction lock is implemented as a thread resource.
     If the used does not commit or rollback an open transaction before the thread terminates,
-    ManagedDatasource::cleanup() is run, which will throw an exception, rollback the transaction, and 
+    ManagedDatasource::cleanup() is run, which will throw an exception, rollback the transaction, and
     release the transaction lock.  When a thread commits or rolls back a transaction, the thread resource
     is removed.
     Use the set_thread_resource() to set and remove_thread_resource() to remove thread resources.
+
     @see set_thread_resource()
     @see remove_thread_resource()
  */
 class AbstractThreadResource : public AbstractPrivateData {
-   public:
-      //! virtual destructor
-      DLLEXPORT virtual ~AbstractThreadResource() {
-      }
-      //! this function is called when a thread terminates and a thread resource is still allocated to the thread
-      virtual void cleanup(class ExceptionSink *xsink) = 0;
+public:
+   //! the constructor is currently empty
+   DLLEXPORT AbstractThreadResource();
+
+   //! virtual destructor
+   DLLEXPORT virtual ~AbstractThreadResource();
+
+   //! this function is called when a thread terminates and a thread resource is still allocated to the thread
+   virtual void cleanup(ExceptionSink* xsink) = 0;
+
+   //! this function is called when clearing thread resources for a particular Program when being destroyed
+   DLLLOCAL virtual QoreProgram* getProgram() {
+      return 0;
+   }
 };
 
 #endif

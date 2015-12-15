@@ -65,6 +65,7 @@ QORE_QPP_TARGETS = QC_Queue.cpp QC_Socket.cpp QC_ReadOnlyFile.cpp QC_File.cpp QC
 	QC_AbstractDatasource.cpp \
 	QC_Datasource.cpp QC_DatasourcePool.cpp QC_SQLStatement.cpp QC_Dir.cpp QC_Program.cpp \
 	QC_GetOpt.cpp QC_TermIOS.cpp QC_TimeZone.cpp QC_SSLCertificate.cpp QC_SSLPrivateKey.cpp \
+	QC_AbstractThreadResource.cpp \
 	ql_misc.cpp ql_compression.cpp ql_thread.cpp ql_crypto.cpp ql_lib.cpp ql_file.cpp \
 	ql_string.cpp ql_time.cpp ql_math.cpp ql_list.cpp ql_pwd.cpp ql_object.cpp \
 	ql_dbi.cpp ql_context.cpp ql_env.cpp ql_type.cpp \
@@ -160,6 +161,7 @@ libqore_la_SOURCES = \
 	charset.cpp \
 	unicode-charmaps.cpp \
 	QoreProgram.cpp \
+	QoreProgramHelper.cpp \
 	QoreNamespace.cpp \
 	QoreNet.cpp \
 	QoreURL.cpp \
@@ -186,6 +188,7 @@ libqore_la_SOURCES = \
 	ConstantList.cpp \
 	QoreClassList.cpp \
 	ThreadResourceList.cpp \
+	AbstractThreadResource.cpp \
 	thread.cpp \
 	VRMutex.cpp \
 	VLock.cpp \
@@ -233,14 +236,15 @@ libqore_la_SOURCES = \
 	QoreIntPlusEqualsOperatorNode.cpp \
 	QoreMinusEqualsOperatorNode.cpp \
 	QoreIntMinusEqualsOperatorNode.cpp \
-        QoreOrEqualsOperatorNode.cpp \
-        QoreAndEqualsOperatorNode.cpp \
-        QoreModulaEqualsOperatorNode.cpp \
-        QoreMultiplyEqualsOperatorNode.cpp \
-        QoreDivideEqualsOperatorNode.cpp \
-        QoreXorEqualsOperatorNode.cpp \
-        QoreShiftLeftEqualsOperatorNode.cpp \
-        QoreShiftRightEqualsOperatorNode.cpp \
+	QoreOrEqualsOperatorNode.cpp \
+	QoreAndEqualsOperatorNode.cpp \
+	QoreModulaEqualsOperatorNode.cpp \
+	QoreMultiplyEqualsOperatorNode.cpp \
+	QoreDivideEqualsOperatorNode.cpp \
+	QoreDivisionOperatorNode.cpp \
+	QoreXorEqualsOperatorNode.cpp \
+	QoreShiftLeftEqualsOperatorNode.cpp \
+	QoreShiftRightEqualsOperatorNode.cpp \
 	QorePostIncrementOperatorNode.cpp \
 	QorePostDecrementOperatorNode.cpp \
 	QorePreIncrementOperatorNode.cpp \

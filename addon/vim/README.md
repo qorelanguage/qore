@@ -20,7 +20,7 @@ endif
 augroup filetypedetect
   " Qore and Qorus files
   au! BufRead,BufNewFile *.q,*.qm,*.qtest       setfiletype qore
-  au! BufRead,BufNewFile *.qc,*.qclass,*.qconn,*.qconst,*.qfd,*.qjob,*.ql,*.qrf,*.qsd,*.qsm,*.qwf       setfiletype qore
+  au! BufRead,BufNewFile *.qc,*.qclass,*.qconn,*.qconst,*.qfd,*.qjob,*.ql,*.qmapper,*.qrf,*.qsd,*.qsm,*.qvmap,*.qwf       setfiletype qore
   au! BufRead,BufNewFile *.qpp                  setfiletype cpp
 augroup END
 ```
@@ -44,9 +44,10 @@ hi Package      guifg=lightGreen
 
 Syntax highlighting requires a few VIM options turned on, but that is most usually already done.  
 You can have a look at `$VIMRUNTIME/vimrc_example.vim` file that comes with VIM for inspiration.
+One option worth adding into your `~/.vimrc` is: `let qore_highlight_all=1`
 
 ## More customisation
 
 You may want to customise VIM's behaviour (based on filetype) even more.  
-An example of how to do it is included -- just copy `ftplugin` folder found here to your `~/.vim` folder for VIM to load and use it.
+An example of how to do it is included -- just copy `ftplugin` and `indent` folders found here to your `~/.vim` folder for VIM to load and use them.
 

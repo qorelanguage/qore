@@ -4,29 +4,46 @@
 %enable-all-warnings
 %new-style
 
-%requires UnitTest
+%requires ../../../../qlib/QUnit.qm
 
-my UnitTest u();
-our Queue q();
+%exec-class MaxThreadCountTest
 
-sub t() {
-    q.get();
-    q.push(1);
-}
+our Queue q;
 
-if (ENV.SKIP_MAX_THREAD_TEST) {
-    printf("skipping max thread test due to environment variable\n");
-    return;
-}
+public class MaxThreadCountTest inherits QUnit::Test {
+    constructor() : Test("Max thread count test", "1.0") {
+        addTestCase("Test max thread count", \testMaxThreadCount(), NOTHING);
 
-try {
-    while (True) {
-        background t();
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    globalSetUp() {
+        q = new Queue();
+    }
+
+    t() {
+        q.get();
+        q.push(1);
+    }
+
+    testMaxThreadCount() {
+        if (ENV.SKIP_MAX_THREAD_TEST) {
+            testSkip("skipping max thread test due to environment variable");
+        }
+
+        try {
+            while (True) {
+                background t();
+            }
+        }
+        catch (ex) {
+            assertEq("THREAD-CREATION-FAILURE", ex.err, "found threads count limit");
+            q.push(1);
+        }
+
+        int nt = num_threads();
+        assertEq(True, (nt > 1), "number of threads is " + nt);
     }
 }
-catch (ex) {
-    u.cmp(ex.err, 'THREAD-CREATION-FAILURE', 'found threads count limit');
-    q.push(1);
-}
 
-u.ok(num_threads() > 1, "number of threads is " + num_threads());

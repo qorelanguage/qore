@@ -57,6 +57,8 @@ module TableMapper {
     - @ref TableMapper::InboundTableMapper "InboundTableMapper": extends the @ref Mapper::Mapper class; assumes an SQL table target
     - @ref TableMapper::InboundIdentityTableMapper "InboundIdentityTableMapper": extends the @ref TableMapper::InboundTableMapper "InboundTableMapper" class for the case when the source and target tables have the exact same structure
     - @ref TableMapper::InboundTableMapperIterator "InboundTableMapperIterator": provides a specialization of the @ref Mapper::AbstractMapperIterator class; assumes an SQL table target; automatically inserts mapped data into the target table based on the mapper provided
+    - @ref TableMapper::SqlStatementOutboundMapper "SqlStatementOutboundMapper": provides a SQL statement source based mapper
+    - @ref TableMapper::SqlStatementMapperIterator "SqlStatementMapperIterator": provides a helper SQL statement source bsed iterator with mapping capability
 
     @section tablemapperexamples TableMapper Examples
 
@@ -86,13 +88,39 @@ InboundTableMapper map1(table, DataMap);
     on_success map1.commit();
     on_error map1.rollback();
     # apply the map and insert the mapped data for each input record
-    map map1.insertRowNoCommit($1), input;
+    map map1.insertRow($1), input;
 }
 printf("%d record%s inserted\n", map.getCount(), map.getCount() == 1 ? "" : "s");
     @endcode
 
     This will insert all the mapped input data into data into the \c ORDER_TABLE
     table and then print out the number of rows inserted.
+
+    This is an example for TableMapper::SqlStatementOutboundMapper. It selects data
+    from the \c ORDER_DATE and it transforms rows regarding mapping used.
+
+    @code
+# SqlUtil Table object
+Table table(ds, "order_table");
+# mapping definition
+const DataMap = (
+        "id" : True,
+        "foo" : "name",
+        "bar" : ("code" : string sub (any ignored, hash rec) { return format_date("YYYYMMDD", rec."order_table"); } ),
+    );
+# SqlUgtil select hash
+hash sh = (
+        "columns" : ("id", "name", "order_date"),
+        "where" : ( "id" : op_gt(1000) ),
+    );
+
+SqlStatementOutboundMapper m(table, sh, DataMap);
+on_exit m.commit();
+
+while (*hash h = m.getData()) {
+    do_something_with_data(h);
+}
+    @endcode
 
     @section tablemapper_bulk_insert_api InboundTableMapper Bulk Insert API
 
@@ -103,7 +131,7 @@ printf("%d record%s inserted\n", map.getCount(), map.getCount() == 1 ? "" : "s")
     support is available, call @ref SqlUtil::AbstractTable::hasArrayBind() on the @ref SqlUtil::AbstractTable object).
 
     The bulk insert API consists of the following methods:
-    - @ref TableMapper::InboundTableMapper::queueBatchRow()
+    - @ref TableMapper::InboundTableMapper::queueData()
     - @ref TableMapper::InboundTableMapper::flush()
     - @ref TableMapper::InboundTableMapper::discard()
     - @ref TableMapper::InboundTableMapper::setRowCode()
@@ -115,8 +143,8 @@ printf("%d record%s inserted\n", map.getCount(), map.getCount() == 1 ? "" : "s")
 
     @subsection tablemapper_bulk_insert_api_usage InboundTableMapper Bulk Insert API Usage
 
-    To queue data for bulk insert, call @ref TableMapper::InboundTableMapper::queueBatchRow() instead of
-    @ref TableMapper::InboundTableMapper::insertRowNoCommit().
+    To queue data for bulk insert, call @ref TableMapper::InboundTableMapper::queueData() instead of
+    @ref TableMapper::InboundTableMapper::insert().
     To perform per-row actions, the @ref TableMapper::InboundTableMapper::setRowCode() method should be called with a closure that accepts a hash
     representing a single row; whenever data is flushed to the database, this closure will be called with the row actually inserted
     (including sequence values used, etc).
@@ -145,13 +173,13 @@ on_error table1.rollback();
     on_success map1.flush();
     on_error map1.discard();
 
-    map map1.queueBatchRow($1), data1.iterator();
+    map map1.queueData($1), data1.iterator();
 }
 {
     on_success map2.flush();
     on_error map2.discard();
 
-    map map2.queueBatchRow($1), data2.iterator();
+    map map2.queueData($1), data2.iterator();
 }
     @endcode
 
@@ -163,8 +191,7 @@ on_error table1.rollback();
 
     In both cases, the actual value inserted in the table is available in the following APIs:
       - @ref TableMapper::InboundTableMapper::insertRow()
-      - @ref TableMapper::InboundTableMapper::insertRowNoCommit()
-      - @ref TableMapper::InboundTableMapper::queueBatchRow()
+      - @ref TableMapper::InboundTableMapper::queueData()
       - @ref TableMapper::InboundTableMapper::flush()
 
     Additionally, the value is provided to any row code set with @ref TableMapper::InboundTableMapper::setRowCode(); see @ref tablemapper_bulk_insert_api for more information.
@@ -178,7 +205,7 @@ on_error table1.rollback();
     - implemented an optimized insert approach assuming stable input data
     - implemented the following new options for TableMapper::InboundTableMapper:
       - \c "unstable_input": to accommodate unstable input data and disable the insert optimization (default: False)
-      - \c "insert_block": for DB drivers supporting bulk DML (for use with the TableMapper::InboundTableMapper::queueBatchRow(), TableMapper::InboundTableMapper::flush(), and TableMapper::InboundTableMapper::discard() methods), the number of rows inserted at once (default: 500, only used when \c "unstable_input" is @ref Qore::False "False") and bulk inserts are supported in the table object
+      - \c "insert_block": for DB drivers supporting bulk DML (for use with the TableMapper::InboundTableMapper::queueData(), TableMapper::InboundTableMapper::flush(), and TableMapper::InboundTableMapper::discard() methods), the number of rows inserted at once (default: 500, only used when \c "unstable_input" is @ref Qore::False "False") and bulk inserts are supported in the table object
     - added method for bulk / batch inserts for db drivers supporting bulk DML (ex: Oracle)
     - updated to Mapper changes: use table description to define output record for the Mapper module
     - added the @ref TableMapper::InboundIdentityTableMapper "InboundIdentityTableMapper" class
@@ -261,8 +288,8 @@ InboundTableMapper mapper(table, DbMapper);
             @param target the target table object
             @param mapv a hash providing field mappings; each hash key is the name in lower case of the output column in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref tablemapperkeys for detailed documentation for this option
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
-            - \c "unstable_input": set this option to @ref Qore::True "True" (default @ref Qore::False "False") if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow() or insertRowNoCommit(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
-            - \c "insert_block": for DB drivers supporting bulk DML (for use with the queueBatchRow(), flush(), and discard() methods), the number of rows inserted at once (default: 500, only used when \c "unstable_input" is @ref Qore::False "False") and bulk inserts are supported in the table object; see @ref tablemapper_bulk_insert_api for more information
+            - \c "unstable_input": set this option to @ref Qore::True "True" (default @ref Qore::False "False") if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
+            - \c "insert_block": for DB drivers supporting bulk DML (for use with the queueData(), flush(), and discard() methods), the number of rows inserted at once (default: 500, only used when \c "unstable_input" is @ref Qore::False "False") and bulk inserts are supported in the table object; see @ref tablemapper_bulk_insert_api for more information
             - \c "rowcode": a per-row @ref closure or @ref call_reference for batch inserts; this must take a single hash argument and will be called for every row after a bulk insert; the hash argument representing the row inserted will also contain any output values if applicable
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
@@ -297,8 +324,8 @@ InboundTableMapper mapper(table, DbMapper);
             @param table the target table object
             @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref tablemapperkeys for detailed documentation for this option
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
-            - \c "unstable_input": set this option to @ref Qore::True "True" (default @ref Qore::False "False") if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow() or insertRowNoCommit(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
-            - \c "insert_block": for DB drivers supporting bulk DML (for use with the queueBatchRow(), flush(), and discard() methods), the number of rows inserted at once (default: 500, only used when \c "unstable_input" is @ref Qore::False "False") and bulk inserts are supported in the table object; see @ref tablemapper_bulk_insert_api for more information
+            - \c "unstable_input": set this option to @ref Qore::True "True" (default @ref Qore::False "False") if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
+            - \c "insert_block": for DB drivers supporting bulk DML (for use with the queueData(), flush(), and discard() methods), the number of rows inserted at once (default: 500, only used when \c "unstable_input" is @ref Qore::False "False") and bulk inserts are supported in the table object; see @ref tablemapper_bulk_insert_api for more information
             - \c "rowcode": a per-row @ref closure or @ref call_reference for batch inserts; this must take a single hash argument and will be called for every row after a bulk insert; the hash argument representing the row inserted will also contain any output values if applicable
 
 
@@ -487,7 +514,7 @@ InboundTableMapper mapper(table, DbMapper);
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
             @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
         */
-        hash insertRowNoCommit(hash rec) {
+        hash insertRow(hash rec) {
             hash h = mapDataIntern(rec);
             *hash rh;
 
@@ -546,13 +573,14 @@ on_error table_mapper.rollback();
     on_success table_mapper.flush();
     on_error table_mapper.discard();
 
-    map table_mapper.queueBatchRow($1), data.iterator();
+    map table_mapper.queueData($1), data.iterator();
 }
             @endcode
 
             Data is only inserted if the block buffer size reaches the limit defined by the \c "insert_block" option, in which case this method returns all the data inserted.  In case the mapped data is only inserted into the cache, no value is returned.
 
             @param rec the input record or record set in case a hash of lists is passed
+            @param crec an optional simple hash of data to be added to each row in case \a rec is a hash of lists
 
             @return if batch data was inserted then a hash (columns) of lists (row data) of all data inserted and potentially returned (in case of sequences) from the database server is returned
 
@@ -560,7 +588,7 @@ on_error table_mapper.rollback();
             - make sure to call flush() before committing the transaction or discard() before rolling back the transaction or destroying the object when using this method
             - flush() or discard() needs to be executed for each mapper used in the block when using multiple mappers whereas the DB transaction needs to be committed or rolled back once per datasource
             - this method and batched inserts in general cannot be used when the \c "unstable_input" option is given in the constructor
-            - if the \c "insert_block" option is set to 1, then this method simply calls insertRowNoCommit()
+            - if the \c "insert_block" option is set to 1, then this method simply calls insertRow()
             - if an error occurs flushing data, the count is reset by calling @ref Mapper::Mapper::resetCount() "Mapper::resetCount()"
 
             @see
@@ -572,14 +600,14 @@ on_error table_mapper.rollback();
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
             @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
         */
-        *hash queueBatchRow(hash rec) {
+        *hash queueData(hash rec, *hash crec) {
             if (unstable_input)
-                throw "MAPPER-BATCH-ERROR", sprintf("cannot call %s::queueBatchRow() when the unstable_input option is set", self.className());
+                throw "MAPPER-BATCH-ERROR", sprintf("cannot call %s::queueData() when the unstable_input option is set", self.className());
 
             if (rec.firstValue().typeCode() == NT_LIST) {
                 hash h;
                 foreach hash row in (rec.contextIterator()) {
-                    *hash th = queueBatchRowIntern(row);
+                    *hash th = queueDataIntern(row + crec);
                     if (th) {
                         if (h)
                             map h.$1 += th.$1, th.keyIterator();
@@ -590,7 +618,7 @@ on_error table_mapper.rollback();
                 return h;
             }
 
-            return queueBatchRowIntern(rec);
+            return queueDataIntern(rec + crec);
         }
 
         #! inserts a row into the block buffer based on a mapped input record; does not commit the transaction
@@ -605,9 +633,9 @@ on_error table_mapper.rollback();
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
             @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
         */
-        private *hash queueBatchRowIntern(hash rec) {
+        private *hash queueDataIntern(hash rec) {
             if (insert_block == 1) {
-                return insertRowNoCommit(rec);
+                return insertRow(rec);
             }
 
             hash h = mapDataIntern(rec);
@@ -635,7 +663,7 @@ on_error table_mapper.rollback();
     on_success table_mapper.flush();
     on_error table_mapper.discard();
 
-    map table_mapper.queueBatchRow($1), data.iterator();
+    map table_mapper.queueData($1), data.iterator();
 }
             @endcode
 
@@ -647,7 +675,7 @@ on_error table_mapper.rollback();
             - if an error occurs flushing data, the count is reset by calling @ref Mapper::Mapper::resetCount() "Mapper::resetCount()"
 
             @see
-            - queueBatchRow()
+            - queueData()
             - discard()
         */
         *hash flush() {
@@ -656,7 +684,7 @@ on_error table_mapper.rollback();
             remove rowcode;
         }
 
-        #! discards any buffered batched data; this method should be called after using the batch APIs (queueBatchRow()) and an error occurs
+        #! discards any buffered batched data; this method should be called after using the batch APIs (queueData()) and an error occurs
         /** @par Example:
             @code
 on_success table_mapper.commit();
@@ -665,7 +693,7 @@ on_error table_mapper.rollback();
     on_success table_mapper.flush();
     on_error table_mapper.discard();
 
-    map table_mapper.queueBatchRow($1), data.iterator();
+    map table_mapper.queueData($1), data.iterator();
 }
             @endcode
 
@@ -675,7 +703,7 @@ on_error table_mapper.rollback();
             - if an error occurs flushing data, the count is reset by calling @ref Mapper::Mapper::resetCount() "Mapper::resetCount()"
 
             @see
-            - queueBatchRow()
+            - queueData()
             - flush()
         */
         discard() {
@@ -738,24 +766,13 @@ on_error table_mapper.rollback();
             return rv;
         }
 
-        #! ignore logging from Mapper since we may have to log sequence values; output logged manually in insertRowNoCommit()
+        #! ignore logging from Mapper since we may have to log sequence values; output logged manually in insertRow()
         logOutput(hash h) {
         }
 
-        #! inserts a row into the target table based on a mapped input record; commits the transaction
-        /** @param rec the input record
-
-            @return a hash of the row values inserted (column: value), not including the extra values
-
-            @throw MISSING-INPUT a field marked mandatory is missing
-            @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
-            @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
-        */
-        hash insertRow(hash rec) {
-            on_success table.commit();
-            on_error table.rollback();
-
-            return insertRowNoCommit(rec);
+        #! Plain alias to insertRow(). Obsolete. Do not use.
+        deprecated hash insertRowNoCommit(hash rec) {
+            return insertRow(rec);
         }
 
         #! flushes any queued data and commits the transaction
@@ -813,8 +830,8 @@ InboundIdentityTableMapper mapper(table, DbMapper);
             @param target the target table object
             @param mapv a optional hash providing overrides for the default 1:1 input to output field mappings; each hash key is the name in lower case of the output column in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
-            - \c "unstable_input": set this option to @ref Qore::True "True" (default @ref Qore::False "False") if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow() or insertRowNoCommit(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
-            - \c "insert_block": for DB drivers supporting bulk DML (for use with the queueBatchRow(), flush(), and discard() methods), the number of rows inserted at once (default: 500, only used when \c "unstable_input" is @ref Qore::False "False") and bulk inserts are supported in the table object; see @ref tablemapper_bulk_insert_api for more information
+            - \c "unstable_input": set this option to @ref Qore::True "True" (default @ref Qore::False "False") if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
+            - \c "insert_block": for DB drivers supporting bulk DML (for use with the queueData(), flush(), and discard() methods), the number of rows inserted at once (default: 500, only used when \c "unstable_input" is @ref Qore::False "False") and bulk inserts are supported in the table object; see @ref tablemapper_bulk_insert_api for more information
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
         */
@@ -836,8 +853,8 @@ InboundIdentityTableMapper mapper(table, DbMapper);
             @param table the target table object
             @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
-            - \c "unstable_input": set this option to @ref Qore::True "True" (default @ref Qore::False "False") if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow() or insertRowNoCommit(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
-            - \c "insert_block": for DB drivers supporting bulk DML (for use with the queueBatchRow(), flush(), and discard() methods), the number of rows inserted at once (default: 500, only used when \c "unstable_input" is @ref Qore::False "False") and bulk inserts are supported in the table object; see @ref tablemapper_bulk_insert_api for more information
+            - \c "unstable_input": set this option to @ref Qore::True "True" (default @ref Qore::False "False") if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
+            - \c "insert_block": for DB drivers supporting bulk DML (for use with the queueData(), flush(), and discard() methods), the number of rows inserted at once (default: 500, only used when \c "unstable_input" is @ref Qore::False "False") and bulk inserts are supported in the table object; see @ref tablemapper_bulk_insert_api for more information
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
             @throw TABLE-ERROR the table includes a column using an unknown native data type
@@ -1067,7 +1084,21 @@ InboundTableMapperIterator i(input, mapper);
         constructor(SqlUtil::AbstractTable table, hash sh, hash mapv, *hash opts)
             : Mapper::AbstractMapperIterator(table.getRowIterator(sh))
         {
-            m_mapper = new Mapper(mapv, opts);
+            setup(mapv, opts);
+        }
+
+        #! creates the iterator from the arguments passed
+        /** @param table SqlUtil::Table as a base for select hash \c sh
+            @param sh a SqlUtil select hash (columns/joins/wheres...)
+            @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
+
+            @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
+         */
+        constructor(SqlUtil::Table table, hash sh, hash mapv, *hash opts)
+            : Mapper::AbstractMapperIterator(table.getRowIterator(sh))
+        {
+            setup(mapv, opts);
         }
 
         #! creates the iterator from the arguments passed
@@ -1077,7 +1108,19 @@ InboundTableMapperIterator i(input, mapper);
         constructor(Qore::SQL::SQLStatement stmt, hash mapv, *hash opts)
             : Mapper::AbstractMapperIterator(stmt)
         {
-            m_mapper = new Mapper(mapv, opts);
+            setup(mapv, opts);
+        }
+
+        private setup(hash mapv, *hash opts) {
+            # only Mapper options can be posted to the Mapper instance.
+            # But we re lucky - no more options needed in this iterator.
+            *hash o;
+            HashIterator it(opts);
+            while (it.next()) {
+                if (Mapper::OptionKeys.hasKey(it.getKey()))
+                    o{it.getKey()} = it.getValue();
+            }
+            m_mapper = new Mapper(mapv, o);
         }
 
         #! returns the current row transformed with the mapper
@@ -1098,5 +1141,304 @@ InboundTableMapperIterator i(input, mapper);
         resetCount() {
             m_mapper.resetCount();
         }
-    }
+    } # class SqlStatementMapperIterator
+
+    #! provides an abstract base for all SQL based outbound mappers
+    public class AbstractSqlStatementOutboundMapper inherits Mapper::Mapper {
+        public {
+            #! option keys for this object
+            const OptionKeys = Mapper::OptionKeys + (
+                    "select_block" : sprintf("the row block size used when bulk DML / batch inserts are used; default: %y", OptionDefaults.select_block),
+                );
+
+            #! default option values
+            const OptionDefaults = (
+                    "select_block": 500,
+                );
+        }
+
+        private {
+            # internal SQLStatement
+            SQLStatement m_stmt;
+            # current options
+            *hash m_opts;
+            # a select_block size. Taken from m_opts
+            int select_block;
+        }
+
+        #! builds the object based on an optional hash providing field mappings, data constraints, and optionally custom mapping logic
+        /** The source statement is also scanned using @ref Qore::SQLStatement and column definitions are used to update the source record specification.
+
+            @param mapv a optional hash providing overrides for the default 1:1 input to output field mappings; each hash key is the name in lower case of the output column in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
+            - \c "select_block": for size of the batch returned from TableMapper::SqlStatementOutboundMapper::getData() or SqlStatementOutboundMapper::getDataRows()
+
+            @throw MAP-ERROR
+        */
+        constructor(hash mapv, *hash opts) {
+            setup(mapv, opts);
+            # check map for logical errors
+            checkMap();
+
+            # set options with defaults
+            map self{$1.key} = opts{$1.key} ?* $1.value, OptionDefaults.pairIterator();
+
+            m_opts = opts;
+
+            if (select_block < 1)
+                throw "MAP-ERROR", sprintf("the select_block option is set to %d; this value must be >= 1", select_block);
+
+            # moved to fetch methods because of potential Qorus runtime options
+            # m_stmt = m_table.getRowIterator(m_sh);
+        }
+
+        #! returns a list of valid constructor options for this class (can be overridden in subclasses)
+        /** @return a list of valid constructor options for this class (can be overridden in subclasses)
+        */
+        hash optionKeys() {
+            return OptionKeys;
+        }
+
+        #! commits the transaction and free the AbstractDatasource resource
+        commit() {
+            if (!m_stmt)
+                initStatement();
+            m_stmt.commit();
+        }
+
+        #! rollbacks the transaction and free the AbstractDatasource resource
+        rollback() {
+            if (!m_stmt)
+                initStatement();
+            m_stmt.rollback();
+        }
+
+        #! returns the @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object associated with this object
+        abstract Qore::SQL::AbstractDatasource getDatasource();
+
+        #! re-implement to initialize Qore::SQLStatement
+        abstract private initStatement();
+
+        #! returns a description of the input record based on the @ref Qore::SQLStatement decribe()
+        *hash getInputRecord() {
+            if (!m_stmt)
+                initStatement();
+            HashIterator it(m_stmt.describe());
+            while (it.next()) {
+                hash c = it.getValue();
+                input{it.getKey().lwr()} = sprintf("%s: %s(%d)", c.name, c.native_type, c.maxsize);
+            }
+            return input;
+        }
+
+        #! Get SqlStatementMapperIterator for easy line-by-line processing
+        /** @return TableMapper::SqlStatementMapperIterator object
+
+            Data are retrieved with standard Qore::AbstractIterator::getValue() or similar.
+            Value is a hash with column names as keys.
+         */
+        SqlStatementMapperIterator iterator() {
+            if (!m_stmt)
+                initStatement();
+            return new SqlStatementMapperIterator(m_stmt, mapc, m_opts);
+        }
+
+        #! Retrieve mapped data as a hash of lists.
+        /** @return *hash with data or Qore::NOTHING in case there are no more data available.
+
+            Size of the batch is driven by \c select_block option passed in constructor.
+
+            Hash is in Qore::AbstractDatasource::select() form - meaning it is a hash
+            with column names as keys. Values are lists of column values.
+            This data structure is used for Qore::context statement or BulksSqlUtil
+            operations.
+         */
+        *hash getData() {
+            if (!m_stmt)
+                initStatement();
+
+            *list tmp = mapAll(m_stmt.fetchRows(select_block));
+
+            if (tmp && tmp.size()) {
+                # make "context" structure
+                hash ret;
+                HashIterator it(tmp[0]);
+                while (it.next()) {
+                    ret{it.getKey()} = list();
+                }
+
+                ListIterator lit(tmp);
+                while (lit.next()) {
+                    HashIterator hit(lit.getValue());
+                    while (hit.next()) {
+                        push ret{hit.getKey()}, hit.getValue();
+                    }
+                }
+
+                return ret;
+            }
+        }
+
+        #! Retrieve mapped data as a hash of lists.
+        /** @return *list with data or Qore::NOTHING in case there are no more data available.
+
+            Size of the batch is driven by \c select_block option passed in constructor.
+
+            List is in Qore::AbstractDatasource::selectRows() form - meaning it is a list
+            with hashes, where every hashs has column names as keys with single values as
+            hash values.
+         */
+        *list getDataRows() {
+            if (!m_stmt)
+                initStatement();
+
+            return mapAll(m_stmt.fetchRows(select_block));
+        }
+
+    } # AbstractSqlStatementOutboundMapper
+
+
+    #! provides an outbound data mapper to a Table with SqlUtil select hash as a asource
+    public class SqlStatementOutboundMapper inherits AbstractSqlStatementOutboundMapper {
+
+        private {
+            # the target table object
+            SqlUtil::AbstractTable m_table;
+            # SqlUtil select hash
+            *hash m_sh;
+        }
+
+        #! builds the object based on an optional hash providing field mappings, data constraints, and optionally custom mapping logic
+        /** The source statement is also scanned using @ref Qore::SQLStatement and column definitions are used to update the source record specification.
+
+            @param source the source table object. A \c sh select hash is applied to this table
+            @param sh a SqlUtil select hash
+            @param mapv a optional hash providing overrides for the default 1:1 input to output field mappings; each hash key is the name in lower case of the output column in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
+            - \c "select_block": for size of the batch returned from TableMapper::AbstarctSqlStatementOutboundMapper::getData() or AbstarctSqlStatementOutboundMapper::getDataRows()
+
+            @throw MAP-ERROR
+        */
+        constructor(SqlUtil::Table source, *hash sh, hash mapv, *hash opts)
+            : AbstractSqlStatementOutboundMapper(mapv, opts)
+        {
+            m_table = source.getTable();
+            m_sh = sh;
+        }
+
+        #! builds the object based on an optional hash providing field mappings, data constraints, and optionally custom mapping logic
+        /** The source statement is also scanned using @ref Qore::SQLStatement and column definitions are used to update the source record specification.
+
+            @param source the source table object. A \c sh select hash is applied to this table
+            @param sh a SqlUtil select hash
+            @param mapv a optional hash providing overrides for the default 1:1 input to output field mappings; each hash key is the name in lower case of the output column in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
+            - \c "select_block": for size of the batch returned from TableMapper::AbstarctSqlStatementOutboundMapper::getData() or AbstarctSqlStatementOutboundMapper::getDataRows()
+
+            @throw MAP-ERROR
+        */
+        constructor(SqlUtil::AbstractTable source, *hash sh, hash mapv, *hash opts)
+            : AbstractSqlStatementOutboundMapper(mapv, opts)
+        {
+            m_table = source;
+            m_sh = sh;
+        }
+
+        #! returns the table name
+        /** @return string with main table name
+         */
+        string getTableName() {
+            return m_table.getSqlName();
+        }
+
+        #! returns the underlying SqlUtil::AbstractTable object
+        /** @return SqlUtil::AbstractTable provided in constructor
+         */
+        SqlUtil::AbstractTable getTable() {
+            return m_table;
+        }
+
+
+        #! returns the @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object associated with this object
+        Qore::SQL::AbstractDatasource getDatasource() {
+                return m_table.getDatasource();
+        }
+
+        private initStatement() {
+            string sql;
+            m_stmt = m_table.getRowIterator(m_sh, \sql);
+            if (info_log) {
+                info_log("Mapper: %s: %n", self.className(), sql);
+                info_log("Mapper: %s: binding: %y", self.className(), m_sh."where");
+            }
+        }
+
+    } # SqlStatementOutboundMapper
+
+
+    #! provides an outbound data mapper to a raw SQL statement
+    public class RawSqlStatementOutboundMapper inherits AbstractSqlStatementOutboundMapper {
+
+        private {
+            AbstractDatasource m_ds;
+            string m_sql;
+            *list m_sqlargs;
+        }
+
+        #! builds the obejct based on real SQL statement
+        /** The source statement is also scanned using @ref Qore::SQLStatement and column definitions are used to update the source record specification.
+
+            @param ds Qore::AbstractDatasource instance. Note that this object uses transaction lock for current thread.
+            @param sql a string with SQL statement. Variables binding is provided by \c sqlargs
+            @param sqlargs optional list with sql argumets/variables
+            @param mapv a optional hash providing overrides for the default 1:1 input to output field mappings; each hash key is the name in lower case of the output column in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
+            - \c "select_block": for size of the batch returned from TableMapper::AbstarctSqlStatementOutboundMapper::getData() or AbstarctSqlStatementOutboundMapper::getDataRows()
+
+        @par Example
+        @code{.py}
+%new-style
+%requires TableMapper
+
+Datasource ds("oracle:omq/omq@xbox");
+on_success ds.commit();
+on_error ds.rollback();
+
+hash MAPV = ("id" : "workflowid", "name" : True);
+RawSqlStatementOutboundMapper m(ds, "select * from workflows where workflowid = %v or workflowid = %v", (1,2), MAPV);
+printf("%N\n", m.getDataRows());
+#list: (2 elements)
+#  [0]=hash: (2 members)
+#    id : 1
+#    name : "ASYNC-TEST"
+#  [1]=hash: (2 members)
+#    id : 2
+#    name : "BUG-476-TEST"
+        @endcode
+         */
+        constructor(AbstractDatasource ds, string sql, *softlist sqlargs, hash mapv, *hash opts)
+            : AbstractSqlStatementOutboundMapper(mapv, opts)
+        {
+            m_ds = ds;
+            m_sql = sql;
+            m_sqlargs = sqlargs;
+        }
+
+        #! returns the @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object associated with this object
+        Qore::SQL::AbstractDatasource getDatasource() {
+            return m_ds;
+        }
+
+        private initStatement() {
+            m_stmt = new SQLStatement(m_ds);
+            m_stmt.prepare(m_sql);
+            m_stmt.bindArgs(m_sqlargs);
+            if (info_log) {
+                info_log("Mapper: %s: %n", self.className(), m_sql);
+                info_log("Mapper: %s: binding: %y", self.className(), m_sqlargs);
+            }
+        }
+
+    } # RawSqlStatementOutboundMapper
+
 }

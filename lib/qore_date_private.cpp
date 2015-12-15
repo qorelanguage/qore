@@ -236,7 +236,7 @@ void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone
       return;
    }
 
-   //printd(5, "date: %04d-%02d-%02d\n", year, month, day);
+   //printd(5, "set: date: %04d-%02d-%02d\n", year, month, day);
 
    if (*p == 'Z' || (*p == ' ' && *(p + 1) == 'Z')) {
       set(0, year, month, day, 0, 0, 0, 0);
@@ -494,6 +494,15 @@ qore_relative_time &qore_relative_time::operator-=(const qore_relative_time &dt)
    hour -= dt.hour;
    minute -= dt.minute;
    second -= dt.second;
+   us -= dt.us;
+
+   normalize();
+
+   return *this;
+}
+
+qore_relative_time &qore_relative_time::operator-=(const qore_absolute_time &dt) {
+   second -= dt.epoch;
    us -= dt.us;
 
    normalize();

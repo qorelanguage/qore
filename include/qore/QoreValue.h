@@ -327,6 +327,11 @@ protected:
 public:
    DLLEXPORT ValueEvalRefHolder(const AbstractQoreNode* exp, ExceptionSink* xs);
 
+   // ensures that the held value is referenced
+   /** if needs_deref is false and an AbstractQoreNode* is contained, then the value is referenced and needs_deref is set to true
+    */
+   DLLEXPORT void ensureReferencedValue();
+
    template<typename T>
    DLLLOCAL T* takeReferencedNode() {
       T* rv = v.take<T>();

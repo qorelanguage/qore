@@ -12,6 +12,7 @@
 class Test inherits QUnit::Test {
     constructor() : QUnit::Test("operators", "1.0", \ARGV) {
         addTestCase("basic operator tests", \basicTests());
+        addTestCase("lvalue tests", \lvalueTests());
         set_return_value(main());
     }
 
@@ -80,6 +81,14 @@ class Test inherits QUnit::Test {
         at -= (3h + 5m);
         testAssertionValue("second date += operator", at, 2004-02-29-08:55:00);
 
+        # relative date arithmetic tests
+        assertEq(3s, 5s - 2s);
+        assertEq(-1s, 2s - 3s);
+        # check for normalization between hours & minutes
+        assertEq(30m, 1h - 30m);
+        # rel date - abs date is performed by using the seconds + us offset from the epoch in the absolute date
+        assertEq(15s, 30s - 1970-01-01T00:00:15Z);
+
         any ni += 3.2;
         testAssertionValue("float +=, lhs NOTHING", ni, 3.2);
         delete ni;
@@ -137,6 +146,16 @@ class Test inherits QUnit::Test {
             testAssertion("trim operator parse-time return value", \p.parse(), ("string sub test() {string str = \"a string \\n\"; string astr = trim str; return astr;}", "trim operator test"), new TestResultValue(NOTHING));
             testAssertionValue("trim operator", p.callFunction("test"), "a string");
         }
+    }
+
+    lvalueTests() {
+        # bug 88: lvalue reference-handling bug
+        hash h.a = 1;
+        h.b = h;
+        testAssertionValue("hash assignment", sprintf("%y", h), "{a: 1, b: {a: 1}}");
+        string str = "a";
+        h = (str: 1); h.b += h;
+        testAssertionValue("hash +=", sprintf("%y", h), "{a: 1, b: {a: 1}}");
     }
 
     static code mapClosure(any v) {

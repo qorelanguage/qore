@@ -81,6 +81,10 @@ QoreValue QoreAssignmentOperatorNode::evalValueImpl(bool& needs_deref, Exception
    if (*xsink)
       return QoreValue();
 
+   // we have to ensure that the value is referenced before the assignment in case the lvalue
+   // is the same value, so it can be copied in the LValueHelper constructor
+   new_value.ensureReferencedValue();
+
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);
    if (!v)
@@ -93,4 +97,3 @@ QoreValue QoreAssignmentOperatorNode::evalValueImpl(bool& needs_deref, Exception
    // reference return value if necessary
    return ref_rv ? v.getReferencedValue() : QoreValue();
 }
-

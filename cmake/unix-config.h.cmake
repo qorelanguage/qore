@@ -29,7 +29,7 @@
 #cmakedefine HAVE_GETOPT_H
 #cmakedefine HAVE_STDINT_H
 #cmakedefine HAVE_GRP_H
-
+#cmakedefine HAVE_UMEM_H
 
 /* functions */
 #cmakedefine HAVE_BZERO
