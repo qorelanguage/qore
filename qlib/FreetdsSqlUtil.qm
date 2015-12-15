@@ -1409,7 +1409,14 @@ order by
 
         #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
         private doSelectLimitOnlyUnlockedImpl(reference sql, reference args, *hash qh) {
-            throw "UNIMPLEMENTED", "limit not yet implemented";
+            if (!qh.limit)
+                return;
+
+            # this rule is broken here with reason:
+            # In a SELECT statement, always use an ORDER BY clause with the TOP clause.
+            # This is the only way to predictably indicate which rows are affected by TOP
+            sql = regex_subst(sql, "^select ", sprintf("select top %d ", qh.limit));
+            args += qh.limit;
         }
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
