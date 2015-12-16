@@ -29,10 +29,21 @@ public class EmptyHashAmbiguityTest inherits QUnit::Test {
     }
 
     binaryPlusMinus() {
-        Program p();
-        p.replaceParseOptions(PO_DEFAULT);
-        p.parse("$a = {} + ('x': 5);", "");
-        p.parse("$b = {} - ('x': 5);", "");
+        any a = {} + ('x': 5); # hash + hash
+        assertEq("hash", type(a));
+        assertEq(1, elements a);
+        assertEq(a{"x"}, 5);
+        assertEq(1, a.size());
+        
+        any b = {} - ('x': 5); # hash - hash -> this operation is not defined in documentation!
+        #assertEq("hash", type(b)); is broken currently -> type of b is nothing, it's not an empty hash
+        assertEq(0, elements b);
+        assertEq(0, b.size());
+        
+        any c = {} - ("x"); # hash - list
+        assertEq("hash", type(c));
+        assertEq(0, elements c);
+        assertEq(0, c.size());
     }
 
     emptyBlockPreferred() {
