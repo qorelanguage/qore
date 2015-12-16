@@ -677,12 +677,17 @@ public class FixedLengthUtil::FixedLengthAbstractWriter {
         - \c "type": a string giving the record type (must be defined in @ref fixedlengthspec given in the constructor)
         - \c "record": a hash giving the input record to be rendered (with keys as defined in the @ref fixedlengthspecrecordhash for the record identified by the \a type argument)
 
+        @throw INVALID-LINE-DATA line argument missing either \a type or \a record keys
         @throw INVALID-RECORD record name (\a type key in the record hash) not recognized
         @throw FIELD-INPUT-ERROR the input value is too large to render into the output field
         @throw RECORD-TRANSITION-ERROR a record transition error occurred; an invalid record sequence was given in the input data
     */
     string formatLine(hash line) {
-        string type = line{"type"};
+        if (!line.type)
+            throw "INVALID-LINE-DATA", sprintf("invalid line data; missing \"type\" key; got keys: %y", line.keys());
+        if (!line.record)
+            throw "INVALID-LINE-DATA", sprintf("invalid line data; missing \"record\" key; got keys: %y", line.keys());
+        string type = line.type;
         if (!m_specs{type})
             throw "INVALID-RECORD", sprintf("unknown record type %y; valid records: %y", type, m_specs.keys());
 
