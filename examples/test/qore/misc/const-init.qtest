@@ -11,7 +11,7 @@ UnitTest unit();
 
 Program p(PO_LOCKDOWN);
 
-string code = "
+string str = "
 class B {
     abstract string getName();
 }
@@ -22,9 +22,9 @@ class C inherits B {
 
 class D {
     public {
-        const C = new C();
+        const c = new C();
     }
 }
 ";
 
-unit.exception(sub () { p.parse(code, "test"); }, (), "constant initialization using class with uncommitted changes", 'ILLEGAL-CLASS-INSTANTIATION', "class");
+unit.exception(sub () { p.parse(str, "test"); }, (), "constant initialization using class with uncommitted changes", 'ILLEGAL-CLASS-INSTANTIATION', "class");
