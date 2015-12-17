@@ -376,7 +376,7 @@ const DataMap = (
 Mapper mapv(DataMap);
             @endcode
 
-            @param map a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
+            @param map a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
@@ -501,7 +501,8 @@ Mapper mapv(DataMap);
 
         #! raises an error if an invalid input field name is declared; only call this if "input" is defined
         private checkInputField(string k, string name) {
-            if (!input.hasKey(name))
+            string n = allow_dot ? name : name.split('.')[0];
+            if (!input.hasKey(n))
                 error("output field %y requires unknown input field %y; valid input fields are: %y", getFieldName(k), name, input.keys());
         }
 

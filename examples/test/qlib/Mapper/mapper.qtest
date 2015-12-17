@@ -130,7 +130,6 @@ public class MapperTest inherits QUnit::Test {
         m_map = new Mapper(DataMap, opts);
     }
 
-
     testMapperMapAll() {
         list l = m_map.mapAll(MapInput);
         testAssertion("Verify mapped list", \equalsIterated(), (new ListIterator(l), new ListIterator(MapOutput)));

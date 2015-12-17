@@ -1076,7 +1076,7 @@ InboundTableMapperIterator i(input, mapper);
         #! creates the iterator from the arguments passed
         /** @param table SqlUtil::AbstractTable as a base for select hash \c sh
             @param sh a SqlUtil select hash (columns/joins/wheres...)
-            @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
+            @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
@@ -1090,7 +1090,7 @@ InboundTableMapperIterator i(input, mapper);
         #! creates the iterator from the arguments passed
         /** @param table SqlUtil::Table as a base for select hash \c sh
             @param sh a SqlUtil select hash (columns/joins/wheres...)
-            @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
+            @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
