@@ -995,6 +995,7 @@ where
 
             hash rv;
             foreach hash row in (qh.contextIterator()) {
+                row.column_name = row.column_name.lwr();
                 *hash th = FreetdsTypeMap.(row.data_type);
                 softint size = row.length;
                 switch (th.qore) {
@@ -1028,6 +1029,7 @@ where
 
             hash rv;
             foreach hash row in (qh.contextIterator()) {
+                row.column_name = row.column_name.lwr();
                 *hash th = FreetdsTypeMap.(row.data_type);
                 softint size = row.character_maximum_length ? row.character_maximum_length : row.numeric_precision;
                 switch (th.qore) {
@@ -1097,7 +1099,7 @@ where
 
             hash rv;
             for (int i = 1; i <= pkh.keycnt; ++i) {
-                string key = pkh{"col" + i};
+                string key = pkh{"col" + i}.lwr();
                 rv{key} = columns{key};
             }
             return new FreetdsPrimaryKey(pkh.constraint_name, rv);
@@ -1114,9 +1116,9 @@ where
                 return new FreetdsPrimaryKey();
 
             #printf("FreetdsTable::getPrimaryKeyImpl(): %s: %N\n", getName(), qh);
-            hash rv = map {$1: columns.$1}, qh.column_name;
+            hash rv = map {$1: columns.$1}, (map $1.lwr(), qh.column_name);
 
-            return new FreetdsPrimaryKey(pkh.constraint_name, rv);
+            return new FreetdsPrimaryKey(pkh.constraint_name.lwr(), rv);
         }
 
         private Indexes getIndexesImpl() {
@@ -1145,6 +1147,9 @@ where
             if (qh.index_name) {
                 hash ih;
                 foreach hash row in (qh.contextIterator()) {
+                    row.column_name = row.column_name.lwr();
+                    row.index_name = row.index_name.lwr();
+
                     if (!ih.(row.index_name)) {
                         ih.(row.index_name) = (
                             "unique": row.is_unique,
@@ -1212,10 +1217,11 @@ order by
             if (qh.constraint_name) {
                 hash ch;
                 foreach hash row in (qh.contextIterator()) {
-                    reference c = \ch.(row.constraint_name);
+                    reference c = \ch.(row.constraint_name.lwr());
+                    row.source_column = row.source_column.lwr();
                     c.columns.(row.source_column) = columns{row.source_column};
-                    c.target.table = row.target_table;
-                    c.target.columns.(row.target_column) = True;
+                    c.target.table = row.target_table.lwr();
+                    c.target.columns.(row.target_column.lwr()) = True;
                 }
 
                 foreach hash c in (ch.pairIterator()) {
@@ -1259,9 +1265,10 @@ order by
 	tc.constraint_name, c1.ordinal_position", schema, name);
             delete rv;
             foreach hash row in (qh.contextIterator()) {
-                reference ch = \rv.(row.constraint_name);
+                reference ch = \rv.(row.constraint_name.lwr());
                 if (!ch)
                     ch = new FreetdsUniqueConstraint(row.constraint_name, {}, row.status == "ENABLED");
+                row.column_name = row.column_name.lwr();
                 ch.add(row.column_name, columns{row.column_name});
             }
 
@@ -1336,16 +1343,15 @@ order by
         }
 
         private bool tryInsertImpl(string sql, hash row) {
-            ds.exec("begin");
-            ds.exec("savepoint " + FreetdsDatabase::FreeTDS_TempSavepoint);
+            ds.exec("begin tran");
+            ds.exec("save tran " + FreetdsDatabase::FreeTDS_TempSavepoint);
 
             try {
                 ds.vexec(sql, row.values());
-                ds.exec("release savepoint " + FreetdsDatabase::FreeTDS_TempSavepoint);
             }
             catch (hash ex) {
-                if (ex.desc =~ /duplicate key value/) {
-                    ds.exec("rollback to savepoint " + FreetdsDatabase::FreeTDS_TempSavepoint);
+                if (ex.desc =~ /Cannot insert duplicate/) {
+                    ds.exec("rollback tran " + FreetdsDatabase::FreeTDS_TempSavepoint);
                     return False;
                 }
                 rethrow;
