@@ -214,20 +214,31 @@ class FreetdsTest inherits QUnit::Test {
         addTestCase("BulkInsert", \bulkInsertTest());
         addTestCase("BulkUpsert", \bulkUpsertTest());
 
-        # create the test schema
-        schema = new FreetdsTestSchema(getDatasource());
+        Datasource ds;
+        try {
+            ds = getDatasource();
+        }
+        catch (hash ex) {
+            # skip tests if we can't create the datasource
+        }
 
-        schema.align(False, m_options.verbose);
+        if (ds) {
+            # create the test schema
+            schema = new FreetdsTestSchema(ds);
 
-        # get table object
-        table = (new Table(schema.getDatasource(), "freetds_test")).getTable();
+            schema.align(False, m_options.verbose);
+
+            # get table object
+            table = (new Table(schema.getDatasource(), "freetds_test")).getTable();
+        }
 
         set_return_value(main());
     }
 
     globalTearDown() {
         # drop the test schema
-        schema.drop(False, m_options.verbose);
+        if (schema)
+            schema.drop(False, m_options.verbose);
     }
 
     private usageIntern() {
@@ -241,10 +252,14 @@ class FreetdsTest inherits QUnit::Test {
         Datasource ds(m_options.connstr);
         if (ds.getDriverName() != "freetds")
             throw "FREETDS-ERROR", sprintf("cannot execute the freetds tests on a connection using driver %y", ds.getDriverName());
+        ds.open();
         return ds;
     }
 
     insertTest() {
+        if (!table)
+            testSkip("no DB connection");
+
         on_success table.commit();
         on_error table.rollback();
 
@@ -252,6 +267,9 @@ class FreetdsTest inherits QUnit::Test {
     }
 
     upsertTest() {
+        if (!table)
+            testSkip("no DB connection");
+
         on_success table.commit();
         on_error table.rollback();
 
@@ -261,6 +279,9 @@ class FreetdsTest inherits QUnit::Test {
     }
 
     bulkInsertTest() {
+        if (!table)
+            testSkip("no DB connection");
+
         on_success table.commit();
         on_error table.rollback();
 
@@ -274,6 +295,9 @@ class FreetdsTest inherits QUnit::Test {
     }
 
     bulkUpsertTest() {
+        if (!table)
+            testSkip("no DB connection");
+
         on_success table.commit();
         on_error table.rollback();
 
