@@ -5,7 +5,7 @@
 %enable-all-warnings
 %new-style
 
-%requires UnitTest
+%requires ../../../../qlib/QUnit.qm
 
 namespace None {}
 class NoClass {}
@@ -17,20 +17,25 @@ class SomeClass {
     noMeth() {}
 }
 
-UnitTest unit();
-
-test();
-
 sub no_func() {}
 
-sub test() {
-    SomeClass sc();
+%exec-class CurlyBracketsTest
 
-    # these test the reduce-reduce conflicts in the qore parser due to the introduction of the empty hash syntax: {}
-    unit.cmp(sc.typeCode(), NT_OBJECT, "empty-class-public-1");
-    unit.cmp((new NoClass()).typeCode(), NT_OBJECT, "empty-class-public-2");
-    unit.cmp(no_func(), NOTHING, "empty-func");
-    unit.cmp(sc.noMeth(), NOTHING, "empty-func");
-    unit.cmp((sub () {})(), NOTHING, "empty-closure");
-    unit.cmp({}, hash(), "empty-hash");
+class CurlyBracketsTest inherits QUnit::Test {
+    constructor() : QUnit::Test("Curly brackets test", "1.0") {
+        addTestCase("Test", \testCurlyBrackets());
+        set_return_value(main());
+    }
+
+    testCurlyBrackets() {
+        SomeClass sc();
+        
+        # these test the reduce-reduce conflicts in the qore parser due to the introduction of the empty hash syntax: {}
+        assertEq(NT_OBJECT, sc.typeCode(), "empty-class-public-1");
+        assertEq(NT_OBJECT, (new NoClass()).typeCode(), "empty-class-public-2");
+        assertEq(NOTHING, no_func(), "empty-func");
+        assertEq(NOTHING, sc.noMeth(), "empty-func");
+        assertEq(NOTHING, (sub () {})(), "empty-closure");
+        assertEq(hash(), {}, "empty-hash");
+    }
 }
