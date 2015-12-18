@@ -116,15 +116,17 @@ public class MapperTest inherits QUnit::Test {
         addTestCase("Test mapAll()", \testMapperMapAll(), NOTHING);
         addTestCase("Test mapData()", \testMapperMapData(), NOTHING);
         addTestCase("Runtime test", \testMapperRuntime());
+        addTestCase("Test 'input' option", \testMapperOptionInput());
         set_return_value(main());
     }
 
     private {
         Mapper m_map;
+        hash opts;
     }
 
     setUp() {
-        hash opts = (
+        opts = (
             "runtime" : ( "runtimetest" : 1 ),
         );
         m_map = new Mapper(DataMap, opts);
@@ -143,7 +145,6 @@ public class MapperTest inherits QUnit::Test {
     }
 
     testMapperRuntime() {
-
         ListIterator it(MapInput);
         int ix = 0;
         while (it.next()) {
@@ -153,5 +154,11 @@ public class MapperTest inherits QUnit::Test {
             testAssertion(sprintf("runtime item: %d", ix), \equals(), (rec, orig));
             ix++;
         }
+    }
+
+    testMapperOptionInput() {
+        opts += ("input": map {$1: $1}, MapInput[0].keys());
+        m_map = new Mapper(DataMap, opts);
+        m_map.mapData(MapInput[0]);
     }
 }
