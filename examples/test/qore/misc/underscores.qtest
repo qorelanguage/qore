@@ -4,25 +4,41 @@
 %require-types
 %enable-all-warnings
 %new-style
-%no-child-restrictions
 
 %requires ../../../../qlib/QUnit.qm
 
 %exec-class UnderscoresTest
 
+class __ {}
+
+namespace ___ {}
+class ___::____
+{
+    int _____(int x) {
+        return x + 3;
+    }
+
+}
+
 public class UnderscoresTest inherits QUnit::Test {
 
     constructor() : Test("UnderscoresTest", "1.0") {
-        addTestCase("undersores in identifiers ", \underscores(), NOTHING);
+        addTestCase("underscores in identifiers ", \testUnderscores(), NOTHING);
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
     }
 
-    underscores() {
+    testUnderscores() {
         int _ = 1;
         string _a_a_ = "a";
         assertEq(1, _);
         assertEq("a", _a_a_);
+        
+        __ _____();
+        assertEq("__", get_class_name(_____));
+        
+        ___::____ ______ = new ___::____();
+        assertEq(10, ______._____(7));
     }
 }
