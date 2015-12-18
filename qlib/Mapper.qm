@@ -978,7 +978,7 @@ Mapper mapv(DataMap);
                             return;
                         }
                     }
-            }
+                }
                 case "date": {
                     # if there is no date_format below, then the default conversion is made
                     if (v.typeCode() != NT_DATE)
@@ -1038,14 +1038,34 @@ Mapper mapv(DataMap);
             i = iter;
         }
 
-        #! Moves the current position of the input iterator to the next element; returns @ref Qore::False "False" if there are no more elements
+        #! Moves the current position of the iterator to the next element; returns @ref Qore::False "False" if there are no more elements
         bool next() {
             return i.next();
         }
 
-        #! returns @ref Qore::True "True" if the input iterator is currently pointing at a valid element, @ref Qore::False "False" if not
+        #! returns @ref Qore::True "True" if the iterator is currently pointing at a valid element, @ref Qore::False "False" if not
         bool valid() {
             return i.valid();
+        }
+
+        #! returns @ref True if the iterator supports bulk mode; this method returns @ref False (the default)
+        bool hasBulk() {
+            return False;
+        }
+
+        #! performs bulk mapping; if the iterator does not support bulk mapping then it is simulated in this method
+        /** @param size the number of rows to return
+
+            @return a list of mapped hashes with a maximum number of rows corresponding to the \a size argument; in case there is less input data than requested, the list returned could have fewer rows than requested; in case there is no more data, the return value is an empty list
+         */
+        list mapBulk(int size) {
+            list rv = ();
+            while (next()) {
+                rv += getValue();
+                if (rv.size() == size)
+                    break;
+            }
+            return rv;
         }
     }
 

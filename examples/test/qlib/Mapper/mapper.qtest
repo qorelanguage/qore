@@ -117,6 +117,7 @@ public class MapperTest inherits QUnit::Test {
         addTestCase("Test mapData()", \testMapperMapData(), NOTHING);
         addTestCase("Runtime test", \testMapperRuntime());
         addTestCase("Test 'input' option", \testMapperOptionInput());
+        addTestCase("Bulk Test", \testMapperBulk());
         set_return_value(main());
     }
 
@@ -157,8 +158,15 @@ public class MapperTest inherits QUnit::Test {
     }
 
     testMapperOptionInput() {
-        opts += ("input": map {$1: $1}, MapInput[0].keys());
-        m_map = new Mapper(DataMap, opts);
+        hash my_opts = opts + ("input": map {$1: $1}, MapInput[0].keys());
+        m_map = new Mapper(DataMap, my_opts);
         m_map.mapData(MapInput[0]);
+    }
+
+    testMapperBulk() {
+        MapperIterator i(MapInput.iterator(), DataMap, opts);
+        list l = i.mapBulk(MapInput.lsize());
+        testAssertion("Verify mapped list", \equalsIterated(), (l.iterator(), MapOutput.iterator()));
+        assertEq(2, i.getCount());
     }
 }
