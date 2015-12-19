@@ -5,13 +5,20 @@
 %enable-all-warnings
 %new-style
 
-%requires UnitTest
+%requires ../../../../qlib/QUnit.qm
 
-UnitTest unit();
+%exec-class ConstInitTest
 
-Program p(PO_LOCKDOWN);
+class ConstInitTest inherits QUnit::Test {
+    constructor() : QUnit::Test("Const init test", "1.0") {
+        addTestCase("Test", \testConstInit());
+        set_return_value(main());
+    }
 
-string code = "
+    testConstInit() {
+        Program p(PO_LOCKDOWN);
+        
+        string c = "
 class B {
     abstract string getName();
 }
@@ -26,5 +33,8 @@ class D {
     }
 }
 ";
+        
+        assertThrows("ILLEGAL-CLASS-INSTANTIATION", sub () { p.parse(c, "test"); });
+    }
+}
 
-unit.exception(sub () { p.parse(code, "test"); }, (), "constant initialization using class with uncommitted changes", 'ILLEGAL-CLASS-INSTANTIATION', "class");

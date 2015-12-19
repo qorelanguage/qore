@@ -54,11 +54,12 @@ module TableMapper {
     @section tablemapperintro TableMapper Module Introduction
 
     Classes provided by this module:
+    - @ref TableMapper::AbstractSqlStatementOutboundMapper "AbstractSqlStatementOutboundMapper": the base class for outbound mappers based on a database source
     - @ref TableMapper::InboundTableMapper "InboundTableMapper": extends the @ref Mapper::Mapper class; assumes an SQL table target
     - @ref TableMapper::InboundIdentityTableMapper "InboundIdentityTableMapper": extends the @ref TableMapper::InboundTableMapper "InboundTableMapper" class for the case when the source and target tables have the exact same structure
     - @ref TableMapper::InboundTableMapperIterator "InboundTableMapperIterator": provides a specialization of the @ref Mapper::AbstractMapperIterator class; assumes an SQL table target; automatically inserts mapped data into the target table based on the mapper provided
     - @ref TableMapper::SqlStatementOutboundMapper "SqlStatementOutboundMapper": provides a SQL statement source based mapper
-    - @ref TableMapper::SqlStatementMapperIterator "SqlStatementMapperIterator": provides a helper SQL statement source bsed iterator with mapping capability
+    - @ref TableMapper::SqlStatementMapperIterator "SqlStatementMapperIterator": provides a helper SQL statement source based iterator with mapping capability
 
     @section tablemapperexamples TableMapper Examples
 
@@ -208,7 +209,11 @@ on_error table1.rollback();
       - \c "insert_block": for DB drivers supporting bulk DML (for use with the TableMapper::InboundTableMapper::queueData(), TableMapper::InboundTableMapper::flush(), and TableMapper::InboundTableMapper::discard() methods), the number of rows inserted at once (default: 500, only used when \c "unstable_input" is @ref Qore::False "False") and bulk inserts are supported in the table object
     - added method for bulk / batch inserts for db drivers supporting bulk DML (ex: Oracle)
     - updated to Mapper changes: use table description to define output record for the Mapper module
+    - added the @ref TableMapper::AbstractSqlStatementOutboundMapper "AbstractSqlStatementOutboundMapper" class
     - added the @ref TableMapper::InboundIdentityTableMapper "InboundIdentityTableMapper" class
+    - added the @ref TableMapper::RawSqlStatementOutboundMapper "RawSqlStatementOutboundMapper" class
+    - added the @ref TableMapper::SqlStatementMapperIterator "SqlStatementMapperIterator" class
+    - added the @ref TableMapper::SqlStatementOutboundMapper "SqlStatementOutboundMapper" class
 
     @subsection tablemapperv1_0 TableMapper v1.0
     - Initial release.
@@ -870,8 +875,6 @@ InboundIdentityTableMapper mapper(table, DbMapper);
             InboundTableMapper::init(mapv, opts);
         }
 
-
-
         #! returns a description of the input record based on the @ref SqlUtil::AbstractTable "AbstractTable" source
         static hash getInputRecord(SqlUtil::AbstractTable table) {
             return map {$1.name.lwr(): $1.comment ? ("desc": $1.comment) : {}}, table.describe().iterator();
@@ -1062,8 +1065,11 @@ InboundTableMapperIterator i(input, mapper);
         }
     }
 
-
     #! provides a hash iterator based on a mapper object and an SQLStatement or SqlUtil select hash
+    /** provides support for bulk DML:
+        - @ref hasBulk() returns @ref True
+        - @ref mapBulk() fetches the number of rows requested and then maps to output values
+    */
     public class SqlStatementMapperIterator inherits Mapper::AbstractMapperIterator {
         public {
         }
@@ -1076,7 +1082,7 @@ InboundTableMapperIterator i(input, mapper);
         #! creates the iterator from the arguments passed
         /** @param table SqlUtil::AbstractTable as a base for select hash \c sh
             @param sh a SqlUtil select hash (columns/joins/wheres...)
-            @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
+            @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
@@ -1090,7 +1096,7 @@ InboundTableMapperIterator i(input, mapper);
         #! creates the iterator from the arguments passed
         /** @param table SqlUtil::Table as a base for select hash \c sh
             @param sh a SqlUtil select hash (columns/joins/wheres...)
-            @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
+            @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
@@ -1113,7 +1119,7 @@ InboundTableMapperIterator i(input, mapper);
 
         private setup(hash mapv, *hash opts) {
             # only Mapper options can be posted to the Mapper instance.
-            # But we re lucky - no more options needed in this iterator.
+            # But we're lucky - no more options needed in this iterator.
             *hash o;
             HashIterator it(opts);
             while (it.next()) {
@@ -1141,6 +1147,27 @@ InboundTableMapperIterator i(input, mapper);
         resetCount() {
             m_mapper.resetCount();
         }
+
+        #! returns @ref True because this class supports bulk mode
+        bool hasBulk() {
+            return True;
+        }
+
+        #! performs bulk mapping by selecting the requested number of rows in a single select
+        /** @param size the number of rows to return
+
+            @return a list of mapped hashes with a maximum number of rows corresponding to the \a size argument; in case there is less input data than requested, the list returned could have fewer rows than requested; in case there is no more data, the return value is an empty list
+         */
+        list mapBulk(int size) {
+            SQLStatement stmt = cast<SQLStatement>(i);
+
+            list l = stmt.fetchRows(size);
+            if (!l)
+                return ();
+
+            return map m_mapper.mapData($1), l;
+        }
+
     } # class SqlStatementMapperIterator
 
     #! provides an abstract base for all SQL based outbound mappers

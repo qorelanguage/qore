@@ -376,7 +376,7 @@ const DataMap = (
 Mapper mapv(DataMap);
             @endcode
 
-            @param map a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
+            @param map a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
@@ -501,7 +501,8 @@ Mapper mapv(DataMap);
 
         #! raises an error if an invalid input field name is declared; only call this if "input" is defined
         private checkInputField(string k, string name) {
-            if (!input.hasKey(name))
+            string n = allow_dot ? name : name.split('.')[0];
+            if (!input.hasKey(n))
                 error("output field %y requires unknown input field %y; valid input fields are: %y", getFieldName(k), name, input.keys());
         }
 
@@ -977,7 +978,7 @@ Mapper mapv(DataMap);
                             return;
                         }
                     }
-            }
+                }
                 case "date": {
                     # if there is no date_format below, then the default conversion is made
                     if (v.typeCode() != NT_DATE)
@@ -1037,14 +1038,34 @@ Mapper mapv(DataMap);
             i = iter;
         }
 
-        #! Moves the current position of the input iterator to the next element; returns @ref Qore::False "False" if there are no more elements
+        #! Moves the current position of the iterator to the next element; returns @ref Qore::False "False" if there are no more elements
         bool next() {
             return i.next();
         }
 
-        #! returns @ref Qore::True "True" if the input iterator is currently pointing at a valid element, @ref Qore::False "False" if not
+        #! returns @ref Qore::True "True" if the iterator is currently pointing at a valid element, @ref Qore::False "False" if not
         bool valid() {
             return i.valid();
+        }
+
+        #! returns @ref True if the iterator supports bulk mode; this method returns @ref False (the default)
+        bool hasBulk() {
+            return False;
+        }
+
+        #! performs bulk mapping; if the iterator does not support bulk mapping then it is simulated in this method
+        /** @param size the number of rows to return
+
+            @return a list of mapped hashes with a maximum number of rows corresponding to the \a size argument; in case there is less input data than requested, the list returned could have fewer rows than requested; in case there is no more data, the return value is an empty list
+         */
+        list mapBulk(int size) {
+            list rv = ();
+            while (next()) {
+                rv += getValue();
+                if (rv.size() == size)
+                    break;
+            }
+            return rv;
         }
     }
 
