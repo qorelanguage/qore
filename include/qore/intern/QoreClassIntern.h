@@ -104,7 +104,7 @@ struct AbstractMethod {
       assert(!vlist.empty());
    }
 
-   DLLLOCAL static void parseCheckAbstract(const char* cname, const char* mname, vmap_t& vlist, QoreStringNode*& desc);
+   DLLLOCAL static void checkAbstract(const char* cname, const char* mname, vmap_t& vlist, QoreStringNode*& desc);
 
    DLLLOCAL void add(MethodVariantBase* v);
    DLLLOCAL void override(MethodVariantBase* v);
@@ -172,8 +172,13 @@ struct AbstractMethodMap : amap_t {
 
    DLLLOCAL void parseInit(qore_class_private& qc, BCList* scl);
 
+   DLLLOCAL QoreStringNode* checkAbstract(const char* cname) const;
+
    // we check if there are any abstract method variants still in the committed lists
    DLLLOCAL void parseCheckAbstractNew(const char* name) const;
+
+   // we check if there are any abstract method variants in the class at runtime (for use with exec-class)
+   DLLLOCAL int runtimeCheckRunClass(const char* name, ExceptionSink* xsink) const;
 };
 
 class SignatureHash;
@@ -1757,6 +1762,10 @@ public:
       return !ahm.empty();
    }
 
+   DLLLOCAL int runtimeCheckRunClass(ExceptionSink* xsink) {
+      return ahm.runtimeCheckRunClass(name.c_str(), xsink);
+   }
+
    DLLLOCAL void parseCheckAbstractNew() {
       parseInit();
       ahm.parseCheckAbstractNew(name.c_str());
@@ -2763,6 +2772,10 @@ public:
 
    DLLLOCAL static const qore_class_private* isPublicOrPrivateMember(const QoreClass& qc, const char* mem, bool& priv) {
       return qc.priv->isPublicOrPrivateMember(mem, priv);
+   }
+
+   DLLLOCAL static int runtimeCheckRunClass(QoreClass& qc, ExceptionSink* xsink) {
+      return qc.priv->runtimeCheckRunClass(xsink);
    }
 
    DLLLOCAL static void parseCheckAbstractNew(QoreClass& qc) {

@@ -988,6 +988,10 @@ void QoreProgram::runClass(const char* classname, ExceptionSink* xsink) {
       xsink->raiseException("CLASS-NOT-FOUND", "cannot find any class '%s' in any namespace", classname);
       return;
    }
+
+   if (qore_class_private::runtimeCheckRunClass(*const_cast<QoreClass*>(qc), xsink))
+      return;
+
    //printd(5, "QoreProgram::runClass(%s)\n", classname);
 
    ProgramThreadCountContextHelper tch(xsink, this, true);

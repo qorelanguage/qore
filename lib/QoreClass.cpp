@@ -308,8 +308,8 @@ void AbstractMethod::override(MethodVariantBase* v) {
    }
 }
 
-void AbstractMethod::parseCheckAbstract(const char* cname, const char* mname, vmap_t& vlist, QoreStringNode*& desc) {
-   //printd(5, "AbstractMethod::parseCheckAbstract() checking %s::%s() vlist: %d\n", cname, mname, !vlist.empty());
+void AbstractMethod::checkAbstract(const char* cname, const char* mname, vmap_t& vlist, QoreStringNode*& desc) {
+   //printd(5, "AbstractMethod::checkAbstract() checking %s::%s() vlist: %d\n", cname, mname, !vlist.empty());
    if (!vlist.empty()) {
       if (!desc)
          desc = new QoreStringNodeMaker("class '%s' cannot be instantiated because it has the following unimplemented abstract variants:", cname);
@@ -419,19 +419,32 @@ void AbstractMethodMap::overrideAbstractVariant(const char* name, MethodVariantB
    }
 }
 
-// we check if there are any abstract method variants still in the committed lists
-void AbstractMethodMap::parseCheckAbstractNew(const char* name) const {
+DLLLOCAL QoreStringNode* AbstractMethodMap::checkAbstract(const char* name) const {
    if (empty())
-      return;
+      return 0;
 
    QoreStringNode* desc = 0;
    for (amap_t::const_iterator i = begin(), e = end(); i != e; ++i) {
-      AbstractMethod::parseCheckAbstract(name, i->first.c_str(), i->second->vlist, desc);
-      AbstractMethod::parseCheckAbstract(name, i->first.c_str(), i->second->pending_vlist, desc);
+      AbstractMethod::checkAbstract(name, i->first.c_str(), i->second->vlist, desc);
+      AbstractMethod::checkAbstract(name, i->first.c_str(), i->second->pending_vlist, desc);
    }
 
    //printd(5, "AbstractMethodMap::parseCheckAbstractNew() class: %s desc: %p (%s)\n", name, desc, desc ? desc->getBuffer() : "n/a");
+   return desc;
+}
 
+int AbstractMethodMap::runtimeCheckRunClass(const char* name, ExceptionSink* xsink) const {
+   QoreStringNode* desc = checkAbstract(name);
+   if (desc) {
+      xsink->raiseException("ABSTRACT-CLASS-ERROR", desc);
+      return -1;
+   }
+   return 0;
+}
+
+// we check if there are any abstract method variants still in the committed lists
+void AbstractMethodMap::parseCheckAbstractNew(const char* name) const {
+   QoreStringNode* desc = checkAbstract(name);
    if (desc)
       parseException("ABSTRACT-CLASS-ERROR", desc);
 }
