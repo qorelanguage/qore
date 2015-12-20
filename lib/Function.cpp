@@ -134,6 +134,30 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
    setReturnTypeInfo(variant->getReturnTypeInfo());
 }
 
+CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreValueList* args, const char* n_class_name, qore_call_t n_ct, bool is_copy)
+   : ct(n_ct), name(n_name), xsink(n_xsink), class_name(n_class_name), loc(RunTimeLocation), tmp(n_xsink), returnTypeInfo((const QoreTypeInfo* )-1), pgm(getProgram()), rtflags(0) {
+   tmp.assignEval(args);
+
+   if (*xsink)
+      return;
+
+   bool check_args = variant;
+   if (!variant) {
+      variant = func->findVariant(getArgs(), false, xsink);
+      if (!variant) {
+	 assert(*xsink);
+	 return;
+      }
+   }
+
+   class_name = variant->className();
+   if (processDefaultArgs(func, variant, check_args, is_copy))
+      return;
+
+   setCallType(variant->getCallType());
+   setReturnTypeInfo(variant->getReturnTypeInfo());
+}
+
 CodeEvaluationHelper::~CodeEvaluationHelper() {
    if (returnTypeInfo != (const QoreTypeInfo*)-1)
       saveReturnTypeInfo(returnTypeInfo);
