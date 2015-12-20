@@ -378,6 +378,7 @@
     - fixed bugs in relative date arithmetic where operands were swapped with the @ref minus_operator "- operator" if the first operand was a @ref relative_dates "relative date/time value", additionally an operation with the @ref minus_operator "- operator" where the first operand is a @ref relative_dates "relative date" and the second operand is a @ref absolute_dates "absolute date" is now calculated using the @ref absolute_dates "absolute date"'s epoch offset (offset in seconds and microseconds from \c 1970-01-01Z), and a @ref relative_dates "relative date/time value" is produced
     - fixed a bug normalizing the result of date arithmetic between hour and minute components of @ref relative_dates "relative date/time value"
     - fixed a bug where time components of absolute date/time values before the UNIX epoch were returned with invalid values
+    - fixed a bug where the @ref exec-class "%exec-class" directive did not check for classes with unimplemented abstract variants
 
     @section qore_0811 Qore 0.8.11
 

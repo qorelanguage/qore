@@ -13,19 +13,20 @@
 public class ParseDirectiveTest inherits QUnit::Test {
 
     constructor() : Test("ParseDirectiveTest", "1.0") {
-        addTestCase("missing arg to %append-include-path", \missingArgAppendIncludePath(), NOTHING);
-        addTestCase("missing arg to %append-module-path", \missingArgAppendModulePath(), NOTHING);
-        addTestCase("missing arg to %set-time-zone", \missingArgSetTimeZone(), NOTHING);
-        addTestCase("missing arg to %enable-warning", \missingArgEnableWarning(), NOTHING);
-        addTestCase("missing arg to %try-module", \missingArgTryModule(), NOTHING);
-        addTestCase("missing arg to %requires", \missingArgRequires(), NOTHING);
-        addTestCase("missing arg to %requires (with space)", \missingArgRequiresWithSpace(), NOTHING);
-        addTestCase("tab in arg", \tabInArg(), NOTHING);
-        addTestCase("space after %exec-class", \spaceAfterExecClass(), NOTHING);
-        addTestCase("invalid id in %try-module", \invalidIdInTryModule(), NOTHING);
-        addTestCase("ignored text before '(' in %try-module", \ignoredTextTryModule(), NOTHING);
-        addTestCase("correct %try-module", \correctTryModule(), NOTHING);
-        addTestCase("correct %requires", \correctRequires(), NOTHING);
+        addTestCase("missing arg to %append-include-path", \missingArgAppendIncludePath());
+        addTestCase("missing arg to %append-module-path", \missingArgAppendModulePath());
+        addTestCase("missing arg to %set-time-zone", \missingArgSetTimeZone());
+        addTestCase("missing arg to %enable-warning", \missingArgEnableWarning());
+        addTestCase("missing arg to %try-module", \missingArgTryModule());
+        addTestCase("missing arg to %requires", \missingArgRequires());
+        addTestCase("missing arg to %requires (with space)", \missingArgRequiresWithSpace());
+        addTestCase("tab in arg", \tabInArg());
+        addTestCase("space after %exec-class", \spaceAfterExecClass());
+        addTestCase("invalid id in %try-module", \invalidIdInTryModule());
+        addTestCase("ignored text before '(' in %try-module", \ignoredTextTryModule());
+        addTestCase("correct %try-module", \correctTryModule());
+        addTestCase("correct %requires", \correctRequires());
+        addTestCase("%exec-class tests", \execClass());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -136,5 +137,11 @@ $y = 9;
         Program p();
         p.replaceParseOptions(PO_DEFAULT);
         p.parse("%requires \t xml  \t   \nprint();\n", "");
+    }
+
+    execClass() {
+        Program p(PO_NEW_STYLE);
+        p.parse("%exec-class T\nclass T {abstract t();}", "exec-class");
+        assertThrows("ABSTRACT-CLASS-ERROR", \p.run());
     }
 }
