@@ -1528,6 +1528,12 @@ public:
 
    DLLLOCAL void doThreadInit(ExceptionSink* xsink);
 
+   DLLLOCAL QoreClass* runtimeFindClass(const char* class_name, ExceptionSink* xsink) const;
+
+   DLLLOCAL static QoreClass* runtimeFindClass(const QoreProgram& pgm, const char* class_name, ExceptionSink* xsink) {
+      return pgm.priv->runtimeFindClass(class_name, xsink);
+   }
+
    DLLLOCAL static void doThreadInit(QoreProgram& pgm, ExceptionSink* xsink) {
       pgm.priv->doThreadInit(xsink);
    }

@@ -433,7 +433,7 @@ DLLLOCAL QoreStringNode* AbstractMethodMap::checkAbstract(const char* name) cons
    return desc;
 }
 
-int AbstractMethodMap::runtimeCheckRunClass(const char* name, ExceptionSink* xsink) const {
+int AbstractMethodMap::runtimeCheckInstantiateClass(const char* name, ExceptionSink* xsink) const {
    QoreStringNode* desc = checkAbstract(name);
    if (desc) {
       xsink->raiseException("ABSTRACT-CLASS-ERROR", desc);
@@ -940,6 +940,79 @@ void qore_class_private::execBaseClassConstructor(QoreObject* self, BCEAList* bc
    if (!already_executed) {
       constructor->priv->evalConstructor(variant, self, args, bceal, xsink);
    }
+}
+
+QoreObject* qore_class_private::execConstructor(const AbstractQoreFunctionVariant* variant, const QoreValueList* args, ExceptionSink* xsink) const {
+#ifdef DEBUG
+   // instantiation checks have to be made at parse time
+   for (amap_t::const_iterator i = ahm.begin(), e = ahm.end(); i != e; ++i) {
+      printd(0, "qore_class_private::execConstructor() %s::constructor() abstract error '%s':\n", name.c_str(), i->first.c_str());
+      vmap_t& v = i->second->vlist;
+      for (vmap_t::const_iterator vi = v.begin(), ve = v.end(); vi != ve; ++vi) {
+	 printd(0, " + vlist: %s\n", vi->first);
+      }
+      v = i->second->pending_vlist;
+      for (vmap_t::const_iterator vi = v.begin(), ve = v.end(); vi != ve; ++vi) {
+	 printd(0, " + pending_vlist: %s\n", vi->first);
+      }
+      v = i->second->pending_save;
+      for (vmap_t::const_iterator vi = v.begin(), ve = v.end(); vi != ve; ++vi) {
+	 printd(0, " + pending_save: %s\n", vi->first);
+      }
+   }
+   assert(ahm.empty());
+#endif
+
+   // create new object
+   QoreObject* self = new QoreObject(cls, getProgram());
+
+   ReferenceHolder<BCEAList> bceal(scl ? new BCEAList : 0, xsink);
+
+   printd(5, "qore_class_private::execConstructor() class: %p %s::constructor() o: %p variant: %p\n", cls, name.c_str(), self, variant);
+
+   // if we made at least one assignment, then scan the object for recursive references after all assignments
+   bool need_scan = false;
+
+   // instantiate members first
+   initMembers(*self, need_scan, xsink);
+
+   // scan object for recursive references after all member assignments
+   if (need_scan) {
+      LValueHelper lvh(*self, xsink);
+   }
+
+   if (!*xsink) {
+      // it's possible for constructor = 0 and variant != 0, when a class is instantiated to initialize a constant
+      // and the matched variant is pending
+      if (!constructor && !variant) {
+	 if (scl) { // execute superconstructors if any
+	    CODE_CONTEXT_HELPER(CT_BUILTIN, "constructor", self, xsink);
+
+	    scl->execConstructors(self, *bceal, xsink);
+	 }
+      }
+      else {
+	 if (!constructor) {
+	    hm_method_t::const_iterator i = hm.find("constructor");
+	    assert(i != hm.end());
+	    i->second->priv->evalConstructor(variant, self, args, *bceal, xsink);
+	 }
+	 else
+	    constructor->priv->evalConstructor(variant, self, args, *bceal, xsink);
+	 printd(5, "qore_class_private::execConstructor() class: %p %s done\n", cls, name.c_str());
+      }
+   }
+
+   if (*xsink) {
+      // instead of executing the destructors for the superclasses that were already executed we call QoreObject::obliterate()
+      // which will clear out all the private data by running their dereference methods which must be OK
+      self->obliterate(xsink);
+      printd(5, "qore_class_private::execConstructor() this: %p %s::constructor() o: %p, exception in constructor, obliterating QoreObject and returning 0\n", this, name.c_str(), self);
+      return 0;
+   }
+
+   printd(5, "qore_class_private::execConstructor() this: %p %s::constructor() returning o: %p\n", this, name.c_str(), self);
+   return self;
 }
 
 QoreObject* qore_class_private::execConstructor(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, ExceptionSink* xsink) const {
@@ -2556,11 +2629,11 @@ QoreObject* QoreClass::execConstructor(const AbstractQoreFunctionVariant* varian
 #endif
    return priv->execConstructor(variant, args, xsink);
 }
+*/
 
 QoreObject* QoreClass::execConstructor(const QoreValueList* args, ExceptionSink* xsink) const {
    return priv->execConstructor(0, args, xsink);
 }
-*/
 
 // FIXME: remove
 QoreObject* QoreClass::execConstructor(const QoreListNode* args, ExceptionSink* xsink) const {
@@ -3993,6 +4066,20 @@ void BuiltinCopyVariantBase::evalCopy(const QoreClass& thisclass, QoreObject* se
    old->evalCopyMethodWithPrivateData(thisclass, this, self, xsink);
 }
 
+void ConstructorMethodFunction::evalConstructor(const AbstractQoreFunctionVariant* variant, const QoreClass& thisclass, QoreObject* self, const QoreValueList* args, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
+   // setup call, save runtime position, and evaluate arguments
+   CodeEvaluationHelper ceh(xsink, this, variant, "constructor", args, thisclass.getName());
+   if (*xsink)
+      return;
+
+   if (CONMV_const(variant)->isPrivate() && !qore_class_private::runtimeCheckPrivateClassAccess(thisclass)) {
+      xsink->raiseException("CONSTRUCTOR-IS-PRIVATE", "%s::constructor(%s) is private and therefore this class cannot be directly instantiated with the new operator by external code", thisclass.getName(), variant->getSignature()->getSignatureText());
+      return;
+   }
+
+   CONMV_const(variant)->evalConstructor(thisclass, self, ceh, bcl, bceal, xsink);
+}
+
 void ConstructorMethodFunction::evalConstructor(const AbstractQoreFunctionVariant* variant, const QoreClass& thisclass, QoreObject* self, const QoreListNode* args, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
    // setup call, save runtime position, and evaluate arguments
    CodeEvaluationHelper ceh(xsink, this, variant, "constructor", args, thisclass.getName());
@@ -4014,7 +4101,7 @@ void CopyMethodFunction::evalCopy(const QoreClass& thisclass, QoreObject* self, 
    qore_call_t ct = variant->getCallType();
 
    // setup call, save runtime position
-   CodeEvaluationHelper ceh(xsink, this, variant, "copy", 0, thisclass.getName(), ct, true);
+   CodeEvaluationHelper ceh(xsink, this, variant, "copy", (QoreValueList*)0, thisclass.getName(), ct, true);
    if (*xsink) return;
 
    COPYMV_const(variant)->evalCopy(thisclass, self, old, ceh, scl, xsink);
@@ -4027,7 +4114,7 @@ void DestructorMethodFunction::evalDestructor(const QoreClass& thisclass, QoreOb
    qore_call_t ct = variant->getCallType();
 
    // setup call, save runtime position
-   CodeEvaluationHelper ceh(xsink, this, variant, "destructor", 0, thisclass.getName(), ct);
+   CodeEvaluationHelper ceh(xsink, this, variant, "destructor", (QoreValueList*)0, thisclass.getName(), ct);
    if (*xsink) return;
 
    DESMV_const(variant)->evalDestructor(thisclass, self, xsink);
