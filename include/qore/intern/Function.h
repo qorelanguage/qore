@@ -264,7 +264,10 @@ protected:
 
 public:
    // saves current program location in case there's an exception
-   DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args = 0, const char* n_class_name = 0, qore_call_t n_ct = CT_UNUSED, bool is_copy = false);
+   DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreValueList* args = 0, const char* n_class_name = 0, qore_call_t n_ct = CT_UNUSED, bool is_copy = false);
+
+   // saves current program location in case there's an exception
+   DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, const char* n_class_name = 0, qore_call_t n_ct = CT_UNUSED, bool is_copy = false);
 
    DLLLOCAL ~CodeEvaluationHelper();
 

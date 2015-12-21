@@ -104,7 +104,7 @@ struct AbstractMethod {
       assert(!vlist.empty());
    }
 
-   DLLLOCAL static void parseCheckAbstract(const char* cname, const char* mname, vmap_t& vlist, QoreStringNode*& desc);
+   DLLLOCAL static void checkAbstract(const char* cname, const char* mname, vmap_t& vlist, QoreStringNode*& desc);
 
    DLLLOCAL void add(MethodVariantBase* v);
    DLLLOCAL void override(MethodVariantBase* v);
@@ -172,8 +172,13 @@ struct AbstractMethodMap : amap_t {
 
    DLLLOCAL void parseInit(qore_class_private& qc, BCList* scl);
 
+   DLLLOCAL QoreStringNode* checkAbstract(const char* cname) const;
+
    // we check if there are any abstract method variants still in the committed lists
    DLLLOCAL void parseCheckAbstractNew(const char* name) const;
+
+   // we check if there are any abstract method variants in the class at runtime (for use with exec-class)
+   DLLLOCAL int runtimeCheckInstantiateClass(const char* name, ExceptionSink* xsink) const;
 };
 
 class SignatureHash;
@@ -861,6 +866,9 @@ public:
    }
    DLLLOCAL ConstructorMethodFunction(const ConstructorMethodFunction &old, const QoreClass* n_qc) : MethodFunctionBase(old, n_qc) {
    }
+   // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
+   DLLLOCAL void evalConstructor(const AbstractQoreFunctionVariant* variant, const QoreClass &thisclass, QoreObject* self, const QoreValueList* args, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const;
+
    // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
    DLLLOCAL void evalConstructor(const AbstractQoreFunctionVariant* variant, const QoreClass &thisclass, QoreObject* self, const QoreListNode* args, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const;
 
@@ -1757,6 +1765,10 @@ public:
       return !ahm.empty();
    }
 
+   DLLLOCAL int runtimeCheckInstantiateClass(ExceptionSink* xsink) const {
+      return ahm.runtimeCheckInstantiateClass(name.c_str(), xsink);
+   }
+
    DLLLOCAL void parseCheckAbstractNew() {
       parseInit();
       ahm.parseCheckAbstractNew(name.c_str());
@@ -2397,6 +2409,7 @@ public:
 
    DLLLOCAL const QoreMethod* getMethodForEval(const char* nme, QoreProgram* pgm, ExceptionSink* xsink) const;
 
+   DLLLOCAL QoreObject* execConstructor(const AbstractQoreFunctionVariant* variant, const QoreValueList* args, ExceptionSink* xsink) const;
    DLLLOCAL QoreObject* execConstructor(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, ExceptionSink* xsink) const;
 
    DLLLOCAL void addBuiltinMethod(const char* mname, MethodVariantBase* variant);
@@ -2765,6 +2778,10 @@ public:
       return qc.priv->isPublicOrPrivateMember(mem, priv);
    }
 
+   DLLLOCAL static int runtimeCheckInstantiateClass(const QoreClass& qc, ExceptionSink* xsink) {
+      return qc.priv->runtimeCheckInstantiateClass(xsink);
+   }
+
    DLLLOCAL static void parseCheckAbstractNew(QoreClass& qc) {
       qc.priv->parseCheckAbstractNew();
    }
@@ -3010,6 +3027,10 @@ public:
 
    DLLLOCAL const QoreTypeInfo* getUniqueReturnTypeInfo() const {
       return func->getUniqueReturnTypeInfo();
+   }
+
+   DLLLOCAL void evalConstructor(const AbstractQoreFunctionVariant* variant, QoreObject* self, const QoreValueList* args, BCEAList* bceal, ExceptionSink* xsink) {
+      CONMF(func)->evalConstructor(variant, *parent_class, self, args, parent_class->priv->scl, bceal, xsink);
    }
 
    DLLLOCAL void evalConstructor(const AbstractQoreFunctionVariant* variant, QoreObject* self, const QoreListNode* args, BCEAList* bceal, ExceptionSink* xsink) {

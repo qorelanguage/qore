@@ -79,6 +79,8 @@
     - updated methods:
       - @ref Qore::TimeZone::constructor() "TimeZone::constructor()": now accepts a path to the zoneinfo file if the @ref Qore::PO_NO_FILESYSTEM sandboxing restrictions is not set
     - new functions:
+      - @ref Qore::create_object()
+      - @ref Qore::create_object_args()
       - @ref Qore::decode_uri_request()
       - @ref Qore::encode_uri_request()
       - @ref Qore::get_duration_seconds_f()
@@ -176,7 +178,10 @@
         - \c insert_block: for DB drivers supporting bulk DML, the number of rows inserted at once (default: 500, only used when \c unstable_input is False) and bulk inserts are supported in the table object
       - added methods for bulk / batch inserts for db drivers supporting bulk DML (ex: Oracle)
       - updated to <a href="../../modules/Mapper/html/index.html">Mapper</a> changes: use table description to define output record for the <a href="../../modules/Mapper/html/index.html">Mapper</a> module
+      - added the AbstractSqlStatementOutboundMapper class
       - added the InboundIdentityTableMapper class
+      - added the SqlStatementMapperIterator class
+      - added the SqlStatementOutboundMapper class
     - <a href="../../modules/RestClient/html/index.html">RestClient</a> module updates:
       - implemented RestClient::addDefaultHeaders()
       - implemented RestClient::getDefaultHeaders()
@@ -221,6 +226,7 @@
       - implemented support for driver-dependent pseudocolumns
       - implemented per-column support for the \c "desc" keyword in orderby expressions
       - implemented the \c "op_wop()" function to allow SQL expressions to be combined with \c "or" as well as the default \c "and"
+      - implemented AbstractTable::getBulkUpsertClosure() to better support bulk SQL merge operations
     - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module updates:
       - implemented support for views for DML in the OracleTable class
       - implemented support for Oracle pseudocolumns in queries
@@ -374,6 +380,7 @@
     - fixed bugs in relative date arithmetic where operands were swapped with the @ref minus_operator "- operator" if the first operand was a @ref relative_dates "relative date/time value", additionally an operation with the @ref minus_operator "- operator" where the first operand is a @ref relative_dates "relative date" and the second operand is a @ref absolute_dates "absolute date" is now calculated using the @ref absolute_dates "absolute date"'s epoch offset (offset in seconds and microseconds from \c 1970-01-01Z), and a @ref relative_dates "relative date/time value" is produced
     - fixed a bug normalizing the result of date arithmetic between hour and minute components of @ref relative_dates "relative date/time value"
     - fixed a bug where time components of absolute date/time values before the UNIX epoch were returned with invalid values
+    - fixed a bug where the @ref exec-class "%exec-class" directive did not check for classes with unimplemented abstract variants
 
     @section qore_0811 Qore 0.8.11
 

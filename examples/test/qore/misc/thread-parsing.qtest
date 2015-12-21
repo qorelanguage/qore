@@ -4,37 +4,44 @@
 %require-types
 %enable-all-warnings
 %new-style
+%no-child-restrictions
 
-%requires UnitTest
+%requires ../../../../qlib/QUnit.qm
 
-UnitTest unit();
+%exec-class ThreadParsingTest
 
-test();
+class ThreadParsingTest inherits QUnit::Test {
+    constructor() : QUnit::Test("Thread parsing test", "1.0") {
+        addTestCase("Test", \testThreadParsing());
+        set_return_value(main());
+    }
 
-const Code = "ack.dec(); c.waitForZero();";
+    testThreadParsing() {
+        our Counter c(1);
+        our Counter ack(1);
+        
+        string Code = "ack.dec(); c.waitForZero();";
 
-sub test() {
-    our Counter c(1);
-    our Counter ack(1);
+        # set up the Program container
+        Program p(PO_NEW_STYLE);
+        p.importGlobalVariable("c");
+        p.importGlobalVariable("ack");
+        p.parse(Code, "thread-parsing");
 
-    # set up the Program container
-    Program p(PO_NEW_STYLE);
-    p.importGlobalVariable("c");
-    p.importGlobalVariable("ack");
-    p.parse(Code, "thread-parsing");
+        # start out background thread in the Program container
+        background p.run();
 
-    # start out background thread in the Program container
-    background p.run();
+        # wait for background thread to start before executing test
+        ack.waitForZero();
 
-    # wait for background thread to start before executing test
-    ack.waitForZero();
+        # parse in new code while a thread is running
+        p.parse("const A = 1; int sub get_a() { return A; }", "neg");
 
-    # parse in new code while a thread is running
-    p.parse("const A = 1; int sub get_a() { return A; }", "neg");
+        # executed the parsed code
+        assertEq(1, p.callFunction("get_a"));
 
-    # executed the parsed code
-    unit.cmp(p.callFunction("get_a"), 1, "thread-parsing-1");
-
-    # confirm that the initial thread can terminate
-    c.dec();
+        # confirm that the initial thread can terminate
+        c.dec();
+    }
 }
+

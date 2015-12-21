@@ -1,70 +1,112 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-our
+%require-types
 %enable-all-warnings
-%old-style
+%new-style
+%no-child-restrictions
 
-%requires UnitTest
+%requires ../../../../qlib/QUnit.qm
 
-my UnitTest $unit();
+our int calls_constructor = 0;
+our int calls_destructor  = 0;
+our int calls_hello  = 0;
 
-our int $calls_constructor = 0;
-our int $calls_destructor  = 0;
-our int $calls_hello  = 0;
+class PrivTest {
+    constructor(int i) {}
+    private constructor(string str) {}
+}
 
 class Test {
-    constructor($a) {
-        $.data = $a;
-        $calls_constructor++;
+    private { any data; }
+    public { any a; }
+    constructor(any a) {
+        data = a;
+        calls_constructor++;
     }
     destructor() {
-        $calls_destructor++;
+        calls_destructor++;
     }
-    getData() {
-        return $.data;
+    any getData() {
+        return data;
     }
-    getType() {
-        return get_class_name($self);
+    string getType() {
+        return get_class_name(self);
     }
     private p1() {
     }
 }
 
 private Test::p2() {
-    $.p1();
+    p1();
 }
 
 Test::hello() {
-    $.p2();
-    $calls_hello++;
+    p2();
+    calls_hello++;
 }
 
-sub et(Test $t) {
-    $t.a = "123";
+sub et(Test t) {
+    t.a = "123";
 }
-
-our Test $t = new Test(1);
-$unit.cmp($calls_constructor, 1, 'constructor called');
-(new Test(3)).hello();
-$unit.cmp($calls_constructor, 2, 'constructor called');
-$unit.cmp($calls_hello, 1, 'hello called');
-$unit.cmp("Test", $t.getType(), 'class name check');
-$t.hello();
-$unit.cmp($calls_hello, 2, 'hello called');
-et($t);
-$unit.cmp($t.a, "123", 'variable changed in method');
 
 const Methods = ('p2', 'getData', 'hello', 'destructor', 'getType', 'p1', 'constructor');
 
-# test fails on OSX, method return order is not guaranteed across platforms
-#$unit.cmp(getMethodList($t), Methods, 'got method list');
+%exec-class ObjectTest
 
-# test each method separately
-my list $ml = get_method_list($t);
-$unit.cmp(Methods.size(), $ml.size(), "method list size");
-map $unit.cmp(True, inlist_hard($1, Methods), "method list " + $1), $ml;
+class ObjectTest inherits QUnit::Test {
+    public {
+    }
 
-# unless we explicitly delete, we get the following exception on OSX (but not on Linux):
-#   DESTRUCTOR-ERROR: illegal variable assignment after second phase of variable destruction
-delete $t;
+    private {
+        const CreateObjectSource = "
+object sub test1() { return create_object(\"Mutex\");}
+object sub test2() { return create_object(\"PrivTest\", \"str\");}
+object sub test3() { return create_object_args(\"PrivTest\", 1);}
+";
+    }
+
+    constructor() : QUnit::Test("Object test", "1.0") {
+        addTestCase("Test", \testObj());
+        addTestCase("create_object", \testCreateObject());
+        set_return_value(main());
+    }
+
+    testObj() {
+        Test t = new Test(1);
+
+        assertEq(1, calls_constructor);
+        (new Test(3)).hello();
+        assertEq(2, calls_constructor);
+        assertEq(1, calls_hello);
+        assertEq("Test", t.getType());
+        t.hello();
+        assertEq(2, calls_hello);
+        et(t);
+        assertEq("123", t.a, "variable changed in method");
+
+        # test fails on OSX, method return order is not guaranteed across platforms
+        #unit.cmp(getMethodList(t), Methods, 'got method list');
+
+        # test each method separately
+        list ml = get_method_list(t);
+        assertEq(Methods.size(), ml.size(), "method list size");
+        map assertEq(True, inlist_hard($1, Methods), "method list " + $1), ml;
+
+        # unless we explicitly delete, we get the following exception on OSX (but not on Linux):
+        #   DESTRUCTOR-ERROR: illegal variable assignment after second phase of variable destruction
+        delete t;
+    }
+
+    testCreateObject() {
+        assertEq("Mutex", create_object("Mutex").className());
+        assertEq("Mutex", create_object_args("Mutex").className());
+
+        Program p(PO_NEW_STYLE | PO_NO_THREAD_CLASSES);
+        p.importClass("PrivTest");
+        p.parse(CreateObjectSource, "create-object");
+        assertThrows("CREATE-OBJECT-ERROR", \p.callFunction(), "test1");
+        assertThrows("CONSTRUCTOR-IS-PRIVATE", \p.callFunction(), "test2");
+        assertEq("PrivTest", p.callFunction("test3").className());
+    }
+}

@@ -32,6 +32,39 @@
 #include <qore/Qore.h>
 #include <qore/intern/ql_object.h>
 
+static QoreObject* create_object_intern(const QoreStringNode* class_name, unsigned arg_offset, const QoreValueList* args, ExceptionSink* xsink) {
+   TempEncodingHelper tmp(class_name, QCS_DEFAULT, xsink);
+   if (!tmp) {
+      assert(*xsink);
+      return 0;
+   }
+
+   const QoreClass* qc = qore_program_private::runtimeFindClass(*getProgram(), tmp->getBuffer(), xsink);
+   if (!qc) {
+      if (!*xsink)
+         xsink->raiseException("CREATE-OBJECT-ERROR", "cannot resolve class '%s' for instantiation", tmp->getBuffer());
+      return 0;
+   }
+
+   if (getProgram()->getParseOptions64() & qc->getDomain())
+      xsink->raiseException("CREATE-OBJECT-ERROR", "current Program sandboxing restrictions do not allow access to the '%s' class", qc->getName());
+
+   if (qore_class_private::runtimeCheckInstantiateClass(*qc, xsink))
+      return 0;
+
+
+   const QoreValueList* real_args;
+   ReferenceHolder<QoreValueList> tmp_args(xsink);
+   if (arg_offset) {
+      tmp_args = args->size() > arg_offset ? args->copyListFrom(arg_offset) : 0;
+      real_args = *tmp_args;
+   }
+   else
+      real_args = args;
+
+   return qc->execConstructor(real_args, xsink);
+}
+
 /** @defgroup object_functions Object Functions
     Object functions
 */
@@ -62,7 +95,7 @@ nothing getMethodList() [flags=RUNTIME_NOOP,DEPRECATED] {
     @return a list of strings of the names of the methods of the class of the object passed as a parameter; returns all methods in the class, both private and public but does not return inherited methods
 
     @par Example:
-    @code
+    @code{.py}
 my list $l = get_method_list($obj);
     @endcode
 
@@ -81,7 +114,7 @@ list get_method_list(object obj) [flags=CONSTANT] {
     @return the value returned by the method call
 
     @par Example:
-    @code
+    @code{.py}
 my any $result = callObjectMethod($obj, "method", $arg1, $arg2);
     @endcode
 
@@ -123,7 +156,7 @@ nothing callObjectMethod() [flags=RUNTIME_NOOP,DEPRECATED] {
     @return the value returned by the method call
 
     @par Example:
-    @code
+    @code{.py}
 my any $result = call_object_method($obj, "method", $arg1, $arg2);
     @endcode
 
@@ -187,7 +220,7 @@ nothing callObjectMethodArgs() [flags=RUNTIME_NOOP,DEPRECATED] {
     @return the value returned by the method call
 
     @par Example:
-    @code
+    @code{.py}
 my any $result = call_object_method_args($obj, "method", $arglist);
     @endcode
 
@@ -242,5 +275,50 @@ any call_pseudo(any val, string meth, ...) {
  */
 any call_pseudo_args(any val, string meth, *softlist argv) {
    return pseudo_classes_eval(val, meth->getBuffer(), argv, xsink).takeNode();
+}
+
+//! creates an object from the class name (which can include a namespace path) and optionally any arguments for the constructor
+/** @par Example
+    @code{.py}
+object obj = create_object(class_name, arg1, arg2);
+    @endcode
+
+    @param class_name the name of the class to instantiate (can be prefixed with a namespace path)
+    @param ... any other arguments to the constructor
+
+    @return the object created
+
+    @note see the class documentation for the class to be instantiated for a list of any exceptions that can be thrown
+
+    @see create_object_args()
+
+    @since %Qore 0.8.12
+ */
+object create_object(string class_name, ...) {
+   return create_object_intern(class_name, 1, args, xsink);
+}
+
+//! creates an object from the class name (which can include a namespace path) and optionally any arguments for the constructor
+/** @par Example
+    @code{.py}
+object obj = create_object_args(class_name, arg_list);
+    @endcode
+
+    @param class_name the name of the class to instantiate (can be prefixed with a namespace path)
+    @param args any other arguments to the constructor
+
+    @return the object created
+
+    @note see the class documentation for the class to be instantiated for a list of any exceptions that can be thrown
+
+    @see create_object()
+
+    @since %Qore 0.8.12
+ */
+object create_object_args(string class_name, *softlist argv) {
+   ReferenceHolder<QoreValueList> arg_list(xsink);
+   if (argv)
+      arg_list = new QoreValueList(argv);
+   return create_object_intern(class_name, 0, *arg_list, xsink);
 }
 //@}

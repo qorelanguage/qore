@@ -668,6 +668,15 @@ void qore_program_private::del(ExceptionSink* xsink) {
    //printd(5, "QoreProgram::~QoreProgram() this: %p deleting root ns %p\n", this, RootNS);
 }
 
+QoreClass* qore_program_private::runtimeFindClass(const char* class_name, ExceptionSink* xsink) const {
+   // acquire safe access to parse structures in the source program
+   ProgramRuntimeParseAccessHelper rah(xsink, pgm);
+   if (*xsink)
+      return 0;
+
+   return qore_root_ns_private::runtimeFindClass(*RootNS, class_name);
+}
+
 QoreProgram::~QoreProgram() {
    printd(5, "QoreProgram::~QoreProgram() this: %p\n", this);
    delete priv;
@@ -988,11 +997,15 @@ void QoreProgram::runClass(const char* classname, ExceptionSink* xsink) {
       xsink->raiseException("CLASS-NOT-FOUND", "cannot find any class '%s' in any namespace", classname);
       return;
    }
+
+   if (qore_class_private::runtimeCheckInstantiateClass(*qc, xsink))
+      return;
+
    //printd(5, "QoreProgram::runClass(%s)\n", classname);
 
    ProgramThreadCountContextHelper tch(xsink, this, true);
    if (!*xsink)
-      discard(qc->execConstructor(0, xsink), xsink);
+      discard(qc->execConstructor((QoreValueList*)0, xsink), xsink);
 }
 
 void QoreProgram::parseFileAndRunClass(const char* filename, const char* classname) {
