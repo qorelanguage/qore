@@ -33,10 +33,12 @@ else
 fi
 
 QORE=""
+QR=""
 
 # Test that qore is built.
-if [ -s "./qr" ] && [ -r "./lib/.libs/libqore.so" ]; then
-    QORE="./qr"
+if [ -s "./qore" ] && [ -s "./qr" ] && [ -r "./lib/.libs/libqore.so" ]; then
+    QORE="./qore"
+    QR="./qr"
 else
     echo "Qore is not built. Exiting."
     exit 1
@@ -68,7 +70,11 @@ for test in $TESTS; do
     fi
     
     # Run single test.
-    $QORE $test $TEST_OUTPUT_FORMAT
+    if [ "$test" = "./examples/test/qore/threads/unlocked-thread.qtest" ]; then
+        $QORE $test $TEST_OUTPUT_FORMAT
+    else
+        $QR $test $TEST_OUTPUT_FORMAT
+    fi
     
     if [ $? -eq 0 ]; then
         PASSED_TEST_COUNT=$((PASSED_TEST_COUNT+1))
