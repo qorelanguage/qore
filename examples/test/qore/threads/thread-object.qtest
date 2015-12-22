@@ -13,6 +13,10 @@ const opts =
       "verbose"    : "v,verbose" );
 
 class thread_object_test {
+    private {
+        int $.threads;
+        int $.iters;
+    }
     constructor() {
         my UnitTest $t();
         $.process_command_line();
@@ -31,14 +35,14 @@ class thread_object_test {
 
     process_command_line() {
         my GetOpt $g(opts);
-        $.o = $g.parse(\$ARGV);
+        my any $o = $g.parse(\$ARGV);
         
-        if (exists $.o."_ERRORS_") {
-            printf("%s\n", $.o."_ERRORS_"[0]);
+        if (exists $o."_ERRORS_") {
+            printf("%s\n", $o."_ERRORS_"[0]);
             exit(1);
         }
         
-        if ($.o.help)
+        if ($o.help)
             $.usage();
 
         $.iters = int(shift $ARGV);
@@ -51,6 +55,12 @@ class thread_object_test {
 }
 
 class CounterTest {
+    private {
+        int $.threads;
+        int $.iters;
+        any $.obj;
+        Counter $.c;
+    }
     constructor(int $threads, int $iters, UnitTest $t) {
         $.threads = $threads;
         $.iters = $iters;
@@ -85,7 +95,11 @@ class CounterTest {
 }
 
 class QueueTest {
-    constructor(softint $threads, softint $iters, UnitTest $t) {
+    private {
+        Queue $.q;
+        Counter $.x;
+    }
+    constructor(int $threads, int $iters, UnitTest $t) {
         $.q = new Queue();
         $.x = new Counter();
         
@@ -105,14 +119,26 @@ class QueueTest {
     }
 
     private qt(int $threads, int $iters) {
-        for (my $i; $i < $iters; $i++)
+        for (my int $i; $i < $iters; $i++)
             $.q.push(sprintf("tid-%d-%d", gettid(), $i));
         $.x.dec();
     }
 }
 
 class ThreadTest inherits Mutex {
-    constructor(softint $threads, softint $iters, UnitTest $t) {
+    private {
+        hash $.data;
+        int $.threads;
+        int $.iters;
+
+        RWLock $.drw;
+        Gate $.g;
+        Counter $.c;
+
+        hash $.gdata;
+        hash $.rwdata;
+    }
+    constructor(int $threads, int $iters, UnitTest $t) {
         $.iters = $iters;
         $.drw = new RWLock();
         $.g   = new Gate();
@@ -125,8 +151,8 @@ class ThreadTest inherits Mutex {
         $.c.waitForZero();
         $t.ok(True, "thread object tests");
     }
-    getData(list $list) {
-        my $rv;
+    hash getData(list $list) {
+        my hash $rv;
         $.lock();
         foreach my string $key in ($list)
             $rv.$key = $.data.$key;
@@ -139,8 +165,8 @@ class ThreadTest inherits Mutex {
             $.data.$key = $hash.$key;
         $.unlock();
     }
-    getRWData(list $list) {
-        my $rv;
+    hash getRWData(list $list) {
+        my hash $rv;
         $.drw.readLock();
         foreach my string $key in ($list)
             $rv.$key = $.rwdata.$key;
@@ -153,32 +179,32 @@ class ThreadTest inherits Mutex {
             $.rwdata.$key = $hash.$key;
         $.drw.writeUnlock();
     }
-    getGateData(list $list) {
-        my $rv;
+    hash getGateData(list $list) {
+        my hash $rv;
         $.g.enter();
         foreach my string $key in ($list)
             $rv.$key = $.gdata.$key;
         $.g.exit();
         return $rv;
     }
-    setGateData($hash) {
+    setGateData(hash $h) {
         $.g.enter();
-        foreach my string $key in (keys $hash)
-            $.gdata.$key = $hash.$key;
+        foreach my string $key in (keys $h)
+            $.gdata.$key = $h.$key;
         $.g.exit();
     }
     worker() {
         for (my int $i = 0; $i < $.iters; $i++) {
             #if (!($i % 1000))
             #    printf("TID %3d: %d/%d\n", gettid(), $i, $.iters);
-            my $c = rand() % 6;
-            my $key1 = sprintf("key%d", rand() % 10);
-            my $key2 = sprintf("key%d", (rand() % 10) + 10);
-            my $key3 = sprintf("key%d", rand() % 20);
+            my int $c = rand() % 6;
+            my string $key1 = sprintf("key%d", rand() % 10);
+            my string $key2 = sprintf("key%d", (rand() % 10) + 10);
+            my string $key3 = sprintf("key%d", rand() % 20);
             if (!$c) {
-                my $hash.$key1 = rand() % 10;
-                $hash.$key2 = rand() % 10;
-                $.setData($hash);
+                my hash $h.$key1 = rand() % 10;
+                $h.$key2 = rand() % 10;
+                $.setData($h);
                 continue;
             }
             if ($c == 1) {
@@ -186,9 +212,9 @@ class ThreadTest inherits Mutex {
                 continue;
             }
             if ($c == 2) {
-                my $hash.$key1 = rand() % 10;
-                $hash.$key2 = rand() % 10;
-                $.setRWData($hash);
+                my hash $h.$key1 = rand() % 10;
+                $h.$key2 = rand() % 10;
+                $.setRWData($h);
                 continue;
             }
             if ($c == 3) {
@@ -196,9 +222,9 @@ class ThreadTest inherits Mutex {
                 continue;
             }
             if ($c == 4) {
-                my $hash.$key1 = rand() % 10;
-                $hash.$key2 = rand() % 10;
-                $.setGateData($hash);
+                my hash $h.$key1 = rand() % 10;
+                $h.$key2 = rand() % 10;
+                $.setGateData($h);
                 continue;
             }
             if ($c == 5) {

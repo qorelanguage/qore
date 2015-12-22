@@ -33,5 +33,5 @@
 #include "command-line.h"
 
 int main(int argc, char* argv[]) {
-   return qore_main_intern(argc, argv, PO_NEW_STYLE);
+   return qore_main_intern(argc, argv, PO_NEW_STYLE | PO_STRICT_ARGS | PO_REQUIRE_TYPES);
 }
