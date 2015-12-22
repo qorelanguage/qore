@@ -288,7 +288,10 @@ object obj = create_object(class_name, arg1, arg2);
 
     @return the object created
 
-    @note see the class documentation for the class to be instantiated for a list of any exceptions that can be thrown
+    @throw CREATE-OBJECT-ERROR unknown class, class implements features restricted by current parse options / sandboxing restrictions
+    @throw CONSTRUCTOR-IS-PRIVATE attempt to instantiate an object with a private constructor from outside the class
+
+    @note see the class documentation for the class to be instantiated for a list of additional exceptions that can be thrown
 
     @see create_object_args()
 
@@ -309,7 +312,10 @@ object obj = create_object_args(class_name, arg_list);
 
     @return the object created
 
-    @note see the class documentation for the class to be instantiated for a list of any exceptions that can be thrown
+    @throw CREATE-OBJECT-ERROR unknown class, class implements features restricted by current parse options / sandboxing restrictions
+    @throw CONSTRUCTOR-IS-PRIVATE attempt to instantiate an object with a private constructor from outside the class
+
+    @note see the class documentation for the class to be instantiated for a list of additional exceptions that can be thrown
 
     @see create_object()
 

@@ -11,7 +11,7 @@ public class A {
         throw "TEST-EXCEPTION", "This should never happen!";
     }
 
-    public test() {
+    public bool test() {
         return False;
     }
 }
@@ -20,13 +20,13 @@ public class Aalt {
     constructor() {
     }
 
-    public test() {
+    public bool test() {
         return True;
     }
 }
 
 public class B inherits A {
-    public test() {
+    public bool test() {
         return A::test();
     }
 }
@@ -74,7 +74,7 @@ public class DIJClass inherits QUnit::DependencyInjectedTest {
         testAssertion("run test", \b.test(), list());
     }
 
-    createIterator() {
+    bool createIterator() {
         FixedLengthFileIterator it("", hash(), hash());
         return True;
     }
