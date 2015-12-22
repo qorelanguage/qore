@@ -29,6 +29,10 @@ public class UnaryPlusMinusTest inherits QUnit::Test {
         assertEq(0, +False);
         assertEq(0, +hash());
         assertEq(0, +{});
+        assertEq(0, +());
+        assertEq(0, +NULL);
+        assertEq(0, +NOTHING);
+        assertEq(0, +( sub() { any x = 1;x++; } ));
     }
 
     unaryMinus() {
@@ -40,5 +44,9 @@ public class UnaryPlusMinusTest inherits QUnit::Test {
         assertEq(0, -False);
         assertEq(0, -hash());
         assertEq(0, -{});
+        assertEq(0, -());
+        assertEq(0, -NULL);
+        assertEq(0, -NOTHING);
+        assertEq(0, -( sub() { any x = 1;x++; } ));
     }
 }
