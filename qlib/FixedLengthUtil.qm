@@ -222,6 +222,7 @@ public namespace FixedLengthUtil {
     const EOLS = (EOL_UNIX, EOL_WIN, EOL_MACINTOSH);
 }
 
+
 #! Structured line iterator for abstract data allowing efficient "pipelined" processing
 public class FixedLengthUtil::FixedLengthAbstractIterator {
     private {
@@ -447,6 +448,7 @@ my hash $h = $i.getValue();
     }
 }
 
+
 #! Structured line iterator for fixed-length line files allowing efficient "pipelined" processing.
 /**
     @par Example:
@@ -514,6 +516,7 @@ public class FixedLengthUtil::FixedLengthFileIterator inherits FixedLengthUtil::
         return status;
     }
 }
+
 
 #! Structured line iterator for fixed-length line strings allowing efficient "pipelined" processing.
 /**
@@ -611,6 +614,7 @@ while (i.next()) {
         return status;
     }
 }
+
 
 #! Structured abstract writer for fixed-length lines
 public class FixedLengthUtil::FixedLengthAbstractWriter {
@@ -741,8 +745,13 @@ public class FixedLengthUtil::FixedLengthAbstractWriter {
             if (spacingsize) {
                 string spacing = strmul(fh.padding_char ?? " ", spacingsize);
 
-                if (fh.padding == "left" || (!fh.padding && fh.type == "int"))
+                if (fh.padding == "left")
                     result += spacing + value;
+                else if (!fh.padding && inlist (fh.type, ("int", "float", "number")))
+                    if (fh.padding_char == '0' && inlist (value[0], ("-", "+")))
+                        result += splice(value, 1, 0, spacing);
+                    else
+                        result += spacing + value;
                 else
                     result += value + spacing;
             }
@@ -768,6 +777,7 @@ public class FixedLengthUtil::FixedLengthAbstractWriter {
         return True;
     }
 }
+
 
 #! Writer for fixed-length-line output files
 /** @par Example:
@@ -899,6 +909,7 @@ w.write(i);
         map m_file.write(formatLine($1) + m_opts.eol), lines;
     }
 }
+
 
 #! Writer class for fixed-length-line data
 /** @par Example:
