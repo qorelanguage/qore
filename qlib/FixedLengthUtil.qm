@@ -747,8 +747,8 @@ public class FixedLengthUtil::FixedLengthAbstractWriter {
 
                 if (fh.padding == "left")
                     result += spacing + value;
-                else if (!fh.padding && fh.type == "int")
-                    if (inlist (value[0], ("-", "+")))
+                else if (!fh.padding && inlist (fh.type, ("int", "float", "number")))
+                    if (fh.padding_char == '0' && inlist (value[0], ("-", "+")))
                         result += splice(value, 1, 0, spacing);
                     else
                         result += spacing + value;
