@@ -81,9 +81,9 @@ class qdx {
       exit(1);
     }
 
-    private getQoreVersion() {
+    private string getQoreVersion() {
         if (!exists qorever)
-            qorever = sprintf("%d.%d.%d", Qore::VersionMajor, Qore::VersionMinor, Qore::VersionSub);
+            string qorever = sprintf("%d.%d.%d", Qore::VersionMajor, Qore::VersionMinor, Qore::VersionSub);
         return qorever;
     }
 
