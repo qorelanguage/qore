@@ -4,17 +4,22 @@
 %enable-all-warnings
 %new-style
 
-%requires UnitTest
+%requires ../../../../qlib/QUnit.qm
 
-%exec-class App
+%exec-class SprintfTest
 
-class App {
-    constructor() {
-        my UnitTest unit();
-        unit.cmp(sprintf("%04d-%.2f", 25, 101.239), "0025-101.24", "sprintf()");
-        unit.cmp(vsprintf("%04d-%.2f", (25, 101.239)), "0025-101.24", "vsprintf()");
-        unit.cmp(f_sprintf("%3s", "niña"), "niñ", "UTF-8 f_sprintf()");
+public class SprintfTest inherits QUnit::Test {
+    constructor() : Test("Sprintf test", "1.0") {
+        addTestCase("Test 1", \test(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    test() {
+        assertEq("0025-101.24", sprintf("%04d-%.2f", 25, 101.239), "sprintf()");
+        assertEq("0025-101.24", vsprintf("%04d-%.2f", (25, 101.239)), "vsprintf()");
+        assertEq("niñ", f_sprintf("%3s", "niña"), "UTF-8 f_sprintf()");
     }
 }
-
 

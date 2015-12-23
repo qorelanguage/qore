@@ -4,8 +4,20 @@
 %enable-all-warnings
 %new-style
 
-%requires UnitTest
+%requires ../../../../qlib/QUnit.qm
 
-my UnitTest unit();
+%exec-class CBFTest
 
-unit.cmp(call_builtin_function("type", 1), Type::Int, "call_builtin_function()");
+public class CBFTest inherits QUnit::Test {
+    constructor() : Test("Call_builtin_function test", "1.0") {
+        addTestCase("Test 1", \test(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    test() {
+        assertEq(Type::Int, call_builtin_function("type", 1));
+    }
+}
+
