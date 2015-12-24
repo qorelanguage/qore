@@ -244,6 +244,7 @@
       - fixed bugs where URI strings were improperly encoded and decoded (also fixed in the <a href="../../modules/RestClient/html/index.html">RestClient</a> module)
       - fixed a bug in the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module where chunked sends were not received and decoded properly in all cases for handlers that did not explicitly handle chunked messages
       - fixed a bug in HttpServer::addListener() with an integer argument; a UNIX socket was opened instead of a wildcard listener on the given port
+      - fixed typos causing bugs in HTTP error logging (<a href="https://github.com/qorelanguage/qore/issues/308">bug 308</a>)
     - <a href="../../modules/RestClient/html/index.html">RestClient</a> module fixes:
       - fixed bugs where URI strings were improperly encoded and decoded (also fixed in the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module)
       - fixed a bug where URI paths were sent as relative paths instead of absolute paths

@@ -138,6 +138,7 @@ log("started listener on %s", lh.desc);
     - fixed a bug in @ref HttpServer::HttpServer::addListener() with an integer argument; a UNIX socket was opened instead of a wildcard listener on the given port
     - added the @ref HttpServer::HttpServer::listenerStarted() method to allow for reporting when listeners are actually running since they are started asynchronously
     - added the \c "ssl" key to the listener socket info hash
+    - fixed typos causing bugs in HTTP error logging (<a href="https://github.com/qorelanguage/qore/issues/308">bug 308</a>)
 
     @subsection http0310 HttpServer 0.3.10
     - if an error occurs receiving a message with chunked transfer encoding, send the response immediately before reading the rest of the chunked transfer
@@ -1914,11 +1915,11 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
             }
             catch (hash ex) {
                 args[0] = sprintf("cannot write to listener log: %s: %s: msg: %s", ex.err, ex.desc, args[0]);
-                serv.logErrorArgs(argv);
+                serv.logErrorArgs(args);
             }
 	}
 	else
-	    serv.logArgs(argv);
+	    serv.logArgs(args);
     }
 
     logError(string fmt) {
