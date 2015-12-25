@@ -4,48 +4,56 @@
 %enable-all-warnings
 %new-style
 
-%requires UnitTest
+%requires ../../../../qlib/QUnit.qm
 
-%exec-class App
+%exec-class CryptoTest
 
-class App {
-    constructor() {
-        my UnitTest unit();
+public class CryptoTest inherits QUnit::Test {
+    constructor() : Test("Crypto test", "1.0") {
+        addTestCase("Test crypto functions", \test(), NOTHING);
 
-        my string str = "Hello There This is a Test - 1234567890";
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
 
-        my string key = "1234567812345abcabcdefgh";
-        my binary x = des_ede_encrypt_cbc(str, key);
-        my string xstr = des_ede_decrypt_cbc_to_string(x, key);
-        unit.cmp(str, xstr, "triple DES 2 key encrypt-decrypt");
+    test() {
+        assertEq(Type::Int, call_builtin_function("type", 1));
+        
+        string str = "Hello There This is a Test - 1234567890";
+        string key = "1234567812345abcabcdefgh";
+
+        binary x = des_ede_encrypt_cbc(str, key);
+        string xstr = des_ede_decrypt_cbc_to_string(x, key);
+        assertEq(str, xstr, "triple DES 2 key encrypt-decrypt");
 
         x = des_ede3_encrypt_cbc(str, key);
         xstr = des_ede3_decrypt_cbc_to_string(x, key);
-        unit.cmp(str, xstr, "triple DES 3 key encrypt-decrypt");
+        assertEq(str, xstr, "triple DES 3 key encrypt-decrypt");
 
         x = desx_encrypt_cbc(str, key);
         xstr = desx_decrypt_cbc_to_string(x, key);
-        unit.cmp(str, xstr, "DESX encrypt-decrypt");
+        assertEq(str, xstr, "DESX encrypt-decrypt");
 
         x = blowfish_encrypt_cbc(str, key);
         xstr = blowfish_decrypt_cbc_to_string(x, key);
-        unit.cmp(str, xstr, "blowfish encrypt-decrypt");
+        assertEq(str, xstr, "blowfish encrypt-decrypt");
 
         x = rc4_encrypt(str, key);
         xstr = rc4_decrypt_to_string(x, key);
-        unit.cmp(str, xstr, "rc4 encrypt-decrypt");
+        assertEq(str, xstr, "rc4 encrypt-decrypt");
 
         x = rc2_encrypt_cbc(str, key);
         xstr = rc2_decrypt_cbc_to_string(x, key);
-        unit.cmp(str, xstr, "rc2 encrypt-decrypt");
+        assertEq(str, xstr, "rc2 encrypt-decrypt");
 
         x = cast5_encrypt_cbc(str, key);
         xstr = cast5_decrypt_cbc_to_string(x, key);
-        unit.cmp(str, xstr, "CAST5 encrypt-decrypt");
+        assertEq(str, xstr, "CAST5 encrypt-decrypt");
 
-        my binary bkey = des_random_key();
+        binary bkey = des_random_key();
         x = des_encrypt_cbc(str, bkey);
         xstr = des_decrypt_cbc_to_string(x, bkey);
-        unit.cmp(str, xstr, "DES random single key encrypt-decrypt");
+        assertEq(str, xstr, "DES random single key encrypt-decrypt");
     }
 }
+

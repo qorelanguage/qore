@@ -17,7 +17,7 @@ public class FormatNumberTest inherits QUnit::Test {
     }
 
     formatNumberTestMethod() {
-        testAssertion("format_number()", \format_number(), (".,3", -48392093894.2349), new TestResultValue("-48.392.093.894,235"));
+        assertEq("-48.392.093.894,235", format_number(".,3", -48392093894.2349));
     }
 }
 

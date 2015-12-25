@@ -5,12 +5,19 @@
 %enable-all-warnings
 %new-style
 
-%requires UnitTest
+%requires ../../../../../qlib/QUnit.qm
 
-our UnitTest unit();
+%exec-class RecursiveDependencyTest
 
-test();
+class RecursiveDependencyTest inherits QUnit::Test {
+    constructor() : Test("Recursive dependency test", "1.0") {
+        addTestCase("RD Test", \test());
 
-sub test() {
-    unit.exception(sub() {load_module("./R1.qm");}, NOTHING, "module-recursive-1", 'LOAD-MODULE-ERROR', "cannot load user module");
+        set_return_value(main());
+    }
+
+    test() {
+        assertThrows('LOAD-MODULE-ERROR', sub() {load_module("./R1.qm");});
+    }
 }
+
