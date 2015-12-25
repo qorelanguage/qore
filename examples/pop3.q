@@ -1,8 +1,8 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
 
 # @file pop3.q example program using the Pop3Client module
 
-/*  pop3.q Copyright 2012 David Nichols
+/*  pop3.q Copyright 2012 - 2015 David Nichols
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -27,8 +27,11 @@
     * 2012-06-23 v1.0: simple example program using the Pop3Client user module to retrieve emails from the command line from a POP3 server
 */
 
+%new-style
 %enable-all-warnings
 %require-types
+%strict-args
+
 %exec-class pop3
 
 %requires Pop3Client >= 1.0

@@ -1,8 +1,10 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %requires ../../../../qlib/QUnit.qm
 
@@ -28,7 +30,7 @@ public class HmacTest inherits QUnit::Test {
         addTestCase("Basic SHA256 test", \sha256Test(), NOTHING);
         addTestCase("Basic SHA384 test", \sha384Test(), NOTHING);
         addTestCase("Basic SHA512 test", \sha512Test(), NOTHING);
- 
+
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
     }

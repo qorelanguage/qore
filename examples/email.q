@@ -1,8 +1,9 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+
 # @file email.q example program using the SmtpClient module
 
-/*  email.q Copyright 2012 David Nichols
+/*  email.q Copyright 2012 - 2015 David Nichols
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -26,6 +27,11 @@
 /*  Version History
     * 1.0: simple example program using the SmtpClient user module to send emails from the command line
 */
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %exec-class mail
 

@@ -1,5 +1,6 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+
 # @file telnet.q example program using the TelnetClient module
 
 /*  telnet.q Copyright 2012 David Nichols
@@ -32,6 +33,11 @@
     Note that there is a bug on Darwin where SIGWINCH is not delivered to
     Qore's signal handling thread; window resizing does not work on Darwin.
 */
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 # execute the telnet class as the application object
 %exec-class telnet

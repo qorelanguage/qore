@@ -1,8 +1,9 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+
 # @file httpserver.q example program using the HttpServer module
 
-/*  httpserver.q Copyright 2012 David Nichols
+/*  httpserver.q Copyright 2012 - 2015 David Nichols
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -31,6 +32,11 @@
     SIGUSR1, SIGUSR2) or interrupt it on the console (which sends the process a
     SIGINT which is handled like other signals)
 */
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 # execute the httpServer class as the application object
 %exec-class httpServer

@@ -1,9 +1,10 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %requires ../../../../qlib/QUnit.qm
 
@@ -29,7 +30,7 @@ class CurlyBracketsTest inherits QUnit::Test {
 
     testCurlyBrackets() {
         SomeClass sc();
-        
+
         # these test the reduce-reduce conflicts in the qore parser due to the introduction of the empty hash syntax: {}
         assertEq(NT_OBJECT, sc.typeCode(), "empty-class-public-1");
         assertEq(NT_OBJECT, (new NoClass()).typeCode(), "empty-class-public-2");

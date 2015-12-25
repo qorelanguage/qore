@@ -1,9 +1,10 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %requires ../../../../qlib/QUnit.qm
 
@@ -34,10 +35,10 @@ public class UnderscoresTest inherits QUnit::Test {
         string _a_a_ = "a";
         assertEq(1, _);
         assertEq("a", _a_a_);
-        
+
         __ _____();
         assertEq("__", get_class_name(_____));
-        
+
         ___::____ ______ = new ___::____();
         assertEq(10, ______._____(7));
     }

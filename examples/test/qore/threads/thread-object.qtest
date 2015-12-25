@@ -1,14 +1,16 @@
-#!/usr/bin/env qore 
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %requires UnitTest
 
 %exec-class thread_object_test
 
-const opts = 
+const opts =
     ( "help"       : "h,help",
       "verbose"    : "v,verbose" );
 
@@ -18,7 +20,7 @@ class thread_object_test {
         int iters;
     }
     constructor() {
-        my UnitTest t();
+        UnitTest t();
         process_command_line();
         new CounterTest(threads, iters, t);
         new QueueTest(threads, iters, t);
@@ -36,12 +38,12 @@ class thread_object_test {
     process_command_line() {
         GetOpt g(opts);
         any o = g.parse(\ARGV);
-        
+
         if (exists o."_ERRORS_") {
             printf("%s\n", o."_ERRORS_"[0]);
             exit(1);
         }
-        
+
         if (o.help)
             usage();
 
@@ -59,14 +61,13 @@ class CounterTest {
         int threads;
         int iters;
         any obj;
-        Counter c;
+        Counter c();
     }
     constructor(int nthreads, int niters, UnitTest t) {
         threads = nthreads;
         iters = niters;
         obj.key.500.hello = 0;
 
-        c = new Counter();
         do_threads();
         c.waitForZero();
         t.ok(!obj.key.500.hello, "counter");
@@ -96,13 +97,10 @@ class CounterTest {
 
 class QueueTest {
     private {
-        Queue q;
-        Counter x;
+        Queue q();
+        Counter x();
     }
     constructor(int threads, int iters, UnitTest t) {
-        q = new Queue();
-        x = new Counter();
-        
         for (int i; i < threads; i++) {
             x.inc();
             background qt(threads, iters);
@@ -131,9 +129,9 @@ class ThreadTest inherits Mutex {
         int threads;
         int iters;
 
-        RWLock drw;
-        Gate g;
-        Counter c;
+        RWLock drw();
+        Gate g();
+        Counter c();
 
         hash gdata;
         hash rwdata;
@@ -141,9 +139,6 @@ class ThreadTest inherits Mutex {
     constructor(int nthreads, int niters, UnitTest t) {
         threads = nthreads;
         iters = niters;
-        drw = new RWLock();
-        g   = new Gate();
-        c   = new Counter();
         while (threads) {
             c.inc();
             background worker();
@@ -152,47 +147,37 @@ class ThreadTest inherits Mutex {
         c.waitForZero();
         t.ok(True, "thread object tests");
     }
-    hash getData(list l) {
-        hash rv;
+    *hash getData(list l) {
         lock();
-        foreach string key in (l)
-            rv{key} = data{key};
-        unlock();
-        return rv;
+        on_exit unlock();
+        return data{l};
     }
     setData(hash h) {
         lock();
-        foreach string key in (keys h)
-            data{key} = h{key};
-        unlock();
+        on_exit unlock();
+        data += h;
     }
-    hash getRWData(list l) {
-        hash rv;
+    *hash getRWData(list l) {
         drw.readLock();
-        foreach string key in (l)
-            rv{key} = rwdata{key};
-        drw.readUnlock();
-        return rv;
+        on_exit
+            drw.readUnlock();
+        return rwdata{l};
     }
     setRWData(hash h) {
         drw.writeLock();
-        foreach string key in (keys h)
-            rwdata{key} = h{key};
-        drw.writeUnlock();
+        on_exit
+            drw.writeUnlock();
+        rwdata += h;
     }
-    hash getGateData(list l) {
-        hash rv;
+    *hash getGateData(list l) {
         g.enter();
-        foreach string key in (l)
-            rv{key} = gdata{key};
-        g.exit();
-        return rv;
+        on_exit g.exit();
+        return gdata{l};
     }
     setGateData(hash h) {
         g.enter();
-        foreach string key in (keys h)
-            gdata{key} = h{key};
-        g.exit();
+        on_exit g.exit();
+        gdata+= h;
     }
     worker() {
         for (int i = 0; i < iters; i++) {
@@ -203,8 +188,10 @@ class ThreadTest inherits Mutex {
             string key2 = sprintf("key%d", (rand() % 10) + 10);
             string key3 = sprintf("key%d", rand() % 20);
             if (!c) {
-                hash h.key1 = rand() % 10;
-                h.key2 = rand() % 10;
+                hash h = (
+                    key1: rand() % 10,
+                    key2: rand() % 10,
+                    );
                 setData(h);
                 continue;
             }
@@ -213,8 +200,10 @@ class ThreadTest inherits Mutex {
                 continue;
             }
             if (c == 2) {
-                hash h.key1 = rand() % 10;
-                h.key2 = rand() % 10;
+                hash h = (
+                    key1: rand() % 10,
+                    key2: rand() % 10,
+                    );
                 setRWData(h);
                 continue;
             }
@@ -223,8 +212,10 @@ class ThreadTest inherits Mutex {
                 continue;
             }
             if (c == 4) {
-                hash h.key1 = rand() % 10;
-                h.key2 = rand() % 10;
+                hash h = (
+                    key1: rand() % 10,
+                    key2: rand() % 10,
+                    );
                 setGateData(h);
                 continue;
             }
@@ -236,4 +227,3 @@ class ThreadTest inherits Mutex {
         c.dec();
     }
 }
-

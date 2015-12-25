@@ -1,8 +1,10 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %requires ../../../../qlib/QUnit.qm
 
@@ -26,4 +28,3 @@ public class StatTest inherits QUnit::Test {
         testAssertion("stat()", \stat(), (get_script_path(),), new TestResultValue((h.dev, h.inode, h.mode, h.nlink, h.uid, h.gid, h.rdev, h.size, h.atime, h.mtime, h.ctime, h.blksize, h.blocks)));
     }
 }
-

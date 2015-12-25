@@ -1,4 +1,4 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
 # @file sqlutil example program for the SqlUtil module
@@ -24,8 +24,10 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%strict-args
+%new-style
 %enable-all-warnings
+%require-types
+%strict-args
 
 %requires SqlUtil
 %try-module yaml

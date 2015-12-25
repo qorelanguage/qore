@@ -1,9 +1,10 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 %no-child-restrictions
 
 %requires ../../../../qlib/QUnit.qm
@@ -19,7 +20,7 @@ class ThreadParsingTest inherits QUnit::Test {
     testThreadParsing() {
         our Counter c(1);
         our Counter ack(1);
-        
+
         string Code = "ack.dec(); c.waitForZero();";
 
         # set up the Program container
@@ -44,4 +45,3 @@ class ThreadParsingTest inherits QUnit::Test {
         c.dec();
     }
 }
-

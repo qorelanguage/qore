@@ -8,7 +8,7 @@
 %allow-injection
 %no-child-restrictions
 
-%requires ../../../../../qlib/UnitTest.qm
+%requires UnitTest
 
 # for negative testing of loadApplyUserModule
 %requires Util

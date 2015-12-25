@@ -1,9 +1,10 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 %no-child-restrictions
 
 %requires ../../../../qlib/QUnit.qm
@@ -34,12 +35,12 @@ public class EmptyHashAmbiguityTest inherits QUnit::Test {
         assertEq(1, elements a);
         assertEq(a{"x"}, 5);
         assertEq(1, a.size());
-        
+
         any b = {} - ('x': 5); # hash - hash -> this operation is not defined in documentation!
         #assertEq("hash", type(b)); is broken currently -> type of b is nothing, it's not an empty hash
         assertEq(0, elements b);
         assertEq(0, b.size());
-        
+
         any c = {} - ("x"); # hash - list
         assertEq("hash", type(c));
         assertEq(0, elements c);

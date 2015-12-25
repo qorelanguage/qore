@@ -1,7 +1,9 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-our
+%new-style
+%enable-all-warnings
+%require-types
 %strict-args
 
 %exec-class qdx
@@ -82,9 +84,7 @@ class qdx {
     }
 
     private string getQoreVersion() {
-        if (!exists qorever)
-            string qorever = sprintf("%d.%d.%d", Qore::VersionMajor, Qore::VersionMinor, Qore::VersionSub);
-        return qorever;
+        return qorever ?? sprintf("%d.%d.%d", Qore::VersionMajor, Qore::VersionMinor, Qore::VersionSub);
     }
 
     private checkNames(string fn, string ofn) {
@@ -674,7 +674,6 @@ class DocumentTableHelper {
         splice line, 0, 1;
         foreach *string cell in (split("|", line)) {
             trim cell;
-            *string cs;
             if (cell =~ /^!/)
                 str += sprintf("        <td class=\"qore\"><b>%s</b></td>\n", substr(cell, 1));
             else

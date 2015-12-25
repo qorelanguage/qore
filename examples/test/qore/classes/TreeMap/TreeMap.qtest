@@ -1,9 +1,14 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %requires ../../../../../qlib/QUnit.qm
 
 %exec-class TreeMapTest
-%new-style
 
 public class TreeMapTest inherits QUnit::Test {
 
