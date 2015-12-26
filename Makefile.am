@@ -44,7 +44,7 @@ DOX_MODULES = qlib/SmtpClient.qm \
 	qlib/Diff.qm \
 	qlib/BulkSqlUtil.qm
 
-TESTSCRIPTS=`find ./examples/test/ -name "*.qtest"
+TESTSCRIPTS=`find ./examples/test/ -name "*.qtest"`
 
 USER_MODULES = $(DOX_SRC_MODULES) \
 	$(DOX_MODULES)
