@@ -86,7 +86,7 @@ sub infix_test() {
     if (!opt.verb)
 	stdout.printf("infix tests: ");
 
-    Program p();
+    Program p(PO_NEW_STYLE);
     int cnt = 0;
     foreach string op in (infix) {
 	foreach string t in (TypeKeys) {
@@ -109,7 +109,7 @@ sub assign_test() {
     if (!opt.verb)
 	stdout.printf("assignment tests: ");
 
-    Program p();
+    Program p(PO_NEW_STYLE);
     int cnt = 0;
     foreach string op in (assign) {
 	foreach string t in (TypeKeys) {
@@ -131,7 +131,7 @@ sub lop_tests() {
     if (!opt.verb)
 	stdout.printf("unary prefix operator tests: ");
 
-    Program p();
+    Program p(PO_NEW_STYLE);
     int cnt = 0;
     foreach string op in (lop) {
 	foreach string t in (TypeKeys) {
@@ -149,7 +149,7 @@ sub lv_pre_tests() {
     if (!opt.verb)
 	stdout.printf("lvalue prefix operator tests: ");
 
-    Program p();
+    Program p(PO_NEW_STYLE);
     int cnt = 0;
     foreach string op in (lv_pre_post) {
 	foreach string t in (TypeKeys) {
@@ -167,7 +167,7 @@ sub lv_post_tests() {
     if (!opt.verb)
 	stdout.printf("lvalue postfix operator tests: ");
 
-    Program p();
+    Program p(PO_NEW_STYLE);
     int cnt = 0;
     foreach string op in (lv_pre_post) {
 	foreach string t in (TypeKeys) {
@@ -185,7 +185,7 @@ sub lv_tests() {
     if (!opt.verb)
 	stdout.printf("lvalue operator tests: ");
 
-    Program p();
+    Program p(PO_NEW_STYLE);
     int cnt = 0;
 
     foreach string num in (lv.keyIterator()) {
@@ -232,7 +232,7 @@ sub pre_tests() {
     if (!opt.verb)
 	stdout.printf("pre operator tests: ");
 
-    Program p();
+    Program p(PO_NEW_STYLE);
     int cnt = 0;
 
     foreach string num in (pre.keyIterator()) {
