@@ -709,4 +709,37 @@ unlink(testfile);
 
         return realpath(dir);
     }
+
+    #! Checks whether string represents an integer value.
+    public bool sub is_int (string text) {
+        if (text =~ /^\s*[-+]?\d+\s*$/)
+            return True;
+        return False;
+    }
+
+    const RE_FLOAT = '^\s*[-+]?('
+        '\d+\.\d*(e[-+]?\d+)?' # floating point number, with dot, optional exponent
+        '|\.\d+(e[-+]?\d+)?' # floating point number, starting with a dot, optional exponent
+        '|\d+e[-+]?\d+' # floating point number, without dot, with exponent
+        ')\s*$';
+
+    #! Checks whether string represents a float value.
+    public bool sub is_float (string text) {
+        if (text.regex(RE_FLOAT))
+            return True;
+        return False;
+    }
+
+    const RE_NUMBER = '^\s*[-+]?('
+        '\d+\.\d*(e[-+]?\d+)?' # floating point number, with dot, optional exponent
+        '|\.\d+(e[-+]?\d+)?' # floating point number, starting with a dot, optional exponent
+        '|\d+e[-+]?\d+' # floating point number, without dot, with exponent
+        '|\d+)n\s*$'; # integer
+
+    #! Checks whether string represents a number value.
+    public bool sub is_number (string text) {
+        if (text.regex(RE_NUMBER))
+            return True;
+        return False;
+    }
 }

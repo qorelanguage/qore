@@ -1,0 +1,88 @@
+#!/usr/bin/env qore
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class MathTest
+
+public class MathTest inherits QUnit::Test {
+    constructor() : Test("MathTest", "1.0") {
+        addTestCase ("Tests for is_int() function", \test_is_int());
+        addTestCase ("Tests for is_float() function", \test_is_float());
+        addTestCase ("Tests for is_number() function", \test_is_number());
+        set_return_value(main());
+    }
+
+    test_is_int() {
+        assertTrue (is_int("0"));
+        assertTrue (is_int(" 0 "));
+        assertTrue (is_int(" +1"));
+        assertTrue (is_int(" -1"));
+        assertFalse (is_int("0-1"));
+        assertFalse (is_int("0.1"));
+        assertFalse (is_int("0."));
+        assertFalse (is_int(".0"));
+        assertFalse (is_int("0x"));
+        assertFalse (is_int("x0"));
+    }
+
+    test_is_float() {
+        assertTrue (is_float("0.0"));
+        assertTrue (is_float(" 0. "));
+        assertTrue (is_float(" .0 "));
+        assertTrue (is_float("-0."));
+        assertTrue (is_float("+.0"));
+        assertTrue (is_float("+1.0"));
+        assertTrue (is_float("-1.0"));
+        assertTrue (is_float("2e3"));
+        assertTrue (is_float("1.2e3"));
+        assertTrue (is_float("+1.2e-3"));
+        assertTrue (is_float("-1.2e+3"));
+        assertFalse (is_float("0"));
+        assertFalse (is_float("+1"));
+        assertFalse (is_float(" 1 "));
+        assertFalse (is_float("0.1.2"));
+        assertFalse (is_float("2e3.4"));
+        assertFalse (is_float("1.2e"));
+        assertFalse (is_float("e2"));
+        assertFalse (is_float("x1.2"));
+        assertFalse (is_float("1.2x"));
+    }
+
+    test_is_number() {
+        assertTrue (is_number("0n"));
+        assertTrue (is_number(" 0n "));
+        assertTrue (is_number(" +1n"));
+        assertTrue (is_number(" -1n"));
+        assertTrue (is_number("0.0n"));
+        assertTrue (is_number(" 0.n "));
+        assertTrue (is_number(" .0n "));
+        assertTrue (is_number("-0.n"));
+        assertTrue (is_number("+.0n"));
+        assertTrue (is_number("+1.0n"));
+        assertTrue (is_number("-1.0n"));
+        assertTrue (is_number("2e3n"));
+        assertTrue (is_number("1.2e3n"));
+        assertTrue (is_number("+1.2e-3n"));
+        assertTrue (is_number("-1.2e+3n"));
+        assertFalse (is_number("0-1"));
+        assertFalse (is_number("0.1"));
+        assertFalse (is_number("0."));
+        assertFalse (is_number(".0"));
+        assertFalse (is_number("0x"));
+        assertFalse (is_number("x0"));
+        assertFalse (is_number("0"));
+        assertFalse (is_number("+1"));
+        assertFalse (is_number(" 1 "));
+        assertFalse (is_number("0.1.2"));
+        assertFalse (is_number("2e3.4"));
+        assertFalse (is_number("1.2e"));
+        assertFalse (is_number("e2"));
+        assertFalse (is_number("x1.2"));
+        assertFalse (is_number("1.2x"));
+    }
+}
