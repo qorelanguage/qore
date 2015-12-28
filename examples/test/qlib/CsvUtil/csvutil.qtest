@@ -28,6 +28,7 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
 
     constructor() : Test("CsvUtilTest", "1.0") {
         addTestCase("Basic CSV tests", \csvTest(), NOTHING);
+        addTestCase("CsvUtil non-numeric values", \test_non_numeric());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -45,4 +46,13 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
         i = new CsvDataIterator("", ("header-lines": 1));
         testAssertion("CsvDataIterator 2", \i.next(), (), RESULT_FAILURE);
     }
+
+    test_non_numeric() {
+        hash opts = ("fields": ("int": "int", "float": "float", "number": "number"));
+
+        CsvDataIterator i("1x2,1.2x,1e2n3", opts);
+        i.next();
+        testAssertion ("Non-numeric field value", \i.getValue(), (), new TestResultExceptionType("FIELD-VALUE-ERROR"));
+    }
 }
+
