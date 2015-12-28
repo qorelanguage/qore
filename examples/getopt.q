@@ -1,8 +1,9 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+
 # @file getopt.q GetOpt example program
 
-/*  getopt.q Copyright 2010 - 2012 David Nichols
+/*  getopt.q Copyright 2010 - 2015 David Nichols
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,9 +24,10 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# require global variables to be declared
-%require-our
+%new-style
 %enable-all-warnings
+%require-types
+%strict-args
 
 sub usage() {
     printf(

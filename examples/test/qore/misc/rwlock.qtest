@@ -1,9 +1,11 @@
 #!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
-%disable-warning non-existent-method-call
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
+%disable-warning non-existent-method-call
 
 %requires UnitTest
 
@@ -14,9 +16,9 @@ int RWLock::methodGate(any m) {
 }
 
 our hash o = (
-    "key1" : "key1", 
-    "key2" : "key2", 
-    "key3" : "key3", 
+    "key1" : "key1",
+    "key2" : "key2",
+    "key3" : "key3",
     "key4" : "key4",
 );
 
@@ -47,7 +49,7 @@ sub read_thread() {
         else
             t = 1;
         #printf("read_thread (%02d) %d/%d: key1 != key2\n", gettid(), $i, iters);
-	
+
         rwl.readLock();
         if (o.key3 == o.key4)
             t = 1;

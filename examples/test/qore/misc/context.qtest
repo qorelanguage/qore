@@ -1,8 +1,10 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %requires UnitTest
 
@@ -39,7 +41,7 @@ sub context_tests() {
     unit.cmp(age, 37, "find");
 
     my list ages = find %age in q where (%name == "david" || %name == "isabella");
-    unit.cmp(ages, (37, 1), "list find"); 
+    unit.cmp(ages, (37, 1), "list find");
     context (q) {
         unit.cmp(%%, ("name" : "david", "age" : 37), "context row");
         unit.cmp(cx_first(), True, "cx_first()");

@@ -1,8 +1,10 @@
 #!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %requires UnitTest
 
@@ -92,11 +94,11 @@ class TestHash {
 
         # delete 3 keys from the c hash
         b = c - "tnew" - "barn" - "asd";
-        unit.cmp(b, ( "key" : 3, "unique" : 100 ), "hash minus operator"); 
+        unit.cmp(b, ( "key" : 3, "unique" : 100 ), "hash minus operator");
         b = c - ("tnew", "barn", "asd");
-        unit.cmp(b, ( "key" : 3, "unique" : 100 ), "hash minus operator with list argument"); 
+        unit.cmp(b, ( "key" : 3, "unique" : 100 ), "hash minus operator with list argument");
         b -= "unique";
-        unit.cmp(b, ( "key" : 3 ), "hash minus-equals operator"); 
+        unit.cmp(b, ( "key" : 3 ), "hash minus-equals operator");
         c -= ( "tnew", "barn" );
         unit.cmp(c, ( "key": 3, "unique" : 100, "asd" : "dasd" ), "hash minus-equals operator with list argument");
         my hash nh += ( "new-hash" : 1 );
@@ -105,11 +107,11 @@ class TestHash {
 }
 
 hash sub hash_return(any var) {
-    return ( "gee" : "whiz", 
+    return ( "gee" : "whiz",
 	     "num" : test1(),
 	     "var" : var );
 }
-int sub test1() { return 1;} int sub test2() { return 2; } 
+int sub test1() { return 1;} int sub test2() { return 2; }
 
 class Test inherits Socket {
     private {

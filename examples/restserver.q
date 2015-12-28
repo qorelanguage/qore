@@ -1,8 +1,9 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+
 # @file restserver.q example program using the RestHandler and HttpServer modules
 
-/*  restserver.q Copyright (C) 2013 - 2014 David Nichols
+/*  restserver.q Copyright (C) 2013 - 2015 David Nichols
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -71,6 +72,11 @@
     POST /dirs/
     {'name': 'subdir', 'mode': 0755}
 */
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 # execute the restServer class as the application object
 %exec-class restServer

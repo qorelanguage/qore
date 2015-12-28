@@ -140,7 +140,12 @@ const Specs = (
 
     <b>Example of reading:</b>
     @code
-#!/usr/bin/env qr
+#!/usr/bin/env qore
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %requires FixedLengthUtil
 
@@ -173,7 +178,12 @@ while (i.next()) {
 
     <b>Example of writing:</b>
     @code
-#!/usr/bin/env qr
+#!/usr/bin/env qore
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %requires FixedLengthUtil
 
@@ -453,7 +463,12 @@ my hash $h = $i.getValue();
 /**
     @par Example:
     @code
-#!/usr/bin/env qr
+#!/usr/bin/env qore
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %requires FixedLengthUtil
 
@@ -782,7 +797,12 @@ public class FixedLengthUtil::FixedLengthAbstractWriter {
 #! Writer for fixed-length-line output files
 /** @par Example:
     @code
-#!/usr/bin/env qr
+#!/usr/bin/env qore
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %requires FixedLengthUtil
 

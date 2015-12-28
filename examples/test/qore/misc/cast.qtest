@@ -1,9 +1,10 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %requires ../../../../qlib/QUnit.qm
 
@@ -25,7 +26,7 @@ class CastingTest inherits QUnit::Test {
 
     testCasting() {
         Child c();
-        
+
         code func = sub() { Base b = cast<Base>(c); remove b; };
 
         testAssertion("neg-cast-1", func, NOTHING, new TestResultExceptionType("RUNTIME-CAST-ERROR"));

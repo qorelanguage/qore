@@ -1,8 +1,10 @@
 #!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %requires UnitTest
 
@@ -24,7 +26,7 @@ my UnitTest unit();
     unit.cmp(strmul(big, 2), "GEE WHIZGEE WHIZ", "strmul() basic");
     unit.cmp(strmul("%v, ", 3, 2), "%v, %v, %v", "strmul() extended");
     unit.cmp(strmul(123, 2), "123123", "strmul() type conversion");
-    
+
     # set up a string with UTF-8 multi-byte characters
     str = "Über die Wolken läßt sich die Höhe begrüßen";
     unit.cmp(strlen(str), 49, "UTF-8 strlen()");
@@ -37,11 +39,11 @@ my UnitTest unit();
     unit.cmp(index(str, "läßt"), 16, "first UTF-8 index()");
     unit.cmp(index(str, "läßt", 1), 16, "second UTF-8 index()");
     unit.cmp(rindex(str, "ß"), 40, "first UTF-8 rindex()");
-    unit.cmp(rindex(str, "ß", 25), 18, "second UTF-8 rindex()"); 
+    unit.cmp(rindex(str, "ß", 25), 18, "second UTF-8 rindex()");
     unit.cmp(bindex(str, "läßt"), 17, "first UTF-8 bindex()");
     unit.cmp(bindex(str, "läßt", 1), 17, "second UTF-8 bindex()");
     unit.cmp(brindex(str, "ß"), 45, "first UTF-8 brindex()");
-    unit.cmp(brindex(str, "ß", 25), 20, "second UTF-8 brindex()"); 
+    unit.cmp(brindex(str, "ß", 25), 20, "second UTF-8 brindex()");
     unit.cmp(reverse(str), "neßürgeb ehöH eid hcis tßäl nekloW eid rebÜ", "UTF-8 reverse()");
     unit.cmp(index(str, "==="), -1, "negative index()");
     unit.cmp(rindex(str, "==="), -1, "negative rindex()");
@@ -65,7 +67,7 @@ my UnitTest unit();
     unit.cmp(index(str, convert_encoding("läßt", "ISO-8859-1")), 16, "first ISO-8859-1 index()");
     unit.cmp(index(str, convert_encoding("läßt", "ISO-8859-1"), 1), 16, "second ISO-8859-1 index()");
     unit.cmp(rindex(str, convert_encoding("ß", "ISO-8859-1")), 40, "first ISO-8859-1 rindex()");
-    unit.cmp(rindex(str, convert_encoding("ß", "ISO-8859-1"), 25), 18, "second ISO-8859-1 rindex()"); 
+    unit.cmp(rindex(str, convert_encoding("ß", "ISO-8859-1"), 25), 18, "second ISO-8859-1 rindex()");
     unit.cmp(ord(str, 1), 98, "ord()");
 
     unit.cmp(chr(104), "h", "chr()");
@@ -199,7 +201,7 @@ my UnitTest unit();
     unit.cmp(l[2] =~ s/BAR/foo/ig, "hello foo hi", "case-insensitive global regular expression substitution");
 
     my string astr= "abc def";
-    astr =~ s/(\w+) +(\w+)/$2, $1/; 
+    astr =~ s/(\w+) +(\w+)/$2, $1/;
     unit.cmp(astr, "def, abc", "regular expression subpattern substitution");
 
     # regex() tests
@@ -261,7 +263,7 @@ my UnitTest unit();
 
     h = ( "key1" : "    hello\n \r  ", "key2" : 2045, "key3": "     test\r   \n \t\v   ", "key4" : 302.223 );
     trim h;
-    unit.cmp(h, ( "key1" : "hello", "key2" : 2045, "key3": "test", "key4" : 302.223 ), "hash trim");    
+    unit.cmp(h, ( "key1" : "hello", "key2" : 2045, "key3": "test", "key4" : 302.223 ), "hash trim");
 
     # make sure strings containing floating-point numbers between -1.0 and 1.0 exclusive return True when evaluated in a boolean context
     unit.cmp(True, boolean("0.1"), "first string fp boolean");
@@ -274,7 +276,7 @@ my UnitTest unit();
     unit.cmp(ustr.lwr(), "příliš žluťoučký kůň úpěl ďábelské ódy", "<string>::lwr()");
 
     # regression tests for floating-point formatting bugs
-    unit.cmp(sprintf("%f", 1.5), "1.500000", "%f float");    
+    unit.cmp(sprintf("%f", 1.5), "1.500000", "%f float");
     unit.cmp(sprintf("%f", 1.5n), "1.500000", "%f number");
-    unit.cmp(sprintf("%g", 1.5), "1.5", "%f float");    
+    unit.cmp(sprintf("%g", 1.5), "1.5", "%f float");
     unit.cmp(sprintf("%g", 1.5n), "1.5", "%f number");

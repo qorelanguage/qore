@@ -1,8 +1,10 @@
 #!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %requires UnitTest
 
@@ -26,7 +28,7 @@ my UnitTest unit();
     for (my int i = 0; i < 3; i++)
         b++;
     unit.cmp(a, 3, "for");
-    unit.cmp(b, 3, "for exec");    
+    unit.cmp(b, 3, "for exec");
     # foreach tests
     b = 0;
     my int v;
@@ -39,11 +41,11 @@ my UnitTest unit();
     unit.cmp(x, NOTHING, "unassigned typed variable");
     foreach my string y in (\list1) y = "test";
     unit.cmp(list1, NOTHING, "first foreach reference");
-    
+
     list1 = (1, 2, 3);
     foreach my any y in (\list1) y = "test";
     unit.cmp(list1, ("test", "test", "test"), "second foreach reference");
-    
+
     list1 = 1;
     foreach my any y in (\list1) y = "test";
     unit.cmp(list1, "test", "third foreach reference");

@@ -1,8 +1,10 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %requires ../../../../qlib/QUnit.qm
 
@@ -36,4 +38,3 @@ public class PwdTest inherits QUnit::Test {
         testAssertion("getgrnam2()", \getgrnam(), (h.gr_name,), new TestResultPartialHashMatch(("gr_gid" : 0)));
     }
 }
-

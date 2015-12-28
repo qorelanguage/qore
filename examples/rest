@@ -1,9 +1,9 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
 # @file rest example program for the RestClient module
 
-/*  Copyright 2013 David Nichols
+/*  Copyright 2013 - 2015 David Nichols
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -24,8 +24,10 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%strict-args
+%new-style
 %enable-all-warnings
+%require-types
+%strict-args
 
 %requires RestClient
 

@@ -79,7 +79,7 @@ functionality.
 %defattr(-,root,root,-)
 %{_libdir}/libqore.so.5.12.2
 %{_libdir}/libqore.so.5
-%doc COPYING.LGPL COPYING.GPL COPYING.MIT README README-LICENSE README-MODULES RELEASE-NOTES ChangeLog AUTHORS WHATISQORE
+%doc COPYING.LGPL COPYING.GPL COPYING.MIT README.md README-LICENSE README-MODULES RELEASE-NOTES ChangeLog AUTHORS WHATISQORE
 
 %post -n libqore5
 ldconfig %{_libdir}
@@ -173,7 +173,6 @@ rm %{buildroot}/%{_libdir}/libqore.la
 %files
 %defattr(-,root,root,-)
 %{_bindir}/qore
-%{_bindir}/qr
 %{module_dir}
 %{_mandir}/man1/qore.1.*
 

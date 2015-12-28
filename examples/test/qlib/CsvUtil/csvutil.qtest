@@ -1,8 +1,10 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/CsvUtil.qm
@@ -44,5 +46,3 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
         testAssertion("CsvDataIterator 2", \i.next(), (), RESULT_FAILURE);
     }
 }
-
-

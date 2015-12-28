@@ -1,4 +1,4 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
 %requires ../../../../qlib/QUnit.qm
@@ -6,6 +6,7 @@
 %new-style
 %require-types
 %enable-all-warnings
+%strict-args
 
 %requires ../../../../qlib/SqlUtil.qm
 %requires ../../../../qlib/TableMapper.qm

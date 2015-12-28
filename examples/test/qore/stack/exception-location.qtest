@@ -1,9 +1,10 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %requires ../../../../qlib/QUnit.qm
 
@@ -25,7 +26,7 @@ class ExceptionLocationTest inherits QUnit::Test {
             line = ex.line;
         }
 
-        testAssertionValue("runtime-location-1", line, 21);
+        testAssertionValue("runtime-location-1", line, 22);
     }
 
     static *hash do_loc1() {

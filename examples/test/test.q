@@ -1,4 +1,4 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
 /*  Copyright (C) 2014 - 2015 Qore Technologies, sro
@@ -22,8 +22,11 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%require-our
+%new-style
 %enable-all-warnings
+%require-types
+%strict-args
+
 # allow child Program objects to have more liberal restrictions than the parent
 %no-child-restrictions
 

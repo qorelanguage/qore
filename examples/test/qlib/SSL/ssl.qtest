@@ -1,8 +1,10 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
 %require-types
 %enable-all-warnings
 %new-style
+%strict-args
 
 %requires ../../../../qlib/QUnit.qm
 
@@ -75,5 +77,3 @@ fL7VyL/oGoUX4w4wwpUZlMlx3VqnXAoyf7NLQ50RD0M=
         testAssertion("SSLPrivateKey::getInfo()", \key.getInfo(), NOTHING, new TestResultValue(("type" : type, "version" : version, "bitLength" : bitLength)));
     }
 }
-
-
