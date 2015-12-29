@@ -26,6 +26,7 @@ class Test inherits QUnit::Test {
         assertEq({"aa" : "ab"}, map {$1 + $1 : $1 + 'b'}, "a");
         assertEq(NOTHING, map {$1 + $1 : $1 + 'b'}, NOTHING);
         assertEq({"2" : "1b", "44" : "4b", "12" : "6b"}, map {$1 + $1 : $1 + 'b'}, (1, "4", 6).iterator());
+        assertEq({}, map {}, (1, 2));
     }
 
     selectTests() {

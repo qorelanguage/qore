@@ -130,7 +130,7 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreParseHashNode() : ParseNode(NT_PARSE_HASH, true), curly(false) {
+   DLLLOCAL QoreParseHashNode(bool curly = false) : ParseNode(NT_PARSE_HASH, true), curly(curly) {
    }
 
    DLLLOCAL ~QoreParseHashNode() {
