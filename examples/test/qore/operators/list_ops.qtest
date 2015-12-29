@@ -26,6 +26,12 @@ class Test inherits QUnit::Test {
         addTestCase("unshift empty list to empty list", \unshiftEmptyListToEmptyList());
         addTestCase("unshift element to nothing", \unshiftElementToNothing());
         addTestCase("unshift element after delete", \unshiftElementAfterDelete());
+        addTestCase("pop basics", \popBasics());
+        addTestCase("pop from nothing", \popFromNothing());
+        addTestCase("pop after delete", \popAfterDelete());
+        addTestCase("shift basics", \shiftBasics());
+        addTestCase("shift from nothing", \shiftFromNothing());
+        addTestCase("shift after delete", \shiftAfterDelete());
         set_return_value(main());
     }
 
@@ -66,9 +72,9 @@ class Test inherits QUnit::Test {
         softlist l3;
         *softlist l4;
         assertEq((3,), push l1, 3);
-        assertEq(NOTHING, push l2, 3);
+        assertThrows("PUSH-ERROR", sub() { push l2, 3; });
         assertEq((3,), push l3, 3);
-        assertEq(NOTHING, push l4, 3);
+        assertThrows("PUSH-ERROR", sub() { push l4, 3; });
     }
 
     pushElementAfterDelete() {
@@ -83,14 +89,10 @@ class Test inherits QUnit::Test {
         delete l4;
 
         assertEq((3,), push l1, 3);
-        assertEq(NOTHING, push l2, 3);
+        assertThrows("PUSH-ERROR", sub() { push l2, 3; });
         assertEq((3,), push l3, 3);
-        assertEq(NOTHING, push l4, 3);
+        assertThrows("PUSH-ERROR", sub() { push l4, 3; });
     }
-
-
-
-
 
 
     unshiftElement() {
@@ -130,10 +132,9 @@ class Test inherits QUnit::Test {
         softlist l3;
         *softlist l4;
         assertEq((3,), unshift l1, 3);
-#see comment in issue #215
-#        assertEq(NOTHING, unshift l2, 3);
+        assertThrows("UNSHIFT-ERROR", sub() { unshift l2, 3; });
         assertEq((3,), unshift l3, 3);
-#        assertEq(NOTHING, unshift l4, 3);
+        assertThrows("UNSHIFT-ERROR", sub() { unshift l4, 3; });
     }
 
     unshiftElementAfterDelete() {
@@ -148,8 +149,90 @@ class Test inherits QUnit::Test {
         delete l4;
 
         assertEq((3,), unshift l1, 3);
-#        assertEq(NOTHING, unshift l2, 3);
+        assertThrows("UNSHIFT-ERROR", sub() { unshift l2, 3; });
         assertEq((3,), unshift l3, 3);
-#        assertEq(NOTHING, unshift l4, 3);
+        assertThrows("UNSHIFT-ERROR", sub() { unshift l4, 3; });
+    }
+
+
+    popBasics() {
+        list l = (1, 2);
+        assertEq(2, pop l);
+        assertEq((1,), l);
+        assertEq(1, pop l);
+        assertEq((), l);
+        assertEq(NOTHING, pop l);
+        assertEq((), l);
+    }
+
+    popFromNothing() {
+        list l1;
+        *list l2;
+        softlist l3;
+        *softlist l4;
+        assertEq(NOTHING, pop l1);
+        assertThrows("POP-ERROR", sub() { pop l2; });
+        assertEq(NOTHING, pop l3);
+        assertThrows("POP-ERROR", sub() { pop l4; });
+    }
+
+    popAfterDelete() {
+        list l1 = (1, 2);
+        *list l2 = (1, 2);
+        softlist l3 = (1, 2);
+        *softlist l4 = (1, 2);
+
+        delete l1;
+        delete l2;
+        delete l3;
+        delete l4;
+
+        assertEq(NOTHING, pop l1);
+        assertThrows("POP-ERROR", sub() { pop l2; });
+        assertEq(NOTHING, pop l3);
+        assertThrows("POP-ERROR", sub() { pop l4; });
+    }
+
+
+    shiftBasics() {
+        list l = (1, 2);
+        assertEq(1, shift l);
+        assertEq((2,), l);
+        assertEq(2, shift l);
+        assertEq((), l);
+        assertEq(NOTHING, shift l);
+        assertEq((), l);
+    }
+
+    shiftFromNothing() {
+        list l1;
+        *list l2;
+        softlist l3;
+        *softlist l4;
+        assertEq(NOTHING, shift l1);
+        assertEq((), l1);
+        assertThrows("SHIFT-ERROR", sub() { shift l2; });
+        assertEq(NOTHING, shift l3);
+        assertEq((), l3);
+        assertThrows("SHIFT-ERROR", sub() { shift l4; });
+    }
+
+    shiftAfterDelete() {
+        list l1 = (1, 2);
+        *list l2 = (1, 2);
+        softlist l3 = (1, 2);
+        *softlist l4 = (1, 2);
+
+        delete l1;
+        delete l2;
+        delete l3;
+        delete l4;
+
+        assertEq(NOTHING, shift l1);
+        assertEq((), l1);
+        assertThrows("SHIFT-ERROR", sub() { shift l2; });
+        assertEq(NOTHING, shift l3);
+        assertEq((), l3);
+        assertThrows("SHIFT-ERROR", sub() { shift l4; });
     }
 }
