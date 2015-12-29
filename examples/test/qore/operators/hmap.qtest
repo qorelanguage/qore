@@ -6,82 +6,32 @@
 %require-types
 %strict-args
 
-%requires UnitTest
+%requires ../../../../qlib/QUnit.qm
 
-UnitTest t();
+%exec-class Test
 
-t.cmploop(\try_call(), (
-    (
-        "args" : list(any sub() {return map {$1 : $1 * $1}, (2, 5, 9);}),
-        "cmp"  : ("2" : 4, "5" : 25, "9" : 81),
-        "msg"  : "hmap for list of ints",
-    ),
-    (
-        "args" : list(any sub() {return map {$1 + $1 : True}, ("a", "rr");}),
-        "cmp"  : ("aa" : True, "rrrr" : True),
-        "msg"  : "hmap for list of strings",
-    ),
-    (
-        "args" : list(any sub() {return map {$1 + $1 : True}, ();}),
-        "cmp"  : {},
-        "msg"  : "hmap for empty list",
-    ),
-    (
-        "args" : list(any sub() {return map {"key" : $1}, ("a", "a", "b");}),
-        "cmp"  : ("key" : "b"),
-        "msg"  : "same keys in resulting hash",
-    ),
-    (
-        "args" : list(any sub() {return map {$1[0] : $1}, ((2, 3), (1, 2, 3), (3, 4));}),
-        "cmp"  : ("2" : (2, 3), "1" : (1, 2, 3), "3" : (3, 4)),
-        "msg"  : "list is a list of structures",
-    ),
-    (
-        "args" : list(any sub() {return map {$1 + $1 : $1 + 'b'}, "a";}),
-        "cmp"  : ("aa" : "ab"),
-        "msg"  : "scalar param given",
-    ),
-    (
-        "args" : list(any sub() {return map {$1 + $1 : $1 + 'b'}, NOTHING;}),
-        "cmp"  : NOTHING,
-        "msg"  : "NOTHING as a list given",
-    ),
-    (
-        "args" : list(any sub() {return map {$1 + $1 : $1 + 'b'}, (1, "4", 6).iterator(); }),
-        "cmp"  : ("2" : "1b", "44" : "4b", "12" : "6b"),
-        "msg"  : "iterator given",
-    ),
-    (
-        "args" : list(any sub() {return map {$1 : $1 * 2}, (1, 4, 6), $1 != 4;}),
-        "cmp"  : ("1" : 2, "6" : 12),
-        "msg"  : "select param given",
-    ),
-    (
-        "args" : list(any sub() {return map {$1 : $1 * 2}, (1, 4, 6), False;}),
-        "cmp"  : {},
-        "msg"  : "select param is always False",
-    ),
-    (
-        "args" : list(any sub() {return map {$1 : $1 * 2}, (1, 4, 6), NOTHING;}),
-        "cmp"  : {},
-        "msg"  : "select param is NOTHING",
-    ),
-    (
-        "args" : list(any sub() {return map {$1 : $1 * 2}, (1, 4, 6), True;}),
-        "cmp"  : ("1" : 2, "4" : 8, "6" : 12),
-        "msg"  : "select param is always True",
-    ),
-));
-
-any sub try_call(code c) {
-    any result;
-    try {
-        result = c();
-        t.ok(True, 'call succeeded');
-    }
-    catch(hash ex) {
-        t.ok(False, 'call succeded');
+class Test inherits QUnit::Test {
+    constructor() : QUnit::Test("hash version of the map operator", "1.0") {
+        addTestCase("basic tests", \basicTests());
+        addTestCase("tests with selector", \selectTests());
+        set_return_value(main());
     }
 
-    return result;
+    basicTests() {
+        assertEq({"2" : 4, "5" : 25, "9" : 81}, map {$1 : $1 * $1}, (2, 5, 9));
+        assertEq({"aa" : True, "rrrr" : True}, map {$1 + $1 : True}, ("a", "rr"));
+        assertEq({}, map {$1 + $1 : True}, ());
+        assertEq({"key" : "b"}, map {"key" : $1}, ("a", "a", "b"));
+        assertEq({"2" : (2, 3), "1" : (1, 2, 3), "3" : (3, 4)}, map {$1[0] : $1}, ((2, 3), (1, 2, 3), (3, 4)));
+        assertEq({"aa" : "ab"}, map {$1 + $1 : $1 + 'b'}, "a");
+        assertEq(NOTHING, map {$1 + $1 : $1 + 'b'}, NOTHING);
+        assertEq({"2" : "1b", "44" : "4b", "12" : "6b"}, map {$1 + $1 : $1 + 'b'}, (1, "4", 6).iterator());
+    }
+
+    selectTests() {
+        assertEq({"1" : 2, "6" : 12}, map {$1 : $1 * 2}, (1, 4, 6), $1 != 4);
+        assertEq({}, map {$1 : $1 * 2}, (1, 4, 6), False);
+        assertEq({}, map {$1 : $1 * 2}, (1, 4, 6), NOTHING);
+        assertEq({"1" : 2, "4" : 8, "6" : 12}, map {$1 : $1 * 2}, (1, 4, 6), True);
+    }
 }
