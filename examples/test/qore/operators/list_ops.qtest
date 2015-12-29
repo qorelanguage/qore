@@ -1,0 +1,155 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class Test
+
+class Test inherits QUnit::Test {
+    constructor() : QUnit::Test("list operators", "1.0", \ARGV) {
+        addTestCase("push element", \pushElement());
+        addTestCase("push list", \pushList());
+        addTestCase("push empty list", \pushEmptyList());
+        addTestCase("push element to empty list", \pushElementToEmptyList());
+        addTestCase("push empty list to empty list", \pushEmptyListToEmptyList());
+        addTestCase("push element to nothing", \pushElementToNothing());
+        addTestCase("push element after delete", \pushElementAfterDelete());
+        addTestCase("unshift element", \unshiftElement());
+        addTestCase("unshift list", \unshiftList());
+        addTestCase("unshift empty list", \unshiftEmptyList());
+        addTestCase("unshift element to empty list", \unshiftElementToEmptyList());
+        addTestCase("unshift empty list to empty list", \unshiftEmptyListToEmptyList());
+        addTestCase("unshift element to nothing", \unshiftElementToNothing());
+        addTestCase("unshift element after delete", \unshiftElementAfterDelete());
+        set_return_value(main());
+    }
+
+    pushElement() {
+        list l = (1, 2);
+        assertEq((1, 2, 3), push l, 3);
+        assertEq((1, 2, 3), l);
+    }
+
+    pushList() {
+        list l = (1, 2);
+        assertEq((1, 2, (3,)), push l, (3,));
+        assertEq((1, 2, (3,)), l);
+    }
+
+    pushEmptyList() {
+        list l = (1, 2);
+        assertEq((1, 2, ()), push l, ());
+        assertEq((1, 2, ()), l);
+    }
+
+    pushElementToEmptyList() {
+        list l = ();
+        assertEq((3,), push l, 3);
+        assertEq((3,), l);
+    }
+
+    pushEmptyListToEmptyList() {
+        #list l = ();
+        #broken, see issue #320
+        #assertEq(((),), push l, ());
+        #assertEq(((),), l);
+    }
+
+    pushElementToNothing() {
+        list l1;
+        *list l2;
+        softlist l3;
+        *softlist l4;
+        assertEq((3,), push l1, 3);
+        assertEq(NOTHING, push l2, 3);
+        assertEq((3,), push l3, 3);
+        assertEq(NOTHING, push l4, 3);
+    }
+
+    pushElementAfterDelete() {
+        list l1 = (1, 2);
+        *list l2 = (1, 2);
+        softlist l3 = (1, 2);
+        *softlist l4 = (1, 2);
+
+        delete l1;
+        delete l2;
+        delete l3;
+        delete l4;
+
+        assertEq((3,), push l1, 3);
+        assertEq(NOTHING, push l2, 3);
+        assertEq((3,), push l3, 3);
+        assertEq(NOTHING, push l4, 3);
+    }
+
+
+
+
+
+
+    unshiftElement() {
+        list l = (1, 2);
+        assertEq((3, 1, 2), unshift l, 3);
+        assertEq((3, 1, 2), l);
+    }
+
+    unshiftList() {
+        list l = (1, 2);
+        assertEq(((3,), 1, 2), unshift l, (3,));
+        assertEq(((3,), 1, 2), l);
+    }
+
+    unshiftEmptyList() {
+        list l = (1, 2);
+        assertEq(((), 1, 2), unshift l, ());
+        assertEq(((), 1, 2), l);
+    }
+
+    unshiftElementToEmptyList() {
+        list l = ();
+        assertEq((3,), unshift l, 3);
+        assertEq((3,), l);
+    }
+
+    unshiftEmptyListToEmptyList() {
+        #list l = ();
+        #broken, see issue #320
+        #assertEq(((),), unshift l, ());
+        #assertEq(((),), l);
+    }
+
+    unshiftElementToNothing() {
+        list l1;
+        *list l2;
+        softlist l3;
+        *softlist l4;
+        assertEq((3,), unshift l1, 3);
+#see comment in issue #215
+#        assertEq(NOTHING, unshift l2, 3);
+        assertEq((3,), unshift l3, 3);
+#        assertEq(NOTHING, unshift l4, 3);
+    }
+
+    unshiftElementAfterDelete() {
+        list l1 = (1, 2);
+        *list l2 = (1, 2);
+        softlist l3 = (1, 2);
+        *softlist l4 = (1, 2);
+
+        delete l1;
+        delete l2;
+        delete l3;
+        delete l4;
+
+        assertEq((3,), unshift l1, 3);
+#        assertEq(NOTHING, unshift l2, 3);
+        assertEq((3,), unshift l3, 3);
+#        assertEq(NOTHING, unshift l4, 3);
+    }
+}
