@@ -2322,7 +2322,7 @@ void OperatorList::init() {
    OP_LOG_LT->addFunction(op_log_lt_date);
 
    OP_LOG_GT = add(new Operator(2, ">", "greater-than", 1, false, false, check_op_logical));
-   OP_LOG_LT->addFunction(op_log_gt_number);
+   OP_LOG_GT->addFunction(op_log_gt_number);
    OP_LOG_GT->addFunction(op_log_gt_float);
    OP_LOG_GT->addFunction(op_log_gt_bigint);
    OP_LOG_GT->addFunction(op_log_gt_string);
@@ -2330,7 +2330,7 @@ void OperatorList::init() {
 
    OP_LOG_EQ = add(new Operator(2, "==", "logical-equals", 1, false, false, check_op_logical));
    OP_LOG_EQ->addFunction(op_log_eq_string);
-   OP_LOG_LT->addFunction(op_log_eq_number);
+   OP_LOG_EQ->addFunction(op_log_eq_number);
    OP_LOG_EQ->addFunction(op_log_eq_float);
    OP_LOG_EQ->addFunction(op_log_eq_bigint);
    OP_LOG_EQ->addFunction(op_log_eq_boolean);
@@ -2339,7 +2339,7 @@ void OperatorList::init() {
 
    OP_LOG_NE = add(new Operator(2, "!=", "not-equals", 1, false, false, check_op_logical));
    OP_LOG_NE->addFunction(op_log_ne_string);
-   OP_LOG_LT->addFunction(op_log_ne_number);
+   OP_LOG_NE->addFunction(op_log_ne_number);
    OP_LOG_NE->addFunction(op_log_ne_float);
    OP_LOG_NE->addFunction(op_log_ne_bigint);
    OP_LOG_NE->addFunction(op_log_ne_boolean);
@@ -2347,14 +2347,14 @@ void OperatorList::init() {
    OP_LOG_NE->addNoConvertFunction(NT_ALL, NT_ALL, op_log_ne_all);
 
    OP_LOG_LE = add(new Operator(2, "<=", "less-than-or-equals", 1, false, false, check_op_logical));
-   OP_LOG_LT->addFunction(op_log_le_number);
+   OP_LOG_LE->addFunction(op_log_le_number);
    OP_LOG_LE->addFunction(op_log_le_float);
    OP_LOG_LE->addFunction(op_log_le_bigint);
    OP_LOG_LE->addFunction(op_log_le_string);
    OP_LOG_LE->addFunction(op_log_le_date);
 
    OP_LOG_GE = add(new Operator(2, ">=", "greater-than-or-equals", 1, false, false, check_op_logical));
-   OP_LOG_LT->addFunction(op_log_ge_number);
+   OP_LOG_GE->addFunction(op_log_ge_number);
    OP_LOG_GE->addFunction(op_log_ge_float);
    OP_LOG_GE->addFunction(op_log_ge_bigint);
    OP_LOG_GE->addFunction(op_log_ge_string);
