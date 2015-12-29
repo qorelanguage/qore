@@ -824,9 +824,13 @@ static AbstractQoreNode* op_unshift(const AbstractQoreNode* left, const Abstract
    if (!val)
       return 0;
 
-   // assign to a blank list if the lvalue has no value yet but is typed as a list
-   if (val.getType() == NT_NOTHING && val.getTypeInfo() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
-      return 0;
+   // assign to a blank list if the lvalue has no value yet but is typed as a list or a softlist
+   if (val.getType() == NT_NOTHING) {
+      if (val.getTypeInfo() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
+         return 0;
+      if (val.getTypeInfo() == softListTypeInfo && val.assign(softListTypeInfo->getDefaultValue()))
+         return 0;
+   }
 
    // value is not a list, so throw exception
    if (val.getType() != NT_LIST) {
@@ -855,8 +859,19 @@ static AbstractQoreNode* op_shift(const AbstractQoreNode* left, const AbstractQo
    if (!val)
       return 0;
 
-   if (val.getType() != NT_LIST)
+   // assign to a blank list if the lvalue has no value yet but is typed as a list or softlist
+   if (val.getType() == NT_NOTHING) {
+      if (val.getTypeInfo() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
+         return 0;
+      if (val.getTypeInfo() == softListTypeInfo && val.assign(softListTypeInfo->getDefaultValue()))
+         return 0;
+   }
+
+   // value is not a list, so throw exception
+   if (val.getType() != NT_LIST) {
+      xsink->raiseException("SHIFT-ERROR", "the argument to shift is not a list");
       return 0;
+   }
 
    // no exception can occurr here
    val.ensureUnique();
@@ -877,14 +892,21 @@ static AbstractQoreNode* op_pop(const AbstractQoreNode* left, const AbstractQore
    if (!val)
       return 0;
 
-   // assign to a blank list if the lvalue has no vaule yet but is typed as a list
-   if (val.getType() == NT_NOTHING && val.getTypeInfo() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
-      return 0;
+   // assign to a blank list if the lvalue has no value yet but is typed as a list or softlist
+   if (val.getType() == NT_NOTHING) {
+      if (val.getTypeInfo() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
+         return 0;
+      if (val.getTypeInfo() == softListTypeInfo && val.assign(softListTypeInfo->getDefaultValue()))
+         return 0;
+   }
 
-   if (val.getType() != NT_LIST)
+   // value is not a list, so throw exception
+   if (val.getType() != NT_LIST) {
+      xsink->raiseException("POP-ERROR", "the argument to pop is not a list");
       return 0;
+   }
 
-   // no exception can occurr here
+   // no exception can occur here
    val.ensureUnique();
 
    QoreListNode* l = reinterpret_cast<QoreListNode*>(val.getValue());
@@ -909,12 +931,19 @@ static AbstractQoreNode* op_push(const AbstractQoreNode* left, const AbstractQor
    if (!val)
       return 0;
 
-   // assign to a blank list if the lvalue has no vaule yet but is typed as a list
-   if (val.getType() == NT_NOTHING && val.getTypeInfo() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
-      return 0;
+   // assign to a blank list if the lvalue has no value yet but is typed as a list or softlist
+   if (val.getType() == NT_NOTHING) {
+      if (val.getTypeInfo() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
+         return 0;
+      if (val.getTypeInfo() == softListTypeInfo && val.assign(softListTypeInfo->getDefaultValue()))
+         return 0;
+   }
 
-   if (val.getType() != NT_LIST)
+   // value is not a list, so throw exception
+   if (val.getType() != NT_LIST) {
+      xsink->raiseException("PUSH-ERROR", "first argument to push is not a list");
       return 0;
+   }
 
    // no exception can occurr here
    val.ensureUnique();
