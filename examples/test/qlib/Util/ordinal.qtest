@@ -1,0 +1,55 @@
+#!/usr/bin/env qore
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class OrdinalTest
+
+public class OrdinalTest inherits QUnit::Test {
+    constructor() : Test ("OrdinalTest", "1.0") {
+        addTestCase ("Tests for ordinal() function", \test_ordinal());
+        set_return_value(main());
+    }
+
+    test_ordinal() {
+        hash cases = (
+                0: '0th',
+                1: '1st',
+                2: '2nd',
+                3: '3rd',
+                4: '4th',
+                10: '10th',
+                11: '11th',
+                12: '12th',
+                13: '13th',
+                14: '14th',
+                20: '20th',
+                21: '21st',
+                22: '22nd',
+                23: '23rd',
+                24: '24th',
+                100: '100th',
+                101: '101st',
+                102: '102nd',
+                103: '103rd',
+                104: '104th',
+                110: '110th',
+                111: '111th',
+                112: '112th',
+                113: '113th',
+                114: '114th',
+                120: '120th',
+                121: '121st',
+                122: '122nd',
+                123: '123rd',
+                124: '124th',
+            );
+
+        foreach hash t in (cases.pairIterator())
+            assertEq (t.value, ordinal (int(t.key)));
+    }
+}
