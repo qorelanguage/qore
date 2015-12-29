@@ -350,28 +350,25 @@ public class QUnit::TestCase {
 
     #! handles exceptions raised while running the TestCase
     checkException(QUnit::Test test, hash e) {
-        hash loc = e.callstack[0];
         if (e.err =~ /TEST-.*EXCEPTION/) {
             *string assertion_name = e.arg.name;
             *string pos = e.arg.pos;
-            if (e.err == "TEST-SKIPPED-EXCEPTION") {
-                if (!pos)
-                    pos = get_ex_pos(e);
-                string txt = sprintf("Skip %srequested", assertion_name ? sprintf("of %y ", assertion_name) : NOTHING);
-                test.addTestResult(self, TestReporter::TEST_SKIPPED, "Skip requested", pos, e.desc);
-            } else if (e.err == "TEST-EXCEPTION") {
-                if (!pos) {
-                    pos = get_ex_pos(e);
-                    if (pos =~ /QUnit\.qm/) {
-                        foreach hash callSite in (e.callstack) {
-                            if (callSite.file !~ /QUnit\.qm/) {
-                                string fn = regex_subst (callSite.file, "<run-time-loaded: (.*)>", "$1");
-                                pos = sprintf("%s:%d", fn, callSite.line + callSite.offset);
-                                break;
-                            }
+            if (!pos) {
+                pos = get_ex_pos(e);
+                if (pos =~ /QUnit\.qm/) {
+                    foreach hash callSite in (e.callstack) {
+                        if (callSite.file !~ /QUnit\.qm/) {
+                            string fn = regex_subst (callSite.file, "<run-time-loaded: (.*)>", "$1");
+                            pos = sprintf("%s:%d", fn, callSite.line + callSite.offset);
+                            break;
                         }
                     }
                 }
+            }
+            if (e.err == "TEST-SKIPPED-EXCEPTION") {
+                string txt = sprintf("Skip %srequested", assertion_name ? sprintf("of %y ", assertion_name) : NOTHING);
+                test.addTestResult(self, TestReporter::TEST_SKIPPED, txt, pos, e.desc);
+            } else if (e.err == "TEST-EXCEPTION") {
                 string txt = sprintf("Assertion %sfailure", assertion_name ? sprintf("%y ", assertion_name) : NOTHING);
                 test.addTestResult(self, TestReporter::TEST_FAILURE, txt, pos, e.desc);
             }
@@ -380,7 +377,7 @@ public class QUnit::TestCase {
             string pos = get_ex_pos(e);
             string errtxt = sprintf("Unexpected exception: %s", e.err);
             test.addTestResult(self, TestReporter::TEST_ERROR, errtxt, pos, get_exception_string(e));
-            }
+        }
     }
 
     #! returns the test case name
