@@ -306,6 +306,7 @@ Content-Length: 36
     - return an error if an unsupported HTTP method is used in a REST call
     - fixed a type error in the ah member of AbstractRestStreamRequestHandler
     - fixed a bug where an error calling an internal nonexistent method would be reported with an incorrect error message
+    - implemented support for notifying persistent connections when the connection is terminated while a persistent connection is in place
 
     @subsection rh_1_0 RestHandler v1.0
     - the initial version of the RestHandler module
@@ -371,7 +372,16 @@ public namespace RestHandler {
         #! creates the object with the given attributes
         constructor(RestHandler::AbstractRestStreamRequestHandler n_rsh, HttpServer::HttpListenerInterface listener, HttpServer::AbstractHttpRequestHandler handler, Socket s, hash cx, hash hdr, any body) : HttpServer::AbstractStreamRequest(listener, handler, s, cx + (exists body ? ("deserialized": True) : NOTHING), hdr, body) {
             rsh = n_rsh;
+            *code nt = rsh.getNotifierTarget();
+            if (nt)
+                handler.notifyClosed(nt);
             deserialized = exists body;
+        }
+
+        destructor() {
+            *code nt = rsh.getNotifierTarget();
+            if (!nt)
+                handler.notifyClosed();
         }
 
         # callback method for the response header; this calls @ref RestHandler::AbstractRestStreamRequestHandler::getResponseHeaderMessage() and returns the result

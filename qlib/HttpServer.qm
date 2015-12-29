@@ -139,6 +139,7 @@ log("started listener on %s", lh.desc);
     - added the @ref HttpServer::HttpServer::listenerStarted() method to allow for reporting when listeners are actually running since they are started asynchronously
     - added the \c "ssl" key to the listener socket info hash
     - fixed typos causing bugs in HTTP error logging (<a href="https://github.com/qorelanguage/qore/issues/308">bug 308</a>)
+    - fixed bugs handling persistent connections
 
     @subsection http0310 HttpServer 0.3.10
     - if an error occurs receiving a message with chunked transfer encoding, send the response immediately before reading the rest of the chunked transfer
@@ -1613,7 +1614,7 @@ class HttpServer::HttpPersistentHandlerInfo {
         clear();
     }
 
-    assign(DynamicHandlerHelper n_dhh, HttpServer::AbstractHttpRequestHandler n_handler) {
+    assign(*DynamicHandlerHelper n_dhh, HttpServer::AbstractHttpRequestHandler n_handler) {
         dhh = n_dhh;
         handler = n_handler;
     }

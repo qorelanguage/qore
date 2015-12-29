@@ -73,6 +73,7 @@ module HttpServerUtil {
 
     @subsection httputil0311 HttpServerUtil 0.3.11
     - initial version of the module
+    - implemented support for notifying persistent connections when the connection is terminated while a persistent connection is in place
  */
 
 #! the main namespace for the HttpServer and HttpServerUtil modules
@@ -572,6 +573,10 @@ public class HttpServer::AbstractStreamRequestHandler {
         }
     }
 
+    #! returns a callable value if this object was created as a part of a persistent request; this method in the base class returns @ref nothing by default; the callable value will be called in case the connection is disconnected while a persistent connection is in place
+    *code getNotifierTarget() {
+    }
+
     #! this method should return the response message description hash
     /**
         @return a hash with the following keys:
@@ -804,6 +809,9 @@ public class HttpServer::AbstractHttpRequestHandler {
 
         #! persistent connection flag
         bool persistent;
+
+        #! persistent connection closed notification
+        *code pc;
     }
 
     #! create the object optionally with the given AbstractAuthenticator
@@ -815,8 +823,21 @@ public class HttpServer::AbstractHttpRequestHandler {
         stream = n_stream;
     }
 
+    #! called externally to notify the handler that the connection will be persistent
+    setPersistent(bool p = True) {
+        persistent = p;
+    }
+
+    #! calls the argument when the persistent connection is closed
+    notifyClosed(*code c) {
+        pc = c;
+        persistent = exists pc;
+    }
+
     #! called externally when a persistent connection is closed
     nothing persistentClosed() {
+        if (pc)
+            pc();
     }
 
     #! this method will throw an exception if a persistent connection cannot be granted
