@@ -709,4 +709,18 @@ unlink(testfile);
 
         return realpath(dir);
     }
+
+    #! Returns string with partially textual representation of ordinal integer value
+    public string sub ordinal (int i) {
+        list suffixes = ("th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th");
+
+        switch (i % 100) {
+            case 11:
+            case 12:
+            case 13:
+                return sprintf("%dth", i);
+            default:
+                return sprintf("%d%s", i, suffixes[i % 10]);
+        }
+    }
 }
