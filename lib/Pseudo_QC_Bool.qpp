@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,12 +32,12 @@
 #include <qore/Qore.h>
 
 //! Methods in this pseudo-class can be executed on @ref boolean "booling-point values"
-/** 
+/**
  */
-qclass <bool> [arg=const QoreBoolNode* b;vparent=<value>];
+qclass <bool> [arg=bool b = v.getAsBool();vparent=<value>];
 
 //! Returns Qore::NT_BOOLEAN
-/** 
+/**
     @return Qore::NT_BOOLEAN
 
     @par Example:
@@ -54,7 +54,7 @@ int <bool>::typeCode() [flags=CONSTANT] {
 }
 
 //! Returns itself
-/** 
+/**
     @return itself
 
     @par Example:
@@ -67,7 +67,7 @@ my bool $bool = $b.val();
     - @ref strict-bool-eval "%strict-bool-eval"
 */
 bool <bool>::val() [flags=CONSTANT] {
-   return (bool)b->getValue();
+   return (bool)b;
 }
 
 //! Returns @ref True because boolean values can be converted to integers (False = 0, True = 1)

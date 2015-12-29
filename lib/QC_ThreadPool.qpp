@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -55,7 +55,7 @@ void ThreadPoolThread::worker(ExceptionSink* xsink) {
       assert(task);
       
       sl.unlock();
-      discard(task->run(xsink), xsink);
+      task->run(xsink).discard(xsink);
       sl.lock();
       task->del(xsink);
       task = 0;
@@ -149,7 +149,6 @@ void ThreadPool::worker(ExceptionSink* xsink) {
    // idle threads can be terminated with stop() in all cases
    for (tplist_t::iterator i = fh.begin(), e = fh.end(); i != e; ++i)
       (*i)->stop();
-
 
    sl.unlock();
 
@@ -271,7 +270,7 @@ ThreadPool::constructor(int max = 0, int minidle = 0, int maxidle = 0, timeout r
    self->setPrivate(CID_THREADPOOL, tp.release());
 }
 
-//! destroys the pool; any task threads are detached; to wait for all task threads to complete, call ThreadPool::stopWait() first
+//! destroys the pool; any task threads are detached and pending tasks not yet executed are canceled; to wait for all task threads to complete, call ThreadPool::stopWait() first
 /** @par Example:
     @code
 delete $tp;

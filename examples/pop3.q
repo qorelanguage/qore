@@ -2,7 +2,7 @@
 
 # @file pop3.q example program using the Pop3Client module
 
-/*  pop3.q Copyright 2012 David Nichols
+/*  pop3.q Copyright 2012 - 2015 David Nichols
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -30,11 +30,14 @@
 %new-style
 %enable-all-warnings
 %require-types
+%strict-args
+
 %exec-class pop3
 
 %requires Pop3Client >= 1.0
 %requires MailMessage >= 1.0
 %requires Mime >= 1.0
+%requires Util
 
 class pop3 {
     private {
@@ -77,7 +80,7 @@ class pop3 {
             stderr.print("missing POP3 server address\n");
             usage();
         }
-	
+
 	try {
 	    string url = sprintf("pop3%s://%s:%s@%s", opt.ssl ? "s" : "", opt.user, opt.pass, opt.svr);
 	    Pop3Client pop3(url, \log(), opt.verbose ? \log() : NOTHING);
@@ -122,12 +125,15 @@ class pop3 {
 	    }
 	}
 	catch (hash ex) {
-	    printf("%s: %s\n", ex.err, ex.desc);
+            if (opt.verbose)
+                printf("%s\n", get_exception_string(ex));
+            else
+                printf("%s: %s: %s\n", get_ex_pos(ex), ex.err, ex.desc);
 	}
     }
 
     log(string msg) {
-	printf("%y: %s\n", now_ms(), vsprintf(msg, argv));
+	printf("%y: %s\n", now_us(), vsprintf(msg, argv));
     }
 
     saveFile(string msgid, string tag, *data data) {
@@ -140,7 +146,7 @@ class pop3 {
 
 	int cnt = 0;
 	string fn = sprintf("%s/%s", msgid, tag);
-	
+
 	while (exists stat(fn)) {
 	    fn = sprintf("%s/%s.%d", msgid, tag, ++cnt);
 	}

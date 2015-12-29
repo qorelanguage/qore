@@ -1,0 +1,776 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! @file BulkSqlUtil.qm module for performing bulk DML operations with SqlUtil
+
+/*  BulkSqlUtil.qm Copyright 2015 Qore Technologies, sro
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum required Qore version
+%requires qore >= 0.8.12
+
+# require type definitions everywhere
+%require-types
+
+# enable all warnings
+%enable-all-warnings
+
+# assume local scope for variables, do not use "$" signs
+%new-style
+
+# use SqlUtil
+%requires(reexport) SqlUtil
+
+module BulkSqlUtil {
+    version = "1.0";
+    desc = "user module performing bulk DML operations with SqlUtil";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+/*  Version History
+    * 2015-08-02 v1.0: David Nichols <david@qore.org>
+      + the initial version of the BulkSqlUtil module
+*/
+
+/** @mainpage BulkSqlUtil Module
+
+    @tableofcontents
+
+    @section bulksqlutilintro Introduction to the BulkSqlUtil Module
+
+    The %BulkSqlUtil module provides APIs for bulk DML operations using <a href="../../SqlUtil/html/index.html">SqlUtil</a> in %Qore.
+    Bulk DML is the process of sending multiple rows to the dataserver in a single operation which allows for
+    the most efficient processing of large amounts of data.
+
+    Currently insert and upsert (SQL merge) operations are supported.
+
+    The main functionality provided by this module:
+    - @ref BulkSqlUtil::AbstractBulkOperation "AbstractBulkOperation": abstract base class for bulk DML operation classes
+    - @ref BulkSqlUtil::BulkInsertOperation "BulkInsertOperation": provides a high-level API for bulk DML inserts
+    - @ref BulkSqlUtil::BulkUpsertOperation "BulkUpsertOperation": provides a high-level API for bulk DML upsert uperations (ie SQL merge)
+
+    See the above classes for detailed information and examples.
+
+    @section bulksqlutil_relnotes Release Notes
+
+    @subsection bulksqlutil_v1_0 BulkSqlUtil v1.0
+    - initial release of the module
+*/
+
+#! the BulkSqlUtil namespace contains all the definitions in the BulkSqlUtil module
+public namespace BulkSqlUtil {
+    #! base class for bulk DML operations
+    /** This is an abstract base class for bulk DML operations; this class provides the majority of the
+        API support for bulk DML operations for the concrete child classes that inherit it.
+
+        @par Submitting Data
+        To use this class's API, queue data in the form of a hash (a single row or a set of rows) or a list of rows
+        by calling the queueData() method.\n\n
+        The queueData() method queues data to be written to the database; the queue is flush()ed
+        automatically when \c block_size rows have been queued.
+
+        @par Flushing and Discarding Data
+        Each call to flush() (whether implicit or explicit) will cause a single call to be made to
+        the dataserver; all queued rows are sent in a single bulk DML call, which allows for efficient
+        processing of large amounts of data.\n\n
+        A call to flush() must be made before committing the transaction to ensure that any remaining
+        rows in the internal queue have been written to the database.  Because the destructor() will
+        throw an exception if any data is left in the internal queue when the object is destroyed, a call
+        to discard() must be made prior to the destruction of the object in case of errors.
+
+        @code
+# single commit and rollback
+on_success ds.commit();
+on_error ds.rollback();
+{
+    # each operation needs to be flushed or discarded individually
+    on_success {
+        op1.flush();
+        op2.flush();
+    }
+    on_error {
+        op1.discard();
+        op2.discard();
+    }
+
+    # data is queued and flushed automatically when the buffer is full
+    map op1.queueData($1), data1.iterator();
+    map op2.queueData($1), data2.iterator();
+}
+        @endcode
+
+        @note
+        - Each bulk DML object must be manually flush()ed before committing or manually
+          discard()ed before rolling back to ensure that all data is managed properly in the same
+          transaction and to ensure that no exception is thrown in the destructor().
+          See the example above for more information.
+        - If the underlying driver does not support bulk operations, then such support is
+          emulated with single SQL operations; in such cases performance will be reduced.  Call
+          @ref SqlUtil::AbstractTable::hasArrayBind() to check at runtime if the driver supports
+          bulk SQL operations.
+    */
+    public class AbstractBulkOperation {
+        public {
+            #! option keys for this object
+            const OptionKeys = (
+                "block_size": sprintf("the row block size used for bulk DML / batch operations; default: %y", OptionDefaults.block_size),
+                "info_log": "a call reference / closure for informational logging",
+                );
+
+            #! default option values
+            const OptionDefaults = (
+                "block_size": 500,
+                );
+        }
+
+        private {
+            #! the target table object
+            SqlUtil::AbstractTable table;
+
+            #! bulk operation block size
+            softint block_size;
+
+            #! buffer for bulk operations
+            hash hbuf;
+
+            #! "constant" row values; must be equal in all calls to queueData
+            hash cval;
+
+            #! an optional info logging callback; must accept a sprintf()-style format specifier and optional arguments
+            *code info_log;
+
+            #! row count
+            int row_count = 0;
+
+            #! operation name
+            string opname;
+
+            #! list of "returning" columns
+            list ret_args = ();
+        }
+
+        #! creates the object from the supplied arguments
+        /** @param name the name of the operation
+            @param target the target table object
+            @param opts an optional hash of options for the object as follows:
+            - \c "block_size": the number of rows executed at once (default: 500)
+            - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-style arguments
+        */
+        constructor(string name, SqlUtil::Table target, *hash opts) {
+            opname = name;
+            table = target.getTable();
+            init(opts);
+        }
+
+        #! creates the object from the supplied arguments
+        /** @param name the name of the operation
+            @param target the target table object
+            @param opts an optional hash of options for the object as follows:
+            - \c "block_size": the number of rows executed at once (default: 500)
+            - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-style arguments
+        */
+        constructor(string name, SqlUtil::AbstractTable target, *hash opts) {
+            opname = name;
+            table = target;
+            init(opts);
+        }
+
+        #! throws an exception if there is data pending in the internal row data cache; make sure to call flush() or discard() before destroying the object
+        /** @throw BLOCK-ERROR there is unflushed data in the internal row data cache; make sure to call flush() or discard() before destroying the object
+        */
+        destructor() {
+            if (hbuf.firstValue())
+                throw "BLOCK-ERROR", sprintf("there %s still %d row%s of data in the internal cache; make sure to call %s::flush() or %s::discard() before destroying the object to flush all data to the database", hbuf.firstValue().size() == 1 ? "is" : "are", hbuf.firstValue().size(), hbuf.firstValue().size() == 1 ? "" : "s", self.className(), self.className());
+        }
+
+        #! common constructor initialization
+        private init(*hash opts) {
+            block_size = opts.block_size ?? OptionDefaults.block_size;
+
+            if (block_size < 1)
+                throw "BULK-SQL-OPERATION-ERROR", sprintf("the block_size option is set to %d; this value must be >= 1", block_size);
+
+            if (opts.info_log)
+                info_log = opts.info_log;
+        }
+
+        #! queues row data in the block buffer; the block buffer is flushed to the DB if the buffer size reaches the limit defined by the \c block_size option; does not commit the transaction
+        /** @par Example:
+            @code
+# single commit and rollback
+on_success ds.commit();
+on_error ds.rollback();
+{
+    # each operation needs to be flushed or discarded individually
+    on_success {
+        op1.flush();
+        op2.flush();
+    }
+    on_error {
+        op1.discard();
+        op2.discard();
+    }
+
+    # data is queued and flushed automatically when the buffer is full
+    map op1.queueData($1), data1.iterator();
+    map op2.queueData($1), data2.iterator();
+}
+            @endcode
+
+            @param data the input record or record set in case a hash of lists is passed; each hash represents a row (keys are column names and values are column values); when inserting, @ref sql_iop_funcs can also be used.  If at least one hash value is a list, then any non-hash (indicating an @ref sql_iop_funcs "insert opertor hash") and non-list values will be assumed to be constant values for every row and therefore future calls of this method (and overloaded variants) will ignore any values given for such keys and use the values given in the first call.
+
+            @note
+            - the first row passed is taken as a template row; every other row must always have the same keys in the same order, otherwise the results are unpredictable
+            - if any @ref sql_iop_funcs are used, then they are assumed to be identical in every row
+            - make sure to call flush() before committing the transaction or discard() before rolling back the transaction or destroying the object when using this method
+            - flush() or discard() needs to be executed individually for each bulk operation object used in the block whereas the DB transaction needs to be committed or rolled back once per datasource
+
+            @see
+            - flush()
+            - discard()
+        */
+        queueData(hash data) {
+            # prepare buffer hash if necessary
+            if (!hbuf)
+                setupInitialRowColumns(data);
+
+            # remove "returning" arguments
+            data -= ret_args;
+
+            # if we are working with bulk data where the row count would cause the buffer limit to be exceeded
+            if (data.firstValue().typeCode() == NT_LIST) {
+                while (True) {
+                    int ds = data.firstValue().lsize();
+                    int cs = hbuf.firstValue().lsize();
+                    if ((ds + cs) < block_size)
+                        break;
+                    int ns = block_size - cs;
+                    # add on rows until we get to the block size
+                    map hbuf.$1 += (extract data.$1, 0, ns), hbuf.keyIterator();
+                    flushIntern();
+                }
+            }
+
+            map hbuf{$1.key} += $1.value, data.pairIterator();
+            # return nothing if nothing needs to be flushed
+            if (hbuf.firstValue().size() < block_size)
+                return;
+
+            # return all target data
+            flushIntern();
+        }
+
+        #! queues row data in the block buffer; the block buffer is flushed to the DB if the buffer size reaches the limit defined by the \c block_size option; does not commit the transaction
+        /** @par Example:
+            @code
+# single commit and rollback
+on_success ds.commit();
+on_error ds.rollback();
+{
+    # each operation needs to be flushed or discarded individually
+    on_success {
+        op1.flush();
+        op2.flush();
+    }
+    on_error {
+        op1.discard();
+        op2.discard();
+    }
+
+    # data is queued and flushed automatically when the buffer is full
+    map op1.queueData($1), data1.iterator();
+    map op2.queueData($1), data2.iterator();
+}
+            @endcode
+
+            @param data a list of hashes representing the input row data; each hash represents a row (keys are column names and values are column values); when inserting, @ref sql_iop_funcs can also be used
+
+            @note
+            - the first row passed is taken as a template row; every other row must always have the same keys in the same order, otherwise the results are unpredictable
+            - if any @ref sql_iop_funcs are used, then they are assumed to be identical in every row
+            - make sure to call flush() before committing the transaction or discard() before rolling back the transaction or destroying the object when using this method
+            - flush() or discard() needs to be executed individually for each bulk operation object used in the block whereas the DB transaction needs to be committed or rolled back once per datasource
+
+            @see
+            - flush()
+            - discard()
+        */
+        queueData(list l) {
+            if (l.empty())
+                return;
+
+            # prepare buffer hash if necessary
+            if (!hbuf)
+                setupInitialRow(l[0]);
+
+            # if we are working with bulk data where the row count would cause the buffer limit to be exceeded
+            while (True) {
+                int ds = l.size();
+                int cs = hbuf.firstValue().lsize();
+                if ((ds + cs) < block_size)
+                    break;
+                int ns = block_size - cs;
+                # remove and process rows to add
+                foreach hash row in (extract l, 0, ns) {
+                    # add row data to block buffer
+                    map hbuf.$1 += row.$1, hbuf.keyIterator();
+                }
+
+                flushIntern();
+            }
+
+            foreach hash row in (l) {
+                # add row data to block buffer
+                map hbuf.$1 += row.$1, hbuf.keyIterator();
+            }
+
+            # return nothing if nothing needs to be flushed
+            if (hbuf.firstValue().size() < block_size)
+                return;
+
+            # return all target data
+            flushIntern();
+        }
+
+        #! sets up the block buffer given the initial template hash of lists for inserting
+        private setupInitialRowColumns(hash row) {
+            # ensure we have at least one list of columns values
+            bool has_list;
+            foreach any val in (row.iterator()) {
+                if (val.typeCode() == NT_LIST) {
+                    has_list = True;
+                    break;
+                }
+            }
+
+            # do not include constant values in the template row
+            if (has_list)
+                map cval.$1 = remove row.$1, row.keyIterator(), row.$1.typeCode() != NT_LIST;
+
+            setupInitialRow(row);
+        }
+
+        #! sets up the block buffer given the initial template row for inserting
+        private setupInitialRow(hash row) {
+            map hbuf.$1 = (), row.keyIterator();
+        }
+
+        #! flushes any remaining batched data to the database; this method should always be called before committing the transaction or destroying the object
+        /** @par Example:
+            @code
+# single commit and rollback
+on_success ds.commit();
+on_error ds.rollback();
+{
+    # each operation needs to be flushed or discarded individually
+    on_success {
+        op1.flush();
+        op2.flush();
+    }
+    on_error {
+        op1.discard();
+        op2.discard();
+    }
+
+    # data is queued and flushed automatically when the buffer is full
+    map op1.queueData($1), data1.iterator();
+    map op2.queueData($1), data2.iterator();
+}
+            @endcode
+
+            @note
+            - make sure to call flush() before committing the transaction or discard() before rolling back the transaction or destroying the object when using this method
+            - flush() or discard() needs to be executed individually for each bulk operation object used in the block whereas the DB transaction needs to be committed or rolled back once per datasource
+
+            @see
+            - queueData()
+            - discard()
+        */
+        flush() {
+            if (hbuf.firstValue())
+                flushIntern();
+        }
+
+        #! flushes queued data to the database
+        private flushIntern() {
+            # flush data to the DB; implemented in subclasses
+            flushImpl();
+            # update row count
+            int bs = hbuf.firstValue().lsize();
+            row_count += bs;
+            if (info_log)
+                info_log("%s (%s): %d row%s flushed (total %d)", table.getSqlName(), opname, bs, bs == 1 ? "" : "s", row_count);
+            # reset internal buffer
+            map hbuf.$1 = (), hbuf.keyIterator();
+        }
+
+        #! discards any buffered batched data; this method should be called before destroying the object if an error occurs
+        /** @par Example:
+            @code
+# single commit and rollback
+on_success ds.commit();
+on_error ds.rollback();
+{
+    # each operation needs to be flushed or discarded individually
+    on_success {
+        op1.flush();
+        op2.flush();
+    }
+    on_error {
+        op1.discard();
+        op2.discard();
+    }
+
+    # data is queued and flushed automatically when the buffer is full
+    map op1.queueData($1), data1.iterator();
+    map op2.queueData($1), data2.iterator();
+}
+            @endcode
+
+            @note
+            - make sure to call flush() before committing the transaction or discard() before rolling back the transaction or destroying the object when using this method
+            - flush() or discard() needs to be executed individually for each bulk operation object used in the block whereas the DB transaction needs to be committed or rolled back once per datasource
+
+            @see
+            - queueData()
+            - flush()
+        */
+        discard() {
+            delete hbuf;
+        }
+
+        #! flushes any queued data and commits the transaction
+        nothing commit() {
+            flush();
+            table.commit();
+        }
+
+        #! discards any queued data and rolls back the transaction
+        nothing rollback() {
+            discard();
+            table.rollback();
+        }
+
+        #! returns the table name
+        string getTableName() {
+            return table.getSqlName();
+        }
+
+        #! returns the underlying SqlUtil::AbstractTable object
+        SqlUtil::AbstractTable getTable() {
+            return table;
+        }
+
+        #! returns the @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object associated with this object
+        Qore::SQL::AbstractDatasource getDatasource() {
+            return table.getDatasource();
+        }
+
+        #! returns the affected row count
+        int getRowCount() {
+            return row_count;
+        }
+
+        #! flushes queued data to the database
+        abstract private flushImpl();
+    }
+
+    #! base class for bulk DML insert operations
+    /** This class assists with bulk inserts into a target @ref SqlUtil::AbstractTable "table".
+
+        @par Submitting Data
+        To use this class, queue data in the form of a hash (a single row or a set of rows) or a list of rows
+        by calling the queueData() method.\n\n
+        The queueData() method queues data to be written to the database; the queue is flush()ed
+        automatically when \c block_size rows have been queued.
+
+        @par Retrieving Data From Inserts
+        It is possible to use @ref sql_iop_funcs in the hashes submitted with queueData(); in this case the
+        BulkInsertOperation class assumes that every row has the same operations as in the first row.
+        Output data can then be processed by using the \c rowcode option in the constructor() or by calling
+        setRowCode().\n\n
+        In case @ref sql_iop_funcs are used and a \c rowcode option is set, then the SQL DML query for inserts
+        is creating using the \c "returning" @ref SqlUtil::AbstractTable::InsertOptions "insert option", therefore
+        the DBI driver in this case must support this option as well.
+
+        @par Flushing and Discarding Data
+        Each call to flush() (whether implicit or explicit) will cause a single call to be made to
+        the dataserver; all queued rows are sent in a single bulk DML call, which allows for efficient
+        processing of large amounts of data.\n\n
+        A call to flush() must be made before committing the transaction to ensure that any remaining
+        rows in the internal queue have been written to the database.  Because the destructor() will
+        throw an exception if any data is left in the internal queue when the object is destroyed, a call
+        to discard() must be made prior to the destruction of the object in case of errors.
+
+        @code
+# single commit and rollback
+on_success ds.commit();
+on_error ds.rollback();
+{
+    BulkInsertOperation op1(table1);
+    BulkInsertOperation op2(table2);
+
+    # each operation needs to be flushed or discarded individually
+    on_success {
+        op1.flush();
+        op2.flush();
+    }
+    on_error {
+        op1.discard();
+        op2.discard();
+    }
+
+    # data is queued and flushed automatically when the buffer is full
+    map op1.queueData($1), data1.iterator();
+    map op2.queueData($1), data2.iterator();
+}
+        @endcode
+
+        @note Wach bulk DML object must be manually flush()ed before committing or manually
+        discard()ed before rolling back to ensure that all data is managed properly in the same
+        transaction and to ensure that no exception is thrown in the destructor().
+        See the example above for more information.
+    */
+    public class BulkInsertOperation inherits BulkSqlUtil::AbstractBulkOperation {
+        private {
+            #! statement for DML
+            SQLStatement stmt;
+
+            #! per-row @ref closure or @ref call_reference for inserts
+            *code rowcode;
+
+            #! hash of "returning" arguments
+            hash static_ret_expr;
+        }
+
+        #! creates the object from the supplied arguments
+        /** @param target the target table object
+            @param opts an optional hash of options for the object as follows:
+            - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-style arguments
+            - \c "block_size": the number of rows executed at once (default: 500)
+            - \c "rowcode": a per-row @ref closure or @ref call_reference for batch inserts; this must take a single hash argument and will be called for every row after a bulk insert; the hash argument representing the row inserted will also contain any output values if applicable (for example if @ref sql_iop_funcs are used in the row hashes submitted to queueData())
+
+            @see setRowCode()
+        */
+        constructor(SqlUtil::Table target, *hash opts) : AbstractBulkOperation("insert", target, opts) {
+        }
+
+        #! creates the object from the supplied arguments
+        /** @param target the target table object
+            @param opts an optional hash of options for the object as follows:
+            - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-style arguments
+            - \c "block_size": the number of rows executed at once (default: 500)
+            - \c "rowcode": a per-row @ref closure or @ref call_reference for batch inserts; this must take a single hash argument and will be called for every row after a bulk insert; the hash argument representing the row inserted will also contain any output values if applicable (for example if @ref sql_iop_funcs are used in the row hashes submitted to queueData())
+
+            @see setRowCode()
+        */
+        constructor(SqlUtil::AbstractTable target, *hash opts) : AbstractBulkOperation("insert", target, opts) {
+        }
+
+        #! sets a @ref closure "closure" or @ref call_reference "call reference" that will be called when data has been sent to the database and all output data is available; must accept a hash argument that represents the data written to the database including any output arguments. This code will be reset, once the transaction is commited.
+        /** @par Example:
+            @code
+# single commit and rollback
+on_success ds.commit();
+on_error ds.rollback();
+code rowcode = sub (hash row) {
+    # process row data
+};
+inserter.setRowCode(rowcode);
+{
+    # each operation needs to be flushed or discarded individually
+    on_success inserter.flush();
+    on_error inserter.discard();
+
+    # data is queued and flushed automatically when the buffer is full
+    map inserter.queueData($1), data.iterator();
+}
+            @endcode
+
+            @param rowc a @ref closure "closure" or @ref call_reference "call reference" that will be called when data has been sent to the database and all output data is available; must accept a hash argument that represents the data written to the database including any output arguments
+
+            @note
+            - the per-row @ref closure "closure" or @ref call_reference "call reference" can also be set by using the \c "rowcode" option in the constructor()
+            - if this method is not called before the first row is queued then output values will not be retrieved; the initial query is built when the template row is queued and output values are only retrieved if a \c rowcode @ref closure "closure" or @ref call_reference "call reference" is set beforehand
+        */
+        setRowCode(*code rowc) {
+            rowcode = rowc;
+        }
+
+        #! common constructor initialization
+        private init(*hash opts) {
+            if (opts.rowcode)
+                rowcode = opts.rowcode;
+            AbstractBulkOperation::init(opts);
+        }
+
+        #! sets up the block buffer given the initial template hash of lists for inserting
+        private setupInitialRowColumns(hash row) {
+            setupStaticRowValues(\row);
+            AbstractBulkOperation::setupInitialRowColumns(row);
+        }
+
+        #! sets up support for "returning" insert options for any possible rowcode member
+        private setupInitialRow(hash row) {
+            setupStaticRowValues(\row);
+            AbstractBulkOperation::setupInitialRow(row);
+        }
+
+        private setupStaticRowValues(reference row) {
+            foreach hash h in (row.pairIterator()) {
+                if (h.value.typeCode() == NT_HASH) {
+                    ret_args += h.key;
+                    static_ret_expr.(h.key) = h.value;
+                    # remove the hash from the row
+                    delete row.(h.key);
+                }
+            }
+        }
+
+        #! inserts internally-queued queued data in the database wuith bulk DML operations
+        /**
+            This method sets up the SQL DML query used for inserts when row is queued.
+            Output values are only retrieved if @ref sql_iops_funcs are used and a
+            \c rowcode @ref closure "closure" or @ref call_reference "call reference"
+            has been set beforehand in the constructor() or by calling setRowCode() and
+            the underlying DBI driver supports the \c "returning"
+            @ref SqlUtil::AbstractTable::InsertOptions "insert option".
+        */
+        private flushImpl() {
+            *hash rh;
+            if (!stmt) {
+                string sql;
+                # insert the data
+                rh = table.insertNoCommit(hbuf + cval + static_ret_expr, \sql, rowcode ? ("returning": ret_args) : NOTHING);
+                # create the statement for future inserts
+                stmt = new SQLStatement(table.getDatasource());
+                stmt.prepare(sql);
+            }
+            else {
+                # execute the SQLStatement on the args
+                stmt.execArgs(hbuf.values());
+                rh = stmt.getOutput();
+            }
+
+            # call rowcode if it exists
+            if (rowcode)
+                map rowcode($1), (hbuf + rh).contextIterator();
+        }
+    }
+
+    #! base class for bulk DML upsert operations
+    /** This class assists with bulk upsert (SQL merge) operations into a target @ref SqlUtil::AbstractTable "table".
+
+        @par Submitting Data
+        To use this class, queue data in the form of a hash (a single row or a set of rows) or a list of rows
+        by calling the queueData() method.\n\n
+        The queueData() method queues data to be written to the database; the queue is flush()ed
+        automatically when \c block_size rows have been queued.
+
+        @par Flushing and Discarding Data
+        Each call to flush() (whether implicit or explicit) will cause a single call to be made to
+        the dataserver; all queued rows are sent in a single bulk DML call, which allows for efficient
+        processing of large amounts of data.\n\n
+        A call to flush() must be made before committing the transaction to ensure that any remaining
+        rows in the internal queue have been written to the database.  Because the destructor() will
+        throw an exception if any data is left in the internal queue when the object is destroyed, a call
+        to discard() must be made prior to the destruction of the object in case of errors.
+
+        @code
+# single commit and rollback
+on_success ds.commit();
+on_error ds.rollback();
+{
+    BulkUpsertOperation op1(table1);
+    BulkUpsertOperation op2(table2);
+
+    # each operation needs to be flushed or discarded individually
+    on_success {
+        op1.flush();
+        op2.flush();
+    }
+    on_error {
+        op1.discard();
+        op2.discard();
+    }
+
+    # data is queued and flushed automatically when the buffer is full
+    map op1.queueData($1), data1.iterator();
+    map op2.queueData($1), data2.iterator();
+}
+        @endcode
+
+        @note Wach bulk DML object must be manually flush()ed before committing or manually
+        discard()ed before rolling back to ensure that all data is managed properly in the same
+        transaction and to ensure that no exception is thrown in the destructor().
+        See the example above for more information.
+    */
+    public class BulkUpsertOperation inherits BulkSqlUtil::AbstractBulkOperation {
+        private {
+            # upsert strategy to use
+            int upsert_strategy;
+            # upsert closure
+            code upsert;
+        }
+
+        #! creates the object from the supplied arguments
+        /** @param target the target table object
+            @param opts an optional hash of options for the object as follows:
+            - \c "block_size": the number of rows executed at once (default: 500)
+            - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-style arguments
+            - \c "upsert_strategy": the upsert strategy to use; default SqlUtil::AbstractTable::UpsertAuto; see @ref upsert_options for possible values for the upsert strategy
+        */
+        constructor(SqlUtil::Table target, *hash opts) : AbstractBulkOperation("upsert", target, opts) {
+        }
+
+        #! creates the object from the supplied arguments
+        /** @param target the target table object
+            @param opts an optional hash of options for the object as follows:
+            - \c "block_size": the number of rows executed at once (default: 500)
+            - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-style arguments
+            - \c "upsert_strategy": the upsert strategy to use; default SqlUtil::AbstractTable::UpsertAuto; see @ref upsert_options for possible values for the upsert strategy
+        */
+        constructor(SqlUtil::AbstractTable target, *hash opts) : AbstractBulkOperation("upsert", target, opts) {
+        }
+
+        #! common constructor initialization
+        private init(*hash opts) {
+            if (opts.upsert_strategy) {
+                upsert_strategy = opts.upsert_strategy.toInt();
+                if (!AbstractTable::UpsertStrategyMap{upsert_strategy})
+                    throw "BULK-UPSERT-ERROR", sprintf("invalid upsert strategy code %y, expecting one of: %y", opts.upsert_strategy, AbstractTable::UpsertStrategyDescriptionMap.values());
+            }
+            else
+                upsert_strategy = AbstractTable::UpsertAuto;
+
+            AbstractBulkOperation::init(opts);
+        }
+
+        #! executes bulk DML upserts in the database with internally queued data
+        private flushImpl() {
+            if (!upsert)
+                upsert = table.getBulkUpsertClosure(hbuf + cval, upsert_strategy);
+
+            # execute the SQLStatement on the args
+            upsert(hbuf);
+        }
+    }
+}

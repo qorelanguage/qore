@@ -1,0 +1,106 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires UnitTest
+
+UnitTest t();
+
+code code_example = any sub() {return;};
+File file_example = new File();
+
+t.cmploop(\try_call(), (
+    (
+        "args" : list(any sub() {return 2 ?* 3;}),
+        "cmp"  : 2,
+        "msg"  : "int ?* int",
+    ),
+    (
+        "args" : list(any sub() {return 0 ?* 3;}),
+        "cmp"  : 3,
+        "msg"  : "zero ?* int",
+    ),
+    (
+        "args" : list(any sub() {return NOTHING ?* 3;}),
+        "cmp"  : 3,
+        "msg"  : "NOTHING ?* int",
+    ),
+    (
+        "args" : list(any sub() {return "a" ?* 3;}),
+        "cmp"  : "a",
+        "msg"  : "str ?* int",
+    ),
+    (
+        "args" : list(any sub() {return "" ?* 3;}),
+        "cmp"  : 3,
+        "msg"  : "empty_str ?* int",
+    ),
+    (
+        "args" : list(any sub() {return "" ?* "";}),
+        "cmp"  : "",
+        "msg"  : "empty_str ?* empty_str",
+    ),
+    (
+        "args" : list(any sub() {return "" ?* 0;}),
+        "cmp"  : 0,
+        "msg"  : "empty_str ?* zero",
+    ),
+    (
+        "args" : list(any sub() {return code_example ?* 3;}),
+        "cmp"  : code_example,
+        "msg"  : "code ?* int",
+    ),
+    (
+        "args" : list(any sub() {return NOTHING ?* 'a';}),
+        "cmp"  : 'a',
+        "msg"  : "NOTHING ?* str",
+    ),
+    (
+        "args" : list(any sub() {return NOTHING ?* NOTHING;}),
+        "cmp"  : NOTHING,
+        "msg"  : "NOTHING ?* NOTHING",
+    ),
+    (
+        "args" : list(any sub() {return False ?* True;}),
+        "cmp"  : True,
+        "msg"  : "False ?* True",
+    ),
+    (
+        "args" : list(any sub() {return NOTHING ?* NOTHING ?* 4 ?* NOTHING;}),
+        "cmp"  : 4,
+        "msg"  : "NOTHING ?* NOTHING ?* int ?* NOTHING",
+    ),
+    (
+        "args" : list(any sub() {return True ?* False ? 'a' : 'b';}),
+        "cmp"  : 'a', # not True
+        "msg"  : "?: has lower prio",
+    ),
+    (
+        "args" : list(any sub() {return file_example ?* 3;}),
+        "cmp"  : file_example,
+        "msg"  : "object ?* int",
+    ),
+# return is a statement so this is not possible :-(
+#    (
+#        "args" : list(any sub() {True ?* return 'right'; return 'left';}),
+#        "cmp"  : 'left',
+#        "msg"  : "associativity test",
+#    ),
+));
+
+any sub try_call(code c) {
+    any result;
+    try {
+        result = c();
+        t.ok(True, 'call succeeded');
+    }
+    catch(hash ex) {
+        t.ok(False, 'call succeded');
+    }
+
+    return result;
+}

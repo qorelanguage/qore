@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -120,6 +120,21 @@ public:
        @endcode
    */
    DLLEXPORT AbstractQoreNode *getUnique(ExceptionSink *xsink);
+
+   //! assigns a value to the reference, assumes the reference is valid
+   /** @param val the value to assign (must be already referenced for the assignment)
+       @return 0 if there was no error and the variable was assigned, -1 if a Qore-language exception occured dereferencing the current value, in this case no assignment was made and the reference count for val is dereferenced automatically by the QoreTypeSafeReferenceHelper object
+       @note you must check that the reference is valid before calling this function
+       @code
+       QoreTypeSafeReferenceHelper rh(ref, xsink);
+       // if the reference is not valid, then return
+       if (!rh)  
+          return;
+       // make the assignment (if the assignment fails, the value will be dereferenced automatically)
+       rh.assign(val->refSelf());
+       @endcode
+   */
+   DLLEXPORT int assign(QoreValue val);
 
    //! assigns a value to the reference, assumes the reference is valid
    /** @param val the value to assign (must be already referenced for the assignment)

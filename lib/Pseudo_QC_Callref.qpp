@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,12 +32,12 @@
 #include <qore/Qore.h>
 
 //! Methods in this pseudo-class can be executed on @ref call_reference "call references"
-/** 
+/**
  */
-qclass <callref> [arg=const ResolvedCallReferenceNode* c;vparent=<value>];
+qclass <callref> [arg=const ResolvedCallReferenceNode* c = v.get<ResolvedCallReferenceNode>();vparent=<value>];
 
 //! Returns Qore::NT_CALLREF
-/** 
+/**
     @par Example:
     @code
 switch ($c.typeCode()) {
@@ -76,7 +76,8 @@ bool <callref>::val() [flags=CONSTANT] {
     @return the return value of the code called
 */
 any <callref>::exec(...) {
-   c->exec(args, xsink);
+   ReferenceHolder<QoreListNode> l(args ? args->getOldList() : 0, xsink);
+   c->execValue(*l, xsink).takeNode();
 }
 
 //! Returns @ref True because this is a callable type

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2006 - 2014 Qore Technologies
+  Copyright (C) 2006 - 2015 Qore Technologies
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -35,6 +35,8 @@
 #include <qore/intern/QC_Queue.h>
 #include <qore/intern/ssl_constants.h>
 #include <qore/minitest.hpp>
+
+extern QoreClass* QC_SOCKET;
 
 #ifdef DEBUG_TESTS
 #  include "tests/QC_HTTPClient_tests.cpp"
@@ -77,7 +79,7 @@
     |\c Content-Type|\c "text/html"
     |\c User-Agent|\c "Qore-HTTP-Client/0.8.8"
     |\c Connection|\c "Keep-Alive"
-    |\c Accept-Encoding|\c "deflate,gzip,bzip2"
+    |\c Accept-Encoding|\c "gzip,deflate,bzip2"
 
     This class supports posting network events to a @ref Qore::Thread::Queue "Queue". See @ref event_handling for more information.
 
@@ -90,11 +92,11 @@
     |@ref EVENT_HTTP_REDIRECT|Raised when an HTTP redirect message is received.
     |@ref EVENT_HTTP_SEND_MESSAGE|Raised when an HTTP message is sent.
     |@ref EVENT_HTTP_MESSAGE_RECEIVED|Raised when an HTTP message is received.
-    |@ref EVENT_HTTP_FOOTERS_RECEIVED|Raised when HTTP footers are received. 
+    |@ref EVENT_HTTP_FOOTERS_RECEIVED|Raised when HTTP footers are received.
     |@ref EVENT_HTTP_CHUNKED_DATA_RECEIVED|Raised when a block of HTTP chunked data is received.
     |@ref EVENT_HTTP_CHUNK_SIZE|Raised when the next chunk size for HTTP chunked data is known.
 
-    @note 
+    @note
     - This class is not available with the @ref PO_NO_NETWORK parse option.
     - URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt>scheme://socket=<url_encoded_path>/path</tt>, where <tt>url_encoded_path</tt> is a path with URL-encoding as performed by @ref encode_url(); for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
  */
@@ -139,7 +141,7 @@ HTTPClient::constructor(hash opts) {
 }
 
 //! Creates the HTTPClient object
-/** 
+/**
     @par Example:
     @code
 my HTTPClient $httpclient();
@@ -150,7 +152,7 @@ HTTPClient::constructor() {
 }
 
 //! Copying objects of this class is not supported, an exception will be thrown
-/** 
+/**
     @throw HTTPCLIENT-COPY-ERROR copying HTTPClient objects is not yet supported
  */
 HTTPClient::copy() {
@@ -158,7 +160,7 @@ HTTPClient::copy() {
 }
 
 //! Destroys the HTTPClient object and closes any open connections
-/** 
+/**
     @par Example:
     @code
 delete $httpclient;
@@ -226,7 +228,7 @@ bool HTTPClient::isSecure() [flags=CONSTANT] {
 }
 
 //! Connects to the remote socket; SSL/TLS negotiation is performed if required
-/** If the protocol indicates that a secure connection should be established (or HTTPClient::setSecure() was called previsouly), SSL/TLS negotiation will be attempted. 
+/** If the protocol indicates that a secure connection should be established (or HTTPClient::setSecure() was called previsouly), SSL/TLS negotiation will be attempted.
 
     If the \c TCP_NODELAY flag has been set (see HTTPClient::setNoDelay()), then after a successful connection to the remote socket, this option will be set on the socket. If an error occurs setting the \c TCP_NODELAY option, the internal flag is set to false (use HTTPClient::getNoDelay() to check the flag's state) and the error code can be retrieved with errno().
 
@@ -245,7 +247,7 @@ nothing HTTPClient::connect() {
 }
 
 //! Disconnects from the remote socket if a connection is established (otherwise does nothing)
-/** 
+/**
     @par Example:
     @code
 $httpclient.disconnect();
@@ -378,7 +380,7 @@ hash HTTPClient::sendWithSendCallback(code scb, string method, *string path, *ha
 
     @par Example:
     @code
-my hash $msg = $httpclient.sendWithRecvCallback($rcv_callback, $data, "POST", "/path", ("Content-Type":"application/x-yaml"));
+$httpclient.sendWithRecvCallback($rcv_callback, $data, "POST", "/path", ("Content-Type":"application/x-yaml"));
     @endcode
 
     @param rcb The receive callback for the data received; first this method is called with a hash of the message headers, and then with any message body; if a chunked HTTP message is received, then the callback is called once for each chunk; when the message has been received, then the receive callback is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
@@ -424,7 +426,7 @@ nothing HTTPClient::sendWithRecvCallback(code rcb, string body, string method, *
 
     @par Example:
     @code
-my hash $msg = $httpclient.sendWithRecvCallback($rcv_callback, $data, "POST", "/path", ("Content-Type":"application/x-yaml"));
+$httpclient.sendWithRecvCallback($rcv_callback, $data, "POST", "/path", ("Content-Type":"application/x-yaml"));
     @endcode
 
     @param rcb The receive callback for the data received; first this method is called with a hash of the message headers, and then with any message body; if a chunked HTTP message is received, then the callback is called once for each chunk; when the message has been received, then the receive callback is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
@@ -470,7 +472,7 @@ nothing HTTPClient::sendWithRecvCallback(code rcb, *binary body, string method, 
 
     @par Example:
     @code
-my hash $msg = $httpclient.sendWithCallbacks($send_callback, $rcv_callback, "POST", "/path", ("Content-Type":"application/x-yaml"));
+$httpclient.sendWithCallbacks($send_callback, $rcv_callback, "POST", "/path", ("Content-Type":"application/x-yaml"));
     @endcode
 
     @param scb The callback giving the chunked HTTP data to send; this callback must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be sent or simply @ref nothing which will close the chunked message
@@ -515,7 +517,7 @@ nothing HTTPClient::sendWithCallbacks(code scb, code rcb, string method, *string
 }
 
 //! Sends an HTTP \c GET request and returns the message body received as a string or @ref nothing if no message body is received
-/** In order to get the headers and the body, use the HTTPClient::send() method instead. 
+/** In order to get the headers and the body, use the HTTPClient::send() method instead.
 
     If no connection has already been established, an internal call to HTTPClient::connect() will be made before sending the request.
 
@@ -794,7 +796,7 @@ my *string $proxy_url = $httpclient.getProxyURL();
 }
 
 //! Clears the new proxy URL value for the next connection
-/** 
+/**
     @par Example:
     @code
 $httpclient.setProxyURL();
@@ -805,7 +807,7 @@ nothing HTTPClient::clearProxyURL() {
 }
 
 //! Sets the SSL/TLS flag for the next connection to the proxy
-/** 
+/**
     @par Example:
     @code
 $httpclient.setProxySecure(True);
@@ -856,7 +858,7 @@ int HTTPClient::getMaxRedirects() [flags=CONSTANT] {
 }
 
 //! Clears any Queue object that may be set on the HTTPClient object so that @ref event_handling "I/O events" are no longer captured on the object
-/** 
+/**
     @par Example:
     @code
 $httpclient.setEventQueue();
@@ -880,10 +882,8 @@ $httpclient.setEventQueue($queue);
  */
 nothing HTTPClient::setEventQueue(Qore::Thread::Queue[Queue] queue) {
    ReferenceHolder<Queue> q(queue, xsink);
-   if (queue->getMax() != -1) {
-      xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the HttpClient object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
-      return 0;
-   }
+   if (queue->getMax() != -1)
+      return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the HttpClient object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
    // pass reference from QoreObject::getReferencedPrivateData() to function
    client->setEventQueue(q.release(), xsink);
 }
@@ -935,7 +935,7 @@ int HTTPClient::setNoDelay(softbool b = True) {
 }
 
 //! Returns the \c TCP_NODELAY setting for the HTTPClient object
-/** 
+/**
     @par Example:
     @code
 my bool $b = $httpclient.getNoDelay();
@@ -1107,8 +1107,8 @@ $httpclient.setWarningQueue(5000, 5000, $queue, "socket-1");
     - \c "type": a string with the constant value \c "SOCKET-OPERATION-WARNING"
     - \c "operation": a string giving the operation that caused the warning (ex: \c "connect")
     - \c "us": an integer giving the number of microseconds for the operation
-    - \c "timeout": an integer giving the warning threshold in microseconds 
-    - \c "arg": if any \c "arg" argument is passed to the @ref Qore::HTTPClient::setWarningQueue() "HTTPClient::setWarningQueue()" method, it will be included in the warning hash here 
+    - \c "timeout": an integer giving the warning threshold in microseconds
+    - \c "arg": if any \c "arg" argument is passed to the @ref Qore::HTTPClient::setWarningQueue() "HTTPClient::setWarningQueue()" method, it will be included in the warning hash here
     @param warning_bs value in bytes per second; if any call has performance below this threshold, a socket warning is placed on the warning queue with the following keys:
     - \c "type": a string with the constant value \c "SOCKET-THROUGHPUT-WARNING"
     - \c "dir": either \c "send" or \c "recv" depending on the direction of the data flow
@@ -1116,7 +1116,7 @@ $httpclient.setWarningQueue(5000, 5000, $queue, "socket-1");
     - \c "us": an integer giving the number of microseconds for the operation
     - \c "bytes_sec": a float giving the transfer speed in bytes per second
     - \c "threshold": an integer giving the warning threshold in bytes per second
-    - \c "arg": if any \c "arg" argument is passed to the @ref Qore::HTTPClient::setWarningQueue() "HTTPClient::setWarningQueue()" method, it will be included in the warning hash here 
+    - \c "arg": if any \c "arg" argument is passed to the @ref Qore::HTTPClient::setWarningQueue() "HTTPClient::setWarningQueue()" method, it will be included in the warning hash here
     @param queue the @ref Qore::Thread::Queue "Queue" object to receive warning events
     @param arg an optional argument to be placed in the \c "arg" key in each warning hash (could be used to identify the socket for example)
     @param min_ms the minimum transfer time with a resolution of milliseconds for a transfer to be eligible for triggering a warning; transfers that take less than this period of time are not eligible for raising a warning
@@ -1130,12 +1130,10 @@ $httpclient.setWarningQueue(5000, 5000, $queue, "socket-1");
  */
 nothing HTTPClient::setWarningQueue(int warning_ms, int warning_bs, Queue[Queue] queue, any arg, timeout min_ms = 1s) {
    ReferenceHolder<Queue> q(queue, xsink);
-   if (queue->getMax() != -1) {
-      xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Socket object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
-      return 0;
-   }
+   if (queue->getMax() != -1)
+      return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Socket object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
    // pass reference from QoreObject::getReferencedPrivateData() to function
-   client->setWarningQueue(xsink, warning_ms, warning_bs, q.release(), arg ? arg->refSelf() : 0, min_ms);
+   client->setWarningQueue(xsink, warning_ms, warning_bs, q.release(), arg.getReferencedValue(), min_ms);
 }
 
 //! Returns performance statistics for the socket
@@ -1175,7 +1173,7 @@ HTTPClient::clearStats() {
    client->clearStats();
 }
 
-//! temporarily disables implicit reconnections; must be called when the server is already connected                                              
+//! temporarily disables implicit reconnections; must be called when the server is already connected
 /** @par Example:
     @code
 $httpclient.connect();
@@ -1191,4 +1189,3 @@ $httpclient.setPersistent();
 HTTPClient::setPersistent() {
    client->setPersistent(xsink);
 }
-

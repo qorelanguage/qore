@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -57,7 +57,7 @@ private:
    DLLLOCAL QoreThreadLock& operator=(const QoreThreadLock&);
 
    //! internal initialization
-   DLLLOCAL void init(const pthread_mutexattr_t *pma = 0) {
+   DLLLOCAL void init(const pthread_mutexattr_t* pma = 0) {
 #ifndef NDEBUG
       int rc =
 #endif
@@ -73,7 +73,7 @@ public:
    }
 
    //! creates the lock with the given attributes
-   DLLLOCAL QoreThreadLock(const pthread_mutexattr_t *ma) {
+   DLLLOCAL QoreThreadLock(const pthread_mutexattr_t* ma) {
       init(ma);
    }
 
@@ -141,16 +141,16 @@ private:
 
 protected:
    //! the pointer to the lock that will be managed
-   QoreThreadLock *lck;
+   QoreThreadLock* lck;
 
 public:
    //! creates the object and grabs the lock
-   DLLLOCAL AutoLocker(QoreThreadLock *l) : lck(l) {
+   DLLLOCAL AutoLocker(QoreThreadLock* l) : lck(l) {
       lck->lock();
    }
 
    //! creates the object and grabs the lock
-   DLLLOCAL AutoLocker(QoreThreadLock &l) : lck(&l) {
+   DLLLOCAL AutoLocker(QoreThreadLock& l) : lck(&l) {
       lck->lock();
    }
 
@@ -182,17 +182,17 @@ private:
 
 protected:
    //! the pointer to the lock that will be managed
-   QoreThreadLock *lck;
+   QoreThreadLock* lck;
 
 public:
    //! creates the object and releases the lock
-   DLLLOCAL AutoUnlocker(QoreThreadLock *l) : lck(l) {
+   DLLLOCAL AutoUnlocker(QoreThreadLock* l) : lck(l) {
       if (lck)
          lck->unlock();
    }
 
    //! creates the object and releases the lock
-   DLLLOCAL AutoUnlocker(QoreThreadLock &l) : lck(&l) {
+   DLLLOCAL AutoUnlocker(QoreThreadLock& l) : lck(&l) {
       lck->unlock();
    }
 
@@ -226,20 +226,20 @@ private:
 
 protected:
    //! the pointer to the lock that will be managed      
-   QoreThreadLock *lck;
+   QoreThreadLock* lck;
 
    //! flag indicating if the lock is held or not
    bool locked;
 
 public:
    //! creates the object and grabs the lock
-   DLLLOCAL SafeLocker(QoreThreadLock *l) : lck(l) {
+   DLLLOCAL SafeLocker(QoreThreadLock* l) : lck(l) {
       lck->lock();
       locked = true;
    }
 
    //! creates the object and grabs the lock
-   DLLLOCAL SafeLocker(QoreThreadLock &l) : lck(&l) {
+   DLLLOCAL SafeLocker(QoreThreadLock& l) : lck(&l) {
       lck->lock();
       locked = true;
    }
@@ -269,6 +269,13 @@ public:
       assert(locked);
       locked = false;
    }
+
+   //! relocks an unlock lock
+   DLLLOCAL void relock() {
+      assert(!locked);
+      lck->lock();
+      locked = true;
+   }
 };
 
 //! provides a safe and exception-safe way to hold optional locks in Qore, only to be used on the stack, cannot be dynamically allocated
@@ -289,11 +296,11 @@ private:
 
 protected:
    //! the pointer to the lock that will be managed
-   QoreThreadLock *lck;
+   QoreThreadLock* lck;
 
 public:
    //! creates the object and grabs the lock if the argument is not NULL
-   DLLLOCAL OptLocker(QoreThreadLock *l) : lck(l) {
+   DLLLOCAL OptLocker(QoreThreadLock* l) : lck(l) {
       if (lck)
          lck->lock();
    }

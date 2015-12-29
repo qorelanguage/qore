@@ -1,0 +1,66 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class DigestTest
+
+public class DigestTest inherits QUnit::Test {
+    private {
+        const str = "Hello There This is a Test - 1234567890";
+    }
+
+    constructor() : Test("DigestTest", "1.0") {
+        addTestCase("Test MD2 Digest", \md2Test(), NOTHING);
+        addTestCase("Test MD4 Digest", \md4Test(), NOTHING);
+        addTestCase("Test MD5 Digest", \md5Test(), NOTHING);
+        addTestCase("Test DSS Digest", \dssTest(), NOTHING);
+        addTestCase("Test DSS1 Digest", \dss1Test(), NOTHING);
+        addTestCase("Test SHA Digest", \shaTest(), NOTHING);
+        addTestCase("Test SHA1 Digest", \sha1Test(), NOTHING);
+        addTestCase("Test RIPEMD160 Digest", \ripemd160Test(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    md2Test() {
+        if (!HAVE_MD2) {
+            testSkip("No support for MD2");
+        }
+        testAssertion("MD2 digest", \MD2(), (str,), new TestResultValue("349ea9f6c9681278cf86955dabd72d31"));
+    }
+
+    md4Test() {
+        testAssertion("MD4 digest", \MD4(), (str,), new TestResultValue("675d84fbf5d63e0d68c04577c3298fdc"));
+    }
+
+    md5Test() {
+        testAssertion("MD5 digest", \MD5(), (str,), new TestResultValue("bcbece19c1fe41d8c9e2e6134665ba5b"));
+    }
+
+    dssTest() {
+        testAssertion("DSS digest", \DSS(), (str,), new TestResultValue("f4bc2c85698aae8961d626e2c590852b2d081199"));
+    }
+
+    dss1Test() {
+        testAssertion("DSS1 digest", \DSS1(), (str,), new TestResultValue("f4bc2c85698aae8961d626e2c590852b2d081199"));
+    }
+
+    shaTest() {
+        testAssertion("SHA digest", \SHA(), (str,), new TestResultValue("99910d63f10286e8dda3c4a57801996f48f25b4b"));
+    }
+
+    sha1Test() {
+        testAssertion("SHA1 digest", \SHA1(), (str,), new TestResultValue("f4bc2c85698aae8961d626e2c590852b2d081199"));
+    }
+
+    ripemd160Test() {
+        testAssertion("RIPEMD-160 digest", \RIPEMD160(), (str,), new TestResultValue("8f32702e0146d5db6145f36271a4ddf249c087ae"));
+    }
+}

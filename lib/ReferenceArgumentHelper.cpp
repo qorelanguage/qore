@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 
 #include <qore/Qore.h>
 
-#include "ReferenceArgumentHelper.h"
+#include <qore/ReferenceArgumentHelper.h>
 
 struct lvih_intern {
    LocalVar lv;
@@ -38,7 +38,7 @@ struct lvih_intern {
    ReferenceNode *ref;
 
    DLLLOCAL lvih_intern(AbstractQoreNode *val, ExceptionSink *xs) : lv("ref_arg_helper", 0), xsink(xs) {
-      printd(5, "ReferenceArgumentHelper::ReferenceArgumentHelper() instantiating %08p (val=%08p type='%s') \n", &lv, val, val ? val->getTypeName() : "n/a");
+      printd(5, "ReferenceArgumentHelper::ReferenceArgumentHelper() instantiating %p (val: %p type: '%s') \n", &lv, val, val ? val->getTypeName() : "n/a");
       lv.instantiate(val);
       VarRefNode *vr = new VarRefNode(strdup("ref_arg_helper"), VT_LOCAL);
       vr->ref.id = &lv;
@@ -61,7 +61,7 @@ struct lvih_intern {
 	 return 0;
 
       // take output value from our temporary "variable" and return it
-      return vp.remove();
+      return vp.removeNode();
    }
 
    DLLLOCAL AbstractQoreNode *getArg() {
