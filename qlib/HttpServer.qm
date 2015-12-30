@@ -1454,10 +1454,10 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
                 # manage persistent handler info, if applicable
                 if (!phi.handler) {
-                    if (handler.persistent)
+                    if (handler.isPersistent())
                         phi.assign(dhh, handler);
                 }
-                else if (!handler.persistent)
+                else if (!handler.isPersistent())
                     phi.clear();
 
                 if (rv.reply_sent)
@@ -1621,7 +1621,7 @@ class HttpServer::HttpPersistentHandlerInfo {
 
     clear() {
         if (handler) {
-            if (handler.persistent)
+            if (handler.isPersistent())
                 handler.persistentClosed();
             remove handler;
             remove dhh;

@@ -187,6 +187,7 @@
       - when possible, REST bodies are decoded and stored in the \a info output argument when the HTTP server returns a status code < 100 or >= 300 to allow for error-handling in the client
     - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module updates:
       - implemented support for notifying persistent connections when the connection is terminated while a persistent connection is in place
+      - the AbstractRestStreamRequestHandler class is now the base abstract class for REST stream request handlers
     -  <a href="../../modules/WebUtil/html/index.html">WebUtil</a> module updates:
       - updated FileHandler::handleRequest() to allow for chunked sends
     - <a href="../../modules/BulkSqlUtil/html/index.html">BulkSqlUtil</a> module:
@@ -207,6 +208,7 @@
       - added the HttpServer::listenerStarted() method to allow for reporting when listeners are actually running since they are started asynchronously
       - added the \c "ssl" key to the listener socket info hash
       - implemented support for notifying persistent connections when the connection is terminated while a persistent connection is in place
+      - removed the unused AbstractStreamRequestHandler class
     - <a href="../../modules/Schema/html/index.html">Schema</a> module updates:
       - added the following public functions to make column definitions easier:
         - c_char()
