@@ -39,7 +39,7 @@ class RegexExtractTest inherits QUnit::Test {
                 }
 
                 if (!exists result) {
-                    assertTrue(False, "no subpatterns found but it either should or throw an exception for subpattern length " + capture_length);
+                    fail("no subpatterns found but it either should or throw an exception for subpattern length " + capture_length);
                 }
             }
         }
