@@ -12,8 +12,9 @@
 
 public class NumbersTest inherits QUnit::Test {
     constructor() : Test("NumbersTest", "1.0") {
-        addTestCase("Test number to string conversions", \stringConversionTest(), NOTHING);
-        addTestCase("Test number rounding during string conversions", \roundingTest(), NOTHING);
+        addTestCase("Test number to string conversions", \stringConversionTest());
+        addTestCase("Test number rounding during string conversions", \roundingTest());
+        addTestCase("Test number operations", \opTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -58,6 +59,18 @@ public class NumbersTest inherits QUnit::Test {
         testAssertion("rounding no. " + string(i++), \helperToString(), (34.9n * 100,), new TestResultValue("3490"));
         testAssertion("rounding no. " + string(i++), \helperToString(), (1e50n,), new TestResultValue("100000000000000000000000000000000000000000000000000"));
         testAssertion("rounding no. " + string(i++), \helperToString(), (-1e50n,), new TestResultValue("-100000000000000000000000000000000000000000000000000"));
+    }
 
+    opTest() {
+        assertEq(True, 1n >= 1n);
+        assertEq(True, 1n <= 1n);
+        assertEq(True, 1n == 1n);
+        assertEq(False, 1n != 1n);
+
+        assertEq(False, 1n < 1n);
+        assertEq(False, 1n > 1n);
+
+        assertEq(False, 1 < 1n);
+        assertEq(False, 1 > 1n);
     }
 }

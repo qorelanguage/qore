@@ -68,6 +68,7 @@ module Util {
     - @ref Util::normalize_dir()
       - @ref Util::normalize_dir_unix()
       - @ref Util::normalize_dir_windows()
+    - @ref Util::ordinal()
     - @ref Util::parse_to_qore_value()
     - @ref Util::slice()
     - @ref Util::same()
@@ -86,6 +87,7 @@ module Util {
     - added Util::is_int()
     - added Util::is_float()
     - added Util::is_number()
+    - added Util::ordinal()
     - added Util::slice()
     - added Util::same()
     - added Util::tmp_location()
@@ -796,5 +798,29 @@ match = is_number("1.2x");
         if (text.regex(RE_NUMBER))
             return True;
         return False;
+
+    #! Returns string with partially textual representation of ordinal integer value
+    /** @par Example:
+        @code
+printf ("%s grade", ordinal(1));
+# would print "1st grade"
+        @endcode
+
+        @param i integer value to convert to textual representation
+        @return a string representation of ordinal value of the argument
+
+        @since Util 1.2
+    */
+    public string sub ordinal (int i) {
+        list suffixes = ("th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th");
+
+        switch (i % 100) {
+            case 11:
+            case 12:
+            case 13:
+                return sprintf("%dth", i);
+            default:
+                return sprintf("%d%s", i, suffixes[i % 10]);
+        }
     }
 }

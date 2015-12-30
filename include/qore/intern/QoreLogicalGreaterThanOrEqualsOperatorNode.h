@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QoreLogicalGreaterThanOrEqualsOperatorNode.h
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -43,8 +43,10 @@ protected:
    DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
       AbstractQoreNode *rv = QoreLogicalLessThanOperatorNode::parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
       // make sure to reverse sense of comparison if this expression was resolved to a constant boolean value
-      if (rv != this)
+      if (rv != this) {
+         assert(get_node_type(rv) == NT_BOOLEAN);
          return rv->getAsBool() ? (AbstractQoreNode*)&False : (AbstractQoreNode*)&True;
+      }
       return rv;
    }
 

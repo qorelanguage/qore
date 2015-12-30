@@ -14,16 +14,13 @@
     @subsection qore_0812_compatibility Changes That Can Affect Backwards-Compatibility
     - fixed broken list parsing; in previous releases, %Qore's parser re-wrote lists without parentheses used as top-level statements with certain assignment operators (@ref assignment_operator "=", @ref plus_equals_operator "+=", @ref minus_equals_operator "-=", @ref multiply_equals_operator "*=", and @ref divide_equals_operator "/=", but not with others) so that statements like <tt>list l = 1, 2, 3;</tt> were valid assignments.   Due to operator precedence, such statements should normally be interpreted as <tt>(list l = 1), 2, 3;</tt>, which is not a valid expression.  Not only were the rules applied with only some assignment operators, but such lists were only rewritten if used as top-level statements, therefore the rules were applied inconsistenctly depending on where the expression was located in the parse tree.  As of %Qore 0.8.12, these inconsistencies have been eliminated by default from %Qore; all lists are processed according to the precedence rules defined in @ref operators.  This could break old code that relied on the old, broken behavior.  To get the old behavior, use the @ref broken-list-parsing "%broken-list-parsing" parse directive.
     - the %Qore parser has been updated to no longer accept multi-character operators with whitespace bewtween them; it is believed that this was never used and simply caused the parser to be needlessly complicated and caused %Qore to be less compatible with other languages
+    - the @ref push "push", @ref unshift "unshift", @ref pop "pop" and @ref shift "shift" operators now throw an exception when their first operand is not a list
 
     @subsection qore_0812_new_features New Features in Qore
     - new \c qr binary that assumes @ref new-style "%new-style" with %Qore code to make it easier to write programs in @ref new-style "%new-style"
     - Added the @ref value_coalescing_operator which checks first argument if it evaluates to @ref Qore::False "False" with @ref <value>::val() and if so assigns the second argument. The operator can be further chained; for example: @code{.py} expr1 ?* expr2 ?* expr3 @endcode
     - Added the @ref null_coalescing_operator which checks the first operand for @ref nothing or @ref null; if true returns the second argument. The operator can be further chained, in which case the first operand with a value is returned; ex: @code{.py} expr1 ?? expr2 ?? expr3 @endcode
     - %Qore identifiers can now begin with an underscore character \c "_"; the following is now a valid (with @ref new-style "%new-style"): @code{.py}int _var = 1;@endcode
-    - <a href="../../modules/FixedLengthUtil/html/index.html">FixedLengthUtil</a> module for handling fixed length line data added
-    - <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a> module split from the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module containing supporting definitions for handler classes and other code interfacing with the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module; also:
-      - added the PermissiveAuthenticator class
-      - translate \c "+" (plus) to \c " " (space) in the query portion of URIs in parse_uri_query()
     - hash enhancements:
       - new syntax for an expression giving an empty hash: <tt>{}</tt>; for example: @code{.py} hash h = {};@endcode
       - new literal hash support: hashes can now be given as literal values as follows: @code{.py} (<key_expr>: <val_expr>, [...]) @endcode For example: @code{.py} return (get_key(): get_value()); @endcode in the past the keys in literal hashes had to be either a string or a constant; now any valid %Qore expression can be used to generate the hash keys at runtime
@@ -188,9 +185,20 @@
       - implemented RestClient::getSendEncoding()
       - implemented RestClient::setContentEncoding()
       - when possible, REST bodies are decoded and stored in the \a info output argument when the HTTP server returns a status code < 100 or >= 300 to allow for error-handling in the client
+    - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module updates:
+      - implemented support for notifying persistent connections when the connection is terminated while a persistent connection is in place
+      - the AbstractRestStreamRequestHandler class is now the base abstract class for REST stream request handlers
     -  <a href="../../modules/WebUtil/html/index.html">WebUtil</a> module updates:
       - updated FileHandler::handleRequest() to allow for chunked sends
+    - <a href="../../modules/BulkSqlUtil/html/index.html">BulkSqlUtil</a> module:
+      - added this new module providing APIs supporting bulk DML with <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> with supported drivers
+    - <a href="../../modules/FixedLengthUtil/html/index.html">FixedLengthUtil</a> module:
+      - added this new module for handling fixed length line data
     - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module updates:
+        - <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a> module split from the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module containing supporting definitions for handler classes and other code interfacing with the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
+      - added the PermissiveAuthenticator class
+      - translate \c "+" (plus) to \c " " (space) in the query portion of URIs in parse_uri_query()
+      - implemented support for notifying persistent connections when the connection is terminated while a persistent connection is in place
       - new methods implemented in HttpServer:
         - HttpServer::getListenerLogOptions()
         - HttpServer::getListenerLogOptionsID()
@@ -199,6 +207,8 @@
       - improved performance matching request URIs to handlers
       - added the HttpServer::listenerStarted() method to allow for reporting when listeners are actually running since they are started asynchronously
       - added the \c "ssl" key to the listener socket info hash
+      - implemented support for notifying persistent connections when the connection is terminated while a persistent connection is in place
+      - removed the unused AbstractStreamRequestHandler class
     - <a href="../../modules/Schema/html/index.html">Schema</a> module updates:
       - added the following public functions to make column definitions easier:
         - c_char()
@@ -382,6 +392,10 @@
     - fixed a bug normalizing the result of date arithmetic between hour and minute components of @ref relative_dates "relative date/time value"
     - fixed a bug where time components of absolute date/time values before the UNIX epoch were returned with invalid values
     - fixed a bug where the @ref exec-class "%exec-class" directive did not check for classes with unimplemented abstract variants
+    - fixed a bug where the @ref push "push" and @ref unshift "unshift" operators applied to a variable declared as softlist did not use the default value
+    - fixed a bug where calls to @ref Qore::HTTPClient::setConnectTimeout() had no effect (<a href="https://github.com/qorelanguage/qore/issues/323">bug 323</a>)
+    - fixed several bugs with logical comparison operators and arbitrary-precision numeric values (<a href="https://github.com/qorelanguage/qore/issues/330">bug 330</a>)
+    - fixed a bug where @ref Qore::HashListIterator (and therefore @ref <hash>::contextIterator()) would not iterate a simple hash with non-list values once but would instead silently ignore the hash (<a href="https://github.com/qorelanguage/qore/issues/336">bug 336</a>)
 
     @section qore_0811 Qore 0.8.11
 
@@ -554,7 +568,6 @@
       - added mime type for WSDL files (\c "application/wsdl+xml")
       - added mappings for \c "xls" and \c "xlst" extensions to MimeTypeXml
     - added new modules:
-      - <a href="../../modules/BulkSqlUtil/html/index.html">BulkSqlUtil</a>: provides APIs supporting bulk DML with <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> with supported drivers
       - <a href="../../modules/Mapper/html/index.html">Mapper</a>: data mapping module
       - <a href="../../modules/TableMapper/html/index.html">TableMapper</a>: data mapping module using <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> and <a href="../../modules/Mapper/html/index.html">Mapper</a> to map to an SQL table target
       - <a href="../../modules/FreetdsSqlUtil/html/index.html">FreetdsSqlUtil</a>: provides back-end support for MS SQL Server and Sybase databases with <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> using the <a href="https://github.com/qorelanguage/module-sybase">freetds module</a>

@@ -520,9 +520,9 @@ if (!exists $error_code)
 
     <b>Arguments Processed by shift</b>
     |!Argument|!Processing
-    |\a lvalue|Returns the first element of the list, and the list is modified by having the first element removed from the list.  If the \a lvalue is not a list, no action is performed and the operator returns no value (@ref nothing)
+    |\a lvalue|Returns the first element of the list, and the list is modified by having the first element removed from the list. If the \a lvalue is an empty list, the operator returns no value (@ref nothing).
 
-    This operator does not throw any exceptions.
+    This operator throws an exception if the \a lvalue is not a list.
 
     <hr>
     @section pop Pop Operator (pop)
@@ -541,9 +541,9 @@ if (!exists $error_code)
 
     <b>Arguments Processed by pop</b>
     |!Argument|!Processing
-    |\a lvalue|Returns the last element of the list, and the list is modified, having the last element removed from the list. If the \a lvalue is not a list, no action is performed and the operator returns no value (@ref nothing)
+    |\a lvalue|Returns the last element of the list, and the list is modified, having the last element removed from the list. If the \a lvalue is an empty list, the operator returns no value (@ref nothing).
 
-    This operator does not throw any exceptions.
+    This operator throws an exception if the \a lvalue is not a list.
 
     <hr>
     @section chomp Chomp Operator (chomp)
@@ -1624,32 +1624,32 @@ if ($x || $y)
     @section unshift Unshift Operator (unshift)
 
     @par Synopsis
-    Inserts an element into the first position of a list and moves all other elements up one position.
+    Inserts an element into the first position of a list, moves all other elements up one position and returns the list processed. Throws an exception if the \a lvalue is not a list.
 
     @par Syntax
     <tt><b>unshift</b></tt> \a lvalue, \a expression
 
     @par Return Type
-    @ref any_type "any"
+    @ref list_type "list"
 
     @par Example
     @code{.py} unshift $list, "one";@endcode
 
     <b>Arguments Processed by unshift</b>
     |!Argument|!Processing
-    |All|Inserts the value of \a expression as the first element in the list given by \a lvalue. All other elements in the list are moved forward.
+    |All|Inserts the value of \a expression as the first element in the list given by \a lvalue. All other elements in the list are moved forward. If \a expression evaluates to a list, this list will be appended as the last element of \a lvalue. To concatenate lists, use the @ref plus_operator "plus operator".
 
     <hr>
     @section push Push Operator (push)
 
     @par Synopsis
-    Adds one element to the end of a list and returns the list processed (or @ref nothing if the \a lvalue is not a list).
+    Adds one element to the end of a list and returns the list processed. Throws an exception if the \a lvalue is not a list.
 
     @par Syntax
     <tt><b>push</b></tt> \a lvalue, \a expression
 
     @par Return Type
-    @ref list_type "list" or @ref nothing (if the lvalue is not a list)
+    @ref list_type "list"
 
     @par Example
     @code{.py} push $list, "last";@endcode
