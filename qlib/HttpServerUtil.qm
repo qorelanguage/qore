@@ -54,7 +54,6 @@ module HttpServerUtil {
     - @ref HttpServer::AbstractHttpRequestHandler "AbstractHttpRequestHandler": this class must be subclassed to provide the real work of the HttpServer handling connections
     - @ref HttpServer::AbstractHttpSocketHandler "AbstractHttpSocketHandler": this class must be subclassed to implement a dedicated socket handler for protcol changes (for an example, see the <a href="../../WebSocketHandler/html/index.html">WebSocketHandler</a> module)
     - @ref HttpServer::AbstractLogger "AbstractLogger": this abstract class provides an interface for classes providing basic logging methods
-    - @ref HttpServer::AbstractStreamRequestHandler "AbstractStreamRequestHandler": this class is used as a base class for embedded HTTP chunked request/response handlers
     - @ref HttpServer::AbstractStreamRequest "AbstractStreamRequest": this class is used to directly handle HTTP chunked requests and responses
     - @ref HttpServer::AbstractUrlHandler "AbstractUrlHandler": this class serves as a base class for handler classes that serve requests anchored at a particular URL
     - @ref HttpServer::HttpListenerInterface "HttpListenerInterface": this abstrct class provides the interface for the private HttpListener class implemented in the <a href="../../HttpServer/html/index.html">HttpServer</a> module
@@ -73,6 +72,8 @@ module HttpServerUtil {
 
     @subsection httputil0311 HttpServerUtil 0.3.11
     - initial version of the module
+    - implemented support for notifying persistent connections when the connection is terminated while a persistent connection is in place
+    - removed unused AbstractStreamRequestHandler class
  */
 
 #! the main namespace for the HttpServer and HttpServerUtil modules
@@ -482,128 +483,6 @@ public class HttpServer::PermissiveAuthenticator inherits HttpServer::AbstractAu
     }
 }
 
-#! abstract class for embedded objects serving streaming requests
-/**
-    The calling order is as follows:
-    - constructor(): this is called when the request is received; then context argument contains the request header along with other information
-    - recv(): this is called once for each HTTP chunk (if data is sent chunked), and then once with any message trailer.  If data is sent non-chunked, then this method is called with the monolithic message body and then again with @ref nothing to signify the end of the transfer and to simulate a chunked transfer.  Subclasses should re-implement recvImpl() which is called by this method
-    - getResponseHeaderMessage(): this is called after the message body has been received to get the response headers and optionally a message body.  Subclasses should reimplement getResponseHeaderMessageImpl() which is called by this method
-    - send(): this is called if no message body is returned by getResponseHeaderMessage(); each time this method returns data, the data is sent in a response chunk; when this method returns @ref nothing, then no more data is sent.  Subclasses should re-implement sendImpl() which is called by this method
-*/
-public class HttpServer::AbstractStreamRequestHandler {
-    public {}
-
-    private {
-        #! call context hash
-        hash cx;
-        #! if an exception is raised in a callback then the exception hash is saved here
-        *hash ex;
-    }
-
-    #! creates the object with the given arguments
-    /** @param n_cx call context hash; this hash will have the following keys:
-        - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
-        - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
-        - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
-        - \c url: a hash of broken-down URL information (as returned from parseURL())
-        - \c id: the unique HTTP connection ID
-        - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
-        - \c user: the current RBAC username (if any)
-        - \c hdr: a hash of header information as returned by @ref Qore::Socket::readHTTPHeader()
-        - \c body: the deserialized message body
-        - \c aih: a hash of \c "Accept" values
-    */
-    constructor(hash n_cx) {
-        cx = n_cx;
-    }
-
-    #! this method returns the response message description hash by calling getResponseHeaderMessageImpl()
-    /**
-        @return a hash with the following keys:
-        - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
-        - \c "body": the message body to return in the response; if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and sendImpl() are not called
-        - \c "close": (optional) set this key to @ref True if the connection should be unconditionally closed when the handler returns
-        - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
-
-        @note this method is called after the message body has been received
-    */
-    hash getResponseHeaderMessage() {
-        try {
-            return getResponseHeaderMessageImpl();
-        }
-        catch (hash n_ex) {
-            ex = n_ex;
-            rethrow;
-        }
-    }
-
-    #! this method provides the callback method for receiving chunked data by calling recvImpl()
-    /**
-        @param v the first time this method is called with a hash of the message headers in the \c "hdr" key, and then with any message body in the \c "data"; if a chunked HTTP message is received, then this method is called once for each chunk; when the message has been received, then this method is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
-        - \c "data": the string or binary data, or, in the case of a non-chunked request, the already decoded and deserialized request body, in which case the \c "deserialized" key will be @ref True
-        - \c "chunked": @ref True if the data was received with chunked transfer encoding, @ref False if not
-        - \c "deserialized": present and set to @ref True if a non-chunked request was received, and the body has already been deserialized
-        .
-        Header or trailer data is placed in a hash with the following keys:
-        - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
-        - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
-    */
-    nothing recv(hash v) {
-        try {
-            recvImpl(v);
-        }
-        catch (hash n_ex) {
-            ex = n_ex;
-            rethrow;
-        }
-    }
-
-    #! this method provides the callback method for sending chunked data by calling sendImpl()
-    /**
-        @return The chunked HTTP data to send; this method must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be returned or simply @ref nothing which will close the chunked message
-    */
-    any send() {
-        try {
-            return sendImpl();
-        }
-        catch (hash n_ex) {
-            ex = n_ex;
-            rethrow;
-        }
-    }
-
-    #! this method should return the response message description hash
-    /**
-        @return a hash with the following keys:
-        - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
-        - \c "body": the message body to return in the response; if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and sendImpl() are not called
-        - \c "close": (optional) set this key to @ref True if the connection should be unconditionally closed when the handler returns
-        - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
-
-        @note this method is called after the message body has been received
-    */
-    abstract hash getResponseHeaderMessageImpl();
-
-    #! abstract callback method for receiving chunked data
-    /**
-        @param v the first time this method is called with a hash of the message headers in the \c "hdr" key, and then with any message body in the \c "data"; if a chunked HTTP message is received, then this method is called once for each chunk; when the message has been received, then this method is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
-        - \c "data": the string or binary data, or, in the case of a non-chunked request, the already decoded and deserialized request body, in which case the \c "deserialized" key will be @ref True
-        - \c "chunked": @ref True if the data was received with chunked transfer encoding, @ref False if not
-        - \c "deserialized": present and set to @ref True if a non-chunked request was received, and the body has already been deserialized
-        .
-        Header or trailer data is placed in a hash with the following keys:
-        - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
-        - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
-    */
-    abstract nothing recvImpl(hash v);
-
-    #! abstract callback method for sending chunked data
-    /**
-        @return The chunked HTTP data to send; this method must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be returned or simply @ref nothing which will close the chunked message
-    */
-    abstract any sendImpl();
-}
-
 #! abstract class for streaming HTTP chunked requests/responses
 /** This class is the base class for handling HTTP stream requests; i.e. with chunked data
 
@@ -651,6 +530,7 @@ public class HttpServer::AbstractStreamRequest {
         body = n_body;
     }
 
+    #! handles the request
     hash handleRequest() {
         # handle message body
         if (exists body) {
@@ -759,7 +639,7 @@ public class HttpServer::AbstractStreamRequest {
             );
     }
 
-    #! abstract callback method for receiving chunked data
+    #! callback method for receiving chunked data; the default implementation in this base class does nothing
     /**
         @param v the first time this method is called with a hash of the message headers in the \c "hdr" key, and then with any message body in the \c "data"; if a chunked HTTP message is received, then this method is called once for each chunk; when the message has been received, then this method is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
         - \c "data": the string or binary data
@@ -772,10 +652,10 @@ public class HttpServer::AbstractStreamRequest {
     private nothing recvImpl(hash v) {
     }
 
-    #! abstract callback method for sending chunked data
+    #! callback method for sending chunked data; the default implementation in this base class does nothing and returns nothing
     /**
         @return The chunked HTTP data to send; this method must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be returned or simply @ref nothing which will close the chunked message
-    */
+        */
     private any sendImpl() {
     }
 }
@@ -802,9 +682,12 @@ public class HttpServer::AbstractHttpRequestHandler {
         #! if the handler supports streaming requests/responses with chunked data
         bool stream;
 
-        #! persistent connection flag
-        bool persistent;
-    }
+        #! thread-local key string for notification callbacks
+        const NotificationThreadKey = "_AHRH_pc";
+
+        #! thread-local key string for the persistent flag
+        const PersistenceThreadKey = "_AHRH_p";
+}
 
     #! create the object optionally with the given AbstractAuthenticator
     /** @param n_auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
@@ -815,8 +698,47 @@ public class HttpServer::AbstractHttpRequestHandler {
         stream = n_stream;
     }
 
+    #! returns @ref True if the current connection is persistent, @ref False if not
+    bool isPersistent() {
+        return boolean(get_thread_data(PersistenceThreadKey));
+    }
+
+    #! called externally to notify the handler that the connection will be persistent
+    setPersistent(bool p = True) {
+        if (p) {
+            save_thread_data((PersistenceThreadKey: True));
+            set_thread_resource(\AbstractHttpRequestHandler::staticPersistenceCleanup());
+        }
+        else
+            remove_thread_data(PersistenceThreadKey);
+    }
+
+    #! calls the argument when the persistent connection is closed
+    notifyClosed(*code c) {
+        if (c) {
+            save_thread_data((NotificationThreadKey: c));
+            set_thread_resource(\AbstractHttpRequestHandler::staticNotificationCleanup());
+        }
+        else {
+            remove_thread_data(NotificationThreadKey);
+        }
+    }
+
+    #! removes the thread-local data key in case the object is destroyed in another thread
+    static staticNotificationCleanup() {
+        remove_thread_data(NotificationThreadKey);
+    }
+
+    #! removes the thread-local data key in case the object is destroyed in another thread
+    static staticPersistenceCleanup() {
+        remove_thread_data(PersistenceThreadKey);
+    }
+
     #! called externally when a persistent connection is closed
     nothing persistentClosed() {
+        *code c = get_thread_data(NotificationThreadKey);
+        if (c)
+            c();
     }
 
     #! this method will throw an exception if a persistent connection cannot be granted
