@@ -337,6 +337,7 @@ map printf("+ %s\n", $1), $h.contextIterator();
     @endcode
 
     @note
+    - a hash with non-list values will be iterated as if each key value were a single element list
     - this pseudo-method is also implemented in Qore::zzz8nothingzzz9, so it's safe to use where the value could be a hash or @ref nothing (ex: @ref hash_or_nothing_type "*hash")
     - this pseudo-method is very useful when iterating query results from @ref Qore::SQL::Datasource::select() "Datasource::select()" or @ref Qore::SQL::DatasourcePool::select() "DatasourcePool::select()" with the @ref map "map operator", for example
 
