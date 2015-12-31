@@ -66,6 +66,7 @@ module Util {
       - @ref Util::normalize_dir_unix()
       - @ref Util::normalize_dir_windows()
     - @ref Util::ordinal()
+    - @ref Util::plural()
     - @ref Util::parse_to_qore_value()
     - @ref Util::slice()
     - @ref Util::same()
@@ -82,6 +83,7 @@ module Util {
       - @ref Qore::absolute_path_windows()
       - @ref Qore::absolute_path_unix()
     - added Util::ordinal()
+    - added Util::plural()
     - added Util::slice()
     - added Util::same()
     - added Util::tmp_location()
@@ -735,5 +737,29 @@ printf ("%s grade", ordinal(1));
             default:
                 return sprintf("%d%s", i, suffixes[i % 10]);
         }
+    }
+
+    #! Returns string with number and proper singular/plural form of noun.
+    /**
+        @param  count integer value to convert
+        @param  base base word or possibly nothing
+        @param  singular singular form suffix or whole word
+        @param  plural plural form suffix or whole word
+        @return a string representation of number plus noun
+
+        @par Example:
+        @code
+printf (plural(1, "beer"));
+# would print "1 beer"
+printf (plural(1, "lad", "y", "ies"));
+# would print "1 lady"
+printf (plural(32, "", "tooth", "teeth"));
+# would print "32 teeth"
+        @endcode
+
+        @since Util 1.2
+    */
+    public string sub plural (int count, string base, string singular = "", string plural = "s") {
+        return sprintf("%d %s", count, count == 1 ? base + singular : base + plural);
     }
 }
