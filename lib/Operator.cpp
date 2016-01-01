@@ -1753,7 +1753,6 @@ Operator *OperatorList::add(Operator *o) {
 
 // checks for illegal "self" assignments in an object context
 void check_self_assignment(AbstractQoreNode* n, LocalVar* selfid) {
-   // if it's a tree: go to root expression
    qore_type_t ntype = n->getType();
 
    // if it's a variable reference
@@ -1763,25 +1762,6 @@ void check_self_assignment(AbstractQoreNode* n, LocalVar* selfid) {
          parse_error("illegal assignment to 'self' in an object context");
       return;
    }
-
-   /*
-      // otherwise it's a tree: go to root expression
-      while (tree->left->getType() == NT_TREE) {
-	 n = tree->left;
-	 tree = reinterpret_cast<QoreTreeNode*>(n);
-      }
-   }
-
-   if (tree->left->getType() != NT_VARREF)
-      return;
-
-   VarRefNode* v = reinterpret_cast<VarRefNode*>(tree->left);
-
-   // left must be variable reference, check if the tree is
-   // a list reference; if so, it's invalid
-   if (v->getType() == VT_LOCAL && v->ref.id == selfid && tree->getOp() == OP_LIST_REF)
-      parse_error("illegal conversion of 'self' to a list");
-   */
 }
 
 static AbstractQoreNode* check_op_list_assignment(QoreTreeNode* tree, LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& resultTypeInfo, const char* name, const char* desc) {
