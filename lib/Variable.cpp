@@ -287,25 +287,21 @@ static int var_type_err(const QoreTypeInfo* typeInfo, const char* type, Exceptio
    return -1;
 }
 
-int LValueHelper::doListLValue(const QoreTreeNode* tree, bool for_remove) {
+int LValueHelper::doListLValue(const QoreSquareBracketsOperatorNode* op, bool for_remove) {
    // first get index
-   int ind = tree->right->integerEval(vl.xsink);
+   ValueEvalRefHolder rh(op->getRight(), vl.xsink);
    if (*vl.xsink)
       return -1;
+
+   int64 ind = rh->getAsBigInt();
    if (ind < 0) {
-      vl.xsink->raiseException("NEGATIVE-LIST-INDEX", "list index %d is invalid (index must evaluate to a non-negative integer)", ind);
+      vl.xsink->raiseException("NEGATIVE-LIST-INDEX", "list index "QLLD" is invalid (index must evaluate to a non-negative integer)", ind);
       return -1;
    }
 
    // now get left hand side
-   if (doLValue(tree->left, for_remove))
+   if (doLValue(op->getLeft(), for_remove))
       return -1;
-
-   /*
-   if (!isNode())
-      return for_remove ? -1 : var_type_err(typeInfo, "list", vl.xsink);
-   */
-
 
    QoreListNode* l;
    if (getType() == NT_LIST) {
@@ -451,15 +447,18 @@ int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
       if (doLValue(reinterpret_cast<const ReferenceNode*>(n), for_remove))
 	 return -1;
    }
+   else if (ntype == NT_OPERATOR) {
+      const QoreSquareBracketsOperatorNode* op = dynamic_cast<const QoreSquareBracketsOperatorNode*>(n);
+      assert(op);
+      if (doListLValue(op, for_remove))
+	 return -1;
+   }
    else {
       assert(n->getType() == NT_TREE);
       // it must be a tree
       const QoreTreeNode* tree = reinterpret_cast<const QoreTreeNode*>(n);
-      if (tree->getOp() == OP_LIST_REF) {
-         if (doListLValue(tree, for_remove))
-            return -1;
-      }
-      else if (doHashObjLValue(tree, for_remove))
+      assert(tree->getOp() == OP_OBJECT_REF);
+      if (doHashObjLValue(tree, for_remove))
 	 return -1;
    }
 
@@ -1090,15 +1089,12 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
       return;
    }
 
-   // must be a tree
-   assert(t == NT_TREE);
-   QoreTreeNode* tree = reinterpret_cast<QoreTreeNode*>(lvalue);
-
    // can be only a list or object (hash) reference
 
    // if it's a list reference, see if the reference exists, if so, then remove it
-   if (tree->getOp() == OP_LIST_REF) {
-      LValueHelper lvhb(tree, xsink, true);
+   const QoreSquareBracketsOperatorNode* op = dynamic_cast<const QoreSquareBracketsOperatorNode*>(lvalue);
+   if (op) {
+      LValueHelper lvhb(op, xsink, true);
       if (!lvhb)
 	 return;
 
@@ -1109,6 +1105,11 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
       rv.assignAssumeInitial(tmp);
       return;
    }
+
+   // must be a tree
+   assert(t == NT_TREE);
+   QoreTreeNode* tree = reinterpret_cast<QoreTreeNode*>(lvalue);
+
    assert(tree->getOp() == OP_OBJECT_REF);
 
    // get the member name or names
