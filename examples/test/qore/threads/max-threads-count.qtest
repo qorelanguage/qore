@@ -45,6 +45,6 @@ public class MaxThreadCountTest inherits QUnit::Test {
         }
 
         int nt = num_threads();
-        assertEq(True, (nt > 1), "number of threads is " + nt);
+        assertTrue(nt > 1, "number of threads is " + nt);
     }
 }
