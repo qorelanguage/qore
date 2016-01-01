@@ -80,6 +80,7 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
        && !floatTypeInfo->parseAccepts(rti)
        && !numberTypeInfo->parseAccepts(rti)
        && !boolTypeInfo->parseAccepts(rti)
+       && !stringTypeInfo->parseAccepts(rti)
        && !dateTypeInfo->parseAccepts(rti)) {
 	    QoreStringNode* edesc = new QoreStringNode("the offset operand expression with the '[]' operator is ");
 	    rti->getThisType(*edesc);
