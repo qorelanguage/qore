@@ -824,9 +824,13 @@ static AbstractQoreNode* op_unshift(const AbstractQoreNode* left, const Abstract
    if (!val)
       return 0;
 
-   // assign to a blank list if the lvalue has no value yet but is typed as a list
-   if (val.getType() == NT_NOTHING && val.getTypeInfo() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
-      return 0;
+   // assign to a blank list if the lvalue has no value yet but is typed as a list or a softlist
+   if (val.getType() == NT_NOTHING) {
+      if (val.getTypeInfo() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
+         return 0;
+      if (val.getTypeInfo() == softListTypeInfo && val.assign(softListTypeInfo->getDefaultValue()))
+         return 0;
+   }
 
    // value is not a list, so throw exception
    if (val.getType() != NT_LIST) {
@@ -855,8 +859,19 @@ static AbstractQoreNode* op_shift(const AbstractQoreNode* left, const AbstractQo
    if (!val)
       return 0;
 
-   if (val.getType() != NT_LIST)
+   // assign to a blank list if the lvalue has no value yet but is typed as a list or softlist
+   if (val.getType() == NT_NOTHING) {
+      if (val.getTypeInfo() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
+         return 0;
+      if (val.getTypeInfo() == softListTypeInfo && val.assign(softListTypeInfo->getDefaultValue()))
+         return 0;
+   }
+
+   // value is not a list, so throw exception
+   if (val.getType() != NT_LIST) {
+      xsink->raiseException("SHIFT-ERROR", "the argument to shift is not a list");
       return 0;
+   }
 
    // no exception can occurr here
    val.ensureUnique();
@@ -877,14 +892,21 @@ static AbstractQoreNode* op_pop(const AbstractQoreNode* left, const AbstractQore
    if (!val)
       return 0;
 
-   // assign to a blank list if the lvalue has no vaule yet but is typed as a list
-   if (val.getType() == NT_NOTHING && val.getTypeInfo() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
-      return 0;
+   // assign to a blank list if the lvalue has no value yet but is typed as a list or softlist
+   if (val.getType() == NT_NOTHING) {
+      if (val.getTypeInfo() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
+         return 0;
+      if (val.getTypeInfo() == softListTypeInfo && val.assign(softListTypeInfo->getDefaultValue()))
+         return 0;
+   }
 
-   if (val.getType() != NT_LIST)
+   // value is not a list, so throw exception
+   if (val.getType() != NT_LIST) {
+      xsink->raiseException("POP-ERROR", "the argument to pop is not a list");
       return 0;
+   }
 
-   // no exception can occurr here
+   // no exception can occur here
    val.ensureUnique();
 
    QoreListNode* l = reinterpret_cast<QoreListNode*>(val.getValue());
@@ -909,12 +931,19 @@ static AbstractQoreNode* op_push(const AbstractQoreNode* left, const AbstractQor
    if (!val)
       return 0;
 
-   // assign to a blank list if the lvalue has no vaule yet but is typed as a list
-   if (val.getType() == NT_NOTHING && val.getTypeInfo() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
-      return 0;
+   // assign to a blank list if the lvalue has no value yet but is typed as a list or softlist
+   if (val.getType() == NT_NOTHING) {
+      if (val.getTypeInfo() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
+         return 0;
+      if (val.getTypeInfo() == softListTypeInfo && val.assign(softListTypeInfo->getDefaultValue()))
+         return 0;
+   }
 
-   if (val.getType() != NT_LIST)
+   // value is not a list, so throw exception
+   if (val.getType() != NT_LIST) {
+      xsink->raiseException("PUSH-ERROR", "first argument to push is not a list");
       return 0;
+   }
 
    // no exception can occurr here
    val.ensureUnique();
@@ -2293,7 +2322,7 @@ void OperatorList::init() {
    OP_LOG_LT->addFunction(op_log_lt_date);
 
    OP_LOG_GT = add(new Operator(2, ">", "greater-than", 1, false, false, check_op_logical));
-   OP_LOG_LT->addFunction(op_log_gt_number);
+   OP_LOG_GT->addFunction(op_log_gt_number);
    OP_LOG_GT->addFunction(op_log_gt_float);
    OP_LOG_GT->addFunction(op_log_gt_bigint);
    OP_LOG_GT->addFunction(op_log_gt_string);
@@ -2301,7 +2330,7 @@ void OperatorList::init() {
 
    OP_LOG_EQ = add(new Operator(2, "==", "logical-equals", 1, false, false, check_op_logical));
    OP_LOG_EQ->addFunction(op_log_eq_string);
-   OP_LOG_LT->addFunction(op_log_eq_number);
+   OP_LOG_EQ->addFunction(op_log_eq_number);
    OP_LOG_EQ->addFunction(op_log_eq_float);
    OP_LOG_EQ->addFunction(op_log_eq_bigint);
    OP_LOG_EQ->addFunction(op_log_eq_boolean);
@@ -2310,7 +2339,7 @@ void OperatorList::init() {
 
    OP_LOG_NE = add(new Operator(2, "!=", "not-equals", 1, false, false, check_op_logical));
    OP_LOG_NE->addFunction(op_log_ne_string);
-   OP_LOG_LT->addFunction(op_log_ne_number);
+   OP_LOG_NE->addFunction(op_log_ne_number);
    OP_LOG_NE->addFunction(op_log_ne_float);
    OP_LOG_NE->addFunction(op_log_ne_bigint);
    OP_LOG_NE->addFunction(op_log_ne_boolean);
@@ -2318,14 +2347,14 @@ void OperatorList::init() {
    OP_LOG_NE->addNoConvertFunction(NT_ALL, NT_ALL, op_log_ne_all);
 
    OP_LOG_LE = add(new Operator(2, "<=", "less-than-or-equals", 1, false, false, check_op_logical));
-   OP_LOG_LT->addFunction(op_log_le_number);
+   OP_LOG_LE->addFunction(op_log_le_number);
    OP_LOG_LE->addFunction(op_log_le_float);
    OP_LOG_LE->addFunction(op_log_le_bigint);
    OP_LOG_LE->addFunction(op_log_le_string);
    OP_LOG_LE->addFunction(op_log_le_date);
 
    OP_LOG_GE = add(new Operator(2, ">=", "greater-than-or-equals", 1, false, false, check_op_logical));
-   OP_LOG_LT->addFunction(op_log_ge_number);
+   OP_LOG_GE->addFunction(op_log_ge_number);
    OP_LOG_GE->addFunction(op_log_ge_float);
    OP_LOG_GE->addFunction(op_log_ge_bigint);
    OP_LOG_GE->addFunction(op_log_ge_string);

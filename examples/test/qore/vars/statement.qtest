@@ -6,118 +6,12 @@
 %require-types
 %strict-args
 
-%requires UnitTest
+%requires ../../../../qlib/QUnit.qm
 
 const TH = ("a":1);
 
-my UnitTest unit();
-
-    # while test
-    my int a = 0;
-    while (a < 3)
-        a++;
-    unit.cmp(a, 3, "while");
-    # do while test
-    a = 0;
-    do {
-        a++;
-    } while (a < 3);
-    unit.cmp(a, 3, "do while");
-    # for test
-    my int b = 0;
-    for (my int i = 0; i < 3; i++)
-        b++;
-    unit.cmp(a, 3, "for");
-    unit.cmp(b, 3, "for exec");
-    # foreach tests
-    b = 0;
-    my int v;
-    foreach v in (1, 2, 3)
-        b++;
-    unit.cmp(v, 3, "foreach");
-    unit.cmp(b, 3, "foreach exec");
-
-    my any list1 = my list x;
-    unit.cmp(x, NOTHING, "unassigned typed variable");
-    foreach my string y in (\list1) y = "test";
-    unit.cmp(list1, NOTHING, "first foreach reference");
-
-    list1 = (1, 2, 3);
-    foreach my any y in (\list1) y = "test";
-    unit.cmp(list1, ("test", "test", "test"), "second foreach reference");
-
-    list1 = 1;
-    foreach my any y in (\list1) y = "test";
-    unit.cmp(list1, "test", "third foreach reference");
-
-    # switch tests
-    unit.cmp(switch_test(1), "case 1", "first switch");
-    unit.cmp(switch_test(2), "default", "second switch");
-    unit.cmp(switch_test(3), "default", "third switch");
-    unit.cmp(switch_test(0), "case 1", "fourth switch");
-    unit.cmp(switch_test("hello"), "case 1", "fifth switch");
-    unit.cmp(switch_test("testing"), "default", "sixth switch");
-    # switch with operators
-    unit.cmp(switch_with_relation_test(-2), "first switch", "first operator switch");
-    unit.cmp(switch_with_relation_test(2), "second switch", "second operator switch");
-    unit.cmp(switch_with_relation_test(-1.0), "third switch", "third operator switch");
-    unit.cmp(switch_with_relation_test(1.0), "fourth switch", "fourth operator switch");
-    unit.cmp(switch_with_relation_test(0), "fifth switch", "fifth operator switch");
-    # regex switch
-    unit.cmp(regex_switch_test("abc"), "case 1", "first regex switch");
-    unit.cmp(regex_switch_test(), "case 3", "second regex switch");
-    unit.cmp(regex_switch_test("BOOM"), "case 3", "third regex switch");
-    unit.cmp(regex_switch_test("dinosaur"), "case 2", "fourth regex switch");
-    unit.cmp(regex_switch_test("barney"), "case 1", "fifth regex switch");
-    unit.cmp(regex_switch_test("canada"), "default", "sixth regex switch");
-
-    # on_exit tests
-    try {
-        a = 1;
-        on_exit
-            a = 2;
-        a = 3;
-        throw False;
-    }
-    catch() {
-    }
-    my bool err;
-    my bool success = False;
-    try {
-        b = 100;
-        on_exit {
-            b = 2;
-            on_exit
-                b = 5;
-            on_error
-                err = True;
-            on_success
-                success = True;
-            # we use "if (True)..." so we don't get an "unreachable-code" warning
-            if (True)
-                throw False;
-            b = -1;
-        }
-        v = 100;
-        on_exit
-            v = 99;
-
-        # we use "if (True)..." so we don't get an "unreachable-code" warning
-        if (True)
-            throw False;
-        on_exit
-            v = 101;
-    }
-    catch() {
-    }
-    unit.cmp(a, 2, "first on_exit");
-    unit.cmp(b, 5, "second on_exit");
-    unit.cmp(v, 99, "third on_exit");
-    unit.cmp(err, True, "on_error");
-    unit.cmp(success, False, "on_success");
-
 string sub switch_test(any val) {
-    my string rv;
+    string rv;
 
     switch (val) {
     case 0:
@@ -137,7 +31,7 @@ string sub switch_test(any val) {
 }
 
 string sub regex_switch_test(any val) {
-    my string rv;
+    string rv;
 
     switch (val) {
     case /abc/:
@@ -162,7 +56,7 @@ string sub regex_switch_test(any val) {
 }
 
 string sub switch_with_relation_test(float val) {
-    my string rv;
+    string rv;
     switch (val) {
     case < -1.0: rv = "first switch"; break;
     case > 1.0: rv = "second switch"; break;
@@ -172,3 +66,138 @@ string sub switch_with_relation_test(float val) {
     }
     return rv;
 }
+
+%exec-class StatementTest
+
+class StatementTest inherits QUnit::Test {
+    constructor() : QUnit::Test("Statement test", "1.0") {
+        addTestCase("Cycle test", \testCycles());
+        addTestCase("Foreach test", \testForeach());
+        addTestCase("Switch test", \testSwitch());
+        addTestCase("on_ exit/error/success test", \testOnExitErrorSuccess());
+        set_return_value(main());
+    }
+
+    testCycles() {
+        # while test
+        int a = 0;
+        while (a < 3)
+            a++;
+        assertEq(3, a, "while");
+
+        # do while test
+        a = 0;
+        do {
+            a++;
+        } while (a < 3);
+        assertEq(3, a, "do while");
+
+        # for test
+        int b = 0;
+        for (int i = 0; i < 3; i++)
+            b++;
+        assertEq(3, a, "for");
+        assertEq(3, b, "for exec");
+    }
+
+    testForeach() {
+        int b = 0;
+        int v;
+        foreach v in (1, 2, 3)
+            b++;
+        assertEq(3, v, "foreach");
+        assertEq(3, b, "foreach exec");
+
+        any list1 = list x;
+        assertEq(NOTHING, x, "unassigned typed variable");
+        foreach string y in (\list1) y = "test";
+        assertEq(NOTHING, list1, "first foreach reference");
+
+        list1 = (1, 2, 3);
+        foreach any y in (\list1) y = "test";
+        assertEq(("test", "test", "test"), list1, "second foreach reference");
+
+        list1 = 1;
+        foreach any y in (\list1) y = "test";
+        assertEq("test", list1, "third foreach reference");
+    }
+
+    testSwitch() {
+        # switch tests
+        assertEq(switch_test(1), "case 1", "first switch");
+        assertEq(switch_test(2), "default", "second switch");
+        assertEq(switch_test(3), "default", "third switch");
+        assertEq(switch_test(0), "case 1", "fourth switch");
+        assertEq(switch_test("hello"), "case 1", "fifth switch");
+        assertEq(switch_test("testing"), "default", "sixth switch");
+
+        # switch with operators
+        assertEq(switch_with_relation_test(-2), "first switch", "first operator switch");
+        assertEq(switch_with_relation_test(2), "second switch", "second operator switch");
+        assertEq(switch_with_relation_test(-1.0), "third switch", "third operator switch");
+        assertEq(switch_with_relation_test(1.0), "fourth switch", "fourth operator switch");
+        assertEq(switch_with_relation_test(0), "fifth switch", "fifth operator switch");
+
+        # regex switch
+        assertEq(regex_switch_test("abc"), "case 1", "first regex switch");
+        assertEq(regex_switch_test(), "case 3", "second regex switch");
+        assertEq(regex_switch_test("BOOM"), "case 3", "third regex switch");
+        assertEq(regex_switch_test("dinosaur"), "case 2", "fourth regex switch");
+        assertEq(regex_switch_test("barney"), "case 1", "fifth regex switch");
+        assertEq(regex_switch_test("canada"), "default", "sixth regex switch");
+    }
+
+    testOnExitErrorSuccess() {
+        int a = -1;
+        int b = -1;
+        int v = -1;
+        bool err = False;
+        bool success = False;
+
+        try {
+            a = 1;
+            on_exit
+                a = 2;
+            a = 3;
+            throw False;
+        }
+        catch() {
+        }
+
+        assertEq(2, a, "first on_exit");
+
+        try {
+            b = 100;
+            on_exit {
+                b = 2;
+                on_exit
+                    b = 5;
+                on_error
+                    err = True;
+                on_success
+                    success = True;
+                # we use "if (True)..." so we don't get an "unreachable-code" warning
+                if (True)
+                    throw False;
+                b = -1;
+            }
+            v = 100;
+            on_exit
+                v = 99;
+
+            # we use "if (True)..." so we don't get an "unreachable-code" warning
+            if (True)
+                throw False;
+            on_exit
+                v = 101;
+        }
+        catch() {
+        }
+
+        assertEq(5, b, "second on_exit");
+        assertEq(99, v, "third on_exit");
+        assertTrue(err, "on_error");
+        assertFalse(success, "on_success");
+    }
+}
+

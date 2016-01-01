@@ -503,6 +503,13 @@ static AbstractQoreNode* parse_hash_map(QoreParseHashNode* exp, QoreListNode* l)
 
    // check hash expression
    size_t len = exp->size();
+
+   if (len == 0) {
+       qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION",
+            "empty hash as an argument to the hash map operator, this expression will always evaluate to an empty hash");
+       return new QoreHashNode();
+   }
+
    if (len != 1) {
       parse_error("invalid initial argument to hash map operator, expected a single key value pair; got %d hash elements instead", len);
       return &True;
@@ -3186,7 +3193,7 @@ exp
     : exp_c
     | list                              { $$ = $1; }
     | alt_hash                          { $$ = $1; }
-    | '{' '}'                           { $$ = new QoreHashNode; }
+    | '{' '}'                           { $$ = new QoreParseHashNode(true); }
     | exp PLUS_EQUALS exp               { $$ = new QorePlusEqualsOperatorNode($1, $3); }
     | exp MINUS_EQUALS exp              { $$ = new QoreMinusEqualsOperatorNode($1, $3); }
     | exp AND_EQUALS exp                { $$ = new QoreAndEqualsOperatorNode($1, $3); }
