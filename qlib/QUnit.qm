@@ -435,6 +435,9 @@ public class QUnit::TestReporter {
             TEST_SKIPPED : ("desc": "Skipped", "junittag" : "skipped"),
         );
 
+        #! the default column offset for printing options used in printOption() and usageIntern()
+        const OffsetColumn = 20;
+
         #! A map of print methods, categorised into three types: header, summary, testreport
         hash m_printMethods;
 
@@ -476,7 +479,7 @@ public class QUnit::TestReporter {
         const TEST_SKIPPED = 3;
     }
 
-    private printOption(string left, string right, int offset) {
+    private printOption(string left, string right, int offset = OffsetColumn) {
         printf(" %s", left);
         int blanks = offset - left.size();
         if (blanks > 0)
@@ -484,7 +487,7 @@ public class QUnit::TestReporter {
         printf("%s\n", right);
     }
 
-    private usageIntern(int offset = 19) {
+    private usageIntern(int offset = OffsetColumn) {
         printf("usage: %s [options]\n", get_script_name());
         printOption("-h,--help", "this help text", offset);
         printOption("   --format=type", "output format [default: plainquiet]", offset);
