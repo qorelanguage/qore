@@ -197,6 +197,7 @@
 #include "QoreValueCoalescingOperatorNode.cpp"
 #include "QoreChompOperatorNode.cpp"
 #include "QoreTrimOperatorNode.cpp"
+#include "QoreSquareBracketsOperatorNode.cpp"
 #include "QoreValue.cpp"
 #include "ql_thread.cpp"
 #include "ql_time.cpp"

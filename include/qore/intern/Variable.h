@@ -59,6 +59,7 @@ enum qore_var_t {
 
 class Var;
 class ScopedObjectCallNode;
+class QoreSquareBracketsOperatorNode;
 
 union qore_gvar_ref_u {
    bool b;
@@ -384,7 +385,7 @@ protected:
          *v = n;
    }
 
-   DLLLOCAL int doListLValue(const QoreTreeNode* tree, bool for_remove);
+   DLLLOCAL int doListLValue(const QoreSquareBracketsOperatorNode* op, bool for_remove);
    DLLLOCAL int doHashObjLValue(const QoreTreeNode* tree, bool for_remove);
 
    DLLLOCAL int makeInt(const char* desc);

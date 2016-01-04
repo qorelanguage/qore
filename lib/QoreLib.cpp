@@ -1462,12 +1462,17 @@ int check_lvalue(AbstractQoreNode* node, bool assignment) {
    if (ntype == NT_CLASS_VARREF)
       return 0;
 
+   if (ntype == NT_OPERATOR) {
+      QoreSquareBracketsOperatorNode* op = dynamic_cast<QoreSquareBracketsOperatorNode*>(node);
+      if (op) {
+	 return check_lvalue(op->getLeft(), assignment);
+      }
+      return -1;
+   }
+
    if (ntype == NT_TREE) {
-      const QoreTreeNode* t = reinterpret_cast<const QoreTreeNode*>(node);
-      if (t->getOp() == OP_LIST_REF || t->getOp() == OP_OBJECT_REF)
-	 return check_lvalue(t->left);
-      else
-	 return -1;
+      QoreTreeNode* t = reinterpret_cast<QoreTreeNode*>(node);
+      return t->getOp() == OP_OBJECT_REF ? check_lvalue(t->left, assignment) : -1;
    }
    return -1;
 }

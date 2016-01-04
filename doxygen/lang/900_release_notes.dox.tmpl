@@ -397,6 +397,7 @@
     - fixed a bug where calls to @ref Qore::HTTPClient::setConnectTimeout() had no effect (<a href="https://github.com/qorelanguage/qore/issues/323">bug 323</a>)
     - fixed several bugs with logical comparison operators and arbitrary-precision numeric values (<a href="https://github.com/qorelanguage/qore/issues/330">bug 330</a>)
     - fixed a bug where @ref Qore::HashListIterator (and therefore @ref <hash>::contextIterator()) would not iterate a simple hash with non-list values once but would instead silently ignore the hash (<a href="https://github.com/qorelanguage/qore/issues/336">bug 336</a>)
+    - fixed a bug where a warning was not always issued when square brackets were used on unsuitable types (<a href="https://github.com/qorelanguage/qore/issues/184">bug 184</a>), internally ported the square bracket operator to the C++ QoreOperatorNode hierarchy
 
     @section qore_0811 Qore 0.8.11
 

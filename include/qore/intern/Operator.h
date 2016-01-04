@@ -44,7 +44,7 @@ DLLLOCAL extern Operator *OP_BIN_AND, *OP_BIN_OR, *OP_BIN_NOT,
    *OP_BIN_XOR, *OP_MINUS, *OP_PLUS,
    *OP_MULT, *OP_SHIFT_LEFT, *OP_SHIFT_RIGHT,
    *OP_LOG_CMP,
-   *OP_LIST_REF, *OP_OBJECT_REF, *OP_ELEMENTS, *OP_KEYS, *OP_QUESTION_MARK,
+   *OP_OBJECT_REF, *OP_ELEMENTS, *OP_KEYS, *OP_QUESTION_MARK,
    *OP_SHIFT, *OP_POP, *OP_PUSH,
    *OP_UNSHIFT, *OP_REGEX_SUBST, *OP_LIST_ASSIGNMENT,
    *OP_REGEX_TRANS, *OP_REGEX_EXTRACT,
@@ -673,7 +673,7 @@ public:
          rr = r.getReferencedValue();
       return eval(lr ? *lr : l.getInternalNode(), rr ? *rr : r.getInternalNode(), ref_rv, xsink);
    }
-   
+
    DLLLOCAL QoreValue eval(const AbstractQoreNode* l, const AbstractQoreNode* r, bool ref_rv, ExceptionSink* xsink) const;
 
    DLLLOCAL const char* getName() const {

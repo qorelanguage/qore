@@ -50,7 +50,7 @@ DLLLOCAL extern const QoreTypeInfo* bigIntFloatOrNumberTypeInfo, * floatOrNumber
 Operator *OP_BIN_AND, *OP_BIN_OR, *OP_BIN_NOT, *OP_BIN_XOR, *OP_MINUS, *OP_PLUS,
    *OP_MULT, *OP_SHIFT_LEFT, *OP_SHIFT_RIGHT,
    *OP_LOG_CMP,
-   *OP_LIST_REF, *OP_OBJECT_REF, *OP_ELEMENTS, *OP_KEYS,
+   *OP_OBJECT_REF, *OP_ELEMENTS, *OP_KEYS,
    *OP_SHIFT, *OP_POP, *OP_PUSH,
    *OP_UNSHIFT, *OP_REGEX_SUBST, *OP_LIST_ASSIGNMENT,
    *OP_REGEX_TRANS, *OP_REGEX_EXTRACT,
@@ -566,40 +566,6 @@ static AbstractQoreNode* op_transliterate(const AbstractQoreNode* left, const Ab
 
    // reference for return value
    return ref_rv ? nv->refSelf() : 0;
-}
-
-static AbstractQoreNode* op_list_ref(const AbstractQoreNode* left, const AbstractQoreNode* index, ExceptionSink* xsink) {
-   QoreNodeEvalOptionalRefHolder lp(left, xsink);
-
-   // return 0 if left side is not a list or string (or exception)
-   if (!lp || *xsink)
-      return 0;
-
-   qore_type_t t = lp->getType();
-   if (t != NT_LIST && t != NT_STRING && t != NT_BINARY)
-      return 0;
-
-   AbstractQoreNode* rv = 0;
-   int ind = index->integerEval(xsink);
-   if (!*xsink) {
-      // get value
-      if (t == NT_LIST) {
-	 const QoreListNode* l = reinterpret_cast<const QoreListNode*>(*lp);
-	 rv = l->get_referenced_entry(ind);
-      }
-      else if (t == NT_BINARY) {
-	 const BinaryNode* b = reinterpret_cast<const BinaryNode*>(*lp);
-	 if (ind < 0 || (unsigned)ind >= b->size())
-	    return 0;
-	 return new QoreBigIntNode(((unsigned char* )b->getPtr())[ind]);
-      }
-      else if (ind >= 0) {
-	 const QoreStringNode* lpstr = reinterpret_cast<const QoreStringNode*>(*lp);
-	 rv = lpstr->substr(ind, 1, xsink);
-      }
-      //printd(5, "op_list_ref() index=%d, rv=%p\n", ind, rv);
-   }
-   return rv;
 }
 
 // for the member name, a string is required.  non-string arguments will
@@ -1785,37 +1751,17 @@ Operator *OperatorList::add(Operator *o) {
    return o;
 }
 
-// checks for illegal $self assignments in an object context
+// checks for illegal "self" assignments in an object context
 void check_self_assignment(AbstractQoreNode* n, LocalVar* selfid) {
-   // if it's a variable reference
    qore_type_t ntype = n->getType();
+
+   // if it's a variable reference
    if (ntype == NT_VARREF) {
       VarRefNode* v = reinterpret_cast<VarRefNode*>(n);
       if (v->getType() == VT_LOCAL && v->ref.id == selfid)
          parse_error("illegal assignment to 'self' in an object context");
       return;
    }
-
-   if (ntype != NT_TREE)
-      return;
-
-   QoreTreeNode* tree = reinterpret_cast<QoreTreeNode*>(n);
-
-   // otherwise it's a tree: go to root expression
-   while (tree->left->getType() == NT_TREE) {
-      n = tree->left;
-      tree = reinterpret_cast<QoreTreeNode*>(n);
-   }
-
-   if (tree->left->getType() != NT_VARREF)
-      return;
-
-   VarRefNode* v = reinterpret_cast<VarRefNode*>(tree->left);
-
-   // left must be variable reference, check if the tree is
-   // a list reference; if so, it's invalid
-   if (v->getType() == VT_LOCAL && v->ref.id == selfid  && tree->getOp() == OP_LIST_REF)
-      parse_error("illegal conversion of 'self' to a list");
 }
 
 static AbstractQoreNode* check_op_list_assignment(QoreTreeNode* tree, LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& resultTypeInfo, const char* name, const char* desc) {
@@ -2074,41 +2020,6 @@ static AbstractQoreNode* check_op_multiply(QoreTreeNode* tree, LocalVar* oflag, 
       returnTypeInfo = 0;
 
    //printd(5, "check_op_multiply() %s %s = %s\n", leftTypeInfo->getName(), rightTypeInfo->getName(), returnTypeInfo->getName());
-
-   return tree;
-}
-
-static AbstractQoreNode* check_op_list_ref(QoreTreeNode* tree, LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& returnTypeInfo, const char* name, const char* desc) {
-   const QoreTypeInfo *leftTypeInfo = 0;
-   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
-
-   const QoreTypeInfo *rightTypeInfo = 0;
-   tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
-
-   if (tree->constArgs())
-      return tree->evalSubst(returnTypeInfo);
-
-   if (leftTypeInfo->hasType()) {
-      // if we are trying to convert to a list
-      if (pflag & PF_FOR_ASSIGNMENT) {
-	 // only throw a parse exception if parse exceptions are enabled
-	 if (!leftTypeInfo->parseAcceptsReturns(NT_LIST) && getProgram()->getParseExceptionSink()) {
-	    QoreStringNode* edesc = new QoreStringNode("cannot convert lvalue defined as ");
-	    leftTypeInfo->getThisType(*edesc);
-	    edesc->sprintf(" to a list using the '[]' operator in an assignment expression");
-	    qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", edesc);
-	 }
-      }
-      else if (!listTypeInfo->parseAccepts(leftTypeInfo)
-	  && !stringTypeInfo->parseAccepts(leftTypeInfo)
-	  && !binaryTypeInfo->parseAccepts(leftTypeInfo)) {
-	 QoreStringNode* edesc = new QoreStringNode("left-hand side of the expression with the '[]' operator is ");
-	 leftTypeInfo->getThisType(*edesc);
-	 edesc->concat(" and so this expression will always return NOTHING; the '[]' operator only returns a value within the legal bounds of lists, strings, and binary objects");
-	 qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
-	 returnTypeInfo = nothingTypeInfo;
-      }
-   }
 
    return tree;
 }
@@ -2437,10 +2348,6 @@ void OperatorList::init() {
 
    OP_SHIFT_RIGHT = add(new Operator(2, ">>", "shift-right", 1, false, false, check_op_returns_integer));
    OP_SHIFT_RIGHT->addFunction(op_shift_right_int);
-
-   // cannot validate return type here yet
-   OP_LIST_REF = add(new Operator(2, "[]", "list, string, or binary dereference", 0, false, false, check_op_list_ref));
-   OP_LIST_REF->addFunction(NT_ALL, NT_ALL, op_list_ref);
 
    // cannot validate return type here yet
    OP_OBJECT_REF = add(new Operator(2, ".", "hash/object-reference", 0, false, false, check_op_object_ref));
