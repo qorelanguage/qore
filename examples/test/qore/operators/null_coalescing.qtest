@@ -6,91 +6,32 @@
 %require-types
 %strict-args
 
-%requires UnitTest
+%requires ../../../../qlib/QUnit.qm
 
-UnitTest t();
+%exec-class NullCoalescingTest
 
-code code_example = any sub() {return;};
-File file_example = new File();
-
-t.cmploop(\try_call(), (
-    (
-        "args" : list(any sub() {return 2 ?? 3;}),
-        "cmp"  : 2,
-        "msg"  : "int ?? int",
-    ),
-    (
-        "args" : list(any sub() {return 0 ?? 3;}),
-        "cmp"  : 0,
-        "msg"  : "zero ?? int",
-    ),
-    (
-        "args" : list(any sub() {return NOTHING ?? 3;}),
-        "cmp"  : 3,
-        "msg"  : "NOTHING ?? int",
-    ),
-    (
-        "args" : list(any sub() {return "a" ?? 3;}),
-        "cmp"  : "a",
-        "msg"  : "str ?? int",
-    ),
-    (
-        "args" : list(any sub() {return code_example ?? 3;}),
-        "cmp"  : code_example,
-        "msg"  : "code ?? int",
-    ),
-    (
-        "args" : list(any sub() {return NOTHING ?? 'a';}),
-        "cmp"  : 'a',
-        "msg"  : "NOTHING ?? str",
-    ),
-    (
-        "args" : list(any sub() {return NOTHING ?? NOTHING;}),
-        "cmp"  : NOTHING,
-        "msg"  : "NOTHING ?? NOTHING",
-    ),
-    (
-        "args" : list(any sub() {return False ?? True;}),
-        "cmp"  : False,
-        "msg"  : "False ?? True",
-    ),
-    (
-        "args" : list(any sub() {return NOTHING ?? NOTHING ?? 4 ?? NOTHING;}),
-        "cmp"  : 4,
-        "msg"  : "NOTHING ?? NOTHING ?? int ?? NOTHING",
-    ),
-    (
-        "args" : list(any sub() {return True && NOTHING ?? True;}),
-        "cmp"  : False,
-        "msg"  : "True && NOTHING ?? True (?? is first)",
-    ),
-    (
-        "args" : list(any sub() {return True ?? False ? 'a' : 'b';}),
-        "cmp"  : 'a',
-        "msg"  : "?: has lower prio",
-    ),
-    (
-        "args" : list(any sub() {return file_example ?? 3;}),
-        "cmp"  : file_example,
-        "msg"  : "object ?? int",
-    ),
-# return is a statement so this is not possible :-(
-#    (
-#        "args" : list(any sub() {True ?? return 'right'; return 'left';}),
-#        "cmp"  : 'left',
-#        "msg"  : "associativity test",
-#    ),
-));
-
-any sub try_call(code c) {
-    any result;
-    try {
-        result = c();
-        t.ok(True, 'call succeeded');
-    }
-    catch(hash ex) {
-        t.ok(False, 'call succeded');
+class NullCoalescingTest inherits QUnit::Test {
+    constructor() : QUnit::Test("Null coalescing test", "1.0") {
+        addTestCase("Test", \testCoalescing());
+        set_return_value(main());
     }
 
-    return result;
+    testCoalescing() {
+        code code_example = any sub() {return;};
+        File file_example = new File();
+
+        assertEq(2, 2 ?? 3, "int ?? int");
+        assertEq(0, 0 ?? 3, "zero ?? int");
+        assertEq(3, NOTHING ?? 3, "NOTHING ?? int");
+        assertEq("a", "a" ?? 3, "str ?? int");
+        assertEq(code_example, code_example ?? 3, "code ?? int");
+        assertEq('a', NOTHING ?? 'a', "NOTHING ?? str");
+        assertEq(NOTHING, NOTHING ?? NOTHING, "NOTHING ?? NOTHING");
+        assertEq(False, False ?? True, "False ?? True");
+        assertEq(4, NOTHING ?? NOTHING ?? 4 ?? NOTHING, "NOTHING ?? NOTHING ?? int ?? NOTHING");
+        assertEq(False, True && NOTHING ?? True, "True && NOTHING ?? True (?? is first)");
+        assertEq('a', True ?? False ? 'a' : 'b', "?: has lower prio");
+        assertEq(file_example, file_example ?? 3, "object ?? int");
+    }
 }
+
