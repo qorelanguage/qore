@@ -1083,29 +1083,29 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
       return;
    }
 
+   if (t == NT_OPERATOR) {
+      const QoreSquareBracketsOperatorNode* op = dynamic_cast<const QoreSquareBracketsOperatorNode*>(lvalue);
+      if (op) {
+         LValueHelper lvhb(op, xsink, true);
+         if (!lvhb)
+            return;
+
+         bool static_assignment = false;
+         QoreValue tmp = lvhb.remove(static_assignment);
+         if (static_assignment)
+            tmp.ref();
+         rv.assignAssumeInitial(tmp);
+         return;
+      }
+   }
+
    // could be any type if in a background expression
    if (t != NT_TREE) {
       rv.assignInitial(lvalue ? lvalue->refSelf() : 0);
       return;
    }
 
-   // can be only a list or object (hash) reference
-
-   // if it's a list reference, see if the reference exists, if so, then remove it
-   const QoreSquareBracketsOperatorNode* op = dynamic_cast<const QoreSquareBracketsOperatorNode*>(lvalue);
-   if (op) {
-      LValueHelper lvhb(op, xsink, true);
-      if (!lvhb)
-	 return;
-
-      bool static_assignment = false;
-      QoreValue tmp = lvhb.remove(static_assignment);
-      if (static_assignment)
-	 tmp.ref();
-      rv.assignAssumeInitial(tmp);
-      return;
-   }
-
+   // can be only a list reference
    // must be a tree
    assert(t == NT_TREE);
    QoreTreeNode* tree = reinterpret_cast<QoreTreeNode*>(lvalue);
