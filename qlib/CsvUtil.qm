@@ -123,6 +123,7 @@ while (i.next())
     - bugfixed handling eol global option
     - converted to new-style
     - if "headers" are not given in the @ref CsvUtil::AbstractCsvWriter::constructor() but "fields" are, then set the headers from the field descriptions automatically
+    - added write() methods returning the generated strings to the @ref CsvUtil::CsvStringWriter class for API compatibility with the corresponding FixedLengthDataWriter methods
 
     @subsection csvutil_v1_4 Version 1.4
     - fixed the \c "format" field option when used with \c "*date" field types
@@ -924,7 +925,7 @@ while (i.next()) {
             foreach hash i in (n_opts.pairIterator()) {
 
                 if (!exists Options.(i.key))
-                    throw errname, sprintf("unknown option %y passed to CsvFileIterator::constructor() (valid options: %y)", i.key, Options.keys());
+                    throw errname, sprintf("unknown option %y passed to %s::constructor() (valid options: %y)", i.key, self.className(), Options.keys());
 
                 switch (i.key) {
                     case "separator": {
@@ -1142,11 +1143,11 @@ while (i.next()) {
 
         #! stream iterator into the file.
         /**
-        @param iterator an iterator to stream data into file
+            @param iterator an iterator to stream data into file
 
-        The iterator has to contain @ref list or @ref hash as a return value of \c getValue() method.
+            The iterator has to contain @ref list or @ref hash as a return value of \c getValue() method.
 
-        @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints or when \c getValue does not return list or hash
+            @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints or when \c getValue does not return list or hash
          */
         write(AbstractIterator iterator) {
             while (iterator.next()) {
@@ -1162,6 +1163,18 @@ while (i.next()) {
                         throw errname, sprintf("Iterator's getValue returned %s, expected list or hash", row.type());
                 }
             }
+        }
+
+        #! stream the contents of the list into the output
+        /**
+            @param l a list of input data to format as CSV output
+
+            The list has to contain @ref list or @ref hash elements that can be formatted according to the CSV definition
+
+            @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints or when the list elements have the wrong type or values
+         */
+        write(list l) {
+            write(l.iterator());
         }
 
         #! real write implementation. Without any checking.
@@ -1261,6 +1274,36 @@ while (i.next()) {
 
         private writeRawLine(list values) {
             content += prepareRawLine(values);
+        }
+
+        #! stream iterator and return CSV-formatted output string
+        /**
+            @param iterator an iterator to stream data
+
+            @return the CSV-formatted output string corresponding to the input data
+
+            The iterator has to contain @ref list or @ref hash as a return value of \c getValue() method.
+
+            @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints or when \c getValue does not return list or hash
+         */
+        string write(AbstractIterator iterator) {
+            AbstractCsvWriter::write(iterator);
+            return content;
+        }
+
+        #! stream the contents of the list and return CSV-formatted output as a string
+        /**
+            @param l a list of input data to format as CSV output
+
+            @return the CSV-formatted output string corresponding to the input data
+
+            The list has to contain @ref list or @ref hash elements that can be formatted according to the CSV definition
+
+            @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints or when the list elements have the wrong type or values
+         */
+        string write(list l) {
+            AbstractCsvWriter::write(l);
+            return content;
         }
 
         #! Get the current in-memory content as a string
