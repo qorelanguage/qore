@@ -829,7 +829,9 @@ static AbstractQoreNode* op_shift(const AbstractQoreNode* left, const AbstractQo
    if (val.getType() == NT_NOTHING) {
       if (val.getTypeInfo() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
          return 0;
-      if (val.getTypeInfo() == softListTypeInfo && val.assign(softListTypeInfo->getDefaultValue()))
+      else if (val.getTypeInfo() == softListTypeInfo && val.assign(softListTypeInfo->getDefaultValue()))
+         return 0;
+      else
          return 0;
    }
 
@@ -862,7 +864,9 @@ static AbstractQoreNode* op_pop(const AbstractQoreNode* left, const AbstractQore
    if (val.getType() == NT_NOTHING) {
       if (val.getTypeInfo() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
          return 0;
-      if (val.getTypeInfo() == softListTypeInfo && val.assign(softListTypeInfo->getDefaultValue()))
+      else if (val.getTypeInfo() == softListTypeInfo && val.assign(softListTypeInfo->getDefaultValue()))
+         return 0;
+      else
          return 0;
    }
 
