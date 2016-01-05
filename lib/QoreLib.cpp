@@ -1412,9 +1412,9 @@ void q_strerror(QoreString &str, int err) {
 
    str.allocate(str.strlen() + STRERR_BUFSIZE);
    // ignore strerror() error message
-#ifdef STRERROR_R_CHAR_P
-   // we can't help but get this version because g++ needs and defines
-   // _GNU_SOURCE for us on linux (GLIBC) systems :-(
+#if STRERROR_R_CHAR_P
+   // we can't help but get this version because some of the Linux
+   // header files define _GNU_SOURCE for us :-(
    str.concat(strerror_r(err, (char* )(str.getBuffer() + str.strlen()), STRERR_BUFSIZE));
 #else
    // use portable XSI version of strerror_r()

@@ -67,8 +67,8 @@ QoreValue QoreDotEvalOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
    return m->exec(o, xsink);
 }
 
-AbstractQoreNode *QoreDotEvalOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
-   assert(!returnTypeInfo);
+AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& expTypeInfo) {
+   assert(!expTypeInfo);
    const QoreTypeInfo* typeInfo = 0;
    left = left->parseInit(oflag, pflag, lvids, typeInfo);
 
@@ -93,6 +93,7 @@ AbstractQoreNode *QoreDotEvalOperatorNode::parseInitImpl(LocalVar *oflag, int pf
 
 	    // check parameters, if any
 	    lvids += m->parseArgs(oflag, pflag, meth->getFunction(), returnTypeInfo);
+	    expTypeInfo = returnTypeInfo;
 
 	    return this;
 	 }
@@ -135,7 +136,7 @@ AbstractQoreNode *QoreDotEvalOperatorNode::parseInitImpl(LocalVar *oflag, int pf
 	 parse_error(loc, "illegal call to private %s::copy() method", qc->getName());
 
       // do not save method pointer for copy methods
-      returnTypeInfo = qc->getTypeInfo();
+      expTypeInfo = returnTypeInfo = qc->getTypeInfo();
 #ifdef DEBUG
       typeInfo = 0;
       AbstractQoreNode *n = m->parseInit(oflag, pflag, lvids, typeInfo);
@@ -179,6 +180,7 @@ AbstractQoreNode *QoreDotEvalOperatorNode::parseInitImpl(LocalVar *oflag, int pf
 
    // check parameters, if any
    lvids += m->parseArgs(oflag, pflag, meth->getFunction(), returnTypeInfo);
+   expTypeInfo = returnTypeInfo;
 
    printd(5, "QoreDotEvalOperatorNode::parseInitImpl() %s::%s() method=%p (%s::%s()) (private=%s, static=%s) rv=%s\n", qc->getName(), mname, meth, meth ? meth->getClassName() : "n/a", mname, meth && meth->parseIsPrivate() ? "true" : "false", meth->isStatic() ? "true" : "false", returnTypeInfo->getName());
 
