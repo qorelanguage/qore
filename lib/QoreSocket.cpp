@@ -257,12 +257,13 @@ qore_socket_op_helper::~qore_socket_op_helper() {
 
 SSLSocketHelperHelper::SSLSocketHelperHelper(qore_socket_private* sock) : s(sock) {
    assert(!s->ssl);
-   s->ssl = new SSLSocketHelper(*sock);
+   ssl = s->ssl = new SSLSocketHelper(*sock);
 }
 
 void SSLSocketHelperHelper::error() {
-   s->ssl->deref();
-   s->ssl = 0;
+   ssl->deref();
+   if (s->ssl)
+      s->ssl = 0;
 }
 
 int SSLSocketHelper::setIntern(const char* mname, int sd, X509* cert, EVP_PKEY* pk, ExceptionSink* xsink) {
