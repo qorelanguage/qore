@@ -825,13 +825,9 @@ static AbstractQoreNode* op_shift(const AbstractQoreNode* left, const AbstractQo
    if (!val)
       return 0;
 
-   // assign to a blank list if the lvalue has no value yet but is typed as a list or softlist
-   if (val.getType() == NT_NOTHING) {
-      if (val.getTypeInfo() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
-         return 0;
-      if (val.getTypeInfo() == softListTypeInfo && val.assign(softListTypeInfo->getDefaultValue()))
-         return 0;
-   }
+   // return NOTHING if the lvalue has no value for backwards compatibility
+   if (val.getType() == NT_NOTHING)
+      return 0;
 
    // value is not a list, so throw exception
    if (val.getType() != NT_LIST) {
@@ -858,13 +854,9 @@ static AbstractQoreNode* op_pop(const AbstractQoreNode* left, const AbstractQore
    if (!val)
       return 0;
 
-   // assign to a blank list if the lvalue has no value yet but is typed as a list or softlist
-   if (val.getType() == NT_NOTHING) {
-      if (val.getTypeInfo() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
-         return 0;
-      if (val.getTypeInfo() == softListTypeInfo && val.assign(softListTypeInfo->getDefaultValue()))
-         return 0;
-   }
+   // return NOTHING if the lvalue has no value for backwards compatibility
+   if (val.getType() == NT_NOTHING)
+      return 0;
 
    // value is not a list, so throw exception
    if (val.getType() != NT_LIST) {
