@@ -6,545 +6,555 @@
 %require-types
 %strict-args
 
-%requires UnitTest
-
-# Examples of qore regular expressions
-# initially written and tested for qore 0.4.0 (Oct 2005)
-# by Helmut Wollmersdorfer
-
-# TODO: check against http://www.opengroup.org/onlinepubs/007908799/xbd/re.html
-
-# regex in qore is based on PCRE (perl5 regular expressions)
-
-# The following examples are in the order of regex(7) of Debian/Sarge
-# Comments beginning with '##' are quotes from regex(7)
-
-UnitTest unit();
-
-## A (modern) RE is one(!) or more non-empty(!) branches, separated  by '|'.
-## It matches anything that matches one of the branches.
-our string t = 'Branches';          # text
-our string s = 'abc';               # string
-our string p = 'a|z';               # pattern
-unit.ok(s =~ /a|z/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'qrs';
-unit.ok(s !~ /a|z/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-## A  branch  is  one(!) or more pieces, concatenated.  It matches a match
-## for the first, followed by a match for the second, etc.
-t = 'Pieces';
-s = 'abcxyz';
-p = 'bc';
-unit.ok(s =~ /bc/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'bac';
-unit.ok(s =~ /bac/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-
-## A piece is an atom possibly followed by a single(!) '*', '+',  '?',  or bound.
-t = 'Atoms and repeaters';
-s = 'abcxyz';
-p = 'ab*c+x?y{1}';
-unit.ok(s =~ /ab*c+x?y{1}/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'bac';
-unit.ok(s !~ /ab*c+x?y{1}/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-## An atom followed by '*' matches a sequence of 0 or more matches of the atom.
-t = 'None or more';
-s = 'abbbc';
-p = 'ab*c';
-unit.ok(s =~ /ab*c/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'adc';
-unit.ok(s !~ /ab*c/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-## An atom followed by '+' matches a sequence of 1 or more matches of the atom.
-t = 'One or more';
-s = 'abbbc';
-p = 'ab+c';
-unit.ok(s =~ /ab+c/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'ac';
-unit.ok(s !~ /ab+c/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-## An atom followed by '?' matches a sequence of 0 or 1 matches of the atom.
-t = 'None or one';
-s = 'abc';
-p = 'ab?c';
-unit.ok(s =~ /ab?c/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'adc';
-unit.ok(s !~ /ab?c/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-## A bound is '{' followed by an unsigned decimal integer, possibly followed
-## by ',' possibly followed by another unsigned decimal integer,
-## always followed by '}'.
-t = 'Bound';
-s = 'abcc';
-p = 'a{1}b{0,}c{2,3}';
-unit.ok(s =~ /a{1}b{0,}c{2,3}/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'adc';
-unit.ok(s !~ /a{1}b{0,}c{2,3}/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-## The integers must lie between 0 and RE_DUP_MAX (255(!)) inclusive,
-## and if there are two of them, the first may not exceed the second.
-t = 'Bound integers';
-s = 'abcc';
-p = 'b{0,1}c{2,255}';
-unit.ok(s =~ /b{0,1}c{2,255}/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'abd';
-unit.ok(s !~ /b{0,1}c{2,255}/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-## An atom followed by a bound containing one integer
-## i and no comma matches a sequence of exactly i matches of the atom.
-t = 'Bound integer exactly';
-s = 'abccd';
-p = 'bc{2}d';
-unit.ok(s =~ /bc{2}d/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'abcccd';
-unit.ok(s !~ /bc{2}d/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-## An atom followed by a bound containing one integer i and a comma matches a
-## sequence of i or more matches of the atom.
-t = 'Bound integer or more';
-s = 'abccccc';
-p = 'c{2,}';
-unit.ok(s =~ /c{2,}/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'abcdc';
-unit.ok(s !~ /c{2,}/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-## An atom followed by a bound containing two integers i and j matches a sequence
-## of i through j (inclusive) matches of the atom.
-t = 'Bound integer through maximum';
-s = 'abccccd';
-p = 'bc{2,4}d';
-unit.ok(s =~ /bc{2,4}d/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'abcdbcccccd';
-unit.ok(s !~ /bc{2,4}d/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-## An atom is a regular expression enclosed in '()' (matching a match for
-## the regular expression),
-t = 'Enclosed regex';
-s = 'abc';
-p = '(b)';
-unit.ok(s =~ /(b)/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'acd';
-unit.ok(s !~ /(b)/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-## an empty set of '()' (matching the null string)(!),
-t = 'Enclosed empty';
-s = '';
-p = '^()$';
-unit.ok(s =~ /^()$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'acd';
-unit.ok(s !~ /^()$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-## a bracket expression (see below),
-
-## '.'  (matching any single character),
-t = 'any single character';
-s = 'abc';
-p = 'a.c';
-unit.ok(s =~ /a.c/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'acd';
-unit.ok(s !~ /a.c/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-## '^' (matching the null string at the beginning of a  line),
-t = 'beginning of line/string';
-s = 'abc';
-p = '^ab';
-unit.ok(s =~ /^ab/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'acd';
-unit.ok(s !~ /^ab/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-## '$'  (matching the null string at the end of a line),
-t = 'end of line/string';
-s = 'abc';
-p = 'bc$';
-unit.ok(s =~ /bc$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'bcd';
-unit.ok(s !~ /bc$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-## a '\' followed by one of the characters '^.[$()|*+?{\' (matching that
-## character taken as an ordinary character),
-t = 'escaped special character';
-s = '^.[$()|*+?{\\';
-p = '\^\.\[\$\(\)\|\*\+\?\{\\';
-unit.ok(s =~ /\^\.\[\$\(\)\|\*\+\?\{\\/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = '\^\.\[\$\(\)\|\*\+\?\{\\';
-unit.ok(s !~ /\^\.\[\$\(\)\|\*\+\?\{\\/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-# This seems to be against POSIX
-## a '\' followed by any other character(!)
-## (matching that character taken as an ordinary character, as if the '\'
-## had not been present(!)),
-# NOTE: escaping multi-byte characters does not work for some reason (\§)
-t = 'escaped ordinary character';
-s = '!"%&=~#-_>';
-# $p = '\a\A\!\"\§\%\&\=\~\#\-\_\>';
-p = '\!\"\%\&\=\~\#\-\_\>';
-# -- digits do not work: REGEX-COMPILATION-ERROR: Invalid back reference
-# printf("%s %s: \"'%s' =~ /%s/\"\n", ( s =~ /\a\A\1\!\"\%\&\=\~\#\-\_\<\>\,\;/ ) ? 'PASS' : 'FAIL' ,t, s, p);
-# -- with PCRE the paragraph sign seems to be a problem
-# | unhandled QORE System exception thrown at ./regex.q:177
-# | REGEX-COMPILATION-ERROR: invalid UTF-8 string
-# | chained exception:
-# | unhandled QORE System exception thrown at ./regex.q:179
-# | REGEX-COMPILATION-ERROR: invalid UTF-8 string
-# printf("%s %s: \"'%s' =~ /%s/\"\n", ( $s =~ /\a\A\!\"\§\%\&\=\~\#\-\_\>/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
-# printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /\a\A\!\"\§\%\&\=\~\#\-\_\>/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
-unit.ok(s =~ /\!\"\%\&\=\~\#\-\_\>/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = '\!\"\%\&\=\~\#\-\_\>';
-unit.ok(s !~ /\!\"\%\&\=\~\#\-\_\>/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-# escaping '<,;}' with '\' has problems
-# NOTE: it would be against POSIX 2, actual behaviour is o.k.
-t = 'escaped with problems';
-s = '<,;}';
-p = '\<\,\;\}';
-#unit.ok(s =~ /\<\,\;\}/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = '\<\,\;\}';
-#unit.ok(s !~ /\<\,\;\}/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-## or a single character with no other significance (matching that character).
-t = 'unescaped character';
-s = '<,;}';
-p = '<,;}';
-unit.ok(s =~ /<,;}/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'abc';
-unit.ok(s !~ /<,;}/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-## A '{' followed by a character other than a digit is an ordinary character,
-## not the beginning of a bound(!).
-t = 'unescaped character';
-s = 'a{b}';
-p = 'a{b}';
-# NOTE: it would be against POSIX 2, actual behaviour is o.k.
-#REGEX-COMPILATION-ERROR: Invalid content of \{\}
-#REGEX-COMPILATION-ERROR: Unmatched \{
-#unit.ok(s =~ /a{b}/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'abc';
-#unit.ok(s !~ /a{b}/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-
-## It is illegal to end an RE with '\'.
-
-## A bracket expression is a list of characters enclosed in '[]'. It normally
-## matches any single character from the list (but see below).
-t = 'bracket expressions';
-s = 'abc';
-p = 'a[bB]c';
-unit.ok(s =~ /a[bB]c/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'adc';
-unit.ok(s !~ /a[bB]c/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-## If the list begins with '^', it matches  any  single  character  (but  see
-## below) not from the rest of the list.
-t = 'negated bracket list';
-s = 'abc';
-p = 'a[^d]c';
-unit.ok(s =~ /a[^d]c/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'adc';
-unit.ok(s !~ /a[^d]c/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-## If two characters in the list are separated by '-', this is shorthand for
-## the full range of characters between those two (inclusive) in the collating
-## sequence, e.g. '[0-9]' in ASCII matches any decimal digit.
-t = 'char range';
-s = 'abc';
-p = '^[a-z]+$';
-unit.ok(s =~ /^[a-z]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'ABC';
-unit.ok(s !~ /^[a-z]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-## It is illegal(!) for two ranges to share an endpoint, e.g. 'a-c-e'. Ranges are
-## very collating sequence-dependent, and portable programs should avoid relying on them.
-
-## To include a literal ']' in the list, make it the first character (following
-## a possible '^').
-t = 'literal bracket';
-s = 'abc]';
-p = '^[]a-c]+$';
-unit.ok(s =~ /^[]a-c]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'abc[';
-unit.ok(s !~ /^[]a-c]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-## To include a literal '-', make it the first
-t = 'literal hyphen first';
-s = 'abc-';
-p = '^[-a-c]+$';
-s = 'abc[';
-unit.ok(s !~ /^[-a-c]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-## or last character,
-t = 'literal hyphen last';
-s = 'abc-';
-p = '^[a-c-]+$';
-unit.ok(s =~ /^[a-c-]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'abc[';
-unit.ok(s !~ /^[a-c-]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-## or the second endpoint of a range.
-t = 'hyphen range endpoint';
-s = '!#-';
-p = '^[!--]+$';
-unit.ok(s =~ /^[!--]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'abc[';
-unit.ok(s !~ /^[!--]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-## To use a literal '-' as the first endpoint of a range, enclose it in '[.'  and  '.]'
-## to make it a collating element (see below).
-t = 'hyphen range startpoint';
-s = 'abc-';
-p = '^[--c]+$';
-# this is POSIX
-# printf("%s %s: \"'%s' =~ /%s/\"\n",( s =~ /^[[.-.]-c]+$/) ? 'PASS' : 'FAIL' ,t, s, p);
-# this is PCRE
-unit.ok(s =~ /^[--c]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'abc!';
-unit.ok(s !~ /^[--c]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-## With the exception of these and some combinations using `[' (see next paragraphs),
-## all other special characters, including '\', lose their special significance within
-## a bracket expression.
-# NOTE: In Perl-Regex escaping of all characters within a bracket expression is allowed.
-t = 'bracket unescaped';
-s = '.$()|*+?{}\<>';
-# p = '^[.$()|*+?{}\<>]+$'; # POSIX
-p = '^[.$()|*+?{}\\<>]+$';   # PCRE
-unit.ok(s =~ /^[.$()|*+?{}\\<>]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'abc';
-unit.ok(s !~ /^[.$()|*+?{}\\<>]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-## Within a bracket expression, a collating element (a character, a multicharacter
-## sequence that collates as if it were a single character, or a collating-sequence
-## name for either) enclosed in '[.'  and  '.]' stands for the sequence of
-## characters of that collating element. The sequence is a single element of the
-## bracket expression's list. A bracket expression containing a multi-character
-## collating element can thus match more than one character, e.g. if the collating
-## sequence includes a 'ch' collating element, then the RE `[[.ch.]]*c' matches the
-## first five characters of 'chchcc'.
-t = 'collating element';
-s = 'abcba';
-p = '^[[.abc.]]+$';
-# REGEX-COMPILATION-ERROR: Invalid collation character
-#unit.ok(s =~ /^[[.abc.]]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'abcbaa';
-#unit.ok(s !~ /^[[.abc.]]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-## Within a bracket expression, a collating element enclosed in '[=' and
-## '=]' is an equivalence class, standing for the sequences of characters
-## of all collating elements equivalent to that one, including itself.
-## (If there are no other equivalent collating elements, the treatment is
-## as if the enclosing delimiters were '[.' and '.]'.) For example, if o
-## and ^ are the members of an equivalence class, then '[[=o=]]',
-## '[[=^=]]', and '[o^]' are all synonymous. An equivalence class may
-## not(!) be an endpoint of a range.
-
-## Within a bracket expression, the name of a character class enclosed in
-## '[:' and ':]' stands for the list of all characters belonging to that
-## class. Standard character class names are:
-
-##       alnum       digit       punct
-##       alpha       graph       space
-##       blank       lower       upper
-##       cntrl       print       xdigit
-
-t = 'named character class';
-s = 'abc123';
-p = '^[[:alnum:]]+$';
-unit.ok(s =~ /^[[:alnum:]]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'abcbaa.';
-unit.ok(s !~ /^[[:alnum:]]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-t = 'named character class';
-s = 'abc';
-p = '^[[:alpha:]]+$';
-unit.ok(s =~ /^[[:alpha:]]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'abcbaa.';
-unit.ok(s !~ /^[[:alpha:]]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-t = 'named character class';
-s = ' ';
-p = '^[[:blank:]]+$';
-unit.ok(s =~ /^[[:blank:]]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'abcbaa.';
-unit.ok(s !~ /^[[:blank:]]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-t = 'named character class';
-s = "\t\r\n";
-p = '^[[:cntrl:]]+$';
-unit.ok(s =~ /^[[:cntrl:]]+$/, t + ' ' + '\t\r\n' + ": '" + '\t\r\n' + "' =~ /" + p + "'");
-s = 'abcbaa.';
-unit.ok(s !~ /^[[:cntrl:]]+$/, t + ' ' + '\t\r\n' + ": '" + '\t\r\n' + "' !~ /" + p + "'");
-
-t = 'named character class';
-s = '1234567890';
-p = '^[[:digit:]]+$';
-unit.ok(s =~ /^[[:digit:]]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'abcbaa.';
-unit.ok(s !~ /^[[:digit:]]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-t = 'named character class';
-s = 'abc';
-p = '^[[:lower:]]+$';
-unit.ok(s =~ /^[[:lower:]]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'ABC';
-unit.ok(s !~ /^[[:lower:]]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-t = 'named character class';
-s = 'abc';
-p = '^[[:print:]]+$';
-unit.ok(s =~ /^[[:print:]]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = '';
-unit.ok(s !~ /^[[:print:]]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-t = 'named character class';
-s = '!?,;.:';
-p = '^[[:punct:]]+$';
-unit.ok(s =~ /^[[:punct:]]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'abc1';
-unit.ok(s !~ /^[[:punct:]]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-t = 'named character class';
-s = "\t\r\n ";
-p = '^[[:space:]]+$';
-unit.ok(s =~ /^[[:space:]]+$/, t + ' ' + '\t\r\n ' + ": '" + '\t\r\n ' + "' =~ /" + p + "'");
-s = 'abc1';
-unit.ok(s !~ /^[[:space:]]+$/, t + ' ' + '\t\r\n ' + ": '" + '\t\r\n ' + "' !~ /" + p + "'");
-
-t = 'named character class';
-s = 'ABC';
-p = '^[[:upper:]]+$';
-unit.ok(s =~ /^[[:upper:]]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'abc';
-unit.ok(s !~ /^[[:upper:]]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-t = 'named character class';
-s = '0123456789abcdefABCDEF';
-p = '^[[:xdigit:]]+$';
-unit.ok(s =~ /^[[:xdigit:]]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'g';
-unit.ok(s !~ /^[[:xdigit:]]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-## These stand for the character classes defined in wctype(3). A locale
-## may provide others. A character class may not be used as an endpoint
-## of a range.
-
-## There are two  special  cases(!) of bracket expressions: the bracket
-## expressions '[[:<:]]' and '[[:>:]]' match the null string at the begin-
-## ning  and  end of a word respectively. A word is defined as a sequence
-## of word characters which is neither preceded nor followed by word char-
-## acters. A word character is an alnum character (as defined by
-## wctype(3)) or an underscore. This is an extension, compatible with but
-## not specified by POSIX 1003.2, and should be used with caution in soft-
-## ware intended to be portable to other systems.
-
-t = 'Word begin';
-s = ' abcd efg';
-p = '[[:<:]]abc';
-# REGEX-COMPILATION-ERROR: Invalid character class name
-#unit.ok(s =~ /[[:<:]]abc/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = ' xabcd efg';
-#unit.ok(s !~ /[[:<:]]abc/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-t = 'Word end';
-s = ' abcd efg';
-p = 'bcd[[:>:]]';
-# REGEX-COMPILATION-ERROR: Invalid character class name
-#printf("%s %s: \"'%s' =~ /%s/\"\n",( s =~ /bcd[[:>:]]/) ? 'PASS' : 'FAIL' ,t, s, p);
-#unit.ok(s =~ /bcd[[:>:]]/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = ' abcdx efg';
-#printf("%s %s: \"'%s' !~ /%s/\"\n", ( s !~ /bcd[[:>:]]/ ) ? 'PASS' : 'FAIL' ,t, s, p);
-#unit.ok(s !~ /bcd[[:>:]]/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-t = 'Word';
-s = ' abcd efg';
-p = '[[:<:]]abcd[[:>:]]';
-#unit.ok(s =~ /[[:<:]]abcd[[:>:]]/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = ' xabcd efg';
-#unit.ok(s !~ /[[:<:]]abcd[[:>:]]/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-## In the event that an RE could match more than one substring of a given
-## string, the RE matches the one starting earliest in the string. If the
-## RE could match more than one  substring  starting  at  that  point, it
-## matches  the  longest. Subexpressions also match the longest possible
-## substrings, subject to the constraint that the whole match be as long
-## as possible, with subexpressions starting earlier in the RE taking pri-
-## ority over ones starting later. Note that higher-level subexpressions
-## thus take priority over their lower-level component subexpressions.
-
-## Match  lengths  are  measured in characters, not collating elements.  A
-## null string is considered longer than no match at  all.   For  example,
-## 'bb*' matches the three middle characters of 'abbbc',
-## '(wee|week)(knights|nights)' matches all ten characters of
-## 'weeknights', when '(.*).*' is matched against 'abc' the parenthesized
-## subexpression matches all three characters, and when `(a*)*' is matched
-## against 'bc' both the whole RE and the parenthesized subexpression
-## match the null string.
-
-## If case-independent matching is specified, the effect is much as if all
-## case distinctions had vanished from the alphabet. When an alphabetic
-## that exists in multiple cases appears as an ordinary character outside
-## a bracket expression, it is effectively transformed into a bracket
-## expression containing both cases, e.g. 'x' becomes '[xX]'. When it
-## appears inside a bracket expression, all case counterparts of it are
-## added to the bracket expression, so that (e.g.) '[x]'  becomes '[xX]'
-## and '[^x]' becomes '[^xX]'.
-
-## No particular limit is imposed on the length of REs(!). Programs
-## intended to be portable should not employ REs longer than 256 bytes, as
-## an implementation can refuse to accept such REs and remain POSIX-com-
-## pliant.
-
-## Finally, there is one new type of atom, a back reference: '\' followed
-## by a non-zero decimal digit d matches the same sequence of characters
-## matched by the dth parenthesized subexpression (numbering subexpressions
-## by the positions of their opening parentheses, left to right), so that
-## (e.g.) '\([bc]\)\1' matches 'bb' or 'cc' but not 'bc'.
-
-
-
-# Metacharacters
-
-t = 'Empty string';
-s = '';
-p = '^$';
-unit.ok(s =~ /^$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
-s = 'a';
-unit.ok(s !~ /^$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
-
-# Character class
-
-t = 'char class meta';
-p = '[.;:*+?\/\\\()!"$^,-~{}=&%@]'; # must be escaped: '('->'\(', '\'->'\\'
-
-# This is POSIX and will not work with PCRE
-t = 'Word begin';
-s = ' abcd efg';
-p = '\<abc';
-#printf("%s %s: \"'%s' =~ /%s/\"\n",( s =~ /\<abc/) ? 'PASS' : 'FAIL' ,t, s, p);
-
-# This is POSIX and will not work with PCRE
-t = 'Word end';
-s = ' abcd efg';
-p = 'bcd\>';
-#printf("%s %s: \"'%s' =~ /%s/\"\n",( s =~ /bcd\>/) ? 'PASS' : 'FAIL' ,t, s, p);
-
-# This is POSIX and will not work with PCRE
-t = 'Word';
-s = ' abcd efg';
-p = '\<abcd\>';
-#printf("%s %s: \"'%s' =~ /%s/\"\n",( s =~ /\<abcd\>/) ? 'PASS' : 'FAIL' ,t, s, p);
-
-s =~ s/\t\n\r\s\S\w\W\d\D//;
-t = 'Symbolic character classes'; # do not work
-s = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789';
-p = '^[\w]+$';
-#printf("%s %s: \"'%s' =~ /%s/\"\n",( s =~ /^[\w]+$/) ? 'PASS' : 'FAIL' ,t, s, p);
-
-# substitution
-#s =~ s/abc/xyz/;
-#s =~ s/abc/xyz/g;
-#s =  'xyz a bc';
-#s =~ s/[a-c]{1,2}/ a /;
-#s =~ s/\(a\)/ a /;
-#s =~ s/\(a\)/ \1 \n/;
-s = 'abc';
-#s =~ s/(a)/ \1 \n/; # does not work
-#print(s);
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class RegexTest
+
+class RegexTest inherits QUnit::Test {
+    constructor() : QUnit::Test("Regex test", "1.0") {
+        addTestCase("Test", \test());
+        set_return_value(main());
+    }
+
+    test() {
+        # Examples of qore regular expressions
+        # initially written and tested for qore 0.4.0 (Oct 2005)
+        # by Helmut Wollmersdorfer
+
+        # TODO: check against http://www.opengroup.org/onlinepubs/007908799/xbd/re.html
+
+        # regex in qore is based on PCRE (perl5 regular expressions)
+
+        # The following examples are in the order of regex(7) of Debian/Sarge
+        # Comments beginning with '##' are quotes from regex(7)
+
+        ## A (modern) RE is one(!) or more non-empty(!) branches, separated  by '|'.
+        ## It matches anything that matches one of the branches.
+        string t = 'Branches';          # text
+        string s = 'abc';               # string
+        string p = 'a|z';               # pattern
+        assertTrue(s =~ /a|z/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'qrs';
+        assertTrue(s !~ /a|z/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        ## A  branch  is  one(!) or more pieces, concatenated.  It matches a match
+        ## for the first, followed by a match for the second, etc.
+        t = 'Pieces';
+        s = 'abcxyz';
+        p = 'bc';
+        assertTrue(s =~ /bc/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'bac';
+        assertTrue(s =~ /bac/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+
+        ## A piece is an atom possibly followed by a single(!) '*', '+',  '?',  or bound.
+        t = 'Atoms and repeaters';
+        s = 'abcxyz';
+        p = 'ab*c+x?y{1}';
+        assertTrue(s =~ /ab*c+x?y{1}/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'bac';
+        assertTrue(s !~ /ab*c+x?y{1}/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        ## An atom followed by '*' matches a sequence of 0 or more matches of the atom.
+        t = 'None or more';
+        s = 'abbbc';
+        p = 'ab*c';
+        assertTrue(s =~ /ab*c/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'adc';
+        assertTrue(s !~ /ab*c/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        ## An atom followed by '+' matches a sequence of 1 or more matches of the atom.
+        t = 'One or more';
+        s = 'abbbc';
+        p = 'ab+c';
+        assertTrue(s =~ /ab+c/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'ac';
+        assertTrue(s !~ /ab+c/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        ## An atom followed by '?' matches a sequence of 0 or 1 matches of the atom.
+        t = 'None or one';
+        s = 'abc';
+        p = 'ab?c';
+        assertTrue(s =~ /ab?c/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'adc';
+        assertTrue(s !~ /ab?c/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        ## A bound is '{' followed by an unsigned decimal integer, possibly followed
+        ## by ',' possibly followed by another unsigned decimal integer,
+        ## always followed by '}'.
+        t = 'Bound';
+        s = 'abcc';
+        p = 'a{1}b{0,}c{2,3}';
+        assertTrue(s =~ /a{1}b{0,}c{2,3}/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'adc';
+        assertTrue(s !~ /a{1}b{0,}c{2,3}/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        ## The integers must lie between 0 and RE_DUP_MAX (255(!)) inclusive,
+        ## and if there are two of them, the first may not exceed the second.
+        t = 'Bound integers';
+        s = 'abcc';
+        p = 'b{0,1}c{2,255}';
+        assertTrue(s =~ /b{0,1}c{2,255}/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'abd';
+        assertTrue(s !~ /b{0,1}c{2,255}/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        ## An atom followed by a bound containing one integer
+        ## i and no comma matches a sequence of exactly i matches of the atom.
+        t = 'Bound integer exactly';
+        s = 'abccd';
+        p = 'bc{2}d';
+        assertTrue(s =~ /bc{2}d/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'abcccd';
+        assertTrue(s !~ /bc{2}d/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        ## An atom followed by a bound containing one integer i and a comma matches a
+        ## sequence of i or more matches of the atom.
+        t = 'Bound integer or more';
+        s = 'abccccc';
+        p = 'c{2,}';
+        assertTrue(s =~ /c{2,}/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'abcdc';
+        assertTrue(s !~ /c{2,}/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        ## An atom followed by a bound containing two integers i and j matches a sequence
+        ## of i through j (inclusive) matches of the atom.
+        t = 'Bound integer through maximum';
+        s = 'abccccd';
+        p = 'bc{2,4}d';
+        assertTrue(s =~ /bc{2,4}d/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'abcdbcccccd';
+        assertTrue(s !~ /bc{2,4}d/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        ## An atom is a regular expression enclosed in '()' (matching a match for
+        ## the regular expression),
+        t = 'Enclosed regex';
+        s = 'abc';
+        p = '(b)';
+        assertTrue(s =~ /(b)/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'acd';
+        assertTrue(s !~ /(b)/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        ## an empty set of '()' (matching the null string)(!),
+        t = 'Enclosed empty';
+        s = '';
+        p = '^()$';
+        assertTrue(s =~ /^()$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'acd';
+        assertTrue(s !~ /^()$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        ## a bracket expression (see below),
+
+        ## '.'  (matching any single character),
+        t = 'any single character';
+        s = 'abc';
+        p = 'a.c';
+        assertTrue(s =~ /a.c/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'acd';
+        assertTrue(s !~ /a.c/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        ## '^' (matching the null string at the beginning of a  line),
+        t = 'beginning of line/string';
+        s = 'abc';
+        p = '^ab';
+        assertTrue(s =~ /^ab/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'acd';
+        assertTrue(s !~ /^ab/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        ## '$'  (matching the null string at the end of a line),
+        t = 'end of line/string';
+        s = 'abc';
+        p = 'bc$';
+        assertTrue(s =~ /bc$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'bcd';
+        assertTrue(s !~ /bc$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        ## a '\' followed by one of the characters '^.[$()|*+?{\' (matching that
+        ## character taken as an ordinary character),
+        t = 'escaped special character';
+        s = '^.[$()|*+?{\\';
+        p = '\^\.\[\$\(\)\|\*\+\?\{\\';
+        assertTrue(s =~ /\^\.\[\$\(\)\|\*\+\?\{\\/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = '\^\.\[\$\(\)\|\*\+\?\{\\';
+        assertTrue(s !~ /\^\.\[\$\(\)\|\*\+\?\{\\/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        # This seems to be against POSIX
+        ## a '\' followed by any other character(!)
+        ## (matching that character taken as an ordinary character, as if the '\'
+        ## had not been present(!)),
+        # NOTE: escaping multi-byte characters does not work for some reason (\§)
+        t = 'escaped ordinary character';
+        s = '!"%&=~#-_>';
+        # $p = '\a\A\!\"\§\%\&\=\~\#\-\_\>';
+        p = '\!\"\%\&\=\~\#\-\_\>';
+        # -- digits do not work: REGEX-COMPILATION-ERROR: Invalid back reference
+        # printf("%s %s: \"'%s' =~ /%s/\"\n", ( s =~ /\a\A\1\!\"\%\&\=\~\#\-\_\<\>\,\;/ ) ? 'PASS' : 'FAIL' ,t, s, p);
+        # -- with PCRE the paragraph sign seems to be a problem
+        # | unhandled QORE System exception thrown at ./regex.q:177
+        # | REGEX-COMPILATION-ERROR: invalid UTF-8 string
+        # | chained exception:
+        # | unhandled QORE System exception thrown at ./regex.q:179
+        # | REGEX-COMPILATION-ERROR: invalid UTF-8 string
+        # printf("%s %s: \"'%s' =~ /%s/\"\n", ( $s =~ /\a\A\!\"\§\%\&\=\~\#\-\_\>/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+        # printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /\a\A\!\"\§\%\&\=\~\#\-\_\>/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+        assertTrue(s =~ /\!\"\%\&\=\~\#\-\_\>/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = '\!\"\%\&\=\~\#\-\_\>';
+        assertTrue(s !~ /\!\"\%\&\=\~\#\-\_\>/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        # escaping '<,;}' with '\' has problems
+        # NOTE: it would be against POSIX 2, actual behaviour is o.k.
+        t = 'escaped with problems';
+        s = '<,;}';
+        p = '\<\,\;\}';
+        #assertTrue(s =~ /\<\,\;\}/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = '\<\,\;\}';
+        #assertTrue(s !~ /\<\,\;\}/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        ## or a single character with no other significance (matching that character).
+        t = 'unescaped character';
+        s = '<,;}';
+        p = '<,;}';
+        assertTrue(s =~ /<,;}/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'abc';
+        assertTrue(s !~ /<,;}/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        ## A '{' followed by a character other than a digit is an ordinary character,
+        ## not the beginning of a bound(!).
+        t = 'unescaped character';
+        s = 'a{b}';
+        p = 'a{b}';
+        # NOTE: it would be against POSIX 2, actual behaviour is o.k.
+        #REGEX-COMPILATION-ERROR: Invalid content of \{\}
+        #REGEX-COMPILATION-ERROR: Unmatched \{
+        #assertTrue(s =~ /a{b}/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'abc';
+        #assertTrue(s !~ /a{b}/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+
+        ## It is illegal to end an RE with '\'.
+
+        ## A bracket expression is a list of characters enclosed in '[]'. It normally
+        ## matches any single character from the list (but see below).
+        t = 'bracket expressions';
+        s = 'abc';
+        p = 'a[bB]c';
+        assertTrue(s =~ /a[bB]c/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'adc';
+        assertTrue(s !~ /a[bB]c/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        ## If the list begins with '^', it matches  any  single  character  (but  see
+        ## below) not from the rest of the list.
+        t = 'negated bracket list';
+        s = 'abc';
+        p = 'a[^d]c';
+        assertTrue(s =~ /a[^d]c/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'adc';
+        assertTrue(s !~ /a[^d]c/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        ## If two characters in the list are separated by '-', this is shorthand for
+        ## the full range of characters between those two (inclusive) in the collating
+        ## sequence, e.g. '[0-9]' in ASCII matches any decimal digit.
+        t = 'char range';
+        s = 'abc';
+        p = '^[a-z]+$';
+        assertTrue(s =~ /^[a-z]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'ABC';
+        assertTrue(s !~ /^[a-z]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        ## It is illegal(!) for two ranges to share an endpoint, e.g. 'a-c-e'. Ranges are
+        ## very collating sequence-dependent, and portable programs should avoid relying on them.
+
+        ## To include a literal ']' in the list, make it the first character (following
+        ## a possible '^').
+        t = 'literal bracket';
+        s = 'abc]';
+        p = '^[]a-c]+$';
+        assertTrue(s =~ /^[]a-c]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'abc[';
+        assertTrue(s !~ /^[]a-c]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        ## To include a literal '-', make it the first
+        t = 'literal hyphen first';
+        s = 'abc-';
+        p = '^[-a-c]+$';
+        s = 'abc[';
+        assertTrue(s !~ /^[-a-c]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        ## or last character,
+        t = 'literal hyphen last';
+        s = 'abc-';
+        p = '^[a-c-]+$';
+        assertTrue(s =~ /^[a-c-]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'abc[';
+        assertTrue(s !~ /^[a-c-]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        ## or the second endpoint of a range.
+        t = 'hyphen range endpoint';
+        s = '!#-';
+        p = '^[!--]+$';
+        assertTrue(s =~ /^[!--]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'abc[';
+        assertTrue(s !~ /^[!--]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        ## To use a literal '-' as the first endpoint of a range, enclose it in '[.'  and  '.]'
+        ## to make it a collating element (see below).
+        t = 'hyphen range startpoint';
+        s = 'abc-';
+        p = '^[--c]+$';
+        # this is POSIX
+        # printf("%s %s: \"'%s' =~ /%s/\"\n",( s =~ /^[[.-.]-c]+$/) ? 'PASS' : 'FAIL' ,t, s, p);
+        # this is PCRE
+        assertTrue(s =~ /^[--c]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'abc!';
+        assertTrue(s !~ /^[--c]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        ## With the exception of these and some combinations using `[' (see next paragraphs),
+        ## all other special characters, including '\', lose their special significance within
+        ## a bracket expression.
+        # NOTE: In Perl-Regex escaping of all characters within a bracket expression is allowed.
+        t = 'bracket unescaped';
+        s = '.$()|*+?{}\<>';
+        # p = '^[.$()|*+?{}\<>]+$'; # POSIX
+        p = '^[.$()|*+?{}\\<>]+$';   # PCRE
+        assertTrue(s =~ /^[.$()|*+?{}\\<>]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'abc';
+        assertTrue(s !~ /^[.$()|*+?{}\\<>]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        ## Within a bracket expression, a collating element (a character, a multicharacter
+        ## sequence that collates as if it were a single character, or a collating-sequence
+        ## name for either) enclosed in '[.'  and  '.]' stands for the sequence of
+        ## characters of that collating element. The sequence is a single element of the
+        ## bracket expression's list. A bracket expression containing a multi-character
+        ## collating element can thus match more than one character, e.g. if the collating
+        ## sequence includes a 'ch' collating element, then the RE `[[.ch.]]*c' matches the
+        ## first five characters of 'chchcc'.
+        t = 'collating element';
+        s = 'abcba';
+        p = '^[[.abc.]]+$';
+        # REGEX-COMPILATION-ERROR: Invalid collation character
+        #assertTrue(s =~ /^[[.abc.]]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'abcbaa';
+        #assertTrue(s !~ /^[[.abc.]]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        ## Within a bracket expression, a collating element enclosed in '[=' and
+        ## '=]' is an equivalence class, standing for the sequences of characters
+        ## of all collating elements equivalent to that one, including itself.
+        ## (If there are no other equivalent collating elements, the treatment is
+        ## as if the enclosing delimiters were '[.' and '.]'.) For example, if o
+        ## and ^ are the members of an equivalence class, then '[[=o=]]',
+        ## '[[=^=]]', and '[o^]' are all synonymous. An equivalence class may
+        ## not(!) be an endpoint of a range.
+
+        ## Within a bracket expression, the name of a character class enclosed in
+        ## '[:' and ':]' stands for the list of all characters belonging to that
+        ## class. Standard character class names are:
+
+        ##       alnum       digit       punct
+        ##       alpha       graph       space
+        ##       blank       lower       upper
+        ##       cntrl       print       xdigit
+
+        t = 'named character class';
+        s = 'abc123';
+        p = '^[[:alnum:]]+$';
+        assertTrue(s =~ /^[[:alnum:]]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'abcbaa.';
+        assertTrue(s !~ /^[[:alnum:]]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        t = 'named character class';
+        s = 'abc';
+        p = '^[[:alpha:]]+$';
+        assertTrue(s =~ /^[[:alpha:]]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'abcbaa.';
+        assertTrue(s !~ /^[[:alpha:]]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        t = 'named character class';
+        s = ' ';
+        p = '^[[:blank:]]+$';
+        assertTrue(s =~ /^[[:blank:]]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'abcbaa.';
+        assertTrue(s !~ /^[[:blank:]]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        t = 'named character class';
+        s = "\t\r\n";
+        p = '^[[:cntrl:]]+$';
+        assertTrue(s =~ /^[[:cntrl:]]+$/, t + ' ' + '\t\r\n' + ": '" + '\t\r\n' + "' =~ /" + p + "'");
+        s = 'abcbaa.';
+        assertTrue(s !~ /^[[:cntrl:]]+$/, t + ' ' + '\t\r\n' + ": '" + '\t\r\n' + "' !~ /" + p + "'");
+
+        t = 'named character class';
+        s = '1234567890';
+        p = '^[[:digit:]]+$';
+        assertTrue(s =~ /^[[:digit:]]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'abcbaa.';
+        assertTrue(s !~ /^[[:digit:]]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        t = 'named character class';
+        s = 'abc';
+        p = '^[[:lower:]]+$';
+        assertTrue(s =~ /^[[:lower:]]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'ABC';
+        assertTrue(s !~ /^[[:lower:]]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        t = 'named character class';
+        s = 'abc';
+        p = '^[[:print:]]+$';
+        assertTrue(s =~ /^[[:print:]]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = '';
+        assertTrue(s !~ /^[[:print:]]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        t = 'named character class';
+        s = '!?,;.:';
+        p = '^[[:punct:]]+$';
+        assertTrue(s =~ /^[[:punct:]]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'abc1';
+        assertTrue(s !~ /^[[:punct:]]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        t = 'named character class';
+        s = "\t\r\n ";
+        p = '^[[:space:]]+$';
+        assertTrue(s =~ /^[[:space:]]+$/, t + ' ' + '\t\r\n ' + ": '" + '\t\r\n ' + "' =~ /" + p + "'");
+        s = 'abc1';
+        assertTrue(s !~ /^[[:space:]]+$/, t + ' ' + '\t\r\n ' + ": '" + '\t\r\n ' + "' !~ /" + p + "'");
+
+        t = 'named character class';
+        s = 'ABC';
+        p = '^[[:upper:]]+$';
+        assertTrue(s =~ /^[[:upper:]]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'abc';
+        assertTrue(s !~ /^[[:upper:]]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        t = 'named character class';
+        s = '0123456789abcdefABCDEF';
+        p = '^[[:xdigit:]]+$';
+        assertTrue(s =~ /^[[:xdigit:]]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'g';
+        assertTrue(s !~ /^[[:xdigit:]]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        ## These stand for the character classes defined in wctype(3). A locale
+        ## may provide others. A character class may not be used as an endpoint
+        ## of a range.
+
+        ## There are two  special  cases(!) of bracket expressions: the bracket
+        ## expressions '[[:<:]]' and '[[:>:]]' match the null string at the begin-
+        ## ning  and  end of a word respectively. A word is defined as a sequence
+        ## of word characters which is neither preceded nor followed by word char-
+        ## acters. A word character is an alnum character (as defined by
+        ## wctype(3)) or an underscore. This is an extension, compatible with but
+        ## not specified by POSIX 1003.2, and should be used with caution in soft-
+        ## ware intended to be portable to other systems.
+
+        t = 'Word begin';
+        s = ' abcd efg';
+        p = '[[:<:]]abc';
+        # REGEX-COMPILATION-ERROR: Invalid character class name
+        #assertTrue(s =~ /[[:<:]]abc/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = ' xabcd efg';
+        #assertTrue(s !~ /[[:<:]]abc/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        t = 'Word end';
+        s = ' abcd efg';
+        p = 'bcd[[:>:]]';
+        # REGEX-COMPILATION-ERROR: Invalid character class name
+        #printf("%s %s: \"'%s' =~ /%s/\"\n",( s =~ /bcd[[:>:]]/) ? 'PASS' : 'FAIL' ,t, s, p);
+        #assertTrue(s =~ /bcd[[:>:]]/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = ' abcdx efg';
+        #printf("%s %s: \"'%s' !~ /%s/\"\n", ( s !~ /bcd[[:>:]]/ ) ? 'PASS' : 'FAIL' ,t, s, p);
+        #assertTrue(s !~ /bcd[[:>:]]/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        t = 'Word';
+        s = ' abcd efg';
+        p = '[[:<:]]abcd[[:>:]]';
+        #assertTrue(s =~ /[[:<:]]abcd[[:>:]]/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = ' xabcd efg';
+        #assertTrue(s !~ /[[:<:]]abcd[[:>:]]/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        ## In the event that an RE could match more than one substring of a given
+        ## string, the RE matches the one starting earliest in the string. If the
+        ## RE could match more than one  substring  starting  at  that  point, it
+        ## matches  the  longest. Subexpressions also match the longest possible
+        ## substrings, subject to the constraint that the whole match be as long
+        ## as possible, with subexpressions starting earlier in the RE taking pri-
+        ## ority over ones starting later. Note that higher-level subexpressions
+        ## thus take priority over their lower-level component subexpressions.
+
+        ## Match  lengths  are  measured in characters, not collating elements.  A
+        ## null string is considered longer than no match at  all.   For  example,
+        ## 'bb*' matches the three middle characters of 'abbbc',
+        ## '(wee|week)(knights|nights)' matches all ten characters of
+        ## 'weeknights', when '(.*).*' is matched against 'abc' the parenthesized
+        ## subexpression matches all three characters, and when `(a*)*' is matched
+        ## against 'bc' both the whole RE and the parenthesized subexpression
+        ## match the null string.
+
+        ## If case-independent matching is specified, the effect is much as if all
+        ## case distinctions had vanished from the alphabet. When an alphabetic
+        ## that exists in multiple cases appears as an ordinary character outside
+        ## a bracket expression, it is effectively transformed into a bracket
+        ## expression containing both cases, e.g. 'x' becomes '[xX]'. When it
+        ## appears inside a bracket expression, all case counterparts of it are
+        ## added to the bracket expression, so that (e.g.) '[x]'  becomes '[xX]'
+        ## and '[^x]' becomes '[^xX]'.
+
+        ## No particular limit is imposed on the length of REs(!). Programs
+        ## intended to be portable should not employ REs longer than 256 bytes, as
+        ## an implementation can refuse to accept such REs and remain POSIX-com-
+        ## pliant.
+
+        ## Finally, there is one new type of atom, a back reference: '\' followed
+        ## by a non-zero decimal digit d matches the same sequence of characters
+        ## matched by the dth parenthesized subexpression (numbering subexpressions
+        ## by the positions of their opening parentheses, left to right), so that
+        ## (e.g.) '\([bc]\)\1' matches 'bb' or 'cc' but not 'bc'.
+
+
+
+        # Metacharacters
+
+        t = 'Empty string';
+        s = '';
+        p = '^$';
+        assertTrue(s =~ /^$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
+        s = 'a';
+        assertTrue(s !~ /^$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
+
+        # Character class
+
+        t = 'char class meta';
+        p = '[.;:*+?\/\\\()!"$^,-~{}=&%@]'; # must be escaped: '('->'\(', '\'->'\\'
+
+        # This is POSIX and will not work with PCRE
+        t = 'Word begin';
+        s = ' abcd efg';
+        p = '\<abc';
+        #printf("%s %s: \"'%s' =~ /%s/\"\n",( s =~ /\<abc/) ? 'PASS' : 'FAIL' ,t, s, p);
+
+        # This is POSIX and will not work with PCRE
+        t = 'Word end';
+        s = ' abcd efg';
+        p = 'bcd\>';
+        #printf("%s %s: \"'%s' =~ /%s/\"\n",( s =~ /bcd\>/) ? 'PASS' : 'FAIL' ,t, s, p);
+
+        # This is POSIX and will not work with PCRE
+        t = 'Word';
+        s = ' abcd efg';
+        p = '\<abcd\>';
+        #printf("%s %s: \"'%s' =~ /%s/\"\n",( s =~ /\<abcd\>/) ? 'PASS' : 'FAIL' ,t, s, p);
+
+        s =~ s/\t\n\r\s\S\w\W\d\D//;
+        t = 'Symbolic character classes'; # do not work
+        s = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789';
+        p = '^[\w]+$';
+        #printf("%s %s: \"'%s' =~ /%s/\"\n",( s =~ /^[\w]+$/) ? 'PASS' : 'FAIL' ,t, s, p);
+
+        # substitution
+        #s =~ s/abc/xyz/;
+        #s =~ s/abc/xyz/g;
+        #s =  'xyz a bc';
+        #s =~ s/[a-c]{1,2}/ a /;
+        #s =~ s/\(a\)/ a /;
+        #s =~ s/\(a\)/ \1 \n/;
+        s = 'abc';
+        #s =~ s/(a)/ \1 \n/; # does not work
+        #print(s);
+    }
+}
+
