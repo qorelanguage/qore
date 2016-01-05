@@ -217,6 +217,11 @@ public class ArrayTest inherits QUnit::Test {
         assertEq((22, 23), (extract lst1, 2, 2), "second list extract");
         assertEq((21, 2), (extract lst1, 1, 2, 4), "second list extract");
         assertEq((11, 4), lst1, "final list extract");
+
+        # pop and shift with nothing lvalue
+        any nt;
+        assertEq(NOTHING, pop nt, "pop with NOTHING lvalue");
+        assertEq(NOTHING, shift nt, "shift with NOTHING lvalue");
     }
 
     testElementDereference() {
