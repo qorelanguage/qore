@@ -186,6 +186,7 @@ public:
 class SSLSocketHelperHelper {
 protected:
    qore_socket_private* s;
+   SSLSocketHelper* ssl;
 
 public:
    DLLLOCAL SSLSocketHelperHelper(qore_socket_private* sock);
