@@ -28,7 +28,7 @@
     When defining a @ref user_modules "user module", class declarations can be preceded by @ref mod_public "public", which means that the class will be available (imported) in the @ref Qore::Program "Program" object importing the module.  When a class is declared @ref mod_public "public" outside of a @ref user_modules "user module", it means that the class can be inherited in any child @ref Qore::Program "Program" objects created in the same scope. See @ref mod_public "public" for more information. Note that classes can also be imported singly by using the @ref Qore::Program::importClass() "Program::importClass()" method.
 
     @par In-Line Class Declaration Example
-    @code
+    @code{.py}
 class MyClass inherits MyBaseClass {
     public {
          string $.pub_attr = "hello";
@@ -59,7 +59,7 @@ class MyClass inherits MyBaseClass {
     As with inline class definitions, when defining a @ref user_modules "user module", class declarations can be preceded by @ref mod_public "public", which means that the class will be available (imported) in the @ref Qore::Program "Program" object importing the module. When a class is declared @ref mod_public "public" outside of a @ref user_modules "user module", it means that the class can be inherited in any child @ref Qore::Program "Program" objects created in the same scope. See @ref mod_public "public" for more information. Note that classes can also be imported singly by using the @ref Qore::Program::importClass() "Program::importClass()" method.
 
     @par Out-Of-Line Class Declaration Example
-    @code
+    @code{.py}
 class MyNamespace::MyClass inherits MyBaseClass;
 
 MyNamespace::MyClass::constructor(string $arg = "temp") : MyBaseClass($arg + ".txt") {
@@ -104,7 +104,7 @@ softstring MyNamespace::MyClass::myMethod(softint $i) {
 
     @anchor abstract
     @par Abstract Methods
-    Methods declared with the <tt><b>abstract</b></tt> keyword define methods interfaces that must be defined in child classes for the class to be instantiated.  Methods defining the declared interfaces in child classes must define exactly the same paramters in order for the abstract method to match, but the return type of the concrete method in the child class has to simply be compatible with the return type of the abstract method in the parent class.\n\n
+    Methods declared with the <tt><b>abstract</b></tt> keyword define methods interfaces that must be defined in child classes for the class to be instantiated.  Methods defining the declared interfaces in child classes must define exactly the same parameters in order for the abstract method to match, but the return type of the concrete method in the child class has to simply be compatible with the return type of the abstract method in the parent class.\n\n
     Classes with undefined abstract methods cannot be instantiated.  Abstract methods cannot have a method body; an abstract method's declaration must be terminated with a semicolon (\c ";").\n\n
     The <tt><b>abstract</b></tt> keyword can only be used in abstract method declaration; the use of this keyword with a method declaration with a method body will cause a parse exception to be thrown.
 
@@ -115,7 +115,7 @@ softstring MyNamespace::MyClass::myMethod(softint $i) {
     |!Name|!Description
     |<tt>constructor(</tt><em>[params...]</em><tt>) {}</tt>|Called when objects are created when instantiated by a variable declaration with a class type and constructor arguments or explicitly with the new operator. User code may not explicitly call \c constructor() methods directly. In a class tree, \c constructor() methods are called for base classes first in left-to-right, depth-first declaration order.\n\n\c constructor() methods may be overloaded and also private constructors may be defined. Private constructors can only be called from within the class.
     |<tt>copy() {}</tt>|When a user explicitly calls a copy method, %Qore will generate a new object with references to the same members as the source object. Then, if there are any base classes, base class \c copy() methods are called in the same order as the \c constructor() methods. If a \c copy() method is defined, it will be run in the new object with a reference to the old object passed as the first argument. Any other arguments passed to the \c copy() method are ignored.\n\n\c copy() methods cannot be overloaded and cannot be private.
-    |<tt>destructor() {}</tt>|Called when objects go out of scope or are explicitly deleted. User code may not explicitly call \c destructor() methods. In a class tree, \c destructor() methods are called for base classes in the opposite order in which the constructors are called.\n\n\c destructor() methods cannot be overloaded and cannot be private.
+    |<tt>destructor() {}</tt>|Called when objects are implicitly collected (see @ref garbage_collection) or are explicitly deleted. User code may not explicitly call \c destructor() methods. In a class tree, \c destructor() methods are called for base classes in the opposite order in which the constructors are called.\n\n\c destructor() methods cannot be overloaded and cannot be private.
     |@ref any_type "any" <tt>@ref memberGate_methods "memberGate"(</tt>@ref string_type "string" <tt>$</tt><em>member_param_name</em><tt>) {}</tt>|If this method is implemented in the class, it is called when read access is attempted to private member or members that do not exist in the current object; the return value of this method is returned as the value of the member.\n\n\c memberGate() methods cannot be overloaded and are not inherited by subclasses.
     |@ref any_type "any" <tt>@ref methodGate_methods "methodGate"(</tt>@ref string_type "string" <tt>$</tt><em>method_param_name</em><tt>, ...) {}</tt>|If this method is implemented in the class, it is called when methods are called on the object that do not exist in the current object and the return value of this method is returned as the value of the method call.\n\n\c methodGate() methods cannot be overloaded and are not inherited by subclasses.
     |<tt>@ref memberNotification_methods "memberNotification"(</tt>@ref string_type "string" <tt>$</tt><em>member_param_name</em><tt>) {}</tt>|If this method is implemented in the class, it is called when an object member is updated outside the class with the member name as the argument. Note that this method is called after the member has been updated and without locking; the call is not atomic respective to other threads that also may update the same member simultaneously.\n\n\c memberNotification() methods cannot be overloaded and are not inherited by subclasses.
@@ -138,7 +138,7 @@ softstring MyNamespace::MyClass::myMethod(softint $i) {
     Class constants, like non-class constants, allow programmers to refer to values with %Qore identifiers rather than using the value or the expression that generates the value.\n\n
     See @ref class_overview for a description of the syntax required to declare a class constant.\n\n
     Like other attributes of classes, class constants may be declared <tt><b>private</b></tt> or <tt><b>public</b></tt>. The following is an example of a class constant definition:\n
-    @code
+    @code{.py}
 class Test {
     public {
         const Version = "1.0";
@@ -157,7 +157,7 @@ class Test {
     Static class variables are like global variables that belong to a class. They are not associated with any particular object.\n\n
     See @ref class_overview for a description of the syntax required to declare a static class variable.\n\n
     Like other attributes of classes, static class variables may be declared <tt><b>private</b></tt> or <tt><b>public</b></tt>. The following is an example of a static class variable definition:\n
-    @code
+    @code{.py}
 class Test {
     public {
         static string lastFile = "none";
@@ -169,7 +169,7 @@ class Test {
 }
     @endcode
 
-    @note Static class variables cannot have the same same as class constants.
+    @note Static class variables cannot have the same name as class constants.
 
     @section class_members Class Members
 
@@ -179,13 +179,13 @@ class Test {
 
     @anchor private_members
     @par Private Members
-    Members declared <b><tt>pivate</tt></b> can only be accessed within the class hierarchy; trying to access private members form outside the class hierarchy will result in either a parse or runtime exception, depending on when the illegal acceess is caught.
+    Members declared <b><tt>private</tt></b> can only be accessed within the class hierarchy; trying to access private members form outside the class hierarchy will result in either a parse or runtime exception, depending on when the illegal acceess is caught.
 
     @par Class Member References
     When defining a class, members of instantiated objects are referred to with a special syntax as follows:\n
     <tt>$.</tt><em>member_name</em>\n\n
     Furthermore, the automatic variable <tt>$self</tt> is instantiated in every non-static method, representing the current object (similar to <tt>this</tt> in C++ or Java). Therefore if you need to access hash members which are not valid %Qore identifiers, then enclose the member name in double quotes after the dot operator as follows:\n
-    @code $self."&member-name"@endcode
+    @code{.py} $self."&member-name"@endcode
 
     @anchor memberGate_methods
     @par memberGate() Method
@@ -207,7 +207,7 @@ class Test {
     <tt>[[</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>parent_class_name</em><tt>::]$.</tt><em>method_name</em><tt>([</tt><em>args</em><tt>, ...])</tt>
 
     @par In-Class Method Call Example
-    @code
+    @code{.py}
 # to call a specific method in a base class
 Thread::Mutex::$.lock();
 # to call lock() in the current (or lower base) class
@@ -216,7 +216,7 @@ $.lock();
 
     @par In-Class Method Calls with %allow-bare-refs
     When the @ref allow-bare-refs "%allow-bare-refs" parse directive is set, then object methods are called without the \c "$." prefix as in the following example:\n
-    @code
+    @code{.py}
 # to call a specific method in a base class
 Thread::Mutex::lock();
 # to call lock() in the current (or lower base) class
@@ -230,12 +230,12 @@ lock();
 
     @section inheritance Class Inheritance
 
-    Class inheritance is a powerful concept for easily extending and resuing object-oriented code, but is also subject to some limitations. This section explains how class inheritance works in %Qore.
+    Class inheritance is a powerful concept for easily extending and reusing object-oriented code, but is also subject to some limitations. This section explains how class inheritance works in %Qore.
 
     Classes inherit the methods of a parent class by using the <tt><b>inherits</b></tt> keyword as specified above. Multiple inheritance is supported; a single %Qore class can inherit one or more classes. When a class is inherited by another class, it is called a base class or parent class. @ref private_inheritance "Private inheritance" is specified by including the keyword <tt><b>private</b></tt> before the inherited class's name. When a class is privately inherited, it means that the inherited class's public declarations (members, constants, methods, etc) are treated as private in the context of accesses outside the class.
 
     Inheritance is <tt><b>public</b></tt> @ref public_inheritance "by default", to inherit a class privately, use the <tt><b>private</b></tt> keyword before the class name or class path to inherit as follows:
-    @code
+    @code{.py}
 class ChildClass inherits private ParentClass {
 }
     @endcode
@@ -251,7 +251,7 @@ class ChildClass inherits private ParentClass {
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>}]</tt>
 
     Here is a concrete example of giving arguments to an inherited base class:
-    @code
+    @code{.py}
 class XmlRpcClient inherits Qore::HTTPClient {
     # calls the base class HTTPClient constructor, overrides the "protocols" key to "xmlrpc"
     constructor(hash $opts = hash()) : Qore::HTTPClient($opts + ( "protocols" : "xmlrpc" )) {

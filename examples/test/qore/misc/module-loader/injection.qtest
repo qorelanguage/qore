@@ -1,0 +1,118 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%allow-injection
+%no-child-restrictions
+
+%requires UnitTest
+
+# for negative testing of loadApplyUserModule
+%requires Util
+
+%requires ./MyTestModule.qm
+#/;
+
+UnitTest unit();
+
+test();
+
+public namespace Test {
+    class FileLineIteratorFake inherits AbstractIterator {
+        private {
+            bool valid = False;
+        }
+
+        constructor(string file_unused, *string h, *string g) {
+        }
+
+        bool valid() {
+            return valid;
+        }
+
+        bool next() {
+            return valid = !valid;
+        }
+
+        string getValue() {
+            if (!valid)
+                throw "ITERATOR-ERROR", "iterator not valid";
+            return "test";
+        }
+    }
+
+    sub exit(softint rc = 0) {
+        printf("oops\n");
+    }
+
+    public class ReinjectedTagClass inherits MyTest::TagClass {
+        constructor(string tag) : TagClass(tag) {
+        }
+
+        string getTag() {
+            return TagClass::getTag() + "-injected";
+        }
+    }
+}
+
+const Code1 = "FileLineIterator li('test-file.csv');
+bool sub next() {
+    return li.next();
+}
+string sub get_value() {
+    return li.getValue();
+}
+";
+
+const Code2 = "%requires MyTestModule
+TagClass t('tag');
+string sub get_tag() {
+    return t.getTag();
+}
+";
+
+sub test() {
+    {
+        # set up the Program container
+        Program p(PO_NO_API|PO_NO_CHILD_PO_RESTRICTIONS|PO_ALLOW_INJECTION|PO_NEW_STYLE);
+        p.importClass("Test::FileLineIteratorFake", "Qore::FileLineIterator", True);
+        p.importSystemApi();
+        p.lockOptions();
+
+        p.parse(Code1, "test-1");
+        p.run();
+        unit.cmp(p.callFunction("next"), True, "injection-1");
+        unit.cmp(p.callFunction("get_value"), "test", "injection-2");
+        unit.cmp(p.callFunction("next"), False, "injection-3");
+
+        unit.exception(sub() {p.callFunction("get_value");}, NOTHING, "neg-injection-1", 'ITERATOR-ERROR');
+    }
+
+    {
+        # set up the Program container
+        Program p(PO_NO_API|PO_NO_CHILD_PO_RESTRICTIONS|PO_NEW_STYLE);
+        unit.exception(sub() {p.importClass("Test::FileLineIteratorFake", "Qore::FileLineIterator", True);}, NOTHING, "neg-injection-2", 'CLASS-IMPORT-ERROR', "cannot import class");
+        unit.exception(sub() {p.importFunction("Test::exit", "Qore::exit", True);}, NOTHING, "neg-injection-3", 'FUNCTION-IMPORT-ERROR', "cannot import function");
+        unit.exception(sub() {p.loadApplyToUserModule("Util");}, NOTHING, "neg-injection-4", 'LOAD-MODULE-ERROR', "cannot load module.*for injection");
+    }
+
+    # test re-injection of a module
+    {
+        # set up the Program container for reinjecting MyTestModule
+        Program p(PO_NO_USER_API|PO_NO_CHILD_PO_RESTRICTIONS|PO_ALLOW_INJECTION|PO_NEW_STYLE);
+        p.setScriptPath(get_script_path());
+        p.importClass("Test::ReinjectedTagClass", "MyTest::TagClass", True);
+        p.lockOptions();
+        p.loadApplyToUserModule("./MyTestModule.qm", True);
+    }
+
+    {
+        Program p(PO_NO_USER_API|PO_NEW_STYLE);
+        p.parse(Code2, "test-2");
+        p.run();
+        unit.cmp(p.callFunction("get_tag"), "tag-injected", "injection-5");
+    }
+}

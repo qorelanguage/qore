@@ -1,5 +1,6 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+
 # @file telnet.q example program using the TelnetClient module
 
 /*  telnet.q Copyright 2012 David Nichols
@@ -29,12 +30,14 @@
     This is a very simple telnet client program using the TelnetClient user module.
     To exit the client, just type ^] (ie ctrl-])
 
-    Note that there is a bug on Darwin where SIGWINCH is not delivered to 
+    Note that there is a bug on Darwin where SIGWINCH is not delivered to
     Qore's signal handling thread; window resizing does not work on Darwin.
 */
 
-# do not use "$" signs for vars, etc
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 # execute the telnet class as the application object
 %exec-class telnet
@@ -63,6 +66,10 @@ class telnet {
 
 	# default poll interval
 	const PollInterval = 10ms;
+
+        TelnetClient telnet;
+        # thread counter
+        Counter cnt();
     }
 
     # no public members
@@ -88,7 +95,8 @@ class telnet {
 	    Term term();
 
 	    # create the telnet client object
-	    TelnetClient telnet(server, \log(), opt.verbose ? \log() : NOTHING);
+	    #TelnetClient telnet(server, \log(), opt.verbose ? \log() : NOTHING);
+	    telnet = new TelnetClient(server, \log(), opt.verbose ? \log() : NOTHING);
 
 	    # set a username for the connection, if any
 	    if (opt.user.val())
@@ -111,7 +119,9 @@ class telnet {
 	    }
 
 	    # we start a background thread for reading from the Telnet session
+            cnt.inc();
 	    background startReceive(telnet);
+            on_exit cnt.waitForZero();
 
 	    # while we read from stdin and write to the Telnet session in the current session
 	    while (!quit) {
@@ -124,7 +134,10 @@ class telnet {
 		    }
 		    telnet.sendTextData(c);
 		}
-	    }  
+
+                if (!telnet.isConnected())
+                    quit = True;
+	    }
 
             if (opt.verbose)
 		printf("TID %d input thread terminated\n", gettid());
@@ -134,12 +147,13 @@ class telnet {
 	    if (ex.err != "NOT-CONNECTED-EXCEPTION") {
 		printf("%s:%d: %s: %s\n", ex.file, ex.line, ex.err, ex.desc);
 		exit(2);
-	    }	    
+	    }
 	}
     }
 
     # this method will read in data and print it to the screen
     private startReceive(TelnetClient telnet) {
+        on_exit cnt.dec();
 	while (!quit) {
 	    *string str = telnet.getAvailableData(PollInterval);
 	    # if the remote end closed the connection, then exit

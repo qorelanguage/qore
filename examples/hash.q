@@ -6,7 +6,7 @@
 #
 # by Wolfgang.Ritzinger <aargon@rat.at>
 
-$h=hash();
+$h={};
 
 $h.gugu="hatscha";
 $h.cool="cool";

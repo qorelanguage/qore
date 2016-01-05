@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! @file TableMapper.qm provides mapping functionality to a Table target 
+#! @file TableMapper.qm provides mapping functionality to an SQL Table target
 
-/*  TableMapper.qm Copyright 2014 Qore Technologies, sro
+/*  TableMapper.qm Copyright 2014 - 2015 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,14 +22,17 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.11 or better
-%requires qore >= 0.8.11
+# this module requires Qore 0.8.12 or better
+%requires qore >= 0.8.12
 
 # require type definitions everywhere
 %require-types
 
 # enable all warnings
 %enable-all-warnings
+
+# don't use "$" signs for variables and class members, assume local variable scope
+%new-style
 
 # requires the Mapper module
 %requires Mapper
@@ -51,8 +54,12 @@ module TableMapper {
     @section tablemapperintro TableMapper Module Introduction
 
     Classes provided by this module:
+    - @ref TableMapper::AbstractSqlStatementOutboundMapper "AbstractSqlStatementOutboundMapper": the base class for outbound mappers based on a database source
     - @ref TableMapper::InboundTableMapper "InboundTableMapper": extends the @ref Mapper::Mapper class; assumes an SQL table target
+    - @ref TableMapper::InboundIdentityTableMapper "InboundIdentityTableMapper": extends the @ref TableMapper::InboundTableMapper "InboundTableMapper" class for the case when the source and target tables have the exact same structure
     - @ref TableMapper::InboundTableMapperIterator "InboundTableMapperIterator": provides a specialization of the @ref Mapper::AbstractMapperIterator class; assumes an SQL table target; automatically inserts mapped data into the target table based on the mapper provided
+    - @ref TableMapper::SqlStatementOutboundMapper "SqlStatementOutboundMapper": provides a SQL statement source based mapper
+    - @ref TableMapper::SqlStatementMapperIterator "SqlStatementMapperIterator": provides a helper SQL statement source based iterator with mapping capability
 
     @section tablemapperexamples TableMapper Examples
 
@@ -66,7 +73,7 @@ const DataMap = (
     # output column: "explicit_count": maps from the input "Count" field
     "explicit_count": "Count",
     # output column: "implicit_count": runs the given code on the input record and retuns the result, the code returns the number of "Products" sub-records
-    "implicit_count": int sub (any $ignored, hash $rec) { return $rec.Products.size(); },
+    "implicit_count": int sub (any ignored, hash rec) { return rec.Products.size(); },
     # output column: "order_date": converts the "OrderDate" string input field to a date in the specified format
     "order_date": ("name": "OrderDate", "date_format": "DD.MM.YYYY HH:mm:SS.us"),
     # output column: order_type: given as a constant value
@@ -76,25 +83,137 @@ const DataMap = (
 
     If this map is applied in the following way:
     @code
-my Table $table($ds, "order_table");
-my InboundTableMapper $map($table, DataMap);
+Table table(ds, "order_table");
+InboundTableMapper map1(table, DataMap);
 {
-    on_success $map.commit();
-    on_error $map.rollback();
-    # apply the map and insert the mapped for for each input record
-    map $map.insertRowNoCommit($1), $input;
+    on_success map1.commit();
+    on_error map1.rollback();
+    # apply the map and insert the mapped data for each input record
+    map map1.insertRow($1), input;
 }
-printf("%d record%s inserted\n", $map.getCount(), $map.getCount() == 1 ? "" : "s");
+printf("%d record%s inserted\n", map.getCount(), map.getCount() == 1 ? "" : "s");
     @endcode
 
     This will insert all the mapped input data into data into the \c ORDER_TABLE
     table and then print out the number of rows inserted.
-    
+
+    This is an example for TableMapper::SqlStatementOutboundMapper. It selects data
+    from the \c ORDER_DATE and it transforms rows regarding mapping used.
+
+    @code
+# SqlUtil Table object
+Table table(ds, "order_table");
+# mapping definition
+const DataMap = (
+        "id" : True,
+        "foo" : "name",
+        "bar" : ("code" : string sub (any ignored, hash rec) { return format_date("YYYYMMDD", rec."order_table"); } ),
+    );
+# SqlUgtil select hash
+hash sh = (
+        "columns" : ("id", "name", "order_date"),
+        "where" : ( "id" : op_gt(1000) ),
+    );
+
+SqlStatementOutboundMapper m(table, sh, DataMap);
+on_exit m.commit();
+
+while (*hash h = m.getData()) {
+    do_something_with_data(h);
+}
+    @endcode
+
+    @section tablemapper_bulk_insert_api InboundTableMapper Bulk Insert API
+
+    @subsection tablemapper_bulk_insert_api_intro InboundTableMapper Bulk Insert API Introduction
+
+    The bulk insert API allows for multiple rows to be mapped and inserted in a single server round trip for high-performance applications.
+    This requires bulk DML support in the underlying DBI driver and also in @ref sqlutilintro "SqlUtil" (to determine if bulk DML
+    support is available, call @ref SqlUtil::AbstractTable::hasArrayBind() on the @ref SqlUtil::AbstractTable object).
+
+    The bulk insert API consists of the following methods:
+    - @ref TableMapper::InboundTableMapper::queueData()
+    - @ref TableMapper::InboundTableMapper::flush()
+    - @ref TableMapper::InboundTableMapper::discard()
+    - @ref TableMapper::InboundTableMapper::setRowCode()
+
+    The behavior of the bulk insert API can be modified or tuned with the following options:
+    - \c "insert_block": the number of rows inserted in a single block (default: 500)
+
+    @note The bulk insert API is only used when \c "unstable_input" is @ref Qore::False "False" and bulk DML is supported in the @ref SqlUtil::AbstractTable object
+
+    @subsection tablemapper_bulk_insert_api_usage InboundTableMapper Bulk Insert API Usage
+
+    To queue data for bulk insert, call @ref TableMapper::InboundTableMapper::queueData() instead of
+    @ref TableMapper::InboundTableMapper::insert().
+    To perform per-row actions, the @ref TableMapper::InboundTableMapper::setRowCode() method should be called with a closure that accepts a hash
+    representing a single row; whenever data is flushed to the database, this closure will be called with the row actually inserted
+    (including sequence values used, etc).
+
+    Before committing the transaction, ensure that @ref TableMapper::InboundTableMapper::flush() is called for each @ref TableMapper::InboundTableMapper
+    object participating in the transaction.  This ensures that all data has been flushed to the database before committing the transaction.
+
+    If there are any errors, call @ref TableMapper::InboundTableMapper::discard() before rolling the transaction back.
+
+    @note If an error occurs flushing data, the count is reset by calling @ref Mapper::Mapper::resetCount() "Mapper::resetCount()"
+
+    @subsection tablemapper_bulk_insert_api_examples InboundTableMapper Bulk Insert API Examples
+
+    Consider the following example:
+    @code
+# table1 and table2 must use the same @ref Qore::SQL::Datasource "Datasource" or @ref Qore::SQL::DatasourcePool "DatasourcePool" to participate in the same transaction
+TableMapper::InboundTableMapper map1(table1, maph1);
+TableMapper::InboundTableMapper map2(table2, maph2);
+
+# the transaction only needs to be committed once
+on_success table1.commit();
+on_error table1.rollback();
+
+# ensure that data for each mapper is inserted and flushed before committing the transaction
+{
+    on_success map1.flush();
+    on_error map1.discard();
+
+    map map1.queueData($1), data1.iterator();
+}
+{
+    on_success map2.flush();
+    on_error map2.discard();
+
+    map map2.queueData($1), data2.iterator();
+}
+    @endcode
+
+    @section tablemapperkeys TableMapper Specification Format
+
+    The mapper hash is made up of target (ie output) column names as the key values assigned to field specifications as specified in @ref mapperkeys, plus the following hash options:
+    - \c "sequence": a name of a sequence to use to populate the column
+    - \c "sequence_currval": a name of a sequence to use to return the current value of the sequence; this is useful when assigning the same sequence value to multiple columns
+
+    In both cases, the actual value inserted in the table is available in the following APIs:
+      - @ref TableMapper::InboundTableMapper::insertRow()
+      - @ref TableMapper::InboundTableMapper::queueData()
+      - @ref TableMapper::InboundTableMapper::flush()
+
+    Additionally, the value is provided to any row code set with @ref TableMapper::InboundTableMapper::setRowCode(); see @ref tablemapper_bulk_insert_api for more information.
+
     @section tablemapperrelnotes Release Notes
 
     @subsection tablemapperv1_1 TableMapper v1.1
-    - added table name to error messages
+    - added table name and datasource description to error messages
     - added the getDatasource() method to classes
+    - implemented more efficient support for inserts from a sequence for databases supporting the \c "returning" clause in insert statements; now such inserts are made in a single round trip instead of n + 1 where n is the number of sequences in the insert
+    - implemented an optimized insert approach assuming stable input data
+    - implemented the following new options for TableMapper::InboundTableMapper:
+      - \c "unstable_input": to accommodate unstable input data and disable the insert optimization (default: False)
+      - \c "insert_block": for DB drivers supporting bulk DML (for use with the TableMapper::InboundTableMapper::queueData(), TableMapper::InboundTableMapper::flush(), and TableMapper::InboundTableMapper::discard() methods), the number of rows inserted at once (default: 500, only used when \c "unstable_input" is @ref Qore::False "False") and bulk inserts are supported in the table object
+    - added method for bulk / batch inserts for db drivers supporting bulk DML (ex: Oracle)
+    - updated to Mapper changes: use table description to define output record for the Mapper module
+    - added the @ref TableMapper::AbstractSqlStatementOutboundMapper "AbstractSqlStatementOutboundMapper" class
+    - added the @ref TableMapper::InboundIdentityTableMapper "InboundIdentityTableMapper" class
+    - added the @ref TableMapper::RawSqlStatementOutboundMapper "RawSqlStatementOutboundMapper" class
+    - added the @ref TableMapper::SqlStatementMapperIterator "SqlStatementMapperIterator" class
+    - added the @ref TableMapper::SqlStatementOutboundMapper "SqlStatementOutboundMapper" class
 
     @subsection tablemapperv1_0 TableMapper v1.0
     - Initial release.
@@ -104,16 +223,51 @@ printf("%d record%s inserted\n", $map.getCount(), $map.getCount() == 1 ? "" : "s
 public namespace TableMapper {
     #! provides an inbound data mapper to a Table target
     public class InboundTableMapper inherits Mapper::Mapper {
-        # no public members
         public {
+            #! option keys for this object
+            const OptionKeys = Mapper::OptionKeys + (
+                "unstable_input": sprintf("if this is set to True then a slower insert method will be used that verifies each input row; if False an optimized insert method is used (additionally bulk inserts are possible) but all input hashes must have the same keys in the same order; default: %y", OptionDefaults.unstable_input),
+                "insert_block": sprintf("the row block size used when bulk DML / batch inserts are used; default: %y", OptionDefaults.insert_block),
+                "rowcode": "a closure or call reference taking a single hash argument representing the row values inserted plus any output values generated in the insert (such as sequence values, for example)",
+                );
+
+            #! default option values
+            const OptionDefaults = (
+                "unstable_input": False,
+                "insert_block": 500,
+                );
         }
 
         private {
             #! the target table object
-            SqlUtil::AbstractTable $.table;
+            SqlUtil::AbstractTable table;
 
             #! the target Database object in case sequence value need to be acquired
-            SqlUtil::AbstractDatabase $.db;
+            SqlUtil::AbstractDatabase db;
+
+            #! if the AbstractTable object supports the "returning" clause
+            bool has_returning;
+
+            #! "returning" arguments for sequences
+            list ret_args = ();
+
+            #! extra arguments for sequence output binds
+            list out_args = ();
+
+            #! "unstable input" option for non-optimized inserts (~33% performance reduction in insert speed)
+            bool unstable_input = False;
+
+            #! statement for inserts
+            SQLStatement stmt;
+
+            #! bulk insert block size
+            int insert_block;
+
+            #! buffer for bulk inserts
+            hash hbuf;
+
+            #! per-row @ref closure or @ref call_reference for batch inserts
+            *code rowcode;
         }
 
         #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
@@ -130,24 +284,26 @@ const DbMapper = (
     "available": "Available",
     "in_transit": "InTransit",
     "status": ("constant": "01"),
-    "total": int sub (any $x, hash $rec) { return $rec.Available.toInt() + $rec.Ordered.toInt() + $rec.InTransit.toInt(); },
+    "total": int sub (any x, hash rec) { return rec.Available.toInt() + rec.Ordered.toInt() + rec.InTransit.toInt(); },
     );
 
-my InboundTableMapper $map($table, DbMapper);
+InboundTableMapper mapper(table, DbMapper);
             @endcode
 
-            @param table the target table object
-            @param map a hash providing field mappings; each hash key is the name in lower case of the output column in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
-            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
+            @param target the target table object
+            @param mapv a hash providing field mappings; each hash key is the name in lower case of the output column in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref tablemapperkeys for detailed documentation for this option
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
+            - \c "unstable_input": set this option to @ref Qore::True "True" (default @ref Qore::False "False") if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
+            - \c "insert_block": for DB drivers supporting bulk DML (for use with the queueData(), flush(), and discard() methods), the number of rows inserted at once (default: 500, only used when \c "unstable_input" is @ref Qore::False "False") and bulk inserts are supported in the table object; see @ref tablemapper_bulk_insert_api for more information
+            - \c "rowcode": a per-row @ref closure or @ref call_reference for batch inserts; this must take a single hash argument and will be called for every row after a bulk insert; the hash argument representing the row inserted will also contain any output values if applicable
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
-        */
-        constructor(SqlUtil::Table $table, hash $map, *hash $opts) {
-            $.table = $table.getTable();
-            $.setup($map, $opts);
 
-            # check map for logical errors
-            $.checkMap();            
+            @see setRowCode()
+        */
+        constructor(SqlUtil::Table target, hash mapv, *hash opts) {
+            table = target.getTable();
+            init(mapv, opts);
         }
 
         #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
@@ -164,108 +320,177 @@ const DbMapper = (
     "available": "Available",
     "in_transit": "InTransit",
     "status": ("constant": "01"),
-    "total": int sub (any $x, hash $rec) { return $rec.Available.toInt() + $rec.Ordered.toInt() + $rec.InTransit.toInt(); },
+    "total": int sub (any x, hash rec) { return rec.Available.toInt() + rec.Ordered.toInt() + rec.InTransit.toInt(); },
     );
 
-my InboundTableMapper $map($table, DbMapper);
+InboundTableMapper mapper(table, DbMapper);
             @endcode
 
             @param table the target table object
-            @param map a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
-            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
+            @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref tablemapperkeys for detailed documentation for this option
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
+            - \c "unstable_input": set this option to @ref Qore::True "True" (default @ref Qore::False "False") if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
+            - \c "insert_block": for DB drivers supporting bulk DML (for use with the queueData(), flush(), and discard() methods), the number of rows inserted at once (default: 500, only used when \c "unstable_input" is @ref Qore::False "False") and bulk inserts are supported in the table object; see @ref tablemapper_bulk_insert_api for more information
+            - \c "rowcode": a per-row @ref closure or @ref call_reference for batch inserts; this must take a single hash argument and will be called for every row after a bulk insert; the hash argument representing the row inserted will also contain any output values if applicable
+
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
-        */
-        constructor(SqlUtil::AbstractTable $table, hash $map, *hash $opts) {
-            $.table = $table;
-            $.setup($map, $opts);
+            @throw TABLE-ERROR the table includes a column using an unknown native data type
 
-            # check map for logical errors
-            $.checkMap();            
+            @see setRowCode()
+        */
+        constructor(SqlUtil::AbstractTable target, hash mapv, *hash opts) {
+            table = target;
+            init(mapv, opts);
         }
 
-        #! verifies the input map in the constructor
-        private checkMap() {
-            my Columns $cols = $.table.describe();
+        #! throws an exception if there is data pending in the block cache
+        /** @throw BLOCK-ERROR there is unflushed data in the block cache; make sure to call flush() or discard() before destroying the object
+        */
+        destructor() {
+            if (hbuf.firstValue())
+                throw "BLOCK-ERROR", sprintf("there %s still %d row%s of data in the block cache; make sure to call %s::flush() or %s::discard() before destroying the object to flush all data to the database", hbuf.firstValue().size() == 1 ? "is" : "are", hbuf.firstValue().size(), hbuf.firstValue().size() == 1 ? "" : "s", self.className(), self.className());
+        }
 
-            # ensure there are no unknown mappings
-            foreach my string $k in ($.mapc.keyIterator()) {
-                if (!$cols.hasKey($k))
-                    $.error("mapper specifies column '%s' that does not exist in the target table '%s'", $.getFieldName($k), $.table.getSqlName());                
-            }
-
+        #! returns a description of the output record based on the @ref SqlUtil::AbstractTable "AbstractTable" target
+        static hash getOutputRecord(*string mname, AbstractTable table, *hash output) {
+            Columns cols = table.describe();
             # update output field definitions from real table description
-            foreach my AbstractColumn $col in ($cols.iterator()) {
-                my string $cn = $col.name.lwr();
-                my reference $ch = \$.mapc.$cn;
-                my int $t = $ch.typeCode();
-
-                my bool $mand;
-                if (!$col.nullable && !exists $col.def_val)
-                    $mand = True;
-
-                # only add column descriptions where mappings are missing if there is a NOT NULL constraint and no default value
-                if (!exists $ch && !$mand)
-                    continue;
-
-                if ($t != NT_HASH) {
-                    if ($t == NT_NOTHING && $mand && !exists $.crec.$cn)
-                        $.error("output column '%s.%s' has a NOT NULL constraint and no default value, and the mapper object has no mapping or constant value; please provide a mapping or constant value for this column", $.table.getSqlName(), $.getFieldName($cn));
-                    $.convertToHash($t, $cn, \$ch);
+            foreach AbstractColumn col in (cols.iterator()) {
+                string cn = col.name.lwr();
+                reference outf = \output{cn};
+                if (outf.typeCode() != NT_HASH)
+                    outf = {};
+                if (!col.nullable && !exists col.def_val)
+                    outf.mand = True;
+                switch (col.qore_type) {
+                    case "string":
+                        outf += ("maxlen": col.size);
+                        # fall down to next case
+                    case "number":
+                    case "integer":
+                    case "date":
+                        outf.type = col.qore_type;
+                        break;
+                    default:
+                        throw "TABLE-ERROR", sprintf("%scolumn '%s.%s' has unknown native type %y", mname ? sprintf("mapper %y: ", mname) : "", table.getSqlName(), cn, col.native_type);
                 }
-
-                switch ($col.qore_type) {
-                    case "string": $ch += ("maxlen": $col.size, "trunc": $.trunc_all); break;
-                    case "number": $ch.type = "number"; break;
-                    case "integer": $ch.type = "integer"; break;
-                    case "date": $ch.type = "date"; break;
-                    default: throw "TABLE-ERROR", sprintf("column '%s.%s' has unknown native type %y", $.table.getSqlName(), $cn, $col.native_type);
-                }
-                if ($mand)
-                    $ch.mand = True;
+                if (col.comment)
+                    outf.desc = col.comment;
             }
+            return output;
+        }
 
-            map $.checkMapField($1, \$.mapc.$1, ("cols": $cols)), $.mapc.keyIterator();
+        #! common constructor initialization
+        private init(hash mapv, *hash opts) {
+            has_returning = table.hasReturning();
+
+            # setup output description for Mapper
+            opts.output = InboundTableMapper::getOutputRecord(opts.name, table, opts.output);
+
+            setup(mapv, opts);
+
+            # set options with defaults
+            map self{$1.key} = opts{$1.key} ?* $1.value, OptionDefaults.pairIterator();
+
+            if (insert_block < 1)
+                throw "MAP-ERROR", sprintf("the insert_block option is set to %d; this value must be >= 1", insert_block);
+
+            # unconditionally set insert_block = 1 if the driver does not support bulk DML
+            if (!table.hasArrayBind())
+                insert_block = 1;
+
+            # set any per-row closure/call reference
+            if (opts.rowcode)
+                rowcode = opts.rowcode;
+
+            # check map for logical errors
+            checkMap();
         }
 
         #! performs type handling
-        private mapFieldType(string $key, hash $m, reference $v, hash $rec) {
-            if ($m.sequence) {
-                try {
-                    $v = $.db.getNextSequenceValue($m.sequence);
+        private mapFieldType(string key, hash m, reference v, hash rec) {
+            if (m.sequence) {
+                if (!has_returning) {
+                    try {
+                        v = db.getNextSequenceValue(m.sequence);
+                    }
+                    catch (hash ex) {
+                        throw ex.err, sprintf("%s (sequence: %y)", ex.desc, m.sequence), ex.arg;
+                    }
                 }
-                catch (hash $ex) {
-                    throw $ex.err, sprintf("%s (sequence: %y)", $ex.desc, $m.sequence), $ex.arg;
-                }
+                else
+                    return;
             }
-            Mapper::$.mapFieldType($key, $m, \$v, $rec);
-        }
-
-        #! returns @ref Qore::True "True" if the field has a mapping, @ref Qore::False "False" if not
-        private bool hasMapping(hash $fh) {
-            return $fh.name || $fh.struct || $fh.code || $fh.sequence;
+            if (m.sequence_currval) {
+                if (!has_returning) {
+                    try {
+                        v = db.getCurrentSequenceValue(m.sequence_currval);
+                    }
+                    catch (hash ex) {
+                        throw ex.err, sprintf("%s (sequence: %y)", ex.desc, m.sequence_currval), ex.arg;
+                    }
+                }
+                else
+                    return;
+            }
+            Mapper::mapFieldType(key, m, \v, rec);
         }
 
         #! perform per-field pre-processing on the passed map in the constructor
         /** @param k the field name
             @param fh a reference to the field's value in the map
         */
-        private checkMapField(string $k, reference $fh, hash $th) {
-            if ($fh.sequence) {
-                if ($fh.sequence.typeCode() != NT_STRING)
-                    $.error("column '%s.%s' has a sequence key assigned to type '%s' (%y)", $.table.getSqlName(), $.getFieldName($k), $fh.sequence.type(), $fh.sequence);
-                if (!$.db)
-                    $.db = AbstractDatabase::getDatabase($.table.getDatasource());
+        private checkMapField(string k, reference fh) {
+            if (fh.sequence) {
+                if (fh.sequence.typeCode() != NT_STRING)
+                    error("column '%s.%s' has a sequence key assigned to type '%s' (%y)", table.getSqlName(), getFieldName(k), fh.sequence.type(), fh.sequence);
 
-                if ($fh.type) {
-                    if ($fh.type != "number" && $fh.type != "integer")
-                        $.error("column '%s.%s' has a 'sequence' key, but the type is '%s'", $.table.getSqlName(), $.getFieldName($k), $fh.type);
+                if (!has_returning) {
+                    if (!db)
+                        db = AbstractDatabase::getDatabase(table.getDatasource());
+
+                    if (fh.type) {
+                        if (fh.type != "number" && fh.type != "integer")
+                            error("column '%s.%s' has a 'sequence' key, but the type is '%s'", table.getSqlName(), getFieldName(k), fh.type);
+                    }
+                    else
+                        fh.type = "number";
                 }
-                else
-                    $fh.type = "number";
+                else {
+                    fh.constant = iop_seq(fh.sequence);
+                    ret_args += k;
+                }
+            }
+            if (fh.sequence_currval) {
+                if (fh.sequence_currval.typeCode() != NT_STRING)
+                    error("column '%s.%s' has a sequence_currval key assigned to type '%s' (%y)", table.getSqlName(), getFieldName(k), fh.sequence_currval.type(), fh.sequence_currval);
+
+                if (!has_returning) {
+                    if (!db)
+                        db = AbstractDatabase::getDatabase(table.getDatasource());
+
+                    if (fh.type) {
+                        if (fh.type != "number" && fh.type != "integer")
+                            error("column '%s.%s' has a 'sequence_currval' key, but the type is '%s'", table.getSqlName(), getFieldName(k), fh.type);
+                    }
+                    else
+                        fh.type = "number";
+                }
+                else {
+                    fh.constant = iop_seq_currval(fh.sequence_currval);
+                    ret_args += k;
+                }
             }
 
-            Mapper::$.checkMapField($k, \$fh);
+            Mapper::checkMapField(k, \fh);
+        }
+
+        #! returns a list of valid field types for this class (can be overridden in subclasses)
+        /** @return a list of valid types for this class (can be overridden in subclasses)
+        */
+        hash validTypes() {
+            return ValidTypes + (has_returning ? ("sequence": True, "sequence_currval": True) : NOTHING);
         }
 
         #! returns a list of valid field keys for this class (can be overridden in subclasses)
@@ -274,6 +499,7 @@ my InboundTableMapper $map($table, DbMapper);
         hash validKeys() {
             return Mapper::ValidKeys + (
                 "sequence": True,
+                "sequence_currval": True,
                 );
         }
 
@@ -281,65 +507,377 @@ my InboundTableMapper $map($table, DbMapper);
         /** @return a list of valid constructor options for this class (can be overridden in subclasses)
         */
         hash optionKeys() {
-            return OptionKeys + (
-                "table": True,
-                );
+            return OptionKeys;
         }
 
         #! inserts a row into the target table based on a mapped input record; does not commit the transaction
-        /** @param $rec the input record
+        /** @param rec the input record
 
             @return a hash of the row values inserted (row name: value)
 
             @throw MISSING-INPUT a field marked mandatory is missing
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
-            @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data        
+            @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
         */
-        hash insertRowNoCommit(hash $rec) {
-            my hash $h = $.mapData($rec + $.crec);
-            $.table.insertNoCommit($h);
-            return $h;
+        hash insertRow(hash rec) {
+            hash h = mapDataIntern(rec);
+            *hash rh;
+
+            if (unstable_input || (insert_block == 1))
+                rh = table.insertNoCommit(h, ("returning": ret_args));
+            else {
+                # when executing for the first time on stable input data, get an SQLStatement for the SQL used to insert
+                if (!stmt) {
+                    string sql;
+                    rh = table.insertNoCommit(h, \sql, ("returning": ret_args));
+                    stmt = new SQLStatement(table.getDatasource());
+                    stmt.prepare(sql);
+                }
+                else {
+                    # remove sequences
+                    map remove h.$1, ret_args;
+                    # execute the SQLStatement on the args
+                    stmt.execArgs(h.values());
+                    rh = stmt.getOutput();
+                }
+            }
+
+            if (rh)
+                h += rh;
+
+            Mapper::logOutput(h);
+            if (rowcode) {
+                rowcode(h);
+            }
+            return h;
         }
 
-        #! inserts a row into the target table based on a mapped input record; commits the transaction
-        /** @param $rec the input record
+        #! sets a @ref closure "closure" or @ref call_reference "call reference" that will be called when data has been sent to the database and all output data is available; must accept a hash argument that represents the data written to the database including any output arguments. This code will be reset, once the transaction is commited.
+        /** @par Example:
+            @code
+code rowcode = sub (hash row) {
+    # process row data
+};
+table_mapper.setRowCode(rowcode);
+            @endcode
 
-            @return a hash of the row values inserted (column: value), not including the extra values
+            @param rowc a @ref closure "closure" or @ref call_reference "call reference" that will be called when data has been sent to the database and all output data is available; must accept a hash argument that represents the data written to the database including any output arguments
 
+            @note the per-row @ref closure "closure" or @ref call_reference "call reference" can also be set by using the \c "rowcode" option in the constructor()
+        */
+        setRowCode(*code rowc) {
+            rowcode = rowc;
+        }
+
+        #! inserts a row (or a set of rows, in case a hash of lists is passed) into the block buffer based on a mapped input record; the block buffer is flushed to the DB if the buffer size reaches the limit defined by the \c "insert_block" option; does not commit the transaction
+        /** @par Example:
+            @code
+on_success table_mapper.commit();
+on_error table_mapper.rollback();
+{
+    on_success table_mapper.flush();
+    on_error table_mapper.discard();
+
+    map table_mapper.queueData($1), data.iterator();
+}
+            @endcode
+
+            Data is only inserted if the block buffer size reaches the limit defined by the \c "insert_block" option, in which case this method returns all the data inserted.  In case the mapped data is only inserted into the cache, no value is returned.
+
+            @param rec the input record or record set in case a hash of lists is passed
+            @param crec an optional simple hash of data to be added to each row in case \a rec is a hash of lists
+
+            @return if batch data was inserted then a hash (columns) of lists (row data) of all data inserted and potentially returned (in case of sequences) from the database server is returned
+
+            @note
+            - make sure to call flush() before committing the transaction or discard() before rolling back the transaction or destroying the object when using this method
+            - flush() or discard() needs to be executed for each mapper used in the block when using multiple mappers whereas the DB transaction needs to be committed or rolled back once per datasource
+            - this method and batched inserts in general cannot be used when the \c "unstable_input" option is given in the constructor
+            - if the \c "insert_block" option is set to 1, then this method simply calls insertRow()
+            - if an error occurs flushing data, the count is reset by calling @ref Mapper::Mapper::resetCount() "Mapper::resetCount()"
+
+            @see
+            - flush()
+            - discard()
+
+            @throw MAPPER-BATCH-ERROR this exception is thrown if this method is called when the \c "unstable_input" option was given in the constructor
             @throw MISSING-INPUT a field marked mandatory is missing
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
-            @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data        
+            @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
         */
-        hash insertRow(hash $rec) {
-            on_success $.table.commit();
-            on_error $.table.rollback();
+        *hash queueData(hash rec, *hash crec) {
+            if (unstable_input)
+                throw "MAPPER-BATCH-ERROR", sprintf("cannot call %s::queueData() when the unstable_input option is set", self.className());
 
-            return $.insertRowNoCommit($rec);
+            if (rec.firstValue().typeCode() == NT_LIST) {
+                hash h;
+                foreach hash row in (rec.contextIterator()) {
+                    *hash th = queueDataIntern(row + crec);
+                    if (th) {
+                        if (h)
+                            map h.$1 += th.$1, th.keyIterator();
+                        else
+                            h = th;
+                    }
+                }
+                return h;
+            }
+
+            return queueDataIntern(rec + crec);
         }
 
-        #! commits the transaction
+        #! inserts a row into the block buffer based on a mapped input record; does not commit the transaction
+        /** Data is only inserted if the block buffer size reaches the limit defined by the \c "insert_block" option, in which case this method returns all the data inserted.  In case the mapped data is only inserted into the cache, no value is returned.
+
+            @param rec a hash representing a single input record
+
+            @return if batch data was inserted then a hash (columns) of lists (row data) of all data inserted and potentially returned (in case of sequences) from the database server is returned
+
+            @throw MAPPER-BATCH-ERROR this exception is thrown if this method is called when the \c "unstable_input" option was given in the constructor
+            @throw MISSING-INPUT a field marked mandatory is missing
+            @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
+            @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
+        */
+        private *hash queueDataIntern(hash rec) {
+            if (insert_block == 1) {
+                return insertRow(rec);
+            }
+
+            hash h = mapDataIntern(rec);
+
+            # map record data to get the keys for the buffer
+            if (!hbuf)
+                map hbuf{$1.key} = ($1.value,), h.pairIterator();
+            else
+                map hbuf{$1.key} += $1.value, h.pairIterator();
+
+            # return nothing if nothing needs to be flushed
+            if (hbuf.firstValue().size() < insert_block)
+                return;
+
+            # return all target data
+            return flushIntern();
+        }
+
+        #! flushes any remaining batched data to the database; this method should always be called before committing the transaction or destroying the object
+        /** @par Example:
+            @code
+on_success table_mapper.commit();
+on_error table_mapper.rollback();
+{
+    on_success table_mapper.flush();
+    on_error table_mapper.discard();
+
+    map table_mapper.queueData($1), data.iterator();
+}
+            @endcode
+
+            @return if batch data was inserted then a hash (columns) of lists (row data) of all data inserted and potentially returned (in case of sequences) from the database server is returned
+
+            @note
+            - flush() or discard() needs to be executed for each mapper used in the block when using multiple mappers whereas the DB transaction needs to be committed or rolled back once per datasource
+            - also clears any row @ref closure or @ref call_reference set for batch operations
+            - if an error occurs flushing data, the count is reset by calling @ref Mapper::Mapper::resetCount() "Mapper::resetCount()"
+
+            @see
+            - queueData()
+            - discard()
+        */
+        *hash flush() {
+            if (hbuf.firstValue())
+                return flushIntern();
+            remove rowcode;
+        }
+
+        #! discards any buffered batched data; this method should be called after using the batch APIs (queueData()) and an error occurs
+        /** @par Example:
+            @code
+on_success table_mapper.commit();
+on_error table_mapper.rollback();
+{
+    on_success table_mapper.flush();
+    on_error table_mapper.discard();
+
+    map table_mapper.queueData($1), data.iterator();
+}
+            @endcode
+
+            @note
+            - flush() or discard() needs to be executed for each mapper used in the block when using multiple mappers whereas the DB transaction needs to be committed or rolled back once per datasource
+            - also clears any row @ref closure or @ref call_reference set for batch operations
+            - if an error occurs flushing data, the count is reset by calling @ref Mapper::Mapper::resetCount() "Mapper::resetCount()"
+
+            @see
+            - queueData()
+            - flush()
+        */
+        discard() {
+            delete hbuf;
+            remove rowcode;
+        }
+
+        #! flushes queued data to the database
+        private hash flushIntern() {
+            *hash rh;
+
+            if (info_log)
+                info_log("%s: flushing %d row%s", table.getSqlName(), hbuf.firstValue().size(), hbuf.firstValue().size() == 1 ? "" : "s");
+
+            try {
+                # when executing for the first time on stable input data, get an SQLStatement for the SQL used to insert
+                if (!stmt) {
+                    string sql;
+                    # update sequences to a single value for the insert
+                    if (ret_args && hbuf{ret_args[0]}.typeCode() == NT_LIST)
+                        map hbuf.$1 = hbuf.$1[0], ret_args;
+                    out_args = map Type::Number, ret_args.iterator();
+                    rh = table.insertNoCommit(hbuf, \sql, ("returning": ret_args));
+                    # create the statement for future inserts
+                    stmt = new SQLStatement(table.getDatasource());
+                    stmt.prepare(sql);
+                }
+                else {
+                    # remove sequences
+                    map remove hbuf.$1, ret_args;
+                    # execute the SQLStatement on the args
+                    stmt.execArgs(hbuf.values() + out_args);
+                    # get sequence values
+                    rh = stmt.getOutput();
+                }
+            }
+            catch (hash ex) {
+                if (ex.err =~ /BIND-/ && info_log)
+                    info_log("%s: %s: column lengths: %y", ex.err, ex.desc, (map {$1.key: $1.value.lsize()}, hbuf.pairIterator()));
+                # reset row count if an exception is thrown
+                resetCount();
+                rethrow;
+            }
+
+            # get return value
+            hash rv = hbuf + rh;
+            # clear buffer but keep hash keys
+            map hbuf.$1 = (), hbuf.keyIterator();
+
+            if (output_log) {
+                if (rowcode)
+                    map (Mapper::logOutput($1), rowcode($1)), rv.contextIterator();
+                else
+                    map Mapper::logOutput($1), rv.contextIterator();
+            }
+            else if (rowcode)
+                map rowcode($1), rv.contextIterator();
+
+            # return all data inserted
+            return rv;
+        }
+
+        #! ignore logging from Mapper since we may have to log sequence values; output logged manually in insertRow()
+        logOutput(hash h) {
+        }
+
+        #! Plain alias to insertRow(). Obsolete. Do not use.
+        deprecated hash insertRowNoCommit(hash rec) {
+            return insertRow(rec);
+        }
+
+        #! flushes any queued data and commits the transaction
         nothing commit() {
-            $.table.commit();
+            flush();
+            table.commit();
         }
 
-        #! rolls back the transaction
+        #! discards any queued data and rolls back the transaction
         nothing rollback() {
-            $.table.rollback();
+            discard();
+            table.rollback();
         }
 
         #! returns the table name
         string getTableName() {
-            return $.table.getSqlName();
+            return table.getSqlName();
         }
 
         #! returns the underlying SqlUtil::AbstractTable object
         SqlUtil::AbstractTable getTable() {
-            return $.table;
+            return table;
         }
 
         #! returns the @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object associated with this object
-        AbstractDatasource getDatasource() {
-            return $.table.getDatasource();
+        Qore::SQL::AbstractDatasource getDatasource() {
+            return table.getDatasource();
+        }
+
+        #! prepends the datasource description to the error string and calls Mapper::error()
+        private error(string fmt) {
+            Mapper::error(vsprintf(sprintf("datasource %y: ", table.getDatasourceDesc()) + fmt, argv));
+        }
+
+        #! prepends the datasource description to the error description and calls Mapper::error2()
+        private error2(string ex, string fmt) {
+            Mapper::error2(ex, vsprintf(sprintf("datasource %y: ", table.getDatasourceDesc()) + fmt, argv));
+        }
+    }
+
+    #! maps from source to target tables with exactly the same structure
+    public class InboundIdentityTableMapper inherits TableMapper::InboundTableMapper {
+        #! builds the object based on an optional hash providing field mappings, data constraints, and optionally custom mapping logic
+        /** The target table is also scanned using @ref sqlutilintro "SqlUtil" and column definitions are used to update the target record specification, also if there are any columns with NOT NULL constraints and no default value, mapping, or constant value, then a MAP-ERROR exception is thrown
+
+            @par Example:
+            @code
+const DbMapper = (
+    "id": ("sequence": "seq_inventory_example"),
+    );
+
+InboundIdentityTableMapper mapper(table, DbMapper);
+            @endcode
+
+            @param target the target table object
+            @param mapv a optional hash providing overrides for the default 1:1 input to output field mappings; each hash key is the name in lower case of the output column in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
+            - \c "unstable_input": set this option to @ref Qore::True "True" (default @ref Qore::False "False") if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
+            - \c "insert_block": for DB drivers supporting bulk DML (for use with the queueData(), flush(), and discard() methods), the number of rows inserted at once (default: 500, only used when \c "unstable_input" is @ref Qore::False "False") and bulk inserts are supported in the table object; see @ref tablemapper_bulk_insert_api for more information
+
+            @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
+        */
+        constructor(SqlUtil::Table target, hash mapv = {}, *hash opts) : InboundTableMapper(target, mapv, opts) {
+        }
+
+        #! builds the object based on an optional hash providing field mappings, data constraints, and optionally custom mapping logic
+        /** The target table is also scanned using @ref sqlutilintro "SqlUtil" and column definitions are used to update the target record specification, also if there are any columns with NOT NULL constraints and no default value, mapping, or constant value, then a MAP-ERROR exception is thrown
+
+            @par Example:
+            @code
+const DbMapper = (
+    "id": ("sequence": "seq_inventory_example"),
+    );
+
+InboundIdentityTableMapper mapper(table, DbMapper);
+            @endcode
+
+            @param table the target table object
+            @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
+            - \c "unstable_input": set this option to @ref Qore::True "True" (default @ref Qore::False "False") if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
+            - \c "insert_block": for DB drivers supporting bulk DML (for use with the queueData(), flush(), and discard() methods), the number of rows inserted at once (default: 500, only used when \c "unstable_input" is @ref Qore::False "False") and bulk inserts are supported in the table object; see @ref tablemapper_bulk_insert_api for more information
+
+            @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
+            @throw TABLE-ERROR the table includes a column using an unknown native data type
+        */
+        constructor(SqlUtil::AbstractTable target, hash mapv = {}, *hash opts) : InboundTableMapper(target, mapv, opts) {
+        }
+
+        #! common constructor initialization
+        private init(hash mapv, *hash opts) {
+            # setup input description as equal to the output
+            opts.input = InboundIdentityTableMapper::getInputRecord(table);
+            mapv = (map {$1.name.lwr(): ("name": $1.name.lwr())}, table.describe().iterator()) + mapv;
+            InboundTableMapper::init(mapv, opts);
+        }
+
+        #! returns a description of the input record based on the @ref SqlUtil::AbstractTable "AbstractTable" source
+        static hash getInputRecord(SqlUtil::AbstractTable table) {
+            return map {$1.name.lwr(): $1.comment ? ("desc": $1.comment) : {}}, table.describe().iterator();
         }
     }
 
@@ -350,16 +888,16 @@ my InboundTableMapper $map($table, DbMapper);
 
         private {
             #! data mapper
-            TableMapper::InboundTableMapper $.mapc;
+            TableMapper::InboundTableMapper mapc;
 
             #! row commit limit (<= 0 for no commits)
-            int $.commit_limit;
+            int commit_limit;
 
             #! row count for commit
-            int $.cnt = 0;
+            int cnt = 0;
 
             #! a copy of the last hash value mapped
-            hash $.val;
+            hash val;
         }
 
         #! creates the iterator from the arguments passed
@@ -376,24 +914,24 @@ const DbMapper = (
     "available": "Available",
     "in_transit": "InTransit",
     "status": ("constant": "01"),
-    "total": int sub (any $x, hash $rec) { return $rec.Available.toInt() + $rec.Ordered.toInt() + $rec.InTransit.toInt(); },
+    "total": int sub (any x, hash rec) { return rec.Available.toInt() + rec.Ordered.toInt() + rec.InTransit.toInt(); },
     );
 
-my InboundTableMapperIterator $i($input, $table, DbMapper);
+InboundTableMapperIterator i(input, table, DbMapper);
             @endcode
 
             @param i input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
-            @param table the target table object
-            @param map a hash providing field mappings; each hash key is the name of the output column in lower case in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
-            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
+            @param target the target table object
+            @param mapv a hash providing field mappings; each hash key is the name of the output column in lower case in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options; note that options related to bulk DML are ignored by this object since it works on one row at a time
             @param commit_limit row count before a commit is made; if <= 0 then no commits are made by this object, otherwise a commit is made for each \a commit_limit rows processed by this object, commits are made in calls to @ref next()
 
             @note by default \a commit_limit is 0 meaning that this object will make no commits; in this case the transaction will
             have to be commited explicitly externally
         */
-        constructor(Qore::AbstractIterator $i, SqlUtil::Table $table, hash $map, *hash $opts, int $commit_limit = 0) : Mapper::AbstractMapperIterator($i) {
-            $.mapc = new TableMapper::InboundTableMapper($table, $map, $opts);
-            $.commit_limit = $commit_limit > 0 ? $.commit_limit : 0;
+        constructor(Qore::AbstractIterator i, SqlUtil::Table target, hash mapv, *hash opts, int commit_limit = 0) : Mapper::AbstractMapperIterator(i) {
+            mapc = new TableMapper::InboundTableMapper(target, mapv, opts);
+            commit_limit = commit_limit > 0 ? commit_limit : 0;
         }
 
         #! creates the iterator from the arguments passed
@@ -410,24 +948,24 @@ const DbMapper = (
     "available": "Available",
     "in_transit": "InTransit",
     "status": ("constant": "01"),
-    "total": int sub (any $x, hash $rec) { return $rec.Available.toInt() + $rec.Ordered.toInt() + $rec.InTransit.toInt(); },
+    "total": int sub (any x, hash rec) { return rec.Available.toInt() + rec.Ordered.toInt() + rec.InTransit.toInt(); },
     );
 
-my InboundTableMapperIterator $i($input, $table, DbMapper);
+InboundTableMapperIterator i(input, table, DbMapper);
             @endcode
 
             @param i input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
-            @param table the target table object
-            @param map a hash providing field mappings; each hash key is the name of the output column in lower case in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
-            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
+            @param target the target table object
+            @param mapv a hash providing field mappings; each hash key is the name of the output column in lower case in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options; note that options related to bulk DML are ignored by this object since it works on one row at a time
             @param commit_limit row count before a commit is made; if <= 0 then no commits are made by this object, otherwise a commit is made for each \a commit_limit rows processed by this object, commits are made in calls to @ref next()
 
             @note by default \a commit_limit is 0 meaning that this object will make no commits; in this case the transaction will
             have to be commited explicitly externally
         */
-        constructor(Qore::AbstractIterator $i, SqlUtil::AbstractTable $table, hash $map, *hash $opts, int $commit_limit = 0) : Mapper::AbstractMapperIterator($i) {
-            $.mapc = new TableMapper::InboundTableMapper($table, $map, $opts);
-            $.commit_limit = $commit_limit > 0 ? $.commit_limit : 0;
+        constructor(Qore::AbstractIterator i, SqlUtil::AbstractTable target, hash mapv, *hash opts, int commit_limit = 0) : Mapper::AbstractMapperIterator(i) {
+            mapc = new TableMapper::InboundTableMapper(target, mapv, opts);
+            commit_limit = commit_limit > 0 ? commit_limit : 0;
         }
 
         #! creates the iterator from the arguments passed
@@ -443,27 +981,27 @@ const DbMapper = (
     "ordered": "Ordered",
     "available": "Available",
     "in_transit": "InTransit",
-    "total": int sub (any $x, hash $rec) { return $rec.Available.toInt() + $rec.Ordered.toInt() + $rec.InTransit.toInt(); },
+    "total": int sub (any x, hash rec) { return rec.Available.toInt() + rec.Ordered.toInt() + rec.InTransit.toInt(); },
     );
 
-my InboundTableMapper $map($table, DbMapper);
-my InboundTableMapperIterator $i($input, $map);
+InboundTableMapper mapper(table, DbMapper);
+InboundTableMapperIterator i(input, mapper);
             @endcode
 
             @param i input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
             @param map the mapper to transform the data
             @param commit_limit row count before a commit is made; if <= 0 then no commits are made by this object, otherwise a commit is made for each \a commit_limit rows processed by this object, commits are made in calls to @ref next()
         */
-        constructor(Qore::AbstractIterator $i, TableMapper::InboundTableMapper $map, int $commit_limit = 0) : Mapper::AbstractMapperIterator($i) {
-            $.mapc = $map;
-            $.commit_limit = $commit_limit > 0 ? $.commit_limit : 0;
+        constructor(Qore::AbstractIterator i, TableMapper::InboundTableMapper mapv, int commit_limit = 0) : Mapper::AbstractMapperIterator(i) {
+            mapc = mapv;
+            commit_limit = commit_limit > 0 ? commit_limit : 0;
         }
 
         #! returns the current row transformed with the mapper
         hash getValue() {
-            if ($.val)
-                return $.val;
-            return $.val = $.mapc.mapData($.i.getValue());
+            if (val)
+                return val;
+            return val = mapc.mapData(i.getValue());
         }
 
         #! Moves the current position of the input iterator to the next element; returns @ref Qore::False "False" if there are no more elements otherwise inserts the row in the target table and returns @ref Qore::True "True"
@@ -472,58 +1010,462 @@ my InboundTableMapperIterator $i($input, $map);
             @return @ref Qore::False "False" if there are no more elements, in this case if there is an uncommitted transaction according to the internal row count, then @ref TableMapper::InboundTableMapper::commit() is called as well
         */
         bool next() {
-            delete $.val;
-            my bool $rv = $.i.next();
+            delete val;
+            bool rv = i.next();
 
-            if ($rv)
-                $.mapc.getTable().insertNoCommit($.getValue());
+            if (rv)
+                mapc.getTable().insertNoCommit(getValue());
 
             # commit transaction if necessary
-            if ($.commit_limit && (($rv && (++$.cnt == $.commit_limit)) || (!$rv && $.cnt))) {
-                $.mapc.commit();
-                $.cnt = 0;
+            if (commit_limit && ((rv && (++cnt == commit_limit)) || (!rv && cnt))) {
+                mapc.commit();
+                cnt = 0;
             }
 
-            return $rv;
+            return rv;
         }
 
         #! returns the \a commit_limit value set in the constructor()
         int commitLimit() {
-            return $.commit_limit;
+            return commit_limit;
         }
 
         #! commits the transaction
         nothing commit() {
-            $.mapc.commit();
+            mapc.commit();
         }
 
         #! rolls back the transaction
         nothing rollback() {
-            $.mapc.rollback();
+            mapc.rollback();
         }
 
         #! returns the table name
         string getTableName() {
-            return $.mapc.getTableName();
+            return mapc.getTableName();
         }
 
         #! returns the internal record count
         /** @see resetCount()
         */
         int getCount() {
-            return $.mapc.getCount();
+            return mapc.getCount();
         }
 
         #! resets the internal record count
         /** @see getCount()
         */
         resetCount() {
-            $.mapc.resetCount();
+            mapc.resetCount();
         }
 
         #! returns the @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object associated with this object
-        AbstractDatasource getDatasource() {
-            return $.mapc.getDatasource();
+        Qore::SQL::AbstractDatasource getDatasource() {
+            return mapc.getDatasource();
         }
     }
+
+    #! provides a hash iterator based on a mapper object and an SQLStatement or SqlUtil select hash
+    /** provides support for bulk DML:
+        - @ref hasBulk() returns @ref True
+        - @ref mapBulk() fetches the number of rows requested and then maps to output values
+    */
+    public class SqlStatementMapperIterator inherits Mapper::AbstractMapperIterator {
+        public {
+        }
+
+        private {
+            #! data mapper
+            Mapper::Mapper m_mapper;
+        }
+
+        #! creates the iterator from the arguments passed
+        /** @param table SqlUtil::AbstractTable as a base for select hash \c sh
+            @param sh a SqlUtil select hash (columns/joins/wheres...)
+            @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
+
+            @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
+         */
+        constructor(SqlUtil::AbstractTable table, hash sh, hash mapv, *hash opts)
+            : Mapper::AbstractMapperIterator(table.getRowIterator(sh))
+        {
+            setup(mapv, opts);
+        }
+
+        #! creates the iterator from the arguments passed
+        /** @param table SqlUtil::Table as a base for select hash \c sh
+            @param sh a SqlUtil select hash (columns/joins/wheres...)
+            @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
+
+            @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
+         */
+        constructor(SqlUtil::Table table, hash sh, hash mapv, *hash opts)
+            : Mapper::AbstractMapperIterator(table.getRowIterator(sh))
+        {
+            setup(mapv, opts);
+        }
+
+        #! creates the iterator from the arguments passed
+        /** @param stmt already constructed SQLStatement object
+            @param map the mapper to transform the data
+        */
+        constructor(Qore::SQL::SQLStatement stmt, hash mapv, *hash opts)
+            : Mapper::AbstractMapperIterator(stmt)
+        {
+            setup(mapv, opts);
+        }
+
+        private setup(hash mapv, *hash opts) {
+            # only Mapper options can be posted to the Mapper instance.
+            # But we're lucky - no more options needed in this iterator.
+            *hash o;
+            HashIterator it(opts);
+            while (it.next()) {
+                if (Mapper::OptionKeys.hasKey(it.getKey()))
+                    o{it.getKey()} = it.getValue();
+            }
+            m_mapper = new Mapper(mapv, o);
+        }
+
+        #! returns the current row transformed with the mapper
+        hash getValue() {
+            return m_mapper.mapData(i.getValue());
+        }
+
+        #! returns the internal record count
+        /** @see resetCount()
+        */
+        int getCount() {
+            return m_mapper.getCount();
+        }
+
+        #! resets the internal record count
+        /** @see getCount()
+        */
+        resetCount() {
+            m_mapper.resetCount();
+        }
+
+        #! returns @ref True because this class supports bulk mode
+        bool hasBulk() {
+            return True;
+        }
+
+        #! performs bulk mapping by selecting the requested number of rows in a single select
+        /** @param size the number of rows to return
+
+            @return a list of mapped hashes with a maximum number of rows corresponding to the \a size argument; in case there is less input data than requested, the list returned could have fewer rows than requested; in case there is no more data, the return value is an empty list
+         */
+        list mapBulk(int size) {
+            SQLStatement stmt = cast<SQLStatement>(i);
+
+            list l = stmt.fetchRows(size);
+            if (!l)
+                return ();
+
+            return map m_mapper.mapData($1), l;
+        }
+
+    } # class SqlStatementMapperIterator
+
+    #! provides an abstract base for all SQL based outbound mappers
+    public class AbstractSqlStatementOutboundMapper inherits Mapper::Mapper {
+        public {
+            #! option keys for this object
+            const OptionKeys = Mapper::OptionKeys + (
+                    "select_block" : sprintf("the row block size used when bulk DML / batch inserts are used; default: %y", OptionDefaults.select_block),
+                );
+
+            #! default option values
+            const OptionDefaults = (
+                    "select_block": 500,
+                );
+        }
+
+        private {
+            # internal SQLStatement
+            SQLStatement m_stmt;
+            # current options
+            *hash m_opts;
+            # a select_block size. Taken from m_opts
+            int select_block;
+        }
+
+        #! builds the object based on an optional hash providing field mappings, data constraints, and optionally custom mapping logic
+        /** The source statement is also scanned using @ref Qore::SQLStatement and column definitions are used to update the source record specification.
+
+            @param mapv a optional hash providing overrides for the default 1:1 input to output field mappings; each hash key is the name in lower case of the output column in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
+            - \c "select_block": for size of the batch returned from TableMapper::SqlStatementOutboundMapper::getData() or SqlStatementOutboundMapper::getDataRows()
+
+            @throw MAP-ERROR
+        */
+        constructor(hash mapv, *hash opts) {
+            setup(mapv, opts);
+            # check map for logical errors
+            checkMap();
+
+            # set options with defaults
+            map self{$1.key} = opts{$1.key} ?* $1.value, OptionDefaults.pairIterator();
+
+            m_opts = opts;
+
+            if (select_block < 1)
+                throw "MAP-ERROR", sprintf("the select_block option is set to %d; this value must be >= 1", select_block);
+
+            # moved to fetch methods because of potential Qorus runtime options
+            # m_stmt = m_table.getRowIterator(m_sh);
+        }
+
+        #! returns a list of valid constructor options for this class (can be overridden in subclasses)
+        /** @return a list of valid constructor options for this class (can be overridden in subclasses)
+        */
+        hash optionKeys() {
+            return OptionKeys;
+        }
+
+        #! commits the transaction and free the AbstractDatasource resource
+        commit() {
+            if (!m_stmt)
+                initStatement();
+            m_stmt.commit();
+        }
+
+        #! rollbacks the transaction and free the AbstractDatasource resource
+        rollback() {
+            if (!m_stmt)
+                initStatement();
+            m_stmt.rollback();
+        }
+
+        #! returns the @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object associated with this object
+        abstract Qore::SQL::AbstractDatasource getDatasource();
+
+        #! re-implement to initialize Qore::SQLStatement
+        abstract private initStatement();
+
+        #! returns a description of the input record based on the @ref Qore::SQLStatement decribe()
+        *hash getInputRecord() {
+            if (!m_stmt)
+                initStatement();
+            HashIterator it(m_stmt.describe());
+            while (it.next()) {
+                hash c = it.getValue();
+                input{it.getKey().lwr()} = sprintf("%s: %s(%d)", c.name, c.native_type, c.maxsize);
+            }
+            return input;
+        }
+
+        #! Get SqlStatementMapperIterator for easy line-by-line processing
+        /** @return TableMapper::SqlStatementMapperIterator object
+
+            Data are retrieved with standard Qore::AbstractIterator::getValue() or similar.
+            Value is a hash with column names as keys.
+         */
+        SqlStatementMapperIterator iterator() {
+            if (!m_stmt)
+                initStatement();
+            return new SqlStatementMapperIterator(m_stmt, mapc, m_opts);
+        }
+
+        #! Retrieve mapped data as a hash of lists.
+        /** @return *hash with data or Qore::NOTHING in case there are no more data available.
+
+            Size of the batch is driven by \c select_block option passed in constructor.
+
+            Hash is in Qore::AbstractDatasource::select() form - meaning it is a hash
+            with column names as keys. Values are lists of column values.
+            This data structure is used for Qore::context statement or BulksSqlUtil
+            operations.
+         */
+        *hash getData() {
+            if (!m_stmt)
+                initStatement();
+
+            *list tmp = mapAll(m_stmt.fetchRows(select_block));
+
+            if (tmp && tmp.size()) {
+                # make "context" structure
+                hash ret;
+                HashIterator it(tmp[0]);
+                while (it.next()) {
+                    ret{it.getKey()} = list();
+                }
+
+                ListIterator lit(tmp);
+                while (lit.next()) {
+                    HashIterator hit(lit.getValue());
+                    while (hit.next()) {
+                        push ret{hit.getKey()}, hit.getValue();
+                    }
+                }
+
+                return ret;
+            }
+        }
+
+        #! Retrieve mapped data as a hash of lists.
+        /** @return *list with data or Qore::NOTHING in case there are no more data available.
+
+            Size of the batch is driven by \c select_block option passed in constructor.
+
+            List is in Qore::AbstractDatasource::selectRows() form - meaning it is a list
+            with hashes, where every hashs has column names as keys with single values as
+            hash values.
+         */
+        *list getDataRows() {
+            if (!m_stmt)
+                initStatement();
+
+            return mapAll(m_stmt.fetchRows(select_block));
+        }
+
+    } # AbstractSqlStatementOutboundMapper
+
+
+    #! provides an outbound data mapper to a Table with SqlUtil select hash as a asource
+    public class SqlStatementOutboundMapper inherits AbstractSqlStatementOutboundMapper {
+
+        private {
+            # the target table object
+            SqlUtil::AbstractTable m_table;
+            # SqlUtil select hash
+            *hash m_sh;
+        }
+
+        #! builds the object based on an optional hash providing field mappings, data constraints, and optionally custom mapping logic
+        /** The source statement is also scanned using @ref Qore::SQLStatement and column definitions are used to update the source record specification.
+
+            @param source the source table object. A \c sh select hash is applied to this table
+            @param sh a SqlUtil select hash
+            @param mapv a optional hash providing overrides for the default 1:1 input to output field mappings; each hash key is the name in lower case of the output column in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
+            - \c "select_block": for size of the batch returned from TableMapper::AbstarctSqlStatementOutboundMapper::getData() or AbstarctSqlStatementOutboundMapper::getDataRows()
+
+            @throw MAP-ERROR
+        */
+        constructor(SqlUtil::Table source, *hash sh, hash mapv, *hash opts)
+            : AbstractSqlStatementOutboundMapper(mapv, opts)
+        {
+            m_table = source.getTable();
+            m_sh = sh;
+        }
+
+        #! builds the object based on an optional hash providing field mappings, data constraints, and optionally custom mapping logic
+        /** The source statement is also scanned using @ref Qore::SQLStatement and column definitions are used to update the source record specification.
+
+            @param source the source table object. A \c sh select hash is applied to this table
+            @param sh a SqlUtil select hash
+            @param mapv a optional hash providing overrides for the default 1:1 input to output field mappings; each hash key is the name in lower case of the output column in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
+            - \c "select_block": for size of the batch returned from TableMapper::AbstarctSqlStatementOutboundMapper::getData() or AbstarctSqlStatementOutboundMapper::getDataRows()
+
+            @throw MAP-ERROR
+        */
+        constructor(SqlUtil::AbstractTable source, *hash sh, hash mapv, *hash opts)
+            : AbstractSqlStatementOutboundMapper(mapv, opts)
+        {
+            m_table = source;
+            m_sh = sh;
+        }
+
+        #! returns the table name
+        /** @return string with main table name
+         */
+        string getTableName() {
+            return m_table.getSqlName();
+        }
+
+        #! returns the underlying SqlUtil::AbstractTable object
+        /** @return SqlUtil::AbstractTable provided in constructor
+         */
+        SqlUtil::AbstractTable getTable() {
+            return m_table;
+        }
+
+
+        #! returns the @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object associated with this object
+        Qore::SQL::AbstractDatasource getDatasource() {
+                return m_table.getDatasource();
+        }
+
+        private initStatement() {
+            string sql;
+            m_stmt = m_table.getRowIterator(m_sh, \sql);
+            if (info_log) {
+                info_log("Mapper: %s: %n", self.className(), sql);
+                info_log("Mapper: %s: binding: %y", self.className(), m_sh."where");
+            }
+        }
+
+    } # SqlStatementOutboundMapper
+
+
+    #! provides an outbound data mapper to a raw SQL statement
+    public class RawSqlStatementOutboundMapper inherits AbstractSqlStatementOutboundMapper {
+
+        private {
+            AbstractDatasource m_ds;
+            string m_sql;
+            *list m_sqlargs;
+        }
+
+        #! builds the obejct based on real SQL statement
+        /** The source statement is also scanned using @ref Qore::SQLStatement and column definitions are used to update the source record specification.
+
+            @param ds Qore::AbstractDatasource instance. Note that this object uses transaction lock for current thread.
+            @param sql a string with SQL statement. Variables binding is provided by \c sqlargs
+            @param sqlargs optional list with sql argumets/variables
+            @param mapv a optional hash providing overrides for the default 1:1 input to output field mappings; each hash key is the name in lower case of the output column in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
+            - \c "select_block": for size of the batch returned from TableMapper::AbstarctSqlStatementOutboundMapper::getData() or AbstarctSqlStatementOutboundMapper::getDataRows()
+
+        @par Example
+        @code{.py}
+%new-style
+%requires TableMapper
+
+Datasource ds("oracle:omq/omq@xbox");
+on_success ds.commit();
+on_error ds.rollback();
+
+hash MAPV = ("id" : "workflowid", "name" : True);
+RawSqlStatementOutboundMapper m(ds, "select * from workflows where workflowid = %v or workflowid = %v", (1,2), MAPV);
+printf("%N\n", m.getDataRows());
+#list: (2 elements)
+#  [0]=hash: (2 members)
+#    id : 1
+#    name : "ASYNC-TEST"
+#  [1]=hash: (2 members)
+#    id : 2
+#    name : "BUG-476-TEST"
+        @endcode
+         */
+        constructor(AbstractDatasource ds, string sql, *softlist sqlargs, hash mapv, *hash opts)
+            : AbstractSqlStatementOutboundMapper(mapv, opts)
+        {
+            m_ds = ds;
+            m_sql = sql;
+            m_sqlargs = sqlargs;
+        }
+
+        #! returns the @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object associated with this object
+        Qore::SQL::AbstractDatasource getDatasource() {
+            return m_ds;
+        }
+
+        private initStatement() {
+            m_stmt = new SQLStatement(m_ds);
+            m_stmt.prepare(m_sql);
+            m_stmt.bindArgs(m_sqlargs);
+            if (info_log) {
+                info_log("Mapper: %s: %n", self.className(), m_sql);
+                info_log("Mapper: %s: binding: %y", self.className(), m_sqlargs);
+            }
+        }
+
+    } # RawSqlStatementOutboundMapper
+
 }

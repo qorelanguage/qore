@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,12 +33,12 @@
 #include <qore/intern/qore_number_private.h>
 
 //! Methods in this pseudo-class can be executed on @ref integer "integer values"
-/** 
+/**
  */
-qclass <int> [arg=const QoreBigIntNode* i;vparent=<value>];
+qclass <int> [arg=int64 i = v.getAsBigInt();vparent=<value>];
 
 //! Returns Qore::NT_INT
-/** 
+/**
     @return Qore::NT_INT
 
     @par Example:
@@ -55,7 +55,7 @@ int <int>::typeCode() [flags=CONSTANT] {
 }
 
 //! Returns @ref True if the int is non-zero, @ref False if zero
-/** 
+/**
     @return @ref True if the int is non-zero, @ref False if zero
 
     @par Example:
@@ -68,7 +68,7 @@ my bool $b = $i.val();
     - @ref strict-bool-eval "%strict-bool-eval"
 */
 bool <int>::val() [flags=CONSTANT] {
-   return (bool)i->val;
+   return (bool)i;
 }
 
 //! Returns @ref True by default
@@ -122,7 +122,7 @@ my string $nstr = $i.format(".,3"); # returns "-48.392.093.894,000"
  */
 string <int>::format(string fmt) [flags=CONSTANT] {
    SimpleRefHolder<QoreStringNode> rv(new QoreStringNode(fmt->getEncoding()));
-   rv->sprintf(QLLD, i->val);
+   rv->sprintf(QLLD, i);
    return qore_number_private::formatNumberString(**rv, *fmt, xsink) ? 0 : rv.release();
 }
 
@@ -137,9 +137,9 @@ printf("sign: %d\n", $i.sign());
     @since %Qore 0.8.6
 */
 int <int>::sign() [flags=CONSTANT] {
-   if (!i->val)
+   if (!i)
       return 0;
-   return i->val > 0 ? 1 : -1;
+   return i > 0 ? 1 : -1;
 }
 
 //! returns a binary object with the integer encoded in the given number of bytes in most significant byte order
@@ -160,46 +160,39 @@ binary <int>::encodeMsb(int size = 4) [flags=RET_VALUE_ONLY] {
    SimpleRefHolder<BinaryNode> b(new BinaryNode);
    switch (size) {
       case 1: {
-         unsigned char c = i->val;
-         if (i->val != c) {
-            xsink->raiseException("SIZE-ERROR", "the integer value called with <int>::encodeMsb(size=1) ("QLLD") is too large to fit in 1 byte", i->val);
-            return 0;
-         }
+         unsigned char c = i;
+         if (i != c)
+            return xsink->raiseException("SIZE-ERROR", "the integer value called with <int>::encodeMsb(size=1) ("QLLD") is too large to fit in 1 byte", i);
          b->append((void*)&c, 1);
          break;
       }
 
       case 2: {
-         uint16_t num = i->val;
-         if (i->val != num) {
-            xsink->raiseException("SIZE-ERROR", "the integer value called with <int>::encodeMsb(size=2) ("QLLD") is too large to fit in 2 bytes", i->val);
-            return 0;
-         }
+         uint16_t num = i;
+         if (i != num)
+            return xsink->raiseException("SIZE-ERROR", "the integer value called with <int>::encodeMsb(size=2) ("QLLD") is too large to fit in 2 bytes", i);
          num = htons(num);
          b->append((void*)&num, 2);
          break;
       }
 
       case 4: {
-         uint32_t num = i->val;
-         if (i->val != num) {
-            xsink->raiseException("SIZE-ERROR", "the integer value called with <int>::encodeMsb(size=4) ("QLLD") is too large to fit in 4 bytes", i->val);
-            return 0;
-         }
+         uint32_t num = i;
+         if (i != num)
+            return xsink->raiseException("SIZE-ERROR", "the integer value called with <int>::encodeMsb(size=4) ("QLLD") is too large to fit in 4 bytes", i);
          num = htonl(num);
          b->append((void*)&num, 4);
          break;
       }
 
       case 8: {
-         int64 num = i8MSB(i->val);
+         int64 num = i8MSB(i);
          b->append((void*)&num, 8);
          break;
       }
 
       default:
-         xsink->raiseException("SIZE-ERROR", "the size given to <int>::encodeMsb("QLLD") is not 1, 2, 4, or 8", size);
-         return 0;
+         return xsink->raiseException("SIZE-ERROR", "the size given to <int>::encodeMsb("QLLD") is not 1, 2, 4, or 8", size);
    }
    return b.release();
 }
@@ -222,46 +215,39 @@ binary <int>::encodeLsb(int size = 4) [flags=RET_VALUE_ONLY] {
    SimpleRefHolder<BinaryNode> b(new BinaryNode);
    switch (size) {
       case 1: {
-         unsigned char c = i->val;
-         if (i->val != c) {
-            xsink->raiseException("SIZE-ERROR", "the integer value called with <int>::encodeLsb(size=1) ("QLLD") is too large to fit in 1 byte", i->val);
-            return 0;
-         }
+         unsigned char c = i;
+         if (i != c)
+            return xsink->raiseException("SIZE-ERROR", "the integer value called with <int>::encodeLsb(size=1) ("QLLD") is too large to fit in 1 byte", i);
          b->append((void*)&c, 1);
          break;
       }
 
       case 2: {
-         uint16_t num = i->val;
-         if (i->val != num) {
-            xsink->raiseException("SIZE-ERROR", "the integer value called with <int>::encodeLsb(size=2) ("QLLD") is too large to fit in 2 bytes", i->val);
-            return 0;
-         }
+         uint16_t num = i;
+         if (i != num)
+            return xsink->raiseException("SIZE-ERROR", "the integer value called with <int>::encodeLsb(size=2) ("QLLD") is too large to fit in 2 bytes", i);
          num = i2LSB(num);
          b->append((void*)&num, 2);
          break;
       }
 
       case 4: {
-         uint32_t num = i->val;
-         if (i->val != num) {
-            xsink->raiseException("SIZE-ERROR", "the integer value called with <int>::encodeLsb(size=4) ("QLLD") is too large to fit in 4 bytes", i->val);
-            return 0;
-         }
+         uint32_t num = i;
+         if (i != num)
+            return xsink->raiseException("SIZE-ERROR", "the integer value called with <int>::encodeLsb(size=4) ("QLLD") is too large to fit in 4 bytes", i);
          num = i4LSB(num);
          b->append((void*)&num, 4);
          break;
       }
 
       case 8: {
-         int64 num = i8LSB(i->val);
+         int64 num = i8LSB(i);
          b->append((void*)&num, 8);
          break;
       }
 
       default:
-         xsink->raiseException("SIZE-ERROR", "the size given to <int>::encodeLsb("QLLD") is not 1, 2, 4, or 8", size);
-         return 0;
+         return xsink->raiseException("SIZE-ERROR", "the size given to <int>::encodeLsb("QLLD") is not 1, 2, 4, or 8", size);
    }
    return b.release();
 }
@@ -279,7 +265,7 @@ $i = $i.abs();
     @since %Qore 0.8.8
 */
 int <int>::abs() [flags=CONSTANT] {
-   return i->val < 0 ? -i->val : i->val;
+   return i < 0 ? -i : i;
 }
 
 //! Returns a single character string in UTF-8 encoding for the integer value treated as a unicode value
@@ -296,6 +282,6 @@ my string $str = 0x00f8.toUnicode()
 */
 string <int>::toUnicode() [flags=RET_VALUE_ONLY] {
    SimpleRefHolder<QoreStringNode> str(new QoreStringNode(QCS_UTF8));
-   str->concatUnicode(i->val);
+   str->concatUnicode(i);
    return *xsink ? 0 : str.release();
 }

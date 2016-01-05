@@ -1,0 +1,217 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class DgcTest
+
+class GcTest {
+    public {
+        code inc;
+        any a;
+        *GcTest b;
+        *GcTest c;
+    }
+
+    private {
+        *GcTest o;
+    }
+
+    constructor(code i, *GcTest obj) {
+        inc = i;
+        o = obj;
+    }
+
+    destructor() {
+        # increment static counter in destructor
+        call_function(inc);
+    }
+
+    set(*GcTest obj) {
+        o = obj;
+    }
+}
+
+class GcTest1 {
+    public {
+        code inc;
+        any a = self;
+    }
+
+    constructor(code i) {
+        inc = i;
+    }
+
+    destructor() {
+        # increment static counter in destructor
+        inc();
+    }
+}
+
+class DgcTest inherits QUnit::Test {
+    constructor() : Test("GcTest", "1.0") {
+	addTestCase("GcTests", \gcTests());
+
+        # Return for compatibility with test harness that checks the return value
+        set_return_value(main());
+    }
+
+    gcTests() {
+	if (!HAVE_DETERMINISTIC_GC)
+	    testSkip("HAVE_DETERMINISTIC_GC is not defined");
+
+	int cnt = 0;
+	code inc = sub () { ++cnt; };
+
+	# make circular references
+	{
+	    GcTest obj1(inc);
+	    obj1.a = obj1;
+	}
+	testAssertionValue("recursive gc 1", cnt, 1);
+
+	{
+	    GcTest obj2(inc);
+	    obj2.a = obj2;
+	}
+	testAssertionValue("recursive gc 2", cnt, 2);
+
+	{
+	    GcTest obj3(inc);
+	    obj3.a.a = obj3;
+	}
+	testAssertionValue("recursive gc 3", cnt, 3);
+
+	{
+	    GcTest obj4(inc);
+	    obj4.a = list(obj4);
+	}
+	testAssertionValue("recursive gc 4", cnt, 4);
+
+	{
+	    GcTest obj5(inc);
+	    GcTest obj6(inc);
+	    obj5.a = obj6;
+	    obj6.b = obj5;
+	}
+	testAssertionValue("recursive gc 6", cnt, 6);
+
+	{
+	    GcTest obj7(inc);
+	    obj7.a = obj7;
+	    obj7.b = obj7;
+	}
+	testAssertionValue("recursive gc 7", cnt, 7);
+
+	{
+	    GcTest obj8(inc);
+	    GcTest obj9(inc);
+
+	    obj8.a = ("a": obj9, "b": obj9);
+	    obj9.b = obj8;
+	    obj9.c = obj8;
+	}
+	testAssertionValue("recursive gc 9", cnt, 9);
+
+	{
+	    GcTest obj10(inc);
+	    GcTest obj11(inc);
+	    obj10.set(obj11);
+	    obj11.set(obj10);
+	}
+	testAssertionValue("recursive gc 11", cnt, 11);
+
+	{
+	    GcTest obj12(inc);
+	    {
+		GcTest obj13(inc);
+
+		obj12.a = obj13;
+		obj13.a = obj12;
+	    }
+	}
+	testAssertionValue("recursive gc 13-1", cnt, 13);
+
+	{
+	    GcTest t1(inc);
+	    GcTest t2(inc);
+	    t1.set(t2);
+	    t2.set(t1);
+	    t1.set();
+
+	    testAssertionValue("recursive gc 13-2", cnt, 13);
+	}
+	testAssertionValue("recursive gc 15-1", cnt, 15);
+
+	{
+	    GcTest t1(inc);
+	    t1.set(t1);
+	    t1.set();
+
+	    testAssertionValue("recursive gc 15-2", cnt, 15);
+	}
+	testAssertionValue("recursive gc 16-1", cnt, 16);
+
+	{
+	    GcTest t1(inc);
+	    {
+		GcTest t2(inc);
+		t1.set(t2);
+		t2.b = t1;
+		{
+		    GcTest t3(inc);
+		    t2.set(t3);
+		    t2.b = t1;
+		    {
+			GcTest t4(inc);
+			t3.set(t4);
+			t4.set(t1);
+			t3.b = t2;
+			t4.b = t3;
+		    }
+		}
+	    }
+	    testAssertionValue("recursive gc 16-2", cnt, 16);
+	}
+	testAssertionValue("recursive gc 20-1", cnt, 20);
+
+	{
+	    GcTest t1(inc);
+	    {
+		GcTest t2(inc);
+		t1.set(t2);
+		t2.b = t1;
+		{
+		    GcTest t3(inc);
+		    t2.set(t3);
+		    t3.b = t2;
+		    t3.c = t1;
+		    t1.b = t3;
+		    {
+			GcTest t4(inc);
+			t3.set(t4);
+			t4.set(t1);
+			t4.b = t2;
+			t4.c = t3;
+			t2.c = t4;
+			t1.c = t4;
+		    }
+		}
+	    }
+
+	    testAssertionValue("recursive gc 20-2", cnt, 20);
+
+	}
+	testAssertionValue("recursive gc 24", cnt, 24);
+
+	{
+	    GcTest1 t1(inc);
+	}
+	testAssertionValue("recursive gc 25", cnt, 25);
+    }
+}

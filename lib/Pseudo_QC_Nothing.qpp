@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,12 +32,12 @@
 #include <qore/Qore.h>
 
 //! Methods in this pseudo-class can be executed on @ref nothing
-/** 
+/**
  */
-qclass <nothing> [arg=const AbstractQoreNode* n;vparent=<value>];
+qclass <nothing> [arg=;vparent=<value>];
 
 //! Returns Qore::NT_NOTHING
-/** 
+/**
     @return Qore::NT_NOTHING
 
     @par Example:
@@ -80,7 +80,7 @@ map printf("+ %y\n", $1), get_hash_or_nothing().pairIterator();
     @since %Qore 0.8.6.2
  */
 SingleValueIterator <nothing>::pairIterator() [flags=CONSTANT] {
-   return new QoreObject(QC_SINGLEVALUEITERATOR, 0, new SingleValueIterator(0));
+   return new QoreObject(QC_SINGLEVALUEITERATOR, 0, new SingleValueIterator(QoreValue()));
 }
 
 //! Returns an empty @ref Qore::SingleValueIterator "SingleValueIterator" object
@@ -96,7 +96,7 @@ map printf("+ %y\n", $1), get_hash_or_nothing().keyIterator();
     @since %Qore 0.8.6.2
  */
 SingleValueIterator <nothing>::keyIterator() [flags=CONSTANT] {
-   return new QoreObject(QC_SINGLEVALUEITERATOR, 0, new SingleValueIterator(0));
+   return new QoreObject(QC_SINGLEVALUEITERATOR, 0, new SingleValueIterator(QoreValue()));
 }
 
 //! Returns an empty @ref Qore::SingleValueIterator "SingleValueIterator" object
@@ -112,7 +112,7 @@ map printf("+ %y\n", $1), get_hash_or_nothing().contextIterator();
     @since %Qore 0.8.6.2
  */
 SingleValueIterator <nothing>::contextIterator() [flags=CONSTANT] {
-   return new QoreObject(QC_SINGLEVALUEITERATOR, 0, new SingleValueIterator(0));
+   return new QoreObject(QC_SINGLEVALUEITERATOR, 0, new SingleValueIterator(QoreValue()));
 }
 
 //! Returns an empty list
@@ -272,5 +272,5 @@ map printf("+ %y\n", $1), get_list_or_nothing().rangeIterator();
     @since %Qore 0.8.8
  */
 SingleValueIterator <nothing>::rangeIterator() [flags=CONSTANT] {
-   return new QoreObject(QC_SINGLEVALUEITERATOR, 0, new SingleValueIterator(0));
+   return new QoreObject(QC_SINGLEVALUEITERATOR, 0, new SingleValueIterator(QoreValue()));
 }

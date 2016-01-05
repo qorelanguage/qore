@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -36,6 +36,14 @@
 #define Q_MACHINE_MSB 1
 #else
 #define Q_MACHINE_MSB 0
+#endif
+
+#ifdef _Q_WINDOWS
+#define Q_IS_WINDOWS 1
+#define Q_IS_UNIX    0
+#else
+#define Q_IS_WINDOWS 0
+#define Q_IS_UNIX    1
 #endif
 
 /** @defgroup type_code_constants Type Code Constants
@@ -211,6 +219,12 @@ const LDFLAGS =       qore(new QoreStringNode(qore_ldflags));
 
 //! @ref True if the current machine uses <a href="http://en.wikipedia.org/wiki/Most_significant_bit">big-endian or MSB byte order</a> or @ref False if the current machine uses <a href="http://en.wikipedia.org/wiki/Least_significant_bit">little-endian or LSB byte order</a>
 const MACHINE_MSB =   bool(Q_MACHINE_MSB);
+
+//! hash of platform information
+const Platform = ("OS": qore(new QoreStringNode(TARGET_OS)), "CPU": qore(new QoreStringNode(TARGET_ARCH)), "Unix": bool(Q_IS_UNIX), "Windows": bool(Q_IS_WINDOWS));
+
+//! platform-specific directory separator character string
+const DirSep = qore(new QoreStringNode(QORE_DIR_SEP_STR));
 //@}
 
 /** @defgroup event_source_constants Event Source Constants

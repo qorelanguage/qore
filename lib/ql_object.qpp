@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   ql_object.qpp
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2014 David Nichols
- 
+
+  Copyright (C) 2003 - 2015 David Nichols
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -32,34 +32,81 @@
 #include <qore/Qore.h>
 #include <qore/intern/ql_object.h>
 
+static QoreObject* create_object_intern(const QoreStringNode* class_name, unsigned arg_offset, const QoreValueList* args, ExceptionSink* xsink) {
+   TempEncodingHelper tmp(class_name, QCS_DEFAULT, xsink);
+   if (!tmp) {
+      assert(*xsink);
+      return 0;
+   }
+
+   const QoreClass* qc = qore_program_private::runtimeFindClass(*getProgram(), tmp->getBuffer(), xsink);
+   if (!qc) {
+      if (!*xsink)
+         xsink->raiseException("CREATE-OBJECT-ERROR", "cannot resolve class '%s' for instantiation", tmp->getBuffer());
+      return 0;
+   }
+
+   if (getProgram()->getParseOptions64() & qc->getDomain())
+      xsink->raiseException("CREATE-OBJECT-ERROR", "current Program sandboxing restrictions do not allow access to the '%s' class", qc->getName());
+
+   if (qore_class_private::runtimeCheckInstantiateClass(*qc, xsink))
+      return 0;
+
+
+   const QoreValueList* real_args;
+   ReferenceHolder<QoreValueList> tmp_args(xsink);
+   if (arg_offset) {
+      tmp_args = args->size() > arg_offset ? args->copyListFrom(arg_offset) : 0;
+      real_args = *tmp_args;
+   }
+   else
+      real_args = args;
+
+   return qc->execConstructor(real_args, xsink);
+}
+
 /** @defgroup object_functions Object Functions
     Object functions
 */
 //@{
 
 //! Returns a list of strings of the names of the methods of the class of the object passed as a parameter
-/** 
+/**
+    @param obj an object of the class to get the method list from
+
+    @return a list of strings of the names of the methods of the class of the object passed as a parameter; returns all methods in the class, both private and public but does not return inherited methods
+
+    @deprecated use get_method_list(); camel-case function names were deprecated in %Qore 0.8.12
+ */
+list getMethodList(object obj) [flags=CONSTANT,DEPRECATED] {
+   return obj->getClass()->getMethodList();
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/**
+ */
+nothing getMethodList() [flags=RUNTIME_NOOP,DEPRECATED] {
+}
+
+//! Returns a list of strings of the names of the methods of the class of the object passed as a parameter
+/**
     @param obj an object of the class to get the method list from
 
     @return a list of strings of the names of the methods of the class of the object passed as a parameter; returns all methods in the class, both private and public but does not return inherited methods
 
     @par Example:
-    @code
-my list $l = getMethodList($obj);
+    @code{.py}
+my list $l = get_method_list($obj);
     @endcode
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case getMethodList()
  */
-list getMethodList(object obj) [flags=CONSTANT] {
+list get_method_list(object obj) [flags=CONSTANT] {
    return obj->getClass()->getMethodList();
 }
 
-//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
- */
-nothing getMethodList() [flags=RUNTIME_NOOP] {
-}
-
 //! Calls a method of an object, passing the remainder of the arguments to the function as arguments to the method
-/** 
+/**
     @param obj the object to use for the call
     @param method the method to call
     @param ... any additional arguments to the method
@@ -67,7 +114,7 @@ nothing getMethodList() [flags=RUNTIME_NOOP] {
     @return the value returned by the method call
 
     @par Example:
-    @code
+    @code{.py}
 my any $result = callObjectMethod($obj, "method", $arg1, $arg2);
     @endcode
 
@@ -77,14 +124,16 @@ my any $result = callObjectMethod($obj, "method", $arg1, $arg2);
     @throw BASE-CLASS-IS-PRIVATE The named method is a member of a privately inherited base class
 
     @note the method called could cause additional exceptions to be thrown
+
+    @deprecated use call_object_method(); camel-case function names were deprecated in %Qore 0.8.12
  */
-any callObjectMethod(object obj, string method, ...) {
+any callObjectMethod(object obj, string method, ...) [flags=DEPRECATED] {
    ReferenceHolder<QoreListNode> call_args(xsink);
-   
+
    // if there are arguments to pass
    if (num_args(args) > 2) {
       // create argument list by copying current list
-      call_args = args->copyListFrom(2);
+      call_args = args->getOldList(2);
    }
 
    // make sure method call is internal (allows access to private methods) if this function was called internally
@@ -93,22 +142,22 @@ any callObjectMethod(object obj, string method, ...) {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
-nothing callObjectMethod() [flags=RUNTIME_NOOP] {
+nothing callObjectMethod() [flags=RUNTIME_NOOP,DEPRECATED] {
 }
 
-//! Calls a method of an object, using the optional third argument as the argument list to the method
-/** 
+//! Calls a method of an object, passing the remainder of the arguments to the function as arguments to the method
+/**
     @param obj the object to use for the call
     @param method the method to call
-    @param varg any additional arguments to the method
+    @param ... any additional arguments to the method
 
     @return the value returned by the method call
 
     @par Example:
-    @code
-my any $result = callObjectMethodArgs($obj, "method", $arglist);
+    @code{.py}
+my any $result = call_object_method($obj, "method", $arg1, $arg2);
     @endcode
 
     @throw METHOD-DOES-NOT-EXIST The named method does not exist in this class
@@ -117,16 +166,76 @@ my any $result = callObjectMethodArgs($obj, "method", $arglist);
     @throw BASE-CLASS-IS-PRIVATE The named method is a member of a privately inherited base class
 
     @note the method called could cause additional exceptions to be thrown
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case callObjectMethod()
+*/
+any call_object_method(object obj, string method, ...) {
+   ReferenceHolder<QoreListNode> call_args(xsink);
+
+   // if there are arguments to pass
+   if (num_args(args) > 2) {
+      // create argument list by copying current list
+      call_args = args->getOldList(2);
+   }
+
+   // make sure method call is internal (allows access to private methods) if this function was called internally
+   CodeContextHelper cch(0, obj, xsink);
+   return obj->evalMethod(method, *call_args, xsink);
+}
+
+//! Calls a method of an object, using the optional third argument as the argument list to the method
+/**
+    @param obj the object to use for the call
+    @param method the method to call
+    @param varg any additional arguments to the method
+
+    @return the value returned by the method call
+
+    @throw METHOD-DOES-NOT-EXIST The named method does not exist in this class
+    @throw ILLEGAL-EXPLICIT-METHOD-CALL The named method may not be called explicitly
+    @throw METHOD-IS-PRIVATE The named method is private and therefore can only be called within the class
+    @throw BASE-CLASS-IS-PRIVATE The named method is a member of a privately inherited base class
+
+    @note the method called could cause additional exceptions to be thrown
+
+    @deprecated use call_object_method_args(); camel-case function names were deprecated in %Qore 0.8.12
  */
-any callObjectMethodArgs(object obj, string method, *softlist varg) {
+any callObjectMethodArgs(object obj, string method, *softlist varg) [flags=DEPRECATED] {
    CodeContextHelper cch(0, obj, xsink);
    return obj->evalMethod(method, varg, xsink);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
-nothing callObjectMethodArgs() [flags=RUNTIME_NOOP] {
+nothing callObjectMethodArgs() [flags=RUNTIME_NOOP,DEPRECATED] {
+}
+
+//! Calls a method of an object, using the optional third argument as the argument list to the method
+/**
+    @param obj the object to use for the call
+    @param method the method to call
+    @param varg any additional arguments to the method
+
+    @return the value returned by the method call
+
+    @par Example:
+    @code{.py}
+my any $result = call_object_method_args($obj, "method", $arglist);
+    @endcode
+
+    @throw METHOD-DOES-NOT-EXIST The named method does not exist in this class
+    @throw ILLEGAL-EXPLICIT-METHOD-CALL The named method may not be called explicitly
+    @throw METHOD-IS-PRIVATE The named method is private and therefore can only be called within the class
+    @throw BASE-CLASS-IS-PRIVATE The named method is a member of a privately inherited base class
+
+    @note the method called could cause additional exceptions to be thrown
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case callObjectMethodArgs()
+*/
+any call_object_method_args(object obj, string method, *softlist varg) {
+   CodeContextHelper cch(0, obj, xsink);
+   return obj->evalMethod(method, varg, xsink);
 }
 
 //! calls a pseudo-method on the given value
@@ -146,8 +255,8 @@ nothing callObjectMethodArgs() [flags=RUNTIME_NOOP] {
 any call_pseudo(any val, string meth, ...) {
    ReferenceHolder<QoreListNode> nargs(xsink);
    if (args->size() > 2)
-      nargs = args->copyListFrom(2);
-   return pseudo_classes_eval(val, meth->getBuffer(), *nargs, xsink);
+      nargs = args->getOldList(2);
+   return pseudo_classes_eval(val, meth->getBuffer(), *nargs, xsink).takeNode();
 }
 
 //! calls a pseudo-method on the given value with arguments given as a list
@@ -165,6 +274,57 @@ any call_pseudo(any val, string meth, ...) {
     @since %Qore 0.8.8
  */
 any call_pseudo_args(any val, string meth, *softlist argv) {
-   return pseudo_classes_eval(val, meth->getBuffer(), argv, xsink);
+   return pseudo_classes_eval(val, meth->getBuffer(), argv, xsink).takeNode();
+}
+
+//! creates an object from the class name (which can include a namespace path) and optionally any arguments for the constructor
+/** @par Example
+    @code{.py}
+object obj = create_object(class_name, arg1, arg2);
+    @endcode
+
+    @param class_name the name of the class to instantiate (can be prefixed with a namespace path)
+    @param ... any other arguments to the constructor
+
+    @return the object created
+
+    @throw CREATE-OBJECT-ERROR unknown class, class implements features restricted by current parse options / sandboxing restrictions
+    @throw CONSTRUCTOR-IS-PRIVATE attempt to instantiate an object with a private constructor from outside the class
+
+    @note see the class documentation for the class to be instantiated for a list of additional exceptions that can be thrown
+
+    @see create_object_args()
+
+    @since %Qore 0.8.12
+ */
+object create_object(string class_name, ...) {
+   return create_object_intern(class_name, 1, args, xsink);
+}
+
+//! creates an object from the class name (which can include a namespace path) and optionally any arguments for the constructor
+/** @par Example
+    @code{.py}
+object obj = create_object_args(class_name, arg_list);
+    @endcode
+
+    @param class_name the name of the class to instantiate (can be prefixed with a namespace path)
+    @param args any other arguments to the constructor
+
+    @return the object created
+
+    @throw CREATE-OBJECT-ERROR unknown class, class implements features restricted by current parse options / sandboxing restrictions
+    @throw CONSTRUCTOR-IS-PRIVATE attempt to instantiate an object with a private constructor from outside the class
+
+    @note see the class documentation for the class to be instantiated for a list of additional exceptions that can be thrown
+
+    @see create_object()
+
+    @since %Qore 0.8.12
+ */
+object create_object_args(string class_name, *softlist argv) {
+   ReferenceHolder<QoreValueList> arg_list(xsink);
+   if (argv)
+      arg_list = new QoreValueList(argv);
+   return create_object_intern(class_name, 0, *arg_list, xsink);
 }
 //@}

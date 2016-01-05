@@ -1,0 +1,76 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class NumbersTest
+
+public class NumbersTest inherits QUnit::Test {
+    constructor() : Test("NumbersTest", "1.0") {
+        addTestCase("Test number to string conversions", \stringConversionTest());
+        addTestCase("Test number rounding during string conversions", \roundingTest());
+        addTestCase("Test number operations", \opTest());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    string helperToString(any n, any param) { return n.toString(param); }
+
+    stringConversionTest() {
+        int i = 1;
+        testAssertion("conversion no. " + string(i++), \string(), (10.2n,), new TestResultValue("10.2"));
+        testAssertion("conversion no. " + string(i++), \string(), (-10.2n,), new TestResultValue("-10.2"));
+        testAssertion("conversion no. " + string(i++), \string(), (1.000000000099999999n,), new TestResultValue("1.000000000099999999"));
+
+        testAssertion("conversion no. " + string(i++), \helperToString(), (10.245n, NF_Scientific), new TestResultValue("1.0245e+01"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (-10.245n, NF_Scientific), new TestResultValue("-1.0245e+01"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (0.10245n, NF_Scientific), new TestResultValue("1.0245e-01"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (-0.10245n, NF_Scientific), new TestResultValue("-1.0245e-01"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (1.0245n, NF_Scientific), new TestResultValue("1.0245e+00"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (-1.0245n, NF_Scientific), new TestResultValue("-1.0245e+00"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (10.245n,), new TestResultValue("10.245"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (-10.245n,), new TestResultValue("-10.245"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (0.10245n,), new TestResultValue("0.10245"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (-0.10245n), new TestResultValue("-0.10245"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (1.0245n,), new TestResultValue("1.0245"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (-1.0245n), new TestResultValue("-1.0245"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (10.001999999999n,), new TestResultValue("10.001999999999"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (-10.001999999999n,), new TestResultValue("-10.001999999999"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (0.10001999999999n,), new TestResultValue("0.10001999999999"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (-0.10001999999999n,), new TestResultValue("-0.10001999999999"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (1.0001999999999n,), new TestResultValue("1.0001999999999"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (-1.0001999999999n,), new TestResultValue("-1.0001999999999"));
+        # fixed in svn rev 6914
+        testAssertion("conversion no. " + string(i++), \helperToString(), (738.38.toNumber(),), new TestResultValue(helperToString(738.38)));
+    }
+
+    roundingTest() {
+        int i = 1;
+        testAssertion("rounding no. " + string(i++), \helperToString(), (0.8n,), new TestResultValue("0.8"));
+        testAssertion("rounding no. " + string(i++), \helperToString(), (0.8n, NF_Scientific), new TestResultValue("8e-01"));
+        testAssertion("rounding no. " + string(i++), \helperToString(), (-0.8n,), new TestResultValue("-0.8"));
+        testAssertion("rounding no. " + string(i++), \helperToString(), (-0.8n, NF_Scientific), new TestResultValue("-8e-01"));
+        testAssertion("rounding no. " + string(i++), \helperToString(), (34.9n * 100,), new TestResultValue("3490"));
+        testAssertion("rounding no. " + string(i++), \helperToString(), (1e50n,), new TestResultValue("100000000000000000000000000000000000000000000000000"));
+        testAssertion("rounding no. " + string(i++), \helperToString(), (-1e50n,), new TestResultValue("-100000000000000000000000000000000000000000000000000"));
+    }
+
+    opTest() {
+        assertEq(True, 1n >= 1n);
+        assertEq(True, 1n <= 1n);
+        assertEq(True, 1n == 1n);
+        assertEq(False, 1n != 1n);
+
+        assertEq(False, 1n < 1n);
+        assertEq(False, 1n > 1n);
+
+        assertEq(False, 1 < 1n);
+        assertEq(False, 1 > 1n);
+    }
+}

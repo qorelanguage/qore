@@ -1,8 +1,9 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+
 # @file email.q example program using the SmtpClient module
 
-/*  email.q Copyright 2012 David Nichols
+/*  email.q Copyright 2012 - 2015 David Nichols
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -28,6 +29,10 @@
 */
 
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
 %exec-class mail
 
 %requires SmtpClient >= 1.0
@@ -95,22 +100,22 @@ class mail {
 		smtp.setUserPass(opt.user, opt.pass);
 
 	    Message msg(opt.from, opt.subject);
-	    
+
 	    # set message body
 	    msg.setBody(opt.body);
 
 	    # add To: addresses
 	    foreach string addr in (opt.to)
 		msg.addTO(addr);
-	    
+
 	    # add CC: addresses
 	    foreach string addr in (opt.cc)
 		msg.addCC(addr);
-	    
+
 	    # add BCC: addresses
 	    foreach string addr in (opt.bcc)
 		msg.addBCC(addr);
-	    
+
 	    # add attachments
 	    foreach string fn in (opt.attach) {
 		ReadOnlyFile f(fn);
@@ -146,7 +151,7 @@ class mail {
 	       " -p,--pass=ARG     password for authenticated connections\n"
 	       " -s,--subject=ARG  the subject of the message (required)\n"
 	       " -S,--ssl          use a TLS/SSL connection to the SMTP server\n"
-	       " -t,--to=ARG       an email address for the To: line\n"	       
+	       " -t,--to=ARG       an email address for the To: line\n"
 	       " -u,--user=ARG     username for authenticated connections\n",
 	       get_script_name());
 	exit(1);
@@ -156,4 +161,3 @@ class mail {
 	stdout.printf("%y: %s\n", now_us(), str);
     }
 }
-
