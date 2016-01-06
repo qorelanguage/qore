@@ -115,6 +115,7 @@ module SqlUtil {
     - fixed a bug in subquery handling where bind-by-value arguments from the subquery were lost
     - fixed a bug in the partition by/over operator where column names as given in the query argument hash were not properly recognized
     - fixed a bug in schema alignment; when aligning a schema and an index supporting a PK constraint is introduced in the new schema, the alignment would fail when a constraint is attempted to be disabled that doesn't exist
+    - fixed a bug generating select statements for tables accessed through a synonym when used with join clauses; previously inconsistent schema prefixes could be used which could cause errors parsing the SQL statements generated
 
     @subsection sqlutilv1_2 SqlUtil v1.2
     - added insert operator support; for example, for inserting with values from sequences
@@ -14284,9 +14285,13 @@ string sql = table.getSelectSql(sh, \args);
         }
 
         string getSelectSqlUnlocked(*hash qh, reference args, *hash opt) {
+            # we first get column & table info in case we are referencing a table through a synonym
+            # so the getSelectSqlName() will refer to the proper schema owner
+            getColumnsUnlocked();
             return getSelectSqlUnlockedIntern(qh, getSelectSqlName(qh), \args, NOTHING, opt);
         }
 
+        # column & table information must be retrieved before calling this function
         string getSelectSqlUnlockedIntern(*hash qh, string from, reference args, *hash ch, *hash opt) {
             # get pseudo-column hash
             *hash psch = getPseudoColumnHash();
@@ -14319,8 +14324,6 @@ string sql = table.getSelectSql(sh, \args);
 
             # if we have a "superquery" argument, then we need to track which columns are in this subquery
             hash mch;
-
-            getColumnsUnlocked();
 
             string cstr;
             # make query
