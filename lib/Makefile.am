@@ -263,6 +263,7 @@ libqore_la_SOURCES = \
 	QoreValueCoalescingOperatorNode.cpp \
 	QoreChompOperatorNode.cpp \
 	QoreTrimOperatorNode.cpp \
+	QoreSquareBracketsOperatorNode.cpp \
 	QorePseudoMethods.cpp \
 	QoreHTTPClient.cpp \
 	QoreHttpClientObject.cpp \

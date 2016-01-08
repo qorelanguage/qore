@@ -153,6 +153,7 @@
     - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module updates:
       - new \c "tolwr" option in structured text parsing classes
       - AbstractCsvWriter will set \c "headers" from the \c "fields" option if \c "headers" are not explicitly set
+      -  added write() methods returning the generated strings to the CsvStringWriter class for API compatibility with the corresponding FixedLengthDataWriter methods
     - <a href="../../modules/Mapper/html/index.html">Mapper</a> module updates:
       - implemented the \c "constant" field tag, allowing a contant value for an output field to be specified directly in the mapper hash
       - implemented the \c "default" field tag, giving a default value if no input value is specified
@@ -235,7 +236,7 @@
       - implemented support for DBA management actions
       - implemented support for driver-dependent pseudocolumns
       - implemented per-column support for the \c "desc" keyword in orderby expressions
-      - implemented the \c "op_wop()" function to allow SQL expressions to be combined with \c "or" as well as the default \c "and"
+      - implemented the \c "wop_or()" function to allow complex SQL expressions to be generated with \c "or" as well as \c "and"
       - implemented AbstractTable::getBulkUpsertClosure() to better support bulk SQL merge operations
     - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module updates:
       - implemented support for views for DML in the OracleTable class
@@ -275,6 +276,7 @@
       - fixed a bug in subquery handling where bind-by-value arguments from the subquery were lost
       - fixed a bug in the partition by/over operator where column names as given in the query argument hash were not properly recognized
       - fixed a bug in schema alignment; when aligning a schema and an index supporting a PK constraint is introduced in the new schema, the alignment would fail when a constraint is attempted to be disabled that doesn't exist
+      - fixed a bug generating select statements for tables accessed through a synonym when used with join clauses; previously inconsistent schema prefixes could be used which could cause errors parsing the SQL statements generated
     - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module fixes:
       - fixed a bug where column names that are reserved words were not quoted in generated SQL
     - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> module fixes:
@@ -396,6 +398,8 @@
     - fixed a bug where calls to @ref Qore::HTTPClient::setConnectTimeout() had no effect (<a href="https://github.com/qorelanguage/qore/issues/323">bug 323</a>)
     - fixed several bugs with logical comparison operators and arbitrary-precision numeric values (<a href="https://github.com/qorelanguage/qore/issues/330">bug 330</a>)
     - fixed a bug where @ref Qore::HashListIterator (and therefore @ref <hash>::contextIterator()) would not iterate a simple hash with non-list values once but would instead silently ignore the hash (<a href="https://github.com/qorelanguage/qore/issues/336">bug 336</a>)
+    - fixed a bug where a warning was not always issued when square brackets were used on unsuitable types (<a href="https://github.com/qorelanguage/qore/issues/184">bug 184</a>), internally ported the square bracket operator to the C++ QoreOperatorNode hierarchy
+    - fixed a bug handling return type information for method and pseudo-method calls; uninitialized memory could be used which could cause a runtime crash (<a href="https://github.com/qorelanguage/qore/issues/364">bug 364</a>)
 
     @section qore_0811 Qore 0.8.11
 
