@@ -1264,10 +1264,10 @@ InboundTableMapperIterator i(input, mapper);
             Data are retrieved with standard Qore::AbstractIterator::getValue() or similar.
             Value is a hash with column names as keys.
          */
-        SqlStatementMapperIterator iterator() {
+        Mapper::MapperIterator iterator() {
             if (!m_stmt)
                 initStatement();
-            return new SqlStatementMapperIterator(m_stmt, mapc, m_opts);
+            return new MapperIterator(m_stmt, self);
         }
 
         #! Retrieve mapped data as a hash of lists.
