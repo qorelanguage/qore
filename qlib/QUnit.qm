@@ -348,23 +348,32 @@ public class QUnit::TestCase {
         }
     }
 
+    static *string getStackPos(list stack) {
+        foreach hash callSite in (stack) {
+            if (callSite.file !~ /QUnit\.qm/) {
+                string fn = regex_subst (callSite.file, "<run-time-loaded: (.*)>", "$1");
+                return sprintf("%s:%d", fn, callSite.line + callSite.offset);
+            }
+        }
+    }
+
+    static string getPos(hash ex) {
+        string pos = get_ex_pos(ex);
+        if (pos =~ /QUnit\.qm/ && ex.callstack) {
+            *string np = TestCase::getStackPos(ex.callstack);
+            if (np)
+                pos = np;
+        }
+        return pos;
+    }
+
     #! handles exceptions raised while running the TestCase
     checkException(QUnit::Test test, hash e) {
         if (e.err =~ /TEST-.*EXCEPTION/) {
             *string assertion_name = e.arg.name;
             *string pos = e.arg.pos;
-            if (!pos) {
-                pos = get_ex_pos(e);
-                if (pos =~ /QUnit\.qm/) {
-                    foreach hash callSite in (e.callstack) {
-                        if (callSite.file !~ /QUnit\.qm/) {
-                            string fn = regex_subst (callSite.file, "<run-time-loaded: (.*)>", "$1");
-                            pos = sprintf("%s:%d", fn, callSite.line + callSite.offset);
-                            break;
-                        }
-                    }
-                }
-            }
+            if (!pos)
+                pos = TestCase::getPos(e);
             if (e.err == "TEST-SKIPPED-EXCEPTION") {
                 string txt = sprintf("Skip %srequested", assertion_name ? sprintf("of %y ", assertion_name) : NOTHING);
                 test.addTestResult(self, TestReporter::TEST_SKIPPED, txt, pos, e.desc);
@@ -435,6 +444,9 @@ public class QUnit::TestReporter {
             TEST_SKIPPED : ("desc": "Skipped", "junittag" : "skipped"),
         );
 
+        #! the default column offset for printing options used in printOption() and usageIntern()
+        const OffsetColumn = 20;
+
         #! A map of print methods, categorised into three types: header, summary, testreport
         hash m_printMethods;
 
@@ -476,7 +488,7 @@ public class QUnit::TestReporter {
         const TEST_SKIPPED = 3;
     }
 
-    private printOption(string left, string right, int offset) {
+    private printOption(string left, string right, int offset = OffsetColumn) {
         printf(" %s", left);
         int blanks = offset - left.size();
         if (blanks > 0)
@@ -484,7 +496,7 @@ public class QUnit::TestReporter {
         printf("%s\n", right);
     }
 
-    private usageIntern(int offset = 19) {
+    private usageIntern(int offset = OffsetColumn) {
         printf("usage: %s [options]\n", get_script_name());
         printOption("-h,--help", "this help text", offset);
         printOption("   --format=type", "output format [default: plainquiet]", offset);
@@ -747,7 +759,7 @@ addTestCase(obj);
     }
 
     #! Helper function for printing out human-readable comparison of two values.
-    private string printUnexpectedData(any exp, any act, *bool neg) {
+    private string printUnexpectedData(any exp, any act, *bool neg, *bool soft_comparisons) {
         string expected = sprintf("%N", exp);
         string actual = neg ? "<identical>" : sprintf("%N", act);
         list expectedLines = expected.split("\n");
@@ -775,10 +787,10 @@ addTestCase(obj);
             result += "\t--------------------\n";
             list details = ();
             if (exp.typeCode() == NT_HASH && act.typeCode() == NT_HASH) {
-                compareHashes(exp, act, \details);
+                compareHashes(exp, act, \details, NOTHING, soft_comparisons);
             }
             if (exp.typeCode() == NT_LIST && act.typeCode() == NT_LIST) {
-                compareLists(exp, act, \details);
+                compareLists(exp, act, \details, NOTHING, soft_comparisons);
             }
             if (details) {
                 result += "* Details:";
@@ -795,8 +807,8 @@ addTestCase(obj);
         return sprintf("%s (%s)", v.split("\n")[0], value.type());
     }
 
-    private compare(any v1, any v2, reference out, string path) {
-        if (v1 !== v2) {
+    private compare(any v1, any v2, reference out, string path, *bool soft_comparisons) {
+        if ((!soft_comparisons && v1 !== v2) || (soft_comparisons && v1 != v2)) {
             if (v1.typeCode() == NT_HASH && v2.typeCode() == NT_HASH) {
                 compareHashes(v1, v2, \out, path);
             } else if (v1.typeCode() == NT_LIST && v2.typeCode() == NT_LIST) {
@@ -809,10 +821,10 @@ addTestCase(obj);
         }
     }
 
-    private compareHashes(hash h1, hash h2, reference out, string path = "") {
+    private compareHashes(hash h1, hash h2, reference out, string path = "", *bool soft_comparisons) {
         foreach string key in (h1.keyIterator()) {
             if (h2.hasKey(key)) {
-                compare(h1{key}, h2{key}, \out, path + "." + key);
+                compare(h1{key}, h2{key}, \out, path + "." + key, soft_comparisons);
             } else {
                 out += sprintf("Missing expected key %s.%s (with value %N)", path, key, h1{key});
             }
@@ -824,7 +836,7 @@ addTestCase(obj);
         }
     }
 
-    private compareLists(list l1, list l2, reference out, string path = "") {
+    private compareLists(list l1, list l2, reference out, string path = "", *bool soft_comparisons) {
         int len1 = elements l1;
         int len2 = elements l2;
 
@@ -833,7 +845,7 @@ addTestCase(obj);
         }
 
         for (int i = 0; i < min(len1, len2); ++i) {
-            compare(l1[i], l2[i], \out, path + "[" + i + "]");
+            compare(l1[i], l2[i], \out, path + "[" + i + "]", soft_comparisons);
         }
     }
 
@@ -853,24 +865,38 @@ testAssertionValue("date > operator", now() > (now() - 1D), True);
 
         @note make sure and use testAssertion() for any calls that could throw an exception
      */
-    public any testAssertionValue(string name, any value, any expectedValue) {
+    public any testAssertionValue(string name, any actual, any expected) {
+        assertEq(expected, actual, name);
+        return actual;
+    }
+
+    #! Tests a value for equality to an expected value with soft comparisons (types may differ)
+    /** @par Example:
+        @code
+assertEqSoft("5", functionThatShouldReturnFive());
+        @endcode
+
+        @param expected the expected value
+        @param actual the value generated by the test
+        @param name the name or description of the assertion
+     */
+    public assertEqSoft(any expected, any actual, *string name = NOTHING) {
         *TestCase tc = get_thread_data("tc");
         # increment assertion count
         tc.incAssertions();
         ++num_asserts;
 
-        if (value !== expectedValue) {
-            throw "TEST-EXCEPTION", printUnexpectedData(expectedValue, value), ("name": name, "pos": NOTHING);
+        if (expected != actual) {
+            throw "TEST-EXCEPTION", printUnexpectedData(expected, actual, NOTHING, True), ("name": name, "pos": NOTHING);
         } else {
             tc.incAssertionsOk();
             ++num_asserts_ok;
             if (m_options.verbose > 1)
-                printf("+ OK: %y assertion %y\n", m_name, name);
+                printf("+ OK: %y assertion %s\n", m_name, Test::getAssertionName(name));
         }
-        return value;
     }
 
-    #! Tests a value for equality to an expected value
+    #! Tests a value for equality to an expected value with hard comparisons (types and values must be identical)
     /** @par Example:
         @code
 assertEq(5, functionThatShouldReturnFive());
@@ -880,8 +906,20 @@ assertEq(5, functionThatShouldReturnFive());
         @param actual the value generated by the test
         @param name the name or description of the assertion
      */
-    public assertEq(any expected, any actual, any name = NOTHING) {
-        testAssertionValue(name ?? "", actual, expected);
+    public assertEq(any expected, any actual, *string name = NOTHING) {
+        *TestCase tc = get_thread_data("tc");
+        # increment assertion count
+        tc.incAssertions();
+        ++num_asserts;
+
+        if (expected !== actual) {
+            throw "TEST-EXCEPTION", printUnexpectedData(expected, actual), ("name": name, "pos": NOTHING);
+        } else {
+            tc.incAssertionsOk();
+            ++num_asserts_ok;
+            if (m_options.verbose > 1)
+                printf("+ OK: %y assertion %s\n", m_name, Test::getAssertionName(name));
+        }
     }
 
     #! Tests a boolean value
@@ -893,7 +931,7 @@ assertTrue(functionThatShouldReturnTrue());
         @param actual the value generated by the test
         @param name the name or description of the assertion
      */
-    public assertTrue(any actual, any name = NOTHING) {
+    public assertTrue(any actual, *string name = NOTHING) {
         testAssertionValue(name ?? "", actual, True);
     }
 
@@ -906,7 +944,7 @@ assertFalse(functionThatShouldReturnFalse());
         @param actual the value generated by the test
         @param name the name or description of the assertion
      */
-    public assertFalse(any actual, any name = NOTHING) {
+    public assertFalse(any actual, *string name = NOTHING) {
         testAssertionValue(name ?? "", actual, False);
     }
 
@@ -1109,7 +1147,7 @@ fail("Unexpected code executed");
     public any testAssertion(string name, code condition, *softlist args, QUnit::AbstractTestResult expectedResult = new QUnit::TestResultSuccess()) {
         *TestCase tc = get_thread_data("tc");
         if (!tc)
-            throw "TEST-ERROR", sprintf("cannot test assertion %y while not executing a test case; testAssertion() can only be called in code executed in a test case (added with %s::addTestCase())", name, self.className());
+            throw "TEST-ERROR", sprintf("cannot test assertion %s while not executing a test case; testAssertion() can only be called in code executed in a test case (added with %s::addTestCase())", name, self.className());
         tc.incAssertions();
         ++num_asserts;
 
@@ -1152,7 +1190,7 @@ fail("Unexpected code executed");
             tc.incAssertionsOk();
             ++num_asserts_ok;
             if (m_options.verbose > 1)
-                printf("+ OK: %y assertion %y\n", m_name, name);
+                printf("+ OK: %y assertion %s\n", m_name, Test::getAssertionName(name));
         }
         return ret;
     }
@@ -1273,6 +1311,14 @@ fail("Unexpected code executed");
 
         printSummary();
         return errors();
+    }
+
+    #! returns the assertion name for display purposes
+    static string getAssertionName(*string name) {
+        if (exists name)
+            return name;
+        *string np = TestCase::getStackPos(get_all_thread_call_stacks(){gettid()});
+        return np ? sprintf("at %s", np) : "<no name>";
     }
 }
 

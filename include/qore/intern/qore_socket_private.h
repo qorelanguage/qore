@@ -186,6 +186,7 @@ public:
 class SSLSocketHelperHelper {
 protected:
    qore_socket_private* s;
+   SSLSocketHelper* ssl;
 
 public:
    DLLLOCAL SSLSocketHelperHelper(qore_socket_private* sock);
@@ -234,6 +235,10 @@ struct qore_socket_private {
       assert(!warn_queue);
    }
 
+   DLLLOCAL bool isOpen() {
+      return sock != QORE_INVALID_SOCKET;
+   }
+
    DLLLOCAL int close() {
       int rc = close_internal();
       if (in_op)
@@ -279,7 +284,7 @@ struct qore_socket_private {
 	 // if an SSL connection has been established, shut it down first
 	 if (ssl) {
 	    ssl->shutdown();
-	    delete ssl;
+	    ssl->deref();
 	    ssl = 0;
 	 }
 

@@ -3239,7 +3239,7 @@ exp
     | exp '%' exp                       { $$ = new QoreModulaOperatorNode($1, $3); }
     | exp '/' exp                       { $$ = new QoreDivisionOperatorNode($1, $3); }
     | exp '*' exp                       { $$ = new QoreTreeNode($1, OP_MULT, $3); }
-    | exp '[' exp ']'                   { $$ = new QoreTreeNode($1, OP_LIST_REF, $3); }
+    | exp '[' exp ']'                   { $$ = new QoreSquareBracketsOperatorNode($1, $3); }
     | exp '{' exp '}'                   { $$ = new QoreTreeNode($1, OP_OBJECT_REF, $3); }
     | exp '.' exp                       { $$ = process_dot($1, $3); }
     | exp DOT_KW_IDENTIFIER             { $$ = new QoreTreeNode($1, OP_OBJECT_REF, $2); }
@@ -3293,7 +3293,7 @@ exp_n
     | exp_n '%' exp                     { $$ = new QoreModulaOperatorNode($1, $3); }
     | exp_n '/' exp                     { $$ = new QoreDivisionOperatorNode($1, $3); }
     | exp_n '*' exp                     { $$ = new QoreTreeNode($1, OP_MULT, $3); }
-    | exp_n '[' exp ']'                 { $$ = new QoreTreeNode($1, OP_LIST_REF, $3); }
+    | exp_n '[' exp ']'                 { $$ = new QoreSquareBracketsOperatorNode($1, $3); }
     | exp_n '{' exp '}'                 { $$ = new QoreTreeNode($1, OP_OBJECT_REF, $3); }
     | exp_n '.' exp                     { $$ = process_dot($1, $3); }
     | exp_n DOT_KW_IDENTIFIER           { $$ = new QoreTreeNode($1, OP_OBJECT_REF, $2); }

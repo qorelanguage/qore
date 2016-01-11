@@ -1412,9 +1412,9 @@ void q_strerror(QoreString &str, int err) {
 
    str.allocate(str.strlen() + STRERR_BUFSIZE);
    // ignore strerror() error message
-#ifdef STRERROR_R_CHAR_P
-   // we can't help but get this version because g++ needs and defines
-   // _GNU_SOURCE for us on linux (GLIBC) systems :-(
+#if STRERROR_R_CHAR_P
+   // we can't help but get this version because some of the Linux
+   // header files define _GNU_SOURCE for us :-(
    str.concat(strerror_r(err, (char* )(str.getBuffer() + str.strlen()), STRERR_BUFSIZE));
 #else
    // use portable XSI version of strerror_r()
@@ -1462,12 +1462,17 @@ int check_lvalue(AbstractQoreNode* node, bool assignment) {
    if (ntype == NT_CLASS_VARREF)
       return 0;
 
+   if (ntype == NT_OPERATOR) {
+      QoreSquareBracketsOperatorNode* op = dynamic_cast<QoreSquareBracketsOperatorNode*>(node);
+      if (op) {
+	 return check_lvalue(op->getLeft(), assignment);
+      }
+      return -1;
+   }
+
    if (ntype == NT_TREE) {
-      const QoreTreeNode* t = reinterpret_cast<const QoreTreeNode*>(node);
-      if (t->getOp() == OP_LIST_REF || t->getOp() == OP_OBJECT_REF)
-	 return check_lvalue(t->left);
-      else
-	 return -1;
+      QoreTreeNode* t = reinterpret_cast<QoreTreeNode*>(node);
+      return t->getOp() == OP_OBJECT_REF ? check_lvalue(t->left, assignment) : -1;
    }
    return -1;
 }

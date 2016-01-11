@@ -171,9 +171,14 @@ class Test inherits QUnit::Test {
         softlist l3;
         *softlist l4;
         assertEq(NOTHING, pop l1);
-        assertThrows("POP-ERROR", sub() { pop l2; });
+        assertEq(NOTHING, pop l2);
         assertEq(NOTHING, pop l3);
-        assertThrows("POP-ERROR", sub() { pop l4; });
+        assertEq(NOTHING, pop l4);
+
+        # pop and shift with untyped & unassigned lvalue
+        any nt;
+        assertEq(NOTHING, pop nt, "pop with NOTHING lvalue");
+        assertEq(NOTHING, shift nt, "shift with NOTHING lvalue");
     }
 
     popAfterDelete() {
@@ -188,11 +193,10 @@ class Test inherits QUnit::Test {
         delete l4;
 
         assertEq(NOTHING, pop l1);
-        assertThrows("POP-ERROR", sub() { pop l2; });
+        assertEq(NOTHING, pop l2);
         assertEq(NOTHING, pop l3);
-        assertThrows("POP-ERROR", sub() { pop l4; });
+        assertEq(NOTHING, pop l4);
     }
-
 
     shiftBasics() {
         list l = (1, 2);
@@ -210,11 +214,11 @@ class Test inherits QUnit::Test {
         softlist l3;
         *softlist l4;
         assertEq(NOTHING, shift l1);
-        assertEq((), l1);
-        assertThrows("SHIFT-ERROR", sub() { shift l2; });
+        assertEq(NOTHING, l1);
+        assertEq(NOTHING, l2);
         assertEq(NOTHING, shift l3);
-        assertEq((), l3);
-        assertThrows("SHIFT-ERROR", sub() { shift l4; });
+        assertEq(NOTHING, l3);
+        assertEq(NOTHING, l4);
     }
 
     shiftAfterDelete() {
@@ -229,10 +233,10 @@ class Test inherits QUnit::Test {
         delete l4;
 
         assertEq(NOTHING, shift l1);
-        assertEq((), l1);
-        assertThrows("SHIFT-ERROR", sub() { shift l2; });
+        assertEq(NOTHING, l1);
+        assertEq(NOTHING, l2);
         assertEq(NOTHING, shift l3);
-        assertEq((), l3);
-        assertThrows("SHIFT-ERROR", sub() { shift l4; });
+        assertEq(NOTHING, l3);
+        assertEq(NOTHING, l4);
     }
 }
