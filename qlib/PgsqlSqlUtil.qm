@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file PgsqlSqlUtil.qm Qore user module for working with PostgreSQL SQL data
 
-/*  PgsqlSqlUtil.qm Copyright (C) 2013 - 2015 Qore Technologies, sro
+/*  PgsqlSqlUtil.qm Copyright (C) 2013 - 2016 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -367,7 +367,7 @@ public namespace PgsqlSqlUtil {
             string sql = native_type;
             switch (native_type) {
                 case =~ /^timestamp/: return splice sql, 9, 0, "(" + string(size) + ")";
-                case =~ /^time/: return splice sql, 4, 0, string(size);
+                case =~ /^time/: return splice sql, 4, 0, "(" + string(size) + ")";
             }
             if (size)
                 sql += sprintf("(%d)", size);

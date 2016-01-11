@@ -1,0 +1,266 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/SqlUtil.qm
+%requires ../../../../qlib/BulkSqlUtil.qm
+%requires ../../../../qlib/PgsqlSqlUtil.qm
+%requires ../../../../qlib/Schema.qm
+
+%try-module pgsql
+%define NoPgsql
+%endtry
+
+%exec-class PgsqlTest
+
+class PgsqlTestSchema inherits AbstractSchema {
+    public {
+        const SchemaName = "PgsqlTestSchema";
+        const SchemaVersion = "1.0";
+    }
+
+    private {
+        const GenericOptions = (
+            "replace": True,
+            );
+
+        const IndexOptions = {};
+
+        const ColumnOptions = {};
+
+        const T_PgsqlTest = (
+            "columns": (
+                "id": c_number(14, True),
+            ),
+            "primary_key": ("name": "pk_pgsql_test", "columns": ("id")),
+            );
+
+        const Tables = (
+            "pgsql_test": T_PgsqlTest,
+            );
+    }
+
+    constructor(AbstractDatasource ds, *string dts, *string its) :  AbstractSchema(ds, dts, its) {
+    }
+
+    private string getNameImpl() {
+        return SchemaName;
+    }
+
+    private string getVersionImpl() {
+        return SchemaVersion;
+    }
+
+    private *hash getTablesImpl() {
+        hash tables = Tables;
+        # add custom columns to pgsql_test
+        foreach hash h in (PgsqlTest::CustomColumns.pairIterator()) {
+            hash ch = (
+                "native_type": h.key,
+                "notnull": True,
+                );
+            if (h.value.typeCode() == NT_HASH)
+                ch += (h.value - ("value", "bind"));
+            tables.pgsql_test.columns{PgsqlTest::getColumnName(h.key)} = ch;
+        }
+        return tables;
+    }
+
+    private *hash getIndexOptionsImpl() {
+        return IndexOptions;
+    }
+
+    private *hash getGenericOptionsImpl() {
+        return GenericOptions;
+    }
+
+    private *hash getColumnOptionsImpl() {
+        return ColumnOptions;
+    }
+
+    log(string fmt) {
+        delete argv;
+    }
+
+    logpf(string fmt) {
+        delete argv;
+    }
+
+    logProgress(string fmt) {
+        delete argv;
+    }
+}
+
+class PgsqlTest inherits QUnit::Test {
+    public {
+        const CustomColumns = (
+            "varchar": (
+                "value": "hello",
+                "size": "20",
+            ),
+            "char": (
+                "value": "hello",
+                "size": "20",
+            ),
+            "numeric": (
+                "size": 15,
+                "scale": 2,
+                "value": 400.95n,
+                ),
+            "date": 2016-01-11,
+            "abstime": 2016-01-11T09:26:14,
+            "reltime": 5M + 71D + 19h + 245m + 51s,
+            "interval": 6M + 3D + 2h + 45m + 15s,
+            "time": 09:26:52,
+            "time with time zone": 09:27:03-06,
+            "timestamp": 2016-01-11T09:27:59,
+            "timestamp with time zone": 2016-01-11T09:28:12.384629+03,
+            /*
+            "money": (
+                "value": 400.56,
+%ifndef NoPgsql
+                "bind": pgsql_bind(PG_TYPE_CASH, "400.56"),
+%endif
+            ),
+            */
+            "bytea": <bead>,
+            #"bit": ,
+            #"varbit": ,
+            );
+    }
+
+    private {
+        PgsqlTestSchema schema;
+        AbstractTable table;
+
+        const MyOpts = Opts + (
+            "connstr": "c,conn=s",
+            );
+
+        const OptionColumn = 22;
+
+        hash row;
+
+        list insert_data;
+        list upsert_data;
+    }
+
+    constructor() : Test("PgsqlTest", "1.0", \ARGV, MyOpts) {
+        addTestCase("Insert", \insertTest());
+        addTestCase("Upsert", \upsertTest());
+        addTestCase("BulkInsert", \bulkInsertTest());
+        addTestCase("BulkUpsert", \bulkUpsertTest());
+
+        Datasource ds;
+        try {
+            ds = getDatasource();
+        }
+        catch (hash ex) {
+            # skip tests if we can't create the datasource
+        }
+
+        if (ds) {
+            foreach hash h in (CustomColumns.pairIterator()) {
+                any val = h.value.typeCode() == NT_HASH ? h.value.value : h.value;
+                row{PgsqlTest::getColumnName(h.key)} = val;
+            }
+            insert_data = (("id": 1,) + row, ("id": 2,) + row,);
+            upsert_data = (("id": 2,) + row, ("id": 3,) + row,);
+
+            # create the test schema
+            schema = new PgsqlTestSchema(ds);
+
+            schema.align(False, m_options.verbose);
+
+            # get table object
+            table = (new Table(schema.getDatasource(), "pgsql_test")).getTable();
+        }
+
+        set_return_value(main());
+    }
+
+    globalTearDown() {
+        # drop the test schema
+        if (schema)
+            schema.drop(False, m_options.verbose);
+    }
+
+    private usageIntern() {
+        TestReporter::usageIntern(OptionColumn);
+        printOption("-c,--conn=ARG", "set DB connection argument (ex: \"pgsql:user/pass@db\")", OptionColumn);
+    }
+
+    Datasource getDatasource() {
+        if (!m_options.connstr)
+            m_options.connstr = ENV.QORE_DB_CONNSTR_PGSQL ?? "pgsql:omquser/omquser@omquser";
+        Datasource ds(m_options.connstr);
+        if (ds.getDriverName() != "pgsql")
+            throw "PGSQL-ERROR", sprintf("cannot execute the pgsql tests on a connection using driver %y", ds.getDriverName());
+        ds.open();
+        return ds;
+    }
+
+    insertTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        on_success table.commit();
+        on_error table.rollback();
+
+        map assertEq(NOTHING, table.insertNoCommit($1)), insert_data;
+    }
+
+    upsertTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        on_success table.commit();
+        on_error table.rollback();
+
+        code upsert = table.getUpsertClosure(insert_data[0]);
+        assertEq(AbstractTable::UR_Verified, upsert(upsert_data[0]));
+        assertEq(AbstractTable::UR_Inserted, upsert(upsert_data[1]));
+    }
+
+    bulkInsertTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        on_success table.commit();
+        on_error table.rollback();
+
+        table.delNoCommit();
+
+        BulkInsertOperation insert(table);
+        on_success insert.flush();
+        on_error insert.discard();
+
+        map assertEq(NOTHING, insert.queueData($1)), insert_data;
+    }
+
+    bulkUpsertTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        on_success table.commit();
+        on_error table.rollback();
+
+        table.delNoCommit();
+
+        BulkUpsertOperation insert(table);
+        on_success insert.flush();
+        on_error insert.discard();
+
+        map assertEq(NOTHING, insert.queueData($1)), upsert_data;
+    }
+
+    static string getColumnName(string n) {
+        n =~ s/ //g;
+        return n + "_f";
+    }
+}
