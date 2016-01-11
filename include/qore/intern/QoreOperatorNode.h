@@ -234,7 +234,7 @@ public:
 #include <qore/intern/QoreDotEvalOperatorNode.h>
 #include <qore/intern/QoreLogicalEqualsOperatorNode.h>
 #include <qore/intern/QoreLogicalNotEqualsOperatorNode.h>
-#include <qore/intern/QoreModulaOperatorNode.h>
+#include <qore/intern/QoreModuloOperatorNode.h>
 #include <qore/intern/QoreBinaryLValueOperatorNode.h>
 #include <qore/intern/QoreAssignmentOperatorNode.h>
 #include <qore/intern/QoreIntAssignmentOperatorNode.h>
@@ -244,7 +244,7 @@ public:
 #include <qore/intern/QoreIntMinusEqualsOperatorNode.h>
 #include <qore/intern/QoreOrEqualsOperatorNode.h>
 #include <qore/intern/QoreAndEqualsOperatorNode.h>
-#include <qore/intern/QoreModulaEqualsOperatorNode.h>
+#include <qore/intern/QoreModuloEqualsOperatorNode.h>
 #include <qore/intern/QoreMultiplyEqualsOperatorNode.h>
 #include <qore/intern/QoreDivideEqualsOperatorNode.h>
 #include <qore/intern/QoreXorEqualsOperatorNode.h>
