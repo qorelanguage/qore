@@ -31,7 +31,7 @@
     |@ref keys "keys"|\c 8|@ref keys "hash key list operator"|@code{.py} keys $hash@endcode
     |@ref multiplication_operator "*"|\c 9|@ref multiplication_operator "multiplication operator"|@code{.py} $var = $a * 10@endcode
     |@ref division_operator "/"|\c 9|@ref division_operator "division operator"|@code{.py} $var = $a / 10@endcode
-    |@ref modula_operator "%"|\c 10|@ref modula_operator "modula operator"|@code{.py} $var = $a % 10@endcode
+    |@ref modulo_operator "%"|\c 10|@ref modulo_operator "modulo operator"|@code{.py} $var = $a % 10@endcode
     |@ref plus_operator "+"|\c 11|@ref plus_operator "plus operator: string, binary, list, and hash concatenation, integer and float addition"|@code{.py} $a + 10@endcode @code{.py} "hello" + "there"@endcode @code{.py} $list + "new value"@endcode @code{.py} $hash + ( "newkey" : 100 )@endcode
     |@ref minus_operator "-"|\c 11|@ref minus_operator "minus operator (arithmetic subtraction, hash key removal)"|@code{.py} $a - 10@endcode
     |@ref shift_right_operator ">>"|\c 12|@ref shift_right_operator "bitwise shift right operator"|@code{.py} 0xff00 >> 8@endcode
@@ -75,7 +75,7 @@
     |@ref minus_equals_operator "-="|\c 20|@ref minus_equals_operator "minus-equals (subtract-from) operator"|@code{.py} $var -= 5@endcode
     |@ref and_equals_operator "&="|\c 20|@ref and_equals_operator "and-equals operator"|@code{.py} $var &= 0x2000@endcode
     |@ref or_equals_operator "|="|\c 20|@ref or_equals_operator "or-equals operator"|@code{.py} $var |= 0x2000@endcode
-    |@ref modula_equals_operator "%="|\c 20|@ref modula_equals_operator "modula-equals operator"|@code{.py} $var %= 100@endcode
+    |@ref modulo_equals_operator "%="|\c 20|@ref modulo_equals_operator "modulo-equals operator"|@code{.py} $var %= 100@endcode
     |@ref multiply_equals_operator "*="|\c 20|@ref multiply_equals_operator "multiply-equals operator"|@code{.py} $var *= 10@endcode
     |@ref divide_equals_operator "/="|\c 20|@ref divide_equals_operator "divide-equals operator"|@code{.py} $var /= 10@endcode
     |@ref xor_equals_operator "^="|\c 20|@ref xor_equals_operator "xor-equals operator"|@code{.py} $var ^= 0x2000@endcode
@@ -859,7 +859,7 @@ foreach my string $key in (keys $hash)
     @throw DIVISION-BY-ZERO division by zero error
 
     <hr>
-    @section modula_operator Modula Operator (%)
+    @section modulo_operator Modulo Operator (%)
 
     @par Synopsis
     Gives the integer remainder after division of one number by another.
@@ -875,7 +875,7 @@ foreach my string $key in (keys $hash)
 
     <b>Arguments Processed by %</b>
     |!Argument|!Processing
-    |@ref int_type "int"|Gives \a expression1 modula \a expression2 (ex: <tt>12 % 10</tt> result in \c 2). Arguments are converted to integers if necessary.
+    |@ref int_type "int"|Gives \a expression1 modulo \a expression2 (ex: <tt>12 % 10</tt> result in \c 2). Arguments are converted to integers if necessary.
 
     This operator does not throw any exceptions.
 
@@ -1832,10 +1832,10 @@ if ($x || $y)
     |All|the \a lvalue's type will be converted to an integer if necessary, and the \a expression will be evaluated and converted to an integer as well if necessary, and then the result will be binary or'ed to the \a lvalue
 
     <hr>
-    @section modula_equals_operator Modula Equals Operator (%=)
+    @section modulo_equals_operator Modulo Equals Operator (%=)
 
     @par Synopsis
-    Performs a modula calculation on an lvalue using the value of an expression and returns the new value.
+    Performs a modulo calculation on an lvalue using the value of an expression and returns the new value.
 
     @par Syntax
     \a lvalue <tt>%=</tt> \a expression
