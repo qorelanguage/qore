@@ -1446,6 +1446,114 @@ trim(\$str);
 nothing trim() [flags=RUNTIME_NOOP] {
 }
 
+//! Removes byte characters from the start of a string and returns the new string
+/** By default (if the second argument is omitted or passed as an empty string) the following whitespace byte characters are removed: \c " ", \c "\n", \c "\r", \c "\t", \c "\v" (vertical tab, ASCII 11), and \c "\0" (null character). To trim other characters, pass a string as the second argument specifying the byte characters to be removed.
+
+    @param str the string to trim
+    @param chars the characters to trim from the start of the string (default:  \c " ", \c "\n", \c "\r", \c "\t", \c "\v" (vertical tab, ASCII 11), and \c "\0" (null character))
+
+    @return the trimmed string
+
+    @par Example:
+    @code
+my string $tstr = ltrim(" ABC ");
+# returns string "ABC "
+    @endcode
+
+    @bug it is not possible to trim multi-byte characters from strings using this function; each byte is treated as a character.  No encoding conversions are done even if the \a chars argument has a different @ref character_encoding "character encoding" than the \a str argument.
+ */
+string ltrim(string str, *string chars) [flags=CONSTANT] {
+   const char* tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
+   QoreStringNode* rv = str->copy();
+   rv->trim_leading(tchars);
+   return rv;
+}
+
+//! Removes byte characters from the start of a reference to an lvalue containing a string and returns string after processing
+/** By default (if the second argument is omitted or passed as an empty string) the following whitespace byte characters are removed: \c " ", \c "\n", \c "\r", \c "\t", \c "\v" (vertical tab, ASCII 11), and \c "\0" (null character). To trim other characters, pass a string as the second argument specifying the byte characters to be removed.
+
+    This variant accepts variable references, in which case it will modify the string in place and also return the modified string.
+
+    @param str a reference to an lvalue containing the string value to process; if the lvalue does not have a string value @ref nothing is returned
+    @param chars the characters to trim from the start of the string (default:  \c " ", \c "\n", \c "\r", \c "\t", \c "\v" (vertical tab, ASCII 11), and \c "\0" (null character))
+
+    @return the trimmed string
+
+    @par Example:
+    @code
+ltrim(\$str);
+    @endcode
+
+    @bug it is not possible to trim multi-byte characters from strings using this function; each byte is treated as a character.  No encoding conversions are done even if the \a chars argument has a different @ref character_encoding "character encoding" than the \a str argument.
+ */
+*string ltrim(reference str, *string chars) {
+   QoreTypeSafeReferenceHelper ref(str, xsink);
+   if (!ref || ref.getType() != NT_STRING)
+      return QoreValue();
+
+   QoreStringNode* rv = reinterpret_cast<QoreStringNode* >(ref.getUnique(xsink));
+   if (*xsink)
+      return QoreValue();
+
+   const char* tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
+   rv->trim_leading(tchars);
+   return rv->refSelf();
+}
+
+//! Removes byte characters from the end of a string and returns the new string
+/** By default (if the second argument is omitted or passed as an empty string) the following whitespace byte characters are removed: \c " ", \c "\n", \c "\r", \c "\t", \c "\v" (vertical tab, ASCII 11), and \c "\0" (null character). To trim other characters, pass a string as the second argument specifying the byte characters to be removed.
+
+    @param str the string to trim
+    @param chars the characters to trim from the end of the string (default:  \c " ", \c "\n", \c "\r", \c "\t", \c "\v" (vertical tab, ASCII 11), and \c "\0" (null character))
+
+    @return the trimmed string
+
+    @par Example:
+    @code
+my string $tstr = rtrim($str);
+# returns string " ABC"
+    @endcode
+
+    @bug it is not possible to trim multi-byte characters from strings using this function; each byte is treated as a character.  No encoding conversions are done even if the \a chars argument has a different @ref character_encoding "character encoding" than the \a str argument.
+ */
+string rtrim(string str, *string chars) [flags=CONSTANT] {
+   const char* tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
+   QoreStringNode* rv = str->copy();
+   rv->trim_trailing(tchars);
+   return rv;
+}
+
+//! Removes byte characters from the end of a reference to an lvalue containing a string and returns string after processing
+/** By default (if the second argument is omitted or passed as an empty string) the following whitespace byte characters are removed: \c " ", \c "\n", \c "\r", \c "\t", \c "\v" (vertical tab, ASCII 11), and \c "\0" (null character). To trim other characters, pass a string as the second argument specifying the byte characters to be removed.
+
+    This variant accepts variable references, in which case it will modify the string in place and also return the modified string.
+
+    @param str a reference to an lvalue containing the string value to process; if the lvalue does not have a string value @ref nothing is returned
+    @param chars the characters to trim from the end of the string (default:  \c " ", \c "\n", \c "\r", \c "\t", \c "\v" (vertical tab, ASCII 11), and \c "\0" (null character))
+
+    @return the trimmed string
+
+    @par Example:
+    @code
+rtrim(\$str);
+    @endcode
+
+    @bug it is not possible to trim multi-byte characters from strings using this function; each byte is treated as a character.  No encoding conversions are done even if the \a chars argument has a different @ref character_encoding "character encoding" than the \a str argument.
+ */
+*string rtrim(reference str, *string chars) {
+   QoreTypeSafeReferenceHelper ref(str, xsink);
+   if (!ref || ref.getType() != NT_STRING)
+      return QoreValue();
+
+   QoreStringNode* rv = reinterpret_cast<QoreStringNode* >(ref.getUnique(xsink));
+   if (*xsink)
+      return QoreValue();
+
+   const char* tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
+   rv->trim_trailing(tchars);
+   return rv->refSelf();
+}
+
 //! Returns a truncated string with no more than the given number of bytes and optionally converted to a specific @ref character_encoding "character encoding"
 /**
     @param str the string to truncate
