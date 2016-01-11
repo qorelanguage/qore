@@ -14,6 +14,7 @@ class Test inherits QUnit::Test {
     constructor() : QUnit::Test("operators", "1.0", \ARGV) {
         addTestCase("basic operator tests", \basicTests());
         addTestCase("lvalue tests", \lvalueTests());
+        addTestCase("const modulo", \constModulo());
         set_return_value(main());
     }
 
@@ -157,6 +158,10 @@ class Test inherits QUnit::Test {
         string str = "a";
         h = (str: 1); h.b += h;
         testAssertionValue("hash +=", sprintf("%y", h), "{a: 1, b: {a: 1}}");
+    }
+
+    constModulo() {
+        assertEq(2, 12 % 10);
     }
 
     static code mapClosure(any v) {
