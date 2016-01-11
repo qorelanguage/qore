@@ -10,7 +10,9 @@
 %enable-all-warnings
 %new-style
 
-%requires xml
+%try-module xml >= 1.3
+%define NoXml
+%endtry
 
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Qorize.qm
@@ -37,6 +39,7 @@ public class QorizeRealWorldTest inherits QUnit::Test {
     }
 
     setUp() {
+%ifndef NoXml
         string fname = get_script_dir() + '/complex.xml';
 
         File f();
@@ -44,21 +47,38 @@ public class QorizeRealWorldTest inherits QUnit::Test {
 
         string xml = f.read(-1);
         m_h = parse_xml(xml, XPF_NONE);
+%endif
     }
 
     testQorizeNewstyle() {
+%ifdef NoXml
+        testSkip("no XML module present");
+%else
         testAssertion("qorize NEWSTYLE",  bool sub () { return (qorize(m_h, 'name', NEWSTYLE).size() > MIN_LENGTH); }, list());
+%endif
     }
 
     testQorizeOldstyle() {
+%ifdef NoXml
+        testSkip("no XML module present");
+%else
         testAssertion("qorize OLDSTYLE",  bool sub () { return (qorize(m_h, 'name', OLDSTYLE).size() > MIN_LENGTH); }, list());
+%endif
     }
 
     testQorizeNamedNewstyle() {
+%ifdef NoXml
+        testSkip("no XML module present");
+%else
         testAssertion("qorizeNamed NEWSTYLE", bool sub () { return (qorizeNamed(m_h, 'name', NEWSTYLE).size() > MIN_LENGTH); }, list());
+%endif
     }
 
     testQorizeNamedOldstyle() {
+%ifdef NoXml
+        testSkip("no XML module present");
+%else
         testAssertion("qorizeNamed OLDSTYLE", bool sub() { return (qorizeNamed(m_h, 'name', OLDSTYLE).size() > MIN_LENGTH); }, list());
+%endif
     }
 }
