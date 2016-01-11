@@ -289,6 +289,18 @@ class StringTest inherits QUnit::Test {
         trim(\str);
         assertEq(str, "hello", "trim string reference test");
 
+        str = "  \t\n  hello  \n   \r \t \0 ";
+        assertEq(trim(str), "hello", "trim string function test");
+        assertEq(rtrim(str), "  \t\n  hello", "rtrim string function test");
+        assertEq(ltrim(str), "hello  \n   \r \t \0 ", "ltrim string function test");
+
+        str = "  \t\n  hello  \n   \r \t \0 ";
+        rtrim(\str);
+        assertEq(str, "  \t\n  hello", "rtrim string reference test");
+        str = "  \t\n  hello  \n   \r \t \0 ";
+        ltrim(\str);
+        assertEq(str, "hello  \n   \r \t \0 ", "ltrim string reference test");
+
         l = ( 1, "   \r \t hello  \n  \r \v \t", 3.0, True, "    test\r\n  " );
         trim l;
         assertEq(l, ( 1, "hello", 3.0, True, "test" ), "list trim");

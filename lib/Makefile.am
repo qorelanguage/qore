@@ -229,7 +229,7 @@ libqore_la_SOURCES = \
 	QoreLogicalNotOperatorNode.cpp \
 	QoreDotEvalOperatorNode.cpp \
 	QoreLogicalEqualsOperatorNode.cpp \
-	QoreModulaOperatorNode.cpp \
+	QoreModuloOperatorNode.cpp \
 	QoreAssignmentOperatorNode.cpp \
 	QoreIntAssignmentOperatorNode.cpp \
 	QorePlusEqualsOperatorNode.cpp \
@@ -238,7 +238,7 @@ libqore_la_SOURCES = \
 	QoreIntMinusEqualsOperatorNode.cpp \
 	QoreOrEqualsOperatorNode.cpp \
 	QoreAndEqualsOperatorNode.cpp \
-	QoreModulaEqualsOperatorNode.cpp \
+	QoreModuloEqualsOperatorNode.cpp \
 	QoreMultiplyEqualsOperatorNode.cpp \
 	QoreDivideEqualsOperatorNode.cpp \
 	QoreDivisionOperatorNode.cpp \

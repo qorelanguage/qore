@@ -3198,7 +3198,7 @@ exp
     | exp MINUS_EQUALS exp              { $$ = new QoreMinusEqualsOperatorNode($1, $3); }
     | exp AND_EQUALS exp                { $$ = new QoreAndEqualsOperatorNode($1, $3); }
     | exp OR_EQUALS exp                 { $$ = new QoreOrEqualsOperatorNode($1, $3); }
-    | exp MODULA_EQUALS exp             { $$ = new QoreModulaEqualsOperatorNode($1, $3); }
+    | exp MODULA_EQUALS exp             { $$ = new QoreModuloEqualsOperatorNode($1, $3); }
     | exp MULTIPLY_EQUALS exp           { $$ = new QoreMultiplyEqualsOperatorNode($1, $3); }
     | exp DIVIDE_EQUALS exp             { $$ = new QoreDivideEqualsOperatorNode($1, $3); }
     | exp XOR_EQUALS exp                { $$ = new QoreXorEqualsOperatorNode($1, $3); }
@@ -3236,7 +3236,7 @@ exp
     | exp SHIFT_RIGHT exp               { $$ = new QoreTreeNode($1, OP_SHIFT_RIGHT, $3); }
     | exp '+' exp                       { $$ = new QoreTreeNode($1, OP_PLUS, $3); }
     | exp '-' exp                       { $$ = new QoreTreeNode($1, OP_MINUS, $3); }
-    | exp '%' exp                       { $$ = new QoreModulaOperatorNode($1, $3); }
+    | exp '%' exp                       { $$ = new QoreModuloOperatorNode($1, $3); }
     | exp '/' exp                       { $$ = new QoreDivisionOperatorNode($1, $3); }
     | exp '*' exp                       { $$ = new QoreTreeNode($1, OP_MULT, $3); }
     | exp '[' exp ']'                   { $$ = new QoreSquareBracketsOperatorNode($1, $3); }
@@ -3252,7 +3252,7 @@ exp_n
     | exp_n MINUS_EQUALS exp            { $$ = new QoreMinusEqualsOperatorNode($1, $3); }
     | exp_n AND_EQUALS exp              { $$ = new QoreAndEqualsOperatorNode($1, $3); }
     | exp_n OR_EQUALS exp               { $$ = new QoreOrEqualsOperatorNode($1, $3); }
-    | exp_n MODULA_EQUALS exp           { $$ = new QoreModulaEqualsOperatorNode($1, $3); }
+    | exp_n MODULA_EQUALS exp           { $$ = new QoreModuloEqualsOperatorNode($1, $3); }
     | exp_n MULTIPLY_EQUALS exp         { $$ = new QoreMultiplyEqualsOperatorNode($1, $3); }
     | exp_n DIVIDE_EQUALS exp           { $$ = new QoreDivideEqualsOperatorNode($1, $3); }
     | exp_n XOR_EQUALS exp              { $$ = new QoreXorEqualsOperatorNode($1, $3); }
@@ -3290,7 +3290,7 @@ exp_n
     | exp_n SHIFT_RIGHT exp             { $$ = new QoreTreeNode($1, OP_SHIFT_RIGHT, $3); }
     | exp_n '+' exp                     { $$ = new QoreTreeNode($1, OP_PLUS, $3); }
     | exp_n '-' exp                     { $$ = new QoreTreeNode($1, OP_MINUS, $3); }
-    | exp_n '%' exp                     { $$ = new QoreModulaOperatorNode($1, $3); }
+    | exp_n '%' exp                     { $$ = new QoreModuloOperatorNode($1, $3); }
     | exp_n '/' exp                     { $$ = new QoreDivisionOperatorNode($1, $3); }
     | exp_n '*' exp                     { $$ = new QoreTreeNode($1, OP_MULT, $3); }
     | exp_n '[' exp ']'                 { $$ = new QoreSquareBracketsOperatorNode($1, $3); }
