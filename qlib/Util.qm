@@ -720,16 +720,17 @@ unlink(testfile);
         return realpath(dir);
     }
 
-    #! Checks whether string represents an integer value.
+    #! Checks whether string represents a (true) integer value.
     /**
         @param  text a string to check
+        @param  pure if True then only integers match, otherwise check floats too.
         @return True if input represents an integer value, False otherwise.
 
         @par Example:
         @code
 bool match = is_int("123");
 # returns True, while any of the following returns False:
-match = is_int("1.0");
+match = is_int("1.0", True);
 match = is_int("12x");
         @endcode
 
@@ -737,8 +738,8 @@ match = is_int("12x");
 
         @since Util 1.2
     */
-    public bool sub is_int (string text) {
-        if (text =~ /^\s*[-+]?\d+\s*$/)
+    public bool sub is_int (string text, bool pure = False) {
+        if (text =~ /^\s*[-+]?\d+\s*$/ || (!pure && is_float(text, True) && (float(text) == floor(float(text)))))
             return True;
         return False;
     }
@@ -749,25 +750,26 @@ match = is_int("12x");
         '|\d+e[-+]?\d+' # floating point number, without dot, with exponent
         ')\s*$';
 
-    #! Checks whether string represents a true float value.
+    #! Checks whether string represents a (true) float value.
     /**
         @param  text a string to check
+        @param  pure if True then only floats match, otherwise include integers.
         @return True if input represents a float value, False otherwise.
 
         @par Example:
         @code
 bool match = is_float("1.2");
 # returns True, while any of the following returns False:
-match = is_float("12");
+match = is_float("12", True);
 match = is_float("1.2x");
         @endcode
 
-        @note The function only checks whether a string represents a float value, but it does not validate size / precision restrictions (whether it would fit %Qore's native float type) nor does it match integers.
+        @note The function only checks whether a string represents a float value, but it does not validate size / precision restrictions (whether it would fit %Qore's native float type).
 
         @since Util 1.2
     */
-    public bool sub is_float (string text) {
-        if (text.regex(RE_FLOAT))
+    public bool sub is_float (string text, bool pure = False) {
+        if (text.regex(RE_FLOAT) || (!pure && is_int(text)))
             return True;
         return False;
     }
@@ -778,28 +780,30 @@ match = is_float("1.2x");
         '|\d+e[-+]?\d+' # floating point number, without dot, with exponent
         '|\d+)n\s*$'; # integer
 
-    #! Checks whether string represents a true number value.
+    #! Checks whether string represents a (true) number value.
     /**
         @param  text a string to check
+        @param  pure if True then only numbers match, otherwise include floats and integers.
         @return True if input represents a number value, False otherwise.
 
         @par Example:
         @code
 bool match = is_number("1.2n");
 # returns True, while any of the following returns False:
-match = is_number("12");
-match = is_number("1.2");
+match = is_number("12", True);
+match = is_number("1.2", True);
 match = is_number("1.2x");
         @endcode
 
-        @note The function only checks whether a string represents an arbitrary precision number value, but it does not validate any restrictions (whether it would fit %Qore's native number type) nor does it match subtypes (integers and floats).
+        @note The function only checks whether a string represents an arbitrary precision number value, but it does not validate any restrictions (whether it would fit %Qore's native number type).
 
         @since Util 1.2
     */
-    public bool sub is_number (string text) {
-        if (text.regex(RE_NUMBER))
+    public bool sub is_number (string text, bool pure = False) {
+        if (text.regex(RE_NUMBER) || (!pure && is_float(text, pure)))
             return True;
         return False;
+    }
 
     #! Returns string with partially textual representation of ordinal integer value
     /** @par Example:
