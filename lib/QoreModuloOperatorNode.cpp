@@ -1,5 +1,5 @@
 /*
-  QoreModulaOperatorNode.cpp
+  QoreModuloOperatorNode.cpp
 
   Qore Programming Language
 
@@ -30,9 +30,9 @@
 
 #include <qore/Qore.h>
 
-QoreString QoreModulaOperatorNode::op_str("% (modula) operator expression");
+QoreString QoreModuloOperatorNode::op_str("% (modula) operator expression");
 
-QoreValue QoreModulaOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreModuloOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    int64 l = left->bigIntEval(xsink);
    if (*xsink)
       return QoreValue();
@@ -46,7 +46,7 @@ QoreValue QoreModulaOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink
    return l % r;
 }
 
-AbstractQoreNode* QoreModulaOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode* QoreModuloOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    // turn off "return value ignored" flags
    pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
@@ -59,10 +59,10 @@ AbstractQoreNode* QoreModulaOperatorNode::parseInitImpl(LocalVar *oflag, int pfl
 
    // see if both arguments are constant values and the right side is > 0, then eval immediately and substitute this node with the result
    if (left && left->is_value() && right && right->is_value() && right->getAsBigInt()) {
-      SimpleRefHolder<QoreModulaOperatorNode> del(this);
+      SimpleRefHolder<QoreModuloOperatorNode> del(this);
       ParseExceptionSink xsink;
       ValueEvalRefHolder v(this, *xsink);
-      assert(!*xsink);
+      assert(!**xsink);
       return v.getReferencedValue();
    }
 
