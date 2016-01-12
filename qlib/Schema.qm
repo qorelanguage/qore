@@ -377,26 +377,26 @@ public namespace Schema {
 
         The following methods should be re-implemented in subclasses to define schema definitions from which DDL will be generated::
         - getTablesImpl(): returns table definitions
-	- getSequencesImpl(): returns sequence definitions
-	- getTypesImpl(): returns type definitions
-	- getFunctionsImpl(): returns function definitions
-	- getProceduresImpl(): returns procedure definitions
-	- getPackagesImpl(): returns (Oracle) package definitions
-	- getMaterializedViewsImpl(): returns materialized view definitions
+        - getSequencesImpl(): returns sequence definitions
+        - getTypesImpl(): returns type definitions
+        - getFunctionsImpl(): returns function definitions
+        - getProceduresImpl(): returns procedure definitions
+        - getPackagesImpl(): returns (Oracle) package definitions
+        - getMaterializedViewsImpl(): returns materialized view definitions
 
         The following methods should be re-implemented in subclasses to define schema creation options to affect the generated DDL:
-	- getIndexOptionsImpl(): returns index options
-	- getColumnOptionsImpl(): returns column options
+        - getIndexOptionsImpl(): returns index options
+        - getColumnOptionsImpl(): returns column options
         - getGenericOptionsImpl(): returns generic options
 
         The following methods should be re-implemented in subclasses to define schema reference data:
-	- getStrictReferenceDataHashImpl(): returns a hash of "strict reference data", describing the only data that can appear in the target table
+        - getStrictReferenceDataHashImpl(): returns a hash of "strict reference data", describing the only data that can appear in the target table
         - getReferenceDataHashImpl(): returns a hash of "normal reference data", describing data that must appear in the target table, however additional rows are also acceptable
         - getCreateOnlyReferenceDataImpl(): returns a hash of "create-only reference data", describing data that is written to the table when the table is created
-	- getInsertOnlyReferenceDataImpl(): returns a hash of "insert-only reference data", describing data that will only be inserted if missing, otherwise existing rows with changed data are left unchanged
+        - getInsertOnlyReferenceDataImpl(): returns a hash of "insert-only reference data", describing data that will only be inserted if missing, otherwise existing rows with changed data are left unchanged
     */
     public class AbstractSchema {
-	private {
+        private {
             #! the name of the schema
             string name;
             #! the version of the schema
@@ -406,18 +406,18 @@ public namespace Schema {
             hash schema;
 
             #! index options, as provided by getIndexOptions()
-	    *hash index_options;
+            *hash index_options;
             #! creation options, as provided by getCreationOptions()
-	    *hash creation_options;
+            *hash creation_options;
             #! column options, as provided by getColumnOptions()
-	    *hash column_options;
+            *hash column_options;
             #! combined creation and column options
-	    *hash all_options;
+            *hash all_options;
 
             #! the datasource for the schema
-	    AbstractDatasource ds;
+            AbstractDatasource ds;
             #! the name of the database driver
-	    string drv;
+            string drv;
 
             #! the Database object for the schema
             SqlUtil::Database db;
@@ -435,29 +435,29 @@ public namespace Schema {
 
             #! explicit index tablespace name
             *string index_ts;
-	}
+        }
 
         #! creates the object from the arguments
         /** @param n_ds the datasource for the schema
             @param dts an optional data tablespace name for the schema
             @param its an optional index tablespace name for the schema
         */
-	constructor(AbstractDatasource n_ds, *string dts, *string its) {
-	    ds = n_ds;
+        constructor(AbstractDatasource n_ds, *string dts, *string its) {
+            ds = n_ds;
             name = getName();
             version = getVersion();
             data_ts = dts;
             index_ts = its;
 
-	    drv = ds.getDriverName();
+            drv = ds.getDriverName();
 
-	    db = new Database(ds);
+            db = new Database(ds);
 
-	    index_options = getIndexOptions();
-	    creation_options = getCreationOptions();
-	    column_options = getColumnOptions();
+            index_options = getIndexOptions();
+            creation_options = getCreationOptions();
+            column_options = getColumnOptions();
 
-	    all_options = AbstractSchema::combineOptions(creation_options, column_options);
+            all_options = AbstractSchema::combineOptions(creation_options, column_options);
 
             schema = (
                 "tables": getTables(),
@@ -468,7 +468,7 @@ public namespace Schema {
                 "packages": getPackages(),
                 "materialized_views": getMaterializedViews(),
                 );
-	}
+        }
 
         #! returns the name of the schema
         string getName() {
@@ -522,14 +522,14 @@ public namespace Schema {
 
             @note if other database objects not belonging to the schema already exist in the given database, they are not touched unless explicitly dropped by upgrade or downgrade code in the schema class; note that any undefined attributes of tables defined in the schema (columns, indexes, constraints, etc) will be dropped however
         */
-	int align(bool force = False, int verbose = 0) {
+        int align(bool force = False, int verbose = 0) {
             SchemaCallbackHelper sch(self, verbose);
 
             pure_callback_opts = sch.getCallbacks();
             info_callback = pure_callback_opts.info_callback;
             callback_opts = all_options + pure_callback_opts;
 
-	    bool first_time_install = checkFirstTimeInstall();
+            bool first_time_install = checkFirstTimeInstall();
 
             *hash initial_schema_info;
 
@@ -628,7 +628,7 @@ public namespace Schema {
             }
 
             return sch.change_count + sh.size();
-	}
+        }
 
         #! executes a schema drop operation in the database
         drop(bool force = False, int verbose = 0) {
@@ -683,122 +683,122 @@ public namespace Schema {
             name as an index option automatically if set in the constructor() if not
             already set
         */
-	*hash getIndexOptions() {
+        *hash getIndexOptions() {
             *hash h = getIndexOptionsImpl();
             if (index_ts && !h.index_tablespace)
                 h.index_tablespace = index_ts;
             return h;
-	}
+        }
 
         #! returns schema creation options
         /** this function wraps getGenericOptionsImpl() and getIndexOptionsImpl()
             and sets the data and index tablespace names as creation options
             automatically if set in the constructor() if not already set
         */
-	*hash getCreationOptions() {
+        *hash getCreationOptions() {
             *hash h = combineOptions(getGenericOptionsImpl(), getIndexOptionsImpl());
             if (data_ts && !h.data_tablespace)
                 h.data_tablespace = data_ts;
             if (index_ts && !h.index_tablespace)
                 h.index_tablespace = index_ts;
             return h;
-	}
+        }
 
         #! returns column options
         /** this function wraps getColumnOptionsImpl(); for forwards-compatibility, do not override this
             method in subclasses, instead re-implement getColumnOptionsImpl()
         */
-	*hash getColumnOptions() {
+        *hash getColumnOptions() {
             return getColumnOptionsImpl();
-	}
+        }
 
         #! returns table definitions
         /** this function wraps getTablesImpl(); for forwards-compatibility, do not override this
             method in subclasses, instead re-implement getTablesImpl()
         */
-	*hash getTables() {
+        *hash getTables() {
             return getTablesImpl();
-	}
+        }
 
         #! returns sequence definitions
         /** this function wraps getSequencesImpl(); for forwards-compatibility, do not override this
             method in subclasses, instead re-implement getSequencesImpl()
         */
-	*hash getSequences() {
+        *hash getSequences() {
             return getSequencesImpl();
-	}
+        }
 
         #! returns type definitions
         /** this function wraps getTypesImpl(); for forwards-compatibility, do not override this
             method in subclasses, instead re-implement getTypesImpl()
         */
-	*hash getTypes() {
+        *hash getTypes() {
             return getTypesImpl();
-	}
+        }
 
         #! returns function definitions
         /** this function wraps getFunctionsImpl(); for forwards-compatibility, do not override this
             method in subclasses, instead re-implement getFunctionsImpl()
         */
-	*hash getFunctions() {
+        *hash getFunctions() {
             return getFunctionsImpl();
-	}
+        }
 
         #! returns stored procedure definitions
         /** this function wraps getProceduresImpl(); for forwards-compatibility, do not override this
             method in subclasses, instead re-implement getProceduresImpl()
         */
-	*hash getProcedures() {
+        *hash getProcedures() {
             return getProceduresImpl();
-	}
+        }
 
         #! returns (Oracle) package definitions
         /** this function wraps getPackagesImpl(); for forwards-compatibility, do not override this
             method in subclasses, instead re-implement getPackagesImpl()
         */
-	*hash getPackages() {
+        *hash getPackages() {
             return getPackagesImpl();
-	}
+        }
 
         #! returns materialized view definitions
         /** this function wraps getMaterializedViewsImpl(); for forwards-compatibility, do not override this
             method in subclasses, instead re-implement getMaterializedViewsImpl()
         */
-	*hash getMaterializedViews() {
+        *hash getMaterializedViews() {
             return getMaterializedViewsImpl();
-	}
+        }
 
-	#! returns a hash of "strict reference data", describing the only data that can appear in the target table
+        #! returns a hash of "strict reference data", describing the only data that can appear in the target table
         /** this function wraps getStrictReferenceDataHashImpl(); for forwards-compatibility, do not override this
             method in subclasses, instead re-implement getStrictReferenceDataHashImpl()
         */
-	*hash getStrictReferenceDataHash() {
+        *hash getStrictReferenceDataHash() {
             return getStrictReferenceDataHashImpl();
-	}
+        }
 
-	#! returns a hash of "normal reference data", describing data that must appear in the target table, however additional rows are also acceptable
+        #! returns a hash of "normal reference data", describing data that must appear in the target table, however additional rows are also acceptable
         /** this function wraps getReferenceDataHashImpl(); for forwards-compatibility, do not override this
             method in subclasses, instead re-implement getReferenceDataHashImpl()
         */
-	*hash getReferenceDataHash() {
+        *hash getReferenceDataHash() {
             return getReferenceDataHashImpl();
-	}
+        }
 
-	#! returns a hash of "create-only reference data", describing data that is written to the table when the table is created
+        #! returns a hash of "create-only reference data", describing data that is written to the table when the table is created
         /** this function wraps (); for forwards-compatibility, do not override this
             method in subclasses, instead re-implement ()
         */
-	*hash getCreateOnlyReferenceData() {
+        *hash getCreateOnlyReferenceData() {
             return getCreateOnlyReferenceDataImpl();
-	}
+        }
 
-	#! returns a hash of "create-only reference data", describing data that will only be inserted if missing, otherwise existing rows with changed data are left unchanged
+        #! returns a hash of "create-only reference data", describing data that will only be inserted if missing, otherwise existing rows with changed data are left unchanged
         /** this function wraps (); for forwards-compatibility, do not override this
             method in subclasses, instead re-implement ()
         */
-	*hash getInsertOnlyReferenceData() {
+        *hash getInsertOnlyReferenceData() {
             return getInsertOnlyReferenceDataImpl();
-	}
+        }
 
         #! returns the version of the schema
         private abstract string getNameImpl();
@@ -809,14 +809,14 @@ public namespace Schema {
         #! returns index options
         /** the default behavior of this method is to return @ref nothing, reimplement in subclasses to return custom options
         */
-	private *hash getIndexOptionsImpl() {
+        private *hash getIndexOptionsImpl() {
         }
 
         #! returns column options
         /** the default behavior of this method is to return @ref nothing, reimplement in subclasses to return custom options
         */
-	private *hash getColumnOptionsImpl() {
-	}
+        private *hash getColumnOptionsImpl() {
+        }
 
         #! returns schema creation options
         /** the default behavior of this method is to return @ref nothing, reimplement in subclasses to return custom options
@@ -827,89 +827,89 @@ public namespace Schema {
         #! returns table definitions
         /** the default behavior of this method is to return @ref nothing, reimplement in subclasses to return custom configuration
         */
-	private *hash getTablesImpl() {
-	}
+        private *hash getTablesImpl() {
+        }
 
         #! returns sequence definitions
         /** the default behavior of this method is to return @ref nothing, reimplement in subclasses to return custom configuration
         */
-	private *hash getSequencesImpl() {
-	}
+        private *hash getSequencesImpl() {
+        }
 
         #! returns type definitions
         /** the default behavior of this method is to return @ref nothing, reimplement in subclasses to return custom configuration
         */
-	private *hash getTypesImpl() {
-	}
+        private *hash getTypesImpl() {
+        }
 
         #! returns function definitions
         /** the default behavior of this method is to return @ref nothing, reimplement in subclasses to return custom configuration
         */
-	private *hash getFunctionsImpl() {
-	}
+        private *hash getFunctionsImpl() {
+        }
 
         #! returns stored procedure definitions
         /** the default behavior of this method is to return @ref nothing, reimplement in subclasses to return custom configuration
         */
-	private *hash getProceduresImpl() {
-	}
+        private *hash getProceduresImpl() {
+        }
 
         #! returns (Oracle) package definitions
         /** the default behavior of this method is to return @ref nothing, reimplement in subclasses to return custom configuration
         */
-	private *hash getPackagesImpl() {
-	}
+        private *hash getPackagesImpl() {
+        }
 
         #! returns materialized view definitions
         /** the default behavior of this method is to return @ref nothing, reimplement in subclasses to return custom configuration
         */
-	private *hash getMaterializedViewsImpl() {
-	}
+        private *hash getMaterializedViewsImpl() {
+        }
 
-	#! returns a hash of "strict reference data", describing the only data that can appear in the target table
+        #! returns a hash of "strict reference data", describing the only data that can appear in the target table
         /** the default behavior of this method is to return @ref nothing, reimplement in subclasses to return custom configuration
         */
-	private *hash getStrictReferenceDataHashImpl() {
-	}
+        private *hash getStrictReferenceDataHashImpl() {
+        }
 
-	#! returns a hash of "normal reference data", describing data that must appear in the target table, however additional rows are also acceptable
+        #! returns a hash of "normal reference data", describing data that must appear in the target table, however additional rows are also acceptable
         /** the default behavior of this method is to return @ref nothing, reimplement in subclasses to return custom configuration
         */
-	private *hash getReferenceDataHashImpl() {
-	}
+        private *hash getReferenceDataHashImpl() {
+        }
 
-	#! returns a hash of "create-only reference data", describing data that is written to the table when the table is created
+        #! returns a hash of "create-only reference data", describing data that is written to the table when the table is created
         /** the default behavior of this method is to return @ref nothing, reimplement in subclasses to return custom configuration
         */
-	private *hash getCreateOnlyReferenceDataImpl() {
-	}
+        private *hash getCreateOnlyReferenceDataImpl() {
+        }
 
-	#! returns a hash of "insert-only reference data", describing data that will only be inserted if missing, otherwise existing rows with changed data are left unchanged
+        #! returns a hash of "insert-only reference data", describing data that will only be inserted if missing, otherwise existing rows with changed data are left unchanged
         /** the default behavior of this method is to return @ref nothing, reimplement in subclasses to return custom configuration
         */
-	private *hash getInsertOnlyReferenceDataImpl() {
-	}
+        private *hash getInsertOnlyReferenceDataImpl() {
+        }
 
         #! returns @ref Qore::True "True" if the method can detect that DB objects defined in the schema exist in the database
         /** Currently this method checks if at least one of the first tables, sequences, functions, or procedures defined in the schema template exists.
             If so, this method returns @ref Qore::True "True", otherwise it returns @ref Qore::False "False"
         */
         private bool checkExistence() {
-	    if (schema.tables)
-		return db.getTable(schema.tables.firstKey()) ? True : False;
+            if (schema.tables)
+                return db.getTable(schema.tables.firstKey()) ? True : False;
             if (schema.sequences)
-		return db.getSequence(schema.sequences.firstKey()) ? True : False;
+                return db.getSequence(schema.sequences.firstKey()) ? True : False;
             if (schema.functions)
-		return db.getFunction(schema.functions.firstKey()) ? True : False;
+                return db.getFunction(schema.functions.firstKey()) ? True : False;
             if (schema.procedures)
-		return db.getProcedure(schema.procedures.firstKey()) ? True : False;
+                return db.getProcedure(schema.procedures.firstKey()) ? True : False;
             return False;
         }
 
         #! returns @ref Qore::True "True" if checkExistence() returns @ref Qore::False "False"
-	private bool checkFirstTimeInstall() {
+        private bool checkFirstTimeInstall() {
             return !checkExistence();
-	}
+        }
 
         #! this method returns @ref Qore::True "True" if the schema can be dropped
         private bool checkDropSchema(bool force) {
@@ -996,31 +996,31 @@ public namespace Schema {
         #! returns a list of hashes from a list of lists where the first list element in the top-level list is a list of column names, and subsequent lists are column values
         /** meant to be used to translate reference data lists into lists of hashes to be used for upserting in reference data tables during schema management
         */
-	static list getRows(*softlist l) {
-	    list ql = ();
-	    *softlist hdr = shift l;
+        static list getRows(*softlist l) {
+            list ql = ();
+            *softlist hdr = shift l;
 
-	    foreach softlist data in (l) {
-		hash h;
-		map h.$1 = data[$#], hdr;
-		ql += h;
-	    }
+            foreach softlist data in (l) {
+                hash h;
+                map h.$1 = data[$#], hdr;
+                ql += h;
+            }
 
-	    return ql;
-	}
+            return ql;
+        }
 
         #! combines option hashes into a single target option hash
-	static hash combineOptions(*hash h) {
-	    foreach *hash h1 in (argv) {
+        static hash combineOptions(*hash h) {
+            foreach *hash h1 in (argv) {
                 # h1 can be NOTHING which will fail with RUNTIME-TYPE-ERROR: <lvalue> expects type '*hash', but got type 'int' instead
-		if (!h1)
+                if (!h1)
                     continue;
-		map h{$1} = AbstractSchema::combineOptions(h{$1}, remove h1{$1}), h.keyIterator(), h1.hasKey($1);
-		h += h1;
-	    }
+                map h{$1} = AbstractSchema::combineOptions(h{$1}, remove h1{$1}), h.keyIterator(), h1.hasKey($1);
+                h += h1;
+            }
             # also the h can be NOTHING in case of no inputs
-	    return h ?? hash();
-	}
+            return h ?? hash();
+        }
     }
 
     #! this class extends @ref Schema::AbstractSchema by providing version logic based on a schema version string contained within the schema itself

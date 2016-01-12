@@ -128,23 +128,23 @@ public namespace Pop3Client {
      */
     public class Pop3Client {
         #! @cond nodoc
-	private {
-	    Socket sock();
+        private {
+            Socket sock();
 
-	    # connect string
-	    string connect;
+            # connect string
+            string connect;
 
-	    # ensures exclusive access to the object
-	    Mutex mutex();
+            # ensures exclusive access to the object
+            Mutex mutex();
 
-	    # optional info log closure
-	    *code log_info;
+            # optional info log closure
+            *code log_info;
 
-	    # optional debug log closure
-	    *code log_debug;
+            # optional debug log closure
+            *code log_debug;
 
-	    # "tls" flag
-	    bool tls = False;
+            # "tls" flag
+            bool tls = False;
 
             # "starttls" flag
             bool starttls = False;
@@ -152,12 +152,12 @@ public namespace Pop3Client {
             # "noquit" flag
             bool noquit = False;
 
-	    # authentication credentials
-	    string user;
-	    string pass;
+            # authentication credentials
+            string user;
+            string pass;
 
-	    # logged in flag
-	    bool logged_in = False;
+            # logged in flag
+            bool logged_in = False;
 
             # read timeout in milliseconds
             timeout readTimeout = DefaultReadTimeout;
@@ -173,8 +173,8 @@ public namespace Pop3Client {
         #! @endcond
 
         public {
-	    #! default POP3 port
-	    const POP3Port = 110;
+            #! default POP3 port
+            const POP3Port = 110;
 
             #! default POP3S port
             const POP3SPort = 995;
@@ -186,15 +186,15 @@ public namespace Pop3Client {
                 );
         }
 
-	#! creates the Pop3Client object
-	/** @param url the URL of the POP3 server including at least the username, password, and a target host or port on the local system (enclose the address or hostname in square brackets like \c "[ipv6.host.com]" to connect using the IPv6 protocol or use square brackets to delineate an IPv6 address from the port number as in ex: \c "[fe80::21c:42ff:fe00:8]:110"); accepted protocols (URI schemes) are as follows:
+        #! creates the Pop3Client object
+        /** @param url the URL of the POP3 server including at least the username, password, and a target host or port on the local system (enclose the address or hostname in square brackets like \c "[ipv6.host.com]" to connect using the IPv6 protocol or use square brackets to delineate an IPv6 address from the port number as in ex: \c "[fe80::21c:42ff:fe00:8]:110"); accepted protocols (URI schemes) are as follows:
             - \c "pop3": non-encrypted POP3 connections
             - \c "pop3s": encrypted POP3 connections
             .
             If no protocol (URI scheme) is given in the URL (ex: \c "pop.gmail.com") then \c "pop3" is assumed; if no port is given, then either @ref POP3Port (for \c "pop3") or @ref POP3SPort (for \c "pop3s") is as the default port number depending on the protocol.
 
-	    @param log an optional closure or call reference for log messages; a single string argument will be passed to this code for logging
-	    @param dbglog an optional closure or call reference for debugging/technical log messages; a single string argument will be passed to this code for logging
+            @param log an optional closure or call reference for log messages; a single string argument will be passed to this code for logging
+            @param dbglog an optional closure or call reference for debugging/technical log messages; a single string argument will be passed to this code for logging
 
             @par Example:
             @code
@@ -203,10 +203,10 @@ Pop3Client pop3("pop3s://user@gmail.com:password@pop.gmail.com");
 
             @throw PARSE-URL-ERROR the URL given could not be parsed
             @throw POP3-URL-ERROR the protocol given was unknown, no target, username or password in URL
-	 */
-	constructor(string url, *code log, *code dbglog) {
-	    log_info = log;
-	    log_debug = dbglog;
+         */
+        constructor(string url, *code log, *code dbglog) {
+            log_info = log;
+            log_debug = dbglog;
 
             hash hurl = parse_url(url, True);
 
@@ -245,20 +245,20 @@ Pop3Client pop3("pop3s://user@gmail.com:password@pop.gmail.com");
             user = hurl.username;
             pass = hurl.password;
 
-	    logDbg("Pop3Client user: %y server: %y", user, connect);
-	}
+            logDbg("Pop3Client user: %y server: %y", user, connect);
+        }
 
-	#! disconnects if connected and destroys the object
+        #! disconnects if connected and destroys the object
         /** if any exceptions occur during the disconnection, they are sent to the debug log closure/call reference
          */
-  	destructor() {
-	    try {
-		disconnect();
-	    }
-	    catch (hash ex) {
-		logDbg("Pop3Client disconnect: %s: %s", ex.err, ex.desc);
-	    }
-  	}
+        destructor() {
+            try {
+                disconnect();
+            }
+            catch (hash ex) {
+                logDbg("Pop3Client disconnect: %s: %s", ex.err, ex.desc);
+            }
+        }
 
         #! log password
         /** @param pwd if @ref Qore::True "True" then log the password in the debug log (if any is set)
@@ -279,9 +279,9 @@ pop3.logPassword(True);
 bool b = pop3.logPassword();
             @endcode
         */
-	bool logPassword() {
-	    return log_pass;
-	}
+        bool logPassword() {
+            return log_pass;
+        }
 
         #! sets the TLS/SSL flag
         /** @param n_tls if @ref Qore::True "True" then use TLS/SSL; if the TLS/SSL flag is set then the client will negotiate a TLS/SSL connection with the server after connecting
@@ -291,9 +291,9 @@ bool b = pop3.logPassword();
 pop3.tls(True);
             @endcode
          */
-	tls(bool n_tls) {
-	    tls = n_tls;
-	}
+        tls(bool n_tls) {
+            tls = n_tls;
+        }
 
         #! returns the TLS/SSL flag
         /**
@@ -302,9 +302,9 @@ pop3.tls(True);
 bool b = pop3.tls();
             @endcode
         */
-	bool tls() {
-	    return tls;
-	}
+        bool tls() {
+            return tls;
+        }
 
         #! sets the flag for using the \c "STLS" command after connecting (<a href="http://tools.ietf.org/html/rfc2595">RFC 2595</a>); this is only used if the TLS/SSL flag is @ref Qore::False "False"
         /** @param n_starttls if @ref Qore::True "True" then issue the \c "STLS" command after making an unencrypted connection; if this  flag is set then the client will negotiate a TLS/SSL connection with the server after making an unencrypted connection
@@ -314,9 +314,9 @@ bool b = pop3.tls();
 pop3.starttls(True);
             @endcode
          */
-	starttls(bool n_starttls) {
-	    starttls = n_starttls;
-	}
+        starttls(bool n_starttls) {
+            starttls = n_starttls;
+        }
 
         #! returns the \c "starttls" flag (<a href="http://tools.ietf.org/html/rfc2595">RFC 2595</a>)
         /**
@@ -325,9 +325,9 @@ pop3.starttls(True);
 bool b = pop3.starttls();
             @endcode
         */
-	bool starttls() {
-	    return starttls;
-	}
+        bool starttls() {
+            return starttls;
+        }
 
         #! sets the \c "noquit" flag
         /** @param n_noquit if @ref Qore::True "True" then no \c "QUIT" command is sent when disconnecting from the POP3 server; this can ensure that no changes are committed to the server (for example with gmail)
@@ -337,9 +337,9 @@ bool b = pop3.starttls();
 pop3.noquit(True);
             @endcode
          */
-	noquit(bool n_noquit) {
-	    noquit = n_noquit;
-	}
+        noquit(bool n_noquit) {
+            noquit = n_noquit;
+        }
 
         #! return the \c "noquit" flag; if this flag is @ref Qore::True "True", then no \c "QUIT" command is sent to the POP3 server when disconnecting, which can ensure that no changes are committed to the server (for example with gmail)
         /** The \c "noquit" flag is always @ref Qore::False "False" unless explicitly set to @ref Qore::True "True"
@@ -351,11 +351,11 @@ pop3.noquit(True);
 bool b = pop3.noquit();
             @endcode
          */
-	bool noquit() {
-	    return noquit;
-	}
+        bool noquit() {
+            return noquit;
+        }
 
-	#! Connect to the server with the connection parameters set in the @ref constructor()
+        #! Connect to the server with the connection parameters set in the @ref constructor()
         /** @par Example:
             @code
 pop3.connect();
@@ -368,8 +368,8 @@ pop3.connect();
 
             @throw POP3-SERVER-ERROR the POP3 server responded with an error message
          */
-  	connect() {
-	    AutoLock am(mutex);
+        connect() {
+            AutoLock am(mutex);
             connectIntern();
         }
 
@@ -386,7 +386,7 @@ pop3.connect();
             @throw POP3-SERVER-ERROR the POP3 server responded with an error message
          */
         *hash getMail() {
-	    AutoLock am(mutex);
+            AutoLock am(mutex);
             if (!isConnected())
                 connectIntern();
 
@@ -420,7 +420,7 @@ hash h = pop3.stat();
             @note This method communicates with the SMTP server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
          */
         hash stat() {
-	    AutoLock am(mutex);
+            AutoLock am(mutex);
             if (!isConnected())
                 connectIntern();
 
@@ -444,7 +444,7 @@ map printf("%s: %d byte%s\n", $1.getKey(), $1.getValue(), $1.getValue() == 1 ? "
             @note This method communicates with the SMTP server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
          */
         *hash list() {
-	    AutoLock am(mutex);
+            AutoLock am(mutex);
             if (!isConnected())
                 connectIntern();
 
@@ -464,7 +464,7 @@ pop3.del(msgid);
             @note This method communicates with the SMTP server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
          */
         del(softstring msg) {
-	    AutoLock am(mutex);
+            AutoLock am(mutex);
             if (!isConnected())
                 connectIntern();
 
@@ -482,7 +482,7 @@ pop3.del(msgidlist);
             @note This method communicates with the SMTP server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
          */
         del(list l) {
-	    AutoLock am(mutex);
+            AutoLock am(mutex);
             if (!isConnected())
                 connectIntern();
 
@@ -501,7 +501,7 @@ pop3.noop();
             @note This method communicates with the SMTP server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
          */
         noop() {
-	    AutoLock am(mutex);
+            AutoLock am(mutex);
             if (!isConnected())
                 connectIntern();
 
@@ -519,34 +519,34 @@ pop3.reset();
             @note This method communicates with the SMTP server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
          */
         reset() {
-	    AutoLock am(mutex);
+            AutoLock am(mutex);
             if (!isConnected())
                 connectIntern();
 
             sendCommand("RSET");
         }
 
-	#! return connection status
+        #! return connection status
         /** @par Example:
             @code
 bool b = pop3.isConnected();
 printf("connected to the POP3 server: %y\n", b);
             @endcode
          */
-  	bool isConnected() {
-	    return sock.isOpen();
-  	}
+        bool isConnected() {
+            return sock.isOpen();
+        }
 
-	#! disconnect from the server
+        #! disconnect from the server
         /** @par Example:
             @code
 pop3.disconnect();
             @endcode
          */
-  	disconnect() {
-	    AutoLock am(mutex);
+        disconnect() {
+            AutoLock am(mutex);
             disconnectIntern();
-  	}
+        }
 
         #! sets the read timeout
         /** @par Example:
@@ -608,7 +608,7 @@ date timeout = pop3.getConnectTimeoutDate();
             return milliseconds(connectTimeout);
         }
 
-	#! force disconnect of socket without error
+        #! force disconnect of socket without error
         /** @par Example:
             @code
 pop3.forceDisconnect();
@@ -617,9 +617,9 @@ pop3.forceDisconnect();
             @note This method communicates with the SMTP server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
          */
         forceDisconnect() {
-	    AutoLock am(mutex);
+            AutoLock am(mutex);
             forceDisconnectIntern();
-	}
+        }
 
         #! Removes any warning @ref Qore::Thread::Queue "Queue" object from the Socket
         /** @par Example:
@@ -710,13 +710,13 @@ pop3.clearStats();
         #! @cond nodoc
         # don't reimplement this method; fix/enhance it in the module
         final private disconnectIntern() {
-	    if (isConnected()) {
+            if (isConnected()) {
                 # send QUIT command if "noquit" is not set and ignore error
                 if (!noquit)
                     try { sendCommand("QUIT"); } catch (hash ex) { }
-		sock.close();
-		sock.shutdown();
-	    }
+                sock.close();
+                sock.shutdown();
+            }
         }
 
         # don't reimplement this method; fix/enhance it in the module
@@ -755,19 +755,19 @@ pop3.clearStats();
             return mih;
         }
 
-	# read a line from the socket (terminated with \n)
-	private string readLine(timeout to) {
-	    string str;
-	    int c = 0;
-	    do {
-		c = sock.recvu1(to);
-		str += chr(c);
-	    } while (c != 10);
+        # read a line from the socket (terminated with \n)
+        private string readLine(timeout to) {
+            string str;
+            int c = 0;
+            do {
+                c = sock.recvu1(to);
+                str += chr(c);
+            } while (c != 10);
 
-	    return str;
-	}
+            return str;
+        }
 
-  	# gets a trimmed one-line response from the server, throws an exception if an error response is received
+        # gets a trimmed one-line response from the server, throws an exception if an error response is received
         # don't reimplement this method; fix/enhance it in the module
         final private string getResponse() {
             string r = readLine(readTimeout);
@@ -778,7 +778,7 @@ pop3.clearStats();
             return r;
         }
 
-  	# gets a trimmed multi-line response from the server, throws an exception if an error response is received
+        # gets a trimmed multi-line response from the server, throws an exception if an error response is received
         # don't reimplement this method; fix/enhance it in the module
         final private list getResponseMulti() {
             list l = ();
@@ -794,7 +794,7 @@ pop3.clearStats();
             return l;
         }
 
-  	# gets a multi-line response from the server, throws an exception if an error response is received
+        # gets a multi-line response from the server, throws an exception if an error response is received
         # does not include the first line in the response
         # don't reimplement this method; fix/enhance it in the module
         final private string getResponseMultiStr() {
@@ -810,26 +810,26 @@ pop3.clearStats();
             return rv;
         }
 
-	private log(string msg) {
-	    if (log_info.val())
-		call_function(log_info, "Pop3Client: " + trim(vsprintf(msg, argv)));
-	}
+        private log(string msg) {
+            if (log_info.val())
+                call_function(log_info, "Pop3Client: " + trim(vsprintf(msg, argv)));
+        }
 
-	private logDbg(string msg) {
-	    if (log_debug.val()) {
+        private logDbg(string msg) {
+            if (log_debug.val()) {
                 msg = vsprintf(msg, argv);
                 trim msg;
                 if (msg.size() > MaxDebugLine) {
                     splice msg, MaxDebugLine;
                     msg += "...";
                 }
-		call_function(log_debug, "Pop3Client: " + msg);
+                call_function(log_debug, "Pop3Client: " + msg);
             }
-	}
+        }
 
         # don't reimplement this method; fix/enhance it in the module
         final private sendCommandIntern(string str, bool masked = False) {
-	    if (log_debug.val()) {
+            if (log_debug.val()) {
                 if (masked) {
                     string lstr = str;
                     lstr =~ s/(\w+) (.*)/$1 **MASKED** /;
@@ -912,18 +912,18 @@ pop3.clearStats();
             # AUTHORIZATION state - now log in
             loginIntern(r);
             # TRANSACTION state
-  	}
+        }
 
-	private forceDisconnectIntern() {
-	    if (isConnected()) {
-		try {
-		    disconnectIntern();
-		}
-		catch(ex) {
-		    # ignore
-		}
-	    }
-	}
+        private forceDisconnectIntern() {
+            if (isConnected()) {
+                try {
+                    disconnectIntern();
+                }
+                catch(ex) {
+                    # ignore
+                }
+            }
+        }
         #! @endcond
     }
 }
