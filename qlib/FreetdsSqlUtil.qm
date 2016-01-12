@@ -99,7 +99,7 @@ public namespace FreetdsSqlUtil {
 
     #! returns a FreetdsDatabase object corresponding to the arguments
     public FreetdsDatabase sub get_database(AbstractDatasource nds, *hash opts) {
-	return new FreetdsDatabase(nds, opts);
+        return new FreetdsDatabase(nds, opts);
     }
 
     sub parse_schema_name(string nname, reference schema, reference name) {
@@ -117,7 +117,7 @@ public namespace FreetdsSqlUtil {
 
     #! represents a FreeTDS-specific index
     public class FreetdsIndex inherits SqlUtil::AbstractIndex {
-	public {
+        public {
             #! the tablespace (filegroup) name of the index
             *string filegroup;
         }
@@ -227,7 +227,7 @@ my list $l = $col.getAddColumnSql($t);
             @param t the SqlUtil::AbstractTable object to modify
          */
         list getAddColumnSql(AbstractTable t) {
-	    list l += sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql(t));
+            list l += sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql(t));
             return l;
         }
 
@@ -535,10 +535,10 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the trigger in the database
-	softlist getRenameSql(string table_name, string new_name) {
+        softlist getRenameSql(string table_name, string new_name) {
             # no idea if this will work
             return sprintf("sp_rename '%s', '%s', 'OBJECT'", name, new_name);
-	}
+        }
     }
 
     #! represents a FreeTDS-specific function
@@ -567,10 +567,10 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the function in the database
-	softlist getRenameSql(string new_name) {
+        softlist getRenameSql(string new_name) {
             # no idea if this will work
             return sprintf("sp_rename '%s', '%s', 'OBJECT'", name, new_name);
-	}
+        }
 
         #! sets the new name of the function
         setName(string new_name) {

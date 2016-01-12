@@ -104,7 +104,7 @@ public namespace MysqlSqlUtil {
 
     #! returns a MysqlDatabase object corresponding to the arguments
     public MysqlDatabase sub get_database(AbstractDatasource nds, *hash opts) {
-	return new MysqlDatabase(nds, opts);
+        return new MysqlDatabase(nds, opts);
     }
     
     sub parse_schema_name(string nname, reference schema, reference name) {
@@ -127,7 +127,7 @@ public namespace MysqlSqlUtil {
         }
 
         #! creates the object from the arguments
-	constructor(string n_name, bool n_unique, hash n_cols, string n_type = "BTREE") : AbstractIndex(n_name, n_unique, n_cols) {
+        constructor(string n_name, bool n_unique, hash n_cols, string n_type = "BTREE") : AbstractIndex(n_name, n_unique, n_cols) {
             type = n_type;
         }
 
@@ -201,16 +201,16 @@ my list $l = $col.getAddColumnSql($t);
          */
         softlist getAddColumnSql(AbstractTable t) {
             string sql = sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql(t));
-	    if (comment)
-		sql += " comment " + t.getSqlValue(comment);
+            if (comment)
+                sql += " comment " + t.getSqlValue(comment);
             return sql;
         }
 
         #! returns an sql string that can be used to add the column to a table
         string getCreateSql(AbstractTable t) {
             string sql = AbstractColumn::getCreateSql(t);
-	    if (comment)
-		sql += " comment " + t.getSqlValue(comment);
+            if (comment)
+                sql += " comment " + t.getSqlValue(comment);
             return sql;
         }
 
@@ -238,7 +238,7 @@ my list $l = $col.getModifySql($t, $newcol);
 
             string sql = sprintf("alter table %s modify %s", t.getSqlName(), ntd);
             if (c.comment)
-		sql += " comment " + t.getSqlValue(c.comment);
+                sql += " comment " + t.getSqlValue(c.comment);
             return sql;
         }
 
@@ -445,9 +445,9 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the trigger in the database
-	softlist getRenameSql(string table_name, string new_name) {
-	    return sprintf("alter trigger %s on %s rename to %s", name, table_name, new_name);
-	}
+        softlist getRenameSql(string table_name, string new_name) {
+            return sprintf("alter trigger %s on %s rename to %s", name, table_name, new_name);
+        }
     }
 
     #! represents a MySQL-specific function
@@ -471,9 +471,9 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the function in the database
-	softlist getRenameSql(string new_name) {
-	    return sprintf("alter function %s rename to %s", name, new_name);
-	}
+        softlist getRenameSql(string new_name) {
+            return sprintf("alter function %s rename to %s", name, new_name);
+        }
     }
     
     #! class for MySQL sequences based on a sequence table and autonomous transactions
