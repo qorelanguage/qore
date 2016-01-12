@@ -17,7 +17,7 @@ $name="dubist";
 
 # out-of-line definition: method intit() in class "pr" in namespace "dubist"
 dubist::pr::intit() {
-	print("name::pr::intit printn\n");
+    print("name::pr::intit printn\n");
 }
 
 # out-of-line namespace declaration for namespace "eris"
@@ -27,16 +27,16 @@ class eris::pr;
 
 # out-of-line method definition, constructor for class "pr" in namespace "eris"
 eris::pr::constructor($name) {
-        # $.name will be created as a member of class "pr"
-        if($name == "")
-	        $.name="eris(default)";
-	else
-	        $.name=$name;
-        printf("%s constructor\n", $.name);
+    # $.name will be created as a member of class "pr"
+    if($name == "")
+        $.name="eris(default)";
+    else
+        $.name=$name;
+    printf("%s constructor\n", $.name);
 }
 
 eris::pr::intit() {
-	printf("%s::pr::intit printn\n", $.name);
+    printf("%s::pr::intit printn\n", $.name);
 }
 
 printf("starting %s for '%s'\n", $ENV."_", $ENV."USER");
