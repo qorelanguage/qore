@@ -209,14 +209,14 @@ public namespace HttpServer {
         @param host the hostname to use in case the bind string is only a port number; if none is passed or the value passed is equal to the return value of @ref Qore::gethostname(), then \c "localhost" is used
      */
     public string sub http_get_url_from_bind(softstring bind, *string host) {
-	hash h = parse_url(bind);
-	# if there is only a port number, it will appear in the "host" key
-	if (h.size() == 1 && h.host && int(h.host) == h.host) {
-	    h.port = int(h.host);
-	    delete h.host;
-	}
+        hash h = parse_url(bind);
+        # if there is only a port number, it will appear in the "host" key
+        if (h.size() == 1 && h.host && int(h.host) == h.host) {
+            h.port = int(h.host);
+            delete h.host;
+        }
 
-	if (!h.host) {
+        if (!h.host) {
             if (!h.port && h.path) {
                 h.host = "socket=" + remove h.path;
                 h.host =~ s/ /%20/g;
@@ -226,14 +226,14 @@ public namespace HttpServer {
                 h.host = (!host || host == gethostname()) ? "localhost" : host;
         }
 
-	string login = h.password ? (h.password + ":") : "";
-	if (h.username)
-	    login += sprintf("%s@", h.password);
+        string login = h.password ? (h.password + ":") : "";
+        if (h.username)
+            login += sprintf("%s@", h.password);
 
-	return sprintf("%s://%s%s%s", h.protocol ? h.protocol : "http",
-		       login,
-		       h.host,
-		       h.port ? sprintf(":%d", h.port) : "");
+        return sprintf("%s://%s%s%s", h.protocol ? h.protocol : "http",
+                       login,
+                       h.host,
+                       h.port ? sprintf(":%d", h.port) : "");
     }
 
     #! parses a URI path for a arguments and a method; where the method is the part of the path before the first \c "?" character, and arguments are after
@@ -859,12 +859,12 @@ public class HttpServer::AbstractHttpRequestHandler {
     */
     static *string getLogMessage(hash cx, hash api, reference params, *reference args) {
         on_exit {
-	    if (params.typeCode() == NT_LIST)
-		unshift params, cx;
-	    else if (exists params)
-		params = (cx, params);
-	    else
-		params = cx;
+            if (params.typeCode() == NT_LIST)
+                unshift params, cx;
+            else if (exists params)
+                params = (cx, params);
+            else
+                params = cx;
         }
 
         if ((api.logopt & HttpServer::LP_LEVELMASK) > 1 || !cx.logfunc)

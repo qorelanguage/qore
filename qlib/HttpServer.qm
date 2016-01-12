@@ -385,7 +385,7 @@ class HttpServer::HttpHandlerList {
     }
 
     bool empty() {
-	return handlers.empty();
+        return handlers.empty();
     }
 
     int size() {
@@ -440,7 +440,7 @@ class HttpServer::DynamicHttpHandlerList inherits HttpServer::HttpHandlerList {
         if (handlers{name})
             throw "SETHANDLER-ERROR", sprintf("dynamic HTTP request handler %y already exists (dynamic handlers: %y)", name, handlers.keys());
 
-	handlers{name} = dhi;
+        handlers{name} = dhi;
 
         if (!isregex && path) {
             treeMap.put(path, dhi);
@@ -564,28 +564,28 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
 
     #! @cond nodoc
     private {
-	*code logfunc;
-	*code errlogfunc;
+        *code logfunc;
+        *code errlogfunc;
 
-	# quit server flag
-	bool exit = False;
+        # quit server flag
+        bool exit = False;
 
         # if True then verbose exception info will be logged
         bool debug;
 
-	Sequence seqSessions();
-	Sequence seqListeners();
+        Sequence seqSessions();
+        Sequence seqListeners();
 
-	bool stopped = False;
+        bool stopped = False;
 
         # permanent handlers; these handlers are never removed
         HttpHandlerList handlers();
 
         # default handler
-	hash defaultHandler;
+        hash defaultHandler;
 
         # hash of listeners keyed by listener ID
-	hash listeners;
+        hash listeners;
 
         # map of bind addresses to listener IDs
         hash smap;
@@ -594,7 +594,7 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         hash nmap;
 
         # listener Gate
-	Gate lm();
+        Gate lm();
 
         # running listener counter
         Counter c();
@@ -625,8 +625,8 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         @param n_hdr a hash of headers to return in every response by default; to clear the default send an empty hash as the argument here
      */
     constructor(*code n_logfunc, *code n_errlogfunc, bool n_dbg = False, string n_name = HttpServer::HttpServerString, hash n_hdr = ("X-Powered-By": "Qore/" + Qore::VersionString)) {
-	logfunc = n_logfunc;
-	errlogfunc = n_errlogfunc;
+        logfunc = n_logfunc;
+        errlogfunc = n_errlogfunc;
         debug = n_dbg;
         http_server_string = n_name;
         hdr = (
@@ -636,7 +636,7 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
 
     #! calls stop() and destroys the object
     destructor() {
-	stop();
+        stop();
     }
 
     #! returns the HTTP server version string
@@ -670,10 +670,10 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         @param errorlogger an optional @ref closure "closure" or @ref call_reference "call reference" that will be called with error information; if this is not set, then the error logger set in the HttpServer::constructor() will be used instead
         @param stopc an optional @ref closure "closure" or @ref call_reference "call reference" that will be called immediately after the listener is stopped
         @param name an optional name for the listener; the actual listener name will have the listener id appended to it and will be returned in the \c "name" key in each hash element in the return value for each listener started
-	@param family one of the following @ref network_address_family_constants "network family constants":
-	- @ref Qore::AF_INET "AF_INET": for binding an IPv4 socket
-	- @ref Qore::AF_INET6 "AF_INET6": for binding an IPv6 socket
-	- @ref Qore::AF_UNSPEC "AF_UNSPEC": for binding a socket with any available address family
+        @param family one of the following @ref network_address_family_constants "network family constants":
+        - @ref Qore::AF_INET "AF_INET": for binding an IPv4 socket
+        - @ref Qore::AF_INET6 "AF_INET6": for binding an IPv6 socket
+        - @ref Qore::AF_UNSPEC "AF_UNSPEC": for binding a socket with any available address family
 
         @return a list of listener info hashes; see the return value of HttpServer::getListenerInfo() for the description of each hash element in the list returned by this method
 
@@ -689,16 +689,16 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         if (lp.url.typeCode() != NT_STRING)
             throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("missing or invalid 'url' entry in listener description giving the path; expecting type 'string', got type '%s'", lp.url.type());
 
-	if (lp.cert_path && !lp.cert)
-	    lp += HttpServer::getSSLObjects(lp.cert_path, lp.key_path, lp.key_password);
+        if (lp.cert_path && !lp.cert)
+            lp += HttpServer::getSSLObjects(lp.cert_path, lp.key_path, lp.key_password);
 
-	hash h{hname} = ("path": lp.url, "isregex": lp.isregex, "content": lp.content_type, "handler": handler, "headers": lp.special_headers);
+        hash h{hname} = ("path": lp.url, "isregex": lp.isregex, "content": lp.content_type, "handler": handler, "headers": lp.special_headers);
 
-	if (lp.bind !~ /:\w+/) {
-	    if (lp.bind =~ /^\//)
-		return list(addListenerIntern(lp.bind, NOTHING, lp.cert, lp.key, h, logger, errorlogger, stopc, name).getInfo());
-	    return addINETListenersIntern(NOTHING, lp.bind, lp, h, logger, errorlogger, stopc, name, family);
-	}
+        if (lp.bind !~ /:\w+/) {
+            if (lp.bind =~ /^\//)
+                return list(addListenerIntern(lp.bind, NOTHING, lp.cert, lp.key, h, logger, errorlogger, stopc, name).getInfo());
+            return addINETListenersIntern(NOTHING, lp.bind, lp, h, logger, errorlogger, stopc, name, family);
+        }
 
         my (*string node, string service) = (lp.bind =~ x/(.+):(\w+)/);
         return addINETListenersIntern(node, service, lp, h, logger, errorlogger, stopc, name, family);
@@ -709,10 +709,10 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         @param cert_path an optional path to an X509 certificate for HTTPS listeners
         @param key_path an optional path to a private key file for an X509 certificate for HTTPS listeners
         @param name an optional name for the listener; the actual listener name will have the listener id appended to it and will be returned in the \c "name" key in each hash element in the return value for each listener started
-	@param family one of the following @ref network_address_family_constants "network family constants":
-	- @ref Qore::AF_INET "AF_INET": for binding an IPv4 socket
-	- @ref Qore::AF_INET6 "AF_INET6": for binding an IPv6 socket
-	- @ref Qore::AF_UNSPEC "AF_UNSPEC": for binding a socket with any available address family
+        @param family one of the following @ref network_address_family_constants "network family constants":
+        - @ref Qore::AF_INET "AF_INET": for binding an IPv4 socket
+        - @ref Qore::AF_INET6 "AF_INET6": for binding an IPv6 socket
+        - @ref Qore::AF_UNSPEC "AF_UNSPEC": for binding a socket with any available address family
         @param pwd an optional password for the private key file (PEM format only)
 
         @return a listener info hash; see the return value of HttpServer::getListenerInfo() for the description of the hash returned by this method
@@ -722,7 +722,7 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         @note if \a sock begins with a "/" character then it is assumed to be a UNIX socket path and the \a family argument is ignored
      */
     hash addListener(softstring sock, *string cert_path, *string key_path, *string name, int family = AF_UNSPEC, *string pwd) {
-	hash sd;
+        hash sd;
         if (cert_path)
             sd = HttpServer::getSSLObjects(cert_path, key_path, pwd);
 
@@ -742,10 +742,10 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         @param cert_path an optional path to an X509 certificate for HTTPS listeners
         @param key_path an optional path to a private key file for an X509 certificate for HTTPS listeners
         @param name an optional name for the listener; the actual listener name will have the listener id appended to it and will be returned in the \c "name" key in each hash element in the return value for each listener started
-	@param family one of the following @ref network_address_family_constants "network family constants":
-	- @ref Qore::AF_INET "AF_INET": for binding an IPv4 socket
-	- @ref Qore::AF_INET6 "AF_INET6": for binding an IPv6 socket
-	- @ref Qore::AF_UNSPEC "AF_UNSPEC": for binding a socket with any available address family
+        @param family one of the following @ref network_address_family_constants "network family constants":
+        - @ref Qore::AF_INET "AF_INET": for binding an IPv4 socket
+        - @ref Qore::AF_INET6 "AF_INET6": for binding an IPv6 socket
+        - @ref Qore::AF_UNSPEC "AF_UNSPEC": for binding a socket with any available address family
         @param pwd an optional password for the private key file (PEM format only)
 
         @return a list of listener info hashes; see the return value of HttpServer::getListenerInfo() for the description of each hash element in the list returned by this method
@@ -755,7 +755,7 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         @note if \a sock begins with a \c "/" character then it is assumed to be a UNIX socket path and the \a family argument is ignored
      */
     softlist addListeners(softstring sock, *string cert_path, *string key_path, *string name, int family = AF_UNSPEC, *string pwd) {
-	hash sd;
+        hash sd;
         if (cert_path)
             sd = HttpServer::getSSLObjects(cert_path, key_path, pwd);
 
@@ -776,10 +776,10 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         @param cert_path an optional path to an X509 certificate for HTTPS listeners
         @param key_path an optional path to a private key file for an X509 certificate for HTTPS listeners
         @param name an optional name fo the listener
-	@param family one of the following @ref network_address_family_constants "network family constants":
-	- @ref Qore::AF_INET "AF_INET": for binding an IPv4 socket
-	- @ref Qore::AF_INET6 "AF_INET6": for binding an IPv6 socket
-	- @ref Qore::AF_UNSPEC "AF_UNSPEC": for binding a socket with any available address family
+        @param family one of the following @ref network_address_family_constants "network family constants":
+        - @ref Qore::AF_INET "AF_INET": for binding an IPv4 socket
+        - @ref Qore::AF_INET6 "AF_INET6": for binding an IPv6 socket
+        - @ref Qore::AF_UNSPEC "AF_UNSPEC": for binding a socket with any available address family
         @param pwd an optional password for the private key file (PEM format only)
 
         @return a list of listener info hashes; see the return value of HttpServer::getListenerInfo() for the description of each hash element in the list returned by this method
@@ -787,12 +787,12 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         @throw HTTPSERVER-ADDLISTENER-ERROR duplicate bind address
      */
     list addINETListeners(*string node, softstring service, *string cert_path, *string key_path, *string name, int family = AF_UNSPEC, *string pwd) {
-	return addINETListenersIntern(node, service, ("cert_path": cert_path, "key_path": key_path, "key_password": pwd), NOTHING, NOTHING, NOTHING, NOTHING, name, family);
+        return addINETListenersIntern(node, service, ("cert_path": cert_path, "key_path": key_path, "key_password": pwd), NOTHING, NOTHING, NOTHING, NOTHING, name, family);
     }
 
     #! throws an exception; these objects do not support copying
     copy() {
-	throw "COPY-ERROR", "this object cannot be copied";
+        throw "COPY-ERROR", "this object cannot be copied";
     }
 
     #! returns a hash of listener information
@@ -858,7 +858,7 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         if (!id)
             id = nmap{name};
 
-	if (!id)
+        if (!id)
             throw "HTTP-SERVER-ERROR", sprintf("there is no listener with name or bind address %y", name);
 
         return listeners{id}.getInfo();
@@ -873,9 +873,9 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
     /** do not call stop() after calling stopNoWait(); it can cause a deadlock
      */
     stopNoWait() {
-	# stop all listeners
-	lm.enter();
-	on_exit lm.exit();
+        # stop all listeners
+        lm.enter();
+        on_exit lm.exit();
 
         map $1.stopNoWait(), listeners.iterator();
 
@@ -910,9 +910,9 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
     /** do not call stop() after calling stopNoWait(); it can cause a deadlock
      */
     stop() {
-	# shutdown all listeners
-	lm.enter();
-	on_exit lm.exit();
+        # shutdown all listeners
+        lm.enter();
+        on_exit lm.exit();
 
         map $1.stop(), listeners.iterator();
         c.waitForZero();
@@ -920,14 +920,14 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
 
     #! stops a single listener based on its name or bind address; does not return until all connections on the listener have closed
     stopListener(softstring bind) {
-	lm.enter();
-	on_exit lm.exit();
+        lm.enter();
+        on_exit lm.exit();
 
         *int id = smap{bind};
         if (!id)
             id = nmap{bind};
 
-	if (!id)
+        if (!id)
             throw "HTTP-SERVER-ERROR", sprintf("there is no listener with name or bind address %y", bind);
 
         if (elements smap == 1)
@@ -938,10 +938,10 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
 
     #! stops a single listener based on its listener ID; does not return until all connections on the listener have closed
     stopListenerID(softint id) {
-	lm.enter();
-	on_exit lm.exit();
+        lm.enter();
+        on_exit lm.exit();
 
-	if (!listeners{id})
+        if (!listeners{id})
             throw "HTTP-SERVER-ERROR", sprintf("there is no listener with ID %d", id);
 
         if (smap.size() == 1)
@@ -952,12 +952,12 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
 
     #! gets the TID of a listener based on its listener ID
     int getListenerTID(softint id) {
-	return listeners{id}.tid;
+        return listeners{id}.tid;
     }
 
     #! sets the default request handler when no other handler can be matched
     setDefaultHandler(string name, HttpServer::AbstractHttpRequestHandler obj) {
-	defaultHandler = (
+        defaultHandler = (
             "name" : name,
             "obj"  : obj,
             );
@@ -965,67 +965,67 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
 
     #! sets a request handler according to the arguments given
     setHandler(string name, string path, *softlist content_type, HttpServer::AbstractHttpRequestHandler obj, *softlist special_headers, bool isregex = True) {
-	handlers.setHandler(name, path, isregex, content_type, obj, special_headers);
+        handlers.setHandler(name, path, isregex, content_type, obj, special_headers);
     }
 
     #! sets a dynamic request handler according to the arguments given
     setDynamicHandler(string name, string path, *softlist content_type, HttpServer::AbstractHttpRequestHandler obj, *softlist special_headers, bool isregex = True) {
-	dhandlers.setHandler(name, path, isregex, content_type, obj, special_headers);
+        dhandlers.setHandler(name, path, isregex, content_type, obj, special_headers);
     }
 
     #! sets a request handler according to the arguments given
     setHandler(string name, HttpServer::AbstractUrlHandler obj) {
-	handlers.setHandler(name, obj.url_root, False, NOTHING, obj);
+        handlers.setHandler(name, obj.url_root, False, NOTHING, obj);
     }
 
     #! sets a dynamic request handler according to the arguments given
     setDynamicHandler(string name, HttpServer::AbstractUrlHandler obj) {
-	dhandlers.setHandler(name, obj.url_root, False, NOTHING, obj);
+        dhandlers.setHandler(name, obj.url_root, False, NOTHING, obj);
     }
 
     #! adds a request handler to a listener given the listener's name or bind address
     addHandlerToListener(softstring bind, string name, string path, *softlist content_type, HttpServer::AbstractHttpRequestHandler obj, *softlist special_headers, bool isregex = True) {
-	lm.enter();
-	on_exit lm.exit();
+        lm.enter();
+        on_exit lm.exit();
 
         softstring id = getListenerIdFromBindUnlocked(bind);
 
-	hash h{name} = ("path": path, "isregex": isregex, "content": content_type, "handler": obj, "headers": special_headers);
+        hash h{name} = ("path": path, "isregex": isregex, "content": content_type, "handler": obj, "headers": special_headers);
         listeners{id}.addHandlers(h);
     }
 
     #! adds a request handler to a listener given the listener's id
     addHandlerToListenerID(softint id, string name, string path, *softlist content_type, HttpServer::AbstractHttpRequestHandler obj, *softlist special_headers, bool isregex = True) {
-	lm.enter();
-	on_exit lm.exit();
+        lm.enter();
+        on_exit lm.exit();
 
-	if (!listeners{id})
+        if (!listeners{id})
             throw "HTTP-SERVER-ERROR", sprintf("there is no listener with ID %d", id);
 
-	hash h{name} = ("path": path, "isregex": isregex, "content": content_type, "handler": obj, "headers": special_headers);
+        hash h{name} = ("path": path, "isregex": isregex, "content": content_type, "handler": obj, "headers": special_headers);
         listeners{id}.addHandlers(h);
     }
 
     #! adds a request handler to a listener given the listener's name or bind address
     addHandlerToListener(softstring bind, string name, HttpServer::AbstractUrlHandler obj) {
-	lm.enter();
-	on_exit lm.exit();
+        lm.enter();
+        on_exit lm.exit();
 
         softstring id = getListenerIdFromBindUnlocked(bind);
 
-	hash h{name} = ("path": obj.url_root, "isregex": False, "handler": obj);
+        hash h{name} = ("path": obj.url_root, "isregex": False, "handler": obj);
         listeners{id}.addHandlers(h);
     }
 
     #! adds a request handler to a listener given the listener's id
     addHandlerToListenerID(softint id, string name, HttpServer::AbstractUrlHandler obj) {
-	lm.enter();
-	on_exit lm.exit();
+        lm.enter();
+        on_exit lm.exit();
 
-	if (!listeners{id})
+        if (!listeners{id})
             throw "HTTP-SERVER-ERROR", sprintf("there is no listener with ID %d", id);
 
-	hash h{name} = ("path": obj.url_root, "isregex": False, "handler": obj);
+        hash h{name} = ("path": obj.url_root, "isregex": False, "handler": obj);
         listeners{id}.addHandlers(h);
     }
 
@@ -1039,8 +1039,8 @@ http.setListenerLogOptions("app", LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         @param code a binary-or'ed product of @ref ListenerLogOptions "listener log options"; bits set enable logging; bits not set disable logging
      */
     setListenerLogOptions(softstring bind, softint code) {
-	lm.enter();
-	on_exit lm.exit();
+        lm.enter();
+        on_exit lm.exit();
 
         setListenerLogOptionsUnlocked(getListenerIdFromBindUnlocked(bind), code);
     }
@@ -1055,8 +1055,8 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         @param code a binary-or'ed product of @ref ListenerLogOptions "listener log options"; bits set enable logging; bits not set disable logging
      */
     setListenerLogOptionsID(softint id, softint code) {
-	lm.enter();
-	on_exit lm.exit();
+        lm.enter();
+        on_exit lm.exit();
 
         if (!listeners{id})
             throw "HTTP-SERVER-ERROR", sprintf("there is no listener with ID %d", id);
@@ -1066,16 +1066,16 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
     #! returns a binary-or'ed product of @ref ListenerLogOptions "listener log options" corresponding to enabled log options for the given listener
     int getListenerLogOptions(softstring bind) {
-	lm.enter();
-	on_exit lm.exit();
+        lm.enter();
+        on_exit lm.exit();
 
         return getListenerLogOptionsUnlocked(getListenerIdFromBindUnlocked(bind));
     }
 
     #! returns a binary-or'ed product of @ref ListenerLogOptions "listener log options" corresponding to enabled log options for the given listener
     int getListenerLogOptionsID(softint id) {
-	lm.enter();
-	on_exit lm.exit();
+        lm.enter();
+        on_exit lm.exit();
 
         if (!listeners{id})
             throw "HTTP-SERVER-ERROR", sprintf("there is no listener with ID %d", id);
@@ -1090,24 +1090,24 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
     #! called to log information to the registered log code
     log(string fmt) {
-	if (logfunc) {
+        if (logfunc) {
             softlist args = fmt;
             if (argv)
                 args += argv;
-	    args[0] = "HttpServer: " + args[0];
-	    call_function_args(logfunc, args);
-	}
+            args[0] = "HttpServer: " + args[0];
+            call_function_args(logfunc, args);
+        }
     }
 
     #! called to log error information to the registered error log code
     logError(string fmt) {
-	if (errlogfunc) {
+        if (errlogfunc) {
             softlist args = fmt;
             if (argv)
                 args += argv;
-	    args[0] = "HttpServer: " + args[0];
-	    call_function_args(errlogfunc, args);
-	}
+            args[0] = "HttpServer: " + args[0];
+            call_function_args(errlogfunc, args);
+        }
     }
 
     #! sends an HTTP error message on the socket
@@ -1132,30 +1132,30 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         else if (encoding != s.getEncoding().lwr())
             s.setEncoding(encoding);
 
-	hash v_hdr = hdr;
+        hash v_hdr = hdr;
 
         if (!extra_hdrs."Content-Type")
             v_hdr."Content-Type" = MimeTypeHtml + ";charset=" + encoding;
         else if (extra_hdrs."Content-Type" !~ /charset=/)
             extra_hdrs."Content-Type" += ";charset=" + encoding;
 
-	if (cx.close)
-	    v_hdr += ("Connection": "close");
-	else
-	    v_hdr += ("Connection": "Keep-Alive");
+        if (cx.close)
+            v_hdr += ("Connection": "close");
+        else
+            v_hdr += ("Connection": "Keep-Alive");
 
-	if (extra_hdrs)
-	    v_hdr += extra_hdrs;
+        if (extra_hdrs)
+            v_hdr += extra_hdrs;
 
         # log exceptions if not "SOCKET-SEND-ERROR" (probably broken pipe)
         try {
-	    s.sendHTTPResponse(code, HttpServer::HttpCodes{code}, "1.1", v_hdr, str);
+            s.sendHTTPResponse(code, HttpServer::HttpCodes{code}, "1.1", v_hdr, str);
             listener.logResponse(cx, code, str, v_hdr);
         }
         catch (hash ex) {
             if (ex.err != "SOCKET-SEND-ERROR") {
-		string estr = sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc);
-		logError(estr);
+                string estr = sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc);
+                logError(estr);
             }
         }
     }
@@ -1192,7 +1192,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         if (!id)
             id = nmap{bind};
 
-	if (!id)
+        if (!id)
             throw "HTTP-SERVER-ERROR", sprintf("there is no listener with name or bind address %y", bind);
         return id;
     }
@@ -1232,13 +1232,13 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
         string sock = (service ? sprintf("%s:%s", node ? node : "*", service) : node);
 
-	lm.enter();
-	on_exit lm.exit();
+        lm.enter();
+        on_exit lm.exit();
 
         if (smap{sock})
             throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("cannot add listener on %y; there is already an existing listener with this bind address", sock);
 
-	int id = seqListeners.next();
+        int id = seqListeners.next();
         if (!name)
             name = "listener";
         name += sprintf("-%d", id);
@@ -1250,11 +1250,11 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         #printf("HttpServer::addListenerIntern() %y c=%y\n", sock, c.getCount());
         on_error c.dec();
 
-	HttpListener l(self, id, seqSessions, node, service, cert, key, hi, logger, errorlogger, stopc, name, family);
-	listeners{id} = l;
+        HttpListener l(self, id, seqSessions, node, service, cert, key, hi, logger, errorlogger, stopc, name, family);
+        listeners{id} = l;
         smap{sock} = id;
         nmap{name} = id;
-	return l;
+        return l;
     }
 
     # don't reimplement this method; fix/enhance it in the module
@@ -1276,13 +1276,13 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         else
             key = new SSLPrivateKey(cert_data, pwd);
 
-	return ("cert": cert, "key": key);
+        return ("cert": cert, "key": key);
     }
 
     # don't reimplement this method; fix/enhance it in the module
     final private list addINETListenersIntern(*string node, softstring service, *hash sd, *hash lp, *code logger, *code errorlogger, *code stopc, *string name, int family = AF_UNSPEC) {
-	if (sd.cert_path && !sd.cert)
-	    sd += HttpServer::getSSLObjects(sd.cert_path, sd.key_path, sd.key_password);
+        if (sd.cert_path && !sd.cert)
+            sd += HttpServer::getSSLObjects(sd.cert_path, sd.key_path, sd.key_password);
 
         list al = getaddrinfo(node, service, family, AIFlags);
 
@@ -1297,9 +1297,9 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                 if (!node && (family != AF_UNSPEC))
                     break;
 %else
-		# exit after the first listener is bound if the node address is missing (= bind on all addresses)
+                # exit after the first listener is bound if the node address is missing (= bind on all addresses)
                 if (!node)
-		    break;
+                    break;
 %endif
             }
             catch (ex) {
@@ -1311,18 +1311,18 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
     # don't reimplement this method; fix/enhance it in the module
     final private hash noHandlerError(hash cx, hash hdr, any body) {
-	string str = "";
-	if (hdr.path)
-	    str = sprintf("url=%y", hdr.path);
-	else
-	    str = "<no URL>";
+        string str = "";
+        if (hdr.path)
+            str = sprintf("url=%y", hdr.path);
+        else
+            str = "<no URL>";
 
-	if (hdr."content-type")
-	    str += sprintf(", content-type=%y", hdr."content-type");
-	else
-	    str += ", <no content-type>";
+        if (hdr."content-type")
+            str += sprintf(", content-type=%y", hdr."content-type");
+        else
+            str += ", <no content-type>";
 
-	log("no handler for %s (from %s) hdr: %y", str, cx."peer-info".address_desc, hdr);
+        log("no handler for %s (from %s) hdr: %y", str, cx."peer-info".address_desc, hdr);
         return (
             "code" : 501,
             "body" : sprintf("no handler has been registered for %s", str),
@@ -1351,13 +1351,13 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             "path": hdr.path,
             );
 
-	# add logging functions and url
-	cx += (
+        # add logging functions and url
+        cx += (
             "logfunc"     : logfunc,
             "errlogfunc"  : errlogfunc,
             "url"         : url,
             "debug"       : debug,
-	    );
+            );
 
         HttpServer::AbstractHttpRequestHandler handler;
         # the dynamic handler helper maintains the request count for dynamic handlers so any call to remove the handler will only return after all in-progress requests are completed; the object is only allocated if needed
@@ -1396,29 +1396,29 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             }
         }
 
-	try {
-	    any rv;
+        try {
+            any rv;
 
-	    #printf("HTTP DEBUG: B: handler: %y strict-bool-eval: %y\n", cx.handler_name, get_parse_options() & PO_STRICT_BOOLEAN_EVAL);
-	    #printf("HTTP DEBUG: B: handler: %y: context: %y, hdr: %y, body: %y\n", cx.handler_name, cx, hdr, body);
-	    #printf("HTTP DEBUG: BEFORE handler=%s", dbg_node_info(handlers.(cx.handler_name)));
+            #printf("HTTP DEBUG: B: handler: %y strict-bool-eval: %y\n", cx.handler_name, get_parse_options() & PO_STRICT_BOOLEAN_EVAL);
+            #printf("HTTP DEBUG: B: handler: %y: context: %y, hdr: %y, body: %y\n", cx.handler_name, cx, hdr, body);
+            #printf("HTTP DEBUG: BEFORE handler=%s", dbg_node_info(handlers.(cx.handler_name)));
 
             if (!handler && defaultHandler) {
                 handler = defaultHandler.obj;
                 cx.handler_name = defaultHandler.name;
             }
 
-	    #printf("HTTP DEBUG: A: cid: %d handler: %y auth: %y\n", cx.id, cx.handler_name, boolean(handler.auth));
+            #printf("HTTP DEBUG: A: cid: %d handler: %y auth: %y\n", cx.id, cx.handler_name, boolean(handler.auth));
 
             if (!handler) {
                 cx.handler_name = "error";
                 rv = noHandlerError(cx, hdr, body);
             }
             else {
-		# check for authentication info
+                # check for authentication info
                 #printf("HTTP DEBUG: handler: %y (auth: %y) hdr: %y\n", cx.handler_name, exists handler.auth && handler.auth.requiresAuthentication(), hdr);
 
-		if (handler.auth) {
+                if (handler.auth) {
                     try {
                         *hash ah = handler.auth.authenticateRequest(listener, hdr, \cx);
                         # return an error if authentication failed
@@ -1465,13 +1465,13 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             }
 
             sendReply(listener, s, handler, rv, \cx, hdr, head);
-	}
-	catch (hash ex) {
+        }
+        catch (hash ex) {
             string desc = !debug
                 ? sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc)
                 : get_exception_string(ex);
 
-	    string str = sprintf("handler: %s: %s", cx.handler_name, desc);
+            string str = sprintf("handler: %s: %s", cx.handler_name, desc);
 
             if (ex.err == "ENCODING-CONVERSION-ERROR") {
                 s.setEncoding("utf8");
@@ -1484,9 +1484,9 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             on_exit if (s.pendingHttpChunkedBody())
                 s.readHTTPChunkedBodyBinary(HttpServer::ReadTimeout);
 
-	    sendHttpError(listener, cx, s, 500, str, NOTHING, cx."response-encoding");
-	    logError(str);
-	}
+            sendHttpError(listener, cx, s, 500, str, NOTHING, cx."response-encoding");
+            logError(str);
+        }
     }
 
     # sends a reply to a request
@@ -1642,8 +1642,8 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
         any socket;
         hash socket_info;
 
-	# connection counter
-	Counter cThreads();
+        # connection counter
+        Counter cThreads();
         bool exit = False;
         bool stopped = False;
         int id;
@@ -1654,9 +1654,9 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
         # mutex
         Mutex m();
 
-	# code references to external logging functions
-	*code logger;
-	*code errorlogger;
+        # code references to external logging functions
+        *code logger;
+        *code errorlogger;
 
         # stop notification closure
         *code stopc;
@@ -1675,7 +1675,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
         # log send body flag
         bool log_send_body = False;
 
-	const PollInterval = 1s;
+        const PollInterval = 1s;
         const ListenQueue = 100;
     }
 
@@ -1697,27 +1697,27 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
         # according to RFC 2616 section 3.7.1 (http://tools.ietf.org/html/rfc2616#section-3.7.1)
         setEncoding("utf-8");
 
-	# save a reference to the server object
-	serv = n_server;
+        # save a reference to the server object
+        serv = n_server;
 
-	# set other params
+        # set other params
         id = n_id;
-	ss = n_ss;
-	logger = n_logger;
-	errorlogger = n_errorlogger;
+        ss = n_ss;
+        logger = n_logger;
+        errorlogger = n_errorlogger;
         stopc = n_stopc;
 
         if (n_hi)
             addHandlers(n_hi);
 
-	# create SSL certificate and private key objects from PEM files if passed
+        # create SSL certificate and private key objects from PEM files if passed
         if (n_cert) {
-	    cert = n_cert;
-	    setCertificate(n_cert);
+            cert = n_cert;
+            setCertificate(n_cert);
             key = n_key;
-	    setPrivateKey(n_key);
-	    ssl = True;
-	}
+            setPrivateKey(n_key);
+            ssl = True;
+        }
 
         if (n_service) {
             bindINET(n_node, n_service, True, n_family);
@@ -1736,26 +1736,26 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
             }
         }
 
-	# save socket port/path
+        # save socket port/path
         socket_info = getSocketInfo() + ("ssl": ssl);
 
-	# make 'desc' key for logging
-	socket_info.desc = socket_info.address_desc;
-	if (socket_info.port)
-	    socket_info.desc += ":" + socket_info.port;
+        # make 'desc' key for logging
+        socket_info.desc = socket_info.address_desc;
+        if (socket_info.port)
+            socket_info.desc += ":" + socket_info.port;
 
-	# set listening state on socket
-	if (listen(ListenQueue))
-	    throw "HTTP-LISTEN-ERROR", sprintf("listen error %d on socket %s: %s", errno(), socket, strerror(errno()));
+        # set listening state on socket
+        if (listen(ListenQueue))
+            throw "HTTP-LISTEN-ERROR", sprintf("listen error %d on socket %s: %s", errno(), socket, strerror(errno()));
 
-	# start main listener thread
-	cThreads.inc();
+        # start main listener thread
+        cThreads.inc();
 
-	tid = background mainThread();
+        tid = background mainThread();
     }
 
     addHandlers(hash hi) {
-	#printf("HttpListener::addHandlers() hi: %y\n", hi);
+        #printf("HttpListener::addHandlers() hi: %y\n", hi);
         bool def = handlers.empty();
         map handlers.setHandler($1.key, $1.value.path, $1.value.isregex, $1.value.content, $1.value.handler, $1.value.headers), hi.pairIterator();
         if (def)
@@ -1770,11 +1770,11 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
     }
 
     copy() {
-	throw "COPY-ERROR", "this object cannot be copied";
+        throw "COPY-ERROR", "this object cannot be copied";
     }
 
     destructor() {
-	stop();
+        stop();
     }
 
     logRecvHeaders(softbool flag = True) {
@@ -1908,9 +1908,9 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
         softlist args = fmt;
         if (argv)
             args += argv;
-	args[0] = sprintf("%y (%s): %s", name, socket_info.desc, args[0]);
-	if (logger) {
-	    args[0] = "HTTP" + (ssl ? "S" : "") + " " + args[0];
+        args[0] = sprintf("%y (%s): %s", name, socket_info.desc, args[0]);
+        if (logger) {
+            args[0] = "HTTP" + (ssl ? "S" : "") + " " + args[0];
             try {
                 call_function_args(logger, args);
             }
@@ -1918,18 +1918,18 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                 args[0] = sprintf("cannot write to listener log: %s: %s: msg: %s", ex.err, ex.desc, args[0]);
                 serv.logErrorArgs(args);
             }
-	}
-	else
-	    serv.logArgs(args);
+        }
+        else
+            serv.logArgs(args);
     }
 
     logError(string fmt) {
         softlist args = fmt;
         if (argv)
             args += argv;
-	args[0] = sprintf("%y (%s): %s", name, socket_info.desc, args[0]);
-	if (errorlogger) {
-	    args[0] = "HTTP " + args[0];
+        args[0] = sprintf("%y (%s): %s", name, socket_info.desc, args[0]);
+        if (errorlogger) {
+            args[0] = "HTTP " + args[0];
             try {
                 call_function_args(errorlogger, args);
             }
@@ -1937,42 +1937,42 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                 args[0] = sprintf("cannot write to listener log: %s: %s: msg: %s", ex.err, ex.desc, args[0]);
                 serv.logErrorArgs(args);
             }
-	}
-	else
-	    serv.logErrorArgs(args);
+        }
+        else
+            serv.logErrorArgs(args);
     }
 
     private mainThread() {
-        on_exit	cThreads.dec();
+        on_exit cThreads.dec();
 
         serv.listenerStarted(id, socket_info);
         # DEBUG
         #printf("HTTP DEBUG: %y: mainThread() started TID %d\n", socket, gettid());
 
-	# start listening
-	while (!exit) {
-	    *Socket r;
+        # start listening
+        while (!exit) {
+            *Socket r;
             hash info;
-	    try {
+            try {
                 r = accept(PollInterval);
-		if (!r)
-		    continue;
-	    }
-	    catch (ex) {
+                if (!r)
+                    continue;
+            }
+            catch (ex) {
                 #printf("HTTP DEBUG: %s: %s: %s\n", get_ex_pos(ex), ex.err, ex.desc);
                 if (ex.err != "SOCKET-CLOSED")
                     log("error accepting %sconnection: %s: %s", ssl ? "secure " : "", ex.err, ex.desc);
                 continue;
             }
 
-	    if (exit)
-		break;
+            if (exit)
+                break;
 
-	    # DEBUG
-	    #printf("HTTP DEBUG: %y: accepting HTTP connection from %s\n", socket_info.address_desc, r.getPeerInfo().address_desc);
-	    #log("accepting HTTP connection from %s", r.getPeerInfo().address_desc);
+            # DEBUG
+            #printf("HTTP DEBUG: %y: accepting HTTP connection from %s\n", socket_info.address_desc, r.getPeerInfo().address_desc);
+            #log("accepting HTTP connection from %s", r.getPeerInfo().address_desc);
 
-	    cThreads.inc();
+            cThreads.inc();
             try {
                 # use the thread pool to start the connection
                 serv.startConnection(sub () { connectionThread(r); });
@@ -1982,17 +1982,17 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                 string err = sprintf("failed to start connection thread: %s: %s", ex.err, ex.desc);
                 serv.sendHttpError(self, ("id": -1, "close": True), r, 500, err);
             }
-	}
+        }
 
-	#printf("HTTP DEBUG: HttpListener::mainThread() closing socket %s\n", socket_info.address_desc);
-	shutdown();
-	close();
-	#printf("HTTP DEBUG: HttpListener::mainThread() TID %d terminating\n", gettid());
+        #printf("HTTP DEBUG: HttpListener::mainThread() closing socket %s\n", socket_info.address_desc);
+        shutdown();
+        close();
+        #printf("HTTP DEBUG: HttpListener::mainThread() TID %d terminating\n", gettid());
     }
 
     # thread for handling communication per connection
     private connectionThread(Socket s) {
-        on_exit	cThreads.dec();
+        on_exit cThreads.dec();
 
         if (ssl) {
             try {
@@ -2010,7 +2010,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
         if (info.port)
             info.desc += ":" + info.port;
 
-	hash cx = (
+        hash cx = (
             "socket": socket,
             "socket-info": socket_info,
             "peer-info": info,
@@ -2019,43 +2019,43 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
             "listener-id": id,
             );
 
-	my (hash hdr, any body);
+        my (hash hdr, any body);
 
-	# set TCP_NODELAY on incoming socket
-	#s.setNoDelay(True);
+        # set TCP_NODELAY on incoming socket
+        #s.setNoDelay(True);
 
         HttpPersistentHandlerInfo phi();
 
-	try {
-	    while (True) {
-		if (exit)
-		    break;
+        try {
+            while (True) {
+                if (exit)
+                    break;
 
-		delete body;
-		delete hdr;
+                delete body;
+                delete hdr;
 
                 if (!s.isOpen()) {
                     #printf("HTTP DEBUG: T%d cid %d peer closed connection\n", gettid(), cx.id);
                     break;
                 }
 
-		if (!s.isDataAvailable(HttpServer::PollTimeout)) {
-		    continue;
+                if (!s.isDataAvailable(HttpServer::PollTimeout)) {
+                    continue;
                 }
 
                 hash hi;
-		try {
-		    hdr = s.readHTTPHeader(HttpServer::ReadTimeout, \hi);
-		}
-		catch (hash ex) {
-		    # according to RFC 2616 sec 8.1.2.1 (http://tools.ietf.org/html/rfc2616#section-8.1.2), clients claiming http 1.1
-		    # protocol compatibility SHOULD only close the connection after
-		    # sending a "connection: close" header, but in
-		    # case they don't, we simply close the connection silently
-		    if (ex.err == "SOCKET-CLOSED") {
-			#printf("HTTP DEBUG: socket closed id=%d source=%n\n", cx.id, info.address_desc);
-			break;
-		    }
+                try {
+                    hdr = s.readHTTPHeader(HttpServer::ReadTimeout, \hi);
+                }
+                catch (hash ex) {
+                    # according to RFC 2616 sec 8.1.2.1 (http://tools.ietf.org/html/rfc2616#section-8.1.2), clients claiming http 1.1
+                    # protocol compatibility SHOULD only close the connection after
+                    # sending a "connection: close" header, but in
+                    # case they don't, we simply close the connection silently
+                    if (ex.err == "SOCKET-CLOSED") {
+                        #printf("HTTP DEBUG: socket closed id=%d source=%n\n", cx.id, info.address_desc);
+                        break;
+                    }
                     else if (ex.err == "SOCKET-TIMEOUT") {
                         # log error and close connection on timeout
                         string err = sprintf("timed out reading HTTP header after %d ms", HttpServer::ReadTimeout);
@@ -2065,35 +2065,35 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                         serv.sendHttpError(self, cx, s, 400, err);
                         break;
                     }
-		    string etxt = sprintf("ERROR reading HTTP header: %s: %s", ex.err, ex.desc);
+                    string etxt = sprintf("ERROR reading HTTP header: %s: %s", ex.err, ex.desc);
                     #if (ex.arg)
                     #    etxt += printf(" (%s)", ex.arg);
-		    string str = sprintf("%s: received from %s via %s", etxt, info.address_desc, socket_info.address_desc);
-		    logError(str);
+                    string str = sprintf("%s: received from %s via %s", etxt, info.address_desc, socket_info.address_desc);
+                    logError(str);
                     cx.close = True;
-		    serv.sendHttpError(self, cx, s, 400, etxt);
-		    break;
-		}
+                    serv.sendHttpError(self, cx, s, 400, etxt);
+                    break;
+                }
 
                 if (log_recv_headers)
                     log("RECV HEADER: %y", hdr);
 
-		# DEBUG:
+                # DEBUG:
                 #printf("HTTP DEBUG: id: %d, hdr: %y, hi: %y\n", cx.id, hdr, hi);
 
-		# process ascii encodings in url if present
+                # process ascii encodings in url if present
                 cx.raw_path = hdr.path;
-		hdr.path = decode_uri_request(hdr.path);
+                hdr.path = decode_uri_request(hdr.path);
 
-		# remove leading / if present in path
+                # remove leading / if present in path
                 *string orig_path = hdr.path;
-		if (hdr.path =~ /^\//)
+                if (hdr.path =~ /^\//)
                     splice hdr.path, 0, 1;
 
-		if (hdr.authorization)
-		    cx.auth = hdr.authorization;
+                if (hdr.authorization)
+                    cx.auth = hdr.authorization;
 
-		# save original content-type
+                # save original content-type
                 if (hdr."content-type")
                     hdr."_qore_orig_content_type" = hdr."content-type";
                 hdr."content-type" = hi."body-content-type";
@@ -2102,13 +2102,13 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                 cx.char_encoding = s.getEncoding();
                 cx."response-encoding" = hi."accept-charset";
 
-		# check if we need to close the connection
+                # check if we need to close the connection
                 # RFC 2068 19.7.1: Persistent connections in HTTP/1.0 must be explicitly negotiated as they are not the default behavior
                 # RFC 1945 1.3: Except for experimental applications, current practice requires that the connection be established by the client prior to each request and closed by the server after sending the response.
                 # so we MUST close the connection when a request is received by an HTTP 1.0 client without an explicit request to keep the connection open: the above rules are followed by Socket::readHTTPHeader()
                 cx.close = hi.close;
 
-		# if we need to get a body
+                # if we need to get a body
                 if (hdr."content-length") {
                     try {
                         if (hdr."content-encoding")
@@ -2160,19 +2160,19 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
 
                 if (cx.close)
                     break;
-	    }
-	}
-	catch (hash ex) {
+            }
+        }
+        catch (hash ex) {
             string etxt = serv.getDebug()
                 ? sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc)
                 : get_exception_string(ex);
-	    string str = sprintf("%s: received from %s via %s", etxt, info.address_desc, socket_info.address_desc);
-	    logError(str);
-	    logError(sprintf("hdr=%y", hdr));
-	    #logError(sprintf("msg=%y", body));
+            string str = sprintf("%s: received from %s via %s", etxt, info.address_desc, socket_info.address_desc);
+            logError(str);
+            logError(sprintf("hdr=%y", hdr));
+            #logError(sprintf("msg=%y", body));
             cx.close = True;
-	    serv.sendHttpError(self, cx, s, 500, etxt, NOTHING, cx."response-encoding");
-	}
+            serv.sendHttpError(self, cx, s, 500, etxt, NOTHING, cx."response-encoding");
+        }
 
         #log("cid %d: closing connection (status: %s)", cx.id, s.isOpen() ? "open" : "closed");
         s.shutdown();
