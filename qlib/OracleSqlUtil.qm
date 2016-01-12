@@ -275,12 +275,12 @@ my hash $schema = (
 public namespace OracleSqlUtil {
     #! returns an OracleTable object corresponding to the arguments
     public OracleTable sub get_table(AbstractDatasource nds, string nname, *hash opts) {
-	return new OracleTable(nds, nname, opts);
+        return new OracleTable(nds, nname, opts);
     }
 
     #! returns an OracleDatabase object corresponding to the arguments
     public OracleDatabase sub get_database(AbstractDatasource nds, *hash opts) {
-	return new OracleDatabase(nds, opts);
+        return new OracleDatabase(nds, opts);
     }
 
     #! represents an Oracle column
@@ -314,9 +314,9 @@ my list $l = $col.getAddColumnSql($t);
             @param t the AbstractTable object to modify
          */
         list getAddColumnSql(AbstractTable t) {
-	    list l += sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql(t));
-	    if (comment)
-		l += sprintf("comment on column %s.%s is %s", t.getSqlName(), name, t.getSqlValue(comment));
+            list l += sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql(t));
+            if (comment)
+                l += sprintf("comment on column %s.%s is %s", t.getSqlName(), name, t.getSqlValue(comment));
             return l;
         }
 
@@ -360,7 +360,7 @@ my list $l = $col.getModifySql($t, $newcol);
             # to remove a comment we set it to the empty string ('')
             # http://docs.oracle.com/cd/B28359_01/server.111/b28286/statements_4009.htm
             if (c.comment != comment)
-		l += sprintf("comment on column %s.%s is %s", t.getSqlName(), name, c.comment ? t.getSqlValue(c.comment) : "''");
+                l += sprintf("comment on column %s.%s is %s", t.getSqlName(), name, c.comment ? t.getSqlValue(c.comment) : "''");
             return l;
         }
 
@@ -766,9 +766,9 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the trigger in the database
-	softlist getRenameSql(string table_name, string new_name) {
-	    return sprintf("alter trigger %s rename to %s", name, new_name);
-	}
+        softlist getRenameSql(string table_name, string new_name) {
+            return sprintf("alter trigger %s rename to %s", name, new_name);
+        }
 
         #! returns a string that can be used to drop the trigger from the database
         softlist getDropSql(string table_name) {
@@ -797,12 +797,12 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the object in the database
-	list getRenameSql(string new_name) {
+        list getRenameSql(string new_name) {
             list l = ();
             l += getDropSql();
             l += getCreateSql();
             return l;
-	}
+        }
     }
 
     #! represents an Oracle type
@@ -1628,9 +1628,9 @@ my any $v = $c.name;
                 "varchar2": ("qore": Type::String, "size": SZ_MAND, "size_range": (1, 4000), "is_char": True),
                 "char": ("qore": Type::String, "size": SZ_MAND, "size_range": (1, 4000), "is_char": True),
                 "date": ("qore": Type::Date,),
-		"timestamp": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 9)),
-		"timestamp with time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 9)),
-		"timestamp with local time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 9)),
+                "timestamp": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 9)),
+                "timestamp with time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 9)),
+                "timestamp with local time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 9)),
                 "timestamp(0)": ("qore": Type::Date,),
                 "timestamp(1)": ("qore": Type::Date,),
                 "timestamp(2)": ("qore": Type::Date,),
@@ -1905,16 +1905,16 @@ my any $v = $c.name;
         }
 
         private {
-	    # schema name
+            # schema name
             string schema;
 
-	    # tablespace name
+            # tablespace name
             *string tablespace;
 
-	    # is the table read only?
+            # is the table read only?
             bool readonly;
 
-	    # table comment
+            # table comment
             *string comment;
 
             # dblink
@@ -1967,8 +1967,8 @@ my any $v = $c.name;
             return True;
         }
 
-	private setTableInfoIntern() {
-	    hash row = (schema.lwr() == ds.getUserName().lwr()) ? setTable() : setSchemaTable();
+        private setTableInfoIntern() {
+            hash row = (schema.lwr() == ds.getUserName().lwr()) ? setTable() : setSchemaTable();
 
             tablespace = row.tablespace_name;
             readonly = row.read_only == "YES";
@@ -1981,8 +1981,8 @@ my any $v = $c.name;
                 comment = cm ? cm : NOTHING;
             }
 
-	    inDb = True;
-	}
+            inDb = True;
+        }
 
         #! returns the schema and table naem in dot notation
         string getSqlName() {
@@ -2192,8 +2192,8 @@ my any $v = $c.name;
         }
 
         private Columns describeImpl() {
-	    if (!tablespace)
-		setTableInfoIntern();
+            if (!tablespace)
+                setTableInfoIntern();
 
             # get column descriptions
             *hash qh = ds.select("select col.column_name, data_type, data_length, data_precision, data_scale, nullable, data_default, char_length, char_used, comments from all_tab_columns" + (dblink ? "@" + dblink : "") + " col, all_col_comments" + (dblink ? "@" + dblink : "") + " com where col.owner = %v and col.table_name = %v and com.owner = col.owner and com.table_name = col.table_name and com.column_name = col.column_name order by column_id", schema.upr(), name.upr());
@@ -2263,8 +2263,8 @@ my any $v = $c.name;
         }
 
         private OraclePrimaryKey getPrimaryKeyImpl() {
-	    if (!tablespace)
-		setTableInfoIntern();
+            if (!tablespace)
+                setTableInfoIntern();
 
             hash rv;
 
@@ -2293,8 +2293,8 @@ my any $v = $c.name;
         }
 
         private Indexes getIndexesImpl() {
-	    if (!tablespace)
-		setTableInfoIntern();
+            if (!tablespace)
+                setTableInfoIntern();
 
             hash rv;
 
@@ -2342,8 +2342,8 @@ my any $v = $c.name;
         }
 
         private ForeignConstraints getForeignConstraintsImpl(*hash opts) {
-	    if (!tablespace)
-		setTableInfoIntern();
+            if (!tablespace)
+                setTableInfoIntern();
 
             hash ch;
 
@@ -2386,8 +2386,8 @@ my any $v = $c.name;
         }
 
         private Constraints getConstraintsImpl() {
-	    if (!tablespace)
-		setTableInfoIntern();
+            if (!tablespace)
+                setTableInfoIntern();
 
             # get only user check constraints
             *hash qh = ds.select("select constraint_name, search_condition, status from all_constraints" + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v and constraint_type = 'C' and generated != 'GENERATED NAME'", schema.upr(), name.upr());
@@ -2428,8 +2428,8 @@ my any $v = $c.name;
         }
 
         private Triggers getTriggersImpl() {
-	    if (!tablespace)
-		setTableInfoIntern();
+            if (!tablespace)
+                setTableInfoIntern();
 
             hash rv;
 
@@ -2466,8 +2466,8 @@ my any $v = $c.name;
         }
 
         private *list getCreateMiscSqlImpl(*hash opt, bool cache) {
-	    if (cache)
-		getColumnsUnlocked();
+            if (cache)
+                getColumnsUnlocked();
             return map AbstractDatabase::doCallback(opt, sprintf("comment on column %s.%s is %s", name, $1.name, getSqlValueImpl($1.comment)), AbstractDatabase::AC_Add, "column comment", $1.name, name), columns.iterator(), $1.comment;
         }
 

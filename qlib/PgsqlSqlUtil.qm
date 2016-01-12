@@ -172,7 +172,7 @@ public namespace PgsqlSqlUtil {
 
     #! returns a PgsqlDatabase object corresponding to the arguments
     public PgsqlDatabase sub get_database(AbstractDatasource nds, *hash opts) {
-	return new PgsqlDatabase(nds, opts);
+        return new PgsqlDatabase(nds, opts);
     }
 
     sub parse_schema_name(string nname, reference schema, reference name) {
@@ -190,13 +190,13 @@ public namespace PgsqlSqlUtil {
 
     #! represents a PostgreSQL type
     public class PgsqlType {
-	public {
-	    #! the name of the type
-	    string name;
+        public {
+            #! the name of the type
+            string name;
 
-	    #! the source of the type
-	    string src;
-	}
+            #! the source of the type
+            string src;
+        }
 
         #! creates the type from the supplied arguments
         constructor(string n_name, string n_src) {
@@ -204,11 +204,11 @@ public namespace PgsqlSqlUtil {
             src = n_src;
         }
 
-	list getTypeList() {
-	    list sl = src.split(",");
+        list getTypeList() {
+            list sl = src.split(",");
             trim sl;
 
-	    list l = ();
+            list l = ();
             foreach string str in (sl) {
                 (*string tname, *string type) = (str =~ x/(\w+) (.*)/);
                 if (!tname || !type)
@@ -219,12 +219,12 @@ public namespace PgsqlSqlUtil {
                 );
             }
             return l;
-	}
+        }
 
-	list getModifySql(PgsqlType old, *hash opt) {
-	    list sqll = ();
+        list getModifySql(PgsqlType old, *hash opt) {
+            list sqll = ();
 
-	    list tl = getTypeList();
+            list tl = getTypeList();
             list oldtl = old.getTypeList();
 
             #printf("tl: %N\noldtl: %N\n", tl, oldtl);
@@ -245,30 +245,30 @@ public namespace PgsqlSqlUtil {
             for (int i = oldtl.size(); i < tl.size(); ++i)
                 sqll += sprintf("alter type %s add attribute %s %s", name, tl[i].name, tl[i].type);
 
-	    return sqll;
-	}
+            return sqll;
+        }
 
         #! returns a string that can be used to create the type in the database
-	string getCreateSql(*hash opt) {
-	    return sprintf("create type %s as (%s)", name, src);
-	}
+        string getCreateSql(*hash opt) {
+            return sprintf("create type %s as (%s)", name, src);
+        }
 
-	string getDropSql(*hash opt) {
-	    return sprintf("drop type %s%s", name, opt.cascade ? " cascade" : "");
-	}
+        string getDropSql(*hash opt) {
+            return sprintf("drop type %s%s", name, opt.cascade ? " cascade" : "");
+        }
 
-	string getRenameSql(string new_name) {
-	    return sprintf("alter type %s rename to %s", name, new_name);
-	}
+        string getRenameSql(string new_name) {
+            return sprintf("alter type %s rename to %s", name, new_name);
+        }
 
- 	bool equal(PgsqlType type) {
-	    return name == type.name && src == type.src;
-	}
+         bool equal(PgsqlType type) {
+            return name == type.name && src == type.src;
+        }
     }
 
     #! represents a PostgreSQL-specific index
     public class PgsqlIndex inherits SqlUtil::AbstractIndex {
-	public {
+        public {
             #! the tablespace name of the index
             *string tablespace;
         }
@@ -383,9 +383,9 @@ my list $l = $col.getAddColumnSql($t);
             @param t the SqlUtil::AbstractTable object to modify
          */
         list getAddColumnSql(AbstractTable t) {
-	    list l += sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql(t));
-	    if (comment)
-		l += sprintf("comment on column %s.%s is %s", t.getSqlName(), name, t.getSqlValue(comment));
+            list l += sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql(t));
+            if (comment)
+                l += sprintf("comment on column %s.%s is %s", t.getSqlName(), name, t.getSqlValue(comment));
             return l;
         }
 
@@ -431,7 +431,7 @@ my list $l = $col.getModifySql($t, $newcol);
             }
 
             if (c.comment != comment)
-		l += sprintf("comment on column %s.%s is %s", t.getSqlName(), name, t.getSqlValue(c.comment));
+                l += sprintf("comment on column %s.%s is %s", t.getSqlName(), name, t.getSqlValue(c.comment));
             return l;
         }
 
@@ -719,9 +719,9 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the trigger in the database
-	softlist getRenameSql(string table_name, string new_name) {
-	    return sprintf("alter trigger %s on %s rename to %s", name, table_name, new_name);
-	}
+        softlist getRenameSql(string table_name, string new_name) {
+            return sprintf("alter trigger %s on %s rename to %s", name, table_name, new_name);
+        }
     }
 
     #! represents a PostgreSQL-specific function
@@ -750,9 +750,9 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the function in the database
-	softlist getRenameSql(string new_name) {
-	    return sprintf("alter function %s rename to %s(%s)", name, new_name, args);
-	}
+        softlist getRenameSql(string new_name) {
+            return sprintf("alter function %s rename to %s(%s)", name, new_name, args);
+        }
 
         #! sets the new name of the function
         setName(string new_name) {

@@ -5489,7 +5489,7 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
         abstract list getCreateSql(*hash opt);
 
         #! returns a string that can be used to rename the function in the database
-	abstract list getRenameSql(string new_name);
+        abstract list getRenameSql(string new_name);
 
         #! sets the new name of the object
         setName(string new_name) {
@@ -5547,10 +5547,10 @@ AbstractFunction f = funcs.func1;
         abstract list getCreateSql(string table_name, *hash opt);
 
         #! returns a string that can be used to rename the trigger in the database
-	abstract list getRenameSql(string table_name, string new_name);
+        abstract list getRenameSql(string table_name, string new_name);
 
         #! returns a string that can be used to drop the trigger in the database
-	abstract list getDropSql(string table_name);
+        abstract list getDropSql(string table_name);
     }
 
     #! trigger container class that throws an exception if an unknown trigger is accessed
@@ -11534,7 +11534,7 @@ string sql = table.getRenameColumnSql("name", "family_name");
             c.name = new_name;
 
             # replaces the column in the internal column representation with the new definition
-	    columns.renameKey(old_name, new_name);
+            columns.renameKey(old_name, new_name);
 
             # now rename column in any constraints
             # check primary key
@@ -15836,7 +15836,7 @@ list l = table.getAlignSql(table2);
                             *string pk_index = t.primaryKey.getIndex();
                             if (pk_index && t.indexes.hasKey(pk_index))
                                 t.indexes{pk_index}.setSupportingConstraint();
-			    if (constraintsLinkedToIndexesImpl() && indexes.hasKey(primaryKey.getName()))
+                            if (constraintsLinkedToIndexesImpl() && indexes.hasKey(primaryKey.getName()))
                                 t.primaryKey.clearIndex();
 
                             delete primaryKey;
