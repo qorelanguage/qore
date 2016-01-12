@@ -39,7 +39,7 @@ sub usage() {
   -d,--date=ARG    returns a date value in 'date'
   -t               returns a boolean value in 'test'
   -o,--opt[=ARG]   returns an integer sum of arguments in 'opt'\n",
-	get_script_name());
+        get_script_name());
     exit(1);
 }
 
@@ -63,7 +63,7 @@ const Opts =
 
 sub process_command_line() {
     if (!elements ARGV)
-	usage();
+        usage();
 
     GetOpt g(Opts);
 
@@ -72,7 +72,7 @@ sub process_command_line() {
     #       with an informative message
     hash o = g.parse3(\ARGV);
     if (o.help)
-	usage();
+        usage();
     print("qore GetOpt class test script\n");
     printf("o: %N\n", o);
     printf("ARGV: %N\n", ARGV);
