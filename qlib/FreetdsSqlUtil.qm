@@ -1460,5 +1460,11 @@ order by
             *hash h = execData(opt, sql, args);
             return h ? map {$1.key: $1.value[0]}, h.pairIterator() : h;
         }
+
+        private softbool tryUpdate(string sql, hash row, Columns cols, list updc) {
+            list args = row{updc}.values() + row{cols.keys()}.values();
+            any x = ds.vexec(sql, args);
+            return x.typeCode() == NT_HASH ? x.firstValue() : x;
+        }
     }
 }

@@ -15211,7 +15211,6 @@ int ucnt = table.updateNoCommit(("id": id), ("name": name));
 
         private softbool tryUpdate(string sql, hash row, Columns cols, list updc) {
             list args = row{updc}.values() + row{cols.keys()}.values();
-            #printf("sql: %s args: %y\n", sql, args);
             return ds.vexec(sql, args);
         }
 
