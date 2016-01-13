@@ -9,20 +9,20 @@
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/SqlUtil.qm
 %requires ../../../../qlib/BulkSqlUtil.qm
-%requires ../../../../qlib/PgsqlSqlUtil.qm
+%requires ../../../../qlib/OracleSqlUtil.qm
 %requires ../../../../qlib/Schema.qm
 
 %requires ./SqlUtilTestBase.qm
 
-%try-module pgsql
-%define NoPgsql
+%try-module oracle
+%define NoOracle
 %endtry
 
-%exec-class PgsqlTest
+%exec-class OracleTest
 
-class PgsqlTestSchema inherits AbstractSchema {
+class OracleTestSchema inherits AbstractSchema {
     public {
-        const SchemaName = "PgsqlTestSchema";
+        const SchemaName = "OracleTestSchema";
         const SchemaVersion = "1.0";
     }
 
@@ -35,15 +35,15 @@ class PgsqlTestSchema inherits AbstractSchema {
 
         const ColumnOptions = {};
 
-        const T_PgsqlTest = (
+        const T_OracleTest = (
             "columns": (
                 "id": c_number(14, True),
             ),
-            "primary_key": ("name": "pk_pgsql_test", "columns": ("id")),
+            "primary_key": ("name": "pk_oracle_test", "columns": ("id")),
             );
 
         const Tables = (
-            "pgsql_test": T_PgsqlTest,
+            "oracle_test": T_OracleTest,
             );
     }
 
@@ -60,15 +60,15 @@ class PgsqlTestSchema inherits AbstractSchema {
 
     private *hash getTablesImpl() {
         hash tables = Tables;
-        # add custom columns to pgsql_test
-        foreach hash h in (PgsqlTest::CustomColumns.pairIterator()) {
+        # add custom columns to oracle_test
+        foreach hash h in (OracleTest::CustomColumns.pairIterator()) {
             hash ch = (
                 "native_type": h.key,
                 "notnull": True,
                 );
             if (h.value.typeCode() == NT_HASH)
                 ch += (h.value - ("value", "bind"));
-            tables.pgsql_test.columns{PgsqlTest::getColumnName(h.key)} = ch;
+            tables.oracle_test.columns{OracleTest::getColumnName(h.key)} = ch;
         }
         return tables;
     }
@@ -98,7 +98,7 @@ class PgsqlTestSchema inherits AbstractSchema {
     }
 }
 
-class PgsqlTest inherits SqlTestBase {
+class OracleTest inherits SqlTestBase {
     public {
         const CustomColumns = (
             "varchar": (
@@ -122,21 +122,13 @@ class PgsqlTest inherits SqlTestBase {
             "time with time zone": 09:27:03-06,
             "timestamp": 2016-01-11T09:27:59,
             "timestamp with time zone": 2016-01-11T09:28:12.384629+03,
-            /*
-            "money": (
-                "value": 400.56,
-%ifndef NoPgsql
-                "bind": pgsql_bind(PG_TYPE_CASH, "400.56"),
-%endif
-            ),
-            */
             "bytea": <bead>,
             #"bit": ,
             #"varbit": ,
             );
     }
 
-    constructor() : SqlTestBase("PgsqlTest", "1.0", \ARGV, MyOpts) {
+    constructor() : SqlTestBase("OracleTest", "1.0", \ARGV, MyOpts) {
         Datasource ds;
         try {
             ds = getDatasource();
@@ -148,18 +140,18 @@ class PgsqlTest inherits SqlTestBase {
         if (ds) {
             foreach hash h in (CustomColumns.pairIterator()) {
                 any val = h.value.typeCode() == NT_HASH ? h.value.value : h.value;
-                row{PgsqlTest::getColumnName(h.key)} = val;
+                row{OracleTest::getColumnName(h.key)} = val;
             }
             insert_data = (("id": 1,) + row, ("id": 2,) + row,);
             upsert_data = (("id": 2,) + row, ("id": 3,) + row,);
 
             # create the test schema
-            schema = new PgsqlTestSchema(ds);
+            schema = new OracleTestSchema(ds);
 
             schema.align(False, m_options.verbose);
 
             # get table object
-            table = (new Table(schema.getDatasource(), "pgsql_test")).getTable();
+            table = (new Table(schema.getDatasource(), "oracle_test")).getTable();
         }
 
         set_return_value(main());
@@ -167,15 +159,15 @@ class PgsqlTest inherits SqlTestBase {
 
     private usageIntern() {
         TestReporter::usageIntern(OptionColumn);
-        printOption("-c,--conn=ARG", "set DB connection argument (ex: \"pgsql:user/pass@db\")", OptionColumn);
+        printOption("-c,--conn=ARG", "set DB connection argument (ex: \"oracle:user/pass@db\")", OptionColumn);
     }
 
     Datasource getDatasource() {
         if (!m_options.connstr)
-            m_options.connstr = ENV.QORE_DB_CONNSTR_PGSQL ?? "pgsql:omquser/omquser@omquser";
+            m_options.connstr = ENV.QORE_DB_CONNSTR_ORACLE ?? "oracle:omquser/omquser@omquser";
         Datasource ds(m_options.connstr);
         if (ds.getDriverName() != "pgsql")
-            throw "PGSQL-ERROR", sprintf("cannot execute the pgsql tests on a connection using driver %y", ds.getDriverName());
+            throw "ORACLE-ERROR", sprintf("cannot execute the oracle tests on a connection using driver %y", ds.getDriverName());
         ds.open();
         return ds;
     }
