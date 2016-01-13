@@ -166,7 +166,7 @@ class OracleTest inherits SqlTestBase {
         if (!m_options.connstr)
             m_options.connstr = ENV.QORE_DB_CONNSTR_ORACLE ?? "oracle:omquser/omquser@omquser";
         Datasource ds(m_options.connstr);
-        if (ds.getDriverName() != "pgsql")
+        if (ds.getDriverName() != "oracle")
             throw "ORACLE-ERROR", sprintf("cannot execute the oracle tests on a connection using driver %y", ds.getDriverName());
         ds.open();
         return ds;
