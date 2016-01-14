@@ -69,7 +69,8 @@ public class SqlTestBase inherits QUnit::Test {
 
         code upsert = table.getUpsertClosure(insert_data[0]);
         assertEq(AbstractTable::UR_Verified, upsert(upsert_data[0]));
-        assertEq(AbstractTable::UR_Inserted, upsert(upsert_data[1]));
+        # upsert can return UR_Verified even when rows are upserted when there is an optimized upsert implementation used in the driver-specific SqlUtil module
+        assertEq(True, inlist(upsert(upsert_data[1]), (AbstractTable::UR_Inserted, AbstractTable::UR_Verified)));
     }
 
     bulkInsertTest() {

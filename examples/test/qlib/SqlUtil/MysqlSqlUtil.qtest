@@ -13,7 +13,7 @@
 %requires ../../../../qlib/Schema.qm
 
 %requires ./SqlUtilTestBase.qm
-
+#/;
 %try-module mysql
 %define NoMysql
 %endtry
@@ -109,22 +109,44 @@ class MysqlTest inherits SqlTestBase {
                 "value": "hello",
                 "size": "20",
             ),
-            "numeric": (
+            "decimal": (
                 "size": 15,
                 "scale": 2,
                 "value": 400.95n,
-                ),
+            ),
+
+            "tinyint": 10,
+            "smallint": 512,
+            "mediumint": 192932,
+            "int": 49349839,
+            "bigint": 34839203948394,
+            "float": 1.1,
+            "double": 3.1415927,
+
             "date": 2016-01-11,
-            "abstime": 2016-01-11T09:26:14,
-            "reltime": 5M + 71D + 19h + 245m + 51s,
-            "interval": 6M + 3D + 2h + 45m + 15s,
-            "time": 09:26:52,
-            "time with time zone": 09:27:03-06,
+            "datetime": 2016-01-11T09:26:14,
             "timestamp": 2016-01-11T09:27:59,
-            "timestamp with time zone": 2016-01-11T09:28:12.384629+03,
-            "bytea": <bead>,
-            #"bit": ,
-            #"varbit": ,
+            "time": 09:26:52,
+            "year": 2016,
+
+            "binary": <bead>,
+            /*
+            "varbinary": (
+                "value": <bead>,
+                "size": "20",
+            ),
+            */
+
+            "tinyblob": <bead>,
+            "blob": <bead>,
+            "mediumblob": <bead>,
+            "longblob": <bead>,
+
+            "tinytext": "test",
+            "mediumtext": "test",
+            "longtext": "test",
+
+            "bit": 100,
             );
     }
 
@@ -134,6 +156,8 @@ class MysqlTest inherits SqlTestBase {
             ds = getDatasource();
         }
         catch (hash ex) {
+            if (m_options.verbose)
+                printf("%s: %s\n", ex.err, ex.desc);
             # skip tests if we can't create the datasource
         }
 

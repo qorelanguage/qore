@@ -101,7 +101,7 @@ class OracleTestSchema inherits AbstractSchema {
 class OracleTest inherits SqlTestBase {
     public {
         const CustomColumns = (
-            "varchar": (
+            "varchar2": (
                 "value": "hello",
                 "size": "20",
             ),
@@ -109,22 +109,24 @@ class OracleTest inherits SqlTestBase {
                 "value": "hello",
                 "size": "20",
             ),
-            "numeric": (
+            "number": (
                 "size": 15,
                 "scale": 2,
                 "value": 400.95n,
                 ),
             "date": 2016-01-11,
-            "abstime": 2016-01-11T09:26:14,
-            "reltime": 5M + 71D + 19h + 245m + 51s,
-            "interval": 6M + 3D + 2h + 45m + 15s,
-            "time": 09:26:52,
-            "time with time zone": 09:27:03-06,
-            "timestamp": 2016-01-11T09:27:59,
-            "timestamp with time zone": 2016-01-11T09:28:12.384629+03,
-            "bytea": <bead>,
-            #"bit": ,
-            #"varbit": ,
+            "timestamp": 2016-01-11T09:26:14.502134,
+            "timestamp with time zone": 2016-01-11T09:26:14.502134,
+            "timestamp with local time zone": 2016-01-11T09:26:14.502134,
+            #"interval year to month": 2Y + 6M,
+            #"interval day to second": 2D + 3h + 4m + 1s,
+            "clob": "test",
+            "blob": <bead>,
+            "binary_float": 1.1,
+            "binary_double": 1.1,
+            #raw
+            #bfile
+            #long
             );
     }
 
@@ -134,6 +136,8 @@ class OracleTest inherits SqlTestBase {
             ds = getDatasource();
         }
         catch (hash ex) {
+            if (m_options.verbose)
+                printf("%s: %s\n", ex.err, ex.desc);
             # skip tests if we can't create the datasource
         }
 
@@ -164,7 +168,7 @@ class OracleTest inherits SqlTestBase {
 
     Datasource getDatasource() {
         if (!m_options.connstr)
-            m_options.connstr = ENV.QORE_DB_CONNSTR_ORACLE ?? "oracle:omquser/omquser@omquser";
+            m_options.connstr = ENV.QORE_DB_CONNSTR_ORACLE ?? "oracle:omquser/omquser@xbox";
         Datasource ds(m_options.connstr);
         if (ds.getDriverName() != "oracle")
             throw "ORACLE-ERROR", sprintf("cannot execute the oracle tests on a connection using driver %y", ds.getDriverName());

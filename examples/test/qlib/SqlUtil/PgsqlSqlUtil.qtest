@@ -13,7 +13,7 @@
 %requires ../../../../qlib/Schema.qm
 
 %requires ./SqlUtilTestBase.qm
-
+#/;
 %try-module pgsql
 %define NoPgsql
 %endtry
@@ -113,7 +113,18 @@ class PgsqlTest inherits SqlTestBase {
                 "size": 15,
                 "scale": 2,
                 "value": 400.95n,
-                ),
+            ),
+
+            "smallint": 100,
+            "integer": 1928381,
+            "bigint": 2198374739812,
+            "smallserial": 100,
+            "serial": 39484392,
+            "bigserial": 129383948393,
+            "real": 1.1,
+            "double precision": 3.1415927,
+            #"oid": 200n,
+
             "date": 2016-01-11,
             "abstime": 2016-01-11T09:26:14,
             "reltime": 5M + 71D + 19h + 245m + 51s,
@@ -122,6 +133,7 @@ class PgsqlTest inherits SqlTestBase {
             "time with time zone": 09:27:03-06,
             "timestamp": 2016-01-11T09:27:59,
             "timestamp with time zone": 2016-01-11T09:28:12.384629+03,
+
             /*
             "money": (
                 "value": 400.56,
@@ -130,9 +142,14 @@ class PgsqlTest inherits SqlTestBase {
 %endif
             ),
             */
+            "text": "test",
             "bytea": <bead>,
-            #"bit": ,
-            #"varbit": ,
+            #"bit": 100,
+            #"varbit": <bead>,
+            "boolean": True,
+            #"macaddr": "192.168.0.1",
+            #"inet": "",
+            #"cidr": "",
             );
     }
 
@@ -142,6 +159,8 @@ class PgsqlTest inherits SqlTestBase {
             ds = getDatasource();
         }
         catch (hash ex) {
+            if (m_options.verbose)
+                printf("%s: %s\n", ex.err, ex.desc);
             # skip tests if we can't create the datasource
         }
 
