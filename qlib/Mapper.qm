@@ -238,7 +238,7 @@ m.mapData(input2);           # date_begin is still the same as from beginning of
       - @ref Mapper::Mapper::getRuntime()
       - @ref Mapper::Mapper::replaceRuntime()
       - @ref Mapper::Mapper::setRuntime()
-    - implemented \c "index" fiels tag for current row index
+    - implemented \c "index" field tag for current row index
 
     @subsection mapperv1_0 Mapper v1.0
     - Initial release
