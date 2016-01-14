@@ -2614,7 +2614,7 @@ my any $v = $c.name;
         }
 
         #! returns a closure for performing upserts; the upsert_strategy argument is ignored and a closure using an Oracle merge statement is returned
-        private code getUpsertClosureUnlocked(hash row, int upsert_strategy = UpsertAuto) {
+        private code getUpsertClosure(hash row, int upsert_strategy = UpsertAuto) {
             Columns cols = checkUpsertRow(row, \upsert_strategy);
 
             # get update columns
