@@ -1631,6 +1631,8 @@ my any $v = $c.name;
                 "timestamp": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 9)),
                 "timestamp with time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 9)),
                 "timestamp with local time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 9)),
+                "interval year to month": ("qore": Type::Date,),
+                "interval day to second": ("qore": Type::Date,),
                 "timestamp(0)": ("qore": Type::Date,),
                 "timestamp(1)": ("qore": Type::Date,),
                 "timestamp(2)": ("qore": Type::Date,),

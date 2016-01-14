@@ -1,0 +1,34 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../../qlib/QUnit.qm
+
+%exec-class Test
+
+class Test inherits QUnit::Test {
+    constructor() : QUnit::Test("Queue", "1.0") {
+        addTestCase("simple tests", \simpleTests());
+        set_return_value(main());
+    }
+
+    simpleTests() {
+        Queue q();
+
+        q.push(1);
+        assertEq(1, q.get());
+        assertEq(0, q.size());
+        q.push(1);
+        q.setError("ERR", "desc");
+        assertThrows("ERR", "desc", \q.push(), 1);
+        q.clearError();
+        assertEq(0, q.size());
+        q.push(1);
+        assertEq(1, q.get());
+        assertEq(0, q.size());
+    }
+}
