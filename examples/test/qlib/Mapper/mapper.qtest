@@ -36,6 +36,9 @@ public class MapperTest inherits QUnit::Test {
             "sr0.sr1.key1": ("constant": "key1"),
             "sr0.store_name": "StoreInfo.StoreName",
             "runtimetest" : ("runtime" : "runtimetest"),
+            "indextest1" : ("index" : 0),
+            "indextest2" : ("index" : 1),
+            "indextest3" : ("index" : "a"),
         );
 
         const MapInput = ((
@@ -88,6 +91,9 @@ public class MapperTest inherits QUnit::Test {
                 "store_name": "Store1",
             ),
             "runtimetest" : 1,
+            "indextest1" : 0,
+            "indextest2" : 1,
+            "indextest3" : "a0",
             ), (
             "id": 2,
             "name": "Steve Austin",
@@ -109,6 +115,9 @@ public class MapperTest inherits QUnit::Test {
                 "store_name": "Store2",
             ),
             "runtimetest" : 1,
+            "indextest1" : 1,
+            "indextest2" : 2,
+            "indextest3" : "a1",
             ),
         );
     }
@@ -119,39 +128,38 @@ public class MapperTest inherits QUnit::Test {
         addTestCase("Runtime test", \testMapperRuntime());
         addTestCase("Test 'input' option", \testMapperOptionInput());
         addTestCase("Bulk Test", \testMapperBulk());
+        addTestCase("Index test", \testMapperIndex());
         set_return_value(main());
     }
 
     private {
-        Mapper m_map;
-        hash opts;
+        hash m_opts = ( "runtime" : ("runtimetest" : 1), );
     }
 
     setUp() {
-        opts = (
-            "runtime" : ( "runtimetest" : 1 ),
-        );
-        m_map = new Mapper(DataMap, opts);
     }
 
     testMapperMapAll() {
-        list l = m_map.mapAll(MapInput);
+        Mapper m(DataMap, m_opts);
+        list l = m.mapAll(MapInput);
         testAssertion("Verify mapped list", \equalsIterated(), (new ListIterator(l), new ListIterator(MapOutput)));
-        testAssertion("Verify item count", \equals(), (m_map.getCount(), 2));
+        testAssertion("Verify item count", \equals(), (m.getCount(), 2));
     }
 
     testMapperMapData() {
-        list l = map m_map.mapData($1), MapInput;
+        Mapper m(DataMap, m_opts);
+        list l = map m.mapData($1), MapInput;
         testAssertion("Verify mapped list", \equalsIterated(), (new ListIterator(l), new ListIterator(MapOutput)));
-        testAssertion("Verify item count", \equals(), (m_map.getCount(), 2));
+        testAssertion("Verify item count", \equals(), (m.getCount(), 2));
     }
 
     testMapperRuntime() {
+        Mapper m(DataMap, m_opts);
         ListIterator it(MapInput);
         int ix = 0;
         while (it.next()) {
-            m_map.setRuntime("runtimetest", ix);
-            hash rec = m_map.mapData(it.getValue());
+            m.setRuntime("runtimetest", ix);
+            hash rec = m.mapData(it.getValue());
             hash orig = MapOutput[ix] + ("runtimetest" : ix);
             testAssertion(sprintf("runtime item: %d", ix), \equals(), (rec, orig));
             ix++;
@@ -159,15 +167,30 @@ public class MapperTest inherits QUnit::Test {
     }
 
     testMapperOptionInput() {
-        hash my_opts = opts + ("input": map {$1: $1}, MapInput[0].keys());
-        m_map = new Mapper(DataMap, my_opts);
-        m_map.mapData(MapInput[0]);
+        hash my_opts = m_opts + ("input": map {$1: $1}, MapInput[0].keys());
+        Mapper m(DataMap, my_opts);
+        m.mapData(MapInput[0]);
     }
 
     testMapperBulk() {
-        MapperIterator i(MapInput.iterator(), DataMap, opts);
+        MapperIterator i(MapInput.iterator(), DataMap, m_opts);
         list l = i.mapBulk(MapInput.lsize());
         testAssertion("Verify mapped list", \equalsIterated(), (l.iterator(), MapOutput.iterator()));
         assertEq(2, i.getCount());
+    }
+
+    testMapperIndex() {
+        Mapper m(DataMap, m_opts);
+        list l = m.mapAll(MapInput);
+        assertEq(l, MapOutput);
+
+        Mapper mi(DataMap, m_opts);
+        ListIterator it(MapInput);
+        int ix = 0;
+        while (it.next()) {
+            hash rec = mi.mapData(it.getValue());
+            assertEq(rec, MapOutput[ix]);
+            ix++;
+        }
     }
 }
