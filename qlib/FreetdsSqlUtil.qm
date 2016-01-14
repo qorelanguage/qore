@@ -1347,9 +1347,8 @@ order by
                 ds.vexec(sql, row.values());
             }
             catch (hash ex) {
-                if (ex.desc =~ /Cannot insert duplicate/) {
+                if (ex.desc =~ /Cannot insert duplicate/)
                     return False;
-                }
                 rethrow;
             }
             return True;
