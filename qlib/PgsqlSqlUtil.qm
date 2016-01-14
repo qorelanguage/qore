@@ -1239,6 +1239,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 "bytea": ("qore": Type::Binary,),
                 "bit": ("qore": Type::Binary,),
                 "bit varying": ("qore": Type::Binary,),
+                "varbit": ("qore": Type::Binary,),
                 "boolean": ("qore": Type::Boolean,),
                 "macaddr": ("qore": Type::String,),
                 "inet": ("qore": Type::String,),
