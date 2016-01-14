@@ -1343,17 +1343,12 @@ order by
         }
 
         private bool tryInsertImpl(string sql, hash row) {
-            ds.exec("begin tran");
-            ds.exec("save tran " + FreetdsDatabase::FreeTDS_TempSavepoint);
-
             try {
                 ds.vexec(sql, row.values());
             }
             catch (hash ex) {
-                if (ex.desc =~ /Cannot insert duplicate/) {
-                    ds.exec("rollback tran " + FreetdsDatabase::FreeTDS_TempSavepoint);
+                if (ex.desc =~ /Cannot insert duplicate/)
                     return False;
-                }
                 rethrow;
             }
             return True;
