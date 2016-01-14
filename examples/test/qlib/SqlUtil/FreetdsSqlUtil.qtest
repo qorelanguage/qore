@@ -219,6 +219,8 @@ class FreetdsTest inherits QUnit::Test {
             ds = getDatasource();
         }
         catch (hash ex) {
+            if (m_options.verbose)
+                printf("%s: %s\n", ex.err, ex.desc);
             # skip tests if we can't create the datasource
         }
 

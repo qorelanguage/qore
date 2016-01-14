@@ -9,20 +9,20 @@
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/SqlUtil.qm
 %requires ../../../../qlib/BulkSqlUtil.qm
-%requires ../../../../qlib/PgsqlSqlUtil.qm
+%requires ../../../../qlib/MysqlSqlUtil.qm
 %requires ../../../../qlib/Schema.qm
 
 %requires ./SqlUtilTestBase.qm
 #/;
-%try-module pgsql
-%define NoPgsql
+%try-module mysql
+%define NoMysql
 %endtry
 
-%exec-class PgsqlTest
+%exec-class MysqlTest
 
-class PgsqlTestSchema inherits AbstractSchema {
+class MysqlTestSchema inherits AbstractSchema {
     public {
-        const SchemaName = "PgsqlTestSchema";
+        const SchemaName = "MysqlTestSchema";
         const SchemaVersion = "1.0";
     }
 
@@ -35,15 +35,15 @@ class PgsqlTestSchema inherits AbstractSchema {
 
         const ColumnOptions = {};
 
-        const T_PgsqlTest = (
+        const T_MysqlTest = (
             "columns": (
                 "id": c_number(14, True),
             ),
-            "primary_key": ("name": "pk_pgsql_test", "columns": ("id")),
+            "primary_key": ("name": "pk_mysql_test", "columns": ("id")),
             );
 
         const Tables = (
-            "pgsql_test": T_PgsqlTest,
+            "mysql_test": T_MysqlTest,
             );
     }
 
@@ -60,15 +60,15 @@ class PgsqlTestSchema inherits AbstractSchema {
 
     private *hash getTablesImpl() {
         hash tables = Tables;
-        # add custom columns to pgsql_test
-        foreach hash h in (PgsqlTest::CustomColumns.pairIterator()) {
+        # add custom columns to mysql_test
+        foreach hash h in (MysqlTest::CustomColumns.pairIterator()) {
             hash ch = (
                 "native_type": h.key,
                 "notnull": True,
                 );
             if (h.value.typeCode() == NT_HASH)
                 ch += (h.value - ("value", "bind"));
-            tables.pgsql_test.columns{PgsqlTest::getColumnName(h.key)} = ch;
+            tables.mysql_test.columns{MysqlTest::getColumnName(h.key)} = ch;
         }
         return tables;
     }
@@ -98,7 +98,7 @@ class PgsqlTestSchema inherits AbstractSchema {
     }
 }
 
-class PgsqlTest inherits SqlTestBase {
+class MysqlTest inherits SqlTestBase {
     public {
         const CustomColumns = (
             "varchar": (
@@ -109,51 +109,48 @@ class PgsqlTest inherits SqlTestBase {
                 "value": "hello",
                 "size": "20",
             ),
-            "numeric": (
+            "decimal": (
                 "size": 15,
                 "scale": 2,
                 "value": 400.95n,
             ),
 
-            "smallint": 100,
-            "integer": 1928381,
-            "bigint": 2198374739812,
-            "smallserial": 100,
-            "serial": 39484392,
-            "bigserial": 129383948393,
-            "real": 1.1,
-            "double precision": 3.1415927,
-            #"oid": 200n,
+            "tinyint": 10,
+            "smallint": 512,
+            "mediumint": 192932,
+            "int": 49349839,
+            "bigint": 34839203948394,
+            "float": 1.1,
+            "double": 3.1415927,
 
             "date": 2016-01-11,
-            "abstime": 2016-01-11T09:26:14,
-            "reltime": 5M + 71D + 19h + 245m + 51s,
-            "interval": 6M + 3D + 2h + 45m + 15s,
-            "time": 09:26:52,
-            "time with time zone": 09:27:03-06,
+            "datetime": 2016-01-11T09:26:14,
             "timestamp": 2016-01-11T09:27:59,
-            "timestamp with time zone": 2016-01-11T09:28:12.384629+03,
+            "time": 09:26:52,
+            "year": 2016,
 
+            "binary": <bead>,
             /*
-            "money": (
-                "value": 400.56,
-%ifndef NoPgsql
-                "bind": pgsql_bind(PG_TYPE_CASH, "400.56"),
-%endif
+            "varbinary": (
+                "value": <bead>,
+                "size": "20",
             ),
             */
-            "text": "test",
-            "bytea": <bead>,
-            #"bit": 100,
-            #"varbit": <bead>,
-            "boolean": True,
-            #"macaddr": "192.168.0.1",
-            #"inet": "",
-            #"cidr": "",
+
+            "tinyblob": <bead>,
+            "blob": <bead>,
+            "mediumblob": <bead>,
+            "longblob": <bead>,
+
+            "tinytext": "test",
+            "mediumtext": "test",
+            "longtext": "test",
+
+            "bit": 100,
             );
     }
 
-    constructor() : SqlTestBase("PgsqlTest", "1.0", \ARGV, MyOpts) {
+    constructor() : SqlTestBase("MysqlTest", "1.0", \ARGV, MyOpts) {
         Datasource ds;
         try {
             ds = getDatasource();
@@ -167,18 +164,18 @@ class PgsqlTest inherits SqlTestBase {
         if (ds) {
             foreach hash h in (CustomColumns.pairIterator()) {
                 any val = h.value.typeCode() == NT_HASH ? h.value.value : h.value;
-                row{PgsqlTest::getColumnName(h.key)} = val;
+                row{MysqlTest::getColumnName(h.key)} = val;
             }
             insert_data = (("id": 1,) + row, ("id": 2,) + row,);
             upsert_data = (("id": 2,) + row, ("id": 3,) + row,);
 
             # create the test schema
-            schema = new PgsqlTestSchema(ds);
+            schema = new MysqlTestSchema(ds);
 
             schema.align(False, m_options.verbose);
 
             # get table object
-            table = (new Table(schema.getDatasource(), "pgsql_test")).getTable();
+            table = (new Table(schema.getDatasource(), "mysql_test")).getTable();
         }
 
         set_return_value(main());
@@ -186,15 +183,15 @@ class PgsqlTest inherits SqlTestBase {
 
     private usageIntern() {
         TestReporter::usageIntern(OptionColumn);
-        printOption("-c,--conn=ARG", "set DB connection argument (ex: \"pgsql:user/pass@db\")", OptionColumn);
+        printOption("-c,--conn=ARG", "set DB connection argument (ex: \"mysql:user/pass@db\")", OptionColumn);
     }
 
     Datasource getDatasource() {
         if (!m_options.connstr)
-            m_options.connstr = ENV.QORE_DB_CONNSTR_PGSQL ?? "pgsql:omquser/omquser@omquser";
+            m_options.connstr = ENV.QORE_DB_CONNSTR_MYSQL ?? "mysql:omquser/omquser@omquser";
         Datasource ds(m_options.connstr);
-        if (ds.getDriverName() != "pgsql")
-            throw "PGSQL-ERROR", sprintf("cannot execute the pgsql tests on a connection using driver %y", ds.getDriverName());
+        if (ds.getDriverName() != "mysql")
+            throw "MYSQL-ERROR", sprintf("cannot execute the mysql tests on a connection using driver %y", ds.getDriverName());
         ds.open();
         return ds;
     }
