@@ -13,6 +13,7 @@
 %requires ../../../../qlib/Schema.qm
 
 %requires ./SqlUtilTestBase.qm
+#/;
 
 %try-module oracle
 %define NoOracle
@@ -20,7 +21,7 @@
 
 %exec-class OracleTest
 
-class OracleTestSchema inherits AbstractSchema {
+class OracleTestSchema inherits SqlUtilTestSchema {
     public {
         const SchemaName = "OracleTestSchema";
         const SchemaVersion = "1.0";
@@ -39,6 +40,9 @@ class OracleTestSchema inherits AbstractSchema {
             "columns": (
                 "id": c_number(14, True),
             ),
+            "indexes": (
+                "pk_freetds_test": ("columns": ("id"), "unique": True),
+            ),
             "primary_key": ("name": "pk_oracle_test", "columns": ("id")),
             );
 
@@ -47,7 +51,7 @@ class OracleTestSchema inherits AbstractSchema {
             );
     }
 
-    constructor(AbstractDatasource ds, *string dts, *string its) :  AbstractSchema(ds, dts, its) {
+    constructor(AbstractDatasource ds, *string dts, *string its) :  SqlUtilTestSchema(ds, dts, its) {
     }
 
     private string getNameImpl() {
@@ -68,7 +72,7 @@ class OracleTestSchema inherits AbstractSchema {
                 );
             if (h.value.typeCode() == NT_HASH)
                 ch += (h.value - ("value", "bind"));
-            tables.oracle_test.columns{OracleTest::getColumnName(h.key)} = ch;
+            tables.oracle_test.columns{SqlTestBase::getColumnName(h.key)} = ch;
         }
         return tables;
     }
@@ -83,18 +87,6 @@ class OracleTestSchema inherits AbstractSchema {
 
     private *hash getColumnOptionsImpl() {
         return ColumnOptions;
-    }
-
-    log(string fmt) {
-        delete argv;
-    }
-
-    logpf(string fmt) {
-        delete argv;
-    }
-
-    logProgress(string fmt) {
-        delete argv;
     }
 }
 
