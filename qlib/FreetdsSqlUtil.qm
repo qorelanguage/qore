@@ -931,7 +931,7 @@ my any $v = $c.name;
             return filegroup;
         }
 
-        #! returns a closure for performing upserts; the upsert_strategy argument is ignored and a closure using an Oracle merge statement is returned
+        #! returns a closure for performing upserts; if the underlying dataserver supports an optimized \c MERGE statement (Microsoft SQL Server 2008+), the \a upsert_strategy argument is ignored and a closure using a merge statement is returned, otherwise the standard upsert closure is returned according to @ref SqlUtil::AbstractTable::getUpsertClosure()
         code getUpsertClosure(hash row, int upsert_strategy = UpsertAuto) {
             if (!ss_has_merge)
                 return AbstractTable::getUpsertClosure(row, upsert_strategy);
