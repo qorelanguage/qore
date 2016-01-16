@@ -791,6 +791,9 @@ my any $v = $c.name;
             #! sybase flag
             bool is_sybase;
 
+            #! "has merge" flag for SQL server
+            bool ss_has_merge = False;
+
             #! maps postgresql type names to type configurations
             const FreetdsTypeMap = (
                 "numeric": ("qore": Type::Number, "size": SZ_NUM,),
@@ -908,6 +911,12 @@ my any $v = $c.name;
 
         constructor(AbstractDatasource nds, string nname, *hash opts) : AbstractTable(nds, nname, opts) {
             is_sybase = FreetdsDatabase::isSybase(ds);
+            # set vars for MS SQL Server
+            if (!is_sybase) {
+                *softint ver = (ds.getServerVersion() =~ x/Microsoft SQL Server ([0-9]+)/)[0];
+                if (ver >= 2008)
+                    ss_has_merge = True;
+            }
             # see if there is a schema in the name
             parse_schema_name(nname, \schema, \name);
         }
@@ -920,6 +929,45 @@ my any $v = $c.name;
         #! returns the data filegroup name for the table or @ref nothing if none is known
         *string getTablespaceName() {
             return filegroup;
+        }
+
+        #! returns a closure for performing upserts; if the underlying dataserver supports an optimized \c MERGE statement (Microsoft SQL Server 2008+), the \a upsert_strategy argument is ignored and a closure using a merge statement is returned, otherwise the standard upsert closure is returned according to @ref SqlUtil::AbstractTable::getUpsertClosure()
+        code getUpsertClosure(hash row, int upsert_strategy = UpsertAuto) {
+            if (!ss_has_merge)
+                return AbstractTable::getUpsertClosure(row, upsert_strategy);
+
+            Columns cols = checkUpsertRow(row, \upsert_strategy);
+
+            # get update columns
+            list updc = ();
+            map updc += $1, row.keyIterator(), !cols.hasKey($1);
+            # cannot use merge where only the join columns are present
+            if (!updc)
+                return getUpsertInsertOnly(cols, row);
+
+            string sql = sprintf("merge %s t using (select ", getSqlName());
+            sql += foldl $1 + "," + $2, (map "%v", row.keyIterator());
+            sql += ") as source (";
+            sql += foldl $1 + "," + $2, row.keyIterator();
+            sql += ") on (";
+            sql += foldl $1 + " and " + $2, (map sprintf("t.%s=source.%s", $1, $1), getColumnSqlNames(cols.keys()));
+            sql += sprintf(") when matched then update set ");
+            # get update columns
+            sql += (foldl $1 + "," + $2, (map sprintf("t.%s=source.%s", $1, $1), getColumnSqlNames(updc)));
+            sql += sprintf(" when not matched then insert (");
+            sql += (foldl $1 + "," + $2, getColumnSqlNames(row.keys()));
+            sql += ") values (";
+            sql += (foldl $1 + "," + $2, (map "source." + $1, row.keyIterator()));
+            sql += ");";
+
+            #printf("sql: %s\n", sql);
+
+            return int sub (hash crow) {
+                list args = crow.values();
+                #on_error printf("SQL: %s args: %y\n", sql, args);
+                ds.vexec(sql, args);
+                return UR_Verified;
+            };
         }
 
         #! returns @ref Qore::False "False" because the freetds driver does not support array binds / bulk DML operations
