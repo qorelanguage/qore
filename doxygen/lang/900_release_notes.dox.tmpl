@@ -408,6 +408,7 @@
     - fixed a bug where a warning was not always issued when square brackets were used on unsuitable types (<a href="https://github.com/qorelanguage/qore/issues/184">bug 184</a>), internally ported the square bracket operator to the C++ QoreOperatorNode hierarchy
     - fixed a bug handling return type information for method and pseudo-method calls; uninitialized memory could be used which could cause a runtime crash (<a href="https://github.com/qorelanguage/qore/issues/364">bug 364</a>)
     - corrected the name of the @ref modulo_operator "modulo operator" (was incorrectly referred to as the "modula" operator earlier: <a href="">bug 389</a>)
+    - fixed a bug handling identifiers in parentheses used to dereference hashes or objects; the identifer is not resolved properly whereas previoulsy it was incorrectly interpreted as a string literal (<a href="https://github.com/qorelanguage/qore/issues/416">bug 416</a>)
 
     @section qore_0811 Qore 0.8.11
 

@@ -1,10 +1,10 @@
 /*
   BarewordNode.cpp
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2015 David Nichols
- 
+
+  Copyright (C) 2003 - 2016 David Nichols
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -32,7 +32,7 @@
 #include <qore/intern/QoreNamespaceIntern.h>
 
 // object takes over ownership of str
-BarewordNode::BarewordNode(char *c_str, int sline, int eline) : ParseNoEvalNode(NT_BAREWORD), loc(sline, eline), str(c_str) {
+BarewordNode::BarewordNode(char *c_str, int sline, int eline) : ParseNoEvalNode(NT_BAREWORD), loc(sline, eline), finalized(false), str(c_str) {
 }
 
 BarewordNode::~BarewordNode() {
