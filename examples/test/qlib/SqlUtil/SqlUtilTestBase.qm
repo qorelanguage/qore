@@ -55,6 +55,7 @@ public class SqlTestBase inherits QUnit::Test {
 
     constructor(string testName, string testVer, any args, *hash mopts) : Test(testName, testVer, \args, mopts) {
         addTestCase("Insert", \insertTest());
+        addTestCase("Update", \updateTest());
         addTestCase("Upsert", \upsertTest());
         addTestCase("BulkInsert", \bulkInsertTest());
         addTestCase("BulkUpsert", \bulkUpsertTest());
@@ -73,8 +74,18 @@ public class SqlTestBase inherits QUnit::Test {
         on_success table.commit();
         on_error table.rollback();
 
-        foreach any data in (insert_data)
+        foreach hash data in (insert_data)
             assertEq(NOTHING, table.insertNoCommit(data));
+    }
+
+    updateTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        on_success table.commit();
+        on_error table.rollback();
+
+        map assertEq(1, table.updateNoCommit($1 - "id", ("id": $1.id))), insert_data;
     }
 
     upsertTest() {
@@ -84,7 +95,7 @@ public class SqlTestBase inherits QUnit::Test {
         on_success table.commit();
         on_error table.rollback();
 
-        code upsert = table.getUpsertClosure(insert_data[0]);
+        code upsert = table.getUpsertClosure(upsert_data[0]);
         assertEq(AbstractTable::UR_Verified, upsert(upsert_data[0]));
         # upsert can return UR_Verified even when rows are upserted when there is an optimized upsert implementation used in the driver-specific SqlUtil module
         assertEq(True, inlist(upsert(upsert_data[1]), (AbstractTable::UR_Inserted, AbstractTable::UR_Verified)));
@@ -103,7 +114,7 @@ public class SqlTestBase inherits QUnit::Test {
         on_success insert.flush();
         on_error insert.discard();
 
-        foreach any data in (insert_data)
+        foreach hash data in (insert_data)
             assertEq(NOTHING, insert.queueData(data));
     }
 
@@ -120,7 +131,7 @@ public class SqlTestBase inherits QUnit::Test {
         on_success insert.flush();
         on_error insert.discard();
 
-        foreach any data in (upsert_data)
+        foreach hash data in (upsert_data)
             assertEq(NOTHING, insert.queueData(data));
     }
 
