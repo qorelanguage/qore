@@ -19,6 +19,23 @@ module SqlUtilTestBase {
 %requires ../../../../qlib/BulkSqlUtil.qm
 %requires ../../../../qlib/Schema.qm
 
+public class SqlUtilTestSchema inherits AbstractSchema {
+    constructor(AbstractDatasource ds, *string dts, *string its) :  AbstractSchema(ds, dts, its) {
+    }
+
+    log(string fmt) {
+        delete argv;
+    }
+
+    logpf(string fmt) {
+        delete argv;
+    }
+
+    logProgress(string fmt) {
+        delete argv;
+    }
+}
+
 public class SqlTestBase inherits QUnit::Test {
     private {
         AbstractSchema schema;
