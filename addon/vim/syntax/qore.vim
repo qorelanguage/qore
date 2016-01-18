@@ -242,8 +242,8 @@ syn match qoreDateTime "\<P\(T\?[0-9]\)\@=\(\d\+Y\)\?\(\d\+M\)\?\(\d\+D\)\?\(T\(
 syn match qoreDateTime "\<P\d\{4}-\d\{2}-\d\{2}T\d\{2}:\d\{2}:\d\{2}\>"
 
 syn match qoreStringEscape '\\\(\\\|[bfnrt"]\|\o\{1,3}\)' contained display
-syn region qoreString start='"' skip='\\"' end='"' contains=qoreStringEscape,@Spell
-syn region qoreString start="'" end="'"
+syn region qoreString start='"' skip='\\"' end='"' contains=qoreStringEscape,@Spell fold
+syn region qoreString start="'" end="'" fold
 
 syn match qoreRegexp "[mx]\?/.\{-}\\\@<!/[imsx]*"
 syn match qoreRegexp "s/.\{-}\\\@<!/.\{-}\\\@<!/[gimsx]*"
@@ -252,9 +252,13 @@ syn match qoreRegexp "tr/.\{-}\\\@<!/.\{-}\\\@<!/"
 syn keyword qoreTodo TODO NOTE XXX FIXME DEBUG contained
 
 syn match qoreComment "#.*" contains=qoreTodo,qoreSpaceError,@Spell
-syn region qoreComment start="/\*" end="\*/" contains=qoreTodo,qoreSpaceError,@Spell
+syn region qoreComment start="/\*" end="\*/" contains=qoreTodo,qoreSpaceError,@Spell fold
 
-syn sync ccomment qoreComment
+if !exists("qore_minlines")
+  let qore_minlines = 100
+endif
+"exec "syn sync minlines=" . qore_minlines
+exec "syn sync ccomment qoreComment minlines=" . qore_minlines
 
 " Define the default highlighting.
 " For version 5.x and earlier, only when not done already.
