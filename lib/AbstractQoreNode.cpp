@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,6 +31,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/qore_list_private.h>
 #include <qore/intern/QoreHashNodeIntern.h>
+#include <qore/intern/QoreClosureNode.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -647,6 +648,7 @@ bool get_container_obj(const AbstractQoreNode* n) {
       case NT_HASH: return qore_hash_private::getObjectCount(*static_cast<const QoreHashNode*>(n)) ? true : false;
       case NT_OBJECT: return true;
       case NT_VALUE_LIST: assert(false); return qore_value_list_private::getObjectCount(*static_cast<const QoreValueList*>(n)) ? true : false;
+      case NT_RUNTIME_CLOSURE: return static_cast<const QoreClosureBase*>(n)->getObjectCount();
    }
 
    return false;

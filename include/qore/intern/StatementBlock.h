@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -151,7 +151,7 @@ public:
    DLLLOCAL void parseInitConstructor(const QoreTypeInfo* typeInfo, UserVariantBase* uvb, BCAList* bcal, const QoreClass& cls);
 
    // initialize closure blocks
-   DLLLOCAL void parseInitClosure(UserVariantBase* uvb, const QoreTypeInfo* classTypeInfo, lvar_set_t *vlist);
+   DLLLOCAL void parseInitClosure(UserVariantBase* uvb, UserClosureFunction* cf);
 
    DLLLOCAL void exec();
 

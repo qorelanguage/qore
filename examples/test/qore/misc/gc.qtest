@@ -53,9 +53,25 @@ class GcTest1 {
     }
 }
 
+class GcClosureTest1 {
+    public {
+        code inc;
+        code f = GcClosureTest1 sub() { return self; };
+    }
+
+    constructor(code i) {
+        inc = i;
+    }
+
+    destructor() {
+        inc();
+    }
+}
+
 class DgcTest inherits QUnit::Test {
     constructor() : Test("GcTest", "1.0") {
 	addTestCase("GcTests", \gcTests());
+        addTestCase("ClosureTests", \closureTests());
 
         # Return for compatibility with test harness that checks the return value
         set_return_value(main());
@@ -213,5 +229,16 @@ class DgcTest inherits QUnit::Test {
 	    GcTest1 t1(inc);
 	}
 	testAssertionValue("recursive gc 25", cnt, 25);
+    }
+
+    closureTests() {
+	int cnt = 0;
+	code inc = sub () { ++cnt; };
+
+        {
+            GcClosureTest1 t1(inc);
+        }
+
+        assertEq(1, cnt);
     }
 }

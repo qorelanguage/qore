@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -35,6 +35,7 @@
 
 #include <qore/intern/qore_thread_intern.h>
 #include <qore/intern/QoreLValue.h>
+#include <qore/intern/RSection.h>
 
 template <class T>
 class VarStackPointerHelper {
@@ -181,7 +182,7 @@ public:
    }
 };
 
-struct ClosureVarValue : public VarValueBase, public QoreReferenceCounter, public QoreVarRWLock {
+struct ClosureVarValue : public VarValueBase, public QoreReferenceCounter, public RSectionLock {
 public:
    const QoreTypeInfo* typeInfo; // type restriction for lvalue
 

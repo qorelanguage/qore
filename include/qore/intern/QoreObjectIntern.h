@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -41,7 +41,7 @@
 #include <vector>
 
 #include <qore/intern/QoreClassIntern.h>
-#include <qore/intern/qore_var_rwlock_priv.h>
+#include <qore/intern/RSection.h>
 
 #define OS_OK            0
 #define OS_DELETED      -1
@@ -139,173 +139,6 @@ public:
       assert(pd);
       if (keymap.find(key) == keymap.end())
 	 keymap.insert(std::make_pair(key, std::make_pair(pd, true)));
-   }
-};
-
-class qore_rsection_priv;
-class RNotifier {
-private:
-   DLLLOCAL RNotifier(const RNotifier&);
-   DLLLOCAL RNotifier& operator=(const RNotifier&);
-
-public:
-   bool setp;
-   QoreThreadLock m;
-   QoreCondition c;
-
-   DLLLOCAL RNotifier() : setp(false) {
-   }
-
-   DLLLOCAL ~RNotifier() {
-      assert(!setp);
-   }
-
-   DLLLOCAL void done() {
-      AutoLocker al(m);
-      assert(setp);
-      setp = false;
-      c.signal();
-   }
-
-   DLLLOCAL void set() {
-      AutoLocker al(m);
-      assert(!setp);
-      setp = true;
-   }
-
-   DLLLOCAL void wait() {
-      AutoLocker al(m);
-
-      while (setp)
-         c.wait(m);
-   }
-};
-
-typedef std::list<RNotifier*> n_list_t;
-
-// rwlock with standard read and write lock handling and special "rsection" handling
-// the rsection is grabbed with the read lock but only one thread can have the rsection lock at once
-// leaving other threads to read the object normally
-class qore_rsection_priv : public qore_var_rwlock_priv {
-private:
-   // not implemented, listed here to prevent implicit usage
-   DLLLOCAL qore_rsection_priv(const qore_rsection_priv&);
-   DLLLOCAL qore_rsection_priv& operator=(const qore_rsection_priv&);
-
-protected:
-   // tid of thread holding the rsection lock
-   int rs_tid;
-
-   // list of ObjectRSetHelper objects for notifications for rsection management
-   n_list_t list;
-
-   // notify rsection threads that the rsection lock has been released
-   DLLLOCAL virtual void notifyIntern() {
-      for (n_list_t::iterator i = list.begin(), e = list.end(); i != e; ++i)
-         (*i)->done();
-      list.clear();
-   }
-
-   DLLLOCAL void setNotificationIntern(RNotifier* rn) {
-      assert(write_tid != -1 || rs_tid != -1);
-      list.push_back(rn);
-      rn->set();
-   }
-
-public:
-   DLLLOCAL qore_rsection_priv() : rs_tid(-1) {
-      has_notify = true;
-   }
-
-   DLLLOCAL virtual ~qore_rsection_priv() {
-      assert(rs_tid == -1);
-      assert(list.empty());
-   }
-
-   // does not block under any circumstances, returns -1 if the lock cannot be acquired and sets a notification
-   DLLLOCAL int tryRSectionLockNotifyWaitRead(RNotifier* rn) {
-      assert(has_notify);
-
-      int tid = gettid();
-
-      AutoLocker al(l);
-      assert(write_tid != tid);
-
-      if (write_tid == -1) {
-         // if we already have the rsection, then return
-         if (rs_tid == tid)
-            return 0;
-
-         if (rs_tid == -1) {
-            // grab the read lock
-            ++readers;
-
-            // grab the rsection
-            rs_tid = tid;
-            return 0;
-         }
-      }
-
-      setNotificationIntern(rn);
-
-      return -1;
-   }
-
-   DLLLOCAL void rSectionUnlock() {
-      AutoLocker al(l);
-      assert(write_tid == -1);
-      assert(rs_tid == gettid());
-      assert(readers);
-
-      // unlock rsection
-      rs_tid = -1;
-
-      qore_rsection_priv::notifyIntern();
-
-      if (!--readers)
-         unlock_read_signal();
-   }
-
-   DLLLOCAL bool hasRSectionLock(int tid = gettid()) {
-      return rs_tid == tid;
-   }
-
-   DLLLOCAL bool checkRSectionExclusive(int tid = gettid()) {
-      return (rs_tid == tid || write_tid == tid);
-   }
-
-   DLLLOCAL int rSectionTid() const {
-      return rs_tid;
-   }
-};
-
-class RSectionLock : public QoreVarRWLock {
-public:
-   DLLLOCAL RSectionLock() : QoreVarRWLock(new qore_rsection_priv) {
-   }
-
-   DLLLOCAL ~RSectionLock() {
-   }
-
-   // does not block under any circumstances, returns -1 if the lock cannot be acquired and sets a notification
-   DLLLOCAL int tryRSectionLockNotifyWaitRead(RNotifier* rn) {
-      return static_cast<qore_rsection_priv*>(priv)->tryRSectionLockNotifyWaitRead(rn);
-   }
-
-   DLLLOCAL void rSectionUnlock() {
-      static_cast<qore_rsection_priv*>(priv)->rSectionUnlock();
-   }
-
-   DLLLOCAL bool hasRSectionLock(int tid = gettid()) {
-      return static_cast<qore_rsection_priv*>(priv)->hasRSectionLock(tid);
-   }
-
-   DLLLOCAL bool checkRSectionExclusive(int tid = gettid()) {
-      return static_cast<qore_rsection_priv*>(priv)->checkRSectionExclusive(tid);
-   }
-
-   DLLLOCAL int rSectionTid() const {
-      return static_cast<qore_rsection_priv*>(priv)->rSectionTid();
    }
 };
 
@@ -466,11 +299,14 @@ struct RSetStat {
 };
 
 class ObjectRSetHelper {
+   friend class RSectionScanHelper;
 private:
    DLLLOCAL ObjectRSetHelper(const ObjectRSetHelper&);
 
 protected:
    typedef std::map<QoreObject*, RSetStat> omap_t;
+   typedef std::set<RSectionLock*> rsl_set_t;
+   typedef std::set<QoreClosureBase*> closure_set_t;
    // map of all objects scanned to rset (rset = finalized, 0 = not finalized, in current list)
    omap_t fomap;
 
@@ -486,6 +322,15 @@ protected:
 
    // RSectionLock notification helper when waiting on locks
    RNotifier notifier;
+
+   // set of rsections held to be unlocked at the end of the scan
+   rsl_set_t rsl_set;
+
+   // set of scanned closures
+   closure_set_t closure_set;
+
+   // fomap size, to detect changes in the scanned set
+   unsigned fomap_size;
 
 #ifdef DEBUG
    int lcnt;
@@ -529,6 +374,16 @@ public:
    DLLLOCAL ~ObjectRSetHelper() {
       assert(ovec.empty());
       assert(!lcnt);
+   }
+
+   DLLLOCAL unsigned size() const {
+      return fomap_size;
+   }
+
+   DLLLOCAL void add(RSectionLock* rsl) {
+      rsl_set_t::iterator i = rsl_set.lower_bound(rsl);
+      if (i == rsl_set.end() || *i != rsl)
+         rsl_set.insert(i, rsl);
    }
 };
 
