@@ -144,6 +144,9 @@ class PgsqlTest inherits SqlTestBase {
             ),
             */
             "text": "test",
+            "character": "c",
+            "character varying": "character varying",
+
             "bytea": <bead>,
             #"bit": 100,
             #"varbit": <bead>,

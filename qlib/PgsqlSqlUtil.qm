@@ -1217,9 +1217,9 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 "bool": ("qore": Type::Boolean,),
                 "boolean": ("qore": Type::Boolean,),
                 "bytea": ("qore": Type::Binary,),
-                "char": ("qore": Type::String, "size": SZ_MAND,),
-                "character": ("qore": Type::String, "size": SZ_MAND,),
-                "character varying": ("qore": Type::String, "size": SZ_MAND,),
+                "char": ("qore": Type::String, "size": SZ_OPT,),
+                "character": ("qore": Type::String, "size": SZ_OPT,),
+                "character varying": ("qore": Type::String, "size": SZ_OPT,),
                 "cidr": ("qore": Type::String,),
                 "date": ("qore": Type::Date,),
                 "decimal": ("qore": Type::Number, "size": SZ_NUM,),
@@ -1246,7 +1246,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 "timestamp with time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
                 "timestamp without time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
                 "varbit": ("qore": Type::Binary,),
-                "varchar": ("qore": Type::String, "size": SZ_MAND,),
+                "varchar": ("qore": Type::String, "size": SZ_OPT,),
                 );
 
             #! maps from verbose type names to simple type names
