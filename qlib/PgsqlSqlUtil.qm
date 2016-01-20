@@ -1224,6 +1224,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 "date": ("qore": Type::Date,),
                 "decimal": ("qore": Type::Number, "size": SZ_NUM,),
                 "double precision": ("qore": Type::Float,),
+                "float": ("qore": Type::Float,),
                 "inet": ("qore": Type::String,),
                 "int": ("qore": Type::Int,),
                 "integer": ("qore": Type::Int,),

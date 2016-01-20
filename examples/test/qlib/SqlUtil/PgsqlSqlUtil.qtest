@@ -123,6 +123,7 @@ class PgsqlTest inherits SqlTestBase {
             "bigserial": 129383948393,
             "real": 1.1,
             "double precision": 3.1415927,
+            "float": 3.141592653589793238,
             "oid": 1234, # should not be used
 
             "date": 2016-01-11,
