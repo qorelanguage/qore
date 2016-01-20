@@ -147,10 +147,12 @@ class PgsqlTest inherits SqlTestBase {
             "character": "c",
             "character varying": "character varying",
 
+            "bool": True,
+            "boolean": False,
+
             "bytea": <bead>,
             #"bit": 100,
             #"varbit": <bead>,
-            "boolean": True,
             #"macaddr": "192.168.0.1",
             #"inet": "",
             #"cidr": "",
