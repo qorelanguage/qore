@@ -1212,8 +1212,8 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 "abstime": ("qore": Type::Date,),
                 "bigint": ("qore": Type::Int,),
                 "bigserial": ("qore": Type::Int,),
-                "bit": ("qore": Type::Binary,),
-                "bit varying": ("qore": Type::Binary,),
+                "bit": ("qore": Type::Binary, "size": SZ_OPT,),
+                "bit varying": ("qore": Type::Binary, "size": SZ_OPT,),
                 "bool": ("qore": Type::Boolean,),
                 "boolean": ("qore": Type::Boolean,),
                 "bytea": ("qore": Type::Binary,),
@@ -1245,7 +1245,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 "timestamp": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
                 "timestamp with time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
                 "timestamp without time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
-                "varbit": ("qore": Type::Binary,),
+                "varbit": ("qore": Type::Binary, "size": SZ_OPT,),
                 "varchar": ("qore": Type::String, "size": SZ_OPT,),
                 );
 
