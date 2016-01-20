@@ -34,11 +34,12 @@ fi
 
 QORE=""
 QR=""
+QORE_LIB_PATH=./lib/.libs:$LD_LIBRARY_PATH
 
 # Test that qore is built.
-if [ -s "./qore" ] && [ -r "./lib/.libs/libqore.so" ]; then
-    QORE="./qore"
-    QR="./qr"
+if [ -s "./.libs/qore" ] && [ -r "./lib/.libs/libqore.so" ]; then
+    QORE="./.libs/qore"
+    QR="./.libs/qr"
 else
     echo "Qore is not built. Exiting."
     exit 1
@@ -70,7 +71,7 @@ for test in $TESTS; do
     fi
     
     # Run single test.
-    $QORE $test $TEST_OUTPUT_FORMAT
+    LD_LIBRARY_PATH=$QORE_LIB_PATH $QORE $test $TEST_OUTPUT_FORMAT
     
     if [ $? -eq 0 ]; then
         PASSED_TEST_COUNT=$((PASSED_TEST_COUNT+1))
