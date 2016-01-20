@@ -626,7 +626,10 @@ public:
 
    // returns true if this type could contain an object or a closure
    DLLLOCAL bool needsScan() const {
-      return parseReturnsType(NT_OBJECT) != QTI_NOT_EQUAL || parseReturnsType(NT_RUNTIME_CLOSURE) != QTI_NOT_EQUAL;
+      return parseReturnsType(NT_OBJECT) != QTI_NOT_EQUAL
+         || parseReturnsType(NT_RUNTIME_CLOSURE) != QTI_NOT_EQUAL
+         || parseReturnsType(NT_LIST) != QTI_NOT_EQUAL
+         || parseReturnsType(NT_HASH) != QTI_NOT_EQUAL;
    }
 
    DLLLOCAL bool hasInputFilter() const {
