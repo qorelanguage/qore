@@ -166,7 +166,13 @@ class PgsqlTest inherits SqlTestBase {
 
         if (ds) {
             foreach hash h in (CustomColumns.pairIterator()) {
-                any val = h.value.typeCode() == NT_HASH ? h.value.value : h.value;
+                any val;
+                if (h.value.typeCode() != NT_HASH)
+                    val = h.value;
+                else if (exists h.value.bind)
+                    val = h.value.bind;
+                else
+                    val = h.value.value;
                 row{PgsqlTest::getColumnName(h.key)} = val;
             }
             insert_data = (("id": 1,) + row, ("id": 2,) + row,);
