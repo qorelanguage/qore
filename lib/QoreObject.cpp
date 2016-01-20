@@ -1212,6 +1212,9 @@ bool ObjectRSetHelper::checkIntern(AbstractQoreNode* n) {
 
       case NT_RUNTIME_CLOSURE: {
          QoreClosureBase* c = reinterpret_cast<QoreClosureBase*>(n);
+         // do not lock or scan if the closure cannot contain any closure-bound local vars with objects or closures (also not through a container)
+         if (!c->needsScan())
+            return false;
 	 closure_set_t::iterator ci = closure_set.lower_bound(c);
 	 // return false if already scanned
 	 if (ci != closure_set.end() && *ci == c)
@@ -1224,6 +1227,9 @@ bool ObjectRSetHelper::checkIntern(AbstractQoreNode* n) {
          const cvar_map_t& cmap = c->getMap();
 
          for (cvar_map_t::const_iterator i = cmap.begin(), e = cmap.end(); i != e; ++i) {
+            // do not grab the lock if the lvalue cannot contain an object or closure (also not through a container)
+            if (!i->first->needsScan())
+               continue;
 	    RSectionScanHelper rssh(this, i->second);
 	    if (!rssh)
 	       return true;

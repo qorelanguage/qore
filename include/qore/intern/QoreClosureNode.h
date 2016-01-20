@@ -106,6 +106,11 @@ public:
       return closure_env.getMap();
    }
 
+   // returns true if at least one variable in the set of closure-bound local variables could contain an object or a closure (also through a container)
+   DLLLOCAL bool needsScan() const {
+      return closure->needsScan();
+   }
+
    DLLLOCAL static const char* getStaticTypeName() {
       return "closure";
    }

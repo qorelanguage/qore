@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -280,6 +280,25 @@ static inline long long atoll(const char* str) {
 
 typedef std::set<const AbstractQoreNode*> const_node_set_t;
 typedef std::set<LocalVar*> lvar_set_t;
+
+class LVarSet : public lvar_set_t {
+protected:
+   // true if at least one variable in the set could contain an object or a closure (also through a container)
+   bool needs_scan;
+
+public:
+   // creates the object
+   DLLLOCAL LVarSet() : needs_scan(false) {
+   }
+
+   // adds a local variable to the set
+   DLLLOCAL void add(LocalVar* var);
+
+   // returns true if at least one variable in the set could contain an object or a closure (also through a container)
+   DLLLOCAL bool needsScan() const {
+      return needs_scan;
+   }
+};
 
 enum obe_type_e { OBE_Unconditional, OBE_Success, OBE_Error };
 

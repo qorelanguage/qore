@@ -42,12 +42,12 @@ class ThreadSafeLocalVarRuntimeEnvironment;
 
 class ClosureParseEnvironment {
 private:
-   lvar_set_t* vlist;
+   LVarSet* vlist;
    VNode* high_water_mark;
    ClosureParseEnvironment* prev;
 
 public:
-   DLLLOCAL ClosureParseEnvironment(lvar_set_t* n_vlist) : vlist(n_vlist), high_water_mark(getVStack()) {
+   DLLLOCAL ClosureParseEnvironment(LVarSet* n_vlist) : vlist(n_vlist), high_water_mark(getVStack()) {
       prev = thread_get_closure_parse_env();
       thread_set_closure_parse_env(this);
    }
@@ -61,8 +61,8 @@ public:
    }
 
    DLLLOCAL void add(LocalVar* var) {
-      // insert var into the set
-      vlist->insert(var);
+      // add var to the set
+      vlist->add(var);
    }
 };
 
@@ -105,8 +105,13 @@ public:
 
    DLLLOCAL QoreClosureBase* evalBackground(ExceptionSink* xsink) const;
 
-   DLLLOCAL const lvar_set_t* getVList() const {
+   DLLLOCAL const LVarSet* getVList() const {
       return uf->getVList();
+   }
+
+   // returns true if at least one variable in the set of closure-bound local variables could contain an object or a closure (also through a container)
+   DLLLOCAL bool needsScan() const {
+      return uf->needsScan();
    }
 
    DLLLOCAL UserClosureFunction* getFunction() const {

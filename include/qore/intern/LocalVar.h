@@ -345,6 +345,12 @@ public:
       return !closure_use ? get_var()->isRef() : thread_find_closure_var(name.c_str())->isRef();
    }
 
+   // returns true if the value could contain an object or a closure
+   DLLLOCAL bool needsScan() const {
+      assert(closure_use);
+      return typeInfo->needsScan();
+   }
+
    DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove) const {
       //printd(5, "LocalVar::getLValue() this: %p '%s' for_remove: %d closure_use: %d\n", this, getName(), for_remove, closure_use);
       if (!closure_use) {
