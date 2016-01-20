@@ -1231,7 +1231,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 "macaddr": ("qore": Type::String,),
                 "money": ("qore": Type::Number,),
                 "numeric": ("qore": Type::Number, "size": SZ_NUM,),
-                "oid": ("qore": Type::Number,),
+                "oid": ("qore": Type::Int,),
                 "real": ("qore": Type::Float,),
                 "reltime": ("qore": Type::Date,),
                 "serial": ("qore": Type::Int,),
