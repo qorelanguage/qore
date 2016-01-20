@@ -153,9 +153,11 @@ class PgsqlTest inherits SqlTestBase {
             "bytea": <bead>,
             #"bit": 100,
             #"varbit": <bead>,
-            #"macaddr": "192.168.0.1",
-            #"inet": "",
-            #"cidr": "",
+%ifndef NoPgsql
+            "macaddr": ("bind": pgsql_bind (PG_TYPE_MACADDR, "0a:1e:df:e4:4f:da")),
+            "inet": ("bind": pgsql_bind (PG_TYPE_INET, "192.168.11.1")),
+            "cidr": ("bind": pgsql_bind (PG_TYPE_CIDR, "192.168")),
+%endif
             );
     }
 
