@@ -347,7 +347,6 @@ public:
 
    // returns true if the value could contain an object or a closure
    DLLLOCAL bool needsScan() const {
-      assert(closure_use);
       return typeInfo->needsScan();
    }
 
