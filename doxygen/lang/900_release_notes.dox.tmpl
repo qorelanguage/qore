@@ -246,6 +246,8 @@
     - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module updates:
       - implemented support for views for DML in the OracleTable class
       - implemented support for Oracle pseudocolumns in queries
+    - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> module updates:
+      - added and/or fixed support for the following datatypes and aliases: bool, float, int, timetz, timestamptz, varbit; bit, bit varying, char, character, character varying, oid, varchar
     - added initial support for UTF-16 character encoding; note that UTF-16 is not backwards-compatible with ASCII and therefore not supported universally in %Qore; it's recommended to convert these strings to UTF-8 in %Qore; do not use UTF-16 as the default character encoding in %Qore; currently UTF-16 data can be parsed using the following classes that convert the data to UTF-8:
       - @ref Qore::DataLineIterator
       - @ref Qore::FileLineIterator
