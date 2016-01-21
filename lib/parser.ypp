@@ -992,21 +992,27 @@ struct ParserScopedOrNothingTypeStruct : public ParserTypeStruct {
 
 static AbstractQoreNode* process_dot(AbstractQoreNode* l, AbstractQoreNode* r) {
    qore_type_t rtype = r->getType();
-   if (rtype == NT_BAREWORD) {
-      BarewordNode* b = reinterpret_cast<BarewordNode*>(r);
-      AbstractQoreNode* rv = new QoreTreeNode(l, OP_OBJECT_REF, b->makeQoreStringNode());
-      b->deref();
-      return rv;
-   }
+   switch (rtype) {
+      case NT_BAREWORD: {
+         BarewordNode* b = reinterpret_cast<BarewordNode*>(r);
+         if (!b->isFinalized()) {
+            AbstractQoreNode* rv = new QoreTreeNode(l, OP_OBJECT_REF, b->makeQoreStringNode());
+            b->deref();
+            return rv;
+         }
+         break;
+      }
 
-   if (rtype == NT_FUNCTION_CALL) {
-      FunctionCallNode* f = reinterpret_cast<FunctionCallNode*>(r);
-      assert(!f->getFunction());
-      if (!f->isFinalized()) {
-         MethodCallNode* m = new MethodCallNode(f->takeName(), f->takeArgs());
-         f->deref();
+      case NT_FUNCTION_CALL: {
+         FunctionCallNode* f = reinterpret_cast<FunctionCallNode*>(r);
+         assert(!f->getFunction());
+         if (!f->isFinalized()) {
+            MethodCallNode* m = new MethodCallNode(f->takeName(), f->takeArgs());
+            f->deref();
 
-         return new QoreDotEvalOperatorNode(l, m);
+            return new QoreDotEvalOperatorNode(l, m);
+         }
+         break;
       }
    }
 
@@ -1590,7 +1596,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %destructor { delete $$; } TRY_MODULE_ERROR REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS BASE_CLASS_CALL CLASS_SCOPED_REF block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod inline_methoddef class_def top_namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors class_attributes return_value member member2 superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def gvardecl outofline_methoddef hash alt_hash
 %destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF SCOPED_VREF KW_IDENTIFIER_OPENPAREN QORE_CAST CLASS_STRING optname ident_openparen
 %destructor { if ($$) $$->deref(); } namespace_decl namespace_decls string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER
-%destructor { if ($$) $$->deref(0); } exp myexp scalar list
+%destructor { if ($$) $$->deref(0); } exp exp_n exp_c myexp scalar list
 
 %%
 top_level_commands:
@@ -3135,6 +3141,9 @@ exp_c:  scalar
                     break;
                  case NT_FUNCTION_CALL:
                     reinterpret_cast<FunctionCallNode*>($2)->setFinalized();
+                    break;
+                 case NT_BAREWORD:
+                    reinterpret_cast<BarewordNode*>($2)->setFinalized();
                     break;
               }
            }
