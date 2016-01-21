@@ -98,10 +98,6 @@ public:
       return closure_env.hasVar(cvv);
    }
 
-   DLLLOCAL unsigned getObjectCount() const {
-      return !closure_env.empty() || getObject() ? 1 : 0;
-   }
-
    DLLLOCAL const cvar_map_t& getMap() const {
       return closure_env.getMap();
    }

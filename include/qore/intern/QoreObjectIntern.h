@@ -42,6 +42,7 @@
 
 #include <qore/intern/QoreClassIntern.h>
 #include <qore/intern/RSection.h>
+#include <qore/intern/RSet.h>
 
 #define OS_OK            0
 #define OS_DELETED      -1
@@ -52,12 +53,6 @@
 #define QOA_OK           0
 #define QOA_PRIV_ERROR   1
 #define QOA_PUB_ERROR    2
-
-#ifdef _QORE_CYCLE_CHECK
-#define QORE_DEBUG_OBJ_REFS 0
-#else
-#define QORE_DEBUG_OBJ_REFS 5
-#endif
 
 class LValueHelper;
 
@@ -142,279 +137,21 @@ public:
    }
 };
 
-/* Qore object recursive reference handling works as follows: objects are sorted into sets making up
-   directed cyclic graphs.
-
-   The objects go out of scope when all nodes have references = the number of recursive references.
-
-   If any one member still has valid references (meaning a reference count > # of recursive refs), then *none*
-   of the members of the graph can be dereferenced.
- */
-
-// set of objects in recursive directed graph
-class ObjectRSet {
-protected:
-   /// we assume that obj_set_t::size() is O(1)
-   obj_set_t set;
-   int acnt;
-   bool valid, in_del;
-
-   DLLLOCAL void invalidateIntern() {
-      assert(valid);
-      valid = false;
-      // remove the weak references to all contained objects
-      for (obj_set_t::iterator i = begin(), e = end(); i != e; ++i)
-         (*i)->tDeref();
-      clear();
-      //printd(6, "ObjectRSet::invalidateIntern() this: %p\n", this);
-   }
-
-public:
-   QoreRWLock rwl;
-
-   DLLLOCAL ObjectRSet() : acnt(0), valid(true), in_del(false) {
-   }
-
-   DLLLOCAL ObjectRSet(QoreObject* o) : acnt(0), valid(true), in_del(false) {
-      set.insert(o);
-   }
-
-   DLLLOCAL ~ObjectRSet() {
-      //printd(5, "ObjectRSet::~ObjectRSet() this: %p (acnt: %d)\n", this, acnt);
-      assert(!acnt);
-   }
-
-   DLLLOCAL void deref() {
-      bool del = false;
-      {
-         QoreAutoRWWriteLocker al(rwl);
-         if (!in_del)
-            in_del = true;
-         //printd(5, "ObjectRSet::deref() this: %p %d -> %d\n", this, acnt, acnt - 1);
-         assert(acnt > 0);
-         del = !--acnt;
-      }
-      if (del)
-         delete this;
-   }
-
-   DLLLOCAL void invalidate() {
-      QoreAutoRWWriteLocker al(rwl);
-      if (valid)
-         invalidateIntern();
-   }
-
-   DLLLOCAL void ref() {
-      ++acnt;
-   }
-
-   DLLLOCAL bool active() const {
-      return valid && !in_del;
-   }
-
-   DLLLOCAL int canDelete(int ref_copy, int rcount);
-
-#ifdef DEBUG
-   DLLLOCAL void dbg();
-
-   DLLLOCAL bool isValid() const {
-      return qore_check_this(this) ? valid : false;
-   }
-
-   DLLLOCAL bool isInDel() const {
-      return qore_check_this(this) ? in_del : false;
-   }
-#endif
-
-   DLLLOCAL bool assigned() const {
-      return (bool)acnt;
-   }
-
-   DLLLOCAL void insert(QoreObject* o) {
-      set.insert(o);
-   }
-
-   DLLLOCAL void clear() {
-      set.clear();
-   }
-
-   DLLLOCAL obj_set_t::iterator begin() {
-      return set.begin();
-   }
-
-   DLLLOCAL obj_set_t::iterator end() {
-      return set.end();
-   }
-
-   /*
-   DLLLOCAL obj_set_t::reverse_iterator rbegin() {
-      return set.rbegin();
-   }
-
-   DLLLOCAL obj_set_t::reverse_iterator rend() {
-      return set.rend();
-   }
-   */
-
-   DLLLOCAL obj_set_t::iterator find(QoreObject* o) {
-      return set.find(o);
-   }
-
-   DLLLOCAL size_t size() const {
-      return set.size();
-   }
-
-   DLLLOCAL bool pop() {
-      assert(!set.empty());
-      set.erase(set.begin());
-      return set.empty();
-   }
-};
-
-typedef std::vector<QoreObject*> obj_vec_t;
-
-class ObjectRSetHelper;
-
-class qore_object_private;
-
-typedef std::set<ObjectRSet*> rs_set_t;
-
-struct RSetStat {
-   ObjectRSet* rset;
-   int rcount;
-   bool in_cycle : 1,
-      ok : 1;
-
-   DLLLOCAL RSetStat() : rset(0), rcount(0), in_cycle(false), ok(false) {
-   }
-
-   DLLLOCAL RSetStat(const RSetStat& old) : rset(old.rset), rcount(old.rcount), in_cycle(old.in_cycle), ok(old.ok) {
-   }
-
-   DLLLOCAL void finalize(ObjectRSet* rs = 0) {
-      assert(!ok);
-      assert(!rset);
-      rset = rs;
-   }
-};
-
-class ObjectRSetHelper {
-   friend class RSectionScanHelper;
-private:
-   DLLLOCAL ObjectRSetHelper(const ObjectRSetHelper&);
-
-protected:
-   typedef std::map<QoreObject*, RSetStat> omap_t;
-   typedef std::set<RSectionLock*> rsl_set_t;
-   typedef std::set<QoreClosureBase*> closure_set_t;
-   // map of all objects scanned to rset (rset = finalized, 0 = not finalized, in current list)
-   omap_t fomap;
-
-   typedef std::vector<omap_t::iterator> ovec_t;
-   // current objects being scanned, used to establish a cycle
-   ovec_t ovec;
-
-   // list of ObjectRSet objects to be invalidated when the transaction is committed
-   rs_set_t tr_invalidate;
-
-   // set of QoreObjects not participating in any recursive set
-   obj_set_t tr_out;
-
-   // RSectionLock notification helper when waiting on locks
-   RNotifier notifier;
-
-   // set of rsections held to be unlocked at the end of the scan
-   rsl_set_t rsl_set;
-
-   // set of scanned closures
-   closure_set_t closure_set;
-
-   // fomap size, to detect changes in the scanned set
-   unsigned fomap_size;
-
-#ifdef DEBUG
-   int lcnt;
-   DLLLOCAL void inccnt() { ++lcnt; }
-   DLLLOCAL void deccnt() { --lcnt; }
-#else
-   DLLLOCAL void inccnt() {}
-   DLLLOCAL void deccnt() {}
-#endif
-
-   // rollback transaction due to lock error
-   DLLLOCAL void rollback();
-
-   // commit transaction
-   DLLLOCAL void commit(QoreObject& obj);
-
-   // returns true if a lock error has occurred, false if otherwise
-   DLLLOCAL bool checkIntern(QoreObject& obj);
-   // returns true if a lock error has occurred, false if otherwise
-   DLLLOCAL bool checkIntern(AbstractQoreNode* n);
-
-   // queues nodes not scanned to tr_invalidate and tr_out
-   DLLLOCAL bool removeInvalidate(ObjectRSet* ors, int tid = gettid());
-
-   DLLLOCAL bool inCurrentSet(omap_t::iterator fi) {
-      for (size_t i = 0; i < ovec.size(); ++i)
-         if (ovec[i] == fi)
-            return true;
-      return false;
-   }
-
-   DLLLOCAL bool addToRSet(omap_t::iterator oi, ObjectRSet* rset, int tid);
-
-   DLLLOCAL void mergeRSet(int i, ObjectRSet*& rset);
-
-   DLLLOCAL bool makeChain(int i, omap_t::iterator fi, int tid);
-
-public:
-   DLLLOCAL ObjectRSetHelper(QoreObject& obj);
-
-   DLLLOCAL ~ObjectRSetHelper() {
-      assert(ovec.empty());
-      assert(!lcnt);
-   }
-
-   DLLLOCAL unsigned size() const {
-      return fomap_size;
-   }
-
-   DLLLOCAL void add(RSectionLock* rsl) {
-      rsl_set_t::iterator i = rsl_set.lower_bound(rsl);
-      if (i == rsl_set.end() || *i != rsl)
-         rsl_set.insert(i, rsl);
-   }
-};
-
-class qore_object_private {
+class qore_object_private : public RObject {
 public:
    const QoreClass* theclass;
    int status;
 
-   // read-write lock with special rsection handling
-   mutable RSectionLock rml;
-
    // used for weak references, to ensure that assignments will not deadlock when the object is locked for update
    mutable QoreThreadLock ref_mutex;
    KeyList* privateData;
-   QoreReferenceCounter tRefs;  // weak references
+   // member data
    QoreHashNode* data;
    QoreProgram* pgm;
 
    bool system_object, delete_blocker_run, in_destructor;
    bool recursive_ref_found;
 
-   QoreThreadLock rlck;
-   QoreCondition rdone; // recursive scan done flag
-
-   int rscan,   // TID flag for starting a recursive scan
-      rcount,   // the number of unique recursive references to this object
-      rwaiting, // the number of threads waiting for a scan of this object
-      rcycle;   // the recursive cycle number to see if the object has been scanned since a transaction restart
-
-   // set of objects in a cyclic directed graph
-   ObjectRSet* rset;
    QoreObject* obj;
 
    DLLLOCAL qore_object_private(QoreObject* n_obj, const QoreClass *oc, QoreProgram* p, QoreHashNode* n_data);
@@ -734,19 +471,26 @@ public:
       xsink->raiseException("INVALID-MEMBER", "'%s' is not a registered member of class '%s'", mem, theclass->getName());
    }
 
-   DLLLOCAL void tRef() const {
-#ifdef QORE_DEBUG_OBJ_REFS
-      printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::tRef() obj=%p class=%s: tref %d->%d\n", obj, theclass->getName(), tRefs.reference_count(), tRefs.reference_count() + 1);
-#endif
-      tRefs.ROreference();
+   DLLLOCAL virtual const char* getName() const {
+      return theclass->getName();
    }
 
-   DLLLOCAL void tDeref() {
-#ifdef QORE_DEBUG_OBJ_REFS
-      printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::tDeref() obj=%p class=%s: tref %d->%d\n", obj, status == OS_OK ? theclass->getName() : "<deleted>", tRefs.reference_count(), tRefs.reference_count() - 1);
-#endif
-      if (tRefs.ROdereference())
-	 delete obj;
+   DLLLOCAL virtual void deleteObject() {
+      delete obj;
+   }
+
+   DLLLOCAL virtual bool isValidImpl() const {
+      if (status != OS_OK || in_destructor) {
+         printd(QRO_LVL, "qore_object_intern::isValidImpl() this: %p cannot delete graph obj '%s' status: %d in_destructor: %d\n", this, theclass->getName(), status, in_destructor);
+         return false;
+      }
+      return true;
+   }
+
+   DLLLOCAL virtual bool scanMembers(RSetHelper& rsh);
+
+   DLLLOCAL virtual bool needsScan() const {
+      return (bool)getScanCount();
    }
 
    DLLLOCAL void setPrivate(qore_classid_t key, AbstractPrivateData* pd) {
@@ -775,46 +519,9 @@ public:
       }
    }
 
-   DLLLOCAL void setRSet(ObjectRSet* rs, int rcnt) {
-      assert(rml.checkRSectionExclusive());
-      printd(QRO_LVL, "qore_object_private::setRSet() this: %p obj: %p (%s) rs: %p rcnt: %d\n", this, obj, obj->getClassName(), rs, rcnt);
-      if (rset) {
-         // invalidating the rset removes the weak references to all contained objects
-         rset->invalidate();
-         rset->deref();
-      }
-      rset = rs;
-      rcount = rcnt;
-      if (rs) {
-         rs->ref();
-         // we make a weak reference from the rset to the object to ensure that it does not disappear while the rset is valid
-         tRef();
-      }
-      // increment transaction count
-      ++rcycle;
-   }
+   DLLLOCAL unsigned getScanCount() const;
 
-   DLLLOCAL void invalidateRSet() {
-      assert(rml.checkRSectionExclusive());
-      // invalidating the rset removes the weak references to all contained objects
-      if (rset)
-         rset->invalidate();
-    }
-
-   DLLLOCAL void removeInvalidateRSet() {
-      assert(rml.checkRSectionExclusive());
-      if (rset) {
-         // invalidating the rset removes the weak references to all contained objects
-         rset->invalidate();
-         rset->deref();
-         rset = 0;
-         rcount = 0;
-      }
-   }
-
-   DLLLOCAL unsigned getObjectCount();
-
-   DLLLOCAL void incObjectCount(int dt);
+   DLLLOCAL void incScanCount(int dt);
 
    DLLLOCAL AbstractPrivateData* getAndRemovePrivateData(qore_classid_t key, ExceptionSink* xsink) {
       QoreSafeVarRWWriteLocker sl(rml);
@@ -876,12 +583,12 @@ public:
       return obj->priv->lastKey(xsink);
    }
 
-   DLLLOCAL static unsigned getObjectCount(const QoreObject& o) {
-      return o.priv->getObjectCount();
+   DLLLOCAL static unsigned getScanCount(const QoreObject& o) {
+      return o.priv->getScanCount();
    }
 
-   DLLLOCAL static void incObjectCount(const QoreObject& o, int dt) {
-      o.priv->incObjectCount(dt);
+   DLLLOCAL static void incScanCount(const QoreObject& o, int dt) {
+      o.priv->incScanCount(dt);
    }
 };
 

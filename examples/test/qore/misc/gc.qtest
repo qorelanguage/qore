@@ -68,6 +68,21 @@ class GcClosureTest1 {
     }
 }
 
+class GcClosureTest2 {
+    public {
+        code inc;
+        code f;
+    }
+
+    constructor(code i) {
+        inc = i;
+    }
+
+    destructor() {
+        inc();
+    }
+}
+
 class DgcTest inherits QUnit::Test {
     constructor() : Test("GcTest", "1.0") {
 	addTestCase("GcTests", \gcTests());
@@ -238,7 +253,12 @@ class DgcTest inherits QUnit::Test {
         {
             GcClosureTest1 t1(inc);
         }
-
         assertEq(1, cnt);
+
+        {
+            GcClosureTest2 t2(inc);
+            t2.f = sub() {print(t2);};
+        }
+        assertEq(2, cnt);
     }
 }

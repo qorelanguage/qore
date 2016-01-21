@@ -36,6 +36,7 @@
 #include <qore/intern/qore_thread_intern.h>
 #include <qore/intern/QoreLValue.h>
 #include <qore/intern/RSection.h>
+#include <qore/intern/RSet.h>
 
 template <class T>
 class VarStackPointerHelper {
@@ -182,11 +183,13 @@ public:
    }
 };
 
-struct ClosureVarValue : public VarValueBase, public QoreReferenceCounter, public RSectionLock {
+struct ClosureVarValue : public VarValueBase, public RObject, public RSectionLock {
 public:
+   // reference count; access serialized with rlck from RObject
+   mutable int references;
    const QoreTypeInfo* typeInfo; // type restriction for lvalue
 
-   DLLLOCAL ClosureVarValue(const char* n_id, const QoreTypeInfo* varTypeInfo, QoreValue& nval) : VarValueBase(n_id, varTypeInfo), typeInfo(varTypeInfo) {
+   DLLLOCAL ClosureVarValue(const char* n_id, const QoreTypeInfo* varTypeInfo, QoreValue& nval) : VarValueBase(n_id, varTypeInfo), RObject(references), references(1), typeInfo(varTypeInfo) {
       //printd(5, "ClosureVarValue::ClosureVarValue() this: %p refs: 0 -> 1 val: %s\n", this, val.getTypeName());
 
       // try to set an optimized value type for the value holder if possible
@@ -197,18 +200,20 @@ public:
       discard(val.assignAssumeInitial(nval), 0);
    }
 
-#if 0
-   DLLLOCAL ~ClosureVarValue() {
+   DLLLOCAL virtual ~ClosureVarValue() {
       //printd(5, "ClosureVarValue::~ClosureVarValue() this: %p\n", this);
    }
-#endif
 
-   DLLLOCAL void ref() const {
-      //printd(5, "ClosureVarValue::ref() this: %p refs: %d -> %d val: %s\n", this, references, references + 1, val.getTypeName());
-      ROreference();
-   }
+   DLLLOCAL void ref() const;
 
    DLLLOCAL void deref(ExceptionSink* xsink);
+
+   // returns true if the value could contain an object or a closure
+   DLLLOCAL virtual bool needsScan() const {
+      return typeInfo->needsScan();
+   }
+
+   DLLLOCAL virtual bool scanMembers(RSetHelper& rsh);
 
    DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove) const;
    DLLLOCAL void remove(LValueRemoveHelper& lvrh);
@@ -234,6 +239,16 @@ public:
       }
 
       return val.getReferencedValue();
+   }
+
+   // deletes the object itself
+   DLLLOCAL virtual void deleteObject() {
+      delete this;
+   }
+
+   // returns the name of the object
+   DLLLOCAL virtual const char* getName() const {
+      return id;
    }
 };
 
@@ -325,6 +340,11 @@ public:
       return val->evalValue(needs_deref, xsink);
    }
 
+   // returns true if the value could contain an object or a closure
+   DLLLOCAL bool needsScan() const {
+      return typeInfo->needsScan();
+   }
+
    DLLLOCAL const char* getName() const {
       return name.c_str();
    }
@@ -343,11 +363,6 @@ public:
 
    DLLLOCAL bool isRef() const {
       return !closure_use ? get_var()->isRef() : thread_find_closure_var(name.c_str())->isRef();
-   }
-
-   // returns true if the value could contain an object or a closure
-   DLLLOCAL bool needsScan() const {
-      return typeInfo->needsScan();
    }
 
    DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove) const {

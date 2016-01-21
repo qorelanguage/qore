@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -61,19 +61,19 @@ struct qore_list_private {
 	 free(entry);
    }
 
-   DLLLOCAL void incObjectCount(int dt) {
+   DLLLOCAL void incScanCount(int dt) {
       assert(dt);
       assert(obj_count || (dt > 0));
-      //printd(5, "qore_list_private::incObjectCount() this: %p dt: %d: %d -> %d\n", this, dt, obj_count, obj_count + dt);
+      //printd(5, "qore_list_private::incScanCount() this: %p dt: %d: %d -> %d\n", this, dt, obj_count, obj_count + dt);
       obj_count += dt;
    }
 
-   DLLLOCAL static unsigned getObjectCount(const QoreListNode& l) {
+   DLLLOCAL static unsigned getScanCount(const QoreListNode& l) {
       return l.priv->obj_count;
    }
 
-   DLLLOCAL static void incObjectCount(const QoreListNode& l, int dt) {
-      l.priv->incObjectCount(dt);
+   DLLLOCAL static void incScanCount(const QoreListNode& l, int dt) {
+      l.priv->incScanCount(dt);
    }
 };
 

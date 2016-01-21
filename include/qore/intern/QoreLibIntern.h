@@ -138,9 +138,8 @@ DLLLOCAL inline bool qore_check_this(const void* p) {
    return p;
 }
 
-DLLLOCAL bool is_container(const AbstractQoreNode* n);
-// returns true if the container has objects or false if not
-DLLLOCAL bool get_container_obj(const AbstractQoreNode* n);
+// returns true if the node needs to be scanned for recursive references or not
+DLLLOCAL bool needs_scan(const AbstractQoreNode* n);
 // increments or decrements the object count depending on the sign of the argument (cannot be 0)
 DLLLOCAL void inc_container_obj(const AbstractQoreNode* n, int dt);
 
