@@ -153,6 +153,8 @@ $function$
     @section pgsql_relnotes Release Notes
 
     @subsection pgsqlsqlutilv11 PgsqlSqlUtil v1.1
+    - added support for the following datatypes and aliases: bool, float, int, timetz, timestamptz, varbit
+    - fixed support for the following datatypes and aliases: bit, bit varying, char, character, character varying, oid, varchar
     - fixed bugs handling "bigint" and "double precision" column types with schema alignments
     - fixed a bug with PgsqlTable::tryInsertImpl(); added an explicit "begin" call to make the savepoint work with PostgreSQL 9.3+ servers
     - fixed a bug retrieving foreign constraints; columns were not guaranteed to be returned in declaration order
@@ -366,7 +368,9 @@ public namespace PgsqlSqlUtil {
         string getNativeTypeString() {
             string sql = native_type;
             switch (native_type) {
+                case =~ /^timestamptz/: return splice sql, 11, 0, "(" + string(size) + ")";
                 case =~ /^timestamp/: return splice sql, 9, 0, "(" + string(size) + ")";
+                case =~ /^timetz/: return splice sql, 6, 0, "(" + string(size) + ")";
                 case =~ /^time/: return splice sql, 4, 0, "(" + string(size) + ")";
             }
             if (size)
@@ -638,7 +642,7 @@ my any $v = $c.name;
 
         #! returns a string that can be used to rename the constraint
         softlist getRenameSql(string table_name, string new_name) {
-            # the following is only valid with postgresql 9.2+
+            # the following is only valid with PostgreSQL 9.2+
             #return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
             return sprintf("alter index %s rename to %s", name, new_name);
         }
@@ -809,7 +813,7 @@ my any $v = $c.name;
 
             string src = foldl $1 + ", " + $2, (map sprintf("%s %s", $1.attname, $1.typedef), qh.contextIterator());
 
-            # replace common type names with verbose type names as stored in postgresql
+            # replace common type names with verbose type names as stored in PostgreSQL
             foreach hash h in (PgsqlTable::PgsqlNameMap.pairIterator()) {
                 src = replace(src, h.key, h.value);
             }
@@ -907,7 +911,7 @@ my any $v = $c.name;
                 string nc = name;
                 *string args = PgsqlDatabase::getFunctionArgs("FUNCTION-ERROR", \nc);
                 nc = name.substr(0, name.find('('));
-                # replace common type names with verbose type names as stored in postgresql
+                # replace common type names with verbose type names as stored in PostgreSQL
                 if (args) {
                     foreach hash h in (PgsqlTable::PgsqlNameMap.pairIterator()) {
                         args = regex_subst(args, " " + h.value + "(,|$)", " " + h.key + "$1", RE_Caseless|RE_Global);
@@ -1207,55 +1211,63 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
     #! provides the PostgreSQL-specific implementation of the SqlUtil::AbstractTable interface
     public class PgsqlTable inherits SqlUtil::AbstractTable {
         public {
-            #! maps postgresql type names to type configurations
+            #! maps PostgreSQL type names to type configurations
             const PgsqlTypeMap = (
-                "numeric": ("qore": Type::Number, "size": SZ_NUM,),
-                "decimal": ("qore": Type::Number, "size": SZ_NUM,),
-                "money": ("qore": Type::Number,),
-                "smallint": ("qore": Type::Int,),
-                "integer": ("qore": Type::Int,),
-                "bigint": ("qore": Type::Int,),
-                "smallserial": ("qore": Type::Int,),
-                "serial": ("qore": Type::Int,),
-                "bigserial": ("qore": Type::Int,),
-                "real": ("qore": Type::Float,),
-                "double precision": ("qore": Type::Float,),
-                "oid": ("qore": Type::Number,),
-                "character": ("qore": Type::String, "size": SZ_MAND,),
-                "char": ("qore": Type::String, "size": SZ_MAND,),
-                "character varying": ("qore": Type::String, "size": SZ_MAND,),
-                "varchar": ("qore": Type::String, "size": SZ_MAND,),
-                "date": ("qore": Type::Date,),
-                "timestamp without time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
-                "timestamp": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
-                "timestamp with time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
-                "time without time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
-                "time": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
-                "time with time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
-                "interval": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
                 "abstime": ("qore": Type::Date,),
-                "reltime": ("qore": Type::Date,),
-                "text": ("qore": Type::String,),
-                "bytea": ("qore": Type::Binary,),
-                "bit": ("qore": Type::Binary,),
-                "bit varying": ("qore": Type::Binary,),
-                "varbit": ("qore": Type::Binary,),
+                "bigint": ("qore": Type::Int,),
+                "bigserial": ("qore": Type::Int,),
+                "bit": ("qore": Type::Binary, "size": SZ_OPT,),
+                "bit varying": ("qore": Type::Binary, "size": SZ_OPT,),
+                "bool": ("qore": Type::Boolean,),
                 "boolean": ("qore": Type::Boolean,),
-                "macaddr": ("qore": Type::String,),
-                "inet": ("qore": Type::String,),
+                "bytea": ("qore": Type::Binary,),
+                "char": ("qore": Type::String, "size": SZ_OPT,),
+                "character": ("qore": Type::String, "size": SZ_OPT,),
+                "character varying": ("qore": Type::String, "size": SZ_OPT,),
                 "cidr": ("qore": Type::String,),
+                "date": ("qore": Type::Date,),
+                "decimal": ("qore": Type::Number, "size": SZ_NUM,),
+                "double precision": ("qore": Type::Float,),
+                "float": ("qore": Type::Float,),
+                "inet": ("qore": Type::String,),
+                "int": ("qore": Type::Int,),
+                "integer": ("qore": Type::Int,),
+                "interval": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
+                "macaddr": ("qore": Type::String,),
+                "money": ("qore": Type::Number,),
+                "numeric": ("qore": Type::Number, "size": SZ_NUM,),
+                "oid": ("qore": Type::Int,),
+                "real": ("qore": Type::Float,),
+                "reltime": ("qore": Type::Date,),
+                "serial": ("qore": Type::Int,),
+                "smallint": ("qore": Type::Int,),
+                "smallserial": ("qore": Type::Int,),
+                "text": ("qore": Type::String,),
+                "time": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
+                "time with time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
+                "time without time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
+                "timetz": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
+                "timestamp": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
+                "timestamp with time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
+                "timestamp without time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
+                "timestamptz": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
+                "varbit": ("qore": Type::Binary, "size": SZ_OPT,),
+                "varchar": ("qore": Type::String, "size": SZ_OPT,),
                 );
 
             #! maps from verbose type names to simple type names
             const PgsqlNameMap = (
-                "character varying": "varchar",
+                "bit varying": "varbit",
                 "character": "char",
-                "timestamp without time zone": "timestamp",
-                "time without time zone": "time",
+                "character varying": "varchar",
                 "double precision": "float",
+                "time with time zone": "timetz",
+                "time without time zone": "time",
+                "timestamp with time zone": "timestamptz",
+                "timestamp without time zone": "timestamp",
                 );
 
-            #! maps qore type names to postgresql type names
+            #! maps qore type names to PostgreSQL type names
             const QoreTypeMap = (
                 "integer": "bigint",
                 "float": "double precision",

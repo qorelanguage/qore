@@ -6,7 +6,7 @@
 *.trs
 .nfs*
 *~
-*.swp
+*.sw?
 
 # Automake & friends
 .deps
