@@ -640,7 +640,7 @@ my any $v = $c.name;
 
         #! returns a string that can be used to rename the constraint
         softlist getRenameSql(string table_name, string new_name) {
-            # the following is only valid with postgresql 9.2+
+            # the following is only valid with PostgreSQL 9.2+
             #return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
             return sprintf("alter index %s rename to %s", name, new_name);
         }
@@ -811,7 +811,7 @@ my any $v = $c.name;
 
             string src = foldl $1 + ", " + $2, (map sprintf("%s %s", $1.attname, $1.typedef), qh.contextIterator());
 
-            # replace common type names with verbose type names as stored in postgresql
+            # replace common type names with verbose type names as stored in PostgreSQL
             foreach hash h in (PgsqlTable::PgsqlNameMap.pairIterator()) {
                 src = replace(src, h.key, h.value);
             }
@@ -909,7 +909,7 @@ my any $v = $c.name;
                 string nc = name;
                 *string args = PgsqlDatabase::getFunctionArgs("FUNCTION-ERROR", \nc);
                 nc = name.substr(0, name.find('('));
-                # replace common type names with verbose type names as stored in postgresql
+                # replace common type names with verbose type names as stored in PostgreSQL
                 if (args) {
                     foreach hash h in (PgsqlTable::PgsqlNameMap.pairIterator()) {
                         args = regex_subst(args, " " + h.value + "(,|$)", " " + h.key + "$1", RE_Caseless|RE_Global);
@@ -1209,7 +1209,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
     #! provides the PostgreSQL-specific implementation of the SqlUtil::AbstractTable interface
     public class PgsqlTable inherits SqlUtil::AbstractTable {
         public {
-            #! maps postgresql type names to type configurations
+            #! maps PostgreSQL type names to type configurations
             const PgsqlTypeMap = (
                 "abstime": ("qore": Type::Date,),
                 "bigint": ("qore": Type::Int,),
@@ -1265,7 +1265,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 "timestamp without time zone": "timestamp",
                 );
 
-            #! maps qore type names to postgresql type names
+            #! maps qore type names to PostgreSQL type names
             const QoreTypeMap = (
                 "integer": "bigint",
                 "float": "double precision",
