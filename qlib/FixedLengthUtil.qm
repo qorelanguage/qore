@@ -847,6 +847,8 @@ public class FixedLengthUtil::FixedLengthFileWriter inherits FixedLengthUtil::Fi
         @param opts Global options; see @ref fixedlengthglobals for valid values
     */
     constructor(string file_name, hash specs, *hash opts) : FixedLengthUtil::FixedLengthAbstractWriter(specs, opts)  {
+        if (opts.encoding)
+            m_file.setEncoding(opts.encoding);
         file = file_name;
         m_opts.eol = m_opts.eol ?? "\n";
         m_file.open2(file, O_WRONLY | O_CREAT | m_opts.file_flags);
