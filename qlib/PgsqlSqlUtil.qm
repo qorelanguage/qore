@@ -153,6 +153,8 @@ $function$
     @section pgsql_relnotes Release Notes
 
     @subsection pgsqlsqlutilv11 PgsqlSqlUtil v1.1
+    - added support for the following datatypes and aliases: bool, float, int, timetz, timestamptz, varbit
+    - fixed support for the following datatypes and aliases: bit, bit varying, char, character, character varying, oid, varchar
     - fixed bugs handling "bigint" and "double precision" column types with schema alignments
     - fixed a bug with PgsqlTable::tryInsertImpl(); added an explicit "begin" call to make the savepoint work with PostgreSQL 9.3+ servers
     - fixed a bug retrieving foreign constraints; columns were not guaranteed to be returned in declaration order
