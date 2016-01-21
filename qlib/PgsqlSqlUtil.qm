@@ -366,7 +366,9 @@ public namespace PgsqlSqlUtil {
         string getNativeTypeString() {
             string sql = native_type;
             switch (native_type) {
+                case =~ /^timestamptz/: return splice sql, 11, 0, "(" + string(size) + ")";
                 case =~ /^timestamp/: return splice sql, 9, 0, "(" + string(size) + ")";
+                case =~ /^timetz/: return splice sql, 6, 0, "(" + string(size) + ")";
                 case =~ /^time/: return splice sql, 4, 0, "(" + string(size) + ")";
             }
             if (size)
@@ -1242,9 +1244,11 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 "time": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
                 "time with time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
                 "time without time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
+                "timetz": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
                 "timestamp": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
                 "timestamp with time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
                 "timestamp without time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
+                "timestamptz": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
                 "varbit": ("qore": Type::Binary, "size": SZ_OPT,),
                 "varchar": ("qore": Type::String, "size": SZ_OPT,),
                 );
@@ -1255,7 +1259,9 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 "character": "char",
                 "character varying": "varchar",
                 "double precision": "float",
+                "time with time zone": "timetz",
                 "time without time zone": "time",
+                "timestamp with time zone": "timestamptz",
                 "timestamp without time zone": "timestamp",
                 );
 

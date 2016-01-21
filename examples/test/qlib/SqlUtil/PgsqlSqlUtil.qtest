@@ -132,8 +132,10 @@ class PgsqlTest inherits SqlTestBase {
             "interval": 6M + 3D + 2h + 45m + 15s,
             "time": 09:26:52,
             "time with time zone": 09:27:03-06,
+            "timetz": 09:27:03-06,
             "timestamp": 2016-01-11T09:27:59,
             "timestamp with time zone": 2016-01-11T09:28:12.384629+03,
+            "timestamptz": 2016-01-11T09:28:12.384629+03,
 
             /*
             "money": (
