@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1679,6 +1679,13 @@ void QoreProgramLocation::toString(QoreString& str) const {
 
    if (source)
       str.sprintf(" (source \"%s\":%d)", source, start_line + offset);
+}
+
+void LVarSet::add(LocalVar* var) {
+   if (!needs_scan && var->needsScan())
+      needs_scan = true;
+   // insert var into the set
+   insert(var);
 }
 
 bool q_parse_bool(const AbstractQoreNode* n) {

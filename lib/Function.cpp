@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1731,7 +1731,7 @@ void UserClosureVariant::parseInit(QoreFunction* f) {
    // resolve and push current return type on stack
    ParseCodeInfoHelper rtih(f->getName(), signature.getReturnTypeInfo());
 
-   statements->parseInitClosure(this, cf->getClassType(), cf->getVList());
+   statements->parseInitClosure(this, cf);
 
    // only one variant is possible, no need to recheck types
 }
