@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,6 +31,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/qore_list_private.h>
 #include <qore/intern/QoreHashNodeIntern.h>
+#include <qore/intern/QoreClosureNode.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -626,27 +627,16 @@ AbstractQoreNode* UniqueValueQoreNode::realCopy() const {
    return const_cast<UniqueValueQoreNode*>(this);
 }
 
-bool is_container(const AbstractQoreNode* n) {
-   switch (get_node_type(n)) {
-      case NT_OBJECT:
-      case NT_LIST:
-      case NT_HASH:
-	 return true;
-      case NT_VALUE_LIST:
-	 assert(false);
-   }
-   return false;
-}
-
-bool get_container_obj(const AbstractQoreNode* n) {
+bool needs_scan(const AbstractQoreNode* n) {
    if (!n)
       return false;
 
    switch (n->getType()) {
-      case NT_LIST: return qore_list_private::getObjectCount(*static_cast<const QoreListNode*>(n)) ? true : false;
-      case NT_HASH: return qore_hash_private::getObjectCount(*static_cast<const QoreHashNode*>(n)) ? true : false;
+      case NT_LIST: return qore_list_private::getScanCount(*static_cast<const QoreListNode*>(n)) ? true : false;
+      case NT_HASH: return qore_hash_private::getScanCount(*static_cast<const QoreHashNode*>(n)) ? true : false;
       case NT_OBJECT: return true;
-      case NT_VALUE_LIST: assert(false); return qore_value_list_private::getObjectCount(*static_cast<const QoreValueList*>(n)) ? true : false;
+      case NT_VALUE_LIST: assert(false); return qore_value_list_private::getScanCount(*static_cast<const QoreValueList*>(n)) ? true : false;
+      case NT_RUNTIME_CLOSURE: return static_cast<const QoreClosureBase*>(n)->needsScan();
    }
 
    return false;
@@ -655,10 +645,10 @@ bool get_container_obj(const AbstractQoreNode* n) {
 void inc_container_obj(const AbstractQoreNode* n, int dt) {
    assert(n);
    switch (n->getType()) {
-      case NT_LIST: qore_list_private::incObjectCount(*static_cast<const QoreListNode*>(n), dt); break;
-      case NT_HASH: qore_hash_private::incObjectCount(*static_cast<const QoreHashNode*>(n), dt); break;
-      case NT_OBJECT: qore_object_private::incObjectCount(*static_cast<const QoreObject*>(n), dt); break;
-      case NT_VALUE_LIST: assert(false); qore_value_list_private::incObjectCount(*static_cast<const QoreValueList*>(n), dt); break;
+      case NT_LIST: qore_list_private::incScanCount(*static_cast<const QoreListNode*>(n), dt); break;
+      case NT_HASH: qore_hash_private::incScanCount(*static_cast<const QoreHashNode*>(n), dt); break;
+      case NT_OBJECT: qore_object_private::incScanCount(*static_cast<const QoreObject*>(n), dt); break;
+      case NT_VALUE_LIST: assert(false); qore_value_list_private::incScanCount(*static_cast<const QoreValueList*>(n), dt); break;
       default: assert(false);
    }
 }

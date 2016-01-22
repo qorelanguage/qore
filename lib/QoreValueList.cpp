@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -281,8 +281,8 @@ void QoreValueList::merge(const QoreValueList* list) {
    for (size_t i = 0; i < list->priv->length; i++) {
       QoreValue p = list->priv->entry[i];
       priv->entry[start + i] = p.refSelf();
-      if (p.hasNode() && get_container_obj(p.getInternalNode()))
-	 priv->incObjectCount(1);
+      if (p.hasNode() && needs_scan(p.getInternalNode()))
+	 priv->incScanCount(1);
    }
 }
 
@@ -292,8 +292,8 @@ void QoreValueList::insert(QoreValue val) {
    if (priv->length - 1)
       memmove(priv->entry + 1, priv->entry, sizeof(QoreValue) * (priv->length - 1));
    priv->entry[0] = val;
-   if (val.hasNode() && get_container_obj(val.getInternalNode()))
-      priv->incObjectCount(1);
+   if (val.hasNode() && needs_scan(val.getInternalNode()))
+      priv->incScanCount(1);
 }
 
 QoreValue QoreValueList::shift() {
@@ -306,8 +306,8 @@ QoreValue QoreValueList::shift() {
    priv->entry[pos] = QoreValue();
    priv->resize(pos);
 
-   if (rv.hasNode() && get_container_obj(rv.getInternalNode()))
-      priv->incObjectCount(-1);
+   if (rv.hasNode() && needs_scan(rv.getInternalNode()))
+      priv->incScanCount(-1);
 
    return rv;
 }
@@ -321,8 +321,8 @@ QoreValue QoreValueList::pop() {
    priv->entry[pos] = QoreValue();
    priv->resize(pos);
 
-   if (rv.hasNode() && get_container_obj(rv.getInternalNode()))
-      priv->incObjectCount(-1);
+   if (rv.hasNode() && needs_scan(rv.getInternalNode()))
+      priv->incScanCount(-1);
 
    return rv;
 }

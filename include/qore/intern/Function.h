@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1085,7 +1085,7 @@ public:
 
 class UserClosureFunction : public QoreFunction {
 protected:
-   lvar_set_t varlist;  // closure local variable environment
+   LVarSet varlist;  // closure local variable environment
    const QoreTypeInfo* classTypeInfo;
 
 public:
@@ -1107,8 +1107,13 @@ public:
       return classTypeInfo;
    }
 
-   DLLLOCAL lvar_set_t* getVList() {
+   DLLLOCAL LVarSet* getVList() {
       return &varlist;
+   }
+
+   // returns true if at least one variable in the set of closure-bound local variables could contain an object or a closure (also through a container)
+   DLLLOCAL bool needsScan() const {
+      return varlist.needsScan();
    }
 };
 

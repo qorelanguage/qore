@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -907,13 +907,13 @@ int qore_class_private::initMembers(QoreObject& o, bool& need_scan, ExceptionSin
 	       return -1;
 	    *v = nv;
 	    val.release();
-	    if (get_container_obj(nv)) {
-	       qore_object_private::incObjectCount(o, 1);
+	    if (needs_scan(nv)) {
+	       qore_object_private::incScanCount(o, 1);
 	       if (!need_scan)
 		  need_scan = true;
 	    }
 
-	    //printd(5, "qore_class_private::initMembers() '%s' obj: %d\n", i->first, get_container_obj(nv));
+	    //printd(5, "qore_class_private::initMembers() '%s' obj: %d\n", i->first, needs_scan(nv));
 	 }
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
 	 else

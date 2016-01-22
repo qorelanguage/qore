@@ -3,7 +3,7 @@
 
   Qore programming language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -159,20 +159,20 @@ void Var::deref(ExceptionSink* xsink) {
    }
 }
 
-ObjCountRec::ObjCountRec(const QoreListNode* c) : con(c), before((bool)qore_list_private::getObjectCount(*c)) {
-   //printd(5, "ObjCountRec::ObjCountRec() list %p count: %d\n", c, qore_list_private::getObjectCount(*c));
+ObjCountRec::ObjCountRec(const QoreListNode* c) : con(c), before((bool)qore_list_private::getScanCount(*c)) {
+   //printd(5, "ObjCountRec::ObjCountRec() list %p count: %d\n", c, qore_list_private::getScanCount(*c));
 }
 
-ObjCountRec::ObjCountRec(const QoreHashNode* c) : con(c), before((bool)qore_hash_private::getObjectCount(*c)) {
-   //printd(5, "ObjCountRec::ObjCountRec() hash %p count: %d\n", c, qore_hash_private::getObjectCount(*c));
+ObjCountRec::ObjCountRec(const QoreHashNode* c) : con(c), before((bool)qore_hash_private::getScanCount(*c)) {
+   //printd(5, "ObjCountRec::ObjCountRec() hash %p count: %d\n", c, qore_hash_private::getScanCount(*c));
 }
 
-ObjCountRec::ObjCountRec(const QoreObject* c) : con(c), before((bool)qore_object_private::getObjectCount(*c)) {
-   //printd(5, "ObjCountRec::ObjCountRec() object %p count: %d\n", c, qore_object_private::getObjectCount(*c));
+ObjCountRec::ObjCountRec(const QoreObject* c) : con(c), before((bool)qore_object_private::getScanCount(*c)) {
+   //printd(5, "ObjCountRec::ObjCountRec() object %p count: %d\n", c, qore_object_private::getScanCount(*c));
 }
 
 int ObjCountRec::getDifference() {
-   bool after = get_container_obj(con);
+   bool after = needs_scan(con);
    if (after)
       return !before ? 1 : 0;
    return before ? -1 : 0;
@@ -191,7 +191,7 @@ LValueHelper::LValueHelper(const AbstractQoreNode* exp, ExceptionSink* xsink, bo
 }
 
 // this constructor function is used to scan objects after initialization
-LValueHelper::LValueHelper(QoreObject& self, ExceptionSink* xsink) : vl(xsink), v(0), lvid_set(0), before(true), rdt(0), robj(&self), val(0), typeInfo(0) {
+LValueHelper::LValueHelper(QoreObject& self, ExceptionSink* xsink) : vl(xsink), v(0), lvid_set(0), before(true), rdt(0), robj(qore_object_private::get(self)), val(0), typeInfo(0) {
    ocvec.push_back(ObjCountRec(&self));
 }
 
@@ -210,7 +210,7 @@ LValueHelper::~LValueHelper() {
 	       inc_container_obj(ocvec[ocvec.size() - 1].con, rdt);
 	    }
 	    else {
-	       bool after = get_container_obj(*v);
+	       bool after = needs_scan(*v);
 	       if (before) {
 		  // we have to assume that the objects have changed when before and after = true
 		  if (!obj_chg)
@@ -232,12 +232,12 @@ LValueHelper::~LValueHelper() {
 	       if (dt)
 		  inc_container_obj(ocvec[i].con, dt);
 
-	       //printd(5, "LValueHelper::~LValueHelper() %s %p has obj: %d\n", get_type_name(ocvec[i].con), ocvec[i].con, (int)get_container_obj(ocvec[i].con));
+	       //printd(5, "LValueHelper::~LValueHelper() %s %p has obj: %d\n", get_type_name(ocvec[i].con), ocvec[i].con, (int)needs_scan(ocvec[i].con));
 	    }
 	 }
       }
 
-      if (!obj_chg && (val ? val->isObjectContainer() : get_container_obj(*v)))
+      if (!obj_chg && (val ? val->needsScan() : needs_scan(*v)))
 	 obj_chg = true;
       if (robj) {
 	 robj->tRef();
@@ -259,7 +259,7 @@ LValueHelper::~LValueHelper() {
    if (robj) {
       // recalculate recursive references for objects if necessary
       if (obj_chg)
-	 ObjectRSetHelper rsh(*robj);
+	 RSetHelper rsh(*robj);
       if (obj_ref)
 	 robj->tDeref();
    }
@@ -396,7 +396,7 @@ int LValueHelper::doHashObjLValue(const QoreTreeNode* tree, bool for_remove) {
    if (*vl.xsink)
       return -1;
 
-   robj = o;
+   robj = qore_object_private::get(*o);
    ocvec.push_back(ObjCountRec(o));
 
    return 0;
@@ -438,7 +438,7 @@ int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
       if (qore_object_private::getLValue(*obj, v->str, *this, true, for_remove, vl.xsink))
          return -1;
 
-      robj = obj;
+      robj = qore_object_private::get(*obj);
       ocvec.push_back(ObjCountRec(obj));
    }
    else if (ntype == NT_CLASS_VARREF)
@@ -1138,7 +1138,7 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
       if (o)
 	 qore_object_private::takeMembers(*o, rv, lvh, l);
       else {
-	 unsigned old_count = qore_hash_private::getObjectCount(*h);
+	 unsigned old_count = qore_hash_private::getScanCount(*h);
 
 	 QoreHashNode* rvh = new QoreHashNode;
 	 rv.assignInitial(rvh);
@@ -1158,7 +1158,7 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
 	    assert(!*xsink);
 	 }
 
-	 if (old_count && !qore_hash_private::getObjectCount(*h))
+	 if (old_count && !qore_hash_private::getScanCount(*h))
 	    lvh.setDelta(-1);
       }
 
@@ -1174,8 +1174,8 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
       v = qore_object_private::takeMember(*o, lvh, mem->getBuffer());
    else {
       v = h->takeKeyValue(mem->getBuffer());
-      if (get_container_obj(v)) {
-	 if (!qore_hash_private::getObjectCount(*h))
+      if (needs_scan(v)) {
+	 if (!qore_hash_private::getScanCount(*h))
 	    lvh.setDelta(-1);
       }
    }
@@ -1209,6 +1209,9 @@ void LocalVarValue::remove(LValueRemoveHelper& lvrh, const QoreTypeInfo* typeInf
 int ClosureVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
    //printd(5, "ClosureVarValue::getLValue() this: %p type: '%s' %d\n", this, val.getTypeName(), val.getType());
 
+   if (typeInfo->needsScan())
+      lvh.setClosure(const_cast<ClosureVarValue*>(this));
+
    QoreSafeVarRWWriteLocker sl(const_cast<ClosureVarValue*>(this));
    if (val.getType() == NT_REFERENCE) {
       ReferenceHolder<ReferenceNode> ref(reinterpret_cast<ReferenceNode*>(val.v.n->refSelf()), lvh.vl.xsink);
@@ -1238,6 +1241,7 @@ void ClosureVarValue::remove(LValueRemoveHelper& lvrh) {
    lvrh.doRemove((QoreLValueGeneric&)val, typeInfo);
 }
 
+/*
 static bool check_closure_loop_closure(ClosureVarValue* cvv, const QoreClosureBase* c) {
    //printd(5, "check_closure_loop_closure() c: %p cvv: %p rv: %d\n", c, cvv, c->hasVar(cvv));
    return c->hasVar(cvv);
@@ -1263,39 +1267,68 @@ static bool check_closure_loop(ClosureVarValue* cvv, const AbstractQoreNode* n) 
    }
    return false;
 }
+*/
+
+void ClosureVarValue::ref() const {
+   AutoLocker al(rlck);
+   //printd(5, "ClosureVarValue::ref() this: %p refs: %d -> %d val: %s\n", this, references, references + 1, val.getTypeName());
+   ++references;
+}
 
 void ClosureVarValue::deref(ExceptionSink* xsink) {
-   //printd(5, "ClosureVarValue::deref() this: %p refs: %d -> %d val: %s\n", this, references, references - 1, val.getTypeName());
-   if (reference_count() == 2) {
-      // process recursive closure vars embedded in the current closure
-      QoreSafeVarRWReadLocker sl(this);
-      if (val.assigned && val.type == QV_Node && val.v.n) {
-	 ReferenceHolder<> holder(xsink);
-	 bool rdel = false;
-	 switch (val.v.n->getType()) {
-	    case NT_RUNTIME_CLOSURE:
-	       rdel = check_closure_loop_closure(this, reinterpret_cast<const QoreClosureBase*>(val.v.n));
-	       sl.unlock();
-	       break;
-	    case NT_LIST:
-	    case NT_HASH:
-	       holder = val.v.n->refSelf();
-	       sl.unlock();
-	       rdel = check_closure_loop(this, *holder);
-	       break;
-	    default:
-	       sl.unlock();
-	       break;
-	 }
-	 if (rdel) {
-	    printd(5, "ClosureVarValue::deref() this: %p found recursive reference; deleting value\n", this);
-	    del(xsink);
-	 }
-      }
+   bool do_del = false;
+
+   //printd(5, "ClosureVarValue::deref() this: %p refs: %d -> %d rcount: %d rset: %p val: %s\n", this, references, references - 1, rcount, rset, val.getTypeName());
+
+   int ref_copy;
+   {
+      AutoLocker al(rlck);
+      ref_copy = --references;
    }
 
-   if (ROdereference()) {
+   if (!ref_copy) {
       del(xsink);
+      {
+	 QoreAutoVarRWWriteLocker al(rml);
+	 removeInvalidateRSet();
+      }
+      //printd(5, "ClosureVarValue::deref() this: %p deleting\n", this);
       delete this;
+      return;
    }
+
+   while (true) {
+      if (ref_copy != rcount)
+	 break;
+      if (!rset) {
+	 //printd(5, "ClosureVarValue::deref() this: %p found recursive reference; deleting value\n", this);
+	 do_del = true;
+	 break;
+      }
+      int rc = rset->canDelete(ref_copy, rcount);
+      if (rc == 1) {
+	 //printd(5, "ClosureVarValue::deref() this: %p found recursive reference; deleting value\n", this);
+	 do_del = true;
+	 break;
+      }
+      if (!rc)
+	 break;
+      assert(rc == -1);
+      // need to recalculate references
+      RSetHelper rsh(*this);
+   }
+
+   if (do_del) {
+      // first invalidate the rset
+      {
+	 QoreAutoVarRWWriteLocker al(rml);
+	 removeInvalidateRSet();
+      }
+      // now delete the value which should cause the entire chain to be destroyed
+      del(xsink);
+   }
+}
+
+bool ClosureVarValue::scanMembers(RSetHelper& rsh) {
+   return scanCheck(rsh, val.getInternalNode());
 }

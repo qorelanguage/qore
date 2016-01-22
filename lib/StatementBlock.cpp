@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -460,11 +460,11 @@ void StatementBlock::parseInitConstructor(const QoreTypeInfo* typeInfo, UserVari
    parseInitImpl(qore_class_private::getSelfId(cls));
 }
 
-void StatementBlock::parseInitClosure(UserVariantBase* uvb, const QoreTypeInfo* classTypeInfo, lvar_set_t* vlist) {
+void StatementBlock::parseInitClosure(UserVariantBase* uvb, UserClosureFunction* cf) {
    QORE_TRACE("StatementBlock::parseInitClosure");
 
-   ClosureParseEnvironment cenv(vlist);
-   UserParamListLocalVarHelper ph(uvb, classTypeInfo);
+   ClosureParseEnvironment cenv(cf->getVList());
+   UserParamListLocalVarHelper ph(uvb, cf->getClassType());
 
    // initialize code block
    parseInitImpl(uvb->getUserSignature()->selfid);
