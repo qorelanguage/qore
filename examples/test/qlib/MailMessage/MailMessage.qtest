@@ -1,0 +1,59 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/MailMessage.qm
+
+%exec-class Main
+
+public class Main inherits QUnit::Test {
+
+    constructor() : Test("MapperTest", "1.0") {
+        addTestCase("Test serialzie()", \testSerialize(), NOTHING);
+
+        set_return_value(main());
+    }
+
+    testSerialize() {
+         string sender = "foo@bar.cz";
+         string subject = "foo bar";
+         string body = "some body";
+
+         Message msg(sender, subject);
+         msg.setBody(body);
+
+         msg.addTO("target@bar.cz");
+
+         msg.attach("foo.txt", "text/plain", "lorem ipsum", MailMessage::EncBase64);
+         string r = msg.serialize();
+
+         string refstr = "From: foo@bar.cz
+To: target@bar.cz
+Subject: foo bar
+MIME-Version: 1.0
+Content-Type: multipart/mixed;boundary=MjAxNjAxMjIxMTQ4MDg
+
+This is a MIME multipart message
+--MjAxNjAxMjIxMTQ4MDg
+Content-Type: text/plain;charset=UTF-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+some body
+--MjAxNjAxMjIxMTQ4MDg
+Content-Type: text/plain;charset=UTF-8
+Content-Disposition: attachment; filename=\"foo.txt\"
+Content-Transfer-Encoding: base64
+
+bG9yZW0gaXBzdW0=
+--MjAxNjAxMjIxMTQ4MDg--
+";
+         # line count checked becasue of generated boundary values
+         testAssertion("seialize", \equals(), (r.split("\n").size(), refstr.split("\n").size()));
+    }
+}

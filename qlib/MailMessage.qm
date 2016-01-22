@@ -1054,11 +1054,11 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
         }
 
         # will only be called internally when parsing a Message
-        constructor(string name, string mime, data data, string enc = EncDefault, *hash hdr) {
-            name = name;
-            mime = mime;
-            data = data;
-            enc = enc;
+        constructor(string filename, string mimetype, data filedata, string encoding = EncDefault, *hash hdr) {
+            name = filename;
+            mime = mimetype;
+            data = filedata;
+            enc = encoding;
             headers = hdr;
         }
         #! @endcond
