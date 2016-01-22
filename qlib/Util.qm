@@ -62,11 +62,13 @@ module Util {
     - @ref Util::get_exception_string()
     - @ref Util::get_marketing_byte_size()
     - @ref Util::get_random_string()
+    - @ref Util::lpad()
     - @ref Util::normalize_dir()
       - @ref Util::normalize_dir_unix()
       - @ref Util::normalize_dir_windows()
     - @ref Util::ordinal()
     - @ref Util::plural()
+    - @ref Util::rpad()
     - @ref Util::parse_to_qore_value()
     - @ref Util::slice()
     - @ref Util::same()
@@ -82,6 +84,8 @@ module Util {
       - @ref Qore::absolute_path()
       - @ref Qore::absolute_path_windows()
       - @ref Qore::absolute_path_unix()
+    - added Util::lpad()
+    - added Util::rpad()
     - added Util::ordinal()
     - added Util::plural()
     - added Util::slice()
@@ -712,6 +716,62 @@ unlink(testfile);
             throw "TMP-ERROR", sprintf("unable to find the location of the temporary directory; %y is not writable", dir);
 
         return realpath(dir);
+    }
+
+    #! Returns a string left-padded to a specified length with the specified characters.
+    /** Returns a string, left-padded to a specified length with the specified characters; or, when the string to be padded is longer than the length specified after padding, only that portion of the string that fits into the specified length.
+
+        @param  text input string that you want to pad
+        @param  length total length of output string (in characters)
+        @param  padding padding character(s); default value is a single blank
+        @return a string left-padded to the specified length
+
+        @par Example:
+        @code
+string s = lpad ("123", 5); # returns "  123"
+string s = lpad ("ABC", 9, "-"); # returns "------ABC"
+        @endcode
+
+        @since Util 1.2
+    */
+    public string sub lpad (softstring text, int length, string padding = ' ') {
+        int d = length - text.length();
+        if (d > 0) {
+            string p = strmul (padding, d / padding.length() + 1);
+            return p.substr(0, d) + text;
+        }
+        else if (d < 0)
+            return text.substr(-d);
+        else
+            return text;
+    }
+
+    #! Returns a string right-padded to a specified length with the specified characters.
+    /** Returns a string, right-padded to a specified length with the specified characters; or, when the string to be padded is longer than the length specified after padding, only that portion of the string that fits into the specified length.
+
+        @param  text input string that you want to pad
+        @param  length total length of output string (in characters)
+        @param  padding padding character(s); default value is a single blank
+        @return a string right-padded to the specified length
+
+        @par Example:
+        @code
+string s = rpad ("123", 5); # returns "123  "
+string s = rpad ("ABC", 9, "-"); # returns "ABC------"
+        @endcode
+
+        @since Util 1.2
+    */
+    public string sub rpad (softstring text, int length, string padding = ' ') {
+        int d = length - text.length();
+        if (d > 0) {
+            string p = strmul (padding, d / padding.length() + 1);
+            return text + p.substr(0, d);
+        }
+        else if (d < 0)
+            return text.substr(0, d);
+        else
+            return text;
     }
 
     #! Returns string with partially textual representation of ordinal integer value
